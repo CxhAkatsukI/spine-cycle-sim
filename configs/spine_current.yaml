@@ -1,0 +1,31 @@
+# Current split Spine evidence-oriented v0 model.
+#
+# This config follows the 2026-07-12 partition capacity evidence:
+# - MAX_SORT_N / batch size: 131072
+# - destination partitions: 16
+# - L0 capacity per partition: 131072
+# - L1 total capacity: 262144
+# - L1 capacity per destination partition: 16384
+
+num_partitions: 16
+target_freq_mhz: 150
+fifo_depth: 32
+max_cycles: 10000000
+
+edge_input_ii: 1
+router_ii: 1
+level0_accept_edges_per_cycle: 16
+
+batch_size_edges: 131072
+level0_capacity_per_partition: 131072
+level1_capacity_total: 262144
+level1_capacity_per_partition: 16384
+carry_merge_edges_per_cycle: 16
+
+hbm_latency_cycles: 200
+hbm_read_bw_edges_per_cycle: 16
+hbm_write_bw_edges_per_cycle: 16
+
+readmaintenance_vertex_scan_rate: 64
+sssp_pipeline_ii: 1
+sssp_edges_per_cycle: 1
