@@ -23,6 +23,11 @@ SUMMARY_FIELDS = [
     "memory_stall_cycles",
     "compute_stall_cycles",
     "sssp_iterations",
+    "tiny_active_iterations",
+    "hot_enabled",
+    "hot_edges",
+    "cold_edges",
+    "hot_vertex_count",
 ]
 
 

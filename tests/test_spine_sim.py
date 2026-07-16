@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import unittest
 
-from spine_cycle_sim.models import SpineConfig, SpineV0Simulator
+from spine_cycle_sim.models import SpineConfig, SpineV0Simulator, classify_hot_cold
+from spine_cycle_sim.workloads import Edge
 from spine_cycle_sim.workloads import generate_workload, list_workloads
 
 
@@ -17,8 +18,17 @@ class SpineSimulatorTests(unittest.TestCase):
             edges=edges,
             source=0,
             num_partitions=self.config.num_partitions,
+            vs_partition_size=self.config.vs_partition_size,
         )
         return SpineV0Simulator(wl, self.config).run()
+
+    def test_current_spine_capacity_constants(self) -> None:
+        self.assertEqual(self.config.num_levels, 11)
+        self.assertEqual(self.config.level_size_ratio, 2)
+        self.assertEqual(self.config.level_total_capacity(10), 134_217_728)
+        self.assertEqual(self.config.level_family_capacity(1), 16_384)
+        self.assertEqual(self.config.level_family_capacity(10), 8_388_608)
+        self.assertEqual(self.config.family_total_capacity, 16_891_904)
 
     def test_workload_list_contains_required_shapes(self) -> None:
         names = set(list_workloads())
@@ -44,21 +54,41 @@ class SpineSimulatorTests(unittest.TestCase):
             self.assertIn(field, result)
 
     def test_balanced_full_plus_one_fits_l1_partition_capacity(self) -> None:
-        result = self.run_case("balanced_partition", 262144, 131073)
+        result = self.run_case("balanced_partition", self.config.max_vertices, 131073)
         self.assertEqual(result["capacity_status"], "PASS")
         self.assertEqual(result["carry_count"], 1)
-        self.assertLessEqual(max(result["partition_load"]), self.config.level1_capacity_per_partition)
+        self.assertLessEqual(max(result["partition_load"]), self.config.level_family_capacity(1))
 
     def test_one_partition_full_plus_one_fails_l1_partition_capacity(self) -> None:
-        result = self.run_case("hotdst", 262144, 131073)
+        result = self.run_case("hotdst", self.config.max_vertices, 131073)
         self.assertEqual(result["capacity_status"], "FAIL")
-        self.assertEqual(result["capacity_failure"]["reason"], "level_partition_capacity")
+        self.assertEqual(result["capacity_failure"]["reason"], "level_family_capacity")
         self.assertEqual(result["capacity_failure"]["failure_level"], 1)
         self.assertEqual(result["capacity_failure"]["failure_partition"], 0)
         self.assertGreater(
             result["capacity_failure"]["failure_partition_edges"],
             result["capacity_failure"]["failure_partition_capacity"],
         )
+
+    def test_hot_cold_classifier_promotes_skewed_destinations(self) -> None:
+        config = SpineConfig(
+            max_vertices=128,
+            vs_partition_size=64,
+            num_partitions=2,
+            hot_shards=2,
+            batch_size_edges=8,
+            num_levels=4,
+            max_cycles=100000,
+        )
+        edges: list[Edge] = []
+        for dst in [0, 1, 2, 3]:
+            for i in range(20):
+                edges.append(Edge(src=i, dst=dst, weight=1))
+        classification = classify_hot_cold(edges, config)
+        self.assertFalse(classification.empty_hot_set)
+        self.assertGreater(classification.hot_edges, 0)
+        self.assertLessEqual(max(classification.cold_partition_edges), config.family_total_capacity)
+        self.assertLessEqual(max(classification.hot_shard_edges), config.family_total_capacity)
 
 
 if __name__ == "__main__":

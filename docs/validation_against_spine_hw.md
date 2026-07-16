@@ -1,11 +1,12 @@
 # Validation Against Spine HW Evidence
 
-This document records the first trend-validation target for the Spine v0 cycle
-simulator.
+This document records the trend-validation target for the Spine cycle
+simulator after updating it to the newest `origin/reduce-levels-for-routing`
+source.
 
 ## Evidence Used
 
-Spine real-hw evidence:
+Older split Spine real-hw evidence:
 
 ```text
 /home/chuxiao/grasu-regraph-integration/docs/spine_hw_evidence_2026-07-12.md
@@ -30,14 +31,34 @@ Important hardware artifact:
 sha256 69145517738cc1ffff95e91c24393260c346ac683db9eef2989bbc1bdb7a3469
 ```
 
+Newest source baseline inspected for this simulator update:
+
+```text
+/home/chuxiao/spine-dynamic-graph-reduce-levels
+origin/reduce-levels-for-routing
+commit cbd3ceb test: validate full-scale skewed RMAT storage
+```
+
+Newest raw RMAT hot/cold evidence:
+
+```text
+/home/chuxiao/spine-dynamic-graph-reduce-levels/openspec/changes/support-skewed-rmat-hot-cold-storage/validation.md
+/home/chuxiao/spine-dynamic-graph-reduce-levels/openspec/changes/support-skewed-rmat-hot-cold-storage/artifacts/validation_20260716/README.md
+```
+
 ## Hardware Facts Captured By The Model
 
 ```text
-HOST_PARTITIONED_RATIO2_MAX_SORT_N = 131072
-HOST_PARTITIONED_CSR_DST_PARTITIONS = 16
-L0 capacity per partition = 131072
-L1 total capacity = 262144
-L1 capacity per partition = 16384
+MAX_N = 16777216
+VS_PARTITION_SIZE = 1048576
+PARTITIONED_RATIO2_LEVELS = 11
+PARTITIONED_RATIO2_LEVEL_SIZE_RATIO = 2
+PARTITIONED_RATIO2_MAX_SORT_N = 131072
+PARTITIONED_CSR_DST_PARTITIONS = 16
+PARTITIONED_HOT_SHARDS = 16
+L1 capacity per family = 16384
+L10 capacity per family = 8388608
+family total capacity = 16891904
 ```
 
 The simulator default config is:
@@ -52,11 +73,12 @@ The first simulator version must reproduce these qualitative conclusions:
 
 | case | HW evidence | expected simulator trend |
 | --- | --- | --- |
-| `small_chain_v64` | Spine wins versus GraSU+ReGraph on tiny high-diameter chain | PASS with low storage pressure |
-| `small_star/spread/hotdst` | valid FITS comparison cases, but Spine is slower than GraSU+ReGraph | PASS, with concentrated partition pressure visible |
-| balanced `131072+1` | split edge-file balanced probe passes | PASS, L1 max partition load around 8193 |
-| one-partition `131072+1` | split edge-file one-partition probe fails | FAIL with `level_partition_capacity` at L1 partition 0 |
-| large low-diameter concentrated cases | current Spine layout unsupported | FAIL once L1 partition capacity is exceeded |
+| `small_chain_v64` | high-diameter work should appear as many SSSP iterations | PASS with low storage pressure |
+| `small_star/spread/hotdst` | small low-diameter updates should fit, but pressure should concentrate in one cold family | PASS with concentrated family pressure visible |
+| balanced `131072+1` | balanced split edge-file carry passes | PASS, L1 max family load around 8193 |
+| one-family `131072+1` | concentrated incremental update exceeds the L1 binary target | FAIL with `level_family_capacity` at L1 family 0 |
+| large low-diameter concentrated incremental updates | current low-level binary carry cannot absorb one-family 262144-edge update | FAIL once L1 family capacity is exceeded |
+| raw RMAT-24-9 preload | newest branch stores raw skewed graph via hot/cold family split | model records hot/cold classifier; exact 150,994,944-edge run is taken from HW evidence, not expanded in Python |
 
 ## Reproduction
 
@@ -73,17 +95,17 @@ The current v0 suite result is:
 
 | case | status | cycles | carry | HBM req | SSSP iters | interpretation |
 | --- | --- | ---: | ---: | ---: | ---: | --- |
-| `small_chain_v64` | PASS | 543 | 0 | 32 | 64 | High-diameter behavior appears as many SSSP iterations. |
-| `small_star_v4096_u1024` | PASS | 2654 | 0 | 2 | 2 | Low-diameter, concentrated partition pressure is visible without capacity failure at this size. |
-| `small_spread_v4096_u1024` | PASS | 1694 | 0 | 2 | 2 | Low-diameter one-partition distribution remains a pressure case. |
-| `small_hotdst_v4096_u1024` | PASS | 1630 | 0 | 2 | 1 | Hot destination has low SSSP propagation cost but concentrated storage pressure. |
-| `balanced_full_plus_one` | PASS | 144802 | 1 | 48 | 1 | Reproduces the balanced `131072+1` carry pass. |
-| `one_partition_full_plus_one` | FAIL | 131079 | 1 | 1 | 0 | Reproduces L1 partition capacity failure. |
-| `large_chain_v4096` | PASS | 8700 | 0 | 32 | 4096 | Large high-diameter behavior appears as many SSSP iterations. |
-| `large_star_v1048576_u65536` | FAIL | 262149 | 1 | 1 | 0 | Reproduces concentrated large low-diameter L1 partition capacity failure. |
-| `large_spread_v262144_u65536` | FAIL | 262149 | 1 | 1 | 0 | Reproduces concentrated large low-diameter L1 partition capacity failure. |
-| `large_hotdst_v262144_u65536` | FAIL | 262149 | 1 | 1 | 0 | Reproduces concentrated large low-diameter L1 partition capacity failure. |
-| `random_rmat_small` | PASS | 8132 | 0 | 32 | 7 | Skewed random workload provides a small nonuniform sanity case. |
+| `small_chain_v64` | PASS | 549 | 0 | 2 | 64 | High-diameter behavior appears as many SSSP iterations. |
+| `small_star_v4096_u1024` | PASS | 264734 | 0 | 2 | 2 | Production vertex geometry adds read-maint scan cost; storage fits. |
+| `small_spread_v4096_u1024` | PASS | 263982 | 0 | 2 | 3 | Low-diameter one-family distribution remains a pressure case. |
+| `small_hotdst_v4096_u1024` | PASS | 263710 | 0 | 2 | 1 | Hot destination has low SSSP propagation cost but concentrated storage pressure. |
+| `balanced_full_plus_one` | PASS | 402850 | 1 | 48 | 1 | Reproduces balanced `131072+1` binary carry pass under range partitioning. |
+| `one_partition_full_plus_one` | FAIL | 131077 | 0 | 0 | 0 | Reproduces attempted L1 family capacity failure. |
+| `large_chain_v4096` | PASS | 9180 | 0 | 2 | 4096 | Large high-diameter behavior appears as many SSSP iterations. |
+| `large_star_v1048576_u65536` | FAIL | 262147 | 0 | 1 | 0 | Concentrated incremental update exceeds L1 family capacity. |
+| `large_spread_v262144_u65536` | FAIL | 262147 | 0 | 1 | 0 | Concentrated incremental update exceeds L1 family capacity. |
+| `large_hotdst_v262144_u65536` | FAIL | 262147 | 0 | 1 | 0 | Concentrated incremental update exceeds L1 family capacity. |
+| `random_rmat_small` | PASS | 266827 | 0 | 32 | 2 | Small nonuniform RMAT-like sanity case. |
 
 Result files:
 
@@ -133,10 +155,14 @@ cli_chain_1024,chain,1024,1023,PASS,2484,0.01656,61775362.31884059,0,32,0,6528,0
 ## Current Interpretation
 
 This simulator should be read as a cycle-level architecture model, not as a
-cycle-exact RTL substitute. The first validation target is trend agreement:
+cycle-exact RTL substitute. The validation target is trend agreement:
 
-- balanced carry fits
-- one-partition carry fails at the same L1 partition-capacity boundary
-- low-diameter concentrated graphs expose partition pressure
+- balanced ratio-2 carry fits
+- concentrated incremental updates fail at the same low-level family-capacity boundary
+- low-diameter concentrated graphs expose family pressure
 - high-diameter chain behavior is separated from storage pressure and visible in
   SSSP iteration statistics
+- hot/cold is a graph-scale preload classifier for skewed graphs; the exact raw
+  RMAT-24-9 result is validated by the newest HW evidence and represented in
+  the model as classifier/family-capacity behavior rather than by expanding
+  150,994,944 Python edge objects in the default suite

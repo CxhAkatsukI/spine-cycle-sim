@@ -14,6 +14,7 @@ from .stats import Stats
 @dataclass(frozen=True)
 class MemoryRequest:
     partition: int
+    family: int
     op: str
     level: int
     edge_count: int
@@ -40,7 +41,7 @@ class HBMPartition(Component):
         latency_cycles: int,
         read_bw_edges_per_cycle: int,
         write_bw_edges_per_cycle: int,
-        level_capacity_per_partition: dict[int, int],
+        level_capacity_per_family: dict[int, int],
     ) -> None:
         super().__init__(name)
         self.partition = partition
@@ -49,8 +50,8 @@ class HBMPartition(Component):
         self.latency_cycles = latency_cycles
         self.read_bw_edges_per_cycle = max(1, read_bw_edges_per_cycle)
         self.write_bw_edges_per_cycle = max(1, write_bw_edges_per_cycle)
-        self.level_capacity_per_partition = dict(level_capacity_per_partition)
-        self.occupancy_by_level: dict[int, int] = {}
+        self.level_capacity_per_family = dict(level_capacity_per_family)
+        self.occupancy_by_family_level: dict[tuple[int, int], int] = {}
         self._active: Optional[_ActiveRequest] = None
         self._accepted: Optional[MemoryRequest] = None
         self._completed: Optional[MemoryRequest] = None
@@ -78,33 +79,36 @@ class HBMPartition(Component):
         if self._completed is not None:
             request = self._completed
             if request.op == "write":
-                cap = self.level_capacity_per_partition.get(request.level)
+                cap = self.level_capacity_per_family.get(request.level)
                 if cap is not None and request.edge_count > cap:
                     self.stats.set_failure(
-                        "level_partition_capacity",
+                        "level_family_capacity",
                         failure_level=request.level,
                         failure_partition=self.partition,
+                        failure_family=request.family,
                         failure_partition_edges=request.edge_count,
                         failure_partition_capacity=cap,
                     )
                 if request.clear_lower:
-                    for level in list(self.occupancy_by_level):
-                        if level < request.level:
-                            self.occupancy_by_level[level] = 0
+                    for family, level in list(self.occupancy_by_family_level):
+                        if family == request.family and level < request.level:
+                            self.occupancy_by_family_level[(family, level)] = 0
+                key = (request.family, request.level)
                 if request.mode == "append":
-                    self.occupancy_by_level[request.level] = (
-                        self.occupancy_by_level.get(request.level, 0) + request.edge_count
+                    self.occupancy_by_family_level[key] = (
+                        self.occupancy_by_family_level.get(key, 0) + request.edge_count
                     )
                 else:
-                    self.occupancy_by_level[request.level] = request.edge_count
+                    self.occupancy_by_family_level[key] = request.edge_count
                 self.stats.max_value(
-                    f"hbm.partition{self.partition}.level{request.level}.max_occupancy",
-                    self.occupancy_by_level[request.level],
+                    f"hbm.partition{self.partition}.family{request.family}.level{request.level}.max_occupancy",
+                    self.occupancy_by_family_level[key],
                 )
             self.stats.add_trace(
                 cycle,
                 "hbm_complete",
                 partition=self.partition,
+                family=request.family,
                 op=request.op,
                 level=request.level,
                 edge_count=request.edge_count,
@@ -128,6 +132,7 @@ class HBMPartition(Component):
                 cycle,
                 "hbm_accept",
                 partition=self.partition,
+                family=request.family,
                 op=request.op,
                 level=request.level,
                 edge_count=request.edge_count,

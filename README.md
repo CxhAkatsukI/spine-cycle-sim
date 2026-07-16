@@ -4,12 +4,15 @@ Cycle-level simulator for the Spine dynamic graph accelerator.
 
 This repository contains a first-version, SST-style Python simulator for
 architecture exploration. It models the main timing and pressure points of the
-current Spine design:
+current Spine design on `origin/reduce-levels-for-routing`:
 
 - component/link execution with `evaluate` and `commit` phases
 - finite FIFO backpressure
-- partitioned L0/L1 storage capacity
-- level carry/merge behavior
+- 11-level partitioned ratio-2 binary carry
+- 16 cold destination families plus 16 hot destination shards
+- graph-agnostic hot/cold classification from measured destination in-degree
+- current `dst / VS_PARTITION_SIZE` destination partitioning
+- tiny-active versus full-path convergence counters
 - HBM request latency and bandwidth
 - read-maintenance and SSSP propagation cost
 
@@ -50,6 +53,7 @@ python3 -m unittest discover -s tests
 
 ## Current Scope
 
-The first model targets trend validation against the current 150 MHz split Spine
-hardware evidence. It intentionally does not model Vitis runtime overhead,
-PCIe transfers, RTL routing effects, or ASIC area/power.
+The current model targets trend validation against the latest 134 MHz exact
+split Spine hardware evidence on `reduce-levels-for-routing`. It intentionally
+does not model Vitis runtime overhead, PCIe transfers, RTL routing effects, or
+ASIC area/power.

@@ -40,6 +40,7 @@ def main() -> int:
         edges=args.edges,
         source=args.source,
         num_partitions=config.num_partitions,
+        vs_partition_size=config.vs_partition_size,
         seed=args.seed,
     )
     if args.case:

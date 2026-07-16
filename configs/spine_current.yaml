@@ -1,31 +1,37 @@
-# Current split Spine evidence-oriented v0 model.
+# Current reduce-levels-for-routing Spine evidence-oriented model.
 #
-# This config follows the 2026-07-12 partition capacity evidence:
-# - MAX_SORT_N / batch size: 131072
-# - destination partitions: 16
-# - L0 capacity per partition: 131072
-# - L1 total capacity: 262144
-# - L1 capacity per destination partition: 16384
+# This config follows origin/reduce-levels-for-routing at cbd3ceb:
+# - production partitioned ratio-2 CSR
+# - 11 binary levels, MAX_SORT_N=131072
+# - destination partition = dst / VS_PARTITION_SIZE
+# - 16 cold destination families + 16 hot destination shards
+# - hot/cold classifier from measured destination in-degree
+# - selected exact-source split xclbin evidence ran at 134 MHz DATA
 
+max_vertices: 16777216
+vs_partition_size: 1048576
 num_partitions: 16
-target_freq_mhz: 150
+hot_shards: 16
+hot_cold_enabled: true
+target_freq_mhz: 134
 fifo_depth: 32
-max_cycles: 10000000
+max_cycles: 20000000
 
 edge_input_ii: 1
 router_ii: 1
 level0_accept_edges_per_cycle: 16
 
 batch_size_edges: 131072
-level0_capacity_per_partition: 131072
-level1_capacity_total: 262144
-level1_capacity_per_partition: 16384
+num_levels: 11
+level_size_ratio: 2
 carry_merge_edges_per_cycle: 16
 
+hbm_channel_bytes: 536870912
 hbm_latency_cycles: 200
 hbm_read_bw_edges_per_cycle: 16
 hbm_write_bw_edges_per_cycle: 16
 
 readmaintenance_vertex_scan_rate: 64
+tiny_active_threshold: 4096
 sssp_pipeline_ii: 1
 sssp_edges_per_cycle: 1

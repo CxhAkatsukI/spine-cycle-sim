@@ -36,6 +36,7 @@ def generate_workload(
     edges: int | None,
     source: int,
     num_partitions: int,
+    vs_partition_size: int = 1,
     seed: int = 1,
 ) -> Workload:
     if vertices <= 0:
@@ -49,13 +50,13 @@ def generate_workload(
     if name == "chain":
         return _chain(vertices, edges, source)
     if name == "star":
-        return _star(vertices, edges, source, num_partitions)
+        return _star(vertices, edges, source, num_partitions, vs_partition_size)
     if name == "spread":
-        return _spread(vertices, edges, source, num_partitions)
+        return _spread(vertices, edges, source, num_partitions, vs_partition_size)
     if name == "hotdst":
         return _hotdst(vertices, edges, source)
     if name == "balanced_partition":
-        return _balanced_partition(vertices, edges, source, num_partitions)
+        return _balanced_partition(vertices, edges, source, num_partitions, vs_partition_size)
     if name == "random_rmat":
         return _random_rmat(vertices, edges, source, seed)
     raise ValueError(f"unknown workload {name!r}; choices: {', '.join(list_workloads())}")
@@ -71,28 +72,43 @@ def _chain(vertices: int, edges: int, source: int) -> Workload:
     return Workload("chain", vertices, data, source, {"shape": "high_diameter"})
 
 
-def _star(vertices: int, edges: int, source: int, num_partitions: int) -> Workload:
+def _star(
+    vertices: int,
+    edges: int,
+    source: int,
+    num_partitions: int,
+    vs_partition_size: int,
+) -> Workload:
     data: list[Edge] = []
-    # Destination IDs are chosen from one destination partition. This matches the
-    # current Spine stress cases where low-diameter fanout can bottleneck one L1
-    # partition during carry.
+    del num_partitions
+    # Destination IDs are chosen from one current Spine destination partition
+    # range: dst / VS_PARTITION_SIZE == 0.
+    local_span = max(1, min(vertices, max(1, vs_partition_size)))
     for i in range(edges):
-        dst = ((i + 1) * num_partitions) % vertices
+        dst = (i + 1) % local_span
         if dst == source:
-            dst = (dst + num_partitions) % vertices
+            dst = (dst + 1) % local_span
         data.append(Edge(source, dst, 1))
     return Workload("star", vertices, data, source, {"shape": "low_diameter_one_partition"})
 
 
-def _spread(vertices: int, edges: int, source: int, num_partitions: int) -> Workload:
+def _spread(
+    vertices: int,
+    edges: int,
+    source: int,
+    num_partitions: int,
+    vs_partition_size: int,
+) -> Workload:
     del source
+    del num_partitions
     data: list[Edge] = []
     active_sources = max(1, min(vertices, max(1, edges // 16)))
+    local_span = max(1, min(vertices, max(1, vs_partition_size)))
     for i in range(edges):
         src = i % active_sources
-        dst = ((i // active_sources) * num_partitions) % vertices
+        dst = (i // active_sources) % local_span
         if dst == src:
-            dst = (dst + num_partitions) % vertices
+            dst = (dst + 1) % local_span
         data.append(Edge(src, dst, 1))
     return Workload("spread", vertices, data, 0, {"shape": "multi_source_one_partition"})
 
@@ -102,12 +118,20 @@ def _hotdst(vertices: int, edges: int, source: int) -> Workload:
     return Workload("hotdst", vertices, data, source, {"shape": "single_hot_destination"})
 
 
-def _balanced_partition(vertices: int, edges: int, source: int, num_partitions: int) -> Workload:
+def _balanced_partition(
+    vertices: int,
+    edges: int,
+    source: int,
+    num_partitions: int,
+    vs_partition_size: int,
+) -> Workload:
     data: list[Edge] = []
-    stride = max(1, vertices // max(1, num_partitions))
+    local_span = max(1, min(max(1, vs_partition_size), max(1, vertices)))
     for i in range(edges):
         partition = i % num_partitions
-        dst = (partition + (i // num_partitions) * stride) % vertices
+        dst = partition * vs_partition_size + ((i // num_partitions) % local_span)
+        if dst >= vertices:
+            dst %= vertices
         src = (dst + 1) % vertices
         if src == dst:
             src = source

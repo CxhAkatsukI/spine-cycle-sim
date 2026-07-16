@@ -16,22 +16,24 @@ from spine_cycle_sim.stats.io import write_json, write_summary_csv
 from spine_cycle_sim.workloads import generate_workload
 
 
+PROD_VERTICES = 16_777_216
+
 SUITE = [
     {"case": "small_chain_v64", "workload": "chain", "vertices": 64, "edges": 63, "source": 0},
-    {"case": "small_star_v4096_u1024", "workload": "star", "vertices": 4096, "edges": 1024, "source": 0},
-    {"case": "small_spread_v4096_u1024", "workload": "spread", "vertices": 4096, "edges": 1024, "source": 0},
-    {"case": "small_hotdst_v4096_u1024", "workload": "hotdst", "vertices": 4096, "edges": 1024, "source": 0},
+    {"case": "small_star_v4096_u1024", "workload": "star", "vertices": PROD_VERTICES, "edges": 1024, "source": 0},
+    {"case": "small_spread_v4096_u1024", "workload": "spread", "vertices": PROD_VERTICES, "edges": 1024, "source": 0},
+    {"case": "small_hotdst_v4096_u1024", "workload": "hotdst", "vertices": PROD_VERTICES, "edges": 1024, "source": 0},
     {
         "case": "balanced_full_plus_one",
         "workload": "balanced_partition",
-        "vertices": 262144,
+        "vertices": PROD_VERTICES,
         "edges": 131073,
         "source": 0,
     },
     {
         "case": "one_partition_full_plus_one",
         "workload": "hotdst",
-        "vertices": 262144,
+        "vertices": PROD_VERTICES,
         "edges": 131073,
         "source": 0,
     },
@@ -45,25 +47,25 @@ SUITE = [
     {
         "case": "large_star_v1048576_u65536",
         "workload": "star",
-        "vertices": 1048576,
+        "vertices": PROD_VERTICES,
         "edges": 262144,
         "source": 0,
     },
     {
         "case": "large_spread_v262144_u65536",
         "workload": "spread",
-        "vertices": 262144,
+        "vertices": PROD_VERTICES,
         "edges": 262144,
         "source": 0,
     },
     {
         "case": "large_hotdst_v262144_u65536",
         "workload": "hotdst",
-        "vertices": 262144,
+        "vertices": PROD_VERTICES,
         "edges": 262144,
         "source": 0,
     },
-    {"case": "random_rmat_small", "workload": "random_rmat", "vertices": 4096, "edges": 4096, "source": 0},
+    {"case": "random_rmat_small", "workload": "random_rmat", "vertices": PROD_VERTICES, "edges": 4096, "source": 0},
 ]
 
 
@@ -88,6 +90,7 @@ def main() -> int:
             edges=spec["edges"],
             source=spec["source"],
             num_partitions=config.num_partitions,
+            vs_partition_size=config.vs_partition_size,
         )
         workload.metadata["case"] = spec["case"]
         result = SpineV0Simulator(workload, config).run(include_trace=args.dump_trace)
