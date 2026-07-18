@@ -12,6 +12,8 @@ current Spine design on `origin/reduce-levels-for-routing`:
 - 16 cold destination families plus 16 hot destination shards
 - graph-agnostic hot/cold classification from measured destination in-degree
 - current `dst / VS_PARTITION_SIZE` destination partitioning
+- HLS-style B-stage maintenance timing for `sorted_edges` scan passes,
+  L0 store, binary carry, sparse page-cursor reads, and hot/cold group scans
 - tiny-active versus full-path convergence counters
 - HBM request latency and bandwidth
 - read-maintenance and SSSP propagation cost
@@ -44,6 +46,14 @@ python3 scripts/run_spine_suite.py \
   --out-dir results/spine_v0_suite
 ```
 
+Run maintenance-focused microbenchmarks:
+
+```bash
+cd /home/chuxiao/spine-cycle-sim
+python3 scripts/run_maintenance_microbench.py \
+  --out-dir results/maintenance_phase1_microbench
+```
+
 Run tests:
 
 ```bash
@@ -56,4 +66,6 @@ python3 -m unittest discover -s tests
 The current model targets trend validation against the latest 134 MHz exact
 split Spine hardware evidence on `reduce-levels-for-routing`. It intentionally
 does not model Vitis runtime overhead, PCIe transfers, RTL routing effects, or
-ASIC area/power.
+ASIC area/power. The B-stage maintenance model is structural and evidence
+oriented: it estimates HLS scan/carry work and exposes diagnostics, but it is
+not yet an AXI/stream/backpressure cycle-exact replacement for hw/hw_emu.

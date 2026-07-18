@@ -11,16 +11,36 @@ class SpineSimulatorTests(unittest.TestCase):
     def setUp(self) -> None:
         self.config = SpineConfig(max_cycles=2_000_000)
 
-    def run_case(self, workload: str, vertices: int, edges: int) -> dict:
+    def small_capacity_config(self) -> SpineConfig:
+        return SpineConfig(
+            max_vertices=128,
+            vs_partition_size=32,
+            num_partitions=4,
+            hot_shards=2,
+            hot_cold_enabled=False,
+            batch_size_edges=16,
+            num_levels=4,
+            max_cycles=200_000,
+        )
+
+    def run_case(
+        self,
+        workload: str,
+        vertices: int,
+        edges: int,
+        config: SpineConfig | None = None,
+    ) -> dict:
+        if config is None:
+            config = self.config
         wl = generate_workload(
             workload,
             vertices=vertices,
             edges=edges,
             source=0,
-            num_partitions=self.config.num_partitions,
-            vs_partition_size=self.config.vs_partition_size,
+            num_partitions=config.num_partitions,
+            vs_partition_size=config.vs_partition_size,
         )
-        return SpineV0Simulator(wl, self.config).run()
+        return SpineV0Simulator(wl, config).run()
 
     def test_current_spine_capacity_constants(self) -> None:
         self.assertEqual(self.config.num_levels, 11)
@@ -50,21 +70,31 @@ class SpineSimulatorTests(unittest.TestCase):
             "fifo_stall_cycles",
             "memory_stall_cycles",
             "compute_stall_cycles",
+            "maintenance_event_count",
+            "maintenance_estimated_cycles",
+            "maintenance_scan_passes",
+            "maintenance_events",
         ]:
             self.assertIn(field, result)
 
     def test_balanced_full_plus_one_fits_l1_partition_capacity(self) -> None:
-        result = self.run_case("balanced_partition", self.config.max_vertices, 131073)
+        config = self.small_capacity_config()
+        result = self.run_case("balanced_partition", config.max_vertices, 20, config)
         self.assertEqual(result["capacity_status"], "PASS")
         self.assertEqual(result["carry_count"], 1)
-        self.assertLessEqual(max(result["partition_load"]), self.config.level_family_capacity(1))
+        self.assertEqual(result["maintenance_max_target_level"], 1)
+        self.assertEqual(result["maintenance_events"][0]["path"], "store_l0")
+        self.assertEqual(result["maintenance_events"][1]["path"], "cascade")
+        self.assertLessEqual(max(result["level1_occupancy"]), config.level_family_capacity(1))
 
     def test_one_partition_full_plus_one_fails_l1_partition_capacity(self) -> None:
-        result = self.run_case("hotdst", self.config.max_vertices, 131073)
+        config = self.small_capacity_config()
+        result = self.run_case("hotdst", config.max_vertices, 20, config)
         self.assertEqual(result["capacity_status"], "FAIL")
         self.assertEqual(result["capacity_failure"]["reason"], "level_family_capacity")
         self.assertEqual(result["capacity_failure"]["failure_level"], 1)
         self.assertEqual(result["capacity_failure"]["failure_partition"], 0)
+        self.assertEqual(result["capacity_failure"]["maintenance_path"], "cascade")
         self.assertGreater(
             result["capacity_failure"]["failure_partition_edges"],
             result["capacity_failure"]["failure_partition_capacity"],

@@ -1,11 +1,12 @@
 # Current reduce-levels-for-routing Spine evidence-oriented model.
 #
-# This config follows origin/reduce-levels-for-routing at cbd3ceb:
+# This config follows origin/reduce-levels-for-routing at 05584da:
 # - production partitioned ratio-2 CSR
 # - 11 binary levels, MAX_SORT_N=131072
 # - destination partition = dst / VS_PARTITION_SIZE
 # - 16 cold destination families + 16 hot destination shards
 # - hot/cold classifier from measured destination in-degree
+# - page CSR cursor page = 256 source vertices
 # - selected exact-source split xclbin evidence ran at 134 MHz DATA
 
 max_vertices: 16777216
@@ -30,6 +31,8 @@ hbm_channel_bytes: 536870912
 hbm_latency_cycles: 200
 hbm_read_bw_edges_per_cycle: 16
 hbm_write_bw_edges_per_cycle: 16
+
+csr_vertices_per_page: 256
 
 readmaintenance_vertex_scan_rate: 64
 tiny_active_threshold: 4096

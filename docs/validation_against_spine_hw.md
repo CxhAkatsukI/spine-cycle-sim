@@ -36,7 +36,7 @@ Newest source baseline inspected for this simulator update:
 ```text
 /home/chuxiao/spine-dynamic-graph-reduce-levels
 origin/reduce-levels-for-routing
-commit cbd3ceb test: validate full-scale skewed RMAT storage
+commit 05584da feat: stream sparse carry cursors
 ```
 
 Newest raw RMAT hot/cold evidence:
@@ -56,6 +56,7 @@ PARTITIONED_RATIO2_LEVEL_SIZE_RATIO = 2
 PARTITIONED_RATIO2_MAX_SORT_N = 131072
 PARTITIONED_CSR_DST_PARTITIONS = 16
 PARTITIONED_HOT_SHARDS = 16
+PAGE_CSR_VERTICES_PER_PAGE = 256
 L1 capacity per family = 16384
 L10 capacity per family = 8388608
 family total capacity = 16891904
@@ -91,21 +92,10 @@ python3 scripts/run_spine_suite.py \
   --out-dir results/spine_v0_suite
 ```
 
-The current v0 suite result is:
-
-| case | status | cycles | carry | HBM req | SSSP iters | interpretation |
-| --- | --- | ---: | ---: | ---: | ---: | --- |
-| `small_chain_v64` | PASS | 549 | 0 | 2 | 64 | High-diameter behavior appears as many SSSP iterations. |
-| `small_star_v4096_u1024` | PASS | 264734 | 0 | 2 | 2 | Production vertex geometry adds read-maint scan cost; storage fits. |
-| `small_spread_v4096_u1024` | PASS | 263982 | 0 | 2 | 3 | Low-diameter one-family distribution remains a pressure case. |
-| `small_hotdst_v4096_u1024` | PASS | 263710 | 0 | 2 | 1 | Hot destination has low SSSP propagation cost but concentrated storage pressure. |
-| `balanced_full_plus_one` | PASS | 402850 | 1 | 48 | 1 | Reproduces balanced `131072+1` binary carry pass under range partitioning. |
-| `one_partition_full_plus_one` | FAIL | 131077 | 0 | 0 | 0 | Reproduces attempted L1 family capacity failure. |
-| `large_chain_v4096` | PASS | 9180 | 0 | 2 | 4096 | Large high-diameter behavior appears as many SSSP iterations. |
-| `large_star_v1048576_u65536` | FAIL | 262147 | 0 | 1 | 0 | Concentrated incremental update exceeds L1 family capacity. |
-| `large_spread_v262144_u65536` | FAIL | 262147 | 0 | 1 | 0 | Concentrated incremental update exceeds L1 family capacity. |
-| `large_hotdst_v262144_u65536` | FAIL | 262147 | 0 | 1 | 0 | Concentrated incremental update exceeds L1 family capacity. |
-| `random_rmat_small` | PASS | 266827 | 0 | 32 | 2 | Small nonuniform RMAT-like sanity case. |
+After the Phase 1 maintenance update, old v0 cycle tables are obsolete. The
+suite should be regenerated when comparing against hw/hw_emu because B-stage
+maintenance now contributes explicit `sorted_edges` scan and sparse-carry
+cycles.
 
 Result files:
 
@@ -121,6 +111,24 @@ Run unit tests:
 cd /home/chuxiao/spine-cycle-sim
 python3 -m unittest discover -s tests
 ```
+
+Run maintenance-focused microbenchmarks:
+
+```bash
+cd /home/chuxiao/spine-cycle-sim
+python3 scripts/run_maintenance_microbench.py \
+  --out-dir results/maintenance_phase1_microbench
+```
+
+Observed Phase 1 microbench summary:
+
+| case | status | cycles | maintenance cycles | scan passes | max target | interpretation |
+| --- | --- | ---: | ---: | ---: | ---: | --- |
+| `cold_l0_store_one_family` | PASS | 494 | 69 | 6 | 0 | L0 store includes diagnostic scan, all-family pre-count, and one write scan. |
+| `balanced_l1_cascade` | PASS | 1921 | 1488 | 14 | 1 | Balanced two-batch update stores L0 then carries to L1 with cursor work. |
+| `concentrated_l1_overflow` | FAIL | 24 | 133 | 6 | 0 | Concentrated second batch fails L1 family capacity; failure includes `maintenance_path=cascade`. |
+| `duplicate_l0_coalesce` | PASS | 521 | 64 | 3 | 0 | Raw duplicate input edges collapse to one L0 output edge. |
+| `hot_zero_input_group_scans` | PASS | 3493 | 2700 | 53 | 2 | Hot metadata causes cold/hot group scans; zero-input groups can still carry old data. |
 
 Clean-environment install check used during this implementation:
 
@@ -149,7 +157,8 @@ python3 scripts/run_spine_sim.py \
 Observed CLI smoke summary:
 
 ```text
-cli_chain_1024,chain,1024,1023,PASS,2484,0.01656,61775362.31884059,0,32,0,6528,0,1024
+case,workload,vertices,edges,capacity_status,cycles,simulated_time_ms,edges_per_second,carry_count,maintenance_event_count,maintenance_store_l0_events,maintenance_cascade_events,maintenance_estimated_cycles,maintenance_scan_passes,maintenance_scan_cycles,maintenance_max_target_level,hbm_request_count,fifo_stall_cycles,memory_stall_cycles,compute_stall_cycles,sssp_iterations,tiny_active_iterations,hot_enabled,hot_edges,cold_edges,hot_vertex_count
+cli_chain_1024,chain,1024,1023,PASS,23083,0.17226119402985074,5938656.153879479,0,1,1,0,20480,18,18414,0,2,0,528,0,1024,1024,False,0,1023,0
 ```
 
 ## Current Interpretation
@@ -157,6 +166,8 @@ cli_chain_1024,chain,1024,1023,PASS,2484,0.01656,61775362.31884059,0,32,0,6528,0
 This simulator should be read as a cycle-level architecture model, not as a
 cycle-exact RTL substitute. The validation target is trend agreement:
 
+- HLS-style `sorted_edges` multi-pass maintenance is now represented in the
+  B-stage timing model.
 - balanced ratio-2 carry fits
 - concentrated incremental updates fail at the same low-level family-capacity boundary
 - low-diameter concentrated graphs expose family pressure
@@ -166,3 +177,8 @@ cycle-exact RTL substitute. The validation target is trend agreement:
   RMAT-24-9 result is validated by the newest HW evidence and represented in
   the model as classifier/family-capacity behavior rather than by expanding
   150,994,944 Python edge objects in the default suite
+
+For overflow microbenchmarks, use the failure metadata to diagnose the boundary.
+The current simulator detects a failed target-family capacity check before it
+schedules the failed event's full scan/carry latency, so failed-run cycles are
+not hardware-cycle evidence.

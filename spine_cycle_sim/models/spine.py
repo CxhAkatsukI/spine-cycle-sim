@@ -48,6 +48,7 @@ class SpineConfig:
     hbm_latency_cycles: int = 200
     hbm_read_bw_edges_per_cycle: int = 16
     hbm_write_bw_edges_per_cycle: int = 16
+    csr_vertices_per_page: int = 256
     readmaintenance_vertex_scan_rate: int = 64
     tiny_active_threshold: int = 4096
     sssp_pipeline_ii: int = 1
@@ -229,6 +230,47 @@ class EdgePacket:
 
 
 @dataclass(frozen=True)
+class FamilyBatchStats:
+    input_edges: int
+    unique_edges: int
+    rows: int
+    pages: int
+
+
+@dataclass(frozen=True)
+class MaintenanceEstimate:
+    group: str
+    path: str
+    target_level: int
+    batch_edges: int
+    input_edges: int
+    output_edges: int
+    family_count: int
+    nonempty_input_families: int
+    nonempty_output_families: int
+    diagnostic_scan_passes: int
+    pre_count_scan_passes: int
+    write_scan_passes: int
+    new_batch_filter_passes: int
+    scan_passes: int
+    scan_cycles: int
+    cursor_level_inits: int
+    pages_visited: int
+    bits_inspected: int
+    rows_entered: int
+    payload_reads: int
+    cursor_read_cycles: int
+    merge_inputs: int
+    outputs: int
+    page_ids_written: int
+    write_output_cycles: int
+    metadata_cycles: int
+    refill_stalls: int
+    validation_failures: int
+    estimated_cycles: int
+
+
+@dataclass(frozen=True)
 class StorageEvent:
     target_level: int
     family_base: int
@@ -238,6 +280,7 @@ class StorageEvent:
     carry: bool
     group: str
     tag: str
+    maintenance: MaintenanceEstimate
 
 
 class EdgeInput(Component):
@@ -334,6 +377,7 @@ class Level0Buffer(Component):
         stats: Stats,
         config: SpineConfig,
         upstream_done: Callable[[], bool],
+        metadata_hot_enabled: bool,
     ) -> None:
         super().__init__("Level0Buffer")
         self.inputs = inputs
@@ -341,13 +385,24 @@ class Level0Buffer(Component):
         self.stats = stats
         self.config = config
         self.upstream_done = upstream_done
+        self.metadata_hot_enabled = metadata_hot_enabled
         self.current_counts = [0 for _ in range(config.family_count)]
+        self.current_edge_keys = [set() for _ in range(config.family_count)]
+        self.current_rows = [set() for _ in range(config.family_count)]
+        self.current_pages = [set() for _ in range(config.family_count)]
         self.level_counts = [
+            [0 for _ in range(config.num_levels)] for _ in range(config.family_count)
+        ]
+        self.level_row_counts = [
+            [0 for _ in range(config.num_levels)] for _ in range(config.family_count)
+        ]
+        self.level_page_counts = [
             [0 for _ in range(config.num_levels)] for _ in range(config.family_count)
         ]
         self.current_edges = 0
         self._pending_events: Deque[StorageEvent] = deque()
         self._rr_family = 0
+        self.maintenance_events: list[MaintenanceEstimate] = []
 
     @property
     def done(self) -> bool:
@@ -369,6 +424,9 @@ class Level0Buffer(Component):
                     edge_count=event.edge_count,
                     carry=event.carry,
                     group=event.group,
+                    maintenance_path=event.maintenance.path,
+                    estimated_cycles=event.maintenance.estimated_cycles,
+                    scan_passes=event.maintenance.scan_passes,
                 )
                 self._pending_events.popleft()
             return
@@ -382,7 +440,7 @@ class Level0Buffer(Component):
             packet = self.inputs[family].request_pop()
             if packet is None:
                 continue
-            self.current_counts[family] += 1
+            self._record_current_packet(packet)
             self.current_edges += 1
             accepted += 1
             self.stats.inc("level0_accepted_edges")
@@ -401,55 +459,122 @@ class Level0Buffer(Component):
             self._prepare_flush("final_batch")
 
     def _prepare_flush(self, tag: str) -> None:
-        self._apply_group(0, self.config.num_partitions, "cold", tag)
-        if self.config.hot_cold_enabled:
+        batch_edges = self.current_edges
+        include_diagnostic = True
+        self._apply_group(
+            0,
+            self.config.num_partitions,
+            "cold",
+            tag,
+            batch_edges,
+            include_diagnostic,
+        )
+        include_diagnostic = False
+        if self.stats.failure is not None:
+            self._reset_current_batch()
+            return
+        if self.metadata_hot_enabled:
             self._apply_group(
                 self.config.hot_family_base,
                 self.config.hot_shards,
                 "hot",
                 tag,
+                batch_edges,
+                include_diagnostic,
             )
-        self.current_counts = [0 for _ in range(self.config.family_count)]
-        self.current_edges = 0
+        self._reset_current_batch()
 
-    def _apply_group(self, family_base: int, family_count: int, group: str, tag: str) -> None:
-        group_input = sum(self.current_counts[family_base : family_base + family_count])
-        if group_input == 0:
-            return
+    def _apply_group(
+        self,
+        family_base: int,
+        family_count: int,
+        group: str,
+        tag: str,
+        batch_edges: int,
+        include_diagnostic: bool,
+    ) -> None:
+        families = range(family_base, family_base + family_count)
+        group_stats = {family: self._current_family_stats(family) for family in families}
+        group_input = sum(stat.input_edges for stat in group_stats.values())
         target = self._select_empty_target(family_base, family_count)
         if target < 0:
-            self.stats.set_failure("level_exhausted", group=group)
+            self.stats.set_failure(
+                "level_exhausted",
+                group=group,
+                maintenance_path="overflow",
+                batch_edges=batch_edges,
+            )
             return
-        combined = [0 for _ in range(self.config.family_count)]
-        for family in range(family_base, family_base + family_count):
-            count = self.current_counts[family]
+        combined_edges = [0 for _ in range(self.config.family_count)]
+        combined_rows = [0 for _ in range(self.config.family_count)]
+        combined_pages = [0 for _ in range(self.config.family_count)]
+        old_edges_by_family = [0 for _ in range(self.config.family_count)]
+        old_rows_by_family = [0 for _ in range(self.config.family_count)]
+        old_pages_by_family = [0 for _ in range(self.config.family_count)]
+
+        for family in families:
+            stat = group_stats[family]
+            edge_count = stat.unique_edges
+            row_count = stat.rows
+            page_count = stat.pages
             for level in range(target):
-                count += self.level_counts[family][level]
-            if count > self.config.level_family_capacity(target):
+                old_edges_by_family[family] += self.level_counts[family][level]
+                old_rows_by_family[family] += self.level_row_counts[family][level]
+                old_pages_by_family[family] += self.level_page_counts[family][level]
+            edge_count += old_edges_by_family[family]
+            row_count += old_rows_by_family[family]
+            page_count += old_pages_by_family[family]
+            if edge_count > self.config.level_family_capacity(target):
                 self.stats.set_failure(
                     "level_family_capacity",
                     failure_level=target,
                     failure_family=family,
                     failure_partition=family % self.config.num_partitions,
-                    failure_partition_edges=count,
+                    failure_partition_edges=edge_count,
                     failure_partition_capacity=self.config.level_family_capacity(target),
                     group=group,
+                    maintenance_path="cascade" if target > 0 else "store_l0",
+                    batch_edges=batch_edges,
+                    group_input_edges=group_input,
                 )
+                self.stats.inc("maintenance_overflow_events")
                 return
-            combined[family] = count
+            combined_edges[family] = edge_count
+            combined_rows[family] = row_count
+            combined_pages[family] = page_count
 
-        for family in range(family_base, family_base + family_count):
+        for family in families:
             for level in range(target):
                 self.level_counts[family][level] = 0
-            self.level_counts[family][target] = combined[family]
+                self.level_row_counts[family][level] = 0
+                self.level_page_counts[family][level] = 0
+            self.level_counts[family][target] = combined_edges[family]
+            self.level_row_counts[family][target] = combined_rows[family]
+            self.level_page_counts[family][target] = combined_pages[family]
             for level, value in enumerate(self.level_counts[family]):
                 self.stats.max_value(f"family.{family}.level{level}.max_occupancy", value)
 
-        edge_count = sum(combined)
+        edge_count = sum(combined_edges)
         carry = target > 0
         if carry:
             self.stats.inc("carry_count")
             self.stats.inc(f"{group}_carry_count")
+        estimate = self._estimate_maintenance(
+            group=group,
+            target=target,
+            batch_edges=batch_edges,
+            include_diagnostic=include_diagnostic,
+            group_stats=group_stats,
+            combined_edges=combined_edges,
+            combined_rows=combined_rows,
+            combined_pages=combined_pages,
+            old_edges_by_family=old_edges_by_family,
+            old_rows_by_family=old_rows_by_family,
+            old_pages_by_family=old_pages_by_family,
+            family_base=family_base,
+            family_count=family_count,
+        )
+        self._record_maintenance_estimate(estimate)
         self.stats.max_value(f"{group}.max_target_level", target)
         self.stats.max_value(f"level{target}.logical_occupancy.max", edge_count)
         self._pending_events.append(
@@ -457,13 +582,163 @@ class Level0Buffer(Component):
                 target_level=target,
                 family_base=family_base,
                 family_count=family_count,
-                counts_by_family=tuple(combined),
+                counts_by_family=tuple(combined_edges),
                 edge_count=edge_count,
                 carry=carry,
                 group=group,
                 tag=tag,
+                maintenance=estimate,
             )
         )
+
+    def _record_current_packet(self, packet: EdgePacket) -> None:
+        family = packet.family
+        edge = packet.edge
+        self.current_counts[family] += 1
+        self.current_edge_keys[family].add((edge.src, edge.dst))
+        self.current_rows[family].add(edge.src)
+        page_size = max(1, self.config.csr_vertices_per_page)
+        self.current_pages[family].add(edge.src // page_size)
+
+    def _current_family_stats(self, family: int) -> FamilyBatchStats:
+        return FamilyBatchStats(
+            input_edges=self.current_counts[family],
+            unique_edges=len(self.current_edge_keys[family]),
+            rows=len(self.current_rows[family]),
+            pages=len(self.current_pages[family]),
+        )
+
+    def _reset_current_batch(self) -> None:
+        self.current_counts = [0 for _ in range(self.config.family_count)]
+        self.current_edge_keys = [set() for _ in range(self.config.family_count)]
+        self.current_rows = [set() for _ in range(self.config.family_count)]
+        self.current_pages = [set() for _ in range(self.config.family_count)]
+        self.current_edges = 0
+
+    def _estimate_maintenance(
+        self,
+        group: str,
+        target: int,
+        batch_edges: int,
+        include_diagnostic: bool,
+        group_stats: dict[int, FamilyBatchStats],
+        combined_edges: list[int],
+        combined_rows: list[int],
+        combined_pages: list[int],
+        old_edges_by_family: list[int],
+        old_rows_by_family: list[int],
+        old_pages_by_family: list[int],
+        family_base: int,
+        family_count: int,
+    ) -> MaintenanceEstimate:
+        families = range(family_base, family_base + family_count)
+        input_edges = sum(stat.input_edges for stat in group_stats.values())
+        input_unique_edges = sum(stat.unique_edges for stat in group_stats.values())
+        output_edges = sum(combined_edges[family] for family in families)
+        output_rows = sum(combined_rows[family] for family in families)
+        output_pages = sum(combined_pages[family] for family in families)
+        old_edges = sum(old_edges_by_family[family] for family in families)
+        old_rows = sum(old_rows_by_family[family] for family in families)
+        old_pages = sum(old_pages_by_family[family] for family in families)
+        diagnostic_scan_passes = 1 if include_diagnostic else 0
+        nonempty_input = sum(1 for stat in group_stats.values() if stat.input_edges > 0)
+        nonempty_output = sum(1 for family in families if combined_edges[family] > 0)
+        path = "cascade" if target > 0 else "store_l0"
+
+        pre_count_scan_passes = 0
+        write_scan_passes = 0
+        new_batch_filter_passes = 0
+        cursor_level_inits = 0
+        pages_visited = 0
+        bits_inspected = 0
+        rows_entered = 0
+        payload_reads = 0
+        cursor_read_cycles = 0
+        merge_inputs = 0
+        metadata_cycles = 0
+
+        if target == 0:
+            pre_count_scan_passes = family_count
+            write_scan_passes = nonempty_output
+            metadata_cycles = family_count
+        else:
+            new_batch_filter_passes = family_count
+            cursor_level_inits = family_count * target
+            pages_visited = old_pages
+            bits_inspected = old_pages * max(1, self.config.csr_vertices_per_page)
+            rows_entered = old_rows
+            payload_reads = old_edges
+            cursor_read_cycles = old_pages * 7 + old_rows * 2 + old_edges
+            merge_inputs = old_edges + input_unique_edges
+            metadata_cycles = cursor_level_inits * 8 + family_count * 21
+
+        scan_passes = (
+            diagnostic_scan_passes
+            + pre_count_scan_passes
+            + write_scan_passes
+            + new_batch_filter_passes
+        )
+        scan_cycles = scan_passes * batch_edges
+        write_output_cycles = output_edges + output_rows + output_pages
+        estimated_cycles = (
+            scan_cycles
+            + cursor_read_cycles
+            + bits_inspected
+            + merge_inputs
+            + write_output_cycles
+            + metadata_cycles
+        )
+        return MaintenanceEstimate(
+            group=group,
+            path=path,
+            target_level=target,
+            batch_edges=batch_edges,
+            input_edges=input_edges,
+            output_edges=output_edges,
+            family_count=family_count,
+            nonempty_input_families=nonempty_input,
+            nonempty_output_families=nonempty_output,
+            diagnostic_scan_passes=diagnostic_scan_passes,
+            pre_count_scan_passes=pre_count_scan_passes,
+            write_scan_passes=write_scan_passes,
+            new_batch_filter_passes=new_batch_filter_passes,
+            scan_passes=scan_passes,
+            scan_cycles=scan_cycles,
+            cursor_level_inits=cursor_level_inits,
+            pages_visited=pages_visited,
+            bits_inspected=bits_inspected,
+            rows_entered=rows_entered,
+            payload_reads=payload_reads,
+            cursor_read_cycles=cursor_read_cycles,
+            merge_inputs=merge_inputs,
+            outputs=output_edges,
+            page_ids_written=output_pages,
+            write_output_cycles=write_output_cycles,
+            metadata_cycles=metadata_cycles,
+            refill_stalls=0,
+            validation_failures=0,
+            estimated_cycles=estimated_cycles,
+        )
+
+    def _record_maintenance_estimate(self, estimate: MaintenanceEstimate) -> None:
+        self.maintenance_events.append(estimate)
+        prefix = f"maintenance.{estimate.group}"
+        self.stats.inc("maintenance_event_count")
+        self.stats.inc(f"{prefix}.event_count")
+        self.stats.inc(f"maintenance_{estimate.path}_events")
+        self.stats.inc(f"{prefix}.{estimate.path}_events")
+        self.stats.inc("maintenance_estimated_cycles", estimate.estimated_cycles)
+        self.stats.inc("maintenance_scan_passes", estimate.scan_passes)
+        self.stats.inc("maintenance_scan_cycles", estimate.scan_cycles)
+        self.stats.inc("maintenance_cursor_read_cycles", estimate.cursor_read_cycles)
+        self.stats.inc("maintenance_bits_inspected", estimate.bits_inspected)
+        self.stats.inc("maintenance_payload_reads", estimate.payload_reads)
+        self.stats.inc("maintenance_merge_inputs", estimate.merge_inputs)
+        self.stats.inc("maintenance_outputs", estimate.outputs)
+        self.stats.inc("maintenance_page_ids_written", estimate.page_ids_written)
+        self.stats.inc("maintenance_write_output_cycles", estimate.write_output_cycles)
+        self.stats.max_value("maintenance.max_target_level", estimate.target_level)
+        self.stats.max_value(f"{prefix}.max_target_level", estimate.target_level)
 
     def _select_empty_target(self, family_base: int, family_count: int) -> int:
         for level in range(self.config.num_levels):
@@ -507,8 +782,9 @@ class Level1CarryMerge(Component):
                 return
             self._event = event
             self._family_index = event.family_base
-            delay = ceil(event.edge_count / max(1, self.config.carry_merge_edges_per_cycle))
-            self._ready_cycle = cycle + (delay if event.carry else 0)
+            delay = max(0, event.maintenance.estimated_cycles)
+            self._ready_cycle = cycle + delay
+            self.stats.inc("maintenance_scheduled_cycles", delay)
             self.stats.add_trace(
                 cycle,
                 "carry_merge_accept_event",
@@ -516,6 +792,9 @@ class Level1CarryMerge(Component):
                 edge_count=event.edge_count,
                 carry=event.carry,
                 group=event.group,
+                maintenance_path=event.maintenance.path,
+                estimated_cycles=event.maintenance.estimated_cycles,
+                scan_passes=event.maintenance.scan_passes,
             )
             return
 
@@ -812,6 +1091,8 @@ class SpineV0Simulator:
             self.stats,
             self.config,
             upstream_done=lambda: router.done,
+            metadata_hot_enabled=self.config.hot_cold_enabled
+            and not self.classification.empty_hot_set,
         )
         self.level0 = level0
         carry = Level1CarryMerge(
@@ -909,6 +1190,11 @@ class SpineV0Simulator:
         counters = self.stats.counters
         failure = self.stats.failure
         level_occupancy = self._all_level_occupancy()
+        maintenance_events = (
+            [asdict(event) for event in self.level0.maintenance_events]
+            if self.level0 is not None
+            else []
+        )
         result: dict[str, Any] = {
             "case": self.workload.metadata.get("case", self.workload.name),
             "workload": self.workload.name,
@@ -928,6 +1214,23 @@ class SpineV0Simulator:
             "carry_count": int(counters.get("carry_count", 0)),
             "cold_carry_count": int(counters.get("cold_carry_count", 0)),
             "hot_carry_count": int(counters.get("hot_carry_count", 0)),
+            "maintenance_event_count": int(counters.get("maintenance_event_count", 0)),
+            "maintenance_store_l0_events": int(counters.get("maintenance_store_l0_events", 0)),
+            "maintenance_cascade_events": int(counters.get("maintenance_cascade_events", 0)),
+            "maintenance_estimated_cycles": int(counters.get("maintenance_estimated_cycles", 0)),
+            "maintenance_scheduled_cycles": int(counters.get("maintenance_scheduled_cycles", 0)),
+            "maintenance_scan_passes": int(counters.get("maintenance_scan_passes", 0)),
+            "maintenance_scan_cycles": int(counters.get("maintenance_scan_cycles", 0)),
+            "maintenance_cursor_read_cycles": int(counters.get("maintenance_cursor_read_cycles", 0)),
+            "maintenance_bits_inspected": int(counters.get("maintenance_bits_inspected", 0)),
+            "maintenance_payload_reads": int(counters.get("maintenance_payload_reads", 0)),
+            "maintenance_merge_inputs": int(counters.get("maintenance_merge_inputs", 0)),
+            "maintenance_outputs": int(counters.get("maintenance_outputs", 0)),
+            "maintenance_page_ids_written": int(counters.get("maintenance_page_ids_written", 0)),
+            "maintenance_max_target_level": int(
+                self.stats.max_values.get("maintenance.max_target_level", 0)
+            ),
+            "maintenance_events": maintenance_events,
             "hbm_request_count": int(counters.get("hbm_request_count", 0)),
             "fifo_stall_cycles": int(counters.get("fifo_stall_cycles", 0)),
             "memory_stall_cycles": int(counters.get("memory_stall_cycles", 0)),
