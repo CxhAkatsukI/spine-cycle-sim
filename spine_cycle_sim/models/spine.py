@@ -53,6 +53,15 @@ class SpineConfig:
     tiny_active_threshold: int = 4096
     sssp_pipeline_ii: int = 1
     sssp_edges_per_cycle: int = 1
+    maintenance_calibrated_timing: bool = True
+    maintenance_schedule_calibrated_cycles: bool = False
+    maintenance_l0_scan_iteration_cycles: int = 105
+    maintenance_l0_output_edge_cycles: int = 110
+    maintenance_carry_scan_iteration_cycles: int = 145
+    maintenance_carry_payload_output_edge_cycles: int = 80
+    maintenance_carry_row_cursor_cycles: int = 130
+    maintenance_refill_stalls_per_page: int = 261
+    maintenance_refill_stall_cycles: int = 1
 
     @property
     def hot_family_base(self) -> int:
@@ -267,6 +276,15 @@ class MaintenanceEstimate:
     metadata_cycles: int
     refill_stalls: int
     validation_failures: int
+    structural_estimated_cycles: int
+    calibrated_scan_cycles: int
+    calibrated_merge_cycles: int
+    calibrated_row_cursor_cycles: int
+    calibrated_refill_stall_cycles: int
+    calibrated_write_output_cycles: int
+    calibrated_metadata_cycles: int
+    calibrated_estimated_cycles: int
+    scheduled_cycles: int
     estimated_cycles: int
 
 
@@ -664,6 +682,7 @@ class Level0Buffer(Component):
         cursor_read_cycles = 0
         merge_inputs = 0
         metadata_cycles = 0
+        refill_stalls = 0
 
         if target == 0:
             pre_count_scan_passes = family_count
@@ -676,6 +695,7 @@ class Level0Buffer(Component):
             bits_inspected = old_pages * max(1, self.config.csr_vertices_per_page)
             rows_entered = old_rows
             payload_reads = old_edges
+            refill_stalls = old_pages * self.config.maintenance_refill_stalls_per_page
             cursor_read_cycles = old_pages * 7 + old_rows * 2 + old_edges
             merge_inputs = old_edges + input_unique_edges
             metadata_cycles = cursor_level_inits * 8 + family_count * 21
@@ -695,6 +715,57 @@ class Level0Buffer(Component):
             + merge_inputs
             + write_output_cycles
             + metadata_cycles
+        )
+        structural_estimated_cycles = estimated_cycles
+        if self.config.maintenance_calibrated_timing:
+            if target == 0:
+                calibrated_scan_cycles = (
+                    scan_cycles * self.config.maintenance_l0_scan_iteration_cycles
+                )
+                calibrated_merge_cycles = 0
+                calibrated_row_cursor_cycles = 0
+                calibrated_refill_stall_cycles = 0
+                calibrated_write_output_cycles = (
+                    output_edges * self.config.maintenance_l0_output_edge_cycles
+                    + output_rows
+                    + output_pages
+                )
+            else:
+                calibrated_scan_cycles = (
+                    scan_cycles * self.config.maintenance_carry_scan_iteration_cycles
+                )
+                calibrated_merge_cycles = (
+                    (payload_reads + output_edges)
+                    * self.config.maintenance_carry_payload_output_edge_cycles
+                )
+                calibrated_row_cursor_cycles = (
+                    rows_entered * self.config.maintenance_carry_row_cursor_cycles
+                )
+                calibrated_refill_stall_cycles = (
+                    refill_stalls * self.config.maintenance_refill_stall_cycles
+                )
+                calibrated_write_output_cycles = output_pages
+            calibrated_metadata_cycles = metadata_cycles
+            calibrated_estimated_cycles = (
+                calibrated_scan_cycles
+                + calibrated_merge_cycles
+                + calibrated_row_cursor_cycles
+                + calibrated_refill_stall_cycles
+                + calibrated_write_output_cycles
+                + calibrated_metadata_cycles
+            )
+        else:
+            calibrated_scan_cycles = scan_cycles
+            calibrated_merge_cycles = merge_inputs
+            calibrated_row_cursor_cycles = cursor_read_cycles
+            calibrated_refill_stall_cycles = 0
+            calibrated_write_output_cycles = write_output_cycles
+            calibrated_metadata_cycles = metadata_cycles
+            calibrated_estimated_cycles = structural_estimated_cycles
+        scheduled_cycles = (
+            calibrated_estimated_cycles
+            if self.config.maintenance_schedule_calibrated_cycles
+            else structural_estimated_cycles
         )
         return MaintenanceEstimate(
             group=group,
@@ -723,9 +794,18 @@ class Level0Buffer(Component):
             page_ids_written=output_pages,
             write_output_cycles=write_output_cycles,
             metadata_cycles=metadata_cycles,
-            refill_stalls=0,
+            refill_stalls=refill_stalls,
             validation_failures=0,
-            estimated_cycles=estimated_cycles,
+            structural_estimated_cycles=structural_estimated_cycles,
+            calibrated_scan_cycles=calibrated_scan_cycles,
+            calibrated_merge_cycles=calibrated_merge_cycles,
+            calibrated_row_cursor_cycles=calibrated_row_cursor_cycles,
+            calibrated_refill_stall_cycles=calibrated_refill_stall_cycles,
+            calibrated_write_output_cycles=calibrated_write_output_cycles,
+            calibrated_metadata_cycles=calibrated_metadata_cycles,
+            calibrated_estimated_cycles=calibrated_estimated_cycles,
+            scheduled_cycles=scheduled_cycles,
+            estimated_cycles=calibrated_estimated_cycles,
         )
 
     def _record_maintenance_estimate(self, estimate: MaintenanceEstimate) -> None:
@@ -736,15 +816,32 @@ class Level0Buffer(Component):
         self.stats.inc(f"maintenance_{estimate.path}_events")
         self.stats.inc(f"{prefix}.{estimate.path}_events")
         self.stats.inc("maintenance_estimated_cycles", estimate.estimated_cycles)
+        self.stats.inc("maintenance_structural_estimated_cycles", estimate.structural_estimated_cycles)
+        self.stats.inc("maintenance_calibrated_estimated_cycles", estimate.calibrated_estimated_cycles)
         self.stats.inc("maintenance_scan_passes", estimate.scan_passes)
         self.stats.inc("maintenance_scan_cycles", estimate.scan_cycles)
+        self.stats.inc("maintenance_calibrated_scan_cycles", estimate.calibrated_scan_cycles)
         self.stats.inc("maintenance_cursor_read_cycles", estimate.cursor_read_cycles)
         self.stats.inc("maintenance_bits_inspected", estimate.bits_inspected)
         self.stats.inc("maintenance_payload_reads", estimate.payload_reads)
+        self.stats.inc("maintenance_refill_stalls", estimate.refill_stalls)
         self.stats.inc("maintenance_merge_inputs", estimate.merge_inputs)
         self.stats.inc("maintenance_outputs", estimate.outputs)
         self.stats.inc("maintenance_page_ids_written", estimate.page_ids_written)
         self.stats.inc("maintenance_write_output_cycles", estimate.write_output_cycles)
+        self.stats.inc("maintenance_calibrated_merge_cycles", estimate.calibrated_merge_cycles)
+        self.stats.inc(
+            "maintenance_calibrated_row_cursor_cycles",
+            estimate.calibrated_row_cursor_cycles,
+        )
+        self.stats.inc(
+            "maintenance_calibrated_refill_stall_cycles",
+            estimate.calibrated_refill_stall_cycles,
+        )
+        self.stats.inc(
+            "maintenance_calibrated_write_output_cycles",
+            estimate.calibrated_write_output_cycles,
+        )
         self.stats.max_value("maintenance.max_target_level", estimate.target_level)
         self.stats.max_value(f"{prefix}.max_target_level", estimate.target_level)
 
@@ -790,7 +887,7 @@ class Level1CarryMerge(Component):
                 return
             self._event = event
             self._family_index = event.family_base
-            delay = max(0, event.maintenance.estimated_cycles)
+            delay = max(0, event.maintenance.scheduled_cycles)
             self._ready_cycle = cycle + delay
             self.stats.inc("maintenance_scheduled_cycles", delay)
             self.stats.add_trace(
@@ -802,6 +899,7 @@ class Level1CarryMerge(Component):
                 group=event.group,
                 maintenance_path=event.maintenance.path,
                 estimated_cycles=event.maintenance.estimated_cycles,
+                scheduled_cycles=event.maintenance.scheduled_cycles,
                 scan_passes=event.maintenance.scan_passes,
             )
             return
@@ -1192,10 +1290,14 @@ class SpineV0Simulator:
 
     def _result(self, cycles: int, include_trace: bool = False) -> dict[str, Any]:
         freq_mhz = self.config.target_freq_mhz
-        time_ms = cycles / (freq_mhz * 1000.0) if freq_mhz > 0 else 0.0
+        counters = self.stats.counters
+        maintenance_estimated = int(counters.get("maintenance_estimated_cycles", 0))
+        maintenance_scheduled = int(counters.get("maintenance_scheduled_cycles", 0))
+        calibrated_extra = max(0, maintenance_estimated - maintenance_scheduled)
+        calibrated_cycles = cycles + calibrated_extra
+        time_ms = calibrated_cycles / (freq_mhz * 1000.0) if freq_mhz > 0 else 0.0
         edge_count = self.workload.edge_count
         eps = edge_count / (time_ms / 1000.0) if time_ms > 0 else 0.0
-        counters = self.stats.counters
         failure = self.stats.failure
         level_occupancy = self._all_level_occupancy()
         maintenance_events = (
@@ -1210,7 +1312,10 @@ class SpineV0Simulator:
             "edges": edge_count,
             "source": self.workload.source,
             "config": asdict(self.config),
-            "cycles": cycles,
+            "execution_cycles": cycles,
+            "calibrated_extra_cycles": calibrated_extra,
+            "cycles": calibrated_cycles,
+            "calibrated_cycles": calibrated_cycles,
             "simulated_time_ms": time_ms,
             "edges_per_second": eps,
             "partition_load": list(self.classification.cold_partition_edges),
@@ -1226,12 +1331,22 @@ class SpineV0Simulator:
             "maintenance_store_l0_events": int(counters.get("maintenance_store_l0_events", 0)),
             "maintenance_cascade_events": int(counters.get("maintenance_cascade_events", 0)),
             "maintenance_estimated_cycles": int(counters.get("maintenance_estimated_cycles", 0)),
+            "maintenance_structural_estimated_cycles": int(
+                counters.get("maintenance_structural_estimated_cycles", 0)
+            ),
+            "maintenance_calibrated_estimated_cycles": int(
+                counters.get("maintenance_calibrated_estimated_cycles", 0)
+            ),
             "maintenance_scheduled_cycles": int(counters.get("maintenance_scheduled_cycles", 0)),
             "maintenance_scan_passes": int(counters.get("maintenance_scan_passes", 0)),
             "maintenance_scan_cycles": int(counters.get("maintenance_scan_cycles", 0)),
+            "maintenance_calibrated_scan_cycles": int(
+                counters.get("maintenance_calibrated_scan_cycles", 0)
+            ),
             "maintenance_cursor_read_cycles": int(counters.get("maintenance_cursor_read_cycles", 0)),
             "maintenance_bits_inspected": int(counters.get("maintenance_bits_inspected", 0)),
             "maintenance_payload_reads": int(counters.get("maintenance_payload_reads", 0)),
+            "maintenance_refill_stalls": int(counters.get("maintenance_refill_stalls", 0)),
             "maintenance_merge_inputs": int(counters.get("maintenance_merge_inputs", 0)),
             "maintenance_outputs": int(counters.get("maintenance_outputs", 0)),
             "maintenance_page_ids_written": int(counters.get("maintenance_page_ids_written", 0)),

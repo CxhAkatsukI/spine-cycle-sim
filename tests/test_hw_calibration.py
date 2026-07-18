@@ -7,6 +7,7 @@ from spine_cycle_sim.calibration import (
     analyze_summary,
     build_hw_command,
     default_matrix,
+    merge_simulator_counters,
     parse_hw_maintenance_output,
 )
 from spine_cycle_sim.calibration.maintenance import ExperimentSpec
@@ -151,6 +152,26 @@ PARTITIONED_CSR_E2E_BATCH case=star batch=1 input_edges=1024 target_level=0 cons
         self.assertEqual(analysis["row_count"], 2)
         self.assertIn("univariate", analysis)
         self.assertIn("ridge", analysis)
+
+    def test_merge_simulator_counters_uses_calibrated_maintenance_estimate(self) -> None:
+        summary = [
+            {
+                "case": "carry_l1_batch_e1024_s64",
+                "sweep": "l1_batch_edges",
+                "mode": "carry",
+                "target_level": 1,
+                "batch_edges": 1024,
+                "source_count": 64,
+                "expected_path": "cascade",
+                "median_hw_cycles": 2_840_371,
+            }
+        ]
+        merged = merge_simulator_counters(summary)
+
+        self.assertEqual(merged[0]["sim_structural_estimated_cycles"], 27_280)
+        self.assertEqual(merged[0]["sim_maintenance_estimated_cycles"], 2_776_656)
+        self.assertEqual(merged[0]["sim_refill_stalls"], 4_176)
+        self.assertEqual(merged[0]["sim_calibrated_scan_cycles"], 2_524_160)
 
 
 if __name__ == "__main__":

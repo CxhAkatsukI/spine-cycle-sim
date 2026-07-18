@@ -18,6 +18,13 @@ from pathlib import Path
 from typing import Any
 
 DEFAULT_FREQ_MHZ = 134.0
+CALIBRATED_L0_SCAN_ITERATION_CYCLES = 105
+CALIBRATED_L0_OUTPUT_EDGE_CYCLES = 110
+CALIBRATED_CARRY_SCAN_ITERATION_CYCLES = 145
+CALIBRATED_CARRY_PAYLOAD_OUTPUT_EDGE_CYCLES = 80
+CALIBRATED_CARRY_ROW_CURSOR_CYCLES = 130
+CALIBRATED_REFILL_STALLS_PER_PAGE = 261
+CALIBRATED_REFILL_STALL_CYCLES = 1
 DEFAULT_HOST_EXE = (
     "/home/chuxiao/spine-dynamic-graph-reduce-levels/tests/test_integration/"
     "host_partitioned_csr_e2e_smoke"
@@ -40,6 +47,7 @@ DEFAULT_FEATURES = [
     "cold_refill_stalls_median",
     "cold_merge_inputs_median",
     "cold_outputs_median",
+    "sim_structural_estimated_cycles",
     "sim_maintenance_estimated_cycles",
 ]
 
@@ -459,9 +467,11 @@ def merge_simulator_counters(summary_rows: list[dict[str, Any]]) -> list[dict[st
 def _simulate_spec_counters(spec: ExperimentSpec) -> dict[str, Any]:
     event = _estimate_structural_event(spec)
     return {
+        "sim_structural_estimated_cycles": event["structural_estimated_cycles"],
         "sim_maintenance_estimated_cycles": event["estimated_cycles"],
         "sim_scan_passes": event["scan_passes"],
         "sim_scan_cycles": event["scan_cycles"],
+        "sim_calibrated_scan_cycles": event["calibrated_scan_cycles"],
         "sim_pages_visited": event["pages_visited"],
         "sim_bits_inspected": event["bits_inspected"],
         "sim_rows_entered": event["rows_entered"],
@@ -486,12 +496,18 @@ def _estimate_structural_event(spec: ExperimentSpec) -> dict[str, int]:
         scan_cycles = scan_passes * spec.batch_edges
         write_output_cycles = output_edges + output_rows + output_pages
         metadata_cycles = family_count
-        estimated_cycles = scan_cycles + write_output_cycles + metadata_cycles
+        structural_estimated_cycles = scan_cycles + write_output_cycles + metadata_cycles
+        calibrated_scan_cycles = scan_cycles * CALIBRATED_L0_SCAN_ITERATION_CYCLES
+        calibrated_write_output_cycles = (
+            output_edges * CALIBRATED_L0_OUTPUT_EDGE_CYCLES + output_rows + output_pages
+        )
+        estimated_cycles = calibrated_scan_cycles + calibrated_write_output_cycles + metadata_cycles
         return {
             "target_level": 0,
             "output_edges": output_edges,
             "scan_passes": scan_passes,
             "scan_cycles": scan_cycles,
+            "calibrated_scan_cycles": calibrated_scan_cycles,
             "pages_visited": 0,
             "bits_inspected": 0,
             "rows_entered": 0,
@@ -500,6 +516,7 @@ def _estimate_structural_event(spec: ExperimentSpec) -> dict[str, int]:
             "merge_inputs": 0,
             "outputs": output_edges,
             "page_ids_written": output_pages,
+            "structural_estimated_cycles": structural_estimated_cycles,
             "estimated_cycles": estimated_cycles,
         }
 
@@ -530,6 +547,7 @@ def _estimate_structural_event(spec: ExperimentSpec) -> dict[str, int]:
     pages_visited = pages_visited_per_family * family_count
     bits_inspected = pages_visited * page_size
     rows_entered = rows_entered_per_family * family_count
+    refill_stalls = pages_visited * CALIBRATED_REFILL_STALLS_PER_PAGE
     cursor_read_cycles = pages_visited * 7 + rows_entered * 2 + old_edges
     merge_inputs = old_edges + new_edges
     output_rows = old_rows_total + new_rows
@@ -538,7 +556,7 @@ def _estimate_structural_event(spec: ExperimentSpec) -> dict[str, int]:
     scan_cycles = scan_passes * spec.batch_edges
     write_output_cycles = output_edges + output_rows + output_pages
     metadata_cycles = family_count * target * 8 + family_count * 21
-    estimated_cycles = (
+    structural_estimated_cycles = (
         scan_cycles
         + cursor_read_cycles
         + bits_inspected
@@ -546,19 +564,35 @@ def _estimate_structural_event(spec: ExperimentSpec) -> dict[str, int]:
         + write_output_cycles
         + metadata_cycles
     )
+    calibrated_scan_cycles = scan_cycles * CALIBRATED_CARRY_SCAN_ITERATION_CYCLES
+    calibrated_merge_cycles = (
+        (old_edges + output_edges) * CALIBRATED_CARRY_PAYLOAD_OUTPUT_EDGE_CYCLES
+    )
+    calibrated_row_cursor_cycles = rows_entered * CALIBRATED_CARRY_ROW_CURSOR_CYCLES
+    calibrated_refill_stall_cycles = refill_stalls * CALIBRATED_REFILL_STALL_CYCLES
+    estimated_cycles = (
+        calibrated_scan_cycles
+        + calibrated_merge_cycles
+        + calibrated_row_cursor_cycles
+        + calibrated_refill_stall_cycles
+        + output_pages
+        + metadata_cycles
+    )
     return {
         "target_level": target,
         "output_edges": output_edges,
         "scan_passes": scan_passes,
         "scan_cycles": scan_cycles,
+        "calibrated_scan_cycles": calibrated_scan_cycles,
         "pages_visited": pages_visited,
         "bits_inspected": bits_inspected,
         "rows_entered": rows_entered,
         "payload_reads": old_edges,
-        "refill_stalls": 0,
+        "refill_stalls": refill_stalls,
         "merge_inputs": merge_inputs,
         "outputs": output_edges,
         "page_ids_written": output_pages,
+        "structural_estimated_cycles": structural_estimated_cycles,
         "estimated_cycles": estimated_cycles,
     }
 

@@ -207,9 +207,19 @@ class MaintenanceTimingTests(unittest.TestCase):
         self.assertEqual(cascade["bits_inspected"], 4096)
         self.assertEqual(cascade["rows_entered"], 16)
         self.assertEqual(cascade["payload_reads"], 1024)
+        self.assertEqual(cascade["refill_stalls"], 4176)
         self.assertEqual(cascade["merge_inputs"], 2048)
         self.assertEqual(cascade["outputs"], 2048)
         self.assertEqual(cascade["page_ids_written"], 16)
+        self.assertEqual(cascade["structural_estimated_cycles"], 27280)
+        self.assertEqual(cascade["scheduled_cycles"], 27280)
+        self.assertEqual(cascade["estimated_cycles"], 2_776_656)
+        self.assertGreater(result["cycles"], result["execution_cycles"])
+        self.assertEqual(
+            result["maintenance_estimated_cycles"],
+            result["maintenance_calibrated_estimated_cycles"],
+        )
+        self.assertGreater(result["maintenance_structural_estimated_cycles"], 0)
 
     def test_hot_metadata_keeps_scanning_zero_input_groups(self) -> None:
         config = SpineConfig(
