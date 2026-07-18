@@ -188,6 +188,76 @@ def default_matrix() -> list[ExperimentSpec]:
     return specs
 
 
+def holdout_matrix() -> list[ExperimentSpec]:
+    specs: list[ExperimentSpec] = []
+
+    for edges in [512, 2048, 8192, 32_768, 98_304]:
+        specs.append(
+            ExperimentSpec(
+                case=f"holdout_l0_store_e{edges}",
+                sweep="holdout_l0_store",
+                mode="l0_store",
+                args=("--star", str(edges)),
+                target_level=0,
+                batch_edges=edges,
+                source_count=1,
+                expected_path="store_l0",
+            )
+        )
+
+    for edges in [512, 2048, 8192, 32_768]:
+        specs.append(
+            ExperimentSpec(
+                case=f"holdout_carry_l1_batch_e{edges}_s64",
+                sweep="holdout_l1_batch_edges",
+                mode="carry",
+                args=("--measure-carry", "1", str(edges), "64"),
+                target_level=1,
+                batch_edges=edges,
+                source_count=64,
+                expected_path="cascade",
+            )
+        )
+
+    for target, edges in [(2, 8192), (3, 8192), (5, 2048), (6, 1024)]:
+        specs.append(
+            ExperimentSpec(
+                case=f"holdout_carry_target_l{target}_e{edges}_s64",
+                sweep="holdout_target_level",
+                mode="carry",
+                args=("--measure-carry", str(target), str(edges), "64"),
+                target_level=target,
+                batch_edges=edges,
+                source_count=64,
+                expected_path="cascade",
+            )
+        )
+
+    for sources in [32, 128, 384]:
+        specs.append(
+            ExperimentSpec(
+                case=f"holdout_carry_source_t8_e256_s{sources}",
+                sweep="holdout_source_count",
+                mode="carry",
+                args=("--measure-carry", "8", "256", str(sources)),
+                target_level=8,
+                batch_edges=256,
+                source_count=sources,
+                expected_path="cascade",
+            )
+        )
+
+    return specs
+
+
+def matrix_by_name(name: str) -> list[ExperimentSpec]:
+    if name == "phase2b":
+        return default_matrix()
+    if name == "phase2d_holdout":
+        return holdout_matrix()
+    raise ValueError(f"unknown calibration matrix: {name}")
+
+
 def _coerce_scalar(value: str) -> int | float | str:
     if value in {"PASS", "FAIL"}:
         return value

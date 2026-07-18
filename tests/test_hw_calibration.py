@@ -7,6 +7,8 @@ from spine_cycle_sim.calibration import (
     analyze_summary,
     build_hw_command,
     default_matrix,
+    holdout_matrix,
+    matrix_by_name,
     merge_simulator_counters,
     parse_hw_maintenance_output,
 )
@@ -89,6 +91,29 @@ PARTITIONED_CSR_E2E_BATCH case=star batch=1 input_edges=1024 target_level=0 cons
         source_sweep = [spec for spec in specs if spec.sweep == "source_count"]
         self.assertTrue(all(spec.target_level == 9 for spec in source_sweep))
         self.assertTrue(all(spec.batch_edges == 128 for spec in source_sweep))
+
+    def test_holdout_matrix_has_unseen_phase2d_cases(self) -> None:
+        training_cases = {spec.case for spec in default_matrix()}
+        specs = holdout_matrix()
+        holdout_cases = {spec.case for spec in specs}
+        sweeps = {spec.sweep for spec in specs}
+
+        self.assertEqual(len(specs), 16)
+        self.assertTrue(holdout_cases.isdisjoint(training_cases))
+        self.assertEqual(
+            sweeps,
+            {
+                "holdout_l0_store",
+                "holdout_l1_batch_edges",
+                "holdout_source_count",
+                "holdout_target_level",
+            },
+        )
+        self.assertEqual(sum(1 for spec in specs if spec.sweep == "holdout_l0_store"), 5)
+        self.assertEqual(sum(1 for spec in specs if spec.sweep == "holdout_l1_batch_edges"), 4)
+        self.assertEqual(sum(1 for spec in specs if spec.sweep == "holdout_target_level"), 4)
+        self.assertEqual(sum(1 for spec in specs if spec.sweep == "holdout_source_count"), 3)
+        self.assertEqual(matrix_by_name("phase2d_holdout"), specs)
 
     def test_build_hw_command_sets_split_runtime_environment(self) -> None:
         spec = ExperimentSpec(

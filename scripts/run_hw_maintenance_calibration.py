@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the Phase 2B HW maintenance calibration matrix."""
+"""Run built-in HW maintenance calibration matrices."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ from spine_cycle_sim.calibration import (  # noqa: E402
     DEFAULT_FEATURES,
     aggregate_rows,
     build_hw_command,
-    default_matrix,
+    matrix_by_name,
     run_hw_case,
     write_json,
     write_rows_csv,
@@ -43,10 +43,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--allow-failures", action="store_true")
     parser.add_argument(
+        "--matrix",
+        choices=["phase2b", "phase2d_holdout"],
+        default="phase2b",
+        help="Select the built-in experiment matrix.",
+    )
+    parser.add_argument(
         "--only-sweep",
         action="append",
-        choices=["l0_store", "l1_batch_edges", "source_count", "target_level"],
-        help="Limit the default matrix to one or more sweep groups.",
+        help="Limit the selected matrix to one or more sweep groups.",
     )
     return parser.parse_args()
 
@@ -57,7 +62,7 @@ def main() -> int:
         raise SystemExit("--repeats must be positive")
     args.out_dir.mkdir(parents=True, exist_ok=True)
 
-    specs = default_matrix()
+    specs = matrix_by_name(args.matrix)
     if args.only_sweep:
         allowed = set(args.only_sweep)
         specs = [spec for spec in specs if spec.sweep in allowed]
@@ -74,6 +79,7 @@ def main() -> int:
             "repeats": args.repeats,
             "timeout_s": args.timeout,
             "freq_mhz": args.freq_mhz,
+            "matrix": args.matrix,
             "xrt_setup": str(xrt_setup) if xrt_setup else "",
             "split_kernels": split_kernels,
             "features": DEFAULT_FEATURES,
