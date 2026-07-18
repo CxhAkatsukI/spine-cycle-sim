@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the Phase 3A.0 HW D-stage measurement readiness matrix."""
+"""Run built-in HW D-stage timing matrices."""
 
 from __future__ import annotations
 
@@ -30,9 +30,7 @@ DEFAULT_XCLBIN = (
     "spine_partitioned_split_e2e.hw.xclbin"
 )
 DEFAULT_HOST_EXE = (
-    "/data/feiyang/spine-dynamic-graph-builds/"
-    "stream_sparse_carry_cursors_local_20260716_160954/"
-    "compact_validation_20260717/tests/test_integration/"
+    "/home/chuxiao/spine-dynamic-graph-reduce-levels/tests/test_integration/"
     "host_partitioned_csr_e2e_smoke"
 )
 
@@ -105,6 +103,196 @@ def default_matrix() -> list[DStageCase]:
             purpose="Forces the non-tiny tile path and broader tile scheduling counters.",
         ),
     ]
+
+
+def phase3a1_calibration_matrix() -> list[DStageCase]:
+    return [
+        DStageCase("calib_tiny_default", "tiny", (), "Small fixed-overhead case."),
+        DStageCase(
+            "calib_sparse_wide",
+            "tiny_wide_tiles",
+            ("--sparse-wide",),
+            "Few edges touching distant tiles.",
+        ),
+        DStageCase(
+            "calib_star_e128",
+            "single_source_fanout",
+            ("--star", "128"),
+            "Single active source, small fanout.",
+        ),
+        DStageCase(
+            "calib_star_e512",
+            "single_source_fanout",
+            ("--star", "512"),
+            "Single active source, medium fanout.",
+        ),
+        DStageCase(
+            "calib_star_e2048",
+            "single_source_fanout",
+            ("--star", "2048"),
+            "Single active source, larger fanout.",
+        ),
+        DStageCase(
+            "calib_fanout_e1024_s16",
+            "multi_source_fanout",
+            ("--fanout", "1024", "16"),
+            "Moderate edge stream with limited active sources.",
+        ),
+        DStageCase(
+            "calib_fanout_e4096_s64",
+            "multi_source_fanout",
+            ("--fanout", "4096", "64"),
+            "Larger edge stream with many active records.",
+        ),
+        DStageCase(
+            "calib_fanout_e8192_s128",
+            "multi_source_fanout",
+            ("--fanout", "8192", "128"),
+            "Large fast-tile path case.",
+        ),
+        DStageCase(
+            "calib_repeat_fanout_e256_b2_s32",
+            "multi_batch_level_state",
+            ("--repeat-fanout", "256", "2", "32"),
+            "Two batches creating L1 state before CONV.",
+        ),
+        DStageCase(
+            "calib_repeat_fanout_e512_b3_s64",
+            "multi_batch_level_state",
+            ("--repeat-fanout", "512", "3", "64"),
+            "Three batches with mixed L0/L1 state.",
+        ),
+        DStageCase(
+            "calib_repeat_star_e1024_b2",
+            "repeat_single_source",
+            ("--repeat-star", "1024", "2"),
+            "Repeated single-source fanout batches.",
+        ),
+        DStageCase(
+            "calib_fallback_forced",
+            "full_path_tile",
+            ("--fallback-forced",),
+            "Full tile path dominated by vertex-state sweep.",
+        ),
+    ]
+
+
+def phase3a1_holdout_matrix() -> list[DStageCase]:
+    return [
+        DStageCase(
+            "holdout_star_e256",
+            "single_source_fanout",
+            ("--star", "256"),
+            "Unseen single-source fanout.",
+        ),
+        DStageCase(
+            "holdout_star_e1024",
+            "single_source_fanout",
+            ("--star", "1024"),
+            "Unseen medium single-source fanout.",
+        ),
+        DStageCase(
+            "holdout_star_onepart_e512",
+            "one_partition_fanout",
+            ("--star-onepart", "512"),
+            "Unseen one-partition destination fanout.",
+        ),
+        DStageCase(
+            "holdout_fanout_e2048_s32",
+            "multi_source_fanout",
+            ("--fanout", "2048", "32"),
+            "Unseen fast-tile multi-source case.",
+        ),
+        DStageCase(
+            "holdout_fanout_e6144_s96",
+            "multi_source_fanout",
+            ("--fanout", "6144", "96"),
+            "Unseen larger fast-tile case.",
+        ),
+        DStageCase(
+            "holdout_repeat_fanout_e256_b4_s32",
+            "multi_batch_level_state",
+            ("--repeat-fanout", "256", "4", "32"),
+            "Unseen four-batch level-state case.",
+        ),
+        DStageCase(
+            "holdout_repeat_fanout_e1024_b2_s128",
+            "multi_batch_level_state",
+            ("--repeat-fanout", "1024", "2", "128"),
+            "Unseen repeated fanout with more active sources.",
+        ),
+        DStageCase(
+            "holdout_repeat_star_dense_e512_b2",
+            "repeat_single_source",
+            ("--repeat-star-dense", "512", "2"),
+            "Unseen dense repeated star with destination local_start at zero.",
+        ),
+    ]
+
+
+def phase3a1_final_holdout_matrix() -> list[DStageCase]:
+    return [
+        DStageCase(
+            "final_star_e384",
+            "single_source_fanout",
+            ("--star", "384"),
+            "Final unseen single-source fanout.",
+        ),
+        DStageCase(
+            "final_star_e1536",
+            "single_source_fanout",
+            ("--star", "1536"),
+            "Final unseen larger single-source fanout.",
+        ),
+        DStageCase(
+            "final_star_onepart_e1024",
+            "one_partition_fanout",
+            ("--star-onepart", "1024"),
+            "Final unseen one-partition destination fanout.",
+        ),
+        DStageCase(
+            "final_fanout_e3072_s48",
+            "multi_source_fanout",
+            ("--fanout", "3072", "48"),
+            "Final unseen multi-source fanout.",
+        ),
+        DStageCase(
+            "final_fanout_e7168_s112",
+            "multi_source_fanout",
+            ("--fanout", "7168", "112"),
+            "Final unseen larger multi-source fanout.",
+        ),
+        DStageCase(
+            "final_repeat_fanout_e384_b3_s48",
+            "multi_batch_level_state",
+            ("--repeat-fanout", "384", "3", "48"),
+            "Final unseen three-batch level-state case.",
+        ),
+        DStageCase(
+            "final_repeat_fanout_e768_b2_s96",
+            "multi_batch_level_state",
+            ("--repeat-fanout", "768", "2", "96"),
+            "Final unseen two-batch level-state case.",
+        ),
+        DStageCase(
+            "final_repeat_star_dense_e768_b2",
+            "repeat_single_source",
+            ("--repeat-star-dense", "768", "2"),
+            "Final unseen dense repeated star case.",
+        ),
+    ]
+
+
+def matrix_by_name(name: str) -> list[DStageCase]:
+    if name == "phase3a0_readiness":
+        return default_matrix()
+    if name == "phase3a1_calibration":
+        return phase3a1_calibration_matrix()
+    if name == "phase3a1_holdout":
+        return phase3a1_holdout_matrix()
+    if name == "phase3a1_final_holdout":
+        return phase3a1_final_holdout_matrix()
+    raise ValueError(f"unknown D-stage matrix: {name}")
 
 
 def parse_scalar(value: str) -> int | float | str:
@@ -302,6 +490,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--no-xrt-setup", action="store_true")
     parser.add_argument("--no-split-kernels", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument(
+        "--matrix",
+        choices=[
+            "phase3a0_readiness",
+            "phase3a1_calibration",
+            "phase3a1_holdout",
+            "phase3a1_final_holdout",
+        ],
+        default="phase3a0_readiness",
+        help="Select the built-in D-stage experiment matrix.",
+    )
     parser.add_argument("--only-case", action="append", help="Limit to one or more case ids.")
     return parser.parse_args()
 
@@ -312,7 +511,7 @@ def main() -> int:
         raise SystemExit("--repeats must be positive")
     args.out_dir.mkdir(parents=True, exist_ok=True)
 
-    cases = default_matrix()
+    cases = matrix_by_name(args.matrix)
     if args.only_case:
         allowed = set(args.only_case)
         cases = [case for case in cases if case.case in allowed]
@@ -330,6 +529,7 @@ def main() -> int:
             "timeout_s": args.timeout,
             "xrt_setup": str(xrt_setup) if xrt_setup else "",
             "split_kernels": split_kernels,
+            "matrix": args.matrix,
             "cases": [asdict(case) for case in cases],
         },
     )
