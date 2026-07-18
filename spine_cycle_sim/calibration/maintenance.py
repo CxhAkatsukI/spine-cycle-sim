@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import csv
 import json
-import math
 import re
 import shlex
 import statistics
@@ -17,10 +16,6 @@ import subprocess
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
-
-from spine_cycle_sim.models import SpineConfig, SpineV0Simulator
-from spine_cycle_sim.workloads import Edge, Workload
-
 
 DEFAULT_FREQ_MHZ = 134.0
 DEFAULT_HOST_EXE = (
@@ -462,37 +457,8 @@ def merge_simulator_counters(summary_rows: list[dict[str, Any]]) -> list[dict[st
 
 
 def _simulate_spec_counters(spec: ExperimentSpec) -> dict[str, Any]:
-    config = SpineConfig(
-        max_vertices=16 * 1_048_576,
-        vs_partition_size=1_048_576,
-        num_partitions=16,
-        hot_shards=16,
-        hot_cold_enabled=False,
-        batch_size_edges=spec.batch_edges,
-        num_levels=max(4, spec.target_level + 2),
-        csr_vertices_per_page=256,
-        max_cycles=200_000_000,
-    )
-    batch_count = 1 if spec.mode == "l0_store" else 1 << max(0, spec.target_level)
-    edges: list[Edge] = []
-    for batch_index in range(batch_count):
-        edges.extend(_dense_batch_edges(config, spec.batch_edges, batch_index, spec.source_count))
-    workload = Workload(spec.case, config.max_vertices, edges, source=0)
-    result = SpineV0Simulator(workload, config).run()
-    events = result.get("maintenance_events", [])
-    if spec.mode == "l0_store":
-        matches = [event for event in events if event.get("target_level") == 0]
-    else:
-        matches = [
-            event
-            for event in events
-            if event.get("path") == "cascade" and event.get("target_level") == spec.target_level
-        ]
-    if not matches:
-        raise ValueError(f"no simulator maintenance event matched {spec.case}")
-    event = matches[-1]
+    event = _estimate_structural_event(spec)
     return {
-        "sim_cycles": result["cycles"],
         "sim_maintenance_estimated_cycles": event["estimated_cycles"],
         "sim_scan_passes": event["scan_passes"],
         "sim_scan_cycles": event["scan_cycles"],
@@ -509,25 +475,92 @@ def _simulate_spec_counters(spec: ExperimentSpec) -> dict[str, Any]:
     }
 
 
-def _dense_batch_edges(
-    config: SpineConfig,
-    batch_edges: int,
-    batch_index: int,
-    source_count: int,
-) -> list[Edge]:
-    edges: list[Edge] = []
-    sources = max(1, source_count)
-    partitions = config.num_partitions
-    locals_per_source = math.ceil(batch_edges / partitions)
-    src = batch_index % sources
-    local_start = (batch_index // sources) * locals_per_source
-    for index in range(batch_edges):
-        partition = index % partitions
-        local = local_start + index // partitions
-        dst = partition * config.vs_partition_size + local
-        weight = 1 + ((partition * 17 + local + src) % 97)
-        edges.append(Edge(src, dst, weight))
-    return edges
+def _estimate_structural_event(spec: ExperimentSpec) -> dict[str, int]:
+    family_count = 16
+    page_size = 256
+    if spec.mode == "l0_store":
+        output_edges = spec.batch_edges
+        output_rows = family_count
+        output_pages = family_count
+        scan_passes = 1 + family_count + family_count
+        scan_cycles = scan_passes * spec.batch_edges
+        write_output_cycles = output_edges + output_rows + output_pages
+        metadata_cycles = family_count
+        estimated_cycles = scan_cycles + write_output_cycles + metadata_cycles
+        return {
+            "target_level": 0,
+            "output_edges": output_edges,
+            "scan_passes": scan_passes,
+            "scan_cycles": scan_cycles,
+            "pages_visited": 0,
+            "bits_inspected": 0,
+            "rows_entered": 0,
+            "payload_reads": 0,
+            "refill_stalls": 0,
+            "merge_inputs": 0,
+            "outputs": output_edges,
+            "page_ids_written": output_pages,
+            "estimated_cycles": estimated_cycles,
+        }
+
+    target = max(1, spec.target_level)
+    target_batches = 1 << target
+    old_batches = target_batches - 1
+    source_count = max(1, spec.source_count)
+    old_edges = spec.batch_edges * old_batches
+    new_edges = spec.batch_edges
+    output_edges = spec.batch_edges * target_batches
+    pages_visited_per_family = 0
+    rows_entered_per_family = 0
+    old_pages_union: set[int] = set()
+    old_rows_total = 0
+    for level in range(target):
+        start = target_batches - (1 << (level + 1))
+        batch_count = 1 << level
+        sources = {(start + offset) % source_count for offset in range(batch_count)}
+        pages = {source // page_size for source in sources}
+        rows_entered_per_family += len(sources)
+        pages_visited_per_family += len(pages)
+        old_pages_union.update(pages)
+        old_rows_total += len(sources) * family_count
+    new_source = (target_batches - 1) % source_count
+    output_pages_per_family = len(old_pages_union | {new_source // page_size})
+    new_rows = family_count
+
+    pages_visited = pages_visited_per_family * family_count
+    bits_inspected = pages_visited * page_size
+    rows_entered = rows_entered_per_family * family_count
+    cursor_read_cycles = pages_visited * 7 + rows_entered * 2 + old_edges
+    merge_inputs = old_edges + new_edges
+    output_rows = old_rows_total + new_rows
+    output_pages = output_pages_per_family * family_count
+    scan_passes = 1 + family_count
+    scan_cycles = scan_passes * spec.batch_edges
+    write_output_cycles = output_edges + output_rows + output_pages
+    metadata_cycles = family_count * target * 8 + family_count * 21
+    estimated_cycles = (
+        scan_cycles
+        + cursor_read_cycles
+        + bits_inspected
+        + merge_inputs
+        + write_output_cycles
+        + metadata_cycles
+    )
+    return {
+        "target_level": target,
+        "output_edges": output_edges,
+        "scan_passes": scan_passes,
+        "scan_cycles": scan_cycles,
+        "pages_visited": pages_visited,
+        "bits_inspected": bits_inspected,
+        "rows_entered": rows_entered,
+        "payload_reads": old_edges,
+        "refill_stalls": 0,
+        "merge_inputs": merge_inputs,
+        "outputs": output_edges,
+        "page_ids_written": output_pages,
+        "estimated_cycles": estimated_cycles,
+    }
 
 
 def analyze_summary(summary_rows: list[dict[str, Any]]) -> dict[str, Any]:

@@ -202,8 +202,10 @@ analysis/summary.json
 analysis/fit.json
 ```
 
-By default, the analyzer also runs the simulator on the matching synthetic
-shape and appends `sim_*` counters. If this is too slow during iteration:
+By default, the analyzer also appends lightweight `sim_*` structural estimates
+for the matching synthetic maintenance shape. It does not run the full
+cycle-by-cycle simulator, so D-stage compute cannot dominate analysis time. If
+only HW counters are needed during iteration:
 
 ```bash
 python3 scripts/analyze_hw_maintenance_calibration.py \
