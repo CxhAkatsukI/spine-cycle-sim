@@ -399,6 +399,9 @@ class Level0Buffer(Component):
         self.level_page_counts = [
             [0 for _ in range(config.num_levels)] for _ in range(config.family_count)
         ]
+        self.level_page_sets = [
+            [set() for _ in range(config.num_levels)] for _ in range(config.family_count)
+        ]
         self.current_edges = 0
         self._pending_events: Deque[StorageEvent] = deque()
         self._rr_family = 0
@@ -508,6 +511,7 @@ class Level0Buffer(Component):
         combined_edges = [0 for _ in range(self.config.family_count)]
         combined_rows = [0 for _ in range(self.config.family_count)]
         combined_pages = [0 for _ in range(self.config.family_count)]
+        combined_page_sets = [set() for _ in range(self.config.family_count)]
         old_edges_by_family = [0 for _ in range(self.config.family_count)]
         old_rows_by_family = [0 for _ in range(self.config.family_count)]
         old_pages_by_family = [0 for _ in range(self.config.family_count)]
@@ -516,14 +520,15 @@ class Level0Buffer(Component):
             stat = group_stats[family]
             edge_count = stat.unique_edges
             row_count = stat.rows
-            page_count = stat.pages
+            page_set = set(self.current_pages[family])
             for level in range(target):
                 old_edges_by_family[family] += self.level_counts[family][level]
                 old_rows_by_family[family] += self.level_row_counts[family][level]
                 old_pages_by_family[family] += self.level_page_counts[family][level]
+                page_set.update(self.level_page_sets[family][level])
             edge_count += old_edges_by_family[family]
             row_count += old_rows_by_family[family]
-            page_count += old_pages_by_family[family]
+            page_count = len(page_set)
             if edge_count > self.config.level_family_capacity(target):
                 self.stats.set_failure(
                     "level_family_capacity",
@@ -542,15 +547,18 @@ class Level0Buffer(Component):
             combined_edges[family] = edge_count
             combined_rows[family] = row_count
             combined_pages[family] = page_count
+            combined_page_sets[family] = page_set
 
         for family in families:
             for level in range(target):
                 self.level_counts[family][level] = 0
                 self.level_row_counts[family][level] = 0
                 self.level_page_counts[family][level] = 0
+                self.level_page_sets[family][level] = set()
             self.level_counts[family][target] = combined_edges[family]
             self.level_row_counts[family][target] = combined_rows[family]
             self.level_page_counts[family][target] = combined_pages[family]
+            self.level_page_sets[family][target] = combined_page_sets[family]
             for level, value in enumerate(self.level_counts[family]):
                 self.stats.max_value(f"family.{family}.level{level}.max_occupancy", value)
 

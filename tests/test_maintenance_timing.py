@@ -124,6 +124,93 @@ class MaintenanceTimingTests(unittest.TestCase):
         self.assertEqual(event["output_edges"], 1)
         self.assertEqual(event["page_ids_written"], 1)
 
+    def test_l1_cascade_coalesces_output_pages_across_old_and_new_batch(self) -> None:
+        config = SpineConfig(
+            max_vertices=512,
+            vs_partition_size=512,
+            num_partitions=1,
+            hot_shards=1,
+            hot_cold_enabled=False,
+            batch_size_edges=4,
+            num_levels=3,
+            csr_vertices_per_page=256,
+            max_cycles=100_000,
+        )
+        edges = [Edge(i, i + 10, 1) for i in range(4)]
+        edges.extend(Edge(i + 4, i + 20, 1) for i in range(4))
+        workload = Workload("overlap_pages", config.max_vertices, edges, source=0)
+        result = run_workload(workload, config)
+        cascade = result["maintenance_events"][1]
+
+        self.assertEqual(result["capacity_status"], "PASS")
+        self.assertEqual(cascade["path"], "cascade")
+        self.assertEqual(cascade["target_level"], 1)
+        self.assertEqual(cascade["pages_visited"], 1)
+        self.assertEqual(cascade["page_ids_written"], 1)
+
+    def test_l1_cascade_keeps_disjoint_output_pages(self) -> None:
+        config = SpineConfig(
+            max_vertices=512,
+            vs_partition_size=512,
+            num_partitions=1,
+            hot_shards=1,
+            hot_cold_enabled=False,
+            batch_size_edges=4,
+            num_levels=3,
+            csr_vertices_per_page=256,
+            max_cycles=100_000,
+        )
+        edges = [Edge(i, i + 10, 1) for i in range(4)]
+        edges.extend(Edge(256 + i, i + 20, 1) for i in range(4))
+        workload = Workload("disjoint_pages", config.max_vertices, edges, source=0)
+        result = run_workload(workload, config)
+        cascade = result["maintenance_events"][1]
+
+        self.assertEqual(result["capacity_status"], "PASS")
+        self.assertEqual(cascade["path"], "cascade")
+        self.assertEqual(cascade["target_level"], 1)
+        self.assertEqual(cascade["pages_visited"], 1)
+        self.assertEqual(cascade["page_ids_written"], 2)
+
+    def test_hw_l1_measure_carry_1024_structural_page_counters(self) -> None:
+        config = SpineConfig(
+            max_vertices=16 * 1_048_576,
+            vs_partition_size=1_048_576,
+            num_partitions=16,
+            hot_shards=16,
+            hot_cold_enabled=False,
+            batch_size_edges=1024,
+            num_levels=4,
+            csr_vertices_per_page=256,
+            max_cycles=1_000_000,
+        )
+        edges: list[Edge] = []
+        for src in (0, 1):
+            for i in range(1024):
+                partition = i % config.num_partitions
+                local = i // config.num_partitions
+                dst = partition * config.vs_partition_size + local
+                edges.append(Edge(src, dst, 1))
+        workload = Workload(
+            "hw_measure_carry_l1_1024_shape",
+            config.max_vertices,
+            edges,
+            source=0,
+        )
+        result = run_workload(workload, config)
+        cascade = result["maintenance_events"][1]
+
+        self.assertEqual(result["capacity_status"], "PASS")
+        self.assertEqual(cascade["path"], "cascade")
+        self.assertEqual(cascade["target_level"], 1)
+        self.assertEqual(cascade["pages_visited"], 16)
+        self.assertEqual(cascade["bits_inspected"], 4096)
+        self.assertEqual(cascade["rows_entered"], 16)
+        self.assertEqual(cascade["payload_reads"], 1024)
+        self.assertEqual(cascade["merge_inputs"], 2048)
+        self.assertEqual(cascade["outputs"], 2048)
+        self.assertEqual(cascade["page_ids_written"], 16)
+
     def test_hot_metadata_keeps_scanning_zero_input_groups(self) -> None:
         config = SpineConfig(
             max_vertices=128,
