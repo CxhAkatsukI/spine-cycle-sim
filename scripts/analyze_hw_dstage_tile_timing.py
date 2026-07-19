@@ -20,14 +20,28 @@ from spine_cycle_sim.calibration.maintenance import DEFAULT_FREQ_MHZ  # noqa: E4
 TILE_FEATURES = [
     "median_active_records",
     "active_records_x_touched_tiles",
+    "fast_records_x_tiles",
+    "full_records_x_tiles",
+    "partition_count_x_active_records",
     "tile_fast_count",
     "tile_full_count",
     "tile_fallback_count",
+    "tile_mixed_path",
+    "tile_partition_count",
+    "tile_multi_partition",
+    "tile_max_partition_tile_count",
     "tile_fast_work",
     "tile_full_work",
+    "tile_fast_gathered_words",
     "tile_full_swept_words",
+    "tile_scattered_words",
     "tile_max_work",
+    "tile_max_clipped_ranges",
+    "tile_max_partition_work",
+    "tile_max_partition_swept_words",
     "tile_clipped_ranges",
+    "full_work_per_active_record",
+    "full_work_per_full_tile",
 ]
 
 PREDICTION_FIELDS = [
@@ -192,11 +206,20 @@ def merge_features(summary_rows: list[dict[str, Any]], tile_rows: list[dict[str,
         for feature in TILE_FEATURES:
             out.setdefault(feature, 0.0)
         active_records = numeric(out, "median_active_records") or 0.0
+        fast_tiles = numeric(out, "tile_fast_count") or 0.0
+        full_tiles = numeric(out, "tile_full_count") or 0.0
+        partition_count = numeric(out, "tile_partition_count") or 0.0
+        full_work = numeric(out, "tile_full_work") or 0.0
         touched_tiles = (
-            (numeric(out, "tile_fast_count") or 0.0)
-            + (numeric(out, "tile_full_count") or 0.0)
+            fast_tiles
+            + full_tiles
         )
         out["active_records_x_touched_tiles"] = active_records * touched_tiles
+        out["fast_records_x_tiles"] = active_records * fast_tiles
+        out["full_records_x_tiles"] = active_records * full_tiles
+        out["partition_count_x_active_records"] = active_records * partition_count
+        out["full_work_per_active_record"] = full_work / max(1.0, active_records)
+        out["full_work_per_full_tile"] = full_work / max(1.0, full_tiles)
         merged.append(out)
     return merged
 
@@ -353,9 +376,16 @@ def load_dataset(directory: Path) -> list[dict[str, Any]]:
     return merge_features(successful_rows(read_rows(summary)), read_rows(tile_schedule))
 
 
+def load_datasets(directories: list[Path]) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for directory in directories:
+        rows.extend(load_dataset(directory))
+    return rows
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--calibration-dir", type=Path, required=True)
+    parser.add_argument("--calibration-dir", type=Path, action="append", required=True)
     parser.add_argument("--holdout-dir", type=Path)
     parser.add_argument("--out-dir", type=Path)
     parser.add_argument("--freq-mhz", type=float, default=DEFAULT_FREQ_MHZ)
@@ -372,10 +402,10 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
-    out_dir = args.out_dir or args.calibration_dir / "tile_timing_analysis"
+    out_dir = args.out_dir or args.calibration_dir[0] / "tile_timing_analysis"
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    calibration_rows = load_dataset(args.calibration_dir)
+    calibration_rows = load_datasets(args.calibration_dir)
     model = fit_model(
         calibration_rows,
         TILE_FEATURES,
@@ -388,7 +418,11 @@ def main() -> int:
         calibration_predictions,
         args.max_threshold_pct,
     )
-    fit: dict[str, Any] = {"model": model, "calibration": calibration_report}
+    fit: dict[str, Any] = {
+        "model": model,
+        "calibration": calibration_report,
+        "calibration_dirs": [str(path) for path in args.calibration_dir],
+    }
     write_rows(
         out_dir / "calibration_predictions.csv",
         calibration_predictions,

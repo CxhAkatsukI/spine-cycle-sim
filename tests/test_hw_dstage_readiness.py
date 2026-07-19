@@ -106,6 +106,33 @@ class DStageReadinessMatrixTests(unittest.TestCase):
                 )
             )
 
+    def test_phase3c_matrices_are_holdout_or_final_validation(self) -> None:
+        calibration = matrix_by_name("phase3c_full_partition_calibration")
+        holdout = matrix_by_name("phase3c_full_partition_holdout")
+        final = matrix_by_name("phase3c_final_validation")
+        phase3b_cases = {case.case for case in matrix_by_name("phase3b_bottleneck_synthetic")}
+
+        calibration_cases = {case.case for case in calibration}
+        holdout_cases = {case.case for case in holdout}
+        final_cases = {case.case for case in final}
+        self.assertEqual(len(calibration), 23)
+        self.assertEqual(len(holdout), 12)
+        self.assertEqual(len(final), 8)
+        self.assertTrue(calibration_cases.isdisjoint(holdout_cases))
+        self.assertTrue(calibration_cases.isdisjoint(final_cases))
+        self.assertTrue(holdout_cases.isdisjoint(final_cases))
+        self.assertTrue(calibration_cases.isdisjoint(phase3b_cases))
+        self.assertTrue(holdout_cases.isdisjoint(phase3b_cases))
+        self.assertIn("p3c_final_full_large_s32_w1024", final_cases)
+        self.assertIn("p3c_final_replay_above_s4098_t16", final_cases)
+        for case in [*calibration, *holdout, *final]:
+            self.assertIn("--print-tile-schedule", case.args)
+        self.assertTrue(any(case.sweep == "full_low_replay" for case in calibration))
+        self.assertTrue(
+            any(case.sweep == "multi_partition_interaction" for case in calibration)
+        )
+        self.assertTrue(any(case.sweep == "small_multitile_fixed" for case in holdout))
+
 
 if __name__ == "__main__":
     unittest.main()

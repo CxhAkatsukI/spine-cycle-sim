@@ -1295,6 +1295,433 @@ def phase3b_multibatch_probe_matrix() -> list[DStageCase]:
     ]
 
 
+def phase3c_full_partition_calibration_matrix() -> list[DStageCase]:
+    return [
+        DStageCase(
+            "p3c_cal_full_s1_w4097",
+            "full_low_replay",
+            ("--multi-source-tile-work", "1", "0:4097", "--print-tile-schedule"),
+            "One source, one low-replay full tile just above threshold.",
+        ),
+        DStageCase(
+            "p3c_cal_full_s1_w8192",
+            "full_low_replay",
+            ("--multi-source-tile-work", "1", "0:8192", "--print-tile-schedule"),
+            "One source, medium full tile.",
+        ),
+        DStageCase(
+            "p3c_cal_full_s1_w32768",
+            "full_low_replay",
+            ("--multi-source-tile-work", "1", "0:32768", "--print-tile-schedule"),
+            "One source, large full tile.",
+        ),
+        DStageCase(
+            "p3c_cal_full_s2_w4096",
+            "full_low_replay",
+            ("--multi-source-tile-work", "2", "0:4096", "--print-tile-schedule"),
+            "Two sources, 8192 total full work.",
+        ),
+        DStageCase(
+            "p3c_cal_full_s4_w4096",
+            "full_low_replay",
+            ("--multi-source-tile-work", "4", "0:4096", "--print-tile-schedule"),
+            "Four sources, 16384 total full work.",
+        ),
+        DStageCase(
+            "p3c_cal_full_s8_w4096",
+            "full_low_replay",
+            ("--multi-source-tile-work", "8", "0:4096", "--print-tile-schedule"),
+            "Eight sources, 32768 total full work.",
+        ),
+        DStageCase(
+            "p3c_cal_full_s16_w2048",
+            "full_low_replay",
+            ("--multi-source-tile-work", "16", "0:2048", "--print-tile-schedule"),
+            "Sixteen sources, 32768 total full work.",
+        ),
+        DStageCase(
+            "p3c_cal_full_s32_w512",
+            "full_low_replay",
+            ("--multi-source-tile-work", "32", "0:512", "--print-tile-schedule"),
+            "Thirty-two sources, 16384 total full work.",
+        ),
+        DStageCase(
+            "p3c_cal_full_s48_w256",
+            "full_low_replay",
+            ("--multi-source-tile-work", "48", "0:256", "--print-tile-schedule"),
+            "Forty-eight sources, 12288 total full work.",
+        ),
+        DStageCase(
+            "p3c_cal_full_s64_w128",
+            "full_low_replay",
+            ("--multi-source-tile-work", "64", "0:128", "--print-tile-schedule"),
+            "Sixty-four sources, 8192 total full work.",
+        ),
+        DStageCase(
+            "p3c_cal_full_boundary_s17_w241",
+            "full_low_replay_boundary",
+            ("--multi-source-tile-work", "17", "0:241", "--print-tile-schedule"),
+            "4097 total full work with a different source/work ratio.",
+        ),
+        DStageCase(
+            "p3c_cal_full_boundary_s33_w125",
+            "full_low_replay_boundary",
+            ("--multi-source-tile-work", "33", "0:125", "--print-tile-schedule"),
+            "4125 total full work near the boundary.",
+        ),
+        DStageCase(
+            "p3c_cal_multitile_s8_small",
+            "small_multitile_fixed",
+            (
+                "--multi-source-tile-work",
+                "8",
+                "0:1,4,16,64",
+                "--print-tile-schedule",
+            ),
+            "Small fast multi-tile overhead point.",
+        ),
+        DStageCase(
+            "p3c_cal_multitile_s16_scaled",
+            "small_multitile_fixed",
+            (
+                "--multi-source-tile-work",
+                "16",
+                "0:2,8,32,128",
+                "--print-tile-schedule",
+            ),
+            "Scaled four-tile fast path point.",
+        ),
+        DStageCase(
+            "p3c_cal_multitile_s24_t4_e1",
+            "small_multitile_fixed",
+            (
+                "--multi-source-tile-work",
+                "24",
+                "0:1,1,1,1",
+                "--print-tile-schedule",
+            ),
+            "Four tiny fast tiles with more sources.",
+        ),
+        DStageCase(
+            "p3c_cal_multitile_s32_t6",
+            "small_multitile_fixed",
+            (
+                "--multi-source-tile-work",
+                "32",
+                "0:1,2,4,8,16,32",
+                "--print-tile-schedule",
+            ),
+            "Six small fast tiles below replay fallback.",
+        ),
+        DStageCase(
+            "p3c_cal_multipart_s24_p0_p5_p12",
+            "multi_partition_interaction",
+            (
+                "--multi-source-tile-work",
+                "24",
+                "0:2,8",
+                "5:4",
+                "12:12",
+                "--print-tile-schedule",
+            ),
+            "Three partitions near the Phase 3B multi-partition failure shape.",
+        ),
+        DStageCase(
+            "p3c_cal_multipart_s48_p0_p6",
+            "multi_partition_interaction",
+            (
+                "--multi-source-tile-work",
+                "48",
+                "0:1,16",
+                "6:4,32",
+                "--print-tile-schedule",
+            ),
+            "Two partitions with four fast tiles.",
+        ),
+        DStageCase(
+            "p3c_cal_multipart_s96_p0_p5_p11",
+            "multi_partition_interaction",
+            (
+                "--multi-source-tile-work",
+                "96",
+                "0:1,16",
+                "5:4,48",
+                "11:8",
+                "--print-tile-schedule",
+            ),
+            "Three partitions with one full tile and several fast tiles.",
+        ),
+        DStageCase(
+            "p3c_cal_multipart_s64_p1_p8_p14",
+            "multi_partition_interaction",
+            (
+                "--multi-source-tile-work",
+                "64",
+                "1:2,64",
+                "8:4",
+                "14:16",
+                "--print-tile-schedule",
+            ),
+            "Separated partitions with mixed tile counts.",
+        ),
+        DStageCase(
+            "p3c_cal_partition_full_p0_p2_p4",
+            "multi_partition_full",
+            (
+                "--partition-tile-work",
+                "0:4097",
+                "2:8192",
+                "4:16384",
+                "--print-tile-schedule",
+            ),
+            "One-source full tiles spread over three partitions.",
+        ),
+        DStageCase(
+            "p3c_cal_partition_sparse_p0_p2_p4_p6_p8",
+            "multi_partition_sparse",
+            (
+                "--partition-tile-work",
+                "0:1",
+                "2:1",
+                "4:1",
+                "6:1",
+                "8:1",
+                "--print-tile-schedule",
+            ),
+            "Sparse partition fixed-overhead point.",
+        ),
+        DStageCase(
+            "p3c_cal_partition_mixed_p0_p3_p9",
+            "multi_partition_full",
+            (
+                "--partition-tile-work",
+                "0:4096,4097",
+                "3:8192",
+                "9:32768",
+                "--print-tile-schedule",
+            ),
+            "One-source multi-partition mixed fast/full point.",
+        ),
+    ]
+
+
+def phase3c_full_partition_holdout_matrix() -> list[DStageCase]:
+    return [
+        DStageCase(
+            "p3c_hold_full_s3_w2048",
+            "full_low_replay",
+            ("--multi-source-tile-work", "3", "0:2048", "--print-tile-schedule"),
+            "Unseen low-replay full tile.",
+        ),
+        DStageCase(
+            "p3c_hold_full_s5_w4096",
+            "full_low_replay",
+            ("--multi-source-tile-work", "5", "0:4096", "--print-tile-schedule"),
+            "Unseen 20480-work full tile.",
+        ),
+        DStageCase(
+            "p3c_hold_full_boundary_s31_w134",
+            "full_low_replay_boundary",
+            ("--multi-source-tile-work", "31", "0:134", "--print-tile-schedule"),
+            "Unseen near-boundary full tile close to Phase 3B final.",
+        ),
+        DStageCase(
+            "p3c_hold_full_s40_w768",
+            "full_low_replay",
+            ("--multi-source-tile-work", "40", "0:768", "--print-tile-schedule"),
+            "Unseen large full tile with forty sources.",
+        ),
+        DStageCase(
+            "p3c_hold_full_s2_w16384",
+            "full_low_replay",
+            ("--multi-source-tile-work", "2", "0:16384", "--print-tile-schedule"),
+            "Unseen large full tile with two sources.",
+        ),
+        DStageCase(
+            "p3c_hold_multitile_s12_small",
+            "small_multitile_fixed",
+            (
+                "--multi-source-tile-work",
+                "12",
+                "0:1,4,16,64",
+                "--print-tile-schedule",
+            ),
+            "Unseen small multi-tile overhead point.",
+        ),
+        DStageCase(
+            "p3c_hold_multitile_s20_t6",
+            "small_multitile_fixed",
+            (
+                "--multi-source-tile-work",
+                "20",
+                "0:1,2,4,8,16,32",
+                "--print-tile-schedule",
+            ),
+            "Unseen six-tile small fast path point.",
+        ),
+        DStageCase(
+            "p3c_hold_multipart_s28_p0_p7_p15",
+            "multi_partition_interaction",
+            (
+                "--multi-source-tile-work",
+                "28",
+                "0:2,8",
+                "7:4",
+                "15:12",
+                "--print-tile-schedule",
+            ),
+            "Unseen three-partition shape near Phase 3B final.",
+        ),
+        DStageCase(
+            "p3c_hold_multipart_s80_p0_p5_p10",
+            "multi_partition_interaction",
+            (
+                "--multi-source-tile-work",
+                "80",
+                "0:1,24",
+                "5:4,56",
+                "10:8",
+                "--print-tile-schedule",
+            ),
+            "Unseen mixed multi-partition shape.",
+        ),
+        DStageCase(
+            "p3c_hold_partition_sparse_p1_p4_p8_p12",
+            "multi_partition_sparse",
+            (
+                "--partition-tile-work",
+                "1:1",
+                "4:1",
+                "8:1",
+                "12:1",
+                "--print-tile-schedule",
+            ),
+            "Unseen sparse partition fixed-overhead point.",
+        ),
+        DStageCase(
+            "p3c_hold_partition_full_p1_p4_p11",
+            "multi_partition_full",
+            (
+                "--partition-tile-work",
+                "1:4097",
+                "4:8192,16384",
+                "11:4096",
+                "--print-tile-schedule",
+            ),
+            "Unseen one-source multi-partition full path point.",
+        ),
+        DStageCase(
+            "p3c_hold_multipart_s40_sparse",
+            "multi_partition_interaction",
+            (
+                "--multi-source-tile-work",
+                "40",
+                "2:1,1",
+                "7:1,1",
+                "13:1,1",
+                "--print-tile-schedule",
+            ),
+            "Unseen small work spread across partitions and tiles.",
+        ),
+    ]
+
+
+def phase3c_final_validation_matrix() -> list[DStageCase]:
+    return [
+        DStageCase(
+            "p3c_final_full_boundary_s31_w133",
+            "phase3b_untrusted_full",
+            ("--multi-source-tile-work", "31", "0:133", "--print-tile-schedule"),
+            "Exact Phase 3B untrusted full-boundary case; final validation only.",
+        ),
+        DStageCase(
+            "p3c_final_full_large_s32_w1024",
+            "phase3b_untrusted_full",
+            ("--multi-source-tile-work", "32", "0:1024", "--print-tile-schedule"),
+            "Exact Phase 3B untrusted large full tile; final validation only.",
+        ),
+        DStageCase(
+            "p3c_final_multitile_s16_mixed",
+            "phase3b_untrusted_multitile",
+            (
+                "--multi-source-tile-work",
+                "16",
+                "0:1,4,16,64",
+                "--print-tile-schedule",
+            ),
+            "Exact Phase 3B untrusted small multi-tile case; final validation only.",
+        ),
+        DStageCase(
+            "p3c_final_multipart_s32_p0_p7_p15",
+            "phase3b_untrusted_multipart",
+            (
+                "--multi-source-tile-work",
+                "32",
+                "0:2,8",
+                "7:4",
+                "15:16",
+                "--print-tile-schedule",
+            ),
+            "Exact Phase 3B untrusted multi-partition case; final validation only.",
+        ),
+        DStageCase(
+            "p3c_final_multipart_s96_mixed",
+            "phase3b_untrusted_multipart",
+            (
+                "--multi-source-tile-work",
+                "96",
+                "0:1,32",
+                "5:4,64",
+                "10:16",
+                "--print-tile-schedule",
+            ),
+            "Exact Phase 3B untrusted mixed multi-partition case.",
+        ),
+        DStageCase(
+            "p3c_final_replay_below_s4094_t16",
+            "phase3b_replay_guard",
+            (
+                "--striped-source-tile-work",
+                "4094",
+                "0",
+                "16",
+                "1",
+                "--full-vertices",
+                "--print-tile-schedule",
+            ),
+            "Replay guard case that was already accurate in Phase 3B.",
+        ),
+        DStageCase(
+            "p3c_final_replay_above_s4098_t16",
+            "phase3b_replay_guard",
+            (
+                "--striped-source-tile-work",
+                "4098",
+                "0",
+                "16",
+                "1",
+                "--full-vertices",
+                "--print-tile-schedule",
+            ),
+            "Replay fallback guard case that must not regress.",
+        ),
+        DStageCase(
+            "p3c_final_replay_above_s8193_t8",
+            "phase3b_replay_guard",
+            (
+                "--striped-source-tile-work",
+                "8193",
+                "0",
+                "8",
+                "1",
+                "--full-vertices",
+                "--print-tile-schedule",
+            ),
+            "Large replay fallback guard case that must not regress.",
+        ),
+    ]
+
+
 def matrix_by_name(name: str) -> list[DStageCase]:
     if name == "phase3a0_readiness":
         return default_matrix()
@@ -1322,6 +1749,12 @@ def matrix_by_name(name: str) -> list[DStageCase]:
         return phase3b_bottleneck_synthetic_matrix()
     if name == "phase3b_multibatch_probe":
         return phase3b_multibatch_probe_matrix()
+    if name == "phase3c_full_partition_calibration":
+        return phase3c_full_partition_calibration_matrix()
+    if name == "phase3c_full_partition_holdout":
+        return phase3c_full_partition_holdout_matrix()
+    if name == "phase3c_final_validation":
+        return phase3c_final_validation_matrix()
     raise ValueError(f"unknown D-stage matrix: {name}")
 
 
@@ -1582,6 +2015,9 @@ def parse_args() -> argparse.Namespace:
             "phase3a4_replay_holdout",
             "phase3b_bottleneck_synthetic",
             "phase3b_multibatch_probe",
+            "phase3c_full_partition_calibration",
+            "phase3c_full_partition_holdout",
+            "phase3c_final_validation",
         ],
         default="phase3a0_readiness",
         help="Select the built-in D-stage experiment matrix.",
