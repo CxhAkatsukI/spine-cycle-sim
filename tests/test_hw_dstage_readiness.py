@@ -31,6 +31,24 @@ class DStageReadinessMatrixTests(unittest.TestCase):
         for case in [*calibration, *holdout, *regression]:
             self.assertIn("--print-tile-schedule", case.args)
 
+    def test_phase3a3_tile_matrices_cover_multi_partition_holdout(self) -> None:
+        calibration = matrix_by_name("phase3a3_tile_calibration")
+        holdout = matrix_by_name("phase3a3_tile_holdout")
+
+        calibration_cases = {case.case for case in calibration}
+        holdout_cases = {case.case for case in holdout}
+        self.assertEqual(len(calibration), 12)
+        self.assertEqual(len(holdout), 8)
+        self.assertTrue(calibration_cases.isdisjoint(holdout_cases))
+        self.assertTrue(
+            any("--partition-tile-work" in case.args for case in calibration)
+        )
+        self.assertTrue(any("--partition-tile-work" in case.args for case in holdout))
+        self.assertIn("a3_calib_mt_4095_4096_4097_4098", calibration_cases)
+        self.assertIn("a3_hold_mp_p0_4095_p1_4096_p2_4097_p3_4098", holdout_cases)
+        for case in [*calibration, *holdout]:
+            self.assertIn("--print-tile-schedule", case.args)
+
 
 if __name__ == "__main__":
     unittest.main()

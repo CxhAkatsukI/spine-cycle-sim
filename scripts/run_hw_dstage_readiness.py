@@ -444,6 +444,219 @@ def phase3a2_tile_regression_matrix() -> list[DStageCase]:
     ]
 
 
+def phase3a3_tile_calibration_matrix() -> list[DStageCase]:
+    return [
+        DStageCase(
+            "a3_calib_mt_4096_4096_4097",
+            "multi_tile_single_partition",
+            ("--tile-work", "4096", "4096", "4097", "--print-tile-schedule"),
+            "Three local tiles with a fast/fast/full boundary mix.",
+        ),
+        DStageCase(
+            "a3_calib_mt_128_8192_32768",
+            "multi_tile_single_partition",
+            ("--tile-work", "128", "8192", "32768", "--print-tile-schedule"),
+            "Small fast tile plus two full tiles.",
+        ),
+        DStageCase(
+            "a3_calib_mt_256_2048_16384_49152",
+            "multi_tile_single_partition",
+            (
+                "--tile-work",
+                "256",
+                "2048",
+                "16384",
+                "49152",
+                "--print-tile-schedule",
+            ),
+            "Four tiles spanning tiny, medium, and large work.",
+        ),
+        DStageCase(
+            "a3_calib_mt_1024_4096_4097_8192",
+            "multi_tile_single_partition",
+            (
+                "--tile-work",
+                "1024",
+                "4096",
+                "4097",
+                "8192",
+                "--print-tile-schedule",
+            ),
+            "Boundary pair surrounded by smaller/larger tiles.",
+        ),
+        DStageCase(
+            "a3_calib_mt_4095_4096_4097_4098",
+            "multi_tile_boundary",
+            (
+                "--tile-work",
+                "4095",
+                "4096",
+                "4097",
+                "4098",
+                "--print-tile-schedule",
+            ),
+            "Dense coverage of the fast/full threshold boundary.",
+        ),
+        DStageCase(
+            "a3_calib_mt_512_4096_16384",
+            "multi_tile_single_partition",
+            ("--tile-work", "512", "4096", "16384", "--print-tile-schedule"),
+            "Moderate three-tile interpolation case.",
+        ),
+        DStageCase(
+            "a3_calib_mp_p0_4096_4097_p1_128_8192",
+            "multi_partition_tile",
+            (
+                "--partition-tile-work",
+                "0:4096,4097",
+                "1:128,8192",
+                "--print-tile-schedule",
+            ),
+            "Two partitions, each with fast/full tile mix.",
+        ),
+        DStageCase(
+            "a3_calib_mp_p0_256_16384_p1_2048_49152",
+            "multi_partition_tile",
+            (
+                "--partition-tile-work",
+                "0:256,16384",
+                "1:2048,49152",
+                "--print-tile-schedule",
+            ),
+            "Two partitions with asymmetric large full-tile pressure.",
+        ),
+        DStageCase(
+            "a3_calib_mp_p0_4095_8192_p3_4098_32768",
+            "multi_partition_boundary",
+            (
+                "--partition-tile-work",
+                "0:4095,8192",
+                "3:4098,32768",
+                "--print-tile-schedule",
+            ),
+            "Separated partitions with near-boundary fast/full split.",
+        ),
+        DStageCase(
+            "a3_calib_mp_p0_128_p1_8192_p2_32768",
+            "multi_partition_tile",
+            (
+                "--partition-tile-work",
+                "0:128",
+                "1:8192",
+                "2:32768",
+                "--print-tile-schedule",
+            ),
+            "Three partitions with one active tile each.",
+        ),
+        DStageCase(
+            "a3_calib_mp_p0_4096_p1_4096_p2_4097_p3_4097",
+            "multi_partition_boundary",
+            (
+                "--partition-tile-work",
+                "0:4096",
+                "1:4096",
+                "2:4097",
+                "3:4097",
+                "--print-tile-schedule",
+            ),
+            "Four partitions exactly around the threshold.",
+        ),
+        DStageCase(
+            "a3_calib_mp_p2_128_8192_p5_1024_16384",
+            "multi_partition_tile",
+            (
+                "--partition-tile-work",
+                "2:128,8192",
+                "5:1024,16384",
+                "--print-tile-schedule",
+            ),
+            "Nonzero partition ids check partition-index handling.",
+        ),
+    ]
+
+
+def phase3a3_tile_holdout_matrix() -> list[DStageCase]:
+    return [
+        DStageCase(
+            "a3_hold_mt_512_4096_4097",
+            "multi_tile_single_partition",
+            ("--tile-work", "512", "4096", "4097", "--print-tile-schedule"),
+            "Unseen three-tile boundary mix.",
+        ),
+        DStageCase(
+            "a3_hold_mt_2048_8192_32768",
+            "multi_tile_single_partition",
+            ("--tile-work", "2048", "8192", "32768", "--print-tile-schedule"),
+            "Unseen medium/large multi-tile mix.",
+        ),
+        DStageCase(
+            "a3_hold_mt_128_4095_16384_49152",
+            "multi_tile_boundary",
+            (
+                "--tile-work",
+                "128",
+                "4095",
+                "16384",
+                "49152",
+                "--print-tile-schedule",
+            ),
+            "Unseen four-tile case below threshold plus large full tiles.",
+        ),
+        DStageCase(
+            "a3_hold_mt_4098_8192_16384",
+            "multi_tile_single_partition",
+            ("--tile-work", "4098", "8192", "16384", "--print-tile-schedule"),
+            "Unseen all-full multi-tile case.",
+        ),
+        DStageCase(
+            "a3_hold_mp_p0_512_4097_p1_2048_16384",
+            "multi_partition_tile",
+            (
+                "--partition-tile-work",
+                "0:512,4097",
+                "1:2048,16384",
+                "--print-tile-schedule",
+            ),
+            "Unseen two-partition mixed fast/full workload.",
+        ),
+        DStageCase(
+            "a3_hold_mp_p0_128_32768_p2_4096_8192",
+            "multi_partition_tile",
+            (
+                "--partition-tile-work",
+                "0:128,32768",
+                "2:4096,8192",
+                "--print-tile-schedule",
+            ),
+            "Unseen separated partitions with large full tile.",
+        ),
+        DStageCase(
+            "a3_hold_mp_p1_4098_49152_p4_256_16384",
+            "multi_partition_tile",
+            (
+                "--partition-tile-work",
+                "1:4098,49152",
+                "4:256,16384",
+                "--print-tile-schedule",
+            ),
+            "Unseen high-load multi-partition case.",
+        ),
+        DStageCase(
+            "a3_hold_mp_p0_4095_p1_4096_p2_4097_p3_4098",
+            "multi_partition_boundary",
+            (
+                "--partition-tile-work",
+                "0:4095",
+                "1:4096",
+                "2:4097",
+                "3:4098",
+                "--print-tile-schedule",
+            ),
+            "Unseen four-partition threshold sweep.",
+        ),
+    ]
+
+
 def matrix_by_name(name: str) -> list[DStageCase]:
     if name == "phase3a0_readiness":
         return default_matrix()
@@ -459,6 +672,10 @@ def matrix_by_name(name: str) -> list[DStageCase]:
         return phase3a2_tile_holdout_matrix()
     if name == "phase3a2_tile_regression":
         return phase3a2_tile_regression_matrix()
+    if name == "phase3a3_tile_calibration":
+        return phase3a3_tile_calibration_matrix()
+    if name == "phase3a3_tile_holdout":
+        return phase3a3_tile_holdout_matrix()
     raise ValueError(f"unknown D-stage matrix: {name}")
 
 
@@ -686,6 +903,8 @@ def parse_args() -> argparse.Namespace:
             "phase3a2_tile_calibration",
             "phase3a2_tile_holdout",
             "phase3a2_tile_regression",
+            "phase3a3_tile_calibration",
+            "phase3a3_tile_holdout",
         ],
         default="phase3a0_readiness",
         help="Select the built-in D-stage experiment matrix.",

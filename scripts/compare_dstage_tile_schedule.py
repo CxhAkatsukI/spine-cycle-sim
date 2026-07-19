@@ -17,7 +17,11 @@ if str(ROOT) not in sys.path:
 
 from spine_cycle_sim.models import SpineConfig, load_config  # noqa: E402
 from spine_cycle_sim.models.dstage import build_tile_schedule  # noqa: E402
-from spine_cycle_sim.workloads import Workload, generate_tile_workload  # noqa: E402
+from spine_cycle_sim.workloads import (  # noqa: E402
+    Workload,
+    generate_partition_tile_workload,
+    generate_tile_workload,
+)
 
 
 COMPARE_FIELDS = [
@@ -69,6 +73,24 @@ def to_int(value: Any) -> int:
     return int(float(value))
 
 
+def parse_partition_tile_work_specs(specs: list[str]) -> dict[int, list[int]]:
+    if not specs:
+        raise ValueError("partition-tile-work requires at least one spec")
+    partition_tile_work: dict[int, list[int]] = {}
+    for spec in specs:
+        partition_text, separator, counts_text = spec.partition(":")
+        if not separator or not partition_text or not counts_text:
+            raise ValueError(f"invalid partition-tile-work spec: {spec!r}")
+        partition = int(partition_text, 0)
+        if partition in partition_tile_work:
+            raise ValueError(f"duplicate partition-tile-work partition: {partition}")
+        counts = [int(value, 0) for value in counts_text.split(",")]
+        if not counts:
+            raise ValueError(f"empty partition-tile-work counts: {spec!r}")
+        partition_tile_work[partition] = counts
+    return partition_tile_work
+
+
 def workload_from_case(case: dict[str, Any], config: SpineConfig) -> Workload:
     args = list(case["args"])
     full_vertices = False
@@ -84,6 +106,17 @@ def workload_from_case(case: dict[str, Any], config: SpineConfig) -> Workload:
         tile_work = [config.tiny_active_threshold, config.tiny_active_threshold + 1]
     elif clean_args and clean_args[0] == "--tile-work":
         tile_work = [int(value) for value in clean_args[1:]]
+    elif clean_args and clean_args[0] == "--partition-tile-work":
+        vertices = config.max_vertices if full_vertices else None
+        workload = generate_partition_tile_workload(
+            parse_partition_tile_work_specs(clean_args[1:]),
+            vertices=vertices,
+            tile_vertices=config.conv_tile_vertices,
+            vs_partition_size=config.vs_partition_size,
+            max_vertices=config.max_vertices,
+        )
+        workload.metadata["case"] = str(case["case"])
+        return workload
     else:
         raise ValueError(f"unsupported schedule comparison args: {args}")
     vertices = config.max_vertices if full_vertices else None

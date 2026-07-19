@@ -28,6 +28,11 @@ TILE_FEATURES = [
     "tile_scattered_words",
     "tile_max_work",
     "tile_mixed_path",
+    "tile_partition_count",
+    "tile_multi_partition",
+    "tile_max_partition_work",
+    "tile_max_partition_swept_words",
+    "tile_max_partition_tile_count",
 ]
 
 PREDICTION_FIELDS = [
@@ -96,6 +101,7 @@ def successful_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 def tile_features_by_case(tile_rows: list[dict[str, Any]]) -> dict[str, dict[str, float]]:
     by_repeat: dict[tuple[str, int], dict[str, float]] = {}
+    partition_totals: dict[tuple[str, int], dict[int, dict[str, float]]] = {}
     for row in tile_rows:
         case = str(row["case"])
         repeat = int(float(row.get("repeat", 0) or 0))
@@ -112,11 +118,24 @@ def tile_features_by_case(tile_rows: list[dict[str, Any]]) -> dict[str, dict[str
                 "tile_scattered_words": 0.0,
                 "tile_max_work": 0.0,
                 "tile_mixed_path": 0.0,
+                "tile_partition_count": 0.0,
+                "tile_multi_partition": 0.0,
+                "tile_max_partition_work": 0.0,
+                "tile_max_partition_swept_words": 0.0,
+                "tile_max_partition_tile_count": 0.0,
             },
+        )
+        partition = int(float(row.get("partition", 0) or 0))
+        per_partition = partition_totals.setdefault(key, {}).setdefault(
+            partition,
+            {"work": 0.0, "swept_words": 0.0, "tile_count": 0.0},
         )
         path = str(row.get("path", ""))
         tile_work = numeric(row, "tile_work") or 0.0
         out["tile_max_work"] = max(out["tile_max_work"], tile_work)
+        per_partition["work"] += tile_work
+        per_partition["swept_words"] += numeric(row, "swept_vertex_words") or 0.0
+        per_partition["tile_count"] += 1.0
         if path == "fast":
             out["tile_fast_count"] += 1.0
             out["tile_fast_work"] += tile_work
@@ -129,6 +148,20 @@ def tile_features_by_case(tile_rows: list[dict[str, Any]]) -> dict[str, dict[str
     for features in by_repeat.values():
         if features["tile_fast_count"] > 0 and features["tile_full_count"] > 0:
             features["tile_mixed_path"] = 1.0
+    for key, features in by_repeat.items():
+        partitions = partition_totals.get(key, {})
+        features["tile_partition_count"] = float(len(partitions))
+        features["tile_multi_partition"] = 1.0 if len(partitions) > 1 else 0.0
+        if partitions:
+            features["tile_max_partition_work"] = max(
+                values["work"] for values in partitions.values()
+            )
+            features["tile_max_partition_swept_words"] = max(
+                values["swept_words"] for values in partitions.values()
+            )
+            features["tile_max_partition_tile_count"] = max(
+                values["tile_count"] for values in partitions.values()
+            )
 
     by_case: dict[str, dict[str, float]] = {}
     for case in sorted({case for case, _ in by_repeat}):

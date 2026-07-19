@@ -4,7 +4,10 @@ import unittest
 
 from spine_cycle_sim.models import SpineConfig, SpineV0Simulator
 from spine_cycle_sim.models.dstage import build_tile_schedule
-from spine_cycle_sim.workloads import generate_tile_workload
+from spine_cycle_sim.workloads import (
+    generate_partition_tile_workload,
+    generate_tile_workload,
+)
 
 
 class DStageTileScheduleTests(unittest.TestCase):
@@ -42,6 +45,29 @@ class DStageTileScheduleTests(unittest.TestCase):
         self.assertEqual(
             [entry["tile_work"] for entry in result["dstage_tile_schedule"]],
             [128, 8192],
+        )
+
+    def test_multi_partition_tile_work_schedule(self) -> None:
+        config = SpineConfig(max_cycles=2_000_000, hot_cold_enabled=False)
+        workload = generate_partition_tile_workload(
+            {0: [4096, 4097], 1: [128, 8192]},
+            tile_vertices=config.conv_tile_vertices,
+            vs_partition_size=config.vs_partition_size,
+            max_vertices=config.max_vertices,
+        )
+
+        schedule = build_tile_schedule(workload.edges, workload.vertices, config)
+
+        self.assertEqual(len(schedule.entries), 4)
+        self.assertEqual(schedule.fast_path_tiles, 2)
+        self.assertEqual(schedule.full_path_tiles, 2)
+        self.assertEqual(
+            [(entry.partition, entry.tile) for entry in schedule.entries],
+            [(0, 0), (0, 1), (1, 0), (1, 1)],
+        )
+        self.assertEqual(
+            [entry.tile_work for entry in schedule.entries],
+            [4096, 4097, 128, 8192],
         )
 
 
