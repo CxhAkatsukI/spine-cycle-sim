@@ -24,6 +24,7 @@ from spine_cycle_sim.core.fifo import FifoLink
 from spine_cycle_sim.core.memory import HBMPartition, MemoryRequest
 from spine_cycle_sim.core.simulator import CycleSimulator
 from spine_cycle_sim.core.stats import Stats
+from spine_cycle_sim.models.dstage import build_tile_schedule
 from spine_cycle_sim.workloads import Edge, Workload
 
 
@@ -50,6 +51,9 @@ class SpineConfig:
     hbm_write_bw_edges_per_cycle: int = 16
     csr_vertices_per_page: int = 256
     readmaintenance_vertex_scan_rate: int = 64
+    conv_tile_vertices: int = 65_536
+    conv_tile_replay_fallback_threshold: int = 65_536
+    conv_tile_touch_fallback_threshold: int = 16
     tiny_active_threshold: int = 4096
     sssp_pipeline_ii: int = 1
     sssp_edges_per_cycle: int = 1
@@ -1300,6 +1304,11 @@ class SpineV0Simulator:
         eps = edge_count / (time_ms / 1000.0) if time_ms > 0 else 0.0
         failure = self.stats.failure
         level_occupancy = self._all_level_occupancy()
+        tile_schedule = build_tile_schedule(
+            self.workload.edges,
+            self.workload.vertices,
+            self.config,
+        )
         maintenance_events = (
             [asdict(event) for event in self.level0.maintenance_events]
             if self.level0 is not None
@@ -1363,6 +1372,23 @@ class SpineV0Simulator:
             "full_path_iterations": int(counters.get("full_path_iterations", 0)),
             "fast_path_tiles": int(counters.get("fast_path_tiles", 0)),
             "full_path_tiles": int(counters.get("full_path_tiles", 0)),
+            "dstage_tile_touched_tiles": tile_schedule.touched_tiles,
+            "dstage_tile_marked_tiles": tile_schedule.marked_tiles,
+            "dstage_tile_nonempty_tiles": tile_schedule.nonempty_tiles,
+            "dstage_tile_empty_tile_passes": tile_schedule.empty_tile_passes,
+            "dstage_tile_fallback_used": tile_schedule.fallback_used,
+            "dstage_tile_row_lookups": tile_schedule.row_lookups,
+            "dstage_tile_clipped_ranges": tile_schedule.clipped_ranges,
+            "dstage_tile_active_record_replays": tile_schedule.active_record_replays,
+            "dstage_tile_fast_path_tiles": tile_schedule.fast_path_tiles,
+            "dstage_tile_full_path_tiles": tile_schedule.full_path_tiles,
+            "dstage_tile_gathered_vertex_words": tile_schedule.gathered_vertex_words,
+            "dstage_tile_swept_vertex_words": tile_schedule.swept_vertex_words,
+            "dstage_tile_scattered_vertex_words": tile_schedule.scattered_vertex_words,
+            "dstage_tile_active_records": tile_schedule.active_records,
+            "dstage_tile_active_sources": tile_schedule.active_sources,
+            "dstage_tile_traversed_edges": tile_schedule.traversed_edges,
+            "dstage_tile_schedule": tile_schedule.to_dict()["entries"],
             "sssp_relax_attempts": int(counters.get("sssp_relax_attempts", 0)),
             "sssp_successful_relaxes": int(counters.get("sssp_successful_relaxes", 0)),
             "hot_enabled": not self.classification.empty_hot_set,

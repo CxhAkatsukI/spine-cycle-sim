@@ -40,6 +40,7 @@ BASE_FIELDS = [
     "repeat",
     "returncode",
     "status",
+    "tile_schedule_entries",
     "stdout_log",
     "stderr_log",
     "command_log",
@@ -59,6 +60,25 @@ SUMMARY_FIELDS = [
     "median_conv_span_ms",
     "median_maint_ms",
     "median_kernel_e2e_ms",
+]
+
+TILE_SCHEDULE_FIELDS = [
+    "case",
+    "sweep",
+    "repeat",
+    "partition",
+    "tile",
+    "tile_begin",
+    "tile_end",
+    "tile_size",
+    "tile_work",
+    "path",
+    "fallback_used",
+    "nonempty",
+    "clipped_ranges",
+    "gathered_vertex_words",
+    "swept_vertex_words",
+    "scattered_vertex_words",
 ]
 
 
@@ -283,6 +303,147 @@ def phase3a1_final_holdout_matrix() -> list[DStageCase]:
     ]
 
 
+def phase3a2_tile_calibration_matrix() -> list[DStageCase]:
+    return [
+        DStageCase(
+            "tile_calib_fast_128",
+            "tile_fast_range",
+            ("--tile-work", "128", "--print-tile-schedule"),
+            "Small fast tile.",
+        ),
+        DStageCase(
+            "tile_calib_fast_1024",
+            "tile_fast_range",
+            ("--tile-work", "1024", "--print-tile-schedule"),
+            "Medium fast tile.",
+        ),
+        DStageCase(
+            "tile_calib_fast_4095",
+            "tile_threshold",
+            ("--tile-work", "4095", "--print-tile-schedule"),
+            "Fast tile just below threshold.",
+        ),
+        DStageCase(
+            "tile_calib_fast_4096",
+            "tile_threshold",
+            ("--tile-work", "4096", "--print-tile-schedule"),
+            "Fast tile at threshold.",
+        ),
+        DStageCase(
+            "tile_calib_full_4097",
+            "tile_threshold",
+            ("--tile-work", "4097", "--print-tile-schedule"),
+            "Full tile just above threshold.",
+        ),
+        DStageCase(
+            "tile_calib_full_4098",
+            "tile_threshold",
+            ("--tile-work", "4098", "--print-tile-schedule"),
+            "Full tile above threshold.",
+        ),
+        DStageCase(
+            "tile_calib_full_8192",
+            "tile_full_range",
+            ("--tile-work", "8192", "--print-tile-schedule"),
+            "Medium full tile.",
+        ),
+        DStageCase(
+            "tile_calib_full_32768",
+            "tile_full_range",
+            ("--tile-work", "32768", "--print-tile-schedule"),
+            "Large partial full tile.",
+        ),
+        DStageCase(
+            "tile_calib_mixed_4096_4097",
+            "tile_mixed_boundary",
+            ("--tile-work", "4096", "4097", "--print-tile-schedule"),
+            "Boundary fast/full mixed pair.",
+        ),
+        DStageCase(
+            "tile_calib_mixed_128_8192",
+            "tile_mixed_range",
+            ("--tile-work", "128", "8192", "--print-tile-schedule"),
+            "Small fast plus medium full.",
+        ),
+        DStageCase(
+            "tile_calib_mixed_1024_16384",
+            "tile_mixed_range",
+            ("--tile-work", "1024", "16384", "--print-tile-schedule"),
+            "Medium fast plus larger full.",
+        ),
+        DStageCase(
+            "tile_calib_mixed_128_32768",
+            "tile_mixed_range",
+            ("--tile-work", "128", "32768", "--print-tile-schedule"),
+            "Small fast plus large full.",
+        ),
+    ]
+
+
+def phase3a2_tile_holdout_matrix() -> list[DStageCase]:
+    return [
+        DStageCase(
+            "tile_holdout_fast_256",
+            "tile_fast_range",
+            ("--tile-work", "256", "--print-tile-schedule"),
+            "Unseen small fast tile.",
+        ),
+        DStageCase(
+            "tile_holdout_fast_2048",
+            "tile_fast_range",
+            ("--tile-work", "2048", "--print-tile-schedule"),
+            "Unseen medium fast tile.",
+        ),
+        DStageCase(
+            "tile_holdout_full_16384",
+            "tile_full_range",
+            ("--tile-work", "16384", "--print-tile-schedule"),
+            "Unseen medium full tile.",
+        ),
+        DStageCase(
+            "tile_holdout_full_49152",
+            "tile_full_range",
+            ("--tile-work", "49152", "--print-tile-schedule"),
+            "Unseen large full tile.",
+        ),
+        DStageCase(
+            "tile_holdout_mixed_256_16384",
+            "tile_mixed_range",
+            ("--tile-work", "256", "16384", "--print-tile-schedule"),
+            "Unseen small fast plus medium full.",
+        ),
+        DStageCase(
+            "tile_holdout_mixed_2048_49152",
+            "tile_mixed_range",
+            ("--tile-work", "2048", "49152", "--print-tile-schedule"),
+            "Unseen fast plus large full.",
+        ),
+        DStageCase(
+            "tile_holdout_mixed_4095_8192",
+            "tile_mixed_boundary_range",
+            ("--tile-work", "4095", "8192", "--print-tile-schedule"),
+            "Unseen near-threshold fast plus medium full.",
+        ),
+        DStageCase(
+            "tile_holdout_mixed_4098_32768",
+            "tile_mixed_boundary_range",
+            ("--tile-work", "4098", "32768", "--print-tile-schedule"),
+            "Unseen near-threshold full plus larger full.",
+        ),
+    ]
+
+
+def phase3a2_tile_regression_matrix() -> list[DStageCase]:
+    return [
+        DStageCase(
+            "tile_regression_tiny_mixed_fallback",
+            "tile_mixed_boundary",
+            ("--tiny-mixed-fallback", "--print-tile-schedule"),
+            "Original mixed fast/full diagnostic regression case.",
+        ),
+    ]
+
+
 def matrix_by_name(name: str) -> list[DStageCase]:
     if name == "phase3a0_readiness":
         return default_matrix()
@@ -292,6 +453,12 @@ def matrix_by_name(name: str) -> list[DStageCase]:
         return phase3a1_holdout_matrix()
     if name == "phase3a1_final_holdout":
         return phase3a1_final_holdout_matrix()
+    if name == "phase3a2_tile_calibration":
+        return phase3a2_tile_calibration_matrix()
+    if name == "phase3a2_tile_holdout":
+        return phase3a2_tile_holdout_matrix()
+    if name == "phase3a2_tile_regression":
+        return phase3a2_tile_regression_matrix()
     raise ValueError(f"unknown D-stage matrix: {name}")
 
 
@@ -319,6 +486,19 @@ def parse_stdout(stdout: str) -> dict[str, Any]:
     for key, value in KEY_VALUE_RE.findall(final_line):
         row[key] = parse_scalar(value)
     return row
+
+
+def parse_tile_schedule(stdout: str) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for line in stdout.splitlines():
+        if not line.startswith("PARTITIONED_CSR_E2E_TILE_SCHEDULE "):
+            continue
+        row: dict[str, Any] = {}
+        for key, value in KEY_VALUE_RE.findall(line):
+            row[key] = parse_scalar(value)
+        if row:
+            rows.append(row)
+    return rows
 
 
 def build_command(
@@ -434,7 +614,7 @@ def run_case(
     xrt_setup: Path | None,
     split_kernels: bool,
     out_dir: Path,
-) -> dict[str, Any]:
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     raw_dir = out_dir / "raw" / case.case
     raw_dir.mkdir(parents=True, exist_ok=True)
     command = build_command(
@@ -471,12 +651,18 @@ def run_case(
         "command": command,
     }
     parsed = parse_stdout(completed.stdout)
+    tile_schedule = parse_tile_schedule(completed.stdout)
     if "case" in parsed:
         parsed["host_case"] = parsed.pop("case")
     row.update(parsed)
+    row["tile_schedule_entries"] = len(tile_schedule)
     if completed.returncode != 0 and row.get("status") == "MISSING":
         row["status"] = "FAIL"
-    return row
+    for entry in tile_schedule:
+        entry["case"] = case.case
+        entry["sweep"] = case.sweep
+        entry["repeat"] = repeat
+    return row, tile_schedule
 
 
 def parse_args() -> argparse.Namespace:
@@ -497,6 +683,9 @@ def parse_args() -> argparse.Namespace:
             "phase3a1_calibration",
             "phase3a1_holdout",
             "phase3a1_final_holdout",
+            "phase3a2_tile_calibration",
+            "phase3a2_tile_holdout",
+            "phase3a2_tile_regression",
         ],
         default="phase3a0_readiness",
         help="Select the built-in D-stage experiment matrix.",
@@ -551,10 +740,11 @@ def main() -> int:
         return 0
 
     rows: list[dict[str, Any]] = []
+    tile_schedule_rows: list[dict[str, Any]] = []
     for case in cases:
         for repeat in range(1, args.repeats + 1):
             print(f"[{case.case}] repeat {repeat}/{args.repeats}", flush=True)
-            row = run_case(
+            row, tile_schedule = run_case(
                 case,
                 repeat=repeat,
                 host_exe=args.host_exe,
@@ -565,6 +755,7 @@ def main() -> int:
                 out_dir=args.out_dir,
             )
             rows.append(row)
+            tile_schedule_rows.extend(tile_schedule)
             print(
                 "  status={status} returncode={returncode} conv_ms={conv_ms} "
                 "reader_ms={reader_ms} traversed_edges={traversed_edges}".format(
@@ -579,8 +770,16 @@ def main() -> int:
 
     write_csv(args.out_dir / "runs.csv", rows, BASE_FIELDS)
     write_csv(args.out_dir / "summary.csv", aggregate(rows), SUMMARY_FIELDS)
+    if tile_schedule_rows:
+        write_csv(
+            args.out_dir / "tile_schedule.csv",
+            tile_schedule_rows,
+            TILE_SCHEDULE_FIELDS,
+        )
     print(f"wrote runs: {args.out_dir / 'runs.csv'}")
     print(f"wrote summary: {args.out_dir / 'summary.csv'}")
+    if tile_schedule_rows:
+        print(f"wrote tile schedule: {args.out_dir / 'tile_schedule.csv'}")
     return 0
 
 

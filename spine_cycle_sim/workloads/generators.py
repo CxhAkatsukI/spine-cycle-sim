@@ -62,6 +62,46 @@ def generate_workload(
     raise ValueError(f"unknown workload {name!r}; choices: {', '.join(list_workloads())}")
 
 
+def generate_tile_workload(
+    tile_work: list[int],
+    *,
+    vertices: int | None = None,
+    source: int = 0,
+    tile_vertices: int = 65_536,
+    max_vertices: int = 16_777_216,
+) -> Workload:
+    """Generate the same one-source tile-work shape as the HLS host smoke."""
+
+    if not tile_work:
+        raise ValueError("tile_work must contain at least one count")
+    if any(count < 0 for count in tile_work):
+        raise ValueError("tile_work counts must be non-negative")
+    if sum(tile_work) <= 0:
+        raise ValueError("tile_work must contain at least one edge")
+    data: list[Edge] = []
+    for tile, count in enumerate(tile_work):
+        if count + 1 > tile_vertices:
+            raise ValueError("tile_work count exceeds supported tile payload")
+        tile_base = tile * tile_vertices
+        for i in range(count):
+            dst = tile_base + 1 + i
+            if dst >= max_vertices:
+                raise ValueError("tile_work destination exceeds max_vertices")
+            weight = 1 + ((tile * 17 + i) & 31)
+            data.append(Edge(source, dst, weight))
+    inferred_vertices = max(edge.dst for edge in data) + 1
+    total_vertices = vertices if vertices is not None else inferred_vertices
+    if total_vertices < inferred_vertices:
+        raise ValueError("vertices is smaller than generated tile_work dst range")
+    return Workload(
+        "tile_work",
+        total_vertices,
+        data,
+        source,
+        {"shape": "tile_work", "tile_work": ",".join(str(v) for v in tile_work)},
+    )
+
+
 def _chain(vertices: int, edges: int, source: int) -> Workload:
     data: list[Edge] = []
     span = max(1, vertices - 1)
