@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import json
+import tempfile
 import unittest
+from pathlib import Path
 
-from scripts.run_hw_dstage_readiness import matrix_by_name
+from scripts.run_hw_dstage_readiness import load_matrix_json, matrix_by_name
 
 
 class DStageReadinessMatrixTests(unittest.TestCase):
@@ -132,6 +135,36 @@ class DStageReadinessMatrixTests(unittest.TestCase):
             any(case.sweep == "multi_partition_interaction" for case in calibration)
         )
         self.assertTrue(any(case.sweep == "small_multitile_fixed" for case in holdout))
+
+    def test_external_matrix_json_loads_cases(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "matrix.json"
+            path.write_text(
+                json.dumps(
+                    {
+                        "matrix": "external_demo",
+                        "cases": [
+                            {
+                                "case": "external_case",
+                                "sweep": "external_sweep",
+                                "args": [
+                                    "--multi-source-tile-work",
+                                    "2",
+                                    "0:1,2",
+                                    "--print-tile-schedule",
+                                ],
+                                "purpose": "Exercise external matrix loading.",
+                            }
+                        ],
+                    }
+                )
+            )
+            name, cases = load_matrix_json(path)
+
+        self.assertEqual(name, "external_demo")
+        self.assertEqual(len(cases), 1)
+        self.assertEqual(cases[0].case, "external_case")
+        self.assertIn("--print-tile-schedule", cases[0].args)
 
 
 if __name__ == "__main__":

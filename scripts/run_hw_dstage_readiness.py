@@ -1758,6 +1758,32 @@ def matrix_by_name(name: str) -> list[DStageCase]:
     raise ValueError(f"unknown D-stage matrix: {name}")
 
 
+def load_matrix_json(path: Path) -> tuple[str, list[DStageCase]]:
+    data = json.loads(path.read_text())
+    raw_cases = data.get("cases")
+    if not isinstance(raw_cases, list):
+        raise ValueError(f"matrix json is missing a cases list: {path}")
+    cases: list[DStageCase] = []
+    seen: set[str] = set()
+    for index, raw in enumerate(raw_cases):
+        if not isinstance(raw, dict):
+            raise ValueError(f"case {index} is not an object in {path}")
+        case_id = str(raw.get("case", "")).strip()
+        if not case_id:
+            raise ValueError(f"case {index} is missing a case id in {path}")
+        if case_id in seen:
+            raise ValueError(f"duplicate case id {case_id!r} in {path}")
+        seen.add(case_id)
+        sweep = str(raw.get("sweep", "external"))
+        args = raw.get("args", [])
+        if not isinstance(args, list) or not all(isinstance(arg, str) for arg in args):
+            raise ValueError(f"case {case_id!r} args must be a list of strings")
+        purpose = str(raw.get("purpose", "External D-stage case."))
+        cases.append(DStageCase(case=case_id, sweep=sweep, args=tuple(args), purpose=purpose))
+    matrix_name = str(data.get("matrix", path.stem))
+    return matrix_name, cases
+
+
 def parse_scalar(value: str) -> int | float | str:
     if value in {"PASS", "FAIL"}:
         return value
@@ -2022,6 +2048,11 @@ def parse_args() -> argparse.Namespace:
         default="phase3a0_readiness",
         help="Select the built-in D-stage experiment matrix.",
     )
+    parser.add_argument(
+        "--matrix-json",
+        type=Path,
+        help="Load D-stage cases from an external matrix JSON file.",
+    )
     parser.add_argument("--only-case", action="append", help="Limit to one or more case ids.")
     return parser.parse_args()
 
@@ -2032,7 +2063,11 @@ def main() -> int:
         raise SystemExit("--repeats must be positive")
     args.out_dir.mkdir(parents=True, exist_ok=True)
 
-    cases = matrix_by_name(args.matrix)
+    matrix_name = args.matrix
+    if args.matrix_json:
+        matrix_name, cases = load_matrix_json(args.matrix_json)
+    else:
+        cases = matrix_by_name(args.matrix)
     if args.only_case:
         allowed = set(args.only_case)
         cases = [case for case in cases if case.case in allowed]
@@ -2050,7 +2085,8 @@ def main() -> int:
             "timeout_s": args.timeout,
             "xrt_setup": str(xrt_setup) if xrt_setup else "",
             "split_kernels": split_kernels,
-            "matrix": args.matrix,
+            "matrix": matrix_name,
+            "source_matrix_json": str(args.matrix_json) if args.matrix_json else "",
             "cases": [asdict(case) for case in cases],
         },
     )
