@@ -94,6 +94,20 @@ class TranslatedCase:
     raw_max_edges_per_source: int
 
 
+@dataclass(frozen=True)
+class ExactSliceCase:
+    case: str
+    sweep: str
+    args: tuple[str, ...]
+    purpose: str
+    selector: str
+    selector_start: int | None
+    slice_path: Path
+    schedule: TileSchedule
+    raw_edges: int
+    raw_max_edges_per_source: int
+
+
 def parse_edge_line(line: str) -> tuple[int, int] | None:
     stripped = line.strip()
     if not stripped or stripped.startswith("%") or stripped.startswith("#"):
@@ -251,6 +265,24 @@ def collect_slice_edges(
     return slice_edges
 
 
+def source_edge_counts(edges: list[Edge]) -> dict[int, int]:
+    counts: dict[int, int] = defaultdict(int)
+    for edge in edges:
+        counts[edge.src] += 1
+    return counts
+
+
+def coalesced_edges(edges: list[Edge]) -> list[Edge]:
+    grouped: dict[tuple[int, int], int] = {}
+    for edge in edges:
+        key = (edge.src, edge.dst)
+        grouped[key] = min(edge.weight, grouped.get(key, edge.weight))
+    return [
+        Edge(src, dst, weight)
+        for (src, dst), weight in sorted(grouped.items())
+    ]
+
+
 def partition_tile_totals(edges: list[Edge], config: SpineConfig) -> dict[int, dict[int, int]]:
     totals: dict[int, dict[int, int]] = defaultdict(lambda: defaultdict(int))
     for edge in edges:
@@ -333,6 +365,145 @@ def coverage_for(
     return status, ";".join(notes)
 
 
+def write_edge_list_slice(
+    path: Path,
+    *,
+    case_id: str,
+    graph: Path,
+    stats: GraphStats,
+    selection: SourceSelection,
+    edges: list[Edge],
+) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    sorted_edges = sorted(edges, key=lambda edge: (edge.src, edge.dst, edge.weight))
+    lines = [
+        "# spine_real_slice_version=1",
+        f"# case={case_id}",
+        f"# graph={graph}",
+        f"# selector={selection.selector}",
+        f"# selector_start={'' if selection.start is None else selection.start}",
+        f"# vertices={stats.vertex_count}",
+        f"# id_offset={stats.id_offset}",
+        f"# raw_edges={len(edges)}",
+        f"# active_sources={len({edge.src for edge in edges})}",
+        "# columns=src dst weight diff",
+    ]
+    lines.extend(
+        f"{edge.src} {edge.dst} {edge.weight} 1"
+        for edge in sorted_edges
+    )
+    path.write_text("\n".join(lines) + "\n")
+
+
+def exact_slice_case_rows(
+    graph: Path,
+    stats: GraphStats,
+    config: SpineConfig,
+    selections: list[SourceSelection],
+    out_dir: Path,
+) -> tuple[list[ExactSliceCase], list[dict[str, Any]]]:
+    slice_edges = collect_slice_edges(graph, stats, selections)
+    by_selector = {selection.selector: selection for selection in selections}
+    cases: list[ExactSliceCase] = []
+    rows: list[dict[str, Any]] = []
+    slice_dir = out_dir / "exact_slices"
+
+    for selector, raw_edges in slice_edges.items():
+        if not raw_edges or len(raw_edges) > config.batch_size_edges:
+            continue
+        selection = by_selector[selector]
+        edges = coalesced_edges(raw_edges)
+        active_sources = {edge.src for edge in edges}
+        if not active_sources:
+            continue
+        schedule = schedule_for_edges(edges, active_sources, stats.vertex_count, config)
+        counts = source_edge_counts(edges)
+        max_edges_per_source = max(counts.values())
+        case_id = f"amazon_{selector}_exact"
+        slice_path = slice_dir / f"{case_id}.slice"
+        write_edge_list_slice(
+            slice_path,
+            case_id=case_id,
+            graph=graph,
+            stats=stats,
+            selection=selection,
+            edges=edges,
+        )
+        args = (
+            "--edge-list-slice",
+            str(slice_path.resolve()),
+            "--print-tile-schedule",
+        )
+        cases.append(
+            ExactSliceCase(
+                case=case_id,
+                sweep="real_slice_exact",
+                args=args,
+                purpose=(
+                    "Amazon-2008 exact source slice replay; host and simulator read "
+                    "the same zero-based src/dst edge-list slice."
+                ),
+                selector=selector,
+                selector_start=selection.start,
+                slice_path=slice_path,
+                schedule=schedule,
+                raw_edges=len(edges),
+                raw_max_edges_per_source=max_edges_per_source,
+            )
+        )
+
+    for case in cases:
+        coverage_status, coverage_notes = coverage_for(
+            case.schedule,
+            case.raw_edges,
+            config,
+        )
+        replay = case.schedule.active_records * case.schedule.touched_tiles
+        row = {
+            "case": case.case,
+            "sweep": case.sweep,
+            "translation": "exact_edge_list",
+            "selector": case.selector,
+            "selector_start": "" if case.selector_start is None else case.selector_start,
+            "raw_active_sources": case.schedule.active_sources,
+            "raw_edges": case.raw_edges,
+            "raw_partition_count": len({entry.partition for entry in case.schedule.entries}),
+            "raw_touched_tiles": case.schedule.touched_tiles,
+            "raw_fast_path_tiles": case.schedule.fast_path_tiles,
+            "raw_full_path_tiles": case.schedule.full_path_tiles,
+            "raw_fallback_used": case.schedule.fallback_used,
+            "raw_clipped_ranges": case.schedule.clipped_ranges,
+            "raw_replay_proxy": replay,
+            "raw_avg_edges_per_source": case.raw_edges / max(1, case.schedule.active_sources),
+            "raw_max_edges_per_source": case.raw_max_edges_per_source,
+            "raw_max_tile_work": max(
+                (entry.tile_work for entry in case.schedule.entries),
+                default=0,
+            ),
+            "translated_edges": case.raw_edges,
+            "translated_partition_count": len({entry.partition for entry in case.schedule.entries}),
+            "translated_touched_tiles": case.schedule.touched_tiles,
+            "translated_fast_path_tiles": case.schedule.fast_path_tiles,
+            "translated_full_path_tiles": case.schedule.full_path_tiles,
+            "translated_fallback_used": case.schedule.fallback_used,
+            "translated_clipped_ranges": case.schedule.clipped_ranges,
+            "translated_replay_proxy": replay,
+            "translated_max_tile_work": max(
+                (entry.tile_work for entry in case.schedule.entries),
+                default=0,
+            ),
+            "edge_scale": 1.0,
+            "replay_scale": 1.0,
+            "coverage_status": coverage_status,
+            "coverage_notes": coverage_notes,
+            "args": " ".join(case.args),
+            "purpose": case.purpose,
+            "slice_path": str(case.slice_path),
+        }
+        rows.append(row)
+    return cases, rows
+
+
 def translated_case_rows(
     graph: Path,
     stats: GraphStats,
@@ -354,9 +525,7 @@ def translated_case_rows(
         raw_schedule = schedule_for_edges(edges, active_sources, stats.vertex_count, config)
         totals = partition_tile_totals(edges, config)
         source_count = len(active_sources)
-        edges_per_source: dict[int, int] = defaultdict(int)
-        for edge in edges:
-            edges_per_source[edge.src] += 1
+        edges_per_source = source_edge_counts(edges)
         max_edges_per_source = max(edges_per_source.values())
 
         avg_specs, translated_edges = average_partition_specs(totals, source_count)
@@ -576,6 +745,13 @@ def main() -> int:
     stats = scan_graph(args.graph)
     selections = select_sources(stats)
     cases, rows, summary = translated_case_rows(args.graph, stats, config, selections)
+    exact_cases, exact_rows = exact_slice_case_rows(
+        args.graph,
+        stats,
+        config,
+        selections,
+        args.out_dir,
+    )
     matrix = {
         "matrix": "phase3d_amazon_real_slices",
         "graph": str(args.graph),
@@ -597,13 +773,45 @@ def main() -> int:
             for case in cases
         ],
     }
+    exact_matrix = {
+        "matrix": "phase4a_amazon_exact_slices",
+        "graph": str(args.graph),
+        "config": str(args.config),
+        "format": {
+            "slice": "comment metadata plus whitespace rows: src dst weight diff",
+            "src_dst": "zero_based",
+        },
+        "cases": [
+            {
+                "case": case.case,
+                "sweep": case.sweep,
+                "args": list(case.args),
+                "purpose": case.purpose,
+                "real_slice": {
+                    "selector": case.selector,
+                    "translation": "exact_edge_list",
+                    "selector_start": case.selector_start,
+                    "raw_edges": case.raw_edges,
+                    "slice_path": str(case.slice_path),
+                },
+            }
+            for case in exact_cases
+        ],
+    }
+    summary["exact_cases"] = len(exact_cases)
+    summary["exact_note"] = (
+        "Exact cases replay zero-based real src/dst edge-list slices through "
+        "the HLS host and simulator without avg/striped tile-work translation."
+    )
     write_json(args.out_dir / "real_slice_summary.json", summary)
     write_json(args.out_dir / "real_slice_matrix.json", matrix)
+    write_json(args.out_dir / "exact_slice_matrix.json", exact_matrix)
     write_rows(args.out_dir / "real_slice_metrics.csv", rows)
+    write_rows(args.out_dir / "exact_slice_metrics.csv", exact_rows)
     print(
         "real_graph_slices: "
         f"graph_edges={stats.edge_count} graph_vertices={stats.vertex_count} "
-        f"cases={len(cases)} wrote={args.out_dir}"
+        f"cases={len(cases)} exact_cases={len(exact_cases)} wrote={args.out_dir}"
     )
     return 0
 

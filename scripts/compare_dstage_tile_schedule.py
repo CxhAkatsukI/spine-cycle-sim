@@ -18,6 +18,7 @@ if str(ROOT) not in sys.path:
 from spine_cycle_sim.models import SpineConfig, load_config  # noqa: E402
 from spine_cycle_sim.models.dstage import build_tile_schedule  # noqa: E402
 from spine_cycle_sim.workloads import (  # noqa: E402
+    Edge,
     Workload,
     generate_multi_source_tile_workload,
     generate_partition_tile_workload,
@@ -138,6 +139,91 @@ def parse_striped_source_tile_work(args: list[str]) -> tuple[int, int, int, int]
     return int(args[1], 0), int(args[2], 0), int(args[3], 0), int(args[4], 0)
 
 
+def parse_slice_metadata(line: str) -> tuple[str, str] | None:
+    text = line.strip()
+    if not text.startswith("#"):
+        return None
+    text = text[1:].strip()
+    if not text:
+        return None
+    if "=" in text:
+        key, value = text.split("=", 1)
+    else:
+        parts = text.split(None, 1)
+        if len(parts) != 2:
+            return None
+        key, value = parts
+    return key.strip(), value.strip()
+
+
+def coalesce_slice_records(records: list[tuple[int, int, int, int]]) -> list[Edge]:
+    grouped: dict[tuple[int, int], tuple[int, int]] = {}
+    for src, dst, weight, diff in records:
+        min_weight, diff_sum = grouped.get((src, dst), (weight, 0))
+        grouped[(src, dst)] = (min(min_weight, weight), diff_sum + diff)
+    return [
+        Edge(src, dst, weight)
+        for (src, dst), (weight, diff_sum) in sorted(grouped.items())
+        if diff_sum != 0
+    ]
+
+
+def load_edge_list_slice(path: Path) -> Workload:
+    metadata: dict[str, str] = {}
+    records: list[tuple[int, int, int, int]] = []
+    max_id = 0
+    with path.open() as f:
+        for line_number, line in enumerate(f, 1):
+            stripped = line.strip()
+            if not stripped:
+                continue
+            if stripped.startswith("#"):
+                item = parse_slice_metadata(stripped)
+                if item is not None:
+                    metadata[item[0]] = item[1]
+                continue
+            parts = stripped.split()
+            if len(parts) < 2:
+                raise ValueError(f"{path}:{line_number}: expected src dst [weight [diff]]")
+            src = int(parts[0], 0)
+            dst = int(parts[1], 0)
+            weight = int(parts[2], 0) if len(parts) >= 3 else 1
+            diff = int(parts[3], 0) if len(parts) >= 4 else 1
+            if src < 0 or dst < 0:
+                raise ValueError(f"{path}:{line_number}: negative vertex id")
+            if weight <= 0:
+                raise ValueError(f"{path}:{line_number}: weight must be positive")
+            if diff == 0:
+                continue
+            max_id = max(max_id, src, dst)
+            records.append((src, dst, weight, diff))
+    if not records:
+        raise ValueError(f"edge-list slice is empty: {path}")
+    vertices = int(metadata.get("vertices", max_id + 1), 0)
+    if vertices <= max_id:
+        raise ValueError(
+            f"edge-list slice vertices={vertices} does not cover max id {max_id}"
+        )
+    case = metadata.get("case", path.stem)
+    compacted = coalesce_slice_records(records)
+    if not compacted:
+        raise ValueError(f"edge-list slice coalesced to an empty graph: {path}")
+    workload = Workload(
+        name="edge_list_slice",
+        vertices=vertices,
+        edges=compacted,
+        source=0,
+        metadata={
+            "shape": "edge_list_slice",
+            "slice_path": str(path),
+            "case": case,
+            "raw_edges": str(len(records)),
+            "coalesced_edges": str(len(compacted)),
+        },
+    )
+    return workload
+
+
 def workload_from_case(case: dict[str, Any], config: SpineConfig) -> Workload:
     args = list(case["args"])
     full_vertices = False
@@ -191,6 +277,12 @@ def workload_from_case(case: dict[str, Any], config: SpineConfig) -> Workload:
             vs_partition_size=config.vs_partition_size,
             max_vertices=config.max_vertices,
         )
+        workload.metadata["case"] = str(case["case"])
+        return workload
+    elif clean_args and clean_args[0] == "--edge-list-slice":
+        if len(clean_args) < 2:
+            raise ValueError("edge-list-slice requires a slice path")
+        workload = load_edge_list_slice(Path(clean_args[1]))
         workload.metadata["case"] = str(case["case"])
         return workload
     else:
