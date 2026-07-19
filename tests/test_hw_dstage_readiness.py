@@ -72,6 +72,40 @@ class DStageReadinessMatrixTests(unittest.TestCase):
         for case in [*calibration, *holdout]:
             self.assertIn("--print-tile-schedule", case.args)
 
+    def test_phase3b_bottleneck_matrices_are_broad_and_separated(self) -> None:
+        synthetic = matrix_by_name("phase3b_bottleneck_synthetic")
+        multibatch = matrix_by_name("phase3b_multibatch_probe")
+        phase3a4 = {
+            case.case
+            for case in [
+                *matrix_by_name("phase3a4_replay_calibration"),
+                *matrix_by_name("phase3a4_replay_holdout"),
+            ]
+        }
+
+        synthetic_cases = {case.case for case in synthetic}
+        multibatch_cases = {case.case for case in multibatch}
+        self.assertEqual(len(synthetic), 22)
+        self.assertEqual(len(multibatch), 4)
+        self.assertTrue(synthetic_cases.isdisjoint(multibatch_cases))
+        self.assertTrue(synthetic_cases.isdisjoint(phase3a4))
+        self.assertIn("p3b_replay_above_s8193_t8", synthetic_cases)
+        self.assertIn("p3b_multipart_s96_mixed", synthetic_cases)
+        self.assertIn("p3b_repeat_fanout_e1024_b3_s64", multibatch_cases)
+        for case in [*synthetic, *multibatch]:
+            self.assertIn("--print-tile-schedule", case.args)
+        for case in synthetic:
+            self.assertTrue(
+                any(
+                    option in case.args
+                    for option in (
+                        "--multi-source-tile-work",
+                        "--striped-source-tile-work",
+                        "--partition-tile-work",
+                    )
+                )
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

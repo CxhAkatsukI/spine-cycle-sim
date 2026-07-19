@@ -315,6 +315,7 @@ def sim_counter_value(schedule: Any, field: str) -> int:
 def compare_counters(
     run_rows: list[dict[str, str]],
     sim_schedules: dict[str, Any],
+    split_kernels: bool,
 ) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     for hw in run_rows:
@@ -333,7 +334,16 @@ def compare_counters(
             sim_value = sim_counter_value(sim, field) if sim is not None else 0
             out[f"hw_{field}"] = hw_value
             out[f"sim_{field}"] = sim_value
-            if hw_value != sim_value:
+            if (
+                field == "swept_vertex_words"
+                and split_kernels
+                and sim is not None
+            ):
+                # The split compute CU may skip dense stores when no proposal
+                # improves. The HLS host accepts [load-only, load+store].
+                if hw_value < sim_value // 2 or hw_value > sim_value:
+                    mismatches.append(field)
+            elif hw_value != sim_value:
                 mismatches.append(field)
         for field in DIAGNOSTIC_COUNTER_FIELDS:
             hw_value = to_int(hw.get(field))
@@ -376,7 +386,11 @@ def main() -> int:
     counter_failures: list[dict[str, Any]] = []
     runs_path = args.hw_dir / "runs.csv"
     if runs_path.exists():
-        counter_comparison = compare_counters(read_csv(runs_path), sim_schedules)
+        counter_comparison = compare_counters(
+            read_csv(runs_path),
+            sim_schedules,
+            split_kernels=bool(matrix.get("split_kernels", True)),
+        )
         counter_failures = [
             row for row in counter_comparison if row["status"] != "PASS"
         ]

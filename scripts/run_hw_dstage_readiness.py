@@ -41,6 +41,7 @@ BASE_FIELDS = [
     "returncode",
     "status",
     "tile_schedule_entries",
+    "batch_event_entries",
     "stdout_log",
     "stderr_log",
     "command_log",
@@ -60,6 +61,10 @@ SUMMARY_FIELDS = [
     "median_conv_span_ms",
     "median_maint_ms",
     "median_kernel_e2e_ms",
+    "median_input_edges",
+    "median_persisted",
+    "median_batches",
+    "median_target_level",
     "median_active_sources",
     "median_active_records",
     "median_active_record_replays",
@@ -89,6 +94,23 @@ TILE_SCHEDULE_FIELDS = [
     "gathered_vertex_words",
     "swept_vertex_words",
     "scattered_vertex_words",
+]
+
+BATCH_EVENT_FIELDS = [
+    "case",
+    "sweep",
+    "repeat",
+    "batch",
+    "input_edges",
+    "target_level",
+    "consumed_mask",
+    "persisted",
+    "overflow",
+    "l0_partitions_written",
+    "l0_pages_epoch_stamped",
+    "l0_full_clear_fallbacks",
+    "l0_epoch_wrap_events",
+    "maint_ms",
 ]
 
 
@@ -1021,6 +1043,258 @@ def phase3a4_replay_holdout_matrix() -> list[DStageCase]:
     ]
 
 
+def phase3b_bottleneck_synthetic_matrix() -> list[DStageCase]:
+    return [
+        DStageCase(
+            "p3b_tiny_s1_w1",
+            "fixed_overhead",
+            ("--multi-source-tile-work", "1", "0:1", "--print-tile-schedule"),
+            "One source and one edge; fixed overhead probe.",
+        ),
+        DStageCase(
+            "p3b_src_s5_w11",
+            "source_count",
+            ("--multi-source-tile-work", "5", "0:11", "--print-tile-schedule"),
+            "Small unseen source/work point.",
+        ),
+        DStageCase(
+            "p3b_src_s48_w3",
+            "source_count",
+            ("--multi-source-tile-work", "48", "0:3", "--print-tile-schedule"),
+            "Moderate source count with little per-source work.",
+        ),
+        DStageCase(
+            "p3b_src_s160_w1",
+            "source_count",
+            ("--multi-source-tile-work", "160", "0:1", "--print-tile-schedule"),
+            "Higher source count with one tile and one edge per source.",
+        ),
+        DStageCase(
+            "p3b_fast_s7_w256",
+            "fast_tile_work",
+            ("--multi-source-tile-work", "7", "0:256", "--print-tile-schedule"),
+            "Fast-path tile with larger per-source work.",
+        ),
+        DStageCase(
+            "p3b_fast_boundary_s31_w132",
+            "fast_full_boundary",
+            ("--multi-source-tile-work", "31", "0:132", "--print-tile-schedule"),
+            "4092 total tile work, just below the fast/full boundary.",
+        ),
+        DStageCase(
+            "p3b_full_boundary_s31_w133",
+            "fast_full_boundary",
+            ("--multi-source-tile-work", "31", "0:133", "--print-tile-schedule"),
+            "4123 total tile work, just above the fast/full boundary.",
+        ),
+        DStageCase(
+            "p3b_full_s96_w96",
+            "full_tile_work",
+            ("--multi-source-tile-work", "96", "0:96", "--print-tile-schedule"),
+            "Moderate full tile with many source records.",
+        ),
+        DStageCase(
+            "p3b_full_large_s32_w1024",
+            "full_tile_work",
+            ("--multi-source-tile-work", "32", "0:1024", "--print-tile-schedule"),
+            "Large single full tile with fewer source records.",
+        ),
+        DStageCase(
+            "p3b_multitile_s16_mixed",
+            "multi_tile",
+            (
+                "--multi-source-tile-work",
+                "16",
+                "0:1,4,16,64",
+                "--print-tile-schedule",
+            ),
+            "Four fast tiles with increasing work.",
+        ),
+        DStageCase(
+            "p3b_multitile_s64_t8_e2",
+            "multi_tile_replay",
+            (
+                "--multi-source-tile-work",
+                "64",
+                "0:2,2,2,2,2,2,2,2",
+                "--print-tile-schedule",
+            ),
+            "Eight touched tiles, replay dominates more than edge count.",
+        ),
+        DStageCase(
+            "p3b_multitile_s96_mixed_full",
+            "multi_tile_mixed",
+            (
+                "--multi-source-tile-work",
+                "96",
+                "0:1,8,64,256",
+                "--print-tile-schedule",
+            ),
+            "Mixed fast/full tiles with substantial source replay.",
+        ),
+        DStageCase(
+            "p3b_multitile_s128_t16_e1",
+            "multi_tile_replay",
+            (
+                "--multi-source-tile-work",
+                "128",
+                "0:1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1",
+                "--print-tile-schedule",
+            ),
+            "Sixteen touched tiles below replay fallback.",
+        ),
+        DStageCase(
+            "p3b_multipart_s32_p0_p7_p15",
+            "multi_partition",
+            (
+                "--multi-source-tile-work",
+                "32",
+                "0:2,8",
+                "7:4",
+                "15:16",
+                "--print-tile-schedule",
+            ),
+            "Three partitions with small/mid tile work.",
+        ),
+        DStageCase(
+            "p3b_multipart_s96_mixed",
+            "multi_partition_mixed",
+            (
+                "--multi-source-tile-work",
+                "96",
+                "0:1,32",
+                "5:4,64",
+                "10:16",
+                "--print-tile-schedule",
+            ),
+            "Multi-partition replay with mixed fast/full tiles.",
+        ),
+        DStageCase(
+            "p3b_replay_below_s2048_t16",
+            "replay_fallback_boundary",
+            (
+                "--striped-source-tile-work",
+                "2048",
+                "0",
+                "16",
+                "1",
+                "--full-vertices",
+                "--print-tile-schedule",
+            ),
+            "Replay proxy 32768, comfortably below fallback threshold.",
+        ),
+        DStageCase(
+            "p3b_replay_below_s4094_t16",
+            "replay_fallback_boundary",
+            (
+                "--striped-source-tile-work",
+                "4094",
+                "0",
+                "16",
+                "1",
+                "--full-vertices",
+                "--print-tile-schedule",
+            ),
+            "Replay proxy 65504, just below fallback threshold.",
+        ),
+        DStageCase(
+            "p3b_replay_above_s4098_t16",
+            "replay_fallback_boundary",
+            (
+                "--striped-source-tile-work",
+                "4098",
+                "0",
+                "16",
+                "1",
+                "--full-vertices",
+                "--print-tile-schedule",
+            ),
+            "Replay proxy 65568, just above fallback threshold.",
+        ),
+        DStageCase(
+            "p3b_replay_at_s8192_t8",
+            "replay_fallback_boundary",
+            (
+                "--striped-source-tile-work",
+                "8192",
+                "0",
+                "8",
+                "1",
+                "--full-vertices",
+                "--print-tile-schedule",
+            ),
+            "Replay proxy 65536 with only eight discovered tiles.",
+        ),
+        DStageCase(
+            "p3b_replay_above_s8193_t8",
+            "replay_fallback_boundary",
+            (
+                "--striped-source-tile-work",
+                "8193",
+                "0",
+                "8",
+                "1",
+                "--full-vertices",
+                "--print-tile-schedule",
+            ),
+            "Replay proxy above 65536; fallback also sweeps empty tiles.",
+        ),
+        DStageCase(
+            "p3b_partition_full_p0_p1",
+            "multi_partition_full",
+            (
+                "--partition-tile-work",
+                "0:8192,8192",
+                "1:4096,4097",
+                "--print-tile-schedule",
+            ),
+            "One-source multi-partition full-tile interaction.",
+        ),
+        DStageCase(
+            "p3b_partition_sparse_wide",
+            "multi_partition_sparse",
+            (
+                "--partition-tile-work",
+                "0:1",
+                "3:1",
+                "7:1",
+                "15:1",
+                "--print-tile-schedule",
+            ),
+            "Sparse one-source touches across distant partitions.",
+        ),
+    ]
+
+
+def phase3b_multibatch_probe_matrix() -> list[DStageCase]:
+    return [
+        DStageCase(
+            "p3b_repeat_fanout_e512_b2_s64",
+            "multibatch_level_probe",
+            ("--repeat-fanout", "512", "2", "64", "--print-tile-schedule"),
+            "Two batches create level state before convergence; diagnostic only.",
+        ),
+        DStageCase(
+            "p3b_repeat_fanout_e1024_b3_s64",
+            "multibatch_level_probe",
+            ("--repeat-fanout", "1024", "3", "64", "--print-tile-schedule"),
+            "Three fanout batches exercise carry/level-state exposure.",
+        ),
+        DStageCase(
+            "p3b_repeat_star_dense_e512_b2",
+            "multibatch_level_probe",
+            ("--repeat-star-dense", "512", "2", "--print-tile-schedule"),
+            "Repeated dense star with destination overlap; diagnostic only.",
+        ),
+        DStageCase(
+            "p3b_repeat_star_e1024_b3",
+            "multibatch_level_probe",
+            ("--repeat-star", "1024", "3", "--print-tile-schedule"),
+            "Repeated star across batches; diagnostic only.",
+        ),
+    ]
+
+
 def matrix_by_name(name: str) -> list[DStageCase]:
     if name == "phase3a0_readiness":
         return default_matrix()
@@ -1044,6 +1318,10 @@ def matrix_by_name(name: str) -> list[DStageCase]:
         return phase3a4_replay_calibration_matrix()
     if name == "phase3a4_replay_holdout":
         return phase3a4_replay_holdout_matrix()
+    if name == "phase3b_bottleneck_synthetic":
+        return phase3b_bottleneck_synthetic_matrix()
+    if name == "phase3b_multibatch_probe":
+        return phase3b_multibatch_probe_matrix()
     raise ValueError(f"unknown D-stage matrix: {name}")
 
 
@@ -1077,6 +1355,19 @@ def parse_tile_schedule(stdout: str) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     for line in stdout.splitlines():
         if not line.startswith("PARTITIONED_CSR_E2E_TILE_SCHEDULE "):
+            continue
+        row: dict[str, Any] = {}
+        for key, value in KEY_VALUE_RE.findall(line):
+            row[key] = parse_scalar(value)
+        if row:
+            rows.append(row)
+    return rows
+
+
+def parse_batch_events(stdout: str) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for line in stdout.splitlines():
+        if not line.startswith("PARTITIONED_CSR_E2E_BATCH "):
             continue
         row: dict[str, Any] = {}
         for key, value in KEY_VALUE_RE.findall(line):
@@ -1172,6 +1463,7 @@ def aggregate(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
             "batches",
             "input_edges",
             "persisted",
+            "target_level",
             "active_sources",
             "active_records",
             "active_record_replays",
@@ -1206,7 +1498,7 @@ def run_case(
     xrt_setup: Path | None,
     split_kernels: bool,
     out_dir: Path,
-) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+) -> tuple[dict[str, Any], list[dict[str, Any]], list[dict[str, Any]]]:
     raw_dir = out_dir / "raw" / case.case
     raw_dir.mkdir(parents=True, exist_ok=True)
     command = build_command(
@@ -1244,17 +1536,23 @@ def run_case(
     }
     parsed = parse_stdout(completed.stdout)
     tile_schedule = parse_tile_schedule(completed.stdout)
+    batch_events = parse_batch_events(completed.stdout)
     if "case" in parsed:
         parsed["host_case"] = parsed.pop("case")
     row.update(parsed)
     row["tile_schedule_entries"] = len(tile_schedule)
+    row["batch_event_entries"] = len(batch_events)
     if completed.returncode != 0 and row.get("status") == "MISSING":
         row["status"] = "FAIL"
     for entry in tile_schedule:
         entry["case"] = case.case
         entry["sweep"] = case.sweep
         entry["repeat"] = repeat
-    return row, tile_schedule
+    for entry in batch_events:
+        entry["case"] = case.case
+        entry["sweep"] = case.sweep
+        entry["repeat"] = repeat
+    return row, tile_schedule, batch_events
 
 
 def parse_args() -> argparse.Namespace:
@@ -1282,6 +1580,8 @@ def parse_args() -> argparse.Namespace:
             "phase3a3_tile_holdout",
             "phase3a4_replay_calibration",
             "phase3a4_replay_holdout",
+            "phase3b_bottleneck_synthetic",
+            "phase3b_multibatch_probe",
         ],
         default="phase3a0_readiness",
         help="Select the built-in D-stage experiment matrix.",
@@ -1337,10 +1637,11 @@ def main() -> int:
 
     rows: list[dict[str, Any]] = []
     tile_schedule_rows: list[dict[str, Any]] = []
+    batch_event_rows: list[dict[str, Any]] = []
     for case in cases:
         for repeat in range(1, args.repeats + 1):
             print(f"[{case.case}] repeat {repeat}/{args.repeats}", flush=True)
-            row, tile_schedule = run_case(
+            row, tile_schedule, batch_events = run_case(
                 case,
                 repeat=repeat,
                 host_exe=args.host_exe,
@@ -1352,6 +1653,7 @@ def main() -> int:
             )
             rows.append(row)
             tile_schedule_rows.extend(tile_schedule)
+            batch_event_rows.extend(batch_events)
             print(
                 "  status={status} returncode={returncode} conv_ms={conv_ms} "
                 "reader_ms={reader_ms} traversed_edges={traversed_edges}".format(
@@ -1372,10 +1674,18 @@ def main() -> int:
             tile_schedule_rows,
             TILE_SCHEDULE_FIELDS,
         )
+    if batch_event_rows:
+        write_csv(
+            args.out_dir / "batch_events.csv",
+            batch_event_rows,
+            BATCH_EVENT_FIELDS,
+        )
     print(f"wrote runs: {args.out_dir / 'runs.csv'}")
     print(f"wrote summary: {args.out_dir / 'summary.csv'}")
     if tile_schedule_rows:
         print(f"wrote tile schedule: {args.out_dir / 'tile_schedule.csv'}")
+    if batch_event_rows:
+        print(f"wrote batch events: {args.out_dir / 'batch_events.csv'}")
     return 0
 
 
