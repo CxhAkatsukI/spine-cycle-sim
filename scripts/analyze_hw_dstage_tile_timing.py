@@ -19,20 +19,15 @@ from spine_cycle_sim.calibration.maintenance import DEFAULT_FREQ_MHZ  # noqa: E4
 
 TILE_FEATURES = [
     "median_active_records",
+    "active_records_x_touched_tiles",
     "tile_fast_count",
     "tile_full_count",
+    "tile_fallback_count",
     "tile_fast_work",
     "tile_full_work",
-    "tile_fast_gathered_words",
     "tile_full_swept_words",
-    "tile_scattered_words",
     "tile_max_work",
-    "tile_mixed_path",
-    "tile_partition_count",
-    "tile_multi_partition",
-    "tile_max_partition_work",
-    "tile_max_partition_swept_words",
-    "tile_max_partition_tile_count",
+    "tile_clipped_ranges",
 ]
 
 PREDICTION_FIELDS = [
@@ -111,8 +106,12 @@ def tile_features_by_case(tile_rows: list[dict[str, Any]]) -> dict[str, dict[str
             {
                 "tile_fast_count": 0.0,
                 "tile_full_count": 0.0,
+                "tile_fallback_count": 0.0,
+                "tile_has_fallback": 0.0,
                 "tile_fast_work": 0.0,
                 "tile_full_work": 0.0,
+                "tile_clipped_ranges": 0.0,
+                "tile_max_clipped_ranges": 0.0,
                 "tile_fast_gathered_words": 0.0,
                 "tile_full_swept_words": 0.0,
                 "tile_scattered_words": 0.0,
@@ -132,7 +131,16 @@ def tile_features_by_case(tile_rows: list[dict[str, Any]]) -> dict[str, dict[str
         )
         path = str(row.get("path", ""))
         tile_work = numeric(row, "tile_work") or 0.0
+        clipped_ranges = numeric(row, "clipped_ranges") or 0.0
         out["tile_max_work"] = max(out["tile_max_work"], tile_work)
+        out["tile_clipped_ranges"] += clipped_ranges
+        out["tile_max_clipped_ranges"] = max(
+            out["tile_max_clipped_ranges"],
+            clipped_ranges,
+        )
+        if numeric(row, "fallback_used") or 0.0:
+            out["tile_fallback_count"] += 1.0
+            out["tile_has_fallback"] = 1.0
         per_partition["work"] += tile_work
         per_partition["swept_words"] += numeric(row, "swept_vertex_words") or 0.0
         per_partition["tile_count"] += 1.0
@@ -183,11 +191,35 @@ def merge_features(summary_rows: list[dict[str, Any]], tile_rows: list[dict[str,
         out.update(tile_by_case.get(case, {}))
         for feature in TILE_FEATURES:
             out.setdefault(feature, 0.0)
+        active_records = numeric(out, "median_active_records") or 0.0
+        touched_tiles = (
+            (numeric(out, "tile_fast_count") or 0.0)
+            + (numeric(out, "tile_full_count") or 0.0)
+        )
+        out["active_records_x_touched_tiles"] = active_records * touched_tiles
         merged.append(out)
     return merged
 
 
-def fit_model(rows: list[dict[str, Any]], features: list[str], freq_mhz: float, alpha: float) -> dict[str, Any]:
+def fit_weight(target: float, weight_mode: str) -> float:
+    if target <= 0:
+        return 1.0
+    if weight_mode == "none":
+        return 1.0
+    if weight_mode == "sqrt_relative":
+        return 1.0 / target
+    if weight_mode == "relative":
+        return 1.0 / (target * target)
+    raise ValueError(f"unknown weight mode: {weight_mode}")
+
+
+def fit_model(
+    rows: list[dict[str, Any]],
+    features: list[str],
+    freq_mhz: float,
+    alpha: float,
+    weight_mode: str,
+) -> dict[str, Any]:
     records: list[tuple[list[float], float]] = []
     active_features = [
         feature
@@ -215,10 +247,11 @@ def fit_model(rows: list[dict[str, Any]], features: list[str], freq_mhz: float, 
     xtx = [[0.0 for _ in range(dim)] for _ in range(dim)]
     xty = [0.0 for _ in range(dim)]
     for x_row, y in zip(x_rows, ys):
+        weight = fit_weight(y, weight_mode)
         for i in range(dim):
-            xty[i] += x_row[i] * y
+            xty[i] += weight * x_row[i] * y
             for j in range(dim):
-                xtx[i][j] += x_row[i] * x_row[j]
+                xtx[i][j] += weight * x_row[i] * x_row[j]
     for i in range(1, dim):
         xtx[i][i] += alpha
     beta = solve_linear(xtx, xty)
@@ -228,6 +261,7 @@ def fit_model(rows: list[dict[str, Any]], features: list[str], freq_mhz: float, 
         "backend": "tile_schedule_v1",
         "freq_mhz": freq_mhz,
         "alpha": alpha,
+        "weight_mode": weight_mode,
         "features": active_features,
         "means": dict(zip(active_features, means)),
         "stds": dict(zip(active_features, stds)),
@@ -326,6 +360,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--out-dir", type=Path)
     parser.add_argument("--freq-mhz", type=float, default=DEFAULT_FREQ_MHZ)
     parser.add_argument("--alpha", type=float, default=1.0e-6)
+    parser.add_argument(
+        "--weight-mode",
+        choices=["none", "sqrt_relative", "relative"],
+        default="none",
+        help="Regression weighting. sqrt_relative uses 1/target_cycles.",
+    )
     parser.add_argument("--max-threshold-pct", type=float, default=20.0)
     return parser.parse_args()
 
@@ -336,7 +376,13 @@ def main() -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     calibration_rows = load_dataset(args.calibration_dir)
-    model = fit_model(calibration_rows, TILE_FEATURES, args.freq_mhz, args.alpha)
+    model = fit_model(
+        calibration_rows,
+        TILE_FEATURES,
+        args.freq_mhz,
+        args.alpha,
+        args.weight_mode,
+    )
     calibration_predictions = prediction_rows(calibration_rows, model, args.freq_mhz)
     calibration_report = summarize_predictions(
         calibration_predictions,

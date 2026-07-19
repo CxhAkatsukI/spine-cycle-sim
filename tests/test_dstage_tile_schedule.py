@@ -5,7 +5,9 @@ import unittest
 from spine_cycle_sim.models import SpineConfig, SpineV0Simulator
 from spine_cycle_sim.models.dstage import build_tile_schedule
 from spine_cycle_sim.workloads import (
+    generate_multi_source_tile_workload,
     generate_partition_tile_workload,
+    generate_striped_source_tile_workload,
     generate_tile_workload,
 )
 
@@ -69,6 +71,52 @@ class DStageTileScheduleTests(unittest.TestCase):
             [entry.tile_work for entry in schedule.entries],
             [4096, 4097, 128, 8192],
         )
+
+    def test_multi_source_tile_work_replay_counters(self) -> None:
+        config = SpineConfig(max_cycles=2_000_000, hot_cold_enabled=False)
+        workload = generate_multi_source_tile_workload(
+            8,
+            {0: [4, 4]},
+            tile_vertices=config.conv_tile_vertices,
+            vs_partition_size=config.vs_partition_size,
+            max_vertices=config.max_vertices,
+        )
+
+        schedule = build_tile_schedule(workload.edges, workload.vertices, config)
+
+        self.assertEqual(schedule.active_sources, 8)
+        self.assertEqual(schedule.active_records, 8)
+        self.assertEqual(schedule.touched_tiles, 2)
+        self.assertEqual(schedule.active_record_replays, 16)
+        self.assertEqual(schedule.row_lookups, 24)
+        self.assertEqual(schedule.clipped_ranges, 16)
+        self.assertEqual(schedule.fast_path_tiles, 2)
+        self.assertEqual([entry.tile_work for entry in schedule.entries], [32, 32])
+        self.assertEqual([entry.clipped_ranges for entry in schedule.entries], [8, 8])
+
+    def test_striped_source_tile_work_forces_replay_fallback(self) -> None:
+        config = SpineConfig(max_cycles=2_000_000, hot_cold_enabled=False)
+        workload = generate_striped_source_tile_workload(
+            4097,
+            0,
+            16,
+            1,
+            vertices=config.max_vertices,
+            tile_vertices=config.conv_tile_vertices,
+            vs_partition_size=config.vs_partition_size,
+            max_vertices=config.max_vertices,
+        )
+
+        schedule = build_tile_schedule(workload.edges, workload.vertices, config)
+
+        self.assertEqual(schedule.active_sources, 4097)
+        self.assertEqual(schedule.active_records, 4097)
+        self.assertEqual(schedule.touched_tiles, 16)
+        self.assertEqual(schedule.fallback_used, 1)
+        self.assertEqual(schedule.fast_path_tiles, 0)
+        self.assertEqual(schedule.full_path_tiles, 16)
+        self.assertEqual(schedule.active_record_replays, 4097 * 16)
+        self.assertTrue(all(entry.fallback_used for entry in schedule.entries))
 
 
 if __name__ == "__main__":

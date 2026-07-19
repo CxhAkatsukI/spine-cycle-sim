@@ -49,6 +49,29 @@ class DStageReadinessMatrixTests(unittest.TestCase):
         for case in [*calibration, *holdout]:
             self.assertIn("--print-tile-schedule", case.args)
 
+    def test_phase3a4_replay_matrices_are_controlled_and_disjoint(self) -> None:
+        calibration = matrix_by_name("phase3a4_replay_calibration")
+        holdout = matrix_by_name("phase3a4_replay_holdout")
+
+        calibration_cases = {case.case for case in calibration}
+        holdout_cases = {case.case for case in holdout}
+        self.assertEqual(len(calibration), 31)
+        self.assertEqual(len(holdout), 10)
+        self.assertTrue(calibration_cases.isdisjoint(holdout_cases))
+        self.assertTrue(
+            any("--multi-source-tile-work" in case.args for case in calibration)
+        )
+        self.assertTrue(
+            any("--striped-source-tile-work" in case.args for case in calibration)
+        )
+        self.assertTrue(
+            any("--striped-source-tile-work" in case.args for case in holdout)
+        )
+        self.assertIn("a4_calib_src_s128_w1", calibration_cases)
+        self.assertIn("a4_hold_replay_above_s8193_t16", holdout_cases)
+        for case in [*calibration, *holdout]:
+            self.assertIn("--print-tile-schedule", case.args)
+
 
 if __name__ == "__main__":
     unittest.main()

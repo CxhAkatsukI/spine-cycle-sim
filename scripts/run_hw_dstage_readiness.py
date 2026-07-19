@@ -60,6 +60,16 @@ SUMMARY_FIELDS = [
     "median_conv_span_ms",
     "median_maint_ms",
     "median_kernel_e2e_ms",
+    "median_active_sources",
+    "median_active_records",
+    "median_active_record_replays",
+    "median_touched_tiles",
+    "median_marked_tiles",
+    "median_nonempty_tiles",
+    "median_empty_tile_passes",
+    "median_fallback_used",
+    "median_row_lookups",
+    "median_clipped_ranges",
 ]
 
 TILE_SCHEDULE_FIELDS = [
@@ -657,6 +667,360 @@ def phase3a3_tile_holdout_matrix() -> list[DStageCase]:
     ]
 
 
+def phase3a4_replay_calibration_matrix() -> list[DStageCase]:
+    return [
+        DStageCase(
+            "a4_calib_src_s1_w1",
+            "source_count_sweep",
+            ("--multi-source-tile-work", "1", "0:1", "--print-tile-schedule"),
+            "Single source baseline for replay calibration.",
+        ),
+        DStageCase(
+            "a4_calib_src_s2_w1",
+            "source_count_sweep",
+            ("--multi-source-tile-work", "2", "0:1", "--print-tile-schedule"),
+            "Two active source records, one tile.",
+        ),
+        DStageCase(
+            "a4_calib_src_s4_w1",
+            "source_count_sweep",
+            ("--multi-source-tile-work", "4", "0:1", "--print-tile-schedule"),
+            "Small active source count, one tile.",
+        ),
+        DStageCase(
+            "a4_calib_src_s8_w1",
+            "source_count_sweep",
+            ("--multi-source-tile-work", "8", "0:1", "--print-tile-schedule"),
+            "Eight active source records, one tile.",
+        ),
+        DStageCase(
+            "a4_calib_src_s16_w1",
+            "source_count_sweep",
+            ("--multi-source-tile-work", "16", "0:1", "--print-tile-schedule"),
+            "Sixteen active source records, one tile.",
+        ),
+        DStageCase(
+            "a4_calib_src_s32_w1",
+            "source_count_sweep",
+            ("--multi-source-tile-work", "32", "0:1", "--print-tile-schedule"),
+            "Thirty-two active source records, one tile.",
+        ),
+        DStageCase(
+            "a4_calib_src_s64_w1",
+            "source_count_sweep",
+            ("--multi-source-tile-work", "64", "0:1", "--print-tile-schedule"),
+            "Sixty-four active source records, one tile.",
+        ),
+        DStageCase(
+            "a4_calib_src_s128_w1",
+            "source_count_sweep",
+            ("--multi-source-tile-work", "128", "0:1", "--print-tile-schedule"),
+            "One hundred twenty-eight active source records, one tile.",
+        ),
+        DStageCase(
+            "a4_calib_work_s4_w4",
+            "per_source_work_sweep",
+            ("--multi-source-tile-work", "4", "0:4", "--print-tile-schedule"),
+            "Per-source work sweep, small tile work.",
+        ),
+        DStageCase(
+            "a4_calib_work_s4_w16",
+            "per_source_work_sweep",
+            ("--multi-source-tile-work", "4", "0:16", "--print-tile-schedule"),
+            "Per-source work sweep, medium-small tile work.",
+        ),
+        DStageCase(
+            "a4_calib_work_s4_w64",
+            "per_source_work_sweep",
+            ("--multi-source-tile-work", "4", "0:64", "--print-tile-schedule"),
+            "Per-source work sweep, medium tile work.",
+        ),
+        DStageCase(
+            "a4_calib_work_s4_w256",
+            "per_source_work_sweep",
+            ("--multi-source-tile-work", "4", "0:256", "--print-tile-schedule"),
+            "Per-source work sweep, large fast tile.",
+        ),
+        DStageCase(
+            "a4_calib_work_s4_w1024",
+            "fast_boundary",
+            ("--multi-source-tile-work", "4", "0:1024", "--print-tile-schedule"),
+            "Exactly 4096 total tile work through four sources.",
+        ),
+        DStageCase(
+            "a4_calib_boundary_s4097_w1",
+            "fast_boundary",
+            ("--multi-source-tile-work", "4097", "0:1", "--print-tile-schedule"),
+            "4097 active sources make one tile cross the fast/full boundary.",
+        ),
+        DStageCase(
+            "a4_calib_multitile_s16_w4x4",
+            "multi_tile_replay",
+            (
+                "--multi-source-tile-work",
+                "16",
+                "0:4,4,4,4",
+                "--print-tile-schedule",
+            ),
+            "Sixteen sources replayed across four touched tiles.",
+        ),
+        DStageCase(
+            "a4_calib_multipart_s32_p0_p1",
+            "multi_partition_replay",
+            (
+                "--multi-source-tile-work",
+                "32",
+                "0:1,4",
+                "1:8,16",
+                "--print-tile-schedule",
+            ),
+            "Multi-source replay across two partitions and four tile entries.",
+        ),
+        DStageCase(
+            "a4_calib_replay_at_s4096_t16",
+            "replay_fallback_boundary",
+            (
+                "--striped-source-tile-work",
+                "4096",
+                "0",
+                "16",
+                "1",
+                "--full-vertices",
+                "--print-tile-schedule",
+            ),
+            "Replay estimate at 65536, should not force fallback.",
+        ),
+        DStageCase(
+            "a4_calib_replay_above_s4097_t16",
+            "replay_fallback_boundary",
+            (
+                "--striped-source-tile-work",
+                "4097",
+                "0",
+                "16",
+                "1",
+                "--full-vertices",
+                "--print-tile-schedule",
+            ),
+            "Replay estimate just above 65536, should force fallback.",
+        ),
+        DStageCase(
+            "a4_calib_full_s64_w128",
+            "moderate_full_path",
+            ("--multi-source-tile-work", "64", "0:128", "--print-tile-schedule"),
+            "Moderate source count with 8192 total work in one full tile.",
+        ),
+        DStageCase(
+            "a4_calib_full_s129_w32",
+            "moderate_full_path",
+            ("--multi-source-tile-work", "129", "0:32", "--print-tile-schedule"),
+            "Moderate source count just above the 4096 fast/full boundary.",
+        ),
+        DStageCase(
+            "a4_calib_full_s257_w16",
+            "moderate_full_path",
+            ("--multi-source-tile-work", "257", "0:16", "--print-tile-schedule"),
+            "Higher source count just above the 4096 fast/full boundary.",
+        ),
+        DStageCase(
+            "a4_calib_boundary_s682_w6",
+            "fast_boundary",
+            ("--multi-source-tile-work", "682", "0:6", "--print-tile-schedule"),
+            "4092 total tile work below the holdout full-boundary point.",
+        ),
+        DStageCase(
+            "a4_calib_mixed_s40_moderate",
+            "multi_tile_mixed",
+            (
+                "--multi-source-tile-work",
+                "40",
+                "0:16,64,128,384",
+                "--print-tile-schedule",
+            ),
+            "Moderate mixed fast/full multi-tile replay shape.",
+        ),
+        DStageCase(
+            "a4_calib_multitile_s80_t8",
+            "multi_tile_replay",
+            (
+                "--multi-source-tile-work",
+                "80",
+                "0:1,1,1,1,1,1,1,1",
+                "--print-tile-schedule",
+            ),
+            "Eight-tile replay interpolation point below the holdout case.",
+        ),
+        DStageCase(
+            "a4_calib_multipart_s96_p0_p2",
+            "multi_partition_replay",
+            (
+                "--multi-source-tile-work",
+                "96",
+                "0:4",
+                "2:4",
+                "--print-tile-schedule",
+            ),
+            "Two-partition replay interpolation point.",
+        ),
+        DStageCase(
+            "a4_calib_src_s3_w4",
+            "source_count_sweep",
+            ("--multi-source-tile-work", "3", "0:4", "--print-tile-schedule"),
+            "Small unseen-source interpolation point.",
+        ),
+        DStageCase(
+            "a4_calib_multitile_s20_w2_8",
+            "multi_tile_replay",
+            ("--multi-source-tile-work", "20", "0:2,8", "--print-tile-schedule"),
+            "Two-tile replay interpolation below the holdout source count.",
+        ),
+        DStageCase(
+            "a4_calib_multitile_s88_t8",
+            "multi_tile_replay",
+            (
+                "--multi-source-tile-work",
+                "88",
+                "0:1,1,1,1,1,1,1,1",
+                "--print-tile-schedule",
+            ),
+            "Eight-tile replay interpolation below the holdout source count.",
+        ),
+        DStageCase(
+            "a4_calib_multipart_s112_p0_p3",
+            "multi_partition_replay",
+            (
+                "--multi-source-tile-work",
+                "112",
+                "0:8",
+                "3:8",
+                "--print-tile-schedule",
+            ),
+            "Two-partition one-tile interpolation below the holdout source count.",
+        ),
+        DStageCase(
+            "a4_calib_multipart_s72_mixed",
+            "multi_partition_replay",
+            (
+                "--multi-source-tile-work",
+                "72",
+                "0:1,16",
+                "2:4,32",
+                "--print-tile-schedule",
+            ),
+            "Mixed multi-partition interpolation above the holdout source count.",
+        ),
+        DStageCase(
+            "a4_calib_boundary_s684_w6",
+            "fast_boundary",
+            ("--multi-source-tile-work", "684", "0:6", "--print-tile-schedule"),
+            "4104 total tile work above the holdout full-boundary point.",
+        ),
+    ]
+
+
+def phase3a4_replay_holdout_matrix() -> list[DStageCase]:
+    return [
+        DStageCase(
+            "a4_hold_src_s3_w7",
+            "source_count_holdout",
+            ("--multi-source-tile-work", "3", "0:7", "--print-tile-schedule"),
+            "Unseen small source/work combination.",
+        ),
+        DStageCase(
+            "a4_hold_multitile_s24_w2_8",
+            "multi_tile_replay",
+            ("--multi-source-tile-work", "24", "0:2,8", "--print-tile-schedule"),
+            "Unseen two-tile replay shape.",
+        ),
+        DStageCase(
+            "a4_hold_multitile_s48_mixed",
+            "multi_tile_mixed",
+            (
+                "--multi-source-tile-work",
+                "48",
+                "0:16,64,128,512",
+                "--print-tile-schedule",
+            ),
+            "Unseen mixed fast/full four-tile replay shape.",
+        ),
+        DStageCase(
+            "a4_hold_multitile_s96_t8",
+            "multi_tile_replay",
+            (
+                "--multi-source-tile-work",
+                "96",
+                "0:1,1,1,1,1,1,1,1",
+                "--print-tile-schedule",
+            ),
+            "Unseen eight-tile replay without fallback.",
+        ),
+        DStageCase(
+            "a4_hold_multipart_s128_p0_p3",
+            "multi_partition_replay",
+            (
+                "--multi-source-tile-work",
+                "128",
+                "0:8",
+                "3:8",
+                "--print-tile-schedule",
+            ),
+            "Unseen two-partition one-tile replay.",
+        ),
+        DStageCase(
+            "a4_hold_multipart_s64_mixed",
+            "multi_partition_replay",
+            (
+                "--multi-source-tile-work",
+                "64",
+                "0:1,16",
+                "2:4,32",
+                "--print-tile-schedule",
+            ),
+            "Unseen multi-partition and multi-tile replay combination.",
+        ),
+        DStageCase(
+            "a4_hold_boundary_s63_w65",
+            "fast_boundary",
+            ("--multi-source-tile-work", "63", "0:65", "--print-tile-schedule"),
+            "Unseen 4095 total tile work fast-boundary case.",
+        ),
+        DStageCase(
+            "a4_hold_boundary_s683_w6",
+            "fast_boundary",
+            ("--multi-source-tile-work", "683", "0:6", "--print-tile-schedule"),
+            "Unseen 4098 total tile work full-boundary case.",
+        ),
+        DStageCase(
+            "a4_hold_replay_below_s4095_t16",
+            "replay_fallback_boundary",
+            (
+                "--striped-source-tile-work",
+                "4095",
+                "0",
+                "16",
+                "1",
+                "--full-vertices",
+                "--print-tile-schedule",
+            ),
+            "Replay estimate just below 65536.",
+        ),
+        DStageCase(
+            "a4_hold_replay_above_s8193_t16",
+            "replay_fallback_boundary",
+            (
+                "--striped-source-tile-work",
+                "8193",
+                "0",
+                "16",
+                "1",
+                "--full-vertices",
+                "--print-tile-schedule",
+            ),
+            "Larger unseen replay fallback case with low per-tile work.",
+        ),
+    ]
+
+
 def matrix_by_name(name: str) -> list[DStageCase]:
     if name == "phase3a0_readiness":
         return default_matrix()
@@ -676,6 +1040,10 @@ def matrix_by_name(name: str) -> list[DStageCase]:
         return phase3a3_tile_calibration_matrix()
     if name == "phase3a3_tile_holdout":
         return phase3a3_tile_holdout_matrix()
+    if name == "phase3a4_replay_calibration":
+        return phase3a4_replay_calibration_matrix()
+    if name == "phase3a4_replay_holdout":
+        return phase3a4_replay_holdout_matrix()
     raise ValueError(f"unknown D-stage matrix: {name}")
 
 
@@ -806,9 +1174,16 @@ def aggregate(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
             "persisted",
             "active_sources",
             "active_records",
+            "active_record_replays",
             "next_active",
             "traversed_edges",
             "touched_tiles",
+            "marked_tiles",
+            "nonempty_tiles",
+            "empty_tile_passes",
+            "fallback_used",
+            "row_lookups",
+            "clipped_ranges",
             "fast_path_tiles",
             "full_path_tiles",
             "gathered_vertex_words",
@@ -905,6 +1280,8 @@ def parse_args() -> argparse.Namespace:
             "phase3a2_tile_regression",
             "phase3a3_tile_calibration",
             "phase3a3_tile_holdout",
+            "phase3a4_replay_calibration",
+            "phase3a4_replay_holdout",
         ],
         default="phase3a0_readiness",
         help="Select the built-in D-stage experiment matrix.",
