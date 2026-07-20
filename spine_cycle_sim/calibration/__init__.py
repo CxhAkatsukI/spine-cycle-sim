@@ -22,6 +22,21 @@ from .bstage import (
     prediction_field_order,
     prediction_row,
 )
+from .e2e import (
+    DEFAULT_READER_FEATURES,
+    E2E_GROUP_SUMMARY_FIELD_ORDER,
+    E2E_PREDICTION_FIELD_ORDER,
+    E2EInputs,
+    ReaderModel,
+    bottleneck,
+    build_e2e_prediction,
+    component_summary_row,
+    compute_overhead_model,
+    e2e_group_summary,
+    e2e_prediction_field_order,
+    fit_reader_model,
+    reader_model_to_dict,
+)
 from .maintenance import (
     DEFAULT_FEATURES,
     ExperimentSpec,
@@ -41,6 +56,19 @@ from .maintenance import (
 )
 
 __all__ = [
+    "DEFAULT_READER_FEATURES",
+    "E2E_GROUP_SUMMARY_FIELD_ORDER",
+    "E2E_PREDICTION_FIELD_ORDER",
+    "E2EInputs",
+    "ReaderModel",
+    "bottleneck",
+    "build_e2e_prediction",
+    "component_summary_row",
+    "compute_overhead_model",
+    "e2e_group_summary",
+    "e2e_prediction_field_order",
+    "fit_reader_model",
+    "reader_model_to_dict",
     "BStageComponentModel",
     "CarryComponentModel",
     "CaseRecord",
