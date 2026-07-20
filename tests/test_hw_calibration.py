@@ -11,6 +11,7 @@ from spine_cycle_sim.calibration import (
     matrix_by_name,
     merge_simulator_counters,
     parse_hw_maintenance_output,
+    phase4c_partition_spread_matrix,
 )
 from spine_cycle_sim.calibration.maintenance import ExperimentSpec
 
@@ -114,6 +115,17 @@ PARTITIONED_CSR_E2E_BATCH case=star batch=1 input_edges=1024 target_level=0 cons
         self.assertEqual(sum(1 for spec in specs if spec.sweep == "holdout_target_level"), 4)
         self.assertEqual(sum(1 for spec in specs if spec.sweep == "holdout_source_count"), 3)
         self.assertEqual(matrix_by_name("phase2d_holdout"), specs)
+
+    def test_phase4c_partition_spread_matrix_uses_one_partition_l0_cases(self) -> None:
+        training_cases = {spec.case for spec in default_matrix()}
+        specs = phase4c_partition_spread_matrix()
+
+        self.assertEqual(len(specs), 6)
+        self.assertTrue({spec.case for spec in specs}.isdisjoint(training_cases))
+        self.assertTrue(all(spec.sweep == "phase4c_l0_onepart" for spec in specs))
+        self.assertTrue(all(spec.mode == "l0_store" for spec in specs))
+        self.assertTrue(all(spec.args[0] == "--star-onepart" for spec in specs))
+        self.assertEqual(matrix_by_name("phase4c_partition_spread"), specs)
 
     def test_build_hw_command_sets_split_runtime_environment(self) -> None:
         spec = ExperimentSpec(

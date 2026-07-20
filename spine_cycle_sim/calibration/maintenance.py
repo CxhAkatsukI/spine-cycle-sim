@@ -250,11 +250,33 @@ def holdout_matrix() -> list[ExperimentSpec]:
     return specs
 
 
+def phase4c_partition_spread_matrix() -> list[ExperimentSpec]:
+    specs: list[ExperimentSpec] = []
+
+    for edges in [10, 80, 512, 4096, 32_768, 98_304]:
+        specs.append(
+            ExperimentSpec(
+                case=f"phase4c_l0_onepart_e{edges}",
+                sweep="phase4c_l0_onepart",
+                mode="l0_store",
+                args=("--star-onepart", str(edges)),
+                target_level=0,
+                batch_edges=edges,
+                source_count=1,
+                expected_path="store_l0",
+            )
+        )
+
+    return specs
+
+
 def matrix_by_name(name: str) -> list[ExperimentSpec]:
     if name == "phase2b":
         return default_matrix()
     if name == "phase2d_holdout":
         return holdout_matrix()
+    if name == "phase4c_partition_spread":
+        return phase4c_partition_spread_matrix()
     raise ValueError(f"unknown calibration matrix: {name}")
 
 

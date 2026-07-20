@@ -44,7 +44,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--allow-failures", action="store_true")
     parser.add_argument(
         "--matrix",
-        choices=["phase2b", "phase2d_holdout"],
+        choices=["phase2b", "phase2d_holdout", "phase4c_partition_spread"],
         default="phase2b",
         help="Select the built-in experiment matrix.",
     )
