@@ -21,8 +21,9 @@ FREQ = 134.0
 
 
 def _row(reader_cycles, *, edges=0.0, replay=0.0, fast=0.0, full=0.0,
-         fallback_count=0.0, clipped=0.0, partitions=1.0, fast_count=0.0,
-         full_count=0.0, case="c", conv_span_cycles=None, kernel_cycles=None):
+         fallback_count=0.0, clipped=0.0, fallback_swept=0.0, partitions=1.0,
+         fast_count=0.0, full_count=0.0, case="c", conv_span_cycles=None,
+         kernel_cycles=None):
     return {
         "case": case,
         "sweep": "reader_axis",
@@ -37,6 +38,7 @@ def _row(reader_cycles, *, edges=0.0, replay=0.0, fast=0.0, full=0.0,
         "tile_scattered_words": 0.0,
         "tile_full_swept_words": full,
         "tile_fallback_count": fallback_count,
+        "tile_fallback_swept_words": fallback_swept,
         "tile_clipped_ranges": clipped,
         "tile_partition_count": partitions,
         "tile_fast_count": fast_count,
@@ -48,14 +50,14 @@ def _row(reader_cycles, *, edges=0.0, replay=0.0, fast=0.0, full=0.0,
 class FeatureExtractionTests(unittest.TestCase):
     def test_reader_feature_values(self) -> None:
         row = _row(1_000_000, edges=4096, replay=100, fast=50, full=200,
-                   fallback_count=2, clipped=10, partitions=4)
+                   fallback_count=2, clipped=10, fallback_swept=8192, partitions=4)
         values = reader_feature_values(row)
         self.assertEqual(values["fixed"], 1.0)
         self.assertEqual(values["edge_stream"], 4096.0)
         self.assertEqual(values["active_record_replay"], 100.0)
         self.assertEqual(values["fast_gather_scatter"], 50.0)
         self.assertEqual(values["full_sweep"], 200.0)
-        self.assertEqual(values["fallback"], 20.0)  # 2 * 10
+        self.assertEqual(values["fallback_sweep"], 8192.0)  # keyed on fallback swept words
         self.assertEqual(values["partition_spread"], 4.0)
 
     def test_path_class(self) -> None:
@@ -98,7 +100,7 @@ class FitTests(unittest.TestCase):
         # No fast/full/fallback/partition variance in the data.
         self.assertEqual(model.coefficients["fast_gather_scatter"], 0.0)
         self.assertEqual(model.coefficients["full_sweep"], 0.0)
-        self.assertEqual(model.coefficients["fallback"], 0.0)
+        self.assertEqual(model.coefficients["fallback_sweep"], 0.0)
 
     def test_components_sum_to_predicted(self) -> None:
         model = fit_reader_component_model(self._synthetic_rows(), freq_mhz=FREQ)
@@ -202,7 +204,7 @@ class ModelToDictTests(unittest.TestCase):
         payload = reader_component_model_to_dict(model)
         self.assertEqual(payload["target"], "median_reader_ms")
         self.assertIn("active_records_x_touched_tiles", payload["form"])
-        self.assertIn("fallback", payload["not_separately_identifiable"])
+        self.assertIn("fallback_sweep", payload["not_separately_identifiable"])
         self.assertIn("partition_spread", payload["not_separately_identifiable"])
         self.assertIn("event duration", payload["measurement_window_note"])
 

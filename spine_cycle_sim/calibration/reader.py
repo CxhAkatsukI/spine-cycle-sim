@@ -18,7 +18,7 @@ All coefficients are constrained ``>= 0`` (non-negative least squares)::
              + c_replay             * active_records_x_touched_tiles
              + c_fast               * fast_gather_scatter_words
              + c_full               * full_swept_words
-             + c_fallback           * fallback_penalty
+             + c_fallback_sweep     * fallback_swept_words
              + c_partition          * partition_spread
 
 Component meaning:
@@ -28,9 +28,14 @@ Component meaning:
 * ``active_record_replay`` -- active source records replayed across touched tiles
   (``active_records * touched_tiles``).
 * ``fast_gather_scatter`` -- fast-path gather/scatter vertex words.
-* ``full_sweep``          -- full-tile swept vertex words.
-* ``fallback``            -- fallback / replay-fallback penalty.
-* ``partition_spread``    -- multi-partition / HBM-bank spread.
+* ``full_sweep``          -- normal full-tile swept vertex words.
+* ``fallback_sweep``      -- vertex words swept by the full-vertex fallback sweep;
+  the Phase 5A microbench measured this at ~4x the per-word cost of a normal
+  full-tile sweep, so it is kept as its own component keyed on fallback swept
+  words (the earlier ``tile_fallback_count`` proxy could not capture it).
+* ``partition_spread``    -- multi-partition / HBM-bank spread. The Phase 5A
+  orthogonal sweep measured this as negligible (flat reader time across
+  1/2/4/8 partitions at fixed tile count), so it stays ~0.
 
 Measurement-window limitation
 -----------------------------
@@ -73,7 +78,7 @@ READER_COMPONENT_ORDER = [
     "active_record_replay",
     "fast_gather_scatter",
     "full_sweep",
-    "fallback",
+    "fallback_sweep",
     "partition_spread",
 ]
 
@@ -104,10 +109,10 @@ def reader_feature_values(row: dict[str, Any]) -> dict[str, float]:
             + (_num(row.get("tile_scattered_words")) or 0.0)
         ),
         "full_sweep": _num(row.get("tile_full_swept_words")) or 0.0,
-        "fallback": (
-            (_num(row.get("tile_fallback_count")) or 0.0)
-            * (_num(row.get("tile_clipped_ranges")) or 0.0)
-        ),
+        # Fallback forces a full-vertex sweep that is empirically ~4x costlier
+        # per word than a normal full-tile sweep, so it is keyed on the fallback
+        # swept words (not a fallback-count proxy) and fit as its own component.
+        "fallback_sweep": _num(row.get("tile_fallback_swept_words")) or 0.0,
         "partition_spread": _num(row.get("tile_partition_count")) or 0.0,
     }
 
@@ -158,7 +163,7 @@ class ReaderComponentModel:
         }
         for name, component in halves.items():
             out[name] = _whatif(total, 0.5 * components[component])
-        out["remove_fallback_penalty"] = _whatif(total, components["fallback"])
+        out["remove_fallback_penalty"] = _whatif(total, components["fallback_sweep"])
         return out
 
     def predict(
@@ -295,6 +300,7 @@ _TILE_AGG_KEYS = [
     "tile_fallback_count",
     "tile_fast_gathered_words",
     "tile_full_swept_words",
+    "tile_fallback_swept_words",
     "tile_scattered_words",
     "tile_clipped_ranges",
     "tile_partition_count",
@@ -343,7 +349,9 @@ def _tile_features_by_case(path: Path) -> dict[str, dict[str, float]]:
         agg = by_repeat.setdefault(key, {key: 0.0 for key in _TILE_AGG_KEYS})
         partitions.setdefault(key, set()).add(int(_num(row.get("partition")) or 0))
         is_fast = str(row.get("path", "")) == "fast"
-        if _num(row.get("fallback_used")) or 0.0:
+        is_fallback = bool(_num(row.get("fallback_used")) or 0.0)
+        swept = _num(row.get("swept_vertex_words")) or 0.0
+        if is_fallback:
             agg["tile_fallback_count"] += 1.0
         agg["tile_clipped_ranges"] += _num(row.get("clipped_ranges")) or 0.0
         if is_fast:
@@ -352,7 +360,13 @@ def _tile_features_by_case(path: Path) -> dict[str, dict[str, float]]:
             agg["tile_scattered_words"] += _num(row.get("scattered_vertex_words")) or 0.0
         else:
             agg["tile_full_count"] += 1.0
-            agg["tile_full_swept_words"] += _num(row.get("swept_vertex_words")) or 0.0
+            # A fallback tile sweeps the full vertex range; keep its swept words in
+            # a separate bucket so the (much costlier) fallback sweep can be fit
+            # independently of a normal full-tile sweep.
+            if is_fallback:
+                agg["tile_fallback_swept_words"] += swept
+            else:
+                agg["tile_full_swept_words"] += swept
     for key, agg in by_repeat.items():
         agg["tile_partition_count"] = float(len(partitions.get(key, set())))
 
@@ -514,7 +528,7 @@ def reader_component_model_to_dict(model: ReaderComponentModel) -> dict[str, Any
             "R = fixed + c_edge_stream*traversed_edges "
             "+ c_replay*active_records_x_touched_tiles "
             "+ c_fast*fast_gather_scatter_words + c_full*full_swept_words "
-            "+ c_fallback*fallback_penalty + c_partition*partition_spread"
+            "+ c_fallback_sweep*fallback_swept_words + c_partition*partition_spread"
         ),
         "component_order": READER_COMPONENT_ORDER,
         "whatif_order": READER_WHATIF_ORDER,
@@ -530,7 +544,7 @@ def reader_component_model_to_dict(model: ReaderComponentModel) -> dict[str, Any
         ),
         "not_separately_identifiable": [
             name
-            for name in ("fallback", "partition_spread")
+            for name in ("fallback_sweep", "partition_spread")
             if model.coefficients.get(name, 0.0) == 0.0
         ],
         "calibration": model.calibration,

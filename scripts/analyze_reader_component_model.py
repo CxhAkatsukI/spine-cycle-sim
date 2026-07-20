@@ -37,15 +37,20 @@ from spine_cycle_sim.calibration import (  # noqa: E402
 from spine_cycle_sim.calibration.maintenance import DEFAULT_FREQ_MHZ  # noqa: E402
 
 # Pre-declared calibration / holdout split (fixed before fitting).
+# The phase5a_reader_* dirs are the Phase 5A orthogonal reader microbench run on
+# HW (2x Alveo U55C); like the other evidence dirs they live under results/ and
+# are not committed to git.
 DEFAULT_CALIBRATION_DIRS = [
     "results/dstage_phase3a4_replay_calibration_hw_20260719_155924",
     "results/phase3c_full_partition_calibration_hw_20260719_175201",
     "results/phase3b_bottleneck_synthetic_hw_20260719_172739",
+    "results/phase5a_reader_calibration_hw_20260720_210049",
 ]
 DEFAULT_HOLDOUT_SYNTHETIC_DIRS = [
     "results/phase3c_full_partition_holdout_hw_20260719_175623",
     "results/dstage_phase3a4_replay_holdout_hw_20260719_154734",
     "results/phase3c_final_validation_hw_20260719_175901",
+    "results/phase5a_reader_holdout_hw_20260720_210049",
 ]
 DEFAULT_HOLDOUT_REAL_DIRS = [
     "results/phase4a_amazon_exact_slices_hw_20260719_224034",

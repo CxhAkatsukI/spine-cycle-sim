@@ -44,19 +44,27 @@ R_cycles = fixed
 
 Fitted coefficients (synthetic calibration, relative weighting):
 
+Fitted coefficients (synthetic calibration **incl. the Phase 5A orthogonal
+microbench**, relative weighting):
+
 | component | coefficient | meaning |
 |---|---|---|
-| `fixed` | 18461.8 | reader event/window fixed cost |
-| `edge_stream` | 4.83 /edge | streaming traversed edges from HBM |
-| `active_record_replay` | 1090.7 /(record·tile) | active source records replayed across touched tiles |
-| `fast_gather_scatter` | 0.283 /word | fast-path gather/scatter vertex words |
-| `full_sweep` | 0.866 /word | full-tile swept vertex words |
-| `fallback` | 0.0 | **not separately identifiable** from current evidence |
-| `partition_spread` | 0.0 | **not separately identifiable** from current evidence |
+| `fixed` | ~18.8k | reader event/window fixed cost |
+| `edge_stream` | ~4.2 /edge | streaming traversed edges from HBM |
+| `active_record_replay` | ~1093 /(record·tile) | active source records replayed across touched tiles |
+| `fast_gather_scatter` | ~0 /word | fast-path gather/scatter vertex words (weakly identified) |
+| `full_sweep` | ~1.0 /word | normal full-tile swept vertex words |
+| `fallback_sweep` | 0.0 | fallback full-vertex sweep words — penalty is **real but not yet separable** (see §9) |
+| `partition_spread` | 0.0 | HBM-bank spread — **measured negligible** by the orthogonal sweep (§9) |
 
-`fallback` and `partition_spread` come out zero because the existing evidence
-does not vary them independently of `active_record_replay` / `edge_stream`. The
-Phase 5A microbench (below) adds dedicated sweeps to isolate them.
+The Phase 5A microbench was run on hardware (2× Alveo U55C, cal 14/14 and
+holdout 9/9 fully passed). Its two zero coefficients are now backed by
+measurement rather than by an identifiability gap — see §9 for what the
+orthogonal contrasts revealed (partition spread is genuinely flat; the fallback
+penalty is real at ~4.24 cycles/word but is masked in the full fit by
+`active_record_replay` over-prediction in the striped regime — the newly
+identified next lever is reader **replay non-linearity**, not a missing fallback
+feature).
 
 ### Measurement-window limitation
 
@@ -95,7 +103,7 @@ fitting (not chosen after seeing results):
 
 ## 6. Phase 5A reader microbench matrix
 
-`phase5a_reader_calibration` (13 cases) and `phase5a_reader_holdout` (9 cases)
+`phase5a_reader_calibration` (14 cases) and `phase5a_reader_holdout` (9 cases)
 cover the six required axes, pre-split before any HW run:
 
 | axis | calibration | holdout |
@@ -105,8 +113,22 @@ cover the six required axes, pre-split before any HW run:
 | full_sweep | w8192, w32768 | (mixed) |
 | fast_path | w2048 | (mixed) |
 | fallback | boundary_low, boundary_high | boundary_high (8193) |
-| partition_spread | 1p, 4p, 16p | 2p, 8p |
+| partition_spread | 8 tiles over 1/2/4/8 partitions | 4 tiles over 1 / 4 partitions |
 | mixed fast/full | — | fast+full pair |
+
+**Orthogonality note (partition_spread).** The partition-spread sweep holds the
+tile count / per-tile work / replay **constant** (8 tiles at work 64) and varies
+*only* how many distinct partitions (HBM banks) those tiles land on. This is
+deliberate: a per-partition-fixed sweep (e.g. 1p/4p/16p each at work 64) makes
+`partition_count` collinear with the total edge/replay volume, so NNLS would
+again absorb it into `active_record_replay` and report a zero coefficient — as
+happened with the existing evidence. The `fallback` pair
+(`boundary_low`=4096 → no fallback vs `boundary_high`=4097 → fallback) is the
+analogous matched contrast: everything else is held near-constant so the
+reader_ms difference isolates the fallback penalty. Note that
+`partition_spread` may legitimately turn out ≈0 or beneficial (more banks →
+more parallelism), which the non-negative fit clamps to 0; the matched contrast
+lets us see that directly.
 
 Generate and dry-run (Chuxiao runs the actual HW):
 
@@ -169,10 +191,38 @@ in `e2e_model.json`.
 | holdout_synth | phase3c_full_partition_holdout | 12 | 38.86 | 116.27 | fast_only |
 
 The model is calibrated to explain **reader-dominant** behaviour, so it predicts
-the real exact slices to **7.86% median (11/12 trusted)**. Synthetic cases carry
-higher relative error because there the reader is a tiny, fixed-overhead- and
-timer-noise-dominated fraction of the CONV event window (the measurement-window
-limitation), not because the structural coefficients are wrong.
+the real exact slices to **~7.7–7.9% median (11/12 trusted)** (adding the Phase 5A
+microbench to calibration leaves this essentially unchanged). Synthetic cases
+carry higher relative error because there the reader is a tiny, fixed-overhead-
+and timer-noise-dominated fraction of the CONV event window (the
+measurement-window limitation), not because the structural coefficients are
+wrong.
+
+### 9.1 What the Phase 5A orthogonal microbench measured
+
+The microbench was run on hardware (2× Alveo U55C; cal 14/14, holdout 9/9 fully
+passed). Two designed contrasts:
+
+- **partition_spread — genuinely negligible.** Holding 8 tiles / work / replay
+  constant and varying only the number of partitions (HBM banks): reader_ms was
+  0.558 (1p) / 0.537 (2p) / 0.564 (4p) / 0.522 (8p) ms — flat within ~6% jitter,
+  8p marginally *fastest*. So spreading tiles across banks has no measurable
+  reader cost (and does not clearly help). The zero coefficient is now a
+  measured result, not an identifiability artifact.
+
+- **fallback — a real penalty that the model cannot yet attribute.** Crossing the
+  replay-estimate threshold (`striped 4096` → `4097`) flips 16 tiles into a
+  full-vertex fallback sweep: reader jumps 433.4 → 499.7 ms (**+66.3 ms /
+  8.89M cycles**) for **+2.10M swept words = ~4.24 cycles/word** — about 4× a
+  normal full-tile sweep (~1.0/word). The model gained a dedicated
+  `fallback_sweep` feature (keyed on fallback swept words, replacing the earlier
+  `tile_fallback_count × clipped` proxy), but its coefficient still fits to **0**:
+  in the striped fallback cases the linear `active_record_replay` term alone
+  (replay 65552 × ~1093 ≈ 71.6M cycles) already *exceeds* the whole measured
+  reader (58–67M), leaving no residual for fallback. **The true blocker is reader
+  replay non-linearity** — the linear replay term (fit on dense multi-source
+  cases) over-predicts the sparse/striped regime by ~23%. Fixing that is the
+  prerequisite for isolating the (already-measured, 4.24/word) fallback cost.
 
 ## 10. Bottleneck conclusion
 
@@ -199,9 +249,15 @@ is the most promising reader-side optimization; it is surfaced through
 
 ## 12. Limitations
 
-- **`fallback` and `partition_spread` are not yet separately identifiable** from
-  the current evidence (coefficients 0). The Phase 5A microbench sweeps target
-  exactly these axes.
+- **`partition_spread` is measured negligible** (flat across 1/2/4/8 partitions),
+  so its zero coefficient is now justified, not an artifact.
+- **`fallback_sweep` coefficient is still 0** — not for lack of a feature, but
+  because `active_record_replay` over-predicts the striped fallback baseline and
+  absorbs the budget. The fallback penalty itself is measured (~4.24 cycles/word);
+  isolating it in the model requires fixing replay non-linearity first.
+- **Reader replay is modeled linearly** (`~1093 /(record·tile)`), which
+  over-predicts the sparse/striped regime by ~23%. This is the top open modeling
+  gap surfaced by Phase 5A.
 - **Measurement window:** `reader_ms` is a CONV CU event duration, not pure
   reader cycles; tiny/synthetic cases are noise-dominated and flagged, not
   trusted.
@@ -213,11 +269,12 @@ is the most promising reader-side optimization; it is surfaced through
 
 ## 13. Follow-up
 
-1. **Run the Phase 5A microbench** (`phase5a_reader_calibration/holdout`) to
-   isolate `fallback` and `partition_spread` and re-fit.
-2. **Path-segmented reader model** (fast_only / full_only / mixed / fallback) if
-   the microbench shows path-dependent per-word costs.
-3. **Reader-only hardware counter** (vs. the CONV event window) would remove the
+1. **Reader replay non-linearity (top lever).** Model `active_record_replay`
+   per-regime (sparse/striped vs dense) or with a saturation term, so the
+   striped/high-replay cases stop over-predicting. This is the prerequisite that
+   would let `fallback_sweep` pick up its already-measured ~4.24 cycles/word.
+2. **Reader-only hardware counter** (vs. the CONV event window) would remove the
    measurement-window noise and let the synthetic cases validate directly.
-4. Fold the improved reader v2 coefficients back into the E2E downstream report
-   once the microbench lands.
+3. **Path-segmented reader model** (fast_only / full_only / mixed / fallback) if,
+   after (1), per-word costs still look path-dependent.
+4. Fold the improved coefficients back into the E2E downstream report.

@@ -1722,8 +1722,23 @@ def phase3c_final_validation_matrix() -> list[DStageCase]:
     ]
 
 
-def _partition_spread_args(partitions: int, per_partition_work: int) -> tuple[str, ...]:
-    specs = [f"{p}:{per_partition_work}" for p in range(partitions)]
+def _tiles_on_partitions(
+    total_tiles: int, partitions: int, per_tile_work: int = 64
+) -> tuple[str, ...]:
+    """Place ``total_tiles`` fast tiles across ``partitions`` partitions.
+
+    Holds tile count / per-tile work / replay constant while varying only how
+    many distinct partitions (HBM banks) the tiles land on.  This is the
+    orthogonal contrast that isolates ``partition_spread`` from ``edge_stream``
+    and ``active_record_replay`` -- unlike a per-partition-fixed sweep, where the
+    partition count is collinear with the total edge/replay volume.
+    """
+
+    specs: list[str] = []
+    for p in range(partitions):
+        count = total_tiles // partitions + (1 if p < total_tiles % partitions else 0)
+        if count:
+            specs.append(f"{p}:" + ",".join([str(per_tile_work)] * count))
     return ("--partition-tile-work", *specs, "--print-tile-schedule")
 
 
@@ -1818,24 +1833,32 @@ def phase5a_reader_calibration_matrix() -> list[DStageCase]:
             ),
             "Fallback axis: replay proxy just above threshold, forces fallback.",
         ),
-        # 6. partition_spread: 1 / 4 / 16 partitions at fixed per-partition work.
+        # 6. partition_spread: SAME 8 tiles, spread over 1/2/4/8 partitions.
+        #    Tile count / work / replay are held constant, so only the
+        #    partition (HBM-bank) spread varies -- the coefficient is isolated.
         DStageCase(
-            "r5a_cal_partition_spread_1p",
+            "r5a_cal_partition_8t_1p",
             "reader_partition_spread",
-            _partition_spread_args(1, 64),
-            "Partition-spread axis: one active partition.",
+            _tiles_on_partitions(8, 1),
+            "Partition-spread axis: 8 tiles concentrated on 1 partition (baseline).",
         ),
         DStageCase(
-            "r5a_cal_partition_spread_4p",
+            "r5a_cal_partition_8t_2p",
             "reader_partition_spread",
-            _partition_spread_args(4, 64),
-            "Partition-spread axis: four active partitions.",
+            _tiles_on_partitions(8, 2),
+            "Partition-spread axis: same 8 tiles spread over 2 partitions.",
         ),
         DStageCase(
-            "r5a_cal_partition_spread_16p",
+            "r5a_cal_partition_8t_4p",
             "reader_partition_spread",
-            _partition_spread_args(16, 64),
-            "Partition-spread axis: sixteen active partitions.",
+            _tiles_on_partitions(8, 4),
+            "Partition-spread axis: same 8 tiles spread over 4 partitions.",
+        ),
+        DStageCase(
+            "r5a_cal_partition_8t_8p",
+            "reader_partition_spread",
+            _tiles_on_partitions(8, 8),
+            "Partition-spread axis: same 8 tiles spread over 8 partitions.",
         ),
     ]
 
@@ -1900,16 +1923,16 @@ def phase5a_reader_holdout_matrix() -> list[DStageCase]:
             "Unseen higher fallback proxy above the threshold.",
         ),
         DStageCase(
-            "r5a_hold_partition_spread_2p",
+            "r5a_hold_partition_4t_1p",
             "reader_partition_spread",
-            _partition_spread_args(2, 64),
-            "Unseen partition-spread interpolation: two partitions.",
+            _tiles_on_partitions(4, 1),
+            "Unseen partition-spread: 4 tiles concentrated on 1 partition.",
         ),
         DStageCase(
-            "r5a_hold_partition_spread_8p",
+            "r5a_hold_partition_4t_4p",
             "reader_partition_spread",
-            _partition_spread_args(8, 64),
-            "Unseen partition-spread interpolation: eight partitions.",
+            _tiles_on_partitions(4, 4),
+            "Unseen partition-spread: same 4 tiles spread over 4 partitions.",
         ),
     ]
 
