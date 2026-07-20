@@ -1153,9 +1153,17 @@ class HostDrain(Component):
 class SpineV0Simulator:
     """Build and run the current Spine component graph."""
 
-    def __init__(self, workload: Workload, config: SpineConfig) -> None:
+    def __init__(
+        self, workload: Workload, config: SpineConfig, e2e_models: Any = None
+    ) -> None:
         self.workload = workload
         self.config = config
+        # Optional E2E bridge models (a spine_cycle_sim.calibration.bridge
+        # BridgeModels bundle). When provided, ``_result`` attaches an ``"e2e"``
+        # section (per-stage B/D_span/R + serial kernel + bottleneck) from the
+        # HW-calibrated component models. Default None -> result unchanged,
+        # preserving the prior "run() default behavior" contract.
+        self.e2e_models = e2e_models
         self.stats = Stats()
         self.classification = classify_hot_cold(workload.edges, config)
         self.family_counts = self._family_counts(workload.edges)
@@ -1400,4 +1408,20 @@ class SpineV0Simulator:
             "capacity_failure": failure,
             "stats": self.stats.to_dict(include_trace=include_trace),
         }
+        if self.e2e_models is not None:
+            result["e2e"] = self._e2e_prediction(result)
         return result
+
+    def _e2e_prediction(self, result: dict[str, Any]) -> dict[str, Any]:
+        """Attach a per-stage E2E prediction via the calibration bridge.
+
+        Imported lazily so the default simulator import stays free of the
+        calibration/scripts layer; only runs when ``e2e_models`` is supplied.
+        """
+
+        from spine_cycle_sim.calibration.bridge import predict_e2e_from_results
+
+        case = str(result.get("case", self.workload.name))
+        sweep = str(self.workload.metadata.get("shape", "sim"))
+        preds = predict_e2e_from_results(self.e2e_models, [(case, sweep, result)])
+        return preds[0] if preds else {}

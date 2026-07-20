@@ -37,6 +37,13 @@ from .e2e import (
     fit_reader_model,
     reader_model_to_dict,
 )
+from .bridge import (
+    BridgeModels,
+    predict_e2e,
+    predict_e2e_from_results,
+    sim_result_to_evidence,
+    write_sim_evidence_dir,
+)
 from .reader import (
     READER_COMPONENT_ORDER,
     READER_WHATIF_ORDER,
@@ -69,6 +76,11 @@ from .maintenance import (
 )
 
 __all__ = [
+    "BridgeModels",
+    "predict_e2e",
+    "predict_e2e_from_results",
+    "sim_result_to_evidence",
+    "write_sim_evidence_dir",
     "READER_COMPONENT_ORDER",
     "READER_WHATIF_ORDER",
     "ReaderComponentModel",
