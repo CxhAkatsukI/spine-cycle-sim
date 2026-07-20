@@ -46,17 +46,25 @@ from scripts.analyze_dstage_component_model import (  # noqa: E402
     read_json,
 )
 from scripts.analyze_hw_dstage_tile_timing import load_dataset, numeric  # noqa: E402
+from scripts.analyze_reader_component_model import (  # noqa: E402
+    DEFAULT_CALIBRATION_DIRS as READER_V2_CALIBRATION_DIRS,
+)
 from spine_cycle_sim.calibration import (  # noqa: E402
     E2E_GROUP_SUMMARY_FIELD_ORDER,
     E2EInputs,
+    READER_COMPONENT_ORDER,
+    READER_WHATIF_ORDER,
     build_e2e_prediction,
     component_summary_row,
     compute_overhead_model,
     e2e_group_summary,
     e2e_prediction_field_order,
     fit_component_model,
+    fit_reader_component_model,
     fit_reader_model,
     load_default_evidence,
+    load_reader_rows,
+    reader_component_model_to_dict,
     reader_model_to_dict,
     write_json,
     write_rows_csv,
@@ -83,6 +91,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--base-model-fit", type=Path, default=DEFAULT_BASE_MODEL_FIT)
     parser.add_argument("--freq-mhz", type=float, default=DEFAULT_FREQ_MHZ)
     parser.add_argument("--trusted-threshold-pct", type=float, default=15.0)
+    parser.add_argument(
+        "--reader-model",
+        choices=["v2", "v1"],
+        default="v2",
+        help=(
+            "Reader sub-model for R_pred and the downstream report. v2 is the "
+            "Phase 5A structured non-negative component model; v1 is the E2E free-OLS "
+            "reader model. R is diagnostic and never enters the serial total either way."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -166,10 +184,26 @@ def main() -> int:
     # --- Reader (R) model ----------------------------------------------------
     exact_rows = load_dataset(args.exact_dir)
     reallike_rows = load_dataset(args.reallike_dir)
-    reader_calibration = reallike_rows + [
+    reader_v1_calibration = reallike_rows + [
         row for row in exact_rows if str(row["case"]) in DEFAULT_EXACT_CALIBRATION_CASES
     ]
-    reader_model = fit_reader_model(reader_calibration, freq_mhz=freq)
+    reader_v2_model = None
+    reader_v2_calibration: list[dict[str, Any]] = []
+    if args.reader_model == "v2":
+        for raw in READER_V2_CALIBRATION_DIRS:
+            path = Path(raw)
+            if not path.is_absolute():
+                path = args.evidence_root / path
+            reader_v2_calibration.extend(load_reader_rows(path))
+        reader_v2_model = fit_reader_component_model(reader_v2_calibration, freq_mhz=freq)
+        reader_predict = reader_v2_model.predicted_cycles
+        reader_meta = reader_component_model_to_dict(reader_v2_model)
+        reader_calibration = reader_v2_calibration
+    else:
+        reader_v1_model = fit_reader_model(reader_v1_calibration, freq_mhz=freq)
+        reader_predict = reader_v1_model.predict
+        reader_meta = reader_model_to_dict(reader_v1_model)
+        reader_calibration = reader_v1_calibration
 
     # --- Overhead model ------------------------------------------------------
     overhead_rows = [
@@ -205,7 +239,7 @@ def main() -> int:
             D_span_actual=_ms(row, "median_conv_span_ms", freq),
             kernel_e2e_actual=_ms(row, "median_kernel_e2e_ms", freq),
             B_pred=float(b_info["pred"]),
-            R_pred=reader_model.predict(row),
+            R_pred=reader_predict(row),
             D_span_pred=d_pred["d_span"],
             overhead_model=overhead_model,
             b_whatif_speedups=b_info["whatifs"],
@@ -220,9 +254,12 @@ def main() -> int:
 
     # --- Component validation rows -------------------------------------------
     component_rows = _component_validation_rows(
-        b_records, b_model, dspan_predict, reader_model, reader_calibration, freq
+        b_records, b_model, dspan_predict, reader_predict, reader_calibration, freq
     )
     summaries = e2e_group_summary(predictions, extra_component_rows=component_rows)
+
+    # --- Reader downstream report (v2 structured breakdown per E2E case) ------
+    reader_downstream = _reader_downstream_report(reader_v2_model, exact_enriched, b_by_case)
 
     # --- Write ---------------------------------------------------------------
     model_json = {
@@ -233,8 +270,10 @@ def main() -> int:
             "kernel_e2e ~= maint + conv_span with ~0 residual across evidence"
         ),
         "ledger": "serial_pred = B_pred + D_span_pred + overhead_model",
+        "reader_in_serial_total": False,
         "overhead_model_cycles": overhead_model,
-        "reader_model": reader_model_to_dict(reader_model),
+        "reader_model_version": args.reader_model,
+        "reader_model": reader_meta,
         "dspan_model": {
             "backend": d_backend,
             "base_model_fit": str(args.base_model_fit),
@@ -270,14 +309,22 @@ def main() -> int:
     write_rows_csv(
         args.out_dir / "e2e_group_summary.csv", summaries, E2E_GROUP_SUMMARY_FIELD_ORDER
     )
+    if reader_downstream:
+        write_rows_csv(
+            args.out_dir / "e2e_reader_downstream.csv",
+            reader_downstream,
+            ["case", "reader_pred_cycles", "top_component", "top_component_share"],
+        )
 
     print(
         f"e2e_cases={len(predictions)} overhead_model_cycles={overhead_model:.1f} "
-        f"reader_features={len(reader_model.features)}"
+        f"reader_model={args.reader_model}"
     )
     print(f"wrote {args.out_dir / 'e2e_model.json'}")
     print(f"wrote {args.out_dir / 'e2e_predictions.csv'}")
     print(f"wrote {args.out_dir / 'e2e_group_summary.csv'}")
+    if reader_downstream:
+        print(f"wrote {args.out_dir / 'e2e_reader_downstream.csv'}")
     print()
     print("group_summary:")
     header = E2E_GROUP_SUMMARY_FIELD_ORDER
@@ -291,7 +338,7 @@ def _component_validation_rows(
     b_records,
     b_model,
     dspan_predict,
-    reader_model,
+    reader_predict,
     reader_calibration,
     freq: float,
 ) -> list[dict[str, Any]]:
@@ -327,11 +374,45 @@ def _component_validation_rows(
         if actual is None or actual <= 0.0:
             continue
         actual_cycles = actual * freq * 1000.0
-        pred = reader_model.predict(row)
+        pred = reader_predict(row)
         r_errors.append(abs(pred - actual_cycles) / actual_cycles * 100.0)
     if r_errors:
         rows.append(component_summary_row("R", "reader_calibration", "calibration", r_errors))
     return rows
+
+
+def _reader_downstream_report(reader_v2_model, exact_enriched, b_by_case):
+    """Per-E2E-case reader component breakdown + reader what-ifs (v2 only).
+
+    R is diagnostic, so this report explains the reader bottleneck inside the D
+    span; it does not feed the serial total.
+    """
+
+    if reader_v2_model is None:
+        return []
+    report: list[dict[str, Any]] = []
+    for row in exact_enriched:
+        case = str(row["case"])
+        if case not in b_by_case:
+            continue
+        components = reader_v2_model.components(row)
+        total = sum(components.values()) or 1.0
+        top = max(components, key=lambda name: components[name])
+        whatifs = reader_v2_model.whatifs(row)
+        entry: dict[str, Any] = {
+            "case": case,
+            "reader_pred_cycles": total,
+            "top_component": top,
+            "top_component_share": components[top] / total,
+        }
+        for name in READER_COMPONENT_ORDER:
+            entry[f"comp_{name}_cycles"] = components[name]
+            entry[f"comp_{name}_share"] = components[name] / total
+        for name in READER_WHATIF_ORDER:
+            entry[f"whatif_{name}_speedup"] = whatifs[name]["speedup"]
+        report.append(entry)
+    report.sort(key=lambda entry: entry["reader_pred_cycles"])
+    return report
 
 
 def _ms(row: dict[str, Any], key: str, freq: float) -> float:

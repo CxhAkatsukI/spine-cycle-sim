@@ -37,6 +37,19 @@ from .e2e import (
     fit_reader_model,
     reader_model_to_dict,
 )
+from .reader import (
+    READER_COMPONENT_ORDER,
+    READER_WHATIF_ORDER,
+    ReaderComponentModel,
+    fit_reader_component_model,
+    load_reader_rows,
+    reader_feature_values,
+    reader_group_summary,
+    reader_group_summary_field_order,
+    reader_component_model_to_dict,
+    reader_prediction_field_order,
+    reader_prediction_row,
+)
 from .maintenance import (
     DEFAULT_FEATURES,
     ExperimentSpec,
@@ -56,6 +69,17 @@ from .maintenance import (
 )
 
 __all__ = [
+    "READER_COMPONENT_ORDER",
+    "READER_WHATIF_ORDER",
+    "ReaderComponentModel",
+    "fit_reader_component_model",
+    "load_reader_rows",
+    "reader_feature_values",
+    "reader_group_summary",
+    "reader_group_summary_field_order",
+    "reader_component_model_to_dict",
+    "reader_prediction_field_order",
+    "reader_prediction_row",
     "DEFAULT_READER_FEATURES",
     "E2E_GROUP_SUMMARY_FIELD_ORDER",
     "E2E_PREDICTION_FIELD_ORDER",

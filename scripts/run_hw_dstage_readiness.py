@@ -1722,6 +1722,198 @@ def phase3c_final_validation_matrix() -> list[DStageCase]:
     ]
 
 
+def _partition_spread_args(partitions: int, per_partition_work: int) -> tuple[str, ...]:
+    specs = [f"{p}:{per_partition_work}" for p in range(partitions)]
+    return ("--partition-tile-work", *specs, "--print-tile-schedule")
+
+
+def phase5a_reader_calibration_matrix() -> list[DStageCase]:
+    """Reader microbench calibration matrix (Phase 5A).
+
+    Pre-declared calibration set covering the six reader-model axes:
+    edge_stream, replay, full_sweep, fast_path, fallback, partition_spread.
+    Reuses the existing D-stage readiness host workload vocabulary so the same
+    harness / xclbin that produced the earlier D-stage evidence can run it.
+    """
+
+    return [
+        # 1. edge_stream: vary traversed_edges on a single one-partition star.
+        DStageCase(
+            "r5a_cal_edge_stream_e512",
+            "reader_edge_stream",
+            ("--star-onepart", "512", "--print-tile-schedule"),
+            "Edge-stream axis: 512 traversed edges, one partition.",
+        ),
+        DStageCase(
+            "r5a_cal_edge_stream_e4096",
+            "reader_edge_stream",
+            ("--star-onepart", "4096", "--print-tile-schedule"),
+            "Edge-stream axis: 4096 traversed edges, one partition.",
+        ),
+        DStageCase(
+            "r5a_cal_edge_stream_e32768",
+            "reader_edge_stream",
+            ("--star-onepart", "32768", "--print-tile-schedule"),
+            "Edge-stream axis: 32768 traversed edges, one partition.",
+        ),
+        # 2. replay: vary active_records x touched_tiles at low per-tile work.
+        DStageCase(
+            "r5a_cal_replay_s16_t1",
+            "reader_replay",
+            ("--multi-source-tile-work", "16", "0:1", "--print-tile-schedule"),
+            "Replay axis: 16 active records over one tile.",
+        ),
+        DStageCase(
+            "r5a_cal_replay_s64_t4",
+            "reader_replay",
+            ("--multi-source-tile-work", "64", "0:1,1,1,1", "--print-tile-schedule"),
+            "Replay axis: 64 active records over four touched tiles.",
+        ),
+        # 3. full_sweep: single full tile with growing swept words.
+        DStageCase(
+            "r5a_cal_full_sweep_w8192",
+            "reader_full_sweep",
+            ("--multi-source-tile-work", "1", "0:8192", "--print-tile-schedule"),
+            "Full-sweep axis: one full tile, 8192 swept words.",
+        ),
+        DStageCase(
+            "r5a_cal_full_sweep_w32768",
+            "reader_full_sweep",
+            ("--multi-source-tile-work", "1", "0:32768", "--print-tile-schedule"),
+            "Full-sweep axis: one large full tile, 32768 swept words.",
+        ),
+        # 4. fast_path: fast tile with gather/scatter words.
+        DStageCase(
+            "r5a_cal_fast_path_w2048",
+            "reader_fast_path",
+            ("--multi-source-tile-work", "1", "0:2048", "--print-tile-schedule"),
+            "Fast-path axis: one fast tile, 2048 gather/scatter words.",
+        ),
+        # 5. fallback: replay estimate below vs at the fallback boundary.
+        DStageCase(
+            "r5a_cal_fallback_boundary_low",
+            "reader_fallback",
+            (
+                "--striped-source-tile-work",
+                "4096",
+                "0",
+                "16",
+                "1",
+                "--full-vertices",
+                "--print-tile-schedule",
+            ),
+            "Fallback axis: replay proxy 65536, just below the fallback threshold.",
+        ),
+        DStageCase(
+            "r5a_cal_fallback_boundary_high",
+            "reader_fallback",
+            (
+                "--striped-source-tile-work",
+                "4097",
+                "0",
+                "16",
+                "1",
+                "--full-vertices",
+                "--print-tile-schedule",
+            ),
+            "Fallback axis: replay proxy just above threshold, forces fallback.",
+        ),
+        # 6. partition_spread: 1 / 4 / 16 partitions at fixed per-partition work.
+        DStageCase(
+            "r5a_cal_partition_spread_1p",
+            "reader_partition_spread",
+            _partition_spread_args(1, 64),
+            "Partition-spread axis: one active partition.",
+        ),
+        DStageCase(
+            "r5a_cal_partition_spread_4p",
+            "reader_partition_spread",
+            _partition_spread_args(4, 64),
+            "Partition-spread axis: four active partitions.",
+        ),
+        DStageCase(
+            "r5a_cal_partition_spread_16p",
+            "reader_partition_spread",
+            _partition_spread_args(16, 64),
+            "Partition-spread axis: sixteen active partitions.",
+        ),
+    ]
+
+
+def phase5a_reader_holdout_matrix() -> list[DStageCase]:
+    """Reader microbench holdout matrix (Phase 5A), pre-declared before fitting."""
+
+    return [
+        DStageCase(
+            "r5a_hold_edge_stream_e1024",
+            "reader_edge_stream",
+            ("--star-onepart", "1024", "--print-tile-schedule"),
+            "Unseen edge-stream interpolation: 1024 traversed edges.",
+        ),
+        DStageCase(
+            "r5a_hold_edge_stream_e8192",
+            "reader_edge_stream",
+            ("--star-onepart", "8192", "--print-tile-schedule"),
+            "Unseen edge-stream interpolation: 8192 traversed edges.",
+        ),
+        DStageCase(
+            "r5a_hold_edge_stream_e65536",
+            "reader_edge_stream",
+            ("--star-onepart", "65536", "--print-tile-schedule"),
+            "Unseen edge-stream extrapolation: 65536 traversed edges.",
+        ),
+        DStageCase(
+            "r5a_hold_replay_s32_t2",
+            "reader_replay",
+            ("--multi-source-tile-work", "32", "0:1,1", "--print-tile-schedule"),
+            "Unseen replay interpolation: 32 records over two tiles.",
+        ),
+        DStageCase(
+            "r5a_hold_replay_s128_t8",
+            "reader_replay",
+            (
+                "--multi-source-tile-work",
+                "128",
+                "0:1,1,1,1,1,1,1,1",
+                "--print-tile-schedule",
+            ),
+            "Unseen replay extrapolation: 128 records over eight tiles.",
+        ),
+        DStageCase(
+            "r5a_hold_mixed_fast_full",
+            "reader_mixed",
+            ("--multi-source-tile-work", "1", "0:2048,8192", "--print-tile-schedule"),
+            "Unseen mixed fast/full tile pair.",
+        ),
+        DStageCase(
+            "r5a_hold_fallback_boundary_high",
+            "reader_fallback",
+            (
+                "--striped-source-tile-work",
+                "8193",
+                "0",
+                "16",
+                "1",
+                "--full-vertices",
+                "--print-tile-schedule",
+            ),
+            "Unseen higher fallback proxy above the threshold.",
+        ),
+        DStageCase(
+            "r5a_hold_partition_spread_2p",
+            "reader_partition_spread",
+            _partition_spread_args(2, 64),
+            "Unseen partition-spread interpolation: two partitions.",
+        ),
+        DStageCase(
+            "r5a_hold_partition_spread_8p",
+            "reader_partition_spread",
+            _partition_spread_args(8, 64),
+            "Unseen partition-spread interpolation: eight partitions.",
+        ),
+    ]
+
+
 def matrix_by_name(name: str) -> list[DStageCase]:
     if name == "phase3a0_readiness":
         return default_matrix()
@@ -1755,6 +1947,10 @@ def matrix_by_name(name: str) -> list[DStageCase]:
         return phase3c_full_partition_holdout_matrix()
     if name == "phase3c_final_validation":
         return phase3c_final_validation_matrix()
+    if name == "phase5a_reader_calibration":
+        return phase5a_reader_calibration_matrix()
+    if name == "phase5a_reader_holdout":
+        return phase5a_reader_holdout_matrix()
     raise ValueError(f"unknown D-stage matrix: {name}")
 
 
@@ -2044,6 +2240,8 @@ def parse_args() -> argparse.Namespace:
             "phase3c_full_partition_calibration",
             "phase3c_full_partition_holdout",
             "phase3c_final_validation",
+            "phase5a_reader_calibration",
+            "phase5a_reader_holdout",
         ],
         default="phase3a0_readiness",
         help="Select the built-in D-stage experiment matrix.",
