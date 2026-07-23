@@ -66,6 +66,10 @@ Run tests:
 ```bash
 cd /home/chuxiao/spine-cycle-sim
 python3 -m unittest discover -s tests
+
+cmake -S . -B build/cycle-core -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
+cmake --build build/cycle-core
+ctest --test-dir build/cycle-core --output-on-failure
 ```
 
 ## Current Scope

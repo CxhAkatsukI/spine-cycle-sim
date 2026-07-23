@@ -1,0 +1,325 @@
+#include <cstdint>
+#include <exception>
+#include <functional>
+#include <iostream>
+#include <stdexcept>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "spine_sim/banked_memory.hpp"
+#include "spine_sim/component.hpp"
+#include "spine_sim/fifo.hpp"
+#include "spine_sim/scheduler.hpp"
+
+namespace {
+
+using spine::sim::BankedMemory;
+using spine::sim::BankedMemoryConfig;
+using spine::sim::ClockId;
+using spine::sim::Component;
+using spine::sim::CycleContext;
+using spine::sim::Fifo;
+using spine::sim::OnChipOperation;
+using spine::sim::OnChipRequest;
+using spine::sim::OnChipResponse;
+using spine::sim::ReadAfterWritePolicy;
+using spine::sim::Scheduler;
+
+void require(bool condition, const std::string& message) {
+  if (!condition) {
+    throw std::runtime_error(message);
+  }
+}
+
+class EdgeCounter final : public Component {
+ public:
+  EdgeCounter(std::string name, ClockId clock) : Component(std::move(name), clock) {}
+  void evaluate(const CycleContext&) override { ++evaluations; }
+  void commit(const CycleContext&) override { ++commits; }
+  std::uint64_t evaluations{};
+  std::uint64_t commits{};
+};
+
+template <typename T>
+class SequenceProducer final : public Component {
+ public:
+  SequenceProducer(std::string name, ClockId clock, Fifo<T>& output,
+                   std::vector<T> values)
+      : Component(std::move(name), clock),
+        output_(output),
+        values_(std::move(values)) {}
+
+  void evaluate(const CycleContext&) override {
+    accepted_ = index_ < values_.size() && output_.try_push(values_[index_]);
+  }
+  void commit(const CycleContext&) override {
+    if (accepted_) {
+      ++index_;
+      accepted_ = false;
+    }
+  }
+  [[nodiscard]] bool done() const noexcept { return index_ == values_.size(); }
+
+ private:
+  Fifo<T>& output_;
+  std::vector<T> values_;
+  std::size_t index_{};
+  bool accepted_{};
+};
+
+template <typename T>
+class SequenceConsumer final : public Component {
+ public:
+  SequenceConsumer(std::string name, ClockId clock, Fifo<T>& input,
+                   std::uint64_t start_cycle = 0)
+      : Component(std::move(name), clock), input_(input), start_cycle_(start_cycle) {}
+
+  void evaluate(const CycleContext& context) override {
+    accepted_ = false;
+    if (context.domain_cycle >= start_cycle_) {
+      accepted_ = input_.try_pop(staged_);
+    }
+  }
+  void commit(const CycleContext&) override {
+    if (accepted_) {
+      values.push_back(staged_);
+      accepted_ = false;
+    }
+  }
+  std::vector<T> values;
+
+ private:
+  Fifo<T>& input_;
+  std::uint64_t start_cycle_{};
+  T staged_{};
+  bool accepted_{};
+};
+
+void test_multiclock_scheduler() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("core", 100.0);
+  const auto hbm = scheduler.add_clock_mhz("hbm", 250.0);
+  EdgeCounter core_counter("core-counter", core);
+  EdgeCounter hbm_counter("hbm-counter", hbm);
+  scheduler.add_component(core_counter);
+  scheduler.add_component(hbm_counter);
+
+  scheduler.run_events(6);
+
+  require(core_counter.evaluations == 2, "100 MHz edge count mismatch");
+  require(hbm_counter.evaluations == 5, "250 MHz edge count mismatch");
+  require(core_counter.evaluations == core_counter.commits,
+          "evaluate/commit count mismatch");
+  require(scheduler.now_fs() == 16'000'000, "unexpected absolute timestamp");
+}
+
+void test_fifo_has_no_same_cycle_fallthrough() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("core", 100.0);
+  Fifo<int> fifo("fifo", core, 1);
+  SequenceProducer<int> producer("producer", core, fifo, {7});
+  SequenceConsumer<int> consumer("consumer", core, fifo);
+  scheduler.add_component(consumer);
+  scheduler.add_component(fifo);
+  scheduler.add_component(producer);
+
+  scheduler.step();
+  require(consumer.values.empty(), "FIFO allowed same-cycle fall-through");
+  require(fifo.size() == 1, "producer value was not committed");
+  scheduler.step();
+  require(consumer.values == std::vector<int>{7}, "consumer missed committed value");
+  require(fifo.stats().pushes == 1 && fifo.stats().pops == 1,
+          "FIFO activity counters mismatch");
+}
+
+std::vector<int> run_fifo_order_case(bool producer_first) {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("core", 100.0);
+  Fifo<int> fifo("fifo", core, 2);
+  SequenceProducer<int> producer("producer", core, fifo, {3, 5, 8});
+  SequenceConsumer<int> consumer("consumer", core, fifo);
+  if (producer_first) {
+    scheduler.add_component(producer);
+    scheduler.add_component(fifo);
+    scheduler.add_component(consumer);
+  } else {
+    scheduler.add_component(consumer);
+    scheduler.add_component(fifo);
+    scheduler.add_component(producer);
+  }
+  scheduler.run_until([&consumer] { return consumer.values.size() == 3; }, 12);
+  return consumer.values;
+}
+
+void test_fifo_is_registration_order_independent() {
+  const auto forward = run_fifo_order_case(true);
+  const auto reverse = run_fifo_order_case(false);
+  require(forward == std::vector<int>({3, 5, 8}), "forward order lost data");
+  require(reverse == forward, "component registration order changed FIFO behavior");
+}
+
+void test_fifo_backpressure_is_counted() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("core", 100.0);
+  Fifo<int> fifo("fifo", core, 1);
+  SequenceProducer<int> producer("producer", core, fifo, {1, 2});
+  SequenceConsumer<int> consumer("consumer", core, fifo, 3);
+  scheduler.add_component(producer);
+  scheduler.add_component(consumer);
+  scheduler.add_component(fifo);
+
+  scheduler.run_until([&consumer] { return consumer.values.size() == 2; }, 10);
+  require(consumer.values == std::vector<int>({1, 2}), "FIFO reordered values");
+  require(fifo.stats().push_stalls >= 2, "full FIFO stalls were not counted");
+  require(fifo.stats().max_occupancy == 1, "FIFO max occupancy mismatch");
+}
+
+BankedMemoryConfig memory_config(ReadAfterWritePolicy policy =
+                                     ReadAfterWritePolicy::kStall) {
+  return BankedMemoryConfig{
+      .banks = 1,
+      .capacity_words = 1024,
+      .read_ports_per_bank = 1,
+      .write_ports_per_bank = 1,
+      .latency_cycles = 2,
+      .max_outstanding_per_port = 4,
+      .raw_policy = policy,
+  };
+}
+
+void register_port(Scheduler& scheduler, Component& producer,
+                   Fifo<OnChipRequest>& requests,
+                   Fifo<OnChipResponse>& responses, Component& consumer) {
+  scheduler.add_component(producer);
+  scheduler.add_component(requests);
+  scheduler.add_component(responses);
+  scheduler.add_component(consumer);
+}
+
+void test_banked_memory_conflict_and_round_robin() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("core", 100.0);
+  BankedMemory memory("bram", core, memory_config());
+  memory.initialize_word(2, 22);
+  memory.initialize_word(4, 44);
+
+  Fifo<OnChipRequest> req0("req0", core, 2);
+  Fifo<OnChipResponse> rsp0("rsp0", core, 2);
+  Fifo<OnChipRequest> req1("req1", core, 2);
+  Fifo<OnChipResponse> rsp1("rsp1", core, 2);
+  memory.attach_port(req0, rsp0);
+  memory.attach_port(req1, rsp1);
+
+  SequenceProducer<OnChipRequest> producer0(
+      "producer0", core, req0,
+      {{.transaction_id = 10, .operation = OnChipOperation::kRead, .word_address = 2}});
+  SequenceProducer<OnChipRequest> producer1(
+      "producer1", core, req1,
+      {{.transaction_id = 11, .operation = OnChipOperation::kRead, .word_address = 4}});
+  SequenceConsumer<OnChipResponse> consumer0("consumer0", core, rsp0);
+  SequenceConsumer<OnChipResponse> consumer1("consumer1", core, rsp1);
+
+  register_port(scheduler, producer0, req0, rsp0, consumer0);
+  register_port(scheduler, producer1, req1, rsp1, consumer1);
+  scheduler.add_component(memory);
+  scheduler.run_until(
+      [&] { return consumer0.values.size() == 1 && consumer1.values.size() == 1; },
+      16);
+
+  require(consumer0.values[0].read_data == 22, "port 0 read data mismatch");
+  require(consumer1.values[0].read_data == 44, "port 1 read data mismatch");
+  require(memory.stats().accepted_reads == 2, "read acceptance mismatch");
+  require(memory.stats().read_bank_conflict_stalls >= 1,
+          "same-bank conflict was not counted");
+  require(memory.stats().max_outstanding >= 2,
+          "outstanding request depth was not observed");
+}
+
+void test_banked_memory_stalls_read_after_write() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("core", 100.0);
+  BankedMemory memory("bram", core, memory_config());
+  memory.initialize_word(8, 1);
+
+  Fifo<OnChipRequest> write_req("write-req", core, 2);
+  Fifo<OnChipResponse> write_rsp("write-rsp", core, 2);
+  Fifo<OnChipRequest> read_req("read-req", core, 2);
+  Fifo<OnChipResponse> read_rsp("read-rsp", core, 2);
+  memory.attach_port(write_req, write_rsp);
+  memory.attach_port(read_req, read_rsp);
+
+  SequenceProducer<OnChipRequest> writer(
+      "writer", core, write_req,
+      {{.transaction_id = 20,
+        .operation = OnChipOperation::kWrite,
+        .word_address = 8,
+        .write_data = 99}});
+  SequenceProducer<OnChipRequest> reader(
+      "reader", core, read_req,
+      {{.transaction_id = 21, .operation = OnChipOperation::kRead, .word_address = 8}});
+  SequenceConsumer<OnChipResponse> write_sink("write-sink", core, write_rsp);
+  SequenceConsumer<OnChipResponse> read_sink("read-sink", core, read_rsp);
+
+  register_port(scheduler, writer, write_req, write_rsp, write_sink);
+  register_port(scheduler, reader, read_req, read_rsp, read_sink);
+  scheduler.add_component(memory);
+  scheduler.run_until(
+      [&] { return write_sink.values.size() == 1 && read_sink.values.size() == 1; },
+      20);
+
+  require(read_sink.values[0].read_data == 99, "RAW-protected read saw stale data");
+  require(memory.inspect_word(8) == 99, "write did not update memory");
+  require(memory.stats().raw_hazard_stalls >= 2, "RAW stalls were not counted");
+}
+
+void test_invalid_clock_and_capacity_are_rejected() {
+  Scheduler scheduler;
+  bool clock_failed = false;
+  try {
+    static_cast<void>(scheduler.add_clock_mhz("bad", 0.0));
+  } catch (const std::invalid_argument&) {
+    clock_failed = true;
+  }
+  require(clock_failed, "zero-frequency clock was accepted");
+
+  const auto core = scheduler.add_clock_mhz("core", 100.0);
+  BankedMemory memory("bram", core, memory_config());
+  bool address_failed = false;
+  try {
+    memory.initialize_word(1024, 1);
+  } catch (const std::out_of_range&) {
+    address_failed = true;
+  }
+  require(address_failed, "out-of-capacity address was accepted");
+}
+
+}  // namespace
+
+int main() {
+  const std::vector<std::pair<std::string, std::function<void()>>> tests = {
+      {"multiclock_scheduler", test_multiclock_scheduler},
+      {"fifo_no_fallthrough", test_fifo_has_no_same_cycle_fallthrough},
+      {"fifo_order_independent", test_fifo_is_registration_order_independent},
+      {"fifo_backpressure", test_fifo_backpressure_is_counted},
+      {"bank_conflict", test_banked_memory_conflict_and_round_robin},
+      {"raw_hazard", test_banked_memory_stalls_read_after_write},
+      {"invalid_config", test_invalid_clock_and_capacity_are_rejected},
+  };
+  std::size_t failures = 0;
+  for (const auto& [name, test] : tests) {
+    try {
+      test();
+      std::cout << "PASS " << name << '\n';
+    } catch (const std::exception& error) {
+      ++failures;
+      std::cerr << "FAIL " << name << ": " << error.what() << '\n';
+    }
+  }
+  if (failures != 0) {
+    std::cerr << failures << " test(s) failed\n";
+    return 1;
+  }
+  std::cout << tests.size() << " test(s) passed\n";
+  return 0;
+}
