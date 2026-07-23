@@ -72,6 +72,25 @@ cmake --build build/cycle-core
 ctest --test-dir build/cycle-core --output-on-failure
 ```
 
+Build and run the online SST-HBM integration smoke:
+
+```bash
+cd /home/chuxiao/spine-cycle-sim
+make -C cpp/sst
+SPINE_SST_REQUESTS=256 \
+SPINE_SST_OUTPUT=build/sst/online_memory_probe.json \
+/data/feiyang/sst/bin/sst \
+  --add-lib-path=/home/chuxiao/spine-cycle-sim/build/sst \
+  sst/online_memory_probe.py
+```
+
+Run the automated sequential/cross-row/mixed acceptance suite:
+
+```bash
+python3 scripts/run_sst_memory_smoke.py \
+  --out-dir results/sst_memory_smoke
+```
+
 ## Current Scope
 
 The current model targets trend validation against the latest 134 MHz exact

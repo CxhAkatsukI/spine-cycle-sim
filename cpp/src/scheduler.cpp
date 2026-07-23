@@ -67,6 +67,16 @@ void Scheduler::step() {
   for (Component* component : components_) {
     const ClockId id = component->clock_id();
     if (clocks_[id].next_edge_fs == now_fs_) {
+      component->prepare(CycleContext{
+          .now_fs = now_fs_,
+          .domain_cycle = clocks_[id].completed_cycles,
+          .clock_id = id,
+      });
+    }
+  }
+  for (Component* component : components_) {
+    const ClockId id = component->clock_id();
+    if (clocks_[id].next_edge_fs == now_fs_) {
       component->evaluate(CycleContext{
           .now_fs = now_fs_,
           .domain_cycle = clocks_[id].completed_cycles,

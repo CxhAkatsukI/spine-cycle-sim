@@ -7,19 +7,28 @@
 #include <utility>
 #include <vector>
 
+#include "spine_sim/axi.hpp"
 #include "spine_sim/banked_memory.hpp"
 #include "spine_sim/component.hpp"
 #include "spine_sim/fifo.hpp"
+#include "spine_sim/memory_backend.hpp"
 #include "spine_sim/scheduler.hpp"
 
 namespace {
 
+using spine::sim::AxiConfig;
+using spine::sim::AxiMaster;
+using spine::sim::AxiRequest;
+using spine::sim::AxiResponse;
 using spine::sim::BankedMemory;
 using spine::sim::BankedMemoryConfig;
 using spine::sim::ClockId;
 using spine::sim::Component;
 using spine::sim::CycleContext;
 using spine::sim::Fifo;
+using spine::sim::MemoryOperation;
+using spine::sim::MockMemoryBackend;
+using spine::sim::MockMemoryConfig;
 using spine::sim::OnChipOperation;
 using spine::sim::OnChipRequest;
 using spine::sim::OnChipResponse;
@@ -294,6 +303,106 @@ void test_invalid_clock_and_capacity_are_rejected() {
   require(address_failed, "out-of-capacity address was accepted");
 }
 
+AxiConfig axi_config() {
+  return AxiConfig{
+      .data_width_bytes = 64,
+      .max_burst_beats = 16,
+      .channels = 2,
+      .channel_interleave_bytes = 64,
+      .max_pending_requests = 4,
+      .max_outstanding_bursts = 2,
+      .address_accepts_per_cycle = 1,
+      .beat_issues_per_cycle = 2,
+      .response_beats_per_cycle = 2,
+  };
+}
+
+MockMemoryConfig mock_memory_config(std::uint64_t latency = 3) {
+  return MockMemoryConfig{
+      .channels = 2,
+      .latency_cycles = latency,
+      .accepts_per_channel_per_cycle = 1,
+      .max_outstanding_per_channel = 32,
+      .response_queue_depth = 16,
+  };
+}
+
+void test_axi_splits_bursts_and_uses_backend_online() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("core", 141.0);
+  Fifo<AxiRequest> requests("axi-requests", core, 4);
+  Fifo<AxiResponse> responses("axi-responses", core, 2);
+  MockMemoryBackend backend("mock-hbm", core, mock_memory_config());
+  AxiMaster axi("axi", core, axi_config(), requests, responses, backend);
+  SequenceProducer<AxiRequest> producer(
+      "requester", core, requests,
+      {{.transaction_id = 42,
+        .operation = MemoryOperation::kRead,
+        .address = 4032,
+        .bytes = 1600}});
+  SequenceConsumer<AxiResponse> consumer("response-sink", core, responses);
+
+  scheduler.add_component(backend);
+  scheduler.add_component(consumer);
+  scheduler.add_component(responses);
+  scheduler.add_component(axi);
+  scheduler.add_component(requests);
+  scheduler.add_component(producer);
+  scheduler.run_until([&consumer] { return consumer.values.size() == 1; }, 200);
+
+  require(consumer.values[0].transaction_id == 42 && consumer.values[0].success,
+          "AXI response mismatch");
+  require(axi.stats().requests_accepted == 1 &&
+              axi.stats().requests_completed == 1,
+          "AXI request counters mismatch");
+  require(axi.stats().bursts_accepted == 3,
+          "AXI max-burst/4 KiB splitting produced the wrong burst count");
+  require(axi.stats().four_kib_splits == 1, "AXI missed a 4 KiB split");
+  require(axi.stats().beats_issued == 25 && axi.stats().beats_completed == 25,
+          "AXI beat counters mismatch");
+  require(axi.stats().read_bytes == 1600, "AXI byte counter mismatch");
+  require(axi.stats().max_outstanding_bursts == 2,
+          "AXI outstanding burst limit was not exercised");
+  require(backend.stats().accepted == 25, "mock backend did not see every beat");
+}
+
+void test_axi_response_backpressure_is_lossless() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("core", 100.0);
+  Fifo<AxiRequest> requests("axi-requests", core, 4);
+  Fifo<AxiResponse> responses("axi-responses", core, 1);
+  MockMemoryBackend backend("mock-hbm", core, mock_memory_config(1));
+  AxiMaster axi("axi", core, axi_config(), requests, responses, backend);
+  SequenceProducer<AxiRequest> producer(
+      "requester", core, requests,
+      {
+          {.transaction_id = 1,
+           .operation = MemoryOperation::kWrite,
+           .address = 0,
+           .bytes = 64},
+          {.transaction_id = 2,
+           .operation = MemoryOperation::kWrite,
+           .address = 64,
+           .bytes = 64},
+      });
+  SequenceConsumer<AxiResponse> consumer("response-sink", core, responses, 20);
+
+  scheduler.add_component(producer);
+  scheduler.add_component(requests);
+  scheduler.add_component(axi);
+  scheduler.add_component(backend);
+  scheduler.add_component(responses);
+  scheduler.add_component(consumer);
+  scheduler.run_until([&consumer] { return consumer.values.size() == 2; }, 80);
+
+  require(consumer.values[0].transaction_id == 1 &&
+              consumer.values[1].transaction_id == 2,
+          "AXI response backpressure reordered or lost requests");
+  require(axi.stats().response_queue_stalls > 0,
+          "AXI response FIFO backpressure was not counted");
+  require(axi.stats().write_bytes == 128, "AXI write byte count mismatch");
+}
+
 }  // namespace
 
 int main() {
@@ -305,6 +414,8 @@ int main() {
       {"bank_conflict", test_banked_memory_conflict_and_round_robin},
       {"raw_hazard", test_banked_memory_stalls_read_after_write},
       {"invalid_config", test_invalid_clock_and_capacity_are_rejected},
+      {"axi_online_backend", test_axi_splits_bursts_and_uses_backend_online},
+      {"axi_response_backpressure", test_axi_response_backpressure_is_lossless},
   };
   std::size_t failures = 0;
   for (const auto& [name, test] : tests) {

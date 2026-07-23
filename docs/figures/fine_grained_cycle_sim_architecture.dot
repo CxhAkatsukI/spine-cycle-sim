@@ -6,8 +6,8 @@ digraph FineGrainedCycleSimulator {
   subgraph cluster_python {
     label="Python experiment layer"; color="#557A66"; style="rounded,filled"; fillcolor="#EDF5F0";
     graph_input [label="Real graph + update batches"];
-    profiles [label="Versioned architecture profiles\nmeasured / normalized / projected"];
-    policies [label="Algorithm policies\nSSSP | Full PR | Residual PR"];
+    profiles [label="Versioned architecture profiles [implemented]\nmeasured / normalized / projected"];
+    policies [label="Algorithm policies [planned]\nSSSP | Full PR | Residual PR"];
     orchestration [label="Run matrix + result manifest"];
     math_oracle [label="High-precision oracle"];
     bit_oracle [label="Bit-accurate oracle"];
@@ -18,10 +18,10 @@ digraph FineGrainedCycleSimulator {
 
   subgraph cluster_cpp {
     label="Shared C++ cycle core"; color="#426B8A"; style="rounded,filled"; fillcolor="#EAF2F8";
-    scheduler [label="Absolute-time multi-clock scheduler\nall evaluate -> all commit"];
-    fifo [label="Finite FIFO / AXIS\nready-valid + backpressure"];
-    onchip [label="Banked BRAM / URAM\nports + latency + conflicts"];
-    axi [label="AXI masters\nbursts + IDs + outstanding + response queues"];
+    scheduler [label="Absolute-time multi-clock scheduler [implemented]\nall prepare -> all evaluate -> all commit"];
+    fifo [label="Finite FIFO [implemented]\nregistered transfer + backpressure"];
+    onchip [label="Banked BRAM / URAM [implemented]\nports + latency + conflicts"];
+    axi [label="AXI master [implemented]\nbursts + beats + outstanding + response queues"];
     scheduler -> fifo [dir=both];
     scheduler -> onchip [dir=both];
     scheduler -> axi [dir=both];
@@ -29,18 +29,18 @@ digraph FineGrainedCycleSimulator {
 
   subgraph cluster_arch {
     label="Independent accelerator architectures"; color="#8A5B45"; style="rounded,filled"; fillcolor="#FAF0EB";
-    spine [label="Spine\nLSM maintenance -> reader -> AXIS -> compute"];
-    grasu [label="GraSU\nPMA update engine"];
+    spine [label="Spine [planned]\nLSM maintenance -> reader -> AXIS -> compute"];
+    grasu [label="GraSU [planned]\nPMA update engine"];
     native_handoff [label="PMA-native device handoff\n(projected until synthesized)"];
-    regraph [label="ReGraph\nMap/Reduce/Apply compute"];
+    regraph [label="ReGraph [planned]\nMap/Reduce/Apply compute"];
     grasu -> native_handoff -> regraph;
   }
 
   subgraph cluster_memory {
     label="Interchangeable memory backend"; color="#9B7A25"; style="rounded,filled"; fillcolor="#FFF7DF";
     memif [label="Online request/response interface\nindependent HBM clock"];
-    mock [label="Deterministic MockMemory\nunit tests only"];
-    sst [label="SST memHierarchy + DRAMSim3/HBM\nformal experiment backend"];
+    mock [label="Deterministic MockMemory [implemented]\nunit tests only"];
+    sst [label="SST memHierarchy + DRAMSim3/HBM [implemented]\nonline formal backend adapter"];
     memif -> mock [style=dashed];
     memif -> sst;
   }

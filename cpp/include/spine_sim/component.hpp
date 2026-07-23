@@ -30,6 +30,7 @@ class Component {
   [[nodiscard]] const std::string& name() const noexcept { return name_; }
   [[nodiscard]] ClockId clock_id() const noexcept { return clock_id_; }
 
+  virtual void prepare(const CycleContext&) {}
   virtual void evaluate(const CycleContext& context) = 0;
   virtual void commit(const CycleContext& context) = 0;
 
