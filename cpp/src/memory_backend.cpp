@@ -1,6 +1,7 @@
 #include "spine_sim/memory_backend.hpp"
 
 #include <algorithm>
+#include <limits>
 #include <stdexcept>
 #include <utility>
 
@@ -26,17 +27,39 @@ void MemoryBackend::initialize_payload(
   }
 }
 
+void MemoryBackend::fill_payload(std::size_t channel, std::uint64_t address,
+                                 std::uint64_t bytes, std::uint8_t value) {
+  if (bytes == 0 || address > std::numeric_limits<std::uint64_t>::max() - bytes) {
+    throw std::invalid_argument("invalid memory payload fill range");
+  }
+  payload_fills_[channel].push_back(
+      FillRegion{.address = address, .bytes = bytes, .value = value});
+}
+
 std::vector<std::uint8_t> MemoryBackend::inspect_payload(
     std::size_t channel, std::uint64_t address, std::size_t bytes) const {
   std::vector<std::uint8_t> result(bytes, 0);
   const auto channel_storage = payload_storage_.find(channel);
-  if (channel_storage == payload_storage_.end()) {
-    return result;
-  }
   for (std::size_t index = 0; index < bytes; ++index) {
-    const auto found = channel_storage->second.find(address + index);
-    if (found != channel_storage->second.end()) {
-      result[index] = found->second;
+    if (channel_storage != payload_storage_.end()) {
+      const auto found = channel_storage->second.find(address + index);
+      if (found != channel_storage->second.end()) {
+        result[index] = found->second;
+        continue;
+      }
+    }
+    const auto fills = payload_fills_.find(channel);
+    if (fills == payload_fills_.end()) {
+      continue;
+    }
+    for (auto fill = fills->second.rbegin(); fill != fills->second.rend();
+         ++fill) {
+      const std::uint64_t byte_address = address + index;
+      if (byte_address >= fill->address &&
+          byte_address - fill->address < fill->bytes) {
+        result[index] = fill->value;
+        break;
+      }
     }
   }
   return result;

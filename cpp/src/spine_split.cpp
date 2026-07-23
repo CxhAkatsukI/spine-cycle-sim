@@ -43,6 +43,37 @@ std::uint32_t saturating_add(std::uint32_t left, std::uint16_t right) {
   return left + right;
 }
 
+std::vector<std::uint8_t> encode_u32(std::uint32_t value) {
+  return {
+      static_cast<std::uint8_t>(value & 0xffU),
+      static_cast<std::uint8_t>((value >> 8) & 0xffU),
+      static_cast<std::uint8_t>((value >> 16) & 0xffU),
+      static_cast<std::uint8_t>((value >> 24) & 0xffU),
+  };
+}
+
+std::uint32_t decode_u32(const std::vector<std::uint8_t> &data,
+                         std::size_t offset = 0) {
+  if (offset + sizeof(std::uint32_t) > data.size()) {
+    throw std::invalid_argument("uint32 payload is truncated");
+  }
+  return static_cast<std::uint32_t>(data[offset]) |
+         (static_cast<std::uint32_t>(data[offset + 1]) << 8) |
+         (static_cast<std::uint32_t>(data[offset + 2]) << 16) |
+         (static_cast<std::uint32_t>(data[offset + 3]) << 24);
+}
+
+std::vector<std::uint8_t> encode_u32_words(
+    const std::vector<std::uint32_t> &values) {
+  std::vector<std::uint8_t> data(values.size() * sizeof(std::uint32_t));
+  for (std::size_t index = 0; index < values.size(); ++index) {
+    const std::vector<std::uint8_t> word = encode_u32(values[index]);
+    std::copy(word.begin(), word.end(),
+              data.begin() + static_cast<std::ptrdiff_t>(index * word.size()));
+  }
+  return data;
+}
+
 }  // namespace
 
 SpineSplitReader::SpineSplitReader(std::string name, ClockId clock_id,
@@ -444,6 +475,10 @@ SpineSplitSsspCompute::SpineSplitSsspCompute(
       edge_in_.clock_id() != clock_id || value_out_.clock_id() != clock_id) {
     throw std::invalid_argument("invalid Spine split compute configuration");
   }
+  ports_.vertex_state->fill_payload(
+      0, static_cast<std::uint64_t>(vertices_) * kVertexWordBytes, 0xffU);
+  ports_.vertex_state->initialize_payload(
+      static_cast<std::uint64_t>(source_) * kVertexWordBytes, encode_u32(0));
   values_[source_] = 0;
 }
 
@@ -483,7 +518,7 @@ void SpineSplitSsspCompute::evaluate(const CycleContext &) {
             .operation = task.operation,
             .address = task.address,
             .bytes = task.bytes,
-            .write_data = {},
+            .write_data = task.write_data,
         })) {
       staged_action_ = Action::kIssue;
     }
@@ -491,7 +526,7 @@ void SpineSplitSsspCompute::evaluate(const CycleContext &) {
   }
   if (source_reply_pending_) {
     staged_value_word_ = SourceValueWord{.source = pending_source_,
-                                         .value = values_.at(pending_source_)};
+                                         .value = pending_source_value_};
     if (value_out_.try_push(staged_value_word_)) {
       staged_action_ = Action::kPushValue;
     }
@@ -521,6 +556,7 @@ void SpineSplitSsspCompute::commit(const CycleContext &context) {
         done_ = true;
         return;
       }
+      consume_memory_response(memory_tasks_.front(), staged_response_);
       waiting_memory_ = false;
       memory_tasks_.pop_front();
       return;
@@ -544,18 +580,26 @@ void SpineSplitSsspCompute::commit(const CycleContext &context) {
 void SpineSplitSsspCompute::enqueue_memory(FixedAxiPort &port,
                                            MemoryOperation operation,
                                            std::uint64_t address,
-                                           std::uint64_t bytes) {
+                                           std::uint64_t bytes,
+                                           std::vector<std::uint8_t> write_data) {
+  if ((operation == MemoryOperation::kRead && !write_data.empty()) ||
+      (operation == MemoryOperation::kWrite && write_data.size() != bytes)) {
+    throw std::invalid_argument("invalid Spine compute memory payload");
+  }
+  const std::size_t payload_bytes = write_data.size();
   memory_tasks_.push_back(MemoryTask{
       .port = &port,
       .operation = operation,
       .address = address,
       .bytes = bytes,
+      .write_data = std::move(write_data),
   });
   if (&port == ports_.vertex_state) {
     if (operation == MemoryOperation::kRead) {
       counters_.vertex_read_bytes += bytes;
     } else {
       counters_.vertex_write_bytes += bytes;
+      counters_.vertex_payload_write_bytes += payload_bytes;
     }
   } else if (&port == ports_.active_out) {
     counters_.active_out_write_bytes += bytes;
@@ -563,6 +607,46 @@ void SpineSplitSsspCompute::enqueue_memory(FixedAxiPort &port,
     counters_.bitmap_bytes += bytes;
   } else if (&port == ports_.result) {
     counters_.result_write_bytes += bytes;
+  }
+}
+
+void SpineSplitSsspCompute::consume_memory_response(
+    const MemoryTask &task, const AxiResponse &response) {
+  if (task.operation == MemoryOperation::kWrite) {
+    if (!response.read_data.empty()) {
+      throw std::logic_error("Spine compute write response carried payload");
+    }
+    return;
+  }
+  if (response.read_data.size() != task.bytes) {
+    throw std::logic_error("Spine compute read response payload size mismatch");
+  }
+  if (task.port != ports_.vertex_state) {
+    return;
+  }
+  counters_.vertex_payload_read_bytes += response.read_data.size();
+  if (phase_ == Phase::kSourceRead) {
+    pending_source_value_ = decode_u32(response.read_data);
+    values_.at(pending_source_) = pending_source_value_;
+    return;
+  }
+  if (phase_ == Phase::kGatherAdvance) {
+    const std::uint32_t vertex = gather_vertices_.at(gather_index_);
+    const std::uint32_t value = decode_u32(response.read_data);
+    gathered_values_[vertex] = value;
+    values_.at(vertex) = value;
+    return;
+  }
+  if (phase_ == Phase::kFullLoad) {
+    if (response.read_data.size() != tile_size_ * kVertexWordBytes) {
+      throw std::logic_error("Spine full-tile payload size mismatch");
+    }
+    tile_values_.resize(tile_size_);
+    for (std::size_t index = 0; index < tile_size_; ++index) {
+      tile_values_[index] =
+          decode_u32(response.read_data, index * kVertexWordBytes);
+      values_.at(tile_base_ + index) = tile_values_[index];
+    }
   }
 }
 
@@ -644,8 +728,10 @@ void SpineSplitSsspCompute::handle_edge_word(const PartConvWord &word) {
         return;
       }
       enqueue_memory(*ports_.active_bitmap, MemoryOperation::kRead, 0, 8);
-      enqueue_memory(*ports_.active_bitmap, MemoryOperation::kWrite, 0, 8);
-      enqueue_memory(*ports_.result, MemoryOperation::kWrite, 0, kResultBytes);
+      enqueue_memory(*ports_.active_bitmap, MemoryOperation::kWrite, 0, 8,
+                     std::vector<std::uint8_t>(8, 0));
+      enqueue_memory(*ports_.result, MemoryOperation::kWrite, 0, kResultBytes,
+                     std::vector<std::uint8_t>(kResultBytes, 0));
       phase_ = Phase::kFinish;
       return;
   }
@@ -669,20 +755,32 @@ void SpineSplitSsspCompute::prepare_store() {
   if (full_path_ && !changed_vertices_.empty()) {
     enqueue_memory(*ports_.vertex_state, MemoryOperation::kWrite,
                    tile_base_ * kVertexWordBytes,
-                   tile_size_ * kVertexWordBytes);
+                   tile_size_ * kVertexWordBytes,
+                   encode_u32_words(tile_values_));
     counters_.swept_vertex_words += tile_size_;
   }
   for (std::size_t index = 0; index < changed_vertices_.size(); ++index) {
     const std::uint32_t vertex = changed_vertices_[index];
     if (!full_path_) {
       enqueue_memory(*ports_.vertex_state, MemoryOperation::kWrite,
-                     vertex * kVertexWordBytes, kVertexWordBytes);
+                     vertex * kVertexWordBytes, kVertexWordBytes,
+                     encode_u32(values_.at(vertex)));
     }
   }
   if (!changed_vertices_.empty()) {
+    std::vector<std::uint8_t> active_payload(
+        changed_vertices_.size() * kActiveOutputBytes, 0);
+    for (std::size_t index = 0; index < changed_vertices_.size(); ++index) {
+      const std::vector<std::uint8_t> vertex =
+          encode_u32(changed_vertices_[index]);
+      std::copy(vertex.begin(), vertex.end(),
+                active_payload.begin() + static_cast<std::ptrdiff_t>(
+                                             index * kActiveOutputBytes));
+    }
     enqueue_memory(*ports_.active_out, MemoryOperation::kWrite,
                    active_base * kActiveOutputBytes,
-                   changed_vertices_.size() * kActiveOutputBytes);
+                   changed_vertices_.size() * kActiveOutputBytes,
+                   std::move(active_payload));
   }
 }
 
@@ -700,7 +798,8 @@ void SpineSplitSsspCompute::begin_full_path(const PartConvWord &overflow_edge) {
 
 void SpineSplitSsspCompute::relax_edge(const PartConvWord &edge) {
   std::uint32_t &current =
-      full_path_ ? values_.at(edge.first) : gathered_values_.at(edge.first);
+      full_path_ ? tile_values_.at(edge.first - tile_base_)
+                 : gathered_values_.at(edge.first);
   if (edge.second < current) {
     current = edge.second;
     values_[edge.first] = edge.second;
@@ -718,6 +817,7 @@ void SpineSplitSsspCompute::reset_tile() {
   gather_vertices_.clear();
   gathered_values_.clear();
   changed_vertices_.clear();
+  tile_values_.clear();
   relax_index_ = 0;
   tile_size_ = 0;
   tile_open_ = false;
@@ -744,8 +844,6 @@ void SpineSplitSsspCompute::advance(const CycleContext &context) {
       phase_ = Phase::kGatherAdvance;
       return;
     case Phase::kGatherAdvance:
-      gathered_values_[gather_vertices_[gather_index_]] =
-          values_[gather_vertices_[gather_index_]];
       ++counters_.gathered_vertex_words;
       ++gather_index_;
       phase_ = Phase::kGatherBegin;

@@ -1,0 +1,14 @@
+{
+  "backend_requests": 35548,
+  "compute_vertex_payload_read_bytes": 320848,
+  "compute_vertex_payload_write_bytes": 303192,
+  "compute_vertex_read_bytes": 320848,
+  "compute_vertex_write_bytes": 303192,
+  "cycles": 355100,
+  "dram_reads": 18773,
+  "dram_writes": 16775,
+  "input_edges": 64658,
+  "scenario": "amazon_full_compute_vertex_payload",
+  "simulation_evidence_tier": "structural_execution_driven_payload_vertex",
+  "status": "PASS"
+}

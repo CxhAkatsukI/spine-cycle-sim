@@ -1185,6 +1185,89 @@ void test_spine_tiny_gather_preserves_duplicate_reads() {
           "tiny gather incorrectly deduplicated repeated destination reads");
 }
 
+void test_spine_compute_consumes_vertex_payload_from_hbm() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("data", 141.0);
+  MockMemoryBackend backend("hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 3,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  FixedAxiPort vertex_state(
+      "payload-vertex-state", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32, .channel = 17, .initiator_id = 317},
+      backend);
+  FixedAxiPort active_out(
+      "payload-active-out", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32, .channel = 19, .initiator_id = 319},
+      backend);
+  FixedAxiPort active_bitmap(
+      "payload-active-bitmap", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32, .channel = 22, .initiator_id = 322},
+      backend);
+  FixedAxiPort result(
+      "payload-result", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32, .channel = 21, .initiator_id = 321},
+      backend);
+  Fifo<PartConvWord> edge_stream("payload-edge-axis", core, 32);
+  Fifo<SourceValueWord> value_stream("payload-value-axis", core, 32);
+  SequenceProducer<PartConvWord> producer(
+      "payload-reader", core, edge_stream,
+      {
+          {.kind = PartConvWordKind::kTileBegin, .first = 0},
+          {.kind = PartConvWordKind::kEdge, .first = 1, .second = 10},
+          {.kind = PartConvWordKind::kTileEnd, .first = 0, .second = 4},
+          {.kind = PartConvWordKind::kDoneAll},
+      });
+  SpineSplitSsspCompute compute(
+      "payload-compute", core, 4, 0, 4096,
+      SpineComputePorts{
+          .vertex_state = &vertex_state,
+          .active_out = &active_out,
+          .active_bitmap = &active_bitmap,
+          .result = &result,
+      },
+      edge_stream, value_stream);
+
+  // The compute mirror still contains infinity for vertex 1. Only HBM is 7.
+  vertex_state.initialize_payload(4, {7, 0, 0, 0});
+  scheduler.add_component(producer);
+  scheduler.add_component(compute);
+  scheduler.add_component(edge_stream);
+  scheduler.add_component(value_stream);
+  vertex_state.register_components(scheduler);
+  active_out.register_components(scheduler);
+  active_bitmap.register_components(scheduler);
+  result.register_components(scheduler);
+  scheduler.add_component(backend);
+  scheduler.run_until(
+      [&] {
+        return producer.done() && compute.done() && edge_stream.empty() &&
+               vertex_state.idle() && active_out.idle() &&
+               active_bitmap.idle() && result.idle();
+      },
+      10'000);
+
+  require(!compute.failed() && compute.values()[1] == 7 &&
+              compute.next_active().empty(),
+          "compute ignored the HBM vertex payload and used its stale mirror");
+  require(compute.counters().vertex_payload_read_bytes == 4 &&
+              compute.counters().vertex_payload_write_bytes == 0,
+          "compute vertex payload ledger does not match the HBM gather");
+  require(vertex_state.master().stats().zero_filled_write_bytes == 0 &&
+              active_out.master().stats().zero_filled_write_bytes == 0 &&
+              active_bitmap.master().stats().zero_filled_write_bytes == 0 &&
+              result.master().stats().zero_filled_write_bytes == 0,
+          "migrated compute path issued an implicit zero-filled write");
+}
+
 std::vector<std::uint32_t> sorted_vertices(
     std::vector<std::uint32_t> vertices) {
   std::sort(vertices.begin(), vertices.end());
@@ -1272,6 +1355,8 @@ int main() {
        test_spine_full_tile_load_replay_backpressures_axis},
       {"spine_tiny_duplicate_gather",
        test_spine_tiny_gather_preserves_duplicate_reads},
+      {"spine_compute_hbm_payload",
+       test_spine_compute_consumes_vertex_payload_from_hbm},
       {"spine_multiround_weighted_sssp",
        test_spine_multiround_weighted_sssp_converges},
   };

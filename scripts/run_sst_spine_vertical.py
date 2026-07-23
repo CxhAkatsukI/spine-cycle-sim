@@ -139,6 +139,10 @@ def validate_full_compute_result(
         "tile_paths": result.get("compute_fast_tiles") == 11
         and result.get("compute_full_tiles") == 1,
         "processed_edges": result.get("compute_processed_edges") == 64_658,
+        "vertex_read_payload": result.get("compute_vertex_payload_read_bytes")
+        == result.get("compute_vertex_read_bytes"),
+        "vertex_write_payload": result.get("compute_vertex_payload_write_bytes")
+        == result.get("compute_vertex_write_bytes"),
         "tiny_gathers": result.get("compute_gathered_words") == 14_676,
         "full_sweep": result.get("compute_swept_words") == 2 * 65_536,
         "finite_buffer_replay": result.get("compute_full_buffer_replay_edges")

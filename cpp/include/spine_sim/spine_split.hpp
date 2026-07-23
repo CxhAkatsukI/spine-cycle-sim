@@ -160,6 +160,8 @@ struct SpineComputeCounters {
   std::uint64_t full_stream_edges{};
   std::uint64_t vertex_read_bytes{};
   std::uint64_t vertex_write_bytes{};
+  std::uint64_t vertex_payload_read_bytes{};
+  std::uint64_t vertex_payload_write_bytes{};
   std::uint64_t active_out_write_bytes{};
   std::uint64_t bitmap_bytes{};
   std::uint64_t result_write_bytes{};
@@ -204,6 +206,7 @@ class SpineSplitSsspCompute final : public Component {
     MemoryOperation operation{MemoryOperation::kRead};
     std::uint64_t address{};
     std::uint64_t bytes{};
+    std::vector<std::uint8_t> write_data;
   };
 
   enum class Phase {
@@ -231,7 +234,10 @@ class SpineSplitSsspCompute final : public Component {
   void advance(const CycleContext &context);
   void handle_edge_word(const PartConvWord &word);
   void enqueue_memory(FixedAxiPort &port, MemoryOperation operation,
-                      std::uint64_t address, std::uint64_t bytes);
+                      std::uint64_t address, std::uint64_t bytes,
+                      std::vector<std::uint8_t> write_data = {});
+  void consume_memory_response(const MemoryTask &task,
+                               const AxiResponse &response);
   void prepare_gather();
   void prepare_store();
   void begin_full_path(const PartConvWord &overflow_edge);
@@ -250,6 +256,7 @@ class SpineSplitSsspCompute final : public Component {
   std::vector<PartConvWord> tile_edges_;
   std::vector<std::uint32_t> gather_vertices_;
   std::vector<std::uint32_t> changed_vertices_;
+  std::vector<std::uint32_t> tile_values_;
   std::deque<MemoryTask> memory_tasks_;
   std::unordered_map<std::uint32_t, std::uint32_t> gathered_values_;
   Phase phase_{Phase::kInput};
@@ -258,6 +265,7 @@ class SpineSplitSsspCompute final : public Component {
   SourceValueWord staged_value_word_;
   AxiResponse staged_response_;
   std::uint32_t pending_source_{};
+  std::uint32_t pending_source_value_{kInfinity};
   std::uint32_t tile_base_{};
   std::size_t tile_size_{};
   std::size_t gather_index_{};

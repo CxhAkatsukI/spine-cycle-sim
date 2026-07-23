@@ -38,6 +38,8 @@ class MemoryBackend : public Component {
   void register_initiator(std::uint32_t initiator_id);
   void initialize_payload(std::size_t channel, std::uint64_t address,
                           const std::vector<std::uint8_t>& data);
+  void fill_payload(std::size_t channel, std::uint64_t address,
+                    std::uint64_t bytes, std::uint8_t value);
   [[nodiscard]] std::vector<std::uint8_t> inspect_payload(
       std::size_t channel, std::uint64_t address, std::size_t bytes) const;
   virtual bool try_submit(const BackendRequest& request) = 0;
@@ -59,10 +61,17 @@ class MemoryBackend : public Component {
       const BackendRequest& request) const;
 
  private:
+  struct FillRegion {
+    std::uint64_t address{};
+    std::uint64_t bytes{};
+    std::uint8_t value{};
+  };
+
   std::unordered_set<std::uint32_t> initiators_;
   std::unordered_map<
       std::size_t, std::unordered_map<std::uint64_t, std::uint8_t>>
       payload_storage_;
+  std::unordered_map<std::size_t, std::vector<FillRegion>> payload_fills_;
 };
 
 struct MockMemoryConfig {

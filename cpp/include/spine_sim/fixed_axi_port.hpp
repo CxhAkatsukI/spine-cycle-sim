@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "spine_sim/axi.hpp"
 #include "spine_sim/fifo.hpp"
@@ -44,6 +45,7 @@ class FixedAxiPort {
                 .fixed_channel = config.channel,
             },
             requests_, responses_, backend),
+        backend_(backend),
         channel_(config.channel) {}
 
   void register_components(Scheduler& scheduler) {
@@ -57,6 +59,14 @@ class FixedAxiPort {
   [[nodiscard]] AxiMaster& master() noexcept { return master_; }
   [[nodiscard]] const AxiMaster& master() const noexcept { return master_; }
   [[nodiscard]] std::size_t channel() const noexcept { return channel_; }
+  void initialize_payload(std::uint64_t address,
+                          const std::vector<std::uint8_t>& data) {
+    backend_.initialize_payload(channel_, address, data);
+  }
+  void fill_payload(std::uint64_t address, std::uint64_t bytes,
+                    std::uint8_t value) {
+    backend_.fill_payload(channel_, address, bytes, value);
+  }
   [[nodiscard]] bool idle() const noexcept {
     return requests_.empty() && responses_.empty() && master_.idle();
   }
@@ -65,6 +75,7 @@ class FixedAxiPort {
   Fifo<AxiRequest> requests_;
   Fifo<AxiResponse> responses_;
   AxiMaster master_;
+  MemoryBackend& backend_;
   std::size_t channel_{};
 };
 
