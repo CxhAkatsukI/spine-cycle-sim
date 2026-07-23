@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "profile_id": "spine_legacy_134_calibration",
+  "architecture": "spine",
+  "status": "historical",
+  "evidence_tier": "hardware_validated",
+  "source": {
+    "repository": "/home/chuxiao/spine-dynamic-graph-reduce-levels",
+    "revision": "05584dab254b29639402889a375a273eedcec49f",
+    "branch": "reduce-levels-for-routing",
+    "dirty": false
+  },
+  "clocks": [
+    {"name": "data", "requested_mhz": 134.0, "achieved_mhz": 134.0},
+    {"name": "hbm", "requested_mhz": 450.0, "achieved_mhz": 450.0}
+  ],
+  "memory": {
+    "backend": "u55c_hbm",
+    "channels": 16,
+    "channel_capacity_bytes": 536870912,
+    "data_width_bits": 512,
+    "max_burst_bytes": 1024,
+    "max_outstanding_per_port": 32
+  },
+  "parameters": {
+    "partitions": 16,
+    "hot_shards": 16,
+    "levels": 11,
+    "level_ratio": 2,
+    "vertex_partition_size": 1048576,
+    "tile_vertices": 65536,
+    "tiny_active_threshold": 4096,
+    "split_compute_width": 4
+  },
+  "features": [
+    "stream_sparse_carry_cursors",
+    "split_readmaintenance_compute",
+    "tiny_active_convergence"
+  ],
+  "evidence": [
+    {
+      "kind": "xclbin",
+      "path": "/data/feiyang/spine-dynamic-graph-builds/stream_sparse_carry_cursors_local_20260716_160954/compact_validation_20260717/hw_134_routed_accepted/xclbin/spine_partitioned_split_e2e.hw.xclbin"
+    }
+  ],
+  "limitations": [
+    "Primary source of the legacy B/D calibration coefficients.",
+    "Predates shared cold/hot maintenance engines and later dirty-frontier changes."
+  ]
+}

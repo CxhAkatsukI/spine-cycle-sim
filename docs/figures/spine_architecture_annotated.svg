@@ -1,0 +1,528 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="3130" viewBox="0 0 1280 3130" font-family="Noto Sans CJK SC, Segoe UI, sans-serif">
+  <!-- ================================================================= -->
+  <!-- Spine 硬件架构 × 模拟器映射 × 实测瓶颈                              -->
+  <!-- Incremental, HARDWARE-FAITHFUL. Replicated units drawn explicitly. -->
+  <!-- Layer 0 = two-CU split + 16 dedicated partition HBM ports.         -->
+  <!-- Ground truth: spine_partitioned.hpp (reduce-levels-for-routing).   -->
+  <!-- ================================================================= -->
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 z" fill="#52606D"/>
+    </marker>
+    <marker id="arrowHot" markerWidth="11" markerHeight="11" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 z" fill="#B54708"/>
+    </marker>
+    <marker id="arrowAmber" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 z" fill="#A57617"/>
+    </marker>
+    <style>
+      .title  { font-size: 22px; font-weight: 700; fill: #1F2933; }
+      .sub    { font-size: 13px; fill: #52606D; }
+      .layer  { font-size: 15px; font-weight: 700; fill: #3E4C59; }
+      .cu     { font-size: 15px; font-weight: 700; fill: #10324F; }
+      .boxb   { font-size: 13px; font-weight: 700; fill: #1F2933; }
+      .box    { font-size: 12px; fill: #1F2933; }
+      .small  { font-size: 11px; fill: #52606D; }
+      .tiny   { font-size: 10px; fill: #52606D; }
+      .map    { font-size: 11px; font-weight: 700; fill: #0B6E4F; }
+      .num    { font-size: 12px; fill: #7A2E0E; }
+      .edgelb { font-size: 11px; fill: #52606D; }
+      .port   { font-size: 11px; font-weight: 700; fill: #6B4A0E; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1280" height="3130" fill="#F7F8FA"/>
+
+  <!-- Header -->
+  <text x="40" y="44" class="title">Spine 硬件架构 × 模拟器映射 × 实测瓶颈</text>
+  <text x="40" y="66" class="sub">reduce-levels-for-routing · 134 MHz · 2 CU · 结构/瓶颈基于 sim 标定快照 ≈ 05584da/cbd3ceb · 非最新 afb8199（其 reader/maint 有 sparse-convergence/dirty-frontier 重构，未纳入）</text>
+  <line x1="40" y1="80" x2="1240" y2="80" stroke="#CBD2D9" stroke-width="1"/>
+
+  <!-- =============== LAYER 0 =============== -->
+  <text x="40" y="110" class="layer">L0 · 两-CU 物理形态（SLR split）+ 16 个 dedicated partition HBM 端口</text>
+
+  <!-- Host inputs -->
+  <rect x="40" y="130" width="200" height="96" rx="8" fill="#FFFFFF" stroke="#52606D" stroke-width="1.4"/>
+  <text x="140" y="152" text-anchor="middle" class="boxb">Host / HBM 输入</text>
+  <text x="140" y="172" text-anchor="middle" class="small">sorted_edges → HBM[16]</text>
+  <text x="140" y="190" text-anchor="middle" class="small">active_bins → HBM[18]</text>
+  <text x="140" y="208" text-anchor="middle" class="small">level_meta → HBM[20]</text>
+  <text x="140" y="222" text-anchor="middle" class="tiny">↓ 格式详解见底部面板</text>
+
+  <!-- rdmaint CU (SLR0) -->
+  <rect x="290" y="130" width="410" height="250" rx="10" fill="#DCEBFA" stroke="#2B6CB0" stroke-width="2.2"/>
+  <text x="308" y="156" class="cu">spine_partconv_rdmaint_kernel</text>
+  <text x="308" y="174" class="small">SLR0 · 20 AXI masters（16 graph + 4 辅助）</text>
+
+  <!-- mode mux -->
+  <rect x="308" y="188" width="374" height="60" rx="7" fill="#FFFFFF" stroke="#2B6CB0" stroke-width="1.2"/>
+  <text x="322" y="208" class="boxb">MAINT 模式 — 写/维护路径</text>
+  <text x="322" y="226" class="small">partitioned_run_maintenance（LSM binary carry 写入图）</text>
+  <text x="672" y="208" text-anchor="end" class="map">↔ B-stage</text>
+  <text x="322" y="242" class="tiny">bstage.py · 实测中位误差 0.09–0.11%</text>
+
+  <rect x="308" y="256" width="374" height="60" rx="7" fill="#FFFFFF" stroke="#2B6CB0" stroke-width="1.2"/>
+  <text x="322" y="276" class="boxb">CONV 模式 — 读路径前半段</text>
+  <text x="322" y="294" class="small">partitioned_run_convergence_reader → 写 edge_out AXIS</text>
+  <text x="672" y="276" text-anchor="end" class="map">↔ D-stage reader</text>
+  <text x="322" y="310" class="tiny">同一 CU 用 mode 参数 mux 两种模式</text>
+
+  <text x="308" y="340" class="tiny" fill="#9B2C2C">★ 为何 maint+reader 融合成一个 CU：</text>
+  <text x="308" y="356" class="tiny" fill="#9B2C2C">3-CU = maint19+reader18+compute4 = 41 masters &gt; hmss_0 上限 33</text>
+  <text x="308" y="372" class="tiny" fill="#9B2C2C">→ 融合共享 16 graph 端口：20 + 4 = 24 ≤ 33（物理封装瓶颈）</text>
+
+  <!-- compute CU (SLR1) -->
+  <rect x="1000" y="130" width="240" height="250" rx="10" fill="#DCEBFA" stroke="#2B6CB0" stroke-width="2.2"/>
+  <text x="1018" y="156" class="cu">compute_kernel</text>
+  <text x="1018" y="174" class="small">SLR1 · 4 AXI masters</text>
+  <rect x="1018" y="188" width="204" height="128" rx="7" fill="#FFFFFF" stroke="#2B6CB0" stroke-width="1.2"/>
+  <text x="1032" y="208" class="boxb">vertex-state 松弛</text>
+  <text x="1032" y="226" class="small">run_convergence_compute</text>
+  <text x="1032" y="246" class="small">读 edge_in → 更新距离</text>
+  <text x="1032" y="264" class="small">算 frontier / bitmap / result</text>
+  <text x="1032" y="284" class="tiny">内部 4-wide：W=4 · 4 lookup</text>
+  <text x="1032" y="300" class="tiny">· 4 scatter（非 16-wide）</text>
+  <text x="1032" y="336" class="map">↔ D-stage compute</text>
+
+  <!-- host -> rdmaint -->
+  <line x1="240" y1="178" x2="290" y2="200" stroke="#52606D" stroke-width="1.6" marker-end="url(#arrow)"/>
+
+  <!-- AXIS rdmaint -> compute -->
+  <line x1="700" y1="286" x2="1000" y2="240" stroke="#B54708" stroke-width="2.4" marker-end="url(#arrowHot)"/>
+  <text x="720" y="250" class="edgelb" fill="#B54708">64-bit AXIS · partconv_edge_word (dst, proposed)</text>
+  <text x="720" y="266" class="edgelb" fill="#B54708">仅 CONV 模式流动（MAINT 模式 idle）</text>
+
+  <!-- =============== 16 dedicated partition HBM ports =============== -->
+  <rect x="290" y="410" width="660" height="150" rx="10" fill="#FFF6DE" stroke="#A57617" stroke-width="1.8"/>
+  <text x="308" y="434" class="boxb" fill="#6B4A0E">共享 HBM · 16 个 dedicated partition 图存储通道（gmem_p0 … gmem_p15，各 depth 67108864）</text>
+  <text x="308" y="452" class="small" fill="#8a5f12">每个 partition = 2^20 顶点范围；每通道内是该 partition 的 11-level ratio-2 CSR（L2 层展开）</text>
+
+  <!-- 16 ports: p0 p1 p2 p3 … p13 p14 p15 -->
+  <g>
+    <rect x="308" y="470" width="64" height="64" rx="6" fill="#FFF9E8" stroke="#A57617" stroke-width="1.3"/>
+    <text x="340" y="498" text-anchor="middle" class="port">graph0</text>
+    <text x="340" y="514" text-anchor="middle" class="tiny">gmem_p0</text>
+    <text x="340" y="528" text-anchor="middle" class="tiny">part 0</text>
+
+    <rect x="380" y="470" width="64" height="64" rx="6" fill="#FFF9E8" stroke="#A57617" stroke-width="1.3"/>
+    <text x="412" y="498" text-anchor="middle" class="port">graph1</text>
+    <text x="412" y="514" text-anchor="middle" class="tiny">gmem_p1</text>
+    <text x="412" y="528" text-anchor="middle" class="tiny">part 1</text>
+
+    <rect x="452" y="470" width="64" height="64" rx="6" fill="#FFF9E8" stroke="#A57617" stroke-width="1.3"/>
+    <text x="484" y="498" text-anchor="middle" class="port">graph2</text>
+    <text x="484" y="514" text-anchor="middle" class="tiny">gmem_p2</text>
+    <text x="484" y="528" text-anchor="middle" class="tiny">part 2</text>
+
+    <rect x="524" y="470" width="64" height="64" rx="6" fill="#FFF9E8" stroke="#A57617" stroke-width="1.3"/>
+    <text x="556" y="498" text-anchor="middle" class="port">graph3</text>
+    <text x="556" y="514" text-anchor="middle" class="tiny">gmem_p3</text>
+    <text x="556" y="528" text-anchor="middle" class="tiny">part 3</text>
+
+    <text x="628" y="508" text-anchor="middle" class="boxb" fill="#6B4A0E">⋯</text>
+
+    <rect x="668" y="470" width="64" height="64" rx="6" fill="#FFF9E8" stroke="#A57617" stroke-width="1.3"/>
+    <text x="700" y="498" text-anchor="middle" class="port">graph14</text>
+    <text x="700" y="514" text-anchor="middle" class="tiny">gmem_p14</text>
+    <text x="700" y="528" text-anchor="middle" class="tiny">part 14</text>
+
+    <rect x="740" y="470" width="64" height="64" rx="6" fill="#FFF9E8" stroke="#A57617" stroke-width="1.3"/>
+    <text x="772" y="498" text-anchor="middle" class="port">graph15</text>
+    <text x="772" y="514" text-anchor="middle" class="tiny">gmem_p15</text>
+    <text x="772" y="528" text-anchor="middle" class="tiny">part 15</text>
+  </g>
+  <text x="864" y="500" class="tiny" fill="#8a5f12">共 16 通道</text>
+  <text x="864" y="516" class="tiny" fill="#8a5f12">MAINT 与 CONV</text>
+  <text x="864" y="532" class="tiny" fill="#8a5f12">共享此 16 端口</text>
+
+  <!-- rdmaint <-> 16 graph ports -->
+  <line x1="495" y1="380" x2="495" y2="410" stroke="#A57617" stroke-width="2.2" marker-end="url(#arrowAmber)"/>
+  <text x="505" y="400" class="edgelb" fill="#8a5f12">16 dedicated AXI 读写</text>
+
+  <!-- compute-side HBM -->
+  <rect x="1000" y="410" width="240" height="150" rx="10" fill="#FFF6DE" stroke="#A57617" stroke-width="1.8"/>
+  <text x="1018" y="434" class="boxb" fill="#6B4A0E">compute 侧 HBM（4 端口）</text>
+  <rect x="1018" y="446" width="98" height="42" rx="5" fill="#FFF9E8" stroke="#A57617" stroke-width="1.1"/>
+  <text x="1067" y="464" text-anchor="middle" class="tiny">vertex_state</text>
+  <text x="1067" y="479" text-anchor="middle" class="tiny">gmem_vs</text>
+  <rect x="1124" y="446" width="98" height="42" rx="5" fill="#FFF9E8" stroke="#A57617" stroke-width="1.1"/>
+  <text x="1173" y="464" text-anchor="middle" class="tiny">active_out</text>
+  <text x="1173" y="479" text-anchor="middle" class="tiny">gmem_active_out</text>
+  <rect x="1018" y="496" width="98" height="42" rx="5" fill="#FFF9E8" stroke="#A57617" stroke-width="1.1"/>
+  <text x="1067" y="514" text-anchor="middle" class="tiny">active_bitmap</text>
+  <text x="1067" y="529" text-anchor="middle" class="tiny">gmem_active_bitmap</text>
+  <rect x="1124" y="496" width="98" height="42" rx="5" fill="#FFF9E8" stroke="#A57617" stroke-width="1.1"/>
+  <text x="1173" y="514" text-anchor="middle" class="tiny">result</text>
+  <text x="1173" y="529" text-anchor="middle" class="tiny">gmem_result</text>
+  <line x1="1120" y1="380" x2="1120" y2="410" stroke="#A57617" stroke-width="2.0" marker-end="url(#arrowAmber)"/>
+
+  <!-- =============== Headline finding callout =============== -->
+  <rect x="40" y="600" width="1200" height="150" rx="10" fill="#FFF1F0" stroke="#C0392B" stroke-width="1.6"/>
+  <text x="60" y="628" class="boxb" fill="#9B2C2C">★ L0 实测头条结论（e2e_component_model_20260720）</text>
+  <text x="60" y="654" class="box">① E2E 串行：kernel_e2e ≈ maint(B) + conv_span(D) + overhead，overhead ≈ 0（中位残差 ≈ −490 cycle = 测量窗口）。</text>
+  <text x="60" y="680" class="box">② 12 个真实 Amazon 单-partition 切片 <tspan font-weight="700" fill="#9B2C2C">11/12 reader-dominant</tspan> —— 时间几乎全在"CONV 读 CSR 流边给 compute"，维护(B)占比很小。</text>
+  <text x="60" y="706" class="box">③ 最大单一优化杠杆 <tspan font-weight="700" fill="#9B2C2C">halve_reader_time ≈ 1.82×</tspan>；B/overlap 优化在 E2E 收益小（~1.01–1.47×）。</text>
+  <text x="60" y="732" class="small">→ 瓶颈不在"图怎么存/维护"，而在"收敛时把边读出来"。同时物理封装受 33-AXI-master 上限约束（见上）。</text>
+
+  <!-- Legend -->
+  <rect x="40" y="770" width="1200" height="44" rx="8" fill="#FFFFFF" stroke="#CBD2D9" stroke-width="1"/>
+  <rect x="56" y="782" width="20" height="20" rx="4" fill="#DCEBFA" stroke="#2B6CB0"/>
+  <text x="84" y="797" class="small">FPGA compute unit (CU)</text>
+  <rect x="256" y="782" width="20" height="20" rx="4" fill="#FFF9E8" stroke="#A57617"/>
+  <text x="284" y="797" class="small">HBM 端口 / 存储</text>
+  <text x="420" y="797" class="map">↔ 绿色 = 模拟器组件映射</text>
+  <line x1="620" y1="792" x2="660" y2="792" stroke="#B54708" stroke-width="2.4"/>
+  <text x="668" y="797" class="small">AXIS 流（跨 SLR）</text>
+  <text x="820" y="797" class="num">棕色数字 = 实测结果 / 瓶颈</text>
+  <text x="1060" y="797" class="tiny" fill="#9B2C2C">红字 = 硬件约束</text>
+
+  <!-- =============== INPUT LAYER DETAIL =============== -->
+  <text x="40" y="852" class="layer">L0-输入层 · 喂给 rdmaint 的三类 HBM 数据（格式 / 生产者→消费者 / 模拟器映射）</text>
+
+  <!-- Card 1: sorted_edges -->
+  <rect x="40" y="866" width="384" height="250" rx="10" fill="#EAF2FA" stroke="#2B6CB0" stroke-width="1.6"/>
+  <text x="56" y="890" class="boxb" fill="#10324F">① sorted_edges　HBM[16]</text>
+  <text x="56" y="908" class="small">edge_entry_t = 128 bit/条 · ≤131072/批</text>
+  <text x="56" y="924" class="tiny">按 key(src,dst) 排序 — sorter_kernel/host std::sort</text>
+  <!-- bit bar 128b -->
+  <rect x="56" y="934" width="220" height="26" fill="#BBD6F2" stroke="#2B6CB0"/>
+  <text x="166" y="951" text-anchor="middle" class="tiny">key [127:64] = src|dst</text>
+  <rect x="276" y="934" width="46" height="26" fill="#D6E7F7" stroke="#2B6CB0"/>
+  <text x="299" y="951" text-anchor="middle" class="tiny">wt</text>
+  <rect x="322" y="934" width="46" height="26" fill="#D6E7F7" stroke="#2B6CB0"/>
+  <text x="345" y="951" text-anchor="middle" class="tiny">diff</text>
+  <text x="56" y="984" class="small" fill="#9B2C2C">消费者：仅 MAINT 模式</text>
+  <text x="56" y="1002" class="box">= 这一批要合并进图的「增量 delta」</text>
+  <text x="56" y="1028" class="map">↔ 模拟器</text>
+  <text x="56" y="1046" class="tiny">Edge(src,dst,weight) 列表 → EdgeInput</text>
+  <text x="56" y="1062" class="tiny">config: batch_size_edges=131072</text>
+  <rect x="56" y="1078" width="352" height="28" rx="5" fill="#FFFFFF" stroke="#7A2E0E" stroke-width="1"/>
+  <text x="66" y="1096" class="num">→ reader 成本项 traversed_edges（边流）</text>
+
+  <!-- Card 2: active_bins -->
+  <rect x="448" y="866" width="384" height="250" rx="10" fill="#EAF2FA" stroke="#2B6CB0" stroke-width="1.6"/>
+  <text x="464" y="890" class="boxb" fill="#10324F">② active_bins　HBM[18]</text>
+  <text x="464" y="908" class="small">partitioned_active_record_t = 256 bit/条</text>
+  <text x="464" y="924" class="tiny">收敛 frontier + 预算好的路由掩码</text>
+  <!-- bit bar 256b -->
+  <rect x="464" y="934" width="42" height="26" fill="#D6E7F7" stroke="#2B6CB0"/>
+  <text x="485" y="951" text-anchor="middle" class="tiny">src</text>
+  <rect x="506" y="934" width="52" height="26" fill="#D6E7F7" stroke="#2B6CB0"/>
+  <text x="532" y="951" text-anchor="middle" class="tiny">dist</text>
+  <rect x="558" y="934" width="200" height="26" fill="#BBD6F2" stroke="#2B6CB0"/>
+  <text x="658" y="951" text-anchor="middle" class="tiny">11×16b level→partition 掩码</text>
+  <rect x="758" y="934" width="58" height="26" fill="#D6E7F7" stroke="#2B6CB0"/>
+  <text x="787" y="951" text-anchor="middle" class="tiny">hot msk</text>
+  <text x="464" y="984" class="small" fill="#9B2C2C">消费者：CONV 模式（reader）</text>
+  <text x="464" y="1002" class="box">掩码让 reader 跳过空 (partition,level) slice</text>
+  <text x="464" y="1028" class="map">↔ 模拟器</text>
+  <text x="464" y="1046" class="tiny">reader.py: active_records</text>
+  <text x="464" y="1062" class="tiny">生产者：host 初始(只有 source) / 上轮收敛</text>
+  <rect x="464" y="1078" width="352" height="28" rx="5" fill="#FFFFFF" stroke="#7A2E0E" stroke-width="1"/>
+  <text x="474" y="1096" class="num">→ reader 成本项 active_records × touched_tiles</text>
+
+  <!-- Card 3: level_meta -->
+  <rect x="856" y="866" width="384" height="250" rx="10" fill="#FFF6DE" stroke="#A57617" stroke-width="1.6"/>
+  <text x="872" y="890" class="boxb" fill="#6B4A0E">③ level_meta_io　HBM[20]</text>
+  <text x="872" y="908" class="small">64-bit words · 图存储的「目录」</text>
+  <text x="872" y="924" class="tiny">MAINT 写（更新偏移/计数）· CONV 读（定位 CSR）</text>
+  <text x="872" y="948" class="tiny" fill="#6B4A0E">每个 (family×level) slice = 8 words：</text>
+  <text x="882" y="966" class="tiny">edge_count · row_count · page_bitmap_off</text>
+  <text x="882" y="982" class="tiny">page_base_off · row_off · mask_off · edge_off · occupied</text>
+  <text x="872" y="1006" class="box">32 family × 11 level = 352 slice × 8 = 2816 w</text>
+  <text x="872" y="1024" class="tiny">+ active-bin 偏移/计数 · L0-touched · hot bitmap</text>
+  <text x="872" y="1040" class="tiny">+ hot/cold 边计数 · hot_enabled 标志</text>
+  <text x="872" y="1066" class="map">↔ 模拟器</text>
+  <text x="960" y="1066" class="tiny">per-family occupancy[32][11]</text>
+  <rect x="872" y="1078" width="352" height="28" rx="5" fill="#FFFFFF" stroke="#A57617" stroke-width="1"/>
+  <text x="882" y="1096" class="tiny" fill="#6B4A0E">两模式共享索引 · result_out 是输出诊断(非输入)</text>
+
+  <!-- reader cost linkage strip -->
+  <rect x="40" y="1130" width="1200" height="60" rx="10" fill="#FFF1F0" stroke="#C0392B" stroke-width="1.4"/>
+  <text x="60" y="1154" class="boxb" fill="#9B2C2C">输入 ↔ 瓶颈的因果</text>
+  <text x="60" y="1176" class="box">reader.py 成本模型：cycles = const + c_edge_stream·<tspan fill="#7A2E0E" font-weight="700">traversed_edges</tspan> + c_replay·(<tspan fill="#7A2E0E" font-weight="700">active_records</tspan>·touched_tiles) —— 两个输入正是 reader 两大成本驱动，直接解释 reader-dominant。</text>
+
+  <!-- L3 block shifted DOWN so write side (L1/L2) renders above read side (L3) -->
+  <g transform="translate(0,684)">
+  <!-- ================================================================= -->
+  <!-- LAYER 3 · CONV 读侧数据流                                          -->
+  <!-- ================================================================= -->
+  <line x1="40" y1="1216" x2="1240" y2="1216" stroke="#CBD2D9" stroke-width="1"/>
+  <text x="40" y="1248" class="layer">L3 · CONV 读侧数据流 —— reader 两阶段 → AXIS 分帧流 → compute 常驻 vs_tile（数据从上往下流）</text>
+
+  <!-- inputs strip -->
+  <rect x="40" y="1266" width="300" height="48" rx="7" fill="#EAF2FA" stroke="#2B6CB0" stroke-width="1.2"/>
+  <text x="56" y="1286" class="boxb" fill="#10324F">active_bins（frontier）</text>
+  <text x="56" y="1304" class="tiny">每 partition count 条 256b 记录（src·dist·掩码）</text>
+  <rect x="356" y="1266" width="270" height="48" rx="7" fill="#FFF6DE" stroke="#A57617" stroke-width="1.2"/>
+  <text x="372" y="1286" class="boxb" fill="#6B4A0E">level_meta（目录）</text>
+  <text x="372" y="1304" class="tiny">定位 CSR 行 / active-bin 偏移与计数</text>
+  <rect x="642" y="1266" width="300" height="48" rx="7" fill="#FFF6DE" stroke="#A57617" stroke-width="1.2"/>
+  <text x="658" y="1286" class="boxb" fill="#6B4A0E">16 graph banks（gmem_p0..p15）</text>
+  <text x="658" y="1304" class="tiny">每 src 的边：dst 已排序的 CSR</text>
+
+  <!-- feed arrow to reader -->
+  <line x1="300" y1="1314" x2="360" y2="1340" stroke="#52606D" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- reader box -->
+  <rect x="40" y="1332" width="1200" height="316" rx="10" fill="#DCEBFA" stroke="#2B6CB0" stroke-width="2.2"/>
+  <text x="58" y="1356" class="cu">rdmaint · CONV 模式 = reader　（外层 for partition = 0 … 15：顺序串行，非并行；无 UNROLL/DATAFLOW）</text>
+  <text x="740" y="1356" class="tiny" fill="#9B2C2C">↑ 16 partition 逐个首尾相接串入同一条 AXIS；16 dedicated 端口=容量/带宽隔离，非并行通路；总时间≈16 partition 求和</text>
+
+  <!-- Phase A -->
+  <rect x="58" y="1370" width="560" height="262" rx="8" fill="#FFFFFF" stroke="#2B6CB0" stroke-width="1.4"/>
+  <text x="74" y="1392" class="boxb">① 发现阶段　discover_touched_tiles（扫全部 active 记录一遍）</text>
+  <text x="74" y="1414" class="small">for 每条 active 记录（共 count 条）:</text>
+  <text x="86" y="1434" class="small">for level 0 … 10:</text>
+  <text x="98" y="1454" class="tiny">① 掩码 bit[partition] == 0 → continue（跳过空 slice）</text>
+  <text x="98" y="1474" class="tiny">② lookup_range(src) → CSR 行区间 [start, end)</text>
+  <text x="98" y="1494" class="tiny">③ 读 graph[start] / graph[end−1]（行内已按 dst 排序）</text>
+  <text x="98" y="1514" class="tiny" fill="#7A2E0E">④ csr_level_dst → first_dst / last_dst　← dst 在此处获得！</text>
+  <text x="98" y="1534" class="tiny">⑤ tile = (dst − partition_base) &gt;&gt; 16；touched_tile_mask |= range</text>
+  <rect x="74" y="1548" width="528" height="30" rx="5" fill="#EAF2FA" stroke="#2B6CB0" stroke-width="1"/>
+  <text x="84" y="1568" class="small" fill="#10324F">输出 touched_tile_mask（16-bit）：本 partition 哪些 tile 落了边</text>
+  <text x="74" y="1598" class="tiny" fill="#9B2C2C">关键：dst 不在 active 记录里 —— 掩码只定位 slice，dst 靠 lookup + 读存储边取得</text>
+  <text x="74" y="1618" class="tiny">（行内 dst 排序 ⇒ 只读首尾两条边即知该行覆盖的 tile 范围，无需读全行）</text>
+
+  <!-- arrow A -> B -->
+  <line x1="618" y1="1500" x2="646" y2="1500" stroke="#52606D" stroke-width="1.6" marker-end="url(#arrow)"/>
+
+  <!-- Phase B -->
+  <rect x="648" y="1370" width="384" height="262" rx="8" fill="#FFFFFF" stroke="#2B6CB0" stroke-width="1.4"/>
+  <text x="664" y="1392" class="boxb">② 发射阶段　emit_active_records_for_tile</text>
+  <text x="664" y="1414" class="tiny">replay_estimate = count × touched_tiles</text>
+  <text x="664" y="1434" class="tiny" fill="#9B2C2C">if 太多 或 &gt; 65536 → full-sweep fallback（兜底顺扫）</text>
+  <rect x="664" y="1446" width="352" height="128" rx="6" fill="#FFF1F0" stroke="#C0392B" stroke-width="1.2"/>
+  <text x="676" y="1468" class="small" fill="#9B2C2C">for 每个 touched tile t:　← 外层 = tile</text>
+  <text x="688" y="1490" class="small" fill="#9B2C2C">重扫【全部】active 记录　← 内层 = REPLAY</text>
+  <text x="688" y="1512" class="tiny">二分 clip 到 [tile_base, tile_end)</text>
+  <text x="688" y="1532" class="tiny">emit tile_begin → 边… → tile_end 到 AXIS</text>
+  <text x="676" y="1558" class="tiny" fill="#9B2C2C">同一记录被每个 touched tile 各扫一次</text>
+  <text x="664" y="1596" class="map">↔ reader.py</text>
+  <text x="664" y="1616" class="tiny">traversed_edges（边流·次要）+ active_record_replay（瓶颈）</text>
+
+  <!-- reader -> AXIS arrow -->
+  <line x1="640" y1="1648" x2="640" y2="1672" stroke="#B54708" stroke-width="2.4" marker-end="url(#arrowHot)"/>
+
+  <!-- AXIS framed stream ribbon -->
+  <rect x="40" y="1672" width="1200" height="70" rx="8" fill="#FFF7EF" stroke="#B54708" stroke-width="1.6"/>
+  <text x="56" y="1694" class="boxb" fill="#B54708">AXIS 分帧流　edge_in（reader 生产 · compute 消费 · 两 CU 并发重叠）</text>
+  <g font-family="monospace">
+    <rect x="56"  y="1704" width="96" height="26" rx="4" fill="#F6D9BE" stroke="#B54708"/>
+    <text x="104" y="1721" text-anchor="middle" class="tiny" fill="#7A2E0E">tile_begin b0</text>
+    <rect x="156" y="1704" width="52" height="26" rx="4" fill="#FFFFFF" stroke="#B54708"/>
+    <text x="182" y="1721" text-anchor="middle" class="tiny">边</text>
+    <rect x="212" y="1704" width="52" height="26" rx="4" fill="#FFFFFF" stroke="#B54708"/>
+    <text x="238" y="1721" text-anchor="middle" class="tiny">边</text>
+    <text x="284" y="1721" text-anchor="middle" class="small">⋯</text>
+    <rect x="308" y="1704" width="82" height="26" rx="4" fill="#F6D9BE" stroke="#B54708"/>
+    <text x="349" y="1721" text-anchor="middle" class="tiny" fill="#7A2E0E">tile_end</text>
+    <rect x="404" y="1704" width="96" height="26" rx="4" fill="#F6D9BE" stroke="#B54708"/>
+    <text x="452" y="1721" text-anchor="middle" class="tiny" fill="#7A2E0E">tile_begin b3</text>
+    <rect x="504" y="1704" width="52" height="26" rx="4" fill="#FFFFFF" stroke="#B54708"/>
+    <text x="530" y="1721" text-anchor="middle" class="tiny">边</text>
+    <text x="576" y="1721" text-anchor="middle" class="small">⋯</text>
+    <rect x="600" y="1704" width="82" height="26" rx="4" fill="#F6D9BE" stroke="#B54708"/>
+    <text x="641" y="1721" text-anchor="middle" class="tiny" fill="#7A2E0E">tile_end</text>
+    <text x="712" y="1721" text-anchor="middle" class="small">⋯</text>
+    <rect x="740" y="1704" width="96" height="26" rx="4" fill="#E9C39B" stroke="#B54708"/>
+    <text x="788" y="1721" text-anchor="middle" class="tiny" fill="#7A2E0E">DONE_ALL</text>
+  </g>
+  <text x="900" y="1715" class="tiny" fill="#B54708">只有 tile_begin 到达外层派发；</text>
+  <text x="900" y="1731" class="tiny" fill="#B54708">tile 之间用 marker 分帧，compute 据此换驻留 tile</text>
+
+  <!-- AXIS -> compute arrow -->
+  <line x1="640" y1="1742" x2="640" y2="1766" stroke="#B54708" stroke-width="2.4" marker-end="url(#arrowHot)"/>
+
+  <!-- compute box -->
+  <rect x="40" y="1766" width="1200" height="220" rx="10" fill="#DCEBFA" stroke="#2B6CB0" stroke-width="2.2"/>
+  <text x="58" y="1790" class="cu">compute_kernel（SLR1 · 单次启动、常驻流式消费 —— 不是每 tile 调用一次）</text>
+  <text x="58" y="1812" class="small">while(true) { w = edge_in.read();</text>
+  <text x="82" y="1832" class="small">若 w == DONE_ALL → 写回 vertex_state / result → 结束；</text>
+  <text x="82" y="1852" class="small">若 w == TILE_BEGIN(base) → 判 tiny / dense 两路：</text>
+
+  <rect x="96" y="1862" width="470" height="52" rx="6" fill="#FFFFFF" stroke="#2B6CB0" stroke-width="1.1"/>
+  <text x="108" y="1882" class="small">dense：load_vs_tile → vs_tile[65536] URAM(256KB)</text>
+  <text x="108" y="1900" class="tiny">载入该 tile 顶点状态，顺扫 relax（↔ full_sweep）</text>
+  <rect x="580" y="1862" width="470" height="52" rx="6" fill="#FFFFFF" stroke="#2B6CB0" stroke-width="1.1"/>
+  <text x="592" y="1882" class="small">tiny：缓冲少量边，gather-relax-scatter</text>
+  <text x="592" y="1900" class="tiny">不载整 tile（↔ fast_gather_scatter）</text>
+
+  <text x="58" y="1936" class="small">relax：proposed &lt; old_val → 更新 vs_tile[dst−base]（II=1，bypass cache 转发在途写）</text>
+  <text x="58" y="1962" class="tiny" fill="#9B2C2C">★ 根因：1 partition = 1M 顶点 × 4B = 4MB 装不下片上 → 切 16×64K tile → 边按 src 存、compute 按 dst-tile 吃 → 每 tile 重扫记录 = replay</text>
+  <text x="58" y="1980" class="num">→ 输出 vertex_state_hbm · result　|　瓶颈 replay ≈ 1090 cyc/(record·tile) = reader 83–99% = E2E 瓶颈（杠杆 halve_active_record_replay ≈ 1.9–2.0×）</text>
+  </g>
+  <!-- end L3 block -->
+
+  <!-- L1/L2 block shifted UP so write side renders directly under the input layer -->
+  <g transform="translate(0,-800)">
+  <!-- ================================================================= -->
+  <!-- LAYER 1 (write path / MAINT) + LAYER 2 (storage model)            -->
+  <!-- ================================================================= -->
+  <line x1="40" y1="2016" x2="1240" y2="2016" stroke="#CBD2D9" stroke-width="1"/>
+  <text x="40" y="2048" class="layer">L1 写路径（MAINT）+ L2 存储模型 —— sorted_edges → binary carry → 16 graph banks</text>
+  <text x="40" y="2068" class="tiny" fill="#9B2C2C">MAINT 在 E2E 中先于 CONV 执行（串行）；此处产出的 16 graph banks 就是下方 L3 reader 读的同一存储。数据从上往下流：写 → 存储 → 读。</text>
+
+  <!-- sorted_edges input -->
+  <rect x="40" y="2082" width="380" height="46" rx="7" fill="#EAF2FA" stroke="#2B6CB0" stroke-width="1.3"/>
+  <text x="56" y="2101" class="boxb" fill="#10324F">sorted_edges 批（≤131072 条 128b 边，按 (src,dst) 排序）</text>
+  <text x="56" y="2119" class="tiny">HBM[16] → MAINT 输入（= 要合并进图的增量 delta）</text>
+  <line x1="230" y1="2128" x2="230" y2="2150" stroke="#52606D" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- MAINT pipeline box -->
+  <rect x="40" y="2150" width="1200" height="210" rx="10" fill="#DCEBFA" stroke="#2B6CB0" stroke-width="2.2"/>
+  <text x="58" y="2174" class="cu">rdmaint · MAINT 模式 = partitioned_run_maintenance　（4 阶段流水，左→右）　↔ 模拟器 EdgeInput→Router→Level0→CarryMerge</text>
+
+  <!-- Stage 1 route -->
+  <rect x="58" y="2188" width="270" height="150" rx="7" fill="#FFFFFF" stroke="#2B6CB0" stroke-width="1.3"/>
+  <text x="72" y="2208" class="boxb">① 统计 hot/cold + 路由</text>
+  <text x="72" y="2228" class="tiny">逐边扫一遍 sorted_edges：</text>
+  <text x="72" y="2246" class="tiny">cold family = dst &gt;&gt; 20（= dst/2^20）</text>
+  <text x="72" y="2264" class="tiny">hot bitmap 命中 → hot shard family</text>
+  <text x="72" y="2284" class="tiny">共 32 family = 16 cold + 16 hot</text>
+  <text x="72" y="2308" class="map">↔ PartitionRouter</text>
+  <text x="72" y="2326" class="tiny">c_edge 38.34/边（与 partition 数无关）</text>
+
+  <!-- Stage 2 binary target -->
+  <rect x="342" y="2188" width="300" height="150" rx="7" fill="#FFFFFF" stroke="#2B6CB0" stroke-width="1.3"/>
+  <text x="356" y="2208" class="boxb">② select_binary_target（进位决策）</text>
+  <text x="356" y="2228" class="tiny">看各 level 占用，像二进制计数器进位：</text>
+  <text x="356" y="2248" class="small" fill="#0B6E4F">target=0 → STORE_L0（L0 空，直接存批）</text>
+  <text x="356" y="2268" class="small" fill="#8a5f12">target&gt;0 → CASCADE：合并 L0..L(t−1)+批</text>
+  <text x="366" y="2286" class="tiny" fill="#8a5f12">→ 写入 level t，清空低层（consumed_mask）</text>
+  <text x="356" y="2308" class="small" fill="#8a5f12">target&lt;0 → OVERFLOW（仅 11 层全满的保护 guard，非常态）</text>
+  <text x="356" y="2328" class="map">↔ Level0Buffer / Level1CarryMerge</text>
+
+  <!-- Stage 3 write (bottleneck) -->
+  <rect x="656" y="2188" width="288" height="150" rx="7" fill="#FFF1F0" stroke="#C0392B" stroke-width="1.4"/>
+  <text x="670" y="2208" class="boxb" fill="#9B2C2C">③ 写 16 cold partition + 16 hot shard</text>
+  <text x="670" y="2228" class="tiny" fill="#9B2C2C">每个 active partition 重扫【全部】num_edges</text>
+  <text x="670" y="2246" class="tiny">过滤出本 family 的边 + coalesced level 写</text>
+  <text x="670" y="2266" class="tiny">空 partition 提前退出（edges==0）</text>
+  <rect x="670" y="2276" width="260" height="30" rx="5" fill="#FFFFFF" stroke="#C0392B"/>
+  <text x="680" y="2296" class="num">★ B 瓶颈 = edges × active_parts × 221 cyc</text>
+  <text x="670" y="2324" class="tiny" fill="#9B2C2C">= 写侧的"逐单元重扫"，与读侧 replay 同构</text>
+
+  <!-- Stage 4 commit -->
+  <rect x="958" y="2188" width="264" height="150" rx="7" fill="#FFFFFF" stroke="#2B6CB0" stroke-width="1.3"/>
+  <text x="972" y="2208" class="boxb">④ commit metadata</text>
+  <text x="972" y="2228" class="tiny">更新 level_meta 偏移/计数</text>
+  <text x="972" y="2246" class="tiny">清 target 以下各层</text>
+  <text x="972" y="2266" class="tiny">写回 hot/cold carry 计数器</text>
+  <text x="972" y="2290" class="map">↔ HBMPartition 写</text>
+  <text x="972" y="2312" class="tiny">CASCADE 额外成本：</text>
+  <text x="972" y="2328" class="tiny">(old+out) 边 × 80 cyc payload 合并</text>
+
+  <!-- arrows between stages -->
+  <line x1="328" y1="2263" x2="342" y2="2263" stroke="#52606D" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="642" y1="2263" x2="656" y2="2263" stroke="#52606D" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="944" y1="2263" x2="958" y2="2263" stroke="#52606D" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- write down to storage -->
+  <line x1="640" y1="2360" x2="640" y2="2384" stroke="#A57617" stroke-width="2.2" marker-end="url(#arrowAmber)"/>
+
+  <!-- L2 storage box -->
+  <rect x="40" y="2384" width="1200" height="236" rx="10" fill="#FFF6DE" stroke="#A57617" stroke-width="2"/>
+  <text x="58" y="2408" class="boxb" fill="#6B4A0E">L2 · 存储：16 graph banks（gmem_p0..p15，bank = family % 16）· 每 family = 11-level ratio-2 CSR（LSM 分层）</text>
+
+  <!-- 16 banks compact strip -->
+  <g>
+    <rect x="58"  y="2422" width="52" height="40" rx="5" fill="#FFF9E8" stroke="#A57617"/><text x="84"  y="2446" text-anchor="middle" class="tiny">p0</text>
+    <rect x="116" y="2422" width="52" height="40" rx="5" fill="#FFF9E8" stroke="#A57617"/><text x="142" y="2446" text-anchor="middle" class="tiny">p1</text>
+    <rect x="174" y="2422" width="52" height="40" rx="5" fill="#FFF9E8" stroke="#A57617"/><text x="200" y="2446" text-anchor="middle" class="tiny">p2</text>
+    <text x="250" y="2447" text-anchor="middle" class="boxb" fill="#6B4A0E">⋯</text>
+    <rect x="278" y="2422" width="52" height="40" rx="5" fill="#FFF9E8" stroke="#A57617"/><text x="304" y="2446" text-anchor="middle" class="tiny">p14</text>
+    <rect x="336" y="2422" width="52" height="40" rx="5" fill="#FFF9E8" stroke="#A57617"/><text x="362" y="2446" text-anchor="middle" class="tiny">p15</text>
+  </g>
+  <text x="58" y="2484" class="tiny" fill="#8a5f12">cold family p：dst 落在 partition p（dst&gt;&gt;20）；hot family 16+s：高入度目标点，hash 到 shard s。两组各自独立 11-level 栈。</text>
+  <text x="58" y="2502" class="tiny" fill="#8a5f12">binary carry = 每层是一段排序 run；新批与已占用的低层合并进第一个能容纳的空层（LSM/二进制计数器进位）。</text>
+
+  <!-- level capacity mini table -->
+  <rect x="640" y="2422" width="582" height="120" rx="6" fill="#FFFFFF" stroke="#A57617" stroke-width="1"/>
+  <text x="654" y="2440" class="tiny" fill="#6B4A0E">单 family 各 level 容量（edges）：</text>
+  <text x="654" y="2460" class="tiny">L0*=131072　L1=16384　L2=32768　L3=65536　L4=131072　L5=262144</text>
+  <text x="654" y="2478" class="tiny">L6=524288　L7=1048576　L8=2097152　L9=4194304　L10=8388608</text>
+  <text x="654" y="2498" class="tiny" fill="#6B4A0E">family 合计 = 16,891,904 edges/family（11 层 ratio-2；L0=131072 批缓冲，L1 仅 16384）</text>
+  <text x="654" y="2516" class="tiny">* L0 是 batch-size 特殊容量；level 是【存储层】不是流水级</text>
+  <text x="654" y="2534" class="tiny" fill="#8a5f12">↓ 这些 bank 正是下方 L3 reader 读的存储（写→读闭环）</text>
+
+  <text x="58" y="2524" class="tiny" fill="#0B6E4F">容量已解决（学长）：4→11 层 + hot/cold 把高入度 dst 路由到 16 hot shard 摊开集中度 → RMAT-24-9(150M,~9.4M/family) 正确存下（cbd3ceb 验证）</text>
+  <text x="58" y="2540" class="tiny" fill="#8a5f12">sim 的 one_partition_full_plus_one FAIL = 合成极端：硬塞单 cold family，L0(131072)→L1(16384) 装不下；实际高入度点走 hot shard 规避，非常态瓶颈</text>
+
+  <!-- B cost model + what-if callout -->
+  <rect x="40" y="2636" width="1200" height="52" rx="8" fill="#EAF2FA" stroke="#2B6CB0" stroke-width="1.3"/>
+  <text x="58" y="2658" class="box">B 成本模型（bstage.py, STORE_L0）：cycles = fixed 35133 + active_parts·1683 + edges·38.34 + <tspan fill="#7A2E0E" font-weight="700">edges·active_parts·221（主导项）</tspan></text>
+  <text x="58" y="2678" class="tiny">B 实测中位误差 0.09–0.11% · 杠杆：l0_single_active_partition（16-partition star → 1）、halve_level_write_path · 但 B 在 E2E 只占小头（reader-dominant）</text>
+  </g>
+  <!-- end L1/L2 block -->
+
+  <!-- ================================================================= -->
+  <!-- LAYER 4 · 瓶颈总表                                                 -->
+  <!-- ================================================================= -->
+  <line x1="40" y1="2688" x2="1240" y2="2688" stroke="#CBD2D9" stroke-width="1"/>
+  <text x="40" y="2718" class="layer">L4 · 瓶颈总表（当前发现，基于 sim 标定快照；量级/杠杆见各层）</text>
+
+  <rect x="40" y="2732" width="1200" height="344" rx="10" fill="#FFFFFF" stroke="#CBD2D9" stroke-width="1.4"/>
+
+  <!-- header row -->
+  <rect x="48" y="2740" width="1184" height="30" fill="#E4E7EB"/>
+  <text x="60"  y="2760" class="boxb">瓶颈</text>
+  <text x="220" y="2760" class="boxb">位置</text>
+  <text x="376" y="2760" class="boxb">量级 / 公式</text>
+  <text x="812" y="2760" class="boxb">占比 &amp; 优化杠杆</text>
+
+  <!-- r1 reader replay (top E2E bottleneck) -->
+  <rect x="48" y="2770" width="1184" height="46" fill="#FDECEA"/>
+  <text x="60"  y="2792" class="box" fill="#9B2C2C">① Reader replay</text>
+  <text x="60"  y="2809" class="tiny">读侧最重</text>
+  <text x="220" y="2792" class="tiny">CONV reader ↔ compute</text>
+  <text x="220" y="2809" class="tiny">（每 touched tile 重扫全部记录）</text>
+  <text x="376" y="2797" class="num">active_records × touched_tiles × ~1090 cyc</text>
+  <text x="812" y="2792" class="tiny" fill="#9B2C2C">= reader 83–99% = E2E 瓶颈</text>
+  <text x="812" y="2809" class="tiny">halve_active_record_replay ≈ 1.9–2.0×</text>
+
+  <!-- r2 reader overall -->
+  <rect x="48" y="2816" width="1184" height="46" fill="#FFF7EF"/>
+  <text x="60"  y="2838" class="box" fill="#7A2E0E">② Reader 整体</text>
+  <text x="220" y="2843" class="tiny">CONV（rdmaint 读模式）</text>
+  <text x="376" y="2838" class="tiny">+ 边流 traversed_edges × 4.83 cyc（次要项）</text>
+  <text x="376" y="2855" class="tiny">+ 顶点字 gather/scatter/full_sweep（小）</text>
+  <text x="812" y="2838" class="tiny">reader-dominant 11/12 切片</text>
+  <text x="812" y="2855" class="tiny">halve_reader_time ≈ 1.82×（最大单一杠杆）</text>
+
+  <!-- r3 write side -->
+  <rect x="48" y="2862" width="1184" height="46" fill="#FFF7EF"/>
+  <text x="60"  y="2884" class="box" fill="#7A2E0E">③ 写侧 filter+level write</text>
+  <text x="220" y="2889" class="tiny">MAINT 阶段③</text>
+  <text x="376" y="2889" class="num">edges × active_parts × 221 cyc（B 主导项）</text>
+  <text x="812" y="2884" class="tiny">l0_single_active_partition · halve_level_write_path</text>
+  <text x="812" y="2901" class="tiny">但 B 在 E2E 只占小头（reader-dominant）</text>
+
+  <!-- r4 serial -->
+  <rect x="48" y="2908" width="1184" height="46" fill="#EEF2F7"/>
+  <text x="60"  y="2930" class="box" fill="#10324F">④ 串行 B + D</text>
+  <text x="220" y="2935" class="tiny">E2E ledger</text>
+  <text x="376" y="2935" class="tiny">kernel_e2e ≈ B + D_span + overhead(≈0)</text>
+  <text x="812" y="2930" class="tiny">MAINT 整体先于 CONV</text>
+  <text x="812" y="2947" class="tiny">ideal B/D overlap 上限 ≈ 1.15–1.47×</text>
+
+  <!-- r5 axi limit -->
+  <rect x="48" y="2954" width="1184" height="46" fill="#EEF2F7"/>
+  <text x="60"  y="2976" class="box" fill="#10324F">⑤ 33-AXI-master 上限</text>
+  <text x="220" y="2981" class="tiny">物理封装 (hmss_0)</text>
+  <text x="376" y="2981" class="tiny">3-CU = 19+18+4 = 41 &gt; 33</text>
+  <text x="812" y="2976" class="tiny">迫使 maint+reader 融合成 1 个 CU</text>
+  <text x="812" y="2993" class="tiny">共享 16 graph 端口、单条 AXIS（20+4=24）</text>
+
+  <!-- r6 capacity solved -->
+  <rect x="48" y="3000" width="1184" height="46" fill="#EAF6EE"/>
+  <text x="60"  y="3022" class="box" fill="#0B6E4F">⑥ 容量（已解决·非瓶颈）</text>
+  <text x="220" y="3027" class="tiny">存储 / MAINT</text>
+  <text x="376" y="3027" class="tiny">11 层 ratio-2 + hot/cold 把高入度 dst 摊到 hot shard</text>
+  <text x="812" y="3022" class="tiny">RMAT-24-9 正确存下（cbd3ceb 验证）</text>
+  <text x="812" y="3039" class="tiny">overflow 仅 11 层全满的极端 guard</text>
+
+  <!-- motif note -->
+  <rect x="40" y="3086" width="1200" height="34" rx="8" fill="#FFF1F0" stroke="#C0392B" stroke-width="1.3"/>
+  <text x="58" y="3108" class="box" fill="#9B2C2C">★ 母题：写侧 <tspan font-weight="700">edges × active_parts</tspan> 与 读侧 <tspan font-weight="700">active_records × touched_tiles</tspan> 是同构的「逐单元重扫」代价 —— Spine 性能画像的核心。</text>
+</svg>

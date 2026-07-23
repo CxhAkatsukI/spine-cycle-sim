@@ -22,6 +22,13 @@ The simulator is not a line-by-line translation of the HLS kernels. The HLS and
 FPGA runs remain the functionality and calibration reference; this simulator is
 the architecture exploration model.
 
+Fine-grained C++ cycle simulation is being developed on
+`codex/fine-grained-cycle-sim`. Its frozen execution, validation, comparison,
+and evidence contract is documented in
+[`docs/fine_grained_cycle_sim_contract_20260723.md`](docs/fine_grained_cycle_sim_contract_20260723.md).
+The legacy Python/calibration path remains available for regression while that
+new path is implemented.
+
 ## Quick Start
 
 Run one workload:

@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "profile_id": "spine_latest_afb8199",
+  "architecture": "spine",
+  "status": "experimental",
+  "evidence_tier": "simulation_only",
+  "source": {
+    "repository": "/home/chuxiao/spine-dynamic-graph-reduce-levels",
+    "revision": "afb8199a2ca8d3fd208b985324bf4d8719e2b839",
+    "branch": "reduce-levels-for-routing",
+    "dirty": false
+  },
+  "clocks": [
+    {"name": "data", "requested_mhz": 150.0, "achieved_mhz": 150.0},
+    {"name": "hbm", "requested_mhz": 450.0, "achieved_mhz": 450.0}
+  ],
+  "memory": {
+    "backend": "u55c_hbm",
+    "channels": 16,
+    "channel_capacity_bytes": 536870912,
+    "data_width_bits": 512,
+    "max_burst_bytes": 1024,
+    "max_outstanding_per_port": 32
+  },
+  "parameters": {
+    "partitions": 16,
+    "hot_shards": 16,
+    "levels": 11,
+    "level_ratio": 2,
+    "vertex_partition_size": 1048576,
+    "tile_vertices": 65536,
+    "tiny_active_threshold": 4096,
+    "split_compute_width": 4
+  },
+  "features": [
+    "device_dirty_family_directory_plan",
+    "packed_maintenance_commit_bram",
+    "exact_sparse_convergence_range_tasks",
+    "persistent_dirty_frontier",
+    "shared_cold_hot_maintenance_engines"
+  ],
+  "evidence": [],
+  "limitations": [
+    "Source-following profile only; no accepted routed xclbin or performance calibration is attached.",
+    "Do not use this profile for headline performance until a hardware acceptance bundle exists."
+  ]
+}

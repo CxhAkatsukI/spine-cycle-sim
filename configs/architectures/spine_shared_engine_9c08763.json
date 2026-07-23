@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "profile_id": "spine_shared_engine_9c08763",
+  "architecture": "spine",
+  "status": "stable",
+  "evidence_tier": "hardware_validated",
+  "source": {
+    "repository": "/home/chuxiao/spine-dynamic-graph-reduce-levels",
+    "revision": "9c08763148644df262c0d374e782bc834f4c0f4f",
+    "branch": "reduce-levels-for-routing",
+    "dirty": false
+  },
+  "clocks": [
+    {"name": "data", "requested_mhz": 150.0, "achieved_mhz": 141.0},
+    {"name": "hbm", "requested_mhz": 450.0, "achieved_mhz": 450.0},
+    {"name": "kernel", "requested_mhz": 500.0, "achieved_mhz": 500.0}
+  ],
+  "memory": {
+    "backend": "u55c_hbm",
+    "channels": 16,
+    "channel_capacity_bytes": 536870912,
+    "data_width_bits": 512,
+    "max_burst_bytes": 1024,
+    "max_outstanding_per_port": 32
+  },
+  "parameters": {
+    "partitions": 16,
+    "hot_shards": 16,
+    "levels": 11,
+    "level_ratio": 2,
+    "vertex_partition_size": 1048576,
+    "tile_vertices": 65536,
+    "tiny_active_threshold": 4096,
+    "split_compute_width": 4
+  },
+  "features": [
+    "shared_cold_hot_maintenance_engines",
+    "stream_sparse_carry_cursors",
+    "split_readmaintenance_compute",
+    "persistent_frontier",
+    "tiny_active_convergence"
+  ],
+  "evidence": [
+    {
+      "kind": "acceptance_bundle",
+      "path": "/data/feiyang/spine-dynamic-graph-builds/merged_directory_shared_engine_9c08763/acceptance_bundle/README.md"
+    },
+    {
+      "kind": "xclbin",
+      "path": "/data/feiyang/spine-dynamic-graph-builds/merged_directory_shared_engine_9c08763/acceptance_bundle/candidate/artifacts/hw_exact_150_extra_timing_v1/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+      "sha256": "1828434e164bf0aef28fff9fba7925cfa39f93ad86f6bfc3878f504461c76dbf"
+    }
+  ],
+  "limitations": [
+    "Stable performance and implementation reference, not the newest source revision.",
+    "Profile records configured interface limits; AXI behavior must be validated independently."
+  ]
+}

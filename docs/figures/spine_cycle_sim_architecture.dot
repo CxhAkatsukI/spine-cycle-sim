@@ -1,0 +1,286 @@
+digraph SpineCycleSimArchitecture {
+  graph [
+    rankdir=LR,
+    bgcolor="#F7F8FA",
+    pad="0.35",
+    nodesep="0.36",
+    ranksep="0.70",
+    splines=ortho,
+    compound=true,
+    newrank=true,
+    fontname="Noto Sans CJK SC",
+    fontsize=18,
+    labelloc=t,
+    label="Spine Cycle Simulator 全景架构（reduce-levels-for-routing）"
+  ];
+
+  node [
+    shape=box,
+    style="rounded,filled",
+    color="#52606D",
+    fillcolor="#FFFFFF",
+    fontname="Noto Sans CJK SC",
+    fontsize=11,
+    margin="0.16,0.10",
+    penwidth=1.2
+  ];
+
+  edge [
+    color="#52606D",
+    fontcolor="#364152",
+    fontname="Noto Sans CJK SC",
+    fontsize=9,
+    arrowsize=0.72,
+    penwidth=1.25
+  ];
+
+  subgraph cluster_inputs {
+    label="A. 实验输入与运行前准备（不计入模拟周期）";
+    color="#8B98A5";
+    fillcolor="#EEF1F4";
+    style="rounded,filled";
+    penwidth=1.4;
+
+    config [
+      label="SpineConfig\n硬件规模 / 吞吐 / 延迟\n16 partitions · 16 hot shards\n11 levels · 134 MHz",
+      fillcolor="#E7EDF3"
+    ];
+    workload [
+      label="Workload\nvertices + source\n显式 list[Edge(src,dst,weight)]",
+      fillcolor="#E4F2EA",
+      color="#4F7D62"
+    ];
+    classifier [
+      label="Hot/Cold Classifier ×1\n统计目标点入度\n输出 hot_dsts + family load\n当前不计分类时间",
+      fillcolor="#FFF1CC",
+      color="#A57617"
+    ];
+
+    workload -> classifier [label="全图边列表"];
+  }
+
+  subgraph cluster_update {
+    label="B. 更新写入 / LSM Maintenance 数据流";
+    color="#4F79A7";
+    fillcolor="#EAF2FA";
+    style="rounded,filled";
+    penwidth=1.5;
+
+    edge_input [
+      label="EdgeInput ×1\n每 edge_input_ii 周期发 1 条边\nEdge → EdgePacket(sequence)",
+      fillcolor="#DCEBFA"
+    ];
+    fifo_er [
+      label="FIFO ×1\nedge_to_router\ndepth=32",
+      shape=box3d,
+      fillcolor="#FFFFFF"
+    ];
+    router [
+      label="PartitionRouter ×1\nnormal dst → cold family\nhot dst → hashed hot family\n默认 II=1",
+      fillcolor="#DCEBFA"
+    ];
+    family_fifos [
+      label="Family FIFO ×32\nrouter_to_l0_f[0..31]\n每条 depth=32",
+      shape=box3d,
+      fillcolor="#FFFFFF"
+    ];
+    level0 [
+      label="Level0Buffer ×1\n32 路 round-robin，最多接收 16 edge/cycle\n形成 131,072-edge batch\n维护 occupancy[32 families][11 levels]\n选择 cold/hot 组的 first-empty target level",
+      fillcolor="#DCEBFA"
+    ];
+    event_fifo [
+      label="FIFO ×1\nStorageEvent\n仅携带每-family计数",
+      shape=box3d,
+      fillcolor="#FFFFFF"
+    ];
+    carry [
+      label="Level1CarryMerge ×1\n实际处理 target L0..L10\ncarry 延迟 = ceil(edges / 16)\n为非空 family 生成写请求",
+      fillcolor="#DCEBFA"
+    ];
+
+    edge_input -> fifo_er -> router -> family_fifos -> level0 -> event_fifo -> carry;
+  }
+
+  subgraph cluster_memory {
+    label="C. 共享 Partition-Major 图存储";
+    color="#A57617";
+    fillcolor="#FFF6DE";
+    style="rounded,filled";
+    penwidth=1.5;
+
+    memory_fifos [
+      label="MemoryRequest FIFO ×16\nmem_req_bank[0..15]\n写入与读回分时复用",
+      shape=box3d,
+      fillcolor="#FFFFFF"
+    ];
+    hbm [
+      label="HBMPartition ×16\n每 bank 同时最多 1 个请求\nservice = 200 + ceil(edges / 16) cycles\n跟踪 occupancy[(family, level)]\n当前只建模容量/延迟，不保存 CSR payload",
+      fillcolor="#FFE9AE",
+      color="#A57617"
+    ];
+    bank_layout [
+      shape=plain,
+      label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="6" COLOR="#A57617">
+          <TR><TD COLSPAN="3" BGCOLOR="#F5D987"><B>每个 HBM bank p 的逻辑内容</B></TD></TR>
+          <TR><TD BGCOLOR="#FFF9E8">cold family p</TD><TD BGCOLOR="#FFF9E8">L0 ... L10</TD><TD BGCOLOR="#FFF9E8">normal dst range p</TD></TR>
+          <TR><TD BGCOLOR="#FFF9E8">hot family 16+p</TD><TD BGCOLOR="#FFF9E8">L0 ... L10</TD><TD BGCOLOR="#FFF9E8">hash(dst)%16 = p</TD></TR>
+          <TR><TD COLSPAN="3" BGCOLOR="#FFFFFF">bank = family % 16 · 共 32×11 = 352 个逻辑 slice</TD></TR>
+        </TABLE>
+      >
+    ];
+
+    memory_fifos -> hbm [label="read / write request"];
+    hbm -> bank_layout [style=dashed, arrowhead=none, label="逻辑布局"];
+  }
+
+  subgraph cluster_query {
+    label="D. Read Maintenance 与 SSSP 收敛";
+    color="#9A4D4D";
+    fillcolor="#FBEDED";
+    style="rounded,filled";
+    penwidth=1.5;
+
+    readmaint [
+      label="ReadMaintenance ×1\n等待所有写入和 HBM 完成\n扫描 vertices（默认 64/cycle）\n对每个非空 family 发起 read\n全部完成后发送 SSSP start token",
+      fillcolor="#F7DCDC",
+      color="#9A4D4D"
+    ];
+    start_fifo [
+      label="FIFO ×1\nsssp_start\ndepth=1",
+      shape=box3d,
+      fillcolor="#FFFFFF"
+    ];
+    sssp [
+      label="SSSPCompute ×1\n由 Workload 建立 Python 邻接表\nfrontier-based weighted relaxation\n默认 1 edge/cycle\n统计 tiny-active / full-path iterations",
+      fillcolor="#F7DCDC",
+      color="#9A4D4D"
+    ];
+    result_fifo [
+      label="FIFO ×1\nsssp_result\ndepth=1",
+      shape=box3d,
+      fillcolor="#FFFFFF"
+    ];
+    host [
+      label="HostDrain ×1\nreachable_vertices\nmax_distance",
+      fillcolor="#F7DCDC",
+      color="#9A4D4D"
+    ];
+
+    readmaint -> start_fifo -> sssp -> result_fifo -> host;
+  }
+
+  carry -> memory_fifos [label="每非空 family 一个 write"];
+  readmaint -> memory_fifos [label="每非空 family 一个 read", constraint=false];
+  hbm -> readmaint [style=dashed, label="idle / completion（无 payload response）"];
+  classifier -> router [style=dashed, label="hot_dsts"];
+  workload -> edge_input [label="edges"];
+  workload -> sssp [style=dashed, color="#9A4D4D", label="原始 edges → adjacency"];
+  config -> edge_input [style=dashed, color="#7A8793", constraint=false];
+  config -> level0 [style=dashed, color="#7A8793", constraint=false];
+  config -> hbm [style=dashed, color="#7A8793", constraint=false];
+  config -> sssp [style=dashed, color="#7A8793", constraint=false];
+
+  subgraph cluster_concepts {
+    label="E. family / partition / level 坐标系";
+    color="#567A66";
+    fillcolor="#EBF5EF";
+    style="rounded,filled";
+    penwidth=1.4;
+
+    concepts [
+      shape=plain,
+      label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="7" COLOR="#567A66">
+          <TR><TD BGCOLOR="#CFE5D6"><B>概念</B></TD><TD BGCOLOR="#CFE5D6"><B>数量</B></TD><TD BGCOLOR="#CFE5D6"><B>回答的问题</B></TD></TR>
+          <TR><TD><B>partition</B></TD><TD>16</TD><TD ALIGN="LEFT">normal dst 属于哪个 2^20 顶点范围？</TD></TR>
+          <TR><TD><B>family</B></TD><TD>32</TD><TD ALIGN="LEFT">这条边在哪个独立容量/LSM 栈中？</TD></TR>
+          <TR><TD><B>level</B></TD><TD>11/family</TD><TD ALIGN="LEFT">该批边经历了哪一级 binary carry？</TD></TR>
+          <TR><TD COLSPAN="3" BGCOLOR="#FFFFFF" ALIGN="LEFT">normal: family=floor(dst/2^20)；hot: family=16+hash(dst)%16</TD></TR>
+        </TABLE>
+      >
+    ];
+    levels [
+      shape=plain,
+      label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="5" COLOR="#567A66">
+          <TR><TD COLSPAN="4" BGCOLOR="#CFE5D6"><B>单 family 的 level 容量（edges）</B></TD></TR>
+          <TR><TD>L0*</TD><TD>131,072</TD><TD>L6</TD><TD>524,288</TD></TR>
+          <TR><TD>L1</TD><TD>16,384</TD><TD>L7</TD><TD>1,048,576</TD></TR>
+          <TR><TD>L2</TD><TD>32,768</TD><TD>L8</TD><TD>2,097,152</TD></TR>
+          <TR><TD>L3</TD><TD>65,536</TD><TD>L9</TD><TD>4,194,304</TD></TR>
+          <TR><TD>L4</TD><TD>131,072</TD><TD>L10</TD><TD>8,388,608</TD></TR>
+          <TR><TD>L5</TD><TD>262,144</TD><TD><B>合计</B></TD><TD><B>16,891,904</B></TD></TR>
+          <TR><TD COLSPAN="4" BGCOLOR="#FFFFFF">* L0 是 batch-size 特殊容量；level 是存储层，不是 11 个流水级</TD></TR>
+        </TABLE>
+      >
+    ];
+    concepts -> levels [style=invis];
+  }
+
+  subgraph cluster_runtime {
+    label="F. 全局逐周期执行与统计";
+    color="#6B5C8E";
+    fillcolor="#F0EDF7";
+    style="rounded,filled";
+    penwidth=1.4;
+
+    scheduler [
+      label="CycleSimulator ×1\n每周期：all evaluate → all commit → all FIFO commit\n避免组件调用顺序导致同周期穿透",
+      fillcolor="#E5DFF2",
+      color="#6B5C8E"
+    ];
+    stats [
+      label="Stats ×1\ncycles · stalls · HBM traffic · carries\nSSSP iterations · capacity failure · trace",
+      fillcolor="#E5DFF2",
+      color="#6B5C8E"
+    ];
+    scheduler -> stats [style=dashed, label="sample / result"];
+  }
+
+  scheduler -> edge_input [style=dotted, color="#6B5C8E", constraint=false];
+  scheduler -> hbm [style=dotted, color="#6B5C8E", constraint=false];
+  scheduler -> sssp [style=dotted, color="#6B5C8E", constraint=false];
+
+  subgraph cluster_hardware {
+    label="G. 当前 FPGA split xclbin 的物理封装（不是 23 个 kernel）";
+    color="#3E6C78";
+    fillcolor="#EAF4F6";
+    style="rounded,filled";
+    penwidth=1.5;
+
+    hw_host [
+      label="Host / HBM inputs\nsorted_edges HBM[16]\nactive_bins HBM[18]\nmetadata HBM[20]",
+      fillcolor="#FFFFFF"
+    ];
+    cu_readmaint [
+      label="spine_partconv_rdmaint_kernel ×1\nSLR0 · 20 AXI masters\nmode=MAINT：更新 16 graph banks\nmode=CONV：读取 CSR 并产生 relax records",
+      fillcolor="#CFE7EB",
+      color="#3E6C78"
+    ];
+    axis [
+      label="64-bit AXIS ×1\ndepth=32\n(dst, proposed) + markers",
+      shape=box3d,
+      fillcolor="#FFFFFF"
+    ];
+    cu_compute [
+      label="spine_partconv_compute_kernel ×1\nSLR1 · 4 AXI masters\nvertex-state relax\nnext frontier / bitmap / result",
+      fillcolor="#CFE7EB",
+      color="#3E6C78"
+    ];
+    hw_mem [
+      label="HBM[0..15] graph families/levels\nHBM[17] vertex state · HBM[19] active out\nHBM[21] result · HBM[22] bitmap",
+      fillcolor="#FFFFFF"
+    ];
+
+    hw_host -> cu_readmaint;
+    cu_readmaint -> axis [label="仅 CONV mode"];
+    axis -> cu_compute;
+    cu_readmaint -> hw_mem [dir=both, label="graph / metadata"];
+    cu_compute -> hw_mem [dir=both, label="state / frontier"];
+  }
+
+  level0 -> concepts [style=dashed, arrowhead=none, color="#567A66", constraint=false];
+  readmaint -> cu_readmaint [style=dashed, arrowhead=none, color="#3E6C78", label="概念映射", constraint=false];
+  sssp -> cu_compute [style=dashed, arrowhead=none, color="#3E6C78", label="粗粒度映射", constraint=false];
+}
