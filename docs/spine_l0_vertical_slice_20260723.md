@@ -94,7 +94,9 @@ Not yet implemented in this component:
 - hot-enabled family maintenance;
 - target levels above L0 and sparse carry merge;
 - exact metadata cache/packing and all compiler-generated AXI burst boundaries;
-- reader, depth-32 cross-SLR AXIS, tiny/full compute, and convergence;
+- hot/carry-aware reader traversal, full-tile compute, and convergence. The
+  cold-L0 tiny-SSSP split slice is implemented and documented separately in
+  `spine_split_vertical_slice_20260723.md`;
 - online SST execution of this architecture component rather than the generic
   memory probe.
 

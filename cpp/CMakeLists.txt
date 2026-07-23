@@ -4,6 +4,7 @@ add_library(spine_cycle_core STATIC
   src/memory_backend.cpp
   src/scheduler.cpp
   src/spine_l0.cpp
+  src/spine_split.cpp
 )
 
 target_include_directories(spine_cycle_core PUBLIC include)

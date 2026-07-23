@@ -18,6 +18,7 @@
 #include "spine_sim/memory_backend.hpp"
 #include "spine_sim/scheduler.hpp"
 #include "spine_sim/spine_l0.hpp"
+#include "spine_sim/spine_split.hpp"
 
 namespace {
 
@@ -41,10 +42,16 @@ using spine::sim::OnChipRequest;
 using spine::sim::OnChipResponse;
 using spine::sim::ReadAfterWritePolicy;
 using spine::sim::Scheduler;
+using spine::sim::PartConvWord;
+using spine::sim::SourceValueWord;
+using spine::sim::SpineComputePorts;
 using spine::sim::SpineL0Config;
 using spine::sim::SpineL0Maintenance;
 using spine::sim::SpineL0Ports;
 using spine::sim::SpineL0State;
+using spine::sim::SpineReaderPorts;
+using spine::sim::SpineSplitReader;
+using spine::sim::SpineSplitSsspCompute;
 using spine::sim::load_spine_edge_slice;
 
 void require(bool condition, const std::string& message) {
@@ -577,15 +584,85 @@ void test_spine_l0_real_slice_vertical_path() {
   SpineL0Maintenance maintenance(
       "spine-l0-maintenance", core, SpineL0Config{}, workload, ports, state);
 
+  FixedAxiPort active_bins(
+      "active-bins", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32,
+          .channel = 18,
+          .initiator_id = 18,
+      },
+      backend);
+  FixedAxiPort vertex_state(
+      "vertex-state", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32,
+          .channel = 17,
+          .initiator_id = 117,
+      },
+      backend);
+  FixedAxiPort active_out(
+      "active-out", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32,
+          .channel = 19,
+          .initiator_id = 119,
+      },
+      backend);
+  FixedAxiPort active_bitmap(
+      "active-bitmap", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32,
+          .channel = 22,
+          .initiator_id = 122,
+      },
+      backend);
+  FixedAxiPort compute_result(
+      "compute-result", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32,
+          .channel = 21,
+          .initiator_id = 121,
+      },
+      backend);
+  Fifo<PartConvWord> edge_stream("edge-axis", core, 32);
+  Fifo<SourceValueWord> value_stream("value-axis", core, 32);
+  SpineReaderPorts reader_ports;
+  reader_ports.graph = ports.graph;
+  reader_ports.active_bins = &active_bins;
+  reader_ports.metadata = &metadata;
+  SpineSplitReader reader(
+      "spine-split-reader", core, maintenance, state, reader_ports, {2},
+      edge_stream, value_stream);
+  SpineSplitSsspCompute compute(
+      "spine-split-compute", core, workload.vertices, 2, 4096,
+      SpineComputePorts{
+          .vertex_state = &vertex_state,
+          .active_out = &active_out,
+          .active_bitmap = &active_bitmap,
+          .result = &compute_result,
+      },
+      edge_stream, value_stream);
+
   scheduler.add_component(maintenance);
+  scheduler.add_component(reader);
+  scheduler.add_component(compute);
+  scheduler.add_component(edge_stream);
+  scheduler.add_component(value_stream);
   for (auto& port : graph_ports) {
     port->register_components(scheduler);
   }
   sorted.register_components(scheduler);
   metadata.register_components(scheduler);
   result.register_components(scheduler);
+  active_bins.register_components(scheduler);
+  vertex_state.register_components(scheduler);
+  active_out.register_components(scheduler);
+  active_bitmap.register_components(scheduler);
+  compute_result.register_components(scheduler);
   scheduler.add_component(backend);
-  scheduler.run_until([&maintenance] { return maintenance.done(); }, 10'000);
+  scheduler.run_until(
+      [&] { return maintenance.done() && reader.done() && compute.done(); },
+      30'000);
 
   require(!maintenance.failed(), "Spine L0 real-slice path reported failure");
   const auto& counters = maintenance.counters();
@@ -621,6 +698,59 @@ void test_spine_l0_real_slice_vertical_path() {
   }
   require(counters.end_cycle > counters.start_cycle + counters.sorted_edge_visits,
           "Spine timing did not include memory/control work");
+
+  require(!reader.failed() && !compute.failed(),
+          "Spine split reader/compute path reported failure");
+  const auto& reader_counters = reader.counters();
+  require(reader_counters.source_requests == 1 &&
+              reader_counters.source_responses == 1,
+          "Spine source-value protocol did not close");
+  require(reader_counters.tiles_emitted == 5 &&
+              reader_counters.edges_emitted == 10,
+          "Spine reader tile/edge stream shape mismatch");
+  require(reader_counters.active_bin_read_bytes == 32 &&
+              reader_counters.metadata_read_bytes == 64 &&
+              reader_counters.graph_read_bytes == 224,
+          "Spine reader memory byte ledger mismatch");
+
+  const auto& compute_counters = compute.counters();
+  require(compute_counters.touched_tiles == 5 &&
+              compute_counters.fast_path_tiles == 5 &&
+              compute_counters.full_path_tiles == 0,
+          "Spine tiny-tile path selection mismatch");
+  require(compute_counters.processed_edges == 10 &&
+              compute_counters.gathered_vertex_words == 10 &&
+              compute_counters.scattered_vertex_words == 10,
+          "Spine tiny-tile work counters mismatch");
+  require(compute_counters.vertex_read_bytes == 44 &&
+              compute_counters.vertex_write_bytes == 40 &&
+              compute_counters.active_out_write_bytes == 80 &&
+              compute_counters.bitmap_bytes == 16 &&
+              compute_counters.result_write_bytes == 384,
+          "Spine compute memory byte ledger mismatch");
+  require(compute.next_active().size() == 10,
+          "Spine SSSP next frontier size mismatch");
+  for (const auto& edge : workload.edges) {
+    require(compute.values()[edge.dst] == 1,
+            "Spine SSSP result differs from the expected fanout distance");
+  }
+  require(edge_stream.stats().pushes == 22 && edge_stream.stats().pops == 22,
+          "Spine forward AXIS transfer count mismatch");
+  require(value_stream.stats().pushes == 1 && value_stream.stats().pops == 1,
+          "Spine reverse AXIS transfer count mismatch");
+  require(edge_stream.stats().max_occupancy <= 32 &&
+              value_stream.stats().max_occupancy <= 32,
+          "Spine AXIS occupancy exceeded the configured depth");
+  std::cout << "EVIDENCE spine_vertical_slice e2e_cycles="
+            << scheduler.clock(core).completed_cycles
+            << " maintenance_cycles="
+            << counters.end_cycle - counters.start_cycle
+            << " reader_cycles="
+            << reader_counters.end_cycle - reader_counters.start_cycle
+            << " compute_cycles="
+            << compute_counters.end_cycle - compute_counters.start_cycle
+            << " edge_axis_max_occupancy="
+            << edge_stream.stats().max_occupancy << '\n';
 }
 
 }  // namespace
