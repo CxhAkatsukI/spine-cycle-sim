@@ -271,7 +271,7 @@
 <g id="node16" class="node">
 <title>full</title>
 <path fill="#ffffff" stroke="#59636e" d="M2610,-140C2610,-140 2351,-140 2351,-140 2345,-140 2339,-134 2339,-128 2339,-128 2339,-116 2339,-116 2339,-110 2345,-104 2351,-104 2351,-104 2610,-104 2610,-104 2616,-104 2622,-110 2622,-116 2622,-116 2622,-128 2622,-128 2622,-134 2616,-140 2610,-140"/>
-<text text-anchor="middle" x="2480.5" y="-125" font-family="DejaVu Sans" font-size="10.00">Full tile [next milestone]</text>
+<text text-anchor="middle" x="2480.5" y="-125" font-family="DejaVu Sans" font-size="10.00">Full tile [implemented]</text>
 <text text-anchor="middle" x="2480.5" y="-114" font-family="DejaVu Sans" font-size="10.00">load 65,536 &#45;&gt; replay &#45;&gt; stream &#45;&gt; optional full store</text>
 </g>
 <!-- axis&#45;&gt;full -->

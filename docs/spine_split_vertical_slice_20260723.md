@@ -76,14 +76,14 @@ The first accepted run produced:
 
 | SST/DRAMSim3 evidence | value |
 | --- | ---: |
-| data cycles | 4,622 |
-| backend requests | 551 |
-| DRAM completed reads / writes | 489 / 62 |
+| data cycles | 4,608 |
+| backend requests | 546 |
+| DRAM completed reads / writes | 489 / 57 |
 | DRAM ACT / PRE | 47 / 39 |
-| read + write row hits | 470 |
+| read + write row hits | 462 |
 | backend max outstanding | 4 |
 | backend/response-queue stalls | 0 / 0 |
-| memory-only DRAMSim3 energy | 67,128,624 pJ |
+| memory-only DRAMSim3 energy | 66,956,412 pJ |
 
 All 32 configured pseudo-channels emitted statistics. The backend request count
 exactly equals completed DRAM reads plus writes, and all architecture counters

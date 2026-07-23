@@ -18,6 +18,7 @@ workload = Path(
 ).resolve()
 preload_workload = os.environ.get("SPINE_SST_PRELOAD", "")
 hot_vertices = os.environ.get("SPINE_SST_HOT_VERTICES", "")
+mode = os.environ.get("SPINE_SST_MODE", "spine_vertical")
 output = os.environ.get("SPINE_SST_OUTPUT", "sst_spine_vertical.json")
 dram_output = Path(
     os.environ.get("SPINE_SST_DRAM_OUTPUT", "/tmp/spine_vertical_dramsim3")
@@ -27,7 +28,7 @@ dram_output.mkdir(parents=True, exist_ok=True)
 probe = sst.Component("spine", "spine_cycle.OnlineMemoryProbe")
 probe.addParams(
     {
-        "mode": "spine_vertical",
+        "mode": mode,
         "output": output,
         "workload": str(workload),
         "preload_workload": preload_workload,

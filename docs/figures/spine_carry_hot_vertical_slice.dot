@@ -39,7 +39,7 @@ digraph SpineCarryHotSlice {
     label="Compute CU"; color="#765C8A"; style="rounded,filled"; fillcolor="#F3EEF7";
     axis [label="Forward edge AXIS\ndepth 32 + backpressure"];
     tiny [label="Tiny SSSP [implemented]\n<= 4,096 edge words\ngather -> relax -> sparse store"];
-    full [label="Full tile [next milestone]\nload 65,536 -> replay -> stream -> optional full store"];
+    full [label="Full tile [implemented]\nload 65,536 -> replay -> stream -> optional full store"];
     frontier [label="Next frontier + vertex state\nHBM[17,19,22]"];
     axis -> tiny -> frontier;
     axis -> full -> frontier;

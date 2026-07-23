@@ -94,10 +94,13 @@ ordinary edge words after a non-forced `TILE_BEGIN` are buffered.
 - A reader-forced dense tile enters the same full path without speculative
   buffering.
 
-The current C++ compute component fails above the threshold. The replacement
-must model the complete vertex-state read sweep, buffer replay, streamed tail,
-full store sweep when nonempty, active-output traffic, and finite AXIS
-backpressure. It must preserve the 4,095 / 4,096 / 4,097 / 4,098 boundary.
+The C++ compute component now classifies online at edge 4,097, stops consuming
+the finite AXIS during the full-tile load and buffer replay, then consumes the
+overflow edge and streamed tail. It models the complete vertex-state read
+sweep, full store sweep when nonempty, active-output traffic, and finite AXIS
+backpressure. C++ tests preserve the 4,095 / 4,096 / 4,097 / 4,098 boundary;
+the real Amazon SST workload provides one 49,982-edge full tile plus 11 tiny
+tiles.
 
 ## Multi-round convergence
 

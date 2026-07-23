@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <limits>
 #include <map>
-#include <set>
 #include <stdexcept>
 #include <utility>
 
@@ -28,12 +27,11 @@ constexpr std::uint64_t kMetadataSliceWords =
 constexpr std::uint64_t kMetadataBaseWords =
     kMetadataSliceWords + 2 * kPartitionCount;
 constexpr std::uint64_t kTouchedSlotWords = 5 + kPageCount;
-constexpr std::uint64_t kTouchedWords =
-    kMetadataBaseWords + 2 * kPartitionCount +
-    2 * kPartitionCount * kTouchedSlotWords;
+constexpr std::uint64_t kTouchedWords = kMetadataBaseWords +
+                                        2 * kPartitionCount +
+                                        2 * kPartitionCount * kTouchedSlotWords;
 constexpr std::uint64_t kSliceEpochBaseWords = kTouchedWords;
-constexpr std::uint64_t kSliceEpochWords =
-    (kFamilyCount * kLevelCount + 1) / 2;
+constexpr std::uint64_t kSliceEpochWords = (kFamilyCount * kLevelCount + 1) / 2;
 constexpr std::uint64_t kPageEpochBaseWords =
     kSliceEpochBaseWords + kSliceEpochWords;
 
@@ -262,10 +260,10 @@ void SpineSplitReader::enqueue_level_cache_reads() {
         enqueue_read(*ports_.metadata, address, bytes);
         counters_.level_cache_read_bytes += bytes;
         if (!level.empty()) {
-          enqueue_read(*ports_.metadata,
-                       (kSliceEpochBaseWords + (slice >> 1)) *
-                           kMetadataWordBytes,
-                       kMetadataWordBytes);
+          enqueue_read(
+              *ports_.metadata,
+              (kSliceEpochBaseWords + (slice >> 1)) * kMetadataWordBytes,
+              kMetadataWordBytes);
           counters_.level_cache_read_bytes += kMetadataWordBytes;
           ++counters_.occupied_levels;
         }
@@ -549,12 +547,25 @@ void SpineSplitSsspCompute::handle_edge_word(const PartConvWord &word) {
       phase_ = Phase::kSourceRead;
       return;
     case PartConvWordKind::kTileBegin:
+      if (tile_open_ || word.first >= vertices_) {
+        failed_ = true;
+        done_ = true;
+        return;
+      }
       tile_base_ = word.first;
+      tile_size_ = std::min<std::size_t>(kTileVertices, vertices_ - tile_base_);
       tile_edges_.clear();
+      gather_vertices_.clear();
+      gathered_values_.clear();
+      changed_vertices_.clear();
+      relax_index_ = 0;
+      full_path_ = false;
+      overflow_edge_pending_ = false;
+      tile_open_ = true;
       phase_ = Phase::kInput;
       return;
     case PartConvWordKind::kEdge:
-      if (word.first < tile_base_ ||
+      if (!tile_open_ || word.first < tile_base_ ||
           static_cast<std::uint64_t>(word.first) >=
               static_cast<std::uint64_t>(tile_base_) + kTileVertices ||
           word.first >= vertices_) {
@@ -562,22 +573,42 @@ void SpineSplitSsspCompute::handle_edge_word(const PartConvWord &word) {
         done_ = true;
         return;
       }
-      tile_edges_.push_back(word);
+      if (full_path_) {
+        relax_edge(word);
+        ++counters_.full_stream_edges;
+      } else if (tile_edges_.size() < tiny_threshold_) {
+        tile_edges_.push_back(word);
+      } else {
+        begin_full_path(word);
+      }
       phase_ = Phase::kInput;
+      if (full_path_ && overflow_edge_pending_) {
+        phase_ = Phase::kFullLoad;
+      }
       return;
     case PartConvWordKind::kTileEnd:
-      ++counters_.touched_tiles;
-      if (tile_edges_.size() > tiny_threshold_) {
-        ++counters_.full_path_tiles;
+      if (!tile_open_) {
         failed_ = true;
         done_ = true;
         return;
       }
+      ++counters_.touched_tiles;
+      if (full_path_) {
+        prepare_store();
+        phase_ = Phase::kStore;
+        return;
+      }
       ++counters_.fast_path_tiles;
+      counters_.tiny_buffered_edges += tile_edges_.size();
       prepare_gather();
       phase_ = Phase::kGatherBegin;
       return;
     case PartConvWordKind::kDoneAll:
+      if (tile_open_) {
+        failed_ = true;
+        done_ = true;
+        return;
+      }
       enqueue_memory(*ports_.active_bitmap, MemoryOperation::kRead, 0, 8);
       enqueue_memory(*ports_.active_bitmap, MemoryOperation::kWrite, 0, 8);
       enqueue_memory(*ports_.result, MemoryOperation::kWrite, 0, kResultBytes);
@@ -587,11 +618,11 @@ void SpineSplitSsspCompute::handle_edge_word(const PartConvWord &word) {
 }
 
 void SpineSplitSsspCompute::prepare_gather() {
-  std::set<std::uint32_t> unique;
+  gather_vertices_.clear();
+  gather_vertices_.reserve(tile_edges_.size());
   for (const PartConvWord &edge : tile_edges_) {
-    unique.insert(edge.first);
+    gather_vertices_.push_back(edge.first);
   }
-  gather_vertices_.assign(unique.begin(), unique.end());
   gathered_values_.clear();
   changed_vertices_.clear();
   gather_index_ = 0;
@@ -601,14 +632,63 @@ void SpineSplitSsspCompute::prepare_gather() {
 void SpineSplitSsspCompute::prepare_store() {
   const std::size_t active_base =
       next_active_.size() - changed_vertices_.size();
+  if (full_path_ && !changed_vertices_.empty()) {
+    enqueue_memory(*ports_.vertex_state, MemoryOperation::kWrite,
+                   tile_base_ * kVertexWordBytes,
+                   tile_size_ * kVertexWordBytes);
+    counters_.swept_vertex_words += tile_size_;
+  }
   for (std::size_t index = 0; index < changed_vertices_.size(); ++index) {
     const std::uint32_t vertex = changed_vertices_[index];
-    enqueue_memory(*ports_.vertex_state, MemoryOperation::kWrite,
-                   vertex * kVertexWordBytes, kVertexWordBytes);
-    enqueue_memory(*ports_.active_out, MemoryOperation::kWrite,
-                   (active_base + index) * kActiveOutputBytes,
-                   kActiveOutputBytes);
+    if (!full_path_) {
+      enqueue_memory(*ports_.vertex_state, MemoryOperation::kWrite,
+                     vertex * kVertexWordBytes, kVertexWordBytes);
+    }
   }
+  if (!changed_vertices_.empty()) {
+    enqueue_memory(*ports_.active_out, MemoryOperation::kWrite,
+                   active_base * kActiveOutputBytes,
+                   changed_vertices_.size() * kActiveOutputBytes);
+  }
+}
+
+void SpineSplitSsspCompute::begin_full_path(const PartConvWord &overflow_edge) {
+  full_path_ = true;
+  overflow_edge_ = overflow_edge;
+  overflow_edge_pending_ = true;
+  ++counters_.full_path_tiles;
+  counters_.swept_vertex_words += tile_size_;
+  changed_vertices_.clear();
+  relax_index_ = 0;
+  enqueue_memory(*ports_.vertex_state, MemoryOperation::kRead,
+                 tile_base_ * kVertexWordBytes, tile_size_ * kVertexWordBytes);
+}
+
+void SpineSplitSsspCompute::relax_edge(const PartConvWord &edge) {
+  std::uint32_t &current =
+      full_path_ ? values_.at(edge.first) : gathered_values_.at(edge.first);
+  if (edge.second < current) {
+    current = edge.second;
+    values_[edge.first] = edge.second;
+    if (std::find(changed_vertices_.begin(), changed_vertices_.end(),
+                  edge.first) == changed_vertices_.end()) {
+      changed_vertices_.push_back(edge.first);
+      next_active_.push_back(edge.first);
+    }
+  }
+  ++counters_.processed_edges;
+}
+
+void SpineSplitSsspCompute::reset_tile() {
+  tile_edges_.clear();
+  gather_vertices_.clear();
+  gathered_values_.clear();
+  changed_vertices_.clear();
+  relax_index_ = 0;
+  tile_size_ = 0;
+  tile_open_ = false;
+  full_path_ = false;
+  overflow_edge_pending_ = false;
 }
 
 void SpineSplitSsspCompute::advance(const CycleContext &context) {
@@ -644,25 +724,35 @@ void SpineSplitSsspCompute::advance(const CycleContext &context) {
       }
       {
         const PartConvWord &edge = tile_edges_[relax_index_];
-        std::uint32_t &current = gathered_values_.at(edge.first);
-        if (edge.second < current) {
-          current = edge.second;
-          values_[edge.first] = edge.second;
-          if (std::find(changed_vertices_.begin(), changed_vertices_.end(),
-                        edge.first) == changed_vertices_.end()) {
-            changed_vertices_.push_back(edge.first);
-            next_active_.push_back(edge.first);
-          }
-        }
-        ++counters_.processed_edges;
+        relax_edge(edge);
         ++relax_index_;
       }
       return;
-    case Phase::kStore:
-      counters_.scattered_vertex_words += changed_vertices_.size();
+    case Phase::kFullLoad:
+      relax_index_ = 0;
+      phase_ = Phase::kFullReplay;
+      return;
+    case Phase::kFullReplay:
+      if (relax_index_ < tile_edges_.size()) {
+        relax_edge(tile_edges_[relax_index_]);
+        ++counters_.full_buffer_replay_edges;
+        ++relax_index_;
+        return;
+      }
+      if (overflow_edge_pending_) {
+        relax_edge(overflow_edge_);
+        ++counters_.full_overflow_edges;
+        overflow_edge_pending_ = false;
+        return;
+      }
       tile_edges_.clear();
-      gather_vertices_.clear();
-      changed_vertices_.clear();
+      phase_ = Phase::kInput;
+      return;
+    case Phase::kStore:
+      if (!full_path_) {
+        counters_.scattered_vertex_words += changed_vertices_.size();
+      }
+      reset_tile();
       phase_ = Phase::kInput;
       return;
     case Phase::kFinish:

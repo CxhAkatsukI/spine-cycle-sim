@@ -1,0 +1,44 @@
+digraph SpineFullTileSlice {
+  graph [rankdir=TB, bgcolor="#FAFAF8", pad="0.25", nodesep="0.38", ranksep="0.55", splines=polyline, compound=true, fontname="DejaVu Sans", label="Spine full-tile compute microbenchmark on online SST-HBM", labelloc=t, fontsize=20];
+  node [shape=box, style="rounded,filled", fillcolor="#FFFFFF", color="#59636E", fontname="DejaVu Sans", fontsize=10, margin="0.14,0.09"];
+  edge [color="#59636E", fontname="DejaVu Sans", fontsize=9, arrowsize=0.7];
+
+  workload [label="Real Amazon exact slice\n64,658 edges | 12 destination tiles\ntile 8 = 49,982 edges", fillcolor="#EDF5F0", color="#557A66"];
+  bypass [label="Compute microbenchmark boundary\nmaintenance + level reader bypassed\nedge weight becomes proposal", fillcolor="#FFF7DF", color="#9B7A25"];
+  axis [label="Forward AXIS FIFO\ndepth 32 | registered | backpressure\n64,683 transferred words", fillcolor="#EAF2F8", color="#426B8A"];
+
+  subgraph cluster_compute {
+    label="Split compute CU [implemented]"; color="#765C8A"; style="rounded,filled"; fillcolor="#F3EEF7";
+    receive [label="Speculative receive\nfinite 4,096-edge BRAM buffer"];
+    tiny [label="11 tiny tiles\n14,676 per-edge gathers\nrelax -> sparse store"];
+    threshold [label="Edge 4,097\noverflow register\nselect full path", fillcolor="#FCE8E6", color="#A44A3F"];
+    load [label="Full vertex-tile load\n65,536 x 4 B\nAXIS consumption paused"];
+    replay [label="Replay 4,096 buffered edges\nthen overflow edge\nAXIS still paused"];
+    tail [label="Stream-relax tail\n45,885 edges\nAXIS resumes at II=1"];
+    store [label="Changed full tile store\n65,536 x 4 B\ncompact active output"];
+    receive -> tiny;
+    receive -> threshold;
+    threshold -> load -> replay -> tail -> store;
+  }
+
+  subgraph cluster_memory {
+    label="Shared detailed memory path [implemented]"; color="#8A5B45"; style="rounded,filled"; fillcolor="#FAF0EB";
+    axi [label="Fixed AXI masters\n64-B beats | 16-beat bursts\n4-KiB split | 32 outstanding"];
+    standard [label="SST StandardMem\n32 independent channel links"];
+    dram [label="DRAMSim3 HBM2\n35,548 completed requests\nACT/PRE/row-hit/energy stats"];
+    axi -> standard -> dram;
+  }
+
+  evidence [label="Closed evidence\n0 correctness mismatches\nAXIS occupancy 32 + 283,808 stalls\n355,100 core cycles", fillcolor="#EDF5F0", color="#557A66"];
+
+  { rank=same; workload; bypass; axis; }
+  { rank=same; receive; tiny; threshold; }
+  { rank=same; load; replay; tail; store; }
+  { rank=same; axi; standard; dram; }
+  workload -> bypass -> axis -> receive;
+  tiny -> axi;
+  load -> axi [dir=both];
+  store -> axi;
+  dram -> evidence;
+  axis -> evidence [style=dashed, label="FIFO stats"];
+}

@@ -1,10 +1,13 @@
+// clang-format off
 #include "sst/core/sst_config.h"
+// clang-format on
 
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <deque>
 #include <fstream>
+#include <map>
 #include <memory>
 #include <sstream>
 #include <stdexcept>
@@ -114,6 +117,34 @@ class ProbeSink final : public Component {
   AxiResponse staged_;
   std::uint64_t completed_{};
   std::uint64_t failed_{};
+  bool accepted_{};
+};
+
+class SpineWordSource final : public Component {
+ public:
+  SpineWordSource(ClockId clock_id, Fifo<PartConvWord> &output,
+                  std::vector<PartConvWord> words)
+      : Component("spine-word-source", clock_id),
+        output_(output),
+        words_(std::move(words)) {}
+
+  void evaluate(const CycleContext &) override {
+    accepted_ = index_ < words_.size() && output_.try_push(words_[index_]);
+  }
+
+  void commit(const CycleContext &) override {
+    if (accepted_) {
+      ++index_;
+      accepted_ = false;
+    }
+  }
+
+  [[nodiscard]] bool done() const noexcept { return index_ == words_.size(); }
+
+ private:
+  Fifo<PartConvWord> &output_;
+  std::vector<PartConvWord> words_;
+  std::size_t index_{};
   bool accepted_{};
 };
 
@@ -335,11 +366,13 @@ class OnlineMemoryProbe final : public SST::Component {
         params.find<std::uint64_t>("channel_capacity_bytes", 1ULL << 30);
     write_percent_ = params.find<std::uint32_t>("write_percent", 0);
     max_cycles_ = params.find<std::uint64_t>("max_cycles", 1'000'000);
-    if ((mode_ != "probe" && mode_ != "spine_vertical") || channels_ == 0 ||
-        channel_capacity_bytes_ == 0 || write_percent_ > 100 ||
+    if ((mode_ != "probe" && mode_ != "spine_vertical" &&
+         mode_ != "spine_compute") ||
+        channels_ == 0 || channel_capacity_bytes_ == 0 ||
+        write_percent_ > 100 ||
         (mode_ == "probe" &&
          (request_count_ == 0 || request_bytes_ == 0 || stride_bytes_ == 0)) ||
-        (mode_ == "spine_vertical" &&
+        ((mode_ == "spine_vertical" || mode_ == "spine_compute") &&
          (channels_ < 23 || workload_path_.empty()))) {
       output_.fatal(CALL_INFO, -1, "invalid online memory probe parameters\n");
     }
@@ -383,6 +416,85 @@ class OnlineMemoryProbe final : public SST::Component {
     const ClockId core = scheduler_.add_clock_mhz("core", core_mhz_);
     backend_ = std::make_unique<SstMemoryBackend>(
         core, interfaces_, channel_capacity_bytes_, 1, 32, 128);
+    if (mode_ == "spine_compute") {
+      const SpineEdgeSlice workload = load_spine_edge_slice(workload_path_);
+      std::map<std::uint32_t, std::vector<SpineEdgeRecord>> tiles;
+      for (const SpineEdgeRecord &edge : workload.edges) {
+        if (edge.diff <= 0) {
+          continue;
+        }
+        const std::uint32_t tile_base = (edge.dst / 65'536U) * 65'536U;
+        tiles[tile_base].push_back(edge);
+        ++spine_expected_edges_;
+        const std::uint32_t initial =
+            edge.dst == source_vertex_ ? 0 : SpineSplitSsspCompute::kInfinity;
+        const auto found = expected_distances_.find(edge.dst);
+        const std::uint32_t previous =
+            found == expected_distances_.end() ? initial : found->second;
+        expected_distances_[edge.dst] =
+            std::min<std::uint32_t>(previous, edge.weight);
+      }
+      std::vector<PartConvWord> words;
+      words.reserve(spine_expected_edges_ + 2 * tiles.size() + 1);
+      for (const auto &[tile_base, edges] : tiles) {
+        words.push_back(PartConvWord{.kind = PartConvWordKind::kTileBegin,
+                                     .first = tile_base});
+        for (const SpineEdgeRecord &edge : edges) {
+          words.push_back(PartConvWord{
+              .kind = PartConvWordKind::kEdge,
+              .first = edge.dst,
+              .second = edge.weight,
+          });
+        }
+        words.push_back(PartConvWord{
+            .kind = PartConvWordKind::kTileEnd,
+            .first = tile_base,
+            .second = static_cast<std::uint32_t>(
+                std::min<std::size_t>(65'536, workload.vertices - tile_base)),
+        });
+      }
+      words.push_back(PartConvWord{.kind = PartConvWordKind::kDoneAll});
+
+      spine_edge_stream_ =
+          std::make_unique<Fifo<PartConvWord>>("spine-edge-axis", core, 32);
+      spine_value_stream_ =
+          std::make_unique<Fifo<SourceValueWord>>("spine-value-axis", core, 32);
+      const auto make_port = [&](const std::string &name,
+                                 std::uint32_t initiator, std::size_t channel) {
+        return std::make_unique<FixedAxiPort>(name, core,
+                                              FixedAxiPortConfig{
+                                                  .memory_channels = channels_,
+                                                  .channel = channel,
+                                                  .initiator_id = initiator,
+                                              },
+                                              *backend_);
+      };
+      spine_vertex_state_ = make_port("spine-vertex-state", 117, 17);
+      spine_active_out_ = make_port("spine-active-out", 119, 19);
+      spine_compute_result_ = make_port("spine-compute-result", 121, 21);
+      spine_active_bitmap_ = make_port("spine-active-bitmap", 122, 22);
+      spine_word_source_ = std::make_unique<SpineWordSource>(
+          core, *spine_edge_stream_, std::move(words));
+      spine_compute_ = std::make_unique<SpineSplitSsspCompute>(
+          "spine-split-compute", core, workload.vertices, source_vertex_, 4096,
+          SpineComputePorts{
+              .vertex_state = spine_vertex_state_.get(),
+              .active_out = spine_active_out_.get(),
+              .active_bitmap = spine_active_bitmap_.get(),
+              .result = spine_compute_result_.get(),
+          },
+          *spine_edge_stream_, *spine_value_stream_);
+      scheduler_.add_component(*spine_word_source_);
+      scheduler_.add_component(*spine_compute_);
+      scheduler_.add_component(*spine_edge_stream_);
+      scheduler_.add_component(*spine_value_stream_);
+      spine_vertex_state_->register_components(scheduler_);
+      spine_active_out_->register_components(scheduler_);
+      spine_active_bitmap_->register_components(scheduler_);
+      spine_compute_result_->register_components(scheduler_);
+      scheduler_.add_component(*backend_);
+      return;
+    }
     if (mode_ == "spine_vertical") {
       SpineEdgeSlice workload = load_spine_edge_slice(workload_path_);
       spine_expected_edges_ = workload.edges.size();
@@ -481,7 +593,16 @@ class OnlineMemoryProbe final : public SST::Component {
 
   bool clock_tick(SST::Cycle_t) {
     scheduler_.step();
-    if (mode_ == "spine_vertical") {
+    if (mode_ == "spine_compute") {
+      if (spine_word_source_->done() && spine_compute_->done() &&
+          spine_edge_stream_->empty() && spine_vertex_state_->idle() &&
+          spine_active_out_->idle() && spine_active_bitmap_->idle() &&
+          spine_compute_result_->idle() && backend_->outstanding() == 0) {
+        write_result(!spine_compute_->failed());
+        primaryComponentOKToEndSim();
+        return true;
+      }
+    } else if (mode_ == "spine_vertical") {
       if (spine_system_->done() && spine_system_->idle() &&
           backend_->outstanding() == 0) {
         write_result(!spine_system_->failed());
@@ -515,7 +636,7 @@ class OnlineMemoryProbe final : public SST::Component {
 
   SST_ELI_DOCUMENT_PARAMS(
       {"output", "JSON result path", "sst_memory_probe.json"},
-      {"mode", "probe or spine_vertical", "probe"},
+      {"mode", "probe, spine_vertical, or spine_compute", "probe"},
       {"workload", "Spine .slice workload path", ""},
       {"preload_workload", "Optional pre-existing Spine L0 .slice", ""},
       {"hot_vertices", "Comma-separated host hot-bitmap vertices", ""},
@@ -542,6 +663,89 @@ class OnlineMemoryProbe final : public SST::Component {
     }
     result_written_ = true;
     std::ofstream result(result_path_);
+    if (mode_ == "spine_compute") {
+      std::uint64_t mismatches = 0;
+      std::unordered_set<std::uint32_t> expected_frontier;
+      for (const auto &[vertex, expected] : expected_distances_) {
+        if (spine_compute_->values().at(vertex) != expected) {
+          ++mismatches;
+        }
+        const std::uint32_t initial =
+            vertex == source_vertex_ ? 0 : SpineSplitSsspCompute::kInfinity;
+        if (expected < initial) {
+          expected_frontier.insert(vertex);
+        }
+      }
+      const std::unordered_set<std::uint32_t> actual_frontier(
+          spine_compute_->next_active().begin(),
+          spine_compute_->next_active().end());
+      std::uint64_t frontier_mismatches = 0;
+      for (const std::uint32_t vertex : expected_frontier) {
+        if (!actual_frontier.contains(vertex)) {
+          ++frontier_mismatches;
+        }
+      }
+      for (const std::uint32_t vertex : actual_frontier) {
+        if (!expected_frontier.contains(vertex)) {
+          ++frontier_mismatches;
+        }
+      }
+      const bool passed =
+          success && mismatches == 0 && frontier_mismatches == 0 &&
+          actual_frontier.size() == spine_compute_->next_active().size();
+      const auto &compute = spine_compute_->counters();
+      const auto &axis = spine_edge_stream_->stats();
+      result << "{\n"
+             << "  \"success\": " << (passed ? "true" : "false") << ",\n"
+             << "  \"mode\": \"spine_compute\",\n"
+             << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
+             << "  \"cycles\": " << scheduler_.clock(0).completed_cycles
+             << ",\n"
+             << "  \"input_edges\": " << spine_expected_edges_ << ",\n"
+             << "  \"correctness_mismatches\": " << mismatches << ",\n"
+             << "  \"frontier_mismatches\": " << frontier_mismatches << ",\n"
+             << "  \"expected_frontier\": " << expected_frontier.size() << ",\n"
+             << "  \"next_active\": " << spine_compute_->next_active().size()
+             << ",\n"
+             << "  \"compute_fast_tiles\": " << compute.fast_path_tiles << ",\n"
+             << "  \"compute_full_tiles\": " << compute.full_path_tiles << ",\n"
+             << "  \"compute_processed_edges\": " << compute.processed_edges
+             << ",\n"
+             << "  \"compute_gathered_words\": "
+             << compute.gathered_vertex_words << ",\n"
+             << "  \"compute_swept_words\": " << compute.swept_vertex_words
+             << ",\n"
+             << "  \"compute_scattered_words\": "
+             << compute.scattered_vertex_words << ",\n"
+             << "  \"compute_full_buffer_replay_edges\": "
+             << compute.full_buffer_replay_edges << ",\n"
+             << "  \"compute_full_overflow_edges\": "
+             << compute.full_overflow_edges << ",\n"
+             << "  \"compute_full_stream_edges\": " << compute.full_stream_edges
+             << ",\n"
+             << "  \"compute_vertex_read_bytes\": " << compute.vertex_read_bytes
+             << ",\n"
+             << "  \"compute_vertex_write_bytes\": "
+             << compute.vertex_write_bytes << ",\n"
+             << "  \"compute_active_out_write_bytes\": "
+             << compute.active_out_write_bytes << ",\n"
+             << "  \"edge_axis_transfers\": " << axis.pushes << ",\n"
+             << "  \"edge_axis_max_occupancy\": " << axis.max_occupancy << ",\n"
+             << "  \"edge_axis_push_stalls\": " << axis.push_stalls << ",\n"
+             << "  \"backend_requests\": " << backend_->accepted() << ",\n"
+             << "  \"backend_submit_stalls\": " << backend_->submit_stalls()
+             << ",\n"
+             << "  \"backend_response_queue_stalls\": "
+             << backend_->response_queue_stalls() << ",\n"
+             << "  \"backend_max_outstanding\": " << backend_->max_outstanding()
+             << "\n"
+             << "}\n";
+      output_.output(
+          "completed Spine compute microbenchmark in %llu core cycles -> %s\n",
+          static_cast<unsigned long long>(scheduler_.clock(0).completed_cycles),
+          result_path_.c_str());
+      return;
+    }
     if (mode_ == "spine_vertical") {
       std::uint64_t mismatches = 0;
       for (const auto &[vertex, expected] : expected_distances_) {
@@ -571,67 +775,77 @@ class OnlineMemoryProbe final : public SST::Component {
       const auto &maintenance = spine_system_->maintenance_counters();
       const auto &reader = spine_system_->reader_counters();
       const auto &compute = spine_system_->compute_counters();
-      result << "{\n"
-             << "  \"success\": " << (passed ? "true" : "false") << ",\n"
-             << "  \"mode\": \"spine_vertical\",\n"
-             << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
-             << "  \"cycles\": " << scheduler_.clock(0).completed_cycles
-             << ",\n"
-             << "  \"sim_time_fs\": "
-             << scheduler_.clock(0).next_edge_fs - scheduler_.clock(0).phase_fs
-             << ",\n"
-             << "  \"input_edges\": " << spine_expected_edges_ << ",\n"
-             << "  \"preload_edges\": " << spine_preload_edges_ << ",\n"
-             << "  \"correctness_mismatches\": " << mismatches << ",\n"
-             << "  \"frontier_mismatches\": " << frontier_mismatches << ",\n"
-             << "  \"next_active\": "
-             << spine_system_->compute().next_active().size() << ",\n"
-             << "  \"maintenance_scan_passes\": "
-             << maintenance.sorted_scan_passes << ",\n"
-             << "  \"maintenance_edge_visits\": "
-             << maintenance.sorted_edge_visits << ",\n"
-             << "  \"maintenance_sorted_bytes\": "
-             << maintenance.sorted_read_bytes << ",\n"
-             << "  \"maintenance_target_level\": " << maintenance.target_level
-             << ",\n"
-             << "  \"maintenance_hot_target_level\": "
-             << maintenance.hot_target_level << ",\n"
-             << "  \"maintenance_cold_input_edges\": "
-             << maintenance.cold_input_edges << ",\n"
-             << "  \"maintenance_hot_input_edges\": "
-             << maintenance.hot_input_edges << ",\n"
-             << "  \"maintenance_carry_payload_reads\": "
-             << maintenance.carry_level_payload_reads << ",\n"
-             << "  \"maintenance_carry_merge_inputs\": "
-             << maintenance.carry_merge_inputs << ",\n"
-             << "  \"maintenance_carry_outputs\": " << maintenance.carry_outputs
-             << ",\n"
-             << "  \"reader_tiles\": " << reader.tiles_emitted << ",\n"
-             << "  \"reader_edges\": " << reader.edges_emitted << ",\n"
-             << "  \"reader_graph_bytes\": " << reader.graph_read_bytes << ",\n"
-             << "  \"reader_metadata_bytes\": " << reader.metadata_read_bytes
-             << ",\n"
-             << "  \"reader_occupied_levels\": " << reader.occupied_levels
-             << ",\n"
-             << "  \"reader_cold_edges\": " << reader.cold_edges_emitted
-             << ",\n"
-             << "  \"reader_hot_edges\": " << reader.hot_edges_emitted << ",\n"
-             << "  \"compute_fast_tiles\": " << compute.fast_path_tiles << ",\n"
-             << "  \"compute_full_tiles\": " << compute.full_path_tiles << ",\n"
-             << "  \"compute_processed_edges\": " << compute.processed_edges
-             << ",\n"
-             << "  \"edge_axis_transfers\": "
-             << spine_system_->edge_stream_stats().pushes << ",\n"
-             << "  \"edge_axis_max_occupancy\": "
-             << spine_system_->edge_stream_stats().max_occupancy << ",\n"
-             << "  \"backend_requests\": " << backend_->accepted() << ",\n"
-             << "  \"backend_submit_stalls\": " << backend_->submit_stalls()
-             << ",\n"
-             << "  \"backend_response_queue_stalls\": "
-             << backend_->response_queue_stalls() << ",\n"
-             << "  \"backend_max_outstanding\": " << backend_->max_outstanding()
-             << "\n"
-             << "}\n";
+      result
+          << "{\n"
+          << "  \"success\": " << (passed ? "true" : "false") << ",\n"
+          << "  \"mode\": \"spine_vertical\",\n"
+          << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
+          << "  \"cycles\": " << scheduler_.clock(0).completed_cycles << ",\n"
+          << "  \"sim_time_fs\": "
+          << scheduler_.clock(0).next_edge_fs - scheduler_.clock(0).phase_fs
+          << ",\n"
+          << "  \"input_edges\": " << spine_expected_edges_ << ",\n"
+          << "  \"preload_edges\": " << spine_preload_edges_ << ",\n"
+          << "  \"correctness_mismatches\": " << mismatches << ",\n"
+          << "  \"frontier_mismatches\": " << frontier_mismatches << ",\n"
+          << "  \"next_active\": "
+          << spine_system_->compute().next_active().size() << ",\n"
+          << "  \"maintenance_scan_passes\": " << maintenance.sorted_scan_passes
+          << ",\n"
+          << "  \"maintenance_edge_visits\": " << maintenance.sorted_edge_visits
+          << ",\n"
+          << "  \"maintenance_sorted_bytes\": " << maintenance.sorted_read_bytes
+          << ",\n"
+          << "  \"maintenance_target_level\": " << maintenance.target_level
+          << ",\n"
+          << "  \"maintenance_hot_target_level\": "
+          << maintenance.hot_target_level << ",\n"
+          << "  \"maintenance_cold_input_edges\": "
+          << maintenance.cold_input_edges << ",\n"
+          << "  \"maintenance_hot_input_edges\": "
+          << maintenance.hot_input_edges << ",\n"
+          << "  \"maintenance_carry_payload_reads\": "
+          << maintenance.carry_level_payload_reads << ",\n"
+          << "  \"maintenance_carry_merge_inputs\": "
+          << maintenance.carry_merge_inputs << ",\n"
+          << "  \"maintenance_carry_outputs\": " << maintenance.carry_outputs
+          << ",\n"
+          << "  \"reader_tiles\": " << reader.tiles_emitted << ",\n"
+          << "  \"reader_edges\": " << reader.edges_emitted << ",\n"
+          << "  \"reader_graph_bytes\": " << reader.graph_read_bytes << ",\n"
+          << "  \"reader_metadata_bytes\": " << reader.metadata_read_bytes
+          << ",\n"
+          << "  \"reader_occupied_levels\": " << reader.occupied_levels << ",\n"
+          << "  \"reader_cold_edges\": " << reader.cold_edges_emitted << ",\n"
+          << "  \"reader_hot_edges\": " << reader.hot_edges_emitted << ",\n"
+          << "  \"compute_fast_tiles\": " << compute.fast_path_tiles << ",\n"
+          << "  \"compute_full_tiles\": " << compute.full_path_tiles << ",\n"
+          << "  \"compute_processed_edges\": " << compute.processed_edges
+          << ",\n"
+          << "  \"compute_gathered_words\": " << compute.gathered_vertex_words
+          << ",\n"
+          << "  \"compute_swept_words\": " << compute.swept_vertex_words
+          << ",\n"
+          << "  \"compute_scattered_words\": " << compute.scattered_vertex_words
+          << ",\n"
+          << "  \"compute_full_buffer_replay_edges\": "
+          << compute.full_buffer_replay_edges << ",\n"
+          << "  \"compute_full_overflow_edges\": "
+          << compute.full_overflow_edges << ",\n"
+          << "  \"compute_full_stream_edges\": " << compute.full_stream_edges
+          << ",\n"
+          << "  \"edge_axis_transfers\": "
+          << spine_system_->edge_stream_stats().pushes << ",\n"
+          << "  \"edge_axis_max_occupancy\": "
+          << spine_system_->edge_stream_stats().max_occupancy << ",\n"
+          << "  \"backend_requests\": " << backend_->accepted() << ",\n"
+          << "  \"backend_submit_stalls\": " << backend_->submit_stalls()
+          << ",\n"
+          << "  \"backend_response_queue_stalls\": "
+          << backend_->response_queue_stalls() << ",\n"
+          << "  \"backend_max_outstanding\": " << backend_->max_outstanding()
+          << "\n"
+          << "}\n";
       output_.output(
           "completed Spine vertical slice in %llu core cycles -> %s\n",
           static_cast<unsigned long long>(scheduler_.clock(0).completed_cycles),
@@ -697,6 +911,14 @@ class OnlineMemoryProbe final : public SST::Component {
   std::unique_ptr<ProbeSource> source_;
   std::unique_ptr<ProbeSink> sink_;
   std::unique_ptr<SpineVerticalSliceSystem> spine_system_;
+  std::unique_ptr<Fifo<PartConvWord>> spine_edge_stream_;
+  std::unique_ptr<Fifo<SourceValueWord>> spine_value_stream_;
+  std::unique_ptr<SpineWordSource> spine_word_source_;
+  std::unique_ptr<SpineSplitSsspCompute> spine_compute_;
+  std::unique_ptr<FixedAxiPort> spine_vertex_state_;
+  std::unique_ptr<FixedAxiPort> spine_active_out_;
+  std::unique_ptr<FixedAxiPort> spine_active_bitmap_;
+  std::unique_ptr<FixedAxiPort> spine_compute_result_;
   std::size_t spine_expected_edges_{};
   std::size_t spine_preload_edges_{};
   std::unordered_map<std::uint32_t, std::uint32_t> expected_distances_;

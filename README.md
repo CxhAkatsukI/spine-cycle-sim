@@ -107,6 +107,19 @@ python3 scripts/run_sst_spine_vertical.py \
   --out-dir results/sst_spine_carry_hot_20260723
 ```
 
+Run the real Amazon full-tile compute microbenchmark on SST-HBM:
+
+```bash
+python3 scripts/run_sst_spine_vertical.py \
+  --scenario amazon_full_compute \
+  --out-dir results/sst_spine_full_compute_20260723
+```
+
+This compute-only mode keeps the finite AXIS, compute state machine, AXI
+masters, and DRAMSim3 HBM while bypassing maintenance and reader. See
+[`docs/spine_full_tile_vertical_slice_20260723.md`](docs/spine_full_tile_vertical_slice_20260723.md)
+for the exact claim boundary and accepted evidence.
+
 ## Current Scope
 
 The current model targets trend validation against the latest 134 MHz exact

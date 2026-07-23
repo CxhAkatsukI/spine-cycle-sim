@@ -2,7 +2,11 @@ from __future__ import annotations
 
 import unittest
 
-from scripts.run_sst_spine_vertical import validate_carry_hot_result, validate_result
+from scripts.run_sst_spine_vertical import (
+    validate_carry_hot_result,
+    validate_full_compute_result,
+    validate_result,
+)
 
 
 class SstSpineVerticalValidationTests(unittest.TestCase):
@@ -119,6 +123,59 @@ class SstSpineVerticalValidationTests(unittest.TestCase):
         }
         dram = {"dram_reads": 60, "dram_writes": 40, "dram_channels": 32}
         self.assertEqual(validate_carry_hot_result(result, dram, channels=32), [])
+
+    def test_real_full_tile_compute_structure_passes(self) -> None:
+        result = {
+            "success": True,
+            "mode": "spine_compute",
+            "correctness_mismatches": 0,
+            "frontier_mismatches": 0,
+            "expected_frontier": 40_000,
+            "next_active": 40_000,
+            "input_edges": 64_658,
+            "compute_fast_tiles": 11,
+            "compute_full_tiles": 1,
+            "compute_processed_edges": 64_658,
+            "compute_gathered_words": 14_676,
+            "compute_swept_words": 131_072,
+            "compute_full_buffer_replay_edges": 4096,
+            "compute_full_overflow_edges": 1,
+            "compute_full_stream_edges": 45_885,
+            "edge_axis_transfers": 64_683,
+            "edge_axis_max_occupancy": 32,
+            "edge_axis_push_stalls": 10,
+            "backend_requests": 100,
+        }
+        dram = {"dram_reads": 60, "dram_writes": 40, "dram_channels": 32}
+        self.assertEqual(validate_full_compute_result(result, dram, channels=32), [])
+
+    def test_real_full_tile_without_axis_backpressure_is_rejected(self) -> None:
+        result = {
+            "success": True,
+            "mode": "spine_compute",
+            "correctness_mismatches": 0,
+            "frontier_mismatches": 0,
+            "expected_frontier": 40_000,
+            "next_active": 40_000,
+            "input_edges": 64_658,
+            "compute_fast_tiles": 11,
+            "compute_full_tiles": 1,
+            "compute_processed_edges": 64_658,
+            "compute_gathered_words": 14_676,
+            "compute_swept_words": 131_072,
+            "compute_full_buffer_replay_edges": 4096,
+            "compute_full_overflow_edges": 1,
+            "compute_full_stream_edges": 45_885,
+            "edge_axis_transfers": 64_683,
+            "edge_axis_max_occupancy": 32,
+            "edge_axis_push_stalls": 0,
+            "backend_requests": 100,
+        }
+        dram = {"dram_reads": 60, "dram_writes": 40, "dram_channels": 32}
+        self.assertIn(
+            "axis_backpressure",
+            validate_full_compute_result(result, dram, channels=32),
+        )
 
 
 if __name__ == "__main__":

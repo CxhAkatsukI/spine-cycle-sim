@@ -16,6 +16,9 @@ DEFAULT_SST = Path("/data/feiyang/sst/bin/sst")
 DEFAULT_WORKLOAD = ROOT / "tests" / "data" / "amazon_top1_exact.slice"
 DEFAULT_CARRY_WORKLOAD = ROOT / "tests" / "data" / "carry_hot_batch.slice"
 DEFAULT_CARRY_PRELOAD = ROOT / "tests" / "data" / "carry_hot_preload.slice"
+DEFAULT_FULL_WORKLOAD = (
+    ROOT / "tests" / "data" / "amazon_densewin8192_active7893_exact.slice"
+)
 
 
 def collect_dram_stats(out_dir: Path) -> dict[str, int | float]:
@@ -119,6 +122,37 @@ def validate_carry_hot_result(
     return [name for name, passed in checks.items() if not passed]
 
 
+def validate_full_compute_result(
+    result: dict[str, Any], dram: dict[str, int | float], *, channels: int
+) -> list[str]:
+    checks = {
+        "success": result.get("success") is True,
+        "mode": result.get("mode") == "spine_compute",
+        "correctness": result.get("correctness_mismatches") == 0,
+        "frontier_correctness": result.get("frontier_mismatches") == 0,
+        "frontier_size": result.get("next_active")
+        == result.get("expected_frontier"),
+        "real_slice_edges": result.get("input_edges") == 64_658,
+        "tile_paths": result.get("compute_fast_tiles") == 11
+        and result.get("compute_full_tiles") == 1,
+        "processed_edges": result.get("compute_processed_edges") == 64_658,
+        "tiny_gathers": result.get("compute_gathered_words") == 14_676,
+        "full_sweep": result.get("compute_swept_words") == 2 * 65_536,
+        "finite_buffer_replay": result.get("compute_full_buffer_replay_edges")
+        == 4096,
+        "threshold_crossing": result.get("compute_full_overflow_edges") == 1,
+        "stream_tail": result.get("compute_full_stream_edges") == 45_885,
+        "axis_transfers": result.get("edge_axis_transfers") == 64_683,
+        "axis_capacity": result.get("edge_axis_max_occupancy") == 32,
+        "axis_backpressure": result.get("edge_axis_push_stalls", 0) > 0,
+        "dram_matches_backend": int(dram.get("dram_reads", 0))
+        + int(dram.get("dram_writes", 0))
+        == result.get("backend_requests"),
+        "channel_count": dram.get("dram_channels") == channels,
+    }
+    return [name for name, passed in checks.items() if not passed]
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out-dir", type=Path, required=True)
@@ -126,7 +160,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--lib-dir", type=Path, default=ROOT / "build" / "sst")
     parser.add_argument("--workload", type=Path, default=DEFAULT_WORKLOAD)
     parser.add_argument(
-        "--scenario", choices=("amazon_l0", "carry_hot"), default="amazon_l0"
+        "--scenario",
+        choices=("amazon_l0", "carry_hot", "amazon_full_compute"),
+        default="amazon_l0",
     )
     parser.add_argument("--preload", type=Path)
     parser.add_argument("--hot-vertices", default="")
@@ -139,7 +175,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     if args.source is None:
-        args.source = 0 if args.scenario == "carry_hot" else 2
+        args.source = 2 if args.scenario == "amazon_l0" else 0
     if args.scenario == "carry_hot":
         if args.workload == DEFAULT_WORKLOAD:
             args.workload = DEFAULT_CARRY_WORKLOAD
@@ -147,6 +183,11 @@ def main() -> int:
             args.preload = DEFAULT_CARRY_PRELOAD
         if not args.hot_vertices:
             args.hot_vertices = "17"
+    elif (
+        args.scenario == "amazon_full_compute"
+        and args.workload == DEFAULT_WORKLOAD
+    ):
+        args.workload = DEFAULT_FULL_WORKLOAD
     if args.channels < 23 or args.source < 0 or not args.workload.is_file():
         raise SystemExit("channels must be >=23, source non-negative, workload present")
     if args.preload is not None and not args.preload.is_file():
@@ -162,6 +203,9 @@ def main() -> int:
     env.update(
         {
             "SPINE_SST_CHANNELS": str(args.channels),
+            "SPINE_SST_MODE": "spine_compute"
+            if args.scenario == "amazon_full_compute"
+            else "spine_vertical",
             "SPINE_SST_WORKLOAD": str(args.workload.resolve()),
             "SPINE_SST_SOURCE": str(args.source),
             "SPINE_SST_PRELOAD": ""
@@ -170,6 +214,9 @@ def main() -> int:
             "SPINE_SST_HOT_VERTICES": args.hot_vertices,
             "SPINE_SST_OUTPUT": str(result_path),
             "SPINE_SST_DRAM_OUTPUT": str(args.out_dir / "dram"),
+            "SPINE_SST_MAX_CYCLES": "5000000"
+            if args.scenario == "amazon_full_compute"
+            else "1000000",
         }
     )
     command = [
@@ -194,9 +241,12 @@ def main() -> int:
         )
     result = json.loads(result_path.read_text(encoding="utf-8"))
     dram = collect_dram_stats(args.out_dir)
-    validator = (
-        validate_carry_hot_result if args.scenario == "carry_hot" else validate_result
-    )
+    validators = {
+        "amazon_l0": validate_result,
+        "carry_hot": validate_carry_hot_result,
+        "amazon_full_compute": validate_full_compute_result,
+    }
+    validator = validators[args.scenario]
     problems = validator(result, dram, channels=args.channels)
     if problems:
         raise RuntimeError(f"SST Spine checks failed: {', '.join(problems)}")

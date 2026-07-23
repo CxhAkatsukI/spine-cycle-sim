@@ -33,6 +33,7 @@ using spine::sim::ClockId;
 using spine::sim::Component;
 using spine::sim::CycleContext;
 using spine::sim::Fifo;
+using spine::sim::FifoStats;
 using spine::sim::FixedAxiPort;
 using spine::sim::FixedAxiPortConfig;
 using spine::sim::load_spine_edge_slice;
@@ -43,11 +44,13 @@ using spine::sim::OnChipOperation;
 using spine::sim::OnChipRequest;
 using spine::sim::OnChipResponse;
 using spine::sim::PartConvWord;
+using spine::sim::PartConvWordKind;
 using spine::sim::ReadAfterWritePolicy;
 using spine::sim::Scheduler;
 using spine::sim::SourceValueWord;
 using spine::sim::spine_hot_shard;
 using spine::sim::spine_level_layout;
+using spine::sim::SpineComputeCounters;
 using spine::sim::SpineComputePorts;
 using spine::sim::SpineEdgeRecord;
 using spine::sim::SpineEdgeSlice;
@@ -907,12 +910,11 @@ void test_spine_fixed_level_layout_matches_stable_profile() {
   const auto cold_l10 = spine_level_layout(config, false, 10);
   const auto hot_l0 = spine_level_layout(config, true, 0);
 
-  require(cold_l0.bitmap_offset_words == 0 &&
-              cold_l0.edge_capacity == 131'072,
+  require(cold_l0.bitmap_offset_words == 0 && cold_l0.edge_capacity == 131'072,
           "cold L0 layout diverges from the stable HLS profile");
-  require(cold_l1.bitmap_offset_words == 524'290 &&
-              cold_l1.edge_capacity == 16'384,
-          "cold L1 layout diverges from the stable HLS profile");
+  require(
+      cold_l1.bitmap_offset_words == 524'290 && cold_l1.edge_capacity == 16'384,
+      "cold L1 layout diverges from the stable HLS profile");
   require(hot_l0.bitmap_offset_words ==
               cold_l10.edge_offset_words + cold_l10.edge_capacity,
           "hot level storage does not begin after the cold level region");
@@ -957,6 +959,169 @@ void test_spine_carry_drops_signed_diff_cancellation() {
           "cancelled edge escaped into the reader/compute path");
 }
 
+struct ComputeTileObservation {
+  SpineComputeCounters counters;
+  FifoStats edge_stream;
+  std::uint64_t cycles{};
+  std::size_t next_active{};
+  std::uint32_t duplicate_value{SpineSplitSsspCompute::kInfinity};
+  bool distances_match{};
+  bool failed{};
+};
+
+ComputeTileObservation run_compute_tile(std::size_t edge_count,
+                                        bool duplicate_dst = false) {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("data", 141.0);
+  MockMemoryBackend backend("hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 3,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  FixedAxiPort vertex_state(
+      "boundary-vertex-state", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32, .channel = 17, .initiator_id = 217},
+      backend);
+  FixedAxiPort active_out(
+      "boundary-active-out", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32, .channel = 19, .initiator_id = 219},
+      backend);
+  FixedAxiPort active_bitmap(
+      "boundary-active-bitmap", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32, .channel = 22, .initiator_id = 222},
+      backend);
+  FixedAxiPort result(
+      "boundary-result", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32, .channel = 21, .initiator_id = 221},
+      backend);
+  Fifo<PartConvWord> edge_stream("boundary-edge-axis", core, 32);
+  Fifo<SourceValueWord> value_stream("boundary-value-axis", core, 32);
+  std::vector<PartConvWord> words;
+  words.reserve(edge_count + 3);
+  words.push_back(
+      PartConvWord{.kind = PartConvWordKind::kTileBegin, .first = 0});
+  for (std::size_t index = 0; index < edge_count; ++index) {
+    words.push_back(PartConvWord{
+        .kind = PartConvWordKind::kEdge,
+        .first = duplicate_dst ? 1U : static_cast<std::uint32_t>(index),
+        .second =
+            duplicate_dst ? static_cast<std::uint32_t>(5 - 2 * index) : 1U,
+    });
+  }
+  words.push_back(PartConvWord{
+      .kind = PartConvWordKind::kTileEnd, .first = 0, .second = 65'536});
+  words.push_back(PartConvWord{.kind = PartConvWordKind::kDoneAll});
+  SequenceProducer<PartConvWord> producer("boundary-reader", core, edge_stream,
+                                          std::move(words));
+  SpineSplitSsspCompute compute("boundary-compute", core, 65'536, 65'535, 4096,
+                                SpineComputePorts{
+                                    .vertex_state = &vertex_state,
+                                    .active_out = &active_out,
+                                    .active_bitmap = &active_bitmap,
+                                    .result = &result,
+                                },
+                                edge_stream, value_stream);
+
+  scheduler.add_component(producer);
+  scheduler.add_component(compute);
+  scheduler.add_component(edge_stream);
+  scheduler.add_component(value_stream);
+  vertex_state.register_components(scheduler);
+  active_out.register_components(scheduler);
+  active_bitmap.register_components(scheduler);
+  result.register_components(scheduler);
+  scheduler.add_component(backend);
+  scheduler.run_until(
+      [&] {
+        return producer.done() && compute.done() && edge_stream.empty() &&
+               vertex_state.idle() && active_out.idle() &&
+               active_bitmap.idle() && result.idle();
+      },
+      500'000);
+
+  bool distances_match = true;
+  if (!duplicate_dst) {
+    for (std::size_t index = 0; index < edge_count; ++index) {
+      distances_match = distances_match && compute.values()[index] == 1;
+    }
+  }
+  return ComputeTileObservation{
+      .counters = compute.counters(),
+      .edge_stream = edge_stream.stats(),
+      .cycles = scheduler.clock(core).completed_cycles,
+      .next_active = compute.next_active().size(),
+      .duplicate_value = compute.values()[1],
+      .distances_match = distances_match,
+      .failed = compute.failed(),
+  };
+}
+
+void test_spine_full_tile_threshold_boundaries() {
+  for (const std::size_t edge_count : {4095U, 4096U, 4097U, 4098U}) {
+    const ComputeTileObservation observation = run_compute_tile(edge_count);
+    require(!observation.failed && observation.distances_match &&
+                observation.next_active == edge_count,
+            "full-tile boundary changed the SSSP result");
+    require(observation.counters.processed_edges == edge_count,
+            "full-tile boundary lost or duplicated an edge");
+    if (edge_count <= 4096) {
+      require(observation.counters.fast_path_tiles == 1 &&
+                  observation.counters.full_path_tiles == 0 &&
+                  observation.counters.gathered_vertex_words == edge_count &&
+                  observation.counters.swept_vertex_words == 0 &&
+                  observation.counters.scattered_vertex_words == edge_count,
+              "tiny boundary did not use gather/relax/sparse-store");
+      require(observation.counters.vertex_read_bytes == edge_count * 4 &&
+                  observation.counters.vertex_write_bytes == edge_count * 4,
+              "tiny boundary vertex-memory bytes mismatch");
+    } else {
+      require(observation.counters.fast_path_tiles == 0 &&
+                  observation.counters.full_path_tiles == 1 &&
+                  observation.counters.full_buffer_replay_edges == 4096 &&
+                  observation.counters.full_overflow_edges == 1 &&
+                  observation.counters.full_stream_edges == edge_count - 4097,
+              "full boundary did not load/replay/stream in HLS order");
+      require(observation.counters.gathered_vertex_words == 0 &&
+                  observation.counters.swept_vertex_words == 2 * 65'536 &&
+                  observation.counters.scattered_vertex_words == 0 &&
+                  observation.counters.vertex_read_bytes == 65'536 * 4 &&
+                  observation.counters.vertex_write_bytes == 65'536 * 4,
+              "full boundary tile sweep ledger mismatch");
+    }
+  }
+}
+
+void test_spine_full_tile_load_replay_backpressures_axis() {
+  const ComputeTileObservation observation = run_compute_tile(8192);
+  require(!observation.failed && observation.distances_match,
+          "large full tile produced an incorrect SSSP result");
+  require(observation.counters.full_buffer_replay_edges == 4096 &&
+              observation.counters.full_overflow_edges == 1 &&
+              observation.counters.full_stream_edges == 4095,
+          "large full tile work did not partition at the finite buffer");
+  require(observation.edge_stream.max_occupancy == 32 &&
+              observation.edge_stream.push_stalls > 0,
+          "full-tile load/replay did not backpressure the finite AXIS FIFO");
+}
+
+void test_spine_tiny_gather_preserves_duplicate_reads() {
+  const ComputeTileObservation observation = run_compute_tile(2, true);
+  require(!observation.failed && observation.duplicate_value == 3 &&
+              observation.next_active == 1,
+          "duplicate-destination tiny relaxation is incorrect");
+  require(observation.counters.gathered_vertex_words == 2 &&
+              observation.counters.vertex_read_bytes == 8 &&
+              observation.counters.scattered_vertex_words == 1,
+          "tiny gather incorrectly deduplicated repeated destination reads");
+}
+
 }  // namespace
 
 int main() {
@@ -981,6 +1146,11 @@ int main() {
        test_spine_fixed_level_layout_matches_stable_profile},
       {"spine_signed_diff_cancellation",
        test_spine_carry_drops_signed_diff_cancellation},
+      {"spine_full_tile_boundaries", test_spine_full_tile_threshold_boundaries},
+      {"spine_full_tile_axis_backpressure",
+       test_spine_full_tile_load_replay_backpressures_axis},
+      {"spine_tiny_duplicate_gather",
+       test_spine_tiny_gather_preserves_duplicate_reads},
   };
   std::size_t failures = 0;
   for (const auto &[name, test] : tests) {

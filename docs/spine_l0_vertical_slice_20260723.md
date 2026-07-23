@@ -100,13 +100,16 @@ Implemented but not hardware-cycle-calibrated:
 
 - independent cold/hot target selection and fixed-layout persistence;
 - sparse lower-level payload reads and signed-differential carry merge;
-- all-level cold/hot reader traversal and metadata cache traffic.
+- all-level cold/hot reader traversal and metadata cache traffic;
+- tiny/full compute selection, full-tile load/replay/store, and finite AXIS
+  backpressure.
 
 Not yet implemented in the complete system:
 
 - exact metadata cache/packing and all compiler-generated AXI burst boundaries;
-- full-tile compute and repeated convergence. The split slice is documented
-  separately in `spine_split_vertical_slice_20260723.md`;
+- repeated host-controlled convergence across multiple frontiers. The current
+  one-round split slices are documented in `spine_split_vertical_slice_20260723.md`
+  and `spine_full_tile_vertical_slice_20260723.md`;
 - calibrated HLS overlap/prefetch. The same architecture component now runs on
   online SST-HBM; see `spine_split_vertical_slice_20260723.md`.
 

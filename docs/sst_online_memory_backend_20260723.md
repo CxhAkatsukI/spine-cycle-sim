@@ -68,13 +68,16 @@ integration sanity results, not Spine performance claims.
 
 ## Architecture connection
 
-The stable Spine L0/carry/hot reader/tiny-SSSP vertical slice now uses this
-backend online, with the same C++ components used by MockMemory tests. The
-32-channel Amazon run completed 551 backend/DRAM requests in 4,622 data cycles.
-The mixed carry/hot run completed 600 requests in 4,819 cycles. Both have zero
-distance/frontier mismatch and exact backend-to-DRAM request closure. See
+The stable Spine L0/carry/hot reader and tiny/full SSSP vertical slices now use
+this backend online, with the same C++ components used by MockMemory tests. The
+32-channel Amazon run completed 546 backend/DRAM requests in 4,608 data
+cycles. The mixed carry/hot run completed 598 requests in 4,805 cycles. Both
+have zero distance/frontier mismatch and exact backend-to-DRAM request closure.
+The real Amazon compute microbenchmark additionally exercises one 49,982-edge
+full tile and 11 tiny tiles. See
 `spine_split_vertical_slice_20260723.md` and
-`spine_carry_hot_vertical_slice_20260723.md`.
+`spine_carry_hot_vertical_slice_20260723.md`, and
+`spine_full_tile_vertical_slice_20260723.md`.
 
 ## Remaining gaps
 

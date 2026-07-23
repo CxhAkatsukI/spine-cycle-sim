@@ -151,7 +151,12 @@ struct SpineComputeCounters {
   std::uint64_t full_path_tiles{};
   std::uint64_t processed_edges{};
   std::uint64_t gathered_vertex_words{};
+  std::uint64_t swept_vertex_words{};
   std::uint64_t scattered_vertex_words{};
+  std::uint64_t tiny_buffered_edges{};
+  std::uint64_t full_buffer_replay_edges{};
+  std::uint64_t full_overflow_edges{};
+  std::uint64_t full_stream_edges{};
   std::uint64_t vertex_read_bytes{};
   std::uint64_t vertex_write_bytes{};
   std::uint64_t active_out_write_bytes{};
@@ -206,6 +211,8 @@ class SpineSplitSsspCompute final : public Component {
     kGatherBegin,
     kGatherAdvance,
     kRelax,
+    kFullLoad,
+    kFullReplay,
     kStore,
     kFinish,
   };
@@ -225,6 +232,9 @@ class SpineSplitSsspCompute final : public Component {
                       std::uint64_t address, std::uint64_t bytes);
   void prepare_gather();
   void prepare_store();
+  void begin_full_path(const PartConvWord &overflow_edge);
+  void relax_edge(const PartConvWord &edge);
+  void reset_tile();
 
   std::size_t vertices_{};
   std::uint32_t source_{};
@@ -247,12 +257,17 @@ class SpineSplitSsspCompute final : public Component {
   AxiResponse staged_response_;
   std::uint32_t pending_source_{};
   std::uint32_t tile_base_{};
+  std::size_t tile_size_{};
   std::size_t gather_index_{};
   std::size_t relax_index_{};
   std::uint64_t next_transaction_id_{};
   std::uint64_t expected_transaction_id_{};
   bool waiting_memory_{};
   bool source_reply_pending_{};
+  bool tile_open_{};
+  bool full_path_{};
+  bool overflow_edge_pending_{};
+  PartConvWord overflow_edge_;
   bool done_{};
   bool failed_{};
 };
