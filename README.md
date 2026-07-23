@@ -133,9 +133,12 @@ state, AXIS links, AXI masters, and SST-HBM across all frontier rounds.
 
 ## Current Scope
 
-The current model targets trend validation against the latest 134 MHz exact
-split Spine hardware evidence on `reduce-levels-for-routing`. It intentionally
-does not model Vitis runtime overhead, PCIe transfers, RTL routing effects, or
-ASIC area/power. The B-stage maintenance model is structural and evidence
-oriented: it estimates HLS scan/carry work and exposes diagnostics, but it is
-not yet an AXI/stream/backpressure cycle-exact replacement for hw/hw_emu.
+The legacy Python/calibration model targets trend validation against historical
+exact split Spine hardware evidence. The fine-grained C++ path now executes
+cold/hot maintenance and carry, all-level reading, tiny/full compute, finite
+AXIS backpressure, AXI traffic, online SST-HBM, and multi-round weighted SSSP.
+It intentionally does not model Vitis runtime overhead, PCIe transfers, RTL
+routing effects, or total ASIC area/power. It is structural,
+execution-driven evidence, not yet a hardware-cycle-calibrated replacement for
+hw/hw_emu. The exact acceptance and remaining-gap matrix is in
+[`docs/fine_grained_spine_phase2_acceptance_20260723.md`](docs/fine_grained_spine_phase2_acceptance_20260723.md).

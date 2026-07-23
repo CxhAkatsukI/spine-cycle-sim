@@ -47,7 +47,9 @@
     "stream_sparse_carry_cursors",
     "split_readmaintenance_compute",
     "persistent_frontier",
-    "tiny_active_convergence"
+    "tiny_active_convergence",
+    "full_tile_load_replay_store",
+    "host_relaunched_frontier_rounds"
   ],
   "evidence": [
     {

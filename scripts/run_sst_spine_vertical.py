@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -20,6 +21,7 @@ DEFAULT_FULL_WORKLOAD = (
     ROOT / "tests" / "data" / "amazon_densewin8192_active7893_exact.slice"
 )
 DEFAULT_SSSP_WORKLOAD = ROOT / "tests" / "data" / "weighted_chain_shortcut.slice"
+PROFILE_PATH = ROOT / "configs" / "architectures" / "spine_shared_engine_9c08763.json"
 
 
 def collect_dram_stats(out_dir: Path) -> dict[str, int | float]:
@@ -297,7 +299,18 @@ def main() -> int:
     problems = validator(result, dram, channels=args.channels)
     if problems:
         raise RuntimeError(f"SST Spine checks failed: {', '.join(problems)}")
-    summary = {**result, **dram, "status": "PASS"}
+    profile_bytes = PROFILE_PATH.read_bytes()
+    profile = json.loads(profile_bytes)
+    summary = {
+        **result,
+        **dram,
+        "architecture_profile_id": profile["profile_id"],
+        "architecture_profile_sha256": hashlib.sha256(profile_bytes).hexdigest(),
+        "source_revision": profile["source"]["revision"],
+        "architecture_profile_evidence_tier": profile["evidence_tier"],
+        "simulation_evidence_tier": "structural_execution_driven",
+        "status": "PASS",
+    }
     (args.out_dir / "summary.json").write_text(
         json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )

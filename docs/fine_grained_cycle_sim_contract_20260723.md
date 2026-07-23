@@ -3,6 +3,11 @@
 Date: 2026-07-23
 Branch: `codex/fine-grained-cycle-sim`
 
+Current Spine implementation status and evidence are frozen in
+`fine_grained_spine_phase2_acceptance_20260723.md`. That milestone completes
+the stable-profile hot/carry/full-tile/multi-round Spine slice; it does not mark
+the competitor, hardware-calibration, or publication-evidence phases complete.
+
 ## Purpose
 
 This branch replaces the coarse timing path with an execution-driven,

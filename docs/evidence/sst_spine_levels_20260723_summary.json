@@ -1,4 +1,7 @@
 {
+  "architecture_profile_evidence_tier": "hardware_validated",
+  "architecture_profile_id": "spine_shared_engine_9c08763",
+  "architecture_profile_sha256": "aba0d6bbcbaa64240897ed3efc555d6ce6d6455d2f10e77e0ccdb77fa46466a7",
   "backend": "sst_memHierarchy_dramsim3",
   "backend_max_outstanding": 4,
   "backend_requests": 546,
@@ -48,6 +51,8 @@
   "reader_occupied_levels": 1,
   "reader_tiles": 5,
   "sim_time_fs": 32680852992,
+  "simulation_evidence_tier": "structural_execution_driven",
+  "source_revision": "9c08763148644df262c0d374e782bc834f4c0f4f",
   "status": "PASS",
   "success": true
 }
