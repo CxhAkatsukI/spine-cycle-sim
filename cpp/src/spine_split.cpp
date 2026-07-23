@@ -109,6 +109,7 @@ void SpineSplitReader::evaluate(const CycleContext &) {
             .operation = MemoryOperation::kRead,
             .address = task.address,
             .bytes = task.bytes,
+            .write_data = {},
         })) {
       staged_action_ = Action::kIssue;
     }
@@ -482,6 +483,7 @@ void SpineSplitSsspCompute::evaluate(const CycleContext &) {
             .operation = task.operation,
             .address = task.address,
             .bytes = task.bytes,
+            .write_data = {},
         })) {
       staged_action_ = Action::kIssue;
     }

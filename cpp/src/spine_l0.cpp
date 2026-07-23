@@ -294,6 +294,7 @@ void SpineL0Maintenance::evaluate(const CycleContext &) {
             .operation = task.operation,
             .address = task.address,
             .bytes = task.bytes,
+            .write_data = {},
         })) {
       staged_action_ = StagedAction::kIssue;
     }

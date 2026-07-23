@@ -1,0 +1,18 @@
+{
+  "axi_beats": 50,
+  "axi_bursts": 6,
+  "axi_read_bytes": 1600,
+  "axi_write_bytes": 1600,
+  "backend": "sst_memHierarchy_dramsim3",
+  "backend_requests": 50,
+  "cycles": 62,
+  "dram_channels": 2,
+  "dram_reads": 25,
+  "dram_writes": 25,
+  "mode": "payload_roundtrip",
+  "payload_bytes": 1600,
+  "simulation_evidence_tier": "structural_execution_driven",
+  "status": "PASS",
+  "success": true,
+  "zero_filled_write_bytes": 0
+}

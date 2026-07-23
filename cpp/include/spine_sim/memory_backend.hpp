@@ -21,12 +21,14 @@ struct BackendRequest {
   MemoryOperation operation{MemoryOperation::kRead};
   std::uint64_t address{};
   std::uint32_t bytes{};
+  std::vector<std::uint8_t> write_data;
 };
 
 struct BackendResponse {
   std::uint32_t initiator_id{};
   std::uint64_t request_id{};
   bool success{true};
+  std::vector<std::uint8_t> read_data;
 };
 
 class MemoryBackend : public Component {
@@ -34,6 +36,10 @@ class MemoryBackend : public Component {
   using Component::Component;
 
   void register_initiator(std::uint32_t initiator_id);
+  void initialize_payload(std::size_t channel, std::uint64_t address,
+                          const std::vector<std::uint8_t>& data);
+  [[nodiscard]] std::vector<std::uint8_t> inspect_payload(
+      std::size_t channel, std::uint64_t address, std::size_t bytes) const;
   virtual bool try_submit(const BackendRequest& request) = 0;
   [[nodiscard]] virtual std::size_t response_count(
       std::uint32_t initiator_id) const noexcept = 0;
@@ -48,9 +54,15 @@ class MemoryBackend : public Component {
  protected:
   [[nodiscard]] bool initiator_registered(
       std::uint32_t initiator_id) const noexcept;
+  void commit_write_payload(const BackendRequest& request);
+  [[nodiscard]] std::vector<std::uint8_t> complete_read_payload(
+      const BackendRequest& request) const;
 
  private:
   std::unordered_set<std::uint32_t> initiators_;
+  std::unordered_map<
+      std::size_t, std::unordered_map<std::uint64_t, std::uint8_t>>
+      payload_storage_;
 };
 
 struct MockMemoryConfig {
@@ -90,9 +102,10 @@ class MockMemoryBackend final : public MemoryBackend {
 
  private:
   struct Pending {
-    BackendResponse response;
+    BackendRequest request;
     std::size_t channel{};
     std::uint64_t due_cycle{};
+    bool completed{};
   };
 
   [[nodiscard]] std::size_t channel_outstanding(std::size_t channel) const;

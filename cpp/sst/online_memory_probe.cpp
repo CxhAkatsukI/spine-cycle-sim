@@ -145,6 +145,7 @@ class ProbeSource final : public Component {
         .operation = operation,
         .address = address,
         .bytes = request_bytes_,
+        .write_data = {},
     });
   }
 
@@ -198,6 +199,91 @@ class ProbeSink final : public Component {
   std::uint64_t completed_{};
   std::uint64_t failed_{};
   bool accepted_{};
+};
+
+class PayloadRoundTrip final : public Component {
+ public:
+  PayloadRoundTrip(ClockId clock_id, Fifo<AxiRequest> &requests,
+                   Fifo<AxiResponse> &responses)
+      : Component("payload-round-trip", clock_id),
+        requests_(requests),
+        responses_(responses),
+        pattern_(1600) {
+    for (std::size_t index = 0; index < pattern_.size(); ++index) {
+      pattern_[index] =
+          static_cast<std::uint8_t>((index * 17 + 3) & 0xff);
+    }
+  }
+
+  void evaluate(const CycleContext &) override {
+    action_ = Action::kNone;
+    if (phase_ == Phase::kWriteIssue) {
+      if (requests_.try_push(AxiRequest{
+              .transaction_id = 0,
+              .operation = MemoryOperation::kWrite,
+              .address = 4032,
+              .bytes = pattern_.size(),
+              .write_data = pattern_,
+          })) {
+        action_ = Action::kIssued;
+      }
+    } else if (phase_ == Phase::kReadIssue) {
+      if (requests_.try_push(AxiRequest{
+              .transaction_id = 1,
+              .operation = MemoryOperation::kRead,
+              .address = 4032,
+              .bytes = pattern_.size(),
+              .write_data = {},
+          })) {
+        action_ = Action::kIssued;
+      }
+    } else if (phase_ == Phase::kWriteWait || phase_ == Phase::kReadWait) {
+      if (responses_.try_pop(staged_response_)) {
+        action_ = Action::kCompleted;
+      }
+    }
+  }
+
+  void commit(const CycleContext &) override {
+    if (action_ == Action::kIssued) {
+      phase_ = phase_ == Phase::kWriteIssue ? Phase::kWriteWait
+                                            : Phase::kReadWait;
+    } else if (action_ == Action::kCompleted) {
+      if (!staged_response_.success) {
+        failed_ = true;
+      }
+      if (phase_ == Phase::kWriteWait) {
+        if (staged_response_.transaction_id != 0 ||
+            !staged_response_.read_data.empty()) {
+          failed_ = true;
+        }
+        phase_ = Phase::kReadIssue;
+      } else {
+        if (staged_response_.transaction_id != 1 ||
+            staged_response_.read_data != pattern_) {
+          failed_ = true;
+        }
+        phase_ = Phase::kDone;
+      }
+    }
+    action_ = Action::kNone;
+  }
+
+  [[nodiscard]] bool done() const noexcept { return phase_ == Phase::kDone; }
+  [[nodiscard]] bool failed() const noexcept { return failed_; }
+  [[nodiscard]] std::size_t bytes() const noexcept { return pattern_.size(); }
+
+ private:
+  enum class Phase { kWriteIssue, kWriteWait, kReadIssue, kReadWait, kDone };
+  enum class Action { kNone, kIssued, kCompleted };
+
+  Fifo<AxiRequest> &requests_;
+  Fifo<AxiResponse> &responses_;
+  std::vector<std::uint8_t> pattern_;
+  AxiResponse staged_response_;
+  Phase phase_{Phase::kWriteIssue};
+  Action action_{Action::kNone};
+  bool failed_{};
 };
 
 class SpineWordSource final : public Component {
@@ -254,6 +340,12 @@ class SstMemoryBackend final : public MemoryBackend {
     if (!initiator_registered(request.initiator_id) ||
         request.channel >= interfaces_.size() || request.bytes == 0) {
       throw std::invalid_argument("invalid SST backend request");
+    }
+    if ((request.operation == MemoryOperation::kRead &&
+         !request.write_data.empty()) ||
+        (request.operation == MemoryOperation::kWrite &&
+         request.write_data.size() != request.bytes)) {
+      throw std::invalid_argument("invalid SST backend request payload");
     }
     const auto staged_for_channel = static_cast<std::size_t>(
         std::count_if(staged_submissions_.begin(), staged_submissions_.end(),
@@ -346,8 +438,7 @@ class SstMemoryBackend final : public MemoryBackend {
       SST::Interfaces::StandardMem::Request *standard_request = nullptr;
       if (request.operation == MemoryOperation::kWrite) {
         standard_request = new SST::Interfaces::StandardMem::Write(
-            local_address, request.bytes,
-            std::vector<std::uint8_t>(request.bytes, 0));
+            local_address, request.bytes, request.write_data);
       } else {
         standard_request = new SST::Interfaces::StandardMem::Read(
             local_address, request.bytes);
@@ -359,6 +450,9 @@ class SstMemoryBackend final : public MemoryBackend {
                             .backend_request_id = request.request_id,
                             .initiator_id = request.initiator_id,
                             .channel = request.channel,
+                            .operation = request.operation,
+                            .bytes = request.bytes,
+                            .request = request,
                         });
       ++channel_outstanding_[request.channel];
       ++initiator_outstanding_[request.initiator_id];
@@ -374,10 +468,26 @@ class SstMemoryBackend final : public MemoryBackend {
     if (found == inflight_.end()) {
       throw std::logic_error("SST returned an unknown StandardMem request");
     }
+    std::vector<std::uint8_t> read_data;
+    if (found->second.operation == MemoryOperation::kRead) {
+      auto *read_response =
+          dynamic_cast<SST::Interfaces::StandardMem::ReadResp *>(request);
+      if (read_response == nullptr ||
+          read_response->data.size() != found->second.bytes) {
+        throw std::logic_error("SST returned a malformed read response");
+      }
+      read_data = complete_read_payload(found->second.request);
+    } else if (dynamic_cast<SST::Interfaces::StandardMem::WriteResp *>(request) ==
+               nullptr) {
+      throw std::logic_error("SST returned a malformed write response");
+    } else {
+      commit_write_payload(found->second.request);
+    }
     external_arrivals_.push_back(BackendResponse{
         .initiator_id = found->second.initiator_id,
         .request_id = found->second.backend_request_id,
         .success = request->getSuccess(),
+        .read_data = std::move(read_data),
     });
     --channel_outstanding_[found->second.channel];
     --initiator_outstanding_[found->second.initiator_id];
@@ -401,6 +511,9 @@ class SstMemoryBackend final : public MemoryBackend {
     std::uint64_t backend_request_id{};
     std::uint32_t initiator_id{};
     std::size_t channel{};
+    MemoryOperation operation{MemoryOperation::kRead};
+    std::uint32_t bytes{};
+    BackendRequest request;
   };
 
   std::vector<SST::Interfaces::StandardMem *> interfaces_;
@@ -447,7 +560,8 @@ class OnlineMemoryProbe final : public SST::Component {
     write_percent_ = params.find<std::uint32_t>("write_percent", 0);
     max_cycles_ = params.find<std::uint64_t>("max_cycles", 1'000'000);
     max_rounds_ = params.find<std::size_t>("max_rounds", 256);
-    if ((mode_ != "probe" && mode_ != "spine_vertical" &&
+    if ((mode_ != "probe" && mode_ != "payload_roundtrip" &&
+         mode_ != "spine_vertical" &&
          mode_ != "spine_compute" && mode_ != "spine_sssp") ||
         channels_ == 0 || channel_capacity_bytes_ == 0 || max_rounds_ == 0 ||
         write_percent_ > 100 ||
@@ -664,17 +778,22 @@ class OnlineMemoryProbe final : public SST::Component {
                                            .fixed_channel = std::nullopt,
                                        },
                                        *requests_, *responses_, *backend_);
-    source_ = std::make_unique<ProbeSource>(
-        core, *requests_, request_count_, request_bytes_, stride_bytes_,
-        channel_capacity_bytes_ * channels_, write_percent_);
-    sink_ = std::make_unique<ProbeSink>(core, *responses_);
-
-    scheduler_.add_component(*source_);
+    if (mode_ == "payload_roundtrip") {
+      payload_round_trip_ = std::make_unique<PayloadRoundTrip>(
+          core, *requests_, *responses_);
+      scheduler_.add_component(*payload_round_trip_);
+    } else {
+      source_ = std::make_unique<ProbeSource>(
+          core, *requests_, request_count_, request_bytes_, stride_bytes_,
+          channel_capacity_bytes_ * channels_, write_percent_);
+      sink_ = std::make_unique<ProbeSink>(core, *responses_);
+      scheduler_.add_component(*source_);
+      scheduler_.add_component(*sink_);
+    }
     scheduler_.add_component(*requests_);
     scheduler_.add_component(*axi_);
     scheduler_.add_component(*backend_);
     scheduler_.add_component(*responses_);
-    scheduler_.add_component(*sink_);
   }
 
   void finish() override {
@@ -728,6 +847,13 @@ class OnlineMemoryProbe final : public SST::Component {
         primaryComponentOKToEndSim();
         return true;
       }
+    } else if (mode_ == "payload_roundtrip") {
+      if (payload_round_trip_->done() && axi_->idle() && requests_->empty() &&
+          responses_->empty() && backend_->outstanding() == 0) {
+        write_result(!payload_round_trip_->failed());
+        primaryComponentOKToEndSim();
+        return true;
+      }
     } else if (sink_->completed() == request_count_ && axi_->idle() &&
                requests_->empty() && responses_->empty()) {
       write_result(true);
@@ -755,7 +881,7 @@ class OnlineMemoryProbe final : public SST::Component {
 
   SST_ELI_DOCUMENT_PARAMS(
       {"output", "JSON result path", "sst_memory_probe.json"},
-      {"mode", "probe, spine_vertical, spine_compute, or spine_sssp", "probe"},
+      {"mode", "probe, payload_roundtrip, spine_vertical, spine_compute, or spine_sssp", "probe"},
       {"workload", "Spine .slice workload path", ""},
       {"preload_workload", "Optional pre-existing Spine L0 .slice", ""},
       {"hot_vertices", "Comma-separated host hot-bitmap vertices", ""},
@@ -783,6 +909,32 @@ class OnlineMemoryProbe final : public SST::Component {
     }
     result_written_ = true;
     std::ofstream result(result_path_);
+    if (mode_ == "payload_roundtrip") {
+      const auto &stats = axi_->stats();
+      const bool passed = success && !payload_round_trip_->failed() &&
+                          stats.zero_filled_write_bytes == 0;
+      result << "{\n"
+             << "  \"success\": " << (passed ? "true" : "false") << ",\n"
+             << "  \"mode\": \"payload_roundtrip\",\n"
+             << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
+             << "  \"cycles\": " << scheduler_.clock(0).completed_cycles
+             << ",\n"
+             << "  \"payload_bytes\": " << payload_round_trip_->bytes()
+             << ",\n"
+             << "  \"axi_bursts\": " << stats.bursts_accepted << ",\n"
+             << "  \"axi_beats\": " << stats.beats_issued << ",\n"
+             << "  \"axi_read_bytes\": " << stats.read_bytes << ",\n"
+             << "  \"axi_write_bytes\": " << stats.write_bytes << ",\n"
+             << "  \"zero_filled_write_bytes\": "
+             << stats.zero_filled_write_bytes << ",\n"
+             << "  \"backend_requests\": " << backend_->accepted() << "\n"
+             << "}\n";
+      output_.output("completed SST payload round trip in %llu cycles -> %s\n",
+                     static_cast<unsigned long long>(
+                         scheduler_.clock(0).completed_cycles),
+                     result_path_.c_str());
+      return;
+    }
     if (mode_ == "spine_compute") {
       std::uint64_t mismatches = 0;
       std::unordered_set<std::uint32_t> expected_frontier;
@@ -1138,6 +1290,7 @@ class OnlineMemoryProbe final : public SST::Component {
   std::unique_ptr<AxiMaster> axi_;
   std::unique_ptr<ProbeSource> source_;
   std::unique_ptr<ProbeSink> sink_;
+  std::unique_ptr<PayloadRoundTrip> payload_round_trip_;
   std::unique_ptr<SpineVerticalSliceSystem> spine_system_;
   std::unique_ptr<Fifo<PartConvWord>> spine_edge_stream_;
   std::unique_ptr<Fifo<SourceValueWord>> spine_value_stream_;

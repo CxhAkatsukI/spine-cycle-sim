@@ -22,6 +22,7 @@ dram_output.mkdir(parents=True, exist_ok=True)
 probe = sst.Component("probe", "spine_cycle.OnlineMemoryProbe")
 probe.addParams(
     {
+        "mode": os.environ.get("SPINE_SST_MODE", "probe"),
         "output": output,
         "core_clock": "141MHz",
         "core_mhz": 141.0,

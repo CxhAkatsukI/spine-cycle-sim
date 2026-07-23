@@ -65,6 +65,7 @@ std::vector<AxiMaster::Burst> AxiMaster::split_request(
   std::vector<Burst> bursts;
   std::uint64_t address = request.address;
   std::uint64_t remaining = request.bytes;
+  std::uint64_t parent_offset = 0;
   const std::uint64_t max_burst_bytes =
       static_cast<std::uint64_t>(config_.data_width_bytes) * config_.max_burst_beats;
   while (remaining != 0) {
@@ -80,6 +81,7 @@ std::vector<AxiMaster::Burst> AxiMaster::split_request(
         .operation = request.operation,
         .address = address,
         .bytes = bytes,
+        .parent_offset = parent_offset,
         .beats_total = beats,
         .beats_issued = 0,
         .beats_completed = 0,
@@ -88,6 +90,7 @@ std::vector<AxiMaster::Burst> AxiMaster::split_request(
       ++stats_.four_kib_splits;
     }
     address += bytes;
+    parent_offset += bytes;
     remaining -= bytes;
   }
   return bursts;
@@ -189,10 +192,26 @@ void AxiMaster::evaluate_data_channel() {
           .operation = burst.operation,
           .address = beat_address,
           .bytes = beat_bytes,
+          .write_data = {},
       };
+      const Parent& parent = parents_.at(burst.parent_id);
+      const std::uint64_t parent_offset =
+          burst.parent_offset +
+          static_cast<std::uint64_t>(burst.beats_issued + extra) *
+              config_.data_width_bytes;
+      if (burst.operation == MemoryOperation::kWrite) {
+        if (parent.request.write_data.empty()) {
+          request.write_data.assign(beat_bytes, 0);
+        } else {
+          const auto begin = parent.request.write_data.begin() +
+                             static_cast<std::ptrdiff_t>(parent_offset);
+          request.write_data.assign(begin, begin + beat_bytes);
+        }
+      }
       if (backend_.try_submit(request)) {
         staged_beats_.push_back(StagedBeat{
             .burst_id = burst.burst_id,
+            .parent_offset = parent_offset,
             .request = request,
         });
         ++additional_issued[burst.burst_id];
@@ -222,11 +241,11 @@ void AxiMaster::commit_backend_responses() {
     if (response.initiator_id != config_.initiator_id) {
       throw std::logic_error("AXI received a response for another initiator");
     }
-    const auto mapping = backend_to_burst_.find(response.request_id);
-    if (mapping == backend_to_burst_.end()) {
+    const auto mapping = backend_mappings_.find(response.request_id);
+    if (mapping == backend_mappings_.end()) {
       throw std::logic_error("AXI received a response for an unknown backend request");
     }
-    Burst* burst = find_active(mapping->second);
+    Burst* burst = find_active(mapping->second.burst_id);
     if (burst == nullptr) {
       throw std::logic_error("AXI response references a non-active burst");
     }
@@ -234,7 +253,19 @@ void AxiMaster::commit_backend_responses() {
     ++stats_.beats_completed;
     Parent& parent = parents_.at(burst->parent_id);
     parent.success = parent.success && response.success;
-    backend_to_burst_.erase(mapping);
+    if (burst->operation == MemoryOperation::kRead) {
+      if (response.read_data.size() != mapping->second.bytes ||
+          mapping->second.parent_offset + response.read_data.size() >
+              parent.read_data.size()) {
+        throw std::logic_error("AXI read response payload shape mismatch");
+      }
+      std::copy(response.read_data.begin(), response.read_data.end(),
+                parent.read_data.begin() +
+                    static_cast<std::ptrdiff_t>(mapping->second.parent_offset));
+    } else if (!response.read_data.empty()) {
+      throw std::logic_error("AXI write response unexpectedly carried data");
+    }
+    backend_mappings_.erase(mapping);
   }
 
   for (auto iterator = active_bursts_.begin(); iterator != active_bursts_.end();) {
@@ -251,6 +282,7 @@ void AxiMaster::commit_backend_responses() {
               .transaction_id = parent.request.transaction_id,
               .operation = parent.request.operation,
               .success = parent.success,
+              .read_data = std::move(parent.read_data),
           },
       });
     }
@@ -262,6 +294,15 @@ void AxiMaster::commit_request_input() {
   if (!staged_input_.has_value()) {
     return;
   }
+  if (staged_input_->operation == MemoryOperation::kRead &&
+      !staged_input_->write_data.empty()) {
+    throw std::invalid_argument("AXI read request cannot carry write data");
+  }
+  if (staged_input_->operation == MemoryOperation::kWrite &&
+      !staged_input_->write_data.empty() &&
+      staged_input_->write_data.size() != staged_input_->bytes) {
+    throw std::invalid_argument("AXI write payload size must match byte count");
+  }
   parents_.emplace(
       staged_parent_id_,
       Parent{
@@ -269,6 +310,9 @@ void AxiMaster::commit_request_input() {
           .total_bursts = staged_new_bursts_.size(),
           .completed_bursts = 0,
           .success = true,
+          .read_data = staged_input_->operation == MemoryOperation::kRead
+                           ? std::vector<std::uint8_t>(staged_input_->bytes, 0)
+                           : std::vector<std::uint8_t>{},
       });
   for (const Burst& burst : staged_new_bursts_) {
     pending_address_.push_back(burst);
@@ -298,12 +342,21 @@ void AxiMaster::commit_data_channel() {
       throw std::logic_error("AXI staged beat references a non-active burst");
     }
     ++burst->beats_issued;
-    backend_to_burst_.emplace(staged.request.request_id, staged.burst_id);
+    backend_mappings_.emplace(
+        staged.request.request_id,
+        BackendMapping{
+            .burst_id = staged.burst_id,
+            .parent_offset = staged.parent_offset,
+            .bytes = staged.request.bytes,
+        });
     ++stats_.beats_issued;
     if (staged.request.operation == MemoryOperation::kRead) {
       stats_.read_bytes += staged.request.bytes;
     } else {
       stats_.write_bytes += staged.request.bytes;
+      if (parents_.at(burst->parent_id).request.write_data.empty()) {
+        stats_.zero_filled_write_bytes += staged.request.bytes;
+      }
     }
   }
   next_backend_id_ += staged_beats_.size();

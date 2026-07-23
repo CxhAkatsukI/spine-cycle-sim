@@ -398,12 +398,14 @@ TwoMasterResult run_two_axi_masters(std::size_t second_channel) {
                                          {{.transaction_id = 100,
                                            .operation = MemoryOperation::kRead,
                                            .address = 0,
-                                           .bytes = 64}});
+                                           .bytes = 64,
+                                           .write_data = {}}});
   SequenceProducer<AxiRequest> producer1("producer1", core, request1,
                                          {{.transaction_id = 200,
                                            .operation = MemoryOperation::kWrite,
                                            .address = 4096,
-                                           .bytes = 64}});
+                                           .bytes = 64,
+                                           .write_data = {}}});
   SequenceConsumer<AxiResponse> consumer0("consumer0", core, response0);
   SequenceConsumer<AxiResponse> consumer1("consumer1", core, response1);
 
@@ -482,7 +484,8 @@ void test_axi_splits_bursts_and_uses_backend_online() {
                                         {{.transaction_id = 42,
                                           .operation = MemoryOperation::kRead,
                                           .address = 4032,
-                                          .bytes = 1600}});
+                                          .bytes = 1600,
+                                          .write_data = {}}});
   SequenceConsumer<AxiResponse> consumer("response-sink", core, responses);
 
   scheduler.add_component(backend);
@@ -523,11 +526,13 @@ void test_axi_response_backpressure_is_lossless() {
           {.transaction_id = 1,
            .operation = MemoryOperation::kWrite,
            .address = 0,
-           .bytes = 64},
+           .bytes = 64,
+           .write_data = {}},
           {.transaction_id = 2,
            .operation = MemoryOperation::kWrite,
            .address = 64,
-           .bytes = 64},
+           .bytes = 64,
+           .write_data = {}},
       });
   SequenceConsumer<AxiResponse> consumer("response-sink", core, responses, 20);
 
@@ -545,6 +550,63 @@ void test_axi_response_backpressure_is_lossless() {
   require(axi.stats().response_queue_stalls > 0,
           "AXI response FIFO backpressure was not counted");
   require(axi.stats().write_bytes == 128, "AXI write byte count mismatch");
+}
+
+void test_axi_payload_round_trip_across_beats_and_bursts() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("core", 141.0);
+  Fifo<AxiRequest> requests("axi-requests", core, 4);
+  Fifo<AxiResponse> responses("axi-responses", core, 4);
+  MockMemoryBackend backend("mock-hbm", core, mock_memory_config());
+  AxiConfig config = axi_config();
+  config.fixed_channel = 0;
+  AxiMaster axi("axi", core, config, requests, responses, backend);
+
+  std::vector<std::uint8_t> read_pattern(1600);
+  for (std::size_t index = 0; index < read_pattern.size(); ++index) {
+    read_pattern[index] = static_cast<std::uint8_t>((index * 17 + 3) & 0xff);
+  }
+  std::vector<std::uint8_t> write_pattern(130);
+  for (std::size_t index = 0; index < write_pattern.size(); ++index) {
+    write_pattern[index] = static_cast<std::uint8_t>((index * 29 + 11) & 0xff);
+  }
+  backend.initialize_payload(0, 4032, read_pattern);
+
+  SequenceProducer<AxiRequest> producer(
+      "requester", core, requests,
+      {
+          {.transaction_id = 42,
+           .operation = MemoryOperation::kRead,
+           .address = 4032,
+           .bytes = read_pattern.size(),
+           .write_data = {}},
+          {.transaction_id = 43,
+           .operation = MemoryOperation::kWrite,
+           .address = 8192,
+           .bytes = write_pattern.size(),
+           .write_data = write_pattern},
+      });
+  SequenceConsumer<AxiResponse> consumer("response-sink", core, responses);
+
+  scheduler.add_component(producer);
+  scheduler.add_component(requests);
+  scheduler.add_component(axi);
+  scheduler.add_component(backend);
+  scheduler.add_component(responses);
+  scheduler.add_component(consumer);
+  scheduler.run_until([&consumer] { return consumer.values.size() == 2; }, 300);
+
+  const auto read_response = std::find_if(
+      consumer.values.begin(), consumer.values.end(),
+      [](const AxiResponse &response) { return response.transaction_id == 42; });
+  require(read_response != consumer.values.end() &&
+              read_response->read_data == read_pattern,
+          "AXI failed to reassemble payload across beats and bursts");
+  require(backend.inspect_payload(0, 8192, write_pattern.size()) ==
+              write_pattern,
+          "AXI write payload did not reach backend storage");
+  require(axi.stats().zero_filled_write_bytes == 0,
+          "explicit AXI write payload was reported as zero-filled");
 }
 
 void test_spine_l0_real_slice_vertical_path() {
@@ -1192,6 +1254,8 @@ int main() {
       {"invalid_config", test_invalid_clock_and_capacity_are_rejected},
       {"axi_online_backend", test_axi_splits_bursts_and_uses_backend_online},
       {"axi_response_backpressure", test_axi_response_backpressure_is_lossless},
+      {"axi_payload_round_trip",
+       test_axi_payload_round_trip_across_beats_and_bursts},
       {"axi_multi_initiator", test_axi_multi_initiator_fixed_channel_isolation},
       {"axi_duplicate_initiator", test_axi_rejects_duplicate_initiator_id},
       {"spine_l0_real_slice", test_spine_l0_real_slice_vertical_path},

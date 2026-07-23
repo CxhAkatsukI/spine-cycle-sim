@@ -17,6 +17,48 @@ bool MemoryBackend::initiator_registered(
   return initiators_.contains(initiator_id);
 }
 
+void MemoryBackend::initialize_payload(
+    std::size_t channel, std::uint64_t address,
+    const std::vector<std::uint8_t>& data) {
+  auto& storage = payload_storage_[channel];
+  for (std::size_t index = 0; index < data.size(); ++index) {
+    storage[address + index] = data[index];
+  }
+}
+
+std::vector<std::uint8_t> MemoryBackend::inspect_payload(
+    std::size_t channel, std::uint64_t address, std::size_t bytes) const {
+  std::vector<std::uint8_t> result(bytes, 0);
+  const auto channel_storage = payload_storage_.find(channel);
+  if (channel_storage == payload_storage_.end()) {
+    return result;
+  }
+  for (std::size_t index = 0; index < bytes; ++index) {
+    const auto found = channel_storage->second.find(address + index);
+    if (found != channel_storage->second.end()) {
+      result[index] = found->second;
+    }
+  }
+  return result;
+}
+
+void MemoryBackend::commit_write_payload(const BackendRequest& request) {
+  if (request.operation != MemoryOperation::kWrite ||
+      request.write_data.size() != request.bytes) {
+    throw std::invalid_argument("invalid completed memory write payload");
+  }
+  initialize_payload(request.channel, request.address, request.write_data);
+}
+
+std::vector<std::uint8_t> MemoryBackend::complete_read_payload(
+    const BackendRequest& request) const {
+  if (request.operation != MemoryOperation::kRead ||
+      !request.write_data.empty()) {
+    throw std::invalid_argument("invalid completed memory read payload");
+  }
+  return inspect_payload(request.channel, request.address, request.bytes);
+}
+
 MockMemoryBackend::MockMemoryBackend(std::string name, ClockId clock_id,
                                      MockMemoryConfig config)
     : MemoryBackend(std::move(name), clock_id), config_(config) {
@@ -31,7 +73,7 @@ MockMemoryBackend::MockMemoryBackend(std::string name, ClockId clock_id,
 std::size_t MockMemoryBackend::channel_outstanding(std::size_t channel) const {
   return static_cast<std::size_t>(std::count_if(
       pending_.begin(), pending_.end(), [channel](const Pending& pending) {
-        return pending.channel == channel;
+        return pending.channel == channel && !pending.completed;
       }));
 }
 
@@ -39,6 +81,12 @@ bool MockMemoryBackend::try_submit(const BackendRequest& request) {
   if (!initiator_registered(request.initiator_id) ||
       request.channel >= config_.channels || request.bytes == 0) {
     throw std::invalid_argument("invalid mock memory request");
+  }
+  if ((request.operation == MemoryOperation::kRead &&
+       !request.write_data.empty()) ||
+      (request.operation == MemoryOperation::kWrite &&
+       request.write_data.size() != request.bytes)) {
+    throw std::invalid_argument("invalid mock memory request payload");
   }
   const auto staged_for_channel = static_cast<std::size_t>(std::count_if(
       staged_submissions_.begin(), staged_submissions_.end(),
@@ -89,7 +137,7 @@ std::size_t MockMemoryBackend::outstanding_for(
   const auto pending = static_cast<std::size_t>(std::count_if(
       pending_.begin(), pending_.end(),
       [initiator_id](const Pending& item) {
-        return item.response.initiator_id == initiator_id;
+        return !item.completed && item.request.initiator_id == initiator_id;
       }));
   const auto staged = static_cast<std::size_t>(std::count_if(
       staged_submissions_.begin(), staged_submissions_.end(),
@@ -105,13 +153,26 @@ void MockMemoryBackend::prepare(const CycleContext& context) {
       ++iterator;
       continue;
     }
-    auto& queue = responses_[iterator->response.initiator_id];
+    if (!iterator->completed) {
+      if (iterator->request.operation == MemoryOperation::kWrite) {
+        commit_write_payload(iterator->request);
+      }
+      iterator->completed = true;
+    }
+    auto& queue = responses_[iterator->request.initiator_id];
     if (queue.size() >= config_.response_queue_depth) {
       ++stats_.response_queue_stalls;
       ++iterator;
       continue;
     }
-    queue.push_back(iterator->response);
+    queue.push_back(BackendResponse{
+        .initiator_id = iterator->request.initiator_id,
+        .request_id = iterator->request.request_id,
+        .success = true,
+        .read_data = iterator->request.operation == MemoryOperation::kRead
+                         ? complete_read_payload(iterator->request)
+                         : std::vector<std::uint8_t>{},
+    });
     iterator = pending_.erase(iterator);
   }
 }
@@ -126,13 +187,10 @@ void MockMemoryBackend::commit(const CycleContext& context) {
   staged_response_pops_.clear();
   for (const BackendRequest& request : staged_submissions_) {
     pending_.push_back(Pending{
-        .response = BackendResponse{
-            .initiator_id = request.initiator_id,
-            .request_id = request.request_id,
-            .success = true,
-        },
+        .request = request,
         .channel = request.channel,
         .due_cycle = context.domain_cycle + config_.latency_cycles,
+        .completed = false,
     });
     ++stats_.accepted;
   }

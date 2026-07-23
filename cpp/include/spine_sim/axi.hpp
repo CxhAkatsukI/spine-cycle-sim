@@ -19,12 +19,14 @@ struct AxiRequest {
   MemoryOperation operation{MemoryOperation::kRead};
   std::uint64_t address{};
   std::uint64_t bytes{};
+  std::vector<std::uint8_t> write_data;
 };
 
 struct AxiResponse {
   std::uint64_t transaction_id{};
   MemoryOperation operation{MemoryOperation::kRead};
   bool success{true};
+  std::vector<std::uint8_t> read_data;
 };
 
 struct AxiConfig {
@@ -53,6 +55,7 @@ struct AxiStats {
   std::uint64_t four_kib_splits{};
   std::uint64_t read_bytes{};
   std::uint64_t write_bytes{};
+  std::uint64_t zero_filled_write_bytes{};
   std::size_t max_outstanding_bursts{};
 };
 
@@ -78,6 +81,7 @@ class AxiMaster final : public Component {
     std::size_t total_bursts{};
     std::size_t completed_bursts{};
     bool success{true};
+    std::vector<std::uint8_t> read_data;
   };
 
   struct Burst {
@@ -86,6 +90,7 @@ class AxiMaster final : public Component {
     MemoryOperation operation{MemoryOperation::kRead};
     std::uint64_t address{};
     std::uint64_t bytes{};
+    std::uint64_t parent_offset{};
     std::size_t beats_total{};
     std::size_t beats_issued{};
     std::size_t beats_completed{};
@@ -93,7 +98,14 @@ class AxiMaster final : public Component {
 
   struct StagedBeat {
     std::uint64_t burst_id{};
+    std::uint64_t parent_offset{};
     BackendRequest request;
+  };
+
+  struct BackendMapping {
+    std::uint64_t burst_id{};
+    std::uint64_t parent_offset{};
+    std::uint32_t bytes{};
   };
 
   struct ReadyResponse {
@@ -128,7 +140,7 @@ class AxiMaster final : public Component {
   std::unordered_map<std::uint64_t, Parent> parents_;
   std::deque<Burst> pending_address_;
   std::vector<Burst> active_bursts_;
-  std::unordered_map<std::uint64_t, std::uint64_t> backend_to_burst_;
+  std::unordered_map<std::uint64_t, BackendMapping> backend_mappings_;
   std::deque<ReadyResponse> ready_responses_;
   std::size_t issue_round_robin_{};
 
