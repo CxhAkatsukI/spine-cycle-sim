@@ -28,10 +28,15 @@ AxiMaster::AxiMaster(std::string name, ClockId clock_id, AxiConfig config,
       config_.response_beats_per_cycle == 0) {
     throw std::invalid_argument("AXI configuration values must be positive");
   }
+  if (config_.fixed_channel.has_value() &&
+      *config_.fixed_channel >= config_.channels) {
+    throw std::invalid_argument("AXI fixed channel is outside memory geometry");
+  }
   if (requests_.clock_id() != clock_id || responses_.clock_id() != clock_id ||
       backend_.clock_id() != clock_id) {
     throw std::invalid_argument("AXI master, links, and backend must share a clock");
   }
+  backend_.register_initiator(config_.initiator_id);
 }
 
 std::size_t AxiMaster::pending_requests() const noexcept {
@@ -40,10 +45,14 @@ std::size_t AxiMaster::pending_requests() const noexcept {
 
 bool AxiMaster::idle() const noexcept {
   return parents_.empty() && pending_address_.empty() && active_bursts_.empty() &&
-      ready_responses_.empty() && backend_.outstanding() == 0;
+      ready_responses_.empty() &&
+      backend_.outstanding_for(config_.initiator_id) == 0;
 }
 
 std::size_t AxiMaster::channel_for(std::uint64_t address) const {
+  if (config_.fixed_channel.has_value()) {
+    return *config_.fixed_channel;
+  }
   return static_cast<std::size_t>(
       (address / config_.channel_interleave_bytes) % config_.channels);
 }
@@ -112,15 +121,16 @@ void AxiMaster::evaluate_output() {
 
 void AxiMaster::evaluate_backend_responses() {
   const std::size_t count = std::min(config_.response_beats_per_cycle,
-                                     backend_.response_count());
+                                     backend_.response_count(config_.initiator_id));
   if (count == 0) {
     return;
   }
   staged_backend_responses_.reserve(count);
   for (std::size_t index = 0; index < count; ++index) {
-    staged_backend_responses_.push_back(backend_.response_at(index));
+    staged_backend_responses_.push_back(
+        backend_.response_at(config_.initiator_id, index));
   }
-  if (!backend_.stage_pop_responses(count)) {
+  if (!backend_.stage_pop_responses(config_.initiator_id, count)) {
     throw std::logic_error("memory backend rejected a valid response pop");
   }
 }
@@ -173,6 +183,7 @@ void AxiMaster::evaluate_data_channel() {
       const auto beat_bytes = static_cast<std::uint32_t>(
           std::min<std::uint64_t>(config_.data_width_bytes, burst.bytes - consumed));
       BackendRequest request{
+          .initiator_id = config_.initiator_id,
           .request_id = next_backend_id_ + staged_beats_.size(),
           .channel = channel_for(beat_address),
           .operation = burst.operation,
@@ -208,6 +219,9 @@ void AxiMaster::evaluate(const CycleContext&) {
 
 void AxiMaster::commit_backend_responses() {
   for (const BackendResponse& response : staged_backend_responses_) {
+    if (response.initiator_id != config_.initiator_id) {
+      throw std::logic_error("AXI received a response for another initiator");
+    }
     const auto mapping = backend_to_burst_.find(response.request_id);
     if (mapping == backend_to_burst_.end()) {
       throw std::logic_error("AXI received a response for an unknown backend request");

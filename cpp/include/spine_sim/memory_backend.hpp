@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <deque>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "spine_sim/component.hpp"
@@ -13,6 +15,7 @@ namespace spine::sim {
 enum class MemoryOperation { kRead, kWrite };
 
 struct BackendRequest {
+  std::uint32_t initiator_id{};
   std::uint64_t request_id{};
   std::size_t channel{};
   MemoryOperation operation{MemoryOperation::kRead};
@@ -21,6 +24,7 @@ struct BackendRequest {
 };
 
 struct BackendResponse {
+  std::uint32_t initiator_id{};
   std::uint64_t request_id{};
   bool success{true};
 };
@@ -29,12 +33,24 @@ class MemoryBackend : public Component {
  public:
   using Component::Component;
 
+  void register_initiator(std::uint32_t initiator_id);
   virtual bool try_submit(const BackendRequest& request) = 0;
-  [[nodiscard]] virtual std::size_t response_count() const noexcept = 0;
+  [[nodiscard]] virtual std::size_t response_count(
+      std::uint32_t initiator_id) const noexcept = 0;
   [[nodiscard]] virtual const BackendResponse& response_at(
-      std::size_t index) const = 0;
-  virtual bool stage_pop_responses(std::size_t count) = 0;
+      std::uint32_t initiator_id, std::size_t index) const = 0;
+  virtual bool stage_pop_responses(std::uint32_t initiator_id,
+                                   std::size_t count) = 0;
   [[nodiscard]] virtual std::size_t outstanding() const noexcept = 0;
+  [[nodiscard]] virtual std::size_t outstanding_for(
+      std::uint32_t initiator_id) const noexcept = 0;
+
+ protected:
+  [[nodiscard]] bool initiator_registered(
+      std::uint32_t initiator_id) const noexcept;
+
+ private:
+  std::unordered_set<std::uint32_t> initiators_;
 };
 
 struct MockMemoryConfig {
@@ -57,11 +73,15 @@ class MockMemoryBackend final : public MemoryBackend {
   MockMemoryBackend(std::string name, ClockId clock_id, MockMemoryConfig config);
 
   bool try_submit(const BackendRequest& request) override;
-  [[nodiscard]] std::size_t response_count() const noexcept override;
+  [[nodiscard]] std::size_t response_count(
+      std::uint32_t initiator_id) const noexcept override;
   [[nodiscard]] const BackendResponse& response_at(
-      std::size_t index) const override;
-  bool stage_pop_responses(std::size_t count) override;
+      std::uint32_t initiator_id, std::size_t index) const override;
+  bool stage_pop_responses(std::uint32_t initiator_id,
+                           std::size_t count) override;
   [[nodiscard]] std::size_t outstanding() const noexcept override;
+  [[nodiscard]] std::size_t outstanding_for(
+      std::uint32_t initiator_id) const noexcept override;
   [[nodiscard]] const MockMemoryStats& stats() const noexcept { return stats_; }
 
   void prepare(const CycleContext& context) override;
@@ -79,9 +99,9 @@ class MockMemoryBackend final : public MemoryBackend {
 
   MockMemoryConfig config_;
   std::deque<Pending> pending_;
-  std::deque<BackendResponse> responses_;
+  std::unordered_map<std::uint32_t, std::deque<BackendResponse>> responses_;
   std::vector<BackendRequest> staged_submissions_;
-  std::size_t staged_response_pops_{};
+  std::unordered_map<std::uint32_t, std::size_t> staged_response_pops_;
   MockMemoryStats stats_;
 };
 

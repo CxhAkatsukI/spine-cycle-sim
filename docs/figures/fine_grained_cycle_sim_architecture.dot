@@ -21,7 +21,7 @@ digraph FineGrainedCycleSimulator {
     scheduler [label="Absolute-time multi-clock scheduler [implemented]\nall prepare -> all evaluate -> all commit"];
     fifo [label="Finite FIFO [implemented]\nregistered transfer + backpressure"];
     onchip [label="Banked BRAM / URAM [implemented]\nports + latency + conflicts"];
-    axi [label="AXI master [implemented]\nbursts + beats + outstanding + response queues"];
+    axi [label="AXI masters [implemented]\nfixed channel + initiator-isolated responses\nbursts + beats + outstanding"];
     scheduler -> fifo [dir=both];
     scheduler -> onchip [dir=both];
     scheduler -> axi [dir=both];

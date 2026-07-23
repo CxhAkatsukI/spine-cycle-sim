@@ -65,6 +65,11 @@ The comparison report has three separate views:
 - `projected`: explicit architecture proposal. This cannot be presented as
   measured hardware and must carry resource, area, timing, and energy impact.
 
+The U55C memory geometry is recorded as 32 HBM pseudo-channels. Spine uses 16
+of them as graph-family channels and statically binds ancillary masters through
+HBM[22]. The cycle core models those bindings as independent AXI initiators;
+`graph_hbm_channels=16` must not be misread as the board's total channel count.
+
 The primary competitor is a GraSU update engine with a PMA-native ReGraph
 compute path. The existing host PMA-to-ReGraph conversion is secondary
 evidence, because its conversion cost is an artifact of incompatible formats.

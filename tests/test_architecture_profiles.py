@@ -32,7 +32,11 @@ class ArchitectureProfileTests(unittest.TestCase):
         self.assertEqual(profile.clock("data").requested_mhz, 150.0)
         self.assertEqual(profile.clock("data").achieved_mhz, 141.0)
         self.assertEqual(profile.clock("hbm").achieved_mhz, 450.0)
-        self.assertEqual(profile.memory.channels, 16)
+        self.assertEqual(profile.memory.channels, 32)
+        self.assertEqual(profile.parameters["graph_hbm_channels"], 16)
+        self.assertEqual(profile.parameters["hbm_pseudo_channels_used"], 23)
+        self.assertEqual(profile.parameters["sorted_edges_hbm_channel"], 16)
+        self.assertEqual(profile.parameters["active_bitmap_hbm_channel"], 22)
         self.assertEqual(
             profile.evidence[1].sha256,
             "1828434e164bf0aef28fff9fba7925cfa39f93ad86f6bfc3878f504461c76dbf",

@@ -17,7 +17,7 @@
   ],
   "memory": {
     "backend": "u55c_hbm",
-    "channels": 16,
+    "channels": 32,
     "channel_capacity_bytes": 536870912,
     "data_width_bits": 512,
     "max_burst_bytes": 1024,
@@ -31,7 +31,16 @@
     "vertex_partition_size": 1048576,
     "tile_vertices": 65536,
     "tiny_active_threshold": 4096,
-    "split_compute_width": 4
+    "split_compute_width": 4,
+    "graph_hbm_channels": 16,
+    "hbm_pseudo_channels_used": 23,
+    "sorted_edges_hbm_channel": 16,
+    "vertex_state_hbm_channel": 17,
+    "active_bins_hbm_channel": 18,
+    "active_out_hbm_channel": 19,
+    "metadata_hbm_channel": 20,
+    "result_hbm_channel": 21,
+    "active_bitmap_hbm_channel": 22
   },
   "features": [
     "shared_cold_hot_maintenance_engines",

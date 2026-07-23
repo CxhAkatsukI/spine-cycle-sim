@@ -305,6 +305,7 @@ void test_invalid_clock_and_capacity_are_rejected() {
 
 AxiConfig axi_config() {
   return AxiConfig{
+      .initiator_id = 0,
       .data_width_bytes = 64,
       .max_burst_beats = 16,
       .channels = 2,
@@ -314,6 +315,7 @@ AxiConfig axi_config() {
       .address_accepts_per_cycle = 1,
       .beat_issues_per_cycle = 2,
       .response_beats_per_cycle = 2,
+      .fixed_channel = std::nullopt,
   };
 }
 
@@ -325,6 +327,104 @@ MockMemoryConfig mock_memory_config(std::uint64_t latency = 3) {
       .max_outstanding_per_channel = 32,
       .response_queue_depth = 16,
   };
+}
+
+struct TwoMasterResult {
+  std::uint64_t cycles{};
+  std::uint64_t backend_stalls{};
+};
+
+TwoMasterResult run_two_axi_masters(std::size_t second_channel) {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("core", 141.0);
+  MockMemoryBackend backend("shared-hbm", core, mock_memory_config());
+
+  Fifo<AxiRequest> request0("request0", core, 2);
+  Fifo<AxiResponse> response0("response0", core, 2);
+  Fifo<AxiRequest> request1("request1", core, 2);
+  Fifo<AxiResponse> response1("response1", core, 2);
+  AxiConfig config0 = axi_config();
+  config0.initiator_id = 10;
+  config0.fixed_channel = 0;
+  AxiConfig config1 = axi_config();
+  config1.initiator_id = 11;
+  config1.fixed_channel = second_channel;
+  AxiMaster axi0("axi0", core, config0, request0, response0, backend);
+  AxiMaster axi1("axi1", core, config1, request1, response1, backend);
+  SequenceProducer<AxiRequest> producer0(
+      "producer0", core, request0,
+      {{.transaction_id = 100,
+        .operation = MemoryOperation::kRead,
+        .address = 0,
+        .bytes = 64}});
+  SequenceProducer<AxiRequest> producer1(
+      "producer1", core, request1,
+      {{.transaction_id = 200,
+        .operation = MemoryOperation::kWrite,
+        .address = 4096,
+        .bytes = 64}});
+  SequenceConsumer<AxiResponse> consumer0("consumer0", core, response0);
+  SequenceConsumer<AxiResponse> consumer1("consumer1", core, response1);
+
+  scheduler.add_component(producer0);
+  scheduler.add_component(producer1);
+  scheduler.add_component(request0);
+  scheduler.add_component(request1);
+  scheduler.add_component(axi0);
+  scheduler.add_component(axi1);
+  scheduler.add_component(backend);
+  scheduler.add_component(response0);
+  scheduler.add_component(response1);
+  scheduler.add_component(consumer0);
+  scheduler.add_component(consumer1);
+  scheduler.run_until(
+      [&] { return consumer0.values.size() == 1 && consumer1.values.size() == 1; },
+      100);
+
+  require(consumer0.values[0].transaction_id == 100,
+          "initiator 0 received the wrong AXI response");
+  require(consumer1.values[0].transaction_id == 200,
+          "initiator 1 received the wrong AXI response");
+  require(axi0.stats().read_bytes == 64 && axi0.stats().write_bytes == 0,
+          "initiator 0 activity was mixed with initiator 1");
+  require(axi1.stats().read_bytes == 0 && axi1.stats().write_bytes == 64,
+          "initiator 1 activity was mixed with initiator 0");
+  return TwoMasterResult{
+      .cycles = scheduler.clock(core).completed_cycles,
+      .backend_stalls = axi0.stats().backend_submit_stalls +
+                        axi1.stats().backend_submit_stalls,
+  };
+}
+
+void test_axi_multi_initiator_fixed_channel_isolation() {
+  const TwoMasterResult separate = run_two_axi_masters(1);
+  const TwoMasterResult contended = run_two_axi_masters(0);
+  require(separate.backend_stalls == 0,
+          "separate HBM channels unexpectedly contended");
+  require(contended.backend_stalls > 0,
+          "shared HBM channel contention was not visible");
+  require(contended.cycles > separate.cycles,
+          "shared HBM channel did not delay completion");
+}
+
+void test_axi_rejects_duplicate_initiator_id() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("core", 141.0);
+  MockMemoryBackend backend("shared-hbm", core, mock_memory_config());
+  Fifo<AxiRequest> request0("request0", core, 2);
+  Fifo<AxiResponse> response0("response0", core, 2);
+  Fifo<AxiRequest> request1("request1", core, 2);
+  Fifo<AxiResponse> response1("response1", core, 2);
+  AxiConfig config = axi_config();
+  config.initiator_id = 5;
+  AxiMaster first("first", core, config, request0, response0, backend);
+  bool failed = false;
+  try {
+    AxiMaster duplicate("duplicate", core, config, request1, response1, backend);
+  } catch (const std::invalid_argument&) {
+    failed = true;
+  }
+  require(failed, "duplicate memory initiator ID was accepted");
 }
 
 void test_axi_splits_bursts_and_uses_backend_online() {
@@ -416,6 +516,8 @@ int main() {
       {"invalid_config", test_invalid_clock_and_capacity_are_rejected},
       {"axi_online_backend", test_axi_splits_bursts_and_uses_backend_online},
       {"axi_response_backpressure", test_axi_response_backpressure_is_lossless},
+      {"axi_multi_initiator", test_axi_multi_initiator_fixed_channel_isolation},
+      {"axi_duplicate_initiator", test_axi_rejects_duplicate_initiator_id},
   };
   std::size_t failures = 0;
   for (const auto& [name, test] : tests) {

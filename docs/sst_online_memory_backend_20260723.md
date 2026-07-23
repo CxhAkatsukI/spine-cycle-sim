@@ -16,6 +16,11 @@ adapter samples each completion at a core edge and the C++ AXI state machine
 continues from that response. MockMemory remains a deterministic unit-test
 double and is not the formal experiment backend.
 
+The backend accepts multiple registered AXI initiators. Responses are isolated
+per initiator, while acceptance and outstanding limits are shared per physical
+HBM pseudo-channel. Each AXI master can either stripe addresses for a memory
+probe or bind to one fixed pseudo-channel, matching the HLS connectivity file.
+
 ## Reproduction
 
 ```bash
@@ -36,7 +41,8 @@ read, cross-row read, and mixed read/write cases. For every case it requires:
 It also requires the cross-row case to produce more ACT commands, fewer row
 hits, and more core cycles than the sequential case.
 
-To instantiate the normalized 16-channel topology:
+To instantiate a 16-channel graph-bank smoke (the complete U55C profile has 32
+pseudo-channels, with the current Spine xclbin using channels through HBM[22]):
 
 ```bash
 cd /home/chuxiao/spine-cycle-sim

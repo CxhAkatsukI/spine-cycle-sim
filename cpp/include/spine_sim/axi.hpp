@@ -28,6 +28,7 @@ struct AxiResponse {
 };
 
 struct AxiConfig {
+  std::uint32_t initiator_id{};
   std::uint32_t data_width_bytes{};
   std::uint32_t max_burst_beats{};
   std::size_t channels{};
@@ -37,6 +38,7 @@ struct AxiConfig {
   std::size_t address_accepts_per_cycle{};
   std::size_t beat_issues_per_cycle{};
   std::size_t response_beats_per_cycle{};
+  std::optional<std::size_t> fixed_channel;
 };
 
 struct AxiStats {

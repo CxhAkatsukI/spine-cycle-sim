@@ -6,6 +6,17 @@
 
 namespace spine::sim {
 
+void MemoryBackend::register_initiator(std::uint32_t initiator_id) {
+  if (!initiators_.insert(initiator_id).second) {
+    throw std::invalid_argument("memory initiator ID is already registered");
+  }
+}
+
+bool MemoryBackend::initiator_registered(
+    std::uint32_t initiator_id) const noexcept {
+  return initiators_.contains(initiator_id);
+}
+
 MockMemoryBackend::MockMemoryBackend(std::string name, ClockId clock_id,
                                      MockMemoryConfig config)
     : MemoryBackend(std::move(name), clock_id), config_(config) {
@@ -25,7 +36,8 @@ std::size_t MockMemoryBackend::channel_outstanding(std::size_t channel) const {
 }
 
 bool MockMemoryBackend::try_submit(const BackendRequest& request) {
-  if (request.channel >= config_.channels || request.bytes == 0) {
+  if (!initiator_registered(request.initiator_id) ||
+      request.channel >= config_.channels || request.bytes == 0) {
     throw std::invalid_argument("invalid mock memory request");
   }
   const auto staged_for_channel = static_cast<std::size_t>(std::count_if(
@@ -43,22 +55,28 @@ bool MockMemoryBackend::try_submit(const BackendRequest& request) {
   return true;
 }
 
-std::size_t MockMemoryBackend::response_count() const noexcept {
-  return responses_.size();
+std::size_t MockMemoryBackend::response_count(
+    std::uint32_t initiator_id) const noexcept {
+  const auto found = responses_.find(initiator_id);
+  return found == responses_.end() ? 0 : found->second.size();
 }
 
-const BackendResponse& MockMemoryBackend::response_at(std::size_t index) const {
-  if (index >= responses_.size()) {
+const BackendResponse& MockMemoryBackend::response_at(
+    std::uint32_t initiator_id, std::size_t index) const {
+  const auto found = responses_.find(initiator_id);
+  if (found == responses_.end() || index >= found->second.size()) {
     throw std::out_of_range("mock memory response index out of range");
   }
-  return responses_[index];
+  return found->second[index];
 }
 
-bool MockMemoryBackend::stage_pop_responses(std::size_t count) {
-  if (staged_response_pops_ != 0 || count > responses_.size()) {
+bool MockMemoryBackend::stage_pop_responses(std::uint32_t initiator_id,
+                                            std::size_t count) {
+  const std::size_t staged = staged_response_pops_[initiator_id];
+  if (staged != 0 || count > response_count(initiator_id)) {
     return false;
   }
-  staged_response_pops_ = count;
+  staged_response_pops_[initiator_id] = count;
   return true;
 }
 
@@ -66,26 +84,53 @@ std::size_t MockMemoryBackend::outstanding() const noexcept {
   return pending_.size() + staged_submissions_.size();
 }
 
+std::size_t MockMemoryBackend::outstanding_for(
+    std::uint32_t initiator_id) const noexcept {
+  const auto pending = static_cast<std::size_t>(std::count_if(
+      pending_.begin(), pending_.end(),
+      [initiator_id](const Pending& item) {
+        return item.response.initiator_id == initiator_id;
+      }));
+  const auto staged = static_cast<std::size_t>(std::count_if(
+      staged_submissions_.begin(), staged_submissions_.end(),
+      [initiator_id](const BackendRequest& request) {
+        return request.initiator_id == initiator_id;
+      }));
+  return pending + staged;
+}
+
 void MockMemoryBackend::prepare(const CycleContext& context) {
-  while (!pending_.empty() &&
-         pending_.front().due_cycle <= context.domain_cycle) {
-    if (responses_.size() >= config_.response_queue_depth) {
-      ++stats_.response_queue_stalls;
-      break;
+  for (auto iterator = pending_.begin(); iterator != pending_.end();) {
+    if (iterator->due_cycle > context.domain_cycle) {
+      ++iterator;
+      continue;
     }
-    responses_.push_back(pending_.front().response);
-    pending_.pop_front();
+    auto& queue = responses_[iterator->response.initiator_id];
+    if (queue.size() >= config_.response_queue_depth) {
+      ++stats_.response_queue_stalls;
+      ++iterator;
+      continue;
+    }
+    queue.push_back(iterator->response);
+    iterator = pending_.erase(iterator);
   }
 }
 
 void MockMemoryBackend::commit(const CycleContext& context) {
-  for (std::size_t index = 0; index < staged_response_pops_; ++index) {
-    responses_.pop_front();
+  for (const auto& [initiator_id, count] : staged_response_pops_) {
+    auto& queue = responses_[initiator_id];
+    for (std::size_t index = 0; index < count; ++index) {
+      queue.pop_front();
+    }
   }
-  staged_response_pops_ = 0;
+  staged_response_pops_.clear();
   for (const BackendRequest& request : staged_submissions_) {
     pending_.push_back(Pending{
-        .response = BackendResponse{.request_id = request.request_id, .success = true},
+        .response = BackendResponse{
+            .initiator_id = request.initiator_id,
+            .request_id = request.request_id,
+            .success = true,
+        },
         .channel = request.channel,
         .due_cycle = context.domain_cycle + config_.latency_cycles,
     });

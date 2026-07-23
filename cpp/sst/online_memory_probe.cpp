@@ -138,7 +138,8 @@ class SstMemoryBackend final : public MemoryBackend {
   }
 
   bool try_submit(const BackendRequest& request) override {
-    if (request.channel >= interfaces_.size() || request.bytes == 0) {
+    if (!initiator_registered(request.initiator_id) ||
+        request.channel >= interfaces_.size() || request.bytes == 0) {
       throw std::invalid_argument("invalid SST backend request");
     }
     const auto staged_for_channel = static_cast<std::size_t>(std::count_if(
@@ -156,23 +157,28 @@ class SstMemoryBackend final : public MemoryBackend {
     return true;
   }
 
-  [[nodiscard]] std::size_t response_count() const noexcept override {
-    return responses_.size();
+  [[nodiscard]] std::size_t response_count(
+      std::uint32_t initiator_id) const noexcept override {
+    const auto found = responses_.find(initiator_id);
+    return found == responses_.end() ? 0 : found->second.size();
   }
 
   [[nodiscard]] const BackendResponse& response_at(
-      std::size_t index) const override {
-    if (index >= responses_.size()) {
+      std::uint32_t initiator_id, std::size_t index) const override {
+    const auto found = responses_.find(initiator_id);
+    if (found == responses_.end() || index >= found->second.size()) {
       throw std::out_of_range("SST backend response index out of range");
     }
-    return responses_[index];
+    return found->second[index];
   }
 
-  bool stage_pop_responses(std::size_t count) override {
-    if (staged_response_pops_ != 0 || count > responses_.size()) {
+  bool stage_pop_responses(std::uint32_t initiator_id,
+                           std::size_t count) override {
+    const std::size_t staged = staged_response_pops_[initiator_id];
+    if (staged != 0 || count > response_count(initiator_id)) {
       return false;
     }
-    staged_response_pops_ = count;
+    staged_response_pops_[initiator_id] = count;
     return true;
   }
 
@@ -184,24 +190,42 @@ class SstMemoryBackend final : public MemoryBackend {
     return count;
   }
 
+  [[nodiscard]] std::size_t outstanding_for(
+      std::uint32_t initiator_id) const noexcept override {
+    const auto staged = static_cast<std::size_t>(std::count_if(
+        staged_submissions_.begin(), staged_submissions_.end(),
+        [initiator_id](const BackendRequest& request) {
+          return request.initiator_id == initiator_id;
+        }));
+    const auto inflight = initiator_outstanding_.find(initiator_id);
+    return staged +
+           (inflight == initiator_outstanding_.end() ? 0 : inflight->second);
+  }
+
   void prepare(const CycleContext&) override {
-    while (!external_arrivals_.empty() &&
-           responses_.size() < response_queue_depth_) {
-      responses_.push_back(external_arrivals_.front());
-      external_arrivals_.pop_front();
-    }
-    if (!external_arrivals_.empty()) {
-      ++response_queue_stalls_;
+    for (auto iterator = external_arrivals_.begin();
+         iterator != external_arrivals_.end();) {
+      auto& queue = responses_[iterator->initiator_id];
+      if (queue.size() >= response_queue_depth_) {
+        ++response_queue_stalls_;
+        ++iterator;
+        continue;
+      }
+      queue.push_back(*iterator);
+      iterator = external_arrivals_.erase(iterator);
     }
   }
 
   void evaluate(const CycleContext&) override {}
 
   void commit(const CycleContext&) override {
-    for (std::size_t index = 0; index < staged_response_pops_; ++index) {
-      responses_.pop_front();
+    for (const auto& [initiator_id, count] : staged_response_pops_) {
+      auto& queue = responses_[initiator_id];
+      for (std::size_t index = 0; index < count; ++index) {
+        queue.pop_front();
+      }
     }
-    staged_response_pops_ = 0;
+    staged_response_pops_.clear();
 
     for (const BackendRequest& request : staged_submissions_) {
       const std::uint64_t local_address =
@@ -221,9 +245,11 @@ class SstMemoryBackend final : public MemoryBackend {
           standard_id,
           Inflight{
               .backend_request_id = request.request_id,
+              .initiator_id = request.initiator_id,
               .channel = request.channel,
           });
       ++channel_outstanding_[request.channel];
+      ++initiator_outstanding_[request.initiator_id];
       ++accepted_;
       interfaces_[request.channel]->send(standard_request);
     }
@@ -237,10 +263,12 @@ class SstMemoryBackend final : public MemoryBackend {
       throw std::logic_error("SST returned an unknown StandardMem request");
     }
     external_arrivals_.push_back(BackendResponse{
+        .initiator_id = found->second.initiator_id,
         .request_id = found->second.backend_request_id,
         .success = request->getSuccess(),
     });
     --channel_outstanding_[found->second.channel];
+    --initiator_outstanding_[found->second.initiator_id];
     inflight_.erase(found);
     delete request;
   }
@@ -259,6 +287,7 @@ class SstMemoryBackend final : public MemoryBackend {
  private:
   struct Inflight {
     std::uint64_t backend_request_id{};
+    std::uint32_t initiator_id{};
     std::size_t channel{};
   };
 
@@ -268,12 +297,13 @@ class SstMemoryBackend final : public MemoryBackend {
   std::size_t max_outstanding_per_channel_{};
   std::size_t response_queue_depth_{};
   std::vector<std::size_t> channel_outstanding_;
+  std::unordered_map<std::uint32_t, std::size_t> initiator_outstanding_;
   std::vector<BackendRequest> staged_submissions_;
   std::unordered_map<SST::Interfaces::StandardMem::Request::id_t, Inflight>
       inflight_;
   std::deque<BackendResponse> external_arrivals_;
-  std::deque<BackendResponse> responses_;
-  std::size_t staged_response_pops_{};
+  std::unordered_map<std::uint32_t, std::deque<BackendResponse>> responses_;
+  std::unordered_map<std::uint32_t, std::size_t> staged_response_pops_;
   std::uint64_t accepted_{};
   std::uint64_t submit_stalls_{};
   std::uint64_t response_queue_stalls_{};
@@ -348,6 +378,7 @@ class OnlineMemoryProbe final : public SST::Component {
     axi_ = std::make_unique<AxiMaster>(
         "axi-master", core,
         AxiConfig{
+            .initiator_id = 0,
             .data_width_bytes = 64,
             .max_burst_beats = 16,
             .channels = channels_,
@@ -357,6 +388,7 @@ class OnlineMemoryProbe final : public SST::Component {
             .address_accepts_per_cycle = 1,
             .beat_issues_per_cycle = 1,
             .response_beats_per_cycle = 4,
+            .fixed_channel = std::nullopt,
         },
         *requests_, *responses_, *backend_);
     source_ = std::make_unique<ProbeSource>(
