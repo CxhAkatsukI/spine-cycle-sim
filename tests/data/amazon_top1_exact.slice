@@ -1,0 +1,19 @@
+# spine_real_slice_version=1
+# case=amazon_top1_exact
+# graph=/home/chuxiao/ReGraph/dataset/amazon-2008.mtx
+# selector=top1
+# vertices=735323
+# id_offset=1
+# raw_edges=10
+# active_sources=1
+# columns=src dst weight diff
+2 3 1 1
+2 4 1 1
+2 5 1 1
+2 63610 1 1
+2 184001 1 1
+2 411660 1 1
+2 504483 1 1
+2 592273 1 1
+2 592274 1 1
+2 606073 1 1

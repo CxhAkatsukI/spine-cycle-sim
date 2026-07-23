@@ -7,7 +7,7 @@ digraph FineGrainedCycleSimulator {
     label="Python experiment layer"; color="#557A66"; style="rounded,filled"; fillcolor="#EDF5F0";
     graph_input [label="Real graph + update batches"];
     profiles [label="Versioned architecture profiles [implemented]\nmeasured / normalized / projected"];
-    policies [label="Algorithm policies [planned]\nSSSP | Full PR | Residual PR"];
+    policies [label="Algorithm policies [functional implemented]\nSSSP | Full PR | Residual PR\ncycle-core connection planned"];
     orchestration [label="Run matrix + result manifest"];
     math_oracle [label="High-precision oracle"];
     bit_oracle [label="Bit-accurate oracle"];
