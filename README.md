@@ -95,7 +95,16 @@ Run the real-edge Spine L0/reader/tiny-SSSP slice on 32-channel SST-HBM:
 
 ```bash
 python3 scripts/run_sst_spine_vertical.py \
-  --out-dir results/sst_spine_vertical_20260723
+  --scenario amazon_l0 \
+  --out-dir results/sst_spine_vertical_levels_20260723
+```
+
+Run the independent cold-L1 carry plus hot-L0 scenario:
+
+```bash
+python3 scripts/run_sst_spine_vertical.py \
+  --scenario carry_hot \
+  --out-dir results/sst_spine_carry_hot_20260723
 ```
 
 ## Current Scope

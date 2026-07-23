@@ -32,7 +32,8 @@ and sends requests through independent fixed-channel AXI masters:
 - level metadata -> HBM[20];
 - maintenance result -> HBM[21].
 
-The target-0, hot-disabled path executes the stable HLS control structure:
+The component executes the stable HLS control structure for target-0, carry,
+and hot-enabled paths:
 
 1. dirty-frontier preflight scans the sorted batch;
 2. dirty directory/frontier update scans it again and performs persistent
@@ -49,6 +50,12 @@ For the one-family Amazon fixture this is exactly `2 + 16 + 1 = 19` sorted
 batch scans, or 190 edge visits and 3,040 sorted-edge bytes. The resulting
 logical L0 contains the ten input payloads in cold family 0 and no payload in
 the other 15 families.
+
+For target `t > 0`, the component selects the first globally unoccupied level,
+reads every nonempty family payload in levels `[0,t)`, performs the signed-diff
+sorted merge, writes the fixed target layout, and clears lower levels only at
+metadata commit. Cold partitions and host-marked hot shards select targets
+independently. Hot shard ownership uses the exact stable HLS hash.
 
 Every external memory task traverses finite request/response FIFOs, an AXI
 master, and a memory backend. The test uses deterministic MockMemory; the same
@@ -78,7 +85,7 @@ The focused C++ result is `PASS spine_l0_real_slice` and checks:
 | persisted rows / edges | 1 / 10 |
 | dirty persistent read / write bytes | 48 / 48 |
 | graph layout write bytes | 288 |
-| metadata read / write bytes | 416 / 1,104 |
+| metadata read / write bytes | 2,976 / 1,104 |
 | result write bytes | 384 |
 
 ## Claims boundary
@@ -89,14 +96,17 @@ the next task. AXI bursts and beat-level HBM timing are real, but the HLS can
 overlap loop processing, prefetch, and requests to independent ports. That
 overlap must be represented before comparing predicted cycles with hardware.
 
-Not yet implemented in this component:
+Implemented but not hardware-cycle-calibrated:
 
-- hot-enabled family maintenance;
-- target levels above L0 and sparse carry merge;
+- independent cold/hot target selection and fixed-layout persistence;
+- sparse lower-level payload reads and signed-differential carry merge;
+- all-level cold/hot reader traversal and metadata cache traffic.
+
+Not yet implemented in the complete system:
+
 - exact metadata cache/packing and all compiler-generated AXI burst boundaries;
-- hot/carry-aware reader traversal, full-tile compute, and convergence. The
-  cold-L0 tiny-SSSP split slice is implemented and documented separately in
-  `spine_split_vertical_slice_20260723.md`;
+- full-tile compute and repeated convergence. The split slice is documented
+  separately in `spine_split_vertical_slice_20260723.md`;
 - calibrated HLS overlap/prefetch. The same architecture component now runs on
   online SST-HBM; see `spine_split_vertical_slice_20260723.md`.
 

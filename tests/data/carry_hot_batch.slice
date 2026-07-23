@@ -1,0 +1,6 @@
+# spine_real_slice_version=1
+# case=carry_hot_batch
+# vertices=128
+# columns=src dst weight diff
+0 2 3 1
+0 17 2 1

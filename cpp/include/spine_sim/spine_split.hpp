@@ -41,40 +41,47 @@ struct SpineReaderCounters {
   std::uint64_t source_responses{};
   std::uint64_t active_bin_read_bytes{};
   std::uint64_t metadata_read_bytes{};
+  std::uint64_t level_cache_read_bytes{};
+  std::uint64_t row_lookup_metadata_bytes{};
   std::uint64_t graph_read_bytes{};
   std::uint64_t tiles_emitted{};
   std::uint64_t edges_emitted{};
+  std::uint64_t occupied_levels{};
+  std::uint64_t cold_edges_emitted{};
+  std::uint64_t hot_edges_emitted{};
 };
 
 struct SpineReaderPorts {
-  std::array<FixedAxiPort*, 16> graph{};
-  FixedAxiPort* active_bins{};
-  FixedAxiPort* metadata{};
+  std::array<FixedAxiPort *, 16> graph{};
+  FixedAxiPort *active_bins{};
+  FixedAxiPort *metadata{};
 };
 
 class SpineSplitReader final : public Component {
  public:
   SpineSplitReader(std::string name, ClockId clock_id,
-                   const SpineL0Maintenance& maintenance,
-                   const SpineL0State& state, SpineReaderPorts ports,
+                   const SpineL0Maintenance &maintenance,
+                   const SpineL0State &state, SpineReaderPorts ports,
                    std::vector<std::uint32_t> active_sources,
-                   Fifo<PartConvWord>& edge_out,
-                   Fifo<SourceValueWord>& value_in);
+                   Fifo<PartConvWord> &edge_out,
+                   Fifo<SourceValueWord> &value_in);
 
   [[nodiscard]] bool done() const noexcept { return done_; }
   [[nodiscard]] bool failed() const noexcept { return failed_; }
-  [[nodiscard]] const SpineReaderCounters& counters() const noexcept {
+  [[nodiscard]] const SpineReaderCounters &counters() const noexcept {
     return counters_;
   }
 
-  void evaluate(const CycleContext& context) override;
-  void commit(const CycleContext& context) override;
+  void evaluate(const CycleContext &context) override;
+  void commit(const CycleContext &context) override;
 
  private:
   struct TileTask {
     struct Edge {
       SpineEdgeRecord payload;
       std::uint64_t graph_word_address{};
+      std::size_t graph_bank{};
+      bool hot{};
     };
 
     std::uint32_t tile_base{};
@@ -82,7 +89,7 @@ class SpineSplitReader final : public Component {
   };
 
   struct MemoryTask {
-    FixedAxiPort* port{};
+    FixedAxiPort *port{};
     std::uint64_t address{};
     std::uint64_t bytes{};
   };
@@ -101,19 +108,20 @@ class SpineSplitReader final : public Component {
 
   enum class Action { kNone, kAdvance, kIssue, kComplete, kPush, kPopValue };
 
-  void advance(const CycleContext& context);
+  void advance(const CycleContext &context);
   void build_tiles();
+  void enqueue_level_cache_reads();
   void enqueue_index_reads();
-  void enqueue_read(FixedAxiPort& port, std::uint64_t address,
+  void enqueue_read(FixedAxiPort &port, std::uint64_t address,
                     std::uint64_t bytes);
   [[nodiscard]] PartConvWord current_stream_word() const;
 
-  const SpineL0Maintenance& maintenance_;
-  const SpineL0State& state_;
+  const SpineL0Maintenance &maintenance_;
+  const SpineL0State &state_;
   SpineReaderPorts ports_;
   std::vector<std::uint32_t> active_sources_;
-  Fifo<PartConvWord>& edge_out_;
-  Fifo<SourceValueWord>& value_in_;
+  Fifo<PartConvWord> &edge_out_;
+  Fifo<SourceValueWord> &value_in_;
   SpineReaderCounters counters_;
   std::vector<TileTask> tiles_;
   std::unordered_map<std::uint32_t, std::uint32_t> source_values_;
@@ -152,10 +160,10 @@ struct SpineComputeCounters {
 };
 
 struct SpineComputePorts {
-  FixedAxiPort* vertex_state{};
-  FixedAxiPort* active_out{};
-  FixedAxiPort* active_bitmap{};
-  FixedAxiPort* result{};
+  FixedAxiPort *vertex_state{};
+  FixedAxiPort *active_out{};
+  FixedAxiPort *active_bitmap{};
+  FixedAxiPort *result{};
 };
 
 class SpineSplitSsspCompute final : public Component {
@@ -165,27 +173,27 @@ class SpineSplitSsspCompute final : public Component {
   SpineSplitSsspCompute(std::string name, ClockId clock_id,
                         std::size_t vertices, std::uint32_t source,
                         std::size_t tiny_threshold, SpineComputePorts ports,
-                        Fifo<PartConvWord>& edge_in,
-                        Fifo<SourceValueWord>& value_out);
+                        Fifo<PartConvWord> &edge_in,
+                        Fifo<SourceValueWord> &value_out);
 
   [[nodiscard]] bool done() const noexcept { return done_; }
   [[nodiscard]] bool failed() const noexcept { return failed_; }
-  [[nodiscard]] const std::vector<std::uint32_t>& values() const noexcept {
+  [[nodiscard]] const std::vector<std::uint32_t> &values() const noexcept {
     return values_;
   }
-  [[nodiscard]] const std::vector<std::uint32_t>& next_active() const noexcept {
+  [[nodiscard]] const std::vector<std::uint32_t> &next_active() const noexcept {
     return next_active_;
   }
-  [[nodiscard]] const SpineComputeCounters& counters() const noexcept {
+  [[nodiscard]] const SpineComputeCounters &counters() const noexcept {
     return counters_;
   }
 
-  void evaluate(const CycleContext& context) override;
-  void commit(const CycleContext& context) override;
+  void evaluate(const CycleContext &context) override;
+  void commit(const CycleContext &context) override;
 
  private:
   struct MemoryTask {
-    FixedAxiPort* port{};
+    FixedAxiPort *port{};
     MemoryOperation operation{MemoryOperation::kRead};
     std::uint64_t address{};
     std::uint64_t bytes{};
@@ -211,9 +219,9 @@ class SpineSplitSsspCompute final : public Component {
     kPushValue,
   };
 
-  void advance(const CycleContext& context);
-  void handle_edge_word(const PartConvWord& word);
-  void enqueue_memory(FixedAxiPort& port, MemoryOperation operation,
+  void advance(const CycleContext &context);
+  void handle_edge_word(const PartConvWord &word);
+  void enqueue_memory(FixedAxiPort &port, MemoryOperation operation,
                       std::uint64_t address, std::uint64_t bytes);
   void prepare_gather();
   void prepare_store();
@@ -222,8 +230,8 @@ class SpineSplitSsspCompute final : public Component {
   std::uint32_t source_{};
   std::size_t tiny_threshold_{};
   SpineComputePorts ports_;
-  Fifo<PartConvWord>& edge_in_;
-  Fifo<SourceValueWord>& value_out_;
+  Fifo<PartConvWord> &edge_in_;
+  Fifo<SourceValueWord> &value_out_;
   SpineComputeCounters counters_;
   std::vector<std::uint32_t> values_;
   std::vector<std::uint32_t> next_active_;

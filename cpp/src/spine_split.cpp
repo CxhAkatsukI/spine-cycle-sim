@@ -18,7 +18,24 @@ constexpr std::uint64_t kVertexWordBytes = 4;
 constexpr std::uint64_t kActiveOutputBytes = 8;
 constexpr std::uint64_t kResultBytes = 96 * 4;
 constexpr std::uint32_t kTileVertices = 65'536;
+constexpr std::uint64_t kMetadataWordsPerSlice = 8;
+constexpr std::uint64_t kFamilyCount = 32;
+constexpr std::uint64_t kLevelCount = 11;
+constexpr std::uint64_t kPartitionCount = 16;
 constexpr std::uint64_t kPageCount = (1U << 24) / 256;
+constexpr std::uint64_t kMetadataSliceWords =
+    kFamilyCount * kLevelCount * kMetadataWordsPerSlice;
+constexpr std::uint64_t kMetadataBaseWords =
+    kMetadataSliceWords + 2 * kPartitionCount;
+constexpr std::uint64_t kTouchedSlotWords = 5 + kPageCount;
+constexpr std::uint64_t kTouchedWords =
+    kMetadataBaseWords + 2 * kPartitionCount +
+    2 * kPartitionCount * kTouchedSlotWords;
+constexpr std::uint64_t kSliceEpochBaseWords = kTouchedWords;
+constexpr std::uint64_t kSliceEpochWords =
+    (kFamilyCount * kLevelCount + 1) / 2;
+constexpr std::uint64_t kPageEpochBaseWords =
+    kSliceEpochBaseWords + kSliceEpochWords;
 
 std::uint32_t saturating_add(std::uint32_t left, std::uint16_t right) {
   if (left == SpineSplitSsspCompute::kInfinity ||
@@ -30,11 +47,13 @@ std::uint32_t saturating_add(std::uint32_t left, std::uint16_t right) {
 
 }  // namespace
 
-SpineSplitReader::SpineSplitReader(
-    std::string name, ClockId clock_id,
-    const SpineL0Maintenance& maintenance, const SpineL0State& state,
-    SpineReaderPorts ports, std::vector<std::uint32_t> active_sources,
-    Fifo<PartConvWord>& edge_out, Fifo<SourceValueWord>& value_in)
+SpineSplitReader::SpineSplitReader(std::string name, ClockId clock_id,
+                                   const SpineL0Maintenance &maintenance,
+                                   const SpineL0State &state,
+                                   SpineReaderPorts ports,
+                                   std::vector<std::uint32_t> active_sources,
+                                   Fifo<PartConvWord> &edge_out,
+                                   Fifo<SourceValueWord> &value_in)
     : Component(std::move(name), clock_id),
       maintenance_(maintenance),
       state_(state),
@@ -47,14 +66,14 @@ SpineSplitReader::SpineSplitReader(
       value_in_.clock_id() != clock_id) {
     throw std::invalid_argument("invalid Spine split reader configuration");
   }
-  for (FixedAxiPort* port : ports_.graph) {
+  for (FixedAxiPort *port : ports_.graph) {
     if (port == nullptr) {
       throw std::invalid_argument("Spine reader graph AXI port is null");
     }
   }
 }
 
-void SpineSplitReader::evaluate(const CycleContext&) {
+void SpineSplitReader::evaluate(const CycleContext &) {
   staged_action_ = Action::kNone;
   if (done_ || failed_) {
     return;
@@ -69,7 +88,7 @@ void SpineSplitReader::evaluate(const CycleContext&) {
     return;
   }
   if (!memory_tasks_.empty()) {
-    const MemoryTask& task = memory_tasks_.front();
+    const MemoryTask &task = memory_tasks_.front();
     if (task.port->requests().try_push(AxiRequest{
             .transaction_id = next_transaction_id_,
             .operation = MemoryOperation::kRead,
@@ -98,7 +117,7 @@ void SpineSplitReader::evaluate(const CycleContext&) {
   staged_action_ = Action::kAdvance;
 }
 
-void SpineSplitReader::commit(const CycleContext& context) {
+void SpineSplitReader::commit(const CycleContext &context) {
   switch (staged_action_) {
     case Action::kNone:
       return;
@@ -126,9 +145,8 @@ void SpineSplitReader::commit(const CycleContext& context) {
       source_values_[staged_value_.source] = staged_value_.value;
       ++counters_.source_responses;
       ++source_index_;
-      phase_ = source_index_ == active_sources_.size()
-                   ? Phase::kSetupReads
-                   : Phase::kRequestSource;
+      phase_ = source_index_ == active_sources_.size() ? Phase::kSetupReads
+                                                       : Phase::kRequestSource;
       return;
     case Action::kPush:
       switch (phase_) {
@@ -143,20 +161,26 @@ void SpineSplitReader::commit(const CycleContext& context) {
           break;
         case Phase::kEdgeEmit:
           ++counters_.edges_emitted;
+          if (tiles_.at(tile_index_).edges.at(edge_index_).hot) {
+            ++counters_.hot_edges_emitted;
+          } else {
+            ++counters_.cold_edges_emitted;
+          }
           ++edge_index_;
           phase_ = Phase::kEdgeRead;
           break;
         case Phase::kTileEnd:
           ++tile_index_;
-          phase_ = tile_index_ == tiles_.size() ? Phase::kDone
-                                                : Phase::kTileBegin;
+          phase_ =
+              tile_index_ == tiles_.size() ? Phase::kDone : Phase::kTileBegin;
           break;
         case Phase::kDone:
           counters_.end_cycle = context.domain_cycle;
           done_ = true;
           break;
         default:
-          throw std::logic_error("reader pushed a word from a non-stream phase");
+          throw std::logic_error(
+              "reader pushed a word from a non-stream phase");
       }
       return;
     case Action::kAdvance:
@@ -165,11 +189,10 @@ void SpineSplitReader::commit(const CycleContext& context) {
   }
 }
 
-void SpineSplitReader::enqueue_read(FixedAxiPort& port, std::uint64_t address,
+void SpineSplitReader::enqueue_read(FixedAxiPort &port, std::uint64_t address,
                                     std::uint64_t bytes) {
-  memory_tasks_.push_back(MemoryTask{.port = &port,
-                                     .address = address,
-                                     .bytes = bytes});
+  memory_tasks_.push_back(
+      MemoryTask{.port = &port, .address = address, .bytes = bytes});
   if (&port == ports_.active_bins) {
     counters_.active_bin_read_bytes += bytes;
   } else if (&port == ports_.metadata) {
@@ -181,78 +204,136 @@ void SpineSplitReader::enqueue_read(FixedAxiPort& port, std::uint64_t address,
 
 void SpineSplitReader::build_tiles() {
   std::map<std::uint32_t, std::vector<TileTask::Edge>> by_tile;
-  for (const auto& family_levels : state_.cold_levels) {
-    const auto& level = family_levels[0];
-    std::size_t rows = 0;
-    std::uint32_t last_source = 0;
-    bool have_source = false;
-    for (const SpineEdgeRecord& edge : level) {
-      if (!have_source || edge.src != last_source) {
-        ++rows;
-        last_source = edge.src;
-        have_source = true;
+  const SpineL0Config config;
+  const auto visit = [&](const auto &families, bool hot) {
+    for (std::size_t family = 0; family < families.size(); ++family) {
+      for (std::size_t level_index = 0; level_index < families[family].size();
+           ++level_index) {
+        const auto &level = families[family][level_index];
+        if (level.empty()) {
+          continue;
+        }
+        const SpineLevelLayout layout =
+            spine_level_layout(config, hot, level_index);
+        for (std::size_t index = 0; index < level.size(); ++index) {
+          const SpineEdgeRecord &edge = level[index];
+          if (!source_values_.contains(edge.src)) {
+            continue;
+          }
+          const std::uint32_t tile_base =
+              (edge.dst / kTileVertices) * kTileVertices;
+          by_tile[tile_base].push_back(TileTask::Edge{
+              .payload = edge,
+              .graph_word_address = layout.edge_offset_words + index,
+              .graph_bank = family,
+              .hot = hot,
+          });
+        }
       }
     }
-    const std::uint64_t bitmap_words = kPageCount * 4;
-    const std::uint64_t page_base_words = (kPageCount + 2) >> 1;
-    const std::uint64_t row_words = (rows + 2) >> 1;
-    const std::uint64_t mask_words = (rows + 3) >> 2;
-    const std::uint64_t edge_offset =
-        bitmap_words + page_base_words + row_words + mask_words;
-    for (std::size_t index = 0; index < level.size(); ++index) {
-      const SpineEdgeRecord& edge = level[index];
-      if (source_values_.contains(edge.src)) {
-        const std::uint32_t tile_base = (edge.dst / kTileVertices) * kTileVertices;
-        by_tile[tile_base].push_back(TileTask::Edge{
-            .payload = edge,
-            .graph_word_address = edge_offset + index,
-        });
-      }
-    }
+  };
+  visit(state_.cold_levels, false);
+  if (state_.hot_enabled) {
+    visit(state_.hot_levels, true);
   }
   tiles_.clear();
-  for (auto& [tile_base, edges] : by_tile) {
-    tiles_.push_back(TileTask{.tile_base = tile_base, .edges = std::move(edges)});
+  for (auto &[tile_base, edges] : by_tile) {
+    tiles_.push_back(
+        TileTask{.tile_base = tile_base, .edges = std::move(edges)});
   }
 }
 
+void SpineSplitReader::enqueue_level_cache_reads() {
+  const auto visit = [&](const auto &families, bool hot) {
+    for (std::size_t family_index = 0; family_index < families.size();
+         ++family_index) {
+      const std::size_t logical_family =
+          hot ? families.size() + family_index : family_index;
+      for (std::size_t level_index = 0;
+           level_index < families[family_index].size(); ++level_index) {
+        const auto &level = families[family_index][level_index];
+        const std::uint64_t slice = logical_family * kLevelCount + level_index;
+        const std::uint64_t slice_base =
+            slice * kMetadataWordsPerSlice * kMetadataWordBytes;
+        const std::uint64_t bytes =
+            level.empty() ? kMetadataWordBytes : 8 * kMetadataWordBytes;
+        const std::uint64_t address =
+            level.empty() ? slice_base + 7 * kMetadataWordBytes : slice_base;
+        enqueue_read(*ports_.metadata, address, bytes);
+        counters_.level_cache_read_bytes += bytes;
+        if (!level.empty()) {
+          enqueue_read(*ports_.metadata,
+                       (kSliceEpochBaseWords + (slice >> 1)) *
+                           kMetadataWordBytes,
+                       kMetadataWordBytes);
+          counters_.level_cache_read_bytes += kMetadataWordBytes;
+          ++counters_.occupied_levels;
+        }
+      }
+    }
+  };
+  visit(state_.cold_levels, false);
+  visit(state_.hot_levels, true);
+}
+
 void SpineSplitReader::enqueue_index_reads() {
-  for (std::size_t family = 0; family < state_.cold_levels.size(); ++family) {
-    const auto& level = state_.cold_levels[family][0];
-    if (level.empty()) {
-      continue;
-    }
-    std::vector<std::uint32_t> row_sources;
-    for (const SpineEdgeRecord& edge : level) {
-      if (row_sources.empty() || row_sources.back() != edge.src) {
-        row_sources.push_back(edge.src);
+  const SpineL0Config config;
+  const auto visit = [&](const auto &families, bool hot) {
+    for (std::size_t family = 0; family < families.size(); ++family) {
+      for (std::size_t level_index = 0; level_index < families[family].size();
+           ++level_index) {
+        const auto &level = families[family][level_index];
+        if (level.empty()) {
+          continue;
+        }
+        std::vector<std::uint32_t> row_sources;
+        for (const SpineEdgeRecord &edge : level) {
+          if (row_sources.empty() || row_sources.back() != edge.src) {
+            row_sources.push_back(edge.src);
+          }
+        }
+        const SpineLevelLayout layout =
+            spine_level_layout(config, hot, level_index);
+        for (std::size_t row = 0; row < row_sources.size(); ++row) {
+          const std::uint32_t source = row_sources[row];
+          if (!source_values_.contains(source)) {
+            continue;
+          }
+          const std::uint64_t page = source / 256;
+          const std::uint64_t lane_word = (source % 256) / 64;
+          const std::uint64_t logical_family =
+              hot ? state_.cold_levels.size() + family : family;
+          const std::uint64_t slice =
+              logical_family * kLevelCount + level_index;
+          const std::uint64_t page_epoch_index = slice * kPageCount + page;
+          enqueue_read(*ports_.metadata,
+                       (kPageEpochBaseWords + (page_epoch_index >> 1)) *
+                           kMetadataWordBytes,
+                       kMetadataWordBytes);
+          counters_.row_lookup_metadata_bytes += kMetadataWordBytes;
+          enqueue_read(*ports_.graph[family],
+                       (layout.bitmap_offset_words + page * 4 + lane_word) *
+                           kGraphWordBytes,
+                       kGraphWordBytes);
+          enqueue_read(
+              *ports_.graph[family],
+              (layout.page_base_offset_words + (page >> 1)) * kGraphWordBytes,
+              kGraphWordBytes);
+          enqueue_read(
+              *ports_.graph[family],
+              (layout.row_offset_offset_words + (row >> 1)) * kGraphWordBytes,
+              kGraphWordBytes);
+          enqueue_read(
+              *ports_.graph[family],
+              (layout.mask_offset_words + (row >> 2)) * kGraphWordBytes,
+              kGraphWordBytes);
+        }
       }
     }
-    const std::uint64_t bitmap_words = kPageCount * 4;
-    const std::uint64_t page_base_words = (kPageCount + 2) >> 1;
-    const std::uint64_t row_words = (row_sources.size() + 2) >> 1;
-    const std::uint64_t row_offset = bitmap_words + page_base_words;
-    const std::uint64_t mask_offset = row_offset + row_words;
-    for (std::size_t row = 0; row < row_sources.size(); ++row) {
-      const std::uint32_t source = row_sources[row];
-      if (!source_values_.contains(source)) {
-        continue;
-      }
-      const std::uint64_t page = source / 256;
-      const std::uint64_t lane_word = (source % 256) / 64;
-      enqueue_read(*ports_.graph[family],
-                   (page * 4 + lane_word) * kGraphWordBytes,
-                   kGraphWordBytes);
-      enqueue_read(*ports_.graph[family],
-                   (bitmap_words + (page >> 1)) * kGraphWordBytes,
-                   kGraphWordBytes);
-      enqueue_read(*ports_.graph[family],
-                   (row_offset + (row >> 1)) * kGraphWordBytes,
-                   kGraphWordBytes);
-      enqueue_read(*ports_.graph[family],
-                   (mask_offset + (row >> 2)) * kGraphWordBytes,
-                   kGraphWordBytes);
-    }
+  };
+  visit(state_.cold_levels, false);
+  if (state_.hot_enabled) {
+    visit(state_.hot_levels, true);
   }
 }
 
@@ -265,7 +346,7 @@ PartConvWord SpineSplitReader::current_stream_word() const {
       return PartConvWord{.kind = PartConvWordKind::kTileBegin,
                           .first = tiles_.at(tile_index_).tile_base};
     case Phase::kEdgeEmit: {
-      const SpineEdgeRecord& edge =
+      const SpineEdgeRecord &edge =
           tiles_.at(tile_index_).edges.at(edge_index_).payload;
       return PartConvWord{
           .kind = PartConvWordKind::kEdge,
@@ -283,7 +364,7 @@ PartConvWord SpineSplitReader::current_stream_word() const {
   }
 }
 
-void SpineSplitReader::advance(const CycleContext& context) {
+void SpineSplitReader::advance(const CycleContext &context) {
   switch (phase_) {
     case Phase::kWaitMaintenance:
       if (maintenance_.done()) {
@@ -301,6 +382,7 @@ void SpineSplitReader::advance(const CycleContext& context) {
       enqueue_read(*ports_.active_bins, 0,
                    active_sources_.size() * kActiveRecordBytes);
       enqueue_read(*ports_.metadata, 0, 8 * kMetadataWordBytes);
+      enqueue_level_cache_reads();
       build_tiles();
       enqueue_index_reads();
       tile_index_ = 0;
@@ -312,8 +394,7 @@ void SpineSplitReader::advance(const CycleContext& context) {
         return;
       }
       enqueue_read(
-          *ports_.graph[std::min<std::size_t>(
-              tiles_[tile_index_].edges[edge_index_].payload.dst >> 20, 15)],
+          *ports_.graph[tiles_[tile_index_].edges[edge_index_].graph_bank],
           tiles_[tile_index_].edges[edge_index_].graph_word_address *
               kGraphWordBytes,
           kGraphWordBytes);
@@ -332,7 +413,7 @@ void SpineSplitReader::advance(const CycleContext& context) {
 SpineSplitSsspCompute::SpineSplitSsspCompute(
     std::string name, ClockId clock_id, std::size_t vertices,
     std::uint32_t source, std::size_t tiny_threshold, SpineComputePorts ports,
-    Fifo<PartConvWord>& edge_in, Fifo<SourceValueWord>& value_out)
+    Fifo<PartConvWord> &edge_in, Fifo<SourceValueWord> &value_out)
     : Component(std::move(name), clock_id),
       vertices_(vertices),
       source_(source),
@@ -350,7 +431,7 @@ SpineSplitSsspCompute::SpineSplitSsspCompute(
   values_[source_] = 0;
 }
 
-void SpineSplitSsspCompute::evaluate(const CycleContext&) {
+void SpineSplitSsspCompute::evaluate(const CycleContext &) {
   staged_action_ = Action::kNone;
   if (done_ || failed_) {
     return;
@@ -365,7 +446,7 @@ void SpineSplitSsspCompute::evaluate(const CycleContext&) {
     return;
   }
   if (!memory_tasks_.empty()) {
-    const MemoryTask& task = memory_tasks_.front();
+    const MemoryTask &task = memory_tasks_.front();
     if (task.port->requests().try_push(AxiRequest{
             .transaction_id = next_transaction_id_,
             .operation = task.operation,
@@ -377,8 +458,8 @@ void SpineSplitSsspCompute::evaluate(const CycleContext&) {
     return;
   }
   if (source_reply_pending_) {
-    staged_value_word_ = SourceValueWord{
-        .source = pending_source_, .value = values_.at(pending_source_)};
+    staged_value_word_ = SourceValueWord{.source = pending_source_,
+                                         .value = values_.at(pending_source_)};
     if (value_out_.try_push(staged_value_word_)) {
       staged_action_ = Action::kPushValue;
     }
@@ -393,7 +474,7 @@ void SpineSplitSsspCompute::evaluate(const CycleContext&) {
   staged_action_ = Action::kAdvance;
 }
 
-void SpineSplitSsspCompute::commit(const CycleContext& context) {
+void SpineSplitSsspCompute::commit(const CycleContext &context) {
   switch (staged_action_) {
     case Action::kNone:
       return;
@@ -428,9 +509,10 @@ void SpineSplitSsspCompute::commit(const CycleContext& context) {
   }
 }
 
-void SpineSplitSsspCompute::enqueue_memory(
-    FixedAxiPort& port, MemoryOperation operation, std::uint64_t address,
-    std::uint64_t bytes) {
+void SpineSplitSsspCompute::enqueue_memory(FixedAxiPort &port,
+                                           MemoryOperation operation,
+                                           std::uint64_t address,
+                                           std::uint64_t bytes) {
   memory_tasks_.push_back(MemoryTask{
       .port = &port,
       .operation = operation,
@@ -452,7 +534,7 @@ void SpineSplitSsspCompute::enqueue_memory(
   }
 }
 
-void SpineSplitSsspCompute::handle_edge_word(const PartConvWord& word) {
+void SpineSplitSsspCompute::handle_edge_word(const PartConvWord &word) {
   switch (word.kind) {
     case PartConvWordKind::kSourceRequest:
       if (word.first >= vertices_) {
@@ -506,7 +588,7 @@ void SpineSplitSsspCompute::handle_edge_word(const PartConvWord& word) {
 
 void SpineSplitSsspCompute::prepare_gather() {
   std::set<std::uint32_t> unique;
-  for (const PartConvWord& edge : tile_edges_) {
+  for (const PartConvWord &edge : tile_edges_) {
     unique.insert(edge.first);
   }
   gather_vertices_.assign(unique.begin(), unique.end());
@@ -517,7 +599,8 @@ void SpineSplitSsspCompute::prepare_gather() {
 }
 
 void SpineSplitSsspCompute::prepare_store() {
-  const std::size_t active_base = next_active_.size() - changed_vertices_.size();
+  const std::size_t active_base =
+      next_active_.size() - changed_vertices_.size();
   for (std::size_t index = 0; index < changed_vertices_.size(); ++index) {
     const std::uint32_t vertex = changed_vertices_[index];
     enqueue_memory(*ports_.vertex_state, MemoryOperation::kWrite,
@@ -528,7 +611,7 @@ void SpineSplitSsspCompute::prepare_store() {
   }
 }
 
-void SpineSplitSsspCompute::advance(const CycleContext& context) {
+void SpineSplitSsspCompute::advance(const CycleContext &context) {
   switch (phase_) {
     case Phase::kSourceRead:
       source_reply_pending_ = true;
@@ -560,8 +643,8 @@ void SpineSplitSsspCompute::advance(const CycleContext& context) {
         return;
       }
       {
-        const PartConvWord& edge = tile_edges_[relax_index_];
-        std::uint32_t& current = gathered_values_.at(edge.first);
+        const PartConvWord &edge = tile_edges_[relax_index_];
+        std::uint32_t &current = gathered_values_.at(edge.first);
         if (edge.second < current) {
           current = edge.second;
           values_[edge.first] = edge.second;

@@ -16,31 +16,33 @@ namespace spine::sim {
 
 class SpineVerticalSliceSystem {
  public:
-  SpineVerticalSliceSystem(Scheduler& scheduler, ClockId clock_id,
-                           MemoryBackend& backend, SpineEdgeSlice workload,
+  SpineVerticalSliceSystem(Scheduler &scheduler, ClockId clock_id,
+                           MemoryBackend &backend, SpineEdgeSlice workload,
                            std::uint32_t source,
-                           std::size_t tiny_threshold = 4096);
+                           std::size_t tiny_threshold = 4096,
+                           SpineL0Config maintenance_config = {},
+                           SpineL0State initial_state = {});
 
   void register_components();
 
   [[nodiscard]] bool done() const noexcept;
   [[nodiscard]] bool failed() const noexcept;
   [[nodiscard]] bool idle() const noexcept;
-  [[nodiscard]] const SpineL0Counters& maintenance_counters() const noexcept;
-  [[nodiscard]] const SpineReaderCounters& reader_counters() const noexcept;
-  [[nodiscard]] const SpineComputeCounters& compute_counters() const noexcept;
-  [[nodiscard]] const SpineSplitSsspCompute& compute() const noexcept;
-  [[nodiscard]] const FifoStats& edge_stream_stats() const noexcept;
-  [[nodiscard]] const FifoStats& value_stream_stats() const noexcept;
+  [[nodiscard]] const SpineL0Counters &maintenance_counters() const noexcept;
+  [[nodiscard]] const SpineReaderCounters &reader_counters() const noexcept;
+  [[nodiscard]] const SpineComputeCounters &compute_counters() const noexcept;
+  [[nodiscard]] const SpineSplitSsspCompute &compute() const noexcept;
+  [[nodiscard]] const SpineL0State &level_state() const noexcept;
+  [[nodiscard]] const FifoStats &edge_stream_stats() const noexcept;
+  [[nodiscard]] const FifoStats &value_stream_stats() const noexcept;
 
  private:
   [[nodiscard]] std::unique_ptr<FixedAxiPort> make_port(
-      const std::string& name, std::uint32_t initiator_id,
-      std::size_t channel);
+      const std::string &name, std::uint32_t initiator_id, std::size_t channel);
 
-  Scheduler& scheduler_;
+  Scheduler &scheduler_;
   ClockId clock_id_{};
-  MemoryBackend& backend_;
+  MemoryBackend &backend_;
   Fifo<PartConvWord> edge_stream_;
   Fifo<SourceValueWord> value_stream_;
   std::array<std::unique_ptr<FixedAxiPort>, 16> graph_ports_;

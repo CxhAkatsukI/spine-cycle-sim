@@ -68,29 +68,35 @@ Run the same component on the formal SST-HBM backend with:
 
 ```bash
 python3 scripts/run_sst_spine_vertical.py \
-  --out-dir results/sst_spine_vertical_20260723
+  --scenario amazon_l0 \
+  --out-dir results/sst_spine_vertical_levels_20260723
 ```
 
 The first accepted run produced:
 
 | SST/DRAMSim3 evidence | value |
 | --- | ---: |
-| data cycles | 1,164 |
-| backend requests | 157 |
-| DRAM completed reads / writes | 95 / 62 |
-| DRAM ACT / PRE | 26 / 23 |
-| read + write row hits | 99 |
-| backend max outstanding | 3 |
+| data cycles | 4,622 |
+| backend requests | 551 |
+| DRAM completed reads / writes | 489 / 62 |
+| DRAM ACT / PRE | 47 / 39 |
+| read + write row hits | 470 |
+| backend max outstanding | 4 |
 | backend/response-queue stalls | 0 / 0 |
-| memory-only DRAMSim3 energy | 17,050,146 pJ |
+| memory-only DRAMSim3 energy | 67,128,624 pJ |
 
 All 32 configured pseudo-channels emitted statistics. The backend request count
 exactly equals completed DRAM reads plus writes, and all architecture counters
 remain identical to the MockMemory structural run. Both the expected distance
 values and the exact next-frontier vertex set match the one-step oracle. The
 committed aggregate is
-`docs/evidence/sst_spine_vertical_20260723_summary.json`; per-channel raw JSON
+`docs/evidence/sst_spine_levels_20260723_summary.json`; per-channel raw JSON
 is reproduced by the command above.
+
+The increase from the earlier 157-request slice is a fidelity correction: the
+reader now fetches the occupied word for all 32 x 11 level-cache entries and
+the remaining metadata for occupied levels. The carry/hot acceptance scenario
+is documented in `spine_carry_hot_vertical_slice_20260723.md`.
 
 ## Claims boundary
 
@@ -102,6 +108,7 @@ Implemented mechanisms:
 - payload release only after HBM response;
 - finite forward and reverse AXIS queues;
 - tile grouping, bounded tiny-edge buffering, scattered gather/store;
+- independent cold/hot target levels and all-level reader traversal;
 - one weighted SSSP fanout pass with exact payload correctness.
 
 Not yet implemented:
@@ -109,7 +116,6 @@ Not yet implemented:
 - the complete count/generation/diagnostic stream protocol;
 - full-tile load/replay/store after the 4,096-edge threshold;
 - repeated frontier iterations to convergence;
-- hot families and carry levels in the reader;
 - overlap/prefetch matching HLS scheduling;
 - Full PageRank and thresholded residual PageRank in timed compute.
 

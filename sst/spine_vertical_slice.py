@@ -16,6 +16,8 @@ workload = Path(
         "SPINE_SST_WORKLOAD", str(ROOT / "tests" / "data" / "amazon_top1_exact.slice")
     )
 ).resolve()
+preload_workload = os.environ.get("SPINE_SST_PRELOAD", "")
+hot_vertices = os.environ.get("SPINE_SST_HOT_VERTICES", "")
 output = os.environ.get("SPINE_SST_OUTPUT", "sst_spine_vertical.json")
 dram_output = Path(
     os.environ.get("SPINE_SST_DRAM_OUTPUT", "/tmp/spine_vertical_dramsim3")
@@ -28,6 +30,8 @@ probe.addParams(
         "mode": "spine_vertical",
         "output": output,
         "workload": str(workload),
+        "preload_workload": preload_workload,
+        "hot_vertices": hot_vertices,
         "source_vertex": int(os.environ.get("SPINE_SST_SOURCE", "2")),
         "core_clock": "141MHz",
         "core_mhz": 141.0,

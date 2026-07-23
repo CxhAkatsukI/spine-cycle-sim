@@ -6,6 +6,7 @@
 #include <deque>
 #include <fstream>
 #include <memory>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
@@ -13,6 +14,11 @@
 #include <utility>
 #include <vector>
 
+#include "spine_sim/axi.hpp"
+#include "spine_sim/fifo.hpp"
+#include "spine_sim/memory_backend.hpp"
+#include "spine_sim/scheduler.hpp"
+#include "spine_sim/spine_system.hpp"
 #include "sst/core/component.h"
 #include "sst/core/interfaces/stdMem.h"
 #include "sst/core/output.h"
@@ -20,19 +26,13 @@
 #include "sst/core/subcomponent.h"
 #include "sst/core/timeConverter.h"
 
-#include "spine_sim/axi.hpp"
-#include "spine_sim/fifo.hpp"
-#include "spine_sim/memory_backend.hpp"
-#include "spine_sim/scheduler.hpp"
-#include "spine_sim/spine_system.hpp"
-
 namespace spine::sim::sst_adapter {
 
 namespace {
 
 class ProbeSource final : public Component {
  public:
-  ProbeSource(ClockId clock_id, Fifo<AxiRequest>& output,
+  ProbeSource(ClockId clock_id, Fifo<AxiRequest> &output,
               std::uint64_t request_count, std::uint64_t request_bytes,
               std::uint64_t stride_bytes, std::uint64_t address_span,
               std::uint32_t write_percent)
@@ -44,7 +44,7 @@ class ProbeSource final : public Component {
         address_span_(address_span),
         write_percent_(write_percent) {}
 
-  void evaluate(const CycleContext&) override {
+  void evaluate(const CycleContext &) override {
     accepted_ = false;
     if (issued_ >= request_count_) {
       return;
@@ -65,7 +65,7 @@ class ProbeSource final : public Component {
     });
   }
 
-  void commit(const CycleContext&) override {
+  void commit(const CycleContext &) override {
     if (accepted_) {
       ++issued_;
       accepted_ = false;
@@ -76,7 +76,7 @@ class ProbeSource final : public Component {
   [[nodiscard]] std::uint64_t issued() const noexcept { return issued_; }
 
  private:
-  Fifo<AxiRequest>& output_;
+  Fifo<AxiRequest> &output_;
   std::uint64_t request_count_{};
   std::uint64_t request_bytes_{};
   std::uint64_t stride_bytes_{};
@@ -88,14 +88,14 @@ class ProbeSource final : public Component {
 
 class ProbeSink final : public Component {
  public:
-  ProbeSink(ClockId clock_id, Fifo<AxiResponse>& input)
+  ProbeSink(ClockId clock_id, Fifo<AxiResponse> &input)
       : Component("probe-sink", clock_id), input_(input) {}
 
-  void evaluate(const CycleContext&) override {
+  void evaluate(const CycleContext &) override {
     accepted_ = input_.try_pop(staged_);
   }
 
-  void commit(const CycleContext&) override {
+  void commit(const CycleContext &) override {
     if (!accepted_) {
       return;
     }
@@ -110,7 +110,7 @@ class ProbeSink final : public Component {
   [[nodiscard]] std::uint64_t failed() const noexcept { return failed_; }
 
  private:
-  Fifo<AxiResponse>& input_;
+  Fifo<AxiResponse> &input_;
   AxiResponse staged_;
   std::uint64_t completed_{};
   std::uint64_t failed_{};
@@ -120,7 +120,7 @@ class ProbeSink final : public Component {
 class SstMemoryBackend final : public MemoryBackend {
  public:
   SstMemoryBackend(ClockId clock_id,
-                   std::vector<SST::Interfaces::StandardMem*> interfaces,
+                   std::vector<SST::Interfaces::StandardMem *> interfaces,
                    std::uint64_t channel_capacity_bytes,
                    std::size_t accepts_per_channel_per_cycle,
                    std::size_t max_outstanding_per_channel,
@@ -139,16 +139,16 @@ class SstMemoryBackend final : public MemoryBackend {
     }
   }
 
-  bool try_submit(const BackendRequest& request) override {
+  bool try_submit(const BackendRequest &request) override {
     if (!initiator_registered(request.initiator_id) ||
         request.channel >= interfaces_.size() || request.bytes == 0) {
       throw std::invalid_argument("invalid SST backend request");
     }
-    const auto staged_for_channel = static_cast<std::size_t>(std::count_if(
-        staged_submissions_.begin(), staged_submissions_.end(),
-        [&request](const BackendRequest& staged) {
-          return staged.channel == request.channel;
-        }));
+    const auto staged_for_channel = static_cast<std::size_t>(
+        std::count_if(staged_submissions_.begin(), staged_submissions_.end(),
+                      [&request](const BackendRequest &staged) {
+                        return staged.channel == request.channel;
+                      }));
     if (staged_for_channel >= accepts_per_channel_per_cycle_ ||
         channel_outstanding_[request.channel] + staged_for_channel >=
             max_outstanding_per_channel_) {
@@ -165,7 +165,7 @@ class SstMemoryBackend final : public MemoryBackend {
     return found == responses_.end() ? 0 : found->second.size();
   }
 
-  [[nodiscard]] const BackendResponse& response_at(
+  [[nodiscard]] const BackendResponse &response_at(
       std::uint32_t initiator_id, std::size_t index) const override {
     const auto found = responses_.find(initiator_id);
     if (found == responses_.end() || index >= found->second.size()) {
@@ -194,20 +194,20 @@ class SstMemoryBackend final : public MemoryBackend {
 
   [[nodiscard]] std::size_t outstanding_for(
       std::uint32_t initiator_id) const noexcept override {
-    const auto staged = static_cast<std::size_t>(std::count_if(
-        staged_submissions_.begin(), staged_submissions_.end(),
-        [initiator_id](const BackendRequest& request) {
-          return request.initiator_id == initiator_id;
-        }));
+    const auto staged = static_cast<std::size_t>(
+        std::count_if(staged_submissions_.begin(), staged_submissions_.end(),
+                      [initiator_id](const BackendRequest &request) {
+                        return request.initiator_id == initiator_id;
+                      }));
     const auto inflight = initiator_outstanding_.find(initiator_id);
     return staged +
            (inflight == initiator_outstanding_.end() ? 0 : inflight->second);
   }
 
-  void prepare(const CycleContext&) override {
+  void prepare(const CycleContext &) override {
     for (auto iterator = external_arrivals_.begin();
          iterator != external_arrivals_.end();) {
-      auto& queue = responses_[iterator->initiator_id];
+      auto &queue = responses_[iterator->initiator_id];
       if (queue.size() >= response_queue_depth_) {
         ++response_queue_stalls_;
         ++iterator;
@@ -218,38 +218,37 @@ class SstMemoryBackend final : public MemoryBackend {
     }
   }
 
-  void evaluate(const CycleContext&) override {}
+  void evaluate(const CycleContext &) override {}
 
-  void commit(const CycleContext&) override {
-    for (const auto& [initiator_id, count] : staged_response_pops_) {
-      auto& queue = responses_[initiator_id];
+  void commit(const CycleContext &) override {
+    for (const auto &[initiator_id, count] : staged_response_pops_) {
+      auto &queue = responses_[initiator_id];
       for (std::size_t index = 0; index < count; ++index) {
         queue.pop_front();
       }
     }
     staged_response_pops_.clear();
 
-    for (const BackendRequest& request : staged_submissions_) {
+    for (const BackendRequest &request : staged_submissions_) {
       const std::uint64_t local_address =
           request.address % channel_capacity_bytes_;
-      SST::Interfaces::StandardMem::Request* standard_request = nullptr;
+      SST::Interfaces::StandardMem::Request *standard_request = nullptr;
       if (request.operation == MemoryOperation::kWrite) {
         standard_request = new SST::Interfaces::StandardMem::Write(
             local_address, request.bytes,
             std::vector<std::uint8_t>(request.bytes, 0));
       } else {
-        standard_request =
-            new SST::Interfaces::StandardMem::Read(local_address, request.bytes);
+        standard_request = new SST::Interfaces::StandardMem::Read(
+            local_address, request.bytes);
       }
       standard_request->setNoncacheable();
       const auto standard_id = standard_request->getID();
-      inflight_.emplace(
-          standard_id,
-          Inflight{
-              .backend_request_id = request.request_id,
-              .initiator_id = request.initiator_id,
-              .channel = request.channel,
-          });
+      inflight_.emplace(standard_id,
+                        Inflight{
+                            .backend_request_id = request.request_id,
+                            .initiator_id = request.initiator_id,
+                            .channel = request.channel,
+                        });
       ++channel_outstanding_[request.channel];
       ++initiator_outstanding_[request.initiator_id];
       ++accepted_;
@@ -259,7 +258,7 @@ class SstMemoryBackend final : public MemoryBackend {
     max_outstanding_ = std::max(max_outstanding_, outstanding());
   }
 
-  void on_response(SST::Interfaces::StandardMem::Request* request) {
+  void on_response(SST::Interfaces::StandardMem::Request *request) {
     const auto found = inflight_.find(request->getID());
     if (found == inflight_.end()) {
       throw std::logic_error("SST returned an unknown StandardMem request");
@@ -293,7 +292,7 @@ class SstMemoryBackend final : public MemoryBackend {
     std::size_t channel{};
   };
 
-  std::vector<SST::Interfaces::StandardMem*> interfaces_;
+  std::vector<SST::Interfaces::StandardMem *> interfaces_;
   std::uint64_t channel_capacity_bytes_{};
   std::size_t accepts_per_channel_per_cycle_{};
   std::size_t max_outstanding_per_channel_{};
@@ -316,13 +315,15 @@ class SstMemoryBackend final : public MemoryBackend {
 
 class OnlineMemoryProbe final : public SST::Component {
  public:
-  OnlineMemoryProbe(SST::ComponentId_t id, SST::Params& params)
+  OnlineMemoryProbe(SST::ComponentId_t id, SST::Params &params)
       : SST::Component(id) {
     output_.init("[spine_cycle.OnlineMemoryProbe] ",
                  params.find<int>("verbose", 0), 0, SST::Output::STDOUT);
     result_path_ = params.find<std::string>("output", "sst_memory_probe.json");
     mode_ = params.find<std::string>("mode", "probe");
     workload_path_ = params.find<std::string>("workload", "");
+    preload_path_ = params.find<std::string>("preload_workload", "");
+    hot_vertices_text_ = params.find<std::string>("hot_vertices", "");
     source_vertex_ = params.find<std::uint32_t>("source_vertex", 0);
     core_clock_ = params.find<std::string>("core_clock", "141MHz");
     core_mhz_ = params.find<double>("core_mhz", 141.0);
@@ -334,8 +335,8 @@ class OnlineMemoryProbe final : public SST::Component {
         params.find<std::uint64_t>("channel_capacity_bytes", 1ULL << 30);
     write_percent_ = params.find<std::uint32_t>("write_percent", 0);
     max_cycles_ = params.find<std::uint64_t>("max_cycles", 1'000'000);
-    if ((mode_ != "probe" && mode_ != "spine_vertical") ||
-        channels_ == 0 || channel_capacity_bytes_ == 0 || write_percent_ > 100 ||
+    if ((mode_ != "probe" && mode_ != "spine_vertical") || channels_ == 0 ||
+        channel_capacity_bytes_ == 0 || write_percent_ > 100 ||
         (mode_ == "probe" &&
          (request_count_ == 0 || request_bytes_ == 0 || stride_bytes_ == 0)) ||
         (mode_ == "spine_vertical" &&
@@ -348,7 +349,7 @@ class OnlineMemoryProbe final : public SST::Component {
         new SST::Clock::Handler<OnlineMemoryProbe,
                                 &OnlineMemoryProbe::clock_tick>(this));
 
-    SST::SubComponentSlotInfo* slot = getSubComponentSlotInfo("memory");
+    SST::SubComponentSlotInfo *slot = getSubComponentSlotInfo("memory");
     if (slot == nullptr) {
       output_.fatal(CALL_INFO, -1, "memory subcomponent slots are required\n");
     }
@@ -370,13 +371,13 @@ class OnlineMemoryProbe final : public SST::Component {
   }
 
   void init(unsigned int phase) override {
-    for (auto* interface : interfaces_) {
+    for (auto *interface : interfaces_) {
       interface->init(phase);
     }
   }
 
   void setup() override {
-    for (auto* interface : interfaces_) {
+    for (auto *interface : interfaces_) {
       interface->setup();
     }
     const ClockId core = scheduler_.add_clock_mhz("core", core_mhz_);
@@ -385,19 +386,58 @@ class OnlineMemoryProbe final : public SST::Component {
     if (mode_ == "spine_vertical") {
       SpineEdgeSlice workload = load_spine_edge_slice(workload_path_);
       spine_expected_edges_ = workload.edges.size();
-      for (const SpineEdgeRecord& edge : workload.edges) {
-        if (edge.src != source_vertex_ || edge.diff <= 0) {
-          continue;
-        }
-        const auto found = expected_distances_.find(edge.dst);
-        if (found == expected_distances_.end()) {
-          expected_distances_.emplace(edge.dst, edge.weight);
-        } else {
-          found->second = std::min<std::uint32_t>(found->second, edge.weight);
+      SpineL0Config maintenance_config;
+      if (!hot_vertices_text_.empty()) {
+        std::istringstream vertices(hot_vertices_text_);
+        std::string item;
+        while (std::getline(vertices, item, ',')) {
+          if (item.empty()) {
+            output_.fatal(CALL_INFO, -1, "empty hot vertex token\n");
+          }
+          maintenance_config.hot_vertices.push_back(
+              static_cast<std::uint32_t>(std::stoul(item)));
         }
       }
+      SpineL0State initial_state;
+      initial_state.hot_vertices.insert(maintenance_config.hot_vertices.begin(),
+                                        maintenance_config.hot_vertices.end());
+      initial_state.hot_enabled = !initial_state.hot_vertices.empty();
+      const auto add_expected = [&](const SpineEdgeRecord &edge) {
+        if (edge.src == source_vertex_ && edge.diff > 0) {
+          const auto found = expected_distances_.find(edge.dst);
+          if (found == expected_distances_.end()) {
+            expected_distances_.emplace(edge.dst, edge.weight);
+          } else {
+            found->second = std::min<std::uint32_t>(found->second, edge.weight);
+          }
+        }
+      };
+      if (!preload_path_.empty()) {
+        SpineEdgeSlice preload = load_spine_edge_slice(preload_path_);
+        if (preload.vertices != workload.vertices) {
+          output_.fatal(CALL_INFO, -1,
+                        "preload and update workloads disagree on vertices\n");
+        }
+        spine_preload_edges_ = preload.edges.size();
+        for (const SpineEdgeRecord &edge : preload.edges) {
+          const bool hot = initial_state.hot_vertices.contains(edge.dst);
+          const std::size_t family =
+              hot ? spine_hot_shard(edge.dst)
+                  : std::min<std::size_t>(
+                        edge.dst / maintenance_config.vertex_partition_size,
+                        15);
+          auto &level = hot ? initial_state.hot_levels[family][0]
+                            : initial_state.cold_levels[family][0];
+          level.push_back(edge);
+          add_expected(edge);
+        }
+      }
+      for (const SpineEdgeRecord &edge : workload.edges) {
+        add_expected(edge);
+      }
       spine_system_ = std::make_unique<SpineVerticalSliceSystem>(
-          scheduler_, core, *backend_, std::move(workload), source_vertex_);
+          scheduler_, core, *backend_, std::move(workload), source_vertex_,
+          4096, std::move(maintenance_config), std::move(initial_state));
       spine_system_->register_components();
       scheduler_.add_component(*backend_);
       return;
@@ -405,22 +445,21 @@ class OnlineMemoryProbe final : public SST::Component {
 
     requests_ = std::make_unique<Fifo<AxiRequest>>("axi-requests", core, 32);
     responses_ = std::make_unique<Fifo<AxiResponse>>("axi-responses", core, 32);
-    axi_ = std::make_unique<AxiMaster>(
-        "axi-master", core,
-        AxiConfig{
-            .initiator_id = 0,
-            .data_width_bytes = 64,
-            .max_burst_beats = 16,
-            .channels = channels_,
-            .channel_interleave_bytes = 64,
-            .max_pending_requests = 32,
-            .max_outstanding_bursts = 32,
-            .address_accepts_per_cycle = 1,
-            .beat_issues_per_cycle = 1,
-            .response_beats_per_cycle = 4,
-            .fixed_channel = std::nullopt,
-        },
-        *requests_, *responses_, *backend_);
+    axi_ = std::make_unique<AxiMaster>("axi-master", core,
+                                       AxiConfig{
+                                           .initiator_id = 0,
+                                           .data_width_bytes = 64,
+                                           .max_burst_beats = 16,
+                                           .channels = channels_,
+                                           .channel_interleave_bytes = 64,
+                                           .max_pending_requests = 32,
+                                           .max_outstanding_bursts = 32,
+                                           .address_accepts_per_cycle = 1,
+                                           .beat_issues_per_cycle = 1,
+                                           .response_beats_per_cycle = 4,
+                                           .fixed_channel = std::nullopt,
+                                       },
+                                       *requests_, *responses_, *backend_);
     source_ = std::make_unique<ProbeSource>(
         core, *requests_, request_count_, request_bytes_, stride_bytes_,
         channel_capacity_bytes_ * channels_, write_percent_);
@@ -464,7 +503,7 @@ class OnlineMemoryProbe final : public SST::Component {
     return false;
   }
 
-  void on_memory_response(SST::Interfaces::StandardMem::Request* request) {
+  void on_memory_response(SST::Interfaces::StandardMem::Request *request) {
     backend_->on_response(request);
   }
 
@@ -478,6 +517,8 @@ class OnlineMemoryProbe final : public SST::Component {
       {"output", "JSON result path", "sst_memory_probe.json"},
       {"mode", "probe or spine_vertical", "probe"},
       {"workload", "Spine .slice workload path", ""},
+      {"preload_workload", "Optional pre-existing Spine L0 .slice", ""},
+      {"hot_vertices", "Comma-separated host hot-bitmap vertices", ""},
       {"source_vertex", "Spine SSSP source vertex", "0"},
       {"verbose", "Output verbosity", "0"},
       {"core_clock", "SST core clock", "141MHz"},
@@ -503,7 +544,7 @@ class OnlineMemoryProbe final : public SST::Component {
     std::ofstream result(result_path_);
     if (mode_ == "spine_vertical") {
       std::uint64_t mismatches = 0;
-      for (const auto& [vertex, expected] : expected_distances_) {
+      for (const auto &[vertex, expected] : expected_distances_) {
         if (spine_system_->compute().values().at(vertex) != expected) {
           ++mismatches;
         }
@@ -512,7 +553,7 @@ class OnlineMemoryProbe final : public SST::Component {
           spine_system_->compute().next_active().begin(),
           spine_system_->compute().next_active().end());
       std::uint64_t frontier_mismatches = 0;
-      for (const auto& [vertex, expected] : expected_distances_) {
+      for (const auto &[vertex, expected] : expected_distances_) {
         (void)expected;
         if (!actual_frontier.contains(vertex)) {
           ++frontier_mismatches;
@@ -527,21 +568,22 @@ class OnlineMemoryProbe final : public SST::Component {
                           frontier_mismatches == 0 &&
                           spine_system_->compute().next_active().size() ==
                               actual_frontier.size();
-      const auto& maintenance = spine_system_->maintenance_counters();
-      const auto& reader = spine_system_->reader_counters();
-      const auto& compute = spine_system_->compute_counters();
+      const auto &maintenance = spine_system_->maintenance_counters();
+      const auto &reader = spine_system_->reader_counters();
+      const auto &compute = spine_system_->compute_counters();
       result << "{\n"
              << "  \"success\": " << (passed ? "true" : "false") << ",\n"
              << "  \"mode\": \"spine_vertical\",\n"
              << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
-             << "  \"cycles\": " << scheduler_.clock(0).completed_cycles << ",\n"
+             << "  \"cycles\": " << scheduler_.clock(0).completed_cycles
+             << ",\n"
              << "  \"sim_time_fs\": "
              << scheduler_.clock(0).next_edge_fs - scheduler_.clock(0).phase_fs
              << ",\n"
              << "  \"input_edges\": " << spine_expected_edges_ << ",\n"
+             << "  \"preload_edges\": " << spine_preload_edges_ << ",\n"
              << "  \"correctness_mismatches\": " << mismatches << ",\n"
-             << "  \"frontier_mismatches\": " << frontier_mismatches
-             << ",\n"
+             << "  \"frontier_mismatches\": " << frontier_mismatches << ",\n"
              << "  \"next_active\": "
              << spine_system_->compute().next_active().size() << ",\n"
              << "  \"maintenance_scan_passes\": "
@@ -550,14 +592,32 @@ class OnlineMemoryProbe final : public SST::Component {
              << maintenance.sorted_edge_visits << ",\n"
              << "  \"maintenance_sorted_bytes\": "
              << maintenance.sorted_read_bytes << ",\n"
+             << "  \"maintenance_target_level\": " << maintenance.target_level
+             << ",\n"
+             << "  \"maintenance_hot_target_level\": "
+             << maintenance.hot_target_level << ",\n"
+             << "  \"maintenance_cold_input_edges\": "
+             << maintenance.cold_input_edges << ",\n"
+             << "  \"maintenance_hot_input_edges\": "
+             << maintenance.hot_input_edges << ",\n"
+             << "  \"maintenance_carry_payload_reads\": "
+             << maintenance.carry_level_payload_reads << ",\n"
+             << "  \"maintenance_carry_merge_inputs\": "
+             << maintenance.carry_merge_inputs << ",\n"
+             << "  \"maintenance_carry_outputs\": " << maintenance.carry_outputs
+             << ",\n"
              << "  \"reader_tiles\": " << reader.tiles_emitted << ",\n"
              << "  \"reader_edges\": " << reader.edges_emitted << ",\n"
-             << "  \"reader_graph_bytes\": " << reader.graph_read_bytes
+             << "  \"reader_graph_bytes\": " << reader.graph_read_bytes << ",\n"
+             << "  \"reader_metadata_bytes\": " << reader.metadata_read_bytes
              << ",\n"
-             << "  \"compute_fast_tiles\": " << compute.fast_path_tiles
+             << "  \"reader_occupied_levels\": " << reader.occupied_levels
              << ",\n"
-             << "  \"compute_full_tiles\": " << compute.full_path_tiles
+             << "  \"reader_cold_edges\": " << reader.cold_edges_emitted
              << ",\n"
+             << "  \"reader_hot_edges\": " << reader.hot_edges_emitted << ",\n"
+             << "  \"compute_fast_tiles\": " << compute.fast_path_tiles << ",\n"
+             << "  \"compute_full_tiles\": " << compute.full_path_tiles << ",\n"
              << "  \"compute_processed_edges\": " << compute.processed_edges
              << ",\n"
              << "  \"edge_axis_transfers\": "
@@ -569,17 +629,16 @@ class OnlineMemoryProbe final : public SST::Component {
              << ",\n"
              << "  \"backend_response_queue_stalls\": "
              << backend_->response_queue_stalls() << ",\n"
-             << "  \"backend_max_outstanding\": "
-             << backend_->max_outstanding() << "\n"
+             << "  \"backend_max_outstanding\": " << backend_->max_outstanding()
+             << "\n"
              << "}\n";
       output_.output(
           "completed Spine vertical slice in %llu core cycles -> %s\n",
-          static_cast<unsigned long long>(
-              scheduler_.clock(0).completed_cycles),
+          static_cast<unsigned long long>(scheduler_.clock(0).completed_cycles),
           result_path_.c_str());
       return;
     }
-    const auto& stats = axi_->stats();
+    const auto &stats = axi_->stats();
     result << "{\n"
            << "  \"success\": " << (success ? "true" : "false") << ",\n"
            << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
@@ -594,25 +653,29 @@ class OnlineMemoryProbe final : public SST::Component {
            << "  \"axi_beats\": " << stats.beats_issued << ",\n"
            << "  \"axi_read_bytes\": " << stats.read_bytes << ",\n"
            << "  \"axi_write_bytes\": " << stats.write_bytes << ",\n"
-           << "  \"axi_backend_stalls\": " << stats.backend_submit_stalls << ",\n"
+           << "  \"axi_backend_stalls\": " << stats.backend_submit_stalls
+           << ",\n"
            << "  \"backend_requests\": " << backend_->accepted() << ",\n"
-           << "  \"backend_submit_stalls\": " << backend_->submit_stalls() << ",\n"
+           << "  \"backend_submit_stalls\": " << backend_->submit_stalls()
+           << ",\n"
            << "  \"backend_response_queue_stalls\": "
            << backend_->response_queue_stalls() << ",\n"
-           << "  \"backend_max_outstanding\": "
-           << backend_->max_outstanding() << "\n"
+           << "  \"backend_max_outstanding\": " << backend_->max_outstanding()
+           << "\n"
            << "}\n";
-    output_.output("completed %llu online AXI requests in %llu core cycles -> %s\n",
-                   static_cast<unsigned long long>(sink_->completed()),
-                   static_cast<unsigned long long>(
-                       scheduler_.clock(0).completed_cycles),
-                   result_path_.c_str());
+    output_.output(
+        "completed %llu online AXI requests in %llu core cycles -> %s\n",
+        static_cast<unsigned long long>(sink_->completed()),
+        static_cast<unsigned long long>(scheduler_.clock(0).completed_cycles),
+        result_path_.c_str());
   }
 
   SST::Output output_;
   std::string result_path_;
   std::string mode_;
   std::string workload_path_;
+  std::string preload_path_;
+  std::string hot_vertices_text_;
   std::uint32_t source_vertex_{};
   std::string core_clock_;
   double core_mhz_{};
@@ -624,7 +687,7 @@ class OnlineMemoryProbe final : public SST::Component {
   std::uint32_t write_percent_{};
   std::uint64_t max_cycles_{};
   SST::TimeConverter clock_converter_{};
-  std::vector<SST::Interfaces::StandardMem*> interfaces_;
+  std::vector<SST::Interfaces::StandardMem *> interfaces_;
 
   Scheduler scheduler_;
   std::unique_ptr<Fifo<AxiRequest>> requests_;
@@ -635,6 +698,7 @@ class OnlineMemoryProbe final : public SST::Component {
   std::unique_ptr<ProbeSink> sink_;
   std::unique_ptr<SpineVerticalSliceSystem> spine_system_;
   std::size_t spine_expected_edges_{};
+  std::size_t spine_preload_edges_{};
   std::unordered_map<std::uint32_t, std::uint32_t> expected_distances_;
   bool result_written_{};
 };

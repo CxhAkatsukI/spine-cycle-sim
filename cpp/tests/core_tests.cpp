@@ -35,17 +35,22 @@ using spine::sim::CycleContext;
 using spine::sim::Fifo;
 using spine::sim::FixedAxiPort;
 using spine::sim::FixedAxiPortConfig;
+using spine::sim::load_spine_edge_slice;
 using spine::sim::MemoryOperation;
 using spine::sim::MockMemoryBackend;
 using spine::sim::MockMemoryConfig;
 using spine::sim::OnChipOperation;
 using spine::sim::OnChipRequest;
 using spine::sim::OnChipResponse;
+using spine::sim::PartConvWord;
 using spine::sim::ReadAfterWritePolicy;
 using spine::sim::Scheduler;
-using spine::sim::PartConvWord;
 using spine::sim::SourceValueWord;
+using spine::sim::spine_hot_shard;
+using spine::sim::spine_level_layout;
 using spine::sim::SpineComputePorts;
+using spine::sim::SpineEdgeRecord;
+using spine::sim::SpineEdgeSlice;
 using spine::sim::SpineL0Config;
 using spine::sim::SpineL0Maintenance;
 using spine::sim::SpineL0Ports;
@@ -54,9 +59,8 @@ using spine::sim::SpineReaderPorts;
 using spine::sim::SpineSplitReader;
 using spine::sim::SpineSplitSsspCompute;
 using spine::sim::SpineVerticalSliceSystem;
-using spine::sim::load_spine_edge_slice;
 
-void require(bool condition, const std::string& message) {
+void require(bool condition, const std::string &message) {
   if (!condition) {
     throw std::runtime_error(message);
   }
@@ -64,9 +68,10 @@ void require(bool condition, const std::string& message) {
 
 class EdgeCounter final : public Component {
  public:
-  EdgeCounter(std::string name, ClockId clock) : Component(std::move(name), clock) {}
-  void evaluate(const CycleContext&) override { ++evaluations; }
-  void commit(const CycleContext&) override { ++commits; }
+  EdgeCounter(std::string name, ClockId clock)
+      : Component(std::move(name), clock) {}
+  void evaluate(const CycleContext &) override { ++evaluations; }
+  void commit(const CycleContext &) override { ++commits; }
   std::uint64_t evaluations{};
   std::uint64_t commits{};
 };
@@ -74,16 +79,16 @@ class EdgeCounter final : public Component {
 template <typename T>
 class SequenceProducer final : public Component {
  public:
-  SequenceProducer(std::string name, ClockId clock, Fifo<T>& output,
+  SequenceProducer(std::string name, ClockId clock, Fifo<T> &output,
                    std::vector<T> values)
       : Component(std::move(name), clock),
         output_(output),
         values_(std::move(values)) {}
 
-  void evaluate(const CycleContext&) override {
+  void evaluate(const CycleContext &) override {
     accepted_ = index_ < values_.size() && output_.try_push(values_[index_]);
   }
-  void commit(const CycleContext&) override {
+  void commit(const CycleContext &) override {
     if (accepted_) {
       ++index_;
       accepted_ = false;
@@ -92,7 +97,7 @@ class SequenceProducer final : public Component {
   [[nodiscard]] bool done() const noexcept { return index_ == values_.size(); }
 
  private:
-  Fifo<T>& output_;
+  Fifo<T> &output_;
   std::vector<T> values_;
   std::size_t index_{};
   bool accepted_{};
@@ -101,17 +106,19 @@ class SequenceProducer final : public Component {
 template <typename T>
 class SequenceConsumer final : public Component {
  public:
-  SequenceConsumer(std::string name, ClockId clock, Fifo<T>& input,
+  SequenceConsumer(std::string name, ClockId clock, Fifo<T> &input,
                    std::uint64_t start_cycle = 0)
-      : Component(std::move(name), clock), input_(input), start_cycle_(start_cycle) {}
+      : Component(std::move(name), clock),
+        input_(input),
+        start_cycle_(start_cycle) {}
 
-  void evaluate(const CycleContext& context) override {
+  void evaluate(const CycleContext &context) override {
     accepted_ = false;
     if (context.domain_cycle >= start_cycle_) {
       accepted_ = input_.try_pop(staged_);
     }
   }
-  void commit(const CycleContext&) override {
+  void commit(const CycleContext &) override {
     if (accepted_) {
       values.push_back(staged_);
       accepted_ = false;
@@ -120,7 +127,7 @@ class SequenceConsumer final : public Component {
   std::vector<T> values;
 
  private:
-  Fifo<T>& input_;
+  Fifo<T> &input_;
   std::uint64_t start_cycle_{};
   T staged_{};
   bool accepted_{};
@@ -158,7 +165,8 @@ void test_fifo_has_no_same_cycle_fallthrough() {
   require(consumer.values.empty(), "FIFO allowed same-cycle fall-through");
   require(fifo.size() == 1, "producer value was not committed");
   scheduler.step();
-  require(consumer.values == std::vector<int>{7}, "consumer missed committed value");
+  require(consumer.values == std::vector<int>{7},
+          "consumer missed committed value");
   require(fifo.stats().pushes == 1 && fifo.stats().pops == 1,
           "FIFO activity counters mismatch");
 }
@@ -186,7 +194,8 @@ void test_fifo_is_registration_order_independent() {
   const auto forward = run_fifo_order_case(true);
   const auto reverse = run_fifo_order_case(false);
   require(forward == std::vector<int>({3, 5, 8}), "forward order lost data");
-  require(reverse == forward, "component registration order changed FIFO behavior");
+  require(reverse == forward,
+          "component registration order changed FIFO behavior");
 }
 
 void test_fifo_backpressure_is_counted() {
@@ -205,8 +214,8 @@ void test_fifo_backpressure_is_counted() {
   require(fifo.stats().max_occupancy == 1, "FIFO max occupancy mismatch");
 }
 
-BankedMemoryConfig memory_config(ReadAfterWritePolicy policy =
-                                     ReadAfterWritePolicy::kStall) {
+BankedMemoryConfig memory_config(
+    ReadAfterWritePolicy policy = ReadAfterWritePolicy::kStall) {
   return BankedMemoryConfig{
       .banks = 1,
       .capacity_words = 1024,
@@ -218,9 +227,9 @@ BankedMemoryConfig memory_config(ReadAfterWritePolicy policy =
   };
 }
 
-void register_port(Scheduler& scheduler, Component& producer,
-                   Fifo<OnChipRequest>& requests,
-                   Fifo<OnChipResponse>& responses, Component& consumer) {
+void register_port(Scheduler &scheduler, Component &producer,
+                   Fifo<OnChipRequest> &requests,
+                   Fifo<OnChipResponse> &responses, Component &consumer) {
   scheduler.add_component(producer);
   scheduler.add_component(requests);
   scheduler.add_component(responses);
@@ -243,10 +252,14 @@ void test_banked_memory_conflict_and_round_robin() {
 
   SequenceProducer<OnChipRequest> producer0(
       "producer0", core, req0,
-      {{.transaction_id = 10, .operation = OnChipOperation::kRead, .word_address = 2}});
+      {{.transaction_id = 10,
+        .operation = OnChipOperation::kRead,
+        .word_address = 2}});
   SequenceProducer<OnChipRequest> producer1(
       "producer1", core, req1,
-      {{.transaction_id = 11, .operation = OnChipOperation::kRead, .word_address = 4}});
+      {{.transaction_id = 11,
+        .operation = OnChipOperation::kRead,
+        .word_address = 4}});
   SequenceConsumer<OnChipResponse> consumer0("consumer0", core, rsp0);
   SequenceConsumer<OnChipResponse> consumer1("consumer1", core, rsp1);
 
@@ -254,7 +267,9 @@ void test_banked_memory_conflict_and_round_robin() {
   register_port(scheduler, producer1, req1, rsp1, consumer1);
   scheduler.add_component(memory);
   scheduler.run_until(
-      [&] { return consumer0.values.size() == 1 && consumer1.values.size() == 1; },
+      [&] {
+        return consumer0.values.size() == 1 && consumer1.values.size() == 1;
+      },
       16);
 
   require(consumer0.values[0].read_data == 22, "port 0 read data mismatch");
@@ -279,15 +294,15 @@ void test_banked_memory_stalls_read_after_write() {
   memory.attach_port(write_req, write_rsp);
   memory.attach_port(read_req, read_rsp);
 
-  SequenceProducer<OnChipRequest> writer(
-      "writer", core, write_req,
-      {{.transaction_id = 20,
-        .operation = OnChipOperation::kWrite,
-        .word_address = 8,
-        .write_data = 99}});
-  SequenceProducer<OnChipRequest> reader(
-      "reader", core, read_req,
-      {{.transaction_id = 21, .operation = OnChipOperation::kRead, .word_address = 8}});
+  SequenceProducer<OnChipRequest> writer("writer", core, write_req,
+                                         {{.transaction_id = 20,
+                                           .operation = OnChipOperation::kWrite,
+                                           .word_address = 8,
+                                           .write_data = 99}});
+  SequenceProducer<OnChipRequest> reader("reader", core, read_req,
+                                         {{.transaction_id = 21,
+                                           .operation = OnChipOperation::kRead,
+                                           .word_address = 8}});
   SequenceConsumer<OnChipResponse> write_sink("write-sink", core, write_rsp);
   SequenceConsumer<OnChipResponse> read_sink("read-sink", core, read_rsp);
 
@@ -295,10 +310,13 @@ void test_banked_memory_stalls_read_after_write() {
   register_port(scheduler, reader, read_req, read_rsp, read_sink);
   scheduler.add_component(memory);
   scheduler.run_until(
-      [&] { return write_sink.values.size() == 1 && read_sink.values.size() == 1; },
+      [&] {
+        return write_sink.values.size() == 1 && read_sink.values.size() == 1;
+      },
       20);
 
-  require(read_sink.values[0].read_data == 99, "RAW-protected read saw stale data");
+  require(read_sink.values[0].read_data == 99,
+          "RAW-protected read saw stale data");
   require(memory.inspect_word(8) == 99, "write did not update memory");
   require(memory.stats().raw_hazard_stalls >= 2, "RAW stalls were not counted");
 }
@@ -308,7 +326,7 @@ void test_invalid_clock_and_capacity_are_rejected() {
   bool clock_failed = false;
   try {
     static_cast<void>(scheduler.add_clock_mhz("bad", 0.0));
-  } catch (const std::invalid_argument&) {
+  } catch (const std::invalid_argument &) {
     clock_failed = true;
   }
   require(clock_failed, "zero-frequency clock was accepted");
@@ -318,7 +336,7 @@ void test_invalid_clock_and_capacity_are_rejected() {
   bool address_failed = false;
   try {
     memory.initialize_word(1024, 1);
-  } catch (const std::out_of_range&) {
+  } catch (const std::out_of_range &) {
     address_failed = true;
   }
   require(address_failed, "out-of-capacity address was accepted");
@@ -372,18 +390,16 @@ TwoMasterResult run_two_axi_masters(std::size_t second_channel) {
   config1.fixed_channel = second_channel;
   AxiMaster axi0("axi0", core, config0, request0, response0, backend);
   AxiMaster axi1("axi1", core, config1, request1, response1, backend);
-  SequenceProducer<AxiRequest> producer0(
-      "producer0", core, request0,
-      {{.transaction_id = 100,
-        .operation = MemoryOperation::kRead,
-        .address = 0,
-        .bytes = 64}});
-  SequenceProducer<AxiRequest> producer1(
-      "producer1", core, request1,
-      {{.transaction_id = 200,
-        .operation = MemoryOperation::kWrite,
-        .address = 4096,
-        .bytes = 64}});
+  SequenceProducer<AxiRequest> producer0("producer0", core, request0,
+                                         {{.transaction_id = 100,
+                                           .operation = MemoryOperation::kRead,
+                                           .address = 0,
+                                           .bytes = 64}});
+  SequenceProducer<AxiRequest> producer1("producer1", core, request1,
+                                         {{.transaction_id = 200,
+                                           .operation = MemoryOperation::kWrite,
+                                           .address = 4096,
+                                           .bytes = 64}});
   SequenceConsumer<AxiResponse> consumer0("consumer0", core, response0);
   SequenceConsumer<AxiResponse> consumer1("consumer1", core, response1);
 
@@ -399,7 +415,9 @@ TwoMasterResult run_two_axi_masters(std::size_t second_channel) {
   scheduler.add_component(consumer0);
   scheduler.add_component(consumer1);
   scheduler.run_until(
-      [&] { return consumer0.values.size() == 1 && consumer1.values.size() == 1; },
+      [&] {
+        return consumer0.values.size() == 1 && consumer1.values.size() == 1;
+      },
       100);
 
   require(consumer0.values[0].transaction_id == 100,
@@ -441,8 +459,9 @@ void test_axi_rejects_duplicate_initiator_id() {
   AxiMaster first("first", core, config, request0, response0, backend);
   bool failed = false;
   try {
-    AxiMaster duplicate("duplicate", core, config, request1, response1, backend);
-  } catch (const std::invalid_argument&) {
+    AxiMaster duplicate("duplicate", core, config, request1, response1,
+                        backend);
+  } catch (const std::invalid_argument &) {
     failed = true;
   }
   require(failed, "duplicate memory initiator ID was accepted");
@@ -455,12 +474,11 @@ void test_axi_splits_bursts_and_uses_backend_online() {
   Fifo<AxiResponse> responses("axi-responses", core, 2);
   MockMemoryBackend backend("mock-hbm", core, mock_memory_config());
   AxiMaster axi("axi", core, axi_config(), requests, responses, backend);
-  SequenceProducer<AxiRequest> producer(
-      "requester", core, requests,
-      {{.transaction_id = 42,
-        .operation = MemoryOperation::kRead,
-        .address = 4032,
-        .bytes = 1600}});
+  SequenceProducer<AxiRequest> producer("requester", core, requests,
+                                        {{.transaction_id = 42,
+                                          .operation = MemoryOperation::kRead,
+                                          .address = 4032,
+                                          .bytes = 1600}});
   SequenceConsumer<AxiResponse> consumer("response-sink", core, responses);
 
   scheduler.add_component(backend);
@@ -473,9 +491,9 @@ void test_axi_splits_bursts_and_uses_backend_online() {
 
   require(consumer.values[0].transaction_id == 42 && consumer.values[0].success,
           "AXI response mismatch");
-  require(axi.stats().requests_accepted == 1 &&
-              axi.stats().requests_completed == 1,
-          "AXI request counters mismatch");
+  require(
+      axi.stats().requests_accepted == 1 && axi.stats().requests_completed == 1,
+      "AXI request counters mismatch");
   require(axi.stats().bursts_accepted == 3,
           "AXI max-burst/4 KiB splitting produced the wrong burst count");
   require(axi.stats().four_kib_splits == 1, "AXI missed a 4 KiB split");
@@ -484,7 +502,8 @@ void test_axi_splits_bursts_and_uses_backend_online() {
   require(axi.stats().read_bytes == 1600, "AXI byte counter mismatch");
   require(axi.stats().max_outstanding_bursts == 2,
           "AXI outstanding burst limit was not exercised");
-  require(backend.stats().accepted == 25, "mock backend did not see every beat");
+  require(backend.stats().accepted == 25,
+          "mock backend did not see every beat");
 }
 
 void test_axi_response_backpressure_is_lossless() {
@@ -527,15 +546,14 @@ void test_axi_response_backpressure_is_lossless() {
 void test_spine_l0_real_slice_vertical_path() {
   Scheduler scheduler;
   const auto core = scheduler.add_clock_mhz("data", 141.0);
-  MockMemoryBackend backend(
-      "hbm", core,
-      MockMemoryConfig{
-          .channels = 32,
-          .latency_cycles = 3,
-          .accepts_per_channel_per_cycle = 1,
-          .max_outstanding_per_channel = 64,
-          .response_queue_depth = 128,
-      });
+  MockMemoryBackend backend("hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 3,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 64,
+                                .response_queue_depth = 128,
+                            });
 
   std::array<std::unique_ptr<FixedAxiPort>, 16> graph_ports;
   SpineL0Ports ports;
@@ -550,30 +568,27 @@ void test_spine_l0_real_slice_vertical_path() {
         backend);
     ports.graph[family] = graph_ports[family].get();
   }
-  FixedAxiPort sorted(
-      "sorted-edges", core,
-      FixedAxiPortConfig{
-          .memory_channels = 32,
-          .channel = 16,
-          .initiator_id = 16,
-      },
-      backend);
-  FixedAxiPort metadata(
-      "metadata", core,
-      FixedAxiPortConfig{
-          .memory_channels = 32,
-          .channel = 20,
-          .initiator_id = 20,
-      },
-      backend);
-  FixedAxiPort result(
-      "result", core,
-      FixedAxiPortConfig{
-          .memory_channels = 32,
-          .channel = 21,
-          .initiator_id = 21,
-      },
-      backend);
+  FixedAxiPort sorted("sorted-edges", core,
+                      FixedAxiPortConfig{
+                          .memory_channels = 32,
+                          .channel = 16,
+                          .initiator_id = 16,
+                      },
+                      backend);
+  FixedAxiPort metadata("metadata", core,
+                        FixedAxiPortConfig{
+                            .memory_channels = 32,
+                            .channel = 20,
+                            .initiator_id = 20,
+                        },
+                        backend);
+  FixedAxiPort result("result", core,
+                      FixedAxiPortConfig{
+                          .memory_channels = 32,
+                          .channel = 21,
+                          .initiator_id = 21,
+                      },
+                      backend);
   ports.sorted_edges = &sorted;
   ports.metadata = &metadata;
   ports.result = &result;
@@ -583,74 +598,68 @@ void test_spine_l0_real_slice_vertical_path() {
       "amazon_top1_exact.slice";
   const auto workload = load_spine_edge_slice(fixture);
   SpineL0State state;
-  SpineL0Maintenance maintenance(
-      "spine-l0-maintenance", core, SpineL0Config{}, workload, ports, state);
+  SpineL0Maintenance maintenance("spine-l0-maintenance", core, SpineL0Config{},
+                                 workload, ports, state);
 
-  FixedAxiPort active_bins(
-      "active-bins", core,
-      FixedAxiPortConfig{
-          .memory_channels = 32,
-          .channel = 18,
-          .initiator_id = 18,
-      },
-      backend);
-  FixedAxiPort vertex_state(
-      "vertex-state", core,
-      FixedAxiPortConfig{
-          .memory_channels = 32,
-          .channel = 17,
-          .initiator_id = 117,
-      },
-      backend);
-  FixedAxiPort active_out(
-      "active-out", core,
-      FixedAxiPortConfig{
-          .memory_channels = 32,
-          .channel = 19,
-          .initiator_id = 119,
-      },
-      backend);
-  FixedAxiPort active_bitmap(
-      "active-bitmap", core,
-      FixedAxiPortConfig{
-          .memory_channels = 32,
-          .channel = 22,
-          .initiator_id = 122,
-      },
-      backend);
-  FixedAxiPort compute_result(
-      "compute-result", core,
-      FixedAxiPortConfig{
-          .memory_channels = 32,
-          .channel = 21,
-          .initiator_id = 121,
-      },
-      backend);
+  FixedAxiPort active_bins("active-bins", core,
+                           FixedAxiPortConfig{
+                               .memory_channels = 32,
+                               .channel = 18,
+                               .initiator_id = 18,
+                           },
+                           backend);
+  FixedAxiPort vertex_state("vertex-state", core,
+                            FixedAxiPortConfig{
+                                .memory_channels = 32,
+                                .channel = 17,
+                                .initiator_id = 117,
+                            },
+                            backend);
+  FixedAxiPort active_out("active-out", core,
+                          FixedAxiPortConfig{
+                              .memory_channels = 32,
+                              .channel = 19,
+                              .initiator_id = 119,
+                          },
+                          backend);
+  FixedAxiPort active_bitmap("active-bitmap", core,
+                             FixedAxiPortConfig{
+                                 .memory_channels = 32,
+                                 .channel = 22,
+                                 .initiator_id = 122,
+                             },
+                             backend);
+  FixedAxiPort compute_result("compute-result", core,
+                              FixedAxiPortConfig{
+                                  .memory_channels = 32,
+                                  .channel = 21,
+                                  .initiator_id = 121,
+                              },
+                              backend);
   Fifo<PartConvWord> edge_stream("edge-axis", core, 32);
   Fifo<SourceValueWord> value_stream("value-axis", core, 32);
   SpineReaderPorts reader_ports;
   reader_ports.graph = ports.graph;
   reader_ports.active_bins = &active_bins;
   reader_ports.metadata = &metadata;
-  SpineSplitReader reader(
-      "spine-split-reader", core, maintenance, state, reader_ports, {2},
-      edge_stream, value_stream);
-  SpineSplitSsspCompute compute(
-      "spine-split-compute", core, workload.vertices, 2, 4096,
-      SpineComputePorts{
-          .vertex_state = &vertex_state,
-          .active_out = &active_out,
-          .active_bitmap = &active_bitmap,
-          .result = &compute_result,
-      },
-      edge_stream, value_stream);
+  SpineSplitReader reader("spine-split-reader", core, maintenance, state,
+                          reader_ports, {2}, edge_stream, value_stream);
+  SpineSplitSsspCompute compute("spine-split-compute", core, workload.vertices,
+                                2, 4096,
+                                SpineComputePorts{
+                                    .vertex_state = &vertex_state,
+                                    .active_out = &active_out,
+                                    .active_bitmap = &active_bitmap,
+                                    .result = &compute_result,
+                                },
+                                edge_stream, value_stream);
 
   scheduler.add_component(maintenance);
   scheduler.add_component(reader);
   scheduler.add_component(compute);
   scheduler.add_component(edge_stream);
   scheduler.add_component(value_stream);
-  for (auto& port : graph_ports) {
+  for (auto &port : graph_ports) {
     port->register_components(scheduler);
   }
   sorted.register_components(scheduler);
@@ -667,7 +676,7 @@ void test_spine_l0_real_slice_vertical_path() {
       30'000);
 
   require(!maintenance.failed(), "Spine L0 real-slice path reported failure");
-  const auto& counters = maintenance.counters();
+  const auto &counters = maintenance.counters();
   require(counters.sorted_scan_passes == 19,
           "Spine L0 did not execute the expected HLS scan passes");
   require(counters.sorted_edge_visits == 190,
@@ -687,7 +696,7 @@ void test_spine_l0_real_slice_vertical_path() {
           "Spine dirty-frontier HBM byte count mismatch");
   require(counters.graph_write_bytes == 288,
           "Spine L0 graph layout write byte count mismatch");
-  require(counters.metadata_read_bytes == 416 &&
+  require(counters.metadata_read_bytes == 2'976 &&
               counters.metadata_write_bytes == 1'104,
           "Spine L0 metadata byte ledger mismatch");
   require(counters.result_write_bytes == 384,
@@ -698,24 +707,27 @@ void test_spine_l0_real_slice_vertical_path() {
     require(state.cold_levels[family][0].empty(),
             "Spine L0 wrote an inactive destination family");
   }
-  require(counters.end_cycle > counters.start_cycle + counters.sorted_edge_visits,
-          "Spine timing did not include memory/control work");
+  require(
+      counters.end_cycle > counters.start_cycle + counters.sorted_edge_visits,
+      "Spine timing did not include memory/control work");
 
   require(!reader.failed() && !compute.failed(),
           "Spine split reader/compute path reported failure");
-  const auto& reader_counters = reader.counters();
+  const auto &reader_counters = reader.counters();
   require(reader_counters.source_requests == 1 &&
               reader_counters.source_responses == 1,
           "Spine source-value protocol did not close");
-  require(reader_counters.tiles_emitted == 5 &&
-              reader_counters.edges_emitted == 10,
-          "Spine reader tile/edge stream shape mismatch");
+  require(
+      reader_counters.tiles_emitted == 5 && reader_counters.edges_emitted == 10,
+      "Spine reader tile/edge stream shape mismatch");
   require(reader_counters.active_bin_read_bytes == 32 &&
-              reader_counters.metadata_read_bytes == 64 &&
+              reader_counters.metadata_read_bytes == 2'952 &&
+              reader_counters.level_cache_read_bytes == 2'880 &&
+              reader_counters.row_lookup_metadata_bytes == 8 &&
               reader_counters.graph_read_bytes == 224,
           "Spine reader memory byte ledger mismatch");
 
-  const auto& compute_counters = compute.counters();
+  const auto &compute_counters = compute.counters();
   require(compute_counters.touched_tiles == 5 &&
               compute_counters.fast_path_tiles == 5 &&
               compute_counters.full_path_tiles == 0,
@@ -732,7 +744,7 @@ void test_spine_l0_real_slice_vertical_path() {
           "Spine compute memory byte ledger mismatch");
   require(compute.next_active().size() == 10,
           "Spine SSSP next frontier size mismatch");
-  for (const auto& edge : workload.edges) {
+  for (const auto &edge : workload.edges) {
     require(compute.values()[edge.dst] == 1,
             "Spine SSSP result differs from the expected fanout distance");
   }
@@ -744,39 +756,34 @@ void test_spine_l0_real_slice_vertical_path() {
               value_stream.stats().max_occupancy <= 32,
           "Spine AXIS occupancy exceeded the configured depth");
   std::cout << "EVIDENCE spine_vertical_slice e2e_cycles="
-            << scheduler.clock(core).completed_cycles
-            << " maintenance_cycles="
-            << counters.end_cycle - counters.start_cycle
-            << " reader_cycles="
+            << scheduler.clock(core).completed_cycles << " maintenance_cycles="
+            << counters.end_cycle - counters.start_cycle << " reader_cycles="
             << reader_counters.end_cycle - reader_counters.start_cycle
             << " compute_cycles="
             << compute_counters.end_cycle - compute_counters.start_cycle
-            << " edge_axis_max_occupancy="
-            << edge_stream.stats().max_occupancy << '\n';
+            << " edge_axis_max_occupancy=" << edge_stream.stats().max_occupancy
+            << '\n';
 }
 
 void test_spine_reusable_system_matches_vertical_slice() {
   Scheduler scheduler;
   const auto core = scheduler.add_clock_mhz("data", 141.0);
-  MockMemoryBackend backend(
-      "hbm", core,
-      MockMemoryConfig{
-          .channels = 32,
-          .latency_cycles = 3,
-          .accepts_per_channel_per_cycle = 1,
-          .max_outstanding_per_channel = 64,
-          .response_queue_depth = 128,
-      });
+  MockMemoryBackend backend("hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 3,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 64,
+                                .response_queue_depth = 128,
+                            });
   const std::filesystem::path fixture =
       std::filesystem::path(SPINE_SOURCE_DIR) / "tests" / "data" /
       "amazon_top1_exact.slice";
   const auto workload = load_spine_edge_slice(fixture);
-  SpineVerticalSliceSystem system(
-      scheduler, core, backend, workload, 2);
+  SpineVerticalSliceSystem system(scheduler, core, backend, workload, 2);
   system.register_components();
   scheduler.add_component(backend);
-  scheduler.run_until(
-      [&] { return system.done() && system.idle(); }, 30'000);
+  scheduler.run_until([&] { return system.done() && system.idle(); }, 30'000);
 
   require(!system.failed(), "reusable Spine vertical-slice system failed");
   require(system.maintenance_counters().sorted_scan_passes == 19,
@@ -787,6 +794,167 @@ void test_spine_reusable_system_matches_vertical_slice() {
           "reusable Spine system changed compute work");
   require(system.compute().next_active().size() == 10,
           "reusable Spine system changed the SSSP frontier");
+}
+
+void test_spine_cold_l1_carry_and_reader() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("data", 141.0);
+  MockMemoryBackend backend("hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 3,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 64,
+                                .response_queue_depth = 128,
+                            });
+  SpineL0State initial;
+  initial.cold_levels[0][0] = {
+      SpineEdgeRecord{.src = 0, .dst = 1, .weight = 5, .diff = 1}};
+  SpineEdgeSlice batch{
+      .vertices = 128,
+      .edges = {SpineEdgeRecord{.src = 0, .dst = 2, .weight = 3, .diff = 1}},
+      .case_name = "cold_l1_carry",
+  };
+  SpineVerticalSliceSystem system(scheduler, core, backend, std::move(batch), 0,
+                                  4096, SpineL0Config{}, std::move(initial));
+  system.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until([&] { return system.done() && system.idle(); }, 100'000);
+
+  require(!system.failed(), "cold L1 carry vertical slice failed");
+  const auto &maintenance = system.maintenance_counters();
+  require(maintenance.target_level == 1 && maintenance.hot_target_level == -1,
+          "cold carry selected the wrong binary target");
+  require(maintenance.sorted_scan_passes == 18,
+          "cold carry changed the HLS family-filter scan count");
+  require(maintenance.carry_level_payload_reads == 1 &&
+              maintenance.carry_merge_inputs == 2 &&
+              maintenance.carry_outputs == 2,
+          "cold carry merge ledger mismatch");
+  require(system.level_state().cold_levels[0][0].empty() &&
+              system.level_state().cold_levels[0][1].size() == 2,
+          "cold carry did not retire L0 into L1");
+  require(system.reader_counters().occupied_levels == 1 &&
+              system.reader_counters().edges_emitted == 2,
+          "reader did not traverse the carried L1 payload");
+  require(
+      system.compute().values()[1] == 5 && system.compute().values()[2] == 3,
+      "cold carry SSSP result mismatch");
+}
+
+void test_spine_independent_hot_and_cold_targets() {
+  require(spine_hot_shard(17) == 5,
+          "C++ hot hash diverges from the stable host/HLS hash");
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("data", 141.0);
+  MockMemoryBackend backend("hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 3,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 64,
+                                .response_queue_depth = 128,
+                            });
+  SpineL0Config config;
+  config.hot_vertices = {17};
+  SpineL0State initial;
+  initial.hot_vertices.insert(17);
+  initial.hot_enabled = true;
+  initial.cold_levels[0][0] = {
+      SpineEdgeRecord{.src = 0, .dst = 1, .weight = 7, .diff = 1}};
+  SpineEdgeSlice batch{
+      .vertices = 128,
+      .edges =
+          {
+              SpineEdgeRecord{.src = 0, .dst = 2, .weight = 3, .diff = 1},
+              SpineEdgeRecord{.src = 0, .dst = 17, .weight = 2, .diff = 1},
+          },
+      .case_name = "independent_hot_cold_targets",
+  };
+  SpineVerticalSliceSystem system(scheduler, core, backend, std::move(batch), 0,
+                                  4096, std::move(config), std::move(initial));
+  system.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until([&] { return system.done() && system.idle(); }, 150'000);
+
+  require(!system.failed(), "mixed hot/cold vertical slice failed");
+  const auto &maintenance = system.maintenance_counters();
+  require(maintenance.hot_enabled && maintenance.target_level == 1 &&
+              maintenance.hot_target_level == 0,
+          "cold and hot targets were not selected independently");
+  require(maintenance.cold_input_edges == 1 &&
+              maintenance.hot_input_edges == 1 &&
+              maintenance.sorted_scan_passes == 35,
+          "mixed hot/cold input scan ledger mismatch");
+  require(system.level_state().cold_levels[0][0].empty() &&
+              system.level_state().cold_levels[0][1].size() == 2 &&
+              system.level_state().hot_levels[5][0].size() == 1,
+          "mixed hot/cold payloads reached the wrong level or shard");
+  require(system.reader_counters().occupied_levels == 2 &&
+              system.reader_counters().cold_edges_emitted == 2 &&
+              system.reader_counters().hot_edges_emitted == 1,
+          "reader did not combine cold and hot levels");
+  require(system.compute().values()[1] == 7 &&
+              system.compute().values()[2] == 3 &&
+              system.compute().values()[17] == 2,
+          "mixed hot/cold SSSP result mismatch");
+}
+
+void test_spine_fixed_level_layout_matches_stable_profile() {
+  const SpineL0Config config;
+  const auto cold_l0 = spine_level_layout(config, false, 0);
+  const auto cold_l1 = spine_level_layout(config, false, 1);
+  const auto cold_l10 = spine_level_layout(config, false, 10);
+  const auto hot_l0 = spine_level_layout(config, true, 0);
+
+  require(cold_l0.bitmap_offset_words == 0 &&
+              cold_l0.edge_capacity == 131'072,
+          "cold L0 layout diverges from the stable HLS profile");
+  require(cold_l1.bitmap_offset_words == 524'290 &&
+              cold_l1.edge_capacity == 16'384,
+          "cold L1 layout diverges from the stable HLS profile");
+  require(hot_l0.bitmap_offset_words ==
+              cold_l10.edge_offset_words + cold_l10.edge_capacity,
+          "hot level storage does not begin after the cold level region");
+}
+
+void test_spine_carry_drops_signed_diff_cancellation() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("data", 141.0);
+  MockMemoryBackend backend("hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 3,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 64,
+                                .response_queue_depth = 128,
+                            });
+  SpineL0State initial;
+  initial.cold_levels[0][0] = {
+      SpineEdgeRecord{.src = 0, .dst = 1, .weight = 5, .diff = 1}};
+  SpineEdgeSlice batch{
+      .vertices = 128,
+      .edges = {SpineEdgeRecord{.src = 0, .dst = 1, .weight = 5, .diff = -1}},
+      .case_name = "signed_diff_cancellation",
+  };
+  SpineVerticalSliceSystem system(scheduler, core, backend, std::move(batch), 0,
+                                  4096, SpineL0Config{}, std::move(initial));
+  system.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until([&] { return system.done() && system.idle(); }, 100'000);
+
+  require(!system.failed(), "signed-diff cancellation vertical slice failed");
+  const auto &maintenance = system.maintenance_counters();
+  require(maintenance.target_level == 1 &&
+              maintenance.carry_merge_inputs == 2 &&
+              maintenance.carry_outputs == 0,
+          "carry did not coalesce insertion and deletion to an empty payload");
+  require(system.level_state().cold_levels[0][0].empty() &&
+              system.level_state().cold_levels[0][1].empty(),
+          "cancelled edge remained resident in a cold level");
+  require(system.reader_counters().edges_emitted == 0 &&
+              system.compute().next_active().empty(),
+          "cancelled edge escaped into the reader/compute path");
 }
 
 }  // namespace
@@ -805,14 +973,21 @@ int main() {
       {"axi_multi_initiator", test_axi_multi_initiator_fixed_channel_isolation},
       {"axi_duplicate_initiator", test_axi_rejects_duplicate_initiator_id},
       {"spine_l0_real_slice", test_spine_l0_real_slice_vertical_path},
-      {"spine_reusable_system", test_spine_reusable_system_matches_vertical_slice},
+      {"spine_reusable_system",
+       test_spine_reusable_system_matches_vertical_slice},
+      {"spine_cold_l1_carry", test_spine_cold_l1_carry_and_reader},
+      {"spine_hot_cold_targets", test_spine_independent_hot_and_cold_targets},
+      {"spine_fixed_level_layout",
+       test_spine_fixed_level_layout_matches_stable_profile},
+      {"spine_signed_diff_cancellation",
+       test_spine_carry_drops_signed_diff_cancellation},
   };
   std::size_t failures = 0;
-  for (const auto& [name, test] : tests) {
+  for (const auto &[name, test] : tests) {
     try {
       test();
       std::cout << "PASS " << name << '\n';
-    } catch (const std::exception& error) {
+    } catch (const std::exception &error) {
       ++failures;
       std::cerr << "FAIL " << name << ": " << error.what() << '\n';
     }

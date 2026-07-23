@@ -1,0 +1,60 @@
+digraph SpineCarryHotSlice {
+  graph [rankdir=LR, bgcolor="#FAFAF8", pad="0.25", nodesep="0.32", ranksep="0.62", splines=ortho, compound=true, fontname="DejaVu Sans", label="Spine stable-profile carry/hot vertical slice", labelloc=t, fontsize=20];
+  node [shape=box, style="rounded,filled", fillcolor="#FFFFFF", color="#59636E", fontname="DejaVu Sans", fontsize=10, margin="0.14,0.09"];
+  edge [color="#59636E", fontname="DejaVu Sans", fontsize=9, arrowsize=0.7];
+
+  host [label="Host-precomputed state\nhot destination bitmap\nsorted update batch\nactive source/frontier", fillcolor="#EDF5F0", color="#557A66"];
+
+  subgraph cluster_maintenance {
+    label="Read-maintenance CU [implemented]"; color="#8A5B45"; style="rounded,filled"; fillcolor="#FAF0EB";
+    dirty [label="Dirty frontier + family directory\n2 sorted-batch scans"];
+    select [label="Independent binary target selection\nfirst empty cold level | first empty hot level"];
+    cold [label="Cold family engine\n16 destination partitions\nL0 writer or sparse carry merge"];
+    hot [label="Hot family engine\n16 hashed shards\nL0 writer or sparse carry merge"];
+    commit [label="Atomic metadata commit\nthen retire lower levels"];
+    dirty -> select;
+    select -> cold;
+    select -> hot;
+    cold -> commit;
+    hot -> commit;
+  }
+
+  subgraph cluster_storage {
+    label="Persistent graph state [implemented]"; color="#9B7A25"; style="rounded,filled"; fillcolor="#FFF7DF";
+    sorted [label="HBM[16]\nsorted batch + dirty structures"];
+    metadata [label="HBM[20]\n32 families x 11 level metadata\nhot bitmap + epochs + page lists"];
+    graph_hbm [label="HBM[0..15]\nper bank: cold fixed layouts + hot fixed layouts\nbitmap | page base | row offset | mask | payload"];
+  }
+
+  subgraph cluster_reader {
+    label="Exact all-level reader [implemented]"; color="#426B8A"; style="rounded,filled"; fillcolor="#EAF2F8";
+    source [label="Source-value protocol\nreverse AXIS depth 32"];
+    cache [label="Level metadata cache\nprobe all 32 x 11 entries"];
+    lookup [label="Source row/range lookup\ncold levels + enabled hot shards"];
+    tile [label="65,536-destination tile binning\nexact payload replay"];
+    source -> cache -> lookup -> tile;
+  }
+
+  subgraph cluster_compute {
+    label="Compute CU"; color="#765C8A"; style="rounded,filled"; fillcolor="#F3EEF7";
+    axis [label="Forward edge AXIS\ndepth 32 + backpressure"];
+    tiny [label="Tiny SSSP [implemented]\n<= 4,096 edge words\ngather -> relax -> sparse store"];
+    full [label="Full tile [next milestone]\nload 65,536 -> replay -> stream -> optional full store"];
+    frontier [label="Next frontier + vertex state\nHBM[17,19,22]"];
+    axis -> tiny -> frontier;
+    axis -> full -> frontier;
+  }
+
+  host -> dirty;
+  host -> source;
+  dirty -> sorted [dir=both];
+  select -> metadata [dir=both];
+  cold -> graph_hbm [dir=both];
+  hot -> graph_hbm [dir=both];
+  commit -> metadata [dir=both];
+  metadata -> cache;
+  graph_hbm -> lookup;
+  lookup -> tile;
+  tile -> axis;
+  frontier -> source [label="source values"];
+}
