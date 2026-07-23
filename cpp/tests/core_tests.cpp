@@ -19,6 +19,7 @@
 #include "spine_sim/scheduler.hpp"
 #include "spine_sim/spine_l0.hpp"
 #include "spine_sim/spine_split.hpp"
+#include "spine_sim/spine_system.hpp"
 
 namespace {
 
@@ -52,6 +53,7 @@ using spine::sim::SpineL0State;
 using spine::sim::SpineReaderPorts;
 using spine::sim::SpineSplitReader;
 using spine::sim::SpineSplitSsspCompute;
+using spine::sim::SpineVerticalSliceSystem;
 using spine::sim::load_spine_edge_slice;
 
 void require(bool condition, const std::string& message) {
@@ -753,6 +755,40 @@ void test_spine_l0_real_slice_vertical_path() {
             << edge_stream.stats().max_occupancy << '\n';
 }
 
+void test_spine_reusable_system_matches_vertical_slice() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("data", 141.0);
+  MockMemoryBackend backend(
+      "hbm", core,
+      MockMemoryConfig{
+          .channels = 32,
+          .latency_cycles = 3,
+          .accepts_per_channel_per_cycle = 1,
+          .max_outstanding_per_channel = 64,
+          .response_queue_depth = 128,
+      });
+  const std::filesystem::path fixture =
+      std::filesystem::path(SPINE_SOURCE_DIR) / "tests" / "data" /
+      "amazon_top1_exact.slice";
+  const auto workload = load_spine_edge_slice(fixture);
+  SpineVerticalSliceSystem system(
+      scheduler, core, backend, workload, 2);
+  system.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until(
+      [&] { return system.done() && system.idle(); }, 30'000);
+
+  require(!system.failed(), "reusable Spine vertical-slice system failed");
+  require(system.maintenance_counters().sorted_scan_passes == 19,
+          "reusable Spine system changed maintenance work");
+  require(system.reader_counters().graph_read_bytes == 224,
+          "reusable Spine system changed reader memory work");
+  require(system.compute_counters().processed_edges == 10,
+          "reusable Spine system changed compute work");
+  require(system.compute().next_active().size() == 10,
+          "reusable Spine system changed the SSSP frontier");
+}
+
 }  // namespace
 
 int main() {
@@ -769,6 +805,7 @@ int main() {
       {"axi_multi_initiator", test_axi_multi_initiator_fixed_channel_isolation},
       {"axi_duplicate_initiator", test_axi_rejects_duplicate_initiator_id},
       {"spine_l0_real_slice", test_spine_l0_real_slice_vertical_path},
+      {"spine_reusable_system", test_spine_reusable_system_matches_vertical_slice},
   };
   std::size_t failures = 0;
   for (const auto& [name, test] : tests) {

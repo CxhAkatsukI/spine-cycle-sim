@@ -1,0 +1,65 @@
+"""Stable-profile Spine vertical slice on online SST/DRAMSim3 HBM."""
+
+from __future__ import annotations
+
+import os
+from pathlib import Path
+
+import sst
+
+
+ROOT = Path(__file__).resolve().parents[1]
+channels = int(os.environ.get("SPINE_SST_CHANNELS", "32"))
+channel_bytes = int(os.environ.get("SPINE_SST_CHANNEL_BYTES", str(512 << 20)))
+workload = Path(
+    os.environ.get(
+        "SPINE_SST_WORKLOAD", str(ROOT / "tests" / "data" / "amazon_top1_exact.slice")
+    )
+).resolve()
+output = os.environ.get("SPINE_SST_OUTPUT", "sst_spine_vertical.json")
+dram_output = Path(
+    os.environ.get("SPINE_SST_DRAM_OUTPUT", "/tmp/spine_vertical_dramsim3")
+)
+dram_output.mkdir(parents=True, exist_ok=True)
+
+probe = sst.Component("spine", "spine_cycle.OnlineMemoryProbe")
+probe.addParams(
+    {
+        "mode": "spine_vertical",
+        "output": output,
+        "workload": str(workload),
+        "source_vertex": int(os.environ.get("SPINE_SST_SOURCE", "2")),
+        "core_clock": "141MHz",
+        "core_mhz": 141.0,
+        "channels": channels,
+        "channel_capacity_bytes": channel_bytes,
+        "max_cycles": int(os.environ.get("SPINE_SST_MAX_CYCLES", "1000000")),
+    }
+)
+
+dram_config = ROOT / "configs" / "memory" / "HBM2_1ch_x128.ini"
+for channel in range(channels):
+    interface = probe.setSubComponent(
+        "memory", "memHierarchy.standardInterface", channel
+    )
+    memory = sst.Component(f"memory{channel}", "memHierarchy.MemController")
+    memory.addParams(
+        {
+            "clock": "1GHz",
+            "addr_range_start": 0,
+            "addr_range_end": channel_bytes - 1,
+        }
+    )
+    backend = memory.setSubComponent("backend", "memHierarchy.dramsim3")
+    channel_output = dram_output / f"channel{channel}"
+    channel_output.mkdir(parents=True, exist_ok=True)
+    backend.addParams(
+        {
+            "mem_size": f"{channel_bytes}B",
+            "config_ini": str(dram_config),
+            "output_dir": str(channel_output),
+            "verbose": 0,
+        }
+    )
+    link = sst.Link(f"spine_memory_{channel}")
+    link.connect((interface, "lowlink", "1ns"), (memory, "highlink", "1ns"))

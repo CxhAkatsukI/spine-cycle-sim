@@ -97,8 +97,8 @@ Not yet implemented in this component:
 - hot/carry-aware reader traversal, full-tile compute, and convergence. The
   cold-L0 tiny-SSSP split slice is implemented and documented separately in
   `spine_split_vertical_slice_20260723.md`;
-- online SST execution of this architecture component rather than the generic
-  memory probe.
+- calibrated HLS overlap/prefetch. The same architecture component now runs on
+  online SST-HBM; see `spine_split_vertical_slice_20260723.md`.
 
 Those omissions are exposed in the document and architecture SVG; they are not
 replaced by fitted constants.

@@ -91,6 +91,13 @@ python3 scripts/run_sst_memory_smoke.py \
   --out-dir results/sst_memory_smoke
 ```
 
+Run the real-edge Spine L0/reader/tiny-SSSP slice on 32-channel SST-HBM:
+
+```bash
+python3 scripts/run_sst_spine_vertical.py \
+  --out-dir results/sst_spine_vertical_20260723
+```
+
 ## Current Scope
 
 The current model targets trend validation against the latest 134 MHz exact

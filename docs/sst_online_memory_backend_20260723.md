@@ -66,10 +66,17 @@ The 16-channel instantiation completed 256 source requests and 256 AXI/backend/
 DRAM requests in 266 core cycles with zero failed requests. These are
 integration sanity results, not Spine performance claims.
 
+## Architecture connection
+
+The stable Spine cold-L0/tiny-SSSP vertical slice now uses this backend online,
+with the same C++ components used by MockMemory tests. Its 32-channel acceptance
+run completed 157 backend/DRAM requests in 1,164 data cycles with zero
+correctness mismatch. See `spine_split_vertical_slice_20260723.md`.
+
 ## Remaining gaps
 
-- The current SST component is a synthetic request source, not yet the Spine or
-  GraSU+ReGraph architecture model.
+- The SST element supports both a synthetic memory probe and the initial Spine
+  architecture slice. GraSU+ReGraph is not yet connected.
 - AXI data payload values are not modeled; only addresses, operation type,
   bytes, completion, ordering, and timing are represented.
 - One `MemController + DRAMSim3` instance represents each independent HBM

@@ -64,6 +64,34 @@ the deterministic MockMemory cycle spans and maximum edge-stream occupancy.
 Those cycle spans are regression evidence only; they are not hardware
 calibration because MockMemory is not the formal memory backend.
 
+Run the same component on the formal SST-HBM backend with:
+
+```bash
+python3 scripts/run_sst_spine_vertical.py \
+  --out-dir results/sst_spine_vertical_20260723
+```
+
+The first accepted run produced:
+
+| SST/DRAMSim3 evidence | value |
+| --- | ---: |
+| data cycles | 1,164 |
+| backend requests | 157 |
+| DRAM completed reads / writes | 95 / 62 |
+| DRAM ACT / PRE | 26 / 23 |
+| read + write row hits | 99 |
+| backend max outstanding | 3 |
+| backend/response-queue stalls | 0 / 0 |
+| memory-only DRAMSim3 energy | 17,050,146 pJ |
+
+All 32 configured pseudo-channels emitted statistics. The backend request count
+exactly equals completed DRAM reads plus writes, and all architecture counters
+remain identical to the MockMemory structural run. Both the expected distance
+values and the exact next-frontier vertex set match the one-step oracle. The
+committed aggregate is
+`docs/evidence/sst_spine_vertical_20260723_summary.json`; per-channel raw JSON
+is reproduced by the command above.
+
 ## Claims boundary
 
 Implemented mechanisms:
@@ -83,7 +111,6 @@ Not yet implemented:
 - repeated frontier iterations to convergence;
 - hot families and carry levels in the reader;
 - overlap/prefetch matching HLS scheduling;
-- running this architecture component on the SST-HBM backend;
 - Full PageRank and thresholded residual PageRank in timed compute.
 
 Accordingly, this slice is functional and structural evidence. It is not yet a

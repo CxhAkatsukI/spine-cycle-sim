@@ -12,7 +12,10 @@ CXXFLAGS := $(SST_CXXFLAGS) -std=c++20 -O2 -g -fPIC -Wall -Wextra \
 SOURCES := online_memory_probe.cpp \
            $(ROOT)/cpp/src/axi.cpp \
            $(ROOT)/cpp/src/memory_backend.cpp \
-           $(ROOT)/cpp/src/scheduler.cpp
+           $(ROOT)/cpp/src/scheduler.cpp \
+           $(ROOT)/cpp/src/spine_l0.cpp \
+           $(ROOT)/cpp/src/spine_split.cpp \
+           $(ROOT)/cpp/src/spine_system.cpp
 
 .PHONY: all clean
 all: $(TARGET)
