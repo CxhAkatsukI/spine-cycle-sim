@@ -1,7 +1,10 @@
+#include <array>
 #include <cstdint>
 #include <exception>
+#include <filesystem>
 #include <functional>
 #include <iostream>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -11,8 +14,10 @@
 #include "spine_sim/banked_memory.hpp"
 #include "spine_sim/component.hpp"
 #include "spine_sim/fifo.hpp"
+#include "spine_sim/fixed_axi_port.hpp"
 #include "spine_sim/memory_backend.hpp"
 #include "spine_sim/scheduler.hpp"
+#include "spine_sim/spine_l0.hpp"
 
 namespace {
 
@@ -26,6 +31,8 @@ using spine::sim::ClockId;
 using spine::sim::Component;
 using spine::sim::CycleContext;
 using spine::sim::Fifo;
+using spine::sim::FixedAxiPort;
+using spine::sim::FixedAxiPortConfig;
 using spine::sim::MemoryOperation;
 using spine::sim::MockMemoryBackend;
 using spine::sim::MockMemoryConfig;
@@ -34,6 +41,11 @@ using spine::sim::OnChipRequest;
 using spine::sim::OnChipResponse;
 using spine::sim::ReadAfterWritePolicy;
 using spine::sim::Scheduler;
+using spine::sim::SpineL0Config;
+using spine::sim::SpineL0Maintenance;
+using spine::sim::SpineL0Ports;
+using spine::sim::SpineL0State;
+using spine::sim::load_spine_edge_slice;
 
 void require(bool condition, const std::string& message) {
   if (!condition) {
@@ -503,6 +515,114 @@ void test_axi_response_backpressure_is_lossless() {
   require(axi.stats().write_bytes == 128, "AXI write byte count mismatch");
 }
 
+void test_spine_l0_real_slice_vertical_path() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("data", 141.0);
+  MockMemoryBackend backend(
+      "hbm", core,
+      MockMemoryConfig{
+          .channels = 32,
+          .latency_cycles = 3,
+          .accepts_per_channel_per_cycle = 1,
+          .max_outstanding_per_channel = 64,
+          .response_queue_depth = 128,
+      });
+
+  std::array<std::unique_ptr<FixedAxiPort>, 16> graph_ports;
+  SpineL0Ports ports;
+  for (std::size_t family = 0; family < graph_ports.size(); ++family) {
+    graph_ports[family] = std::make_unique<FixedAxiPort>(
+        "graph" + std::to_string(family), core,
+        FixedAxiPortConfig{
+            .memory_channels = 32,
+            .channel = family,
+            .initiator_id = static_cast<std::uint32_t>(family),
+        },
+        backend);
+    ports.graph[family] = graph_ports[family].get();
+  }
+  FixedAxiPort sorted(
+      "sorted-edges", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32,
+          .channel = 16,
+          .initiator_id = 16,
+      },
+      backend);
+  FixedAxiPort metadata(
+      "metadata", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32,
+          .channel = 20,
+          .initiator_id = 20,
+      },
+      backend);
+  FixedAxiPort result(
+      "result", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32,
+          .channel = 21,
+          .initiator_id = 21,
+      },
+      backend);
+  ports.sorted_edges = &sorted;
+  ports.metadata = &metadata;
+  ports.result = &result;
+
+  const std::filesystem::path fixture =
+      std::filesystem::path(SPINE_SOURCE_DIR) / "tests" / "data" /
+      "amazon_top1_exact.slice";
+  const auto workload = load_spine_edge_slice(fixture);
+  SpineL0State state;
+  SpineL0Maintenance maintenance(
+      "spine-l0-maintenance", core, SpineL0Config{}, workload, ports, state);
+
+  scheduler.add_component(maintenance);
+  for (auto& port : graph_ports) {
+    port->register_components(scheduler);
+  }
+  sorted.register_components(scheduler);
+  metadata.register_components(scheduler);
+  result.register_components(scheduler);
+  scheduler.add_component(backend);
+  scheduler.run_until([&maintenance] { return maintenance.done(); }, 10'000);
+
+  require(!maintenance.failed(), "Spine L0 real-slice path reported failure");
+  const auto& counters = maintenance.counters();
+  require(counters.sorted_scan_passes == 19,
+          "Spine L0 did not execute the expected HLS scan passes");
+  require(counters.sorted_edge_visits == 190,
+          "Spine L0 edge-visit count does not close against scan passes");
+  require(counters.sorted_read_bytes == 3'040,
+          "Spine sorted-edge HBM byte count mismatch");
+  require(counters.unique_sources == 1 && counters.active_families == 1,
+          "Amazon top1 family/source structure mismatch");
+  require(counters.persisted_edges == 10 && counters.persisted_rows == 1,
+          "Spine L0 persisted payload shape mismatch");
+  require(counters.family_edges[0] == 10 && counters.family_rows[0] == 1,
+          "Spine family0 metadata mismatch");
+  require(counters.pages_stamped == 1,
+          "Spine L0 source-page stamp count mismatch");
+  require(counters.persistent_read_bytes == 48 &&
+              counters.persistent_write_bytes == 48,
+          "Spine dirty-frontier HBM byte count mismatch");
+  require(counters.graph_write_bytes == 288,
+          "Spine L0 graph layout write byte count mismatch");
+  require(counters.metadata_read_bytes == 416 &&
+              counters.metadata_write_bytes == 1'104,
+          "Spine L0 metadata byte ledger mismatch");
+  require(counters.result_write_bytes == 384,
+          "Spine maintenance result byte count mismatch");
+  require(state.cold_levels[0][0] == workload.edges,
+          "Spine L0 logical payload differs from the real input slice");
+  for (std::size_t family = 1; family < graph_ports.size(); ++family) {
+    require(state.cold_levels[family][0].empty(),
+            "Spine L0 wrote an inactive destination family");
+  }
+  require(counters.end_cycle > counters.start_cycle + counters.sorted_edge_visits,
+          "Spine timing did not include memory/control work");
+}
+
 }  // namespace
 
 int main() {
@@ -518,6 +638,7 @@ int main() {
       {"axi_response_backpressure", test_axi_response_backpressure_is_lossless},
       {"axi_multi_initiator", test_axi_multi_initiator_fixed_channel_isolation},
       {"axi_duplicate_initiator", test_axi_rejects_duplicate_initiator_id},
+      {"spine_l0_real_slice", test_spine_l0_real_slice_vertical_path},
   };
   std::size_t failures = 0;
   for (const auto& [name, test] : tests) {

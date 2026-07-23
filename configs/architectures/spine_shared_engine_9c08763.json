@@ -51,6 +51,11 @@
   ],
   "evidence": [
     {
+      "kind": "source_archive",
+      "path": "/data/feiyang/spine-dynamic-graph-builds/merged_directory_shared_engine_9c08763/acceptance_bundle/candidate/source/repository-9c08763.tar.gz",
+      "sha256": "a7a06ce22dd051cd764d84e83ad9a35238ba4928b4040f6bcbaa2884111593aa"
+    },
+    {
       "kind": "acceptance_bundle",
       "path": "/data/feiyang/spine-dynamic-graph-builds/merged_directory_shared_engine_9c08763/acceptance_bundle/README.md"
     },

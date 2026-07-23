@@ -29,7 +29,7 @@ digraph FineGrainedCycleSimulator {
 
   subgraph cluster_arch {
     label="Independent accelerator architectures"; color="#8A5B45"; style="rounded,filled"; fillcolor="#FAF0EB";
-    spine [label="Spine [planned]\nLSM maintenance -> reader -> AXIS -> compute"];
+    spine [label="Spine [L0 maintenance vertical slice implemented]\nreal edge payload -> 19 scans -> AXI/HBM\ncarry + reader + compute planned"];
     grasu [label="GraSU [planned]\nPMA update engine"];
     native_handoff [label="PMA-native device handoff\n(projected until synthesized)"];
     regraph [label="ReGraph [planned]\nMap/Reduce/Apply compute"];

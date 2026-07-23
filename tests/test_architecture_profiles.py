@@ -38,7 +38,7 @@ class ArchitectureProfileTests(unittest.TestCase):
         self.assertEqual(profile.parameters["sorted_edges_hbm_channel"], 16)
         self.assertEqual(profile.parameters["active_bitmap_hbm_channel"], 22)
         self.assertEqual(
-            profile.evidence[1].sha256,
+            profile.evidence[2].sha256,
             "1828434e164bf0aef28fff9fba7925cfa39f93ad86f6bfc3878f504461c76dbf",
         )
 
