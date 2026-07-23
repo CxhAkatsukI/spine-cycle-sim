@@ -71,6 +71,7 @@ class SpineSplitReader final : public Component {
   [[nodiscard]] const SpineReaderCounters &counters() const noexcept {
     return counters_;
   }
+  void reset_round(std::vector<std::uint32_t> active_sources);
 
   void evaluate(const CycleContext &context) override;
   void commit(const CycleContext &context) override;
@@ -192,6 +193,7 @@ class SpineSplitSsspCompute final : public Component {
   [[nodiscard]] const SpineComputeCounters &counters() const noexcept {
     return counters_;
   }
+  void reset_round();
 
   void evaluate(const CycleContext &context) override;
   void commit(const CycleContext &context) override;

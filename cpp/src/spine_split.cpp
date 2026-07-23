@@ -71,6 +71,23 @@ SpineSplitReader::SpineSplitReader(std::string name, ClockId clock_id,
   }
 }
 
+void SpineSplitReader::reset_round(std::vector<std::uint32_t> active_sources) {
+  if (!done_ || failed_ || waiting_memory_ || !memory_tasks_.empty() ||
+      active_sources.empty()) {
+    throw std::logic_error("reader round reset requires a successful drain");
+  }
+  active_sources_ = std::move(active_sources);
+  counters_ = {};
+  tiles_.clear();
+  source_values_.clear();
+  phase_ = Phase::kWaitMaintenance;
+  staged_action_ = Action::kNone;
+  tile_index_ = 0;
+  edge_index_ = 0;
+  source_index_ = 0;
+  done_ = false;
+}
+
 void SpineSplitReader::evaluate(const CycleContext &) {
   staged_action_ = Action::kNone;
   if (done_ || failed_) {
@@ -427,6 +444,21 @@ SpineSplitSsspCompute::SpineSplitSsspCompute(
     throw std::invalid_argument("invalid Spine split compute configuration");
   }
   values_[source_] = 0;
+}
+
+void SpineSplitSsspCompute::reset_round() {
+  if (!done_ || failed_ || waiting_memory_ || !memory_tasks_.empty() ||
+      source_reply_pending_) {
+    throw std::logic_error("compute round reset requires a successful drain");
+  }
+  counters_ = {};
+  next_active_.clear();
+  reset_tile();
+  phase_ = Phase::kInput;
+  staged_action_ = Action::kNone;
+  pending_source_ = 0;
+  gather_index_ = 0;
+  done_ = false;
 }
 
 void SpineSplitSsspCompute::evaluate(const CycleContext &) {

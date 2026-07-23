@@ -195,9 +195,17 @@ class MapReduceEngine:
 class WeightedSsspPolicy(AlgorithmPolicy):
     name = "sssp"
     infinity = (1 << 63) - 1
+    architecture_infinity = (1 << 32) - 1
+
+    def limit(self, numeric: NumericMode) -> int:
+        return (
+            self.infinity
+            if numeric == NumericMode.FLOAT64
+            else self.architecture_infinity
+        )
 
     def initialize(self, graph, config, numeric):
-        values = [self.infinity] * graph.vertices
+        values = [self.limit(numeric)] * graph.vertices
         values[config.source] = 0
         return AlgorithmState(values=values, active={config.source})
 
@@ -208,7 +216,7 @@ class WeightedSsspPolicy(AlgorithmPolicy):
         return sorted(state.active)
 
     def map_edge(self, src, dst, weight, graph, state, context, config, numeric):
-        return min(self.infinity, int(state.values[src]) + weight)
+        return min(self.limit(numeric), int(state.values[src]) + weight)
 
     def reduce(self, current, candidate, numeric):
         return candidate if current is None else min(current, candidate)
@@ -349,14 +357,28 @@ def run_dual_oracle(
     engine = MapReduceEngine()
     mathematical = engine.run(graph, policy, config, NumericMode.FLOAT64)
     architecture = engine.run(graph, policy, config, NumericMode.FLOAT32)
-    differences = [
-        abs(float(left) - float(right))
-        for left, right in zip(mathematical.values, architecture.values, strict=True)
-    ]
+    pairs = list(zip(mathematical.values, architecture.values, strict=True))
+    if isinstance(policy, WeightedSsspPolicy):
+        equivalent = [
+            left == right
+            or (
+                left == policy.infinity
+                and right == policy.architecture_infinity
+            )
+            for left, right in pairs
+        ]
+        differences = [
+            0.0 if same else abs(float(left) - float(right))
+            for (left, right), same in zip(pairs, equivalent, strict=True)
+        ]
+        exact_match = all(equivalent)
+    else:
+        differences = [abs(float(left) - float(right)) for left, right in pairs]
+        exact_match = mathematical.values == architecture.values
     return DualOracleResult(
         mathematical=mathematical,
         architecture=architecture,
-        exact_match=mathematical.values == architecture.values,
+        exact_match=exact_match,
         l1_difference=sum(differences),
         max_abs_difference=max(differences, default=0.0),
     )

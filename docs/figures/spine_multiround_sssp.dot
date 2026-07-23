@@ -1,0 +1,36 @@
+digraph SpineMultiRoundSssp {
+  graph [rankdir=TB, bgcolor="#FAFAF8", pad="0.25", nodesep="0.38", ranksep="0.55", splines=polyline, fontname="DejaVu Sans", label="Spine persistent multi-round weighted SSSP", labelloc=t, fontsize=20];
+  node [shape=box, style="rounded,filled", fillcolor="#FFFFFF", color="#59636E", fontname="DejaVu Sans", fontsize=10, margin="0.14,0.09"];
+  edge [color="#59636E", fontname="DejaVu Sans", fontsize=9, arrowsize=0.7];
+
+  input [label="File-backed weighted graph\n6 vertices | 8 edges\nsource = 0", fillcolor="#EDF5F0", color="#557A66"];
+  maintenance [label="Maintenance [once]\n19 sorted scans | 152 visits\ncommit persistent cold L0", fillcolor="#FAF0EB", color="#8A5B45"];
+  levels [label="Persistent graph levels\nretained across all rounds", fillcolor="#FFF7DF", color="#9B7A25"];
+
+  subgraph cluster_round {
+    label="Repeated read/compute round [same components and ports]"; color="#426B8A"; style="rounded,filled"; fillcolor="#EAF2F8";
+    frontier [label="Active frontier in\n1, 3, 2, 2, 2, 1"];
+    source [label="Reverse AXIS source protocol\nread current uint32 distances"];
+    reader [label="All-level reader\nsource row lookup + edge replay"];
+    axis [label="Forward AXIS\ndepth 32 + backpressure"];
+    compute [label="Tiny/full compute\nmap proposal -> min reduce -> apply"];
+    next [label="Next frontier out\n3, 2, 2, 2, 1, 0"];
+    drain [label="Drain FIFO + AXI + SST backend\nrecord round evidence"];
+    frontier -> source -> reader -> axis -> compute -> next -> drain;
+    drain -> frontier [label="nonempty: reset transient state", color="#A44A3F"];
+  }
+
+  vertex [label="Persistent vertex state\nfinal [0,3,2,7,8,10]", fillcolor="#F3EEF7", color="#765C8A"];
+  memory [label="Shared AXI + 32 SST-HBM channels\n2,413 requests | max finite outstanding\nACT/PRE/row-hit/energy", fillcolor="#FAF0EB", color="#8A5B45"];
+  oracle [label="Dual oracle acceptance\nmathematical + uint32 saturating\n0 distance/frontier mismatches", fillcolor="#EDF5F0", color="#557A66"];
+
+  { rank=same; input; maintenance; levels; }
+  { rank=same; vertex; memory; oracle; }
+  input -> maintenance -> levels;
+  levels -> reader;
+  source -> vertex [dir=both];
+  compute -> vertex [dir=both];
+  reader -> memory [dir=both];
+  compute -> memory [dir=both];
+  drain -> oracle [label="empty frontier after round 6"];
+}

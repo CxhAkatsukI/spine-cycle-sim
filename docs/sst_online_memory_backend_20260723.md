@@ -74,10 +74,12 @@ this backend online, with the same C++ components used by MockMemory tests. The
 cycles. The mixed carry/hot run completed 598 requests in 4,805 cycles. Both
 have zero distance/frontier mismatch and exact backend-to-DRAM request closure.
 The real Amazon compute microbenchmark additionally exercises one 49,982-edge
-full tile and 11 tiny tiles. See
+full tile and 11 tiny tiles. A weighted chain/shortcut workload converges over
+six reader/compute rounds while retaining the same vertex and level state. See
 `spine_split_vertical_slice_20260723.md` and
 `spine_carry_hot_vertical_slice_20260723.md`, and
-`spine_full_tile_vertical_slice_20260723.md`.
+`spine_full_tile_vertical_slice_20260723.md`, and
+`spine_multiround_sssp_20260723.md`.
 
 ## Remaining gaps
 

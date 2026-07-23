@@ -40,6 +40,13 @@ class Fifo final : public Component {
   [[nodiscard]] bool full() const noexcept { return queue_.size() == depth_; }
   [[nodiscard]] const FifoStats& stats() const noexcept { return stats_; }
 
+  void reset_stats() {
+    if (!queue_.empty() || staged_push_.has_value() || staged_pop_) {
+      throw std::logic_error("FIFO statistics require a drained queue");
+    }
+    stats_ = {};
+  }
+
   [[nodiscard]] const T* front() const noexcept {
     return queue_.empty() ? nullptr : &queue_.front();
   }

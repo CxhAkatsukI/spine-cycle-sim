@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <array>
 #include <cstdint>
 #include <exception>
@@ -1122,6 +1123,62 @@ void test_spine_tiny_gather_preserves_duplicate_reads() {
           "tiny gather incorrectly deduplicated repeated destination reads");
 }
 
+std::vector<std::uint32_t> sorted_vertices(
+    std::vector<std::uint32_t> vertices) {
+  std::sort(vertices.begin(), vertices.end());
+  return vertices;
+}
+
+void test_spine_multiround_weighted_sssp_converges() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("data", 141.0);
+  MockMemoryBackend backend("hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 3,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  const std::filesystem::path fixture =
+      std::filesystem::path(SPINE_SOURCE_DIR) / "tests" / "data" /
+      "weighted_chain_shortcut.slice";
+  SpineVerticalSliceSystem system(scheduler, core, backend,
+                                  load_spine_edge_slice(fixture), 0);
+  system.register_components();
+  scheduler.add_component(backend);
+  const auto result = system.run_sssp_to_convergence(16, 200'000);
+
+  require(result.converged && !result.failed && result.rounds.size() == 6,
+          "weighted SSSP did not converge in the oracle round count");
+  const std::vector<std::vector<std::uint32_t>> expected_inputs = {
+      {0}, {1, 2, 5}, {1, 3}, {3, 4}, {4, 5}, {5}};
+  const std::vector<std::vector<std::uint32_t>> expected_outputs = {
+      {1, 2, 5}, {1, 3}, {3, 4}, {4, 5}, {5}, {}};
+  const std::vector<std::uint64_t> expected_edges = {3, 3, 2, 2, 1, 0};
+  for (std::size_t round = 0; round < result.rounds.size(); ++round) {
+    const auto &evidence = result.rounds[round];
+    require(sorted_vertices(evidence.active_in) == expected_inputs[round] &&
+                sorted_vertices(evidence.active_out) == expected_outputs[round],
+            "weighted SSSP frontier diverged from the round oracle");
+    require(
+        evidence.reader.source_requests == expected_inputs[round].size() &&
+            evidence.reader.source_responses == expected_inputs[round].size() &&
+            evidence.compute.processed_edges == expected_edges[round],
+        "weighted SSSP round work ledger mismatch");
+    require(evidence.compute.full_path_tiles == 0 &&
+                evidence.edge_axis.max_occupancy <= 32 &&
+                evidence.end_cycle > evidence.start_cycle,
+            "weighted SSSP round violated tile/FIFO/timing invariants");
+  }
+  require(system.compute().values() ==
+              std::vector<std::uint32_t>({0, 3, 2, 7, 8, 10}),
+          "weighted SSSP final distances diverge from the dual oracle");
+  require(system.maintenance_counters().sorted_scan_passes == 19 &&
+              system.level_state().cold_levels[0][0].size() == 8,
+          "multi-round SSSP repeated maintenance or mutated graph levels");
+}
+
 }  // namespace
 
 int main() {
@@ -1151,6 +1208,8 @@ int main() {
        test_spine_full_tile_load_replay_backpressures_axis},
       {"spine_tiny_duplicate_gather",
        test_spine_tiny_gather_preserves_duplicate_reads},
+      {"spine_multiround_weighted_sssp",
+       test_spine_multiround_weighted_sssp_converges},
   };
   std::size_t failures = 0;
   for (const auto &[name, test] : tests) {

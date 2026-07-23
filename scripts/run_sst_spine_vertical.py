@@ -19,6 +19,7 @@ DEFAULT_CARRY_PRELOAD = ROOT / "tests" / "data" / "carry_hot_preload.slice"
 DEFAULT_FULL_WORKLOAD = (
     ROOT / "tests" / "data" / "amazon_densewin8192_active7893_exact.slice"
 )
+DEFAULT_SSSP_WORKLOAD = ROOT / "tests" / "data" / "weighted_chain_shortcut.slice"
 
 
 def collect_dram_stats(out_dir: Path) -> dict[str, int | float]:
@@ -153,6 +154,47 @@ def validate_full_compute_result(
     return [name for name, passed in checks.items() if not passed]
 
 
+def validate_multiround_sssp_result(
+    result: dict[str, Any], dram: dict[str, int | float], *, channels: int
+) -> list[str]:
+    checks = {
+        "success": result.get("success") is True,
+        "mode": result.get("mode") == "spine_sssp",
+        "converged": result.get("converged") is True,
+        "correctness": result.get("correctness_mismatches") == 0,
+        "frontier_correctness": result.get("frontier_mismatches") == 0,
+        "input_shape": result.get("input_edges") == 8,
+        "round_count": result.get("rounds") == 6,
+        "final_values": result.get("final_values") == [0, 3, 2, 7, 8, 10],
+        "frontier_inputs": result.get("frontier_in_sizes") == [1, 3, 2, 2, 2, 1],
+        "frontier_outputs": result.get("frontier_out_sizes") == [3, 2, 2, 2, 1, 0],
+        "round_edges": result.get("processed_edges_per_round") == [3, 3, 2, 2, 1, 0],
+        "maintenance_once": result.get("maintenance_scan_passes") == 19
+        and result.get("maintenance_edge_visits") == 152,
+        "round_timing": len(result.get("round_cycles", [])) == 6
+        and all(cycles > 0 for cycles in result.get("round_cycles", [])),
+        "round_fifo": len(result.get("edge_axis_max_occupancy_per_round", []))
+        == 6
+        and all(
+            0 <= occupancy <= 32
+            for occupancy in result.get("edge_axis_max_occupancy_per_round", [])
+        )
+        and len(result.get("edge_axis_push_stalls_per_round", [])) == 6,
+        "round_tile_paths": result.get("full_tiles_per_round") == [0] * 6
+        and len(result.get("fast_tiles_per_round", [])) == 6,
+        "round_metadata": len(result.get("reader_metadata_bytes_per_round", []))
+        == 6
+        and all(
+            value > 0 for value in result.get("reader_metadata_bytes_per_round", [])
+        ),
+        "dram_matches_backend": int(dram.get("dram_reads", 0))
+        + int(dram.get("dram_writes", 0))
+        == result.get("backend_requests"),
+        "channel_count": dram.get("dram_channels") == channels,
+    }
+    return [name for name, passed in checks.items() if not passed]
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out-dir", type=Path, required=True)
@@ -161,7 +203,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--workload", type=Path, default=DEFAULT_WORKLOAD)
     parser.add_argument(
         "--scenario",
-        choices=("amazon_l0", "carry_hot", "amazon_full_compute"),
+        choices=("amazon_l0", "carry_hot", "amazon_full_compute", "weighted_sssp"),
         default="amazon_l0",
     )
     parser.add_argument("--preload", type=Path)
@@ -188,6 +230,8 @@ def main() -> int:
         and args.workload == DEFAULT_WORKLOAD
     ):
         args.workload = DEFAULT_FULL_WORKLOAD
+    elif args.scenario == "weighted_sssp" and args.workload == DEFAULT_WORKLOAD:
+        args.workload = DEFAULT_SSSP_WORKLOAD
     if args.channels < 23 or args.source < 0 or not args.workload.is_file():
         raise SystemExit("channels must be >=23, source non-negative, workload present")
     if args.preload is not None and not args.preload.is_file():
@@ -203,9 +247,10 @@ def main() -> int:
     env.update(
         {
             "SPINE_SST_CHANNELS": str(args.channels),
-            "SPINE_SST_MODE": "spine_compute"
-            if args.scenario == "amazon_full_compute"
-            else "spine_vertical",
+            "SPINE_SST_MODE": {
+                "amazon_full_compute": "spine_compute",
+                "weighted_sssp": "spine_sssp",
+            }.get(args.scenario, "spine_vertical"),
             "SPINE_SST_WORKLOAD": str(args.workload.resolve()),
             "SPINE_SST_SOURCE": str(args.source),
             "SPINE_SST_PRELOAD": ""
@@ -217,6 +262,7 @@ def main() -> int:
             "SPINE_SST_MAX_CYCLES": "5000000"
             if args.scenario == "amazon_full_compute"
             else "1000000",
+            "SPINE_SST_MAX_ROUNDS": "256",
         }
     )
     command = [
@@ -245,6 +291,7 @@ def main() -> int:
         "amazon_l0": validate_result,
         "carry_hot": validate_carry_hot_result,
         "amazon_full_compute": validate_full_compute_result,
+        "weighted_sssp": validate_multiround_sssp_result,
     }
     validator = validators[args.scenario]
     problems = validator(result, dram, channels=args.channels)

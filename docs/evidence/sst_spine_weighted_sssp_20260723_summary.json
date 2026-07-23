@@ -1,0 +1,114 @@
+{
+  "backend": "sst_memHierarchy_dramsim3",
+  "backend_max_outstanding": 4,
+  "backend_requests": 2413,
+  "backend_response_queue_stalls": 0,
+  "backend_submit_stalls": 0,
+  "converged": true,
+  "correctness_mismatches": 0,
+  "cycles": 22630,
+  "dram_activates": 151,
+  "dram_channels": 32,
+  "dram_precharges": 150,
+  "dram_read_row_hits": 2107,
+  "dram_reads": 2310,
+  "dram_total_energy_pj": 331653336.0,
+  "dram_write_row_hits": 12,
+  "dram_writes": 103,
+  "edge_axis_max_occupancy_per_round": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+  ],
+  "edge_axis_push_stalls_per_round": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "fast_tiles_per_round": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    0
+  ],
+  "final_values": [
+    0,
+    3,
+    2,
+    7,
+    8,
+    10
+  ],
+  "frontier_in_sizes": [
+    1,
+    3,
+    2,
+    2,
+    2,
+    1
+  ],
+  "frontier_mismatches": 0,
+  "frontier_out_sizes": [
+    3,
+    2,
+    2,
+    2,
+    1,
+    0
+  ],
+  "full_tiles_per_round": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "input_edges": 8,
+  "maintenance_edge_visits": 152,
+  "maintenance_scan_passes": 19,
+  "mode": "spine_sssp",
+  "processed_edges_per_round": [
+    3,
+    3,
+    2,
+    2,
+    1,
+    0
+  ],
+  "reader_graph_bytes_per_round": [
+    112,
+    176,
+    160,
+    160,
+    80,
+    0
+  ],
+  "reader_metadata_bytes_per_round": [
+    2952,
+    2960,
+    2960,
+    2960,
+    2952,
+    2944
+  ],
+  "round_cycles": [
+    4559,
+    3672,
+    3666,
+    3661,
+    3569,
+    3503
+  ],
+  "rounds": 6,
+  "status": "PASS",
+  "success": true
+}

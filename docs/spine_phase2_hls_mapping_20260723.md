@@ -105,13 +105,13 @@ tiles.
 ## Multi-round convergence
 
 One split-kernel invocation produces one next frontier; host/device control
-launches subsequent rounds until the frontier is empty. A system-level runner
-must therefore preserve graph levels across rounds, create a new reader and
-compute invocation for each frontier, retain vertex state, and stop only at an
-empty next frontier or an explicit iteration cap.
+launches subsequent rounds until the frontier is empty. The implemented
+system-level runner preserves graph levels and vertex state, drains every
+reader/compute/AXI round, resets only per-round component state and counters,
+and stops at an empty next frontier or an explicit iteration cap.
 
 Weighted SSSP correctness is checked after every round and at convergence
-against both the mathematical and architecture-width oracles. Per-round
+against both the mathematical and uint32-saturating architecture oracles. Per-round
 frontier size, processed edges, tile path, FIFO occupancy, AXI/HBM work, and
 cycle span remain separately visible.
 

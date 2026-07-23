@@ -84,9 +84,9 @@
 <g id="node11" class="node">
 <title>spine</title>
 <path fill="#ffffff" stroke="#59636e" d="M984,-122.5C984,-122.5 648,-122.5 648,-122.5 642,-122.5 636,-116.5 636,-110.5 636,-110.5 636,-89.5 636,-89.5 636,-83.5 642,-77.5 648,-77.5 648,-77.5 984,-77.5 984,-77.5 990,-77.5 996,-83.5 996,-89.5 996,-89.5 996,-110.5 996,-110.5 996,-116.5 990,-122.5 984,-122.5"/>
-<text text-anchor="middle" x="816" y="-108.5" font-family="DejaVu Sans" font-size="10.00">Spine [online SST carry/hot/full&#45;tile slices implemented]</text>
+<text text-anchor="middle" x="816" y="-108.5" font-family="DejaVu Sans" font-size="10.00">Spine [online SST carry/hot/full&#45;tile/multi&#45;round implemented]</text>
 <text text-anchor="middle" x="816" y="-97.5" font-family="DejaVu Sans" font-size="10.00">cold/hot 16x11 levels &#45;&gt; all&#45;level reader &#45;&gt; AXIS(32) &#45;&gt; tiny/full SSSP</text>
-<text text-anchor="middle" x="816" y="-86.5" font-family="DejaVu Sans" font-size="10.00">repeated convergence planned</text>
+<text text-anchor="middle" x="816" y="-86.5" font-family="DejaVu Sans" font-size="10.00">frontier rounds retain level + vertex state</text>
 </g>
 <!-- policies&#45;&gt;spine -->
 <g id="edge16" class="edge">

@@ -120,6 +120,17 @@ masters, and DRAMSim3 HBM while bypassing maintenance and reader. See
 [`docs/spine_full_tile_vertical_slice_20260723.md`](docs/spine_full_tile_vertical_slice_20260723.md)
 for the exact claim boundary and accepted evidence.
 
+Run the file-backed weighted SSSP workload to frontier convergence:
+
+```bash
+python3 scripts/run_sst_spine_vertical.py \
+  --scenario weighted_sssp \
+  --out-dir results/sst_spine_weighted_sssp_20260723
+```
+
+This mode performs maintenance once, then reuses persistent levels, vertex
+state, AXIS links, AXI masters, and SST-HBM across all frontier rounds.
+
 ## Current Scope
 
 The current model targets trend validation against the latest 134 MHz exact

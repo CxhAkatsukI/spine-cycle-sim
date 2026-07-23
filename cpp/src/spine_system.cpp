@@ -16,7 +16,8 @@ SpineVerticalSliceSystem::SpineVerticalSliceSystem(
       backend_(backend),
       edge_stream_("edge-axis", clock_id, 32),
       value_stream_("value-axis", clock_id, 32),
-      state_(std::move(initial_state)) {
+      state_(std::move(initial_state)),
+      current_frontier_{source} {
   if (source >= workload.vertices) {
     throw std::invalid_argument("Spine vertical-slice source is out of range");
   }
@@ -100,6 +101,64 @@ void SpineVerticalSliceSystem::register_components() {
   active_out_->register_components(scheduler_);
   compute_result_->register_components(scheduler_);
   active_bitmap_->register_components(scheduler_);
+}
+
+void SpineVerticalSliceSystem::restart_read_compute(
+    std::vector<std::uint32_t> active_sources) {
+  if (!registered_ || !done() || !idle() || failed() ||
+      active_sources.empty()) {
+    throw std::logic_error(
+        "Spine read/compute restart requires a successful drained round");
+  }
+  edge_stream_.reset_stats();
+  value_stream_.reset_stats();
+  reader_->reset_round(active_sources);
+  compute_->reset_round();
+  current_frontier_ = std::move(active_sources);
+}
+
+SpineSsspRunResult SpineVerticalSliceSystem::run_sssp_to_convergence(
+    std::size_t max_rounds, std::uint64_t max_events_per_round) {
+  if (!registered_ || convergence_run_started_ || done() || max_rounds == 0 ||
+      max_events_per_round == 0) {
+    throw std::logic_error("invalid Spine convergence-run state or limits");
+  }
+  convergence_run_started_ = true;
+  SpineSsspRunResult result;
+  result.start_cycle = scheduler_.clock(clock_id_).completed_cycles;
+  for (std::size_t round = 0; round < max_rounds; ++round) {
+    const std::uint64_t start_cycle =
+        scheduler_.clock(clock_id_).completed_cycles;
+    scheduler_.run_until([this] { return done() && idle(); },
+                         max_events_per_round);
+    const std::uint64_t end_cycle =
+        scheduler_.clock(clock_id_).completed_cycles;
+    const std::vector<std::uint32_t> active_out = compute_->next_active();
+    result.rounds.push_back(SpineSsspRoundEvidence{
+        .round = round,
+        .active_in = current_frontier_,
+        .active_out = active_out,
+        .reader = reader_->counters(),
+        .compute = compute_->counters(),
+        .edge_axis = edge_stream_.stats(),
+        .value_axis = value_stream_.stats(),
+        .start_cycle = start_cycle,
+        .end_cycle = end_cycle,
+    });
+    if (failed()) {
+      result.failed = true;
+      break;
+    }
+    if (active_out.empty()) {
+      result.converged = true;
+      break;
+    }
+    if (round + 1 < max_rounds) {
+      restart_read_compute(active_out);
+    }
+  }
+  result.end_cycle = scheduler_.clock(clock_id_).completed_cycles;
+  return result;
 }
 
 bool SpineVerticalSliceSystem::done() const noexcept {

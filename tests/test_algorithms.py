@@ -90,6 +90,35 @@ class WeightedSsspTests(unittest.TestCase):
         self.assertEqual(result.stats.mapped_edges, 10)
         self.assertEqual(result.stats.applied_vertices, 10)
 
+    def test_multiround_hardware_fixture_matches_dual_oracle(self) -> None:
+        loaded = load_spine_edge_list(DATA / "weighted_chain_shortcut.slice")
+        result = run_dual_oracle(
+            loaded.graph, WeightedSsspPolicy(), AlgorithmConfig(source=0)
+        )
+        inf = WeightedSsspPolicy.infinity
+        self.assertEqual(result.mathematical.values, (0, 3, 2, 7, 8, 10))
+        self.assertNotIn(inf, result.mathematical.values)
+        self.assertEqual(
+            result.mathematical.stats.frontier_sizes, (1, 3, 2, 2, 2, 1)
+        )
+        self.assertEqual(result.mathematical.stats.iterations, 6)
+        self.assertTrue(result.mathematical.stats.converged)
+        self.assertTrue(result.exact_match)
+
+    def test_architecture_oracle_saturates_uint32_sssp(self) -> None:
+        graph = DynamicGraph.from_edges(
+            3,
+            [Edge(0, 1, (1 << 32) - 2), Edge(1, 2, 10)],
+        )
+        result = run_dual_oracle(
+            graph, WeightedSsspPolicy(), AlgorithmConfig(source=0)
+        )
+        self.assertEqual(result.mathematical.values[2], (1 << 32) + 8)
+        self.assertEqual(
+            result.architecture.values[2], WeightedSsspPolicy.architecture_infinity
+        )
+        self.assertFalse(result.exact_match)
+
 
 class PageRankTests(unittest.TestCase):
     def test_full_pagerank_cycle_is_uniform(self) -> None:

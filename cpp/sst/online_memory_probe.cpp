@@ -33,6 +33,86 @@ namespace spine::sim::sst_adapter {
 
 namespace {
 
+struct SsspReference {
+  std::vector<std::uint32_t> values;
+  std::vector<std::vector<std::uint32_t>> frontiers;
+  bool converged{};
+};
+
+SsspReference run_sssp_reference(const SpineEdgeSlice &workload,
+                                 std::uint32_t source, std::size_t max_rounds) {
+  using EdgeKey = std::pair<std::uint32_t, std::uint32_t>;
+  std::map<EdgeKey, std::pair<std::uint16_t, std::int64_t>> coalesced;
+  for (const SpineEdgeRecord &edge : workload.edges) {
+    const EdgeKey key{edge.src, edge.dst};
+    const auto found = coalesced.find(key);
+    if (found == coalesced.end()) {
+      coalesced.emplace(
+          key, std::pair{edge.weight, static_cast<std::int64_t>(edge.diff)});
+    } else {
+      found->second.first = std::min(found->second.first, edge.weight);
+      found->second.second += edge.diff;
+    }
+  }
+  std::vector<std::vector<std::pair<std::uint32_t, std::uint16_t>>> adjacency(
+      workload.vertices);
+  for (const auto &[key, value] : coalesced) {
+    if (value.second > 0) {
+      adjacency[key.first].push_back({key.second, value.first});
+    }
+  }
+
+  SsspReference reference;
+  reference.values.assign(workload.vertices, SpineSplitSsspCompute::kInfinity);
+  reference.values[source] = 0;
+  std::vector<std::uint32_t> frontier{source};
+  for (std::size_t round = 0; round < max_rounds; ++round) {
+    reference.frontiers.push_back(frontier);
+    std::map<std::uint32_t, std::uint32_t> reduced;
+    for (const std::uint32_t src : frontier) {
+      for (const auto &[dst, weight] : adjacency[src]) {
+        const std::uint32_t value = reference.values[src];
+        const std::uint32_t proposal =
+            value == SpineSplitSsspCompute::kInfinity ||
+                    value > SpineSplitSsspCompute::kInfinity - weight
+                ? SpineSplitSsspCompute::kInfinity
+                : value + weight;
+        const auto found = reduced.find(dst);
+        if (found == reduced.end()) {
+          reduced.emplace(dst, proposal);
+        } else {
+          found->second = std::min(found->second, proposal);
+        }
+      }
+    }
+    std::vector<std::uint32_t> next;
+    for (const auto &[vertex, proposal] : reduced) {
+      if (proposal < reference.values[vertex]) {
+        reference.values[vertex] = proposal;
+        next.push_back(vertex);
+      }
+    }
+    if (next.empty()) {
+      reference.converged = true;
+      break;
+    }
+    frontier = std::move(next);
+  }
+  return reference;
+}
+
+template <typename T>
+void write_json_array(std::ostream &output, const std::vector<T> &values) {
+  output << '[';
+  for (std::size_t index = 0; index < values.size(); ++index) {
+    if (index != 0) {
+      output << ", ";
+    }
+    output << values[index];
+  }
+  output << ']';
+}
+
 class ProbeSource final : public Component {
  public:
   ProbeSource(ClockId clock_id, Fifo<AxiRequest> &output,
@@ -366,13 +446,15 @@ class OnlineMemoryProbe final : public SST::Component {
         params.find<std::uint64_t>("channel_capacity_bytes", 1ULL << 30);
     write_percent_ = params.find<std::uint32_t>("write_percent", 0);
     max_cycles_ = params.find<std::uint64_t>("max_cycles", 1'000'000);
+    max_rounds_ = params.find<std::size_t>("max_rounds", 256);
     if ((mode_ != "probe" && mode_ != "spine_vertical" &&
-         mode_ != "spine_compute") ||
-        channels_ == 0 || channel_capacity_bytes_ == 0 ||
+         mode_ != "spine_compute" && mode_ != "spine_sssp") ||
+        channels_ == 0 || channel_capacity_bytes_ == 0 || max_rounds_ == 0 ||
         write_percent_ > 100 ||
         (mode_ == "probe" &&
          (request_count_ == 0 || request_bytes_ == 0 || stride_bytes_ == 0)) ||
-        ((mode_ == "spine_vertical" || mode_ == "spine_compute") &&
+        ((mode_ == "spine_vertical" || mode_ == "spine_compute" ||
+          mode_ == "spine_sssp") &&
          (channels_ < 23 || workload_path_.empty()))) {
       output_.fatal(CALL_INFO, -1, "invalid online memory probe parameters\n");
     }
@@ -495,9 +577,19 @@ class OnlineMemoryProbe final : public SST::Component {
       scheduler_.add_component(*backend_);
       return;
     }
-    if (mode_ == "spine_vertical") {
+    if (mode_ == "spine_vertical" || mode_ == "spine_sssp") {
       SpineEdgeSlice workload = load_spine_edge_slice(workload_path_);
       spine_expected_edges_ = workload.edges.size();
+      if (mode_ == "spine_sssp") {
+        sssp_reference_ =
+            run_sssp_reference(workload, source_vertex_, max_rounds_);
+        if (!sssp_reference_.converged || !preload_path_.empty()) {
+          output_.fatal(CALL_INFO, -1,
+                        "SSSP reference did not converge or preload is set\n");
+        }
+        sst_current_frontier_ = {source_vertex_};
+        sst_round_start_cycle_ = scheduler_.clock(core).completed_cycles;
+      }
       SpineL0Config maintenance_config;
       if (!hot_vertices_text_.empty()) {
         std::istringstream vertices(hot_vertices_text_);
@@ -602,6 +694,33 @@ class OnlineMemoryProbe final : public SST::Component {
         primaryComponentOKToEndSim();
         return true;
       }
+    } else if (mode_ == "spine_sssp") {
+      if (spine_system_->done() && spine_system_->idle() &&
+          backend_->outstanding() == 0) {
+        const std::vector<std::uint32_t> active_out =
+            spine_system_->compute().next_active();
+        sst_rounds_.push_back(SpineSsspRoundEvidence{
+            .round = sst_rounds_.size(),
+            .active_in = sst_current_frontier_,
+            .active_out = active_out,
+            .reader = spine_system_->reader_counters(),
+            .compute = spine_system_->compute_counters(),
+            .edge_axis = spine_system_->edge_stream_stats(),
+            .value_axis = spine_system_->value_stream_stats(),
+            .start_cycle = sst_round_start_cycle_,
+            .end_cycle = scheduler_.clock(0).completed_cycles,
+        });
+        const bool finished = spine_system_->failed() || active_out.empty() ||
+                              sst_rounds_.size() >= max_rounds_;
+        if (finished) {
+          write_result(!spine_system_->failed() && active_out.empty());
+          primaryComponentOKToEndSim();
+          return true;
+        }
+        spine_system_->restart_read_compute(active_out);
+        sst_current_frontier_ = active_out;
+        sst_round_start_cycle_ = scheduler_.clock(0).completed_cycles;
+      }
     } else if (mode_ == "spine_vertical") {
       if (spine_system_->done() && spine_system_->idle() &&
           backend_->outstanding() == 0) {
@@ -636,7 +755,7 @@ class OnlineMemoryProbe final : public SST::Component {
 
   SST_ELI_DOCUMENT_PARAMS(
       {"output", "JSON result path", "sst_memory_probe.json"},
-      {"mode", "probe, spine_vertical, or spine_compute", "probe"},
+      {"mode", "probe, spine_vertical, spine_compute, or spine_sssp", "probe"},
       {"workload", "Spine .slice workload path", ""},
       {"preload_workload", "Optional pre-existing Spine L0 .slice", ""},
       {"hot_vertices", "Comma-separated host hot-bitmap vertices", ""},
@@ -650,7 +769,8 @@ class OnlineMemoryProbe final : public SST::Component {
       {"channels", "Number of HBM channel interfaces", "1"},
       {"channel_capacity_bytes", "Capacity of each HBM channel", "1073741824"},
       {"write_percent", "Deterministic write percentage", "0"},
-      {"max_cycles", "Core-cycle timeout", "1000000"})
+      {"max_cycles", "Core-cycle timeout", "1000000"},
+      {"max_rounds", "Maximum SSSP frontier rounds", "256"})
 
   SST_ELI_DOCUMENT_SUBCOMPONENT_SLOTS(
       {"memory", "One StandardMem interface per HBM channel",
@@ -742,6 +862,113 @@ class OnlineMemoryProbe final : public SST::Component {
              << "}\n";
       output_.output(
           "completed Spine compute microbenchmark in %llu core cycles -> %s\n",
+          static_cast<unsigned long long>(scheduler_.clock(0).completed_cycles),
+          result_path_.c_str());
+      return;
+    }
+    if (mode_ == "spine_sssp") {
+      std::uint64_t mismatches = 0;
+      const auto &actual_values = spine_system_->compute().values();
+      for (std::size_t vertex = 0; vertex < actual_values.size(); ++vertex) {
+        if (actual_values[vertex] != sssp_reference_.values[vertex]) {
+          ++mismatches;
+        }
+      }
+      std::uint64_t frontier_mismatches =
+          sst_rounds_.size() == sssp_reference_.frontiers.size() ? 0 : 1;
+      const std::size_t compared_rounds =
+          std::min(sst_rounds_.size(), sssp_reference_.frontiers.size());
+      for (std::size_t round = 0; round < compared_rounds; ++round) {
+        auto actual_in = sst_rounds_[round].active_in;
+        auto actual_out = sst_rounds_[round].active_out;
+        std::sort(actual_in.begin(), actual_in.end());
+        std::sort(actual_out.begin(), actual_out.end());
+        const std::vector<std::uint32_t> expected_out =
+            round + 1 < sssp_reference_.frontiers.size()
+                ? sssp_reference_.frontiers[round + 1]
+                : std::vector<std::uint32_t>{};
+        if (actual_in != sssp_reference_.frontiers[round] ||
+            actual_out != expected_out) {
+          ++frontier_mismatches;
+        }
+      }
+      const bool converged =
+          !sst_rounds_.empty() && sst_rounds_.back().active_out.empty();
+      const bool passed =
+          success && converged && mismatches == 0 && frontier_mismatches == 0;
+      std::vector<std::size_t> frontier_in_sizes;
+      std::vector<std::size_t> frontier_out_sizes;
+      std::vector<std::uint64_t> processed_edges;
+      std::vector<std::uint64_t> round_cycles;
+      std::vector<std::uint64_t> reader_graph_bytes;
+      std::vector<std::uint64_t> reader_metadata_bytes;
+      std::vector<std::uint64_t> fast_tiles;
+      std::vector<std::uint64_t> full_tiles;
+      std::vector<std::size_t> edge_axis_max_occupancy;
+      std::vector<std::uint64_t> edge_axis_push_stalls;
+      for (const SpineSsspRoundEvidence &round : sst_rounds_) {
+        frontier_in_sizes.push_back(round.active_in.size());
+        frontier_out_sizes.push_back(round.active_out.size());
+        processed_edges.push_back(round.compute.processed_edges);
+        round_cycles.push_back(round.end_cycle - round.start_cycle);
+        reader_graph_bytes.push_back(round.reader.graph_read_bytes);
+        reader_metadata_bytes.push_back(round.reader.metadata_read_bytes);
+        fast_tiles.push_back(round.compute.fast_path_tiles);
+        full_tiles.push_back(round.compute.full_path_tiles);
+        edge_axis_max_occupancy.push_back(round.edge_axis.max_occupancy);
+        edge_axis_push_stalls.push_back(round.edge_axis.push_stalls);
+      }
+      const auto &maintenance = spine_system_->maintenance_counters();
+      result << "{\n"
+             << "  \"success\": " << (passed ? "true" : "false") << ",\n"
+             << "  \"mode\": \"spine_sssp\",\n"
+             << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
+             << "  \"cycles\": " << scheduler_.clock(0).completed_cycles
+             << ",\n"
+             << "  \"input_edges\": " << spine_expected_edges_ << ",\n"
+             << "  \"rounds\": " << sst_rounds_.size() << ",\n"
+             << "  \"converged\": " << (converged ? "true" : "false") << ",\n"
+             << "  \"correctness_mismatches\": " << mismatches << ",\n"
+             << "  \"frontier_mismatches\": " << frontier_mismatches << ",\n"
+             << "  \"maintenance_scan_passes\": "
+             << maintenance.sorted_scan_passes << ",\n"
+             << "  \"maintenance_edge_visits\": "
+             << maintenance.sorted_edge_visits << ",\n"
+             << "  \"final_values\": ";
+      write_json_array(result, actual_values);
+      result << ",\n  \"frontier_in_sizes\": ";
+      write_json_array(result, frontier_in_sizes);
+      result << ",\n  \"frontier_out_sizes\": ";
+      write_json_array(result, frontier_out_sizes);
+      result << ",\n  \"processed_edges_per_round\": ";
+      write_json_array(result, processed_edges);
+      result << ",\n  \"round_cycles\": ";
+      write_json_array(result, round_cycles);
+      result << ",\n  \"reader_graph_bytes_per_round\": ";
+      write_json_array(result, reader_graph_bytes);
+      result << ",\n  \"reader_metadata_bytes_per_round\": ";
+      write_json_array(result, reader_metadata_bytes);
+      result << ",\n  \"fast_tiles_per_round\": ";
+      write_json_array(result, fast_tiles);
+      result << ",\n  \"full_tiles_per_round\": ";
+      write_json_array(result, full_tiles);
+      result << ",\n  \"edge_axis_max_occupancy_per_round\": ";
+      write_json_array(result, edge_axis_max_occupancy);
+      result << ",\n  \"edge_axis_push_stalls_per_round\": ";
+      write_json_array(result, edge_axis_push_stalls);
+      result << ",\n"
+             << "  \"backend_requests\": " << backend_->accepted() << ",\n"
+             << "  \"backend_submit_stalls\": " << backend_->submit_stalls()
+             << ",\n"
+             << "  \"backend_response_queue_stalls\": "
+             << backend_->response_queue_stalls() << ",\n"
+             << "  \"backend_max_outstanding\": " << backend_->max_outstanding()
+             << "\n"
+             << "}\n";
+      output_.output(
+          "completed Spine multi-round SSSP in %zu rounds and %llu core cycles "
+          "-> %s\n",
+          sst_rounds_.size(),
           static_cast<unsigned long long>(scheduler_.clock(0).completed_cycles),
           result_path_.c_str());
       return;
@@ -900,6 +1127,7 @@ class OnlineMemoryProbe final : public SST::Component {
   std::uint64_t channel_capacity_bytes_{};
   std::uint32_t write_percent_{};
   std::uint64_t max_cycles_{};
+  std::size_t max_rounds_{};
   SST::TimeConverter clock_converter_{};
   std::vector<SST::Interfaces::StandardMem *> interfaces_;
 
@@ -919,6 +1147,10 @@ class OnlineMemoryProbe final : public SST::Component {
   std::unique_ptr<FixedAxiPort> spine_active_out_;
   std::unique_ptr<FixedAxiPort> spine_active_bitmap_;
   std::unique_ptr<FixedAxiPort> spine_compute_result_;
+  SsspReference sssp_reference_;
+  std::vector<SpineSsspRoundEvidence> sst_rounds_;
+  std::vector<std::uint32_t> sst_current_frontier_;
+  std::uint64_t sst_round_start_cycle_{};
   std::size_t spine_expected_edges_{};
   std::size_t spine_preload_edges_{};
   std::unordered_map<std::uint32_t, std::uint32_t> expected_distances_;

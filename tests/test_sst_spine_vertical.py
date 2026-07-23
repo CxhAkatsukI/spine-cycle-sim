@@ -5,6 +5,7 @@ import unittest
 from scripts.run_sst_spine_vertical import (
     validate_carry_hot_result,
     validate_full_compute_result,
+    validate_multiround_sssp_result,
     validate_result,
 )
 
@@ -175,6 +176,34 @@ class SstSpineVerticalValidationTests(unittest.TestCase):
         self.assertIn(
             "axis_backpressure",
             validate_full_compute_result(result, dram, channels=32),
+        )
+
+    def test_multiround_weighted_sssp_structure_passes(self) -> None:
+        result = {
+            "success": True,
+            "mode": "spine_sssp",
+            "converged": True,
+            "correctness_mismatches": 0,
+            "frontier_mismatches": 0,
+            "input_edges": 8,
+            "rounds": 6,
+            "final_values": [0, 3, 2, 7, 8, 10],
+            "frontier_in_sizes": [1, 3, 2, 2, 2, 1],
+            "frontier_out_sizes": [3, 2, 2, 2, 1, 0],
+            "processed_edges_per_round": [3, 3, 2, 2, 1, 0],
+            "maintenance_scan_passes": 19,
+            "maintenance_edge_visits": 152,
+            "round_cycles": [10, 11, 12, 13, 14, 15],
+            "edge_axis_max_occupancy_per_round": [5, 6, 5, 5, 4, 2],
+            "edge_axis_push_stalls_per_round": [0, 1, 0, 0, 0, 0],
+            "fast_tiles_per_round": [1, 1, 1, 1, 1, 0],
+            "full_tiles_per_round": [0, 0, 0, 0, 0, 0],
+            "reader_metadata_bytes_per_round": [100] * 6,
+            "backend_requests": 100,
+        }
+        dram = {"dram_reads": 60, "dram_writes": 40, "dram_channels": 32}
+        self.assertEqual(
+            validate_multiround_sssp_result(result, dram, channels=32), []
         )
 
 

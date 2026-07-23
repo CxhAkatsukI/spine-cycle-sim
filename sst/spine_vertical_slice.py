@@ -39,6 +39,7 @@ probe.addParams(
         "channels": channels,
         "channel_capacity_bytes": channel_bytes,
         "max_cycles": int(os.environ.get("SPINE_SST_MAX_CYCLES", "1000000")),
+        "max_rounds": int(os.environ.get("SPINE_SST_MAX_ROUNDS", "256")),
     }
 )
 

@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <vector>
 
 #include "spine_sim/fifo.hpp"
 #include "spine_sim/fixed_axi_port.hpp"
@@ -13,6 +14,26 @@
 #include "spine_sim/spine_split.hpp"
 
 namespace spine::sim {
+
+struct SpineSsspRoundEvidence {
+  std::size_t round{};
+  std::vector<std::uint32_t> active_in;
+  std::vector<std::uint32_t> active_out;
+  SpineReaderCounters reader;
+  SpineComputeCounters compute;
+  FifoStats edge_axis;
+  FifoStats value_axis;
+  std::uint64_t start_cycle{};
+  std::uint64_t end_cycle{};
+};
+
+struct SpineSsspRunResult {
+  bool converged{};
+  bool failed{};
+  std::vector<SpineSsspRoundEvidence> rounds;
+  std::uint64_t start_cycle{};
+  std::uint64_t end_cycle{};
+};
 
 class SpineVerticalSliceSystem {
  public:
@@ -24,6 +45,9 @@ class SpineVerticalSliceSystem {
                            SpineL0State initial_state = {});
 
   void register_components();
+  void restart_read_compute(std::vector<std::uint32_t> active_sources);
+  [[nodiscard]] SpineSsspRunResult run_sssp_to_convergence(
+      std::size_t max_rounds, std::uint64_t max_events_per_round);
 
   [[nodiscard]] bool done() const noexcept;
   [[nodiscard]] bool failed() const noexcept;
@@ -58,7 +82,9 @@ class SpineVerticalSliceSystem {
   std::unique_ptr<SpineL0Maintenance> maintenance_;
   std::unique_ptr<SpineSplitReader> reader_;
   std::unique_ptr<SpineSplitSsspCompute> compute_;
+  std::vector<std::uint32_t> current_frontier_;
   bool registered_{};
+  bool convergence_run_started_{};
 };
 
 }  // namespace spine::sim
