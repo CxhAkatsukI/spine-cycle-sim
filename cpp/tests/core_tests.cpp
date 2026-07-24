@@ -3377,6 +3377,14 @@ void test_spine_memory_request_window_hides_latency() {
             << serialized.cycles << " pipelined_cycles=" << pipelined.cycles
             << " maintenance_max_inflight="
             << pipelined.maintenance.max_memory_requests_inflight
+            << " serialized_max_per_port="
+            << serialized.maintenance.max_memory_requests_inflight_per_port
+            << " serialized_active_ports="
+            << serialized.maintenance.max_active_memory_ports
+            << " serialized_cross_port_cycles="
+            << serialized.maintenance.memory_cross_port_overlap_cycles
+            << " pipelined_max_per_port="
+            << pipelined.maintenance.max_memory_requests_inflight_per_port
             << " reader_max_inflight="
             << pipelined.reader.max_memory_requests_inflight
             << " dependency_stalls="
@@ -3393,10 +3401,13 @@ void test_spine_memory_request_window_hides_latency() {
               serialized.reader.metadata_read_bytes ==
                   pipelined.reader.metadata_read_bytes,
           "memory request window changed the Spine memory work ledger");
-  require(serialized.maintenance.max_memory_requests_inflight == 1,
-          "serialized compatibility profile overlapped maintenance tasks");
-  require(pipelined.maintenance.max_memory_requests_inflight > 1,
-          "coarse what-if did not overlap maintenance tasks");
+  require(serialized.maintenance.max_memory_requests_inflight_per_port == 1,
+          "default profile overlapped requests on one AXI initiator");
+  require(serialized.maintenance.max_active_memory_ports > 1 &&
+              serialized.maintenance.memory_cross_port_overlap_cycles > 0,
+          "default profile serialized independent HLS m_axi bundles");
+  require(pipelined.maintenance.max_memory_requests_inflight_per_port > 1,
+          "coarse what-if did not overlap same-port maintenance tasks");
   require(serialized.reader.edge_pipeline_max_inflight > 1 &&
               pipelined.reader.edge_pipeline_max_inflight > 1,
           "source-faithful II=1 edge loops did not exercise concurrency");

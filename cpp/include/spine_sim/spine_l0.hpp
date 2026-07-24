@@ -67,8 +67,10 @@ struct SpineL0Config {
   std::size_t range_task_capacity{65'536};
   std::uint64_t range_task_payload_budget{1'048'576};
   std::uint64_t fallback_replay_threshold{65'536};
-  // Coarse task overlap is an explicit architecture what-if until each HLS
-  // pipelined loop has its own issue/retire model. One is source-faithful.
+  // Logical parent-request window per independent m_axi initiator. A value of
+  // one keeps each bundle ordered while allowing different HLS bundles to
+  // overlap. Values above one remain an explicit same-bundle overlap what-if
+  // until every enclosing HLS loop has its own issue/retire model.
   std::size_t memory_request_window{1};
   // The HLS edge loops achieve II=1. Two outstanding 16-beat reads provide 32
   // edge-word credits in the accepted synthesis report.
@@ -244,6 +246,9 @@ struct SpineL0Counters {
   std::uint64_t memory_dependency_stall_cycles{};
   std::uint64_t memory_request_fifo_stall_cycles{};
   std::size_t max_memory_requests_inflight{};
+  std::size_t max_memory_requests_inflight_per_port{};
+  std::size_t max_active_memory_ports{};
+  std::uint64_t memory_cross_port_overlap_cycles{};
   std::uint64_t cold_input_edges{};
   std::uint64_t hot_input_edges{};
   std::uint64_t carry_level_payload_reads{};
@@ -421,6 +426,10 @@ class SpineL0Maintenance final : public Component {
   void consume_memory_response(const MemoryTask &task,
                                const AxiResponse &response);
   [[nodiscard]] bool memory_task_conflicts(const MemoryTask &task) const;
+  [[nodiscard]] std::size_t
+  inflight_memory_tasks_for_port(const FixedAxiPort *port) const noexcept;
+  [[nodiscard]] std::size_t active_memory_ports() const noexcept;
+  void update_memory_concurrency_counters(const FixedAxiPort *issued_port);
   [[nodiscard]] bool stage_memory_completion();
   void enqueue_dirty_metadata_load();
   void enqueue_dirty_generation_prepare();

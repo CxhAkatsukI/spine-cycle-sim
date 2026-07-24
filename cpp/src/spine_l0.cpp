@@ -895,9 +895,13 @@ void SpineL0Maintenance::evaluate(const CycleContext &context) {
   }
   staged_read_beat_completion_ = stage_read_beat();
   staged_memory_completion_ = stage_memory_completion();
+  if (active_memory_ports() > 1) {
+    ++counters_.memory_cross_port_overlap_cycles;
+  }
   if (!tasks_.empty()) {
     const MemoryTask &task = tasks_.front();
-    if (inflight_tasks_.size() >= config_.memory_request_window) {
+    if (inflight_memory_tasks_for_port(task.port) >=
+        config_.memory_request_window) {
       ++counters_.memory_window_stall_cycles;
     } else if (memory_task_conflicts(task)) {
       ++counters_.memory_dependency_stall_cycles;
@@ -979,6 +983,7 @@ void SpineL0Maintenance::commit(const CycleContext &context) {
     counters_.max_memory_requests_inflight =
         std::max(counters_.max_memory_requests_inflight,
                  inflight_tasks_.size());
+    update_memory_concurrency_counters(inflight_tasks_.at(transaction_id).port);
   }
   switch (staged_action_) {
     case StagedAction::kNone:
@@ -1005,6 +1010,38 @@ bool SpineL0Maintenance::memory_task_conflicts(
     }
   }
   return false;
+}
+
+std::size_t SpineL0Maintenance::inflight_memory_tasks_for_port(
+    const FixedAxiPort *port) const noexcept {
+  return static_cast<std::size_t>(std::count_if(
+      inflight_tasks_.begin(), inflight_tasks_.end(),
+      [port](const auto &entry) { return entry.second.port == port; }));
+}
+
+std::size_t SpineL0Maintenance::active_memory_ports() const noexcept {
+  std::size_t ports = 0;
+  for (auto current = inflight_tasks_.begin();
+       current != inflight_tasks_.end(); ++current) {
+    bool already_seen = false;
+    for (auto prior = inflight_tasks_.begin(); prior != current; ++prior) {
+      already_seen = already_seen ||
+                     prior->second.port == current->second.port;
+    }
+    if (!already_seen) {
+      ++ports;
+    }
+  }
+  return ports;
+}
+
+void SpineL0Maintenance::update_memory_concurrency_counters(
+    const FixedAxiPort *issued_port) {
+  counters_.max_memory_requests_inflight_per_port =
+      std::max(counters_.max_memory_requests_inflight_per_port,
+               inflight_memory_tasks_for_port(issued_port));
+  counters_.max_active_memory_ports =
+      std::max(counters_.max_active_memory_ports, active_memory_ports());
 }
 
 bool SpineL0Maintenance::stage_memory_completion() {

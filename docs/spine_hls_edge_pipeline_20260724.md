@@ -22,8 +22,9 @@ release its buffer credit until the stream accepts the edge.
 The default edge pipeline has 32 request credits and 32 response slots. This
 is the edge-word abstraction of the accepted HLS report's two outstanding
 reads times a maximum 16-beat burst. Both values are configurable and copied
-into every SST result. The separate coarse `memory_request_window` remains one,
-so unpipelined metadata and level-cache phases are not accidentally overlapped.
+into every SST result. The separate `memory_request_window` remains one per AXI
+initiator, so same-port unpipelined metadata and level-cache tasks remain
+ordered while source-distinct HLS bundles may overlap.
 
 ## Source and synthesis mapping
 

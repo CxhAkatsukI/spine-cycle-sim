@@ -731,8 +731,9 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=1,
         help=(
-            "coarse logical-request overlap; values above one are an "
-            "architecture what-if, not the source-faithful HLS default"
+            "logical parent-request window per AXI initiator; one preserves "
+            "same-port ordering while independent HLS bundles may overlap, "
+            "and values above one are a same-port architecture what-if"
         ),
     )
     parser.add_argument("--reader-edge-pipeline-depth", type=int, default=32)

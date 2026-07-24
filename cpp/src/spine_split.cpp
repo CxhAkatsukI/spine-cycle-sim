@@ -322,6 +322,9 @@ void SpineSplitReader::evaluate(const CycleContext &) {
     return;
   }
   staged_memory_completion_ = stage_memory_completion();
+  if (active_memory_ports() > 1) {
+    ++counters_.memory_cross_port_overlap_cycles;
+  }
   if (edge_pipeline_active()) {
     evaluate_edge_pipeline();
     return;
@@ -329,7 +332,7 @@ void SpineSplitReader::evaluate(const CycleContext &) {
   if (!memory_tasks_.empty()) {
     const MemoryTask &task = memory_tasks_.front();
     const std::size_t window = maintenance_.config().memory_request_window;
-    if (inflight_memory_tasks_.size() >= window) {
+    if (inflight_memory_tasks_for_port(task.port) >= window) {
       ++counters_.memory_window_stall_cycles;
     } else if (memory_task_conflicts(task)) {
       ++counters_.memory_dependency_stall_cycles;
@@ -399,6 +402,8 @@ void SpineSplitReader::commit(const CycleContext &context) {
       counters_.max_memory_requests_inflight =
           std::max(counters_.max_memory_requests_inflight,
                    inflight_memory_tasks_.size());
+      update_memory_concurrency_counters(
+          inflight_memory_tasks_.at(transaction_id).port);
     }
   }
   switch (staged_action_) {
@@ -554,6 +559,39 @@ bool SpineSplitReader::memory_task_conflicts(const MemoryTask &task) const {
     }
   }
   return false;
+}
+
+std::size_t SpineSplitReader::inflight_memory_tasks_for_port(
+    const FixedAxiPort *port) const noexcept {
+  return static_cast<std::size_t>(std::count_if(
+      inflight_memory_tasks_.begin(), inflight_memory_tasks_.end(),
+      [port](const auto &entry) { return entry.second.port == port; }));
+}
+
+std::size_t SpineSplitReader::active_memory_ports() const noexcept {
+  std::size_t ports = 0;
+  for (auto current = inflight_memory_tasks_.begin();
+       current != inflight_memory_tasks_.end(); ++current) {
+    bool already_seen = false;
+    for (auto prior = inflight_memory_tasks_.begin(); prior != current;
+         ++prior) {
+      already_seen = already_seen ||
+                     prior->second.port == current->second.port;
+    }
+    if (!already_seen) {
+      ++ports;
+    }
+  }
+  return ports;
+}
+
+void SpineSplitReader::update_memory_concurrency_counters(
+    const FixedAxiPort *issued_port) {
+  counters_.max_memory_requests_inflight_per_port =
+      std::max(counters_.max_memory_requests_inflight_per_port,
+               inflight_memory_tasks_for_port(issued_port));
+  counters_.max_active_memory_ports =
+      std::max(counters_.max_active_memory_ports, active_memory_ports());
 }
 
 bool SpineSplitReader::stage_memory_completion() {
@@ -714,6 +752,8 @@ void SpineSplitReader::commit_edge_pipeline_issue() {
   }
   counters_.max_memory_requests_inflight = std::max(
       counters_.max_memory_requests_inflight, inflight_memory_tasks_.size());
+  update_memory_concurrency_counters(
+      inflight_memory_tasks_.at(transaction_id).port);
   counters_.edge_pipeline_max_inflight = std::max(
       counters_.edge_pipeline_max_inflight, inflight_memory_tasks_.size());
 }

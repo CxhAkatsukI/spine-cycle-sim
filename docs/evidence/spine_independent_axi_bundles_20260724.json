@@ -1,0 +1,53 @@
+{
+  "date": "2026-07-24",
+  "branch": "codex/fine-grained-cycle-sim",
+  "hls_reference": "afb8199a2ca8d3fd208b985324bf4d8719e2b839",
+  "window_semantics": "logical parent requests per independent m_axi initiator",
+  "cpp_microbenchmark": {
+    "default_window": 1,
+    "cycles": 12058,
+    "max_inflight_per_port": 1,
+    "max_active_ports": 2,
+    "cross_port_overlap_cycles": 53,
+    "same_port_window_32_cycles": 5248,
+    "same_port_window_32_max_inflight_per_port": 32
+  },
+  "sst_hbm": [
+    {
+      "scenario": "amazon_l0",
+      "before_cycles": 7187,
+      "after_cycles": 7157,
+      "maintenance_cycles": 2262,
+      "backend_requests": 1399,
+      "max_inflight_per_port": 1,
+      "max_active_ports": 2,
+      "cross_port_overlap_cycles": 34,
+      "correctness_mismatches": 0,
+      "frontier_mismatches": 0
+    },
+    {
+      "scenario": "carry_hot",
+      "before_cycles": 8966,
+      "after_cycles": 8884,
+      "maintenance_cycles": 3972,
+      "backend_requests": 1944,
+      "max_inflight_per_port": 1,
+      "max_active_ports": 3,
+      "cross_port_overlap_cycles": 89,
+      "correctness_mismatches": 0,
+      "frontier_mismatches": 0
+    },
+    {
+      "scenario": "weighted_sssp",
+      "before_cycles": 33866,
+      "after_cycles": 33788,
+      "maintenance_cycles": 2280,
+      "backend_requests": 4196,
+      "max_inflight_per_port": 1,
+      "max_active_ports": 2,
+      "cross_port_overlap_cycles": 33,
+      "correctness_mismatches": 0,
+      "frontier_mismatches": 0
+    }
+  ]
+}

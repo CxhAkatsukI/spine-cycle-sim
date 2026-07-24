@@ -1,0 +1,23 @@
+digraph spine_independent_axi_bundles {
+  graph [rankdir=LR, bgcolor="white", pad="0.2", nodesep="0.35", ranksep="0.65"];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=10, color="#334155", fillcolor="#f8fafc"];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#475569"];
+
+  maint [label="Maintenance control\nsource-ordered task generation", fillcolor="#e2e8f0"];
+  sort [label="gmem_sorter initiator\nwindow = 1\nstreamed sorted-edge read", fillcolor="#dbeafe"];
+  graph0 [label="gmem_p0 initiator\nwindow = 1\ngraph read/write", fillcolor="#dcfce7"];
+  meta [label="gmem_meta initiator\nwindow = 1\nmetadata read/write", fillcolor="#fef3c7"];
+  result [label="gmem_result initiator\nwindow = 1\nresult write", fillcolor="#fee2e2"];
+  axi [label="Per-port AXI burst engines\nFIFO + outstanding + response ordering", fillcolor="#f1f5f9"];
+  hbm [label="Shared SST-HBM backend\nchannel contention + DRAM timing", fillcolor="#e0e7ff"];
+
+  maint -> sort [label="independent issue"];
+  maint -> graph0 [label="independent issue"];
+  maint -> meta [label="independent issue"];
+  maint -> result [label="independent issue"];
+  sort -> axi;
+  graph0 -> axi;
+  meta -> axi;
+  result -> axi;
+  axi -> hbm [label="contention preserved"];
+}

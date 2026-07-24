@@ -150,6 +150,9 @@ struct SpineReaderCounters {
   std::uint64_t memory_dependency_stall_cycles{};
   std::uint64_t memory_request_fifo_stall_cycles{};
   std::size_t max_memory_requests_inflight{};
+  std::size_t max_memory_requests_inflight_per_port{};
+  std::size_t max_active_memory_ports{};
+  std::uint64_t memory_cross_port_overlap_cycles{};
   std::uint64_t construction_pipeline_requests{};
   std::uint64_t construction_pipeline_retires{};
   std::uint64_t replay_pipeline_requests{};
@@ -463,6 +466,10 @@ class SpineSplitReader final : public Component {
   void consume_memory_response(const MemoryTask &task,
                                const AxiResponse &response);
   [[nodiscard]] bool memory_task_conflicts(const MemoryTask &task) const;
+  [[nodiscard]] std::size_t
+  inflight_memory_tasks_for_port(const FixedAxiPort *port) const noexcept;
+  [[nodiscard]] std::size_t active_memory_ports() const noexcept;
+  void update_memory_concurrency_counters(const FixedAxiPort *issued_port);
   [[nodiscard]] bool stage_memory_completion();
   [[nodiscard]] bool edge_pipeline_active() const noexcept;
   void begin_edge_pipeline(EdgePipelineMode mode, FixedAxiPort &port,

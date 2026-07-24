@@ -1,5 +1,10 @@
 # Spine logical AXI request window
 
+> Superseded for the default-window interpretation by
+> `spine_independent_axi_bundles_20260724.md`. The earlier experiment treated
+> the window as global; the implementation now applies it per independent HLS
+> `m_axi` initiator. The window-32 result remains a same-port overlap what-if.
+
 Date: 2026-07-24  
 Branch: `codex/fine-grained-cycle-sim`
 
