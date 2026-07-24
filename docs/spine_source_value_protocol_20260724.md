@@ -102,17 +102,16 @@ python3 scripts/run_sst_spine_vertical.py \
 This milestone models the source-value request window and its ACK. It does not
 close the separate dirty-frontier ownership acknowledgement.
 
-1. Reader task diagnostics and DONE overflow are not yet emitted and consumed
-   as the complete HLS marker sequence on every error path.
-2. A successful DEVICE_DIRTY run does not yet clear/advance the persistent
+1. A successful DEVICE_DIRTY run does not yet clear/advance the persistent
    dirty generation; HOST_ACTIVE coverage generation/hash metadata is not yet
    validated and acknowledged.
-3. DEVICE_DIRTY correctly rejects more than 4096 sources, but the host handoff
+2. DEVICE_DIRTY correctly rejects more than 4096 sources, but the host handoff
    is not yet executed end to end.
-4. HOST_ACTIVE exact-task overflow still reports failure instead of running the
+3. HOST_ACTIVE exact-task overflow still reports failure instead of running the
    HLS tiled-reader fallback.
-5. Source-value HBM reads are issued serially by compute. The finite stream
+4. Source-value HBM reads are issued serially by compute. The finite stream
    window is exact, but AXI outstanding overlap remains a later timing phase.
 
-The next protocol milestone is the diagnostic/DONE transcript plus dirty
-ownership ACK, followed by HOST_ACTIVE fallback execution.
+The diagnostic/DONE transcript is closed in
+`docs/spine_terminal_diagnostics_20260724.md`. The next protocol milestone is
+dirty ownership ACK, followed by HOST_ACTIVE fallback execution.

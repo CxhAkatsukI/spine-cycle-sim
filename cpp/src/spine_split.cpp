@@ -32,11 +32,15 @@ constexpr std::uint32_t kRangeTaskPathError = 3;
 constexpr std::uint32_t kRangeTaskFallbackActiveGate = 1;
 constexpr std::uint32_t kRangeTaskFallbackCapacity = 2;
 constexpr std::uint32_t kRangeTaskFallbackPayloadBudget = 3;
+constexpr std::uint32_t kRangeTaskFallbackDirtyRequiresHost = 4;
+constexpr std::uint32_t kRangeTaskErrorFormat = 1;
 constexpr std::uint32_t kRangeTaskErrorActiveBounds = 2;
 constexpr std::uint32_t kRangeTaskErrorMetadata = 3;
 constexpr std::uint32_t kRangeTaskErrorDestination = 4;
 constexpr std::uint32_t kRangeTaskErrorPrefix = 5;
 constexpr std::uint32_t kRangeTaskErrorDescriptor = 6;
+constexpr std::uint32_t kRangeTaskErrorProtocol = 7;
+constexpr std::uint32_t kRangeTaskErrorDirtyState = 8;
 
 std::uint32_t saturating_add(std::uint32_t left, std::uint16_t right) {
   if (left == SpineSplitSsspCompute::kInfinity ||
@@ -206,6 +210,7 @@ void SpineSplitReader::reset_state() {
   source_request_index_ = 0;
   source_response_index_ = 0;
   source_window_end_ = 0;
+  diagnostic_index_ = 0;
   metadata_control_ = 0;
   dirty_count_ = 0;
   dirty_generation_ = 0;
@@ -215,6 +220,9 @@ void SpineSplitReader::reset_state() {
   active_bin_counts_.fill(0);
   dirty_payload_valid_ = true;
   waiting_memory_ = false;
+  terminal_pending_ = false;
+  terminal_overflow_ = false;
+  terminal_failed_ = false;
   done_ = false;
   failed_ = false;
   failure_.clear();
@@ -273,7 +281,7 @@ void SpineSplitReader::evaluate(const CycleContext &) {
       phase_ == Phase::kSendSourceGeneration ||
       phase_ == Phase::kSendSourceDone || phase_ == Phase::kTileBegin ||
       phase_ == Phase::kEdgeEmit || phase_ == Phase::kTileEnd ||
-      phase_ == Phase::kDone) {
+      phase_ == Phase::kDiagnostic || phase_ == Phase::kDone) {
     staged_stream_word_ = current_stream_word();
     if (edge_out_.try_push(staged_stream_word_)) {
       staged_action_ = Action::kPush;
@@ -318,10 +326,9 @@ void SpineSplitReader::commit(const CycleContext &context) {
             counters_.source_protocol_status !=
                 static_cast<std::uint32_t>(SpineSourceProtocolStatus::kOk)) {
           counters_.range_task_path = kRangeTaskPathError;
-          counters_.range_task_error = 7;
-          failed_ = true;
-          done_ = true;
-          failure_ = "reader source-value protocol acknowledgement failed";
+          counters_.range_task_error = kRangeTaskErrorProtocol;
+          begin_terminal(
+              true, "reader source-value protocol acknowledgement failed");
         } else {
           phase_ = Phase::kLevelOccupancyBegin;
         }
@@ -391,10 +398,20 @@ void SpineSplitReader::commit(const CycleContext &context) {
           break;
         case Phase::kTileEnd:
           ++tile_index_;
-          phase_ = Phase::kTileScan;
+          phase_ = terminal_pending_ ? Phase::kDiagnostic : Phase::kTileScan;
+          break;
+        case Phase::kDiagnostic:
+          ++counters_.diagnostic_words;
+          ++diagnostic_index_;
+          if (diagnostic_index_ == kSpineReaderDiagnosticWords) {
+            phase_ = Phase::kDone;
+          }
           break;
         case Phase::kDone:
+          ++counters_.done_words;
+          counters_.done_overflow = terminal_overflow_;
           counters_.end_cycle = context.domain_cycle;
+          failed_ = terminal_failed_;
           done_ = true;
           break;
         default:
@@ -611,9 +628,8 @@ void SpineSplitReader::consume_memory_response(const MemoryTask &task,
                   kTileVertices) {
         counters_.range_task_path = kRangeTaskPathError;
         counters_.range_task_error = kRangeTaskErrorDestination;
-        failed_ = true;
-        done_ = true;
-        failure_ = "range-task replay returned an edge outside its tile";
+        begin_terminal(true,
+                       "range-task replay returned an edge outside its tile");
       }
       return;
   }
@@ -664,11 +680,10 @@ void SpineSplitReader::begin_source_header_reads() {
 void SpineSplitReader::validate_control() {
   if (!spine_metadata_control_valid(metadata_control_)) {
     counters_.range_task_path = kRangeTaskPathError;
-    counters_.range_task_error = 1;
-    failed_ = true;
-    done_ = true;
-    failure_ =
-        "reader metadata control word has the wrong magic/version/features";
+    counters_.range_task_error = kRangeTaskErrorFormat;
+    begin_terminal(
+        true,
+        "reader metadata control word has the wrong magic/version/features");
   }
 }
 
@@ -687,9 +702,8 @@ void SpineSplitReader::prepare_range_probes() {
   if (active_records_.size() > kRangeTaskActiveGate) {
     counters_.range_task_path = kRangeTaskPathFallback;
     counters_.range_task_fallback_reason = kRangeTaskFallbackActiveGate;
-    failed_ = true;
-    done_ = true;
-    failure_ = "device-dirty exact path exceeded the active-record gate";
+    begin_terminal(true,
+                   "device-dirty exact path exceeded the active-record gate");
     return;
   }
   for (const SpineActiveRecord &record : active_records_) {
@@ -697,9 +711,7 @@ void SpineSplitReader::prepare_range_probes() {
         record.source >= maintenance_.config().max_vertices) {
       counters_.range_task_path = kRangeTaskPathError;
       counters_.range_task_error = kRangeTaskErrorActiveBounds;
-      failed_ = true;
-      done_ = true;
-      failure_ = "active source is outside the configured graph";
+      begin_terminal(true, "active source is outside the configured graph");
       return;
     }
   }
@@ -708,6 +720,9 @@ void SpineSplitReader::prepare_range_probes() {
                                 std::size_t family, bool hot,
                                 std::size_t destination_partition,
                                 bool all_families) {
+    if (terminal_pending_) {
+      return;
+    }
     bool family_enabled = all_families;
     if (!all_families) {
       if (hot) {
@@ -741,17 +756,16 @@ void SpineSplitReader::prepare_range_probes() {
       if (!level.valid) {
         counters_.range_task_path = kRangeTaskPathError;
         counters_.range_task_error = kRangeTaskErrorMetadata;
-        failed_ = true;
-        done_ = true;
-        failure_ = "occupied level metadata failed HLS range-cache validation";
+        begin_terminal(
+            true,
+            "occupied level metadata failed HLS range-cache validation");
         return;
       }
       if (level.edge_count > std::numeric_limits<std::uint32_t>::max()) {
         counters_.range_task_path = kRangeTaskPathError;
         counters_.range_task_error = kRangeTaskErrorMetadata;
-        failed_ = true;
-        done_ = true;
-        failure_ = "occupied level exceeds the range-task edge-count field";
+        begin_terminal(
+            true, "occupied level exceeds the range-task edge-count field");
         return;
       }
       const std::uint32_t lane =
@@ -908,9 +922,7 @@ void SpineSplitReader::resolve_probe_page() {
   if (row > std::numeric_limits<std::uint32_t>::max()) {
     counters_.range_task_path = kRangeTaskPathError;
     counters_.range_task_error = kRangeTaskErrorMetadata;
-    failed_ = true;
-    done_ = true;
-    failure_ = "range probe row index overflowed";
+    begin_terminal(true, "range probe row index overflowed");
     return;
   }
   probe.row = static_cast<std::uint32_t>(row);
@@ -946,9 +958,8 @@ void SpineSplitReader::resolve_probe_row() {
   if (probe.end < probe.start || probe.end > probe.edge_count) {
     counters_.range_task_path = kRangeTaskPathError;
     counters_.range_task_error = kRangeTaskErrorMetadata;
-    failed_ = true;
-    done_ = true;
-    failure_ = "HBM row offsets do not fit the cached level edge count";
+    begin_terminal(true,
+                   "HBM row offsets do not fit the cached level edge count");
     return;
   }
   if (probe.end == probe.start) {
@@ -960,9 +971,8 @@ void SpineSplitReader::resolve_probe_row() {
       kRangeTaskPayloadBudget - counters_.range_task_construction_payloads) {
     counters_.range_task_path = kRangeTaskPathFallback;
     counters_.range_task_fallback_reason = kRangeTaskFallbackPayloadBudget;
-    failed_ = true;
-    done_ = true;
-    failure_ = "device-dirty exact path exceeded its construction budget";
+    begin_terminal(
+        true, "device-dirty exact path exceeded its construction budget");
     return;
   }
   construction_position_ = probe.start;
@@ -981,17 +991,15 @@ void SpineSplitReader::flush_construction_run() {
       construction_run_length_ >= kRangeTaskMaxLength) {
     counters_.range_task_path = kRangeTaskPathError;
     counters_.range_task_error = kRangeTaskErrorDescriptor;
-    failed_ = true;
-    done_ = true;
-    failure_ = "constructed range does not fit the 128-bit descriptor";
+    begin_terminal(
+        true, "constructed range does not fit the 128-bit descriptor");
     return;
   }
   if (range_tasks_.size() >= kRangeTaskCapacity) {
     counters_.range_task_path = kRangeTaskPathFallback;
     counters_.range_task_fallback_reason = kRangeTaskFallbackCapacity;
-    failed_ = true;
-    done_ = true;
-    failure_ = "device-dirty exact path exhausted range descriptors";
+    begin_terminal(true,
+                   "device-dirty exact path exhausted range descriptors");
     return;
   }
   const RangeProbe &probe = range_probes_.at(probe_index_);
@@ -1026,9 +1034,8 @@ void SpineSplitReader::consume_construction_edge() {
        construction_edge_.dst < construction_previous_dst_)) {
     counters_.range_task_path = kRangeTaskPathError;
     counters_.range_task_error = kRangeTaskErrorDestination;
-    failed_ = true;
-    done_ = true;
-    failure_ = "construction scan found an invalid or unsorted destination";
+    begin_terminal(
+        true, "construction scan found an invalid or unsorted destination");
     return;
   }
   construction_previous_dst_ = construction_edge_.dst;
@@ -1045,7 +1052,7 @@ void SpineSplitReader::consume_construction_edge() {
     ++construction_run_length_;
   } else {
     flush_construction_run();
-    if (failed_) {
+    if (terminal_pending_) {
       return;
     }
     construction_run_valid_ = true;
@@ -1057,7 +1064,7 @@ void SpineSplitReader::consume_construction_edge() {
   ++construction_position_;
   if (construction_position_ == probe.end) {
     flush_construction_run();
-    if (!failed_) {
+    if (!terminal_pending_) {
       phase_ = Phase::kProbeAdvance;
     }
   } else {
@@ -1135,6 +1142,119 @@ void SpineSplitReader::finalize_level_cache() {
   }
 }
 
+void SpineSplitReader::begin_terminal(bool overflow, std::string failure) {
+  if (terminal_pending_) {
+    terminal_overflow_ = terminal_overflow_ || overflow;
+    if (!failure.empty() && failure_.empty()) {
+      failure_ = std::move(failure);
+      terminal_failed_ = true;
+    }
+    return;
+  }
+  terminal_pending_ = true;
+  terminal_overflow_ = overflow;
+  terminal_failed_ = overflow || !failure.empty();
+  failure_ = std::move(failure);
+  diagnostic_index_ = 0;
+  if (mode_ == SpineReaderMode::kDeviceDirty &&
+      counters_.dirty_status ==
+          static_cast<std::uint32_t>(SpineDirtyStatus::kOk) &&
+      terminal_overflow_) {
+    counters_.dirty_status =
+        counters_.range_task_fallback_reason != 0
+            ? static_cast<std::uint32_t>(SpineDirtyStatus::kRequiresHost)
+            : static_cast<std::uint32_t>(SpineDirtyStatus::kTaskError);
+  }
+  const bool tile_open = phase_ == Phase::kEdgeRead ||
+                         phase_ == Phase::kEdgeEmit ||
+                         phase_ == Phase::kTileEnd;
+  phase_ = tile_open ? Phase::kTileEnd : Phase::kDiagnostic;
+}
+
+PartConvWord SpineSplitReader::current_diagnostic_word() const {
+  const std::uint32_t status =
+      (counters_.range_task_path & 0xffU) |
+      ((counters_.range_task_fallback_reason & 0xffU) << 8) |
+      ((counters_.range_task_error & 0xffU) << 16);
+  switch (diagnostic_index_) {
+    case 0:
+      return PartConvWord{
+          .kind = PartConvWordKind::kDiagnostic,
+          .first = static_cast<std::uint32_t>(SpineDiagnosticKind::kTaskStatus),
+          .second = status,
+      };
+    case 1:
+      return PartConvWord{
+          .kind = PartConvWordKind::kDiagnostic,
+          .first = static_cast<std::uint32_t>(SpineDiagnosticKind::kTaskCount),
+          .second = static_cast<std::uint32_t>(counters_.range_task_count),
+      };
+    case 2:
+      return PartConvWord{
+          .kind = PartConvWordKind::kDiagnostic,
+          .first =
+              static_cast<std::uint32_t>(SpineDiagnosticKind::kTaskRowLookups),
+          .second =
+              static_cast<std::uint32_t>(counters_.range_task_row_lookups),
+      };
+    case 3:
+      return PartConvWord{
+          .kind = PartConvWordKind::kDiagnostic,
+          .first = static_cast<std::uint32_t>(
+              SpineDiagnosticKind::kTaskConstructionPayloads),
+          .second = static_cast<std::uint32_t>(
+              counters_.range_task_construction_payloads),
+      };
+    case 4:
+      return PartConvWord{
+          .kind = PartConvWordKind::kDiagnostic,
+          .first = static_cast<std::uint32_t>(
+              SpineDiagnosticKind::kTaskReplayPayloads),
+          .second =
+              static_cast<std::uint32_t>(counters_.range_task_replay_payloads),
+      };
+    case 5:
+      return PartConvWord{
+          .kind = PartConvWordKind::kDiagnostic,
+          .first = static_cast<std::uint32_t>(
+              SpineDiagnosticKind::kTaskActiveRecords),
+          .second =
+              static_cast<std::uint32_t>(counters_.range_task_active_records),
+      };
+    case 6:
+      return PartConvWord{
+          .kind = PartConvWordKind::kDiagnostic,
+          .first = static_cast<std::uint32_t>(
+              SpineDiagnosticKind::kTaskFamilyProbes),
+          .second =
+              static_cast<std::uint32_t>(counters_.range_task_family_probes),
+      };
+    case 7:
+      return PartConvWord{
+          .kind = PartConvWordKind::kDiagnostic,
+          .first = static_cast<std::uint32_t>(
+              SpineDiagnosticKind::kTaskFamilySkips),
+          .second =
+              static_cast<std::uint32_t>(counters_.range_task_family_skips),
+      };
+    case 8:
+      return PartConvWord{
+          .kind = PartConvWordKind::kDiagnostic,
+          .first = static_cast<std::uint32_t>(SpineDiagnosticKind::kDirtyCount),
+          .second = static_cast<std::uint32_t>(dirty_count_),
+      };
+    case 9:
+      return PartConvWord{
+          .kind = PartConvWordKind::kDiagnostic,
+          .first =
+              static_cast<std::uint32_t>(SpineDiagnosticKind::kDirtyGeneration),
+          .second = dirty_generation_,
+      };
+    default:
+      throw std::logic_error("reader diagnostic index is out of range");
+  }
+}
+
 PartConvWord SpineSplitReader::current_stream_word() const {
   switch (phase_) {
     case Phase::kRequestSourceWindow:
@@ -1163,8 +1283,11 @@ PartConvWord SpineSplitReader::current_stream_word() const {
     case Phase::kTileEnd:
       return PartConvWord{.kind = PartConvWordKind::kTileEnd,
                           .first = tiles_.at(tile_index_).tile_base};
+    case Phase::kDiagnostic:
+      return current_diagnostic_word();
     case Phase::kDone:
-      return PartConvWord{.kind = PartConvWordKind::kDoneAll};
+      return PartConvWord{.kind = PartConvWordKind::kDoneAll,
+                          .second = terminal_overflow_ ? 1U : 0U};
     default:
       throw std::logic_error("reader phase does not produce a stream word");
   }
@@ -1193,24 +1316,26 @@ void SpineSplitReader::advance(const CycleContext &context) {
       return;
     case Phase::kSourceHeaderResolve: {
       validate_control();
-      if (failed_) {
+      if (terminal_pending_) {
         return;
       }
       if (mode_ == SpineReaderMode::kDeviceDirty) {
         if (dirty_count_ > maintenance_.config().max_vertices) {
           counters_.range_task_path = kRangeTaskPathError;
-          counters_.range_task_error = kRangeTaskErrorMetadata;
-          failed_ = true;
-          done_ = true;
-          failure_ = "dirty frontier count exceeds MAX_N";
+          counters_.range_task_error = kRangeTaskErrorDirtyState;
+          counters_.dirty_status =
+              static_cast<std::uint32_t>(SpineDirtyStatus::kInvalidState);
+          begin_terminal(true, "dirty frontier count exceeds MAX_N");
           return;
         }
         if (dirty_count_ > 4096) {
           counters_.range_task_path = kRangeTaskPathFallback;
-          counters_.range_task_fallback_reason = 4;
-          failed_ = true;
-          done_ = true;
-          failure_ = "device dirty frontier requires host-active fallback";
+          counters_.range_task_fallback_reason =
+              kRangeTaskFallbackDirtyRequiresHost;
+          counters_.dirty_status =
+              static_cast<std::uint32_t>(SpineDirtyStatus::kRequiresHost);
+          begin_terminal(
+              true, "device dirty frontier requires host-active fallback");
           return;
         }
         active_sources_.assign(static_cast<std::size_t>(dirty_count_), 0);
@@ -1233,9 +1358,8 @@ void SpineSplitReader::advance(const CycleContext &context) {
               total > maintenance_.config().max_vertices - count) {
             counters_.range_task_path = kRangeTaskPathError;
             counters_.range_task_error = kRangeTaskErrorActiveBounds;
-            failed_ = true;
-            done_ = true;
-            failure_ = "host active-bin metadata exceeds MAX_ACTIVE";
+            begin_terminal(true,
+                           "host active-bin metadata exceeds MAX_ACTIVE");
             return;
           }
           total += count;
@@ -1248,9 +1372,8 @@ void SpineSplitReader::advance(const CycleContext &context) {
         if (total > kRangeTaskActiveGate) {
           counters_.range_task_path = kRangeTaskPathFallback;
           counters_.range_task_fallback_reason = kRangeTaskFallbackActiveGate;
-          failed_ = true;
-          done_ = true;
-          failure_ = "host active records exceeded the exact-task gate";
+          begin_terminal(true,
+                         "host active records exceeded the exact-task gate");
           return;
         }
         phase_ = Phase::kHostActiveResolve;
@@ -1282,10 +1405,10 @@ void SpineSplitReader::advance(const CycleContext &context) {
       if (!dirty_payload_valid_ || hash_sum != dirty_hash_sum_ ||
           hash_xor != dirty_hash_xor_) {
         counters_.range_task_path = kRangeTaskPathError;
-        counters_.range_task_error = kRangeTaskErrorMetadata;
-        failed_ = true;
-        done_ = true;
-        failure_ = "dirty list/bitmap/hash payloads disagree";
+        counters_.range_task_error = kRangeTaskErrorDirtyState;
+        counters_.dirty_status =
+            static_cast<std::uint32_t>(SpineDirtyStatus::kInvalidState);
+        begin_terminal(true, "dirty list/bitmap/hash payloads disagree");
         return;
       }
       source_request_index_ = 0;
@@ -1306,9 +1429,8 @@ void SpineSplitReader::advance(const CycleContext &context) {
             record.source >= maintenance_.config().max_vertices) {
           counters_.range_task_path = kRangeTaskPathError;
           counters_.range_task_error = kRangeTaskErrorActiveBounds;
-          failed_ = true;
-          done_ = true;
-          failure_ = "active-record payload source exceeds the graph";
+          begin_terminal(true,
+                         "active-record payload source exceeds the graph");
           return;
         }
       }
@@ -1325,7 +1447,7 @@ void SpineSplitReader::advance(const CycleContext &context) {
     case Phase::kSetupReads:
       finalize_level_cache();
       prepare_range_probes();
-      if (failed_) {
+      if (terminal_pending_) {
         return;
       }
       bin_index_ = 0;
@@ -1403,18 +1525,15 @@ void SpineSplitReader::advance(const CycleContext &context) {
       if (next > range_tasks_.size() || next > kRangeTaskCapacity) {
         counters_.range_task_path = kRangeTaskPathError;
         counters_.range_task_error = kRangeTaskErrorPrefix;
-        failed_ = true;
-        done_ = true;
-        failure_ = "range-task prefix sum exceeded the task count";
+        begin_terminal(true,
+                       "range-task prefix sum exceeded the task count");
         return;
       }
       if (bin_index_ == kRangeTaskMaxTiles) {
         if (next != range_tasks_.size()) {
           counters_.range_task_path = kRangeTaskPathError;
           counters_.range_task_error = kRangeTaskErrorPrefix;
-          failed_ = true;
-          done_ = true;
-          failure_ = "range-task prefix sum did not close";
+          begin_terminal(true, "range-task prefix sum did not close");
           return;
         }
         scatter_index_ = 0;
@@ -1432,9 +1551,8 @@ void SpineSplitReader::advance(const CycleContext &context) {
         if (task.tile >= kRangeTaskMaxTiles) {
           counters_.range_task_path = kRangeTaskPathError;
           counters_.range_task_error = kRangeTaskErrorDescriptor;
-          failed_ = true;
-          done_ = true;
-          failure_ = "range-task scatter received an invalid tile";
+          begin_terminal(true,
+                         "range-task scatter received an invalid tile");
           return;
         }
         const std::uint32_t limit =
@@ -1443,9 +1561,8 @@ void SpineSplitReader::advance(const CycleContext &context) {
             tile_cursors_[task.tile] >= kRangeTaskCapacity) {
           counters_.range_task_path = kRangeTaskPathError;
           counters_.range_task_error = kRangeTaskErrorPrefix;
-          failed_ = true;
-          done_ = true;
-          failure_ = "range-task scatter cursor exceeded its tile bin";
+          begin_terminal(
+              true, "range-task scatter cursor exceeded its tile bin");
           return;
         }
         tiles_[task.tile].ranges.push_back(task);
@@ -1460,9 +1577,8 @@ void SpineSplitReader::advance(const CycleContext &context) {
           tiles_[bin_index_].ranges.size() != tile_counts_[bin_index_]) {
         counters_.range_task_path = kRangeTaskPathError;
         counters_.range_task_error = kRangeTaskErrorPrefix;
-        failed_ = true;
-        done_ = true;
-        failure_ = "range-task tile cursor verification failed";
+        begin_terminal(true,
+                       "range-task tile cursor verification failed");
         return;
       }
       ++counters_.range_task_verify_cycles;
@@ -1475,7 +1591,7 @@ void SpineSplitReader::advance(const CycleContext &context) {
       return;
     case Phase::kTileScan:
       if (tile_index_ == tiles_.size()) {
-        phase_ = Phase::kDone;
+        begin_terminal(false);
       } else if (tiles_[tile_index_].ranges.empty()) {
         ++tile_index_;
       } else {
@@ -1497,9 +1613,8 @@ void SpineSplitReader::advance(const CycleContext &context) {
       if (range.graph_bank >= ports_.graph.size() || range.length == 0) {
         counters_.range_task_path = kRangeTaskPathError;
         counters_.range_task_error = kRangeTaskErrorDescriptor;
-        failed_ = true;
-        done_ = true;
-        failure_ = "range-task replay received an invalid descriptor";
+        begin_terminal(true,
+                       "range-task replay received an invalid descriptor");
         return;
       }
       enqueue_read(
@@ -1519,6 +1634,7 @@ void SpineSplitReader::advance(const CycleContext &context) {
     case Phase::kTileBegin:
     case Phase::kEdgeEmit:
     case Phase::kTileEnd:
+    case Phase::kDiagnostic:
     case Phase::kDone:
       return;
   }
@@ -1782,6 +1898,44 @@ void SpineSplitSsspCompute::handle_edge_word(const PartConvWord &word) {
           static_cast<std::uint32_t>(SpineSourceProtocolStatus::kOk);
       phase_ = Phase::kSourceReply;
       return;
+    case PartConvWordKind::kDiagnostic:
+      ++counters_.diagnostic_words;
+      switch (static_cast<SpineDiagnosticKind>(word.first)) {
+        case SpineDiagnosticKind::kTaskStatus:
+          counters_.range_task_path = word.second & 0xffU;
+          counters_.range_task_fallback_reason = (word.second >> 8) & 0xffU;
+          counters_.range_task_error = (word.second >> 16) & 0xffU;
+          return;
+        case SpineDiagnosticKind::kTaskCount:
+          counters_.range_task_count = word.second;
+          return;
+        case SpineDiagnosticKind::kTaskRowLookups:
+          counters_.range_task_row_lookups = word.second;
+          return;
+        case SpineDiagnosticKind::kTaskConstructionPayloads:
+          counters_.range_task_construction_payloads = word.second;
+          return;
+        case SpineDiagnosticKind::kTaskReplayPayloads:
+          counters_.range_task_replay_payloads = word.second;
+          return;
+        case SpineDiagnosticKind::kTaskActiveRecords:
+          counters_.range_task_active_records = word.second;
+          return;
+        case SpineDiagnosticKind::kTaskFamilyProbes:
+          counters_.range_task_family_probes = word.second;
+          return;
+        case SpineDiagnosticKind::kTaskFamilySkips:
+          counters_.range_task_family_skips = word.second;
+          return;
+        case SpineDiagnosticKind::kDirtyCount:
+          counters_.dirty_count = word.second;
+          return;
+        case SpineDiagnosticKind::kDirtyGeneration:
+          counters_.dirty_generation = word.second;
+          return;
+      }
+      source_protocol_overflow_ = true;
+      return;
     case PartConvWordKind::kTileBegin:
       if (tile_open_ || word.first >= vertices_) {
         failed_ = true;
@@ -1850,7 +2004,10 @@ void SpineSplitSsspCompute::handle_edge_word(const PartConvWord &word) {
                      std::vector<std::uint8_t>(8, 0));
       enqueue_memory(*ports_.result, MemoryOperation::kWrite, 0, kResultBytes,
                      std::vector<std::uint8_t>(kResultBytes, 0));
-      source_protocol_overflow_ = source_protocol_overflow_ || word.second != 0;
+      ++counters_.done_words;
+      counters_.done_overflow = (word.second & 1U) != 0;
+      source_protocol_overflow_ =
+          source_protocol_overflow_ || counters_.done_overflow;
       phase_ = Phase::kFinish;
       return;
   }

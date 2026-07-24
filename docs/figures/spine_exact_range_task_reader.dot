@@ -52,7 +52,7 @@ digraph SpineExactRangeTaskReader {
     label="Tile replay and compute handoff"; color="#9B7A25"; style="rounded,filled"; fillcolor="#FFF7DF";
     tileloop [label="Scan 256 tile bins"];
     read2 [label="HBM edge payload scan #2\nvalidate expected tile"];
-    axis [label="Finite PartConv AXIS FIFO\nTILE_BEGIN | EDGE | TILE_END | DONE"];
+    axis [label="Finite PartConv AXIS FIFO\nTILE_BEGIN | EDGE | TILE_END\n10 diagnostics | DONE_ALL(overflow)"];
     compute [label="Spine compute CU\ntiny/full tile path"];
     tileloop -> read2 -> axis -> compute;
   }
@@ -63,7 +63,7 @@ digraph SpineExactRangeTaskReader {
   desc -> unsorted;
   binned -> tileloop;
 
-  protocol_gap [label="Remaining protocol/timing gaps\ndiagnostics + dirty ownership ACK\nfallback execution + pipelined AXI\nURAM/BRAM bank conflicts", color="#A86A45", fillcolor="#FFF3E8", style="rounded,filled,dashed"];
+  protocol_gap [label="Remaining protocol/timing gaps\ndirty ownership ACK + host coverage\nfallback execution + pipelined AXI\nURAM/BRAM bank conflicts", color="#A86A45", fillcolor="#FFF3E8", style="rounded,filled,dashed"];
   protocol_gap -> source_axis [style=dashed, arrowhead=none];
   protocol_gap -> unsorted [style=dashed, arrowhead=none];
 }

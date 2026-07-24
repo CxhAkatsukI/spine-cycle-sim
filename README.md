@@ -142,3 +142,7 @@ routing effects, or total ASIC area/power. It is structural,
 execution-driven evidence, not yet a hardware-cycle-calibrated replacement for
 hw/hw_emu. The exact acceptance and remaining-gap matrix is in
 [`docs/fine_grained_spine_phase2_acceptance_20260723.md`](docs/fine_grained_spine_phase2_acceptance_20260723.md).
+The current payload-authoritative reader protocol is documented in
+[`docs/spine_source_value_protocol_20260724.md`](docs/spine_source_value_protocol_20260724.md)
+and
+[`docs/spine_terminal_diagnostics_20260724.md`](docs/spine_terminal_diagnostics_20260724.md).

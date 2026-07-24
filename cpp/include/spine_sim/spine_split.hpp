@@ -23,6 +23,7 @@ enum class PartConvWordKind {
   kTileBegin,
   kEdge,
   kTileEnd,
+  kDiagnostic,
   kDoneAll,
 };
 
@@ -41,6 +42,20 @@ struct SourceValueWord {
 };
 
 inline constexpr std::size_t kSpineDirtyRequestWindow = 16;
+inline constexpr std::size_t kSpineReaderDiagnosticWords = 10;
+
+enum class SpineDiagnosticKind : std::uint32_t {
+  kTaskStatus = 0xfffffff3U,
+  kTaskCount = 0xfffffff4U,
+  kTaskRowLookups = 0xfffffff5U,
+  kTaskConstructionPayloads = 0xfffffff6U,
+  kTaskReplayPayloads = 0xfffffff7U,
+  kTaskActiveRecords = 0xfffffff8U,
+  kTaskFamilyProbes = 0xfffffff9U,
+  kTaskFamilySkips = 0xfffffffaU,
+  kDirtyCount = 0xfffffffbU,
+  kDirtyGeneration = 0xfffffffcU,
+};
 
 enum class SpineDirtyStatus : std::uint32_t {
   kOk = 0,
@@ -73,6 +88,9 @@ struct SpineReaderCounters {
   std::uint64_t source_protocol_acks{};
   std::uint32_t source_protocol_status{};
   std::uint32_t dirty_status{};
+  std::uint64_t diagnostic_words{};
+  std::uint64_t done_words{};
+  bool done_overflow{};
   std::uint64_t active_bin_read_bytes{};
   std::uint64_t dirty_list_read_bytes{};
   std::uint64_t dirty_bitmap_read_bytes{};
@@ -255,6 +273,7 @@ class SpineSplitReader final : public Component {
     kEdgeRead,
     kEdgeEmit,
     kTileEnd,
+    kDiagnostic,
     kDone,
   };
 
@@ -283,7 +302,9 @@ class SpineSplitReader final : public Component {
   void consume_memory_response(const MemoryTask &task,
                                const AxiResponse &response);
   void reset_state();
+  void begin_terminal(bool overflow, std::string failure = {});
   [[nodiscard]] PartConvWord current_stream_word() const;
+  [[nodiscard]] PartConvWord current_diagnostic_word() const;
 
   const SpineL0Maintenance &maintenance_;
   SpineReaderPorts ports_;
@@ -335,9 +356,13 @@ class SpineSplitReader final : public Component {
   std::size_t source_request_index_{};
   std::size_t source_response_index_{};
   std::size_t source_window_end_{};
+  std::size_t diagnostic_index_{};
   std::uint64_t next_transaction_id_{};
   std::uint64_t expected_transaction_id_{};
   bool waiting_memory_{};
+  bool terminal_pending_{};
+  bool terminal_overflow_{};
+  bool terminal_failed_{};
   bool done_{};
   bool failed_{};
   std::string failure_;
@@ -353,6 +378,21 @@ struct SpineComputeCounters {
   std::uint32_t source_protocol_status{};
   std::uint32_t source_count{};
   std::uint32_t source_generation{};
+  std::uint64_t diagnostic_words{};
+  std::uint64_t done_words{};
+  bool done_overflow{};
+  std::uint32_t range_task_path{};
+  std::uint32_t range_task_fallback_reason{};
+  std::uint32_t range_task_error{};
+  std::uint64_t range_task_count{};
+  std::uint64_t range_task_row_lookups{};
+  std::uint64_t range_task_construction_payloads{};
+  std::uint64_t range_task_replay_payloads{};
+  std::uint64_t range_task_active_records{};
+  std::uint64_t range_task_family_probes{};
+  std::uint64_t range_task_family_skips{};
+  std::uint32_t dirty_count{};
+  std::uint32_t dirty_generation{};
   std::uint64_t touched_tiles{};
   std::uint64_t fast_path_tiles{};
   std::uint64_t full_path_tiles{};

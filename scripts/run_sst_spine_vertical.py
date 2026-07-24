@@ -27,6 +27,83 @@ DEFAULT_PROTOCOL_WORKLOAD = (
 PROFILE_PATH = ROOT / "configs" / "architectures" / "spine_shared_engine_9c08763.json"
 
 
+def diagnostic_transcript_matches(result: dict[str, Any]) -> bool:
+    field_pairs = (
+        ("reader_range_path", "compute_range_path"),
+        ("reader_range_fallback_reason", "compute_range_fallback_reason"),
+        ("reader_range_error", "compute_range_error"),
+        ("reader_range_tasks", "compute_range_tasks"),
+        ("reader_range_row_lookups", "compute_range_row_lookups"),
+        (
+            "reader_range_construction_payloads",
+            "compute_range_construction_payloads",
+        ),
+        ("reader_range_replay_payloads", "compute_range_replay_payloads"),
+        ("reader_range_active_records", "compute_range_active_records"),
+        ("reader_range_family_probes", "compute_range_family_probes"),
+        ("reader_range_family_skips", "compute_range_family_skips"),
+    )
+    return (
+        result.get("reader_diagnostic_words") == 10
+        and result.get("reader_done_words") == 1
+        and result.get("reader_done_overflow") == 0
+        and result.get("compute_diagnostic_words") == 10
+        and result.get("compute_done_words") == 1
+        and result.get("compute_done_overflow") == 0
+        and result.get("compute_dirty_count") == result.get("reader_source_requests")
+        and result.get("compute_dirty_generation") == 1
+        and all(result.get(reader) == result.get(compute) for reader, compute in field_pairs)
+    )
+
+
+def multiround_diagnostic_transcript_matches(result: dict[str, Any]) -> bool:
+    rounds = result.get("rounds")
+    if not isinstance(rounds, int):
+        return False
+    field_pairs = (
+        ("reader_range_paths_per_round", "compute_range_paths_per_round"),
+        (
+            "reader_range_fallback_reasons_per_round",
+            "compute_range_fallback_reasons_per_round",
+        ),
+        ("reader_range_errors_per_round", "compute_range_errors_per_round"),
+        ("reader_range_tasks_per_round", "compute_range_tasks_per_round"),
+        (
+            "reader_range_row_lookups_per_round",
+            "compute_range_row_lookups_per_round",
+        ),
+        (
+            "reader_range_construction_payloads_per_round",
+            "compute_range_construction_payloads_per_round",
+        ),
+        (
+            "reader_range_replay_payloads_per_round",
+            "compute_range_replay_payloads_per_round",
+        ),
+        (
+            "reader_range_active_records_per_round",
+            "compute_range_active_records_per_round",
+        ),
+        (
+            "reader_range_family_probes_per_round",
+            "compute_range_family_probes_per_round",
+        ),
+        (
+            "reader_range_family_skips_per_round",
+            "compute_range_family_skips_per_round",
+        ),
+    )
+    return (
+        result.get("reader_diagnostic_words_per_round") == [10] * rounds
+        and result.get("reader_done_words_per_round") == [1] * rounds
+        and result.get("reader_done_overflow_per_round") == [0] * rounds
+        and result.get("compute_diagnostic_words_per_round") == [10] * rounds
+        and result.get("compute_done_words_per_round") == [1] * rounds
+        and result.get("compute_done_overflow_per_round") == [0] * rounds
+        and all(result.get(reader) == result.get(compute) for reader, compute in field_pairs)
+    )
+
+
 def collect_dram_stats(out_dir: Path) -> dict[str, int | float]:
     totals: dict[str, int | float] = {
         "dram_channels": 0,
@@ -123,12 +200,13 @@ def validate_result(
         and result.get("compute_protocol_markers") == 3
         and result.get("compute_protocol_acks") == 1
         and result.get("compute_protocol_status") == 0,
+        "diagnostic_transcript": diagnostic_transcript_matches(result),
         "reader_epochs": result.get("reader_page_epoch_misses") == 0,
         "reader_levels": result.get("reader_occupied_levels") == 1,
         "compute_fast_tiles": result.get("compute_fast_tiles") == 5,
         "compute_no_full_tiles": result.get("compute_full_tiles") == 0,
         "compute_edges": result.get("compute_processed_edges") == 10,
-        "axis_transfers": result.get("edge_axis_transfers") == 25
+        "axis_transfers": result.get("edge_axis_transfers") == 35
         and result.get("value_axis_transfers") == 2,
         "axis_capacity": 0 <= result.get("edge_axis_max_occupancy", -1) <= 32,
         "dram_matches_backend": int(dram.get("dram_reads", 0))
@@ -212,6 +290,7 @@ def validate_carry_hot_result(
         and result.get("compute_protocol_markers") == 3
         and result.get("compute_protocol_acks") == 1
         and result.get("compute_protocol_status") == 0,
+        "diagnostic_transcript": diagnostic_transcript_matches(result),
         "reader_epochs": result.get("reader_page_epoch_misses") == 0,
         "reader_levels": result.get("reader_occupied_levels") == 2,
         "reader_partitioning": result.get("reader_cold_edges") == 2
@@ -219,7 +298,7 @@ def validate_carry_hot_result(
         "compute_fast_tiles": result.get("compute_fast_tiles") == 1,
         "compute_no_full_tiles": result.get("compute_full_tiles") == 0,
         "compute_edges": result.get("compute_processed_edges") == 3,
-        "axis_transfers": result.get("edge_axis_transfers") == 10
+        "axis_transfers": result.get("edge_axis_transfers") == 20
         and result.get("value_axis_transfers") == 2,
         "axis_capacity": 0 <= result.get("edge_axis_max_occupancy", -1) <= 32,
         "dram_matches_backend": int(dram.get("dram_reads", 0))
@@ -319,9 +398,12 @@ def validate_multiround_sssp_result(
         == [80, 0, 0, 0, 0, 0]
         and result.get("reader_active_bin_bytes_per_round")
         == [0, 64, 64, 64, 32, 0],
+        "round_diagnostic_transcript": multiround_diagnostic_transcript_matches(
+            result
+        ),
         "round_epochs": result.get("reader_epoch_misses_per_round") == [0] * 6,
         "round_axis_protocol": result.get("edge_axis_transfers_per_round")
-        == [19, 6, 5, 5, 4, 1]
+        == [29, 16, 15, 15, 14, 11]
         and result.get("value_axis_transfers_per_round") == [6, 0, 0, 0, 0, 0]
         and all(
             occupancy <= 32
@@ -387,7 +469,8 @@ def validate_protocol_window_result(
         "compute_protocol": result.get("compute_protocol_markers") == 3
         and result.get("compute_protocol_acks") == 1
         and result.get("compute_protocol_status") == 0,
-        "axis_transcript": result.get("edge_axis_transfers") == 40
+        "diagnostic_transcript": diagnostic_transcript_matches(result),
+        "axis_transcript": result.get("edge_axis_transfers") == 50
         and result.get("value_axis_transfers") == 18
         and 1 < result.get("edge_axis_max_occupancy", 0) <= 32
         and 0 < result.get("value_axis_max_occupancy", 0) <= 32,

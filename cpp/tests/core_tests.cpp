@@ -815,7 +815,10 @@ void test_spine_l0_real_slice_vertical_path() {
               reader_counters.source_protocol_markers == 3 &&
               reader_counters.source_protocol_acks == 1 &&
               reader_counters.source_protocol_status == 0 &&
-              reader_counters.dirty_status == 0,
+              reader_counters.dirty_status == 0 &&
+              reader_counters.diagnostic_words == 10 &&
+              reader_counters.done_words == 1 &&
+              !reader_counters.done_overflow,
           "Spine source-value protocol did not close");
   require(
       reader_counters.tiles_emitted == 5 && reader_counters.edges_emitted == 10,
@@ -855,7 +858,28 @@ void test_spine_l0_real_slice_vertical_path() {
               compute_counters.source_protocol_acks == 1 &&
               compute_counters.source_protocol_status == 0 &&
               compute_counters.source_count == 1 &&
-              compute_counters.source_generation == 1,
+              compute_counters.source_generation == 1 &&
+              compute_counters.diagnostic_words == 10 &&
+              compute_counters.done_words == 1 &&
+              !compute_counters.done_overflow &&
+              compute_counters.range_task_path ==
+                  reader_counters.range_task_path &&
+              compute_counters.range_task_count ==
+                  reader_counters.range_task_count &&
+              compute_counters.range_task_row_lookups ==
+                  reader_counters.range_task_row_lookups &&
+              compute_counters.range_task_construction_payloads ==
+                  reader_counters.range_task_construction_payloads &&
+              compute_counters.range_task_replay_payloads ==
+                  reader_counters.range_task_replay_payloads &&
+              compute_counters.range_task_active_records ==
+                  reader_counters.range_task_active_records &&
+              compute_counters.range_task_family_probes ==
+                  reader_counters.range_task_family_probes &&
+              compute_counters.range_task_family_skips ==
+                  reader_counters.range_task_family_skips &&
+              compute_counters.dirty_count == 1 &&
+              compute_counters.dirty_generation == 1,
           "Spine compute source protocol ledger mismatch");
   require(compute_counters.touched_tiles == 5 &&
               compute_counters.fast_path_tiles == 5 &&
@@ -877,7 +901,7 @@ void test_spine_l0_real_slice_vertical_path() {
     require(compute.values()[edge.dst] == 1,
             "Spine SSSP result differs from the expected fanout distance");
   }
-  require(edge_stream.stats().pushes == 25 && edge_stream.stats().pops == 25,
+  require(edge_stream.stats().pushes == 35 && edge_stream.stats().pops == 35,
           "Spine forward AXIS transfer count mismatch");
   require(value_stream.stats().pushes == 2 && value_stream.stats().pops == 2,
           "Spine reverse AXIS transfer count mismatch");
@@ -961,13 +985,18 @@ void test_spine_device_dirty_source_request_windows() {
               reader.source_request_windows == 2 &&
               reader.source_protocol_markers == 3 &&
               reader.source_protocol_acks == 1 &&
-              reader.source_protocol_status == 0 && reader.dirty_status == 0,
+              reader.source_protocol_status == 0 && reader.dirty_status == 0 &&
+              reader.diagnostic_words == 10 && reader.done_words == 1 &&
+              !reader.done_overflow,
           "reader did not execute two ordered 16-credit source windows");
   require(compute.source_requests == 17 && compute.source_responses == 17 &&
               compute.source_protocol_markers == 3 &&
               compute.source_protocol_acks == 1 &&
               compute.source_protocol_status == 0 &&
-              compute.source_count == 17 && compute.source_generation == 1,
+              compute.source_count == 17 && compute.source_generation == 1 &&
+              compute.diagnostic_words == 10 && compute.done_words == 1 &&
+              !compute.done_overflow && compute.dirty_count == 17 &&
+              compute.dirty_generation == 1,
           "compute did not validate the 17-source protocol transcript");
   require(system.edge_stream_stats().max_occupancy > 1 &&
               system.edge_stream_stats().max_occupancy <= 32 &&
@@ -1928,6 +1957,7 @@ void test_spine_reader_consumes_graph_edge_payload_from_hbm() {
               ninth_edges[0].first == 2 && ninth_edges[0].second == 17,
           "reader ignored the HBM level edge-offset metadata");
 
+  const std::size_t ninth_run_words = edge_words.values.size();
   metadata.initialize_payload(
       config.metadata_base + metadata_layout.hot_enabled_word *
                                  spine::sim::kSpineMetadataWordBytes,
@@ -1941,6 +1971,23 @@ void test_spine_reader_consumes_graph_edge_payload_from_hbm() {
       50'000);
   require(reader.failed() && reader.counters().range_task_error == 1,
           "reader accepted an invalid metadata control payload");
+  require(edge_words.values.size() ==
+                  ninth_run_words + spine::sim::kSpineReaderDiagnosticWords +
+                      1 &&
+              reader.counters().diagnostic_words == 10 &&
+              reader.counters().done_words == 1 &&
+              reader.counters().done_overflow,
+          "reader error path did not emit the complete terminal transcript");
+  const PartConvWord &status_word = edge_words.values[ninth_run_words];
+  const PartConvWord &done_word = edge_words.values.back();
+  require(status_word.kind == PartConvWordKind::kDiagnostic &&
+              status_word.first == static_cast<std::uint32_t>(
+                                       spine::sim::SpineDiagnosticKind::
+                                           kTaskStatus) &&
+              ((status_word.second >> 16) & 0xffU) == 1 &&
+              done_word.kind == PartConvWordKind::kDoneAll &&
+              done_word.second == 1,
+          "reader error diagnostics or DONE overflow payload mismatch");
 }
 
 void test_spine_maintenance_consumes_sorted_payload_from_hbm() {

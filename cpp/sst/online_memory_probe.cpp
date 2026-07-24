@@ -1066,6 +1066,14 @@ class OnlineMemoryProbe final : public SST::Component {
       std::vector<std::uint64_t> reader_range_tasks;
       std::vector<std::uint64_t> reader_range_row_lookups;
       std::vector<std::uint64_t> reader_range_level_checks;
+      std::vector<std::uint64_t> reader_range_construction_payloads;
+      std::vector<std::uint64_t> reader_range_replay_payloads;
+      std::vector<std::uint64_t> reader_range_active_records;
+      std::vector<std::uint64_t> reader_range_family_probes;
+      std::vector<std::uint64_t> reader_range_family_skips;
+      std::vector<std::uint32_t> reader_range_paths;
+      std::vector<std::uint32_t> reader_range_fallback_reasons;
+      std::vector<std::uint32_t> reader_range_errors;
       std::vector<std::uint64_t> reader_metadata_bytes;
       std::vector<std::uint64_t> reader_active_bin_bytes;
       std::vector<std::uint64_t> reader_dirty_list_bytes;
@@ -1078,6 +1086,24 @@ class OnlineMemoryProbe final : public SST::Component {
       std::vector<std::uint32_t> reader_protocol_status;
       std::vector<std::uint32_t> reader_dirty_status;
       std::vector<std::uint32_t> compute_protocol_status;
+      std::vector<std::uint64_t> reader_diagnostic_words;
+      std::vector<std::uint64_t> reader_done_words;
+      std::vector<std::uint32_t> reader_done_overflow;
+      std::vector<std::uint64_t> compute_diagnostic_words;
+      std::vector<std::uint64_t> compute_done_words;
+      std::vector<std::uint32_t> compute_done_overflow;
+      std::vector<std::uint32_t> compute_range_paths;
+      std::vector<std::uint32_t> compute_range_fallback_reasons;
+      std::vector<std::uint32_t> compute_range_errors;
+      std::vector<std::uint64_t> compute_range_tasks;
+      std::vector<std::uint64_t> compute_range_row_lookups;
+      std::vector<std::uint64_t> compute_range_construction_payloads;
+      std::vector<std::uint64_t> compute_range_replay_payloads;
+      std::vector<std::uint64_t> compute_range_active_records;
+      std::vector<std::uint64_t> compute_range_family_probes;
+      std::vector<std::uint64_t> compute_range_family_skips;
+      std::vector<std::uint32_t> compute_dirty_counts;
+      std::vector<std::uint32_t> compute_dirty_generations;
       std::vector<std::uint64_t> reader_epoch_misses;
       std::vector<std::size_t> reader_source_sizes;
       std::vector<std::uint64_t> fast_tiles;
@@ -1107,6 +1133,20 @@ class OnlineMemoryProbe final : public SST::Component {
         reader_range_row_lookups.push_back(round.reader.range_task_row_lookups);
         reader_range_level_checks.push_back(
             round.reader.range_task_level_checks);
+        reader_range_construction_payloads.push_back(
+            round.reader.range_task_construction_payloads);
+        reader_range_replay_payloads.push_back(
+            round.reader.range_task_replay_payloads);
+        reader_range_active_records.push_back(
+            round.reader.range_task_active_records);
+        reader_range_family_probes.push_back(
+            round.reader.range_task_family_probes);
+        reader_range_family_skips.push_back(
+            round.reader.range_task_family_skips);
+        reader_range_paths.push_back(round.reader.range_task_path);
+        reader_range_fallback_reasons.push_back(
+            round.reader.range_task_fallback_reason);
+        reader_range_errors.push_back(round.reader.range_task_error);
         reader_metadata_bytes.push_back(round.reader.metadata_read_bytes);
         reader_active_bin_bytes.push_back(round.reader.active_bin_read_bytes);
         reader_dirty_list_bytes.push_back(round.reader.dirty_list_read_bytes);
@@ -1122,6 +1162,31 @@ class OnlineMemoryProbe final : public SST::Component {
         reader_dirty_status.push_back(round.reader.dirty_status);
         compute_protocol_status.push_back(
             round.compute.source_protocol_status);
+        reader_diagnostic_words.push_back(round.reader.diagnostic_words);
+        reader_done_words.push_back(round.reader.done_words);
+        reader_done_overflow.push_back(round.reader.done_overflow ? 1U : 0U);
+        compute_diagnostic_words.push_back(round.compute.diagnostic_words);
+        compute_done_words.push_back(round.compute.done_words);
+        compute_done_overflow.push_back(round.compute.done_overflow ? 1U : 0U);
+        compute_range_paths.push_back(round.compute.range_task_path);
+        compute_range_fallback_reasons.push_back(
+            round.compute.range_task_fallback_reason);
+        compute_range_errors.push_back(round.compute.range_task_error);
+        compute_range_tasks.push_back(round.compute.range_task_count);
+        compute_range_row_lookups.push_back(
+            round.compute.range_task_row_lookups);
+        compute_range_construction_payloads.push_back(
+            round.compute.range_task_construction_payloads);
+        compute_range_replay_payloads.push_back(
+            round.compute.range_task_replay_payloads);
+        compute_range_active_records.push_back(
+            round.compute.range_task_active_records);
+        compute_range_family_probes.push_back(
+            round.compute.range_task_family_probes);
+        compute_range_family_skips.push_back(
+            round.compute.range_task_family_skips);
+        compute_dirty_counts.push_back(round.compute.dirty_count);
+        compute_dirty_generations.push_back(round.compute.dirty_generation);
         reader_epoch_misses.push_back(round.reader.graph_index_epoch_misses);
         reader_source_sizes.push_back(round.reader_sources.size());
         fast_tiles.push_back(round.compute.fast_path_tiles);
@@ -1184,6 +1249,22 @@ class OnlineMemoryProbe final : public SST::Component {
       write_json_array(result, reader_range_row_lookups);
       result << ",\n  \"reader_range_level_checks_per_round\": ";
       write_json_array(result, reader_range_level_checks);
+      result << ",\n  \"reader_range_construction_payloads_per_round\": ";
+      write_json_array(result, reader_range_construction_payloads);
+      result << ",\n  \"reader_range_replay_payloads_per_round\": ";
+      write_json_array(result, reader_range_replay_payloads);
+      result << ",\n  \"reader_range_active_records_per_round\": ";
+      write_json_array(result, reader_range_active_records);
+      result << ",\n  \"reader_range_family_probes_per_round\": ";
+      write_json_array(result, reader_range_family_probes);
+      result << ",\n  \"reader_range_family_skips_per_round\": ";
+      write_json_array(result, reader_range_family_skips);
+      result << ",\n  \"reader_range_paths_per_round\": ";
+      write_json_array(result, reader_range_paths);
+      result << ",\n  \"reader_range_fallback_reasons_per_round\": ";
+      write_json_array(result, reader_range_fallback_reasons);
+      result << ",\n  \"reader_range_errors_per_round\": ";
+      write_json_array(result, reader_range_errors);
       result << ",\n  \"reader_metadata_bytes_per_round\": ";
       write_json_array(result, reader_metadata_bytes);
       result << ",\n  \"reader_active_bin_bytes_per_round\": ";
@@ -1208,6 +1289,42 @@ class OnlineMemoryProbe final : public SST::Component {
       write_json_array(result, reader_dirty_status);
       result << ",\n  \"compute_protocol_status_per_round\": ";
       write_json_array(result, compute_protocol_status);
+      result << ",\n  \"reader_diagnostic_words_per_round\": ";
+      write_json_array(result, reader_diagnostic_words);
+      result << ",\n  \"reader_done_words_per_round\": ";
+      write_json_array(result, reader_done_words);
+      result << ",\n  \"reader_done_overflow_per_round\": ";
+      write_json_array(result, reader_done_overflow);
+      result << ",\n  \"compute_diagnostic_words_per_round\": ";
+      write_json_array(result, compute_diagnostic_words);
+      result << ",\n  \"compute_done_words_per_round\": ";
+      write_json_array(result, compute_done_words);
+      result << ",\n  \"compute_done_overflow_per_round\": ";
+      write_json_array(result, compute_done_overflow);
+      result << ",\n  \"compute_range_paths_per_round\": ";
+      write_json_array(result, compute_range_paths);
+      result << ",\n  \"compute_range_fallback_reasons_per_round\": ";
+      write_json_array(result, compute_range_fallback_reasons);
+      result << ",\n  \"compute_range_errors_per_round\": ";
+      write_json_array(result, compute_range_errors);
+      result << ",\n  \"compute_range_tasks_per_round\": ";
+      write_json_array(result, compute_range_tasks);
+      result << ",\n  \"compute_range_row_lookups_per_round\": ";
+      write_json_array(result, compute_range_row_lookups);
+      result << ",\n  \"compute_range_construction_payloads_per_round\": ";
+      write_json_array(result, compute_range_construction_payloads);
+      result << ",\n  \"compute_range_replay_payloads_per_round\": ";
+      write_json_array(result, compute_range_replay_payloads);
+      result << ",\n  \"compute_range_active_records_per_round\": ";
+      write_json_array(result, compute_range_active_records);
+      result << ",\n  \"compute_range_family_probes_per_round\": ";
+      write_json_array(result, compute_range_family_probes);
+      result << ",\n  \"compute_range_family_skips_per_round\": ";
+      write_json_array(result, compute_range_family_skips);
+      result << ",\n  \"compute_dirty_counts_per_round\": ";
+      write_json_array(result, compute_dirty_counts);
+      result << ",\n  \"compute_dirty_generations_per_round\": ";
+      write_json_array(result, compute_dirty_generations);
       result << ",\n  \"reader_epoch_misses_per_round\": ";
       write_json_array(result, reader_epoch_misses);
       result << ",\n  \"reader_source_sizes_per_round\": ";
@@ -1377,12 +1494,42 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"reader_protocol_status\": "
           << reader.source_protocol_status << ",\n"
           << "  \"reader_dirty_status\": " << reader.dirty_status << ",\n"
+          << "  \"reader_diagnostic_words\": " << reader.diagnostic_words
+          << ",\n"
+          << "  \"reader_done_words\": " << reader.done_words << ",\n"
+          << "  \"reader_done_overflow\": "
+          << (reader.done_overflow ? 1 : 0) << ",\n"
           << "  \"compute_protocol_markers\": "
           << compute.source_protocol_markers << ",\n"
           << "  \"compute_protocol_acks\": "
           << compute.source_protocol_acks << ",\n"
           << "  \"compute_protocol_status\": "
           << compute.source_protocol_status << ",\n"
+          << "  \"compute_diagnostic_words\": " << compute.diagnostic_words
+          << ",\n"
+          << "  \"compute_done_words\": " << compute.done_words << ",\n"
+          << "  \"compute_done_overflow\": "
+          << (compute.done_overflow ? 1 : 0) << ",\n"
+          << "  \"compute_range_path\": " << compute.range_task_path << ",\n"
+          << "  \"compute_range_fallback_reason\": "
+          << compute.range_task_fallback_reason << ",\n"
+          << "  \"compute_range_error\": " << compute.range_task_error << ",\n"
+          << "  \"compute_range_tasks\": " << compute.range_task_count << ",\n"
+          << "  \"compute_range_row_lookups\": "
+          << compute.range_task_row_lookups << ",\n"
+          << "  \"compute_range_construction_payloads\": "
+          << compute.range_task_construction_payloads << ",\n"
+          << "  \"compute_range_replay_payloads\": "
+          << compute.range_task_replay_payloads << ",\n"
+          << "  \"compute_range_active_records\": "
+          << compute.range_task_active_records << ",\n"
+          << "  \"compute_range_family_probes\": "
+          << compute.range_task_family_probes << ",\n"
+          << "  \"compute_range_family_skips\": "
+          << compute.range_task_family_skips << ",\n"
+          << "  \"compute_dirty_count\": " << compute.dirty_count << ",\n"
+          << "  \"compute_dirty_generation\": " << compute.dirty_generation
+          << ",\n"
           << "  \"reader_page_epoch_misses\": "
           << reader.graph_index_epoch_misses << ",\n"
           << "  \"reader_occupied_levels\": " << reader.occupied_levels << ",\n"
