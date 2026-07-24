@@ -167,3 +167,6 @@ duplicate suppression, and metadata lifecycle are documented in
 The request-driven carry new-batch scan, lower-level head/lookahead buffering,
 winner refill stalls, and remaining cursor/writer boundary are documented in
 [`docs/spine_carry_refill_pipeline_20260724.md`](docs/spine_carry_refill_pipeline_20260724.md).
+The persistent packed page-list count/ID ABI, lower-level retirement, and
+metadata traffic evidence are documented in
+[`docs/spine_page_list_metadata_20260724.md`](docs/spine_page_list_metadata_20260724.md).

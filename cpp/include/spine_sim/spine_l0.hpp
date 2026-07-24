@@ -219,6 +219,8 @@ struct SpineL0Counters {
   std::uint64_t graph_write_bytes{};
   std::uint64_t graph_index_payload_write_bytes{};
   std::uint64_t graph_edge_payload_write_bytes{};
+  std::uint64_t page_list_payload_write_bytes{};
+  std::uint64_t page_list_count_write_bytes{};
   std::uint64_t result_write_bytes{};
   std::uint64_t unique_sources{};
   std::uint64_t dirty_bitmap_reads{};
@@ -445,6 +447,8 @@ class SpineL0Maintenance final : public Component {
   std::array<std::vector<SpineEdgeRecord>, 16> hot_family_outputs_;
   std::array<std::array<std::uint32_t, kSpineLevelCount>, kSpineFamilyCount>
       slice_epochs_{};
+  std::array<std::array<std::uint32_t, kSpineLevelCount>, kSpineFamilyCount>
+      page_list_counts_{};
   std::unordered_map<std::uint64_t, std::uint32_t> page_epochs_;
   std::vector<FamilyWriteTask> family_write_tasks_;
   std::deque<MemoryTask> tasks_;

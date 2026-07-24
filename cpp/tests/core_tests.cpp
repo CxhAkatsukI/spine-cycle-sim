@@ -75,6 +75,7 @@ using spine::sim::SpineL0Maintenance;
 using spine::sim::SpineL0Ports;
 using spine::sim::SpineL0State;
 using spine::sim::SpineLevelLayout;
+using spine::sim::SpineMetadataLayout;
 using spine::sim::SpineReaderCounters;
 using spine::sim::SpineReaderPorts;
 using spine::sim::SpineSplitReader;
@@ -918,7 +919,11 @@ void test_spine_l0_real_slice_vertical_path() {
               counters.graph_edge_payload_write_bytes == 80,
           "Spine L0 graph write payload ledger mismatch");
   require(counters.metadata_read_bytes == 2'984 &&
-              counters.metadata_write_bytes == 1'224,
+              counters.page_list_payload_write_bytes == 8 &&
+              counters.page_list_count_write_bytes > 0 &&
+              counters.metadata_write_bytes ==
+                  1'224 + counters.page_list_payload_write_bytes +
+                      counters.page_list_count_write_bytes,
           "Spine L0 metadata byte ledger mismatch");
   require(counters.result_write_bytes == 384,
           "Spine maintenance result byte count mismatch");
@@ -2912,15 +2917,29 @@ void test_spine_carry_merge_consumes_level_payload_from_hbm() {
 
   SpineL0State state;
   state.cold_levels[0][0] = {
-      SpineEdgeRecord{.src = 0, .dst = 1, .weight = 5, .diff = 1}};
+      SpineEdgeRecord{.src = 256, .dst = 1, .weight = 5, .diff = 1}};
   SpineEdgeSlice batch{
-      .vertices = 128,
-      .edges = {SpineEdgeRecord{.src = 0, .dst = 2, .weight = 3, .diff = 1}},
+      .vertices = 512,
+      .edges = {
+          SpineEdgeRecord{.src = 256, .dst = 2, .weight = 3, .diff = 1}},
       .case_name = "carry_payload_antibypass",
   };
   SpineL0Maintenance maintenance("carry-payload-maintenance", core,
                                  SpineL0Config{}, std::move(batch), ports,
                                  state);
+  const SpineMetadataLayout metadata_layout =
+      spine_metadata_layout(SpineL0Config{});
+  require(backend.inspect_payload(
+              20,
+              metadata_layout.page_list_count_base *
+                  spine::sim::kSpineMetadataWordBytes,
+              8) == u64_payload(1) &&
+              backend.inspect_payload(
+                  20,
+                  metadata_layout.page_list_base *
+                      spine::sim::kSpineMetadataWordBytes,
+                  8) == u64_payload(1),
+          "preloaded level did not initialize page-list metadata");
   const SpineLevelLayout cold_l0 =
       spine_level_layout(SpineL0Config{}, false, 0);
   graph_ports[0]->initialize_payload(
@@ -2949,13 +2968,34 @@ void test_spine_carry_merge_consumes_level_payload_from_hbm() {
           "carry payload anti-bypass maintenance failed");
   const auto &level = state.cold_levels[0][1];
   require(level.size() == 2 && level[0].dst == 2 && level[0].weight == 3 &&
-              level[1].dst == 4 && level[1].weight == 2,
+              level[0].src == 256 && level[1].dst == 4 &&
+              level[1].weight == 2 && level[1].src == 256,
           "carry merge ignored HBM level payload and used logical level state");
   require(maintenance.counters().carry_level_payload_reads == 1 &&
               maintenance.counters().carry_level_payload_read_bytes == 8 &&
               maintenance.counters().carry_new_batch_reads == 1 &&
-              maintenance.counters().carry_new_batch_read_bytes == 16,
+              maintenance.counters().carry_new_batch_read_bytes == 16 &&
+              maintenance.counters().page_list_payload_write_bytes == 8 &&
+              maintenance.counters().page_list_count_write_bytes > 0,
           "carry level payload read ledger does not close");
+  const auto count_payload = backend.inspect_payload(
+      20,
+      metadata_layout.page_list_count_base *
+          spine::sim::kSpineMetadataWordBytes,
+      8);
+  const auto list_payload = backend.inspect_payload(
+      20,
+      (metadata_layout.page_list_base +
+       metadata_layout.page_list_words_per_slice) *
+          spine::sim::kSpineMetadataWordBytes,
+      8);
+  std::cout << "EVIDENCE spine_page_list count_lane4="
+            << static_cast<unsigned>(count_payload[4])
+            << " first_page=" << static_cast<unsigned>(list_payload[0])
+            << '\n';
+  require(count_payload == u64_payload(1ULL << 32) &&
+              list_payload == u64_payload(1),
+          "carry commit did not publish target page-list count and page ID");
 }
 
 void test_spine_hls_metadata_and_active_record_abi() {

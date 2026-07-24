@@ -1,0 +1,23 @@
+digraph page_list_metadata {
+  graph [rankdir=LR, bgcolor="white", pad=0.25, nodesep=0.35, ranksep=0.55];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=10,
+        color="#334155", fillcolor="#f8fafc", margin="0.12,0.08"];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#475569"];
+
+  sources [label="Sorted output sources\nunique source pages", fillcolor="#dbeafe"];
+  ids [label="Page-list payload\n4 x uint16 / 64-bit word", fillcolor="#dcfce7"];
+  counts [label="Page-list counts\n2 x uint32 / 64-bit word", fillcolor="#fef3c7"];
+  axi [label="Finite metadata AXI\nHBM20 + SST/DRAMSim3", fillcolor="#fde68a"];
+  target [label="Target family/level\ncount > 0"];
+  lower [label="Retired lower levels\ncount = 0", fillcolor="#e2e8f0"];
+  cursor [label="Carry cursor consumer\nnext milestone", style="rounded,filled,dashed",
+          fillcolor="#fee2e2"];
+
+  sources -> ids [label="ascending page IDs"];
+  sources -> counts [label="page count"];
+  ids -> axi;
+  counts -> axi;
+  axi -> target;
+  axi -> lower;
+  target -> cursor [label="authoritative metadata"];
+}

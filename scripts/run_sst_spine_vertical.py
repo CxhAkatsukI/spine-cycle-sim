@@ -223,6 +223,11 @@ def validate_result(
             "maintenance_graph_payload_write_bytes"
         )
         == 80,
+        "maintenance_page_list": result.get(
+            "maintenance_page_list_payload_write_bytes"
+        )
+        == 8
+        and result.get("maintenance_page_list_count_write_bytes") == 128,
         "reader_graph_index_payload": result.get(
             "reader_graph_index_payload_bytes"
         )
@@ -328,6 +333,11 @@ def validate_carry_hot_result(
             "maintenance_graph_payload_write_bytes"
         )
         == 24,
+        "maintenance_page_list": result.get(
+            "maintenance_page_list_payload_write_bytes"
+        )
+        == 16
+        and result.get("maintenance_page_list_count_write_bytes") == 320,
         "reader_graph_index_payload": result.get(
             "reader_graph_index_payload_bytes"
         )
@@ -520,6 +530,11 @@ def validate_multiround_sssp_result(
             "maintenance_graph_index_payload_write_bytes", 0
         )
         > 0,
+        "maintenance_page_list": result.get(
+            "maintenance_page_list_payload_write_bytes"
+        )
+        == 8
+        and result.get("maintenance_page_list_count_write_bytes") == 128,
         "reader_graph_index_payload": result.get(
             "reader_graph_index_payload_bytes_per_round"
         )

@@ -157,6 +157,24 @@ std::vector<std::uint8_t> encode_u32_lanes(
   return data;
 }
 
+std::vector<std::uint8_t> encode_u16_lanes(
+    const std::vector<std::uint32_t> &values) {
+  std::vector<std::uint8_t> data;
+  data.reserve(((values.size() + 3) / 4) * kMetadataWordBytes);
+  for (std::size_t base = 0; base < values.size(); base += 4) {
+    std::uint64_t packed = 0;
+    for (std::size_t lane = 0; lane < 4 && base + lane < values.size();
+         ++lane) {
+      if (values[base + lane] > std::numeric_limits<std::uint16_t>::max()) {
+        throw std::overflow_error("Spine page ID exceeds metadata lane");
+      }
+      packed |= static_cast<std::uint64_t>(values[base + lane]) << (lane * 16);
+    }
+    append_u64_le(data, packed);
+  }
+  return data;
+}
+
 std::vector<GraphPayloadWrite> build_level_index_payloads(
     const SpineL0Config &config, const SpineLevelLayout &layout,
     const std::vector<SpineEdgeRecord> &edges, std::uint64_t rows) {
@@ -762,6 +780,7 @@ SpineL0Maintenance::SpineL0Maintenance(std::string name, ClockId clock_id,
 
 void SpineL0Maintenance::initialize_metadata_payload() {
   const SpineMetadataLayout metadata = spine_metadata_layout(config_);
+  std::map<std::uint64_t, std::uint64_t> page_list_count_words;
   ports_.metadata->initialize_payload(
       config_.metadata_base + metadata.hot_enabled_word * kMetadataWordBytes,
       encode_u64_words({spine_metadata_control_word(state_.hot_enabled)}));
@@ -792,11 +811,30 @@ void SpineL0Maintenance::initialize_metadata_payload() {
         for (const std::uint32_t page : pages) {
           page_epochs_[slice * metadata.page_count + page] = 1;
         }
+        page_list_counts_[logical_family][level] = pages.size();
+        const std::uint64_t count_word = slice >> 1;
+        page_list_count_words[count_word] |=
+            static_cast<std::uint64_t>(pages.size())
+            << ((slice & 1U) * 32);
+        const std::vector<std::uint32_t> page_ids(pages.begin(), pages.end());
+        ports_.metadata->initialize_payload(
+            config_.metadata_base +
+                (metadata.page_list_base +
+                 slice * metadata.page_list_words_per_slice) *
+                    kMetadataWordBytes,
+            encode_u16_lanes(page_ids));
       }
     }
   };
   initialize_families(state_.cold_levels, false);
   initialize_families(state_.hot_levels, true);
+
+  for (const auto &[word, packed] : page_list_count_words) {
+    ports_.metadata->initialize_payload(
+        config_.metadata_base +
+            (metadata.page_list_count_base + word) * kMetadataWordBytes,
+        encode_u64_words({packed}));
+  }
 
   for (std::size_t word = 0; word < (metadata.slice_count + 1) / 2; ++word) {
     const std::uint64_t low_index = word * 2;
@@ -1651,12 +1689,24 @@ void SpineL0Maintenance::enqueue_family_writes(bool hot, std::size_t family,
   counters_.persisted_rows += rows;
   const std::size_t logical_family = hot ? config_.partitions + family : family;
   const SpineMetadataLayout metadata = spine_metadata_layout(config_);
+  page_list_counts_[logical_family][target] = pages.size();
+  const std::uint64_t slice = logical_family * config_.levels + target;
+  const std::vector<std::uint32_t> page_ids(pages.begin(), pages.end());
+  std::vector<std::uint8_t> page_list_payload = encode_u16_lanes(page_ids);
+  const std::uint64_t page_list_payload_bytes = page_list_payload.size();
+  counters_.page_list_payload_write_bytes += page_list_payload_bytes;
+  enqueue_task(*ports_.metadata, MemoryOperation::kWrite,
+               config_.metadata_base +
+                   (metadata.page_list_base +
+                    slice * metadata.page_list_words_per_slice) *
+                       kMetadataWordBytes,
+               page_list_payload_bytes, TaskClass::kMetadata,
+               std::move(page_list_payload));
   std::uint32_t epoch = ++slice_epochs_[logical_family][target];
   if (epoch == 0) {
     epoch = 1;
     slice_epochs_[logical_family][target] = epoch;
   }
-  const std::uint64_t slice = logical_family * config_.levels + target;
   std::set<std::uint64_t> page_epoch_words;
   for (const std::uint32_t page : pages) {
     const std::uint64_t index = slice * metadata.page_count + page;
@@ -1937,9 +1987,15 @@ void SpineL0Maintenance::commit_level_state(bool hot, std::size_t target) {
   auto &levels = hot ? state_.hot_levels : state_.cold_levels;
   const auto &outputs = hot ? hot_family_outputs_ : family_outputs_;
   for (std::size_t family = 0; family < config_.partitions; ++family) {
+    const std::size_t logical_family =
+        hot ? config_.partitions + family : family;
     levels[family][target] = outputs[family];
+    if (outputs[family].empty()) {
+      page_list_counts_[logical_family][target] = 0;
+    }
     for (std::size_t level = 0; level < target; ++level) {
       levels[family][level].clear();
+      page_list_counts_[logical_family][level] = 0;
     }
   }
 }
@@ -1947,6 +2003,7 @@ void SpineL0Maintenance::commit_level_state(bool hot, std::size_t target) {
 void SpineL0Maintenance::enqueue_committed_metadata() {
   const SpineMetadataLayout metadata = spine_metadata_layout(config_);
   std::set<std::uint64_t> slice_epoch_words;
+  std::set<std::uint64_t> page_list_count_words;
   const auto publish = [&](bool hot, std::size_t target) {
     const auto &levels = hot ? state_.hot_levels : state_.cold_levels;
     for (std::size_t family = 0; family < config_.partitions; ++family) {
@@ -1972,6 +2029,7 @@ void SpineL0Maintenance::enqueue_committed_metadata() {
                      config_.metadata_base + slice * 8 * kMetadataWordBytes,
                      bytes, TaskClass::kMetadata, std::move(payload));
         slice_epoch_words.insert(slice >> 1);
+        page_list_count_words.insert(slice >> 1);
       }
     }
   };
@@ -1994,6 +2052,26 @@ void SpineL0Maintenance::enqueue_committed_metadata() {
     enqueue_task(*ports_.metadata, MemoryOperation::kWrite,
                  config_.metadata_base +
                      (metadata.slice_epoch_base + word) * kMetadataWordBytes,
+                 kMetadataWordBytes, TaskClass::kMetadata,
+                 encode_u64_words({packed}));
+  }
+  for (const std::uint64_t word : page_list_count_words) {
+    const std::uint64_t low_index = word * 2;
+    const std::size_t low_family = low_index / config_.levels;
+    const std::size_t low_level = low_index % config_.levels;
+    std::uint64_t packed = page_list_counts_[low_family][low_level];
+    if (low_index + 1 < metadata.slice_count) {
+      const std::uint64_t high_index = low_index + 1;
+      packed |= static_cast<std::uint64_t>(
+                    page_list_counts_[high_index / config_.levels]
+                                     [high_index % config_.levels])
+                << 32;
+    }
+    counters_.page_list_count_write_bytes += kMetadataWordBytes;
+    enqueue_task(*ports_.metadata, MemoryOperation::kWrite,
+                 config_.metadata_base +
+                     (metadata.page_list_count_base + word) *
+                         kMetadataWordBytes,
                  kMetadataWordBytes, TaskClass::kMetadata,
                  encode_u64_words({packed}));
   }

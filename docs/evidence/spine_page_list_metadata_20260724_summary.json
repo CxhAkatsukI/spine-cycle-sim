@@ -1,0 +1,62 @@
+{
+  "date": "2026-07-24",
+  "evidence_tier": "structural_execution_driven",
+  "source_revision": "afb8199a2ca8d3fd208b985324bf4d8719e2b839",
+  "payload_readback": {
+    "preload_l0_count": 1,
+    "preload_l0_first_page": 1,
+    "final_l0_count": 0,
+    "final_l1_count": 1,
+    "final_l1_first_page": 1,
+    "exact": true
+  },
+  "sst_runs": {
+    "amazon_l0": {
+      "cycles": 7187,
+      "backend_requests": 1399,
+      "page_list_payload_write_bytes": 8,
+      "page_list_count_write_bytes": 128,
+      "dram_reads": 978,
+      "dram_writes": 421,
+      "dram_activates": 71,
+      "dram_precharges": 71,
+      "dram_read_row_hits": 929,
+      "dram_write_row_hits": 352,
+      "correctness_mismatches": 0,
+      "frontier_mismatches": 0
+    },
+    "carry_hot": {
+      "cycles": 8736,
+      "backend_requests": 1943,
+      "page_list_payload_write_bytes": 16,
+      "page_list_count_write_bytes": 320,
+      "dram_reads": 1229,
+      "dram_writes": 714,
+      "dram_activates": 94,
+      "dram_precharges": 89,
+      "dram_read_row_hits": 1165,
+      "dram_write_row_hits": 666,
+      "correctness_mismatches": 0,
+      "frontier_mismatches": 0
+    },
+    "weighted_sssp": {
+      "cycles": 33866,
+      "backend_requests": 4196,
+      "page_list_payload_write_bytes": 8,
+      "page_list_count_write_bytes": 128,
+      "dram_reads": 3077,
+      "dram_writes": 1119,
+      "dram_activates": 239,
+      "dram_precharges": 238,
+      "dram_read_row_hits": 2800,
+      "dram_write_row_hits": 1030,
+      "correctness_mismatches": 0,
+      "frontier_mismatches": 0
+    }
+  },
+  "remaining_boundaries": [
+    "carry source discovery does not yet consume page-list and index payload",
+    "target writes are not yet emitted during merge",
+    "page-list timing is source-derived rather than hardware calibrated"
+  ]
+}
