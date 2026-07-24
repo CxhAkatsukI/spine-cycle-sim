@@ -1514,6 +1514,81 @@ void test_spine_device_dirty_source_request_windows() {
           "source request window did not exercise finite AXIS buffering");
 }
 
+void test_spine_host_source_refresh_includes_edgeless_vertices() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("data", 141.0);
+  MockMemoryBackend backend("hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 3,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 64,
+                                .response_queue_depth = 128,
+                            });
+  SpineEdgeSlice workload{
+      .vertices = 4,
+      .edges = {{.src = 0, .dst = 1, .weight = 5, .diff = 1}},
+      .case_name = "host_source_refresh_edgeless",
+  };
+  SpineVerticalSliceSystem system(scheduler, core, backend, workload, 2);
+  system.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until([&] { return system.done() && system.idle(); }, 100'000);
+  require(!system.failed() &&
+              system.compute().values()[1] ==
+                  SpineSplitSsspCompute::kInfinity,
+          "seed round unexpectedly reached the host-refresh destination");
+
+  SpineActiveBins bins;
+  SpineActiveRecord stale_record;
+  stale_record.source = 0;
+  stale_record.source_value = 0;
+  stale_record.level_masks[0] = 1;
+  bins.bins[0].push_back(stale_record);
+  const SpineDirtyIdentity coverage =
+      spine::sim::spine_dirty_identity(1, std::vector<std::uint32_t>{0});
+  system.restart_read_compute_bins(bins, coverage, {0, 2});
+  scheduler.run_until([&] { return system.done() && system.idle(); }, 100'000);
+
+  const auto &reader = system.reader_counters();
+  const auto &compute = system.compute_counters();
+  std::cout << "EVIDENCE spine_host_source_refresh reader_requests="
+            << reader.source_requests
+            << " reader_responses=" << reader.source_responses
+            << " windows=" << reader.source_request_windows
+            << " compute_requests=" << compute.source_requests
+            << " compute_responses=" << compute.source_responses
+            << " compute_count=" << compute.source_count
+            << " protocol=" << compute.source_protocol_status
+            << " failed=" << system.failed()
+            << " reader_protocol=" << reader.source_protocol_status
+            << " dirty_status=" << reader.dirty_status
+            << " range_path=" << reader.range_task_path
+            << " range_error=" << reader.range_task_error
+            << " overflow=" << reader.done_overflow
+            << " source_ids=";
+  for (const std::uint32_t source : system.reader_source_ids()) {
+    std::cout << source << ',';
+  }
+  std::cout << " edges=" << reader.edges_emitted
+            << " processed=" << compute.processed_edges
+            << " next=" << system.compute().next_active().size()
+            << " value1=" << system.compute().values()[1] << '\n';
+  require(!system.failed() && reader.source_requests == 2 &&
+              reader.source_responses == 2 &&
+              reader.source_request_windows == 1 &&
+              system.reader_source_ids() ==
+                  std::vector<std::uint32_t>({0, 2}) &&
+              compute.source_requests == 2 && compute.source_responses == 2 &&
+              compute.source_count == 2 && compute.source_protocol_status == 0,
+          "HOST_ACTIVE did not refresh both edge-bearing and edgeless sources");
+  require(reader.edges_emitted == 1 && compute.processed_edges == 1 &&
+              system.compute().next_active().empty() &&
+              system.compute().values()[1] ==
+                  SpineSplitSsspCompute::kInfinity,
+          "Reader used stale host source_value instead of refreshed HBM payload");
+}
+
 void test_spine_host_active_gate_runs_tiled_fallback() {
   Scheduler scheduler;
   const auto core = scheduler.add_clock_mhz("data", 141.0);
@@ -5369,6 +5444,8 @@ int main(int argc, char **argv) {
        test_spine_host_active_requires_exact_dirty_coverage},
       {"spine_device_dirty_request_windows",
        test_spine_device_dirty_source_request_windows},
+      {"spine_host_source_refresh",
+       test_spine_host_source_refresh_includes_edgeless_vertices},
       {"spine_host_active_gate_fallback",
        test_spine_host_active_gate_runs_tiled_fallback},
       {"spine_device_dirty_host_handoff",

@@ -279,7 +279,8 @@ void SpineVerticalSliceSystem::restart_read_compute(
 
 void SpineVerticalSliceSystem::restart_read_compute_bins(
     const SpineActiveBins &active_bins,
-    std::optional<SpineDirtyIdentity> host_coverage) {
+    std::optional<SpineDirtyIdentity> host_coverage,
+    std::vector<std::uint32_t> source_refresh) {
   const bool recovering = recoverable_host_handoff();
   if (!registered_ || !done() || !idle() || (failed() && !recovering)) {
     throw std::logic_error(
@@ -287,7 +288,7 @@ void SpineVerticalSliceSystem::restart_read_compute_bins(
   }
   edge_stream_.reset_stats();
   value_stream_.reset_stats();
-  reader_->reset_host_round(active_bins, host_coverage);
+  reader_->reset_host_round(active_bins, host_coverage, source_refresh);
   if (recovering) {
     compute_->reset_after_host_handoff();
   } else {
@@ -295,6 +296,11 @@ void SpineVerticalSliceSystem::restart_read_compute_bins(
   }
   current_frontier_.clear();
   std::unordered_set<std::uint32_t> seen;
+  for (const std::uint32_t source : source_refresh) {
+    if (seen.insert(source).second) {
+      current_frontier_.push_back(source);
+    }
+  }
   for (const auto &bin : active_bins.bins) {
     for (const SpineActiveRecord &record : bin) {
       if (seen.insert(record.source).second) {

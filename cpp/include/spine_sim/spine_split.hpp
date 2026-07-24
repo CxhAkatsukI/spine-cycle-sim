@@ -191,7 +191,8 @@ class SpineSplitReader final : public Component {
   void reset_round(std::vector<std::uint32_t> active_sources);
   void reset_host_round(
       const SpineActiveBins &active_bins,
-      std::optional<SpineDirtyIdentity> host_coverage = std::nullopt);
+      std::optional<SpineDirtyIdentity> host_coverage = std::nullopt,
+      std::vector<std::uint32_t> source_refresh = {});
 
   void evaluate(const CycleContext &context) override;
   void commit(const CycleContext &context) override;

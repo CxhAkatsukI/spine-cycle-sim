@@ -1,0 +1,40 @@
+{
+  "date": "2026-07-25",
+  "baseline_commit": "d190643",
+  "scope": "HOST_ACTIVE source-state refresh including edgeless vertices",
+  "fixture": {
+    "vertices": 4,
+    "edges": 1,
+    "edge": {"source": 0, "destination": 1, "weight": 5},
+    "seed_source": 2,
+    "host_record_source": 0,
+    "host_record_stale_value": 0,
+    "explicit_refresh_sources": [0, 2]
+  },
+  "observed": {
+    "reader_source_requests": 2,
+    "reader_source_responses": 2,
+    "source_request_windows": 1,
+    "compute_source_requests": 2,
+    "compute_source_responses": 2,
+    "compute_source_count": 2,
+    "source_protocol_status": 0,
+    "reader_source_ids": [0, 2],
+    "edges_emitted": 1,
+    "edges_processed": 1,
+    "destination_1_value": 4294967295,
+    "next_active_vertices": 0
+  },
+  "claims": {
+    "edgeless_source_is_refreshed": true,
+    "stale_host_value_is_ignored": true,
+    "uses_existing_source_protocol": true,
+    "adds_free_hbm_channel": false,
+    "timed_pagerank_e2e": false
+  },
+  "validation": {
+    "cpp_tests_passed": 65,
+    "python_tests_passed": 153,
+    "sst_plugin_build": "pass"
+  }
+}

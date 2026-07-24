@@ -107,7 +107,8 @@ class SpineVerticalSliceSystem {
       std::optional<SpineDirtyIdentity> host_coverage = std::nullopt);
   void restart_read_compute_bins(
       const SpineActiveBins &active_bins,
-      std::optional<SpineDirtyIdentity> host_coverage = std::nullopt);
+      std::optional<SpineDirtyIdentity> host_coverage = std::nullopt,
+      std::vector<std::uint32_t> source_refresh = {});
   [[nodiscard]] std::vector<std::uint32_t>
   restart_device_dirty_host_fallback();
   [[nodiscard]] bool recoverable_host_handoff() const noexcept;

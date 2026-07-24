@@ -4,6 +4,7 @@
 #include <bit>
 #include <limits>
 #include <stdexcept>
+#include <unordered_set>
 #include <utility>
 
 namespace spine::sim {
@@ -144,7 +145,8 @@ void SpineSplitReader::reset_round(std::vector<std::uint32_t> active_sources) {
 
 void SpineSplitReader::reset_host_round(
     const SpineActiveBins &active_bins,
-    std::optional<SpineDirtyIdentity> host_coverage) {
+    std::optional<SpineDirtyIdentity> host_coverage,
+    std::vector<std::uint32_t> source_refresh) {
   if (!done_ || (failed_ && !recoverable_host_handoff()) ||
       !inflight_memory_tasks_.empty() || !memory_tasks_.empty()) {
     throw std::logic_error(
@@ -195,7 +197,16 @@ void SpineSplitReader::reset_host_round(
   }
   write_metadata_word(metadata.dirty_host_valid_word,
                       host_coverage.has_value() ? 1 : 0);
-  active_sources_.clear();
+  std::unordered_set<std::uint32_t> unique_sources;
+  for (const std::uint32_t source : source_refresh) {
+    if (source >= maintenance_.vertices() ||
+        source >= maintenance_.config().max_vertices ||
+        !unique_sources.insert(source).second) {
+      throw std::invalid_argument(
+          "host source-refresh list is duplicated or out of bounds");
+    }
+  }
+  active_sources_ = std::move(source_refresh);
   reset_state();
 }
 
@@ -301,13 +312,10 @@ void SpineSplitReader::reset_state() {
 }
 
 std::vector<std::uint32_t> SpineSplitReader::active_source_ids() const {
-  std::vector<std::uint32_t> sources;
-  sources.reserve(active_records_.size());
+  std::vector<std::uint32_t> sources = active_sources_;
+  sources.reserve(sources.size() + active_records_.size());
   for (const SpineActiveRecord &record : active_records_) {
     sources.push_back(record.source);
-  }
-  if (sources.empty()) {
-    sources = active_sources_;
   }
   std::sort(sources.begin(), sources.end());
   sources.erase(std::unique(sources.begin(), sources.end()), sources.end());
@@ -1292,6 +1300,21 @@ void SpineSplitReader::prepare_range_probes() {
           .source = source,
           .source_value = source_values_.at(source),
       });
+    }
+  } else if (!source_values_.empty()) {
+    for (SpineActiveRecord &record : active_records_) {
+      const auto found = source_values_.find(record.source);
+      if (found != source_values_.end()) {
+        record.source_value = found->second;
+      }
+    }
+    for (auto &bin : host_active_bins_.bins) {
+      for (SpineActiveRecord &record : bin) {
+        const auto found = source_values_.find(record.source);
+        if (found != source_values_.end()) {
+          record.source_value = found->second;
+        }
+      }
     }
   }
   counters_.range_task_active_records = active_records_.size();
@@ -2576,7 +2599,10 @@ PartConvWord SpineSplitReader::current_stream_word() const {
                               active_sources_.at(source_request_index_)};
     case Phase::kSendSourceCount:
       return PartConvWord{.kind = PartConvWordKind::kSourceCount,
-                          .first = static_cast<std::uint32_t>(dirty_count_)};
+                          .first = static_cast<std::uint32_t>(
+                              mode_ == SpineReaderMode::kHostActive
+                                  ? active_sources_.size()
+                                  : dirty_count_)};
     case Phase::kSendSourceGeneration:
       return PartConvWord{.kind = PartConvWordKind::kSourceGeneration,
                           .first = dirty_generation_};
@@ -2643,7 +2669,9 @@ void SpineSplitReader::advance(const CycleContext &context) {
           return;
         }
         counters_.start_cycle = context.domain_cycle;
-        active_sources_.clear();
+        if (mode_ == SpineReaderMode::kDeviceDirty) {
+          active_sources_.clear();
+        }
         active_records_.clear();
         host_active_bins_ = {};
         source_request_index_ = 0;
@@ -2786,7 +2814,16 @@ void SpineSplitReader::advance(const CycleContext &context) {
           return;
         }
       }
-      phase_ = Phase::kLevelOccupancyBegin;
+      source_request_index_ = 0;
+      source_response_index_ = 0;
+      if (active_sources_.empty()) {
+        phase_ = Phase::kLevelOccupancyBegin;
+      } else {
+        source_window_end_ = std::min<std::size_t>(
+            kSpineDirtyRequestWindow, active_sources_.size());
+        ++counters_.source_request_windows;
+        phase_ = Phase::kRequestSourceWindow;
+      }
       return;
     case Phase::kLevelOccupancyBegin:
       enqueue_level_cache_reads();

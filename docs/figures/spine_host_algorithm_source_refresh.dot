@@ -1,0 +1,26 @@
+digraph HostAlgorithmSourceRefresh {
+  graph [rankdir=LR, bgcolor="white", pad="0.25", nodesep="0.42", ranksep="0.58"];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+        color="#374151", fillcolor="#f8fafc"];
+  edge [fontname="Helvetica", fontsize=9, color="#475569"];
+
+  host_records [label="HOST_ACTIVE bins\nedge-bearing sources + cached values",
+                fillcolor="#fef3c7"];
+  refresh [label="Explicit refresh set\nmay include edgeless vertices",
+           fillcolor="#dbeafe"];
+  request [label="Reader source request stream\ncount + source IDs\n16-request windows",
+           fillcolor="#e0f2fe"];
+  state [label="Compute vertex-state AXI master\nshared HBM channel",
+         fillcolor="#fee2e2"];
+  response [label="Source response stream\nfinite FIFO + backpressure",
+            fillcolor="#e0f2fe"];
+  probes [label="Refresh both record views\nthen construct edge range probes",
+          fillcolor="#dcfce7"];
+  source_only [label="Source-only vertices\ndangling/apply work, no edge probe",
+               fillcolor="#dcfce7"];
+
+  refresh -> request -> state -> response -> probes;
+  host_records -> probes;
+  refresh -> source_only;
+  response -> source_only;
+}
