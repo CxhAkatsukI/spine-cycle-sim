@@ -2383,7 +2383,10 @@ struct ComputeTileObservation {
 };
 
 ComputeTileObservation run_compute_tile(std::size_t edge_count,
-                                        bool duplicate_dst = false) {
+                                        bool duplicate_dst = false,
+                                        std::size_t memory_request_window =
+                                            SpineSplitSsspCompute::
+                                                kDefaultMemoryRequestWindow) {
   Scheduler scheduler;
   const auto core = scheduler.add_clock_mhz("data", 141.0);
   MockMemoryBackend backend("hbm", core,
@@ -2440,7 +2443,8 @@ ComputeTileObservation run_compute_tile(std::size_t edge_count,
                                     .active_bitmap = &active_bitmap,
                                     .result = &result,
                                 },
-                                edge_stream, value_stream);
+                                edge_stream, value_stream,
+                                memory_request_window);
 
   scheduler.add_component(producer);
   scheduler.add_component(compute);
@@ -2475,6 +2479,33 @@ ComputeTileObservation run_compute_tile(std::size_t edge_count,
       .distances_match = distances_match,
       .failed = compute.failed(),
   };
+}
+
+void test_spine_compute_gather_uses_bounded_outstanding_requests() {
+  const ComputeTileObservation serial = run_compute_tile(256, false, 1);
+  const ComputeTileObservation pipelined = run_compute_tile(256, false, 7);
+  std::cout << "EVIDENCE spine_compute_gather_outstanding serial_cycles="
+            << serial.cycles << " pipelined_cycles=" << pipelined.cycles
+            << " serial_max_inflight="
+            << serial.counters.max_vertex_requests_inflight
+            << " pipelined_max_inflight="
+            << pipelined.counters.max_vertex_requests_inflight
+            << " pipelined_window_stalls="
+            << pipelined.counters.memory_window_stall_cycles << '\n';
+  require(!serial.failed && !pipelined.failed && serial.distances_match &&
+              pipelined.distances_match && serial.next_active == 256 &&
+              pipelined.next_active == 256,
+          "compute gather window changed the SSSP result");
+  require(serial.counters.max_vertex_requests_inflight == 1 &&
+              pipelined.counters.max_vertex_requests_inflight == 7 &&
+              serial.counters.memory_requests_issued ==
+                  serial.counters.memory_requests_completed &&
+              pipelined.counters.memory_requests_issued ==
+                  pipelined.counters.memory_requests_completed,
+          "compute gather did not enforce its configured request window");
+  require(pipelined.cycles < serial.cycles &&
+              pipelined.counters.memory_window_stall_cycles > 0,
+          "bounded outstanding gather did not hide memory latency");
 }
 
 void test_spine_full_tile_threshold_boundaries() {
@@ -4646,6 +4677,8 @@ int main(int argc, char **argv) {
       {"spine_signed_diff_cancellation",
        test_spine_carry_drops_signed_diff_cancellation},
       {"spine_full_tile_boundaries", test_spine_full_tile_threshold_boundaries},
+      {"spine_compute_gather_outstanding",
+       test_spine_compute_gather_uses_bounded_outstanding_requests},
       {"spine_full_tile_axis_backpressure",
        test_spine_full_tile_load_replay_backpressures_axis},
       {"spine_tiny_duplicate_gather",

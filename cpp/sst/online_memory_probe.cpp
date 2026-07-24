@@ -581,6 +581,8 @@ class OnlineMemoryProbe final : public SST::Component {
         params.find<std::uint64_t>("fallback_replay_threshold", 65'536);
     memory_request_window_ =
         params.find<std::size_t>("memory_request_window", 1);
+    compute_memory_request_window_ =
+        params.find<std::size_t>("compute_memory_request_window", 7);
     reader_edge_pipeline_depth_ =
         params.find<std::size_t>("reader_edge_pipeline_depth", 32);
     reader_edge_response_capacity_ =
@@ -604,7 +606,8 @@ class OnlineMemoryProbe final : public SST::Component {
         device_dirty_source_limit_ == 0 || range_task_active_gate_ == 0 ||
         range_task_capacity_ == 0 || range_task_capacity_ > 65'536 ||
         range_task_payload_budget_ == 0 || fallback_replay_threshold_ == 0 ||
-        memory_request_window_ == 0 || reader_edge_pipeline_depth_ == 0 ||
+        memory_request_window_ == 0 || compute_memory_request_window_ == 0 ||
+        reader_edge_pipeline_depth_ == 0 ||
         reader_edge_response_capacity_ == 0 ||
         maintenance_count_scan_ii_ == 0 || maintenance_l0_write_scan_ii_ == 0 ||
         maintenance_scan_response_capacity_ == 0 ||
@@ -728,7 +731,8 @@ class OnlineMemoryProbe final : public SST::Component {
               .active_bitmap = spine_active_bitmap_.get(),
               .result = spine_compute_result_.get(),
           },
-          *spine_edge_stream_, *spine_value_stream_);
+          *spine_edge_stream_, *spine_value_stream_,
+          compute_memory_request_window_);
       scheduler_.add_component(*spine_word_source_);
       scheduler_.add_component(*spine_compute_);
       scheduler_.add_component(*spine_edge_stream_);
@@ -824,7 +828,7 @@ class OnlineMemoryProbe final : public SST::Component {
       spine_system_ = std::make_unique<SpineVerticalSliceSystem>(
           scheduler_, core, *backend_, std::move(workload), source_vertex_,
           4096, std::move(maintenance_config), std::move(initial_state),
-          spine_axi_profile_);
+          spine_axi_profile_, compute_memory_request_window_);
       spine_system_->register_components();
       scheduler_.add_component(*backend_);
       return;
@@ -1032,6 +1036,8 @@ class OnlineMemoryProbe final : public SST::Component {
       {"fallback_replay_threshold", "HOST fallback replay threshold", "65536"},
       {"memory_request_window",
        "Coarse producer request window (greater than one is a what-if)", "1"},
+      {"compute_memory_request_window",
+       "Compute HLS parent-request window", "7"},
       {"reader_edge_pipeline_depth", "II=1 edge-loop in-flight credits", "32"},
       {"reader_edge_response_capacity", "Ordered edge response capacity", "32"},
       {"maintenance_count_scan_ii",
@@ -1175,6 +1181,22 @@ class OnlineMemoryProbe final : public SST::Component {
              << compute.active_emit_bit_cycles << ",\n"
              << "  \"compute_on_chip_controller_cycles\": "
              << compute.on_chip_controller_cycles << ",\n"
+             << "  \"compute_memory_request_window\": "
+             << compute_memory_request_window_ << ",\n"
+             << "  \"compute_memory_requests_issued\": "
+             << compute.memory_requests_issued << ",\n"
+             << "  \"compute_memory_requests_completed\": "
+             << compute.memory_requests_completed << ",\n"
+             << "  \"compute_memory_window_stall_cycles\": "
+             << compute.memory_window_stall_cycles << ",\n"
+             << "  \"compute_memory_dependency_stall_cycles\": "
+             << compute.memory_dependency_stall_cycles << ",\n"
+             << "  \"compute_memory_request_fifo_stall_cycles\": "
+             << compute.memory_request_fifo_stall_cycles << ",\n"
+             << "  \"compute_max_memory_requests_inflight\": "
+             << compute.max_memory_requests_inflight << ",\n"
+             << "  \"compute_max_vertex_requests_inflight\": "
+             << compute.max_vertex_requests_inflight << ",\n"
              << "  \"compute_full_buffer_replay_edges\": "
              << compute.full_buffer_replay_edges << ",\n"
              << "  \"compute_full_overflow_edges\": "
@@ -1327,6 +1349,10 @@ class OnlineMemoryProbe final : public SST::Component {
       std::vector<std::uint64_t> compute_active_emit_scan_words;
       std::vector<std::uint64_t> compute_active_emit_bit_cycles;
       std::vector<std::uint64_t> compute_on_chip_controller_cycles;
+      std::vector<std::uint64_t> compute_memory_requests_issued;
+      std::vector<std::uint64_t> compute_memory_requests_completed;
+      std::vector<std::uint64_t> compute_memory_window_stall_cycles;
+      std::vector<std::size_t> compute_max_vertex_requests_inflight;
       std::vector<std::size_t> edge_axis_max_occupancy;
       std::vector<std::uint64_t> edge_axis_push_stalls;
       std::vector<std::uint64_t> edge_axis_transfers;
@@ -1473,6 +1499,14 @@ class OnlineMemoryProbe final : public SST::Component {
             round.compute.active_emit_bit_cycles);
         compute_on_chip_controller_cycles.push_back(
             round.compute.on_chip_controller_cycles);
+        compute_memory_requests_issued.push_back(
+            round.compute.memory_requests_issued);
+        compute_memory_requests_completed.push_back(
+            round.compute.memory_requests_completed);
+        compute_memory_window_stall_cycles.push_back(
+            round.compute.memory_window_stall_cycles);
+        compute_max_vertex_requests_inflight.push_back(
+            round.compute.max_vertex_requests_inflight);
         edge_axis_max_occupancy.push_back(round.edge_axis.max_occupancy);
         edge_axis_push_stalls.push_back(round.edge_axis.push_stalls);
         edge_axis_transfers.push_back(round.edge_axis.pushes);
@@ -2020,6 +2054,16 @@ class OnlineMemoryProbe final : public SST::Component {
       write_json_array(result, compute_active_emit_bit_cycles);
       result << ",\n  \"compute_on_chip_controller_cycles_per_round\": ";
       write_json_array(result, compute_on_chip_controller_cycles);
+      result << ",\n  \"compute_memory_request_window\": "
+             << compute_memory_request_window_;
+      result << ",\n  \"compute_memory_requests_issued_per_round\": ";
+      write_json_array(result, compute_memory_requests_issued);
+      result << ",\n  \"compute_memory_requests_completed_per_round\": ";
+      write_json_array(result, compute_memory_requests_completed);
+      result << ",\n  \"compute_memory_window_stall_cycles_per_round\": ";
+      write_json_array(result, compute_memory_window_stall_cycles);
+      result << ",\n  \"compute_max_vertex_requests_inflight_per_round\": ";
+      write_json_array(result, compute_max_vertex_requests_inflight);
       result << ",\n  \"edge_axis_max_occupancy_per_round\": ";
       write_json_array(result, edge_axis_max_occupancy);
       result << ",\n  \"edge_axis_push_stalls_per_round\": ";
@@ -2610,6 +2654,22 @@ class OnlineMemoryProbe final : public SST::Component {
           << compute.active_emit_bit_cycles << ",\n"
           << "  \"compute_on_chip_controller_cycles\": "
           << compute.on_chip_controller_cycles << ",\n"
+          << "  \"compute_memory_request_window\": "
+          << compute_memory_request_window_ << ",\n"
+          << "  \"compute_memory_requests_issued\": "
+          << compute.memory_requests_issued << ",\n"
+          << "  \"compute_memory_requests_completed\": "
+          << compute.memory_requests_completed << ",\n"
+          << "  \"compute_memory_window_stall_cycles\": "
+          << compute.memory_window_stall_cycles << ",\n"
+          << "  \"compute_memory_dependency_stall_cycles\": "
+          << compute.memory_dependency_stall_cycles << ",\n"
+          << "  \"compute_memory_request_fifo_stall_cycles\": "
+          << compute.memory_request_fifo_stall_cycles << ",\n"
+          << "  \"compute_max_memory_requests_inflight\": "
+          << compute.max_memory_requests_inflight << ",\n"
+          << "  \"compute_max_vertex_requests_inflight\": "
+          << compute.max_vertex_requests_inflight << ",\n"
           << "  \"compute_full_buffer_replay_edges\": "
           << compute.full_buffer_replay_edges << ",\n"
           << "  \"compute_full_overflow_edges\": "
@@ -2693,6 +2753,7 @@ class OnlineMemoryProbe final : public SST::Component {
   std::uint64_t range_task_payload_budget_{};
   std::uint64_t fallback_replay_threshold_{};
   std::size_t memory_request_window_{};
+  std::size_t compute_memory_request_window_{};
   std::size_t reader_edge_pipeline_depth_{};
   std::size_t reader_edge_response_capacity_{};
   std::size_t maintenance_count_scan_ii_{};

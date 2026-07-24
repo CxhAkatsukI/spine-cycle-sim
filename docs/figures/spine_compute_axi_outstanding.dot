@@ -1,0 +1,23 @@
+digraph SpineComputeAxiOutstanding {
+  graph [rankdir=LR, bgcolor="white", pad="0.25", nodesep="0.35", ranksep="0.65"];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+        color="#374151", fillcolor="#f8fafc"];
+  edge [fontname="Helvetica", fontsize=9, color="#475569"];
+
+  loop [label="HLS-shaped loop\nissue <= 1 parent/cycle", fillcolor="#e0f2fe"];
+  pending [label="Compute task queue\npayload kind + item index", fillcolor="#fef3c7"];
+  window [label="Per-port credit window\ndefault 7 parents", fillcolor="#f3e8ff"];
+  axi [label="Fixed AXI master\n16 bursts outstanding\nport width from profile", fillcolor="#dcfce7"];
+  hbm [label="SST + DRAMSim3 HBM\nexecution-driven requests", fillcolor="#fee2e2"];
+  responses [label="Transaction-ID response match\nsource / gather / full tile", fillcolor="#e0f2fe"];
+  uram [label="Logical vs_tile update\nphysical ports still pending", fillcolor="#fef3c7"];
+
+  loop -> pending;
+  pending -> window [label="dependency check"];
+  window -> axi [label="AR/AW/W"];
+  axi -> hbm [label="beats"];
+  hbm -> axi [label="R/B"];
+  axi -> responses [label="parent response"];
+  responses -> uram [label="payload"];
+  responses -> window [label="return credit", style=dashed];
+}

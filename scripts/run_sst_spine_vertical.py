@@ -744,6 +744,12 @@ def parse_args() -> argparse.Namespace:
             "and values above one are a same-port architecture what-if"
         ),
     )
+    parser.add_argument(
+        "--compute-memory-request-window",
+        type=int,
+        default=7,
+        help="bounded HLS parent-request credits for compute AXI traffic",
+    )
     parser.add_argument("--reader-edge-pipeline-depth", type=int, default=32)
     parser.add_argument("--reader-edge-response-capacity", type=int, default=32)
     parser.add_argument("--maintenance-count-scan-ii", type=int, default=1)
@@ -804,6 +810,7 @@ def main() -> int:
     if (
         args.maintenance_count_scan_ii <= 0
         or args.maintenance_l0_write_scan_ii <= 0
+        or args.compute_memory_request_window <= 0
         or args.maintenance_count_scan_tail_cycles < 0
         or args.maintenance_l0_write_scan_tail_cycles < 0
         or args.maintenance_scan_response_capacity <= 0
@@ -852,6 +859,9 @@ def main() -> int:
                 args.fallback_replay_threshold
             ),
             "SPINE_SST_MEMORY_REQUEST_WINDOW": str(args.memory_request_window),
+            "SPINE_SST_COMPUTE_MEMORY_REQUEST_WINDOW": str(
+                args.compute_memory_request_window
+            ),
             "SPINE_SST_READER_EDGE_PIPELINE_DEPTH": str(
                 args.reader_edge_pipeline_depth
             ),
@@ -919,6 +929,11 @@ def main() -> int:
     problems = validator(result, dram, channels=args.channels)
     if result.get("spine_axi_profile") != args.axi_profile:
         problems.append("axi_profile")
+    if (
+        result.get("compute_memory_request_window")
+        != args.compute_memory_request_window
+    ):
+        problems.append("compute_memory_request_window")
     expected_timing = {
         "maintenance_count_scan_ii": args.maintenance_count_scan_ii,
         "maintenance_count_scan_tail_cycles": args.maintenance_count_scan_tail_cycles,

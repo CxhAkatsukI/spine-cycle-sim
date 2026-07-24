@@ -1,0 +1,32 @@
+{
+  "date": "2026-07-24",
+  "baseline_commit": "eb6b48f3bf266bfffac572c069f31d4ce20f0766",
+  "hls_source_revision": "afb8199a2ca8d3fd208b985324bf4d8719e2b839",
+  "synthesis_source_revision": "9c08763148644df262c0d374e782bc834f4c0f4f",
+  "default_compute_memory_request_window": 7,
+  "microbenchmark": {
+    "edges": 256,
+    "window_1_cycles": 8780,
+    "window_7_cycles": 4844,
+    "window_1_max_inflight": 1,
+    "window_7_max_inflight": 7,
+    "window_7_stall_cycles": 144,
+    "speedup": 1.8125516102394716
+  },
+  "threshold": {
+    "tiny_4096_baseline_cycles": 101939,
+    "tiny_4096_outstanding_cycles": 30560,
+    "full_4097_baseline_cycles": 23173,
+    "full_4097_outstanding_cycles": 23165
+  },
+  "sst": {
+    "amazon_l0_w7": {"cycles": 23406, "requests": 1400, "max_vertex_inflight": 4, "window_stalls": 0, "correctness_mismatches": 0},
+    "carry_hot_w7": {"cycles": 10607, "requests": 2016, "max_vertex_inflight": 3, "window_stalls": 0, "correctness_mismatches": 0},
+    "weighted_sssp_w7": {"cycles": 38525, "requests": 4197, "max_vertex_inflight": 7, "window_stalls": 4, "correctness_mismatches": 0},
+    "protocol_window_w7": {"cycles": 10947, "requests": 1746, "max_vertex_inflight": 7, "window_stalls": 6, "correctness_mismatches": 0},
+    "fallback_capacity_w7": {"cycles": 23838, "requests": 2442, "max_vertex_inflight": 1, "window_stalls": 0, "correctness_mismatches": 0},
+    "fallback_payload_w7": {"cycles": 23802, "requests": 2436, "max_vertex_inflight": 1, "window_stalls": 0, "correctness_mismatches": 0},
+    "amazon_full_compute_w1": {"cycles": 1042471, "requests": 175315, "compute_parent_requests": 24955, "max_vertex_inflight": 1, "window_stalls": 204732, "dram_activates": 7473, "correctness_mismatches": 0},
+    "amazon_full_compute_w7": {"cycles": 847903, "requests": 175315, "compute_parent_requests": 24955, "max_vertex_inflight": 7, "window_stalls": 10174, "dram_activates": 6517, "correctness_mismatches": 0}
+  }
+}

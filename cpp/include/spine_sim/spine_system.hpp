@@ -93,7 +93,9 @@ class SpineVerticalSliceSystem {
                            std::size_t tiny_threshold = 4096,
                            SpineL0Config maintenance_config = {},
                            SpineL0State initial_state = {},
-                           SpineAxiInterfaceProfile axi_profile = {});
+                           SpineAxiInterfaceProfile axi_profile = {},
+                           std::size_t compute_memory_request_window =
+                               SpineSplitSsspCompute::kDefaultMemoryRequestWindow);
 
   void register_components();
   void restart_read_compute(

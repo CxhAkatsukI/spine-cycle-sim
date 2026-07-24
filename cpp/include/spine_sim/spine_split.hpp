@@ -641,6 +641,13 @@ struct SpineComputeCounters {
   std::uint64_t active_out_write_bytes{};
   std::uint64_t bitmap_bytes{};
   std::uint64_t result_write_bytes{};
+  std::uint64_t memory_requests_issued{};
+  std::uint64_t memory_requests_completed{};
+  std::uint64_t memory_window_stall_cycles{};
+  std::uint64_t memory_dependency_stall_cycles{};
+  std::uint64_t memory_request_fifo_stall_cycles{};
+  std::size_t max_memory_requests_inflight{};
+  std::size_t max_vertex_requests_inflight{};
 };
 
 struct SpineComputePorts {
@@ -653,12 +660,15 @@ struct SpineComputePorts {
 class SpineSplitSsspCompute final : public Component {
  public:
   static constexpr std::uint32_t kInfinity = 0xffffffffU;
+  static constexpr std::size_t kDefaultMemoryRequestWindow = 7;
 
   SpineSplitSsspCompute(std::string name, ClockId clock_id,
                         std::size_t vertices, std::uint32_t source,
                         std::size_t tiny_threshold, SpineComputePorts ports,
                         Fifo<PartConvWord> &edge_in,
-                        Fifo<SourceValueWord> &value_out);
+                        Fifo<SourceValueWord> &value_out,
+                        std::size_t memory_request_window =
+                            kDefaultMemoryRequestWindow);
 
   [[nodiscard]] bool done() const noexcept { return done_; }
   [[nodiscard]] bool failed() const noexcept { return failed_; }
@@ -679,12 +689,21 @@ class SpineSplitSsspCompute final : public Component {
   void commit(const CycleContext &context) override;
 
  private:
+  enum class MemoryPayloadKind {
+    kNone,
+    kSourceValue,
+    kGatherVertex,
+    kFullTile,
+  };
+
   struct MemoryTask {
     FixedAxiPort *port{};
     MemoryOperation operation{MemoryOperation::kRead};
     std::uint64_t address{};
     std::uint64_t bytes{};
     std::vector<std::uint8_t> write_data;
+    MemoryPayloadKind payload_kind{MemoryPayloadKind::kNone};
+    std::size_t item_index{};
   };
 
   enum class Phase {
@@ -709,8 +728,6 @@ class SpineSplitSsspCompute final : public Component {
   enum class Action {
     kNone,
     kAdvance,
-    kIssue,
-    kComplete,
     kPopEdge,
     kPushValue,
   };
@@ -719,9 +736,15 @@ class SpineSplitSsspCompute final : public Component {
   void handle_edge_word(const PartConvWord &word);
   void enqueue_memory(FixedAxiPort &port, MemoryOperation operation,
                       std::uint64_t address, std::uint64_t bytes,
-                      std::vector<std::uint8_t> write_data = {});
+                      std::vector<std::uint8_t> write_data = {},
+                      MemoryPayloadKind payload_kind = MemoryPayloadKind::kNone,
+                      std::size_t item_index = 0);
   void consume_memory_response(const MemoryTask &task,
                                const AxiResponse &response);
+  [[nodiscard]] bool memory_task_conflicts(const MemoryTask &task) const;
+  [[nodiscard]] std::size_t
+  inflight_memory_tasks_for_port(const FixedAxiPort *port) const noexcept;
+  [[nodiscard]] bool stage_memory_completion();
   void prepare_gather();
   void prepare_vertex_store();
   void prepare_active_output();
@@ -738,6 +761,7 @@ class SpineSplitSsspCompute final : public Component {
   std::size_t vertices_{};
   std::uint32_t source_{};
   std::size_t tiny_threshold_{};
+  std::size_t memory_request_window_{};
   SpineComputePorts ports_;
   Fifo<PartConvWord> &edge_in_;
   Fifo<SourceValueWord> &value_out_;
@@ -749,6 +773,7 @@ class SpineSplitSsspCompute final : public Component {
   std::vector<std::uint32_t> changed_vertices_;
   std::vector<std::uint32_t> tile_values_;
   std::deque<MemoryTask> memory_tasks_;
+  std::unordered_map<std::uint64_t, MemoryTask> inflight_memory_tasks_;
   std::unordered_map<std::uint32_t, std::uint32_t> gathered_values_;
   Phase phase_{Phase::kInput};
   Action staged_action_{Action::kNone};
@@ -760,14 +785,13 @@ class SpineSplitSsspCompute final : public Component {
   SourceValueWord::Kind pending_value_kind_{SourceValueWord::Kind::kSourceValue};
   std::uint32_t tile_base_{};
   std::size_t tile_size_{};
-  std::size_t gather_index_{};
   std::size_t relax_index_{};
   std::size_t active_word_index_{};
   std::size_t active_bit_index_{};
   Phase after_clear_phase_{Phase::kRelax};
   std::uint64_t next_transaction_id_{};
-  std::uint64_t expected_transaction_id_{};
-  bool waiting_memory_{};
+  bool staged_memory_issue_{};
+  bool staged_memory_completion_{};
   bool source_reply_pending_{};
   bool source_count_seen_{};
   bool source_generation_seen_{};
