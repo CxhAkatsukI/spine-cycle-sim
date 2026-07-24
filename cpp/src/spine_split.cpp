@@ -44,14 +44,6 @@ constexpr std::uint32_t kRangeTaskErrorDescriptor = 6;
 constexpr std::uint32_t kRangeTaskErrorProtocol = 7;
 constexpr std::uint32_t kRangeTaskErrorDirtyState = 8;
 
-std::uint32_t saturating_add(std::uint32_t left, std::uint16_t right) {
-  if (left == SpineSplitSsspCompute::kInfinity ||
-      left > SpineSplitSsspCompute::kInfinity - right) {
-    return SpineSplitSsspCompute::kInfinity;
-  }
-  return left + right;
-}
-
 std::vector<std::uint8_t> encode_u32(std::uint32_t value) {
   return {
       static_cast<std::uint8_t>(value & 0xffU),
@@ -111,9 +103,16 @@ SpineSplitReader::SpineSplitReader(std::string name, ClockId clock_id,
                                    std::vector<std::uint32_t> active_sources,
                                    Fifo<PartConvWord> &edge_out,
                                    Fifo<SourceValueWord> &value_in,
-                                   SpineReaderMode mode)
+                                   SpineReaderMode mode,
+                                   std::shared_ptr<const GraphAlgorithmPolicy>
+                                       algorithm_policy)
     : Component(std::move(name), clock_id),
       maintenance_(maintenance),
+      algorithm_policy_(
+          algorithm_policy != nullptr
+              ? std::move(algorithm_policy)
+              : std::make_shared<const GraphAlgorithmPolicy>(
+                    AlgorithmPolicyConfig{.vertices = 1, .source = 0})),
       ports_(ports),
       mode_(mode),
       active_sources_(std::move(active_sources)),
@@ -2595,8 +2594,8 @@ PartConvWord SpineSplitReader::current_stream_word() const {
       return PartConvWord{
           .kind = PartConvWordKind::kEdge,
           .first = buffered->edge.dst,
-          .second =
-              saturating_add(buffered->source_value, buffered->edge.weight),
+          .second = algorithm_policy_->map_edge(buffered->source_value,
+                                                buffered->edge.weight),
       };
     }
     case Phase::kTileEnd:
@@ -2616,8 +2615,9 @@ PartConvWord SpineSplitReader::current_stream_word() const {
     return PartConvWord{
         .kind = PartConvWordKind::kEdge,
         .first = next_pipeline_edge()->edge.dst,
-        .second = saturating_add(next_pipeline_edge()->source_value,
-                                 next_pipeline_edge()->edge.weight),
+        .second = algorithm_policy_->map_edge(
+            next_pipeline_edge()->source_value,
+            next_pipeline_edge()->edge.weight),
     };
   case Phase::kFallbackTileEnd:
     return PartConvWord{.kind = PartConvWordKind::kTileEnd,
@@ -3017,10 +3017,20 @@ SpineSplitSsspCompute::SpineSplitSsspCompute(
     std::uint32_t source, std::size_t tiny_threshold, SpineComputePorts ports,
     Fifo<PartConvWord> &edge_in, Fifo<SourceValueWord> &value_out,
     std::size_t memory_request_window, std::size_t writeonly_request_window,
-    SpineOnChipMemoryProfile on_chip_profile)
+    SpineOnChipMemoryProfile on_chip_profile,
+    std::shared_ptr<const GraphAlgorithmPolicy> algorithm_policy)
     : Component(std::move(name), clock_id),
       vertices_(vertices),
       source_(source),
+      algorithm_policy_(
+          algorithm_policy != nullptr
+              ? std::move(algorithm_policy)
+              : std::make_shared<const GraphAlgorithmPolicy>(
+                    AlgorithmPolicyConfig{
+                        .kind = GraphAlgorithmKind::kWeightedSssp,
+                        .vertices = vertices,
+                        .source = source,
+                    })),
       tiny_threshold_(tiny_threshold),
       memory_request_window_(memory_request_window),
       writeonly_request_window_(writeonly_request_window),
@@ -3028,7 +3038,7 @@ SpineSplitSsspCompute::SpineSplitSsspCompute(
       ports_(ports),
       edge_in_(edge_in),
       value_out_(value_out),
-      values_(vertices, kInfinity) {
+      values_(vertices) {
   if (vertices_ == 0 || source_ >= vertices_ || tiny_threshold_ == 0 ||
       memory_request_window_ == 0 || writeonly_request_window_ == 0 ||
       on_chip_profile_.tiny_bram_read_latency == 0 ||
@@ -3039,13 +3049,26 @@ SpineSplitSsspCompute::SpineSplitSsspCompute(
       ports_.vertex_state == nullptr || ports_.active_out == nullptr ||
       ports_.active_bitmap == nullptr || ports_.result == nullptr ||
       edge_in_.clock_id() != clock_id || value_out_.clock_id() != clock_id) {
-    throw std::invalid_argument("invalid Spine split compute configuration");
+      throw std::invalid_argument("invalid Spine split compute configuration");
+  }
+  if (algorithm_policy_->config().kind !=
+          GraphAlgorithmKind::kWeightedSssp ||
+      algorithm_policy_->config().vertices != vertices_ ||
+      algorithm_policy_->config().source != source_) {
+    throw std::invalid_argument(
+        "timed Spine split compute currently requires matching weighted SSSP "
+        "policy");
+  }
+  for (std::size_t vertex = 0; vertex < vertices_; ++vertex) {
+    values_[vertex] =
+        algorithm_policy_->initial_state(static_cast<std::uint32_t>(vertex))
+            .primary;
   }
   ports_.vertex_state->fill_payload(
       0, static_cast<std::uint64_t>(vertices_) * kVertexWordBytes, 0xffU);
   ports_.vertex_state->initialize_payload(
-      static_cast<std::uint64_t>(source_) * kVertexWordBytes, encode_u32(0));
-  values_[source_] = 0;
+      static_cast<std::uint64_t>(source_) * kVertexWordBytes,
+      encode_u32(values_[source_]));
 }
 
 bool SpineSplitSsspCompute::recoverable_host_handoff() const noexcept {
@@ -3492,8 +3515,10 @@ void SpineSplitSsspCompute::consume_memory_response(
   }
   counters_.vertex_payload_read_bytes += response.read_data.size();
   if (task.payload_kind == MemoryPayloadKind::kSourceValue) {
-    pending_source_value_ = decode_u32(response.read_data);
-    values_.at(pending_source_) = pending_source_value_;
+    const AlgorithmSourceResult prepared = algorithm_policy_->prepare_source(
+        {.primary = decode_u32(response.read_data)}, 0);
+    pending_source_value_ = prepared.edge_payload;
+    values_.at(pending_source_) = prepared.state_after.primary;
     return;
   }
   if (task.payload_kind == MemoryPayloadKind::kGatherVertex) {
@@ -3829,13 +3854,18 @@ bool SpineSplitSsspCompute::on_chip_pipelines_drained() const noexcept {
 void SpineSplitSsspCompute::complete_relax(const PendingVsRead &request) {
   const std::uint32_t old_value =
       bypass_value(request.vertex, request.memory_value);
-  if (request.edge.second < old_value) {
+  const std::uint32_t reduced =
+      algorithm_policy_->reduce(std::nullopt, request.edge.second);
+  const AlgorithmApplyResult applied =
+      algorithm_policy_->apply({.primary = old_value}, reduced);
+  if (applied.active) {
+    const std::uint32_t new_value = applied.state_after.primary;
     if (full_path_) {
-      tile_values_.at(request.vertex - tile_base_) = request.edge.second;
+      tile_values_.at(request.vertex - tile_base_) = new_value;
     } else {
-      gathered_values_.at(request.vertex) = request.edge.second;
+      gathered_values_.at(request.vertex) = new_value;
     }
-    values_.at(request.vertex) = request.edge.second;
+    values_.at(request.vertex) = new_value;
     ++counters_.vs_tile_writes;
     ++counters_.vs_uram_write_requests;
     ++counters_.tile_active_mark_writes;
@@ -3843,7 +3873,7 @@ void SpineSplitSsspCompute::complete_relax(const PendingVsRead &request) {
     tile_active_words_.at(local / 64) |=
         std::uint64_t{1} << static_cast<unsigned>(local % 64);
     ++counters_.active_bram_write_requests;
-    push_bypass(request.vertex, request.edge.second);
+    push_bypass(request.vertex, new_value);
     if (std::find(changed_vertices_.begin(), changed_vertices_.end(),
                   request.vertex) == changed_vertices_.end()) {
       changed_vertices_.push_back(request.vertex);

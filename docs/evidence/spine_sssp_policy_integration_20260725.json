@@ -1,0 +1,58 @@
+{
+  "date": "2026-07-25",
+  "baseline_commit": "909b370",
+  "scope": "weighted SSSP policy injection into timed Spine Reader and Compute",
+  "acceptance": {
+    "shared_policy_instance": true,
+    "source_prepare_via_policy": true,
+    "reader_edge_map_via_policy": true,
+    "compute_reduce_apply_via_policy": true,
+    "timed_pagerank_enabled": false
+  },
+  "mock_backend_regression": {
+    "amazon_top1_exact": {
+      "cycles_before": 43407,
+      "cycles_after": 43407,
+      "maintenance_cycles_before": 2370,
+      "maintenance_cycles_after": 2370,
+      "reader_cycles_before": 4478,
+      "reader_cycles_after": 4478,
+      "compute_cycles_before": 40968,
+      "compute_cycles_after": 40968,
+      "correct": true
+    },
+    "tile_boundary_cycles": {
+      "4095": 32845,
+      "4096": 32850,
+      "4097": 151570,
+      "4098": 151571
+    },
+    "multiround_weighted_sssp": "pass"
+  },
+  "sst_dramsim3_regression": {
+    "amazon_l0": {
+      "cycles_before": 43830,
+      "cycles_after": 43830,
+      "backend_requests_before": 1400,
+      "backend_requests_after": 1400,
+      "correctness_mismatches": 0,
+      "frontier_mismatches": 0
+    },
+    "weighted_sssp": {
+      "cycles_before": 38479,
+      "cycles_after": 38479,
+      "backend_requests_before": 4197,
+      "backend_requests_after": 4197,
+      "rounds": 6,
+      "converged": true,
+      "correctness_mismatches": 0,
+      "frontier_mismatches": 0,
+      "final_values": [0, 3, 2, 7, 8, 10]
+    }
+  },
+  "validation": {
+    "cpp_tests_passed": 62,
+    "python_tests_passed": 153,
+    "sst_shared_library_has_unresolved_policy_symbols": false
+  }
+}

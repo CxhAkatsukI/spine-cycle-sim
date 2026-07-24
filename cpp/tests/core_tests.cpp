@@ -969,8 +969,16 @@ void test_spine_l0_real_slice_vertical_path() {
   reader_ports.active_bins = &active_bins;
   reader_ports.metadata = &metadata;
   reader_ports.result = &result;
+  const auto algorithm_policy = std::make_shared<const GraphAlgorithmPolicy>(
+      AlgorithmPolicyConfig{
+          .kind = GraphAlgorithmKind::kWeightedSssp,
+          .vertices = workload.vertices,
+          .source = 2,
+      });
   SpineSplitReader reader("spine-split-reader", core, maintenance, reader_ports,
-                          {2}, edge_stream, value_stream);
+                          {2}, edge_stream, value_stream,
+                          spine::sim::SpineReaderMode::kDeviceDirty,
+                          algorithm_policy);
   SpineSplitSsspCompute compute("spine-split-compute", core, workload.vertices,
                                 2, 4096,
                                 SpineComputePorts{
@@ -979,7 +987,11 @@ void test_spine_l0_real_slice_vertical_path() {
                                     .active_bitmap = &active_bitmap,
                                     .result = &compute_result,
                                 },
-                                edge_stream, value_stream);
+                                edge_stream, value_stream,
+                                SpineSplitSsspCompute::kDefaultMemoryRequestWindow,
+                                SpineSplitSsspCompute::
+                                    kDefaultWriteOnlyRequestWindow,
+                                {}, algorithm_policy);
 
   scheduler.add_component(maintenance);
   scheduler.add_component(reader);
@@ -1003,6 +1015,10 @@ void test_spine_l0_real_slice_vertical_path() {
       100'000);
 
   require(!maintenance.failed(), "Spine L0 real-slice path reported failure");
+  require(&reader.algorithm_policy() == &compute.algorithm_policy() &&
+              reader.algorithm_policy().config().kind ==
+                  GraphAlgorithmKind::kWeightedSssp,
+          "Reader and Compute did not share the weighted SSSP policy");
   const auto &counters = maintenance.counters();
   require(counters.sorted_scan_passes == 20,
           "Spine L0 did not execute the expected HLS scan passes");
@@ -1180,6 +1196,13 @@ void test_spine_l0_real_slice_vertical_path() {
   require(edge_stream.stats().max_occupancy <= 32 &&
               value_stream.stats().max_occupancy <= 32,
           "Spine AXIS occupancy exceeded the configured depth");
+  require(scheduler.clock(core).completed_cycles == 43'407 &&
+              counters.end_cycle - counters.start_cycle == 2'370 &&
+              reader_counters.end_cycle - reader_counters.start_cycle ==
+                  4'478 &&
+              compute_counters.end_cycle - compute_counters.start_cycle ==
+                  40'968,
+          "algorithm policy injection changed the accepted SSSP cycle ledger");
   std::cout << "EVIDENCE spine_vertical_slice e2e_cycles="
             << scheduler.clock(core).completed_cycles << " maintenance_cycles="
             << counters.end_cycle - counters.start_cycle << " reader_cycles="

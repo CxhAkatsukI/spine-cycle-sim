@@ -198,12 +198,19 @@ SpineVerticalSliceSystem::SpineVerticalSliceSystem(
   reader_ports.result = maintenance_result_.get();
 
   const std::size_t vertices = workload.vertices;
+  const auto algorithm_policy = std::make_shared<const GraphAlgorithmPolicy>(
+      AlgorithmPolicyConfig{
+          .kind = GraphAlgorithmKind::kWeightedSssp,
+          .vertices = vertices,
+          .source = source,
+      });
   maintenance_ = std::make_unique<SpineL0Maintenance>(
       "spine-l0-maintenance", clock_id_, std::move(maintenance_config),
       std::move(workload), maintenance_ports, state_);
   reader_ = std::make_unique<SpineSplitReader>(
       "spine-split-reader", clock_id_, *maintenance_, reader_ports,
-      std::vector<std::uint32_t>{source}, edge_stream_, value_stream_);
+      std::vector<std::uint32_t>{source}, edge_stream_, value_stream_,
+      SpineReaderMode::kDeviceDirty, algorithm_policy);
   compute_ = std::make_unique<SpineSplitSsspCompute>(
       "spine-split-compute", clock_id_, vertices, source, tiny_threshold,
       SpineComputePorts{
@@ -213,7 +220,7 @@ SpineVerticalSliceSystem::SpineVerticalSliceSystem(
           .result = compute_result_.get(),
       },
       edge_stream_, value_stream_, compute_memory_request_window,
-      compute_writeonly_request_window, on_chip_profile);
+      compute_writeonly_request_window, on_chip_profile, algorithm_policy);
   dirty_ack_ = std::make_unique<SpineDirtyAck>(
       "spine-dirty-ack", clock_id_, maintenance_->config(),
       SpineDirtyAckPorts{

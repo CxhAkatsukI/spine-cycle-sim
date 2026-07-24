@@ -5,11 +5,13 @@
 #include <cstdint>
 #include <deque>
 #include <map>
+#include <memory>
 #include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
+#include "spine_sim/algorithm.hpp"
 #include "spine_sim/component.hpp"
 #include "spine_sim/fifo.hpp"
 #include "spine_sim/fixed_axi_port.hpp"
@@ -171,7 +173,9 @@ class SpineSplitReader final : public Component {
                    std::vector<std::uint32_t> active_sources,
                    Fifo<PartConvWord> &edge_out,
                    Fifo<SourceValueWord> &value_in,
-                   SpineReaderMode mode = SpineReaderMode::kDeviceDirty);
+                   SpineReaderMode mode = SpineReaderMode::kDeviceDirty,
+                   std::shared_ptr<const GraphAlgorithmPolicy>
+                       algorithm_policy = nullptr);
 
   [[nodiscard]] bool done() const noexcept { return done_; }
   [[nodiscard]] bool failed() const noexcept { return failed_; }
@@ -181,6 +185,9 @@ class SpineSplitReader final : public Component {
     return counters_;
   }
   [[nodiscard]] std::vector<std::uint32_t> active_source_ids() const;
+  [[nodiscard]] const GraphAlgorithmPolicy &algorithm_policy() const noexcept {
+    return *algorithm_policy_;
+  }
   void reset_round(std::vector<std::uint32_t> active_sources);
   void reset_host_round(
       const SpineActiveBins &active_bins,
@@ -479,6 +486,7 @@ class SpineSplitReader final : public Component {
   [[nodiscard]] PartConvWord current_diagnostic_word() const;
 
   const SpineL0Maintenance &maintenance_;
+  std::shared_ptr<const GraphAlgorithmPolicy> algorithm_policy_;
   SpineReaderPorts ports_;
   SpineReaderMode mode_{SpineReaderMode::kDeviceDirty};
   std::vector<std::uint32_t> active_sources_;
@@ -707,7 +715,9 @@ class SpineSplitSsspCompute final : public Component {
                             kDefaultMemoryRequestWindow,
                         std::size_t writeonly_request_window =
                             kDefaultWriteOnlyRequestWindow,
-                        SpineOnChipMemoryProfile on_chip_profile = {});
+                        SpineOnChipMemoryProfile on_chip_profile = {},
+                        std::shared_ptr<const GraphAlgorithmPolicy>
+                            algorithm_policy = nullptr);
 
   [[nodiscard]] bool done() const noexcept { return done_; }
   [[nodiscard]] bool failed() const noexcept { return failed_; }
@@ -720,6 +730,9 @@ class SpineSplitSsspCompute final : public Component {
   }
   [[nodiscard]] const SpineComputeCounters &counters() const noexcept {
     return counters_;
+  }
+  [[nodiscard]] const GraphAlgorithmPolicy &algorithm_policy() const noexcept {
+    return *algorithm_policy_;
   }
   void reset_round();
   void reset_after_host_handoff();
@@ -849,6 +862,7 @@ class SpineSplitSsspCompute final : public Component {
 
   std::size_t vertices_{};
   std::uint32_t source_{};
+  std::shared_ptr<const GraphAlgorithmPolicy> algorithm_policy_;
   std::size_t tiny_threshold_{};
   std::size_t memory_request_window_{};
   std::size_t writeonly_request_window_{};

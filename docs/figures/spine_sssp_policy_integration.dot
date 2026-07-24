@@ -1,0 +1,23 @@
+digraph SpineSsspPolicyIntegration {
+  graph [rankdir=LR, bgcolor="white", pad="0.25", nodesep="0.42", ranksep="0.55"];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+        color="#374151", fillcolor="#f8fafc"];
+  edge [fontname="Helvetica", fontsize=9, color="#475569"];
+
+  policy [label="Shared immutable policy\nweighted SSSP", fillcolor="#fef3c7"];
+  compute_source [label="Compute source read\nHBM payload", fillcolor="#dbeafe"];
+  prepare [label="prepare_source\ndistance word", fillcolor="#dcfce7"];
+  value_axis [label="32-bit source-response AXIS", fillcolor="#e0f2fe"];
+  reader [label="Reader map_edge\nsaturating + weight", fillcolor="#dcfce7"];
+  edge_axis [label="32-bit candidate AXIS", fillcolor="#e0f2fe"];
+  compute_apply [label="Compute reduce/apply\nminimum + strict improvement", fillcolor="#dcfce7"];
+  state [label="HBM / URAM state + active writes", fillcolor="#dbeafe"];
+  gate [label="Exact cycles and values\nMock + SST-DRAMSim3", shape=note,
+        fillcolor="#fee2e2"];
+
+  compute_source -> prepare -> value_axis -> reader -> edge_axis -> compute_apply -> state;
+  policy -> prepare;
+  policy -> reader;
+  policy -> compute_apply;
+  state -> gate;
+}
