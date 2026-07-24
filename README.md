@@ -152,3 +152,6 @@ in
 DEVICE-to-HOST limit handoff and payload-driven HOST tiled fallback are
 documented in
 [`docs/spine_host_tiled_fallback_20260724.md`](docs/spine_host_tiled_fallback_20260724.md).
+The HLS-scoped `II=1` construction/replay pipelines, bounded ordered response
+buffer, and AXIS backpressure evidence are documented in
+[`docs/spine_hls_edge_pipeline_20260724.md`](docs/spine_hls_edge_pipeline_20260724.md).

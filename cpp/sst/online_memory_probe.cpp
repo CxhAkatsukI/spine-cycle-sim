@@ -571,6 +571,10 @@ class OnlineMemoryProbe final : public SST::Component {
         params.find<std::uint64_t>("fallback_replay_threshold", 65'536);
     memory_request_window_ =
         params.find<std::size_t>("memory_request_window", 1);
+    reader_edge_pipeline_depth_ =
+        params.find<std::size_t>("reader_edge_pipeline_depth", 32);
+    reader_edge_response_capacity_ =
+        params.find<std::size_t>("reader_edge_response_capacity", 32);
     if ((mode_ != "probe" && mode_ != "payload_roundtrip" &&
          mode_ != "spine_vertical" && mode_ != "spine_compute" &&
          mode_ != "spine_sssp") ||
@@ -578,8 +582,8 @@ class OnlineMemoryProbe final : public SST::Component {
         device_dirty_source_limit_ == 0 || range_task_active_gate_ == 0 ||
         range_task_capacity_ == 0 || range_task_capacity_ > 65'536 ||
         range_task_payload_budget_ == 0 || fallback_replay_threshold_ == 0 ||
-        memory_request_window_ == 0 ||
-        write_percent_ > 100 ||
+        memory_request_window_ == 0 || reader_edge_pipeline_depth_ == 0 ||
+        reader_edge_response_capacity_ == 0 || write_percent_ > 100 ||
         (mode_ == "probe" &&
          (request_count_ == 0 || request_bytes_ == 0 || stride_bytes_ == 0)) ||
         ((mode_ == "spine_vertical" || mode_ == "spine_compute" ||
@@ -726,6 +730,10 @@ class OnlineMemoryProbe final : public SST::Component {
       maintenance_config.range_task_payload_budget = range_task_payload_budget_;
       maintenance_config.fallback_replay_threshold = fallback_replay_threshold_;
       maintenance_config.memory_request_window = memory_request_window_;
+      maintenance_config.reader_edge_pipeline_depth =
+          reader_edge_pipeline_depth_;
+      maintenance_config.reader_edge_response_capacity =
+          reader_edge_response_capacity_;
       if (!hot_vertices_text_.empty()) {
         std::istringstream vertices(hot_vertices_text_);
         std::string item;
@@ -983,7 +991,9 @@ class OnlineMemoryProbe final : public SST::Component {
        "1048576"},
       {"fallback_replay_threshold", "HOST fallback replay threshold", "65536"},
       {"memory_request_window",
-       "Coarse producer request window (greater than one is a what-if)", "1"})
+       "Coarse producer request window (greater than one is a what-if)", "1"},
+      {"reader_edge_pipeline_depth", "II=1 edge-loop in-flight credits", "32"},
+      {"reader_edge_response_capacity", "Ordered edge response capacity", "32"})
 
   SST_ELI_DOCUMENT_SUBCOMPONENT_SLOTS(
       {"memory", "One StandardMem interface per HBM channel",
@@ -1176,6 +1186,15 @@ class OnlineMemoryProbe final : public SST::Component {
       std::vector<std::uint64_t> reader_memory_dependency_stalls;
       std::vector<std::uint64_t> reader_memory_request_fifo_stalls;
       std::vector<std::size_t> reader_max_memory_requests_inflight;
+      std::vector<std::uint64_t> reader_construction_pipeline_requests;
+      std::vector<std::uint64_t> reader_construction_pipeline_retires;
+      std::vector<std::uint64_t> reader_replay_pipeline_requests;
+      std::vector<std::uint64_t> reader_replay_pipeline_retires;
+      std::vector<std::uint64_t> reader_edge_pipeline_credit_stalls;
+      std::vector<std::uint64_t> reader_edge_pipeline_request_fifo_stalls;
+      std::vector<std::uint64_t> reader_edge_pipeline_axis_stalls;
+      std::vector<std::size_t> reader_edge_pipeline_max_inflight;
+      std::vector<std::size_t> reader_edge_pipeline_max_buffered;
       std::vector<std::uint64_t> reader_source_requests;
       std::vector<std::uint64_t> reader_source_responses;
       std::vector<std::uint64_t> reader_source_windows;
@@ -1278,6 +1297,24 @@ class OnlineMemoryProbe final : public SST::Component {
             round.reader.memory_request_fifo_stall_cycles);
         reader_max_memory_requests_inflight.push_back(
             round.reader.max_memory_requests_inflight);
+        reader_construction_pipeline_requests.push_back(
+            round.reader.construction_pipeline_requests);
+        reader_construction_pipeline_retires.push_back(
+            round.reader.construction_pipeline_retires);
+        reader_replay_pipeline_requests.push_back(
+            round.reader.replay_pipeline_requests);
+        reader_replay_pipeline_retires.push_back(
+            round.reader.replay_pipeline_retires);
+        reader_edge_pipeline_credit_stalls.push_back(
+            round.reader.edge_pipeline_credit_stall_cycles);
+        reader_edge_pipeline_request_fifo_stalls.push_back(
+            round.reader.edge_pipeline_request_fifo_stall_cycles);
+        reader_edge_pipeline_axis_stalls.push_back(
+            round.reader.edge_pipeline_axis_stall_cycles);
+        reader_edge_pipeline_max_inflight.push_back(
+            round.reader.edge_pipeline_max_inflight);
+        reader_edge_pipeline_max_buffered.push_back(
+            round.reader.edge_pipeline_max_buffered);
         reader_source_requests.push_back(round.reader.source_requests);
         reader_source_responses.push_back(round.reader.source_responses);
         reader_source_windows.push_back(round.reader.source_request_windows);
@@ -1356,79 +1393,81 @@ class OnlineMemoryProbe final : public SST::Component {
       }
       const auto &maintenance = spine_system_->maintenance_counters();
       const auto &dirty_ack = spine_system_->dirty_ack_counters();
-      result << "{\n"
-             << "  \"success\": " << (passed ? "true" : "false") << ",\n"
-             << "  \"mode\": \"spine_sssp\",\n"
-             << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
-             << "  \"cycles\": " << scheduler_.clock(0).completed_cycles
-             << ",\n"
-             << "  \"input_edges\": " << spine_expected_edges_ << ",\n"
-             << "  \"rounds\": " << sst_rounds_.size() << ",\n"
-             << "  \"host_handoffs\": " << sst_host_handoffs_.size() << ",\n"
-             << "  \"range_task_capacity\": " << range_task_capacity_ << ",\n"
-             << "  \"range_task_payload_budget\": "
-             << range_task_payload_budget_ << ",\n"
-             << "  \"memory_request_window\": " << memory_request_window_
-             << ",\n"
-             << "  \"converged\": " << (converged ? "true" : "false") << ",\n"
-             << "  \"correctness_mismatches\": " << mismatches << ",\n"
-             << "  \"frontier_mismatches\": " << frontier_mismatches << ",\n"
-             << "  \"maintenance_scan_passes\": "
-             << maintenance.sorted_scan_passes << ",\n"
-             << "  \"maintenance_edge_visits\": "
-             << maintenance.sorted_edge_visits << ",\n"
-             << "  \"maintenance_sorted_bytes\": "
-             << maintenance.sorted_read_bytes << ",\n"
-             << "  \"maintenance_sorted_payload_read_bytes\": "
-             << maintenance.sorted_payload_read_bytes << ",\n"
-             << "  \"maintenance_graph_index_payload_write_bytes\": "
-             << maintenance.graph_index_payload_write_bytes << ",\n"
-             << "  \"maintenance_graph_payload_write_bytes\": "
-             << maintenance.graph_edge_payload_write_bytes << ",\n"
-             << "  \"maintenance_memory_requests_issued\": "
-             << maintenance.memory_requests_issued << ",\n"
-             << "  \"maintenance_memory_requests_completed\": "
-             << maintenance.memory_requests_completed << ",\n"
-             << "  \"maintenance_memory_window_stall_cycles\": "
-             << maintenance.memory_window_stall_cycles << ",\n"
-             << "  \"maintenance_memory_dependency_stall_cycles\": "
-             << maintenance.memory_dependency_stall_cycles << ",\n"
-             << "  \"maintenance_memory_request_fifo_stall_cycles\": "
-             << maintenance.memory_request_fifo_stall_cycles << ",\n"
-             << "  \"maintenance_max_memory_requests_inflight\": "
-             << maintenance.max_memory_requests_inflight << ",\n"
-             << "  \"dirty_ack_started\": "
-             << (spine_system_->dirty_ack_started() ? 1 : 0) << ",\n"
-             << "  \"dirty_ack_status\": " << dirty_ack.status << ",\n"
-             << "  \"dirty_ack_cycles\": "
-             << (dirty_ack.end_cycle - dirty_ack.start_cycle) << ",\n"
-             << "  \"dirty_ack_captured_count\": "
-             << dirty_ack.captured.count << ",\n"
-             << "  \"dirty_ack_captured_generation\": "
-             << dirty_ack.captured.generation << ",\n"
-             << "  \"dirty_ack_result_count\": "
-             << dirty_ack.result.count << ",\n"
-             << "  \"dirty_ack_result_generation\": "
-             << dirty_ack.result.generation << ",\n"
-             << "  \"dirty_ack_candidate_write_bytes\": "
-             << dirty_ack.candidate_write_bytes << ",\n"
-             << "  \"dirty_ack_metadata_read_bytes\": "
-             << dirty_ack.metadata_read_bytes << ",\n"
-             << "  \"dirty_ack_metadata_write_bytes\": "
-             << dirty_ack.metadata_write_bytes << ",\n"
-             << "  \"dirty_ack_list_read_bytes\": "
-             << dirty_ack.list_read_bytes << ",\n"
-             << "  \"dirty_ack_bitmap_read_bytes\": "
-             << dirty_ack.bitmap_read_bytes << ",\n"
-             << "  \"dirty_ack_bitmap_write_bytes\": "
-             << dirty_ack.bitmap_write_bytes << ",\n"
-             << "  \"dirty_ack_validated_sources\": "
-             << dirty_ack.validated_sources << ",\n"
-             << "  \"dirty_ack_cleared_sources\": "
-             << dirty_ack.cleared_sources << ",\n"
-             << "  \"dirty_ack_generation_advances\": "
-             << dirty_ack.generation_advances << ",\n"
-             << "  \"final_values\": ";
+      result
+          << "{\n"
+          << "  \"success\": " << (passed ? "true" : "false") << ",\n"
+          << "  \"mode\": \"spine_sssp\",\n"
+          << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
+          << "  \"cycles\": " << scheduler_.clock(0).completed_cycles << ",\n"
+          << "  \"input_edges\": " << spine_expected_edges_ << ",\n"
+          << "  \"rounds\": " << sst_rounds_.size() << ",\n"
+          << "  \"host_handoffs\": " << sst_host_handoffs_.size() << ",\n"
+          << "  \"range_task_capacity\": " << range_task_capacity_ << ",\n"
+          << "  \"range_task_payload_budget\": " << range_task_payload_budget_
+          << ",\n"
+          << "  \"memory_request_window\": " << memory_request_window_ << ",\n"
+          << "  \"reader_edge_pipeline_depth\": " << reader_edge_pipeline_depth_
+          << ",\n"
+          << "  \"reader_edge_response_capacity\": "
+          << reader_edge_response_capacity_ << ",\n"
+          << "  \"converged\": " << (converged ? "true" : "false") << ",\n"
+          << "  \"correctness_mismatches\": " << mismatches << ",\n"
+          << "  \"frontier_mismatches\": " << frontier_mismatches << ",\n"
+          << "  \"maintenance_scan_passes\": " << maintenance.sorted_scan_passes
+          << ",\n"
+          << "  \"maintenance_edge_visits\": " << maintenance.sorted_edge_visits
+          << ",\n"
+          << "  \"maintenance_sorted_bytes\": " << maintenance.sorted_read_bytes
+          << ",\n"
+          << "  \"maintenance_sorted_payload_read_bytes\": "
+          << maintenance.sorted_payload_read_bytes << ",\n"
+          << "  \"maintenance_graph_index_payload_write_bytes\": "
+          << maintenance.graph_index_payload_write_bytes << ",\n"
+          << "  \"maintenance_graph_payload_write_bytes\": "
+          << maintenance.graph_edge_payload_write_bytes << ",\n"
+          << "  \"maintenance_memory_requests_issued\": "
+          << maintenance.memory_requests_issued << ",\n"
+          << "  \"maintenance_memory_requests_completed\": "
+          << maintenance.memory_requests_completed << ",\n"
+          << "  \"maintenance_memory_window_stall_cycles\": "
+          << maintenance.memory_window_stall_cycles << ",\n"
+          << "  \"maintenance_memory_dependency_stall_cycles\": "
+          << maintenance.memory_dependency_stall_cycles << ",\n"
+          << "  \"maintenance_memory_request_fifo_stall_cycles\": "
+          << maintenance.memory_request_fifo_stall_cycles << ",\n"
+          << "  \"maintenance_max_memory_requests_inflight\": "
+          << maintenance.max_memory_requests_inflight << ",\n"
+          << "  \"dirty_ack_started\": "
+          << (spine_system_->dirty_ack_started() ? 1 : 0) << ",\n"
+          << "  \"dirty_ack_status\": " << dirty_ack.status << ",\n"
+          << "  \"dirty_ack_cycles\": "
+          << (dirty_ack.end_cycle - dirty_ack.start_cycle) << ",\n"
+          << "  \"dirty_ack_captured_count\": " << dirty_ack.captured.count
+          << ",\n"
+          << "  \"dirty_ack_captured_generation\": "
+          << dirty_ack.captured.generation << ",\n"
+          << "  \"dirty_ack_result_count\": " << dirty_ack.result.count << ",\n"
+          << "  \"dirty_ack_result_generation\": "
+          << dirty_ack.result.generation << ",\n"
+          << "  \"dirty_ack_candidate_write_bytes\": "
+          << dirty_ack.candidate_write_bytes << ",\n"
+          << "  \"dirty_ack_metadata_read_bytes\": "
+          << dirty_ack.metadata_read_bytes << ",\n"
+          << "  \"dirty_ack_metadata_write_bytes\": "
+          << dirty_ack.metadata_write_bytes << ",\n"
+          << "  \"dirty_ack_list_read_bytes\": " << dirty_ack.list_read_bytes
+          << ",\n"
+          << "  \"dirty_ack_bitmap_read_bytes\": "
+          << dirty_ack.bitmap_read_bytes << ",\n"
+          << "  \"dirty_ack_bitmap_write_bytes\": "
+          << dirty_ack.bitmap_write_bytes << ",\n"
+          << "  \"dirty_ack_validated_sources\": "
+          << dirty_ack.validated_sources << ",\n"
+          << "  \"dirty_ack_cleared_sources\": " << dirty_ack.cleared_sources
+          << ",\n"
+          << "  \"dirty_ack_generation_advances\": "
+          << dirty_ack.generation_advances << ",\n"
+          << "  \"final_values\": ";
       write_json_array(result, actual_values);
       result << ",\n  \"frontier_in_sizes\": ";
       write_json_array(result, frontier_in_sizes);
@@ -1506,6 +1545,26 @@ class OnlineMemoryProbe final : public SST::Component {
       write_json_array(result, reader_memory_request_fifo_stalls);
       result << ",\n  \"reader_max_memory_requests_inflight_per_round\": ";
       write_json_array(result, reader_max_memory_requests_inflight);
+      result << ",\n  \"reader_construction_pipeline_requests_per_round\": ";
+      write_json_array(result, reader_construction_pipeline_requests);
+      result << ",\n  \"reader_construction_pipeline_retires_per_round\": ";
+      write_json_array(result, reader_construction_pipeline_retires);
+      result << ",\n  \"reader_replay_pipeline_requests_per_round\": ";
+      write_json_array(result, reader_replay_pipeline_requests);
+      result << ",\n  \"reader_replay_pipeline_retires_per_round\": ";
+      write_json_array(result, reader_replay_pipeline_retires);
+      result << ",\n  \"reader_edge_pipeline_credit_stall_cycles_per_round\": ";
+      write_json_array(result, reader_edge_pipeline_credit_stalls);
+      result
+          << ",\n  "
+             "\"reader_edge_pipeline_request_fifo_stall_cycles_per_round\": ";
+      write_json_array(result, reader_edge_pipeline_request_fifo_stalls);
+      result << ",\n  \"reader_edge_pipeline_axis_stall_cycles_per_round\": ";
+      write_json_array(result, reader_edge_pipeline_axis_stalls);
+      result << ",\n  \"reader_edge_pipeline_max_inflight_per_round\": ";
+      write_json_array(result, reader_edge_pipeline_max_inflight);
+      result << ",\n  \"reader_edge_pipeline_max_buffered_per_round\": ";
+      write_json_array(result, reader_edge_pipeline_max_buffered);
       result << ",\n  \"reader_source_requests_per_round\": ";
       write_json_array(result, reader_source_requests);
       result << ",\n  \"reader_source_responses_per_round\": ";
@@ -1660,6 +1719,10 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"input_edges\": " << spine_expected_edges_ << ",\n"
           << "  \"preload_edges\": " << spine_preload_edges_ << ",\n"
           << "  \"memory_request_window\": " << memory_request_window_ << ",\n"
+          << "  \"reader_edge_pipeline_depth\": " << reader_edge_pipeline_depth_
+          << ",\n"
+          << "  \"reader_edge_response_capacity\": "
+          << reader_edge_response_capacity_ << ",\n"
           << "  \"correctness_mismatches\": " << mismatches << ",\n"
           << "  \"frontier_mismatches\": " << frontier_mismatches << ",\n"
           << "  \"next_active\": "
@@ -1750,8 +1813,8 @@ class OnlineMemoryProbe final : public SST::Component {
           << ",\n"
           << "  \"reader_metadata_write_bytes\": "
           << reader.metadata_write_bytes << ",\n"
-          << "  \"reader_result_write_bytes\": "
-          << reader.result_write_bytes << ",\n"
+          << "  \"reader_result_write_bytes\": " << reader.result_write_bytes
+          << ",\n"
           << "  \"reader_active_bin_bytes\": " << reader.active_bin_read_bytes
           << ",\n"
           << "  \"reader_dirty_list_bytes\": " << reader.dirty_list_read_bytes
@@ -1770,21 +1833,39 @@ class OnlineMemoryProbe final : public SST::Component {
           << reader.memory_request_fifo_stall_cycles << ",\n"
           << "  \"reader_max_memory_requests_inflight\": "
           << reader.max_memory_requests_inflight << ",\n"
+          << "  \"reader_construction_pipeline_requests\": "
+          << reader.construction_pipeline_requests << ",\n"
+          << "  \"reader_construction_pipeline_retires\": "
+          << reader.construction_pipeline_retires << ",\n"
+          << "  \"reader_replay_pipeline_requests\": "
+          << reader.replay_pipeline_requests << ",\n"
+          << "  \"reader_replay_pipeline_retires\": "
+          << reader.replay_pipeline_retires << ",\n"
+          << "  \"reader_edge_pipeline_credit_stall_cycles\": "
+          << reader.edge_pipeline_credit_stall_cycles << ",\n"
+          << "  \"reader_edge_pipeline_request_fifo_stall_cycles\": "
+          << reader.edge_pipeline_request_fifo_stall_cycles << ",\n"
+          << "  \"reader_edge_pipeline_axis_stall_cycles\": "
+          << reader.edge_pipeline_axis_stall_cycles << ",\n"
+          << "  \"reader_edge_pipeline_max_inflight\": "
+          << reader.edge_pipeline_max_inflight << ",\n"
+          << "  \"reader_edge_pipeline_max_buffered\": "
+          << reader.edge_pipeline_max_buffered << ",\n"
           << "  \"reader_source_requests\": " << reader.source_requests << ",\n"
           << "  \"reader_source_responses\": " << reader.source_responses
           << ",\n"
-          << "  \"reader_source_windows\": "
-          << reader.source_request_windows << ",\n"
-          << "  \"reader_protocol_markers\": "
-          << reader.source_protocol_markers << ",\n"
-          << "  \"reader_protocol_acks\": "
-          << reader.source_protocol_acks << ",\n"
-          << "  \"reader_protocol_status\": "
-          << reader.source_protocol_status << ",\n"
+          << "  \"reader_source_windows\": " << reader.source_request_windows
+          << ",\n"
+          << "  \"reader_protocol_markers\": " << reader.source_protocol_markers
+          << ",\n"
+          << "  \"reader_protocol_acks\": " << reader.source_protocol_acks
+          << ",\n"
+          << "  \"reader_protocol_status\": " << reader.source_protocol_status
+          << ",\n"
           << "  \"reader_dirty_status\": " << reader.dirty_status << ",\n"
           << "  \"reader_dirty_count\": " << reader.dirty_count << ",\n"
-          << "  \"reader_dirty_generation\": "
-          << reader.dirty_generation << ",\n"
+          << "  \"reader_dirty_generation\": " << reader.dirty_generation
+          << ",\n"
           << "  \"reader_ack_eligible\": "
           << (reader.acknowledgement_eligible ? 1 : 0) << ",\n"
           << "  \"reader_host_coverage_match\": "
@@ -1792,19 +1873,19 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"reader_diagnostic_words\": " << reader.diagnostic_words
           << ",\n"
           << "  \"reader_done_words\": " << reader.done_words << ",\n"
-          << "  \"reader_done_overflow\": "
-          << (reader.done_overflow ? 1 : 0) << ",\n"
+          << "  \"reader_done_overflow\": " << (reader.done_overflow ? 1 : 0)
+          << ",\n"
           << "  \"compute_protocol_markers\": "
           << compute.source_protocol_markers << ",\n"
-          << "  \"compute_protocol_acks\": "
-          << compute.source_protocol_acks << ",\n"
-          << "  \"compute_protocol_status\": "
-          << compute.source_protocol_status << ",\n"
+          << "  \"compute_protocol_acks\": " << compute.source_protocol_acks
+          << ",\n"
+          << "  \"compute_protocol_status\": " << compute.source_protocol_status
+          << ",\n"
           << "  \"compute_diagnostic_words\": " << compute.diagnostic_words
           << ",\n"
           << "  \"compute_done_words\": " << compute.done_words << ",\n"
-          << "  \"compute_done_overflow\": "
-          << (compute.done_overflow ? 1 : 0) << ",\n"
+          << "  \"compute_done_overflow\": " << (compute.done_overflow ? 1 : 0)
+          << ",\n"
           << "  \"compute_range_path\": " << compute.range_task_path << ",\n"
           << "  \"compute_range_fallback_reason\": "
           << compute.range_task_fallback_reason << ",\n"
@@ -1923,6 +2004,8 @@ class OnlineMemoryProbe final : public SST::Component {
   std::uint64_t range_task_payload_budget_{};
   std::uint64_t fallback_replay_threshold_{};
   std::size_t memory_request_window_{};
+  std::size_t reader_edge_pipeline_depth_{};
+  std::size_t reader_edge_response_capacity_{};
   SST::TimeConverter clock_converter_{};
   std::vector<SST::Interfaces::StandardMem *> interfaces_;
 

@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <deque>
+#include <map>
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -149,6 +150,15 @@ struct SpineReaderCounters {
   std::uint64_t memory_dependency_stall_cycles{};
   std::uint64_t memory_request_fifo_stall_cycles{};
   std::size_t max_memory_requests_inflight{};
+  std::uint64_t construction_pipeline_requests{};
+  std::uint64_t construction_pipeline_retires{};
+  std::uint64_t replay_pipeline_requests{};
+  std::uint64_t replay_pipeline_retires{};
+  std::uint64_t edge_pipeline_credit_stall_cycles{};
+  std::uint64_t edge_pipeline_request_fifo_stall_cycles{};
+  std::uint64_t edge_pipeline_axis_stall_cycles{};
+  std::size_t edge_pipeline_max_inflight{};
+  std::size_t edge_pipeline_max_buffered{};
 };
 
 struct SpineReaderPorts {
@@ -311,8 +321,28 @@ class SpineSplitReader final : public Component {
     std::uint64_t bytes{};
     std::vector<std::uint8_t> write_data;
     std::uint32_t edge_source{};
+    std::uint32_t edge_source_value{};
+    std::uint32_t edge_tile_base{};
+    std::uint32_t edge_tile_end{};
     std::size_t item_index{};
+    std::uint64_t stream_sequence{};
+    bool edge_hot{};
     MemoryPayloadKind payload_kind{MemoryPayloadKind::kNone};
+  };
+
+  struct BufferedPipelineEdge {
+    SpineEdgeRecord edge;
+    std::uint32_t source_value{};
+    std::uint32_t tile_base{};
+    std::uint32_t tile_end{};
+    bool hot{};
+  };
+
+  enum class EdgePipelineMode {
+    kNone,
+    kConstruction,
+    kExactReplay,
+    kFallbackReplay,
   };
 
   enum class Phase {
@@ -376,7 +406,15 @@ class SpineSplitReader final : public Component {
     kDone,
   };
 
-  enum class Action { kNone, kAdvance, kPush, kPopValue };
+  enum class Action {
+    kNone,
+    kAdvance,
+    kPush,
+    kPopValue,
+    kRetireConstruction,
+    kPipelineError,
+    kFinishPipelineAbort,
+  };
 
   void advance(const CycleContext &context);
   void enqueue_level_cache_reads();
@@ -426,6 +464,19 @@ class SpineSplitReader final : public Component {
                                const AxiResponse &response);
   [[nodiscard]] bool memory_task_conflicts(const MemoryTask &task) const;
   [[nodiscard]] bool stage_memory_completion();
+  [[nodiscard]] bool edge_pipeline_active() const noexcept;
+  void begin_edge_pipeline(EdgePipelineMode mode, FixedAxiPort &port,
+                           std::uint64_t base_address, std::uint32_t length,
+                           std::uint32_t source, std::uint32_t source_value,
+                           std::uint32_t tile_base, std::uint32_t tile_end,
+                           bool hot);
+  void evaluate_edge_pipeline();
+  void commit_edge_pipeline_issue();
+  void retire_construction_edge();
+  void retire_replay_edge();
+  void finish_edge_pipeline();
+  [[nodiscard]] const BufferedPipelineEdge *next_pipeline_edge() const;
+  [[nodiscard]] bool next_pipeline_edge_valid() const;
   void reset_state();
   void begin_terminal(bool overflow, std::string failure = {});
   [[nodiscard]] PartConvWord current_stream_word() const;
@@ -457,6 +508,7 @@ class SpineSplitReader final : public Component {
   std::array<bool, 16> fallback_force_dense_{};
   std::deque<MemoryTask> memory_tasks_;
   std::unordered_map<std::uint64_t, MemoryTask> inflight_memory_tasks_;
+  std::map<std::uint64_t, BufferedPipelineEdge> edge_response_buffer_;
   Phase phase_{Phase::kWaitMaintenance};
   Action staged_action_{Action::kNone};
   PartConvWord staged_stream_word_;
@@ -513,6 +565,19 @@ class SpineSplitReader final : public Component {
   std::uint64_t next_transaction_id_{};
   bool staged_memory_issue_{};
   bool staged_memory_completion_{};
+  std::optional<MemoryTask> staged_edge_issue_task_;
+  EdgePipelineMode edge_pipeline_mode_{EdgePipelineMode::kNone};
+  FixedAxiPort *edge_pipeline_port_{};
+  std::uint64_t edge_pipeline_base_address_{};
+  std::uint32_t edge_pipeline_length_{};
+  std::uint32_t edge_pipeline_issue_index_{};
+  std::uint32_t edge_pipeline_retire_index_{};
+  std::uint32_t edge_pipeline_source_{};
+  std::uint32_t edge_pipeline_source_value_{};
+  std::uint32_t edge_pipeline_tile_base_{};
+  std::uint32_t edge_pipeline_tile_end_{};
+  bool edge_pipeline_hot_{};
+  bool edge_pipeline_abort_{};
   bool terminal_pending_{};
   bool terminal_overflow_{};
   bool terminal_failed_{};

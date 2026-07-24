@@ -96,3 +96,7 @@ issue. The unpipelined level-cache loop must remain serial. Tests must show
 identical payloads and request bytes, `N + pipeline fill/stalls` scaling for
 long edge loops, and sensitivity to HBM latency, request depth, response depth,
 and AXIS depth.
+
+This reader-side gate is completed in
+`spine_hls_edge_pipeline_20260724.md`. Maintenance loop overlap and beat-level
+AXI burst formation remain open.

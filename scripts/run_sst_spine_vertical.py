@@ -628,6 +628,8 @@ def parse_args() -> argparse.Namespace:
             "architecture what-if, not the source-faithful HLS default"
         ),
     )
+    parser.add_argument("--reader-edge-pipeline-depth", type=int, default=32)
+    parser.add_argument("--reader-edge-response-capacity", type=int, default=32)
     parser.add_argument("--no-build", action="store_true")
     return parser.parse_args()
 
@@ -710,6 +712,12 @@ def main() -> int:
                 args.fallback_replay_threshold
             ),
             "SPINE_SST_MEMORY_REQUEST_WINDOW": str(args.memory_request_window),
+            "SPINE_SST_READER_EDGE_PIPELINE_DEPTH": str(
+                args.reader_edge_pipeline_depth
+            ),
+            "SPINE_SST_READER_EDGE_RESPONSE_CAPACITY": str(
+                args.reader_edge_response_capacity
+            ),
         }
     )
     command = [

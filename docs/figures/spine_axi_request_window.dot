@@ -5,7 +5,7 @@ digraph spine_axi_request_window {
   edge [fontname="DejaVu Sans", fontsize=9, color="#555555"];
 
   subgraph cluster_source {
-    label="Source-faithful loop scopes";
+    label="Implemented HLS loop scopes";
     color="#4c78a8";
     level [label="Level cache\n32 families x 11 levels\nserial scalar reads", fillcolor="#e8f1fa"];
     build [label="Exact task construction\nedge loop II=1\nordered consume", fillcolor="#e8f1fa"];

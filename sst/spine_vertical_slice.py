@@ -58,6 +58,12 @@ probe.addParams(
         "memory_request_window": int(
             os.environ.get("SPINE_SST_MEMORY_REQUEST_WINDOW", "1")
         ),
+        "reader_edge_pipeline_depth": int(
+            os.environ.get("SPINE_SST_READER_EDGE_PIPELINE_DEPTH", "32")
+        ),
+        "reader_edge_response_capacity": int(
+            os.environ.get("SPINE_SST_READER_EDGE_RESPONSE_CAPACITY", "32")
+        ),
     }
 )
 

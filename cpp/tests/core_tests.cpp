@@ -2807,12 +2807,13 @@ void test_spine_memory_request_window_hides_latency() {
               serialized.reader.metadata_read_bytes ==
                   pipelined.reader.metadata_read_bytes,
           "memory request window changed the Spine memory work ledger");
-  require(serialized.maintenance.max_memory_requests_inflight == 1 &&
-              serialized.reader.max_memory_requests_inflight == 1,
-          "serialized compatibility profile exceeded one logical request");
-  require(pipelined.maintenance.max_memory_requests_inflight > 1 &&
-              pipelined.reader.max_memory_requests_inflight > 1,
-          "pipelined profile did not exercise logical AXI concurrency");
+  require(serialized.maintenance.max_memory_requests_inflight == 1,
+          "serialized compatibility profile overlapped maintenance tasks");
+  require(pipelined.maintenance.max_memory_requests_inflight > 1,
+          "coarse what-if did not overlap maintenance tasks");
+  require(serialized.reader.edge_pipeline_max_inflight > 1 &&
+              pipelined.reader.edge_pipeline_max_inflight > 1,
+          "source-faithful II=1 edge loops did not exercise concurrency");
   require(pipelined.maintenance.memory_requests_issued ==
                   pipelined.maintenance.memory_requests_completed &&
               pipelined.reader.memory_requests_issued ==
@@ -2820,6 +2821,150 @@ void test_spine_memory_request_window_hides_latency() {
           "pipelined profile did not retire every issued memory request");
   require(pipelined.cycles < serialized.cycles,
           "pipelined request window did not hide backend latency");
+}
+
+SpineMemoryWindowObservation run_spine_edge_pipeline(std::size_t depth,
+                                                     std::size_t capacity) {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("data", 141.0);
+  MockMemoryBackend backend("hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 24,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  SpineEdgeSlice workload{
+      .vertices = 512,
+      .edges = {},
+      .case_name = "edge_pipeline_256",
+  };
+  for (std::uint32_t dst = 1; dst <= 256; ++dst) {
+    workload.edges.push_back(
+        SpineEdgeRecord{.src = 0, .dst = dst, .weight = 1, .diff = 1});
+  }
+  SpineL0Config config;
+  config.memory_request_window = 1;
+  config.reader_edge_pipeline_depth = depth;
+  config.reader_edge_response_capacity = capacity;
+  SpineVerticalSliceSystem system(scheduler, core, backend, std::move(workload),
+                                  0, 4096, config);
+  system.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until([&system] { return system.done() && system.idle(); },
+                      1'000'000);
+  return SpineMemoryWindowObservation{
+      .cycles = scheduler.clock(core).completed_cycles,
+      .values = system.compute().values(),
+      .next_active = system.compute().next_active(),
+      .maintenance = system.maintenance_counters(),
+      .reader = system.reader_counters(),
+      .backend_requests = backend.stats().accepted,
+  };
+}
+
+void test_spine_edge_pipeline_is_ordered_bounded_and_latency_hiding() {
+  const SpineMemoryWindowObservation serialized = run_spine_edge_pipeline(1, 1);
+  const SpineMemoryWindowObservation capacity_two =
+      run_spine_edge_pipeline(32, 2);
+  const SpineMemoryWindowObservation pipelined =
+      run_spine_edge_pipeline(32, 32);
+
+  std::cout << "EVIDENCE spine_edge_pipeline serialized_cycles="
+            << serialized.cycles << " capacity2_cycles=" << capacity_two.cycles
+            << " pipelined_cycles=" << pipelined.cycles
+            << " max_inflight=" << pipelined.reader.edge_pipeline_max_inflight
+            << " max_buffered=" << pipelined.reader.edge_pipeline_max_buffered
+            << " credit_stalls="
+            << pipelined.reader.edge_pipeline_credit_stall_cycles << '\n';
+
+  require(serialized.values == capacity_two.values &&
+              serialized.values == pipelined.values &&
+              serialized.next_active == capacity_two.next_active &&
+              serialized.next_active == pipelined.next_active,
+          "edge-pipeline credits changed the functional result or order");
+  require(serialized.backend_requests == capacity_two.backend_requests &&
+              serialized.backend_requests == pipelined.backend_requests &&
+              serialized.reader.graph_read_bytes ==
+                  pipelined.reader.graph_read_bytes,
+          "edge-pipeline credits changed the memory work ledger");
+  require(serialized.reader.construction_pipeline_requests == 256 &&
+              serialized.reader.construction_pipeline_retires == 256 &&
+              serialized.reader.replay_pipeline_requests == 256 &&
+              serialized.reader.replay_pipeline_retires == 256 &&
+              pipelined.reader.construction_pipeline_requests == 256 &&
+              pipelined.reader.construction_pipeline_retires == 256 &&
+              pipelined.reader.replay_pipeline_requests == 256 &&
+              pipelined.reader.replay_pipeline_retires == 256,
+          "edge-pipeline issue/retire ledger did not close");
+  require(serialized.reader.edge_pipeline_max_inflight == 1 &&
+              capacity_two.reader.edge_pipeline_max_inflight <= 2 &&
+              pipelined.reader.edge_pipeline_max_inflight > 2 &&
+              pipelined.reader.edge_pipeline_max_inflight <= 32,
+          "edge-pipeline request or response capacity was not enforced");
+  require(serialized.reader.edge_pipeline_credit_stall_cycles > 0 &&
+              capacity_two.reader.edge_pipeline_credit_stall_cycles > 0 &&
+              pipelined.cycles < capacity_two.cycles &&
+              capacity_two.cycles < serialized.cycles,
+          "edge-pipeline credits did not hide backend latency monotonically");
+}
+
+void test_spine_edge_pipeline_propagates_axis_backpressure() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("data", 141.0);
+  MockMemoryBackend backend("hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 8,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  SpineEdgeSlice workload{
+      .vertices = 8'193,
+      .edges = {},
+      .case_name = "edge_pipeline_axis_backpressure",
+  };
+  for (std::uint32_t dst = 1; dst <= 8'192; ++dst) {
+    workload.edges.push_back(
+        SpineEdgeRecord{.src = 0, .dst = dst, .weight = 1, .diff = 1});
+  }
+  SpineL0Config config;
+  config.reader_edge_pipeline_depth = 32;
+  config.reader_edge_response_capacity = 32;
+  SpineVerticalSliceSystem system(scheduler, core, backend, std::move(workload),
+                                  0, 4096, config);
+  system.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until([&system] { return system.done() && system.idle(); },
+                      2'000'000);
+
+  const SpineReaderCounters &reader = system.reader_counters();
+  const SpineComputeCounters &compute = system.compute_counters();
+  std::cout << "EVIDENCE spine_edge_pipeline_backpressure cycles="
+            << scheduler.clock(core).completed_cycles
+            << " axis_stalls=" << reader.edge_pipeline_axis_stall_cycles
+            << " axis_max=" << system.edge_stream_stats().max_occupancy << '\n';
+  require(!system.failed() && reader.edges_emitted == 8'192 &&
+              reader.construction_pipeline_requests == 8'192 &&
+              reader.construction_pipeline_retires == 8'192 &&
+              reader.replay_pipeline_requests == 8'192 &&
+              reader.replay_pipeline_retires == 8'192,
+          "backpressured edge pipeline lost or duplicated work");
+  require(reader.edge_pipeline_axis_stall_cycles > 0 &&
+              system.edge_stream_stats().max_occupancy == 32 &&
+              system.edge_stream_stats().push_stalls > 0,
+          "compute pause did not propagate through AXIS to edge retirement");
+  require(compute.full_path_tiles == 1 &&
+              compute.full_buffer_replay_edges == 4'096 &&
+              compute.full_overflow_edges == 1 &&
+              compute.full_stream_edges == 4'095,
+          "backpressure fixture did not exercise the full-tile transition");
+  require(std::all_of(system.compute().values().begin() + 1,
+                      system.compute().values().end(),
+                      [](std::uint32_t value) { return value == 1; }),
+          "backpressured replay changed the final distances");
 }
 
 }  // namespace
@@ -2883,6 +3028,10 @@ int main() {
        test_spine_multiround_weighted_sssp_converges},
       {"spine_memory_request_window",
        test_spine_memory_request_window_hides_latency},
+      {"spine_edge_pipeline",
+       test_spine_edge_pipeline_is_ordered_bounded_and_latency_hiding},
+      {"spine_edge_pipeline_backpressure",
+       test_spine_edge_pipeline_propagates_axis_backpressure},
   };
   std::size_t failures = 0;
   for (const auto &[name, test] : tests) {

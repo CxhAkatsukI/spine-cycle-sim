@@ -227,6 +227,7 @@ void SpineSplitReader::reset_state() {
   fallback_force_dense_.fill(false);
   memory_tasks_.clear();
   inflight_memory_tasks_.clear();
+  edge_response_buffer_.clear();
   phase_ = Phase::kWaitMaintenance;
   staged_action_ = Action::kNone;
   probe_index_ = 0;
@@ -277,6 +278,19 @@ void SpineSplitReader::reset_state() {
   dirty_payload_valid_ = true;
   staged_memory_issue_ = false;
   staged_memory_completion_ = false;
+  staged_edge_issue_task_.reset();
+  edge_pipeline_mode_ = EdgePipelineMode::kNone;
+  edge_pipeline_port_ = nullptr;
+  edge_pipeline_base_address_ = 0;
+  edge_pipeline_length_ = 0;
+  edge_pipeline_issue_index_ = 0;
+  edge_pipeline_retire_index_ = 0;
+  edge_pipeline_source_ = 0;
+  edge_pipeline_source_value_ = 0;
+  edge_pipeline_tile_base_ = 0;
+  edge_pipeline_tile_end_ = 0;
+  edge_pipeline_hot_ = false;
+  edge_pipeline_abort_ = false;
   terminal_pending_ = false;
   terminal_overflow_ = false;
   terminal_failed_ = false;
@@ -303,10 +317,15 @@ void SpineSplitReader::evaluate(const CycleContext &) {
   staged_action_ = Action::kNone;
   staged_memory_issue_ = false;
   staged_memory_completion_ = false;
+  staged_edge_issue_task_.reset();
   if (done_ || failed_) {
     return;
   }
   staged_memory_completion_ = stage_memory_completion();
+  if (edge_pipeline_active()) {
+    evaluate_edge_pipeline();
+    return;
+  }
   if (!memory_tasks_.empty()) {
     const MemoryTask &task = memory_tasks_.front();
     const std::size_t window = maintenance_.config().memory_request_window;
@@ -369,14 +388,18 @@ void SpineSplitReader::commit(const CycleContext &context) {
     ++counters_.memory_requests_completed;
   }
   if (staged_memory_issue_) {
-    const std::uint64_t transaction_id = next_transaction_id_++;
-    inflight_memory_tasks_.emplace(transaction_id,
-                                   std::move(memory_tasks_.front()));
-    memory_tasks_.pop_front();
-    ++counters_.memory_requests_issued;
-    counters_.max_memory_requests_inflight =
-        std::max(counters_.max_memory_requests_inflight,
-                 inflight_memory_tasks_.size());
+    if (staged_edge_issue_task_.has_value()) {
+      commit_edge_pipeline_issue();
+    } else {
+      const std::uint64_t transaction_id = next_transaction_id_++;
+      inflight_memory_tasks_.emplace(transaction_id,
+                                     std::move(memory_tasks_.front()));
+      memory_tasks_.pop_front();
+      ++counters_.memory_requests_issued;
+      counters_.max_memory_requests_inflight =
+          std::max(counters_.max_memory_requests_inflight,
+                   inflight_memory_tasks_.size());
+    }
   }
   switch (staged_action_) {
     case Action::kNone:
@@ -457,14 +480,7 @@ void SpineSplitReader::commit(const CycleContext &context) {
           phase_ = Phase::kEdgeRead;
           break;
         case Phase::kEdgeEmit:
-          ++counters_.edges_emitted;
-          if (tiles_.at(tile_index_).ranges.at(range_index_).hot) {
-            ++counters_.hot_edges_emitted;
-          } else {
-            ++counters_.cold_edges_emitted;
-          }
-          ++range_edge_index_;
-          phase_ = Phase::kEdgeRead;
+          retire_replay_edge();
           break;
         case Phase::kTileEnd:
           ++tile_index_;
@@ -477,14 +493,7 @@ void SpineSplitReader::commit(const CycleContext &context) {
       phase_ = Phase::kFallbackPassBegin;
       break;
     case Phase::kFallbackEdgeEmit:
-      ++counters_.edges_emitted;
-      if (fallback_lookup_.hot) {
-        ++counters_.hot_edges_emitted;
-      } else {
-        ++counters_.cold_edges_emitted;
-      }
-      ++fallback_replay_position_;
-      phase_ = Phase::kFallbackEdgeRead;
+      retire_replay_edge();
       break;
     case Phase::kFallbackTileEnd:
       ++fallback_tile_local_;
@@ -512,6 +521,20 @@ void SpineSplitReader::commit(const CycleContext &context) {
       return;
     case Action::kAdvance:
       advance(context);
+      return;
+    case Action::kRetireConstruction:
+      retire_construction_edge();
+      return;
+    case Action::kPipelineError:
+      counters_.range_task_path = kRangeTaskPathError;
+      counters_.range_task_error = kRangeTaskErrorDestination;
+      edge_pipeline_abort_ = true;
+      edge_response_buffer_.clear();
+      begin_terminal(true,
+                     "pipelined replay returned an edge outside its tile");
+      return;
+    case Action::kFinishPipelineAbort:
+      finish_edge_pipeline();
       return;
   }
 }
@@ -546,6 +569,173 @@ bool SpineSplitReader::stage_memory_completion() {
   }
   return selected_port != nullptr &&
          selected_port->responses().try_pop(staged_response_);
+}
+
+bool SpineSplitReader::edge_pipeline_active() const noexcept {
+  return edge_pipeline_mode_ != EdgePipelineMode::kNone;
+}
+
+void SpineSplitReader::begin_edge_pipeline(
+    EdgePipelineMode mode, FixedAxiPort &port, std::uint64_t base_address,
+    std::uint32_t length, std::uint32_t source, std::uint32_t source_value,
+    std::uint32_t tile_base, std::uint32_t tile_end, bool hot) {
+  if (mode == EdgePipelineMode::kNone || length == 0 ||
+      edge_pipeline_active() || !memory_tasks_.empty() ||
+      !inflight_memory_tasks_.empty() || !edge_response_buffer_.empty()) {
+    throw std::logic_error("invalid edge-pipeline start state");
+  }
+  edge_pipeline_mode_ = mode;
+  edge_pipeline_port_ = &port;
+  edge_pipeline_base_address_ = base_address;
+  edge_pipeline_length_ = length;
+  edge_pipeline_issue_index_ = 0;
+  edge_pipeline_retire_index_ = 0;
+  edge_pipeline_source_ = source;
+  edge_pipeline_source_value_ = source_value;
+  edge_pipeline_tile_base_ = tile_base;
+  edge_pipeline_tile_end_ = tile_end;
+  edge_pipeline_hot_ = hot;
+  edge_pipeline_abort_ = false;
+}
+
+const SpineSplitReader::BufferedPipelineEdge *
+SpineSplitReader::next_pipeline_edge() const {
+  const auto found = edge_response_buffer_.find(edge_pipeline_retire_index_);
+  return found == edge_response_buffer_.end() ? nullptr : &found->second;
+}
+
+bool SpineSplitReader::next_pipeline_edge_valid() const {
+  const BufferedPipelineEdge *buffered = next_pipeline_edge();
+  if (buffered == nullptr) {
+    return false;
+  }
+  if (edge_pipeline_mode_ == EdgePipelineMode::kConstruction) {
+    return true;
+  }
+  return buffered->edge.dst >= buffered->tile_base &&
+         buffered->edge.dst < buffered->tile_end &&
+         buffered->edge.dst < maintenance_.vertices();
+}
+
+void SpineSplitReader::evaluate_edge_pipeline() {
+  if (edge_pipeline_port_ == nullptr ||
+      (!edge_pipeline_abort_ && !memory_tasks_.empty())) {
+    throw std::logic_error("edge pipeline overlaps a generic memory phase");
+  }
+  if (edge_pipeline_abort_) {
+    if (inflight_memory_tasks_.empty() && !staged_memory_completion_) {
+      staged_action_ = Action::kFinishPipelineAbort;
+    }
+    return;
+  }
+
+  if (next_pipeline_edge() != nullptr) {
+    if (edge_pipeline_mode_ == EdgePipelineMode::kConstruction) {
+      staged_action_ = Action::kRetireConstruction;
+    } else if (!next_pipeline_edge_valid()) {
+      staged_action_ = Action::kPipelineError;
+    } else {
+      staged_stream_word_ = current_stream_word();
+      if (edge_out_.try_push(staged_stream_word_)) {
+        staged_action_ = Action::kPush;
+      } else {
+        ++counters_.edge_pipeline_axis_stall_cycles;
+      }
+    }
+  }
+
+  if (staged_action_ == Action::kPipelineError ||
+      edge_pipeline_issue_index_ == edge_pipeline_length_) {
+    return;
+  }
+  const std::size_t occupied =
+      inflight_memory_tasks_.size() + edge_response_buffer_.size();
+  if (inflight_memory_tasks_.size() >=
+          maintenance_.config().reader_edge_pipeline_depth ||
+      occupied >= maintenance_.config().reader_edge_response_capacity) {
+    ++counters_.edge_pipeline_credit_stall_cycles;
+    return;
+  }
+
+  MemoryPayloadKind payload_kind = MemoryPayloadKind::kConstructionEdge;
+  if (edge_pipeline_mode_ == EdgePipelineMode::kExactReplay) {
+    payload_kind = MemoryPayloadKind::kReplayEdge;
+  } else if (edge_pipeline_mode_ == EdgePipelineMode::kFallbackReplay) {
+    payload_kind = MemoryPayloadKind::kFallbackReplayEdge;
+  }
+  MemoryTask task{
+      .port = edge_pipeline_port_,
+      .operation = MemoryOperation::kRead,
+      .address = edge_pipeline_base_address_ +
+                 static_cast<std::uint64_t>(edge_pipeline_issue_index_) *
+                     kSpineGraphWordBytes,
+      .bytes = kSpineGraphWordBytes,
+      .write_data = {},
+      .edge_source = edge_pipeline_source_,
+      .edge_source_value = edge_pipeline_source_value_,
+      .edge_tile_base = edge_pipeline_tile_base_,
+      .edge_tile_end = edge_pipeline_tile_end_,
+      .item_index = probe_index_,
+      .stream_sequence = edge_pipeline_issue_index_,
+      .edge_hot = edge_pipeline_hot_,
+      .payload_kind = payload_kind,
+  };
+  if (edge_pipeline_port_->requests().try_push(AxiRequest{
+          .transaction_id = next_transaction_id_,
+          .operation = MemoryOperation::kRead,
+          .address = task.address,
+          .bytes = task.bytes,
+          .write_data = {},
+      })) {
+    staged_edge_issue_task_ = std::move(task);
+    staged_memory_issue_ = true;
+  } else {
+    ++counters_.memory_request_fifo_stall_cycles;
+    ++counters_.edge_pipeline_request_fifo_stall_cycles;
+  }
+}
+
+void SpineSplitReader::commit_edge_pipeline_issue() {
+  if (!staged_edge_issue_task_.has_value()) {
+    throw std::logic_error("edge pipeline committed without a staged request");
+  }
+  const MemoryPayloadKind kind = staged_edge_issue_task_->payload_kind;
+  const std::uint64_t transaction_id = next_transaction_id_++;
+  inflight_memory_tasks_.emplace(transaction_id,
+                                 std::move(*staged_edge_issue_task_));
+  staged_edge_issue_task_.reset();
+  ++edge_pipeline_issue_index_;
+  ++counters_.memory_requests_issued;
+  counters_.graph_read_bytes += kSpineGraphWordBytes;
+  if (kind == MemoryPayloadKind::kConstructionEdge) {
+    ++counters_.construction_pipeline_requests;
+  } else {
+    ++counters_.replay_pipeline_requests;
+  }
+  counters_.max_memory_requests_inflight = std::max(
+      counters_.max_memory_requests_inflight, inflight_memory_tasks_.size());
+  counters_.edge_pipeline_max_inflight = std::max(
+      counters_.edge_pipeline_max_inflight, inflight_memory_tasks_.size());
+}
+
+void SpineSplitReader::finish_edge_pipeline() {
+  if (!inflight_memory_tasks_.empty()) {
+    throw std::logic_error("edge pipeline finished with requests in flight");
+  }
+  edge_response_buffer_.clear();
+  staged_edge_issue_task_.reset();
+  edge_pipeline_mode_ = EdgePipelineMode::kNone;
+  edge_pipeline_port_ = nullptr;
+  edge_pipeline_base_address_ = 0;
+  edge_pipeline_length_ = 0;
+  edge_pipeline_issue_index_ = 0;
+  edge_pipeline_retire_index_ = 0;
+  edge_pipeline_source_ = 0;
+  edge_pipeline_source_value_ = 0;
+  edge_pipeline_tile_base_ = 0;
+  edge_pipeline_tile_end_ = 0;
+  edge_pipeline_hot_ = false;
+  edge_pipeline_abort_ = false;
 }
 
 void SpineSplitReader::enqueue_read(FixedAxiPort &port, std::uint64_t address,
@@ -806,32 +996,57 @@ void SpineSplitReader::consume_memory_response(const MemoryTask &task,
           decode_u64(response.read_data);
       counters_.graph_index_payload_read_bytes += response.read_data.size();
       return;
-    case MemoryPayloadKind::kConstructionEdge:
-      construction_edge_ =
+    case MemoryPayloadKind::kConstructionEdge: {
+      const SpineEdgeRecord edge =
           decode_spine_level_edge(response.read_data, task.edge_source);
       counters_.graph_edge_payload_read_bytes += response.read_data.size();
       counters_.graph_construction_payload_read_bytes +=
           response.read_data.size();
       ++counters_.range_task_construction_payloads;
+      if (!edge_pipeline_abort_) {
+        const auto [iterator, inserted] = edge_response_buffer_.emplace(
+            task.stream_sequence, BufferedPipelineEdge{
+                                      .edge = edge,
+                                      .source_value = task.edge_source_value,
+                                      .tile_base = task.edge_tile_base,
+                                      .tile_end = task.edge_tile_end,
+                                      .hot = task.edge_hot,
+                                  });
+        (void)iterator;
+        if (!inserted) {
+          throw std::logic_error(
+              "construction pipeline received a duplicate sequence");
+        }
+        counters_.edge_pipeline_max_buffered = std::max(
+            counters_.edge_pipeline_max_buffered, edge_response_buffer_.size());
+      }
       return;
-    case MemoryPayloadKind::kReplayEdge:
-      loaded_edge_ =
+    }
+    case MemoryPayloadKind::kReplayEdge: {
+      const SpineEdgeRecord edge =
           decode_spine_level_edge(response.read_data, task.edge_source);
       counters_.graph_edge_payload_read_bytes += response.read_data.size();
       counters_.graph_replay_payload_read_bytes += response.read_data.size();
       ++counters_.range_task_replay_payloads;
-      if (tile_index_ >= tiles_.size() ||
-          loaded_edge_.dst < tiles_[tile_index_].tile_base ||
-          loaded_edge_.dst >= maintenance_.vertices() ||
-          static_cast<std::uint64_t>(loaded_edge_.dst) >=
-              static_cast<std::uint64_t>(tiles_[tile_index_].tile_base) +
-                  kTileVertices) {
-        counters_.range_task_path = kRangeTaskPathError;
-        counters_.range_task_error = kRangeTaskErrorDestination;
-        begin_terminal(true,
-                       "range-task replay returned an edge outside its tile");
+      if (!edge_pipeline_abort_) {
+        const auto [iterator, inserted] = edge_response_buffer_.emplace(
+            task.stream_sequence, BufferedPipelineEdge{
+                                      .edge = edge,
+                                      .source_value = task.edge_source_value,
+                                      .tile_base = task.edge_tile_base,
+                                      .tile_end = task.edge_tile_end,
+                                      .hot = task.edge_hot,
+                                  });
+        (void)iterator;
+        if (!inserted) {
+          throw std::logic_error(
+              "exact replay pipeline received a duplicate sequence");
+        }
+        counters_.edge_pipeline_max_buffered = std::max(
+            counters_.edge_pipeline_max_buffered, edge_response_buffer_.size());
       }
       return;
+    }
   case MemoryPayloadKind::kFallbackActiveRecord:
     if (response.read_data.size() != kActiveRecordBytes) {
       throw std::logic_error("fallback active-record payload has wrong size");
@@ -926,21 +1141,32 @@ void SpineSplitReader::consume_memory_response(const MemoryTask &task,
     counters_.graph_edge_payload_read_bytes += response.read_data.size();
     ++counters_.fallback_endpoint_reads;
     return;
-  case MemoryPayloadKind::kFallbackReplayEdge:
-    loaded_edge_ =
+  case MemoryPayloadKind::kFallbackReplayEdge: {
+    const SpineEdgeRecord edge =
         decode_spine_level_edge(response.read_data, task.edge_source);
     counters_.graph_edge_payload_read_bytes += response.read_data.size();
     counters_.graph_replay_payload_read_bytes += response.read_data.size();
     ++counters_.range_task_replay_payloads;
     ++counters_.fallback_replay_edges;
-    if (loaded_edge_.dst < fallback_tile_base() ||
-        loaded_edge_.dst >= fallback_tile_end() ||
-        loaded_edge_.dst >= maintenance_.vertices()) {
-      counters_.range_task_path = kRangeTaskPathError;
-      counters_.range_task_error = kRangeTaskErrorDestination;
-      begin_terminal(true, "fallback replay returned an edge outside its tile");
+    if (!edge_pipeline_abort_) {
+      const auto [iterator, inserted] = edge_response_buffer_.emplace(
+          task.stream_sequence, BufferedPipelineEdge{
+                                    .edge = edge,
+                                    .source_value = task.edge_source_value,
+                                    .tile_base = task.edge_tile_base,
+                                    .tile_end = task.edge_tile_end,
+                                    .hot = task.edge_hot,
+                                });
+      (void)iterator;
+      if (!inserted) {
+        throw std::logic_error(
+            "fallback replay pipeline received a duplicate sequence");
+      }
+      counters_.edge_pipeline_max_buffered = std::max(
+          counters_.edge_pipeline_max_buffered, edge_response_buffer_.size());
     }
     return;
+  }
   }
 }
 
@@ -1164,6 +1390,10 @@ void SpineSplitReader::start_host_fallback(std::uint32_t reason) {
   }
   counters_.range_task_path = kRangeTaskPathFallback;
   counters_.range_task_fallback_reason = reason;
+  if (edge_pipeline_active()) {
+    edge_pipeline_abort_ = true;
+    edge_response_buffer_.clear();
+  }
   fallback_enabled_ = true;
   fallback_partition_ = 0;
   fallback_discovery_ = true;
@@ -1725,12 +1955,15 @@ void SpineSplitReader::advance_fallback() {
       finish_fallback_range();
       return;
     }
-    enqueue_read(*ports_.graph[fallback_lookup_.family],
-                 (fallback_lookup_.layout.edge_offset_words +
-                  fallback_replay_position_) *
-                     kSpineGraphWordBytes,
-                 kSpineGraphWordBytes, MemoryPayloadKind::kFallbackReplayEdge,
-                 0, fallback_lookup_.record.source);
+    begin_edge_pipeline(
+        EdgePipelineMode::kFallbackReplay,
+        *ports_.graph[fallback_lookup_.family],
+        (fallback_lookup_.layout.edge_offset_words +
+         fallback_replay_position_) *
+            kSpineGraphWordBytes,
+        fallback_clipped_end_ - fallback_replay_position_,
+        fallback_lookup_.record.source, fallback_lookup_.record.source_value,
+        fallback_tile_base(), fallback_tile_end(), fallback_lookup_.hot);
     phase_ = Phase::kFallbackEdgeEmit;
     return;
   case Phase::kFallbackTileBegin:
@@ -1903,7 +2136,12 @@ void SpineSplitReader::resolve_probe_row() {
   construction_run_valid_ = false;
   construction_run_length_ = 0;
   construction_have_previous_dst_ = false;
-  phase_ = Phase::kConstructionRead;
+  begin_edge_pipeline(
+      EdgePipelineMode::kConstruction, *ports_.graph[probe.family],
+      (probe.layout.edge_offset_words + probe.start) * kSpineGraphWordBytes,
+      probe.end - probe.start, probe.source, probe.source_value, 0, 0,
+      probe.hot);
+  phase_ = Phase::kConstructionConsume;
 }
 
 void SpineSplitReader::flush_construction_run() {
@@ -1992,11 +2230,73 @@ void SpineSplitReader::consume_construction_edge() {
   ++construction_position_;
   if (construction_position_ == probe.end) {
     flush_construction_run();
-    if (!terminal_pending_ && !fallback_enabled_) {
-      phase_ = Phase::kProbeAdvance;
-    }
+  }
+}
+
+void SpineSplitReader::retire_construction_edge() {
+  const auto found = edge_response_buffer_.find(edge_pipeline_retire_index_);
+  if (edge_pipeline_mode_ != EdgePipelineMode::kConstruction ||
+      found == edge_response_buffer_.end()) {
+    throw std::logic_error("construction pipeline retired a missing edge");
+  }
+  if (probe_index_ >= range_probes_.size()) {
+    throw std::logic_error("construction pipeline lost its range probe");
+  }
+  const RangeProbe &probe = range_probes_[probe_index_];
+  construction_position_ = probe.start + edge_pipeline_retire_index_;
+  construction_edge_ = found->second.edge;
+  edge_response_buffer_.erase(found);
+  ++edge_pipeline_retire_index_;
+  ++counters_.construction_pipeline_retires;
+  consume_construction_edge();
+
+  if (terminal_pending_ || fallback_enabled_) {
+    edge_pipeline_abort_ = true;
+    edge_response_buffer_.clear();
+    return;
+  }
+  if (edge_pipeline_retire_index_ == edge_pipeline_length_) {
+    finish_edge_pipeline();
+    phase_ = Phase::kProbeAdvance;
   } else {
-    phase_ = Phase::kConstructionRead;
+    phase_ = Phase::kConstructionConsume;
+  }
+}
+
+void SpineSplitReader::retire_replay_edge() {
+  const auto found = edge_response_buffer_.find(edge_pipeline_retire_index_);
+  if ((edge_pipeline_mode_ != EdgePipelineMode::kExactReplay &&
+       edge_pipeline_mode_ != EdgePipelineMode::kFallbackReplay) ||
+      found == edge_response_buffer_.end()) {
+    throw std::logic_error("replay pipeline retired a missing edge");
+  }
+  const EdgePipelineMode completed_mode = edge_pipeline_mode_;
+  loaded_edge_ = found->second.edge;
+  const bool hot = found->second.hot;
+  edge_response_buffer_.erase(found);
+  ++edge_pipeline_retire_index_;
+  ++counters_.replay_pipeline_retires;
+  ++counters_.edges_emitted;
+  if (hot) {
+    ++counters_.hot_edges_emitted;
+  } else {
+    ++counters_.cold_edges_emitted;
+  }
+
+  if (completed_mode == EdgePipelineMode::kExactReplay) {
+    ++range_edge_index_;
+  } else {
+    ++fallback_replay_position_;
+  }
+  if (edge_pipeline_retire_index_ != edge_pipeline_length_) {
+    return;
+  }
+
+  finish_edge_pipeline();
+  if (completed_mode == EdgePipelineMode::kExactReplay) {
+    phase_ = Phase::kEdgeRead;
+  } else {
+    finish_fallback_range();
   }
 }
 
@@ -2080,6 +2380,10 @@ void SpineSplitReader::begin_terminal(bool overflow, std::string failure) {
     return;
   }
   terminal_pending_ = true;
+  if (edge_pipeline_active()) {
+    edge_pipeline_abort_ = true;
+    edge_response_buffer_.clear();
+  }
   terminal_overflow_ = overflow;
   terminal_failed_ = overflow || !failure.empty();
   failure_ = std::move(failure);
@@ -2241,11 +2545,16 @@ PartConvWord SpineSplitReader::current_stream_word() const {
       return PartConvWord{.kind = PartConvWordKind::kTileBegin,
                           .first = tiles_.at(tile_index_).tile_base};
     case Phase::kEdgeEmit: {
-      const RangeTask &range = tiles_.at(tile_index_).ranges.at(range_index_);
+      const BufferedPipelineEdge *buffered = next_pipeline_edge();
+      if (buffered == nullptr ||
+          edge_pipeline_mode_ != EdgePipelineMode::kExactReplay) {
+        throw std::logic_error("exact replay has no ordered edge to emit");
+      }
       return PartConvWord{
           .kind = PartConvWordKind::kEdge,
-          .first = loaded_edge_.dst,
-          .second = saturating_add(range.source_value, loaded_edge_.weight),
+          .first = buffered->edge.dst,
+          .second =
+              saturating_add(buffered->source_value, buffered->edge.weight),
       };
     }
     case Phase::kTileEnd:
@@ -2258,11 +2567,15 @@ PartConvWord SpineSplitReader::current_stream_word() const {
         .second = fallback_force_dense_[fallback_partition_] ? 1U : 0U,
     };
   case Phase::kFallbackEdgeEmit:
+    if (next_pipeline_edge() == nullptr ||
+        edge_pipeline_mode_ != EdgePipelineMode::kFallbackReplay) {
+      throw std::logic_error("fallback replay has no ordered edge to emit");
+    }
     return PartConvWord{
         .kind = PartConvWordKind::kEdge,
-        .first = loaded_edge_.dst,
-        .second = saturating_add(fallback_lookup_.record.source_value,
-                                 loaded_edge_.weight),
+        .first = next_pipeline_edge()->edge.dst,
+        .second = saturating_add(next_pipeline_edge()->source_value,
+                                 next_pipeline_edge()->edge.weight),
     };
   case Phase::kFallbackTileEnd:
     return PartConvWord{.kind = PartConvWordKind::kTileEnd,
@@ -2488,21 +2801,8 @@ void SpineSplitReader::advance(const CycleContext &context) {
     case Phase::kProbeRowResolve:
       resolve_probe_row();
       return;
-    case Phase::kConstructionRead: {
-      const RangeProbe &probe = range_probes_.at(probe_index_);
-      if (construction_position_ >= probe.end) {
-        throw std::logic_error("construction scan advanced past its row");
-      }
-      enqueue_read(*ports_.graph[probe.family],
-                   (probe.layout.edge_offset_words + construction_position_) *
-                       kSpineGraphWordBytes,
-                   kSpineGraphWordBytes, MemoryPayloadKind::kConstructionEdge,
-                   probe_index_, probe.source);
-      phase_ = Phase::kConstructionConsume;
-      return;
-    }
+    case Phase::kConstructionRead:
     case Phase::kConstructionConsume:
-      consume_construction_edge();
       return;
     case Phase::kProbeAdvance:
       ++probe_index_;
@@ -2615,11 +2915,16 @@ void SpineSplitReader::advance(const CycleContext &context) {
                        "range-task replay received an invalid descriptor");
         return;
       }
-      enqueue_read(
-          *ports_.graph[range.graph_bank],
+      const std::uint32_t tile_base = tiles_[tile_index_].tile_base;
+      const std::uint32_t tile_end =
+          static_cast<std::uint32_t>(std::min<std::uint64_t>(
+              maintenance_.vertices(),
+              static_cast<std::uint64_t>(tile_base) + kTileVertices));
+      begin_edge_pipeline(
+          EdgePipelineMode::kExactReplay, *ports_.graph[range.graph_bank],
           (range.absolute_word + range_edge_index_) * kSpineGraphWordBytes,
-          kSpineGraphWordBytes, MemoryPayloadKind::kReplayEdge, probe_index_,
-          range.source);
+          range.length - range_edge_index_, range.source, range.source_value,
+          tile_base, tile_end, range.hot);
       phase_ = Phase::kEdgeEmit;
       return;
     }

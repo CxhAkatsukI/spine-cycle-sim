@@ -1,0 +1,68 @@
+{
+  "date": "2026-07-24",
+  "evidence_tier": "structural_execution_driven",
+  "source_following_revision": "afb8199a2ca8d3fd208b985324bf4d8719e2b839",
+  "stable_architecture_profile_id": "spine_shared_engine_9c08763",
+  "stable_architecture_profile_sha256": "aba0d6bbcbaa64240897ed3efc555d6ce6d6455d2f10e77e0ccdb77fa46466a7",
+  "hls_mapping": {
+    "construction_loop": "PARTITIONED_BUILD_EXACT_ROW_TASKS II=1",
+    "replay_loop": "PARTITIONED_EMIT_EDGE_LOOP achieved II=1",
+    "stable_num_read_outstanding": 2,
+    "stable_max_read_burst_length": 16,
+    "modeled_default_edge_credits": 32
+  },
+  "cpp_credit_sweep": [
+    {"depth": 1, "capacity": 1, "cycles": 52341, "max_inflight": 1},
+    {"depth": 32, "capacity": 2, "cycles": 44407, "max_inflight": 2},
+    {"depth": 32, "capacity": 32, "cycles": 37041, "max_inflight": 29}
+  ],
+  "cpp_credit_sweep_edges": 256,
+  "cpp_construction_issue_retire": [256, 256],
+  "cpp_replay_issue_retire": [256, 256],
+  "cpp_backpressure": {
+    "edges": 8192,
+    "cycles": 225261,
+    "axis_depth": 32,
+    "axis_max_occupancy": 32,
+    "reader_axis_stall_cycles": 4595,
+    "correct": true
+  },
+  "sst_amazon": [
+    {
+      "depth": 1,
+      "capacity": 1,
+      "cycles": 5816,
+      "backend_requests": 584,
+      "max_inflight": 1,
+      "correctness_mismatches": 0,
+      "frontier_mismatches": 0
+    },
+    {
+      "depth": 32,
+      "capacity": 32,
+      "cycles": 5699,
+      "backend_requests": 584,
+      "max_inflight": 9,
+      "construction_issue_retire": [10, 10],
+      "replay_issue_retire": [10, 10],
+      "correctness_mismatches": 0,
+      "frontier_mismatches": 0
+    }
+  ],
+  "sst_weighted_sssp": {
+    "cycles": 31681,
+    "rounds": 6,
+    "backend_requests": 2749,
+    "construction_requests_per_round": [8, 3, 2, 2, 1, 0],
+    "construction_retires_per_round": [8, 3, 2, 2, 1, 0],
+    "replay_requests_per_round": [8, 3, 2, 2, 1, 0],
+    "replay_retires_per_round": [8, 3, 2, 2, 1, 0],
+    "correctness_mismatches": 0,
+    "frontier_mismatches": 0
+  },
+  "limitations": [
+    "edge-word logical requests do not yet reproduce HLS burst coalescing beat for beat",
+    "latest afb8199 source has no accepted synthesis or routed hardware timing bundle",
+    "maintenance II=1 scan overlap remains to be implemented"
+  ]
+}

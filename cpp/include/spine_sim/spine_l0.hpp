@@ -70,6 +70,10 @@ struct SpineL0Config {
   // Coarse task overlap is an explicit architecture what-if until each HLS
   // pipelined loop has its own issue/retire model. One is source-faithful.
   std::size_t memory_request_window{1};
+  // The HLS edge loops achieve II=1. Two outstanding 16-beat reads provide 32
+  // edge-word credits in the accepted synthesis report.
+  std::size_t reader_edge_pipeline_depth{32};
+  std::size_t reader_edge_response_capacity{32};
   std::vector<std::uint32_t> hot_vertices;
   std::uint64_t sorted_edges_base{};
   // HBM16 is shared by sorted input/range-task scratch and the persistent
