@@ -991,6 +991,10 @@ void SpineL0Maintenance::evaluate(const CycleContext &context) {
   if (phase_ == Phase::kWriteProcess && (queued_writer || inflight_writer)) {
     ++counters_.l0_writer_memory_overlap_cycles;
   }
+  if (phase_ == Phase::kWriteEpochClear &&
+      (!tasks_.empty() || !inflight_tasks_.empty())) {
+    ++counters_.epoch_clear_wait_cycles;
+  }
   if (!tasks_.empty()) {
     const MemoryTask &task = tasks_.front();
     if (inflight_memory_tasks_for_port(task.port) >=
@@ -1623,6 +1627,12 @@ void SpineL0Maintenance::consume_memory_response(const MemoryTask &task,
       task.purpose == TaskPurpose::kResultHotEdgeCount;
   const bool result_write_response =
       task.purpose == TaskPurpose::kMaintenanceResultWrite;
+  const bool epoch_read_response =
+      task.purpose == TaskPurpose::kLevelWriterSliceEpochRead;
+  const bool epoch_clear_response =
+      task.purpose == TaskPurpose::kLevelWriterEpochClear;
+  const bool epoch_retire_response =
+      task.purpose == TaskPurpose::kEpochRetireWrite;
   const bool carry_response =
       task.purpose == TaskPurpose::kCarryNewBatchRead ||
       task.purpose == TaskPurpose::kCarryNewBatchHotBitmap ||
@@ -1644,6 +1654,10 @@ void SpineL0Maintenance::consume_memory_response(const MemoryTask &task,
     }
     if (result_write_response) {
       ++counters_.result_write_responses;
+    } else if (epoch_clear_response) {
+      ++counters_.epoch_clear_write_responses;
+    } else if (epoch_retire_response) {
+      ++counters_.epoch_retire_write_responses;
     } else if (control_response || hot_bitmap_response) {
       ++counters_.hot_bitmap_validation_failures;
       throw std::logic_error("Spine hot-metadata read path issued a write");
@@ -1671,6 +1685,8 @@ void SpineL0Maintenance::consume_memory_response(const MemoryTask &task,
     consume_target_selector_response(task, response);
   } else if (result_metadata_response) {
     consume_result_metadata_response(task, response);
+  } else if (epoch_read_response) {
+    consume_active_writer_epoch_response(task, response);
   } else if (carry_response) {
     consume_carry_memory_response(task, response);
   } else if (task.purpose != TaskPurpose::kGeneric) {
@@ -2016,6 +2032,12 @@ SpineMaintenanceResult SpineL0Maintenance::build_maintenance_result() const {
       logical_overflow_ ? 0 : as_i32(counters_.active_families);
   result.words[SpineMaintenanceResult::kEpochPagesStamped] =
       as_i32(counters_.pages_stamped);
+  result.words[SpineMaintenanceResult::kEpochFullClearFallbacks] =
+      as_i32(counters_.epoch_full_clear_fallbacks);
+  result.words[SpineMaintenanceResult::kEpochWrapEvents] =
+      as_i32(counters_.epoch_wrap_events);
+  result.words[SpineMaintenanceResult::kEpochCommitFailures] =
+      as_i32(counters_.epoch_commit_failures);
   result.words[SpineMaintenanceResult::kHotEdges] =
       as_i32(counters_.hot_input_edges);
   result.words[SpineMaintenanceResult::kColdEdges] =
@@ -2094,6 +2116,174 @@ void SpineL0Maintenance::begin_logical_overflow(
   dirty_status_ = dirty_status;
   failure_ = std::move(failure);
   phase_ = Phase::kWriteResult;
+}
+
+void SpineL0Maintenance::enqueue_active_writer_epoch_read() {
+  if (active_family_index_ >= family_write_tasks_.size()) {
+    ++counters_.slice_epoch_validation_failures;
+    throw std::logic_error("Spine epoch read has no active writer");
+  }
+  const FamilyWriteTask &task = family_write_tasks_[active_family_index_];
+  const std::size_t logical_family =
+      task.hot ? config_.partitions + task.family : task.family;
+  const std::uint64_t slice =
+      logical_family * config_.levels + task.target;
+  const SpineMetadataLayout metadata = spine_metadata_layout(config_);
+  active_writer_epoch_ready_ = false;
+  active_writer_epoch_wrapped_ = false;
+  enqueue_task(
+      *ports_.metadata, MemoryOperation::kRead,
+      config_.metadata_base +
+          (metadata.slice_epoch_base + (slice >> 1)) * kMetadataWordBytes,
+      kMetadataWordBytes, TaskClass::kMetadata, {}, {}, false,
+      TaskPurpose::kLevelWriterSliceEpochRead, 0, 0, 0, logical_family,
+      task.target);
+  ++counters_.slice_epoch_reads;
+}
+
+void SpineL0Maintenance::consume_active_writer_epoch_response(
+    const MemoryTask &task, const AxiResponse &response) {
+  if (task.operation != MemoryOperation::kRead ||
+      response.read_data.size() != kMetadataWordBytes ||
+      task.metadata_family >= kSpineFamilyCount ||
+      task.metadata_level >= config_.levels || active_writer_epoch_ready_ ||
+      active_family_index_ >= family_write_tasks_.size()) {
+    ++counters_.slice_epoch_validation_failures;
+    throw std::logic_error("invalid Spine slice-epoch response");
+  }
+  const FamilyWriteTask &active = family_write_tasks_[active_family_index_];
+  const std::size_t logical_family =
+      active.hot ? config_.partitions + active.family : active.family;
+  if (task.metadata_family != logical_family ||
+      task.metadata_level != active.target) {
+    ++counters_.slice_epoch_validation_failures;
+    throw std::logic_error("Spine slice-epoch response changed writer");
+  }
+  const std::uint64_t packed = read_u64_le(response.read_data, 0);
+  const std::uint64_t slice =
+      logical_family * config_.levels + active.target;
+  const std::uint64_t low_slice = slice & ~std::uint64_t{1};
+  slice_epochs_[low_slice / config_.levels][low_slice % config_.levels] =
+      static_cast<std::uint32_t>(packed);
+  if (low_slice + 1 < kSpineFamilyCount * config_.levels) {
+    slice_epochs_[(low_slice + 1) / config_.levels]
+                 [(low_slice + 1) % config_.levels] =
+        static_cast<std::uint32_t>(packed >> 32);
+  }
+  active_writer_current_epoch_ =
+      static_cast<std::uint32_t>(packed >> ((slice & 1U) * 32));
+  active_writer_epoch_ready_ = true;
+  ++counters_.slice_epoch_responses;
+  counters_.slice_epoch_payload_read_bytes += response.read_data.size();
+}
+
+void SpineL0Maintenance::prepare_active_writer_epoch() {
+  if (!active_writer_epoch_ready_ ||
+      active_family_index_ >= family_write_tasks_.size()) {
+    ++counters_.slice_epoch_validation_failures;
+    throw std::logic_error("Spine writer advanced without its slice epoch");
+  }
+  const FamilyWriteTask &task = family_write_tasks_[active_family_index_];
+  active_writer_next_epoch_ = active_writer_current_epoch_ + 1U;
+  active_writer_epoch_wrapped_ = active_writer_next_epoch_ == 0;
+  if (active_writer_epoch_wrapped_) {
+    active_writer_next_epoch_ = 1;
+    ++counters_.epoch_full_clear_fallbacks;
+    ++counters_.epoch_wrap_events;
+    enqueue_epoch_full_clear(task);
+  }
+  const std::size_t logical_family =
+      task.hot ? config_.partitions + task.family : task.family;
+  staged_writer_epochs_[logical_family][task.target] =
+      active_writer_next_epoch_;
+}
+
+void SpineL0Maintenance::enqueue_epoch_full_clear(
+    const FamilyWriteTask &task) {
+  const std::uint64_t page_count =
+      spine_metadata_layout(config_).page_count;
+  const std::uint64_t bitmap_words = page_count * 4;
+  const std::uint64_t page_base_words = (page_count + 2) >> 1;
+  const std::uint64_t rows =
+      task.hot ? counters_.hot_family_rows[task.family]
+               : counters_.family_rows[task.family];
+  const SpineLevelLayout layout =
+      task.target == 0
+          ? spine_slice_layout(config_, task.hot, task.target, rows)
+          : spine_level_layout(config_, task.hot, task.target);
+  const auto enqueue_range = [&](std::uint64_t offset_words,
+                                 std::uint64_t words) {
+    if (words == 0) {
+      return;
+    }
+    const std::uint64_t bytes = words * kSpineGraphWordBytes;
+    enqueue_task(*ports_.graph[task.family], MemoryOperation::kWrite,
+                 offset_words * kSpineGraphWordBytes, bytes,
+                 TaskClass::kGraph,
+                 std::vector<std::uint8_t>(
+                     static_cast<std::size_t>(bytes), 0),
+                 {}, false, TaskPurpose::kLevelWriterEpochClear);
+    ++counters_.epoch_clear_parent_writes;
+    counters_.epoch_clear_word_writes += words;
+    counters_.epoch_clear_payload_write_bytes += bytes;
+  };
+  enqueue_range(layout.bitmap_offset_words, bitmap_words);
+  enqueue_range(layout.page_base_offset_words, page_base_words);
+  enqueue_range(layout.row_offset_offset_words, layout.row_capacity_words);
+  enqueue_range(layout.mask_offset_words, layout.mask_capacity_words);
+}
+
+void SpineL0Maintenance::begin_active_family_write() {
+  if (active_family_index_ >= family_write_tasks_.size()) {
+    throw std::logic_error("Spine writer start has no active family");
+  }
+  const FamilyWriteTask &task = family_write_tasks_[active_family_index_];
+  if (task.target == 0) {
+    initialize_l0_level_writer(task);
+    begin_sorted_scan(Phase::kWriteProcess, ScanKind::kL0Write);
+  } else {
+    initialize_carry_engine(task);
+    phase_ = Phase::kCarryProcess;
+  }
+}
+
+bool SpineL0Maintenance::enqueue_retired_writer_epochs() {
+  const SpineMetadataLayout metadata = spine_metadata_layout(config_);
+  std::set<std::uint64_t> words;
+  for (std::size_t family = 0; family < kSpineFamilyCount; ++family) {
+    for (std::size_t level = 0; level < config_.levels; ++level) {
+      if (staged_writer_epochs_[family][level] == 0) {
+        continue;
+      }
+      slice_epochs_[family][level] = staged_writer_epochs_[family][level];
+      const std::uint64_t slice = family * config_.levels + level;
+      words.insert(slice >> 1);
+    }
+  }
+  if (words.empty()) {
+    return false;
+  }
+  counters_.epoch_commit_failures = 1;
+  for (const std::uint64_t word : words) {
+    const std::uint64_t low_slice = word * 2;
+    std::uint64_t packed =
+        slice_epochs_[low_slice / config_.levels]
+                     [low_slice % config_.levels];
+    if (low_slice + 1 < metadata.slice_count) {
+      packed |= static_cast<std::uint64_t>(
+                    slice_epochs_[(low_slice + 1) / config_.levels]
+                                 [(low_slice + 1) % config_.levels])
+                << 32;
+    }
+    enqueue_task(*ports_.metadata, MemoryOperation::kWrite,
+                 config_.metadata_base +
+                     (metadata.slice_epoch_base + word) * kMetadataWordBytes,
+                 kMetadataWordBytes, TaskClass::kMetadata,
+                 encode_u64_words({packed}), {}, false,
+                 TaskPurpose::kEpochRetireWrite);
+    ++counters_.epoch_retire_writes;
+  }
+  return true;
 }
 
 void SpineL0Maintenance::resolve_target_selector_level(
@@ -2449,6 +2639,11 @@ void SpineL0Maintenance::consume_dirty_memory_response(
   case TaskPurpose::kMaintenanceResultWrite:
     throw std::logic_error(
         "result response reached the dirty response handler");
+  case TaskPurpose::kLevelWriterSliceEpochRead:
+  case TaskPurpose::kLevelWriterEpochClear:
+  case TaskPurpose::kEpochRetireWrite:
+    throw std::logic_error(
+        "epoch response reached the dirty response handler");
   case TaskPurpose::kMetadataControl:
   case TaskPurpose::kScanHotBitmap:
   case TaskPurpose::kCarryNewBatchHotBitmap:
@@ -2759,6 +2954,10 @@ void SpineL0Maintenance::level_writer_append_page(std::uint32_t page) {
 
 void SpineL0Maintenance::initialize_carry_level_writer(
     const FamilyWriteTask &task) {
+  if (!active_writer_epoch_ready_ || active_writer_next_epoch_ == 0) {
+    ++counters_.slice_epoch_validation_failures;
+    throw std::logic_error("Spine carry writer has no prepared epoch");
+  }
   level_writer_ = LevelWriterState{};
   level_writer_.initialized = true;
   level_writer_.layout = spine_level_layout(config_, task.hot, task.target);
@@ -2773,18 +2972,15 @@ void SpineL0Maintenance::initialize_carry_level_writer(
                : counters_.family_edges[task.family]);
   output.clear();
 
-  const std::size_t logical_family =
-      task.hot ? config_.partitions + task.family : task.family;
-  std::uint32_t epoch = ++slice_epochs_[logical_family][task.target];
-  if (epoch == 0) {
-    epoch = 1;
-    slice_epochs_[logical_family][task.target] = epoch;
-  }
-  level_writer_.epoch = epoch;
+  level_writer_.epoch = active_writer_next_epoch_;
 }
 
 void SpineL0Maintenance::initialize_l0_level_writer(
     const FamilyWriteTask &task) {
+  if (!active_writer_epoch_ready_ || active_writer_next_epoch_ == 0) {
+    ++counters_.slice_epoch_validation_failures;
+    throw std::logic_error("Spine L0 writer has no prepared epoch");
+  }
   level_writer_ = LevelWriterState{};
   level_writer_.initialized = true;
   level_writer_.l0_mode = true;
@@ -2801,14 +2997,7 @@ void SpineL0Maintenance::initialize_l0_level_writer(
   level_writer_.was_active = !output.empty();
   output.clear();
 
-  const std::size_t logical_family =
-      task.hot ? config_.partitions + task.family : task.family;
-  std::uint32_t epoch = ++slice_epochs_[logical_family][task.target];
-  if (epoch == 0) {
-    epoch = 1;
-    slice_epochs_[logical_family][task.target] = epoch;
-  }
-  level_writer_.epoch = epoch;
+  level_writer_.epoch = active_writer_next_epoch_;
 }
 
 void SpineL0Maintenance::accumulate_level_writer(
@@ -2992,6 +3181,9 @@ void SpineL0Maintenance::finalize_level_writer(
     counters_.family_rows[task.family] = level_writer_.row_index;
   }
   const bool is_active = level_writer_.edge_index != 0;
+  if (is_active) {
+    slice_epochs_[logical_family][task.target] = level_writer_.epoch;
+  }
   if (level_writer_.was_active && !is_active) {
     --counters_.active_families;
   } else if (!level_writer_.was_active && is_active) {
@@ -3576,17 +3768,21 @@ void SpineL0Maintenance::advance(const CycleContext &context) {
     if (active_family_index_ == family_write_tasks_.size()) {
       phase_ = Phase::kCommitMetadata;
     } else {
-      phase_ = family_write_tasks_[active_family_index_].target == 0
-                   ? Phase::kWriteBegin
-                   : Phase::kCarryPrepare;
+      enqueue_active_writer_epoch_read();
+      phase_ = Phase::kWriteEpochResolve;
     }
     return;
-  case Phase::kWriteBegin: {
-    const FamilyWriteTask &task = family_write_tasks_[active_family_index_];
-    initialize_l0_level_writer(task);
-    begin_sorted_scan(Phase::kWriteProcess, ScanKind::kL0Write);
+  case Phase::kWriteEpochResolve:
+    prepare_active_writer_epoch();
+    if (active_writer_epoch_wrapped_) {
+      phase_ = Phase::kWriteEpochClear;
+    } else {
+      begin_active_family_write();
+    }
     return;
-  }
+  case Phase::kWriteEpochClear:
+    begin_active_family_write();
+    return;
   case Phase::kWriteProcess: {
     const FamilyWriteTask &task = family_write_tasks_[active_family_index_];
     const std::size_t before = scan_index_;
@@ -3607,12 +3803,6 @@ void SpineL0Maintenance::advance(const CycleContext &context) {
     }
     return;
   }
-  case Phase::kCarryPrepare: {
-    const FamilyWriteTask &task = family_write_tasks_[active_family_index_];
-    initialize_carry_engine(task);
-    phase_ = Phase::kCarryProcess;
-    return;
-  }
   case Phase::kCarryProcess: {
     if (carry_cursor_refill_cycles_remaining_ != 0) {
       --carry_cursor_refill_cycles_remaining_;
@@ -3631,6 +3821,10 @@ void SpineL0Maintenance::advance(const CycleContext &context) {
     return;
   }
   case Phase::kWriteAdvance:
+    active_writer_epoch_ready_ = false;
+    active_writer_epoch_wrapped_ = false;
+    active_writer_current_epoch_ = 0;
+    active_writer_next_epoch_ = 0;
     ++active_family_index_;
     phase_ = Phase::kWriteSelect;
     return;
@@ -3644,6 +3838,14 @@ void SpineL0Maintenance::advance(const CycleContext &context) {
     phase_ = Phase::kWriteResult;
     return;
   case Phase::kWriteResult:
+    if (logical_overflow_ && enqueue_retired_writer_epochs()) {
+      phase_ = Phase::kRetireEpochs;
+      return;
+    }
+    enqueue_result_metadata_reads();
+    phase_ = Phase::kCollectResult;
+    return;
+  case Phase::kRetireEpochs:
     enqueue_result_metadata_reads();
     phase_ = Phase::kCollectResult;
     return;

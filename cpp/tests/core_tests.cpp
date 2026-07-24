@@ -106,14 +106,16 @@ struct MaintenanceOnlyRun {
   SpineL0Counters counters;
   SpineL0State state;
   SpineMaintenanceResult result;
+  std::vector<std::uint8_t> graph0_word7;
+  std::vector<std::uint8_t> slice_epoch_word0;
   bool failed{};
   std::string failure;
 };
 
 MaintenanceOnlyRun run_maintenance_only(
     SpineL0Config config, SpineL0State state, SpineEdgeSlice workload,
-    const std::function<void(FixedAxiPort &, const SpineL0Config &)> &mutate =
-        {}) {
+    const std::function<void(FixedAxiPort &, SpineL0Ports &,
+                             const SpineL0Config &)> &mutate = {}) {
   Scheduler scheduler;
   const auto core = scheduler.add_clock_mhz("data", 141.0);
   MockMemoryBackend backend("maintenance-only-hbm", core,
@@ -160,7 +162,7 @@ MaintenanceOnlyRun run_maintenance_only(
   SpineL0Maintenance maintenance("maintenance-only", core, config,
                                  std::move(workload), ports, state);
   if (mutate) {
-    mutate(metadata, config);
+    mutate(metadata, ports, config);
   }
   scheduler.add_component(maintenance);
   for (auto &port : graph_ports) {
@@ -183,6 +185,15 @@ MaintenanceOnlyRun run_maintenance_only(
       .state = std::move(state),
       .result = decode_spine_maintenance_result(backend.inspect_payload(
           21, config.result_base, spine::sim::kSpineMaintenanceResultBytes)),
+      .graph0_word7 = backend.inspect_payload(
+          0, 7 * spine::sim::kSpineGraphWordBytes,
+          spine::sim::kSpineGraphWordBytes),
+      .slice_epoch_word0 = backend.inspect_payload(
+          20,
+          config.metadata_base +
+              spine_metadata_layout(config).slice_epoch_base *
+                  spine::sim::kSpineMetadataWordBytes,
+          spine::sim::kSpineMetadataWordBytes),
       .failed = maintenance.failed(),
       .failure = maintenance.failure(),
   };
@@ -1033,7 +1044,11 @@ void test_spine_l0_real_slice_vertical_path() {
               counters.l0_writer_validation_failures == 0 &&
               counters.l0_writer_max_pending_tasks > 0,
           "Spine L0 online writer/packer ledger mismatch");
-  require(counters.metadata_read_bytes == 2'984 &&
+  require(counters.slice_epoch_reads == 1 &&
+              counters.slice_epoch_responses == 1 &&
+              counters.slice_epoch_payload_read_bytes == 8 &&
+              counters.slice_epoch_validation_failures == 0 &&
+              counters.metadata_read_bytes == 2'992 &&
               counters.page_list_payload_write_bytes == 8 &&
               counters.page_list_count_write_bytes > 0 &&
               counters.metadata_write_bytes ==
@@ -3532,6 +3547,174 @@ void test_spine_full_hierarchy_overflow_preserves_dirty_result() {
             << '\n';
 }
 
+void test_spine_l0_epoch_wrap_reads_hbm_and_clears_index() {
+  SpineL0Config config;
+  config.max_vertices = 512;
+  config.max_sort_edges = 16;
+  const MaintenanceOnlyRun run = run_maintenance_only(
+      config, SpineL0State{},
+      SpineEdgeSlice{
+          .vertices = 128,
+          .edges = {
+              SpineEdgeRecord{.src = 0, .dst = 2, .weight = 3, .diff = 1}},
+          .case_name = "l0_epoch_wrap_hbm",
+      },
+      [](FixedAxiPort &metadata, SpineL0Ports &ports,
+         const SpineL0Config &local_config) {
+        const SpineMetadataLayout layout =
+            spine_metadata_layout(local_config);
+        metadata.initialize_payload(
+            local_config.metadata_base +
+                layout.slice_epoch_base *
+                    spine::sim::kSpineMetadataWordBytes,
+            u64_payload(std::numeric_limits<std::uint32_t>::max()));
+        ports.graph[0]->initialize_payload(
+            7 * spine::sim::kSpineGraphWordBytes,
+            u64_payload(std::numeric_limits<std::uint64_t>::max()));
+      });
+
+  require(!run.failed && run.counters.slice_epoch_reads == 1 &&
+              run.counters.slice_epoch_responses == 1 &&
+              run.counters.slice_epoch_payload_read_bytes == 8 &&
+              run.counters.slice_epoch_validation_failures == 0,
+          "L0 writer did not consume its packed epoch from HBM");
+  require(run.counters.epoch_full_clear_fallbacks == 1 &&
+              run.counters.epoch_wrap_events == 1 &&
+              run.counters.epoch_commit_failures == 0 &&
+              run.counters.epoch_clear_parent_writes == 4 &&
+              run.counters.epoch_clear_word_writes == 12 &&
+              run.counters.epoch_clear_payload_write_bytes == 96 &&
+              run.counters.epoch_clear_write_responses == 4 &&
+              run.counters.epoch_clear_wait_cycles > 0 &&
+              std::all_of(run.graph0_word7.begin(), run.graph0_word7.end(),
+                          [](std::uint8_t byte) { return byte == 0; }),
+          "L0 epoch wrap did not clear its complete reachable index area");
+  require(run.result[SpineMaintenanceResult::kEpochFullClearFallbacks] == 1 &&
+              run.result[SpineMaintenanceResult::kEpochWrapEvents] == 1 &&
+              run.result[SpineMaintenanceResult::kEpochCommitFailures] == 0 &&
+              run.result[SpineMaintenanceResult::kTargetLevel] == 0 &&
+              run.result[SpineMaintenanceResult::kOverflow] == 0,
+          "L0 epoch-wrap counters did not reach the maintenance result");
+  std::cout << "EVIDENCE spine_l0_epoch_wrap clear_words="
+            << run.counters.epoch_clear_word_writes
+            << " clear_bytes="
+            << run.counters.epoch_clear_payload_write_bytes
+            << " clear_wait=" << run.counters.epoch_clear_wait_cycles << '\n';
+}
+
+void test_spine_carry_epoch_wrap_uses_fixed_target_clear() {
+  SpineL0Config config;
+  config.max_vertices = 512;
+  config.max_sort_edges = 16;
+  SpineL0State state;
+  state.cold_levels[0][0] = {
+      SpineEdgeRecord{.src = 0, .dst = 1, .weight = 1, .diff = 1}};
+  const MaintenanceOnlyRun run = run_maintenance_only(
+      config, std::move(state),
+      SpineEdgeSlice{
+          .vertices = 128,
+          .edges = {
+              SpineEdgeRecord{.src = 1, .dst = 2, .weight = 2, .diff = 1}},
+          .case_name = "carry_epoch_wrap_hbm",
+      },
+      [](FixedAxiPort &metadata, SpineL0Ports &,
+         const SpineL0Config &local_config) {
+        const SpineMetadataLayout layout =
+            spine_metadata_layout(local_config);
+        const std::uint64_t packed =
+            (static_cast<std::uint64_t>(
+                 std::numeric_limits<std::uint32_t>::max())
+             << 32) |
+            1U;
+        metadata.initialize_payload(
+            local_config.metadata_base +
+                layout.slice_epoch_base *
+                    spine::sim::kSpineMetadataWordBytes,
+            u64_payload(packed));
+      });
+
+  require(!run.failed && run.counters.target_level == 1 &&
+              run.counters.slice_epoch_reads == 1 &&
+              run.counters.slice_epoch_responses == 1 &&
+              run.counters.epoch_full_clear_fallbacks == 1 &&
+              run.counters.epoch_wrap_events == 1,
+          "carry writer did not derive its wrapped epoch from HBM");
+  require(run.counters.epoch_clear_parent_writes == 4 &&
+              run.counters.epoch_clear_word_writes == 13 &&
+              run.counters.epoch_clear_payload_write_bytes == 104 &&
+              run.counters.epoch_clear_write_responses == 4 &&
+              run.counters.epoch_clear_wait_cycles > 0,
+          "carry wrap did not clear the fixed target index layout");
+  require(run.result[SpineMaintenanceResult::kEpochFullClearFallbacks] == 1 &&
+              run.result[SpineMaintenanceResult::kEpochWrapEvents] == 1 &&
+              run.result[SpineMaintenanceResult::kTargetLevel] == 1 &&
+              run.result[SpineMaintenanceResult::kPath] == 3 &&
+              run.result[SpineMaintenanceResult::kOverflow] == 0,
+          "carry epoch-wrap result transcript is incomplete");
+  std::cout << "EVIDENCE spine_carry_epoch_wrap clear_words="
+            << run.counters.epoch_clear_word_writes
+            << " clear_bytes="
+            << run.counters.epoch_clear_payload_write_bytes
+            << " clear_wait=" << run.counters.epoch_clear_wait_cycles << '\n';
+}
+
+void test_spine_failed_writer_retires_staged_epoch() {
+  SpineL0Config config;
+  config.max_vertices = 512;
+  config.max_sort_edges = 16;
+  SpineL0State state;
+  state.cold_levels[0][0] = {
+      SpineEdgeRecord{.src = 0, .dst = 1, .weight = 1, .diff = 1}};
+  SpineEdgeSlice workload{
+      .vertices = 128,
+      .edges = {},
+      .case_name = "failed_writer_epoch_retirement",
+  };
+  for (std::uint32_t source = 1; source <= 16; ++source) {
+    workload.edges.push_back(SpineEdgeRecord{
+        .src = source,
+        .dst = source + 1,
+        .weight = 1,
+        .diff = 1,
+    });
+  }
+  const MaintenanceOnlyRun run = run_maintenance_only(
+      config, std::move(state), std::move(workload));
+
+  require(run.failed &&
+              run.failure == "Spine level writer exceeds target edge capacity" &&
+              run.counters.logical_overflow_events == 1 &&
+              run.counters.slice_epoch_reads == 1 &&
+              run.counters.slice_epoch_responses == 1,
+          "capacity overflow did not preserve the staged writer epoch");
+  require(run.counters.epoch_commit_failures == 1 &&
+              run.counters.epoch_retire_writes == 1 &&
+              run.counters.epoch_retire_write_responses == 1 &&
+              run.counters.result_payload_write_bytes == 384 &&
+              run.counters.result_write_responses == 1,
+          "failed writer terminated before burning its staged epoch");
+  require(run.slice_epoch_word0.size() == 8 &&
+              run.slice_epoch_word0[0] == 1 &&
+              run.slice_epoch_word0[4] == 1 &&
+              std::count(run.slice_epoch_word0.begin(),
+                         run.slice_epoch_word0.end(),
+                         static_cast<std::uint8_t>(0)) == 6,
+          "retired epoch payload did not preserve the packed neighbor lane");
+  require(run.result[SpineMaintenanceResult::kOverflow] == 1 &&
+              run.result[SpineMaintenanceResult::kTargetLevel] == -1 &&
+              run.result[SpineMaintenanceResult::kEpochCommitFailures] == 1 &&
+              run.result[SpineMaintenanceResult::kPath] == 5,
+          "failed writer epoch retirement is absent from the result ABI");
+  require(run.state.cold_levels[0][0].size() == 1 &&
+              run.state.cold_levels[0][1].empty(),
+          "failed writer committed partial logical level state");
+  std::cout << "EVIDENCE spine_epoch_retire writes="
+            << run.counters.epoch_retire_writes
+            << " responses=" << run.counters.epoch_retire_write_responses
+            << " commit_failures=" << run.counters.epoch_commit_failures
+            << '\n';
+}
+
 void test_spine_maintenance_consumes_sorted_payload_from_hbm() {
   Scheduler scheduler;
   const auto core = scheduler.add_clock_mhz("data", 141.0);
@@ -4415,6 +4598,12 @@ int main(int argc, char **argv) {
        test_spine_logical_overflow_writes_complete_result},
       {"spine_full_hierarchy_result_payload",
        test_spine_full_hierarchy_overflow_preserves_dirty_result},
+      {"spine_l0_epoch_wrap",
+       test_spine_l0_epoch_wrap_reads_hbm_and_clears_index},
+      {"spine_carry_epoch_wrap",
+       test_spine_carry_epoch_wrap_uses_fixed_target_clear},
+      {"spine_epoch_retire",
+       test_spine_failed_writer_retires_staged_epoch},
       {"spine_maintenance_hbm_sorted_payload",
        test_spine_maintenance_consumes_sorted_payload_from_hbm},
       {"spine_carry_hbm_level_payload",

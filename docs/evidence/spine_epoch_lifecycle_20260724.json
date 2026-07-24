@@ -1,0 +1,110 @@
+{
+  "date": "2026-07-24",
+  "branch": "codex/fine-grained-cycle-sim",
+  "hls_reference": {
+    "repository": "/home/chuxiao/spine-dynamic-graph-reduce-levels",
+    "revision": "origin/reduce-levels-for-routing",
+    "commit": "afb8199a2ca8d3fd208b985324bf4d8719e2b839",
+    "spine_partitioned_sha256": "d5c4a2f2c2f384e33808eee4250c0c88208027b3792d46425e1de2ae1d8a06ba",
+    "epoch_bits": 32,
+    "reserved_epoch": 0,
+    "result_words": {
+      "full_clear_fallbacks": 34,
+      "wrap_events": 35,
+      "commit_failures": 36
+    }
+  },
+  "validation": {
+    "cpp_tests": 52,
+    "cpp_passed": 52,
+    "python_tests": 147,
+    "python_passed": 147,
+    "git_diff_check": "clean",
+    "l0_wrap": {
+      "hbm_initial_epoch": 4294967295,
+      "next_epoch": 1,
+      "clear_parent_writes": 4,
+      "clear_words": 12,
+      "clear_payload_write_bytes": 96,
+      "clear_write_responses": 4,
+      "clear_wait_cycles": 36,
+      "sentinel_cleared": true,
+      "result_full_clear_fallbacks": 1,
+      "result_wrap_events": 1
+    },
+    "carry_wrap": {
+      "target_level": 1,
+      "hbm_initial_epoch": 4294967295,
+      "next_epoch": 1,
+      "clear_parent_writes": 4,
+      "clear_words": 13,
+      "clear_payload_write_bytes": 104,
+      "clear_write_responses": 4,
+      "clear_wait_cycles": 36,
+      "result_full_clear_fallbacks": 1,
+      "result_wrap_events": 1
+    },
+    "failed_writer_retirement": {
+      "target_capacity": 2,
+      "merged_inputs": 17,
+      "epoch_retire_writes": 1,
+      "epoch_retire_write_responses": 1,
+      "result_epoch_commit_failures": 1,
+      "packed_neighbor_lane_preserved": true,
+      "partial_logical_commits": 0
+    }
+  },
+  "sst": {
+    "amazon_l0": {
+      "passed": true,
+      "cycles_before": 7303,
+      "cycles_after": 7305,
+      "maintenance_cycles_before": 2435,
+      "maintenance_cycles_after": 2446,
+      "backend_requests_before": 1399,
+      "backend_requests_after": 1400,
+      "dram_activates_before": 84,
+      "dram_activates_after": 86,
+      "slice_epoch_reads": 1,
+      "slice_epoch_responses": 1,
+      "slice_epoch_payload_read_bytes": 8,
+      "slice_epoch_validation_failures": 0
+    },
+    "carry_hot": {
+      "passed": true,
+      "cycles_before": 9678,
+      "cycles_after": 9714,
+      "maintenance_cycles_before": 4724,
+      "maintenance_cycles_after": 4766,
+      "backend_requests_before": 2014,
+      "backend_requests_after": 2016,
+      "dram_activates_before": 124,
+      "dram_activates_after": 130,
+      "slice_epoch_reads": 2,
+      "slice_epoch_responses": 2,
+      "slice_epoch_payload_read_bytes": 16,
+      "slice_epoch_validation_failures": 0
+    },
+    "weighted_sssp": {
+      "passed": true,
+      "cycles_before": 34087,
+      "cycles_after": 34087,
+      "maintenance_cycles_before": 2495,
+      "maintenance_cycles_after": 2506,
+      "backend_requests_before": 4196,
+      "backend_requests_after": 4197,
+      "dram_activates_before": 242,
+      "dram_activates_after": 249,
+      "slice_epoch_reads": 1,
+      "slice_epoch_responses": 1,
+      "slice_epoch_payload_read_bytes": 8,
+      "slice_epoch_validation_failures": 0
+    },
+    "normal_path_epoch_events": {
+      "full_clear_fallbacks": 0,
+      "wrap_events": 0,
+      "commit_failures": 0,
+      "retire_writes": 0
+    }
+  }
+}

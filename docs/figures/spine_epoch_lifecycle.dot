@@ -1,0 +1,25 @@
+digraph spine_epoch_lifecycle {
+  graph [rankdir=LR, bgcolor="white", pad="0.2", nodesep="0.3", ranksep="0.55"];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=10, color="#334155", fillcolor="#f8fafc"];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#475569"];
+
+  select [label="active family writer\nL0 or carry", fillcolor="#dbeafe"];
+  read [label="gmem_meta read\npacked slice epochs", fillcolor="#e0e7ff"];
+  increment [label="next = current + 1\nzero is reserved", fillcolor="#fef3c7"];
+  clear [label="four graph-HBM zero writes\nbitmap / page base / rows / masks", fillcolor="#fee2e2"];
+  write [label="writer uses prepared epoch\npage stamps + graph payload", fillcolor="#dbeafe"];
+  stage [label="stage slice commit\nepoch, counts, occupancy", fillcolor="#fef3c7"];
+  publish [label="success\npublish occupied epoch", fillcolor="#dcfce7"];
+  retire [label="overflow\nburn staged epoch only", fillcolor="#fee2e2"];
+  result [label="result words 34-36\nclear / wrap / commit failure", fillcolor="#e0e7ff"];
+
+  select -> read -> increment;
+  increment -> write [label="next != 0"];
+  increment -> clear [label="wrap"];
+  clear -> write;
+  write -> stage;
+  stage -> publish [label="commit"];
+  stage -> retire [label="failure"];
+  publish -> result;
+  retire -> result;
+}

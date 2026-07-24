@@ -322,6 +322,20 @@ struct SpineL0Counters {
   std::size_t result_metadata_max_inflight{};
   std::uint64_t result_validation_failures{};
   std::uint64_t logical_overflow_events{};
+  std::uint64_t slice_epoch_reads{};
+  std::uint64_t slice_epoch_responses{};
+  std::uint64_t slice_epoch_payload_read_bytes{};
+  std::uint64_t slice_epoch_validation_failures{};
+  std::uint64_t epoch_full_clear_fallbacks{};
+  std::uint64_t epoch_wrap_events{};
+  std::uint64_t epoch_commit_failures{};
+  std::uint64_t epoch_clear_parent_writes{};
+  std::uint64_t epoch_clear_word_writes{};
+  std::uint64_t epoch_clear_payload_write_bytes{};
+  std::uint64_t epoch_clear_write_responses{};
+  std::uint64_t epoch_clear_wait_cycles{};
+  std::uint64_t epoch_retire_writes{};
+  std::uint64_t epoch_retire_write_responses{};
   std::uint64_t unique_sources{};
   std::uint64_t dirty_bitmap_reads{};
   std::uint64_t dirty_bitmap_writes{};
@@ -469,13 +483,14 @@ class SpineL0Maintenance final : public Component {
     kPrecountProcess,
     kBuildOutputs,
     kWriteSelect,
-    kWriteBegin,
+    kWriteEpochResolve,
+    kWriteEpochClear,
     kWriteProcess,
-    kCarryPrepare,
     kCarryProcess,
     kWriteAdvance,
     kCommitMetadata,
     kWriteResult,
+    kRetireEpochs,
     kCollectResult,
     kFinish,
   };
@@ -505,6 +520,9 @@ class SpineL0Maintenance final : public Component {
     kResultColdEdgeCount,
     kResultHotEdgeCount,
     kMaintenanceResultWrite,
+    kLevelWriterSliceEpochRead,
+    kLevelWriterEpochClear,
+    kEpochRetireWrite,
     kCarryNewBatchRead,
     kCarryNewBatchHotBitmap,
     kCarryCursorSliceMetadata,
@@ -611,6 +629,13 @@ class SpineL0Maintenance final : public Component {
   void enqueue_maintenance_result();
   void begin_logical_overflow(std::string failure,
                               SpineDirtyStatus dirty_status);
+  void enqueue_active_writer_epoch_read();
+  void consume_active_writer_epoch_response(const MemoryTask &task,
+                                            const AxiResponse &response);
+  void prepare_active_writer_epoch();
+  void enqueue_epoch_full_clear(const FamilyWriteTask &task);
+  void begin_active_family_write();
+  [[nodiscard]] bool enqueue_retired_writer_epochs();
   [[nodiscard]] bool target_selector_phase() const noexcept;
   [[nodiscard]] std::size_t
   memory_request_window_for(const MemoryTask &task) const noexcept;
@@ -770,6 +795,8 @@ class SpineL0Maintenance final : public Component {
   std::array<std::array<std::uint32_t, kSpineLevelCount>, kSpineFamilyCount>
       slice_epochs_{};
   std::array<std::array<std::uint32_t, kSpineLevelCount>, kSpineFamilyCount>
+      staged_writer_epochs_{};
+  std::array<std::array<std::uint32_t, kSpineLevelCount>, kSpineFamilyCount>
       page_list_counts_{};
   std::unordered_map<std::uint64_t, std::uint32_t> page_epochs_;
   std::array<std::array<std::uint64_t, kSpineLevelCount>, kSpineFamilyCount>
@@ -819,7 +846,11 @@ class SpineL0Maintenance final : public Component {
   std::int32_t target_scan_candidate_{-1};
   std::uint64_t target_scan_start_cycle_{};
   std::uint64_t target_scan_min_finish_cycle_{};
+  std::uint32_t active_writer_current_epoch_{};
+  std::uint32_t active_writer_next_epoch_{};
   std::uint64_t next_transaction_id_{};
+  bool active_writer_epoch_ready_{};
+  bool active_writer_epoch_wrapped_{};
   bool logical_overflow_{};
   bool done_{};
   bool failed_{};
