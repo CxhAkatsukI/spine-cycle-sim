@@ -1,0 +1,28 @@
+{
+  "date": "2026-07-24",
+  "baseline_commit": "bac8fbe",
+  "hls_source_revision": "afb8199a2ca8d3fd208b985324bf4d8719e2b839",
+  "readwrite_parent_window": 7,
+  "writeonly_parent_window": 4,
+  "microbenchmarks": {
+    "gather_window_1": {"cycles": 8211, "max_vertex_inflight": 1},
+    "gather_window_7": {"cycles": 4716, "max_vertex_inflight": 7, "window_stalls": 321},
+    "split_extreme_destinations": {"cycles": 4846, "sparse_writes": 256, "active_writes": 256, "max_active_ports": 2, "cross_port_overlap_cycles": 10, "correct": true}
+  },
+  "threshold": [
+    {"edges": 4095, "path": "tiny", "cycles": 28780, "sparse_writes": 4095, "active_writes": 4095, "controller_memory_overlap_cycles": 8332, "controller_memory_stall_cycles": 4604},
+    {"edges": 4096, "path": "tiny", "cycles": 28785, "sparse_writes": 4096, "active_writes": 4096, "controller_memory_overlap_cycles": 8334, "controller_memory_stall_cycles": 4605},
+    {"edges": 4097, "path": "full", "cycles": 26675, "sparse_writes": 0, "active_writes": 4097, "controller_memory_overlap_cycles": 4169, "controller_memory_stall_cycles": 4032},
+    {"edges": 4098, "path": "full", "cycles": 26676, "sparse_writes": 0, "active_writes": 4098, "controller_memory_overlap_cycles": 4170, "controller_memory_stall_cycles": 4032}
+  ],
+  "sst": {
+    "amazon_l0": {"cycles": 23325, "backend_requests": 1400, "correctness_mismatches": 0, "frontier_mismatches": 0},
+    "carry_hot": {"cycles": 10595, "backend_requests": 2016, "correctness_mismatches": 0, "frontier_mismatches": 0},
+    "weighted_sssp": {"cycles": 38452, "backend_requests": 4197, "correctness_mismatches": 0, "frontier_mismatches": 0},
+    "protocol_window": {"cycles": 10930, "backend_requests": 1746, "correctness_mismatches": 0, "frontier_mismatches": 0},
+    "fallback_capacity": {"cycles": 23801, "backend_requests": 2442, "correctness_mismatches": 0, "frontier_mismatches": 0},
+    "fallback_payload": {"cycles": 23772, "backend_requests": 2436, "correctness_mismatches": 0, "frontier_mismatches": 0},
+    "amazon_full_compute_w1": {"cycles": 953231, "backend_requests": 175315, "compute_parents": 44150, "controller_memory_overlap_cycles": 122419, "controller_memory_stall_cycles": 17430, "correctness_mismatches": 0, "frontier_mismatches": 0},
+    "amazon_full_compute_w7": {"cycles": 820097, "backend_requests": 175315, "compute_parents": 44150, "controller_memory_overlap_cycles": 122419, "controller_memory_stall_cycles": 3737, "correctness_mismatches": 0, "frontier_mismatches": 0}
+  }
+}

@@ -1,0 +1,25 @@
+digraph SpineComputeLoopAxiOverlap {
+  graph [rankdir=LR, bgcolor="white", pad="0.25", nodesep="0.35", ranksep="0.7"];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+        color="#374151", fillcolor="#f8fafc"];
+  edge [fontname="Helvetica", fontsize=9, color="#475569"];
+
+  bits [label="Active bitmap bit loop\n1 iteration/cycle", fillcolor="#f3e8ff"];
+  sparse [label="Sparse-store staging\n32-bit write on set bit", fillcolor="#dcfce7"];
+  active [label="Active-output staging\n64-bit write on set bit", fillcolor="#e0f2fe"];
+  vs_axi [label="gmem_vs AXI\n7 parent credits", fillcolor="#fef3c7"];
+  out_axi [label="gmem_active_out AXI\n4 parent credits", fillcolor="#fef3c7"];
+  hbm17 [label="HBM pseudo-channel 17", fillcolor="#fee2e2"];
+  hbm19 [label="HBM pseudo-channel 19", fillcolor="#fee2e2"];
+  retire [label="Per-bundle response retire\n<= 1 response/bundle/cycle", fillcolor="#e0f2fe"];
+
+  bits -> sparse [label="store pass"];
+  bits -> active [label="emit pass"];
+  sparse -> vs_axi [label="stall on 7 credits"];
+  active -> out_axi [label="stall on 4 credits"];
+  vs_axi -> hbm17;
+  out_axi -> hbm19;
+  hbm17 -> retire;
+  hbm19 -> retire;
+  vs_axi -> active [label="accepted writes may remain in flight", style=dashed];
+}

@@ -583,6 +583,8 @@ class OnlineMemoryProbe final : public SST::Component {
         params.find<std::size_t>("memory_request_window", 1);
     compute_memory_request_window_ =
         params.find<std::size_t>("compute_memory_request_window", 7);
+    compute_writeonly_request_window_ =
+        params.find<std::size_t>("compute_writeonly_request_window", 4);
     reader_edge_pipeline_depth_ =
         params.find<std::size_t>("reader_edge_pipeline_depth", 32);
     reader_edge_response_capacity_ =
@@ -607,6 +609,7 @@ class OnlineMemoryProbe final : public SST::Component {
         range_task_capacity_ == 0 || range_task_capacity_ > 65'536 ||
         range_task_payload_budget_ == 0 || fallback_replay_threshold_ == 0 ||
         memory_request_window_ == 0 || compute_memory_request_window_ == 0 ||
+        compute_writeonly_request_window_ == 0 ||
         reader_edge_pipeline_depth_ == 0 ||
         reader_edge_response_capacity_ == 0 ||
         maintenance_count_scan_ii_ == 0 || maintenance_l0_write_scan_ii_ == 0 ||
@@ -732,7 +735,7 @@ class OnlineMemoryProbe final : public SST::Component {
               .result = spine_compute_result_.get(),
           },
           *spine_edge_stream_, *spine_value_stream_,
-          compute_memory_request_window_);
+          compute_memory_request_window_, compute_writeonly_request_window_);
       scheduler_.add_component(*spine_word_source_);
       scheduler_.add_component(*spine_compute_);
       scheduler_.add_component(*spine_edge_stream_);
@@ -828,7 +831,8 @@ class OnlineMemoryProbe final : public SST::Component {
       spine_system_ = std::make_unique<SpineVerticalSliceSystem>(
           scheduler_, core, *backend_, std::move(workload), source_vertex_,
           4096, std::move(maintenance_config), std::move(initial_state),
-          spine_axi_profile_, compute_memory_request_window_);
+          spine_axi_profile_, compute_memory_request_window_,
+          compute_writeonly_request_window_);
       spine_system_->register_components();
       scheduler_.add_component(*backend_);
       return;
@@ -1038,6 +1042,8 @@ class OnlineMemoryProbe final : public SST::Component {
        "Coarse producer request window (greater than one is a what-if)", "1"},
       {"compute_memory_request_window",
        "Compute HLS parent-request window", "7"},
+      {"compute_writeonly_request_window",
+       "Compute HLS write-only parent-request window", "4"},
       {"reader_edge_pipeline_depth", "II=1 edge-loop in-flight credits", "32"},
       {"reader_edge_response_capacity", "Ordered edge response capacity", "32"},
       {"maintenance_count_scan_ii",
@@ -1183,6 +1189,8 @@ class OnlineMemoryProbe final : public SST::Component {
              << compute.on_chip_controller_cycles << ",\n"
              << "  \"compute_memory_request_window\": "
              << compute_memory_request_window_ << ",\n"
+             << "  \"compute_writeonly_request_window\": "
+             << compute_writeonly_request_window_ << ",\n"
              << "  \"compute_memory_requests_issued\": "
              << compute.memory_requests_issued << ",\n"
              << "  \"compute_memory_requests_completed\": "
@@ -1197,6 +1205,24 @@ class OnlineMemoryProbe final : public SST::Component {
              << compute.max_memory_requests_inflight << ",\n"
              << "  \"compute_max_vertex_requests_inflight\": "
              << compute.max_vertex_requests_inflight << ",\n"
+             << "  \"compute_max_active_out_requests_inflight\": "
+             << compute.max_active_out_requests_inflight << ",\n"
+             << "  \"compute_max_active_memory_ports\": "
+             << compute.max_active_memory_ports << ",\n"
+             << "  \"compute_memory_cross_port_overlap_cycles\": "
+             << compute.memory_cross_port_overlap_cycles << ",\n"
+             << "  \"compute_max_memory_responses_per_cycle\": "
+             << compute.max_memory_responses_completed_per_cycle << ",\n"
+             << "  \"compute_multi_port_response_cycles\": "
+             << compute.multi_port_response_cycles << ",\n"
+             << "  \"compute_controller_memory_overlap_cycles\": "
+             << compute.controller_memory_overlap_cycles << ",\n"
+             << "  \"compute_controller_memory_stall_cycles\": "
+             << compute.controller_memory_stall_cycles << ",\n"
+             << "  \"compute_sparse_store_writes_generated\": "
+             << compute.sparse_store_writes_generated << ",\n"
+             << "  \"compute_active_emit_writes_generated\": "
+             << compute.active_emit_writes_generated << ",\n"
              << "  \"compute_full_buffer_replay_edges\": "
              << compute.full_buffer_replay_edges << ",\n"
              << "  \"compute_full_overflow_edges\": "
@@ -1353,6 +1379,15 @@ class OnlineMemoryProbe final : public SST::Component {
       std::vector<std::uint64_t> compute_memory_requests_completed;
       std::vector<std::uint64_t> compute_memory_window_stall_cycles;
       std::vector<std::size_t> compute_max_vertex_requests_inflight;
+      std::vector<std::size_t> compute_max_active_out_requests_inflight;
+      std::vector<std::size_t> compute_max_active_memory_ports;
+      std::vector<std::uint64_t> compute_memory_cross_port_overlap_cycles;
+      std::vector<std::size_t> compute_max_memory_responses_per_cycle;
+      std::vector<std::uint64_t> compute_multi_port_response_cycles;
+      std::vector<std::uint64_t> compute_controller_memory_overlap_cycles;
+      std::vector<std::uint64_t> compute_controller_memory_stall_cycles;
+      std::vector<std::uint64_t> compute_sparse_store_writes_generated;
+      std::vector<std::uint64_t> compute_active_emit_writes_generated;
       std::vector<std::size_t> edge_axis_max_occupancy;
       std::vector<std::uint64_t> edge_axis_push_stalls;
       std::vector<std::uint64_t> edge_axis_transfers;
@@ -1507,6 +1542,24 @@ class OnlineMemoryProbe final : public SST::Component {
             round.compute.memory_window_stall_cycles);
         compute_max_vertex_requests_inflight.push_back(
             round.compute.max_vertex_requests_inflight);
+        compute_max_active_out_requests_inflight.push_back(
+            round.compute.max_active_out_requests_inflight);
+        compute_max_active_memory_ports.push_back(
+            round.compute.max_active_memory_ports);
+        compute_memory_cross_port_overlap_cycles.push_back(
+            round.compute.memory_cross_port_overlap_cycles);
+        compute_max_memory_responses_per_cycle.push_back(
+            round.compute.max_memory_responses_completed_per_cycle);
+        compute_multi_port_response_cycles.push_back(
+            round.compute.multi_port_response_cycles);
+        compute_controller_memory_overlap_cycles.push_back(
+            round.compute.controller_memory_overlap_cycles);
+        compute_controller_memory_stall_cycles.push_back(
+            round.compute.controller_memory_stall_cycles);
+        compute_sparse_store_writes_generated.push_back(
+            round.compute.sparse_store_writes_generated);
+        compute_active_emit_writes_generated.push_back(
+            round.compute.active_emit_writes_generated);
         edge_axis_max_occupancy.push_back(round.edge_axis.max_occupancy);
         edge_axis_push_stalls.push_back(round.edge_axis.push_stalls);
         edge_axis_transfers.push_back(round.edge_axis.pushes);
@@ -2056,6 +2109,8 @@ class OnlineMemoryProbe final : public SST::Component {
       write_json_array(result, compute_on_chip_controller_cycles);
       result << ",\n  \"compute_memory_request_window\": "
              << compute_memory_request_window_;
+      result << ",\n  \"compute_writeonly_request_window\": "
+             << compute_writeonly_request_window_;
       result << ",\n  \"compute_memory_requests_issued_per_round\": ";
       write_json_array(result, compute_memory_requests_issued);
       result << ",\n  \"compute_memory_requests_completed_per_round\": ";
@@ -2064,6 +2119,24 @@ class OnlineMemoryProbe final : public SST::Component {
       write_json_array(result, compute_memory_window_stall_cycles);
       result << ",\n  \"compute_max_vertex_requests_inflight_per_round\": ";
       write_json_array(result, compute_max_vertex_requests_inflight);
+      result << ",\n  \"compute_max_active_out_requests_inflight_per_round\": ";
+      write_json_array(result, compute_max_active_out_requests_inflight);
+      result << ",\n  \"compute_max_active_memory_ports_per_round\": ";
+      write_json_array(result, compute_max_active_memory_ports);
+      result << ",\n  \"compute_memory_cross_port_overlap_cycles_per_round\": ";
+      write_json_array(result, compute_memory_cross_port_overlap_cycles);
+      result << ",\n  \"compute_max_memory_responses_per_cycle_per_round\": ";
+      write_json_array(result, compute_max_memory_responses_per_cycle);
+      result << ",\n  \"compute_multi_port_response_cycles_per_round\": ";
+      write_json_array(result, compute_multi_port_response_cycles);
+      result << ",\n  \"compute_controller_memory_overlap_cycles_per_round\": ";
+      write_json_array(result, compute_controller_memory_overlap_cycles);
+      result << ",\n  \"compute_controller_memory_stall_cycles_per_round\": ";
+      write_json_array(result, compute_controller_memory_stall_cycles);
+      result << ",\n  \"compute_sparse_store_writes_generated_per_round\": ";
+      write_json_array(result, compute_sparse_store_writes_generated);
+      result << ",\n  \"compute_active_emit_writes_generated_per_round\": ";
+      write_json_array(result, compute_active_emit_writes_generated);
       result << ",\n  \"edge_axis_max_occupancy_per_round\": ";
       write_json_array(result, edge_axis_max_occupancy);
       result << ",\n  \"edge_axis_push_stalls_per_round\": ";
@@ -2656,6 +2729,8 @@ class OnlineMemoryProbe final : public SST::Component {
           << compute.on_chip_controller_cycles << ",\n"
           << "  \"compute_memory_request_window\": "
           << compute_memory_request_window_ << ",\n"
+          << "  \"compute_writeonly_request_window\": "
+          << compute_writeonly_request_window_ << ",\n"
           << "  \"compute_memory_requests_issued\": "
           << compute.memory_requests_issued << ",\n"
           << "  \"compute_memory_requests_completed\": "
@@ -2670,6 +2745,24 @@ class OnlineMemoryProbe final : public SST::Component {
           << compute.max_memory_requests_inflight << ",\n"
           << "  \"compute_max_vertex_requests_inflight\": "
           << compute.max_vertex_requests_inflight << ",\n"
+          << "  \"compute_max_active_out_requests_inflight\": "
+          << compute.max_active_out_requests_inflight << ",\n"
+          << "  \"compute_max_active_memory_ports\": "
+          << compute.max_active_memory_ports << ",\n"
+          << "  \"compute_memory_cross_port_overlap_cycles\": "
+          << compute.memory_cross_port_overlap_cycles << ",\n"
+          << "  \"compute_max_memory_responses_per_cycle\": "
+          << compute.max_memory_responses_completed_per_cycle << ",\n"
+          << "  \"compute_multi_port_response_cycles\": "
+          << compute.multi_port_response_cycles << ",\n"
+          << "  \"compute_controller_memory_overlap_cycles\": "
+          << compute.controller_memory_overlap_cycles << ",\n"
+          << "  \"compute_controller_memory_stall_cycles\": "
+          << compute.controller_memory_stall_cycles << ",\n"
+          << "  \"compute_sparse_store_writes_generated\": "
+          << compute.sparse_store_writes_generated << ",\n"
+          << "  \"compute_active_emit_writes_generated\": "
+          << compute.active_emit_writes_generated << ",\n"
           << "  \"compute_full_buffer_replay_edges\": "
           << compute.full_buffer_replay_edges << ",\n"
           << "  \"compute_full_overflow_edges\": "
@@ -2754,6 +2847,7 @@ class OnlineMemoryProbe final : public SST::Component {
   std::uint64_t fallback_replay_threshold_{};
   std::size_t memory_request_window_{};
   std::size_t compute_memory_request_window_{};
+  std::size_t compute_writeonly_request_window_{};
   std::size_t reader_edge_pipeline_depth_{};
   std::size_t reader_edge_response_capacity_{};
   std::size_t maintenance_count_scan_ii_{};

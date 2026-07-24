@@ -148,7 +148,8 @@ SpineVerticalSliceSystem::SpineVerticalSliceSystem(
     SpineEdgeSlice workload, std::uint32_t source, std::size_t tiny_threshold,
     SpineL0Config maintenance_config, SpineL0State initial_state,
     SpineAxiInterfaceProfile axi_profile,
-    std::size_t compute_memory_request_window)
+    std::size_t compute_memory_request_window,
+    std::size_t compute_writeonly_request_window)
     : scheduler_(scheduler), clock_id_(clock_id), backend_(backend),
       axi_profile_(std::move(axi_profile)),
       edge_stream_("edge-axis", clock_id, 32),
@@ -208,7 +209,8 @@ SpineVerticalSliceSystem::SpineVerticalSliceSystem(
           .active_bitmap = active_bitmap_.get(),
           .result = compute_result_.get(),
       },
-      edge_stream_, value_stream_, compute_memory_request_window);
+      edge_stream_, value_stream_, compute_memory_request_window,
+      compute_writeonly_request_window);
   dirty_ack_ = std::make_unique<SpineDirtyAck>(
       "spine-dirty-ack", clock_id_, maintenance_->config(),
       SpineDirtyAckPorts{

@@ -95,7 +95,10 @@ class SpineVerticalSliceSystem {
                            SpineL0State initial_state = {},
                            SpineAxiInterfaceProfile axi_profile = {},
                            std::size_t compute_memory_request_window =
-                               SpineSplitSsspCompute::kDefaultMemoryRequestWindow);
+                               SpineSplitSsspCompute::kDefaultMemoryRequestWindow,
+                           std::size_t compute_writeonly_request_window =
+                               SpineSplitSsspCompute::
+                                   kDefaultWriteOnlyRequestWindow);
 
   void register_components();
   void restart_read_compute(

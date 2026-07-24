@@ -2386,7 +2386,8 @@ ComputeTileObservation run_compute_tile(std::size_t edge_count,
                                         bool duplicate_dst = false,
                                         std::size_t memory_request_window =
                                             SpineSplitSsspCompute::
-                                                kDefaultMemoryRequestWindow) {
+                                                kDefaultMemoryRequestWindow,
+                                        bool split_extreme_destinations = false) {
   Scheduler scheduler;
   const auto core = scheduler.add_clock_mhz("data", 141.0);
   MockMemoryBackend backend("hbm", core,
@@ -2423,10 +2424,20 @@ ComputeTileObservation run_compute_tile(std::size_t edge_count,
   words.reserve(edge_count + 3);
   words.push_back(
       PartConvWord{.kind = PartConvWordKind::kTileBegin, .first = 0});
+  const auto destination_for = [&](std::size_t index) {
+    if (duplicate_dst) {
+      return 1U;
+    }
+    if (split_extreme_destinations && index >= edge_count / 2) {
+      return static_cast<std::uint32_t>(
+          65'535 - (edge_count - index));
+    }
+    return static_cast<std::uint32_t>(index);
+  };
   for (std::size_t index = 0; index < edge_count; ++index) {
     words.push_back(PartConvWord{
         .kind = PartConvWordKind::kEdge,
-        .first = duplicate_dst ? 1U : static_cast<std::uint32_t>(index),
+        .first = destination_for(index),
         .second =
             duplicate_dst ? static_cast<std::uint32_t>(5 - 2 * index) : 1U,
     });
@@ -2466,7 +2477,8 @@ ComputeTileObservation run_compute_tile(std::size_t edge_count,
   bool distances_match = true;
   if (!duplicate_dst) {
     for (std::size_t index = 0; index < edge_count; ++index) {
-      distances_match = distances_match && compute.values()[index] == 1;
+      distances_match =
+          distances_match && compute.values()[destination_for(index)] == 1;
     }
   }
   return ComputeTileObservation{
@@ -2479,6 +2491,37 @@ ComputeTileObservation run_compute_tile(std::size_t edge_count,
       .distances_match = distances_match,
       .failed = compute.failed(),
   };
+}
+
+void test_spine_compute_overlaps_independent_store_bundles() {
+  const ComputeTileObservation observation =
+      run_compute_tile(256, false, 7, true);
+  std::cout << "EVIDENCE spine_compute_store_bundle_overlap cycles="
+            << observation.cycles << " controller_memory_overlap="
+            << observation.counters.controller_memory_overlap_cycles
+            << " max_total_inflight="
+            << observation.counters.max_memory_requests_inflight
+            << " max_vertex_inflight="
+            << observation.counters.max_vertex_requests_inflight
+            << " max_active_out_inflight="
+            << observation.counters.max_active_out_requests_inflight
+            << " max_active_ports="
+            << observation.counters.max_active_memory_ports
+            << " cross_port_overlap="
+            << observation.counters.memory_cross_port_overlap_cycles
+            << " max_responses_per_cycle="
+            << observation.counters.max_memory_responses_completed_per_cycle
+            << " multi_port_response_cycles="
+            << observation.counters.multi_port_response_cycles << '\n';
+  require(!observation.failed && observation.distances_match &&
+              observation.next_active == 256 &&
+              observation.counters.sparse_store_writes_generated == 256 &&
+              observation.counters.active_emit_writes_generated == 256 &&
+              observation.counters.controller_memory_overlap_cycles > 0 &&
+              observation.counters.max_active_out_requests_inflight > 0 &&
+              observation.counters.max_active_memory_ports == 2 &&
+              observation.counters.memory_cross_port_overlap_cycles > 0,
+          "independent vertex-state and active-output bundles did not overlap");
 }
 
 void test_spine_compute_gather_uses_bounded_outstanding_requests() {
@@ -2525,7 +2568,19 @@ void test_spine_full_tile_threshold_boundaries() {
               << " emit_bit_cycles="
               << observation.counters.active_emit_bit_cycles
               << " controller_cycles="
-              << observation.counters.on_chip_controller_cycles << '\n';
+              << observation.counters.on_chip_controller_cycles
+              << " sparse_writes="
+              << observation.counters.sparse_store_writes_generated
+              << " active_writes="
+              << observation.counters.active_emit_writes_generated
+              << " controller_memory_overlap="
+              << observation.counters.controller_memory_overlap_cycles
+              << " controller_memory_stalls="
+              << observation.counters.controller_memory_stall_cycles
+              << " max_responses_per_cycle="
+              << observation.counters.max_memory_responses_completed_per_cycle
+              << " multi_port_response_cycles="
+              << observation.counters.multi_port_response_cycles << '\n';
     require(!observation.failed && observation.distances_match &&
                 observation.next_active == edge_count,
             "full-tile boundary changed the SSSP result");
@@ -2536,7 +2591,10 @@ void test_spine_full_tile_threshold_boundaries() {
                 observation.counters.active_emit_scan_words == 1024 &&
                 observation.counters.active_emit_lane_reads == 65'536 &&
                 observation.counters.active_emit_lane_writes == 65'536 &&
-                observation.counters.tile_active_mark_writes == edge_count,
+                observation.counters.tile_active_mark_writes == edge_count &&
+                observation.counters.active_emit_writes_generated ==
+                    edge_count &&
+                observation.counters.max_active_out_requests_inflight <= 4,
             "tile-active BRAM controller ledger diverged from the HLS loops");
     require(observation.counters.tiny_buffer_writes ==
                 std::min<std::size_t>(edge_count, 4096),
@@ -2549,13 +2607,20 @@ void test_spine_full_tile_threshold_boundaries() {
                   observation.counters.scattered_vertex_words == edge_count,
               "tiny boundary did not use gather/relax/sparse-store");
       require(observation.counters.vertex_read_bytes == edge_count * 4 &&
-                  observation.counters.vertex_write_bytes == edge_count * 4,
+                  observation.counters.vertex_write_bytes == edge_count * 4 &&
+                  observation.counters.memory_requests_issued ==
+                      3 * edge_count + 3 &&
+                  observation.counters.memory_requests_completed ==
+                      3 * edge_count + 3,
               "tiny boundary vertex-memory bytes mismatch");
       require(observation.counters.tiny_buffer_reads == edge_count * 2 &&
                   observation.counters.sparse_store_scan_words == 1024 &&
                   observation.counters.sparse_store_lane_reads == 65'536 &&
                   observation.counters.sparse_store_bit_cycles ==
-                      ((edge_count + 63) / 64) * 64,
+                      ((edge_count + 63) / 64) * 64 &&
+                  observation.counters.sparse_store_writes_generated ==
+                      edge_count &&
+                  observation.counters.controller_memory_overlap_cycles > 0,
               "tiny-path BRAM read or sparse-scan ledger mismatch");
     } else {
       require(observation.counters.fast_path_tiles == 0 &&
@@ -2568,11 +2633,16 @@ void test_spine_full_tile_threshold_boundaries() {
                   observation.counters.swept_vertex_words == 2 * 65'536 &&
                   observation.counters.scattered_vertex_words == 0 &&
                   observation.counters.vertex_read_bytes == 65'536 * 4 &&
-                  observation.counters.vertex_write_bytes == 65'536 * 4,
+                  observation.counters.vertex_write_bytes == 65'536 * 4 &&
+                  observation.counters.memory_requests_issued ==
+                      edge_count + 5 &&
+                  observation.counters.memory_requests_completed ==
+                      edge_count + 5,
               "full boundary tile sweep ledger mismatch");
       require(observation.counters.tiny_buffer_reads == 4096 &&
                   observation.counters.sparse_store_scan_words == 0 &&
-                  observation.counters.sparse_store_bit_cycles == 0,
+                  observation.counters.sparse_store_bit_cycles == 0 &&
+                  observation.counters.sparse_store_writes_generated == 0,
               "dense replay incorrectly executed the sparse-store controller");
     }
   }
@@ -2600,7 +2670,9 @@ void test_spine_tiny_gather_preserves_duplicate_reads() {
               observation.counters.vertex_read_bytes == 8 &&
               observation.counters.tiny_buffer_writes == 2 &&
               observation.counters.tiny_buffer_reads == 4 &&
-              observation.counters.scattered_vertex_words == 1,
+              observation.counters.scattered_vertex_words == 1 &&
+              observation.counters.sparse_store_writes_generated == 1 &&
+              observation.counters.active_emit_writes_generated == 1,
           "tiny gather incorrectly deduplicated repeated destination reads");
   require(observation.first_active_payload ==
               std::vector<std::uint8_t>({3, 0, 0, 0, 1, 0, 0, 0}),
@@ -4679,6 +4751,8 @@ int main(int argc, char **argv) {
       {"spine_full_tile_boundaries", test_spine_full_tile_threshold_boundaries},
       {"spine_compute_gather_outstanding",
        test_spine_compute_gather_uses_bounded_outstanding_requests},
+      {"spine_compute_store_bundle_overlap",
+       test_spine_compute_overlaps_independent_store_bundles},
       {"spine_full_tile_axis_backpressure",
        test_spine_full_tile_load_replay_backpressures_axis},
       {"spine_tiny_duplicate_gather",

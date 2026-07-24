@@ -61,6 +61,9 @@ probe.addParams(
         "compute_memory_request_window": int(
             os.environ.get("SPINE_SST_COMPUTE_MEMORY_REQUEST_WINDOW", "7")
         ),
+        "compute_writeonly_request_window": int(
+            os.environ.get("SPINE_SST_COMPUTE_WRITEONLY_REQUEST_WINDOW", "4")
+        ),
         "reader_edge_pipeline_depth": int(
             os.environ.get("SPINE_SST_READER_EDGE_PIPELINE_DEPTH", "32")
         ),

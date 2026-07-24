@@ -3016,18 +3016,19 @@ SpineSplitSsspCompute::SpineSplitSsspCompute(
     std::string name, ClockId clock_id, std::size_t vertices,
     std::uint32_t source, std::size_t tiny_threshold, SpineComputePorts ports,
     Fifo<PartConvWord> &edge_in, Fifo<SourceValueWord> &value_out,
-    std::size_t memory_request_window)
+    std::size_t memory_request_window, std::size_t writeonly_request_window)
     : Component(std::move(name), clock_id),
       vertices_(vertices),
       source_(source),
       tiny_threshold_(tiny_threshold),
       memory_request_window_(memory_request_window),
+      writeonly_request_window_(writeonly_request_window),
       ports_(ports),
       edge_in_(edge_in),
       value_out_(value_out),
       values_(vertices, kInfinity) {
   if (vertices_ == 0 || source_ >= vertices_ || tiny_threshold_ == 0 ||
-      memory_request_window_ == 0 ||
+      memory_request_window_ == 0 || writeonly_request_window_ == 0 ||
       ports_.vertex_state == nullptr || ports_.active_out == nullptr ||
       ports_.active_bitmap == nullptr || ports_.result == nullptr ||
       edge_in_.clock_id() != clock_id || value_out_.clock_id() != clock_id) {
@@ -3078,6 +3079,8 @@ void SpineSplitSsspCompute::reset_round() {
   source_protocol_overflow_ = false;
   active_word_index_ = 0;
   active_bit_index_ = 0;
+  active_output_base_ = 0;
+  active_output_index_ = 0;
   after_clear_phase_ = Phase::kRelax;
   done_ = false;
 }
@@ -3085,17 +3088,43 @@ void SpineSplitSsspCompute::reset_round() {
 void SpineSplitSsspCompute::evaluate(const CycleContext &) {
   staged_action_ = Action::kNone;
   staged_memory_issue_ = false;
-  staged_memory_completion_ = false;
+  staged_responses_.clear();
   if (done_ || failed_) {
     return;
   }
-  staged_memory_completion_ = stage_memory_completion();
+  const bool staged_memory_completion = stage_memory_completions();
+  const std::size_t active_ports = active_memory_ports();
+  if (active_ports > 1) {
+    ++counters_.memory_cross_port_overlap_cycles;
+  }
+  if (std::any_of(staged_responses_.begin(), staged_responses_.end(),
+                  [](const AxiResponse &response) {
+                    return !response.success;
+                  })) {
+    return;
+  }
+  bool memory_issue_blocked = false;
   if (!memory_tasks_.empty()) {
     const MemoryTask &task = memory_tasks_.front();
-    if (inflight_memory_tasks_for_port(task.port) >= memory_request_window_) {
+    std::size_t inflight_on_port =
+        inflight_memory_tasks_for_port(task.port);
+    const bool same_port_completion =
+        std::any_of(staged_responses_.begin(), staged_responses_.end(),
+                    [&](const AxiResponse &response) {
+                      const auto completing = inflight_memory_tasks_.find(
+                          response.transaction_id);
+                      return completing != inflight_memory_tasks_.end() &&
+                             completing->second.port == task.port;
+                    });
+    if (same_port_completion) {
+      --inflight_on_port;
+    }
+    if (inflight_on_port >= memory_request_window_for(task.port)) {
       ++counters_.memory_window_stall_cycles;
+      memory_issue_blocked = true;
     } else if (memory_task_conflicts(task)) {
       ++counters_.memory_dependency_stall_cycles;
+      memory_issue_blocked = true;
     } else if (task.port->requests().try_push(AxiRequest{
                    .transaction_id = next_transaction_id_,
                    .operation = task.operation,
@@ -3106,10 +3135,21 @@ void SpineSplitSsspCompute::evaluate(const CycleContext &) {
       staged_memory_issue_ = true;
     } else {
       ++counters_.memory_request_fifo_stall_cycles;
+      memory_issue_blocked = true;
     }
   }
-  if (!memory_tasks_.empty() || !inflight_memory_tasks_.empty() ||
-      staged_memory_completion_) {
+  const bool memory_active = !memory_tasks_.empty() ||
+                             !inflight_memory_tasks_.empty() ||
+                             staged_memory_completion;
+  if (controller_memory_overlap_phase()) {
+    if (memory_issue_blocked) {
+      ++counters_.controller_memory_stall_cycles;
+      return;
+    }
+    if (memory_active) {
+      ++counters_.controller_memory_overlap_cycles;
+    }
+  } else if (memory_active) {
     return;
   }
   if (source_reply_pending_) {
@@ -3131,15 +3171,14 @@ void SpineSplitSsspCompute::evaluate(const CycleContext &) {
 }
 
 void SpineSplitSsspCompute::commit(const CycleContext &context) {
-  if (staged_memory_completion_) {
-    const auto found =
-        inflight_memory_tasks_.find(staged_response_.transaction_id);
-    if (found == inflight_memory_tasks_.end() || !staged_response_.success) {
+  for (const AxiResponse &response : staged_responses_) {
+    const auto found = inflight_memory_tasks_.find(response.transaction_id);
+    if (found == inflight_memory_tasks_.end() || !response.success) {
       failed_ = true;
       done_ = true;
       return;
     }
-    consume_memory_response(found->second, staged_response_);
+    consume_memory_response(found->second, response);
     inflight_memory_tasks_.erase(found);
     ++counters_.memory_requests_completed;
   }
@@ -3154,6 +3193,11 @@ void SpineSplitSsspCompute::commit(const CycleContext &context) {
     counters_.max_vertex_requests_inflight = std::max(
         counters_.max_vertex_requests_inflight,
         inflight_memory_tasks_for_port(ports_.vertex_state));
+    counters_.max_active_out_requests_inflight = std::max(
+        counters_.max_active_out_requests_inflight,
+        inflight_memory_tasks_for_port(ports_.active_out));
+    counters_.max_active_memory_ports =
+        std::max(counters_.max_active_memory_ports, active_memory_ports());
   }
   switch (staged_action_) {
     case Action::kNone:
@@ -3219,6 +3263,12 @@ bool SpineSplitSsspCompute::memory_task_conflicts(
   const std::uint64_t task_end = task.address + task.bytes;
   for (const auto &[transaction_id, inflight] : inflight_memory_tasks_) {
     (void)transaction_id;
+    if (std::any_of(staged_responses_.begin(), staged_responses_.end(),
+                    [&](const AxiResponse &response) {
+                      return response.transaction_id == transaction_id;
+                    })) {
+      continue;
+    }
     if (task.port != inflight.port ||
         (task.operation == MemoryOperation::kRead &&
          inflight.operation == MemoryOperation::kRead)) {
@@ -3239,19 +3289,60 @@ std::size_t SpineSplitSsspCompute::inflight_memory_tasks_for_port(
       [port](const auto &entry) { return entry.second.port == port; }));
 }
 
-bool SpineSplitSsspCompute::stage_memory_completion() {
-  std::uint64_t selected = std::numeric_limits<std::uint64_t>::max();
-  FixedAxiPort *selected_port = nullptr;
+std::size_t SpineSplitSsspCompute::memory_request_window_for(
+    const FixedAxiPort *port) const noexcept {
+  return port == ports_.active_out || port == ports_.result
+             ? writeonly_request_window_
+             : memory_request_window_;
+}
+
+std::size_t SpineSplitSsspCompute::active_memory_ports() const noexcept {
+  std::size_t ports = 0;
+  for (auto current = inflight_memory_tasks_.begin();
+       current != inflight_memory_tasks_.end(); ++current) {
+    const bool already_seen = std::any_of(
+        inflight_memory_tasks_.begin(), current, [&](const auto &prior) {
+          return prior.second.port == current->second.port;
+        });
+    ports += already_seen ? 0 : 1;
+  }
+  return ports;
+}
+
+bool SpineSplitSsspCompute::stage_memory_completions() {
+  struct Candidate {
+    std::uint64_t transaction_id{};
+    FixedAxiPort *port{};
+  };
+  std::vector<Candidate> candidates;
   for (const auto &[transaction_id, task] : inflight_memory_tasks_) {
     const AxiResponse *response = task.port->responses().front();
     if (response != nullptr && response->transaction_id == transaction_id &&
-        transaction_id < selected) {
-      selected = transaction_id;
-      selected_port = task.port;
+        std::none_of(candidates.begin(), candidates.end(),
+                     [&](const Candidate &candidate) {
+                       return candidate.port == task.port;
+                     })) {
+      candidates.push_back(Candidate{transaction_id, task.port});
     }
   }
-  return selected_port != nullptr &&
-         selected_port->responses().try_pop(staged_response_);
+  std::sort(candidates.begin(), candidates.end(),
+            [](const Candidate &left, const Candidate &right) {
+              return left.transaction_id < right.transaction_id;
+            });
+  for (const Candidate &candidate : candidates) {
+    AxiResponse response;
+    if (!candidate.port->responses().try_pop(response)) {
+      throw std::logic_error("failed to stage ready compute AXI response");
+    }
+    staged_responses_.push_back(std::move(response));
+  }
+  counters_.max_memory_responses_completed_per_cycle =
+      std::max(counters_.max_memory_responses_completed_per_cycle,
+               staged_responses_.size());
+  if (staged_responses_.size() > 1) {
+    ++counters_.multi_port_response_cycles;
+  }
+  return !staged_responses_.empty();
 }
 
 void SpineSplitSsspCompute::consume_memory_response(
@@ -3516,38 +3607,22 @@ void SpineSplitSsspCompute::prepare_vertex_store() {
     counters_.swept_vertex_words += tile_size_;
     counters_.vs_tile_reads += kTileVertices;
   }
-  for (const std::uint32_t vertex : changed_vertices_) {
-    if (!full_path_) {
-      enqueue_memory(*ports_.vertex_state, MemoryOperation::kWrite,
-                     vertex * kVertexWordBytes, kVertexWordBytes,
-                     encode_u32(values_.at(vertex)));
-      ++counters_.vs_tile_reads;
-    }
-  }
 }
 
-void SpineSplitSsspCompute::prepare_active_output() {
-  if (!changed_vertices_.empty()) {
-    const std::size_t active_base =
-        next_active_.size() - changed_vertices_.size();
-    std::vector<std::uint8_t> active_payload(
-        changed_vertices_.size() * kActiveOutputBytes, 0);
-    for (std::size_t index = 0; index < changed_vertices_.size(); ++index) {
-      const std::vector<std::uint8_t> value =
-          encode_u32(values_.at(changed_vertices_[index]));
-      const std::vector<std::uint8_t> vertex =
-          encode_u32(changed_vertices_[index]);
-      const auto base = active_payload.begin() +
-                        static_cast<std::ptrdiff_t>(index * kActiveOutputBytes);
-      std::copy(value.begin(), value.end(), base);
-      std::copy(vertex.begin(), vertex.end(), base + sizeof(std::uint32_t));
-    }
-    enqueue_memory(*ports_.active_out, MemoryOperation::kWrite,
-                   active_base * kActiveOutputBytes,
-                   changed_vertices_.size() * kActiveOutputBytes,
-                   std::move(active_payload));
-    counters_.vs_tile_reads += changed_vertices_.size();
-  }
+void SpineSplitSsspCompute::enqueue_active_output(std::uint32_t vertex) {
+  std::vector<std::uint8_t> payload(kActiveOutputBytes, 0);
+  const std::vector<std::uint8_t> value = encode_u32(values_.at(vertex));
+  const std::vector<std::uint8_t> encoded_vertex = encode_u32(vertex);
+  std::copy(value.begin(), value.end(), payload.begin());
+  std::copy(encoded_vertex.begin(), encoded_vertex.end(),
+            payload.begin() + sizeof(std::uint32_t));
+  enqueue_memory(*ports_.active_out, MemoryOperation::kWrite,
+                 (active_output_base_ + active_output_index_) *
+                     kActiveOutputBytes,
+                 kActiveOutputBytes, std::move(payload));
+  ++active_output_index_;
+  ++counters_.vs_tile_reads;
+  ++counters_.active_emit_writes_generated;
 }
 
 void SpineSplitSsspCompute::begin_tile_active_clear(Phase next_phase) {
@@ -3568,6 +3643,29 @@ bool SpineSplitSsspCompute::active_word_nonempty(std::size_t word) const {
                      });
 }
 
+std::optional<std::uint32_t>
+SpineSplitSsspCompute::current_active_vertex() const {
+  const std::size_t local_index =
+      active_word_index_ * kActiveWordBits + active_bit_index_;
+  if (local_index >= tile_size_) {
+    return std::nullopt;
+  }
+  const std::uint32_t vertex =
+      tile_base_ + static_cast<std::uint32_t>(local_index);
+  return std::binary_search(changed_vertices_.begin(), changed_vertices_.end(),
+                            vertex)
+             ? std::optional<std::uint32_t>(vertex)
+             : std::nullopt;
+}
+
+bool SpineSplitSsspCompute::controller_memory_overlap_phase() const noexcept {
+  return phase_ == Phase::kSparseStoreScan ||
+         phase_ == Phase::kSparseStoreBits ||
+         (!full_path_ && phase_ == Phase::kStore) ||
+         phase_ == Phase::kEmitActiveScan ||
+         phase_ == Phase::kEmitActiveBits || phase_ == Phase::kEmitStore;
+}
+
 void SpineSplitSsspCompute::begin_sparse_store_scan() {
   sort_changed_vertices_for_emit();
   active_word_index_ = 0;
@@ -3578,6 +3676,8 @@ void SpineSplitSsspCompute::begin_sparse_store_scan() {
 void SpineSplitSsspCompute::begin_active_emit_scan() {
   active_word_index_ = 0;
   active_bit_index_ = 0;
+  active_output_base_ = next_active_.size() - changed_vertices_.size();
+  active_output_index_ = 0;
   phase_ = Phase::kEmitActiveScan;
 }
 
@@ -3627,6 +3727,8 @@ void SpineSplitSsspCompute::reset_tile() {
   relax_index_ = 0;
   active_word_index_ = 0;
   active_bit_index_ = 0;
+  active_output_base_ = 0;
+  active_output_index_ = 0;
   tile_size_ = 0;
   tile_open_ = false;
   full_path_ = false;
@@ -3705,7 +3807,6 @@ void SpineSplitSsspCompute::advance(const CycleContext &context) {
       const std::size_t tile_words =
           (tile_size_ + kActiveWordBits - 1) / kActiveWordBits;
       if (active_word_index_ >= tile_words) {
-        prepare_vertex_store();
         phase_ = Phase::kStore;
         return;
       }
@@ -3720,7 +3821,16 @@ void SpineSplitSsspCompute::advance(const CycleContext &context) {
       }
       return;
     }
-    case Phase::kSparseStoreBits:
+    case Phase::kSparseStoreBits: {
+      const std::optional<std::uint32_t> vertex = current_active_vertex();
+      if (vertex.has_value()) {
+        enqueue_memory(*ports_.vertex_state, MemoryOperation::kWrite,
+                       *vertex * kVertexWordBytes, kVertexWordBytes,
+                       encode_u32(values_.at(*vertex)));
+        ++counters_.vs_tile_reads;
+        ++counters_.scattered_vertex_words;
+        ++counters_.sparse_store_writes_generated;
+      }
       ++counters_.sparse_store_bit_cycles;
       ++counters_.on_chip_controller_cycles;
       ++active_bit_index_;
@@ -3728,17 +3838,14 @@ void SpineSplitSsspCompute::advance(const CycleContext &context) {
         finish_active_word_scan(Phase::kSparseStoreScan);
       }
       return;
+    }
     case Phase::kStore:
-      if (!full_path_) {
-        counters_.scattered_vertex_words += changed_vertices_.size();
-      }
       begin_active_emit_scan();
       return;
     case Phase::kEmitActiveScan: {
       const std::size_t tile_words =
           (tile_size_ + kActiveWordBits - 1) / kActiveWordBits;
       if (active_word_index_ >= tile_words) {
-        prepare_active_output();
         phase_ = Phase::kEmitStore;
         return;
       }
@@ -3754,7 +3861,11 @@ void SpineSplitSsspCompute::advance(const CycleContext &context) {
       }
       return;
     }
-    case Phase::kEmitActiveBits:
+    case Phase::kEmitActiveBits: {
+      const std::optional<std::uint32_t> vertex = current_active_vertex();
+      if (vertex.has_value()) {
+        enqueue_active_output(*vertex);
+      }
       ++counters_.active_emit_bit_cycles;
       ++counters_.on_chip_controller_cycles;
       ++active_bit_index_;
@@ -3762,7 +3873,13 @@ void SpineSplitSsspCompute::advance(const CycleContext &context) {
         finish_active_word_scan(Phase::kEmitActiveScan);
       }
       return;
+    }
     case Phase::kEmitStore:
+      if (active_output_index_ != changed_vertices_.size()) {
+        failed_ = true;
+        done_ = true;
+        return;
+      }
       reset_tile();
       phase_ = Phase::kInput;
       return;

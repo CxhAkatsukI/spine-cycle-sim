@@ -646,8 +646,17 @@ struct SpineComputeCounters {
   std::uint64_t memory_window_stall_cycles{};
   std::uint64_t memory_dependency_stall_cycles{};
   std::uint64_t memory_request_fifo_stall_cycles{};
+  std::uint64_t controller_memory_overlap_cycles{};
+  std::uint64_t controller_memory_stall_cycles{};
+  std::uint64_t sparse_store_writes_generated{};
+  std::uint64_t active_emit_writes_generated{};
   std::size_t max_memory_requests_inflight{};
   std::size_t max_vertex_requests_inflight{};
+  std::size_t max_active_out_requests_inflight{};
+  std::size_t max_active_memory_ports{};
+  std::uint64_t memory_cross_port_overlap_cycles{};
+  std::size_t max_memory_responses_completed_per_cycle{};
+  std::uint64_t multi_port_response_cycles{};
 };
 
 struct SpineComputePorts {
@@ -661,6 +670,7 @@ class SpineSplitSsspCompute final : public Component {
  public:
   static constexpr std::uint32_t kInfinity = 0xffffffffU;
   static constexpr std::size_t kDefaultMemoryRequestWindow = 7;
+  static constexpr std::size_t kDefaultWriteOnlyRequestWindow = 4;
 
   SpineSplitSsspCompute(std::string name, ClockId clock_id,
                         std::size_t vertices, std::uint32_t source,
@@ -668,7 +678,9 @@ class SpineSplitSsspCompute final : public Component {
                         Fifo<PartConvWord> &edge_in,
                         Fifo<SourceValueWord> &value_out,
                         std::size_t memory_request_window =
-                            kDefaultMemoryRequestWindow);
+                            kDefaultMemoryRequestWindow,
+                        std::size_t writeonly_request_window =
+                            kDefaultWriteOnlyRequestWindow);
 
   [[nodiscard]] bool done() const noexcept { return done_; }
   [[nodiscard]] bool failed() const noexcept { return failed_; }
@@ -744,15 +756,20 @@ class SpineSplitSsspCompute final : public Component {
   [[nodiscard]] bool memory_task_conflicts(const MemoryTask &task) const;
   [[nodiscard]] std::size_t
   inflight_memory_tasks_for_port(const FixedAxiPort *port) const noexcept;
-  [[nodiscard]] bool stage_memory_completion();
+  [[nodiscard]] std::size_t
+  memory_request_window_for(const FixedAxiPort *port) const noexcept;
+  [[nodiscard]] std::size_t active_memory_ports() const noexcept;
+  [[nodiscard]] bool stage_memory_completions();
   void prepare_gather();
   void prepare_vertex_store();
-  void prepare_active_output();
+  void enqueue_active_output(std::uint32_t vertex);
   void begin_tile_active_clear(Phase next_phase);
   void begin_sparse_store_scan();
   void begin_active_emit_scan();
   void finish_active_word_scan(Phase scan_phase);
   [[nodiscard]] bool active_word_nonempty(std::size_t word) const;
+  [[nodiscard]] std::optional<std::uint32_t> current_active_vertex() const;
+  [[nodiscard]] bool controller_memory_overlap_phase() const noexcept;
   void sort_changed_vertices_for_emit();
   void begin_full_path(const PartConvWord &overflow_edge);
   void relax_edge(const PartConvWord &edge);
@@ -762,6 +779,7 @@ class SpineSplitSsspCompute final : public Component {
   std::uint32_t source_{};
   std::size_t tiny_threshold_{};
   std::size_t memory_request_window_{};
+  std::size_t writeonly_request_window_{};
   SpineComputePorts ports_;
   Fifo<PartConvWord> &edge_in_;
   Fifo<SourceValueWord> &value_out_;
@@ -779,7 +797,7 @@ class SpineSplitSsspCompute final : public Component {
   Action staged_action_{Action::kNone};
   PartConvWord staged_edge_word_;
   SourceValueWord staged_value_word_;
-  AxiResponse staged_response_;
+  std::vector<AxiResponse> staged_responses_;
   std::uint32_t pending_source_{};
   std::uint32_t pending_source_value_{kInfinity};
   SourceValueWord::Kind pending_value_kind_{SourceValueWord::Kind::kSourceValue};
@@ -788,10 +806,11 @@ class SpineSplitSsspCompute final : public Component {
   std::size_t relax_index_{};
   std::size_t active_word_index_{};
   std::size_t active_bit_index_{};
+  std::size_t active_output_base_{};
+  std::size_t active_output_index_{};
   Phase after_clear_phase_{Phase::kRelax};
   std::uint64_t next_transaction_id_{};
   bool staged_memory_issue_{};
-  bool staged_memory_completion_{};
   bool source_reply_pending_{};
   bool source_count_seen_{};
   bool source_generation_seen_{};
