@@ -280,6 +280,22 @@ struct SpineL0Counters {
   std::uint64_t carry_writer_page_list_word_writes{};
   std::uint64_t carry_writer_page_epoch_word_writes{};
   std::uint64_t carry_writer_memory_wait_cycles{};
+  std::uint64_t l0_writer_groups_seen{};
+  std::uint64_t l0_writer_groups_emitted{};
+  std::uint64_t l0_writer_groups_cancelled{};
+  std::uint64_t l0_writer_edge_word_writes{};
+  std::uint64_t l0_writer_row_word_writes{};
+  std::uint64_t l0_writer_mask_word_writes{};
+  std::uint64_t l0_writer_page_base_word_writes{};
+  std::uint64_t l0_writer_bitmap_page_writes{};
+  std::uint64_t l0_writer_page_list_word_writes{};
+  std::uint64_t l0_writer_page_epoch_word_writes{};
+  std::uint64_t l0_writer_memory_wait_cycles{};
+  std::uint64_t l0_writer_memory_overlap_cycles{};
+  std::uint64_t l0_writer_backpressure_stall_cycles{};
+  std::uint64_t l0_writer_validation_failures{};
+  std::size_t l0_writer_max_pending_tasks{};
+  std::size_t l0_writer_max_pending_tasks_per_port{};
   std::uint64_t carry_merge_inputs{};
   std::uint64_t carry_outputs{};
   std::int32_t target_level{-1};
@@ -373,8 +389,8 @@ class SpineL0Maintenance final : public Component {
     kCarryCursorBitmap,
     kCarryCursorRowOffsets,
     kCarryLevelEdgeRead,
-    kCarryWriterGraphWrite,
-    kCarryWriterMetadataWrite,
+    kLevelWriterGraphWrite,
+    kLevelWriterMetadataWrite,
   };
 
   enum class ScanKind {
@@ -405,7 +421,7 @@ class SpineL0Maintenance final : public Component {
   enum class StagedAction { kNone, kAdvance };
 
   struct FamilyWriteTask;
-  struct CarryPendingWord;
+  struct LevelPendingWord;
 
   void advance(const CycleContext &context);
   void enqueue_task(FixedAxiPort &port, MemoryOperation operation,
@@ -445,7 +461,6 @@ class SpineL0Maintenance final : public Component {
   void initialize_metadata_payload();
   void enqueue_committed_metadata();
   void build_family_outputs();
-  void enqueue_family_writes(bool hot, std::size_t family, std::size_t target);
   void initialize_carry_engine(const FamilyWriteTask &task);
   void enqueue_carry_cursor_metadata(std::size_t stream_index);
   void maybe_enqueue_carry_page_list(std::size_t stream_index);
@@ -454,24 +469,28 @@ class SpineL0Maintenance final : public Component {
   void enqueue_carry_stream_refill(std::size_t stream_index);
   void consume_carry_memory_response(const MemoryTask &task,
                                      const AxiResponse &response);
-  void initialize_carry_writer(const FamilyWriteTask &task);
-  void accumulate_carry_writer(const SpineEdgeRecord &entry);
-  void emit_carry_writer_group(const FamilyWriteTask &task);
-  void finalize_carry_writer(const FamilyWriteTask &task);
-  void carry_writer_write_u32(std::uint64_t base_word,
+  void initialize_l0_level_writer(const FamilyWriteTask &task);
+  void initialize_carry_level_writer(const FamilyWriteTask &task);
+  void accumulate_level_writer(const SpineEdgeRecord &entry);
+  void emit_level_writer_group(const FamilyWriteTask &task);
+  void finalize_level_writer(const FamilyWriteTask &task);
+  void level_writer_write_u32(std::uint64_t base_word,
                               std::uint32_t index, std::uint32_t value,
-                              CarryPendingWord &pending,
+                              LevelPendingWord &pending,
                               std::uint64_t &counter);
-  void carry_writer_write_u16(std::uint64_t base_word,
+  void level_writer_write_u16(std::uint64_t base_word,
                               std::uint32_t index, std::uint16_t value,
-                              CarryPendingWord &pending,
+                              LevelPendingWord &pending,
                               std::uint64_t &counter);
-  void carry_writer_flush_graph_word(std::uint64_t base_word,
-                                     CarryPendingWord &pending,
+  void level_writer_flush_graph_word(std::uint64_t base_word,
+                                     LevelPendingWord &pending,
                                      std::uint64_t &counter);
-  void carry_writer_flush_bitmap();
-  void carry_writer_append_page(std::uint32_t page);
-  void carry_writer_flush_page_list();
+  void level_writer_flush_bitmap();
+  void level_writer_append_page(std::uint32_t page);
+  void level_writer_flush_page_list();
+  [[nodiscard]] std::size_t queued_level_writer_tasks_for_port(
+      const FixedAxiPort *port) const noexcept;
+  [[nodiscard]] bool l0_writer_has_queue_headroom() const noexcept;
   [[nodiscard]] bool advance_carry_merge();
   void finish_carry_merge(const FamilyWriteTask &task);
   void commit_level_state(bool hot, std::size_t target);
@@ -489,18 +508,32 @@ class SpineL0Maintenance final : public Component {
     std::size_t target{};
   };
 
-  struct CarryPendingWord {
+  struct LevelPendingWord {
     std::uint64_t value{};
     std::uint32_t index{};
     bool valid{};
   };
 
-  struct CarryWriterState {
+  struct LevelWriterStats {
+    std::uint64_t groups_seen{};
+    std::uint64_t groups_emitted{};
+    std::uint64_t groups_cancelled{};
+    std::uint64_t edge_word_writes{};
+    std::uint64_t row_word_writes{};
+    std::uint64_t mask_word_writes{};
+    std::uint64_t page_base_word_writes{};
+    std::uint64_t bitmap_page_writes{};
+    std::uint64_t page_list_word_writes{};
+    std::uint64_t page_epoch_word_writes{};
+  };
+
+  struct LevelWriterState {
     SpineLevelLayout layout;
-    CarryPendingWord row;
-    CarryPendingWord mask;
-    CarryPendingWord page_base;
-    CarryPendingWord page_list;
+    LevelWriterStats stats;
+    LevelPendingWord row;
+    LevelPendingWord mask;
+    LevelPendingWord page_base;
+    LevelPendingWord page_list;
     std::array<std::uint64_t, 4> bitmap{};
     SpineEdgeRecord group;
     std::int64_t group_diff{};
@@ -512,6 +545,8 @@ class SpineL0Maintenance final : public Component {
     std::uint32_t current_mask_index{};
     std::uint32_t bitmap_page{};
     std::uint32_t page_list_count{};
+    std::uint32_t expected_rows{};
+    std::uint32_t expected_edges{};
     std::uint16_t current_mask{};
     bool initialized{};
     bool group_valid{};
@@ -520,6 +555,7 @@ class SpineL0Maintenance final : public Component {
     bool bitmap_valid{};
     bool finalized{};
     bool was_active{};
+    bool l0_mode{};
   };
 
   struct CarryInputStream {
@@ -557,7 +593,7 @@ class SpineL0Maintenance final : public Component {
   std::vector<SpineEdgeRecord> sorted_scan_edges_;
   std::vector<CarryInputStream> carry_streams_;
   std::uint64_t carry_cursor_refill_cycles_remaining_{};
-  CarryWriterState carry_writer_;
+  LevelWriterState level_writer_;
   std::array<std::vector<SpineEdgeRecord>, 16> family_outputs_;
   std::array<std::vector<SpineEdgeRecord>, 16> hot_family_outputs_;
   std::array<std::array<std::uint32_t, kSpineLevelCount>, kSpineFamilyCount>

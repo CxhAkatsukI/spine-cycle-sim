@@ -1,0 +1,25 @@
+digraph spine_online_l0_writer {
+  graph [rankdir=LR, bgcolor="white", pad="0.2", nodesep="0.28", ranksep="0.55"];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=10, color="#334155", fillcolor="#f8fafc"];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#475569"];
+
+  sorted [label="gmem_sorter\nstreamed 128-bit beats", fillcolor="#dbeafe"];
+  filter [label="family / hot filter\n(src,dst) coalescer", fillcolor="#e2e8f0"];
+  group [label="nonzero diff group\nrow + mask + edge update", fillcolor="#dcfce7"];
+  pack [label="finite packers\nrow u32 x2\nmask u16 x4\npage base u32 x2\nbitmap 4 x u64\npage list u16 x4", fillcolor="#fef3c7"];
+  graphq [label="per-graph-port pending queue\nfinite depth + backpressure", fillcolor="#f1f5f9"];
+  metaq [label="metadata pending queue\nfinite depth + backpressure", fillcolor="#f1f5f9"];
+  graphaxi [label="gmem_pN AXI\nburst/outstanding/response", fillcolor="#e0e7ff"];
+  metaaxi [label="gmem_meta AXI\nburst/outstanding/response", fillcolor="#e0e7ff"];
+  hbm [label="shared SST-HBM\ncontention + DRAM timing", fillcolor="#fee2e2"];
+
+  sorted -> filter -> group;
+  group -> pack;
+  group -> graphq [label="one 64-bit edge write"];
+  pack -> graphq [label="index words"];
+  pack -> metaq [label="page list + epoch"];
+  graphq -> graphaxi -> hbm;
+  metaq -> metaaxi -> hbm;
+  graphq -> filter [label="full stalls scan", style=dashed, color="#b91c1c"];
+  metaq -> filter [label="full stalls scan", style=dashed, color="#b91c1c"];
+}

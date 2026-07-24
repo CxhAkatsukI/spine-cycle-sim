@@ -68,6 +68,9 @@ class FixedAxiPort {
   }
 
   [[nodiscard]] Fifo<AxiRequest> &requests() noexcept { return requests_; }
+  [[nodiscard]] const Fifo<AxiRequest> &requests() const noexcept {
+    return requests_;
+  }
   [[nodiscard]] Fifo<AxiResponse> &responses() noexcept { return responses_; }
   [[nodiscard]] Fifo<AxiReadBeatResponse> &read_beats() noexcept {
     return read_beats_;

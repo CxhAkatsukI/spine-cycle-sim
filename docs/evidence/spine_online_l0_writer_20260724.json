@@ -1,0 +1,72 @@
+{
+  "date": "2026-07-24",
+  "branch": "codex/fine-grained-cycle-sim",
+  "hls_reference": "afb8199a2ca8d3fd208b985324bf4d8719e2b839",
+  "cpp": {
+    "amazon_mock": {
+      "e2e_cycles": 6342,
+      "maintenance_cycles": 1829,
+      "groups_emitted": 10,
+      "edge_word_writes": 10,
+      "scan_writer_overlap_cycles": 82,
+      "writer_drain_wait_cycles": 55,
+      "max_pending_tasks": 7
+    },
+    "ii1_backpressure_256_rows": {
+      "maintenance_cycles": 60232,
+      "groups_emitted": 256,
+      "backpressure_stall_cycles": 12468,
+      "max_pending_tasks": 27,
+      "max_pending_tasks_per_port": 26,
+      "request_fifo_depth": 32,
+      "validation_failures": 0
+    }
+  },
+  "sst_hbm": [
+    {
+      "scenario": "amazon_l0",
+      "before_cycles": 7153,
+      "after_cycles": 7151,
+      "maintenance_cycles": 2253,
+      "old_logical_requests": 105,
+      "new_logical_requests": 114,
+      "backend_requests": 1399,
+      "groups_emitted": 10,
+      "scan_writer_overlap_cycles": 64,
+      "writer_drain_wait_cycles": 45,
+      "max_pending_tasks_per_port": 6,
+      "correctness_mismatches": 0,
+      "frontier_mismatches": 0
+    },
+    {
+      "scenario": "carry_hot",
+      "before_cycles": 8872,
+      "after_cycles": 8863,
+      "maintenance_cycles": 3961,
+      "old_logical_requests": 214,
+      "new_logical_requests": 214,
+      "backend_requests": 1944,
+      "groups_emitted": 1,
+      "scan_writer_overlap_cycles": 0,
+      "writer_drain_wait_cycles": 46,
+      "max_pending_tasks_per_port": 6,
+      "correctness_mismatches": 0,
+      "frontier_mismatches": 0
+    },
+    {
+      "scenario": "weighted_sssp",
+      "before_cycles": 33788,
+      "after_cycles": 33788,
+      "maintenance_cycles": 2282,
+      "old_logical_requests": 119,
+      "new_logical_requests": 129,
+      "backend_requests": 4196,
+      "groups_emitted": 8,
+      "scan_writer_overlap_cycles": 57,
+      "writer_drain_wait_cycles": 59,
+      "max_pending_tasks_per_port": 8,
+      "correctness_mismatches": 0,
+      "frontier_mismatches": 0
+    }
+  ]
+}

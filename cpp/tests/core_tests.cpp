@@ -918,6 +918,21 @@ void test_spine_l0_real_slice_vertical_path() {
   require(counters.graph_index_payload_write_bytes == 64 &&
               counters.graph_edge_payload_write_bytes == 80,
           "Spine L0 graph write payload ledger mismatch");
+  require(counters.l0_writer_groups_seen == 10 &&
+              counters.l0_writer_groups_emitted == 10 &&
+              counters.l0_writer_groups_cancelled == 0 &&
+              counters.l0_writer_edge_word_writes == 10 &&
+              counters.l0_writer_row_word_writes == 1 &&
+              counters.l0_writer_mask_word_writes == 1 &&
+              counters.l0_writer_page_base_word_writes == 2 &&
+              counters.l0_writer_bitmap_page_writes == 1 &&
+              counters.l0_writer_page_list_word_writes == 1 &&
+              counters.l0_writer_page_epoch_word_writes == 1 &&
+              counters.l0_writer_memory_wait_cycles > 0 &&
+              counters.l0_writer_memory_overlap_cycles > 0 &&
+              counters.l0_writer_validation_failures == 0 &&
+              counters.l0_writer_max_pending_tasks > 0,
+          "Spine L0 online writer/packer ledger mismatch");
   require(counters.metadata_read_bytes == 2'984 &&
               counters.page_list_payload_write_bytes == 8 &&
               counters.page_list_count_write_bytes > 0 &&
@@ -1048,6 +1063,12 @@ void test_spine_l0_real_slice_vertical_path() {
             << " compute_cycles="
             << compute_counters.end_cycle - compute_counters.start_cycle
             << " edge_axis_max_occupancy=" << edge_stream.stats().max_occupancy
+            << " l0_writer_edges=" << counters.l0_writer_edge_word_writes
+            << " l0_writer_overlap="
+            << counters.l0_writer_memory_overlap_cycles
+            << " l0_writer_wait=" << counters.l0_writer_memory_wait_cycles
+            << " l0_writer_max_pending="
+            << counters.l0_writer_max_pending_tasks
             << '\n';
 }
 
@@ -2549,6 +2570,16 @@ void test_spine_reader_consumes_graph_edge_payload_from_hbm() {
       50'000);
 
   require(!maintenance.failed(), "reader payload setup maintenance failed");
+  require(maintenance.counters().l0_writer_groups_seen == 3 &&
+              maintenance.counters().l0_writer_groups_emitted == 3 &&
+              maintenance.counters().l0_writer_row_word_writes == 2 &&
+              maintenance.counters().l0_writer_mask_word_writes == 1 &&
+              maintenance.counters().l0_writer_page_base_word_writes == 2 &&
+              maintenance.counters().l0_writer_bitmap_page_writes == 2 &&
+              maintenance.counters().l0_writer_page_list_word_writes == 1 &&
+              maintenance.counters().l0_writer_page_epoch_word_writes == 2 &&
+              maintenance.counters().l0_writer_validation_failures == 0,
+          "multi-page L0 online writer did not flush each finite packer");
   require(state.cold_levels[0][0].size() == 3 &&
               state.cold_levels[0][0][0].dst == 1 &&
               state.cold_levels[0][0][0].weight == 5,
@@ -3045,6 +3076,19 @@ void test_spine_maintenance_consumes_sorted_payload_from_hbm() {
               state.cold_levels[0][0][0].dst == 2 &&
               state.cold_levels[0][0][0].weight == 2,
           "maintenance ignored HBM sorted payload and used logical workload");
+  const SpineLevelLayout l0_layout =
+      spine_slice_layout(SpineL0Config{}, false, 0, 1);
+  require(decode_spine_level_edge(
+              backend.inspect_payload(
+                  0,
+                  l0_layout.edge_offset_words *
+                      spine::sim::kSpineGraphWordBytes,
+                  spine::sim::kSpineGraphWordBytes),
+              0) == state.cold_levels[0][0][0] &&
+              maintenance.counters().l0_writer_groups_seen == 1 &&
+              maintenance.counters().l0_writer_groups_emitted == 1 &&
+              maintenance.counters().l0_writer_validation_failures == 0,
+          "L0 online writer bypassed the returned sorted-edge payload");
   require(maintenance.counters().sorted_payload_read_bytes ==
                   maintenance.counters().sorted_read_bytes &&
               maintenance.counters().sorted_payload_read_bytes > 0,
@@ -3611,6 +3655,66 @@ void test_spine_edge_pipeline_is_ordered_bounded_and_latency_hiding() {
           "large maintenance scan bypassed finite beat/reorder backpressure");
 }
 
+void test_spine_l0_online_writer_backpressure_is_finite() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("data", 141.0);
+  MockMemoryBackend backend("hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 24,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  SpineEdgeSlice workload{
+      .vertices = 512,
+      .edges = {},
+      .case_name = "l0_writer_backpressure_256_rows",
+  };
+  for (std::uint32_t source = 0; source < 256; ++source) {
+    workload.edges.push_back(SpineEdgeRecord{
+        .src = source, .dst = 511, .weight = 1, .diff = 1});
+  }
+  SpineL0Config config;
+  config.maintenance_l0_write_scan_ii = 1;
+  SpineVerticalSliceSystem system(scheduler, core, backend,
+                                  std::move(workload), 0, 4096, config);
+  system.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until([&system] { return system.done() && system.idle(); },
+                      2'000'000);
+
+  const SpineL0Counters &maintenance = system.maintenance_counters();
+  std::cout << "EVIDENCE spine_l0_writer_backpressure cycles="
+            << maintenance.end_cycle - maintenance.start_cycle
+            << " groups=" << maintenance.l0_writer_groups_emitted
+            << " stalls="
+            << maintenance.l0_writer_backpressure_stall_cycles
+            << " max_pending=" << maintenance.l0_writer_max_pending_tasks
+            << " max_pending_per_port="
+            << maintenance.l0_writer_max_pending_tasks_per_port << '\n';
+  require(!system.failed() &&
+              system.level_state().cold_levels[0][0].size() == 256,
+          "finite L0 writer queue changed the persisted graph");
+  require(maintenance.l0_writer_groups_seen == 256 &&
+              maintenance.l0_writer_groups_emitted == 256 &&
+              maintenance.l0_writer_groups_cancelled == 0 &&
+              maintenance.l0_writer_edge_word_writes == 256 &&
+              maintenance.l0_writer_row_word_writes == 129 &&
+              maintenance.l0_writer_mask_word_writes == 64 &&
+              maintenance.l0_writer_page_base_word_writes == 2 &&
+              maintenance.l0_writer_bitmap_page_writes == 1 &&
+              maintenance.l0_writer_page_list_word_writes == 1 &&
+              maintenance.l0_writer_page_epoch_word_writes == 1,
+          "finite L0 writer queue changed the HLS packer work ledger");
+  require(maintenance.l0_writer_backpressure_stall_cycles > 0 &&
+              maintenance.l0_writer_max_pending_tasks_per_port <= 32 &&
+              maintenance.l0_writer_validation_failures == 0 &&
+              maintenance.memory_requests_issued ==
+                  maintenance.memory_requests_completed,
+          "L0 writer did not propagate finite issue-queue backpressure");
+}
+
 void test_spine_edge_pipeline_propagates_axis_backpressure() {
   Scheduler scheduler;
   const auto core = scheduler.add_clock_mhz("data", 141.0);
@@ -3742,6 +3846,8 @@ int main(int argc, char **argv) {
        test_spine_axi_interface_profile_matches_hls_rtl},
       {"spine_edge_pipeline",
        test_spine_edge_pipeline_is_ordered_bounded_and_latency_hiding},
+      {"spine_l0_writer_backpressure",
+       test_spine_l0_online_writer_backpressure_is_finite},
       {"spine_edge_pipeline_backpressure",
        test_spine_edge_pipeline_propagates_axis_backpressure},
   };

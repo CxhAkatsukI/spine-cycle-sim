@@ -922,6 +922,18 @@ void SpineL0Maintenance::evaluate(const CycleContext &context) {
   if (active_memory_ports() > 1) {
     ++counters_.memory_cross_port_overlap_cycles;
   }
+  const auto writer_task = [](const MemoryTask &task) {
+    return task.purpose == TaskPurpose::kLevelWriterGraphWrite ||
+           task.purpose == TaskPurpose::kLevelWriterMetadataWrite;
+  };
+  const bool queued_writer =
+      std::any_of(tasks_.begin(), tasks_.end(), writer_task);
+  const bool inflight_writer = std::any_of(
+      inflight_tasks_.begin(), inflight_tasks_.end(),
+      [&](const auto &entry) { return writer_task(entry.second); });
+  if (phase_ == Phase::kWriteProcess && (queued_writer || inflight_writer)) {
+    ++counters_.l0_writer_memory_overlap_cycles;
+  }
   if (!tasks_.empty()) {
     const MemoryTask &task = tasks_.front();
     if (inflight_memory_tasks_for_port(task.port) >=
@@ -952,16 +964,11 @@ void SpineL0Maintenance::evaluate(const CycleContext &context) {
       staged_memory_completion_ || staged_read_beat_completion_) {
     if (phase_ == Phase::kCarryProcess) {
       ++counters_.carry_refill_wait_cycles;
-      const auto writer_task = [](const MemoryTask &task) {
-        return task.purpose == TaskPurpose::kCarryWriterGraphWrite ||
-               task.purpose == TaskPurpose::kCarryWriterMetadataWrite;
-      };
-      const bool queued_writer =
-          std::any_of(tasks_.begin(), tasks_.end(), writer_task);
-      const bool inflight_writer = std::any_of(
-          inflight_tasks_.begin(), inflight_tasks_.end(),
-          [&](const auto &entry) { return writer_task(entry.second); });
-      if (queued_writer || inflight_writer) {
+    }
+    if (queued_writer || inflight_writer) {
+      if (level_writer_.l0_mode) {
+        ++counters_.l0_writer_memory_wait_cycles;
+      } else {
         ++counters_.carry_writer_memory_wait_cycles;
       }
     }
@@ -1152,6 +1159,26 @@ void SpineL0Maintenance::enqueue_task(
               : 0,
       .streamed_read_beats_received = 0,
   });
+  if (level_writer_.initialized && level_writer_.l0_mode &&
+      (purpose == TaskPurpose::kLevelWriterGraphWrite ||
+       purpose == TaskPurpose::kLevelWriterMetadataWrite)) {
+    const std::size_t queued = static_cast<std::size_t>(std::count_if(
+        tasks_.begin(), tasks_.end(), [](const MemoryTask &task) {
+          return task.purpose == TaskPurpose::kLevelWriterGraphWrite ||
+                 task.purpose == TaskPurpose::kLevelWriterMetadataWrite;
+        }));
+    counters_.l0_writer_max_pending_tasks =
+        std::max(counters_.l0_writer_max_pending_tasks, queued);
+    const std::size_t queued_on_port =
+        queued_level_writer_tasks_for_port(&port);
+    counters_.l0_writer_max_pending_tasks_per_port =
+        std::max(counters_.l0_writer_max_pending_tasks_per_port,
+                 queued_on_port);
+    if (queued_on_port > port.requests().depth()) {
+      ++counters_.l0_writer_validation_failures;
+      throw std::logic_error("Spine L0 writer exceeded its finite issue queue");
+    }
+  }
   ++counters_.memory_tasks;
   switch (task_class) {
     case TaskClass::kSorted:
@@ -1248,6 +1275,11 @@ std::size_t SpineL0Maintenance::scan_tail_cycles() const noexcept {
 
 bool SpineL0Maintenance::scan_can_advance(const CycleContext &context) {
   if (scan_index_ == sorted_scan_edges_.size()) {
+    if (scan_kind_ == ScanKind::kL0Write &&
+        !l0_writer_has_queue_headroom()) {
+      ++counters_.l0_writer_backpressure_stall_cycles;
+      return false;
+    }
     if (edge_by_edge_scan_ &&
         (dirty_source_pending_ || !tasks_.empty() ||
          !inflight_tasks_.empty() || staged_memory_completion_ ||
@@ -1259,6 +1291,11 @@ bool SpineL0Maintenance::scan_can_advance(const CycleContext &context) {
   }
   if (context.domain_cycle < next_scan_consume_cycle_) {
     ++counters_.sorted_scan_ii_stall_cycles;
+    return false;
+  }
+  if (scan_kind_ == ScanKind::kL0Write &&
+      !l0_writer_has_queue_headroom()) {
+    ++counters_.l0_writer_backpressure_stall_cycles;
     return false;
   }
   if (streaming_scan_ || edge_by_edge_scan_) {
@@ -1387,8 +1424,8 @@ void SpineL0Maintenance::consume_memory_response(const MemoryTask &task,
       task.purpose == TaskPurpose::kCarryCursorBitmap ||
       task.purpose == TaskPurpose::kCarryCursorRowOffsets ||
       task.purpose == TaskPurpose::kCarryLevelEdgeRead ||
-      task.purpose == TaskPurpose::kCarryWriterGraphWrite ||
-      task.purpose == TaskPurpose::kCarryWriterMetadataWrite;
+      task.purpose == TaskPurpose::kLevelWriterGraphWrite ||
+      task.purpose == TaskPurpose::kLevelWriterMetadataWrite;
   if (task.operation == MemoryOperation::kWrite) {
     if (!response.read_data.empty()) {
       throw std::logic_error(
@@ -1745,94 +1782,9 @@ void SpineL0Maintenance::consume_dirty_memory_response(
   case TaskPurpose::kCarryCursorBitmap:
   case TaskPurpose::kCarryCursorRowOffsets:
   case TaskPurpose::kCarryLevelEdgeRead:
-  case TaskPurpose::kCarryWriterGraphWrite:
-  case TaskPurpose::kCarryWriterMetadataWrite:
+  case TaskPurpose::kLevelWriterGraphWrite:
+  case TaskPurpose::kLevelWriterMetadataWrite:
     throw std::logic_error("carry response reached the dirty response handler");
-  }
-}
-
-void SpineL0Maintenance::enqueue_family_writes(bool hot, std::size_t family,
-                                               std::size_t target) {
-  const auto &edges =
-      hot ? hot_family_outputs_[family] : family_outputs_[family];
-  const std::uint64_t rows =
-      hot ? counters_.hot_family_rows[family] : counters_.family_rows[family];
-  const SpineLevelLayout layout =
-      spine_slice_layout(config_, hot, target, rows);
-  if (edges.size() > layout.edge_capacity || rows > layout.edge_capacity) {
-    failed_ = true;
-    done_ = true;
-    failure_ = "Spine target family exceeds fixed level capacity";
-    return;
-  }
-  std::set<std::uint32_t> pages;
-  for (const SpineEdgeRecord &edge : edges) {
-    pages.insert(edge.src / config_.page_vertices);
-  }
-
-  FixedAxiPort &graph = *ports_.graph[family];
-  for (GraphPayloadWrite &write :
-       build_level_index_payloads(config_, layout, edges, rows)) {
-    const std::uint64_t bytes = write.data.size();
-    counters_.graph_index_payload_write_bytes += bytes;
-    enqueue_task(graph, MemoryOperation::kWrite, write.address, bytes,
-                 TaskClass::kGraph, std::move(write.data));
-  }
-  std::vector<std::uint8_t> edge_payload;
-  edge_payload.reserve(edges.size() * kSpineGraphWordBytes);
-  for (const SpineEdgeRecord &edge : edges) {
-    const std::vector<std::uint8_t> packed = encode_spine_level_edge(edge);
-    edge_payload.insert(edge_payload.end(), packed.begin(), packed.end());
-  }
-  const std::uint64_t edge_payload_bytes = edge_payload.size();
-  counters_.graph_edge_payload_write_bytes += edge_payload_bytes;
-  enqueue_task(graph, MemoryOperation::kWrite,
-               layout.edge_offset_words * kSpineGraphWordBytes,
-               edge_payload_bytes, TaskClass::kGraph, std::move(edge_payload));
-
-  counters_.pages_stamped += pages.size();
-  counters_.persisted_edges += edges.size();
-  counters_.persisted_rows += rows;
-  const std::size_t logical_family = hot ? config_.partitions + family : family;
-  const SpineMetadataLayout metadata = spine_metadata_layout(config_);
-  page_list_counts_[logical_family][target] = pages.size();
-  const std::uint64_t slice = logical_family * config_.levels + target;
-  const std::vector<std::uint32_t> page_ids(pages.begin(), pages.end());
-  std::vector<std::uint8_t> page_list_payload = encode_u16_lanes(page_ids);
-  const std::uint64_t page_list_payload_bytes = page_list_payload.size();
-  counters_.page_list_payload_write_bytes += page_list_payload_bytes;
-  enqueue_task(*ports_.metadata, MemoryOperation::kWrite,
-               config_.metadata_base +
-                   (metadata.page_list_base +
-                    slice * metadata.page_list_words_per_slice) *
-                       kMetadataWordBytes,
-               page_list_payload_bytes, TaskClass::kMetadata,
-               std::move(page_list_payload));
-  std::uint32_t epoch = ++slice_epochs_[logical_family][target];
-  if (epoch == 0) {
-    epoch = 1;
-    slice_epochs_[logical_family][target] = epoch;
-  }
-  std::set<std::uint64_t> page_epoch_words;
-  for (const std::uint32_t page : pages) {
-    const std::uint64_t index = slice * metadata.page_count + page;
-    page_epochs_[index] = epoch;
-    page_epoch_words.insert(index >> 1);
-  }
-  for (const std::uint64_t word : page_epoch_words) {
-    const std::uint64_t low_index = word * 2;
-    const auto low = page_epochs_.find(low_index);
-    const auto high = page_epochs_.find(low_index + 1);
-    const std::uint64_t packed =
-        (low == page_epochs_.end() ? 0 : low->second) |
-        (static_cast<std::uint64_t>(high == page_epochs_.end() ? 0
-                                                               : high->second)
-         << 32);
-    enqueue_task(*ports_.metadata, MemoryOperation::kWrite,
-                 config_.metadata_base +
-                     (metadata.page_epoch_base + word) * kMetadataWordBytes,
-                 kMetadataWordBytes, TaskClass::kMetadata,
-                 encode_u64_words({packed}));
   }
 }
 
@@ -1955,8 +1907,8 @@ void SpineL0Maintenance::finalize_carry_page_indexes(
                TaskPurpose::kCarryCursorRowOffsets, 0, stream_index);
 }
 
-void SpineL0Maintenance::carry_writer_flush_graph_word(
-    std::uint64_t base_word, CarryPendingWord &pending,
+void SpineL0Maintenance::level_writer_flush_graph_word(
+    std::uint64_t base_word, LevelPendingWord &pending,
     std::uint64_t &counter) {
   if (!pending.valid) {
     return;
@@ -1966,18 +1918,18 @@ void SpineL0Maintenance::carry_writer_flush_graph_word(
                (base_word + pending.index) * kSpineGraphWordBytes,
                kSpineGraphWordBytes, TaskClass::kGraph,
                encode_u64_words({pending.value}), {}, false,
-               TaskPurpose::kCarryWriterGraphWrite);
+               TaskPurpose::kLevelWriterGraphWrite);
   counters_.graph_index_payload_write_bytes += kSpineGraphWordBytes;
   ++counter;
-  pending = CarryPendingWord{};
+  pending = LevelPendingWord{};
 }
 
-void SpineL0Maintenance::carry_writer_write_u32(
+void SpineL0Maintenance::level_writer_write_u32(
     std::uint64_t base_word, std::uint32_t index, std::uint32_t value,
-    CarryPendingWord &pending, std::uint64_t &counter) {
+    LevelPendingWord &pending, std::uint64_t &counter) {
   const std::uint32_t word = index >> 1;
   if (pending.valid && pending.index != word) {
-    carry_writer_flush_graph_word(base_word, pending, counter);
+    level_writer_flush_graph_word(base_word, pending, counter);
   }
   if (!pending.valid) {
     pending.valid = true;
@@ -1990,12 +1942,12 @@ void SpineL0Maintenance::carry_writer_write_u32(
                   (static_cast<std::uint64_t>(value) << shift);
 }
 
-void SpineL0Maintenance::carry_writer_write_u16(
+void SpineL0Maintenance::level_writer_write_u16(
     std::uint64_t base_word, std::uint32_t index, std::uint16_t value,
-    CarryPendingWord &pending, std::uint64_t &counter) {
+    LevelPendingWord &pending, std::uint64_t &counter) {
   const std::uint32_t word = index >> 2;
   if (pending.valid && pending.index != word) {
-    carry_writer_flush_graph_word(base_word, pending, counter);
+    level_writer_flush_graph_word(base_word, pending, counter);
   }
   if (!pending.valid) {
     pending.valid = true;
@@ -2008,32 +1960,32 @@ void SpineL0Maintenance::carry_writer_write_u16(
                   (static_cast<std::uint64_t>(value) << shift);
 }
 
-void SpineL0Maintenance::carry_writer_flush_bitmap() {
-  if (!carry_writer_.bitmap_valid) {
+void SpineL0Maintenance::level_writer_flush_bitmap() {
+  if (!level_writer_.bitmap_valid) {
     return;
   }
   const FamilyWriteTask &task = family_write_tasks_[active_family_index_];
   std::vector<std::uint8_t> payload;
   payload.reserve(4 * kSpineGraphWordBytes);
-  for (const std::uint64_t word : carry_writer_.bitmap) {
+  for (const std::uint64_t word : level_writer_.bitmap) {
     append_u64_le(payload, word);
   }
   const std::uint64_t payload_bytes = payload.size();
   enqueue_task(
       *ports_.graph[task.family], MemoryOperation::kWrite,
-      (carry_writer_.layout.bitmap_offset_words +
-       static_cast<std::uint64_t>(carry_writer_.bitmap_page) * 4) *
+      (level_writer_.layout.bitmap_offset_words +
+       static_cast<std::uint64_t>(level_writer_.bitmap_page) * 4) *
           kSpineGraphWordBytes,
       payload_bytes, TaskClass::kGraph, std::move(payload), {}, false,
-      TaskPurpose::kCarryWriterGraphWrite);
+      TaskPurpose::kLevelWriterGraphWrite);
   counters_.graph_index_payload_write_bytes += 4 * kSpineGraphWordBytes;
-  ++counters_.carry_writer_bitmap_page_writes;
-  carry_writer_.bitmap.fill(0);
-  carry_writer_.bitmap_valid = false;
+  ++level_writer_.stats.bitmap_page_writes;
+  level_writer_.bitmap.fill(0);
+  level_writer_.bitmap_valid = false;
 }
 
-void SpineL0Maintenance::carry_writer_flush_page_list() {
-  CarryPendingWord &pending = carry_writer_.page_list;
+void SpineL0Maintenance::level_writer_flush_page_list() {
+  LevelPendingWord &pending = level_writer_.page_list;
   if (!pending.valid) {
     return;
   }
@@ -2051,26 +2003,59 @@ void SpineL0Maintenance::carry_writer_flush_page_list() {
               kMetadataWordBytes,
       kMetadataWordBytes, TaskClass::kMetadata,
       encode_u64_words({pending.value}), {}, false,
-      TaskPurpose::kCarryWriterMetadataWrite);
+      TaskPurpose::kLevelWriterMetadataWrite);
   counters_.page_list_payload_write_bytes += kMetadataWordBytes;
-  ++counters_.carry_writer_page_list_word_writes;
-  pending = CarryPendingWord{};
+  ++level_writer_.stats.page_list_word_writes;
+  pending = LevelPendingWord{};
 }
 
-void SpineL0Maintenance::carry_writer_append_page(std::uint32_t page) {
+std::size_t SpineL0Maintenance::queued_level_writer_tasks_for_port(
+    const FixedAxiPort *port) const noexcept {
+  return static_cast<std::size_t>(std::count_if(
+      tasks_.begin(), tasks_.end(), [port](const MemoryTask &task) {
+        return task.port == port &&
+               (task.purpose == TaskPurpose::kLevelWriterGraphWrite ||
+                task.purpose == TaskPurpose::kLevelWriterMetadataWrite);
+      }));
+}
+
+bool SpineL0Maintenance::l0_writer_has_queue_headroom() const noexcept {
+  if (!level_writer_.initialized || !level_writer_.l0_mode ||
+      active_family_index_ >= family_write_tasks_.size()) {
+    return true;
+  }
+  const FamilyWriteTask &task = family_write_tasks_[active_family_index_];
+  const FixedAxiPort *graph = ports_.graph[task.family];
+  constexpr std::size_t kMaxGraphTasksPerAdvance = 12;
+  constexpr std::size_t kMaxMetadataTasksPerAdvance = 4;
+  const std::size_t graph_capacity = graph->requests().depth();
+  const std::size_t metadata_capacity = ports_.metadata->requests().depth();
+  return graph_capacity >= kMaxGraphTasksPerAdvance &&
+         metadata_capacity >= kMaxMetadataTasksPerAdvance &&
+         queued_level_writer_tasks_for_port(graph) <=
+             graph_capacity - kMaxGraphTasksPerAdvance &&
+         queued_level_writer_tasks_for_port(ports_.metadata) <=
+             metadata_capacity - kMaxMetadataTasksPerAdvance;
+}
+
+void SpineL0Maintenance::level_writer_append_page(std::uint32_t page) {
   const SpineMetadataLayout metadata = spine_metadata_layout(config_);
   if (page >= metadata.page_count ||
       page > std::numeric_limits<std::uint16_t>::max() ||
-      carry_writer_.page_list_count >= metadata.page_count ||
-      (carry_writer_.have_last_page && page <= carry_writer_.last_page)) {
-    ++counters_.carry_cursor_validation_failures;
-    throw std::logic_error("invalid Spine carry-writer page sequence");
+      level_writer_.page_list_count >= metadata.page_count ||
+      (level_writer_.have_last_page && page <= level_writer_.last_page)) {
+    if (level_writer_.l0_mode) {
+      ++counters_.l0_writer_validation_failures;
+    } else {
+      ++counters_.carry_cursor_validation_failures;
+    }
+    throw std::logic_error("invalid Spine level-writer page sequence");
   }
-  const std::uint32_t word = carry_writer_.page_list_count >> 2;
-  const std::uint32_t lane = carry_writer_.page_list_count & 3U;
-  CarryPendingWord &pending = carry_writer_.page_list;
+  const std::uint32_t word = level_writer_.page_list_count >> 2;
+  const std::uint32_t lane = level_writer_.page_list_count & 3U;
+  LevelPendingWord &pending = level_writer_.page_list;
   if (pending.valid && pending.index != word) {
-    carry_writer_flush_page_list();
+    level_writer_flush_page_list();
   }
   if (!pending.valid) {
     pending.valid = true;
@@ -2078,22 +2063,28 @@ void SpineL0Maintenance::carry_writer_append_page(std::uint32_t page) {
     pending.value = 0;
   }
   pending.value |= static_cast<std::uint64_t>(page) << (lane * 16);
-  ++carry_writer_.page_list_count;
-  carry_writer_.last_page = page;
-  carry_writer_.have_last_page = true;
+  ++level_writer_.page_list_count;
+  level_writer_.last_page = page;
+  level_writer_.have_last_page = true;
   if (lane == 3) {
-    carry_writer_flush_page_list();
+    level_writer_flush_page_list();
   }
 }
 
-void SpineL0Maintenance::initialize_carry_writer(
+void SpineL0Maintenance::initialize_carry_level_writer(
     const FamilyWriteTask &task) {
-  carry_writer_ = CarryWriterState{};
-  carry_writer_.initialized = true;
-  carry_writer_.layout = spine_level_layout(config_, task.hot, task.target);
+  level_writer_ = LevelWriterState{};
+  level_writer_.initialized = true;
+  level_writer_.layout = spine_level_layout(config_, task.hot, task.target);
   auto &output = task.hot ? hot_family_outputs_[task.family]
                           : family_outputs_[task.family];
-  carry_writer_.was_active = !output.empty();
+  level_writer_.was_active = !output.empty();
+  level_writer_.expected_rows = static_cast<std::uint32_t>(
+      task.hot ? counters_.hot_family_rows[task.family]
+               : counters_.family_rows[task.family]);
+  level_writer_.expected_edges = static_cast<std::uint32_t>(
+      task.hot ? counters_.hot_family_edges[task.family]
+               : counters_.family_edges[task.family]);
   output.clear();
 
   const std::size_t logical_family =
@@ -2103,80 +2094,111 @@ void SpineL0Maintenance::initialize_carry_writer(
     epoch = 1;
     slice_epochs_[logical_family][task.target] = epoch;
   }
-  carry_writer_.epoch = epoch;
+  level_writer_.epoch = epoch;
 }
 
-void SpineL0Maintenance::accumulate_carry_writer(
-    const SpineEdgeRecord &entry) {
-  if (carry_writer_.group_valid && carry_writer_.group.src == entry.src &&
-      carry_writer_.group.dst == entry.dst) {
-    carry_writer_.group_diff += entry.diff;
-    carry_writer_.group.weight =
-        std::min(carry_writer_.group.weight, entry.weight);
-    return;
-  }
-  if (carry_writer_.group_valid) {
-    emit_carry_writer_group(family_write_tasks_[active_family_index_]);
-  }
-  carry_writer_.group = entry;
-  carry_writer_.group_diff = entry.diff;
-  carry_writer_.group_valid = true;
-}
-
-void SpineL0Maintenance::emit_carry_writer_group(
+void SpineL0Maintenance::initialize_l0_level_writer(
     const FamilyWriteTask &task) {
-  if (!carry_writer_.group_valid) {
+  level_writer_ = LevelWriterState{};
+  level_writer_.initialized = true;
+  level_writer_.l0_mode = true;
+  level_writer_.expected_rows = static_cast<std::uint32_t>(
+      task.hot ? counters_.hot_family_rows[task.family]
+               : counters_.family_rows[task.family]);
+  level_writer_.expected_edges = static_cast<std::uint32_t>(
+      task.hot ? counters_.hot_family_edges[task.family]
+               : counters_.family_edges[task.family]);
+  level_writer_.layout = spine_slice_layout(
+      config_, task.hot, task.target, level_writer_.expected_rows);
+  auto &output = task.hot ? hot_family_outputs_[task.family]
+                          : family_outputs_[task.family];
+  level_writer_.was_active = !output.empty();
+  output.clear();
+
+  const std::size_t logical_family =
+      task.hot ? config_.partitions + task.family : task.family;
+  std::uint32_t epoch = ++slice_epochs_[logical_family][task.target];
+  if (epoch == 0) {
+    epoch = 1;
+    slice_epochs_[logical_family][task.target] = epoch;
+  }
+  level_writer_.epoch = epoch;
+}
+
+void SpineL0Maintenance::accumulate_level_writer(
+    const SpineEdgeRecord &entry) {
+  if (level_writer_.group_valid && level_writer_.group.src == entry.src &&
+      level_writer_.group.dst == entry.dst) {
+    level_writer_.group_diff += entry.diff;
+    level_writer_.group.weight =
+        std::min(level_writer_.group.weight, entry.weight);
     return;
   }
-  ++counters_.carry_writer_groups_seen;
-  const SpineEdgeRecord group = carry_writer_.group;
-  const std::int64_t diff = carry_writer_.group_diff;
-  carry_writer_.group_valid = false;
-  carry_writer_.group_diff = 0;
+  if (level_writer_.group_valid) {
+    emit_level_writer_group(family_write_tasks_[active_family_index_]);
+  }
+  level_writer_.group = entry;
+  level_writer_.group_diff = entry.diff;
+  level_writer_.group_valid = true;
+}
+
+void SpineL0Maintenance::emit_level_writer_group(
+    const FamilyWriteTask &task) {
+  if (!level_writer_.group_valid) {
+    return;
+  }
+  ++level_writer_.stats.groups_seen;
+  const SpineEdgeRecord group = level_writer_.group;
+  const std::int64_t diff = level_writer_.group_diff;
+  level_writer_.group_valid = false;
+  level_writer_.group_diff = 0;
   if (diff == 0) {
-    ++counters_.carry_writer_groups_cancelled;
+    ++level_writer_.stats.groups_cancelled;
     return;
   }
   if (diff < std::numeric_limits<std::int16_t>::min() ||
       diff > std::numeric_limits<std::int16_t>::max()) {
-    throw std::overflow_error("Spine carry-writer differential exceeds int16");
+    throw std::overflow_error("Spine level-writer differential exceeds int16");
   }
-  if (carry_writer_.edge_index >= carry_writer_.layout.edge_capacity) {
+  if (level_writer_.edge_index >= level_writer_.layout.edge_capacity) {
+    if (level_writer_.l0_mode) {
+      ++counters_.l0_writer_validation_failures;
+    }
     failed_ = true;
     done_ = true;
-    failure_ = "Spine carry writer exceeds target edge capacity";
+    failure_ = "Spine level writer exceeds target edge capacity";
     return;
   }
 
-  if (!carry_writer_.have_last_source ||
-      group.src != carry_writer_.last_source) {
-    carry_writer_write_u32(
-        carry_writer_.layout.row_offset_offset_words,
-        carry_writer_.row_index, carry_writer_.edge_index, carry_writer_.row,
-        counters_.carry_writer_row_word_writes);
+  if (!level_writer_.have_last_source ||
+      group.src != level_writer_.last_source) {
+    level_writer_write_u32(
+        level_writer_.layout.row_offset_offset_words,
+        level_writer_.row_index, level_writer_.edge_index, level_writer_.row,
+        level_writer_.stats.row_word_writes);
 
     const std::uint32_t page = group.src / config_.page_vertices;
-    if (carry_writer_.bitmap_valid && page != carry_writer_.bitmap_page) {
-      carry_writer_flush_bitmap();
+    if (level_writer_.bitmap_valid && page != level_writer_.bitmap_page) {
+      level_writer_flush_bitmap();
     }
-    if (!carry_writer_.bitmap_valid) {
-      carry_writer_.bitmap_valid = true;
-      carry_writer_.bitmap_page = page;
-      carry_writer_.bitmap.fill(0);
+    if (!level_writer_.bitmap_valid) {
+      level_writer_.bitmap_valid = true;
+      level_writer_.bitmap_page = page;
+      level_writer_.bitmap.fill(0);
     }
     const std::uint32_t in_page = group.src % config_.page_vertices;
-    carry_writer_.bitmap[in_page >> 6] |=
+    level_writer_.bitmap[in_page >> 6] |=
         std::uint64_t{1} << (in_page & 63U);
 
-    if (!carry_writer_.have_last_page || page != carry_writer_.last_page) {
-      carry_writer_append_page(page);
+    if (!level_writer_.have_last_page || page != level_writer_.last_page) {
+      level_writer_append_page(page);
       const std::size_t logical_family =
           task.hot ? config_.partitions + task.family : task.family;
       const SpineMetadataLayout metadata = spine_metadata_layout(config_);
       const std::uint64_t slice =
           logical_family * config_.levels + task.target;
       const std::uint64_t epoch_index = slice * metadata.page_count + page;
-      page_epochs_[epoch_index] = carry_writer_.epoch;
+      page_epochs_[epoch_index] = level_writer_.epoch;
       const std::uint64_t low_index = epoch_index & ~std::uint64_t{1};
       const auto low = page_epochs_.find(low_index);
       const auto high = page_epochs_.find(low_index + 1);
@@ -2192,31 +2214,31 @@ void SpineL0Maintenance::emit_carry_writer_group(
                   kMetadataWordBytes,
           kMetadataWordBytes, TaskClass::kMetadata,
           encode_u64_words({packed}), {}, false,
-          TaskPurpose::kCarryWriterMetadataWrite);
-      ++counters_.carry_writer_page_epoch_word_writes;
+          TaskPurpose::kLevelWriterMetadataWrite);
+      ++level_writer_.stats.page_epoch_word_writes;
       ++counters_.pages_stamped;
-      carry_writer_write_u32(
-          carry_writer_.layout.page_base_offset_words, page,
-          carry_writer_.row_index, carry_writer_.page_base,
-          counters_.carry_writer_page_base_word_writes);
+      level_writer_write_u32(
+          level_writer_.layout.page_base_offset_words, page,
+          level_writer_.row_index, level_writer_.page_base,
+          level_writer_.stats.page_base_word_writes);
     }
-    carry_writer_.current_mask_index = carry_writer_.row_index;
-    carry_writer_.current_mask = 0;
-    ++carry_writer_.row_index;
-    carry_writer_.last_source = group.src;
-    carry_writer_.have_last_source = true;
+    level_writer_.current_mask_index = level_writer_.row_index;
+    level_writer_.current_mask = 0;
+    ++level_writer_.row_index;
+    level_writer_.last_source = group.src;
+    level_writer_.have_last_source = true;
   }
 
   const std::size_t partition = std::min<std::size_t>(
       group.dst / config_.vertex_partition_size, config_.partitions - 1);
   const std::uint16_t next_mask = static_cast<std::uint16_t>(
-      carry_writer_.current_mask | (std::uint16_t{1} << partition));
-  if (next_mask != carry_writer_.current_mask) {
-    carry_writer_.current_mask = next_mask;
-    carry_writer_write_u16(
-        carry_writer_.layout.mask_offset_words,
-        carry_writer_.current_mask_index, carry_writer_.current_mask,
-        carry_writer_.mask, counters_.carry_writer_mask_word_writes);
+      level_writer_.current_mask | (std::uint16_t{1} << partition));
+  if (next_mask != level_writer_.current_mask) {
+    level_writer_.current_mask = next_mask;
+    level_writer_write_u16(
+        level_writer_.layout.mask_offset_words,
+        level_writer_.current_mask_index, level_writer_.current_mask,
+        level_writer_.mask, level_writer_.stats.mask_word_writes);
   }
 
   SpineEdgeRecord output = group;
@@ -2224,82 +2246,125 @@ void SpineL0Maintenance::emit_carry_writer_group(
   std::vector<std::uint8_t> payload = encode_spine_level_edge(output);
   enqueue_task(
       *ports_.graph[task.family], MemoryOperation::kWrite,
-      (carry_writer_.layout.edge_offset_words + carry_writer_.edge_index) *
+      (level_writer_.layout.edge_offset_words + level_writer_.edge_index) *
           kSpineGraphWordBytes,
       kSpineGraphWordBytes, TaskClass::kGraph, std::move(payload), {}, false,
-      TaskPurpose::kCarryWriterGraphWrite);
+      TaskPurpose::kLevelWriterGraphWrite);
   counters_.graph_edge_payload_write_bytes += kSpineGraphWordBytes;
-  ++counters_.carry_writer_edge_word_writes;
-  ++counters_.carry_writer_groups_emitted;
-  ++counters_.carry_outputs;
-  ++carry_writer_.edge_index;
+  ++level_writer_.stats.edge_word_writes;
+  ++level_writer_.stats.groups_emitted;
+  if (!level_writer_.l0_mode) {
+    ++counters_.carry_outputs;
+  }
+  ++level_writer_.edge_index;
   auto &output_level = task.hot ? hot_family_outputs_[task.family]
                                 : family_outputs_[task.family];
   output_level.push_back(output);
 }
 
-void SpineL0Maintenance::finalize_carry_writer(
+void SpineL0Maintenance::finalize_level_writer(
     const FamilyWriteTask &task) {
-  if (!carry_writer_.initialized || carry_writer_.finalized) {
-    throw std::logic_error("invalid Spine carry-writer finalization");
+  if (!level_writer_.initialized || level_writer_.finalized) {
+    throw std::logic_error("invalid Spine level-writer finalization");
   }
-  emit_carry_writer_group(task);
+  emit_level_writer_group(task);
   if (failed_) {
     return;
   }
   const SpineMetadataLayout metadata = spine_metadata_layout(config_);
-  carry_writer_write_u32(
-      carry_writer_.layout.row_offset_offset_words, carry_writer_.row_index,
-      carry_writer_.edge_index, carry_writer_.row,
-      counters_.carry_writer_row_word_writes);
-  carry_writer_write_u32(
-      carry_writer_.layout.page_base_offset_words,
+  level_writer_write_u32(
+      level_writer_.layout.row_offset_offset_words, level_writer_.row_index,
+      level_writer_.edge_index, level_writer_.row,
+      level_writer_.stats.row_word_writes);
+  level_writer_write_u32(
+      level_writer_.layout.page_base_offset_words,
       static_cast<std::uint32_t>(metadata.page_count),
-      carry_writer_.row_index, carry_writer_.page_base,
-      counters_.carry_writer_page_base_word_writes);
-  carry_writer_flush_graph_word(
-      carry_writer_.layout.row_offset_offset_words, carry_writer_.row,
-      counters_.carry_writer_row_word_writes);
-  carry_writer_flush_graph_word(
-      carry_writer_.layout.mask_offset_words, carry_writer_.mask,
-      counters_.carry_writer_mask_word_writes);
-  carry_writer_flush_graph_word(
-      carry_writer_.layout.page_base_offset_words, carry_writer_.page_base,
-      counters_.carry_writer_page_base_word_writes);
-  carry_writer_flush_bitmap();
-  carry_writer_flush_page_list();
+      level_writer_.row_index, level_writer_.page_base,
+      level_writer_.stats.page_base_word_writes);
+  level_writer_flush_graph_word(
+      level_writer_.layout.row_offset_offset_words, level_writer_.row,
+      level_writer_.stats.row_word_writes);
+  level_writer_flush_graph_word(
+      level_writer_.layout.mask_offset_words, level_writer_.mask,
+      level_writer_.stats.mask_word_writes);
+  level_writer_flush_graph_word(
+      level_writer_.layout.page_base_offset_words, level_writer_.page_base,
+      level_writer_.stats.page_base_word_writes);
+  level_writer_flush_bitmap();
+  level_writer_flush_page_list();
 
   const std::size_t logical_family =
       task.hot ? config_.partitions + task.family : task.family;
   page_list_counts_[logical_family][task.target] =
-      carry_writer_.page_list_count;
-  counters_.persisted_edges += carry_writer_.edge_index;
-  counters_.persisted_rows += carry_writer_.row_index;
+      level_writer_.page_list_count;
+  counters_.persisted_edges += level_writer_.edge_index;
+  counters_.persisted_rows += level_writer_.row_index;
   if (task.hot) {
-    counters_.hot_family_edges[task.family] = carry_writer_.edge_index;
-    counters_.hot_family_rows[task.family] = carry_writer_.row_index;
+    counters_.hot_family_edges[task.family] = level_writer_.edge_index;
+    counters_.hot_family_rows[task.family] = level_writer_.row_index;
   } else {
-    counters_.family_edges[task.family] = carry_writer_.edge_index;
-    counters_.family_rows[task.family] = carry_writer_.row_index;
+    counters_.family_edges[task.family] = level_writer_.edge_index;
+    counters_.family_rows[task.family] = level_writer_.row_index;
   }
-  const bool is_active = carry_writer_.edge_index != 0;
-  if (carry_writer_.was_active && !is_active) {
+  const bool is_active = level_writer_.edge_index != 0;
+  if (level_writer_.was_active && !is_active) {
     --counters_.active_families;
-  } else if (!carry_writer_.was_active && is_active) {
+  } else if (!level_writer_.was_active && is_active) {
     ++counters_.active_families;
   }
-  if (is_active != (carry_writer_.page_list_count != 0)) {
-    ++counters_.carry_cursor_validation_failures;
-    throw std::logic_error("Spine carry-writer page-list occupancy mismatch");
+  if (is_active != (level_writer_.page_list_count != 0)) {
+    if (level_writer_.l0_mode) {
+      ++counters_.l0_writer_validation_failures;
+    } else {
+      ++counters_.carry_cursor_validation_failures;
+    }
+    throw std::logic_error("Spine level-writer page-list occupancy mismatch");
   }
-  carry_writer_.finalized = true;
+  if (level_writer_.l0_mode &&
+      (level_writer_.row_index != level_writer_.expected_rows ||
+       level_writer_.edge_index != level_writer_.expected_edges)) {
+    ++counters_.l0_writer_validation_failures;
+    throw std::logic_error("Spine level-writer output diverged from precount");
+  }
+
+  const LevelWriterStats &stats = level_writer_.stats;
+  if (level_writer_.l0_mode) {
+    counters_.l0_writer_groups_seen += stats.groups_seen;
+    counters_.l0_writer_groups_emitted += stats.groups_emitted;
+    counters_.l0_writer_groups_cancelled += stats.groups_cancelled;
+    counters_.l0_writer_edge_word_writes += stats.edge_word_writes;
+    counters_.l0_writer_row_word_writes += stats.row_word_writes;
+    counters_.l0_writer_mask_word_writes += stats.mask_word_writes;
+    counters_.l0_writer_page_base_word_writes +=
+        stats.page_base_word_writes;
+    counters_.l0_writer_bitmap_page_writes += stats.bitmap_page_writes;
+    counters_.l0_writer_page_list_word_writes +=
+        stats.page_list_word_writes;
+    counters_.l0_writer_page_epoch_word_writes +=
+        stats.page_epoch_word_writes;
+  } else {
+    counters_.carry_writer_groups_seen += stats.groups_seen;
+    counters_.carry_writer_groups_emitted += stats.groups_emitted;
+    counters_.carry_writer_groups_cancelled += stats.groups_cancelled;
+    counters_.carry_writer_edge_word_writes += stats.edge_word_writes;
+    counters_.carry_writer_row_word_writes += stats.row_word_writes;
+    counters_.carry_writer_mask_word_writes += stats.mask_word_writes;
+    counters_.carry_writer_page_base_word_writes +=
+        stats.page_base_word_writes;
+    counters_.carry_writer_bitmap_page_writes += stats.bitmap_page_writes;
+    counters_.carry_writer_page_list_word_writes +=
+        stats.page_list_word_writes;
+    counters_.carry_writer_page_epoch_word_writes +=
+        stats.page_epoch_word_writes;
+  }
+  level_writer_.finalized = true;
 }
 
 void SpineL0Maintenance::initialize_carry_engine(
     const FamilyWriteTask &task) {
   carry_streams_.clear();
   carry_cursor_refill_cycles_remaining_ = 0;
-  initialize_carry_writer(task);
+  initialize_carry_level_writer(task);
   CarryInputStream new_batch;
   new_batch.new_batch = true;
   carry_streams_.push_back(std::move(new_batch));
@@ -2376,11 +2441,11 @@ void SpineL0Maintenance::enqueue_carry_stream_refill(
 
 void SpineL0Maintenance::consume_carry_memory_response(
     const MemoryTask &task, const AxiResponse &response) {
-  if (task.purpose == TaskPurpose::kCarryWriterGraphWrite ||
-      task.purpose == TaskPurpose::kCarryWriterMetadataWrite) {
+  if (task.purpose == TaskPurpose::kLevelWriterGraphWrite ||
+      task.purpose == TaskPurpose::kLevelWriterMetadataWrite) {
     if (task.operation != MemoryOperation::kWrite ||
         !response.read_data.empty()) {
-      throw std::logic_error("invalid Spine carry-writer response");
+      throw std::logic_error("invalid Spine level-writer response");
     }
     return;
   }
@@ -2592,12 +2657,12 @@ bool SpineL0Maintenance::advance_carry_merge() {
     if (!complete) {
       throw std::logic_error("Spine carry merge lost a refill request");
     }
-    finalize_carry_writer(family_write_tasks_[active_family_index_]);
+    finalize_level_writer(family_write_tasks_[active_family_index_]);
     return true;
   }
 
   CarryInputStream &stream = carry_streams_[winner];
-  accumulate_carry_writer(stream.buffered.front());
+  accumulate_level_writer(stream.buffered.front());
   stream.buffered.pop_front();
   ++counters_.carry_merge_inputs;
   enqueue_carry_stream_refill(winner);
@@ -2605,7 +2670,7 @@ bool SpineL0Maintenance::advance_carry_merge() {
 }
 
 void SpineL0Maintenance::finish_carry_merge(const FamilyWriteTask &task) {
-  if (!carry_writer_.finalized) {
+  if (!level_writer_.finalized) {
     throw std::logic_error("Spine carry merge finished before its writer");
   }
   (void)task;
@@ -2828,19 +2893,32 @@ void SpineL0Maintenance::advance(const CycleContext &context) {
                    : Phase::kCarryPrepare;
     }
     return;
-  case Phase::kWriteBegin:
+  case Phase::kWriteBegin: {
+    const FamilyWriteTask &task = family_write_tasks_[active_family_index_];
+    initialize_l0_level_writer(task);
     begin_sorted_scan(Phase::kWriteProcess, ScanKind::kL0Write);
     return;
-  case Phase::kWriteProcess:
+  }
+  case Phase::kWriteProcess: {
+    const FamilyWriteTask &task = family_write_tasks_[active_family_index_];
+    const std::size_t before = scan_index_;
     if (process_scan_edge(context)) {
-      const FamilyWriteTask &task = family_write_tasks_[active_family_index_];
-      enqueue_family_writes(task.hot, task.family, task.target);
+      finalize_level_writer(task);
       if (failed_) {
         return;
       }
       phase_ = Phase::kWriteAdvance;
+    } else if (scan_index_ != before) {
+      const SpineEdgeRecord &edge = sorted_scan_edges_[before];
+      const bool hot = edge_is_hot(edge.dst);
+      const std::size_t family =
+          hot ? spine_hot_shard(edge.dst) : family_for(edge.dst);
+      if (hot == task.hot && family == task.family) {
+        accumulate_level_writer(edge);
+      }
     }
     return;
+  }
   case Phase::kCarryPrepare: {
     const FamilyWriteTask &task = family_write_tasks_[active_family_index_];
     initialize_carry_engine(task);
