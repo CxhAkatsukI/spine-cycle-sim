@@ -1057,7 +1057,9 @@ class OnlineMemoryProbe final : public SST::Component {
       std::vector<std::uint64_t> processed_edges;
       std::vector<std::uint64_t> round_cycles;
       std::vector<std::uint64_t> reader_graph_bytes;
+      std::vector<std::uint64_t> reader_graph_index_payload_bytes;
       std::vector<std::uint64_t> reader_graph_payload_bytes;
+      std::vector<std::uint64_t> reader_graph_index_bitmap_misses;
       std::vector<std::uint64_t> reader_metadata_bytes;
       std::vector<std::uint64_t> fast_tiles;
       std::vector<std::uint64_t> full_tiles;
@@ -1069,8 +1071,12 @@ class OnlineMemoryProbe final : public SST::Component {
         processed_edges.push_back(round.compute.processed_edges);
         round_cycles.push_back(round.end_cycle - round.start_cycle);
         reader_graph_bytes.push_back(round.reader.graph_read_bytes);
+        reader_graph_index_payload_bytes.push_back(
+            round.reader.graph_index_payload_read_bytes);
         reader_graph_payload_bytes.push_back(
             round.reader.graph_edge_payload_read_bytes);
+        reader_graph_index_bitmap_misses.push_back(
+            round.reader.graph_index_bitmap_misses);
         reader_metadata_bytes.push_back(round.reader.metadata_read_bytes);
         fast_tiles.push_back(round.compute.fast_path_tiles);
         full_tiles.push_back(round.compute.full_path_tiles);
@@ -1097,6 +1103,8 @@ class OnlineMemoryProbe final : public SST::Component {
              << maintenance.sorted_read_bytes << ",\n"
              << "  \"maintenance_sorted_payload_read_bytes\": "
              << maintenance.sorted_payload_read_bytes << ",\n"
+             << "  \"maintenance_graph_index_payload_write_bytes\": "
+             << maintenance.graph_index_payload_write_bytes << ",\n"
              << "  \"maintenance_graph_payload_write_bytes\": "
              << maintenance.graph_edge_payload_write_bytes << ",\n"
              << "  \"final_values\": ";
@@ -1111,8 +1119,12 @@ class OnlineMemoryProbe final : public SST::Component {
       write_json_array(result, round_cycles);
       result << ",\n  \"reader_graph_bytes_per_round\": ";
       write_json_array(result, reader_graph_bytes);
+      result << ",\n  \"reader_graph_index_payload_bytes_per_round\": ";
+      write_json_array(result, reader_graph_index_payload_bytes);
       result << ",\n  \"reader_graph_payload_bytes_per_round\": ";
       write_json_array(result, reader_graph_payload_bytes);
+      result << ",\n  \"reader_graph_index_bitmap_misses_per_round\": ";
+      write_json_array(result, reader_graph_index_bitmap_misses);
       result << ",\n  \"reader_metadata_bytes_per_round\": ";
       write_json_array(result, reader_metadata_bytes);
       result << ",\n  \"fast_tiles_per_round\": ";
@@ -1208,13 +1220,19 @@ class OnlineMemoryProbe final : public SST::Component {
           << maintenance.carry_merge_inputs << ",\n"
           << "  \"maintenance_carry_outputs\": " << maintenance.carry_outputs
           << ",\n"
+          << "  \"maintenance_graph_index_payload_write_bytes\": "
+          << maintenance.graph_index_payload_write_bytes << ",\n"
           << "  \"maintenance_graph_payload_write_bytes\": "
           << maintenance.graph_edge_payload_write_bytes << ",\n"
           << "  \"reader_tiles\": " << reader.tiles_emitted << ",\n"
           << "  \"reader_edges\": " << reader.edges_emitted << ",\n"
           << "  \"reader_graph_bytes\": " << reader.graph_read_bytes << ",\n"
+          << "  \"reader_graph_index_payload_bytes\": "
+          << reader.graph_index_payload_read_bytes << ",\n"
           << "  \"reader_graph_payload_bytes\": "
           << reader.graph_edge_payload_read_bytes << ",\n"
+          << "  \"reader_graph_index_bitmap_misses\": "
+          << reader.graph_index_bitmap_misses << ",\n"
           << "  \"reader_metadata_bytes\": " << reader.metadata_read_bytes
           << ",\n"
           << "  \"reader_occupied_levels\": " << reader.occupied_levels << ",\n"

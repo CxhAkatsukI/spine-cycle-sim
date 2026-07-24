@@ -101,7 +101,8 @@ The simulator is still not payload-complete. Remaining logical-container
 dependencies include:
 
 - level occupancy and row enumeration in the reader;
-- metadata/index bit decoding for control decisions;
+- complete metadata/index decoding for control decisions (the source bitmap
+  gate is closed in `docs/spine_graph_index_payload_path_20260724.md`);
 - carry edge payload is closed in
   `docs/spine_carry_level_payload_path_20260724.md`, while carry source/row
   semantics still use logical metadata;

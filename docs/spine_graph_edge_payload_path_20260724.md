@@ -90,8 +90,10 @@ still not payload-complete:
 
 - level occupancy, row enumeration, and tile grouping still consult logical
   containers;
-- metadata/index bits are timed through HBM but not decoded into all control
-  decisions;
+- graph index payload is now explicit and the source bitmap gates row presence,
+  but page-base, row-offset, and row-mask fields are not yet decoded into all
+  address and control decisions; see
+  `docs/spine_graph_index_payload_path_20260724.md`;
 - carry edge payload is closed in
   `docs/spine_carry_level_payload_path_20260724.md`, but carry source/row
   semantics still consult logical level metadata;

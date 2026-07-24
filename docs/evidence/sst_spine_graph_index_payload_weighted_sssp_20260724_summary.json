@@ -1,0 +1,147 @@
+{
+  "architecture_profile_evidence_tier": "hardware_validated",
+  "architecture_profile_id": "spine_shared_engine_9c08763",
+  "architecture_profile_sha256": "aba0d6bbcbaa64240897ed3efc555d6ce6d6455d2f10e77e0ccdb77fa46466a7",
+  "backend": "sst_memHierarchy_dramsim3",
+  "backend_max_outstanding": 4,
+  "backend_requests": 2412,
+  "backend_response_queue_stalls": 0,
+  "backend_submit_stalls": 0,
+  "converged": true,
+  "correctness_mismatches": 0,
+  "cycles": 22640,
+  "dram_activates": 150,
+  "dram_channels": 32,
+  "dram_precharges": 149,
+  "dram_read_row_hits": 2109,
+  "dram_reads": 2310,
+  "dram_total_energy_pj": 331760208.0,
+  "dram_write_row_hits": 12,
+  "dram_writes": 102,
+  "edge_axis_max_occupancy_per_round": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+  ],
+  "edge_axis_push_stalls_per_round": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "fast_tiles_per_round": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    0
+  ],
+  "final_values": [
+    0,
+    3,
+    2,
+    7,
+    8,
+    10
+  ],
+  "frontier_in_sizes": [
+    1,
+    3,
+    2,
+    2,
+    2,
+    1
+  ],
+  "frontier_mismatches": 0,
+  "frontier_out_sizes": [
+    3,
+    2,
+    2,
+    2,
+    1,
+    0
+  ],
+  "full_tiles_per_round": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "input_edges": 8,
+  "maintenance_edge_visits": 152,
+  "maintenance_graph_index_payload_write_bytes": 88,
+  "maintenance_graph_payload_write_bytes": 64,
+  "maintenance_scan_passes": 19,
+  "maintenance_sorted_bytes": 2432,
+  "maintenance_sorted_payload_read_bytes": 2432,
+  "mode": "spine_sssp",
+  "processed_edges_per_round": [
+    3,
+    3,
+    2,
+    2,
+    1,
+    0
+  ],
+  "reader_graph_bytes_per_round": [
+    56,
+    88,
+    80,
+    80,
+    40,
+    0
+  ],
+  "reader_graph_index_bitmap_misses_per_round": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "reader_graph_index_payload_bytes_per_round": [
+    32,
+    64,
+    64,
+    64,
+    32,
+    0
+  ],
+  "reader_graph_payload_bytes_per_round": [
+    24,
+    24,
+    16,
+    16,
+    8,
+    0
+  ],
+  "reader_metadata_bytes_per_round": [
+    2952,
+    2960,
+    2960,
+    2960,
+    2952,
+    2944
+  ],
+  "round_cycles": [
+    4559,
+    3675,
+    3664,
+    3661,
+    3580,
+    3501
+  ],
+  "rounds": 6,
+  "simulation_evidence_tier": "structural_execution_driven",
+  "source_revision": "9c08763148644df262c0d374e782bc834f4c0f4f",
+  "status": "PASS",
+  "success": true
+}

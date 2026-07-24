@@ -69,8 +69,10 @@ This closes the carry level-edge value payload bypass. It does not yet close
 the whole carry/index path:
 
 - source recovery for carried edges still follows the logical row/source order;
-- level occupancy, row counts, page lists, bitmap probes, and metadata control
-  decisions still consult logical containers or timed-only metadata reads;
+- level occupancy, row counts, page lists, and most metadata control decisions
+  still consult logical containers or timed-only metadata reads; the reader's
+  source bitmap probe is payload-backed as documented in
+  `docs/spine_graph_index_payload_path_20260724.md`;
 - carry issue remains sequential through the current maintenance memory task
   queue rather than a fully pipelined/outstanding HLS loop.
 

@@ -7,6 +7,7 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "spine_sim/component.hpp"
@@ -45,7 +46,9 @@ struct SpineReaderCounters {
   std::uint64_t level_cache_read_bytes{};
   std::uint64_t row_lookup_metadata_bytes{};
   std::uint64_t graph_read_bytes{};
+  std::uint64_t graph_index_payload_read_bytes{};
   std::uint64_t graph_edge_payload_read_bytes{};
+  std::uint64_t graph_index_bitmap_misses{};
   std::uint64_t tiles_emitted{};
   std::uint64_t edges_emitted{};
   std::uint64_t occupied_levels{};
@@ -97,6 +100,11 @@ class SpineSplitReader final : public Component {
     std::uint64_t bytes{};
     std::uint32_t edge_source{};
     bool edge_payload{};
+    std::uint32_t index_source{};
+    std::size_t index_family{};
+    std::size_t index_level{};
+    bool index_hot{};
+    bool index_bitmap{};
   };
 
   enum class Phase {
@@ -104,6 +112,7 @@ class SpineSplitReader final : public Component {
     kRequestSource,
     kWaitSource,
     kSetupReads,
+    kBuildTiles,
     kTileBegin,
     kEdgeRead,
     kEdgeEmit,
@@ -120,8 +129,14 @@ class SpineSplitReader final : public Component {
   void enqueue_read(FixedAxiPort &port, std::uint64_t address,
                     std::uint64_t bytes,
                     std::optional<std::uint32_t> edge_source = std::nullopt);
+  void enqueue_index_bitmap_read(FixedAxiPort &port, std::uint64_t address,
+                                 std::uint32_t source, bool hot,
+                                 std::size_t family, std::size_t level);
   void consume_memory_response(const MemoryTask &task,
                                const AxiResponse &response);
+  [[nodiscard]] bool index_gate_allows(bool hot, std::size_t family,
+                                       std::size_t level,
+                                       std::uint32_t source) const;
   [[nodiscard]] PartConvWord current_stream_word() const;
 
   const SpineL0Maintenance &maintenance_;
@@ -133,6 +148,7 @@ class SpineSplitReader final : public Component {
   SpineReaderCounters counters_;
   std::vector<TileTask> tiles_;
   std::unordered_map<std::uint32_t, std::uint32_t> source_values_;
+  std::unordered_set<std::uint64_t> active_index_gates_;
   std::deque<MemoryTask> memory_tasks_;
   Phase phase_{Phase::kWaitMaintenance};
   Action staged_action_{Action::kNone};

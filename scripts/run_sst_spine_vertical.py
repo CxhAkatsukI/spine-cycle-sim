@@ -73,11 +73,23 @@ def validate_result(
         "reader_tiles": result.get("reader_tiles") == 5,
         "reader_edges": result.get("reader_edges") == 10,
         "reader_bytes": result.get("reader_graph_bytes") == 112,
+        "maintenance_graph_index_payload": result.get(
+            "maintenance_graph_index_payload_write_bytes"
+        )
+        == 64,
         "maintenance_graph_payload": result.get(
             "maintenance_graph_payload_write_bytes"
         )
         == 80,
+        "reader_graph_index_payload": result.get(
+            "reader_graph_index_payload_bytes"
+        )
+        == 32,
         "reader_graph_payload": result.get("reader_graph_payload_bytes") == 80,
+        "reader_graph_index_bitmap": result.get(
+            "reader_graph_index_bitmap_misses"
+        )
+        == 0,
         "reader_metadata": result.get("reader_metadata_bytes") == 2_952,
         "reader_levels": result.get("reader_occupied_levels") == 1,
         "compute_fast_tiles": result.get("compute_fast_tiles") == 5,
@@ -123,11 +135,23 @@ def validate_carry_hot_result(
         "reader_tiles": result.get("reader_tiles") == 1,
         "reader_edges": result.get("reader_edges") == 3,
         "reader_bytes": result.get("reader_graph_bytes") == 88,
+        "maintenance_graph_index_payload": result.get(
+            "maintenance_graph_index_payload_write_bytes"
+        )
+        == 128,
         "maintenance_graph_payload": result.get(
             "maintenance_graph_payload_write_bytes"
         )
         == 24,
+        "reader_graph_index_payload": result.get(
+            "reader_graph_index_payload_bytes"
+        )
+        == 64,
         "reader_graph_payload": result.get("reader_graph_payload_bytes") == 24,
+        "reader_graph_index_bitmap": result.get(
+            "reader_graph_index_bitmap_misses"
+        )
+        == 0,
         "reader_metadata": result.get("reader_metadata_bytes") == 3_024,
         "reader_levels": result.get("reader_occupied_levels") == 2,
         "reader_partitioning": result.get("reader_cold_edges") == 2
@@ -221,10 +245,22 @@ def validate_multiround_sssp_result(
             "maintenance_graph_payload_write_bytes"
         )
         == 64,
+        "maintenance_graph_index_payload": result.get(
+            "maintenance_graph_index_payload_write_bytes", 0
+        )
+        > 0,
+        "reader_graph_index_payload": result.get(
+            "reader_graph_index_payload_bytes_per_round"
+        )
+        == [32, 64, 64, 64, 32, 0],
         "reader_graph_payload": result.get(
             "reader_graph_payload_bytes_per_round"
         )
         == [24, 24, 16, 16, 8, 0],
+        "reader_graph_index_bitmap": result.get(
+            "reader_graph_index_bitmap_misses_per_round"
+        )
+        == [0] * 6,
         "dram_matches_backend": int(dram.get("dram_reads", 0))
         + int(dram.get("dram_writes", 0))
         == result.get("backend_requests"),

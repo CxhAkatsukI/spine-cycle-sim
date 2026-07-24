@@ -767,6 +767,9 @@ void test_spine_l0_real_slice_vertical_path() {
           "Spine dirty-frontier HBM byte count mismatch");
   require(counters.graph_write_bytes == 144,
           "Spine L0 graph layout write byte count mismatch");
+  require(counters.graph_index_payload_write_bytes == 64 &&
+              counters.graph_edge_payload_write_bytes == 80,
+          "Spine L0 graph write payload ledger mismatch");
   require(counters.metadata_read_bytes == 2'976 &&
               counters.metadata_write_bytes == 1'104,
           "Spine L0 metadata byte ledger mismatch");
@@ -797,6 +800,10 @@ void test_spine_l0_real_slice_vertical_path() {
               reader_counters.row_lookup_metadata_bytes == 8 &&
               reader_counters.graph_read_bytes == 112,
           "Spine reader memory byte ledger mismatch");
+  require(reader_counters.graph_index_payload_read_bytes == 32 &&
+              reader_counters.graph_edge_payload_read_bytes == 80 &&
+              reader_counters.graph_index_bitmap_misses == 0,
+          "Spine reader graph index payload ledger mismatch");
 
   const auto &compute_counters = compute.counters();
   require(compute_counters.touched_tiles == 5 &&
@@ -986,6 +993,16 @@ void test_spine_fixed_level_layout_matches_stable_profile() {
   require(hot_l0.bitmap_offset_words ==
               cold_l10.edge_offset_words + cold_l10.edge_capacity,
           "hot level storage does not begin after the cold level region");
+  SpineL0Config invalid_page = config;
+  invalid_page.page_vertices = 128;
+  bool invalid_page_rejected = false;
+  try {
+    (void)spine_level_layout(invalid_page, false, 0);
+  } catch (const std::invalid_argument &) {
+    invalid_page_rejected = true;
+  }
+  require(invalid_page_rejected,
+          "fixed four-word bitmap accepted a non-256-vertex page");
 
   const SpineEdgeRecord edge{
       .src = 9, .dst = 0x12345678U, .weight = 0xabcdU, .diff = -7};
@@ -1329,14 +1346,17 @@ void test_spine_reader_consumes_graph_edge_payload_from_hbm() {
   ports.result = &result;
 
   SpineEdgeSlice batch{
-      .vertices = 128,
-      .edges = {SpineEdgeRecord{.src = 0, .dst = 1, .weight = 5, .diff = 1}},
+      .vertices = 512,
+      .edges = {
+          SpineEdgeRecord{.src = 0, .dst = 1, .weight = 5, .diff = 1},
+          SpineEdgeRecord{.src = 256, .dst = 2, .weight = 7, .diff = 1},
+      },
       .case_name = "reader_graph_payload_antibypass",
   };
   SpineL0State state;
+  const SpineL0Config config;
   SpineL0Maintenance maintenance("reader-payload-maintenance", core,
-                                 SpineL0Config{}, std::move(batch), ports,
-                                 state);
+                                 config, std::move(batch), ports, state);
   scheduler.add_component(maintenance);
   for (auto &port : graph_ports) {
     port->register_components(scheduler);
@@ -1355,13 +1375,44 @@ void test_spine_reader_consumes_graph_edge_payload_from_hbm() {
       50'000);
 
   require(!maintenance.failed(), "reader payload setup maintenance failed");
-  require(state.cold_levels[0][0].size() == 1 &&
+  require(state.cold_levels[0][0].size() == 2 &&
               state.cold_levels[0][0][0].dst == 1 &&
               state.cold_levels[0][0][0].weight == 5,
           "reader payload anti-bypass setup changed logical level state");
 
   const SpineLevelLayout layout =
-      spine_level_layout(SpineL0Config{}, false, 0);
+      spine_level_layout(config, false, 0);
+  require(backend.inspect_payload(
+              0, layout.bitmap_offset_words * spine::sim::kSpineGraphWordBytes,
+              spine::sim::kSpineGraphWordBytes) ==
+              std::vector<std::uint8_t>({1, 0, 0, 0, 0, 0, 0, 0}),
+          "maintenance bitmap payload does not match the HLS index layout");
+  require(backend.inspect_payload(
+              0,
+              layout.page_base_offset_words *
+                  spine::sim::kSpineGraphWordBytes,
+              spine::sim::kSpineGraphWordBytes) ==
+              std::vector<std::uint8_t>({0, 0, 0, 0, 1, 0, 0, 0}),
+          "maintenance page-base payload does not match the HLS index layout");
+  require(backend.inspect_payload(
+              0,
+              layout.row_offset_offset_words *
+                  spine::sim::kSpineGraphWordBytes,
+              spine::sim::kSpineGraphWordBytes) ==
+              std::vector<std::uint8_t>({0, 0, 0, 0, 1, 0, 0, 0}),
+          "maintenance row-offset payload does not match the HLS index layout");
+  require(backend.inspect_payload(
+              0,
+              (layout.row_offset_offset_words + 1) *
+                  spine::sim::kSpineGraphWordBytes,
+              spine::sim::kSpineGraphWordBytes) ==
+              std::vector<std::uint8_t>({2, 0, 0, 0, 0, 0, 0, 0}),
+          "maintenance terminal row offset does not match the HLS index layout");
+  require(backend.inspect_payload(
+              0, layout.mask_offset_words * spine::sim::kSpineGraphWordBytes,
+              spine::sim::kSpineGraphWordBytes) ==
+              std::vector<std::uint8_t>({1, 0, 1, 0, 0, 0, 0, 0}),
+          "maintenance row partition mask does not match the HLS index layout");
   graph_ports[0]->initialize_payload(
       layout.edge_offset_words * spine::sim::kSpineGraphWordBytes,
       encode_spine_level_edge(
@@ -1410,6 +1461,36 @@ void test_spine_reader_consumes_graph_edge_payload_from_hbm() {
           "reader ignored HBM graph edge payload and used logical state");
   require(reader.counters().graph_edge_payload_read_bytes == 8,
           "reader graph edge payload ledger does not close");
+
+  const std::size_t first_run_words = edge_words.values.size();
+  graph_ports[0]->initialize_payload(
+      layout.bitmap_offset_words * spine::sim::kSpineGraphWordBytes,
+      std::vector<std::uint8_t>(spine::sim::kSpineGraphWordBytes, 0));
+  SequenceProducer<SourceValueWord> source_values_missing_bitmap(
+      "reader-payload-source-values-missing-bitmap", core, value_stream,
+      {SourceValueWord{.source = 0, .value = 10}});
+  scheduler.add_component(source_values_missing_bitmap);
+  reader.reset_round({0});
+  scheduler.run_until(
+      [&] {
+        return reader.done() && source_values_missing_bitmap.done() &&
+               edge_stream.empty() && value_stream.empty() &&
+               active_bins.idle() && metadata.idle() && graph_ports[0]->idle();
+      },
+      50'000);
+
+  std::vector<PartConvWord> second_run_edges;
+  for (std::size_t index = first_run_words; index < edge_words.values.size();
+       ++index) {
+    if (edge_words.values[index].kind == PartConvWordKind::kEdge) {
+      second_run_edges.push_back(edge_words.values[index]);
+    }
+  }
+  require(!reader.failed() && second_run_edges.empty(),
+          "reader ignored HBM bitmap payload and emitted a missing row");
+  require(reader.counters().graph_index_bitmap_misses == 1 &&
+              reader.counters().graph_edge_payload_read_bytes == 0,
+          "reader bitmap anti-bypass ledger mismatch");
 }
 
 void test_spine_maintenance_consumes_sorted_payload_from_hbm() {

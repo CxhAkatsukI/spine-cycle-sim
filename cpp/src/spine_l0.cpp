@@ -1,8 +1,10 @@
 #include "spine_sim/spine_l0.hpp"
 
 #include <algorithm>
+#include <array>
 #include <fstream>
 #include <limits>
+#include <map>
 #include <set>
 #include <sstream>
 #include <stdexcept>
@@ -16,6 +18,11 @@ namespace {
 constexpr std::uint64_t kMetadataWordBytes = 8;
 constexpr std::uint64_t kPersistentRecordBytes = 16;
 constexpr std::uint64_t kResultWords = 96;
+
+struct GraphPayloadWrite {
+  std::uint64_t address{};
+  std::vector<std::uint8_t> data;
+};
 
 std::string trim(std::string text) {
   const auto first = text.find_first_not_of(" \t\r\n");
@@ -70,6 +77,131 @@ std::vector<SpineEdgeRecord> coalesce_records(
     });
   }
   return output;
+}
+
+void append_u64_le(std::vector<std::uint8_t> &data, std::uint64_t value) {
+  for (std::size_t byte = 0; byte < sizeof(std::uint64_t); ++byte) {
+    data.push_back(static_cast<std::uint8_t>((value >> (byte * 8)) & 0xffU));
+  }
+}
+
+std::uint64_t pack_u32_lane(std::uint32_t value, bool high_lane) {
+  return high_lane ? (static_cast<std::uint64_t>(value) << 32) : value;
+}
+
+std::vector<std::uint8_t> encode_u32_lanes(
+    const std::vector<std::uint32_t> &values, std::uint64_t word_count) {
+  std::vector<std::uint8_t> data;
+  data.reserve(word_count * kSpineGraphWordBytes);
+  for (std::uint64_t word = 0; word < word_count; ++word) {
+    std::uint64_t packed = 0;
+    const std::size_t low = static_cast<std::size_t>(word * 2);
+    if (low < values.size()) {
+      packed |= values[low];
+    }
+    if (low + 1 < values.size()) {
+      packed |= static_cast<std::uint64_t>(values[low + 1]) << 32;
+    }
+    append_u64_le(data, packed);
+  }
+  return data;
+}
+
+std::vector<GraphPayloadWrite> build_level_index_payloads(
+    const SpineL0Config &config, const SpineLevelLayout &layout,
+    const std::vector<SpineEdgeRecord> &edges, std::uint64_t rows) {
+  const std::uint64_t page_count =
+      (config.max_vertices + config.page_vertices - 1) / config.page_vertices;
+  std::vector<std::uint32_t> row_sources;
+  std::vector<std::uint32_t> row_offsets;
+  std::vector<std::uint16_t> row_partition_masks;
+  row_offsets.push_back(0);
+  for (std::size_t index = 0; index < edges.size(); ++index) {
+    const SpineEdgeRecord &edge = edges[index];
+    if (row_sources.empty() || row_sources.back() != edge.src) {
+      if (!row_sources.empty()) {
+        row_offsets.push_back(static_cast<std::uint32_t>(index));
+      }
+      row_sources.push_back(edge.src);
+      row_partition_masks.push_back(0);
+    }
+    const std::size_t partition = std::min<std::size_t>(
+        edge.dst / config.vertex_partition_size, config.partitions - 1);
+    row_partition_masks.back() |= static_cast<std::uint16_t>(1U << partition);
+  }
+  row_offsets.push_back(static_cast<std::uint32_t>(edges.size()));
+  if (row_sources.size() != rows) {
+    throw std::logic_error("Spine level row payload shape mismatch");
+  }
+
+  std::map<std::uint32_t, std::array<std::uint64_t, 4>> page_bitmaps;
+  std::map<std::uint32_t, std::uint32_t> page_first_row;
+  for (std::size_t row = 0; row < row_sources.size(); ++row) {
+    const std::uint32_t source = row_sources[row];
+    const std::uint32_t page = source / config.page_vertices;
+    const std::uint32_t in_page = source % config.page_vertices;
+    const std::uint32_t lane_word = in_page / 64;
+    const std::uint32_t lane_bit = in_page % 64;
+    page_bitmaps[page][lane_word] |= std::uint64_t{1} << lane_bit;
+    page_first_row.emplace(page, static_cast<std::uint32_t>(row));
+  }
+
+  std::vector<GraphPayloadWrite> writes;
+  for (const auto &[page, bitmap] : page_bitmaps) {
+    std::vector<std::uint8_t> data;
+    data.reserve(4 * kSpineGraphWordBytes);
+    for (std::uint64_t word : bitmap) {
+      append_u64_le(data, word);
+    }
+    writes.push_back(GraphPayloadWrite{
+        .address = (layout.bitmap_offset_words + page * 4) *
+                   kSpineGraphWordBytes,
+        .data = std::move(data),
+    });
+  }
+
+  std::map<std::uint64_t, std::uint64_t> page_base_words;
+  for (const auto &[page, row] : page_first_row) {
+    page_base_words[page >> 1] |= pack_u32_lane(row, (page & 1U) != 0);
+  }
+  page_base_words[page_count >> 1] |=
+      pack_u32_lane(static_cast<std::uint32_t>(rows),
+                    (page_count & 1U) != 0);
+  for (const auto &[word, value] : page_base_words) {
+    std::vector<std::uint8_t> data;
+    data.reserve(kSpineGraphWordBytes);
+    append_u64_le(data, value);
+    writes.push_back(GraphPayloadWrite{
+        .address = (layout.page_base_offset_words + word) *
+                   kSpineGraphWordBytes,
+        .data = std::move(data),
+    });
+  }
+
+  const std::uint64_t row_words = (rows + 2) >> 1;
+  writes.push_back(GraphPayloadWrite{
+      .address = layout.row_offset_offset_words * kSpineGraphWordBytes,
+      .data = encode_u32_lanes(row_offsets, row_words),
+  });
+
+  const std::uint64_t mask_words = (rows + 3) >> 2;
+  if (mask_words != 0) {
+    std::vector<std::uint8_t> data(mask_words * kSpineGraphWordBytes, 0);
+    for (std::size_t row = 0; row < row_partition_masks.size(); ++row) {
+      const std::uint16_t partition_mask = row_partition_masks[row];
+      const std::size_t word = row >> 2;
+      const std::size_t lane = row & 3U;
+      data[word * kSpineGraphWordBytes + lane * 2] =
+          static_cast<std::uint8_t>(partition_mask & 0xffU);
+      data[word * kSpineGraphWordBytes + lane * 2 + 1] =
+          static_cast<std::uint8_t>((partition_mask >> 8) & 0xffU);
+    }
+    writes.push_back(GraphPayloadWrite{
+        .address = layout.mask_offset_words * kSpineGraphWordBytes,
+        .data = std::move(data),
+    });
+  }
+  return writes;
 }
 
 }  // namespace
@@ -192,7 +324,7 @@ std::size_t spine_hot_shard(std::uint32_t dst) noexcept {
 SpineLevelLayout spine_level_layout(const SpineL0Config &config, bool hot,
                                     std::size_t level) {
   if (config.partitions != 16 || config.levels != 11 ||
-      config.page_vertices == 0 || config.max_vertices == 0 ||
+      config.page_vertices != 256 || config.max_vertices == 0 ||
       config.max_sort_edges == 0 || level >= config.levels) {
     throw std::invalid_argument("invalid Spine fixed-level layout request");
   }
@@ -337,7 +469,7 @@ SpineL0Maintenance::SpineL0Maintenance(std::string name, ClockId clock_id,
       state_(state) {
   if (config_.partitions != ports_.graph.size() || config_.partitions != 16 ||
       config_.levels != 11 || config_.vertex_partition_size == 0 ||
-      config_.page_vertices == 0 || config_.max_vertices == 0 ||
+      config_.page_vertices != 256 || config_.max_vertices == 0 ||
       config_.max_sort_edges == 0 || workload_.vertices == 0 ||
       workload_.vertices > config_.max_vertices || workload_.edges.empty() ||
       workload_.edges.size() > config_.max_sort_edges ||
@@ -382,6 +514,20 @@ SpineL0Maintenance::SpineL0Maintenance(std::string name, ClockId clock_id,
           continue;
         }
         const SpineLevelLayout layout = spine_level_layout(config_, hot, level);
+        std::uint64_t rows = 0;
+        std::uint32_t last_src = 0;
+        bool have_src = false;
+        for (const SpineEdgeRecord &edge : edges) {
+          if (!have_src || edge.src != last_src) {
+            ++rows;
+            last_src = edge.src;
+            have_src = true;
+          }
+        }
+        for (const GraphPayloadWrite &write :
+             build_level_index_payloads(config_, layout, edges, rows)) {
+          ports_.graph[family]->initialize_payload(write.address, write.data);
+        }
         ports_.graph[family]->initialize_payload(
             layout.edge_offset_words * kSpineGraphWordBytes,
             [&edges] {
@@ -740,9 +886,6 @@ void SpineL0Maintenance::enqueue_family_writes(bool hot, std::size_t family,
       hot ? hot_family_outputs_[family] : family_outputs_[family];
   const std::uint64_t rows =
       hot ? counters_.hot_family_rows[family] : counters_.family_rows[family];
-  const std::uint64_t page_count =
-      (config_.max_vertices + config_.page_vertices - 1) /
-      config_.page_vertices;
   const SpineLevelLayout layout = spine_level_layout(config_, hot, target);
   if (edges.size() > layout.edge_capacity || rows > layout.edge_capacity) {
     failed_ = true;
@@ -750,43 +893,30 @@ void SpineL0Maintenance::enqueue_family_writes(bool hot, std::size_t family,
     failure_ = "Spine target family exceeds fixed level capacity";
     return;
   }
-  const std::uint64_t row_words = (rows + 2) >> 1;
-  const std::uint64_t mask_words = (rows + 3) >> 2;
   std::set<std::uint32_t> pages;
   for (const SpineEdgeRecord &edge : edges) {
     pages.insert(edge.src / config_.page_vertices);
   }
 
   FixedAxiPort &graph = *ports_.graph[family];
-  for (const std::uint32_t page : pages) {
-    enqueue_task(graph, MemoryOperation::kWrite,
-                 (layout.bitmap_offset_words + page * 4) * kSpineGraphWordBytes,
-                 4 * kSpineGraphWordBytes, TaskClass::kGraph);
-    enqueue_task(
-        graph, MemoryOperation::kWrite,
-        (layout.page_base_offset_words + (page >> 1)) * kSpineGraphWordBytes,
-        kSpineGraphWordBytes, TaskClass::kGraph);
+  for (GraphPayloadWrite &write :
+       build_level_index_payloads(config_, layout, edges, rows)) {
+    const std::uint64_t bytes = write.data.size();
+    counters_.graph_index_payload_write_bytes += bytes;
+    enqueue_task(graph, MemoryOperation::kWrite, write.address,
+                 bytes, TaskClass::kGraph, std::move(write.data));
   }
-  enqueue_task(
-      graph, MemoryOperation::kWrite,
-      (layout.page_base_offset_words + (page_count >> 1)) * kSpineGraphWordBytes,
-      kSpineGraphWordBytes, TaskClass::kGraph);
-  enqueue_task(graph, MemoryOperation::kWrite,
-               layout.row_offset_offset_words * kSpineGraphWordBytes,
-               row_words * kSpineGraphWordBytes, TaskClass::kGraph);
-  enqueue_task(graph, MemoryOperation::kWrite,
-               layout.mask_offset_words * kSpineGraphWordBytes,
-               mask_words * kSpineGraphWordBytes, TaskClass::kGraph);
   std::vector<std::uint8_t> edge_payload;
   edge_payload.reserve(edges.size() * kSpineGraphWordBytes);
   for (const SpineEdgeRecord &edge : edges) {
     const std::vector<std::uint8_t> packed = encode_spine_level_edge(edge);
     edge_payload.insert(edge_payload.end(), packed.begin(), packed.end());
   }
-  counters_.graph_edge_payload_write_bytes += edge_payload.size();
+  const std::uint64_t edge_payload_bytes = edge_payload.size();
+  counters_.graph_edge_payload_write_bytes += edge_payload_bytes;
   enqueue_task(graph, MemoryOperation::kWrite,
                layout.edge_offset_words * kSpineGraphWordBytes,
-               edges.size() * kSpineGraphWordBytes, TaskClass::kGraph,
+               edge_payload_bytes, TaskClass::kGraph,
                std::move(edge_payload));
 
   counters_.pages_stamped += pages.size();

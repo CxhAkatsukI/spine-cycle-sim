@@ -98,6 +98,7 @@ struct SpineL0Counters {
   std::uint64_t metadata_write_bytes{};
   std::uint64_t graph_read_bytes{};
   std::uint64_t graph_write_bytes{};
+  std::uint64_t graph_index_payload_write_bytes{};
   std::uint64_t graph_edge_payload_write_bytes{};
   std::uint64_t result_write_bytes{};
   std::uint64_t unique_sources{};

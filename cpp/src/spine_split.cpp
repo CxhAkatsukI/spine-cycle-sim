@@ -62,6 +62,18 @@ std::uint32_t decode_u32(const std::vector<std::uint8_t> &data,
          (static_cast<std::uint32_t>(data[offset + 3]) << 24);
 }
 
+std::uint64_t decode_u64(const std::vector<std::uint8_t> &data,
+                         std::size_t offset = 0) {
+  if (offset + sizeof(std::uint64_t) > data.size()) {
+    throw std::invalid_argument("uint64 payload is truncated");
+  }
+  std::uint64_t value = 0;
+  for (std::size_t byte = 0; byte < sizeof(std::uint64_t); ++byte) {
+    value |= static_cast<std::uint64_t>(data[offset + byte]) << (byte * 8);
+  }
+  return value;
+}
+
 std::vector<std::uint8_t> encode_u32_words(
     const std::vector<std::uint32_t> &values) {
   std::vector<std::uint8_t> data(values.size() * sizeof(std::uint32_t));
@@ -71,6 +83,13 @@ std::vector<std::uint8_t> encode_u32_words(
               data.begin() + static_cast<std::ptrdiff_t>(index * word.size()));
   }
   return data;
+}
+
+std::uint64_t index_gate_key(bool hot, std::size_t family, std::size_t level,
+                             std::uint32_t source) {
+  return (static_cast<std::uint64_t>(hot ? 1 : 0) << 63) |
+         (static_cast<std::uint64_t>(family & 0x3fU) << 56) |
+         (static_cast<std::uint64_t>(level & 0x3fU) << 48) | source;
 }
 
 }  // namespace
@@ -110,6 +129,7 @@ void SpineSplitReader::reset_round(std::vector<std::uint32_t> active_sources) {
   counters_ = {};
   tiles_.clear();
   source_values_.clear();
+  active_index_gates_.clear();
   phase_ = Phase::kWaitMaintenance;
   staged_action_ = Action::kNone;
   tile_index_ = 0;
@@ -255,6 +275,26 @@ void SpineSplitReader::enqueue_read(FixedAxiPort &port, std::uint64_t address,
   }
 }
 
+void SpineSplitReader::enqueue_index_bitmap_read(FixedAxiPort &port,
+                                                 std::uint64_t address,
+                                                 std::uint32_t source,
+                                                 bool hot, std::size_t family,
+                                                 std::size_t level) {
+  memory_tasks_.push_back(MemoryTask{
+      .port = &port,
+      .address = address,
+      .bytes = kSpineGraphWordBytes,
+      .edge_source = 0,
+      .edge_payload = false,
+      .index_source = source,
+      .index_family = family,
+      .index_level = level,
+      .index_hot = hot,
+      .index_bitmap = true,
+  });
+  counters_.graph_read_bytes += kSpineGraphWordBytes;
+}
+
 void SpineSplitReader::consume_memory_response(
     const MemoryTask &task, const AxiResponse &response) {
   if (response.read_data.size() != task.bytes) {
@@ -263,7 +303,27 @@ void SpineSplitReader::consume_memory_response(
   if (task.edge_payload) {
     loaded_edge_ = decode_spine_level_edge(response.read_data, task.edge_source);
     counters_.graph_edge_payload_read_bytes += response.read_data.size();
+  } else if (task.index_bitmap) {
+    const std::uint64_t bitmap = decode_u64(response.read_data);
+    const std::uint32_t bit = task.index_source % 64;
+    if ((bitmap & (std::uint64_t{1} << bit)) != 0) {
+      active_index_gates_.insert(index_gate_key(
+          task.index_hot, task.index_family, task.index_level,
+          task.index_source));
+    } else {
+      ++counters_.graph_index_bitmap_misses;
+    }
+    counters_.graph_index_payload_read_bytes += response.read_data.size();
+  } else if (task.port != ports_.active_bins && task.port != ports_.metadata) {
+    counters_.graph_index_payload_read_bytes += response.read_data.size();
   }
+}
+
+bool SpineSplitReader::index_gate_allows(bool hot, std::size_t family,
+                                         std::size_t level,
+                                         std::uint32_t source) const {
+  return active_index_gates_.contains(
+      index_gate_key(hot, family, level, source));
 }
 
 void SpineSplitReader::build_tiles() {
@@ -281,7 +341,8 @@ void SpineSplitReader::build_tiles() {
             spine_level_layout(config, hot, level_index);
         for (std::size_t index = 0; index < level.size(); ++index) {
           const SpineEdgeRecord &edge = level[index];
-          if (!source_values_.contains(edge.src)) {
+          if (!source_values_.contains(edge.src) ||
+              !index_gate_allows(hot, family, level_index, edge.src)) {
             continue;
           }
           const std::uint32_t tile_base =
@@ -375,10 +436,11 @@ void SpineSplitReader::enqueue_index_reads() {
                            kMetadataWordBytes,
                        kMetadataWordBytes);
           counters_.row_lookup_metadata_bytes += kMetadataWordBytes;
-          enqueue_read(*ports_.graph[family],
-                       (layout.bitmap_offset_words + page * 4 + lane_word) *
-                           kSpineGraphWordBytes,
-                       kSpineGraphWordBytes);
+          enqueue_index_bitmap_read(
+              *ports_.graph[family],
+              (layout.bitmap_offset_words + page * 4 + lane_word) *
+                  kSpineGraphWordBytes,
+              source, hot, family, level_index);
           enqueue_read(
               *ports_.graph[family],
               (layout.page_base_offset_words + (page >> 1)) *
@@ -449,8 +511,11 @@ void SpineSplitReader::advance(const CycleContext &context) {
                    active_sources_.size() * kActiveRecordBytes);
       enqueue_read(*ports_.metadata, 0, 8 * kMetadataWordBytes);
       enqueue_level_cache_reads();
-      build_tiles();
       enqueue_index_reads();
+      phase_ = Phase::kBuildTiles;
+      return;
+    case Phase::kBuildTiles:
+      build_tiles();
       tile_index_ = 0;
       phase_ = tiles_.empty() ? Phase::kDone : Phase::kTileBegin;
       return;
