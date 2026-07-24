@@ -1,0 +1,34 @@
+{
+  "schema": "spine.persistent_incremental_update.v1",
+  "date": "2026-07-25",
+  "branch": "codex/fine-grained-cycle-sim",
+  "claim_tier": "structural_execution_driven",
+  "backend": "MockMemoryBackend",
+  "clock_mhz": 141.0,
+  "vertices": 4,
+  "cold": {
+    "cycles": 24672,
+    "target_level": 0,
+    "distances": [0, 5, 10, 11],
+    "dirty_generation_after_ack": 2
+  },
+  "update": {
+    "records": [
+      {"src": 0, "dst": 2, "weight": 2, "diff": 1}
+    ],
+    "cycles": 19085,
+    "rounds": 3,
+    "target_level": 1,
+    "reader_sources_first_round": [0],
+    "distances": [0, 5, 2, 3],
+    "dirty_generation_captured": 3,
+    "dirty_generation_after_ack": 4
+  },
+  "correctness": {
+    "cold_oracle_match": true,
+    "incremental_oracle_match": true,
+    "level_zero_retired": true,
+    "level_one_shortcut_weight": 2
+  },
+  "test": "spine_incremental_update"
+}

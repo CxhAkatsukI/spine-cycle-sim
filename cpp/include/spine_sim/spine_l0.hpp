@@ -465,6 +465,8 @@ class SpineL0Maintenance final : public Component {
     return workload_.vertices;
   }
 
+  void reset_batch(SpineEdgeSlice workload);
+
   void evaluate(const CycleContext &context) override;
   void commit(const CycleContext &context) override;
 

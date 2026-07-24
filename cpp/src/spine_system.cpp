@@ -390,6 +390,37 @@ void SpineVerticalSliceSystem::restart_read_compute_bins(
   }
 }
 
+void SpineVerticalSliceSystem::restart_incremental_update(
+    SpineEdgeSlice workload) {
+  if (!registered_ || !convergence_run_started_ || !done() || failed() ||
+      !idle() || !dirty_ack_->done() || dirty_ack_->failed() ||
+      workload.vertices != maintenance_->vertices() ||
+      workload.edges.empty() ||
+      std::any_of(workload.edges.begin(), workload.edges.end(),
+                  [](const SpineEdgeRecord &edge) { return edge.diff <= 0; })) {
+    throw std::logic_error(
+        "Spine incremental update requires a positive drained batch");
+  }
+  std::vector<std::uint32_t> changed_sources;
+  changed_sources.reserve(workload.edges.size());
+  for (const SpineEdgeRecord &edge : workload.edges) {
+    changed_sources.push_back(edge.src);
+  }
+  std::sort(changed_sources.begin(), changed_sources.end());
+  changed_sources.erase(
+      std::unique(changed_sources.begin(), changed_sources.end()),
+      changed_sources.end());
+
+  edge_stream_.reset_stats();
+  value_stream_.reset_stats();
+  dirty_ack_->reset();
+  reader_->reset_round(changed_sources);
+  compute_->reset_round();
+  maintenance_->reset_batch(std::move(workload));
+  current_frontier_ = std::move(changed_sources);
+  convergence_run_started_ = false;
+}
+
 bool SpineVerticalSliceSystem::recoverable_host_handoff() const noexcept {
   return registered_ && maintenance_->done() && !maintenance_->failed() &&
          reader_->recoverable_host_handoff() &&

@@ -98,6 +98,30 @@ SpineDirtyAck::SpineDirtyAck(std::string name, ClockId clock_id,
   (void)spine_metadata_layout(config_);
 }
 
+void SpineDirtyAck::reset() {
+  if (!started_ || !done_ || failed_ || waiting_memory_ ||
+      !memory_tasks_.empty()) {
+    throw std::logic_error(
+        "Spine dirty ACK reset requires a successful drain");
+  }
+  counters_ = {};
+  phase_ = Phase::kDormant;
+  staged_action_ = Action::kNone;
+  staged_response_ = {};
+  bitmap_payload_.clear();
+  current_source_ = 0;
+  checked_hash_sum_ = 0;
+  checked_hash_xor_ = 0;
+  source_index_ = 0;
+  expected_transaction_id_ = 0;
+  waiting_memory_ = false;
+  start_cycle_recorded_ = false;
+  candidate_valid_ = false;
+  started_ = false;
+  done_ = false;
+  failed_ = false;
+}
+
 void SpineDirtyAck::start(std::uint32_t expected_generation,
                           SpineDirtyIdentity candidate) {
   if (started_ || done_ || waiting_memory_ || !memory_tasks_.empty()) {

@@ -45,6 +45,7 @@ public:
                 SpineDirtyAckPorts ports);
 
   void start(std::uint32_t expected_generation, SpineDirtyIdentity candidate);
+  void reset();
 
   [[nodiscard]] bool started() const noexcept { return started_; }
   [[nodiscard]] bool done() const noexcept { return done_; }

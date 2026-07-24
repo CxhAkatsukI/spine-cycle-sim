@@ -856,6 +856,107 @@ SpineL0Maintenance::SpineL0Maintenance(std::string name, ClockId clock_id,
   initialize_metadata_payload();
 }
 
+void SpineL0Maintenance::reset_batch(SpineEdgeSlice workload) {
+  const bool ports_idle =
+      std::all_of(ports_.graph.begin(), ports_.graph.end(),
+                  [](const FixedAxiPort *port) { return port->idle(); }) &&
+      ports_.sorted_edges->idle() && ports_.metadata->idle() &&
+      ports_.result->idle();
+  if (!done_ || failed_ || !ports_idle || !tasks_.empty() ||
+      !inflight_tasks_.empty() || !staged_memory_issues_.empty() ||
+      workload.vertices != workload_.vertices || workload.edges.empty() ||
+      workload.edges.size() > config_.max_sort_edges ||
+      !std::is_sorted(
+          workload.edges.begin(), workload.edges.end(),
+          [](const SpineEdgeRecord &left, const SpineEdgeRecord &right) {
+            return std::pair(left.src, left.dst) <
+                   std::pair(right.src, right.dst);
+          }) ||
+      std::any_of(workload.edges.begin(), workload.edges.end(),
+                  [this](const SpineEdgeRecord &edge) {
+                    return edge.src >= workload_.vertices ||
+                           edge.dst >= workload_.vertices;
+                  })) {
+    throw std::logic_error(
+        "Spine maintenance batch reset requires a valid successful drain");
+  }
+
+  workload_ = std::move(workload);
+  sorted_scan_edges_ = workload_.edges;
+  ports_.sorted_edges->initialize_payload(
+      config_.sorted_edges_base, encode_spine_sort_edges(workload_.edges));
+
+  counters_ = {};
+  carry_streams_.clear();
+  carry_cursor_refill_cycles_remaining_ = 0;
+  level_writer_ = {};
+  for (auto &family : family_outputs_) {
+    family.clear();
+  }
+  for (auto &family : hot_family_outputs_) {
+    family.clear();
+  }
+  staged_writer_epochs_ = {};
+  target_edge_counts_ = {};
+  target_occupied_ = {};
+  target_metadata_ready_ = {};
+  result_cold_edge_counts_ = {};
+  result_hot_edge_counts_ = {};
+  result_cold_edge_counts_ready_ = {};
+  result_hot_edge_counts_ready_ = {};
+  carry_result_counters_ = {};
+  family_write_tasks_.clear();
+  tasks_.clear();
+  inflight_tasks_.clear();
+  scan_response_edges_.clear();
+  scan_hot_results_.clear();
+  scan_hot_requests_pending_.clear();
+  hot_classification_by_vertex_.clear();
+  phase_ = Phase::kInitialize;
+  scan_kind_ = ScanKind::kDirtyValidate;
+  scan_index_ = 0;
+  scan_tail_remaining_ = 0;
+  next_scan_consume_cycle_ = 0;
+  scan_transaction_id_ = 0;
+  scan_transaction_valid_ = false;
+  streaming_scan_ = false;
+  edge_by_edge_scan_ = false;
+  scan_have_last_source_ = false;
+  scan_last_source_ = 0;
+  dirty_source_pending_ = false;
+  dirty_pending_source_ = 0;
+  dirty_count_ = 0;
+  dirty_generation_ = 0;
+  dirty_hash_sum_ = 0;
+  dirty_hash_xor_ = 0;
+  dirty_status_ = SpineDirtyStatus::kOk;
+  dirty_bitmap_original_payload_.clear();
+  family_index_ = 0;
+  active_family_index_ = 0;
+  precount_hot_ = false;
+  metadata_control_ready_ = false;
+  metadata_hot_enabled_ = false;
+  target_scan_hot_ = false;
+  target_scan_level_ = 0;
+  target_scan_candidate_ = -1;
+  target_scan_start_cycle_ = 0;
+  target_scan_min_finish_cycle_ = 0;
+  active_writer_current_epoch_ = 0;
+  active_writer_next_epoch_ = 0;
+  active_writer_epoch_ready_ = false;
+  active_writer_epoch_wrapped_ = false;
+  logical_overflow_ = false;
+  done_ = false;
+  failed_ = false;
+  failure_.clear();
+  staged_action_ = StagedAction::kNone;
+  staged_memory_issues_.clear();
+  staged_responses_.clear();
+  staged_read_beat_response_ = {};
+  staged_memory_completion_ = false;
+  staged_read_beat_completion_ = false;
+}
+
 void SpineL0Maintenance::initialize_metadata_payload() {
   const SpineMetadataLayout metadata = spine_metadata_layout(config_);
   std::map<std::uint64_t, std::uint64_t> page_list_count_words;

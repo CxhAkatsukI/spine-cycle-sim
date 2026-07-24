@@ -110,6 +110,7 @@ class SpineVerticalSliceSystem {
       const SpineActiveBins &active_bins,
       std::optional<SpineDirtyIdentity> host_coverage = std::nullopt,
       std::vector<std::uint32_t> source_refresh = {});
+  void restart_incremental_update(SpineEdgeSlice workload);
   [[nodiscard]] std::vector<std::uint32_t>
   restart_device_dirty_host_fallback();
   [[nodiscard]] bool recoverable_host_handoff() const noexcept;

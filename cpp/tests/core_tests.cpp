@@ -4599,6 +4599,77 @@ void test_spine_multiround_weighted_sssp_converges() {
           "multi-round SSSP repeated maintenance or mutated graph levels");
 }
 
+void test_spine_incremental_update_reuses_persistent_system() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("data", 141.0);
+  MockMemoryBackend backend("hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 3,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  SpineEdgeSlice initial{
+      .vertices = 4,
+      .edges =
+          {
+              {.src = 0, .dst = 1, .weight = 5, .diff = 1},
+              {.src = 0, .dst = 2, .weight = 20, .diff = 1},
+              {.src = 1, .dst = 2, .weight = 5, .diff = 1},
+              {.src = 2, .dst = 3, .weight = 1, .diff = 1},
+          },
+      .case_name = "persistent_initial",
+  };
+  SpineVerticalSliceSystem system(scheduler, core, backend, initial, 0);
+  system.register_components();
+  scheduler.add_component(backend);
+
+  const auto cold = system.run_sssp_to_convergence(16, 200'000);
+  require(cold.converged && !cold.failed &&
+              system.compute().values() ==
+                  std::vector<std::uint32_t>({0, 5, 10, 11}) &&
+              cold.dirty_ack.has_value() &&
+              cold.dirty_ack->result.generation == 2,
+          "initial persistent SSSP run diverged from its oracle");
+
+  SpineEdgeSlice update{
+      .vertices = 4,
+      .edges = {{.src = 0, .dst = 2, .weight = 2, .diff = 1}},
+      .case_name = "persistent_shortcut_update",
+  };
+  system.restart_incremental_update(std::move(update));
+  const auto incremental = system.run_sssp_to_convergence(16, 200'000);
+
+  const auto &level = system.level_state().cold_levels[0][1];
+  const auto shortcut = std::find_if(
+      level.begin(), level.end(), [](const SpineEdgeRecord &edge) {
+        return edge.src == 0 && edge.dst == 2;
+      });
+  require(incremental.converged && !incremental.failed &&
+              system.compute().values() ==
+                  std::vector<std::uint32_t>({0, 5, 2, 3}) &&
+              system.maintenance_counters().target_level == 1 &&
+              system.level_state().cold_levels[0][0].empty() &&
+              shortcut != level.end() && shortcut->weight == 2 &&
+              incremental.dirty_ack.has_value() &&
+              incremental.dirty_ack->captured ==
+                  spine::sim::spine_dirty_identity(
+                      3, std::vector<std::uint32_t>{0}) &&
+              incremental.dirty_ack->result.generation == 4 &&
+              incremental.rounds.front().reader_sources ==
+                  std::vector<std::uint32_t>{0},
+          "persistent incremental batch lost graph, dirty, or SSSP state");
+  std::cout << "EVIDENCE spine_incremental_update cold_cycles="
+            << cold.end_cycle - cold.start_cycle
+            << " update_cycles="
+            << incremental.end_cycle - incremental.start_cycle
+            << " update_rounds=" << incremental.rounds.size()
+            << " target_level=" << system.maintenance_counters().target_level
+            << " generation="
+            << incremental.dirty_ack->result.generation << '\n';
+}
+
 struct SpineMemoryWindowObservation {
   std::uint64_t cycles{};
   std::vector<std::uint32_t> values;
@@ -6004,6 +6075,8 @@ int main(int argc, char **argv) {
        test_spine_hls_metadata_and_active_record_abi},
       {"spine_multiround_weighted_sssp",
        test_spine_multiround_weighted_sssp_converges},
+      {"spine_incremental_update",
+       test_spine_incremental_update_reuses_persistent_system},
       {"spine_memory_request_window",
        test_spine_memory_request_window_hides_latency},
       {"spine_axi_interface_profile",

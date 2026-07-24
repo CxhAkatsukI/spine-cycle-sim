@@ -1,0 +1,22 @@
+digraph SpinePersistentIncrementalUpdate {
+  graph [rankdir=LR, bgcolor="transparent", nodesep=0.35, ranksep=0.55];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+        color="#475569", fillcolor="#f8fafc"];
+  edge [fontname="Helvetica", fontsize=9, color="#64748b"];
+
+  cold [label="Cold batch\nmaintenance + SSSP", fillcolor="#dbeafe"];
+  ack1 [label="Dirty ACK\ngeneration 1 -> 2", fillcolor="#dcfce7"];
+  reset [label="Drained reset boundary\nclear invocation state", fillcolor="#fef3c7"];
+  update [label="Positive update batch\nnew sorted-edge payload", fillcolor="#fde68a"];
+  carry [label="Persistent maintenance\nL0 + batch -> L1", fillcolor="#dbeafe"];
+  repair [label="Incremental SSSP\npreserve distances", fillcolor="#dcfce7"];
+  ack2 [label="Dirty ACK\ngeneration 3 -> 4", fillcolor="#dcfce7"];
+
+  state [shape=cylinder, style="filled", label="Preserved HBM state\nlevels + metadata + distances", fillcolor="#f1f5f9"];
+
+  cold -> ack1 -> reset -> update -> carry -> repair -> ack2;
+  cold -> state [label="write"];
+  state -> carry [label="read/merge"];
+  state -> repair [label="read/write"];
+  ack2 -> state [label="commit"];
+}
