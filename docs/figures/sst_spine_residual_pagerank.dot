@@ -1,0 +1,30 @@
+digraph sst_spine_residual_pagerank {
+  graph [rankdir=LR, bgcolor="white", pad=0.2, nodesep=0.35, ranksep=0.55];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=10,
+        color="#334155", fillcolor="#f8fafc", margin="0.14,0.08"];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#475569"];
+
+  frontier [label="Residual frontier\n4 ... 2,3,2,1,2,2,1,0",
+            fillcolor="#dcfce7"];
+  spine [label="Spine maintenance + Reader\nlevel ranges + registered AXIS",
+         fillcolor="#fef3c7"];
+  compute [label="Policy-driven compute\nsource / signed reduce / apply",
+           fillcolor="#dcfce7"];
+  state [label="Rank + residual + degree\n5A + 2N requests / round",
+         fillcolor="#e0f2fe"];
+  axi [label="FixedAxiPort\nbursts + credits + responses",
+       fillcolor="#f3e8ff"];
+  sst [label="SST StandardMem", fillcolor="#fee2e2"];
+  hbm [label="DRAMSim3 HBM2\n32 channels\n23,686 completed requests",
+       fillcolor="#fee2e2"];
+  oracle [label="Independent float32 oracle\nrank + residual + frontier",
+          fillcolor="#f8fafc"];
+
+  frontier -> spine -> compute;
+  compute -> state [dir=both];
+  state -> axi;
+  spine -> axi;
+  axi -> sst -> hbm;
+  compute -> frontier [label="threshold", constraint=false];
+  oracle -> compute [style=dashed, label="post-run check", constraint=false];
+}

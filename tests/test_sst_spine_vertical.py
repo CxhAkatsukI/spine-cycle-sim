@@ -12,6 +12,7 @@ from scripts.run_sst_spine_vertical import (
     validate_full_pagerank_result,
     validate_multiround_sssp_result,
     validate_protocol_window_result,
+    validate_residual_pagerank_result,
     validate_result,
 )
 
@@ -20,6 +21,65 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class SstSpineVerticalValidationTests(unittest.TestCase):
+    def test_residual_pagerank_result_checks_frontier_and_memory_ledger(
+        self,
+    ) -> None:
+        result = {
+            "success": True,
+            "mode": "spine_residual_pagerank",
+            "timing_evidence": "provisional_algorithm_pipeline",
+            "vertices": 4,
+            "input_edges": 4,
+            "converged": True,
+            "final_active": 0,
+            "iterations": 49,
+            "frontier_in_sizes": [4, 3] + [2] * 46 + [1],
+            "frontier_out_sizes": [3] + [2] * 46 + [1, 0],
+            "compute_requests_per_iteration": [28, 23] + [18] * 46 + [13],
+            "correctness_mismatches": 0,
+            "frontier_match": True,
+            "memory_ledger_match": True,
+            "max_abs_error": 1.0e-7,
+            "pagerank_epsilon": 1.0e-5,
+            "residual_l1": 5.0e-6,
+            "maintenance_persisted_edges": 4,
+            "maintenance_cycles": 50,
+            "backend_requests": 100,
+        }
+        dram = {"dram_reads": 80, "dram_writes": 20, "dram_channels": 32}
+        self.assertEqual(
+            validate_residual_pagerank_result(result, dram, channels=32), []
+        )
+
+    def test_residual_pagerank_result_rejects_hidden_full_frontier(self) -> None:
+        result = {
+            "success": True,
+            "mode": "spine_residual_pagerank",
+            "timing_evidence": "provisional_algorithm_pipeline",
+            "vertices": 4,
+            "input_edges": 4,
+            "converged": True,
+            "final_active": 0,
+            "iterations": 49,
+            "frontier_in_sizes": [4] * 49,
+            "frontier_out_sizes": [4] * 48 + [0],
+            "compute_requests_per_iteration": [28] * 49,
+            "correctness_mismatches": 0,
+            "frontier_match": True,
+            "memory_ledger_match": True,
+            "max_abs_error": 0.0,
+            "pagerank_epsilon": 1.0e-5,
+            "residual_l1": 0.0,
+            "maintenance_persisted_edges": 4,
+            "maintenance_cycles": 50,
+            "backend_requests": 100,
+        }
+        dram = {"dram_reads": 80, "dram_writes": 20, "dram_channels": 32}
+        self.assertIn(
+            "known_default_frontier",
+            validate_residual_pagerank_result(result, dram, channels=32),
+        )
+
     def test_full_pagerank_result_closes_algorithm_and_dram_ledgers(self) -> None:
         result = {
             "success": True,

@@ -517,6 +517,57 @@ def validate_full_pagerank_result(
     return [name for name, passed in checks.items() if not passed]
 
 
+def validate_residual_pagerank_result(
+    result: dict[str, Any], dram: dict[str, int | float], *, channels: int
+) -> list[str]:
+    frontier_in = result.get("frontier_in_sizes", [])
+    frontier_out = result.get("frontier_out_sizes", [])
+    requests = result.get("compute_requests_per_iteration", [])
+    rounds = result.get("iterations", 0)
+    frontier_shape_ok = (
+        rounds > 0
+        and len(frontier_in) == len(frontier_out) == rounds
+        and frontier_in[0] == result.get("vertices")
+        and frontier_out[-1] == 0
+    )
+    default_epsilon = abs(result.get("pagerank_epsilon", 0.0) - 1.0e-5) < 1.0e-12
+    ledger_ok = (
+        len(frontier_in) == len(frontier_out) == len(requests) == rounds
+        and all(
+            request_count == 5 * active_sources + 2 * result.get("vertices", 0)
+            for active_sources, request_count in zip(
+                frontier_in, requests, strict=True
+            )
+        )
+    )
+    checks = {
+        "success": result.get("success") is True,
+        "mode": result.get("mode") == "spine_residual_pagerank",
+        "algorithm_timing_label": result.get("timing_evidence")
+        == "provisional_algorithm_pipeline",
+        "input_shape": result.get("vertices") == 4
+        and result.get("input_edges") == 4,
+        "convergence": result.get("converged") is True
+        and result.get("final_active") == 0
+        and frontier_shape_ok,
+        "known_default_frontier": not default_epsilon
+        or (rounds == 49 and any(0 < size < 4 for size in frontier_in)),
+        "correctness": result.get("correctness_mismatches") == 0
+        and result.get("frontier_match") is True
+        and result.get("max_abs_error", 1.0) <= 1.0e-5
+        and result.get("residual_l1", 1.0)
+        <= result.get("pagerank_epsilon", 0.0) * 1.01,
+        "memory_ledger": result.get("memory_ledger_match") is True and ledger_ok,
+        "maintenance_once": result.get("maintenance_persisted_edges") == 4
+        and result.get("maintenance_cycles", 0) > 0,
+        "dram_matches_backend": int(dram.get("dram_reads", 0))
+        + int(dram.get("dram_writes", 0))
+        == result.get("backend_requests"),
+        "channel_count": dram.get("dram_channels") == channels,
+    }
+    return [name for name, passed in checks.items() if not passed]
+
+
 def validate_multiround_sssp_result(
     result: dict[str, Any], dram: dict[str, int | float], *, channels: int
 ) -> list[str]:
@@ -776,6 +827,7 @@ def parse_args() -> argparse.Namespace:
             "carry_hot",
             "amazon_full_compute",
             "full_pagerank",
+            "residual_pagerank",
             "weighted_sssp",
             "protocol_window",
             "fallback_capacity",
@@ -788,6 +840,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--source", type=int)
     parser.add_argument("--pagerank-iterations", type=int, default=2)
     parser.add_argument("--pagerank-damping", type=float, default=0.8)
+    parser.add_argument("--pagerank-epsilon", type=float, default=1.0e-5)
+    parser.add_argument("--residual-max-iterations", type=int, default=256)
     parser.add_argument("--pagerank-source-latency", type=int, default=3)
     parser.add_argument("--pagerank-source-ii", type=int, default=1)
     parser.add_argument("--pagerank-source-capacity", type=int, default=4)
@@ -879,7 +933,9 @@ def main() -> int:
         args.workload = DEFAULT_FULL_WORKLOAD
     elif args.scenario == "weighted_sssp" and args.workload == DEFAULT_WORKLOAD:
         args.workload = DEFAULT_SSSP_WORKLOAD
-    elif args.scenario == "full_pagerank" and args.workload == DEFAULT_WORKLOAD:
+    elif args.scenario in {"full_pagerank", "residual_pagerank"} and (
+        args.workload == DEFAULT_WORKLOAD
+    ):
         args.workload = DEFAULT_PAGERANK_WORKLOAD
     elif args.scenario == "protocol_window" and args.workload == DEFAULT_WORKLOAD:
         args.workload = DEFAULT_PROTOCOL_WORKLOAD
@@ -910,6 +966,8 @@ def main() -> int:
         or args.compute_vs_bypass_depth <= 0
         or args.pagerank_iterations <= 0
         or not 0.0 < args.pagerank_damping < 1.0
+        or args.pagerank_epsilon <= 0.0
+        or args.residual_max_iterations <= 0
         or args.pagerank_source_latency <= 0
         or args.pagerank_source_ii <= 0
         or args.pagerank_source_capacity <= 0
@@ -943,6 +1001,7 @@ def main() -> int:
             "SPINE_SST_MODE": {
                 "amazon_full_compute": "spine_compute",
                 "full_pagerank": "spine_pagerank",
+                "residual_pagerank": "spine_residual_pagerank",
                 "weighted_sssp": "spine_sssp",
                 "fallback_capacity": "spine_sssp",
                 "fallback_payload": "spine_sssp",
@@ -961,6 +1020,10 @@ def main() -> int:
             "SPINE_SST_MAX_ROUNDS": "256",
             "SPINE_SST_PAGERANK_ITERATIONS": str(args.pagerank_iterations),
             "SPINE_SST_PAGERANK_DAMPING": str(args.pagerank_damping),
+            "SPINE_SST_PAGERANK_EPSILON": str(args.pagerank_epsilon),
+            "SPINE_SST_RESIDUAL_MAX_ITERATIONS": str(
+                args.residual_max_iterations
+            ),
             "SPINE_SST_PAGERANK_SOURCE_LATENCY": str(
                 args.pagerank_source_latency
             ),
@@ -1069,6 +1132,7 @@ def main() -> int:
         "carry_hot": validate_carry_hot_result,
         "amazon_full_compute": validate_full_compute_result,
         "full_pagerank": validate_full_pagerank_result,
+        "residual_pagerank": validate_residual_pagerank_result,
         "weighted_sssp": validate_multiround_sssp_result,
         "protocol_window": validate_protocol_window_result,
         "fallback_capacity": lambda result, dram, *, channels: (
@@ -1091,7 +1155,7 @@ def main() -> int:
         != args.compute_memory_request_window
     ):
         problems.append("compute_memory_request_window")
-    if args.scenario == "full_pagerank":
+    if args.scenario in {"full_pagerank", "residual_pagerank"}:
         expected_pagerank_pipeline = {
             "pagerank_source_latency": args.pagerank_source_latency,
             "pagerank_source_ii": args.pagerank_source_ii,

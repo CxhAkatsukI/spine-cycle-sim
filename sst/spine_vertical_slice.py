@@ -46,6 +46,12 @@ probe.addParams(
         "pagerank_damping": float(
             os.environ.get("SPINE_SST_PAGERANK_DAMPING", "0.85")
         ),
+        "pagerank_epsilon": float(
+            os.environ.get("SPINE_SST_PAGERANK_EPSILON", "0.000001")
+        ),
+        "residual_max_iterations": int(
+            os.environ.get("SPINE_SST_RESIDUAL_MAX_ITERATIONS", "256")
+        ),
         "pagerank_source_latency": int(
             os.environ.get("SPINE_SST_PAGERANK_SOURCE_LATENCY", "3")
         ),
