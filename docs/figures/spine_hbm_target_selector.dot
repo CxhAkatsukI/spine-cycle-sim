@@ -1,0 +1,21 @@
+digraph spine_hbm_target_selector {
+  graph [rankdir=LR, bgcolor="white", pad="0.2", nodesep="0.3", ranksep="0.55"];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=10, color="#334155", fillcolor="#f8fafc"];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#475569"];
+
+  begin [label="selector start\ncold, then optional hot", fillcolor="#dbeafe"];
+  level [label="one level\n16 families", fillcolor="#e2e8f0"];
+  pair [label="family iteration\nread occupied\nread edge_count\nachieved II=2", fillcolor="#fef3c7"];
+  fifo [label="gmem_meta AXI\nfinite request/response FIFOs\nwindow <= 16", fillcolor="#e0e7ff"];
+  hbm [label="SST-HBM\nreal addresses and contention", fillcolor="#fee2e2"];
+  reduce [label="response scoreboard\noccupied OR edge_count", fillcolor="#dcfce7"];
+  next [label="first empty level\nall 11 levels still scanned", fillcolor="#dcfce7"];
+  floor [label="synthesis minimum\ncold 562 cycles\nhot 551 cycles", fillcolor="#f1f5f9"];
+  target [label="target level\nor overflow path", fillcolor="#dbeafe"];
+
+  begin -> level -> pair -> fifo -> hbm -> fifo -> reduce;
+  reduce -> level [label="next family / level"];
+  reduce -> next [label="after level 10"];
+  next -> floor -> target;
+  fifo -> pair [label="full / credit stall", style=dashed, color="#b91c1c"];
+}

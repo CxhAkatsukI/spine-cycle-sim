@@ -2996,6 +2996,110 @@ void test_spine_reader_consumes_graph_edge_payload_from_hbm() {
           "reader error diagnostics or DONE overflow payload mismatch");
 }
 
+void test_spine_target_selector_consumes_metadata_payload_from_hbm() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("data", 141.0);
+  MockMemoryBackend backend("hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 3,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  std::vector<std::unique_ptr<FixedAxiPort>> graph_ports;
+  graph_ports.reserve(16);
+  SpineL0Ports ports;
+  for (std::size_t index = 0; index < ports.graph.size(); ++index) {
+    graph_ports.push_back(std::make_unique<FixedAxiPort>(
+        "target-payload-graph" + std::to_string(index), core,
+        FixedAxiPortConfig{
+            .memory_channels = 32,
+            .channel = index,
+            .initiator_id = static_cast<std::uint32_t>(480 + index),
+        },
+        backend));
+    ports.graph[index] = graph_ports.back().get();
+  }
+  FixedAxiPort sorted(
+      "target-payload-sorted", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32, .channel = 16, .initiator_id = 496},
+      backend);
+  FixedAxiPort metadata(
+      "target-payload-metadata", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32, .channel = 20, .initiator_id = 500},
+      backend);
+  FixedAxiPort result(
+      "target-payload-result", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32, .channel = 21, .initiator_id = 501},
+      backend);
+  ports.sorted_edges = &sorted;
+  ports.metadata = &metadata;
+  ports.result = &result;
+
+  SpineL0State state;
+  state.cold_levels[0][0] = {
+      SpineEdgeRecord{.src = 0, .dst = 1, .weight = 5, .diff = 1}};
+  SpineEdgeSlice batch{
+      .vertices = 128,
+      .edges = {
+          SpineEdgeRecord{.src = 0, .dst = 2, .weight = 2, .diff = 1}},
+      .case_name = "target_metadata_payload_antibypass",
+  };
+  SpineL0Maintenance maintenance("target-payload-maintenance", core,
+                                 SpineL0Config{}, std::move(batch), ports,
+                                 state);
+
+  // The constructor mirrors logical state into HBM. Mutating both target
+  // fields afterward makes HBM authoritative and intentionally stale relative
+  // to the C++ state mirror.
+  metadata.initialize_payload(0, u64_payload(0));
+  metadata.initialize_payload(7 * spine::sim::kSpineMetadataWordBytes,
+                              u64_payload(0));
+
+  scheduler.add_component(maintenance);
+  for (auto &port : graph_ports) {
+    port->register_components(scheduler);
+  }
+  sorted.register_components(scheduler);
+  metadata.register_components(scheduler);
+  result.register_components(scheduler);
+  scheduler.add_component(backend);
+  scheduler.run_until(
+      [&] {
+        return maintenance.done() && sorted.idle() && metadata.idle() &&
+               result.idle() &&
+               std::all_of(graph_ports.begin(), graph_ports.end(),
+                           [](const auto &port) { return port->idle(); });
+      },
+      100'000);
+
+  const SpineL0Counters &counters = maintenance.counters();
+  require(!maintenance.failed() && counters.target_level == 0 &&
+              state.cold_levels[0][0].size() == 1 &&
+              state.cold_levels[0][0][0].dst == 2,
+          "target selector bypassed HBM metadata and used logical level state");
+  require(counters.target_selector_invocations == 1 &&
+              counters.target_selector_levels_scanned == 11 &&
+              counters.target_selector_family_iterations == 176 &&
+              counters.target_selector_metadata_reads == 352 &&
+              counters.target_selector_responses == 352 &&
+              counters.target_selector_payload_read_bytes == 2'816 &&
+              counters.target_selector_cycles >= 562 &&
+              counters.target_selector_max_inflight > 1 &&
+              counters.target_selector_max_inflight <= 16 &&
+              counters.target_selector_validation_failures == 0,
+          "target selector request/response or synthesis-floor ledger diverged");
+  std::cout << "EVIDENCE spine_target_selector target="
+            << counters.target_level << " reads="
+            << counters.target_selector_metadata_reads << " cycles="
+            << counters.target_selector_cycles << " max_inflight="
+            << counters.target_selector_max_inflight << '\n';
+}
+
 void test_spine_maintenance_consumes_sorted_payload_from_hbm() {
   Scheduler scheduler;
   const auto core = scheduler.add_clock_mhz("data", 141.0);
@@ -3461,6 +3565,11 @@ void test_spine_memory_request_window_hides_latency() {
             << pipelined.maintenance.max_memory_requests_inflight
             << " serialized_max_per_port="
             << serialized.maintenance.max_memory_requests_inflight_per_port
+            << " serialized_non_target_max_per_port="
+            << serialized.maintenance
+                   .max_non_target_memory_requests_inflight_per_port
+            << " target_max_inflight="
+            << serialized.maintenance.target_selector_max_inflight
             << " serialized_active_ports="
             << serialized.maintenance.max_active_memory_ports
             << " serialized_cross_port_cycles="
@@ -3483,8 +3592,11 @@ void test_spine_memory_request_window_hides_latency() {
               serialized.reader.metadata_read_bytes ==
                   pipelined.reader.metadata_read_bytes,
           "memory request window changed the Spine memory work ledger");
-  require(serialized.maintenance.max_memory_requests_inflight_per_port == 1,
-          "default profile overlapped requests on one AXI initiator");
+  require(serialized.maintenance
+                  .max_non_target_memory_requests_inflight_per_port == 1 &&
+              serialized.maintenance.target_selector_max_inflight > 1 &&
+              serialized.maintenance.target_selector_max_inflight <= 16,
+          "default profile violated its loop-specific AXI request windows");
   require(serialized.maintenance.max_active_memory_ports > 1 &&
               serialized.maintenance.memory_cross_port_overlap_cycles > 0,
           "default profile serialized independent HLS m_axi bundles");
@@ -3830,6 +3942,8 @@ int main(int argc, char **argv) {
        test_spine_compute_consumes_vertex_payload_from_hbm},
       {"spine_reader_hbm_graph_payload",
        test_spine_reader_consumes_graph_edge_payload_from_hbm},
+      {"spine_target_hbm_metadata_payload",
+       test_spine_target_selector_consumes_metadata_payload_from_hbm},
       {"spine_maintenance_hbm_sorted_payload",
        test_spine_maintenance_consumes_sorted_payload_from_hbm},
       {"spine_carry_hbm_level_payload",

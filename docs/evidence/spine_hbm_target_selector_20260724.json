@@ -1,0 +1,72 @@
+{
+  "date": "2026-07-24",
+  "branch": "codex/fine-grained-cycle-sim",
+  "hls_reference": {
+    "commit": "afb8199a2ca8d3fd208b985324bf4d8719e2b839",
+    "spine_partitioned_sha256": "d5c4a2f2c2f384e33808eee4250c0c88208027b3792d46425e1de2ae1d8a06ba",
+    "accepted_synthesis_date": "2026-07-11",
+    "cold_selector_cycles": 562,
+    "hot_selector_cycles": 551,
+    "family_scan_iteration_latency": 16,
+    "family_scan_achieved_ii": 2,
+    "family_scan_trip_count": 16
+  },
+  "cpp_antibypass": {
+    "logical_l0_occupied": true,
+    "hbm_l0_edge_count": 0,
+    "hbm_l0_occupied": 0,
+    "selected_target": 0,
+    "selector_invocations": 1,
+    "levels_scanned": 11,
+    "family_iterations": 176,
+    "metadata_reads": 352,
+    "payload_read_bytes": 2816,
+    "selector_cycles": 562,
+    "max_inflight": 8,
+    "validation_failures": 0
+  },
+  "sst_hbm": [
+    {
+      "scenario": "amazon_l0",
+      "before_cycles": 7151,
+      "after_cycles": 7303,
+      "delta_percent": 2.13,
+      "maintenance_cycles": 2407,
+      "selector_invocations": 1,
+      "selector_cycles": 562,
+      "logical_memory_requests": 465,
+      "backend_requests": 1399,
+      "dram_activates": 78,
+      "correctness_mismatches": 0,
+      "frontier_mismatches": 0
+    },
+    {
+      "scenario": "carry_hot",
+      "before_cycles": 8863,
+      "after_cycles": 9280,
+      "delta_percent": 4.70,
+      "maintenance_cycles": 4319,
+      "selector_invocations": 2,
+      "selector_cycles": 1113,
+      "logical_memory_requests": 916,
+      "backend_requests": 1944,
+      "dram_activates": 110,
+      "correctness_mismatches": 0,
+      "frontier_mismatches": 0
+    },
+    {
+      "scenario": "weighted_sssp",
+      "before_cycles": 33788,
+      "after_cycles": 34087,
+      "delta_percent": 0.88,
+      "maintenance_cycles": 2467,
+      "selector_invocations": 1,
+      "selector_cycles": 562,
+      "logical_memory_requests": 480,
+      "backend_requests": 4196,
+      "dram_activates": 240,
+      "correctness_mismatches": 0,
+      "frontier_mismatches": 0
+    }
+  ]
+}

@@ -21,6 +21,9 @@ constexpr std::uint64_t kResultWords = 96;
 constexpr std::uint64_t kMetadataMagic = 0x53504352ULL;
 constexpr std::uint64_t kMetadataVersion = 2;
 constexpr std::uint64_t kMetadataRequiredFeatures = 3;
+constexpr std::uint64_t kMetadataWordsPerSlice = 8;
+constexpr std::uint64_t kMetadataEdgeCountWord = 0;
+constexpr std::uint64_t kMetadataOccupiedWord = 7;
 
 struct GraphPayloadWrite {
   std::uint64_t address{};
@@ -728,6 +731,9 @@ SpineL0Maintenance::SpineL0Maintenance(std::string name, ClockId clock_id,
       config_.range_task_payload_budget == 0 ||
       config_.fallback_replay_threshold == 0 ||
       config_.memory_request_window == 0 ||
+      config_.maintenance_target_select_request_window == 0 ||
+      config_.maintenance_cold_target_select_min_cycles == 0 ||
+      config_.maintenance_hot_target_select_min_cycles == 0 ||
       config_.reader_edge_pipeline_depth == 0 ||
       config_.reader_edge_response_capacity == 0 ||
       config_.maintenance_count_scan_ii == 0 ||
@@ -922,6 +928,9 @@ void SpineL0Maintenance::evaluate(const CycleContext &context) {
   if (active_memory_ports() > 1) {
     ++counters_.memory_cross_port_overlap_cycles;
   }
+  if (target_selector_phase()) {
+    ++counters_.target_selector_cycles;
+  }
   const auto writer_task = [](const MemoryTask &task) {
     return task.purpose == TaskPurpose::kLevelWriterGraphWrite ||
            task.purpose == TaskPurpose::kLevelWriterMetadataWrite;
@@ -937,7 +946,7 @@ void SpineL0Maintenance::evaluate(const CycleContext &context) {
   if (!tasks_.empty()) {
     const MemoryTask &task = tasks_.front();
     if (inflight_memory_tasks_for_port(task.port) >=
-        config_.memory_request_window) {
+        memory_request_window_for(task)) {
       ++counters_.memory_window_stall_cycles;
     } else if (memory_task_conflicts(task)) {
       ++counters_.memory_dependency_stall_cycles;
@@ -1066,11 +1075,41 @@ std::size_t SpineL0Maintenance::active_memory_ports() const noexcept {
   return ports;
 }
 
+bool SpineL0Maintenance::target_selector_phase() const noexcept {
+  return phase_ == Phase::kTargetSelect ||
+         phase_ == Phase::kTargetSelectLevelWait ||
+         phase_ == Phase::kTargetSelectPadding;
+}
+
+std::size_t SpineL0Maintenance::memory_request_window_for(
+    const MemoryTask &task) const noexcept {
+  if (task.purpose == TaskPurpose::kTargetMetadataOccupied ||
+      task.purpose == TaskPurpose::kTargetMetadataEdgeCount) {
+    return config_.maintenance_target_select_request_window;
+  }
+  return config_.memory_request_window;
+}
+
 void SpineL0Maintenance::update_memory_concurrency_counters(
     const FixedAxiPort *issued_port) {
+  const auto target_task = [](const MemoryTask &task) {
+    return task.purpose == TaskPurpose::kTargetMetadataOccupied ||
+           task.purpose == TaskPurpose::kTargetMetadataEdgeCount;
+  };
+  const std::size_t on_port = inflight_memory_tasks_for_port(issued_port);
+  const std::size_t target_on_port = static_cast<std::size_t>(std::count_if(
+      inflight_tasks_.begin(), inflight_tasks_.end(),
+      [&](const auto &entry) {
+        return entry.second.port == issued_port && target_task(entry.second);
+      }));
+  const std::size_t non_target_on_port = on_port - target_on_port;
   counters_.max_memory_requests_inflight_per_port =
-      std::max(counters_.max_memory_requests_inflight_per_port,
-               inflight_memory_tasks_for_port(issued_port));
+      std::max(counters_.max_memory_requests_inflight_per_port, on_port);
+  counters_.max_non_target_memory_requests_inflight_per_port = std::max(
+      counters_.max_non_target_memory_requests_inflight_per_port,
+      non_target_on_port);
+  counters_.target_selector_max_inflight =
+      std::max(counters_.target_selector_max_inflight, target_on_port);
   counters_.max_active_memory_ports =
       std::max(counters_.max_active_memory_ports, active_memory_ports());
 }
@@ -1122,7 +1161,8 @@ void SpineL0Maintenance::enqueue_task(
     std::vector<std::uint8_t> write_data,
     std::vector<std::uint32_t> carry_edge_sources, bool stream_sorted_scan,
     TaskPurpose purpose, std::uint32_t source, std::size_t carry_stream,
-    std::size_t carry_edge_index) {
+    std::size_t carry_edge_index, std::size_t metadata_family,
+    std::size_t metadata_level) {
   if (bytes == 0) {
     return;
   }
@@ -1150,6 +1190,8 @@ void SpineL0Maintenance::enqueue_task(
       .source = source,
       .carry_stream = carry_stream,
       .carry_edge_index = carry_edge_index,
+      .metadata_family = metadata_family,
+      .metadata_level = metadata_level,
       .stream_sorted_scan = stream_sorted_scan,
       .streamed_read_beats_expected =
           stream_sorted_scan
@@ -1413,6 +1455,9 @@ void SpineL0Maintenance::consume_read_beat(const AxiReadBeatResponse &beat) {
 
 void SpineL0Maintenance::consume_memory_response(const MemoryTask &task,
                                                  const AxiResponse &response) {
+  const bool target_response =
+      task.purpose == TaskPurpose::kTargetMetadataOccupied ||
+      task.purpose == TaskPurpose::kTargetMetadataEdgeCount;
   const bool carry_response =
       task.purpose == TaskPurpose::kCarryNewBatchRead ||
       task.purpose == TaskPurpose::kCarryCursorSliceMetadata ||
@@ -1431,7 +1476,10 @@ void SpineL0Maintenance::consume_memory_response(const MemoryTask &task,
       throw std::logic_error(
           "Spine maintenance write response carried payload");
     }
-    if (carry_response) {
+    if (target_response) {
+      ++counters_.target_selector_validation_failures;
+      throw std::logic_error("Spine target selector issued a metadata write");
+    } else if (carry_response) {
       consume_carry_memory_response(task, response);
     } else if (task.purpose != TaskPurpose::kGeneric) {
       consume_dirty_memory_response(task, response);
@@ -1441,7 +1489,9 @@ void SpineL0Maintenance::consume_memory_response(const MemoryTask &task,
   if (response.read_data.size() != task.bytes) {
     throw std::logic_error("Spine maintenance read response payload mismatch");
   }
-  if (carry_response) {
+  if (target_response) {
+    consume_target_selector_response(task, response);
+  } else if (carry_response) {
     consume_carry_memory_response(task, response);
   } else if (task.purpose != TaskPurpose::kGeneric) {
     consume_dirty_memory_response(task, response);
@@ -1481,17 +1531,161 @@ std::vector<SpineEdgeRecord> SpineL0Maintenance::coalesce_family(
 }
 
 std::size_t SpineL0Maintenance::target_for(bool hot) const {
-  const auto &levels = hot ? state_.hot_levels : state_.cold_levels;
+  const std::size_t family_base = hot ? config_.partitions : 0;
   for (std::size_t level = 0; level < config_.levels; ++level) {
     bool occupied = false;
     for (std::size_t family = 0; family < config_.partitions; ++family) {
-      occupied = occupied || !levels[family][level].empty();
+      const std::size_t logical_family = family_base + family;
+      occupied = occupied || target_occupied_[logical_family][level] != 0 ||
+                 target_edge_counts_[logical_family][level] != 0;
     }
     if (!occupied) {
       return level;
     }
   }
   return config_.levels;
+}
+
+void SpineL0Maintenance::initialize_target_selector(
+    bool hot, const CycleContext &context) {
+  target_scan_hot_ = hot;
+  target_scan_level_ = 0;
+  target_scan_candidate_ = -1;
+  target_scan_start_cycle_ = context.domain_cycle + (hot ? 1 : 0);
+  const std::uint64_t minimum =
+      hot ? config_.maintenance_hot_target_select_min_cycles
+          : config_.maintenance_cold_target_select_min_cycles;
+  target_scan_min_finish_cycle_ = target_scan_start_cycle_ + minimum - 1;
+  const std::size_t family_base = hot ? config_.partitions : 0;
+  for (std::size_t family = 0; family < config_.partitions; ++family) {
+    target_edge_counts_[family_base + family].fill(0);
+    target_occupied_[family_base + family].fill(0);
+    target_metadata_ready_[family_base + family].fill(0);
+  }
+  ++counters_.target_selector_invocations;
+}
+
+void SpineL0Maintenance::enqueue_target_selector_level() {
+  if (target_scan_level_ >= config_.levels) {
+    ++counters_.target_selector_validation_failures;
+    throw std::logic_error("Spine target selector level is out of range");
+  }
+  const std::size_t family_base = target_scan_hot_ ? config_.partitions : 0;
+  for (std::size_t family = 0; family < config_.partitions; ++family) {
+    const std::size_t logical_family = family_base + family;
+    const std::uint64_t slice =
+        logical_family * config_.levels + target_scan_level_;
+    const std::uint64_t base_word = slice * kMetadataWordsPerSlice;
+    enqueue_task(
+        *ports_.metadata, MemoryOperation::kRead,
+        config_.metadata_base +
+            (base_word + kMetadataOccupiedWord) * kMetadataWordBytes,
+        kMetadataWordBytes, TaskClass::kMetadata, {}, {}, false,
+        TaskPurpose::kTargetMetadataOccupied, 0, 0, 0, logical_family,
+        target_scan_level_);
+    enqueue_task(
+        *ports_.metadata, MemoryOperation::kRead,
+        config_.metadata_base +
+            (base_word + kMetadataEdgeCountWord) * kMetadataWordBytes,
+        kMetadataWordBytes, TaskClass::kMetadata, {}, {}, false,
+        TaskPurpose::kTargetMetadataEdgeCount, 0, 0, 0, logical_family,
+        target_scan_level_);
+  }
+  counters_.target_selector_family_iterations += config_.partitions;
+  counters_.target_selector_metadata_reads += config_.partitions * 2;
+}
+
+void SpineL0Maintenance::consume_target_selector_response(
+    const MemoryTask &task, const AxiResponse &response) {
+  if (task.operation != MemoryOperation::kRead ||
+      response.read_data.size() != kMetadataWordBytes ||
+      task.metadata_family >= kSpineFamilyCount ||
+      task.metadata_level >= config_.levels) {
+    ++counters_.target_selector_validation_failures;
+    throw std::logic_error("invalid Spine target-selector metadata response");
+  }
+  const std::uint8_t ready_bit =
+      task.purpose == TaskPurpose::kTargetMetadataOccupied ? 1U : 2U;
+  std::uint8_t &ready =
+      target_metadata_ready_[task.metadata_family][task.metadata_level];
+  if ((ready & ready_bit) != 0) {
+    ++counters_.target_selector_validation_failures;
+    throw std::logic_error("duplicate Spine target-selector metadata response");
+  }
+  const std::uint64_t value = read_u64_le(response.read_data, 0);
+  if (task.purpose == TaskPurpose::kTargetMetadataOccupied) {
+    target_occupied_[task.metadata_family][task.metadata_level] = value;
+  } else {
+    target_edge_counts_[task.metadata_family][task.metadata_level] = value;
+  }
+  ready |= ready_bit;
+  ++counters_.target_selector_responses;
+  counters_.target_selector_payload_read_bytes += response.read_data.size();
+}
+
+void SpineL0Maintenance::resolve_target_selector_level(
+    const CycleContext &context) {
+  const std::size_t family_base = target_scan_hot_ ? config_.partitions : 0;
+  bool occupied = false;
+  for (std::size_t family = 0; family < config_.partitions; ++family) {
+    const std::size_t logical_family = family_base + family;
+    if (target_metadata_ready_[logical_family][target_scan_level_] != 3U) {
+      ++counters_.target_selector_validation_failures;
+      throw std::logic_error("incomplete Spine target-selector metadata level");
+    }
+    occupied = occupied ||
+               target_occupied_[logical_family][target_scan_level_] != 0 ||
+               target_edge_counts_[logical_family][target_scan_level_] != 0;
+  }
+  if (!occupied && target_scan_candidate_ < 0) {
+    target_scan_candidate_ = static_cast<std::int32_t>(target_scan_level_);
+  }
+  ++counters_.target_selector_levels_scanned;
+  ++target_scan_level_;
+  if (target_scan_level_ < config_.levels) {
+    enqueue_target_selector_level();
+    return;
+  }
+  if (context.domain_cycle < target_scan_min_finish_cycle_) {
+    phase_ = Phase::kTargetSelectPadding;
+    return;
+  }
+  finish_target_selector(context);
+}
+
+void SpineL0Maintenance::finish_target_selector(
+    const CycleContext &context) {
+  const std::size_t selected = target_for(target_scan_hot_);
+  const std::size_t candidate =
+      target_scan_candidate_ < 0
+          ? config_.levels
+          : static_cast<std::size_t>(target_scan_candidate_);
+  if (selected != candidate) {
+    ++counters_.target_selector_validation_failures;
+    throw std::logic_error("Spine target-selector reduction mismatch");
+  }
+  if (target_scan_hot_) {
+    counters_.hot_target_level = target_scan_candidate_;
+  } else {
+    counters_.target_level = target_scan_candidate_;
+  }
+  if (target_scan_candidate_ < 0) {
+    failed_ = true;
+    done_ = true;
+    failure_ = target_scan_hot_
+                   ? "Spine hot level hierarchy has no free target"
+                   : "Spine cold level hierarchy has no free target";
+    return;
+  }
+  if (!target_scan_hot_ && state_.hot_enabled) {
+    initialize_target_selector(true, context);
+    enqueue_target_selector_level();
+    phase_ = Phase::kTargetSelectLevelWait;
+    return;
+  }
+  family_index_ = 0;
+  precount_hot_ = false;
+  phase_ = Phase::kPrecountBegin;
 }
 
 std::vector<SpineEdgeRecord> SpineL0Maintenance::merge_family(
@@ -1772,6 +1966,10 @@ void SpineL0Maintenance::consume_dirty_memory_response(
     dirty_hash_xor_ ^= spine_dirty_hash_xor_term(task.source);
     finish_dirty_source_update();
     return;
+  case TaskPurpose::kTargetMetadataOccupied:
+  case TaskPurpose::kTargetMetadataEdgeCount:
+    throw std::logic_error(
+        "target-selector response reached the dirty response handler");
   case TaskPurpose::kCarryNewBatchRead:
   case TaskPurpose::kCarryCursorSliceMetadata:
   case TaskPurpose::kCarryCursorSliceEpoch:
@@ -2829,36 +3027,19 @@ void SpineL0Maintenance::advance(const CycleContext &context) {
     return;
   }
   case Phase::kTargetSelect:
-    enqueue_task(*ports_.metadata, MemoryOperation::kRead,
-                 config_.metadata_base,
-                 config_.partitions * config_.levels * 2 * kMetadataWordBytes,
-                 TaskClass::kMetadata);
-    counters_.target_level = static_cast<std::int32_t>(target_for(false));
-    if (counters_.target_level >= static_cast<std::int32_t>(config_.levels)) {
-      failed_ = true;
-      done_ = true;
-      failure_ = "Spine cold level hierarchy has no free target";
+    initialize_target_selector(false, context);
+    enqueue_target_selector_level();
+    phase_ = Phase::kTargetSelectLevelWait;
+    return;
+  case Phase::kTargetSelectLevelWait:
+    resolve_target_selector_level(context);
+    return;
+  case Phase::kTargetSelectPadding:
+    if (context.domain_cycle < target_scan_min_finish_cycle_) {
+      ++counters_.target_selector_min_padding_cycles;
       return;
     }
-    counters_.hot_target_level = -1;
-    if (state_.hot_enabled) {
-      enqueue_task(*ports_.metadata, MemoryOperation::kRead,
-                   config_.metadata_base + config_.partitions * config_.levels *
-                                               8 * kMetadataWordBytes,
-                   config_.partitions * config_.levels * 2 * kMetadataWordBytes,
-                   TaskClass::kMetadata);
-      counters_.hot_target_level = static_cast<std::int32_t>(target_for(true));
-      if (counters_.hot_target_level >=
-          static_cast<std::int32_t>(config_.levels)) {
-        failed_ = true;
-        done_ = true;
-        failure_ = "Spine hot level hierarchy has no free target";
-        return;
-      }
-    }
-    family_index_ = 0;
-    precount_hot_ = false;
-    phase_ = Phase::kPrecountBegin;
+    finish_target_selector(context);
     return;
   case Phase::kPrecountBegin:
     begin_sorted_scan(Phase::kPrecountProcess, ScanKind::kFamilyPrecount);

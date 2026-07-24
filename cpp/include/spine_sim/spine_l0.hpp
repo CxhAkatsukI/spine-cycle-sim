@@ -72,6 +72,13 @@ struct SpineL0Config {
   // overlap. Values above one remain an explicit same-bundle overlap what-if
   // until every enclosing HLS loop has its own issue/retire model.
   std::size_t memory_request_window{1};
+  // The target selector's metadata loop reaches II=2 because each family
+  // iteration performs two reads on gmem_meta. The accepted synthesis report
+  // has an iteration latency of 16 cycles, so 16 parent reads cover its
+  // maximum source-visible overlap without applying the coarse global window.
+  std::size_t maintenance_target_select_request_window{16};
+  std::size_t maintenance_cold_target_select_min_cycles{562};
+  std::size_t maintenance_hot_target_select_min_cycles{551};
   // The HLS edge loops achieve II=1. Two outstanding 16-beat reads provide 32
   // edge-word credits in the accepted synthesis report.
   std::size_t reader_edge_pipeline_depth{32};
@@ -250,8 +257,19 @@ struct SpineL0Counters {
   std::uint64_t memory_request_fifo_stall_cycles{};
   std::size_t max_memory_requests_inflight{};
   std::size_t max_memory_requests_inflight_per_port{};
+  std::size_t max_non_target_memory_requests_inflight_per_port{};
   std::size_t max_active_memory_ports{};
   std::uint64_t memory_cross_port_overlap_cycles{};
+  std::uint64_t target_selector_invocations{};
+  std::uint64_t target_selector_levels_scanned{};
+  std::uint64_t target_selector_family_iterations{};
+  std::uint64_t target_selector_metadata_reads{};
+  std::uint64_t target_selector_payload_read_bytes{};
+  std::uint64_t target_selector_responses{};
+  std::uint64_t target_selector_cycles{};
+  std::uint64_t target_selector_min_padding_cycles{};
+  std::uint64_t target_selector_validation_failures{};
+  std::size_t target_selector_max_inflight{};
   std::uint64_t cold_input_edges{};
   std::uint64_t hot_input_edges{};
   std::uint64_t carry_level_payload_reads{};
@@ -347,6 +365,8 @@ class SpineL0Maintenance final : public Component {
     kHotColdCountBegin,
     kHotColdCountProcess,
     kTargetSelect,
+    kTargetSelectLevelWait,
+    kTargetSelectPadding,
     kPrecountBegin,
     kPrecountProcess,
     kBuildOutputs,
@@ -379,6 +399,8 @@ class SpineL0Maintenance final : public Component {
     kDirtyBitmapOverflowClear,
     kDirtyListRead,
     kDirtyListWrite,
+    kTargetMetadataOccupied,
+    kTargetMetadataEdgeCount,
     kCarryNewBatchRead,
     kCarryCursorSliceMetadata,
     kCarryCursorSliceEpoch,
@@ -413,6 +435,8 @@ class SpineL0Maintenance final : public Component {
     std::uint32_t source{};
     std::size_t carry_stream{};
     std::size_t carry_edge_index{};
+    std::size_t metadata_family{};
+    std::size_t metadata_level{};
     bool stream_sorted_scan{};
     std::size_t streamed_read_beats_expected{};
     std::size_t streamed_read_beats_received{};
@@ -433,7 +457,9 @@ class SpineL0Maintenance final : public Component {
                     TaskPurpose purpose = TaskPurpose::kGeneric,
                     std::uint32_t source = 0,
                     std::size_t carry_stream = 0,
-                    std::size_t carry_edge_index = 0);
+                    std::size_t carry_edge_index = 0,
+                    std::size_t metadata_family = 0,
+                    std::size_t metadata_level = 0);
   void begin_sorted_scan(Phase process_phase, ScanKind kind);
   [[nodiscard]] bool process_scan_edge(const CycleContext &context);
   [[nodiscard]] bool scan_process_phase() const noexcept;
@@ -459,6 +485,15 @@ class SpineL0Maintenance final : public Component {
   void consume_dirty_memory_response(const MemoryTask &task,
                                      const AxiResponse &response);
   void initialize_metadata_payload();
+  void initialize_target_selector(bool hot, const CycleContext &context);
+  void enqueue_target_selector_level();
+  void resolve_target_selector_level(const CycleContext &context);
+  void finish_target_selector(const CycleContext &context);
+  void consume_target_selector_response(const MemoryTask &task,
+                                        const AxiResponse &response);
+  [[nodiscard]] bool target_selector_phase() const noexcept;
+  [[nodiscard]] std::size_t
+  memory_request_window_for(const MemoryTask &task) const noexcept;
   void enqueue_committed_metadata();
   void build_family_outputs();
   void initialize_carry_engine(const FamilyWriteTask &task);
@@ -601,6 +636,12 @@ class SpineL0Maintenance final : public Component {
   std::array<std::array<std::uint32_t, kSpineLevelCount>, kSpineFamilyCount>
       page_list_counts_{};
   std::unordered_map<std::uint64_t, std::uint32_t> page_epochs_;
+  std::array<std::array<std::uint64_t, kSpineLevelCount>, kSpineFamilyCount>
+      target_edge_counts_{};
+  std::array<std::array<std::uint64_t, kSpineLevelCount>, kSpineFamilyCount>
+      target_occupied_{};
+  std::array<std::array<std::uint8_t, kSpineLevelCount>, kSpineFamilyCount>
+      target_metadata_ready_{};
   std::vector<FamilyWriteTask> family_write_tasks_;
   std::deque<MemoryTask> tasks_;
   std::unordered_map<std::uint64_t, MemoryTask> inflight_tasks_;
@@ -626,6 +667,11 @@ class SpineL0Maintenance final : public Component {
   std::size_t family_index_{};
   std::size_t active_family_index_{};
   bool precount_hot_{};
+  bool target_scan_hot_{};
+  std::size_t target_scan_level_{};
+  std::int32_t target_scan_candidate_{-1};
+  std::uint64_t target_scan_start_cycle_{};
+  std::uint64_t target_scan_min_finish_cycle_{};
   std::uint64_t next_transaction_id_{};
   bool done_{};
   bool failed_{};
