@@ -9,6 +9,7 @@ from scripts.run_sst_spine_vertical import (
     validate_carry_hot_result,
     validate_fallback_result,
     validate_full_compute_result,
+    validate_full_pagerank_result,
     validate_multiround_sssp_result,
     validate_protocol_window_result,
     validate_result,
@@ -19,6 +20,83 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class SstSpineVerticalValidationTests(unittest.TestCase):
+    def test_full_pagerank_result_closes_algorithm_and_dram_ledgers(self) -> None:
+        result = {
+            "success": True,
+            "mode": "spine_pagerank",
+            "timing_evidence": "provisional_algorithm_pipeline",
+            "vertices": 4,
+            "input_edges": 4,
+            "pagerank_iterations": 2,
+            "pagerank_completed_iterations": 2,
+            "iteration_cycles": [100, 80],
+            "correctness_mismatches": 0,
+            "max_abs_error": 1.0e-7,
+            "ranks": [0.17, 0.21, 0.45, 0.17],
+            "reference_ranks": [0.17, 0.21, 0.45, 0.17],
+            "rank_sum": 1.0,
+            "maintenance_persisted_edges": 4,
+            "maintenance_cycles": 50,
+            "reader_edges": 4,
+            "reader_graph_payload_bytes": 64,
+            "reader_source_requests": 4,
+            "reader_source_responses": 4,
+            "reader_source_windows": 1,
+            "reader_protocol_status": 0,
+            "compute_edges": 4,
+            "compute_vertices_applied": 4,
+            "compute_memory_requests": 16,
+            "source_map_operations": 4,
+            "reduce_operations": 8,
+            "apply_operations": 4,
+            "edge_axis_transfers": 24,
+            "value_axis_transfers": 5,
+            "backend_requests": 90,
+        }
+        dram = {"dram_reads": 70, "dram_writes": 20, "dram_channels": 32}
+        self.assertEqual(
+            validate_full_pagerank_result(result, dram, channels=32), []
+        )
+
+    def test_full_pagerank_result_rejects_wrong_rank(self) -> None:
+        result = {
+            "success": True,
+            "mode": "spine_pagerank",
+            "timing_evidence": "provisional_algorithm_pipeline",
+            "vertices": 4,
+            "input_edges": 4,
+            "pagerank_iterations": 2,
+            "pagerank_completed_iterations": 2,
+            "iteration_cycles": [100, 80],
+            "correctness_mismatches": 0,
+            "max_abs_error": 0.0,
+            "ranks": [0.25, 0.25, 0.25, 0.25],
+            "reference_ranks": [0.25, 0.25, 0.25, 0.25],
+            "rank_sum": 1.0,
+            "maintenance_persisted_edges": 4,
+            "maintenance_cycles": 50,
+            "reader_edges": 4,
+            "reader_graph_payload_bytes": 64,
+            "reader_source_requests": 4,
+            "reader_source_responses": 4,
+            "reader_source_windows": 1,
+            "reader_protocol_status": 0,
+            "compute_edges": 4,
+            "compute_vertices_applied": 4,
+            "compute_memory_requests": 16,
+            "source_map_operations": 4,
+            "reduce_operations": 8,
+            "apply_operations": 4,
+            "edge_axis_transfers": 24,
+            "value_axis_transfers": 5,
+            "backend_requests": 90,
+        }
+        dram = {"dram_reads": 70, "dram_writes": 20, "dram_channels": 32}
+        self.assertIn(
+            "known_two_iteration_result",
+            validate_full_pagerank_result(result, dram, channels=32),
+        )
+
     def test_compute_only_result_skips_maintenance_profile(self) -> None:
         expected = {"maintenance_count_scan_ii": 1}
         self.assertTrue(

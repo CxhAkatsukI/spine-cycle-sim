@@ -40,6 +40,48 @@ probe.addParams(
         "channel_capacity_bytes": channel_bytes,
         "max_cycles": int(os.environ.get("SPINE_SST_MAX_CYCLES", "1000000")),
         "max_rounds": int(os.environ.get("SPINE_SST_MAX_ROUNDS", "256")),
+        "pagerank_iterations": int(
+            os.environ.get("SPINE_SST_PAGERANK_ITERATIONS", "1")
+        ),
+        "pagerank_damping": float(
+            os.environ.get("SPINE_SST_PAGERANK_DAMPING", "0.85")
+        ),
+        "pagerank_source_latency": int(
+            os.environ.get("SPINE_SST_PAGERANK_SOURCE_LATENCY", "3")
+        ),
+        "pagerank_source_ii": int(
+            os.environ.get("SPINE_SST_PAGERANK_SOURCE_II", "1")
+        ),
+        "pagerank_source_capacity": int(
+            os.environ.get("SPINE_SST_PAGERANK_SOURCE_CAPACITY", "4")
+        ),
+        "pagerank_edge_latency": int(
+            os.environ.get("SPINE_SST_PAGERANK_EDGE_LATENCY", "1")
+        ),
+        "pagerank_edge_ii": int(
+            os.environ.get("SPINE_SST_PAGERANK_EDGE_II", "1")
+        ),
+        "pagerank_edge_capacity": int(
+            os.environ.get("SPINE_SST_PAGERANK_EDGE_CAPACITY", "4")
+        ),
+        "pagerank_reduce_latency": int(
+            os.environ.get("SPINE_SST_PAGERANK_REDUCE_LATENCY", "2")
+        ),
+        "pagerank_reduce_ii": int(
+            os.environ.get("SPINE_SST_PAGERANK_REDUCE_II", "1")
+        ),
+        "pagerank_reduce_capacity": int(
+            os.environ.get("SPINE_SST_PAGERANK_REDUCE_CAPACITY", "8")
+        ),
+        "pagerank_apply_latency": int(
+            os.environ.get("SPINE_SST_PAGERANK_APPLY_LATENCY", "3")
+        ),
+        "pagerank_apply_ii": int(
+            os.environ.get("SPINE_SST_PAGERANK_APPLY_II", "1")
+        ),
+        "pagerank_apply_capacity": int(
+            os.environ.get("SPINE_SST_PAGERANK_APPLY_CAPACITY", "8")
+        ),
         "device_dirty_source_limit": int(
             os.environ.get("SPINE_SST_DEVICE_DIRTY_SOURCE_LIMIT", "4096")
         ),

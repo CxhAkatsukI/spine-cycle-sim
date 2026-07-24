@@ -3,6 +3,7 @@
 // clang-format on
 
 #include <algorithm>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <deque>
@@ -38,6 +39,48 @@ struct SsspReference {
   std::vector<std::vector<std::uint32_t>> frontiers;
   bool converged{};
 };
+
+std::vector<float> run_full_pagerank_reference(const SpineEdgeSlice &workload,
+                                               float damping,
+                                               std::size_t iterations) {
+  std::vector<std::vector<std::uint32_t>> adjacency(workload.vertices);
+  std::vector<std::uint32_t> out_degrees(workload.vertices, 0);
+  for (const SpineEdgeRecord &edge : workload.edges) {
+    if (edge.diff <= 0 || edge.src >= workload.vertices ||
+        edge.dst >= workload.vertices) {
+      throw std::invalid_argument(
+          "PageRank SST reference requires in-range insertion edges");
+    }
+    adjacency[edge.src].push_back(edge.dst);
+    ++out_degrees[edge.src];
+  }
+  std::vector<float> ranks(workload.vertices,
+                           1.0F / static_cast<float>(workload.vertices));
+  for (std::size_t iteration = 0; iteration < iterations; ++iteration) {
+    float dangling_mass = 0.0F;
+    for (std::size_t vertex = 0; vertex < workload.vertices; ++vertex) {
+      if (out_degrees[vertex] == 0) {
+        dangling_mass += ranks[vertex];
+      }
+    }
+    const float base = (1.0F - damping) / static_cast<float>(workload.vertices);
+    const float dangling_share =
+        damping * dangling_mass / static_cast<float>(workload.vertices);
+    std::vector<float> next(workload.vertices, base + dangling_share);
+    for (std::size_t source = 0; source < workload.vertices; ++source) {
+      if (out_degrees[source] == 0) {
+        continue;
+      }
+      const float contribution =
+          damping * ranks[source] / static_cast<float>(out_degrees[source]);
+      for (const std::uint32_t destination : adjacency[source]) {
+        next[destination] += contribution;
+      }
+    }
+    ranks = std::move(next);
+  }
+  return ranks;
+}
 
 SpineAxiInterfaceProfile spine_axi_profile_from_id(const std::string &id) {
   if (id == "hls_split_9c08763") {
@@ -569,6 +612,36 @@ class OnlineMemoryProbe final : public SST::Component {
     write_percent_ = params.find<std::uint32_t>("write_percent", 0);
     max_cycles_ = params.find<std::uint64_t>("max_cycles", 1'000'000);
     max_rounds_ = params.find<std::size_t>("max_rounds", 256);
+    pagerank_iterations_ = params.find<std::size_t>("pagerank_iterations", 1);
+    pagerank_damping_ = params.find<float>("pagerank_damping", 0.85F);
+    pagerank_pipeline_config_.source_map = {
+        .latency_cycles =
+            params.find<std::uint64_t>("pagerank_source_latency", 3),
+        .initiation_interval =
+            params.find<std::uint64_t>("pagerank_source_ii", 1),
+        .capacity = params.find<std::size_t>("pagerank_source_capacity", 4),
+    };
+    pagerank_pipeline_config_.edge_map = {
+        .latency_cycles =
+            params.find<std::uint64_t>("pagerank_edge_latency", 1),
+        .initiation_interval =
+            params.find<std::uint64_t>("pagerank_edge_ii", 1),
+        .capacity = params.find<std::size_t>("pagerank_edge_capacity", 4),
+    };
+    pagerank_pipeline_config_.reduce = {
+        .latency_cycles =
+            params.find<std::uint64_t>("pagerank_reduce_latency", 2),
+        .initiation_interval =
+            params.find<std::uint64_t>("pagerank_reduce_ii", 1),
+        .capacity = params.find<std::size_t>("pagerank_reduce_capacity", 8),
+    };
+    pagerank_pipeline_config_.apply = {
+        .latency_cycles =
+            params.find<std::uint64_t>("pagerank_apply_latency", 3),
+        .initiation_interval =
+            params.find<std::uint64_t>("pagerank_apply_ii", 1),
+        .capacity = params.find<std::size_t>("pagerank_apply_capacity", 8),
+    };
     device_dirty_source_limit_ =
         params.find<std::size_t>("device_dirty_source_limit", 4'096);
     range_task_active_gate_ =
@@ -613,8 +686,22 @@ class OnlineMemoryProbe final : public SST::Component {
         params.find<std::string>("spine_axi_profile", "hls_split_9c08763");
     if ((mode_ != "probe" && mode_ != "payload_roundtrip" &&
          mode_ != "spine_vertical" && mode_ != "spine_compute" &&
-         mode_ != "spine_sssp") ||
+         mode_ != "spine_sssp" && mode_ != "spine_pagerank") ||
         channels_ == 0 || channel_capacity_bytes_ == 0 || max_rounds_ == 0 ||
+        pagerank_iterations_ == 0 || !(pagerank_damping_ > 0.0F) ||
+        !(pagerank_damping_ < 1.0F) ||
+        pagerank_pipeline_config_.source_map.latency_cycles == 0 ||
+        pagerank_pipeline_config_.source_map.initiation_interval == 0 ||
+        pagerank_pipeline_config_.source_map.capacity == 0 ||
+        pagerank_pipeline_config_.edge_map.latency_cycles == 0 ||
+        pagerank_pipeline_config_.edge_map.initiation_interval == 0 ||
+        pagerank_pipeline_config_.edge_map.capacity == 0 ||
+        pagerank_pipeline_config_.reduce.latency_cycles == 0 ||
+        pagerank_pipeline_config_.reduce.initiation_interval == 0 ||
+        pagerank_pipeline_config_.reduce.capacity == 0 ||
+        pagerank_pipeline_config_.apply.latency_cycles == 0 ||
+        pagerank_pipeline_config_.apply.initiation_interval == 0 ||
+        pagerank_pipeline_config_.apply.capacity == 0 ||
         device_dirty_source_limit_ == 0 || range_task_active_gate_ == 0 ||
         range_task_capacity_ == 0 || range_task_capacity_ > 65'536 ||
         range_task_payload_budget_ == 0 || fallback_replay_threshold_ == 0 ||
@@ -635,7 +722,7 @@ class OnlineMemoryProbe final : public SST::Component {
         (mode_ == "probe" &&
          (request_count_ == 0 || request_bytes_ == 0 || stride_bytes_ == 0)) ||
         ((mode_ == "spine_vertical" || mode_ == "spine_compute" ||
-          mode_ == "spine_sssp") &&
+          mode_ == "spine_sssp" || mode_ == "spine_pagerank") &&
          (channels_ < 23 || workload_path_.empty()))) {
       output_.fatal(CALL_INFO, -1, "invalid online memory probe parameters\n");
     }
@@ -680,6 +767,51 @@ class OnlineMemoryProbe final : public SST::Component {
     const ClockId core = scheduler_.add_clock_mhz("core", core_mhz_);
     backend_ = std::make_unique<SstMemoryBackend>(
         core, interfaces_, channel_capacity_bytes_, 1, 32, 128);
+    if (mode_ == "spine_pagerank") {
+      SpineEdgeSlice workload = load_spine_edge_slice(workload_path_);
+      spine_expected_edges_ = workload.edges.size();
+      pagerank_reference_ = run_full_pagerank_reference(
+          workload, pagerank_damping_, pagerank_iterations_);
+      SpineL0Config maintenance_config;
+      maintenance_config.device_dirty_source_limit = device_dirty_source_limit_;
+      maintenance_config.range_task_active_gate = range_task_active_gate_;
+      maintenance_config.range_task_capacity = range_task_capacity_;
+      maintenance_config.range_task_payload_budget = range_task_payload_budget_;
+      maintenance_config.fallback_replay_threshold = fallback_replay_threshold_;
+      maintenance_config.memory_request_window = memory_request_window_;
+      maintenance_config.reader_edge_pipeline_depth =
+          reader_edge_pipeline_depth_;
+      maintenance_config.reader_edge_response_capacity =
+          reader_edge_response_capacity_;
+      maintenance_config.maintenance_count_scan_ii = maintenance_count_scan_ii_;
+      maintenance_config.maintenance_count_scan_tail_cycles =
+          maintenance_count_scan_tail_cycles_;
+      maintenance_config.maintenance_l0_write_scan_ii =
+          maintenance_l0_write_scan_ii_;
+      maintenance_config.maintenance_l0_write_scan_tail_cycles =
+          maintenance_l0_write_scan_tail_cycles_;
+      maintenance_config.maintenance_scan_response_capacity =
+          maintenance_scan_response_capacity_;
+      if (!hot_vertices_text_.empty()) {
+        std::istringstream vertices(hot_vertices_text_);
+        std::string item;
+        while (std::getline(vertices, item, ',')) {
+          if (item.empty()) {
+            output_.fatal(CALL_INFO, -1, "empty hot vertex token\n");
+          }
+          maintenance_config.hot_vertices.push_back(
+              static_cast<std::uint32_t>(std::stoul(item)));
+        }
+      }
+      pagerank_system_ = std::make_unique<SpinePageRankVerticalSliceSystem>(
+          scheduler_, core, *backend_, std::move(workload), pagerank_damping_,
+          std::move(maintenance_config), spine_axi_profile_,
+          pagerank_pipeline_config_, compute_memory_request_window_);
+      pagerank_system_->register_components();
+      pagerank_iteration_start_cycle_ = scheduler_.clock(core).completed_cycles;
+      scheduler_.add_component(*backend_);
+      return;
+    }
     if (mode_ == "spine_compute") {
       const SpineEdgeSlice workload = load_spine_edge_slice(workload_path_);
       std::map<std::uint32_t, std::vector<SpineEdgeRecord>> tiles;
@@ -897,7 +1029,25 @@ class OnlineMemoryProbe final : public SST::Component {
 
   bool clock_tick(SST::Cycle_t) {
     scheduler_.step();
-    if (mode_ == "spine_compute") {
+    if (mode_ == "spine_pagerank") {
+      if (pagerank_system_->done() && pagerank_system_->idle() &&
+          backend_->outstanding() == 0) {
+        const std::uint64_t now = scheduler_.clock(0).completed_cycles;
+        pagerank_iteration_cycles_.push_back(now -
+                                             pagerank_iteration_start_cycle_);
+        ++pagerank_completed_iterations_;
+        if (!pagerank_system_->failed() &&
+            pagerank_completed_iterations_ < pagerank_iterations_) {
+          pagerank_system_->restart_iteration();
+          pagerank_iteration_start_cycle_ = now;
+          return false;
+        }
+        write_result(!pagerank_system_->failed() &&
+                     pagerank_completed_iterations_ == pagerank_iterations_);
+        primaryComponentOKToEndSim();
+        return true;
+      }
+    } else if (mode_ == "spine_compute") {
       if (spine_word_source_->done() && spine_compute_->done() &&
           spine_edge_stream_->empty() && spine_vertex_state_->idle() &&
           spine_active_out_->idle() && spine_active_bitmap_->idle() &&
@@ -1031,7 +1181,8 @@ class OnlineMemoryProbe final : public SST::Component {
   SST_ELI_DOCUMENT_PARAMS(
       {"output", "JSON result path", "sst_memory_probe.json"},
       {"mode",
-       "probe, payload_roundtrip, spine_vertical, spine_compute, or spine_sssp",
+       "probe, payload_roundtrip, spine_vertical, spine_compute, spine_sssp, or "
+       "spine_pagerank",
        "probe"},
       {"workload", "Spine .slice workload path", ""},
       {"preload_workload", "Optional pre-existing Spine L0 .slice", ""},
@@ -1048,6 +1199,20 @@ class OnlineMemoryProbe final : public SST::Component {
       {"write_percent", "Deterministic write percentage", "0"},
       {"max_cycles", "Core-cycle timeout", "1000000"},
       {"max_rounds", "Maximum SSSP frontier rounds", "256"},
+      {"pagerank_iterations", "Full PageRank iteration count", "1"},
+      {"pagerank_damping", "Full PageRank damping factor", "0.85"},
+      {"pagerank_source_latency", "PageRank source-map latency", "3"},
+      {"pagerank_source_ii", "PageRank source-map initiation interval", "1"},
+      {"pagerank_source_capacity", "PageRank source-map capacity", "4"},
+      {"pagerank_edge_latency", "PageRank edge-map latency", "1"},
+      {"pagerank_edge_ii", "PageRank edge-map initiation interval", "1"},
+      {"pagerank_edge_capacity", "PageRank edge-map capacity", "4"},
+      {"pagerank_reduce_latency", "PageRank reduce latency", "2"},
+      {"pagerank_reduce_ii", "PageRank reduce initiation interval", "1"},
+      {"pagerank_reduce_capacity", "PageRank reduce capacity", "8"},
+      {"pagerank_apply_latency", "PageRank apply latency", "3"},
+      {"pagerank_apply_ii", "PageRank apply initiation interval", "1"},
+      {"pagerank_apply_capacity", "PageRank apply capacity", "8"},
       {"device_dirty_source_limit", "DEVICE_DIRTY source capacity", "4096"},
       {"range_task_active_gate", "Exact-reader active-record gate", "16384"},
       {"range_task_capacity", "Exact-reader descriptor capacity", "65536"},
@@ -1095,6 +1260,150 @@ class OnlineMemoryProbe final : public SST::Component {
     }
     result_written_ = true;
     std::ofstream result(result_path_);
+    if (mode_ == "spine_pagerank") {
+      std::vector<float> actual;
+      actual.reserve(pagerank_system_->compute().rank_words().size());
+      float rank_sum = 0.0F;
+      float max_abs_error = 0.0F;
+      std::uint64_t mismatches = 0;
+      for (std::size_t vertex = 0;
+           vertex < pagerank_system_->compute().rank_words().size(); ++vertex) {
+        const float rank = GraphAlgorithmPolicy::word_to_float(
+            pagerank_system_->compute().rank_words()[vertex]);
+        actual.push_back(rank);
+        rank_sum += rank;
+        if (vertex >= pagerank_reference_.size()) {
+          ++mismatches;
+          continue;
+        }
+        const float error = std::fabs(rank - pagerank_reference_[vertex]);
+        max_abs_error = std::max(max_abs_error, error);
+        if (error > 1.0e-5F) {
+          ++mismatches;
+        }
+      }
+      const auto &maintenance = pagerank_system_->maintenance_counters();
+      const auto &reader = pagerank_system_->reader_counters();
+      const auto &compute = pagerank_system_->compute_counters();
+      const auto &pipeline = pagerank_system_->compute().pipeline_counters();
+      const bool passed = success &&
+                          actual.size() == pagerank_reference_.size() &&
+                          mismatches == 0 && max_abs_error <= 1.0e-5F;
+      result
+          << "{\n"
+          << "  \"success\": " << (passed ? "true" : "false") << ",\n"
+          << "  \"mode\": \"spine_pagerank\",\n"
+          << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
+          << "  \"spine_axi_profile\": \"" << spine_axi_profile_id_ << "\",\n"
+          << "  \"timing_evidence\": \"provisional_algorithm_pipeline\",\n"
+          << "  \"cycles\": " << scheduler_.clock(0).completed_cycles << ",\n"
+          << "  \"input_edges\": " << spine_expected_edges_ << ",\n"
+          << "  \"vertices\": " << actual.size() << ",\n"
+          << "  \"pagerank_iterations\": " << pagerank_iterations_ << ",\n"
+          << "  \"pagerank_completed_iterations\": "
+          << pagerank_completed_iterations_ << ",\n"
+          << "  \"pagerank_damping\": " << pagerank_damping_ << ",\n"
+          << "  \"pagerank_source_latency\": "
+          << pagerank_pipeline_config_.source_map.latency_cycles << ",\n"
+          << "  \"pagerank_source_ii\": "
+          << pagerank_pipeline_config_.source_map.initiation_interval << ",\n"
+          << "  \"pagerank_source_capacity\": "
+          << pagerank_pipeline_config_.source_map.capacity << ",\n"
+          << "  \"pagerank_edge_latency\": "
+          << pagerank_pipeline_config_.edge_map.latency_cycles << ",\n"
+          << "  \"pagerank_edge_ii\": "
+          << pagerank_pipeline_config_.edge_map.initiation_interval << ",\n"
+          << "  \"pagerank_edge_capacity\": "
+          << pagerank_pipeline_config_.edge_map.capacity << ",\n"
+          << "  \"pagerank_reduce_latency\": "
+          << pagerank_pipeline_config_.reduce.latency_cycles << ",\n"
+          << "  \"pagerank_reduce_ii\": "
+          << pagerank_pipeline_config_.reduce.initiation_interval << ",\n"
+          << "  \"pagerank_reduce_capacity\": "
+          << pagerank_pipeline_config_.reduce.capacity << ",\n"
+          << "  \"pagerank_apply_latency\": "
+          << pagerank_pipeline_config_.apply.latency_cycles << ",\n"
+          << "  \"pagerank_apply_ii\": "
+          << pagerank_pipeline_config_.apply.initiation_interval << ",\n"
+          << "  \"pagerank_apply_capacity\": "
+          << pagerank_pipeline_config_.apply.capacity << ",\n"
+          << "  \"compute_memory_request_window\": "
+          << compute_memory_request_window_ << ",\n"
+          << "  \"maintenance_count_scan_ii\": " << maintenance_count_scan_ii_
+          << ",\n"
+          << "  \"maintenance_count_scan_tail_cycles\": "
+          << maintenance_count_scan_tail_cycles_ << ",\n"
+          << "  \"maintenance_l0_write_scan_ii\": "
+          << maintenance_l0_write_scan_ii_ << ",\n"
+          << "  \"maintenance_l0_write_scan_tail_cycles\": "
+          << maintenance_l0_write_scan_tail_cycles_ << ",\n"
+          << "  \"maintenance_scan_response_capacity\": "
+          << maintenance_scan_response_capacity_ << ",\n"
+          << "  \"correctness_mismatches\": " << mismatches << ",\n"
+          << "  \"max_abs_error\": " << max_abs_error << ",\n"
+          << "  \"rank_sum\": " << rank_sum << ",\n"
+          << "  \"maintenance_cycles\": "
+          << maintenance.end_cycle - maintenance.start_cycle << ",\n"
+          << "  \"maintenance_persisted_edges\": "
+          << maintenance.persisted_edges << ",\n"
+          << "  \"reader_edges\": " << reader.edges_emitted << ",\n"
+          << "  \"reader_graph_payload_bytes\": "
+          << reader.graph_edge_payload_read_bytes << ",\n"
+          << "  \"reader_source_requests\": " << reader.source_requests << ",\n"
+          << "  \"reader_source_responses\": " << reader.source_responses
+          << ",\n"
+          << "  \"reader_source_windows\": " << reader.source_request_windows
+          << ",\n"
+          << "  \"reader_protocol_status\": " << reader.source_protocol_status
+          << ",\n"
+          << "  \"compute_edges\": " << compute.edges_received << ",\n"
+          << "  \"compute_vertices_applied\": " << compute.vertices_applied
+          << ",\n"
+          << "  \"compute_memory_requests\": " << compute.memory_requests_issued
+          << ",\n"
+          << "  \"compute_primary_read_bytes\": " << compute.primary_read_bytes
+          << ",\n"
+          << "  \"compute_primary_write_bytes\": "
+          << compute.primary_write_bytes << ",\n"
+          << "  \"compute_degree_read_bytes\": " << compute.degree_read_bytes
+          << ",\n"
+          << "  \"source_map_operations\": " << pipeline.source_map.completed
+          << ",\n"
+          << "  \"reduce_operations\": " << pipeline.reduce.completed << ",\n"
+          << "  \"apply_operations\": " << pipeline.apply.completed << ",\n"
+          << "  \"edge_axis_transfers\": "
+          << pagerank_system_->edge_stream_stats().pushes << ",\n"
+          << "  \"edge_axis_push_stalls\": "
+          << pagerank_system_->edge_stream_stats().push_stalls << ",\n"
+          << "  \"value_axis_transfers\": "
+          << pagerank_system_->value_stream_stats().pushes << ",\n"
+          << "  \"dangling_mass\": "
+          << pagerank_system_->compute().dangling_mass() << ",\n"
+          << "  \"dangling_share\": "
+          << pagerank_system_->compute().dangling_share() << ",\n"
+          << "  \"iteration_error\": "
+          << pagerank_system_->compute().iteration_error() << ",\n"
+          << "  \"backend_requests\": " << backend_->accepted() << ",\n"
+          << "  \"backend_submit_stalls\": " << backend_->submit_stalls()
+          << ",\n"
+          << "  \"backend_response_queue_stalls\": "
+          << backend_->response_queue_stalls() << ",\n"
+          << "  \"backend_max_outstanding\": " << backend_->max_outstanding()
+          << ",\n"
+          << "  \"iteration_cycles\": ";
+      write_json_array(result, pagerank_iteration_cycles_);
+      result << ",\n  \"ranks\": ";
+      write_json_array(result, actual);
+      result << ",\n  \"reference_ranks\": ";
+      write_json_array(result, pagerank_reference_);
+      result << "\n}\n";
+      output_.output(
+          "completed %zu SST Full PageRank iteration(s) in %llu cycles -> %s\n",
+          pagerank_completed_iterations_,
+          static_cast<unsigned long long>(scheduler_.clock(0).completed_cycles),
+          result_path_.c_str());
+      return;
+    }
     if (mode_ == "payload_roundtrip") {
       const auto &stats = axi_->stats();
       const bool passed = success && !payload_round_trip_->failed() &&
@@ -3055,6 +3364,9 @@ class OnlineMemoryProbe final : public SST::Component {
   std::uint32_t write_percent_{};
   std::uint64_t max_cycles_{};
   std::size_t max_rounds_{};
+  std::size_t pagerank_iterations_{};
+  float pagerank_damping_{};
+  AlgorithmPipelineConfig pagerank_pipeline_config_;
   std::size_t device_dirty_source_limit_{};
   std::size_t range_task_active_gate_{};
   std::size_t range_task_capacity_{};
@@ -3085,6 +3397,7 @@ class OnlineMemoryProbe final : public SST::Component {
   std::unique_ptr<ProbeSink> sink_;
   std::unique_ptr<PayloadRoundTrip> payload_round_trip_;
   std::unique_ptr<SpineVerticalSliceSystem> spine_system_;
+  std::unique_ptr<SpinePageRankVerticalSliceSystem> pagerank_system_;
   std::unique_ptr<Fifo<PartConvWord>> spine_edge_stream_;
   std::unique_ptr<Fifo<SourceValueWord>> spine_value_stream_;
   std::unique_ptr<SpineWordSource> spine_word_source_;
@@ -3094,6 +3407,10 @@ class OnlineMemoryProbe final : public SST::Component {
   std::unique_ptr<FixedAxiPort> spine_active_bitmap_;
   std::unique_ptr<FixedAxiPort> spine_compute_result_;
   SsspReference sssp_reference_;
+  std::vector<float> pagerank_reference_;
+  std::vector<std::uint64_t> pagerank_iteration_cycles_;
+  std::uint64_t pagerank_iteration_start_cycle_{};
+  std::size_t pagerank_completed_iterations_{};
   std::vector<SpineSsspRoundEvidence> sst_rounds_;
   std::vector<SpineHostHandoffEvidence> sst_host_handoffs_;
   std::vector<std::uint32_t> sst_current_frontier_;

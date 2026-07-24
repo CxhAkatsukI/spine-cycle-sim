@@ -21,6 +21,9 @@ DEFAULT_FULL_WORKLOAD = (
     ROOT / "tests" / "data" / "amazon_densewin8192_active7893_exact.slice"
 )
 DEFAULT_SSSP_WORKLOAD = ROOT / "tests" / "data" / "weighted_chain_shortcut.slice"
+DEFAULT_PAGERANK_WORKLOAD = (
+    ROOT / "tests" / "data" / "pagerank_four_vertex.slice"
+)
 DEFAULT_PROTOCOL_WORKLOAD = (
     ROOT / "tests" / "data" / "source_protocol_window_17.slice"
 )
@@ -458,6 +461,62 @@ def validate_full_compute_result(
     return [name for name, passed in checks.items() if not passed]
 
 
+def validate_full_pagerank_result(
+    result: dict[str, Any], dram: dict[str, int | float], *, channels: int
+) -> list[str]:
+    ranks = result.get("ranks", [])
+    reference = result.get("reference_ranks", [])
+    expected = [0.17, 0.21, 0.45, 0.17]
+    checks = {
+        "success": result.get("success") is True,
+        "mode": result.get("mode") == "spine_pagerank",
+        "algorithm_timing_label": result.get("timing_evidence")
+        == "provisional_algorithm_pipeline",
+        "input_shape": result.get("vertices") == 4
+        and result.get("input_edges") == 4,
+        "iterations": result.get("pagerank_iterations", 0) > 0
+        and result.get("pagerank_completed_iterations")
+        == result.get("pagerank_iterations")
+        and len(result.get("iteration_cycles", []))
+        == result.get("pagerank_iterations")
+        and all(cycles > 0 for cycles in result.get("iteration_cycles", [])),
+        "correctness": result.get("correctness_mismatches") == 0
+        and result.get("max_abs_error", 1.0) <= 1.0e-5
+        and len(ranks) == len(reference) == 4
+        and all(
+            abs(actual - wanted) <= 1.0e-5
+            for actual, wanted in zip(ranks, reference)
+        )
+        and abs(result.get("rank_sum", 0.0) - 1.0) <= 1.0e-5,
+        "known_two_iteration_result": result.get("pagerank_iterations") != 2
+        or all(
+            abs(actual - wanted) <= 1.0e-5
+            for actual, wanted in zip(ranks, expected)
+        ),
+        "maintenance_once": result.get("maintenance_persisted_edges") == 4
+        and result.get("maintenance_cycles", 0) > 0,
+        "reader": result.get("reader_edges") == 4
+        and result.get("reader_graph_payload_bytes") == 64
+        and result.get("reader_source_requests") == 4
+        and result.get("reader_source_responses") == 4
+        and result.get("reader_source_windows") == 1
+        and result.get("reader_protocol_status") == 0,
+        "compute": result.get("compute_edges") == 4
+        and result.get("compute_vertices_applied") == 4
+        and result.get("compute_memory_requests") == 16
+        and result.get("source_map_operations") == 4
+        and result.get("reduce_operations") == 8
+        and result.get("apply_operations") == 4,
+        "axis": result.get("edge_axis_transfers") == 24
+        and result.get("value_axis_transfers") == 5,
+        "dram_matches_backend": int(dram.get("dram_reads", 0))
+        + int(dram.get("dram_writes", 0))
+        == result.get("backend_requests"),
+        "channel_count": dram.get("dram_channels") == channels,
+    }
+    return [name for name, passed in checks.items() if not passed]
+
+
 def validate_multiround_sssp_result(
     result: dict[str, Any], dram: dict[str, int | float], *, channels: int
 ) -> list[str]:
@@ -716,6 +775,7 @@ def parse_args() -> argparse.Namespace:
             "amazon_l0",
             "carry_hot",
             "amazon_full_compute",
+            "full_pagerank",
             "weighted_sssp",
             "protocol_window",
             "fallback_capacity",
@@ -726,6 +786,20 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--preload", type=Path)
     parser.add_argument("--hot-vertices", default="")
     parser.add_argument("--source", type=int)
+    parser.add_argument("--pagerank-iterations", type=int, default=2)
+    parser.add_argument("--pagerank-damping", type=float, default=0.8)
+    parser.add_argument("--pagerank-source-latency", type=int, default=3)
+    parser.add_argument("--pagerank-source-ii", type=int, default=1)
+    parser.add_argument("--pagerank-source-capacity", type=int, default=4)
+    parser.add_argument("--pagerank-edge-latency", type=int, default=1)
+    parser.add_argument("--pagerank-edge-ii", type=int, default=1)
+    parser.add_argument("--pagerank-edge-capacity", type=int, default=4)
+    parser.add_argument("--pagerank-reduce-latency", type=int, default=2)
+    parser.add_argument("--pagerank-reduce-ii", type=int, default=1)
+    parser.add_argument("--pagerank-reduce-capacity", type=int, default=8)
+    parser.add_argument("--pagerank-apply-latency", type=int, default=3)
+    parser.add_argument("--pagerank-apply-ii", type=int, default=1)
+    parser.add_argument("--pagerank-apply-capacity", type=int, default=8)
     parser.add_argument("--channels", type=int, default=32)
     parser.add_argument("--device-dirty-source-limit", type=int, default=4_096)
     parser.add_argument("--range-task-active-gate", type=int, default=16_384)
@@ -805,6 +879,8 @@ def main() -> int:
         args.workload = DEFAULT_FULL_WORKLOAD
     elif args.scenario == "weighted_sssp" and args.workload == DEFAULT_WORKLOAD:
         args.workload = DEFAULT_SSSP_WORKLOAD
+    elif args.scenario == "full_pagerank" and args.workload == DEFAULT_WORKLOAD:
+        args.workload = DEFAULT_PAGERANK_WORKLOAD
     elif args.scenario == "protocol_window" and args.workload == DEFAULT_WORKLOAD:
         args.workload = DEFAULT_PROTOCOL_WORKLOAD
     elif args.scenario in {"fallback_capacity", "fallback_payload"}:
@@ -832,6 +908,20 @@ def main() -> int:
         or args.compute_active_bram_read_latency <= 0
         or args.compute_onchip_pipeline_capacity <= 0
         or args.compute_vs_bypass_depth <= 0
+        or args.pagerank_iterations <= 0
+        or not 0.0 < args.pagerank_damping < 1.0
+        or args.pagerank_source_latency <= 0
+        or args.pagerank_source_ii <= 0
+        or args.pagerank_source_capacity <= 0
+        or args.pagerank_edge_latency <= 0
+        or args.pagerank_edge_ii <= 0
+        or args.pagerank_edge_capacity <= 0
+        or args.pagerank_reduce_latency <= 0
+        or args.pagerank_reduce_ii <= 0
+        or args.pagerank_reduce_capacity <= 0
+        or args.pagerank_apply_latency <= 0
+        or args.pagerank_apply_ii <= 0
+        or args.pagerank_apply_capacity <= 0
         or args.maintenance_count_scan_tail_cycles < 0
         or args.maintenance_l0_write_scan_tail_cycles < 0
         or args.maintenance_scan_response_capacity <= 0
@@ -852,6 +942,7 @@ def main() -> int:
             "SPINE_SST_CHANNELS": str(args.channels),
             "SPINE_SST_MODE": {
                 "amazon_full_compute": "spine_compute",
+                "full_pagerank": "spine_pagerank",
                 "weighted_sssp": "spine_sssp",
                 "fallback_capacity": "spine_sssp",
                 "fallback_payload": "spine_sssp",
@@ -868,6 +959,32 @@ def main() -> int:
             if args.scenario == "amazon_full_compute"
             else "1000000",
             "SPINE_SST_MAX_ROUNDS": "256",
+            "SPINE_SST_PAGERANK_ITERATIONS": str(args.pagerank_iterations),
+            "SPINE_SST_PAGERANK_DAMPING": str(args.pagerank_damping),
+            "SPINE_SST_PAGERANK_SOURCE_LATENCY": str(
+                args.pagerank_source_latency
+            ),
+            "SPINE_SST_PAGERANK_SOURCE_II": str(args.pagerank_source_ii),
+            "SPINE_SST_PAGERANK_SOURCE_CAPACITY": str(
+                args.pagerank_source_capacity
+            ),
+            "SPINE_SST_PAGERANK_EDGE_LATENCY": str(args.pagerank_edge_latency),
+            "SPINE_SST_PAGERANK_EDGE_II": str(args.pagerank_edge_ii),
+            "SPINE_SST_PAGERANK_EDGE_CAPACITY": str(args.pagerank_edge_capacity),
+            "SPINE_SST_PAGERANK_REDUCE_LATENCY": str(
+                args.pagerank_reduce_latency
+            ),
+            "SPINE_SST_PAGERANK_REDUCE_II": str(args.pagerank_reduce_ii),
+            "SPINE_SST_PAGERANK_REDUCE_CAPACITY": str(
+                args.pagerank_reduce_capacity
+            ),
+            "SPINE_SST_PAGERANK_APPLY_LATENCY": str(
+                args.pagerank_apply_latency
+            ),
+            "SPINE_SST_PAGERANK_APPLY_II": str(args.pagerank_apply_ii),
+            "SPINE_SST_PAGERANK_APPLY_CAPACITY": str(
+                args.pagerank_apply_capacity
+            ),
             "SPINE_SST_DEVICE_DIRTY_SOURCE_LIMIT": str(
                 args.device_dirty_source_limit
             ),
@@ -951,6 +1068,7 @@ def main() -> int:
         "amazon_l0": validate_result,
         "carry_hot": validate_carry_hot_result,
         "amazon_full_compute": validate_full_compute_result,
+        "full_pagerank": validate_full_pagerank_result,
         "weighted_sssp": validate_multiround_sssp_result,
         "protocol_window": validate_protocol_window_result,
         "fallback_capacity": lambda result, dram, *, channels: (
@@ -973,23 +1091,44 @@ def main() -> int:
         != args.compute_memory_request_window
     ):
         problems.append("compute_memory_request_window")
-    if (
-        result.get("compute_writeonly_request_window")
-        != args.compute_writeonly_request_window
-    ):
-        problems.append("compute_writeonly_request_window")
-    expected_onchip = {
-        "compute_tiny_bram_read_latency": args.compute_tiny_bram_read_latency,
-        "compute_vs_uram_read_latency": args.compute_vs_uram_read_latency,
-        "compute_active_bram_read_latency": (
-            args.compute_active_bram_read_latency
-        ),
-        "compute_onchip_pipeline_capacity": args.compute_onchip_pipeline_capacity,
-        "compute_vs_bypass_depth": args.compute_vs_bypass_depth,
-    }
-    for key, expected in expected_onchip.items():
-        if result.get(key) != expected:
-            problems.append(key)
+    if args.scenario == "full_pagerank":
+        expected_pagerank_pipeline = {
+            "pagerank_source_latency": args.pagerank_source_latency,
+            "pagerank_source_ii": args.pagerank_source_ii,
+            "pagerank_source_capacity": args.pagerank_source_capacity,
+            "pagerank_edge_latency": args.pagerank_edge_latency,
+            "pagerank_edge_ii": args.pagerank_edge_ii,
+            "pagerank_edge_capacity": args.pagerank_edge_capacity,
+            "pagerank_reduce_latency": args.pagerank_reduce_latency,
+            "pagerank_reduce_ii": args.pagerank_reduce_ii,
+            "pagerank_reduce_capacity": args.pagerank_reduce_capacity,
+            "pagerank_apply_latency": args.pagerank_apply_latency,
+            "pagerank_apply_ii": args.pagerank_apply_ii,
+            "pagerank_apply_capacity": args.pagerank_apply_capacity,
+        }
+        for key, expected in expected_pagerank_pipeline.items():
+            if result.get(key) != expected:
+                problems.append(key)
+    else:
+        if (
+            result.get("compute_writeonly_request_window")
+            != args.compute_writeonly_request_window
+        ):
+            problems.append("compute_writeonly_request_window")
+        expected_onchip = {
+            "compute_tiny_bram_read_latency": args.compute_tiny_bram_read_latency,
+            "compute_vs_uram_read_latency": args.compute_vs_uram_read_latency,
+            "compute_active_bram_read_latency": (
+                args.compute_active_bram_read_latency
+            ),
+            "compute_onchip_pipeline_capacity": (
+                args.compute_onchip_pipeline_capacity
+            ),
+            "compute_vs_bypass_depth": args.compute_vs_bypass_depth,
+        }
+        for key, expected in expected_onchip.items():
+            if result.get(key) != expected:
+                problems.append(key)
     expected_timing = {
         "maintenance_count_scan_ii": args.maintenance_count_scan_ii,
         "maintenance_count_scan_tail_cycles": args.maintenance_count_scan_tail_cycles,

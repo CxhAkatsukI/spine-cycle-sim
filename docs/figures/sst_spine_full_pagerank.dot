@@ -1,0 +1,30 @@
+digraph sst_spine_full_pagerank {
+  graph [rankdir=LR, bgcolor="white", pad=0.2, nodesep=0.35, ranksep=0.55];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=10,
+        color="#334155", fillcolor="#f8fafc", margin="0.14,0.08"];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#475569"];
+
+  workload [label="Real .slice\n4 vertices / 4 edges", fillcolor="#dcfce7"];
+  maintenance [label="Spine L0 Maintenance\nscan / classify / persist", fillcolor="#fef3c7"];
+  levels [label="16 family level hierarchy\nindex + edge payload", fillcolor="#e0f2fe"];
+  reader [label="Spine Reader\nsource protocol + tile replay", fillcolor="#fef3c7"];
+  axis [label="Registered AXIS FIFO\ncapacity + backpressure", fillcolor="#f3e8ff"];
+  pagerank [label="Full PageRank Compute\nsource / reduce / apply", fillcolor="#dcfce7"];
+  rank [label="Ping-pong rank buffers\n+ degree array", fillcolor="#e0f2fe"];
+  axi [label="Shared FixedAxiPort model\nbursts / credits / responses", fillcolor="#f3e8ff"];
+  sst [label="SST StandardMem", fillcolor="#fee2e2"];
+  hbm [label="DRAMSim3 HBM2\n32 channels", fillcolor="#fee2e2"];
+
+  workload -> maintenance;
+  maintenance -> levels [label="writes"];
+  levels -> reader [label="reads"];
+  reader -> axis [label="24 words / iteration"];
+  axis -> pagerank;
+  pagerank -> rank [label="read / write"];
+  maintenance -> axi;
+  levels -> axi [dir=both];
+  reader -> axi;
+  rank -> axi [dir=both];
+  axi -> sst [label="1665 requests"];
+  sst -> hbm;
+}
