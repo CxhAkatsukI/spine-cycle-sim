@@ -100,11 +100,15 @@ class ArchitectureProfileTests(unittest.TestCase):
         )
         self.assertEqual(profile.parameters["grasu_bin_search_cus"], 4)
         self.assertEqual(
-            profile.parameters["grasu_binary_search_workers_per_cu"], 64
+            profile.parameters["grasu_binary_search_workers_per_cu"], 1
         )
+        self.assertTrue(profile.parameters["grasu_compact_hbm_ports"])
         self.assertEqual(profile.parameters["grasu_process_cache_cus"], 2)
         self.assertEqual(profile.parameters["grasu_process_ddr_cus"], 2)
-        self.assertEqual(profile.parameters["grasu_process_lanes_per_cu"], 16)
+        self.assertEqual(profile.parameters["grasu_cache_lanes_per_cu"], 1)
+        self.assertTrue(profile.parameters["grasu_direct_cache_hbm_rmw"])
+        self.assertEqual(profile.parameters["grasu_ddr_halves_per_cu"], 2)
+        self.assertEqual(profile.parameters["grasu_ddr_lanes_per_half"], 16)
         self.assertEqual(profile.parameters["grasu_segment_slots"], 16)
         self.assertEqual(verify_profile_artifacts(profile), [])
 

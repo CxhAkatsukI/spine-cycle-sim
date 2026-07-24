@@ -26,11 +26,15 @@
     "comparison_role": "native",
     "grasu_revision": "b79ccb0bc6aae4a2b7dededcee095bf0ad1b67dc",
     "grasu_bin_search_cus": 4,
-    "grasu_binary_search_workers_per_cu": 64,
+    "grasu_binary_search_workers_per_cu": 1,
+    "grasu_compact_hbm_ports": true,
     "grasu_dispatch_cus": 1,
     "grasu_process_cache_cus": 2,
     "grasu_process_ddr_cus": 2,
-    "grasu_process_lanes_per_cu": 16,
+    "grasu_cache_lanes_per_cu": 1,
+    "grasu_direct_cache_hbm_rmw": true,
+    "grasu_ddr_halves_per_cu": 2,
+    "grasu_ddr_lanes_per_half": 16,
     "grasu_segment_slots": 16,
     "grasu_cache_segments_per_cu": 131072,
     "grasu_pma_hbm_channels": 4,
@@ -44,8 +48,9 @@
     "conversion_cost_included": true
   },
   "features": [
-    "four_way_grasu_bin_search",
+    "four_way_serial_direct_grasu_bin_search",
     "cache_ddr_segment_dispatch",
+    "serial_direct_cache_hbm_rmw",
     "payload_backed_pma",
     "measured_pma_to_edge_array_compactor",
     "regraph_little_gs_sssp"

@@ -4,9 +4,9 @@ digraph G {
   edge [color="#555555", fontname="DejaVu Sans", fontsize=9];
 
   updates [label="Update HBM\n4 input arrays", fillcolor="#dfeaf4"];
-  search [label="4 x bin_search CU\n64 workers / CU\nrow bounds + binary heads", fillcolor="#dfeaf4"];
+  search [label="4 x bin_search CU\nnative: serial direct search\nprojected: 64 workers / CU", fillcolor="#dfeaf4"];
   dispatch [label="1 x dispatch CU\nfixed 4-way round robin"];
-  cache [label="2 x process_cache CU\n16 lanes / CU\ncache region"];
+  cache [label="2 x process_cache CU\nnative: serial direct HBM RMW\nprojected: 16 URAM lanes"];
   ddr [label="2 x process_ddr CU\n16 lanes / CU\nDDR region"];
   pma [label="PMA HBM[0..3]\n16 x 32-bit slots / segment", fillcolor="#f4e4bf"];
   barrier [label="Completion barrier"];

@@ -31,19 +31,22 @@ The audit did not modify any of these reference repositories.
 
 ## GraSU Update Topology
 
-1. Four `bin_search` CUs each read one update stream from HBM. Each CU stripes
-   input across 64 search workers. A worker reads the source row bounds and
-   binary-searches one 64-bit segment-head record per step.
+1. Four `bin_search` CUs each read one update stream from HBM. The current U55C
+   build defines `GRASU_COMPACT_HBM_PORTS`, so each CU runs
+   `bin_search_direct`: one ordered update at a time reads source row bounds
+   and then binary-searches 64-bit segment-head records. The 64-worker BIPA
+   implementation remains in the original source but is not in this xclbin.
 2. The four result streams enter one `dispatch` CU in fixed round-robin order.
 3. `segment_head_slot[31:5] < MAX_CACHE_SEGMENT` selects cache versus DDR;
    slot bit 4 selects one of the two CUs in that class.
-4. Each process CU routes by slot bits `[8:5]` to 16 lanes. A lane reads one
-   512-bit segment, inserts or deletes one 32-bit destination in sorted order,
-   and writes the complete segment.
-5. The original cache path preloads and stores `MAX_CACHE_SEGMENT` 512-bit
-   words per cache CU through 16 single-port URAM banks. The integration's
-   `GRASU_PURE_PIPELINE_DIRECT_CACHE` variant instead performs segment RMW
-   through HBM and must be modeled as a different feature selection.
+4. Each DDR CU divides work between two PMA halves; each half routes by address
+   to 16 lanes. A lane reads one 512-bit segment, inserts or deletes one 32-bit
+   destination in sorted order, and writes the complete segment.
+5. The original cache path uses 16 single-port URAM banks. The current
+   integration defines `GRASU_PURE_PIPELINE_DIRECT_CACHE`, so each cache CU
+   instead processes its ordered input serially with one HBM segment RMW at a
+   time. Native and normalized profiles preserve that behavior. The 64-worker
+   search and 16-lane URAM cache are explicit projected features only.
 
 All AXIS links are finite registered FIFOs in the simulator. Every PMA access
 uses `FixedAxiPort` and the same `MemoryBackend` selected for Spine. No stage is
