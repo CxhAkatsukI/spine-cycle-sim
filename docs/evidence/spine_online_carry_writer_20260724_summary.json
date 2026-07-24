@@ -1,0 +1,104 @@
+{
+  "date": "2026-07-24",
+  "evidence_tier": "structural_execution_driven",
+  "source_revision": "afb8199a2ca8d3fd208b985324bf4d8719e2b839",
+  "hardware_calibrated": false,
+  "cpp_l1_one_page": {
+    "cycles": 2596,
+    "carry_wait_cycles": 118,
+    "writer_wait_cycles": 18,
+    "groups_seen": 2,
+    "groups_emitted": 2,
+    "groups_cancelled": 0,
+    "edge_words": 2,
+    "row_words": 1,
+    "mask_words": 1,
+    "page_base_words": 2,
+    "bitmap_pages": 1,
+    "page_list_words": 1,
+    "page_epoch_words": 1,
+    "hbm_bitmap_and_rows_readback": true,
+    "reader_edges": 2,
+    "correct": true
+  },
+  "cpp_l2_kway": {
+    "groups_emitted": 8,
+    "source_rows": 5,
+    "edge_words": 8,
+    "row_words": 3,
+    "mask_words": 2,
+    "page_base_words": 2,
+    "bitmap_pages": 1,
+    "page_list_words": 1,
+    "page_epoch_words": 1,
+    "writer_wait_cycles": 117,
+    "correct": true
+  },
+  "cpp_five_page_boundary": {
+    "pages": 5,
+    "groups_emitted": 5,
+    "edge_words": 5,
+    "row_words": 3,
+    "mask_words": 2,
+    "page_base_words": 4,
+    "bitmap_pages": 5,
+    "page_list_words": 2,
+    "page_epoch_words": 5,
+    "graph_index_bytes": 232,
+    "graph_edge_bytes": 40,
+    "page_list_bytes": 16,
+    "page_list_hbm_readback": true,
+    "correct": true
+  },
+  "cpp_signed_cancellation": {
+    "groups_seen": 1,
+    "groups_emitted": 0,
+    "groups_cancelled": 1,
+    "edge_words": 0,
+    "terminal_index_bytes": 16,
+    "correct": true
+  },
+  "sst_carry_hot": {
+    "e2e_cycles": 8966,
+    "maintenance_cycles": 4058,
+    "backend_requests": 1944,
+    "maintenance_requests": 214,
+    "writer_wait_cycles": 14,
+    "dram_reads": 1230,
+    "dram_writes": 714,
+    "dram_activates": 96,
+    "dram_read_row_hits": 1167,
+    "dram_write_row_hits": 655,
+    "correctness_mismatches": 0,
+    "frontier_mismatches": 0
+  },
+  "sst_no_carry_regressions": {
+    "amazon_l0": {
+      "e2e_cycles": 7187,
+      "maintenance_cycles": 2296,
+      "backend_requests": 1399,
+      "correct": true
+    },
+    "weighted_sssp": {
+      "e2e_cycles": 33866,
+      "maintenance_cycles": 2351,
+      "backend_requests": 4196,
+      "correct": true
+    }
+  },
+  "previous_payload_cursor_sst_carry_hot": {
+    "commit": "422c0c5",
+    "e2e_cycles": 8966,
+    "backend_requests": 1944,
+    "maintenance_requests": 213
+  },
+  "remaining_boundaries": [
+    "L0 graph writer remains post-scan bulk",
+    "carry cursor index reads remain batched rather than fully lazy",
+    "epoch-wrap target index full-clear loops are not execution-driven",
+    "target and occupied-level selection begin from logical state",
+    "page-epoch update is not explicit payload read-modify-write",
+    "malformed writer paths do not emit the complete HLS overflow transcript",
+    "no source-matched writer hardware timing calibration"
+  ]
+}

@@ -1,0 +1,30 @@
+digraph online_carry_writer {
+  graph [rankdir=LR, bgcolor="white", pad=0.25, nodesep=0.32, ranksep=0.5];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=10,
+        color="#334155", fillcolor="#f8fafc", margin="0.12,0.08"];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#475569"];
+
+  heads [label="New + level heads\nHBM payload driven", fillcolor="#dbeafe"];
+  pick [shape=diamond, label="Minimum\n(src,dst)?", fillcolor="#fef3c7"];
+  group [label="Online group accumulator\nsum diff / min weight", fillcolor="#e0e7ff"];
+  zero [shape=diamond, label="diff == 0?", fillcolor="#fef3c7"];
+  drop [label="Cancel group\nno edge/index state", fillcolor="#e2e8f0"];
+  row [label="Row offset packer\n2 x u32"];
+  mask [label="Partition mask packer\n4 x u16"];
+  page [label="Page-base packer\n2 x u32"];
+  bitmap [label="Bitmap page packer\n4 x 64-bit"];
+  plist [label="Page-list packer\n4 x u16 + epoch", fillcolor="#dcfce7"];
+  edgeword [label="Edge payload\n1 x 64-bit / group", fillcolor="#dcfce7"];
+  axi [label="Finite graph + metadata AXI\nSST / DRAMSim3", fillcolor="#fde68a"];
+  refill [label="Refill winning stream"];
+  mirror [label="Logical level vector\ncorrectness mirror only",
+          style="rounded,filled,dashed", fillcolor="#f8fafc"];
+
+  heads -> pick -> group -> zero;
+  zero -> drop [label="yes"];
+  zero -> row [label="no"];
+  row -> mask -> page -> bitmap -> plist -> edgeword -> axi;
+  axi -> refill -> heads;
+  edgeword -> mirror [style=dashed, label="same emitted group"];
+  drop -> refill;
+}

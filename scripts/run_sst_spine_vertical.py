@@ -297,6 +297,9 @@ def validate_carry_hot_result(
         and result.get("preload_edges") == 1,
         "maintenance_targets": result.get("maintenance_target_level") == 1
         and result.get("maintenance_hot_target_level") == 0,
+        "maintenance_timing": result.get("maintenance_cycles", 0) > 0
+        and result.get("maintenance_end_cycle", 0)
+        > result.get("maintenance_start_cycle", 0),
         "maintenance_partitioning": result.get("maintenance_cold_input_edges")
         == 1
         and result.get("maintenance_hot_input_edges") == 1,
@@ -328,6 +331,17 @@ def validate_carry_hot_result(
         and result.get("maintenance_carry_cursor_rows_entered") == 1
         and result.get("maintenance_carry_cursor_row_offset_reads") == 2
         and result.get("maintenance_carry_cursor_validation_failures") == 0
+        and result.get("maintenance_carry_writer_groups_seen") == 2
+        and result.get("maintenance_carry_writer_groups_emitted") == 2
+        and result.get("maintenance_carry_writer_groups_cancelled") == 0
+        and result.get("maintenance_carry_writer_edge_word_writes") == 2
+        and result.get("maintenance_carry_writer_row_word_writes") == 1
+        and result.get("maintenance_carry_writer_mask_word_writes") == 1
+        and result.get("maintenance_carry_writer_page_base_word_writes") == 2
+        and result.get("maintenance_carry_writer_bitmap_page_writes") == 1
+        and result.get("maintenance_carry_writer_page_list_word_writes") == 1
+        and result.get("maintenance_carry_writer_page_epoch_word_writes") == 1
+        and result.get("maintenance_carry_writer_memory_wait_cycles", 0) > 0
         and result.get("maintenance_carry_max_buffered_heads") == 2
         and result.get("maintenance_carry_merge_inputs") == 2
         and result.get("maintenance_carry_outputs") == 2,

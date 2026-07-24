@@ -40,6 +40,9 @@
 - `spine_payload_driven_carry_cursor.svg`: HBM-authoritative carry metadata,
   page, bitmap, row-offset, and old-edge chain with cursor refill timing and
   rejection paths. Its editable source is the adjacent `.dot` file.
+- `spine_online_carry_writer.svg`: online differential group emission, packed
+  row/mask/page/bitmap/page-list state, finite AXI writer backpressure, and the
+  logical output mirror. Its editable source is the adjacent `.dot` file.
 
 Regenerate a Graphviz SVG from the repository root with:
 

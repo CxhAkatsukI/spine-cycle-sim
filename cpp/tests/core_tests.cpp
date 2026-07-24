@@ -1844,17 +1844,55 @@ void test_spine_cold_l1_carry_and_reader() {
               maintenance.carry_refill_wait_cycles > 0 &&
               maintenance.carry_max_buffered_heads == 2 &&
               maintenance.carry_merge_inputs == 2 &&
-              maintenance.carry_outputs == 2,
+              maintenance.carry_outputs == 2 &&
+              maintenance.carry_writer_groups_seen == 2 &&
+              maintenance.carry_writer_groups_emitted == 2 &&
+              maintenance.carry_writer_groups_cancelled == 0 &&
+              maintenance.carry_writer_edge_word_writes == 2 &&
+              maintenance.carry_writer_row_word_writes == 1 &&
+              maintenance.carry_writer_mask_word_writes == 1 &&
+              maintenance.carry_writer_page_base_word_writes == 2 &&
+              maintenance.carry_writer_bitmap_page_writes == 1 &&
+              maintenance.carry_writer_page_list_word_writes == 1 &&
+              maintenance.carry_writer_page_epoch_word_writes == 1 &&
+              maintenance.carry_writer_memory_wait_cycles > 0,
           "cold carry merge ledger mismatch");
   std::cout << "EVIDENCE spine_carry_refill cycles="
             << maintenance.end_cycle - maintenance.start_cycle
             << " new_batch_reads=" << maintenance.carry_new_batch_reads
             << " level_reads=" << maintenance.carry_level_payload_reads
             << " refill_wait=" << maintenance.carry_refill_wait_cycles
+            << " writer_wait="
+            << maintenance.carry_writer_memory_wait_cycles
             << " max_heads=" << maintenance.carry_max_buffered_heads << '\n';
   require(system.level_state().cold_levels[0][0].empty() &&
               system.level_state().cold_levels[0][1].size() == 2,
           "cold carry did not retire L0 into L1");
+  std::cout << "EVIDENCE spine_carry_reader occupied="
+            << system.reader_counters().occupied_levels
+            << " emitted=" << system.reader_counters().edges_emitted
+            << " epoch_misses="
+            << system.reader_counters().graph_index_epoch_misses
+            << " index_bytes="
+            << system.reader_counters().graph_index_payload_read_bytes
+            << " payload_bytes="
+            << system.reader_counters().graph_edge_payload_read_bytes << '\n';
+  const SpineLevelLayout carried_layout =
+      spine_level_layout(SpineL0Config{}, false, 1);
+  const auto carried_bitmap = backend.inspect_payload(
+      0, carried_layout.bitmap_offset_words * spine::sim::kSpineGraphWordBytes,
+      32);
+  const auto carried_rows = backend.inspect_payload(
+      0,
+      carried_layout.row_offset_offset_words * spine::sim::kSpineGraphWordBytes,
+      8);
+  std::cout << "EVIDENCE spine_carry_hbm bitmap0="
+            << static_cast<unsigned>(carried_bitmap[0])
+            << " row0=" << static_cast<unsigned>(carried_rows[0])
+            << " row1=" << static_cast<unsigned>(carried_rows[4]) << '\n';
+  require(carried_bitmap[0] == 1 && carried_rows[0] == 0 &&
+              carried_rows[4] == 2,
+          "carry writer did not persist its packed bitmap/row payload");
   require(system.reader_counters().occupied_levels == 1 &&
               system.reader_counters().edges_emitted == 2,
           "reader did not traverse the carried L1 payload");
@@ -1910,6 +1948,17 @@ void test_spine_carry_kway_refill_pipeline() {
               maintenance.carry_level_payload_read_bytes == 32 &&
               maintenance.carry_merge_inputs == 8 &&
               maintenance.carry_outputs == 8 &&
+              maintenance.carry_writer_groups_seen == 8 &&
+              maintenance.carry_writer_groups_emitted == 8 &&
+              maintenance.carry_writer_groups_cancelled == 0 &&
+              maintenance.carry_writer_edge_word_writes == 8 &&
+              maintenance.carry_writer_row_word_writes == 3 &&
+              maintenance.carry_writer_mask_word_writes == 2 &&
+              maintenance.carry_writer_page_base_word_writes == 2 &&
+              maintenance.carry_writer_bitmap_page_writes == 1 &&
+              maintenance.carry_writer_page_list_word_writes == 1 &&
+              maintenance.carry_writer_page_epoch_word_writes == 1 &&
+              maintenance.carry_writer_memory_wait_cycles > 0 &&
               maintenance.carry_max_buffered_heads == 5 &&
               maintenance.carry_refill_wait_cycles > 0,
           "L2 k-way carry request/refill ledger diverged");
@@ -1925,7 +1974,89 @@ void test_spine_carry_kway_refill_pipeline() {
             << " new_batch_reads=" << maintenance.carry_new_batch_reads
             << " level_reads=" << maintenance.carry_level_payload_reads
             << " refill_wait=" << maintenance.carry_refill_wait_cycles
+            << " writer_wait="
+            << maintenance.carry_writer_memory_wait_cycles
             << " max_heads=" << maintenance.carry_max_buffered_heads << '\n';
+}
+
+void test_spine_carry_writer_crosses_page_and_packer_boundaries() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("data", 141.0);
+  MockMemoryBackend backend("hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 3,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  SpineL0State initial;
+  initial.cold_levels[0][0] = {
+      {.src = 0, .dst = 1, .weight = 5, .diff = 1},
+  };
+  SpineEdgeSlice batch{
+      .vertices = 1'280,
+      .edges =
+          {
+              {.src = 256, .dst = 2, .weight = 4, .diff = 1},
+              {.src = 512, .dst = 3, .weight = 4, .diff = 1},
+              {.src = 768, .dst = 4, .weight = 4, .diff = 1},
+              {.src = 1'024, .dst = 5, .weight = 4, .diff = 1},
+          },
+      .case_name = "carry_writer_five_pages",
+  };
+  SpineVerticalSliceSystem system(scheduler, core, backend, std::move(batch), 0,
+                                  4096, SpineL0Config{}, std::move(initial));
+  system.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until([&] { return system.done() && system.idle(); }, 200'000);
+
+  require(!system.failed(), "five-page carry-writer vertical slice failed");
+  const SpineL0Counters &maintenance = system.maintenance_counters();
+  require(maintenance.target_level == 1 &&
+              maintenance.carry_outputs == 5 &&
+              maintenance.carry_writer_groups_seen == 5 &&
+              maintenance.carry_writer_groups_emitted == 5 &&
+              maintenance.carry_writer_edge_word_writes == 5 &&
+              maintenance.carry_writer_row_word_writes == 3 &&
+              maintenance.carry_writer_mask_word_writes == 2 &&
+              maintenance.carry_writer_page_base_word_writes == 4 &&
+              maintenance.carry_writer_bitmap_page_writes == 5 &&
+              maintenance.carry_writer_page_list_word_writes == 2 &&
+              maintenance.carry_writer_page_epoch_word_writes == 5 &&
+              maintenance.graph_index_payload_write_bytes == 232 &&
+              maintenance.graph_edge_payload_write_bytes == 40 &&
+              maintenance.page_list_payload_write_bytes == 16,
+          "five-page carry writer diverged at a packed-word boundary");
+  const auto &level = system.level_state().cold_levels[0][1];
+  require(level.size() == 5 && level.front().src == 0 &&
+              level.back().src == 1'024,
+          "five-page carry writer changed sorted output state");
+
+  const SpineMetadataLayout metadata = spine_metadata_layout(SpineL0Config{});
+  const std::uint64_t target_slice = 1;
+  const auto first_page_word = backend.inspect_payload(
+      20,
+      (metadata.page_list_base +
+       target_slice * metadata.page_list_words_per_slice) *
+          spine::sim::kSpineMetadataWordBytes,
+      8);
+  const auto second_page_word = backend.inspect_payload(
+      20,
+      (metadata.page_list_base +
+       target_slice * metadata.page_list_words_per_slice + 1) *
+          spine::sim::kSpineMetadataWordBytes,
+      8);
+  require(first_page_word == u64_payload(0x0003000200010000ULL) &&
+              second_page_word == u64_payload(4),
+          "carry writer did not persist packed page IDs across lane 3");
+  std::cout << "EVIDENCE spine_carry_writer_pages=5 row_words="
+            << maintenance.carry_writer_row_word_writes
+            << " mask_words=" << maintenance.carry_writer_mask_word_writes
+            << " page_base_words="
+            << maintenance.carry_writer_page_base_word_writes
+            << " page_list_words="
+            << maintenance.carry_writer_page_list_word_writes << '\n';
 }
 
 void test_spine_independent_hot_and_cold_targets() {
@@ -2053,7 +2184,18 @@ void test_spine_carry_drops_signed_diff_cancellation() {
   const auto &maintenance = system.maintenance_counters();
   require(maintenance.target_level == 1 &&
               maintenance.carry_merge_inputs == 2 &&
-              maintenance.carry_outputs == 0,
+              maintenance.carry_outputs == 0 &&
+              maintenance.carry_writer_groups_seen == 1 &&
+              maintenance.carry_writer_groups_emitted == 0 &&
+              maintenance.carry_writer_groups_cancelled == 1 &&
+              maintenance.carry_writer_edge_word_writes == 0 &&
+              maintenance.carry_writer_row_word_writes == 1 &&
+              maintenance.carry_writer_mask_word_writes == 0 &&
+              maintenance.carry_writer_page_base_word_writes == 1 &&
+              maintenance.carry_writer_bitmap_page_writes == 0 &&
+              maintenance.carry_writer_page_list_word_writes == 0 &&
+              maintenance.carry_writer_page_epoch_word_writes == 0 &&
+              maintenance.graph_index_payload_write_bytes == 16,
           "carry did not coalesce insertion and deletion to an empty payload");
   require(system.level_state().cold_levels[0][0].empty() &&
               system.level_state().cold_levels[0][1].empty(),
@@ -3519,6 +3661,8 @@ int main(int argc, char **argv) {
        test_spine_compute_rejects_malformed_source_protocol},
       {"spine_cold_l1_carry", test_spine_cold_l1_carry_and_reader},
       {"spine_carry_kway_refill", test_spine_carry_kway_refill_pipeline},
+      {"spine_carry_writer_packer_boundaries",
+       test_spine_carry_writer_crosses_page_and_packer_boundaries},
       {"spine_hot_cold_targets", test_spine_independent_hot_and_cold_targets},
       {"spine_fixed_level_layout",
        test_spine_fixed_level_layout_matches_stable_profile},

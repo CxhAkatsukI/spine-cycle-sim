@@ -173,3 +173,6 @@ metadata traffic evidence are documented in
 The payload-driven carry cursor, HBM-authoritative source reconstruction,
 per-page refill cycles, and malformed-index rejection are documented in
 [`docs/spine_payload_driven_carry_cursor_20260724.md`](docs/spine_payload_driven_carry_cursor_20260724.md).
+The online carry target writer, pending CSR packers, merge backpressure, and
+component-local timing evidence are documented in
+[`docs/spine_online_carry_writer_20260724.md`](docs/spine_online_carry_writer_20260724.md).
