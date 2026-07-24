@@ -8,7 +8,7 @@ digraph SpineExactRangeTaskReader {
     control [label="HBM metadata control\nmagic | version | features"];
     dirty_meta [label="DEVICE_DIRTY metadata\ncount | generation | sum/xor hash"];
     dirty_hbm [label="HBM16 dirty list + bitmap\nvalidate range, hash, membership"];
-    source_axis [label="Source-value AXIS\nrequest / reply"];
+    source_axis [label="Source-value AXIS protocol\n16-request windows\ncount | generation | done | ACK"];
     active_meta [label="HOST_ACTIVE metadata\n16 offsets + 16 counts"];
     active_hbm [label="active_bins HBM\n256-bit records"];
     decode [label="Decoded active record\nsrc | value | 11 level masks | hot mask"];
@@ -63,7 +63,7 @@ digraph SpineExactRangeTaskReader {
   desc -> unsorted;
   binned -> tileloop;
 
-  protocol_gap [label="Remaining protocol/timing gaps\nrequest windows + ACK/diagnostics\nfallback execution + pipelined AXI\nURAM/BRAM bank conflicts", color="#A86A45", fillcolor="#FFF3E8", style="rounded,filled,dashed"];
+  protocol_gap [label="Remaining protocol/timing gaps\ndiagnostics + dirty ownership ACK\nfallback execution + pipelined AXI\nURAM/BRAM bank conflicts", color="#A86A45", fillcolor="#FFF3E8", style="rounded,filled,dashed"];
   protocol_gap -> source_axis [style=dashed, arrowhead=none];
   protocol_gap -> unsorted [style=dashed, arrowhead=none];
 }

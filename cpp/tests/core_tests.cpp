@@ -83,6 +83,16 @@ std::vector<std::uint8_t> u64_payload(std::uint64_t value) {
   return data;
 }
 
+std::vector<SourceValueWord> source_protocol_reply(std::uint32_t source,
+                                                   std::uint32_t value) {
+  return {
+      SourceValueWord{.source = source, .value = value},
+      SourceValueWord{.kind = SourceValueWord::Kind::kProtocolAck,
+                      .value = static_cast<std::uint32_t>(
+                          spine::sim::SpineSourceProtocolStatus::kOk)},
+  };
+}
+
 class EdgeCounter final : public Component {
  public:
   EdgeCounter(std::string name, ClockId clock)
@@ -800,7 +810,12 @@ void test_spine_l0_real_slice_vertical_path() {
           "Spine split reader/compute path reported failure");
   const auto &reader_counters = reader.counters();
   require(reader_counters.source_requests == 1 &&
-              reader_counters.source_responses == 1,
+              reader_counters.source_responses == 1 &&
+              reader_counters.source_request_windows == 1 &&
+              reader_counters.source_protocol_markers == 3 &&
+              reader_counters.source_protocol_acks == 1 &&
+              reader_counters.source_protocol_status == 0 &&
+              reader_counters.dirty_status == 0,
           "Spine source-value protocol did not close");
   require(
       reader_counters.tiles_emitted == 5 && reader_counters.edges_emitted == 10,
@@ -834,6 +849,14 @@ void test_spine_l0_real_slice_vertical_path() {
           "Spine exact range-task work ledger mismatch");
 
   const auto &compute_counters = compute.counters();
+  require(compute_counters.source_requests == 1 &&
+              compute_counters.source_responses == 1 &&
+              compute_counters.source_protocol_markers == 3 &&
+              compute_counters.source_protocol_acks == 1 &&
+              compute_counters.source_protocol_status == 0 &&
+              compute_counters.source_count == 1 &&
+              compute_counters.source_generation == 1,
+          "Spine compute source protocol ledger mismatch");
   require(compute_counters.touched_tiles == 5 &&
               compute_counters.fast_path_tiles == 5 &&
               compute_counters.full_path_tiles == 0,
@@ -854,9 +877,9 @@ void test_spine_l0_real_slice_vertical_path() {
     require(compute.values()[edge.dst] == 1,
             "Spine SSSP result differs from the expected fanout distance");
   }
-  require(edge_stream.stats().pushes == 22 && edge_stream.stats().pops == 22,
+  require(edge_stream.stats().pushes == 25 && edge_stream.stats().pops == 25,
           "Spine forward AXIS transfer count mismatch");
-  require(value_stream.stats().pushes == 1 && value_stream.stats().pops == 1,
+  require(value_stream.stats().pushes == 2 && value_stream.stats().pops == 2,
           "Spine reverse AXIS transfer count mismatch");
   require(edge_stream.stats().max_occupancy <= 32 &&
               value_stream.stats().max_occupancy <= 32,
@@ -900,6 +923,140 @@ void test_spine_reusable_system_matches_vertical_slice() {
           "reusable Spine system changed compute work");
   require(system.compute().next_active().size() == 10,
           "reusable Spine system changed the SSSP frontier");
+}
+
+void test_spine_device_dirty_source_request_windows() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("data", 141.0);
+  MockMemoryBackend backend("hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 3,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 64,
+                                .response_queue_depth = 128,
+                            });
+  SpineEdgeSlice workload{
+      .vertices = 64,
+      .edges = {},
+      .case_name = "device_dirty_request_window_17",
+  };
+  for (std::uint32_t source = 0; source < 17; ++source) {
+    workload.edges.push_back(SpineEdgeRecord{
+        .src = source,
+        .dst = 32 + source,
+        .weight = 1,
+        .diff = 1,
+    });
+  }
+  SpineVerticalSliceSystem system(scheduler, core, backend, workload, 0);
+  system.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until([&] { return system.done() && system.idle(); }, 100'000);
+
+  const auto &reader = system.reader_counters();
+  const auto &compute = system.compute_counters();
+  require(!system.failed() && reader.source_requests == 17 &&
+              reader.source_responses == 17 &&
+              reader.source_request_windows == 2 &&
+              reader.source_protocol_markers == 3 &&
+              reader.source_protocol_acks == 1 &&
+              reader.source_protocol_status == 0 && reader.dirty_status == 0,
+          "reader did not execute two ordered 16-credit source windows");
+  require(compute.source_requests == 17 && compute.source_responses == 17 &&
+              compute.source_protocol_markers == 3 &&
+              compute.source_protocol_acks == 1 &&
+              compute.source_protocol_status == 0 &&
+              compute.source_count == 17 && compute.source_generation == 1,
+          "compute did not validate the 17-source protocol transcript");
+  require(system.edge_stream_stats().max_occupancy > 1 &&
+              system.edge_stream_stats().max_occupancy <= 32 &&
+              system.value_stream_stats().max_occupancy <= 32,
+          "source request window did not exercise finite AXIS buffering");
+}
+
+void test_spine_compute_rejects_malformed_source_protocol() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("data", 141.0);
+  MockMemoryBackend backend("hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 3,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 64,
+                                .response_queue_depth = 128,
+                            });
+  FixedAxiPort vertex_state(
+      "protocol-vertex-state", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32, .channel = 17, .initiator_id = 817},
+      backend);
+  FixedAxiPort active_out(
+      "protocol-active-out", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32, .channel = 19, .initiator_id = 819},
+      backend);
+  FixedAxiPort active_bitmap(
+      "protocol-active-bitmap", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32, .channel = 22, .initiator_id = 822},
+      backend);
+  FixedAxiPort result(
+      "protocol-result", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32, .channel = 21, .initiator_id = 821},
+      backend);
+  Fifo<PartConvWord> edge_stream("protocol-edge-axis", core, 32);
+  Fifo<SourceValueWord> value_stream("protocol-value-axis", core, 32);
+  SequenceProducer<PartConvWord> producer(
+      "malformed-protocol-reader", core, edge_stream,
+      {
+          PartConvWord{.kind = PartConvWordKind::kSourceRequest, .first = 0},
+          PartConvWord{.kind = PartConvWordKind::kSourceCount, .first = 2},
+          PartConvWord{.kind = PartConvWordKind::kSourceGeneration, .first = 9},
+          PartConvWord{.kind = PartConvWordKind::kSourceRequestsDone},
+          PartConvWord{.kind = PartConvWordKind::kDoneAll},
+      });
+  SequenceConsumer<SourceValueWord> consumer("malformed-protocol-host", core,
+                                             value_stream);
+  SpineSplitSsspCompute compute(
+      "malformed-protocol-compute", core, 64, 0, 4096,
+      SpineComputePorts{
+          .vertex_state = &vertex_state,
+          .active_out = &active_out,
+          .active_bitmap = &active_bitmap,
+          .result = &result,
+      },
+      edge_stream, value_stream);
+  scheduler.add_component(producer);
+  scheduler.add_component(consumer);
+  scheduler.add_component(compute);
+  scheduler.add_component(edge_stream);
+  scheduler.add_component(value_stream);
+  vertex_state.register_components(scheduler);
+  active_out.register_components(scheduler);
+  active_bitmap.register_components(scheduler);
+  result.register_components(scheduler);
+  scheduler.add_component(backend);
+  scheduler.run_until(
+      [&] {
+        return producer.done() && compute.done() && edge_stream.empty() &&
+               value_stream.empty() && vertex_state.idle() &&
+               active_out.idle() && active_bitmap.idle() && result.idle();
+      },
+      100'000);
+
+  require(compute.failed() && consumer.values.size() == 2 &&
+              consumer.values[0].kind == SourceValueWord::Kind::kSourceValue &&
+              consumer.values[1].kind == SourceValueWord::Kind::kProtocolAck &&
+              consumer.values[1].value == static_cast<std::uint32_t>(
+                                                spine::sim::
+                                                    SpineSourceProtocolStatus::
+                                                        kCount) &&
+              compute.counters().source_protocol_status ==
+                  static_cast<std::uint32_t>(
+                      spine::sim::SpineSourceProtocolStatus::kCount),
+          "compute accepted a source-count mismatch or returned the wrong ACK");
 }
 
 void test_spine_cold_l1_carry_and_reader() {
@@ -1489,7 +1646,7 @@ void test_spine_reader_consumes_graph_edge_payload_from_hbm() {
                           reader_ports, {0}, edge_stream, value_stream);
   SequenceProducer<SourceValueWord> source_values(
       "reader-payload-source-values", core, value_stream,
-      {SourceValueWord{.source = 0, .value = 10}});
+      source_protocol_reply(0, 10));
   SequenceConsumer<PartConvWord> edge_words("reader-payload-edge-words", core,
                                             edge_stream);
   scheduler.add_component(reader);
@@ -1526,7 +1683,7 @@ void test_spine_reader_consumes_graph_edge_payload_from_hbm() {
       std::vector<std::uint8_t>(spine::sim::kSpineGraphWordBytes, 0));
   SequenceProducer<SourceValueWord> source_values_missing_bitmap(
       "reader-payload-source-values-missing-bitmap", core, value_stream,
-      {SourceValueWord{.source = 0, .value = 10}});
+      source_protocol_reply(0, 10));
   scheduler.add_component(source_values_missing_bitmap);
   reader.reset_round({0});
   scheduler.run_until(
@@ -1560,7 +1717,7 @@ void test_spine_reader_consumes_graph_edge_payload_from_hbm() {
       std::vector<std::uint8_t>({1, 0, 0, 0, 2, 0, 0, 0}));
   SequenceProducer<SourceValueWord> source_values_shifted_page_base(
       "reader-payload-source-values-shifted-page-base", core, value_stream,
-      {SourceValueWord{.source = 0, .value = 10}});
+      source_protocol_reply(0, 10));
   scheduler.add_component(source_values_shifted_page_base);
   reader.reset_round({0});
   scheduler.run_until(
@@ -1594,7 +1751,7 @@ void test_spine_reader_consumes_graph_edge_payload_from_hbm() {
       std::vector<std::uint8_t>(spine::sim::kSpineGraphWordBytes, 0));
   SequenceProducer<SourceValueWord> source_values_empty_row(
       "reader-payload-source-values-empty-row", core, value_stream,
-      {SourceValueWord{.source = 0, .value = 10}});
+      source_protocol_reply(0, 10));
   scheduler.add_component(source_values_empty_row);
   reader.reset_round({0});
   scheduler.run_until(
@@ -1624,7 +1781,7 @@ void test_spine_reader_consumes_graph_edge_payload_from_hbm() {
       std::vector<std::uint8_t>({0, 0, 0, 0, 1, 0, 0, 0}));
   SequenceProducer<SourceValueWord> source_values_ranked(
       "reader-payload-source-values-ranked", core, value_stream,
-      {SourceValueWord{.source = 130, .value = 20}});
+      source_protocol_reply(130, 20));
   scheduler.add_component(source_values_ranked);
   set_device_dirty_source(130);
   reader.reset_round({0});
@@ -1657,7 +1814,7 @@ void test_spine_reader_consumes_graph_edge_payload_from_hbm() {
       std::vector<std::uint8_t>(spine::sim::kSpineGraphWordBytes, 0));
   SequenceProducer<SourceValueWord> source_values_changed_rank(
       "reader-payload-source-values-changed-rank", core, value_stream,
-      {SourceValueWord{.source = 130, .value = 20}});
+      source_protocol_reply(130, 20));
   scheduler.add_component(source_values_changed_rank);
   reader.reset_round({0});
   scheduler.run_until(
@@ -1691,7 +1848,7 @@ void test_spine_reader_consumes_graph_edge_payload_from_hbm() {
       slice0_base + 7 * spine::sim::kSpineMetadataWordBytes, u64_payload(0));
   SequenceProducer<SourceValueWord> source_values_metadata_unoccupied(
       "reader-payload-source-values-metadata-unoccupied", core, value_stream,
-      {SourceValueWord{.source = 0, .value = 10}});
+      source_protocol_reply(0, 10));
   scheduler.add_component(source_values_metadata_unoccupied);
   reader.reset_round({130});
   scheduler.run_until(
@@ -1720,7 +1877,7 @@ void test_spine_reader_consumes_graph_edge_payload_from_hbm() {
   const std::size_t seventh_run_words = edge_words.values.size();
   SequenceProducer<SourceValueWord> source_values_stale_page(
       "reader-payload-source-values-stale-page", core, value_stream,
-      {SourceValueWord{.source = 0, .value = 10}});
+      source_protocol_reply(0, 10));
   scheduler.add_component(source_values_stale_page);
   reader.reset_round({130});
   scheduler.run_until(
@@ -1750,7 +1907,7 @@ void test_spine_reader_consumes_graph_edge_payload_from_hbm() {
   const std::size_t eighth_run_words = edge_words.values.size();
   SequenceProducer<SourceValueWord> source_values_shifted_edge_base(
       "reader-payload-source-values-shifted-edge-base", core, value_stream,
-      {SourceValueWord{.source = 0, .value = 10}});
+      source_protocol_reply(0, 10));
   scheduler.add_component(source_values_shifted_edge_base);
   reader.reset_round({130});
   scheduler.run_until(
@@ -2076,6 +2233,10 @@ int main() {
       {"spine_l0_real_slice", test_spine_l0_real_slice_vertical_path},
       {"spine_reusable_system",
        test_spine_reusable_system_matches_vertical_slice},
+      {"spine_device_dirty_request_windows",
+       test_spine_device_dirty_source_request_windows},
+      {"spine_source_protocol_error",
+       test_spine_compute_rejects_malformed_source_protocol},
       {"spine_cold_l1_carry", test_spine_cold_l1_carry_and_reader},
       {"spine_hot_cold_targets", test_spine_independent_hot_and_cold_targets},
       {"spine_fixed_level_layout",

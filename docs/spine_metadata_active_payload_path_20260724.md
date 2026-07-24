@@ -142,3 +142,7 @@ payloads. It does not establish full HLS-cycle equivalence.
 The next implementation milestone should close fallback and dirty protocol
 semantics, then add pipelined request issue/backpressure. Those changes are
 required before making absolute cycle or cross-architecture speedup claims.
+
+Status update: the bounded source-value request/response protocol and its ACK
+are closed in `docs/spine_source_value_protocol_20260724.md`. Dirty ownership
+ACK, diagnostics, and fallback remain open.

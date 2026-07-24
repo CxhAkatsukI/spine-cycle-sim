@@ -1071,12 +1071,22 @@ class OnlineMemoryProbe final : public SST::Component {
       std::vector<std::uint64_t> reader_dirty_list_bytes;
       std::vector<std::uint64_t> reader_dirty_bitmap_bytes;
       std::vector<std::uint64_t> reader_source_requests;
+      std::vector<std::uint64_t> reader_source_responses;
+      std::vector<std::uint64_t> reader_source_windows;
+      std::vector<std::uint64_t> reader_protocol_markers;
+      std::vector<std::uint64_t> reader_protocol_acks;
+      std::vector<std::uint32_t> reader_protocol_status;
+      std::vector<std::uint32_t> reader_dirty_status;
+      std::vector<std::uint32_t> compute_protocol_status;
       std::vector<std::uint64_t> reader_epoch_misses;
       std::vector<std::size_t> reader_source_sizes;
       std::vector<std::uint64_t> fast_tiles;
       std::vector<std::uint64_t> full_tiles;
       std::vector<std::size_t> edge_axis_max_occupancy;
       std::vector<std::uint64_t> edge_axis_push_stalls;
+      std::vector<std::uint64_t> edge_axis_transfers;
+      std::vector<std::uint64_t> value_axis_transfers;
+      std::vector<std::size_t> value_axis_max_occupancy;
       for (const SpineSsspRoundEvidence &round : sst_rounds_) {
         frontier_in_sizes.push_back(round.active_in.size());
         frontier_out_sizes.push_back(round.active_out.size());
@@ -1103,12 +1113,24 @@ class OnlineMemoryProbe final : public SST::Component {
         reader_dirty_bitmap_bytes.push_back(
             round.reader.dirty_bitmap_read_bytes);
         reader_source_requests.push_back(round.reader.source_requests);
+        reader_source_responses.push_back(round.reader.source_responses);
+        reader_source_windows.push_back(round.reader.source_request_windows);
+        reader_protocol_markers.push_back(
+            round.reader.source_protocol_markers);
+        reader_protocol_acks.push_back(round.reader.source_protocol_acks);
+        reader_protocol_status.push_back(round.reader.source_protocol_status);
+        reader_dirty_status.push_back(round.reader.dirty_status);
+        compute_protocol_status.push_back(
+            round.compute.source_protocol_status);
         reader_epoch_misses.push_back(round.reader.graph_index_epoch_misses);
         reader_source_sizes.push_back(round.reader_sources.size());
         fast_tiles.push_back(round.compute.fast_path_tiles);
         full_tiles.push_back(round.compute.full_path_tiles);
         edge_axis_max_occupancy.push_back(round.edge_axis.max_occupancy);
         edge_axis_push_stalls.push_back(round.edge_axis.push_stalls);
+        edge_axis_transfers.push_back(round.edge_axis.pushes);
+        value_axis_transfers.push_back(round.value_axis.pushes);
+        value_axis_max_occupancy.push_back(round.value_axis.max_occupancy);
       }
       const auto &maintenance = spine_system_->maintenance_counters();
       result << "{\n"
@@ -1172,6 +1194,20 @@ class OnlineMemoryProbe final : public SST::Component {
       write_json_array(result, reader_dirty_bitmap_bytes);
       result << ",\n  \"reader_source_requests_per_round\": ";
       write_json_array(result, reader_source_requests);
+      result << ",\n  \"reader_source_responses_per_round\": ";
+      write_json_array(result, reader_source_responses);
+      result << ",\n  \"reader_source_windows_per_round\": ";
+      write_json_array(result, reader_source_windows);
+      result << ",\n  \"reader_protocol_markers_per_round\": ";
+      write_json_array(result, reader_protocol_markers);
+      result << ",\n  \"reader_protocol_acks_per_round\": ";
+      write_json_array(result, reader_protocol_acks);
+      result << ",\n  \"reader_protocol_status_per_round\": ";
+      write_json_array(result, reader_protocol_status);
+      result << ",\n  \"reader_dirty_status_per_round\": ";
+      write_json_array(result, reader_dirty_status);
+      result << ",\n  \"compute_protocol_status_per_round\": ";
+      write_json_array(result, compute_protocol_status);
       result << ",\n  \"reader_epoch_misses_per_round\": ";
       write_json_array(result, reader_epoch_misses);
       result << ",\n  \"reader_source_sizes_per_round\": ";
@@ -1184,6 +1220,12 @@ class OnlineMemoryProbe final : public SST::Component {
       write_json_array(result, edge_axis_max_occupancy);
       result << ",\n  \"edge_axis_push_stalls_per_round\": ";
       write_json_array(result, edge_axis_push_stalls);
+      result << ",\n  \"edge_axis_transfers_per_round\": ";
+      write_json_array(result, edge_axis_transfers);
+      result << ",\n  \"value_axis_transfers_per_round\": ";
+      write_json_array(result, value_axis_transfers);
+      result << ",\n  \"value_axis_max_occupancy_per_round\": ";
+      write_json_array(result, value_axis_max_occupancy);
       result << ",\n"
              << "  \"backend_requests\": " << backend_->accepted() << ",\n"
              << "  \"backend_submit_stalls\": " << backend_->submit_stalls()
@@ -1324,6 +1366,23 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"reader_dirty_bitmap_bytes\": "
           << reader.dirty_bitmap_read_bytes << ",\n"
           << "  \"reader_source_requests\": " << reader.source_requests << ",\n"
+          << "  \"reader_source_responses\": " << reader.source_responses
+          << ",\n"
+          << "  \"reader_source_windows\": "
+          << reader.source_request_windows << ",\n"
+          << "  \"reader_protocol_markers\": "
+          << reader.source_protocol_markers << ",\n"
+          << "  \"reader_protocol_acks\": "
+          << reader.source_protocol_acks << ",\n"
+          << "  \"reader_protocol_status\": "
+          << reader.source_protocol_status << ",\n"
+          << "  \"reader_dirty_status\": " << reader.dirty_status << ",\n"
+          << "  \"compute_protocol_markers\": "
+          << compute.source_protocol_markers << ",\n"
+          << "  \"compute_protocol_acks\": "
+          << compute.source_protocol_acks << ",\n"
+          << "  \"compute_protocol_status\": "
+          << compute.source_protocol_status << ",\n"
           << "  \"reader_page_epoch_misses\": "
           << reader.graph_index_epoch_misses << ",\n"
           << "  \"reader_occupied_levels\": " << reader.occupied_levels << ",\n"
@@ -1349,6 +1408,10 @@ class OnlineMemoryProbe final : public SST::Component {
           << spine_system_->edge_stream_stats().pushes << ",\n"
           << "  \"edge_axis_max_occupancy\": "
           << spine_system_->edge_stream_stats().max_occupancy << ",\n"
+          << "  \"value_axis_transfers\": "
+          << spine_system_->value_stream_stats().pushes << ",\n"
+          << "  \"value_axis_max_occupancy\": "
+          << spine_system_->value_stream_stats().max_occupancy << ",\n"
           << "  \"backend_requests\": " << backend_->accepted() << ",\n"
           << "  \"backend_submit_stalls\": " << backend_->submit_stalls()
           << ",\n"

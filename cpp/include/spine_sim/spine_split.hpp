@@ -17,6 +17,9 @@ namespace spine::sim {
 
 enum class PartConvWordKind {
   kSourceRequest,
+  kSourceCount,
+  kSourceGeneration,
+  kSourceRequestsDone,
   kTileBegin,
   kEdge,
   kTileEnd,
@@ -30,8 +33,34 @@ struct PartConvWord {
 };
 
 struct SourceValueWord {
+  enum class Kind { kSourceValue, kProtocolAck };
+
+  Kind kind{Kind::kSourceValue};
   std::uint32_t source{};
   std::uint32_t value{};
+};
+
+inline constexpr std::size_t kSpineDirtyRequestWindow = 16;
+
+enum class SpineDirtyStatus : std::uint32_t {
+  kOk = 0,
+  kInvalidState = 1,
+  kRequiresHost = 2,
+  kProtocolError = 3,
+  kStaleAck = 4,
+  kCoverageMismatch = 5,
+  kTaskError = 6,
+  kMalformedAck = 7,
+};
+
+enum class SpineSourceProtocolStatus : std::uint32_t {
+  kOk = 0,
+  kUnexpected = 1,
+  kSourceBounds = 2,
+  kResponseSource = 3,
+  kCount = 4,
+  kGeneration = 5,
+  kMetadataDuplicate = 6,
 };
 
 struct SpineReaderCounters {
@@ -39,6 +68,11 @@ struct SpineReaderCounters {
   std::uint64_t end_cycle{};
   std::uint64_t source_requests{};
   std::uint64_t source_responses{};
+  std::uint64_t source_request_windows{};
+  std::uint64_t source_protocol_markers{};
+  std::uint64_t source_protocol_acks{};
+  std::uint32_t source_protocol_status{};
+  std::uint32_t dirty_status{};
   std::uint64_t active_bin_read_bytes{};
   std::uint64_t dirty_list_read_bytes{};
   std::uint64_t dirty_bitmap_read_bytes{};
@@ -194,8 +228,12 @@ class SpineSplitReader final : public Component {
     kDirtyListResolve,
     kDirtyBitmapResolve,
     kHostActiveResolve,
-    kRequestSource,
-    kWaitSource,
+    kRequestSourceWindow,
+    kWaitSourceWindow,
+    kSendSourceCount,
+    kSendSourceGeneration,
+    kSendSourceDone,
+    kWaitSourceAck,
     kLevelOccupancyBegin,
     kLevelDetailsBegin,
     kSetupReads,
@@ -294,7 +332,9 @@ class SpineSplitReader final : public Component {
   std::size_t tile_index_{};
   std::size_t range_index_{};
   std::uint32_t range_edge_index_{};
-  std::size_t source_index_{};
+  std::size_t source_request_index_{};
+  std::size_t source_response_index_{};
+  std::size_t source_window_end_{};
   std::uint64_t next_transaction_id_{};
   std::uint64_t expected_transaction_id_{};
   bool waiting_memory_{};
@@ -308,6 +348,11 @@ struct SpineComputeCounters {
   std::uint64_t end_cycle{};
   std::uint64_t source_requests{};
   std::uint64_t source_responses{};
+  std::uint64_t source_protocol_markers{};
+  std::uint64_t source_protocol_acks{};
+  std::uint32_t source_protocol_status{};
+  std::uint32_t source_count{};
+  std::uint32_t source_generation{};
   std::uint64_t touched_tiles{};
   std::uint64_t fast_path_tiles{};
   std::uint64_t full_path_tiles{};
@@ -427,6 +472,7 @@ class SpineSplitSsspCompute final : public Component {
   AxiResponse staged_response_;
   std::uint32_t pending_source_{};
   std::uint32_t pending_source_value_{kInfinity};
+  SourceValueWord::Kind pending_value_kind_{SourceValueWord::Kind::kSourceValue};
   std::uint32_t tile_base_{};
   std::size_t tile_size_{};
   std::size_t gather_index_{};
@@ -435,6 +481,9 @@ class SpineSplitSsspCompute final : public Component {
   std::uint64_t expected_transaction_id_{};
   bool waiting_memory_{};
   bool source_reply_pending_{};
+  bool source_count_seen_{};
+  bool source_generation_seen_{};
+  bool source_protocol_overflow_{};
   bool tile_open_{};
   bool full_path_{};
   bool overflow_edge_pending_{};

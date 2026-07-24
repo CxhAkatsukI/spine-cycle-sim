@@ -21,6 +21,9 @@ DEFAULT_FULL_WORKLOAD = (
     ROOT / "tests" / "data" / "amazon_densewin8192_active7893_exact.slice"
 )
 DEFAULT_SSSP_WORKLOAD = ROOT / "tests" / "data" / "weighted_chain_shortcut.slice"
+DEFAULT_PROTOCOL_WORKLOAD = (
+    ROOT / "tests" / "data" / "source_protocol_window_17.slice"
+)
 PROFILE_PATH = ROOT / "configs" / "architectures" / "spine_shared_engine_9c08763.json"
 
 
@@ -110,13 +113,23 @@ def validate_result(
         "reader_dirty_payload": result.get("reader_dirty_list_bytes") == 16
         and result.get("reader_dirty_bitmap_bytes") == 16
         and result.get("reader_active_bin_bytes") == 0,
-        "reader_source_protocol": result.get("reader_source_requests") == 1,
+        "reader_source_protocol": result.get("reader_source_requests") == 1
+        and result.get("reader_source_responses") == 1
+        and result.get("reader_source_windows") == 1
+        and result.get("reader_protocol_markers") == 3
+        and result.get("reader_protocol_acks") == 1
+        and result.get("reader_protocol_status") == 0
+        and result.get("reader_dirty_status") == 0
+        and result.get("compute_protocol_markers") == 3
+        and result.get("compute_protocol_acks") == 1
+        and result.get("compute_protocol_status") == 0,
         "reader_epochs": result.get("reader_page_epoch_misses") == 0,
         "reader_levels": result.get("reader_occupied_levels") == 1,
         "compute_fast_tiles": result.get("compute_fast_tiles") == 5,
         "compute_no_full_tiles": result.get("compute_full_tiles") == 0,
         "compute_edges": result.get("compute_processed_edges") == 10,
-        "axis_transfers": result.get("edge_axis_transfers") == 22,
+        "axis_transfers": result.get("edge_axis_transfers") == 25
+        and result.get("value_axis_transfers") == 2,
         "axis_capacity": 0 <= result.get("edge_axis_max_occupancy", -1) <= 32,
         "dram_matches_backend": int(dram.get("dram_reads", 0))
         + int(dram.get("dram_writes", 0))
@@ -189,7 +202,16 @@ def validate_carry_hot_result(
         "reader_dirty_payload": result.get("reader_dirty_list_bytes") == 16
         and result.get("reader_dirty_bitmap_bytes") == 16
         and result.get("reader_active_bin_bytes") == 0,
-        "reader_source_protocol": result.get("reader_source_requests") == 1,
+        "reader_source_protocol": result.get("reader_source_requests") == 1
+        and result.get("reader_source_responses") == 1
+        and result.get("reader_source_windows") == 1
+        and result.get("reader_protocol_markers") == 3
+        and result.get("reader_protocol_acks") == 1
+        and result.get("reader_protocol_status") == 0
+        and result.get("reader_dirty_status") == 0
+        and result.get("compute_protocol_markers") == 3
+        and result.get("compute_protocol_acks") == 1
+        and result.get("compute_protocol_status") == 0,
         "reader_epochs": result.get("reader_page_epoch_misses") == 0,
         "reader_levels": result.get("reader_occupied_levels") == 2,
         "reader_partitioning": result.get("reader_cold_edges") == 2
@@ -197,6 +219,8 @@ def validate_carry_hot_result(
         "compute_fast_tiles": result.get("compute_fast_tiles") == 1,
         "compute_no_full_tiles": result.get("compute_full_tiles") == 0,
         "compute_edges": result.get("compute_processed_edges") == 3,
+        "axis_transfers": result.get("edge_axis_transfers") == 10
+        and result.get("value_axis_transfers") == 2,
         "axis_capacity": 0 <= result.get("edge_axis_max_occupancy", -1) <= 32,
         "dram_matches_backend": int(dram.get("dram_reads", 0))
         + int(dram.get("dram_writes", 0))
@@ -281,12 +305,28 @@ def validate_multiround_sssp_result(
         "round_active_protocol": result.get("reader_source_sizes_per_round")
         == [5, 2, 2, 2, 1, 0]
         and result.get("reader_source_requests_per_round") == [5, 0, 0, 0, 0, 0]
+        and result.get("reader_source_responses_per_round")
+        == [5, 0, 0, 0, 0, 0]
+        and result.get("reader_source_windows_per_round") == [1, 0, 0, 0, 0, 0]
+        and result.get("reader_protocol_markers_per_round")
+        == [3, 0, 0, 0, 0, 0]
+        and result.get("reader_protocol_acks_per_round") == [1, 0, 0, 0, 0, 0]
+        and result.get("reader_protocol_status_per_round") == [0] * 6
+        and result.get("reader_dirty_status_per_round") == [0] * 6
+        and result.get("compute_protocol_status_per_round") == [0] * 6
         and result.get("reader_dirty_list_bytes_per_round") == [80, 0, 0, 0, 0, 0]
         and result.get("reader_dirty_bitmap_bytes_per_round")
         == [80, 0, 0, 0, 0, 0]
         and result.get("reader_active_bin_bytes_per_round")
         == [0, 64, 64, 64, 32, 0],
         "round_epochs": result.get("reader_epoch_misses_per_round") == [0] * 6,
+        "round_axis_protocol": result.get("edge_axis_transfers_per_round")
+        == [19, 6, 5, 5, 4, 1]
+        and result.get("value_axis_transfers_per_round") == [6, 0, 0, 0, 0, 0]
+        and all(
+            occupancy <= 32
+            for occupancy in result.get("value_axis_max_occupancy_per_round", [])
+        ),
         "maintenance_graph_payload": result.get(
             "maintenance_graph_payload_write_bytes"
         )
@@ -327,6 +367,38 @@ def validate_multiround_sssp_result(
     return [name for name, passed in checks.items() if not passed]
 
 
+def validate_protocol_window_result(
+    result: dict[str, Any], dram: dict[str, int | float], *, channels: int
+) -> list[str]:
+    checks = {
+        "success": result.get("success") is True,
+        "mode": result.get("mode") == "spine_vertical",
+        "correctness": result.get("correctness_mismatches") == 0
+        and result.get("frontier_mismatches") == 0,
+        "input_shape": result.get("input_edges") == 17
+        and result.get("next_active") == 1,
+        "reader_protocol": result.get("reader_source_requests") == 17
+        and result.get("reader_source_responses") == 17
+        and result.get("reader_source_windows") == 2
+        and result.get("reader_protocol_markers") == 3
+        and result.get("reader_protocol_acks") == 1
+        and result.get("reader_protocol_status") == 0
+        and result.get("reader_dirty_status") == 0,
+        "compute_protocol": result.get("compute_protocol_markers") == 3
+        and result.get("compute_protocol_acks") == 1
+        and result.get("compute_protocol_status") == 0,
+        "axis_transcript": result.get("edge_axis_transfers") == 40
+        and result.get("value_axis_transfers") == 18
+        and 1 < result.get("edge_axis_max_occupancy", 0) <= 32
+        and 0 < result.get("value_axis_max_occupancy", 0) <= 32,
+        "dram_matches_backend": int(dram.get("dram_reads", 0))
+        + int(dram.get("dram_writes", 0))
+        == result.get("backend_requests"),
+        "channel_count": dram.get("dram_channels") == channels,
+    }
+    return [name for name, passed in checks.items() if not passed]
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out-dir", type=Path, required=True)
@@ -335,7 +407,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--workload", type=Path, default=DEFAULT_WORKLOAD)
     parser.add_argument(
         "--scenario",
-        choices=("amazon_l0", "carry_hot", "amazon_full_compute", "weighted_sssp"),
+        choices=(
+            "amazon_l0",
+            "carry_hot",
+            "amazon_full_compute",
+            "weighted_sssp",
+            "protocol_window",
+        ),
         default="amazon_l0",
     )
     parser.add_argument("--preload", type=Path)
@@ -364,6 +442,8 @@ def main() -> int:
         args.workload = DEFAULT_FULL_WORKLOAD
     elif args.scenario == "weighted_sssp" and args.workload == DEFAULT_WORKLOAD:
         args.workload = DEFAULT_SSSP_WORKLOAD
+    elif args.scenario == "protocol_window" and args.workload == DEFAULT_WORKLOAD:
+        args.workload = DEFAULT_PROTOCOL_WORKLOAD
     if args.channels < 23 or args.source < 0 or not args.workload.is_file():
         raise SystemExit("channels must be >=23, source non-negative, workload present")
     if args.preload is not None and not args.preload.is_file():
@@ -424,6 +504,7 @@ def main() -> int:
         "carry_hot": validate_carry_hot_result,
         "amazon_full_compute": validate_full_compute_result,
         "weighted_sssp": validate_multiround_sssp_result,
+        "protocol_window": validate_protocol_window_result,
     }
     validator = validators[args.scenario]
     problems = validator(result, dram, channels=args.channels)

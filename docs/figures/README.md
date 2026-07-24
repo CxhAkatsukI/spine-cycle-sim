@@ -10,9 +10,9 @@
   source/calibration snapshot; it is not the current fine-grained core design.
 - `spine_exact_range_task_reader.svg`: current payload and control path for the
   latest HLS exact range-task reader. It shows DEVICE_DIRTY and HOST_ACTIVE
-  payload decoding, HBM level metadata/epoch gating, two-pass range replay, and
-  the remaining protocol/timing gaps. Its editable source is the adjacent
-  `.dot` file.
+  payload decoding, the 16-credit source-value protocol, HBM level
+  metadata/epoch gating, two-pass range replay, and the remaining
+  protocol/timing gaps. Its editable source is the adjacent `.dot` file.
 
 Regenerate a Graphviz SVG from the repository root with:
 

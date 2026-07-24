@@ -203,7 +203,9 @@ void SpineSplitReader::reset_state() {
   tile_index_ = 0;
   range_index_ = 0;
   range_edge_index_ = 0;
-  source_index_ = 0;
+  source_request_index_ = 0;
+  source_response_index_ = 0;
+  source_window_end_ = 0;
   metadata_control_ = 0;
   dirty_count_ = 0;
   dirty_generation_ = 0;
@@ -259,13 +261,17 @@ void SpineSplitReader::evaluate(const CycleContext &) {
     }
     return;
   }
-  if (phase_ == Phase::kWaitSource) {
+  if (phase_ == Phase::kWaitSourceWindow ||
+      phase_ == Phase::kWaitSourceAck) {
     if (value_in_.try_pop(staged_value_)) {
       staged_action_ = Action::kPopValue;
     }
     return;
   }
-  if (phase_ == Phase::kRequestSource || phase_ == Phase::kTileBegin ||
+  if (phase_ == Phase::kRequestSourceWindow ||
+      phase_ == Phase::kSendSourceCount ||
+      phase_ == Phase::kSendSourceGeneration ||
+      phase_ == Phase::kSendSourceDone || phase_ == Phase::kTileBegin ||
       phase_ == Phase::kEdgeEmit || phase_ == Phase::kTileEnd ||
       phase_ == Phase::kDone) {
     staged_stream_word_ = current_stream_word();
@@ -298,25 +304,74 @@ void SpineSplitReader::commit(const CycleContext &context) {
       memory_tasks_.pop_front();
       return;
     case Action::kPopValue:
-      if (source_index_ >= active_sources_.size() ||
-          staged_value_.source != active_sources_[source_index_]) {
-        failed_ = true;
-        done_ = true;
-        failure_ = "reader source-value response did not match its request";
+      if (phase_ == Phase::kWaitSourceAck) {
+        ++counters_.source_protocol_acks;
+        counters_.source_protocol_status = staged_value_.value;
+        if (staged_value_.kind != SourceValueWord::Kind::kProtocolAck ||
+            staged_value_.value !=
+                static_cast<std::uint32_t>(SpineSourceProtocolStatus::kOk)) {
+          counters_.dirty_status =
+              static_cast<std::uint32_t>(SpineDirtyStatus::kProtocolError);
+        }
+        if (counters_.dirty_status !=
+                static_cast<std::uint32_t>(SpineDirtyStatus::kOk) ||
+            counters_.source_protocol_status !=
+                static_cast<std::uint32_t>(SpineSourceProtocolStatus::kOk)) {
+          counters_.range_task_path = kRangeTaskPathError;
+          counters_.range_task_error = 7;
+          failed_ = true;
+          done_ = true;
+          failure_ = "reader source-value protocol acknowledgement failed";
+        } else {
+          phase_ = Phase::kLevelOccupancyBegin;
+        }
         return;
       }
-      source_values_[staged_value_.source] = staged_value_.value;
+      if (phase_ != Phase::kWaitSourceWindow ||
+          source_response_index_ >= active_sources_.size() ||
+          staged_value_.kind != SourceValueWord::Kind::kSourceValue ||
+          staged_value_.source != active_sources_[source_response_index_]) {
+        counters_.source_protocol_status = static_cast<std::uint32_t>(
+            SpineSourceProtocolStatus::kResponseSource);
+        counters_.dirty_status =
+            static_cast<std::uint32_t>(SpineDirtyStatus::kProtocolError);
+      } else {
+        source_values_[staged_value_.source] = staged_value_.value;
+      }
       ++counters_.source_responses;
-      ++source_index_;
-      phase_ = source_index_ == active_sources_.size()
-                   ? Phase::kLevelOccupancyBegin
-                   : Phase::kRequestSource;
+      ++source_response_index_;
+      if (source_response_index_ == source_window_end_) {
+        if (source_request_index_ == active_sources_.size()) {
+          phase_ = Phase::kSendSourceCount;
+        } else {
+          source_window_end_ = std::min(
+              source_request_index_ + kSpineDirtyRequestWindow,
+              active_sources_.size());
+          ++counters_.source_request_windows;
+          phase_ = Phase::kRequestSourceWindow;
+        }
+      }
       return;
     case Action::kPush:
       switch (phase_) {
-        case Phase::kRequestSource:
+        case Phase::kRequestSourceWindow:
           ++counters_.source_requests;
-          phase_ = Phase::kWaitSource;
+          ++source_request_index_;
+          if (source_request_index_ == source_window_end_) {
+            phase_ = Phase::kWaitSourceWindow;
+          }
+          break;
+        case Phase::kSendSourceCount:
+          ++counters_.source_protocol_markers;
+          phase_ = Phase::kSendSourceGeneration;
+          break;
+        case Phase::kSendSourceGeneration:
+          ++counters_.source_protocol_markers;
+          phase_ = Phase::kSendSourceDone;
+          break;
+        case Phase::kSendSourceDone:
+          ++counters_.source_protocol_markers;
+          phase_ = Phase::kWaitSourceAck;
           break;
         case Phase::kTileBegin:
           ++counters_.tiles_emitted;
@@ -1082,9 +1137,18 @@ void SpineSplitReader::finalize_level_cache() {
 
 PartConvWord SpineSplitReader::current_stream_word() const {
   switch (phase_) {
-    case Phase::kRequestSource:
+    case Phase::kRequestSourceWindow:
       return PartConvWord{.kind = PartConvWordKind::kSourceRequest,
-                          .first = active_sources_.at(source_index_)};
+                          .first =
+                              active_sources_.at(source_request_index_)};
+    case Phase::kSendSourceCount:
+      return PartConvWord{.kind = PartConvWordKind::kSourceCount,
+                          .first = static_cast<std::uint32_t>(dirty_count_)};
+    case Phase::kSendSourceGeneration:
+      return PartConvWord{.kind = PartConvWordKind::kSourceGeneration,
+                          .first = dirty_generation_};
+    case Phase::kSendSourceDone:
+      return PartConvWord{.kind = PartConvWordKind::kSourceRequestsDone};
     case Phase::kTileBegin:
       return PartConvWord{.kind = PartConvWordKind::kTileBegin,
                           .first = tiles_.at(tile_index_).tile_base};
@@ -1120,7 +1184,9 @@ void SpineSplitReader::advance(const CycleContext &context) {
         active_sources_.clear();
         active_records_.clear();
         host_active_bins_ = {};
-        source_index_ = 0;
+        source_request_index_ = 0;
+        source_response_index_ = 0;
+        source_window_end_ = 0;
         begin_source_header_reads();
         phase_ = Phase::kSourceHeaderResolve;
       }
@@ -1222,9 +1288,16 @@ void SpineSplitReader::advance(const CycleContext &context) {
         failure_ = "dirty list/bitmap/hash payloads disagree";
         return;
       }
-      source_index_ = 0;
-      phase_ = active_sources_.empty() ? Phase::kLevelOccupancyBegin
-                                       : Phase::kRequestSource;
+      source_request_index_ = 0;
+      source_response_index_ = 0;
+      if (active_sources_.empty()) {
+        phase_ = Phase::kSendSourceCount;
+      } else {
+        source_window_end_ = std::min<std::size_t>(
+            kSpineDirtyRequestWindow, active_sources_.size());
+        ++counters_.source_request_windows;
+        phase_ = Phase::kRequestSourceWindow;
+      }
       return;
     }
     case Phase::kHostActiveResolve:
@@ -1437,8 +1510,12 @@ void SpineSplitReader::advance(const CycleContext &context) {
       phase_ = Phase::kEdgeEmit;
       return;
     }
-    case Phase::kRequestSource:
-    case Phase::kWaitSource:
+    case Phase::kRequestSourceWindow:
+    case Phase::kWaitSourceWindow:
+    case Phase::kSendSourceCount:
+    case Phase::kSendSourceGeneration:
+    case Phase::kSendSourceDone:
+    case Phase::kWaitSourceAck:
     case Phase::kTileBegin:
     case Phase::kEdgeEmit:
     case Phase::kTileEnd:
@@ -1483,6 +1560,11 @@ void SpineSplitSsspCompute::reset_round() {
   phase_ = Phase::kInput;
   staged_action_ = Action::kNone;
   pending_source_ = 0;
+  pending_source_value_ = kInfinity;
+  pending_value_kind_ = SourceValueWord::Kind::kSourceValue;
+  source_count_seen_ = false;
+  source_generation_seen_ = false;
+  source_protocol_overflow_ = false;
   gather_index_ = 0;
   done_ = false;
 }
@@ -1515,7 +1597,8 @@ void SpineSplitSsspCompute::evaluate(const CycleContext &) {
     return;
   }
   if (source_reply_pending_) {
-    staged_value_word_ = SourceValueWord{.source = pending_source_,
+    staged_value_word_ = SourceValueWord{.kind = pending_value_kind_,
+                                         .source = pending_source_,
                                          .value = pending_source_value_};
     if (value_out_.try_push(staged_value_word_)) {
       staged_action_ = Action::kPushValue;
@@ -1558,7 +1641,12 @@ void SpineSplitSsspCompute::commit(const CycleContext &context) {
       return;
     case Action::kPushValue:
       source_reply_pending_ = false;
-      ++counters_.source_responses;
+      if (pending_value_kind_ == SourceValueWord::Kind::kProtocolAck) {
+        ++counters_.source_protocol_acks;
+      } else {
+        ++counters_.source_responses;
+      }
+      pending_value_kind_ = SourceValueWord::Kind::kSourceValue;
       phase_ = Phase::kInput;
       return;
     case Action::kAdvance:
@@ -1639,18 +1727,60 @@ void SpineSplitSsspCompute::consume_memory_response(
 }
 
 void SpineSplitSsspCompute::handle_edge_word(const PartConvWord &word) {
+  const auto set_protocol_status = [this](SpineSourceProtocolStatus status) {
+    if (counters_.source_protocol_status ==
+        static_cast<std::uint32_t>(SpineSourceProtocolStatus::kOk)) {
+      counters_.source_protocol_status = static_cast<std::uint32_t>(status);
+    }
+  };
   switch (word.kind) {
     case PartConvWordKind::kSourceRequest:
+      ++counters_.source_requests;
+      pending_value_kind_ = SourceValueWord::Kind::kSourceValue;
+      pending_source_ = word.first;
       if (word.first >= vertices_) {
-        failed_ = true;
-        done_ = true;
+        set_protocol_status(SpineSourceProtocolStatus::kSourceBounds);
+        pending_source_value_ = kInfinity;
+        source_reply_pending_ = true;
+        phase_ = Phase::kSourceReply;
         return;
       }
-      pending_source_ = word.first;
-      ++counters_.source_requests;
       enqueue_memory(*ports_.vertex_state, MemoryOperation::kRead,
                      pending_source_ * kVertexWordBytes, kVertexWordBytes);
       phase_ = Phase::kSourceRead;
+      return;
+    case PartConvWordKind::kSourceCount:
+      ++counters_.source_protocol_markers;
+      if (source_count_seen_) {
+        set_protocol_status(SpineSourceProtocolStatus::kMetadataDuplicate);
+      }
+      source_count_seen_ = true;
+      counters_.source_count = word.first;
+      phase_ = Phase::kInput;
+      return;
+    case PartConvWordKind::kSourceGeneration:
+      ++counters_.source_protocol_markers;
+      if (source_generation_seen_) {
+        set_protocol_status(SpineSourceProtocolStatus::kMetadataDuplicate);
+      }
+      source_generation_seen_ = true;
+      counters_.source_generation = word.first;
+      phase_ = Phase::kInput;
+      return;
+    case PartConvWordKind::kSourceRequestsDone:
+      ++counters_.source_protocol_markers;
+      if (!source_count_seen_ || !source_generation_seen_ ||
+          counters_.source_count != counters_.source_requests) {
+        set_protocol_status(SpineSourceProtocolStatus::kCount);
+      }
+      pending_value_kind_ = SourceValueWord::Kind::kProtocolAck;
+      pending_source_ = 0;
+      pending_source_value_ = counters_.source_protocol_status;
+      source_reply_pending_ = true;
+      source_protocol_overflow_ =
+          counters_.source_protocol_status !=
+          static_cast<std::uint32_t>(SpineSourceProtocolStatus::kOk);
+      phase_ = Phase::kSourceReply;
       return;
     case PartConvWordKind::kTileBegin:
       if (tile_open_ || word.first >= vertices_) {
@@ -1720,6 +1850,7 @@ void SpineSplitSsspCompute::handle_edge_word(const PartConvWord &word) {
                      std::vector<std::uint8_t>(8, 0));
       enqueue_memory(*ports_.result, MemoryOperation::kWrite, 0, kResultBytes,
                      std::vector<std::uint8_t>(kResultBytes, 0));
+      source_protocol_overflow_ = source_protocol_overflow_ || word.second != 0;
       phase_ = Phase::kFinish;
       return;
   }
@@ -1876,6 +2007,7 @@ void SpineSplitSsspCompute::advance(const CycleContext &context) {
     case Phase::kFinish:
       counters_.end_cycle = context.domain_cycle;
       done_ = true;
+      failed_ = source_protocol_overflow_;
       return;
     case Phase::kInput:
       return;

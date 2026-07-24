@@ -6,6 +6,7 @@ from scripts.run_sst_spine_vertical import (
     validate_carry_hot_result,
     validate_full_compute_result,
     validate_multiround_sssp_result,
+    validate_protocol_window_result,
     validate_result,
 )
 
@@ -48,13 +49,23 @@ class SstSpineVerticalValidationTests(unittest.TestCase):
             "reader_dirty_bitmap_bytes": 16,
             "reader_active_bin_bytes": 0,
             "reader_source_requests": 1,
+            "reader_source_responses": 1,
+            "reader_source_windows": 1,
+            "reader_protocol_markers": 3,
+            "reader_protocol_acks": 1,
+            "reader_protocol_status": 0,
+            "reader_dirty_status": 0,
+            "compute_protocol_markers": 3,
+            "compute_protocol_acks": 1,
+            "compute_protocol_status": 0,
             "reader_page_epoch_misses": 0,
             "reader_occupied_levels": 1,
             "compute_fast_tiles": 5,
             "compute_full_tiles": 0,
             "compute_processed_edges": 10,
-            "edge_axis_transfers": 22,
+            "edge_axis_transfers": 25,
             "edge_axis_max_occupancy": 15,
+            "value_axis_transfers": 2,
             "backend_requests": 100,
         }
         dram = {"dram_reads": 60, "dram_writes": 40, "dram_channels": 32}
@@ -157,6 +168,15 @@ class SstSpineVerticalValidationTests(unittest.TestCase):
             "reader_dirty_bitmap_bytes": 16,
             "reader_active_bin_bytes": 0,
             "reader_source_requests": 1,
+            "reader_source_responses": 1,
+            "reader_source_windows": 1,
+            "reader_protocol_markers": 3,
+            "reader_protocol_acks": 1,
+            "reader_protocol_status": 0,
+            "reader_dirty_status": 0,
+            "compute_protocol_markers": 3,
+            "compute_protocol_acks": 1,
+            "compute_protocol_status": 0,
             "reader_page_epoch_misses": 0,
             "reader_occupied_levels": 2,
             "reader_cold_edges": 2,
@@ -164,7 +184,9 @@ class SstSpineVerticalValidationTests(unittest.TestCase):
             "compute_fast_tiles": 1,
             "compute_full_tiles": 0,
             "compute_processed_edges": 3,
+            "edge_axis_transfers": 10,
             "edge_axis_max_occupancy": 5,
+            "value_axis_transfers": 2,
             "backend_requests": 100,
         }
         dram = {"dram_reads": 60, "dram_writes": 40, "dram_channels": 32}
@@ -252,10 +274,20 @@ class SstSpineVerticalValidationTests(unittest.TestCase):
             "reader_metadata_bytes_per_round": [2960, 3160, 3160, 3160, 3152, 3144],
             "reader_source_sizes_per_round": [5, 2, 2, 2, 1, 0],
             "reader_source_requests_per_round": [5, 0, 0, 0, 0, 0],
+            "reader_source_responses_per_round": [5, 0, 0, 0, 0, 0],
+            "reader_source_windows_per_round": [1, 0, 0, 0, 0, 0],
+            "reader_protocol_markers_per_round": [3, 0, 0, 0, 0, 0],
+            "reader_protocol_acks_per_round": [1, 0, 0, 0, 0, 0],
+            "reader_protocol_status_per_round": [0, 0, 0, 0, 0, 0],
+            "reader_dirty_status_per_round": [0, 0, 0, 0, 0, 0],
+            "compute_protocol_status_per_round": [0, 0, 0, 0, 0, 0],
             "reader_dirty_list_bytes_per_round": [80, 0, 0, 0, 0, 0],
             "reader_dirty_bitmap_bytes_per_round": [80, 0, 0, 0, 0, 0],
             "reader_active_bin_bytes_per_round": [0, 64, 64, 64, 32, 0],
             "reader_epoch_misses_per_round": [0, 0, 0, 0, 0, 0],
+            "edge_axis_transfers_per_round": [19, 6, 5, 5, 4, 1],
+            "value_axis_transfers_per_round": [6, 0, 0, 0, 0, 0],
+            "value_axis_max_occupancy_per_round": [5, 0, 0, 0, 0, 0],
             "maintenance_graph_index_payload_write_bytes": 88,
             "maintenance_graph_payload_write_bytes": 64,
             "reader_graph_index_payload_bytes_per_round": [136, 56, 64, 56, 24, 0],
@@ -271,6 +303,35 @@ class SstSpineVerticalValidationTests(unittest.TestCase):
         dram = {"dram_reads": 60, "dram_writes": 40, "dram_channels": 32}
         self.assertEqual(
             validate_multiround_sssp_result(result, dram, channels=32), []
+        )
+
+    def test_source_protocol_window_structure_passes(self) -> None:
+        result = {
+            "success": True,
+            "mode": "spine_vertical",
+            "correctness_mismatches": 0,
+            "frontier_mismatches": 0,
+            "input_edges": 17,
+            "next_active": 1,
+            "reader_source_requests": 17,
+            "reader_source_responses": 17,
+            "reader_source_windows": 2,
+            "reader_protocol_markers": 3,
+            "reader_protocol_acks": 1,
+            "reader_protocol_status": 0,
+            "reader_dirty_status": 0,
+            "compute_protocol_markers": 3,
+            "compute_protocol_acks": 1,
+            "compute_protocol_status": 0,
+            "edge_axis_transfers": 40,
+            "value_axis_transfers": 18,
+            "edge_axis_max_occupancy": 13,
+            "value_axis_max_occupancy": 2,
+            "backend_requests": 100,
+        }
+        dram = {"dram_reads": 60, "dram_writes": 40, "dram_channels": 32}
+        self.assertEqual(
+            validate_protocol_window_result(result, dram, channels=32), []
         )
 
 
