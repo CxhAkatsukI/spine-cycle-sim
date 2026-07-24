@@ -44,6 +44,10 @@ The PMA-native ReGraph SSSP path now includes finite gather/merger, merger/apply
 and apply/HBM-wrapper streams with online SST-HBM backpressure. Its overlap and
 pressure evidence are in
 [`docs/grasu_regraph_stream_overlap_20260725.md`](docs/grasu_regraph_stream_overlap_20260725.md).
+The follow-up closes the HLS gather RAW-forwarding and fixed-window source-cache
+controller gaps; the exact source mapping, cross-window test, and updated SST
+ledger are in
+[`docs/grasu_regraph_gather_source_cache_20260725.md`](docs/grasu_regraph_gather_source_cache_20260725.md).
 
 ## Quick Start
 

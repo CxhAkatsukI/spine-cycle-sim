@@ -100,6 +100,18 @@ struct PmaEdgeBatch {
   std::array<bool, 8> valid{};
 };
 
+struct ReGraphSourceCacheRequest {
+  std::size_t source_round{};
+  bool end{};
+};
+
+struct ReGraphSourceCacheResponse {
+  std::size_t source_round{};
+  std::size_t line{};
+  std::array<std::uint32_t, kStateWordsPerBurst> words{};
+  bool end{};
+};
+
 struct ReGraphGatherRow {
   std::size_t row{};
   std::array<std::optional<std::uint32_t>, 2> candidates{};
@@ -115,13 +127,211 @@ struct ReGraphAppliedBurst {
   std::vector<std::uint8_t> data;
 };
 
+class ReGraphSourceHbmReader final : public Component {
+public:
+  ReGraphSourceHbmReader(std::string name, ClockId clock_id,
+                         const GraSuReGraphConfig &config,
+                         Fifo<ReGraphSourceCacheRequest> &input,
+                         Fifo<ReGraphSourceCacheResponse> &output,
+                         FixedAxiPort &port)
+      : Component(std::move(name), clock_id), config_(config), input_(input),
+        output_(output), port_(port) {}
+
+  void start_round(std::uint64_t round) {
+    if (round == 0 || (phase_ != Phase::kIdle && phase_ != Phase::kDone)) {
+      throw std::logic_error("ReGraph source HBM reader started while busy");
+    }
+    algorithm_round_ = round;
+    source_state_base_ =
+        config_.source_state_base +
+        ((round - 1) & 1U) * config_.source_state_buffer_stride;
+    active_source_round_ = 0;
+    lines_emitted_this_request_ = 0;
+    phase_ = Phase::kIdle;
+  }
+
+  [[nodiscard]] bool done() const noexcept { return phase_ == Phase::kDone; }
+  [[nodiscard]] std::uint64_t requests() const noexcept { return requests_; }
+  [[nodiscard]] std::uint64_t request_markers() const noexcept {
+    return request_markers_;
+  }
+  [[nodiscard]] std::uint64_t lines() const noexcept { return lines_; }
+  [[nodiscard]] std::uint64_t response_markers() const noexcept {
+    return response_markers_;
+  }
+  [[nodiscard]] std::uint64_t output_stall_cycles() const noexcept {
+    return output_stall_cycles_;
+  }
+  [[nodiscard]] std::uint64_t read_bytes() const noexcept {
+    return requests_ * source_round_bytes();
+  }
+
+  void evaluate(const CycleContext &) override {
+    staged_input_.reset();
+    staged_axi_issue_ = false;
+    staged_line_.reset();
+    staged_parent_.reset();
+    staged_end_response_ = false;
+    switch (phase_) {
+    case Phase::kIdle: {
+      ReGraphSourceCacheRequest request;
+      if (input_.try_pop(request)) {
+        staged_input_ = request;
+      }
+      break;
+    }
+    case Phase::kNeedIssue:
+      staged_axi_issue_ = port_.requests().try_push(AxiRequest{
+          .transaction_id = transaction_id(active_source_round_),
+          .operation = MemoryOperation::kRead,
+          .address =
+              source_state_base_ + active_source_round_ * source_round_bytes(),
+          .bytes = source_round_bytes(),
+          .stream_read_beats = true,
+          .write_data = {},
+      });
+      break;
+    case Phase::kStream: {
+      const AxiReadBeatResponse *beat = port_.read_beats().front();
+      if (beat == nullptr) {
+        break;
+      }
+      if (output_.full()) {
+        ++output_stall_cycles_;
+        break;
+      }
+      validate_beat(*beat);
+      ReGraphSourceCacheResponse response{
+          .source_round = active_source_round_,
+          .line = static_cast<std::size_t>(beat->parent_offset / 64),
+      };
+      for (std::size_t word = 0; word < response.words.size(); ++word) {
+        response.words[word] = decode_u32(beat->read_data, word * 4);
+      }
+      AxiReadBeatResponse consumed;
+      if (!port_.read_beats().try_pop(consumed) ||
+          !output_.try_push(response)) {
+        throw std::logic_error(
+            "ReGraph source cacheline atomic transfer failed");
+      }
+      staged_line_ = std::move(consumed);
+      break;
+    }
+    case Phase::kWaitParent:
+      if (port_.responses().front() != nullptr) {
+        AxiResponse response;
+        if (port_.responses().try_pop(response)) {
+          staged_parent_ = std::move(response);
+        }
+      }
+      break;
+    case Phase::kEmitEnd:
+      staged_end_response_ =
+          output_.try_push(ReGraphSourceCacheResponse{.end = true});
+      if (!staged_end_response_) {
+        ++output_stall_cycles_;
+      }
+      break;
+    case Phase::kDone:
+      break;
+    }
+  }
+
+  void commit(const CycleContext &) override {
+    if (staged_input_.has_value()) {
+      if (staged_input_->end) {
+        ++request_markers_;
+        phase_ = Phase::kEmitEnd;
+      } else {
+        active_source_round_ = staged_input_->source_round;
+        lines_emitted_this_request_ = 0;
+        phase_ = Phase::kNeedIssue;
+      }
+    }
+    if (staged_axi_issue_) {
+      ++requests_;
+      phase_ = Phase::kStream;
+    }
+    if (staged_line_.has_value()) {
+      ++lines_emitted_this_request_;
+      ++lines_;
+      if (staged_line_->last) {
+        if (lines_emitted_this_request_ != lines_per_round()) {
+          throw std::runtime_error(
+              "ReGraph source HBM request ended at the wrong cacheline");
+        }
+        phase_ = Phase::kWaitParent;
+      }
+    }
+    if (staged_parent_.has_value()) {
+      if (!staged_parent_->success ||
+          staged_parent_->transaction_id !=
+              transaction_id(active_source_round_) ||
+          staged_parent_->read_data.size() != source_round_bytes()) {
+        throw std::runtime_error(
+            "ReGraph source HBM reader received malformed parent response");
+      }
+      phase_ = Phase::kIdle;
+    }
+    if (staged_end_response_) {
+      ++response_markers_;
+      phase_ = Phase::kDone;
+    }
+  }
+
+private:
+  enum class Phase { kIdle, kNeedIssue, kStream, kWaitParent, kEmitEnd, kDone };
+
+  [[nodiscard]] std::size_t lines_per_round() const noexcept {
+    return config_.source_buffer_vertices / kStateWordsPerBurst;
+  }
+  [[nodiscard]] std::uint64_t source_round_bytes() const noexcept {
+    return config_.source_buffer_vertices * sizeof(std::uint32_t);
+  }
+  [[nodiscard]] std::uint64_t transaction_id(std::size_t source_round) const {
+    return (algorithm_round_ << 48) | (1ULL << 47) | source_round;
+  }
+
+  void validate_beat(const AxiReadBeatResponse &beat) const {
+    if (!beat.success ||
+        beat.transaction_id != transaction_id(active_source_round_) ||
+        beat.parent_offset % 64 != 0 || beat.read_data.size() != 64 ||
+        beat.parent_offset / 64 != lines_emitted_this_request_ ||
+        beat.last != (lines_emitted_this_request_ + 1 == lines_per_round())) {
+      throw std::runtime_error(
+          "ReGraph source HBM reader received malformed cacheline response");
+    }
+  }
+
+  GraSuReGraphConfig config_;
+  Fifo<ReGraphSourceCacheRequest> &input_;
+  Fifo<ReGraphSourceCacheResponse> &output_;
+  FixedAxiPort &port_;
+  Phase phase_{Phase::kDone};
+  std::uint64_t algorithm_round_{};
+  std::uint64_t source_state_base_{};
+  std::size_t active_source_round_{};
+  std::size_t lines_emitted_this_request_{};
+  std::optional<ReGraphSourceCacheRequest> staged_input_;
+  bool staged_axi_issue_{};
+  std::optional<AxiReadBeatResponse> staged_line_;
+  std::optional<AxiResponse> staged_parent_;
+  bool staged_end_response_{};
+  std::uint64_t requests_{};
+  std::uint64_t request_markers_{};
+  std::uint64_t lines_{};
+  std::uint64_t response_markers_{};
+  std::uint64_t output_stall_cycles_{};
+};
+
 class PmaNativeReader final : public Component {
 public:
   struct Ports {
     FixedAxiPort *rows{};
-    FixedAxiPort *source_state{};
     std::array<FixedAxiPort *, 4> pma{};
     Fifo<PmaEdgeBatch> *output{};
+    Fifo<ReGraphSourceCacheRequest> *source_requests{};
+    Fifo<ReGraphSourceCacheResponse> *source_responses{};
   };
 
   PmaNativeReader(std::string name, ClockId clock_id, std::size_t vertices,
@@ -129,8 +339,9 @@ public:
                   Ports ports)
       : Component(std::move(name), clock_id), vertices_(vertices),
         policy_(std::move(policy)), config_(config), ports_(ports) {
-    if (vertices_ == 0 || ports_.rows == nullptr ||
-        ports_.source_state == nullptr || ports_.output == nullptr ||
+    if (vertices_ == 0 || ports_.rows == nullptr || ports_.output == nullptr ||
+        ports_.source_requests == nullptr ||
+        ports_.source_responses == nullptr ||
         std::any_of(ports_.pma.begin(), ports_.pma.end(),
                     [](const auto *port) { return port == nullptr; })) {
       throw std::invalid_argument("invalid PMA-native reader ports");
@@ -145,25 +356,43 @@ public:
       throw std::invalid_argument("PMA reader round is one-based");
     }
     round_ = round;
-    source_state_base_ =
-        config_.source_state_base +
-        ((round_ - 1) & 1U) * config_.source_state_buffer_stride;
     source_ = 0;
     begin_segment_ = 0;
     end_segment_ = 0;
     next_segment_ = 0;
     outstanding_segments_ = 0;
     pending_batches_.clear();
-    phase_ = Phase::kNeedSourceChunk;
+    pp_read_round_ = 0;
+    pp_write_round_ = 0;
+    pp_request_round_ = 0;
+    source_end_sent_ = false;
+    for (auto &slot : source_cache_) {
+      slot.round = std::numeric_limits<std::size_t>::max();
+      slot.lines_received = 0;
+      slot.words.assign(config_.source_buffer_vertices, 0);
+    }
+    phase_ = Phase::kNeedRow;
   }
 
   [[nodiscard]] bool done() const noexcept { return phase_ == Phase::kDone; }
   [[nodiscard]] std::uint64_t row_reads() const noexcept { return row_reads_; }
-  [[nodiscard]] std::uint64_t state_reads() const noexcept {
-    return state_reads_;
+  [[nodiscard]] std::uint64_t source_requests() const noexcept {
+    return source_requests_;
   }
-  [[nodiscard]] std::uint64_t state_read_bytes() const noexcept {
-    return state_read_bytes_;
+  [[nodiscard]] std::uint64_t source_request_markers() const noexcept {
+    return source_request_markers_;
+  }
+  [[nodiscard]] std::uint64_t source_lines() const noexcept {
+    return source_lines_;
+  }
+  [[nodiscard]] std::uint64_t source_lane_writes() const noexcept {
+    return source_lane_writes_;
+  }
+  [[nodiscard]] std::uint64_t source_response_markers() const noexcept {
+    return source_response_markers_;
+  }
+  [[nodiscard]] std::uint64_t source_wait_cycles() const noexcept {
+    return source_wait_cycles_;
   }
   [[nodiscard]] std::uint64_t segment_reads() const noexcept {
     return segment_reads_;
@@ -173,35 +402,25 @@ public:
     staged_request_ = RequestKind::kNone;
     staged_response_.reset();
     staged_pma_responses_.clear();
+    staged_source_response_.reset();
+    staged_source_request_.reset();
     staged_output_ = false;
     staged_advance_ = false;
+    staged_cache_ready_ = false;
+    staged_source_end_ = false;
     if (phase_ == Phase::kIdle || phase_ == Phase::kDone) {
       return;
     }
+    stage_source_response();
+    stage_source_request();
     if (!pending_batches_.empty()) {
       staged_output_ = ports_.output->try_push(pending_batches_.front());
     }
     switch (phase_) {
-    case Phase::kNeedSourceChunk: {
-      const std::size_t remaining = vertices_ - source_;
-      const std::size_t words =
-          std::min(remaining, config_.source_buffer_vertices);
-      chunk_words_ = ((words + kStateWordsPerBurst - 1) / kStateWordsPerBurst) *
-                     kStateWordsPerBurst;
-      if (ports_.source_state->requests().try_push(AxiRequest{
-              .transaction_id = transaction_id(1),
-              .operation = MemoryOperation::kRead,
-              .address = source_state_base_ + source_ * 4,
-              .bytes = chunk_words_ * 4,
-              .stream_read_beats = false,
-              .write_data = {},
-          })) {
-        staged_request_ = RequestKind::kState;
+    case Phase::kNeedSourceCache:
+      if (source_cache_ready(pp_read_round_)) {
+        staged_cache_ready_ = true;
       }
-      break;
-    }
-    case Phase::kWaitSourceChunk:
-      stage_scalar_response(*ports_.source_state);
       break;
     case Phase::kNeedRow:
       if (ports_.rows->requests().try_push(AxiRequest{
@@ -226,6 +445,12 @@ public:
         staged_advance_ = true;
       }
       break;
+    case Phase::kSendEnd:
+      staged_source_end_ = ports_.source_requests->try_push(
+          ReGraphSourceCacheRequest{.end = true});
+      break;
+    case Phase::kWaitEnd:
+      break;
     case Phase::kIdle:
     case Phase::kDone:
       break;
@@ -233,6 +458,13 @@ public:
   }
 
   void commit(const CycleContext &) override {
+    if (staged_source_response_.has_value()) {
+      consume_source_response(*staged_source_response_);
+    }
+    if (staged_source_request_.has_value()) {
+      pp_request_round_ = *staged_source_request_ + 1;
+      ++source_requests_;
+    }
     if (staged_output_) {
       pending_batches_.pop_front();
     }
@@ -246,10 +478,6 @@ public:
     if (staged_request_ == RequestKind::kRow) {
       ++row_reads_;
       phase_ = Phase::kWaitRow;
-    } else if (staged_request_ == RequestKind::kState) {
-      ++state_reads_;
-      state_read_bytes_ += chunk_words_ * 4;
-      phase_ = Phase::kWaitSourceChunk;
     } else if (staged_request_ == RequestKind::kPma) {
       ++next_segment_;
       ++outstanding_segments_;
@@ -258,19 +486,36 @@ public:
     if (staged_advance_) {
       advance_source();
     }
+    if (staged_cache_ready_) {
+      select_source_payload();
+    } else if (phase_ == Phase::kNeedSourceCache) {
+      ++source_wait_cycles_;
+    }
+    if (staged_source_end_) {
+      source_end_sent_ = true;
+      ++source_request_markers_;
+      phase_ = Phase::kWaitEnd;
+    }
   }
 
 private:
   enum class Phase {
     kIdle,
-    kNeedSourceChunk,
-    kWaitSourceChunk,
     kNeedRow,
     kWaitRow,
+    kNeedSourceCache,
     kScan,
+    kSendEnd,
+    kWaitEnd,
     kDone,
   };
-  enum class RequestKind { kNone, kRow, kState, kPma };
+  enum class RequestKind { kNone, kRow, kPma };
+
+  struct SourceCacheSlot {
+    std::size_t round{std::numeric_limits<std::size_t>::max()};
+    std::size_t lines_received{};
+    std::vector<std::uint32_t> words;
+  };
 
   [[nodiscard]] std::uint64_t transaction_id(std::uint64_t stage) const {
     return (round_ << 48) | (static_cast<std::uint64_t>(source_) << 16) | stage;
@@ -295,6 +540,87 @@ private:
     if (port.responses().try_pop(response)) {
       staged_response_ = std::move(response);
     }
+  }
+
+  void stage_source_request() {
+    if (phase_ == Phase::kSendEnd || phase_ == Phase::kWaitEnd ||
+        source_end_sent_) {
+      return;
+    }
+    const std::size_t request_round =
+        std::max(pp_request_round_, pp_read_round_);
+    if (request_round - pp_read_round_ > 1) {
+      return;
+    }
+    if (ports_.source_requests->try_push(
+            ReGraphSourceCacheRequest{.source_round = request_round})) {
+      staged_source_request_ = request_round;
+    }
+  }
+
+  void stage_source_response() {
+    if (ports_.source_responses->front() == nullptr) {
+      return;
+    }
+    ReGraphSourceCacheResponse response;
+    if (ports_.source_responses->try_pop(response)) {
+      staged_source_response_ = std::move(response);
+    }
+  }
+
+  [[nodiscard]] std::size_t source_lines_per_round() const noexcept {
+    return config_.source_buffer_vertices / kStateWordsPerBurst;
+  }
+
+  [[nodiscard]] bool source_cache_ready(std::size_t source_round) const {
+    const SourceCacheSlot &slot = source_cache_[source_round & 1U];
+    return pp_write_round_ > source_round && slot.round == source_round &&
+           slot.lines_received == source_lines_per_round();
+  }
+
+  void consume_source_response(const ReGraphSourceCacheResponse &response) {
+    if (response.end) {
+      if (phase_ != Phase::kWaitEnd) {
+        throw std::runtime_error(
+            "ReGraph source-cache end response arrived out of phase");
+      }
+      ++source_response_markers_;
+      phase_ = Phase::kDone;
+      return;
+    }
+    if (response.line >= source_lines_per_round()) {
+      throw std::runtime_error("ReGraph source-cache line is out of range");
+    }
+    SourceCacheSlot &slot = source_cache_[response.source_round & 1U];
+    if (response.line == 0) {
+      slot.round = response.source_round;
+      slot.lines_received = 0;
+    }
+    if (slot.round != response.source_round ||
+        slot.lines_received != response.line) {
+      throw std::runtime_error(
+          "ReGraph source-cache response order does not match HLS stream");
+    }
+    std::copy(response.words.begin(), response.words.end(),
+              slot.words.begin() + static_cast<std::ptrdiff_t>(
+                                       response.line * kStateWordsPerBurst));
+    ++slot.lines_received;
+    pp_write_round_ = response.source_round;
+    ++source_lines_;
+    source_lane_writes_ += config_.edge_lanes;
+  }
+
+  void select_source_payload() {
+    const SourceCacheSlot &slot = source_cache_[pp_read_round_ & 1U];
+    const std::size_t offset = source_ % config_.source_buffer_vertices;
+    const std::uint32_t encoded = slot.words.at(offset);
+    source_active_ = (encoded & kReGraphActive) != 0;
+    source_payload_ =
+        policy_
+            .prepare_source(
+                AlgorithmVertexState{.primary = policy_distance(encoded)}, 0)
+            .edge_payload;
+    phase_ = Phase::kScan;
   }
 
   void stage_pma_request() {
@@ -340,34 +666,18 @@ private:
     if (!response.success) {
       throw std::runtime_error("PMA reader received failed AXI response");
     }
-    if (phase_ == Phase::kWaitSourceChunk) {
-      if (response.read_data.size() != chunk_words_ * 4) {
-        throw std::runtime_error(
-            "PMA reader received malformed source-cache response");
-      }
-      source_cache_base_ = source_;
-      source_cache_.resize(chunk_words_);
-      for (std::size_t index = 0; index < chunk_words_; ++index) {
-        source_cache_[index] = decode_u32(response.read_data, index * 4);
-      }
-      phase_ = Phase::kNeedRow;
-      return;
-    }
     if (phase_ == Phase::kWaitRow) {
       const std::uint64_t bounds = decode_u64(response.read_data);
       begin_segment_ =
           static_cast<std::uint32_t>(bounds >> 32) / kGraSuSegmentSlots;
       end_segment_ = static_cast<std::uint32_t>(bounds) / kGraSuSegmentSlots;
       next_segment_ = begin_segment_;
-      const std::uint32_t encoded =
-          source_cache_.at(source_ - source_cache_base_);
-      source_active_ = (encoded & kReGraphActive) != 0;
-      source_payload_ =
-          policy_
-              .prepare_source(
-                  AlgorithmVertexState{.primary = policy_distance(encoded)}, 0)
-              .edge_payload;
-      phase_ = Phase::kScan;
+      if (begin_segment_ == end_segment_) {
+        advance_source();
+      } else {
+        pp_read_round_ = source_ / config_.source_buffer_vertices;
+        phase_ = Phase::kNeedSourceCache;
+      }
       return;
     }
     throw std::runtime_error(
@@ -406,12 +716,10 @@ private:
   void advance_source() {
     ++source_;
     if (source_ == vertices_) {
-      phase_ = Phase::kDone;
+      phase_ = Phase::kSendEnd;
       return;
     }
-    phase_ = source_ == source_cache_base_ + chunk_words_
-                 ? Phase::kNeedSourceChunk
-                 : Phase::kNeedRow;
+    phase_ = Phase::kNeedRow;
   }
 
   std::size_t vertices_{};
@@ -420,26 +728,35 @@ private:
   Ports ports_;
   Phase phase_{Phase::kIdle};
   std::uint64_t round_{};
-  std::uint64_t source_state_base_{};
   std::size_t source_{};
   std::size_t begin_segment_{};
   std::size_t end_segment_{};
   std::size_t next_segment_{};
   std::size_t outstanding_segments_{};
-  std::size_t source_cache_base_{};
-  std::size_t chunk_words_{};
-  std::vector<std::uint32_t> source_cache_;
+  std::array<SourceCacheSlot, 2> source_cache_;
+  std::size_t pp_read_round_{};
+  std::size_t pp_write_round_{};
+  std::size_t pp_request_round_{};
   bool source_active_{};
   std::uint32_t source_payload_{};
   std::deque<PmaEdgeBatch> pending_batches_;
   RequestKind staged_request_{RequestKind::kNone};
   std::optional<AxiResponse> staged_response_;
   std::vector<AxiResponse> staged_pma_responses_;
+  std::optional<ReGraphSourceCacheResponse> staged_source_response_;
+  std::optional<std::size_t> staged_source_request_;
   bool staged_output_{};
   bool staged_advance_{};
+  bool staged_cache_ready_{};
+  bool staged_source_end_{};
+  bool source_end_sent_{};
   std::uint64_t row_reads_{};
-  std::uint64_t state_reads_{};
-  std::uint64_t state_read_bytes_{};
+  std::uint64_t source_requests_{};
+  std::uint64_t source_request_markers_{};
+  std::uint64_t source_lines_{};
+  std::uint64_t source_lane_writes_{};
+  std::uint64_t source_response_markers_{};
+  std::uint64_t source_wait_cycles_{};
   std::uint64_t segment_reads_{};
 };
 
@@ -451,13 +768,21 @@ public:
                 const PmaNativeReader &reader)
       : Component(std::move(name), clock_id), vertices_(vertices),
         policy_(std::move(policy)), config_(config), input_(input),
-        output_(output), reader_(reader), reduced_(vertices) {}
+        output_(output), reader_(reader), bank_rows_(config.gather_banks),
+        bypass_(config.gather_banks,
+                std::vector<BypassEntry>(config.gather_bypass_distance + 1)) {}
 
   void start_round(bool reset_tmp_prop) {
     if (phase_ != Phase::kIdle && phase_ != Phase::kDone) {
       throw std::logic_error("ReGraph gather round started while busy");
     }
-    std::fill(reduced_.begin(), reduced_.end(), std::nullopt);
+    for (auto &rows : bank_rows_) {
+      rows.clear();
+    }
+    for (auto &entries : bypass_) {
+      std::fill(entries.begin(), entries.end(), BypassEntry{});
+    }
+    pending_physical_writes_.clear();
     if (reset_tmp_prop) {
       remaining_ = divide_ceil(config_.partition_vertices,
                                config_.gather_vertices_per_reset_cycle);
@@ -466,7 +791,7 @@ public:
       remaining_ = 0;
       phase_ = Phase::kScan;
     }
-    busy_cycles_ = 0;
+    drain_cycles_remaining_ = 0;
     next_output_row_ = 0;
   }
 
@@ -489,32 +814,57 @@ public:
   [[nodiscard]] std::uint64_t merge_cycles() const noexcept {
     return merge_cycles_;
   }
+  [[nodiscard]] std::uint64_t pipeline_drain_cycles() const noexcept {
+    return pipeline_drain_cycles_;
+  }
   [[nodiscard]] std::uint64_t output_stall_cycles() const noexcept {
     return output_stall_cycles_;
   }
   [[nodiscard]] std::uint64_t rows_emitted() const noexcept {
     return rows_emitted_;
   }
-  [[nodiscard]] std::uint64_t conflict_cycles() const noexcept {
-    return conflict_cycles_;
+  [[nodiscard]] std::uint64_t conflict_cycles() const noexcept { return 0; }
+  [[nodiscard]] std::uint64_t bank_updates() const noexcept {
+    return bank_updates_;
+  }
+  [[nodiscard]] std::uint64_t bypass_hits() const noexcept {
+    return bypass_hits_;
+  }
+  [[nodiscard]] std::uint64_t bypass_misses() const noexcept {
+    return bypass_misses_;
+  }
+  [[nodiscard]] std::uint64_t cross_bank_reductions() const noexcept {
+    return cross_bank_reductions_;
   }
 
   void evaluate(const CycleContext &) override {
     staged_tick_ = false;
-    staged_start_merge_ = false;
+    staged_start_drain_ = false;
     staged_output_stall_ = false;
     staged_row_output_ = false;
     staged_batch_.reset();
+    staged_cross_bank_reductions_ = 0;
     switch (phase_) {
     case Phase::kReset:
       staged_tick_ = remaining_ != 0;
       break;
     case Phase::kMerge: {
       ReGraphGatherRow row{.row = next_output_row_};
-      for (std::size_t lane = 0; lane < row.candidates.size(); ++lane) {
-        const std::size_t vertex = next_output_row_ * 2 + lane;
-        if (vertex < reduced_.size()) {
-          row.candidates[lane] = reduced_[vertex];
+      for (std::size_t half = 0; half < row.candidates.size(); ++half) {
+        const std::size_t vertex = next_output_row_ * 2 + half;
+        if (vertex >= vertices_) {
+          continue;
+        }
+        for (const auto &bank : bank_rows_) {
+          const auto found = bank.find(next_output_row_);
+          if (found == bank.end() || !found->second[half].has_value()) {
+            continue;
+          }
+          if (row.candidates[half].has_value()) {
+            ++staged_cross_bank_reductions_;
+          }
+          row.candidates[half] =
+              policy_.reduce(row.candidates[half], *found->second[half]);
         }
       }
       staged_row_output_ = output_.try_push(std::move(row));
@@ -522,16 +872,17 @@ public:
       break;
     }
     case Phase::kScan:
-      if (busy_cycles_ != 0) {
-        staged_tick_ = true;
-      } else if (input_.front() != nullptr) {
+      if (input_.front() != nullptr) {
         PmaEdgeBatch batch;
         if (input_.try_pop(batch)) {
           staged_batch_ = batch;
         }
       } else if (reader_.done()) {
-        staged_start_merge_ = true;
+        staged_start_drain_ = true;
       }
+      break;
+    case Phase::kDrain:
+      staged_tick_ = true;
       break;
     case Phase::kIdle:
     case Phase::kDone:
@@ -539,7 +890,8 @@ public:
     }
   }
 
-  void commit(const CycleContext &) override {
+  void commit(const CycleContext &context) override {
+    commit_physical_writes(context.domain_cycle);
     if (phase_ == Phase::kReset && staged_tick_) {
       --remaining_;
       ++reset_cycles_;
@@ -555,11 +907,9 @@ public:
       if (!staged_row_output_) {
         return;
       }
-      for (std::size_t lane = 0; lane < 2; ++lane) {
-        const std::size_t vertex = next_output_row_ * 2 + lane;
-        if (vertex < reduced_.size()) {
-          reduced_[vertex].reset();
-        }
+      cross_bank_reductions_ += staged_cross_bank_reductions_;
+      for (auto &bank : bank_rows_) {
+        bank.erase(next_output_row_);
       }
       ++next_output_row_;
       ++rows_emitted_;
@@ -571,33 +921,73 @@ public:
       }
       return;
     }
+    if (phase_ == Phase::kDrain && staged_tick_) {
+      if (drain_cycles_remaining_ != 0) {
+        --drain_cycles_remaining_;
+        ++pipeline_drain_cycles_;
+      }
+      if (drain_cycles_remaining_ == 0) {
+        if (!pending_physical_writes_.empty()) {
+          throw std::logic_error(
+              "ReGraph gather pipeline drained before URAM writes committed");
+        }
+        next_output_row_ = 0;
+        phase_ = Phase::kMerge;
+      }
+      return;
+    }
     if (phase_ != Phase::kScan) {
       return;
     }
-    if (busy_cycles_ != 0 && staged_tick_) {
-      --busy_cycles_;
-    }
     if (staged_batch_.has_value()) {
-      consume_batch(*staged_batch_);
+      consume_batch(*staged_batch_, context.domain_cycle);
       staged_batch_.reset();
     }
-    if (staged_start_merge_) {
-      next_output_row_ = 0;
-      phase_ = Phase::kMerge;
+    if (staged_start_drain_) {
+      drain_cycles_remaining_ = config_.gather_pipeline_latency - 1;
+      if (drain_cycles_remaining_ == 0) {
+        next_output_row_ = 0;
+        phase_ = Phase::kMerge;
+      } else {
+        phase_ = Phase::kDrain;
+      }
     }
   }
 
 private:
-  enum class Phase { kIdle, kReset, kScan, kMerge, kDone };
+  enum class Phase { kIdle, kReset, kScan, kDrain, kMerge, kDone };
+
+  using GatherRow = std::array<std::optional<std::uint32_t>, 2>;
+
+  struct BypassEntry {
+    std::size_t row{};
+    GatherRow value{};
+    bool valid{};
+  };
+
+  struct PendingPhysicalWrite {
+    std::size_t bank{};
+    std::size_t row{};
+    GatherRow value{};
+    std::uint64_t due_cycle{};
+  };
 
   static std::size_t divide_ceil(std::size_t value, std::size_t divisor) {
     return (value + divisor - 1) / divisor;
   }
 
-  void consume_batch(const PmaEdgeBatch &batch) {
+  void commit_physical_writes(std::uint64_t cycle) {
+    while (!pending_physical_writes_.empty() &&
+           pending_physical_writes_.front().due_cycle <= cycle) {
+      const PendingPhysicalWrite &write = pending_physical_writes_.front();
+      bank_rows_[write.bank][write.row] = write.value;
+      pending_physical_writes_.pop_front();
+    }
+  }
+
+  void consume_batch(const PmaEdgeBatch &batch, std::uint64_t cycle) {
     ++batches_scanned_;
     slots_scanned_ += batch.lanes;
-    std::vector<std::size_t> bank_counts(config_.gather_banks);
     for (std::size_t lane = 0; lane < batch.lanes; ++lane) {
       if (!batch.valid[lane]) {
         continue;
@@ -611,15 +1001,38 @@ private:
         continue;
       }
       ++active_edges_;
-      ++bank_counts[destination % config_.gather_banks];
+      const std::size_t bank = lane;
+      const std::size_t row = destination >> 1;
+      const std::size_t half = destination & 1U;
+      GatherRow updated{};
+      const auto physical = bank_rows_[bank].find(row);
+      if (physical != bank_rows_[bank].end()) {
+        updated = physical->second;
+      }
+      bool forwarded = false;
+      for (const BypassEntry &entry : bypass_[bank]) {
+        if (entry.valid && entry.row == row) {
+          updated = entry.value;
+          forwarded = true;
+        }
+      }
+      if (forwarded) {
+        ++bypass_hits_;
+      } else {
+        ++bypass_misses_;
+      }
       const std::uint32_t candidate = policy_.map_edge(batch.source_payload, 1);
-      reduced_[destination] = policy_.reduce(reduced_[destination], candidate);
-    }
-    const std::size_t cycles =
-        *std::max_element(bank_counts.begin(), bank_counts.end());
-    if (cycles > 1) {
-      busy_cycles_ = cycles - 1;
-      conflict_cycles_ += cycles - 1;
+      updated[half] = policy_.reduce(updated[half], candidate);
+      auto &entries = bypass_[bank];
+      std::move(entries.begin() + 1, entries.end(), entries.begin());
+      entries.back() = BypassEntry{.row = row, .value = updated, .valid = true};
+      pending_physical_writes_.push_back(PendingPhysicalWrite{
+          .bank = bank,
+          .row = row,
+          .value = updated,
+          .due_cycle = cycle + config_.gather_bypass_distance,
+      });
+      ++bank_updates_;
     }
   }
 
@@ -629,25 +1042,32 @@ private:
   Fifo<PmaEdgeBatch> &input_;
   Fifo<ReGraphGatherRow> &output_;
   const PmaNativeReader &reader_;
-  std::vector<std::optional<std::uint32_t>> reduced_;
+  std::vector<std::unordered_map<std::size_t, GatherRow>> bank_rows_;
+  std::vector<std::vector<BypassEntry>> bypass_;
+  std::deque<PendingPhysicalWrite> pending_physical_writes_;
   Phase phase_{Phase::kIdle};
   std::size_t remaining_{};
-  std::size_t busy_cycles_{};
+  std::size_t drain_cycles_remaining_{};
   std::size_t next_output_row_{};
   bool staged_tick_{};
-  bool staged_start_merge_{};
+  bool staged_start_drain_{};
   bool staged_output_stall_{};
   bool staged_row_output_{};
   std::optional<PmaEdgeBatch> staged_batch_;
+  std::uint64_t staged_cross_bank_reductions_{};
   std::uint64_t batches_scanned_{};
   std::uint64_t slots_scanned_{};
   std::uint64_t live_edges_{};
   std::uint64_t active_edges_{};
   std::uint64_t reset_cycles_{};
   std::uint64_t merge_cycles_{};
+  std::uint64_t pipeline_drain_cycles_{};
   std::uint64_t output_stall_cycles_{};
   std::uint64_t rows_emitted_{};
-  std::uint64_t conflict_cycles_{};
+  std::uint64_t bank_updates_{};
+  std::uint64_t bypass_hits_{};
+  std::uint64_t bypass_misses_{};
+  std::uint64_t cross_bank_reductions_{};
 };
 
 class ReGraphMerger final : public Component {
@@ -1270,12 +1690,14 @@ private:
 class GraSuReGraphController final : public Component {
 public:
   GraSuReGraphController(std::string name, ClockId clock_id,
-                         std::size_t max_supersteps, PmaNativeReader &reader,
-                         ReGraphGather &gather, ReGraphMerger &merger,
-                         ReGraphApply &apply, ReGraphHbmWrapper &wrapper)
+                         std::size_t max_supersteps,
+                         ReGraphSourceHbmReader &source_hbm,
+                         PmaNativeReader &reader, ReGraphGather &gather,
+                         ReGraphMerger &merger, ReGraphApply &apply,
+                         ReGraphHbmWrapper &wrapper)
       : Component(std::move(name), clock_id), max_supersteps_(max_supersteps),
-        reader_(reader), gather_(gather), merger_(merger), apply_(apply),
-        wrapper_(wrapper) {}
+        source_hbm_(source_hbm), reader_(reader), gather_(gather),
+        merger_(merger), apply_(apply), wrapper_(wrapper) {}
 
   [[nodiscard]] bool done() const noexcept { return phase_ == Phase::kDone; }
   [[nodiscard]] bool failed() const noexcept { return !failure_.empty(); }
@@ -1289,8 +1711,9 @@ public:
     }
     if (phase_ == Phase::kStart) {
       staged_ = Action::kStartRound;
-    } else if (phase_ == Phase::kRound && reader_.done() && gather_.done() &&
-               merger_.done() && apply_.done() && wrapper_.done()) {
+    } else if (phase_ == Phase::kRound && source_hbm_.done() &&
+               reader_.done() && gather_.done() && merger_.done() &&
+               apply_.done() && wrapper_.done()) {
       staged_ =
           apply_.active_vertices() == 0 ? Action::kFinish : Action::kNextRound;
     }
@@ -1303,6 +1726,7 @@ public:
         return;
       }
       ++round_;
+      source_hbm_.start_round(round_);
       reader_.start_round(round_);
       gather_.start_round(round_ == 1);
       merger_.start_round();
@@ -1319,6 +1743,7 @@ private:
   enum class Action { kNone, kStartRound, kNextRound, kFinish };
 
   std::size_t max_supersteps_{};
+  ReGraphSourceHbmReader &source_hbm_;
   PmaNativeReader &reader_;
   ReGraphGather &gather_;
   ReGraphMerger &merger_;
@@ -1345,6 +1770,10 @@ public:
         }),
         edge_axis_("grasu-regraph-pma-axis", clock_id_,
                    config_.axis_fifo_depth),
+        source_request_axis_("regraph-source-cache-request-axis", clock_id_,
+                             config_.source_cache_request_fifo_depth),
+        source_response_axis_("regraph-source-cache-response-axis", clock_id_,
+                              config_.source_cache_response_fifo_depth),
         gather_axis_("regraph-gather-merger-axis", clock_id_,
                      config_.gather_merger_fifo_depth),
         merger_axis_("regraph-merger-apply-axis", clock_id_,
@@ -1363,6 +1792,8 @@ public:
       throw std::logic_error("GraSU-ReGraph system registered more than once");
     }
     scheduler_.add_component(edge_axis_);
+    scheduler_.add_component(source_request_axis_);
+    scheduler_.add_component(source_response_axis_);
     scheduler_.add_component(gather_axis_);
     scheduler_.add_component(merger_axis_);
     scheduler_.add_component(wrapper_axis_);
@@ -1375,6 +1806,7 @@ public:
     apply_state_write_port_->register_components(scheduler_);
     source_state_primary_write_port_->register_components(scheduler_);
     source_state_mirror_write_port_->register_components(scheduler_);
+    scheduler_.add_component(*source_hbm_reader_);
     scheduler_.add_component(*reader_);
     scheduler_.add_component(*gather_);
     scheduler_.add_component(*merger_);
@@ -1396,7 +1828,19 @@ public:
     GraSuReGraphCounters result;
     result.supersteps = controller_->supersteps();
     result.row_reads = reader_->row_reads();
-    result.source_state_reads = reader_->state_reads();
+    result.source_state_reads = source_hbm_reader_->requests();
+    result.source_cache_requests = reader_->source_requests();
+    result.source_cache_request_markers = reader_->source_request_markers();
+    result.source_cache_lines = reader_->source_lines();
+    result.source_cache_lane_writes = reader_->source_lane_writes();
+    result.source_cache_response_markers = reader_->source_response_markers();
+    result.source_cache_wait_cycles = reader_->source_wait_cycles();
+    result.source_cache_output_stall_cycles =
+        source_hbm_reader_->output_stall_cycles();
+    result.source_cache_request_fifo_max_occupancy =
+        source_request_axis_.stats().max_occupancy;
+    result.source_cache_response_fifo_max_occupancy =
+        source_response_axis_.stats().max_occupancy;
     result.source_state_writes = wrapper_->source_writes();
     result.pma_segment_reads = reader_->segment_reads();
     result.edge_batches_scanned = gather_->batches_scanned();
@@ -1405,8 +1849,13 @@ public:
     result.active_edges_mapped = gather_->active_edges();
     result.gather_reset_cycles = gather_->reset_cycles();
     result.gather_merge_cycles = gather_->merge_cycles();
+    result.gather_pipeline_drain_cycles = gather_->pipeline_drain_cycles();
     result.gather_output_stall_cycles = gather_->output_stall_cycles();
     result.gather_bank_conflict_cycles = gather_->conflict_cycles();
+    result.gather_bank_updates = gather_->bank_updates();
+    result.gather_bypass_hits = gather_->bypass_hits();
+    result.gather_bypass_misses = gather_->bypass_misses();
+    result.gather_cross_bank_reductions = gather_->cross_bank_reductions();
     result.gather_rows_emitted = gather_->rows_emitted();
     result.merger_rows_consumed = merger_->rows_consumed();
     result.merger_bursts_emitted = merger_->bursts_emitted();
@@ -1435,7 +1884,7 @@ public:
         wrapper_axis_.stats().max_occupancy;
     result.activated_vertices = apply_->total_activated();
     result.row_read_bytes = result.row_reads * 8;
-    result.source_state_read_bytes = reader_->state_read_bytes();
+    result.source_state_read_bytes = source_hbm_reader_->read_bytes();
     result.source_state_write_bytes = result.source_state_writes * 64;
     result.pma_read_bytes = result.pma_segment_reads * kGraSuSegmentBytes;
     result.apply_read_bytes = result.apply_state_reads * 64;
@@ -1454,6 +1903,8 @@ public:
           port->master().stats().backend_submit_stalls;
     }
     result.axis_push_stalls =
+        source_request_axis_.stats().push_stalls +
+        source_response_axis_.stats().push_stalls +
         edge_axis_.stats().push_stalls + gather_axis_.stats().push_stalls +
         merger_axis_.stats().push_stalls + wrapper_axis_.stats().push_stalls;
     result.start_cycle = start_cycle_;
@@ -1483,9 +1934,13 @@ private:
         config_.source_state_buffer_stride % 4096 != 0 ||
         config_.source_buffer_vertices == 0 ||
         config_.source_buffer_vertices % kStateWordsPerBurst != 0 ||
+        config_.source_cache_request_fifo_depth == 0 ||
+        config_.source_cache_response_fifo_depth == 0 ||
         config_.edge_lanes == 0 || config_.edge_lanes > 8 ||
         kGraSuSegmentSlots % config_.edge_lanes != 0 ||
-        config_.gather_banks == 0 ||
+        config_.gather_banks != config_.edge_lanes ||
+        config_.gather_bypass_distance == 0 ||
+        config_.gather_pipeline_latency <= config_.gather_bypass_distance ||
         config_.gather_vertices_per_reset_cycle == 0 ||
         config_.gather_vertices_per_merge_cycle != 2 ||
         config_.axis_fifo_depth == 0 || config_.gather_merger_fifo_depth == 0 ||
@@ -1517,10 +1972,19 @@ private:
         port_config(config_, channel, next_initiator_++, width), backend_);
   }
 
+  std::unique_ptr<FixedAxiPort> make_source_stream_port() {
+    FixedAxiPortConfig source = port_config(
+        config_, config_.source_state_channel, next_initiator_++, 64);
+    source.stream_read_beats = true;
+    source.read_beat_fifo_depth = config_.source_cache_response_fifo_depth;
+    source.read_reorder_capacity = config_.max_outstanding_bursts * 16;
+    return std::make_unique<FixedAxiPort>("grasu-regraph-source-state",
+                                          clock_id_, source, backend_);
+  }
+
   void construct_ports() {
     row_port_ = make_port("grasu-regraph-row", config_.row_channel, 8);
-    source_state_port_ = make_port("grasu-regraph-source-state",
-                                   config_.source_state_channel, 64);
+    source_state_port_ = make_source_stream_port();
     for (std::size_t channel = 0; channel < pma_ports_.size(); ++channel) {
       pma_ports_[channel] =
           make_port("grasu-regraph-pma" + std::to_string(channel), channel, 64);
@@ -1561,13 +2025,17 @@ private:
     for (std::size_t index = 0; index < pma.size(); ++index) {
       pma[index] = pma_ports_[index].get();
     }
+    source_hbm_reader_ = std::make_unique<ReGraphSourceHbmReader>(
+        "grasu-regraph-source-hbm-reader", clock_id_, config_,
+        source_request_axis_, source_response_axis_, *source_state_port_);
     reader_ = std::make_unique<PmaNativeReader>(
         "grasu-regraph-reader", clock_id_, layout_.vertices, policy_, config_,
         PmaNativeReader::Ports{
             .rows = row_port_.get(),
-            .source_state = source_state_port_.get(),
             .pma = pma,
             .output = &edge_axis_,
+            .source_requests = &source_request_axis_,
+            .source_responses = &source_response_axis_,
         });
     gather_ = std::make_unique<ReGraphGather>(
         "grasu-regraph-gather", clock_id_, layout_.vertices, policy_, config_,
@@ -1582,12 +2050,13 @@ private:
         "grasu-regraph-hbm-wrapper", clock_id_, config_, wrapper_axis_,
         *source_state_primary_write_port_, *source_state_mirror_write_port_);
     controller_ = std::make_unique<GraSuReGraphController>(
-        "grasu-regraph-controller", clock_id_, config_.max_supersteps, *reader_,
-        *gather_, *merger_, *apply_, *wrapper_);
+        "grasu-regraph-controller", clock_id_, config_.max_supersteps,
+        *source_hbm_reader_, *reader_, *gather_, *merger_, *apply_, *wrapper_);
   }
 
   [[nodiscard]] bool all_ports_idle() const noexcept {
-    if (!edge_axis_.empty() || !gather_axis_.empty() || !merger_axis_.empty() ||
+    if (!source_request_axis_.empty() || !source_response_axis_.empty() ||
+        !edge_axis_.empty() || !gather_axis_.empty() || !merger_axis_.empty() ||
         !wrapper_axis_.empty() || !row_port_->idle() ||
         !source_state_port_->idle() || !apply_state_read_port_->idle() ||
         !apply_state_write_port_->idle() ||
@@ -1607,6 +2076,8 @@ private:
   GraSuReGraphConfig config_;
   GraphAlgorithmPolicy policy_;
   Fifo<PmaEdgeBatch> edge_axis_;
+  Fifo<ReGraphSourceCacheRequest> source_request_axis_;
+  Fifo<ReGraphSourceCacheResponse> source_response_axis_;
   Fifo<ReGraphGatherRow> gather_axis_;
   Fifo<ReGraphMergedBurst> merger_axis_;
   Fifo<ReGraphAppliedBurst> wrapper_axis_;
@@ -1617,6 +2088,7 @@ private:
   std::unique_ptr<FixedAxiPort> apply_state_write_port_;
   std::unique_ptr<FixedAxiPort> source_state_primary_write_port_;
   std::unique_ptr<FixedAxiPort> source_state_mirror_write_port_;
+  std::unique_ptr<ReGraphSourceHbmReader> source_hbm_reader_;
   std::unique_ptr<PmaNativeReader> reader_;
   std::unique_ptr<ReGraphGather> gather_;
   std::unique_ptr<ReGraphMerger> merger_;

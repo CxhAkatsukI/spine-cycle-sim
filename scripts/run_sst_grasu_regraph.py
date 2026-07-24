@@ -84,9 +84,23 @@ def main() -> int:
                 params["grasu_cache_segments_per_cu"]
             ),
             "GRASU_SST_PARTITION_VERTICES": str(partition_vertices),
-            "GRASU_SST_SOURCE_BUFFER_VERTICES": "4096",
+            "GRASU_SST_SOURCE_BUFFER_VERTICES": str(
+                params["regraph_source_buffer_vertices"]
+            ),
+            "GRASU_SST_SOURCE_CACHE_REQUEST_FIFO_DEPTH": str(
+                params["regraph_source_cache_request_fifo_depth"]
+            ),
+            "GRASU_SST_SOURCE_CACHE_RESPONSE_FIFO_DEPTH": str(
+                params["regraph_source_cache_response_fifo_depth"]
+            ),
             "GRASU_SST_EDGE_LANES": str(params["regraph_map_reduce_lanes"]),
             "GRASU_SST_GATHER_BANKS": str(params["regraph_map_reduce_lanes"]),
+            "GRASU_SST_GATHER_BYPASS_DISTANCE": str(
+                params["regraph_gather_bypass_distance"]
+            ),
+            "GRASU_SST_GATHER_PIPELINE_LATENCY": str(
+                params["regraph_gather_pipeline_latency"]
+            ),
             "GRASU_SST_SOURCE_STATE_CHANNEL": str(
                 params["regraph_source_state_channel"]
             ),
@@ -152,6 +166,10 @@ def main() -> int:
     supersteps = result.get("supersteps", -1)
     expected_rows = partition_vertices // 2 * supersteps
     expected_bursts = partition_vertices // 16 * supersteps
+    expected_source_requests = result.get("source_cache_requests", -1)
+    expected_source_lines = (
+        expected_source_requests * params["regraph_source_buffer_vertices"] // 16
+    )
     if (
         not result.get("success")
         or result.get("correctness_mismatches") != 0
@@ -164,6 +182,25 @@ def main() -> int:
         or result.get("apply_state_channel") != params["regraph_apply_state_channel"]
         or result.get("compute_source_state_writes")
         != 2 * result.get("apply_state_writes", -1)
+        or expected_source_requests < 2 * supersteps
+        or result.get("compute_source_state_reads") != expected_source_requests
+        or result.get("source_cache_lines") != expected_source_lines
+        or result.get("source_cache_lane_writes")
+        != expected_source_lines * params["regraph_map_reduce_lanes"]
+        or result.get("source_cache_request_markers") != supersteps
+        or result.get("source_cache_response_markers") != supersteps
+        or not 0 < result.get("source_cache_request_fifo_max_occupancy", 0)
+        <= params["regraph_source_cache_request_fifo_depth"]
+        or not 0 < result.get("source_cache_response_fifo_max_occupancy", 0)
+        <= params["regraph_source_cache_response_fifo_depth"]
+        or result.get("gather_bank_conflict_cycles") != 0
+        or result.get("gather_bank_updates")
+        != result.get("compute_active_edges", -1)
+        or result.get("gather_bypass_hits", 0)
+        + result.get("gather_bypass_misses", 0)
+        != result.get("gather_bank_updates", -1)
+        or result.get("gather_pipeline_drain_cycles")
+        != supersteps * (params["regraph_gather_pipeline_latency"] - 1)
         or result.get("compute_write_bytes")
         != 3 * result.get("apply_state_writes", -1) * 64
         or result.get("gather_rows_emitted") != expected_rows

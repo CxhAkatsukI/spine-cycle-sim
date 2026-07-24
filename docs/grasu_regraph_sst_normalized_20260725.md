@@ -109,12 +109,12 @@ queues and propagate backpressure. The HBM-wrapper pipeline uses the
 synthesized `write_out` iteration latency 71 and II=1 as a structural profile;
 its AXI requests still receive timing online from SST/DRAMSim3.
 
-The largest remaining ReGraph timing boundaries are the exact six-stage gather
-RAW bypass/register behavior and the source-cache request controller whose HLS
-report achieves II=256. Other open boundaries remain unit-only PMA weights, no
-PageRank controllers on the comparator, and no HLS synthesis of the PMA-native
-reader. These prevent a final Spine speedup claim, but the finite stream chain
-itself is no longer a known gap.
+The gather RAW bypass and fixed-window source-cache controller were the largest
+remaining ReGraph timing boundaries at this milestone. They are closed by the
+follow-up in `docs/grasu_regraph_gather_source_cache_20260725.md`, which updates
+the normalized total to 99379 cycles. Open boundaries remain unit-only PMA
+weights, no PageRank controllers on the comparator, and no HLS synthesis of the
+PMA-native reader. These prevent a final Spine speedup claim.
 
 ## Reproduction
 

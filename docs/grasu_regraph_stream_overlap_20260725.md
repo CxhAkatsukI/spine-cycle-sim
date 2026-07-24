@@ -71,9 +71,12 @@ The cycle result is structural execution-driven evidence, not measured FPGA
 performance. The wrapper's 71-cycle pipeline value comes from the existing HLS
 synthesis report, while memory completion timing comes from SST/DRAMSim3.
 
-The exact six-stage gather RAW bypass and the source-cache request controller
-remain simplified. GraSU PMA payloads also remain unit-weight only, and the
-normalized PMA-native reader has not yet been synthesized.
+This was the boundary at the time of the finite-stream milestone. The exact
+six-stage gather RAW bypass and source-cache request controller were closed in
+the follow-up documented in
+`docs/grasu_regraph_gather_source_cache_20260725.md`. GraSU PMA payloads remain
+unit-weight only, and the normalized PMA-native reader has not yet been
+synthesized.
 
 ## Reproduction
 

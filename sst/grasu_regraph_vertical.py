@@ -53,9 +53,21 @@ probe.addParams(
         "grasu_source_buffer_vertices": int(
             os.environ.get("GRASU_SST_SOURCE_BUFFER_VERTICES", "4096")
         ),
+        "grasu_source_cache_request_fifo_depth": int(
+            os.environ.get("GRASU_SST_SOURCE_CACHE_REQUEST_FIFO_DEPTH", "8")
+        ),
+        "grasu_source_cache_response_fifo_depth": int(
+            os.environ.get("GRASU_SST_SOURCE_CACHE_RESPONSE_FIFO_DEPTH", "8")
+        ),
         "grasu_edge_lanes": int(os.environ.get("GRASU_SST_EDGE_LANES", "4")),
         "grasu_gather_banks": int(
             os.environ.get("GRASU_SST_GATHER_BANKS", "4")
+        ),
+        "grasu_gather_bypass_distance": int(
+            os.environ.get("GRASU_SST_GATHER_BYPASS_DISTANCE", "6")
+        ),
+        "grasu_gather_pipeline_latency": int(
+            os.environ.get("GRASU_SST_GATHER_PIPELINE_LATENCY", "9")
         ),
         "grasu_source_state_channel": int(
             os.environ.get("GRASU_SST_SOURCE_STATE_CHANNEL", "1")

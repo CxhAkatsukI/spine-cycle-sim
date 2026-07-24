@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "date": "2026-07-25",
+  "status": "PASS",
+  "claim_class": "normalized_simulation",
+  "timing_evidence": "structural_execution_driven",
+  "profile": {
+    "path": "configs/architectures/grasu_regraph_normalized_spine23.json",
+    "sha256": "b0692a76b2f512c65633ebe49ceca790380991afeb6f93bf0478607e92c411ea"
+  },
+  "workload": {
+    "initial_path": "tests/data/grasu_regraph_unit_initial.slice",
+    "initial_sha256": "0a4c660547b632f111631d431218ebef7d90e942c3dceb208cd5f1f067dcb62a",
+    "update_path": "tests/data/grasu_regraph_unit_update.slice",
+    "update_sha256": "00abdaf047ce6af6e4d233d8a881a50faf17162e406551a18a937a6214442cef"
+  },
+  "configuration": {
+    "core_mhz": 150,
+    "hbm_channels": 32,
+    "partition_vertices": 65536,
+    "edge_lanes": 4,
+    "gather_banks": 4,
+    "gather_bypass_distance": 6,
+    "gather_pipeline_latency": 9,
+    "source_buffer_vertices": 4096,
+    "source_cache_request_fifo_depth": 8,
+    "source_cache_response_fifo_depth": 8
+  },
+  "result": {
+    "cycles": 99379,
+    "update_cycles": 62,
+    "compute_cycles": 99317,
+    "correctness_mismatches": 0,
+    "supersteps": 2,
+    "source_cache_requests": 4,
+    "source_state_read_bytes": 65536,
+    "source_cache_lines": 1024,
+    "source_cache_lane_writes": 4096,
+    "source_cache_request_markers": 2,
+    "source_cache_response_markers": 2,
+    "source_cache_wait_cycles": 559,
+    "source_cache_output_stall_cycles": 0,
+    "source_cache_request_fifo_max_occupancy": 1,
+    "source_cache_response_fifo_max_occupancy": 1,
+    "gather_bank_updates": 3,
+    "gather_bypass_hits": 0,
+    "gather_bypass_misses": 3,
+    "gather_cross_bank_reductions": 0,
+    "gather_pipeline_drain_cycles": 16,
+    "compute_read_bytes": 590464,
+    "compute_write_bytes": 1572864,
+    "backend_requests": 33838,
+    "backend_submit_stalls": 135,
+    "backend_max_outstanding": 33
+  },
+  "previous_finite_stream_result": {
+    "cycles": 98970,
+    "backend_requests": 32816,
+    "compute_read_bytes": 525056,
+    "cycle_delta": 409,
+    "cycle_delta_percent": 0.41,
+    "backend_request_delta": 1022,
+    "compute_read_byte_delta": 65408
+  },
+  "component_microbenchmarks": {
+    "gather_raw": {
+      "cycles": 1144,
+      "bank_updates": 7,
+      "bypass_hits": 1,
+      "bypass_misses": 6,
+      "cross_bank_reductions": 1,
+      "pipeline_drain_cycles": 24,
+      "oracle": "PASS"
+    },
+    "source_cache_cross_window": {
+      "vertices": 4097,
+      "cycles": 155923,
+      "supersteps": 3,
+      "requests": 9,
+      "response_lines": 2304,
+      "wait_cycles": 861,
+      "oracle": "PASS"
+    }
+  },
+  "hls_evidence": {
+    "gather_source": "/home/chuxiao/ReGraph/acc_template/kernel_little_gs/acc_gather.h",
+    "gather_source_sha256": "6a8b5daf4a3ed9b4573c9ad90a4a0babb1fdea46426758bcc0b5cf6914af142f",
+    "scatter_source": "/home/chuxiao/ReGraph/acc_template/kernel_little_gs/acc_scatter.h",
+    "scatter_source_sha256": "33e88abf5b83f558b21825bd492bbf301f96825250953b9bbf5bb13aa78529e9",
+    "hbm_wrapper_source": "/home/chuxiao/ReGraph/acc_template/kernel_hbm_wrapper/hbm_wrapper.h",
+    "hbm_wrapper_source_sha256": "118a3214b2ddef19ec5378c7067c1a9d7de67b2b2019146131cac8bcbeb83629",
+    "config_source": "/home/chuxiao/ReGraph/acc_template/common/acc_config.h",
+    "config_source_sha256": "cea3424ec1faff3c48c3e26b62f4e09c1483da41eb424aa4ca8086ecee4bba08",
+    "gather_report": "/home/chuxiao/ReGraph/_x/littleKernelScatterGather.hw.xilinx_u55c_gen3x16_xdma_3_202210_1/littleKernelScatterGather/littleKernelScatterGather/solution/syn/report/accGather_Pipeline_gatherLoop_csynth.rpt",
+    "gather_report_sha256": "e2b1cd42067c93f974c6205ca542c1d988f92115e084f2eafd9e8dd815653195",
+    "gather_ii": 1,
+    "gather_iteration_latency": 9,
+    "source_reader_report": "/home/chuxiao/ReGraph/_x/kernelHBMWrapper.hw.xilinx_u55c_gen3x16_xdma_3_202210_1/kernelHBMWrapper/kernelHBMWrapper/solution/syn/report/littleKernelReadMemory_0_s_csynth.rpt",
+    "source_reader_report_sha256": "5c425e72e82f6507b7497a46811659732af61b9256da37d7cf159784510c0ac7",
+    "source_reader_iteration_latency": 331,
+    "source_reader_achieved_interval": 256
+  },
+  "remaining_boundary": [
+    "GraSU PMA carries unit-weight destinations only",
+    "full PageRank and thresholded residual PageRank are not connected to the comparator",
+    "the normalized PMA-native reader has not been synthesized as HLS",
+    "real graph-suite comparison, simulator throughput, PPA, and energy remain open"
+  ]
+}

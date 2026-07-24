@@ -305,10 +305,20 @@ void test_pma_native_regraph_sssp_matches_oracle() {
   const auto counters = compute_system.counters();
   require(counters.supersteps == 4,
           "PMA-native ReGraph superstep count mismatch");
+  const std::uint64_t expected_source_requests = 2 * counters.supersteps;
+  const std::uint64_t expected_source_lines =
+      expected_source_requests * compute_config.source_buffer_vertices / 16;
   require(counters.row_reads == layout.vertices * counters.supersteps &&
-              counters.source_state_reads == counters.supersteps &&
+              counters.source_state_reads == expected_source_requests &&
+              counters.source_cache_requests == expected_source_requests &&
               counters.source_state_read_bytes ==
-                  layout.vertices * 4 * counters.supersteps,
+                  expected_source_requests *
+                      compute_config.source_buffer_vertices * 4 &&
+              counters.source_cache_lines == expected_source_lines &&
+              counters.source_cache_lane_writes ==
+                  expected_source_lines * compute_config.edge_lanes &&
+              counters.source_cache_request_markers == counters.supersteps &&
+              counters.source_cache_response_markers == counters.supersteps,
           "PMA-native ReGraph did not scan all source metadata");
   require(counters.pma_segment_reads ==
                   layout.segments.size() * counters.supersteps &&
@@ -326,6 +336,12 @@ void test_pma_native_regraph_sssp_matches_oracle() {
               counters.source_state_write_bytes ==
                   2 * counters.apply_write_bytes,
           "PMA-native ReGraph partition apply ledger mismatch");
+  require(counters.gather_bank_conflict_cycles == 0 &&
+              counters.gather_bank_updates == counters.active_edges_mapped &&
+              counters.gather_bypass_hits + counters.gather_bypass_misses ==
+                  counters.gather_bank_updates &&
+              counters.gather_bypass_hits > 0,
+          "PMA-native ReGraph did not exercise lane-local RAW forwarding");
   std::cout << "EVIDENCE grasu_regraph_sssp cycles="
             << counters.end_cycle - counters.start_cycle
             << " supersteps=" << counters.supersteps
@@ -339,6 +355,119 @@ void test_pma_native_regraph_sssp_matches_oracle() {
             << " write_bytes="
             << counters.apply_write_bytes + counters.source_state_write_bytes
             << " source_state_writes=" << counters.source_state_writes << '\n';
+}
+
+void test_regraph_gather_lane_forwarding_and_cross_bank_merge() {
+  const std::vector<GraSuEdge> initial = {
+      {.source = 0, .destination = 1}, {.source = 0, .destination = 2},
+      {.source = 0, .destination = 3}, {.source = 1, .destination = 4},
+      {.source = 2, .destination = 4}, {.source = 3, .destination = 0},
+      {.source = 3, .destination = 4},
+  };
+  GraSuPmaLayout layout = GraSuPmaLayout::build(8, initial, {});
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("regraph-gather-raw", 200.0);
+  MockMemoryBackend backend("shared-hbm", core,
+                            MockMemoryConfig{.channels = 32,
+                                             .latency_cycles = 5,
+                                             .accepts_per_channel_per_cycle = 1,
+                                             .max_outstanding_per_channel = 32,
+                                             .response_queue_depth = 128});
+  GraSuPmaUpdateSystem initializer(scheduler, core, backend, layout, {},
+                                   GraSuNativeConfig{});
+  initializer.register_components();
+  scheduler.add_component(backend);
+  require(initializer.done(), "gather RAW initializer did not drain");
+
+  GraSuReGraphConfig config;
+  config.partition_vertices = 16;
+  config.source_buffer_vertices = 16;
+  config.axis_fifo_depth = 2;
+  config.reader_buffer_batches = 4;
+  GraSuReGraphSsspSystem compute(scheduler, core, backend, layout, 0, config);
+  compute.register_components();
+  scheduler.run_until([&] { return compute.done() || compute.failed(); },
+                      2'000'000);
+  require(!compute.failed() && compute.done(),
+          "lane-local gather RAW test did not complete");
+  const auto counters = compute.counters();
+  require(compute.distances()[4] == 2,
+          "lane-local and cross-bank gather merge changed SSSP result");
+  require(counters.gather_bank_conflict_cycles == 0 &&
+              counters.gather_bypass_hits > 0 &&
+              counters.gather_cross_bank_reductions > 0 &&
+              counters.gather_bank_updates == counters.active_edges_mapped &&
+              counters.gather_bypass_hits + counters.gather_bypass_misses ==
+                  counters.gather_bank_updates,
+          "gather did not expose both RAW forwarding and cross-bank reduction");
+  require(counters.gather_pipeline_drain_cycles ==
+              counters.supersteps * (config.gather_pipeline_latency - 1),
+          "gather did not drain the report-derived nine-stage pipeline");
+  std::cout << "EVIDENCE regraph_gather_raw cycles="
+            << counters.end_cycle - counters.start_cycle
+            << " updates=" << counters.gather_bank_updates
+            << " bypass_hits=" << counters.gather_bypass_hits
+            << " bypass_misses=" << counters.gather_bypass_misses
+            << " cross_bank_reductions="
+            << counters.gather_cross_bank_reductions
+            << " pipeline_drain=" << counters.gather_pipeline_drain_cycles
+            << '\n';
+}
+
+void test_regraph_source_cache_crosses_ping_pong_windows() {
+  constexpr std::size_t kVertices = 4097;
+  const std::vector<GraSuEdge> initial = {
+      {.source = 0, .destination = 4096},
+      {.source = 4096, .destination = 1},
+  };
+  GraSuPmaLayout layout = GraSuPmaLayout::build(kVertices, initial, {});
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("regraph-source-cache", 200.0);
+  MockMemoryBackend backend("shared-hbm", core,
+                            MockMemoryConfig{.channels = 32,
+                                             .latency_cycles = 5,
+                                             .accepts_per_channel_per_cycle = 1,
+                                             .max_outstanding_per_channel = 32,
+                                             .response_queue_depth = 128});
+  GraSuPmaUpdateSystem initializer(scheduler, core, backend, layout, {},
+                                   GraSuNativeConfig{});
+  initializer.register_components();
+  scheduler.add_component(backend);
+  require(initializer.done(), "source-cache initializer did not drain");
+
+  GraSuReGraphConfig config;
+  config.partition_vertices = 12288;
+  config.axis_fifo_depth = 2;
+  config.reader_buffer_batches = 4;
+  GraSuReGraphSsspSystem compute(scheduler, core, backend, layout, 0, config);
+  compute.register_components();
+  scheduler.run_until([&] { return compute.done() || compute.failed(); },
+                      2'000'000);
+  require(!compute.failed() && compute.done(),
+          "cross-window source-cache test did not complete");
+  require(compute.distances()[1] == 2,
+          "cross-window source cache changed the SSSP result");
+
+  const auto counters = compute.counters();
+  const std::uint64_t expected_requests = 3 * counters.supersteps;
+  const std::uint64_t expected_lines =
+      expected_requests * config.source_buffer_vertices / 16;
+  require(counters.supersteps == 3 &&
+              counters.source_cache_requests == expected_requests &&
+              counters.source_state_reads == expected_requests &&
+              counters.source_cache_lines == expected_lines &&
+              counters.source_cache_lane_writes ==
+                  expected_lines * config.edge_lanes &&
+              counters.source_cache_request_markers == counters.supersteps &&
+              counters.source_cache_response_markers == counters.supersteps &&
+              counters.source_cache_wait_cycles > 0,
+          "source-cache ping-pong request/response ledger mismatch");
+  std::cout << "EVIDENCE regraph_source_cache_windows cycles="
+            << counters.end_cycle - counters.start_cycle
+            << " supersteps=" << counters.supersteps
+            << " requests=" << counters.source_cache_requests
+            << " lines=" << counters.source_cache_lines
+            << " wait_cycles=" << counters.source_cache_wait_cycles << '\n';
 }
 
 void test_native_partition_scan_cost_is_explicit() {
@@ -547,6 +676,10 @@ int main() {
       {"invalid_updates", test_unreserved_and_invalid_updates_are_rejected},
       {"native_contention", test_native_shared_channel_contention_is_visible},
       {"pma_native_regraph_sssp", test_pma_native_regraph_sssp_matches_oracle},
+      {"regraph_gather_raw",
+       test_regraph_gather_lane_forwarding_and_cross_bank_merge},
+      {"regraph_source_cache_windows",
+       test_regraph_source_cache_crosses_ping_pong_windows},
       {"native_partition_scan", test_native_partition_scan_cost_is_explicit},
       {"normalized_four_lane", test_normalized_four_lane_batches_are_executed},
       {"pma_compute_contention", test_pma_native_compute_propagates_contention},

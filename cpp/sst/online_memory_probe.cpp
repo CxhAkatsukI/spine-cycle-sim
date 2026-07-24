@@ -893,10 +893,18 @@ class OnlineMemoryProbe final : public SST::Component {
         params.find<std::size_t>("grasu_partition_vertices", 65536);
     grasu_config_.source_buffer_vertices =
         params.find<std::size_t>("grasu_source_buffer_vertices", 4096);
+    grasu_config_.source_cache_request_fifo_depth = params.find<std::size_t>(
+        "grasu_source_cache_request_fifo_depth", 8);
+    grasu_config_.source_cache_response_fifo_depth = params.find<std::size_t>(
+        "grasu_source_cache_response_fifo_depth", 8);
     grasu_config_.edge_lanes =
         params.find<std::size_t>("grasu_edge_lanes", 4);
     grasu_config_.gather_banks =
         params.find<std::size_t>("grasu_gather_banks", 4);
+    grasu_config_.gather_bypass_distance =
+        params.find<std::size_t>("grasu_gather_bypass_distance", 6);
+    grasu_config_.gather_pipeline_latency =
+        params.find<std::size_t>("grasu_gather_pipeline_latency", 9);
     grasu_config_.source_state_channel =
         params.find<std::size_t>("grasu_source_state_channel", 1);
     grasu_config_.source_state_mirror_channel =
@@ -1682,8 +1690,16 @@ class OnlineMemoryProbe final : public SST::Component {
       {"grasu_partition_vertices", "ReGraph destination partition size",
        "65536"},
       {"grasu_source_buffer_vertices", "ReGraph source-cache words", "4096"},
+      {"grasu_source_cache_request_fifo_depth",
+       "ReGraph source-cache request stream depth", "8"},
+      {"grasu_source_cache_response_fifo_depth",
+       "ReGraph source-cache response stream depth", "8"},
       {"grasu_edge_lanes", "PMA-native edge lanes", "4"},
       {"grasu_gather_banks", "ReGraph gather banks", "4"},
+      {"grasu_gather_bypass_distance", "ReGraph gather RAW bypass distance",
+       "6"},
+      {"grasu_gather_pipeline_latency", "ReGraph gather HLS pipeline depth",
+       "9"},
       {"grasu_source_state_channel", "ReGraph primary source-state HBM channel",
        "1"},
       {"grasu_source_state_mirror_channel",
@@ -1791,7 +1807,12 @@ class OnlineMemoryProbe final : public SST::Component {
       const bool normalized_profile =
           std::fabs(core_mhz_ - 150.0) < 1.0e-9 && channels_ == 32 &&
           grasu_config_.partition_vertices == 65'536 &&
-          grasu_config_.edge_lanes == 4 && grasu_config_.gather_banks == 4;
+          grasu_config_.source_buffer_vertices == 4096 &&
+          grasu_config_.source_cache_request_fifo_depth == 8 &&
+          grasu_config_.source_cache_response_fifo_depth == 8 &&
+          grasu_config_.edge_lanes == 4 && grasu_config_.gather_banks == 4 &&
+          grasu_config_.gather_bypass_distance == 6 &&
+          grasu_config_.gather_pipeline_latency == 9;
       result << "{\n"
              << "  \"success\": " << (passed ? "true" : "false") << ",\n"
              << "  \"mode\": \"grasu_regraph_sssp\",\n"
@@ -1815,6 +1836,16 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"edge_lanes\": " << grasu_config_.edge_lanes << ",\n"
              << "  \"gather_banks\": " << grasu_config_.gather_banks
              << ",\n"
+             << "  \"source_buffer_vertices\": "
+             << grasu_config_.source_buffer_vertices << ",\n"
+             << "  \"source_cache_request_fifo_depth\": "
+             << grasu_config_.source_cache_request_fifo_depth << ",\n"
+             << "  \"source_cache_response_fifo_depth\": "
+             << grasu_config_.source_cache_response_fifo_depth << ",\n"
+             << "  \"gather_bypass_distance\": "
+             << grasu_config_.gather_bypass_distance << ",\n"
+             << "  \"gather_pipeline_latency\": "
+             << grasu_config_.gather_pipeline_latency << ",\n"
              << "  \"source_state_channel\": "
              << grasu_config_.source_state_channel << ",\n"
              << "  \"source_state_mirror_channel\": "
@@ -1846,6 +1877,26 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"compute_row_reads\": " << compute.row_reads << ",\n"
              << "  \"compute_source_state_reads\": "
              << compute.source_state_reads << ",\n"
+             << "  \"source_state_read_bytes\": "
+             << compute.source_state_read_bytes << ",\n"
+             << "  \"source_cache_requests\": "
+             << compute.source_cache_requests << ",\n"
+             << "  \"source_cache_request_markers\": "
+             << compute.source_cache_request_markers << ",\n"
+             << "  \"source_cache_lines\": " << compute.source_cache_lines
+             << ",\n"
+             << "  \"source_cache_lane_writes\": "
+             << compute.source_cache_lane_writes << ",\n"
+             << "  \"source_cache_response_markers\": "
+             << compute.source_cache_response_markers << ",\n"
+             << "  \"source_cache_wait_cycles\": "
+             << compute.source_cache_wait_cycles << ",\n"
+             << "  \"source_cache_output_stall_cycles\": "
+             << compute.source_cache_output_stall_cycles << ",\n"
+             << "  \"source_cache_request_fifo_max_occupancy\": "
+             << compute.source_cache_request_fifo_max_occupancy << ",\n"
+             << "  \"source_cache_response_fifo_max_occupancy\": "
+             << compute.source_cache_response_fifo_max_occupancy << ",\n"
              << "  \"compute_source_state_writes\": "
              << compute.source_state_writes << ",\n"
              << "  \"compute_pma_segment_reads\": "
@@ -1862,10 +1913,20 @@ class OnlineMemoryProbe final : public SST::Component {
              << compute.gather_reset_cycles << ",\n"
              << "  \"gather_merge_cycles\": "
              << compute.gather_merge_cycles << ",\n"
+             << "  \"gather_pipeline_drain_cycles\": "
+             << compute.gather_pipeline_drain_cycles << ",\n"
              << "  \"gather_output_stall_cycles\": "
              << compute.gather_output_stall_cycles << ",\n"
              << "  \"gather_bank_conflict_cycles\": "
              << compute.gather_bank_conflict_cycles << ",\n"
+             << "  \"gather_bank_updates\": "
+             << compute.gather_bank_updates << ",\n"
+             << "  \"gather_bypass_hits\": "
+             << compute.gather_bypass_hits << ",\n"
+             << "  \"gather_bypass_misses\": "
+             << compute.gather_bypass_misses << ",\n"
+             << "  \"gather_cross_bank_reductions\": "
+             << compute.gather_cross_bank_reductions << ",\n"
              << "  \"gather_rows_emitted\": "
              << compute.gather_rows_emitted << ",\n"
              << "  \"merger_rows_consumed\": "

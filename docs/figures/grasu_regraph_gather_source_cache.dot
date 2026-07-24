@@ -1,0 +1,44 @@
+digraph grasu_regraph_gather_source_cache {
+  graph [rankdir=TB, bgcolor="white", pad="0.2", nodesep="0.35", ranksep="0.55"];
+  node [shape=box, style="rounded,filled", fillcolor="#f7f7f7", color="#4a4a4a", fontname="DejaVu Sans", fontsize=10];
+  edge [color="#555555", fontname="DejaVu Sans", fontsize=9];
+
+  source_hbm [label="Ping-pong source state\nHBM channels 1 / 3", shape=cylinder, fillcolor="#e8e8e8"];
+  request_fifo [label="Source request FIFO\ndepth 8", fillcolor="#f4e1c1"];
+  source_reader [label="HBM source reader\n4096 words / request\n256 x 64 B responses", fillcolor="#d9e8f5"];
+  response_fifo [label="Source response FIFO\ndepth 8", fillcolor="#f4e1c1"];
+  source_cache [label="2-way source cache\n4096 words / way\nreplicated per lane", fillcolor="#dcebd9"];
+  pma_reader [label="PMA-native reader / Scatter\nrequest <= read + 1\nwait while read >= write", fillcolor="#dcebd9"];
+  pma [label="Payload-backed PMA\n4 HBM images", shape=cylinder, fillcolor="#e8e8e8"];
+  edge_fifo [label="Finite edge-batch FIFO\nregistered backpressure", fillcolor="#f4e1c1"];
+  map [label="Map\nactive source + edge", fillcolor="#dcebd9"];
+
+  subgraph cluster_gather {
+    label="ReGraph Gather";
+    color="#b8779b";
+    style="rounded";
+    bank0 [label="lane 0 -> bank 0\nURAM row + 7 RAW entries", fillcolor="#f0d9e7"];
+    bankn [label="lane N -> bank N\nURAM row + 7 RAW entries", fillcolor="#f0d9e7"];
+    reduce [label="Cross-bank Reduce\none 64-bit row / cycle", fillcolor="#f0d9e7"];
+  }
+
+  downstream [label="Merger -> Apply -> HBM wrapper\nfinite streams + AXI/HBM", fillcolor="#d9e8f5"];
+  oracle [label="Committed-state oracle\ncycles / bytes / stalls", fillcolor="#dcebd9"];
+
+  pma_reader -> request_fifo [label="window IDs + end"];
+  request_fifo -> source_reader;
+  source_hbm -> source_reader [label="online AXI beats"];
+  source_reader -> response_fifo [label="64 B + address"];
+  response_fifo -> source_cache [label="duplicate to lanes"];
+  source_cache -> pma_reader [label="source property"];
+  pma -> pma_reader [label="64 B segments"];
+  pma_reader -> edge_fifo [label="4/8 lanes per cycle"];
+  edge_fifo -> map;
+  map -> bank0 [label="lane 0"];
+  map -> bankn [label="lane N"];
+  bank0 -> reduce;
+  bankn -> reduce;
+  reduce -> downstream [label="output / clear sweep"];
+  downstream -> source_hbm [label="next-round state"];
+  downstream -> oracle;
+}

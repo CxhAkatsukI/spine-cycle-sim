@@ -98,6 +98,21 @@ class ArchitectureProfileTests(unittest.TestCase):
         self.assertEqual(normalized.parameters["regraph_apply_state_channel"], 30)
         self.assertEqual(normalized.parameters["regraph_source_state_copies"], 2)
         self.assertEqual(
+            normalized.parameters["regraph_source_buffer_vertices"], 4096
+        )
+        self.assertEqual(
+            normalized.parameters["regraph_source_cache_request_fifo_depth"], 8
+        )
+        self.assertEqual(
+            normalized.parameters["regraph_source_cache_response_fifo_depth"], 8
+        )
+        self.assertEqual(
+            normalized.parameters["regraph_gather_bypass_distance"], 6
+        )
+        self.assertEqual(
+            normalized.parameters["regraph_gather_pipeline_latency"], 9
+        )
+        self.assertEqual(
             normalized.parameters["regraph_gather_merger_fifo_depth"], 16
         )
         self.assertEqual(normalized.parameters["regraph_merger_apply_fifo_depth"], 16)

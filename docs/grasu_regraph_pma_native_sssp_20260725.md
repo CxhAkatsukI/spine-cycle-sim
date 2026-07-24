@@ -33,20 +33,22 @@ implemented and synthesized.
 
 ## Implemented Structure
 
-- Source state is loaded in configurable 4096-word chunks, matching the
-  integration build's `SRC_BUFFER_SIZE=4096` shape. The 16-vertex functional
-  case therefore performs one aligned 64-byte refill per superstep rather than
-  waiting on one HBM transaction per source.
+- Source state is loaded through the HLS request/response protocol in fixed
+  4096-word windows. The reader keeps two ping-pong buffers, requests up to one
+  window ahead, and waits until the next window starts arriving before it uses
+  the current one. Every request transfers 256 64-byte lines even for a tiny
+  graph.
 - Every source reads its 64-bit PMA row bounds. Every reserved 16-slot segment
   is read as one 64-byte request, including empty capacity.
 - A segment produces `16 / edge_lanes` registered batches. The source-shaped
   validation uses eight lanes; the target normalized profile can use four.
   The finite AXIS FIFO backpressures the reader while gather reset or bank work
   cannot consume.
-- Gather has configurable destination banks: eight in source-shaped component
-  tests and four in the normalized profile. It counts extra cycles when
-  destinations in one batch collide on a bank. Reduction semantics use the
-  shared `GraphAlgorithmPolicy` weighted-SSSP Map/Reduce operations.
+- Gather has configurable lane-local destination banks: eight in source-shaped
+  component tests and four in the normalized profile. Lane `u` always accesses
+  bank `u`; there is no `destination % bank` arbitration. Each bank has the HLS
+  `L+1` forwarding history for six-cycle URAM RAW hazards. Reduction semantics
+  use the shared `GraphAlgorithmPolicy` weighted-SSSP Map/Reduce operations.
 - The first superstep charges a full gather reset. Every superstep charges the
   output/clear sweep, which leaves the URAM ready for the next superstep. This
   follows the host's `reset_tmp_prop = (super_step == 0)` protocol. The native
@@ -72,13 +74,13 @@ the execution-driven GraSU update system, and then starts SSSP at vertex 0.
 The expected distances are computed independently from the final edge set.
 
 ```text
-cycles at 200 MHz:  1893
+cycles at 200 MHz:  3721
 supersteps:            4
 PMA segments read:    20
 PMA slots scanned:   320
 live edges scanned:   28
 active edges mapped:   7
-HBM read bytes:      2304
+HBM read bytes:    133120
 HBM write bytes:      768
 distance oracle:     PASS
 ```
@@ -90,11 +92,11 @@ first-class performance variable.
 The read ledger is:
 
 ```text
-64 row records * 8 B       =  512 B
-4 source-cache refills     =  256 B
-20 PMA segments * 64 B     = 1280 B
-4 apply reads * 64 B       =  256 B
-total                      = 2304 B
+64 row records * 8 B       =    512 B
+8 source windows * 16384 B = 131072 B
+20 PMA segments * 64 B     =   1280 B
+4 apply reads * 64 B       =    256 B
+total                      = 133120 B
 ```
 
 Apply produces one 64-byte state burst in each superstep. The modeled hardware
@@ -107,7 +109,7 @@ A one-edge, 16-vertex graph is also run with the source-shaped ReGraph
 `PARTITION_SIZE=65536` setting:
 
 ```text
-cycles at 200 MHz:        98917
+cycles at 200 MHz:        99257
 supersteps:                   2
 gather reset + merge:     98304 cycles (32768 + 65536)
 apply reads:                8192 x 64 B
@@ -123,9 +125,8 @@ distance oracle:              PASS
 The graph is tiny, but ReGraph still sweeps the whole destination partition.
 This fixed cost is why a small-batch comparison must preserve partition shape;
 using a 16-word apply in performance experiments would hide the comparator's
-dominant overhead. The previous phase-barrier model took 114953 cycles. The
-explicit streams reduce this by 13.95% because Apply and wrapper work overlap
-the gather output sweep.
+dominant overhead. The fixed source-window traffic is mostly hidden by this
+sweep, while explicit streams let Apply and wrapper overlap gather output.
 
 ## Contention Evidence
 
@@ -133,8 +134,8 @@ A 128-edge fanout uses one outstanding backend request per HBM channel and a
 one-entry AXIS FIFO:
 
 ```text
-cycles at 200 MHz:      11191
-AXI backend stalls:       614
+cycles at 200 MHz:      15037
+AXI backend stalls:      8534
 AXIS push stalls:        2864
 gather output stalls:    1482
 merger output stalls:    1366
@@ -154,7 +155,7 @@ required by the current normalized profile. One 16-slot PMA segment becomes
 four registered batches rather than two:
 
 ```text
-cycles at 150 MHz:  847
+cycles at 150 MHz:  853
 supersteps:           2
 PMA segment reads:    2
 four-lane batches:    8
@@ -189,15 +190,13 @@ dot -Tsvg docs/figures/grasu_regraph_pma_native_sssp.dot \
 1. Broaden the now-working profile-driven `SstMemoryBackend` path from the tiny
    normalized validation case to synthetic sweeps and real graph slices, and
    report simulator wall-clock throughput.
-2. Replace ideal immediate gather forwarding with the exact six-stage RAW
-   bypass/register state and model the HLS source-cache request controller.
-3. Extend the PMA contract for real edge weights before claiming weighted SSSP
+2. Extend the PMA contract for real edge weights before claiming weighted SSSP
    equivalence with Spine.
-4. Add full PageRank and thresholded residual PageRank iteration controllers
+3. Add full PageRank and thresholded residual PageRank iteration controllers
    on the same PMA reader, gather, apply, and algorithm-policy interface.
-5. Implement and synthesize the matching PMA-native HLS reader. Until then,
+4. Implement and synthesize the matching PMA-native HLS reader. Until then,
    normalized PMA-native cycles are simulator results, not measured hardware.
-6. Add graph ingestion, batch manifests, dual update/algorithm oracles,
+5. Add graph ingestion, batch manifests, dual update/algorithm oracles,
    GraSU-versus-Spine reports, SST-HBM sweeps, and PPA/energy accounting.
 
 The first SST run and its stricter apply-pipeline boundary are recorded in
