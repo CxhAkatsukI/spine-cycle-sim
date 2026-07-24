@@ -59,17 +59,6 @@ enum class SpineDiagnosticKind : std::uint32_t {
   kDirtyGeneration = 0xfffffffcU,
 };
 
-enum class SpineDirtyStatus : std::uint32_t {
-  kOk = 0,
-  kInvalidState = 1,
-  kRequiresHost = 2,
-  kProtocolError = 3,
-  kStaleAck = 4,
-  kCoverageMismatch = 5,
-  kTaskError = 6,
-  kMalformedAck = 7,
-};
-
 enum class SpineSourceProtocolStatus : std::uint32_t {
   kOk = 0,
   kUnexpected = 1,

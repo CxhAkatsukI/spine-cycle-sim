@@ -1,0 +1,101 @@
+{
+  "date": "2026-07-24",
+  "branch": "codex/fine-grained-cycle-sim",
+  "hls_reference": {
+    "repository": "/home/chuxiao/spine-dynamic-graph-reduce-levels",
+    "revision": "origin/reduce-levels-for-routing",
+    "commit": "afb8199a2ca8d3fd208b985324bf4d8719e2b839",
+    "spine_partitioned_sha256": "d5c4a2f2c2f384e33808eee4250c0c88208027b3792d46425e1de2ae1d8a06ba",
+    "result_words": 96,
+    "result_bytes": 384,
+    "layout_version": 3,
+    "metadata_format_version": 2
+  },
+  "validation": {
+    "cpp_tests": 49,
+    "cpp_passed": 49,
+    "python_tests": 147,
+    "python_passed": 147,
+    "git_diff_check": "clean",
+    "normal_payload": {
+      "result_metadata_reads": 16,
+      "result_metadata_responses": 16,
+      "result_metadata_payload_read_bytes": 128,
+      "result_metadata_max_inflight": 8,
+      "result_payload_write_bytes": 384,
+      "result_write_responses": 1,
+      "result_validation_failures": 0
+    },
+    "dirty_count_overflow": {
+      "cycles": 62,
+      "result_payload_write_bytes": 384,
+      "result_write_responses": 1,
+      "overflow": 1,
+      "target_level": -1,
+      "path": 5,
+      "dirty_status": 1,
+      "dirty_count": 16777217
+    },
+    "full_hierarchy_overflow": {
+      "overflow": 1,
+      "target_level": -1,
+      "path": 5,
+      "dirty_generation": 1,
+      "result_write_responses": 1,
+      "partial_level_commits": 0
+    }
+  },
+  "sst": {
+    "amazon_l0": {
+      "passed": true,
+      "cycles_before": 7303,
+      "cycles_after": 7303,
+      "maintenance_cycles_before": 2407,
+      "maintenance_cycles_after": 2435,
+      "backend_requests": 1399,
+      "dram_activates_before": 78,
+      "dram_activates_after": 84,
+      "result_metadata_reads": 16,
+      "result_metadata_responses": 16,
+      "result_metadata_payload_read_bytes": 128,
+      "result_metadata_max_inflight": 10,
+      "result_payload_write_bytes": 384,
+      "result_write_responses": 1,
+      "result_validation_failures": 0
+    },
+    "carry_hot": {
+      "passed": true,
+      "cycles_before": 9578,
+      "cycles_after": 9678,
+      "maintenance_cycles_before": 4676,
+      "maintenance_cycles_after": 4724,
+      "backend_requests": 2014,
+      "dram_activates_before": 114,
+      "dram_activates_after": 124,
+      "result_metadata_reads": 32,
+      "result_metadata_responses": 32,
+      "result_metadata_payload_read_bytes": 256,
+      "result_metadata_max_inflight": 14,
+      "result_payload_write_bytes": 384,
+      "result_write_responses": 1,
+      "result_validation_failures": 0
+    },
+    "weighted_sssp": {
+      "passed": true,
+      "cycles_before": 34087,
+      "cycles_after": 34087,
+      "maintenance_cycles_before": 2467,
+      "maintenance_cycles_after": 2495,
+      "backend_requests": 4196,
+      "dram_activates_before": 240,
+      "dram_activates_after": 242,
+      "result_metadata_reads": 16,
+      "result_metadata_responses": 16,
+      "result_metadata_payload_read_bytes": 128,
+      "result_metadata_max_inflight": 10,
+      "result_payload_write_bytes": 384,
+      "result_write_responses": 1,
+      "result_validation_failures": 0
+    }
+  }
+}

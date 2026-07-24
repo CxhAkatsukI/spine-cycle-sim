@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <array>
+#include <bit>
 #include <cstdint>
 #include <exception>
 #include <filesystem>
@@ -36,8 +37,10 @@ using spine::sim::ClockId;
 using spine::sim::Component;
 using spine::sim::CycleContext;
 using spine::sim::decode_spine_level_edge;
+using spine::sim::decode_spine_maintenance_result;
 using spine::sim::decode_spine_sort_edge;
 using spine::sim::encode_spine_level_edge;
+using spine::sim::encode_spine_maintenance_result;
 using spine::sim::encode_spine_sort_edge;
 using spine::sim::Fifo;
 using spine::sim::FifoStats;
@@ -74,6 +77,7 @@ using spine::sim::SpineL0Counters;
 using spine::sim::SpineL0Maintenance;
 using spine::sim::SpineL0Ports;
 using spine::sim::SpineL0State;
+using spine::sim::SpineMaintenanceResult;
 using spine::sim::SpineLevelLayout;
 using spine::sim::SpineMetadataLayout;
 using spine::sim::SpineReaderCounters;
@@ -86,6 +90,102 @@ void require(bool condition, const std::string &message) {
   if (!condition) {
     throw std::runtime_error(message);
   }
+}
+
+std::uint64_t maintenance_result_counter(const SpineMaintenanceResult &result,
+                                         std::size_t base,
+                                         std::size_t counter) {
+  const std::uint64_t low = std::bit_cast<std::uint32_t>(
+      result.words.at(base + counter * 2));
+  const std::uint64_t high = std::bit_cast<std::uint32_t>(
+      result.words.at(base + counter * 2 + 1));
+  return low | (high << 32);
+}
+
+struct MaintenanceOnlyRun {
+  SpineL0Counters counters;
+  SpineL0State state;
+  SpineMaintenanceResult result;
+  bool failed{};
+  std::string failure;
+};
+
+MaintenanceOnlyRun run_maintenance_only(
+    SpineL0Config config, SpineL0State state, SpineEdgeSlice workload,
+    const std::function<void(FixedAxiPort &, const SpineL0Config &)> &mutate =
+        {}) {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("data", 141.0);
+  MockMemoryBackend backend("maintenance-only-hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 3,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  std::vector<std::unique_ptr<FixedAxiPort>> graph_ports;
+  graph_ports.reserve(16);
+  SpineL0Ports ports;
+  for (std::size_t index = 0; index < ports.graph.size(); ++index) {
+    graph_ports.push_back(std::make_unique<FixedAxiPort>(
+        "maintenance-only-graph" + std::to_string(index), core,
+        FixedAxiPortConfig{
+            .memory_channels = 32,
+            .channel = index,
+            .initiator_id = static_cast<std::uint32_t>(800 + index),
+        },
+        backend));
+    ports.graph[index] = graph_ports.back().get();
+  }
+  FixedAxiPort sorted(
+      "maintenance-only-sorted", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32, .channel = 16, .initiator_id = 816},
+      backend);
+  FixedAxiPort metadata(
+      "maintenance-only-metadata", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32, .channel = 20, .initiator_id = 820},
+      backend);
+  FixedAxiPort result(
+      "maintenance-only-result", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32, .channel = 21, .initiator_id = 821},
+      backend);
+  ports.sorted_edges = &sorted;
+  ports.metadata = &metadata;
+  ports.result = &result;
+
+  SpineL0Maintenance maintenance("maintenance-only", core, config,
+                                 std::move(workload), ports, state);
+  if (mutate) {
+    mutate(metadata, config);
+  }
+  scheduler.add_component(maintenance);
+  for (auto &port : graph_ports) {
+    port->register_components(scheduler);
+  }
+  sorted.register_components(scheduler);
+  metadata.register_components(scheduler);
+  result.register_components(scheduler);
+  scheduler.add_component(backend);
+  scheduler.run_until(
+      [&] {
+        return maintenance.done() && sorted.idle() && metadata.idle() &&
+               result.idle() &&
+               std::all_of(graph_ports.begin(), graph_ports.end(),
+                           [](const auto &port) { return port->idle(); });
+      },
+      200'000);
+  return MaintenanceOnlyRun{
+      .counters = maintenance.counters(),
+      .state = std::move(state),
+      .result = decode_spine_maintenance_result(backend.inspect_payload(
+          21, config.result_base, spine::sim::kSpineMaintenanceResultBytes)),
+      .failed = maintenance.failed(),
+      .failure = maintenance.failure(),
+  };
 }
 
 std::vector<std::uint8_t> u64_payload(std::uint64_t value) {
@@ -3093,11 +3193,61 @@ void test_spine_target_selector_consumes_metadata_payload_from_hbm() {
               counters.target_selector_max_inflight <= 16 &&
               counters.target_selector_validation_failures == 0,
           "target selector request/response or synthesis-floor ledger diverged");
+  const SpineMaintenanceResult maint_result =
+      decode_spine_maintenance_result(backend.inspect_payload(
+          21, SpineL0Config{}.result_base,
+          spine::sim::kSpineMaintenanceResultBytes));
+  require(counters.result_metadata_reads == 16 &&
+              counters.result_metadata_responses == 16 &&
+              counters.result_metadata_payload_read_bytes == 128 &&
+              counters.result_metadata_max_inflight > 1 &&
+              counters.result_metadata_max_inflight <= 16 &&
+              counters.result_payload_write_bytes == 384 &&
+              counters.result_write_responses == 1 &&
+              counters.result_validation_failures == 0,
+          "maintenance result request/response ledger diverged");
+  require(maint_result[SpineMaintenanceResult::kInputEdges] == 1 &&
+              maint_result[SpineMaintenanceResult::kOverflow] == 0 &&
+              maint_result[SpineMaintenanceResult::kLevels] == 11 &&
+              maint_result[SpineMaintenanceResult::kPartitions] == 16 &&
+              maint_result[SpineMaintenanceResult::kMaxSort] == 131'072 &&
+              maint_result[SpineMaintenanceResult::kTargetLevel] == 0 &&
+              maint_result[SpineMaintenanceResult::kPersistedEdges] == 1 &&
+              maint_result[SpineMaintenanceResult::kPath] == 2 &&
+              maint_result[SpineMaintenanceResult::kNonemptyPartitions] == 1 &&
+              maint_result[SpineMaintenanceResult::kPartitionEdgeCountBase] ==
+                  1 &&
+              maint_result[SpineMaintenanceResult::kEpochPartitionsWritten] ==
+                  1 &&
+              maint_result[SpineMaintenanceResult::kEpochPagesStamped] == 1 &&
+              maint_result[SpineMaintenanceResult::kHotEdges] == 0 &&
+              maint_result[SpineMaintenanceResult::kColdEdges] == 1 &&
+              maint_result[SpineMaintenanceResult::kLayoutVersion] == 3 &&
+              maint_result[SpineMaintenanceResult::kMetadataFormatVersion] ==
+                  2 &&
+              maint_result[SpineMaintenanceResult::kDirtyStatus] == 0 &&
+              maint_result[SpineMaintenanceResult::kDirtyCount] == 1 &&
+              maint_result[SpineMaintenanceResult::kDirtyGeneration] == 1 &&
+              maint_result[SpineMaintenanceResult::kDirtyUniqueInputSources] ==
+                  1 &&
+              maint_result[SpineMaintenanceResult::kDirtyBitmapReads] == 1 &&
+              maint_result[SpineMaintenanceResult::kDirtyBitmapWrites] == 1 &&
+              maint_result[SpineMaintenanceResult::kDirtyListAppends] == 1 &&
+              maint_result[SpineMaintenanceResult::kDirtyGenerationAdvances] ==
+                  1,
+          "maintenance result payload diverged from the HLS ABI");
+  for (std::size_t family = 1; family < 16; ++family) {
+    require(maint_result[SpineMaintenanceResult::kPartitionEdgeCountBase +
+                         family] == 0,
+            "maintenance result reported a false nonempty partition");
+  }
   std::cout << "EVIDENCE spine_target_selector target="
             << counters.target_level << " reads="
             << counters.target_selector_metadata_reads << " cycles="
             << counters.target_selector_cycles << " max_inflight="
-            << counters.target_selector_max_inflight << '\n';
+            << counters.target_selector_max_inflight << " result_reads="
+            << counters.result_metadata_reads << " result_max_inflight="
+            << counters.result_metadata_max_inflight << '\n';
 }
 
 void test_spine_hot_classifier_consumes_bitmap_payload_from_hbm() {
@@ -3215,6 +3365,171 @@ void test_spine_hot_classifier_consumes_bitmap_payload_from_hbm() {
             << " max_inflight=" << counters.hot_bitmap_max_inflight
             << " cold_dst=" << state.cold_levels[0][0][0].dst
             << " hot_dst=" << state.hot_levels[hot_family][0][0].dst << '\n';
+}
+
+void test_spine_logical_overflow_writes_complete_result() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("data", 141.0);
+  MockMemoryBackend backend("hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 3,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  std::vector<std::unique_ptr<FixedAxiPort>> graph_ports;
+  graph_ports.reserve(16);
+  SpineL0Ports ports;
+  for (std::size_t index = 0; index < ports.graph.size(); ++index) {
+    graph_ports.push_back(std::make_unique<FixedAxiPort>(
+        "overflow-result-graph" + std::to_string(index), core,
+        FixedAxiPortConfig{
+            .memory_channels = 32,
+            .channel = index,
+            .initiator_id = static_cast<std::uint32_t>(560 + index),
+        },
+        backend));
+    ports.graph[index] = graph_ports.back().get();
+  }
+  FixedAxiPort sorted(
+      "overflow-result-sorted", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32, .channel = 16, .initiator_id = 576},
+      backend);
+  FixedAxiPort metadata(
+      "overflow-result-metadata", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32, .channel = 20, .initiator_id = 580},
+      backend);
+  FixedAxiPort result(
+      "overflow-result-output", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32, .channel = 21, .initiator_id = 581},
+      backend);
+  ports.sorted_edges = &sorted;
+  ports.metadata = &metadata;
+  ports.result = &result;
+
+  SpineL0Config config;
+  SpineL0State state;
+  SpineEdgeSlice batch{
+      .vertices = 128,
+      .edges = {
+          SpineEdgeRecord{.src = 0, .dst = 2, .weight = 3, .diff = 1}},
+      .case_name = "dirty_metadata_overflow_result",
+  };
+  SpineL0Maintenance maintenance("overflow-result-maintenance", core, config,
+                                 std::move(batch), ports, state);
+  const SpineMetadataLayout layout = spine_metadata_layout(config);
+  metadata.initialize_payload(
+      config.metadata_base +
+          layout.dirty_count_word * spine::sim::kSpineMetadataWordBytes,
+      u64_payload(static_cast<std::uint64_t>(config.max_vertices) + 1));
+
+  scheduler.add_component(maintenance);
+  for (auto &port : graph_ports) {
+    port->register_components(scheduler);
+  }
+  sorted.register_components(scheduler);
+  metadata.register_components(scheduler);
+  result.register_components(scheduler);
+  scheduler.add_component(backend);
+  scheduler.run_until(
+      [&] {
+        return maintenance.done() && sorted.idle() && metadata.idle() &&
+               result.idle() &&
+               std::all_of(graph_ports.begin(), graph_ports.end(),
+                           [](const auto &port) { return port->idle(); });
+      },
+      20'000);
+
+  const SpineL0Counters &counters = maintenance.counters();
+  const SpineMaintenanceResult maint_result =
+      decode_spine_maintenance_result(backend.inspect_payload(
+          21, config.result_base, spine::sim::kSpineMaintenanceResultBytes));
+  require(maintenance.failed() &&
+              maintenance.failure() ==
+                  "Spine persistent dirty count exceeds MAX_N" &&
+              counters.logical_overflow_events == 1 &&
+              counters.result_metadata_reads == 0 &&
+              counters.result_metadata_responses == 0 &&
+              counters.result_payload_write_bytes == 384 &&
+              counters.result_write_responses == 1 &&
+              counters.result_validation_failures == 0,
+          "logical overflow terminated before its result transaction retired");
+  require(maint_result[SpineMaintenanceResult::kInputEdges] == 1 &&
+              maint_result[SpineMaintenanceResult::kOverflow] == 1 &&
+              maint_result[SpineMaintenanceResult::kTargetLevel] == -1 &&
+              maint_result[SpineMaintenanceResult::kPersistedEdges] == 0 &&
+              maint_result[SpineMaintenanceResult::kPath] == 5 &&
+              maint_result[SpineMaintenanceResult::kLayoutVersion] == 3 &&
+              maint_result[SpineMaintenanceResult::kMetadataFormatVersion] ==
+                  2 &&
+              maint_result[SpineMaintenanceResult::kDirtyStatus] == 1 &&
+              maint_result[SpineMaintenanceResult::kDirtyCount] ==
+                  static_cast<std::int32_t>(config.max_vertices + 1) &&
+              maint_result[SpineMaintenanceResult::kDirtyGeneration] == 0 &&
+              maint_result[SpineMaintenanceResult::kDirtyGenerationAdvances] ==
+                  0,
+          "logical overflow result payload diverged from the HLS ABI");
+  std::cout << "EVIDENCE spine_overflow_result cycles="
+            << counters.end_cycle - counters.start_cycle
+            << " payload_bytes=" << counters.result_payload_write_bytes
+            << " responses=" << counters.result_write_responses
+            << " dirty_count="
+            << maint_result[SpineMaintenanceResult::kDirtyCount] << '\n';
+}
+
+void test_spine_full_hierarchy_overflow_preserves_dirty_result() {
+  SpineL0State state;
+  for (std::size_t level = 0; level < 11; ++level) {
+    state.cold_levels[0][level] = {
+        SpineEdgeRecord{.src = 0,
+                        .dst = static_cast<std::uint32_t>(level + 16),
+                        .weight = 1,
+                        .diff = 1}};
+  }
+  const MaintenanceOnlyRun run = run_maintenance_only(
+      SpineL0Config{}, std::move(state),
+      SpineEdgeSlice{
+          .vertices = 128,
+          .edges = {
+              SpineEdgeRecord{.src = 1, .dst = 2, .weight = 3, .diff = 1}},
+          .case_name = "full_hierarchy_overflow_result",
+      });
+
+  require(run.failed &&
+              run.failure ==
+                  "Spine cold level hierarchy has no free target" &&
+              run.counters.logical_overflow_events == 1 &&
+              run.counters.target_selector_levels_scanned == 11 &&
+              run.counters.result_metadata_reads == 0 &&
+              run.counters.result_payload_write_bytes == 384 &&
+              run.counters.result_write_responses == 1,
+          "full hierarchy overflow did not retire through the result path");
+  require(run.result[SpineMaintenanceResult::kOverflow] == 1 &&
+              run.result[SpineMaintenanceResult::kTargetLevel] == -1 &&
+              run.result[SpineMaintenanceResult::kPersistedEdges] == 0 &&
+              run.result[SpineMaintenanceResult::kPath] == 5 &&
+              run.result[SpineMaintenanceResult::kDirtyStatus] == 0 &&
+              run.result[SpineMaintenanceResult::kDirtyCount] == 1 &&
+              run.result[SpineMaintenanceResult::kDirtyGeneration] == 1 &&
+              run.result[SpineMaintenanceResult::kDirtyUniqueInputSources] ==
+                  1 &&
+              run.result[SpineMaintenanceResult::kDirtyConservativeSources] ==
+                  1,
+          "full hierarchy overflow discarded successful dirty-frontier state");
+  for (std::size_t level = 0; level < 11; ++level) {
+    require(run.state.cold_levels[0][level].size() == 1,
+            "full hierarchy overflow committed partial logical level state");
+  }
+  std::cout << "EVIDENCE spine_full_hierarchy_overflow target="
+            << run.result[SpineMaintenanceResult::kTargetLevel]
+            << " dirty_generation="
+            << run.result[SpineMaintenanceResult::kDirtyGeneration]
+            << " result_responses=" << run.counters.result_write_responses
+            << '\n';
 }
 
 void test_spine_maintenance_consumes_sorted_payload_from_hbm() {
@@ -3457,6 +3772,29 @@ void test_spine_carry_merge_consumes_level_payload_from_hbm() {
   require(count_payload == u64_payload(1ULL << 32) &&
               list_payload == u64_payload(1),
           "carry commit did not publish target page-list count and page ID");
+  const SpineMaintenanceResult maint_result =
+      decode_spine_maintenance_result(backend.inspect_payload(
+          21, 0, spine::sim::kSpineMaintenanceResultBytes));
+  const std::array<std::uint64_t, 9> expected_carry{
+      1,
+      0,
+      maintenance.counters().carry_cursor_pages_visited,
+      maintenance.counters().carry_cursor_bits_inspected,
+      maintenance.counters().carry_cursor_rows_entered,
+      maintenance.counters().carry_level_payload_reads,
+      maintenance.counters().carry_refill_wait_cycles,
+      maintenance.counters().carry_merge_inputs,
+      maintenance.counters().carry_writer_groups_emitted,
+  };
+  for (std::size_t counter = 0; counter < expected_carry.size(); ++counter) {
+    require(maintenance_result_counter(
+                maint_result, SpineMaintenanceResult::kCarryColdBase,
+                counter) == expected_carry[counter] &&
+                maintenance_result_counter(
+                    maint_result, SpineMaintenanceResult::kCarryHotBase,
+                    counter) == 0,
+            "maintenance result carry counters diverged from execution");
+  }
 }
 
 void test_spine_carry_rejects_stale_page_epoch() {
@@ -3522,6 +3860,16 @@ void test_spine_hls_metadata_and_active_record_abi() {
   require(spine::sim::spine_metadata_control_valid(control) &&
               !spine::sim::spine_metadata_control_valid(control ^ (1ULL << 32)),
           "Spine metadata control validation is not fail closed");
+
+  SpineMaintenanceResult result_codec;
+  result_codec.words[SpineMaintenanceResult::kInputEdges] = 17;
+  result_codec.words[SpineMaintenanceResult::kTargetLevel] = -1;
+  result_codec.words[SpineMaintenanceResult::kDirtyHashSumLow] =
+      std::bit_cast<std::int32_t>(0xfedcba98U);
+  require(decode_spine_maintenance_result(
+              encode_spine_maintenance_result(result_codec))
+              .words == result_codec.words,
+          "Spine maintenance result codec changed signed 32-bit ABI words");
 
   spine::sim::SpineActiveRecord record{
       .source = 0x04030201U,
@@ -4063,6 +4411,10 @@ int main(int argc, char **argv) {
        test_spine_target_selector_consumes_metadata_payload_from_hbm},
       {"spine_hot_hbm_bitmap_payload",
        test_spine_hot_classifier_consumes_bitmap_payload_from_hbm},
+      {"spine_overflow_result_payload",
+       test_spine_logical_overflow_writes_complete_result},
+      {"spine_full_hierarchy_result_payload",
+       test_spine_full_hierarchy_overflow_preserves_dirty_result},
       {"spine_maintenance_hbm_sorted_payload",
        test_spine_maintenance_consumes_sorted_payload_from_hbm},
       {"spine_carry_hbm_level_payload",

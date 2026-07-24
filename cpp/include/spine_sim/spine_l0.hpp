@@ -39,6 +39,9 @@ inline constexpr std::uint64_t kSpineMetadataWordBytes = 8;
 inline constexpr std::uint64_t kSpineActiveRecordBytes = 32;
 inline constexpr std::size_t kSpineFamilyCount = 32;
 inline constexpr std::size_t kSpineLevelCount = 11;
+inline constexpr std::size_t kSpineMaintenanceResultWords = 96;
+inline constexpr std::size_t kSpineMaintenanceResultBytes =
+    kSpineMaintenanceResultWords * sizeof(std::int32_t);
 [[nodiscard]] std::vector<std::uint8_t> encode_spine_sort_edge(
     const SpineEdgeRecord &edge);
 [[nodiscard]] SpineEdgeRecord decode_spine_sort_edge(
@@ -51,6 +54,77 @@ inline constexpr std::size_t kSpineLevelCount = 11;
     const SpineEdgeRecord &edge);
 [[nodiscard]] SpineEdgeRecord decode_spine_level_edge(
     const std::vector<std::uint8_t> &data, std::uint32_t source);
+
+enum class SpineMaintenancePath : std::int32_t {
+  kNone = 0,
+  kStoreL0 = 2,
+  kCascade = 3,
+  kOverflow = 5,
+};
+
+enum class SpineDirtyStatus : std::uint32_t {
+  kOk = 0,
+  kInvalidState = 1,
+  kRequiresHost = 2,
+  kProtocolError = 3,
+  kStaleAck = 4,
+  kCoverageMismatch = 5,
+  kTaskError = 6,
+  kMalformedAck = 7,
+};
+
+struct SpineMaintenanceResult {
+  static constexpr std::size_t kInputEdges = 0;
+  static constexpr std::size_t kOverflow = 1;
+  static constexpr std::size_t kLevels = 2;
+  static constexpr std::size_t kPartitions = 3;
+  static constexpr std::size_t kMaxSort = 4;
+  static constexpr std::size_t kTargetLevel = 5;
+  static constexpr std::size_t kConsumedLevelMask = 6;
+  static constexpr std::size_t kPersistedEdges = 7;
+  static constexpr std::size_t kPath = 8;
+  static constexpr std::size_t kUnsupported = 9;
+  static constexpr std::size_t kNonemptyPartitions = 10;
+  static constexpr std::size_t kPartitionEdgeCountBase = 16;
+  static constexpr std::size_t kEpochPartitionsWritten = 32;
+  static constexpr std::size_t kEpochPagesStamped = 33;
+  static constexpr std::size_t kEpochFullClearFallbacks = 34;
+  static constexpr std::size_t kEpochWrapEvents = 35;
+  static constexpr std::size_t kEpochCommitFailures = 36;
+  static constexpr std::size_t kHotEdges = 37;
+  static constexpr std::size_t kColdEdges = 38;
+  static constexpr std::size_t kCarryColdBase = 39;
+  static constexpr std::size_t kCarryHotBase = 57;
+  static constexpr std::size_t kLayoutVersion = 75;
+  static constexpr std::size_t kMetadataFormatVersion = 76;
+  static constexpr std::size_t kDirtyMode = 80;
+  static constexpr std::size_t kDirtyStatus = 81;
+  static constexpr std::size_t kDirtyCount = 82;
+  static constexpr std::size_t kDirtyGeneration = 83;
+  static constexpr std::size_t kDirtyHashSumLow = 84;
+  static constexpr std::size_t kDirtyHashSumHigh = 85;
+  static constexpr std::size_t kDirtyHashXorLow = 86;
+  static constexpr std::size_t kDirtyHashXorHigh = 87;
+  static constexpr std::size_t kDirtyUniqueInputSources = 88;
+  static constexpr std::size_t kDirtyBitmapReads = 89;
+  static constexpr std::size_t kDirtyBitmapWrites = 90;
+  static constexpr std::size_t kDirtyListAppends = 91;
+  static constexpr std::size_t kDirtyDuplicatesSuppressed = 92;
+  static constexpr std::size_t kDirtyGenerationAdvances = 93;
+  static constexpr std::size_t kDirtyConservativeSources = 94;
+  static constexpr std::size_t kDirtyAux = 95;
+
+  std::array<std::int32_t, kSpineMaintenanceResultWords> words{};
+
+  [[nodiscard]] std::int32_t operator[](std::size_t index) const {
+    return words.at(index);
+  }
+};
+
+[[nodiscard]] std::vector<std::uint8_t> encode_spine_maintenance_result(
+    const SpineMaintenanceResult &result);
+[[nodiscard]] SpineMaintenanceResult decode_spine_maintenance_result(
+    std::span<const std::uint8_t> data);
 
 struct SpineL0Config {
   std::size_t partitions{16};
@@ -77,6 +151,7 @@ struct SpineL0Config {
   // has an iteration latency of 16 cycles, so 16 parent reads cover its
   // maximum source-visible overlap without applying the coarse global window.
   std::size_t maintenance_target_select_request_window{16};
+  std::size_t maintenance_result_request_window{16};
   std::size_t maintenance_cold_target_select_min_cycles{562};
   std::size_t maintenance_hot_target_select_min_cycles{551};
   // Accepted hot-classification loops issue one gmem_meta bitmap read per
@@ -239,6 +314,14 @@ struct SpineL0Counters {
   std::uint64_t page_list_payload_write_bytes{};
   std::uint64_t page_list_count_write_bytes{};
   std::uint64_t result_write_bytes{};
+  std::uint64_t result_payload_write_bytes{};
+  std::uint64_t result_write_responses{};
+  std::uint64_t result_metadata_reads{};
+  std::uint64_t result_metadata_responses{};
+  std::uint64_t result_metadata_payload_read_bytes{};
+  std::size_t result_metadata_max_inflight{};
+  std::uint64_t result_validation_failures{};
+  std::uint64_t logical_overflow_events{};
   std::uint64_t unique_sources{};
   std::uint64_t dirty_bitmap_reads{};
   std::uint64_t dirty_bitmap_writes{};
@@ -393,6 +476,7 @@ class SpineL0Maintenance final : public Component {
     kWriteAdvance,
     kCommitMetadata,
     kWriteResult,
+    kCollectResult,
     kFinish,
   };
 
@@ -418,6 +502,9 @@ class SpineL0Maintenance final : public Component {
     kScanHotBitmap,
     kTargetMetadataOccupied,
     kTargetMetadataEdgeCount,
+    kResultColdEdgeCount,
+    kResultHotEdgeCount,
+    kMaintenanceResultWrite,
     kCarryNewBatchRead,
     kCarryNewBatchHotBitmap,
     kCarryCursorSliceMetadata,
@@ -517,6 +604,13 @@ class SpineL0Maintenance final : public Component {
   void consume_metadata_control_response(const AxiResponse &response);
   void consume_hot_bitmap_response(const MemoryTask &task,
                                    const AxiResponse &response);
+  void enqueue_result_metadata_reads();
+  void consume_result_metadata_response(const MemoryTask &task,
+                                        const AxiResponse &response);
+  [[nodiscard]] SpineMaintenanceResult build_maintenance_result() const;
+  void enqueue_maintenance_result();
+  void begin_logical_overflow(std::string failure,
+                              SpineDirtyStatus dirty_status);
   [[nodiscard]] bool target_selector_phase() const noexcept;
   [[nodiscard]] std::size_t
   memory_request_window_for(const MemoryTask &task) const noexcept;
@@ -587,6 +681,20 @@ class SpineL0Maintenance final : public Component {
     std::uint64_t page_list_word_writes{};
     std::uint64_t page_epoch_word_writes{};
   };
+
+  struct CarryResultCounters {
+    std::uint64_t page_ids_written{};
+    std::uint64_t validation_failures{};
+    std::uint64_t pages_visited{};
+    std::uint64_t bits_inspected{};
+    std::uint64_t rows_entered{};
+    std::uint64_t payload_reads{};
+    std::uint64_t refill_stalls{};
+    std::uint64_t merge_inputs{};
+    std::uint64_t outputs{};
+  };
+
+  [[nodiscard]] CarryResultCounters &active_carry_result_counters();
 
   struct LevelWriterState {
     SpineLevelLayout layout;
@@ -670,6 +778,11 @@ class SpineL0Maintenance final : public Component {
       target_occupied_{};
   std::array<std::array<std::uint8_t, kSpineLevelCount>, kSpineFamilyCount>
       target_metadata_ready_{};
+  std::array<std::uint64_t, 16> result_cold_edge_counts_{};
+  std::array<std::uint64_t, 16> result_hot_edge_counts_{};
+  std::array<bool, 16> result_cold_edge_counts_ready_{};
+  std::array<bool, 16> result_hot_edge_counts_ready_{};
+  std::array<CarryResultCounters, 2> carry_result_counters_{};
   std::vector<FamilyWriteTask> family_write_tasks_;
   std::deque<MemoryTask> tasks_;
   std::unordered_map<std::uint64_t, MemoryTask> inflight_tasks_;
@@ -694,6 +807,7 @@ class SpineL0Maintenance final : public Component {
   std::uint32_t dirty_generation_{};
   std::uint64_t dirty_hash_sum_{};
   std::uint64_t dirty_hash_xor_{};
+  SpineDirtyStatus dirty_status_{SpineDirtyStatus::kOk};
   std::vector<std::uint8_t> dirty_bitmap_original_payload_;
   std::size_t family_index_{};
   std::size_t active_family_index_{};
@@ -706,6 +820,7 @@ class SpineL0Maintenance final : public Component {
   std::uint64_t target_scan_start_cycle_{};
   std::uint64_t target_scan_min_finish_cycle_{};
   std::uint64_t next_transaction_id_{};
+  bool logical_overflow_{};
   bool done_{};
   bool failed_{};
   std::string failure_;

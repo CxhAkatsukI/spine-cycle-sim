@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <bit>
 #include <fstream>
 #include <limits>
 #include <map>
@@ -17,7 +18,6 @@ namespace {
 
 constexpr std::uint64_t kMetadataWordBytes = 8;
 constexpr std::uint64_t kPersistentRecordBytes = 16;
-constexpr std::uint64_t kResultWords = 96;
 constexpr std::uint64_t kMetadataMagic = 0x53504352ULL;
 constexpr std::uint64_t kMetadataVersion = 2;
 constexpr std::uint64_t kMetadataRequiredFeatures = 3;
@@ -628,6 +628,39 @@ SpineLevelLayout spine_slice_layout(const SpineL0Config &config, bool hot,
   return layout;
 }
 
+std::vector<std::uint8_t> encode_spine_maintenance_result(
+    const SpineMaintenanceResult &result) {
+  std::vector<std::uint8_t> data;
+  data.reserve(kSpineMaintenanceResultBytes);
+  for (const std::int32_t word : result.words) {
+    const std::uint32_t bits = std::bit_cast<std::uint32_t>(word);
+    for (std::size_t byte = 0; byte < sizeof(bits); ++byte) {
+      data.push_back(
+          static_cast<std::uint8_t>((bits >> (byte * 8)) & 0xffU));
+    }
+  }
+  return data;
+}
+
+SpineMaintenanceResult decode_spine_maintenance_result(
+    std::span<const std::uint8_t> data) {
+  if (data.size() != kSpineMaintenanceResultBytes) {
+    throw std::invalid_argument(
+        "Spine maintenance result payload must contain 96 words");
+  }
+  SpineMaintenanceResult result;
+  for (std::size_t word = 0; word < result.words.size(); ++word) {
+    std::uint32_t bits = 0;
+    for (std::size_t byte = 0; byte < sizeof(bits); ++byte) {
+      bits |= static_cast<std::uint32_t>(
+                  data[word * sizeof(bits) + byte])
+              << (byte * 8);
+    }
+    result.words[word] = std::bit_cast<std::int32_t>(bits);
+  }
+  return result;
+}
+
 SpineEdgeSlice load_spine_edge_slice(const std::filesystem::path &path) {
   std::ifstream input(path);
   if (!input) {
@@ -734,6 +767,7 @@ SpineL0Maintenance::SpineL0Maintenance(std::string name, ClockId clock_id,
       config_.fallback_replay_threshold == 0 ||
       config_.memory_request_window == 0 ||
       config_.maintenance_target_select_request_window == 0 ||
+      config_.maintenance_result_request_window == 0 ||
       config_.maintenance_cold_target_select_min_cycles == 0 ||
       config_.maintenance_hot_target_select_min_cycles == 0 ||
       config_.maintenance_hot_bitmap_request_window == 0 ||
@@ -987,6 +1021,7 @@ void SpineL0Maintenance::evaluate(const CycleContext &context) {
       staged_memory_completion_ || staged_read_beat_completion_) {
     if (phase_ == Phase::kCarryProcess) {
       ++counters_.carry_refill_wait_cycles;
+      ++active_carry_result_counters().refill_stalls;
     }
     if (queued_writer || inflight_writer) {
       if (level_writer_.l0_mode) {
@@ -1101,6 +1136,10 @@ std::size_t SpineL0Maintenance::memory_request_window_for(
       task.purpose == TaskPurpose::kTargetMetadataEdgeCount) {
     return config_.maintenance_target_select_request_window;
   }
+  if (task.purpose == TaskPurpose::kResultColdEdgeCount ||
+      task.purpose == TaskPurpose::kResultHotEdgeCount) {
+    return config_.maintenance_result_request_window;
+  }
   if (task.purpose == TaskPurpose::kScanHotBitmap ||
       task.purpose == TaskPurpose::kCarryNewBatchHotBitmap) {
     return config_.maintenance_hot_bitmap_request_window;
@@ -1118,26 +1157,37 @@ void SpineL0Maintenance::update_memory_concurrency_counters(
     return task.purpose == TaskPurpose::kScanHotBitmap ||
            task.purpose == TaskPurpose::kCarryNewBatchHotBitmap;
   };
+  const auto result_task = [](const MemoryTask &task) {
+    return task.purpose == TaskPurpose::kResultColdEdgeCount ||
+           task.purpose == TaskPurpose::kResultHotEdgeCount;
+  };
   const std::size_t on_port = inflight_memory_tasks_for_port(issued_port);
   const std::size_t target_on_port = static_cast<std::size_t>(std::count_if(
       inflight_tasks_.begin(), inflight_tasks_.end(), [&](const auto &entry) {
         return entry.second.port == issued_port && target_task(entry.second);
       }));
-  const std::size_t non_target_on_port = on_port - target_on_port;
   const std::size_t hot_bitmap_on_port = static_cast<std::size_t>(std::count_if(
       inflight_tasks_.begin(), inflight_tasks_.end(), [&](const auto &entry) {
         return entry.second.port == issued_port &&
                hot_bitmap_task(entry.second);
       }));
+  const std::size_t result_on_port = static_cast<std::size_t>(std::count_if(
+      inflight_tasks_.begin(), inflight_tasks_.end(), [&](const auto &entry) {
+        return entry.second.port == issued_port && result_task(entry.second);
+      }));
+  const std::size_t default_window_on_port =
+      on_port - target_on_port - hot_bitmap_on_port - result_on_port;
   counters_.max_memory_requests_inflight_per_port =
       std::max(counters_.max_memory_requests_inflight_per_port, on_port);
   counters_.max_non_target_memory_requests_inflight_per_port =
       std::max(counters_.max_non_target_memory_requests_inflight_per_port,
-               non_target_on_port);
+               default_window_on_port);
   counters_.target_selector_max_inflight =
       std::max(counters_.target_selector_max_inflight, target_on_port);
   counters_.hot_bitmap_max_inflight =
       std::max(counters_.hot_bitmap_max_inflight, hot_bitmap_on_port);
+  counters_.result_metadata_max_inflight =
+      std::max(counters_.result_metadata_max_inflight, result_on_port);
   counters_.max_active_memory_ports =
       std::max(counters_.max_active_memory_ports, active_memory_ports());
 }
@@ -1568,6 +1618,11 @@ void SpineL0Maintenance::consume_memory_response(const MemoryTask &task,
   const bool target_response =
       task.purpose == TaskPurpose::kTargetMetadataOccupied ||
       task.purpose == TaskPurpose::kTargetMetadataEdgeCount;
+  const bool result_metadata_response =
+      task.purpose == TaskPurpose::kResultColdEdgeCount ||
+      task.purpose == TaskPurpose::kResultHotEdgeCount;
+  const bool result_write_response =
+      task.purpose == TaskPurpose::kMaintenanceResultWrite;
   const bool carry_response =
       task.purpose == TaskPurpose::kCarryNewBatchRead ||
       task.purpose == TaskPurpose::kCarryNewBatchHotBitmap ||
@@ -1587,12 +1642,17 @@ void SpineL0Maintenance::consume_memory_response(const MemoryTask &task,
       throw std::logic_error(
           "Spine maintenance write response carried payload");
     }
-    if (control_response || hot_bitmap_response) {
+    if (result_write_response) {
+      ++counters_.result_write_responses;
+    } else if (control_response || hot_bitmap_response) {
       ++counters_.hot_bitmap_validation_failures;
       throw std::logic_error("Spine hot-metadata read path issued a write");
     } else if (target_response) {
       ++counters_.target_selector_validation_failures;
       throw std::logic_error("Spine target-selector read path issued a write");
+    } else if (result_metadata_response) {
+      ++counters_.result_validation_failures;
+      throw std::logic_error("Spine result metadata read path issued a write");
     } else if (carry_response) {
       consume_carry_memory_response(task, response);
     } else if (task.purpose != TaskPurpose::kGeneric) {
@@ -1609,6 +1669,8 @@ void SpineL0Maintenance::consume_memory_response(const MemoryTask &task,
     consume_hot_bitmap_response(task, response);
   } else if (target_response) {
     consume_target_selector_response(task, response);
+  } else if (result_metadata_response) {
+    consume_result_metadata_response(task, response);
   } else if (carry_response) {
     consume_carry_memory_response(task, response);
   } else if (task.purpose != TaskPurpose::kGeneric) {
@@ -1830,6 +1892,210 @@ void SpineL0Maintenance::consume_hot_bitmap_response(
       std::max(counters_.carry_max_buffered_heads, buffered);
 }
 
+void SpineL0Maintenance::enqueue_result_metadata_reads() {
+  result_cold_edge_counts_.fill(0);
+  result_hot_edge_counts_.fill(0);
+  result_cold_edge_counts_ready_.fill(false);
+  result_hot_edge_counts_ready_.fill(false);
+  if (logical_overflow_) {
+    return;
+  }
+  if (counters_.target_level < 0 ||
+      (metadata_hot_enabled_ && counters_.hot_target_level < 0)) {
+    begin_logical_overflow("Spine result has no committed target",
+                           SpineDirtyStatus::kInvalidState);
+    return;
+  }
+  const auto enqueue_family_range = [&](bool hot, std::size_t level) {
+    const std::size_t family_base = hot ? config_.partitions : 0;
+    const TaskPurpose purpose = hot ? TaskPurpose::kResultHotEdgeCount
+                                    : TaskPurpose::kResultColdEdgeCount;
+    for (std::size_t family = 0; family < config_.partitions; ++family) {
+      const std::size_t logical_family = family_base + family;
+      const std::uint64_t slice =
+          logical_family * config_.levels + level;
+      enqueue_task(
+          *ports_.metadata, MemoryOperation::kRead,
+          config_.metadata_base +
+              (slice * kMetadataWordsPerSlice + kMetadataEdgeCountWord) *
+                  kMetadataWordBytes,
+          kMetadataWordBytes, TaskClass::kMetadata, {}, {}, false, purpose, 0,
+          0, 0, logical_family, level);
+      ++counters_.result_metadata_reads;
+    }
+  };
+  enqueue_family_range(false,
+                       static_cast<std::size_t>(counters_.target_level));
+  if (metadata_hot_enabled_) {
+    enqueue_family_range(
+        true, static_cast<std::size_t>(counters_.hot_target_level));
+  }
+}
+
+void SpineL0Maintenance::consume_result_metadata_response(
+    const MemoryTask &task, const AxiResponse &response) {
+  const bool hot = task.purpose == TaskPurpose::kResultHotEdgeCount;
+  const std::size_t family_base = hot ? config_.partitions : 0;
+  if ((task.purpose != TaskPurpose::kResultColdEdgeCount && !hot) ||
+      task.operation != MemoryOperation::kRead ||
+      response.read_data.size() != kMetadataWordBytes ||
+      task.metadata_family < family_base ||
+      task.metadata_family >= family_base + config_.partitions) {
+    ++counters_.result_validation_failures;
+    throw std::logic_error("invalid Spine result metadata response");
+  }
+  const std::size_t family = task.metadata_family - family_base;
+  auto &counts = hot ? result_hot_edge_counts_ : result_cold_edge_counts_;
+  auto &ready = hot ? result_hot_edge_counts_ready_
+                    : result_cold_edge_counts_ready_;
+  if (ready[family]) {
+    ++counters_.result_validation_failures;
+    throw std::logic_error("duplicate Spine result metadata response");
+  }
+  counts[family] = read_u64_le(response.read_data, 0);
+  ready[family] = true;
+  ++counters_.result_metadata_responses;
+  counters_.result_metadata_payload_read_bytes += response.read_data.size();
+}
+
+SpineMaintenanceResult SpineL0Maintenance::build_maintenance_result() const {
+  const auto as_i32 = [](std::uint64_t value) {
+    return std::bit_cast<std::int32_t>(static_cast<std::uint32_t>(value));
+  };
+  SpineMaintenanceResult result;
+  result.words[SpineMaintenanceResult::kInputEdges] =
+      as_i32(workload_.edges.size());
+  result.words[SpineMaintenanceResult::kOverflow] =
+      logical_overflow_ ? 1 : 0;
+  result.words[SpineMaintenanceResult::kLevels] =
+      static_cast<std::int32_t>(config_.levels);
+  result.words[SpineMaintenanceResult::kPartitions] =
+      static_cast<std::int32_t>(config_.partitions);
+  result.words[SpineMaintenanceResult::kMaxSort] =
+      as_i32(config_.max_sort_edges);
+  result.words[SpineMaintenanceResult::kTargetLevel] =
+      logical_overflow_ ? -1 : counters_.target_level;
+  result.words[SpineMaintenanceResult::kConsumedLevelMask] =
+      logical_overflow_ || counters_.target_level <= 0
+          ? 0
+          : static_cast<std::int32_t>((1U << counters_.target_level) - 1U);
+  result.words[SpineMaintenanceResult::kPath] = static_cast<std::int32_t>(
+      logical_overflow_
+          ? SpineMaintenancePath::kOverflow
+          : (counters_.target_level == 0 ? SpineMaintenancePath::kStoreL0
+                                         : SpineMaintenancePath::kCascade));
+
+  std::uint64_t persisted_edges = 0;
+  std::int32_t nonempty_partitions = 0;
+  if (!logical_overflow_) {
+    for (std::size_t family = 0; family < config_.partitions; ++family) {
+      if (!result_cold_edge_counts_ready_[family] ||
+          (metadata_hot_enabled_ &&
+           !result_hot_edge_counts_ready_[family])) {
+        throw std::logic_error("incomplete Spine result metadata payload");
+      }
+      const std::uint64_t cold = result_cold_edge_counts_[family];
+      if (cold > static_cast<std::uint64_t>(
+                     std::numeric_limits<std::int32_t>::max())) {
+        throw std::overflow_error("Spine result edge count exceeds int32");
+      }
+      result.words[SpineMaintenanceResult::kPartitionEdgeCountBase + family] =
+          static_cast<std::int32_t>(cold);
+      persisted_edges += cold;
+      nonempty_partitions += cold != 0 ? 1 : 0;
+      if (metadata_hot_enabled_) {
+        persisted_edges += result_hot_edge_counts_[family];
+      }
+    }
+  }
+  result.words[SpineMaintenanceResult::kPersistedEdges] =
+      as_i32(persisted_edges);
+  result.words[SpineMaintenanceResult::kNonemptyPartitions] =
+      nonempty_partitions;
+  result.words[SpineMaintenanceResult::kEpochPartitionsWritten] =
+      logical_overflow_ ? 0 : as_i32(counters_.active_families);
+  result.words[SpineMaintenanceResult::kEpochPagesStamped] =
+      as_i32(counters_.pages_stamped);
+  result.words[SpineMaintenanceResult::kHotEdges] =
+      as_i32(counters_.hot_input_edges);
+  result.words[SpineMaintenanceResult::kColdEdges] =
+      as_i32(counters_.cold_input_edges);
+
+  const auto write_carry = [&](std::size_t base,
+                               const CarryResultCounters &carry) {
+    const std::array<std::uint64_t, 9> values{
+        carry.page_ids_written, carry.validation_failures,
+        carry.pages_visited,    carry.bits_inspected,
+        carry.rows_entered,     carry.payload_reads,
+        carry.refill_stalls,    carry.merge_inputs,
+        carry.outputs,
+    };
+    for (std::size_t counter = 0; counter < values.size(); ++counter) {
+      result.words[base + counter * 2] = as_i32(values[counter]);
+      result.words[base + counter * 2 + 1] =
+          as_i32(values[counter] >> 32);
+    }
+  };
+  write_carry(SpineMaintenanceResult::kCarryColdBase,
+              carry_result_counters_[0]);
+  write_carry(SpineMaintenanceResult::kCarryHotBase,
+              carry_result_counters_[1]);
+
+  result.words[SpineMaintenanceResult::kLayoutVersion] = 3;
+  result.words[SpineMaintenanceResult::kMetadataFormatVersion] =
+      static_cast<std::int32_t>(kMetadataVersion);
+  result.words[SpineMaintenanceResult::kDirtyMode] = 0;
+  result.words[SpineMaintenanceResult::kDirtyStatus] =
+      static_cast<std::int32_t>(dirty_status_);
+  result.words[SpineMaintenanceResult::kDirtyCount] = as_i32(dirty_count_);
+  result.words[SpineMaintenanceResult::kDirtyGeneration] =
+      as_i32(dirty_generation_);
+  result.words[SpineMaintenanceResult::kDirtyHashSumLow] =
+      as_i32(dirty_hash_sum_);
+  result.words[SpineMaintenanceResult::kDirtyHashSumHigh] =
+      as_i32(dirty_hash_sum_ >> 32);
+  result.words[SpineMaintenanceResult::kDirtyHashXorLow] =
+      as_i32(dirty_hash_xor_);
+  result.words[SpineMaintenanceResult::kDirtyHashXorHigh] =
+      as_i32(dirty_hash_xor_ >> 32);
+  result.words[SpineMaintenanceResult::kDirtyUniqueInputSources] =
+      as_i32(counters_.unique_sources);
+  result.words[SpineMaintenanceResult::kDirtyBitmapReads] =
+      as_i32(counters_.dirty_bitmap_reads);
+  result.words[SpineMaintenanceResult::kDirtyBitmapWrites] =
+      as_i32(counters_.dirty_bitmap_writes);
+  result.words[SpineMaintenanceResult::kDirtyListAppends] =
+      as_i32(counters_.dirty_list_appends);
+  result.words[SpineMaintenanceResult::kDirtyDuplicatesSuppressed] =
+      as_i32(counters_.dirty_duplicates_suppressed);
+  result.words[SpineMaintenanceResult::kDirtyGenerationAdvances] =
+      as_i32(counters_.dirty_generation_advances);
+  result.words[SpineMaintenanceResult::kDirtyConservativeSources] =
+      logical_overflow_ ? as_i32(counters_.unique_sources) : 0;
+  return result;
+}
+
+void SpineL0Maintenance::enqueue_maintenance_result() {
+  std::vector<std::uint8_t> payload =
+      encode_spine_maintenance_result(build_maintenance_result());
+  const std::uint64_t bytes = payload.size();
+  counters_.result_payload_write_bytes += bytes;
+  enqueue_task(*ports_.result, MemoryOperation::kWrite, config_.result_base,
+               bytes, TaskClass::kResult, std::move(payload), {},
+               false, TaskPurpose::kMaintenanceResultWrite);
+}
+
+void SpineL0Maintenance::begin_logical_overflow(
+    std::string failure, SpineDirtyStatus dirty_status) {
+  if (!logical_overflow_) {
+    ++counters_.logical_overflow_events;
+  }
+  logical_overflow_ = true;
+  dirty_status_ = dirty_status;
+  failure_ = std::move(failure);
+  phase_ = Phase::kWriteResult;
+}
+
 void SpineL0Maintenance::resolve_target_selector_level(
     const CycleContext &context) {
   const std::size_t family_base = target_scan_hot_ ? config_.partitions : 0;
@@ -1877,11 +2143,10 @@ void SpineL0Maintenance::finish_target_selector(
     counters_.target_level = target_scan_candidate_;
   }
   if (target_scan_candidate_ < 0) {
-    failed_ = true;
-    done_ = true;
-    failure_ = target_scan_hot_
-                   ? "Spine hot level hierarchy has no free target"
-                   : "Spine cold level hierarchy has no free target";
+    begin_logical_overflow(
+        target_scan_hot_ ? "Spine hot level hierarchy has no free target"
+                         : "Spine cold level hierarchy has no free target",
+        SpineDirtyStatus::kOk);
     return;
   }
   if (!target_scan_hot_ && metadata_hot_enabled_) {
@@ -2044,7 +2309,8 @@ void SpineL0Maintenance::enqueue_dirty_final_metadata() {
   write_word(metadata.dirty_hash_sum_word, dirty_hash_sum_);
   write_word(metadata.dirty_hash_xor_word, dirty_hash_xor_);
   write_word(metadata.dirty_last_mode_word, 0);
-  write_word(metadata.dirty_last_status_word, 0);
+  write_word(metadata.dirty_last_status_word,
+             static_cast<std::uint32_t>(dirty_status_));
 }
 
 void SpineL0Maintenance::finish_dirty_source_update() {
@@ -2064,14 +2330,14 @@ void SpineL0Maintenance::consume_dirty_memory_response(
     const std::uint64_t value = read_u64_le(response.read_data, 0);
     switch (task.source) {
     case 0:
-      if (value > config_.max_vertices) {
-        failed_ = true;
-        done_ = true;
-        failure_ = "Spine persistent dirty count exceeds MAX_N";
-        return;
-      }
       dirty_count_ = static_cast<std::uint32_t>(value);
       counters_.dirty_count = dirty_count_;
+      if (value > config_.max_vertices) {
+        begin_logical_overflow(
+            "Spine persistent dirty count exceeds MAX_N",
+            SpineDirtyStatus::kInvalidState);
+        return;
+      }
       break;
     case 1:
       dirty_generation_ = static_cast<std::uint32_t>(value);
@@ -2151,9 +2417,10 @@ void SpineL0Maintenance::consume_dirty_memory_response(
                  TaskPurpose::kDirtyBitmapOverflowClear, task.source);
     return;
   case TaskPurpose::kDirtyBitmapOverflowClear:
-    failed_ = true;
-    done_ = true;
-    failure_ = "Spine persistent dirty list exceeds MAX_N";
+    dirty_status_ = SpineDirtyStatus::kInvalidState;
+    enqueue_dirty_final_metadata();
+    begin_logical_overflow("Spine persistent dirty list exceeds MAX_N",
+                           dirty_status_);
     return;
   case TaskPurpose::kDirtyListRead: {
     ++counters_.dirty_list_reads;
@@ -2177,6 +2444,11 @@ void SpineL0Maintenance::consume_dirty_memory_response(
   case TaskPurpose::kTargetMetadataEdgeCount:
     throw std::logic_error(
         "target-selector response reached the dirty response handler");
+  case TaskPurpose::kResultColdEdgeCount:
+  case TaskPurpose::kResultHotEdgeCount:
+  case TaskPurpose::kMaintenanceResultWrite:
+    throw std::logic_error(
+        "result response reached the dirty response handler");
   case TaskPurpose::kMetadataControl:
   case TaskPurpose::kScanHotBitmap:
   case TaskPurpose::kCarryNewBatchHotBitmap:
@@ -2294,6 +2566,7 @@ void SpineL0Maintenance::finalize_carry_page_indexes(
       const std::uint64_t bitmap = stream.page_bitmaps[page_index][word];
       for (std::size_t bit = 0; bit < 64; ++bit) {
         ++counters_.carry_cursor_bits_inspected;
+        ++active_carry_result_counters().bits_inspected;
         if ((bitmap & (std::uint64_t{1} << bit)) != 0) {
           stream.sources.push_back(
               stream.pages[page_index] * config_.page_vertices + word * 64 +
@@ -2474,6 +2747,9 @@ void SpineL0Maintenance::level_writer_append_page(std::uint32_t page) {
   }
   pending.value |= static_cast<std::uint64_t>(page) << (lane * 16);
   ++level_writer_.page_list_count;
+  if (!level_writer_.l0_mode) {
+    ++active_carry_result_counters().page_ids_written;
+  }
   level_writer_.last_page = page;
   level_writer_.have_last_page = true;
   if (lane == 3) {
@@ -2574,9 +2850,8 @@ void SpineL0Maintenance::emit_level_writer_group(
     if (level_writer_.l0_mode) {
       ++counters_.l0_writer_validation_failures;
     }
-    failed_ = true;
-    done_ = true;
-    failure_ = "Spine level writer exceeds target edge capacity";
+    begin_logical_overflow("Spine level writer exceeds target edge capacity",
+                           SpineDirtyStatus::kOk);
     return;
   }
 
@@ -2678,7 +2953,7 @@ void SpineL0Maintenance::finalize_level_writer(
     throw std::logic_error("invalid Spine level-writer finalization");
   }
   emit_level_writer_group(task);
-  if (failed_) {
+  if (logical_overflow_) {
     return;
   }
   const SpineMetadataLayout metadata = spine_metadata_layout(config_);
@@ -2766,8 +3041,19 @@ void SpineL0Maintenance::finalize_level_writer(
         stats.page_list_word_writes;
     counters_.carry_writer_page_epoch_word_writes +=
         stats.page_epoch_word_writes;
+    active_carry_result_counters().outputs += stats.groups_emitted;
   }
   level_writer_.finalized = true;
+}
+
+SpineL0Maintenance::CarryResultCounters &
+SpineL0Maintenance::active_carry_result_counters() {
+  if (active_family_index_ >= family_write_tasks_.size()) {
+    throw std::logic_error("Spine carry counter has no active family");
+  }
+  return carry_result_counters_[family_write_tasks_[active_family_index_].hot
+                                    ? 1
+                                    : 0];
 }
 
 void SpineL0Maintenance::initialize_carry_engine(
@@ -2998,6 +3284,7 @@ void SpineL0Maintenance::consume_carry_memory_response(
           read_u64_le(response.read_data, word * kSpineGraphWordBytes);
     }
     ++counters_.carry_cursor_pages_visited;
+    ++active_carry_result_counters().pages_visited;
     counters_.carry_cursor_bitmap_words += 4;
     finish_page_index_response();
   } else if (task.purpose == TaskPurpose::kCarryCursorRowOffsets) {
@@ -3024,6 +3311,7 @@ void SpineL0Maintenance::consume_carry_memory_response(
     }
     counters_.carry_cursor_row_offset_reads += stream.row_count + 1;
     counters_.carry_cursor_rows_entered += stream.row_count;
+    active_carry_result_counters().rows_entered += stream.row_count;
     stream.sources = std::move(edge_sources);
     stream.cursor_ready = true;
     enqueue_carry_stream_refill(task.carry_stream);
@@ -3034,6 +3322,7 @@ void SpineL0Maintenance::consume_carry_memory_response(
     stream.buffered.push_back(
         decode_spine_level_edge(response.read_data, task.source));
     ++counters_.carry_level_payload_reads;
+    ++active_carry_result_counters().payload_reads;
     counters_.carry_level_payload_read_bytes += response.read_data.size();
     enqueue_carry_stream_refill(task.carry_stream);
   } else {
@@ -3080,6 +3369,7 @@ bool SpineL0Maintenance::advance_carry_merge() {
   accumulate_level_writer(stream.buffered.front());
   stream.buffered.pop_front();
   ++counters_.carry_merge_inputs;
+  ++active_carry_result_counters().merge_inputs;
   enqueue_carry_stream_refill(winner);
   return false;
 }
@@ -3302,7 +3592,7 @@ void SpineL0Maintenance::advance(const CycleContext &context) {
     const std::size_t before = scan_index_;
     if (process_scan_edge(context)) {
       finalize_level_writer(task);
-      if (failed_) {
+      if (logical_overflow_) {
         return;
       }
       phase_ = Phase::kWriteAdvance;
@@ -3333,7 +3623,7 @@ void SpineL0Maintenance::advance(const CycleContext &context) {
       return;
     }
     const FamilyWriteTask &task = family_write_tasks_[active_family_index_];
-    if (failed_) {
+    if (logical_overflow_) {
       return;
     }
     finish_carry_merge(task);
@@ -3354,18 +3644,17 @@ void SpineL0Maintenance::advance(const CycleContext &context) {
     phase_ = Phase::kWriteResult;
     return;
   case Phase::kWriteResult:
-    enqueue_task(*ports_.metadata, MemoryOperation::kRead,
-                 config_.metadata_base,
-                 config_.partitions * (metadata_hot_enabled_ ? 2 : 1) *
-                     kMetadataWordBytes,
-                 TaskClass::kMetadata);
-    enqueue_task(*ports_.result, MemoryOperation::kWrite, config_.result_base,
-                 kResultWords * 4, TaskClass::kResult);
+    enqueue_result_metadata_reads();
+    phase_ = Phase::kCollectResult;
+    return;
+  case Phase::kCollectResult:
+    enqueue_maintenance_result();
     phase_ = Phase::kFinish;
     return;
   case Phase::kFinish:
     counters_.end_cycle = context.domain_cycle;
     done_ = true;
+    failed_ = logical_overflow_;
     return;
   }
 }

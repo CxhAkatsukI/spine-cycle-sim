@@ -1,0 +1,22 @@
+digraph spine_exact_maintenance_result {
+  graph [rankdir=LR, bgcolor="white", pad="0.2", nodesep="0.3", ranksep="0.55"];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=10, color="#334155", fillcolor="#f8fafc"];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#475569"];
+
+  commit [label="metadata commit or logical overflow", fillcolor="#dbeafe"];
+  issue [label="result count loop\n16 cold + optional 16 hot\n8-byte reads", fillcolor="#fef3c7"];
+  axi_meta [label="gmem_meta AXI\nparent window <= 16\nfinite request / response queues", fillcolor="#e0e7ff"];
+  hbm [label="SST-HBM\nreal addresses and contention", fillcolor="#fee2e2"];
+  scoreboard [label="response scoreboard\nfamily, hot/cold, edge count", fillcolor="#dcfce7"];
+  abi [label="96 x int32 result ABI\ntarget, carry, epoch, dirty", fillcolor="#dbeafe"];
+  axi_result [label="gmem_result AXI\n384-byte payload write", fillcolor="#e0e7ff"];
+  finish [label="write response retires\ndone / failed becomes visible", fillcolor="#dcfce7"];
+  overflow [label="overflow transcript\nskip count reads, preserve diagnostics", fillcolor="#fee2e2"];
+
+  commit -> issue [label="success"];
+  issue -> axi_meta -> hbm -> axi_meta -> scoreboard -> abi -> axi_result -> finish;
+  commit -> overflow [label="logical error"];
+  overflow -> abi;
+  axi_meta -> issue [label="window full", style=dashed, color="#b91c1c"];
+  scoreboard -> abi [label="all expected responses"];
+}
