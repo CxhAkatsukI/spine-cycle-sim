@@ -57,6 +57,8 @@ using spine::sim::spine_hot_shard;
 using spine::sim::spine_level_layout;
 using spine::sim::SpineActiveBins;
 using spine::sim::SpineActiveRecord;
+using spine::sim::SpineAxiInterfaceProfile;
+using spine::sim::SpineAxiPortKind;
 using spine::sim::SpineComputeCounters;
 using spine::sim::SpineComputePorts;
 using spine::sim::SpineDirtyIdentity;
@@ -69,8 +71,8 @@ using spine::sim::SpineL0Maintenance;
 using spine::sim::SpineL0Ports;
 using spine::sim::SpineL0State;
 using spine::sim::SpineLevelLayout;
-using spine::sim::SpineReaderPorts;
 using spine::sim::SpineReaderCounters;
+using spine::sim::SpineReaderPorts;
 using spine::sim::SpineSplitReader;
 using spine::sim::SpineSplitSsspCompute;
 using spine::sim::SpineVerticalSliceSystem;
@@ -2823,6 +2825,61 @@ void test_spine_memory_request_window_hides_latency() {
           "pipelined request window did not hide backend latency");
 }
 
+void test_spine_axi_interface_profile_matches_hls_rtl() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("data", 141.0);
+  MockMemoryBackend backend("hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 3,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 64,
+                                .response_queue_depth = 128,
+                            });
+  SpineEdgeSlice workload{
+      .vertices = 2,
+      .edges = {SpineEdgeRecord{.src = 0, .dst = 1, .weight = 1, .diff = 1}},
+      .case_name = "axi_profile",
+  };
+  SpineVerticalSliceSystem system(scheduler, core, backend, workload, 0);
+
+  const auto require_shape = [&](SpineAxiPortKind kind,
+                                 std::uint32_t expected_bytes,
+                                 std::size_t expected_pending) {
+    const auto &config = system.axi_config(kind);
+    require(config.data_width_bytes == expected_bytes &&
+                config.max_burst_beats == 16 &&
+                config.max_pending_requests == expected_pending &&
+                config.max_outstanding_bursts == 16 &&
+                config.address_accepts_per_cycle == 1 &&
+                config.beat_issues_per_cycle == 1 &&
+                config.response_beats_per_cycle == 1,
+            "Spine AXI interface shape diverged from the accepted HLS RTL");
+  };
+  require(system.axi_profile().profile_id == "hls_split_9c08763",
+          "Spine did not select the source-shaped AXI profile by default");
+  require_shape(SpineAxiPortKind::kGraph, 8, 7);
+  require_shape(SpineAxiPortKind::kSortedEdges, 16, 7);
+  require_shape(SpineAxiPortKind::kActiveBins, 32, 7);
+  require_shape(SpineAxiPortKind::kMetadata, 8, 7);
+  require_shape(SpineAxiPortKind::kMaintenanceResult, 4, 4);
+  require_shape(SpineAxiPortKind::kVertexState, 4, 7);
+  require_shape(SpineAxiPortKind::kActiveOut, 8, 4);
+  require_shape(SpineAxiPortKind::kActiveBitmap, 8, 7);
+  require_shape(SpineAxiPortKind::kComputeResult, 4, 4);
+
+  const SpineAxiInterfaceProfile legacy =
+      SpineAxiInterfaceProfile::legacy_uniform64();
+  const auto legacy_graph =
+      legacy.port_config(SpineAxiPortKind::kGraph, 32, 0, 0);
+  const auto legacy_sorted =
+      legacy.port_config(SpineAxiPortKind::kSortedEdges, 32, 16, 16);
+  require(legacy.profile_id == "legacy_uniform64" &&
+              legacy_graph.data_width_bytes == 64 &&
+              legacy_sorted.response_beats_per_cycle == 4,
+          "legacy uniform-64 AXI profile is not explicit and reproducible");
+}
+
 SpineMemoryWindowObservation run_spine_edge_pipeline(std::size_t depth,
                                                      std::size_t capacity) {
   Scheduler scheduler;
@@ -3028,6 +3085,8 @@ int main() {
        test_spine_multiround_weighted_sssp_converges},
       {"spine_memory_request_window",
        test_spine_memory_request_window_hides_latency},
+      {"spine_axi_interface_profile",
+       test_spine_axi_interface_profile_matches_hls_rtl},
       {"spine_edge_pipeline",
        test_spine_edge_pipeline_is_ordered_bounded_and_latency_hiding},
       {"spine_edge_pipeline_backpressure",

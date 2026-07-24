@@ -1,0 +1,53 @@
+{
+  "date": "2026-07-24",
+  "evidence_tier": "structural_execution_driven",
+  "profile_id": "hls_split_9c08763",
+  "source_following_revision": "afb8199a2ca8d3fd208b985324bf4d8719e2b839",
+  "synthesis_reference_revision": "9c08763148644df262c0d374e782bc834f4c0f4f",
+  "interfaces": {
+    "graph": {"data_width_bytes": 8, "max_pending_requests": 7},
+    "sorted_edges": {"data_width_bytes": 16, "max_pending_requests": 7},
+    "active_bins": {"data_width_bytes": 32, "max_pending_requests": 7},
+    "metadata": {"data_width_bytes": 8, "max_pending_requests": 7},
+    "maintenance_result": {"data_width_bytes": 4, "max_pending_requests": 4},
+    "vertex_state": {"data_width_bytes": 4, "max_pending_requests": 7},
+    "active_out": {"data_width_bytes": 8, "max_pending_requests": 4},
+    "active_bitmap": {"data_width_bytes": 8, "max_pending_requests": 7},
+    "compute_result": {"data_width_bytes": 4, "max_pending_requests": 4}
+  },
+  "common": {
+    "max_burst_beats": 16,
+    "max_outstanding_bursts": 16,
+    "address_accepts_per_cycle": 1,
+    "beat_issues_per_cycle": 1,
+    "response_beats_per_cycle": 1
+  },
+  "sst_ab": {
+    "amazon_l0": {
+      "hls_cycles": 6517,
+      "legacy_uniform64_cycles": 5699,
+      "cycle_ratio": 1.1435339533251447,
+      "hls_backend_requests": 1368,
+      "legacy_uniform64_backend_requests": 584,
+      "request_ratio": 2.3424657534246576,
+      "correctness_mismatches": 0,
+      "frontier_mismatches": 0
+    },
+    "amazon_full_compute": {
+      "hls_cycles": 496386,
+      "legacy_uniform64_cycles": 355100,
+      "cycle_ratio": 1.3978766544635315,
+      "hls_backend_requests": 175315,
+      "legacy_uniform64_backend_requests": 35548,
+      "request_ratio": 4.931782378755486,
+      "correctness_mismatches": 0,
+      "frontier_mismatches": 0
+    }
+  },
+  "limitations": [
+    "The accepted synthesis bundle predates the newest source-following revision.",
+    "Kernel AXI interface widths are modeled, but platform interconnect width conversion is not yet explicit.",
+    "AxiMaster returns a completed parent response rather than exposing each returning beat to the producer.",
+    "The A/B result is structural evidence and is not a hardware-calibrated absolute-cycle claim."
+  ]
+}

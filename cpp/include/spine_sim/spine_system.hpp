@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <memory>
 #include <optional>
+#include <string>
 #include <vector>
 
 #include "spine_sim/fifo.hpp"
@@ -16,6 +17,40 @@
 #include "spine_sim/spine_split.hpp"
 
 namespace spine::sim {
+
+enum class SpineAxiPortKind {
+  kGraph,
+  kSortedEdges,
+  kActiveBins,
+  kMetadata,
+  kMaintenanceResult,
+  kVertexState,
+  kActiveOut,
+  kActiveBitmap,
+  kComputeResult,
+};
+
+struct SpineAxiInterfaceProfile {
+  std::string profile_id{"hls_split_9c08763"};
+  std::uint32_t max_burst_beats{16};
+  std::size_t readwrite_max_pending_requests{7};
+  std::size_t writeonly_max_pending_requests{4};
+  std::size_t max_outstanding_bursts{16};
+  std::size_t response_beats_per_cycle{1};
+  std::uint32_t graph_bytes{8};
+  std::uint32_t sorted_edge_bytes{16};
+  std::uint32_t active_bin_bytes{32};
+  std::uint32_t metadata_bytes{8};
+  std::uint32_t result_bytes{4};
+  std::uint32_t vertex_state_bytes{4};
+  std::uint32_t active_out_bytes{8};
+  std::uint32_t active_bitmap_bytes{8};
+
+  [[nodiscard]] static SpineAxiInterfaceProfile legacy_uniform64();
+  [[nodiscard]] FixedAxiPortConfig
+  port_config(SpineAxiPortKind kind, std::size_t memory_channels,
+              std::size_t channel, std::uint32_t initiator_id) const;
+};
 
 struct SpineSsspRoundEvidence {
   std::size_t round{};
@@ -57,7 +92,8 @@ class SpineVerticalSliceSystem {
                            std::uint32_t source,
                            std::size_t tiny_threshold = 4096,
                            SpineL0Config maintenance_config = {},
-                           SpineL0State initial_state = {});
+                           SpineL0State initial_state = {},
+                           SpineAxiInterfaceProfile axi_profile = {});
 
   void register_components();
   void restart_read_compute(
@@ -88,14 +124,20 @@ class SpineVerticalSliceSystem {
   [[nodiscard]] const SpineL0State &level_state() const noexcept;
   [[nodiscard]] const FifoStats &edge_stream_stats() const noexcept;
   [[nodiscard]] const FifoStats &value_stream_stats() const noexcept;
+  [[nodiscard]] const SpineAxiInterfaceProfile &axi_profile() const noexcept {
+    return axi_profile_;
+  }
+  [[nodiscard]] const AxiConfig &axi_config(SpineAxiPortKind kind) const;
 
  private:
   [[nodiscard]] std::unique_ptr<FixedAxiPort> make_port(
-      const std::string &name, std::uint32_t initiator_id, std::size_t channel);
+      const std::string &name, std::uint32_t initiator_id, std::size_t channel,
+      SpineAxiPortKind kind);
 
   Scheduler &scheduler_;
   ClockId clock_id_{};
   MemoryBackend &backend_;
+  SpineAxiInterfaceProfile axi_profile_;
   Fifo<PartConvWord> edge_stream_;
   Fifo<SourceValueWord> value_stream_;
   std::array<std::unique_ptr<FixedAxiPort>, 16> graph_ports_;

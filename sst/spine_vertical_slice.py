@@ -64,6 +64,9 @@ probe.addParams(
         "reader_edge_response_capacity": int(
             os.environ.get("SPINE_SST_READER_EDGE_RESPONSE_CAPACITY", "32")
         ),
+        "spine_axi_profile": os.environ.get(
+            "SPINE_SST_AXI_PROFILE", "hls_split_9c08763"
+        ),
     }
 )
 

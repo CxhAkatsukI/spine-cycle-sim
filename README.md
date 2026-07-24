@@ -155,3 +155,6 @@ documented in
 The HLS-scoped `II=1` construction/replay pipelines, bounded ordered response
 buffer, and AXIS backpressure evidence are documented in
 [`docs/spine_hls_edge_pipeline_20260724.md`](docs/spine_hls_edge_pipeline_20260724.md).
+The source-shaped per-interface AXI widths and explicit legacy compatibility
+profile are documented in
+[`docs/spine_axi_interface_profile_20260724.md`](docs/spine_axi_interface_profile_20260724.md).

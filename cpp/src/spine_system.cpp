@@ -69,36 +69,112 @@ SpineActiveBins build_host_active_bins(
 
 }  // namespace
 
+SpineAxiInterfaceProfile SpineAxiInterfaceProfile::legacy_uniform64() {
+  return SpineAxiInterfaceProfile{
+      .profile_id = "legacy_uniform64",
+      .max_burst_beats = 16,
+      .readwrite_max_pending_requests = 32,
+      .writeonly_max_pending_requests = 32,
+      .max_outstanding_bursts = 32,
+      .response_beats_per_cycle = 4,
+      .graph_bytes = 64,
+      .sorted_edge_bytes = 64,
+      .active_bin_bytes = 64,
+      .metadata_bytes = 64,
+      .result_bytes = 64,
+      .vertex_state_bytes = 64,
+      .active_out_bytes = 64,
+      .active_bitmap_bytes = 64,
+  };
+}
+
+FixedAxiPortConfig SpineAxiInterfaceProfile::port_config(
+    SpineAxiPortKind kind, std::size_t memory_channels, std::size_t channel,
+    std::uint32_t initiator_id) const {
+  std::uint32_t width = 0;
+  bool write_only = false;
+  switch (kind) {
+  case SpineAxiPortKind::kGraph:
+    width = graph_bytes;
+    break;
+  case SpineAxiPortKind::kSortedEdges:
+    width = sorted_edge_bytes;
+    break;
+  case SpineAxiPortKind::kActiveBins:
+    width = active_bin_bytes;
+    break;
+  case SpineAxiPortKind::kMetadata:
+    width = metadata_bytes;
+    break;
+  case SpineAxiPortKind::kMaintenanceResult:
+  case SpineAxiPortKind::kComputeResult:
+    width = result_bytes;
+    write_only = true;
+    break;
+  case SpineAxiPortKind::kVertexState:
+    width = vertex_state_bytes;
+    break;
+  case SpineAxiPortKind::kActiveOut:
+    width = active_out_bytes;
+    write_only = true;
+    break;
+  case SpineAxiPortKind::kActiveBitmap:
+    width = active_bitmap_bytes;
+    break;
+  }
+  if (profile_id.empty() || width == 0 || max_burst_beats == 0 ||
+      readwrite_max_pending_requests == 0 ||
+      writeonly_max_pending_requests == 0 || max_outstanding_bursts == 0 ||
+      response_beats_per_cycle == 0) {
+    throw std::invalid_argument("invalid Spine AXI interface profile");
+  }
+  return FixedAxiPortConfig{
+      .memory_channels = memory_channels,
+      .channel = channel,
+      .initiator_id = initiator_id,
+      .data_width_bytes = width,
+      .max_burst_beats = max_burst_beats,
+      .max_pending_requests = write_only ? writeonly_max_pending_requests
+                                         : readwrite_max_pending_requests,
+      .max_outstanding_bursts = max_outstanding_bursts,
+      .response_beats_per_cycle = response_beats_per_cycle,
+  };
+}
+
 SpineVerticalSliceSystem::SpineVerticalSliceSystem(
     Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
     SpineEdgeSlice workload, std::uint32_t source, std::size_t tiny_threshold,
-    SpineL0Config maintenance_config, SpineL0State initial_state)
-    : scheduler_(scheduler),
-      clock_id_(clock_id),
-      backend_(backend),
+    SpineL0Config maintenance_config, SpineL0State initial_state,
+    SpineAxiInterfaceProfile axi_profile)
+    : scheduler_(scheduler), clock_id_(clock_id), backend_(backend),
+      axi_profile_(std::move(axi_profile)),
       edge_stream_("edge-axis", clock_id, 32),
       value_stream_("value-axis", clock_id, 32),
-      state_(std::move(initial_state)),
-      current_frontier_{source} {
+      state_(std::move(initial_state)), current_frontier_{source} {
   if (source >= workload.vertices) {
     throw std::invalid_argument("Spine vertical-slice source is out of range");
   }
   for (std::size_t family = 0; family < graph_ports_.size(); ++family) {
-    graph_ports_[family] =
-        make_port("graph" + std::to_string(family),
-                  static_cast<std::uint32_t>(family), family);
+    graph_ports_[family] = make_port("graph" + std::to_string(family),
+                                     static_cast<std::uint32_t>(family), family,
+                                     SpineAxiPortKind::kGraph);
   }
-  sorted_ = make_port("sorted-edges", 16, 16);
-  active_bins_ = make_port("active-bins", 18, 18);
-  metadata_ = make_port("metadata", 20, 20);
-  maintenance_result_ = make_port("maintenance-result", 21, 21);
+  sorted_ = make_port("sorted-edges", 16, 16, SpineAxiPortKind::kSortedEdges);
+  active_bins_ =
+      make_port("active-bins", 18, 18, SpineAxiPortKind::kActiveBins);
+  metadata_ = make_port("metadata", 20, 20, SpineAxiPortKind::kMetadata);
+  maintenance_result_ = make_port("maintenance-result", 21, 21,
+                                  SpineAxiPortKind::kMaintenanceResult);
 
   // Compute is a separate CU, so initiator IDs differ even when a pseudo-
   // channel is shared with the fused read-maintenance CU.
-  vertex_state_ = make_port("vertex-state", 117, 17);
-  active_out_ = make_port("active-out", 119, 19);
-  compute_result_ = make_port("compute-result", 121, 21);
-  active_bitmap_ = make_port("active-bitmap", 122, 22);
+  vertex_state_ =
+      make_port("vertex-state", 117, 17, SpineAxiPortKind::kVertexState);
+  active_out_ = make_port("active-out", 119, 19, SpineAxiPortKind::kActiveOut);
+  compute_result_ =
+      make_port("compute-result", 121, 21, SpineAxiPortKind::kComputeResult);
+  active_bitmap_ =
+      make_port("active-bitmap", 122, 22, SpineAxiPortKind::kActiveBitmap);
 
   SpineL0Ports maintenance_ports;
   SpineReaderPorts reader_ports;
@@ -140,14 +216,11 @@ SpineVerticalSliceSystem::SpineVerticalSliceSystem(
 }
 
 std::unique_ptr<FixedAxiPort> SpineVerticalSliceSystem::make_port(
-    const std::string &name, std::uint32_t initiator_id, std::size_t channel) {
-  return std::make_unique<FixedAxiPort>(name, clock_id_,
-                                        FixedAxiPortConfig{
-                                            .memory_channels = 32,
-                                            .channel = channel,
-                                            .initiator_id = initiator_id,
-                                        },
-                                        backend_);
+    const std::string &name, std::uint32_t initiator_id, std::size_t channel,
+    SpineAxiPortKind kind) {
+  return std::make_unique<FixedAxiPort>(
+      name, clock_id_,
+      axi_profile_.port_config(kind, 32, channel, initiator_id), backend_);
 }
 
 void SpineVerticalSliceSystem::register_components() {
@@ -446,6 +519,31 @@ const FifoStats &SpineVerticalSliceSystem::edge_stream_stats() const noexcept {
 
 const FifoStats &SpineVerticalSliceSystem::value_stream_stats() const noexcept {
   return value_stream_.stats();
+}
+
+const AxiConfig &
+SpineVerticalSliceSystem::axi_config(SpineAxiPortKind kind) const {
+  switch (kind) {
+  case SpineAxiPortKind::kGraph:
+    return graph_ports_[0]->master().config();
+  case SpineAxiPortKind::kSortedEdges:
+    return sorted_->master().config();
+  case SpineAxiPortKind::kActiveBins:
+    return active_bins_->master().config();
+  case SpineAxiPortKind::kMetadata:
+    return metadata_->master().config();
+  case SpineAxiPortKind::kMaintenanceResult:
+    return maintenance_result_->master().config();
+  case SpineAxiPortKind::kVertexState:
+    return vertex_state_->master().config();
+  case SpineAxiPortKind::kActiveOut:
+    return active_out_->master().config();
+  case SpineAxiPortKind::kActiveBitmap:
+    return active_bitmap_->master().config();
+  case SpineAxiPortKind::kComputeResult:
+    return compute_result_->master().config();
+  }
+  throw std::logic_error("unknown Spine AXI port kind");
 }
 
 }  // namespace spine::sim

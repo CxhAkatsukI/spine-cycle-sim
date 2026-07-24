@@ -630,6 +630,11 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--reader-edge-pipeline-depth", type=int, default=32)
     parser.add_argument("--reader-edge-response-capacity", type=int, default=32)
+    parser.add_argument(
+        "--axi-profile",
+        choices=("hls_split_9c08763", "legacy_uniform64"),
+        default="hls_split_9c08763",
+    )
     parser.add_argument("--no-build", action="store_true")
     return parser.parse_args()
 
@@ -718,6 +723,7 @@ def main() -> int:
             "SPINE_SST_READER_EDGE_RESPONSE_CAPACITY": str(
                 args.reader_edge_response_capacity
             ),
+            "SPINE_SST_AXI_PROFILE": args.axi_profile,
         }
     )
     command = [
@@ -761,6 +767,8 @@ def main() -> int:
     }
     validator = validators[args.scenario]
     problems = validator(result, dram, channels=args.channels)
+    if result.get("spine_axi_profile") != args.axi_profile:
+        problems.append("axi_profile")
     if problems:
         raise RuntimeError(f"SST Spine checks failed: {', '.join(problems)}")
     profile_bytes = PROFILE_PATH.read_bytes()

@@ -39,6 +39,16 @@ struct SsspReference {
   bool converged{};
 };
 
+SpineAxiInterfaceProfile spine_axi_profile_from_id(const std::string &id) {
+  if (id == "hls_split_9c08763") {
+    return {};
+  }
+  if (id == "legacy_uniform64") {
+    return SpineAxiInterfaceProfile::legacy_uniform64();
+  }
+  throw std::invalid_argument("unknown Spine AXI interface profile: " + id);
+}
+
 SsspReference run_sssp_reference(const SpineEdgeSlice &workload,
                                  std::uint32_t source, std::size_t max_rounds) {
   using EdgeKey = std::pair<std::uint32_t, std::uint32_t>;
@@ -575,6 +585,8 @@ class OnlineMemoryProbe final : public SST::Component {
         params.find<std::size_t>("reader_edge_pipeline_depth", 32);
     reader_edge_response_capacity_ =
         params.find<std::size_t>("reader_edge_response_capacity", 32);
+    spine_axi_profile_id_ =
+        params.find<std::string>("spine_axi_profile", "hls_split_9c08763");
     if ((mode_ != "probe" && mode_ != "payload_roundtrip" &&
          mode_ != "spine_vertical" && mode_ != "spine_compute" &&
          mode_ != "spine_sssp") ||
@@ -583,7 +595,10 @@ class OnlineMemoryProbe final : public SST::Component {
         range_task_capacity_ == 0 || range_task_capacity_ > 65'536 ||
         range_task_payload_budget_ == 0 || fallback_replay_threshold_ == 0 ||
         memory_request_window_ == 0 || reader_edge_pipeline_depth_ == 0 ||
-        reader_edge_response_capacity_ == 0 || write_percent_ > 100 ||
+        reader_edge_response_capacity_ == 0 ||
+        (spine_axi_profile_id_ != "hls_split_9c08763" &&
+         spine_axi_profile_id_ != "legacy_uniform64") ||
+        write_percent_ > 100 ||
         (mode_ == "probe" &&
          (request_count_ == 0 || request_bytes_ == 0 || stride_bytes_ == 0)) ||
         ((mode_ == "spine_vertical" || mode_ == "spine_compute" ||
@@ -591,6 +606,7 @@ class OnlineMemoryProbe final : public SST::Component {
          (channels_ < 23 || workload_path_.empty()))) {
       output_.fatal(CALL_INFO, -1, "invalid online memory probe parameters\n");
     }
+    spine_axi_profile_ = spine_axi_profile_from_id(spine_axi_profile_id_);
 
     clock_converter_ = registerClock(
         core_clock_,
@@ -675,19 +691,21 @@ class OnlineMemoryProbe final : public SST::Component {
       spine_value_stream_ =
           std::make_unique<Fifo<SourceValueWord>>("spine-value-axis", core, 32);
       const auto make_port = [&](const std::string &name,
-                                 std::uint32_t initiator, std::size_t channel) {
-        return std::make_unique<FixedAxiPort>(name, core,
-                                              FixedAxiPortConfig{
-                                                  .memory_channels = channels_,
-                                                  .channel = channel,
-                                                  .initiator_id = initiator,
-                                              },
-                                              *backend_);
+                                 std::uint32_t initiator, std::size_t channel,
+                                 SpineAxiPortKind kind) {
+        return std::make_unique<FixedAxiPort>(
+            name, core,
+            spine_axi_profile_.port_config(kind, channels_, channel, initiator),
+            *backend_);
       };
-      spine_vertex_state_ = make_port("spine-vertex-state", 117, 17);
-      spine_active_out_ = make_port("spine-active-out", 119, 19);
-      spine_compute_result_ = make_port("spine-compute-result", 121, 21);
-      spine_active_bitmap_ = make_port("spine-active-bitmap", 122, 22);
+      spine_vertex_state_ = make_port("spine-vertex-state", 117, 17,
+                                      SpineAxiPortKind::kVertexState);
+      spine_active_out_ =
+          make_port("spine-active-out", 119, 19, SpineAxiPortKind::kActiveOut);
+      spine_compute_result_ = make_port("spine-compute-result", 121, 21,
+                                        SpineAxiPortKind::kComputeResult);
+      spine_active_bitmap_ = make_port("spine-active-bitmap", 122, 22,
+                                       SpineAxiPortKind::kActiveBitmap);
       spine_word_source_ = std::make_unique<SpineWordSource>(
           core, *spine_edge_stream_, std::move(words));
       spine_compute_ = std::make_unique<SpineSplitSsspCompute>(
@@ -784,7 +802,8 @@ class OnlineMemoryProbe final : public SST::Component {
       }
       spine_system_ = std::make_unique<SpineVerticalSliceSystem>(
           scheduler_, core, *backend_, std::move(workload), source_vertex_,
-          4096, std::move(maintenance_config), std::move(initial_state));
+          4096, std::move(maintenance_config), std::move(initial_state),
+          spine_axi_profile_);
       spine_system_->register_components();
       scheduler_.add_component(*backend_);
       return;
@@ -993,7 +1012,10 @@ class OnlineMemoryProbe final : public SST::Component {
       {"memory_request_window",
        "Coarse producer request window (greater than one is a what-if)", "1"},
       {"reader_edge_pipeline_depth", "II=1 edge-loop in-flight credits", "32"},
-      {"reader_edge_response_capacity", "Ordered edge response capacity", "32"})
+      {"reader_edge_response_capacity", "Ordered edge response capacity", "32"},
+      {"spine_axi_profile",
+       "Spine AXI profile: hls_split_9c08763 or legacy_uniform64",
+       "hls_split_9c08763"})
 
   SST_ELI_DOCUMENT_SUBCOMPONENT_SLOTS(
       {"memory", "One StandardMem interface per HBM channel",
@@ -1067,6 +1089,14 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"success\": " << (passed ? "true" : "false") << ",\n"
              << "  \"mode\": \"spine_compute\",\n"
              << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
+             << "  \"spine_axi_profile\": \"" << spine_axi_profile_id_
+             << "\",\n"
+             << "  \"axi_vertex_state_data_width_bytes\": "
+             << spine_axi_profile_.vertex_state_bytes << ",\n"
+             << "  \"axi_active_out_data_width_bytes\": "
+             << spine_axi_profile_.active_out_bytes << ",\n"
+             << "  \"axi_active_bitmap_data_width_bytes\": "
+             << spine_axi_profile_.active_bitmap_bytes << ",\n"
              << "  \"cycles\": " << scheduler_.clock(0).completed_cycles
              << ",\n"
              << "  \"input_edges\": " << spine_expected_edges_ << ",\n"
@@ -1398,6 +1428,19 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"success\": " << (passed ? "true" : "false") << ",\n"
           << "  \"mode\": \"spine_sssp\",\n"
           << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
+          << "  \"spine_axi_profile\": \"" << spine_axi_profile_id_ << "\",\n"
+          << "  \"axi_graph_data_width_bytes\": "
+          << spine_axi_profile_.graph_bytes << ",\n"
+          << "  \"axi_sorted_data_width_bytes\": "
+          << spine_axi_profile_.sorted_edge_bytes << ",\n"
+          << "  \"axi_active_bin_data_width_bytes\": "
+          << spine_axi_profile_.active_bin_bytes << ",\n"
+          << "  \"axi_metadata_data_width_bytes\": "
+          << spine_axi_profile_.metadata_bytes << ",\n"
+          << "  \"axi_max_burst_beats\": " << spine_axi_profile_.max_burst_beats
+          << ",\n"
+          << "  \"axi_max_outstanding_bursts\": "
+          << spine_axi_profile_.max_outstanding_bursts << ",\n"
           << "  \"cycles\": " << scheduler_.clock(0).completed_cycles << ",\n"
           << "  \"input_edges\": " << spine_expected_edges_ << ",\n"
           << "  \"rounds\": " << sst_rounds_.size() << ",\n"
@@ -1712,6 +1755,19 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"success\": " << (passed ? "true" : "false") << ",\n"
           << "  \"mode\": \"spine_vertical\",\n"
           << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
+          << "  \"spine_axi_profile\": \"" << spine_axi_profile_id_ << "\",\n"
+          << "  \"axi_graph_data_width_bytes\": "
+          << spine_axi_profile_.graph_bytes << ",\n"
+          << "  \"axi_sorted_data_width_bytes\": "
+          << spine_axi_profile_.sorted_edge_bytes << ",\n"
+          << "  \"axi_active_bin_data_width_bytes\": "
+          << spine_axi_profile_.active_bin_bytes << ",\n"
+          << "  \"axi_metadata_data_width_bytes\": "
+          << spine_axi_profile_.metadata_bytes << ",\n"
+          << "  \"axi_max_burst_beats\": " << spine_axi_profile_.max_burst_beats
+          << ",\n"
+          << "  \"axi_max_outstanding_bursts\": "
+          << spine_axi_profile_.max_outstanding_bursts << ",\n"
           << "  \"cycles\": " << scheduler_.clock(0).completed_cycles << ",\n"
           << "  \"sim_time_fs\": "
           << scheduler_.clock(0).next_edge_fs - scheduler_.clock(0).phase_fs
@@ -2006,6 +2062,8 @@ class OnlineMemoryProbe final : public SST::Component {
   std::size_t memory_request_window_{};
   std::size_t reader_edge_pipeline_depth_{};
   std::size_t reader_edge_response_capacity_{};
+  std::string spine_axi_profile_id_;
+  SpineAxiInterfaceProfile spine_axi_profile_;
   SST::TimeConverter clock_converter_{};
   std::vector<SST::Interfaces::StandardMem *> interfaces_;
 

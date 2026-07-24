@@ -17,38 +17,43 @@ struct FixedAxiPortConfig {
   std::size_t memory_channels{};
   std::size_t channel{};
   std::uint32_t initiator_id{};
+  std::uint32_t data_width_bytes{64};
+  std::uint32_t max_burst_beats{16};
   std::size_t request_fifo_depth{32};
   std::size_t response_fifo_depth{32};
   std::size_t max_pending_requests{32};
   std::size_t max_outstanding_bursts{32};
+  std::size_t address_accepts_per_cycle{1};
+  std::size_t beat_issues_per_cycle{1};
+  std::size_t response_beats_per_cycle{4};
 };
 
 class FixedAxiPort {
  public:
   FixedAxiPort(std::string name, ClockId clock_id,
-               const FixedAxiPortConfig& config, MemoryBackend& backend)
+               const FixedAxiPortConfig &config, MemoryBackend &backend)
       : requests_(name + "-requests", clock_id, config.request_fifo_depth),
         responses_(name + "-responses", clock_id, config.response_fifo_depth),
         master_(
             std::move(name), clock_id,
             AxiConfig{
                 .initiator_id = config.initiator_id,
-                .data_width_bytes = 64,
-                .max_burst_beats = 16,
+                .data_width_bytes = config.data_width_bytes,
+                .max_burst_beats = config.max_burst_beats,
                 .channels = config.memory_channels,
                 .channel_interleave_bytes = 64,
                 .max_pending_requests = config.max_pending_requests,
                 .max_outstanding_bursts = config.max_outstanding_bursts,
-                .address_accepts_per_cycle = 1,
-                .beat_issues_per_cycle = 1,
-                .response_beats_per_cycle = 4,
+                .address_accepts_per_cycle = config.address_accepts_per_cycle,
+                .beat_issues_per_cycle = config.beat_issues_per_cycle,
+                .response_beats_per_cycle = config.response_beats_per_cycle,
                 .fixed_channel = config.channel,
             },
             requests_, responses_, backend),
         backend_(backend),
         channel_(config.channel) {}
 
-  void register_components(Scheduler& scheduler) {
+  void register_components(Scheduler &scheduler) {
     scheduler.add_component(requests_);
     scheduler.add_component(master_);
     scheduler.add_component(responses_);

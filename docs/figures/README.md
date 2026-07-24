@@ -20,6 +20,10 @@
   ordered response retirement, and replay backpressure. The separate coarse
   global-window implementation remains a labeled what-if. Its editable source
   is the adjacent `.dot` file.
+- `spine_axi_interface_profile.svg`: source-shaped per-interface AXI beat
+  widths and outstanding limits. It also marks platform width conversion as a
+  remaining explicit component. Its editable source is the adjacent `.dot`
+  file.
 
 Regenerate a Graphviz SVG from the repository root with:
 

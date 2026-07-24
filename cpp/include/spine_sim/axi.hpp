@@ -66,6 +66,7 @@ class AxiMaster final : public Component {
             MemoryBackend& backend);
 
   [[nodiscard]] const AxiStats& stats() const noexcept { return stats_; }
+  [[nodiscard]] const AxiConfig &config() const noexcept { return config_; }
   [[nodiscard]] std::size_t pending_requests() const noexcept;
   [[nodiscard]] std::size_t outstanding_bursts() const noexcept {
     return active_bursts_.size();

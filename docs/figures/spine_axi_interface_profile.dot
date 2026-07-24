@@ -1,0 +1,39 @@
+digraph spine_axi_interface_profile {
+  graph [rankdir=LR, bgcolor="white", pad="0.2", nodesep="0.35", ranksep="0.6"];
+  node [shape=box, style="rounded,filled", fillcolor="#f7f7f5", color="#555555", fontname="Arial", fontsize=10];
+  edge [color="#666666", fontname="Arial", fontsize=9];
+
+  maint [label="Read/Maintenance CU\ncount scan II=1\nL0 write achieved II=24", fillcolor="#dcefe5"];
+  reader [label="Reader CU\nconstruction/replay II=1\nfinite AXIS backpressure", fillcolor="#dcefe5"];
+  compute [label="Compute CU\ntile load/relax/store", fillcolor="#dcefe5"];
+
+  graph_ports [label="graph0..15\n8-byte beat\n16 x 16-beat outstanding", fillcolor="#e7eef8"];
+  sorter [label="sorted / dirty\n16-byte beat\n16 x 16-beat outstanding", fillcolor="#e7eef8"];
+  bins [label="active bins\n32-byte beat", fillcolor="#e7eef8"];
+  meta [label="metadata\n8-byte beat", fillcolor="#e7eef8"];
+  vs [label="vertex state\n4-byte beat", fillcolor="#f8e8d8"];
+  active [label="active out / bitmap\n8-byte beat", fillcolor="#f8e8d8"];
+  result [label="result ports\n4-byte beat", fillcolor="#f8e8d8"];
+  bridge [label="Platform width conversion\nNOT YET EXPLICIT", style="dashed,filled", fillcolor="#fff3cd", color="#9a7800"];
+  hbm [label="Shared SST / DRAMSim3 HBM\n32 pseudo-channels", fillcolor="#eeeeee"];
+
+  maint -> graph_ports;
+  maint -> sorter;
+  maint -> meta;
+  reader -> graph_ports;
+  reader -> bins;
+  reader -> meta;
+  compute -> vs;
+  compute -> active;
+  maint -> result;
+  compute -> result;
+
+  graph_ports -> bridge;
+  sorter -> bridge;
+  bins -> bridge;
+  meta -> bridge;
+  vs -> bridge;
+  active -> bridge;
+  result -> bridge;
+  bridge -> hbm;
+}
