@@ -1,0 +1,5 @@
+# spine_real_slice_version=1
+# case=dynamic_shortcut_update
+# vertices=4
+# columns=src dst weight diff
+0 2 2 1

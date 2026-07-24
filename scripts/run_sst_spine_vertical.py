@@ -21,6 +21,12 @@ DEFAULT_FULL_WORKLOAD = (
     ROOT / "tests" / "data" / "amazon_densewin8192_active7893_exact.slice"
 )
 DEFAULT_SSSP_WORKLOAD = ROOT / "tests" / "data" / "weighted_chain_shortcut.slice"
+DEFAULT_DYNAMIC_SSSP_WORKLOAD = (
+    ROOT / "tests" / "data" / "dynamic_shortcut_initial.slice"
+)
+DEFAULT_DYNAMIC_SSSP_UPDATE = (
+    ROOT / "tests" / "data" / "dynamic_shortcut_update.slice"
+)
 DEFAULT_PAGERANK_WORKLOAD = (
     ROOT / "tests" / "data" / "pagerank_four_vertex.slice"
 )
@@ -708,6 +714,65 @@ def validate_multiround_sssp_result(
     return [name for name, passed in checks.items() if not passed]
 
 
+def validate_dynamic_sssp_result(
+    result: dict[str, Any], dram: dict[str, int | float], *, channels: int
+) -> list[str]:
+    checks = {
+        "success": result.get("success") is True,
+        "mode": result.get("mode") == "spine_sssp",
+        "dynamic_mode": result.get("dynamic_update") is True,
+        "cold_correctness": result.get("cold_correctness_mismatches") == 0
+        and result.get("cold_frontier_mismatches") == 0
+        and result.get("cold_final_values") == [0, 5, 10, 11],
+        "update_correctness": result.get("correctness_mismatches") == 0
+        and result.get("full_recompute_correctness_mismatches") == 0
+        and result.get("frontier_mismatches") == 0
+        and result.get("final_values") == [0, 5, 2, 3],
+        "input_shape": result.get("input_edges") == 4
+        and result.get("update_edges") == 1,
+        "cold_lifecycle": result.get("cold_rounds") == 4
+        and result.get("cold_maintenance_target_level") == 0
+        and result.get("cold_dirty_generation_after_ack") == 2
+        and result.get("cold_cycles", 0) > 0
+        and result.get("cold_maintenance_cycles", 0) > 0
+        and len(result.get("cold_round_cycles", [])) == 4
+        and all(cycle > 0 for cycle in result.get("cold_round_cycles", [])),
+        "update_lifecycle": result.get("rounds") == 3
+        and result.get("maintenance_target_level") == 1
+        and result.get("maintenance_persisted_edges") == 4
+        and result.get("maintenance_dirty_generation") == 3
+        and result.get("dirty_ack_captured_generation") == 3
+        and result.get("dirty_ack_result_generation") == 4
+        and result.get("update_cycles", 0) > 0,
+        "update_frontier": result.get("frontier_in_sizes") == [1, 1, 1]
+        and result.get("frontier_out_sizes") == [1, 1, 0]
+        and result.get("processed_edges_per_round") == [2, 1, 0]
+        and result.get("reader_dirty_counts_per_round") == [1, 0, 0]
+        and result.get("reader_dirty_generations_per_round") == [3, 4, 4],
+        "update_maintenance": result.get("maintenance_scan_passes") == 19
+        and result.get("maintenance_edge_visits") == 19
+        and result.get("maintenance_carry_new_batch_reads") == 1
+        and result.get("maintenance_carry_new_batch_read_bytes") == 16
+        and result.get("maintenance_sorted_bytes")
+        == result.get("maintenance_edge_visits", 0) * 16
+        + result.get("maintenance_carry_new_batch_read_bytes", 0)
+        and result.get("maintenance_sorted_payload_read_bytes")
+        == result.get("maintenance_sorted_bytes")
+        and result.get("maintenance_dirty_count") == 1
+        and result.get("maintenance_dirty_unique_sources") == 1,
+        "backend_segments": result.get("cold_backend_requests", 0) > 0
+        and result.get("update_backend_requests", 0) > 0
+        and result.get("cold_backend_requests", 0)
+        + result.get("update_backend_requests", 0)
+        == result.get("backend_requests"),
+        "dram_matches_backend": int(dram.get("dram_reads", 0))
+        + int(dram.get("dram_writes", 0))
+        == result.get("backend_requests"),
+        "channel_count": dram.get("dram_channels") == channels,
+    }
+    return [name for name, passed in checks.items() if not passed]
+
+
 def validate_protocol_window_result(
     result: dict[str, Any], dram: dict[str, int | float], *, channels: int
 ) -> list[str]:
@@ -829,6 +894,7 @@ def parse_args() -> argparse.Namespace:
             "full_pagerank",
             "residual_pagerank",
             "weighted_sssp",
+            "dynamic_sssp",
             "protocol_window",
             "fallback_capacity",
             "fallback_payload",
@@ -836,6 +902,7 @@ def parse_args() -> argparse.Namespace:
         default="amazon_l0",
     )
     parser.add_argument("--preload", type=Path)
+    parser.add_argument("--update-workload", type=Path)
     parser.add_argument("--hot-vertices", default="")
     parser.add_argument("--source", type=int)
     parser.add_argument("--pagerank-iterations", type=int, default=2)
@@ -933,6 +1000,11 @@ def main() -> int:
         args.workload = DEFAULT_FULL_WORKLOAD
     elif args.scenario == "weighted_sssp" and args.workload == DEFAULT_WORKLOAD:
         args.workload = DEFAULT_SSSP_WORKLOAD
+    elif args.scenario == "dynamic_sssp":
+        if args.workload == DEFAULT_WORKLOAD:
+            args.workload = DEFAULT_DYNAMIC_SSSP_WORKLOAD
+        if args.update_workload is None:
+            args.update_workload = DEFAULT_DYNAMIC_SSSP_UPDATE
     elif args.scenario in {"full_pagerank", "residual_pagerank"} and (
         args.workload == DEFAULT_WORKLOAD
     ):
@@ -987,6 +1059,8 @@ def main() -> int:
         raise SystemExit("maintenance scan IIs must be positive and tails non-negative")
     if args.preload is not None and not args.preload.is_file():
         raise SystemExit(f"preload workload is missing: {args.preload}")
+    if args.update_workload is not None and not args.update_workload.is_file():
+        raise SystemExit(f"update workload is missing: {args.update_workload}")
     if not args.no_build:
         subprocess.run(["make", "-C", "cpp/sst"], cwd=ROOT, check=True)
     library = args.lib_dir / "libspine_cycle.so"
@@ -1003,10 +1077,14 @@ def main() -> int:
                 "full_pagerank": "spine_pagerank",
                 "residual_pagerank": "spine_residual_pagerank",
                 "weighted_sssp": "spine_sssp",
+                "dynamic_sssp": "spine_sssp",
                 "fallback_capacity": "spine_sssp",
                 "fallback_payload": "spine_sssp",
             }.get(args.scenario, "spine_vertical"),
             "SPINE_SST_WORKLOAD": str(args.workload.resolve()),
+            "SPINE_SST_UPDATE_WORKLOAD": ""
+            if args.update_workload is None
+            else str(args.update_workload.resolve()),
             "SPINE_SST_SOURCE": str(args.source),
             "SPINE_SST_PRELOAD": ""
             if args.preload is None
@@ -1134,6 +1212,7 @@ def main() -> int:
         "full_pagerank": validate_full_pagerank_result,
         "residual_pagerank": validate_residual_pagerank_result,
         "weighted_sssp": validate_multiround_sssp_result,
+        "dynamic_sssp": validate_dynamic_sssp_result,
         "protocol_window": validate_protocol_window_result,
         "fallback_capacity": lambda result, dram, *, channels: (
             validate_fallback_result(

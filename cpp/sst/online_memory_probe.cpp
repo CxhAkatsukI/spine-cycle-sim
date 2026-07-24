@@ -41,6 +41,11 @@ struct SsspReference {
   bool converged{};
 };
 
+struct SsspComparison {
+  std::uint64_t value_mismatches{};
+  std::uint64_t frontier_mismatches{};
+};
+
 struct ResidualPageRankReference {
   std::vector<float> ranks;
   std::vector<float> residuals;
@@ -167,8 +172,10 @@ SpineAxiInterfaceProfile spine_axi_profile_from_id(const std::string &id) {
   throw std::invalid_argument("unknown Spine AXI interface profile: " + id);
 }
 
-SsspReference run_sssp_reference(const SpineEdgeSlice &workload,
-                                 std::uint32_t source, std::size_t max_rounds) {
+using SsspAdjacency =
+    std::vector<std::vector<std::pair<std::uint32_t, std::uint16_t>>>;
+
+SsspAdjacency build_sssp_adjacency(const SpineEdgeSlice &workload) {
   using EdgeKey = std::pair<std::uint32_t, std::uint32_t>;
   std::map<EdgeKey, std::pair<std::uint16_t, std::int64_t>> coalesced;
   for (const SpineEdgeRecord &edge : workload.edges) {
@@ -182,18 +189,29 @@ SsspReference run_sssp_reference(const SpineEdgeSlice &workload,
       found->second.second += edge.diff;
     }
   }
-  std::vector<std::vector<std::pair<std::uint32_t, std::uint16_t>>> adjacency(
-      workload.vertices);
+  SsspAdjacency adjacency(workload.vertices);
   for (const auto &[key, value] : coalesced) {
     if (value.second > 0) {
       adjacency[key.first].push_back({key.second, value.first});
     }
   }
+  return adjacency;
+}
 
+SsspReference run_sssp_reference_from_state(
+    const SpineEdgeSlice &workload, std::vector<std::uint32_t> initial_values,
+    std::vector<std::uint32_t> initial_frontier, std::size_t max_rounds) {
+  if (initial_values.size() != workload.vertices || initial_frontier.empty() ||
+      std::any_of(initial_frontier.begin(), initial_frontier.end(),
+                  [&](std::uint32_t vertex) {
+                    return vertex >= workload.vertices;
+                  })) {
+    throw std::invalid_argument("invalid incremental SSSP reference state");
+  }
+  const SsspAdjacency adjacency = build_sssp_adjacency(workload);
   SsspReference reference;
-  reference.values.assign(workload.vertices, SpineSplitSsspCompute::kInfinity);
-  reference.values[source] = 0;
-  std::vector<std::uint32_t> frontier{source};
+  reference.values = std::move(initial_values);
+  std::vector<std::uint32_t> frontier = std::move(initial_frontier);
   for (std::size_t round = 0; round < max_rounds; ++round) {
     reference.frontiers.push_back(frontier);
     std::map<std::uint32_t, std::uint32_t> reduced;
@@ -227,6 +245,53 @@ SsspReference run_sssp_reference(const SpineEdgeSlice &workload,
     frontier = std::move(next);
   }
   return reference;
+}
+
+SsspReference run_sssp_reference(const SpineEdgeSlice &workload,
+                                 std::uint32_t source, std::size_t max_rounds) {
+  if (source >= workload.vertices) {
+    throw std::invalid_argument("SSSP source is outside the workload");
+  }
+  std::vector<std::uint32_t> values(workload.vertices,
+                                    SpineSplitSsspCompute::kInfinity);
+  values[source] = 0;
+  return run_sssp_reference_from_state(workload, std::move(values), {source},
+                                       max_rounds);
+}
+
+SsspComparison compare_sssp_result(
+    const std::vector<std::uint32_t> &values,
+    const std::vector<SpineSsspRoundEvidence> &rounds,
+    const SsspReference &reference) {
+  SsspComparison comparison;
+  if (values.size() != reference.values.size()) {
+    comparison.value_mismatches = 1;
+  }
+  const std::size_t compared_values =
+      std::min(values.size(), reference.values.size());
+  for (std::size_t vertex = 0; vertex < compared_values; ++vertex) {
+    comparison.value_mismatches +=
+        values[vertex] == reference.values[vertex] ? 0 : 1;
+  }
+  comparison.frontier_mismatches =
+      rounds.size() == reference.frontiers.size() ? 0 : 1;
+  const std::size_t compared_rounds =
+      std::min(rounds.size(), reference.frontiers.size());
+  for (std::size_t round = 0; round < compared_rounds; ++round) {
+    auto actual_in = rounds[round].active_in;
+    auto actual_out = rounds[round].active_out;
+    std::sort(actual_in.begin(), actual_in.end());
+    std::sort(actual_out.begin(), actual_out.end());
+    const std::vector<std::uint32_t> expected_out =
+        round + 1 < reference.frontiers.size()
+            ? reference.frontiers[round + 1]
+            : std::vector<std::uint32_t>{};
+    if (actual_in != reference.frontiers[round] ||
+        actual_out != expected_out) {
+      ++comparison.frontier_mismatches;
+    }
+  }
+  return comparison;
 }
 
 template <typename T>
@@ -673,6 +738,8 @@ class OnlineMemoryProbe final : public SST::Component {
     result_path_ = params.find<std::string>("output", "sst_memory_probe.json");
     mode_ = params.find<std::string>("mode", "probe");
     workload_path_ = params.find<std::string>("workload", "");
+    update_workload_path_ =
+        params.find<std::string>("update_workload", "");
     preload_path_ = params.find<std::string>("preload_workload", "");
     hot_vertices_text_ = params.find<std::string>("hot_vertices", "");
     source_vertex_ = params.find<std::uint32_t>("source_vertex", 0);
@@ -1003,6 +1070,48 @@ class OnlineMemoryProbe final : public SST::Component {
           output_.fatal(CALL_INFO, -1,
                         "SSSP reference did not converge or preload is set\n");
         }
+        if (!update_workload_path_.empty()) {
+          dynamic_update_workload_ =
+              load_spine_edge_slice(update_workload_path_);
+          if (dynamic_update_workload_.vertices != workload.vertices ||
+              dynamic_update_workload_.edges.empty() ||
+              std::any_of(dynamic_update_workload_.edges.begin(),
+                          dynamic_update_workload_.edges.end(),
+                          [](const SpineEdgeRecord &edge) {
+                            return edge.diff <= 0;
+                          })) {
+            output_.fatal(
+                CALL_INFO, -1,
+                "dynamic SSSP update must be a non-empty positive batch with "
+                "the same vertex count\n");
+          }
+          dynamic_sssp_enabled_ = true;
+          cold_sssp_reference_ = sssp_reference_;
+          for (const SpineEdgeRecord &edge : dynamic_update_workload_.edges) {
+            dynamic_update_sources_.push_back(edge.src);
+          }
+          std::sort(dynamic_update_sources_.begin(),
+                    dynamic_update_sources_.end());
+          dynamic_update_sources_.erase(
+              std::unique(dynamic_update_sources_.begin(),
+                          dynamic_update_sources_.end()),
+              dynamic_update_sources_.end());
+          SpineEdgeSlice combined = workload;
+          combined.edges.insert(combined.edges.end(),
+                                dynamic_update_workload_.edges.begin(),
+                                dynamic_update_workload_.edges.end());
+          sssp_reference_ =
+              run_sssp_reference(combined, source_vertex_, max_rounds_);
+          dynamic_sssp_reference_ = run_sssp_reference_from_state(
+              combined, cold_sssp_reference_.values, dynamic_update_sources_,
+              max_rounds_);
+          if (!sssp_reference_.converged ||
+              !dynamic_sssp_reference_.converged ||
+              dynamic_sssp_reference_.values != sssp_reference_.values) {
+            output_.fatal(CALL_INFO, -1,
+                          "dynamic SSSP references did not converge or agree\n");
+          }
+        }
         sst_current_frontier_ = {source_vertex_};
         sst_round_start_cycle_ = scheduler_.clock(core).completed_cycles;
       }
@@ -1211,6 +1320,9 @@ class OnlineMemoryProbe final : public SST::Component {
               spine_system_->failed() || sst_pending_active_out_.empty() ||
               sst_rounds_.size() >= max_rounds_;
           if (finished) {
+            if (begin_dynamic_sssp_update()) {
+              return false;
+            }
             write_result(!spine_system_->failed() &&
                          sst_pending_active_out_.empty());
             primaryComponentOKToEndSim();
@@ -1244,6 +1356,9 @@ class OnlineMemoryProbe final : public SST::Component {
         const bool finished = spine_system_->failed() || active_out.empty() ||
                               sst_rounds_.size() >= max_rounds_;
         if (finished) {
+          if (begin_dynamic_sssp_update()) {
+            return false;
+          }
           write_result(!spine_system_->failed() && active_out.empty());
           primaryComponentOKToEndSim();
           return true;
@@ -1298,6 +1413,7 @@ class OnlineMemoryProbe final : public SST::Component {
        "spine_pagerank/spine_residual_pagerank",
        "probe"},
       {"workload", "Spine .slice workload path", ""},
+      {"update_workload", "Optional positive incremental Spine .slice", ""},
       {"preload_workload", "Optional pre-existing Spine L0 .slice", ""},
       {"hot_vertices", "Comma-separated host hot-bitmap vertices", ""},
       {"source_vertex", "Spine SSSP source vertex", "0"},
@@ -1369,6 +1485,44 @@ class OnlineMemoryProbe final : public SST::Component {
        "SST::Interfaces::StandardMem"})
 
  private:
+  bool begin_dynamic_sssp_update() {
+    if (!dynamic_sssp_enabled_ || dynamic_sssp_started_ ||
+        spine_system_->failed()) {
+      return false;
+    }
+    const SsspComparison comparison = compare_sssp_result(
+        spine_system_->compute().values(), sst_rounds_, cold_sssp_reference_);
+    cold_value_mismatches_ = comparison.value_mismatches;
+    cold_frontier_mismatches_ = comparison.frontier_mismatches;
+    cold_final_values_ = spine_system_->compute().values();
+    cold_rounds_ = sst_rounds_.size();
+    cold_round_cycles_.clear();
+    cold_round_cycles_.reserve(sst_rounds_.size());
+    for (const SpineSsspRoundEvidence &round : sst_rounds_) {
+      cold_round_cycles_.push_back(round.end_cycle - round.start_cycle);
+    }
+    const SpineL0Counters &maintenance =
+        spine_system_->maintenance_counters();
+    cold_maintenance_cycles_ =
+        maintenance.end_cycle - maintenance.start_cycle;
+    cold_maintenance_target_level_ = maintenance.target_level;
+    cold_dirty_generation_after_ack_ =
+        spine_system_->dirty_ack_counters().result.generation;
+    cold_cycles_ = scheduler_.clock(0).completed_cycles;
+    cold_backend_requests_ = backend_->accepted();
+
+    spine_system_->restart_incremental_update(dynamic_update_workload_);
+    dynamic_sssp_started_ = true;
+    dynamic_update_start_cycle_ = scheduler_.clock(0).completed_cycles;
+    sst_rounds_.clear();
+    sst_host_handoffs_.clear();
+    sst_pending_active_out_.clear();
+    sst_current_frontier_ = dynamic_update_sources_;
+    sst_round_start_cycle_ = dynamic_update_start_cycle_;
+    sst_waiting_dirty_ack_ = false;
+    return true;
+  }
+
   void write_result(bool success) {
     if (result_written_) {
       return;
@@ -1930,35 +2084,27 @@ class OnlineMemoryProbe final : public SST::Component {
       return;
     }
     if (mode_ == "spine_sssp") {
-      std::uint64_t mismatches = 0;
       const auto &actual_values = spine_system_->compute().values();
-      for (std::size_t vertex = 0; vertex < actual_values.size(); ++vertex) {
-        if (actual_values[vertex] != sssp_reference_.values[vertex]) {
-          ++mismatches;
-        }
-      }
-      std::uint64_t frontier_mismatches =
-          sst_rounds_.size() == sssp_reference_.frontiers.size() ? 0 : 1;
-      const std::size_t compared_rounds =
-          std::min(sst_rounds_.size(), sssp_reference_.frontiers.size());
-      for (std::size_t round = 0; round < compared_rounds; ++round) {
-        auto actual_in = sst_rounds_[round].active_in;
-        auto actual_out = sst_rounds_[round].active_out;
-        std::sort(actual_in.begin(), actual_in.end());
-        std::sort(actual_out.begin(), actual_out.end());
-        const std::vector<std::uint32_t> expected_out =
-            round + 1 < sssp_reference_.frontiers.size()
-                ? sssp_reference_.frontiers[round + 1]
-                : std::vector<std::uint32_t>{};
-        if (actual_in != sssp_reference_.frontiers[round] ||
-            actual_out != expected_out) {
-          ++frontier_mismatches;
-        }
-      }
+      const SsspReference &execution_reference =
+          dynamic_sssp_started_ ? dynamic_sssp_reference_ : sssp_reference_;
+      const SsspComparison comparison =
+          compare_sssp_result(actual_values, sst_rounds_, execution_reference);
+      const std::uint64_t mismatches = comparison.value_mismatches;
+      const std::uint64_t frontier_mismatches =
+          comparison.frontier_mismatches;
+      const std::uint64_t full_recompute_mismatches =
+          dynamic_sssp_started_
+              ? compare_sssp_result(actual_values, {}, sssp_reference_)
+                    .value_mismatches
+              : mismatches;
       const bool converged =
           !sst_rounds_.empty() && sst_rounds_.back().active_out.empty();
       const bool passed =
-          success && converged && mismatches == 0 && frontier_mismatches == 0;
+          success && converged && mismatches == 0 &&
+          full_recompute_mismatches == 0 && frontier_mismatches == 0 &&
+          (!dynamic_sssp_enabled_ ||
+           (dynamic_sssp_started_ && cold_value_mismatches_ == 0 &&
+            cold_frontier_mismatches_ == 0));
       std::vector<std::size_t> frontier_in_sizes;
       std::vector<std::size_t> frontier_out_sizes;
       std::vector<std::uint64_t> processed_edges;
@@ -2345,9 +2491,48 @@ class OnlineMemoryProbe final : public SST::Component {
           << ",\n"
           << "  \"maintenance_cycles\": "
           << maintenance.end_cycle - maintenance.start_cycle << ",\n"
+          << "  \"maintenance_target_level\": "
+          << maintenance.target_level << ",\n"
+          << "  \"maintenance_persisted_edges\": "
+          << maintenance.persisted_edges << ",\n"
           << "  \"input_edges\": " << spine_expected_edges_ << ",\n"
           << "  \"rounds\": " << sst_rounds_.size() << ",\n"
           << "  \"host_handoffs\": " << sst_host_handoffs_.size() << ",\n"
+          << "  \"dynamic_update\": "
+          << (dynamic_sssp_enabled_ ? "true" : "false") << ",\n";
+      if (dynamic_sssp_enabled_) {
+        result
+            << "  \"update_edges\": "
+            << dynamic_update_workload_.edges.size() << ",\n"
+            << "  \"cold_cycles\": " << cold_cycles_ << ",\n"
+            << "  \"update_cycles\": "
+            << scheduler_.clock(0).completed_cycles -
+                   dynamic_update_start_cycle_
+            << ",\n"
+            << "  \"cold_rounds\": " << cold_rounds_ << ",\n"
+            << "  \"cold_maintenance_cycles\": "
+            << cold_maintenance_cycles_ << ",\n"
+            << "  \"cold_maintenance_target_level\": "
+            << cold_maintenance_target_level_ << ",\n"
+            << "  \"cold_dirty_generation_after_ack\": "
+            << cold_dirty_generation_after_ack_ << ",\n"
+            << "  \"cold_backend_requests\": "
+            << cold_backend_requests_ << ",\n"
+            << "  \"update_backend_requests\": "
+            << backend_->accepted() - cold_backend_requests_ << ",\n"
+            << "  \"cold_correctness_mismatches\": "
+            << cold_value_mismatches_ << ",\n"
+            << "  \"cold_frontier_mismatches\": "
+            << cold_frontier_mismatches_ << ",\n"
+            << "  \"full_recompute_correctness_mismatches\": "
+            << full_recompute_mismatches << ",\n"
+            << "  \"cold_final_values\": ";
+        write_json_array(result, cold_final_values_);
+        result << ",\n  \"cold_round_cycles\": ";
+        write_json_array(result, cold_round_cycles_);
+        result << ",\n";
+      }
+      result
           << "  \"range_task_capacity\": " << range_task_capacity_ << ",\n"
           << "  \"range_task_payload_budget\": " << range_task_payload_budget_
           << ",\n"
@@ -2379,6 +2564,10 @@ class OnlineMemoryProbe final : public SST::Component {
           << maintenance.sorted_payload_read_bytes << ",\n"
           << "  \"maintenance_sorted_read_beats\": "
           << maintenance.sorted_read_beats_received << ",\n"
+          << "  \"maintenance_carry_new_batch_reads\": "
+          << maintenance.carry_new_batch_reads << ",\n"
+          << "  \"maintenance_carry_new_batch_read_bytes\": "
+          << maintenance.carry_new_batch_read_bytes << ",\n"
           << "  \"maintenance_scan_response_stall_cycles\": "
           << maintenance.sorted_scan_response_stall_cycles << ",\n"
           << "  \"maintenance_scan_reorder_full_stall_cycles\": "
@@ -3644,6 +3833,7 @@ class OnlineMemoryProbe final : public SST::Component {
   std::string result_path_;
   std::string mode_;
   std::string workload_path_;
+  std::string update_workload_path_;
   std::string preload_path_;
   std::string hot_vertices_text_;
   std::uint32_t source_vertex_{};
@@ -3702,6 +3892,21 @@ class OnlineMemoryProbe final : public SST::Component {
   std::unique_ptr<FixedAxiPort> spine_active_bitmap_;
   std::unique_ptr<FixedAxiPort> spine_compute_result_;
   SsspReference sssp_reference_;
+  SsspReference cold_sssp_reference_;
+  SsspReference dynamic_sssp_reference_;
+  SpineEdgeSlice dynamic_update_workload_;
+  std::vector<std::uint32_t> dynamic_update_sources_;
+  std::vector<std::uint32_t> cold_final_values_;
+  std::vector<std::uint64_t> cold_round_cycles_;
+  std::uint64_t cold_cycles_{};
+  std::uint64_t dynamic_update_start_cycle_{};
+  std::uint64_t cold_backend_requests_{};
+  std::uint64_t cold_maintenance_cycles_{};
+  std::uint64_t cold_value_mismatches_{};
+  std::uint64_t cold_frontier_mismatches_{};
+  std::size_t cold_rounds_{};
+  std::int32_t cold_maintenance_target_level_{-1};
+  std::uint32_t cold_dirty_generation_after_ack_{};
   std::vector<float> pagerank_reference_;
   ResidualPageRankReference residual_pagerank_reference_;
   std::vector<std::uint64_t> pagerank_iteration_cycles_;
@@ -3719,6 +3924,8 @@ class OnlineMemoryProbe final : public SST::Component {
   std::size_t spine_preload_edges_{};
   std::unordered_map<std::uint32_t, std::uint32_t> expected_distances_;
   bool sst_waiting_dirty_ack_{};
+  bool dynamic_sssp_enabled_{};
+  bool dynamic_sssp_started_{};
   bool result_written_{};
 };
 

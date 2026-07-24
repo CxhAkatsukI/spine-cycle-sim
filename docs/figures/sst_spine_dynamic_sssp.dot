@@ -1,0 +1,37 @@
+digraph sst_spine_dynamic_sssp {
+  graph [rankdir=LR, bgcolor="white", fontname="DejaVu Sans", nodesep=0.45, ranksep=0.7];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=10, color="#3f4a54", fillcolor="#f7f8f9"];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#52606d"];
+
+  initial [label="Initial slice\n4 weighted edges", fillcolor="#e8f1f8"];
+  update [label="Positive update\n0 -> 2, weight 2", fillcolor="#fff1d6"];
+
+  subgraph cluster_process {
+    label="One persistent SST process";
+    color="#9aa5b1";
+    style="rounded";
+
+    maint [label="Spine maintenance\nCold: build L0\nUpdate: carry L0 + batch -> L1", fillcolor="#f9e7c5"];
+    levels [label="Persistent levels + metadata\nL0/L1, epochs, dirty generations", fillcolor="#e7f3e8"];
+    reader [label="Reader\nPayload-backed range/tile traversal\nFinite AXIS + backpressure", fillcolor="#e8f1f8"];
+    compute [label="Weighted SSSP Map/Reduce\nPersistent vertex state\nCold and incremental rounds", fillcolor="#f1e8f7"];
+    ack [label="Dirty ACK\nGeneration 1->2, 3->4", fillcolor="#eceff1"];
+
+    maint -> levels [label="write/merge"];
+    levels -> reader [label="HBM payloads"];
+    reader -> compute [label="edge/value streams"];
+    compute -> ack [label="converged"];
+    ack -> levels [label="clear + publish", constraint=false];
+  }
+
+  hbm [label="Shared AXI primitives\n32-channel SST memHierarchy + DRAMSim3", fillcolor="#e3f0ee"];
+  oracle [label="Three correctness checks\nCold full oracle\nIncremental frontier oracle\nFinal full recomputation", fillcolor="#f7f7f7"];
+
+  initial -> maint [label="cold invocation"];
+  update -> maint [label="same system, second invocation"];
+  maint -> hbm [dir=both, label="bursts/responses"];
+  levels -> hbm [dir=both];
+  reader -> hbm [dir=both];
+  compute -> hbm [dir=both];
+  compute -> oracle [label="values + frontiers"];
+}

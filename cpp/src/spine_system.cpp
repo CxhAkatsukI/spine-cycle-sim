@@ -392,8 +392,8 @@ void SpineVerticalSliceSystem::restart_read_compute_bins(
 
 void SpineVerticalSliceSystem::restart_incremental_update(
     SpineEdgeSlice workload) {
-  if (!registered_ || !convergence_run_started_ || !done() || failed() ||
-      !idle() || !dirty_ack_->done() || dirty_ack_->failed() ||
+  if (!registered_ || !done() || failed() || !idle() ||
+      !dirty_ack_->done() || dirty_ack_->failed() ||
       workload.vertices != maintenance_->vertices() ||
       workload.edges.empty() ||
       std::any_of(workload.edges.begin(), workload.edges.end(),

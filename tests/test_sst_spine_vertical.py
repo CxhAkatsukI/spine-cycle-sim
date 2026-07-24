@@ -7,6 +7,7 @@ import unittest
 from scripts.run_sst_spine_vertical import (
     maintenance_timing_profile_matches,
     validate_carry_hot_result,
+    validate_dynamic_sssp_result,
     validate_fallback_result,
     validate_full_compute_result,
     validate_full_pagerank_result,
@@ -21,6 +22,61 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class SstSpineVerticalValidationTests(unittest.TestCase):
+    def test_dynamic_sssp_closes_cold_update_and_memory_ledgers(self) -> None:
+        result = {
+            "success": True,
+            "mode": "spine_sssp",
+            "dynamic_update": True,
+            "cold_correctness_mismatches": 0,
+            "cold_frontier_mismatches": 0,
+            "cold_final_values": [0, 5, 10, 11],
+            "correctness_mismatches": 0,
+            "full_recompute_correctness_mismatches": 0,
+            "frontier_mismatches": 0,
+            "final_values": [0, 5, 2, 3],
+            "input_edges": 4,
+            "update_edges": 1,
+            "cold_rounds": 4,
+            "cold_maintenance_target_level": 0,
+            "cold_dirty_generation_after_ack": 2,
+            "cold_cycles": 25_000,
+            "cold_maintenance_cycles": 2_000,
+            "cold_round_cycles": [8_000, 6_000, 6_000, 5_000],
+            "rounds": 3,
+            "maintenance_target_level": 1,
+            "maintenance_persisted_edges": 4,
+            "maintenance_dirty_generation": 3,
+            "dirty_ack_captured_generation": 3,
+            "dirty_ack_result_generation": 4,
+            "update_cycles": 19_000,
+            "frontier_in_sizes": [1, 1, 1],
+            "frontier_out_sizes": [1, 1, 0],
+            "processed_edges_per_round": [2, 1, 0],
+            "reader_dirty_counts_per_round": [1, 0, 0],
+            "reader_dirty_generations_per_round": [3, 4, 4],
+            "maintenance_scan_passes": 19,
+            "maintenance_edge_visits": 19,
+            "maintenance_sorted_bytes": 320,
+            "maintenance_sorted_payload_read_bytes": 320,
+            "maintenance_carry_new_batch_reads": 1,
+            "maintenance_carry_new_batch_read_bytes": 16,
+            "maintenance_dirty_count": 1,
+            "maintenance_dirty_unique_sources": 1,
+            "cold_backend_requests": 2_982,
+            "update_backend_requests": 2_509,
+            "backend_requests": 5_491,
+        }
+        dram = {"dram_reads": 4_000, "dram_writes": 1_491, "dram_channels": 32}
+        self.assertEqual(
+            validate_dynamic_sssp_result(result, dram, channels=32), []
+        )
+
+        result["frontier_mismatches"] = 1
+        self.assertIn(
+            "update_correctness",
+            validate_dynamic_sssp_result(result, dram, channels=32),
+        )
+
     def test_residual_pagerank_result_checks_frontier_and_memory_ledger(
         self,
     ) -> None:
