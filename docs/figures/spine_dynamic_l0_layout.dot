@@ -1,0 +1,14 @@
+digraph spine_dynamic_l0_layout {
+  graph [rankdir=TB, bgcolor="white", pad="0.2", nodesep="0.2", ranksep="0.35"];
+  node [shape=record, style="filled", fontname="DejaVu Sans", fontsize=10, color="#334155", fillcolor="#f8fafc"];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#475569"];
+
+  envelope [label="{L0 fixed storage envelope|{bitmap\n65536 x 4 words|page base\n32769 words|row offsets\n(rows+2)/2 words|masks\n(rows+3)/4 words|edges\nactual edge payload|unused tail}}", fillcolor="#e2e8f0"];
+  formula [shape=box, style="rounded,filled", label="edge_offset = page_base_end\n+ row_words(rows) + mask_words(rows)", fillcolor="#dbeafe"];
+  fixed [shape=box, style="rounded,filled", label="old simulator\nreserved max-row arrays\nedge offset = 393218", fillcolor="#fee2e2"];
+  dynamic [shape=box, style="rounded,filled", label="latest HLS / simulator\n3 rows: edge offset = 294916\nmetadata publishes exact offset", fillcolor="#dcfce7"];
+
+  envelope -> formula;
+  formula -> fixed [label="old"];
+  formula -> dynamic [label="current"];
+}

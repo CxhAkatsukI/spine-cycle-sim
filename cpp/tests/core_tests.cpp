@@ -2123,6 +2123,8 @@ void test_spine_fixed_level_layout_matches_stable_profile() {
   const auto cold_l1 = spine_level_layout(config, false, 1);
   const auto cold_l10 = spine_level_layout(config, false, 10);
   const auto hot_l0 = spine_level_layout(config, true, 0);
+  const auto compact_cold_l0 = spine_slice_layout(config, false, 0, 3);
+  const auto compact_hot_l0 = spine_slice_layout(config, true, 0, 3);
 
   require(cold_l0.bitmap_offset_words == 0 && cold_l0.edge_capacity == 131'072,
           "cold L0 layout diverges from the stable HLS profile");
@@ -2132,6 +2134,27 @@ void test_spine_fixed_level_layout_matches_stable_profile() {
   require(hot_l0.bitmap_offset_words ==
               cold_l10.edge_offset_words + cold_l10.edge_capacity,
           "hot level storage does not begin after the cold level region");
+  require(compact_cold_l0.row_capacity_words == 2 &&
+              compact_cold_l0.mask_capacity_words == 1 &&
+              compact_cold_l0.edge_offset_words ==
+                  compact_cold_l0.row_offset_offset_words + 3 &&
+              compact_hot_l0.edge_offset_words -
+                      compact_hot_l0.bitmap_offset_words ==
+                  compact_cold_l0.edge_offset_words -
+                      compact_cold_l0.bitmap_offset_words,
+          "dynamic L0 layout does not match the row-sized HLS ABI");
+  const std::array<std::pair<std::uint64_t, std::uint64_t>, 5>
+      compact_word_counts{{{1, 0}, {1, 1}, {2, 1}, {2, 1}, {3, 1}}};
+  for (std::uint64_t rows = 0; rows < compact_word_counts.size(); ++rows) {
+    const SpineLevelLayout layout =
+        spine_slice_layout(config, false, 0, rows);
+    require(layout.row_capacity_words == compact_word_counts[rows].first &&
+                layout.mask_capacity_words ==
+                    compact_word_counts[rows].second &&
+                layout.edge_offset_words + layout.edge_capacity <=
+                    cold_l1.bitmap_offset_words,
+            "dynamic L0 boundary layout escaped its fixed storage envelope");
+  }
   SpineL0Config invalid_page = config;
   invalid_page.page_vertices = 128;
   bool invalid_page_rejected = false;
@@ -2554,7 +2577,22 @@ void test_spine_reader_consumes_graph_edge_payload_from_hbm() {
   };
   set_device_dirty_source(0);
 
-  const SpineLevelLayout layout = spine_level_layout(config, false, 0);
+  const SpineLevelLayout layout = spine_slice_layout(config, false, 0, 3);
+  const SpineLevelLayout fixed_l0 = spine_level_layout(config, false, 0);
+  require(layout.edge_offset_words != fixed_l0.edge_offset_words &&
+              backend.inspect_payload(
+                  20, 6 * spine::sim::kSpineMetadataWordBytes,
+                  spine::sim::kSpineMetadataWordBytes) ==
+                  u64_payload(layout.edge_offset_words) &&
+              backend.inspect_payload(
+                  0,
+                  fixed_l0.edge_offset_words *
+                      spine::sim::kSpineGraphWordBytes,
+                  spine::sim::kSpineGraphWordBytes) ==
+                  std::vector<std::uint8_t>(
+                      spine::sim::kSpineGraphWordBytes, 0),
+          "maintenance published or populated the old fixed-capacity L0 "
+          "edge offset");
   require(backend.inspect_payload(
               0, layout.bitmap_offset_words * spine::sim::kSpineGraphWordBytes,
               spine::sim::kSpineGraphWordBytes) ==
@@ -3083,7 +3121,7 @@ void test_spine_carry_merge_consumes_level_payload_from_hbm() {
                   8) == u64_payload(1),
           "preloaded level did not initialize page-list metadata");
   const SpineLevelLayout cold_l0 =
-      spine_level_layout(SpineL0Config{}, false, 0);
+      spine_slice_layout(SpineL0Config{}, false, 0, 1);
   graph_ports[0]->initialize_payload(
       cold_l0.edge_offset_words * spine::sim::kSpineGraphWordBytes,
       encode_spine_level_edge(

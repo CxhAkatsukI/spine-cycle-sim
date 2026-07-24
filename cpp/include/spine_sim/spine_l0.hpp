@@ -187,6 +187,9 @@ struct SpineLevelLayout {
 [[nodiscard]] std::size_t spine_hot_shard(std::uint32_t dst) noexcept;
 [[nodiscard]] SpineLevelLayout spine_level_layout(const SpineL0Config &config,
                                                   bool hot, std::size_t level);
+[[nodiscard]] SpineLevelLayout spine_slice_layout(
+    const SpineL0Config &config, bool hot, std::size_t level,
+    std::uint64_t row_count);
 
 struct SpineL0State {
   std::array<std::array<std::vector<SpineEdgeRecord>, 11>, 16> cold_levels;

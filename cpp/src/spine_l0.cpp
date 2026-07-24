@@ -601,6 +601,28 @@ SpineLevelLayout spine_level_layout(const SpineL0Config &config, bool hot,
   return layout;
 }
 
+SpineLevelLayout spine_slice_layout(const SpineL0Config &config, bool hot,
+                                    std::size_t level,
+                                    std::uint64_t row_count) {
+  SpineLevelLayout layout = spine_level_layout(config, hot, level);
+  if (row_count > layout.edge_capacity) {
+    throw std::overflow_error("Spine slice row count exceeds level capacity");
+  }
+  if (level != 0) {
+    return layout;
+  }
+
+  // Latest HLS compacts the L0 row and mask arrays to the pre-counted rows.
+  // Higher carry levels retain their fixed-capacity layout.
+  layout.row_capacity_words = (row_count + 2) >> 1;
+  layout.mask_capacity_words = (row_count + 3) >> 2;
+  layout.mask_offset_words =
+      layout.row_offset_offset_words + layout.row_capacity_words;
+  layout.edge_offset_words =
+      layout.mask_offset_words + layout.mask_capacity_words;
+  return layout;
+}
+
 SpineEdgeSlice load_spine_edge_slice(const std::filesystem::path &path) {
   std::ifstream input(path);
   if (!input) {
@@ -754,7 +776,6 @@ SpineL0Maintenance::SpineL0Maintenance(std::string name, ClockId clock_id,
         if (edges.empty()) {
           continue;
         }
-        const SpineLevelLayout layout = spine_level_layout(config_, hot, level);
         std::uint64_t rows = 0;
         std::uint32_t last_src = 0;
         bool have_src = false;
@@ -765,6 +786,8 @@ SpineL0Maintenance::SpineL0Maintenance(std::string name, ClockId clock_id,
             have_src = true;
           }
         }
+        const SpineLevelLayout layout =
+            spine_slice_layout(config_, hot, level, rows);
         for (const GraphPayloadWrite &write :
              build_level_index_payloads(config_, layout, edges, rows)) {
           ports_.graph[family]->initialize_payload(write.address, write.data);
@@ -807,7 +830,8 @@ void SpineL0Maintenance::initialize_metadata_payload() {
           continue;
         }
         const std::uint64_t rows = row_count_for_edges(edges);
-        const SpineLevelLayout layout = spine_level_layout(config_, hot, level);
+        const SpineLevelLayout layout =
+            spine_slice_layout(config_, hot, level, rows);
         const std::uint64_t slice = logical_family * config_.levels + level;
         ports_.metadata->initialize_payload(
             config_.metadata_base + slice * 8 * kMetadataWordBytes,
@@ -1733,7 +1757,8 @@ void SpineL0Maintenance::enqueue_family_writes(bool hot, std::size_t family,
       hot ? hot_family_outputs_[family] : family_outputs_[family];
   const std::uint64_t rows =
       hot ? counters_.hot_family_rows[family] : counters_.family_rows[family];
-  const SpineLevelLayout layout = spine_level_layout(config_, hot, target);
+  const SpineLevelLayout layout =
+      spine_slice_layout(config_, hot, target, rows);
   if (edges.size() > layout.edge_capacity || rows > layout.edge_capacity) {
     failed_ = true;
     done_ = true;
@@ -2619,10 +2644,11 @@ void SpineL0Maintenance::enqueue_committed_metadata() {
         if (edges.empty()) {
           payload = encode_u64_words({0, 0, 0, 0, 0, 0, 0, 0});
         } else {
+          const std::uint64_t rows = row_count_for_edges(edges);
           const SpineLevelLayout layout =
-              spine_level_layout(config_, hot, level);
+              spine_slice_layout(config_, hot, level, rows);
           payload = encode_u64_words(
-              {edges.size(), row_count_for_edges(edges),
+              {edges.size(), rows,
                layout.bitmap_offset_words, layout.page_base_offset_words,
                layout.row_offset_offset_words, layout.mask_offset_words,
                layout.edge_offset_words, 1});

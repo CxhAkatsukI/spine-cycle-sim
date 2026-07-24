@@ -1,0 +1,52 @@
+{
+  "date": "2026-07-24",
+  "branch": "codex/fine-grained-cycle-sim",
+  "hls_reference": "afb8199a2ca8d3fd208b985324bf4d8719e2b839",
+  "layout": {
+    "page_count": 65536,
+    "bitmap_words": 262144,
+    "page_base_words": 32769,
+    "row_offset_base_words": 294913,
+    "fixed_l0_edge_offset_words": 393218,
+    "three_row_l0_edge_offset_words": 294916,
+    "cold_l0_envelope_end_words": 524290
+  },
+  "sst_hbm": [
+    {
+      "scenario": "amazon_l0",
+      "before_cycles": 7157,
+      "after_cycles": 7153,
+      "before_activates": 72,
+      "after_activates": 69,
+      "before_row_hits": 1310,
+      "after_row_hits": 1316,
+      "backend_requests": 1399,
+      "correctness_mismatches": 0,
+      "frontier_mismatches": 0
+    },
+    {
+      "scenario": "carry_hot",
+      "before_cycles": 8884,
+      "after_cycles": 8872,
+      "before_activates": 99,
+      "after_activates": 93,
+      "before_row_hits": 1828,
+      "after_row_hits": 1832,
+      "backend_requests": 1944,
+      "correctness_mismatches": 0,
+      "frontier_mismatches": 0
+    },
+    {
+      "scenario": "weighted_sssp",
+      "before_cycles": 33788,
+      "after_cycles": 33788,
+      "before_activates": 242,
+      "after_activates": 230,
+      "before_row_hits": 3821,
+      "after_row_hits": 3839,
+      "backend_requests": 4196,
+      "correctness_mismatches": 0,
+      "frontier_mismatches": 0
+    }
+  ]
+}
