@@ -1,0 +1,168 @@
+{
+  "status": "PASS",
+  "claim_tier": "functional_oracle_not_cycle_timed",
+  "algorithms": [
+    {
+      "algorithm": "weighted_sssp",
+      "batches": [
+        {
+          "batch": 0,
+          "mode": "incremental",
+          "changes": [
+            {
+              "src": 0,
+              "dst": 2,
+              "old_weight": 20,
+              "new_weight": 2
+            }
+          ],
+          "mathematical_oracle_match": true,
+          "architecture_oracle_match": true,
+          "mathematical_iterations": 3,
+          "architecture_iterations": 3,
+          "mathematical_mapped_edges": 3,
+          "architecture_mapped_edges": 3,
+          "numeric_exact_match": true,
+          "numeric_l1_difference": 0.0,
+          "numeric_max_abs_difference": 0.0
+        },
+        {
+          "batch": 1,
+          "mode": "full_recompute_fallback",
+          "changes": [
+            {
+              "src": 0,
+              "dst": 2,
+              "old_weight": 2,
+              "new_weight": null
+            }
+          ],
+          "mathematical_oracle_match": true,
+          "architecture_oracle_match": true,
+          "mathematical_iterations": 4,
+          "architecture_iterations": 4,
+          "mathematical_mapped_edges": 3,
+          "architecture_mapped_edges": 3,
+          "numeric_exact_match": true,
+          "numeric_l1_difference": 0.0,
+          "numeric_max_abs_difference": 0.0
+        },
+        {
+          "batch": 2,
+          "mode": "full_recompute_fallback",
+          "changes": [
+            {
+              "src": 1,
+              "dst": 2,
+              "old_weight": 5,
+              "new_weight": 50
+            }
+          ],
+          "mathematical_oracle_match": true,
+          "architecture_oracle_match": true,
+          "mathematical_iterations": 4,
+          "architecture_iterations": 4,
+          "mathematical_mapped_edges": 3,
+          "architecture_mapped_edges": 3,
+          "numeric_exact_match": true,
+          "numeric_l1_difference": 0.0,
+          "numeric_max_abs_difference": 0.0
+        }
+      ]
+    },
+    {
+      "algorithm": "full_pagerank",
+      "batches": [
+        {
+          "batch": 0,
+          "mode": "warm_start",
+          "changes": [
+            {
+              "src": 0,
+              "dst": 2,
+              "old_weight": null,
+              "new_weight": 1
+            }
+          ],
+          "mathematical_oracle_match": true,
+          "architecture_oracle_match": true,
+          "mathematical_iterations": 44,
+          "architecture_iterations": 44,
+          "mathematical_mapped_edges": 220,
+          "architecture_mapped_edges": 220,
+          "numeric_exact_match": false,
+          "numeric_l1_difference": 4.860110708326815e-08,
+          "numeric_max_abs_difference": 2.4324460556890415e-08
+        },
+        {
+          "batch": 1,
+          "mode": "warm_start",
+          "changes": [
+            {
+              "src": 2,
+              "dst": 3,
+              "old_weight": 1,
+              "new_weight": null
+            }
+          ],
+          "mathematical_oracle_match": true,
+          "architecture_oracle_match": true,
+          "mathematical_iterations": 17,
+          "architecture_iterations": 17,
+          "mathematical_mapped_edges": 68,
+          "architecture_mapped_edges": 68,
+          "numeric_exact_match": false,
+          "numeric_l1_difference": 2.448849145686438e-08,
+          "numeric_max_abs_difference": 1.957003092911691e-08
+        }
+      ]
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "batches": [
+        {
+          "batch": 0,
+          "mode": "signed_residual",
+          "changes": [
+            {
+              "src": 0,
+              "dst": 2,
+              "old_weight": null,
+              "new_weight": 1
+            }
+          ],
+          "mathematical_oracle_match": true,
+          "architecture_oracle_match": true,
+          "mathematical_iterations": 30,
+          "architecture_iterations": 30,
+          "mathematical_mapped_edges": 162,
+          "architecture_mapped_edges": 165,
+          "numeric_exact_match": false,
+          "numeric_l1_difference": 6.412998151961169e-08,
+          "numeric_max_abs_difference": 3.062990303059898e-08
+        },
+        {
+          "batch": 1,
+          "mode": "signed_residual",
+          "changes": [
+            {
+              "src": 1,
+              "dst": 2,
+              "old_weight": 1,
+              "new_weight": null
+            }
+          ],
+          "mathematical_oracle_match": true,
+          "architecture_oracle_match": true,
+          "mathematical_iterations": 91,
+          "architecture_iterations": 91,
+          "mathematical_mapped_edges": 444,
+          "architecture_mapped_edges": 447,
+          "numeric_exact_match": false,
+          "numeric_l1_difference": 1.8907732404760402e-07,
+          "numeric_max_abs_difference": 1.055548527473249e-07
+        }
+      ]
+    }
+  ]
+}

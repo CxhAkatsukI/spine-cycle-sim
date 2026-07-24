@@ -6,6 +6,7 @@ import unittest
 
 from spine_cycle_sim.algorithms import (
     AlgorithmConfig,
+    DynamicExecutionMode,
     DynamicGraph,
     EdgeUpdate,
     FullPageRankPolicy,
@@ -15,6 +16,7 @@ from spine_cycle_sim.algorithms import (
     UpdateOperation,
     WeightedSsspPolicy,
     load_spine_edge_list,
+    run_dynamic_dual_oracle,
     run_dual_oracle,
 )
 from spine_cycle_sim.workloads import Edge
@@ -190,6 +192,140 @@ class PageRankTests(unittest.TestCase):
         self.assertTrue(result.mathematical.stats.converged)
         self.assertTrue(result.architecture.stats.converged)
         self.assertLess(result.l1_difference, 1e-4)
+
+
+class DynamicAlgorithmTests(unittest.TestCase):
+    def test_sssp_decrease_is_incremental_and_delete_increase_fall_back(self) -> None:
+        graph = DynamicGraph.from_edges(
+            4,
+            [
+                Edge(0, 1, 5),
+                Edge(1, 2, 5),
+                Edge(0, 2, 20),
+                Edge(2, 3, 1),
+            ],
+        )
+        result = run_dynamic_dual_oracle(
+            graph,
+            [
+                [EdgeUpdate(0, 2, 2)],
+                [EdgeUpdate(0, 2, 2, UpdateOperation.DELETE)],
+                [EdgeUpdate(1, 2, 50)],
+            ],
+            WeightedSsspPolicy(),
+            AlgorithmConfig(source=0),
+        )
+        expected_modes = (
+            DynamicExecutionMode.INCREMENTAL,
+            DynamicExecutionMode.FULL_RECOMPUTE_FALLBACK,
+            DynamicExecutionMode.FULL_RECOMPUTE_FALLBACK,
+        )
+        expected_values = (
+            (0, 5, 2, 3),
+            (0, 5, 10, 11),
+            (0, 5, 55, 56),
+        )
+        self.assertEqual(
+            tuple(batch.execution_mode for batch in result.mathematical.batches),
+            expected_modes,
+        )
+        self.assertEqual(
+            tuple(batch.result.values for batch in result.mathematical.batches),
+            expected_values,
+        )
+        self.assertTrue(
+            all(batch.oracle_match for batch in result.mathematical.batches)
+        )
+        self.assertTrue(
+            all(batch.oracle_match for batch in result.architecture.batches)
+        )
+        self.assertTrue(all(batch.exact_match for batch in result.batches))
+        self.assertEqual(graph.weight(0, 2), 20)
+        self.assertEqual(graph.weight(1, 2), 5)
+
+    def test_batch_effect_preserves_old_and_new_edge_state(self) -> None:
+        graph = DynamicGraph.from_edges(3, [Edge(0, 1, 9), Edge(1, 2, 4)])
+        effect = graph.apply_batch(
+            [
+                EdgeUpdate(0, 1, 3),
+                EdgeUpdate(1, 2, 4, UpdateOperation.DELETE),
+                EdgeUpdate(2, 0, 7),
+            ]
+        )
+        self.assertEqual(
+            tuple(
+                (change.src, change.dst, change.old_weight, change.new_weight)
+                for change in effect.changes
+            ),
+            ((0, 1, 9, 3), (1, 2, 4, None), (2, 0, None, 7)),
+        )
+
+    def test_full_pagerank_batches_warm_start_and_match_cold_oracles(self) -> None:
+        graph = DynamicGraph.from_edges(
+            4,
+            [Edge(0, 1), Edge(1, 2), Edge(2, 3), Edge(3, 0)],
+        )
+        result = run_dynamic_dual_oracle(
+            graph,
+            [
+                [EdgeUpdate(0, 2)],
+                [EdgeUpdate(2, 3, operation=UpdateOperation.DELETE)],
+            ],
+            FullPageRankPolicy(),
+            AlgorithmConfig(epsilon=1e-6, max_iterations=300),
+        )
+        for run in (result.mathematical, result.architecture):
+            self.assertTrue(all(batch.oracle_match for batch in run.batches))
+            self.assertTrue(
+                all(
+                    batch.execution_mode == DynamicExecutionMode.WARM_START
+                    for batch in run.batches
+                )
+            )
+            self.assertTrue(all(batch.result.stats.converged for batch in run.batches))
+            for batch in run.batches:
+                self.assertAlmostEqual(sum(batch.result.values), 1.0, places=5)
+
+    def test_residual_pagerank_uses_signed_update_residual(self) -> None:
+        graph = DynamicGraph.from_edges(
+            4,
+            [Edge(0, 1), Edge(1, 0), Edge(1, 2), Edge(2, 3), Edge(3, 1)],
+        )
+        config = AlgorithmConfig(epsilon=1e-7, max_iterations=500)
+        policy = ResidualPageRankPolicy()
+        old = MapReduceEngine().run(graph, policy, config, NumericMode.FLOAT64)
+        effect = graph.apply_batch([EdgeUpdate(0, 2)])
+        prepared = policy.prepare_update(
+            graph, old, effect, config, NumericMode.FLOAT64
+        )
+        self.assertEqual(prepared.mode, DynamicExecutionMode.SIGNED_RESIDUAL)
+        self.assertLess(min(prepared.state.residuals), 0.0)
+        self.assertGreater(max(prepared.state.residuals), 0.0)
+
+    def test_residual_pagerank_batches_match_cold_oracles(self) -> None:
+        graph = DynamicGraph.from_edges(
+            4,
+            [Edge(0, 1), Edge(1, 0), Edge(1, 2), Edge(2, 3), Edge(3, 1)],
+        )
+        result = run_dynamic_dual_oracle(
+            graph,
+            [
+                [EdgeUpdate(0, 2)],
+                [EdgeUpdate(1, 2, operation=UpdateOperation.DELETE)],
+            ],
+            ResidualPageRankPolicy(),
+            AlgorithmConfig(epsilon=1e-7, max_iterations=500),
+        )
+        for run in (result.mathematical, result.architecture):
+            self.assertTrue(all(batch.oracle_match for batch in run.batches))
+            self.assertTrue(
+                all(
+                    batch.execution_mode == DynamicExecutionMode.SIGNED_RESIDUAL
+                    for batch in run.batches
+                )
+            )
+            self.assertTrue(all(batch.result.stats.converged for batch in run.batches))
+        self.assertLess(max(batch.max_abs_difference for batch in result.batches), 2e-7)
 
 
 if __name__ == "__main__":

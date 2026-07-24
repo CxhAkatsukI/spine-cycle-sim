@@ -1,0 +1,32 @@
+digraph DynamicAlgorithmContract {
+  graph [rankdir=TB, bgcolor="white", pad="0.25", nodesep="0.38", ranksep="0.58"];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+        color="#374151", fillcolor="#f8fafc"];
+  edge [fontname="Helvetica", fontsize=9, color="#475569"];
+
+  batch [label="Update batch\nlast-write-wins", fillcolor="#dbeafe"];
+  effect [label="Edge-level effect\nold/new weight + changed endpoints", fillcolor="#fef3c7"];
+  choose [label="Policy update preparation", shape=diamond, fillcolor="#f3e8ff"];
+  sssp [label="Weighted SSSP\ninsert/decrease: incremental\ndelete/increase: full fallback", fillcolor="#dcfce7"];
+  full [label="Full PageRank\nwarm rank + all sources", fillcolor="#dcfce7"];
+  residual [label="Residual PageRank\nupdated target - prior rank\nsigned active residual", fillcolor="#dcfce7"];
+  engine [label="Shared Map -> Reduce -> Apply\nActivate / Converge", fillcolor="#e0f2fe"];
+  math [label="float64 cold oracle", fillcolor="#fee2e2"];
+  arch [label="float32 cold oracle", fillcolor="#fee2e2"];
+  gate [label="Per-batch correctness gate\nresult mismatch separate from numeric drift", fillcolor="#fef3c7"];
+
+  {rank=same; sssp; full; residual;}
+  {rank=same; math; arch;}
+
+  batch -> effect -> choose;
+  choose -> sssp;
+  choose -> full;
+  choose -> residual;
+  sssp -> engine;
+  full -> engine;
+  residual -> engine;
+  engine -> math [label="same graph/batch"];
+  engine -> arch [label="same graph/batch"];
+  math -> gate;
+  arch -> gate;
+}

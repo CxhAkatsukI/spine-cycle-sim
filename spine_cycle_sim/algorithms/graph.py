@@ -23,6 +23,26 @@ class EdgeUpdate:
 
 
 @dataclass(frozen=True)
+class EdgeChange:
+    src: int
+    dst: int
+    old_weight: int | None
+    new_weight: int | None
+
+    @property
+    def is_insert_or_decrease(self) -> bool:
+        return self.new_weight is not None and (
+            self.old_weight is None or self.new_weight < self.old_weight
+        )
+
+    @property
+    def is_delete_or_increase(self) -> bool:
+        return self.old_weight is not None and (
+            self.new_weight is None or self.new_weight > self.old_weight
+        )
+
+
+@dataclass(frozen=True)
 class BatchEffect:
     inserted: int
     deleted: int
@@ -32,6 +52,7 @@ class BatchEffect:
     missing_deletes: int
     changed_sources: frozenset[int]
     changed_destinations: frozenset[int]
+    changes: tuple[EdgeChange, ...]
 
     @property
     def changed_edges(self) -> int:
@@ -59,6 +80,12 @@ class DynamicGraph:
     @property
     def edge_count(self) -> int:
         return self._edge_count
+
+    def clone(self) -> DynamicGraph:
+        graph = DynamicGraph(self.vertices)
+        graph._adjacency = [dict(row) for row in self._adjacency]
+        graph._edge_count = self._edge_count
+        return graph
 
     def out_degree(self, src: int) -> int:
         self._validate_vertex(src)
@@ -90,6 +117,7 @@ class DynamicGraph:
         inserted = deleted = decreased = increased = unchanged = missing = 0
         changed_sources: set[int] = set()
         changed_destinations: set[int] = set()
+        changes: list[EdgeChange] = []
         for (src, dst), update in coalesced.items():
             row = self._adjacency[src]
             old_weight = row.get(dst)
@@ -115,6 +143,7 @@ class DynamicGraph:
                 continue
             changed_sources.add(src)
             changed_destinations.add(dst)
+            changes.append(EdgeChange(src, dst, old_weight, row.get(dst)))
         return BatchEffect(
             inserted=inserted,
             deleted=deleted,
@@ -124,6 +153,7 @@ class DynamicGraph:
             missing_deletes=missing,
             changed_sources=frozenset(changed_sources),
             changed_destinations=frozenset(changed_destinations),
+            changes=tuple(changes),
         )
 
     def _validate_vertex(self, vertex: int) -> None:

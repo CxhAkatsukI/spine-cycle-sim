@@ -9,7 +9,7 @@ import math
 import struct
 from typing import Any, Iterable
 
-from .graph import DynamicGraph
+from .graph import BatchEffect, DynamicGraph, EdgeUpdate
 
 
 class NumericMode(str, Enum):
@@ -77,6 +77,57 @@ class AlgorithmResult:
     stats: AlgorithmStats
 
 
+class DynamicExecutionMode(str, Enum):
+    INCREMENTAL = "incremental"
+    FULL_RECOMPUTE_FALLBACK = "full_recompute_fallback"
+    WARM_START = "warm_start"
+    SIGNED_RESIDUAL = "signed_residual"
+
+
+@dataclass(frozen=True)
+class PreparedUpdate:
+    state: AlgorithmState
+    mode: DynamicExecutionMode
+
+
+@dataclass(frozen=True)
+class DynamicBatchResult:
+    batch_index: int
+    effect: BatchEffect
+    execution_mode: DynamicExecutionMode
+    result: AlgorithmResult
+    cold_reference: AlgorithmResult
+    oracle_match: bool
+    oracle_l1_difference: float
+    oracle_max_abs_difference: float
+
+
+@dataclass(frozen=True)
+class DynamicRunResult:
+    initial: AlgorithmResult
+    batches: tuple[DynamicBatchResult, ...]
+
+    @property
+    def final(self) -> AlgorithmResult:
+        return self.batches[-1].result if self.batches else self.initial
+
+
+@dataclass(frozen=True)
+class DynamicNumericComparison:
+    batch_index: int
+    exact_match: bool
+    l1_difference: float
+    max_abs_difference: float
+
+
+@dataclass(frozen=True)
+class DynamicDualOracleResult:
+    mathematical: DynamicRunResult
+    architecture: DynamicRunResult
+    initial: DualOracleResult
+    batches: tuple[DynamicNumericComparison, ...]
+
+
 class AlgorithmPolicy(ABC):
     name: str
 
@@ -126,6 +177,17 @@ class AlgorithmPolicy(ABC):
     def converged(self, result: IterationResult, config: AlgorithmConfig) -> bool:
         raise NotImplementedError
 
+    @abstractmethod
+    def prepare_update(
+        self,
+        graph: DynamicGraph,
+        previous: AlgorithmResult,
+        effect: BatchEffect,
+        config: AlgorithmConfig,
+        numeric: NumericMode,
+    ) -> PreparedUpdate:
+        raise NotImplementedError
+
 
 class MapReduceEngine:
     def run(
@@ -134,9 +196,19 @@ class MapReduceEngine:
         policy: AlgorithmPolicy,
         config: AlgorithmConfig,
         numeric: NumericMode,
+        initial_state: AlgorithmState | None = None,
     ) -> AlgorithmResult:
         config.validate(graph.vertices)
-        state = policy.initialize(graph, config, numeric)
+        initialized = initial_state or policy.initialize(graph, config, numeric)
+        if len(initialized.values) != graph.vertices or (
+            initialized.residuals and len(initialized.residuals) != graph.vertices
+        ):
+            raise ValueError("algorithm state does not match graph size")
+        state = AlgorithmState(
+            values=list(initialized.values),
+            residuals=list(initialized.residuals),
+            active=set(initialized.active),
+        )
         mapped_edges = reduced_updates = applied_vertices = active_vertices = 0
         frontier_sizes: list[int] = []
         converged = False
@@ -236,6 +308,20 @@ class WeightedSsspPolicy(AlgorithmPolicy):
     def converged(self, result, config):
         return not result.active
 
+    def prepare_update(self, graph, previous, effect, config, numeric):
+        if effect.deleted or effect.increased:
+            return PreparedUpdate(
+                self.initialize(graph, config, numeric),
+                DynamicExecutionMode.FULL_RECOMPUTE_FALLBACK,
+            )
+        return PreparedUpdate(
+            AlgorithmState(
+                values=list(previous.values),
+                active=set(effect.changed_sources),
+            ),
+            DynamicExecutionMode.INCREMENTAL,
+        )
+
 
 class FullPageRankPolicy(AlgorithmPolicy):
     name = "full_pagerank"
@@ -282,6 +368,16 @@ class FullPageRankPolicy(AlgorithmPolicy):
 
     def converged(self, result, config):
         return result.error <= config.epsilon
+
+    def prepare_update(self, graph, previous, effect, config, numeric):
+        del effect, config
+        return PreparedUpdate(
+            AlgorithmState(
+                values=[quantize(float(value), numeric) for value in previous.values],
+                active=set(range(graph.vertices)),
+            ),
+            DynamicExecutionMode.WARM_START,
+        )
 
 
 class ResidualPageRankPolicy(AlgorithmPolicy):
@@ -341,6 +437,45 @@ class ResidualPageRankPolicy(AlgorithmPolicy):
     def converged(self, result, config):
         return not result.active
 
+    def prepare_update(self, graph, previous, effect, config, numeric):
+        del effect
+        ranks = [quantize(float(value), numeric) for value in previous.values]
+        dangling_mass = quantize(
+            sum(
+                ranks[vertex]
+                for vertex in range(graph.vertices)
+                if graph.out_degree(vertex) == 0
+            ),
+            numeric,
+        )
+        base = quantize((1.0 - config.damping) / graph.vertices, numeric)
+        dangling = quantize(
+            config.damping * dangling_mass / graph.vertices, numeric
+        )
+        targets = [quantize(base + dangling, numeric) for _ in range(graph.vertices)]
+        for src in range(graph.vertices):
+            degree = graph.out_degree(src)
+            if degree == 0:
+                continue
+            share = quantize(ranks[src] / degree, numeric)
+            candidate = quantize(config.damping * share, numeric)
+            for dst, _weight in graph.out_edges(src):
+                targets[dst] = quantize(targets[dst] + candidate, numeric)
+        residuals = [
+            quantize(target - rank, numeric)
+            for target, rank in zip(targets, ranks, strict=True)
+        ]
+        threshold = config.epsilon / graph.vertices
+        active = {
+            vertex
+            for vertex, residual in enumerate(residuals)
+            if abs(residual) > threshold
+        }
+        return PreparedUpdate(
+            AlgorithmState(values=ranks, residuals=residuals, active=active),
+            DynamicExecutionMode.SIGNED_RESIDUAL,
+        )
+
 
 @dataclass(frozen=True)
 class DualOracleResult:
@@ -351,12 +486,11 @@ class DualOracleResult:
     max_abs_difference: float
 
 
-def run_dual_oracle(
-    graph: DynamicGraph, policy: AlgorithmPolicy, config: AlgorithmConfig
-) -> DualOracleResult:
-    engine = MapReduceEngine()
-    mathematical = engine.run(graph, policy, config, NumericMode.FLOAT64)
-    architecture = engine.run(graph, policy, config, NumericMode.FLOAT32)
+def _numeric_differences(
+    policy: AlgorithmPolicy,
+    mathematical: AlgorithmResult,
+    architecture: AlgorithmResult,
+) -> tuple[bool, list[float]]:
     pairs = list(zip(mathematical.values, architecture.values, strict=True))
     if isinstance(policy, WeightedSsspPolicy):
         equivalent = [
@@ -367,18 +501,125 @@ def run_dual_oracle(
             )
             for left, right in pairs
         ]
-        differences = [
+        return all(equivalent), [
             0.0 if same else abs(float(left) - float(right))
             for (left, right), same in zip(pairs, equivalent, strict=True)
         ]
-        exact_match = all(equivalent)
-    else:
-        differences = [abs(float(left) - float(right)) for left, right in pairs]
-        exact_match = mathematical.values == architecture.values
+    differences = [abs(float(left) - float(right)) for left, right in pairs]
+    return mathematical.values == architecture.values, differences
+
+
+def _oracle_comparison(
+    policy: AlgorithmPolicy,
+    result: AlgorithmResult,
+    reference: AlgorithmResult,
+    config: AlgorithmConfig,
+    numeric: NumericMode,
+) -> tuple[bool, float, float]:
+    if isinstance(policy, WeightedSsspPolicy):
+        exact, differences = _numeric_differences(policy, result, reference)
+        return exact, sum(differences), max(differences, default=0.0)
+    differences = [
+        abs(float(left) - float(right))
+        for left, right in zip(result.values, reference.values, strict=True)
+    ]
+    l1 = sum(differences)
+    maximum = max(differences, default=0.0)
+    floor = 2e-5 if numeric == NumericMode.FLOAT32 else 1e-12
+    tolerance = max(config.epsilon * 8.0, floor)
+    return maximum <= tolerance and l1 <= tolerance * len(differences), l1, maximum
+
+
+def run_dual_oracle(
+    graph: DynamicGraph, policy: AlgorithmPolicy, config: AlgorithmConfig
+) -> DualOracleResult:
+    engine = MapReduceEngine()
+    mathematical = engine.run(graph, policy, config, NumericMode.FLOAT64)
+    architecture = engine.run(graph, policy, config, NumericMode.FLOAT32)
+    exact_match, differences = _numeric_differences(
+        policy, mathematical, architecture
+    )
     return DualOracleResult(
         mathematical=mathematical,
         architecture=architecture,
         exact_match=exact_match,
         l1_difference=sum(differences),
         max_abs_difference=max(differences, default=0.0),
+    )
+
+
+def run_dynamic_batches(
+    graph: DynamicGraph,
+    batches: Iterable[Iterable[EdgeUpdate]],
+    policy: AlgorithmPolicy,
+    config: AlgorithmConfig,
+    numeric: NumericMode,
+) -> DynamicRunResult:
+    working = graph.clone()
+    engine = MapReduceEngine()
+    initial = engine.run(working, policy, config, numeric)
+    previous = initial
+    batch_results: list[DynamicBatchResult] = []
+    for batch_index, updates in enumerate(batches):
+        effect = working.apply_batch(list(updates))
+        prepared = policy.prepare_update(
+            working, previous, effect, config, numeric
+        )
+        result = engine.run(
+            working, policy, config, numeric, initial_state=prepared.state
+        )
+        reference = engine.run(working, policy, config, numeric)
+        oracle_match, l1, maximum = _oracle_comparison(
+            policy, result, reference, config, numeric
+        )
+        batch_results.append(
+            DynamicBatchResult(
+                batch_index=batch_index,
+                effect=effect,
+                execution_mode=prepared.mode,
+                result=result,
+                cold_reference=reference,
+                oracle_match=oracle_match,
+                oracle_l1_difference=l1,
+                oracle_max_abs_difference=maximum,
+            )
+        )
+        previous = result
+    return DynamicRunResult(initial=initial, batches=tuple(batch_results))
+
+
+def run_dynamic_dual_oracle(
+    graph: DynamicGraph,
+    batches: Iterable[Iterable[EdgeUpdate]],
+    policy: AlgorithmPolicy,
+    config: AlgorithmConfig,
+) -> DynamicDualOracleResult:
+    materialized = tuple(tuple(batch) for batch in batches)
+    mathematical = run_dynamic_batches(
+        graph, materialized, policy, config, NumericMode.FLOAT64
+    )
+    architecture = run_dynamic_batches(
+        graph, materialized, policy, config, NumericMode.FLOAT32
+    )
+    initial = run_dual_oracle(graph, policy, config)
+    comparisons: list[DynamicNumericComparison] = []
+    for math_batch, arch_batch in zip(
+        mathematical.batches, architecture.batches, strict=True
+    ):
+        exact, differences = _numeric_differences(
+            policy, math_batch.result, arch_batch.result
+        )
+        comparisons.append(
+            DynamicNumericComparison(
+                batch_index=math_batch.batch_index,
+                exact_match=exact,
+                l1_difference=sum(differences),
+                max_abs_difference=max(differences, default=0.0),
+            )
+        )
+    return DynamicDualOracleResult(
+        mathematical=mathematical,
+        architecture=architecture,
+        initial=initial,
+        batches=tuple(comparisons),
     )
