@@ -126,6 +126,15 @@ struct SpineReaderCounters {
   std::uint64_t range_task_prefix_cycles{};
   std::uint64_t range_task_scatter_cycles{};
   std::uint64_t range_task_verify_cycles{};
+  std::uint64_t fallback_partitions{};
+  std::uint64_t fallback_forced_dense_partitions{};
+  std::uint64_t fallback_active_record_reads{};
+  std::uint64_t fallback_active_record_read_bytes{};
+  std::uint64_t fallback_metadata_read_bytes{};
+  std::uint64_t fallback_row_lookups{};
+  std::uint64_t fallback_lower_bound_reads{};
+  std::uint64_t fallback_endpoint_reads{};
+  std::uint64_t fallback_replay_edges{};
   std::uint32_t range_task_path{1};
   std::uint32_t range_task_fallback_reason{};
   std::uint32_t range_task_error{};
@@ -158,6 +167,7 @@ class SpineSplitReader final : public Component {
 
   [[nodiscard]] bool done() const noexcept { return done_; }
   [[nodiscard]] bool failed() const noexcept { return failed_; }
+  [[nodiscard]] bool recoverable_host_handoff() const noexcept;
   [[nodiscard]] const std::string &failure() const noexcept { return failure_; }
   [[nodiscard]] const SpineReaderCounters &counters() const noexcept {
     return counters_;
@@ -219,6 +229,29 @@ class SpineSplitReader final : public Component {
     std::uint32_t slice_epoch{};
   };
 
+  struct FallbackLookup {
+    SpineActiveRecord record;
+    std::size_t partition{};
+    std::size_t family{};
+    std::size_t level{};
+    bool hot{};
+    bool occupied{};
+    std::uint32_t slice_epoch{};
+    std::uint32_t page_epoch{};
+    SpineLevelLayout layout;
+    std::uint32_t page{};
+    std::uint32_t lane_word{};
+    std::uint32_t lane_bit{};
+    std::vector<std::uint64_t> bitmap_words;
+    std::uint64_t page_base_word{};
+    std::uint64_t row_word{};
+    std::uint64_t next_row_word{};
+    std::uint32_t rank{};
+    std::uint32_t row{};
+    std::uint32_t start{};
+    std::uint32_t end{};
+  };
+
   enum class MemoryPayloadKind {
     kNone,
     kMetadataControl,
@@ -246,6 +279,23 @@ class SpineSplitReader final : public Component {
     kIndexNextRow,
     kConstructionEdge,
     kReplayEdge,
+    kFallbackActiveRecord,
+    kFallbackOccupied,
+    kFallbackSliceEpoch,
+    kFallbackPageEpoch,
+    kFallbackBitmapOffset,
+    kFallbackPageBaseOffset,
+    kFallbackRowOffset,
+    kFallbackEdgeOffset,
+    kFallbackBitmapSelected,
+    kFallbackBitmapPrefix,
+    kFallbackPageBase,
+    kFallbackRow,
+    kFallbackNextRow,
+    kFallbackBinaryEdge,
+    kFallbackFirstEdge,
+    kFallbackLastEdge,
+    kFallbackReplayEdge,
   };
 
   struct MemoryTask {
@@ -292,6 +342,30 @@ class SpineSplitReader final : public Component {
     kEdgeRead,
     kEdgeEmit,
     kTileEnd,
+    kFallbackPartitionBegin,
+    kFallbackPassBegin,
+    kFallbackRecordRead,
+    kFallbackRecordResolve,
+    kFallbackLevelBegin,
+    kFallbackLookupHeaderResolve,
+    kFallbackLookupBitmapOffsetResolve,
+    kFallbackLookupIndexResolve,
+    kFallbackLookupRankResolve,
+    kFallbackLookupOffsetsResolve,
+    kFallbackLookupPageResolve,
+    kFallbackLookupRowResolve,
+    kFallbackRangeResolve,
+    kFallbackLowerBoundRead,
+    kFallbackLowerBoundResolve,
+    kFallbackEndpointResolve,
+    kFallbackLevelAdvance,
+    kFallbackRecordAdvance,
+    kFallbackPassAdvance,
+    kFallbackTileScan,
+    kFallbackTileBegin,
+    kFallbackEdgeRead,
+    kFallbackEdgeEmit,
+    kFallbackTileEnd,
     kDiagnostic,
     kDone,
   };
@@ -314,6 +388,27 @@ class SpineSplitReader final : public Component {
   void resolve_probe_row();
   void consume_construction_edge();
   void flush_construction_run();
+  void start_host_fallback(std::uint32_t reason);
+  void advance_fallback();
+  void begin_fallback_pass();
+  void advance_fallback_pass();
+  void enqueue_fallback_lookup_header();
+  void resolve_fallback_lookup_header();
+  void resolve_fallback_lookup_bitmap_offset();
+  void resolve_fallback_lookup_index();
+  void resolve_fallback_lookup_rank();
+  void resolve_fallback_lookup_offsets();
+  void resolve_fallback_lookup_page();
+  void resolve_fallback_lookup_row();
+  void begin_fallback_range();
+  void begin_fallback_lower_bound(std::uint32_t low, std::uint32_t high,
+                                  std::uint32_t limit, bool second);
+  void finish_fallback_range();
+  void finish_fallback_discovery();
+  [[nodiscard]] std::uint32_t fallback_partition_base() const;
+  [[nodiscard]] std::uint32_t fallback_partition_end() const;
+  [[nodiscard]] std::uint32_t fallback_tile_base() const;
+  [[nodiscard]] std::uint32_t fallback_tile_end() const;
   void enqueue_read(FixedAxiPort &port, std::uint64_t address,
                     std::uint64_t bytes,
                     MemoryPayloadKind payload_kind = MemoryPayloadKind::kNone,
@@ -346,6 +441,12 @@ class SpineSplitReader final : public Component {
   std::array<LevelCacheEntry, kSpineFamilyCount * kSpineLevelCount>
       level_cache_{};
   std::unordered_map<std::uint32_t, std::uint32_t> source_values_;
+  FallbackLookup fallback_lookup_;
+  SpineEdgeRecord fallback_binary_edge_;
+  SpineEdgeRecord fallback_first_edge_;
+  SpineEdgeRecord fallback_last_edge_;
+  std::array<std::uint16_t, 16> fallback_touched_masks_{};
+  std::array<bool, 16> fallback_force_dense_{};
   std::deque<MemoryTask> memory_tasks_;
   Phase phase_{Phase::kWaitMaintenance};
   Action staged_action_{Action::kNone};
@@ -384,6 +485,22 @@ class SpineSplitReader final : public Component {
   std::size_t source_response_index_{};
   std::size_t source_window_end_{};
   std::size_t diagnostic_index_{};
+  std::size_t fallback_partition_{};
+  std::size_t fallback_shard_{};
+  std::size_t fallback_record_index_{};
+  std::size_t fallback_level_{};
+  std::size_t fallback_tile_local_{};
+  std::uint32_t fallback_lower_low_{};
+  std::uint32_t fallback_lower_high_{};
+  std::uint32_t fallback_lower_limit_{};
+  std::uint32_t fallback_clipped_start_{};
+  std::uint32_t fallback_clipped_end_{};
+  std::uint32_t fallback_replay_position_{};
+  bool fallback_discovery_{true};
+  bool fallback_hot_{};
+  bool fallback_lower_second_{};
+  bool fallback_active_record_valid_{};
+  bool fallback_enabled_{};
   std::uint64_t next_transaction_id_{};
   std::uint64_t expected_transaction_id_{};
   bool waiting_memory_{};
@@ -423,6 +540,7 @@ struct SpineComputeCounters {
   std::uint64_t touched_tiles{};
   std::uint64_t fast_path_tiles{};
   std::uint64_t full_path_tiles{};
+  std::uint64_t forced_dense_tiles{};
   std::uint64_t processed_edges{};
   std::uint64_t gathered_vertex_words{};
   std::uint64_t swept_vertex_words{};
@@ -459,6 +577,7 @@ class SpineSplitSsspCompute final : public Component {
 
   [[nodiscard]] bool done() const noexcept { return done_; }
   [[nodiscard]] bool failed() const noexcept { return failed_; }
+  [[nodiscard]] bool recoverable_host_handoff() const noexcept;
   [[nodiscard]] const std::vector<std::uint32_t> &values() const noexcept {
     return values_;
   }
@@ -469,6 +588,7 @@ class SpineSplitSsspCompute final : public Component {
     return counters_;
   }
   void reset_round();
+  void reset_after_host_handoff();
 
   void evaluate(const CycleContext &context) override;
   void commit(const CycleContext &context) override;

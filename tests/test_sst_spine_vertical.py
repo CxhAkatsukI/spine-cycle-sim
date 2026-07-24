@@ -1,14 +1,20 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
 import unittest
 
 from scripts.run_sst_spine_vertical import (
     validate_carry_hot_result,
+    validate_fallback_result,
     validate_full_compute_result,
     validate_multiround_sssp_result,
     validate_protocol_window_result,
     validate_result,
 )
+
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 class SstSpineVerticalValidationTests(unittest.TestCase):
@@ -459,6 +465,25 @@ class SstSpineVerticalValidationTests(unittest.TestCase):
         self.assertEqual(
             validate_protocol_window_result(result, dram, channels=32), []
         )
+
+    def test_frozen_fallback_evidence_passes(self) -> None:
+        cases = (
+            ("sst_spine_fallback_capacity_20260724_summary.json", 2),
+            ("sst_spine_fallback_payload_20260724_summary.json", 3),
+        )
+        for filename, reason in cases:
+            with self.subTest(filename=filename):
+                summary = json.loads(
+                    (ROOT / "docs" / "evidence" / filename).read_text(
+                        encoding="utf-8"
+                    )
+                )
+                self.assertEqual(
+                    validate_fallback_result(
+                        summary, summary, channels=32, expected_reason=reason
+                    ),
+                    [],
+                )
 
 
 if __name__ == "__main__":

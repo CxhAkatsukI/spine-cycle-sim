@@ -24,6 +24,9 @@ DEFAULT_SSSP_WORKLOAD = ROOT / "tests" / "data" / "weighted_chain_shortcut.slice
 DEFAULT_PROTOCOL_WORKLOAD = (
     ROOT / "tests" / "data" / "source_protocol_window_17.slice"
 )
+DEFAULT_FALLBACK_WORKLOAD = (
+    ROOT / "tests" / "data" / "fallback_three_tiles.slice"
+)
 PROFILE_PATH = ROOT / "configs" / "architectures" / "spine_shared_engine_9c08763.json"
 
 
@@ -513,6 +516,79 @@ def validate_protocol_window_result(
     return [name for name, passed in checks.items() if not passed]
 
 
+def validate_fallback_result(
+    result: dict[str, Any],
+    dram: dict[str, int | float],
+    *,
+    channels: int,
+    expected_reason: int,
+) -> list[str]:
+    values = result.get("final_values", [])
+    full_values_ok = (
+        isinstance(values, list)
+        and len(values) == 131_073
+        and values[0] == 0
+        and values[1] == 1
+        and values[65_536] == 2
+        and values[131_072] == 3
+    )
+    compact_values_ok = (
+        result.get("final_values_count") == 131_073
+        and result.get("final_value_samples")
+        == {"0": 0, "1": 1, "65536": 2, "131072": 3}
+        and isinstance(result.get("final_values_sha256"), str)
+        and len(result["final_values_sha256"]) == 64
+    )
+    checks = {
+        "success": result.get("success") is True,
+        "mode": result.get("mode") == "spine_sssp",
+        "converged": result.get("converged") is True,
+        "correctness": result.get("correctness_mismatches") == 0
+        and result.get("frontier_mismatches") == 0,
+        "input_shape": result.get("input_edges") == 3
+        and result.get("rounds") == 2,
+        "selected_values": full_values_ok or compact_values_ok,
+        "logical_work": result.get("processed_edges_per_round") == [3, 0]
+        and result.get("frontier_in_sizes") == [1, 3]
+        and result.get("frontier_out_sizes") == [3, 0],
+        "accepted_fallback": result.get("reader_range_paths_per_round")
+        == [2, 1]
+        and result.get("reader_range_fallback_reasons_per_round")
+        == [expected_reason, 0]
+        and result.get("compute_range_paths_per_round") == [2, 1]
+        and result.get("compute_range_fallback_reasons_per_round")
+        == [expected_reason, 0]
+        and result.get("reader_range_errors_per_round") == [0, 0]
+        and result.get("compute_range_errors_per_round") == [0, 0],
+        "fallback_work": result.get("reader_fallback_partitions_per_round")
+        == [1, 0]
+        and result.get("reader_fallback_forced_dense_partitions_per_round")
+        == [0, 0]
+        and result.get("reader_fallback_active_record_reads_per_round")
+        == [4, 0]
+        and result.get("reader_fallback_row_lookups_per_round") == [4, 0]
+        and result.get("reader_fallback_replay_edges_per_round") == [3, 0],
+        "handoff_visible": result.get("host_handoffs") == 1
+        and result.get("host_handoff_logical_rounds") == [0]
+        and result.get("host_handoff_reasons") == [expected_reason]
+        and result.get("host_handoff_source_counts") == [1]
+        and result.get("host_handoff_list_read_bytes") == [16]
+        and result.get("host_handoff_control_cycles") == [0]
+        and result.get("host_handoff_control_timed") == [0]
+        and result.get("host_handoff_device_reader_overflow") == [1]
+        and result.get("host_handoff_device_compute_overflow") == [1]
+        and result.get("host_handoff_device_attempt_cycles", [0])[0] > 0,
+        "attempt_included_in_round": result.get("round_cycles", [0])[0]
+        > result.get("host_handoff_device_attempt_cycles", [0])[0],
+        "diagnostic_transcript": multiround_diagnostic_transcript_matches(result),
+        "dram_matches_backend": int(dram.get("dram_reads", 0))
+        + int(dram.get("dram_writes", 0))
+        == result.get("backend_requests"),
+        "channel_count": dram.get("dram_channels") == channels,
+    }
+    return [name for name, passed in checks.items() if not passed]
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out-dir", type=Path, required=True)
@@ -527,6 +603,8 @@ def parse_args() -> argparse.Namespace:
             "amazon_full_compute",
             "weighted_sssp",
             "protocol_window",
+            "fallback_capacity",
+            "fallback_payload",
         ),
         default="amazon_l0",
     )
@@ -534,6 +612,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--hot-vertices", default="")
     parser.add_argument("--source", type=int)
     parser.add_argument("--channels", type=int, default=32)
+    parser.add_argument("--device-dirty-source-limit", type=int, default=4_096)
+    parser.add_argument("--range-task-active-gate", type=int, default=16_384)
+    parser.add_argument("--range-task-capacity", type=int, default=65_536)
+    parser.add_argument(
+        "--range-task-payload-budget", type=int, default=1_048_576
+    )
+    parser.add_argument("--fallback-replay-threshold", type=int, default=65_536)
     parser.add_argument("--no-build", action="store_true")
     return parser.parse_args()
 
@@ -558,6 +643,19 @@ def main() -> int:
         args.workload = DEFAULT_SSSP_WORKLOAD
     elif args.scenario == "protocol_window" and args.workload == DEFAULT_WORKLOAD:
         args.workload = DEFAULT_PROTOCOL_WORKLOAD
+    elif args.scenario in {"fallback_capacity", "fallback_payload"}:
+        if args.workload == DEFAULT_WORKLOAD:
+            args.workload = DEFAULT_FALLBACK_WORKLOAD
+        if (
+            args.scenario == "fallback_capacity"
+            and args.range_task_capacity == 65_536
+        ):
+            args.range_task_capacity = 2
+        if (
+            args.scenario == "fallback_payload"
+            and args.range_task_payload_budget == 1_048_576
+        ):
+            args.range_task_payload_budget = 2
     if args.channels < 23 or args.source < 0 or not args.workload.is_file():
         raise SystemExit("channels must be >=23, source non-negative, workload present")
     if args.preload is not None and not args.preload.is_file():
@@ -576,6 +674,8 @@ def main() -> int:
             "SPINE_SST_MODE": {
                 "amazon_full_compute": "spine_compute",
                 "weighted_sssp": "spine_sssp",
+                "fallback_capacity": "spine_sssp",
+                "fallback_payload": "spine_sssp",
             }.get(args.scenario, "spine_vertical"),
             "SPINE_SST_WORKLOAD": str(args.workload.resolve()),
             "SPINE_SST_SOURCE": str(args.source),
@@ -589,6 +689,17 @@ def main() -> int:
             if args.scenario == "amazon_full_compute"
             else "1000000",
             "SPINE_SST_MAX_ROUNDS": "256",
+            "SPINE_SST_DEVICE_DIRTY_SOURCE_LIMIT": str(
+                args.device_dirty_source_limit
+            ),
+            "SPINE_SST_RANGE_TASK_ACTIVE_GATE": str(args.range_task_active_gate),
+            "SPINE_SST_RANGE_TASK_CAPACITY": str(args.range_task_capacity),
+            "SPINE_SST_RANGE_TASK_PAYLOAD_BUDGET": str(
+                args.range_task_payload_budget
+            ),
+            "SPINE_SST_FALLBACK_REPLAY_THRESHOLD": str(
+                args.fallback_replay_threshold
+            ),
         }
     )
     command = [
@@ -619,6 +730,16 @@ def main() -> int:
         "amazon_full_compute": validate_full_compute_result,
         "weighted_sssp": validate_multiround_sssp_result,
         "protocol_window": validate_protocol_window_result,
+        "fallback_capacity": lambda result, dram, *, channels: (
+            validate_fallback_result(
+                result, dram, channels=channels, expected_reason=2
+            )
+        ),
+        "fallback_payload": lambda result, dram, *, channels: (
+            validate_fallback_result(
+                result, dram, channels=channels, expected_reason=3
+            )
+        ),
     }
     validator = validators[args.scenario]
     problems = validator(result, dram, channels=args.channels)
@@ -626,8 +747,25 @@ def main() -> int:
         raise RuntimeError(f"SST Spine checks failed: {', '.join(problems)}")
     profile_bytes = PROFILE_PATH.read_bytes()
     profile = json.loads(profile_bytes)
+    summary_result = dict(result)
+    final_values = summary_result.get("final_values")
+    if isinstance(final_values, list) and len(final_values) > 4_096:
+        encoded_values = json.dumps(final_values, separators=(",", ":")).encode(
+            "ascii"
+        )
+        summary_result["final_values_count"] = len(final_values)
+        summary_result["final_values_sha256"] = hashlib.sha256(
+            encoded_values
+        ).hexdigest()
+        sample_indices = (0, 1, 65_536, len(final_values) - 1)
+        summary_result["final_value_samples"] = {
+            str(index): final_values[index]
+            for index in sample_indices
+            if index < len(final_values)
+        }
+        del summary_result["final_values"]
     summary = {
-        **result,
+        **summary_result,
         **dram,
         "architecture_profile_id": profile["profile_id"],
         "architecture_profile_sha256": hashlib.sha256(profile_bytes).hexdigest(),

@@ -40,6 +40,21 @@ probe.addParams(
         "channel_capacity_bytes": channel_bytes,
         "max_cycles": int(os.environ.get("SPINE_SST_MAX_CYCLES", "1000000")),
         "max_rounds": int(os.environ.get("SPINE_SST_MAX_ROUNDS", "256")),
+        "device_dirty_source_limit": int(
+            os.environ.get("SPINE_SST_DEVICE_DIRTY_SOURCE_LIMIT", "4096")
+        ),
+        "range_task_active_gate": int(
+            os.environ.get("SPINE_SST_RANGE_TASK_ACTIVE_GATE", "16384")
+        ),
+        "range_task_capacity": int(
+            os.environ.get("SPINE_SST_RANGE_TASK_CAPACITY", "65536")
+        ),
+        "range_task_payload_budget": int(
+            os.environ.get("SPINE_SST_RANGE_TASK_PAYLOAD_BUDGET", "1048576")
+        ),
+        "fallback_replay_threshold": int(
+            os.environ.get("SPINE_SST_FALLBACK_REPLAY_THRESHOLD", "65536")
+        ),
     }
 )
 

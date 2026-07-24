@@ -57,6 +57,16 @@ digraph SpineExactRangeTaskReader {
     tileloop -> read2 -> axis -> compute;
   }
 
+  subgraph cluster_fallback {
+    label="DEVICE handoff and HOST tiled fallback"; color="#A86A45"; style="rounded,filled"; fillcolor="#FFF3E8";
+    requires_host [label="DEVICE exact limit\nREQUIRES_HOST + diagnostics"];
+    host_publish [label="Host validates dirty identity\nand publishes 16 active bins\ncontrol time disclosed as unmeasured"];
+    discover [label="Per-partition discovery pass\nreread active + metadata + row\nbinary bounds + endpoints"];
+    dense [label="Replay product > 65,536\nexpand valid tiles + force-dense"];
+    tile_replay [label="Per-tile emission pass\nreread active + row + bounds\nreplay HBM edge payloads"];
+    requires_host -> host_publish -> discover -> dense -> tile_replay;
+  }
+
   subgraph cluster_ownership {
     label="Dirty ownership closeout"; color="#8A6642"; style="rounded,filled"; fillcolor="#F8F1E8";
     reader_result [label="Reader side effects\nlast mode/status + 64-byte result region"];
@@ -73,11 +83,14 @@ digraph SpineExactRangeTaskReader {
   rowoffset -> read1 [label="exact range"];
   desc -> unsorted;
   binned -> tileloop;
+  desc -> requires_host [label="capacity / payload", style=dashed];
+  decode -> discover [label="active gate / HOST retry", style=dashed];
+  tile_replay -> axis;
   axis -> reader_result [label="successful completion"];
   dirty_hbm -> ack_validate [style=dashed];
   generation -> dirty_meta [label="next round", style=dashed];
 
-  protocol_gap [label="Remaining protocol/timing gaps\nHOST/DEVICE fallback execution\nmulti-batch dirty accumulation + host timing\npipelined AXI + URAM/BRAM conflicts", color="#A86A45", fillcolor="#FFF3E8", style="rounded,filled,dashed"];
+  protocol_gap [label="Remaining protocol/timing gaps\nmulti-batch dirty accumulation + measured host timing\npipelined AXI + URAM/BRAM conflicts", color="#A86A45", fillcolor="#FFF3E8", style="rounded,filled,dashed"];
   protocol_gap -> candidate [style=dashed, arrowhead=none];
   protocol_gap -> unsorted [style=dashed, arrowhead=none];
 }

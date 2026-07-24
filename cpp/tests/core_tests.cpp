@@ -55,6 +55,8 @@ using spine::sim::Scheduler;
 using spine::sim::SourceValueWord;
 using spine::sim::spine_hot_shard;
 using spine::sim::spine_level_layout;
+using spine::sim::SpineActiveBins;
+using spine::sim::SpineActiveRecord;
 using spine::sim::SpineComputeCounters;
 using spine::sim::SpineComputePorts;
 using spine::sim::SpineDirtyIdentity;
@@ -1062,6 +1064,283 @@ void test_spine_device_dirty_source_request_windows() {
               system.edge_stream_stats().max_occupancy <= 32 &&
               system.value_stream_stats().max_occupancy <= 32,
           "source request window did not exercise finite AXIS buffering");
+}
+
+void test_spine_host_active_gate_runs_tiled_fallback() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("data", 141.0);
+  MockMemoryBackend backend("hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 2,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  SpineEdgeSlice workload{
+      .vertices = 327'681,
+      .edges =
+          {
+              {.src = 0, .dst = 1, .weight = 1, .diff = 1},
+              {.src = 0, .dst = 65'536, .weight = 2, .diff = 1},
+              {.src = 0, .dst = 131'072, .weight = 3, .diff = 1},
+              {.src = 0, .dst = 196'608, .weight = 4, .diff = 1},
+              {.src = 0, .dst = 262'144, .weight = 5, .diff = 1},
+          },
+      .case_name = "host_active_gate_forced_dense",
+  };
+  SpineVerticalSliceSystem system(scheduler, core, backend, workload, 0);
+  system.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until([&] { return system.done() && system.idle(); }, 200'000);
+  require(!system.failed(),
+          "fallback fixture failed its DEVICE_DIRTY seed round");
+
+  SpineActiveBins bins;
+  SpineActiveRecord enabled;
+  enabled.source = 0;
+  enabled.source_value = 0;
+  enabled.level_masks[0] = 1;
+  bins.bins[0].push_back(enabled);
+  SpineActiveRecord disabled;
+  disabled.source = 0;
+  disabled.source_value = 0;
+  bins.bins[0].resize(16'385, disabled);
+  const SpineDirtyIdentity coverage =
+      spine::sim::spine_dirty_identity(1, std::vector<std::uint32_t>{0});
+  system.restart_read_compute_bins(bins, coverage);
+  scheduler.run_until([&] { return system.done() && system.idle(); },
+                      5'000'000);
+
+  const auto &reader = system.reader_counters();
+  const auto &compute = system.compute_counters();
+  require(!system.failed() && reader.range_task_path == 2 &&
+              reader.range_task_fallback_reason == 1 &&
+              reader.range_task_error == 0 && !reader.done_overflow &&
+              reader.range_task_active_records == 16'385 &&
+              reader.range_task_count == 0 && reader.fallback_partitions == 1 &&
+              reader.fallback_forced_dense_partitions == 1 &&
+              reader.fallback_active_record_reads == 16'385 * 7ULL &&
+              reader.fallback_active_record_read_bytes ==
+                  16'385 * 7ULL * spine::sim::kSpineActiveRecordBytes &&
+              reader.fallback_row_lookups == 7 &&
+              reader.fallback_endpoint_reads == 2 &&
+              reader.fallback_lower_bound_reads > 0 &&
+              reader.fallback_replay_edges == 5 && reader.tiles_emitted == 6 &&
+              reader.edges_emitted == 5 && reader.host_coverage_match &&
+              reader.acknowledgement_eligible,
+          "HOST_ACTIVE active-gate fallback did not match the HLS work shape");
+  require(compute.range_task_path == 2 &&
+              compute.range_task_fallback_reason == 1 &&
+              compute.range_task_error == 0 && !compute.done_overflow &&
+              compute.forced_dense_tiles == 6 && compute.full_path_tiles == 6 &&
+              compute.processed_edges == 5 &&
+              compute.swept_vertex_words == 2ULL * workload.vertices,
+          "force-dense fallback was not honored by split compute");
+}
+
+void test_spine_device_dirty_limit_hands_off_to_host() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("data", 141.0);
+  MockMemoryBackend backend("hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 2,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  SpineEdgeSlice workload{
+      .vertices = 8'192,
+      .edges = {},
+      .case_name = "device_dirty_4097_host_handoff",
+  };
+  for (std::uint32_t source = 0; source < 4'097; ++source) {
+    workload.edges.push_back(SpineEdgeRecord{
+        .src = source,
+        .dst = 6'000,
+        .weight = 1,
+        .diff = -1,
+    });
+  }
+  SpineVerticalSliceSystem system(scheduler, core, backend, workload, 0);
+  system.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until([&] { return system.done() && system.idle(); },
+                      5'000'000);
+
+  require(system.failed() && system.recoverable_host_handoff() &&
+              system.reader_counters().dirty_count == 4'097 &&
+              system.reader_counters().dirty_status ==
+                  static_cast<std::uint32_t>(SpineDirtyStatus::kRequiresHost) &&
+              system.reader_counters().range_task_path == 2 &&
+              system.reader_counters().range_task_fallback_reason == 4 &&
+              system.reader_counters().range_task_error == 0 &&
+              system.reader_counters().dirty_list_read_bytes == 0 &&
+              system.compute_counters().done_overflow,
+          "DEVICE_DIRTY did not expose a recoverable 4097-source handoff");
+
+  const std::vector<std::uint32_t> sources =
+      system.restart_device_dirty_host_fallback();
+  require(sources.size() == 4'097 && sources.front() == 0 &&
+              sources.back() == 4'096 && !system.failed(),
+          "host handoff did not recover the exact dirty-source list");
+  scheduler.run_until([&] { return system.done() && system.idle(); }, 500'000);
+  require(!system.failed() && system.reader_counters().dirty_count == 4'097 &&
+              system.reader_counters().dirty_generation == 1 &&
+              system.reader_counters().host_coverage_match &&
+              system.reader_counters().acknowledgement_eligible &&
+              system.reader_counters().range_task_active_records == 4'097 &&
+              system.reader_counters().range_task_path == 1 &&
+              !system.compute_counters().done_overflow,
+          "HOST_ACTIVE did not complete the DEVICE_DIRTY handoff");
+
+  system.start_dirty_ack();
+  scheduler.run_until([&] { return system.dirty_ack_done() && system.idle(); },
+                      1'000'000);
+  require(!system.failed() && system.dirty_ack_counters().status == 0 &&
+              system.dirty_ack_counters().captured.count == 4'097 &&
+              system.dirty_ack_counters().result.count == 0 &&
+              system.dirty_ack_counters().result.generation == 2 &&
+              system.dirty_ack_counters().cleared_sources == 4'097,
+          "ACK_DIRTY did not close the recovered host handoff");
+}
+
+void test_spine_device_task_limits_hand_off_to_tiled_fallback() {
+  const auto run_case = [](const std::string &case_name,
+                           std::uint32_t expected_reason,
+                           SpineL0Config config) {
+    Scheduler scheduler;
+    const auto core = scheduler.add_clock_mhz("data", 141.0);
+    MockMemoryBackend backend("hbm", core,
+                              MockMemoryConfig{
+                                  .channels = 32,
+                                  .latency_cycles = 2,
+                                  .accepts_per_channel_per_cycle = 1,
+                                  .max_outstanding_per_channel = 128,
+                                  .response_queue_depth = 256,
+                              });
+    SpineEdgeSlice workload{
+        .vertices = 131'073,
+        .edges =
+            {
+                {.src = 0, .dst = 1, .weight = 1, .diff = 1},
+                {.src = 0, .dst = 65'536, .weight = 2, .diff = 1},
+                {.src = 0, .dst = 131'072, .weight = 3, .diff = 1},
+            },
+        .case_name = case_name,
+    };
+    SpineVerticalSliceSystem system(scheduler, core, backend, workload, 0,
+                                    4'096, std::move(config));
+    system.register_components();
+    scheduler.add_component(backend);
+    scheduler.run_until([&] { return system.done() && system.idle(); },
+                        500'000);
+
+    require(
+        system.failed() && system.recoverable_host_handoff() &&
+            system.reader_counters().dirty_count == 1 &&
+            system.reader_counters().dirty_status ==
+                static_cast<std::uint32_t>(SpineDirtyStatus::kRequiresHost) &&
+            system.reader_counters().range_task_path == 2 &&
+            system.reader_counters().range_task_fallback_reason ==
+                expected_reason &&
+            system.reader_counters().range_task_error == 0 &&
+            system.compute_counters().done_overflow,
+        case_name + " did not expose a recoverable DEVICE handoff");
+
+    const std::vector<std::uint32_t> sources =
+        system.restart_device_dirty_host_fallback();
+    require(sources == std::vector<std::uint32_t>{0} && !system.failed(),
+            case_name + " did not recover the dirty source");
+    scheduler.run_until([&] { return system.done() && system.idle(); },
+                        500'000);
+
+    const auto &reader = system.reader_counters();
+    const auto &compute = system.compute_counters();
+    require(!system.failed() && reader.range_task_path == 2 &&
+                reader.range_task_fallback_reason == expected_reason &&
+                reader.range_task_error == 0 && !reader.done_overflow &&
+                reader.host_coverage_match && reader.acknowledgement_eligible &&
+                reader.fallback_partitions == 1 &&
+                reader.fallback_active_record_reads == 4 &&
+                reader.fallback_row_lookups == 4 &&
+                reader.fallback_replay_edges == 3 &&
+                reader.tiles_emitted == 3 && reader.edges_emitted == 3,
+            case_name + " HOST tiled fallback work ledger diverged");
+    require(compute.range_task_path == 2 &&
+                compute.range_task_fallback_reason == expected_reason &&
+                compute.range_task_error == 0 && !compute.done_overflow &&
+                compute.processed_edges == 3 && compute.fast_path_tiles == 3 &&
+                compute.full_path_tiles == 0,
+            case_name + " compute did not consume the fallback edge stream");
+  };
+
+  SpineL0Config capacity;
+  capacity.range_task_capacity = 2;
+  run_case("device_capacity_host_tiled_fallback", 2, capacity);
+
+  SpineL0Config payload;
+  payload.range_task_payload_budget = 2;
+  run_case("device_payload_host_tiled_fallback", 3, payload);
+}
+
+void test_spine_convergence_runner_records_host_handoff() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("data", 141.0);
+  MockMemoryBackend backend("hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 2,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  SpineEdgeSlice workload{
+      .vertices = 131'073,
+      .edges =
+          {
+              {.src = 0, .dst = 1, .weight = 1, .diff = 1},
+              {.src = 0, .dst = 65'536, .weight = 2, .diff = 1},
+              {.src = 0, .dst = 131'072, .weight = 3, .diff = 1},
+          },
+      .case_name = "convergence_runner_capacity_handoff",
+  };
+  SpineL0Config config;
+  config.range_task_capacity = 2;
+  SpineVerticalSliceSystem system(scheduler, core, backend, workload, 0, 4'096,
+                                  std::move(config));
+  system.register_components();
+  scheduler.add_component(backend);
+
+  const auto result = system.run_sssp_to_convergence(4, 500'000);
+  require(result.converged && !result.failed && result.rounds.size() == 2 &&
+              result.host_handoffs.size() == 1,
+          "convergence runner did not recover exactly one logical round");
+  const auto &handoff = result.host_handoffs.front();
+  require(handoff.logical_round == 0 && handoff.fallback_reason == 2 &&
+              handoff.source_count == 1 &&
+              handoff.host_list_read_bytes == spine::sim::kSpineSortWordBytes &&
+              handoff.host_control_cycles == 0 && !handoff.host_control_timed &&
+              handoff.device_attempt.reader.done_overflow &&
+              handoff.device_attempt.compute.done_overflow &&
+              handoff.device_attempt.end_cycle >
+                  handoff.device_attempt.start_cycle,
+          "host handoff evidence hid or misclassified the DEVICE attempt");
+  require(result.rounds[0].reader.range_task_path == 2 &&
+              result.rounds[0].reader.range_task_fallback_reason == 2 &&
+              result.rounds[0].reader.fallback_replay_edges == 3 &&
+              result.rounds[0].compute.processed_edges == 3 &&
+              result.rounds[0].end_cycle - result.rounds[0].start_cycle >
+                  handoff.device_attempt.end_cycle -
+                      handoff.device_attempt.start_cycle &&
+              result.rounds[1].active_in.size() == 3 &&
+              result.rounds[1].active_out.empty(),
+          "accepted round evidence did not include DEVICE plus HOST execution");
+  require(system.compute().values()[1] == 1 &&
+              system.compute().values()[65'536] == 2 &&
+              system.compute().values()[131'072] == 3,
+          "fallback convergence result diverged from weighted SSSP oracle");
 }
 
 void test_spine_dirty_ack_rejects_stale_and_malformed_candidates() {
@@ -2484,6 +2763,14 @@ int main() {
        test_spine_host_active_requires_exact_dirty_coverage},
       {"spine_device_dirty_request_windows",
        test_spine_device_dirty_source_request_windows},
+      {"spine_host_active_gate_fallback",
+       test_spine_host_active_gate_runs_tiled_fallback},
+      {"spine_device_dirty_host_handoff",
+       test_spine_device_dirty_limit_hands_off_to_host},
+      {"spine_device_task_limit_handoffs",
+       test_spine_device_task_limits_hand_off_to_tiled_fallback},
+      {"spine_convergence_host_handoff",
+       test_spine_convergence_runner_records_host_handoff},
       {"spine_dirty_ack_rejections",
        test_spine_dirty_ack_rejects_stale_and_malformed_candidates},
       {"spine_source_protocol_error",

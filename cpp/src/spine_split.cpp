@@ -21,10 +21,8 @@ constexpr std::uint32_t kTileVertices = 65'536;
 constexpr std::uint64_t kMetadataWordsPerSlice = 8;
 constexpr std::uint64_t kLevelCount = 11;
 constexpr std::uint64_t kPartitionCount = 16;
-constexpr std::size_t kRangeTaskCapacity = 65'536;
-constexpr std::size_t kRangeTaskActiveGate = 16'384;
-constexpr std::uint64_t kRangeTaskPayloadBudget = 1'048'576;
 constexpr std::size_t kRangeTaskMaxTiles = 256;
+constexpr std::size_t kFallbackTilesPerPartition = 16;
 constexpr std::uint64_t kRangeTaskMaxStart = std::uint64_t{1} << 26;
 constexpr std::uint32_t kRangeTaskMaxLength = std::uint32_t{1} << 24;
 
@@ -145,7 +143,7 @@ void SpineSplitReader::reset_round(std::vector<std::uint32_t> active_sources) {
 void SpineSplitReader::reset_host_round(
     const SpineActiveBins &active_bins,
     std::optional<SpineDirtyIdentity> host_coverage) {
-  if (!done_ || failed_ || waiting_memory_ || !memory_tasks_.empty()) {
+  if (!done_ || ( failed_ && !recoverable_host_handoff()) || waiting_memory_ || !memory_tasks_.empty()) {
     throw std::logic_error(
         "reader host-active reset requires a successful drain");
   }
@@ -198,6 +196,15 @@ void SpineSplitReader::reset_host_round(
   reset_state();
 }
 
+bool SpineSplitReader::recoverable_host_handoff() const noexcept {
+  return done_ && failed_ && mode_ == SpineReaderMode::kDeviceDirty &&
+         counters_.dirty_status ==
+             static_cast<std::uint32_t>(SpineDirtyStatus::kRequiresHost) &&
+         counters_.range_task_path == kRangeTaskPathFallback &&
+         counters_.range_task_fallback_reason != 0 &&
+         counters_.range_task_error == 0;
+}
+
 void SpineSplitReader::reset_state() {
   counters_ = {};
   for (std::size_t tile = 0; tile < tiles_.size(); ++tile) {
@@ -213,6 +220,9 @@ void SpineSplitReader::reset_state() {
   host_active_bins_ = {};
   level_cache_ = {};
   source_values_.clear();
+  fallback_lookup_ = {};
+  fallback_touched_masks_.fill(0);
+  fallback_force_dense_.fill(false);
   memory_tasks_.clear();
   phase_ = Phase::kWaitMaintenance;
   staged_action_ = Action::kNone;
@@ -233,6 +243,22 @@ void SpineSplitReader::reset_state() {
   source_response_index_ = 0;
   source_window_end_ = 0;
   diagnostic_index_ = 0;
+  fallback_partition_ = 0;
+  fallback_shard_ = 0;
+  fallback_record_index_ = 0;
+  fallback_level_ = 0;
+  fallback_tile_local_ = 0;
+  fallback_lower_low_ = 0;
+  fallback_lower_high_ = 0;
+  fallback_lower_limit_ = 0;
+  fallback_clipped_start_ = 0;
+  fallback_clipped_end_ = 0;
+  fallback_replay_position_ = 0;
+  fallback_discovery_ = true;
+  fallback_hot_ = false;
+  fallback_lower_second_ = false;
+  fallback_active_record_valid_ = false;
+  fallback_enabled_ = false;
   metadata_control_ = 0;
   dirty_count_ = 0;
   dirty_generation_ = 0;
@@ -308,6 +334,8 @@ void SpineSplitReader::evaluate(const CycleContext &) {
       phase_ == Phase::kSendSourceGeneration ||
       phase_ == Phase::kSendSourceDone || phase_ == Phase::kTileBegin ||
       phase_ == Phase::kEdgeEmit || phase_ == Phase::kTileEnd ||
+      phase_ == Phase::kFallbackTileBegin ||
+      phase_ == Phase::kFallbackEdgeEmit || phase_ == Phase::kFallbackTileEnd ||
       phase_ == Phase::kDiagnostic || phase_ == Phase::kDone) {
     staged_stream_word_ = current_stream_word();
     if (edge_out_.try_push(staged_stream_word_)) {
@@ -426,6 +454,27 @@ void SpineSplitReader::commit(const CycleContext &context) {
         case Phase::kTileEnd:
           ++tile_index_;
           phase_ = terminal_pending_ ? Phase::kDiagnostic : Phase::kTileScan;
+      break;
+    case Phase::kFallbackTileBegin:
+      ++counters_.tiles_emitted;
+      fallback_hot_ = false;
+      fallback_shard_ = 0;
+      phase_ = Phase::kFallbackPassBegin;
+      break;
+    case Phase::kFallbackEdgeEmit:
+      ++counters_.edges_emitted;
+      if (fallback_lookup_.hot) {
+        ++counters_.hot_edges_emitted;
+      } else {
+        ++counters_.cold_edges_emitted;
+      }
+      ++fallback_replay_position_;
+      phase_ = Phase::kFallbackEdgeRead;
+      break;
+    case Phase::kFallbackTileEnd:
+      ++fallback_tile_local_;
+      phase_ =
+          terminal_pending_ ? Phase::kDiagnostic : Phase::kFallbackTileScan;
           break;
         case Phase::kDiagnostic:
           ++counters_.diagnostic_words;
@@ -736,6 +785,115 @@ void SpineSplitReader::consume_memory_response(const MemoryTask &task,
                        "range-task replay returned an edge outside its tile");
       }
       return;
+  case MemoryPayloadKind::kFallbackActiveRecord:
+    if (response.read_data.size() != kActiveRecordBytes) {
+      throw std::logic_error("fallback active-record payload has wrong size");
+    }
+    fallback_lookup_.record = decode_spine_active_record(response.read_data);
+    fallback_active_record_valid_ = true;
+    return;
+  case MemoryPayloadKind::kFallbackOccupied:
+    fallback_lookup_.occupied = decode_u64(response.read_data) != 0;
+    return;
+  case MemoryPayloadKind::kFallbackSliceEpoch: {
+    const std::size_t logical_family =
+        fallback_lookup_.hot ? kPartitionCount + fallback_lookup_.family
+                             : fallback_lookup_.family;
+    const std::size_t slice =
+        logical_family * kLevelCount + fallback_lookup_.level;
+    const std::uint64_t packed = decode_u64(response.read_data);
+    fallback_lookup_.slice_epoch =
+        static_cast<std::uint32_t>(packed >> ((slice & 1U) * 32));
+    return;
+  }
+  case MemoryPayloadKind::kFallbackPageEpoch: {
+    const std::uint64_t packed = decode_u64(response.read_data);
+    fallback_lookup_.page_epoch = static_cast<std::uint32_t>(
+        packed >> ((fallback_lookup_.page & 1U) * 32));
+    return;
+  }
+  case MemoryPayloadKind::kFallbackBitmapOffset:
+    fallback_lookup_.layout.bitmap_offset_words =
+        decode_u64(response.read_data);
+    return;
+  case MemoryPayloadKind::kFallbackPageBaseOffset:
+    fallback_lookup_.layout.page_base_offset_words =
+        decode_u64(response.read_data);
+    return;
+  case MemoryPayloadKind::kFallbackRowOffset:
+    fallback_lookup_.layout.row_offset_offset_words =
+        decode_u64(response.read_data);
+    return;
+  case MemoryPayloadKind::kFallbackEdgeOffset:
+    fallback_lookup_.layout.edge_offset_words = decode_u64(response.read_data);
+    return;
+  case MemoryPayloadKind::kFallbackBitmapSelected:
+    fallback_lookup_.bitmap_words.assign(fallback_lookup_.lane_word + 1, 0);
+    fallback_lookup_.bitmap_words[fallback_lookup_.lane_word] =
+        decode_u64(response.read_data);
+    counters_.graph_index_payload_read_bytes += response.read_data.size();
+    ++counters_.graph_index_bitmap_words;
+    return;
+  case MemoryPayloadKind::kFallbackBitmapPrefix: {
+    const std::size_t words = response.read_data.size() / kSpineGraphWordBytes;
+    if (fallback_lookup_.bitmap_words.size() !=
+            fallback_lookup_.lane_word + 1 ||
+        words != fallback_lookup_.lane_word) {
+      throw std::logic_error("fallback bitmap-rank prefix has wrong length");
+    }
+    for (std::size_t word = 0; word < words; ++word) {
+      fallback_lookup_.bitmap_words[word] =
+          decode_u64(response.read_data, word * kSpineGraphWordBytes);
+    }
+    counters_.graph_index_payload_read_bytes += response.read_data.size();
+    counters_.graph_index_bitmap_words += words;
+    return;
+  }
+  case MemoryPayloadKind::kFallbackPageBase:
+    fallback_lookup_.page_base_word = decode_u64(response.read_data);
+    counters_.graph_index_payload_read_bytes += response.read_data.size();
+    return;
+  case MemoryPayloadKind::kFallbackRow:
+    fallback_lookup_.row_word = decode_u64(response.read_data);
+    counters_.graph_index_payload_read_bytes += response.read_data.size();
+    return;
+  case MemoryPayloadKind::kFallbackNextRow:
+    fallback_lookup_.next_row_word = decode_u64(response.read_data);
+    counters_.graph_index_payload_read_bytes += response.read_data.size();
+    return;
+  case MemoryPayloadKind::kFallbackBinaryEdge:
+    fallback_binary_edge_ =
+        decode_spine_level_edge(response.read_data, task.edge_source);
+    counters_.graph_edge_payload_read_bytes += response.read_data.size();
+    ++counters_.fallback_lower_bound_reads;
+    return;
+  case MemoryPayloadKind::kFallbackFirstEdge:
+    fallback_first_edge_ =
+        decode_spine_level_edge(response.read_data, task.edge_source);
+    counters_.graph_edge_payload_read_bytes += response.read_data.size();
+    ++counters_.fallback_endpoint_reads;
+    return;
+  case MemoryPayloadKind::kFallbackLastEdge:
+    fallback_last_edge_ =
+        decode_spine_level_edge(response.read_data, task.edge_source);
+    counters_.graph_edge_payload_read_bytes += response.read_data.size();
+    ++counters_.fallback_endpoint_reads;
+    return;
+  case MemoryPayloadKind::kFallbackReplayEdge:
+    loaded_edge_ =
+        decode_spine_level_edge(response.read_data, task.edge_source);
+    counters_.graph_edge_payload_read_bytes += response.read_data.size();
+    counters_.graph_replay_payload_read_bytes += response.read_data.size();
+    ++counters_.range_task_replay_payloads;
+    ++counters_.fallback_replay_edges;
+    if (loaded_edge_.dst < fallback_tile_base() ||
+        loaded_edge_.dst >= fallback_tile_end() ||
+        loaded_edge_.dst >= maintenance_.vertices()) {
+      counters_.range_task_path = kRangeTaskPathError;
+      counters_.range_task_error = kRangeTaskErrorDestination;
+      begin_terminal(true, "fallback replay returned an edge outside its tile");
+    }
+    return;
   }
 }
 
@@ -823,11 +981,15 @@ void SpineSplitReader::prepare_range_probes() {
     }
   }
   counters_.range_task_active_records = active_records_.size();
-  if (active_records_.size() > kRangeTaskActiveGate) {
+  if (active_records_.size() > maintenance_.config().range_task_active_gate) {
     counters_.range_task_path = kRangeTaskPathFallback;
     counters_.range_task_fallback_reason = kRangeTaskFallbackActiveGate;
+    if (mode_ == SpineReaderMode::kHostActive) {
+      start_host_fallback(kRangeTaskFallbackActiveGate);
+    } else {
     begin_terminal(true,
                    "device-dirty exact path exceeded the active-record gate");
+    }
     return;
   }
   for (const SpineActiveRecord &record : active_records_) {
@@ -945,6 +1107,591 @@ void SpineSplitReader::prepare_range_probes() {
         }
       }
     }
+  }
+}
+
+void SpineSplitReader::start_host_fallback(std::uint32_t reason) {
+  if (mode_ != SpineReaderMode::kHostActive || reason == 0 ||
+      terminal_pending_) {
+    throw std::logic_error("invalid HOST_ACTIVE fallback transition");
+  }
+  counters_.range_task_path = kRangeTaskPathFallback;
+  counters_.range_task_fallback_reason = reason;
+  fallback_enabled_ = true;
+  fallback_partition_ = 0;
+  fallback_discovery_ = true;
+  fallback_hot_ = false;
+  fallback_shard_ = 0;
+  fallback_record_index_ = 0;
+  fallback_level_ = 0;
+  fallback_tile_local_ = 0;
+  fallback_touched_masks_.fill(0);
+  fallback_force_dense_.fill(false);
+  fallback_lookup_ = {};
+  fallback_active_record_valid_ = false;
+  range_probes_.clear();
+  range_tasks_.clear();
+  for (TileTask &tile : tiles_) {
+    tile.ranges.clear();
+  }
+  phase_ = Phase::kFallbackPartitionBegin;
+}
+
+std::uint32_t SpineSplitReader::fallback_partition_base() const {
+  const std::uint64_t base =
+      fallback_partition_ * maintenance_.config().vertex_partition_size;
+  return static_cast<std::uint32_t>(base);
+}
+
+std::uint32_t SpineSplitReader::fallback_partition_end() const {
+  return static_cast<std::uint32_t>(std::min<std::uint64_t>(
+      maintenance_.vertices(),
+      static_cast<std::uint64_t>(fallback_partition_base()) +
+          maintenance_.config().vertex_partition_size));
+}
+
+std::uint32_t SpineSplitReader::fallback_tile_base() const {
+  return fallback_partition_base() +
+         static_cast<std::uint32_t>(fallback_tile_local_ * kTileVertices);
+}
+
+std::uint32_t SpineSplitReader::fallback_tile_end() const {
+  return std::min<std::uint32_t>(fallback_partition_end(),
+                                 fallback_tile_base() + kTileVertices);
+}
+
+void SpineSplitReader::begin_fallback_pass() {
+  fallback_record_index_ = 0;
+  fallback_level_ = 0;
+  fallback_active_record_valid_ = false;
+  phase_ = Phase::kFallbackRecordRead;
+}
+
+void SpineSplitReader::advance_fallback_pass() {
+  if (!fallback_hot_ && (metadata_control_ & 1U) != 0) {
+    fallback_hot_ = true;
+    fallback_shard_ = 0;
+    phase_ = Phase::kFallbackPassBegin;
+    return;
+  }
+  if (fallback_hot_ && fallback_shard_ + 1 < kPartitionCount) {
+    ++fallback_shard_;
+    phase_ = Phase::kFallbackPassBegin;
+    return;
+  }
+  if (fallback_discovery_) {
+    finish_fallback_discovery();
+  } else {
+    phase_ = Phase::kFallbackTileEnd;
+  }
+}
+
+void SpineSplitReader::enqueue_fallback_lookup_header() {
+  const SpineMetadataLayout metadata =
+      spine_metadata_layout(maintenance_.config());
+  const std::size_t logical_family =
+      fallback_lookup_.hot ? kPartitionCount + fallback_lookup_.family
+                           : fallback_lookup_.family;
+  const std::size_t slice =
+      logical_family * kLevelCount + fallback_lookup_.level;
+  const std::size_t page_epoch_index =
+      slice * metadata.page_count + fallback_lookup_.page;
+  const auto enqueue_metadata = [&](std::uint64_t word,
+                                    MemoryPayloadKind kind) {
+    enqueue_read(*ports_.metadata,
+                 maintenance_.config().metadata_base +
+                     word * kMetadataWordBytes,
+                 kMetadataWordBytes, kind);
+    counters_.fallback_metadata_read_bytes += kMetadataWordBytes;
+    counters_.row_lookup_metadata_bytes += kMetadataWordBytes;
+  };
+  enqueue_metadata(slice * kMetadataWordsPerSlice + 7,
+                   MemoryPayloadKind::kFallbackOccupied);
+  enqueue_metadata(metadata.slice_epoch_base + (slice >> 1),
+                   MemoryPayloadKind::kFallbackSliceEpoch);
+  enqueue_metadata(metadata.page_epoch_base + (page_epoch_index >> 1),
+                   MemoryPayloadKind::kFallbackPageEpoch);
+}
+
+void SpineSplitReader::resolve_fallback_lookup_header() {
+  if (!fallback_lookup_.occupied) {
+    phase_ = Phase::kFallbackLevelAdvance;
+    return;
+  }
+  if (fallback_lookup_.slice_epoch == 0 ||
+      fallback_lookup_.page_epoch != fallback_lookup_.slice_epoch) {
+    ++counters_.graph_index_epoch_misses;
+    phase_ = Phase::kFallbackLevelAdvance;
+    return;
+  }
+  const std::size_t logical_family =
+      fallback_lookup_.hot ? kPartitionCount + fallback_lookup_.family
+                           : fallback_lookup_.family;
+  const std::size_t slice =
+      logical_family * kLevelCount + fallback_lookup_.level;
+  enqueue_read(*ports_.metadata,
+               maintenance_.config().metadata_base +
+                   (slice * kMetadataWordsPerSlice + 2) * kMetadataWordBytes,
+               kMetadataWordBytes, MemoryPayloadKind::kFallbackBitmapOffset);
+  counters_.fallback_metadata_read_bytes += kMetadataWordBytes;
+  counters_.row_lookup_metadata_bytes += kMetadataWordBytes;
+  phase_ = Phase::kFallbackLookupBitmapOffsetResolve;
+}
+
+void SpineSplitReader::resolve_fallback_lookup_bitmap_offset() {
+  fallback_lookup_.bitmap_words.clear();
+  enqueue_read(*ports_.graph[fallback_lookup_.family],
+               (fallback_lookup_.layout.bitmap_offset_words +
+                static_cast<std::uint64_t>(fallback_lookup_.page) * 4 +
+                fallback_lookup_.lane_word) *
+                   kSpineGraphWordBytes,
+               kSpineGraphWordBytes,
+               MemoryPayloadKind::kFallbackBitmapSelected);
+  phase_ = Phase::kFallbackLookupIndexResolve;
+}
+
+void SpineSplitReader::resolve_fallback_lookup_index() {
+  if (fallback_lookup_.bitmap_words.size() != fallback_lookup_.lane_word + 1) {
+    throw std::logic_error("fallback bitmap lookup has wrong payload shape");
+  }
+  const std::uint64_t selected =
+      fallback_lookup_.bitmap_words[fallback_lookup_.lane_word];
+  if ((selected & (std::uint64_t{1} << fallback_lookup_.lane_bit)) == 0) {
+    ++counters_.graph_index_bitmap_misses;
+    phase_ = Phase::kFallbackLevelAdvance;
+    return;
+  }
+  if (fallback_lookup_.lane_word != 0) {
+    enqueue_read(*ports_.graph[fallback_lookup_.family],
+                 (fallback_lookup_.layout.bitmap_offset_words +
+                  static_cast<std::uint64_t>(fallback_lookup_.page) * 4) *
+                     kSpineGraphWordBytes,
+                 static_cast<std::uint64_t>(fallback_lookup_.lane_word) *
+                     kSpineGraphWordBytes,
+                 MemoryPayloadKind::kFallbackBitmapPrefix);
+    phase_ = Phase::kFallbackLookupRankResolve;
+    return;
+  }
+  resolve_fallback_lookup_rank();
+}
+
+void SpineSplitReader::resolve_fallback_lookup_rank() {
+  const std::uint64_t selected =
+      fallback_lookup_.bitmap_words.at(fallback_lookup_.lane_word);
+  std::uint32_t rank = 0;
+  for (std::size_t word = 0; word < fallback_lookup_.lane_word; ++word) {
+    rank += std::popcount(fallback_lookup_.bitmap_words[word]);
+  }
+  if (fallback_lookup_.lane_bit != 0) {
+    rank += std::popcount(
+        selected & ((std::uint64_t{1} << fallback_lookup_.lane_bit) - 1));
+  }
+  fallback_lookup_.rank = rank;
+  const std::size_t logical_family =
+      fallback_lookup_.hot ? kPartitionCount + fallback_lookup_.family
+                           : fallback_lookup_.family;
+  const std::size_t slice =
+      logical_family * kLevelCount + fallback_lookup_.level;
+  enqueue_read(*ports_.metadata,
+               maintenance_.config().metadata_base +
+                   (slice * kMetadataWordsPerSlice + 3) * kMetadataWordBytes,
+               kMetadataWordBytes, MemoryPayloadKind::kFallbackPageBaseOffset);
+  enqueue_read(*ports_.metadata,
+               maintenance_.config().metadata_base +
+                   (slice * kMetadataWordsPerSlice + 4) * kMetadataWordBytes,
+               kMetadataWordBytes, MemoryPayloadKind::kFallbackRowOffset);
+  counters_.fallback_metadata_read_bytes += 2 * kMetadataWordBytes;
+  counters_.row_lookup_metadata_bytes += 2 * kMetadataWordBytes;
+  phase_ = Phase::kFallbackLookupOffsetsResolve;
+}
+
+void SpineSplitReader::resolve_fallback_lookup_offsets() {
+  enqueue_read(*ports_.graph[fallback_lookup_.family],
+               (fallback_lookup_.layout.page_base_offset_words +
+                (fallback_lookup_.page >> 1)) *
+                   kSpineGraphWordBytes,
+               kSpineGraphWordBytes, MemoryPayloadKind::kFallbackPageBase);
+  phase_ = Phase::kFallbackLookupPageResolve;
+}
+
+void SpineSplitReader::resolve_fallback_lookup_page() {
+  const std::uint32_t page_base =
+      (fallback_lookup_.page & 1U) == 0
+          ? static_cast<std::uint32_t>(fallback_lookup_.page_base_word)
+          : static_cast<std::uint32_t>(fallback_lookup_.page_base_word >> 32);
+  const std::uint64_t row =
+      static_cast<std::uint64_t>(page_base) + fallback_lookup_.rank;
+  if (row > std::numeric_limits<std::uint32_t>::max()) {
+    counters_.range_task_path = kRangeTaskPathError;
+    counters_.range_task_error = kRangeTaskErrorMetadata;
+    begin_terminal(true, "fallback row index overflowed");
+    return;
+  }
+  fallback_lookup_.row = static_cast<std::uint32_t>(row);
+  enqueue_read(*ports_.graph[fallback_lookup_.family],
+               (fallback_lookup_.layout.row_offset_offset_words +
+                (fallback_lookup_.row >> 1)) *
+                   kSpineGraphWordBytes,
+               kSpineGraphWordBytes, MemoryPayloadKind::kFallbackRow);
+  if ((fallback_lookup_.row & 1U) != 0) {
+    enqueue_read(*ports_.graph[fallback_lookup_.family],
+                 (fallback_lookup_.layout.row_offset_offset_words +
+                  (fallback_lookup_.row >> 1) + 1) *
+                     kSpineGraphWordBytes,
+                 kSpineGraphWordBytes, MemoryPayloadKind::kFallbackNextRow);
+  }
+  phase_ = Phase::kFallbackLookupRowResolve;
+}
+
+void SpineSplitReader::resolve_fallback_lookup_row() {
+  if ((fallback_lookup_.row & 1U) == 0) {
+    fallback_lookup_.start =
+        static_cast<std::uint32_t>(fallback_lookup_.row_word);
+    fallback_lookup_.end =
+        static_cast<std::uint32_t>(fallback_lookup_.row_word >> 32);
+  } else {
+    fallback_lookup_.start =
+        static_cast<std::uint32_t>(fallback_lookup_.row_word >> 32);
+    fallback_lookup_.end =
+        static_cast<std::uint32_t>(fallback_lookup_.next_row_word);
+  }
+  if (fallback_lookup_.end < fallback_lookup_.start) {
+    counters_.range_task_path = kRangeTaskPathError;
+    counters_.range_task_error = kRangeTaskErrorMetadata;
+    begin_terminal(true, "fallback row offsets are reversed");
+    return;
+  }
+  if (fallback_lookup_.end == fallback_lookup_.start) {
+    phase_ = Phase::kFallbackLevelAdvance;
+    return;
+  }
+  const std::size_t logical_family =
+      fallback_lookup_.hot ? kPartitionCount + fallback_lookup_.family
+                           : fallback_lookup_.family;
+  const std::size_t slice =
+      logical_family * kLevelCount + fallback_lookup_.level;
+  enqueue_read(*ports_.metadata,
+               maintenance_.config().metadata_base +
+                   (slice * kMetadataWordsPerSlice + 6) * kMetadataWordBytes,
+               kMetadataWordBytes, MemoryPayloadKind::kFallbackEdgeOffset);
+  counters_.fallback_metadata_read_bytes += kMetadataWordBytes;
+  counters_.row_lookup_metadata_bytes += kMetadataWordBytes;
+  phase_ = Phase::kFallbackRangeResolve;
+}
+
+void SpineSplitReader::begin_fallback_lower_bound(std::uint32_t low,
+                                                  std::uint32_t high,
+                                                  std::uint32_t limit,
+                                                  bool second) {
+  fallback_lower_low_ = low;
+  fallback_lower_high_ = high;
+  fallback_lower_limit_ = limit;
+  fallback_lower_second_ = second;
+  phase_ = Phase::kFallbackLowerBoundRead;
+}
+
+void SpineSplitReader::begin_fallback_range() {
+  if (fallback_discovery_ && !fallback_lookup_.hot) {
+    fallback_clipped_start_ = fallback_lookup_.start;
+    fallback_clipped_end_ = fallback_lookup_.end;
+    enqueue_read(
+        *ports_.graph[fallback_lookup_.family],
+        (fallback_lookup_.layout.edge_offset_words + fallback_clipped_start_) *
+            kSpineGraphWordBytes,
+        kSpineGraphWordBytes, MemoryPayloadKind::kFallbackFirstEdge, 0,
+        fallback_lookup_.record.source);
+    enqueue_read(*ports_.graph[fallback_lookup_.family],
+                 (fallback_lookup_.layout.edge_offset_words +
+                  fallback_clipped_end_ - 1) *
+                     kSpineGraphWordBytes,
+                 kSpineGraphWordBytes, MemoryPayloadKind::kFallbackLastEdge, 0,
+                 fallback_lookup_.record.source);
+    phase_ = Phase::kFallbackEndpointResolve;
+    return;
+  }
+  begin_fallback_lower_bound(fallback_lookup_.start, fallback_lookup_.end,
+                             fallback_discovery_ ? fallback_partition_base()
+                                                 : fallback_tile_base(),
+                             false);
+}
+
+void SpineSplitReader::finish_fallback_range() {
+  phase_ = Phase::kFallbackLevelAdvance;
+}
+
+void SpineSplitReader::finish_fallback_discovery() {
+  const std::uint32_t partition_size =
+      fallback_partition_end() - fallback_partition_base();
+  const std::size_t valid_tiles =
+      (partition_size + kTileVertices - 1) / kTileVertices;
+  std::uint16_t mask = fallback_touched_masks_[fallback_partition_];
+  if (mask == 0) {
+    ++fallback_partition_;
+    phase_ = Phase::kFallbackPartitionBegin;
+    return;
+  }
+  const std::uint64_t discovered = std::popcount(mask);
+  if (active_bin_counts_[fallback_partition_] * discovered >
+      maintenance_.config().fallback_replay_threshold) {
+    mask =
+        valid_tiles == kFallbackTilesPerPartition
+            ? std::numeric_limits<std::uint16_t>::max()
+            : static_cast<std::uint16_t>((std::uint32_t{1} << valid_tiles) - 1);
+    fallback_touched_masks_[fallback_partition_] = mask;
+    fallback_force_dense_[fallback_partition_] = true;
+    ++counters_.fallback_forced_dense_partitions;
+  }
+  fallback_discovery_ = false;
+  fallback_tile_local_ = 0;
+  while (((mask >> fallback_tile_local_) & 1U) == 0) {
+    ++fallback_tile_local_;
+  }
+  fallback_hot_ = false;
+  fallback_shard_ = 0;
+  phase_ = Phase::kFallbackTileBegin;
+}
+
+void SpineSplitReader::advance_fallback() {
+  switch (phase_) {
+  case Phase::kFallbackPartitionBegin:
+    if (fallback_partition_ == kPartitionCount ||
+        fallback_partition_base() >= maintenance_.vertices()) {
+      begin_terminal(false);
+      return;
+    }
+    if (active_bin_counts_[fallback_partition_] == 0) {
+      ++fallback_partition_;
+      return;
+    }
+    ++counters_.fallback_partitions;
+    fallback_discovery_ = true;
+    fallback_hot_ = false;
+    fallback_shard_ = 0;
+    fallback_touched_masks_[fallback_partition_] = 0;
+    phase_ = Phase::kFallbackPassBegin;
+    return;
+  case Phase::kFallbackPassBegin:
+    begin_fallback_pass();
+    return;
+  case Phase::kFallbackRecordRead:
+    if (fallback_record_index_ >= active_bin_counts_[fallback_partition_]) {
+      phase_ = Phase::kFallbackPassAdvance;
+      return;
+    }
+    fallback_active_record_valid_ = false;
+    enqueue_read(
+        *ports_.active_bins,
+        (active_bin_offsets_[fallback_partition_] + fallback_record_index_) *
+            kActiveRecordBytes,
+        kActiveRecordBytes, MemoryPayloadKind::kFallbackActiveRecord);
+    ++counters_.fallback_active_record_reads;
+    counters_.fallback_active_record_read_bytes += kActiveRecordBytes;
+    phase_ = Phase::kFallbackRecordResolve;
+    return;
+  case Phase::kFallbackRecordResolve:
+    if (!fallback_active_record_valid_ ||
+        fallback_lookup_.record.source >= maintenance_.vertices() ||
+        fallback_lookup_.record.source >= maintenance_.config().max_vertices) {
+      counters_.range_task_path = kRangeTaskPathError;
+      counters_.range_task_error = kRangeTaskErrorActiveBounds;
+      begin_terminal(true, "fallback active record exceeds graph bounds");
+      return;
+    }
+    if (fallback_hot_ &&
+        ((fallback_lookup_.record.hot_shard_mask >> fallback_shard_) & 1U) ==
+            0) {
+      phase_ = Phase::kFallbackRecordAdvance;
+      return;
+    }
+    fallback_level_ = 0;
+    phase_ = Phase::kFallbackLevelBegin;
+    return;
+  case Phase::kFallbackLevelBegin: {
+    if (fallback_level_ == kLevelCount) {
+      phase_ = Phase::kFallbackRecordAdvance;
+      return;
+    }
+    if (!fallback_hot_ &&
+        ((fallback_lookup_.record.level_masks[fallback_level_] >>
+          fallback_partition_) &
+         1U) == 0) {
+      phase_ = Phase::kFallbackLevelAdvance;
+      return;
+    }
+    const SpineActiveRecord record = fallback_lookup_.record;
+    fallback_lookup_ = {};
+    fallback_lookup_.record = record;
+    fallback_lookup_.partition = fallback_partition_;
+    fallback_lookup_.family =
+        fallback_hot_ ? fallback_shard_ : fallback_partition_;
+    fallback_lookup_.level = fallback_level_;
+    fallback_lookup_.hot = fallback_hot_;
+    fallback_lookup_.page = record.source / maintenance_.config().page_vertices;
+    fallback_lookup_.lane_word =
+        (record.source % maintenance_.config().page_vertices) / 64;
+    fallback_lookup_.lane_bit =
+        (record.source % maintenance_.config().page_vertices) % 64;
+    ++counters_.fallback_row_lookups;
+    enqueue_fallback_lookup_header();
+    phase_ = Phase::kFallbackLookupHeaderResolve;
+    return;
+  }
+  case Phase::kFallbackLookupHeaderResolve:
+    resolve_fallback_lookup_header();
+    return;
+  case Phase::kFallbackLookupBitmapOffsetResolve:
+    resolve_fallback_lookup_bitmap_offset();
+    return;
+  case Phase::kFallbackLookupIndexResolve:
+    resolve_fallback_lookup_index();
+    return;
+  case Phase::kFallbackLookupRankResolve:
+    resolve_fallback_lookup_rank();
+    return;
+  case Phase::kFallbackLookupOffsetsResolve:
+    resolve_fallback_lookup_offsets();
+    return;
+  case Phase::kFallbackLookupPageResolve:
+    resolve_fallback_lookup_page();
+    return;
+  case Phase::kFallbackLookupRowResolve:
+    resolve_fallback_lookup_row();
+    return;
+  case Phase::kFallbackRangeResolve:
+    begin_fallback_range();
+    return;
+  case Phase::kFallbackLowerBoundRead:
+    if (fallback_lower_low_ >= fallback_lower_high_) {
+      if (!fallback_lower_second_) {
+        fallback_clipped_start_ = fallback_lower_low_;
+        begin_fallback_lower_bound(
+            fallback_clipped_start_, fallback_lookup_.end,
+            fallback_discovery_ ? fallback_partition_end()
+                                : fallback_tile_end(),
+            true);
+      } else {
+        fallback_clipped_end_ = fallback_lower_low_;
+        if (fallback_clipped_end_ <= fallback_clipped_start_) {
+          finish_fallback_range();
+        } else if (fallback_discovery_) {
+          enqueue_read(*ports_.graph[fallback_lookup_.family],
+                       (fallback_lookup_.layout.edge_offset_words +
+                        fallback_clipped_start_) *
+                           kSpineGraphWordBytes,
+                       kSpineGraphWordBytes,
+                       MemoryPayloadKind::kFallbackFirstEdge, 0,
+                       fallback_lookup_.record.source);
+          enqueue_read(*ports_.graph[fallback_lookup_.family],
+                       (fallback_lookup_.layout.edge_offset_words +
+                        fallback_clipped_end_ - 1) *
+                           kSpineGraphWordBytes,
+                       kSpineGraphWordBytes,
+                       MemoryPayloadKind::kFallbackLastEdge, 0,
+                       fallback_lookup_.record.source);
+          phase_ = Phase::kFallbackEndpointResolve;
+        } else {
+          fallback_replay_position_ = fallback_clipped_start_;
+          phase_ = Phase::kFallbackEdgeRead;
+        }
+      }
+      return;
+    }
+    enqueue_read(*ports_.graph[fallback_lookup_.family],
+                 (fallback_lookup_.layout.edge_offset_words +
+                  fallback_lower_low_ +
+                  ((fallback_lower_high_ - fallback_lower_low_) >> 1)) *
+                     kSpineGraphWordBytes,
+                 kSpineGraphWordBytes, MemoryPayloadKind::kFallbackBinaryEdge,
+                 0, fallback_lookup_.record.source);
+    phase_ = Phase::kFallbackLowerBoundResolve;
+    return;
+  case Phase::kFallbackLowerBoundResolve: {
+    const std::uint32_t mid =
+        fallback_lower_low_ +
+        ((fallback_lower_high_ - fallback_lower_low_) >> 1);
+    if (fallback_binary_edge_.dst < fallback_lower_limit_) {
+      fallback_lower_low_ = mid + 1;
+    } else {
+      fallback_lower_high_ = mid;
+    }
+    phase_ = Phase::kFallbackLowerBoundRead;
+    return;
+  }
+  case Phase::kFallbackEndpointResolve: {
+    const std::uint32_t partition_base = fallback_partition_base();
+    const std::uint32_t partition_end = fallback_partition_end();
+    if (fallback_first_edge_.dst > fallback_last_edge_.dst ||
+        fallback_first_edge_.dst < partition_base ||
+        fallback_last_edge_.dst >= partition_end) {
+      counters_.range_task_path = kRangeTaskPathError;
+      counters_.range_task_error = kRangeTaskErrorDestination;
+      begin_terminal(true, "fallback discovery endpoints exceed the partition");
+      return;
+    }
+    const std::size_t first_tile =
+        (fallback_first_edge_.dst - partition_base) / kTileVertices;
+    const std::size_t last_tile =
+        (fallback_last_edge_.dst - partition_base) / kTileVertices;
+    if (last_tile >= kFallbackTilesPerPartition) {
+      counters_.range_task_path = kRangeTaskPathError;
+      counters_.range_task_error = kRangeTaskErrorDestination;
+      begin_terminal(true, "fallback discovery tile index overflowed");
+      return;
+    }
+    for (std::size_t tile = first_tile; tile <= last_tile; ++tile) {
+      fallback_touched_masks_[fallback_partition_] |=
+          static_cast<std::uint16_t>(1U << tile);
+    }
+    finish_fallback_range();
+    return;
+  }
+  case Phase::kFallbackLevelAdvance:
+    ++fallback_level_;
+    phase_ = Phase::kFallbackLevelBegin;
+    return;
+  case Phase::kFallbackRecordAdvance:
+    ++fallback_record_index_;
+    phase_ = Phase::kFallbackRecordRead;
+    return;
+  case Phase::kFallbackPassAdvance:
+    advance_fallback_pass();
+    return;
+  case Phase::kFallbackTileScan:
+    while (fallback_tile_local_ < kFallbackTilesPerPartition &&
+           ((fallback_touched_masks_[fallback_partition_] >>
+             fallback_tile_local_) &
+            1U) == 0) {
+      ++fallback_tile_local_;
+    }
+    if (fallback_tile_local_ == kFallbackTilesPerPartition ||
+        fallback_tile_base() >= fallback_partition_end()) {
+      ++fallback_partition_;
+      phase_ = Phase::kFallbackPartitionBegin;
+    } else {
+      fallback_hot_ = false;
+      fallback_shard_ = 0;
+      phase_ = Phase::kFallbackTileBegin;
+    }
+    return;
+  case Phase::kFallbackEdgeRead:
+    if (fallback_replay_position_ >= fallback_clipped_end_) {
+      finish_fallback_range();
+      return;
+    }
+    enqueue_read(*ports_.graph[fallback_lookup_.family],
+                 (fallback_lookup_.layout.edge_offset_words +
+                  fallback_replay_position_) *
+                     kSpineGraphWordBytes,
+                 kSpineGraphWordBytes, MemoryPayloadKind::kFallbackReplayEdge,
+                 0, fallback_lookup_.record.source);
+    phase_ = Phase::kFallbackEdgeEmit;
+    return;
+  case Phase::kFallbackTileBegin:
+  case Phase::kFallbackEdgeEmit:
+  case Phase::kFallbackTileEnd:
+    return;
+  default:
+    throw std::logic_error("non-fallback phase reached fallback engine");
   }
 }
 
@@ -1091,12 +1838,18 @@ void SpineSplitReader::resolve_probe_row() {
     return;
   }
   const std::uint64_t row_length = probe.end - probe.start;
-  if (row_length >
-      kRangeTaskPayloadBudget - counters_.range_task_construction_payloads) {
+  const std::uint64_t payload_budget =
+      maintenance_.config().range_task_payload_budget;
+  if (counters_.range_task_construction_payloads >= payload_budget ||row_length >
+          payload_budget - counters_.range_task_construction_payloads) {
     counters_.range_task_path = kRangeTaskPathFallback;
     counters_.range_task_fallback_reason = kRangeTaskFallbackPayloadBudget;
+    if (mode_ == SpineReaderMode::kHostActive) {
+      start_host_fallback(kRangeTaskFallbackPayloadBudget);
+    } else {
     begin_terminal(
         true, "device-dirty exact path exceeded its construction budget");
+    }
     return;
   }
   construction_position_ = probe.start;
@@ -1119,11 +1872,15 @@ void SpineSplitReader::flush_construction_run() {
         true, "constructed range does not fit the 128-bit descriptor");
     return;
   }
-  if (range_tasks_.size() >= kRangeTaskCapacity) {
+  if (range_tasks_.size() >= maintenance_.config().range_task_capacity) {
     counters_.range_task_path = kRangeTaskPathFallback;
     counters_.range_task_fallback_reason = kRangeTaskFallbackCapacity;
+    if (mode_ == SpineReaderMode::kHostActive) {
+      start_host_fallback(kRangeTaskFallbackCapacity);
+    } else {
     begin_terminal(true,
                    "device-dirty exact path exhausted range descriptors");
+    }
     return;
   }
   const RangeProbe &probe = range_probes_.at(probe_index_);
@@ -1176,7 +1933,7 @@ void SpineSplitReader::consume_construction_edge() {
     ++construction_run_length_;
   } else {
     flush_construction_run();
-    if (terminal_pending_) {
+    if (terminal_pending_ || fallback_enabled_) {
       return;
     }
     construction_run_valid_ = true;
@@ -1188,7 +1945,7 @@ void SpineSplitReader::consume_construction_edge() {
   ++construction_position_;
   if (construction_position_ == probe.end) {
     flush_construction_run();
-    if (!terminal_pending_) {
+    if (!terminal_pending_ && !fallback_enabled_) {
       phase_ = Phase::kProbeAdvance;
     }
   } else {
@@ -1306,10 +2063,33 @@ void SpineSplitReader::begin_terminal(bool overflow, std::string failure) {
             : static_cast<std::uint32_t>(SpineDirtyStatus::kTaskError);
   }
   enqueue_terminal_writes();
-  const bool tile_open = phase_ == Phase::kEdgeRead ||
+  const bool exact_tile_open = phase_ == Phase::kEdgeRead ||
                          phase_ == Phase::kEdgeEmit ||
                          phase_ == Phase::kTileEnd;
-  phase_ = tile_open ? Phase::kTileEnd : Phase::kDiagnostic;
+  const bool fallback_tile_open =
+      !fallback_discovery_ &&
+      (phase_ == Phase::kFallbackPassBegin ||
+       phase_ == Phase::kFallbackRecordRead ||
+       phase_ == Phase::kFallbackRecordResolve ||
+       phase_ == Phase::kFallbackLevelBegin ||
+       phase_ == Phase::kFallbackLookupHeaderResolve ||
+       phase_ == Phase::kFallbackLookupBitmapOffsetResolve ||
+       phase_ == Phase::kFallbackLookupIndexResolve ||
+       phase_ == Phase::kFallbackLookupRankResolve ||
+       phase_ == Phase::kFallbackLookupOffsetsResolve ||
+       phase_ == Phase::kFallbackLookupPageResolve ||
+       phase_ == Phase::kFallbackLookupRowResolve ||
+       phase_ == Phase::kFallbackRangeResolve ||
+       phase_ == Phase::kFallbackLowerBoundRead ||
+       phase_ == Phase::kFallbackLowerBoundResolve ||
+       phase_ == Phase::kFallbackEndpointResolve ||
+       phase_ == Phase::kFallbackLevelAdvance ||
+       phase_ == Phase::kFallbackRecordAdvance ||
+       phase_ == Phase::kFallbackPassAdvance ||
+       phase_ == Phase::kFallbackEdgeRead ||
+       phase_ == Phase::kFallbackEdgeEmit || phase_ == Phase::kFallbackTileEnd);
+  phase_ = exact_tile_open ? Phase::kTileEnd : (fallback_tile_open ? Phase::kFallbackTileEnd
+                                                 : Phase::kDiagnostic);
 }
 
 PartConvWord SpineSplitReader::current_diagnostic_word() const {
@@ -1424,7 +2204,23 @@ PartConvWord SpineSplitReader::current_stream_word() const {
     case Phase::kTileEnd:
       return PartConvWord{.kind = PartConvWordKind::kTileEnd,
                           .first = tiles_.at(tile_index_).tile_base};
-    case Phase::kDiagnostic:
+    case Phase::kFallbackTileBegin:
+    return PartConvWord{
+        .kind = PartConvWordKind::kTileBegin,
+        .first = fallback_tile_base(),
+        .second = fallback_force_dense_[fallback_partition_] ? 1U : 0U,
+    };
+  case Phase::kFallbackEdgeEmit:
+    return PartConvWord{
+        .kind = PartConvWordKind::kEdge,
+        .first = loaded_edge_.dst,
+        .second = saturating_add(fallback_lookup_.record.source_value,
+                                 loaded_edge_.weight),
+    };
+  case Phase::kFallbackTileEnd:
+    return PartConvWord{.kind = PartConvWordKind::kTileEnd,
+                        .first = fallback_tile_end() - fallback_tile_base()};
+  case Phase::kDiagnostic:
       return current_diagnostic_word();
     case Phase::kDone:
       return PartConvWord{.kind = PartConvWordKind::kDoneAll,
@@ -1469,7 +2265,7 @@ void SpineSplitReader::advance(const CycleContext &context) {
           begin_terminal(true, "dirty frontier count exceeds MAX_N");
           return;
         }
-        if (dirty_count_ > 4096) {
+        if (dirty_count_ > maintenance_.config().device_dirty_source_limit) {
           counters_.range_task_path = kRangeTaskPathFallback;
           counters_.range_task_fallback_reason =
               kRangeTaskFallbackDirtyRequiresHost;
@@ -1514,18 +2310,21 @@ void SpineSplitReader::advance(const CycleContext &context) {
             return;
           }
           total += count;
+      }
+      counters_.range_task_active_records = total;
+      if (total > maintenance_.config().range_task_active_gate) {
+        start_host_fallback(kRangeTaskFallbackActiveGate);
+        return;
+      }
+      for (std::size_t partition = 0; partition < kPartitionCount;
+           ++partition) {
+        const std::uint64_t count = active_bin_counts_[partition];
           if (count != 0) {
-            enqueue_read(*ports_.active_bins, offset * kActiveRecordBytes,
+            enqueue_read(*ports_.active_bins,
+                       active_bin_offsets_[partition] * kActiveRecordBytes,
                          count * kActiveRecordBytes,
                          MemoryPayloadKind::kActiveRecords, partition);
           }
-        }
-        if (total > kRangeTaskActiveGate) {
-          counters_.range_task_path = kRangeTaskPathFallback;
-          counters_.range_task_fallback_reason = kRangeTaskFallbackActiveGate;
-          begin_terminal(true,
-                         "host active records exceeded the exact-task gate");
-          return;
         }
         phase_ = Phase::kHostActiveResolve;
       }
@@ -1673,7 +2472,7 @@ void SpineSplitReader::advance(const CycleContext &context) {
       tile_cursors_[bin_index_] = prefix;
       ++counters_.range_task_prefix_cycles;
       ++bin_index_;
-      if (next > range_tasks_.size() || next > kRangeTaskCapacity) {
+      if (next > range_tasks_.size() || next > maintenance_.config().range_task_capacity) {
         counters_.range_task_path = kRangeTaskPathError;
         counters_.range_task_error = kRangeTaskErrorPrefix;
         begin_terminal(true,
@@ -1709,7 +2508,8 @@ void SpineSplitReader::advance(const CycleContext &context) {
         const std::uint32_t limit =
             tile_offsets_[task.tile] + tile_counts_[task.tile];
         if (tile_cursors_[task.tile] >= limit ||
-            tile_cursors_[task.tile] >= kRangeTaskCapacity) {
+            tile_cursors_[task.tile] >=
+              maintenance_.config().range_task_capacity) {
           counters_.range_task_path = kRangeTaskPathError;
           counters_.range_task_error = kRangeTaskErrorPrefix;
           begin_terminal(
@@ -1785,6 +2585,33 @@ void SpineSplitReader::advance(const CycleContext &context) {
     case Phase::kTileBegin:
     case Phase::kEdgeEmit:
     case Phase::kTileEnd:
+    return;
+  case Phase::kFallbackPartitionBegin:
+  case Phase::kFallbackPassBegin:
+  case Phase::kFallbackRecordRead:
+  case Phase::kFallbackRecordResolve:
+  case Phase::kFallbackLevelBegin:
+  case Phase::kFallbackLookupHeaderResolve:
+  case Phase::kFallbackLookupBitmapOffsetResolve:
+  case Phase::kFallbackLookupIndexResolve:
+  case Phase::kFallbackLookupRankResolve:
+  case Phase::kFallbackLookupOffsetsResolve:
+  case Phase::kFallbackLookupPageResolve:
+  case Phase::kFallbackLookupRowResolve:
+  case Phase::kFallbackRangeResolve:
+  case Phase::kFallbackLowerBoundRead:
+  case Phase::kFallbackLowerBoundResolve:
+  case Phase::kFallbackEndpointResolve:
+  case Phase::kFallbackLevelAdvance:
+  case Phase::kFallbackRecordAdvance:
+  case Phase::kFallbackPassAdvance:
+  case Phase::kFallbackTileScan:
+  case Phase::kFallbackTileBegin:
+  case Phase::kFallbackEdgeRead:
+  case Phase::kFallbackEdgeEmit:
+  case Phase::kFallbackTileEnd:
+    advance_fallback();
+    return;
     case Phase::kDiagnostic:
     case Phase::kDone:
       return;
@@ -1814,6 +2641,26 @@ SpineSplitSsspCompute::SpineSplitSsspCompute(
   ports_.vertex_state->initialize_payload(
       static_cast<std::uint64_t>(source_) * kVertexWordBytes, encode_u32(0));
   values_[source_] = 0;
+}
+
+bool SpineSplitSsspCompute::recoverable_host_handoff() const noexcept {
+  return done_ && failed_ && counters_.done_overflow &&
+         counters_.range_task_path == kRangeTaskPathFallback &&
+         counters_.range_task_fallback_reason != 0 &&
+         counters_.range_task_error == 0 &&
+         counters_.source_protocol_status ==
+             static_cast<std::uint32_t>(SpineSourceProtocolStatus::kOk) &&
+         !tile_open_ && !waiting_memory_ && memory_tasks_.empty() &&
+         !source_reply_pending_;
+}
+
+void SpineSplitSsspCompute::reset_after_host_handoff() {
+  if (!recoverable_host_handoff()) {
+    throw std::logic_error(
+        "compute host handoff reset requires REQUIRES_HOST completion");
+  }
+  failed_ = false;
+  reset_round();
 }
 
 void SpineSplitSsspCompute::reset_round() {
@@ -2103,7 +2950,18 @@ void SpineSplitSsspCompute::handle_edge_word(const PartConvWord &word) {
       full_path_ = false;
       overflow_edge_pending_ = false;
       tile_open_ = true;
+    if (word.second != 0) {
+      full_path_ = true;
+      ++counters_.full_path_tiles;
+      ++counters_.forced_dense_tiles;
+      counters_.swept_vertex_words += tile_size_;
+      enqueue_memory(*ports_.vertex_state, MemoryOperation::kRead,
+                     tile_base_ * kVertexWordBytes,
+                     tile_size_ * kVertexWordBytes);
+      phase_ = Phase::kFullLoad;
+    } else {
       phase_ = Phase::kInput;
+    }
       return;
     case PartConvWordKind::kEdge:
       if (!tile_open_ || word.first < tile_base_ ||
@@ -2179,7 +3037,7 @@ void SpineSplitSsspCompute::prepare_gather() {
 void SpineSplitSsspCompute::prepare_store() {
   const std::size_t active_base =
       next_active_.size() - changed_vertices_.size();
-  if (full_path_ && !changed_vertices_.empty()) {
+  if (full_path_) {
     enqueue_memory(*ports_.vertex_state, MemoryOperation::kWrite,
                    tile_base_ * kVertexWordBytes, tile_size_ * kVertexWordBytes,
                    encode_u32_words(tile_values_));

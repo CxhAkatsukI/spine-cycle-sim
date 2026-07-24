@@ -1,5 +1,9 @@
 # Spine terminal diagnostic protocol
 
+Status: historical diagnostic milestone. The fallback execution limitation
+below was subsequently closed by
+`docs/spine_host_tiled_fallback_20260724.md`.
+
 Date: 2026-07-24
 Branch: `codex/fine-grained-cycle-sim`
 HLS reference: `origin/reduce-levels-for-routing` at

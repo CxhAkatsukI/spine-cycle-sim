@@ -13,8 +13,9 @@
   payload decoding, the 16-credit source-value protocol, HBM level
   metadata/epoch gating, two-pass range replay, the ten-word terminal
   diagnostic transcript, HOST coverage validation, and the two-pass
-  ACK_DIRTY ownership closeout. Its editable source is the adjacent `.dot`
-  file.
+  ACK_DIRTY ownership closeout. It now also shows DEVICE limit handoff and the
+  payload-driven HOST discovery/replay fallback. Its editable source is the
+  adjacent `.dot` file.
 
 Regenerate a Graphviz SVG from the repository root with:
 

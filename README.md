@@ -149,3 +149,6 @@ and
 The persistent dirty-frontier coverage and ACK/clear lifecycle is documented
 in
 [`docs/spine_dirty_ownership_20260724.md`](docs/spine_dirty_ownership_20260724.md).
+DEVICE-to-HOST limit handoff and payload-driven HOST tiled fallback are
+documented in
+[`docs/spine_host_tiled_fallback_20260724.md`](docs/spine_host_tiled_fallback_20260724.md).

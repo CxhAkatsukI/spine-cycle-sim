@@ -59,6 +59,14 @@ struct SpineL0Config {
   std::uint32_t page_vertices{256};
   std::uint32_t max_vertices{1U << 24};
   std::uint32_t max_sort_edges{131'072};
+  // Production defaults mirror the fixed capacities in
+  // spine_partitioned.hpp. Smaller values exercise the otherwise very large
+  // fallback boundaries in cycle-level tests.
+  std::size_t device_dirty_source_limit{4'096};
+  std::size_t range_task_active_gate{16'384};
+  std::size_t range_task_capacity{65'536};
+  std::uint64_t range_task_payload_budget{1'048'576};
+  std::uint64_t fallback_replay_threshold{65'536};
   std::vector<std::uint32_t> hot_vertices;
   std::uint64_t sorted_edges_base{};
   // HBM16 is shared by sorted input/range-task scratch and the persistent

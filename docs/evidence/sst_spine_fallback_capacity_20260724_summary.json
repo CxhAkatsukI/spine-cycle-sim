@@ -1,0 +1,373 @@
+{
+  "architecture_profile_evidence_tier": "hardware_validated",
+  "architecture_profile_id": "spine_shared_engine_9c08763",
+  "architecture_profile_sha256": "aba0d6bbcbaa64240897ed3efc555d6ce6d6455d2f10e77e0ccdb77fa46466a7",
+  "backend": "sst_memHierarchy_dramsim3",
+  "backend_max_outstanding": 5,
+  "backend_requests": 1424,
+  "backend_response_queue_stalls": 0,
+  "backend_submit_stalls": 0,
+  "compute_diagnostic_words_per_round": [
+    10,
+    10
+  ],
+  "compute_dirty_counts_per_round": [
+    1,
+    0
+  ],
+  "compute_dirty_generations_per_round": [
+    1,
+    2
+  ],
+  "compute_done_overflow_per_round": [
+    0,
+    0
+  ],
+  "compute_done_words_per_round": [
+    1,
+    1
+  ],
+  "compute_protocol_status_per_round": [
+    0,
+    0
+  ],
+  "compute_range_active_records_per_round": [
+    1,
+    0
+  ],
+  "compute_range_construction_payloads_per_round": [
+    3,
+    0
+  ],
+  "compute_range_errors_per_round": [
+    0,
+    0
+  ],
+  "compute_range_fallback_reasons_per_round": [
+    2,
+    0
+  ],
+  "compute_range_family_probes_per_round": [
+    1,
+    0
+  ],
+  "compute_range_family_skips_per_round": [
+    0,
+    0
+  ],
+  "compute_range_paths_per_round": [
+    2,
+    1
+  ],
+  "compute_range_replay_payloads_per_round": [
+    3,
+    0
+  ],
+  "compute_range_row_lookups_per_round": [
+    1,
+    0
+  ],
+  "compute_range_tasks_per_round": [
+    2,
+    0
+  ],
+  "converged": true,
+  "correctness_mismatches": 0,
+  "cycles": 14771,
+  "dirty_ack_bitmap_read_bytes": 32,
+  "dirty_ack_bitmap_write_bytes": 16,
+  "dirty_ack_candidate_write_bytes": 40,
+  "dirty_ack_captured_count": 1,
+  "dirty_ack_captured_generation": 1,
+  "dirty_ack_cleared_sources": 1,
+  "dirty_ack_cycles": 206,
+  "dirty_ack_generation_advances": 1,
+  "dirty_ack_list_read_bytes": 32,
+  "dirty_ack_metadata_read_bytes": 72,
+  "dirty_ack_metadata_write_bytes": 64,
+  "dirty_ack_result_count": 0,
+  "dirty_ack_result_generation": 2,
+  "dirty_ack_started": 1,
+  "dirty_ack_status": 0,
+  "dirty_ack_validated_sources": 1,
+  "dram_activates": 101,
+  "dram_channels": 32,
+  "dram_precharges": 101,
+  "dram_read_row_hits": 1186,
+  "dram_reads": 1316,
+  "dram_total_energy_pj": 214893438.0,
+  "dram_write_row_hits": 36,
+  "dram_writes": 108,
+  "edge_axis_max_occupancy_per_round": [
+    11,
+    1
+  ],
+  "edge_axis_push_stalls_per_round": [
+    0,
+    0
+  ],
+  "edge_axis_transfers_per_round": [
+    20,
+    11
+  ],
+  "fast_tiles_per_round": [
+    3,
+    0
+  ],
+  "final_value_samples": {
+    "0": 0,
+    "1": 1,
+    "131072": 3,
+    "65536": 2
+  },
+  "final_values_count": 131073,
+  "final_values_sha256": "bdce63ca0bf1a158203d392c50235b4cf1f24e650cef59df155cfc5a61882ca6",
+  "frontier_in_sizes": [
+    1,
+    3
+  ],
+  "frontier_mismatches": 0,
+  "frontier_out_sizes": [
+    3,
+    0
+  ],
+  "full_tiles_per_round": [
+    0,
+    0
+  ],
+  "host_handoff_control_cycles": [
+    0
+  ],
+  "host_handoff_control_timed": [
+    0
+  ],
+  "host_handoff_device_attempt_cycles": [
+    4617
+  ],
+  "host_handoff_device_compute_overflow": [
+    1
+  ],
+  "host_handoff_device_reader_overflow": [
+    1
+  ],
+  "host_handoff_list_read_bytes": [
+    16
+  ],
+  "host_handoff_logical_rounds": [
+    0
+  ],
+  "host_handoff_reasons": [
+    2
+  ],
+  "host_handoff_source_counts": [
+    1
+  ],
+  "host_handoffs": 1,
+  "input_edges": 3,
+  "maintenance_edge_visits": 57,
+  "maintenance_graph_index_payload_write_bytes": 64,
+  "maintenance_graph_payload_write_bytes": 24,
+  "maintenance_scan_passes": 19,
+  "maintenance_sorted_bytes": 912,
+  "maintenance_sorted_payload_read_bytes": 912,
+  "mode": "spine_sssp",
+  "processed_edges_per_round": [
+    3,
+    0
+  ],
+  "range_task_capacity": 2,
+  "range_task_payload_budget": 1048576,
+  "reader_ack_eligible_per_round": [
+    1,
+    0
+  ],
+  "reader_active_bin_bytes_per_round": [
+    160,
+    0
+  ],
+  "reader_construction_payload_bytes_per_round": [
+    24,
+    0
+  ],
+  "reader_diagnostic_words_per_round": [
+    10,
+    10
+  ],
+  "reader_dirty_bitmap_bytes_per_round": [
+    0,
+    0
+  ],
+  "reader_dirty_counts_per_round": [
+    1,
+    0
+  ],
+  "reader_dirty_generations_per_round": [
+    1,
+    2
+  ],
+  "reader_dirty_list_bytes_per_round": [
+    0,
+    0
+  ],
+  "reader_dirty_status_per_round": [
+    0,
+    0
+  ],
+  "reader_done_overflow_per_round": [
+    0,
+    0
+  ],
+  "reader_done_words_per_round": [
+    1,
+    1
+  ],
+  "reader_epoch_misses_per_round": [
+    0,
+    0
+  ],
+  "reader_fallback_active_record_reads_per_round": [
+    4,
+    0
+  ],
+  "reader_fallback_forced_dense_partitions_per_round": [
+    0,
+    0
+  ],
+  "reader_fallback_partitions_per_round": [
+    1,
+    0
+  ],
+  "reader_fallback_replay_edges_per_round": [
+    3,
+    0
+  ],
+  "reader_fallback_row_lookups_per_round": [
+    4,
+    0
+  ],
+  "reader_graph_bytes_per_round": [
+    272,
+    0
+  ],
+  "reader_graph_index_bitmap_misses_per_round": [
+    0,
+    0
+  ],
+  "reader_graph_index_payload_bytes_per_round": [
+    120,
+    0
+  ],
+  "reader_graph_payload_bytes_per_round": [
+    152,
+    0
+  ],
+  "reader_host_coverage_match_per_round": [
+    1,
+    0
+  ],
+  "reader_metadata_bytes_per_round": [
+    3448,
+    3216
+  ],
+  "reader_metadata_write_bytes_per_round": [
+    16,
+    16
+  ],
+  "reader_protocol_acks_per_round": [
+    0,
+    0
+  ],
+  "reader_protocol_markers_per_round": [
+    0,
+    0
+  ],
+  "reader_protocol_status_per_round": [
+    0,
+    0
+  ],
+  "reader_range_active_records_per_round": [
+    1,
+    0
+  ],
+  "reader_range_construction_payloads_per_round": [
+    3,
+    0
+  ],
+  "reader_range_errors_per_round": [
+    0,
+    0
+  ],
+  "reader_range_fallback_reasons_per_round": [
+    2,
+    0
+  ],
+  "reader_range_family_probes_per_round": [
+    1,
+    0
+  ],
+  "reader_range_family_skips_per_round": [
+    0,
+    0
+  ],
+  "reader_range_level_checks_per_round": [
+    11,
+    0
+  ],
+  "reader_range_paths_per_round": [
+    2,
+    1
+  ],
+  "reader_range_replay_payloads_per_round": [
+    3,
+    0
+  ],
+  "reader_range_row_lookups_per_round": [
+    1,
+    0
+  ],
+  "reader_range_tasks_per_round": [
+    2,
+    0
+  ],
+  "reader_replay_payload_bytes_per_round": [
+    24,
+    0
+  ],
+  "reader_result_write_bytes_per_round": [
+    64,
+    64
+  ],
+  "reader_source_requests_per_round": [
+    0,
+    0
+  ],
+  "reader_source_responses_per_round": [
+    0,
+    0
+  ],
+  "reader_source_sizes_per_round": [
+    1,
+    0
+  ],
+  "reader_source_windows_per_round": [
+    0,
+    0
+  ],
+  "round_cycles": [
+    9640,
+    4924
+  ],
+  "rounds": 2,
+  "simulation_evidence_tier": "structural_execution_driven",
+  "source_revision": "9c08763148644df262c0d374e782bc834f4c0f4f",
+  "status": "PASS",
+  "success": true,
+  "value_axis_max_occupancy_per_round": [
+    0,
+    0
+  ],
+  "value_axis_transfers_per_round": [
+    0,
+    0
+  ]
+}

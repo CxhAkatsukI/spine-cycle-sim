@@ -559,10 +559,23 @@ class OnlineMemoryProbe final : public SST::Component {
     write_percent_ = params.find<std::uint32_t>("write_percent", 0);
     max_cycles_ = params.find<std::uint64_t>("max_cycles", 1'000'000);
     max_rounds_ = params.find<std::size_t>("max_rounds", 256);
+    device_dirty_source_limit_ =
+        params.find<std::size_t>("device_dirty_source_limit", 4'096);
+    range_task_active_gate_ =
+        params.find<std::size_t>("range_task_active_gate", 16'384);
+    range_task_capacity_ =
+        params.find<std::size_t>("range_task_capacity", 65'536);
+    range_task_payload_budget_ =
+        params.find<std::uint64_t>("range_task_payload_budget", 1'048'576);
+    fallback_replay_threshold_ =
+        params.find<std::uint64_t>("fallback_replay_threshold", 65'536);
     if ((mode_ != "probe" && mode_ != "payload_roundtrip" &&
          mode_ != "spine_vertical" && mode_ != "spine_compute" &&
          mode_ != "spine_sssp") ||
         channels_ == 0 || channel_capacity_bytes_ == 0 || max_rounds_ == 0 ||
+        device_dirty_source_limit_ == 0 || range_task_active_gate_ == 0 ||
+        range_task_capacity_ == 0 || range_task_capacity_ > 65'536 ||
+        range_task_payload_budget_ == 0 || fallback_replay_threshold_ == 0 ||
         write_percent_ > 100 ||
         (mode_ == "probe" &&
          (request_count_ == 0 || request_bytes_ == 0 || stride_bytes_ == 0)) ||
@@ -704,6 +717,11 @@ class OnlineMemoryProbe final : public SST::Component {
         sst_round_start_cycle_ = scheduler_.clock(core).completed_cycles;
       }
       SpineL0Config maintenance_config;
+      maintenance_config.device_dirty_source_limit = device_dirty_source_limit_;
+      maintenance_config.range_task_active_gate = range_task_active_gate_;
+      maintenance_config.range_task_capacity = range_task_capacity_;
+      maintenance_config.range_task_payload_budget = range_task_payload_budget_;
+      maintenance_config.fallback_replay_threshold = fallback_replay_threshold_;
       if (!hot_vertices_text_.empty()) {
         std::istringstream vertices(hot_vertices_text_);
         std::string item;
@@ -815,6 +833,39 @@ class OnlineMemoryProbe final : public SST::Component {
     } else if (mode_ == "spine_sssp") {
       if (spine_system_->done() && spine_system_->idle() &&
           backend_->outstanding() == 0) {
+        if (!sst_waiting_dirty_ack_ &&
+            spine_system_->recoverable_host_handoff()) {
+          const std::uint64_t device_end_cycle =
+              scheduler_.clock(0).completed_cycles;
+          SpineSsspRoundEvidence device_attempt{
+              .round = sst_rounds_.size(),
+              .active_in = sst_current_frontier_,
+              .reader_sources = spine_system_->reader_source_ids(),
+              .active_out = spine_system_->compute().next_active(),
+              .reader = spine_system_->reader_counters(),
+              .compute = spine_system_->compute_counters(),
+              .edge_axis = spine_system_->edge_stream_stats(),
+              .value_axis = spine_system_->value_stream_stats(),
+              .start_cycle = sst_round_start_cycle_,
+              .end_cycle = device_end_cycle,
+          };
+          const std::uint32_t fallback_reason =
+              spine_system_->reader_counters().range_task_fallback_reason;
+          const std::vector<std::uint32_t> sources =
+              spine_system_->restart_device_dirty_host_fallback();
+          sst_host_handoffs_.push_back(SpineHostHandoffEvidence{
+              .logical_round = sst_rounds_.size(),
+              .fallback_reason = fallback_reason,
+              .source_count = sources.size(),
+              .host_list_read_bytes =
+                  ((sources.size() + 3) / 4) * kSpineSortWordBytes,
+              .host_control_cycles = 0,
+              .host_control_timed = false,
+              .device_attempt = std::move(device_attempt),
+          });
+          sst_current_frontier_ = sources;
+          return false;
+        }
         if (sst_waiting_dirty_ack_) {
           sst_waiting_dirty_ack_ = false;
           const bool finished =
@@ -920,7 +971,13 @@ class OnlineMemoryProbe final : public SST::Component {
       {"channel_capacity_bytes", "Capacity of each HBM channel", "1073741824"},
       {"write_percent", "Deterministic write percentage", "0"},
       {"max_cycles", "Core-cycle timeout", "1000000"},
-      {"max_rounds", "Maximum SSSP frontier rounds", "256"})
+      {"max_rounds", "Maximum SSSP frontier rounds", "256"},
+      {"device_dirty_source_limit", "DEVICE_DIRTY source capacity", "4096"},
+      {"range_task_active_gate", "Exact-reader active-record gate", "16384"},
+      {"range_task_capacity", "Exact-reader descriptor capacity", "65536"},
+      {"range_task_payload_budget", "Exact-reader construction budget",
+       "1048576"},
+      {"fallback_replay_threshold", "HOST fallback replay threshold", "65536"})
 
   SST_ELI_DOCUMENT_SUBCOMPONENT_SLOTS(
       {"memory", "One StandardMem interface per HBM channel",
@@ -1093,6 +1150,11 @@ class OnlineMemoryProbe final : public SST::Component {
       std::vector<std::uint64_t> reader_range_active_records;
       std::vector<std::uint64_t> reader_range_family_probes;
       std::vector<std::uint64_t> reader_range_family_skips;
+      std::vector<std::uint64_t> reader_fallback_partitions;
+      std::vector<std::uint64_t> reader_fallback_forced_dense_partitions;
+      std::vector<std::uint64_t> reader_fallback_active_record_reads;
+      std::vector<std::uint64_t> reader_fallback_row_lookups;
+      std::vector<std::uint64_t> reader_fallback_replay_edges;
       std::vector<std::uint32_t> reader_range_paths;
       std::vector<std::uint32_t> reader_range_fallback_reasons;
       std::vector<std::uint32_t> reader_range_errors;
@@ -1171,6 +1233,15 @@ class OnlineMemoryProbe final : public SST::Component {
             round.reader.range_task_family_probes);
         reader_range_family_skips.push_back(
             round.reader.range_task_family_skips);
+        reader_fallback_partitions.push_back(round.reader.fallback_partitions);
+        reader_fallback_forced_dense_partitions.push_back(
+            round.reader.fallback_forced_dense_partitions);
+        reader_fallback_active_record_reads.push_back(
+            round.reader.fallback_active_record_reads);
+        reader_fallback_row_lookups.push_back(
+            round.reader.fallback_row_lookups);
+        reader_fallback_replay_edges.push_back(
+            round.reader.fallback_replay_edges);
         reader_range_paths.push_back(round.reader.range_task_path);
         reader_range_fallback_reasons.push_back(
             round.reader.range_task_fallback_reason);
@@ -1234,6 +1305,31 @@ class OnlineMemoryProbe final : public SST::Component {
         value_axis_transfers.push_back(round.value_axis.pushes);
         value_axis_max_occupancy.push_back(round.value_axis.max_occupancy);
       }
+      std::vector<std::size_t> handoff_logical_rounds;
+      std::vector<std::uint32_t> handoff_reasons;
+      std::vector<std::size_t> handoff_source_counts;
+      std::vector<std::uint64_t> handoff_host_list_read_bytes;
+      std::vector<std::uint64_t> handoff_host_control_cycles;
+      std::vector<std::uint32_t> handoff_host_control_timed;
+      std::vector<std::uint64_t> handoff_device_attempt_cycles;
+      std::vector<std::uint32_t> handoff_device_reader_overflow;
+      std::vector<std::uint32_t> handoff_device_compute_overflow;
+      for (const SpineHostHandoffEvidence &handoff : sst_host_handoffs_) {
+        handoff_logical_rounds.push_back(handoff.logical_round);
+        handoff_reasons.push_back(handoff.fallback_reason);
+        handoff_source_counts.push_back(handoff.source_count);
+        handoff_host_list_read_bytes.push_back(handoff.host_list_read_bytes);
+        handoff_host_control_cycles.push_back(handoff.host_control_cycles);
+        handoff_host_control_timed.push_back(handoff.host_control_timed ? 1U
+                                                                        : 0U);
+        handoff_device_attempt_cycles.push_back(
+            handoff.device_attempt.end_cycle -
+            handoff.device_attempt.start_cycle);
+        handoff_device_reader_overflow.push_back(
+            handoff.device_attempt.reader.done_overflow ? 1U : 0U);
+        handoff_device_compute_overflow.push_back(
+            handoff.device_attempt.compute.done_overflow ? 1U : 0U);
+      }
       const auto &maintenance = spine_system_->maintenance_counters();
       const auto &dirty_ack = spine_system_->dirty_ack_counters();
       result << "{\n"
@@ -1244,6 +1340,10 @@ class OnlineMemoryProbe final : public SST::Component {
              << ",\n"
              << "  \"input_edges\": " << spine_expected_edges_ << ",\n"
              << "  \"rounds\": " << sst_rounds_.size() << ",\n"
+             << "  \"host_handoffs\": " << sst_host_handoffs_.size() << ",\n"
+             << "  \"range_task_capacity\": " << range_task_capacity_ << ",\n"
+             << "  \"range_task_payload_budget\": "
+             << range_task_payload_budget_ << ",\n"
              << "  \"converged\": " << (converged ? "true" : "false") << ",\n"
              << "  \"correctness_mismatches\": " << mismatches << ",\n"
              << "  \"frontier_mismatches\": " << frontier_mismatches << ",\n"
@@ -1328,6 +1428,16 @@ class OnlineMemoryProbe final : public SST::Component {
       write_json_array(result, reader_range_family_probes);
       result << ",\n  \"reader_range_family_skips_per_round\": ";
       write_json_array(result, reader_range_family_skips);
+      result << ",\n  \"reader_fallback_partitions_per_round\": ";
+      write_json_array(result, reader_fallback_partitions);
+      result << ",\n  \"reader_fallback_forced_dense_partitions_per_round\": ";
+      write_json_array(result, reader_fallback_forced_dense_partitions);
+      result << ",\n  \"reader_fallback_active_record_reads_per_round\": ";
+      write_json_array(result, reader_fallback_active_record_reads);
+      result << ",\n  \"reader_fallback_row_lookups_per_round\": ";
+      write_json_array(result, reader_fallback_row_lookups);
+      result << ",\n  \"reader_fallback_replay_edges_per_round\": ";
+      write_json_array(result, reader_fallback_replay_edges);
       result << ",\n  \"reader_range_paths_per_round\": ";
       write_json_array(result, reader_range_paths);
       result << ",\n  \"reader_range_fallback_reasons_per_round\": ";
@@ -1424,6 +1534,24 @@ class OnlineMemoryProbe final : public SST::Component {
       write_json_array(result, value_axis_transfers);
       result << ",\n  \"value_axis_max_occupancy_per_round\": ";
       write_json_array(result, value_axis_max_occupancy);
+      result << ",\n  \"host_handoff_logical_rounds\": ";
+      write_json_array(result, handoff_logical_rounds);
+      result << ",\n  \"host_handoff_reasons\": ";
+      write_json_array(result, handoff_reasons);
+      result << ",\n  \"host_handoff_source_counts\": ";
+      write_json_array(result, handoff_source_counts);
+      result << ",\n  \"host_handoff_list_read_bytes\": ";
+      write_json_array(result, handoff_host_list_read_bytes);
+      result << ",\n  \"host_handoff_control_cycles\": ";
+      write_json_array(result, handoff_host_control_cycles);
+      result << ",\n  \"host_handoff_control_timed\": ";
+      write_json_array(result, handoff_host_control_timed);
+      result << ",\n  \"host_handoff_device_attempt_cycles\": ";
+      write_json_array(result, handoff_device_attempt_cycles);
+      result << ",\n  \"host_handoff_device_reader_overflow\": ";
+      write_json_array(result, handoff_device_reader_overflow);
+      result << ",\n  \"host_handoff_device_compute_overflow\": ";
+      write_json_array(result, handoff_device_compute_overflow);
       result << ",\n"
              << "  \"backend_requests\": " << backend_->accepted() << ",\n"
              << "  \"backend_submit_stalls\": " << backend_->submit_stalls()
@@ -1714,6 +1842,11 @@ class OnlineMemoryProbe final : public SST::Component {
   std::uint32_t write_percent_{};
   std::uint64_t max_cycles_{};
   std::size_t max_rounds_{};
+  std::size_t device_dirty_source_limit_{};
+  std::size_t range_task_active_gate_{};
+  std::size_t range_task_capacity_{};
+  std::uint64_t range_task_payload_budget_{};
+  std::uint64_t fallback_replay_threshold_{};
   SST::TimeConverter clock_converter_{};
   std::vector<SST::Interfaces::StandardMem *> interfaces_;
 
@@ -1736,6 +1869,7 @@ class OnlineMemoryProbe final : public SST::Component {
   std::unique_ptr<FixedAxiPort> spine_compute_result_;
   SsspReference sssp_reference_;
   std::vector<SpineSsspRoundEvidence> sst_rounds_;
+  std::vector<SpineHostHandoffEvidence> sst_host_handoffs_;
   std::vector<std::uint32_t> sst_current_frontier_;
   std::vector<std::uint32_t> sst_pending_active_out_;
   std::uint64_t sst_round_start_cycle_{};

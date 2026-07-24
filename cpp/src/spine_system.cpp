@@ -1,7 +1,9 @@
 #include "spine_sim/spine_system.hpp"
 
+#include <algorithm>
 #include <stdexcept>
 #include <string>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -181,14 +183,78 @@ void SpineVerticalSliceSystem::restart_read_compute(
     throw std::logic_error(
         "Spine read/compute restart requires a successful drained round");
   }
+  const SpineActiveBins bins = build_host_active_bins(
+      state_, maintenance_->config(), active_sources, compute_->values());
+  restart_read_compute_bins(bins, host_coverage);
+  current_frontier_ = std::move(active_sources);
+}
+
+void SpineVerticalSliceSystem::restart_read_compute_bins(
+    const SpineActiveBins &active_bins,
+    std::optional<SpineDirtyIdentity> host_coverage) {
+  const bool recovering = recoverable_host_handoff();
+  if (!registered_ || !done() || !idle() || (failed() && !recovering)) {
+    throw std::logic_error(
+        "Spine host-bin restart requires a successful drained round");
+  }
   edge_stream_.reset_stats();
   value_stream_.reset_stats();
-  reader_->reset_host_round(
-      build_host_active_bins(state_, maintenance_->config(), active_sources,
-                             compute_->values()),
-      host_coverage);
-  compute_->reset_round();
-  current_frontier_ = std::move(active_sources);
+  reader_->reset_host_round(active_bins, host_coverage);
+  if (recovering) {
+    compute_->reset_after_host_handoff();
+  } else {
+    compute_->reset_round();
+  }
+  current_frontier_.clear();
+  std::unordered_set<std::uint32_t> seen;
+  for (const auto &bin : active_bins.bins) {
+    for (const SpineActiveRecord &record : bin) {
+      if (seen.insert(record.source).second) {
+        current_frontier_.push_back(record.source);
+      }
+    }
+  }
+}
+
+bool SpineVerticalSliceSystem::recoverable_host_handoff() const noexcept {
+  return registered_ && maintenance_->done() && !maintenance_->failed() &&
+         reader_->recoverable_host_handoff() &&
+         compute_->recoverable_host_handoff() && idle();
+}
+
+std::vector<std::uint32_t>
+SpineVerticalSliceSystem::restart_device_dirty_host_fallback() {
+  if (!recoverable_host_handoff()) {
+    throw std::logic_error(
+        "device-dirty host fallback requires a drained REQUIRES_HOST result");
+  }
+  const SpineReaderCounters &reader = reader_->counters();
+  const std::size_t count = reader.dirty_count;
+  const std::size_t bytes = ((count + 3) / 4) * kSpineSortWordBytes;
+  const std::vector<std::uint8_t> payload = backend_.inspect_payload(
+      sorted_->channel(), maintenance_->config().persistent_dirty_list_base,
+      bytes);
+  std::vector<std::uint32_t> sources(count, 0);
+  for (std::size_t index = 0; index < count; ++index) {
+    const std::size_t offset = index * sizeof(std::uint32_t);
+    sources[index] = static_cast<std::uint32_t>(payload[offset]) |
+                     (static_cast<std::uint32_t>(payload[offset + 1]) << 8) |
+                     (static_cast<std::uint32_t>(payload[offset + 2]) << 16) |
+                     (static_cast<std::uint32_t>(payload[offset + 3]) << 24);
+  }
+  const SpineDirtyIdentity coverage =
+      spine_dirty_identity(reader.dirty_generation, sources);
+  if (coverage.count != reader.dirty_count ||
+      coverage.hash_sum != reader.dirty_hash_sum ||
+      coverage.hash_xor != reader.dirty_hash_xor) {
+    throw std::logic_error(
+        "host handoff list does not match the captured dirty identity");
+  }
+  const SpineActiveBins bins = build_host_active_bins(
+      state_, maintenance_->config(), sources, compute_->values());
+  restart_read_compute_bins(bins, coverage);
+  current_frontier_ = sources;
+  return sources;
 }
 
 void SpineVerticalSliceSystem::start_dirty_ack() {
@@ -241,8 +307,41 @@ SpineSsspRunResult SpineVerticalSliceSystem::run_sssp_to_convergence(
   for (std::size_t round = 0; round < max_rounds; ++round) {
     const std::uint64_t start_cycle =
         scheduler_.clock(clock_id_).completed_cycles;
+    const std::vector<std::uint32_t> attempted_active_in = current_frontier_;
     scheduler_.run_until([this] { return done() && idle(); },
                          max_events_per_round);
+    if (recoverable_host_handoff()) {
+      const std::uint64_t device_end_cycle =
+          scheduler_.clock(clock_id_).completed_cycles;
+      SpineSsspRoundEvidence device_attempt{
+          .round = round,
+          .active_in = attempted_active_in,
+          .reader_sources = reader_->active_source_ids(),
+          .active_out = compute_->next_active(),
+          .reader = reader_->counters(),
+          .compute = compute_->counters(),
+          .edge_axis = edge_stream_.stats(),
+          .value_axis = value_stream_.stats(),
+          .start_cycle = start_cycle,
+          .end_cycle = device_end_cycle,
+      };
+      const std::uint32_t fallback_reason =
+          reader_->counters().range_task_fallback_reason;
+      const std::vector<std::uint32_t> sources =
+          restart_device_dirty_host_fallback();
+      result.host_handoffs.push_back(SpineHostHandoffEvidence{
+          .logical_round = round,
+          .fallback_reason = fallback_reason,
+          .source_count = sources.size(),
+          .host_list_read_bytes =
+              ((sources.size() + 3) / 4) * kSpineSortWordBytes,
+          .host_control_cycles = 0,
+          .host_control_timed = false,
+          .device_attempt = std::move(device_attempt),
+      });
+      scheduler_.run_until([this] { return done() && idle(); },
+                           max_events_per_round);
+    }
     const std::uint64_t end_cycle =
         scheduler_.clock(clock_id_).completed_cycles;
     const std::vector<std::uint32_t> active_out = compute_->next_active();

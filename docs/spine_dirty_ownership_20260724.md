@@ -129,8 +129,9 @@ its convergence ownership closeout. It is not yet a complete runtime model.
   accumulation into an already-owned dirty generation is not validated.
 - Candidate writes are timed, but host result DMA, command launch, event waits,
   and HOST_ACTIVE buffer publication still lack measured host accounting.
-- DEVICE_DIRTY above 4096 sources and HOST_ACTIVE exact-task overflow do not
-  yet execute their HLS fallback paths.
+- DEVICE_DIRTY above 4096 sources and HOST_ACTIVE exact-task overflow are now
+  implemented by `docs/spine_host_tiled_fallback_20260724.md`. Host transfer
+  and launch timing remains explicitly unmeasured.
 - Reader and ACK issue one logical memory operation at a time. AXI supports
   bursts and finite outstanding requests, but producer-side overlap remains a
   timing gap.
@@ -140,5 +141,6 @@ its convergence ownership closeout. It is not yet a complete runtime model.
   an explicit allocation/address-map model; this mainly affects row-locality
   and host-transfer claims.
 
-The next control-flow priority is fallback execution. The next timing priority
-is pipelined request issue plus explicit on-chip memory arbitration.
+Fallback execution was completed in the subsequent HOST tiled-fallback
+milestone. The next timing priority is pipelined request issue plus explicit
+on-chip memory arbitration.

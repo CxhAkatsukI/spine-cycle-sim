@@ -647,7 +647,12 @@ SpineL0Maintenance::SpineL0Maintenance(std::string name, ClockId clock_id,
   if (config_.partitions != ports_.graph.size() || config_.partitions != 16 ||
       config_.levels != 11 || config_.vertex_partition_size == 0 ||
       config_.page_vertices != 256 || config_.max_vertices == 0 ||
-      config_.max_sort_edges == 0 || workload_.vertices == 0 ||
+      config_.max_sort_edges == 0 || config_.device_dirty_source_limit == 0 ||
+      config_.range_task_active_gate == 0 ||
+      config_.range_task_capacity == 0 ||
+      config_.range_task_capacity > 65'536 ||
+      config_.range_task_payload_budget == 0 ||
+      config_.fallback_replay_threshold == 0 || workload_.vertices == 0 ||
       workload_.vertices > config_.max_vertices || workload_.edges.empty() ||
       workload_.edges.size() > config_.max_sort_edges ||
       ports_.sorted_edges == nullptr || ports_.metadata == nullptr ||

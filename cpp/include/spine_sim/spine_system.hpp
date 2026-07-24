@@ -30,10 +30,21 @@ struct SpineSsspRoundEvidence {
   std::uint64_t end_cycle{};
 };
 
+struct SpineHostHandoffEvidence {
+  std::size_t logical_round{};
+  std::uint32_t fallback_reason{};
+  std::size_t source_count{};
+  std::uint64_t host_list_read_bytes{};
+  std::uint64_t host_control_cycles{};
+  bool host_control_timed{};
+  SpineSsspRoundEvidence device_attempt;
+};
+
 struct SpineSsspRunResult {
   bool converged{};
   bool failed{};
   std::vector<SpineSsspRoundEvidence> rounds;
+  std::vector<SpineHostHandoffEvidence> host_handoffs;
   std::optional<SpineDirtyAckCounters> dirty_ack;
   std::uint64_t start_cycle{};
   std::uint64_t end_cycle{};
@@ -52,6 +63,12 @@ class SpineVerticalSliceSystem {
   void restart_read_compute(
       std::vector<std::uint32_t> active_sources,
       std::optional<SpineDirtyIdentity> host_coverage = std::nullopt);
+  void restart_read_compute_bins(
+      const SpineActiveBins &active_bins,
+      std::optional<SpineDirtyIdentity> host_coverage = std::nullopt);
+  [[nodiscard]] std::vector<std::uint32_t>
+  restart_device_dirty_host_fallback();
+  [[nodiscard]] bool recoverable_host_handoff() const noexcept;
   void start_dirty_ack();
   [[nodiscard]] bool dirty_ack_started() const noexcept;
   [[nodiscard]] bool dirty_ack_done() const noexcept;

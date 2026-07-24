@@ -1,5 +1,10 @@
 # Spine metadata and active-frontier payload authority
 
+Status: historical payload-authority milestone. HOST tiled fallback and DEVICE
+handoff were subsequently completed in
+`docs/spine_host_tiled_fallback_20260724.md`; its claim boundary supersedes the
+fallback limitations below.
+
 Date: 2026-07-24
 Branch: `codex/fine-grained-cycle-sim`
 HLS reference: `origin/reduce-levels-for-routing` at
