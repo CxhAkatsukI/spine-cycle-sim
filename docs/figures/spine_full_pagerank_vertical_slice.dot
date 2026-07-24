@@ -1,0 +1,32 @@
+digraph SpineFullPageRankVerticalSlice {
+  graph [rankdir=LR, bgcolor="white", pad="0.25", nodesep="0.38", ranksep="0.58"];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+        color="#374151", fillcolor="#f8fafc"];
+  edge [fontname="Helvetica", fontsize=9, color="#475569"];
+
+  batch [label="Insertion edge batch\nreal SpineEdgeSlice", fillcolor="#dbeafe"];
+  maint [label="Spine maintenance\nscan + dirty + level write", fillcolor="#dcfce7"];
+  graph_hbm [label="16 graph HBM banks\nindex + edge payload", shape=cylinder,
+             fillcolor="#fef3c7"];
+  host [label="HOST_ACTIVE payload\nedge bins + all-vertex refresh",
+        fillcolor="#e0f2fe"];
+  reader [label="Spine Reader\nsource protocol + range tasks + replay",
+          fillcolor="#dcfce7"];
+  axis [label="Registered AXIS FIFO\nprotocol + tile + edge + diagnostics",
+        fillcolor="#e0f2fe"];
+  compute [label="Timed Full PageRank compute\nsource/reduce/apply pipelines",
+           fillcolor="#dcfce7"];
+  state [label="Shared vertex-state AXI/HBM\nrank ping-pong + degree",
+         shape=cylinder, fillcolor="#fee2e2"];
+  result [label="One-iteration ranks\nHBM payload + functional mirror",
+          fillcolor="#fef3c7"];
+
+  batch -> maint -> graph_hbm;
+  maint -> host [label="publish after commit"];
+  host -> reader;
+  graph_hbm -> reader;
+  reader -> axis -> compute;
+  compute -> state [dir=both];
+  compute -> reader [label="source value response", constraint=false];
+  compute -> result;
+}

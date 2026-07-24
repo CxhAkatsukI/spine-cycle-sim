@@ -193,6 +193,10 @@ class SpineSplitReader final : public Component {
       const SpineActiveBins &active_bins,
       std::optional<SpineDirtyIdentity> host_coverage = std::nullopt,
       std::vector<std::uint32_t> source_refresh = {});
+  void configure_initial_host_round(
+      SpineActiveBins active_bins,
+      std::optional<SpineDirtyIdentity> host_coverage,
+      std::vector<std::uint32_t> source_refresh);
 
   void evaluate(const CycleContext &context) override;
   void commit(const CycleContext &context) override;
@@ -481,6 +485,11 @@ class SpineSplitReader final : public Component {
   void finish_edge_pipeline();
   [[nodiscard]] const BufferedPipelineEdge *next_pipeline_edge() const;
   [[nodiscard]] bool next_pipeline_edge_valid() const;
+  void initialize_host_payload(
+      const SpineActiveBins &active_bins,
+      std::optional<SpineDirtyIdentity> host_coverage);
+  void validate_source_refresh(
+      const std::vector<std::uint32_t> &source_refresh) const;
   void reset_state();
   void begin_terminal(bool overflow, std::string failure = {});
   [[nodiscard]] PartConvWord current_stream_word() const;
@@ -492,6 +501,8 @@ class SpineSplitReader final : public Component {
   SpineReaderMode mode_{SpineReaderMode::kDeviceDirty};
   std::vector<std::uint32_t> active_sources_;
   SpineActiveBins host_active_bins_;
+  std::optional<SpineActiveBins> initial_host_bins_;
+  std::optional<SpineDirtyIdentity> initial_host_coverage_;
   std::vector<SpineActiveRecord> active_records_;
   Fifo<PartConvWord> &edge_out_;
   Fifo<SourceValueWord> &value_in_;

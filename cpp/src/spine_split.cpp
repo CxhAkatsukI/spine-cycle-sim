@@ -153,6 +153,31 @@ void SpineSplitReader::reset_host_round(
         "reader host-active reset requires a successful drain");
   }
   mode_ = SpineReaderMode::kHostActive;
+  initialize_host_payload(active_bins, host_coverage);
+  validate_source_refresh(source_refresh);
+  active_sources_ = std::move(source_refresh);
+  reset_state();
+}
+
+void SpineSplitReader::configure_initial_host_round(
+    SpineActiveBins active_bins,
+    std::optional<SpineDirtyIdentity> host_coverage,
+    std::vector<std::uint32_t> source_refresh) {
+  if (mode_ != SpineReaderMode::kHostActive ||
+      phase_ != Phase::kWaitMaintenance || done_ || failed_ ||
+      initial_host_bins_.has_value()) {
+    throw std::logic_error(
+        "initial HOST_ACTIVE input must be configured before execution");
+  }
+  validate_source_refresh(source_refresh);
+  initial_host_bins_ = std::move(active_bins);
+  initial_host_coverage_ = host_coverage;
+  active_sources_ = std::move(source_refresh);
+}
+
+void SpineSplitReader::initialize_host_payload(
+    const SpineActiveBins &active_bins,
+    std::optional<SpineDirtyIdentity> host_coverage) {
   const SpineMetadataLayout metadata =
       spine_metadata_layout(maintenance_.config());
   std::uint64_t offset = 0;
@@ -197,6 +222,10 @@ void SpineSplitReader::reset_host_round(
   }
   write_metadata_word(metadata.dirty_host_valid_word,
                       host_coverage.has_value() ? 1 : 0);
+}
+
+void SpineSplitReader::validate_source_refresh(
+    const std::vector<std::uint32_t> &source_refresh) const {
   std::unordered_set<std::uint32_t> unique_sources;
   for (const std::uint32_t source : source_refresh) {
     if (source >= maintenance_.vertices() ||
@@ -206,8 +235,6 @@ void SpineSplitReader::reset_host_round(
           "host source-refresh list is duplicated or out of bounds");
     }
   }
-  active_sources_ = std::move(source_refresh);
-  reset_state();
 }
 
 bool SpineSplitReader::recoverable_host_handoff() const noexcept {
@@ -2667,6 +2694,12 @@ void SpineSplitReader::advance(const CycleContext &context) {
           done_ = true;
           failure_ = "reader cannot start after failed maintenance";
           return;
+        }
+        if (mode_ == SpineReaderMode::kHostActive &&
+            initial_host_bins_.has_value()) {
+          initialize_host_payload(*initial_host_bins_, initial_host_coverage_);
+          initial_host_bins_.reset();
+          initial_host_coverage_.reset();
         }
         counters_.start_cycle = context.domain_cycle;
         if (mode_ == SpineReaderMode::kDeviceDirty) {

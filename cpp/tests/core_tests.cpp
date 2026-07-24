@@ -97,6 +97,7 @@ using spine::sim::SpineMaintenanceResult;
 using spine::sim::SpineLevelLayout;
 using spine::sim::SpineMetadataLayout;
 using spine::sim::SpineOnChipMemoryProfile;
+using spine::sim::SpinePageRankVerticalSliceSystem;
 using spine::sim::SpineSplitPageRankCompute;
 using spine::sim::SpineReaderCounters;
 using spine::sim::SpineReaderPorts;
@@ -5593,6 +5594,95 @@ void test_spine_timed_full_pagerank_compute_uses_hbm_and_pipelines() {
             << '\n';
 }
 
+void test_spine_full_pagerank_vertical_slice_reads_level_edges() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("pagerank-system", 200.0);
+  MockMemoryBackend backend("pagerank-system-hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 4,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  SpineEdgeSlice workload{
+      .vertices = 4,
+      .edges = {
+          {.src = 0, .dst = 1, .weight = 1, .diff = 1},
+          {.src = 0, .dst = 2, .weight = 1, .diff = 1},
+          {.src = 1, .dst = 2, .weight = 1, .diff = 1},
+          {.src = 3, .dst = 2, .weight = 1, .diff = 1},
+      },
+      .case_name = "pagerank_vertical_slice",
+  };
+  SpinePageRankVerticalSliceSystem system(
+      scheduler, core, backend, workload, 0.8F, SpineL0Config{},
+      SpineAxiInterfaceProfile{},
+      AlgorithmPipelineConfig{
+          .source_map = {.latency_cycles = 3,
+                         .initiation_interval = 1,
+                         .capacity = 4},
+          .edge_map = {.latency_cycles = 1,
+                       .initiation_interval = 1,
+                       .capacity = 4},
+          .reduce = {.latency_cycles = 2,
+                     .initiation_interval = 1,
+                     .capacity = 8},
+          .apply = {.latency_cycles = 3,
+                    .initiation_interval = 1,
+                    .capacity = 8},
+      });
+  system.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until([&] { return system.done() && system.idle(); },
+                      500'000);
+
+  const std::vector<float> expected{0.1F, 0.2F, 0.6F, 0.1F};
+  for (std::size_t vertex = 0; vertex < expected.size(); ++vertex) {
+    require(std::fabs(GraphAlgorithmPolicy::word_to_float(
+                          system.compute().rank_words().at(vertex)) -
+                      expected[vertex]) < 1.0e-5F,
+            "PageRank vertical slice produced the wrong rank");
+  }
+  require(!system.failed() &&
+              system.maintenance_counters().dirty_mark_edge_visits == 4 &&
+              system.maintenance_counters().persisted_edges == 4 &&
+              system.reader_counters().source_requests == 4 &&
+              system.reader_counters().source_responses == 4 &&
+              system.reader_counters().source_request_windows == 1 &&
+              system.reader_counters().source_protocol_status == 0 &&
+              system.reader_counters().host_coverage_match &&
+              system.reader_counters().edges_emitted == 4 &&
+              system.reader_counters().graph_edge_payload_read_bytes == 64 &&
+              system.compute_counters().edges_received == 4 &&
+              system.compute_counters().vertices_applied == 4,
+          "PageRank vertical slice bypassed maintenance, Reader, or compute");
+  require(system.edge_stream_stats().pushes == 24,
+          "PageRank vertical slice lost protocol, diagnostic, or edge words");
+  std::cout << "EVIDENCE spine_pagerank_vertical cycles="
+            << scheduler.clock(core).completed_cycles
+            << " maintenance="
+            << system.maintenance_counters().end_cycle -
+                   system.maintenance_counters().start_cycle
+            << " reader_edges=" << system.reader_counters().edges_emitted
+            << " graph_payload_bytes="
+            << system.reader_counters().graph_edge_payload_read_bytes
+            << " state_memory_requests="
+            << system.compute_counters().memory_requests_issued
+            << " edge_axis_stalls="
+            << system.edge_stream_stats().push_stalls
+            << " rank_sum="
+            << GraphAlgorithmPolicy::word_to_float(
+                   system.compute().rank_words()[0]) +
+                   GraphAlgorithmPolicy::word_to_float(
+                       system.compute().rank_words()[1]) +
+                   GraphAlgorithmPolicy::word_to_float(
+                       system.compute().rank_words()[2]) +
+                   GraphAlgorithmPolicy::word_to_float(
+                       system.compute().rank_words()[3])
+            << '\n';
+}
+
 }  // namespace
 
 int main(int argc, char **argv) {
@@ -5713,6 +5803,8 @@ int main(int argc, char **argv) {
        test_algorithm_pipeline_models_latency_ii_capacity_and_backpressure},
       {"spine_timed_pagerank_compute",
        test_spine_timed_full_pagerank_compute_uses_hbm_and_pipelines},
+      {"spine_pagerank_vertical_slice",
+       test_spine_full_pagerank_vertical_slice_reads_level_edges},
   };
   const std::string filter = argc > 1 ? argv[1] : "";
   std::size_t failures = 0;

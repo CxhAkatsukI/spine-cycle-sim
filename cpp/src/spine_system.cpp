@@ -1,6 +1,8 @@
 #include "spine_sim/spine_system.hpp"
 
 #include <algorithm>
+#include <limits>
+#include <numeric>
 #include <stdexcept>
 #include <string>
 #include <unordered_set>
@@ -62,6 +64,84 @@ SpineActiveBins build_host_active_bins(
       SpineActiveRecord record = base;
       record.hot_shard_mask = hot_by_partition[partition];
       result.bins[partition].push_back(record);
+    }
+  }
+  return result;
+}
+
+struct PageRankHostInput {
+  SpineActiveBins bins;
+  std::vector<std::uint32_t> sources;
+  std::vector<std::uint32_t> out_degrees;
+  std::optional<SpineDirtyIdentity> coverage;
+};
+
+PageRankHostInput build_pagerank_host_input(const SpineEdgeSlice &workload,
+                                             const SpineL0Config &config) {
+  if (workload.vertices == 0 ||
+      workload.vertices > std::numeric_limits<std::uint32_t>::max() ||
+      config.partitions != 16 || config.levels > kSpineLevelCount) {
+    throw std::invalid_argument("unsupported Spine PageRank graph shape");
+  }
+  PageRankHostInput result;
+  result.sources.resize(workload.vertices);
+  std::iota(result.sources.begin(), result.sources.end(), 0U);
+  result.out_degrees.assign(workload.vertices, 0);
+  struct SourcePartitionUse {
+    bool cold{};
+    std::uint16_t hot_shards{};
+  };
+  std::vector<std::array<SourcePartitionUse, 16>> source_partitions(
+      workload.vertices);
+  const std::unordered_set<std::uint32_t> hot_vertices(
+      config.hot_vertices.begin(), config.hot_vertices.end());
+  std::vector<std::uint32_t> dirty_sources;
+  std::unordered_set<std::uint32_t> dirty_seen;
+  for (const SpineEdgeRecord &edge : workload.edges) {
+    if (edge.src >= workload.vertices || edge.dst >= workload.vertices ||
+        edge.diff != 1 ||
+        result.out_degrees[edge.src] ==
+            std::numeric_limits<std::uint32_t>::max()) {
+      throw std::invalid_argument(
+          "initial PageRank vertical slice requires in-range insertion edges");
+    }
+    ++result.out_degrees[edge.src];
+    const std::size_t partition = std::min<std::size_t>(
+        edge.dst / config.vertex_partition_size, config.partitions - 1);
+    SourcePartitionUse &use = source_partitions[edge.src][partition];
+    if (hot_vertices.contains(edge.dst)) {
+      use.hot_shards |=
+          static_cast<std::uint16_t>(1U << spine_hot_shard(edge.dst));
+    } else {
+      use.cold = true;
+    }
+    if (dirty_seen.insert(edge.src).second) {
+      dirty_sources.push_back(edge.src);
+    }
+  }
+  std::sort(dirty_sources.begin(), dirty_sources.end());
+  if (!dirty_sources.empty()) {
+    result.coverage = spine_dirty_identity(1, dirty_sources);
+  }
+  for (std::uint32_t source = 0; source < workload.vertices; ++source) {
+    for (std::size_t partition = 0; partition < config.partitions;
+         ++partition) {
+      const SourcePartitionUse &use = source_partitions[source][partition];
+      if (!use.cold && use.hot_shards == 0) {
+        continue;
+      }
+      SpineActiveRecord record{
+          .source = source,
+          .source_value = 0,
+          .hot_shard_mask = use.hot_shards,
+      };
+      if (use.cold) {
+        for (std::size_t level = 0; level < config.levels; ++level) {
+          record.level_masks[level] =
+              static_cast<std::uint16_t>(1U << partition);
+        }
+      }
+      result.bins.bins[partition].push_back(record);
     }
   }
   return result;
@@ -590,6 +670,154 @@ SpineVerticalSliceSystem::axi_stats(SpineAxiPortKind kind) const {
     return compute_result_->master().stats();
   }
   throw std::logic_error("unknown Spine AXI port kind");
+}
+
+SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
+    Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
+    SpineEdgeSlice workload, float damping,
+    SpineL0Config maintenance_config, SpineAxiInterfaceProfile axi_profile,
+    AlgorithmPipelineConfig pipeline_config,
+    std::size_t compute_memory_request_window)
+    : scheduler_(scheduler),
+      clock_id_(clock_id),
+      backend_(backend),
+      axi_profile_(std::move(axi_profile)),
+      edge_stream_("pagerank-edge-axis", clock_id, 32),
+      value_stream_("pagerank-value-axis", clock_id, 32) {
+  const PageRankHostInput host =
+      build_pagerank_host_input(workload, maintenance_config);
+  for (std::size_t family = 0; family < graph_ports_.size(); ++family) {
+    graph_ports_[family] = make_port(
+        "pagerank-graph" + std::to_string(family),
+        static_cast<std::uint32_t>(family), family, SpineAxiPortKind::kGraph);
+  }
+  sorted_ = make_port("pagerank-sorted-edges", 16, 16,
+                      SpineAxiPortKind::kSortedEdges);
+  active_bins_ =
+      make_port("pagerank-active-bins", 18, 18,
+                SpineAxiPortKind::kActiveBins);
+  metadata_ =
+      make_port("pagerank-metadata", 20, 20, SpineAxiPortKind::kMetadata);
+  maintenance_result_ = make_port("pagerank-maintenance-result", 21, 21,
+                                  SpineAxiPortKind::kMaintenanceResult);
+  vertex_state_ = make_port("pagerank-vertex-state", 117, 17,
+                            SpineAxiPortKind::kVertexState);
+
+  SpineL0Ports maintenance_ports;
+  SpineReaderPorts reader_ports;
+  for (std::size_t family = 0; family < graph_ports_.size(); ++family) {
+    maintenance_ports.graph[family] = graph_ports_[family].get();
+    reader_ports.graph[family] = graph_ports_[family].get();
+  }
+  maintenance_ports.sorted_edges = sorted_.get();
+  maintenance_ports.metadata = metadata_.get();
+  maintenance_ports.result = maintenance_result_.get();
+  reader_ports.task_scratch = sorted_.get();
+  reader_ports.active_bins = active_bins_.get();
+  reader_ports.metadata = metadata_.get();
+  reader_ports.result = maintenance_result_.get();
+
+  algorithm_policy_ = std::make_shared<const GraphAlgorithmPolicy>(
+      AlgorithmPolicyConfig{
+          .kind = GraphAlgorithmKind::kFullPageRank,
+          .vertices = workload.vertices,
+          .source = 0,
+          .damping = damping,
+      });
+  maintenance_ = std::make_unique<SpineL0Maintenance>(
+      "pagerank-maintenance", clock_id_, std::move(maintenance_config),
+      std::move(workload), maintenance_ports, state_);
+  reader_ = std::make_unique<SpineSplitReader>(
+      "pagerank-reader", clock_id_, *maintenance_, reader_ports, host.sources,
+      edge_stream_, value_stream_, SpineReaderMode::kHostActive,
+      algorithm_policy_);
+  reader_->configure_initial_host_round(host.bins, host.coverage, host.sources);
+  compute_ = std::make_unique<SpineSplitPageRankCompute>(
+      "pagerank-compute", clock_id_, *algorithm_policy_, host.out_degrees,
+      *vertex_state_, edge_stream_, value_stream_, pipeline_config,
+      compute_memory_request_window);
+}
+
+std::unique_ptr<FixedAxiPort> SpinePageRankVerticalSliceSystem::make_port(
+    const std::string &name, std::uint32_t initiator_id, std::size_t channel,
+    SpineAxiPortKind kind) {
+  return std::make_unique<FixedAxiPort>(
+      name, clock_id_,
+      axi_profile_.port_config(kind, 32, channel, initiator_id), backend_);
+}
+
+void SpinePageRankVerticalSliceSystem::register_components() {
+  if (registered_) {
+    throw std::logic_error("Spine PageRank system already registered");
+  }
+  registered_ = true;
+  scheduler_.add_component(*maintenance_);
+  scheduler_.add_component(*reader_);
+  compute_->register_components(scheduler_);
+  scheduler_.add_component(edge_stream_);
+  scheduler_.add_component(value_stream_);
+  for (auto &port : graph_ports_) {
+    port->register_components(scheduler_);
+  }
+  sorted_->register_components(scheduler_);
+  active_bins_->register_components(scheduler_);
+  metadata_->register_components(scheduler_);
+  maintenance_result_->register_components(scheduler_);
+  vertex_state_->register_components(scheduler_);
+}
+
+bool SpinePageRankVerticalSliceSystem::done() const noexcept {
+  return maintenance_->done() && reader_->done() && compute_->done();
+}
+
+bool SpinePageRankVerticalSliceSystem::failed() const noexcept {
+  return maintenance_->failed() || reader_->failed() || compute_->failed();
+}
+
+bool SpinePageRankVerticalSliceSystem::idle() const noexcept {
+  for (const auto &port : graph_ports_) {
+    if (!port->idle()) {
+      return false;
+    }
+  }
+  return sorted_->idle() && active_bins_->idle() && metadata_->idle() &&
+         maintenance_result_->idle() && vertex_state_->idle() &&
+         edge_stream_.empty() && value_stream_.empty();
+}
+
+const SpineL0Counters &
+SpinePageRankVerticalSliceSystem::maintenance_counters() const noexcept {
+  return maintenance_->counters();
+}
+
+const SpineReaderCounters &
+SpinePageRankVerticalSliceSystem::reader_counters() const noexcept {
+  return reader_->counters();
+}
+
+const SpinePageRankCounters &
+SpinePageRankVerticalSliceSystem::compute_counters() const noexcept {
+  return compute_->counters();
+}
+
+const SpineSplitPageRankCompute &
+SpinePageRankVerticalSliceSystem::compute() const noexcept {
+  return *compute_;
+}
+
+const SpineL0State &
+SpinePageRankVerticalSliceSystem::level_state() const noexcept {
+  return state_;
+}
+
+const FifoStats &
+SpinePageRankVerticalSliceSystem::edge_stream_stats() const noexcept {
+  return edge_stream_.stats();
+}
+
+const FifoStats &
+SpinePageRankVerticalSliceSystem::value_stream_stats() const noexcept {
+  return value_stream_.stats();
 }
 
 } // namespace spine::sim

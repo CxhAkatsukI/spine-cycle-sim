@@ -1,0 +1,41 @@
+{
+  "date": "2026-07-25",
+  "baseline_commit": "47e4ea4",
+  "scope": "one-iteration Full PageRank through Spine maintenance, HBM level Reader, AXIS, and timed compute",
+  "fixture": {
+    "vertices": 4,
+    "edges": [[0, 1], [0, 2], [1, 2], [3, 2]],
+    "damping": 0.8,
+    "memory_backend": "MockMemoryBackend",
+    "memory_latency_cycles": 4
+  },
+  "observed": {
+    "end_to_end_cycles": 7810,
+    "maintenance_cycles": 2414,
+    "source_requests": 4,
+    "source_responses": 4,
+    "source_request_windows": 1,
+    "host_coverage_match": true,
+    "reader_edges_emitted": 4,
+    "reader_graph_edge_payload_bytes": 64,
+    "compute_state_memory_requests": 16,
+    "edge_axis_words": 24,
+    "edge_axis_push_stalls": 0,
+    "rank_words_as_float": [0.1, 0.2, 0.6, 0.1],
+    "rank_sum": 1.0
+  },
+  "validation": {
+    "maintenance_executed": true,
+    "edges_loaded_from_hbm_level_payload": true,
+    "reader_source_protocol_complete": true,
+    "reader_diagnostics_complete": true,
+    "rank_matches_analytical_oracle": true
+  },
+  "claim_boundary": {
+    "iterations": 1,
+    "insertion_only_initial_graph": true,
+    "sst_hbm_run_completed": false,
+    "pipeline_timing_characterized": false,
+    "real_graph_convergence_validated": false
+  }
+}
