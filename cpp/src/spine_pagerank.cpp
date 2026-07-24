@@ -82,10 +82,12 @@ SpineSplitPageRankCompute::SpineSplitPageRankCompute(
               .apply_responses = &apply_responses_,
           }),
       rank_words_(vertices_),
+      residual_words_(vertices_),
       tile_applied_((vertices_ + tile_vertices_ - 1) / tile_vertices_, false),
       dangling_mass_word_(GraphAlgorithmPolicy::float_to_word(0.0F)),
       dangling_share_word_(GraphAlgorithmPolicy::float_to_word(0.0F)) {
-  if (policy_.config().kind != GraphAlgorithmKind::kFullPageRank ||
+  if ((policy_.config().kind != GraphAlgorithmKind::kFullPageRank &&
+       policy_.config().kind != GraphAlgorithmKind::kResidualPageRank) ||
       vertices_ == 0 || out_degrees.size() != vertices_ ||
       tile_vertices_ == 0 || memory_request_window_ == 0 ||
       edge_in_.clock_id() != clock_id || value_out_.clock_id() != clock_id ||
@@ -127,7 +129,9 @@ void SpineSplitPageRankCompute::reset_iteration() {
       !ready_apply_.empty()) {
     throw std::logic_error("PageRank iteration reset requires a clean drain");
   }
-  std::swap(primary_read_base_, primary_write_base_);
+  if (state_layout_.primary_ping_pong) {
+    std::swap(primary_read_base_, primary_write_base_);
+  }
   pipeline_.reset_counters();
   source_requests_.reset_stats();
   source_responses_.reset_stats();
@@ -140,6 +144,7 @@ void SpineSplitPageRankCompute::reset_iteration() {
   counters_ = {};
   std::fill(tile_applied_.begin(), tile_applied_.end(), false);
   tile_accumulators_.clear();
+  next_active_.clear();
   phase_ = Phase::kInput;
   staged_input_action_ = InputAction::kNone;
   staged_memory_response_.reset();
@@ -157,6 +162,7 @@ void SpineSplitPageRankCompute::reset_iteration() {
   staged_done_ = false;
   pending_source_ = 0;
   pending_source_rank_.reset();
+  pending_source_residual_.reset();
   pending_source_degree_.reset();
   pending_source_result_.reset();
   pending_dangling_transaction_.reset();
@@ -181,13 +187,21 @@ void SpineSplitPageRankCompute::reset_iteration() {
 void SpineSplitPageRankCompute::initialize_state_payload(
     const std::vector<std::uint32_t> &out_degrees) {
   for (std::size_t vertex = 0; vertex < vertices_; ++vertex) {
-    rank_words_[vertex] =
-        policy_.initial_state(static_cast<std::uint32_t>(vertex)).primary;
+    const AlgorithmVertexState initial =
+        policy_.initial_state(static_cast<std::uint32_t>(vertex));
+    rank_words_[vertex] = initial.primary;
+    residual_words_[vertex] = initial.auxiliary;
   }
   vertex_state_.initialize_payload(primary_read_base_, encode_words(rank_words_));
-  vertex_state_.fill_payload(primary_write_base_, vertices_ * kWordBytes, 0);
+  if (state_layout_.primary_ping_pong) {
+    vertex_state_.fill_payload(primary_write_base_, vertices_ * kWordBytes, 0);
+  }
+  if (state_layout_.auxiliary.has_value()) {
+    vertex_state_.initialize_payload(state_layout_.auxiliary->base,
+                                     encode_words(residual_words_));
+  }
   if (!state_layout_.degree.has_value()) {
-    throw std::logic_error("Full PageRank state layout has no degree region");
+    throw std::logic_error("PageRank state layout has no degree region");
   }
   vertex_state_.initialize_payload(state_layout_.degree->base,
                                    encode_words(out_degrees));
@@ -205,6 +219,9 @@ void SpineSplitPageRankCompute::enqueue_read(std::uint64_t address,
   });
   if (kind == MemoryPayloadKind::kSourceDegree) {
     counters_.degree_read_bytes += kWordBytes;
+  } else if (kind == MemoryPayloadKind::kSourceAuxiliary ||
+             kind == MemoryPayloadKind::kApplyAuxiliary) {
+    counters_.auxiliary_read_bytes += kWordBytes;
   } else {
     counters_.primary_read_bytes += kWordBytes;
   }
@@ -212,15 +229,21 @@ void SpineSplitPageRankCompute::enqueue_read(std::uint64_t address,
 
 void SpineSplitPageRankCompute::enqueue_write(std::uint64_t address,
                                                std::uint32_t value,
+                                               MemoryPayloadKind kind,
                                                std::uint32_t vertex) {
   memory_tasks_.push_back(MemoryTask{
       .operation = MemoryOperation::kWrite,
       .address = address,
       .write_data = encode_u32(value),
-      .kind = MemoryPayloadKind::kPrimaryWrite,
+      .kind = kind,
       .vertex = vertex,
   });
-  counters_.primary_write_bytes += kWordBytes;
+  if (kind == MemoryPayloadKind::kSourceAuxiliaryWrite ||
+      kind == MemoryPayloadKind::kApplyAuxiliaryWrite) {
+    counters_.auxiliary_write_bytes += kWordBytes;
+  } else {
+    counters_.primary_write_bytes += kWordBytes;
+  }
 }
 
 bool SpineSplitPageRankCompute::memory_drained() const noexcept {
@@ -314,17 +337,26 @@ void SpineSplitPageRankCompute::consume_memory_response(
   }
   if (task.operation == MemoryOperation::kWrite) {
     if (!response.read_data.empty() ||
-        task.kind != MemoryPayloadKind::kPrimaryWrite) {
+        (task.kind != MemoryPayloadKind::kSourcePrimaryWrite &&
+         task.kind != MemoryPayloadKind::kSourceAuxiliaryWrite &&
+         task.kind != MemoryPayloadKind::kApplyPrimaryWrite &&
+         task.kind != MemoryPayloadKind::kApplyAuxiliaryWrite)) {
       failed_ = true;
       return;
     }
-    ++apply_writes_completed_;
+    if (task.kind == MemoryPayloadKind::kApplyPrimaryWrite ||
+        task.kind == MemoryPayloadKind::kApplyAuxiliaryWrite) {
+      ++apply_writes_completed_;
+    }
     return;
   }
   const std::uint32_t value = decode_u32(response.read_data);
   switch (task.kind) {
     case MemoryPayloadKind::kSourcePrimary:
       pending_source_rank_ = value;
+      return;
+    case MemoryPayloadKind::kSourceAuxiliary:
+      pending_source_residual_ = value;
       return;
     case MemoryPayloadKind::kSourceDegree:
       pending_source_degree_ = value;
@@ -340,13 +372,36 @@ void SpineSplitPageRankCompute::consume_memory_response(
           tile_accumulators_[task.vertex - tile_base_];
       ready_apply_.push_back(ReadyApply{
           .vertex = task.vertex,
-          .old_rank = value,
+          .old_state = {.primary = value},
           .reduced = reduced,
       });
       ++apply_reads_completed_;
       return;
     }
-    case MemoryPayloadKind::kPrimaryWrite:
+    case MemoryPayloadKind::kApplyAuxiliary: {
+      if (task.vertex < tile_base_ ||
+          static_cast<std::size_t>(task.vertex - tile_base_) >=
+              tile_accumulators_.size()) {
+        failed_ = true;
+        return;
+      }
+      const std::uint32_t reduced =
+          tile_accumulators_[task.vertex - tile_base_];
+      ready_apply_.push_back(ReadyApply{
+          .vertex = task.vertex,
+          .old_state = {
+              .primary = rank_words_.at(task.vertex),
+              .auxiliary = value,
+          },
+          .reduced = reduced,
+      });
+      ++apply_reads_completed_;
+      return;
+    }
+    case MemoryPayloadKind::kSourcePrimaryWrite:
+    case MemoryPayloadKind::kSourceAuxiliaryWrite:
+    case MemoryPayloadKind::kApplyPrimaryWrite:
+    case MemoryPayloadKind::kApplyAuxiliaryWrite:
       failed_ = true;
       return;
   }
@@ -426,7 +481,9 @@ void SpineSplitPageRankCompute::evaluate(const CycleContext &) {
   switch (phase_) {
     case Phase::kSourceMemory:
       if (pending_source_rank_.has_value() &&
-          pending_source_degree_.has_value()) {
+          pending_source_degree_.has_value() &&
+          (policy_.config().kind == GraphAlgorithmKind::kFullPageRank ||
+           pending_source_residual_.has_value())) {
         staged_phase_transition_ = Phase::kSourceMapPush;
       }
       return;
@@ -435,6 +492,7 @@ void SpineSplitPageRankCompute::evaluate(const CycleContext &) {
       request.stage = AlgorithmPipelineStage::kSourceMap;
       request.transaction_id = next_algorithm_transaction_;
       request.state.primary = *pending_source_rank_;
+      request.state.auxiliary = pending_source_residual_.value_or(0);
       request.out_degree = *pending_source_degree_;
       if (source_requests_.try_push(request)) {
         staged_source_request_ = request;
@@ -455,6 +513,11 @@ void SpineSplitPageRankCompute::evaluate(const CycleContext &) {
       return;
     }
     case Phase::kDanglingReduceWait:
+      return;
+    case Phase::kSourceStateWriteWait:
+      if (memory_drained()) {
+        staged_phase_transition_ = Phase::kSourceReply;
+      }
       return;
     case Phase::kSourceReply:
       staged_value_word_ = source_ack_pending_
@@ -482,7 +545,7 @@ void SpineSplitPageRankCompute::evaluate(const CycleContext &) {
         AlgorithmPipelineRequest request{};
         request.stage = AlgorithmPipelineStage::kApply;
         request.transaction_id = next_algorithm_transaction_;
-        request.state.primary = ready.old_rank;
+        request.state = ready.old_state;
         request.reduced = ready.reduced;
         request.context.base = policy_.initial_base_word();
         request.context.dangling_share = dangling_share_word_;
@@ -612,6 +675,25 @@ void SpineSplitPageRankCompute::commit(const CycleContext &context) {
       return;
     }
     pending_source_result_ = staged_source_response_->source;
+    if (pending_source_result_->primary_changed) {
+      rank_words_.at(pending_source_) =
+          pending_source_result_->state_after.primary;
+      enqueue_write(primary_write_base_ + pending_source_ * kWordBytes,
+                    pending_source_result_->state_after.primary,
+                    MemoryPayloadKind::kSourcePrimaryWrite, pending_source_);
+    }
+    if (pending_source_result_->auxiliary_changed) {
+      if (!state_layout_.auxiliary.has_value()) {
+        failed_ = true;
+        return;
+      }
+      residual_words_.at(pending_source_) =
+          pending_source_result_->state_after.auxiliary;
+      enqueue_write(state_layout_.auxiliary->base +
+                        pending_source_ * kWordBytes,
+                    pending_source_result_->state_after.auxiliary,
+                    MemoryPayloadKind::kSourceAuxiliaryWrite, pending_source_);
+    }
     phase_ = Phase::kDanglingReducePush;
   }
   if (staged_reduce_request_.has_value()) {
@@ -636,7 +718,9 @@ void SpineSplitPageRankCompute::commit(const CycleContext &context) {
     if (pending_dangling_transaction_ == transaction) {
       dangling_mass_word_ = staged_reduce_response_->reduced;
       pending_dangling_transaction_.reset();
-      phase_ = Phase::kSourceReply;
+      phase_ = policy_.config().kind == GraphAlgorithmKind::kResidualPageRank
+                   ? Phase::kSourceStateWriteWait
+                   : Phase::kSourceReply;
     } else {
       const auto found = edge_reductions_.find(transaction);
       if (found == edge_reductions_.end()) {
@@ -653,8 +737,13 @@ void SpineSplitPageRankCompute::commit(const CycleContext &context) {
 
   if (staged_apply_read_vertex_.has_value()) {
     const std::uint32_t vertex = *staged_apply_read_vertex_;
-    enqueue_read(primary_read_base_ + vertex * kWordBytes,
-                 MemoryPayloadKind::kApplyPrimary, vertex);
+    if (policy_.config().kind == GraphAlgorithmKind::kResidualPageRank) {
+      enqueue_read(state_layout_.auxiliary->base + vertex * kWordBytes,
+                   MemoryPayloadKind::kApplyAuxiliary, vertex);
+    } else {
+      enqueue_read(primary_read_base_ + vertex * kWordBytes,
+                   MemoryPayloadKind::kApplyPrimary, vertex);
+    }
     ++apply_reads_issued_;
   }
   if (staged_apply_request_.has_value()) {
@@ -678,9 +767,21 @@ void SpineSplitPageRankCompute::commit(const CycleContext &context) {
     const std::uint32_t vertex = found->second;
     const AlgorithmApplyResult &applied = staged_apply_response_->applied;
     rank_words_.at(vertex) = applied.state_after.primary;
+    residual_words_.at(vertex) = applied.state_after.auxiliary;
     iteration_error_ += applied.error;
-    enqueue_write(primary_write_base_ + vertex * kWordBytes,
-                  applied.state_after.primary, vertex);
+    if (policy_.config().kind == GraphAlgorithmKind::kResidualPageRank) {
+      enqueue_write(state_layout_.auxiliary->base + vertex * kWordBytes,
+                    applied.state_after.auxiliary,
+                    MemoryPayloadKind::kApplyAuxiliaryWrite, vertex);
+      if (applied.active) {
+        next_active_.push_back(vertex);
+        ++counters_.vertices_activated;
+      }
+    } else {
+      enqueue_write(primary_write_base_ + vertex * kWordBytes,
+                    applied.state_after.primary,
+                    MemoryPayloadKind::kApplyPrimaryWrite, vertex);
+    }
     apply_transactions_.erase(found);
     ++apply_operations_completed_;
     ++counters_.vertices_applied;
@@ -693,6 +794,7 @@ void SpineSplitPageRankCompute::commit(const CycleContext &context) {
     } else {
       ++counters_.source_responses;
       pending_source_rank_.reset();
+      pending_source_residual_.reset();
       pending_source_degree_.reset();
       pending_source_result_.reset();
     }
@@ -705,6 +807,7 @@ void SpineSplitPageRankCompute::commit(const CycleContext &context) {
     case InputAction::kSourceRequest:
       if (tile_open_ || staged_input_word_.first >= vertices_ ||
           pending_source_rank_.has_value() ||
+          pending_source_residual_.has_value() ||
           pending_source_degree_.has_value()) {
         set_protocol_status(SpineSourceProtocolStatus::kUnexpected);
         failed_ = true;
@@ -716,6 +819,11 @@ void SpineSplitPageRankCompute::commit(const CycleContext &context) {
       pending_source_ = staged_input_word_.first;
       enqueue_read(primary_read_base_ + pending_source_ * kWordBytes,
                    MemoryPayloadKind::kSourcePrimary, pending_source_);
+      if (policy_.config().kind == GraphAlgorithmKind::kResidualPageRank) {
+        enqueue_read(state_layout_.auxiliary->base +
+                         pending_source_ * kWordBytes,
+                     MemoryPayloadKind::kSourceAuxiliary, pending_source_);
+      }
       enqueue_read(state_layout_.degree->base + pending_source_ * kWordBytes,
                    MemoryPayloadKind::kSourceDegree, pending_source_);
       ++counters_.source_requests;
@@ -740,7 +848,8 @@ void SpineSplitPageRankCompute::commit(const CycleContext &context) {
       ++counters_.source_protocol_markers;
       if (!source_count_seen_ || !source_generation_seen_ ||
           counters_.source_count != counters_.source_requests ||
-          counters_.source_count != vertices_) {
+          (policy_.config().kind == GraphAlgorithmKind::kFullPageRank &&
+           counters_.source_count != vertices_)) {
         set_protocol_status(SpineSourceProtocolStatus::kCount);
       }
       const float share = policy_.config().damping * dangling_mass() /

@@ -1,0 +1,30 @@
+{
+  "algorithm": "thresholded_residual_pagerank",
+  "backend": "mock_hbm",
+  "case": "residual_pagerank_vertical_slice",
+  "cycles": 266871,
+  "damping": 0.8,
+  "edges": 4,
+  "epsilon": 1e-05,
+  "final_active": 0,
+  "max_oracle_error": 2.98023e-08,
+  "memory_ledger_per_round": {
+    "apply_requests": "2 * vertices",
+    "source_requests": "5 * active_sources",
+    "total_requests": "5 * active_sources + 2 * vertices"
+  },
+  "pipeline_timing_characterized": false,
+  "rank_sum": 0.999972,
+  "residual_l1": 5.54604e-06,
+  "rounds": 49,
+  "status": "PASS",
+  "threshold": "epsilon / vertices",
+  "validation": {
+    "active_frontier_checked_every_round": true,
+    "hbm_request_ledger_checked_every_round": true,
+    "maintenance_runs": 1,
+    "rank_checked_every_vertex_every_round": true,
+    "residual_checked_every_vertex_every_round": true
+  },
+  "vertices": 4
+}

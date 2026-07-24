@@ -1,0 +1,31 @@
+digraph spine_timed_residual_pagerank {
+  graph [rankdir=LR, bgcolor="white", pad=0.2, nodesep=0.35, ranksep=0.55];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=10,
+        color="#334155", fillcolor="#f8fafc", margin="0.14,0.08"];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#475569"];
+
+  frontier [label="Thresholded frontier\nabs(residual) > epsilon / N",
+            fillcolor="#dcfce7"];
+  reader [label="Spine Reader\nactive source + level scan", fillcolor="#fef3c7"];
+  source_read [label="HBM source state\nrank + residual + degree", fillcolor="#e0f2fe"];
+  source_map [label="Source map\nrank += residual\nresidual = 0", fillcolor="#dcfce7"];
+  source_write [label="HBM source writeback\nrank + residual", fillcolor="#e0f2fe"];
+  axis [label="Registered AXIS FIFO\nsigned contribution", fillcolor="#f3e8ff"];
+  reduce [label="Tile reduce\nsigned FP accumulation", fillcolor="#dcfce7"];
+  apply_read [label="HBM apply read\nold residual", fillcolor="#e0f2fe"];
+  apply [label="Apply + threshold\nresidual += incoming + dangling",
+         fillcolor="#dcfce7"];
+  apply_write [label="HBM apply write\nnew residual", fillcolor="#e0f2fe"];
+
+  frontier -> reader;
+  reader -> source_read [label="3 reads / active source"];
+  source_read -> source_map;
+  source_map -> source_write [label="2 writes / active source"];
+  source_map -> axis;
+  reader -> axis [label="level edges"];
+  axis -> reduce;
+  reduce -> apply_read;
+  apply_read -> apply;
+  apply -> apply_write [label="2 requests / vertex"];
+  apply -> frontier [label="next round", constraint=false];
+}

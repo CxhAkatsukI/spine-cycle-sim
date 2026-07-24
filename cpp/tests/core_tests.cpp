@@ -5771,6 +5771,145 @@ void test_spine_full_pagerank_vertical_slice_reads_level_edges() {
             << " maintenance_reruns=0\n";
 }
 
+void test_spine_residual_pagerank_tracks_thresholded_frontier() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("residual-pagerank-system", 200.0);
+  MockMemoryBackend backend("residual-pagerank-hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 4,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  const SpineEdgeSlice workload{
+      .vertices = 4,
+      .edges = {
+          {.src = 0, .dst = 1, .weight = 1, .diff = 1},
+          {.src = 0, .dst = 2, .weight = 1, .diff = 1},
+          {.src = 1, .dst = 2, .weight = 1, .diff = 1},
+          {.src = 3, .dst = 2, .weight = 1, .diff = 1},
+      },
+      .case_name = "residual_pagerank_vertical_slice",
+  };
+  constexpr float kDamping = 0.8F;
+  constexpr float kEpsilon = 1.0e-5F;
+  const GraphAlgorithmPolicy policy(AlgorithmPolicyConfig{
+      .kind = GraphAlgorithmKind::kResidualPageRank,
+      .vertices = workload.vertices,
+      .source = 0,
+      .damping = kDamping,
+      .epsilon = kEpsilon,
+  });
+  SpinePageRankVerticalSliceSystem system(
+      scheduler, core, backend, workload, policy, SpineL0Config{},
+      SpineAxiInterfaceProfile{},
+      AlgorithmPipelineConfig{
+          .source_map = {.latency_cycles = 3,
+                         .initiation_interval = 1,
+                         .capacity = 4},
+          .edge_map = {.latency_cycles = 1,
+                       .initiation_interval = 1,
+                       .capacity = 4},
+          .reduce = {.latency_cycles = 2,
+                     .initiation_interval = 1,
+                     .capacity = 8},
+          .apply = {.latency_cycles = 3,
+                    .initiation_interval = 1,
+                    .capacity = 8},
+      });
+  system.register_components();
+  scheduler.add_component(backend);
+
+  const std::array<std::uint32_t, 4> degrees{2, 1, 0, 1};
+  const std::array<std::pair<std::uint32_t, std::uint32_t>, 4> edges{
+      std::pair<std::uint32_t, std::uint32_t>{0, 1},
+      {0, 2},
+      {1, 2},
+      {3, 2},
+  };
+  std::vector<float> oracle_rank(4, 0.0F);
+  std::vector<float> oracle_residual(4, (1.0F - kDamping) / 4.0F);
+  std::vector<std::uint32_t> active{0, 1, 2, 3};
+  float max_oracle_error = 0.0F;
+  std::size_t rounds = 0;
+  for (; rounds < 256; ++rounds) {
+    scheduler.run_until([&] { return system.done() && system.idle(); },
+                        500'000);
+
+    std::vector<float> deltas(4, 0.0F);
+    float dangling = 0.0F;
+    for (const std::uint32_t source : active) {
+      deltas[source] = oracle_residual[source];
+      oracle_residual[source] = 0.0F;
+      oracle_rank[source] += deltas[source];
+      if (degrees[source] == 0) {
+        dangling += deltas[source];
+      }
+    }
+    const float dangling_share = kDamping * dangling / 4.0F;
+    for (float &residual : oracle_residual) {
+      residual += dangling_share;
+    }
+    for (const auto &[source, destination] : edges) {
+      if (deltas[source] != 0.0F) {
+        oracle_residual[destination] +=
+            kDamping * deltas[source] / static_cast<float>(degrees[source]);
+      }
+    }
+    std::vector<std::uint32_t> next;
+    for (std::size_t vertex = 0; vertex < oracle_rank.size(); ++vertex) {
+      const float actual_rank = GraphAlgorithmPolicy::word_to_float(
+          system.compute().rank_words().at(vertex));
+      const float actual_residual = GraphAlgorithmPolicy::word_to_float(
+          system.compute().residual_words().at(vertex));
+      max_oracle_error =
+          std::max({max_oracle_error, std::fabs(actual_rank - oracle_rank[vertex]),
+                    std::fabs(actual_residual - oracle_residual[vertex])});
+      if (std::fabs(oracle_residual[vertex]) > kEpsilon / 4.0F) {
+        next.push_back(static_cast<std::uint32_t>(vertex));
+      }
+    }
+    require(system.compute().next_active() == next &&
+                system.reader_counters().source_requests == active.size() &&
+                system.compute_counters().source_requests == active.size() &&
+                system.compute_counters().vertices_activated == next.size() &&
+                system.compute_counters().memory_requests_issued ==
+                    5 * active.size() + 8,
+            "residual PageRank did not execute its thresholded memory frontier");
+    active = std::move(next);
+    if (active.empty()) {
+      ++rounds;
+      break;
+    }
+    system.restart_iteration();
+  }
+
+  float rank_sum = 0.0F;
+  float residual_l1 = 0.0F;
+  for (const std::uint32_t word : system.compute().rank_words()) {
+    rank_sum += GraphAlgorithmPolicy::word_to_float(word);
+  }
+  for (const std::uint32_t word : system.compute().residual_words()) {
+    residual_l1 +=
+        std::fabs(GraphAlgorithmPolicy::word_to_float(word));
+  }
+  std::cout << "EVIDENCE spine_residual_pagerank rounds=" << rounds
+            << " cycles=" << scheduler.clock(core).completed_cycles
+            << " max_oracle_error=" << max_oracle_error
+            << " rank_sum=" << rank_sum
+            << " residual_l1=" << residual_l1
+            << " final_active=" << active.size()
+            << " failed=" << system.failed() << '\n';
+  require(!system.failed() && active.empty() && rounds < 256 &&
+              max_oracle_error < 1.0e-5F &&
+              residual_l1 <= kEpsilon * 1.01F &&
+              std::fabs(rank_sum - 1.0F) <
+                  kEpsilon / (1.0F - kDamping) &&
+              system.maintenance_counters().persisted_edges == 4,
+          "thresholded residual PageRank failed to converge to its oracle");
+}
+
 }  // namespace
 
 int main(int argc, char **argv) {
@@ -5893,6 +6032,8 @@ int main(int argc, char **argv) {
        test_spine_timed_full_pagerank_compute_uses_hbm_and_pipelines},
       {"spine_pagerank_vertical_slice",
        test_spine_full_pagerank_vertical_slice_reads_level_edges},
+      {"spine_residual_pagerank",
+       test_spine_residual_pagerank_tracks_thresholded_frontier},
   };
   const std::string filter = argc > 1 ? argv[1] : "";
   std::size_t failures = 0;

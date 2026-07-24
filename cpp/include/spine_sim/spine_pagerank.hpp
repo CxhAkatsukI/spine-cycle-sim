@@ -31,8 +31,11 @@ struct SpinePageRankCounters {
   std::uint64_t edges_received{};
   std::uint64_t edge_reduce_operations{};
   std::uint64_t vertices_applied{};
+  std::uint64_t vertices_activated{};
   std::uint64_t primary_read_bytes{};
   std::uint64_t primary_write_bytes{};
+  std::uint64_t auxiliary_read_bytes{};
+  std::uint64_t auxiliary_write_bytes{};
   std::uint64_t degree_read_bytes{};
   std::uint64_t memory_requests_issued{};
   std::uint64_t memory_requests_completed{};
@@ -62,6 +65,16 @@ class SpineSplitPageRankCompute final : public Component {
   [[nodiscard]] bool failed() const noexcept { return failed_; }
   [[nodiscard]] const std::vector<std::uint32_t> &rank_words() const noexcept {
     return rank_words_;
+  }
+  [[nodiscard]] const std::vector<std::uint32_t> &residual_words() const
+      noexcept {
+    return residual_words_;
+  }
+  [[nodiscard]] const std::vector<std::uint32_t> &next_active() const noexcept {
+    return next_active_;
+  }
+  [[nodiscard]] GraphAlgorithmKind algorithm_kind() const noexcept {
+    return policy_.config().kind;
   }
   [[nodiscard]] const SpinePageRankCounters &counters() const noexcept {
     return counters_;
@@ -97,6 +110,7 @@ class SpineSplitPageRankCompute final : public Component {
     kSourceMapWait,
     kDanglingReducePush,
     kDanglingReduceWait,
+    kSourceStateWriteWait,
     kSourceReply,
     kApplyTile,
     kFinish,
@@ -104,9 +118,14 @@ class SpineSplitPageRankCompute final : public Component {
 
   enum class MemoryPayloadKind {
     kSourcePrimary,
+    kSourceAuxiliary,
     kSourceDegree,
     kApplyPrimary,
-    kPrimaryWrite,
+    kApplyAuxiliary,
+    kSourcePrimaryWrite,
+    kSourceAuxiliaryWrite,
+    kApplyPrimaryWrite,
+    kApplyAuxiliaryWrite,
   };
 
   struct MemoryTask {
@@ -123,7 +142,7 @@ class SpineSplitPageRankCompute final : public Component {
 
   struct ReadyApply {
     std::uint32_t vertex{};
-    std::uint32_t old_rank{};
+    AlgorithmVertexState old_state;
     std::optional<std::uint32_t> reduced;
   };
 
@@ -144,7 +163,7 @@ class SpineSplitPageRankCompute final : public Component {
   void enqueue_read(std::uint64_t address, MemoryPayloadKind kind,
                     std::uint32_t vertex);
   void enqueue_write(std::uint64_t address, std::uint32_t value,
-                     std::uint32_t vertex);
+                     MemoryPayloadKind kind, std::uint32_t vertex);
   void consume_memory_response(const MemoryTask &task,
                                const AxiResponse &response);
   void begin_apply_tile(std::uint32_t tile_base, bool empty_tile);
@@ -178,6 +197,8 @@ class SpineSplitPageRankCompute final : public Component {
 
   SpinePageRankCounters counters_;
   std::vector<std::uint32_t> rank_words_;
+  std::vector<std::uint32_t> residual_words_;
+  std::vector<std::uint32_t> next_active_;
   std::vector<bool> tile_applied_;
   std::vector<std::uint32_t> tile_accumulators_;
   std::deque<MemoryTask> memory_tasks_;
@@ -209,6 +230,7 @@ class SpineSplitPageRankCompute final : public Component {
   std::uint64_t next_algorithm_transaction_{};
   std::uint32_t pending_source_{};
   std::optional<std::uint32_t> pending_source_rank_;
+  std::optional<std::uint32_t> pending_source_residual_;
   std::optional<std::uint32_t> pending_source_degree_;
   std::optional<AlgorithmSourceResult> pending_source_result_;
   std::optional<std::uint64_t> pending_dangling_transaction_;

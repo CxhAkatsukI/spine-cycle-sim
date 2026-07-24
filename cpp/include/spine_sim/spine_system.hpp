@@ -178,6 +178,14 @@ class SpinePageRankVerticalSliceSystem {
       AlgorithmPipelineConfig pipeline_config = {},
       std::size_t compute_memory_request_window =
           SpineSplitPageRankCompute::kDefaultMemoryRequestWindow);
+  SpinePageRankVerticalSliceSystem(
+      Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
+      SpineEdgeSlice workload, GraphAlgorithmPolicy policy,
+      SpineL0Config maintenance_config = {},
+      SpineAxiInterfaceProfile axi_profile = {},
+      AlgorithmPipelineConfig pipeline_config = {},
+      std::size_t compute_memory_request_window =
+          SpineSplitPageRankCompute::kDefaultMemoryRequestWindow);
 
   void register_components();
   void restart_iteration();
@@ -201,6 +209,7 @@ class SpinePageRankVerticalSliceSystem {
   ClockId clock_id_{};
   MemoryBackend &backend_;
   SpineAxiInterfaceProfile axi_profile_;
+  SpineL0Config maintenance_config_;
   Fifo<PartConvWord> edge_stream_;
   Fifo<SourceValueWord> value_stream_;
   std::array<std::unique_ptr<FixedAxiPort>, 16> graph_ports_;

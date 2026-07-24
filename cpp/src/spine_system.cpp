@@ -678,12 +678,35 @@ SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
     SpineL0Config maintenance_config, SpineAxiInterfaceProfile axi_profile,
     AlgorithmPipelineConfig pipeline_config,
     std::size_t compute_memory_request_window)
+    : SpinePageRankVerticalSliceSystem(
+          scheduler, clock_id, backend, workload,
+          GraphAlgorithmPolicy(AlgorithmPolicyConfig{
+              .kind = GraphAlgorithmKind::kFullPageRank,
+              .vertices = workload.vertices,
+              .source = 0,
+              .damping = damping,
+          }),
+          std::move(maintenance_config), std::move(axi_profile),
+          std::move(pipeline_config), compute_memory_request_window) {}
+
+SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
+    Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
+    SpineEdgeSlice workload, GraphAlgorithmPolicy policy,
+    SpineL0Config maintenance_config, SpineAxiInterfaceProfile axi_profile,
+    AlgorithmPipelineConfig pipeline_config,
+    std::size_t compute_memory_request_window)
     : scheduler_(scheduler),
       clock_id_(clock_id),
       backend_(backend),
       axi_profile_(std::move(axi_profile)),
+      maintenance_config_(maintenance_config),
       edge_stream_("pagerank-edge-axis", clock_id, 32),
       value_stream_("pagerank-value-axis", clock_id, 32) {
+  if (policy.config().vertices != workload.vertices ||
+      (policy.config().kind != GraphAlgorithmKind::kFullPageRank &&
+       policy.config().kind != GraphAlgorithmKind::kResidualPageRank)) {
+    throw std::invalid_argument("invalid Spine PageRank system policy");
+  }
   const PageRankHostInput host =
       build_pagerank_host_input(workload, maintenance_config);
   active_bins_payload_ = host.bins;
@@ -720,13 +743,8 @@ SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
   reader_ports.metadata = metadata_.get();
   reader_ports.result = maintenance_result_.get();
 
-  algorithm_policy_ = std::make_shared<const GraphAlgorithmPolicy>(
-      AlgorithmPolicyConfig{
-          .kind = GraphAlgorithmKind::kFullPageRank,
-          .vertices = workload.vertices,
-          .source = 0,
-          .damping = damping,
-      });
+  algorithm_policy_ =
+      std::make_shared<const GraphAlgorithmPolicy>(std::move(policy));
   maintenance_ = std::make_unique<SpineL0Maintenance>(
       "pagerank-maintenance", clock_id_, std::move(maintenance_config),
       std::move(workload), maintenance_ports, state_);
@@ -776,6 +794,15 @@ void SpinePageRankVerticalSliceSystem::restart_iteration() {
   }
   edge_stream_.reset_stats();
   value_stream_.reset_stats();
+  if (algorithm_policy_->config().kind ==
+      GraphAlgorithmKind::kResidualPageRank) {
+    source_refresh_ = compute_->next_active();
+    if (source_refresh_.empty()) {
+      throw std::logic_error("converged residual PageRank cannot restart");
+    }
+    active_bins_payload_ = build_host_active_bins(
+        state_, maintenance_config_, source_refresh_, compute_->rank_words());
+  }
   reader_->reset_host_round(active_bins_payload_, host_coverage_,
                             source_refresh_);
   compute_->reset_iteration();
