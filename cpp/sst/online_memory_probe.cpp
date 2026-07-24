@@ -897,6 +897,12 @@ class OnlineMemoryProbe final : public SST::Component {
         params.find<std::size_t>("grasu_edge_lanes", 4);
     grasu_config_.gather_banks =
         params.find<std::size_t>("grasu_gather_banks", 4);
+    grasu_config_.source_state_channel =
+        params.find<std::size_t>("grasu_source_state_channel", 1);
+    grasu_config_.source_state_mirror_channel =
+        params.find<std::size_t>("grasu_source_state_mirror_channel", 3);
+    grasu_config_.vertex_state_channel =
+        params.find<std::size_t>("grasu_apply_state_channel", 30);
     grasu_config_.axis_fifo_depth =
         params.find<std::size_t>("grasu_axis_fifo_depth", 16);
     grasu_config_.reader_buffer_batches =
@@ -1668,6 +1674,11 @@ class OnlineMemoryProbe final : public SST::Component {
       {"grasu_source_buffer_vertices", "ReGraph source-cache words", "4096"},
       {"grasu_edge_lanes", "PMA-native edge lanes", "4"},
       {"grasu_gather_banks", "ReGraph gather banks", "4"},
+      {"grasu_source_state_channel", "ReGraph primary source-state HBM channel",
+       "1"},
+      {"grasu_source_state_mirror_channel",
+       "ReGraph mirrored source-state HBM channel", "3"},
+      {"grasu_apply_state_channel", "ReGraph apply-state HBM channel", "30"},
       {"grasu_axis_fifo_depth", "GraSU/ReGraph AXIS FIFO depth", "16"},
       {"grasu_reader_buffer_batches", "PMA reader response batches", "32"},
       {"grasu_max_pending_requests", "AXI pending requests per port", "32"},
@@ -1784,6 +1795,12 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"edge_lanes\": " << grasu_config_.edge_lanes << ",\n"
              << "  \"gather_banks\": " << grasu_config_.gather_banks
              << ",\n"
+             << "  \"source_state_channel\": "
+             << grasu_config_.source_state_channel << ",\n"
+             << "  \"source_state_mirror_channel\": "
+             << grasu_config_.source_state_mirror_channel << ",\n"
+             << "  \"apply_state_channel\": "
+             << grasu_config_.vertex_state_channel << ",\n"
              << "  \"apply_request_window\": "
              << grasu_config_.apply_request_window << ",\n"
              << "  \"apply_pipeline_latency\": "
@@ -1799,6 +1816,8 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"compute_row_reads\": " << compute.row_reads << ",\n"
              << "  \"compute_source_state_reads\": "
              << compute.source_state_reads << ",\n"
+             << "  \"compute_source_state_writes\": "
+             << compute.source_state_writes << ",\n"
              << "  \"compute_pma_segment_reads\": "
              << compute.pma_segment_reads << ",\n"
              << "  \"compute_edge_batches\": "
@@ -1841,7 +1860,8 @@ class OnlineMemoryProbe final : public SST::Component {
              << compute.row_read_bytes + compute.source_state_read_bytes +
                     compute.pma_read_bytes + compute.apply_read_bytes
              << ",\n"
-             << "  \"compute_write_bytes\": " << compute.apply_write_bytes
+             << "  \"compute_write_bytes\": "
+             << compute.apply_write_bytes + compute.source_state_write_bytes
              << ",\n"
              << "  \"axi_backend_stalls\": "
              << update.axi_backend_submit_stalls +

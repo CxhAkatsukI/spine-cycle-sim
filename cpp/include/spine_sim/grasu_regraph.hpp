@@ -36,7 +36,11 @@ struct GraSuReGraphConfig {
   std::uint64_t row_offset_base{0x1000'0000ULL};
   std::uint64_t pma_base{0x3000'0000ULL};
   std::uint64_t vertex_state_base{0x4000'0000ULL};
+  std::uint64_t source_state_base{0x5000'0000ULL};
+  std::uint64_t source_state_buffer_stride{0x0010'0000ULL};
   std::size_t row_channel{0};
+  std::size_t source_state_channel{1};
+  std::size_t source_state_mirror_channel{3};
   std::size_t vertex_state_channel{30};
 };
 
@@ -44,6 +48,7 @@ struct GraSuReGraphCounters {
   std::uint64_t supersteps{};
   std::uint64_t row_reads{};
   std::uint64_t source_state_reads{};
+  std::uint64_t source_state_writes{};
   std::uint64_t pma_segment_reads{};
   std::uint64_t edge_batches_scanned{};
   std::uint64_t pma_slots_scanned{};
@@ -63,6 +68,7 @@ struct GraSuReGraphCounters {
   std::uint64_t activated_vertices{};
   std::uint64_t row_read_bytes{};
   std::uint64_t source_state_read_bytes{};
+  std::uint64_t source_state_write_bytes{};
   std::uint64_t pma_read_bytes{};
   std::uint64_t apply_read_bytes{};
   std::uint64_t apply_write_bytes{};

@@ -41,6 +41,10 @@
     "grasu_pma_hbm_channels": 4,
     "regraph_pma_reader_cus": 1,
     "regraph_map_reduce_lanes": 4,
+    "regraph_source_state_channel": 1,
+    "regraph_source_state_mirror_channel": 3,
+    "regraph_apply_state_channel": 30,
+    "regraph_source_state_copies": 2,
     "pma_native_compute": true,
     "conversion_cost_included": false
   },

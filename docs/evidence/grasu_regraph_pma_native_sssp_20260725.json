@@ -34,7 +34,9 @@
     "live_edges_scanned": 28,
     "active_edges_mapped": 7,
     "read_bytes": 2304,
-    "write_bytes": 256,
+    "apply_write_bytes": 256,
+    "source_state_write_bytes": 512,
+    "write_bytes": 768,
     "distance_oracle": "pass"
   },
   "native_partition_test": {
@@ -48,6 +50,7 @@
     "gather_reset_and_merge_cycles": 98304,
     "apply_read_bursts_64b": 8192,
     "apply_write_bursts_64b": 8192,
+    "source_state_write_bursts_64b": 16384,
     "apply_max_reads_inflight": 10,
     "apply_max_pipeline_occupancy": 100,
     "apply_max_writes_inflight": 32,

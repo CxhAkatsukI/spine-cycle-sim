@@ -91,6 +91,12 @@ class ArchitectureProfileTests(unittest.TestCase):
         self.assertTrue(normalized.parameters["pma_native_compute"])
         self.assertEqual(normalized.parameters["hbm_pseudo_channels_budget"], 23)
         self.assertEqual(normalized.clock("kernel").achieved_mhz, 150.0)
+        self.assertEqual(normalized.parameters["regraph_source_state_channel"], 1)
+        self.assertEqual(
+            normalized.parameters["regraph_source_state_mirror_channel"], 3
+        )
+        self.assertEqual(normalized.parameters["regraph_apply_state_channel"], 30)
+        self.assertEqual(normalized.parameters["regraph_source_state_copies"], 2)
         self.assertEqual(projected.parameters["comparison_role"], "projected")
         self.assertTrue(projected.parameters["change_aware_compute_activation"])
 

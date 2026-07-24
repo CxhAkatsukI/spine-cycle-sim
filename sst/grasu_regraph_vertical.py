@@ -57,6 +57,15 @@ probe.addParams(
         "grasu_gather_banks": int(
             os.environ.get("GRASU_SST_GATHER_BANKS", "4")
         ),
+        "grasu_source_state_channel": int(
+            os.environ.get("GRASU_SST_SOURCE_STATE_CHANNEL", "1")
+        ),
+        "grasu_source_state_mirror_channel": int(
+            os.environ.get("GRASU_SST_SOURCE_STATE_MIRROR_CHANNEL", "3")
+        ),
+        "grasu_apply_state_channel": int(
+            os.environ.get("GRASU_SST_APPLY_STATE_CHANNEL", "30")
+        ),
         "grasu_axis_fifo_depth": int(
             os.environ.get("GRASU_SST_AXIS_FIFO_DEPTH", "16")
         ),

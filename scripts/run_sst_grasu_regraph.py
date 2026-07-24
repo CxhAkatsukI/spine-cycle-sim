@@ -87,6 +87,15 @@ def main() -> int:
             "GRASU_SST_SOURCE_BUFFER_VERTICES": "4096",
             "GRASU_SST_EDGE_LANES": str(params["regraph_map_reduce_lanes"]),
             "GRASU_SST_GATHER_BANKS": str(params["regraph_map_reduce_lanes"]),
+            "GRASU_SST_SOURCE_STATE_CHANNEL": str(
+                params["regraph_source_state_channel"]
+            ),
+            "GRASU_SST_SOURCE_STATE_MIRROR_CHANNEL": str(
+                params["regraph_source_state_mirror_channel"]
+            ),
+            "GRASU_SST_APPLY_STATE_CHANNEL": str(
+                params["regraph_apply_state_channel"]
+            ),
             "GRASU_SST_MAX_PENDING_REQUESTS": str(
                 memory["max_outstanding_per_port"]
             ),
@@ -130,6 +139,15 @@ def main() -> int:
         or result.get("correctness_mismatches") != 0
         or result.get("claim_class") != expected_claim
         or result.get("partition_vertices") != partition_vertices
+        or result.get("source_state_channel")
+        != params["regraph_source_state_channel"]
+        or result.get("source_state_mirror_channel")
+        != params["regraph_source_state_mirror_channel"]
+        or result.get("apply_state_channel") != params["regraph_apply_state_channel"]
+        or result.get("compute_source_state_writes")
+        != 2 * result.get("apply_state_writes", -1)
+        or result.get("compute_write_bytes")
+        != 3 * result.get("apply_state_writes", -1) * 64
     ):
         raise RuntimeError(f"SST GraSU/ReGraph validation failed: {result}")
 

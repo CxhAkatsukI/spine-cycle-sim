@@ -7,7 +7,8 @@ digraph grasu_regraph_pma_native_sssp {
   barrier [label="Completion barrier\nserial baseline", shape=diamond, fillcolor="#fff3cd"];
   pma [label="Payload-backed PMA\n4 HBM images\n16 destinations / 64 B", shape=cylinder, fillcolor="#e8e8e8"];
   rows [label="Row bounds\n8 B / source", shape=cylinder, fillcolor="#e8e8e8"];
-  state [label="ReGraph vertex state\nactive bit + distance\nHBM channel 30", shape=cylinder, fillcolor="#e8e8e8"];
+  apply_state [label="Apply-local state\nactive bit + distance\nHBM channel 30", shape=cylinder, fillcolor="#e8e8e8"];
+  source_state [label="Ping-pong source state\nidentical copies\nHBM channels 1 and 3", shape=cylinder, fillcolor="#e8e8e8"];
   source_cache [label="Source cache refill\n4096 words / chunk", fillcolor="#dcebd9"];
   reader [label="PMA-native reader\nrow AXI + 4 PMA AXI ports\nscan reserved empty slots", fillcolor="#dcebd9"];
   axis [label="Registered AXIS FIFO\n4 or 8 slots / batch\nfinite depth", fillcolor="#f4e1c1"];
@@ -15,23 +16,27 @@ digraph grasu_regraph_pma_native_sssp {
   gather [label="8-bank Map / Reduce\nunit-weight SSSP\nbank-conflict timing", fillcolor="#f0d9e7"];
   merge [label="Gather merge sweep\n65536 / 2 cycles", fillcolor="#f0d9e7"];
   apply [label="Partition-wide apply\n64 B read + write bursts\nset next active bits", fillcolor="#d9e8f5"];
+  hbm_wrapper [label="HBM write wrapper\nII=1, iteration latency 71\nmirror each 512-bit result", fillcolor="#d9e8f5"];
   oracle [label="Committed-state\ndistance oracle + byte/stall ledger", fillcolor="#dcebd9"];
   bypass [label="6-stage RAW bypass registers\nremaining explicit timing gap", style="rounded,dashed,filled", fillcolor="#fff3cd", color="#9a7800"];
+  stream_gap [label="Finite merger/apply/wrapper streams\nremaining overlap gap", style="rounded,dashed,filled", fillcolor="#fff3cd", color="#9a7800"];
 
   update -> pma [label="committed updates"];
   update -> barrier;
   barrier -> reader;
   pma -> reader [label="64 B AXI responses"];
   rows -> reader [label="8 B AXI responses"];
-  state -> source_cache [label="sequential AXI bursts"];
+  source_state -> source_cache [label="next-round AXI reads"];
   source_cache -> reader [label="active + source payload"];
-  reader -> axis [label="two batches / segment"];
+  reader -> axis [label="16 / lanes batches per segment"];
   reset -> gather [label="round start"];
   axis -> gather [label="backpressure"];
   gather -> merge;
   merge -> apply [label="reduced candidates"];
-  state -> apply [dir=both, label="64 B AXI R/W"];
-  apply -> source_cache [label="next superstep", color="#3f7f5f"];
+  apply_state -> apply [dir=both, label="64 B AXI R/W"];
+  apply -> hbm_wrapper [label="512-bit result stream"];
+  hbm_wrapper -> source_state [label="two parallel 64 B writes", color="#3f7f5f"];
   apply -> oracle [label="no active vertices"];
   bypass -> gather [style=dashed];
+  stream_gap -> hbm_wrapper [style=dashed];
 }

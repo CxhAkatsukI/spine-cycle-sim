@@ -52,7 +52,8 @@ implemented and synthesized.
   profile processes two vertices per cycle in each sweep.
 - Apply reads and writes all 65536 destination words as 64-byte bursts under
   the native profile, sets the ReGraph active bit for improved vertices, and
-  drives the next superstep.
+  drives the next superstep. Each output burst is committed to local state on
+  HBM[30] and mirrored to ping-pong source state on HBM[1] and HBM[3].
 - Update and compute are serial with an explicit completion barrier.
 
 GraSU PMA slots currently encode only a 32-bit destination. The PMA-native
@@ -74,7 +75,7 @@ PMA slots scanned:   320
 live edges scanned:   28
 active edges mapped:   7
 HBM read bytes:      2304
-HBM write bytes:      256
+HBM write bytes:      768
 distance oracle:     PASS
 ```
 
@@ -92,7 +93,9 @@ The read ledger is:
 total                      = 2304 B
 ```
 
-Apply writes one 64-byte state burst in each superstep.
+Apply produces one 64-byte state burst in each superstep. The modeled hardware
+topology writes that burst three times: local apply state plus two source-state
+copies.
 
 ## Native Partition Evidence
 
@@ -105,6 +108,7 @@ supersteps:                   2
 gather reset + merge:     98304 cycles (32768 + 65536)
 apply reads:                8192 x 64 B
 apply writes:               8192 x 64 B
+source-state writes:       16384 x 64 B
 max read / write in-flight:   10 / 32
 max apply pipeline occupancy:     100
 distance oracle:              PASS
@@ -173,8 +177,8 @@ dot -Tsvg docs/figures/grasu_regraph_pma_native_sssp.dot \
 1. Broaden the now-working profile-driven `SstMemoryBackend` path from the tiny
    normalized validation case to synthetic sweeps and real graph slices, and
    report simulator wall-clock throughput.
-2. Replace ideal immediate gather forwarding with an explicit six-stage RAW
-   bypass/register model and attach operation/queue activity to energy events.
+2. Replace the gather/merge/apply phase barriers with explicit finite streams,
+   then model the six-stage gather RAW bypass and the HBM-wrapper write pipeline.
 3. Extend the PMA contract for real edge weights before claiming weighted SSSP
    equivalence with Spine.
 4. Add full PageRank and thresholded residual PageRank iteration controllers

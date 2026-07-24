@@ -6,7 +6,7 @@
   "timing_evidence": "structural_execution_driven",
   "profile": {
     "path": "configs/architectures/grasu_regraph_normalized_spine23.json",
-    "sha256": "c40804a8c9b3545a250f67de8a10b997180f885e37afe87eef3305fef5bd609e"
+    "sha256": "4c6a4ac5b2699bc0b3b58a8431746073771cb6874161671791f228f4a657733f"
   },
   "workload": {
     "initial_path": "tests/data/grasu_regraph_unit_initial.slice",
@@ -27,7 +27,11 @@
     "max_outstanding_bursts_per_port": 32,
     "apply_request_window": 32,
     "apply_pipeline_latency": 100,
-    "apply_pipeline_capacity": 100
+    "apply_pipeline_capacity": 100,
+    "source_state_channel": 1,
+    "source_state_mirror_channel": 3,
+    "apply_state_channel": 30,
+    "source_state_copies": 2
   },
   "result": {
     "cycles": 115012,
@@ -35,10 +39,11 @@
     "compute_cycles": 114950,
     "correctness_mismatches": 0,
     "supersteps": 2,
-    "backend_requests": 16432,
-    "backend_max_outstanding": 30,
+    "backend_requests": 32816,
+    "backend_max_outstanding": 32,
     "compute_row_reads": 32,
     "compute_source_state_reads": 2,
+    "compute_source_state_writes": 16384,
     "compute_pma_segment_reads": 6,
     "compute_edge_batches": 24,
     "compute_pma_slots": 96,
@@ -60,13 +65,16 @@
     "update_read_bytes": 160,
     "update_write_bytes": 128,
     "compute_read_bytes": 525056,
-    "compute_write_bytes": 524288
+    "compute_write_bytes": 1572864,
+    "dramsim3_channel_1_writes": 8192,
+    "dramsim3_channel_3_writes": 8192,
+    "dramsim3_channel_30_writes": 8192
   },
   "limitation": {
-    "closed": "single-flight apply is pipelined and gather reset now follows the first-superstep-only host protocol",
-    "largest": "gather reset/merge phase ordering and overlap are not hardware-validated",
+    "closed": "single-flight apply is pipelined, gather reset follows the first-superstep-only host protocol, and all three ReGraph state copies reach their mapped HBM channels",
+    "largest": "gather/merge/apply/HBM-wrapper stream overlap and the six-stage gather bypass are not explicit",
     "consequence": "cycle total remains structural and not ready for a Spine speedup claim",
-    "next_validation": "compare apply and gather burst/cycle ledgers against hw or hw_emu, then validate overlap"
+    "next_validation": "execute the finite inter-kernel stream and validate its phase overlap before modeling the gather RAW bypass"
   },
   "hls_apply_evidence": {
     "source": "/home/chuxiao/ReGraph/acc_template/kernel_apply/acc_apply.h",
@@ -84,5 +92,18 @@
     "gather_source": "/home/chuxiao/ReGraph/acc_template/kernel_little_gs/acc_gather.h",
     "gather_source_sha256": "6a8b5daf4a3ed9b4573c9ad90a4a0babb1fdea46426758bcc0b5cf6914af142f",
     "protocol": "reset_tmp_prop is true only for superstep zero; every output sweep clears the gather URAM"
+  },
+  "state_copy_evidence": {
+    "hbm_wrapper_source": "/home/chuxiao/ReGraph/acc_template/kernel_hbm_wrapper/hbm_wrapper.h",
+    "hbm_wrapper_source_sha256": "118a3214b2ddef19ec5378c7067c1a9d7de67b2b2019146131cac8bcbeb83629",
+    "connectivity": "/home/chuxiao/ReGraph/acc_template/connectivity.cfg",
+    "connectivity_sha256": "5c19f0d0fa3b0c078e465b9cc5e65bab3da8fa21ec0dd117c6693de95d18c1de",
+    "integration_connectivity": "/home/chuxiao/grasu-regraph-integration/.tmp_build/pure_pipeline_hw_stage0/config/pure_pipeline_hw.cfg",
+    "integration_connectivity_sha256": "528b2f3e2bba90d37377c252f73b4d9d804b327f2051a55658e1927c199c6a17",
+    "write_out_report": "/home/chuxiao/ReGraph/_x/kernelHBMWrapper.hw.xilinx_u55c_gen3x16_xdma_3_202210_1/kernelHBMWrapper/kernelHBMWrapper/solution/syn/report/write_out_csynth.xml",
+    "write_out_report_sha256": "73b712fca770c0f1c0d3d8ef92534ff5d8b03d7a8d964f29b07ba0a7883cf9fe",
+    "write_out_ii": 1,
+    "write_out_iteration_latency": 71,
+    "mapping": "local apply state HBM[30], primary source state HBM[1], mirrored source state HBM[3]"
   }
 }

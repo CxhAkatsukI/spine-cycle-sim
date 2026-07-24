@@ -316,7 +316,10 @@ void test_pma_native_regraph_sssp_matches_oracle() {
                   layout.segments.size() * 16 * counters.supersteps,
           "PMA-native ReGraph PMA capacity scan ledger mismatch");
   require(counters.apply_state_reads == counters.supersteps &&
-              counters.apply_state_writes == counters.supersteps,
+              counters.apply_state_writes == counters.supersteps &&
+              counters.source_state_writes == 2 * counters.supersteps &&
+              counters.source_state_write_bytes ==
+                  2 * counters.apply_write_bytes,
           "PMA-native ReGraph partition apply ledger mismatch");
   std::cout << "EVIDENCE grasu_regraph_sssp cycles="
             << counters.end_cycle - counters.start_cycle
@@ -328,7 +331,9 @@ void test_pma_native_regraph_sssp_matches_oracle() {
             << " read_bytes="
             << (counters.row_read_bytes + counters.source_state_read_bytes +
                 counters.pma_read_bytes + counters.apply_read_bytes)
-            << " write_bytes=" << counters.apply_write_bytes << '\n';
+            << " write_bytes="
+            << counters.apply_write_bytes + counters.source_state_write_bytes
+            << " source_state_writes=" << counters.source_state_writes << '\n';
 }
 
 void test_native_partition_scan_cost_is_explicit() {
@@ -368,7 +373,8 @@ void test_native_partition_scan_cost_is_explicit() {
           "native ReGraph gather did not preserve first-round-only reset and "
           "per-round merge sweeps");
   require(counters.apply_state_reads == 2 * 4096 &&
-              counters.apply_state_writes == 2 * 4096,
+              counters.apply_state_writes == 2 * 4096 &&
+              counters.source_state_writes == 2 * counters.apply_state_writes,
           "native ReGraph apply did not scan the full 65536-vertex partition");
   require(counters.apply_max_reads_inflight > 1 &&
               counters.apply_max_pipeline_occupancy > 1 &&
@@ -381,6 +387,7 @@ void test_native_partition_scan_cost_is_explicit() {
             << " gather_sweep_cycles="
             << counters.gather_reset_cycles + counters.gather_merge_cycles
             << " apply_bursts=" << counters.apply_state_reads
+            << " source_state_writes=" << counters.source_state_writes
             << " max_read_inflight=" << counters.apply_max_reads_inflight
             << " max_pipeline=" << counters.apply_max_pipeline_occupancy
             << " max_write_inflight=" << counters.apply_max_writes_inflight
