@@ -905,6 +905,12 @@ class OnlineMemoryProbe final : public SST::Component {
         params.find<std::size_t>("grasu_max_pending_requests", 32);
     grasu_config_.max_outstanding_bursts =
         params.find<std::size_t>("grasu_max_outstanding_bursts", 32);
+    grasu_config_.apply_request_window =
+        params.find<std::size_t>("grasu_apply_request_window", 32);
+    grasu_config_.apply_pipeline_latency =
+        params.find<std::size_t>("grasu_apply_pipeline_latency", 100);
+    grasu_config_.apply_pipeline_capacity =
+        params.find<std::size_t>("grasu_apply_pipeline_capacity", 100);
     grasu_config_.max_supersteps = max_rounds_;
     grasu_update_config_.memory_channels = channels_;
     grasu_update_config_.cache_segments_per_half =
@@ -1666,7 +1672,12 @@ class OnlineMemoryProbe final : public SST::Component {
       {"grasu_reader_buffer_batches", "PMA reader response batches", "32"},
       {"grasu_max_pending_requests", "AXI pending requests per port", "32"},
       {"grasu_max_outstanding_bursts", "AXI outstanding bursts per port",
-       "32"})
+       "32"},
+      {"grasu_apply_request_window", "ReGraph apply AXI request window", "32"},
+      {"grasu_apply_pipeline_latency", "ReGraph HLS apply pipeline depth",
+       "100"},
+      {"grasu_apply_pipeline_capacity", "ReGraph apply in-flight capacity",
+       "100"})
 
   SST_ELI_DOCUMENT_SUBCOMPONENT_SLOTS(
       {"memory", "One StandardMem interface per HBM channel",
@@ -1773,6 +1784,12 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"edge_lanes\": " << grasu_config_.edge_lanes << ",\n"
              << "  \"gather_banks\": " << grasu_config_.gather_banks
              << ",\n"
+             << "  \"apply_request_window\": "
+             << grasu_config_.apply_request_window << ",\n"
+             << "  \"apply_pipeline_latency\": "
+             << grasu_config_.apply_pipeline_latency << ",\n"
+             << "  \"apply_pipeline_capacity\": "
+             << grasu_config_.apply_pipeline_capacity << ",\n"
              << "  \"correctness_mismatches\": " << mismatches << ",\n"
              << "  \"supersteps\": " << compute.supersteps << ",\n"
              << "  \"update_binary_probes\": " << update.binary_probes
@@ -1802,6 +1819,18 @@ class OnlineMemoryProbe final : public SST::Component {
              << ",\n"
              << "  \"apply_state_writes\": " << compute.apply_state_writes
              << ",\n"
+             << "  \"apply_read_window_stalls\": "
+             << compute.apply_read_window_stalls << ",\n"
+             << "  \"apply_pipeline_capacity_stalls\": "
+             << compute.apply_pipeline_capacity_stalls << ",\n"
+             << "  \"apply_write_window_stalls\": "
+             << compute.apply_write_window_stalls << ",\n"
+             << "  \"apply_max_reads_inflight\": "
+             << compute.apply_max_reads_inflight << ",\n"
+             << "  \"apply_max_pipeline_occupancy\": "
+             << compute.apply_max_pipeline_occupancy << ",\n"
+             << "  \"apply_max_writes_inflight\": "
+             << compute.apply_max_writes_inflight << ",\n"
              << "  \"update_read_bytes\": "
              << update.update_read_bytes + update.row_read_bytes +
                     update.binary_read_bytes + update.pma_read_bytes

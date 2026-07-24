@@ -69,6 +69,15 @@ probe.addParams(
         "grasu_max_outstanding_bursts": int(
             os.environ.get("GRASU_SST_MAX_OUTSTANDING_BURSTS", "32")
         ),
+        "grasu_apply_request_window": int(
+            os.environ.get("GRASU_SST_APPLY_REQUEST_WINDOW", "32")
+        ),
+        "grasu_apply_pipeline_latency": int(
+            os.environ.get("GRASU_SST_APPLY_PIPELINE_LATENCY", "100")
+        ),
+        "grasu_apply_pipeline_capacity": int(
+            os.environ.get("GRASU_SST_APPLY_PIPELINE_CAPACITY", "100")
+        ),
     }
 )
 

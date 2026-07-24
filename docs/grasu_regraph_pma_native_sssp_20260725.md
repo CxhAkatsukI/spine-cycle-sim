@@ -65,7 +65,7 @@ the execution-driven GraSU update system, and then starts SSSP at vertex 0.
 The expected distances are computed independently from the final edge set.
 
 ```text
-cycles at 200 MHz:  1205
+cycles at 200 MHz:  1601
 supersteps:            4
 PMA segments read:    20
 PMA slots scanned:   320
@@ -98,11 +98,13 @@ A one-edge, 16-vertex graph is also run with the source-shaped ReGraph
 `PARTITION_SIZE=65536` setting:
 
 ```text
-cycles at 200 MHz:       311307
+cycles at 200 MHz:       147507
 supersteps:                   2
 gather reset + merge:    131072 cycles
 apply reads:                8192 x 64 B
 apply writes:               8192 x 64 B
+max read / write in-flight:   10 / 32
+max apply pipeline occupancy:     100
 distance oracle:              PASS
 ```
 
@@ -117,8 +119,8 @@ A 128-edge fanout uses one outstanding backend request per HBM channel and a
 one-entry AXIS FIFO:
 
 ```text
-cycles at 200 MHz:       9813
-AXI backend stalls:       396
+cycles at 200 MHz:       9441
+AXI backend stalls:      2994
 AXIS push stalls:          16
 distance oracle:         PASS
 ```
@@ -134,7 +136,7 @@ required by the current normalized profile. One 16-slot PMA segment becomes
 four registered batches rather than two:
 
 ```text
-cycles at 150 MHz:  503
+cycles at 150 MHz:  701
 supersteps:           2
 PMA segment reads:    2
 four-lane batches:    8

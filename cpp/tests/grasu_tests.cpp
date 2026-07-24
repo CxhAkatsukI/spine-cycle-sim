@@ -369,13 +369,21 @@ void test_native_partition_scan_cost_is_explicit() {
   require(counters.apply_state_reads == 2 * 4096 &&
               counters.apply_state_writes == 2 * 4096,
           "native ReGraph apply did not scan the full 65536-vertex partition");
+  require(counters.apply_max_reads_inflight > 1 &&
+              counters.apply_max_pipeline_occupancy > 1 &&
+              counters.apply_max_writes_inflight > 1,
+          "native ReGraph apply did not execute as an outstanding pipeline");
   require(compute_system.distances()[1] == 1,
           "native-partition SSSP result is incorrect");
   std::cout << "EVIDENCE grasu_regraph_native_partition cycles="
             << counters.end_cycle - counters.start_cycle
             << " gather_sweep_cycles="
             << counters.gather_reset_cycles + counters.gather_merge_cycles
-            << " apply_bursts=" << counters.apply_state_reads << '\n';
+            << " apply_bursts=" << counters.apply_state_reads
+            << " max_read_inflight=" << counters.apply_max_reads_inflight
+            << " max_pipeline=" << counters.apply_max_pipeline_occupancy
+            << " max_write_inflight=" << counters.apply_max_writes_inflight
+            << '\n';
 }
 
 void test_normalized_four_lane_batches_are_executed() {

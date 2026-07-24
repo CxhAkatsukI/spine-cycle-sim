@@ -28,7 +28,7 @@
     "vertices": 16,
     "final_live_edges": 7,
     "supersteps": 4,
-    "cycles_200mhz": 1205,
+    "cycles_200mhz": 1601,
     "pma_segment_reads": 20,
     "pma_slots_scanned": 320,
     "live_edges_scanned": 28,
@@ -42,10 +42,13 @@
     "vertices": 16,
     "partition_vertices": 65536,
     "supersteps": 2,
-    "cycles_200mhz": 311307,
+    "cycles_200mhz": 147507,
     "gather_reset_and_merge_cycles": 131072,
     "apply_read_bursts_64b": 8192,
     "apply_write_bursts_64b": 8192,
+    "apply_max_reads_inflight": 10,
+    "apply_max_pipeline_occupancy": 100,
+    "apply_max_writes_inflight": 32,
     "distance_oracle": "pass"
   },
   "contention_test": {
@@ -55,8 +58,8 @@
     "axis_fifo_depth": 1,
     "vertices": 256,
     "edges": 128,
-    "cycles_200mhz": 9813,
-    "axi_backend_submit_stalls": 396,
+    "cycles_200mhz": 9441,
+    "axi_backend_submit_stalls": 2994,
     "axis_push_stalls": 16,
     "distance_oracle": "pass"
   },
@@ -68,7 +71,7 @@
     "supersteps": 2,
     "pma_segment_reads": 2,
     "edge_batches_scanned": 8,
-    "cycles": 503,
+    "cycles": 701,
     "distance_oracle": "pass"
   },
   "claim_boundary": {

@@ -93,6 +93,11 @@ def main() -> int:
             "GRASU_SST_MAX_OUTSTANDING_BURSTS": str(
                 memory["max_outstanding_per_port"]
             ),
+            "GRASU_SST_APPLY_REQUEST_WINDOW": str(
+                memory["max_outstanding_per_port"]
+            ),
+            "GRASU_SST_APPLY_PIPELINE_LATENCY": "100",
+            "GRASU_SST_APPLY_PIPELINE_CAPACITY": "100",
         }
     )
     command = [

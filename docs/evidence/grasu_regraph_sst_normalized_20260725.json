@@ -24,16 +24,19 @@
     "source_buffer_vertices": 4096,
     "edge_lanes": 4,
     "gather_banks": 4,
-    "max_outstanding_bursts_per_port": 32
+    "max_outstanding_bursts_per_port": 32,
+    "apply_request_window": 32,
+    "apply_pipeline_latency": 100,
+    "apply_pipeline_capacity": 100
   },
   "result": {
-    "cycles": 272100,
+    "cycles": 147593,
     "update_cycles": 62,
-    "compute_cycles": 272038,
+    "compute_cycles": 147531,
     "correctness_mismatches": 0,
     "supersteps": 2,
     "backend_requests": 16432,
-    "backend_max_outstanding": 2,
+    "backend_max_outstanding": 29,
     "compute_row_reads": 32,
     "compute_source_state_reads": 2,
     "compute_pma_segment_reads": 6,
@@ -45,14 +48,32 @@
     "gather_merge_cycles": 65536,
     "apply_state_reads": 8192,
     "apply_state_writes": 8192,
+    "apply_request_window": 32,
+    "apply_pipeline_latency": 100,
+    "apply_pipeline_capacity": 100,
+    "apply_max_reads_inflight": 32,
+    "apply_max_pipeline_occupancy": 100,
+    "apply_max_writes_inflight": 32,
+    "apply_read_window_stalls": 5,
+    "apply_pipeline_capacity_stalls": 7955,
+    "apply_write_window_stalls": 7942,
     "update_read_bytes": 160,
     "update_write_bytes": 128,
     "compute_read_bytes": 525056,
     "compute_write_bytes": 524288
   },
   "limitation": {
-    "largest": "ReGraph apply is single-flight in this revision despite HLS Apply PIPELINE II=1 and depth=100",
-    "consequence": "cycle total is conservative and not ready for a Spine speedup claim",
-    "next_validation": "bounded outstanding apply reads, finite operation pipeline, overlapped writes, then rerun SST holdout"
+    "closed": "single-flight ReGraph apply replaced by bounded outstanding reads/writes and a finite depth-100 pipeline",
+    "largest": "gather reset/merge phase ordering and overlap are not hardware-validated",
+    "consequence": "cycle total remains structural and not ready for a Spine speedup claim",
+    "next_validation": "compare apply and gather burst/cycle ledgers against hw or hw_emu, then validate overlap"
+  },
+  "hls_apply_evidence": {
+    "source": "/home/chuxiao/ReGraph/acc_template/kernel_apply/acc_apply.h",
+    "source_sha256": "e78eaa1245af55c575a3b7be699171b0d34af30754b97216c0a955cf97b059ba",
+    "report": "/home/chuxiao/ReGraph/_x/kernelApply.hw.xilinx_u55c_gen3x16_xdma_3_202210_1/kernelApply/kernelApply/solution/syn/report/Apply_Pipeline_Apply_csynth.xml",
+    "report_sha256": "890f381fcfe04b153a402df8fee5c22bffcd741233a504aafdbbd0f3e8e41dac",
+    "pipeline_ii": 1,
+    "pipeline_depth": 100
   }
 }

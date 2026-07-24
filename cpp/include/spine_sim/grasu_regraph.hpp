@@ -29,6 +29,9 @@ struct GraSuReGraphConfig {
   std::size_t max_pending_requests{16};
   std::size_t max_outstanding_bursts{16};
   std::size_t response_beats_per_cycle{1};
+  std::size_t apply_request_window{32};
+  std::size_t apply_pipeline_latency{100};
+  std::size_t apply_pipeline_capacity{100};
   std::size_t max_supersteps{1024};
   std::uint64_t row_offset_base{0x1000'0000ULL};
   std::uint64_t pma_base{0x3000'0000ULL};
@@ -51,6 +54,12 @@ struct GraSuReGraphCounters {
   std::uint64_t gather_bank_conflict_cycles{};
   std::uint64_t apply_state_reads{};
   std::uint64_t apply_state_writes{};
+  std::uint64_t apply_read_window_stalls{};
+  std::uint64_t apply_pipeline_capacity_stalls{};
+  std::uint64_t apply_write_window_stalls{};
+  std::size_t apply_max_reads_inflight{};
+  std::size_t apply_max_pipeline_occupancy{};
+  std::size_t apply_max_writes_inflight{};
   std::uint64_t activated_vertices{};
   std::uint64_t row_read_bytes{};
   std::uint64_t source_state_read_bytes{};

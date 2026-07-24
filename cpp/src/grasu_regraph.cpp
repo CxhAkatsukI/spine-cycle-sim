@@ -6,6 +6,7 @@
 #include <limits>
 #include <optional>
 #include <stdexcept>
+#include <unordered_map>
 #include <utility>
 
 #include "spine_sim/fifo.hpp"
@@ -588,21 +589,25 @@ class ReGraphApply final : public Component {
 public:
   ReGraphApply(std::string name, ClockId clock_id, std::size_t vertices,
                GraphAlgorithmPolicy policy, const GraSuReGraphConfig &config,
-               FixedAxiPort &state_port)
+               FixedAxiPort &read_port, FixedAxiPort &write_port)
       : Component(std::move(name), clock_id), vertices_(vertices),
-        policy_(std::move(policy)), config_(config), state_port_(state_port) {}
+        policy_(std::move(policy)), config_(config), read_port_(read_port),
+        write_port_(write_port) {}
 
   void start_round(const std::vector<std::optional<std::uint32_t>> &reduced) {
-    if (phase_ != Phase::kIdle && phase_ != Phase::kDone) {
+    if (running_ || !read_inflight_.empty() || !write_inflight_.empty() ||
+        !ready_writes_.empty()) {
       throw std::logic_error("ReGraph apply round started while busy");
     }
     reduced_ = &reduced;
-    offset_ = 0;
+    next_read_offset_ = 0;
+    completed_writes_ = 0;
     active_vertices_ = 0;
-    phase_ = Phase::kNeedRead;
+    done_ = false;
+    running_ = true;
   }
 
-  [[nodiscard]] bool done() const noexcept { return phase_ == Phase::kDone; }
+  [[nodiscard]] bool done() const noexcept { return done_; }
   [[nodiscard]] std::size_t active_vertices() const noexcept {
     return active_vertices_;
   }
@@ -611,122 +616,223 @@ public:
   [[nodiscard]] std::uint64_t total_activated() const noexcept {
     return total_activated_;
   }
-
-  void evaluate(const CycleContext &) override {
-    staged_request_ = RequestKind::kNone;
-    staged_response_.reset();
-    if (phase_ == Phase::kNeedRead) {
-      if (state_port_.requests().try_push(AxiRequest{
-              .transaction_id = transaction_id(0),
-              .operation = MemoryOperation::kRead,
-              .address = config_.vertex_state_base + offset_ * 4,
-              .bytes = kStateWordsPerBurst * 4,
-              .stream_read_beats = false,
-              .write_data = {},
-          })) {
-        staged_request_ = RequestKind::kRead;
-      }
-    } else if (phase_ == Phase::kNeedWrite) {
-      if (state_port_.requests().try_push(AxiRequest{
-              .transaction_id = transaction_id(1),
-              .operation = MemoryOperation::kWrite,
-              .address = config_.vertex_state_base + offset_ * 4,
-              .bytes = kStateWordsPerBurst * 4,
-              .write_data = write_data_,
-          })) {
-        staged_request_ = RequestKind::kWrite;
-      }
-    } else if ((phase_ == Phase::kWaitRead || phase_ == Phase::kWaitWrite) &&
-               state_port_.responses().front() != nullptr) {
-      AxiResponse response;
-      if (state_port_.responses().try_pop(response)) {
-        staged_response_ = std::move(response);
-      }
-    }
+  [[nodiscard]] std::uint64_t read_window_stalls() const noexcept {
+    return read_window_stalls_;
+  }
+  [[nodiscard]] std::uint64_t pipeline_capacity_stalls() const noexcept {
+    return pipeline_capacity_stalls_;
+  }
+  [[nodiscard]] std::uint64_t write_window_stalls() const noexcept {
+    return write_window_stalls_;
+  }
+  [[nodiscard]] std::size_t max_reads_inflight() const noexcept {
+    return max_reads_inflight_;
+  }
+  [[nodiscard]] std::size_t max_pipeline_occupancy() const noexcept {
+    return max_pipeline_occupancy_;
+  }
+  [[nodiscard]] std::size_t max_writes_inflight() const noexcept {
+    return max_writes_inflight_;
   }
 
-  void commit(const CycleContext &) override {
-    if (staged_response_.has_value()) {
-      consume_response(*staged_response_);
-      staged_response_.reset();
+  void evaluate(const CycleContext &context) override {
+    staged_read_issue_ = false;
+    staged_write_issue_.reset();
+    staged_read_response_.reset();
+    staged_write_response_.reset();
+    if (!running_) {
       return;
     }
-    if (staged_request_ == RequestKind::kRead) {
+    if (read_port_.responses().front() != nullptr) {
+      AxiResponse response;
+      if (read_port_.responses().try_pop(response)) {
+        staged_read_response_ = std::move(response);
+      }
+    }
+    if (write_port_.responses().front() != nullptr) {
+      AxiResponse response;
+      if (write_port_.responses().try_pop(response)) {
+        staged_write_response_ = std::move(response);
+      }
+    }
+
+    const auto ready =
+        std::find_if(ready_writes_.begin(), ready_writes_.end(),
+                     [&](const ReadyWrite &item) {
+                       return item.due_cycle <= context.domain_cycle;
+                     });
+    if (ready != ready_writes_.end()) {
+      if (write_inflight_.size() >= config_.apply_request_window) {
+        ++write_window_stalls_;
+      } else {
+        const std::size_t index =
+            static_cast<std::size_t>(ready - ready_writes_.begin());
+        const ReadyWrite &item = ready_writes_[index];
+        if (write_port_.requests().try_push(AxiRequest{
+                .transaction_id = transaction_id(item.offset),
+                .operation = MemoryOperation::kWrite,
+                .address = config_.vertex_state_base + item.offset * 4,
+                .bytes = kStateWordsPerBurst * 4,
+                .stream_read_beats = false,
+                .write_data = item.data,
+            })) {
+          staged_write_issue_ = index;
+        }
+      }
+    }
+
+    if (next_read_offset_ >= config_.partition_vertices) {
+      return;
+    }
+    if (read_inflight_.size() >= config_.apply_request_window) {
+      ++read_window_stalls_;
+      return;
+    }
+    if (pipeline_occupancy() >= config_.apply_pipeline_capacity) {
+      ++pipeline_capacity_stalls_;
+      return;
+    }
+    staged_read_issue_ = read_port_.requests().try_push(AxiRequest{
+        .transaction_id = transaction_id(next_read_offset_),
+        .operation = MemoryOperation::kRead,
+        .address = config_.vertex_state_base + next_read_offset_ * 4,
+        .bytes = kStateWordsPerBurst * 4,
+        .stream_read_beats = false,
+        .write_data = {},
+    });
+  }
+
+  void commit(const CycleContext &context) override {
+    if (!running_) {
+      return;
+    }
+    if (staged_read_response_.has_value()) {
+      consume_read_response(*staged_read_response_, context.domain_cycle);
+      staged_read_response_.reset();
+    }
+    if (staged_write_response_.has_value()) {
+      consume_write_response(*staged_write_response_);
+      staged_write_response_.reset();
+    }
+    if (staged_read_issue_) {
+      const std::uint64_t id = transaction_id(next_read_offset_);
+      if (!read_inflight_.emplace(id, next_read_offset_).second) {
+        throw std::logic_error("duplicate ReGraph apply read transaction");
+      }
+      next_read_offset_ += kStateWordsPerBurst;
       ++reads_;
-      phase_ = Phase::kWaitRead;
-    } else if (staged_request_ == RequestKind::kWrite) {
+    }
+    if (staged_write_issue_.has_value()) {
+      ReadyWrite item = std::move(ready_writes_[*staged_write_issue_]);
+      ready_writes_.erase(ready_writes_.begin() + *staged_write_issue_);
+      const std::uint64_t id = transaction_id(item.offset);
+      if (!write_inflight_.emplace(id, item.offset).second) {
+        throw std::logic_error("duplicate ReGraph apply write transaction");
+      }
       ++writes_;
-      phase_ = Phase::kWaitWrite;
+    }
+    max_reads_inflight_ = std::max(max_reads_inflight_, read_inflight_.size());
+    max_writes_inflight_ =
+        std::max(max_writes_inflight_, write_inflight_.size());
+    max_pipeline_occupancy_ =
+        std::max(max_pipeline_occupancy_, pipeline_occupancy());
+    if (completed_writes_ == total_bursts()) {
+      running_ = false;
+      done_ = true;
     }
   }
 
 private:
-  enum class Phase {
-    kIdle,
-    kNeedRead,
-    kWaitRead,
-    kNeedWrite,
-    kWaitWrite,
-    kDone
+  struct ReadyWrite {
+    std::size_t offset{};
+    std::uint64_t due_cycle{};
+    std::vector<std::uint8_t> data;
   };
-  enum class RequestKind { kNone, kRead, kWrite };
 
-  [[nodiscard]] std::uint64_t transaction_id(std::uint64_t write) const {
-    return (static_cast<std::uint64_t>(offset_) << 1) | write;
+  [[nodiscard]] std::uint64_t transaction_id(std::size_t offset) const {
+    return offset / kStateWordsPerBurst;
   }
 
-  void consume_response(const AxiResponse &response) {
-    if (!response.success) {
-      throw std::runtime_error("ReGraph apply received failed AXI response");
+  [[nodiscard]] std::size_t total_bursts() const noexcept {
+    return config_.partition_vertices / kStateWordsPerBurst;
+  }
+
+  [[nodiscard]] std::size_t pipeline_occupancy() const noexcept {
+    return read_inflight_.size() + ready_writes_.size();
+  }
+
+  void consume_read_response(const AxiResponse &response, std::uint64_t cycle) {
+    const auto found = read_inflight_.find(response.transaction_id);
+    if (!response.success || found == read_inflight_.end() ||
+        response.read_data.size() != kStateWordsPerBurst * 4) {
+      throw std::runtime_error(
+          "ReGraph apply received malformed read response");
     }
-    if (phase_ == Phase::kWaitRead) {
-      if (response.read_data.size() != kStateWordsPerBurst * 4) {
-        throw std::runtime_error("ReGraph apply read has invalid size");
+    const std::size_t offset = found->second;
+    read_inflight_.erase(found);
+    std::array<std::uint32_t, kStateWordsPerBurst> result{};
+    for (std::size_t lane = 0; lane < result.size(); ++lane) {
+      const std::size_t vertex = offset + lane;
+      const std::uint32_t encoded = decode_u32(response.read_data, lane * 4);
+      if (vertex >= vertices_) {
+        result[lane] = kReGraphInfinity;
+        continue;
       }
-      std::array<std::uint32_t, kStateWordsPerBurst> result{};
-      for (std::size_t lane = 0; lane < result.size(); ++lane) {
-        const std::size_t vertex = offset_ + lane;
-        const std::uint32_t encoded = decode_u32(response.read_data, lane * 4);
-        if (vertex >= vertices_) {
-          result[lane] = kReGraphInfinity;
-          continue;
-        }
-        const AlgorithmApplyResult applied = policy_.apply(
-            AlgorithmVertexState{.primary = policy_distance(encoded)},
-            reduced_->at(vertex));
-        result[lane] =
-            encode_distance(applied.state_after.primary, applied.active);
-        if (applied.active) {
-          ++active_vertices_;
-          ++total_activated_;
-        }
+      const AlgorithmApplyResult applied = policy_.apply(
+          AlgorithmVertexState{.primary = policy_distance(encoded)},
+          reduced_->at(vertex));
+      result[lane] =
+          encode_distance(applied.state_after.primary, applied.active);
+      if (applied.active) {
+        ++active_vertices_;
+        ++total_activated_;
       }
-      write_data_ = encode_words(result);
-      phase_ = Phase::kNeedWrite;
-      return;
     }
-    if (phase_ != Phase::kWaitWrite || !response.read_data.empty()) {
-      throw std::runtime_error("ReGraph apply received malformed response");
+    ready_writes_.push_back(ReadyWrite{
+        .offset = offset,
+        .due_cycle = cycle + config_.apply_pipeline_latency,
+        .data = encode_words(result),
+    });
+  }
+
+  void consume_write_response(const AxiResponse &response) {
+    const auto found = write_inflight_.find(response.transaction_id);
+    if (!response.success || found == write_inflight_.end() ||
+        !response.read_data.empty()) {
+      throw std::runtime_error(
+          "ReGraph apply received malformed write response");
     }
-    offset_ += kStateWordsPerBurst;
-    phase_ =
-        offset_ == config_.partition_vertices ? Phase::kDone : Phase::kNeedRead;
+    write_inflight_.erase(found);
+    ++completed_writes_;
   }
 
   std::size_t vertices_{};
   GraphAlgorithmPolicy policy_;
   GraSuReGraphConfig config_;
-  FixedAxiPort &state_port_;
+  FixedAxiPort &read_port_;
+  FixedAxiPort &write_port_;
   const std::vector<std::optional<std::uint32_t>> *reduced_{};
-  Phase phase_{Phase::kIdle};
-  RequestKind staged_request_{RequestKind::kNone};
-  std::optional<AxiResponse> staged_response_;
-  std::vector<std::uint8_t> write_data_;
-  std::size_t offset_{};
+  std::unordered_map<std::uint64_t, std::size_t> read_inflight_;
+  std::unordered_map<std::uint64_t, std::size_t> write_inflight_;
+  std::deque<ReadyWrite> ready_writes_;
+  std::optional<AxiResponse> staged_read_response_;
+  std::optional<AxiResponse> staged_write_response_;
+  std::optional<std::size_t> staged_write_issue_;
+  std::size_t next_read_offset_{};
+  std::size_t completed_writes_{};
   std::size_t active_vertices_{};
+  bool staged_read_issue_{};
+  bool running_{};
+  bool done_{};
   std::uint64_t reads_{};
   std::uint64_t writes_{};
   std::uint64_t total_activated_{};
+  std::uint64_t read_window_stalls_{};
+  std::uint64_t pipeline_capacity_stalls_{};
+  std::uint64_t write_window_stalls_{};
+  std::size_t max_reads_inflight_{};
+  std::size_t max_pipeline_occupancy_{};
+  std::size_t max_writes_inflight_{};
 };
 
 class GraSuReGraphController final : public Component {
@@ -821,7 +927,8 @@ public:
     for (auto &port : pma_ports_) {
       port->register_components(scheduler_);
     }
-    apply_state_port_->register_components(scheduler_);
+    apply_state_read_port_->register_components(scheduler_);
+    apply_state_write_port_->register_components(scheduler_);
     scheduler_.add_component(*reader_);
     scheduler_.add_component(*gather_);
     scheduler_.add_component(*apply_);
@@ -852,6 +959,12 @@ public:
     result.gather_bank_conflict_cycles = gather_->conflict_cycles();
     result.apply_state_reads = apply_->reads();
     result.apply_state_writes = apply_->writes();
+    result.apply_read_window_stalls = apply_->read_window_stalls();
+    result.apply_pipeline_capacity_stalls = apply_->pipeline_capacity_stalls();
+    result.apply_write_window_stalls = apply_->write_window_stalls();
+    result.apply_max_reads_inflight = apply_->max_reads_inflight();
+    result.apply_max_pipeline_occupancy = apply_->max_pipeline_occupancy();
+    result.apply_max_writes_inflight = apply_->max_writes_inflight();
     result.activated_vertices = apply_->total_activated();
     result.row_read_bytes = result.row_reads * 8;
     result.source_state_read_bytes = reader_->state_read_bytes();
@@ -861,7 +974,8 @@ public:
     result.axi_backend_submit_stalls =
         row_port_->master().stats().backend_submit_stalls +
         source_state_port_->master().stats().backend_submit_stalls +
-        apply_state_port_->master().stats().backend_submit_stalls;
+        apply_state_read_port_->master().stats().backend_submit_stalls +
+        apply_state_write_port_->master().stats().backend_submit_stalls;
     for (const auto &port : pma_ports_) {
       result.axi_backend_submit_stalls +=
           port->master().stats().backend_submit_stalls;
@@ -901,7 +1015,10 @@ private:
             kGraSuSegmentSlots / config_.edge_lanes ||
         config_.max_pending_requests == 0 ||
         config_.max_outstanding_bursts == 0 ||
-        config_.response_beats_per_cycle == 0 || config_.max_supersteps == 0 ||
+        config_.response_beats_per_cycle == 0 ||
+        config_.apply_request_window == 0 ||
+        config_.apply_pipeline_latency == 0 ||
+        config_.apply_pipeline_capacity == 0 || config_.max_supersteps == 0 ||
         config_.row_channel >= config_.memory_channels ||
         config_.vertex_state_channel >= config_.memory_channels) {
       throw std::invalid_argument("invalid GraSU-ReGraph configuration");
@@ -923,8 +1040,10 @@ private:
       pma_ports_[channel] =
           make_port("grasu-regraph-pma" + std::to_string(channel), channel, 64);
     }
-    apply_state_port_ = make_port("grasu-regraph-apply-state",
-                                  config_.vertex_state_channel, 64);
+    apply_state_read_port_ = make_port("grasu-regraph-apply-state-read",
+                                       config_.vertex_state_channel, 64);
+    apply_state_write_port_ = make_port("grasu-regraph-apply-state-write",
+                                        config_.vertex_state_channel, 64);
   }
 
   void initialize_state() {
@@ -958,9 +1077,9 @@ private:
     gather_ = std::make_unique<ReGraphGather>("grasu-regraph-gather", clock_id_,
                                               layout_.vertices, policy_,
                                               config_, edge_axis_, *reader_);
-    apply_ = std::make_unique<ReGraphApply>("grasu-regraph-apply", clock_id_,
-                                            layout_.vertices, policy_, config_,
-                                            *apply_state_port_);
+    apply_ = std::make_unique<ReGraphApply>(
+        "grasu-regraph-apply", clock_id_, layout_.vertices, policy_, config_,
+        *apply_state_read_port_, *apply_state_write_port_);
     controller_ = std::make_unique<GraSuReGraphController>(
         "grasu-regraph-controller", clock_id_, config_.max_supersteps, *reader_,
         *gather_, *apply_);
@@ -968,7 +1087,8 @@ private:
 
   [[nodiscard]] bool all_ports_idle() const noexcept {
     if (!edge_axis_.empty() || !row_port_->idle() ||
-        !source_state_port_->idle() || !apply_state_port_->idle()) {
+        !source_state_port_->idle() || !apply_state_read_port_->idle() ||
+        !apply_state_write_port_->idle()) {
       return false;
     }
     return std::all_of(pma_ports_.begin(), pma_ports_.end(),
@@ -986,7 +1106,8 @@ private:
   std::unique_ptr<FixedAxiPort> row_port_;
   std::unique_ptr<FixedAxiPort> source_state_port_;
   std::array<std::unique_ptr<FixedAxiPort>, 4> pma_ports_;
-  std::unique_ptr<FixedAxiPort> apply_state_port_;
+  std::unique_ptr<FixedAxiPort> apply_state_read_port_;
+  std::unique_ptr<FixedAxiPort> apply_state_write_port_;
   std::unique_ptr<PmaNativeReader> reader_;
   std::unique_ptr<ReGraphGather> gather_;
   std::unique_ptr<ReGraphApply> apply_;
