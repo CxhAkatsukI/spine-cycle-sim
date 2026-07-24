@@ -1,0 +1,42 @@
+{
+  "date": "2026-07-25",
+  "branch": "codex/fine-grained-cycle-sim",
+  "baseline_commit": "168af83",
+  "hls_target_revision": "afb8199a2ca8d3fd208b985324bf4d8719e2b839",
+  "accepted_old_hardware_revision": "9c08763148644df262c0d374e782bc834f4c0f4f",
+  "vertex_axi_data_width_bits": 32,
+  "threshold_boundary": [
+    {"edges": 4095, "path": "tiny", "cycles": 32845, "read_beats": 0, "read_words": 0, "stream_errors": 0},
+    {"edges": 4096, "path": "tiny", "cycles": 32850, "read_beats": 0, "read_words": 0, "stream_errors": 0},
+    {"edges": 4097, "path": "full", "cycles": 151570, "read_beats": 65536, "read_words": 65536, "stream_errors": 0},
+    {"edges": 4098, "path": "full", "cycles": 151571, "read_beats": 65536, "read_words": 65536, "stream_errors": 0}
+  ],
+  "payload_anti_bypass": {
+    "hbm_vertex_value": 7,
+    "proposed_value": 10,
+    "final_vertex_value": 7,
+    "active_vertices": 0,
+    "read_beats": 4,
+    "read_words": 4,
+    "payload_bytes": 16,
+    "stream_errors": 0
+  },
+  "cross_tile_response_carry": {
+    "backend_latency_cycles": 4096,
+    "total_cycles": 31130,
+    "overlap_cycles": 971,
+    "max_prior_tile_writes_inflight": 1,
+    "correct": true
+  },
+  "sst": [
+    {"scenario": "amazon_l0", "cycles": 43830, "backend_requests": 1400, "full_read_beats": 0, "full_read_words": 0, "stream_errors": 0, "correct": true},
+    {"scenario": "weighted_sssp", "cycles": 38479, "backend_requests": 4197, "rounds": 6, "full_read_beats": 0, "full_read_words": 0, "stream_errors": 0, "correct": true},
+    {"scenario": "amazon_full_compute", "cycles": 863889, "backend_requests": 175315, "full_read_beats": 65536, "full_read_words": 65536, "full_read_wait_cycles": 1495, "cross_tile_write_overlap_cycles": 6, "stream_errors": 0, "correct": true}
+  ],
+  "tests": {
+    "cpp": 57,
+    "python": 148,
+    "sst_scenarios": 3
+  },
+  "claim_tier": "structural_execution_driven_not_latest_hardware_calibrated"
+}

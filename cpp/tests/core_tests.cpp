@@ -2389,41 +2389,41 @@ ComputeTileObservation run_compute_tile(std::size_t edge_count,
                                             SpineSplitSsspCompute::
                                                 kDefaultMemoryRequestWindow,
                                         bool split_extreme_destinations = false,
-                                        SpineOnChipMemoryProfile on_chip = {}) {
+                                        SpineOnChipMemoryProfile on_chip = {},
+                                        std::size_t second_tile_edges = 0,
+                                        std::uint64_t memory_latency_cycles = 3) {
   Scheduler scheduler;
   const auto core = scheduler.add_clock_mhz("data", 141.0);
   MockMemoryBackend backend("hbm", core,
                             MockMemoryConfig{
                                 .channels = 32,
-                                .latency_cycles = 3,
+                                .latency_cycles = memory_latency_cycles,
                                 .accepts_per_channel_per_cycle = 1,
                                 .max_outstanding_per_channel = 128,
                                 .response_queue_depth = 256,
                             });
+  const SpineAxiInterfaceProfile axi_profile;
   FixedAxiPort vertex_state(
       "boundary-vertex-state", core,
-      FixedAxiPortConfig{
-          .memory_channels = 32, .channel = 17, .initiator_id = 217},
+      axi_profile.port_config(SpineAxiPortKind::kVertexState, 32, 17, 217),
       backend);
   FixedAxiPort active_out(
       "boundary-active-out", core,
-      FixedAxiPortConfig{
-          .memory_channels = 32, .channel = 19, .initiator_id = 219},
+      axi_profile.port_config(SpineAxiPortKind::kActiveOut, 32, 19, 219),
       backend);
   FixedAxiPort active_bitmap(
       "boundary-active-bitmap", core,
-      FixedAxiPortConfig{
-          .memory_channels = 32, .channel = 22, .initiator_id = 222},
+      axi_profile.port_config(SpineAxiPortKind::kActiveBitmap, 32, 22, 222),
       backend);
   FixedAxiPort result(
       "boundary-result", core,
-      FixedAxiPortConfig{
-          .memory_channels = 32, .channel = 21, .initiator_id = 221},
+      axi_profile.port_config(SpineAxiPortKind::kComputeResult, 32, 21, 221),
       backend);
   Fifo<PartConvWord> edge_stream("boundary-edge-axis", core, 32);
   Fifo<SourceValueWord> value_stream("boundary-value-axis", core, 32);
+  const std::size_t vertices = second_tile_edges == 0 ? 65'536 : 131'072;
   std::vector<PartConvWord> words;
-  words.reserve(edge_count + 3);
+  words.reserve(edge_count + second_tile_edges + 5);
   words.push_back(
       PartConvWord{.kind = PartConvWordKind::kTileBegin, .first = 0});
   const auto destination_for = [&](std::size_t index) {
@@ -2446,10 +2446,25 @@ ComputeTileObservation run_compute_tile(std::size_t edge_count,
   }
   words.push_back(PartConvWord{
       .kind = PartConvWordKind::kTileEnd, .first = 0, .second = 65'536});
+  if (second_tile_edges != 0) {
+    words.push_back(PartConvWord{
+        .kind = PartConvWordKind::kTileBegin, .first = 65'536});
+    for (std::size_t index = 0; index < second_tile_edges; ++index) {
+      words.push_back(PartConvWord{
+          .kind = PartConvWordKind::kEdge,
+          .first = static_cast<std::uint32_t>(65'536 + index),
+          .second = 1,
+      });
+    }
+    words.push_back(PartConvWord{.kind = PartConvWordKind::kTileEnd,
+                                 .first = 65'536,
+                                 .second = 65'536});
+  }
   words.push_back(PartConvWord{.kind = PartConvWordKind::kDoneAll});
   SequenceProducer<PartConvWord> producer("boundary-reader", core, edge_stream,
                                           std::move(words));
-  SpineSplitSsspCompute compute("boundary-compute", core, 65'536, 65'535, 4096,
+  SpineSplitSsspCompute compute("boundary-compute", core, vertices,
+                                static_cast<std::uint32_t>(vertices - 1), 4096,
                                 SpineComputePorts{
                                     .vertex_state = &vertex_state,
                                     .active_out = &active_out,
@@ -2485,6 +2500,10 @@ ComputeTileObservation run_compute_tile(std::size_t edge_count,
       distances_match =
           distances_match && compute.values()[destination_for(index)] == 1;
     }
+    for (std::size_t index = 0; index < second_tile_edges; ++index) {
+      distances_match =
+          distances_match && compute.values()[65'536 + index] == 1;
+    }
   }
   return ComputeTileObservation{
       .counters = compute.counters(),
@@ -2496,6 +2515,21 @@ ComputeTileObservation run_compute_tile(std::size_t edge_count,
       .distances_match = distances_match,
       .failed = compute.failed(),
   };
+}
+
+void test_spine_cross_tile_write_response_overlap() {
+  const ComputeTileObservation observation =
+      run_compute_tile(1, false, 7, false, {}, 1, 4'096);
+  std::cout << "EVIDENCE spine_cross_tile_overlap cycles="
+            << observation.cycles << " overlap_cycles="
+            << observation.counters.cross_tile_write_overlap_cycles
+            << " max_writes_inflight="
+            << observation.counters.max_cross_tile_writes_inflight << '\n';
+  require(!observation.failed && observation.distances_match &&
+              observation.next_active == 2 &&
+              observation.counters.cross_tile_write_overlap_cycles > 0 &&
+              observation.counters.max_cross_tile_writes_inflight > 0,
+          "compute drained all AXI writes before accepting the next tile");
 }
 
 void test_spine_compute_overlaps_independent_store_bundles() {
@@ -2585,7 +2619,13 @@ void test_spine_full_tile_threshold_boundaries() {
               << " max_responses_per_cycle="
               << observation.counters.max_memory_responses_completed_per_cycle
               << " multi_port_response_cycles="
-              << observation.counters.multi_port_response_cycles << '\n';
+              << observation.counters.multi_port_response_cycles
+              << " full_read_beats="
+              << observation.counters.full_tile_read_beats
+              << " full_read_words="
+              << observation.counters.full_tile_read_words
+              << " full_read_wait="
+              << observation.counters.full_tile_read_wait_cycles << '\n';
     require(!observation.failed && observation.distances_match &&
                 observation.next_active == edge_count,
             "full-tile boundary changed the SSSP result");
@@ -2625,6 +2665,7 @@ void test_spine_full_tile_threshold_boundaries() {
                       ((edge_count + 63) / 64) * 64 &&
                   observation.counters.sparse_store_writes_generated ==
                       edge_count &&
+                  observation.counters.full_tile_read_beats == 0 &&
                   observation.counters.controller_memory_overlap_cycles > 0,
               "tiny-path BRAM read or sparse-scan ledger mismatch");
     } else {
@@ -2647,7 +2688,10 @@ void test_spine_full_tile_threshold_boundaries() {
       require(observation.counters.tiny_buffer_reads == 4096 &&
                   observation.counters.sparse_store_scan_words == 0 &&
                   observation.counters.sparse_store_bit_cycles == 0 &&
-                  observation.counters.sparse_store_writes_generated == 0,
+                  observation.counters.sparse_store_writes_generated == 0 &&
+                  observation.counters.full_tile_read_beats == 65'536 &&
+                  observation.counters.full_tile_read_words == 65'536 &&
+                  observation.counters.full_tile_stream_error_count == 0,
               "dense replay incorrectly executed the sparse-store controller");
     }
   }
@@ -2802,6 +2846,91 @@ void test_spine_compute_consumes_vertex_payload_from_hbm() {
               active_bitmap.master().stats().zero_filled_write_bytes == 0 &&
               result.master().stats().zero_filled_write_bytes == 0,
           "migrated compute path issued an implicit zero-filled write");
+}
+
+void test_spine_full_tile_consumes_streamed_vertex_payload() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("data", 141.0);
+  MockMemoryBackend backend("hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 3,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  const SpineAxiInterfaceProfile profile;
+  FixedAxiPort vertex_state(
+      "full-payload-vertex-state", core,
+      profile.port_config(SpineAxiPortKind::kVertexState, 32, 17, 417),
+      backend);
+  FixedAxiPort active_out(
+      "full-payload-active-out", core,
+      profile.port_config(SpineAxiPortKind::kActiveOut, 32, 19, 419),
+      backend);
+  FixedAxiPort active_bitmap(
+      "full-payload-active-bitmap", core,
+      profile.port_config(SpineAxiPortKind::kActiveBitmap, 32, 22, 422),
+      backend);
+  FixedAxiPort result(
+      "full-payload-result", core,
+      profile.port_config(SpineAxiPortKind::kComputeResult, 32, 21, 421),
+      backend);
+  Fifo<PartConvWord> edge_stream("full-payload-edge-axis", core, 32);
+  Fifo<SourceValueWord> value_stream("full-payload-value-axis", core, 32);
+  SequenceProducer<PartConvWord> producer(
+      "full-payload-reader", core, edge_stream,
+      {
+          {.kind = PartConvWordKind::kTileBegin, .first = 0, .second = 1},
+          {.kind = PartConvWordKind::kEdge, .first = 1, .second = 10},
+          {.kind = PartConvWordKind::kTileEnd, .first = 0, .second = 4},
+          {.kind = PartConvWordKind::kDoneAll},
+      });
+  SpineSplitSsspCompute compute(
+      "full-payload-compute", core, 4, 0, 4096,
+      SpineComputePorts{
+          .vertex_state = &vertex_state,
+          .active_out = &active_out,
+          .active_bitmap = &active_bitmap,
+          .result = &result,
+      },
+      edge_stream, value_stream);
+
+  vertex_state.initialize_payload(4, {7, 0, 0, 0});
+  scheduler.add_component(producer);
+  scheduler.add_component(compute);
+  scheduler.add_component(edge_stream);
+  scheduler.add_component(value_stream);
+  vertex_state.register_components(scheduler);
+  active_out.register_components(scheduler);
+  active_bitmap.register_components(scheduler);
+  result.register_components(scheduler);
+  scheduler.add_component(backend);
+  scheduler.run_until(
+      [&] {
+        return producer.done() && compute.done() && edge_stream.empty() &&
+               vertex_state.idle() && active_out.idle() &&
+               active_bitmap.idle() && result.idle();
+      },
+      20'000);
+
+  const SpineComputeCounters &counters = compute.counters();
+  std::cout << "EVIDENCE spine_full_tile_stream_payload final_vertex="
+            << compute.values()[1]
+            << " active_vertices=" << compute.next_active().size()
+            << " read_beats=" << counters.full_tile_read_beats
+            << " read_words=" << counters.full_tile_read_words
+            << " payload_bytes=" << counters.vertex_payload_read_bytes
+            << " stream_errors=" << counters.full_tile_stream_error_count
+            << '\n';
+  require(!compute.failed() && compute.values()[1] == 7 &&
+              compute.next_active().empty(),
+          "full tile ignored streamed HBM payload and used its local mirror");
+  require(counters.full_tile_read_beats == 4 &&
+              counters.full_tile_read_words == 4 &&
+              counters.full_tile_stream_error_count == 0 &&
+              counters.vertex_payload_read_bytes == 16,
+          "full-tile streamed payload ledger does not close");
 }
 
 void test_spine_reader_consumes_graph_edge_payload_from_hbm() {
@@ -4796,6 +4925,8 @@ int main(int argc, char **argv) {
        test_spine_compute_gather_uses_bounded_outstanding_requests},
       {"spine_compute_store_bundle_overlap",
        test_spine_compute_overlaps_independent_store_bundles},
+      {"spine_cross_tile_write_overlap",
+       test_spine_cross_tile_write_response_overlap},
       {"spine_full_tile_axis_backpressure",
        test_spine_full_tile_load_replay_backpressures_axis},
       {"spine_tiny_duplicate_gather",
@@ -4804,6 +4935,8 @@ int main(int argc, char **argv) {
        test_spine_on_chip_memory_profile_and_access_ledger},
       {"spine_compute_hbm_payload",
        test_spine_compute_consumes_vertex_payload_from_hbm},
+      {"spine_full_tile_stream_payload",
+       test_spine_full_tile_consumes_streamed_vertex_payload},
       {"spine_reader_hbm_graph_payload",
        test_spine_reader_consumes_graph_edge_payload_from_hbm},
       {"spine_target_hbm_metadata_payload",

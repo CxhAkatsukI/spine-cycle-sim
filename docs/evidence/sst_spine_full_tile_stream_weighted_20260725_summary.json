@@ -1,0 +1,1215 @@
+{
+  "architecture_profile_evidence_tier": "hardware_validated",
+  "architecture_profile_id": "spine_shared_engine_9c08763",
+  "architecture_profile_sha256": "aba0d6bbcbaa64240897ed3efc555d6ce6d6455d2f10e77e0ccdb77fa46466a7",
+  "axi_active_bin_data_width_bytes": 32,
+  "axi_graph_data_width_bytes": 8,
+  "axi_max_burst_beats": 16,
+  "axi_max_outstanding_bursts": 16,
+  "axi_metadata_data_width_bytes": 8,
+  "axi_sorted_data_width_bytes": 16,
+  "backend": "sst_memHierarchy_dramsim3",
+  "backend_max_outstanding": 7,
+  "backend_requests": 4197,
+  "backend_response_queue_stalls": 0,
+  "backend_submit_stalls": 0,
+  "compute_active_bram_read_latency": 2,
+  "compute_active_bram_read_requests_per_round": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    0
+  ],
+  "compute_active_bram_write_requests_per_round": [
+    1028,
+    1027,
+    1027,
+    1027,
+    1026,
+    0
+  ],
+  "compute_active_emit_bit_cycles_per_round": [
+    64,
+    64,
+    64,
+    64,
+    64,
+    0
+  ],
+  "compute_active_emit_scan_words_per_round": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    0
+  ],
+  "compute_active_emit_writes_generated_per_round": [
+    3,
+    2,
+    2,
+    2,
+    1,
+    0
+  ],
+  "compute_controller_memory_overlap_cycles_per_round": [
+    38,
+    30,
+    28,
+    24,
+    21,
+    0
+  ],
+  "compute_controller_memory_stall_cycles_per_round": [
+    3,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "compute_cross_tile_write_overlap_cycles_per_round": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "compute_diagnostic_words_per_round": [
+    10,
+    10,
+    10,
+    10,
+    10,
+    10
+  ],
+  "compute_dirty_counts_per_round": [
+    5,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "compute_dirty_generations_per_round": [
+    1,
+    2,
+    2,
+    2,
+    2,
+    2
+  ],
+  "compute_done_overflow_per_round": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "compute_done_words_per_round": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+  ],
+  "compute_full_tile_read_beats_per_round": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "compute_full_tile_read_wait_cycles_per_round": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "compute_full_tile_read_words_per_round": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "compute_full_tile_stream_errors_per_round": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "compute_max_active_memory_ports_per_round": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    2
+  ],
+  "compute_max_active_out_requests_inflight_per_round": [
+    3,
+    2,
+    2,
+    2,
+    1,
+    0
+  ],
+  "compute_max_cross_tile_writes_inflight_per_round": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "compute_max_memory_responses_per_cycle_per_round": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+  ],
+  "compute_max_tiny_reads_inflight_per_round": [
+    2,
+    2,
+    2,
+    2,
+    1,
+    0
+  ],
+  "compute_max_vertex_requests_inflight_per_round": [
+    7,
+    3,
+    2,
+    2,
+    1,
+    0
+  ],
+  "compute_max_vs_reads_inflight_per_round": [
+    2,
+    2,
+    2,
+    2,
+    1,
+    0
+  ],
+  "compute_memory_cross_port_overlap_cycles_per_round": [
+    5,
+    5,
+    5,
+    5,
+    5,
+    5
+  ],
+  "compute_memory_request_window": 7,
+  "compute_memory_requests_completed_per_round": [
+    22,
+    10,
+    9,
+    9,
+    6,
+    3
+  ],
+  "compute_memory_requests_issued_per_round": [
+    22,
+    10,
+    9,
+    9,
+    6,
+    3
+  ],
+  "compute_memory_window_stall_cycles_per_round": [
+    3,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "compute_multi_port_response_cycles_per_round": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "compute_on_chip_controller_cycles_per_round": [
+    1154,
+    1154,
+    1154,
+    1154,
+    1154,
+    0
+  ],
+  "compute_on_chip_pipeline_stall_cycles_per_round": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    0
+  ],
+  "compute_on_chip_read_wait_cycles_per_round": [
+    9,
+    9,
+    7,
+    7,
+    7,
+    0
+  ],
+  "compute_onchip_pipeline_capacity": 4,
+  "compute_protocol_status_per_round": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "compute_range_active_records_per_round": [
+    5,
+    2,
+    2,
+    2,
+    1,
+    0
+  ],
+  "compute_range_construction_payloads_per_round": [
+    8,
+    3,
+    2,
+    2,
+    1,
+    0
+  ],
+  "compute_range_errors_per_round": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "compute_range_fallback_reasons_per_round": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "compute_range_family_probes_per_round": [
+    80,
+    2,
+    2,
+    2,
+    1,
+    0
+  ],
+  "compute_range_family_skips_per_round": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "compute_range_paths_per_round": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+  ],
+  "compute_range_replay_payloads_per_round": [
+    8,
+    3,
+    2,
+    2,
+    1,
+    0
+  ],
+  "compute_range_row_lookups_per_round": [
+    5,
+    2,
+    2,
+    2,
+    1,
+    0
+  ],
+  "compute_range_tasks_per_round": [
+    5,
+    2,
+    2,
+    2,
+    1,
+    0
+  ],
+  "compute_sparse_store_bit_cycles_per_round": [
+    64,
+    64,
+    64,
+    64,
+    64,
+    0
+  ],
+  "compute_sparse_store_scan_words_per_round": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    0
+  ],
+  "compute_sparse_store_writes_generated_per_round": [
+    3,
+    2,
+    2,
+    2,
+    1,
+    0
+  ],
+  "compute_tile_active_clear_words_per_round": [
+    1024,
+    1024,
+    1024,
+    1024,
+    1024,
+    0
+  ],
+  "compute_tiny_bram_read_latency": 2,
+  "compute_tiny_bram_read_requests_per_round": [
+    16,
+    6,
+    4,
+    4,
+    2,
+    0
+  ],
+  "compute_tiny_bram_write_requests_per_round": [
+    8,
+    3,
+    2,
+    2,
+    1,
+    0
+  ],
+  "compute_tiny_buffer_reads_per_round": [
+    16,
+    6,
+    4,
+    4,
+    2,
+    0
+  ],
+  "compute_tiny_buffer_writes_per_round": [
+    8,
+    3,
+    2,
+    2,
+    1,
+    0
+  ],
+  "compute_vs_bypass_depth": 4,
+  "compute_vs_bypass_hits_per_round": [
+    2,
+    1,
+    0,
+    0,
+    0,
+    0
+  ],
+  "compute_vs_bypass_misses_per_round": [
+    6,
+    2,
+    2,
+    2,
+    1,
+    0
+  ],
+  "compute_vs_uram_read_latency": 2,
+  "compute_vs_uram_read_requests_per_round": [
+    14,
+    7,
+    6,
+    6,
+    3,
+    0
+  ],
+  "compute_vs_uram_write_requests_per_round": [
+    11,
+    5,
+    4,
+    4,
+    2,
+    0
+  ],
+  "compute_writeonly_request_window": 4,
+  "converged": true,
+  "correctness_mismatches": 0,
+  "cycles": 38479,
+  "dirty_ack_bitmap_read_bytes": 160,
+  "dirty_ack_bitmap_write_bytes": 80,
+  "dirty_ack_candidate_write_bytes": 40,
+  "dirty_ack_captured_count": 5,
+  "dirty_ack_captured_generation": 1,
+  "dirty_ack_cleared_sources": 5,
+  "dirty_ack_cycles": 451,
+  "dirty_ack_generation_advances": 1,
+  "dirty_ack_list_read_bytes": 160,
+  "dirty_ack_metadata_read_bytes": 72,
+  "dirty_ack_metadata_write_bytes": 64,
+  "dirty_ack_result_count": 0,
+  "dirty_ack_result_generation": 2,
+  "dirty_ack_started": 1,
+  "dirty_ack_status": 0,
+  "dirty_ack_validated_sources": 5,
+  "dram_activates": 251,
+  "dram_channels": 32,
+  "dram_precharges": 250,
+  "dram_read_row_hits": 2796,
+  "dram_reads": 3078,
+  "dram_total_energy_pj": 561998742.0,
+  "dram_write_row_hits": 1024,
+  "dram_writes": 1119,
+  "edge_axis_max_occupancy_per_round": [
+    11,
+    11,
+    11,
+    11,
+    11,
+    1
+  ],
+  "edge_axis_push_stalls_per_round": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "edge_axis_transfers_per_round": [
+    29,
+    16,
+    15,
+    15,
+    14,
+    11
+  ],
+  "fast_tiles_per_round": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    0
+  ],
+  "final_values": [
+    0,
+    3,
+    2,
+    7,
+    8,
+    10
+  ],
+  "frontier_in_sizes": [
+    1,
+    3,
+    2,
+    2,
+    2,
+    1
+  ],
+  "frontier_mismatches": 0,
+  "frontier_out_sizes": [
+    3,
+    2,
+    2,
+    2,
+    1,
+    0
+  ],
+  "full_tiles_per_round": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "host_handoff_control_cycles": [],
+  "host_handoff_control_timed": [],
+  "host_handoff_device_attempt_cycles": [],
+  "host_handoff_device_compute_overflow": [],
+  "host_handoff_device_reader_overflow": [],
+  "host_handoff_list_read_bytes": [],
+  "host_handoff_logical_rounds": [],
+  "host_handoff_reasons": [],
+  "host_handoff_source_counts": [],
+  "host_handoffs": 0,
+  "input_edges": 8,
+  "maintenance_carry_cursor_bitmap_words": 0,
+  "maintenance_carry_cursor_bits_inspected": 0,
+  "maintenance_carry_cursor_metadata_read_bytes": 0,
+  "maintenance_carry_cursor_page_ids": 0,
+  "maintenance_carry_cursor_pages_visited": 0,
+  "maintenance_carry_cursor_refill_cycles": 0,
+  "maintenance_carry_cursor_row_offset_reads": 0,
+  "maintenance_carry_cursor_rows_entered": 0,
+  "maintenance_carry_cursor_validation_failures": 0,
+  "maintenance_carry_writer_bitmap_page_writes": 0,
+  "maintenance_carry_writer_edge_word_writes": 0,
+  "maintenance_carry_writer_groups_cancelled": 0,
+  "maintenance_carry_writer_groups_emitted": 0,
+  "maintenance_carry_writer_groups_seen": 0,
+  "maintenance_carry_writer_mask_word_writes": 0,
+  "maintenance_carry_writer_memory_wait_cycles": 0,
+  "maintenance_carry_writer_page_base_word_writes": 0,
+  "maintenance_carry_writer_page_epoch_word_writes": 0,
+  "maintenance_carry_writer_page_list_word_writes": 0,
+  "maintenance_carry_writer_row_word_writes": 0,
+  "maintenance_count_scan_ii": 1,
+  "maintenance_count_scan_tail_cycles": 19,
+  "maintenance_cycles": 2506,
+  "maintenance_dirty_bitmap_reads": 5,
+  "maintenance_dirty_bitmap_writes": 5,
+  "maintenance_dirty_count": 5,
+  "maintenance_dirty_duplicates_suppressed": 3,
+  "maintenance_dirty_generation": 1,
+  "maintenance_dirty_generation_advances": 1,
+  "maintenance_dirty_hash_sum": 5515034213649434059,
+  "maintenance_dirty_hash_xor": 10181956419584109369,
+  "maintenance_dirty_list_appends": 5,
+  "maintenance_dirty_list_reads": 5,
+  "maintenance_dirty_mark_visits": 8,
+  "maintenance_dirty_unique_sources": 5,
+  "maintenance_dirty_validate_visits": 8,
+  "maintenance_edge_visits": 160,
+  "maintenance_end_cycle": 2506,
+  "maintenance_epoch_clear_parent_writes": 0,
+  "maintenance_epoch_clear_payload_write_bytes": 0,
+  "maintenance_epoch_clear_wait_cycles": 0,
+  "maintenance_epoch_clear_word_writes": 0,
+  "maintenance_epoch_clear_write_responses": 0,
+  "maintenance_epoch_commit_failures": 0,
+  "maintenance_epoch_full_clear_fallbacks": 0,
+  "maintenance_epoch_retire_write_responses": 0,
+  "maintenance_epoch_retire_writes": 0,
+  "maintenance_epoch_wrap_events": 0,
+  "maintenance_family_precount_visits": 128,
+  "maintenance_graph_index_payload_write_bytes": 88,
+  "maintenance_graph_payload_write_bytes": 64,
+  "maintenance_hot_bitmap_carry_reads": 0,
+  "maintenance_hot_bitmap_max_inflight": 0,
+  "maintenance_hot_bitmap_payload_read_bytes": 0,
+  "maintenance_hot_bitmap_reads": 0,
+  "maintenance_hot_bitmap_responses": 0,
+  "maintenance_hot_bitmap_scan_reads": 0,
+  "maintenance_hot_bitmap_scan_wait_cycles": 0,
+  "maintenance_hot_bitmap_validation_failures": 0,
+  "maintenance_hot_cold_count_visits": 8,
+  "maintenance_l0_write_scan_ii": 24,
+  "maintenance_l0_write_scan_tail_cycles": 42,
+  "maintenance_l0_write_visits": 8,
+  "maintenance_l0_writer_backpressure_stall_cycles": 0,
+  "maintenance_l0_writer_bitmap_page_writes": 1,
+  "maintenance_l0_writer_edge_word_writes": 8,
+  "maintenance_l0_writer_groups_cancelled": 0,
+  "maintenance_l0_writer_groups_emitted": 8,
+  "maintenance_l0_writer_groups_seen": 8,
+  "maintenance_l0_writer_mask_word_writes": 2,
+  "maintenance_l0_writer_max_pending_tasks": 9,
+  "maintenance_l0_writer_max_pending_tasks_per_port": 8,
+  "maintenance_l0_writer_memory_overlap_cycles": 56,
+  "maintenance_l0_writer_memory_wait_cycles": 59,
+  "maintenance_l0_writer_page_base_word_writes": 2,
+  "maintenance_l0_writer_page_epoch_word_writes": 1,
+  "maintenance_l0_writer_page_list_word_writes": 1,
+  "maintenance_l0_writer_row_word_writes": 3,
+  "maintenance_l0_writer_validation_failures": 0,
+  "maintenance_logical_overflow_events": 0,
+  "maintenance_max_active_memory_ports": 3,
+  "maintenance_max_memory_requests_inflight": 16,
+  "maintenance_max_memory_requests_inflight_per_port": 16,
+  "maintenance_max_memory_requests_issued_per_cycle": 2,
+  "maintenance_max_memory_responses_completed_per_cycle": 2,
+  "maintenance_max_non_target_memory_requests_inflight_per_port": 1,
+  "maintenance_max_scan_buffered_edges": 6,
+  "maintenance_memory_cross_port_overlap_cycles": 12,
+  "maintenance_memory_dependency_stall_cycles": 0,
+  "maintenance_memory_request_fifo_stall_cycles": 0,
+  "maintenance_memory_requests_completed": 496,
+  "maintenance_memory_requests_issued": 496,
+  "maintenance_memory_window_stall_cycles": 551,
+  "maintenance_metadata_control_payload_read_bytes": 8,
+  "maintenance_metadata_control_reads": 1,
+  "maintenance_multi_port_issue_cycles": 2,
+  "maintenance_multi_port_response_cycles": 2,
+  "maintenance_page_list_count_write_bytes": 128,
+  "maintenance_page_list_payload_write_bytes": 8,
+  "maintenance_result_metadata_max_inflight": 10,
+  "maintenance_result_metadata_payload_read_bytes": 128,
+  "maintenance_result_metadata_reads": 16,
+  "maintenance_result_metadata_responses": 16,
+  "maintenance_result_payload_write_bytes": 384,
+  "maintenance_result_validation_failures": 0,
+  "maintenance_result_write_responses": 1,
+  "maintenance_scan_ii_stall_cycles": 161,
+  "maintenance_scan_passes": 20,
+  "maintenance_scan_reorder_full_stall_cycles": 0,
+  "maintenance_scan_response_capacity": 32,
+  "maintenance_scan_response_stall_cycles": 454,
+  "maintenance_scan_tail_cycles": 365,
+  "maintenance_slice_epoch_payload_read_bytes": 8,
+  "maintenance_slice_epoch_reads": 1,
+  "maintenance_slice_epoch_responses": 1,
+  "maintenance_slice_epoch_validation_failures": 0,
+  "maintenance_sorted_axi_read_beat_fifo_stall_cycles": 0,
+  "maintenance_sorted_axi_read_beats_streamed": 160,
+  "maintenance_sorted_axi_read_reorder_stall_cycles": 0,
+  "maintenance_sorted_bytes": 2560,
+  "maintenance_sorted_payload_read_bytes": 2560,
+  "maintenance_sorted_read_beats": 160,
+  "maintenance_start_cycle": 0,
+  "maintenance_target_selector_cycles": 562,
+  "maintenance_target_selector_family_iterations": 176,
+  "maintenance_target_selector_invocations": 1,
+  "maintenance_target_selector_levels_scanned": 11,
+  "maintenance_target_selector_max_inflight": 16,
+  "maintenance_target_selector_metadata_reads": 352,
+  "maintenance_target_selector_min_padding_cycles": 57,
+  "maintenance_target_selector_payload_read_bytes": 2816,
+  "maintenance_target_selector_responses": 352,
+  "maintenance_target_selector_validation_failures": 0,
+  "memory_request_window": 1,
+  "mode": "spine_sssp",
+  "processed_edges_per_round": [
+    8,
+    3,
+    2,
+    2,
+    1,
+    0
+  ],
+  "range_task_capacity": 65536,
+  "range_task_payload_budget": 1048576,
+  "reader_ack_eligible_per_round": [
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "reader_active_bin_bytes_per_round": [
+    0,
+    64,
+    64,
+    64,
+    32,
+    0
+  ],
+  "reader_construction_payload_bytes_per_round": [
+    64,
+    24,
+    16,
+    16,
+    8,
+    0
+  ],
+  "reader_construction_pipeline_requests_per_round": [
+    8,
+    3,
+    2,
+    2,
+    1,
+    0
+  ],
+  "reader_construction_pipeline_retires_per_round": [
+    8,
+    3,
+    2,
+    2,
+    1,
+    0
+  ],
+  "reader_diagnostic_words_per_round": [
+    10,
+    10,
+    10,
+    10,
+    10,
+    10
+  ],
+  "reader_dirty_bitmap_bytes_per_round": [
+    80,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "reader_dirty_counts_per_round": [
+    5,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "reader_dirty_generations_per_round": [
+    1,
+    2,
+    2,
+    2,
+    2,
+    2
+  ],
+  "reader_dirty_list_bytes_per_round": [
+    80,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "reader_dirty_status_per_round": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "reader_done_overflow_per_round": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "reader_done_words_per_round": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+  ],
+  "reader_edge_pipeline_axis_stall_cycles_per_round": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "reader_edge_pipeline_credit_stall_cycles_per_round": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "reader_edge_pipeline_depth": 32,
+  "reader_edge_pipeline_max_buffered_per_round": [
+    2,
+    2,
+    1,
+    1,
+    1,
+    0
+  ],
+  "reader_edge_pipeline_max_inflight_per_round": [
+    3,
+    2,
+    1,
+    1,
+    1,
+    0
+  ],
+  "reader_edge_pipeline_request_fifo_stall_cycles_per_round": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "reader_edge_response_capacity": 32,
+  "reader_epoch_misses_per_round": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "reader_fallback_active_record_reads_per_round": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "reader_fallback_forced_dense_partitions_per_round": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "reader_fallback_partitions_per_round": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "reader_fallback_replay_edges_per_round": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "reader_fallback_row_lookups_per_round": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "reader_graph_bytes_per_round": [
+    264,
+    104,
+    96,
+    88,
+    40,
+    0
+  ],
+  "reader_graph_index_bitmap_misses_per_round": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "reader_graph_index_payload_bytes_per_round": [
+    136,
+    56,
+    64,
+    56,
+    24,
+    0
+  ],
+  "reader_graph_payload_bytes_per_round": [
+    128,
+    48,
+    32,
+    32,
+    16,
+    0
+  ],
+  "reader_host_coverage_match_per_round": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "reader_max_memory_requests_inflight_per_round": [
+    3,
+    2,
+    2,
+    2,
+    2,
+    2
+  ],
+  "reader_memory_dependency_stall_cycles_per_round": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "reader_memory_request_fifo_stall_cycles_per_round": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "reader_memory_requests_completed_per_round": [
+    410,
+    415,
+    414,
+    413,
+    406,
+    399
+  ],
+  "reader_memory_requests_issued_per_round": [
+    410,
+    415,
+    414,
+    413,
+    406,
+    399
+  ],
+  "reader_memory_window_stall_cycles_per_round": [
+    3192,
+    3431,
+    3447,
+    3427,
+    3420,
+    3420
+  ],
+  "reader_metadata_bytes_per_round": [
+    2960,
+    3232,
+    3232,
+    3232,
+    3224,
+    3216
+  ],
+  "reader_metadata_write_bytes_per_round": [
+    16,
+    16,
+    16,
+    16,
+    16,
+    16
+  ],
+  "reader_protocol_acks_per_round": [
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "reader_protocol_markers_per_round": [
+    3,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "reader_protocol_status_per_round": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "reader_range_active_records_per_round": [
+    5,
+    2,
+    2,
+    2,
+    1,
+    0
+  ],
+  "reader_range_construction_payloads_per_round": [
+    8,
+    3,
+    2,
+    2,
+    1,
+    0
+  ],
+  "reader_range_errors_per_round": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "reader_range_fallback_reasons_per_round": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "reader_range_family_probes_per_round": [
+    80,
+    2,
+    2,
+    2,
+    1,
+    0
+  ],
+  "reader_range_family_skips_per_round": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "reader_range_level_checks_per_round": [
+    880,
+    22,
+    22,
+    22,
+    11,
+    0
+  ],
+  "reader_range_paths_per_round": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+  ],
+  "reader_range_replay_payloads_per_round": [
+    8,
+    3,
+    2,
+    2,
+    1,
+    0
+  ],
+  "reader_range_row_lookups_per_round": [
+    5,
+    2,
+    2,
+    2,
+    1,
+    0
+  ],
+  "reader_range_tasks_per_round": [
+    5,
+    2,
+    2,
+    2,
+    1,
+    0
+  ],
+  "reader_replay_payload_bytes_per_round": [
+    64,
+    24,
+    16,
+    16,
+    8,
+    0
+  ],
+  "reader_replay_pipeline_requests_per_round": [
+    8,
+    3,
+    2,
+    2,
+    1,
+    0
+  ],
+  "reader_replay_pipeline_retires_per_round": [
+    8,
+    3,
+    2,
+    2,
+    1,
+    0
+  ],
+  "reader_result_write_bytes_per_round": [
+    64,
+    64,
+    64,
+    64,
+    64,
+    64
+  ],
+  "reader_source_requests_per_round": [
+    5,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "reader_source_responses_per_round": [
+    5,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "reader_source_sizes_per_round": [
+    5,
+    2,
+    2,
+    2,
+    1,
+    0
+  ],
+  "reader_source_windows_per_round": [
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "round_cycles": [
+    8698,
+    6101,
+    6111,
+    6090,
+    6006,
+    5021
+  ],
+  "rounds": 6,
+  "simulation_evidence_tier": "structural_execution_driven",
+  "source_revision": "9c08763148644df262c0d374e782bc834f4c0f4f",
+  "spine_axi_profile": "hls_split_9c08763",
+  "status": "PASS",
+  "success": true,
+  "value_axis_max_occupancy_per_round": [
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "value_axis_transfers_per_round": [
+    6,
+    0,
+    0,
+    0,
+    0,
+    0
+  ]
+}

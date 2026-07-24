@@ -669,6 +669,12 @@ struct SpineComputeCounters {
   std::uint64_t vs_bypass_misses{};
   std::size_t max_tiny_reads_inflight{};
   std::size_t max_vs_reads_inflight{};
+  std::uint64_t full_tile_read_beats{};
+  std::uint64_t full_tile_read_words{};
+  std::uint64_t full_tile_read_wait_cycles{};
+  std::uint64_t full_tile_stream_error_count{};
+  std::uint64_t cross_tile_write_overlap_cycles{};
+  std::size_t max_cross_tile_writes_inflight{};
 };
 
 struct SpineComputePorts {
@@ -737,6 +743,8 @@ class SpineSplitSsspCompute final : public Component {
     std::vector<std::uint8_t> write_data;
     MemoryPayloadKind payload_kind{MemoryPayloadKind::kNone};
     std::size_t item_index{};
+    bool stream_read_beats{};
+    std::size_t streamed_read_bytes{};
   };
 
   enum class TinyReadPurpose { kGather, kRelax };
@@ -797,7 +805,8 @@ class SpineSplitSsspCompute final : public Component {
                       std::uint64_t address, std::uint64_t bytes,
                       std::vector<std::uint8_t> write_data = {},
                       MemoryPayloadKind payload_kind = MemoryPayloadKind::kNone,
-                      std::size_t item_index = 0);
+                      std::size_t item_index = 0,
+                      bool stream_read_beats = false);
   void consume_memory_response(const MemoryTask &task,
                                const AxiResponse &response);
   [[nodiscard]] bool memory_task_conflicts(const MemoryTask &task) const;
@@ -806,7 +815,10 @@ class SpineSplitSsspCompute final : public Component {
   [[nodiscard]] std::size_t
   memory_request_window_for(const FixedAxiPort *port) const noexcept;
   [[nodiscard]] std::size_t active_memory_ports() const noexcept;
+  [[nodiscard]] bool memory_work_is_write_only() const noexcept;
   [[nodiscard]] bool stage_memory_completions();
+  [[nodiscard]] bool stage_full_tile_read_beat();
+  void consume_full_tile_read_beat(const AxiReadBeatResponse &beat);
   void prepare_gather();
   void prepare_vertex_store();
   void enqueue_active_output(std::uint32_t vertex);
@@ -863,6 +875,7 @@ class SpineSplitSsspCompute final : public Component {
   PartConvWord staged_edge_word_;
   SourceValueWord staged_value_word_;
   std::vector<AxiResponse> staged_responses_;
+  AxiReadBeatResponse staged_full_tile_read_beat_;
   std::uint32_t pending_source_{};
   std::uint32_t pending_source_value_{kInfinity};
   SourceValueWord::Kind pending_value_kind_{SourceValueWord::Kind::kSourceValue};
@@ -880,6 +893,7 @@ class SpineSplitSsspCompute final : public Component {
   Phase after_clear_phase_{Phase::kRelax};
   std::uint64_t next_transaction_id_{};
   bool staged_memory_issue_{};
+  bool staged_full_tile_read_beat_valid_{};
   bool active_read_pending_{};
   bool active_read_ready_{};
   bool source_reply_pending_{};

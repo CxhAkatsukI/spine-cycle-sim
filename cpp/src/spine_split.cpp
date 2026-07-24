@@ -3106,10 +3106,12 @@ void SpineSplitSsspCompute::reset_round() {
 void SpineSplitSsspCompute::evaluate(const CycleContext &context) {
   staged_action_ = Action::kNone;
   staged_memory_issue_ = false;
+  staged_full_tile_read_beat_valid_ = false;
   staged_responses_.clear();
   if (done_ || failed_) {
     return;
   }
+  staged_full_tile_read_beat_valid_ = stage_full_tile_read_beat();
   const bool staged_memory_completion = stage_memory_completions();
   const std::size_t active_ports = active_memory_ports();
   if (active_ports > 1) {
@@ -3148,6 +3150,7 @@ void SpineSplitSsspCompute::evaluate(const CycleContext &context) {
                    .operation = task.operation,
                    .address = task.address,
                    .bytes = task.bytes,
+                   .stream_read_beats = task.stream_read_beats,
                    .write_data = task.write_data,
                })) {
       staged_memory_issue_ = true;
@@ -3159,8 +3162,21 @@ void SpineSplitSsspCompute::evaluate(const CycleContext &context) {
   const bool memory_active = !memory_tasks_.empty() ||
                              !inflight_memory_tasks_.empty() ||
                              staged_memory_completion;
-  if (controller_memory_overlap_phase()) {
-    if (memory_issue_blocked) {
+  const bool cross_tile_write_overlap =
+      (phase_ == Phase::kInput || phase_ == Phase::kClearTileActive) &&
+      memory_active && memory_work_is_write_only();
+  if (cross_tile_write_overlap) {
+    ++counters_.cross_tile_write_overlap_cycles;
+    counters_.max_cross_tile_writes_inflight =
+        std::max(counters_.max_cross_tile_writes_inflight,
+                 inflight_memory_tasks_.size());
+  }
+  if (phase_ == Phase::kFullLoad && memory_active &&
+      !staged_full_tile_read_beat_valid_) {
+    ++counters_.full_tile_read_wait_cycles;
+  }
+  if (controller_memory_overlap_phase() || cross_tile_write_overlap) {
+    if (memory_issue_blocked && !cross_tile_write_overlap) {
       ++counters_.controller_memory_stall_cycles;
       return;
     }
@@ -3196,6 +3212,13 @@ void SpineSplitSsspCompute::evaluate(const CycleContext &context) {
 }
 
 void SpineSplitSsspCompute::commit(const CycleContext &context) {
+  if (staged_full_tile_read_beat_valid_) {
+    consume_full_tile_read_beat(staged_full_tile_read_beat_);
+    if (failed_) {
+      done_ = true;
+      return;
+    }
+  }
   for (const AxiResponse &response : staged_responses_) {
     const auto found = inflight_memory_tasks_.find(response.transaction_id);
     if (found == inflight_memory_tasks_.end() || !response.success) {
@@ -3257,7 +3280,8 @@ void SpineSplitSsspCompute::commit(const CycleContext &context) {
 void SpineSplitSsspCompute::enqueue_memory(
     FixedAxiPort &port, MemoryOperation operation, std::uint64_t address,
     std::uint64_t bytes, std::vector<std::uint8_t> write_data,
-    MemoryPayloadKind payload_kind, std::size_t item_index) {
+    MemoryPayloadKind payload_kind, std::size_t item_index,
+    bool stream_read_beats) {
   if ((operation == MemoryOperation::kRead && !write_data.empty()) ||
       (operation == MemoryOperation::kWrite && write_data.size() != bytes)) {
     throw std::invalid_argument("invalid Spine compute memory payload");
@@ -3271,6 +3295,8 @@ void SpineSplitSsspCompute::enqueue_memory(
       .write_data = std::move(write_data),
       .payload_kind = payload_kind,
       .item_index = item_index,
+      .stream_read_beats = stream_read_beats,
+      .streamed_read_bytes = 0,
   });
   if (&port == ports_.vertex_state) {
     if (operation == MemoryOperation::kRead) {
@@ -3339,6 +3365,14 @@ std::size_t SpineSplitSsspCompute::active_memory_ports() const noexcept {
   return ports;
 }
 
+bool SpineSplitSsspCompute::memory_work_is_write_only() const noexcept {
+  return memory_tasks_.empty() && !inflight_memory_tasks_.empty() &&
+         std::all_of(inflight_memory_tasks_.begin(),
+                     inflight_memory_tasks_.end(), [](const auto &entry) {
+                       return entry.second.operation == MemoryOperation::kWrite;
+                     });
+}
+
 bool SpineSplitSsspCompute::stage_memory_completions() {
   struct Candidate {
     std::uint64_t transaction_id{};
@@ -3346,6 +3380,9 @@ bool SpineSplitSsspCompute::stage_memory_completions() {
   };
   std::vector<Candidate> candidates;
   for (const auto &[transaction_id, task] : inflight_memory_tasks_) {
+    if (task.stream_read_beats && task.streamed_read_bytes < task.bytes) {
+      continue;
+    }
     const AxiResponse *response = task.port->responses().front();
     if (response != nullptr && response->transaction_id == transaction_id &&
         std::none_of(candidates.begin(), candidates.end(),
@@ -3373,6 +3410,69 @@ bool SpineSplitSsspCompute::stage_memory_completions() {
     ++counters_.multi_port_response_cycles;
   }
   return !staged_responses_.empty();
+}
+
+bool SpineSplitSsspCompute::stage_full_tile_read_beat() {
+  if (!ports_.vertex_state->read_beat_stream_enabled()) {
+    return false;
+  }
+  const AxiReadBeatResponse *beat = ports_.vertex_state->read_beats().front();
+  if (beat == nullptr) {
+    return false;
+  }
+  const auto found = inflight_memory_tasks_.find(beat->transaction_id);
+  if (found == inflight_memory_tasks_.end() ||
+      found->second.port != ports_.vertex_state ||
+      found->second.operation != MemoryOperation::kRead ||
+      found->second.payload_kind != MemoryPayloadKind::kFullTile ||
+      !found->second.stream_read_beats) {
+    throw std::logic_error(
+        "Spine full-tile read beat has no matching streamed request");
+  }
+  return ports_.vertex_state->read_beats().try_pop(
+      staged_full_tile_read_beat_);
+}
+
+void SpineSplitSsspCompute::consume_full_tile_read_beat(
+    const AxiReadBeatResponse &beat) {
+  const auto found = inflight_memory_tasks_.find(beat.transaction_id);
+  if (found == inflight_memory_tasks_.end()) {
+    throw std::logic_error("Spine consumed an unknown full-tile read beat");
+  }
+  MemoryTask &task = found->second;
+  const bool shape_valid =
+      beat.success && beat.parent_offset == task.streamed_read_bytes &&
+      beat.address == task.address + beat.parent_offset &&
+      !beat.read_data.empty() &&
+      beat.read_data.size() % kVertexWordBytes == 0 &&
+      task.streamed_read_bytes + beat.read_data.size() <= task.bytes;
+  if (!shape_valid) {
+    ++counters_.full_tile_stream_error_count;
+    failed_ = true;
+    return;
+  }
+  const std::size_t first_word = beat.parent_offset / kVertexWordBytes;
+  const std::size_t words = beat.read_data.size() / kVertexWordBytes;
+  if (first_word + words > tile_values_.size()) {
+    ++counters_.full_tile_stream_error_count;
+    failed_ = true;
+    return;
+  }
+  for (std::size_t word = 0; word < words; ++word) {
+    const std::uint32_t value =
+        decode_u32(beat.read_data, word * kVertexWordBytes);
+    tile_values_[first_word + word] = value;
+    values_.at(tile_base_ + first_word + word) = value;
+  }
+  task.streamed_read_bytes += beat.read_data.size();
+  ++counters_.full_tile_read_beats;
+  counters_.full_tile_read_words += words;
+  counters_.vs_tile_writes += words;
+  counters_.vs_uram_write_requests += words;
+  if (beat.last != (task.streamed_read_bytes == task.bytes)) {
+    ++counters_.full_tile_stream_error_count;
+    failed_ = true;
+  }
 }
 
 void SpineSplitSsspCompute::consume_memory_response(
@@ -3409,6 +3509,13 @@ void SpineSplitSsspCompute::consume_memory_response(
   if (task.payload_kind == MemoryPayloadKind::kFullTile) {
     if (response.read_data.size() != tile_size_ * kVertexWordBytes) {
       throw std::logic_error("Spine full-tile payload size mismatch");
+    }
+    if (task.stream_read_beats) {
+      if (task.streamed_read_bytes != task.bytes) {
+        throw std::logic_error(
+            "Spine full-tile parent completed before streamed words");
+      }
+      return;
     }
     tile_values_.resize(tile_size_);
     for (std::size_t index = 0; index < tile_size_; ++index) {
@@ -3540,10 +3647,12 @@ void SpineSplitSsspCompute::handle_edge_word(const PartConvWord &word,
       ++counters_.full_path_tiles;
       ++counters_.forced_dense_tiles;
       counters_.swept_vertex_words += tile_size_;
+      tile_values_.assign(tile_size_, kInfinity);
       enqueue_memory(*ports_.vertex_state, MemoryOperation::kRead,
                      tile_base_ * kVertexWordBytes,
                      tile_size_ * kVertexWordBytes, {},
-                     MemoryPayloadKind::kFullTile);
+                     MemoryPayloadKind::kFullTile, 0,
+                     ports_.vertex_state->read_beat_stream_enabled());
       phase_ = Phase::kFullLoad;
     } else {
       phase_ = Phase::kInput;
@@ -3923,9 +4032,11 @@ void SpineSplitSsspCompute::begin_full_path(const PartConvWord &overflow_edge) {
   counters_.swept_vertex_words += tile_size_;
   changed_vertices_.clear();
   relax_index_ = 0;
+  tile_values_.assign(tile_size_, kInfinity);
   enqueue_memory(*ports_.vertex_state, MemoryOperation::kRead,
                  tile_base_ * kVertexWordBytes, tile_size_ * kVertexWordBytes,
-                 {}, MemoryPayloadKind::kFullTile);
+                 {}, MemoryPayloadKind::kFullTile, 0,
+                 ports_.vertex_state->read_beat_stream_enabled());
 }
 
 void SpineSplitSsspCompute::reset_tile() {

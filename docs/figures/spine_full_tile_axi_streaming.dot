@@ -1,0 +1,39 @@
+digraph SpineFullTileAxiStreaming {
+  graph [rankdir=TB, bgcolor="white", pad="0.25", nodesep="0.35", ranksep="0.58"];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+        color="#374151", fillcolor="#f8fafc"];
+  edge [fontname="Helvetica", fontsize=9, color="#475569"];
+
+  axis [label="AXIS edge stream\nfinite FIFO + backpressure", fillcolor="#dbeafe"];
+  classify [label="Tile controller\n4096-edge tiny/full threshold", fillcolor="#fef3c7"];
+  ar [label="gmem_vs AR\n16-beat bursts + 4 KiB split\nbounded outstanding", fillcolor="#e0f2fe"];
+  hbm [label="Shared SST-HBM backend\nchannels + banks + row state", fillcolor="#fee2e2"];
+  reorder [label="AXI R response path\nfinite reorder + ordered beat FIFO", fillcolor="#e0f2fe"];
+  vs [label="vs_tile URAM\n65536 x 32-bit payload", fillcolor="#dcfce7"];
+  relax [label="Replay / stream relax\nII=1 + four-entry RAW bypass", fillcolor="#f3e8ff"];
+  active [label="tile_active BRAM\nmark + scan + emit", fillcolor="#dcfce7"];
+  store [label="gmem_vs W/B + active_out W/B\nper-beat issue and responses", fillcolor="#e0f2fe"];
+  next [label="Next tile input / clear\nwrite responses may remain", fillcolor="#fef3c7"];
+  hazard [label="Address-range scoreboard\nconflicting accesses stall", fillcolor="#fee2e2"];
+
+  {rank=same; axis; classify; ar;}
+  {rank=same; reorder; hbm;}
+  {rank=same; vs; relax; active;}
+  {rank=same; hazard; store; next;}
+
+  axis -> classify [label="TILE_BEGIN + edge prefix"];
+  classify -> ar [label="full path"];
+  ar -> hbm [label="4-byte read beats"];
+  hbm -> reorder [label="possibly delayed responses"];
+  reorder -> vs [label="ordered payload words"];
+  vs -> relax;
+  axis -> relax [label="buffer replay + remaining edges"];
+  relax -> vs;
+  relax -> active [label="changed vertices"];
+  active -> store;
+  store -> hbm [label="4-byte / 8-byte write beats"];
+  active -> next;
+  store -> next [style=dashed, label="B-response overlap"];
+  hazard -> next [label="dependency guard"];
+  hazard -> store [dir=both, style=dashed];
+}

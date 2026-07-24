@@ -1282,6 +1282,18 @@ class OnlineMemoryProbe final : public SST::Component {
              << compute.max_tiny_reads_inflight << ",\n"
              << "  \"compute_max_vs_reads_inflight\": "
              << compute.max_vs_reads_inflight << ",\n"
+             << "  \"compute_full_tile_read_beats\": "
+             << compute.full_tile_read_beats << ",\n"
+             << "  \"compute_full_tile_read_words\": "
+             << compute.full_tile_read_words << ",\n"
+             << "  \"compute_full_tile_read_wait_cycles\": "
+             << compute.full_tile_read_wait_cycles << ",\n"
+             << "  \"compute_full_tile_stream_errors\": "
+             << compute.full_tile_stream_error_count << ",\n"
+             << "  \"compute_cross_tile_write_overlap_cycles\": "
+             << compute.cross_tile_write_overlap_cycles << ",\n"
+             << "  \"compute_max_cross_tile_writes_inflight\": "
+             << compute.max_cross_tile_writes_inflight << ",\n"
              << "  \"compute_full_buffer_replay_edges\": "
              << compute.full_buffer_replay_edges << ",\n"
              << "  \"compute_full_overflow_edges\": "
@@ -1459,6 +1471,12 @@ class OnlineMemoryProbe final : public SST::Component {
       std::vector<std::uint64_t> compute_vs_bypass_misses;
       std::vector<std::size_t> compute_max_tiny_reads_inflight;
       std::vector<std::size_t> compute_max_vs_reads_inflight;
+      std::vector<std::uint64_t> compute_full_tile_read_beats;
+      std::vector<std::uint64_t> compute_full_tile_read_words;
+      std::vector<std::uint64_t> compute_full_tile_read_wait_cycles;
+      std::vector<std::uint64_t> compute_full_tile_stream_errors;
+      std::vector<std::uint64_t> compute_cross_tile_write_overlap_cycles;
+      std::vector<std::size_t> compute_max_cross_tile_writes_inflight;
       std::vector<std::size_t> edge_axis_max_occupancy;
       std::vector<std::uint64_t> edge_axis_push_stalls;
       std::vector<std::uint64_t> edge_axis_transfers;
@@ -1653,6 +1671,18 @@ class OnlineMemoryProbe final : public SST::Component {
             round.compute.max_tiny_reads_inflight);
         compute_max_vs_reads_inflight.push_back(
             round.compute.max_vs_reads_inflight);
+        compute_full_tile_read_beats.push_back(
+            round.compute.full_tile_read_beats);
+        compute_full_tile_read_words.push_back(
+            round.compute.full_tile_read_words);
+        compute_full_tile_read_wait_cycles.push_back(
+            round.compute.full_tile_read_wait_cycles);
+        compute_full_tile_stream_errors.push_back(
+            round.compute.full_tile_stream_error_count);
+        compute_cross_tile_write_overlap_cycles.push_back(
+            round.compute.cross_tile_write_overlap_cycles);
+        compute_max_cross_tile_writes_inflight.push_back(
+            round.compute.max_cross_tile_writes_inflight);
         edge_axis_max_occupancy.push_back(round.edge_axis.max_occupancy);
         edge_axis_push_stalls.push_back(round.edge_axis.push_stalls);
         edge_axis_transfers.push_back(round.edge_axis.pushes);
@@ -2264,6 +2294,18 @@ class OnlineMemoryProbe final : public SST::Component {
       write_json_array(result, compute_max_tiny_reads_inflight);
       result << ",\n  \"compute_max_vs_reads_inflight_per_round\": ";
       write_json_array(result, compute_max_vs_reads_inflight);
+      result << ",\n  \"compute_full_tile_read_beats_per_round\": ";
+      write_json_array(result, compute_full_tile_read_beats);
+      result << ",\n  \"compute_full_tile_read_words_per_round\": ";
+      write_json_array(result, compute_full_tile_read_words);
+      result << ",\n  \"compute_full_tile_read_wait_cycles_per_round\": ";
+      write_json_array(result, compute_full_tile_read_wait_cycles);
+      result << ",\n  \"compute_full_tile_stream_errors_per_round\": ";
+      write_json_array(result, compute_full_tile_stream_errors);
+      result << ",\n  \"compute_cross_tile_write_overlap_cycles_per_round\": ";
+      write_json_array(result, compute_cross_tile_write_overlap_cycles);
+      result << ",\n  \"compute_max_cross_tile_writes_inflight_per_round\": ";
+      write_json_array(result, compute_max_cross_tile_writes_inflight);
       result << ",\n  \"edge_axis_max_occupancy_per_round\": ";
       write_json_array(result, edge_axis_max_occupancy);
       result << ",\n  \"edge_axis_push_stalls_per_round\": ";
@@ -2924,6 +2966,18 @@ class OnlineMemoryProbe final : public SST::Component {
           << compute.max_tiny_reads_inflight << ",\n"
           << "  \"compute_max_vs_reads_inflight\": "
           << compute.max_vs_reads_inflight << ",\n"
+          << "  \"compute_full_tile_read_beats\": "
+          << compute.full_tile_read_beats << ",\n"
+          << "  \"compute_full_tile_read_words\": "
+          << compute.full_tile_read_words << ",\n"
+          << "  \"compute_full_tile_read_wait_cycles\": "
+          << compute.full_tile_read_wait_cycles << ",\n"
+          << "  \"compute_full_tile_stream_errors\": "
+          << compute.full_tile_stream_error_count << ",\n"
+          << "  \"compute_cross_tile_write_overlap_cycles\": "
+          << compute.cross_tile_write_overlap_cycles << ",\n"
+          << "  \"compute_max_cross_tile_writes_inflight\": "
+          << compute.max_cross_tile_writes_inflight << ",\n"
           << "  \"compute_full_buffer_replay_edges\": "
           << compute.full_buffer_replay_edges << ",\n"
           << "  \"compute_full_overflow_edges\": "

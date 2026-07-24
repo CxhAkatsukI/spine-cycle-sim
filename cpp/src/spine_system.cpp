@@ -134,8 +134,10 @@ FixedAxiPortConfig SpineAxiInterfaceProfile::port_config(
       .initiator_id = initiator_id,
       .data_width_bytes = width,
       .max_burst_beats = max_burst_beats,
-      .stream_read_beats = kind == SpineAxiPortKind::kSortedEdges &&
-                           sorted_edge_bytes == kSpineSortWordBytes,
+      .stream_read_beats =
+          (kind == SpineAxiPortKind::kSortedEdges &&
+           sorted_edge_bytes == kSpineSortWordBytes) ||
+          kind == SpineAxiPortKind::kVertexState,
       .max_pending_requests = write_only ? writeonly_max_pending_requests
                                          : readwrite_max_pending_requests,
       .max_outstanding_bursts = max_outstanding_bursts,
