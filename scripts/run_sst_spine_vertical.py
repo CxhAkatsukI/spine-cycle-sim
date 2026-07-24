@@ -297,7 +297,7 @@ def validate_carry_hot_result(
         and result.get("maintenance_hot_input_edges") == 1,
         "maintenance_passes": result.get("maintenance_scan_passes") == 36,
         "maintenance_visits": result.get("maintenance_edge_visits") == 72,
-        "maintenance_bytes": result.get("maintenance_sorted_bytes") == 1_152,
+        "maintenance_bytes": result.get("maintenance_sorted_bytes") == 1_184,
         "maintenance_sorted_payload": result.get(
             "maintenance_sorted_payload_read_bytes"
         )
@@ -311,6 +311,10 @@ def validate_carry_hot_result(
         ),
         "carry_work": result.get("maintenance_carry_payload_reads") == 1
         and result.get("maintenance_carry_payload_read_bytes") == 8
+        and result.get("maintenance_carry_new_batch_reads") == 2
+        and result.get("maintenance_carry_new_batch_read_bytes") == 32
+        and result.get("maintenance_carry_refill_wait_cycles", 0) > 0
+        and result.get("maintenance_carry_max_buffered_heads") == 2
         and result.get("maintenance_carry_merge_inputs") == 2
         and result.get("maintenance_carry_outputs") == 2,
         "reader_tiles": result.get("reader_tiles") == 1,

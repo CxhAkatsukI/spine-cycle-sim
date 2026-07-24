@@ -1834,9 +1834,19 @@ void test_spine_cold_l1_carry_and_reader() {
   require(maintenance.sorted_scan_passes == 19,
           "cold carry changed the HLS family-filter scan count");
   require(maintenance.carry_level_payload_reads == 1 &&
+              maintenance.carry_new_batch_reads == 1 &&
+              maintenance.carry_new_batch_read_bytes == 16 &&
+              maintenance.carry_refill_wait_cycles > 0 &&
+              maintenance.carry_max_buffered_heads == 2 &&
               maintenance.carry_merge_inputs == 2 &&
               maintenance.carry_outputs == 2,
           "cold carry merge ledger mismatch");
+  std::cout << "EVIDENCE spine_carry_refill cycles="
+            << maintenance.end_cycle - maintenance.start_cycle
+            << " new_batch_reads=" << maintenance.carry_new_batch_reads
+            << " level_reads=" << maintenance.carry_level_payload_reads
+            << " refill_wait=" << maintenance.carry_refill_wait_cycles
+            << " max_heads=" << maintenance.carry_max_buffered_heads << '\n';
   require(system.level_state().cold_levels[0][0].empty() &&
               system.level_state().cold_levels[0][1].size() == 2,
           "cold carry did not retire L0 into L1");
@@ -1846,6 +1856,71 @@ void test_spine_cold_l1_carry_and_reader() {
   require(
       system.compute().values()[1] == 5 && system.compute().values()[2] == 3,
       "cold carry SSSP result mismatch");
+}
+
+void test_spine_carry_kway_refill_pipeline() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("data", 141.0);
+  MockMemoryBackend backend("hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 7,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 64,
+                                .response_queue_depth = 128,
+                            });
+  SpineL0State initial;
+  initial.cold_levels[0][0] = {
+      {.src = 0, .dst = 1, .weight = 5, .diff = 1},
+      {.src = 1, .dst = 2, .weight = 5, .diff = 1},
+  };
+  initial.cold_levels[0][1] = {
+      {.src = 0, .dst = 3, .weight = 4, .diff = 1},
+      {.src = 2, .dst = 4, .weight = 4, .diff = 1},
+  };
+  SpineEdgeSlice batch{
+      .vertices = 128,
+      .edges =
+          {
+              {.src = 0, .dst = 5, .weight = 3, .diff = 1},
+              {.src = 1, .dst = 6, .weight = 3, .diff = 1},
+              {.src = 3, .dst = 7, .weight = 3, .diff = 1},
+              {.src = 4, .dst = 8, .weight = 3, .diff = 1},
+          },
+      .case_name = "carry_kway_refill",
+  };
+  SpineVerticalSliceSystem system(scheduler, core, backend, std::move(batch), 0,
+                                  4096, SpineL0Config{}, std::move(initial));
+  system.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until([&] { return system.done() && system.idle(); }, 200'000);
+
+  require(!system.failed(), "L2 k-way carry vertical slice failed");
+  const auto &maintenance = system.maintenance_counters();
+  const auto &level = system.level_state().cold_levels[0][2];
+  require(maintenance.target_level == 2 &&
+              maintenance.carry_new_batch_reads == 4 &&
+              maintenance.carry_new_batch_read_bytes == 64 &&
+              maintenance.carry_level_payload_reads == 4 &&
+              maintenance.carry_level_payload_read_bytes == 32 &&
+              maintenance.carry_merge_inputs == 8 &&
+              maintenance.carry_outputs == 8 &&
+              maintenance.carry_max_buffered_heads == 5 &&
+              maintenance.carry_refill_wait_cycles > 0,
+          "L2 k-way carry request/refill ledger diverged");
+  require(level.size() == 8 && level.front().src == 0 &&
+              level.front().dst == 1 && level.back().src == 4 &&
+              level.back().dst == 8,
+          "L2 k-way carry winner order or output payload diverged");
+  require(system.level_state().cold_levels[0][0].empty() &&
+              system.level_state().cold_levels[0][1].empty(),
+          "L2 k-way carry did not retire lower levels");
+  std::cout << "EVIDENCE spine_carry_kway target=2 inputs="
+            << maintenance.carry_merge_inputs
+            << " new_batch_reads=" << maintenance.carry_new_batch_reads
+            << " level_reads=" << maintenance.carry_level_payload_reads
+            << " refill_wait=" << maintenance.carry_refill_wait_cycles
+            << " max_heads=" << maintenance.carry_max_buffered_heads << '\n';
 }
 
 void test_spine_independent_hot_and_cold_targets() {
@@ -2877,7 +2952,9 @@ void test_spine_carry_merge_consumes_level_payload_from_hbm() {
               level[1].dst == 4 && level[1].weight == 2,
           "carry merge ignored HBM level payload and used logical level state");
   require(maintenance.counters().carry_level_payload_reads == 1 &&
-              maintenance.counters().carry_level_payload_read_bytes == 8,
+              maintenance.counters().carry_level_payload_read_bytes == 8 &&
+              maintenance.counters().carry_new_batch_reads == 1 &&
+              maintenance.counters().carry_new_batch_read_bytes == 16,
           "carry level payload read ledger does not close");
 }
 
@@ -3343,6 +3420,7 @@ int main(int argc, char **argv) {
       {"spine_source_protocol_error",
        test_spine_compute_rejects_malformed_source_protocol},
       {"spine_cold_l1_carry", test_spine_cold_l1_carry_and_reader},
+      {"spine_carry_kway_refill", test_spine_carry_kway_refill_pipeline},
       {"spine_hot_cold_targets", test_spine_independent_hot_and_cold_targets},
       {"spine_fixed_level_layout",
        test_spine_fixed_level_layout_matches_stable_profile},

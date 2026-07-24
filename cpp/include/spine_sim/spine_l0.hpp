@@ -246,6 +246,10 @@ struct SpineL0Counters {
   std::uint64_t hot_input_edges{};
   std::uint64_t carry_level_payload_reads{};
   std::uint64_t carry_level_payload_read_bytes{};
+  std::uint64_t carry_new_batch_reads{};
+  std::uint64_t carry_new_batch_read_bytes{};
+  std::uint64_t carry_refill_wait_cycles{};
+  std::size_t carry_max_buffered_heads{};
   std::uint64_t carry_merge_inputs{};
   std::uint64_t carry_outputs{};
   std::int32_t target_level{-1};
@@ -329,6 +333,8 @@ class SpineL0Maintenance final : public Component {
     kDirtyBitmapOverflowClear,
     kDirtyListRead,
     kDirtyListWrite,
+    kCarryNewBatchRead,
+    kCarryLevelEdgeRead,
   };
 
   enum class ScanKind {
@@ -349,12 +355,16 @@ class SpineL0Maintenance final : public Component {
     std::vector<std::uint32_t> carry_edge_sources;
     TaskPurpose purpose{TaskPurpose::kGeneric};
     std::uint32_t source{};
+    std::size_t carry_stream{};
+    std::size_t carry_edge_index{};
     bool stream_sorted_scan{};
     std::size_t streamed_read_beats_expected{};
     std::size_t streamed_read_beats_received{};
   };
 
   enum class StagedAction { kNone, kAdvance };
+
+  struct FamilyWriteTask;
 
   void advance(const CycleContext &context);
   void enqueue_task(FixedAxiPort &port, MemoryOperation operation,
@@ -364,7 +374,9 @@ class SpineL0Maintenance final : public Component {
                     std::vector<std::uint32_t> carry_edge_sources = {},
                     bool stream_sorted_scan = false,
                     TaskPurpose purpose = TaskPurpose::kGeneric,
-                    std::uint32_t source = 0);
+                    std::uint32_t source = 0,
+                    std::size_t carry_stream = 0,
+                    std::size_t carry_edge_index = 0);
   void begin_sorted_scan(Phase process_phase, ScanKind kind);
   [[nodiscard]] bool process_scan_edge(const CycleContext &context);
   [[nodiscard]] bool scan_process_phase() const noexcept;
@@ -389,14 +401,18 @@ class SpineL0Maintenance final : public Component {
   void enqueue_committed_metadata();
   void build_family_outputs();
   void enqueue_family_writes(bool hot, std::size_t family, std::size_t target);
-  void enqueue_carry_reads(bool hot, std::size_t family, std::size_t target);
+  void initialize_carry_engine(const FamilyWriteTask &task);
+  void enqueue_carry_index_reads(const FamilyWriteTask &task);
+  void enqueue_carry_stream_refill(std::size_t stream_index);
+  void consume_carry_memory_response(const MemoryTask &task,
+                                     const AxiResponse &response);
+  [[nodiscard]] bool advance_carry_merge();
+  void finish_carry_merge(const FamilyWriteTask &task);
   void commit_level_state(bool hot, std::size_t target);
   [[nodiscard]] std::vector<SpineEdgeRecord> coalesce_family(
       bool hot, std::size_t family) const;
   [[nodiscard]] std::vector<SpineEdgeRecord> merge_family(
       bool hot, std::size_t family, std::size_t target) const;
-  [[nodiscard]] std::vector<SpineEdgeRecord> merge_family_with_carry_payload(
-      bool hot, std::size_t family) const;
   [[nodiscard]] std::size_t family_for(std::uint32_t dst) const;
   [[nodiscard]] std::size_t target_for(bool hot) const;
   [[nodiscard]] bool edge_is_hot(std::uint32_t dst) const;
@@ -407,13 +423,24 @@ class SpineL0Maintenance final : public Component {
     std::size_t target{};
   };
 
+  struct CarryInputStream {
+    bool new_batch{};
+    std::size_t level{};
+    std::vector<std::uint32_t> sources;
+    std::size_t next_index{};
+    std::deque<SpineEdgeRecord> buffered;
+    bool request_pending{};
+    bool exhausted{};
+  };
+
   SpineL0Config config_;
   SpineEdgeSlice workload_;
   SpineL0Ports ports_;
   SpineL0State &state_;
   SpineL0Counters counters_;
   std::vector<SpineEdgeRecord> sorted_scan_edges_;
-  std::vector<SpineEdgeRecord> carry_payload_edges_;
+  std::vector<CarryInputStream> carry_streams_;
+  std::vector<SpineEdgeRecord> carry_merge_inputs_;
   std::array<std::vector<SpineEdgeRecord>, 16> family_outputs_;
   std::array<std::vector<SpineEdgeRecord>, 16> hot_family_outputs_;
   std::array<std::array<std::uint32_t, kSpineLevelCount>, kSpineFamilyCount>
@@ -443,7 +470,6 @@ class SpineL0Maintenance final : public Component {
   std::vector<std::uint8_t> dirty_bitmap_original_payload_;
   std::size_t family_index_{};
   std::size_t active_family_index_{};
-  std::size_t carry_steps_remaining_{};
   bool precount_hot_{};
   std::uint64_t next_transaction_id_{};
   bool done_{};

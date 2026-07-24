@@ -31,6 +31,9 @@
 - `spine_dirty_rmw_pipeline.svg`: source-ordered persistent dirty bitmap/list
   read-modify-write, duplicate suppression, metadata lifecycle, and the shared
   finite AXI/HBM path. Its editable source is the adjacent `.dot` file.
+- `spine_carry_refill_pipeline.svg`: request-driven carry streams, lower-level
+  head/lookahead buffers, winner-triggered HBM refill, and the remaining target
+  writer boundary. Its editable source is the adjacent `.dot` file.
 
 Regenerate a Graphviz SVG from the repository root with:
 

@@ -872,6 +872,9 @@ void SpineL0Maintenance::evaluate(const CycleContext &context) {
   }
   if (!tasks_.empty() || !inflight_tasks_.empty() ||
       staged_memory_completion_ || staged_read_beat_completion_) {
+    if (phase_ == Phase::kCarryProcess) {
+      ++counters_.carry_refill_wait_cycles;
+    }
     return;
   }
   staged_action_ = StagedAction::kAdvance;
@@ -988,7 +991,8 @@ void SpineL0Maintenance::enqueue_task(
     std::uint64_t bytes, TaskClass task_class,
     std::vector<std::uint8_t> write_data,
     std::vector<std::uint32_t> carry_edge_sources, bool stream_sorted_scan,
-    TaskPurpose purpose, std::uint32_t source) {
+    TaskPurpose purpose, std::uint32_t source, std::size_t carry_stream,
+    std::size_t carry_edge_index) {
   if (bytes == 0) {
     return;
   }
@@ -1014,6 +1018,8 @@ void SpineL0Maintenance::enqueue_task(
       .carry_edge_sources = std::move(carry_edge_sources),
       .purpose = purpose,
       .source = source,
+      .carry_stream = carry_stream,
+      .carry_edge_index = carry_edge_index,
       .stream_sorted_scan = stream_sorted_scan,
       .streamed_read_beats_expected =
           stream_sorted_scan
@@ -1247,12 +1253,17 @@ void SpineL0Maintenance::consume_read_beat(const AxiReadBeatResponse &beat) {
 
 void SpineL0Maintenance::consume_memory_response(const MemoryTask &task,
                                                  const AxiResponse &response) {
+  const bool carry_response =
+      task.purpose == TaskPurpose::kCarryNewBatchRead ||
+      task.purpose == TaskPurpose::kCarryLevelEdgeRead;
   if (task.operation == MemoryOperation::kWrite) {
     if (!response.read_data.empty()) {
       throw std::logic_error(
           "Spine maintenance write response carried payload");
     }
-    if (task.purpose != TaskPurpose::kGeneric) {
+    if (carry_response) {
+      consume_carry_memory_response(task, response);
+    } else if (task.purpose != TaskPurpose::kGeneric) {
       consume_dirty_memory_response(task, response);
     }
     return;
@@ -1260,7 +1271,9 @@ void SpineL0Maintenance::consume_memory_response(const MemoryTask &task,
   if (response.read_data.size() != task.bytes) {
     throw std::logic_error("Spine maintenance read response payload mismatch");
   }
-  if (task.purpose != TaskPurpose::kGeneric) {
+  if (carry_response) {
+    consume_carry_memory_response(task, response);
+  } else if (task.purpose != TaskPurpose::kGeneric) {
     consume_dirty_memory_response(task, response);
   }
   if (task.stream_sorted_scan) {
@@ -1271,18 +1284,6 @@ void SpineL0Maintenance::consume_memory_response(const MemoryTask &task,
       sorted_scan_edges_ = decode_spine_sort_edges(response.read_data);
       counters_.sorted_payload_read_bytes += response.read_data.size();
     }
-  } else if (!task.carry_edge_sources.empty()) {
-    for (std::size_t index = 0; index < task.carry_edge_sources.size();
-         ++index) {
-      const auto begin =
-          response.read_data.begin() +
-          static_cast<std::ptrdiff_t>(index * kSpineGraphWordBytes);
-      const auto end = begin + kSpineGraphWordBytes;
-      carry_payload_edges_.push_back(
-          decode_spine_level_edge(std::vector<std::uint8_t>(begin, end),
-                                  task.carry_edge_sources[index]));
-    }
-    counters_.carry_level_payload_read_bytes += response.read_data.size();
   }
 }
 
@@ -1330,21 +1331,6 @@ std::vector<SpineEdgeRecord> SpineL0Maintenance::merge_family(
   for (std::size_t level = 0; level < target; ++level) {
     inputs.insert(inputs.end(), levels[family][level].begin(),
                   levels[family][level].end());
-  }
-  return coalesce_records(std::move(inputs));
-}
-
-std::vector<SpineEdgeRecord>
-SpineL0Maintenance::merge_family_with_carry_payload(bool hot,
-                                                    std::size_t family) const {
-  std::vector<SpineEdgeRecord> inputs = coalesce_family(hot, family);
-  for (const SpineEdgeRecord &edge : carry_payload_edges_) {
-    const bool is_hot = edge_is_hot(edge.dst);
-    const std::size_t owner =
-        is_hot ? spine_hot_shard(edge.dst) : family_for(edge.dst);
-    if (is_hot == hot && owner == family) {
-      inputs.push_back(edge);
-    }
   }
   return coalesce_records(std::move(inputs));
 }
@@ -1616,6 +1602,9 @@ void SpineL0Maintenance::consume_dirty_memory_response(
     dirty_hash_xor_ ^= spine_dirty_hash_xor_term(task.source);
     finish_dirty_source_update();
     return;
+  case TaskPurpose::kCarryNewBatchRead:
+  case TaskPurpose::kCarryLevelEdgeRead:
+    throw std::logic_error("carry response reached the dirty response handler");
   }
 }
 
@@ -1691,25 +1680,24 @@ void SpineL0Maintenance::enqueue_family_writes(bool hot, std::size_t family,
   }
 }
 
-void SpineL0Maintenance::enqueue_carry_reads(bool hot, std::size_t family,
-                                             std::size_t target) {
-  const auto &levels = hot ? state_.hot_levels : state_.cold_levels;
-  FixedAxiPort &graph = *ports_.graph[family];
-  const std::size_t logical_family = hot ? config_.partitions + family : family;
-  for (std::size_t level = 0; level < target; ++level) {
-    const auto &edges = levels[family][level];
+void SpineL0Maintenance::enqueue_carry_index_reads(
+    const FamilyWriteTask &task) {
+  const auto &levels = task.hot ? state_.hot_levels : state_.cold_levels;
+  FixedAxiPort &graph = *ports_.graph[task.family];
+  const std::size_t logical_family =
+      task.hot ? config_.partitions + task.family : task.family;
+  for (std::size_t level = 0; level < task.target; ++level) {
+    const auto &edges = levels[task.family][level];
     if (edges.empty()) {
       continue;
     }
-    const SpineLevelLayout layout = spine_level_layout(config_, hot, level);
+    const SpineLevelLayout layout =
+        spine_level_layout(config_, task.hot, level);
     std::set<std::uint32_t> pages;
     std::uint64_t rows = 0;
     std::uint32_t last_source = 0;
     bool have_source = false;
-    std::vector<std::uint32_t> edge_sources;
-    edge_sources.reserve(edges.size());
     for (const SpineEdgeRecord &edge : edges) {
-      edge_sources.push_back(edge.src);
       pages.insert(edge.src / config_.page_vertices);
       if (!have_source || edge.src != last_source) {
         ++rows;
@@ -1744,11 +1732,204 @@ void SpineL0Maintenance::enqueue_carry_reads(bool hot, std::size_t family,
     enqueue_task(graph, MemoryOperation::kRead,
                  layout.mask_offset_words * kSpineGraphWordBytes,
                  ((rows + 3) >> 2) * kSpineGraphWordBytes, TaskClass::kGraph);
-    enqueue_task(graph, MemoryOperation::kRead,
-                 layout.edge_offset_words * kSpineGraphWordBytes,
-                 edges.size() * kSpineGraphWordBytes, TaskClass::kGraph, {},
-                 std::move(edge_sources));
-    counters_.carry_level_payload_reads += edges.size();
+  }
+}
+
+void SpineL0Maintenance::initialize_carry_engine(
+    const FamilyWriteTask &task) {
+  carry_streams_.clear();
+  carry_merge_inputs_.clear();
+  CarryInputStream new_batch;
+  new_batch.new_batch = true;
+  carry_streams_.push_back(std::move(new_batch));
+
+  const auto &levels = task.hot ? state_.hot_levels : state_.cold_levels;
+  for (std::size_t level = 0; level < task.target; ++level) {
+    const auto &edges = levels[task.family][level];
+    if (edges.empty()) {
+      continue;
+    }
+    CarryInputStream stream;
+    stream.level = level;
+    stream.sources.reserve(edges.size());
+    for (const SpineEdgeRecord &edge : edges) {
+      stream.sources.push_back(edge.src);
+    }
+    carry_streams_.push_back(std::move(stream));
+  }
+
+  enqueue_carry_index_reads(task);
+  for (std::size_t stream = 0; stream < carry_streams_.size(); ++stream) {
+    enqueue_carry_stream_refill(stream);
+  }
+}
+
+void SpineL0Maintenance::enqueue_carry_stream_refill(
+    std::size_t stream_index) {
+  if (stream_index >= carry_streams_.size()) {
+    throw std::logic_error("invalid Spine carry stream index");
+  }
+  CarryInputStream &stream = carry_streams_[stream_index];
+  if (stream.request_pending) {
+    return;
+  }
+
+  const FamilyWriteTask &task = family_write_tasks_[active_family_index_];
+  if (stream.new_batch) {
+    if (!stream.buffered.empty()) {
+      return;
+    }
+    if (stream.next_index >= workload_.edges.size()) {
+      stream.exhausted = true;
+      return;
+    }
+    const std::size_t edge_index = stream.next_index++;
+    stream.request_pending = true;
+    enqueue_task(*ports_.sorted_edges, MemoryOperation::kRead,
+                 config_.sorted_edges_base +
+                     edge_index * kSpineSortWordBytes,
+                 kSpineSortWordBytes, TaskClass::kSorted, {}, {}, false,
+                 TaskPurpose::kCarryNewBatchRead, 0, stream_index, edge_index);
+    return;
+  }
+
+  if (stream.buffered.size() >= 2) {
+    return;
+  }
+  if (stream.next_index >= stream.sources.size()) {
+    stream.exhausted = true;
+    return;
+  }
+  const std::size_t edge_index = stream.next_index++;
+  const std::uint32_t source = stream.sources[edge_index];
+  const SpineLevelLayout layout =
+      spine_level_layout(config_, task.hot, stream.level);
+  stream.request_pending = true;
+  enqueue_task(*ports_.graph[task.family], MemoryOperation::kRead,
+               (layout.edge_offset_words + edge_index) *
+                   kSpineGraphWordBytes,
+               kSpineGraphWordBytes, TaskClass::kGraph, {}, {}, false,
+               TaskPurpose::kCarryLevelEdgeRead, source, stream_index,
+               edge_index);
+}
+
+void SpineL0Maintenance::consume_carry_memory_response(
+    const MemoryTask &task, const AxiResponse &response) {
+  if (task.carry_stream >= carry_streams_.size()) {
+    throw std::logic_error("Spine carry response has invalid stream index");
+  }
+  CarryInputStream &stream = carry_streams_[task.carry_stream];
+  if (!stream.request_pending) {
+    throw std::logic_error("unexpected Spine carry stream response");
+  }
+  stream.request_pending = false;
+
+  if (task.purpose == TaskPurpose::kCarryNewBatchRead) {
+    if (!stream.new_batch || response.read_data.size() != kSpineSortWordBytes) {
+      throw std::logic_error("invalid Spine new-batch carry response");
+    }
+    const SpineEdgeRecord edge = decode_spine_sort_edge(response.read_data);
+    ++counters_.carry_new_batch_reads;
+    counters_.carry_new_batch_read_bytes += response.read_data.size();
+    counters_.sorted_payload_read_bytes += response.read_data.size();
+    const FamilyWriteTask &active =
+        family_write_tasks_[active_family_index_];
+    const bool hot = edge_is_hot(edge.dst);
+    const std::size_t family =
+        hot ? spine_hot_shard(edge.dst) : family_for(edge.dst);
+    if (hot == active.hot && family == active.family) {
+      stream.buffered.push_back(edge);
+    } else {
+      enqueue_carry_stream_refill(task.carry_stream);
+    }
+  } else if (task.purpose == TaskPurpose::kCarryLevelEdgeRead) {
+    if (stream.new_batch || response.read_data.size() != kSpineGraphWordBytes) {
+      throw std::logic_error("invalid Spine level carry response");
+    }
+    stream.buffered.push_back(
+        decode_spine_level_edge(response.read_data, task.source));
+    ++counters_.carry_level_payload_reads;
+    counters_.carry_level_payload_read_bytes += response.read_data.size();
+    enqueue_carry_stream_refill(task.carry_stream);
+  } else {
+    throw std::logic_error("non-carry task reached the carry response handler");
+  }
+
+  std::size_t buffered = 0;
+  for (const CarryInputStream &candidate : carry_streams_) {
+    buffered += candidate.buffered.size();
+  }
+  counters_.carry_max_buffered_heads =
+      std::max(counters_.carry_max_buffered_heads, buffered);
+}
+
+bool SpineL0Maintenance::advance_carry_merge() {
+  std::size_t winner = carry_streams_.size();
+  for (std::size_t stream = 0; stream < carry_streams_.size(); ++stream) {
+    if (carry_streams_[stream].buffered.empty()) {
+      continue;
+    }
+    if (winner == carry_streams_.size() ||
+        std::pair(carry_streams_[stream].buffered.front().src,
+                  carry_streams_[stream].buffered.front().dst) <
+            std::pair(carry_streams_[winner].buffered.front().src,
+                      carry_streams_[winner].buffered.front().dst)) {
+      winner = stream;
+    }
+  }
+  if (winner == carry_streams_.size()) {
+    const bool complete =
+        std::all_of(carry_streams_.begin(), carry_streams_.end(),
+                    [](const CarryInputStream &stream) {
+                      return stream.exhausted && !stream.request_pending &&
+                             stream.buffered.empty();
+                    });
+    if (!complete) {
+      throw std::logic_error("Spine carry merge lost a refill request");
+    }
+    return true;
+  }
+
+  CarryInputStream &stream = carry_streams_[winner];
+  carry_merge_inputs_.push_back(stream.buffered.front());
+  stream.buffered.pop_front();
+  ++counters_.carry_merge_inputs;
+  enqueue_carry_stream_refill(winner);
+  return false;
+}
+
+void SpineL0Maintenance::finish_carry_merge(const FamilyWriteTask &task) {
+  auto &output =
+      task.hot ? hot_family_outputs_[task.family] : family_outputs_[task.family];
+  const bool was_active = !output.empty();
+  output = coalesce_records(std::move(carry_merge_inputs_));
+  const bool is_active = !output.empty();
+  if (was_active && !is_active) {
+    --counters_.active_families;
+  } else if (!was_active && is_active) {
+    ++counters_.active_families;
+  }
+
+  std::uint64_t rows = 0;
+  std::uint32_t last_src = 0;
+  bool have_src = false;
+  for (const SpineEdgeRecord &edge : output) {
+    if (!have_src || edge.src != last_src) {
+      ++rows;
+      last_src = edge.src;
+      have_src = true;
+    }
+  }
+  if (task.hot) {
+    counters_.hot_family_edges[task.family] = output.size();
+    counters_.hot_family_rows[task.family] = rows;
+  } else {
+    counters_.family_edges[task.family] = output.size();
+    counters_.family_rows[task.family] = rows;
+  }
+  counters_.carry_outputs += output.size();
+  if (!output.empty()) {
+    enqueue_family_writes(task.hot, task.family, task.target);
   }
 }
 
@@ -1955,56 +2136,18 @@ void SpineL0Maintenance::advance(const CycleContext &context) {
     return;
   case Phase::kCarryPrepare: {
     const FamilyWriteTask &task = family_write_tasks_[active_family_index_];
-    const auto &levels = task.hot ? state_.hot_levels : state_.cold_levels;
-    carry_payload_edges_.clear();
-    carry_steps_remaining_ = coalesce_family(task.hot, task.family).size();
-    for (std::size_t level = 0; level < task.target; ++level) {
-      carry_steps_remaining_ += levels[task.family][level].size();
-    }
-    enqueue_carry_reads(task.hot, task.family, task.target);
+    initialize_carry_engine(task);
     phase_ = Phase::kCarryProcess;
     return;
   }
   case Phase::kCarryProcess: {
-    if (carry_steps_remaining_ != 0) {
-      --carry_steps_remaining_;
-      ++counters_.carry_merge_inputs;
+    if (!advance_carry_merge()) {
       return;
     }
     const FamilyWriteTask &task = family_write_tasks_[active_family_index_];
-    auto &output = task.hot ? hot_family_outputs_[task.family]
-                            : family_outputs_[task.family];
-    const bool was_active = !output.empty();
-    output = merge_family_with_carry_payload(task.hot, task.family);
-    const bool is_active = !output.empty();
-    if (was_active && !is_active) {
-      --counters_.active_families;
-    } else if (!was_active && is_active) {
-      ++counters_.active_families;
-    }
-    std::uint64_t rows = 0;
-    std::uint32_t last_src = 0;
-    bool have_src = false;
-    for (const SpineEdgeRecord &edge : output) {
-      if (!have_src || edge.src != last_src) {
-        ++rows;
-        last_src = edge.src;
-        have_src = true;
-      }
-    }
-    if (task.hot) {
-      counters_.hot_family_edges[task.family] = output.size();
-      counters_.hot_family_rows[task.family] = rows;
-    } else {
-      counters_.family_edges[task.family] = output.size();
-      counters_.family_rows[task.family] = rows;
-    }
-    counters_.carry_outputs += output.size();
-    if (!output.empty()) {
-      enqueue_family_writes(task.hot, task.family, task.target);
-      if (failed_) {
-        return;
-      }
+    finish_carry_merge(task);
+    if (failed_) {
+      return;
     }
     phase_ = Phase::kWriteAdvance;
     return;

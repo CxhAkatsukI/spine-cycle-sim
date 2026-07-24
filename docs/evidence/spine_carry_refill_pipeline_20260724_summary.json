@@ -1,0 +1,65 @@
+{
+  "date": "2026-07-24",
+  "evidence_tier": "structural_execution_driven",
+  "source_revision": "afb8199a2ca8d3fd208b985324bf4d8719e2b839",
+  "hardware_calibrated": false,
+  "l1_cpp_microbenchmark": {
+    "target_level": 1,
+    "new_batch_reads": 1,
+    "new_batch_read_bytes": 16,
+    "level_payload_reads": 1,
+    "level_payload_read_bytes": 8,
+    "merge_inputs": 2,
+    "outputs": 2,
+    "refill_wait_cycles": 83,
+    "max_buffered_heads": 2,
+    "correct": true
+  },
+  "l2_kway_cpp_microbenchmark": {
+    "target_level": 2,
+    "input_streams": 3,
+    "new_batch_reads": 4,
+    "new_batch_read_bytes": 64,
+    "level_payload_reads": 4,
+    "level_payload_read_bytes": 32,
+    "merge_inputs": 8,
+    "outputs": 8,
+    "refill_wait_cycles": 284,
+    "max_buffered_heads": 5,
+    "correct": true
+  },
+  "sst_carry_hot": {
+    "cycles": 8402,
+    "backend_requests": 1901,
+    "sorted_bytes": 1184,
+    "streamed_scan_beats": 72,
+    "new_batch_reads": 2,
+    "new_batch_read_bytes": 32,
+    "level_payload_reads": 1,
+    "level_payload_read_bytes": 8,
+    "merge_inputs": 2,
+    "outputs": 2,
+    "refill_wait_cycles": 114,
+    "max_buffered_heads": 2,
+    "dram_reads": 1229,
+    "dram_writes": 672,
+    "dram_activates": 92,
+    "dram_read_row_hits": 1165,
+    "dram_write_row_hits": 629,
+    "correctness_mismatches": 0,
+    "frontier_mismatches": 0
+  },
+  "previous_sst_carry_hot": {
+    "commit": "a9a308d",
+    "cycles": 8402,
+    "backend_requests": 1899,
+    "sorted_bytes": 1152
+  },
+  "remaining_boundaries": [
+    "old-level source discovery is not yet payload-driven",
+    "index reads are pre-issued rather than cursor-demand-driven",
+    "target graph writes do not yet overlap merge groups",
+    "epoch-wrap and malformed-index paths lack acceptance evidence",
+    "no source-matched carry csynth or hardware timestamp calibration"
+  ]
+}

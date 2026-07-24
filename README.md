@@ -164,3 +164,6 @@ report-derived count/L0-write loop timing are documented in
 The source-ordered persistent dirty bitmap/list read-modify-write path,
 duplicate suppression, and metadata lifecycle are documented in
 [`docs/spine_dirty_rmw_pipeline_20260724.md`](docs/spine_dirty_rmw_pipeline_20260724.md).
+The request-driven carry new-batch scan, lower-level head/lookahead buffering,
+winner refill stalls, and remaining cursor/writer boundary are documented in
+[`docs/spine_carry_refill_pipeline_20260724.md`](docs/spine_carry_refill_pipeline_20260724.md).

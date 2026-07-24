@@ -1,0 +1,32 @@
+digraph carry_refill {
+  graph [rankdir=LR, bgcolor="white", pad=0.25, nodesep=0.35, ranksep=0.55];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=10,
+        color="#334155", fillcolor="#f8fafc", margin="0.12,0.08"];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#475569"];
+
+  sorted [label="New batch stream\n1 head\n128-bit scalar reads", fillcolor="#dbeafe"];
+  l0 [label="Lower level 0\nhead + lookahead\n64-bit payload reads", fillcolor="#dcfce7"];
+  l1 [label="Lower level 1\nhead + lookahead\n64-bit payload reads", fillcolor="#dcfce7"];
+  more [label="... up to level 10", fillcolor="#e2e8f0"];
+  winner [shape=diamond, label="Minimum\n(src,dst)?", fillcolor="#fef3c7"];
+  group [label="Differential group\nsum diff / min weight"];
+  refill [label="Refill winner\nwait for AXI/HBM", fillcolor="#fee2e2"];
+  done [shape=diamond, label="All streams\nexhausted?"];
+  output [label="Coalesced carry output", fillcolor="#e0e7ff"];
+  writer [label="Target graph writer\nremaining: group-overlapped writes",
+          style="rounded,filled,dashed", fillcolor="#f8fafc"];
+  hbm [label="Finite AXI + SST-HBM\nshared graph/sorted channels", fillcolor="#fde68a"];
+
+  sorted -> winner;
+  l0 -> winner;
+  l1 -> winner;
+  more -> winner;
+  winner -> group -> refill -> hbm;
+  hbm -> sorted [label="new head"];
+  hbm -> l0 [label="lookahead"];
+  hbm -> l1 [label="lookahead"];
+  refill -> done [style=dashed];
+  done -> winner [label="no"];
+  done -> output [label="yes"];
+  output -> writer;
+}
