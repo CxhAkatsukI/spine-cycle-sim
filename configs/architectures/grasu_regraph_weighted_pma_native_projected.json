@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "profile_id": "grasu_regraph_weighted_pma_native_projected",
+  "architecture": "grasu_regraph",
+  "status": "projected",
+  "evidence_tier": "simulation_only",
+  "source": {
+    "repository": "/home/chuxiao/grasu-regraph-integration",
+    "revision": "a9aef064889faa190975ddfecb39c54631e962c6",
+    "branch": "codex/pure-hw-pipeline",
+    "dirty": false
+  },
+  "clocks": [
+    {"name": "kernel", "requested_mhz": 200.0, "achieved_mhz": 200.0},
+    {"name": "hbm", "requested_mhz": 450.0, "achieved_mhz": 450.0}
+  ],
+  "memory": {
+    "backend": "u55c_hbm",
+    "channels": 32,
+    "channel_capacity_bytes": 536870912,
+    "data_width_bits": 512,
+    "max_burst_bytes": 1024,
+    "max_outstanding_per_port": 32
+  },
+  "parameters": {
+    "comparison_role": "projected",
+    "grasu_bin_search_cus": 4,
+    "grasu_binary_search_workers_per_cu": 64,
+    "grasu_compact_hbm_ports": false,
+    "grasu_dispatch_cus": 1,
+    "grasu_process_cache_cus": 2,
+    "grasu_process_ddr_cus": 2,
+    "grasu_cache_lanes_per_cu": 16,
+    "grasu_direct_cache_hbm_rmw": false,
+    "grasu_ddr_halves_per_cu": 2,
+    "grasu_ddr_lanes_per_half": 16,
+    "grasu_segment_slots": 16,
+    "grasu_pma_edge_abi": "regraph_weighted32_dst19_weight12",
+    "grasu_cache_segments_per_cu": 131072,
+    "grasu_pma_hbm_channels": 4,
+    "regraph_pma_reader_cus": 4,
+    "regraph_map_reduce_lanes": 16,
+    "pma_native_compute": true,
+    "conversion_cost_included": false,
+    "change_aware_compute_activation": true
+  },
+  "features": [
+    "weighted_pma_native_regraph_compute",
+    "parallel_pma_channel_readers",
+    "change_aware_compute_activation",
+    "shared_map_reduce_algorithm_contract",
+    "explicit_optimization_delta"
+  ],
+  "evidence": [],
+  "limitations": [
+    "This weighted profile is a design-space projection, not measured or synthesized hardware.",
+    "Graphs beyond one 19-bit destination partition require an explicit partitioned PMA design.",
+    "Speedups require component, traffic, resource, timing, and energy deltas."
+  ]
+}

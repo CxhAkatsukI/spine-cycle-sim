@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "date": "2026-07-25",
+  "status": "PASS",
+  "claim_class": "normalized_simulation",
+  "timing_evidence": "structural_execution_driven",
+  "scope": "one-partition weighted dynamic GraSU PMA to PMA-native ReGraph SSSP",
+  "profile": {
+    "path": "configs/architectures/grasu_regraph_normalized_weighted_spine23.json",
+    "sha256": "eadcba6251c2cbe47ab45eb2bc45f5ca5e7c490df8cbfb2a280c9b6c099f6201",
+    "pma_edge_abi": "regraph_weighted32_dst19_weight12",
+    "core_mhz": 150,
+    "hbm_channels": 32,
+    "partition_vertices": 65536,
+    "edge_lanes": 4
+  },
+  "workload": {
+    "initial_path": "tests/data/grasu_regraph_weighted_dynamic_initial.slice",
+    "initial_sha256": "38f8cdd79a9fe32571512ee5c4a706200260e48a70428130bbe52906b23f3a96",
+    "update_path": "tests/data/grasu_regraph_weighted_dynamic_update.slice",
+    "update_sha256": "a0c3eb0114f3dcc4693d20253741deace7ed5a832a00566033e3d9ae1d16df60",
+    "vertices": 8,
+    "initial_edges": 5,
+    "updates": 5
+  },
+  "dynamic_update_coverage": {
+    "inserts": 1,
+    "deletes": 1,
+    "weight_decreases": 2,
+    "weight_increases": 1,
+    "final_distances_0_to_4": [0, 3, 10, 14, 12]
+  },
+  "component_result": {
+    "backend": "mock_hbm",
+    "update_cycles": 84,
+    "compute_cycles": 1234,
+    "supersteps": 3,
+    "pma_edge_state_oracle": "PASS",
+    "independent_dijkstra_oracle": "PASS"
+  },
+  "sst_result": {
+    "result_path": "results/grasu_regraph_sst_weighted_dynamic_final_20260725/result.json",
+    "result_sha256": "56706c75c6a489d8a3bcc398482274b5d3403b722b0d2c073a9d8f1f32fc34d4",
+    "manifest_path": "results/grasu_regraph_sst_weighted_dynamic_final_20260725/manifest.json",
+    "manifest_sha256": "178366897db18c912f3e61e2e5d1ac5d8acc93f52f8f61a8e8fa18da0ae6b3c5",
+    "backend": "sst_memHierarchy_dramsim3",
+    "cycles": 132967,
+    "update_cycles": 101,
+    "compute_cycles": 132866,
+    "correctness_mismatches": 0,
+    "supersteps": 3,
+    "pma_segment_reads": 12,
+    "pma_slots_scanned": 192,
+    "live_edges_scanned": 15,
+    "active_edges_mapped": 5,
+    "source_cache_requests": 6,
+    "source_state_read_bytes": 98304,
+    "compute_read_bytes": 885696,
+    "compute_write_bytes": 2359296,
+    "backend_requests": 50744,
+    "backend_max_outstanding": 32
+  },
+  "unit_weight_regression": {
+    "result_path": "results/grasu_regraph_sst_weighted_abi_unit_regression_20260725/result.json",
+    "result_sha256": "db5cd13c6a49827487e8d82c7bdfff28a7a57702a05f20006e1642d74b0ca31f",
+    "manifest_path": "results/grasu_regraph_sst_weighted_abi_unit_regression_20260725/manifest.json",
+    "manifest_sha256": "63623edc3226a57322d07cd94c77afa52d4f884e41d6bc7c2ef82b828e4febe1",
+    "cycles": 99379,
+    "update_cycles": 62,
+    "compute_cycles": 99317,
+    "backend_requests": 33838,
+    "correctness_mismatches": 0
+  },
+  "simulator_sources": {
+    "grasu_header": {
+      "path": "cpp/include/spine_sim/grasu.hpp",
+      "sha256": "6a392a6ec7e2b19217647f9bb28b0dfe5651669d058a4d0f64e075891ae175f4"
+    },
+    "grasu_update": {
+      "path": "cpp/src/grasu.cpp",
+      "sha256": "6d9b2e99d94307bae12bddc8790d22f699f330e43bbe97ac199cde6270cfb755"
+    },
+    "regraph_compute": {
+      "path": "cpp/src/grasu_regraph.cpp",
+      "sha256": "85d5f92bff85c71e38c6052b81d5557d00b6805a875ad65e2e2d93bb11099f03"
+    },
+    "sst_driver": {
+      "path": "cpp/sst/online_memory_probe.cpp",
+      "sha256": "941940ee027e9fb896eaf6f1b857058d327a7dd69f52dc48e33fc92eb9ca660d"
+    }
+  },
+  "hardware_reference": {
+    "regraph_config": {
+      "path": "/home/chuxiao/ReGraph/acc_template/common/acc_config.h",
+      "sha256": "cea3424ec1faff3c48c3e26b62f4e09c1483da41eb424aa4ca8086ecee4bba08"
+    },
+    "regraph_scatter": {
+      "path": "/home/chuxiao/ReGraph/acc_template/kernel_little_gs/acc_scatter.h",
+      "sha256": "33e88abf5b83f558b21825bd492bbf301f96825250953b9bbf5bb13aa78529e9"
+    },
+    "grasu_cache_update": {
+      "path": "/home/chuxiao/GraSU/GraSU/GraSU_kernels/src/kernel_process_cache.cpp",
+      "sha256": "eccb7ea04f56772af6d59ca058db35458e97a8e571c10c241699f67697c054a0"
+    },
+    "grasu_ddr_update": {
+      "path": "/home/chuxiao/GraSU/GraSU/GraSU_kernels/src/kernel_process_ddr.cpp",
+      "sha256": "e2ddf9a5d12c5ace4a19ca8b7b5296447541121f6102ae617c2409a1f8a42c12"
+    },
+    "native_unit_weight_adapter": {
+      "path": "/home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp",
+      "sha256": "3cc6427c3e47ce9544e3c31375e60fa637ff8f7ee571baca838c7702e312a5ed"
+    }
+  },
+  "validation": {
+    "release_ctest": "2/2 PASS",
+    "python_unittest": "161/161 PASS",
+    "grasu_component_tests": "12/12 PASS",
+    "grasu_address_undefined_sanitizers": "12/12 PASS"
+  },
+  "claim_boundary": {
+    "validated": [
+      "weighted PMA encode/decode and empty marker separation",
+      "last-write-wins duplicate initial-edge semantics",
+      "payload-backed insert, exact delete, weight decrease, and weight increase",
+      "PMA edge-state equality against an independent map",
+      "weighted PMA-native ReGraph equality against independent Dijkstra",
+      "online SST-HBM request timing and finite AXI/AXIS backpressure",
+      "unchanged unit-weight timing and request-count regression"
+    ],
+    "not_validated": [
+      "graphs requiring more than one 19-bit destination partition",
+      "matching weighted GraSU HLS synthesis or xclbin",
+      "Full PageRank and thresholded residual PageRank on the comparator",
+      "real-dataset timing calibration",
+      "PPA and total accelerator energy"
+    ]
+  }
+}

@@ -1,5 +1,8 @@
 # GraSU + PMA-Native ReGraph SSSP Vertical Slice
 
+> Historical unit-weight milestone. The weighted PMA closure is documented in
+> `grasu_regraph_weighted_dynamic_sssp_20260725.md`.
+
 Date: 2026-07-25
 
 ## Result

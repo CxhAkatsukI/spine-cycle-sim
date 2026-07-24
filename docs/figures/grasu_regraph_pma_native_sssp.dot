@@ -13,7 +13,7 @@ digraph grasu_regraph_pma_native_sssp {
   reader [label="PMA-native reader\nrow AXI + 4 PMA AXI ports\nscan reserved empty slots", fillcolor="#dcebd9"];
   axis [label="Registered AXIS FIFO\n4 or 8 slots / batch\nfinite depth", fillcolor="#f4e1c1"];
   reset [label="Gather reset sweep\n65536 / 2 cycles", fillcolor="#f0d9e7"];
-  gather [label="4/8 lane-local banks\nunit-weight SSSP\nL+1 RAW forwarding", fillcolor="#f0d9e7"];
+  gather [label="4/8 lane-local banks\nweighted SSSP (dst19 + weight12)\nL+1 RAW forwarding", fillcolor="#f0d9e7"];
   merge [label="Gather output / clear\n64-bit row per cycle\n32768 rows / partition", fillcolor="#f0d9e7"];
   pack [label="Free-running little merger\npack 8 x 64-bit rows\ninto one 512-bit burst", fillcolor="#f4e1c1"];
   apply [label="Partition-wide apply\n64 B read + write bursts\nset next active bits", fillcolor="#d9e8f5"];

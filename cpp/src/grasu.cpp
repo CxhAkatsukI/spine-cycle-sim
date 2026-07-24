@@ -8,6 +8,7 @@
 #include <optional>
 #include <set>
 #include <stdexcept>
+#include <tuple>
 #include <unordered_map>
 #include <utility>
 
@@ -70,15 +71,24 @@ std::uint64_t packed_edge(const GraSuEdge &edge) {
 }
 
 void validate_vertex(std::size_t vertices, const GraSuEdge &edge) {
-  if (edge.source >= vertices || edge.destination >= kGraSuPmaEmpty) {
+  if (edge.source >= vertices || edge.destination >= vertices ||
+      edge.destination > kGraSuPmaDestinationMask ||
+      edge.weight > kGraSuPmaWeightMask) {
     throw std::invalid_argument("GraSU edge endpoint is outside PMA encoding");
   }
+}
+
+std::uint32_t pma_destination_sort_key(std::uint32_t encoded) {
+  return is_grasu_pma_empty(encoded)
+             ? std::numeric_limits<std::uint32_t>::max()
+             : decode_grasu_pma_destination(encoded);
 }
 
 struct LocatedUpdate {
   std::uint64_t global_index{};
   std::uint32_t segment_head_slot{};
   std::uint32_t destination{};
+  std::uint16_t weight{1};
   bool delete_op{};
 };
 
@@ -182,6 +192,7 @@ class GraSuDirectSearch final : public Component {
           .segment_head_slot = static_cast<std::uint32_t>(
               begin_segment_ * kGraSuSegmentSlots),
           .destination = current_.destination,
+          .weight = current_.weight,
           .delete_op = current_.delete_op,
       });
       break;
@@ -258,7 +269,9 @@ class GraSuDirectSearch final : public Component {
       current_.delete_op = (value >> 63) != 0;
       const std::uint64_t edge = value & ~(std::uint64_t{1} << 63);
       current_.source = static_cast<std::uint32_t>(edge >> 32);
-      current_.destination = static_cast<std::uint32_t>(edge);
+      const std::uint32_t encoded = static_cast<std::uint32_t>(edge);
+      current_.destination = decode_grasu_pma_destination(encoded);
+      current_.weight = decode_grasu_pma_weight(encoded);
       phase_ = Phase::kNeedRow;
       break;
     }
@@ -650,24 +663,37 @@ class GraSuPmaProcessor final : public Component {
   static std::array<std::uint32_t, kGraSuSegmentSlots>
   apply_update(std::array<std::uint32_t, kGraSuSegmentSlots> segment,
                const LocatedUpdate &item) {
-    const auto position = std::lower_bound(segment.begin(), segment.end(),
-                                           item.destination);
+    const auto position = std::lower_bound(
+        segment.begin(), segment.end(), item.destination,
+        [](std::uint32_t encoded, std::uint32_t destination) {
+          return pma_destination_sort_key(encoded) < destination;
+        });
+    const bool found = position != segment.end() &&
+                       !is_grasu_pma_empty(*position) &&
+                       decode_grasu_pma_destination(*position) ==
+                           item.destination;
     if (item.delete_op) {
-      if (position == segment.end() || *position != item.destination) {
+      if (!found || decode_grasu_pma_weight(*position) != item.weight) {
         throw std::runtime_error("GraSU delete target is not live in PMA segment");
       }
       std::move(position + 1, segment.end(), position);
       segment.back() = kGraSuPmaEmpty;
       return segment;
     }
-    if (position != segment.end() && *position == item.destination) {
-      throw std::runtime_error("GraSU insertion target is already live");
+    const std::uint32_t encoded =
+        encode_grasu_pma_edge(item.destination, item.weight);
+    if (found) {
+      if (decode_grasu_pma_weight(*position) == item.weight) {
+        throw std::runtime_error("GraSU weight update does not change PMA state");
+      }
+      *position = encoded;
+      return segment;
     }
-    if (segment.back() != kGraSuPmaEmpty) {
+    if (!is_grasu_pma_empty(segment.back())) {
       throw std::runtime_error("GraSU PMA segment has no reserved insertion slot");
     }
     std::move_backward(position, segment.end() - 1, segment.end());
-    *position = item.destination;
+    *position = encoded;
     return segment;
   }
 
@@ -715,20 +741,50 @@ FixedAxiPortConfig grasu_port_config(const GraSuNativeConfig &config,
 
 }  // namespace
 
+std::uint32_t encode_grasu_pma_edge(std::uint32_t destination,
+                                    std::uint16_t weight) {
+  if (destination > kGraSuPmaDestinationMask ||
+      weight > kGraSuPmaWeightMask) {
+    throw std::invalid_argument("GraSU weighted PMA edge exceeds ReGraph ABI");
+  }
+  return (static_cast<std::uint32_t>(weight) << kGraSuPmaWeightShift) |
+         destination;
+}
+
+std::uint32_t decode_grasu_pma_destination(std::uint32_t encoded) {
+  if (is_grasu_pma_empty(encoded)) {
+    throw std::invalid_argument("cannot decode an empty GraSU PMA slot");
+  }
+  return encoded & kGraSuPmaDestinationMask;
+}
+
+std::uint16_t decode_grasu_pma_weight(std::uint32_t encoded) {
+  if (is_grasu_pma_empty(encoded)) {
+    throw std::invalid_argument("cannot decode an empty GraSU PMA slot");
+  }
+  return static_cast<std::uint16_t>((encoded >> kGraSuPmaWeightShift) &
+                                    kGraSuPmaWeightMask);
+}
+
+bool is_grasu_pma_empty(std::uint32_t encoded) noexcept {
+  return (encoded & kGraSuPmaEmpty) != 0;
+}
+
 GraSuPmaLayout GraSuPmaLayout::build(
     std::size_t vertices, const std::vector<GraSuEdge> &initial_edges,
     const std::vector<GraSuEdge> &reserved_updates) {
-  if (vertices == 0 || vertices >= kGraSuPmaEmpty) {
-    throw std::invalid_argument("GraSU vertex count is outside PMA encoding");
+  if (vertices == 0 || vertices > kGraSuPmaLocalVertexCapacity) {
+    throw std::invalid_argument(
+        "weighted GraSU/ReGraph PMA currently supports one 19-bit partition");
   }
-  std::vector<std::set<std::uint32_t>> initial(vertices);
+  std::vector<std::map<std::uint32_t, std::uint16_t>> initial(vertices);
   std::vector<std::set<std::uint32_t>> reserved(vertices);
   for (const GraSuEdge &edge : initial_edges) {
     validate_vertex(vertices, edge);
     if (edge.delete_op) {
       throw std::invalid_argument("initial GraSU edge cannot be a deletion");
     }
-    initial[edge.source].insert(edge.destination);
+    initial[edge.source][edge.destination] = edge.weight;
     reserved[edge.source].insert(edge.destination);
   }
   for (const GraSuEdge &edge : reserved_updates) {
@@ -758,8 +814,10 @@ GraSuPmaLayout GraSuPmaLayout::build(
       for (std::size_t lane = 0; lane < count; ++lane) {
         const std::uint32_t destination = destinations[offset + lane];
         reserved_segment[lane] = destination;
-        if (initial[source].contains(destination)) {
-          live_segment[live_count++] = destination;
+        const auto found = initial[source].find(destination);
+        if (found != initial[source].end()) {
+          live_segment[live_count++] =
+              encode_grasu_pma_edge(destination, found->second);
         }
       }
       layout.binary_heads.push_back(
@@ -780,11 +838,12 @@ std::vector<GraSuEdge> GraSuPmaLayout::live_edges() const {
     const auto [begin, end] = row_slot_bounds.at(source);
     for (std::size_t segment = begin / kGraSuSegmentSlots;
          segment < end / kGraSuSegmentSlots; ++segment) {
-      for (std::uint32_t destination : segments.at(segment)) {
-        if ((destination & kGraSuPmaEmpty) == 0) {
+      for (std::uint32_t encoded : segments.at(segment)) {
+        if (!is_grasu_pma_empty(encoded)) {
           edges.push_back(GraSuEdge{
               .source = static_cast<std::uint32_t>(source),
-              .destination = destination,
+              .destination = decode_grasu_pma_destination(encoded),
+              .weight = decode_grasu_pma_weight(encoded),
           });
         }
       }
@@ -906,13 +965,31 @@ class GraSuPmaUpdateSystem::Impl {
     return all_ports_idle();
   }
 
-  [[nodiscard]] GraSuUpdateCounters counters() const noexcept {
+  [[nodiscard]] GraSuUpdateCounters counters() const {
     GraSuUpdateCounters result;
     result.updates = updates_.size();
-    result.inserts = static_cast<std::uint64_t>(std::count_if(
-        updates_.begin(), updates_.end(),
-        [](const GraSuEdge &edge) { return !edge.delete_op; }));
-    result.deletes = result.updates - result.inserts;
+    std::map<std::pair<std::uint32_t, std::uint32_t>, std::uint16_t> live;
+    for (const GraSuEdge &edge : layout_.live_edges()) {
+      live[{edge.source, edge.destination}] = edge.weight;
+    }
+    for (const GraSuEdge &edge : updates_) {
+      const auto key = std::pair(edge.source, edge.destination);
+      const auto found = live.find(key);
+      if (edge.delete_op) {
+        ++result.deletes;
+        live.erase(found);
+      } else if (found == live.end()) {
+        ++result.inserts;
+        live.emplace(key, edge.weight);
+      } else {
+        if (edge.weight < found->second) {
+          ++result.weight_decreases;
+        } else {
+          ++result.weight_increases;
+        }
+        found->second = edge.weight;
+      }
+    }
     for (const auto &search : searches_) {
       result.row_reads += search->row_reads();
       result.binary_probes += search->binary_probes();
@@ -974,19 +1051,20 @@ class GraSuPmaUpdateSystem::Impl {
       const auto [begin, end] = layout_.row_slot_bounds.at(source);
       for (std::size_t segment = begin / kGraSuSegmentSlots;
            segment < end / kGraSuSegmentSlots; ++segment) {
-        for (std::uint32_t destination : inspect_segment(segment)) {
-          if ((destination & kGraSuPmaEmpty) == 0) {
+        for (std::uint32_t encoded : inspect_segment(segment)) {
+          if (!is_grasu_pma_empty(encoded)) {
             edges.push_back(GraSuEdge{
                 .source = static_cast<std::uint32_t>(source),
-                .destination = destination,
+                .destination = decode_grasu_pma_destination(encoded),
+                .weight = decode_grasu_pma_weight(encoded),
             });
           }
         }
       }
     }
     std::sort(edges.begin(), edges.end(), [](const auto &left, const auto &right) {
-      return std::pair(left.source, left.destination) <
-             std::pair(right.source, right.destination);
+      return std::tuple(left.source, left.destination, left.weight) <
+             std::tuple(right.source, right.destination, right.weight);
     });
     return edges;
   }
@@ -1019,20 +1097,26 @@ class GraSuPmaUpdateSystem::Impl {
   }
 
   void validate_updates() const {
-    std::set<std::pair<std::uint32_t, std::uint32_t>> live;
+    std::map<std::pair<std::uint32_t, std::uint32_t>, std::uint16_t> live;
     for (const GraSuEdge &edge : layout_.live_edges()) {
-      live.emplace(edge.source, edge.destination);
+      live.emplace(std::pair(edge.source, edge.destination), edge.weight);
     }
     for (const GraSuEdge &edge : updates_) {
       validate_vertex(layout_.vertices, edge);
       (void)layout_.segment_for(edge);
       const auto key = std::pair(edge.source, edge.destination);
       if (edge.delete_op) {
-        if (live.erase(key) != 1) {
+        const auto found = live.find(key);
+        if (found == live.end() || found->second != edge.weight) {
           throw std::invalid_argument("GraSU delete target is not live");
         }
-      } else if (!live.insert(key).second) {
-        throw std::invalid_argument("GraSU insertion target is already live");
+        live.erase(found);
+      } else {
+        const auto found = live.find(key);
+        if (found != live.end() && found->second == edge.weight) {
+          throw std::invalid_argument("GraSU update does not change edge state");
+        }
+        live[key] = edge.weight;
       }
     }
   }
@@ -1097,7 +1181,9 @@ class GraSuPmaUpdateSystem::Impl {
     for (std::size_t channel = 0; channel < 4; ++channel) {
       std::vector<std::uint8_t> update_bytes;
       for (const GraSuEdge &edge : striped[channel]) {
-        std::uint64_t value = packed_edge(edge);
+        std::uint64_t value =
+            (static_cast<std::uint64_t>(edge.source) << 32) |
+            encode_grasu_pma_edge(edge.destination, edge.weight);
         if (edge.delete_op) {
           value |= std::uint64_t{1} << 63;
         }
@@ -1229,7 +1315,7 @@ const std::string &GraSuPmaUpdateSystem::failure() const noexcept {
   return impl_->failure();
 }
 
-GraSuUpdateCounters GraSuPmaUpdateSystem::counters() const noexcept {
+GraSuUpdateCounters GraSuPmaUpdateSystem::counters() const {
   return impl_->counters();
 }
 

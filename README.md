@@ -48,6 +48,10 @@ The follow-up closes the HLS gather RAW-forwarding and fixed-window source-cache
 controller gaps; the exact source mapping, cross-window test, and updated SST
 ledger are in
 [`docs/grasu_regraph_gather_source_cache_20260725.md`](docs/grasu_regraph_gather_source_cache_20260725.md).
+The weighted dynamic extension carries the ReGraph `dst19 + weight12` edge word
+through GraSU PMA updates and validates PMA state plus SSSP against independent
+oracles. Its single-partition boundary and required HLS delta are documented in
+[`docs/grasu_regraph_weighted_dynamic_sssp_20260725.md`](docs/grasu_regraph_weighted_dynamic_sssp_20260725.md).
 
 ## Quick Start
 

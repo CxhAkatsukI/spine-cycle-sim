@@ -2,6 +2,9 @@
 #include <cstdint>
 #include <functional>
 #include <iostream>
+#include <limits>
+#include <map>
+#include <queue>
 #include <set>
 #include <stdexcept>
 #include <string>
@@ -24,6 +27,10 @@ using spine::sim::GraSuReGraphSsspSystem;
 using spine::sim::MockMemoryBackend;
 using spine::sim::MockMemoryConfig;
 using spine::sim::Scheduler;
+using spine::sim::decode_grasu_pma_destination;
+using spine::sim::decode_grasu_pma_weight;
+using spine::sim::encode_grasu_pma_edge;
+using spine::sim::is_grasu_pma_empty;
 
 void require(bool condition, const std::string &message) {
   if (!condition) {
@@ -38,6 +45,104 @@ edge_set(const std::vector<GraSuEdge> &edges) {
     result.emplace(edge.source, edge.destination);
   }
   return result;
+}
+
+using WeightedEdgeMap =
+    std::map<std::pair<std::uint32_t, std::uint32_t>, std::uint16_t>;
+
+WeightedEdgeMap weighted_edge_map(const std::vector<GraSuEdge> &edges) {
+  WeightedEdgeMap result;
+  for (const GraSuEdge &edge : edges) {
+    result[{edge.source, edge.destination}] = edge.weight;
+  }
+  return result;
+}
+
+std::vector<std::uint32_t>
+weighted_sssp_oracle(std::size_t vertices, const std::vector<GraSuEdge> &edges,
+                     std::uint32_t source) {
+  using Neighbor = std::pair<std::uint32_t, std::uint16_t>;
+  std::vector<std::vector<Neighbor>> adjacency(vertices);
+  for (const GraSuEdge &edge : edges) {
+    adjacency.at(edge.source).push_back({edge.destination, edge.weight});
+  }
+  std::vector<std::uint32_t> distances(
+      vertices, spine::sim::GraphAlgorithmPolicy::kSsspInfinity);
+  using QueueItem = std::pair<std::uint32_t, std::uint32_t>;
+  std::priority_queue<QueueItem, std::vector<QueueItem>,
+                      std::greater<QueueItem>>
+      queue;
+  distances.at(source) = 0;
+  queue.push({0, source});
+  while (!queue.empty()) {
+    const auto [distance, vertex] = queue.top();
+    queue.pop();
+    if (distance != distances[vertex]) {
+      continue;
+    }
+    for (const auto [destination, weight] : adjacency[vertex]) {
+      const std::uint32_t candidate =
+          distance > spine::sim::GraphAlgorithmPolicy::kSsspInfinity - weight
+              ? spine::sim::GraphAlgorithmPolicy::kSsspInfinity
+              : distance + weight;
+      if (candidate < distances[destination]) {
+        distances[destination] = candidate;
+        queue.push({candidate, destination});
+      }
+    }
+  }
+  return distances;
+}
+
+void test_weighted_pma_edge_abi_matches_regraph() {
+  const std::uint32_t encoded = encode_grasu_pma_edge(0x7ffffU, 0xfffU);
+  require(!is_grasu_pma_empty(encoded) &&
+              decode_grasu_pma_destination(encoded) == 0x7ffffU &&
+              decode_grasu_pma_weight(encoded) == 0xfffU,
+          "weighted PMA edge ABI did not preserve ReGraph fields");
+  require((encoded & 0x8000'0000U) == 0,
+          "weighted PMA edge collided with the dummy marker");
+  bool rejected = false;
+  try {
+    (void)encode_grasu_pma_edge(0x80000U, 1);
+  } catch (const std::invalid_argument &) {
+    rejected = true;
+  }
+  require(rejected, "weighted PMA ABI accepted an oversized destination");
+
+  rejected = false;
+  try {
+    (void)encode_grasu_pma_edge(1, 0x1000U);
+  } catch (const std::invalid_argument &) {
+    rejected = true;
+  }
+  require(rejected, "weighted PMA ABI accepted an oversized weight");
+
+  rejected = false;
+  try {
+    (void)decode_grasu_pma_destination(spine::sim::kGraSuPmaEmpty);
+  } catch (const std::invalid_argument &) {
+    rejected = true;
+  }
+  require(rejected, "weighted PMA ABI decoded an empty slot");
+
+  rejected = false;
+  try {
+    (void)GraSuPmaLayout::build(
+        spine::sim::kGraSuPmaLocalVertexCapacity + 1, {}, {});
+  } catch (const std::invalid_argument &) {
+    rejected = true;
+  }
+  require(rejected, "weighted PMA accepted more than one local partition");
+
+  const GraSuPmaLayout duplicate_layout = GraSuPmaLayout::build(
+      8,
+      {{.source = 0, .destination = 1, .weight = 3},
+       {.source = 0, .destination = 1, .weight = 7}},
+      {});
+  const auto duplicate_edges = duplicate_layout.live_edges();
+  require(duplicate_edges.size() == 1 && duplicate_edges.front().weight == 7,
+          "weighted PMA initial duplicate is not last-write-wins");
 }
 
 void test_pma_layout_preserves_segment_reservations() {
@@ -151,6 +256,94 @@ void test_native_update_crosses_cache_ddr_and_parity() {
             << " hbm_stalls=" << backend.stats().submit_stalls << '\n';
 }
 
+void test_weighted_dynamic_pma_regraph_matches_dijkstra() {
+  const std::vector<GraSuEdge> initial = {
+      {.source = 0, .destination = 1, .weight = 8},
+      {.source = 0, .destination = 2, .weight = 2},
+      {.source = 1, .destination = 3, .weight = 1},
+      {.source = 2, .destination = 3, .weight = 8},
+      {.source = 3, .destination = 4, .weight = 1},
+  };
+  const std::vector<GraSuEdge> updates = {
+      {.source = 0, .destination = 1, .weight = 3},
+      {.source = 2, .destination = 3, .weight = 4},
+      {.source = 0, .destination = 2, .weight = 10},
+      {.source = 2, .destination = 4, .weight = 2},
+      {.source = 1, .destination = 3, .weight = 1, .delete_op = true},
+  };
+  GraSuPmaLayout layout = GraSuPmaLayout::build(8, initial, updates);
+
+  WeightedEdgeMap expected = weighted_edge_map(initial);
+  for (const GraSuEdge &edge : updates) {
+    const auto key = std::pair(edge.source, edge.destination);
+    if (edge.delete_op) {
+      expected.erase(key);
+    } else {
+      expected[key] = edge.weight;
+    }
+  }
+
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("grasu-weighted-dynamic", 200.0);
+  MockMemoryBackend backend("shared-hbm", core,
+                            MockMemoryConfig{.channels = 32,
+                                             .latency_cycles = 7,
+                                             .accepts_per_channel_per_cycle = 1,
+                                             .max_outstanding_per_channel = 32,
+                                             .response_queue_depth = 128});
+  GraSuNativeConfig update_config;
+  update_config.cache_segments_per_half = 1;
+  GraSuPmaUpdateSystem update_system(scheduler, core, backend, layout, updates,
+                                     update_config);
+  update_system.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until(
+      [&] { return update_system.done() || update_system.failed(); },
+      2'000'000);
+  require(update_system.done() && !update_system.failed(),
+          "weighted GraSU update did not complete: " +
+              update_system.failure());
+  const std::vector<GraSuEdge> final_edges = update_system.live_edges();
+  require(weighted_edge_map(final_edges) == expected,
+          "weighted PMA payload differs from the edge-state oracle");
+  const auto update_counters = update_system.counters();
+  require(update_counters.inserts == 1 && update_counters.deletes == 1 &&
+              update_counters.weight_decreases == 2 &&
+              update_counters.weight_increases == 1,
+          "weighted GraSU update classification is incorrect");
+
+  GraSuReGraphConfig compute_config;
+  compute_config.cache_segments_per_half = 1;
+  compute_config.partition_vertices = 16;
+  compute_config.source_buffer_vertices = 16;
+  compute_config.axis_fifo_depth = 2;
+  compute_config.reader_buffer_batches = 4;
+  GraSuReGraphSsspSystem compute(scheduler, core, backend, layout, 0,
+                                 compute_config);
+  compute.register_components();
+  scheduler.run_until([&] { return compute.done() || compute.failed(); },
+                      2'000'000);
+  require(compute.done() && !compute.failed(),
+          "weighted PMA-native ReGraph did not complete");
+  const std::vector<std::uint32_t> oracle =
+      weighted_sssp_oracle(layout.vertices, final_edges, 0);
+  require(compute.distances() == oracle,
+          "weighted PMA-native ReGraph differs from Dijkstra oracle");
+  require(oracle[1] == 3 && oracle[2] == 10 && oracle[3] == 14 &&
+              oracle[4] == 12,
+          "weighted dynamic test oracle does not exercise intended paths");
+  const auto compute_counters = compute.counters();
+  std::cout << "EVIDENCE grasu_regraph_weighted_dynamic update_cycles="
+            << update_counters.end_cycle - update_counters.start_cycle
+            << " compute_cycles="
+            << compute_counters.end_cycle - compute_counters.start_cycle
+            << " inserts=" << update_counters.inserts
+            << " deletes=" << update_counters.deletes
+            << " decreases=" << update_counters.weight_decreases
+            << " increases=" << update_counters.weight_increases
+            << " supersteps=" << compute_counters.supersteps << '\n';
+}
+
 void test_unreserved_and_invalid_updates_are_rejected() {
   const std::vector<GraSuEdge> initial = {
       {.source = 0, .destination = 1},
@@ -187,6 +380,41 @@ void test_unreserved_and_invalid_updates_are_rejected() {
         std::string(error.what()).find("not live") != std::string::npos;
   }
   require(invalid_delete_failed, "GraSU accepted a repeated deletion");
+
+  bool unchanged_weight_failed = false;
+  try {
+    GraSuPmaLayout layout = GraSuPmaLayout::build(
+        8, {{.source = 0, .destination = 1, .weight = 7}}, {});
+    GraSuPmaUpdateSystem system(
+        scheduler, core, backend, std::move(layout),
+        {{.source = 0, .destination = 1, .weight = 7}},
+        GraSuNativeConfig{});
+    (void)system;
+  } catch (const std::invalid_argument &error) {
+    unchanged_weight_failed =
+        std::string(error.what()).find("does not change") != std::string::npos;
+  }
+  require(unchanged_weight_failed,
+          "GraSU accepted a same-weight update as useful work");
+
+  bool wrong_weight_delete_failed = false;
+  try {
+    GraSuPmaLayout layout = GraSuPmaLayout::build(
+        8, {{.source = 0, .destination = 1, .weight = 7}}, {});
+    GraSuPmaUpdateSystem system(
+        scheduler, core, backend, std::move(layout),
+        {{.source = 0,
+          .destination = 1,
+          .weight = 6,
+          .delete_op = true}},
+        GraSuNativeConfig{});
+    (void)system;
+  } catch (const std::invalid_argument &error) {
+    wrong_weight_delete_failed =
+        std::string(error.what()).find("not live") != std::string::npos;
+  }
+  require(wrong_weight_delete_failed,
+          "GraSU accepted a delete with the wrong edge weight");
 }
 
 void test_native_shared_channel_contention_is_visible() {
@@ -670,9 +898,12 @@ void test_pma_native_compute_propagates_contention() {
 
 int main() {
   const std::vector<std::pair<std::string, std::function<void()>>> tests = {
+      {"weighted_pma_abi", test_weighted_pma_edge_abi_matches_regraph},
       {"pma_layout_reservations",
        test_pma_layout_preserves_segment_reservations},
       {"native_update_routes", test_native_update_crosses_cache_ddr_and_parity},
+      {"weighted_dynamic_sssp",
+       test_weighted_dynamic_pma_regraph_matches_dijkstra},
       {"invalid_updates", test_unreserved_and_invalid_updates_are_rejected},
       {"native_contention", test_native_shared_channel_contention_is_visible},
       {"pma_native_regraph_sssp", test_pma_native_regraph_sssp_matches_oracle},

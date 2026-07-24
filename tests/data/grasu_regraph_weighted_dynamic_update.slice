@@ -1,0 +1,10 @@
+# spine_real_slice_version=1
+# case=grasu_regraph_weighted_dynamic_update
+# vertices=8
+# columns=src dst weight diff
+# Two decreases, one increase, one insertion, and one deletion.
+0 1 3 1
+0 2 10 1
+1 3 1 -1
+2 3 4 1
+2 4 2 1

@@ -13,7 +13,12 @@ import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SST = Path("/data/feiyang/sst/bin/sst")
-DEFAULT_PROFILE = ROOT / "configs" / "architectures" / "grasu_regraph_normalized_spine23.json"
+DEFAULT_PROFILE = (
+    ROOT
+    / "configs"
+    / "architectures"
+    / "grasu_regraph_normalized_weighted_spine23.json"
+)
 
 
 def sha256(path: Path) -> str:
@@ -53,8 +58,10 @@ def main() -> int:
 
     profile_path = args.profile.resolve()
     profile = json.loads(profile_path.read_text(encoding="utf-8"))
-    if profile.get("profile_id") != "grasu_regraph_normalized_spine23":
-        raise ValueError("runner requires the pinned normalized GraSU/ReGraph profile")
+    if profile.get("profile_id") != "grasu_regraph_normalized_weighted_spine23":
+        raise ValueError(
+            "runner requires the pinned weighted normalized GraSU/ReGraph profile"
+        )
     params = profile["parameters"]
     memory = profile["memory"]
     kernel_clock = next(
@@ -180,6 +187,17 @@ def main() -> int:
         or result.get("source_state_mirror_channel")
         != params["regraph_source_state_mirror_channel"]
         or result.get("apply_state_channel") != params["regraph_apply_state_channel"]
+        or result.get("pma_edge_abi") != params["grasu_pma_edge_abi"]
+        or sum(
+            result.get(field, -1)
+            for field in (
+                "update_inserts",
+                "update_deletes",
+                "update_weight_decreases",
+                "update_weight_increases",
+            )
+        )
+        != result.get("updates", -2)
         or result.get("compute_source_state_writes")
         != 2 * result.get("apply_state_writes", -1)
         or expected_source_requests < 2 * supersteps

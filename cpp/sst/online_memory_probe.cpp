@@ -255,6 +255,44 @@ SpineEdgeSlice materialize_weighted_snapshot(const SpineEdgeSlice &initial,
   return snapshot;
 }
 
+SpineEdgeSlice materialize_grasu_weighted_snapshot(
+    std::size_t vertices, const std::vector<GraSuEdge> &initial,
+    const std::vector<GraSuEdge> &updates) {
+  using EdgeKey = std::pair<std::uint32_t, std::uint32_t>;
+  std::map<EdgeKey, std::uint16_t> live;
+  for (const GraSuEdge &edge : initial) {
+    const EdgeKey key{edge.source, edge.destination};
+    live[key] = edge.weight;
+  }
+  for (const GraSuEdge &edge : updates) {
+    const EdgeKey key{edge.source, edge.destination};
+    const auto found = live.find(key);
+    if (edge.delete_op) {
+      if (found == live.end() || found->second != edge.weight) {
+        throw std::invalid_argument("GraSU update deletes a missing weight");
+      }
+      live.erase(found);
+    } else {
+      live[key] = edge.weight;
+    }
+  }
+  SpineEdgeSlice snapshot{
+      .vertices = vertices,
+      .edges = {},
+      .case_name = "grasu_weighted_snapshot",
+  };
+  snapshot.edges.reserve(live.size());
+  for (const auto &[key, weight] : live) {
+    snapshot.edges.push_back(SpineEdgeRecord{
+        .src = key.first,
+        .dst = key.second,
+        .weight = weight,
+        .diff = 1,
+    });
+  }
+  return snapshot;
+}
+
 SsspReference run_sssp_reference_from_state(
     const SpineEdgeSlice &workload, std::vector<std::uint32_t> initial_values,
     std::vector<std::uint32_t> initial_frontier, std::size_t max_rounds) {
@@ -1035,20 +1073,19 @@ class OnlineMemoryProbe final : public SST::Component {
         core, interfaces_, channel_capacity_bytes_, 1, 32, 128);
     if (mode_ == "grasu_regraph_sssp") {
       SpineEdgeSlice initial = load_spine_edge_slice(workload_path_);
-      SpineEdgeSlice final_snapshot = initial;
       std::vector<GraSuEdge> initial_edges;
       std::vector<GraSuEdge> reserved_updates;
       std::vector<GraSuEdge> updates;
       const auto append_initial = [&](const SpineEdgeRecord &edge) {
-        if (edge.weight != 1 || edge.diff != 1 ||
+        if (edge.weight > kGraSuPmaWeightMask || edge.diff != 1 ||
             edge.src >= initial.vertices || edge.dst >= initial.vertices) {
           throw std::invalid_argument(
-              "GraSU/ReGraph SST initial graph requires unique unit-weight "
-              "insertion records");
+              "GraSU/ReGraph SST initial graph exceeds the weighted PMA ABI");
         }
         initial_edges.push_back(GraSuEdge{
             .source = edge.src,
             .destination = edge.dst,
+            .weight = edge.weight,
         });
       };
       for (const SpineEdgeRecord &edge : initial.edges) {
@@ -1061,15 +1098,15 @@ class OnlineMemoryProbe final : public SST::Component {
               "GraSU/ReGraph update vertex count does not match snapshot");
         }
         for (const SpineEdgeRecord &edge : update.edges) {
-          if (edge.weight != 1 || std::abs(edge.diff) != 1 ||
+          if (edge.weight > kGraSuPmaWeightMask || std::abs(edge.diff) != 1 ||
               edge.src >= initial.vertices || edge.dst >= initial.vertices) {
             throw std::invalid_argument(
-                "GraSU/ReGraph SST update requires unit multiplicity and "
-                "unit weight");
+                "GraSU/ReGraph SST update exceeds the weighted PMA ABI");
           }
           GraSuEdge converted{
               .source = edge.src,
               .destination = edge.dst,
+              .weight = edge.weight,
               .delete_op = edge.diff < 0,
           };
           updates.push_back(converted);
@@ -1077,8 +1114,9 @@ class OnlineMemoryProbe final : public SST::Component {
             reserved_updates.push_back(converted);
           }
         }
-        final_snapshot = materialize_weighted_snapshot(initial, update);
       }
+      const SpineEdgeSlice final_snapshot = materialize_grasu_weighted_snapshot(
+          initial.vertices, initial_edges, updates);
       grasu_initial_edges_ = initial_edges.size();
       grasu_update_edges_ = updates.size();
       grasu_layout_ = GraSuPmaLayout::build(initial.vertices, initial_edges,
@@ -1830,6 +1868,14 @@ class OnlineMemoryProbe final : public SST::Component {
              << compute.end_cycle - compute.start_cycle << ",\n"
              << "  \"initial_edges\": " << grasu_initial_edges_ << ",\n"
              << "  \"updates\": " << grasu_update_edges_ << ",\n"
+             << "  \"pma_edge_abi\": "
+                "\"regraph_weighted32_dst19_weight12\",\n"
+             << "  \"update_inserts\": " << update.inserts << ",\n"
+             << "  \"update_deletes\": " << update.deletes << ",\n"
+             << "  \"update_weight_decreases\": "
+             << update.weight_decreases << ",\n"
+             << "  \"update_weight_increases\": "
+             << update.weight_increases << ",\n"
              << "  \"vertices\": " << grasu_layout_.vertices << ",\n"
              << "  \"partition_vertices\": "
              << grasu_config_.partition_vertices << ",\n"

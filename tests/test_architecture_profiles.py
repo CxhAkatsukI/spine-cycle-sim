@@ -21,7 +21,7 @@ PROFILES = ROOT / "configs" / "architectures"
 class ArchitectureProfileTests(unittest.TestCase):
     def test_repository_profiles_load_and_have_unique_ids(self) -> None:
         loaded = [load_architecture_profile(path) for path in sorted(PROFILES.glob("*.json"))]
-        self.assertEqual(len(loaded), 6)
+        self.assertEqual(len(loaded), 8)
         self.assertEqual(len({profile.profile_id for profile in loaded}), len(loaded))
         self.assertTrue(all(profile.manifest_sha256 for profile in loaded))
 
@@ -83,6 +83,12 @@ class ArchitectureProfileTests(unittest.TestCase):
         projected = load_architecture_profile(
             PROFILES / "grasu_regraph_pma_native_projected.json"
         )
+        weighted_normalized = load_architecture_profile(
+            PROFILES / "grasu_regraph_normalized_weighted_spine23.json"
+        )
+        weighted_projected = load_architecture_profile(
+            PROFILES / "grasu_regraph_weighted_pma_native_projected.json"
+        )
 
         self.assertEqual(native.parameters["comparison_role"], "native")
         self.assertFalse(native.parameters["pma_native_compute"])
@@ -127,6 +133,14 @@ class ArchitectureProfileTests(unittest.TestCase):
         )
         self.assertEqual(projected.parameters["comparison_role"], "projected")
         self.assertTrue(projected.parameters["change_aware_compute_activation"])
+        self.assertEqual(
+            weighted_normalized.parameters["grasu_pma_edge_abi"],
+            "regraph_weighted32_dst19_weight12",
+        )
+        self.assertEqual(
+            weighted_projected.parameters["grasu_pma_edge_abi"],
+            "regraph_weighted32_dst19_weight12",
+        )
 
     def test_grasu_native_profile_matches_hls_topology(self) -> None:
         profile = load_architecture_profile(

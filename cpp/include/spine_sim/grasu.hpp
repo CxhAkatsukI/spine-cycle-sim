@@ -16,12 +16,25 @@
 namespace spine::sim {
 
 constexpr std::uint32_t kGraSuPmaEmpty = 0x8000'0000U;
+constexpr std::uint32_t kGraSuPmaDestinationMask = 0x0007'ffffU;
+constexpr std::uint32_t kGraSuPmaWeightMask = 0x0000'0fffU;
+constexpr std::size_t kGraSuPmaWeightShift = 19;
+constexpr std::size_t kGraSuPmaLocalVertexCapacity =
+    static_cast<std::size_t>(kGraSuPmaDestinationMask) + 1;
 constexpr std::size_t kGraSuSegmentSlots = 16;
 constexpr std::size_t kGraSuSegmentBytes = 64;
+
+[[nodiscard]] std::uint32_t encode_grasu_pma_edge(std::uint32_t destination,
+                                                  std::uint16_t weight);
+[[nodiscard]] std::uint32_t
+decode_grasu_pma_destination(std::uint32_t encoded);
+[[nodiscard]] std::uint16_t decode_grasu_pma_weight(std::uint32_t encoded);
+[[nodiscard]] bool is_grasu_pma_empty(std::uint32_t encoded) noexcept;
 
 struct GraSuEdge {
   std::uint32_t source{};
   std::uint32_t destination{};
+  std::uint16_t weight{1};
   bool delete_op{};
 
   friend bool operator==(const GraSuEdge &, const GraSuEdge &) = default;
@@ -60,6 +73,8 @@ struct GraSuUpdateCounters {
   std::uint64_t updates{};
   std::uint64_t inserts{};
   std::uint64_t deletes{};
+  std::uint64_t weight_decreases{};
+  std::uint64_t weight_increases{};
   std::uint64_t row_reads{};
   std::uint64_t binary_probes{};
   std::uint64_t cache_updates{};
@@ -93,7 +108,7 @@ class GraSuPmaUpdateSystem {
   [[nodiscard]] bool done() const noexcept;
   [[nodiscard]] bool failed() const noexcept;
   [[nodiscard]] const std::string &failure() const noexcept;
-  [[nodiscard]] GraSuUpdateCounters counters() const noexcept;
+  [[nodiscard]] GraSuUpdateCounters counters() const;
   [[nodiscard]] std::vector<GraSuEdge> live_edges() const;
   [[nodiscard]] std::array<std::uint32_t, kGraSuSegmentSlots>
   inspect_segment(std::size_t global_segment) const;

@@ -1,5 +1,9 @@
 # ReGraph Gather Forwarding and Source Cache
 
+> Historical unit-weight milestone. The weighted PMA closure is documented in
+> `grasu_regraph_weighted_dynamic_sssp_20260725.md`; the timing below remains
+> the unit-weight regression baseline.
+
 Date: 2026-07-25
 
 ## Result

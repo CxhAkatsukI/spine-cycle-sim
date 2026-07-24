@@ -1,0 +1,9 @@
+# spine_real_slice_version=1
+# case=grasu_regraph_weighted_dynamic_initial
+# vertices=8
+# columns=src dst weight diff
+0 1 8 1
+0 2 2 1
+1 3 1 1
+2 3 8 1
+3 4 1 1

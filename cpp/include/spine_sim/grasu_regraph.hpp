@@ -115,8 +115,9 @@ struct GraSuReGraphCounters {
   std::uint64_t end_cycle{};
 };
 
-// Direct PMA-to-ReGraph weighted-SSSP vertical slice. The PMA path carries
-// destinations only, so this interface currently assigns unit edge weights.
+// Direct PMA-to-ReGraph weighted-SSSP vertical slice. Its normalized PMA word
+// uses ReGraph's 19-bit local destination and 12-bit weight ABI; multi-partition
+// destination routing remains outside this one-partition system.
 class GraSuReGraphSsspSystem {
 public:
   GraSuReGraphSsspSystem(Scheduler &scheduler, ClockId clock_id,

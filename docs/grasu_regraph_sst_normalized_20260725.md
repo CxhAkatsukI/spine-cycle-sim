@@ -1,5 +1,9 @@
 # GraSU + ReGraph Normalized SST Vertical Slice
 
+> Historical unit-weight milestone. The weighted PMA closure and unchanged
+> `99379`-cycle unit regression are documented in
+> `grasu_regraph_weighted_dynamic_sssp_20260725.md`.
+
 Date: 2026-07-25
 
 ## Result

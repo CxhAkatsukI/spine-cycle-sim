@@ -97,6 +97,7 @@ struct PmaEdgeBatch {
   bool source_active{};
   std::size_t lanes{};
   std::array<std::uint32_t, 8> destinations{};
+  std::array<std::uint16_t, 8> weights{};
   std::array<bool, 8> valid{};
 };
 
@@ -700,10 +701,13 @@ private:
           .lanes = config_.edge_lanes,
       };
       for (std::size_t lane = 0; lane < config_.edge_lanes; ++lane) {
-        const std::uint32_t destination =
+        const std::uint32_t encoded =
             decode_u32(response.read_data, (offset + lane) * 4);
-        batch.destinations[lane] = destination;
-        batch.valid[lane] = (destination & kGraSuPmaEmpty) == 0;
+        batch.valid[lane] = !is_grasu_pma_empty(encoded);
+        if (batch.valid[lane]) {
+          batch.destinations[lane] = decode_grasu_pma_destination(encoded);
+          batch.weights[lane] = decode_grasu_pma_weight(encoded);
+        }
       }
       pending_batches_.push_back(batch);
     }
@@ -1021,7 +1025,8 @@ private:
       } else {
         ++bypass_misses_;
       }
-      const std::uint32_t candidate = policy_.map_edge(batch.source_payload, 1);
+      const std::uint32_t candidate =
+          policy_.map_edge(batch.source_payload, batch.weights[lane]);
       updated[half] = policy_.reduce(updated[half], candidate);
       auto &entries = bypass_[bank];
       std::move(entries.begin() + 1, entries.end(), entries.begin());
