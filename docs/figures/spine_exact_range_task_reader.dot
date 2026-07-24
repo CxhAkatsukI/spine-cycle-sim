@@ -1,0 +1,63 @@
+digraph SpineExactRangeTaskReader {
+  graph [rankdir=TB, bgcolor="#FAFAF8", pad="0.25", nodesep="0.32", ranksep="0.58", splines=ortho, compound=true, newrank=true, fontname="DejaVu Sans", label="Spine exact range-task reader mapped from reduce-levels-for-routing", labelloc=t, fontsize=18];
+  node [shape=box, style="rounded,filled", fillcolor="#FFFFFF", color="#59636E", fontname="DejaVu Sans", fontsize=10, margin="0.14,0.09"];
+  edge [color="#59636E", fontname="DejaVu Sans", fontsize=9, arrowsize=0.7];
+
+  subgraph cluster_front {
+    label="Reader front end"; color="#557A66"; style="rounded,filled"; fillcolor="#EDF5F0";
+    active [label="Active source IDs\nsource-value request/reply"];
+    active_hbm [label="active_bins HBM read\n32 B / record\ntiming-only payload today", color="#A86A45", style="rounded,filled,dashed"];
+    level_cache [label="32 families x 11 levels\nlevel metadata cache\n1 occupied check / family/source/level"];
+    logical_meta [label="Logical level state\noccupancy + edge_count + layout\nremaining bypass", color="#A84C4C", fillcolor="#FBECEC", style="rounded,filled,dashed"];
+    active -> level_cache [style=invis];
+    active_hbm -> active [style=dashed, label="not decoded"];
+    logical_meta -> level_cache [style=dashed];
+  }
+
+  subgraph cluster_lookup {
+    label="Exact source-row lookup"; color="#426B8A"; style="rounded,filled"; fillcolor="#EAF2F8";
+    epoch [label="slice/page epoch HBM reads\ncomparison still pending", color="#A86A45", style="rounded,filled,dashed"];
+    bitmap [label="selected bitmap word\nmiss stops lookup"];
+    rank [label="earlier bitmap words\npopcount rank"];
+    pagebase [label="packed page-base word"];
+    rowoffset [label="packed row offsets\n[start, end)"];
+    bitmap -> rank -> pagebase -> rowoffset;
+  }
+
+  subgraph cluster_construct {
+    label="Descriptor construction"; color="#8A5B45"; style="rounded,filled"; fillcolor="#FAF0EB";
+    read1 [label="HBM edge payload scan #1\nvalidate dst ordering/partition"];
+    runs [label="Split contiguous runs\nby global 64K-vertex tile"];
+    desc [label="128-bit range descriptors\nstart | length | value | tile | bank | flags | src"];
+    read1 -> runs -> desc;
+  }
+
+  subgraph cluster_bin {
+    label="Task scratch and tile binning"; color="#765C8A"; style="rounded,filled"; fillcolor="#F3EEF7";
+    clear [label="256-cycle tile-state clear\nBRAM-shaped"];
+    unsorted [label="Unsorted descriptor cache\nURAM-shaped"];
+    prefix [label="256-cycle prefix"];
+    scatter [label="1 cycle / descriptor scatter"];
+    verify [label="256-cycle cursor verify"];
+    binned [label="Per-tile binned descriptors"];
+    clear -> prefix;
+    unsorted -> prefix -> scatter -> verify -> binned;
+  }
+
+  subgraph cluster_replay {
+    label="Tile replay and compute handoff"; color="#9B7A25"; style="rounded,filled"; fillcolor="#FFF7DF";
+    tileloop [label="Scan 256 tile bins"];
+    read2 [label="HBM edge payload scan #2\nvalidate expected tile"];
+    axis [label="Finite PartConv AXIS FIFO\nTILE_BEGIN | EDGE | TILE_END | DONE"];
+    compute [label="Spine compute CU\ntiny/full tile path"];
+    tileloop -> read2 -> axis -> compute;
+  }
+
+  active -> bitmap [label="source"];
+  level_cache -> bitmap [label="occupied level"];
+  epoch -> bitmap [style=dashed, label="read, not yet gated"];
+  bitmap -> read1 [label="row hit", lhead=cluster_construct];
+  rowoffset -> read1 [label="exact range"];
+  desc -> unsorted;
+  binned -> tileloop;
+}

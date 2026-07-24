@@ -601,15 +601,17 @@ void test_axi_payload_round_trip_across_beats_and_bursts() {
   scheduler.add_component(consumer);
   scheduler.run_until([&consumer] { return consumer.values.size() == 2; }, 300);
 
-  const auto read_response = std::find_if(
-      consumer.values.begin(), consumer.values.end(),
-      [](const AxiResponse &response) { return response.transaction_id == 42; });
+  const auto read_response =
+      std::find_if(consumer.values.begin(), consumer.values.end(),
+                   [](const AxiResponse &response) {
+                     return response.transaction_id == 42;
+                   });
   require(read_response != consumer.values.end() &&
               read_response->read_data == read_pattern,
           "AXI failed to reassemble payload across beats and bursts");
-  require(backend.inspect_payload(0, 8192, write_pattern.size()) ==
-              write_pattern,
-          "AXI write payload did not reach backend storage");
+  require(
+      backend.inspect_payload(0, 8192, write_pattern.size()) == write_pattern,
+      "AXI write payload did not reach backend storage");
   require(axi.stats().zero_filled_write_bytes == 0,
           "explicit AXI write payload was reported as zero-filled");
 }
@@ -798,12 +800,27 @@ void test_spine_l0_real_slice_vertical_path() {
               reader_counters.metadata_read_bytes == 2'952 &&
               reader_counters.level_cache_read_bytes == 2'880 &&
               reader_counters.row_lookup_metadata_bytes == 8 &&
-              reader_counters.graph_read_bytes == 112,
+              reader_counters.graph_read_bytes == 184,
           "Spine reader memory byte ledger mismatch");
-  require(reader_counters.graph_index_payload_read_bytes == 32 &&
-              reader_counters.graph_edge_payload_read_bytes == 80 &&
+  require(reader_counters.graph_index_payload_read_bytes == 24 &&
+              reader_counters.graph_edge_payload_read_bytes == 160 &&
+              reader_counters.graph_construction_payload_read_bytes == 80 &&
+              reader_counters.graph_replay_payload_read_bytes == 80 &&
               reader_counters.graph_index_bitmap_misses == 0,
           "Spine reader graph index payload ledger mismatch");
+  require(reader_counters.range_task_active_records == 1 &&
+              reader_counters.range_task_family_probes == 16 &&
+              reader_counters.range_task_level_checks == 176 &&
+              reader_counters.range_task_row_lookups == 1 &&
+              reader_counters.range_task_construction_payloads == 10 &&
+              reader_counters.range_task_count == 5 &&
+              reader_counters.range_task_replay_payloads == 10 &&
+              reader_counters.range_task_clear_cycles == 256 &&
+              reader_counters.range_task_prefix_cycles == 256 &&
+              reader_counters.range_task_scatter_cycles == 5 &&
+              reader_counters.range_task_verify_cycles == 256 &&
+              reader_counters.range_task_path == 1,
+          "Spine exact range-task work ledger mismatch");
 
   const auto &compute_counters = compute.counters();
   require(compute_counters.touched_tiles == 5 &&
@@ -866,7 +883,7 @@ void test_spine_reusable_system_matches_vertical_slice() {
   require(!system.failed(), "reusable Spine vertical-slice system failed");
   require(system.maintenance_counters().sorted_scan_passes == 19,
           "reusable Spine system changed maintenance work");
-  require(system.reader_counters().graph_read_bytes == 112,
+  require(system.reader_counters().graph_read_bytes == 184,
           "reusable Spine system changed reader memory work");
   require(system.compute_counters().processed_edges == 10,
           "reusable Spine system changed compute work");
@@ -1007,13 +1024,13 @@ void test_spine_fixed_level_layout_matches_stable_profile() {
   const SpineEdgeRecord edge{
       .src = 9, .dst = 0x12345678U, .weight = 0xabcdU, .diff = -7};
   const std::vector<std::uint8_t> payload = encode_spine_level_edge(edge);
-  require(payload.size() == 8 &&
-              decode_spine_level_edge(payload, edge.src) == edge,
-          "64-bit HLS CSR level payload does not round-trip");
+  require(
+      payload.size() == 8 && decode_spine_level_edge(payload, edge.src) == edge,
+      "64-bit HLS CSR level payload does not round-trip");
   const std::vector<std::uint8_t> sort_payload = encode_spine_sort_edge(edge);
-  require(sort_payload.size() == 16 &&
-              decode_spine_sort_edge(sort_payload) == edge,
-          "128-bit HLS sorted edge payload does not round-trip");
+  require(
+      sort_payload.size() == 16 && decode_spine_sort_edge(sort_payload) == edge,
+      "128-bit HLS sorted edge payload does not round-trip");
 }
 
 void test_spine_carry_drops_signed_diff_cancellation() {
@@ -1259,15 +1276,14 @@ void test_spine_compute_consumes_vertex_payload_from_hbm() {
           {.kind = PartConvWordKind::kTileEnd, .first = 0, .second = 4},
           {.kind = PartConvWordKind::kDoneAll},
       });
-  SpineSplitSsspCompute compute(
-      "payload-compute", core, 4, 0, 4096,
-      SpineComputePorts{
-          .vertex_state = &vertex_state,
-          .active_out = &active_out,
-          .active_bitmap = &active_bitmap,
-          .result = &result,
-      },
-      edge_stream, value_stream);
+  SpineSplitSsspCompute compute("payload-compute", core, 4, 0, 4096,
+                                SpineComputePorts{
+                                    .vertex_state = &vertex_state,
+                                    .active_out = &active_out,
+                                    .active_bitmap = &active_bitmap,
+                                    .result = &result,
+                                },
+                                edge_stream, value_stream);
 
   // The compute mirror still contains infinity for vertex 1. Only HBM is 7.
   vertex_state.initialize_payload(4, {7, 0, 0, 0});
@@ -1347,16 +1363,18 @@ void test_spine_reader_consumes_graph_edge_payload_from_hbm() {
 
   SpineEdgeSlice batch{
       .vertices = 512,
-      .edges = {
-          SpineEdgeRecord{.src = 0, .dst = 1, .weight = 5, .diff = 1},
-          SpineEdgeRecord{.src = 256, .dst = 2, .weight = 7, .diff = 1},
-      },
+      .edges =
+          {
+              SpineEdgeRecord{.src = 0, .dst = 1, .weight = 5, .diff = 1},
+              SpineEdgeRecord{.src = 130, .dst = 2, .weight = 7, .diff = 1},
+              SpineEdgeRecord{.src = 256, .dst = 3, .weight = 9, .diff = 1},
+          },
       .case_name = "reader_graph_payload_antibypass",
   };
   SpineL0State state;
   const SpineL0Config config;
-  SpineL0Maintenance maintenance("reader-payload-maintenance", core,
-                                 config, std::move(batch), ports, state);
+  SpineL0Maintenance maintenance("reader-payload-maintenance", core, config,
+                                 std::move(batch), ports, state);
   scheduler.add_component(maintenance);
   for (auto &port : graph_ports) {
     port->register_components(scheduler);
@@ -1375,43 +1393,47 @@ void test_spine_reader_consumes_graph_edge_payload_from_hbm() {
       50'000);
 
   require(!maintenance.failed(), "reader payload setup maintenance failed");
-  require(state.cold_levels[0][0].size() == 2 &&
+  require(state.cold_levels[0][0].size() == 3 &&
               state.cold_levels[0][0][0].dst == 1 &&
               state.cold_levels[0][0][0].weight == 5,
           "reader payload anti-bypass setup changed logical level state");
 
-  const SpineLevelLayout layout =
-      spine_level_layout(config, false, 0);
+  const SpineLevelLayout layout = spine_level_layout(config, false, 0);
   require(backend.inspect_payload(
               0, layout.bitmap_offset_words * spine::sim::kSpineGraphWordBytes,
               spine::sim::kSpineGraphWordBytes) ==
               std::vector<std::uint8_t>({1, 0, 0, 0, 0, 0, 0, 0}),
           "maintenance bitmap payload does not match the HLS index layout");
+  require(
+      backend.inspect_payload(
+          0, layout.page_base_offset_words * spine::sim::kSpineGraphWordBytes,
+          spine::sim::kSpineGraphWordBytes) ==
+          std::vector<std::uint8_t>({0, 0, 0, 0, 2, 0, 0, 0}),
+      "maintenance page-base payload does not match the HLS index layout");
   require(backend.inspect_payload(
               0,
-              layout.page_base_offset_words *
+              (layout.bitmap_offset_words + 2) *
                   spine::sim::kSpineGraphWordBytes,
               spine::sim::kSpineGraphWordBytes) ==
-              std::vector<std::uint8_t>({0, 0, 0, 0, 1, 0, 0, 0}),
-          "maintenance page-base payload does not match the HLS index layout");
-  require(backend.inspect_payload(
-              0,
-              layout.row_offset_offset_words *
-                  spine::sim::kSpineGraphWordBytes,
-              spine::sim::kSpineGraphWordBytes) ==
-              std::vector<std::uint8_t>({0, 0, 0, 0, 1, 0, 0, 0}),
-          "maintenance row-offset payload does not match the HLS index layout");
-  require(backend.inspect_payload(
-              0,
-              (layout.row_offset_offset_words + 1) *
-                  spine::sim::kSpineGraphWordBytes,
-              spine::sim::kSpineGraphWordBytes) ==
-              std::vector<std::uint8_t>({2, 0, 0, 0, 0, 0, 0, 0}),
-          "maintenance terminal row offset does not match the HLS index layout");
+              std::vector<std::uint8_t>({4, 0, 0, 0, 0, 0, 0, 0}),
+          "maintenance bitmap rank word does not contain source 130");
+  require(
+      backend.inspect_payload(
+          0, layout.row_offset_offset_words * spine::sim::kSpineGraphWordBytes,
+          spine::sim::kSpineGraphWordBytes) ==
+          std::vector<std::uint8_t>({0, 0, 0, 0, 1, 0, 0, 0}),
+      "maintenance row-offset payload does not match the HLS index layout");
+  require(
+      backend.inspect_payload(0,
+                              (layout.row_offset_offset_words + 1) *
+                                  spine::sim::kSpineGraphWordBytes,
+                              spine::sim::kSpineGraphWordBytes) ==
+          std::vector<std::uint8_t>({2, 0, 0, 0, 3, 0, 0, 0}),
+      "maintenance terminal row offset does not match the HLS index layout");
   require(backend.inspect_payload(
               0, layout.mask_offset_words * spine::sim::kSpineGraphWordBytes,
               spine::sim::kSpineGraphWordBytes) ==
-              std::vector<std::uint8_t>({1, 0, 1, 0, 0, 0, 0, 0}),
+              std::vector<std::uint8_t>({1, 0, 1, 0, 1, 0, 0, 0}),
           "maintenance row partition mask does not match the HLS index layout");
   graph_ports[0]->initialize_payload(
       layout.edge_offset_words * spine::sim::kSpineGraphWordBytes,
@@ -1459,7 +1481,9 @@ void test_spine_reader_consumes_graph_edge_payload_from_hbm() {
   require(!reader.failed(), "reader graph payload anti-bypass path failed");
   require(edges.size() == 1 && edges[0].first == 2 && edges[0].second == 12,
           "reader ignored HBM graph edge payload and used logical state");
-  require(reader.counters().graph_edge_payload_read_bytes == 8,
+  require(reader.counters().graph_edge_payload_read_bytes == 16 &&
+              reader.counters().graph_construction_payload_read_bytes == 8 &&
+              reader.counters().graph_replay_payload_read_bytes == 8,
           "reader graph edge payload ledger does not close");
 
   const std::size_t first_run_words = edge_words.values.size();
@@ -1489,8 +1513,136 @@ void test_spine_reader_consumes_graph_edge_payload_from_hbm() {
   require(!reader.failed() && second_run_edges.empty(),
           "reader ignored HBM bitmap payload and emitted a missing row");
   require(reader.counters().graph_index_bitmap_misses == 1 &&
+              reader.counters().graph_index_payload_read_bytes == 8 &&
               reader.counters().graph_edge_payload_read_bytes == 0,
           "reader bitmap anti-bypass ledger mismatch");
+
+  const std::size_t second_run_words = edge_words.values.size();
+  graph_ports[0]->initialize_payload(
+      layout.bitmap_offset_words * spine::sim::kSpineGraphWordBytes,
+      std::vector<std::uint8_t>({1, 0, 0, 0, 0, 0, 0, 0}));
+  graph_ports[0]->initialize_payload(
+      layout.page_base_offset_words * spine::sim::kSpineGraphWordBytes,
+      std::vector<std::uint8_t>({1, 0, 0, 0, 2, 0, 0, 0}));
+  SequenceProducer<SourceValueWord> source_values_shifted_page_base(
+      "reader-payload-source-values-shifted-page-base", core, value_stream,
+      {SourceValueWord{.source = 0, .value = 10}});
+  scheduler.add_component(source_values_shifted_page_base);
+  reader.reset_round({0});
+  scheduler.run_until(
+      [&] {
+        return reader.done() && source_values_shifted_page_base.done() &&
+               edge_stream.empty() && value_stream.empty() &&
+               active_bins.idle() && metadata.idle() && graph_ports[0]->idle();
+      },
+      50'000);
+
+  std::vector<PartConvWord> third_run_edges;
+  for (std::size_t index = second_run_words; index < edge_words.values.size();
+       ++index) {
+    if (edge_words.values[index].kind == PartConvWordKind::kEdge) {
+      third_run_edges.push_back(edge_words.values[index]);
+    }
+  }
+  require(!reader.failed() && third_run_edges.size() == 1 &&
+              third_run_edges[0].first == 2 && third_run_edges[0].second == 17,
+          "reader ignored the HBM page-base payload");
+  require(reader.counters().graph_index_payload_read_bytes == 32 &&
+              reader.counters().graph_edge_payload_read_bytes == 16,
+          "reader page-base anti-bypass ledger mismatch");
+
+  const std::size_t third_run_words = edge_words.values.size();
+  graph_ports[0]->initialize_payload(
+      layout.page_base_offset_words * spine::sim::kSpineGraphWordBytes,
+      std::vector<std::uint8_t>({0, 0, 0, 0, 2, 0, 0, 0}));
+  graph_ports[0]->initialize_payload(
+      layout.row_offset_offset_words * spine::sim::kSpineGraphWordBytes,
+      std::vector<std::uint8_t>(spine::sim::kSpineGraphWordBytes, 0));
+  SequenceProducer<SourceValueWord> source_values_empty_row(
+      "reader-payload-source-values-empty-row", core, value_stream,
+      {SourceValueWord{.source = 0, .value = 10}});
+  scheduler.add_component(source_values_empty_row);
+  reader.reset_round({0});
+  scheduler.run_until(
+      [&] {
+        return reader.done() && source_values_empty_row.done() &&
+               edge_stream.empty() && value_stream.empty() &&
+               active_bins.idle() && metadata.idle() && graph_ports[0]->idle();
+      },
+      50'000);
+
+  std::vector<PartConvWord> fourth_run_edges;
+  for (std::size_t index = third_run_words; index < edge_words.values.size();
+       ++index) {
+    if (edge_words.values[index].kind == PartConvWordKind::kEdge) {
+      fourth_run_edges.push_back(edge_words.values[index]);
+    }
+  }
+  require(!reader.failed() && fourth_run_edges.empty(),
+          "reader ignored the HBM row-offset payload");
+  require(reader.counters().graph_index_payload_read_bytes == 24 &&
+              reader.counters().graph_edge_payload_read_bytes == 0,
+          "reader row-offset anti-bypass ledger mismatch");
+
+  const std::size_t fourth_run_words = edge_words.values.size();
+  graph_ports[0]->initialize_payload(
+      layout.row_offset_offset_words * spine::sim::kSpineGraphWordBytes,
+      std::vector<std::uint8_t>({0, 0, 0, 0, 1, 0, 0, 0}));
+  SequenceProducer<SourceValueWord> source_values_ranked(
+      "reader-payload-source-values-ranked", core, value_stream,
+      {SourceValueWord{.source = 130, .value = 20}});
+  scheduler.add_component(source_values_ranked);
+  reader.reset_round({130});
+  scheduler.run_until(
+      [&] {
+        return reader.done() && source_values_ranked.done() &&
+               edge_stream.empty() && value_stream.empty() &&
+               active_bins.idle() && metadata.idle() && graph_ports[0]->idle();
+      },
+      50'000);
+
+  std::vector<PartConvWord> fifth_run_edges;
+  for (std::size_t index = fourth_run_words; index < edge_words.values.size();
+       ++index) {
+    if (edge_words.values[index].kind == PartConvWordKind::kEdge) {
+      fifth_run_edges.push_back(edge_words.values[index]);
+    }
+  }
+  require(!reader.failed() && fifth_run_edges.size() == 1 &&
+              fifth_run_edges[0].first == 2 && fifth_run_edges[0].second == 27,
+          "reader bitmap rank did not select source 130's row");
+  require(reader.counters().graph_index_bitmap_words == 3 &&
+              reader.counters().graph_index_payload_read_bytes == 48 &&
+              reader.counters().graph_edge_payload_read_bytes == 16,
+          "reader bitmap-rank payload ledger mismatch");
+
+  const std::size_t fifth_run_words = edge_words.values.size();
+  graph_ports[0]->initialize_payload(
+      layout.bitmap_offset_words * spine::sim::kSpineGraphWordBytes,
+      std::vector<std::uint8_t>(spine::sim::kSpineGraphWordBytes, 0));
+  SequenceProducer<SourceValueWord> source_values_changed_rank(
+      "reader-payload-source-values-changed-rank", core, value_stream,
+      {SourceValueWord{.source = 130, .value = 20}});
+  scheduler.add_component(source_values_changed_rank);
+  reader.reset_round({130});
+  scheduler.run_until(
+      [&] {
+        return reader.done() && source_values_changed_rank.done() &&
+               edge_stream.empty() && value_stream.empty() &&
+               active_bins.idle() && metadata.idle() && graph_ports[0]->idle();
+      },
+      50'000);
+
+  std::vector<PartConvWord> sixth_run_edges;
+  for (std::size_t index = fifth_run_words; index < edge_words.values.size();
+       ++index) {
+    if (edge_words.values[index].kind == PartConvWordKind::kEdge) {
+      sixth_run_edges.push_back(edge_words.values[index]);
+    }
+  }
+  require(!reader.failed() && sixth_run_edges.size() == 1 &&
+              sixth_run_edges[0].first == 2 && sixth_run_edges[0].second == 22,
+          "reader ignored HBM bitmap-prefix changes when computing rank");
 }
 
 void test_spine_maintenance_consumes_sorted_payload_from_hbm() {
@@ -1567,13 +1719,14 @@ void test_spine_maintenance_consumes_sorted_payload_from_hbm() {
       },
       50'000);
 
-  require(!maintenance.failed(), "sorted payload anti-bypass maintenance failed");
+  require(!maintenance.failed(),
+          "sorted payload anti-bypass maintenance failed");
   require(state.cold_levels[0][0].size() == 1 &&
               state.cold_levels[0][0][0].dst == 2 &&
               state.cold_levels[0][0][0].weight == 2,
           "maintenance ignored HBM sorted payload and used logical workload");
   require(maintenance.counters().sorted_payload_read_bytes ==
-              maintenance.counters().sorted_read_bytes &&
+                  maintenance.counters().sorted_read_bytes &&
               maintenance.counters().sorted_payload_read_bytes > 0,
           "sorted payload read ledger does not close");
 }
@@ -1657,7 +1810,8 @@ void test_spine_carry_merge_consumes_level_payload_from_hbm() {
       },
       100'000);
 
-  require(!maintenance.failed(), "carry payload anti-bypass maintenance failed");
+  require(!maintenance.failed(),
+          "carry payload anti-bypass maintenance failed");
   const auto &level = state.cold_levels[0][1];
   require(level.size() == 2 && level[0].dst == 2 && level[0].weight == 3 &&
               level[1].dst == 4 && level[1].weight == 2,

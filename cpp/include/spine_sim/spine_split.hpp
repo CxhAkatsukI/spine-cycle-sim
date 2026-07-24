@@ -4,10 +4,8 @@
 #include <cstddef>
 #include <cstdint>
 #include <deque>
-#include <optional>
 #include <string>
 #include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
 #include "spine_sim/component.hpp"
@@ -48,7 +46,25 @@ struct SpineReaderCounters {
   std::uint64_t graph_read_bytes{};
   std::uint64_t graph_index_payload_read_bytes{};
   std::uint64_t graph_edge_payload_read_bytes{};
+  std::uint64_t graph_construction_payload_read_bytes{};
+  std::uint64_t graph_replay_payload_read_bytes{};
   std::uint64_t graph_index_bitmap_misses{};
+  std::uint64_t graph_index_bitmap_words{};
+  std::uint64_t range_task_active_records{};
+  std::uint64_t range_task_family_probes{};
+  std::uint64_t range_task_family_skips{};
+  std::uint64_t range_task_level_checks{};
+  std::uint64_t range_task_row_lookups{};
+  std::uint64_t range_task_construction_payloads{};
+  std::uint64_t range_task_count{};
+  std::uint64_t range_task_replay_payloads{};
+  std::uint64_t range_task_clear_cycles{};
+  std::uint64_t range_task_prefix_cycles{};
+  std::uint64_t range_task_scatter_cycles{};
+  std::uint64_t range_task_verify_cycles{};
+  std::uint32_t range_task_path{1};
+  std::uint32_t range_task_fallback_reason{};
+  std::uint32_t range_task_error{};
   std::uint64_t tiles_emitted{};
   std::uint64_t edges_emitted{};
   std::uint64_t occupied_levels{};
@@ -73,6 +89,7 @@ class SpineSplitReader final : public Component {
 
   [[nodiscard]] bool done() const noexcept { return done_; }
   [[nodiscard]] bool failed() const noexcept { return failed_; }
+  [[nodiscard]] const std::string &failure() const noexcept { return failure_; }
   [[nodiscard]] const SpineReaderCounters &counters() const noexcept {
     return counters_;
   }
@@ -82,16 +99,51 @@ class SpineSplitReader final : public Component {
   void commit(const CycleContext &context) override;
 
  private:
-  struct TileTask {
-    struct Edge {
-      std::uint32_t source{};
-      std::uint64_t graph_word_address{};
-      std::size_t graph_bank{};
-      bool hot{};
-    };
+  struct RangeTask {
+    std::uint64_t absolute_word{};
+    std::uint32_t length{};
+    std::uint32_t source{};
+    std::uint32_t source_value{};
+    std::uint16_t tile{};
+    std::uint8_t graph_bank{};
+    bool hot{};
+  };
 
+  struct TileTask {
     std::uint32_t tile_base{};
-    std::vector<Edge> edges;
+    std::vector<RangeTask> ranges;
+  };
+
+  struct RangeProbe {
+    std::uint32_t source{};
+    std::uint32_t source_value{};
+    std::size_t family{};
+    std::size_t level{};
+    bool hot{};
+    SpineLevelLayout layout;
+    std::uint32_t edge_count{};
+    std::uint32_t page{};
+    std::uint32_t lane_word{};
+    std::uint32_t lane_bit{};
+    std::vector<std::uint64_t> bitmap_words;
+    std::uint64_t page_base_word{};
+    std::uint64_t row_word{};
+    std::uint64_t next_row_word{};
+    std::uint32_t rank{};
+    std::uint32_t row{};
+    std::uint32_t start{};
+    std::uint32_t end{};
+  };
+
+  enum class MemoryPayloadKind {
+    kNone,
+    kIndexBitmapSelected,
+    kIndexBitmapPrefix,
+    kIndexPageBase,
+    kIndexRow,
+    kIndexNextRow,
+    kConstructionEdge,
+    kReplayEdge,
   };
 
   struct MemoryTask {
@@ -99,12 +151,8 @@ class SpineSplitReader final : public Component {
     std::uint64_t address{};
     std::uint64_t bytes{};
     std::uint32_t edge_source{};
-    bool edge_payload{};
-    std::uint32_t index_source{};
-    std::size_t index_family{};
-    std::size_t index_level{};
-    bool index_hot{};
-    bool index_bitmap{};
+    std::size_t probe_index{};
+    MemoryPayloadKind payload_kind{MemoryPayloadKind::kNone};
   };
 
   enum class Phase {
@@ -112,7 +160,19 @@ class SpineSplitReader final : public Component {
     kRequestSource,
     kWaitSource,
     kSetupReads,
-    kBuildTiles,
+    kBinClear,
+    kProbeBegin,
+    kProbeIndexResolve,
+    kProbeRankResolve,
+    kProbePageResolve,
+    kProbeRowResolve,
+    kConstructionRead,
+    kConstructionConsume,
+    kProbeAdvance,
+    kBinPrefix,
+    kBinScatter,
+    kBinVerify,
+    kTileScan,
     kTileBegin,
     kEdgeRead,
     kEdgeEmit,
@@ -123,20 +183,22 @@ class SpineSplitReader final : public Component {
   enum class Action { kNone, kAdvance, kIssue, kComplete, kPush, kPopValue };
 
   void advance(const CycleContext &context);
-  void build_tiles();
   void enqueue_level_cache_reads();
-  void enqueue_index_reads();
+  void prepare_range_probes();
+  void enqueue_probe_index_reads();
+  void resolve_probe_index();
+  void resolve_probe_rank();
+  void resolve_probe_page();
+  void enqueue_probe_row_reads();
+  void resolve_probe_row();
+  void consume_construction_edge();
+  void flush_construction_run();
   void enqueue_read(FixedAxiPort &port, std::uint64_t address,
                     std::uint64_t bytes,
-                    std::optional<std::uint32_t> edge_source = std::nullopt);
-  void enqueue_index_bitmap_read(FixedAxiPort &port, std::uint64_t address,
-                                 std::uint32_t source, bool hot,
-                                 std::size_t family, std::size_t level);
+                    MemoryPayloadKind payload_kind = MemoryPayloadKind::kNone,
+                    std::size_t probe_index = 0, std::uint32_t edge_source = 0);
   void consume_memory_response(const MemoryTask &task,
                                const AxiResponse &response);
-  [[nodiscard]] bool index_gate_allows(bool hot, std::size_t family,
-                                       std::size_t level,
-                                       std::uint32_t source) const;
   [[nodiscard]] PartConvWord current_stream_word() const;
 
   const SpineL0Maintenance &maintenance_;
@@ -146,9 +208,13 @@ class SpineSplitReader final : public Component {
   Fifo<PartConvWord> &edge_out_;
   Fifo<SourceValueWord> &value_in_;
   SpineReaderCounters counters_;
-  std::vector<TileTask> tiles_;
+  std::array<TileTask, 256> tiles_;
+  std::array<std::uint32_t, 256> tile_counts_{};
+  std::array<std::uint32_t, 256> tile_offsets_{};
+  std::array<std::uint32_t, 256> tile_cursors_{};
+  std::vector<RangeProbe> range_probes_;
+  std::vector<RangeTask> range_tasks_;
   std::unordered_map<std::uint32_t, std::uint32_t> source_values_;
-  std::unordered_set<std::uint64_t> active_index_gates_;
   std::deque<MemoryTask> memory_tasks_;
   Phase phase_{Phase::kWaitMaintenance};
   Action staged_action_{Action::kNone};
@@ -156,14 +222,27 @@ class SpineSplitReader final : public Component {
   SourceValueWord staged_value_;
   AxiResponse staged_response_;
   SpineEdgeRecord loaded_edge_;
+  SpineEdgeRecord construction_edge_;
+  std::size_t probe_index_{};
+  std::uint32_t construction_position_{};
+  bool construction_run_valid_{};
+  std::uint16_t construction_run_tile_{};
+  std::uint64_t construction_run_start_{};
+  std::uint32_t construction_run_length_{};
+  std::uint32_t construction_previous_dst_{};
+  bool construction_have_previous_dst_{};
+  std::size_t bin_index_{};
+  std::size_t scatter_index_{};
   std::size_t tile_index_{};
-  std::size_t edge_index_{};
+  std::size_t range_index_{};
+  std::uint32_t range_edge_index_{};
   std::size_t source_index_{};
   std::uint64_t next_transaction_id_{};
   std::uint64_t expected_transaction_id_{};
   bool waiting_memory_{};
   bool done_{};
   bool failed_{};
+  std::string failure_;
 };
 
 struct SpineComputeCounters {

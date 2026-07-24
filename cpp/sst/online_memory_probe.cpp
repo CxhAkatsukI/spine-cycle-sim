@@ -210,8 +210,7 @@ class PayloadRoundTrip final : public Component {
         responses_(responses),
         pattern_(1600) {
     for (std::size_t index = 0; index < pattern_.size(); ++index) {
-      pattern_[index] =
-          static_cast<std::uint8_t>((index * 17 + 3) & 0xff);
+      pattern_[index] = static_cast<std::uint8_t>((index * 17 + 3) & 0xff);
     }
   }
 
@@ -246,8 +245,8 @@ class PayloadRoundTrip final : public Component {
 
   void commit(const CycleContext &) override {
     if (action_ == Action::kIssued) {
-      phase_ = phase_ == Phase::kWriteIssue ? Phase::kWriteWait
-                                            : Phase::kReadWait;
+      phase_ =
+          phase_ == Phase::kWriteIssue ? Phase::kWriteWait : Phase::kReadWait;
     } else if (action_ == Action::kCompleted) {
       if (!staged_response_.success) {
         failed_ = true;
@@ -477,8 +476,8 @@ class SstMemoryBackend final : public MemoryBackend {
         throw std::logic_error("SST returned a malformed read response");
       }
       read_data = complete_read_payload(found->second.request);
-    } else if (dynamic_cast<SST::Interfaces::StandardMem::WriteResp *>(request) ==
-               nullptr) {
+    } else if (dynamic_cast<SST::Interfaces::StandardMem::WriteResp *>(
+                   request) == nullptr) {
       throw std::logic_error("SST returned a malformed write response");
     } else {
       commit_write_payload(found->second.request);
@@ -561,8 +560,8 @@ class OnlineMemoryProbe final : public SST::Component {
     max_cycles_ = params.find<std::uint64_t>("max_cycles", 1'000'000);
     max_rounds_ = params.find<std::size_t>("max_rounds", 256);
     if ((mode_ != "probe" && mode_ != "payload_roundtrip" &&
-         mode_ != "spine_vertical" &&
-         mode_ != "spine_compute" && mode_ != "spine_sssp") ||
+         mode_ != "spine_vertical" && mode_ != "spine_compute" &&
+         mode_ != "spine_sssp") ||
         channels_ == 0 || channel_capacity_bytes_ == 0 || max_rounds_ == 0 ||
         write_percent_ > 100 ||
         (mode_ == "probe" &&
@@ -779,8 +778,8 @@ class OnlineMemoryProbe final : public SST::Component {
                                        },
                                        *requests_, *responses_, *backend_);
     if (mode_ == "payload_roundtrip") {
-      payload_round_trip_ = std::make_unique<PayloadRoundTrip>(
-          core, *requests_, *responses_);
+      payload_round_trip_ =
+          std::make_unique<PayloadRoundTrip>(core, *requests_, *responses_);
       scheduler_.add_component(*payload_round_trip_);
     } else {
       source_ = std::make_unique<ProbeSource>(
@@ -881,7 +880,9 @@ class OnlineMemoryProbe final : public SST::Component {
 
   SST_ELI_DOCUMENT_PARAMS(
       {"output", "JSON result path", "sst_memory_probe.json"},
-      {"mode", "probe, payload_roundtrip, spine_vertical, spine_compute, or spine_sssp", "probe"},
+      {"mode",
+       "probe, payload_roundtrip, spine_vertical, spine_compute, or spine_sssp",
+       "probe"},
       {"workload", "Spine .slice workload path", ""},
       {"preload_workload", "Optional pre-existing Spine L0 .slice", ""},
       {"hot_vertices", "Comma-separated host hot-bitmap vertices", ""},
@@ -919,8 +920,7 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
              << "  \"cycles\": " << scheduler_.clock(0).completed_cycles
              << ",\n"
-             << "  \"payload_bytes\": " << payload_round_trip_->bytes()
-             << ",\n"
+             << "  \"payload_bytes\": " << payload_round_trip_->bytes() << ",\n"
              << "  \"axi_bursts\": " << stats.bursts_accepted << ",\n"
              << "  \"axi_beats\": " << stats.beats_issued << ",\n"
              << "  \"axi_read_bytes\": " << stats.read_bytes << ",\n"
@@ -929,10 +929,10 @@ class OnlineMemoryProbe final : public SST::Component {
              << stats.zero_filled_write_bytes << ",\n"
              << "  \"backend_requests\": " << backend_->accepted() << "\n"
              << "}\n";
-      output_.output("completed SST payload round trip in %llu cycles -> %s\n",
-                     static_cast<unsigned long long>(
-                         scheduler_.clock(0).completed_cycles),
-                     result_path_.c_str());
+      output_.output(
+          "completed SST payload round trip in %llu cycles -> %s\n",
+          static_cast<unsigned long long>(scheduler_.clock(0).completed_cycles),
+          result_path_.c_str());
       return;
     }
     if (mode_ == "spine_compute") {
@@ -1059,7 +1059,12 @@ class OnlineMemoryProbe final : public SST::Component {
       std::vector<std::uint64_t> reader_graph_bytes;
       std::vector<std::uint64_t> reader_graph_index_payload_bytes;
       std::vector<std::uint64_t> reader_graph_payload_bytes;
+      std::vector<std::uint64_t> reader_construction_payload_bytes;
+      std::vector<std::uint64_t> reader_replay_payload_bytes;
       std::vector<std::uint64_t> reader_graph_index_bitmap_misses;
+      std::vector<std::uint64_t> reader_range_tasks;
+      std::vector<std::uint64_t> reader_range_row_lookups;
+      std::vector<std::uint64_t> reader_range_level_checks;
       std::vector<std::uint64_t> reader_metadata_bytes;
       std::vector<std::uint64_t> fast_tiles;
       std::vector<std::uint64_t> full_tiles;
@@ -1075,8 +1080,16 @@ class OnlineMemoryProbe final : public SST::Component {
             round.reader.graph_index_payload_read_bytes);
         reader_graph_payload_bytes.push_back(
             round.reader.graph_edge_payload_read_bytes);
+        reader_construction_payload_bytes.push_back(
+            round.reader.graph_construction_payload_read_bytes);
+        reader_replay_payload_bytes.push_back(
+            round.reader.graph_replay_payload_read_bytes);
         reader_graph_index_bitmap_misses.push_back(
             round.reader.graph_index_bitmap_misses);
+        reader_range_tasks.push_back(round.reader.range_task_count);
+        reader_range_row_lookups.push_back(round.reader.range_task_row_lookups);
+        reader_range_level_checks.push_back(
+            round.reader.range_task_level_checks);
         reader_metadata_bytes.push_back(round.reader.metadata_read_bytes);
         fast_tiles.push_back(round.compute.fast_path_tiles);
         full_tiles.push_back(round.compute.full_path_tiles);
@@ -1123,8 +1136,18 @@ class OnlineMemoryProbe final : public SST::Component {
       write_json_array(result, reader_graph_index_payload_bytes);
       result << ",\n  \"reader_graph_payload_bytes_per_round\": ";
       write_json_array(result, reader_graph_payload_bytes);
+      result << ",\n  \"reader_construction_payload_bytes_per_round\": ";
+      write_json_array(result, reader_construction_payload_bytes);
+      result << ",\n  \"reader_replay_payload_bytes_per_round\": ";
+      write_json_array(result, reader_replay_payload_bytes);
       result << ",\n  \"reader_graph_index_bitmap_misses_per_round\": ";
       write_json_array(result, reader_graph_index_bitmap_misses);
+      result << ",\n  \"reader_range_tasks_per_round\": ";
+      write_json_array(result, reader_range_tasks);
+      result << ",\n  \"reader_range_row_lookups_per_round\": ";
+      write_json_array(result, reader_range_row_lookups);
+      result << ",\n  \"reader_range_level_checks_per_round\": ";
+      write_json_array(result, reader_range_level_checks);
       result << ",\n  \"reader_metadata_bytes_per_round\": ";
       write_json_array(result, reader_metadata_bytes);
       result << ",\n  \"fast_tiles_per_round\": ";
@@ -1231,8 +1254,41 @@ class OnlineMemoryProbe final : public SST::Component {
           << reader.graph_index_payload_read_bytes << ",\n"
           << "  \"reader_graph_payload_bytes\": "
           << reader.graph_edge_payload_read_bytes << ",\n"
+          << "  \"reader_construction_payload_bytes\": "
+          << reader.graph_construction_payload_read_bytes << ",\n"
+          << "  \"reader_replay_payload_bytes\": "
+          << reader.graph_replay_payload_read_bytes << ",\n"
           << "  \"reader_graph_index_bitmap_misses\": "
           << reader.graph_index_bitmap_misses << ",\n"
+          << "  \"reader_graph_index_bitmap_words\": "
+          << reader.graph_index_bitmap_words << ",\n"
+          << "  \"reader_range_active_records\": "
+          << reader.range_task_active_records << ",\n"
+          << "  \"reader_range_family_probes\": "
+          << reader.range_task_family_probes << ",\n"
+          << "  \"reader_range_family_skips\": "
+          << reader.range_task_family_skips << ",\n"
+          << "  \"reader_range_level_checks\": "
+          << reader.range_task_level_checks << ",\n"
+          << "  \"reader_range_row_lookups\": " << reader.range_task_row_lookups
+          << ",\n"
+          << "  \"reader_range_construction_payloads\": "
+          << reader.range_task_construction_payloads << ",\n"
+          << "  \"reader_range_tasks\": " << reader.range_task_count << ",\n"
+          << "  \"reader_range_replay_payloads\": "
+          << reader.range_task_replay_payloads << ",\n"
+          << "  \"reader_range_clear_cycles\": "
+          << reader.range_task_clear_cycles << ",\n"
+          << "  \"reader_range_prefix_cycles\": "
+          << reader.range_task_prefix_cycles << ",\n"
+          << "  \"reader_range_scatter_cycles\": "
+          << reader.range_task_scatter_cycles << ",\n"
+          << "  \"reader_range_verify_cycles\": "
+          << reader.range_task_verify_cycles << ",\n"
+          << "  \"reader_range_path\": " << reader.range_task_path << ",\n"
+          << "  \"reader_range_fallback_reason\": "
+          << reader.range_task_fallback_reason << ",\n"
+          << "  \"reader_range_error\": " << reader.range_task_error << ",\n"
           << "  \"reader_metadata_bytes\": " << reader.metadata_read_bytes
           << ",\n"
           << "  \"reader_occupied_levels\": " << reader.occupied_levels << ",\n"

@@ -72,7 +72,7 @@ def validate_result(
         == result.get("maintenance_sorted_bytes"),
         "reader_tiles": result.get("reader_tiles") == 5,
         "reader_edges": result.get("reader_edges") == 10,
-        "reader_bytes": result.get("reader_graph_bytes") == 112,
+        "reader_bytes": result.get("reader_graph_bytes") == 184,
         "maintenance_graph_index_payload": result.get(
             "maintenance_graph_index_payload_write_bytes"
         )
@@ -84,12 +84,28 @@ def validate_result(
         "reader_graph_index_payload": result.get(
             "reader_graph_index_payload_bytes"
         )
-        == 32,
-        "reader_graph_payload": result.get("reader_graph_payload_bytes") == 80,
+        == 24,
+        "reader_graph_payload": result.get("reader_graph_payload_bytes") == 160,
+        "reader_graph_payload_split": result.get(
+            "reader_construction_payload_bytes"
+        )
+        == 80
+        and result.get("reader_replay_payload_bytes") == 80,
         "reader_graph_index_bitmap": result.get(
             "reader_graph_index_bitmap_misses"
         )
         == 0,
+        "reader_exact_range_path": result.get("reader_range_path") == 1
+        and result.get("reader_range_error") == 0
+        and result.get("reader_range_fallback_reason") == 0
+        and result.get("reader_range_tasks") == 5
+        and result.get("reader_range_level_checks") == 176
+        and result.get("reader_range_construction_payloads") == 10
+        and result.get("reader_range_replay_payloads") == 10,
+        "reader_range_binning": result.get("reader_range_clear_cycles") == 256
+        and result.get("reader_range_prefix_cycles") == 256
+        and result.get("reader_range_scatter_cycles") == 5
+        and result.get("reader_range_verify_cycles") == 256,
         "reader_metadata": result.get("reader_metadata_bytes") == 2_952,
         "reader_levels": result.get("reader_occupied_levels") == 1,
         "compute_fast_tiles": result.get("compute_fast_tiles") == 5,
@@ -134,7 +150,7 @@ def validate_carry_hot_result(
         and result.get("maintenance_carry_outputs") == 2,
         "reader_tiles": result.get("reader_tiles") == 1,
         "reader_edges": result.get("reader_edges") == 3,
-        "reader_bytes": result.get("reader_graph_bytes") == 88,
+        "reader_bytes": result.get("reader_graph_bytes") == 96,
         "maintenance_graph_index_payload": result.get(
             "maintenance_graph_index_payload_write_bytes"
         )
@@ -146,12 +162,24 @@ def validate_carry_hot_result(
         "reader_graph_index_payload": result.get(
             "reader_graph_index_payload_bytes"
         )
-        == 64,
-        "reader_graph_payload": result.get("reader_graph_payload_bytes") == 24,
+        == 48,
+        "reader_graph_payload": result.get("reader_graph_payload_bytes") == 48,
+        "reader_graph_payload_split": result.get(
+            "reader_construction_payload_bytes"
+        )
+        == 24
+        and result.get("reader_replay_payload_bytes") == 24,
         "reader_graph_index_bitmap": result.get(
             "reader_graph_index_bitmap_misses"
         )
         == 0,
+        "reader_exact_range_path": result.get("reader_range_path") == 1
+        and result.get("reader_range_error") == 0
+        and result.get("reader_range_fallback_reason") == 0
+        and result.get("reader_range_tasks") == 2
+        and result.get("reader_range_level_checks") == 352
+        and result.get("reader_range_construction_payloads") == 3
+        and result.get("reader_range_replay_payloads") == 3,
         "reader_metadata": result.get("reader_metadata_bytes") == 3_024,
         "reader_levels": result.get("reader_occupied_levels") == 2,
         "reader_partitioning": result.get("reader_cold_edges") == 2
@@ -252,15 +280,27 @@ def validate_multiround_sssp_result(
         "reader_graph_index_payload": result.get(
             "reader_graph_index_payload_bytes_per_round"
         )
-        == [32, 64, 64, 64, 32, 0],
+        == [24, 64, 64, 56, 32, 8],
         "reader_graph_payload": result.get(
             "reader_graph_payload_bytes_per_round"
         )
+        == [48, 48, 32, 32, 16, 0],
+        "reader_graph_payload_split": result.get(
+            "reader_construction_payload_bytes_per_round"
+        )
+        == [24, 24, 16, 16, 8, 0]
+        and result.get("reader_replay_payload_bytes_per_round")
         == [24, 24, 16, 16, 8, 0],
         "reader_graph_index_bitmap": result.get(
             "reader_graph_index_bitmap_misses_per_round"
         )
-        == [0] * 6,
+        == [0, 1, 0, 0, 1, 1],
+        "reader_range_tasks": result.get("reader_range_tasks_per_round")
+        == [1, 2, 2, 2, 1, 0]
+        and result.get("reader_range_row_lookups_per_round")
+        == [1, 3, 2, 2, 2, 1]
+        and result.get("reader_range_level_checks_per_round")
+        == [176, 528, 352, 352, 352, 176],
         "dram_matches_backend": int(dram.get("dram_reads", 0))
         + int(dram.get("dram_writes", 0))
         == result.get("backend_requests"),

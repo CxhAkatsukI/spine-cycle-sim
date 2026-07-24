@@ -141,6 +141,10 @@ class SpineL0Maintenance final : public Component {
   [[nodiscard]] const SpineL0Counters &counters() const noexcept {
     return counters_;
   }
+  [[nodiscard]] const SpineL0Config &config() const noexcept { return config_; }
+  [[nodiscard]] std::size_t vertices() const noexcept {
+    return workload_.vertices;
+  }
 
   void evaluate(const CycleContext &context) override;
   void commit(const CycleContext &context) override;

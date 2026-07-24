@@ -1,5 +1,8 @@
 # Spine graph index payload path
 
+> Historical milestone. The page-base and row-offset limitations recorded here
+> are closed by `docs/spine_exact_range_task_reader_20260724.md`.
+
 Date: 2026-07-24
 Branch: `codex/fine-grained-cycle-sim`
 HLS reference: `origin/reduce-levels-for-routing` at `afb8199a2ca8d3fd208b985324bf4d8719e2b839`
