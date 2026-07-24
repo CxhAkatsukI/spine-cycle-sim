@@ -1,0 +1,27 @@
+digraph streamed_maintenance {
+  graph [rankdir=LR, bgcolor="white", pad=0.25, nodesep=0.35, ranksep=0.55];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=10,
+        color="#334155", fillcolor="#f8fafc", margin="0.12,0.08"];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#475569"];
+
+  request [label="Maintenance scan\nAxiRequest(stream beats)", fillcolor="#dbeafe"];
+  splitter [label="AXI burst splitter\n16 beats max / 16 outstanding"];
+  hbm [label="SST StandardMem\nHBM + DRAMSim3", fillcolor="#fee2e2"];
+  axi_reorder [label="AXI response reorder\nbounded: 32 beats"];
+  beat [label="16-byte read beat\ntransaction + offset + payload"];
+  fifo [label="Registered beat FIFO\ndepth 32", fillcolor="#dcfce7"];
+  reorder [label="Maintenance offset reorder\nbounded: 32 edges\nretire next edge only"];
+  loop [label="HLS scan loop\ncount II=1 / L0 write II=24", fillcolor="#fef3c7"];
+  state [label="Counters / family state\nnext maintenance phase", fillcolor="#e0e7ff"];
+  parent [label="Complete parent response\nheld until all beats consumed"];
+
+  request -> splitter -> hbm [label="address / burst beats"];
+  hbm -> axi_reorder [label="execution-driven response"];
+  axi_reorder -> beat [label="same-parent offset order"];
+  beat -> fifo -> reorder -> loop -> state;
+  axi_reorder -> hbm [label="full: response ingress stalls", color="#b91c1c", fontcolor="#b91c1c"];
+  fifo -> hbm [label="full: backpressure", color="#b91c1c", fontcolor="#b91c1c"];
+  reorder -> fifo [label="full: stop pop", color="#b91c1c", fontcolor="#b91c1c"];
+  beat -> parent [style=dashed, label="aggregate copy"];
+  fifo -> parent [style=dashed, label="retirement credit"];
+}

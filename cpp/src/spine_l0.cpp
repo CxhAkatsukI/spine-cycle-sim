@@ -654,8 +654,12 @@ SpineL0Maintenance::SpineL0Maintenance(std::string name, ClockId clock_id,
       config_.fallback_replay_threshold == 0 ||
       config_.memory_request_window == 0 ||
       config_.reader_edge_pipeline_depth == 0 ||
-      config_.reader_edge_response_capacity == 0 || workload_.vertices == 0 ||
-      workload_.vertices > config_.max_vertices || workload_.edges.empty() ||
+      config_.reader_edge_response_capacity == 0 ||
+      config_.maintenance_count_scan_ii == 0 ||
+      config_.maintenance_l0_write_scan_ii == 0 ||
+      config_.maintenance_scan_response_capacity == 0 ||
+      workload_.vertices == 0 || workload_.vertices > config_.max_vertices ||
+      workload_.edges.empty() ||
       workload_.edges.size() > config_.max_sort_edges ||
       ports_.sorted_edges == nullptr || ports_.metadata == nullptr ||
       ports_.result == nullptr) {
@@ -808,13 +812,15 @@ void SpineL0Maintenance::initialize_metadata_payload() {
   }
 }
 
-void SpineL0Maintenance::evaluate(const CycleContext &) {
+void SpineL0Maintenance::evaluate(const CycleContext &context) {
   staged_action_ = StagedAction::kNone;
   staged_memory_issue_ = false;
   staged_memory_completion_ = false;
+  staged_read_beat_completion_ = false;
   if (done_ || failed_) {
     return;
   }
+  staged_read_beat_completion_ = stage_read_beat();
   staged_memory_completion_ = stage_memory_completion();
   if (!tasks_.empty()) {
     const MemoryTask &task = tasks_.front();
@@ -827,6 +833,7 @@ void SpineL0Maintenance::evaluate(const CycleContext &) {
                    .operation = task.operation,
                    .address = task.address,
                    .bytes = task.bytes,
+                   .stream_read_beats = task.stream_sorted_scan,
                    .write_data = task.write_data,
                })) {
       staged_memory_issue_ = true;
@@ -834,14 +841,29 @@ void SpineL0Maintenance::evaluate(const CycleContext &) {
       ++counters_.memory_request_fifo_stall_cycles;
     }
   }
+  if (scan_process_phase()) {
+    if (scan_can_advance(context)) {
+      staged_action_ = StagedAction::kAdvance;
+    }
+    return;
+  }
   if (!tasks_.empty() || !inflight_tasks_.empty() ||
-      staged_memory_completion_) {
+      staged_memory_completion_ || staged_read_beat_completion_) {
     return;
   }
   staged_action_ = StagedAction::kAdvance;
 }
 
 void SpineL0Maintenance::commit(const CycleContext &context) {
+  if (staged_read_beat_completion_) {
+    if (!staged_read_beat_response_.success) {
+      failed_ = true;
+      done_ = true;
+      failure_ = "Spine AXI read beat failed";
+      return;
+    }
+    consume_read_beat(staged_read_beat_response_);
+  }
   if (staged_memory_completion_) {
     const auto found = inflight_tasks_.find(staged_response_.transaction_id);
     if (found == inflight_tasks_.end() || !staged_response_.success) {
@@ -856,6 +878,13 @@ void SpineL0Maintenance::commit(const CycleContext &context) {
   }
   if (staged_memory_issue_) {
     const std::uint64_t transaction_id = next_transaction_id_++;
+    if (tasks_.front().stream_sorted_scan) {
+      if (scan_transaction_valid_) {
+        throw std::logic_error("overlapping Spine sorted scan transactions");
+      }
+      scan_transaction_id_ = transaction_id;
+      scan_transaction_valid_ = true;
+    }
     inflight_tasks_.emplace(transaction_id, std::move(tasks_.front()));
     tasks_.pop_front();
     ++counters_.memory_requests_issued;
@@ -895,6 +924,9 @@ bool SpineL0Maintenance::stage_memory_completion() {
   FixedAxiPort *selected_port = nullptr;
   for (const auto &[transaction_id, task] : inflight_tasks_) {
     const AxiResponse *response = task.port->responses().front();
+    if (task.streamed_read_beats_received < task.streamed_read_beats_expected) {
+      continue;
+    }
     if (response != nullptr && response->transaction_id == transaction_id &&
         transaction_id < selected) {
       selected = transaction_id;
@@ -905,11 +937,34 @@ bool SpineL0Maintenance::stage_memory_completion() {
          selected_port->responses().try_pop(staged_response_);
 }
 
+bool SpineL0Maintenance::stage_read_beat() {
+  if (!ports_.sorted_edges->read_beat_stream_enabled()) {
+    return false;
+  }
+  const AxiReadBeatResponse *beat = ports_.sorted_edges->read_beats().front();
+  if (beat == nullptr) {
+    return false;
+  }
+  const auto found = inflight_tasks_.find(beat->transaction_id);
+  if (found == inflight_tasks_.end() ||
+      found->second.port != ports_.sorted_edges ||
+      found->second.operation != MemoryOperation::kRead) {
+    throw std::logic_error("Spine read beat has no matching sorted-edge task");
+  }
+  if (found->second.stream_sorted_scan &&
+      scan_response_edges_.size() >=
+          config_.maintenance_scan_response_capacity) {
+    ++counters_.sorted_scan_reorder_full_stall_cycles;
+    return false;
+  }
+  return ports_.sorted_edges->read_beats().try_pop(staged_read_beat_response_);
+}
+
 void SpineL0Maintenance::enqueue_task(
     FixedAxiPort &port, MemoryOperation operation, std::uint64_t address,
     std::uint64_t bytes, TaskClass task_class,
     std::vector<std::uint8_t> write_data,
-    std::vector<std::uint32_t> carry_edge_sources) {
+    std::vector<std::uint32_t> carry_edge_sources, bool stream_sorted_scan) {
   if (bytes == 0) {
     return;
   }
@@ -933,6 +988,14 @@ void SpineL0Maintenance::enqueue_task(
       .task_class = task_class,
       .write_data = std::move(write_data),
       .carry_edge_sources = std::move(carry_edge_sources),
+      .stream_sorted_scan = stream_sorted_scan,
+      .streamed_read_beats_expected =
+          stream_sorted_scan
+              ? static_cast<std::size_t>(
+                    (bytes + port.master().config().data_width_bytes - 1) /
+                    port.master().config().data_width_bytes)
+              : 0,
+      .streamed_read_beats_received = 0,
   });
   ++counters_.memory_tasks;
   switch (task_class) {
@@ -966,25 +1029,156 @@ void SpineL0Maintenance::enqueue_task(
   }
 }
 
-void SpineL0Maintenance::begin_sorted_scan(Phase process_phase) {
-  enqueue_task(
-      *ports_.sorted_edges, MemoryOperation::kRead, config_.sorted_edges_base,
-      workload_.edges.size() * kSpineSortWordBytes, TaskClass::kSorted);
+void SpineL0Maintenance::begin_sorted_scan(Phase process_phase, ScanKind kind) {
+  streaming_scan_ = ports_.sorted_edges->read_beat_stream_enabled();
+  if (streaming_scan_ &&
+      ports_.sorted_edges->master().config().data_width_bytes !=
+          kSpineSortWordBytes) {
+    throw std::logic_error(
+        "streamed Spine sorted scans require one edge per AXI beat");
+  }
+  enqueue_task(*ports_.sorted_edges, MemoryOperation::kRead,
+               config_.sorted_edges_base,
+               workload_.edges.size() * kSpineSortWordBytes, TaskClass::kSorted,
+               {}, {}, streaming_scan_);
   ++counters_.sorted_scan_passes;
+  scan_kind_ = kind;
   scan_index_ = 0;
+  scan_tail_remaining_ = 0;
+  next_scan_consume_cycle_ = 0;
+  scan_transaction_valid_ = false;
+  scan_response_edges_.clear();
   phase_ = process_phase;
 }
 
-void SpineL0Maintenance::process_scan_edge(Phase next_phase) {
-  if (scan_index_ >= sorted_scan_edges_.size()) {
-    phase_ = next_phase;
-    return;
+bool SpineL0Maintenance::scan_process_phase() const noexcept {
+  switch (phase_) {
+  case Phase::kDirtyPreflightProcess:
+  case Phase::kDirtyUpdateProcess:
+  case Phase::kHotColdCountProcess:
+  case Phase::kPrecountProcess:
+  case Phase::kWriteProcess:
+    return true;
+  default:
+    return false;
+  }
+}
+
+std::size_t SpineL0Maintenance::scan_initiation_interval() const noexcept {
+  return scan_kind_ == ScanKind::kL0Write ? config_.maintenance_l0_write_scan_ii
+                                          : config_.maintenance_count_scan_ii;
+}
+
+std::size_t SpineL0Maintenance::scan_tail_cycles() const noexcept {
+  switch (scan_kind_) {
+  case ScanKind::kHotColdCount:
+  case ScanKind::kFamilyPrecount:
+    return config_.maintenance_count_scan_tail_cycles;
+  case ScanKind::kL0Write:
+    return config_.maintenance_l0_write_scan_tail_cycles;
+  case ScanKind::kDirtyValidate:
+  case ScanKind::kDirtyMark:
+    return 0;
+  }
+  return 0;
+}
+
+bool SpineL0Maintenance::scan_can_advance(const CycleContext &context) {
+  if (scan_index_ == sorted_scan_edges_.size()) {
+    return true;
+  }
+  if (context.domain_cycle < next_scan_consume_cycle_) {
+    ++counters_.sorted_scan_ii_stall_cycles;
+    return false;
+  }
+  if (streaming_scan_) {
+    if (!scan_response_edges_.contains(scan_index_)) {
+      ++counters_.sorted_scan_response_stall_cycles;
+      return false;
+    }
+    return true;
+  }
+  if (!tasks_.empty() || !inflight_tasks_.empty() ||
+      staged_memory_completion_) {
+    ++counters_.sorted_scan_response_stall_cycles;
+    return false;
+  }
+  return true;
+}
+
+bool SpineL0Maintenance::process_scan_edge(const CycleContext &context) {
+  if (scan_index_ == sorted_scan_edges_.size()) {
+    if (scan_tail_remaining_ != 0) {
+      --scan_tail_remaining_;
+      ++counters_.sorted_scan_tail_cycles;
+      return false;
+    }
+    return true;
+  }
+  if (streaming_scan_) {
+    const auto found = scan_response_edges_.find(scan_index_);
+    if (found == scan_response_edges_.end()) {
+      throw std::logic_error("Spine advanced without the next sorted beat");
+    }
+    sorted_scan_edges_[scan_index_] = found->second;
+    scan_response_edges_.erase(found);
   }
   ++counters_.sorted_edge_visits;
-  ++scan_index_;
-  if (scan_index_ == sorted_scan_edges_.size()) {
-    phase_ = next_phase;
+  switch (scan_kind_) {
+  case ScanKind::kDirtyValidate:
+    ++counters_.dirty_validate_edge_visits;
+    break;
+  case ScanKind::kDirtyMark:
+    ++counters_.dirty_mark_edge_visits;
+    break;
+  case ScanKind::kHotColdCount:
+    ++counters_.hot_cold_count_edge_visits;
+    break;
+  case ScanKind::kFamilyPrecount:
+    ++counters_.family_precount_edge_visits;
+    break;
+  case ScanKind::kL0Write:
+    ++counters_.l0_write_edge_visits;
+    break;
   }
+  ++scan_index_;
+  next_scan_consume_cycle_ = context.domain_cycle + scan_initiation_interval();
+  if (scan_index_ == sorted_scan_edges_.size()) {
+    scan_tail_remaining_ = scan_tail_cycles();
+  }
+  return false;
+}
+
+void SpineL0Maintenance::consume_read_beat(const AxiReadBeatResponse &beat) {
+  const auto task = inflight_tasks_.find(beat.transaction_id);
+  if (task == inflight_tasks_.end()) {
+    throw std::logic_error("Spine consumed an unknown AXI read beat");
+  }
+  if (task->second.streamed_read_beats_received >=
+      task->second.streamed_read_beats_expected) {
+    throw std::logic_error("too many Spine AXI read beats for one task");
+  }
+  ++task->second.streamed_read_beats_received;
+  if (!task->second.stream_sorted_scan) {
+    return;
+  }
+  if (!scan_transaction_valid_ || beat.transaction_id != scan_transaction_id_ ||
+      beat.parent_offset % kSpineSortWordBytes != 0 ||
+      beat.read_data.size() != kSpineSortWordBytes) {
+    throw std::logic_error("invalid streamed Spine sorted-edge beat");
+  }
+  const std::size_t index =
+      static_cast<std::size_t>(beat.parent_offset / kSpineSortWordBytes);
+  if (index >= sorted_scan_edges_.size() ||
+      !scan_response_edges_
+           .emplace(index, decode_spine_sort_edge(beat.read_data))
+           .second) {
+    throw std::logic_error("duplicate or out-of-range Spine sorted-edge beat");
+  }
+  ++counters_.sorted_read_beats_received;
+  counters_.sorted_payload_read_bytes += beat.read_data.size();
+  counters_.max_sorted_scan_buffered_edges = std::max(
+      counters_.max_sorted_scan_buffered_edges, scan_response_edges_.size());
 }
 
 void SpineL0Maintenance::consume_memory_response(const MemoryTask &task,
@@ -1000,8 +1194,10 @@ void SpineL0Maintenance::consume_memory_response(const MemoryTask &task,
     throw std::logic_error("Spine maintenance read response payload mismatch");
   }
   if (task.task_class == TaskClass::kSorted) {
-    sorted_scan_edges_ = decode_spine_sort_edges(response.read_data);
-    counters_.sorted_payload_read_bytes += response.read_data.size();
+    if (!task.stream_sorted_scan) {
+      sorted_scan_edges_ = decode_spine_sort_edges(response.read_data);
+      counters_.sorted_payload_read_bytes += response.read_data.size();
+    }
   } else if (!task.carry_edge_sources.empty()) {
     for (std::size_t index = 0; index < task.carry_edge_sources.size();
          ++index) {
@@ -1412,186 +1608,184 @@ void SpineL0Maintenance::enqueue_committed_metadata() {
 
 void SpineL0Maintenance::advance(const CycleContext &context) {
   switch (phase_) {
-    case Phase::kInitialize:
-      counters_.start_cycle = context.domain_cycle;
-      counters_.hot_enabled = state_.hot_enabled;
-      for (const SpineEdgeRecord &edge : sorted_scan_edges_) {
-        if (edge_is_hot(edge.dst)) {
-          ++counters_.hot_input_edges;
-        } else {
-          ++counters_.cold_input_edges;
-        }
-      }
-      enqueue_task(*ports_.metadata, MemoryOperation::kRead,
-                   config_.metadata_base +
-                       spine_metadata_layout(config_).hot_enabled_word *
-                           kMetadataWordBytes,
-                   kMetadataWordBytes, TaskClass::kMetadata);
-      phase_ = Phase::kDirtyPreflightBegin;
-      return;
-    case Phase::kDirtyPreflightBegin:
-      begin_sorted_scan(Phase::kDirtyPreflightProcess);
-      return;
-    case Phase::kDirtyPreflightProcess:
-      process_scan_edge(Phase::kDirtyUpdateBegin);
-      return;
-    case Phase::kDirtyUpdateBegin:
-      begin_sorted_scan(Phase::kDirtyUpdateProcess);
-      return;
-    case Phase::kDirtyUpdateProcess:
-      if (scan_index_ + 1 == sorted_scan_edges_.size()) {
-        ++counters_.sorted_edge_visits;
-        ++scan_index_;
-        enqueue_dirty_source_updates();
-        phase_ = Phase::kTargetSelect;
+  case Phase::kInitialize:
+    counters_.start_cycle = context.domain_cycle;
+    counters_.hot_enabled = state_.hot_enabled;
+    enqueue_task(*ports_.metadata, MemoryOperation::kRead,
+                 config_.metadata_base +
+                     spine_metadata_layout(config_).hot_enabled_word *
+                         kMetadataWordBytes,
+                 kMetadataWordBytes, TaskClass::kMetadata);
+    phase_ = Phase::kDirtyPreflightBegin;
+    return;
+  case Phase::kDirtyPreflightBegin:
+    begin_sorted_scan(Phase::kDirtyPreflightProcess, ScanKind::kDirtyValidate);
+    return;
+  case Phase::kDirtyPreflightProcess:
+    if (process_scan_edge(context)) {
+      phase_ = Phase::kDirtyUpdateBegin;
+    }
+    return;
+  case Phase::kDirtyUpdateBegin:
+    begin_sorted_scan(Phase::kDirtyUpdateProcess, ScanKind::kDirtyMark);
+    return;
+  case Phase::kDirtyUpdateProcess:
+    if (process_scan_edge(context)) {
+      enqueue_dirty_source_updates();
+      phase_ = Phase::kHotColdCountBegin;
+    }
+    return;
+  case Phase::kHotColdCountBegin:
+    begin_sorted_scan(Phase::kHotColdCountProcess, ScanKind::kHotColdCount);
+    return;
+  case Phase::kHotColdCountProcess: {
+    const std::size_t before = scan_index_;
+    if (process_scan_edge(context)) {
+      phase_ = Phase::kTargetSelect;
+    } else if (scan_index_ != before) {
+      const SpineEdgeRecord &edge = sorted_scan_edges_[before];
+      if (edge_is_hot(edge.dst)) {
+        ++counters_.hot_input_edges;
       } else {
-        process_scan_edge(Phase::kTargetSelect);
+        ++counters_.cold_input_edges;
       }
+    }
+    return;
+  }
+  case Phase::kTargetSelect:
+    enqueue_task(*ports_.metadata, MemoryOperation::kRead,
+                 config_.metadata_base,
+                 config_.partitions * config_.levels * 2 * kMetadataWordBytes,
+                 TaskClass::kMetadata);
+    counters_.target_level = static_cast<std::int32_t>(target_for(false));
+    if (counters_.target_level >= static_cast<std::int32_t>(config_.levels)) {
+      failed_ = true;
+      done_ = true;
+      failure_ = "Spine cold level hierarchy has no free target";
       return;
-    case Phase::kTargetSelect:
+    }
+    counters_.hot_target_level = -1;
+    if (state_.hot_enabled) {
       enqueue_task(*ports_.metadata, MemoryOperation::kRead,
-                   config_.metadata_base,
+                   config_.metadata_base + config_.partitions * config_.levels *
+                                               8 * kMetadataWordBytes,
                    config_.partitions * config_.levels * 2 * kMetadataWordBytes,
                    TaskClass::kMetadata);
-      counters_.target_level = static_cast<std::int32_t>(target_for(false));
-      if (counters_.target_level >= static_cast<std::int32_t>(config_.levels)) {
+      counters_.hot_target_level = static_cast<std::int32_t>(target_for(true));
+      if (counters_.hot_target_level >=
+          static_cast<std::int32_t>(config_.levels)) {
         failed_ = true;
         done_ = true;
-        failure_ = "Spine cold level hierarchy has no free target";
+        failure_ = "Spine hot level hierarchy has no free target";
         return;
       }
-      counters_.hot_target_level = -1;
-      if (state_.hot_enabled) {
-        enqueue_task(
-            *ports_.metadata, MemoryOperation::kRead,
-            config_.metadata_base +
-                config_.partitions * config_.levels * 8 * kMetadataWordBytes,
-            config_.partitions * config_.levels * 2 * kMetadataWordBytes,
-            TaskClass::kMetadata);
-        counters_.hot_target_level =
-            static_cast<std::int32_t>(target_for(true));
-        if (counters_.hot_target_level >=
-            static_cast<std::int32_t>(config_.levels)) {
-          failed_ = true;
-          done_ = true;
-          failure_ = "Spine hot level hierarchy has no free target";
-          return;
-        }
-      }
-      family_index_ = 0;
-      precount_hot_ = false;
-      phase_ = Phase::kPrecountBegin;
-      return;
-    case Phase::kPrecountBegin:
-      begin_sorted_scan(Phase::kPrecountProcess);
-      return;
-    case Phase::kPrecountProcess:
-      if (scan_index_ + 1 == sorted_scan_edges_.size()) {
-        ++counters_.sorted_edge_visits;
-        ++scan_index_;
-        ++family_index_;
-        if (family_index_ == config_.partitions) {
-          if (!precount_hot_ && state_.hot_enabled) {
-            precount_hot_ = true;
-            family_index_ = 0;
-            phase_ = Phase::kPrecountBegin;
-          } else {
-            phase_ = Phase::kBuildOutputs;
-          }
-        } else {
-          phase_ = Phase::kPrecountBegin;
-        }
-      } else {
-        process_scan_edge(Phase::kPrecountBegin);
-      }
-      return;
-    case Phase::kBuildOutputs:
-      build_family_outputs();
-      active_family_index_ = 0;
-      phase_ = Phase::kWriteSelect;
-      return;
-    case Phase::kWriteSelect:
-      if (active_family_index_ == family_write_tasks_.size()) {
-        phase_ = Phase::kCommitMetadata;
-      } else {
-        phase_ = family_write_tasks_[active_family_index_].target == 0
-                     ? Phase::kWriteBegin
-                     : Phase::kCarryPrepare;
-      }
-      return;
-    case Phase::kWriteBegin:
-      begin_sorted_scan(Phase::kWriteProcess);
-      return;
-    case Phase::kWriteProcess:
-      if (scan_index_ + 1 == sorted_scan_edges_.size()) {
-        ++counters_.sorted_edge_visits;
-        ++scan_index_;
-        const FamilyWriteTask &task = family_write_tasks_[active_family_index_];
-        enqueue_family_writes(task.hot, task.family, task.target);
-        if (failed_) {
-          return;
-        }
-        phase_ = Phase::kWriteAdvance;
-      } else {
-        process_scan_edge(Phase::kWriteAdvance);
-      }
-      return;
-    case Phase::kCarryPrepare: {
-      const FamilyWriteTask &task = family_write_tasks_[active_family_index_];
-      const auto &levels = task.hot ? state_.hot_levels : state_.cold_levels;
-      carry_payload_edges_.clear();
-      carry_steps_remaining_ = coalesce_family(task.hot, task.family).size();
-      for (std::size_t level = 0; level < task.target; ++level) {
-        carry_steps_remaining_ += levels[task.family][level].size();
-      }
-      enqueue_carry_reads(task.hot, task.family, task.target);
-      phase_ = Phase::kCarryProcess;
-      return;
     }
-    case Phase::kCarryProcess: {
-      if (carry_steps_remaining_ != 0) {
-        --carry_steps_remaining_;
-        ++counters_.carry_merge_inputs;
-        return;
-      }
-      const FamilyWriteTask &task = family_write_tasks_[active_family_index_];
-      auto &output = task.hot ? hot_family_outputs_[task.family]
-                              : family_outputs_[task.family];
-      const bool was_active = !output.empty();
-      output = merge_family_with_carry_payload(task.hot, task.family);
-      const bool is_active = !output.empty();
-      if (was_active && !is_active) {
-        --counters_.active_families;
-      } else if (!was_active && is_active) {
-        ++counters_.active_families;
-      }
-      std::uint64_t rows = 0;
-      std::uint32_t last_src = 0;
-      bool have_src = false;
-      for (const SpineEdgeRecord &edge : output) {
-        if (!have_src || edge.src != last_src) {
-          ++rows;
-          last_src = edge.src;
-          have_src = true;
+    family_index_ = 0;
+    precount_hot_ = false;
+    phase_ = Phase::kPrecountBegin;
+    return;
+  case Phase::kPrecountBegin:
+    begin_sorted_scan(Phase::kPrecountProcess, ScanKind::kFamilyPrecount);
+    return;
+  case Phase::kPrecountProcess:
+    if (process_scan_edge(context)) {
+      ++family_index_;
+      if (family_index_ == config_.partitions) {
+        if (!precount_hot_ && state_.hot_enabled) {
+          precount_hot_ = true;
+          family_index_ = 0;
+          phase_ = Phase::kPrecountBegin;
+        } else {
+          phase_ = Phase::kBuildOutputs;
         }
-      }
-      if (task.hot) {
-        counters_.hot_family_edges[task.family] = output.size();
-        counters_.hot_family_rows[task.family] = rows;
       } else {
-        counters_.family_edges[task.family] = output.size();
-        counters_.family_rows[task.family] = rows;
+        phase_ = Phase::kPrecountBegin;
       }
-      counters_.carry_outputs += output.size();
-      if (!output.empty()) {
-        enqueue_family_writes(task.hot, task.family, task.target);
-        if (failed_) {
-          return;
-        }
+    }
+    return;
+  case Phase::kBuildOutputs:
+    build_family_outputs();
+    active_family_index_ = 0;
+    phase_ = Phase::kWriteSelect;
+    return;
+  case Phase::kWriteSelect:
+    if (active_family_index_ == family_write_tasks_.size()) {
+      phase_ = Phase::kCommitMetadata;
+    } else {
+      phase_ = family_write_tasks_[active_family_index_].target == 0
+                   ? Phase::kWriteBegin
+                   : Phase::kCarryPrepare;
+    }
+    return;
+  case Phase::kWriteBegin:
+    begin_sorted_scan(Phase::kWriteProcess, ScanKind::kL0Write);
+    return;
+  case Phase::kWriteProcess:
+    if (process_scan_edge(context)) {
+      const FamilyWriteTask &task = family_write_tasks_[active_family_index_];
+      enqueue_family_writes(task.hot, task.family, task.target);
+      if (failed_) {
+        return;
       }
       phase_ = Phase::kWriteAdvance;
+    }
+    return;
+  case Phase::kCarryPrepare: {
+    const FamilyWriteTask &task = family_write_tasks_[active_family_index_];
+    const auto &levels = task.hot ? state_.hot_levels : state_.cold_levels;
+    carry_payload_edges_.clear();
+    carry_steps_remaining_ = coalesce_family(task.hot, task.family).size();
+    for (std::size_t level = 0; level < task.target; ++level) {
+      carry_steps_remaining_ += levels[task.family][level].size();
+    }
+    enqueue_carry_reads(task.hot, task.family, task.target);
+    phase_ = Phase::kCarryProcess;
+    return;
+  }
+  case Phase::kCarryProcess: {
+    if (carry_steps_remaining_ != 0) {
+      --carry_steps_remaining_;
+      ++counters_.carry_merge_inputs;
       return;
     }
+    const FamilyWriteTask &task = family_write_tasks_[active_family_index_];
+    auto &output = task.hot ? hot_family_outputs_[task.family]
+                            : family_outputs_[task.family];
+    const bool was_active = !output.empty();
+    output = merge_family_with_carry_payload(task.hot, task.family);
+    const bool is_active = !output.empty();
+    if (was_active && !is_active) {
+      --counters_.active_families;
+    } else if (!was_active && is_active) {
+      ++counters_.active_families;
+    }
+    std::uint64_t rows = 0;
+    std::uint32_t last_src = 0;
+    bool have_src = false;
+    for (const SpineEdgeRecord &edge : output) {
+      if (!have_src || edge.src != last_src) {
+        ++rows;
+        last_src = edge.src;
+        have_src = true;
+      }
+    }
+    if (task.hot) {
+      counters_.hot_family_edges[task.family] = output.size();
+      counters_.hot_family_rows[task.family] = rows;
+    } else {
+      counters_.family_edges[task.family] = output.size();
+      counters_.family_rows[task.family] = rows;
+    }
+    counters_.carry_outputs += output.size();
+    if (!output.empty()) {
+      enqueue_family_writes(task.hot, task.family, task.target);
+      if (failed_) {
+        return;
+      }
+    }
+    phase_ = Phase::kWriteAdvance;
+    return;
+  }
     case Phase::kWriteAdvance:
       ++active_family_index_;
       phase_ = Phase::kWriteSelect;

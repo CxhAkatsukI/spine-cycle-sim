@@ -64,6 +64,25 @@ probe.addParams(
         "reader_edge_response_capacity": int(
             os.environ.get("SPINE_SST_READER_EDGE_RESPONSE_CAPACITY", "32")
         ),
+        "maintenance_count_scan_ii": int(
+            os.environ.get("SPINE_SST_MAINTENANCE_COUNT_SCAN_II", "1")
+        ),
+        "maintenance_count_scan_tail_cycles": int(
+            os.environ.get("SPINE_SST_MAINTENANCE_COUNT_SCAN_TAIL_CYCLES", "19")
+        ),
+        "maintenance_l0_write_scan_ii": int(
+            os.environ.get("SPINE_SST_MAINTENANCE_L0_WRITE_SCAN_II", "24")
+        ),
+        "maintenance_l0_write_scan_tail_cycles": int(
+            os.environ.get(
+                "SPINE_SST_MAINTENANCE_L0_WRITE_SCAN_TAIL_CYCLES", "42"
+            )
+        ),
+        "maintenance_scan_response_capacity": int(
+            os.environ.get(
+                "SPINE_SST_MAINTENANCE_SCAN_RESPONSE_CAPACITY", "32"
+            )
+        ),
         "spine_axi_profile": os.environ.get(
             "SPINE_SST_AXI_PROFILE", "hls_split_9c08763"
         ),

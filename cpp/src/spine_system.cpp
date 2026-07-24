@@ -134,6 +134,8 @@ FixedAxiPortConfig SpineAxiInterfaceProfile::port_config(
       .initiator_id = initiator_id,
       .data_width_bytes = width,
       .max_burst_beats = max_burst_beats,
+      .stream_read_beats = kind == SpineAxiPortKind::kSortedEdges &&
+                           sorted_edge_bytes == kSpineSortWordBytes,
       .max_pending_requests = write_only ? writeonly_max_pending_requests
                                          : readwrite_max_pending_requests,
       .max_outstanding_bursts = max_outstanding_bursts,
@@ -546,4 +548,29 @@ SpineVerticalSliceSystem::axi_config(SpineAxiPortKind kind) const {
   throw std::logic_error("unknown Spine AXI port kind");
 }
 
-}  // namespace spine::sim
+const AxiStats &
+SpineVerticalSliceSystem::axi_stats(SpineAxiPortKind kind) const {
+  switch (kind) {
+  case SpineAxiPortKind::kGraph:
+    return graph_ports_[0]->master().stats();
+  case SpineAxiPortKind::kSortedEdges:
+    return sorted_->master().stats();
+  case SpineAxiPortKind::kActiveBins:
+    return active_bins_->master().stats();
+  case SpineAxiPortKind::kMetadata:
+    return metadata_->master().stats();
+  case SpineAxiPortKind::kMaintenanceResult:
+    return maintenance_result_->master().stats();
+  case SpineAxiPortKind::kVertexState:
+    return vertex_state_->master().stats();
+  case SpineAxiPortKind::kActiveOut:
+    return active_out_->master().stats();
+  case SpineAxiPortKind::kActiveBitmap:
+    return active_bitmap_->master().stats();
+  case SpineAxiPortKind::kComputeResult:
+    return compute_result_->master().stats();
+  }
+  throw std::logic_error("unknown Spine AXI port kind");
+}
+
+} // namespace spine::sim

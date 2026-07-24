@@ -1,0 +1,81 @@
+{
+  "date": "2026-07-24",
+  "evidence_tier": "structural_execution_driven",
+  "source_following_revision": "afb8199a2ca8d3fd208b985324bf4d8719e2b839",
+  "synthesis_reference_revision": "9c08763148644df262c0d374e782bc834f4c0f4f",
+  "scan_profile": {
+    "count_scan_ii": 1,
+    "count_scan_tail_cycles": 19,
+    "l0_write_scan_ii": 24,
+    "l0_write_scan_tail_cycles": 42,
+    "sorted_edge_beat_bytes": 16,
+    "axi_read_reorder_capacity": 32,
+    "read_beat_fifo_depth": 32,
+    "maintenance_scan_response_capacity": 32
+  },
+  "amazon_l0": {
+    "cycles": 6962,
+    "backend_requests": 1378,
+    "scan_passes": 20,
+    "edge_visits": 200,
+    "streamed_read_beats": 200,
+    "sorted_read_bytes": 3200,
+    "response_stall_cycles": 203,
+    "reorder_full_stall_cycles": 0,
+    "ii_stall_cycles": 207,
+    "tail_cycles": 365,
+    "max_buffered_edges": 9,
+    "axi_read_beat_fifo_stall_cycles": 0,
+    "axi_read_reorder_stall_cycles": 0,
+    "axi_read_beats_streamed": 200,
+    "dirty_validate_visits": 10,
+    "dirty_mark_visits": 10,
+    "hot_cold_count_visits": 10,
+    "family_precount_visits": 160,
+    "l0_write_visits": 10,
+    "correctness_mismatches": 0,
+    "frontier_mismatches": 0
+  },
+  "amazon_l0_write_ii1_what_if": {
+    "cycles": 6753,
+    "backend_requests": 1378,
+    "speedup": 1.0309492077595144,
+    "correctness_mismatches": 0,
+    "frontier_mismatches": 0
+  },
+  "amazon_response_capacity2": {
+    "cycles": 6962,
+    "backend_requests": 1378,
+    "maintenance_scan_response_capacity": 2,
+    "response_stall_cycles": 203,
+    "reorder_full_stall_cycles": 161,
+    "ii_stall_cycles": 207,
+    "max_buffered_edges": 2,
+    "axi_read_beats_streamed": 200,
+    "correctness_mismatches": 0,
+    "frontier_mismatches": 0
+  },
+  "carry_hot": {
+    "cycles": 8402,
+    "backend_requests": 1895,
+    "scan_passes": 36,
+    "edge_visits": 72,
+    "streamed_read_beats": 72,
+    "axi_read_beats_streamed": 72,
+    "correctness_mismatches": 0,
+    "frontier_mismatches": 0
+  },
+  "cpp_pressure_test": {
+    "edges": 256,
+    "maintenance_scan_response_capacity": 32,
+    "max_buffered_edges": 32,
+    "maintenance_reorder_full_stall_cycles": 5099,
+    "axi_read_beat_fifo_stall_cycles": 4333
+  },
+  "limitations": [
+    "Dirty bitmap read-modify-write and list append are not yet interleaved per unique source.",
+    "Carry merge and graph-write sub-pipelines are not yet beat-streamed.",
+    "Platform AXI width conversion, on-chip RAM conflicts, CDC, and controller timing remain explicit gaps.",
+    "The HLS loop timing report predates the newest source-following revision."
+  ]
+}

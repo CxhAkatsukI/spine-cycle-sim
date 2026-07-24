@@ -585,6 +585,16 @@ class OnlineMemoryProbe final : public SST::Component {
         params.find<std::size_t>("reader_edge_pipeline_depth", 32);
     reader_edge_response_capacity_ =
         params.find<std::size_t>("reader_edge_response_capacity", 32);
+    maintenance_count_scan_ii_ =
+        params.find<std::size_t>("maintenance_count_scan_ii", 1);
+    maintenance_count_scan_tail_cycles_ =
+        params.find<std::size_t>("maintenance_count_scan_tail_cycles", 19);
+    maintenance_l0_write_scan_ii_ =
+        params.find<std::size_t>("maintenance_l0_write_scan_ii", 24);
+    maintenance_l0_write_scan_tail_cycles_ =
+        params.find<std::size_t>("maintenance_l0_write_scan_tail_cycles", 42);
+    maintenance_scan_response_capacity_ =
+        params.find<std::size_t>("maintenance_scan_response_capacity", 32);
     spine_axi_profile_id_ =
         params.find<std::string>("spine_axi_profile", "hls_split_9c08763");
     if ((mode_ != "probe" && mode_ != "payload_roundtrip" &&
@@ -596,6 +606,8 @@ class OnlineMemoryProbe final : public SST::Component {
         range_task_payload_budget_ == 0 || fallback_replay_threshold_ == 0 ||
         memory_request_window_ == 0 || reader_edge_pipeline_depth_ == 0 ||
         reader_edge_response_capacity_ == 0 ||
+        maintenance_count_scan_ii_ == 0 || maintenance_l0_write_scan_ii_ == 0 ||
+        maintenance_scan_response_capacity_ == 0 ||
         (spine_axi_profile_id_ != "hls_split_9c08763" &&
          spine_axi_profile_id_ != "legacy_uniform64") ||
         write_percent_ > 100 ||
@@ -752,6 +764,15 @@ class OnlineMemoryProbe final : public SST::Component {
           reader_edge_pipeline_depth_;
       maintenance_config.reader_edge_response_capacity =
           reader_edge_response_capacity_;
+      maintenance_config.maintenance_count_scan_ii = maintenance_count_scan_ii_;
+      maintenance_config.maintenance_count_scan_tail_cycles =
+          maintenance_count_scan_tail_cycles_;
+      maintenance_config.maintenance_l0_write_scan_ii =
+          maintenance_l0_write_scan_ii_;
+      maintenance_config.maintenance_l0_write_scan_tail_cycles =
+          maintenance_l0_write_scan_tail_cycles_;
+      maintenance_config.maintenance_scan_response_capacity =
+          maintenance_scan_response_capacity_;
       if (!hot_vertices_text_.empty()) {
         std::istringstream vertices(hot_vertices_text_);
         std::string item;
@@ -1013,6 +1034,15 @@ class OnlineMemoryProbe final : public SST::Component {
        "Coarse producer request window (greater than one is a what-if)", "1"},
       {"reader_edge_pipeline_depth", "II=1 edge-loop in-flight credits", "32"},
       {"reader_edge_response_capacity", "Ordered edge response capacity", "32"},
+      {"maintenance_count_scan_ii",
+       "HLS count/precount scan initiation interval", "1"},
+      {"maintenance_count_scan_tail_cycles",
+       "HLS count/precount scan pipeline tail cycles", "19"},
+      {"maintenance_l0_write_scan_ii", "Achieved HLS L0-write scan II", "24"},
+      {"maintenance_l0_write_scan_tail_cycles",
+       "Achieved HLS L0-write scan tail cycles", "42"},
+      {"maintenance_scan_response_capacity",
+       "Maintenance sorted-edge response/reorder capacity", "32"},
       {"spine_axi_profile",
        "Spine AXI profile: hls_split_9c08763 or legacy_uniform64",
        "hls_split_9c08763"})
@@ -1422,6 +1452,8 @@ class OnlineMemoryProbe final : public SST::Component {
             handoff.device_attempt.compute.done_overflow ? 1U : 0U);
       }
       const auto &maintenance = spine_system_->maintenance_counters();
+      const auto &sorted_axi =
+          spine_system_->axi_stats(SpineAxiPortKind::kSortedEdges);
       const auto &dirty_ack = spine_system_->dirty_ack_counters();
       result
           << "{\n"
@@ -1453,6 +1485,16 @@ class OnlineMemoryProbe final : public SST::Component {
           << ",\n"
           << "  \"reader_edge_response_capacity\": "
           << reader_edge_response_capacity_ << ",\n"
+          << "  \"maintenance_count_scan_ii\": " << maintenance_count_scan_ii_
+          << ",\n"
+          << "  \"maintenance_count_scan_tail_cycles\": "
+          << maintenance_count_scan_tail_cycles_ << ",\n"
+          << "  \"maintenance_l0_write_scan_ii\": "
+          << maintenance_l0_write_scan_ii_ << ",\n"
+          << "  \"maintenance_l0_write_scan_tail_cycles\": "
+          << maintenance_l0_write_scan_tail_cycles_ << ",\n"
+          << "  \"maintenance_scan_response_capacity\": "
+          << maintenance_scan_response_capacity_ << ",\n"
           << "  \"converged\": " << (converged ? "true" : "false") << ",\n"
           << "  \"correctness_mismatches\": " << mismatches << ",\n"
           << "  \"frontier_mismatches\": " << frontier_mismatches << ",\n"
@@ -1464,6 +1506,34 @@ class OnlineMemoryProbe final : public SST::Component {
           << ",\n"
           << "  \"maintenance_sorted_payload_read_bytes\": "
           << maintenance.sorted_payload_read_bytes << ",\n"
+          << "  \"maintenance_sorted_read_beats\": "
+          << maintenance.sorted_read_beats_received << ",\n"
+          << "  \"maintenance_scan_response_stall_cycles\": "
+          << maintenance.sorted_scan_response_stall_cycles << ",\n"
+          << "  \"maintenance_scan_reorder_full_stall_cycles\": "
+          << maintenance.sorted_scan_reorder_full_stall_cycles << ",\n"
+          << "  \"maintenance_scan_ii_stall_cycles\": "
+          << maintenance.sorted_scan_ii_stall_cycles << ",\n"
+          << "  \"maintenance_scan_tail_cycles\": "
+          << maintenance.sorted_scan_tail_cycles << ",\n"
+          << "  \"maintenance_max_scan_buffered_edges\": "
+          << maintenance.max_sorted_scan_buffered_edges << ",\n"
+          << "  \"maintenance_sorted_axi_read_beat_fifo_stall_cycles\": "
+          << sorted_axi.read_beat_queue_stalls << ",\n"
+          << "  \"maintenance_sorted_axi_read_reorder_stall_cycles\": "
+          << sorted_axi.read_reorder_stalls << ",\n"
+          << "  \"maintenance_sorted_axi_read_beats_streamed\": "
+          << sorted_axi.read_beats_streamed << ",\n"
+          << "  \"maintenance_dirty_validate_visits\": "
+          << maintenance.dirty_validate_edge_visits << ",\n"
+          << "  \"maintenance_dirty_mark_visits\": "
+          << maintenance.dirty_mark_edge_visits << ",\n"
+          << "  \"maintenance_hot_cold_count_visits\": "
+          << maintenance.hot_cold_count_edge_visits << ",\n"
+          << "  \"maintenance_family_precount_visits\": "
+          << maintenance.family_precount_edge_visits << ",\n"
+          << "  \"maintenance_l0_write_visits\": "
+          << maintenance.l0_write_edge_visits << ",\n"
           << "  \"maintenance_graph_index_payload_write_bytes\": "
           << maintenance.graph_index_payload_write_bytes << ",\n"
           << "  \"maintenance_graph_payload_write_bytes\": "
@@ -1748,6 +1818,8 @@ class OnlineMemoryProbe final : public SST::Component {
                           spine_system_->compute().next_active().size() ==
                               actual_frontier.size();
       const auto &maintenance = spine_system_->maintenance_counters();
+      const auto &sorted_axi =
+          spine_system_->axi_stats(SpineAxiPortKind::kSortedEdges);
       const auto &reader = spine_system_->reader_counters();
       const auto &compute = spine_system_->compute_counters();
       result
@@ -1779,6 +1851,16 @@ class OnlineMemoryProbe final : public SST::Component {
           << ",\n"
           << "  \"reader_edge_response_capacity\": "
           << reader_edge_response_capacity_ << ",\n"
+          << "  \"maintenance_count_scan_ii\": " << maintenance_count_scan_ii_
+          << ",\n"
+          << "  \"maintenance_count_scan_tail_cycles\": "
+          << maintenance_count_scan_tail_cycles_ << ",\n"
+          << "  \"maintenance_l0_write_scan_ii\": "
+          << maintenance_l0_write_scan_ii_ << ",\n"
+          << "  \"maintenance_l0_write_scan_tail_cycles\": "
+          << maintenance_l0_write_scan_tail_cycles_ << ",\n"
+          << "  \"maintenance_scan_response_capacity\": "
+          << maintenance_scan_response_capacity_ << ",\n"
           << "  \"correctness_mismatches\": " << mismatches << ",\n"
           << "  \"frontier_mismatches\": " << frontier_mismatches << ",\n"
           << "  \"next_active\": "
@@ -1791,6 +1873,34 @@ class OnlineMemoryProbe final : public SST::Component {
           << ",\n"
           << "  \"maintenance_sorted_payload_read_bytes\": "
           << maintenance.sorted_payload_read_bytes << ",\n"
+          << "  \"maintenance_sorted_read_beats\": "
+          << maintenance.sorted_read_beats_received << ",\n"
+          << "  \"maintenance_scan_response_stall_cycles\": "
+          << maintenance.sorted_scan_response_stall_cycles << ",\n"
+          << "  \"maintenance_scan_reorder_full_stall_cycles\": "
+          << maintenance.sorted_scan_reorder_full_stall_cycles << ",\n"
+          << "  \"maintenance_scan_ii_stall_cycles\": "
+          << maintenance.sorted_scan_ii_stall_cycles << ",\n"
+          << "  \"maintenance_scan_tail_cycles\": "
+          << maintenance.sorted_scan_tail_cycles << ",\n"
+          << "  \"maintenance_max_scan_buffered_edges\": "
+          << maintenance.max_sorted_scan_buffered_edges << ",\n"
+          << "  \"maintenance_sorted_axi_read_beat_fifo_stall_cycles\": "
+          << sorted_axi.read_beat_queue_stalls << ",\n"
+          << "  \"maintenance_sorted_axi_read_reorder_stall_cycles\": "
+          << sorted_axi.read_reorder_stalls << ",\n"
+          << "  \"maintenance_sorted_axi_read_beats_streamed\": "
+          << sorted_axi.read_beats_streamed << ",\n"
+          << "  \"maintenance_dirty_validate_visits\": "
+          << maintenance.dirty_validate_edge_visits << ",\n"
+          << "  \"maintenance_dirty_mark_visits\": "
+          << maintenance.dirty_mark_edge_visits << ",\n"
+          << "  \"maintenance_hot_cold_count_visits\": "
+          << maintenance.hot_cold_count_edge_visits << ",\n"
+          << "  \"maintenance_family_precount_visits\": "
+          << maintenance.family_precount_edge_visits << ",\n"
+          << "  \"maintenance_l0_write_visits\": "
+          << maintenance.l0_write_edge_visits << ",\n"
           << "  \"maintenance_target_level\": " << maintenance.target_level
           << ",\n"
           << "  \"maintenance_hot_target_level\": "
@@ -2062,6 +2172,11 @@ class OnlineMemoryProbe final : public SST::Component {
   std::size_t memory_request_window_{};
   std::size_t reader_edge_pipeline_depth_{};
   std::size_t reader_edge_response_capacity_{};
+  std::size_t maintenance_count_scan_ii_{};
+  std::size_t maintenance_count_scan_tail_cycles_{};
+  std::size_t maintenance_l0_write_scan_ii_{};
+  std::size_t maintenance_l0_write_scan_tail_cycles_{};
+  std::size_t maintenance_scan_response_capacity_{};
   std::string spine_axi_profile_id_;
   SpineAxiInterfaceProfile spine_axi_profile_;
   SST::TimeConverter clock_converter_{};

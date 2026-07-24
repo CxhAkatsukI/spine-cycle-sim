@@ -21,6 +21,9 @@ struct FixedAxiPortConfig {
   std::uint32_t max_burst_beats{16};
   std::size_t request_fifo_depth{32};
   std::size_t response_fifo_depth{32};
+  std::size_t read_beat_fifo_depth{32};
+  std::size_t read_reorder_capacity{32};
+  bool stream_read_beats{};
   std::size_t max_pending_requests{32};
   std::size_t max_outstanding_bursts{32};
   std::size_t address_accepts_per_cycle{1};
@@ -34,6 +37,8 @@ class FixedAxiPort {
                const FixedAxiPortConfig &config, MemoryBackend &backend)
       : requests_(name + "-requests", clock_id, config.request_fifo_depth),
         responses_(name + "-responses", clock_id, config.response_fifo_depth),
+        read_beats_(name + "-read-beats", clock_id,
+                    config.read_beat_fifo_depth),
         master_(
             std::move(name), clock_id,
             AxiConfig{
@@ -47,22 +52,31 @@ class FixedAxiPort {
                 .address_accepts_per_cycle = config.address_accepts_per_cycle,
                 .beat_issues_per_cycle = config.beat_issues_per_cycle,
                 .response_beats_per_cycle = config.response_beats_per_cycle,
+                .read_reorder_capacity = config.read_reorder_capacity,
                 .fixed_channel = config.channel,
             },
-            requests_, responses_, backend),
-        backend_(backend),
-        channel_(config.channel) {}
+            requests_, responses_, backend,
+            config.stream_read_beats ? &read_beats_ : nullptr),
+        backend_(backend), channel_(config.channel),
+        stream_read_beats_(config.stream_read_beats) {}
 
   void register_components(Scheduler &scheduler) {
     scheduler.add_component(requests_);
     scheduler.add_component(master_);
     scheduler.add_component(responses_);
+    scheduler.add_component(read_beats_);
   }
 
-  [[nodiscard]] Fifo<AxiRequest>& requests() noexcept { return requests_; }
-  [[nodiscard]] Fifo<AxiResponse>& responses() noexcept { return responses_; }
-  [[nodiscard]] AxiMaster& master() noexcept { return master_; }
-  [[nodiscard]] const AxiMaster& master() const noexcept { return master_; }
+  [[nodiscard]] Fifo<AxiRequest> &requests() noexcept { return requests_; }
+  [[nodiscard]] Fifo<AxiResponse> &responses() noexcept { return responses_; }
+  [[nodiscard]] Fifo<AxiReadBeatResponse> &read_beats() noexcept {
+    return read_beats_;
+  }
+  [[nodiscard]] bool read_beat_stream_enabled() const noexcept {
+    return stream_read_beats_;
+  }
+  [[nodiscard]] AxiMaster &master() noexcept { return master_; }
+  [[nodiscard]] const AxiMaster &master() const noexcept { return master_; }
   [[nodiscard]] std::size_t channel() const noexcept { return channel_; }
   void initialize_payload(std::uint64_t address,
                           const std::vector<std::uint8_t>& data) {
@@ -73,15 +87,18 @@ class FixedAxiPort {
     backend_.fill_payload(channel_, address, bytes, value);
   }
   [[nodiscard]] bool idle() const noexcept {
-    return requests_.empty() && responses_.empty() && master_.idle();
+    return requests_.empty() && responses_.empty() && read_beats_.empty() &&
+           master_.idle();
   }
 
  private:
   Fifo<AxiRequest> requests_;
   Fifo<AxiResponse> responses_;
+  Fifo<AxiReadBeatResponse> read_beats_;
   AxiMaster master_;
   MemoryBackend& backend_;
   std::size_t channel_{};
+  bool stream_read_beats_{};
 };
 
 }  // namespace spine::sim

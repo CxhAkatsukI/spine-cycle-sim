@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <deque>
+#include <map>
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -19,6 +20,7 @@ struct AxiRequest {
   MemoryOperation operation{MemoryOperation::kRead};
   std::uint64_t address{};
   std::uint64_t bytes{};
+  bool stream_read_beats{};
   std::vector<std::uint8_t> write_data;
 };
 
@@ -26,6 +28,15 @@ struct AxiResponse {
   std::uint64_t transaction_id{};
   MemoryOperation operation{MemoryOperation::kRead};
   bool success{true};
+  std::vector<std::uint8_t> read_data;
+};
+
+struct AxiReadBeatResponse {
+  std::uint64_t transaction_id{};
+  std::uint64_t address{};
+  std::uint64_t parent_offset{};
+  bool success{true};
+  bool last{};
   std::vector<std::uint8_t> read_data;
 };
 
@@ -40,6 +51,7 @@ struct AxiConfig {
   std::size_t address_accepts_per_cycle{};
   std::size_t beat_issues_per_cycle{};
   std::size_t response_beats_per_cycle{};
+  std::size_t read_reorder_capacity{32};
   std::optional<std::size_t> fixed_channel;
 };
 
@@ -48,6 +60,9 @@ struct AxiStats {
   std::uint64_t requests_completed{};
   std::uint64_t request_queue_stalls{};
   std::uint64_t response_queue_stalls{};
+  std::uint64_t read_beat_queue_stalls{};
+  std::uint64_t read_reorder_stalls{};
+  std::uint64_t read_beats_streamed{};
   std::uint64_t bursts_accepted{};
   std::uint64_t beats_issued{};
   std::uint64_t beats_completed{};
@@ -62,8 +77,9 @@ struct AxiStats {
 class AxiMaster final : public Component {
  public:
   AxiMaster(std::string name, ClockId clock_id, AxiConfig config,
-            Fifo<AxiRequest>& requests, Fifo<AxiResponse>& responses,
-            MemoryBackend& backend);
+            Fifo<AxiRequest> &requests, Fifo<AxiResponse> &responses,
+            MemoryBackend &backend,
+            Fifo<AxiReadBeatResponse> *read_beats = nullptr);
 
   [[nodiscard]] const AxiStats& stats() const noexcept { return stats_; }
   [[nodiscard]] const AxiConfig &config() const noexcept { return config_; }
@@ -83,6 +99,12 @@ class AxiMaster final : public Component {
     std::size_t completed_bursts{};
     bool success{true};
     std::vector<std::uint8_t> read_data;
+    std::size_t stream_beats_expected{};
+    std::size_t stream_beats_published{};
+    std::uint64_t next_stream_offset{};
+    std::map<std::uint64_t, AxiReadBeatResponse> ready_stream_beats;
+    bool memory_complete{};
+    bool response_queued{};
   };
 
   struct Burst {
@@ -120,6 +142,7 @@ class AxiMaster final : public Component {
   [[nodiscard]] Burst* find_active(std::uint64_t burst_id);
   void reset_staging();
   void evaluate_output();
+  void evaluate_read_beat_output();
   void evaluate_backend_responses();
   void evaluate_request_input();
   void evaluate_address_channel();
@@ -129,11 +152,15 @@ class AxiMaster final : public Component {
   void commit_address_channel();
   void commit_data_channel();
   void commit_output();
+  void commit_read_beat_output();
+  void queue_parent_response_if_ready(std::uint64_t parent_id);
+  [[nodiscard]] std::size_t read_reorder_occupancy() const noexcept;
 
   AxiConfig config_;
-  Fifo<AxiRequest>& requests_;
-  Fifo<AxiResponse>& responses_;
-  MemoryBackend& backend_;
+  Fifo<AxiRequest> &requests_;
+  Fifo<AxiResponse> &responses_;
+  MemoryBackend &backend_;
+  Fifo<AxiReadBeatResponse> *read_beats_{};
 
   std::uint64_t next_parent_id_{};
   std::uint64_t next_burst_id_{};
@@ -151,6 +178,8 @@ class AxiMaster final : public Component {
   std::vector<std::uint64_t> staged_address_bursts_;
   std::vector<StagedBeat> staged_beats_;
   std::vector<BackendResponse> staged_backend_responses_;
+  std::optional<std::pair<std::uint64_t, std::uint64_t>>
+      staged_read_beat_output_;
   bool staged_output_{};
   AxiStats stats_;
 };

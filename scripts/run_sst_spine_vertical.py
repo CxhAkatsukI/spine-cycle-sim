@@ -30,6 +30,39 @@ DEFAULT_FALLBACK_WORKLOAD = (
 PROFILE_PATH = ROOT / "configs" / "architectures" / "spine_shared_engine_9c08763.json"
 
 
+def maintenance_scan_ledger_matches(
+    result: dict[str, Any],
+    *,
+    edges: int,
+    family_precount_visits: int,
+    l0_write_visits: int,
+) -> bool:
+    expected_visits = 3 * edges + family_precount_visits + l0_write_visits
+    source_shaped = result.get("spine_axi_profile") == "hls_split_9c08763"
+    response_capacity = result.get("maintenance_scan_response_capacity", 32)
+    return (
+        result.get("maintenance_dirty_validate_visits") == edges
+        and result.get("maintenance_dirty_mark_visits") == edges
+        and result.get("maintenance_hot_cold_count_visits") == edges
+        and result.get("maintenance_family_precount_visits")
+        == family_precount_visits
+        and result.get("maintenance_l0_write_visits") == l0_write_visits
+        and result.get("maintenance_edge_visits") == expected_visits
+        and (
+            (
+                result.get("maintenance_sorted_read_beats") == expected_visits
+                and result.get("maintenance_sorted_axi_read_beats_streamed")
+                == expected_visits
+                and 0
+                < result.get("maintenance_max_scan_buffered_edges", 0)
+                <= response_capacity
+            )
+            if source_shaped
+            else result.get("maintenance_sorted_read_beats") == 0
+        )
+    )
+
+
 def diagnostic_transcript_matches(result: dict[str, Any]) -> bool:
     field_pairs = (
         ("reader_range_path", "compute_range_path"),
@@ -154,13 +187,16 @@ def validate_result(
         "correctness": result.get("correctness_mismatches") == 0,
         "frontier_correctness": result.get("frontier_mismatches") == 0,
         "frontier": result.get("next_active") == 10,
-        "maintenance_passes": result.get("maintenance_scan_passes") == 19,
-        "maintenance_visits": result.get("maintenance_edge_visits") == 190,
-        "maintenance_bytes": result.get("maintenance_sorted_bytes") == 3_040,
+        "maintenance_passes": result.get("maintenance_scan_passes") == 20,
+        "maintenance_visits": result.get("maintenance_edge_visits") == 200,
+        "maintenance_bytes": result.get("maintenance_sorted_bytes") == 3_200,
         "maintenance_sorted_payload": result.get(
             "maintenance_sorted_payload_read_bytes"
         )
         == result.get("maintenance_sorted_bytes"),
+        "maintenance_scan_ledger": maintenance_scan_ledger_matches(
+            result, edges=10, family_precount_visits=160, l0_write_visits=10
+        ),
         "reader_tiles": result.get("reader_tiles") == 5,
         "reader_edges": result.get("reader_edges") == 10,
         "reader_bytes": result.get("reader_graph_bytes") == 184,
@@ -244,13 +280,16 @@ def validate_carry_hot_result(
         "maintenance_partitioning": result.get("maintenance_cold_input_edges")
         == 1
         and result.get("maintenance_hot_input_edges") == 1,
-        "maintenance_passes": result.get("maintenance_scan_passes") == 35,
-        "maintenance_visits": result.get("maintenance_edge_visits") == 70,
-        "maintenance_bytes": result.get("maintenance_sorted_bytes") == 1_120,
+        "maintenance_passes": result.get("maintenance_scan_passes") == 36,
+        "maintenance_visits": result.get("maintenance_edge_visits") == 72,
+        "maintenance_bytes": result.get("maintenance_sorted_bytes") == 1_152,
         "maintenance_sorted_payload": result.get(
             "maintenance_sorted_payload_read_bytes"
         )
         == result.get("maintenance_sorted_bytes"),
+        "maintenance_scan_ledger": maintenance_scan_ledger_matches(
+            result, edges=2, family_precount_visits=64, l0_write_visits=2
+        ),
         "carry_work": result.get("maintenance_carry_payload_reads") == 1
         and result.get("maintenance_carry_payload_read_bytes") == 8
         and result.get("maintenance_carry_merge_inputs") == 2
@@ -370,13 +409,16 @@ def validate_multiround_sssp_result(
         "frontier_inputs": result.get("frontier_in_sizes") == [1, 3, 2, 2, 2, 1],
         "frontier_outputs": result.get("frontier_out_sizes") == [3, 2, 2, 2, 1, 0],
         "round_edges": result.get("processed_edges_per_round") == [8, 3, 2, 2, 1, 0],
-        "maintenance_once": result.get("maintenance_scan_passes") == 19
-        and result.get("maintenance_edge_visits") == 152
-        and result.get("maintenance_sorted_bytes") == 2_432,
+        "maintenance_once": result.get("maintenance_scan_passes") == 20
+        and result.get("maintenance_edge_visits") == 160
+        and result.get("maintenance_sorted_bytes") == 2_560,
         "maintenance_sorted_payload": result.get(
             "maintenance_sorted_payload_read_bytes"
         )
         == result.get("maintenance_sorted_bytes"),
+        "maintenance_scan_ledger": maintenance_scan_ledger_matches(
+            result, edges=8, family_precount_visits=128, l0_write_visits=8
+        ),
         "round_timing": len(result.get("round_cycles", [])) == 6
         and all(cycles > 0 for cycles in result.get("round_cycles", [])),
         "round_fifo": len(result.get("edge_axis_max_occupancy_per_round", []))
@@ -630,6 +672,17 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--reader-edge-pipeline-depth", type=int, default=32)
     parser.add_argument("--reader-edge-response-capacity", type=int, default=32)
+    parser.add_argument("--maintenance-count-scan-ii", type=int, default=1)
+    parser.add_argument(
+        "--maintenance-count-scan-tail-cycles", type=int, default=19
+    )
+    parser.add_argument("--maintenance-l0-write-scan-ii", type=int, default=24)
+    parser.add_argument(
+        "--maintenance-l0-write-scan-tail-cycles", type=int, default=42
+    )
+    parser.add_argument(
+        "--maintenance-scan-response-capacity", type=int, default=32
+    )
     parser.add_argument(
         "--axi-profile",
         choices=("hls_split_9c08763", "legacy_uniform64"),
@@ -674,6 +727,14 @@ def main() -> int:
             args.range_task_payload_budget = 2
     if args.channels < 23 or args.source < 0 or not args.workload.is_file():
         raise SystemExit("channels must be >=23, source non-negative, workload present")
+    if (
+        args.maintenance_count_scan_ii <= 0
+        or args.maintenance_l0_write_scan_ii <= 0
+        or args.maintenance_count_scan_tail_cycles < 0
+        or args.maintenance_l0_write_scan_tail_cycles < 0
+        or args.maintenance_scan_response_capacity <= 0
+    ):
+        raise SystemExit("maintenance scan IIs must be positive and tails non-negative")
     if args.preload is not None and not args.preload.is_file():
         raise SystemExit(f"preload workload is missing: {args.preload}")
     if not args.no_build:
@@ -723,6 +784,21 @@ def main() -> int:
             "SPINE_SST_READER_EDGE_RESPONSE_CAPACITY": str(
                 args.reader_edge_response_capacity
             ),
+            "SPINE_SST_MAINTENANCE_COUNT_SCAN_II": str(
+                args.maintenance_count_scan_ii
+            ),
+            "SPINE_SST_MAINTENANCE_COUNT_SCAN_TAIL_CYCLES": str(
+                args.maintenance_count_scan_tail_cycles
+            ),
+            "SPINE_SST_MAINTENANCE_L0_WRITE_SCAN_II": str(
+                args.maintenance_l0_write_scan_ii
+            ),
+            "SPINE_SST_MAINTENANCE_L0_WRITE_SCAN_TAIL_CYCLES": str(
+                args.maintenance_l0_write_scan_tail_cycles
+            ),
+            "SPINE_SST_MAINTENANCE_SCAN_RESPONSE_CAPACITY": str(
+                args.maintenance_scan_response_capacity
+            ),
             "SPINE_SST_AXI_PROFILE": args.axi_profile,
         }
     )
@@ -769,6 +845,19 @@ def main() -> int:
     problems = validator(result, dram, channels=args.channels)
     if result.get("spine_axi_profile") != args.axi_profile:
         problems.append("axi_profile")
+    expected_timing = {
+        "maintenance_count_scan_ii": args.maintenance_count_scan_ii,
+        "maintenance_count_scan_tail_cycles": args.maintenance_count_scan_tail_cycles,
+        "maintenance_l0_write_scan_ii": args.maintenance_l0_write_scan_ii,
+        "maintenance_l0_write_scan_tail_cycles": (
+            args.maintenance_l0_write_scan_tail_cycles
+        ),
+        "maintenance_scan_response_capacity": (
+            args.maintenance_scan_response_capacity
+        ),
+    }
+    if any(result.get(field) != value for field, value in expected_timing.items()):
+        problems.append("maintenance_scan_timing_profile")
     if problems:
         raise RuntimeError(f"SST Spine checks failed: {', '.join(problems)}")
     profile_bytes = PROFILE_PATH.read_bytes()

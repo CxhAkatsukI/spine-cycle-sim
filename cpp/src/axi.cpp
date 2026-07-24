@@ -1,6 +1,7 @@
 #include "spine_sim/axi.hpp"
 
 #include <algorithm>
+#include <limits>
 #include <stdexcept>
 #include <unordered_map>
 #include <utility>
@@ -12,20 +13,20 @@ constexpr std::uint64_t kAxiBoundaryBytes = 4096;
 }
 
 AxiMaster::AxiMaster(std::string name, ClockId clock_id, AxiConfig config,
-                     Fifo<AxiRequest>& requests, Fifo<AxiResponse>& responses,
-                     MemoryBackend& backend)
-    : Component(std::move(name), clock_id),
-      config_(config),
-      requests_(requests),
-      responses_(responses),
-      backend_(backend) {
+                     Fifo<AxiRequest> &requests, Fifo<AxiResponse> &responses,
+                     MemoryBackend &backend,
+                     Fifo<AxiReadBeatResponse> *read_beats)
+    : Component(std::move(name), clock_id), config_(config),
+      requests_(requests), responses_(responses), backend_(backend),
+      read_beats_(read_beats) {
   if (config_.data_width_bytes == 0 || config_.max_burst_beats == 0 ||
       config_.channels == 0 || config_.channel_interleave_bytes == 0 ||
       config_.max_pending_requests == 0 ||
       config_.max_outstanding_bursts == 0 ||
       config_.address_accepts_per_cycle == 0 ||
       config_.beat_issues_per_cycle == 0 ||
-      config_.response_beats_per_cycle == 0) {
+      config_.response_beats_per_cycle == 0 ||
+      config_.read_reorder_capacity == 0) {
     throw std::invalid_argument("AXI configuration values must be positive");
   }
   if (config_.fixed_channel.has_value() &&
@@ -33,8 +34,10 @@ AxiMaster::AxiMaster(std::string name, ClockId clock_id, AxiConfig config,
     throw std::invalid_argument("AXI fixed channel is outside memory geometry");
   }
   if (requests_.clock_id() != clock_id || responses_.clock_id() != clock_id ||
-      backend_.clock_id() != clock_id) {
-    throw std::invalid_argument("AXI master, links, and backend must share a clock");
+      backend_.clock_id() != clock_id ||
+      (read_beats_ != nullptr && read_beats_->clock_id() != clock_id)) {
+    throw std::invalid_argument(
+        "AXI master, links, and backend must share a clock");
   }
   backend_.register_initiator(config_.initiator_id);
 }
@@ -109,6 +112,7 @@ void AxiMaster::reset_staging() {
   staged_address_bursts_.clear();
   staged_beats_.clear();
   staged_backend_responses_.clear();
+  staged_read_beat_output_.reset();
   staged_output_ = false;
 }
 
@@ -122,18 +126,86 @@ void AxiMaster::evaluate_output() {
   }
 }
 
-void AxiMaster::evaluate_backend_responses() {
-  const std::size_t count = std::min(config_.response_beats_per_cycle,
-                                     backend_.response_count(config_.initiator_id));
-  if (count == 0) {
+std::size_t AxiMaster::read_reorder_occupancy() const noexcept {
+  std::size_t occupancy = 0;
+  for (const auto &[parent_id, parent] : parents_) {
+    (void)parent_id;
+    occupancy += parent.ready_stream_beats.size();
+  }
+  return occupancy;
+}
+
+void AxiMaster::evaluate_read_beat_output() {
+  if (read_beats_ == nullptr) {
     return;
   }
-  staged_backend_responses_.reserve(count);
-  for (std::size_t index = 0; index < count; ++index) {
-    staged_backend_responses_.push_back(
-        backend_.response_at(config_.initiator_id, index));
+  std::uint64_t selected_parent = std::numeric_limits<std::uint64_t>::max();
+  const AxiReadBeatResponse *selected = nullptr;
+  for (const auto &[parent_id, parent] : parents_) {
+    if (!parent.request.stream_read_beats || parent_id >= selected_parent) {
+      continue;
+    }
+    const auto found =
+        parent.ready_stream_beats.find(parent.next_stream_offset);
+    if (found != parent.ready_stream_beats.end()) {
+      selected_parent = parent_id;
+      selected = &found->second;
+    }
   }
-  if (!backend_.stage_pop_responses(config_.initiator_id, count)) {
+  if (selected == nullptr) {
+    return;
+  }
+  if (!read_beats_->try_push(*selected)) {
+    ++stats_.read_beat_queue_stalls;
+    return;
+  }
+  staged_read_beat_output_ =
+      std::pair(selected_parent, selected->parent_offset);
+}
+
+void AxiMaster::evaluate_backend_responses() {
+  const std::size_t available =
+      std::min(config_.response_beats_per_cycle,
+               backend_.response_count(config_.initiator_id));
+  if (available == 0) {
+    return;
+  }
+  staged_backend_responses_.reserve(available);
+  std::size_t staged_stream_beats = 0;
+  for (std::size_t index = 0; index < available; ++index) {
+    const BackendResponse &response =
+        backend_.response_at(config_.initiator_id, index);
+    const auto mapping = backend_mappings_.find(response.request_id);
+    if (mapping == backend_mappings_.end()) {
+      throw std::logic_error(
+          "AXI backend response has no request mapping during evaluate");
+    }
+    Burst *burst = find_active(mapping->second.burst_id);
+    if (burst == nullptr) {
+      throw std::logic_error(
+          "AXI backend response references no active burst during evaluate");
+    }
+    const Parent &parent = parents_.at(burst->parent_id);
+    if (burst->operation == MemoryOperation::kRead &&
+        parent.request.stream_read_beats) {
+      if (read_beats_ == nullptr) {
+        throw std::logic_error(
+            "AXI request enabled beat streaming without a beat output");
+      }
+      if (read_reorder_occupancy() + staged_stream_beats >=
+          config_.read_reorder_capacity) {
+        ++stats_.read_reorder_stalls;
+        break;
+      }
+      ++staged_stream_beats;
+    }
+    staged_backend_responses_.push_back(response);
+  }
+  if (staged_backend_responses_.empty()) {
+    return;
+  }
+  if (!backend_.stage_pop_responses(config_.initiator_id,
+                                    staged_backend_responses_.size())) {
     throw std::logic_error("memory backend rejected a valid response pop");
   }
 }
@@ -171,10 +243,42 @@ void AxiMaster::evaluate_data_channel() {
   }
   std::unordered_map<std::uint64_t, std::size_t> additional_issued;
   std::size_t inspected_without_issue = 0;
+  const bool ordered_stream = std::any_of(
+      active_bursts_.begin(), active_bursts_.end(), [this](const Burst &burst) {
+        return parents_.at(burst.parent_id).request.stream_read_beats;
+      });
   std::size_t cursor = issue_round_robin_ % active_bursts_.size();
   while (staged_beats_.size() < config_.beat_issues_per_cycle &&
          inspected_without_issue < active_bursts_.size()) {
-    const Burst& burst = active_bursts_[cursor];
+    if (ordered_stream) {
+      std::size_t selected = active_bursts_.size();
+      std::pair<std::uint64_t, std::uint64_t> selected_key{
+          std::numeric_limits<std::uint64_t>::max(),
+          std::numeric_limits<std::uint64_t>::max()};
+      for (std::size_t index = 0; index < active_bursts_.size(); ++index) {
+        const Burst &candidate = active_bursts_[index];
+        const Parent &candidate_parent = parents_.at(candidate.parent_id);
+        const std::size_t extra = additional_issued[candidate.burst_id];
+        if (!candidate_parent.request.stream_read_beats ||
+            candidate.beats_issued + extra >= candidate.beats_total) {
+          continue;
+        }
+        const auto key = std::pair(
+            candidate.parent_id,
+            candidate.parent_offset +
+                static_cast<std::uint64_t>(candidate.beats_issued + extra) *
+                    config_.data_width_bytes);
+        if (key < selected_key) {
+          selected = index;
+          selected_key = key;
+        }
+      }
+      if (selected == active_bursts_.size()) {
+        break;
+      }
+      cursor = selected;
+    }
+    const Burst &burst = active_bursts_[cursor];
     const std::size_t extra = additional_issued[burst.burst_id];
     if (burst.beats_issued + extra < burst.beats_total) {
       const std::uint64_t beat_address =
@@ -218,18 +322,24 @@ void AxiMaster::evaluate_data_channel() {
         inspected_without_issue = 0;
       } else {
         ++stats_.backend_submit_stalls;
+        if (ordered_stream) {
+          break;
+        }
         ++inspected_without_issue;
       }
     } else {
       ++inspected_without_issue;
     }
-    cursor = (cursor + 1) % active_bursts_.size();
+    if (!ordered_stream) {
+      cursor = (cursor + 1) % active_bursts_.size();
+    }
   }
 }
 
 void AxiMaster::evaluate(const CycleContext&) {
   reset_staging();
   evaluate_output();
+  evaluate_read_beat_output();
   evaluate_backend_responses();
   evaluate_request_input();
   evaluate_address_channel();
@@ -262,13 +372,29 @@ void AxiMaster::commit_backend_responses() {
       std::copy(response.read_data.begin(), response.read_data.end(),
                 parent.read_data.begin() +
                     static_cast<std::ptrdiff_t>(mapping->second.parent_offset));
+      if (parent.request.stream_read_beats) {
+        AxiReadBeatResponse beat{
+            .transaction_id = parent.request.transaction_id,
+            .address = parent.request.address + mapping->second.parent_offset,
+            .parent_offset = mapping->second.parent_offset,
+            .success = response.success,
+            .last = mapping->second.parent_offset + mapping->second.bytes ==
+                    parent.request.bytes,
+            .read_data = response.read_data,
+        };
+        if (!parent.ready_stream_beats
+                 .emplace(mapping->second.parent_offset, std::move(beat))
+                 .second) {
+          throw std::logic_error("AXI received a duplicate streamed read beat");
+        }
+      }
     } else if (!response.read_data.empty()) {
       throw std::logic_error("AXI write response unexpectedly carried data");
     }
     backend_mappings_.erase(mapping);
   }
-
-  for (auto iterator = active_bursts_.begin(); iterator != active_bursts_.end();) {
+  for (auto iterator = active_bursts_.begin();
+       iterator != active_bursts_.end();) {
     if (iterator->beats_completed != iterator->beats_total) {
       ++iterator;
       continue;
@@ -276,15 +402,8 @@ void AxiMaster::commit_backend_responses() {
     Parent& parent = parents_.at(iterator->parent_id);
     ++parent.completed_bursts;
     if (parent.completed_bursts == parent.total_bursts) {
-      ready_responses_.push_back(ReadyResponse{
-          .parent_id = iterator->parent_id,
-          .response = AxiResponse{
-              .transaction_id = parent.request.transaction_id,
-              .operation = parent.request.operation,
-              .success = parent.success,
-              .read_data = std::move(parent.read_data),
-          },
-      });
+      parent.memory_complete = true;
+      queue_parent_response_if_ready(iterator->parent_id);
     }
     iterator = active_bursts_.erase(iterator);
   }
@@ -298,10 +417,22 @@ void AxiMaster::commit_request_input() {
       !staged_input_->write_data.empty()) {
     throw std::invalid_argument("AXI read request cannot carry write data");
   }
+  if (staged_input_->stream_read_beats &&
+      (staged_input_->operation != MemoryOperation::kRead ||
+       read_beats_ == nullptr)) {
+    throw std::invalid_argument(
+        "AXI beat streaming requires a read request and beat output");
+  }
   if (staged_input_->operation == MemoryOperation::kWrite &&
       !staged_input_->write_data.empty() &&
       staged_input_->write_data.size() != staged_input_->bytes) {
     throw std::invalid_argument("AXI write payload size must match byte count");
+  }
+  std::size_t stream_beats_expected = 0;
+  if (staged_input_->stream_read_beats) {
+    for (const Burst &burst : staged_new_bursts_) {
+      stream_beats_expected += burst.beats_total;
+    }
   }
   parents_.emplace(
       staged_parent_id_,
@@ -313,6 +444,12 @@ void AxiMaster::commit_request_input() {
           .read_data = staged_input_->operation == MemoryOperation::kRead
                            ? std::vector<std::uint8_t>(staged_input_->bytes, 0)
                            : std::vector<std::uint8_t>{},
+          .stream_beats_expected = stream_beats_expected,
+          .stream_beats_published = 0,
+          .next_stream_offset = 0,
+          .ready_stream_beats = {},
+          .memory_complete = false,
+          .response_queued = false,
       });
   for (const Burst& burst : staged_new_bursts_) {
     pending_address_.push_back(burst);
@@ -381,12 +518,51 @@ void AxiMaster::commit_output() {
   ++stats_.requests_completed;
 }
 
-void AxiMaster::commit(const CycleContext&) {
+void AxiMaster::queue_parent_response_if_ready(std::uint64_t parent_id) {
+  Parent &parent = parents_.at(parent_id);
+  if (parent.response_queued || !parent.memory_complete ||
+      (parent.request.stream_read_beats &&
+       parent.stream_beats_published != parent.stream_beats_expected)) {
+    return;
+  }
+  parent.response_queued = true;
+  ready_responses_.push_back(ReadyResponse{
+      .parent_id = parent_id,
+      .response =
+          AxiResponse{
+              .transaction_id = parent.request.transaction_id,
+              .operation = parent.request.operation,
+              .success = parent.success,
+              .read_data = std::move(parent.read_data),
+          },
+  });
+}
+
+void AxiMaster::commit_read_beat_output() {
+  if (!staged_read_beat_output_.has_value()) {
+    return;
+  }
+  const auto [parent_id, offset] = *staged_read_beat_output_;
+  Parent &parent = parents_.at(parent_id);
+  const auto beat = parent.ready_stream_beats.find(offset);
+  if (beat == parent.ready_stream_beats.end() ||
+      offset != parent.next_stream_offset) {
+    throw std::logic_error("AXI streamed read beat changed before commit");
+  }
+  parent.next_stream_offset += beat->second.read_data.size();
+  parent.ready_stream_beats.erase(beat);
+  ++parent.stream_beats_published;
+  ++stats_.read_beats_streamed;
+  queue_parent_response_if_ready(parent_id);
+}
+
+void AxiMaster::commit(const CycleContext &) {
   commit_output();
   commit_backend_responses();
   commit_request_input();
   commit_address_channel();
   commit_data_channel();
+  commit_read_beat_output();
 }
 
 }  // namespace spine::sim

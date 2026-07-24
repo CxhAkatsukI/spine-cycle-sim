@@ -158,3 +158,6 @@ buffer, and AXIS backpressure evidence are documented in
 The source-shaped per-interface AXI widths and explicit legacy compatibility
 profile are documented in
 [`docs/spine_axi_interface_profile_20260724.md`](docs/spine_axi_interface_profile_20260724.md).
+The request-scoped maintenance read-beat stream, source scan ledger, and
+report-derived count/L0-write loop timing are documented in
+[`docs/spine_streamed_maintenance_scans_20260724.md`](docs/spine_streamed_maintenance_scans_20260724.md).

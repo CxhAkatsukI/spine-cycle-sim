@@ -74,6 +74,13 @@ struct SpineL0Config {
   // edge-word credits in the accepted synthesis report.
   std::size_t reader_edge_pipeline_depth{32};
   std::size_t reader_edge_response_capacity{32};
+  // Accepted HLS loop reports: count/precount latency is N+19 cycles;
+  // L0 write latency is 24*(N-1)+43 cycles.
+  std::size_t maintenance_count_scan_ii{1};
+  std::size_t maintenance_count_scan_tail_cycles{19};
+  std::size_t maintenance_l0_write_scan_ii{24};
+  std::size_t maintenance_l0_write_scan_tail_cycles{42};
+  std::size_t maintenance_scan_response_capacity{32};
   std::vector<std::uint32_t> hot_vertices;
   std::uint64_t sorted_edges_base{};
   // HBM16 is shared by sorted input/range-task scratch and the persistent
@@ -193,6 +200,17 @@ struct SpineL0Counters {
   std::uint64_t sorted_edge_visits{};
   std::uint64_t sorted_read_bytes{};
   std::uint64_t sorted_payload_read_bytes{};
+  std::uint64_t sorted_read_beats_received{};
+  std::uint64_t sorted_scan_response_stall_cycles{};
+  std::uint64_t sorted_scan_reorder_full_stall_cycles{};
+  std::uint64_t sorted_scan_ii_stall_cycles{};
+  std::uint64_t sorted_scan_tail_cycles{};
+  std::size_t max_sorted_scan_buffered_edges{};
+  std::uint64_t dirty_validate_edge_visits{};
+  std::uint64_t dirty_mark_edge_visits{};
+  std::uint64_t hot_cold_count_edge_visits{};
+  std::uint64_t family_precount_edge_visits{};
+  std::uint64_t l0_write_edge_visits{};
   std::uint64_t persistent_read_bytes{};
   std::uint64_t persistent_write_bytes{};
   std::uint64_t metadata_read_bytes{};
@@ -263,6 +281,8 @@ class SpineL0Maintenance final : public Component {
     kDirtyPreflightProcess,
     kDirtyUpdateBegin,
     kDirtyUpdateProcess,
+    kHotColdCountBegin,
+    kHotColdCountProcess,
     kTargetSelect,
     kPrecountBegin,
     kPrecountProcess,
@@ -286,6 +306,14 @@ class SpineL0Maintenance final : public Component {
     kResult,
   };
 
+  enum class ScanKind {
+    kDirtyValidate,
+    kDirtyMark,
+    kHotColdCount,
+    kFamilyPrecount,
+    kL0Write,
+  };
+
   struct MemoryTask {
     FixedAxiPort *port{};
     MemoryOperation operation{MemoryOperation::kRead};
@@ -294,6 +322,9 @@ class SpineL0Maintenance final : public Component {
     TaskClass task_class{TaskClass::kSorted};
     std::vector<std::uint8_t> write_data;
     std::vector<std::uint32_t> carry_edge_sources;
+    bool stream_sorted_scan{};
+    std::size_t streamed_read_beats_expected{};
+    std::size_t streamed_read_beats_received{};
   };
 
   enum class StagedAction { kNone, kAdvance };
@@ -303,9 +334,16 @@ class SpineL0Maintenance final : public Component {
                     std::uint64_t address, std::uint64_t bytes,
                     TaskClass task_class,
                     std::vector<std::uint8_t> write_data = {},
-                    std::vector<std::uint32_t> carry_edge_sources = {});
-  void begin_sorted_scan(Phase process_phase);
-  void process_scan_edge(Phase next_phase);
+                    std::vector<std::uint32_t> carry_edge_sources = {},
+                    bool stream_sorted_scan = false);
+  void begin_sorted_scan(Phase process_phase, ScanKind kind);
+  [[nodiscard]] bool process_scan_edge(const CycleContext &context);
+  [[nodiscard]] bool scan_process_phase() const noexcept;
+  [[nodiscard]] bool scan_can_advance(const CycleContext &context);
+  [[nodiscard]] std::size_t scan_initiation_interval() const noexcept;
+  [[nodiscard]] std::size_t scan_tail_cycles() const noexcept;
+  [[nodiscard]] bool stage_read_beat();
+  void consume_read_beat(const AxiReadBeatResponse &beat);
   void consume_memory_response(const MemoryTask &task,
                                const AxiResponse &response);
   [[nodiscard]] bool memory_task_conflicts(const MemoryTask &task) const;
@@ -348,8 +386,15 @@ class SpineL0Maintenance final : public Component {
   std::vector<FamilyWriteTask> family_write_tasks_;
   std::deque<MemoryTask> tasks_;
   std::unordered_map<std::uint64_t, MemoryTask> inflight_tasks_;
+  std::unordered_map<std::size_t, SpineEdgeRecord> scan_response_edges_;
   Phase phase_{Phase::kInitialize};
+  ScanKind scan_kind_{ScanKind::kDirtyValidate};
   std::size_t scan_index_{};
+  std::size_t scan_tail_remaining_{};
+  std::uint64_t next_scan_consume_cycle_{};
+  std::uint64_t scan_transaction_id_{};
+  bool scan_transaction_valid_{};
+  bool streaming_scan_{};
   std::size_t family_index_{};
   std::size_t active_family_index_{};
   std::size_t carry_steps_remaining_{};
@@ -360,8 +405,10 @@ class SpineL0Maintenance final : public Component {
   std::string failure_;
   StagedAction staged_action_{StagedAction::kNone};
   AxiResponse staged_response_;
+  AxiReadBeatResponse staged_read_beat_response_;
   bool staged_memory_issue_{};
   bool staged_memory_completion_{};
+  bool staged_read_beat_completion_{};
 };
 
 }  // namespace spine::sim

@@ -128,6 +128,7 @@ class SpineVerticalSliceSystem {
     return axi_profile_;
   }
   [[nodiscard]] const AxiConfig &axi_config(SpineAxiPortKind kind) const;
+  [[nodiscard]] const AxiStats &axi_stats(SpineAxiPortKind kind) const;
 
  private:
   [[nodiscard]] std::unique_ptr<FixedAxiPort> make_port(

@@ -24,6 +24,10 @@
   widths and outstanding limits. It also marks platform width conversion as a
   remaining explicit component. Its editable source is the adjacent `.dot`
   file.
+- `spine_streamed_maintenance_scans.svg`: request-scoped sorted-edge read
+  beats, finite FIFO backpressure, ordered retirement, parent completion, and
+  report-derived scan-loop timing. Its editable source is the adjacent `.dot`
+  file.
 
 Regenerate a Graphviz SVG from the repository root with:
 

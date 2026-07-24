@@ -26,8 +26,10 @@ namespace {
 
 using spine::sim::AxiConfig;
 using spine::sim::AxiMaster;
+using spine::sim::AxiReadBeatResponse;
 using spine::sim::AxiRequest;
 using spine::sim::AxiResponse;
+using spine::sim::AxiStats;
 using spine::sim::BankedMemory;
 using spine::sim::BankedMemoryConfig;
 using spine::sim::ClockId;
@@ -651,6 +653,98 @@ void test_axi_payload_round_trip_across_beats_and_bursts() {
           "explicit AXI write payload was reported as zero-filled");
 }
 
+void test_axi_read_beat_stream_is_bounded_and_request_scoped() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("core", 141.0);
+  Fifo<AxiRequest> requests("axi-requests", core, 4);
+  Fifo<AxiResponse> responses("axi-responses", core, 4);
+  Fifo<AxiReadBeatResponse> read_beats("axi-read-beats", core, 2);
+  MockMemoryBackend backend("mock-hbm", core, mock_memory_config(1));
+  AxiConfig config = axi_config();
+  config.data_width_bytes = 16;
+  config.beat_issues_per_cycle = 1;
+  config.response_beats_per_cycle = 1;
+  config.fixed_channel = 0;
+  AxiMaster axi("axi", core, config, requests, responses, backend, &read_beats);
+
+  std::vector<std::uint8_t> payload(128);
+  for (std::size_t index = 0; index < payload.size(); ++index) {
+    payload[index] = static_cast<std::uint8_t>((index * 13 + 7) & 0xffU);
+  }
+  backend.initialize_payload(0, 0, payload);
+  SequenceProducer<AxiRequest> producer(
+      "requester", core, requests,
+      {
+          {.transaction_id = 70,
+           .operation = MemoryOperation::kRead,
+           .address = 0,
+           .bytes = 64,
+           .stream_read_beats = true,
+           .write_data = {}},
+          {.transaction_id = 71,
+           .operation = MemoryOperation::kRead,
+           .address = 64,
+           .bytes = 64,
+           .stream_read_beats = false,
+           .write_data = {}},
+      });
+  SequenceConsumer<AxiReadBeatResponse> beat_consumer("beat-consumer", core,
+                                                      read_beats, 12);
+  SequenceConsumer<AxiResponse> response_consumer("response-consumer", core,
+                                                  responses);
+
+  scheduler.add_component(producer);
+  scheduler.add_component(requests);
+  scheduler.add_component(axi);
+  scheduler.add_component(backend);
+  scheduler.add_component(responses);
+  scheduler.add_component(read_beats);
+  scheduler.add_component(response_consumer);
+  scheduler.add_component(beat_consumer);
+  scheduler.run_until(
+      [&] {
+        return response_consumer.values.size() == 2 &&
+               beat_consumer.values.size() == 4;
+      },
+      100);
+
+  require(axi.stats().read_beat_queue_stalls > 0 &&
+              axi.stats().read_beats_streamed == 4 &&
+              read_beats.stats().max_occupancy == 2,
+          "AXI read-beat FIFO did not apply finite backpressure");
+  for (std::size_t index = 0; index < beat_consumer.values.size(); ++index) {
+    const AxiReadBeatResponse &beat = beat_consumer.values[index];
+    require(
+        beat.transaction_id == 70 && beat.parent_offset == index * 16 &&
+            beat.address == index * 16 && beat.last == (index == 3) &&
+            beat.read_data ==
+                std::vector<std::uint8_t>(
+                    payload.begin() + static_cast<std::ptrdiff_t>(index * 16),
+                    payload.begin() +
+                        static_cast<std::ptrdiff_t>((index + 1) * 16)),
+        "AXI read-beat stream changed payload order or framing");
+  }
+  const auto streamed_parent = std::find_if(
+      response_consumer.values.begin(), response_consumer.values.end(),
+      [](const AxiResponse &response) {
+        return response.transaction_id == 70;
+      });
+  const auto ordinary_parent = std::find_if(
+      response_consumer.values.begin(), response_consumer.values.end(),
+      [](const AxiResponse &response) {
+        return response.transaction_id == 71;
+      });
+  require(
+      streamed_parent != response_consumer.values.end() &&
+          ordinary_parent != response_consumer.values.end() &&
+          streamed_parent->read_data ==
+              std::vector<std::uint8_t>(payload.begin(),
+                                        payload.begin() + 64) &&
+          ordinary_parent->read_data ==
+              std::vector<std::uint8_t>(payload.begin() + 64, payload.end()),
+      "AXI parent responses diverged from streamed/non-streamed payloads");
+}
+
 void test_spine_l0_real_slice_vertical_path() {
   Scheduler scheduler;
   const auto core = scheduler.add_clock_mhz("data", 141.0);
@@ -787,12 +881,16 @@ void test_spine_l0_real_slice_vertical_path() {
 
   require(!maintenance.failed(), "Spine L0 real-slice path reported failure");
   const auto &counters = maintenance.counters();
-  require(counters.sorted_scan_passes == 19,
+  require(counters.sorted_scan_passes == 20,
           "Spine L0 did not execute the expected HLS scan passes");
-  require(counters.sorted_edge_visits == 190,
+  require(counters.sorted_edge_visits == 200,
           "Spine L0 edge-visit count does not close against scan passes");
-  require(counters.sorted_read_bytes == 3'040,
+  require(counters.sorted_read_bytes == 3'200,
           "Spine sorted-edge HBM byte count mismatch");
+  require(counters.hot_cold_count_edge_visits == 10 &&
+              counters.family_precount_edge_visits == 160 &&
+              counters.l0_write_edge_visits == 10,
+          "Spine source-shaped scan classes do not close");
   require(counters.unique_sources == 1 && counters.active_families == 1,
           "Amazon top1 family/source structure mismatch");
   require(counters.persisted_edges == 10 && counters.persisted_rows == 1,
@@ -958,8 +1056,17 @@ void test_spine_reusable_system_matches_vertical_slice() {
   scheduler.add_component(backend);
   scheduler.run_until([&] { return system.done() && system.idle(); }, 30'000);
 
+  std::cout << "EVIDENCE spine_reusable_streamed_maintenance cycles="
+            << scheduler.clock(core).completed_cycles << " scan_passes="
+            << system.maintenance_counters().sorted_scan_passes
+            << " scan_response_stalls="
+            << system.maintenance_counters().sorted_scan_response_stall_cycles
+            << " scan_ii_stalls="
+            << system.maintenance_counters().sorted_scan_ii_stall_cycles
+            << '\n';
+
   require(!system.failed(), "reusable Spine vertical-slice system failed");
-  require(system.maintenance_counters().sorted_scan_passes == 19,
+  require(system.maintenance_counters().sorted_scan_passes == 20,
           "reusable Spine system changed maintenance work");
   require(system.reader_counters().graph_read_bytes == 184,
           "reusable Spine system changed reader memory work");
@@ -1189,7 +1296,8 @@ void test_spine_device_dirty_limit_hands_off_to_host() {
   require(sources.size() == 4'097 && sources.front() == 0 &&
               sources.back() == 4'096 && !system.failed(),
           "host handoff did not recover the exact dirty-source list");
-  scheduler.run_until([&] { return system.done() && system.idle(); }, 500'000);
+  scheduler.run_until([&] { return system.done() && system.idle(); },
+                      5'000'000);
   require(!system.failed() && system.reader_counters().dirty_count == 4'097 &&
               system.reader_counters().dirty_generation == 1 &&
               system.reader_counters().host_coverage_match &&
@@ -1566,7 +1674,7 @@ void test_spine_cold_l1_carry_and_reader() {
   const auto &maintenance = system.maintenance_counters();
   require(maintenance.target_level == 1 && maintenance.hot_target_level == -1,
           "cold carry selected the wrong binary target");
-  require(maintenance.sorted_scan_passes == 18,
+  require(maintenance.sorted_scan_passes == 19,
           "cold carry changed the HLS family-filter scan count");
   require(maintenance.carry_level_payload_reads == 1 &&
               maintenance.carry_merge_inputs == 2 &&
@@ -1625,7 +1733,7 @@ void test_spine_independent_hot_and_cold_targets() {
           "cold and hot targets were not selected independently");
   require(maintenance.cold_input_edges == 1 &&
               maintenance.hot_input_edges == 1 &&
-              maintenance.sorted_scan_passes == 35,
+              maintenance.sorted_scan_passes == 36,
           "mixed hot/cold input scan ledger mismatch");
   require(system.level_state().cold_levels[0][0].empty() &&
               system.level_state().cold_levels[0][1].size() == 2 &&
@@ -2738,7 +2846,7 @@ void test_spine_multiround_weighted_sssp_converges() {
   require(system.compute().values() ==
               std::vector<std::uint32_t>({0, 3, 2, 7, 8, 10}),
           "weighted SSSP final distances diverge from the dual oracle");
-  require(system.maintenance_counters().sorted_scan_passes == 19 &&
+  require(system.maintenance_counters().sorted_scan_passes == 20 &&
               system.level_state().cold_levels[0][0].size() == 8,
           "multi-round SSSP repeated maintenance or mutated graph levels");
 }
@@ -2749,6 +2857,7 @@ struct SpineMemoryWindowObservation {
   std::vector<std::uint32_t> next_active;
   SpineL0Counters maintenance;
   SpineReaderCounters reader;
+  AxiStats sorted_axi;
   std::uint64_t backend_requests{};
 };
 
@@ -2781,6 +2890,7 @@ SpineMemoryWindowObservation run_spine_memory_window(std::size_t window) {
       .next_active = system.compute().next_active(),
       .maintenance = system.maintenance_counters(),
       .reader = system.reader_counters(),
+      .sorted_axi = system.axi_stats(SpineAxiPortKind::kSortedEdges),
       .backend_requests = backend.stats().accepted,
   };
 }
@@ -2917,6 +3027,7 @@ SpineMemoryWindowObservation run_spine_edge_pipeline(std::size_t depth,
       .next_active = system.compute().next_active(),
       .maintenance = system.maintenance_counters(),
       .reader = system.reader_counters(),
+      .sorted_axi = system.axi_stats(SpineAxiPortKind::kSortedEdges),
       .backend_requests = backend.stats().accepted,
   };
 }
@@ -2934,7 +3045,13 @@ void test_spine_edge_pipeline_is_ordered_bounded_and_latency_hiding() {
             << " max_inflight=" << pipelined.reader.edge_pipeline_max_inflight
             << " max_buffered=" << pipelined.reader.edge_pipeline_max_buffered
             << " credit_stalls="
-            << pipelined.reader.edge_pipeline_credit_stall_cycles << '\n';
+            << pipelined.reader.edge_pipeline_credit_stall_cycles
+            << " maintenance_scan_buffer="
+            << pipelined.maintenance.max_sorted_scan_buffered_edges
+            << " maintenance_reorder_stalls="
+            << pipelined.maintenance.sorted_scan_reorder_full_stall_cycles
+            << " axi_beat_fifo_stalls="
+            << pipelined.sorted_axi.read_beat_queue_stalls << '\n';
 
   require(serialized.values == capacity_two.values &&
               serialized.values == pipelined.values &&
@@ -2965,6 +3082,10 @@ void test_spine_edge_pipeline_is_ordered_bounded_and_latency_hiding() {
               pipelined.cycles < capacity_two.cycles &&
               capacity_two.cycles < serialized.cycles,
           "edge-pipeline credits did not hide backend latency monotonically");
+  require(pipelined.maintenance.max_sorted_scan_buffered_edges == 32 &&
+              pipelined.maintenance.sorted_scan_reorder_full_stall_cycles > 0 &&
+              pipelined.sorted_axi.read_beat_queue_stalls > 0,
+          "large maintenance scan bypassed finite beat/reorder backpressure");
 }
 
 void test_spine_edge_pipeline_propagates_axis_backpressure() {
@@ -3026,7 +3147,7 @@ void test_spine_edge_pipeline_propagates_axis_backpressure() {
 
 }  // namespace
 
-int main() {
+int main(int argc, char **argv) {
   const std::vector<std::pair<std::string, std::function<void()>>> tests = {
       {"multiclock_scheduler", test_multiclock_scheduler},
       {"fifo_no_fallthrough", test_fifo_has_no_same_cycle_fallthrough},
@@ -3039,6 +3160,8 @@ int main() {
       {"axi_response_backpressure", test_axi_response_backpressure_is_lossless},
       {"axi_payload_round_trip",
        test_axi_payload_round_trip_across_beats_and_bursts},
+      {"axi_read_beat_stream",
+       test_axi_read_beat_stream_is_bounded_and_request_scoped},
       {"axi_multi_initiator", test_axi_multi_initiator_fixed_channel_isolation},
       {"axi_duplicate_initiator", test_axi_rejects_duplicate_initiator_id},
       {"spine_l0_real_slice", test_spine_l0_real_slice_vertical_path},
@@ -3092,8 +3215,14 @@ int main() {
       {"spine_edge_pipeline_backpressure",
        test_spine_edge_pipeline_propagates_axis_backpressure},
   };
+  const std::string filter = argc > 1 ? argv[1] : "";
   std::size_t failures = 0;
+  std::size_t executed = 0;
   for (const auto &[name, test] : tests) {
+    if (!filter.empty() && name.find(filter) == std::string::npos) {
+      continue;
+    }
+    ++executed;
     try {
       test();
       std::cout << "PASS " << name << '\n';
@@ -3106,6 +3235,6 @@ int main() {
     std::cerr << failures << " test(s) failed\n";
     return 1;
   }
-  std::cout << tests.size() << " test(s) passed\n";
+  std::cout << executed << " test(s) passed\n";
   return 0;
 }
