@@ -1,0 +1,37 @@
+digraph grasu_regraph_pma_native_sssp {
+  graph [rankdir=LR, bgcolor="white", pad="0.2", nodesep="0.3", ranksep="0.6"];
+  node [shape=box, style="rounded,filled", fillcolor="#f7f7f7", color="#4a4a4a", fontname="DejaVu Sans", fontsize=10];
+  edge [color="#555555", fontname="DejaVu Sans", fontsize=9];
+
+  update [label="GraSU update system\n4 search CUs + dispatch\ncache / DDR PMA RMW", fillcolor="#dfeaf4"];
+  barrier [label="Completion barrier\nserial baseline", shape=diamond, fillcolor="#fff3cd"];
+  pma [label="Payload-backed PMA\n4 HBM images\n16 destinations / 64 B", shape=cylinder, fillcolor="#e8e8e8"];
+  rows [label="Row bounds\n8 B / source", shape=cylinder, fillcolor="#e8e8e8"];
+  state [label="ReGraph vertex state\nactive bit + distance\nHBM channel 30", shape=cylinder, fillcolor="#e8e8e8"];
+  source_cache [label="Source cache refill\n4096 words / chunk", fillcolor="#dcebd9"];
+  reader [label="PMA-native reader\nrow AXI + 4 PMA AXI ports\nscan reserved empty slots", fillcolor="#dcebd9"];
+  axis [label="Registered AXIS FIFO\n8 slots / batch\nfinite depth", fillcolor="#f4e1c1"];
+  reset [label="Gather reset sweep\n65536 / 2 cycles", fillcolor="#f0d9e7"];
+  gather [label="8-bank Map / Reduce\nunit-weight SSSP\nbank-conflict timing", fillcolor="#f0d9e7"];
+  merge [label="Gather merge sweep\n65536 / 2 cycles", fillcolor="#f0d9e7"];
+  apply [label="Partition-wide apply\n64 B read + write bursts\nset next active bits", fillcolor="#d9e8f5"];
+  oracle [label="Committed-state\ndistance oracle + byte/stall ledger", fillcolor="#dcebd9"];
+  bypass [label="6-stage RAW bypass registers\nremaining explicit timing gap", style="rounded,dashed,filled", fillcolor="#fff3cd", color="#9a7800"];
+
+  update -> pma [label="committed updates"];
+  update -> barrier;
+  barrier -> reader;
+  pma -> reader [label="64 B AXI responses"];
+  rows -> reader [label="8 B AXI responses"];
+  state -> source_cache [label="sequential AXI bursts"];
+  source_cache -> reader [label="active + source payload"];
+  reader -> axis [label="two batches / segment"];
+  reset -> gather [label="round start"];
+  axis -> gather [label="backpressure"];
+  gather -> merge;
+  merge -> apply [label="reduced candidates"];
+  state -> apply [dir=both, label="64 B AXI R/W"];
+  apply -> source_cache [label="next superstep", color="#3f7f5f"];
+  apply -> oracle [label="no active vertices"];
+  bypass -> gather [style=dashed];
+}

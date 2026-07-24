@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "date": "2026-07-25",
+  "claim_class": "component_validation_simulation",
+  "implementation": {
+    "header": "cpp/include/spine_sim/grasu_regraph.hpp",
+    "source": "cpp/src/grasu_regraph.cpp",
+    "test": "cpp/tests/grasu_tests.cpp",
+    "profile": null,
+    "target_profile": "configs/architectures/grasu_regraph_normalized_spine23.json"
+  },
+  "architecture": {
+    "pma_native": true,
+    "compact_edge_array_materialized": false,
+    "source_buffer_vertices": 4096,
+    "pma_segment_slots": 16,
+    "pma_segment_bytes": 64,
+    "edge_batch_lanes": 8,
+    "gather_banks": 8,
+    "gather_bypass_distance": 6,
+    "native_partition_vertices": 65536,
+    "update_compute_overlap": false,
+    "edge_weight_contract": "unit_weight_only"
+  },
+  "functional_test": {
+    "backend": "mock_hbm",
+    "backend_latency_cycles": 5,
+    "vertices": 16,
+    "final_live_edges": 7,
+    "supersteps": 4,
+    "cycles_200mhz": 1205,
+    "pma_segment_reads": 20,
+    "pma_slots_scanned": 320,
+    "live_edges_scanned": 28,
+    "active_edges_mapped": 7,
+    "read_bytes": 2304,
+    "write_bytes": 256,
+    "distance_oracle": "pass"
+  },
+  "native_partition_test": {
+    "backend": "mock_hbm",
+    "vertices": 16,
+    "partition_vertices": 65536,
+    "supersteps": 2,
+    "cycles_200mhz": 311307,
+    "gather_reset_and_merge_cycles": 131072,
+    "apply_read_bursts_64b": 8192,
+    "apply_write_bursts_64b": 8192,
+    "distance_oracle": "pass"
+  },
+  "contention_test": {
+    "backend": "mock_hbm",
+    "backend_latency_cycles": 9,
+    "max_outstanding_per_channel": 1,
+    "axis_fifo_depth": 1,
+    "vertices": 256,
+    "edges": 128,
+    "cycles_200mhz": 9813,
+    "axi_backend_submit_stalls": 396,
+    "axis_push_stalls": 16,
+    "distance_oracle": "pass"
+  },
+  "claim_boundary": {
+    "validated": [
+      "payload-backed GraSU update to PMA-native unit-weight SSSP correctness",
+      "capacity-wide PMA slot scan accounting",
+      "native ReGraph partition sweep accounting",
+      "shared-HBM contention and finite AXIS backpressure"
+    ],
+    "not_validated": [
+      "SST-HBM timing for the comparator",
+      "U55C cycle calibration of the proposed PMA-native reader",
+      "explicit six-stage gather bypass timing",
+      "non-unit edge weights in GraSU PMA",
+      "PageRank and residual PageRank on the comparator",
+      "PPA and energy",
+      "150-MHz four-lane normalized profile timing"
+    ]
+  }
+}
