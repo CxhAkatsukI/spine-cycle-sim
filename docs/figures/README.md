@@ -12,8 +12,9 @@
   latest HLS exact range-task reader. It shows DEVICE_DIRTY and HOST_ACTIVE
   payload decoding, the 16-credit source-value protocol, HBM level
   metadata/epoch gating, two-pass range replay, the ten-word terminal
-  diagnostic transcript, and the remaining protocol/timing gaps. Its editable
-  source is the adjacent `.dot` file.
+  diagnostic transcript, HOST coverage validation, and the two-pass
+  ACK_DIRTY ownership closeout. Its editable source is the adjacent `.dot`
+  file.
 
 Regenerate a Graphviz SVG from the repository root with:
 

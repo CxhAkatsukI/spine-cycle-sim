@@ -110,6 +110,7 @@ SpineVerticalSliceSystem::SpineVerticalSliceSystem(
   reader_ports.task_scratch = sorted_.get();
   reader_ports.active_bins = active_bins_.get();
   reader_ports.metadata = metadata_.get();
+  reader_ports.result = maintenance_result_.get();
 
   const std::size_t vertices = workload.vertices;
   maintenance_ = std::make_unique<SpineL0Maintenance>(
@@ -127,6 +128,13 @@ SpineVerticalSliceSystem::SpineVerticalSliceSystem(
           .result = compute_result_.get(),
       },
       edge_stream_, value_stream_);
+  dirty_ack_ = std::make_unique<SpineDirtyAck>(
+      "spine-dirty-ack", clock_id_, maintenance_->config(),
+      SpineDirtyAckPorts{
+          .task_scratch = sorted_.get(),
+          .metadata = metadata_.get(),
+          .result = maintenance_result_.get(),
+      });
 }
 
 std::unique_ptr<FixedAxiPort> SpineVerticalSliceSystem::make_port(
@@ -149,6 +157,7 @@ void SpineVerticalSliceSystem::register_components() {
   scheduler_.add_component(*maintenance_);
   scheduler_.add_component(*reader_);
   scheduler_.add_component(*compute_);
+  scheduler_.add_component(*dirty_ack_);
   scheduler_.add_component(edge_stream_);
   scheduler_.add_component(value_stream_);
   for (auto &port : graph_ports_) {
@@ -165,7 +174,8 @@ void SpineVerticalSliceSystem::register_components() {
 }
 
 void SpineVerticalSliceSystem::restart_read_compute(
-    std::vector<std::uint32_t> active_sources) {
+    std::vector<std::uint32_t> active_sources,
+    std::optional<SpineDirtyIdentity> host_coverage) {
   if (!registered_ || !done() || !idle() || failed() ||
       active_sources.empty()) {
     throw std::logic_error(
@@ -173,10 +183,50 @@ void SpineVerticalSliceSystem::restart_read_compute(
   }
   edge_stream_.reset_stats();
   value_stream_.reset_stats();
-  reader_->reset_host_round(build_host_active_bins(
-      state_, maintenance_->config(), active_sources, compute_->values()));
+  reader_->reset_host_round(
+      build_host_active_bins(state_, maintenance_->config(), active_sources,
+                             compute_->values()),
+      host_coverage);
   compute_->reset_round();
   current_frontier_ = std::move(active_sources);
+}
+
+void SpineVerticalSliceSystem::start_dirty_ack() {
+  if (!registered_ || !maintenance_->done() || !reader_->done() ||
+      !compute_->done() || !idle() || dirty_ack_->started()) {
+    throw std::logic_error(
+        "dirty ACK requires a drained successful convergence round");
+  }
+  const auto &reader = reader_->counters();
+  const auto &compute = compute_->counters();
+  const bool can_ack =
+      !failed() &&
+      reader.dirty_status ==
+          static_cast<std::uint32_t>(SpineDirtyStatus::kOk) &&
+      reader.acknowledgement_eligible && !compute.done_overflow &&
+      compute.range_task_error == 0 && compute.source_protocol_status == 0 &&
+      compute.dirty_generation == reader.dirty_generation &&
+      compute.dirty_count == reader.dirty_count;
+  if (!can_ack) {
+    throw std::logic_error(
+        "failed convergence result cannot publish a dirty ACK candidate");
+  }
+  dirty_ack_->start(
+      compute.dirty_generation,
+      SpineDirtyIdentity{
+          .generation = compute.dirty_generation,
+          .count = compute.dirty_count,
+          .hash_sum = reader.dirty_hash_sum,
+          .hash_xor = reader.dirty_hash_xor,
+      });
+}
+
+bool SpineVerticalSliceSystem::dirty_ack_started() const noexcept {
+  return dirty_ack_->started();
+}
+
+bool SpineVerticalSliceSystem::dirty_ack_done() const noexcept {
+  return dirty_ack_->done();
 }
 
 SpineSsspRunResult SpineVerticalSliceSystem::run_sssp_to_convergence(
@@ -212,6 +262,17 @@ SpineSsspRunResult SpineVerticalSliceSystem::run_sssp_to_convergence(
       result.failed = true;
       break;
     }
+    if (round == 0) {
+      start_dirty_ack();
+      scheduler_.run_until(
+          [this] { return dirty_ack_->done() && idle(); },
+          max_events_per_round);
+      result.dirty_ack = dirty_ack_->counters();
+      if (dirty_ack_->failed()) {
+        result.failed = true;
+        break;
+      }
+    }
     if (active_out.empty()) {
       result.converged = true;
       break;
@@ -225,11 +286,13 @@ SpineSsspRunResult SpineVerticalSliceSystem::run_sssp_to_convergence(
 }
 
 bool SpineVerticalSliceSystem::done() const noexcept {
-  return maintenance_->done() && reader_->done() && compute_->done();
+  return maintenance_->done() && reader_->done() && compute_->done() &&
+         (!dirty_ack_->started() || dirty_ack_->done());
 }
 
 bool SpineVerticalSliceSystem::failed() const noexcept {
-  return maintenance_->failed() || reader_->failed() || compute_->failed();
+  return maintenance_->failed() || reader_->failed() || compute_->failed() ||
+         (dirty_ack_->started() && dirty_ack_->failed());
 }
 
 bool SpineVerticalSliceSystem::idle() const noexcept {
@@ -262,6 +325,11 @@ std::vector<std::uint32_t> SpineVerticalSliceSystem::reader_source_ids() const {
 const SpineComputeCounters &SpineVerticalSliceSystem::compute_counters()
     const noexcept {
   return compute_->counters();
+}
+
+const SpineDirtyAckCounters &SpineVerticalSliceSystem::dirty_ack_counters()
+    const noexcept {
+  return dirty_ack_->counters();
 }
 
 const SpineSplitSsspCompute &SpineVerticalSliceSystem::compute()

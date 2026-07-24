@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <deque>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -88,6 +89,12 @@ struct SpineReaderCounters {
   std::uint64_t source_protocol_acks{};
   std::uint32_t source_protocol_status{};
   std::uint32_t dirty_status{};
+  std::uint32_t dirty_count{};
+  std::uint32_t dirty_generation{};
+  std::uint64_t dirty_hash_sum{};
+  std::uint64_t dirty_hash_xor{};
+  bool acknowledgement_eligible{};
+  bool host_coverage_match{};
   std::uint64_t diagnostic_words{};
   std::uint64_t done_words{};
   bool done_overflow{};
@@ -95,6 +102,8 @@ struct SpineReaderCounters {
   std::uint64_t dirty_list_read_bytes{};
   std::uint64_t dirty_bitmap_read_bytes{};
   std::uint64_t metadata_read_bytes{};
+  std::uint64_t metadata_write_bytes{};
+  std::uint64_t result_write_bytes{};
   std::uint64_t level_cache_read_bytes{};
   std::uint64_t row_lookup_metadata_bytes{};
   std::uint64_t graph_read_bytes{};
@@ -132,6 +141,7 @@ struct SpineReaderPorts {
   FixedAxiPort *task_scratch{};
   FixedAxiPort *active_bins{};
   FixedAxiPort *metadata{};
+  FixedAxiPort *result{};
 };
 
 enum class SpineReaderMode { kDeviceDirty, kHostActive };
@@ -154,7 +164,9 @@ class SpineSplitReader final : public Component {
   }
   [[nodiscard]] std::vector<std::uint32_t> active_source_ids() const;
   void reset_round(std::vector<std::uint32_t> active_sources);
-  void reset_host_round(const SpineActiveBins &active_bins);
+  void reset_host_round(
+      const SpineActiveBins &active_bins,
+      std::optional<SpineDirtyIdentity> host_coverage = std::nullopt);
 
   void evaluate(const CycleContext &context) override;
   void commit(const CycleContext &context) override;
@@ -214,6 +226,11 @@ class SpineSplitReader final : public Component {
     kDirtyGeneration,
     kDirtyHashSum,
     kDirtyHashXor,
+    kDirtyHostGeneration,
+    kDirtyHostCount,
+    kDirtyHostHashSum,
+    kDirtyHostHashXor,
+    kDirtyHostValid,
     kDirtyList,
     kDirtyBitmap,
     kActiveBinMetadata,
@@ -233,8 +250,10 @@ class SpineSplitReader final : public Component {
 
   struct MemoryTask {
     FixedAxiPort *port{};
+    MemoryOperation operation{MemoryOperation::kRead};
     std::uint64_t address{};
     std::uint64_t bytes{};
+    std::vector<std::uint8_t> write_data;
     std::uint32_t edge_source{};
     std::size_t item_index{};
     MemoryPayloadKind payload_kind{MemoryPayloadKind::kNone};
@@ -299,6 +318,9 @@ class SpineSplitReader final : public Component {
                     std::uint64_t bytes,
                     MemoryPayloadKind payload_kind = MemoryPayloadKind::kNone,
                     std::size_t probe_index = 0, std::uint32_t edge_source = 0);
+  void enqueue_write(FixedAxiPort &port, std::uint64_t address,
+                     std::vector<std::uint8_t> write_data);
+  void enqueue_terminal_writes();
   void consume_memory_response(const MemoryTask &task,
                                const AxiResponse &response);
   void reset_state();
@@ -337,6 +359,11 @@ class SpineSplitReader final : public Component {
   std::uint32_t dirty_generation_{};
   std::uint64_t dirty_hash_sum_{};
   std::uint64_t dirty_hash_xor_{};
+  std::uint32_t dirty_host_generation_{};
+  std::uint64_t dirty_host_count_{};
+  std::uint64_t dirty_host_hash_sum_{};
+  std::uint64_t dirty_host_hash_xor_{};
+  bool dirty_host_valid_{};
   std::array<std::uint64_t, 16> active_bin_offsets_{};
   std::array<std::uint64_t, 16> active_bin_counts_{};
   bool dirty_payload_valid_{true};

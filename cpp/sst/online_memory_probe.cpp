@@ -815,6 +815,22 @@ class OnlineMemoryProbe final : public SST::Component {
     } else if (mode_ == "spine_sssp") {
       if (spine_system_->done() && spine_system_->idle() &&
           backend_->outstanding() == 0) {
+        if (sst_waiting_dirty_ack_) {
+          sst_waiting_dirty_ack_ = false;
+          const bool finished =
+              spine_system_->failed() || sst_pending_active_out_.empty() ||
+              sst_rounds_.size() >= max_rounds_;
+          if (finished) {
+            write_result(!spine_system_->failed() &&
+                         sst_pending_active_out_.empty());
+            primaryComponentOKToEndSim();
+            return true;
+          }
+          spine_system_->restart_read_compute(sst_pending_active_out_);
+          sst_current_frontier_ = std::move(sst_pending_active_out_);
+          sst_round_start_cycle_ = scheduler_.clock(0).completed_cycles;
+          return false;
+        }
         const std::vector<std::uint32_t> active_out =
             spine_system_->compute().next_active();
         sst_rounds_.push_back(SpineSsspRoundEvidence{
@@ -829,6 +845,12 @@ class OnlineMemoryProbe final : public SST::Component {
             .start_cycle = sst_round_start_cycle_,
             .end_cycle = scheduler_.clock(0).completed_cycles,
         });
+        if (sst_rounds_.size() == 1 && !spine_system_->failed()) {
+          sst_pending_active_out_ = active_out;
+          spine_system_->start_dirty_ack();
+          sst_waiting_dirty_ack_ = true;
+          return false;
+        }
         const bool finished = spine_system_->failed() || active_out.empty() ||
                               sst_rounds_.size() >= max_rounds_;
         if (finished) {
@@ -1075,6 +1097,8 @@ class OnlineMemoryProbe final : public SST::Component {
       std::vector<std::uint32_t> reader_range_fallback_reasons;
       std::vector<std::uint32_t> reader_range_errors;
       std::vector<std::uint64_t> reader_metadata_bytes;
+      std::vector<std::uint64_t> reader_metadata_write_bytes;
+      std::vector<std::uint64_t> reader_result_write_bytes;
       std::vector<std::uint64_t> reader_active_bin_bytes;
       std::vector<std::uint64_t> reader_dirty_list_bytes;
       std::vector<std::uint64_t> reader_dirty_bitmap_bytes;
@@ -1085,6 +1109,10 @@ class OnlineMemoryProbe final : public SST::Component {
       std::vector<std::uint64_t> reader_protocol_acks;
       std::vector<std::uint32_t> reader_protocol_status;
       std::vector<std::uint32_t> reader_dirty_status;
+      std::vector<std::uint32_t> reader_dirty_counts;
+      std::vector<std::uint32_t> reader_dirty_generations;
+      std::vector<std::uint32_t> reader_ack_eligible;
+      std::vector<std::uint32_t> reader_host_coverage_match;
       std::vector<std::uint32_t> compute_protocol_status;
       std::vector<std::uint64_t> reader_diagnostic_words;
       std::vector<std::uint64_t> reader_done_words;
@@ -1148,6 +1176,9 @@ class OnlineMemoryProbe final : public SST::Component {
             round.reader.range_task_fallback_reason);
         reader_range_errors.push_back(round.reader.range_task_error);
         reader_metadata_bytes.push_back(round.reader.metadata_read_bytes);
+        reader_metadata_write_bytes.push_back(
+            round.reader.metadata_write_bytes);
+        reader_result_write_bytes.push_back(round.reader.result_write_bytes);
         reader_active_bin_bytes.push_back(round.reader.active_bin_read_bytes);
         reader_dirty_list_bytes.push_back(round.reader.dirty_list_read_bytes);
         reader_dirty_bitmap_bytes.push_back(
@@ -1160,6 +1191,12 @@ class OnlineMemoryProbe final : public SST::Component {
         reader_protocol_acks.push_back(round.reader.source_protocol_acks);
         reader_protocol_status.push_back(round.reader.source_protocol_status);
         reader_dirty_status.push_back(round.reader.dirty_status);
+        reader_dirty_counts.push_back(round.reader.dirty_count);
+        reader_dirty_generations.push_back(round.reader.dirty_generation);
+        reader_ack_eligible.push_back(
+            round.reader.acknowledgement_eligible ? 1U : 0U);
+        reader_host_coverage_match.push_back(
+            round.reader.host_coverage_match ? 1U : 0U);
         compute_protocol_status.push_back(
             round.compute.source_protocol_status);
         reader_diagnostic_words.push_back(round.reader.diagnostic_words);
@@ -1198,6 +1235,7 @@ class OnlineMemoryProbe final : public SST::Component {
         value_axis_max_occupancy.push_back(round.value_axis.max_occupancy);
       }
       const auto &maintenance = spine_system_->maintenance_counters();
+      const auto &dirty_ack = spine_system_->dirty_ack_counters();
       result << "{\n"
              << "  \"success\": " << (passed ? "true" : "false") << ",\n"
              << "  \"mode\": \"spine_sssp\",\n"
@@ -1221,6 +1259,37 @@ class OnlineMemoryProbe final : public SST::Component {
              << maintenance.graph_index_payload_write_bytes << ",\n"
              << "  \"maintenance_graph_payload_write_bytes\": "
              << maintenance.graph_edge_payload_write_bytes << ",\n"
+             << "  \"dirty_ack_started\": "
+             << (spine_system_->dirty_ack_started() ? 1 : 0) << ",\n"
+             << "  \"dirty_ack_status\": " << dirty_ack.status << ",\n"
+             << "  \"dirty_ack_cycles\": "
+             << (dirty_ack.end_cycle - dirty_ack.start_cycle) << ",\n"
+             << "  \"dirty_ack_captured_count\": "
+             << dirty_ack.captured.count << ",\n"
+             << "  \"dirty_ack_captured_generation\": "
+             << dirty_ack.captured.generation << ",\n"
+             << "  \"dirty_ack_result_count\": "
+             << dirty_ack.result.count << ",\n"
+             << "  \"dirty_ack_result_generation\": "
+             << dirty_ack.result.generation << ",\n"
+             << "  \"dirty_ack_candidate_write_bytes\": "
+             << dirty_ack.candidate_write_bytes << ",\n"
+             << "  \"dirty_ack_metadata_read_bytes\": "
+             << dirty_ack.metadata_read_bytes << ",\n"
+             << "  \"dirty_ack_metadata_write_bytes\": "
+             << dirty_ack.metadata_write_bytes << ",\n"
+             << "  \"dirty_ack_list_read_bytes\": "
+             << dirty_ack.list_read_bytes << ",\n"
+             << "  \"dirty_ack_bitmap_read_bytes\": "
+             << dirty_ack.bitmap_read_bytes << ",\n"
+             << "  \"dirty_ack_bitmap_write_bytes\": "
+             << dirty_ack.bitmap_write_bytes << ",\n"
+             << "  \"dirty_ack_validated_sources\": "
+             << dirty_ack.validated_sources << ",\n"
+             << "  \"dirty_ack_cleared_sources\": "
+             << dirty_ack.cleared_sources << ",\n"
+             << "  \"dirty_ack_generation_advances\": "
+             << dirty_ack.generation_advances << ",\n"
              << "  \"final_values\": ";
       write_json_array(result, actual_values);
       result << ",\n  \"frontier_in_sizes\": ";
@@ -1267,6 +1336,10 @@ class OnlineMemoryProbe final : public SST::Component {
       write_json_array(result, reader_range_errors);
       result << ",\n  \"reader_metadata_bytes_per_round\": ";
       write_json_array(result, reader_metadata_bytes);
+      result << ",\n  \"reader_metadata_write_bytes_per_round\": ";
+      write_json_array(result, reader_metadata_write_bytes);
+      result << ",\n  \"reader_result_write_bytes_per_round\": ";
+      write_json_array(result, reader_result_write_bytes);
       result << ",\n  \"reader_active_bin_bytes_per_round\": ";
       write_json_array(result, reader_active_bin_bytes);
       result << ",\n  \"reader_dirty_list_bytes_per_round\": ";
@@ -1287,6 +1360,14 @@ class OnlineMemoryProbe final : public SST::Component {
       write_json_array(result, reader_protocol_status);
       result << ",\n  \"reader_dirty_status_per_round\": ";
       write_json_array(result, reader_dirty_status);
+      result << ",\n  \"reader_dirty_counts_per_round\": ";
+      write_json_array(result, reader_dirty_counts);
+      result << ",\n  \"reader_dirty_generations_per_round\": ";
+      write_json_array(result, reader_dirty_generations);
+      result << ",\n  \"reader_ack_eligible_per_round\": ";
+      write_json_array(result, reader_ack_eligible);
+      result << ",\n  \"reader_host_coverage_match_per_round\": ";
+      write_json_array(result, reader_host_coverage_match);
       result << ",\n  \"compute_protocol_status_per_round\": ";
       write_json_array(result, compute_protocol_status);
       result << ",\n  \"reader_diagnostic_words_per_round\": ";
@@ -1476,6 +1557,10 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"reader_range_error\": " << reader.range_task_error << ",\n"
           << "  \"reader_metadata_bytes\": " << reader.metadata_read_bytes
           << ",\n"
+          << "  \"reader_metadata_write_bytes\": "
+          << reader.metadata_write_bytes << ",\n"
+          << "  \"reader_result_write_bytes\": "
+          << reader.result_write_bytes << ",\n"
           << "  \"reader_active_bin_bytes\": " << reader.active_bin_read_bytes
           << ",\n"
           << "  \"reader_dirty_list_bytes\": " << reader.dirty_list_read_bytes
@@ -1494,6 +1579,13 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"reader_protocol_status\": "
           << reader.source_protocol_status << ",\n"
           << "  \"reader_dirty_status\": " << reader.dirty_status << ",\n"
+          << "  \"reader_dirty_count\": " << reader.dirty_count << ",\n"
+          << "  \"reader_dirty_generation\": "
+          << reader.dirty_generation << ",\n"
+          << "  \"reader_ack_eligible\": "
+          << (reader.acknowledgement_eligible ? 1 : 0) << ",\n"
+          << "  \"reader_host_coverage_match\": "
+          << (reader.host_coverage_match ? 1 : 0) << ",\n"
           << "  \"reader_diagnostic_words\": " << reader.diagnostic_words
           << ",\n"
           << "  \"reader_done_words\": " << reader.done_words << ",\n"
@@ -1645,10 +1737,12 @@ class OnlineMemoryProbe final : public SST::Component {
   SsspReference sssp_reference_;
   std::vector<SpineSsspRoundEvidence> sst_rounds_;
   std::vector<std::uint32_t> sst_current_frontier_;
+  std::vector<std::uint32_t> sst_pending_active_out_;
   std::uint64_t sst_round_start_cycle_{};
   std::size_t spine_expected_edges_{};
   std::size_t spine_preload_edges_{};
   std::unordered_map<std::uint32_t, std::uint32_t> expected_distances_;
+  bool sst_waiting_dirty_ack_{};
   bool result_written_{};
 };
 

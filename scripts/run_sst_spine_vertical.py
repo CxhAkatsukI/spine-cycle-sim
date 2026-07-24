@@ -50,6 +50,8 @@ def diagnostic_transcript_matches(result: dict[str, Any]) -> bool:
         and result.get("compute_diagnostic_words") == 10
         and result.get("compute_done_words") == 1
         and result.get("compute_done_overflow") == 0
+        and result.get("reader_metadata_write_bytes") == 16
+        and result.get("reader_result_write_bytes") == 64
         and result.get("compute_dirty_count") == result.get("reader_source_requests")
         and result.get("compute_dirty_generation") == 1
         and all(result.get(reader) == result.get(compute) for reader, compute in field_pairs)
@@ -100,6 +102,12 @@ def multiround_diagnostic_transcript_matches(result: dict[str, Any]) -> bool:
         and result.get("compute_diagnostic_words_per_round") == [10] * rounds
         and result.get("compute_done_words_per_round") == [1] * rounds
         and result.get("compute_done_overflow_per_round") == [0] * rounds
+        and result.get("reader_metadata_write_bytes_per_round") == [16] * rounds
+        and result.get("reader_result_write_bytes_per_round") == [64] * rounds
+        and result.get("reader_dirty_counts_per_round")
+        == result.get("compute_dirty_counts_per_round")
+        and result.get("reader_dirty_generations_per_round")
+        == result.get("compute_dirty_generations_per_round")
         and all(result.get(reader) == result.get(compute) for reader, compute in field_pairs)
     )
 
@@ -380,7 +388,30 @@ def validate_multiround_sssp_result(
         "round_metadata": len(result.get("reader_metadata_bytes_per_round", []))
         == 6
         and result.get("reader_metadata_bytes_per_round")
-        == [2_960, 3_160, 3_160, 3_160, 3_152, 3_144],
+        == [2_960, 3_232, 3_232, 3_232, 3_224, 3_216],
+        "dirty_ownership": result.get("reader_dirty_counts_per_round")
+        == [5, 0, 0, 0, 0, 0]
+        and result.get("reader_dirty_generations_per_round")
+        == [1, 2, 2, 2, 2, 2]
+        and result.get("reader_ack_eligible_per_round")
+        == [1, 0, 0, 0, 0, 0]
+        and result.get("reader_host_coverage_match_per_round") == [0] * 6
+        and result.get("dirty_ack_started") == 1
+        and result.get("dirty_ack_status") == 0
+        and result.get("dirty_ack_captured_count") == 5
+        and result.get("dirty_ack_captured_generation") == 1
+        and result.get("dirty_ack_result_count") == 0
+        and result.get("dirty_ack_result_generation") == 2
+        and result.get("dirty_ack_candidate_write_bytes") == 40
+        and result.get("dirty_ack_metadata_read_bytes") == 72
+        and result.get("dirty_ack_metadata_write_bytes") == 64
+        and result.get("dirty_ack_list_read_bytes") == 160
+        and result.get("dirty_ack_bitmap_read_bytes") == 160
+        and result.get("dirty_ack_bitmap_write_bytes") == 80
+        and result.get("dirty_ack_validated_sources") == 5
+        and result.get("dirty_ack_cleared_sources") == 5
+        and result.get("dirty_ack_generation_advances") == 1
+        and result.get("dirty_ack_cycles", 0) > 0,
         "round_active_protocol": result.get("reader_source_sizes_per_round")
         == [5, 2, 2, 2, 1, 0]
         and result.get("reader_source_requests_per_round") == [5, 0, 0, 0, 0, 0]

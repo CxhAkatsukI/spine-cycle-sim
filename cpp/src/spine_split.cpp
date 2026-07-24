@@ -15,6 +15,8 @@ constexpr std::uint64_t kMetadataWordBytes = 8;
 constexpr std::uint64_t kVertexWordBytes = 4;
 constexpr std::uint64_t kActiveOutputBytes = 8;
 constexpr std::uint64_t kResultBytes = 96 * 4;
+constexpr std::uint64_t kDirtyResultOffset = 80 * 4;
+constexpr std::size_t kDirtyResultWords = 16;
 constexpr std::uint32_t kTileVertices = 65'536;
 constexpr std::uint64_t kMetadataWordsPerSlice = 8;
 constexpr std::uint64_t kLevelCount = 11;
@@ -118,7 +120,8 @@ SpineSplitReader::SpineSplitReader(std::string name, ClockId clock_id,
       edge_out_(edge_out),
       value_in_(value_in) {
   if (ports_.task_scratch == nullptr || ports_.active_bins == nullptr ||
-      ports_.metadata == nullptr || edge_out_.clock_id() != clock_id ||
+      ports_.metadata == nullptr || ports_.result == nullptr ||
+      edge_out_.clock_id() != clock_id ||
       value_in_.clock_id() != clock_id) {
     throw std::invalid_argument("invalid Spine split reader configuration");
   }
@@ -139,7 +142,9 @@ void SpineSplitReader::reset_round(std::vector<std::uint32_t> active_sources) {
   reset_state();
 }
 
-void SpineSplitReader::reset_host_round(const SpineActiveBins &active_bins) {
+void SpineSplitReader::reset_host_round(
+    const SpineActiveBins &active_bins,
+    std::optional<SpineDirtyIdentity> host_coverage) {
   if (!done_ || failed_ || waiting_memory_ || !memory_tasks_.empty()) {
     throw std::logic_error(
         "reader host-active reset requires a successful drain");
@@ -172,6 +177,23 @@ void SpineSplitReader::reset_host_round(const SpineActiveBins &active_bins) {
     }
     offset += bin.size();
   }
+  const auto write_metadata_word = [&](std::uint64_t word,
+                                       std::uint64_t value) {
+    ports_.metadata->initialize_payload(
+        maintenance_.config().metadata_base + word * kMetadataWordBytes,
+        encode_u64(value));
+  };
+  if (host_coverage.has_value()) {
+    write_metadata_word(metadata.dirty_host_generation_word,
+                        host_coverage->generation);
+    write_metadata_word(metadata.dirty_host_count_word, host_coverage->count);
+    write_metadata_word(metadata.dirty_host_hash_sum_word,
+                        host_coverage->hash_sum);
+    write_metadata_word(metadata.dirty_host_hash_xor_word,
+                        host_coverage->hash_xor);
+  }
+  write_metadata_word(metadata.dirty_host_valid_word,
+                      host_coverage.has_value() ? 1 : 0);
   active_sources_.clear();
   reset_state();
 }
@@ -216,6 +238,11 @@ void SpineSplitReader::reset_state() {
   dirty_generation_ = 0;
   dirty_hash_sum_ = 0;
   dirty_hash_xor_ = 0;
+  dirty_host_generation_ = 0;
+  dirty_host_count_ = 0;
+  dirty_host_hash_sum_ = 0;
+  dirty_host_hash_xor_ = 0;
+  dirty_host_valid_ = false;
   active_bin_offsets_.fill(0);
   active_bin_counts_.fill(0);
   dirty_payload_valid_ = true;
@@ -260,10 +287,10 @@ void SpineSplitReader::evaluate(const CycleContext &) {
     const MemoryTask &task = memory_tasks_.front();
     if (task.port->requests().try_push(AxiRequest{
             .transaction_id = next_transaction_id_,
-            .operation = MemoryOperation::kRead,
+            .operation = task.operation,
             .address = task.address,
             .bytes = task.bytes,
-            .write_data = {},
+            .write_data = task.write_data,
         })) {
       staged_action_ = Action::kIssue;
     }
@@ -432,8 +459,10 @@ void SpineSplitReader::enqueue_read(FixedAxiPort &port, std::uint64_t address,
                                     std::uint32_t edge_source) {
   memory_tasks_.push_back(MemoryTask{
       .port = &port,
+      .operation = MemoryOperation::kRead,
       .address = address,
       .bytes = bytes,
+      .write_data = {},
       .edge_source = edge_source,
       .item_index = item_index,
       .payload_kind = payload_kind,
@@ -453,8 +482,67 @@ void SpineSplitReader::enqueue_read(FixedAxiPort &port, std::uint64_t address,
   }
 }
 
+void SpineSplitReader::enqueue_write(
+    FixedAxiPort &port, std::uint64_t address,
+    std::vector<std::uint8_t> write_data) {
+  const std::uint64_t bytes = write_data.size();
+  if (bytes == 0) {
+    throw std::invalid_argument("Spine reader write payload cannot be empty");
+  }
+  memory_tasks_.push_back(MemoryTask{
+      .port = &port,
+      .operation = MemoryOperation::kWrite,
+      .address = address,
+      .bytes = bytes,
+      .write_data = std::move(write_data),
+  });
+  if (&port == ports_.metadata) {
+    counters_.metadata_write_bytes += bytes;
+  } else if (&port == ports_.result) {
+    counters_.result_write_bytes += bytes;
+  }
+}
+
+void SpineSplitReader::enqueue_terminal_writes() {
+  const SpineMetadataLayout metadata =
+      spine_metadata_layout(maintenance_.config());
+  const std::uint32_t mode =
+      mode_ == SpineReaderMode::kDeviceDirty ? 2U : 1U;
+  enqueue_write(*ports_.metadata,
+                maintenance_.config().metadata_base +
+                    metadata.dirty_last_mode_word * kMetadataWordBytes,
+                encode_u64(mode));
+  enqueue_write(*ports_.metadata,
+                maintenance_.config().metadata_base +
+                    metadata.dirty_last_status_word * kMetadataWordBytes,
+                encode_u64(counters_.dirty_status));
+
+  std::vector<std::uint32_t> words(kDirtyResultWords, 0);
+  words[0] = mode;
+  words[1] = counters_.dirty_status;
+  words[2] = counters_.dirty_count;
+  words[3] = counters_.dirty_generation;
+  words[4] = static_cast<std::uint32_t>(counters_.dirty_hash_sum);
+  words[5] = static_cast<std::uint32_t>(counters_.dirty_hash_sum >> 32);
+  words[6] = static_cast<std::uint32_t>(counters_.dirty_hash_xor);
+  words[7] = static_cast<std::uint32_t>(counters_.dirty_hash_xor >> 32);
+  words[8] = static_cast<std::uint32_t>(counters_.source_requests);
+  words[9] = static_cast<std::uint32_t>(counters_.source_responses);
+  words[10] = counters_.acknowledgement_eligible ? 1U : 0U;
+  words[11] = counters_.host_coverage_match ? 1U : 0U;
+  enqueue_write(*ports_.result,
+                maintenance_.config().result_base + kDirtyResultOffset,
+                encode_u32_words(words));
+}
+
 void SpineSplitReader::consume_memory_response(const MemoryTask &task,
                                                const AxiResponse &response) {
+  if (task.operation == MemoryOperation::kWrite) {
+    if (!response.read_data.empty()) {
+      throw std::logic_error("Spine reader write response carried a payload");
+    }
+    return;
+  }
   if (response.read_data.size() != task.bytes) {
     throw std::logic_error("Spine reader payload size mismatch");
   }
@@ -486,6 +574,22 @@ void SpineSplitReader::consume_memory_response(const MemoryTask &task,
       return;
     case MemoryPayloadKind::kDirtyHashXor:
       dirty_hash_xor_ = decode_u64(response.read_data);
+      return;
+    case MemoryPayloadKind::kDirtyHostGeneration:
+      dirty_host_generation_ =
+          static_cast<std::uint32_t>(decode_u64(response.read_data));
+      return;
+    case MemoryPayloadKind::kDirtyHostCount:
+      dirty_host_count_ = decode_u64(response.read_data);
+      return;
+    case MemoryPayloadKind::kDirtyHostHashSum:
+      dirty_host_hash_sum_ = decode_u64(response.read_data);
+      return;
+    case MemoryPayloadKind::kDirtyHostHashXor:
+      dirty_host_hash_xor_ = decode_u64(response.read_data);
+      return;
+    case MemoryPayloadKind::kDirtyHostValid:
+      dirty_host_valid_ = decode_u64(response.read_data) != 0;
       return;
     case MemoryPayloadKind::kDirtyList: {
       if (task.item_index >= active_sources_.size()) {
@@ -642,24 +746,44 @@ void SpineSplitReader::begin_source_header_reads() {
                maintenance_.config().metadata_base +
                    metadata.hot_enabled_word * kMetadataWordBytes,
                kMetadataWordBytes, MemoryPayloadKind::kMetadataControl);
-  if (mode_ == SpineReaderMode::kDeviceDirty) {
+  enqueue_read(*ports_.metadata,
+               maintenance_.config().metadata_base +
+                   metadata.dirty_count_word * kMetadataWordBytes,
+               kMetadataWordBytes, MemoryPayloadKind::kDirtyCount);
+  enqueue_read(*ports_.metadata,
+               maintenance_.config().metadata_base +
+                   metadata.dirty_generation_word * kMetadataWordBytes,
+               kMetadataWordBytes, MemoryPayloadKind::kDirtyGeneration);
+  enqueue_read(*ports_.metadata,
+               maintenance_.config().metadata_base +
+                   metadata.dirty_hash_sum_word * kMetadataWordBytes,
+               kMetadataWordBytes, MemoryPayloadKind::kDirtyHashSum);
+  enqueue_read(*ports_.metadata,
+               maintenance_.config().metadata_base +
+                   metadata.dirty_hash_xor_word * kMetadataWordBytes,
+               kMetadataWordBytes, MemoryPayloadKind::kDirtyHashXor);
+  if (mode_ == SpineReaderMode::kHostActive) {
     enqueue_read(*ports_.metadata,
                  maintenance_.config().metadata_base +
-                     metadata.dirty_count_word * kMetadataWordBytes,
-                 kMetadataWordBytes, MemoryPayloadKind::kDirtyCount);
+                     metadata.dirty_host_generation_word * kMetadataWordBytes,
+                 kMetadataWordBytes,
+                 MemoryPayloadKind::kDirtyHostGeneration);
     enqueue_read(*ports_.metadata,
                  maintenance_.config().metadata_base +
-                     metadata.dirty_generation_word * kMetadataWordBytes,
-                 kMetadataWordBytes, MemoryPayloadKind::kDirtyGeneration);
+                     metadata.dirty_host_count_word * kMetadataWordBytes,
+                 kMetadataWordBytes, MemoryPayloadKind::kDirtyHostCount);
     enqueue_read(*ports_.metadata,
                  maintenance_.config().metadata_base +
-                     metadata.dirty_hash_sum_word * kMetadataWordBytes,
-                 kMetadataWordBytes, MemoryPayloadKind::kDirtyHashSum);
+                     metadata.dirty_host_hash_sum_word * kMetadataWordBytes,
+                 kMetadataWordBytes, MemoryPayloadKind::kDirtyHostHashSum);
     enqueue_read(*ports_.metadata,
                  maintenance_.config().metadata_base +
-                     metadata.dirty_hash_xor_word * kMetadataWordBytes,
-                 kMetadataWordBytes, MemoryPayloadKind::kDirtyHashXor);
-  } else {
+                     metadata.dirty_host_hash_xor_word * kMetadataWordBytes,
+                 kMetadataWordBytes, MemoryPayloadKind::kDirtyHostHashXor);
+    enqueue_read(*ports_.metadata,
+                 maintenance_.config().metadata_base +
+                     metadata.dirty_host_valid_word * kMetadataWordBytes,
+                 kMetadataWordBytes, MemoryPayloadKind::kDirtyHostValid);
     for (std::size_t partition = 0; partition < kPartitionCount; ++partition) {
       enqueue_read(*ports_.metadata,
                    maintenance_.config().metadata_base +
@@ -1156,6 +1280,22 @@ void SpineSplitReader::begin_terminal(bool overflow, std::string failure) {
   terminal_failed_ = overflow || !failure.empty();
   failure_ = std::move(failure);
   diagnostic_index_ = 0;
+  counters_.dirty_count = static_cast<std::uint32_t>(dirty_count_);
+  counters_.dirty_generation = dirty_generation_;
+  counters_.dirty_hash_sum = dirty_hash_sum_;
+  counters_.dirty_hash_xor = dirty_hash_xor_;
+  counters_.host_coverage_match =
+      mode_ == SpineReaderMode::kHostActive && dirty_host_valid_ &&
+      dirty_host_generation_ == dirty_generation_ &&
+      dirty_host_count_ == dirty_count_ &&
+      dirty_host_hash_sum_ == dirty_hash_sum_ &&
+      dirty_host_hash_xor_ == dirty_hash_xor_;
+  counters_.acknowledgement_eligible =
+      !terminal_overflow_ && counters_.range_task_error == 0 &&
+      ((mode_ == SpineReaderMode::kDeviceDirty &&
+        counters_.range_task_fallback_reason == 0) ||
+       (mode_ == SpineReaderMode::kHostActive &&
+        counters_.host_coverage_match));
   if (mode_ == SpineReaderMode::kDeviceDirty &&
       counters_.dirty_status ==
           static_cast<std::uint32_t>(SpineDirtyStatus::kOk) &&
@@ -1165,6 +1305,7 @@ void SpineSplitReader::begin_terminal(bool overflow, std::string failure) {
             ? static_cast<std::uint32_t>(SpineDirtyStatus::kRequiresHost)
             : static_cast<std::uint32_t>(SpineDirtyStatus::kTaskError);
   }
+  enqueue_terminal_writes();
   const bool tile_open = phase_ == Phase::kEdgeRead ||
                          phase_ == Phase::kEdgeEmit ||
                          phase_ == Phase::kTileEnd;
@@ -1348,6 +1489,16 @@ void SpineSplitReader::advance(const CycleContext &context) {
         }
         phase_ = Phase::kDirtyListResolve;
       } else {
+        counters_.host_coverage_match =
+            dirty_host_valid_ &&
+            dirty_host_generation_ == dirty_generation_ &&
+            dirty_host_count_ == dirty_count_ &&
+            dirty_host_hash_sum_ == dirty_hash_sum_ &&
+            dirty_host_hash_xor_ == dirty_hash_xor_;
+        if (!counters_.host_coverage_match && dirty_count_ != 0) {
+          counters_.dirty_status = static_cast<std::uint32_t>(
+              SpineDirtyStatus::kCoverageMismatch);
+        }
         std::uint64_t total = 0;
         for (std::size_t partition = 0; partition < kPartitionCount;
              ++partition) {

@@ -86,7 +86,15 @@ struct SpineMetadataLayout {
   std::uint64_t dirty_generation_word{};
   std::uint64_t dirty_hash_sum_word{};
   std::uint64_t dirty_hash_xor_word{};
+  std::uint64_t dirty_candidate_generation_word{};
+  std::uint64_t dirty_candidate_count_word{};
+  std::uint64_t dirty_candidate_hash_sum_word{};
+  std::uint64_t dirty_candidate_hash_xor_word{};
   std::uint64_t dirty_candidate_valid_word{};
+  std::uint64_t dirty_host_generation_word{};
+  std::uint64_t dirty_host_count_word{};
+  std::uint64_t dirty_host_hash_sum_word{};
+  std::uint64_t dirty_host_hash_xor_word{};
   std::uint64_t dirty_host_valid_word{};
   std::uint64_t dirty_last_mode_word{};
   std::uint64_t dirty_last_status_word{};
@@ -115,6 +123,16 @@ struct SpineActiveBins {
   }
 };
 
+struct SpineDirtyIdentity {
+  std::uint32_t generation{};
+  std::uint64_t count{};
+  std::uint64_t hash_sum{};
+  std::uint64_t hash_xor{};
+
+  friend bool operator==(const SpineDirtyIdentity &,
+                         const SpineDirtyIdentity &) = default;
+};
+
 [[nodiscard]] SpineMetadataLayout spine_metadata_layout(
     const SpineL0Config &config);
 [[nodiscard]] std::uint64_t spine_metadata_control_word(bool hot_enabled);
@@ -123,6 +141,8 @@ struct SpineActiveBins {
     std::uint32_t source) noexcept;
 [[nodiscard]] std::uint64_t spine_dirty_hash_xor_term(
     std::uint32_t source) noexcept;
+[[nodiscard]] SpineDirtyIdentity spine_dirty_identity(
+    std::uint32_t generation, std::span<const std::uint32_t> sources);
 [[nodiscard]] std::vector<std::uint8_t> encode_spine_active_record(
     const SpineActiveRecord &record);
 [[nodiscard]] SpineActiveRecord decode_spine_active_record(

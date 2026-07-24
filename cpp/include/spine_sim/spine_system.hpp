@@ -4,12 +4,14 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <optional>
 #include <vector>
 
 #include "spine_sim/fifo.hpp"
 #include "spine_sim/fixed_axi_port.hpp"
 #include "spine_sim/memory_backend.hpp"
 #include "spine_sim/scheduler.hpp"
+#include "spine_sim/spine_dirty.hpp"
 #include "spine_sim/spine_l0.hpp"
 #include "spine_sim/spine_split.hpp"
 
@@ -32,6 +34,7 @@ struct SpineSsspRunResult {
   bool converged{};
   bool failed{};
   std::vector<SpineSsspRoundEvidence> rounds;
+  std::optional<SpineDirtyAckCounters> dirty_ack;
   std::uint64_t start_cycle{};
   std::uint64_t end_cycle{};
 };
@@ -46,7 +49,12 @@ class SpineVerticalSliceSystem {
                            SpineL0State initial_state = {});
 
   void register_components();
-  void restart_read_compute(std::vector<std::uint32_t> active_sources);
+  void restart_read_compute(
+      std::vector<std::uint32_t> active_sources,
+      std::optional<SpineDirtyIdentity> host_coverage = std::nullopt);
+  void start_dirty_ack();
+  [[nodiscard]] bool dirty_ack_started() const noexcept;
+  [[nodiscard]] bool dirty_ack_done() const noexcept;
   [[nodiscard]] SpineSsspRunResult run_sssp_to_convergence(
       std::size_t max_rounds, std::uint64_t max_events_per_round);
 
@@ -57,6 +65,8 @@ class SpineVerticalSliceSystem {
   [[nodiscard]] const SpineReaderCounters &reader_counters() const noexcept;
   [[nodiscard]] std::vector<std::uint32_t> reader_source_ids() const;
   [[nodiscard]] const SpineComputeCounters &compute_counters() const noexcept;
+  [[nodiscard]] const SpineDirtyAckCounters &dirty_ack_counters() const
+      noexcept;
   [[nodiscard]] const SpineSplitSsspCompute &compute() const noexcept;
   [[nodiscard]] const SpineL0State &level_state() const noexcept;
   [[nodiscard]] const FifoStats &edge_stream_stats() const noexcept;
@@ -84,6 +94,7 @@ class SpineVerticalSliceSystem {
   std::unique_ptr<SpineL0Maintenance> maintenance_;
   std::unique_ptr<SpineSplitReader> reader_;
   std::unique_ptr<SpineSplitSsspCompute> compute_;
+  std::unique_ptr<SpineDirtyAck> dirty_ack_;
   std::vector<std::uint32_t> current_frontier_;
   bool registered_{};
   bool convergence_run_started_{};

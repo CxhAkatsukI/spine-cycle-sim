@@ -97,21 +97,16 @@ python3 scripts/run_sst_spine_vertical.py \
   --no-build
 ```
 
-## Remaining protocol gaps
+## Follow-on status
 
-This milestone models the source-value request window and its ACK. It does not
-close the separate dirty-frontier ownership acknowledgement.
+The source-value protocol remains the first half of dirty ownership. The
+separate `docs/spine_dirty_ownership_20260724.md` milestone now models exact
+HOST_ACTIVE coverage checks, candidate publication, ACK_DIRTY validation,
+two-pass bitmap clear, and generation advance. Remaining gaps are narrower:
 
-1. A successful DEVICE_DIRTY run does not yet clear/advance the persistent
-   dirty generation; HOST_ACTIVE coverage generation/hash metadata is not yet
-   validated and acknowledged.
-2. DEVICE_DIRTY correctly rejects more than 4096 sources, but the host handoff
+1. DEVICE_DIRTY correctly rejects more than 4096 sources, but the host handoff
    is not yet executed end to end.
-3. HOST_ACTIVE exact-task overflow still reports failure instead of running the
+2. HOST_ACTIVE exact-task overflow still reports failure instead of running the
    HLS tiled-reader fallback.
-4. Source-value HBM reads are issued serially by compute. The finite stream
+3. Source-value HBM reads are issued serially by compute. The finite stream
    window is exact, but AXI outstanding overlap remains a later timing phase.
-
-The diagnostic/DONE transcript is closed in
-`docs/spine_terminal_diagnostics_20260724.md`. The next protocol milestone is
-dirty ownership ACK, followed by HOST_ACTIVE fallback execution.

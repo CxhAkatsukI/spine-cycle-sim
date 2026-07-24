@@ -146,3 +146,6 @@ The current payload-authoritative reader protocol is documented in
 [`docs/spine_source_value_protocol_20260724.md`](docs/spine_source_value_protocol_20260724.md)
 and
 [`docs/spine_terminal_diagnostics_20260724.md`](docs/spine_terminal_diagnostics_20260724.md).
+The persistent dirty-frontier coverage and ACK/clear lifecycle is documented
+in
+[`docs/spine_dirty_ownership_20260724.md`](docs/spine_dirty_ownership_20260724.md).

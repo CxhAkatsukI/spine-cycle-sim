@@ -278,7 +278,15 @@ SpineMetadataLayout spine_metadata_layout(const SpineL0Config &config) {
   layout.dirty_generation_word = layout.dirty_base + 1;
   layout.dirty_hash_sum_word = layout.dirty_base + 2;
   layout.dirty_hash_xor_word = layout.dirty_base + 3;
+  layout.dirty_candidate_generation_word = layout.dirty_base + 4;
+  layout.dirty_candidate_count_word = layout.dirty_base + 5;
+  layout.dirty_candidate_hash_sum_word = layout.dirty_base + 6;
+  layout.dirty_candidate_hash_xor_word = layout.dirty_base + 7;
   layout.dirty_candidate_valid_word = layout.dirty_base + 8;
+  layout.dirty_host_generation_word = layout.dirty_base + 9;
+  layout.dirty_host_count_word = layout.dirty_base + 10;
+  layout.dirty_host_hash_sum_word = layout.dirty_base + 11;
+  layout.dirty_host_hash_xor_word = layout.dirty_base + 12;
   layout.dirty_host_valid_word = layout.dirty_base + 13;
   layout.dirty_last_mode_word = layout.dirty_base + 14;
   layout.dirty_last_status_word = layout.dirty_base + 15;
@@ -315,6 +323,22 @@ std::uint64_t spine_dirty_hash_xor_term(std::uint32_t source) noexcept {
   value ^= value << 29;
   value ^= value >> 19;
   return (value << 23) | (value >> 41);
+}
+
+SpineDirtyIdentity spine_dirty_identity(
+    std::uint32_t generation, std::span<const std::uint32_t> sources) {
+  std::vector<std::uint32_t> unique(sources.begin(), sources.end());
+  std::sort(unique.begin(), unique.end());
+  unique.erase(std::unique(unique.begin(), unique.end()), unique.end());
+  SpineDirtyIdentity identity{
+      .generation = generation,
+      .count = unique.size(),
+  };
+  for (const std::uint32_t source : unique) {
+    identity.hash_sum += spine_dirty_hash_sum_term(source);
+    identity.hash_xor ^= spine_dirty_hash_xor_term(source);
+  }
+  return identity;
 }
 
 std::vector<std::uint8_t> encode_spine_active_record(

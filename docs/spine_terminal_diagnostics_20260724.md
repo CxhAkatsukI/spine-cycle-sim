@@ -88,9 +88,9 @@ python3 scripts/run_sst_spine_vertical.py \
 
 ## Claim boundary
 
-This milestone closes the reader-to-compute terminal stream ABI. It does not
-yet close dirty-frontier ownership. The host must still publish an ACK
-candidate after successful convergence, invoke `ACK_DIRTY`, validate the
-persistent list/bitmap/hash, clear the bitmap, and advance generation. Host
-coverage and the two fallback execution paths also remain separate follow-up
-work. AXI outstanding overlap and on-chip memory conflicts remain timing gaps.
+This milestone closes the reader-to-compute terminal stream ABI. The follow-on
+`docs/spine_dirty_ownership_20260724.md` milestone now closes HOST coverage,
+candidate publication, ACK validation, bitmap clear, and generation advance
+for one update batch. The two fallback execution paths, multi-batch update
+orchestration, AXI outstanding overlap, and on-chip memory conflicts remain
+timing or control-flow gaps.

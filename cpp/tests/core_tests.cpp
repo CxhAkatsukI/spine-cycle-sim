@@ -57,6 +57,8 @@ using spine::sim::spine_hot_shard;
 using spine::sim::spine_level_layout;
 using spine::sim::SpineComputeCounters;
 using spine::sim::SpineComputePorts;
+using spine::sim::SpineDirtyIdentity;
+using spine::sim::SpineDirtyStatus;
 using spine::sim::SpineEdgeRecord;
 using spine::sim::SpineEdgeSlice;
 using spine::sim::SpineL0Config;
@@ -79,6 +81,15 @@ std::vector<std::uint8_t> u64_payload(std::uint64_t value) {
   std::vector<std::uint8_t> data(sizeof(value));
   for (std::size_t byte = 0; byte < sizeof(value); ++byte) {
     data[byte] = static_cast<std::uint8_t>((value >> (byte * 8)) & 0xffU);
+  }
+  return data;
+}
+
+std::vector<std::uint8_t> u32_payload(std::uint32_t value) {
+  std::vector<std::uint8_t> data(sizeof(value));
+  for (std::size_t byte = 0; byte < sizeof(value); ++byte) {
+    data[byte] =
+        static_cast<std::uint8_t>((value >> (byte * 8)) & 0xffU);
   }
   return data;
 }
@@ -734,6 +745,7 @@ void test_spine_l0_real_slice_vertical_path() {
   reader_ports.task_scratch = &sorted;
   reader_ports.active_bins = &active_bins;
   reader_ports.metadata = &metadata;
+  reader_ports.result = &result;
   SpineSplitReader reader("spine-split-reader", core, maintenance, reader_ports,
                           {2}, edge_stream, value_stream);
   SpineSplitSsspCompute compute("spine-split-compute", core, workload.vertices,
@@ -827,6 +839,8 @@ void test_spine_l0_real_slice_vertical_path() {
               reader_counters.dirty_list_read_bytes == 16 &&
               reader_counters.dirty_bitmap_read_bytes == 16 &&
               reader_counters.metadata_read_bytes == 2'928 &&
+              reader_counters.metadata_write_bytes == 16 &&
+              reader_counters.result_write_bytes == 64 &&
               reader_counters.level_cache_read_bytes == 2'880 &&
               reader_counters.row_lookup_metadata_bytes == 8 &&
               reader_counters.graph_read_bytes == 184,
@@ -949,6 +963,52 @@ void test_spine_reusable_system_matches_vertical_slice() {
           "reusable Spine system changed the SSSP frontier");
 }
 
+void test_spine_host_active_requires_exact_dirty_coverage() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("data", 141.0);
+  MockMemoryBackend backend("hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 3,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 64,
+                                .response_queue_depth = 128,
+                            });
+  const std::filesystem::path fixture =
+      std::filesystem::path(SPINE_SOURCE_DIR) / "tests" / "data" /
+      "amazon_top1_exact.slice";
+  SpineVerticalSliceSystem system(
+      scheduler, core, backend, load_spine_edge_slice(fixture), 2);
+  system.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until([&] { return system.done() && system.idle(); }, 30'000);
+
+  require(system.reader_counters().acknowledgement_eligible,
+          "successful DEVICE_DIRTY reader should be ACK eligible");
+  system.restart_read_compute({2});
+  scheduler.run_until([&] { return system.done() && system.idle(); }, 30'000);
+  require(!system.failed() &&
+              system.reader_counters().dirty_status ==
+                  static_cast<std::uint32_t>(
+                      spine::sim::SpineDirtyStatus::kCoverageMismatch) &&
+              !system.reader_counters().host_coverage_match &&
+              !system.reader_counters().acknowledgement_eligible,
+          "HOST_ACTIVE accepted an unpublished dirty handoff");
+
+  const std::vector<std::uint32_t> covered_sources{2};
+  system.restart_read_compute(
+      {2}, spine::sim::spine_dirty_identity(1, covered_sources));
+  scheduler.run_until([&] { return system.done() && system.idle(); }, 30'000);
+  require(!system.failed() && system.reader_counters().dirty_status == 0 &&
+              system.reader_counters().host_coverage_match &&
+              system.reader_counters().acknowledgement_eligible &&
+              system.reader_counters().dirty_hash_sum ==
+                  spine::sim::spine_dirty_hash_sum_term(2) &&
+              system.reader_counters().dirty_hash_xor ==
+                  spine::sim::spine_dirty_hash_xor_term(2),
+          "HOST_ACTIVE rejected an exact generation/count/hash handoff");
+}
+
 void test_spine_device_dirty_source_request_windows() {
   Scheduler scheduler;
   const auto core = scheduler.add_clock_mhz("data", 141.0);
@@ -1002,6 +1062,112 @@ void test_spine_device_dirty_source_request_windows() {
               system.edge_stream_stats().max_occupancy <= 32 &&
               system.value_stream_stats().max_occupancy <= 32,
           "source request window did not exercise finite AXIS buffering");
+}
+
+void test_spine_dirty_ack_rejects_stale_and_malformed_candidates() {
+  const auto run_case = [](std::uint32_t expected_generation,
+                           SpineDirtyIdentity candidate,
+                           SpineDirtyStatus expected_status) {
+    Scheduler scheduler;
+    const auto core = scheduler.add_clock_mhz("data", 141.0);
+    MockMemoryBackend backend("hbm", core,
+                              MockMemoryConfig{
+                                  .channels = 32,
+                                  .latency_cycles = 3,
+                                  .accepts_per_channel_per_cycle = 1,
+                                  .max_outstanding_per_channel = 64,
+                                  .response_queue_depth = 128,
+                              });
+    FixedAxiPort scratch(
+        "dirty-ack-scratch", core,
+        FixedAxiPortConfig{
+            .memory_channels = 32, .channel = 16, .initiator_id = 916},
+        backend);
+    FixedAxiPort metadata(
+        "dirty-ack-metadata", core,
+        FixedAxiPortConfig{
+            .memory_channels = 32, .channel = 20, .initiator_id = 920},
+        backend);
+    FixedAxiPort result(
+        "dirty-ack-result", core,
+        FixedAxiPortConfig{
+            .memory_channels = 32, .channel = 21, .initiator_id = 921},
+        backend);
+    const SpineL0Config config;
+    const auto layout = spine::sim::spine_metadata_layout(config);
+    const SpineDirtyIdentity captured =
+        spine::sim::spine_dirty_identity(7, std::vector<std::uint32_t>{2});
+    metadata.initialize_payload(
+        config.metadata_base +
+            layout.dirty_count_word * spine::sim::kSpineMetadataWordBytes,
+        u64_payload(captured.count));
+    metadata.initialize_payload(
+        config.metadata_base +
+            layout.dirty_generation_word *
+                spine::sim::kSpineMetadataWordBytes,
+        u64_payload(captured.generation));
+    metadata.initialize_payload(
+        config.metadata_base +
+            layout.dirty_hash_sum_word * spine::sim::kSpineMetadataWordBytes,
+        u64_payload(captured.hash_sum));
+    metadata.initialize_payload(
+        config.metadata_base +
+            layout.dirty_hash_xor_word * spine::sim::kSpineMetadataWordBytes,
+        u64_payload(captured.hash_xor));
+    std::vector<std::uint8_t> list_word(16, 0);
+    list_word[0] = 2;
+    scratch.initialize_payload(config.persistent_dirty_list_base, list_word);
+    std::vector<std::uint8_t> bitmap_word(16, 0);
+    bitmap_word[0] = 1U << 2;
+    scratch.initialize_payload(config.persistent_dirty_bitmap_base,
+                               bitmap_word);
+
+    spine::sim::SpineDirtyAck ack(
+        "dirty-ack", core, config,
+        spine::sim::SpineDirtyAckPorts{
+            .task_scratch = &scratch,
+            .metadata = &metadata,
+            .result = &result,
+        });
+    scheduler.add_component(ack);
+    scratch.register_components(scheduler);
+    metadata.register_components(scheduler);
+    result.register_components(scheduler);
+    scheduler.add_component(backend);
+    ack.start(expected_generation, candidate);
+    scheduler.run_until(
+        [&] {
+          return ack.done() && scratch.idle() && metadata.idle() &&
+                 result.idle();
+        },
+        10'000);
+
+    require(ack.failed() && ack.counters().status ==
+                                static_cast<std::uint32_t>(expected_status) &&
+                ack.counters().cleared_sources == 0 &&
+                ack.counters().generation_advances == 0 &&
+                backend.inspect_payload(16,
+                                        config.persistent_dirty_bitmap_base,
+                                        16) == bitmap_word &&
+                backend.inspect_payload(
+                    20,
+                    config.metadata_base +
+                        layout.dirty_generation_word *
+                            spine::sim::kSpineMetadataWordBytes,
+                    8) == u64_payload(7) &&
+                backend.inspect_payload(21, 81 * 4, 4) ==
+                    u32_payload(static_cast<std::uint32_t>(expected_status)) &&
+                backend.inspect_payload(21, 83 * 4, 4) == u32_payload(7) &&
+                backend.inspect_payload(21, 95 * 4, 4) == u32_payload(1),
+            "failed dirty ACK changed owned frontier state");
+  };
+
+  const SpineDirtyIdentity exact =
+      spine::sim::spine_dirty_identity(7, std::vector<std::uint32_t>{2});
+  run_case(6, exact, SpineDirtyStatus::kStaleAck);
+  SpineDirtyIdentity malformed = exact;
+  ++malformed.hash_sum;
+  run_case(7, malformed, SpineDirtyStatus::kMalformedAck);
 }
 
 void test_spine_compute_rejects_malformed_source_protocol() {
@@ -1671,6 +1837,7 @@ void test_spine_reader_consumes_graph_edge_payload_from_hbm() {
   reader_ports.task_scratch = &sorted;
   reader_ports.active_bins = &active_bins;
   reader_ports.metadata = &metadata;
+  reader_ports.result = &result;
   SpineSplitReader reader("reader-payload-reader", core, maintenance,
                           reader_ports, {0}, edge_stream, value_stream);
   SequenceProducer<SourceValueWord> source_values(
@@ -2174,7 +2341,13 @@ void test_spine_hls_metadata_and_active_record_abi() {
               layout.active_bin_offset_base == layout.slice_words &&
               layout.active_bin_count_base == layout.slice_words + 16 &&
               layout.dirty_count_word == layout.dirty_base &&
-              layout.dirty_hash_xor_word == layout.dirty_base + 3,
+              layout.dirty_hash_xor_word == layout.dirty_base + 3 &&
+              layout.dirty_candidate_generation_word ==
+                  layout.dirty_base + 4 &&
+              layout.dirty_candidate_valid_word == layout.dirty_base + 8 &&
+              layout.dirty_host_generation_word == layout.dirty_base + 9 &&
+              layout.dirty_host_valid_word == layout.dirty_base + 13 &&
+              layout.dirty_last_status_word == layout.dirty_base + 15,
           "Spine metadata layout diverged from the production HLS ABI");
 
   const std::uint64_t control = spine::sim::spine_metadata_control_word(true);
@@ -2227,6 +2400,25 @@ void test_spine_multiround_weighted_sssp_converges() {
 
   require(result.converged && !result.failed && result.rounds.size() == 6,
           "weighted SSSP did not converge in the oracle round count");
+  require(result.dirty_ack.has_value() && result.dirty_ack->status == 0 &&
+              result.dirty_ack->captured ==
+                  spine::sim::spine_dirty_identity(
+                      1, std::vector<std::uint32_t>{0, 1, 2, 3, 4}) &&
+              result.dirty_ack->candidate == result.dirty_ack->captured &&
+              result.dirty_ack->result == SpineDirtyIdentity{
+                                              .generation = 2,
+                                          } &&
+              result.dirty_ack->candidate_write_bytes == 40 &&
+              result.dirty_ack->metadata_read_bytes == 72 &&
+              result.dirty_ack->metadata_write_bytes == 64 &&
+              result.dirty_ack->list_read_bytes == 160 &&
+              result.dirty_ack->bitmap_read_bytes == 160 &&
+              result.dirty_ack->bitmap_write_bytes == 80 &&
+              result.dirty_ack->result_write_bytes == 384 &&
+              result.dirty_ack->validated_sources == 5 &&
+              result.dirty_ack->cleared_sources == 5 &&
+              result.dirty_ack->generation_advances == 1,
+          "weighted SSSP dirty ACK work ledger does not match HLS");
   const std::vector<std::vector<std::uint32_t>> expected_inputs = {
       {0}, {1, 2, 5}, {1, 3}, {3, 4}, {4, 5}, {5}};
   const std::vector<std::vector<std::uint32_t>> expected_outputs = {
@@ -2251,6 +2443,14 @@ void test_spine_multiround_weighted_sssp_converges() {
                 evidence.edge_axis.max_occupancy <= 32 &&
                 evidence.end_cycle > evidence.start_cycle,
             "weighted SSSP round violated tile/FIFO/timing invariants");
+    require(evidence.reader.metadata_write_bytes == 16 &&
+                evidence.reader.result_write_bytes == 64,
+            "weighted SSSP reader result side effects do not match HLS");
+    if (round != 0) {
+      require(evidence.reader.dirty_count == 0 &&
+                  evidence.reader.dirty_generation == 2,
+              "HOST_ACTIVE round did not observe acknowledged generation");
+    }
   }
   require(system.compute().values() ==
               std::vector<std::uint32_t>({0, 3, 2, 7, 8, 10}),
@@ -2280,8 +2480,12 @@ int main() {
       {"spine_l0_real_slice", test_spine_l0_real_slice_vertical_path},
       {"spine_reusable_system",
        test_spine_reusable_system_matches_vertical_slice},
+      {"spine_host_dirty_coverage",
+       test_spine_host_active_requires_exact_dirty_coverage},
       {"spine_device_dirty_request_windows",
        test_spine_device_dirty_source_request_windows},
+      {"spine_dirty_ack_rejections",
+       test_spine_dirty_ack_rejects_stale_and_malformed_candidates},
       {"spine_source_protocol_error",
        test_spine_compute_rejects_malformed_source_protocol},
       {"spine_cold_l1_carry", test_spine_cold_l1_carry_and_reader},

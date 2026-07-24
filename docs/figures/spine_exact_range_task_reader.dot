@@ -9,7 +9,7 @@ digraph SpineExactRangeTaskReader {
     dirty_meta [label="DEVICE_DIRTY metadata\ncount | generation | sum/xor hash"];
     dirty_hbm [label="HBM16 dirty list + bitmap\nvalidate range, hash, membership"];
     source_axis [label="Source-value AXIS protocol\n16-request windows\ncount | generation | done | ACK"];
-    active_meta [label="HOST_ACTIVE metadata\n16 offsets + 16 counts"];
+    active_meta [label="HOST_ACTIVE metadata\n16 offsets + 16 counts\nhost generation | count | hashes | valid"];
     active_hbm [label="active_bins HBM\n256-bit records"];
     decode [label="Decoded active record\nsrc | value | 11 level masks | hot mask"];
     control -> dirty_meta -> dirty_hbm -> source_axis -> decode;
@@ -57,13 +57,27 @@ digraph SpineExactRangeTaskReader {
     tileloop -> read2 -> axis -> compute;
   }
 
+  subgraph cluster_ownership {
+    label="Dirty ownership closeout"; color="#8A6642"; style="rounded,filled"; fillcolor="#F8F1E8";
+    reader_result [label="Reader side effects\nlast mode/status + 64-byte result region"];
+    candidate [label="Host publishes ACK candidate\ngeneration | count | hashes, then valid"];
+    ack_header [label="ACK_DIRTY header validation\nexpected/current/candidate identity"];
+    ack_validate [label="HBM16 pass 1\nlist + bitmap + recomputed hashes"];
+    ack_clear [label="HBM16 pass 2\nlist + bitmap read/modify/write"];
+    generation [label="Commit\ncount=0 | generation++\nclear candidate/host valid"];
+    reader_result -> candidate -> ack_header -> ack_validate -> ack_clear -> generation;
+  }
+
   decode -> occupancy [label="source + masks"];
   bitmap -> read1 [label="row hit", lhead=cluster_construct];
   rowoffset -> read1 [label="exact range"];
   desc -> unsorted;
   binned -> tileloop;
+  axis -> reader_result [label="successful completion"];
+  dirty_hbm -> ack_validate [style=dashed];
+  generation -> dirty_meta [label="next round", style=dashed];
 
-  protocol_gap [label="Remaining protocol/timing gaps\ndirty ownership ACK + host coverage\nfallback execution + pipelined AXI\nURAM/BRAM bank conflicts", color="#A86A45", fillcolor="#FFF3E8", style="rounded,filled,dashed"];
-  protocol_gap -> source_axis [style=dashed, arrowhead=none];
+  protocol_gap [label="Remaining protocol/timing gaps\nHOST/DEVICE fallback execution\nmulti-batch dirty accumulation + host timing\npipelined AXI + URAM/BRAM conflicts", color="#A86A45", fillcolor="#FFF3E8", style="rounded,filled,dashed"];
+  protocol_gap -> candidate [style=dashed, arrowhead=none];
   protocol_gap -> unsorted [style=dashed, arrowhead=none];
 }
