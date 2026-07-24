@@ -1,0 +1,19 @@
+digraph spine_hbm_hot_bitmap {
+  graph [rankdir=LR, bgcolor="white", pad="0.2", nodesep="0.3", ranksep="0.55"];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=10, color="#334155", fillcolor="#f8fafc"];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#475569"];
+
+  control [label="metadata control read\nvalidate format and hot bit", fillcolor="#dbeafe"];
+  edgein [label="returned sorted/carry edge\ndestination d", fillcolor="#e2e8f0"];
+  address [label="bitmap address\nhot_base + (d >> 6)\n8-byte parent read", fillcolor="#fef3c7"];
+  axi [label="gmem_meta AXI\nfinite request/response FIFOs\nwindow <= 16", fillcolor="#e0e7ff"];
+  hbm [label="SST-HBM\naddress, row state, contention", fillcolor="#fee2e2"];
+  classify [label="response payload\n(payload >> (d & 63)) & 1", fillcolor="#dcfce7"];
+  route [label="cold partition or hot shard\ncount / precount / write / carry", fillcolor="#dbeafe"];
+  cache [label="response-derived cache\nnever populated from C++ truth", fillcolor="#f1f5f9"];
+
+  control -> edgein [label="hot enabled"];
+  edgein -> address -> axi -> hbm -> axi -> classify -> route;
+  classify -> cache;
+  axi -> edgein [label="full / response wait", style=dashed, color="#b91c1c"];
+}

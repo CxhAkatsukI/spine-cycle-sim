@@ -1,0 +1,79 @@
+{
+  "date": "2026-07-24",
+  "branch": "codex/fine-grained-cycle-sim",
+  "hls_reference": {
+    "commit": "afb8199a2ca8d3fd208b985324bf4d8719e2b839",
+    "spine_partitioned_sha256": "d5c4a2f2c2f384e33808eee4250c0c88208027b3792d46425e1de2ae1d8a06ba",
+    "bitmap_word_bytes": 8,
+    "request_window": 16,
+    "count_scan_achieved_ii": 1,
+    "count_scan_iteration_latency": 21
+  },
+  "cpp_antibypass": {
+    "mock_memory_latency_cycles": 40,
+    "input_edges": 32,
+    "logical_hot_destination": 17,
+    "hbm_hot_destination": 18,
+    "observed_cold_destination": 17,
+    "observed_hot_destination": 18,
+    "metadata_control_reads": 1,
+    "metadata_control_payload_read_bytes": 8,
+    "bitmap_reads": 1120,
+    "bitmap_scan_reads": 1120,
+    "bitmap_carry_reads": 0,
+    "bitmap_responses": 1120,
+    "bitmap_payload_read_bytes": 8960,
+    "scan_wait_cycles": 4455,
+    "max_inflight": 16,
+    "validation_failures": 0
+  },
+  "sst_hbm": [
+    {
+      "scenario": "amazon_l0",
+      "before_cycles": 7303,
+      "after_cycles": 7303,
+      "maintenance_cycles": 2407,
+      "metadata_control_reads": 1,
+      "bitmap_reads": 0,
+      "backend_requests": 1399,
+      "dram_activates": 78,
+      "success": true
+    },
+    {
+      "scenario": "carry_hot",
+      "before_cycles": 9280,
+      "after_cycles": 9578,
+      "before_maintenance_cycles": 4319,
+      "after_maintenance_cycles": 4676,
+      "metadata_control_reads": 1,
+      "bitmap_reads": 70,
+      "bitmap_scan_reads": 68,
+      "bitmap_carry_reads": 2,
+      "bitmap_responses": 70,
+      "bitmap_payload_read_bytes": 560,
+      "bitmap_scan_wait_cycles": 352,
+      "bitmap_max_inflight": 2,
+      "backend_requests_before": 1944,
+      "backend_requests_after": 2014,
+      "dram_activates_before": 110,
+      "dram_activates_after": 114,
+      "success": true
+    },
+    {
+      "scenario": "weighted_sssp",
+      "before_cycles": 34087,
+      "after_cycles": 34087,
+      "maintenance_cycles": 2467,
+      "metadata_control_reads": 1,
+      "bitmap_reads": 0,
+      "backend_requests": 4196,
+      "dram_activates": 240,
+      "success": true
+    }
+  ],
+  "tests": {
+    "cpp": "47/47 PASS",
+    "python": "147/147 PASS",
+    "sst_scenarios": "3/3 PASS"
+  }
+}

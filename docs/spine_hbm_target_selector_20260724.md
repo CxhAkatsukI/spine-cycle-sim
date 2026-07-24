@@ -102,7 +102,7 @@ python3 scripts/run_sst_spine_vertical.py \
 
 ## Remaining boundary
 
-The target branch is now HBM-payload-driven. Hot/cold classification still
-uses the C++ hot set after a placeholder metadata control read, and the current
-overflow path stops the component instead of writing the complete HLS result
-transcript. Those are separate remaining protocol gaps.
+The target branch is now HBM-payload-driven. Hot/cold classification was the
+next protocol gap and is closed by `spine_hbm_hot_bitmap_20260724.md`. The
+current overflow path still stops the component instead of writing the complete
+HLS result transcript; that remains a separate protocol gap.

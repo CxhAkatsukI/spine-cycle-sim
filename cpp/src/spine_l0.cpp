@@ -319,6 +319,8 @@ SpineMetadataLayout spine_metadata_layout(const SpineL0Config &config) {
       layout.page_epoch_base + page_epoch_words;
   const std::uint64_t hot_bitmap_words =
       (static_cast<std::uint64_t>(config.max_vertices) + 63) / 64;
+  layout.hot_bitmap_base = hot_bitmap_base;
+  layout.hot_bitmap_words = hot_bitmap_words;
   const std::uint64_t hot_shard_edge_count_base =
       hot_bitmap_base + hot_bitmap_words;
   const std::uint64_t cold_partition_edge_count_base =
@@ -734,6 +736,7 @@ SpineL0Maintenance::SpineL0Maintenance(std::string name, ClockId clock_id,
       config_.maintenance_target_select_request_window == 0 ||
       config_.maintenance_cold_target_select_min_cycles == 0 ||
       config_.maintenance_hot_target_select_min_cycles == 0 ||
+      config_.maintenance_hot_bitmap_request_window == 0 ||
       config_.reader_edge_pipeline_depth == 0 ||
       config_.reader_edge_response_capacity == 0 ||
       config_.maintenance_count_scan_ii == 0 ||
@@ -825,6 +828,17 @@ void SpineL0Maintenance::initialize_metadata_payload() {
   ports_.metadata->initialize_payload(
       config_.metadata_base + metadata.hot_enabled_word * kMetadataWordBytes,
       encode_u64_words({spine_metadata_control_word(state_.hot_enabled)}));
+  std::map<std::uint64_t, std::uint64_t> hot_bitmap_payload;
+  for (const std::uint32_t vertex : state_.hot_vertices) {
+    const std::uint64_t word = vertex >> 6;
+    hot_bitmap_payload[word] |= std::uint64_t{1} << (vertex & 63U);
+  }
+  for (const auto &[word, bits] : hot_bitmap_payload) {
+    ports_.metadata->initialize_payload(config_.metadata_base +
+                                            (metadata.hot_bitmap_base + word) *
+                                                kMetadataWordBytes,
+                                        encode_u64_words({bits}));
+  }
 
   const auto initialize_families = [&](const auto &families, bool hot) {
     for (std::size_t family = 0; family < families.size(); ++family) {
@@ -1087,6 +1101,10 @@ std::size_t SpineL0Maintenance::memory_request_window_for(
       task.purpose == TaskPurpose::kTargetMetadataEdgeCount) {
     return config_.maintenance_target_select_request_window;
   }
+  if (task.purpose == TaskPurpose::kScanHotBitmap ||
+      task.purpose == TaskPurpose::kCarryNewBatchHotBitmap) {
+    return config_.maintenance_hot_bitmap_request_window;
+  }
   return config_.memory_request_window;
 }
 
@@ -1096,20 +1114,30 @@ void SpineL0Maintenance::update_memory_concurrency_counters(
     return task.purpose == TaskPurpose::kTargetMetadataOccupied ||
            task.purpose == TaskPurpose::kTargetMetadataEdgeCount;
   };
+  const auto hot_bitmap_task = [](const MemoryTask &task) {
+    return task.purpose == TaskPurpose::kScanHotBitmap ||
+           task.purpose == TaskPurpose::kCarryNewBatchHotBitmap;
+  };
   const std::size_t on_port = inflight_memory_tasks_for_port(issued_port);
   const std::size_t target_on_port = static_cast<std::size_t>(std::count_if(
-      inflight_tasks_.begin(), inflight_tasks_.end(),
-      [&](const auto &entry) {
+      inflight_tasks_.begin(), inflight_tasks_.end(), [&](const auto &entry) {
         return entry.second.port == issued_port && target_task(entry.second);
       }));
   const std::size_t non_target_on_port = on_port - target_on_port;
+  const std::size_t hot_bitmap_on_port = static_cast<std::size_t>(std::count_if(
+      inflight_tasks_.begin(), inflight_tasks_.end(), [&](const auto &entry) {
+        return entry.second.port == issued_port &&
+               hot_bitmap_task(entry.second);
+      }));
   counters_.max_memory_requests_inflight_per_port =
       std::max(counters_.max_memory_requests_inflight_per_port, on_port);
-  counters_.max_non_target_memory_requests_inflight_per_port = std::max(
-      counters_.max_non_target_memory_requests_inflight_per_port,
-      non_target_on_port);
+  counters_.max_non_target_memory_requests_inflight_per_port =
+      std::max(counters_.max_non_target_memory_requests_inflight_per_port,
+               non_target_on_port);
   counters_.target_selector_max_inflight =
       std::max(counters_.target_selector_max_inflight, target_on_port);
+  counters_.hot_bitmap_max_inflight =
+      std::max(counters_.hot_bitmap_max_inflight, hot_bitmap_on_port);
   counters_.max_active_memory_ports =
       std::max(counters_.max_active_memory_ports, active_memory_ports());
 }
@@ -1268,6 +1296,8 @@ void SpineL0Maintenance::begin_sorted_scan(Phase process_phase, ScanKind kind) {
   next_scan_consume_cycle_ = 0;
   scan_transaction_valid_ = false;
   scan_response_edges_.clear();
+  scan_hot_results_.clear();
+  scan_hot_requests_pending_.clear();
   edge_by_edge_scan_ = kind == ScanKind::kDirtyMark;
   scan_have_last_source_ = false;
   scan_last_source_ = 0;
@@ -1315,6 +1345,63 @@ std::size_t SpineL0Maintenance::scan_tail_cycles() const noexcept {
   return 0;
 }
 
+bool SpineL0Maintenance::scan_requires_hot_bitmap() const noexcept {
+  return metadata_hot_enabled_ && (scan_kind_ == ScanKind::kHotColdCount ||
+                                   scan_kind_ == ScanKind::kFamilyPrecount ||
+                                   scan_kind_ == ScanKind::kL0Write);
+}
+
+void SpineL0Maintenance::enqueue_scan_hot_bitmap_read(
+    std::size_t index, std::uint32_t destination) {
+  if (!scan_requires_hot_bitmap()) {
+    return;
+  }
+  const SpineMetadataLayout metadata = spine_metadata_layout(config_);
+  const std::uint64_t word = destination >> 6;
+  if (index >= sorted_scan_edges_.size() || word >= metadata.hot_bitmap_words ||
+      scan_hot_results_.contains(index) ||
+      !scan_hot_requests_pending_.insert(index).second) {
+    ++counters_.hot_bitmap_validation_failures;
+    throw std::logic_error("invalid Spine scan hot-bitmap request");
+  }
+  enqueue_task(*ports_.metadata, MemoryOperation::kRead,
+               config_.metadata_base +
+                   (metadata.hot_bitmap_base + word) * kMetadataWordBytes,
+               kMetadataWordBytes, TaskClass::kMetadata, {}, {}, false,
+               TaskPurpose::kScanHotBitmap, destination, 0, index);
+  ++counters_.hot_bitmap_reads;
+  ++counters_.hot_bitmap_scan_reads;
+}
+
+void SpineL0Maintenance::enqueue_carry_hot_bitmap_read(
+    std::size_t stream_index, const SpineEdgeRecord &edge) {
+  if (!metadata_hot_enabled_ || stream_index >= carry_streams_.size()) {
+    ++counters_.hot_bitmap_validation_failures;
+    throw std::logic_error("invalid Spine carry hot-bitmap request");
+  }
+  CarryInputStream &stream = carry_streams_[stream_index];
+  if (!stream.request_pending || stream.pending_hot_edge_valid) {
+    ++counters_.hot_bitmap_validation_failures;
+    throw std::logic_error("overlapping Spine carry hot-bitmap request");
+  }
+  const SpineMetadataLayout metadata = spine_metadata_layout(config_);
+  const std::uint64_t word = edge.dst >> 6;
+  if (word >= metadata.hot_bitmap_words) {
+    ++counters_.hot_bitmap_validation_failures;
+    throw std::logic_error(
+        "Spine carry hot-bitmap destination is out of range");
+  }
+  stream.pending_hot_edge = edge;
+  stream.pending_hot_edge_valid = true;
+  enqueue_task(*ports_.metadata, MemoryOperation::kRead,
+               config_.metadata_base +
+                   (metadata.hot_bitmap_base + word) * kMetadataWordBytes,
+               kMetadataWordBytes, TaskClass::kMetadata, {}, {}, false,
+               TaskPurpose::kCarryNewBatchHotBitmap, edge.dst, stream_index);
+  ++counters_.hot_bitmap_reads;
+  ++counters_.hot_bitmap_carry_reads;
+}
+
 bool SpineL0Maintenance::scan_can_advance(const CycleContext &context) {
   if (scan_index_ == sorted_scan_edges_.size()) {
     if (scan_kind_ == ScanKind::kL0Write &&
@@ -1343,6 +1430,18 @@ bool SpineL0Maintenance::scan_can_advance(const CycleContext &context) {
   if (streaming_scan_ || edge_by_edge_scan_) {
     if (!scan_response_edges_.contains(scan_index_)) {
       ++counters_.sorted_scan_response_stall_cycles;
+      return false;
+    }
+    if (scan_requires_hot_bitmap() &&
+        !scan_hot_results_.contains(scan_index_)) {
+      ++counters_.hot_bitmap_scan_wait_cycles;
+      return false;
+    }
+    return true;
+  }
+  if (scan_requires_hot_bitmap()) {
+    if (!scan_hot_results_.contains(scan_index_)) {
+      ++counters_.hot_bitmap_scan_wait_cycles;
       return false;
     }
     return true;
@@ -1404,6 +1503,13 @@ bool SpineL0Maintenance::process_scan_edge(const CycleContext &context) {
     ++counters_.l0_write_edge_visits;
     break;
   }
+  if (scan_requires_hot_bitmap()) {
+    if (scan_hot_results_.erase(scan_index_) != 1) {
+      ++counters_.hot_bitmap_validation_failures;
+      throw std::logic_error(
+          "Spine scan consumed an edge without hot-bitmap payload");
+    }
+  }
   ++scan_index_;
   next_scan_consume_cycle_ = context.domain_cycle + scan_initiation_interval();
   if (edge_by_edge_scan_ && !dirty_source_pending_ &&
@@ -1441,12 +1547,12 @@ void SpineL0Maintenance::consume_read_beat(const AxiReadBeatResponse &beat) {
       (edge_by_edge_scan_ ? beat.address - config_.sorted_edges_base
                           : beat.parent_offset) /
       kSpineSortWordBytes);
+  const SpineEdgeRecord edge = decode_spine_sort_edge(beat.read_data);
   if (index >= sorted_scan_edges_.size() ||
-      !scan_response_edges_
-           .emplace(index, decode_spine_sort_edge(beat.read_data))
-           .second) {
+      !scan_response_edges_.emplace(index, edge).second) {
     throw std::logic_error("duplicate or out-of-range Spine sorted-edge beat");
   }
+  enqueue_scan_hot_bitmap_read(index, edge.dst);
   ++counters_.sorted_read_beats_received;
   counters_.sorted_payload_read_bytes += beat.read_data.size();
   counters_.max_sorted_scan_buffered_edges = std::max(
@@ -1455,11 +1561,16 @@ void SpineL0Maintenance::consume_read_beat(const AxiReadBeatResponse &beat) {
 
 void SpineL0Maintenance::consume_memory_response(const MemoryTask &task,
                                                  const AxiResponse &response) {
+  const bool control_response = task.purpose == TaskPurpose::kMetadataControl;
+  const bool hot_bitmap_response =
+      task.purpose == TaskPurpose::kScanHotBitmap ||
+      task.purpose == TaskPurpose::kCarryNewBatchHotBitmap;
   const bool target_response =
       task.purpose == TaskPurpose::kTargetMetadataOccupied ||
       task.purpose == TaskPurpose::kTargetMetadataEdgeCount;
   const bool carry_response =
       task.purpose == TaskPurpose::kCarryNewBatchRead ||
+      task.purpose == TaskPurpose::kCarryNewBatchHotBitmap ||
       task.purpose == TaskPurpose::kCarryCursorSliceMetadata ||
       task.purpose == TaskPurpose::kCarryCursorSliceEpoch ||
       task.purpose == TaskPurpose::kCarryCursorPageCount ||
@@ -1476,9 +1587,12 @@ void SpineL0Maintenance::consume_memory_response(const MemoryTask &task,
       throw std::logic_error(
           "Spine maintenance write response carried payload");
     }
-    if (target_response) {
+    if (control_response || hot_bitmap_response) {
+      ++counters_.hot_bitmap_validation_failures;
+      throw std::logic_error("Spine hot-metadata read path issued a write");
+    } else if (target_response) {
       ++counters_.target_selector_validation_failures;
-      throw std::logic_error("Spine target selector issued a metadata write");
+      throw std::logic_error("Spine target-selector read path issued a write");
     } else if (carry_response) {
       consume_carry_memory_response(task, response);
     } else if (task.purpose != TaskPurpose::kGeneric) {
@@ -1489,7 +1603,11 @@ void SpineL0Maintenance::consume_memory_response(const MemoryTask &task,
   if (response.read_data.size() != task.bytes) {
     throw std::logic_error("Spine maintenance read response payload mismatch");
   }
-  if (target_response) {
+  if (control_response) {
+    consume_metadata_control_response(response);
+  } else if (hot_bitmap_response) {
+    consume_hot_bitmap_response(task, response);
+  } else if (target_response) {
     consume_target_selector_response(task, response);
   } else if (carry_response) {
     consume_carry_memory_response(task, response);
@@ -1503,6 +1621,12 @@ void SpineL0Maintenance::consume_memory_response(const MemoryTask &task,
     if (!task.stream_sorted_scan && task.purpose == TaskPurpose::kGeneric) {
       sorted_scan_edges_ = decode_spine_sort_edges(response.read_data);
       counters_.sorted_payload_read_bytes += response.read_data.size();
+      if (scan_requires_hot_bitmap()) {
+        for (std::size_t index = 0; index < sorted_scan_edges_.size();
+             ++index) {
+          enqueue_scan_hot_bitmap_read(index, sorted_scan_edges_[index].dst);
+        }
+      }
     }
   }
 }
@@ -1513,7 +1637,15 @@ std::size_t SpineL0Maintenance::family_for(std::uint32_t dst) const {
 }
 
 bool SpineL0Maintenance::edge_is_hot(std::uint32_t dst) const {
-  return state_.hot_enabled && state_.hot_vertices.contains(dst);
+  if (!metadata_hot_enabled_) {
+    return false;
+  }
+  const auto found = hot_classification_by_vertex_.find(dst);
+  if (found == hot_classification_by_vertex_.end()) {
+    throw std::logic_error(
+        "Spine hot classification bypassed its HBM bitmap response");
+  }
+  return found->second;
 }
 
 std::vector<SpineEdgeRecord> SpineL0Maintenance::coalesce_family(
@@ -1623,6 +1755,81 @@ void SpineL0Maintenance::consume_target_selector_response(
   counters_.target_selector_payload_read_bytes += response.read_data.size();
 }
 
+void SpineL0Maintenance::consume_metadata_control_response(
+    const AxiResponse &response) {
+  if (metadata_control_ready_ ||
+      response.read_data.size() != kMetadataWordBytes) {
+    ++counters_.hot_bitmap_validation_failures;
+    throw std::logic_error("invalid Spine metadata control response");
+  }
+  const std::uint64_t control = read_u64_le(response.read_data, 0);
+  if (!spine_metadata_control_valid(control)) {
+    ++counters_.hot_bitmap_validation_failures;
+    throw std::logic_error("invalid Spine metadata control payload");
+  }
+  metadata_control_ready_ = true;
+  metadata_hot_enabled_ = (control & 1U) != 0;
+  state_.hot_enabled = metadata_hot_enabled_;
+  counters_.hot_enabled = metadata_hot_enabled_;
+  ++counters_.metadata_control_reads;
+  counters_.metadata_control_payload_read_bytes += response.read_data.size();
+}
+
+void SpineL0Maintenance::consume_hot_bitmap_response(
+    const MemoryTask &task, const AxiResponse &response) {
+  if (!metadata_control_ready_ || !metadata_hot_enabled_ ||
+      task.operation != MemoryOperation::kRead ||
+      response.read_data.size() != kMetadataWordBytes ||
+      task.source >= config_.max_vertices) {
+    ++counters_.hot_bitmap_validation_failures;
+    throw std::logic_error("invalid Spine hot-bitmap response");
+  }
+  const std::uint64_t bits = read_u64_le(response.read_data, 0);
+  const bool hot = (bits & (std::uint64_t{1} << (task.source & 63U))) != 0;
+  hot_classification_by_vertex_[task.source] = hot;
+  ++counters_.hot_bitmap_responses;
+  counters_.hot_bitmap_payload_read_bytes += response.read_data.size();
+
+  if (task.purpose == TaskPurpose::kScanHotBitmap) {
+    if (task.carry_edge_index >= sorted_scan_edges_.size() ||
+        scan_hot_requests_pending_.erase(task.carry_edge_index) != 1 ||
+        !scan_hot_results_.emplace(task.carry_edge_index, hot).second) {
+      ++counters_.hot_bitmap_validation_failures;
+      throw std::logic_error("invalid Spine scan hot-bitmap retirement");
+    }
+    return;
+  }
+  if (task.purpose != TaskPurpose::kCarryNewBatchHotBitmap ||
+      task.carry_stream >= carry_streams_.size()) {
+    ++counters_.hot_bitmap_validation_failures;
+    throw std::logic_error("unknown Spine hot-bitmap response purpose");
+  }
+  CarryInputStream &stream = carry_streams_[task.carry_stream];
+  if (!stream.new_batch || !stream.request_pending ||
+      !stream.pending_hot_edge_valid ||
+      stream.pending_hot_edge.dst != task.source) {
+    ++counters_.hot_bitmap_validation_failures;
+    throw std::logic_error("invalid Spine carry hot-bitmap retirement");
+  }
+  const SpineEdgeRecord edge = stream.pending_hot_edge;
+  stream.pending_hot_edge_valid = false;
+  stream.request_pending = false;
+  const FamilyWriteTask &active = family_write_tasks_[active_family_index_];
+  const std::size_t family =
+      hot ? spine_hot_shard(edge.dst) : family_for(edge.dst);
+  if (hot == active.hot && family == active.family) {
+    stream.buffered.push_back(edge);
+  } else {
+    enqueue_carry_stream_refill(task.carry_stream);
+  }
+  std::size_t buffered = 0;
+  for (const CarryInputStream &candidate : carry_streams_) {
+    buffered += candidate.buffered.size();
+  }
+  counters_.carry_max_buffered_heads =
+      std::max(counters_.carry_max_buffered_heads, buffered);
+}
+
 void SpineL0Maintenance::resolve_target_selector_level(
     const CycleContext &context) {
   const std::size_t family_base = target_scan_hot_ ? config_.partitions : 0;
@@ -1677,7 +1884,7 @@ void SpineL0Maintenance::finish_target_selector(
                    : "Spine cold level hierarchy has no free target";
     return;
   }
-  if (!target_scan_hot_ && state_.hot_enabled) {
+  if (!target_scan_hot_ && metadata_hot_enabled_) {
     initialize_target_selector(true, context);
     enqueue_target_selector_level();
     phase_ = Phase::kTargetSelectLevelWait;
@@ -1970,6 +2177,11 @@ void SpineL0Maintenance::consume_dirty_memory_response(
   case TaskPurpose::kTargetMetadataEdgeCount:
     throw std::logic_error(
         "target-selector response reached the dirty response handler");
+  case TaskPurpose::kMetadataControl:
+  case TaskPurpose::kScanHotBitmap:
+  case TaskPurpose::kCarryNewBatchHotBitmap:
+    throw std::logic_error(
+        "hot-metadata response reached the dirty response handler");
   case TaskPurpose::kCarryNewBatchRead:
   case TaskPurpose::kCarryCursorSliceMetadata:
   case TaskPurpose::kCarryCursorSliceEpoch:
@@ -2658,7 +2870,10 @@ void SpineL0Maintenance::consume_carry_memory_response(
     if (!stream.request_pending) {
       throw std::logic_error("unexpected Spine carry stream response");
     }
-    stream.request_pending = false;
+    if (task.purpose != TaskPurpose::kCarryNewBatchRead ||
+        !metadata_hot_enabled_) {
+      stream.request_pending = false;
+    }
   }
 
   const FamilyWriteTask &active =
@@ -2686,13 +2901,15 @@ void SpineL0Maintenance::consume_carry_memory_response(
     ++counters_.carry_new_batch_reads;
     counters_.carry_new_batch_read_bytes += response.read_data.size();
     counters_.sorted_payload_read_bytes += response.read_data.size();
-    const bool hot = edge_is_hot(edge.dst);
-    const std::size_t family =
-        hot ? spine_hot_shard(edge.dst) : family_for(edge.dst);
-    if (hot == active.hot && family == active.family) {
-      stream.buffered.push_back(edge);
+    if (metadata_hot_enabled_) {
+      enqueue_carry_hot_bitmap_read(task.carry_stream, edge);
     } else {
-      enqueue_carry_stream_refill(task.carry_stream);
+      const std::size_t family = family_for(edge.dst);
+      if (!active.hot && family == active.family) {
+        stream.buffered.push_back(edge);
+      } else {
+        enqueue_carry_stream_refill(task.carry_stream);
+      }
     }
   } else if (task.purpose == TaskPurpose::kCarryCursorSliceMetadata) {
     if (stream.new_batch || response.read_data.size() != 8 * kMetadataWordBytes) {
@@ -2926,7 +3143,7 @@ void SpineL0Maintenance::enqueue_committed_metadata() {
     }
   };
   publish(false, static_cast<std::size_t>(counters_.target_level));
-  if (state_.hot_enabled) {
+  if (metadata_hot_enabled_) {
     publish(true, static_cast<std::size_t>(counters_.hot_target_level));
   }
   for (const std::uint64_t word : slice_epoch_words) {
@@ -2973,12 +3190,12 @@ void SpineL0Maintenance::advance(const CycleContext &context) {
   switch (phase_) {
   case Phase::kInitialize:
     counters_.start_cycle = context.domain_cycle;
-    counters_.hot_enabled = state_.hot_enabled;
     enqueue_task(*ports_.metadata, MemoryOperation::kRead,
                  config_.metadata_base +
                      spine_metadata_layout(config_).hot_enabled_word *
                          kMetadataWordBytes,
-                 kMetadataWordBytes, TaskClass::kMetadata);
+                 kMetadataWordBytes, TaskClass::kMetadata, {}, {}, false,
+                 TaskPurpose::kMetadataControl);
     enqueue_dirty_metadata_load();
     phase_ = Phase::kDirtyMetadataLoad;
     return;
@@ -3048,7 +3265,7 @@ void SpineL0Maintenance::advance(const CycleContext &context) {
     if (process_scan_edge(context)) {
       ++family_index_;
       if (family_index_ == config_.partitions) {
-        if (!precount_hot_ && state_.hot_enabled) {
+        if (!precount_hot_ && metadata_hot_enabled_) {
           precount_hot_ = true;
           family_index_ = 0;
           phase_ = Phase::kPrecountBegin;
@@ -3123,35 +3340,34 @@ void SpineL0Maintenance::advance(const CycleContext &context) {
     phase_ = Phase::kWriteAdvance;
     return;
   }
-    case Phase::kWriteAdvance:
-      ++active_family_index_;
-      phase_ = Phase::kWriteSelect;
-      return;
-    case Phase::kCommitMetadata:
-      commit_level_state(false,
-                         static_cast<std::size_t>(counters_.target_level));
-      if (state_.hot_enabled) {
-        commit_level_state(
-            true, static_cast<std::size_t>(counters_.hot_target_level));
-      }
-      enqueue_committed_metadata();
-      phase_ = Phase::kWriteResult;
-      return;
-    case Phase::kWriteResult:
-      enqueue_task(*ports_.metadata, MemoryOperation::kRead,
-                   config_.metadata_base,
-                   config_.partitions * (state_.hot_enabled ? 2 : 1) *
-                       kMetadataWordBytes,
-                   TaskClass::kMetadata);
-      enqueue_task(*ports_.result, MemoryOperation::kWrite, config_.result_base,
-                   kResultWords * 4, TaskClass::kResult);
-      phase_ = Phase::kFinish;
-      return;
-    case Phase::kFinish:
-      counters_.end_cycle = context.domain_cycle;
-      done_ = true;
-      return;
+  case Phase::kWriteAdvance:
+    ++active_family_index_;
+    phase_ = Phase::kWriteSelect;
+    return;
+  case Phase::kCommitMetadata:
+    commit_level_state(false, static_cast<std::size_t>(counters_.target_level));
+    if (metadata_hot_enabled_) {
+      commit_level_state(true,
+                         static_cast<std::size_t>(counters_.hot_target_level));
+    }
+    enqueue_committed_metadata();
+    phase_ = Phase::kWriteResult;
+    return;
+  case Phase::kWriteResult:
+    enqueue_task(*ports_.metadata, MemoryOperation::kRead,
+                 config_.metadata_base,
+                 config_.partitions * (metadata_hot_enabled_ ? 2 : 1) *
+                     kMetadataWordBytes,
+                 TaskClass::kMetadata);
+    enqueue_task(*ports_.result, MemoryOperation::kWrite, config_.result_base,
+                 kResultWords * 4, TaskClass::kResult);
+    phase_ = Phase::kFinish;
+    return;
+  case Phase::kFinish:
+    counters_.end_cycle = context.domain_cycle;
+    done_ = true;
+    return;
   }
 }
 
-}  // namespace spine::sim
+} // namespace spine::sim

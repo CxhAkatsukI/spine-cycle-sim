@@ -79,6 +79,9 @@ struct SpineL0Config {
   std::size_t maintenance_target_select_request_window{16};
   std::size_t maintenance_cold_target_select_min_cycles{562};
   std::size_t maintenance_hot_target_select_min_cycles{551};
+  // Accepted hot-classification loops issue one gmem_meta bitmap read per
+  // edge and overlap up to the default HLS m_axi read-outstanding depth.
+  std::size_t maintenance_hot_bitmap_request_window{16};
   // The HLS edge loops achieve II=1. Two outstanding 16-beat reads provide 32
   // edge-word credits in the accepted synthesis report.
   std::size_t reader_edge_pipeline_depth{32};
@@ -108,6 +111,8 @@ struct SpineMetadataLayout {
   std::uint64_t active_bin_count_base{};
   std::uint64_t slice_epoch_base{};
   std::uint64_t page_epoch_base{};
+  std::uint64_t hot_bitmap_base{};
+  std::uint64_t hot_bitmap_words{};
   std::uint64_t hot_enabled_word{};
   std::uint64_t page_list_count_base{};
   std::uint64_t page_list_base{};
@@ -270,6 +275,16 @@ struct SpineL0Counters {
   std::uint64_t target_selector_min_padding_cycles{};
   std::uint64_t target_selector_validation_failures{};
   std::size_t target_selector_max_inflight{};
+  std::uint64_t metadata_control_reads{};
+  std::uint64_t metadata_control_payload_read_bytes{};
+  std::uint64_t hot_bitmap_reads{};
+  std::uint64_t hot_bitmap_scan_reads{};
+  std::uint64_t hot_bitmap_carry_reads{};
+  std::uint64_t hot_bitmap_responses{};
+  std::uint64_t hot_bitmap_payload_read_bytes{};
+  std::uint64_t hot_bitmap_scan_wait_cycles{};
+  std::uint64_t hot_bitmap_validation_failures{};
+  std::size_t hot_bitmap_max_inflight{};
   std::uint64_t cold_input_edges{};
   std::uint64_t hot_input_edges{};
   std::uint64_t carry_level_payload_reads{};
@@ -399,9 +414,12 @@ class SpineL0Maintenance final : public Component {
     kDirtyBitmapOverflowClear,
     kDirtyListRead,
     kDirtyListWrite,
+    kMetadataControl,
+    kScanHotBitmap,
     kTargetMetadataOccupied,
     kTargetMetadataEdgeCount,
     kCarryNewBatchRead,
+    kCarryNewBatchHotBitmap,
     kCarryCursorSliceMetadata,
     kCarryCursorSliceEpoch,
     kCarryCursorPageCount,
@@ -466,6 +484,11 @@ class SpineL0Maintenance final : public Component {
   [[nodiscard]] bool scan_can_advance(const CycleContext &context);
   [[nodiscard]] std::size_t scan_initiation_interval() const noexcept;
   [[nodiscard]] std::size_t scan_tail_cycles() const noexcept;
+  [[nodiscard]] bool scan_requires_hot_bitmap() const noexcept;
+  void enqueue_scan_hot_bitmap_read(std::size_t index,
+                                    std::uint32_t destination);
+  void enqueue_carry_hot_bitmap_read(std::size_t stream_index,
+                                     const SpineEdgeRecord &edge);
   [[nodiscard]] bool stage_read_beat();
   void consume_read_beat(const AxiReadBeatResponse &beat);
   void consume_memory_response(const MemoryTask &task,
@@ -491,6 +514,9 @@ class SpineL0Maintenance final : public Component {
   void finish_target_selector(const CycleContext &context);
   void consume_target_selector_response(const MemoryTask &task,
                                         const AxiResponse &response);
+  void consume_metadata_control_response(const AxiResponse &response);
+  void consume_hot_bitmap_response(const MemoryTask &task,
+                                   const AxiResponse &response);
   [[nodiscard]] bool target_selector_phase() const noexcept;
   [[nodiscard]] std::size_t
   memory_request_window_for(const MemoryTask &task) const noexcept;
@@ -612,11 +638,13 @@ class SpineL0Maintenance final : public Component {
     std::size_t page_index_responses_pending{};
     std::size_t next_index{};
     std::deque<SpineEdgeRecord> buffered;
+    SpineEdgeRecord pending_hot_edge;
     bool slice_epoch_ready{};
     bool page_count_ready{};
     bool page_list_requested{};
     bool cursor_ready{};
     bool request_pending{};
+    bool pending_hot_edge_valid{};
     bool exhausted{};
   };
 
@@ -646,6 +674,9 @@ class SpineL0Maintenance final : public Component {
   std::deque<MemoryTask> tasks_;
   std::unordered_map<std::uint64_t, MemoryTask> inflight_tasks_;
   std::unordered_map<std::size_t, SpineEdgeRecord> scan_response_edges_;
+  std::unordered_map<std::size_t, bool> scan_hot_results_;
+  std::unordered_set<std::size_t> scan_hot_requests_pending_;
+  std::unordered_map<std::uint32_t, bool> hot_classification_by_vertex_;
   Phase phase_{Phase::kInitialize};
   ScanKind scan_kind_{ScanKind::kDirtyValidate};
   std::size_t scan_index_{};
@@ -667,6 +698,8 @@ class SpineL0Maintenance final : public Component {
   std::size_t family_index_{};
   std::size_t active_family_index_{};
   bool precount_hot_{};
+  bool metadata_control_ready_{};
+  bool metadata_hot_enabled_{};
   bool target_scan_hot_{};
   std::size_t target_scan_level_{};
   std::int32_t target_scan_candidate_{-1};

@@ -3100,6 +3100,123 @@ void test_spine_target_selector_consumes_metadata_payload_from_hbm() {
             << counters.target_selector_max_inflight << '\n';
 }
 
+void test_spine_hot_classifier_consumes_bitmap_payload_from_hbm() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("data", 141.0);
+  MockMemoryBackend backend("hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 40,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  std::vector<std::unique_ptr<FixedAxiPort>> graph_ports;
+  graph_ports.reserve(16);
+  SpineL0Ports ports;
+  for (std::size_t index = 0; index < ports.graph.size(); ++index) {
+    graph_ports.push_back(std::make_unique<FixedAxiPort>(
+        "hot-payload-graph" + std::to_string(index), core,
+        FixedAxiPortConfig{
+            .memory_channels = 32,
+            .channel = index,
+            .initiator_id = static_cast<std::uint32_t>(520 + index),
+        },
+        backend));
+    ports.graph[index] = graph_ports.back().get();
+  }
+  FixedAxiPort sorted("hot-payload-sorted", core,
+                      FixedAxiPortConfig{.memory_channels = 32,
+                                         .channel = 16,
+                                         .initiator_id = 536},
+                      backend);
+  FixedAxiPort metadata("hot-payload-metadata", core,
+                        FixedAxiPortConfig{.memory_channels = 32,
+                                           .channel = 20,
+                                           .initiator_id = 540},
+                        backend);
+  FixedAxiPort result("hot-payload-result", core,
+                      FixedAxiPortConfig{.memory_channels = 32,
+                                         .channel = 21,
+                                         .initiator_id = 541},
+                      backend);
+  ports.sorted_edges = &sorted;
+  ports.metadata = &metadata;
+  ports.result = &result;
+
+  SpineL0Config config;
+  config.hot_vertices = {17};
+  SpineL0State state;
+  SpineEdgeSlice batch{
+      .vertices = 128,
+      .edges = {},
+      .case_name = "hot_bitmap_payload_antibypass",
+  };
+  for (std::size_t index = 0; index < 16; ++index) {
+    batch.edges.push_back(
+        SpineEdgeRecord{.src = 0, .dst = 17, .weight = 5, .diff = 1});
+  }
+  for (std::size_t index = 0; index < 16; ++index) {
+    batch.edges.push_back(
+        SpineEdgeRecord{.src = 0, .dst = 18, .weight = 3, .diff = 1});
+  }
+  SpineL0Maintenance maintenance("hot-payload-maintenance", core, config,
+                                 std::move(batch), ports, state);
+
+  // Constructor state marks 17 hot. Make the HBM payload authoritative by
+  // changing that bitmap word to mark only 18 hot before execution starts.
+  const SpineMetadataLayout layout = spine_metadata_layout(config);
+  metadata.initialize_payload(config.metadata_base +
+                                  layout.hot_bitmap_base *
+                                      spine::sim::kSpineMetadataWordBytes,
+                              u64_payload(std::uint64_t{1} << 18));
+
+  scheduler.add_component(maintenance);
+  for (auto &port : graph_ports) {
+    port->register_components(scheduler);
+  }
+  sorted.register_components(scheduler);
+  metadata.register_components(scheduler);
+  result.register_components(scheduler);
+  scheduler.add_component(backend);
+  scheduler.run_until(
+      [&] {
+        return maintenance.done() && sorted.idle() && metadata.idle() &&
+               result.idle() &&
+               std::all_of(graph_ports.begin(), graph_ports.end(),
+                           [](const auto &port) { return port->idle(); });
+      },
+      150'000);
+
+  const std::size_t hot_family = spine_hot_shard(18);
+  const SpineL0Counters &counters = maintenance.counters();
+  require(!maintenance.failed() && counters.hot_enabled &&
+              counters.cold_input_edges == 16 &&
+              counters.hot_input_edges == 16 &&
+              state.cold_levels[0][0].size() == 1 &&
+              state.cold_levels[0][0][0].dst == 17 &&
+              state.hot_levels[hot_family][0].size() == 1 &&
+              state.hot_levels[hot_family][0][0].dst == 18,
+          "hot classifier bypassed HBM bitmap payload and used C++ state");
+  require(counters.metadata_control_reads == 1 &&
+              counters.metadata_control_payload_read_bytes == 8 &&
+              counters.hot_bitmap_reads == 1'120 &&
+              counters.hot_bitmap_scan_reads == 1'120 &&
+              counters.hot_bitmap_carry_reads == 0 &&
+              counters.hot_bitmap_responses == counters.hot_bitmap_reads &&
+              counters.hot_bitmap_payload_read_bytes ==
+                  counters.hot_bitmap_reads * 8 &&
+              counters.hot_bitmap_scan_wait_cycles > 0 &&
+              counters.hot_bitmap_max_inflight == 16 &&
+              counters.hot_bitmap_validation_failures == 0,
+          "hot-bitmap request/response and backpressure ledger diverged");
+  std::cout << "EVIDENCE spine_hot_bitmap reads=" << counters.hot_bitmap_reads
+            << " wait_cycles=" << counters.hot_bitmap_scan_wait_cycles
+            << " max_inflight=" << counters.hot_bitmap_max_inflight
+            << " cold_dst=" << state.cold_levels[0][0][0].dst
+            << " hot_dst=" << state.hot_levels[hot_family][0][0].dst << '\n';
+}
+
 void test_spine_maintenance_consumes_sorted_payload_from_hbm() {
   Scheduler scheduler;
   const auto core = scheduler.add_clock_mhz("data", 141.0);
@@ -3944,6 +4061,8 @@ int main(int argc, char **argv) {
        test_spine_reader_consumes_graph_edge_payload_from_hbm},
       {"spine_target_hbm_metadata_payload",
        test_spine_target_selector_consumes_metadata_payload_from_hbm},
+      {"spine_hot_hbm_bitmap_payload",
+       test_spine_hot_classifier_consumes_bitmap_payload_from_hbm},
       {"spine_maintenance_hbm_sorted_payload",
        test_spine_maintenance_consumes_sorted_payload_from_hbm},
       {"spine_carry_hbm_level_payload",
