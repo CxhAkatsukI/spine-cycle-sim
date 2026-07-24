@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "spine_sim/algorithm.hpp"
+#include "spine_sim/algorithm_pipeline.hpp"
 #include "spine_sim/axi.hpp"
 #include "spine_sim/banked_memory.hpp"
 #include "spine_sim/component.hpp"
@@ -34,6 +35,12 @@ using spine::sim::AxiRequest;
 using spine::sim::AxiResponse;
 using spine::sim::AxiStats;
 using spine::sim::AlgorithmIterationContext;
+using spine::sim::AlgorithmPipeline;
+using spine::sim::AlgorithmPipelineConfig;
+using spine::sim::AlgorithmPipelinePorts;
+using spine::sim::AlgorithmPipelineRequest;
+using spine::sim::AlgorithmPipelineResponse;
+using spine::sim::AlgorithmPipelineStage;
 using spine::sim::AlgorithmPolicyConfig;
 using spine::sim::AlgorithmUpdateMode;
 using spine::sim::AlgorithmVertexState;
@@ -5070,6 +5077,270 @@ void test_residual_pagerank_algorithm_policy_semantics() {
           "residual PageRank signed reduce/apply semantics are wrong");
 }
 
+void test_algorithm_state_layout_shares_one_hbm_channel() {
+  const GraphAlgorithmPolicy sssp(
+      AlgorithmPolicyConfig{.vertices = 1'025, .source = 0});
+  const GraphAlgorithmPolicy full(AlgorithmPolicyConfig{
+      .kind = GraphAlgorithmKind::kFullPageRank,
+      .vertices = 1'025,
+      .source = 0,
+  });
+  const GraphAlgorithmPolicy residual(AlgorithmPolicyConfig{
+      .kind = GraphAlgorithmKind::kResidualPageRank,
+      .vertices = 1'025,
+      .source = 0,
+  });
+
+  const auto sssp_layout = sssp.state_layout();
+  require(sssp_layout.primary_read.base == 0 &&
+              sssp_layout.primary_read.bytes == 4'100 &&
+              sssp_layout.primary_write.base == 0 &&
+              !sssp_layout.primary_ping_pong &&
+              !sssp_layout.auxiliary.has_value() &&
+              !sssp_layout.degree.has_value() &&
+              sssp_layout.total_bytes == 8'192,
+          "weighted SSSP state layout is wrong");
+
+  const auto full_layout = full.state_layout();
+  require(full_layout.primary_read.base == 0 &&
+              full_layout.primary_write.base == 8'192 &&
+              full_layout.primary_ping_pong &&
+              !full_layout.auxiliary.has_value() &&
+              full_layout.degree.has_value() &&
+              full_layout.degree->base == 16'384 &&
+              full_layout.total_bytes == 24'576,
+          "full PageRank state layout is wrong");
+
+  const auto residual_layout = residual.state_layout();
+  require(residual_layout.primary_read.base == 0 &&
+              residual_layout.primary_write.base == 0 &&
+              residual_layout.auxiliary.has_value() &&
+              residual_layout.auxiliary->base == 8'192 &&
+              residual_layout.degree.has_value() &&
+              residual_layout.degree->base == 16'384 &&
+              residual_layout.total_bytes == 24'576,
+          "residual PageRank state layout is wrong");
+
+  bool rejected = false;
+  try {
+    (void)sssp.state_layout(0);
+  } catch (const std::invalid_argument &) {
+    rejected = true;
+  }
+  require(rejected, "algorithm state layout accepted zero alignment");
+}
+
+void test_algorithm_pipeline_models_latency_ii_capacity_and_backpressure() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("algorithm", 250.0);
+  Fifo<AlgorithmPipelineRequest> source_requests("source-requests", core, 4);
+  Fifo<AlgorithmPipelineResponse> source_responses("source-responses", core, 1);
+  Fifo<AlgorithmPipelineRequest> edge_requests("edge-requests", core, 2);
+  Fifo<AlgorithmPipelineResponse> edge_responses("edge-responses", core, 2);
+  Fifo<AlgorithmPipelineRequest> reduce_requests("reduce-requests", core, 2);
+  Fifo<AlgorithmPipelineResponse> reduce_responses("reduce-responses", core, 2);
+  Fifo<AlgorithmPipelineRequest> apply_requests("apply-requests", core, 2);
+  Fifo<AlgorithmPipelineResponse> apply_responses("apply-responses", core, 2);
+
+  const GraphAlgorithmPolicy policy(AlgorithmPolicyConfig{
+      .kind = GraphAlgorithmKind::kFullPageRank,
+      .vertices = 4,
+      .source = 0,
+      .damping = 0.85F,
+  });
+  AlgorithmPipeline pipeline(
+      "algorithm-pipeline", core, policy,
+      AlgorithmPipelineConfig{
+          .source_map = {.latency_cycles = 3,
+                         .initiation_interval = 2,
+                         .capacity = 2},
+          .edge_map = {.latency_cycles = 2,
+                       .initiation_interval = 1,
+                       .capacity = 2},
+          .reduce = {.latency_cycles = 3,
+                     .initiation_interval = 1,
+                     .capacity = 2},
+          .apply = {.latency_cycles = 4,
+                    .initiation_interval = 1,
+                    .capacity = 2},
+      },
+      AlgorithmPipelinePorts{
+          .source_requests = &source_requests,
+          .source_responses = &source_responses,
+          .edge_requests = &edge_requests,
+          .edge_responses = &edge_responses,
+          .reduce_requests = &reduce_requests,
+          .reduce_responses = &reduce_responses,
+          .apply_requests = &apply_requests,
+          .apply_responses = &apply_responses,
+      });
+
+  const auto word = [](float value) {
+    return GraphAlgorithmPolicy::float_to_word(value);
+  };
+  SequenceProducer<AlgorithmPipelineRequest> source_producer(
+      "source-producer", core, source_requests,
+      {
+          {.stage = AlgorithmPipelineStage::kSourceMap,
+           .transaction_id = 1,
+           .state = {.primary = word(0.25F)},
+           .out_degree = 2,
+           .source_payload = 0,
+           .edge_weight = 0,
+           .current = std::nullopt,
+           .candidate = 0,
+           .reduced = std::nullopt,
+           .context = {}},
+          {.stage = AlgorithmPipelineStage::kSourceMap,
+           .transaction_id = 2,
+           .state = {.primary = word(0.5F)},
+           .out_degree = 4,
+           .source_payload = 0,
+           .edge_weight = 0,
+           .current = std::nullopt,
+           .candidate = 0,
+           .reduced = std::nullopt,
+           .context = {}},
+          {.stage = AlgorithmPipelineStage::kSourceMap,
+           .transaction_id = 3,
+           .state = {.primary = word(0.75F)},
+           .out_degree = 0,
+           .source_payload = 0,
+           .edge_weight = 0,
+           .current = std::nullopt,
+           .candidate = 0,
+           .reduced = std::nullopt,
+           .context = {}},
+      });
+  SequenceProducer<AlgorithmPipelineRequest> edge_producer(
+      "edge-producer", core, edge_requests,
+      {{.stage = AlgorithmPipelineStage::kEdgeMap,
+        .transaction_id = 4,
+        .state = {},
+        .out_degree = 0,
+        .source_payload = word(0.125F),
+        .edge_weight = 7,
+        .current = std::nullopt,
+        .candidate = 0,
+        .reduced = std::nullopt,
+        .context = {}}});
+  SequenceProducer<AlgorithmPipelineRequest> reduce_producer(
+      "reduce-producer", core, reduce_requests,
+      {{.stage = AlgorithmPipelineStage::kReduce,
+        .transaction_id = 5,
+        .state = {},
+        .out_degree = 0,
+        .source_payload = 0,
+        .edge_weight = 0,
+        .current = word(0.1F),
+        .candidate = word(0.2F),
+        .reduced = std::nullopt,
+        .context = {}}});
+  SequenceProducer<AlgorithmPipelineRequest> apply_producer(
+      "apply-producer", core, apply_requests,
+      {{.stage = AlgorithmPipelineStage::kApply,
+        .transaction_id = 6,
+        .state = {.primary = word(0.25F)},
+        .out_degree = 0,
+        .source_payload = 0,
+        .edge_weight = 0,
+        .current = std::nullopt,
+        .candidate = 0,
+        .reduced = word(0.3F),
+        .context = {.base = policy.initial_base_word(),
+                    .dangling_share = word(0.01F)}}});
+
+  SequenceConsumer<AlgorithmPipelineResponse> source_consumer(
+      "source-consumer", core, source_responses, 10);
+  SequenceConsumer<AlgorithmPipelineResponse> edge_consumer(
+      "edge-consumer", core, edge_responses);
+  SequenceConsumer<AlgorithmPipelineResponse> reduce_consumer(
+      "reduce-consumer", core, reduce_responses);
+  SequenceConsumer<AlgorithmPipelineResponse> apply_consumer(
+      "apply-consumer", core, apply_responses);
+
+  scheduler.add_component(source_producer);
+  scheduler.add_component(edge_producer);
+  scheduler.add_component(reduce_producer);
+  scheduler.add_component(apply_producer);
+  scheduler.add_component(pipeline);
+  scheduler.add_component(source_consumer);
+  scheduler.add_component(edge_consumer);
+  scheduler.add_component(reduce_consumer);
+  scheduler.add_component(apply_consumer);
+  scheduler.add_component(source_requests);
+  scheduler.add_component(source_responses);
+  scheduler.add_component(edge_requests);
+  scheduler.add_component(edge_responses);
+  scheduler.add_component(reduce_requests);
+  scheduler.add_component(reduce_responses);
+  scheduler.add_component(apply_requests);
+  scheduler.add_component(apply_responses);
+  scheduler.run_until(
+      [&] {
+        return source_producer.done() && edge_producer.done() &&
+               reduce_producer.done() && apply_producer.done() &&
+               source_consumer.values.size() == 3 &&
+               edge_consumer.values.size() == 1 &&
+               reduce_consumer.values.size() == 1 &&
+               apply_consumer.values.size() == 1 && pipeline.drained();
+      },
+      1'000);
+
+  require(source_consumer.values[0].transaction_id == 1 &&
+              source_consumer.values[1].transaction_id == 2 &&
+              source_consumer.values[2].transaction_id == 3,
+          "source-map pipeline did not preserve response order");
+  require(std::fabs(GraphAlgorithmPolicy::word_to_float(
+                        source_consumer.values[0].source.edge_payload) -
+                    0.10625F) < 1.0e-6F &&
+              std::fabs(GraphAlgorithmPolicy::word_to_float(
+                            source_consumer.values[1].source.edge_payload) -
+                        0.10625F) < 1.0e-6F &&
+              GraphAlgorithmPolicy::word_to_float(
+                  source_consumer.values[2].source.edge_payload) == 0.0F &&
+              GraphAlgorithmPolicy::word_to_float(
+                  source_consumer.values[2].source.dangling_payload) == 0.75F,
+          "source-map pipeline changed PageRank contributions");
+  require(GraphAlgorithmPolicy::word_to_float(
+              edge_consumer.values[0].mapped) == 0.125F &&
+              std::fabs(GraphAlgorithmPolicy::word_to_float(
+                            reduce_consumer.values[0].reduced) -
+                        0.3F) < 1.0e-6F &&
+              std::fabs(GraphAlgorithmPolicy::word_to_float(
+                            apply_consumer.values[0]
+                                .applied.state_after.primary) -
+                        0.3475F) < 1.0e-6F,
+          "independent algorithm pipeline stages returned wrong values");
+
+  const auto &counters = pipeline.counters();
+  require(counters.source_map.accepted == 3 &&
+              counters.source_map.completed == 3 &&
+              counters.source_map.initiation_interval_stalls > 0 &&
+              counters.source_map.capacity_stalls > 0 &&
+              counters.source_map.output_backpressure_stalls > 0 &&
+              counters.source_map.max_inflight == 2,
+          "source-map pipeline did not expose II/capacity/backpressure");
+  require(counters.edge_map.accepted == 1 &&
+              counters.edge_map.completed == 1 &&
+              counters.reduce.accepted == 1 &&
+              counters.reduce.completed == 1 &&
+              counters.apply.accepted == 1 &&
+              counters.apply.completed == 1,
+          "independent algorithm pipeline stages lost work");
+  std::cout << "EVIDENCE algorithm_pipeline cycles="
+            << scheduler.clock(core).completed_cycles
+            << " source_accepted=" << counters.source_map.accepted
+            << " source_ii_stalls="
+            << counters.source_map.initiation_interval_stalls
+            << " source_capacity_stalls="
+            << counters.source_map.capacity_stalls
+            << " source_output_stalls="
+            << counters.source_map.output_backpressure_stalls
+            << " source_max_inflight=" << counters.source_map.max_inflight
+            << '\n';
+}
+
 }  // namespace
 
 int main(int argc, char **argv) {
@@ -5182,6 +5453,10 @@ int main(int argc, char **argv) {
        test_full_pagerank_algorithm_policy_semantics},
       {"algorithm_policy_residual_pagerank",
        test_residual_pagerank_algorithm_policy_semantics},
+      {"algorithm_state_layout",
+       test_algorithm_state_layout_shares_one_hbm_channel},
+      {"algorithm_pipeline",
+       test_algorithm_pipeline_models_latency_ii_capacity_and_backpressure},
   };
   const std::string filter = argc > 1 ? argv[1] : "";
   std::size_t failures = 0;

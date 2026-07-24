@@ -1,0 +1,27 @@
+digraph AlgorithmTimingPrimitives {
+  graph [rankdir=LR, bgcolor="white", pad="0.25", nodesep="0.42", ranksep="0.58"];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+        color="#374151", fillcolor="#f8fafc"];
+  edge [fontname="Helvetica", fontsize=9, color="#475569"];
+
+  state_port [label="One vertex-state AXI master\none fixed HBM channel", fillcolor="#dbeafe"];
+  layout [label="4 KiB-aligned address regions\nrank/current, rank/next, residual, degree",
+          fillcolor="#fef3c7"];
+  source [label="Source-map pipeline\nlatency + II + finite capacity", fillcolor="#dcfce7"];
+  edge_map [label="Edge-map pipeline\nlatency + II + finite capacity", fillcolor="#dcfce7"];
+  reduce [label="Reduce pipeline\nlatency + II + finite capacity", fillcolor="#dcfce7"];
+  apply [label="Apply pipeline\nlatency + II + finite capacity", fillcolor="#dcfce7"];
+  queues [label="Registered request/response FIFOs\noccupancy + output backpressure", fillcolor="#e0f2fe"];
+  next [label="Next: connect to Spine tile controller\nand SST-backed state transactions",
+        shape=note, fillcolor="#fee2e2"];
+
+  state_port -> layout;
+  layout -> source;
+  source -> edge_map -> reduce -> apply;
+  queues -> source;
+  queues -> edge_map;
+  queues -> reduce;
+  queues -> apply;
+  apply -> state_port [label="state write"];
+  apply -> next [style=dashed];
+}

@@ -1,0 +1,53 @@
+{
+  "date": "2026-07-25",
+  "baseline_commit": "c1bb345",
+  "scope": "shared algorithm state layout and finite timed operation pipelines",
+  "state_layout_fixture": {
+    "vertices": 1025,
+    "alignment_bytes": 4096,
+    "array_payload_bytes": 4100,
+    "weighted_sssp": {
+      "primary_read_base": 0,
+      "primary_write_base": 0,
+      "total_bytes": 8192
+    },
+    "full_pagerank": {
+      "primary_read_base": 0,
+      "primary_write_base": 8192,
+      "degree_base": 16384,
+      "total_bytes": 24576
+    },
+    "thresholded_residual_pagerank": {
+      "primary_read_base": 0,
+      "primary_write_base": 0,
+      "auxiliary_base": 8192,
+      "degree_base": 16384,
+      "total_bytes": 24576
+    }
+  },
+  "pipeline_fixture": {
+    "cycles": 15,
+    "source_map": {
+      "latency_cycles": 3,
+      "initiation_interval": 2,
+      "capacity": 2,
+      "accepted": 3,
+      "completed": 3,
+      "initiation_interval_stalls": 1,
+      "capacity_stalls": 1,
+      "output_backpressure_stalls": 6,
+      "max_inflight": 2
+    },
+    "edge_map": {"accepted": 1, "completed": 1},
+    "reduce": {"accepted": 1, "completed": 1},
+    "apply": {"accepted": 1, "completed": 1},
+    "response_order_preserved": true,
+    "float32_semantics_match_policy": true
+  },
+  "validation": {
+    "cpp_tests_passed": 64,
+    "python_tests_passed": 153,
+    "sst_plugin_build": "pass",
+    "timed_pagerank_e2e": false
+  }
+}

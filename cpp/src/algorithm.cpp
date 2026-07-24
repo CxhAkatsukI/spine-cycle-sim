@@ -3,9 +3,29 @@
 #include <algorithm>
 #include <bit>
 #include <cmath>
+#include <limits>
 #include <stdexcept>
 
 namespace spine::sim {
+
+namespace {
+
+std::uint64_t checked_add(std::uint64_t left, std::uint64_t right) {
+  if (right > std::numeric_limits<std::uint64_t>::max() - left) {
+    throw std::overflow_error("algorithm state layout exceeds uint64 range");
+  }
+  return left + right;
+}
+
+std::uint64_t align_up(std::uint64_t value, std::uint64_t alignment) {
+  if (alignment == 0) {
+    throw std::invalid_argument("algorithm state alignment must be positive");
+  }
+  const std::uint64_t remainder = value % alignment;
+  return remainder == 0 ? value : checked_add(value, alignment - remainder);
+}
+
+}  // namespace
 
 GraphAlgorithmPolicy::GraphAlgorithmPolicy(AlgorithmPolicyConfig config)
     : config_(config) {
@@ -48,6 +68,49 @@ AlgorithmStorageProfile GraphAlgorithmPolicy::storage_profile() const noexcept {
       };
   }
   return {};
+}
+
+AlgorithmStateLayout GraphAlgorithmPolicy::state_layout(
+    std::uint64_t alignment_bytes) const {
+  constexpr std::uint64_t kStateWordBytes = sizeof(std::uint32_t);
+  if (config_.vertices >
+      std::numeric_limits<std::uint64_t>::max() / kStateWordBytes) {
+    throw std::overflow_error("algorithm vertex-state array is too large");
+  }
+  const std::uint64_t array_bytes =
+      static_cast<std::uint64_t>(config_.vertices) * kStateWordBytes;
+  std::uint64_t cursor = 0;
+  const auto reserve_region = [&] {
+    cursor = align_up(cursor, alignment_bytes);
+    const AlgorithmStateRegion region{.base = cursor, .bytes = array_bytes};
+    cursor = checked_add(cursor, array_bytes);
+    return region;
+  };
+
+  AlgorithmStateLayout layout{
+      .primary_read = reserve_region(),
+      .primary_write = {},
+      .auxiliary = std::nullopt,
+      .degree = std::nullopt,
+      .alignment_bytes = alignment_bytes,
+      .total_bytes = 0,
+      .primary_ping_pong = false,
+  };
+  const AlgorithmStorageProfile storage = storage_profile();
+  if (storage.double_buffered_primary) {
+    layout.primary_write = reserve_region();
+    layout.primary_ping_pong = true;
+  } else {
+    layout.primary_write = layout.primary_read;
+  }
+  if (storage.auxiliary_state_arrays != 0) {
+    layout.auxiliary = reserve_region();
+  }
+  if (storage.degree_arrays != 0) {
+    layout.degree = reserve_region();
+  }
+  layout.total_bytes = align_up(cursor, alignment_bytes);
+  return layout;
 }
 
 AlgorithmOperationProfile

@@ -35,6 +35,21 @@ struct AlgorithmStorageProfile {
   bool double_buffered_primary{};
 };
 
+struct AlgorithmStateRegion {
+  std::uint64_t base{};
+  std::uint64_t bytes{};
+};
+
+struct AlgorithmStateLayout {
+  AlgorithmStateRegion primary_read;
+  AlgorithmStateRegion primary_write;
+  std::optional<AlgorithmStateRegion> auxiliary;
+  std::optional<AlgorithmStateRegion> degree;
+  std::uint64_t alignment_bytes{};
+  std::uint64_t total_bytes{};
+  bool primary_ping_pong{};
+};
+
 struct AlgorithmOperationProfile {
   std::size_t integer_adds_per_edge{};
   std::size_t integer_compares_per_reduce{};
@@ -85,6 +100,8 @@ class GraphAlgorithmPolicy {
   }
   [[nodiscard]] std::string_view name() const noexcept;
   [[nodiscard]] AlgorithmStorageProfile storage_profile() const noexcept;
+  [[nodiscard]] AlgorithmStateLayout state_layout(
+      std::uint64_t alignment_bytes = 4096) const;
   [[nodiscard]] AlgorithmOperationProfile operation_profile() const noexcept;
   [[nodiscard]] AlgorithmUpdateMode update_mode(
       bool has_insert_or_decrease,

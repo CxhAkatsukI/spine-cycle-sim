@@ -11,6 +11,7 @@ CXXFLAGS := $(SST_CXXFLAGS) -std=c++20 -O2 -g -fPIC -Wall -Wextra \
             -Wpedantic $(INCLUDES)
 SOURCES := online_memory_probe.cpp \
            $(ROOT)/cpp/src/algorithm.cpp \
+           $(ROOT)/cpp/src/algorithm_pipeline.cpp \
            $(ROOT)/cpp/src/axi.cpp \
            $(ROOT)/cpp/src/memory_backend.cpp \
            $(ROOT)/cpp/src/scheduler.cpp \
