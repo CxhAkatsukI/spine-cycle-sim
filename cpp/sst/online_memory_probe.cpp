@@ -1093,6 +1093,10 @@ class OnlineMemoryProbe final : public SST::Component {
              << maintenance.sorted_scan_passes << ",\n"
              << "  \"maintenance_edge_visits\": "
              << maintenance.sorted_edge_visits << ",\n"
+             << "  \"maintenance_sorted_bytes\": "
+             << maintenance.sorted_read_bytes << ",\n"
+             << "  \"maintenance_sorted_payload_read_bytes\": "
+             << maintenance.sorted_payload_read_bytes << ",\n"
              << "  \"maintenance_graph_payload_write_bytes\": "
              << maintenance.graph_edge_payload_write_bytes << ",\n"
              << "  \"final_values\": ";
@@ -1186,6 +1190,8 @@ class OnlineMemoryProbe final : public SST::Component {
           << ",\n"
           << "  \"maintenance_sorted_bytes\": " << maintenance.sorted_read_bytes
           << ",\n"
+          << "  \"maintenance_sorted_payload_read_bytes\": "
+          << maintenance.sorted_payload_read_bytes << ",\n"
           << "  \"maintenance_target_level\": " << maintenance.target_level
           << ",\n"
           << "  \"maintenance_hot_target_level\": "

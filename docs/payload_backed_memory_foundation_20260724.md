@@ -65,8 +65,8 @@ is `docs/evidence/sst_payload_roundtrip_20260724_summary.json`.
 
 ## Remaining work
 
-The transport is payload-correct. Spine vertex-state payload and emitted
-graph-edge payload have now been migrated in later milestones. Metadata/index
-decisions and carry merge semantics still need to move away from logical
-containers before Spine scenario results can be called payload-complete rather
-than `structural_execution_driven`.
+The transport is payload-correct. Spine sorted input, vertex-state payload,
+and emitted graph-edge payload have now been migrated in later milestones.
+Metadata/index decisions and carry merge semantics still need to move away from
+logical containers before Spine scenario results can be called payload-complete
+rather than `structural_execution_driven`.

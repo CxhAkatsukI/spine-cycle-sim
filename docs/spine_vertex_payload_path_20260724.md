@@ -69,5 +69,7 @@ python3 scripts/run_sst_spine_vertical.py \
 
 This closes the vertex-state payload bypass. The emitted graph-edge payload
 path is closed in `docs/spine_graph_edge_payload_path_20260724.md`. The
-maintenance sorted input, graph-level CSR/index metadata decisions, and carry
-merge still use logical containers and are the next payload migration target.
+maintenance sorted input is closed in
+`docs/spine_sorted_input_payload_path_20260724.md`. Graph-level CSR/index
+metadata decisions and carry merge still use logical containers and are the
+next payload migration target.

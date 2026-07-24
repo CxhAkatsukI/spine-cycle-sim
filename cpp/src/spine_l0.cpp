@@ -13,8 +13,8 @@ namespace spine::sim {
 
 namespace {
 
-constexpr std::uint64_t kEdgeRecordBytes = 16;
 constexpr std::uint64_t kMetadataWordBytes = 8;
+constexpr std::uint64_t kPersistentRecordBytes = 16;
 constexpr std::uint64_t kResultWords = 96;
 
 std::string trim(std::string text) {
@@ -73,6 +73,77 @@ std::vector<SpineEdgeRecord> coalesce_records(
 }
 
 }  // namespace
+
+std::vector<std::uint8_t> encode_spine_sort_edge(
+    const SpineEdgeRecord &edge) {
+  std::vector<std::uint8_t> data(kSpineSortWordBytes, 0);
+  const std::uint16_t diff = static_cast<std::uint16_t>(edge.diff);
+  data[0] = static_cast<std::uint8_t>(diff & 0xffU);
+  data[1] = static_cast<std::uint8_t>((diff >> 8) & 0xffU);
+  data[4] = static_cast<std::uint8_t>(edge.weight & 0xffU);
+  data[5] = static_cast<std::uint8_t>((edge.weight >> 8) & 0xffU);
+  for (std::size_t byte = 0; byte < sizeof(std::uint32_t); ++byte) {
+    data[8 + byte] =
+        static_cast<std::uint8_t>((edge.dst >> (byte * 8)) & 0xffU);
+    data[12 + byte] =
+        static_cast<std::uint8_t>((edge.src >> (byte * 8)) & 0xffU);
+  }
+  return data;
+}
+
+SpineEdgeRecord decode_spine_sort_edge(
+    const std::vector<std::uint8_t> &data) {
+  if (data.size() != kSpineSortWordBytes) {
+    throw std::invalid_argument("Spine sorted edge payload must be 128 bits");
+  }
+  std::uint32_t dst = 0;
+  std::uint32_t src = 0;
+  for (std::size_t byte = 0; byte < sizeof(std::uint32_t); ++byte) {
+    dst |= static_cast<std::uint32_t>(data[8 + byte]) << (byte * 8);
+    src |= static_cast<std::uint32_t>(data[12 + byte]) << (byte * 8);
+  }
+  const std::uint16_t weight =
+      static_cast<std::uint16_t>(data[4]) |
+      (static_cast<std::uint16_t>(data[5]) << 8);
+  const std::uint16_t diff =
+      static_cast<std::uint16_t>(data[0]) |
+      (static_cast<std::uint16_t>(data[1]) << 8);
+  return SpineEdgeRecord{
+      .src = src,
+      .dst = dst,
+      .weight = weight,
+      .diff = static_cast<std::int16_t>(diff),
+  };
+}
+
+std::vector<std::uint8_t> encode_spine_sort_edges(
+    const std::vector<SpineEdgeRecord> &edges) {
+  std::vector<std::uint8_t> data(edges.size() * kSpineSortWordBytes);
+  for (std::size_t index = 0; index < edges.size(); ++index) {
+    const std::vector<std::uint8_t> edge = encode_spine_sort_edge(edges[index]);
+    std::copy(edge.begin(), edge.end(),
+              data.begin() + static_cast<std::ptrdiff_t>(
+                                 index * kSpineSortWordBytes));
+  }
+  return data;
+}
+
+std::vector<SpineEdgeRecord> decode_spine_sort_edges(
+    const std::vector<std::uint8_t> &data) {
+  if (data.size() % kSpineSortWordBytes != 0) {
+    throw std::invalid_argument("Spine sorted edge payload is misaligned");
+  }
+  std::vector<SpineEdgeRecord> edges;
+  edges.reserve(data.size() / kSpineSortWordBytes);
+  for (std::size_t offset = 0; offset < data.size();
+       offset += kSpineSortWordBytes) {
+    edges.push_back(decode_spine_sort_edge(std::vector<std::uint8_t>(
+        data.begin() + static_cast<std::ptrdiff_t>(offset),
+        data.begin() + static_cast<std::ptrdiff_t>(offset +
+                                                   kSpineSortWordBytes))));
+  }
+  return edges;
+}
 
 std::vector<std::uint8_t> encode_spine_level_edge(
     const SpineEdgeRecord &edge) {
@@ -300,6 +371,9 @@ SpineL0Maintenance::SpineL0Maintenance(std::string name, ClockId clock_id,
   }
   state_.hot_vertices = std::move(configured_hot);
   state_.hot_enabled = !state_.hot_vertices.empty();
+  sorted_scan_edges_ = workload_.edges;
+  ports_.sorted_edges->initialize_payload(
+      config_.sorted_edges_base, encode_spine_sort_edges(workload_.edges));
 }
 
 void SpineL0Maintenance::evaluate(const CycleContext &) {
@@ -348,6 +422,7 @@ void SpineL0Maintenance::commit(const CycleContext &context) {
         failure_ = "Spine AXI response failed or used the wrong transaction ID";
         return;
       }
+      consume_memory_response(tasks_.front(), staged_response_);
       waiting_ = false;
       tasks_.pop_front();
       return;
@@ -414,21 +489,39 @@ void SpineL0Maintenance::enqueue_task(FixedAxiPort &port,
 void SpineL0Maintenance::begin_sorted_scan(Phase process_phase) {
   enqueue_task(*ports_.sorted_edges, MemoryOperation::kRead,
                config_.sorted_edges_base,
-               workload_.edges.size() * kEdgeRecordBytes, TaskClass::kSorted);
+               workload_.edges.size() * kSpineSortWordBytes,
+               TaskClass::kSorted);
   ++counters_.sorted_scan_passes;
   scan_index_ = 0;
   phase_ = process_phase;
 }
 
 void SpineL0Maintenance::process_scan_edge(Phase next_phase) {
-  if (scan_index_ >= workload_.edges.size()) {
+  if (scan_index_ >= sorted_scan_edges_.size()) {
     phase_ = next_phase;
     return;
   }
   ++counters_.sorted_edge_visits;
   ++scan_index_;
-  if (scan_index_ == workload_.edges.size()) {
+  if (scan_index_ == sorted_scan_edges_.size()) {
     phase_ = next_phase;
+  }
+}
+
+void SpineL0Maintenance::consume_memory_response(
+    const MemoryTask &task, const AxiResponse &response) {
+  if (task.operation == MemoryOperation::kWrite) {
+    if (!response.read_data.empty()) {
+      throw std::logic_error("Spine maintenance write response carried payload");
+    }
+    return;
+  }
+  if (response.read_data.size() != task.bytes) {
+    throw std::logic_error("Spine maintenance read response payload mismatch");
+  }
+  if (task.task_class == TaskClass::kSorted) {
+    sorted_scan_edges_ = decode_spine_sort_edges(response.read_data);
+    counters_.sorted_payload_read_bytes += response.read_data.size();
   }
 }
 
@@ -444,7 +537,7 @@ bool SpineL0Maintenance::edge_is_hot(std::uint32_t dst) const {
 std::vector<SpineEdgeRecord> SpineL0Maintenance::coalesce_family(
     bool hot, std::size_t family) const {
   std::vector<SpineEdgeRecord> selected;
-  for (const SpineEdgeRecord &edge : workload_.edges) {
+  for (const SpineEdgeRecord &edge : sorted_scan_edges_) {
     const bool is_hot = edge_is_hot(edge.dst);
     const std::size_t owner =
         is_hot ? spine_hot_shard(edge.dst) : family_for(edge.dst);
@@ -550,7 +643,7 @@ void SpineL0Maintenance::build_family_outputs() {
 
 void SpineL0Maintenance::enqueue_dirty_source_updates() {
   std::vector<std::uint32_t> sources;
-  for (const SpineEdgeRecord &edge : workload_.edges) {
+  for (const SpineEdgeRecord &edge : sorted_scan_edges_) {
     if (sources.empty() || sources.back() != edge.src) {
       sources.push_back(edge.src);
     }
@@ -559,16 +652,18 @@ void SpineL0Maintenance::enqueue_dirty_source_updates() {
   for (std::size_t index = 0; index < sources.size(); ++index) {
     const std::uint32_t src = sources[index];
     const std::uint64_t directory =
-        config_.persistent_directory_base + (src >> 2) * kEdgeRecordBytes;
+        config_.persistent_directory_base + (src >> 2) * kPersistentRecordBytes;
     const std::uint64_t bitmap =
-        config_.persistent_dirty_bitmap_base + (src >> 7) * kEdgeRecordBytes;
+        config_.persistent_dirty_bitmap_base +
+        (src >> 7) * kPersistentRecordBytes;
     const std::uint64_t list =
-        config_.persistent_dirty_list_base + (index >> 2) * kEdgeRecordBytes;
+        config_.persistent_dirty_list_base +
+        (index >> 2) * kPersistentRecordBytes;
     for (const std::uint64_t address : {directory, bitmap, list}) {
       enqueue_task(*ports_.sorted_edges, MemoryOperation::kRead, address,
-                   kEdgeRecordBytes, TaskClass::kPersistent);
+                   kPersistentRecordBytes, TaskClass::kPersistent);
       enqueue_task(*ports_.sorted_edges, MemoryOperation::kWrite, address,
-                   kEdgeRecordBytes, TaskClass::kPersistent);
+                   kPersistentRecordBytes, TaskClass::kPersistent);
     }
   }
   enqueue_task(*ports_.metadata, MemoryOperation::kWrite,
@@ -713,7 +808,7 @@ void SpineL0Maintenance::advance(const CycleContext &context) {
     case Phase::kInitialize:
       counters_.start_cycle = context.domain_cycle;
       counters_.hot_enabled = state_.hot_enabled;
-      for (const SpineEdgeRecord &edge : workload_.edges) {
+      for (const SpineEdgeRecord &edge : sorted_scan_edges_) {
         if (edge_is_hot(edge.dst)) {
           ++counters_.hot_input_edges;
         } else {
@@ -735,7 +830,7 @@ void SpineL0Maintenance::advance(const CycleContext &context) {
       begin_sorted_scan(Phase::kDirtyUpdateProcess);
       return;
     case Phase::kDirtyUpdateProcess:
-      if (scan_index_ + 1 == workload_.edges.size()) {
+      if (scan_index_ + 1 == sorted_scan_edges_.size()) {
         ++counters_.sorted_edge_visits;
         ++scan_index_;
         enqueue_dirty_source_updates();
@@ -782,7 +877,7 @@ void SpineL0Maintenance::advance(const CycleContext &context) {
       begin_sorted_scan(Phase::kPrecountProcess);
       return;
     case Phase::kPrecountProcess:
-      if (scan_index_ + 1 == workload_.edges.size()) {
+      if (scan_index_ + 1 == sorted_scan_edges_.size()) {
         ++counters_.sorted_edge_visits;
         ++scan_index_;
         ++family_index_;
@@ -819,7 +914,7 @@ void SpineL0Maintenance::advance(const CycleContext &context) {
       begin_sorted_scan(Phase::kWriteProcess);
       return;
     case Phase::kWriteProcess:
-      if (scan_index_ + 1 == workload_.edges.size()) {
+      if (scan_index_ + 1 == sorted_scan_edges_.size()) {
         ++counters_.sorted_edge_visits;
         ++scan_index_;
         const FamilyWriteTask &task = family_write_tasks_[active_family_index_];

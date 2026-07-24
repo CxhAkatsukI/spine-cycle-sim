@@ -31,7 +31,16 @@ struct SpineEdgeSlice {
 };
 
 SpineEdgeSlice load_spine_edge_slice(const std::filesystem::path &path);
+inline constexpr std::uint64_t kSpineSortWordBytes = 16;
 inline constexpr std::uint64_t kSpineGraphWordBytes = 8;
+[[nodiscard]] std::vector<std::uint8_t> encode_spine_sort_edge(
+    const SpineEdgeRecord &edge);
+[[nodiscard]] SpineEdgeRecord decode_spine_sort_edge(
+    const std::vector<std::uint8_t> &data);
+[[nodiscard]] std::vector<std::uint8_t> encode_spine_sort_edges(
+    const std::vector<SpineEdgeRecord> &edges);
+[[nodiscard]] std::vector<SpineEdgeRecord> decode_spine_sort_edges(
+    const std::vector<std::uint8_t> &data);
 [[nodiscard]] std::vector<std::uint8_t> encode_spine_level_edge(
     const SpineEdgeRecord &edge);
 [[nodiscard]] SpineEdgeRecord decode_spine_level_edge(
@@ -82,6 +91,7 @@ struct SpineL0Counters {
   std::uint64_t sorted_scan_passes{};
   std::uint64_t sorted_edge_visits{};
   std::uint64_t sorted_read_bytes{};
+  std::uint64_t sorted_payload_read_bytes{};
   std::uint64_t persistent_read_bytes{};
   std::uint64_t persistent_write_bytes{};
   std::uint64_t metadata_read_bytes{};
@@ -181,6 +191,8 @@ class SpineL0Maintenance final : public Component {
                     std::vector<std::uint8_t> write_data = {});
   void begin_sorted_scan(Phase process_phase);
   void process_scan_edge(Phase next_phase);
+  void consume_memory_response(const MemoryTask &task,
+                               const AxiResponse &response);
   void enqueue_dirty_source_updates();
   void build_family_outputs();
   void enqueue_family_writes(bool hot, std::size_t family, std::size_t target);
@@ -205,6 +217,7 @@ class SpineL0Maintenance final : public Component {
   SpineL0Ports ports_;
   SpineL0State &state_;
   SpineL0Counters counters_;
+  std::vector<SpineEdgeRecord> sorted_scan_edges_;
   std::array<std::vector<SpineEdgeRecord>, 16> family_outputs_;
   std::array<std::vector<SpineEdgeRecord>, 16> hot_family_outputs_;
   std::vector<FamilyWriteTask> family_write_tasks_;

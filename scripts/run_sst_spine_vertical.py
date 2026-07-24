@@ -66,6 +66,10 @@ def validate_result(
         "maintenance_passes": result.get("maintenance_scan_passes") == 19,
         "maintenance_visits": result.get("maintenance_edge_visits") == 190,
         "maintenance_bytes": result.get("maintenance_sorted_bytes") == 3_040,
+        "maintenance_sorted_payload": result.get(
+            "maintenance_sorted_payload_read_bytes"
+        )
+        == result.get("maintenance_sorted_bytes"),
         "reader_tiles": result.get("reader_tiles") == 5,
         "reader_edges": result.get("reader_edges") == 10,
         "reader_bytes": result.get("reader_graph_bytes") == 112,
@@ -108,6 +112,10 @@ def validate_carry_hot_result(
         "maintenance_passes": result.get("maintenance_scan_passes") == 35,
         "maintenance_visits": result.get("maintenance_edge_visits") == 70,
         "maintenance_bytes": result.get("maintenance_sorted_bytes") == 1_120,
+        "maintenance_sorted_payload": result.get(
+            "maintenance_sorted_payload_read_bytes"
+        )
+        == result.get("maintenance_sorted_bytes"),
         "carry_work": result.get("maintenance_carry_payload_reads") == 1
         and result.get("maintenance_carry_merge_inputs") == 2
         and result.get("maintenance_carry_outputs") == 2,
@@ -186,7 +194,12 @@ def validate_multiround_sssp_result(
         "frontier_outputs": result.get("frontier_out_sizes") == [3, 2, 2, 2, 1, 0],
         "round_edges": result.get("processed_edges_per_round") == [3, 3, 2, 2, 1, 0],
         "maintenance_once": result.get("maintenance_scan_passes") == 19
-        and result.get("maintenance_edge_visits") == 152,
+        and result.get("maintenance_edge_visits") == 152
+        and result.get("maintenance_sorted_bytes") == 2_432,
+        "maintenance_sorted_payload": result.get(
+            "maintenance_sorted_payload_read_bytes"
+        )
+        == result.get("maintenance_sorted_bytes"),
         "round_timing": len(result.get("round_cycles", [])) == 6
         and all(cycles > 0 for cycles in result.get("round_cycles", [])),
         "round_fifo": len(result.get("edge_axis_max_occupancy_per_round", []))

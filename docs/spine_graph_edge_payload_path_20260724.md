@@ -84,7 +84,9 @@ python3 scripts/run_sst_spine_vertical.py \
 ## Claim boundary
 
 This closes the emitted graph-edge value bypass for the accepted Spine vertical
-paths. It does not yet make the whole level directory payload-complete:
+paths. Sorted input is closed in
+`docs/spine_sorted_input_payload_path_20260724.md`. The whole level directory is
+still not payload-complete:
 
 - level occupancy, row enumeration, and tile grouping still consult logical
   containers;

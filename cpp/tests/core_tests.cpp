@@ -34,7 +34,9 @@ using spine::sim::ClockId;
 using spine::sim::Component;
 using spine::sim::CycleContext;
 using spine::sim::decode_spine_level_edge;
+using spine::sim::decode_spine_sort_edge;
 using spine::sim::encode_spine_level_edge;
+using spine::sim::encode_spine_sort_edge;
 using spine::sim::Fifo;
 using spine::sim::FifoStats;
 using spine::sim::FixedAxiPort;
@@ -991,6 +993,10 @@ void test_spine_fixed_level_layout_matches_stable_profile() {
   require(payload.size() == 8 &&
               decode_spine_level_edge(payload, edge.src) == edge,
           "64-bit HLS CSR level payload does not round-trip");
+  const std::vector<std::uint8_t> sort_payload = encode_spine_sort_edge(edge);
+  require(sort_payload.size() == 16 &&
+              decode_spine_sort_edge(sort_payload) == edge,
+          "128-bit HLS sorted edge payload does not round-trip");
 }
 
 void test_spine_carry_drops_signed_diff_cancellation() {
@@ -1406,6 +1412,91 @@ void test_spine_reader_consumes_graph_edge_payload_from_hbm() {
           "reader graph edge payload ledger does not close");
 }
 
+void test_spine_maintenance_consumes_sorted_payload_from_hbm() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("data", 141.0);
+  MockMemoryBackend backend("hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 3,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  std::vector<std::unique_ptr<FixedAxiPort>> graph_ports;
+  graph_ports.reserve(16);
+  SpineL0Ports ports;
+  for (std::size_t index = 0; index < ports.graph.size(); ++index) {
+    graph_ports.push_back(std::make_unique<FixedAxiPort>(
+        "sorted-payload-graph" + std::to_string(index), core,
+        FixedAxiPortConfig{
+            .memory_channels = 32,
+            .channel = index,
+            .initiator_id = static_cast<std::uint32_t>(500 + index),
+        },
+        backend));
+    ports.graph[index] = graph_ports.back().get();
+  }
+  FixedAxiPort sorted(
+      "sorted-payload-sorted", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32, .channel = 16, .initiator_id = 516},
+      backend);
+  FixedAxiPort metadata(
+      "sorted-payload-metadata", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32, .channel = 20, .initiator_id = 520},
+      backend);
+  FixedAxiPort result(
+      "sorted-payload-result", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32, .channel = 21, .initiator_id = 521},
+      backend);
+  ports.sorted_edges = &sorted;
+  ports.metadata = &metadata;
+  ports.result = &result;
+
+  SpineEdgeSlice batch{
+      .vertices = 128,
+      .edges = {SpineEdgeRecord{.src = 0, .dst = 1, .weight = 5, .diff = 1}},
+      .case_name = "sorted_payload_antibypass",
+  };
+  SpineL0State state;
+  SpineL0Maintenance maintenance("sorted-payload-maintenance", core,
+                                 SpineL0Config{}, std::move(batch), ports,
+                                 state);
+  sorted.initialize_payload(
+      0, encode_spine_sort_edge(
+             SpineEdgeRecord{.src = 0, .dst = 2, .weight = 2, .diff = 1}));
+
+  scheduler.add_component(maintenance);
+  for (auto &port : graph_ports) {
+    port->register_components(scheduler);
+  }
+  sorted.register_components(scheduler);
+  metadata.register_components(scheduler);
+  result.register_components(scheduler);
+  scheduler.add_component(backend);
+  scheduler.run_until(
+      [&] {
+        return maintenance.done() && sorted.idle() && metadata.idle() &&
+               result.idle() &&
+               std::all_of(graph_ports.begin(), graph_ports.end(),
+                           [](const auto &port) { return port->idle(); });
+      },
+      50'000);
+
+  require(!maintenance.failed(), "sorted payload anti-bypass maintenance failed");
+  require(state.cold_levels[0][0].size() == 1 &&
+              state.cold_levels[0][0][0].dst == 2 &&
+              state.cold_levels[0][0][0].weight == 2,
+          "maintenance ignored HBM sorted payload and used logical workload");
+  require(maintenance.counters().sorted_payload_read_bytes ==
+              maintenance.counters().sorted_read_bytes &&
+              maintenance.counters().sorted_payload_read_bytes > 0,
+          "sorted payload read ledger does not close");
+}
+
 std::vector<std::uint32_t> sorted_vertices(
     std::vector<std::uint32_t> vertices) {
   std::sort(vertices.begin(), vertices.end());
@@ -1497,6 +1588,8 @@ int main() {
        test_spine_compute_consumes_vertex_payload_from_hbm},
       {"spine_reader_hbm_graph_payload",
        test_spine_reader_consumes_graph_edge_payload_from_hbm},
+      {"spine_maintenance_hbm_sorted_payload",
+       test_spine_maintenance_consumes_sorted_payload_from_hbm},
       {"spine_multiround_weighted_sssp",
        test_spine_multiround_weighted_sssp_converges},
   };
