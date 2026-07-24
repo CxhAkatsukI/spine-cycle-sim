@@ -616,6 +616,21 @@ struct SpineComputeCounters {
   std::uint64_t swept_vertex_words{};
   std::uint64_t scattered_vertex_words{};
   std::uint64_t tiny_buffered_edges{};
+  std::uint64_t tiny_buffer_writes{};
+  std::uint64_t tiny_buffer_reads{};
+  std::uint64_t vs_tile_reads{};
+  std::uint64_t vs_tile_writes{};
+  std::uint64_t tile_active_clear_words{};
+  std::uint64_t tile_active_clear_lane_writes{};
+  std::uint64_t tile_active_mark_writes{};
+  std::uint64_t sparse_store_scan_words{};
+  std::uint64_t sparse_store_lane_reads{};
+  std::uint64_t sparse_store_bit_cycles{};
+  std::uint64_t active_emit_scan_words{};
+  std::uint64_t active_emit_lane_reads{};
+  std::uint64_t active_emit_lane_writes{};
+  std::uint64_t active_emit_bit_cycles{};
+  std::uint64_t on_chip_controller_cycles{};
   std::uint64_t full_buffer_replay_edges{};
   std::uint64_t full_overflow_edges{};
   std::uint64_t full_stream_edges{};
@@ -678,10 +693,16 @@ class SpineSplitSsspCompute final : public Component {
     kSourceReply,
     kGatherBegin,
     kGatherAdvance,
+    kClearTileActive,
     kRelax,
     kFullLoad,
     kFullReplay,
+    kSparseStoreScan,
+    kSparseStoreBits,
     kStore,
+    kEmitActiveScan,
+    kEmitActiveBits,
+    kEmitStore,
     kFinish,
   };
 
@@ -702,7 +723,14 @@ class SpineSplitSsspCompute final : public Component {
   void consume_memory_response(const MemoryTask &task,
                                const AxiResponse &response);
   void prepare_gather();
-  void prepare_store();
+  void prepare_vertex_store();
+  void prepare_active_output();
+  void begin_tile_active_clear(Phase next_phase);
+  void begin_sparse_store_scan();
+  void begin_active_emit_scan();
+  void finish_active_word_scan(Phase scan_phase);
+  [[nodiscard]] bool active_word_nonempty(std::size_t word) const;
+  void sort_changed_vertices_for_emit();
   void begin_full_path(const PartConvWord &overflow_edge);
   void relax_edge(const PartConvWord &edge);
   void reset_tile();
@@ -734,6 +762,9 @@ class SpineSplitSsspCompute final : public Component {
   std::size_t tile_size_{};
   std::size_t gather_index_{};
   std::size_t relax_index_{};
+  std::size_t active_word_index_{};
+  std::size_t active_bit_index_{};
+  Phase after_clear_phase_{Phase::kRelax};
   std::uint64_t next_transaction_id_{};
   std::uint64_t expected_transaction_id_{};
   bool waiting_memory_{};

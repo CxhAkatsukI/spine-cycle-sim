@@ -30,6 +30,14 @@ DEFAULT_FALLBACK_WORKLOAD = (
 PROFILE_PATH = ROOT / "configs" / "architectures" / "spine_shared_engine_9c08763.json"
 
 
+def maintenance_timing_profile_matches(
+    result: dict[str, Any], expected: dict[str, int]
+) -> bool:
+    if result.get("mode") == "spine_compute":
+        return True
+    return all(result.get(field) == value for field, value in expected.items())
+
+
 def maintenance_scan_ledger_matches(
     result: dict[str, Any],
     *,
@@ -922,7 +930,7 @@ def main() -> int:
             args.maintenance_scan_response_capacity
         ),
     }
-    if any(result.get(field) != value for field, value in expected_timing.items()):
+    if not maintenance_timing_profile_matches(result, expected_timing):
         problems.append("maintenance_scan_timing_profile")
     if problems:
         raise RuntimeError(f"SST Spine checks failed: {', '.join(problems)}")

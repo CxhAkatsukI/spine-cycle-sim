@@ -5,6 +5,7 @@ from pathlib import Path
 import unittest
 
 from scripts.run_sst_spine_vertical import (
+    maintenance_timing_profile_matches,
     validate_carry_hot_result,
     validate_fallback_result,
     validate_full_compute_result,
@@ -18,6 +19,19 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class SstSpineVerticalValidationTests(unittest.TestCase):
+    def test_compute_only_result_skips_maintenance_profile(self) -> None:
+        expected = {"maintenance_count_scan_ii": 1}
+        self.assertTrue(
+            maintenance_timing_profile_matches(
+                {"mode": "spine_compute"}, expected
+            )
+        )
+        self.assertFalse(
+            maintenance_timing_profile_matches(
+                {"mode": "spine_vertical"}, expected
+            )
+        )
+
     def test_matching_architecture_and_dram_counts_pass(self) -> None:
         result = {
             "success": True,

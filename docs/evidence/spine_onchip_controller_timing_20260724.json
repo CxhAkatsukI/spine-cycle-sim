@@ -1,0 +1,28 @@
+{
+  "date": "2026-07-24",
+  "branch": "codex/fine-grained-cycle-sim",
+  "baseline_commit": "089f28a",
+  "hls_reference": {
+    "revision": "origin/reduce-levels-for-routing",
+    "commit": "afb8199a2ca8d3fd208b985324bf4d8719e2b839",
+    "file": "src/spine_partitioned.hpp",
+    "sha256": "d5c4a2f2c2f384e33808eee4250c0c88208027b3792d46425e1de2ae1d8a06ba"
+  },
+  "threshold_microbenchmarks": [
+    {"edges": 4095, "path": "tiny", "cycles": 101917, "tiny_reads": 8190, "clear_words": 1024, "sparse_words": 1024, "sparse_bit_cycles": 4096, "emit_words": 1024, "emit_bit_cycles": 4096, "controller_cycles": 11264},
+    {"edges": 4096, "path": "tiny", "cycles": 101939, "tiny_reads": 8192, "clear_words": 1024, "sparse_words": 1024, "sparse_bit_cycles": 4096, "emit_words": 1024, "emit_bit_cycles": 4096, "controller_cycles": 11264},
+    {"edges": 4097, "path": "full", "cycles": 23173, "tiny_reads": 4096, "clear_words": 1024, "sparse_words": 0, "sparse_bit_cycles": 0, "emit_words": 1024, "emit_bit_cycles": 4160, "controller_cycles": 6208},
+    {"edges": 4098, "path": "full", "cycles": 23174, "tiny_reads": 4096, "clear_words": 1024, "sparse_words": 0, "sparse_bit_cycles": 0, "emit_words": 1024, "emit_bit_cycles": 4160, "controller_cycles": 6208}
+  ],
+  "sst_hbm": [
+    {"scenario": "amazon_l0", "before_cycles": 7305, "after_cycles": 23501, "controller_cycles": 16256, "before_requests": 1400, "after_requests": 1400, "correctness_mismatches": 0, "frontier_mismatches": 0},
+    {"scenario": "carry_hot", "before_cycles": 9702, "after_cycles": 10646, "controller_cycles": 1156, "before_requests": 2016, "after_requests": 2016, "correctness_mismatches": 0, "frontier_mismatches": 0},
+    {"scenario": "weighted_sssp", "before_cycles": 34087, "after_cycles": 38710, "controller_cycles_per_round": [1154, 1154, 1154, 1154, 1154, 0], "before_requests": 4197, "after_requests": 4197, "correctness_mismatches": 0, "frontier_mismatches": 0},
+    {"scenario": "amazon_full_compute", "before_cycles": 496386, "after_cycles": 1073313, "controller_cycles": 577028, "before_requests": 175315, "after_requests": 175315, "correctness_mismatches": 0, "frontier_mismatches": 0}
+  ],
+  "tests": {
+    "cpp_core_tests_passed": 52,
+    "python_unittests_passed": 148,
+    "sst_scenarios_passed": 4
+  }
+}

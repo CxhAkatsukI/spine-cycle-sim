@@ -1523,6 +1523,12 @@ void test_spine_host_active_gate_runs_tiled_fallback() {
 
   const auto &reader = system.reader_counters();
   const auto &compute = system.compute_counters();
+  std::cout << "EVIDENCE spine_forced_dense_controller swept="
+            << compute.swept_vertex_words
+            << " clear_words=" << compute.tile_active_clear_words
+            << " emit_words=" << compute.active_emit_scan_words
+            << " controller_cycles=" << compute.on_chip_controller_cycles
+            << '\n';
   require(!system.failed() && reader.range_task_path == 2 &&
               reader.range_task_fallback_reason == 1 &&
               reader.range_task_error == 0 && !reader.done_overflow &&
@@ -1544,7 +1550,8 @@ void test_spine_host_active_gate_runs_tiled_fallback() {
               compute.range_task_error == 0 && !compute.done_overflow &&
               compute.forced_dense_tiles == 6 && compute.full_path_tiles == 6 &&
               compute.processed_edges == 5 &&
-              compute.swept_vertex_words == 2ULL * workload.vertices,
+              compute.swept_vertex_words == workload.vertices &&
+              compute.tile_active_clear_words == 6 * 1024,
           "force-dense fallback was not honored by split compute");
 }
 
@@ -2370,6 +2377,7 @@ struct ComputeTileObservation {
   std::uint64_t cycles{};
   std::size_t next_active{};
   std::uint32_t duplicate_value{SpineSplitSsspCompute::kInfinity};
+  std::vector<std::uint8_t> first_active_payload;
   bool distances_match{};
   bool failed{};
 };
@@ -2463,6 +2471,7 @@ ComputeTileObservation run_compute_tile(std::size_t edge_count,
       .cycles = scheduler.clock(core).completed_cycles,
       .next_active = compute.next_active().size(),
       .duplicate_value = compute.values()[1],
+      .first_active_payload = backend.inspect_payload(19, 0, 8),
       .distances_match = distances_match,
       .failed = compute.failed(),
   };
@@ -2471,11 +2480,36 @@ ComputeTileObservation run_compute_tile(std::size_t edge_count,
 void test_spine_full_tile_threshold_boundaries() {
   for (const std::size_t edge_count : {4095U, 4096U, 4097U, 4098U}) {
     const ComputeTileObservation observation = run_compute_tile(edge_count);
+    std::cout << "EVIDENCE spine_onchip_tile edges=" << edge_count
+              << " cycles=" << observation.cycles
+              << " clear_words="
+              << observation.counters.tile_active_clear_words
+              << " tiny_reads=" << observation.counters.tiny_buffer_reads
+              << " sparse_scan_words="
+              << observation.counters.sparse_store_scan_words
+              << " sparse_bit_cycles="
+              << observation.counters.sparse_store_bit_cycles
+              << " emit_scan_words="
+              << observation.counters.active_emit_scan_words
+              << " emit_bit_cycles="
+              << observation.counters.active_emit_bit_cycles
+              << " controller_cycles="
+              << observation.counters.on_chip_controller_cycles << '\n';
     require(!observation.failed && observation.distances_match &&
                 observation.next_active == edge_count,
             "full-tile boundary changed the SSSP result");
     require(observation.counters.processed_edges == edge_count,
             "full-tile boundary lost or duplicated an edge");
+    require(observation.counters.tile_active_clear_words == 1024 &&
+                observation.counters.tile_active_clear_lane_writes == 65'536 &&
+                observation.counters.active_emit_scan_words == 1024 &&
+                observation.counters.active_emit_lane_reads == 65'536 &&
+                observation.counters.active_emit_lane_writes == 65'536 &&
+                observation.counters.tile_active_mark_writes == edge_count,
+            "tile-active BRAM controller ledger diverged from the HLS loops");
+    require(observation.counters.tiny_buffer_writes ==
+                std::min<std::size_t>(edge_count, 4096),
+            "tiny-edge BRAM write ledger crossed the threshold incorrectly");
     if (edge_count <= 4096) {
       require(observation.counters.fast_path_tiles == 1 &&
                   observation.counters.full_path_tiles == 0 &&
@@ -2486,6 +2520,12 @@ void test_spine_full_tile_threshold_boundaries() {
       require(observation.counters.vertex_read_bytes == edge_count * 4 &&
                   observation.counters.vertex_write_bytes == edge_count * 4,
               "tiny boundary vertex-memory bytes mismatch");
+      require(observation.counters.tiny_buffer_reads == edge_count * 2 &&
+                  observation.counters.sparse_store_scan_words == 1024 &&
+                  observation.counters.sparse_store_lane_reads == 65'536 &&
+                  observation.counters.sparse_store_bit_cycles ==
+                      ((edge_count + 63) / 64) * 64,
+              "tiny-path BRAM read or sparse-scan ledger mismatch");
     } else {
       require(observation.counters.fast_path_tiles == 0 &&
                   observation.counters.full_path_tiles == 1 &&
@@ -2499,6 +2539,10 @@ void test_spine_full_tile_threshold_boundaries() {
                   observation.counters.vertex_read_bytes == 65'536 * 4 &&
                   observation.counters.vertex_write_bytes == 65'536 * 4,
               "full boundary tile sweep ledger mismatch");
+      require(observation.counters.tiny_buffer_reads == 4096 &&
+                  observation.counters.sparse_store_scan_words == 0 &&
+                  observation.counters.sparse_store_bit_cycles == 0,
+              "dense replay incorrectly executed the sparse-store controller");
     }
   }
 }
@@ -2523,8 +2567,13 @@ void test_spine_tiny_gather_preserves_duplicate_reads() {
           "duplicate-destination tiny relaxation is incorrect");
   require(observation.counters.gathered_vertex_words == 2 &&
               observation.counters.vertex_read_bytes == 8 &&
+              observation.counters.tiny_buffer_writes == 2 &&
+              observation.counters.tiny_buffer_reads == 4 &&
               observation.counters.scattered_vertex_words == 1,
           "tiny gather incorrectly deduplicated repeated destination reads");
+  require(observation.first_active_payload ==
+              std::vector<std::uint8_t>({3, 0, 0, 0, 1, 0, 0, 0}),
+          "active output did not use the HLS (id:32 | value:32) ABI");
 }
 
 void test_spine_compute_consumes_vertex_payload_from_hbm() {

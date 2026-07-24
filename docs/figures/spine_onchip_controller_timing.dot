@@ -1,0 +1,30 @@
+digraph SpineOnChipController {
+  graph [rankdir=LR, bgcolor="white", pad="0.25", nodesep="0.35", ranksep="0.65"];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+        color="#374151", fillcolor="#f8fafc"];
+  edge [fontname="Helvetica", fontsize=9, color="#475569"];
+
+  receive [label="Receive tile\n1 AXIS word/cycle", fillcolor="#e0f2fe"];
+  tiny [label="tiny_edge_buffer\n1-port BRAM\n<= 4096 records", fillcolor="#fef3c7"];
+  full_load [label="Full tile load\nHBM -> 65K URAM", fillcolor="#fee2e2"];
+  gather [label="Tiny gather\nBRAM + HBM -> URAM", fillcolor="#dcfce7"];
+  clear [label="Clear active bits\n1024 words, II=1\n64 BRAM lanes", fillcolor="#f3e8ff"];
+  relax [label="Relax stream\nURAM R/W, II=1\n4-entry bypass", fillcolor="#e0f2fe"];
+  sparse [label="Tiny sparse store\nword scan + 64-bit loops", fillcolor="#dcfce7"];
+  full_store [label="Nonempty full store\n65K URAM -> HBM", fillcolor="#fee2e2"];
+  emit [label="Emit active\nword scan + 64-bit loops\nclear lanes", fillcolor="#f3e8ff"];
+
+  receive -> tiny [label="unforced prefix"];
+  tiny -> gather [label="TILE_END <= 4096"];
+  tiny -> full_load [label="record 4097"];
+  receive -> full_load [label="forced dense"];
+  gather -> clear;
+  full_load -> clear;
+  clear -> relax;
+  relax -> sparse [label="tiny + changed"];
+  relax -> full_store [label="full + changed"];
+  relax -> emit [label="unchanged"];
+  sparse -> emit;
+  full_store -> emit;
+  emit -> receive [label="next tile", style=dashed];
+}
