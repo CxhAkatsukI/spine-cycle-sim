@@ -23,6 +23,7 @@
 #include "spine_sim/memory_backend.hpp"
 #include "spine_sim/scheduler.hpp"
 #include "spine_sim/spine_l0.hpp"
+#include "spine_sim/spine_pagerank.hpp"
 #include "spine_sim/spine_split.hpp"
 #include "spine_sim/spine_system.hpp"
 
@@ -96,6 +97,7 @@ using spine::sim::SpineMaintenanceResult;
 using spine::sim::SpineLevelLayout;
 using spine::sim::SpineMetadataLayout;
 using spine::sim::SpineOnChipMemoryProfile;
+using spine::sim::SpineSplitPageRankCompute;
 using spine::sim::SpineReaderCounters;
 using spine::sim::SpineReaderPorts;
 using spine::sim::SpineSplitReader;
@@ -5416,6 +5418,181 @@ void test_algorithm_pipeline_models_latency_ii_capacity_and_backpressure() {
             << '\n';
 }
 
+void test_spine_timed_full_pagerank_compute_uses_hbm_and_pipelines() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("pagerank", 200.0);
+  MockMemoryBackend backend("pagerank-hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 4,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 64,
+                                .response_queue_depth = 128,
+                            });
+  FixedAxiPort vertex_state(
+      "pagerank-state", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32,
+          .channel = 17,
+          .initiator_id = 217,
+          .data_width_bytes = 4,
+          .max_burst_beats = 16,
+          .request_fifo_depth = 32,
+          .response_fifo_depth = 32,
+          .read_beat_fifo_depth = 32,
+          .read_reorder_capacity = 32,
+          .stream_read_beats = false,
+          .max_pending_requests = 32,
+          .max_outstanding_bursts = 32,
+          .address_accepts_per_cycle = 1,
+          .beat_issues_per_cycle = 1,
+          .response_beats_per_cycle = 1,
+      },
+      backend);
+  Fifo<PartConvWord> edge_stream("pagerank-edge-axis", core, 32);
+  Fifo<SourceValueWord> value_stream("pagerank-value-axis", core, 2);
+  const auto word = [](float value) {
+    return GraphAlgorithmPolicy::float_to_word(value);
+  };
+  const GraphAlgorithmPolicy policy(AlgorithmPolicyConfig{
+      .kind = GraphAlgorithmKind::kFullPageRank,
+      .vertices = 4,
+      .source = 0,
+      .damping = 0.8F,
+  });
+  SpineSplitPageRankCompute compute(
+      "pagerank-compute", core, policy, {2, 1, 0, 1}, vertex_state,
+      edge_stream, value_stream,
+      AlgorithmPipelineConfig{
+          .source_map = {.latency_cycles = 3,
+                         .initiation_interval = 1,
+                         .capacity = 4},
+          .edge_map = {.latency_cycles = 1,
+                       .initiation_interval = 1,
+                       .capacity = 4},
+          .reduce = {.latency_cycles = 2,
+                     .initiation_interval = 1,
+                     .capacity = 8},
+          .apply = {.latency_cycles = 3,
+                    .initiation_interval = 1,
+                    .capacity = 8},
+      },
+      8, 4);
+  SequenceProducer<PartConvWord> producer(
+      "pagerank-reader", core, edge_stream,
+      {
+          {.kind = PartConvWordKind::kSourceRequest, .first = 0},
+          {.kind = PartConvWordKind::kSourceRequest, .first = 1},
+          {.kind = PartConvWordKind::kSourceRequest, .first = 2},
+          {.kind = PartConvWordKind::kSourceRequest, .first = 3},
+          {.kind = PartConvWordKind::kSourceCount, .first = 4},
+          {.kind = PartConvWordKind::kSourceGeneration, .first = 1},
+          {.kind = PartConvWordKind::kSourceRequestsDone},
+          {.kind = PartConvWordKind::kTileBegin, .first = 0},
+          {.kind = PartConvWordKind::kEdge, .first = 1, .second = word(0.1F)},
+          {.kind = PartConvWordKind::kEdge, .first = 2, .second = word(0.1F)},
+          {.kind = PartConvWordKind::kEdge, .first = 2, .second = word(0.2F)},
+          {.kind = PartConvWordKind::kEdge, .first = 2, .second = word(0.2F)},
+          {.kind = PartConvWordKind::kTileEnd, .first = 0},
+          {.kind = PartConvWordKind::kDoneAll},
+      });
+  SequenceConsumer<SourceValueWord> consumer("pagerank-reader-values", core,
+                                             value_stream, 2);
+
+  scheduler.add_component(producer);
+  compute.register_components(scheduler);
+  scheduler.add_component(consumer);
+  scheduler.add_component(edge_stream);
+  scheduler.add_component(value_stream);
+  vertex_state.register_components(scheduler);
+  scheduler.add_component(backend);
+  scheduler.run_until(
+      [&] {
+        return producer.done() && compute.done() && vertex_state.idle() &&
+               backend.outstanding() == 0 && consumer.values.size() == 5;
+      },
+      20'000);
+
+  const std::vector<float> expected{0.1F, 0.2F, 0.6F, 0.1F};
+  for (std::size_t vertex = 0; vertex < expected.size(); ++vertex) {
+    require(std::fabs(GraphAlgorithmPolicy::word_to_float(
+                          compute.rank_words().at(vertex)) -
+                      expected[vertex]) < 1.0e-5F,
+            "timed PageRank compute produced the wrong rank");
+  }
+  const std::vector<std::uint8_t> hbm_ranks = backend.inspect_payload(
+      vertex_state.channel(), compute.state_layout().primary_write.base,
+      expected.size() * sizeof(std::uint32_t));
+  for (std::size_t vertex = 0; vertex < expected.size(); ++vertex) {
+    const std::size_t offset = vertex * sizeof(std::uint32_t);
+    const std::uint32_t rank_word =
+        static_cast<std::uint32_t>(hbm_ranks[offset]) |
+        (static_cast<std::uint32_t>(hbm_ranks[offset + 1]) << 8) |
+        (static_cast<std::uint32_t>(hbm_ranks[offset + 2]) << 16) |
+        (static_cast<std::uint32_t>(hbm_ranks[offset + 3]) << 24);
+    require(std::fabs(GraphAlgorithmPolicy::word_to_float(rank_word) -
+                      expected[vertex]) < 1.0e-5F,
+            "timed PageRank output did not reach the HBM ping-pong region");
+  }
+  require(std::fabs(compute.dangling_mass() - 0.25F) < 1.0e-6F &&
+              std::fabs(compute.dangling_share() - 0.05F) < 1.0e-6F,
+          "timed PageRank compute produced the wrong dangling contribution");
+  const auto &counters = compute.counters();
+  require(!compute.failed() && counters.source_requests == 4 &&
+              counters.source_responses == 4 &&
+              counters.source_protocol_acks == 1 &&
+              counters.source_protocol_status == 0 &&
+              counters.source_map_operations == 4 &&
+              counters.dangling_reduce_operations == 4 &&
+              counters.edges_received == 4 &&
+              counters.edge_reduce_operations == 4 &&
+              counters.vertices_applied == 4 &&
+              counters.primary_read_bytes == 32 &&
+              counters.degree_read_bytes == 16 &&
+              counters.primary_write_bytes == 16 &&
+              counters.memory_requests_issued == 16 &&
+              counters.memory_requests_completed == 16,
+          "timed PageRank compute bypassed a required operation or HBM access");
+  require(compute.pipeline_counters().source_map.completed == 4 &&
+              compute.pipeline_counters().reduce.completed == 8 &&
+              compute.pipeline_counters().apply.completed == 4,
+          "timed PageRank arithmetic did not traverse finite pipelines");
+  require(consumer.values.back().kind ==
+              SourceValueWord::Kind::kProtocolAck &&
+              consumer.values.back().value == 0,
+          "timed PageRank source protocol did not return a valid ACK");
+  require(std::fabs(GraphAlgorithmPolicy::word_to_float(
+                        consumer.values[0].value) -
+                    0.1F) < 1.0e-6F &&
+              std::fabs(GraphAlgorithmPolicy::word_to_float(
+                            consumer.values[1].value) -
+                        0.2F) < 1.0e-6F &&
+              GraphAlgorithmPolicy::word_to_float(consumer.values[2].value) ==
+                  0.0F &&
+              std::fabs(GraphAlgorithmPolicy::word_to_float(
+                            consumer.values[3].value) -
+                        0.2F) < 1.0e-6F,
+          "timed PageRank source replies did not use HBM rank and degree");
+  std::cout << "EVIDENCE spine_timed_pagerank cycles="
+            << scheduler.clock(core).completed_cycles
+            << " memory_requests=" << counters.memory_requests_issued
+            << " primary_read_bytes=" << counters.primary_read_bytes
+            << " degree_read_bytes=" << counters.degree_read_bytes
+            << " primary_write_bytes=" << counters.primary_write_bytes
+            << " source_ops=" << counters.source_map_operations
+            << " reduce_ops="
+            << counters.dangling_reduce_operations +
+                   counters.edge_reduce_operations
+            << " apply_ops=" << counters.vertices_applied
+            << " dangling_share=" << compute.dangling_share()
+            << " rank_sum="
+            << GraphAlgorithmPolicy::word_to_float(compute.rank_words()[0]) +
+                   GraphAlgorithmPolicy::word_to_float(compute.rank_words()[1]) +
+                   GraphAlgorithmPolicy::word_to_float(compute.rank_words()[2]) +
+                   GraphAlgorithmPolicy::word_to_float(compute.rank_words()[3])
+            << '\n';
+}
+
 }  // namespace
 
 int main(int argc, char **argv) {
@@ -5534,6 +5711,8 @@ int main(int argc, char **argv) {
        test_algorithm_state_layout_shares_one_hbm_channel},
       {"algorithm_pipeline",
        test_algorithm_pipeline_models_latency_ii_capacity_and_backpressure},
+      {"spine_timed_pagerank_compute",
+       test_spine_timed_full_pagerank_compute_uses_hbm_and_pipelines},
   };
   const std::string filter = argc > 1 ? argv[1] : "";
   std::size_t failures = 0;

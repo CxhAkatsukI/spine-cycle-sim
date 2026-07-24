@@ -7,6 +7,7 @@ add_library(spine_cycle_core STATIC
   src/scheduler.cpp
   src/spine_dirty.cpp
   src/spine_l0.cpp
+  src/spine_pagerank.cpp
   src/spine_split.cpp
   src/spine_system.cpp
 )

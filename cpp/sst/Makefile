@@ -17,6 +17,7 @@ SOURCES := online_memory_probe.cpp \
            $(ROOT)/cpp/src/scheduler.cpp \
            $(ROOT)/cpp/src/spine_dirty.cpp \
            $(ROOT)/cpp/src/spine_l0.cpp \
+           $(ROOT)/cpp/src/spine_pagerank.cpp \
            $(ROOT)/cpp/src/spine_split.cpp \
            $(ROOT)/cpp/src/spine_system.cpp
 

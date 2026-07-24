@@ -1,0 +1,44 @@
+{
+  "date": "2026-07-25",
+  "baseline_commit": "ccf9393",
+  "scope": "execution-driven Full PageRank compute using AXI/HBM state traffic and finite arithmetic pipelines",
+  "fixture": {
+    "vertices": 4,
+    "edges": [[0, 1], [0, 2], [1, 2], [3, 2]],
+    "out_degrees": [2, 1, 0, 1],
+    "damping": 0.8,
+    "initial_rank": 0.25,
+    "mock_hbm_latency_cycles": 4,
+    "pipeline_latency_cycles": {"source_map": 3, "reduce": 2, "apply": 3}
+  },
+  "observed": {
+    "cycles": 156,
+    "dangling_mass": 0.25,
+    "dangling_share": 0.05,
+    "rank_words_as_float": [0.1, 0.2, 0.6, 0.1],
+    "rank_sum": 1.0,
+    "memory_requests": 16,
+    "primary_read_bytes": 32,
+    "degree_read_bytes": 16,
+    "primary_write_bytes": 16,
+    "source_map_operations": 4,
+    "dangling_reduce_operations": 4,
+    "edge_reduce_operations": 4,
+    "apply_operations": 4
+  },
+  "validation": {
+    "functional_result_matches_analytical_oracle": true,
+    "hbm_ping_pong_payload_matches_rank_mirror": true,
+    "source_replies_derive_from_hbm_rank_and_degree": true,
+    "all_arithmetic_uses_finite_pipeline": true,
+    "cpp_tests_passed": 66,
+    "python_tests_passed": 153,
+    "sst_plugin_build": "pass"
+  },
+  "claim_boundary": {
+    "reader_integrated": false,
+    "operation_timing_characterized": false,
+    "real_graph_convergence_validated": false,
+    "sst_hbm_run_completed": false
+  }
+}

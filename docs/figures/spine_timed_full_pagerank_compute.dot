@@ -1,0 +1,37 @@
+digraph TimedFullPageRankCompute {
+  graph [rankdir=LR, bgcolor="white", pad="0.25", nodesep="0.40", ranksep="0.58"];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+        color="#374151", fillcolor="#f8fafc"];
+  edge [fontname="Helvetica", fontsize=9, color="#475569"];
+
+  reader [label="Spine Reader protocol\nsource IDs + tiled contributions",
+          fillcolor="#dbeafe"];
+  axi [label="One vertex-state AXI master\nfinite requests/outstanding/responses",
+       fillcolor="#fee2e2"];
+  hbm [label="Mock or SST HBM channel\nrank current/next + degree",
+       shape=cylinder, fillcolor="#fef3c7"];
+  source [label="Finite source-map pipeline\nrank / degree + damping",
+          fillcolor="#dcfce7"];
+  dangling [label="Finite dangling reduce\nmass -> per-vertex share",
+            fillcolor="#dcfce7"];
+  tile [label="Per-tile accumulator\ndestination scoreboard",
+        fillcolor="#e0f2fe"];
+  reduce [label="Finite edge reduce pipeline\nFP accumulation", fillcolor="#dcfce7"];
+  apply [label="Finite all-vertex apply pipeline\nbase + dangling + incoming",
+         fillcolor="#dcfce7"];
+  result [label="Ping-pong next-rank region\nHBM payload + error sum",
+          fillcolor="#fef3c7"];
+
+  reader -> axi [label="source request"];
+  axi -> hbm [dir=both];
+  axi -> source [label="rank + degree"];
+  source -> dangling;
+  source -> reader [label="edge payload"];
+  reader -> reduce [label="edge contribution"];
+  reduce -> tile;
+  tile -> apply [label="incoming sum"];
+  axi -> apply [label="old rank"];
+  dangling -> apply [label="share"];
+  apply -> axi [label="next-rank write"];
+  axi -> result;
+}
