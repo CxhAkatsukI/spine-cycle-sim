@@ -94,6 +94,7 @@ struct PmaEdgeBatch {
   std::uint32_t source{};
   std::uint32_t source_payload{};
   bool source_active{};
+  std::size_t lanes{};
   std::array<std::uint32_t, 8> destinations{};
   std::array<bool, 8> valid{};
 };
@@ -276,7 +277,9 @@ private:
 
   void stage_pma_request() {
     if (next_segment_ >= end_segment_ ||
-        pending_batches_.size() + staged_pma_responses_.size() * 2 + 2 >
+        pending_batches_.size() +
+                staged_pma_responses_.size() * batches_per_segment() +
+                batches_per_segment() >
             config_.reader_buffer_batches) {
       return;
     }
@@ -295,7 +298,9 @@ private:
 
   void stage_pma_responses() {
     for (FixedAxiPort *port : ports_.pma) {
-      if (pending_batches_.size() + staged_pma_responses_.size() * 2 + 2 >
+      if (pending_batches_.size() +
+              staged_pma_responses_.size() * batches_per_segment() +
+              batches_per_segment() >
           config_.reader_buffer_batches) {
         break;
       }
@@ -354,20 +359,26 @@ private:
           "PMA reader received malformed segment response");
     }
     --outstanding_segments_;
-    for (std::size_t half = 0; half < 2; ++half) {
+    for (std::size_t offset = 0; offset < kGraSuSegmentSlots;
+         offset += config_.edge_lanes) {
       PmaEdgeBatch batch{
           .source = static_cast<std::uint32_t>(source_),
           .source_payload = source_payload_,
           .source_active = source_active_,
+          .lanes = config_.edge_lanes,
       };
-      for (std::size_t lane = 0; lane < 8; ++lane) {
+      for (std::size_t lane = 0; lane < config_.edge_lanes; ++lane) {
         const std::uint32_t destination =
-            decode_u32(response.read_data, (half * 8 + lane) * 4);
+            decode_u32(response.read_data, (offset + lane) * 4);
         batch.destinations[lane] = destination;
         batch.valid[lane] = (destination & kGraSuPmaEmpty) == 0;
       }
       pending_batches_.push_back(batch);
     }
+  }
+
+  [[nodiscard]] std::size_t batches_per_segment() const noexcept {
+    return kGraSuSegmentSlots / config_.edge_lanes;
   }
 
   void advance_source() {
@@ -435,6 +446,9 @@ public:
   }
   [[nodiscard]] std::uint64_t slots_scanned() const noexcept {
     return slots_scanned_;
+  }
+  [[nodiscard]] std::uint64_t batches_scanned() const noexcept {
+    return batches_scanned_;
   }
   [[nodiscard]] std::uint64_t live_edges() const noexcept {
     return live_edges_;
@@ -521,9 +535,10 @@ private:
   }
 
   void consume_batch(const PmaEdgeBatch &batch) {
-    slots_scanned_ += batch.destinations.size();
+    ++batches_scanned_;
+    slots_scanned_ += batch.lanes;
     std::vector<std::size_t> bank_counts(config_.gather_banks);
-    for (std::size_t lane = 0; lane < batch.destinations.size(); ++lane) {
+    for (std::size_t lane = 0; lane < batch.lanes; ++lane) {
       if (!batch.valid[lane]) {
         continue;
       }
@@ -560,6 +575,7 @@ private:
   bool staged_tick_{};
   bool staged_start_merge_{};
   std::optional<PmaEdgeBatch> staged_batch_;
+  std::uint64_t batches_scanned_{};
   std::uint64_t slots_scanned_{};
   std::uint64_t live_edges_{};
   std::uint64_t active_edges_{};
@@ -827,6 +843,7 @@ public:
     result.row_reads = reader_->row_reads();
     result.source_state_reads = reader_->state_reads();
     result.pma_segment_reads = reader_->segment_reads();
+    result.edge_batches_scanned = gather_->batches_scanned();
     result.pma_slots_scanned = gather_->slots_scanned();
     result.live_edges_scanned = gather_->live_edges();
     result.active_edges_mapped = gather_->active_edges();
@@ -874,10 +891,14 @@ private:
         config_.partition_vertices % kStateWordsPerBurst != 0 ||
         config_.source_buffer_vertices == 0 ||
         config_.source_buffer_vertices % kStateWordsPerBurst != 0 ||
-        config_.edge_lanes != 8 || config_.gather_banks == 0 ||
+        config_.edge_lanes == 0 || config_.edge_lanes > 8 ||
+        kGraSuSegmentSlots % config_.edge_lanes != 0 ||
+        config_.gather_banks == 0 ||
         config_.gather_vertices_per_reset_cycle == 0 ||
         config_.gather_vertices_per_merge_cycle == 0 ||
-        config_.axis_fifo_depth == 0 || config_.reader_buffer_batches < 2 ||
+        config_.axis_fifo_depth == 0 ||
+        config_.reader_buffer_batches <
+            kGraSuSegmentSlots / config_.edge_lanes ||
         config_.max_pending_requests == 0 ||
         config_.max_outstanding_bursts == 0 ||
         config_.response_beats_per_cycle == 0 || config_.max_supersteps == 0 ||

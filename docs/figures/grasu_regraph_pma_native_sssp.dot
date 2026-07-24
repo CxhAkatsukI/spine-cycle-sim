@@ -10,7 +10,7 @@ digraph grasu_regraph_pma_native_sssp {
   state [label="ReGraph vertex state\nactive bit + distance\nHBM channel 30", shape=cylinder, fillcolor="#e8e8e8"];
   source_cache [label="Source cache refill\n4096 words / chunk", fillcolor="#dcebd9"];
   reader [label="PMA-native reader\nrow AXI + 4 PMA AXI ports\nscan reserved empty slots", fillcolor="#dcebd9"];
-  axis [label="Registered AXIS FIFO\n8 slots / batch\nfinite depth", fillcolor="#f4e1c1"];
+  axis [label="Registered AXIS FIFO\n4 or 8 slots / batch\nfinite depth", fillcolor="#f4e1c1"];
   reset [label="Gather reset sweep\n65536 / 2 cycles", fillcolor="#f0d9e7"];
   gather [label="8-bank Map / Reduce\nunit-weight SSSP\nbank-conflict timing", fillcolor="#f0d9e7"];
   merge [label="Gather merge sweep\n65536 / 2 cycles", fillcolor="#f0d9e7"];

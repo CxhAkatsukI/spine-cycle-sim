@@ -39,8 +39,10 @@ implemented and synthesized.
   waiting on one HBM transaction per source.
 - Every source reads its 64-bit PMA row bounds. Every reserved 16-slot segment
   is read as one 64-byte request, including empty capacity.
-- A segment produces two registered eight-lane batches. The finite AXIS FIFO
-  backpressures the reader while gather reset or bank work cannot consume.
+- A segment produces `16 / edge_lanes` registered batches. The source-shaped
+  validation uses eight lanes; the target normalized profile can use four.
+  The finite AXIS FIFO backpressures the reader while gather reset or bank work
+  cannot consume.
 - Gather has eight destination banks. It counts extra cycles when destinations
   in one batch collide on a bank. Reduction semantics use the shared
   `GraphAlgorithmPolicy` weighted-SSSP Map/Reduce operations.
@@ -125,6 +127,24 @@ These counts prove that PMA traffic, row traffic, and finite queues participate
 in online execution and backpressure. They are not calibrated U55C latency
 values because this test uses `MockMemoryBackend`.
 
+## Four-Lane Parameter Evidence
+
+A separate 150-MHz smoke case sets `edge_lanes=4` and `gather_banks=4`, as
+required by the current normalized profile. One 16-slot PMA segment becomes
+four registered batches rather than two:
+
+```text
+cycles at 150 MHz:  503
+supersteps:           2
+PMA segment reads:    2
+four-lane batches:    8
+distance oracle:   PASS
+```
+
+This proves that lane count changes executed queue/gather work. It is still a
+component smoke test on `MockMemoryBackend`, not the complete normalized
+profile run.
+
 ## Reproduction
 
 ```bash
@@ -148,9 +168,9 @@ dot -Tsvg docs/figures/grasu_regraph_pma_native_sssp.dot \
 
 1. Run this vertical slice on `SstMemoryBackend` with a pinned HBM profile and
    report wall-clock simulation throughput.
-2. Make reader/gather lane count profile-driven and execute the pinned
-   150-MHz/four-lane normalized profile separately from the 200-MHz/eight-lane
-   source-shaped validation profile.
+2. Wire the now-configurable reader/gather lane count into a profile-driven
+   runner and execute the complete pinned 150-MHz/four-lane normalized profile
+   separately from the 200-MHz/eight-lane source-shaped validation profile.
 3. Replace ideal immediate gather forwarding with an explicit six-stage RAW
    bypass/register model and attach operation/queue activity to energy events.
 4. Extend the PMA contract for real edge weights before claiming weighted SSSP

@@ -378,6 +378,54 @@ void test_native_partition_scan_cost_is_explicit() {
             << " apply_bursts=" << counters.apply_state_reads << '\n';
 }
 
+void test_normalized_four_lane_batches_are_executed() {
+  std::vector<GraSuEdge> initial;
+  for (std::uint32_t destination = 1; destination <= 8; ++destination) {
+    initial.push_back({.source = 0, .destination = destination});
+  }
+  GraSuPmaLayout layout = GraSuPmaLayout::build(16, initial, {});
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("grasu-regraph-four-lane", 150.0);
+  MockMemoryBackend backend("shared-hbm", core,
+                            MockMemoryConfig{.channels = 32,
+                                             .latency_cycles = 5,
+                                             .accepts_per_channel_per_cycle = 1,
+                                             .max_outstanding_per_channel = 32,
+                                             .response_queue_depth = 128});
+  GraSuPmaUpdateSystem initializer(scheduler, core, backend, layout, {},
+                                   GraSuNativeConfig{});
+  initializer.register_components();
+  scheduler.add_component(backend);
+  require(initializer.done(), "four-lane initializer did not drain");
+
+  GraSuReGraphConfig config;
+  config.partition_vertices = 16;
+  config.source_buffer_vertices = 16;
+  config.edge_lanes = 4;
+  config.gather_banks = 4;
+  config.axis_fifo_depth = 2;
+  config.reader_buffer_batches = 4;
+  GraSuReGraphSsspSystem compute(scheduler, core, backend, layout, 0, config);
+  compute.register_components();
+  scheduler.run_until([&] { return compute.done() || compute.failed(); },
+                      2'000'000);
+  require(!compute.failed() && compute.done(),
+          "four-lane PMA compute did not complete");
+  const auto counters = compute.counters();
+  require(counters.supersteps == 2 && counters.pma_segment_reads == 2 &&
+              counters.edge_batches_scanned == 8 &&
+              counters.pma_slots_scanned == 32,
+          "four-lane PMA batch accounting mismatch");
+  const auto distances = compute.distances();
+  require(std::all_of(distances.begin() + 1, distances.begin() + 9,
+                      [](std::uint32_t value) { return value == 1; }),
+          "four-lane PMA compute produced incorrect distances");
+  std::cout << "EVIDENCE grasu_regraph_four_lane cycles="
+            << counters.end_cycle - counters.start_cycle
+            << " segments=" << counters.pma_segment_reads
+            << " batches=" << counters.edge_batches_scanned << '\n';
+}
+
 void test_pma_native_compute_propagates_contention() {
   std::vector<GraSuEdge> initial;
   for (std::uint32_t destination = 1; destination <= 128; ++destination) {
@@ -438,6 +486,7 @@ int main() {
       {"native_contention", test_native_shared_channel_contention_is_visible},
       {"pma_native_regraph_sssp", test_pma_native_regraph_sssp_matches_oracle},
       {"native_partition_scan", test_native_partition_scan_cost_is_explicit},
+      {"normalized_four_lane", test_normalized_four_lane_batches_are_executed},
       {"pma_compute_contention", test_pma_native_compute_propagates_contention},
   };
   std::size_t failures = 0;

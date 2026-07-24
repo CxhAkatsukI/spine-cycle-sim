@@ -60,6 +60,17 @@
     "axis_push_stalls": 16,
     "distance_oracle": "pass"
   },
+  "four_lane_parameter_test": {
+    "backend": "mock_hbm",
+    "core_clock_mhz": 150,
+    "edge_lanes": 4,
+    "gather_banks": 4,
+    "supersteps": 2,
+    "pma_segment_reads": 2,
+    "edge_batches_scanned": 8,
+    "cycles": 503,
+    "distance_oracle": "pass"
+  },
   "claim_boundary": {
     "validated": [
       "payload-backed GraSU update to PMA-native unit-weight SSSP correctness",
@@ -74,7 +85,7 @@
       "non-unit edge weights in GraSU PMA",
       "PageRank and residual PageRank on the comparator",
       "PPA and energy",
-      "150-MHz four-lane normalized profile timing"
+      "complete 150-MHz four-lane normalized profile timing"
     ]
   }
 }

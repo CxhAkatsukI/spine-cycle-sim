@@ -133,7 +133,7 @@
 <title>axis</title>
 <path fill="#f4e1c1" stroke="#4a4a4a" d="M1042,-99.5C1042,-99.5 946,-99.5 946,-99.5 940,-99.5 934,-93.5 934,-87.5 934,-87.5 934,-70.5 934,-70.5 934,-64.5 940,-58.5 946,-58.5 946,-58.5 1042,-58.5 1042,-58.5 1048,-58.5 1054,-64.5 1054,-70.5 1054,-70.5 1054,-87.5 1054,-87.5 1054,-93.5 1048,-99.5 1042,-99.5"/>
 <text text-anchor="middle" x="994" y="-87.5" font-family="DejaVu Sans" font-size="10.00">Registered AXIS FIFO</text>
-<text text-anchor="middle" x="994" y="-76.5" font-family="DejaVu Sans" font-size="10.00">8 slots / batch</text>
+<text text-anchor="middle" x="994" y="-76.5" font-family="DejaVu Sans" font-size="10.00">4 or 8 slots / batch</text>
 <text text-anchor="middle" x="994" y="-65.5" font-family="DejaVu Sans" font-size="10.00">finite depth</text>
 </g>
 <!-- reader&#45;&gt;axis -->

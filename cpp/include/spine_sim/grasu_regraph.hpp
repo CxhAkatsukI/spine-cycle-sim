@@ -42,6 +42,7 @@ struct GraSuReGraphCounters {
   std::uint64_t row_reads{};
   std::uint64_t source_state_reads{};
   std::uint64_t pma_segment_reads{};
+  std::uint64_t edge_batches_scanned{};
   std::uint64_t pma_slots_scanned{};
   std::uint64_t live_edges_scanned{};
   std::uint64_t active_edges_mapped{};
