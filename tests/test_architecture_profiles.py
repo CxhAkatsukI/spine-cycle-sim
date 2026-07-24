@@ -21,7 +21,7 @@ PROFILES = ROOT / "configs" / "architectures"
 class ArchitectureProfileTests(unittest.TestCase):
     def test_repository_profiles_load_and_have_unique_ids(self) -> None:
         loaded = [load_architecture_profile(path) for path in sorted(PROFILES.glob("*.json"))]
-        self.assertEqual(len(loaded), 3)
+        self.assertEqual(len(loaded), 6)
         self.assertEqual(len({profile.profile_id for profile in loaded}), len(loaded))
         self.assertTrue(all(profile.manifest_sha256 for profile in loaded))
 
@@ -72,6 +72,41 @@ class ArchitectureProfileTests(unittest.TestCase):
             path.write_text(json.dumps(source), encoding="utf-8")
             with self.assertRaisesRegex(ProfileError, "must be boolean"):
                 load_architecture_profile(path)
+
+    def test_grasu_regraph_profiles_freeze_comparison_roles(self) -> None:
+        native = load_architecture_profile(
+            PROFILES / "grasu_regraph_native_a9aef06.json"
+        )
+        normalized = load_architecture_profile(
+            PROFILES / "grasu_regraph_normalized_spine23.json"
+        )
+        projected = load_architecture_profile(
+            PROFILES / "grasu_regraph_pma_native_projected.json"
+        )
+
+        self.assertEqual(native.parameters["comparison_role"], "native")
+        self.assertFalse(native.parameters["pma_native_compute"])
+        self.assertTrue(native.parameters["conversion_cost_included"])
+        self.assertEqual(normalized.parameters["comparison_role"], "normalized")
+        self.assertTrue(normalized.parameters["pma_native_compute"])
+        self.assertEqual(normalized.parameters["hbm_pseudo_channels_budget"], 23)
+        self.assertEqual(normalized.clock("kernel").achieved_mhz, 150.0)
+        self.assertEqual(projected.parameters["comparison_role"], "projected")
+        self.assertTrue(projected.parameters["change_aware_compute_activation"])
+
+    def test_grasu_native_profile_matches_hls_topology(self) -> None:
+        profile = load_architecture_profile(
+            PROFILES / "grasu_regraph_native_a9aef06.json"
+        )
+        self.assertEqual(profile.parameters["grasu_bin_search_cus"], 4)
+        self.assertEqual(
+            profile.parameters["grasu_binary_search_workers_per_cu"], 64
+        )
+        self.assertEqual(profile.parameters["grasu_process_cache_cus"], 2)
+        self.assertEqual(profile.parameters["grasu_process_ddr_cus"], 2)
+        self.assertEqual(profile.parameters["grasu_process_lanes_per_cu"], 16)
+        self.assertEqual(profile.parameters["grasu_segment_slots"], 16)
+        self.assertEqual(verify_profile_artifacts(profile), [])
 
 
 if __name__ == "__main__":

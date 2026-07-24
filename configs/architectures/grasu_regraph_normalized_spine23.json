@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "profile_id": "grasu_regraph_normalized_spine23",
+  "architecture": "grasu_regraph",
+  "status": "experimental",
+  "evidence_tier": "simulation_only",
+  "source": {
+    "repository": "/home/chuxiao/grasu-regraph-integration",
+    "revision": "a9aef064889faa190975ddfecb39c54631e962c6",
+    "branch": "codex/pure-hw-pipeline",
+    "dirty": false
+  },
+  "clocks": [
+    {"name": "kernel", "requested_mhz": 150.0, "achieved_mhz": 150.0},
+    {"name": "hbm", "requested_mhz": 450.0, "achieved_mhz": 450.0}
+  ],
+  "memory": {
+    "backend": "u55c_hbm",
+    "channels": 32,
+    "channel_capacity_bytes": 536870912,
+    "data_width_bits": 512,
+    "max_burst_bytes": 1024,
+    "max_outstanding_per_port": 32
+  },
+  "parameters": {
+    "comparison_role": "normalized",
+    "resource_reference_profile": "spine_latest_afb8199",
+    "hbm_pseudo_channels_budget": 23,
+    "grasu_bin_search_cus": 4,
+    "grasu_binary_search_workers_per_cu": 64,
+    "grasu_dispatch_cus": 1,
+    "grasu_process_cache_cus": 2,
+    "grasu_process_ddr_cus": 2,
+    "grasu_process_lanes_per_cu": 16,
+    "grasu_segment_slots": 16,
+    "grasu_cache_segments_per_cu": 131072,
+    "grasu_pma_hbm_channels": 4,
+    "regraph_pma_reader_cus": 1,
+    "regraph_map_reduce_lanes": 4,
+    "pma_native_compute": true,
+    "conversion_cost_included": false
+  },
+  "features": [
+    "same_memory_backend_as_spine",
+    "same_hbm_channel_budget_as_spine",
+    "same_data_clock_as_spine",
+    "pma_native_regraph_compute",
+    "shared_map_reduce_algorithm_contract"
+  ],
+  "evidence": [],
+  "limitations": [
+    "This is the required resource-normalized simulator comparison and has no compiled xclbin yet.",
+    "PMA-native ReGraph is an explicit architecture change and must be reported separately from the native hardware baseline.",
+    "All timing and energy claims remain simulation-only until an equivalent HLS implementation is synthesized."
+  ]
+}

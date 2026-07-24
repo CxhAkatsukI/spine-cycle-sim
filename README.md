@@ -29,6 +29,12 @@ and evidence contract is documented in
 The legacy Python/calibration path remains available for regression while that
 new path is implemented.
 
+The frozen native, normalized, and projected GraSU + ReGraph comparison
+contract is documented in
+[`docs/grasu_regraph_pma_native_contract_20260725.md`](docs/grasu_regraph_pma_native_contract_20260725.md).
+It records the real GraSU PMA topology and prevents the existing capacity-wide
+conversion cost from being silently removed from native results.
+
 ## Quick Start
 
 Run one workload:

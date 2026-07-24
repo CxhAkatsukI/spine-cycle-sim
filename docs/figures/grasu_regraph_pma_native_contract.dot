@@ -1,0 +1,37 @@
+digraph G {
+  graph [rankdir=LR, bgcolor="white", pad="0.25", nodesep="0.35", ranksep="0.6"];
+  node [shape=box, style="rounded,filled", fillcolor="#f7f7f4", color="#333333", fontname="DejaVu Sans", fontsize=10];
+  edge [color="#555555", fontname="DejaVu Sans", fontsize=9];
+
+  updates [label="Update HBM\n4 input arrays", fillcolor="#dfeaf4"];
+  search [label="4 x bin_search CU\n64 workers / CU\nrow bounds + binary heads", fillcolor="#dfeaf4"];
+  dispatch [label="1 x dispatch CU\nfixed 4-way round robin"];
+  cache [label="2 x process_cache CU\n16 lanes / CU\ncache region"];
+  ddr [label="2 x process_ddr CU\n16 lanes / CU\nDDR region"];
+  pma [label="PMA HBM[0..3]\n16 x 32-bit slots / segment", fillcolor="#f4e4bf"];
+  barrier [label="Completion barrier"];
+  compact [label="Native only\ncapacity-wide compactor\n(measured)", fillcolor="#f3d4d4"];
+  edgearray [label="Compact edge array\nHBM[0]", fillcolor="#f3d4d4"];
+  nativegs [label="Native ReGraph\nlittle-GS + Apply", fillcolor="#f3d4d4"];
+  pmareader [label="Normalized / projected\nPMA-native row + segment reader", fillcolor="#dcebd9"];
+  mapreduce [label="Shared Map / Reduce policy\nSSSP | full PR | residual PR", fillcolor="#dcebd9"];
+  state [label="Vertex state + frontier HBM", fillcolor="#f4e4bf"];
+
+  updates -> search [label="64-bit updates"];
+  search -> dispatch [label="4 finite AXIS"];
+  dispatch -> cache [label="2 finite AXIS"];
+  dispatch -> ddr [label="2 finite AXIS"];
+  cache -> pma [dir=both, label="512-bit RMW"];
+  ddr -> pma [dir=both, label="512-bit RMW"];
+  cache -> barrier [style=dashed];
+  ddr -> barrier [style=dashed];
+  barrier -> compact [label="native"];
+  pma -> compact;
+  compact -> edgearray;
+  edgearray -> nativegs;
+  nativegs -> state [dir=both];
+  barrier -> pmareader [label="normalized / projected"];
+  pma -> pmareader [label="no graph copy"];
+  pmareader -> mapreduce [label="valid PMA lanes"];
+  mapreduce -> state [dir=both];
+}

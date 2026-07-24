@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "date": "2026-07-25",
+  "grasu_source": {
+    "repository": "/home/chuxiao/GraSU",
+    "revision": "b79ccb0bc6aae4a2b7dededcee095bf0ad1b67dc",
+    "branch": "codex/explore-grasu-u55c",
+    "files": [
+      "GraSU/GraSU_kernels/src/kernel_bin_search.cpp",
+      "GraSU/GraSU_kernels/src/kernel_dispatch.cpp",
+      "GraSU/GraSU_kernels/src/kernel_process_cache.cpp",
+      "GraSU/GraSU_kernels/src/kernel_process_ddr.cpp",
+      "GraSU/GraSU/src/pma_dynamic_graph.hpp",
+      "u55c_hbm/config/GraSU-link.cfg",
+      "u55c_hbm/config/stream_connect.ini"
+    ]
+  },
+  "integration_source": {
+    "repository": "/home/chuxiao/grasu-regraph-integration",
+    "revision": "a9aef064889faa190975ddfecb39c54631e962c6",
+    "branch": "codex/pure-hw-pipeline",
+    "current_handoff": "pma_to_regraph_edge_array_capacity_scan",
+    "target_handoff": "pma_native_regraph_reader"
+  },
+  "frozen_topology": {
+    "bin_search_cus": 4,
+    "binary_search_workers_per_cu": 64,
+    "dispatch_cus": 1,
+    "process_cache_cus": 2,
+    "process_ddr_cus": 2,
+    "process_lanes_per_cu": 16,
+    "segment_slots": 16,
+    "pma_hbm_channels": [0, 1, 2, 3],
+    "kernel_clock_mhz": 200,
+    "hbm_clock_mhz": 450
+  },
+  "pma_contract": {
+    "slot_bits": 32,
+    "segment_bits": 512,
+    "empty_bit": 31,
+    "delete_bit_in_update": 95,
+    "segment_head_slot_bits": [31, 0],
+    "update_dst_bits": [63, 32],
+    "route_cache_limit_expression": "segment_head_slot[31:5] < MAX_CACHE_SEGMENT",
+    "route_half_bit": 4,
+    "process_lane_bits": [8, 5],
+    "capacity_rule": "host reserves initial plus future insertion edges, rounded per source to 16 slots",
+    "unsupported_rule": "runtime update cannot allocate a new segment"
+  },
+  "native_hardware": {
+    "xclbin_sha256": "5a730a2da85ddf522f577ca7d7024f7aa401bb07802f3bf9b4326dfd312e917e",
+    "timing_report_sha256": "cad75c02efaf6cc6bdacfa12f1e18cb8d21a340b9ff6f29dc4e1e3230a005ba5",
+    "routed_wns_ns": 0.003,
+    "timing_constraints_met": true,
+    "kernel_clock_mhz": 200,
+    "hbm_clock_mhz": 450
+  },
+  "claim_boundary": {
+    "native": "existing hardware with measured PMA compactor",
+    "normalized": "PMA-native simulation at Spine clock and 23-pseudo-channel budget",
+    "projected": "PMA-native change-aware design-space point",
+    "forbidden": "report PMA-native simulation as native measured hardware"
+  }
+}

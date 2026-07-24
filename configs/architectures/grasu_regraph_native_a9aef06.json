@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "profile_id": "grasu_regraph_native_a9aef06",
+  "architecture": "grasu_regraph",
+  "status": "stable",
+  "evidence_tier": "hardware_validated",
+  "source": {
+    "repository": "/home/chuxiao/grasu-regraph-integration",
+    "revision": "a9aef064889faa190975ddfecb39c54631e962c6",
+    "branch": "codex/pure-hw-pipeline",
+    "dirty": false
+  },
+  "clocks": [
+    {"name": "kernel", "requested_mhz": 200.0, "achieved_mhz": 200.0},
+    {"name": "hbm", "requested_mhz": 450.0, "achieved_mhz": 450.0}
+  ],
+  "memory": {
+    "backend": "u55c_hbm",
+    "channels": 32,
+    "channel_capacity_bytes": 536870912,
+    "data_width_bits": 512,
+    "max_burst_bytes": 1024,
+    "max_outstanding_per_port": 16
+  },
+  "parameters": {
+    "comparison_role": "native",
+    "grasu_revision": "b79ccb0bc6aae4a2b7dededcee095bf0ad1b67dc",
+    "grasu_bin_search_cus": 4,
+    "grasu_binary_search_workers_per_cu": 64,
+    "grasu_dispatch_cus": 1,
+    "grasu_process_cache_cus": 2,
+    "grasu_process_ddr_cus": 2,
+    "grasu_process_lanes_per_cu": 16,
+    "grasu_segment_slots": 16,
+    "grasu_cache_segments_per_cu": 131072,
+    "grasu_pma_hbm_channels": 4,
+    "grasu_pma_hbm_first_channel": 0,
+    "regraph_pma_compactor_cus": 1,
+    "regraph_little_gs_cus": 1,
+    "regraph_apply_cus": 1,
+    "regraph_hbm_wrapper_cus": 1,
+    "regraph_vertex_prop_hbm_channel": 30,
+    "pma_native_compute": false,
+    "conversion_cost_included": true
+  },
+  "features": [
+    "four_way_grasu_bin_search",
+    "cache_ddr_segment_dispatch",
+    "payload_backed_pma",
+    "measured_pma_to_edge_array_compactor",
+    "regraph_little_gs_sssp"
+  ],
+  "evidence": [
+    {
+      "kind": "xclbin",
+      "path": "/home/chuxiao/grasu-regraph-integration/.tmp_build/pure_pipeline_hw_stage0/build/grasu_regraph_pure_pipeline.hw.xclbin",
+      "sha256": "5a730a2da85ddf522f577ca7d7024f7aa401bb07802f3bf9b4326dfd312e917e"
+    },
+    {
+      "kind": "routed_timing",
+      "path": "/home/chuxiao/grasu-regraph-integration/.tmp_build/pure_pipeline_hw_stage0/build/link/link/vivado/vpl/prj/prj.runs/impl_1/dr_timing_summary.rpt",
+      "sha256": "cad75c02efaf6cc6bdacfa12f1e18cb8d21a340b9ff6f29dc4e1e3230a005ba5"
+    }
+  ],
+  "limitations": [
+    "This is the existing hardware-validation baseline, not the intended PMA-native comparison architecture.",
+    "Its measured kernel window includes a one-shot PMA-to-edge-array compactor that scans reserved PMA capacity.",
+    "The simulator must not silently remove this compactor while labeling results as native measured hardware."
+  ]
+}
