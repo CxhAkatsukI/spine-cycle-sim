@@ -288,6 +288,9 @@ struct SpineL0State {
 struct SpineL0Counters {
   std::uint64_t start_cycle{};
   std::uint64_t end_cycle{};
+  std::uint64_t full_rebuild_clear_cycles{};
+  std::uint64_t full_rebuild_clear_requests{};
+  std::uint64_t full_rebuild_clear_bytes{};
   std::uint64_t sorted_scan_passes{};
   std::uint64_t sorted_edge_visits{};
   std::uint64_t sorted_read_bytes{};
@@ -466,12 +469,14 @@ class SpineL0Maintenance final : public Component {
   }
 
   void reset_batch(SpineEdgeSlice workload);
+  void reset_full_rebuild(SpineEdgeSlice snapshot);
 
   void evaluate(const CycleContext &context) override;
   void commit(const CycleContext &context) override;
 
  private:
   enum class Phase {
+    kFullRebuildClear,
     kInitialize,
     kDirtyMetadataLoad,
     kDirtyPreflightBegin,
@@ -864,6 +869,7 @@ class SpineL0Maintenance final : public Component {
   bool active_writer_epoch_ready_{};
   bool active_writer_epoch_wrapped_{};
   bool logical_overflow_{};
+  bool full_rebuild_mode_{};
   bool done_{};
   bool failed_{};
   std::string failure_;

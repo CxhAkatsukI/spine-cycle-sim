@@ -1,0 +1,7 @@
+# spine_real_slice_version=1
+# case=dynamic_weight_increase_update
+# vertices=4
+# columns=src dst weight diff
+# Replace weight 5 with weight 50 using an explicit signed differential.
+1 2 5 -1
+1 2 50 1

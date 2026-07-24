@@ -103,6 +103,7 @@ using spine::sim::SpineReaderCounters;
 using spine::sim::SpineReaderPorts;
 using spine::sim::SpineSplitReader;
 using spine::sim::SpineSplitSsspCompute;
+using spine::sim::SpineSsspRunResult;
 using spine::sim::SpineVerticalSliceSystem;
 
 void require(bool condition, const std::string &message) {
@@ -4670,6 +4671,134 @@ void test_spine_incremental_update_reuses_persistent_system() {
             << incremental.dirty_ack->result.generation << '\n';
 }
 
+struct SpineFullRebuildObservation {
+  std::vector<std::uint32_t> values;
+  SpineL0Counters maintenance;
+  SpineComputeCounters first_round_compute;
+  std::uint64_t fallback_cycles{};
+  std::uint64_t backend_requests{};
+  std::uint32_t dirty_generation{};
+  bool converged{};
+  bool failed{};
+};
+
+SpineFullRebuildObservation run_spine_full_rebuild_snapshot(
+    SpineEdgeSlice snapshot) {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("data", 141.0);
+  MockMemoryBackend backend("hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 3,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  SpineEdgeSlice initial{
+      .vertices = 4,
+      .edges =
+          {
+              {.src = 0, .dst = 1, .weight = 5, .diff = 1},
+              {.src = 0, .dst = 2, .weight = 100, .diff = 1},
+              {.src = 1, .dst = 2, .weight = 5, .diff = 1},
+              {.src = 2, .dst = 3, .weight = 1, .diff = 1},
+          },
+      .case_name = "full_rebuild_initial",
+  };
+  SpineVerticalSliceSystem system(scheduler, core, backend, initial, 0);
+  system.register_components();
+  scheduler.add_component(backend);
+  const SpineSsspRunResult cold =
+      system.run_sssp_to_convergence(16, 300'000);
+  require(cold.converged && !cold.failed &&
+              system.compute().values() ==
+                  std::vector<std::uint32_t>({0, 5, 10, 11}),
+          "full-rebuild fixture did not converge before its update");
+
+  const std::uint64_t start = scheduler.clock(core).completed_cycles;
+  system.restart_full_rebuild(std::move(snapshot));
+  const SpineSsspRunResult fallback =
+      system.run_sssp_to_convergence(16, 2'000'000);
+  require(!fallback.rounds.empty() && fallback.dirty_ack.has_value(),
+          "full rebuild produced no timed round or dirty ACK evidence");
+  return SpineFullRebuildObservation{
+      .values = system.compute().values(),
+      .maintenance = system.maintenance_counters(),
+      .first_round_compute = fallback.rounds.front().compute,
+      .fallback_cycles = scheduler.clock(core).completed_cycles - start,
+      .backend_requests = backend.stats().accepted,
+      .dirty_generation = fallback.dirty_ack->result.generation,
+      .converged = fallback.converged,
+      .failed = fallback.failed,
+  };
+}
+
+void test_spine_nonmonotonic_update_uses_timed_full_rebuild() {
+  SpineEdgeSlice deleted{
+      .vertices = 4,
+      .edges =
+          {
+              {.src = 0, .dst = 1, .weight = 5, .diff = 1},
+              {.src = 0, .dst = 2, .weight = 100, .diff = 1},
+              {.src = 2, .dst = 3, .weight = 1, .diff = 1},
+          },
+      .case_name = "full_rebuild_delete_snapshot",
+  };
+  const SpineFullRebuildObservation deletion =
+      run_spine_full_rebuild_snapshot(std::move(deleted));
+
+  SpineEdgeSlice increased{
+      .vertices = 4,
+      .edges =
+          {
+              {.src = 0, .dst = 1, .weight = 5, .diff = 1},
+              {.src = 0, .dst = 2, .weight = 100, .diff = 1},
+              {.src = 1, .dst = 2, .weight = 50, .diff = 1},
+              {.src = 2, .dst = 3, .weight = 1, .diff = 1},
+          },
+      .case_name = "full_rebuild_weight_increase_snapshot",
+  };
+  const SpineFullRebuildObservation increase =
+      run_spine_full_rebuild_snapshot(std::move(increased));
+
+  const SpineMetadataLayout metadata = spine_metadata_layout(SpineL0Config{});
+  const std::uint64_t expected_clear_bytes =
+      (metadata.slice_words +
+       2 * ((metadata.slice_count + 1) / 2)) *
+      sizeof(std::uint64_t);
+  const auto require_timed_rebuild = [&](const SpineFullRebuildObservation &run,
+                                         const std::vector<std::uint32_t> &oracle) {
+    require(run.converged && !run.failed && run.values == oracle,
+            "non-monotonic full rebuild diverged from its SSSP oracle");
+    require(run.maintenance.target_level == 0 &&
+                run.maintenance.full_rebuild_clear_requests == 3 &&
+                run.maintenance.full_rebuild_clear_bytes ==
+                    expected_clear_bytes &&
+                run.maintenance.full_rebuild_clear_cycles > 0,
+            "full rebuild did not invalidate the persisted hierarchy through "
+            "timed metadata writes");
+    require(run.first_round_compute.full_recompute_reset_words == 4 &&
+                run.first_round_compute.full_recompute_reset_write_bytes == 16 &&
+                run.first_round_compute.full_recompute_reset_cycles > 0 &&
+                run.first_round_compute.vertex_write_bytes >= 16,
+            "full recompute did not reset vertex state through timed AXI writes");
+    require(run.fallback_cycles > 0 && run.backend_requests > 0 &&
+                run.dirty_generation == 4,
+            "full rebuild did not preserve a timed persistent invocation");
+  };
+  require_timed_rebuild(deletion, {0, 5, 100, 101});
+  require_timed_rebuild(increase, {0, 5, 55, 56});
+
+  std::cout << "EVIDENCE spine_nonmonotonic_full_rebuild delete_cycles="
+            << deletion.fallback_cycles
+            << " increase_cycles=" << increase.fallback_cycles
+            << " metadata_clear_bytes="
+            << deletion.maintenance.full_rebuild_clear_bytes
+            << " vertex_reset_bytes="
+            << deletion.first_round_compute.full_recompute_reset_write_bytes
+            << '\n';
+}
+
 struct SpineMemoryWindowObservation {
   std::uint64_t cycles{};
   std::vector<std::uint32_t> values;
@@ -6077,6 +6206,8 @@ int main(int argc, char **argv) {
        test_spine_multiround_weighted_sssp_converges},
       {"spine_incremental_update",
        test_spine_incremental_update_reuses_persistent_system},
+      {"spine_nonmonotonic_full_rebuild",
+       test_spine_nonmonotonic_update_uses_timed_full_rebuild},
       {"spine_memory_request_window",
        test_spine_memory_request_window_hides_latency},
       {"spine_axi_interface_profile",

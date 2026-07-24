@@ -131,6 +131,23 @@ python3 scripts/run_sst_spine_vertical.py \
 This mode performs maintenance once, then reuses persistent levels, vertex
 state, AXIS links, AXI masters, and SST-HBM across all frontier rounds.
 
+Run positive incremental repair, deletion fallback, and weight-increase
+fallback in one persistent SST process per scenario:
+
+```bash
+python3 scripts/run_sst_spine_vertical.py --scenario dynamic_sssp \
+  --out-dir results/sst_spine_dynamic_sssp
+python3 scripts/run_sst_spine_vertical.py --scenario dynamic_sssp_delete \
+  --out-dir results/sst_spine_dynamic_delete
+python3 scripts/run_sst_spine_vertical.py --scenario dynamic_sssp_increase \
+  --out-dir results/sst_spine_dynamic_increase
+```
+
+Positive updates preserve distances and levels. Signed deletions explicitly
+time metadata invalidation, graph rebuild, vertex-state reset, and full SSSP
+recomputation. See
+[`docs/spine_dynamic_sssp_full_rebuild_20260725.md`](docs/spine_dynamic_sssp_full_rebuild_20260725.md).
+
 ## Current Scope
 
 The legacy Python/calibration model targets trend validation against historical

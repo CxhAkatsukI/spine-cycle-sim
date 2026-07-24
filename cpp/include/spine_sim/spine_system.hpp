@@ -111,6 +111,7 @@ class SpineVerticalSliceSystem {
       std::optional<SpineDirtyIdentity> host_coverage = std::nullopt,
       std::vector<std::uint32_t> source_refresh = {});
   void restart_incremental_update(SpineEdgeSlice workload);
+  void restart_full_rebuild(SpineEdgeSlice snapshot);
   [[nodiscard]] std::vector<std::uint32_t>
   restart_device_dirty_host_fallback();
   [[nodiscard]] bool recoverable_host_handoff() const noexcept;
@@ -148,6 +149,7 @@ class SpineVerticalSliceSystem {
   ClockId clock_id_{};
   MemoryBackend &backend_;
   SpineAxiInterfaceProfile axi_profile_;
+  std::uint32_t source_{};
   Fifo<PartConvWord> edge_stream_;
   Fifo<SourceValueWord> value_stream_;
   std::array<std::unique_ptr<FixedAxiPort>, 16> graph_ports_;

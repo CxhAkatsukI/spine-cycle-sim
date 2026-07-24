@@ -235,6 +235,7 @@ SpineVerticalSliceSystem::SpineVerticalSliceSystem(
     SpineOnChipMemoryProfile on_chip_profile)
     : scheduler_(scheduler), clock_id_(clock_id), backend_(backend),
       axi_profile_(std::move(axi_profile)),
+      source_(source),
       edge_stream_("edge-axis", clock_id, 32),
       value_stream_("value-axis", clock_id, 32),
       state_(std::move(initial_state)), current_frontier_{source} {
@@ -418,6 +419,26 @@ void SpineVerticalSliceSystem::restart_incremental_update(
   compute_->reset_round();
   maintenance_->reset_batch(std::move(workload));
   current_frontier_ = std::move(changed_sources);
+  convergence_run_started_ = false;
+}
+
+void SpineVerticalSliceSystem::restart_full_rebuild(SpineEdgeSlice snapshot) {
+  if (!registered_ || !done() || failed() || !idle() ||
+      !dirty_ack_->done() || dirty_ack_->failed() ||
+      snapshot.vertices != maintenance_->vertices() || snapshot.edges.empty() ||
+      std::any_of(snapshot.edges.begin(), snapshot.edges.end(),
+                  [](const SpineEdgeRecord &edge) { return edge.diff <= 0; })) {
+    throw std::logic_error(
+        "Spine full rebuild requires a positive drained graph snapshot");
+  }
+
+  edge_stream_.reset_stats();
+  value_stream_.reset_stats();
+  dirty_ack_->reset();
+  reader_->reset_round({source_});
+  compute_->reset_for_full_recompute();
+  maintenance_->reset_full_rebuild(std::move(snapshot));
+  current_frontier_ = {source_};
   convergence_run_started_ = false;
 }
 

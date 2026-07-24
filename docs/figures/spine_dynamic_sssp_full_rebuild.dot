@@ -1,0 +1,38 @@
+digraph dynamic_sssp_full_rebuild {
+  graph [rankdir=LR, bgcolor="white", fontname="DejaVu Sans", nodesep=0.42, ranksep=0.7];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=10, color="#45525d", fillcolor="#f7f8f9"];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#52606d"];
+
+  delta [label="Signed update\nDelete or old-weight -1\nNew-weight +1", fillcolor="#f8e3dd"];
+  ledger [label="Exact host edge ledger\n(src,dst,weight) multiplicity", fillcolor="#fff1d6"];
+  snapshot [label="Materialized positive snapshot", fillcolor="#e8f1f8"];
+
+  subgraph cluster_device {
+    label="Timed device fallback";
+    color="#9aa5b1";
+    style="rounded";
+
+    clear [label="Metadata invalidation\n3 AXI parent writes\n25,344 B", fillcolor="#f9e7c5"];
+    rebuild [label="Spine maintenance\nRebuild clean L0", fillcolor="#e7f3e8"];
+    reset [label="Vertex-state reset\nAXI burst writes\nINF, source=0", fillcolor="#f1e8f7"];
+    reader [label="Payload-backed Reader\nFinite FIFO/AXIS", fillcolor="#e8f1f8"];
+    compute [label="Weighted SSSP Map/Reduce\nFull recomputation", fillcolor="#f1e8f7"];
+
+    clear -> rebuild [label="old levels invisible"];
+    rebuild -> reader [label="new L0 payload"];
+    reader -> compute [label="edge/value stream"];
+    reset -> compute [label="fresh state"];
+  }
+
+  hbm [label="Shared 32-channel\nSST/DRAMSim3 HBM", fillcolor="#e3f0ee"];
+  oracle [label="CPU full-recompute oracle\nvalues + frontier", fillcolor="#f7f7f7"];
+
+  delta -> ledger -> snapshot;
+  snapshot -> rebuild;
+  clear -> hbm [dir=both];
+  rebuild -> hbm [dir=both];
+  reset -> hbm [dir=both];
+  reader -> hbm [dir=both];
+  compute -> hbm [dir=both];
+  compute -> oracle;
+}

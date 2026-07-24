@@ -12,6 +12,7 @@ from scripts.run_sst_spine_vertical import (
     validate_full_compute_result,
     validate_full_pagerank_result,
     validate_multiround_sssp_result,
+    validate_nonmonotonic_sssp_result,
     validate_protocol_window_result,
     validate_residual_pagerank_result,
     validate_result,
@@ -27,6 +28,8 @@ class SstSpineVerticalValidationTests(unittest.TestCase):
             "success": True,
             "mode": "spine_sssp",
             "dynamic_update": True,
+            "dynamic_update_path": "incremental_relax",
+            "materialized_snapshot_edges": 5,
             "cold_correctness_mismatches": 0,
             "cold_frontier_mismatches": 0,
             "cold_final_values": [0, 5, 10, 11],
@@ -76,6 +79,47 @@ class SstSpineVerticalValidationTests(unittest.TestCase):
             "update_correctness",
             validate_dynamic_sssp_result(result, dram, channels=32),
         )
+
+    def test_frozen_nonmonotonic_sssp_evidence_passes(self) -> None:
+        cases = (
+            (
+                "sst_spine_dynamic_delete_20260725_summary.json",
+                {
+                    "expected_values": [0, 5, 100, 101],
+                    "expected_update_edges": 1,
+                    "expected_snapshot_edges": 3,
+                    "expected_dirty_sources": 2,
+                    "expected_rounds": 3,
+                    "expected_frontier_in": [1, 2, 1],
+                    "expected_frontier_out": [2, 1, 0],
+                },
+            ),
+            (
+                "sst_spine_dynamic_increase_20260725_summary.json",
+                {
+                    "expected_values": [0, 5, 55, 56],
+                    "expected_update_edges": 2,
+                    "expected_snapshot_edges": 4,
+                    "expected_dirty_sources": 3,
+                    "expected_rounds": 4,
+                    "expected_frontier_in": [1, 2, 2, 1],
+                    "expected_frontier_out": [2, 2, 1, 0],
+                },
+            ),
+        )
+        for filename, expected in cases:
+            with self.subTest(filename=filename):
+                summary = json.loads(
+                    (ROOT / "docs" / "evidence" / filename).read_text(
+                        encoding="utf-8"
+                    )
+                )
+                self.assertEqual(
+                    validate_nonmonotonic_sssp_result(
+                        summary, summary, channels=32, **expected
+                    ),
+                    [],
+                )
 
     def test_residual_pagerank_result_checks_frontier_and_memory_ledger(
         self,

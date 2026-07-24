@@ -1,0 +1,6 @@
+# spine_real_slice_version=1
+# case=dynamic_delete_update
+# vertices=4
+# columns=src dst weight diff
+# Remove the only 1 -> 2 edge; distances to 2 and 3 must increase.
+1 2 5 -1

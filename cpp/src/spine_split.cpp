@@ -3196,6 +3196,28 @@ void SpineSplitSsspCompute::reset_round() {
   done_ = false;
 }
 
+void SpineSplitSsspCompute::reset_for_full_recompute() {
+  reset_round();
+  for (std::size_t vertex = 0; vertex < vertices_; ++vertex) {
+    values_[vertex] =
+        algorithm_policy_->initial_state(static_cast<std::uint32_t>(vertex))
+            .primary;
+  }
+  std::vector<std::uint8_t> payload(vertices_ * kVertexWordBytes, 0xffU);
+  const std::vector<std::uint8_t> source_value = encode_u32(values_[source_]);
+  std::copy(source_value.begin(), source_value.end(),
+            payload.begin() + static_cast<std::ptrdiff_t>(
+                                  source_ * kVertexWordBytes));
+  const std::size_t payload_bytes = payload.size();
+  enqueue_memory(*ports_.vertex_state, MemoryOperation::kWrite, 0,
+                 payload_bytes, std::move(payload));
+  enqueue_memory(*ports_.active_bitmap, MemoryOperation::kWrite, 0, 8,
+                 std::vector<std::uint8_t>(8, 0));
+  counters_.full_recompute_reset_words = vertices_;
+  counters_.full_recompute_reset_write_bytes = vertices_ * kVertexWordBytes;
+  phase_ = Phase::kReinitialize;
+}
+
 void SpineSplitSsspCompute::evaluate(const CycleContext &context) {
   staged_action_ = Action::kNone;
   staged_memory_issue_ = false;
@@ -3203,6 +3225,12 @@ void SpineSplitSsspCompute::evaluate(const CycleContext &context) {
   staged_responses_.clear();
   if (done_ || failed_) {
     return;
+  }
+  if (phase_ == Phase::kReinitialize) {
+    if (counters_.full_recompute_reset_cycles == 0) {
+      counters_.start_cycle = context.domain_cycle;
+    }
+    ++counters_.full_recompute_reset_cycles;
   }
   staged_full_tile_read_beat_valid_ = stage_full_tile_read_beat();
   const bool staged_memory_completion = stage_memory_completions();
@@ -4162,6 +4190,9 @@ void SpineSplitSsspCompute::reset_tile() {
 
 void SpineSplitSsspCompute::advance(const CycleContext &context) {
   switch (phase_) {
+    case Phase::kReinitialize:
+      phase_ = Phase::kInput;
+      return;
     case Phase::kSourceRead:
       source_reply_pending_ = true;
       phase_ = Phase::kSourceReply;

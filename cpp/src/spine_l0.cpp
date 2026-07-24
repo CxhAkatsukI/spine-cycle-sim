@@ -946,6 +946,7 @@ void SpineL0Maintenance::reset_batch(SpineEdgeSlice workload) {
   active_writer_epoch_ready_ = false;
   active_writer_epoch_wrapped_ = false;
   logical_overflow_ = false;
+  full_rebuild_mode_ = false;
   done_ = false;
   failed_ = false;
   failure_.clear();
@@ -955,6 +956,42 @@ void SpineL0Maintenance::reset_batch(SpineEdgeSlice workload) {
   staged_read_beat_response_ = {};
   staged_memory_completion_ = false;
   staged_read_beat_completion_ = false;
+}
+
+void SpineL0Maintenance::reset_full_rebuild(SpineEdgeSlice snapshot) {
+  if (std::any_of(snapshot.edges.begin(), snapshot.edges.end(),
+                  [](const SpineEdgeRecord &edge) { return edge.diff <= 0; })) {
+    throw std::logic_error(
+        "Spine full rebuild requires a positive materialized snapshot");
+  }
+  reset_batch(std::move(snapshot));
+
+  state_.cold_levels = {};
+  state_.hot_levels = {};
+  slice_epochs_ = {};
+  staged_writer_epochs_ = {};
+  page_list_counts_ = {};
+  page_epochs_.clear();
+
+  const SpineMetadataLayout metadata = spine_metadata_layout(config_);
+  const auto clear_words = [&](std::uint64_t word, std::uint64_t words) {
+    if (words == 0) {
+      return;
+    }
+    const std::uint64_t bytes = words * kMetadataWordBytes;
+    enqueue_task(*ports_.metadata, MemoryOperation::kWrite,
+                 config_.metadata_base + word * kMetadataWordBytes, bytes,
+                 TaskClass::kMetadata,
+                 std::vector<std::uint8_t>(static_cast<std::size_t>(bytes), 0));
+    ++counters_.full_rebuild_clear_requests;
+    counters_.full_rebuild_clear_bytes += bytes;
+  };
+  clear_words(0, metadata.slice_words);
+  clear_words(metadata.slice_epoch_base, (metadata.slice_count + 1) / 2);
+  clear_words(metadata.page_list_count_base,
+              (metadata.slice_count + 1) / 2);
+  full_rebuild_mode_ = true;
+  phase_ = Phase::kFullRebuildClear;
 }
 
 void SpineL0Maintenance::initialize_metadata_payload() {
@@ -1072,6 +1109,12 @@ void SpineL0Maintenance::evaluate(const CycleContext &context) {
   staged_read_beat_completion_ = false;
   if (done_ || failed_) {
     return;
+  }
+  if (phase_ == Phase::kFullRebuildClear) {
+    if (counters_.full_rebuild_clear_cycles == 0) {
+      counters_.start_cycle = context.domain_cycle;
+    }
+    ++counters_.full_rebuild_clear_cycles;
   }
   staged_read_beat_completion_ = stage_read_beat();
   staged_memory_completion_ = stage_memory_completion();
@@ -3849,8 +3892,13 @@ void SpineL0Maintenance::enqueue_committed_metadata() {
 
 void SpineL0Maintenance::advance(const CycleContext &context) {
   switch (phase_) {
+  case Phase::kFullRebuildClear:
+    phase_ = Phase::kInitialize;
+    return;
   case Phase::kInitialize:
-    counters_.start_cycle = context.domain_cycle;
+    if (!full_rebuild_mode_) {
+      counters_.start_cycle = context.domain_cycle;
+    }
     enqueue_task(*ports_.metadata, MemoryOperation::kRead,
                  config_.metadata_base +
                      spine_metadata_layout(config_).hot_enabled_word *

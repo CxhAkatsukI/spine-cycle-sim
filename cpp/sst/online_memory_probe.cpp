@@ -14,6 +14,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <tuple>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -196,6 +197,60 @@ SsspAdjacency build_sssp_adjacency(const SpineEdgeSlice &workload) {
     }
   }
   return adjacency;
+}
+
+SpineEdgeSlice materialize_weighted_snapshot(const SpineEdgeSlice &initial,
+                                             const SpineEdgeSlice &update) {
+  if (initial.vertices == 0 || update.vertices != initial.vertices) {
+    throw std::invalid_argument(
+        "weighted update snapshot requires matching non-empty graphs");
+  }
+  using EdgeKey =
+      std::tuple<std::uint32_t, std::uint32_t, std::uint16_t>;
+  std::map<EdgeKey, std::int64_t> multiplicities;
+  const auto apply = [&](const SpineEdgeSlice &slice) {
+    for (const SpineEdgeRecord &edge : slice.edges) {
+      if (edge.src >= initial.vertices || edge.dst >= initial.vertices ||
+          edge.diff == 0) {
+        throw std::invalid_argument(
+            "weighted update contains an invalid edge record");
+      }
+      std::int64_t &count =
+          multiplicities[{edge.src, edge.dst, edge.weight}];
+      count += edge.diff;
+      if (count < 0) {
+        throw std::invalid_argument(
+            "weighted update deletes a missing edge instance");
+      }
+    }
+  };
+  apply(initial);
+  apply(update);
+
+  SpineEdgeSlice snapshot{
+      .vertices = initial.vertices,
+      .edges = {},
+      .case_name = initial.case_name + "+" + update.case_name,
+  };
+  for (const auto &[key, count] : multiplicities) {
+    std::int64_t remaining = count;
+    while (remaining > 0) {
+      const std::int16_t chunk = static_cast<std::int16_t>(
+          std::min<std::int64_t>(remaining,
+                                 std::numeric_limits<std::int16_t>::max()));
+      snapshot.edges.push_back(SpineEdgeRecord{
+          .src = std::get<0>(key),
+          .dst = std::get<1>(key),
+          .weight = std::get<2>(key),
+          .diff = chunk,
+      });
+      remaining -= chunk;
+    }
+  }
+  if (snapshot.edges.empty()) {
+    throw std::invalid_argument("weighted update produced an empty graph");
+  }
+  return snapshot;
 }
 
 SsspReference run_sssp_reference_from_state(
@@ -1074,18 +1129,17 @@ class OnlineMemoryProbe final : public SST::Component {
           dynamic_update_workload_ =
               load_spine_edge_slice(update_workload_path_);
           if (dynamic_update_workload_.vertices != workload.vertices ||
-              dynamic_update_workload_.edges.empty() ||
-              std::any_of(dynamic_update_workload_.edges.begin(),
-                          dynamic_update_workload_.edges.end(),
-                          [](const SpineEdgeRecord &edge) {
-                            return edge.diff <= 0;
-                          })) {
+              dynamic_update_workload_.edges.empty()) {
             output_.fatal(
                 CALL_INFO, -1,
-                "dynamic SSSP update must be a non-empty positive batch with "
-                "the same vertex count\n");
+                "dynamic SSSP update must be non-empty and use the same "
+                "vertex count\n");
           }
           dynamic_sssp_enabled_ = true;
+          dynamic_full_rebuild_ = std::any_of(
+              dynamic_update_workload_.edges.begin(),
+              dynamic_update_workload_.edges.end(),
+              [](const SpineEdgeRecord &edge) { return edge.diff < 0; });
           cold_sssp_reference_ = sssp_reference_;
           for (const SpineEdgeRecord &edge : dynamic_update_workload_.edges) {
             dynamic_update_sources_.push_back(edge.src);
@@ -1096,18 +1150,21 @@ class OnlineMemoryProbe final : public SST::Component {
               std::unique(dynamic_update_sources_.begin(),
                           dynamic_update_sources_.end()),
               dynamic_update_sources_.end());
-          SpineEdgeSlice combined = workload;
-          combined.edges.insert(combined.edges.end(),
-                                dynamic_update_workload_.edges.begin(),
-                                dynamic_update_workload_.edges.end());
+          dynamic_materialized_snapshot_ =
+              materialize_weighted_snapshot(workload,
+                                            dynamic_update_workload_);
           sssp_reference_ =
-              run_sssp_reference(combined, source_vertex_, max_rounds_);
-          dynamic_sssp_reference_ = run_sssp_reference_from_state(
-              combined, cold_sssp_reference_.values, dynamic_update_sources_,
-              max_rounds_);
+              run_sssp_reference(dynamic_materialized_snapshot_, source_vertex_,
+                                 max_rounds_);
+          if (!dynamic_full_rebuild_) {
+            dynamic_sssp_reference_ = run_sssp_reference_from_state(
+                dynamic_materialized_snapshot_, cold_sssp_reference_.values,
+                dynamic_update_sources_, max_rounds_);
+          }
           if (!sssp_reference_.converged ||
-              !dynamic_sssp_reference_.converged ||
-              dynamic_sssp_reference_.values != sssp_reference_.values) {
+              (!dynamic_full_rebuild_ &&
+               (!dynamic_sssp_reference_.converged ||
+                dynamic_sssp_reference_.values != sssp_reference_.values))) {
             output_.fatal(CALL_INFO, -1,
                           "dynamic SSSP references did not converge or agree\n");
           }
@@ -1511,13 +1568,19 @@ class OnlineMemoryProbe final : public SST::Component {
     cold_cycles_ = scheduler_.clock(0).completed_cycles;
     cold_backend_requests_ = backend_->accepted();
 
-    spine_system_->restart_incremental_update(dynamic_update_workload_);
+    if (dynamic_full_rebuild_) {
+      spine_system_->restart_full_rebuild(dynamic_materialized_snapshot_);
+    } else {
+      spine_system_->restart_incremental_update(dynamic_update_workload_);
+    }
     dynamic_sssp_started_ = true;
     dynamic_update_start_cycle_ = scheduler_.clock(0).completed_cycles;
     sst_rounds_.clear();
     sst_host_handoffs_.clear();
     sst_pending_active_out_.clear();
-    sst_current_frontier_ = dynamic_update_sources_;
+    sst_current_frontier_ = dynamic_full_rebuild_
+                                ? std::vector<std::uint32_t>{source_vertex_}
+                                : dynamic_update_sources_;
     sst_round_start_cycle_ = dynamic_update_start_cycle_;
     sst_waiting_dirty_ack_ = false;
     return true;
@@ -2086,7 +2149,9 @@ class OnlineMemoryProbe final : public SST::Component {
     if (mode_ == "spine_sssp") {
       const auto &actual_values = spine_system_->compute().values();
       const SsspReference &execution_reference =
-          dynamic_sssp_started_ ? dynamic_sssp_reference_ : sssp_reference_;
+          dynamic_sssp_started_ && !dynamic_full_rebuild_
+              ? dynamic_sssp_reference_
+              : sssp_reference_;
       const SsspComparison comparison =
           compare_sssp_result(actual_values, sst_rounds_, execution_reference);
       const std::uint64_t mismatches = comparison.value_mismatches;
@@ -2504,6 +2569,12 @@ class OnlineMemoryProbe final : public SST::Component {
         result
             << "  \"update_edges\": "
             << dynamic_update_workload_.edges.size() << ",\n"
+            << "  \"dynamic_update_path\": \""
+            << (dynamic_full_rebuild_ ? "full_rebuild"
+                                      : "incremental_relax")
+            << "\",\n"
+            << "  \"materialized_snapshot_edges\": "
+            << dynamic_materialized_snapshot_.edges.size() << ",\n"
             << "  \"cold_cycles\": " << cold_cycles_ << ",\n"
             << "  \"update_cycles\": "
             << scheduler_.clock(0).completed_cycles -
@@ -2556,6 +2627,12 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"frontier_mismatches\": " << frontier_mismatches << ",\n"
           << "  \"maintenance_scan_passes\": " << maintenance.sorted_scan_passes
           << ",\n"
+          << "  \"maintenance_full_rebuild_clear_cycles\": "
+          << maintenance.full_rebuild_clear_cycles << ",\n"
+          << "  \"maintenance_full_rebuild_clear_requests\": "
+          << maintenance.full_rebuild_clear_requests << ",\n"
+          << "  \"maintenance_full_rebuild_clear_bytes\": "
+          << maintenance.full_rebuild_clear_bytes << ",\n"
           << "  \"maintenance_edge_visits\": " << maintenance.sorted_edge_visits
           << ",\n"
           << "  \"maintenance_sorted_bytes\": " << maintenance.sorted_read_bytes
@@ -3125,7 +3202,16 @@ class OnlineMemoryProbe final : public SST::Component {
       write_json_array(result, handoff_device_reader_overflow);
       result << ",\n  \"host_handoff_device_compute_overflow\": ";
       write_json_array(result, handoff_device_compute_overflow);
+      const SpineComputeCounters first_compute =
+          sst_rounds_.empty() ? SpineComputeCounters{}
+                              : sst_rounds_.front().compute;
       result << ",\n"
+             << "  \"compute_full_recompute_reset_cycles\": "
+             << first_compute.full_recompute_reset_cycles << ",\n"
+             << "  \"compute_full_recompute_reset_words\": "
+             << first_compute.full_recompute_reset_words << ",\n"
+             << "  \"compute_full_recompute_reset_write_bytes\": "
+             << first_compute.full_recompute_reset_write_bytes << ",\n"
              << "  \"backend_requests\": " << backend_->accepted() << ",\n"
              << "  \"backend_submit_stalls\": " << backend_->submit_stalls()
              << ",\n"
@@ -3895,6 +3981,7 @@ class OnlineMemoryProbe final : public SST::Component {
   SsspReference cold_sssp_reference_;
   SsspReference dynamic_sssp_reference_;
   SpineEdgeSlice dynamic_update_workload_;
+  SpineEdgeSlice dynamic_materialized_snapshot_;
   std::vector<std::uint32_t> dynamic_update_sources_;
   std::vector<std::uint32_t> cold_final_values_;
   std::vector<std::uint64_t> cold_round_cycles_;
@@ -3926,6 +4013,7 @@ class OnlineMemoryProbe final : public SST::Component {
   bool sst_waiting_dirty_ack_{};
   bool dynamic_sssp_enabled_{};
   bool dynamic_sssp_started_{};
+  bool dynamic_full_rebuild_{};
   bool result_written_{};
 };
 

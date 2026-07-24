@@ -27,6 +27,15 @@ DEFAULT_DYNAMIC_SSSP_WORKLOAD = (
 DEFAULT_DYNAMIC_SSSP_UPDATE = (
     ROOT / "tests" / "data" / "dynamic_shortcut_update.slice"
 )
+DEFAULT_NONMONOTONIC_SSSP_WORKLOAD = (
+    ROOT / "tests" / "data" / "dynamic_nonmonotonic_initial.slice"
+)
+DEFAULT_DELETE_SSSP_UPDATE = (
+    ROOT / "tests" / "data" / "dynamic_delete_update.slice"
+)
+DEFAULT_INCREASE_SSSP_UPDATE = (
+    ROOT / "tests" / "data" / "dynamic_weight_increase_update.slice"
+)
 DEFAULT_PAGERANK_WORKLOAD = (
     ROOT / "tests" / "data" / "pagerank_four_vertex.slice"
 )
@@ -721,6 +730,8 @@ def validate_dynamic_sssp_result(
         "success": result.get("success") is True,
         "mode": result.get("mode") == "spine_sssp",
         "dynamic_mode": result.get("dynamic_update") is True,
+        "update_path": result.get("dynamic_update_path") == "incremental_relax"
+        and result.get("materialized_snapshot_edges") == 5,
         "cold_correctness": result.get("cold_correctness_mismatches") == 0
         and result.get("cold_frontier_mismatches") == 0
         and result.get("cold_final_values") == [0, 5, 10, 11],
@@ -760,6 +771,79 @@ def validate_dynamic_sssp_result(
         == result.get("maintenance_sorted_bytes")
         and result.get("maintenance_dirty_count") == 1
         and result.get("maintenance_dirty_unique_sources") == 1,
+        "backend_segments": result.get("cold_backend_requests", 0) > 0
+        and result.get("update_backend_requests", 0) > 0
+        and result.get("cold_backend_requests", 0)
+        + result.get("update_backend_requests", 0)
+        == result.get("backend_requests"),
+        "dram_matches_backend": int(dram.get("dram_reads", 0))
+        + int(dram.get("dram_writes", 0))
+        == result.get("backend_requests"),
+        "channel_count": dram.get("dram_channels") == channels,
+    }
+    return [name for name, passed in checks.items() if not passed]
+
+
+def validate_nonmonotonic_sssp_result(
+    result: dict[str, Any],
+    dram: dict[str, int | float],
+    *,
+    channels: int,
+    expected_values: list[int],
+    expected_update_edges: int,
+    expected_snapshot_edges: int,
+    expected_dirty_sources: int,
+    expected_rounds: int,
+    expected_frontier_in: list[int],
+    expected_frontier_out: list[int],
+) -> list[str]:
+    expected_scan_visits = 20 * expected_snapshot_edges
+    checks = {
+        "success": result.get("success") is True,
+        "mode": result.get("mode") == "spine_sssp",
+        "update_path": result.get("dynamic_update") is True
+        and result.get("dynamic_update_path") == "full_rebuild"
+        and result.get("update_edges") == expected_update_edges
+        and result.get("materialized_snapshot_edges")
+        == expected_snapshot_edges,
+        "cold_correctness": result.get("cold_correctness_mismatches") == 0
+        and result.get("cold_frontier_mismatches") == 0
+        and result.get("cold_final_values") == [0, 5, 10, 11],
+        "update_correctness": result.get("correctness_mismatches") == 0
+        and result.get("full_recompute_correctness_mismatches") == 0
+        and result.get("frontier_mismatches") == 0
+        and result.get("final_values") == expected_values,
+        "full_rebuild_metadata": result.get("maintenance_target_level") == 0
+        and result.get("maintenance_full_rebuild_clear_requests") == 3
+        and result.get("maintenance_full_rebuild_clear_bytes") == 25_344
+        and result.get("maintenance_full_rebuild_clear_cycles", 0) > 0,
+        "full_recompute_vertex_state": result.get(
+            "compute_full_recompute_reset_words"
+        )
+        == 4
+        and result.get("compute_full_recompute_reset_write_bytes") == 16
+        and result.get("compute_full_recompute_reset_cycles", 0) > 0,
+        "update_lifecycle": result.get("rounds") == expected_rounds
+        and result.get("maintenance_persisted_edges")
+        == expected_snapshot_edges
+        and result.get("maintenance_dirty_generation") == 3
+        and result.get("dirty_ack_captured_generation") == 3
+        and result.get("dirty_ack_result_generation") == 4
+        and result.get("update_cycles", 0) > 0,
+        "update_frontier": result.get("frontier_in_sizes")
+        == expected_frontier_in
+        and result.get("frontier_out_sizes") == expected_frontier_out,
+        "maintenance_ledger": result.get("maintenance_scan_passes") == 20
+        and result.get("maintenance_edge_visits") == expected_scan_visits
+        and result.get("maintenance_sorted_bytes")
+        == expected_scan_visits * 16
+        and result.get("maintenance_sorted_payload_read_bytes")
+        == result.get("maintenance_sorted_bytes")
+        and result.get("maintenance_carry_new_batch_reads") == 0
+        and result.get("maintenance_carry_new_batch_read_bytes") == 0
+        and result.get("maintenance_dirty_count") == expected_dirty_sources
+        and result.get("maintenance_dirty_unique_sources")
+        == expected_dirty_sources,
         "backend_segments": result.get("cold_backend_requests", 0) > 0
         and result.get("update_backend_requests", 0) > 0
         and result.get("cold_backend_requests", 0)
@@ -895,6 +979,8 @@ def parse_args() -> argparse.Namespace:
             "residual_pagerank",
             "weighted_sssp",
             "dynamic_sssp",
+            "dynamic_sssp_delete",
+            "dynamic_sssp_increase",
             "protocol_window",
             "fallback_capacity",
             "fallback_payload",
@@ -1005,6 +1091,15 @@ def main() -> int:
             args.workload = DEFAULT_DYNAMIC_SSSP_WORKLOAD
         if args.update_workload is None:
             args.update_workload = DEFAULT_DYNAMIC_SSSP_UPDATE
+    elif args.scenario in {"dynamic_sssp_delete", "dynamic_sssp_increase"}:
+        if args.workload == DEFAULT_WORKLOAD:
+            args.workload = DEFAULT_NONMONOTONIC_SSSP_WORKLOAD
+        if args.update_workload is None:
+            args.update_workload = (
+                DEFAULT_DELETE_SSSP_UPDATE
+                if args.scenario == "dynamic_sssp_delete"
+                else DEFAULT_INCREASE_SSSP_UPDATE
+            )
     elif args.scenario in {"full_pagerank", "residual_pagerank"} and (
         args.workload == DEFAULT_WORKLOAD
     ):
@@ -1078,6 +1173,8 @@ def main() -> int:
                 "residual_pagerank": "spine_residual_pagerank",
                 "weighted_sssp": "spine_sssp",
                 "dynamic_sssp": "spine_sssp",
+                "dynamic_sssp_delete": "spine_sssp",
+                "dynamic_sssp_increase": "spine_sssp",
                 "fallback_capacity": "spine_sssp",
                 "fallback_payload": "spine_sssp",
             }.get(args.scenario, "spine_vertical"),
@@ -1213,6 +1310,34 @@ def main() -> int:
         "residual_pagerank": validate_residual_pagerank_result,
         "weighted_sssp": validate_multiround_sssp_result,
         "dynamic_sssp": validate_dynamic_sssp_result,
+        "dynamic_sssp_delete": lambda result, dram, *, channels: (
+            validate_nonmonotonic_sssp_result(
+                result,
+                dram,
+                channels=channels,
+                expected_values=[0, 5, 100, 101],
+                expected_update_edges=1,
+                expected_snapshot_edges=3,
+                expected_dirty_sources=2,
+                expected_rounds=3,
+                expected_frontier_in=[1, 2, 1],
+                expected_frontier_out=[2, 1, 0],
+            )
+        ),
+        "dynamic_sssp_increase": lambda result, dram, *, channels: (
+            validate_nonmonotonic_sssp_result(
+                result,
+                dram,
+                channels=channels,
+                expected_values=[0, 5, 55, 56],
+                expected_update_edges=2,
+                expected_snapshot_edges=4,
+                expected_dirty_sources=3,
+                expected_rounds=4,
+                expected_frontier_in=[1, 2, 2, 1],
+                expected_frontier_out=[2, 2, 1, 0],
+            )
+        ),
         "protocol_window": validate_protocol_window_result,
         "fallback_capacity": lambda result, dram, *, channels: (
             validate_fallback_result(

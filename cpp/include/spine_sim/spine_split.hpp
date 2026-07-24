@@ -605,6 +605,9 @@ class SpineSplitReader final : public Component {
 struct SpineComputeCounters {
   std::uint64_t start_cycle{};
   std::uint64_t end_cycle{};
+  std::uint64_t full_recompute_reset_cycles{};
+  std::uint64_t full_recompute_reset_words{};
+  std::uint64_t full_recompute_reset_write_bytes{};
   std::uint64_t source_requests{};
   std::uint64_t source_responses{};
   std::uint64_t source_protocol_markers{};
@@ -748,6 +751,7 @@ class SpineSplitSsspCompute final : public Component {
   }
   void reset_round();
   void reset_after_host_handoff();
+  void reset_for_full_recompute();
 
   void evaluate(const CycleContext &context) override;
   void commit(const CycleContext &context) override;
@@ -796,6 +800,7 @@ class SpineSplitSsspCompute final : public Component {
   };
 
   enum class Phase {
+    kReinitialize,
     kInput,
     kSourceRead,
     kSourceReply,
