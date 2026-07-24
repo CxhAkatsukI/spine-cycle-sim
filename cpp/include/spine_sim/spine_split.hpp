@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <deque>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -44,6 +45,7 @@ struct SpineReaderCounters {
   std::uint64_t level_cache_read_bytes{};
   std::uint64_t row_lookup_metadata_bytes{};
   std::uint64_t graph_read_bytes{};
+  std::uint64_t graph_edge_payload_read_bytes{};
   std::uint64_t tiles_emitted{};
   std::uint64_t edges_emitted{};
   std::uint64_t occupied_levels{};
@@ -79,7 +81,7 @@ class SpineSplitReader final : public Component {
  private:
   struct TileTask {
     struct Edge {
-      SpineEdgeRecord payload;
+      std::uint32_t source{};
       std::uint64_t graph_word_address{};
       std::size_t graph_bank{};
       bool hot{};
@@ -93,6 +95,8 @@ class SpineSplitReader final : public Component {
     FixedAxiPort *port{};
     std::uint64_t address{};
     std::uint64_t bytes{};
+    std::uint32_t edge_source{};
+    bool edge_payload{};
   };
 
   enum class Phase {
@@ -114,7 +118,10 @@ class SpineSplitReader final : public Component {
   void enqueue_level_cache_reads();
   void enqueue_index_reads();
   void enqueue_read(FixedAxiPort &port, std::uint64_t address,
-                    std::uint64_t bytes);
+                    std::uint64_t bytes,
+                    std::optional<std::uint32_t> edge_source = std::nullopt);
+  void consume_memory_response(const MemoryTask &task,
+                               const AxiResponse &response);
   [[nodiscard]] PartConvWord current_stream_word() const;
 
   const SpineL0Maintenance &maintenance_;
@@ -132,6 +139,7 @@ class SpineSplitReader final : public Component {
   PartConvWord staged_stream_word_;
   SourceValueWord staged_value_;
   AxiResponse staged_response_;
+  SpineEdgeRecord loaded_edge_;
   std::size_t tile_index_{};
   std::size_t edge_index_{};
   std::size_t source_index_{};

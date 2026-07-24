@@ -33,6 +33,8 @@ using spine::sim::BankedMemoryConfig;
 using spine::sim::ClockId;
 using spine::sim::Component;
 using spine::sim::CycleContext;
+using spine::sim::decode_spine_level_edge;
+using spine::sim::encode_spine_level_edge;
 using spine::sim::Fifo;
 using spine::sim::FifoStats;
 using spine::sim::FixedAxiPort;
@@ -59,6 +61,7 @@ using spine::sim::SpineL0Config;
 using spine::sim::SpineL0Maintenance;
 using spine::sim::SpineL0Ports;
 using spine::sim::SpineL0State;
+using spine::sim::SpineLevelLayout;
 using spine::sim::SpineReaderPorts;
 using spine::sim::SpineSplitReader;
 using spine::sim::SpineSplitSsspCompute;
@@ -760,7 +763,7 @@ void test_spine_l0_real_slice_vertical_path() {
   require(counters.persistent_read_bytes == 48 &&
               counters.persistent_write_bytes == 48,
           "Spine dirty-frontier HBM byte count mismatch");
-  require(counters.graph_write_bytes == 288,
+  require(counters.graph_write_bytes == 144,
           "Spine L0 graph layout write byte count mismatch");
   require(counters.metadata_read_bytes == 2'976 &&
               counters.metadata_write_bytes == 1'104,
@@ -790,7 +793,7 @@ void test_spine_l0_real_slice_vertical_path() {
               reader_counters.metadata_read_bytes == 2'952 &&
               reader_counters.level_cache_read_bytes == 2'880 &&
               reader_counters.row_lookup_metadata_bytes == 8 &&
-              reader_counters.graph_read_bytes == 224,
+              reader_counters.graph_read_bytes == 112,
           "Spine reader memory byte ledger mismatch");
 
   const auto &compute_counters = compute.counters();
@@ -854,7 +857,7 @@ void test_spine_reusable_system_matches_vertical_slice() {
   require(!system.failed(), "reusable Spine vertical-slice system failed");
   require(system.maintenance_counters().sorted_scan_passes == 19,
           "reusable Spine system changed maintenance work");
-  require(system.reader_counters().graph_read_bytes == 224,
+  require(system.reader_counters().graph_read_bytes == 112,
           "reusable Spine system changed reader memory work");
   require(system.compute_counters().processed_edges == 10,
           "reusable Spine system changed compute work");
@@ -981,6 +984,13 @@ void test_spine_fixed_level_layout_matches_stable_profile() {
   require(hot_l0.bitmap_offset_words ==
               cold_l10.edge_offset_words + cold_l10.edge_capacity,
           "hot level storage does not begin after the cold level region");
+
+  const SpineEdgeRecord edge{
+      .src = 9, .dst = 0x12345678U, .weight = 0xabcdU, .diff = -7};
+  const std::vector<std::uint8_t> payload = encode_spine_level_edge(edge);
+  require(payload.size() == 8 &&
+              decode_spine_level_edge(payload, edge.src) == edge,
+          "64-bit HLS CSR level payload does not round-trip");
 }
 
 void test_spine_carry_drops_signed_diff_cancellation() {
@@ -1268,6 +1278,134 @@ void test_spine_compute_consumes_vertex_payload_from_hbm() {
           "migrated compute path issued an implicit zero-filled write");
 }
 
+void test_spine_reader_consumes_graph_edge_payload_from_hbm() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("data", 141.0);
+  MockMemoryBackend backend("hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 3,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  std::vector<std::unique_ptr<FixedAxiPort>> graph_ports;
+  graph_ports.reserve(16);
+  SpineL0Ports ports;
+  for (std::size_t index = 0; index < ports.graph.size(); ++index) {
+    graph_ports.push_back(std::make_unique<FixedAxiPort>(
+        "reader-payload-graph" + std::to_string(index), core,
+        FixedAxiPortConfig{
+            .memory_channels = 32,
+            .channel = index,
+            .initiator_id = static_cast<std::uint32_t>(400 + index),
+        },
+        backend));
+    ports.graph[index] = graph_ports.back().get();
+  }
+  FixedAxiPort sorted(
+      "reader-payload-sorted", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32, .channel = 16, .initiator_id = 416},
+      backend);
+  FixedAxiPort metadata(
+      "reader-payload-metadata", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32, .channel = 20, .initiator_id = 420},
+      backend);
+  FixedAxiPort result(
+      "reader-payload-result", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32, .channel = 21, .initiator_id = 421},
+      backend);
+  ports.sorted_edges = &sorted;
+  ports.metadata = &metadata;
+  ports.result = &result;
+
+  SpineEdgeSlice batch{
+      .vertices = 128,
+      .edges = {SpineEdgeRecord{.src = 0, .dst = 1, .weight = 5, .diff = 1}},
+      .case_name = "reader_graph_payload_antibypass",
+  };
+  SpineL0State state;
+  SpineL0Maintenance maintenance("reader-payload-maintenance", core,
+                                 SpineL0Config{}, std::move(batch), ports,
+                                 state);
+  scheduler.add_component(maintenance);
+  for (auto &port : graph_ports) {
+    port->register_components(scheduler);
+  }
+  sorted.register_components(scheduler);
+  metadata.register_components(scheduler);
+  result.register_components(scheduler);
+  scheduler.add_component(backend);
+  scheduler.run_until(
+      [&] {
+        return maintenance.done() && sorted.idle() && metadata.idle() &&
+               result.idle() &&
+               std::all_of(graph_ports.begin(), graph_ports.end(),
+                           [](const auto &port) { return port->idle(); });
+      },
+      50'000);
+
+  require(!maintenance.failed(), "reader payload setup maintenance failed");
+  require(state.cold_levels[0][0].size() == 1 &&
+              state.cold_levels[0][0][0].dst == 1 &&
+              state.cold_levels[0][0][0].weight == 5,
+          "reader payload anti-bypass setup changed logical level state");
+
+  const SpineLevelLayout layout =
+      spine_level_layout(SpineL0Config{}, false, 0);
+  graph_ports[0]->initialize_payload(
+      layout.edge_offset_words * spine::sim::kSpineGraphWordBytes,
+      encode_spine_level_edge(
+          SpineEdgeRecord{.src = 0, .dst = 2, .weight = 2, .diff = 1}));
+
+  FixedAxiPort active_bins(
+      "reader-payload-active-bins", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32, .channel = 18, .initiator_id = 418},
+      backend);
+  Fifo<PartConvWord> edge_stream("reader-payload-edge-axis", core, 32);
+  Fifo<SourceValueWord> value_stream("reader-payload-value-axis", core, 4);
+  SpineReaderPorts reader_ports;
+  reader_ports.graph = ports.graph;
+  reader_ports.active_bins = &active_bins;
+  reader_ports.metadata = &metadata;
+  SpineSplitReader reader("reader-payload-reader", core, maintenance, state,
+                          reader_ports, {0}, edge_stream, value_stream);
+  SequenceProducer<SourceValueWord> source_values(
+      "reader-payload-source-values", core, value_stream,
+      {SourceValueWord{.source = 0, .value = 10}});
+  SequenceConsumer<PartConvWord> edge_words("reader-payload-edge-words", core,
+                                            edge_stream);
+  scheduler.add_component(reader);
+  scheduler.add_component(source_values);
+  scheduler.add_component(edge_words);
+  scheduler.add_component(edge_stream);
+  scheduler.add_component(value_stream);
+  active_bins.register_components(scheduler);
+  scheduler.run_until(
+      [&] {
+        return reader.done() && source_values.done() && edge_stream.empty() &&
+               value_stream.empty() && active_bins.idle() && metadata.idle() &&
+               graph_ports[0]->idle();
+      },
+      50'000);
+
+  std::vector<PartConvWord> edges;
+  for (const PartConvWord &word : edge_words.values) {
+    if (word.kind == PartConvWordKind::kEdge) {
+      edges.push_back(word);
+    }
+  }
+  require(!reader.failed(), "reader graph payload anti-bypass path failed");
+  require(edges.size() == 1 && edges[0].first == 2 && edges[0].second == 12,
+          "reader ignored HBM graph edge payload and used logical state");
+  require(reader.counters().graph_edge_payload_read_bytes == 8,
+          "reader graph edge payload ledger does not close");
+}
+
 std::vector<std::uint32_t> sorted_vertices(
     std::vector<std::uint32_t> vertices) {
   std::sort(vertices.begin(), vertices.end());
@@ -1357,6 +1495,8 @@ int main() {
        test_spine_tiny_gather_preserves_duplicate_reads},
       {"spine_compute_hbm_payload",
        test_spine_compute_consumes_vertex_payload_from_hbm},
+      {"spine_reader_hbm_graph_payload",
+       test_spine_reader_consumes_graph_edge_payload_from_hbm},
       {"spine_multiround_weighted_sssp",
        test_spine_multiround_weighted_sssp_converges},
   };

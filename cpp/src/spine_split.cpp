@@ -10,7 +10,6 @@ namespace spine::sim {
 
 namespace {
 
-constexpr std::uint64_t kGraphWordBytes = 16;
 constexpr std::uint64_t kActiveRecordBytes = 32;
 constexpr std::uint64_t kMetadataWordBytes = 8;
 constexpr std::uint64_t kVertexWordBytes = 4;
@@ -179,6 +178,7 @@ void SpineSplitReader::commit(const CycleContext &context) {
         done_ = true;
         return;
       }
+      consume_memory_response(memory_tasks_.front(), staged_response_);
       waiting_memory_ = false;
       memory_tasks_.pop_front();
       return;
@@ -237,15 +237,32 @@ void SpineSplitReader::commit(const CycleContext &context) {
 }
 
 void SpineSplitReader::enqueue_read(FixedAxiPort &port, std::uint64_t address,
-                                    std::uint64_t bytes) {
-  memory_tasks_.push_back(
-      MemoryTask{.port = &port, .address = address, .bytes = bytes});
+                                    std::uint64_t bytes,
+                                    std::optional<std::uint32_t> edge_source) {
+  memory_tasks_.push_back(MemoryTask{
+      .port = &port,
+      .address = address,
+      .bytes = bytes,
+      .edge_source = edge_source.value_or(0),
+      .edge_payload = edge_source.has_value(),
+  });
   if (&port == ports_.active_bins) {
     counters_.active_bin_read_bytes += bytes;
   } else if (&port == ports_.metadata) {
     counters_.metadata_read_bytes += bytes;
   } else {
     counters_.graph_read_bytes += bytes;
+  }
+}
+
+void SpineSplitReader::consume_memory_response(
+    const MemoryTask &task, const AxiResponse &response) {
+  if (response.read_data.size() != task.bytes) {
+    throw std::logic_error("Spine reader payload size mismatch");
+  }
+  if (task.edge_payload) {
+    loaded_edge_ = decode_spine_level_edge(response.read_data, task.edge_source);
+    counters_.graph_edge_payload_read_bytes += response.read_data.size();
   }
 }
 
@@ -270,7 +287,7 @@ void SpineSplitReader::build_tiles() {
           const std::uint32_t tile_base =
               (edge.dst / kTileVertices) * kTileVertices;
           by_tile[tile_base].push_back(TileTask::Edge{
-              .payload = edge,
+              .source = edge.src,
               .graph_word_address = layout.edge_offset_words + index,
               .graph_bank = family,
               .hot = hot,
@@ -360,20 +377,23 @@ void SpineSplitReader::enqueue_index_reads() {
           counters_.row_lookup_metadata_bytes += kMetadataWordBytes;
           enqueue_read(*ports_.graph[family],
                        (layout.bitmap_offset_words + page * 4 + lane_word) *
-                           kGraphWordBytes,
-                       kGraphWordBytes);
+                           kSpineGraphWordBytes,
+                       kSpineGraphWordBytes);
           enqueue_read(
               *ports_.graph[family],
-              (layout.page_base_offset_words + (page >> 1)) * kGraphWordBytes,
-              kGraphWordBytes);
+              (layout.page_base_offset_words + (page >> 1)) *
+                  kSpineGraphWordBytes,
+              kSpineGraphWordBytes);
           enqueue_read(
               *ports_.graph[family],
-              (layout.row_offset_offset_words + (row >> 1)) * kGraphWordBytes,
-              kGraphWordBytes);
+              (layout.row_offset_offset_words + (row >> 1)) *
+                  kSpineGraphWordBytes,
+              kSpineGraphWordBytes);
           enqueue_read(
               *ports_.graph[family],
-              (layout.mask_offset_words + (row >> 2)) * kGraphWordBytes,
-              kGraphWordBytes);
+              (layout.mask_offset_words + (row >> 2)) *
+                  kSpineGraphWordBytes,
+              kSpineGraphWordBytes);
         }
       }
     }
@@ -393,12 +413,11 @@ PartConvWord SpineSplitReader::current_stream_word() const {
       return PartConvWord{.kind = PartConvWordKind::kTileBegin,
                           .first = tiles_.at(tile_index_).tile_base};
     case Phase::kEdgeEmit: {
-      const SpineEdgeRecord &edge =
-          tiles_.at(tile_index_).edges.at(edge_index_).payload;
       return PartConvWord{
           .kind = PartConvWordKind::kEdge,
-          .first = edge.dst,
-          .second = saturating_add(source_values_.at(edge.src), edge.weight),
+          .first = loaded_edge_.dst,
+          .second = saturating_add(source_values_.at(loaded_edge_.src),
+                                   loaded_edge_.weight),
       };
     }
     case Phase::kTileEnd:
@@ -443,8 +462,9 @@ void SpineSplitReader::advance(const CycleContext &context) {
       enqueue_read(
           *ports_.graph[tiles_[tile_index_].edges[edge_index_].graph_bank],
           tiles_[tile_index_].edges[edge_index_].graph_word_address *
-              kGraphWordBytes,
-          kGraphWordBytes);
+              kSpineGraphWordBytes,
+          kSpineGraphWordBytes,
+          tiles_[tile_index_].edges[edge_index_].source);
       phase_ = Phase::kEdgeEmit;
       return;
     case Phase::kRequestSource:

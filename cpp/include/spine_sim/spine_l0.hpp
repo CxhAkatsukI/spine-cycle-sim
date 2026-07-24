@@ -31,6 +31,11 @@ struct SpineEdgeSlice {
 };
 
 SpineEdgeSlice load_spine_edge_slice(const std::filesystem::path &path);
+inline constexpr std::uint64_t kSpineGraphWordBytes = 8;
+[[nodiscard]] std::vector<std::uint8_t> encode_spine_level_edge(
+    const SpineEdgeRecord &edge);
+[[nodiscard]] SpineEdgeRecord decode_spine_level_edge(
+    const std::vector<std::uint8_t> &data, std::uint32_t source);
 
 struct SpineL0Config {
   std::size_t partitions{16};
@@ -83,6 +88,7 @@ struct SpineL0Counters {
   std::uint64_t metadata_write_bytes{};
   std::uint64_t graph_read_bytes{};
   std::uint64_t graph_write_bytes{};
+  std::uint64_t graph_edge_payload_write_bytes{};
   std::uint64_t result_write_bytes{};
   std::uint64_t unique_sources{};
   std::uint64_t active_families{};
@@ -163,6 +169,7 @@ class SpineL0Maintenance final : public Component {
     std::uint64_t address{};
     std::uint64_t bytes{};
     TaskClass task_class{TaskClass::kSorted};
+    std::vector<std::uint8_t> write_data;
   };
 
   enum class StagedAction { kNone, kAdvance, kIssue, kComplete };
@@ -170,7 +177,8 @@ class SpineL0Maintenance final : public Component {
   void advance(const CycleContext &context);
   void enqueue_task(FixedAxiPort &port, MemoryOperation operation,
                     std::uint64_t address, std::uint64_t bytes,
-                    TaskClass task_class);
+                    TaskClass task_class,
+                    std::vector<std::uint8_t> write_data = {});
   void begin_sorted_scan(Phase process_phase);
   void process_scan_edge(Phase next_phase);
   void enqueue_dirty_source_updates();

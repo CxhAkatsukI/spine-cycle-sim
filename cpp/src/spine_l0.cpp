@@ -14,7 +14,6 @@ namespace spine::sim {
 namespace {
 
 constexpr std::uint64_t kEdgeRecordBytes = 16;
-constexpr std::uint64_t kGraphWordBytes = 16;
 constexpr std::uint64_t kMetadataWordBytes = 8;
 constexpr std::uint64_t kResultWords = 96;
 
@@ -74,6 +73,36 @@ std::vector<SpineEdgeRecord> coalesce_records(
 }
 
 }  // namespace
+
+std::vector<std::uint8_t> encode_spine_level_edge(
+    const SpineEdgeRecord &edge) {
+  const std::uint64_t packed =
+      (static_cast<std::uint64_t>(edge.dst) << 32) |
+      (static_cast<std::uint64_t>(edge.weight) << 16) |
+      static_cast<std::uint16_t>(edge.diff);
+  std::vector<std::uint8_t> data(kSpineGraphWordBytes);
+  for (std::size_t byte = 0; byte < data.size(); ++byte) {
+    data[byte] = static_cast<std::uint8_t>((packed >> (byte * 8)) & 0xffU);
+  }
+  return data;
+}
+
+SpineEdgeRecord decode_spine_level_edge(
+    const std::vector<std::uint8_t> &data, std::uint32_t source) {
+  if (data.size() != kSpineGraphWordBytes) {
+    throw std::invalid_argument("Spine level edge payload must be 64 bits");
+  }
+  std::uint64_t packed = 0;
+  for (std::size_t byte = 0; byte < data.size(); ++byte) {
+    packed |= static_cast<std::uint64_t>(data[byte]) << (byte * 8);
+  }
+  return SpineEdgeRecord{
+      .src = source,
+      .dst = static_cast<std::uint32_t>(packed >> 32),
+      .weight = static_cast<std::uint16_t>((packed >> 16) & 0xffffU),
+      .diff = static_cast<std::int16_t>(packed & 0xffffU),
+  };
+}
 
 std::uint32_t spine_hot_dst_hash(std::uint32_t dst) noexcept {
   std::uint32_t value = dst;
@@ -294,7 +323,7 @@ void SpineL0Maintenance::evaluate(const CycleContext &) {
             .operation = task.operation,
             .address = task.address,
             .bytes = task.bytes,
-            .write_data = {},
+            .write_data = task.write_data,
         })) {
       staged_action_ = StagedAction::kIssue;
     }
@@ -332,9 +361,15 @@ void SpineL0Maintenance::enqueue_task(FixedAxiPort &port,
                                       MemoryOperation operation,
                                       std::uint64_t address,
                                       std::uint64_t bytes,
-                                      TaskClass task_class) {
+                                      TaskClass task_class,
+                                      std::vector<std::uint8_t> write_data) {
   if (bytes == 0) {
     return;
+  }
+  if ((operation == MemoryOperation::kRead && !write_data.empty()) ||
+      (operation == MemoryOperation::kWrite && !write_data.empty() &&
+       write_data.size() != bytes)) {
+    throw std::invalid_argument("invalid Spine maintenance memory payload");
   }
   tasks_.push_back(MemoryTask{
       .port = &port,
@@ -342,6 +377,7 @@ void SpineL0Maintenance::enqueue_task(FixedAxiPort &port,
       .address = address,
       .bytes = bytes,
       .task_class = task_class,
+      .write_data = std::move(write_data),
   });
   ++counters_.memory_tasks;
   switch (task_class) {
@@ -566,26 +602,34 @@ void SpineL0Maintenance::enqueue_family_writes(bool hot, std::size_t family,
   FixedAxiPort &graph = *ports_.graph[family];
   for (const std::uint32_t page : pages) {
     enqueue_task(graph, MemoryOperation::kWrite,
-                 (layout.bitmap_offset_words + page * 4) * kGraphWordBytes,
-                 4 * kGraphWordBytes, TaskClass::kGraph);
+                 (layout.bitmap_offset_words + page * 4) * kSpineGraphWordBytes,
+                 4 * kSpineGraphWordBytes, TaskClass::kGraph);
     enqueue_task(
         graph, MemoryOperation::kWrite,
-        (layout.page_base_offset_words + (page >> 1)) * kGraphWordBytes,
-        kGraphWordBytes, TaskClass::kGraph);
+        (layout.page_base_offset_words + (page >> 1)) * kSpineGraphWordBytes,
+        kSpineGraphWordBytes, TaskClass::kGraph);
   }
   enqueue_task(
       graph, MemoryOperation::kWrite,
-      (layout.page_base_offset_words + (page_count >> 1)) * kGraphWordBytes,
-      kGraphWordBytes, TaskClass::kGraph);
+      (layout.page_base_offset_words + (page_count >> 1)) * kSpineGraphWordBytes,
+      kSpineGraphWordBytes, TaskClass::kGraph);
   enqueue_task(graph, MemoryOperation::kWrite,
-               layout.row_offset_offset_words * kGraphWordBytes,
-               row_words * kGraphWordBytes, TaskClass::kGraph);
+               layout.row_offset_offset_words * kSpineGraphWordBytes,
+               row_words * kSpineGraphWordBytes, TaskClass::kGraph);
   enqueue_task(graph, MemoryOperation::kWrite,
-               layout.mask_offset_words * kGraphWordBytes,
-               mask_words * kGraphWordBytes, TaskClass::kGraph);
+               layout.mask_offset_words * kSpineGraphWordBytes,
+               mask_words * kSpineGraphWordBytes, TaskClass::kGraph);
+  std::vector<std::uint8_t> edge_payload;
+  edge_payload.reserve(edges.size() * kSpineGraphWordBytes);
+  for (const SpineEdgeRecord &edge : edges) {
+    const std::vector<std::uint8_t> packed = encode_spine_level_edge(edge);
+    edge_payload.insert(edge_payload.end(), packed.begin(), packed.end());
+  }
+  counters_.graph_edge_payload_write_bytes += edge_payload.size();
   enqueue_task(graph, MemoryOperation::kWrite,
-               layout.edge_offset_words * kGraphWordBytes,
-               edges.size() * kGraphWordBytes, TaskClass::kGraph);
+               layout.edge_offset_words * kSpineGraphWordBytes,
+               edges.size() * kSpineGraphWordBytes, TaskClass::kGraph,
+               std::move(edge_payload));
 
   counters_.pages_stamped += pages.size();
   counters_.persisted_edges += edges.size();
@@ -633,22 +677,22 @@ void SpineL0Maintenance::enqueue_carry_reads(bool hot, std::size_t family,
                  TaskClass::kMetadata);
     for (const std::uint32_t page : pages) {
       enqueue_task(graph, MemoryOperation::kRead,
-                   (layout.bitmap_offset_words + page * 4) * kGraphWordBytes,
-                   4 * kGraphWordBytes, TaskClass::kGraph);
+                   (layout.bitmap_offset_words + page * 4) * kSpineGraphWordBytes,
+                   4 * kSpineGraphWordBytes, TaskClass::kGraph);
       enqueue_task(
           graph, MemoryOperation::kRead,
-          (layout.page_base_offset_words + (page >> 1)) * kGraphWordBytes,
-          kGraphWordBytes, TaskClass::kGraph);
+          (layout.page_base_offset_words + (page >> 1)) * kSpineGraphWordBytes,
+          kSpineGraphWordBytes, TaskClass::kGraph);
     }
     enqueue_task(graph, MemoryOperation::kRead,
-                 layout.row_offset_offset_words * kGraphWordBytes,
-                 ((rows + 2) >> 1) * kGraphWordBytes, TaskClass::kGraph);
+                 layout.row_offset_offset_words * kSpineGraphWordBytes,
+                 ((rows + 2) >> 1) * kSpineGraphWordBytes, TaskClass::kGraph);
     enqueue_task(graph, MemoryOperation::kRead,
-                 layout.mask_offset_words * kGraphWordBytes,
-                 ((rows + 3) >> 2) * kGraphWordBytes, TaskClass::kGraph);
+                 layout.mask_offset_words * kSpineGraphWordBytes,
+                 ((rows + 3) >> 2) * kSpineGraphWordBytes, TaskClass::kGraph);
     enqueue_task(graph, MemoryOperation::kRead,
-                 layout.edge_offset_words * kGraphWordBytes,
-                 edges.size() * kGraphWordBytes, TaskClass::kGraph);
+                 layout.edge_offset_words * kSpineGraphWordBytes,
+                 edges.size() * kSpineGraphWordBytes, TaskClass::kGraph);
     counters_.carry_level_payload_reads += edges.size();
   }
 }
