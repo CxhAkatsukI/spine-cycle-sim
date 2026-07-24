@@ -1,27 +1,31 @@
 digraph SpineExactRangeTaskReader {
-  graph [rankdir=TB, bgcolor="#FAFAF8", pad="0.25", nodesep="0.32", ranksep="0.58", splines=ortho, compound=true, newrank=true, fontname="DejaVu Sans", label="Spine exact range-task reader mapped from reduce-levels-for-routing", labelloc=t, fontsize=18];
+  graph [rankdir=TB, bgcolor="#FAFAF8", pad="0.25", nodesep="0.34", ranksep="0.58", splines=ortho, compound=true, newrank=true, fontname="DejaVu Sans", label="Spine payload-authoritative exact range-task reader", labelloc=t, fontsize=18];
   node [shape=box, style="rounded,filled", fillcolor="#FFFFFF", color="#59636E", fontname="DejaVu Sans", fontsize=10, margin="0.14,0.09"];
   edge [color="#59636E", fontname="DejaVu Sans", fontsize=9, arrowsize=0.7];
 
-  subgraph cluster_front {
-    label="Reader front end"; color="#557A66"; style="rounded,filled"; fillcolor="#EDF5F0";
-    active [label="Active source IDs\nsource-value request/reply"];
-    active_hbm [label="active_bins HBM read\n32 B / record\ntiming-only payload today", color="#A86A45", style="rounded,filled,dashed"];
-    level_cache [label="32 families x 11 levels\nlevel metadata cache\n1 occupied check / family/source/level"];
-    logical_meta [label="Logical level state\noccupancy + edge_count + layout\nremaining bypass", color="#A84C4C", fillcolor="#FBECEC", style="rounded,filled,dashed"];
-    active -> level_cache [style=invis];
-    active_hbm -> active [style=dashed, label="not decoded"];
-    logical_meta -> level_cache [style=dashed];
+  subgraph cluster_frontier {
+    label="Payload-authoritative frontier"; color="#557A66"; style="rounded,filled"; fillcolor="#EDF5F0";
+    control [label="HBM metadata control\nmagic | version | features"];
+    dirty_meta [label="DEVICE_DIRTY metadata\ncount | generation | sum/xor hash"];
+    dirty_hbm [label="HBM16 dirty list + bitmap\nvalidate range, hash, membership"];
+    source_axis [label="Source-value AXIS\nrequest / reply"];
+    active_meta [label="HOST_ACTIVE metadata\n16 offsets + 16 counts"];
+    active_hbm [label="active_bins HBM\n256-bit records"];
+    decode [label="Decoded active record\nsrc | value | 11 level masks | hot mask"];
+    control -> dirty_meta -> dirty_hbm -> source_axis -> decode;
+    control -> active_meta -> active_hbm -> decode;
   }
 
-  subgraph cluster_lookup {
-    label="Exact source-row lookup"; color="#426B8A"; style="rounded,filled"; fillcolor="#EAF2F8";
-    epoch [label="slice/page epoch HBM reads\ncomparison still pending", color="#A86A45", style="rounded,filled,dashed"];
+  subgraph cluster_metadata {
+    label="HBM level metadata and exact row lookup"; color="#426B8A"; style="rounded,filled"; fillcolor="#EAF2F8";
+    occupancy [label="32 families x 11 levels\noccupied word first"];
+    level_cache [label="Occupied slice payload\nedge/row counts + five offsets + slice epoch"];
+    epoch [label="Page epoch payload\nmust equal slice epoch"];
     bitmap [label="selected bitmap word\nmiss stops lookup"];
     rank [label="earlier bitmap words\npopcount rank"];
     pagebase [label="packed page-base word"];
     rowoffset [label="packed row offsets\n[start, end)"];
-    bitmap -> rank -> pagebase -> rowoffset;
+    occupancy -> level_cache -> epoch -> bitmap -> rank -> pagebase -> rowoffset;
   }
 
   subgraph cluster_construct {
@@ -53,11 +57,13 @@ digraph SpineExactRangeTaskReader {
     tileloop -> read2 -> axis -> compute;
   }
 
-  active -> bitmap [label="source"];
-  level_cache -> bitmap [label="occupied level"];
-  epoch -> bitmap [style=dashed, label="read, not yet gated"];
+  decode -> occupancy [label="source + masks"];
   bitmap -> read1 [label="row hit", lhead=cluster_construct];
   rowoffset -> read1 [label="exact range"];
   desc -> unsorted;
   binned -> tileloop;
+
+  protocol_gap [label="Remaining protocol/timing gaps\nrequest windows + ACK/diagnostics\nfallback execution + pipelined AXI\nURAM/BRAM bank conflicts", color="#A86A45", fillcolor="#FFF3E8", style="rounded,filled,dashed"];
+  protocol_gap -> source_axis [style=dashed, arrowhead=none];
+  protocol_gap -> unsorted [style=dashed, arrowhead=none];
 }

@@ -17,22 +17,8 @@ constexpr std::uint64_t kActiveOutputBytes = 8;
 constexpr std::uint64_t kResultBytes = 96 * 4;
 constexpr std::uint32_t kTileVertices = 65'536;
 constexpr std::uint64_t kMetadataWordsPerSlice = 8;
-constexpr std::uint64_t kFamilyCount = 32;
 constexpr std::uint64_t kLevelCount = 11;
 constexpr std::uint64_t kPartitionCount = 16;
-constexpr std::uint64_t kPageCount = (1U << 24) / 256;
-constexpr std::uint64_t kMetadataSliceWords =
-    kFamilyCount * kLevelCount * kMetadataWordsPerSlice;
-constexpr std::uint64_t kMetadataBaseWords =
-    kMetadataSliceWords + 2 * kPartitionCount;
-constexpr std::uint64_t kTouchedSlotWords = 5 + kPageCount;
-constexpr std::uint64_t kTouchedWords = kMetadataBaseWords +
-                                        2 * kPartitionCount +
-                                        2 * kPartitionCount * kTouchedSlotWords;
-constexpr std::uint64_t kSliceEpochBaseWords = kTouchedWords;
-constexpr std::uint64_t kSliceEpochWords = (kFamilyCount * kLevelCount + 1) / 2;
-constexpr std::uint64_t kPageEpochBaseWords =
-    kSliceEpochBaseWords + kSliceEpochWords;
 constexpr std::size_t kRangeTaskCapacity = 65'536;
 constexpr std::size_t kRangeTaskActiveGate = 16'384;
 constexpr std::uint64_t kRangeTaskPayloadBudget = 1'048'576;
@@ -67,6 +53,14 @@ std::vector<std::uint8_t> encode_u32(std::uint32_t value) {
       static_cast<std::uint8_t>((value >> 16) & 0xffU),
       static_cast<std::uint8_t>((value >> 24) & 0xffU),
   };
+}
+
+std::vector<std::uint8_t> encode_u64(std::uint64_t value) {
+  std::vector<std::uint8_t> data(sizeof(value));
+  for (std::size_t byte = 0; byte < sizeof(value); ++byte) {
+    data[byte] = static_cast<std::uint8_t>((value >> (byte * 8)) & 0xffU);
+  }
+  return data;
 }
 
 std::uint32_t decode_u32(const std::vector<std::uint8_t> &data,
@@ -107,19 +101,19 @@ std::vector<std::uint8_t> encode_u32_words(
 
 SpineSplitReader::SpineSplitReader(std::string name, ClockId clock_id,
                                    const SpineL0Maintenance &maintenance,
-                                   const SpineL0State &state,
                                    SpineReaderPorts ports,
                                    std::vector<std::uint32_t> active_sources,
                                    Fifo<PartConvWord> &edge_out,
-                                   Fifo<SourceValueWord> &value_in)
+                                   Fifo<SourceValueWord> &value_in,
+                                   SpineReaderMode mode)
     : Component(std::move(name), clock_id),
       maintenance_(maintenance),
-      state_(state),
       ports_(ports),
+      mode_(mode),
       active_sources_(std::move(active_sources)),
       edge_out_(edge_out),
       value_in_(value_in) {
-  if (active_sources_.empty() || ports_.active_bins == nullptr ||
+  if (ports_.task_scratch == nullptr || ports_.active_bins == nullptr ||
       ports_.metadata == nullptr || edge_out_.clock_id() != clock_id ||
       value_in_.clock_id() != clock_id) {
     throw std::invalid_argument("invalid Spine split reader configuration");
@@ -136,7 +130,49 @@ void SpineSplitReader::reset_round(std::vector<std::uint32_t> active_sources) {
       active_sources.empty()) {
     throw std::logic_error("reader round reset requires a successful drain");
   }
+  mode_ = SpineReaderMode::kDeviceDirty;
   active_sources_ = std::move(active_sources);
+  reset_state();
+}
+
+void SpineSplitReader::reset_host_round(const SpineActiveBins &active_bins) {
+  if (!done_ || failed_ || waiting_memory_ || !memory_tasks_.empty()) {
+    throw std::logic_error(
+        "reader host-active reset requires a successful drain");
+  }
+  mode_ = SpineReaderMode::kHostActive;
+  const SpineMetadataLayout metadata =
+      spine_metadata_layout(maintenance_.config());
+  std::uint64_t offset = 0;
+  for (std::size_t partition = 0; partition < active_bins.bins.size();
+       ++partition) {
+    const auto &bin = active_bins.bins[partition];
+    ports_.metadata->initialize_payload(
+        maintenance_.config().metadata_base +
+            (metadata.active_bin_offset_base + partition) * kMetadataWordBytes,
+        encode_u64(offset));
+    ports_.metadata->initialize_payload(
+        maintenance_.config().metadata_base +
+            (metadata.active_bin_count_base + partition) * kMetadataWordBytes,
+        encode_u64(bin.size()));
+    std::vector<std::uint8_t> payload;
+    payload.reserve(bin.size() * kActiveRecordBytes);
+    for (const SpineActiveRecord &record : bin) {
+      const std::vector<std::uint8_t> encoded =
+          encode_spine_active_record(record);
+      payload.insert(payload.end(), encoded.begin(), encoded.end());
+    }
+    if (!payload.empty()) {
+      ports_.active_bins->initialize_payload(offset * kActiveRecordBytes,
+                                             payload);
+    }
+    offset += bin.size();
+  }
+  active_sources_.clear();
+  reset_state();
+}
+
+void SpineSplitReader::reset_state() {
   counters_ = {};
   for (std::size_t tile = 0; tile < tiles_.size(); ++tile) {
     tiles_[tile].tile_base = static_cast<std::uint32_t>(tile * kTileVertices);
@@ -147,6 +183,9 @@ void SpineSplitReader::reset_round(std::vector<std::uint32_t> active_sources) {
   tile_cursors_.fill(0);
   range_probes_.clear();
   range_tasks_.clear();
+  active_records_.clear();
+  host_active_bins_ = {};
+  level_cache_ = {};
   source_values_.clear();
   memory_tasks_.clear();
   phase_ = Phase::kWaitMaintenance;
@@ -165,10 +204,32 @@ void SpineSplitReader::reset_round(std::vector<std::uint32_t> active_sources) {
   range_index_ = 0;
   range_edge_index_ = 0;
   source_index_ = 0;
+  metadata_control_ = 0;
+  dirty_count_ = 0;
+  dirty_generation_ = 0;
+  dirty_hash_sum_ = 0;
+  dirty_hash_xor_ = 0;
+  active_bin_offsets_.fill(0);
+  active_bin_counts_.fill(0);
+  dirty_payload_valid_ = true;
   waiting_memory_ = false;
   done_ = false;
   failed_ = false;
   failure_.clear();
+}
+
+std::vector<std::uint32_t> SpineSplitReader::active_source_ids() const {
+  std::vector<std::uint32_t> sources;
+  sources.reserve(active_records_.size());
+  for (const SpineActiveRecord &record : active_records_) {
+    sources.push_back(record.source);
+  }
+  if (sources.empty()) {
+    sources = active_sources_;
+  }
+  std::sort(sources.begin(), sources.end());
+  sources.erase(std::unique(sources.begin(), sources.end()), sources.end());
+  return sources;
 }
 
 void SpineSplitReader::evaluate(const CycleContext &) {
@@ -247,8 +308,9 @@ void SpineSplitReader::commit(const CycleContext &context) {
       source_values_[staged_value_.source] = staged_value_.value;
       ++counters_.source_responses;
       ++source_index_;
-      phase_ = source_index_ == active_sources_.size() ? Phase::kSetupReads
-                                                       : Phase::kRequestSource;
+      phase_ = source_index_ == active_sources_.size()
+                   ? Phase::kLevelOccupancyBegin
+                   : Phase::kRequestSource;
       return;
     case Action::kPush:
       switch (phase_) {
@@ -294,17 +356,23 @@ void SpineSplitReader::commit(const CycleContext &context) {
 void SpineSplitReader::enqueue_read(FixedAxiPort &port, std::uint64_t address,
                                     std::uint64_t bytes,
                                     MemoryPayloadKind payload_kind,
-                                    std::size_t probe_index,
+                                    std::size_t item_index,
                                     std::uint32_t edge_source) {
   memory_tasks_.push_back(MemoryTask{
       .port = &port,
       .address = address,
       .bytes = bytes,
       .edge_source = edge_source,
-      .probe_index = probe_index,
+      .item_index = item_index,
       .payload_kind = payload_kind,
   });
-  if (&port == ports_.active_bins) {
+  if (&port == ports_.task_scratch) {
+    if (payload_kind == MemoryPayloadKind::kDirtyList) {
+      counters_.dirty_list_read_bytes += bytes;
+    } else if (payload_kind == MemoryPayloadKind::kDirtyBitmap) {
+      counters_.dirty_bitmap_read_bytes += bytes;
+    }
+  } else if (&port == ports_.active_bins) {
     counters_.active_bin_read_bytes += bytes;
   } else if (&port == ports_.metadata) {
     counters_.metadata_read_bytes += bytes;
@@ -319,19 +387,117 @@ void SpineSplitReader::consume_memory_response(const MemoryTask &task,
     throw std::logic_error("Spine reader payload size mismatch");
   }
   const bool probe_payload =
+      task.payload_kind == MemoryPayloadKind::kPageEpoch ||
       task.payload_kind == MemoryPayloadKind::kIndexBitmapSelected ||
       task.payload_kind == MemoryPayloadKind::kIndexBitmapPrefix ||
       task.payload_kind == MemoryPayloadKind::kIndexPageBase ||
       task.payload_kind == MemoryPayloadKind::kIndexRow ||
       task.payload_kind == MemoryPayloadKind::kIndexNextRow;
-  if (probe_payload && task.probe_index >= range_probes_.size()) {
+  if (probe_payload && task.item_index >= range_probes_.size()) {
     throw std::logic_error("Spine reader response references an invalid probe");
   }
   switch (task.payload_kind) {
     case MemoryPayloadKind::kNone:
       return;
+    case MemoryPayloadKind::kMetadataControl:
+      metadata_control_ = decode_u64(response.read_data);
+      return;
+    case MemoryPayloadKind::kDirtyCount:
+      dirty_count_ = decode_u64(response.read_data);
+      return;
+    case MemoryPayloadKind::kDirtyGeneration:
+      dirty_generation_ =
+          static_cast<std::uint32_t>(decode_u64(response.read_data));
+      return;
+    case MemoryPayloadKind::kDirtyHashSum:
+      dirty_hash_sum_ = decode_u64(response.read_data);
+      return;
+    case MemoryPayloadKind::kDirtyHashXor:
+      dirty_hash_xor_ = decode_u64(response.read_data);
+      return;
+    case MemoryPayloadKind::kDirtyList: {
+      if (task.item_index >= active_sources_.size()) {
+        throw std::logic_error("dirty-list response index is out of bounds");
+      }
+      active_sources_[task.item_index] = decode_u32(
+          response.read_data, (task.item_index & 3U) * sizeof(std::uint32_t));
+      return;
+    }
+    case MemoryPayloadKind::kDirtyBitmap: {
+      const std::uint32_t source = task.edge_source;
+      const std::size_t byte = (source & 127U) >> 3;
+      const std::uint8_t bit = static_cast<std::uint8_t>(1U << (source & 7U));
+      if (byte >= response.read_data.size() ||
+          (response.read_data[byte] & bit) == 0) {
+        dirty_payload_valid_ = false;
+      }
+      return;
+    }
+    case MemoryPayloadKind::kActiveBinMetadata: {
+      const std::size_t partition = task.item_index % kPartitionCount;
+      if (task.item_index < kPartitionCount) {
+        active_bin_offsets_[partition] = decode_u64(response.read_data);
+      } else {
+        active_bin_counts_[partition] = decode_u64(response.read_data);
+      }
+      return;
+    }
+    case MemoryPayloadKind::kActiveRecords: {
+      if (task.item_index >= host_active_bins_.bins.size() ||
+          response.read_data.size() % kActiveRecordBytes != 0) {
+        throw std::logic_error("active-record payload shape is invalid");
+      }
+      auto &bin = host_active_bins_.bins[task.item_index];
+      for (std::size_t offset = 0; offset < response.read_data.size();
+           offset += kActiveRecordBytes) {
+        const SpineActiveRecord record = decode_spine_active_record(
+            std::span<const std::uint8_t>(response.read_data)
+                .subspan(offset, kActiveRecordBytes));
+        bin.push_back(record);
+        active_records_.push_back(record);
+      }
+      return;
+    }
+    case MemoryPayloadKind::kLevelOccupied:
+      if (task.item_index >= level_cache_.size()) {
+        throw std::logic_error("level occupancy index is out of bounds");
+      }
+      level_cache_[task.item_index].occupied =
+          decode_u64(response.read_data) != 0;
+      return;
+    case MemoryPayloadKind::kLevelFields: {
+      if (task.item_index >= level_cache_.size() ||
+          response.read_data.size() != 7 * kMetadataWordBytes) {
+        throw std::logic_error("level metadata response shape is invalid");
+      }
+      LevelCacheEntry &entry = level_cache_[task.item_index];
+      entry.edge_count = decode_u64(response.read_data, 0);
+      entry.row_count = decode_u64(response.read_data, 8);
+      entry.layout.bitmap_offset_words = decode_u64(response.read_data, 16);
+      entry.layout.page_base_offset_words = decode_u64(response.read_data, 24);
+      entry.layout.row_offset_offset_words = decode_u64(response.read_data, 32);
+      entry.layout.mask_offset_words = decode_u64(response.read_data, 40);
+      entry.layout.edge_offset_words = decode_u64(response.read_data, 48);
+      return;
+    }
+    case MemoryPayloadKind::kSliceEpoch: {
+      if (task.item_index >= level_cache_.size()) {
+        throw std::logic_error("slice epoch index is out of bounds");
+      }
+      const std::uint64_t packed = decode_u64(response.read_data);
+      level_cache_[task.item_index].slice_epoch = static_cast<std::uint32_t>(
+          (packed >> ((task.item_index & 1U) * 32)) & 0xffffffffULL);
+      return;
+    }
+    case MemoryPayloadKind::kPageEpoch: {
+      const std::uint64_t packed = decode_u64(response.read_data);
+      const RangeProbe &probe = range_probes_[task.item_index];
+      range_probes_[task.item_index].page_epoch = static_cast<std::uint32_t>(
+          (packed >> ((probe.page & 1U) * 32)) & 0xffffffffULL);
+      return;
+    }
     case MemoryPayloadKind::kIndexBitmapSelected: {
-      RangeProbe &probe = range_probes_[task.probe_index];
+      RangeProbe &probe = range_probes_[task.item_index];
       probe.bitmap_words.assign(probe.lane_word + 1, 0);
       probe.bitmap_words[probe.lane_word] = decode_u64(response.read_data);
       counters_.graph_index_payload_read_bytes += response.read_data.size();
@@ -339,7 +505,7 @@ void SpineSplitReader::consume_memory_response(const MemoryTask &task,
       return;
     }
     case MemoryPayloadKind::kIndexBitmapPrefix: {
-      RangeProbe &probe = range_probes_[task.probe_index];
+      RangeProbe &probe = range_probes_[task.item_index];
       const std::size_t words =
           response.read_data.size() / kSpineGraphWordBytes;
       if (probe.bitmap_words.size() != probe.lane_word + 1 ||
@@ -355,16 +521,16 @@ void SpineSplitReader::consume_memory_response(const MemoryTask &task,
       return;
     }
     case MemoryPayloadKind::kIndexPageBase:
-      range_probes_[task.probe_index].page_base_word =
+      range_probes_[task.item_index].page_base_word =
           decode_u64(response.read_data);
       counters_.graph_index_payload_read_bytes += response.read_data.size();
       return;
     case MemoryPayloadKind::kIndexRow:
-      range_probes_[task.probe_index].row_word = decode_u64(response.read_data);
+      range_probes_[task.item_index].row_word = decode_u64(response.read_data);
       counters_.graph_index_payload_read_bytes += response.read_data.size();
       return;
     case MemoryPayloadKind::kIndexNextRow:
-      range_probes_[task.probe_index].next_row_word =
+      range_probes_[task.item_index].next_row_word =
           decode_u64(response.read_data);
       counters_.graph_index_payload_read_bytes += response.read_data.size();
       return;
@@ -398,9 +564,72 @@ void SpineSplitReader::consume_memory_response(const MemoryTask &task,
   }
 }
 
+void SpineSplitReader::begin_source_header_reads() {
+  const SpineMetadataLayout metadata =
+      spine_metadata_layout(maintenance_.config());
+  enqueue_read(*ports_.metadata,
+               maintenance_.config().metadata_base +
+                   metadata.hot_enabled_word * kMetadataWordBytes,
+               kMetadataWordBytes, MemoryPayloadKind::kMetadataControl);
+  if (mode_ == SpineReaderMode::kDeviceDirty) {
+    enqueue_read(*ports_.metadata,
+                 maintenance_.config().metadata_base +
+                     metadata.dirty_count_word * kMetadataWordBytes,
+                 kMetadataWordBytes, MemoryPayloadKind::kDirtyCount);
+    enqueue_read(*ports_.metadata,
+                 maintenance_.config().metadata_base +
+                     metadata.dirty_generation_word * kMetadataWordBytes,
+                 kMetadataWordBytes, MemoryPayloadKind::kDirtyGeneration);
+    enqueue_read(*ports_.metadata,
+                 maintenance_.config().metadata_base +
+                     metadata.dirty_hash_sum_word * kMetadataWordBytes,
+                 kMetadataWordBytes, MemoryPayloadKind::kDirtyHashSum);
+    enqueue_read(*ports_.metadata,
+                 maintenance_.config().metadata_base +
+                     metadata.dirty_hash_xor_word * kMetadataWordBytes,
+                 kMetadataWordBytes, MemoryPayloadKind::kDirtyHashXor);
+  } else {
+    for (std::size_t partition = 0; partition < kPartitionCount; ++partition) {
+      enqueue_read(*ports_.metadata,
+                   maintenance_.config().metadata_base +
+                       (metadata.active_bin_offset_base + partition) *
+                           kMetadataWordBytes,
+                   kMetadataWordBytes, MemoryPayloadKind::kActiveBinMetadata,
+                   partition);
+      enqueue_read(
+          *ports_.metadata,
+          maintenance_.config().metadata_base +
+              (metadata.active_bin_count_base + partition) * kMetadataWordBytes,
+          kMetadataWordBytes, MemoryPayloadKind::kActiveBinMetadata,
+          kPartitionCount + partition);
+    }
+  }
+}
+
+void SpineSplitReader::validate_control() {
+  if (!spine_metadata_control_valid(metadata_control_)) {
+    counters_.range_task_path = kRangeTaskPathError;
+    counters_.range_task_error = 1;
+    failed_ = true;
+    done_ = true;
+    failure_ =
+        "reader metadata control word has the wrong magic/version/features";
+  }
+}
+
 void SpineSplitReader::prepare_range_probes() {
-  counters_.range_task_active_records = active_sources_.size();
-  if (active_sources_.size() > kRangeTaskActiveGate) {
+  if (mode_ == SpineReaderMode::kDeviceDirty) {
+    active_records_.clear();
+    active_records_.reserve(active_sources_.size());
+    for (const std::uint32_t source : active_sources_) {
+      active_records_.push_back(SpineActiveRecord{
+          .source = source,
+          .source_value = source_values_.at(source),
+      });
+    }
+  }
+  counters_.range_task_active_records = active_records_.size();
+  if (active_records_.size() > kRangeTaskActiveGate) {
     counters_.range_task_path = kRangeTaskPathFallback;
     counters_.range_task_fallback_reason = kRangeTaskFallbackActiveGate;
     failed_ = true;
@@ -408,9 +637,9 @@ void SpineSplitReader::prepare_range_probes() {
     failure_ = "device-dirty exact path exceeded the active-record gate";
     return;
   }
-  for (const std::uint32_t source : active_sources_) {
-    if (source >= maintenance_.vertices() ||
-        source >= maintenance_.config().max_vertices) {
+  for (const SpineActiveRecord &record : active_records_) {
+    if (record.source >= maintenance_.vertices() ||
+        record.source >= maintenance_.config().max_vertices) {
       counters_.range_task_path = kRangeTaskPathError;
       counters_.range_task_error = kRangeTaskErrorActiveBounds;
       failed_ = true;
@@ -420,54 +649,109 @@ void SpineSplitReader::prepare_range_probes() {
     }
   }
 
-  const auto visit = [&](const auto &families, bool hot) {
-    for (std::size_t family = 0; family < families.size(); ++family) {
-      for (const std::uint32_t source : active_sources_) {
-        ++counters_.range_task_family_probes;
-        for (std::size_t level_index = 0; level_index < families[family].size();
-             ++level_index) {
-          const auto &level = families[family][level_index];
-          if (level.size() > std::numeric_limits<std::uint32_t>::max()) {
-            counters_.range_task_path = kRangeTaskPathError;
-            counters_.range_task_error = kRangeTaskErrorMetadata;
-            failed_ = true;
-            done_ = true;
-            failure_ = "occupied level exceeds the range-task edge-count field";
-            return;
-          }
-          const std::uint32_t lane =
-              source % maintenance_.config().page_vertices;
-          range_probes_.push_back(RangeProbe{
-              .source = source,
-              .source_value = source_values_.at(source),
-              .family = family,
-              .level = level_index,
-              .hot = hot,
-              .layout =
-                  spine_level_layout(maintenance_.config(), hot, level_index),
-              .edge_count = static_cast<std::uint32_t>(level.size()),
-              .page = source / maintenance_.config().page_vertices,
-              .lane_word = lane / 64,
-              .lane_bit = lane % 64,
-              .bitmap_words = {},
-              .page_base_word = 0,
-              .row_word = 0,
-              .next_row_word = 0,
-              .rank = 0,
-              .row = 0,
-              .start = 0,
-              .end = 0,
-          });
-          if (!level.empty()) {
-            ++counters_.range_task_row_lookups;
+  const auto visit_record = [&](const SpineActiveRecord &record,
+                                std::size_t family, bool hot,
+                                std::size_t destination_partition,
+                                bool all_families) {
+    bool family_enabled = all_families;
+    if (!all_families) {
+      if (hot) {
+        family_enabled = ((record.hot_shard_mask >> family) & 1U) != 0;
+      } else {
+        for (const std::uint16_t mask : record.level_masks) {
+          family_enabled =
+              family_enabled || ((mask >> destination_partition) & 1U) != 0;
+        }
+      }
+    }
+    if (!family_enabled) {
+      ++counters_.range_task_family_skips;
+      return;
+    }
+    ++counters_.range_task_family_probes;
+    const std::size_t logical_family = hot ? 16 + family : family;
+    for (std::size_t level_index = 0; level_index < kLevelCount;
+         ++level_index) {
+      ++counters_.range_task_level_checks;
+      if (!all_families && !hot &&
+          ((record.level_masks[level_index] >> destination_partition) & 1U) ==
+              0) {
+        continue;
+      }
+      const LevelCacheEntry &level =
+          level_cache_[logical_family * kLevelCount + level_index];
+      if (!level.occupied) {
+        continue;
+      }
+      if (!level.valid) {
+        counters_.range_task_path = kRangeTaskPathError;
+        counters_.range_task_error = kRangeTaskErrorMetadata;
+        failed_ = true;
+        done_ = true;
+        failure_ = "occupied level metadata failed HLS range-cache validation";
+        return;
+      }
+      if (level.edge_count > std::numeric_limits<std::uint32_t>::max()) {
+        counters_.range_task_path = kRangeTaskPathError;
+        counters_.range_task_error = kRangeTaskErrorMetadata;
+        failed_ = true;
+        done_ = true;
+        failure_ = "occupied level exceeds the range-task edge-count field";
+        return;
+      }
+      const std::uint32_t lane =
+          record.source % maintenance_.config().page_vertices;
+      range_probes_.push_back(RangeProbe{
+          .source = record.source,
+          .source_value = record.source_value,
+          .family = family,
+          .level = level_index,
+          .hot = hot,
+          .layout = level.layout,
+          .edge_count = static_cast<std::uint32_t>(level.edge_count),
+          .slice_epoch = level.slice_epoch,
+          .page_epoch = 0,
+          .page = record.source / maintenance_.config().page_vertices,
+          .lane_word = lane / 64,
+          .lane_bit = lane % 64,
+          .bitmap_words = {},
+          .page_base_word = 0,
+          .row_word = 0,
+          .next_row_word = 0,
+          .rank = 0,
+          .row = 0,
+          .start = 0,
+          .end = 0,
+      });
+      ++counters_.range_task_row_lookups;
+    }
+  };
+
+  if (mode_ == SpineReaderMode::kDeviceDirty) {
+    for (std::size_t family = 0; family < kPartitionCount; ++family) {
+      for (const SpineActiveRecord &record : active_records_) {
+        visit_record(record, family, false, family, true);
+      }
+    }
+    if ((metadata_control_ & 1U) != 0) {
+      for (std::size_t shard = 0; shard < kPartitionCount; ++shard) {
+        for (const SpineActiveRecord &record : active_records_) {
+          visit_record(record, shard, true, 0, true);
+        }
+      }
+    }
+  } else {
+    for (std::size_t partition = 0; partition < kPartitionCount; ++partition) {
+      for (const SpineActiveRecord &record :
+           host_active_bins_.bins[partition]) {
+        visit_record(record, partition, false, partition, false);
+        if ((metadata_control_ & 1U) != 0) {
+          for (std::size_t shard = 0; shard < kPartitionCount; ++shard) {
+            visit_record(record, shard, true, partition, false);
           }
         }
       }
     }
-  };
-  visit(state_.cold_levels, false);
-  if (!failed_ && state_.hot_enabled) {
-    visit(state_.hot_levels, true);
   }
 }
 
@@ -481,23 +765,37 @@ void SpineSplitReader::enqueue_probe_index_reads() {
   probe.row_word = 0;
   probe.next_row_word = 0;
   probe.rank = 0;
+  probe.page_epoch = 0;
   const std::uint64_t logical_family =
       probe.hot ? 16 + probe.family : probe.family;
   const std::uint64_t slice = logical_family * kLevelCount + probe.level;
-  const std::uint64_t page_epoch_index = slice * kPageCount + probe.page;
+  const std::uint64_t page_epoch_index =
+      slice * spine_metadata_layout(maintenance_.config()).page_count +
+      probe.page;
   enqueue_read(
       *ports_.metadata,
       maintenance_.config().metadata_base +
-          (kPageEpochBaseWords + (page_epoch_index >> 1)) * kMetadataWordBytes,
-      kMetadataWordBytes);
+          (spine_metadata_layout(maintenance_.config()).page_epoch_base +
+           (page_epoch_index >> 1)) *
+              kMetadataWordBytes,
+      kMetadataWordBytes, MemoryPayloadKind::kPageEpoch, probe_index_);
   counters_.row_lookup_metadata_bytes += kMetadataWordBytes;
+}
 
+void SpineSplitReader::resolve_probe_epoch() {
+  RangeProbe &probe = range_probes_.at(probe_index_);
+  if (probe.slice_epoch == 0 || probe.page_epoch != probe.slice_epoch) {
+    ++counters_.graph_index_epoch_misses;
+    phase_ = Phase::kProbeAdvance;
+    return;
+  }
   enqueue_read(*ports_.graph[probe.family],
                (probe.layout.bitmap_offset_words +
                 static_cast<std::uint64_t>(probe.page) * 4 + probe.lane_word) *
                    kSpineGraphWordBytes,
                kSpineGraphWordBytes, MemoryPayloadKind::kIndexBitmapSelected,
                probe_index_);
+  phase_ = Phase::kProbeIndexResolve;
 }
 
 void SpineSplitReader::resolve_probe_index() {
@@ -713,38 +1011,73 @@ void SpineSplitReader::consume_construction_edge() {
 }
 
 void SpineSplitReader::enqueue_level_cache_reads() {
-  const auto visit = [&](const auto &families, bool hot) {
-    for (std::size_t family_index = 0; family_index < families.size();
-         ++family_index) {
-      const std::size_t logical_family =
-          hot ? families.size() + family_index : family_index;
-      for (std::size_t level_index = 0;
-           level_index < families[family_index].size(); ++level_index) {
-        const auto &level = families[family_index][level_index];
-        const std::uint64_t slice = logical_family * kLevelCount + level_index;
-        const std::uint64_t slice_base =
-            slice * kMetadataWordsPerSlice * kMetadataWordBytes;
-        const std::uint64_t bytes =
-            level.empty() ? kMetadataWordBytes : 8 * kMetadataWordBytes;
-        const std::uint64_t address =
-            maintenance_.config().metadata_base +
-            (level.empty() ? slice_base + 7 * kMetadataWordBytes : slice_base);
-        enqueue_read(*ports_.metadata, address, bytes);
-        counters_.level_cache_read_bytes += bytes;
-        if (!level.empty()) {
-          enqueue_read(
-              *ports_.metadata,
-              maintenance_.config().metadata_base +
-                  (kSliceEpochBaseWords + (slice >> 1)) * kMetadataWordBytes,
-              kMetadataWordBytes);
-          counters_.level_cache_read_bytes += kMetadataWordBytes;
-          ++counters_.occupied_levels;
-        }
-      }
+  level_cache_ = {};
+  for (std::size_t slice = 0; slice < level_cache_.size(); ++slice) {
+    enqueue_read(*ports_.metadata,
+                 maintenance_.config().metadata_base +
+                     (slice * kMetadataWordsPerSlice + 7) * kMetadataWordBytes,
+                 kMetadataWordBytes, MemoryPayloadKind::kLevelOccupied, slice);
+    counters_.level_cache_read_bytes += kMetadataWordBytes;
+  }
+}
+
+void SpineSplitReader::enqueue_level_detail_reads() {
+  const SpineMetadataLayout metadata =
+      spine_metadata_layout(maintenance_.config());
+  for (std::size_t slice = 0; slice < level_cache_.size(); ++slice) {
+    if (!level_cache_[slice].occupied) {
+      continue;
     }
+    ++counters_.occupied_levels;
+    enqueue_read(*ports_.metadata,
+                 maintenance_.config().metadata_base +
+                     slice * kMetadataWordsPerSlice * kMetadataWordBytes,
+                 7 * kMetadataWordBytes, MemoryPayloadKind::kLevelFields,
+                 slice);
+    enqueue_read(
+        *ports_.metadata,
+        maintenance_.config().metadata_base +
+            (metadata.slice_epoch_base + (slice >> 1)) * kMetadataWordBytes,
+        kMetadataWordBytes, MemoryPayloadKind::kSliceEpoch, slice);
+    counters_.level_cache_read_bytes += 8 * kMetadataWordBytes;
+  }
+}
+
+void SpineSplitReader::finalize_level_cache() {
+  constexpr std::uint64_t kGraphBankWords = 512ULL * 1024ULL * 1024ULL / 8;
+  const SpineMetadataLayout metadata =
+      spine_metadata_layout(maintenance_.config());
+  const auto span_valid = [](std::uint64_t offset, std::uint64_t words) {
+    return offset <= kGraphBankWords && words <= kGraphBankWords - offset;
   };
-  visit(state_.cold_levels, false);
-  visit(state_.hot_levels, true);
+  for (std::size_t slice = 0; slice < level_cache_.size(); ++slice) {
+    LevelCacheEntry &entry = level_cache_[slice];
+    if (!entry.occupied) {
+      entry.valid = true;
+      continue;
+    }
+    const std::size_t level = slice % kLevelCount;
+    const bool hot = slice / kLevelCount >= kPartitionCount;
+    const SpineLevelLayout expected =
+        spine_level_layout(maintenance_.config(), hot, level);
+    entry.layout.edge_capacity = expected.edge_capacity;
+    entry.layout.row_capacity_words = expected.row_capacity_words;
+    entry.layout.mask_capacity_words = expected.mask_capacity_words;
+    const std::uint64_t bitmap_words = metadata.page_count * 4;
+    const std::uint64_t page_base_words = (metadata.page_count + 2) / 2;
+    const std::uint64_t row_words = (entry.row_count + 2) >> 1;
+    const std::uint64_t mask_words = (entry.row_count + 3) >> 2;
+    entry.valid =
+        entry.edge_count != 0 && entry.row_count != 0 &&
+        entry.edge_count <= expected.edge_capacity &&
+        entry.row_count <= expected.edge_capacity &&
+        entry.row_count <= maintenance_.config().max_vertices &&
+        span_valid(entry.layout.bitmap_offset_words, bitmap_words) &&
+        span_valid(entry.layout.page_base_offset_words, page_base_words) &&
+        span_valid(entry.layout.row_offset_offset_words, row_words) &&
+        span_valid(entry.layout.mask_offset_words, mask_words) &&
+        span_valid(entry.layout.edge_offset_words, entry.edge_count);
+  }
 }
 
 PartConvWord SpineSplitReader::current_stream_word() const {
@@ -784,20 +1117,144 @@ void SpineSplitReader::advance(const CycleContext &context) {
           return;
         }
         counters_.start_cycle = context.domain_cycle;
+        active_sources_.clear();
+        active_records_.clear();
+        host_active_bins_ = {};
         source_index_ = 0;
-        phase_ = Phase::kRequestSource;
+        begin_source_header_reads();
+        phase_ = Phase::kSourceHeaderResolve;
       }
       return;
+    case Phase::kSourceHeaderResolve: {
+      validate_control();
+      if (failed_) {
+        return;
+      }
+      if (mode_ == SpineReaderMode::kDeviceDirty) {
+        if (dirty_count_ > maintenance_.config().max_vertices) {
+          counters_.range_task_path = kRangeTaskPathError;
+          counters_.range_task_error = kRangeTaskErrorMetadata;
+          failed_ = true;
+          done_ = true;
+          failure_ = "dirty frontier count exceeds MAX_N";
+          return;
+        }
+        if (dirty_count_ > 4096) {
+          counters_.range_task_path = kRangeTaskPathFallback;
+          counters_.range_task_fallback_reason = 4;
+          failed_ = true;
+          done_ = true;
+          failure_ = "device dirty frontier requires host-active fallback";
+          return;
+        }
+        active_sources_.assign(static_cast<std::size_t>(dirty_count_), 0);
+        for (std::size_t index = 0; index < active_sources_.size(); ++index) {
+          enqueue_read(*ports_.task_scratch,
+                       maintenance_.config().persistent_dirty_list_base +
+                           (index >> 2) * kSpineSortWordBytes,
+                       kSpineSortWordBytes, MemoryPayloadKind::kDirtyList,
+                       index);
+        }
+        phase_ = Phase::kDirtyListResolve;
+      } else {
+        std::uint64_t total = 0;
+        for (std::size_t partition = 0; partition < kPartitionCount;
+             ++partition) {
+          const std::uint64_t offset = active_bin_offsets_[partition];
+          const std::uint64_t count = active_bin_counts_[partition];
+          if (offset > maintenance_.config().max_vertices ||
+              count > maintenance_.config().max_vertices - offset ||
+              total > maintenance_.config().max_vertices - count) {
+            counters_.range_task_path = kRangeTaskPathError;
+            counters_.range_task_error = kRangeTaskErrorActiveBounds;
+            failed_ = true;
+            done_ = true;
+            failure_ = "host active-bin metadata exceeds MAX_ACTIVE";
+            return;
+          }
+          total += count;
+          if (count != 0) {
+            enqueue_read(*ports_.active_bins, offset * kActiveRecordBytes,
+                         count * kActiveRecordBytes,
+                         MemoryPayloadKind::kActiveRecords, partition);
+          }
+        }
+        if (total > kRangeTaskActiveGate) {
+          counters_.range_task_path = kRangeTaskPathFallback;
+          counters_.range_task_fallback_reason = kRangeTaskFallbackActiveGate;
+          failed_ = true;
+          done_ = true;
+          failure_ = "host active records exceeded the exact-task gate";
+          return;
+        }
+        phase_ = Phase::kHostActiveResolve;
+      }
+      return;
+    }
+    case Phase::kDirtyListResolve:
+      for (const std::uint32_t source : active_sources_) {
+        if (source >= maintenance_.vertices() ||
+            source >= maintenance_.config().max_vertices) {
+          dirty_payload_valid_ = false;
+          continue;
+        }
+        enqueue_read(*ports_.task_scratch,
+                     maintenance_.config().persistent_dirty_bitmap_base +
+                         (source >> 7) * kSpineSortWordBytes,
+                     kSpineSortWordBytes, MemoryPayloadKind::kDirtyBitmap, 0,
+                     source);
+      }
+      phase_ = Phase::kDirtyBitmapResolve;
+      return;
+    case Phase::kDirtyBitmapResolve: {
+      std::uint64_t hash_sum = 0;
+      std::uint64_t hash_xor = 0;
+      for (const std::uint32_t source : active_sources_) {
+        hash_sum += spine_dirty_hash_sum_term(source);
+        hash_xor ^= spine_dirty_hash_xor_term(source);
+      }
+      if (!dirty_payload_valid_ || hash_sum != dirty_hash_sum_ ||
+          hash_xor != dirty_hash_xor_) {
+        counters_.range_task_path = kRangeTaskPathError;
+        counters_.range_task_error = kRangeTaskErrorMetadata;
+        failed_ = true;
+        done_ = true;
+        failure_ = "dirty list/bitmap/hash payloads disagree";
+        return;
+      }
+      source_index_ = 0;
+      phase_ = active_sources_.empty() ? Phase::kLevelOccupancyBegin
+                                       : Phase::kRequestSource;
+      return;
+    }
+    case Phase::kHostActiveResolve:
+      for (const SpineActiveRecord &record : active_records_) {
+        if (record.source >= maintenance_.vertices() ||
+            record.source >= maintenance_.config().max_vertices) {
+          counters_.range_task_path = kRangeTaskPathError;
+          counters_.range_task_error = kRangeTaskErrorActiveBounds;
+          failed_ = true;
+          done_ = true;
+          failure_ = "active-record payload source exceeds the graph";
+          return;
+        }
+      }
+      phase_ = Phase::kLevelOccupancyBegin;
+      return;
+    case Phase::kLevelOccupancyBegin:
+      enqueue_level_cache_reads();
+      phase_ = Phase::kLevelDetailsBegin;
+      return;
+    case Phase::kLevelDetailsBegin:
+      enqueue_level_detail_reads();
+      phase_ = Phase::kSetupReads;
+      return;
     case Phase::kSetupReads:
+      finalize_level_cache();
       prepare_range_probes();
       if (failed_) {
         return;
       }
-      enqueue_read(*ports_.active_bins, 0,
-                   active_sources_.size() * kActiveRecordBytes);
-      enqueue_read(*ports_.metadata, maintenance_.config().metadata_base,
-                   8 * kMetadataWordBytes);
-      enqueue_level_cache_reads();
       bin_index_ = 0;
       phase_ = Phase::kBinClear;
       return;
@@ -821,13 +1278,11 @@ void SpineSplitReader::advance(const CycleContext &context) {
         phase_ = Phase::kBinPrefix;
         return;
       }
-      ++counters_.range_task_level_checks;
-      if (range_probes_[probe_index_].edge_count == 0) {
-        ++probe_index_;
-        return;
-      }
       enqueue_probe_index_reads();
-      phase_ = Phase::kProbeIndexResolve;
+      phase_ = Phase::kProbeEpochResolve;
+      return;
+    case Phase::kProbeEpochResolve:
+      resolve_probe_epoch();
       return;
     case Phase::kProbeIndexResolve:
       resolve_probe_index();

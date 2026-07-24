@@ -5,6 +5,11 @@ Branch: `codex/fine-grained-cycle-sim`
 HLS reference: `origin/reduce-levels-for-routing` at
 `afb8199a2ca8d3fd208b985324bf4d8719e2b839`
 
+Status: historical exact-range milestone. The metadata and active-record gaps
+listed below were subsequently closed by
+`docs/spine_metadata_active_payload_path_20260724.md`; its evidence and claim
+boundary supersede this document for the current reader.
+
 ## Why this milestone was required
 
 The previous simulator reader used the HBM bitmap only as a presence gate, then

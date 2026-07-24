@@ -7,6 +7,66 @@
 
 namespace spine::sim {
 
+namespace {
+
+SpineActiveBins build_host_active_bins(
+    const SpineL0State &state, const SpineL0Config &config,
+    const std::vector<std::uint32_t> &sources,
+    const std::vector<std::uint32_t> &values) {
+  SpineActiveBins result;
+  for (const std::uint32_t source : sources) {
+    if (source >= values.size()) {
+      throw std::logic_error("host active source has no vertex-state value");
+    }
+    SpineActiveRecord base{
+        .source = source,
+        .source_value = values[source],
+    };
+    std::array<std::uint16_t, 16> hot_by_partition{};
+    std::uint16_t any_partition = 0;
+    for (std::size_t level = 0; level < config.levels; ++level) {
+      std::uint16_t cold_mask = 0;
+      for (std::size_t family = 0; family < config.partitions; ++family) {
+        for (const SpineEdgeRecord &edge : state.cold_levels[family][level]) {
+          if (edge.src == source) {
+            const std::size_t partition = std::min<std::size_t>(
+                edge.dst / config.vertex_partition_size, config.partitions - 1);
+            cold_mask |= static_cast<std::uint16_t>(1U << partition);
+          }
+        }
+        if (!state.hot_enabled) {
+          continue;
+        }
+        for (const SpineEdgeRecord &edge : state.hot_levels[family][level]) {
+          if (edge.src == source) {
+            const std::size_t partition = std::min<std::size_t>(
+                edge.dst / config.vertex_partition_size, config.partitions - 1);
+            hot_by_partition[partition] |=
+                static_cast<std::uint16_t>(1U << family);
+          }
+        }
+      }
+      base.level_masks[level] = cold_mask;
+      any_partition |= cold_mask;
+    }
+    for (std::size_t partition = 0; partition < config.partitions;
+         ++partition) {
+      if (hot_by_partition[partition] != 0) {
+        any_partition |= static_cast<std::uint16_t>(1U << partition);
+      }
+      if (((any_partition >> partition) & 1U) == 0) {
+        continue;
+      }
+      SpineActiveRecord record = base;
+      record.hot_shard_mask = hot_by_partition[partition];
+      result.bins[partition].push_back(record);
+    }
+  }
+  return result;
+}
+
+}  // namespace
+
 SpineVerticalSliceSystem::SpineVerticalSliceSystem(
     Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
     SpineEdgeSlice workload, std::uint32_t source, std::size_t tiny_threshold,
@@ -47,6 +107,7 @@ SpineVerticalSliceSystem::SpineVerticalSliceSystem(
   maintenance_ports.sorted_edges = sorted_.get();
   maintenance_ports.metadata = metadata_.get();
   maintenance_ports.result = maintenance_result_.get();
+  reader_ports.task_scratch = sorted_.get();
   reader_ports.active_bins = active_bins_.get();
   reader_ports.metadata = metadata_.get();
 
@@ -55,7 +116,7 @@ SpineVerticalSliceSystem::SpineVerticalSliceSystem(
       "spine-l0-maintenance", clock_id_, std::move(maintenance_config),
       std::move(workload), maintenance_ports, state_);
   reader_ = std::make_unique<SpineSplitReader>(
-      "spine-split-reader", clock_id_, *maintenance_, state_, reader_ports,
+      "spine-split-reader", clock_id_, *maintenance_, reader_ports,
       std::vector<std::uint32_t>{source}, edge_stream_, value_stream_);
   compute_ = std::make_unique<SpineSplitSsspCompute>(
       "spine-split-compute", clock_id_, vertices, source, tiny_threshold,
@@ -112,7 +173,8 @@ void SpineVerticalSliceSystem::restart_read_compute(
   }
   edge_stream_.reset_stats();
   value_stream_.reset_stats();
-  reader_->reset_round(active_sources);
+  reader_->reset_host_round(build_host_active_bins(
+      state_, maintenance_->config(), active_sources, compute_->values()));
   compute_->reset_round();
   current_frontier_ = std::move(active_sources);
 }
@@ -137,6 +199,7 @@ SpineSsspRunResult SpineVerticalSliceSystem::run_sssp_to_convergence(
     result.rounds.push_back(SpineSsspRoundEvidence{
         .round = round,
         .active_in = current_frontier_,
+        .reader_sources = reader_->active_source_ids(),
         .active_out = active_out,
         .reader = reader_->counters(),
         .compute = compute_->counters(),
@@ -190,6 +253,10 @@ const SpineL0Counters &SpineVerticalSliceSystem::maintenance_counters()
 const SpineReaderCounters &SpineVerticalSliceSystem::reader_counters()
     const noexcept {
   return reader_->counters();
+}
+
+std::vector<std::uint32_t> SpineVerticalSliceSystem::reader_source_ids() const {
+  return reader_->active_source_ids();
 }
 
 const SpineComputeCounters &SpineVerticalSliceSystem::compute_counters()

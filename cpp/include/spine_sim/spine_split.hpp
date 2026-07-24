@@ -40,6 +40,8 @@ struct SpineReaderCounters {
   std::uint64_t source_requests{};
   std::uint64_t source_responses{};
   std::uint64_t active_bin_read_bytes{};
+  std::uint64_t dirty_list_read_bytes{};
+  std::uint64_t dirty_bitmap_read_bytes{};
   std::uint64_t metadata_read_bytes{};
   std::uint64_t level_cache_read_bytes{};
   std::uint64_t row_lookup_metadata_bytes{};
@@ -49,6 +51,7 @@ struct SpineReaderCounters {
   std::uint64_t graph_construction_payload_read_bytes{};
   std::uint64_t graph_replay_payload_read_bytes{};
   std::uint64_t graph_index_bitmap_misses{};
+  std::uint64_t graph_index_epoch_misses{};
   std::uint64_t graph_index_bitmap_words{};
   std::uint64_t range_task_active_records{};
   std::uint64_t range_task_family_probes{};
@@ -74,18 +77,22 @@ struct SpineReaderCounters {
 
 struct SpineReaderPorts {
   std::array<FixedAxiPort *, 16> graph{};
+  FixedAxiPort *task_scratch{};
   FixedAxiPort *active_bins{};
   FixedAxiPort *metadata{};
 };
+
+enum class SpineReaderMode { kDeviceDirty, kHostActive };
 
 class SpineSplitReader final : public Component {
  public:
   SpineSplitReader(std::string name, ClockId clock_id,
                    const SpineL0Maintenance &maintenance,
-                   const SpineL0State &state, SpineReaderPorts ports,
+                   SpineReaderPorts ports,
                    std::vector<std::uint32_t> active_sources,
                    Fifo<PartConvWord> &edge_out,
-                   Fifo<SourceValueWord> &value_in);
+                   Fifo<SourceValueWord> &value_in,
+                   SpineReaderMode mode = SpineReaderMode::kDeviceDirty);
 
   [[nodiscard]] bool done() const noexcept { return done_; }
   [[nodiscard]] bool failed() const noexcept { return failed_; }
@@ -93,7 +100,9 @@ class SpineSplitReader final : public Component {
   [[nodiscard]] const SpineReaderCounters &counters() const noexcept {
     return counters_;
   }
+  [[nodiscard]] std::vector<std::uint32_t> active_source_ids() const;
   void reset_round(std::vector<std::uint32_t> active_sources);
+  void reset_host_round(const SpineActiveBins &active_bins);
 
   void evaluate(const CycleContext &context) override;
   void commit(const CycleContext &context) override;
@@ -122,6 +131,8 @@ class SpineSplitReader final : public Component {
     bool hot{};
     SpineLevelLayout layout;
     std::uint32_t edge_count{};
+    std::uint32_t slice_epoch{};
+    std::uint32_t page_epoch{};
     std::uint32_t page{};
     std::uint32_t lane_word{};
     std::uint32_t lane_bit{};
@@ -135,8 +146,30 @@ class SpineSplitReader final : public Component {
     std::uint32_t end{};
   };
 
+  struct LevelCacheEntry {
+    bool occupied{};
+    bool valid{true};
+    std::uint64_t edge_count{};
+    std::uint64_t row_count{};
+    SpineLevelLayout layout;
+    std::uint32_t slice_epoch{};
+  };
+
   enum class MemoryPayloadKind {
     kNone,
+    kMetadataControl,
+    kDirtyCount,
+    kDirtyGeneration,
+    kDirtyHashSum,
+    kDirtyHashXor,
+    kDirtyList,
+    kDirtyBitmap,
+    kActiveBinMetadata,
+    kActiveRecords,
+    kLevelOccupied,
+    kLevelFields,
+    kSliceEpoch,
+    kPageEpoch,
     kIndexBitmapSelected,
     kIndexBitmapPrefix,
     kIndexPageBase,
@@ -151,17 +184,24 @@ class SpineSplitReader final : public Component {
     std::uint64_t address{};
     std::uint64_t bytes{};
     std::uint32_t edge_source{};
-    std::size_t probe_index{};
+    std::size_t item_index{};
     MemoryPayloadKind payload_kind{MemoryPayloadKind::kNone};
   };
 
   enum class Phase {
     kWaitMaintenance,
+    kSourceHeaderResolve,
+    kDirtyListResolve,
+    kDirtyBitmapResolve,
+    kHostActiveResolve,
     kRequestSource,
     kWaitSource,
+    kLevelOccupancyBegin,
+    kLevelDetailsBegin,
     kSetupReads,
     kBinClear,
     kProbeBegin,
+    kProbeEpochResolve,
     kProbeIndexResolve,
     kProbeRankResolve,
     kProbePageResolve,
@@ -184,8 +224,13 @@ class SpineSplitReader final : public Component {
 
   void advance(const CycleContext &context);
   void enqueue_level_cache_reads();
+  void enqueue_level_detail_reads();
+  void begin_source_header_reads();
+  void validate_control();
+  void finalize_level_cache();
   void prepare_range_probes();
   void enqueue_probe_index_reads();
+  void resolve_probe_epoch();
   void resolve_probe_index();
   void resolve_probe_rank();
   void resolve_probe_page();
@@ -199,12 +244,15 @@ class SpineSplitReader final : public Component {
                     std::size_t probe_index = 0, std::uint32_t edge_source = 0);
   void consume_memory_response(const MemoryTask &task,
                                const AxiResponse &response);
+  void reset_state();
   [[nodiscard]] PartConvWord current_stream_word() const;
 
   const SpineL0Maintenance &maintenance_;
-  const SpineL0State &state_;
   SpineReaderPorts ports_;
+  SpineReaderMode mode_{SpineReaderMode::kDeviceDirty};
   std::vector<std::uint32_t> active_sources_;
+  SpineActiveBins host_active_bins_;
+  std::vector<SpineActiveRecord> active_records_;
   Fifo<PartConvWord> &edge_out_;
   Fifo<SourceValueWord> &value_in_;
   SpineReaderCounters counters_;
@@ -214,6 +262,8 @@ class SpineSplitReader final : public Component {
   std::array<std::uint32_t, 256> tile_cursors_{};
   std::vector<RangeProbe> range_probes_;
   std::vector<RangeTask> range_tasks_;
+  std::array<LevelCacheEntry, kSpineFamilyCount * kSpineLevelCount>
+      level_cache_{};
   std::unordered_map<std::uint32_t, std::uint32_t> source_values_;
   std::deque<MemoryTask> memory_tasks_;
   Phase phase_{Phase::kWaitMaintenance};
@@ -223,6 +273,14 @@ class SpineSplitReader final : public Component {
   AxiResponse staged_response_;
   SpineEdgeRecord loaded_edge_;
   SpineEdgeRecord construction_edge_;
+  std::uint64_t metadata_control_{};
+  std::uint64_t dirty_count_{};
+  std::uint32_t dirty_generation_{};
+  std::uint64_t dirty_hash_sum_{};
+  std::uint64_t dirty_hash_xor_{};
+  std::array<std::uint64_t, 16> active_bin_offsets_{};
+  std::array<std::uint64_t, 16> active_bin_counts_{};
+  bool dirty_payload_valid_{true};
   std::size_t probe_index_{};
   std::uint32_t construction_position_{};
   bool construction_run_valid_{};

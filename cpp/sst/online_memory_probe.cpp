@@ -820,6 +820,7 @@ class OnlineMemoryProbe final : public SST::Component {
         sst_rounds_.push_back(SpineSsspRoundEvidence{
             .round = sst_rounds_.size(),
             .active_in = sst_current_frontier_,
+            .reader_sources = spine_system_->reader_source_ids(),
             .active_out = active_out,
             .reader = spine_system_->reader_counters(),
             .compute = spine_system_->compute_counters(),
@@ -1066,6 +1067,12 @@ class OnlineMemoryProbe final : public SST::Component {
       std::vector<std::uint64_t> reader_range_row_lookups;
       std::vector<std::uint64_t> reader_range_level_checks;
       std::vector<std::uint64_t> reader_metadata_bytes;
+      std::vector<std::uint64_t> reader_active_bin_bytes;
+      std::vector<std::uint64_t> reader_dirty_list_bytes;
+      std::vector<std::uint64_t> reader_dirty_bitmap_bytes;
+      std::vector<std::uint64_t> reader_source_requests;
+      std::vector<std::uint64_t> reader_epoch_misses;
+      std::vector<std::size_t> reader_source_sizes;
       std::vector<std::uint64_t> fast_tiles;
       std::vector<std::uint64_t> full_tiles;
       std::vector<std::size_t> edge_axis_max_occupancy;
@@ -1091,6 +1098,13 @@ class OnlineMemoryProbe final : public SST::Component {
         reader_range_level_checks.push_back(
             round.reader.range_task_level_checks);
         reader_metadata_bytes.push_back(round.reader.metadata_read_bytes);
+        reader_active_bin_bytes.push_back(round.reader.active_bin_read_bytes);
+        reader_dirty_list_bytes.push_back(round.reader.dirty_list_read_bytes);
+        reader_dirty_bitmap_bytes.push_back(
+            round.reader.dirty_bitmap_read_bytes);
+        reader_source_requests.push_back(round.reader.source_requests);
+        reader_epoch_misses.push_back(round.reader.graph_index_epoch_misses);
+        reader_source_sizes.push_back(round.reader_sources.size());
         fast_tiles.push_back(round.compute.fast_path_tiles);
         full_tiles.push_back(round.compute.full_path_tiles);
         edge_axis_max_occupancy.push_back(round.edge_axis.max_occupancy);
@@ -1150,6 +1164,18 @@ class OnlineMemoryProbe final : public SST::Component {
       write_json_array(result, reader_range_level_checks);
       result << ",\n  \"reader_metadata_bytes_per_round\": ";
       write_json_array(result, reader_metadata_bytes);
+      result << ",\n  \"reader_active_bin_bytes_per_round\": ";
+      write_json_array(result, reader_active_bin_bytes);
+      result << ",\n  \"reader_dirty_list_bytes_per_round\": ";
+      write_json_array(result, reader_dirty_list_bytes);
+      result << ",\n  \"reader_dirty_bitmap_bytes_per_round\": ";
+      write_json_array(result, reader_dirty_bitmap_bytes);
+      result << ",\n  \"reader_source_requests_per_round\": ";
+      write_json_array(result, reader_source_requests);
+      result << ",\n  \"reader_epoch_misses_per_round\": ";
+      write_json_array(result, reader_epoch_misses);
+      result << ",\n  \"reader_source_sizes_per_round\": ";
+      write_json_array(result, reader_source_sizes);
       result << ",\n  \"fast_tiles_per_round\": ";
       write_json_array(result, fast_tiles);
       result << ",\n  \"full_tiles_per_round\": ";
@@ -1291,6 +1317,15 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"reader_range_error\": " << reader.range_task_error << ",\n"
           << "  \"reader_metadata_bytes\": " << reader.metadata_read_bytes
           << ",\n"
+          << "  \"reader_active_bin_bytes\": " << reader.active_bin_read_bytes
+          << ",\n"
+          << "  \"reader_dirty_list_bytes\": " << reader.dirty_list_read_bytes
+          << ",\n"
+          << "  \"reader_dirty_bitmap_bytes\": "
+          << reader.dirty_bitmap_read_bytes << ",\n"
+          << "  \"reader_source_requests\": " << reader.source_requests << ",\n"
+          << "  \"reader_page_epoch_misses\": "
+          << reader.graph_index_epoch_misses << ",\n"
           << "  \"reader_occupied_levels\": " << reader.occupied_levels << ",\n"
           << "  \"reader_cold_edges\": " << reader.cold_edges_emitted << ",\n"
           << "  \"reader_hot_edges\": " << reader.hot_edges_emitted << ",\n"

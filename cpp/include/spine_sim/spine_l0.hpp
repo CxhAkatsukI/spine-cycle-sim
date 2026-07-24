@@ -5,7 +5,9 @@
 #include <cstdint>
 #include <deque>
 #include <filesystem>
+#include <span>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -33,6 +35,10 @@ struct SpineEdgeSlice {
 SpineEdgeSlice load_spine_edge_slice(const std::filesystem::path &path);
 inline constexpr std::uint64_t kSpineSortWordBytes = 16;
 inline constexpr std::uint64_t kSpineGraphWordBytes = 8;
+inline constexpr std::uint64_t kSpineMetadataWordBytes = 8;
+inline constexpr std::uint64_t kSpineActiveRecordBytes = 32;
+inline constexpr std::size_t kSpineFamilyCount = 32;
+inline constexpr std::size_t kSpineLevelCount = 11;
 [[nodiscard]] std::vector<std::uint8_t> encode_spine_sort_edge(
     const SpineEdgeRecord &edge);
 [[nodiscard]] SpineEdgeRecord decode_spine_sort_edge(
@@ -55,12 +61,72 @@ struct SpineL0Config {
   std::uint32_t max_sort_edges{131'072};
   std::vector<std::uint32_t> hot_vertices;
   std::uint64_t sorted_edges_base{};
-  std::uint64_t persistent_directory_base{64ULL << 20};
-  std::uint64_t persistent_dirty_bitmap_base{96ULL << 20};
-  std::uint64_t persistent_dirty_list_base{128ULL << 20};
+  // HBM16 is shared by sorted input/range-task scratch and the persistent
+  // dirty frontier. These defaults match the production HLS ABI.
+  std::uint64_t persistent_dirty_bitmap_base{2ULL << 20};
+  std::uint64_t persistent_dirty_list_base{4ULL << 20};
   std::uint64_t metadata_base{};
   std::uint64_t result_base{};
 };
+
+struct SpineMetadataLayout {
+  std::uint64_t page_count{};
+  std::uint64_t slice_count{};
+  std::uint64_t slice_words{};
+  std::uint64_t active_bin_offset_base{};
+  std::uint64_t active_bin_count_base{};
+  std::uint64_t slice_epoch_base{};
+  std::uint64_t page_epoch_base{};
+  std::uint64_t hot_enabled_word{};
+  std::uint64_t page_list_count_base{};
+  std::uint64_t page_list_base{};
+  std::uint64_t page_list_words_per_slice{};
+  std::uint64_t dirty_base{};
+  std::uint64_t dirty_count_word{};
+  std::uint64_t dirty_generation_word{};
+  std::uint64_t dirty_hash_sum_word{};
+  std::uint64_t dirty_hash_xor_word{};
+  std::uint64_t dirty_candidate_valid_word{};
+  std::uint64_t dirty_host_valid_word{};
+  std::uint64_t dirty_last_mode_word{};
+  std::uint64_t dirty_last_status_word{};
+  std::uint64_t total_words{};
+};
+
+struct SpineActiveRecord {
+  std::uint32_t source{};
+  std::uint32_t source_value{};
+  std::array<std::uint16_t, kSpineLevelCount> level_masks{};
+  std::uint16_t hot_shard_mask{};
+
+  friend bool operator==(const SpineActiveRecord &,
+                         const SpineActiveRecord &) = default;
+};
+
+struct SpineActiveBins {
+  std::array<std::vector<SpineActiveRecord>, 16> bins;
+
+  [[nodiscard]] std::size_t size() const noexcept {
+    std::size_t total = 0;
+    for (const auto &bin : bins) {
+      total += bin.size();
+    }
+    return total;
+  }
+};
+
+[[nodiscard]] SpineMetadataLayout spine_metadata_layout(
+    const SpineL0Config &config);
+[[nodiscard]] std::uint64_t spine_metadata_control_word(bool hot_enabled);
+[[nodiscard]] bool spine_metadata_control_valid(std::uint64_t control) noexcept;
+[[nodiscard]] std::uint64_t spine_dirty_hash_sum_term(
+    std::uint32_t source) noexcept;
+[[nodiscard]] std::uint64_t spine_dirty_hash_xor_term(
+    std::uint32_t source) noexcept;
+[[nodiscard]] std::vector<std::uint8_t> encode_spine_active_record(
+    const SpineActiveRecord &record);
+[[nodiscard]] SpineActiveRecord decode_spine_active_record(
+    std::span<const std::uint8_t> data);
 
 struct SpineLevelLayout {
   std::uint64_t bitmap_offset_words{};
@@ -202,6 +268,8 @@ class SpineL0Maintenance final : public Component {
   void consume_memory_response(const MemoryTask &task,
                                const AxiResponse &response);
   void enqueue_dirty_source_updates();
+  void initialize_metadata_payload();
+  void enqueue_committed_metadata();
   void build_family_outputs();
   void enqueue_family_writes(bool hot, std::size_t family, std::size_t target);
   void enqueue_carry_reads(bool hot, std::size_t family, std::size_t target);
@@ -231,6 +299,9 @@ class SpineL0Maintenance final : public Component {
   std::vector<SpineEdgeRecord> carry_payload_edges_;
   std::array<std::vector<SpineEdgeRecord>, 16> family_outputs_;
   std::array<std::vector<SpineEdgeRecord>, 16> hot_family_outputs_;
+  std::array<std::array<std::uint32_t, kSpineLevelCount>, kSpineFamilyCount>
+      slice_epochs_{};
+  std::unordered_map<std::uint64_t, std::uint32_t> page_epochs_;
   std::vector<FamilyWriteTask> family_write_tasks_;
   std::deque<MemoryTask> tasks_;
   Phase phase_{Phase::kInitialize};

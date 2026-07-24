@@ -18,6 +18,7 @@ namespace spine::sim {
 struct SpineSsspRoundEvidence {
   std::size_t round{};
   std::vector<std::uint32_t> active_in;
+  std::vector<std::uint32_t> reader_sources;
   std::vector<std::uint32_t> active_out;
   SpineReaderCounters reader;
   SpineComputeCounters compute;
@@ -54,6 +55,7 @@ class SpineVerticalSliceSystem {
   [[nodiscard]] bool idle() const noexcept;
   [[nodiscard]] const SpineL0Counters &maintenance_counters() const noexcept;
   [[nodiscard]] const SpineReaderCounters &reader_counters() const noexcept;
+  [[nodiscard]] std::vector<std::uint32_t> reader_source_ids() const;
   [[nodiscard]] const SpineComputeCounters &compute_counters() const noexcept;
   [[nodiscard]] const SpineSplitSsspCompute &compute() const noexcept;
   [[nodiscard]] const SpineL0State &level_state() const noexcept;
