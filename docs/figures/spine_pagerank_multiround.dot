@@ -1,0 +1,27 @@
+digraph SpinePageRankMultiRound {
+  graph [rankdir=LR, bgcolor="white", pad="0.25", nodesep="0.42", ranksep="0.62"];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+        color="#374151", fillcolor="#f8fafc"];
+  edge [fontname="Helvetica", fontsize=9, color="#475569"];
+
+  levels [label="Resident Spine levels\nmaintenance runs once",
+          fillcolor="#fef3c7"];
+  reader [label="Reader iteration i\nall-source refresh + edge replay",
+          fillcolor="#dbeafe"];
+  compute [label="Timed source/reduce/apply\nall queues must drain",
+           fillcolor="#dcfce7"];
+  rank_a [label="Rank region A\naddress 0", shape=cylinder,
+          fillcolor="#fee2e2"];
+  rank_b [label="Rank region B\naddress 4096", shape=cylinder,
+          fillcolor="#fee2e2"];
+  swap [label="Swap base registers\nzero copy traffic", fillcolor="#e0f2fe"];
+  oracle [label="CPU recurrence\nper-vertex comparison each round",
+          shape=note, fillcolor="#fef3c7"];
+
+  levels -> reader -> compute;
+  rank_a -> compute [label="iteration i read"];
+  compute -> rank_b [label="iteration i write"];
+  rank_b -> swap;
+  swap -> reader [label="iteration i+1 read base"];
+  compute -> oracle [style=dashed];
+}

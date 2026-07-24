@@ -120,6 +120,64 @@ float SpineSplitPageRankCompute::dangling_share() const noexcept {
   return GraphAlgorithmPolicy::word_to_float(dangling_share_word_);
 }
 
+void SpineSplitPageRankCompute::reset_iteration() {
+  if (!done_ || failed_ || !memory_drained() ||
+      !algorithm_queues_drained() || !edge_reductions_.empty() ||
+      !apply_transactions_.empty() || !pending_destinations_.empty() ||
+      !ready_apply_.empty()) {
+    throw std::logic_error("PageRank iteration reset requires a clean drain");
+  }
+  std::swap(primary_read_base_, primary_write_base_);
+  pipeline_.reset_counters();
+  source_requests_.reset_stats();
+  source_responses_.reset_stats();
+  edge_requests_.reset_stats();
+  edge_responses_.reset_stats();
+  reduce_requests_.reset_stats();
+  reduce_responses_.reset_stats();
+  apply_requests_.reset_stats();
+  apply_responses_.reset_stats();
+  counters_ = {};
+  std::fill(tile_applied_.begin(), tile_applied_.end(), false);
+  tile_accumulators_.clear();
+  phase_ = Phase::kInput;
+  staged_input_action_ = InputAction::kNone;
+  staged_memory_response_.reset();
+  staged_source_response_.reset();
+  staged_reduce_response_.reset();
+  staged_apply_response_.reset();
+  staged_source_request_.reset();
+  staged_reduce_request_.reset();
+  staged_apply_request_.reset();
+  staged_apply_read_vertex_.reset();
+  staged_phase_transition_.reset();
+  staged_memory_issue_ = false;
+  staged_value_push_ = false;
+  staged_apply_tile_complete_ = false;
+  staged_done_ = false;
+  pending_source_ = 0;
+  pending_source_rank_.reset();
+  pending_source_degree_.reset();
+  pending_source_result_.reset();
+  pending_dangling_transaction_.reset();
+  dangling_mass_word_ = GraphAlgorithmPolicy::float_to_word(0.0F);
+  dangling_share_word_ = GraphAlgorithmPolicy::float_to_word(0.0F);
+  tile_base_ = 0;
+  tile_size_ = 0;
+  apply_reads_issued_ = 0;
+  apply_reads_completed_ = 0;
+  apply_operations_issued_ = 0;
+  apply_operations_completed_ = 0;
+  apply_writes_completed_ = 0;
+  iteration_error_ = 0.0F;
+  source_count_seen_ = false;
+  source_generation_seen_ = false;
+  source_ack_pending_ = false;
+  tile_open_ = false;
+  reader_done_seen_ = false;
+  done_ = false;
+}
+
 void SpineSplitPageRankCompute::initialize_state_payload(
     const std::vector<std::uint32_t> &out_degrees) {
   for (std::size_t vertex = 0; vertex < vertices_; ++vertex) {

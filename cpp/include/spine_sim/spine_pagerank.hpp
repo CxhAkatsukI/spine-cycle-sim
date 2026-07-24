@@ -73,11 +73,18 @@ class SpineSplitPageRankCompute final : public Component {
   [[nodiscard]] const AlgorithmStateLayout &state_layout() const noexcept {
     return state_layout_;
   }
+  [[nodiscard]] std::uint64_t primary_read_base() const noexcept {
+    return primary_read_base_;
+  }
+  [[nodiscard]] std::uint64_t primary_write_base() const noexcept {
+    return primary_write_base_;
+  }
   [[nodiscard]] float dangling_mass() const noexcept;
   [[nodiscard]] float dangling_share() const noexcept;
   [[nodiscard]] float iteration_error() const noexcept {
     return iteration_error_;
   }
+  void reset_iteration();
 
   void evaluate(const CycleContext &context) override;
   void commit(const CycleContext &context) override;

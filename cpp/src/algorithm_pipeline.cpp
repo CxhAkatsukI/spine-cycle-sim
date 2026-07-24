@@ -79,6 +79,17 @@ bool AlgorithmPipeline::drained() const noexcept {
          empty(apply_);
 }
 
+void AlgorithmPipeline::reset_counters() {
+  if (!drained()) {
+    throw std::logic_error("algorithm pipeline reset requires a drain");
+  }
+  counters_ = {};
+  source_map_.last_accept_cycle.reset();
+  edge_map_.last_accept_cycle.reset();
+  reduce_.last_accept_cycle.reset();
+  apply_.last_accept_cycle.reset();
+}
+
 void AlgorithmPipeline::evaluate_stage(
     StageState &stage, AlgorithmPipelineStageCounters &counters,
     const CycleContext &context) {

@@ -1,0 +1,42 @@
+{
+  "date": "2026-07-25",
+  "baseline_commit": "6b87386",
+  "scope": "physical PageRank rank-buffer swap and reusable Reader/compute iterations",
+  "fixture": {
+    "vertices": 4,
+    "edges": [[0, 1], [0, 2], [1, 2], [3, 2]],
+    "damping": 0.8,
+    "iterations": 25
+  },
+  "buffer_swap": {
+    "iteration_1_write_base": 4096,
+    "iteration_2_read_base": 4096,
+    "iteration_2_write_base": 0,
+    "rank_copy_requests": 0
+  },
+  "iteration_2": {
+    "rank_words_as_float": [0.17, 0.21, 0.45, 0.17],
+    "dangling_mass": 0.6,
+    "dangling_share": 0.12,
+    "state_memory_requests": 16,
+    "source_map_operations": 4,
+    "reduce_operations": 8,
+    "apply_operations": 4
+  },
+  "convergence": {
+    "total_cycles": 137314,
+    "first_iteration_cycles": 7810,
+    "later_iteration_cycles": 5396,
+    "maintenance_end_cycle": 2414,
+    "maintenance_reruns": 0,
+    "maximum_vertex_oracle_error": 8.9407e-08,
+    "final_l1_error": 0.0
+  },
+  "validation": {
+    "independent_cpu_oracle_checked_each_iteration": true,
+    "physical_bases_swapped": true,
+    "all_round_state_drained_before_reset": true,
+    "real_graph_validated": false,
+    "sst_hbm_validated": false
+  }
+}

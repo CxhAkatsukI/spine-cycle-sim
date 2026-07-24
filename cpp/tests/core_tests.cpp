@@ -5681,6 +5681,94 @@ void test_spine_full_pagerank_vertical_slice_reads_level_edges() {
                    GraphAlgorithmPolicy::word_to_float(
                        system.compute().rank_words()[3])
             << '\n';
+
+  const std::uint64_t first_output_base =
+      system.compute().primary_write_base();
+  const std::uint64_t maintenance_end =
+      system.maintenance_counters().end_cycle;
+  system.restart_iteration();
+  require(system.compute().primary_read_base() == first_output_base &&
+              system.compute().primary_write_base() ==
+                  system.compute().state_layout().primary_read.base,
+          "PageRank restart copied ranks instead of swapping physical bases");
+  scheduler.run_until([&] { return system.done() && system.idle(); },
+                      500'000);
+
+  const std::vector<float> second_expected{0.17F, 0.21F, 0.45F, 0.17F};
+  for (std::size_t vertex = 0; vertex < second_expected.size(); ++vertex) {
+    require(std::fabs(GraphAlgorithmPolicy::word_to_float(
+                          system.compute().rank_words().at(vertex)) -
+                      second_expected[vertex]) < 1.0e-5F,
+            "second timed PageRank iteration used the wrong rank buffer");
+  }
+  require(!system.failed() &&
+              system.maintenance_counters().end_cycle == maintenance_end &&
+              system.reader_counters().edges_emitted == 4 &&
+              system.compute_counters().memory_requests_issued == 16 &&
+              system.compute().pipeline_counters().source_map.completed == 4 &&
+              system.compute().pipeline_counters().reduce.completed == 8 &&
+              system.compute().pipeline_counters().apply.completed == 4 &&
+              std::fabs(system.compute().dangling_mass() - 0.6F) < 1.0e-5F &&
+              std::fabs(system.compute().dangling_share() - 0.12F) < 1.0e-5F,
+          "PageRank restart reran maintenance or retained stale round state");
+  std::cout << "EVIDENCE spine_pagerank_second_iteration cycles="
+            << scheduler.clock(core).completed_cycles
+            << " maintenance_end=" << maintenance_end
+            << " read_base=" << system.compute().primary_read_base()
+            << " write_base=" << system.compute().primary_write_base()
+            << " dangling_share=" << system.compute().dangling_share()
+            << " rank_sum="
+            << GraphAlgorithmPolicy::word_to_float(
+                   system.compute().rank_words()[0]) +
+                   GraphAlgorithmPolicy::word_to_float(
+                       system.compute().rank_words()[1]) +
+                   GraphAlgorithmPolicy::word_to_float(
+                       system.compute().rank_words()[2]) +
+                   GraphAlgorithmPolicy::word_to_float(
+                       system.compute().rank_words()[3])
+            << '\n';
+
+  std::vector<float> oracle = second_expected;
+  const std::array<std::uint32_t, 4> degrees{2, 1, 0, 1};
+  const std::array<std::pair<std::uint32_t, std::uint32_t>, 4> edges{
+      std::pair<std::uint32_t, std::uint32_t>{0, 1},
+      {0, 2},
+      {1, 2},
+      {3, 2},
+  };
+  float max_oracle_error = 0.0F;
+  for (std::size_t iteration = 2; iteration < 25; ++iteration) {
+    float dangling = 0.0F;
+    for (std::size_t vertex = 0; vertex < oracle.size(); ++vertex) {
+      dangling += degrees[vertex] == 0 ? oracle[vertex] : 0.0F;
+    }
+    std::vector<float> next(oracle.size(),
+                            0.05F + 0.8F * dangling / oracle.size());
+    for (const auto &[source, destination] : edges) {
+      next[destination] +=
+          0.8F * oracle[source] / static_cast<float>(degrees[source]);
+    }
+    oracle = std::move(next);
+    system.restart_iteration();
+    scheduler.run_until([&] { return system.done() && system.idle(); },
+                        500'000);
+    for (std::size_t vertex = 0; vertex < oracle.size(); ++vertex) {
+      max_oracle_error = std::max(
+          max_oracle_error,
+          std::fabs(GraphAlgorithmPolicy::word_to_float(
+                        system.compute().rank_words()[vertex]) -
+                    oracle[vertex]));
+    }
+  }
+  require(!system.failed() && max_oracle_error < 1.0e-5F &&
+              system.maintenance_counters().end_cycle == maintenance_end &&
+              system.compute().iteration_error() < 1.0e-5F,
+          "multi-iteration PageRank diverged from the independent CPU oracle");
+  std::cout << "EVIDENCE spine_pagerank_convergence iterations=25"
+            << " total_cycles=" << scheduler.clock(core).completed_cycles
+            << " max_oracle_error=" << max_oracle_error
+            << " final_l1_error=" << system.compute().iteration_error()
+            << " maintenance_reruns=0\n";
 }
 
 }  // namespace

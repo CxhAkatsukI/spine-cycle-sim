@@ -180,6 +180,7 @@ class SpinePageRankVerticalSliceSystem {
           SpineSplitPageRankCompute::kDefaultMemoryRequestWindow);
 
   void register_components();
+  void restart_iteration();
   [[nodiscard]] bool done() const noexcept;
   [[nodiscard]] bool failed() const noexcept;
   [[nodiscard]] bool idle() const noexcept;
@@ -213,6 +214,9 @@ class SpinePageRankVerticalSliceSystem {
   std::unique_ptr<SpineL0Maintenance> maintenance_;
   std::unique_ptr<SpineSplitReader> reader_;
   std::unique_ptr<SpineSplitPageRankCompute> compute_;
+  SpineActiveBins active_bins_payload_;
+  std::vector<std::uint32_t> source_refresh_;
+  std::optional<SpineDirtyIdentity> host_coverage_;
   bool registered_{};
 };
 

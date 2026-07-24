@@ -686,6 +686,9 @@ SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
       value_stream_("pagerank-value-axis", clock_id, 32) {
   const PageRankHostInput host =
       build_pagerank_host_input(workload, maintenance_config);
+  active_bins_payload_ = host.bins;
+  source_refresh_ = host.sources;
+  host_coverage_ = host.coverage;
   for (std::size_t family = 0; family < graph_ports_.size(); ++family) {
     graph_ports_[family] = make_port(
         "pagerank-graph" + std::to_string(family),
@@ -764,6 +767,18 @@ void SpinePageRankVerticalSliceSystem::register_components() {
   metadata_->register_components(scheduler_);
   maintenance_result_->register_components(scheduler_);
   vertex_state_->register_components(scheduler_);
+}
+
+void SpinePageRankVerticalSliceSystem::restart_iteration() {
+  if (!registered_ || !done() || failed() || !idle()) {
+    throw std::logic_error(
+        "PageRank iteration restart requires a successful system drain");
+  }
+  edge_stream_.reset_stats();
+  value_stream_.reset_stats();
+  reader_->reset_host_round(active_bins_payload_, host_coverage_,
+                            source_refresh_);
+  compute_->reset_iteration();
 }
 
 bool SpinePageRankVerticalSliceSystem::done() const noexcept {

@@ -93,6 +93,7 @@ class AlgorithmPipeline final : public Component {
     return counters_;
   }
   [[nodiscard]] bool drained() const noexcept;
+  void reset_counters();
 
   void evaluate(const CycleContext &context) override;
   void commit(const CycleContext &context) override;
