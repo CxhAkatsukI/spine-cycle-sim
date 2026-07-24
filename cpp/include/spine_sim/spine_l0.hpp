@@ -67,6 +67,9 @@ struct SpineL0Config {
   std::size_t range_task_capacity{65'536};
   std::uint64_t range_task_payload_budget{1'048'576};
   std::uint64_t fallback_replay_threshold{65'536};
+  // Coarse task overlap is an explicit architecture what-if until each HLS
+  // pipelined loop has its own issue/retire model. One is source-faithful.
+  std::size_t memory_request_window{1};
   std::vector<std::uint32_t> hot_vertices;
   std::uint64_t sorted_edges_base{};
   // HBM16 is shared by sorted input/range-task scratch and the persistent
@@ -201,6 +204,12 @@ struct SpineL0Counters {
   std::uint64_t persisted_rows{};
   std::uint64_t pages_stamped{};
   std::uint64_t memory_tasks{};
+  std::uint64_t memory_requests_issued{};
+  std::uint64_t memory_requests_completed{};
+  std::uint64_t memory_window_stall_cycles{};
+  std::uint64_t memory_dependency_stall_cycles{};
+  std::uint64_t memory_request_fifo_stall_cycles{};
+  std::size_t max_memory_requests_inflight{};
   std::uint64_t cold_input_edges{};
   std::uint64_t hot_input_edges{};
   std::uint64_t carry_level_payload_reads{};
@@ -283,7 +292,7 @@ class SpineL0Maintenance final : public Component {
     std::vector<std::uint32_t> carry_edge_sources;
   };
 
-  enum class StagedAction { kNone, kAdvance, kIssue, kComplete };
+  enum class StagedAction { kNone, kAdvance };
 
   void advance(const CycleContext &context);
   void enqueue_task(FixedAxiPort &port, MemoryOperation operation,
@@ -295,6 +304,8 @@ class SpineL0Maintenance final : public Component {
   void process_scan_edge(Phase next_phase);
   void consume_memory_response(const MemoryTask &task,
                                const AxiResponse &response);
+  [[nodiscard]] bool memory_task_conflicts(const MemoryTask &task) const;
+  [[nodiscard]] bool stage_memory_completion();
   void enqueue_dirty_source_updates();
   void initialize_metadata_payload();
   void enqueue_committed_metadata();
@@ -332,6 +343,7 @@ class SpineL0Maintenance final : public Component {
   std::unordered_map<std::uint64_t, std::uint32_t> page_epochs_;
   std::vector<FamilyWriteTask> family_write_tasks_;
   std::deque<MemoryTask> tasks_;
+  std::unordered_map<std::uint64_t, MemoryTask> inflight_tasks_;
   Phase phase_{Phase::kInitialize};
   std::size_t scan_index_{};
   std::size_t family_index_{};
@@ -339,13 +351,13 @@ class SpineL0Maintenance final : public Component {
   std::size_t carry_steps_remaining_{};
   bool precount_hot_{};
   std::uint64_t next_transaction_id_{};
-  std::uint64_t expected_transaction_id_{};
-  bool waiting_{};
   bool done_{};
   bool failed_{};
   std::string failure_;
   StagedAction staged_action_{StagedAction::kNone};
   AxiResponse staged_response_;
+  bool staged_memory_issue_{};
+  bool staged_memory_completion_{};
 };
 
 }  // namespace spine::sim

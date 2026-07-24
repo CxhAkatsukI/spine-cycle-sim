@@ -143,6 +143,12 @@ struct SpineReaderCounters {
   std::uint64_t occupied_levels{};
   std::uint64_t cold_edges_emitted{};
   std::uint64_t hot_edges_emitted{};
+  std::uint64_t memory_requests_issued{};
+  std::uint64_t memory_requests_completed{};
+  std::uint64_t memory_window_stall_cycles{};
+  std::uint64_t memory_dependency_stall_cycles{};
+  std::uint64_t memory_request_fifo_stall_cycles{};
+  std::size_t max_memory_requests_inflight{};
 };
 
 struct SpineReaderPorts {
@@ -370,7 +376,7 @@ class SpineSplitReader final : public Component {
     kDone,
   };
 
-  enum class Action { kNone, kAdvance, kIssue, kComplete, kPush, kPopValue };
+  enum class Action { kNone, kAdvance, kPush, kPopValue };
 
   void advance(const CycleContext &context);
   void enqueue_level_cache_reads();
@@ -418,6 +424,8 @@ class SpineSplitReader final : public Component {
   void enqueue_terminal_writes();
   void consume_memory_response(const MemoryTask &task,
                                const AxiResponse &response);
+  [[nodiscard]] bool memory_task_conflicts(const MemoryTask &task) const;
+  [[nodiscard]] bool stage_memory_completion();
   void reset_state();
   void begin_terminal(bool overflow, std::string failure = {});
   [[nodiscard]] PartConvWord current_stream_word() const;
@@ -448,6 +456,7 @@ class SpineSplitReader final : public Component {
   std::array<std::uint16_t, 16> fallback_touched_masks_{};
   std::array<bool, 16> fallback_force_dense_{};
   std::deque<MemoryTask> memory_tasks_;
+  std::unordered_map<std::uint64_t, MemoryTask> inflight_memory_tasks_;
   Phase phase_{Phase::kWaitMaintenance};
   Action staged_action_{Action::kNone};
   PartConvWord staged_stream_word_;
@@ -502,8 +511,8 @@ class SpineSplitReader final : public Component {
   bool fallback_active_record_valid_{};
   bool fallback_enabled_{};
   std::uint64_t next_transaction_id_{};
-  std::uint64_t expected_transaction_id_{};
-  bool waiting_memory_{};
+  bool staged_memory_issue_{};
+  bool staged_memory_completion_{};
   bool terminal_pending_{};
   bool terminal_overflow_{};
   bool terminal_failed_{};

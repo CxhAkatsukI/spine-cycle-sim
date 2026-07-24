@@ -55,6 +55,9 @@ probe.addParams(
         "fallback_replay_threshold": int(
             os.environ.get("SPINE_SST_FALLBACK_REPLAY_THRESHOLD", "65536")
         ),
+        "memory_request_window": int(
+            os.environ.get("SPINE_SST_MEMORY_REQUEST_WINDOW", "1")
+        ),
     }
 )
 

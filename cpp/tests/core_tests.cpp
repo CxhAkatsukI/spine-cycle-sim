@@ -64,11 +64,13 @@ using spine::sim::SpineDirtyStatus;
 using spine::sim::SpineEdgeRecord;
 using spine::sim::SpineEdgeSlice;
 using spine::sim::SpineL0Config;
+using spine::sim::SpineL0Counters;
 using spine::sim::SpineL0Maintenance;
 using spine::sim::SpineL0Ports;
 using spine::sim::SpineL0State;
 using spine::sim::SpineLevelLayout;
 using spine::sim::SpineReaderPorts;
+using spine::sim::SpineReaderCounters;
 using spine::sim::SpineSplitReader;
 using spine::sim::SpineSplitSsspCompute;
 using spine::sim::SpineVerticalSliceSystem;
@@ -2739,6 +2741,87 @@ void test_spine_multiround_weighted_sssp_converges() {
           "multi-round SSSP repeated maintenance or mutated graph levels");
 }
 
+struct SpineMemoryWindowObservation {
+  std::uint64_t cycles{};
+  std::vector<std::uint32_t> values;
+  std::vector<std::uint32_t> next_active;
+  SpineL0Counters maintenance;
+  SpineReaderCounters reader;
+  std::uint64_t backend_requests{};
+};
+
+SpineMemoryWindowObservation run_spine_memory_window(std::size_t window) {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("data", 141.0);
+  MockMemoryBackend backend("hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 12,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  const std::filesystem::path fixture =
+      std::filesystem::path(SPINE_SOURCE_DIR) / "tests" / "data" /
+      "weighted_chain_shortcut.slice";
+  SpineL0Config config;
+  config.memory_request_window = window;
+  SpineVerticalSliceSystem system(scheduler, core, backend,
+                                  load_spine_edge_slice(fixture), 0, 4096,
+                                  config);
+  system.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until([&system] { return system.done() && system.idle(); },
+                      1'000'000);
+  return SpineMemoryWindowObservation{
+      .cycles = scheduler.clock(core).completed_cycles,
+      .values = system.compute().values(),
+      .next_active = system.compute().next_active(),
+      .maintenance = system.maintenance_counters(),
+      .reader = system.reader_counters(),
+      .backend_requests = backend.stats().accepted,
+  };
+}
+
+void test_spine_memory_request_window_hides_latency() {
+  const SpineMemoryWindowObservation serialized = run_spine_memory_window(1);
+  const SpineMemoryWindowObservation pipelined = run_spine_memory_window(32);
+
+  std::cout << "EVIDENCE spine_memory_window serialized_cycles="
+            << serialized.cycles << " pipelined_cycles=" << pipelined.cycles
+            << " maintenance_max_inflight="
+            << pipelined.maintenance.max_memory_requests_inflight
+            << " reader_max_inflight="
+            << pipelined.reader.max_memory_requests_inflight
+            << " dependency_stalls="
+            << pipelined.maintenance.memory_dependency_stall_cycles << '\n';
+
+  require(serialized.values == pipelined.values &&
+              serialized.next_active == pipelined.next_active,
+          "memory request window changed Spine functional results");
+  require(serialized.backend_requests == pipelined.backend_requests &&
+              serialized.maintenance.memory_tasks ==
+                  pipelined.maintenance.memory_tasks &&
+              serialized.reader.graph_read_bytes ==
+                  pipelined.reader.graph_read_bytes &&
+              serialized.reader.metadata_read_bytes ==
+                  pipelined.reader.metadata_read_bytes,
+          "memory request window changed the Spine memory work ledger");
+  require(serialized.maintenance.max_memory_requests_inflight == 1 &&
+              serialized.reader.max_memory_requests_inflight == 1,
+          "serialized compatibility profile exceeded one logical request");
+  require(pipelined.maintenance.max_memory_requests_inflight > 1 &&
+              pipelined.reader.max_memory_requests_inflight > 1,
+          "pipelined profile did not exercise logical AXI concurrency");
+  require(pipelined.maintenance.memory_requests_issued ==
+                  pipelined.maintenance.memory_requests_completed &&
+              pipelined.reader.memory_requests_issued ==
+                  pipelined.reader.memory_requests_completed,
+          "pipelined profile did not retire every issued memory request");
+  require(pipelined.cycles < serialized.cycles,
+          "pipelined request window did not hide backend latency");
+}
+
 }  // namespace
 
 int main() {
@@ -2798,6 +2881,8 @@ int main() {
        test_spine_hls_metadata_and_active_record_abi},
       {"spine_multiround_weighted_sssp",
        test_spine_multiround_weighted_sssp_converges},
+      {"spine_memory_request_window",
+       test_spine_memory_request_window_hides_latency},
   };
   std::size_t failures = 0;
   for (const auto &[name, test] : tests) {

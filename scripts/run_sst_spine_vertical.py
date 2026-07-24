@@ -619,6 +619,15 @@ def parse_args() -> argparse.Namespace:
         "--range-task-payload-budget", type=int, default=1_048_576
     )
     parser.add_argument("--fallback-replay-threshold", type=int, default=65_536)
+    parser.add_argument(
+        "--memory-request-window",
+        type=int,
+        default=1,
+        help=(
+            "coarse logical-request overlap; values above one are an "
+            "architecture what-if, not the source-faithful HLS default"
+        ),
+    )
     parser.add_argument("--no-build", action="store_true")
     return parser.parse_args()
 
@@ -700,6 +709,7 @@ def main() -> int:
             "SPINE_SST_FALLBACK_REPLAY_THRESHOLD": str(
                 args.fallback_replay_threshold
             ),
+            "SPINE_SST_MEMORY_REQUEST_WINDOW": str(args.memory_request_window),
         }
     )
     command = [

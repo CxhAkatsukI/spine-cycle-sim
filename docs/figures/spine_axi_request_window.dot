@@ -1,0 +1,31 @@
+digraph spine_axi_request_window {
+  graph [rankdir=LR, bgcolor="white", pad="0.2", nodesep="0.35", ranksep="0.55"];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=11,
+        color="#333333", fillcolor="#f7f7f7"];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#555555"];
+
+  subgraph cluster_source {
+    label="Source-faithful loop scopes";
+    color="#4c78a8";
+    level [label="Level cache\n32 families x 11 levels\nserial scalar reads", fillcolor="#e8f1fa"];
+    build [label="Exact task construction\nedge loop II=1\nordered consume", fillcolor="#e8f1fa"];
+    replay [label="Exact replay\nedge loop II=1\nAXIS backpressure", fillcolor="#e8f1fa"];
+  }
+
+  issue [label="Bounded request issue\ntransaction ID scoreboard", fillcolor="#e8f5e9"];
+  axi [label="Shared AXI model\nburst split + outstanding\nfinite response FIFO", fillcolor="#fff3cd"];
+  hbm [label="Online SST-HBM\ncontention + row state", fillcolor="#fde9d9"];
+  retire [label="Ordered response retire\npayload-authoritative", fillcolor="#e8f5e9"];
+  axis [label="Finite reader-compute AXIS", fillcolor="#f3e8fd"];
+
+  level -> issue [label="one logical task at a time"];
+  build -> issue [label="up to one edge/cycle"];
+  replay -> issue [label="up to one edge/cycle"];
+  issue -> axi;
+  axi -> hbm [label="requests"];
+  hbm -> axi [label="responses"];
+  axi -> retire;
+  retire -> build [label="ordered dst"];
+  retire -> axis [label="replay edge"];
+  axis -> replay [label="ready/backpressure", style=dashed];
+}

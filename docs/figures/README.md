@@ -16,6 +16,10 @@
   ACK_DIRTY ownership closeout. It now also shows DEVICE limit handoff and the
   payload-driven HOST discovery/replay fallback. Its editable source is the
   adjacent `.dot` file.
+- `spine_axi_request_window.svg`: loop-scoped target for bounded AXI issue,
+  ordered response retirement, and replay backpressure. The corresponding
+  coarse global-window implementation remains a labeled what-if. Its editable
+  source is the adjacent `.dot` file.
 
 Regenerate a Graphviz SVG from the repository root with:
 

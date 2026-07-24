@@ -569,6 +569,8 @@ class OnlineMemoryProbe final : public SST::Component {
         params.find<std::uint64_t>("range_task_payload_budget", 1'048'576);
     fallback_replay_threshold_ =
         params.find<std::uint64_t>("fallback_replay_threshold", 65'536);
+    memory_request_window_ =
+        params.find<std::size_t>("memory_request_window", 1);
     if ((mode_ != "probe" && mode_ != "payload_roundtrip" &&
          mode_ != "spine_vertical" && mode_ != "spine_compute" &&
          mode_ != "spine_sssp") ||
@@ -576,6 +578,7 @@ class OnlineMemoryProbe final : public SST::Component {
         device_dirty_source_limit_ == 0 || range_task_active_gate_ == 0 ||
         range_task_capacity_ == 0 || range_task_capacity_ > 65'536 ||
         range_task_payload_budget_ == 0 || fallback_replay_threshold_ == 0 ||
+        memory_request_window_ == 0 ||
         write_percent_ > 100 ||
         (mode_ == "probe" &&
          (request_count_ == 0 || request_bytes_ == 0 || stride_bytes_ == 0)) ||
@@ -722,6 +725,7 @@ class OnlineMemoryProbe final : public SST::Component {
       maintenance_config.range_task_capacity = range_task_capacity_;
       maintenance_config.range_task_payload_budget = range_task_payload_budget_;
       maintenance_config.fallback_replay_threshold = fallback_replay_threshold_;
+      maintenance_config.memory_request_window = memory_request_window_;
       if (!hot_vertices_text_.empty()) {
         std::istringstream vertices(hot_vertices_text_);
         std::string item;
@@ -977,7 +981,9 @@ class OnlineMemoryProbe final : public SST::Component {
       {"range_task_capacity", "Exact-reader descriptor capacity", "65536"},
       {"range_task_payload_budget", "Exact-reader construction budget",
        "1048576"},
-      {"fallback_replay_threshold", "HOST fallback replay threshold", "65536"})
+      {"fallback_replay_threshold", "HOST fallback replay threshold", "65536"},
+      {"memory_request_window",
+       "Coarse producer request window (greater than one is a what-if)", "1"})
 
   SST_ELI_DOCUMENT_SUBCOMPONENT_SLOTS(
       {"memory", "One StandardMem interface per HBM channel",
@@ -1164,6 +1170,12 @@ class OnlineMemoryProbe final : public SST::Component {
       std::vector<std::uint64_t> reader_active_bin_bytes;
       std::vector<std::uint64_t> reader_dirty_list_bytes;
       std::vector<std::uint64_t> reader_dirty_bitmap_bytes;
+      std::vector<std::uint64_t> reader_memory_requests_issued;
+      std::vector<std::uint64_t> reader_memory_requests_completed;
+      std::vector<std::uint64_t> reader_memory_window_stalls;
+      std::vector<std::uint64_t> reader_memory_dependency_stalls;
+      std::vector<std::uint64_t> reader_memory_request_fifo_stalls;
+      std::vector<std::size_t> reader_max_memory_requests_inflight;
       std::vector<std::uint64_t> reader_source_requests;
       std::vector<std::uint64_t> reader_source_responses;
       std::vector<std::uint64_t> reader_source_windows;
@@ -1254,6 +1266,18 @@ class OnlineMemoryProbe final : public SST::Component {
         reader_dirty_list_bytes.push_back(round.reader.dirty_list_read_bytes);
         reader_dirty_bitmap_bytes.push_back(
             round.reader.dirty_bitmap_read_bytes);
+        reader_memory_requests_issued.push_back(
+            round.reader.memory_requests_issued);
+        reader_memory_requests_completed.push_back(
+            round.reader.memory_requests_completed);
+        reader_memory_window_stalls.push_back(
+            round.reader.memory_window_stall_cycles);
+        reader_memory_dependency_stalls.push_back(
+            round.reader.memory_dependency_stall_cycles);
+        reader_memory_request_fifo_stalls.push_back(
+            round.reader.memory_request_fifo_stall_cycles);
+        reader_max_memory_requests_inflight.push_back(
+            round.reader.max_memory_requests_inflight);
         reader_source_requests.push_back(round.reader.source_requests);
         reader_source_responses.push_back(round.reader.source_responses);
         reader_source_windows.push_back(round.reader.source_request_windows);
@@ -1344,6 +1368,8 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"range_task_capacity\": " << range_task_capacity_ << ",\n"
              << "  \"range_task_payload_budget\": "
              << range_task_payload_budget_ << ",\n"
+             << "  \"memory_request_window\": " << memory_request_window_
+             << ",\n"
              << "  \"converged\": " << (converged ? "true" : "false") << ",\n"
              << "  \"correctness_mismatches\": " << mismatches << ",\n"
              << "  \"frontier_mismatches\": " << frontier_mismatches << ",\n"
@@ -1359,6 +1385,18 @@ class OnlineMemoryProbe final : public SST::Component {
              << maintenance.graph_index_payload_write_bytes << ",\n"
              << "  \"maintenance_graph_payload_write_bytes\": "
              << maintenance.graph_edge_payload_write_bytes << ",\n"
+             << "  \"maintenance_memory_requests_issued\": "
+             << maintenance.memory_requests_issued << ",\n"
+             << "  \"maintenance_memory_requests_completed\": "
+             << maintenance.memory_requests_completed << ",\n"
+             << "  \"maintenance_memory_window_stall_cycles\": "
+             << maintenance.memory_window_stall_cycles << ",\n"
+             << "  \"maintenance_memory_dependency_stall_cycles\": "
+             << maintenance.memory_dependency_stall_cycles << ",\n"
+             << "  \"maintenance_memory_request_fifo_stall_cycles\": "
+             << maintenance.memory_request_fifo_stall_cycles << ",\n"
+             << "  \"maintenance_max_memory_requests_inflight\": "
+             << maintenance.max_memory_requests_inflight << ",\n"
              << "  \"dirty_ack_started\": "
              << (spine_system_->dirty_ack_started() ? 1 : 0) << ",\n"
              << "  \"dirty_ack_status\": " << dirty_ack.status << ",\n"
@@ -1456,6 +1494,18 @@ class OnlineMemoryProbe final : public SST::Component {
       write_json_array(result, reader_dirty_list_bytes);
       result << ",\n  \"reader_dirty_bitmap_bytes_per_round\": ";
       write_json_array(result, reader_dirty_bitmap_bytes);
+      result << ",\n  \"reader_memory_requests_issued_per_round\": ";
+      write_json_array(result, reader_memory_requests_issued);
+      result << ",\n  \"reader_memory_requests_completed_per_round\": ";
+      write_json_array(result, reader_memory_requests_completed);
+      result << ",\n  \"reader_memory_window_stall_cycles_per_round\": ";
+      write_json_array(result, reader_memory_window_stalls);
+      result << ",\n  \"reader_memory_dependency_stall_cycles_per_round\": ";
+      write_json_array(result, reader_memory_dependency_stalls);
+      result << ",\n  \"reader_memory_request_fifo_stall_cycles_per_round\": ";
+      write_json_array(result, reader_memory_request_fifo_stalls);
+      result << ",\n  \"reader_max_memory_requests_inflight_per_round\": ";
+      write_json_array(result, reader_max_memory_requests_inflight);
       result << ",\n  \"reader_source_requests_per_round\": ";
       write_json_array(result, reader_source_requests);
       result << ",\n  \"reader_source_responses_per_round\": ";
@@ -1609,6 +1659,7 @@ class OnlineMemoryProbe final : public SST::Component {
           << ",\n"
           << "  \"input_edges\": " << spine_expected_edges_ << ",\n"
           << "  \"preload_edges\": " << spine_preload_edges_ << ",\n"
+          << "  \"memory_request_window\": " << memory_request_window_ << ",\n"
           << "  \"correctness_mismatches\": " << mismatches << ",\n"
           << "  \"frontier_mismatches\": " << frontier_mismatches << ",\n"
           << "  \"next_active\": "
@@ -1641,6 +1692,18 @@ class OnlineMemoryProbe final : public SST::Component {
           << maintenance.graph_index_payload_write_bytes << ",\n"
           << "  \"maintenance_graph_payload_write_bytes\": "
           << maintenance.graph_edge_payload_write_bytes << ",\n"
+          << "  \"maintenance_memory_requests_issued\": "
+          << maintenance.memory_requests_issued << ",\n"
+          << "  \"maintenance_memory_requests_completed\": "
+          << maintenance.memory_requests_completed << ",\n"
+          << "  \"maintenance_memory_window_stall_cycles\": "
+          << maintenance.memory_window_stall_cycles << ",\n"
+          << "  \"maintenance_memory_dependency_stall_cycles\": "
+          << maintenance.memory_dependency_stall_cycles << ",\n"
+          << "  \"maintenance_memory_request_fifo_stall_cycles\": "
+          << maintenance.memory_request_fifo_stall_cycles << ",\n"
+          << "  \"maintenance_max_memory_requests_inflight\": "
+          << maintenance.max_memory_requests_inflight << ",\n"
           << "  \"reader_tiles\": " << reader.tiles_emitted << ",\n"
           << "  \"reader_edges\": " << reader.edges_emitted << ",\n"
           << "  \"reader_graph_bytes\": " << reader.graph_read_bytes << ",\n"
@@ -1695,6 +1758,18 @@ class OnlineMemoryProbe final : public SST::Component {
           << ",\n"
           << "  \"reader_dirty_bitmap_bytes\": "
           << reader.dirty_bitmap_read_bytes << ",\n"
+          << "  \"reader_memory_requests_issued\": "
+          << reader.memory_requests_issued << ",\n"
+          << "  \"reader_memory_requests_completed\": "
+          << reader.memory_requests_completed << ",\n"
+          << "  \"reader_memory_window_stall_cycles\": "
+          << reader.memory_window_stall_cycles << ",\n"
+          << "  \"reader_memory_dependency_stall_cycles\": "
+          << reader.memory_dependency_stall_cycles << ",\n"
+          << "  \"reader_memory_request_fifo_stall_cycles\": "
+          << reader.memory_request_fifo_stall_cycles << ",\n"
+          << "  \"reader_max_memory_requests_inflight\": "
+          << reader.max_memory_requests_inflight << ",\n"
           << "  \"reader_source_requests\": " << reader.source_requests << ",\n"
           << "  \"reader_source_responses\": " << reader.source_responses
           << ",\n"
@@ -1847,6 +1922,7 @@ class OnlineMemoryProbe final : public SST::Component {
   std::size_t range_task_capacity_{};
   std::uint64_t range_task_payload_budget_{};
   std::uint64_t fallback_replay_threshold_{};
+  std::size_t memory_request_window_{};
   SST::TimeConverter clock_converter_{};
   std::vector<SST::Interfaces::StandardMem *> interfaces_;
 

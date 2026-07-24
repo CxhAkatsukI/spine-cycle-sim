@@ -131,7 +131,8 @@ SpineSplitReader::SpineSplitReader(std::string name, ClockId clock_id,
 }
 
 void SpineSplitReader::reset_round(std::vector<std::uint32_t> active_sources) {
-  if (!done_ || failed_ || waiting_memory_ || !memory_tasks_.empty() ||
+  if (!done_ || failed_ || !inflight_memory_tasks_.empty() ||
+      !memory_tasks_.empty() ||
       active_sources.empty()) {
     throw std::logic_error("reader round reset requires a successful drain");
   }
@@ -143,7 +144,8 @@ void SpineSplitReader::reset_round(std::vector<std::uint32_t> active_sources) {
 void SpineSplitReader::reset_host_round(
     const SpineActiveBins &active_bins,
     std::optional<SpineDirtyIdentity> host_coverage) {
-  if (!done_ || ( failed_ && !recoverable_host_handoff()) || waiting_memory_ || !memory_tasks_.empty()) {
+  if (!done_ || (failed_ && !recoverable_host_handoff()) ||
+      !inflight_memory_tasks_.empty() || !memory_tasks_.empty()) {
     throw std::logic_error(
         "reader host-active reset requires a successful drain");
   }
@@ -224,6 +226,7 @@ void SpineSplitReader::reset_state() {
   fallback_touched_masks_.fill(0);
   fallback_force_dense_.fill(false);
   memory_tasks_.clear();
+  inflight_memory_tasks_.clear();
   phase_ = Phase::kWaitMaintenance;
   staged_action_ = Action::kNone;
   probe_index_ = 0;
@@ -272,7 +275,8 @@ void SpineSplitReader::reset_state() {
   active_bin_offsets_.fill(0);
   active_bin_counts_.fill(0);
   dirty_payload_valid_ = true;
-  waiting_memory_ = false;
+  staged_memory_issue_ = false;
+  staged_memory_completion_ = false;
   terminal_pending_ = false;
   terminal_overflow_ = false;
   terminal_failed_ = false;
@@ -297,29 +301,33 @@ std::vector<std::uint32_t> SpineSplitReader::active_source_ids() const {
 
 void SpineSplitReader::evaluate(const CycleContext &) {
   staged_action_ = Action::kNone;
+  staged_memory_issue_ = false;
+  staged_memory_completion_ = false;
   if (done_ || failed_) {
     return;
   }
-  if (waiting_memory_) {
-    if (memory_tasks_.empty()) {
-      throw std::logic_error("reader memory wait has no task");
-    }
-    if (memory_tasks_.front().port->responses().try_pop(staged_response_)) {
-      staged_action_ = Action::kComplete;
-    }
-    return;
-  }
+  staged_memory_completion_ = stage_memory_completion();
   if (!memory_tasks_.empty()) {
     const MemoryTask &task = memory_tasks_.front();
-    if (task.port->requests().try_push(AxiRequest{
-            .transaction_id = next_transaction_id_,
-            .operation = task.operation,
-            .address = task.address,
-            .bytes = task.bytes,
-            .write_data = task.write_data,
-        })) {
-      staged_action_ = Action::kIssue;
+    const std::size_t window = maintenance_.config().memory_request_window;
+    if (inflight_memory_tasks_.size() >= window) {
+      ++counters_.memory_window_stall_cycles;
+    } else if (memory_task_conflicts(task)) {
+      ++counters_.memory_dependency_stall_cycles;
+    } else if (task.port->requests().try_push(AxiRequest{
+                   .transaction_id = next_transaction_id_,
+                   .operation = task.operation,
+                   .address = task.address,
+                   .bytes = task.bytes,
+                   .write_data = task.write_data,
+               })) {
+      staged_memory_issue_ = true;
+    } else {
+      ++counters_.memory_request_fifo_stall_cycles;
     }
+  }
+  if (!memory_tasks_.empty() || !inflight_memory_tasks_.empty() ||
+      staged_memory_completion_) {
     return;
   }
   if (phase_ == Phase::kWaitSourceWindow ||
@@ -347,24 +355,31 @@ void SpineSplitReader::evaluate(const CycleContext &) {
 }
 
 void SpineSplitReader::commit(const CycleContext &context) {
+  if (staged_memory_completion_) {
+    const auto found =
+        inflight_memory_tasks_.find(staged_response_.transaction_id);
+    if (found == inflight_memory_tasks_.end() || !staged_response_.success) {
+      failed_ = true;
+      done_ = true;
+      failure_ = "reader AXI response failed or used an unknown transaction ID";
+      return;
+    }
+    consume_memory_response(found->second, staged_response_);
+    inflight_memory_tasks_.erase(found);
+    ++counters_.memory_requests_completed;
+  }
+  if (staged_memory_issue_) {
+    const std::uint64_t transaction_id = next_transaction_id_++;
+    inflight_memory_tasks_.emplace(transaction_id,
+                                   std::move(memory_tasks_.front()));
+    memory_tasks_.pop_front();
+    ++counters_.memory_requests_issued;
+    counters_.max_memory_requests_inflight =
+        std::max(counters_.max_memory_requests_inflight,
+                 inflight_memory_tasks_.size());
+  }
   switch (staged_action_) {
     case Action::kNone:
-      return;
-    case Action::kIssue:
-      expected_transaction_id_ = next_transaction_id_++;
-      waiting_memory_ = true;
-      return;
-    case Action::kComplete:
-      if (!staged_response_.success ||
-          staged_response_.transaction_id != expected_transaction_id_) {
-        failed_ = true;
-        done_ = true;
-        failure_ = "reader AXI response failed or changed transaction order";
-        return;
-      }
-      consume_memory_response(memory_tasks_.front(), staged_response_);
-      waiting_memory_ = false;
-      memory_tasks_.pop_front();
       return;
     case Action::kPopValue:
       if (phase_ == Phase::kWaitSourceAck) {
@@ -499,6 +514,38 @@ void SpineSplitReader::commit(const CycleContext &context) {
       advance(context);
       return;
   }
+}
+
+bool SpineSplitReader::memory_task_conflicts(const MemoryTask &task) const {
+  const std::uint64_t task_end = task.address + task.bytes;
+  for (const auto &[transaction_id, inflight] : inflight_memory_tasks_) {
+    (void)transaction_id;
+    if (task.port != inflight.port ||
+        (task.operation == MemoryOperation::kRead &&
+         inflight.operation == MemoryOperation::kRead)) {
+      continue;
+    }
+    const std::uint64_t inflight_end = inflight.address + inflight.bytes;
+    if (task.address < inflight_end && inflight.address < task_end) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool SpineSplitReader::stage_memory_completion() {
+  std::uint64_t selected = std::numeric_limits<std::uint64_t>::max();
+  FixedAxiPort *selected_port = nullptr;
+  for (const auto &[transaction_id, task] : inflight_memory_tasks_) {
+    const AxiResponse *response = task.port->responses().front();
+    if (response != nullptr && response->transaction_id == transaction_id &&
+        transaction_id < selected) {
+      selected = transaction_id;
+      selected_port = task.port;
+    }
+  }
+  return selected_port != nullptr &&
+         selected_port->responses().try_pop(staged_response_);
 }
 
 void SpineSplitReader::enqueue_read(FixedAxiPort &port, std::uint64_t address,

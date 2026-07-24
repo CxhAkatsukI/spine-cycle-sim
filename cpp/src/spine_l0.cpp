@@ -652,7 +652,8 @@ SpineL0Maintenance::SpineL0Maintenance(std::string name, ClockId clock_id,
       config_.range_task_capacity == 0 ||
       config_.range_task_capacity > 65'536 ||
       config_.range_task_payload_budget == 0 ||
-      config_.fallback_replay_threshold == 0 || workload_.vertices == 0 ||
+      config_.fallback_replay_threshold == 0 ||
+      config_.memory_request_window == 0 || workload_.vertices == 0 ||
       workload_.vertices > config_.max_vertices || workload_.edges.empty() ||
       workload_.edges.size() > config_.max_sort_edges ||
       ports_.sorted_edges == nullptr || ports_.metadata == nullptr ||
@@ -808,58 +809,99 @@ void SpineL0Maintenance::initialize_metadata_payload() {
 
 void SpineL0Maintenance::evaluate(const CycleContext &) {
   staged_action_ = StagedAction::kNone;
+  staged_memory_issue_ = false;
+  staged_memory_completion_ = false;
   if (done_ || failed_) {
     return;
   }
-  if (waiting_) {
-    if (tasks_.empty()) {
-      throw std::logic_error("Spine memory wait has no task");
-    }
-    if (tasks_.front().port->responses().try_pop(staged_response_)) {
-      staged_action_ = StagedAction::kComplete;
-    }
-    return;
-  }
+  staged_memory_completion_ = stage_memory_completion();
   if (!tasks_.empty()) {
     const MemoryTask &task = tasks_.front();
-    if (task.port->requests().try_push(AxiRequest{
-            .transaction_id = next_transaction_id_,
-            .operation = task.operation,
-            .address = task.address,
-            .bytes = task.bytes,
-            .write_data = task.write_data,
-        })) {
-      staged_action_ = StagedAction::kIssue;
+    if (inflight_tasks_.size() >= config_.memory_request_window) {
+      ++counters_.memory_window_stall_cycles;
+    } else if (memory_task_conflicts(task)) {
+      ++counters_.memory_dependency_stall_cycles;
+    } else if (task.port->requests().try_push(AxiRequest{
+                   .transaction_id = next_transaction_id_,
+                   .operation = task.operation,
+                   .address = task.address,
+                   .bytes = task.bytes,
+                   .write_data = task.write_data,
+               })) {
+      staged_memory_issue_ = true;
+    } else {
+      ++counters_.memory_request_fifo_stall_cycles;
     }
+  }
+  if (!tasks_.empty() || !inflight_tasks_.empty() ||
+      staged_memory_completion_) {
     return;
   }
   staged_action_ = StagedAction::kAdvance;
 }
 
 void SpineL0Maintenance::commit(const CycleContext &context) {
+  if (staged_memory_completion_) {
+    const auto found = inflight_tasks_.find(staged_response_.transaction_id);
+    if (found == inflight_tasks_.end() || !staged_response_.success) {
+      failed_ = true;
+      done_ = true;
+      failure_ = "Spine AXI response failed or used an unknown transaction ID";
+      return;
+    }
+    consume_memory_response(found->second, staged_response_);
+    inflight_tasks_.erase(found);
+    ++counters_.memory_requests_completed;
+  }
+  if (staged_memory_issue_) {
+    const std::uint64_t transaction_id = next_transaction_id_++;
+    inflight_tasks_.emplace(transaction_id, std::move(tasks_.front()));
+    tasks_.pop_front();
+    ++counters_.memory_requests_issued;
+    counters_.max_memory_requests_inflight =
+        std::max(counters_.max_memory_requests_inflight,
+                 inflight_tasks_.size());
+  }
   switch (staged_action_) {
     case StagedAction::kNone:
-      return;
-    case StagedAction::kIssue:
-      expected_transaction_id_ = next_transaction_id_++;
-      waiting_ = true;
-      return;
-    case StagedAction::kComplete:
-      if (staged_response_.transaction_id != expected_transaction_id_ ||
-          !staged_response_.success) {
-        failed_ = true;
-        done_ = true;
-        failure_ = "Spine AXI response failed or used the wrong transaction ID";
-        return;
-      }
-      consume_memory_response(tasks_.front(), staged_response_);
-      waiting_ = false;
-      tasks_.pop_front();
       return;
     case StagedAction::kAdvance:
       advance(context);
       return;
   }
+}
+
+bool SpineL0Maintenance::memory_task_conflicts(
+    const MemoryTask &task) const {
+  const std::uint64_t task_end = task.address + task.bytes;
+  for (const auto &[transaction_id, inflight] : inflight_tasks_) {
+    (void)transaction_id;
+    if (task.port != inflight.port ||
+        (task.operation == MemoryOperation::kRead &&
+         inflight.operation == MemoryOperation::kRead)) {
+      continue;
+    }
+    const std::uint64_t inflight_end = inflight.address + inflight.bytes;
+    if (task.address < inflight_end && inflight.address < task_end) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool SpineL0Maintenance::stage_memory_completion() {
+  std::uint64_t selected = std::numeric_limits<std::uint64_t>::max();
+  FixedAxiPort *selected_port = nullptr;
+  for (const auto &[transaction_id, task] : inflight_tasks_) {
+    const AxiResponse *response = task.port->responses().front();
+    if (response != nullptr && response->transaction_id == transaction_id &&
+        transaction_id < selected) {
+      selected = transaction_id;
+      selected_port = task.port;
+    }
+  }
+  return selected_port != nullptr &&
+         selected_port->responses().try_pop(staged_response_);
 }
 
 void SpineL0Maintenance::enqueue_task(
