@@ -35,6 +35,11 @@ contract is documented in
 It records the real GraSU PMA topology and prevents the existing capacity-wide
 conversion cost from being silently removed from native results.
 
+The first executable GraSU comparator slice now performs payload-backed PMA
+insert/delete updates through finite AXIS, AXI, and shared-HBM components. Its
+scope, byte ledger, and correctness evidence are in
+[`docs/grasu_native_update_vertical_20260725.md`](docs/grasu_native_update_vertical_20260725.md).
+
 ## Quick Start
 
 Run one workload:

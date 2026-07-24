@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "date": "2026-07-25",
+  "implementation": {
+    "header": "cpp/include/spine_sim/grasu.hpp",
+    "source": "cpp/src/grasu.cpp",
+    "test": "cpp/tests/grasu_tests.cpp",
+    "profile": "configs/architectures/grasu_regraph_native_a9aef06.json"
+  },
+  "source_features": {
+    "compact_hbm_ports": true,
+    "direct_cache_hbm_rmw": true,
+    "bin_search_cus": 4,
+    "dispatch_cus": 1,
+    "cache_cus": 2,
+    "ddr_cus": 2,
+    "ddr_halves_per_cu": 2,
+    "ddr_lanes_per_half": 16,
+    "segment_slots": 16,
+    "segment_bytes": 64
+  },
+  "functional_route_test": {
+    "backend": "mock_hbm",
+    "backend_latency_cycles": 7,
+    "updates": 10,
+    "inserts": 9,
+    "deletes": 1,
+    "cycles_200mhz": 176,
+    "cache_updates": 5,
+    "ddr_updates": 5,
+    "binary_probes": 13,
+    "read_bytes": 904,
+    "write_bytes": 640,
+    "payload_oracle": "pass"
+  },
+  "contention_test": {
+    "backend": "mock_hbm",
+    "backend_latency_cycles": 3,
+    "max_outstanding_per_channel": 1,
+    "updates": 128,
+    "cycles_200mhz": 1238,
+    "axi_backend_submit_stalls": 28,
+    "axis_push_stalls": 3097,
+    "lane_queue_stalls": 2078,
+    "payload_oracle": "pass"
+  },
+  "negative_tests": [
+    "unreserved insertion rejected",
+    "repeated deletion rejected"
+  ],
+  "claim_boundary": {
+    "validated": "execution-driven native GraSU PMA update shape on MockMemoryBackend",
+    "not_validated": [
+      "SST-HBM timing",
+      "U55C cycle calibration",
+      "host reorder and PMA construction time",
+      "PMA-native ReGraph compute"
+    ]
+  }
+}

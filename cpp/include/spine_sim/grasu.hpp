@@ -1,0 +1,107 @@
+#pragma once
+
+#include <array>
+#include <cstddef>
+#include <cstdint>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "spine_sim/axi.hpp"
+#include "spine_sim/component.hpp"
+#include "spine_sim/memory_backend.hpp"
+#include "spine_sim/scheduler.hpp"
+
+namespace spine::sim {
+
+constexpr std::uint32_t kGraSuPmaEmpty = 0x8000'0000U;
+constexpr std::size_t kGraSuSegmentSlots = 16;
+constexpr std::size_t kGraSuSegmentBytes = 64;
+
+struct GraSuEdge {
+  std::uint32_t source{};
+  std::uint32_t destination{};
+  bool delete_op{};
+
+  friend bool operator==(const GraSuEdge &, const GraSuEdge &) = default;
+};
+
+struct GraSuPmaLayout {
+  std::size_t vertices{};
+  std::vector<std::pair<std::uint32_t, std::uint32_t>> row_slot_bounds;
+  std::vector<std::uint64_t> binary_heads;
+  std::vector<std::array<std::uint32_t, kGraSuSegmentSlots>> segments;
+  std::vector<std::array<std::uint32_t, kGraSuSegmentSlots>>
+      reserved_segments;
+
+  [[nodiscard]] static GraSuPmaLayout
+  build(std::size_t vertices, const std::vector<GraSuEdge> &initial_edges,
+        const std::vector<GraSuEdge> &reserved_updates);
+  [[nodiscard]] std::vector<GraSuEdge> live_edges() const;
+  [[nodiscard]] std::size_t segment_for(const GraSuEdge &edge) const;
+};
+
+struct GraSuNativeConfig {
+  std::size_t memory_channels{32};
+  std::size_t cache_segments_per_half{131072};
+  std::size_t axis_fifo_depth{16};
+  std::size_t lane_fifo_depth{8};
+  std::size_t max_pending_requests{16};
+  std::size_t max_outstanding_bursts{16};
+  std::size_t response_beats_per_cycle{1};
+  std::uint64_t update_base{0x0000'0000ULL};
+  std::uint64_t row_offset_base{0x1000'0000ULL};
+  std::uint64_t binary_base{0x2000'0000ULL};
+  std::uint64_t pma_base{0x3000'0000ULL};
+};
+
+struct GraSuUpdateCounters {
+  std::uint64_t updates{};
+  std::uint64_t inserts{};
+  std::uint64_t deletes{};
+  std::uint64_t row_reads{};
+  std::uint64_t binary_probes{};
+  std::uint64_t cache_updates{};
+  std::uint64_t ddr_updates{};
+  std::uint64_t pma_reads{};
+  std::uint64_t pma_writes{};
+  std::uint64_t update_read_bytes{};
+  std::uint64_t row_read_bytes{};
+  std::uint64_t binary_read_bytes{};
+  std::uint64_t pma_read_bytes{};
+  std::uint64_t pma_write_bytes{};
+  std::uint64_t axi_backend_submit_stalls{};
+  std::uint64_t axis_push_stalls{};
+  std::uint64_t lane_queue_stalls{};
+  std::uint64_t start_cycle{};
+  std::uint64_t end_cycle{};
+};
+
+class GraSuPmaUpdateSystem {
+ public:
+  GraSuPmaUpdateSystem(Scheduler &scheduler, ClockId clock_id,
+                       MemoryBackend &backend, GraSuPmaLayout layout,
+                       std::vector<GraSuEdge> updates,
+                       GraSuNativeConfig config = {});
+  ~GraSuPmaUpdateSystem();
+
+  GraSuPmaUpdateSystem(const GraSuPmaUpdateSystem &) = delete;
+  GraSuPmaUpdateSystem &operator=(const GraSuPmaUpdateSystem &) = delete;
+
+  void register_components();
+  [[nodiscard]] bool done() const noexcept;
+  [[nodiscard]] bool failed() const noexcept;
+  [[nodiscard]] const std::string &failure() const noexcept;
+  [[nodiscard]] GraSuUpdateCounters counters() const noexcept;
+  [[nodiscard]] std::vector<GraSuEdge> live_edges() const;
+  [[nodiscard]] std::array<std::uint32_t, kGraSuSegmentSlots>
+  inspect_segment(std::size_t global_segment) const;
+  [[nodiscard]] const GraSuPmaLayout &initial_layout() const noexcept;
+
+ private:
+  class Impl;
+  std::unique_ptr<Impl> impl_;
+};
+
+}  // namespace spine::sim

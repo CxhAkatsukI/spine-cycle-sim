@@ -7,6 +7,10 @@
   explicit split between the currently measured capacity-wide compactor path
   and the target PMA-native ReGraph path. Its editable source is the adjacent
   `.dot` file.
+- `grasu_native_update_vertical.svg`: implemented execution-driven GraSU U55C
+  update path, including payload-backed PMA RMW, finite queues, shared-HBM
+  contention, and the correctness/statistics sinks. Its editable source is the
+  adjacent `.dot` file.
 - `spine_cycle_sim_architecture.svg`: legacy Python simulator architecture.
   The `.dot` file is its source and the `.png` is a raster export.
 - `spine_architecture_annotated.svg`: detailed mapping between the split Spine

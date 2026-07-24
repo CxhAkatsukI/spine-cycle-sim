@@ -3,6 +3,7 @@ add_library(spine_cycle_core STATIC
   src/algorithm_pipeline.cpp
   src/axi.cpp
   src/banked_memory.cpp
+  src/grasu.cpp
   src/memory_backend.cpp
   src/scheduler.cpp
   src/spine_dirty.cpp
@@ -24,4 +25,9 @@ if(BUILD_TESTING)
     spine_cycle_core_tests PRIVATE SPINE_SOURCE_DIR="${PROJECT_SOURCE_DIR}")
   target_compile_options(spine_cycle_core_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
   add_test(NAME spine_cycle_core_tests COMMAND spine_cycle_core_tests)
+
+  add_executable(grasu_cycle_tests tests/grasu_tests.cpp)
+  target_link_libraries(grasu_cycle_tests PRIVATE spine_cycle_core)
+  target_compile_options(grasu_cycle_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
+  add_test(NAME grasu_cycle_tests COMMAND grasu_cycle_tests)
 endif()

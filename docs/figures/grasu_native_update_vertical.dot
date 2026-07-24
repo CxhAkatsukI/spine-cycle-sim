@@ -1,0 +1,31 @@
+digraph G {
+  graph [rankdir=LR, bgcolor="white", pad="0.25", nodesep="0.3", ranksep="0.55"];
+  node [shape=box, style="rounded,filled", fillcolor="#f7f7f4", color="#333333", fontname="DejaVu Sans", fontsize=10];
+  edge [color="#555555", fontname="DejaVu Sans", fontsize=9];
+
+  updates [label="4 striped update arrays\n8-byte HBM reads", fillcolor="#dfeaf4"];
+  search [label="4 x serial bin_search_direct\nrow offset + binary-head AXI"];
+  axis0 [label="4 finite registered AXIS FIFOs", fillcolor="#e8e8e2"];
+  dispatch [label="Fixed-order dispatch\ncache/DDR + parity"];
+  axis1 [label="4 finite process FIFOs", fillcolor="#e8e8e2"];
+  cache [label="2 x direct-cache CU\n1 ordered lane / CU"];
+  ddr [label="2 x DDR CU\n2 halves x 16 lanes / CU"];
+  pma [label="Payload-backed PMA\nHBM[0..3]\n64-byte segment RMW", fillcolor="#f4e4bf"];
+  oracle [label="Independent live-edge oracle", fillcolor="#dcebd9"];
+  stats [label="Cycle / byte / FIFO / AXI stall ledger", fillcolor="#dcebd9"];
+
+  updates -> search;
+  search -> axis0;
+  axis0 -> dispatch;
+  dispatch -> axis1;
+  axis1 -> cache;
+  axis1 -> ddr;
+  cache -> pma [dir=both];
+  ddr -> pma [dir=both];
+  pma -> oracle [label="decode final payload"];
+  search -> stats [style=dashed];
+  axis0 -> stats [style=dashed];
+  axis1 -> stats [style=dashed];
+  cache -> stats [style=dashed];
+  ddr -> stats [style=dashed];
+}
