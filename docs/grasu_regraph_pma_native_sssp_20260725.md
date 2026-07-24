@@ -166,8 +166,9 @@ dot -Tsvg docs/figures/grasu_regraph_pma_native_sssp.dot \
 
 ## Remaining Boundary
 
-1. Run this vertical slice on `SstMemoryBackend` with a pinned HBM profile and
-   report wall-clock simulation throughput.
+1. Broaden the now-working `SstMemoryBackend` path from the tiny normalized
+   validation case to synthetic sweeps and real graph slices, and report
+   simulator wall-clock throughput.
 2. Wire the now-configurable reader/gather lane count into a profile-driven
    runner and execute the complete pinned 150-MHz/four-lane normalized profile
    separately from the 200-MHz/eight-lane source-shaped validation profile.
@@ -181,3 +182,6 @@ dot -Tsvg docs/figures/grasu_regraph_pma_native_sssp.dot \
    normalized PMA-native cycles are simulator results, not measured hardware.
 7. Add graph ingestion, batch manifests, dual update/algorithm oracles,
    GraSU-versus-Spine reports, SST-HBM sweeps, and PPA/energy accounting.
+
+The first SST run and its stricter apply-pipeline boundary are recorded in
+`docs/grasu_regraph_sst_normalized_20260725.md`.

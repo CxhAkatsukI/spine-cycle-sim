@@ -22,6 +22,8 @@
 
 #include "spine_sim/axi.hpp"
 #include "spine_sim/fifo.hpp"
+#include "spine_sim/grasu.hpp"
+#include "spine_sim/grasu_regraph.hpp"
 #include "spine_sim/memory_backend.hpp"
 #include "spine_sim/scheduler.hpp"
 #include "spine_sim/spine_system.hpp"
@@ -884,10 +886,39 @@ class OnlineMemoryProbe final : public SST::Component {
         params.find<std::size_t>("maintenance_scan_response_capacity", 32);
     spine_axi_profile_id_ =
         params.find<std::string>("spine_axi_profile", "hls_split_9c08763");
+    grasu_config_.memory_channels = channels_;
+    grasu_config_.cache_segments_per_half =
+        params.find<std::size_t>("grasu_cache_segments_per_half", 131072);
+    grasu_config_.partition_vertices =
+        params.find<std::size_t>("grasu_partition_vertices", 65536);
+    grasu_config_.source_buffer_vertices =
+        params.find<std::size_t>("grasu_source_buffer_vertices", 4096);
+    grasu_config_.edge_lanes =
+        params.find<std::size_t>("grasu_edge_lanes", 4);
+    grasu_config_.gather_banks =
+        params.find<std::size_t>("grasu_gather_banks", 4);
+    grasu_config_.axis_fifo_depth =
+        params.find<std::size_t>("grasu_axis_fifo_depth", 16);
+    grasu_config_.reader_buffer_batches =
+        params.find<std::size_t>("grasu_reader_buffer_batches", 32);
+    grasu_config_.max_pending_requests =
+        params.find<std::size_t>("grasu_max_pending_requests", 32);
+    grasu_config_.max_outstanding_bursts =
+        params.find<std::size_t>("grasu_max_outstanding_bursts", 32);
+    grasu_config_.max_supersteps = max_rounds_;
+    grasu_update_config_.memory_channels = channels_;
+    grasu_update_config_.cache_segments_per_half =
+        grasu_config_.cache_segments_per_half;
+    grasu_update_config_.axis_fifo_depth = grasu_config_.axis_fifo_depth;
+    grasu_update_config_.max_pending_requests =
+        grasu_config_.max_pending_requests;
+    grasu_update_config_.max_outstanding_bursts =
+        grasu_config_.max_outstanding_bursts;
     if ((mode_ != "probe" && mode_ != "payload_roundtrip" &&
          mode_ != "spine_vertical" && mode_ != "spine_compute" &&
          mode_ != "spine_sssp" && mode_ != "spine_pagerank" &&
-         mode_ != "spine_residual_pagerank") ||
+         mode_ != "spine_residual_pagerank" &&
+         mode_ != "grasu_regraph_sssp") ||
         channels_ == 0 || channel_capacity_bytes_ == 0 || max_rounds_ == 0 ||
         pagerank_iterations_ == 0 || !(pagerank_damping_ > 0.0F) ||
         !(pagerank_damping_ < 1.0F) ||
@@ -925,8 +956,10 @@ class OnlineMemoryProbe final : public SST::Component {
          (request_count_ == 0 || request_bytes_ == 0 || stride_bytes_ == 0)) ||
         ((mode_ == "spine_vertical" || mode_ == "spine_compute" ||
           mode_ == "spine_sssp" || mode_ == "spine_pagerank" ||
-          mode_ == "spine_residual_pagerank") &&
-         (channels_ < 23 || workload_path_.empty()))) {
+          mode_ == "spine_residual_pagerank" ||
+          mode_ == "grasu_regraph_sssp") &&
+         (channels_ < 23 || workload_path_.empty())) ||
+        (mode_ == "grasu_regraph_sssp" && channels_ < 32)) {
       output_.fatal(CALL_INFO, -1, "invalid online memory probe parameters\n");
     }
     spine_axi_profile_ = spine_axi_profile_from_id(spine_axi_profile_id_);
@@ -970,6 +1003,69 @@ class OnlineMemoryProbe final : public SST::Component {
     const ClockId core = scheduler_.add_clock_mhz("core", core_mhz_);
     backend_ = std::make_unique<SstMemoryBackend>(
         core, interfaces_, channel_capacity_bytes_, 1, 32, 128);
+    if (mode_ == "grasu_regraph_sssp") {
+      SpineEdgeSlice initial = load_spine_edge_slice(workload_path_);
+      SpineEdgeSlice final_snapshot = initial;
+      std::vector<GraSuEdge> initial_edges;
+      std::vector<GraSuEdge> reserved_updates;
+      std::vector<GraSuEdge> updates;
+      const auto append_initial = [&](const SpineEdgeRecord &edge) {
+        if (edge.weight != 1 || edge.diff != 1 ||
+            edge.src >= initial.vertices || edge.dst >= initial.vertices) {
+          throw std::invalid_argument(
+              "GraSU/ReGraph SST initial graph requires unique unit-weight "
+              "insertion records");
+        }
+        initial_edges.push_back(GraSuEdge{
+            .source = edge.src,
+            .destination = edge.dst,
+        });
+      };
+      for (const SpineEdgeRecord &edge : initial.edges) {
+        append_initial(edge);
+      }
+      if (!update_workload_path_.empty()) {
+        SpineEdgeSlice update = load_spine_edge_slice(update_workload_path_);
+        if (update.vertices != initial.vertices) {
+          throw std::invalid_argument(
+              "GraSU/ReGraph update vertex count does not match snapshot");
+        }
+        for (const SpineEdgeRecord &edge : update.edges) {
+          if (edge.weight != 1 || std::abs(edge.diff) != 1 ||
+              edge.src >= initial.vertices || edge.dst >= initial.vertices) {
+            throw std::invalid_argument(
+                "GraSU/ReGraph SST update requires unit multiplicity and "
+                "unit weight");
+          }
+          GraSuEdge converted{
+              .source = edge.src,
+              .destination = edge.dst,
+              .delete_op = edge.diff < 0,
+          };
+          updates.push_back(converted);
+          if (!converted.delete_op) {
+            reserved_updates.push_back(converted);
+          }
+        }
+        final_snapshot = materialize_weighted_snapshot(initial, update);
+      }
+      grasu_initial_edges_ = initial_edges.size();
+      grasu_update_edges_ = updates.size();
+      grasu_layout_ = GraSuPmaLayout::build(initial.vertices, initial_edges,
+                                            reserved_updates);
+      grasu_sssp_reference_ =
+          run_sssp_reference(final_snapshot, source_vertex_, max_rounds_);
+      if (!grasu_sssp_reference_.converged) {
+        throw std::invalid_argument(
+            "GraSU/ReGraph SST SSSP reference did not converge");
+      }
+      grasu_update_system_ = std::make_unique<GraSuPmaUpdateSystem>(
+          scheduler_, core, *backend_, grasu_layout_, std::move(updates),
+          grasu_update_config_);
+      grasu_update_system_->register_components();
+      scheduler_.add_component(*backend_);
+      return;
+    }
     if (mode_ == "spine_pagerank" || mode_ == "spine_residual_pagerank") {
       SpineEdgeSlice workload = load_spine_edge_slice(workload_path_);
       spine_expected_edges_ = workload.edges.size();
@@ -1293,7 +1389,30 @@ class OnlineMemoryProbe final : public SST::Component {
 
   bool clock_tick(SST::Cycle_t) {
     scheduler_.step();
-    if (mode_ == "spine_pagerank" || mode_ == "spine_residual_pagerank") {
+    if (mode_ == "grasu_regraph_sssp") {
+      if (grasu_update_system_->failed()) {
+        write_result(false);
+        primaryComponentOKToEndSim();
+        return true;
+      }
+      if (grasu_compute_system_ == nullptr && grasu_update_system_->done() &&
+          backend_->outstanding() == 0) {
+        grasu_update_counters_ = grasu_update_system_->counters();
+        grasu_update_counters_captured_ = true;
+        grasu_compute_system_ = std::make_unique<GraSuReGraphSsspSystem>(
+            scheduler_, 0, *backend_, grasu_layout_, source_vertex_,
+            grasu_config_);
+        grasu_compute_system_->register_components();
+        return false;
+      }
+      if (grasu_compute_system_ != nullptr &&
+          grasu_compute_system_->done() && backend_->outstanding() == 0) {
+        write_result(!grasu_compute_system_->failed());
+        primaryComponentOKToEndSim();
+        return true;
+      }
+    } else if (mode_ == "spine_pagerank" ||
+               mode_ == "spine_residual_pagerank") {
       if (pagerank_system_->done() && pagerank_system_->idle() &&
           backend_->outstanding() == 0) {
         const std::uint64_t now = scheduler_.clock(0).completed_cycles;
@@ -1467,7 +1586,7 @@ class OnlineMemoryProbe final : public SST::Component {
       {"output", "JSON result path", "sst_memory_probe.json"},
       {"mode",
        "probe, payload_roundtrip, spine_vertical, spine_compute, spine_sssp, or "
-       "spine_pagerank/spine_residual_pagerank",
+       "spine_pagerank/spine_residual_pagerank/grasu_regraph_sssp",
        "probe"},
       {"workload", "Spine .slice workload path", ""},
       {"update_workload", "Optional positive incremental Spine .slice", ""},
@@ -1535,7 +1654,19 @@ class OnlineMemoryProbe final : public SST::Component {
        "Maintenance sorted-edge response/reorder capacity", "32"},
       {"spine_axi_profile",
        "Spine AXI profile: hls_split_9c08763 or legacy_uniform64",
-       "hls_split_9c08763"})
+       "hls_split_9c08763"},
+      {"grasu_cache_segments_per_half", "GraSU cache segments per PMA half",
+       "131072"},
+      {"grasu_partition_vertices", "ReGraph destination partition size",
+       "65536"},
+      {"grasu_source_buffer_vertices", "ReGraph source-cache words", "4096"},
+      {"grasu_edge_lanes", "PMA-native edge lanes", "4"},
+      {"grasu_gather_banks", "ReGraph gather banks", "4"},
+      {"grasu_axis_fifo_depth", "GraSU/ReGraph AXIS FIFO depth", "16"},
+      {"grasu_reader_buffer_batches", "PMA reader response batches", "32"},
+      {"grasu_max_pending_requests", "AXI pending requests per port", "32"},
+      {"grasu_max_outstanding_bursts", "AXI outstanding bursts per port",
+       "32"})
 
   SST_ELI_DOCUMENT_SUBCOMPONENT_SLOTS(
       {"memory", "One StandardMem interface per HBM channel",
@@ -1592,6 +1723,119 @@ class OnlineMemoryProbe final : public SST::Component {
     }
     result_written_ = true;
     std::ofstream result(result_path_);
+    if (mode_ == "grasu_regraph_sssp") {
+      const bool compute_available = grasu_compute_system_ != nullptr;
+      const std::vector<std::uint32_t> distances =
+          compute_available ? grasu_compute_system_->distances()
+                            : std::vector<std::uint32_t>{};
+      std::uint64_t mismatches =
+          distances.size() == grasu_sssp_reference_.values.size() ? 0 : 1;
+      for (std::size_t vertex = 0;
+           vertex < std::min(distances.size(),
+                             grasu_sssp_reference_.values.size());
+           ++vertex) {
+        mismatches +=
+            distances[vertex] == grasu_sssp_reference_.values[vertex] ? 0 : 1;
+      }
+      const GraSuReGraphCounters compute =
+          compute_available ? grasu_compute_system_->counters()
+                            : GraSuReGraphCounters{};
+      const GraSuUpdateCounters update =
+          grasu_update_counters_captured_
+              ? grasu_update_counters_
+              : grasu_update_system_->counters();
+      const bool passed = success && compute_available &&
+                          !grasu_compute_system_->failed() && mismatches == 0;
+      const bool normalized_profile =
+          std::fabs(core_mhz_ - 150.0) < 1.0e-9 && channels_ == 32 &&
+          grasu_config_.partition_vertices == 65'536 &&
+          grasu_config_.edge_lanes == 4 && grasu_config_.gather_banks == 4;
+      result << "{\n"
+             << "  \"success\": " << (passed ? "true" : "false") << ",\n"
+             << "  \"mode\": \"grasu_regraph_sssp\",\n"
+             << "  \"claim_class\": \""
+             << (normalized_profile ? "normalized_simulation"
+                                    : "component_validation_simulation")
+             << "\",\n"
+             << "  \"timing_evidence\": \"structural_execution_driven\",\n"
+             << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
+             << "  \"cycles\": " << scheduler_.clock(0).completed_cycles
+             << ",\n"
+             << "  \"update_cycles\": "
+             << update.end_cycle - update.start_cycle << ",\n"
+             << "  \"compute_cycles\": "
+             << compute.end_cycle - compute.start_cycle << ",\n"
+             << "  \"initial_edges\": " << grasu_initial_edges_ << ",\n"
+             << "  \"updates\": " << grasu_update_edges_ << ",\n"
+             << "  \"vertices\": " << grasu_layout_.vertices << ",\n"
+             << "  \"partition_vertices\": "
+             << grasu_config_.partition_vertices << ",\n"
+             << "  \"edge_lanes\": " << grasu_config_.edge_lanes << ",\n"
+             << "  \"gather_banks\": " << grasu_config_.gather_banks
+             << ",\n"
+             << "  \"correctness_mismatches\": " << mismatches << ",\n"
+             << "  \"supersteps\": " << compute.supersteps << ",\n"
+             << "  \"update_binary_probes\": " << update.binary_probes
+             << ",\n"
+             << "  \"update_pma_reads\": " << update.pma_reads << ",\n"
+             << "  \"update_pma_writes\": " << update.pma_writes << ",\n"
+             << "  \"compute_row_reads\": " << compute.row_reads << ",\n"
+             << "  \"compute_source_state_reads\": "
+             << compute.source_state_reads << ",\n"
+             << "  \"compute_pma_segment_reads\": "
+             << compute.pma_segment_reads << ",\n"
+             << "  \"compute_edge_batches\": "
+             << compute.edge_batches_scanned << ",\n"
+             << "  \"compute_pma_slots\": " << compute.pma_slots_scanned
+             << ",\n"
+             << "  \"compute_live_edges\": " << compute.live_edges_scanned
+             << ",\n"
+             << "  \"compute_active_edges\": "
+             << compute.active_edges_mapped << ",\n"
+             << "  \"gather_reset_cycles\": "
+             << compute.gather_reset_cycles << ",\n"
+             << "  \"gather_merge_cycles\": "
+             << compute.gather_merge_cycles << ",\n"
+             << "  \"gather_bank_conflict_cycles\": "
+             << compute.gather_bank_conflict_cycles << ",\n"
+             << "  \"apply_state_reads\": " << compute.apply_state_reads
+             << ",\n"
+             << "  \"apply_state_writes\": " << compute.apply_state_writes
+             << ",\n"
+             << "  \"update_read_bytes\": "
+             << update.update_read_bytes + update.row_read_bytes +
+                    update.binary_read_bytes + update.pma_read_bytes
+             << ",\n"
+             << "  \"update_write_bytes\": " << update.pma_write_bytes
+             << ",\n"
+             << "  \"compute_read_bytes\": "
+             << compute.row_read_bytes + compute.source_state_read_bytes +
+                    compute.pma_read_bytes + compute.apply_read_bytes
+             << ",\n"
+             << "  \"compute_write_bytes\": " << compute.apply_write_bytes
+             << ",\n"
+             << "  \"axi_backend_stalls\": "
+             << update.axi_backend_submit_stalls +
+                    compute.axi_backend_submit_stalls
+             << ",\n"
+             << "  \"axis_push_stalls\": "
+             << update.axis_push_stalls + compute.axis_push_stalls << ",\n"
+             << "  \"backend_requests\": " << backend_->accepted()
+             << ",\n"
+             << "  \"backend_submit_stalls\": "
+             << backend_->submit_stalls() << ",\n"
+             << "  \"backend_response_queue_stalls\": "
+             << backend_->response_queue_stalls() << ",\n"
+             << "  \"backend_max_outstanding\": "
+             << backend_->max_outstanding() << "\n"
+             << "}\n";
+      output_.output(
+          "completed GraSU + PMA-native ReGraph in %llu core cycles -> %s\n",
+          static_cast<unsigned long long>(
+              scheduler_.clock(0).completed_cycles),
+          result_path_.c_str());
+      return;
+    }
     if (mode_ == "spine_residual_pagerank") {
       std::vector<float> actual_ranks;
       std::vector<float> actual_residuals;
@@ -3977,6 +4221,16 @@ class OnlineMemoryProbe final : public SST::Component {
   std::unique_ptr<FixedAxiPort> spine_active_out_;
   std::unique_ptr<FixedAxiPort> spine_active_bitmap_;
   std::unique_ptr<FixedAxiPort> spine_compute_result_;
+  GraSuNativeConfig grasu_update_config_;
+  GraSuReGraphConfig grasu_config_;
+  GraSuPmaLayout grasu_layout_;
+  std::unique_ptr<GraSuPmaUpdateSystem> grasu_update_system_;
+  std::unique_ptr<GraSuReGraphSsspSystem> grasu_compute_system_;
+  GraSuUpdateCounters grasu_update_counters_;
+  SsspReference grasu_sssp_reference_;
+  std::size_t grasu_initial_edges_{};
+  std::size_t grasu_update_edges_{};
+  bool grasu_update_counters_captured_{};
   SsspReference sssp_reference_;
   SsspReference cold_sssp_reference_;
   SsspReference dynamic_sssp_reference_;

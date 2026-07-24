@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "date": "2026-07-25",
+  "status": "PASS",
+  "claim_class": "normalized_simulation",
+  "timing_evidence": "structural_execution_driven",
+  "profile": {
+    "path": "configs/architectures/grasu_regraph_normalized_spine23.json",
+    "sha256": "c40804a8c9b3545a250f67de8a10b997180f885e37afe87eef3305fef5bd609e"
+  },
+  "workload": {
+    "initial_path": "tests/data/grasu_regraph_unit_initial.slice",
+    "initial_sha256": "0a4c660547b632f111631d431218ebef7d90e942c3dceb208cd5f1f067dcb62a",
+    "update_path": "tests/data/grasu_regraph_unit_update.slice",
+    "update_sha256": "00abdaf047ce6af6e4d233d8a881a50faf17162e406551a18a937a6214442cef",
+    "vertices": 16,
+    "initial_edges": 3,
+    "updates": 2
+  },
+  "configuration": {
+    "core_mhz": 150,
+    "hbm_channels": 32,
+    "partition_vertices": 65536,
+    "source_buffer_vertices": 4096,
+    "edge_lanes": 4,
+    "gather_banks": 4,
+    "max_outstanding_bursts_per_port": 32
+  },
+  "result": {
+    "cycles": 272100,
+    "update_cycles": 62,
+    "compute_cycles": 272038,
+    "correctness_mismatches": 0,
+    "supersteps": 2,
+    "backend_requests": 16432,
+    "backend_max_outstanding": 2,
+    "compute_row_reads": 32,
+    "compute_source_state_reads": 2,
+    "compute_pma_segment_reads": 6,
+    "compute_edge_batches": 24,
+    "compute_pma_slots": 96,
+    "compute_live_edges": 6,
+    "compute_active_edges": 3,
+    "gather_reset_cycles": 65536,
+    "gather_merge_cycles": 65536,
+    "apply_state_reads": 8192,
+    "apply_state_writes": 8192,
+    "update_read_bytes": 160,
+    "update_write_bytes": 128,
+    "compute_read_bytes": 525056,
+    "compute_write_bytes": 524288
+  },
+  "limitation": {
+    "largest": "ReGraph apply is single-flight in this revision despite HLS Apply PIPELINE II=1 and depth=100",
+    "consequence": "cycle total is conservative and not ready for a Spine speedup claim",
+    "next_validation": "bounded outstanding apply reads, finite operation pipeline, overlapped writes, then rerun SST holdout"
+  }
+}
