@@ -1,0 +1,53 @@
+{
+  "date": "2026-07-24",
+  "baseline_commit": "6a647b3",
+  "hls_source_revision": "afb8199a2ca8d3fd208b985324bf4d8719e2b839",
+  "profile": {
+    "tiny_bram_read_latency": 2,
+    "vs_uram_read_latency": 2,
+    "active_bram_read_latency": 2,
+    "pipeline_capacity": 4,
+    "vs_bypass_depth": 4
+  },
+  "latency_ab": {
+    "edges": 64,
+    "active_bram_latency_1_cycles": 5566,
+    "active_bram_latency_4_cycles": 11709,
+    "tiny_reads": 128,
+    "vs_reads": 192,
+    "active_reads": 2048,
+    "correct": true
+  },
+  "threshold_cycles": {
+    "4095": 32755,
+    "4096": 32760,
+    "4097": 28599,
+    "4098": 28600
+  },
+  "sst": {
+    "amazon_l0": {
+      "cycles": 43830,
+      "backend_requests": 1400,
+      "active_bram_reads": 10240,
+      "correctness_mismatches": 0,
+      "frontier_mismatches": 0
+    },
+    "weighted_sssp": {
+      "cycles": 38479,
+      "backend_requests": 4197,
+      "correctness_mismatches": 0,
+      "frontier_mismatches": 0
+    },
+    "amazon_full_compute": {
+      "cycles": 863973,
+      "backend_requests": 175315,
+      "tiny_bram_reads": 33448,
+      "vs_uram_reads": 159663,
+      "active_bram_reads": 21956,
+      "vs_bypass_hits": 8104,
+      "vs_bypass_misses": 56554,
+      "correctness_mismatches": 0,
+      "frontier_mismatches": 0
+    }
+  }
+}

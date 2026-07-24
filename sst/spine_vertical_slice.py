@@ -64,6 +64,21 @@ probe.addParams(
         "compute_writeonly_request_window": int(
             os.environ.get("SPINE_SST_COMPUTE_WRITEONLY_REQUEST_WINDOW", "4")
         ),
+        "compute_tiny_bram_read_latency": int(
+            os.environ.get("SPINE_SST_COMPUTE_TINY_BRAM_READ_LATENCY", "2")
+        ),
+        "compute_vs_uram_read_latency": int(
+            os.environ.get("SPINE_SST_COMPUTE_VS_URAM_READ_LATENCY", "2")
+        ),
+        "compute_active_bram_read_latency": int(
+            os.environ.get("SPINE_SST_COMPUTE_ACTIVE_BRAM_READ_LATENCY", "2")
+        ),
+        "compute_onchip_pipeline_capacity": int(
+            os.environ.get("SPINE_SST_COMPUTE_ONCHIP_PIPELINE_CAPACITY", "4")
+        ),
+        "compute_vs_bypass_depth": int(
+            os.environ.get("SPINE_SST_COMPUTE_VS_BYPASS_DEPTH", "4")
+        ),
         "reader_edge_pipeline_depth": int(
             os.environ.get("SPINE_SST_READER_EDGE_PIPELINE_DEPTH", "32")
         ),

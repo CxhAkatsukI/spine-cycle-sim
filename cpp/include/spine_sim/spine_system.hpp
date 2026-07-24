@@ -98,7 +98,8 @@ class SpineVerticalSliceSystem {
                                SpineSplitSsspCompute::kDefaultMemoryRequestWindow,
                            std::size_t compute_writeonly_request_window =
                                SpineSplitSsspCompute::
-                                   kDefaultWriteOnlyRequestWindow);
+                                   kDefaultWriteOnlyRequestWindow,
+                           SpineOnChipMemoryProfile on_chip_profile = {});
 
   void register_components();
   void restart_read_compute(

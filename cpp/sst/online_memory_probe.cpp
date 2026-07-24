@@ -585,6 +585,16 @@ class OnlineMemoryProbe final : public SST::Component {
         params.find<std::size_t>("compute_memory_request_window", 7);
     compute_writeonly_request_window_ =
         params.find<std::size_t>("compute_writeonly_request_window", 4);
+    compute_on_chip_profile_.tiny_bram_read_latency =
+        params.find<std::size_t>("compute_tiny_bram_read_latency", 2);
+    compute_on_chip_profile_.vs_uram_read_latency =
+        params.find<std::size_t>("compute_vs_uram_read_latency", 2);
+    compute_on_chip_profile_.active_bram_read_latency =
+        params.find<std::size_t>("compute_active_bram_read_latency", 2);
+    compute_on_chip_profile_.pipeline_capacity =
+        params.find<std::size_t>("compute_onchip_pipeline_capacity", 4);
+    compute_on_chip_profile_.vs_bypass_depth =
+        params.find<std::size_t>("compute_vs_bypass_depth", 4);
     reader_edge_pipeline_depth_ =
         params.find<std::size_t>("reader_edge_pipeline_depth", 32);
     reader_edge_response_capacity_ =
@@ -610,6 +620,11 @@ class OnlineMemoryProbe final : public SST::Component {
         range_task_payload_budget_ == 0 || fallback_replay_threshold_ == 0 ||
         memory_request_window_ == 0 || compute_memory_request_window_ == 0 ||
         compute_writeonly_request_window_ == 0 ||
+        compute_on_chip_profile_.tiny_bram_read_latency == 0 ||
+        compute_on_chip_profile_.vs_uram_read_latency == 0 ||
+        compute_on_chip_profile_.active_bram_read_latency == 0 ||
+        compute_on_chip_profile_.pipeline_capacity == 0 ||
+        compute_on_chip_profile_.vs_bypass_depth == 0 ||
         reader_edge_pipeline_depth_ == 0 ||
         reader_edge_response_capacity_ == 0 ||
         maintenance_count_scan_ii_ == 0 || maintenance_l0_write_scan_ii_ == 0 ||
@@ -735,7 +750,8 @@ class OnlineMemoryProbe final : public SST::Component {
               .result = spine_compute_result_.get(),
           },
           *spine_edge_stream_, *spine_value_stream_,
-          compute_memory_request_window_, compute_writeonly_request_window_);
+          compute_memory_request_window_, compute_writeonly_request_window_,
+          compute_on_chip_profile_);
       scheduler_.add_component(*spine_word_source_);
       scheduler_.add_component(*spine_compute_);
       scheduler_.add_component(*spine_edge_stream_);
@@ -832,7 +848,7 @@ class OnlineMemoryProbe final : public SST::Component {
           scheduler_, core, *backend_, std::move(workload), source_vertex_,
           4096, std::move(maintenance_config), std::move(initial_state),
           spine_axi_profile_, compute_memory_request_window_,
-          compute_writeonly_request_window_);
+          compute_writeonly_request_window_, compute_on_chip_profile_);
       spine_system_->register_components();
       scheduler_.add_component(*backend_);
       return;
@@ -1044,6 +1060,15 @@ class OnlineMemoryProbe final : public SST::Component {
        "Compute HLS parent-request window", "7"},
       {"compute_writeonly_request_window",
        "Compute HLS write-only parent-request window", "4"},
+      {"compute_tiny_bram_read_latency",
+       "Compute tiny-edge BRAM read latency", "2"},
+      {"compute_vs_uram_read_latency",
+       "Compute vertex-tile URAM read latency", "2"},
+      {"compute_active_bram_read_latency",
+       "Compute active-bitmap BRAM read latency", "2"},
+      {"compute_onchip_pipeline_capacity",
+       "Compute on-chip read pipeline capacity", "4"},
+      {"compute_vs_bypass_depth", "Compute vertex-tile RAW bypass depth", "4"},
       {"reader_edge_pipeline_depth", "II=1 edge-loop in-flight credits", "32"},
       {"reader_edge_response_capacity", "Ordered edge response capacity", "32"},
       {"maintenance_count_scan_ii",
@@ -1191,6 +1216,16 @@ class OnlineMemoryProbe final : public SST::Component {
              << compute_memory_request_window_ << ",\n"
              << "  \"compute_writeonly_request_window\": "
              << compute_writeonly_request_window_ << ",\n"
+             << "  \"compute_tiny_bram_read_latency\": "
+             << compute_on_chip_profile_.tiny_bram_read_latency << ",\n"
+             << "  \"compute_vs_uram_read_latency\": "
+             << compute_on_chip_profile_.vs_uram_read_latency << ",\n"
+             << "  \"compute_active_bram_read_latency\": "
+             << compute_on_chip_profile_.active_bram_read_latency << ",\n"
+             << "  \"compute_onchip_pipeline_capacity\": "
+             << compute_on_chip_profile_.pipeline_capacity << ",\n"
+             << "  \"compute_vs_bypass_depth\": "
+             << compute_on_chip_profile_.vs_bypass_depth << ",\n"
              << "  \"compute_memory_requests_issued\": "
              << compute.memory_requests_issued << ",\n"
              << "  \"compute_memory_requests_completed\": "
@@ -1223,6 +1258,30 @@ class OnlineMemoryProbe final : public SST::Component {
              << compute.sparse_store_writes_generated << ",\n"
              << "  \"compute_active_emit_writes_generated\": "
              << compute.active_emit_writes_generated << ",\n"
+             << "  \"compute_tiny_bram_read_requests\": "
+             << compute.tiny_bram_read_requests << ",\n"
+             << "  \"compute_tiny_bram_write_requests\": "
+             << compute.tiny_bram_write_requests << ",\n"
+             << "  \"compute_vs_uram_read_requests\": "
+             << compute.vs_uram_read_requests << ",\n"
+             << "  \"compute_vs_uram_write_requests\": "
+             << compute.vs_uram_write_requests << ",\n"
+             << "  \"compute_active_bram_read_requests\": "
+             << compute.active_bram_read_requests << ",\n"
+             << "  \"compute_active_bram_write_requests\": "
+             << compute.active_bram_write_requests << ",\n"
+             << "  \"compute_on_chip_read_wait_cycles\": "
+             << compute.on_chip_read_wait_cycles << ",\n"
+             << "  \"compute_on_chip_pipeline_stall_cycles\": "
+             << compute.on_chip_pipeline_stall_cycles << ",\n"
+             << "  \"compute_vs_bypass_hits\": "
+             << compute.vs_bypass_hits << ",\n"
+             << "  \"compute_vs_bypass_misses\": "
+             << compute.vs_bypass_misses << ",\n"
+             << "  \"compute_max_tiny_reads_inflight\": "
+             << compute.max_tiny_reads_inflight << ",\n"
+             << "  \"compute_max_vs_reads_inflight\": "
+             << compute.max_vs_reads_inflight << ",\n"
              << "  \"compute_full_buffer_replay_edges\": "
              << compute.full_buffer_replay_edges << ",\n"
              << "  \"compute_full_overflow_edges\": "
@@ -1388,6 +1447,18 @@ class OnlineMemoryProbe final : public SST::Component {
       std::vector<std::uint64_t> compute_controller_memory_stall_cycles;
       std::vector<std::uint64_t> compute_sparse_store_writes_generated;
       std::vector<std::uint64_t> compute_active_emit_writes_generated;
+      std::vector<std::uint64_t> compute_tiny_bram_read_requests;
+      std::vector<std::uint64_t> compute_tiny_bram_write_requests;
+      std::vector<std::uint64_t> compute_vs_uram_read_requests;
+      std::vector<std::uint64_t> compute_vs_uram_write_requests;
+      std::vector<std::uint64_t> compute_active_bram_read_requests;
+      std::vector<std::uint64_t> compute_active_bram_write_requests;
+      std::vector<std::uint64_t> compute_on_chip_read_wait_cycles;
+      std::vector<std::uint64_t> compute_on_chip_pipeline_stall_cycles;
+      std::vector<std::uint64_t> compute_vs_bypass_hits;
+      std::vector<std::uint64_t> compute_vs_bypass_misses;
+      std::vector<std::size_t> compute_max_tiny_reads_inflight;
+      std::vector<std::size_t> compute_max_vs_reads_inflight;
       std::vector<std::size_t> edge_axis_max_occupancy;
       std::vector<std::uint64_t> edge_axis_push_stalls;
       std::vector<std::uint64_t> edge_axis_transfers;
@@ -1560,6 +1631,28 @@ class OnlineMemoryProbe final : public SST::Component {
             round.compute.sparse_store_writes_generated);
         compute_active_emit_writes_generated.push_back(
             round.compute.active_emit_writes_generated);
+        compute_tiny_bram_read_requests.push_back(
+            round.compute.tiny_bram_read_requests);
+        compute_tiny_bram_write_requests.push_back(
+            round.compute.tiny_bram_write_requests);
+        compute_vs_uram_read_requests.push_back(
+            round.compute.vs_uram_read_requests);
+        compute_vs_uram_write_requests.push_back(
+            round.compute.vs_uram_write_requests);
+        compute_active_bram_read_requests.push_back(
+            round.compute.active_bram_read_requests);
+        compute_active_bram_write_requests.push_back(
+            round.compute.active_bram_write_requests);
+        compute_on_chip_read_wait_cycles.push_back(
+            round.compute.on_chip_read_wait_cycles);
+        compute_on_chip_pipeline_stall_cycles.push_back(
+            round.compute.on_chip_pipeline_stall_cycles);
+        compute_vs_bypass_hits.push_back(round.compute.vs_bypass_hits);
+        compute_vs_bypass_misses.push_back(round.compute.vs_bypass_misses);
+        compute_max_tiny_reads_inflight.push_back(
+            round.compute.max_tiny_reads_inflight);
+        compute_max_vs_reads_inflight.push_back(
+            round.compute.max_vs_reads_inflight);
         edge_axis_max_occupancy.push_back(round.edge_axis.max_occupancy);
         edge_axis_push_stalls.push_back(round.edge_axis.push_stalls);
         edge_axis_transfers.push_back(round.edge_axis.pushes);
@@ -2111,6 +2204,16 @@ class OnlineMemoryProbe final : public SST::Component {
              << compute_memory_request_window_;
       result << ",\n  \"compute_writeonly_request_window\": "
              << compute_writeonly_request_window_;
+      result << ",\n  \"compute_tiny_bram_read_latency\": "
+             << compute_on_chip_profile_.tiny_bram_read_latency;
+      result << ",\n  \"compute_vs_uram_read_latency\": "
+             << compute_on_chip_profile_.vs_uram_read_latency;
+      result << ",\n  \"compute_active_bram_read_latency\": "
+             << compute_on_chip_profile_.active_bram_read_latency;
+      result << ",\n  \"compute_onchip_pipeline_capacity\": "
+             << compute_on_chip_profile_.pipeline_capacity;
+      result << ",\n  \"compute_vs_bypass_depth\": "
+             << compute_on_chip_profile_.vs_bypass_depth;
       result << ",\n  \"compute_memory_requests_issued_per_round\": ";
       write_json_array(result, compute_memory_requests_issued);
       result << ",\n  \"compute_memory_requests_completed_per_round\": ";
@@ -2137,6 +2240,30 @@ class OnlineMemoryProbe final : public SST::Component {
       write_json_array(result, compute_sparse_store_writes_generated);
       result << ",\n  \"compute_active_emit_writes_generated_per_round\": ";
       write_json_array(result, compute_active_emit_writes_generated);
+      result << ",\n  \"compute_tiny_bram_read_requests_per_round\": ";
+      write_json_array(result, compute_tiny_bram_read_requests);
+      result << ",\n  \"compute_tiny_bram_write_requests_per_round\": ";
+      write_json_array(result, compute_tiny_bram_write_requests);
+      result << ",\n  \"compute_vs_uram_read_requests_per_round\": ";
+      write_json_array(result, compute_vs_uram_read_requests);
+      result << ",\n  \"compute_vs_uram_write_requests_per_round\": ";
+      write_json_array(result, compute_vs_uram_write_requests);
+      result << ",\n  \"compute_active_bram_read_requests_per_round\": ";
+      write_json_array(result, compute_active_bram_read_requests);
+      result << ",\n  \"compute_active_bram_write_requests_per_round\": ";
+      write_json_array(result, compute_active_bram_write_requests);
+      result << ",\n  \"compute_on_chip_read_wait_cycles_per_round\": ";
+      write_json_array(result, compute_on_chip_read_wait_cycles);
+      result << ",\n  \"compute_on_chip_pipeline_stall_cycles_per_round\": ";
+      write_json_array(result, compute_on_chip_pipeline_stall_cycles);
+      result << ",\n  \"compute_vs_bypass_hits_per_round\": ";
+      write_json_array(result, compute_vs_bypass_hits);
+      result << ",\n  \"compute_vs_bypass_misses_per_round\": ";
+      write_json_array(result, compute_vs_bypass_misses);
+      result << ",\n  \"compute_max_tiny_reads_inflight_per_round\": ";
+      write_json_array(result, compute_max_tiny_reads_inflight);
+      result << ",\n  \"compute_max_vs_reads_inflight_per_round\": ";
+      write_json_array(result, compute_max_vs_reads_inflight);
       result << ",\n  \"edge_axis_max_occupancy_per_round\": ";
       write_json_array(result, edge_axis_max_occupancy);
       result << ",\n  \"edge_axis_push_stalls_per_round\": ";
@@ -2731,6 +2858,16 @@ class OnlineMemoryProbe final : public SST::Component {
           << compute_memory_request_window_ << ",\n"
           << "  \"compute_writeonly_request_window\": "
           << compute_writeonly_request_window_ << ",\n"
+          << "  \"compute_tiny_bram_read_latency\": "
+          << compute_on_chip_profile_.tiny_bram_read_latency << ",\n"
+          << "  \"compute_vs_uram_read_latency\": "
+          << compute_on_chip_profile_.vs_uram_read_latency << ",\n"
+          << "  \"compute_active_bram_read_latency\": "
+          << compute_on_chip_profile_.active_bram_read_latency << ",\n"
+          << "  \"compute_onchip_pipeline_capacity\": "
+          << compute_on_chip_profile_.pipeline_capacity << ",\n"
+          << "  \"compute_vs_bypass_depth\": "
+          << compute_on_chip_profile_.vs_bypass_depth << ",\n"
           << "  \"compute_memory_requests_issued\": "
           << compute.memory_requests_issued << ",\n"
           << "  \"compute_memory_requests_completed\": "
@@ -2763,6 +2900,30 @@ class OnlineMemoryProbe final : public SST::Component {
           << compute.sparse_store_writes_generated << ",\n"
           << "  \"compute_active_emit_writes_generated\": "
           << compute.active_emit_writes_generated << ",\n"
+          << "  \"compute_tiny_bram_read_requests\": "
+          << compute.tiny_bram_read_requests << ",\n"
+          << "  \"compute_tiny_bram_write_requests\": "
+          << compute.tiny_bram_write_requests << ",\n"
+          << "  \"compute_vs_uram_read_requests\": "
+          << compute.vs_uram_read_requests << ",\n"
+          << "  \"compute_vs_uram_write_requests\": "
+          << compute.vs_uram_write_requests << ",\n"
+          << "  \"compute_active_bram_read_requests\": "
+          << compute.active_bram_read_requests << ",\n"
+          << "  \"compute_active_bram_write_requests\": "
+          << compute.active_bram_write_requests << ",\n"
+          << "  \"compute_on_chip_read_wait_cycles\": "
+          << compute.on_chip_read_wait_cycles << ",\n"
+          << "  \"compute_on_chip_pipeline_stall_cycles\": "
+          << compute.on_chip_pipeline_stall_cycles << ",\n"
+          << "  \"compute_vs_bypass_hits\": "
+          << compute.vs_bypass_hits << ",\n"
+          << "  \"compute_vs_bypass_misses\": "
+          << compute.vs_bypass_misses << ",\n"
+          << "  \"compute_max_tiny_reads_inflight\": "
+          << compute.max_tiny_reads_inflight << ",\n"
+          << "  \"compute_max_vs_reads_inflight\": "
+          << compute.max_vs_reads_inflight << ",\n"
           << "  \"compute_full_buffer_replay_edges\": "
           << compute.full_buffer_replay_edges << ",\n"
           << "  \"compute_full_overflow_edges\": "
@@ -2848,6 +3009,7 @@ class OnlineMemoryProbe final : public SST::Component {
   std::size_t memory_request_window_{};
   std::size_t compute_memory_request_window_{};
   std::size_t compute_writeonly_request_window_{};
+  SpineOnChipMemoryProfile compute_on_chip_profile_;
   std::size_t reader_edge_pipeline_depth_{};
   std::size_t reader_edge_response_capacity_{};
   std::size_t maintenance_count_scan_ii_{};

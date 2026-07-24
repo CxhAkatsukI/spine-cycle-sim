@@ -1,0 +1,29 @@
+digraph SpineOnChipMemoryPipeline {
+  graph [rankdir=LR, bgcolor="white", pad="0.25", nodesep="0.35", ranksep="0.65"];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+        color="#374151", fillcolor="#f8fafc"];
+  edge [fontname="Helvetica", fontsize=9, color="#475569"];
+
+  axis [label="AXIS edge input\nII=1", fillcolor="#e0f2fe"];
+  tiny [label="tiny_edge_buffer\nram_1p BRAM\n4096 x 64b, latency configurable", fillcolor="#dcfce7"];
+  gather [label="Tiny gather\nBRAM read -> HBM vertex read", fillcolor="#fef3c7"];
+  relax [label="Relax pipeline\n1 edge/cycle", fillcolor="#f3e8ff"];
+  vs [label="vs_tile\nram_t2p URAM\n65536 x 32b", fillcolor="#dcfce7"];
+  bypass [label="4-entry RAW bypass\nnewest matching write wins", fillcolor="#fee2e2"];
+  active [label="tile_active_bits\n64 lane-partitioned ram_2p BRAM\n1024 words", fillcolor="#dcfce7"];
+  scan [label="Sparse-store / active-emit\nword read latency + 64-cycle set-bit loop", fillcolor="#fef3c7"];
+  axi [label="Loop-coupled AXI writes\ngmem_vs / gmem_active_out", fillcolor="#e0f2fe"];
+
+  axis -> tiny [label="speculative writes"];
+  tiny -> gather [label="payload-backed reads"];
+  gather -> vs [label="gathered state"];
+  tiny -> relax [label="replay payload"];
+  vs -> relax [label="read snapshot"];
+  bypass -> relax [label="forward recent writes"];
+  relax -> vs [label="updated value"];
+  relax -> bypass [label="push on update"];
+  relax -> active [label="mark destination"];
+  active -> scan [label="physical word read"];
+  scan -> vs [label="read active value"];
+  scan -> axi [label="write after URAM response"];
+}

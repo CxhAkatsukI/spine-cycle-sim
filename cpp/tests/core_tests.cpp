@@ -80,6 +80,7 @@ using spine::sim::SpineL0State;
 using spine::sim::SpineMaintenanceResult;
 using spine::sim::SpineLevelLayout;
 using spine::sim::SpineMetadataLayout;
+using spine::sim::SpineOnChipMemoryProfile;
 using spine::sim::SpineReaderCounters;
 using spine::sim::SpineReaderPorts;
 using spine::sim::SpineSplitReader;
@@ -991,7 +992,7 @@ void test_spine_l0_real_slice_vertical_path() {
   scheduler.add_component(backend);
   scheduler.run_until(
       [&] { return maintenance.done() && reader.done() && compute.done(); },
-      30'000);
+      100'000);
 
   require(!maintenance.failed(), "Spine L0 real-slice path reported failure");
   const auto &counters = maintenance.counters();
@@ -1352,7 +1353,7 @@ void test_spine_reusable_system_matches_vertical_slice() {
   SpineVerticalSliceSystem system(scheduler, core, backend, workload, 2);
   system.register_components();
   scheduler.add_component(backend);
-  scheduler.run_until([&] { return system.done() && system.idle(); }, 30'000);
+  scheduler.run_until([&] { return system.done() && system.idle(); }, 100'000);
 
   std::cout << "EVIDENCE spine_reusable_streamed_maintenance cycles="
             << scheduler.clock(core).completed_cycles << " scan_passes="
@@ -1392,12 +1393,12 @@ void test_spine_host_active_requires_exact_dirty_coverage() {
       scheduler, core, backend, load_spine_edge_slice(fixture), 2);
   system.register_components();
   scheduler.add_component(backend);
-  scheduler.run_until([&] { return system.done() && system.idle(); }, 30'000);
+  scheduler.run_until([&] { return system.done() && system.idle(); }, 100'000);
 
   require(system.reader_counters().acknowledgement_eligible,
           "successful DEVICE_DIRTY reader should be ACK eligible");
   system.restart_read_compute({2});
-  scheduler.run_until([&] { return system.done() && system.idle(); }, 30'000);
+  scheduler.run_until([&] { return system.done() && system.idle(); }, 100'000);
   require(!system.failed() &&
               system.reader_counters().dirty_status ==
                   static_cast<std::uint32_t>(
@@ -1409,7 +1410,7 @@ void test_spine_host_active_requires_exact_dirty_coverage() {
   const std::vector<std::uint32_t> covered_sources{2};
   system.restart_read_compute(
       {2}, spine::sim::spine_dirty_identity(1, covered_sources));
-  scheduler.run_until([&] { return system.done() && system.idle(); }, 30'000);
+  scheduler.run_until([&] { return system.done() && system.idle(); }, 100'000);
   require(!system.failed() && system.reader_counters().dirty_status == 0 &&
               system.reader_counters().host_coverage_match &&
               system.reader_counters().acknowledgement_eligible &&
@@ -2387,7 +2388,8 @@ ComputeTileObservation run_compute_tile(std::size_t edge_count,
                                         std::size_t memory_request_window =
                                             SpineSplitSsspCompute::
                                                 kDefaultMemoryRequestWindow,
-                                        bool split_extreme_destinations = false) {
+                                        bool split_extreme_destinations = false,
+                                        SpineOnChipMemoryProfile on_chip = {}) {
   Scheduler scheduler;
   const auto core = scheduler.add_clock_mhz("data", 141.0);
   MockMemoryBackend backend("hbm", core,
@@ -2455,7 +2457,10 @@ ComputeTileObservation run_compute_tile(std::size_t edge_count,
                                     .result = &result,
                                 },
                                 edge_stream, value_stream,
-                                memory_request_window);
+                                memory_request_window,
+                                SpineSplitSsspCompute::
+                                    kDefaultWriteOnlyRequestWindow,
+                                on_chip);
 
   scheduler.add_component(producer);
   scheduler.add_component(compute);
@@ -2672,11 +2677,49 @@ void test_spine_tiny_gather_preserves_duplicate_reads() {
               observation.counters.tiny_buffer_reads == 4 &&
               observation.counters.scattered_vertex_words == 1 &&
               observation.counters.sparse_store_writes_generated == 1 &&
-              observation.counters.active_emit_writes_generated == 1,
+              observation.counters.active_emit_writes_generated == 1 &&
+              observation.counters.vs_bypass_hits == 1 &&
+              observation.counters.vs_bypass_misses == 1,
           "tiny gather incorrectly deduplicated repeated destination reads");
   require(observation.first_active_payload ==
               std::vector<std::uint8_t>({3, 0, 0, 0, 1, 0, 0, 0}),
           "active output did not use the HLS (id:32 | value:32) ABI");
+}
+
+void test_spine_on_chip_memory_profile_and_access_ledger() {
+  SpineOnChipMemoryProfile fast;
+  fast.active_bram_read_latency = 1;
+  SpineOnChipMemoryProfile slow = fast;
+  slow.active_bram_read_latency = 4;
+  const ComputeTileObservation fast_observation =
+      run_compute_tile(64, false, 7, false, fast);
+  const ComputeTileObservation slow_observation =
+      run_compute_tile(64, false, 7, false, slow);
+  const SpineComputeCounters &counters = fast_observation.counters;
+  std::cout << "EVIDENCE spine_onchip_memory fast_cycles="
+            << fast_observation.cycles
+            << " slow_cycles=" << slow_observation.cycles
+            << " tiny_reads=" << counters.tiny_bram_read_requests
+            << " vs_reads=" << counters.vs_uram_read_requests
+            << " active_reads=" << counters.active_bram_read_requests
+            << " bypass_hits=" << counters.vs_bypass_hits
+            << " bypass_misses=" << counters.vs_bypass_misses << '\n';
+  require(!fast_observation.failed && !slow_observation.failed &&
+              fast_observation.distances_match &&
+              slow_observation.distances_match &&
+              slow_observation.cycles >= fast_observation.cycles + 6'000,
+          "active-BRAM latency did not affect the execution-driven schedule");
+  require(counters.tiny_bram_write_requests == 64 &&
+              counters.tiny_bram_read_requests == 128 &&
+              counters.vs_uram_read_requests == 192 &&
+              counters.vs_uram_write_requests == 128 &&
+              counters.active_bram_read_requests == 2'048 &&
+              counters.active_bram_write_requests == 2'112 &&
+              counters.vs_bypass_hits == 0 &&
+              counters.vs_bypass_misses == 64 &&
+              counters.max_tiny_reads_inflight > 1 &&
+              counters.max_vs_reads_inflight > 1,
+          "physical on-chip access ledger diverged from the HLS loop shape");
 }
 
 void test_spine_compute_consumes_vertex_payload_from_hbm() {
@@ -4757,6 +4800,8 @@ int main(int argc, char **argv) {
        test_spine_full_tile_load_replay_backpressures_axis},
       {"spine_tiny_duplicate_gather",
        test_spine_tiny_gather_preserves_duplicate_reads},
+      {"spine_onchip_memory_profile",
+       test_spine_on_chip_memory_profile_and_access_ledger},
       {"spine_compute_hbm_payload",
        test_spine_compute_consumes_vertex_payload_from_hbm},
       {"spine_reader_hbm_graph_payload",

@@ -657,6 +657,18 @@ struct SpineComputeCounters {
   std::uint64_t memory_cross_port_overlap_cycles{};
   std::size_t max_memory_responses_completed_per_cycle{};
   std::uint64_t multi_port_response_cycles{};
+  std::uint64_t tiny_bram_read_requests{};
+  std::uint64_t tiny_bram_write_requests{};
+  std::uint64_t vs_uram_read_requests{};
+  std::uint64_t vs_uram_write_requests{};
+  std::uint64_t active_bram_read_requests{};
+  std::uint64_t active_bram_write_requests{};
+  std::uint64_t on_chip_read_wait_cycles{};
+  std::uint64_t on_chip_pipeline_stall_cycles{};
+  std::uint64_t vs_bypass_hits{};
+  std::uint64_t vs_bypass_misses{};
+  std::size_t max_tiny_reads_inflight{};
+  std::size_t max_vs_reads_inflight{};
 };
 
 struct SpineComputePorts {
@@ -664,6 +676,14 @@ struct SpineComputePorts {
   FixedAxiPort *active_out{};
   FixedAxiPort *active_bitmap{};
   FixedAxiPort *result{};
+};
+
+struct SpineOnChipMemoryProfile {
+  std::size_t tiny_bram_read_latency{2};
+  std::size_t vs_uram_read_latency{2};
+  std::size_t active_bram_read_latency{2};
+  std::size_t pipeline_capacity{4};
+  std::size_t vs_bypass_depth{4};
 };
 
 class SpineSplitSsspCompute final : public Component {
@@ -680,7 +700,8 @@ class SpineSplitSsspCompute final : public Component {
                         std::size_t memory_request_window =
                             kDefaultMemoryRequestWindow,
                         std::size_t writeonly_request_window =
-                            kDefaultWriteOnlyRequestWindow);
+                            kDefaultWriteOnlyRequestWindow,
+                        SpineOnChipMemoryProfile on_chip_profile = {});
 
   [[nodiscard]] bool done() const noexcept { return done_; }
   [[nodiscard]] bool failed() const noexcept { return failed_; }
@@ -718,6 +739,29 @@ class SpineSplitSsspCompute final : public Component {
     std::size_t item_index{};
   };
 
+  enum class TinyReadPurpose { kGather, kRelax };
+  enum class VsReadPurpose { kRelax, kSparseStore, kActiveEmit };
+
+  struct PendingTinyRead {
+    std::uint64_t due_cycle{};
+    std::size_t item_index{};
+    TinyReadPurpose purpose{TinyReadPurpose::kGather};
+    PartConvWord edge;
+  };
+
+  struct PendingVsRead {
+    std::uint64_t due_cycle{};
+    VsReadPurpose purpose{VsReadPurpose::kRelax};
+    PartConvWord edge;
+    std::uint32_t vertex{};
+    std::uint32_t memory_value{kInfinity};
+  };
+
+  struct VsBypassEntry {
+    std::uint32_t vertex{};
+    std::uint32_t value{kInfinity};
+  };
+
   enum class Phase {
     kInput,
     kSourceRead,
@@ -728,6 +772,8 @@ class SpineSplitSsspCompute final : public Component {
     kRelax,
     kFullLoad,
     kFullReplay,
+    kFullReplayDrain,
+    kFullStreamDrain,
     kSparseStoreScan,
     kSparseStoreBits,
     kStore,
@@ -745,7 +791,8 @@ class SpineSplitSsspCompute final : public Component {
   };
 
   void advance(const CycleContext &context);
-  void handle_edge_word(const PartConvWord &word);
+  void handle_edge_word(const PartConvWord &word,
+                        const CycleContext &context);
   void enqueue_memory(FixedAxiPort &port, MemoryOperation operation,
                       std::uint64_t address, std::uint64_t bytes,
                       std::vector<std::uint8_t> write_data = {},
@@ -763,16 +810,29 @@ class SpineSplitSsspCompute final : public Component {
   void prepare_gather();
   void prepare_vertex_store();
   void enqueue_active_output(std::uint32_t vertex);
+  void issue_tiny_read(std::size_t item_index, TinyReadPurpose purpose,
+                       const CycleContext &context);
+  void issue_vs_read(const PartConvWord &edge, VsReadPurpose purpose,
+                     const CycleContext &context);
+  void issue_vs_read(std::uint32_t vertex, VsReadPurpose purpose,
+                     const CycleContext &context);
+  void advance_on_chip_pipelines(const CycleContext &context);
+  void complete_relax(const PendingVsRead &request);
+  [[nodiscard]] std::uint32_t bypass_value(
+      std::uint32_t vertex, std::uint32_t memory_value);
+  void push_bypass(std::uint32_t vertex, std::uint32_t value);
+  void reset_bypass();
+  void count_on_chip_read_wait(std::uint64_t cycle);
+  void count_on_chip_pipeline_stall(std::uint64_t cycle);
+  [[nodiscard]] bool on_chip_pipelines_drained() const noexcept;
   void begin_tile_active_clear(Phase next_phase);
   void begin_sparse_store_scan();
   void begin_active_emit_scan();
   void finish_active_word_scan(Phase scan_phase);
-  [[nodiscard]] bool active_word_nonempty(std::size_t word) const;
   [[nodiscard]] std::optional<std::uint32_t> current_active_vertex() const;
   [[nodiscard]] bool controller_memory_overlap_phase() const noexcept;
   void sort_changed_vertices_for_emit();
   void begin_full_path(const PartConvWord &overflow_edge);
-  void relax_edge(const PartConvWord &edge);
   void reset_tile();
 
   std::size_t vertices_{};
@@ -780,6 +840,7 @@ class SpineSplitSsspCompute final : public Component {
   std::size_t tiny_threshold_{};
   std::size_t memory_request_window_{};
   std::size_t writeonly_request_window_{};
+  SpineOnChipMemoryProfile on_chip_profile_;
   SpineComputePorts ports_;
   Fifo<PartConvWord> &edge_in_;
   Fifo<SourceValueWord> &value_out_;
@@ -793,6 +854,10 @@ class SpineSplitSsspCompute final : public Component {
   std::deque<MemoryTask> memory_tasks_;
   std::unordered_map<std::uint64_t, MemoryTask> inflight_memory_tasks_;
   std::unordered_map<std::uint32_t, std::uint32_t> gathered_values_;
+  std::deque<PendingTinyRead> pending_tiny_reads_;
+  std::deque<PendingVsRead> pending_vs_reads_;
+  std::deque<VsBypassEntry> vs_bypass_;
+  std::array<std::uint64_t, 1024> tile_active_words_{};
   Phase phase_{Phase::kInput};
   Action staged_action_{Action::kNone};
   PartConvWord staged_edge_word_;
@@ -808,9 +873,15 @@ class SpineSplitSsspCompute final : public Component {
   std::size_t active_bit_index_{};
   std::size_t active_output_base_{};
   std::size_t active_output_index_{};
+  std::uint64_t active_scan_bits_{};
+  std::uint64_t active_read_due_cycle_{};
+  std::uint64_t last_on_chip_read_wait_cycle_{~std::uint64_t{0}};
+  std::uint64_t last_on_chip_pipeline_stall_cycle_{~std::uint64_t{0}};
   Phase after_clear_phase_{Phase::kRelax};
   std::uint64_t next_transaction_id_{};
   bool staged_memory_issue_{};
+  bool active_read_pending_{};
+  bool active_read_ready_{};
   bool source_reply_pending_{};
   bool source_count_seen_{};
   bool source_generation_seen_{};

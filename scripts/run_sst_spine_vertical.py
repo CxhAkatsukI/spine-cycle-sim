@@ -756,6 +756,15 @@ def parse_args() -> argparse.Namespace:
         default=4,
         help="bounded HLS parent-request credits for write-only compute ports",
     )
+    parser.add_argument("--compute-tiny-bram-read-latency", type=int, default=2)
+    parser.add_argument("--compute-vs-uram-read-latency", type=int, default=2)
+    parser.add_argument(
+        "--compute-active-bram-read-latency", type=int, default=2
+    )
+    parser.add_argument(
+        "--compute-onchip-pipeline-capacity", type=int, default=4
+    )
+    parser.add_argument("--compute-vs-bypass-depth", type=int, default=4)
     parser.add_argument("--reader-edge-pipeline-depth", type=int, default=32)
     parser.add_argument("--reader-edge-response-capacity", type=int, default=32)
     parser.add_argument("--maintenance-count-scan-ii", type=int, default=1)
@@ -818,6 +827,11 @@ def main() -> int:
         or args.maintenance_l0_write_scan_ii <= 0
         or args.compute_memory_request_window <= 0
         or args.compute_writeonly_request_window <= 0
+        or args.compute_tiny_bram_read_latency <= 0
+        or args.compute_vs_uram_read_latency <= 0
+        or args.compute_active_bram_read_latency <= 0
+        or args.compute_onchip_pipeline_capacity <= 0
+        or args.compute_vs_bypass_depth <= 0
         or args.maintenance_count_scan_tail_cycles < 0
         or args.maintenance_l0_write_scan_tail_cycles < 0
         or args.maintenance_scan_response_capacity <= 0
@@ -871,6 +885,21 @@ def main() -> int:
             ),
             "SPINE_SST_COMPUTE_WRITEONLY_REQUEST_WINDOW": str(
                 args.compute_writeonly_request_window
+            ),
+            "SPINE_SST_COMPUTE_TINY_BRAM_READ_LATENCY": str(
+                args.compute_tiny_bram_read_latency
+            ),
+            "SPINE_SST_COMPUTE_VS_URAM_READ_LATENCY": str(
+                args.compute_vs_uram_read_latency
+            ),
+            "SPINE_SST_COMPUTE_ACTIVE_BRAM_READ_LATENCY": str(
+                args.compute_active_bram_read_latency
+            ),
+            "SPINE_SST_COMPUTE_ONCHIP_PIPELINE_CAPACITY": str(
+                args.compute_onchip_pipeline_capacity
+            ),
+            "SPINE_SST_COMPUTE_VS_BYPASS_DEPTH": str(
+                args.compute_vs_bypass_depth
             ),
             "SPINE_SST_READER_EDGE_PIPELINE_DEPTH": str(
                 args.reader_edge_pipeline_depth
@@ -949,6 +978,18 @@ def main() -> int:
         != args.compute_writeonly_request_window
     ):
         problems.append("compute_writeonly_request_window")
+    expected_onchip = {
+        "compute_tiny_bram_read_latency": args.compute_tiny_bram_read_latency,
+        "compute_vs_uram_read_latency": args.compute_vs_uram_read_latency,
+        "compute_active_bram_read_latency": (
+            args.compute_active_bram_read_latency
+        ),
+        "compute_onchip_pipeline_capacity": args.compute_onchip_pipeline_capacity,
+        "compute_vs_bypass_depth": args.compute_vs_bypass_depth,
+    }
+    for key, expected in expected_onchip.items():
+        if result.get(key) != expected:
+            problems.append(key)
     expected_timing = {
         "maintenance_count_scan_ii": args.maintenance_count_scan_ii,
         "maintenance_count_scan_tail_cycles": args.maintenance_count_scan_tail_cycles,
