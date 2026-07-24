@@ -357,6 +357,10 @@ struct SpineL0Counters {
   std::uint64_t memory_window_stall_cycles{};
   std::uint64_t memory_dependency_stall_cycles{};
   std::uint64_t memory_request_fifo_stall_cycles{};
+  std::size_t max_memory_requests_issued_per_cycle{};
+  std::size_t max_memory_responses_completed_per_cycle{};
+  std::uint64_t multi_port_issue_cycles{};
+  std::uint64_t multi_port_response_cycles{};
   std::size_t max_memory_requests_inflight{};
   std::size_t max_memory_requests_inflight_per_port{};
   std::size_t max_non_target_memory_requests_inflight_per_port{};
@@ -565,6 +569,11 @@ class SpineL0Maintenance final : public Component {
     std::size_t streamed_read_beats_received{};
   };
 
+  struct StagedMemoryIssue {
+    std::size_t task_index{};
+    std::uint64_t transaction_id{};
+  };
+
   enum class StagedAction { kNone, kAdvance };
 
   struct FamilyWriteTask;
@@ -603,6 +612,7 @@ class SpineL0Maintenance final : public Component {
   inflight_memory_tasks_for_port(const FixedAxiPort *port) const noexcept;
   [[nodiscard]] std::size_t active_memory_ports() const noexcept;
   void update_memory_concurrency_counters(const FixedAxiPort *issued_port);
+  void stage_memory_issues();
   [[nodiscard]] bool stage_memory_completion();
   void enqueue_dirty_metadata_load();
   void enqueue_dirty_generation_prepare();
@@ -856,9 +866,9 @@ class SpineL0Maintenance final : public Component {
   bool failed_{};
   std::string failure_;
   StagedAction staged_action_{StagedAction::kNone};
-  AxiResponse staged_response_;
+  std::vector<StagedMemoryIssue> staged_memory_issues_;
+  std::vector<AxiResponse> staged_responses_;
   AxiReadBeatResponse staged_read_beat_response_;
-  bool staged_memory_issue_{};
   bool staged_memory_completion_{};
   bool staged_read_beat_completion_{};
 };

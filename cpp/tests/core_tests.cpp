@@ -4222,6 +4222,14 @@ void test_spine_memory_request_window_hides_latency() {
             << serialized.maintenance.max_active_memory_ports
             << " serialized_cross_port_cycles="
             << serialized.maintenance.memory_cross_port_overlap_cycles
+            << " serialized_max_issue_per_cycle="
+            << serialized.maintenance.max_memory_requests_issued_per_cycle
+            << " serialized_max_retire_per_cycle="
+            << serialized.maintenance.max_memory_responses_completed_per_cycle
+            << " serialized_multi_issue_cycles="
+            << serialized.maintenance.multi_port_issue_cycles
+            << " serialized_multi_retire_cycles="
+            << serialized.maintenance.multi_port_response_cycles
             << " pipelined_max_per_port="
             << pipelined.maintenance.max_memory_requests_inflight_per_port
             << " reader_max_inflight="
@@ -4248,6 +4256,13 @@ void test_spine_memory_request_window_hides_latency() {
   require(serialized.maintenance.max_active_memory_ports > 1 &&
               serialized.maintenance.memory_cross_port_overlap_cycles > 0,
           "default profile serialized independent HLS m_axi bundles");
+  require(serialized.maintenance.max_memory_requests_issued_per_cycle > 1 &&
+              serialized.maintenance.multi_port_issue_cycles > 0,
+          "maintenance did not issue independent AXI bundles in one cycle");
+  require(
+      serialized.maintenance.max_memory_responses_completed_per_cycle > 1 &&
+          serialized.maintenance.multi_port_response_cycles > 0,
+      "maintenance did not retire independent AXI bundles in one cycle");
   require(pipelined.maintenance.max_memory_requests_inflight_per_port > 1,
           "coarse what-if did not overlap same-port maintenance tasks");
   require(serialized.reader.edge_pipeline_max_inflight > 1 &&

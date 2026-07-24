@@ -1,0 +1,75 @@
+{
+  "date": "2026-07-24",
+  "branch": "codex/fine-grained-cycle-sim",
+  "hls_reference": {
+    "revision": "origin/reduce-levels-for-routing",
+    "commit": "afb8199a2ca8d3fd208b985324bf4d8719e2b839",
+    "file": "src/spine_partitioned.hpp",
+    "sha256": "d5c4a2f2c2f384e33808eee4250c0c88208027b3792d46425e1de2ae1d8a06ba"
+  },
+  "microbenchmark": {
+    "name": "spine_memory_request_window",
+    "cycles": 12718,
+    "max_parent_issues_per_cycle": 2,
+    "max_parent_responses_per_cycle": 2,
+    "multi_port_issue_cycles": 2,
+    "multi_port_response_cycles": 2,
+    "max_active_ports": 2,
+    "cross_port_overlap_cycles": 34,
+    "functional_and_traffic_ledger_preserved": true
+  },
+  "sst_hbm": [
+    {
+      "scenario": "amazon_l0",
+      "before_cycles": 7305,
+      "after_cycles": 7305,
+      "before_maintenance_cycles": 2446,
+      "after_maintenance_cycles": 2446,
+      "before_requests": 1400,
+      "after_requests": 1400,
+      "max_issue_per_cycle": 2,
+      "max_response_per_cycle": 2,
+      "multi_issue_cycles": 2,
+      "multi_response_cycles": 2,
+      "correctness_mismatches": 0,
+      "frontier_mismatches": 0
+    },
+    {
+      "scenario": "carry_hot",
+      "before_cycles": 9714,
+      "after_cycles": 9702,
+      "before_maintenance_cycles": 4766,
+      "after_maintenance_cycles": 4759,
+      "before_requests": 2016,
+      "after_requests": 2016,
+      "before_dram_activates": 130,
+      "after_dram_activates": 129,
+      "max_issue_per_cycle": 3,
+      "max_response_per_cycle": 2,
+      "multi_issue_cycles": 6,
+      "multi_response_cycles": 4,
+      "correctness_mismatches": 0,
+      "frontier_mismatches": 0
+    },
+    {
+      "scenario": "weighted_sssp",
+      "before_cycles": 34087,
+      "after_cycles": 34087,
+      "before_maintenance_cycles": 2506,
+      "after_maintenance_cycles": 2506,
+      "before_requests": 4197,
+      "after_requests": 4197,
+      "max_issue_per_cycle": 2,
+      "max_response_per_cycle": 2,
+      "multi_issue_cycles": 2,
+      "multi_response_cycles": 2,
+      "correctness_mismatches": 0,
+      "frontier_mismatches": 0
+    }
+  ],
+  "tests": {
+    "cpp_ctest_passed": 52,
+    "python_unittest_passed": 147,
+    "sst_scenarios_passed": 3
+  }
+}

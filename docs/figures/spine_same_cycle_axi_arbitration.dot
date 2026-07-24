@@ -1,0 +1,27 @@
+digraph SpineSameCycleAxi {
+  graph [rankdir=LR, bgcolor="white", pad="0.25", nodesep="0.4", ranksep="0.7"];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11,
+        color="#374151", fillcolor="#f8fafc"];
+  edge [fontname="Helvetica", fontsize=10, color="#475569"];
+
+  tasks [label="Maintenance task queues\noldest task per port", fillcolor="#fff7ed"];
+  arb [label="Per-port issue arbitration\n1 parent / port / cycle", fillcolor="#fef3c7"];
+  sorter [label="gmem_sorter\nAXI master", fillcolor="#e0f2fe"];
+  meta [label="gmem_meta\nAXI master", fillcolor="#dcfce7"];
+  result [label="gmem_result\nAXI master", fillcolor="#f3e8ff"];
+  graph_ports [label="gmem_p0..p15\nAXI masters", fillcolor="#fee2e2"];
+  hbm [label="Shared execution-driven\nSST-HBM backend", fillcolor="#e2e8f0"];
+  retire [label="Per-port response retirement\ntransaction-ID ordered commit", fillcolor="#fef3c7"];
+
+  tasks -> arb;
+  arb -> sorter;
+  arb -> meta;
+  arb -> result;
+  arb -> graph_ports;
+  sorter -> hbm;
+  meta -> hbm;
+  result -> hbm;
+  graph_ports -> hbm;
+  hbm -> retire [label="responses + contention"];
+  retire -> tasks [label="state transitions", style=dashed];
+}

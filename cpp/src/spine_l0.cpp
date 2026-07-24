@@ -965,7 +965,8 @@ void SpineL0Maintenance::initialize_metadata_payload() {
 
 void SpineL0Maintenance::evaluate(const CycleContext &context) {
   staged_action_ = StagedAction::kNone;
-  staged_memory_issue_ = false;
+  staged_memory_issues_.clear();
+  staged_responses_.clear();
   staged_memory_completion_ = false;
   staged_read_beat_completion_ = false;
   if (done_ || failed_) {
@@ -995,26 +996,7 @@ void SpineL0Maintenance::evaluate(const CycleContext &context) {
       (!tasks_.empty() || !inflight_tasks_.empty())) {
     ++counters_.epoch_clear_wait_cycles;
   }
-  if (!tasks_.empty()) {
-    const MemoryTask &task = tasks_.front();
-    if (inflight_memory_tasks_for_port(task.port) >=
-        memory_request_window_for(task)) {
-      ++counters_.memory_window_stall_cycles;
-    } else if (memory_task_conflicts(task)) {
-      ++counters_.memory_dependency_stall_cycles;
-    } else if (task.port->requests().try_push(AxiRequest{
-                   .transaction_id = next_transaction_id_,
-                   .operation = task.operation,
-                   .address = task.address,
-                   .bytes = task.bytes,
-                   .stream_read_beats = task.stream_sorted_scan,
-                   .write_data = task.write_data,
-               })) {
-      staged_memory_issue_ = true;
-    } else {
-      ++counters_.memory_request_fifo_stall_cycles;
-    }
-  }
+  stage_memory_issues();
   if (scan_process_phase()) {
     if (scan_can_advance(context)) {
       staged_action_ = StagedAction::kAdvance;
@@ -1050,33 +1032,60 @@ void SpineL0Maintenance::commit(const CycleContext &context) {
     consume_read_beat(staged_read_beat_response_);
   }
   if (staged_memory_completion_) {
-    const auto found = inflight_tasks_.find(staged_response_.transaction_id);
-    if (found == inflight_tasks_.end() || !staged_response_.success) {
-      failed_ = true;
-      done_ = true;
-      failure_ = "Spine AXI response failed or used an unknown transaction ID";
-      return;
-    }
-    consume_memory_response(found->second, staged_response_);
-    inflight_tasks_.erase(found);
-    ++counters_.memory_requests_completed;
-  }
-  if (staged_memory_issue_) {
-    const std::uint64_t transaction_id = next_transaction_id_++;
-    if (tasks_.front().stream_sorted_scan) {
-      if (scan_transaction_valid_) {
-        throw std::logic_error("overlapping Spine sorted scan transactions");
+    for (const AxiResponse &response : staged_responses_) {
+      const auto found = inflight_tasks_.find(response.transaction_id);
+      if (found == inflight_tasks_.end() || !response.success) {
+        failed_ = true;
+        done_ = true;
+        failure_ =
+            "Spine AXI response failed or used an unknown transaction ID";
+        return;
       }
-      scan_transaction_id_ = transaction_id;
-      scan_transaction_valid_ = true;
     }
-    inflight_tasks_.emplace(transaction_id, std::move(tasks_.front()));
-    tasks_.pop_front();
-    ++counters_.memory_requests_issued;
-    counters_.max_memory_requests_inflight =
-        std::max(counters_.max_memory_requests_inflight,
-                 inflight_tasks_.size());
-    update_memory_concurrency_counters(inflight_tasks_.at(transaction_id).port);
+    for (const AxiResponse &response : staged_responses_) {
+      const auto found = inflight_tasks_.find(response.transaction_id);
+      consume_memory_response(found->second, response);
+      inflight_tasks_.erase(found);
+      ++counters_.memory_requests_completed;
+    }
+  }
+  if (!staged_memory_issues_.empty()) {
+    std::vector<std::pair<std::uint64_t, MemoryTask>> issued;
+    issued.reserve(staged_memory_issues_.size());
+    for (auto current = staged_memory_issues_.rbegin();
+         current != staged_memory_issues_.rend(); ++current) {
+      if (current->task_index >= tasks_.size()) {
+        throw std::logic_error("invalid staged Spine memory task index");
+      }
+      auto task = tasks_.begin() +
+                  static_cast<std::ptrdiff_t>(current->task_index);
+      issued.emplace_back(current->transaction_id, std::move(*task));
+      tasks_.erase(task);
+    }
+    std::sort(issued.begin(), issued.end(),
+              [](const auto &left, const auto &right) {
+                return left.first < right.first;
+              });
+    for (auto &[transaction_id, task] : issued) {
+      if (task.stream_sorted_scan) {
+        if (scan_transaction_valid_) {
+          throw std::logic_error("overlapping Spine sorted scan transactions");
+        }
+        scan_transaction_id_ = transaction_id;
+        scan_transaction_valid_ = true;
+      }
+      auto [found, inserted] =
+          inflight_tasks_.emplace(transaction_id, std::move(task));
+      if (!inserted) {
+        throw std::logic_error("duplicate Spine memory transaction ID");
+      }
+      ++counters_.memory_requests_issued;
+      counters_.max_memory_requests_inflight =
+          std::max(counters_.max_memory_requests_inflight,
+                   inflight_tasks_.size());
+      update_memory_concurrency_counters(found->second.port);
+    }
+    next_transaction_id_ += issued.size();
   }
   switch (staged_action_) {
     case StagedAction::kNone:
@@ -1196,22 +1205,91 @@ void SpineL0Maintenance::update_memory_concurrency_counters(
       std::max(counters_.max_active_memory_ports, active_memory_ports());
 }
 
+void SpineL0Maintenance::stage_memory_issues() {
+  std::vector<FixedAxiPort *> visited_ports;
+  bool window_stall = false;
+  bool dependency_stall = false;
+  bool fifo_stall = false;
+  for (std::size_t index = 0; index < tasks_.size(); ++index) {
+    const MemoryTask &task = tasks_[index];
+    if (std::find(visited_ports.begin(), visited_ports.end(), task.port) !=
+        visited_ports.end()) {
+      continue;
+    }
+    visited_ports.push_back(task.port);
+    if (inflight_memory_tasks_for_port(task.port) >=
+        memory_request_window_for(task)) {
+      window_stall = true;
+      continue;
+    }
+    if (memory_task_conflicts(task)) {
+      dependency_stall = true;
+      continue;
+    }
+    const std::uint64_t transaction_id =
+        next_transaction_id_ + staged_memory_issues_.size();
+    if (task.port->requests().try_push(AxiRequest{
+            .transaction_id = transaction_id,
+            .operation = task.operation,
+            .address = task.address,
+            .bytes = task.bytes,
+            .stream_read_beats = task.stream_sorted_scan,
+            .write_data = task.write_data,
+        })) {
+      staged_memory_issues_.push_back(
+          StagedMemoryIssue{index, transaction_id});
+    } else {
+      fifo_stall = true;
+    }
+  }
+  counters_.memory_window_stall_cycles += window_stall ? 1 : 0;
+  counters_.memory_dependency_stall_cycles += dependency_stall ? 1 : 0;
+  counters_.memory_request_fifo_stall_cycles += fifo_stall ? 1 : 0;
+  counters_.max_memory_requests_issued_per_cycle =
+      std::max(counters_.max_memory_requests_issued_per_cycle,
+               staged_memory_issues_.size());
+  if (staged_memory_issues_.size() > 1) {
+    ++counters_.multi_port_issue_cycles;
+  }
+}
+
 bool SpineL0Maintenance::stage_memory_completion() {
-  std::uint64_t selected = std::numeric_limits<std::uint64_t>::max();
-  FixedAxiPort *selected_port = nullptr;
+  struct Candidate {
+    std::uint64_t transaction_id{};
+    FixedAxiPort *port{};
+  };
+  std::vector<Candidate> candidates;
   for (const auto &[transaction_id, task] : inflight_tasks_) {
     const AxiResponse *response = task.port->responses().front();
     if (task.streamed_read_beats_received < task.streamed_read_beats_expected) {
       continue;
     }
     if (response != nullptr && response->transaction_id == transaction_id &&
-        transaction_id < selected) {
-      selected = transaction_id;
-      selected_port = task.port;
+        std::none_of(candidates.begin(), candidates.end(),
+                     [&](const Candidate &candidate) {
+                       return candidate.port == task.port;
+                     })) {
+      candidates.push_back(Candidate{transaction_id, task.port});
     }
   }
-  return selected_port != nullptr &&
-         selected_port->responses().try_pop(staged_response_);
+  std::sort(candidates.begin(), candidates.end(),
+            [](const Candidate &left, const Candidate &right) {
+              return left.transaction_id < right.transaction_id;
+            });
+  for (const Candidate &candidate : candidates) {
+    AxiResponse response;
+    if (!candidate.port->responses().try_pop(response)) {
+      throw std::logic_error("failed to stage ready Spine AXI response");
+    }
+    staged_responses_.push_back(std::move(response));
+  }
+  counters_.max_memory_responses_completed_per_cycle =
+      std::max(counters_.max_memory_responses_completed_per_cycle,
+               staged_responses_.size());
+  if (staged_responses_.size() > 1) {
+    ++counters_.multi_port_response_cycles;
+  }
+  return !staged_responses_.empty();
 }
 
 bool SpineL0Maintenance::stage_read_beat() {
