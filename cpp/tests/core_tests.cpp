@@ -2946,6 +2946,13 @@ void test_spine_carry_merge_consumes_level_payload_from_hbm() {
       cold_l0.edge_offset_words * spine::sim::kSpineGraphWordBytes,
       encode_spine_level_edge(
           SpineEdgeRecord{.src = 0, .dst = 4, .weight = 2, .diff = 1}));
+  std::vector<std::uint8_t> cursor_bitmap(4 *
+                                          spine::sim::kSpineGraphWordBytes);
+  cursor_bitmap[5] = 1U << 4;
+  graph_ports[0]->initialize_payload(
+      (cold_l0.bitmap_offset_words + 4) *
+          spine::sim::kSpineGraphWordBytes,
+      cursor_bitmap);
 
   scheduler.add_component(maintenance);
   for (auto &port : graph_ports) {
@@ -2969,12 +2976,21 @@ void test_spine_carry_merge_consumes_level_payload_from_hbm() {
   const auto &level = state.cold_levels[0][1];
   require(level.size() == 2 && level[0].dst == 2 && level[0].weight == 3 &&
               level[0].src == 256 && level[1].dst == 4 &&
-              level[1].weight == 2 && level[1].src == 256,
-          "carry merge ignored HBM level payload and used logical level state");
+              level[1].weight == 2 && level[1].src == 300,
+          "carry merge ignored HBM cursor/payload and used logical level state");
   require(maintenance.counters().carry_level_payload_reads == 1 &&
               maintenance.counters().carry_level_payload_read_bytes == 8 &&
               maintenance.counters().carry_new_batch_reads == 1 &&
               maintenance.counters().carry_new_batch_read_bytes == 16 &&
+              maintenance.counters().carry_cursor_metadata_read_bytes == 96 &&
+              maintenance.counters().carry_cursor_page_ids == 1 &&
+              maintenance.counters().carry_cursor_pages_visited == 1 &&
+              maintenance.counters().carry_cursor_bitmap_words == 4 &&
+              maintenance.counters().carry_cursor_bits_inspected == 256 &&
+              maintenance.counters().carry_cursor_refill_cycles == 261 &&
+              maintenance.counters().carry_cursor_rows_entered == 1 &&
+              maintenance.counters().carry_cursor_row_offset_reads == 2 &&
+              maintenance.counters().carry_cursor_validation_failures == 0 &&
               maintenance.counters().page_list_payload_write_bytes == 8 &&
               maintenance.counters().page_list_count_write_bytes > 0,
           "carry level payload read ledger does not close");
@@ -2996,6 +3012,48 @@ void test_spine_carry_merge_consumes_level_payload_from_hbm() {
   require(count_payload == u64_payload(1ULL << 32) &&
               list_payload == u64_payload(1),
           "carry commit did not publish target page-list count and page ID");
+}
+
+void test_spine_carry_rejects_stale_page_epoch() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("data", 141.0);
+  MockMemoryBackend backend("hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 3,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  SpineL0State initial;
+  initial.cold_levels[0][0] = {
+      SpineEdgeRecord{.src = 0, .dst = 1, .weight = 5, .diff = 1}};
+  SpineEdgeSlice batch{
+      .vertices = 128,
+      .edges = {
+          SpineEdgeRecord{.src = 0, .dst = 2, .weight = 3, .diff = 1}},
+      .case_name = "carry_stale_page_epoch",
+  };
+  SpineVerticalSliceSystem system(scheduler, core, backend, std::move(batch), 0,
+                                  4096, SpineL0Config{}, std::move(initial));
+  const SpineMetadataLayout metadata = spine_metadata_layout(SpineL0Config{});
+  backend.initialize_payload(
+      20, metadata.page_epoch_base * spine::sim::kSpineMetadataWordBytes,
+      u64_payload(0));
+  system.register_components();
+  scheduler.add_component(backend);
+
+  bool rejected = false;
+  try {
+    scheduler.run_until([&] { return system.done() && system.idle(); }, 100'000);
+  } catch (const std::logic_error &error) {
+    rejected =
+        std::string(error.what()) == "Spine carry page epoch/base validation failed";
+  }
+  require(rejected &&
+              system.maintenance_counters().carry_cursor_validation_failures ==
+                  1,
+          "carry cursor accepted stale HBM page-epoch metadata");
 }
 
 void test_spine_hls_metadata_and_active_record_abi() {
@@ -3479,6 +3537,8 @@ int main(int argc, char **argv) {
        test_spine_maintenance_consumes_sorted_payload_from_hbm},
       {"spine_carry_hbm_level_payload",
        test_spine_carry_merge_consumes_level_payload_from_hbm},
+      {"spine_carry_stale_page_epoch",
+       test_spine_carry_rejects_stale_page_epoch},
       {"spine_hls_metadata_active_abi",
        test_spine_hls_metadata_and_active_record_abi},
       {"spine_multiround_weighted_sssp",

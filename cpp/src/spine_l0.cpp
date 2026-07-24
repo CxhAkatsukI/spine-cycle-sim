@@ -110,6 +110,18 @@ std::uint64_t read_u64_le(const std::vector<std::uint8_t> &data,
   return value;
 }
 
+std::uint32_t read_u32_le(const std::vector<std::uint8_t> &data,
+                          std::size_t offset) {
+  if (offset + sizeof(std::uint32_t) > data.size()) {
+    throw std::logic_error("Spine u32 payload read is out of range");
+  }
+  std::uint32_t value = 0;
+  for (std::size_t byte = 0; byte < sizeof(value); ++byte) {
+    value |= static_cast<std::uint32_t>(data[offset + byte]) << (byte * 8);
+  }
+  return value;
+}
+
 void write_u32_le(std::vector<std::uint8_t> &data, std::size_t offset,
                   std::uint32_t value) {
   if (offset + sizeof(value) > data.size()) {
@@ -1293,6 +1305,14 @@ void SpineL0Maintenance::consume_memory_response(const MemoryTask &task,
                                                  const AxiResponse &response) {
   const bool carry_response =
       task.purpose == TaskPurpose::kCarryNewBatchRead ||
+      task.purpose == TaskPurpose::kCarryCursorSliceMetadata ||
+      task.purpose == TaskPurpose::kCarryCursorSliceEpoch ||
+      task.purpose == TaskPurpose::kCarryCursorPageCount ||
+      task.purpose == TaskPurpose::kCarryCursorPageList ||
+      task.purpose == TaskPurpose::kCarryCursorPageEpoch ||
+      task.purpose == TaskPurpose::kCarryCursorPageBase ||
+      task.purpose == TaskPurpose::kCarryCursorBitmap ||
+      task.purpose == TaskPurpose::kCarryCursorRowOffsets ||
       task.purpose == TaskPurpose::kCarryLevelEdgeRead;
   if (task.operation == MemoryOperation::kWrite) {
     if (!response.read_data.empty()) {
@@ -1641,6 +1661,14 @@ void SpineL0Maintenance::consume_dirty_memory_response(
     finish_dirty_source_update();
     return;
   case TaskPurpose::kCarryNewBatchRead:
+  case TaskPurpose::kCarryCursorSliceMetadata:
+  case TaskPurpose::kCarryCursorSliceEpoch:
+  case TaskPurpose::kCarryCursorPageCount:
+  case TaskPurpose::kCarryCursorPageList:
+  case TaskPurpose::kCarryCursorPageEpoch:
+  case TaskPurpose::kCarryCursorPageBase:
+  case TaskPurpose::kCarryCursorBitmap:
+  case TaskPurpose::kCarryCursorRowOffsets:
   case TaskPurpose::kCarryLevelEdgeRead:
     throw std::logic_error("carry response reached the dirty response handler");
   }
@@ -1730,65 +1758,130 @@ void SpineL0Maintenance::enqueue_family_writes(bool hot, std::size_t family,
   }
 }
 
-void SpineL0Maintenance::enqueue_carry_index_reads(
-    const FamilyWriteTask &task) {
-  const auto &levels = task.hot ? state_.hot_levels : state_.cold_levels;
-  FixedAxiPort &graph = *ports_.graph[task.family];
+void SpineL0Maintenance::enqueue_carry_cursor_metadata(
+    std::size_t stream_index) {
+  const FamilyWriteTask &task = family_write_tasks_[active_family_index_];
+  const CarryInputStream &stream = carry_streams_[stream_index];
   const std::size_t logical_family =
       task.hot ? config_.partitions + task.family : task.family;
-  for (std::size_t level = 0; level < task.target; ++level) {
-    const auto &edges = levels[task.family][level];
-    if (edges.empty()) {
-      continue;
-    }
-    const SpineLevelLayout layout =
-        spine_level_layout(config_, task.hot, level);
-    std::set<std::uint32_t> pages;
-    std::uint64_t rows = 0;
-    std::uint32_t last_source = 0;
-    bool have_source = false;
-    for (const SpineEdgeRecord &edge : edges) {
-      pages.insert(edge.src / config_.page_vertices);
-      if (!have_source || edge.src != last_source) {
-        ++rows;
-        last_source = edge.src;
-        have_source = true;
-      }
-    }
-    enqueue_task(
-        *ports_.metadata, MemoryOperation::kRead,
-        config_.metadata_base +
-            (logical_family * config_.levels + level) * 8 * kMetadataWordBytes,
-        9 * kMetadataWordBytes, TaskClass::kMetadata);
+  const std::uint64_t slice =
+      logical_family * config_.levels + stream.level;
+  enqueue_task(*ports_.metadata, MemoryOperation::kRead,
+               config_.metadata_base + slice * 8 * kMetadataWordBytes,
+               8 * kMetadataWordBytes, TaskClass::kMetadata, {}, {}, false,
+               TaskPurpose::kCarryCursorSliceMetadata, 0, stream_index);
+}
+
+void SpineL0Maintenance::maybe_enqueue_carry_page_list(
+    std::size_t stream_index) {
+  CarryInputStream &stream = carry_streams_[stream_index];
+  if (!stream.slice_epoch_ready || !stream.page_count_ready ||
+      stream.page_list_requested) {
+    return;
+  }
+  if (stream.slice_epoch == 0 || stream.page_count == 0 ||
+      stream.page_count > spine_metadata_layout(config_).page_count ||
+      stream.page_count > stream.row_count) {
+    ++counters_.carry_cursor_validation_failures;
+    throw std::logic_error("invalid Spine carry page-list metadata");
+  }
+  const FamilyWriteTask &task = family_write_tasks_[active_family_index_];
+  const std::size_t logical_family =
+      task.hot ? config_.partitions + task.family : task.family;
+  const std::uint64_t slice =
+      logical_family * config_.levels + stream.level;
+  const SpineMetadataLayout metadata = spine_metadata_layout(config_);
+  stream.page_list_requested = true;
+  enqueue_task(
+      *ports_.metadata, MemoryOperation::kRead,
+      config_.metadata_base +
+          (metadata.page_list_base +
+           slice * metadata.page_list_words_per_slice) *
+              kMetadataWordBytes,
+      ((stream.page_count + 3) / 4) * kMetadataWordBytes,
+      TaskClass::kMetadata, {}, {}, false, TaskPurpose::kCarryCursorPageList,
+      0, stream_index);
+}
+
+void SpineL0Maintenance::enqueue_carry_page_indexes(
+    std::size_t stream_index) {
+  CarryInputStream &stream = carry_streams_[stream_index];
+  const FamilyWriteTask &task = family_write_tasks_[active_family_index_];
+  const std::size_t logical_family =
+      task.hot ? config_.partitions + task.family : task.family;
+  const std::uint64_t slice =
+      logical_family * config_.levels + stream.level;
+  const SpineMetadataLayout metadata = spine_metadata_layout(config_);
+  stream.page_epochs.assign(stream.pages.size(), 0);
+  stream.page_bases.assign(stream.pages.size(), 0);
+  stream.page_bitmaps.assign(stream.pages.size(), {});
+  stream.page_index_responses_pending = stream.pages.size() * 3;
+  for (std::size_t index = 0; index < stream.pages.size(); ++index) {
+    const std::uint32_t page = stream.pages[index];
+    const std::uint64_t epoch_index = slice * metadata.page_count + page;
     enqueue_task(*ports_.metadata, MemoryOperation::kRead,
                  config_.metadata_base +
-                     (256 + logical_family * config_.levels + level) *
+                     (metadata.page_epoch_base + (epoch_index >> 1)) *
                          kMetadataWordBytes,
-                 ((pages.size() + 3) / 4) * kMetadataWordBytes,
-                 TaskClass::kMetadata);
-    for (const std::uint32_t page : pages) {
-      enqueue_task(
-          graph, MemoryOperation::kRead,
-          (layout.bitmap_offset_words + page * 4) * kSpineGraphWordBytes,
-          4 * kSpineGraphWordBytes, TaskClass::kGraph);
-      enqueue_task(
-          graph, MemoryOperation::kRead,
-          (layout.page_base_offset_words + (page >> 1)) * kSpineGraphWordBytes,
-          kSpineGraphWordBytes, TaskClass::kGraph);
-    }
-    enqueue_task(graph, MemoryOperation::kRead,
-                 layout.row_offset_offset_words * kSpineGraphWordBytes,
-                 ((rows + 2) >> 1) * kSpineGraphWordBytes, TaskClass::kGraph);
-    enqueue_task(graph, MemoryOperation::kRead,
-                 layout.mask_offset_words * kSpineGraphWordBytes,
-                 ((rows + 3) >> 2) * kSpineGraphWordBytes, TaskClass::kGraph);
+                 kMetadataWordBytes, TaskClass::kMetadata, {}, {}, false,
+                 TaskPurpose::kCarryCursorPageEpoch, page, stream_index,
+                 index);
+    enqueue_task(*ports_.graph[task.family], MemoryOperation::kRead,
+                 (stream.page_base_offset_words + (page >> 1)) *
+                     kSpineGraphWordBytes,
+                 kSpineGraphWordBytes, TaskClass::kGraph, {}, {}, false,
+                 TaskPurpose::kCarryCursorPageBase, page, stream_index, index);
+    enqueue_task(*ports_.graph[task.family], MemoryOperation::kRead,
+                 (stream.bitmap_offset_words + page * 4) *
+                     kSpineGraphWordBytes,
+                 4 * kSpineGraphWordBytes, TaskClass::kGraph, {}, {}, false,
+                 TaskPurpose::kCarryCursorBitmap, page, stream_index, index);
   }
+}
+
+void SpineL0Maintenance::finalize_carry_page_indexes(
+    std::size_t stream_index) {
+  CarryInputStream &stream = carry_streams_[stream_index];
+  stream.sources.clear();
+  for (std::size_t page_index = 0; page_index < stream.pages.size();
+       ++page_index) {
+    if (stream.page_epochs[page_index] != stream.slice_epoch ||
+        stream.page_bases[page_index] != stream.sources.size()) {
+      ++counters_.carry_cursor_validation_failures;
+      throw std::logic_error("Spine carry page epoch/base validation failed");
+    }
+    for (std::size_t word = 0; word < 4; ++word) {
+      const std::uint64_t bitmap = stream.page_bitmaps[page_index][word];
+      for (std::size_t bit = 0; bit < 64; ++bit) {
+        ++counters_.carry_cursor_bits_inspected;
+        if ((bitmap & (std::uint64_t{1} << bit)) != 0) {
+          stream.sources.push_back(
+              stream.pages[page_index] * config_.page_vertices + word * 64 +
+              bit);
+        }
+      }
+    }
+    // The HLS cursor executes one II=1 FIND_SOURCE iteration per bitmap bit,
+    // plus page load, three bitmap-word transitions, and page finish.
+    carry_cursor_refill_cycles_remaining_ += 4 * 64 + 5;
+  }
+  if (stream.sources.size() != stream.row_count) {
+    ++counters_.carry_cursor_validation_failures;
+    throw std::logic_error("Spine carry bitmap row count mismatch");
+  }
+  const FamilyWriteTask &task = family_write_tasks_[active_family_index_];
+  enqueue_task(*ports_.graph[task.family], MemoryOperation::kRead,
+               stream.row_offset_offset_words * kSpineGraphWordBytes,
+               ((stream.row_count + 2) >> 1) * kSpineGraphWordBytes,
+               TaskClass::kGraph, {}, {}, false,
+               TaskPurpose::kCarryCursorRowOffsets, 0, stream_index);
 }
 
 void SpineL0Maintenance::initialize_carry_engine(
     const FamilyWriteTask &task) {
   carry_streams_.clear();
   carry_merge_inputs_.clear();
+  carry_cursor_refill_cycles_remaining_ = 0;
   CarryInputStream new_batch;
   new_batch.new_batch = true;
   carry_streams_.push_back(std::move(new_batch));
@@ -1801,16 +1894,15 @@ void SpineL0Maintenance::initialize_carry_engine(
     }
     CarryInputStream stream;
     stream.level = level;
-    stream.sources.reserve(edges.size());
-    for (const SpineEdgeRecord &edge : edges) {
-      stream.sources.push_back(edge.src);
-    }
     carry_streams_.push_back(std::move(stream));
   }
 
-  enqueue_carry_index_reads(task);
   for (std::size_t stream = 0; stream < carry_streams_.size(); ++stream) {
-    enqueue_carry_stream_refill(stream);
+    if (carry_streams_[stream].new_batch) {
+      enqueue_carry_stream_refill(stream);
+    } else {
+      enqueue_carry_cursor_metadata(stream);
+    }
   }
 }
 
@@ -1846,17 +1938,18 @@ void SpineL0Maintenance::enqueue_carry_stream_refill(
   if (stream.buffered.size() >= 2) {
     return;
   }
+  if (!stream.cursor_ready) {
+    return;
+  }
   if (stream.next_index >= stream.sources.size()) {
     stream.exhausted = true;
     return;
   }
   const std::size_t edge_index = stream.next_index++;
   const std::uint32_t source = stream.sources[edge_index];
-  const SpineLevelLayout layout =
-      spine_level_layout(config_, task.hot, stream.level);
   stream.request_pending = true;
   enqueue_task(*ports_.graph[task.family], MemoryOperation::kRead,
-               (layout.edge_offset_words + edge_index) *
+               (stream.edge_offset_words + edge_index) *
                    kSpineGraphWordBytes,
                kSpineGraphWordBytes, TaskClass::kGraph, {}, {}, false,
                TaskPurpose::kCarryLevelEdgeRead, source, stream_index,
@@ -1869,10 +1962,32 @@ void SpineL0Maintenance::consume_carry_memory_response(
     throw std::logic_error("Spine carry response has invalid stream index");
   }
   CarryInputStream &stream = carry_streams_[task.carry_stream];
-  if (!stream.request_pending) {
-    throw std::logic_error("unexpected Spine carry stream response");
+  const bool edge_response =
+      task.purpose == TaskPurpose::kCarryNewBatchRead ||
+      task.purpose == TaskPurpose::kCarryLevelEdgeRead;
+  if (edge_response) {
+    if (!stream.request_pending) {
+      throw std::logic_error("unexpected Spine carry stream response");
+    }
+    stream.request_pending = false;
   }
-  stream.request_pending = false;
+
+  const FamilyWriteTask &active =
+      family_write_tasks_[active_family_index_];
+  const std::size_t logical_family =
+      active.hot ? config_.partitions + active.family : active.family;
+  const std::uint64_t slice =
+      logical_family * config_.levels + stream.level;
+  const SpineMetadataLayout metadata = spine_metadata_layout(config_);
+  const auto finish_page_index_response = [&] {
+    if (stream.page_index_responses_pending == 0) {
+      throw std::logic_error("too many Spine carry page-index responses");
+    }
+    --stream.page_index_responses_pending;
+    if (stream.page_index_responses_pending == 0) {
+      finalize_carry_page_indexes(task.carry_stream);
+    }
+  };
 
   if (task.purpose == TaskPurpose::kCarryNewBatchRead) {
     if (!stream.new_batch || response.read_data.size() != kSpineSortWordBytes) {
@@ -1882,8 +1997,6 @@ void SpineL0Maintenance::consume_carry_memory_response(
     ++counters_.carry_new_batch_reads;
     counters_.carry_new_batch_read_bytes += response.read_data.size();
     counters_.sorted_payload_read_bytes += response.read_data.size();
-    const FamilyWriteTask &active =
-        family_write_tasks_[active_family_index_];
     const bool hot = edge_is_hot(edge.dst);
     const std::size_t family =
         hot ? spine_hot_shard(edge.dst) : family_for(edge.dst);
@@ -1892,6 +2005,122 @@ void SpineL0Maintenance::consume_carry_memory_response(
     } else {
       enqueue_carry_stream_refill(task.carry_stream);
     }
+  } else if (task.purpose == TaskPurpose::kCarryCursorSliceMetadata) {
+    if (stream.new_batch || response.read_data.size() != 8 * kMetadataWordBytes) {
+      throw std::logic_error("invalid Spine carry slice metadata response");
+    }
+    counters_.carry_cursor_metadata_read_bytes += response.read_data.size();
+    const std::uint64_t edge_count = read_u64_le(response.read_data, 0);
+    const std::uint64_t row_count = read_u64_le(response.read_data, 8);
+    const std::uint64_t occupied = read_u64_le(response.read_data, 56);
+    if (edge_count == 0 || edge_count > std::numeric_limits<std::uint32_t>::max() ||
+        row_count == 0 || row_count > edge_count ||
+        row_count > std::numeric_limits<std::uint32_t>::max() || occupied == 0) {
+      ++counters_.carry_cursor_validation_failures;
+      throw std::logic_error("invalid Spine carry slice shape");
+    }
+    stream.edge_count = static_cast<std::uint32_t>(edge_count);
+    stream.row_count = static_cast<std::uint32_t>(row_count);
+    stream.bitmap_offset_words = read_u64_le(response.read_data, 16);
+    stream.page_base_offset_words = read_u64_le(response.read_data, 24);
+    stream.row_offset_offset_words = read_u64_le(response.read_data, 32);
+    stream.edge_offset_words = read_u64_le(response.read_data, 48);
+    enqueue_task(*ports_.metadata, MemoryOperation::kRead,
+                 config_.metadata_base +
+                     (metadata.slice_epoch_base + (slice >> 1)) *
+                         kMetadataWordBytes,
+                 kMetadataWordBytes, TaskClass::kMetadata, {}, {}, false,
+                 TaskPurpose::kCarryCursorSliceEpoch, 0, task.carry_stream);
+    enqueue_task(*ports_.metadata, MemoryOperation::kRead,
+                 config_.metadata_base +
+                     (metadata.page_list_count_base + (slice >> 1)) *
+                         kMetadataWordBytes,
+                 kMetadataWordBytes, TaskClass::kMetadata, {}, {}, false,
+                 TaskPurpose::kCarryCursorPageCount, 0, task.carry_stream);
+  } else if (task.purpose == TaskPurpose::kCarryCursorSliceEpoch) {
+    counters_.carry_cursor_metadata_read_bytes += response.read_data.size();
+    stream.slice_epoch =
+        read_u32_le(response.read_data, (slice & 1U) * sizeof(std::uint32_t));
+    stream.slice_epoch_ready = true;
+    maybe_enqueue_carry_page_list(task.carry_stream);
+  } else if (task.purpose == TaskPurpose::kCarryCursorPageCount) {
+    counters_.carry_cursor_metadata_read_bytes += response.read_data.size();
+    stream.page_count =
+        read_u32_le(response.read_data, (slice & 1U) * sizeof(std::uint32_t));
+    stream.page_count_ready = true;
+    maybe_enqueue_carry_page_list(task.carry_stream);
+  } else if (task.purpose == TaskPurpose::kCarryCursorPageList) {
+    counters_.carry_cursor_metadata_read_bytes += response.read_data.size();
+    stream.pages.clear();
+    stream.pages.reserve(stream.page_count);
+    for (std::size_t index = 0; index < stream.page_count; ++index) {
+      const std::uint32_t page =
+          static_cast<std::uint32_t>(response.read_data[index * 2]) |
+          (static_cast<std::uint32_t>(response.read_data[index * 2 + 1]) << 8);
+      if (page >= metadata.page_count ||
+          (!stream.pages.empty() && page <= stream.pages.back())) {
+        ++counters_.carry_cursor_validation_failures;
+        throw std::logic_error("invalid Spine carry page-list payload");
+      }
+      stream.pages.push_back(page);
+    }
+    counters_.carry_cursor_page_ids += stream.pages.size();
+    enqueue_carry_page_indexes(task.carry_stream);
+  } else if (task.purpose == TaskPurpose::kCarryCursorPageEpoch) {
+    counters_.carry_cursor_metadata_read_bytes += response.read_data.size();
+    if (task.carry_edge_index >= stream.page_epochs.size()) {
+      throw std::logic_error("invalid Spine carry page-epoch response index");
+    }
+    const std::uint64_t epoch_index = slice * metadata.page_count + task.source;
+    stream.page_epochs[task.carry_edge_index] = read_u32_le(
+        response.read_data, (epoch_index & 1U) * sizeof(std::uint32_t));
+    finish_page_index_response();
+  } else if (task.purpose == TaskPurpose::kCarryCursorPageBase) {
+    if (task.carry_edge_index >= stream.page_bases.size()) {
+      throw std::logic_error("invalid Spine carry page-base response index");
+    }
+    stream.page_bases[task.carry_edge_index] = read_u32_le(
+        response.read_data, (task.source & 1U) * sizeof(std::uint32_t));
+    finish_page_index_response();
+  } else if (task.purpose == TaskPurpose::kCarryCursorBitmap) {
+    if (task.carry_edge_index >= stream.page_bitmaps.size() ||
+        response.read_data.size() != 4 * kSpineGraphWordBytes) {
+      throw std::logic_error("invalid Spine carry bitmap response");
+    }
+    for (std::size_t word = 0; word < 4; ++word) {
+      stream.page_bitmaps[task.carry_edge_index][word] =
+          read_u64_le(response.read_data, word * kSpineGraphWordBytes);
+    }
+    ++counters_.carry_cursor_pages_visited;
+    counters_.carry_cursor_bitmap_words += 4;
+    finish_page_index_response();
+  } else if (task.purpose == TaskPurpose::kCarryCursorRowOffsets) {
+    const std::vector<std::uint32_t> row_sources = stream.sources;
+    std::vector<std::uint32_t> edge_sources;
+    edge_sources.reserve(stream.edge_count);
+    std::uint32_t expected_start = 0;
+    for (std::size_t row = 0; row < stream.row_count; ++row) {
+      const std::uint32_t start =
+          read_u32_le(response.read_data, row * sizeof(std::uint32_t));
+      const std::uint32_t end =
+          read_u32_le(response.read_data, (row + 1) * sizeof(std::uint32_t));
+      if (start != expected_start || end <= start || end > stream.edge_count) {
+        ++counters_.carry_cursor_validation_failures;
+        throw std::logic_error("invalid Spine carry row-offset payload");
+      }
+      edge_sources.insert(edge_sources.end(), end - start, row_sources[row]);
+      expected_start = end;
+    }
+    if (expected_start != stream.edge_count ||
+        edge_sources.size() != stream.edge_count) {
+      ++counters_.carry_cursor_validation_failures;
+      throw std::logic_error("Spine carry terminal row offset mismatch");
+    }
+    counters_.carry_cursor_row_offset_reads += stream.row_count + 1;
+    counters_.carry_cursor_rows_entered += stream.row_count;
+    stream.sources = std::move(edge_sources);
+    stream.cursor_ready = true;
+    enqueue_carry_stream_refill(task.carry_stream);
   } else if (task.purpose == TaskPurpose::kCarryLevelEdgeRead) {
     if (stream.new_batch || response.read_data.size() != kSpineGraphWordBytes) {
       throw std::logic_error("invalid Spine level carry response");
@@ -2219,6 +2448,11 @@ void SpineL0Maintenance::advance(const CycleContext &context) {
     return;
   }
   case Phase::kCarryProcess: {
+    if (carry_cursor_refill_cycles_remaining_ != 0) {
+      --carry_cursor_refill_cycles_remaining_;
+      ++counters_.carry_cursor_refill_cycles;
+      return;
+    }
     if (!advance_carry_merge()) {
       return;
     }

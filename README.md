@@ -170,3 +170,6 @@ winner refill stalls, and remaining cursor/writer boundary are documented in
 The persistent packed page-list count/ID ABI, lower-level retirement, and
 metadata traffic evidence are documented in
 [`docs/spine_page_list_metadata_20260724.md`](docs/spine_page_list_metadata_20260724.md).
+The payload-driven carry cursor, HBM-authoritative source reconstruction,
+per-page refill cycles, and malformed-index rejection are documented in
+[`docs/spine_payload_driven_carry_cursor_20260724.md`](docs/spine_payload_driven_carry_cursor_20260724.md).

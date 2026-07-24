@@ -1,0 +1,29 @@
+digraph payload_carry_cursor {
+  graph [rankdir=LR, bgcolor="white", pad=0.25, nodesep=0.32, ranksep=0.5];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=10,
+        color="#334155", fillcolor="#f8fafc", margin="0.12,0.08"];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#475569"];
+
+  state [label="Logical level state\nlevel occupancy only", fillcolor="#e2e8f0"];
+  slice [label="HBM20 slice metadata\nshape + graph offsets", fillcolor="#dbeafe"];
+  epoch [label="HBM20 epoch + page count\npacked 32-bit lanes", fillcolor="#dbeafe"];
+  list [label="HBM20 page IDs\npacked 16-bit lanes", fillcolor="#dbeafe"];
+  index [label="HBM graph indexes\npage base + 4 bitmap words", fillcolor="#dcfce7"];
+  scan [label="II=1 cursor scan\n256 bits + 5 cycles/page", fillcolor="#fef3c7"];
+  rows [label="HBM row offsets\nvalidate and expand sources", fillcolor="#dcfce7"];
+  edges [label="HBM old edge payloads\nhead + lookahead refill", fillcolor="#dcfce7"];
+  merge [label="Minimum-head carry merge\ncoalesce diff / weight", fillcolor="#e0e7ff"];
+  writer [label="Target graph writer\nremaining emit-time gap",
+          style="rounded,filled,dashed", fillcolor="#fee2e2"];
+  reject [label="Reject stale/malformed payload\nno host-state fallback",
+          fillcolor="#fecaca"];
+
+  state -> slice [label="select occupied level"];
+  slice -> epoch -> list -> index -> scan -> rows -> edges -> merge -> writer;
+  epoch -> reject [label="stale"];
+  list -> reject [label="invalid order"];
+  index -> reject [label="epoch/base/count"];
+  rows -> reject [label="range mismatch"];
+  state -> edges [label="source IDs forbidden", style=dashed, color="#dc2626",
+                  arrowhead=tee];
+}

@@ -1,0 +1,83 @@
+{
+  "date": "2026-07-24",
+  "evidence_tier": "structural_execution_driven",
+  "source_revision": "afb8199a2ca8d3fd208b985324bf4d8719e2b839",
+  "hardware_calibrated": false,
+  "hls_cursor_base_cycles_per_page": 261,
+  "cpp_payload_antibypass": {
+    "logical_old_source": 256,
+    "hbm_bitmap_old_source": 300,
+    "observed_old_source": 300,
+    "metadata_read_bytes": 96,
+    "page_ids": 1,
+    "pages_visited": 1,
+    "bitmap_words": 4,
+    "bits_inspected": 256,
+    "refill_cycles": 261,
+    "rows_entered": 1,
+    "row_offset_reads": 2,
+    "validation_failures": 0,
+    "correct": true
+  },
+  "cpp_stale_epoch_negative": {
+    "stale_epoch": 0,
+    "validation_failures": 1,
+    "rejected": true
+  },
+  "cpp_l1_carry": {
+    "cycles": 2588,
+    "refill_memory_wait_cycles": 100,
+    "cursor_refill_cycles": 261,
+    "max_buffered_heads": 2,
+    "correct": true
+  },
+  "cpp_l2_kway_carry": {
+    "refill_memory_wait_cycles": 334,
+    "cursor_pages": 2,
+    "cursor_refill_cycles": 522,
+    "max_buffered_heads": 5,
+    "correct": true
+  },
+  "sst_carry_hot": {
+    "cycles": 8966,
+    "backend_requests": 1944,
+    "maintenance_requests": 213,
+    "cursor_metadata_read_bytes": 96,
+    "cursor_pages": 1,
+    "cursor_bits": 256,
+    "cursor_refill_cycles": 261,
+    "refill_memory_wait_cycles": 137,
+    "dram_reads": 1230,
+    "dram_writes": 714,
+    "dram_activates": 96,
+    "correctness_mismatches": 0,
+    "frontier_mismatches": 0
+  },
+  "sst_no_carry_regressions": {
+    "amazon_l0": {
+      "cycles": 7187,
+      "backend_requests": 1399,
+      "cursor_refill_cycles": 0,
+      "correct": true
+    },
+    "weighted_sssp": {
+      "cycles": 33866,
+      "backend_requests": 4196,
+      "cursor_refill_cycles": 0,
+      "correct": true
+    }
+  },
+  "previous_page_list_sst_carry_hot": {
+    "commit": "a52e42e",
+    "cycles": 8736,
+    "backend_requests": 1943
+  },
+  "remaining_boundaries": [
+    "per-page metadata/index reads are batched rather than cursor-lazy",
+    "row-offset reads are expanded before merge rather than at row discovery",
+    "cursor loop and memory ordering preserves work but not all overlap timing",
+    "occupied-level and target selection begin from logical state",
+    "target graph writer is post-merge rather than emit-time",
+    "no source-matched carry hardware timing calibration"
+  ]
+}

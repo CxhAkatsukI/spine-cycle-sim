@@ -319,6 +319,15 @@ def validate_carry_hot_result(
         and result.get("maintenance_carry_new_batch_reads") == 2
         and result.get("maintenance_carry_new_batch_read_bytes") == 32
         and result.get("maintenance_carry_refill_wait_cycles", 0) > 0
+        and result.get("maintenance_carry_cursor_metadata_read_bytes") == 96
+        and result.get("maintenance_carry_cursor_page_ids") == 1
+        and result.get("maintenance_carry_cursor_pages_visited") == 1
+        and result.get("maintenance_carry_cursor_bitmap_words") == 4
+        and result.get("maintenance_carry_cursor_bits_inspected") == 256
+        and result.get("maintenance_carry_cursor_refill_cycles") == 261
+        and result.get("maintenance_carry_cursor_rows_entered") == 1
+        and result.get("maintenance_carry_cursor_row_offset_reads") == 2
+        and result.get("maintenance_carry_cursor_validation_failures") == 0
         and result.get("maintenance_carry_max_buffered_heads") == 2
         and result.get("maintenance_carry_merge_inputs") == 2
         and result.get("maintenance_carry_outputs") == 2,

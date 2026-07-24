@@ -252,6 +252,15 @@ struct SpineL0Counters {
   std::uint64_t carry_new_batch_read_bytes{};
   std::uint64_t carry_refill_wait_cycles{};
   std::size_t carry_max_buffered_heads{};
+  std::uint64_t carry_cursor_metadata_read_bytes{};
+  std::uint64_t carry_cursor_page_ids{};
+  std::uint64_t carry_cursor_pages_visited{};
+  std::uint64_t carry_cursor_bitmap_words{};
+  std::uint64_t carry_cursor_bits_inspected{};
+  std::uint64_t carry_cursor_refill_cycles{};
+  std::uint64_t carry_cursor_rows_entered{};
+  std::uint64_t carry_cursor_row_offset_reads{};
+  std::uint64_t carry_cursor_validation_failures{};
   std::uint64_t carry_merge_inputs{};
   std::uint64_t carry_outputs{};
   std::int32_t target_level{-1};
@@ -336,6 +345,14 @@ class SpineL0Maintenance final : public Component {
     kDirtyListRead,
     kDirtyListWrite,
     kCarryNewBatchRead,
+    kCarryCursorSliceMetadata,
+    kCarryCursorSliceEpoch,
+    kCarryCursorPageCount,
+    kCarryCursorPageList,
+    kCarryCursorPageEpoch,
+    kCarryCursorPageBase,
+    kCarryCursorBitmap,
+    kCarryCursorRowOffsets,
     kCarryLevelEdgeRead,
   };
 
@@ -404,7 +421,10 @@ class SpineL0Maintenance final : public Component {
   void build_family_outputs();
   void enqueue_family_writes(bool hot, std::size_t family, std::size_t target);
   void initialize_carry_engine(const FamilyWriteTask &task);
-  void enqueue_carry_index_reads(const FamilyWriteTask &task);
+  void enqueue_carry_cursor_metadata(std::size_t stream_index);
+  void maybe_enqueue_carry_page_list(std::size_t stream_index);
+  void enqueue_carry_page_indexes(std::size_t stream_index);
+  void finalize_carry_page_indexes(std::size_t stream_index);
   void enqueue_carry_stream_refill(std::size_t stream_index);
   void consume_carry_memory_response(const MemoryTask &task,
                                      const AxiResponse &response);
@@ -429,8 +449,25 @@ class SpineL0Maintenance final : public Component {
     bool new_batch{};
     std::size_t level{};
     std::vector<std::uint32_t> sources;
+    std::uint64_t bitmap_offset_words{};
+    std::uint64_t page_base_offset_words{};
+    std::uint64_t row_offset_offset_words{};
+    std::uint64_t edge_offset_words{};
+    std::uint32_t slice_epoch{};
+    std::uint32_t page_count{};
+    std::uint32_t row_count{};
+    std::uint32_t edge_count{};
+    std::vector<std::uint32_t> pages;
+    std::vector<std::uint32_t> page_epochs;
+    std::vector<std::uint32_t> page_bases;
+    std::vector<std::array<std::uint64_t, 4>> page_bitmaps;
+    std::size_t page_index_responses_pending{};
     std::size_t next_index{};
     std::deque<SpineEdgeRecord> buffered;
+    bool slice_epoch_ready{};
+    bool page_count_ready{};
+    bool page_list_requested{};
+    bool cursor_ready{};
     bool request_pending{};
     bool exhausted{};
   };
@@ -443,6 +480,7 @@ class SpineL0Maintenance final : public Component {
   std::vector<SpineEdgeRecord> sorted_scan_edges_;
   std::vector<CarryInputStream> carry_streams_;
   std::vector<SpineEdgeRecord> carry_merge_inputs_;
+  std::uint64_t carry_cursor_refill_cycles_remaining_{};
   std::array<std::vector<SpineEdgeRecord>, 16> family_outputs_;
   std::array<std::vector<SpineEdgeRecord>, 16> hot_family_outputs_;
   std::array<std::array<std::uint32_t, kSpineLevelCount>, kSpineFamilyCount>

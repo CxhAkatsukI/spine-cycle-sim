@@ -37,6 +37,9 @@
 - `spine_page_list_metadata.svg`: packed page-list IDs/counts, target commit,
   lower-level retirement, and the future payload-driven cursor consumer. Its
   editable source is the adjacent `.dot` file.
+- `spine_payload_driven_carry_cursor.svg`: HBM-authoritative carry metadata,
+  page, bitmap, row-offset, and old-edge chain with cursor refill timing and
+  rejection paths. Its editable source is the adjacent `.dot` file.
 
 Regenerate a Graphviz SVG from the repository root with:
 
