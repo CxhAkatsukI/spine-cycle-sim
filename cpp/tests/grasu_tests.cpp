@@ -317,6 +317,11 @@ void test_pma_native_regraph_sssp_matches_oracle() {
           "PMA-native ReGraph PMA capacity scan ledger mismatch");
   require(counters.apply_state_reads == counters.supersteps &&
               counters.apply_state_writes == counters.supersteps &&
+              counters.gather_rows_emitted == 8 * counters.supersteps &&
+              counters.merger_rows_consumed == counters.gather_rows_emitted &&
+              counters.merger_bursts_emitted == counters.supersteps &&
+              counters.apply_input_bursts == counters.supersteps &&
+              counters.hbm_wrapper_input_bursts == counters.supersteps &&
               counters.source_state_writes == 2 * counters.supersteps &&
               counters.source_state_write_bytes ==
                   2 * counters.apply_write_bytes,
@@ -374,8 +379,26 @@ void test_native_partition_scan_cost_is_explicit() {
           "per-round merge sweeps");
   require(counters.apply_state_reads == 2 * 4096 &&
               counters.apply_state_writes == 2 * 4096 &&
+              counters.gather_rows_emitted == 2 * 32768 &&
+              counters.merger_rows_consumed == counters.gather_rows_emitted &&
+              counters.merger_bursts_emitted == counters.apply_state_reads &&
+              counters.apply_input_bursts == counters.apply_state_reads &&
+              counters.hbm_wrapper_input_bursts == counters.apply_state_reads &&
               counters.source_state_writes == 2 * counters.apply_state_writes,
           "native ReGraph apply did not scan the full 65536-vertex partition");
+  require(counters.end_cycle - counters.start_cycle <
+                  counters.gather_reset_cycles + counters.gather_merge_cycles +
+                      counters.apply_state_reads &&
+              counters.gather_merger_fifo_max_occupancy > 0 &&
+              counters.gather_merger_fifo_max_occupancy <=
+                  compute_config.gather_merger_fifo_depth &&
+              counters.merger_apply_fifo_max_occupancy > 0 &&
+              counters.merger_apply_fifo_max_occupancy <=
+                  compute_config.merger_apply_fifo_depth &&
+              counters.apply_wrapper_fifo_max_occupancy > 0 &&
+              counters.apply_wrapper_fifo_max_occupancy <=
+                  compute_config.apply_wrapper_fifo_depth,
+          "native ReGraph finite stream chain did not overlap or bound queues");
   require(counters.apply_max_reads_inflight > 1 &&
               counters.apply_max_pipeline_occupancy > 1 &&
               counters.apply_max_writes_inflight > 1,
@@ -391,7 +414,9 @@ void test_native_partition_scan_cost_is_explicit() {
             << " max_read_inflight=" << counters.apply_max_reads_inflight
             << " max_pipeline=" << counters.apply_max_pipeline_occupancy
             << " max_write_inflight=" << counters.apply_max_writes_inflight
-            << '\n';
+            << " merger_fifo_max=" << counters.merger_apply_fifo_max_occupancy
+            << " wrapper_pipeline_max="
+            << counters.hbm_wrapper_max_pipeline_occupancy << '\n';
 }
 
 void test_normalized_four_lane_batches_are_executed() {
@@ -465,8 +490,14 @@ void test_pma_native_compute_propagates_contention() {
   GraSuReGraphConfig config;
   config.partition_vertices = 256;
   config.axis_fifo_depth = 1;
+  config.gather_merger_fifo_depth = 1;
+  config.merger_apply_fifo_depth = 1;
+  config.apply_wrapper_fifo_depth = 1;
   config.reader_buffer_batches = 2;
   config.max_outstanding_bursts = 16;
+  config.apply_request_window = 1;
+  config.apply_pipeline_capacity = 2;
+  config.hbm_wrapper_pipeline_capacity = 1;
   GraSuReGraphSsspSystem compute(scheduler, core, backend, layout, 0, config);
   compute.register_components();
   scheduler.run_until([&] { return compute.done() || compute.failed(); },
@@ -479,6 +510,14 @@ void test_pma_native_compute_propagates_contention() {
           "PMA compute did not expose shared-channel HBM contention");
   require(counters.axis_push_stalls > 0,
           "PMA compute did not propagate finite AXIS backpressure");
+  require(counters.gather_output_stall_cycles > 0 &&
+              counters.merger_output_stall_cycles > 0 &&
+              counters.apply_output_stall_cycles > 0 &&
+              counters.hbm_wrapper_pipeline_capacity_stalls > 0 &&
+              counters.gather_merger_fifo_max_occupancy == 1 &&
+              counters.merger_apply_fifo_max_occupancy == 1 &&
+              counters.apply_wrapper_fifo_max_occupancy == 1,
+          "ReGraph finite stream chain did not propagate downstream pressure");
   require(counters.live_edges_scanned == initial.size() * 2,
           "contention PMA compute scan ledger mismatch");
   const auto distances = compute.distances();
@@ -488,7 +527,14 @@ void test_pma_native_compute_propagates_contention() {
   std::cout << "EVIDENCE grasu_regraph_contention cycles="
             << counters.end_cycle - counters.start_cycle
             << " axi_backend_stalls=" << counters.axi_backend_submit_stalls
-            << " axis_push_stalls=" << counters.axis_push_stalls << '\n';
+            << " axis_push_stalls=" << counters.axis_push_stalls
+            << " gather_output_stalls=" << counters.gather_output_stall_cycles
+            << " merger_output_stalls=" << counters.merger_output_stall_cycles
+            << " apply_output_stalls=" << counters.apply_output_stall_cycles
+            << " wrapper_pipeline_stalls="
+            << counters.hbm_wrapper_pipeline_capacity_stalls
+            << " wrapper_write_stalls="
+            << counters.hbm_wrapper_write_window_stalls << '\n';
 }
 
 } // namespace

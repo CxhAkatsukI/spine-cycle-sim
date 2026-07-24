@@ -96,6 +96,15 @@ def main() -> int:
             "GRASU_SST_APPLY_STATE_CHANNEL": str(
                 params["regraph_apply_state_channel"]
             ),
+            "GRASU_SST_GATHER_MERGER_FIFO_DEPTH": str(
+                params["regraph_gather_merger_fifo_depth"]
+            ),
+            "GRASU_SST_MERGER_APPLY_FIFO_DEPTH": str(
+                params["regraph_merger_apply_fifo_depth"]
+            ),
+            "GRASU_SST_APPLY_WRAPPER_FIFO_DEPTH": str(
+                params["regraph_apply_wrapper_fifo_depth"]
+            ),
             "GRASU_SST_MAX_PENDING_REQUESTS": str(
                 memory["max_outstanding_per_port"]
             ),
@@ -107,6 +116,12 @@ def main() -> int:
             ),
             "GRASU_SST_APPLY_PIPELINE_LATENCY": "100",
             "GRASU_SST_APPLY_PIPELINE_CAPACITY": "100",
+            "GRASU_SST_HBM_WRAPPER_PIPELINE_LATENCY": str(
+                params["regraph_hbm_wrapper_pipeline_latency"]
+            ),
+            "GRASU_SST_HBM_WRAPPER_PIPELINE_CAPACITY": str(
+                params["regraph_hbm_wrapper_pipeline_capacity"]
+            ),
         }
     )
     command = [
@@ -134,6 +149,9 @@ def main() -> int:
     expected_claim = (
         "component_validation_simulation" if args.smoke else "normalized_simulation"
     )
+    supersteps = result.get("supersteps", -1)
+    expected_rows = partition_vertices // 2 * supersteps
+    expected_bursts = partition_vertices // 16 * supersteps
     if (
         not result.get("success")
         or result.get("correctness_mismatches") != 0
@@ -148,6 +166,17 @@ def main() -> int:
         != 2 * result.get("apply_state_writes", -1)
         or result.get("compute_write_bytes")
         != 3 * result.get("apply_state_writes", -1) * 64
+        or result.get("gather_rows_emitted") != expected_rows
+        or result.get("merger_rows_consumed") != expected_rows
+        or result.get("merger_bursts_emitted") != expected_bursts
+        or result.get("apply_input_bursts") != expected_bursts
+        or result.get("hbm_wrapper_input_bursts") != expected_bursts
+        or not 0 < result.get("gather_merger_fifo_max_occupancy", 0)
+        <= params["regraph_gather_merger_fifo_depth"]
+        or not 0 < result.get("merger_apply_fifo_max_occupancy", 0)
+        <= params["regraph_merger_apply_fifo_depth"]
+        or not 0 < result.get("apply_wrapper_fifo_max_occupancy", 0)
+        <= params["regraph_apply_wrapper_fifo_depth"]
     ):
         raise RuntimeError(f"SST GraSU/ReGraph validation failed: {result}")
 

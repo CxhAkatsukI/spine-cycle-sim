@@ -97,6 +97,19 @@ class ArchitectureProfileTests(unittest.TestCase):
         )
         self.assertEqual(normalized.parameters["regraph_apply_state_channel"], 30)
         self.assertEqual(normalized.parameters["regraph_source_state_copies"], 2)
+        self.assertEqual(
+            normalized.parameters["regraph_gather_merger_fifo_depth"], 16
+        )
+        self.assertEqual(normalized.parameters["regraph_merger_apply_fifo_depth"], 16)
+        self.assertEqual(
+            normalized.parameters["regraph_apply_wrapper_fifo_depth"], 16
+        )
+        self.assertEqual(
+            normalized.parameters["regraph_hbm_wrapper_pipeline_latency"], 71
+        )
+        self.assertEqual(
+            normalized.parameters["regraph_hbm_wrapper_pipeline_capacity"], 71
+        )
         self.assertEqual(projected.parameters["comparison_role"], "projected")
         self.assertTrue(projected.parameters["change_aware_compute_activation"])
 

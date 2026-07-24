@@ -43,13 +43,17 @@ implemented and synthesized.
   validation uses eight lanes; the target normalized profile can use four.
   The finite AXIS FIFO backpressures the reader while gather reset or bank work
   cannot consume.
-- Gather has eight destination banks. It counts extra cycles when destinations
-  in one batch collide on a bank. Reduction semantics use the shared
-  `GraphAlgorithmPolicy` weighted-SSSP Map/Reduce operations.
+- Gather has configurable destination banks: eight in source-shaped component
+  tests and four in the normalized profile. It counts extra cycles when
+  destinations in one batch collide on a bank. Reduction semantics use the
+  shared `GraphAlgorithmPolicy` weighted-SSSP Map/Reduce operations.
 - The first superstep charges a full gather reset. Every superstep charges the
   output/clear sweep, which leaves the URAM ready for the next superstep. This
   follows the host's `reset_tmp_prop = (super_step == 0)` protocol. The native
   profile processes two vertices per cycle in each sweep.
+- Gather output is a finite stream of 64-bit rows. A free-running merger packs
+  eight rows into one 512-bit Apply burst. Depth-16 registered FIFOs connect
+  gather to merger, merger to Apply, and Apply to the HBM wrapper.
 - Apply reads and writes all 65536 destination words as 64-byte bursts under
   the native profile, sets the ReGraph active bit for improved vertices, and
   drives the next superstep. Each output burst is committed to local state on
@@ -68,7 +72,7 @@ the execution-driven GraSU update system, and then starts SSSP at vertex 0.
 The expected distances are computed independently from the final edge set.
 
 ```text
-cycles at 200 MHz:  1601
+cycles at 200 MHz:  1893
 supersteps:            4
 PMA segments read:    20
 PMA slots scanned:   320
@@ -103,21 +107,25 @@ A one-edge, 16-vertex graph is also run with the source-shaped ReGraph
 `PARTITION_SIZE=65536` setting:
 
 ```text
-cycles at 200 MHz:       114953
+cycles at 200 MHz:        98917
 supersteps:                   2
 gather reset + merge:     98304 cycles (32768 + 65536)
 apply reads:                8192 x 64 B
 apply writes:               8192 x 64 B
 source-state writes:       16384 x 64 B
-max read / write in-flight:   10 / 32
-max apply pipeline occupancy:     100
+max read / write in-flight:    2 / 2
+max apply pipeline occupancy:      14
+max merger FIFO occupancy:          1
+max wrapper pipeline occupancy:     9
 distance oracle:              PASS
 ```
 
 The graph is tiny, but ReGraph still sweeps the whole destination partition.
 This fixed cost is why a small-batch comparison must preserve partition shape;
 using a 16-word apply in performance experiments would hide the comparator's
-dominant overhead.
+dominant overhead. The previous phase-barrier model took 114953 cycles. The
+explicit streams reduce this by 13.95% because Apply and wrapper work overlap
+the gather output sweep.
 
 ## Contention Evidence
 
@@ -125,9 +133,13 @@ A 128-edge fanout uses one outstanding backend request per HBM channel and a
 one-entry AXIS FIFO:
 
 ```text
-cycles at 200 MHz:       9441
-AXI backend stalls:      2994
-AXIS push stalls:          16
+cycles at 200 MHz:      11191
+AXI backend stalls:       614
+AXIS push stalls:        2864
+gather output stalls:    1482
+merger output stalls:    1366
+apply output stalls:      416
+wrapper pipeline stalls: 1904
 distance oracle:         PASS
 ```
 
@@ -142,7 +154,7 @@ required by the current normalized profile. One 16-slot PMA segment becomes
 four registered batches rather than two:
 
 ```text
-cycles at 150 MHz:  701
+cycles at 150 MHz:  847
 supersteps:           2
 PMA segment reads:    2
 four-lane batches:    8
@@ -177,8 +189,8 @@ dot -Tsvg docs/figures/grasu_regraph_pma_native_sssp.dot \
 1. Broaden the now-working profile-driven `SstMemoryBackend` path from the tiny
    normalized validation case to synthetic sweeps and real graph slices, and
    report simulator wall-clock throughput.
-2. Replace the gather/merge/apply phase barriers with explicit finite streams,
-   then model the six-stage gather RAW bypass and the HBM-wrapper write pipeline.
+2. Replace ideal immediate gather forwarding with the exact six-stage RAW
+   bypass/register state and model the HLS source-cache request controller.
 3. Extend the PMA contract for real edge weights before claiming weighted SSSP
    equivalence with Spine.
 4. Add full PageRank and thresholded residual PageRank iteration controllers

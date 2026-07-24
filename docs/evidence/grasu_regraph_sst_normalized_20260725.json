@@ -6,7 +6,7 @@
   "timing_evidence": "structural_execution_driven",
   "profile": {
     "path": "configs/architectures/grasu_regraph_normalized_spine23.json",
-    "sha256": "4c6a4ac5b2699bc0b3b58a8431746073771cb6874161671791f228f4a657733f"
+    "sha256": "ad3d5777fbf410aac5c8acc820113ad1eada13c4859681c8aaf821bb909c4b85"
   },
   "workload": {
     "initial_path": "tests/data/grasu_regraph_unit_initial.slice",
@@ -31,16 +31,21 @@
     "source_state_channel": 1,
     "source_state_mirror_channel": 3,
     "apply_state_channel": 30,
-    "source_state_copies": 2
+    "source_state_copies": 2,
+    "gather_merger_fifo_depth": 16,
+    "merger_apply_fifo_depth": 16,
+    "apply_wrapper_fifo_depth": 16,
+    "hbm_wrapper_pipeline_latency": 71,
+    "hbm_wrapper_pipeline_capacity": 71
   },
   "result": {
-    "cycles": 115012,
+    "cycles": 98970,
     "update_cycles": 62,
-    "compute_cycles": 114950,
+    "compute_cycles": 98908,
     "correctness_mismatches": 0,
     "supersteps": 2,
     "backend_requests": 32816,
-    "backend_max_outstanding": 32,
+    "backend_max_outstanding": 9,
     "compute_row_reads": 32,
     "compute_source_state_reads": 2,
     "compute_source_state_writes": 16384,
@@ -51,17 +56,33 @@
     "compute_active_edges": 3,
     "gather_reset_cycles": 32768,
     "gather_merge_cycles": 65536,
+    "gather_output_stall_cycles": 0,
+    "gather_rows_emitted": 65536,
+    "merger_rows_consumed": 65536,
+    "merger_bursts_emitted": 8192,
+    "merger_output_stall_cycles": 0,
     "apply_state_reads": 8192,
     "apply_state_writes": 8192,
+    "apply_input_bursts": 8192,
+    "apply_output_stall_cycles": 0,
     "apply_request_window": 32,
     "apply_pipeline_latency": 100,
     "apply_pipeline_capacity": 100,
-    "apply_max_reads_inflight": 32,
-    "apply_max_pipeline_occupancy": 100,
-    "apply_max_writes_inflight": 32,
-    "apply_read_window_stalls": 12,
-    "apply_pipeline_capacity_stalls": 7944,
-    "apply_write_window_stalls": 7942,
+    "apply_max_reads_inflight": 8,
+    "apply_max_pipeline_occupancy": 20,
+    "apply_max_writes_inflight": 7,
+    "apply_read_window_stalls": 0,
+    "apply_pipeline_capacity_stalls": 0,
+    "apply_write_window_stalls": 0,
+    "hbm_wrapper_input_bursts": 8192,
+    "hbm_wrapper_pipeline_capacity_stalls": 0,
+    "hbm_wrapper_write_window_stalls": 0,
+    "hbm_wrapper_max_pipeline_occupancy": 15,
+    "hbm_wrapper_max_writes_inflight": 6,
+    "gather_merger_fifo_max_occupancy": 1,
+    "merger_apply_fifo_max_occupancy": 1,
+    "apply_wrapper_fifo_max_occupancy": 1,
+    "backend_submit_stalls": 130,
     "update_read_bytes": 160,
     "update_write_bytes": 128,
     "compute_read_bytes": 525056,
@@ -71,10 +92,10 @@
     "dramsim3_channel_30_writes": 8192
   },
   "limitation": {
-    "closed": "single-flight apply is pipelined, gather reset follows the first-superstep-only host protocol, and all three ReGraph state copies reach their mapped HBM channels",
-    "largest": "gather/merge/apply/HBM-wrapper stream overlap and the six-stage gather bypass are not explicit",
+    "closed": "single-flight apply, first-round gather reset, all three state copies, and finite gather-to-wrapper stream overlap are execution-driven",
+    "largest": "the exact six-stage gather RAW bypass and the HLS source-cache request controller are not explicit",
     "consequence": "cycle total remains structural and not ready for a Spine speedup claim",
-    "next_validation": "execute the finite inter-kernel stream and validate its phase overlap before modeling the gather RAW bypass"
+    "next_validation": "model and stress the gather bypass/register state, then align the source-cache request controller to HLS"
   },
   "hls_apply_evidence": {
     "source": "/home/chuxiao/ReGraph/acc_template/kernel_apply/acc_apply.h",
@@ -105,5 +126,19 @@
     "write_out_ii": 1,
     "write_out_iteration_latency": 71,
     "mapping": "local apply state HBM[30], primary source state HBM[1], mirrored source state HBM[3]"
+  },
+  "stream_overlap_evidence": {
+    "gather_source": "/home/chuxiao/ReGraph/acc_template/kernel_little_gs/acc_gather.h",
+    "gather_source_sha256": "6a8b5daf4a3ed9b4573c9ad90a4a0babb1fdea46426758bcc0b5cf6914af142f",
+    "merger_source": "/home/chuxiao/ReGraph/acc_template/kernel_little_gs_merger/kernel_little_gs_merger.cpp",
+    "merger_source_sha256": "282a88d68cec7f4038059ca7a0fdcf82dcc835b9da2e8d663e8b65ea1790ab43",
+    "apply_source": "/home/chuxiao/ReGraph/acc_template/kernel_apply/acc_apply.h",
+    "apply_source_sha256": "e78eaa1245af55c575a3b7be699171b0d34af30754b97216c0a955cf97b059ba",
+    "connectivity_sha256": "5c19f0d0fa3b0c078e465b9cc5e65bab3da8fa21ec0dd117c6693de95d18c1de",
+    "phase_barrier_cycles": 115012,
+    "finite_stream_cycles": 98970,
+    "cycle_reduction_percent": 13.95,
+    "request_ledger_unchanged": true,
+    "correctness_mismatches": 0
   }
 }

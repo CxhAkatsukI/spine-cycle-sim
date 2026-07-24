@@ -14,8 +14,9 @@
 - `grasu_regraph_pma_native_sssp.svg`: implemented normalized GraSU update to
   PMA-native ReGraph unit-weight SSSP path. It shows source-cache refill,
   capacity-wide PMA scanning, finite four/eight-lane batches, gather sweeps,
-  partition-wide HBM apply, and the remaining explicit six-stage bypass gap.
-  Its editable source is the adjacent `.dot` file.
+  the 64-to-512-bit free-running merger, three finite inter-kernel streams,
+  partition-wide HBM apply/state mirroring, and the remaining explicit
+  six-stage bypass gap. Its editable source is the adjacent `.dot` file.
 - `spine_cycle_sim_architecture.svg`: legacy Python simulator architecture.
   The `.dot` file is its source and the `.png` is a raster export.
 - `spine_architecture_annotated.svg`: detailed mapping between the split Spine

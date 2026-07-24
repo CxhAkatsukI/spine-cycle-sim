@@ -40,6 +40,11 @@ insert/delete updates through finite AXIS, AXI, and shared-HBM components. Its
 scope, byte ledger, and correctness evidence are in
 [`docs/grasu_native_update_vertical_20260725.md`](docs/grasu_native_update_vertical_20260725.md).
 
+The PMA-native ReGraph SSSP path now includes finite gather/merger, merger/apply,
+and apply/HBM-wrapper streams with online SST-HBM backpressure. Its overlap and
+pressure evidence are in
+[`docs/grasu_regraph_stream_overlap_20260725.md`](docs/grasu_regraph_stream_overlap_20260725.md).
+
 ## Quick Start
 
 Run one workload:

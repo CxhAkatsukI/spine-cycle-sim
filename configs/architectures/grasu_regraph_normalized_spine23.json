@@ -45,6 +45,11 @@
     "regraph_source_state_mirror_channel": 3,
     "regraph_apply_state_channel": 30,
     "regraph_source_state_copies": 2,
+    "regraph_gather_merger_fifo_depth": 16,
+    "regraph_merger_apply_fifo_depth": 16,
+    "regraph_apply_wrapper_fifo_depth": 16,
+    "regraph_hbm_wrapper_pipeline_latency": 71,
+    "regraph_hbm_wrapper_pipeline_capacity": 71,
     "pma_native_compute": true,
     "conversion_cost_included": false
   },

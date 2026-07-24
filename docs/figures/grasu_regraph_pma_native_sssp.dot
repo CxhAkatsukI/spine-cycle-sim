@@ -13,13 +13,13 @@ digraph grasu_regraph_pma_native_sssp {
   reader [label="PMA-native reader\nrow AXI + 4 PMA AXI ports\nscan reserved empty slots", fillcolor="#dcebd9"];
   axis [label="Registered AXIS FIFO\n4 or 8 slots / batch\nfinite depth", fillcolor="#f4e1c1"];
   reset [label="Gather reset sweep\n65536 / 2 cycles", fillcolor="#f0d9e7"];
-  gather [label="8-bank Map / Reduce\nunit-weight SSSP\nbank-conflict timing", fillcolor="#f0d9e7"];
-  merge [label="Gather merge sweep\n65536 / 2 cycles", fillcolor="#f0d9e7"];
+  gather [label="4/8-bank Map / Reduce\nunit-weight SSSP\nbank-conflict timing", fillcolor="#f0d9e7"];
+  merge [label="Gather output / clear\n64-bit row per cycle\n32768 rows / partition", fillcolor="#f0d9e7"];
+  pack [label="Free-running little merger\npack 8 x 64-bit rows\ninto one 512-bit burst", fillcolor="#f4e1c1"];
   apply [label="Partition-wide apply\n64 B read + write bursts\nset next active bits", fillcolor="#d9e8f5"];
   hbm_wrapper [label="HBM write wrapper\nII=1, iteration latency 71\nmirror each 512-bit result", fillcolor="#d9e8f5"];
   oracle [label="Committed-state\ndistance oracle + byte/stall ledger", fillcolor="#dcebd9"];
   bypass [label="6-stage RAW bypass registers\nremaining explicit timing gap", style="rounded,dashed,filled", fillcolor="#fff3cd", color="#9a7800"];
-  stream_gap [label="Finite merger/apply/wrapper streams\nremaining overlap gap", style="rounded,dashed,filled", fillcolor="#fff3cd", color="#9a7800"];
 
   update -> pma [label="committed updates"];
   update -> barrier;
@@ -32,11 +32,11 @@ digraph grasu_regraph_pma_native_sssp {
   reset -> gather [label="round start"];
   axis -> gather [label="backpressure"];
   gather -> merge;
-  merge -> apply [label="reduced candidates"];
+  merge -> pack [label="AXIS depth 16"];
+  pack -> apply [label="AXIS depth 16"];
   apply_state -> apply [dir=both, label="64 B AXI R/W"];
-  apply -> hbm_wrapper [label="512-bit result stream"];
+  apply -> hbm_wrapper [label="512-bit AXIS, depth 16"];
   hbm_wrapper -> source_state [label="two parallel 64 B writes", color="#3f7f5f"];
   apply -> oracle [label="no active vertices"];
   bypass -> gather [style=dashed];
-  stream_gap -> hbm_wrapper [style=dashed];
 }

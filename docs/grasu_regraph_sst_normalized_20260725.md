@@ -19,6 +19,7 @@ The runner loads the pinned
 - 32 outstanding bursts per AXI port;
 - 4096-word source cache;
 - 65536-word ReGraph destination partition;
+- depth-16 gather/merger, merger/apply, and apply/wrapper streams;
 - apply state on HBM[30] and ping-pong source-state copies on HBM[1]/HBM[3].
 
 The input and update are real `.slice` files, not command-line edge counts.
@@ -31,12 +32,12 @@ then creates the ReGraph compute system on the same scheduler and backend.
 ```text
 result:                    PASS
 correctness mismatches:       0
-total cycles:            115012
+total cycles:             98970
 GraSU update cycles:          62
-ReGraph compute cycles:   114950
+ReGraph compute cycles:    98908
 supersteps:                   2
 DRAMSim3 backend requests: 32816
-backend max outstanding:     32
+backend max outstanding:      9
 ```
 
 The compute ledger is:
@@ -50,11 +51,14 @@ PMA slots scanned:             96
 live edges scanned:             6
 active edges mapped:            3
 gather reset + merge cycles: 98304 (32768 + 65536)
+gather rows / merger bursts: 65536 / 8192
 apply reads / writes:      8192 / 8192 (64 B each)
 source-state writes:            16384 (two copies, 64 B each)
-apply max read / write in-flight: 32 / 32
-apply max pipeline occupancy:    100
-apply read / pipeline / write stalls: 12 / 7944 / 7942
+apply max read / write in-flight: 8 / 7
+apply max pipeline occupancy:     20
+wrapper max pipeline / writes:  15 / 6
+finite stream max occupancies:  1 / 1 / 1
+backend submit stalls:          130
 compute read / write bytes: 525056 / 1572864
 ```
 
@@ -62,9 +66,19 @@ DRAMSim3 independently records 8192 writes on each of HBM[1], HBM[3], and
 HBM[30]. This closes the previous memory-ledger omission: the old model counted
 only the local apply-state copy and therefore missed two thirds of ReGraph's
 state-write traffic. Backend requests rise from 16432 to 32816, but total
-cycles remain 115012 because the three HBM channels accept the writes in
+cycles are unchanged by the three-copy correction because the HBM channels
+accept the writes in
 parallel. The correction changes traffic, channel utilization, and future
 energy estimates even though it does not change this workload's critical path.
+
+The explicit stream refactor changes the normalized total from 115012 to 98970
+cycles, a 13.95% reduction, without changing the graph result, request count,
+or byte ledger. Gather emits one 64-bit row per cycle; the free-running merger
+packs eight rows into one 512-bit burst. Apply therefore receives one burst
+every eight cycles and overlaps its HBM work with the 32768-cycle output/clear
+sweep. The old phase barrier incorrectly issued Apply traffic as a separate,
+one-burst-per-cycle phase, inflating backend maximum outstanding from 9 to 32
+and submit stalls from 130 to 233932.
 
 The update ledger is two PMA 64-byte read-modify-writes plus update and row
 records: 160 read bytes and 128 write bytes.
@@ -89,17 +103,18 @@ run from 147593 to 115012 cycles (22.1%), changes reset work from two sweeps to
 one, and leaves all HBM bytes and requests unchanged. The original ReGraph host
 and the integrated host independently use this first-superstep-only rule.
 
-This closes the known single-flight and missing-state-copy errors. The explicit
-AXIS path from gather output through the merger and apply to the HBM wrapper is
-still collapsed into phase barriers. In particular, the synthesized
-`write_out` loop has II=1 and iteration latency 71, but its stream latency and
-tail are not yet represented. The dominant modeled term is now the 98304-cycle
-gather reset and output/merge work. Its phase ordering and inter-kernel stream
-overlap must be validated before a Spine speedup claim.
+This closes the known single-flight, missing-state-copy, and inter-kernel phase
+barrier errors. The three external stream boundaries are registered finite
+queues and propagate backpressure. The HBM-wrapper pipeline uses the
+synthesized `write_out` iteration latency 71 and II=1 as a structural profile;
+its AXI requests still receive timing online from SST/DRAMSim3.
 
-Other open boundaries remain unit-only PMA weights, idealized gather RAW
-forwarding, no PageRank controllers on the comparator, and no HLS synthesis of
-the PMA-native reader.
+The largest remaining ReGraph timing boundaries are the exact six-stage gather
+RAW bypass/register behavior and the source-cache request controller whose HLS
+report achieves II=256. Other open boundaries remain unit-only PMA weights, no
+PageRank controllers on the comparator, and no HLS synthesis of the PMA-native
+reader. These prevent a final Spine speedup claim, but the finite stream chain
+itself is no longer a known gap.
 
 ## Reproduction
 

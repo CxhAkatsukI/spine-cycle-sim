@@ -66,6 +66,15 @@ probe.addParams(
         "grasu_apply_state_channel": int(
             os.environ.get("GRASU_SST_APPLY_STATE_CHANNEL", "30")
         ),
+        "grasu_gather_merger_fifo_depth": int(
+            os.environ.get("GRASU_SST_GATHER_MERGER_FIFO_DEPTH", "16")
+        ),
+        "grasu_merger_apply_fifo_depth": int(
+            os.environ.get("GRASU_SST_MERGER_APPLY_FIFO_DEPTH", "16")
+        ),
+        "grasu_apply_wrapper_fifo_depth": int(
+            os.environ.get("GRASU_SST_APPLY_WRAPPER_FIFO_DEPTH", "16")
+        ),
         "grasu_axis_fifo_depth": int(
             os.environ.get("GRASU_SST_AXIS_FIFO_DEPTH", "16")
         ),
@@ -86,6 +95,12 @@ probe.addParams(
         ),
         "grasu_apply_pipeline_capacity": int(
             os.environ.get("GRASU_SST_APPLY_PIPELINE_CAPACITY", "100")
+        ),
+        "grasu_hbm_wrapper_pipeline_latency": int(
+            os.environ.get("GRASU_SST_HBM_WRAPPER_PIPELINE_LATENCY", "71")
+        ),
+        "grasu_hbm_wrapper_pipeline_capacity": int(
+            os.environ.get("GRASU_SST_HBM_WRAPPER_PIPELINE_CAPACITY", "71")
         ),
     }
 )

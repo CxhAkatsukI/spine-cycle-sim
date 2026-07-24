@@ -905,6 +905,12 @@ class OnlineMemoryProbe final : public SST::Component {
         params.find<std::size_t>("grasu_apply_state_channel", 30);
     grasu_config_.axis_fifo_depth =
         params.find<std::size_t>("grasu_axis_fifo_depth", 16);
+    grasu_config_.gather_merger_fifo_depth =
+        params.find<std::size_t>("grasu_gather_merger_fifo_depth", 16);
+    grasu_config_.merger_apply_fifo_depth =
+        params.find<std::size_t>("grasu_merger_apply_fifo_depth", 16);
+    grasu_config_.apply_wrapper_fifo_depth =
+        params.find<std::size_t>("grasu_apply_wrapper_fifo_depth", 16);
     grasu_config_.reader_buffer_batches =
         params.find<std::size_t>("grasu_reader_buffer_batches", 32);
     grasu_config_.max_pending_requests =
@@ -917,6 +923,10 @@ class OnlineMemoryProbe final : public SST::Component {
         params.find<std::size_t>("grasu_apply_pipeline_latency", 100);
     grasu_config_.apply_pipeline_capacity =
         params.find<std::size_t>("grasu_apply_pipeline_capacity", 100);
+    grasu_config_.hbm_wrapper_pipeline_latency =
+        params.find<std::size_t>("grasu_hbm_wrapper_pipeline_latency", 71);
+    grasu_config_.hbm_wrapper_pipeline_capacity =
+        params.find<std::size_t>("grasu_hbm_wrapper_pipeline_capacity", 71);
     grasu_config_.max_supersteps = max_rounds_;
     grasu_update_config_.memory_channels = channels_;
     grasu_update_config_.cache_segments_per_half =
@@ -1680,6 +1690,12 @@ class OnlineMemoryProbe final : public SST::Component {
        "ReGraph mirrored source-state HBM channel", "3"},
       {"grasu_apply_state_channel", "ReGraph apply-state HBM channel", "30"},
       {"grasu_axis_fifo_depth", "GraSU/ReGraph AXIS FIFO depth", "16"},
+      {"grasu_gather_merger_fifo_depth", "Gather-to-merger AXIS FIFO depth",
+       "16"},
+      {"grasu_merger_apply_fifo_depth", "Merger-to-apply AXIS FIFO depth",
+       "16"},
+      {"grasu_apply_wrapper_fifo_depth", "Apply-to-wrapper AXIS FIFO depth",
+       "16"},
       {"grasu_reader_buffer_batches", "PMA reader response batches", "32"},
       {"grasu_max_pending_requests", "AXI pending requests per port", "32"},
       {"grasu_max_outstanding_bursts", "AXI outstanding bursts per port",
@@ -1688,7 +1704,11 @@ class OnlineMemoryProbe final : public SST::Component {
       {"grasu_apply_pipeline_latency", "ReGraph HLS apply pipeline depth",
        "100"},
       {"grasu_apply_pipeline_capacity", "ReGraph apply in-flight capacity",
-       "100"})
+       "100"},
+      {"grasu_hbm_wrapper_pipeline_latency",
+       "ReGraph HBM-wrapper write pipeline latency", "71"},
+      {"grasu_hbm_wrapper_pipeline_capacity",
+       "ReGraph HBM-wrapper in-flight capacity", "71"})
 
   SST_ELI_DOCUMENT_SUBCOMPONENT_SLOTS(
       {"memory", "One StandardMem interface per HBM channel",
@@ -1807,6 +1827,16 @@ class OnlineMemoryProbe final : public SST::Component {
              << grasu_config_.apply_pipeline_latency << ",\n"
              << "  \"apply_pipeline_capacity\": "
              << grasu_config_.apply_pipeline_capacity << ",\n"
+             << "  \"gather_merger_fifo_depth\": "
+             << grasu_config_.gather_merger_fifo_depth << ",\n"
+             << "  \"merger_apply_fifo_depth\": "
+             << grasu_config_.merger_apply_fifo_depth << ",\n"
+             << "  \"apply_wrapper_fifo_depth\": "
+             << grasu_config_.apply_wrapper_fifo_depth << ",\n"
+             << "  \"hbm_wrapper_pipeline_latency\": "
+             << grasu_config_.hbm_wrapper_pipeline_latency << ",\n"
+             << "  \"hbm_wrapper_pipeline_capacity\": "
+             << grasu_config_.hbm_wrapper_pipeline_capacity << ",\n"
              << "  \"correctness_mismatches\": " << mismatches << ",\n"
              << "  \"supersteps\": " << compute.supersteps << ",\n"
              << "  \"update_binary_probes\": " << update.binary_probes
@@ -1832,12 +1862,26 @@ class OnlineMemoryProbe final : public SST::Component {
              << compute.gather_reset_cycles << ",\n"
              << "  \"gather_merge_cycles\": "
              << compute.gather_merge_cycles << ",\n"
+             << "  \"gather_output_stall_cycles\": "
+             << compute.gather_output_stall_cycles << ",\n"
              << "  \"gather_bank_conflict_cycles\": "
              << compute.gather_bank_conflict_cycles << ",\n"
+             << "  \"gather_rows_emitted\": "
+             << compute.gather_rows_emitted << ",\n"
+             << "  \"merger_rows_consumed\": "
+             << compute.merger_rows_consumed << ",\n"
+             << "  \"merger_bursts_emitted\": "
+             << compute.merger_bursts_emitted << ",\n"
+             << "  \"merger_output_stall_cycles\": "
+             << compute.merger_output_stall_cycles << ",\n"
              << "  \"apply_state_reads\": " << compute.apply_state_reads
              << ",\n"
              << "  \"apply_state_writes\": " << compute.apply_state_writes
              << ",\n"
+             << "  \"apply_input_bursts\": " << compute.apply_input_bursts
+             << ",\n"
+             << "  \"apply_output_stall_cycles\": "
+             << compute.apply_output_stall_cycles << ",\n"
              << "  \"apply_read_window_stalls\": "
              << compute.apply_read_window_stalls << ",\n"
              << "  \"apply_pipeline_capacity_stalls\": "
@@ -1850,6 +1894,22 @@ class OnlineMemoryProbe final : public SST::Component {
              << compute.apply_max_pipeline_occupancy << ",\n"
              << "  \"apply_max_writes_inflight\": "
              << compute.apply_max_writes_inflight << ",\n"
+             << "  \"hbm_wrapper_input_bursts\": "
+             << compute.hbm_wrapper_input_bursts << ",\n"
+             << "  \"hbm_wrapper_pipeline_capacity_stalls\": "
+             << compute.hbm_wrapper_pipeline_capacity_stalls << ",\n"
+             << "  \"hbm_wrapper_write_window_stalls\": "
+             << compute.hbm_wrapper_write_window_stalls << ",\n"
+             << "  \"hbm_wrapper_max_pipeline_occupancy\": "
+             << compute.hbm_wrapper_max_pipeline_occupancy << ",\n"
+             << "  \"hbm_wrapper_max_writes_inflight\": "
+             << compute.hbm_wrapper_max_writes_inflight << ",\n"
+             << "  \"gather_merger_fifo_max_occupancy\": "
+             << compute.gather_merger_fifo_max_occupancy << ",\n"
+             << "  \"merger_apply_fifo_max_occupancy\": "
+             << compute.merger_apply_fifo_max_occupancy << ",\n"
+             << "  \"apply_wrapper_fifo_max_occupancy\": "
+             << compute.apply_wrapper_fifo_max_occupancy << ",\n"
              << "  \"update_read_bytes\": "
              << update.update_read_bytes + update.row_read_bytes +
                     update.binary_read_bytes + update.pma_read_bytes
