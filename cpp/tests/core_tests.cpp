@@ -1497,6 +1497,95 @@ void test_spine_maintenance_consumes_sorted_payload_from_hbm() {
           "sorted payload read ledger does not close");
 }
 
+void test_spine_carry_merge_consumes_level_payload_from_hbm() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("data", 141.0);
+  MockMemoryBackend backend("hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 3,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  std::vector<std::unique_ptr<FixedAxiPort>> graph_ports;
+  graph_ports.reserve(16);
+  SpineL0Ports ports;
+  for (std::size_t index = 0; index < ports.graph.size(); ++index) {
+    graph_ports.push_back(std::make_unique<FixedAxiPort>(
+        "carry-payload-graph" + std::to_string(index), core,
+        FixedAxiPortConfig{
+            .memory_channels = 32,
+            .channel = index,
+            .initiator_id = static_cast<std::uint32_t>(600 + index),
+        },
+        backend));
+    ports.graph[index] = graph_ports.back().get();
+  }
+  FixedAxiPort sorted(
+      "carry-payload-sorted", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32, .channel = 16, .initiator_id = 616},
+      backend);
+  FixedAxiPort metadata(
+      "carry-payload-metadata", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32, .channel = 20, .initiator_id = 620},
+      backend);
+  FixedAxiPort result(
+      "carry-payload-result", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32, .channel = 21, .initiator_id = 621},
+      backend);
+  ports.sorted_edges = &sorted;
+  ports.metadata = &metadata;
+  ports.result = &result;
+
+  SpineL0State state;
+  state.cold_levels[0][0] = {
+      SpineEdgeRecord{.src = 0, .dst = 1, .weight = 5, .diff = 1}};
+  SpineEdgeSlice batch{
+      .vertices = 128,
+      .edges = {SpineEdgeRecord{.src = 0, .dst = 2, .weight = 3, .diff = 1}},
+      .case_name = "carry_payload_antibypass",
+  };
+  SpineL0Maintenance maintenance("carry-payload-maintenance", core,
+                                 SpineL0Config{}, std::move(batch), ports,
+                                 state);
+  const SpineLevelLayout cold_l0 =
+      spine_level_layout(SpineL0Config{}, false, 0);
+  graph_ports[0]->initialize_payload(
+      cold_l0.edge_offset_words * spine::sim::kSpineGraphWordBytes,
+      encode_spine_level_edge(
+          SpineEdgeRecord{.src = 0, .dst = 4, .weight = 2, .diff = 1}));
+
+  scheduler.add_component(maintenance);
+  for (auto &port : graph_ports) {
+    port->register_components(scheduler);
+  }
+  sorted.register_components(scheduler);
+  metadata.register_components(scheduler);
+  result.register_components(scheduler);
+  scheduler.add_component(backend);
+  scheduler.run_until(
+      [&] {
+        return maintenance.done() && sorted.idle() && metadata.idle() &&
+               result.idle() &&
+               std::all_of(graph_ports.begin(), graph_ports.end(),
+                           [](const auto &port) { return port->idle(); });
+      },
+      100'000);
+
+  require(!maintenance.failed(), "carry payload anti-bypass maintenance failed");
+  const auto &level = state.cold_levels[0][1];
+  require(level.size() == 2 && level[0].dst == 2 && level[0].weight == 3 &&
+              level[1].dst == 4 && level[1].weight == 2,
+          "carry merge ignored HBM level payload and used logical level state");
+  require(maintenance.counters().carry_level_payload_reads == 1 &&
+              maintenance.counters().carry_level_payload_read_bytes == 8,
+          "carry level payload read ledger does not close");
+}
+
 std::vector<std::uint32_t> sorted_vertices(
     std::vector<std::uint32_t> vertices) {
   std::sort(vertices.begin(), vertices.end());
@@ -1590,6 +1679,8 @@ int main() {
        test_spine_reader_consumes_graph_edge_payload_from_hbm},
       {"spine_maintenance_hbm_sorted_payload",
        test_spine_maintenance_consumes_sorted_payload_from_hbm},
+      {"spine_carry_hbm_level_payload",
+       test_spine_carry_merge_consumes_level_payload_from_hbm},
       {"spine_multiround_weighted_sssp",
        test_spine_multiround_weighted_sssp_converges},
   };

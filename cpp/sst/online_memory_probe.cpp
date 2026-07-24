@@ -1202,6 +1202,8 @@ class OnlineMemoryProbe final : public SST::Component {
           << maintenance.hot_input_edges << ",\n"
           << "  \"maintenance_carry_payload_reads\": "
           << maintenance.carry_level_payload_reads << ",\n"
+          << "  \"maintenance_carry_payload_read_bytes\": "
+          << maintenance.carry_level_payload_read_bytes << ",\n"
           << "  \"maintenance_carry_merge_inputs\": "
           << maintenance.carry_merge_inputs << ",\n"
           << "  \"maintenance_carry_outputs\": " << maintenance.carry_outputs

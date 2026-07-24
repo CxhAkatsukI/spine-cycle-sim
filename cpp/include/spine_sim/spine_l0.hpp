@@ -109,6 +109,7 @@ struct SpineL0Counters {
   std::uint64_t cold_input_edges{};
   std::uint64_t hot_input_edges{};
   std::uint64_t carry_level_payload_reads{};
+  std::uint64_t carry_level_payload_read_bytes{};
   std::uint64_t carry_merge_inputs{};
   std::uint64_t carry_outputs{};
   std::int32_t target_level{-1};
@@ -180,6 +181,7 @@ class SpineL0Maintenance final : public Component {
     std::uint64_t bytes{};
     TaskClass task_class{TaskClass::kSorted};
     std::vector<std::uint8_t> write_data;
+    std::vector<std::uint32_t> carry_edge_sources;
   };
 
   enum class StagedAction { kNone, kAdvance, kIssue, kComplete };
@@ -188,7 +190,8 @@ class SpineL0Maintenance final : public Component {
   void enqueue_task(FixedAxiPort &port, MemoryOperation operation,
                     std::uint64_t address, std::uint64_t bytes,
                     TaskClass task_class,
-                    std::vector<std::uint8_t> write_data = {});
+                    std::vector<std::uint8_t> write_data = {},
+                    std::vector<std::uint32_t> carry_edge_sources = {});
   void begin_sorted_scan(Phase process_phase);
   void process_scan_edge(Phase next_phase);
   void consume_memory_response(const MemoryTask &task,
@@ -202,6 +205,8 @@ class SpineL0Maintenance final : public Component {
       bool hot, std::size_t family) const;
   [[nodiscard]] std::vector<SpineEdgeRecord> merge_family(
       bool hot, std::size_t family, std::size_t target) const;
+  [[nodiscard]] std::vector<SpineEdgeRecord> merge_family_with_carry_payload(
+      bool hot, std::size_t family) const;
   [[nodiscard]] std::size_t family_for(std::uint32_t dst) const;
   [[nodiscard]] std::size_t target_for(bool hot) const;
   [[nodiscard]] bool edge_is_hot(std::uint32_t dst) const;
@@ -218,6 +223,7 @@ class SpineL0Maintenance final : public Component {
   SpineL0State &state_;
   SpineL0Counters counters_;
   std::vector<SpineEdgeRecord> sorted_scan_edges_;
+  std::vector<SpineEdgeRecord> carry_payload_edges_;
   std::array<std::vector<SpineEdgeRecord>, 16> family_outputs_;
   std::array<std::vector<SpineEdgeRecord>, 16> hot_family_outputs_;
   std::vector<FamilyWriteTask> family_write_tasks_;

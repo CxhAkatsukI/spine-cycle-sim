@@ -92,7 +92,9 @@ still not payload-complete:
   containers;
 - metadata/index bits are timed through HBM but not decoded into all control
   decisions;
-- carry merge still uses logical level vectors for merge semantics;
+- carry edge payload is closed in
+  `docs/spine_carry_level_payload_path_20260724.md`, but carry source/row
+  semantics still consult logical level metadata;
 - reader issue is still one memory task at a time rather than a fully
   pipelined/outstanding HLS loop.
 

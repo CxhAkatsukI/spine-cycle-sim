@@ -374,6 +374,33 @@ SpineL0Maintenance::SpineL0Maintenance(std::string name, ClockId clock_id,
   sorted_scan_edges_ = workload_.edges;
   ports_.sorted_edges->initialize_payload(
       config_.sorted_edges_base, encode_spine_sort_edges(workload_.edges));
+  const auto initialize_levels = [&](const auto &families, bool hot) {
+    for (std::size_t family = 0; family < families.size(); ++family) {
+      for (std::size_t level = 0; level < families[family].size(); ++level) {
+        const auto &edges = families[family][level];
+        if (edges.empty()) {
+          continue;
+        }
+        const SpineLevelLayout layout = spine_level_layout(config_, hot, level);
+        ports_.graph[family]->initialize_payload(
+            layout.edge_offset_words * kSpineGraphWordBytes,
+            [&edges] {
+              std::vector<std::uint8_t> payload;
+              payload.reserve(edges.size() * kSpineGraphWordBytes);
+              for (const SpineEdgeRecord &edge : edges) {
+                const std::vector<std::uint8_t> packed =
+                    encode_spine_level_edge(edge);
+                payload.insert(payload.end(), packed.begin(), packed.end());
+              }
+              return payload;
+            }());
+      }
+    }
+  };
+  initialize_levels(state_.cold_levels, false);
+  if (state_.hot_enabled) {
+    initialize_levels(state_.hot_levels, true);
+  }
 }
 
 void SpineL0Maintenance::evaluate(const CycleContext &) {
@@ -437,7 +464,9 @@ void SpineL0Maintenance::enqueue_task(FixedAxiPort &port,
                                       std::uint64_t address,
                                       std::uint64_t bytes,
                                       TaskClass task_class,
-                                      std::vector<std::uint8_t> write_data) {
+                                      std::vector<std::uint8_t> write_data,
+                                      std::vector<std::uint32_t>
+                                          carry_edge_sources) {
   if (bytes == 0) {
     return;
   }
@@ -446,6 +475,12 @@ void SpineL0Maintenance::enqueue_task(FixedAxiPort &port,
        write_data.size() != bytes)) {
     throw std::invalid_argument("invalid Spine maintenance memory payload");
   }
+  if ((!carry_edge_sources.empty() &&
+       (operation != MemoryOperation::kRead || task_class != TaskClass::kGraph ||
+        carry_edge_sources.size() * kSpineGraphWordBytes != bytes)) ||
+      (operation == MemoryOperation::kWrite && !carry_edge_sources.empty())) {
+    throw std::invalid_argument("invalid Spine carry payload read task");
+  }
   tasks_.push_back(MemoryTask{
       .port = &port,
       .operation = operation,
@@ -453,6 +488,7 @@ void SpineL0Maintenance::enqueue_task(FixedAxiPort &port,
       .bytes = bytes,
       .task_class = task_class,
       .write_data = std::move(write_data),
+      .carry_edge_sources = std::move(carry_edge_sources),
   });
   ++counters_.memory_tasks;
   switch (task_class) {
@@ -522,6 +558,18 @@ void SpineL0Maintenance::consume_memory_response(
   if (task.task_class == TaskClass::kSorted) {
     sorted_scan_edges_ = decode_spine_sort_edges(response.read_data);
     counters_.sorted_payload_read_bytes += response.read_data.size();
+  } else if (!task.carry_edge_sources.empty()) {
+    for (std::size_t index = 0; index < task.carry_edge_sources.size();
+         ++index) {
+      const auto begin =
+          response.read_data.begin() +
+          static_cast<std::ptrdiff_t>(index * kSpineGraphWordBytes);
+      const auto end = begin + kSpineGraphWordBytes;
+      carry_payload_edges_.push_back(decode_spine_level_edge(
+          std::vector<std::uint8_t>(begin, end),
+          task.carry_edge_sources[index]));
+    }
+    counters_.carry_level_payload_read_bytes += response.read_data.size();
   }
 }
 
@@ -569,6 +617,21 @@ std::vector<SpineEdgeRecord> SpineL0Maintenance::merge_family(
   for (std::size_t level = 0; level < target; ++level) {
     inputs.insert(inputs.end(), levels[family][level].begin(),
                   levels[family][level].end());
+  }
+  return coalesce_records(std::move(inputs));
+}
+
+std::vector<SpineEdgeRecord>
+SpineL0Maintenance::merge_family_with_carry_payload(
+    bool hot, std::size_t family) const {
+  std::vector<SpineEdgeRecord> inputs = coalesce_family(hot, family);
+  for (const SpineEdgeRecord &edge : carry_payload_edges_) {
+    const bool is_hot = edge_is_hot(edge.dst);
+    const std::size_t owner =
+        is_hot ? spine_hot_shard(edge.dst) : family_for(edge.dst);
+    if (is_hot == hot && owner == family) {
+      inputs.push_back(edge);
+    }
   }
   return coalesce_records(std::move(inputs));
 }
@@ -751,7 +814,10 @@ void SpineL0Maintenance::enqueue_carry_reads(bool hot, std::size_t family,
     std::uint64_t rows = 0;
     std::uint32_t last_source = 0;
     bool have_source = false;
+    std::vector<std::uint32_t> edge_sources;
+    edge_sources.reserve(edges.size());
     for (const SpineEdgeRecord &edge : edges) {
+      edge_sources.push_back(edge.src);
       pages.insert(edge.src / config_.page_vertices);
       if (!have_source || edge.src != last_source) {
         ++rows;
@@ -787,7 +853,8 @@ void SpineL0Maintenance::enqueue_carry_reads(bool hot, std::size_t family,
                  ((rows + 3) >> 2) * kSpineGraphWordBytes, TaskClass::kGraph);
     enqueue_task(graph, MemoryOperation::kRead,
                  layout.edge_offset_words * kSpineGraphWordBytes,
-                 edges.size() * kSpineGraphWordBytes, TaskClass::kGraph);
+                 edges.size() * kSpineGraphWordBytes, TaskClass::kGraph, {},
+                 std::move(edge_sources));
     counters_.carry_level_payload_reads += edges.size();
   }
 }
@@ -930,6 +997,7 @@ void SpineL0Maintenance::advance(const CycleContext &context) {
     case Phase::kCarryPrepare: {
       const FamilyWriteTask &task = family_write_tasks_[active_family_index_];
       const auto &levels = task.hot ? state_.hot_levels : state_.cold_levels;
+      carry_payload_edges_.clear();
       carry_steps_remaining_ = coalesce_family(task.hot, task.family).size();
       for (std::size_t level = 0; level < task.target; ++level) {
         carry_steps_remaining_ += levels[task.family][level].size();
@@ -945,8 +1013,33 @@ void SpineL0Maintenance::advance(const CycleContext &context) {
         return;
       }
       const FamilyWriteTask &task = family_write_tasks_[active_family_index_];
-      const auto &output = task.hot ? hot_family_outputs_[task.family]
-                                    : family_outputs_[task.family];
+      auto &output = task.hot ? hot_family_outputs_[task.family]
+                              : family_outputs_[task.family];
+      const bool was_active = !output.empty();
+      output = merge_family_with_carry_payload(task.hot, task.family);
+      const bool is_active = !output.empty();
+      if (was_active && !is_active) {
+        --counters_.active_families;
+      } else if (!was_active && is_active) {
+        ++counters_.active_families;
+      }
+      std::uint64_t rows = 0;
+      std::uint32_t last_src = 0;
+      bool have_src = false;
+      for (const SpineEdgeRecord &edge : output) {
+        if (!have_src || edge.src != last_src) {
+          ++rows;
+          last_src = edge.src;
+          have_src = true;
+        }
+      }
+      if (task.hot) {
+        counters_.hot_family_edges[task.family] = output.size();
+        counters_.hot_family_rows[task.family] = rows;
+      } else {
+        counters_.family_edges[task.family] = output.size();
+        counters_.family_rows[task.family] = rows;
+      }
       counters_.carry_outputs += output.size();
       if (!output.empty()) {
         enqueue_family_writes(task.hot, task.family, task.target);

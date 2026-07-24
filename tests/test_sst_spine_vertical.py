@@ -111,6 +111,7 @@ class SstSpineVerticalValidationTests(unittest.TestCase):
             "maintenance_sorted_bytes": 1_120,
             "maintenance_sorted_payload_read_bytes": 1_120,
             "maintenance_carry_payload_reads": 1,
+            "maintenance_carry_payload_read_bytes": 8,
             "maintenance_carry_merge_inputs": 2,
             "maintenance_carry_outputs": 2,
             "reader_tiles": 1,

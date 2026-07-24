@@ -117,6 +117,7 @@ def validate_carry_hot_result(
         )
         == result.get("maintenance_sorted_bytes"),
         "carry_work": result.get("maintenance_carry_payload_reads") == 1
+        and result.get("maintenance_carry_payload_read_bytes") == 8
         and result.get("maintenance_carry_merge_inputs") == 2
         and result.get("maintenance_carry_outputs") == 2,
         "reader_tiles": result.get("reader_tiles") == 1,

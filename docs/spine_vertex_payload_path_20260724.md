@@ -71,5 +71,6 @@ This closes the vertex-state payload bypass. The emitted graph-edge payload
 path is closed in `docs/spine_graph_edge_payload_path_20260724.md`. The
 maintenance sorted input is closed in
 `docs/spine_sorted_input_payload_path_20260724.md`. Graph-level CSR/index
-metadata decisions and carry merge still use logical containers and are the
-next payload migration target.
+metadata decisions still use logical containers. Carry edge payload is closed
+in `docs/spine_carry_level_payload_path_20260724.md`, but carry source/row
+semantics remain a payload migration target.

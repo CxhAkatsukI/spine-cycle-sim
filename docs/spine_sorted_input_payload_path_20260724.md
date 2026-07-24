@@ -102,7 +102,9 @@ dependencies include:
 
 - level occupancy and row enumeration in the reader;
 - metadata/index bit decoding for control decisions;
-- carry merge semantics over pre-existing levels;
+- carry edge payload is closed in
+  `docs/spine_carry_level_payload_path_20260724.md`, while carry source/row
+  semantics still use logical metadata;
 - measured host-round transfer and launch accounting.
 
 The correct claim remains `structural_execution_driven` with major data
