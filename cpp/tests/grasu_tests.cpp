@@ -363,9 +363,10 @@ void test_native_partition_scan_cost_is_explicit() {
   const auto counters = compute_system.counters();
   require(counters.supersteps == 2,
           "native-partition test expected two SSSP supersteps");
-  require(counters.gather_reset_cycles == 2 * 32768 &&
+  require(counters.gather_reset_cycles == 32768 &&
               counters.gather_merge_cycles == 2 * 32768,
-          "native ReGraph gather sweep cost was not modeled");
+          "native ReGraph gather did not preserve first-round-only reset and "
+          "per-round merge sweeps");
   require(counters.apply_state_reads == 2 * 4096 &&
               counters.apply_state_writes == 2 * 4096,
           "native ReGraph apply did not scan the full 65536-vertex partition");

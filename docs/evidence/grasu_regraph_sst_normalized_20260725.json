@@ -30,13 +30,13 @@
     "apply_pipeline_capacity": 100
   },
   "result": {
-    "cycles": 147593,
+    "cycles": 115012,
     "update_cycles": 62,
-    "compute_cycles": 147531,
+    "compute_cycles": 114950,
     "correctness_mismatches": 0,
     "supersteps": 2,
     "backend_requests": 16432,
-    "backend_max_outstanding": 29,
+    "backend_max_outstanding": 30,
     "compute_row_reads": 32,
     "compute_source_state_reads": 2,
     "compute_pma_segment_reads": 6,
@@ -44,7 +44,7 @@
     "compute_pma_slots": 96,
     "compute_live_edges": 6,
     "compute_active_edges": 3,
-    "gather_reset_cycles": 65536,
+    "gather_reset_cycles": 32768,
     "gather_merge_cycles": 65536,
     "apply_state_reads": 8192,
     "apply_state_writes": 8192,
@@ -54,8 +54,8 @@
     "apply_max_reads_inflight": 32,
     "apply_max_pipeline_occupancy": 100,
     "apply_max_writes_inflight": 32,
-    "apply_read_window_stalls": 5,
-    "apply_pipeline_capacity_stalls": 7955,
+    "apply_read_window_stalls": 12,
+    "apply_pipeline_capacity_stalls": 7944,
     "apply_write_window_stalls": 7942,
     "update_read_bytes": 160,
     "update_write_bytes": 128,
@@ -63,7 +63,7 @@
     "compute_write_bytes": 524288
   },
   "limitation": {
-    "closed": "single-flight ReGraph apply replaced by bounded outstanding reads/writes and a finite depth-100 pipeline",
+    "closed": "single-flight apply is pipelined and gather reset now follows the first-superstep-only host protocol",
     "largest": "gather reset/merge phase ordering and overlap are not hardware-validated",
     "consequence": "cycle total remains structural and not ready for a Spine speedup claim",
     "next_validation": "compare apply and gather burst/cycle ledgers against hw or hw_emu, then validate overlap"
@@ -75,5 +75,14 @@
     "report_sha256": "890f381fcfe04b153a402df8fee5c22bffcd741233a504aafdbbd0f3e8e41dac",
     "pipeline_ii": 1,
     "pipeline_depth": 100
+  },
+  "gather_reset_evidence": {
+    "regraph_host": "/home/chuxiao/ReGraph/host/host.cpp",
+    "regraph_host_sha256": "bbd503916824da7b7f294276be26511ec3c98b803082055ff75aada53a499ecf",
+    "integration_host": "/home/chuxiao/grasu-regraph-integration/tools/pure_pipeline_host.cpp",
+    "integration_host_sha256": "7afb084631c90d6d17924752011b8fa6df0b205d74875dded6ab3cccb4109192",
+    "gather_source": "/home/chuxiao/ReGraph/acc_template/kernel_little_gs/acc_gather.h",
+    "gather_source_sha256": "6a8b5daf4a3ed9b4573c9ad90a4a0babb1fdea46426758bcc0b5cf6914af142f",
+    "protocol": "reset_tmp_prop is true only for superstep zero; every output sweep clears the gather URAM"
   }
 }

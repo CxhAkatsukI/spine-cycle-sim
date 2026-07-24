@@ -430,14 +430,19 @@ public:
         policy_(std::move(policy)), config_(config), input_(input),
         reader_(reader), reduced_(vertices) {}
 
-  void start_round() {
+  void start_round(bool reset_tmp_prop) {
     if (phase_ != Phase::kIdle && phase_ != Phase::kDone) {
       throw std::logic_error("ReGraph gather round started while busy");
     }
     std::fill(reduced_.begin(), reduced_.end(), std::nullopt);
-    remaining_ = divide_ceil(config_.partition_vertices,
-                             config_.gather_vertices_per_reset_cycle);
-    phase_ = Phase::kReset;
+    if (reset_tmp_prop) {
+      remaining_ = divide_ceil(config_.partition_vertices,
+                               config_.gather_vertices_per_reset_cycle);
+      phase_ = Phase::kReset;
+    } else {
+      remaining_ = 0;
+      phase_ = Phase::kScan;
+    }
   }
 
   [[nodiscard]] bool done() const noexcept { return phase_ == Phase::kDone; }
@@ -871,7 +876,7 @@ public:
       }
       ++round_;
       reader_.start_round(round_);
-      gather_.start_round();
+      gather_.start_round(round_ == 1);
       phase_ = Phase::kGather;
     } else if (staged_ == Action::kStartApply) {
       apply_.start_round(gather_.reduced());

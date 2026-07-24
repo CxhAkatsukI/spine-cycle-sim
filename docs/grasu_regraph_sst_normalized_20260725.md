@@ -30,12 +30,12 @@ then creates the ReGraph compute system on the same scheduler and backend.
 ```text
 result:                    PASS
 correctness mismatches:       0
-total cycles:            147593
+total cycles:            115012
 GraSU update cycles:          62
-ReGraph compute cycles:   147531
+ReGraph compute cycles:   114950
 supersteps:                   2
 DRAMSim3 backend requests: 16432
-backend max outstanding:     29
+backend max outstanding:     30
 ```
 
 The compute ledger is:
@@ -48,11 +48,11 @@ four-lane edge batches:        24
 PMA slots scanned:             96
 live edges scanned:             6
 active edges mapped:            3
-gather reset + merge cycles: 131072
+gather reset + merge cycles: 98304 (32768 + 65536)
 apply reads / writes:      8192 / 8192 (64 B each)
 apply max read / write in-flight: 32 / 32
 apply max pipeline occupancy:    100
-apply read / pipeline / write stalls: 5 / 7955 / 7942
+apply read / pipeline / write stalls: 12 / 7944 / 7942
 compute read / write bytes: 525056 / 524288
 ```
 
@@ -72,11 +72,17 @@ depth 100. Compared with the superseded single-flight revision, total cycles
 fall from 272100 to 147593 (45.8%) and backend max outstanding rises from 2 to
 29 while correctness and byte ledgers remain unchanged.
 
+The host sets `reset_tmp_prop` only for superstep zero because each completed
+output sweep clears the gather URAM. Modeling that protocol reduces the same
+run from 147593 to 115012 cycles (22.1%), changes reset work from two sweeps to
+one, and leaves all HBM bytes and requests unchanged. The original ReGraph host
+and the integrated host independently use this first-superstep-only rule.
+
 This closes the known single-flight error, but the read/write representation is
 still an approximation of one HLS `m_axi` bundle's independent AXI channels.
 The next validation must compare burst/outstanding counts with hardware or
-`hw_emu`. The dominant modeled term is now the 131072-cycle gather reset and
-merge sweep. Its phase ordering and possible kernel/stream overlap must be
+`hw_emu`. The dominant modeled term is now the 98304-cycle gather reset and
+output/merge work. Its phase ordering and inter-kernel stream overlap must be
 validated before a Spine speedup claim.
 
 Other open boundaries remain unit-only PMA weights, idealized gather RAW

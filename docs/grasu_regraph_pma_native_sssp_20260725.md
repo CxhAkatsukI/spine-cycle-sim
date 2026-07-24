@@ -46,7 +46,9 @@ implemented and synthesized.
 - Gather has eight destination banks. It counts extra cycles when destinations
   in one batch collide on a bank. Reduction semantics use the shared
   `GraphAlgorithmPolicy` weighted-SSSP Map/Reduce operations.
-- Each superstep charges a full gather reset and merge sweep. The native
+- The first superstep charges a full gather reset. Every superstep charges the
+  output/clear sweep, which leaves the URAM ready for the next superstep. This
+  follows the host's `reset_tmp_prop = (super_step == 0)` protocol. The native
   profile processes two vertices per cycle in each sweep.
 - Apply reads and writes all 65536 destination words as 64-byte bursts under
   the native profile, sets the ReGraph active bit for improved vertices, and
@@ -98,9 +100,9 @@ A one-edge, 16-vertex graph is also run with the source-shaped ReGraph
 `PARTITION_SIZE=65536` setting:
 
 ```text
-cycles at 200 MHz:       147507
+cycles at 200 MHz:       114953
 supersteps:                   2
-gather reset + merge:    131072 cycles
+gather reset + merge:     98304 cycles (32768 + 65536)
 apply reads:                8192 x 64 B
 apply writes:               8192 x 64 B
 max read / write in-flight:   10 / 32
@@ -168,21 +170,18 @@ dot -Tsvg docs/figures/grasu_regraph_pma_native_sssp.dot \
 
 ## Remaining Boundary
 
-1. Broaden the now-working `SstMemoryBackend` path from the tiny normalized
-   validation case to synthetic sweeps and real graph slices, and report
-   simulator wall-clock throughput.
-2. Wire the now-configurable reader/gather lane count into a profile-driven
-   runner and execute the complete pinned 150-MHz/four-lane normalized profile
-   separately from the 200-MHz/eight-lane source-shaped validation profile.
-3. Replace ideal immediate gather forwarding with an explicit six-stage RAW
+1. Broaden the now-working profile-driven `SstMemoryBackend` path from the tiny
+   normalized validation case to synthetic sweeps and real graph slices, and
+   report simulator wall-clock throughput.
+2. Replace ideal immediate gather forwarding with an explicit six-stage RAW
    bypass/register model and attach operation/queue activity to energy events.
-4. Extend the PMA contract for real edge weights before claiming weighted SSSP
+3. Extend the PMA contract for real edge weights before claiming weighted SSSP
    equivalence with Spine.
-5. Add full PageRank and thresholded residual PageRank iteration controllers
+4. Add full PageRank and thresholded residual PageRank iteration controllers
    on the same PMA reader, gather, apply, and algorithm-policy interface.
-6. Implement and synthesize the matching PMA-native HLS reader. Until then,
+5. Implement and synthesize the matching PMA-native HLS reader. Until then,
    normalized PMA-native cycles are simulator results, not measured hardware.
-7. Add graph ingestion, batch manifests, dual update/algorithm oracles,
+6. Add graph ingestion, batch manifests, dual update/algorithm oracles,
    GraSU-versus-Spine reports, SST-HBM sweeps, and PPA/energy accounting.
 
 The first SST run and its stricter apply-pipeline boundary are recorded in
