@@ -221,6 +221,16 @@ struct SpineL0Counters {
   std::uint64_t graph_edge_payload_write_bytes{};
   std::uint64_t result_write_bytes{};
   std::uint64_t unique_sources{};
+  std::uint64_t dirty_bitmap_reads{};
+  std::uint64_t dirty_bitmap_writes{};
+  std::uint64_t dirty_list_reads{};
+  std::uint64_t dirty_list_appends{};
+  std::uint64_t dirty_duplicates_suppressed{};
+  std::uint64_t dirty_generation_advances{};
+  std::uint32_t dirty_count{};
+  std::uint32_t dirty_generation{};
+  std::uint64_t dirty_hash_sum{};
+  std::uint64_t dirty_hash_xor{};
   std::uint64_t active_families{};
   std::uint64_t persisted_edges{};
   std::uint64_t persisted_rows{};
@@ -277,10 +287,13 @@ class SpineL0Maintenance final : public Component {
  private:
   enum class Phase {
     kInitialize,
+    kDirtyMetadataLoad,
     kDirtyPreflightBegin,
     kDirtyPreflightProcess,
+    kDirtyGenerationPrepare,
     kDirtyUpdateBegin,
     kDirtyUpdateProcess,
+    kDirtyFinalize,
     kHotColdCountBegin,
     kHotColdCountProcess,
     kTargetSelect,
@@ -306,6 +319,18 @@ class SpineL0Maintenance final : public Component {
     kResult,
   };
 
+  enum class TaskPurpose {
+    kGeneric,
+    kDirtyMetadataLoad,
+    kDirtyMarkEdge,
+    kDirtyBitmapRead,
+    kDirtyBitmapWrite,
+    kDirtyBitmapOverflowSet,
+    kDirtyBitmapOverflowClear,
+    kDirtyListRead,
+    kDirtyListWrite,
+  };
+
   enum class ScanKind {
     kDirtyValidate,
     kDirtyMark,
@@ -322,6 +347,8 @@ class SpineL0Maintenance final : public Component {
     TaskClass task_class{TaskClass::kSorted};
     std::vector<std::uint8_t> write_data;
     std::vector<std::uint32_t> carry_edge_sources;
+    TaskPurpose purpose{TaskPurpose::kGeneric};
+    std::uint32_t source{};
     bool stream_sorted_scan{};
     std::size_t streamed_read_beats_expected{};
     std::size_t streamed_read_beats_received{};
@@ -335,7 +362,9 @@ class SpineL0Maintenance final : public Component {
                     TaskClass task_class,
                     std::vector<std::uint8_t> write_data = {},
                     std::vector<std::uint32_t> carry_edge_sources = {},
-                    bool stream_sorted_scan = false);
+                    bool stream_sorted_scan = false,
+                    TaskPurpose purpose = TaskPurpose::kGeneric,
+                    std::uint32_t source = 0);
   void begin_sorted_scan(Phase process_phase, ScanKind kind);
   [[nodiscard]] bool process_scan_edge(const CycleContext &context);
   [[nodiscard]] bool scan_process_phase() const noexcept;
@@ -348,7 +377,14 @@ class SpineL0Maintenance final : public Component {
                                const AxiResponse &response);
   [[nodiscard]] bool memory_task_conflicts(const MemoryTask &task) const;
   [[nodiscard]] bool stage_memory_completion();
-  void enqueue_dirty_source_updates();
+  void enqueue_dirty_metadata_load();
+  void enqueue_dirty_generation_prepare();
+  void enqueue_dirty_mark_edge_read();
+  void enqueue_dirty_bitmap_read(std::uint32_t source);
+  void enqueue_dirty_final_metadata();
+  void finish_dirty_source_update();
+  void consume_dirty_memory_response(const MemoryTask &task,
+                                     const AxiResponse &response);
   void initialize_metadata_payload();
   void enqueue_committed_metadata();
   void build_family_outputs();
@@ -395,6 +431,16 @@ class SpineL0Maintenance final : public Component {
   std::uint64_t scan_transaction_id_{};
   bool scan_transaction_valid_{};
   bool streaming_scan_{};
+  bool edge_by_edge_scan_{};
+  bool scan_have_last_source_{};
+  std::uint32_t scan_last_source_{};
+  bool dirty_source_pending_{};
+  std::uint32_t dirty_pending_source_{};
+  std::uint32_t dirty_count_{};
+  std::uint32_t dirty_generation_{};
+  std::uint64_t dirty_hash_sum_{};
+  std::uint64_t dirty_hash_xor_{};
+  std::vector<std::uint8_t> dirty_bitmap_original_payload_;
   std::size_t family_index_{};
   std::size_t active_family_index_{};
   std::size_t carry_steps_remaining_{};

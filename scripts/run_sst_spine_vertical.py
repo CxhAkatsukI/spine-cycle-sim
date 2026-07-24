@@ -34,6 +34,7 @@ def maintenance_scan_ledger_matches(
     result: dict[str, Any],
     *,
     edges: int,
+    unique_sources: int,
     family_precount_visits: int,
     l0_write_visits: int,
 ) -> bool:
@@ -43,6 +44,16 @@ def maintenance_scan_ledger_matches(
     return (
         result.get("maintenance_dirty_validate_visits") == edges
         and result.get("maintenance_dirty_mark_visits") == edges
+        and result.get("maintenance_dirty_unique_sources") == unique_sources
+        and result.get("maintenance_dirty_bitmap_reads") == unique_sources
+        and result.get("maintenance_dirty_bitmap_writes") == unique_sources
+        and result.get("maintenance_dirty_list_reads") == unique_sources
+        and result.get("maintenance_dirty_list_appends") == unique_sources
+        and result.get("maintenance_dirty_duplicates_suppressed")
+        == edges - unique_sources
+        and result.get("maintenance_dirty_generation_advances") == 1
+        and result.get("maintenance_dirty_count") == unique_sources
+        and result.get("maintenance_dirty_generation") == 1
         and result.get("maintenance_hot_cold_count_visits") == edges
         and result.get("maintenance_family_precount_visits")
         == family_precount_visits
@@ -195,7 +206,11 @@ def validate_result(
         )
         == result.get("maintenance_sorted_bytes"),
         "maintenance_scan_ledger": maintenance_scan_ledger_matches(
-            result, edges=10, family_precount_visits=160, l0_write_visits=10
+            result,
+            edges=10,
+            unique_sources=1,
+            family_precount_visits=160,
+            l0_write_visits=10,
         ),
         "reader_tiles": result.get("reader_tiles") == 5,
         "reader_edges": result.get("reader_edges") == 10,
@@ -288,7 +303,11 @@ def validate_carry_hot_result(
         )
         == result.get("maintenance_sorted_bytes"),
         "maintenance_scan_ledger": maintenance_scan_ledger_matches(
-            result, edges=2, family_precount_visits=64, l0_write_visits=2
+            result,
+            edges=2,
+            unique_sources=1,
+            family_precount_visits=64,
+            l0_write_visits=2,
         ),
         "carry_work": result.get("maintenance_carry_payload_reads") == 1
         and result.get("maintenance_carry_payload_read_bytes") == 8
@@ -417,7 +436,11 @@ def validate_multiround_sssp_result(
         )
         == result.get("maintenance_sorted_bytes"),
         "maintenance_scan_ledger": maintenance_scan_ledger_matches(
-            result, edges=8, family_precount_visits=128, l0_write_visits=8
+            result,
+            edges=8,
+            unique_sources=5,
+            family_precount_visits=128,
+            l0_write_visits=8,
         ),
         "round_timing": len(result.get("round_cycles", [])) == 6
         and all(cycles > 0 for cycles in result.get("round_cycles", [])),

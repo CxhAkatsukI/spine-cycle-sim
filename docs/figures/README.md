@@ -28,6 +28,9 @@
   beats, finite FIFO backpressure, ordered retirement, parent completion, and
   report-derived scan-loop timing. Its editable source is the adjacent `.dot`
   file.
+- `spine_dirty_rmw_pipeline.svg`: source-ordered persistent dirty bitmap/list
+  read-modify-write, duplicate suppression, metadata lifecycle, and the shared
+  finite AXI/HBM path. Its editable source is the adjacent `.dot` file.
 
 Regenerate a Graphviz SVG from the repository root with:
 

@@ -1,0 +1,47 @@
+digraph dirty_rmw {
+  graph [rankdir=LR, bgcolor="white", pad=0.25, nodesep=0.35, ranksep=0.55];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=10,
+        color="#334155", fillcolor="#f8fafc", margin="0.12,0.08"];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#475569"];
+
+  metadata [label="HBM metadata reads\ncount / generation / hashes", fillcolor="#dbeafe"];
+  validate [label="Sorted-edge validation\nII=1 + unique count", fillcolor="#fef3c7"];
+  generation [label="Generation prepare\nvalid metadata writes"];
+  edge_read [label="Read next 16-byte edge\nstrict source order", fillcolor="#dcfce7"];
+  duplicate [shape=diamond, label="New adjacent\nsource?", fillcolor="#f8fafc"];
+  bitmap_read [label="HBM16 bitmap read"];
+  already [shape=diamond, label="Bit already\nset?", fillcolor="#f8fafc"];
+  suppress [label="Suppress duplicate\nno list append", fillcolor="#e2e8f0"];
+  bitmap_write [label="HBM16 bitmap write"];
+  list_read [label="HBM16 list-entry read"];
+  list_write [label="HBM16 list-entry write\ncount + hashes", fillcolor="#fee2e2"];
+  more [shape=diamond, label="More edges?", fillcolor="#f8fafc"];
+  finalize [label="Final metadata writes\ncount / hashes / status", fillcolor="#e0e7ff"];
+
+  metadata -> validate -> generation -> edge_read -> duplicate;
+  duplicate -> more [label="no"];
+  duplicate -> bitmap_read [label="yes"];
+  bitmap_read -> already;
+  already -> suppress [label="yes"];
+  already -> bitmap_write [label="no"];
+  bitmap_write -> list_read -> list_write -> more;
+  suppress -> more;
+  more -> edge_read [label="yes"];
+  more -> finalize [label="no"];
+
+  subgraph cluster_shared {
+    label="Shared finite AXI / SST-HBM path";
+    color="#94a3b8";
+    style="rounded,dashed";
+    hbm16 [label="HBM16\nsorted input + dirty state", fillcolor="#fde68a"];
+    hbm20 [label="HBM20\nmaintenance metadata", fillcolor="#fde68a"];
+  }
+
+  edge_read -> hbm16 [dir=both, style=dashed];
+  bitmap_read -> hbm16 [dir=both, style=dashed];
+  bitmap_write -> hbm16 [dir=both, style=dashed];
+  list_read -> hbm16 [dir=both, style=dashed];
+  list_write -> hbm16 [dir=both, style=dashed];
+  metadata -> hbm20 [dir=both, style=dashed];
+  finalize -> hbm20 [dir=both, style=dashed];
+}

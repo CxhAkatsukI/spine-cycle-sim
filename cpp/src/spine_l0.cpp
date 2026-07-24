@@ -98,6 +98,29 @@ std::vector<std::uint8_t> encode_u64_words(
   return data;
 }
 
+std::uint64_t read_u64_le(const std::vector<std::uint8_t> &data,
+                          std::size_t offset) {
+  if (offset + sizeof(std::uint64_t) > data.size()) {
+    throw std::logic_error("Spine u64 payload read is out of range");
+  }
+  std::uint64_t value = 0;
+  for (std::size_t byte = 0; byte < sizeof(value); ++byte) {
+    value |= static_cast<std::uint64_t>(data[offset + byte]) << (byte * 8);
+  }
+  return value;
+}
+
+void write_u32_le(std::vector<std::uint8_t> &data, std::size_t offset,
+                  std::uint32_t value) {
+  if (offset + sizeof(value) > data.size()) {
+    throw std::logic_error("Spine u32 payload write is out of range");
+  }
+  for (std::size_t byte = 0; byte < sizeof(value); ++byte) {
+    data[offset + byte] =
+        static_cast<std::uint8_t>((value >> (byte * 8)) & 0xffU);
+  }
+}
+
 std::uint64_t row_count_for_edges(const std::vector<SpineEdgeRecord> &edges) {
   std::uint64_t rows = 0;
   std::uint32_t previous = 0;
@@ -964,7 +987,8 @@ void SpineL0Maintenance::enqueue_task(
     FixedAxiPort &port, MemoryOperation operation, std::uint64_t address,
     std::uint64_t bytes, TaskClass task_class,
     std::vector<std::uint8_t> write_data,
-    std::vector<std::uint32_t> carry_edge_sources, bool stream_sorted_scan) {
+    std::vector<std::uint32_t> carry_edge_sources, bool stream_sorted_scan,
+    TaskPurpose purpose, std::uint32_t source) {
   if (bytes == 0) {
     return;
   }
@@ -988,6 +1012,8 @@ void SpineL0Maintenance::enqueue_task(
       .task_class = task_class,
       .write_data = std::move(write_data),
       .carry_edge_sources = std::move(carry_edge_sources),
+      .purpose = purpose,
+      .source = source,
       .stream_sorted_scan = stream_sorted_scan,
       .streamed_read_beats_expected =
           stream_sorted_scan
@@ -1037,10 +1063,6 @@ void SpineL0Maintenance::begin_sorted_scan(Phase process_phase, ScanKind kind) {
     throw std::logic_error(
         "streamed Spine sorted scans require one edge per AXI beat");
   }
-  enqueue_task(*ports_.sorted_edges, MemoryOperation::kRead,
-               config_.sorted_edges_base,
-               workload_.edges.size() * kSpineSortWordBytes, TaskClass::kSorted,
-               {}, {}, streaming_scan_);
   ++counters_.sorted_scan_passes;
   scan_kind_ = kind;
   scan_index_ = 0;
@@ -1048,6 +1070,18 @@ void SpineL0Maintenance::begin_sorted_scan(Phase process_phase, ScanKind kind) {
   next_scan_consume_cycle_ = 0;
   scan_transaction_valid_ = false;
   scan_response_edges_.clear();
+  edge_by_edge_scan_ = kind == ScanKind::kDirtyMark;
+  scan_have_last_source_ = false;
+  scan_last_source_ = 0;
+  dirty_source_pending_ = false;
+  if (edge_by_edge_scan_) {
+    enqueue_dirty_mark_edge_read();
+  } else {
+    enqueue_task(*ports_.sorted_edges, MemoryOperation::kRead,
+                 config_.sorted_edges_base,
+                 workload_.edges.size() * kSpineSortWordBytes,
+                 TaskClass::kSorted, {}, {}, streaming_scan_);
+  }
   phase_ = process_phase;
 }
 
@@ -1085,13 +1119,20 @@ std::size_t SpineL0Maintenance::scan_tail_cycles() const noexcept {
 
 bool SpineL0Maintenance::scan_can_advance(const CycleContext &context) {
   if (scan_index_ == sorted_scan_edges_.size()) {
+    if (edge_by_edge_scan_ &&
+        (dirty_source_pending_ || !tasks_.empty() ||
+         !inflight_tasks_.empty() || staged_memory_completion_ ||
+         staged_read_beat_completion_)) {
+      ++counters_.sorted_scan_response_stall_cycles;
+      return false;
+    }
     return true;
   }
   if (context.domain_cycle < next_scan_consume_cycle_) {
     ++counters_.sorted_scan_ii_stall_cycles;
     return false;
   }
-  if (streaming_scan_) {
+  if (streaming_scan_ || edge_by_edge_scan_) {
     if (!scan_response_edges_.contains(scan_index_)) {
       ++counters_.sorted_scan_response_stall_cycles;
       return false;
@@ -1115,7 +1156,7 @@ bool SpineL0Maintenance::process_scan_edge(const CycleContext &context) {
     }
     return true;
   }
-  if (streaming_scan_) {
+  if (streaming_scan_ || edge_by_edge_scan_) {
     const auto found = scan_response_edges_.find(scan_index_);
     if (found == scan_response_edges_.end()) {
       throw std::logic_error("Spine advanced without the next sorted beat");
@@ -1127,9 +1168,23 @@ bool SpineL0Maintenance::process_scan_edge(const CycleContext &context) {
   switch (scan_kind_) {
   case ScanKind::kDirtyValidate:
     ++counters_.dirty_validate_edge_visits;
+    if (!scan_have_last_source_ ||
+        sorted_scan_edges_[scan_index_].src != scan_last_source_) {
+      ++counters_.unique_sources;
+      scan_last_source_ = sorted_scan_edges_[scan_index_].src;
+      scan_have_last_source_ = true;
+    } else {
+      ++counters_.dirty_duplicates_suppressed;
+    }
     break;
   case ScanKind::kDirtyMark:
     ++counters_.dirty_mark_edge_visits;
+    if (!scan_have_last_source_ ||
+        sorted_scan_edges_[scan_index_].src != scan_last_source_) {
+      scan_last_source_ = sorted_scan_edges_[scan_index_].src;
+      scan_have_last_source_ = true;
+      enqueue_dirty_bitmap_read(scan_last_source_);
+    }
     break;
   case ScanKind::kHotColdCount:
     ++counters_.hot_cold_count_edge_visits;
@@ -1143,6 +1198,10 @@ bool SpineL0Maintenance::process_scan_edge(const CycleContext &context) {
   }
   ++scan_index_;
   next_scan_consume_cycle_ = context.domain_cycle + scan_initiation_interval();
+  if (edge_by_edge_scan_ && !dirty_source_pending_ &&
+      scan_index_ < sorted_scan_edges_.size()) {
+    enqueue_dirty_mark_edge_read();
+  }
   if (scan_index_ == sorted_scan_edges_.size()) {
     scan_tail_remaining_ = scan_tail_cycles();
   }
@@ -1167,8 +1226,13 @@ void SpineL0Maintenance::consume_read_beat(const AxiReadBeatResponse &beat) {
       beat.read_data.size() != kSpineSortWordBytes) {
     throw std::logic_error("invalid streamed Spine sorted-edge beat");
   }
-  const std::size_t index =
-      static_cast<std::size_t>(beat.parent_offset / kSpineSortWordBytes);
+  if (beat.address < config_.sorted_edges_base) {
+    throw std::logic_error("streamed Spine sorted-edge address underflow");
+  }
+  const std::size_t index = static_cast<std::size_t>(
+      (edge_by_edge_scan_ ? beat.address - config_.sorted_edges_base
+                          : beat.parent_offset) /
+      kSpineSortWordBytes);
   if (index >= sorted_scan_edges_.size() ||
       !scan_response_edges_
            .emplace(index, decode_spine_sort_edge(beat.read_data))
@@ -1188,13 +1252,22 @@ void SpineL0Maintenance::consume_memory_response(const MemoryTask &task,
       throw std::logic_error(
           "Spine maintenance write response carried payload");
     }
+    if (task.purpose != TaskPurpose::kGeneric) {
+      consume_dirty_memory_response(task, response);
+    }
     return;
   }
   if (response.read_data.size() != task.bytes) {
     throw std::logic_error("Spine maintenance read response payload mismatch");
   }
+  if (task.purpose != TaskPurpose::kGeneric) {
+    consume_dirty_memory_response(task, response);
+  }
+  if (task.stream_sorted_scan) {
+    scan_transaction_valid_ = false;
+  }
   if (task.task_class == TaskClass::kSorted) {
-    if (!task.stream_sorted_scan) {
+    if (!task.stream_sorted_scan && task.purpose == TaskPurpose::kGeneric) {
       sorted_scan_edges_ = decode_spine_sort_edges(response.read_data);
       counters_.sorted_payload_read_bytes += response.read_data.size();
     }
@@ -1344,52 +1417,24 @@ void SpineL0Maintenance::build_family_outputs() {
   }
 }
 
-void SpineL0Maintenance::enqueue_dirty_source_updates() {
-  std::vector<std::uint32_t> sources;
-  for (const SpineEdgeRecord &edge : sorted_scan_edges_) {
-    if (sources.empty() || sources.back() != edge.src) {
-      sources.push_back(edge.src);
-    }
+void SpineL0Maintenance::enqueue_dirty_metadata_load() {
+  const SpineMetadataLayout metadata = spine_metadata_layout(config_);
+  for (std::uint32_t field = 0; field < 4; ++field) {
+    enqueue_task(*ports_.metadata, MemoryOperation::kRead,
+                 config_.metadata_base +
+                     (metadata.dirty_count_word + field) * kMetadataWordBytes,
+                 kMetadataWordBytes, TaskClass::kMetadata, {}, {}, false,
+                 TaskPurpose::kDirtyMetadataLoad, field);
   }
-  counters_.unique_sources = sources.size();
-  std::map<std::uint64_t, std::vector<std::uint8_t>> bitmap_words;
-  std::map<std::uint64_t, std::vector<std::uint8_t>> list_words;
-  std::uint64_t hash_sum = 0;
-  std::uint64_t hash_xor = 0;
-  for (std::size_t index = 0; index < sources.size(); ++index) {
-    const std::uint32_t src = sources[index];
-    const std::uint64_t bitmap = config_.persistent_dirty_bitmap_base +
-                                 (src >> 7) * kPersistentRecordBytes;
-    const std::uint64_t list = config_.persistent_dirty_list_base +
-                               (index >> 2) * kPersistentRecordBytes;
-    auto &bitmap_payload = bitmap_words[bitmap];
-    if (bitmap_payload.empty()) {
-      bitmap_payload.resize(kPersistentRecordBytes, 0);
-    }
-    bitmap_payload[(src & 127U) >> 3] |=
-        static_cast<std::uint8_t>(1U << (src & 7U));
-    enqueue_task(*ports_.sorted_edges, MemoryOperation::kRead, bitmap,
-                 kPersistentRecordBytes, TaskClass::kPersistent);
-    enqueue_task(*ports_.sorted_edges, MemoryOperation::kWrite, bitmap,
-                 kPersistentRecordBytes, TaskClass::kPersistent,
-                 bitmap_payload);
+}
 
-    auto &list_payload = list_words[list];
-    if (list_payload.empty()) {
-      list_payload.resize(kPersistentRecordBytes, 0);
-    }
-    const std::size_t lane = (index & 3U) * sizeof(std::uint32_t);
-    for (std::size_t byte = 0; byte < sizeof(src); ++byte) {
-      list_payload[lane + byte] =
-          static_cast<std::uint8_t>((src >> (byte * 8)) & 0xffU);
-    }
-    enqueue_task(*ports_.sorted_edges, MemoryOperation::kRead, list,
-                 kPersistentRecordBytes, TaskClass::kPersistent);
-    enqueue_task(*ports_.sorted_edges, MemoryOperation::kWrite, list,
-                 kPersistentRecordBytes, TaskClass::kPersistent, list_payload);
-    hash_sum += spine_dirty_hash_sum_term(src);
-    hash_xor ^= spine_dirty_hash_xor_term(src);
+void SpineL0Maintenance::enqueue_dirty_generation_prepare() {
+  ++dirty_generation_;
+  if (dirty_generation_ == 0) {
+    dirty_generation_ = 1;
   }
+  ++counters_.dirty_generation_advances;
+  counters_.dirty_generation = dirty_generation_;
   const SpineMetadataLayout metadata = spine_metadata_layout(config_);
   const auto write_word = [&](std::uint64_t word, std::uint64_t value) {
     enqueue_task(*ports_.metadata, MemoryOperation::kWrite,
@@ -1397,14 +1442,181 @@ void SpineL0Maintenance::enqueue_dirty_source_updates() {
                  kMetadataWordBytes, TaskClass::kMetadata,
                  encode_u64_words({value}));
   };
-  write_word(metadata.dirty_generation_word, 1);
+  write_word(metadata.dirty_generation_word, dirty_generation_);
   write_word(metadata.dirty_candidate_valid_word, 0);
   write_word(metadata.dirty_host_valid_word, 0);
-  write_word(metadata.dirty_count_word, sources.size());
-  write_word(metadata.dirty_hash_sum_word, hash_sum);
-  write_word(metadata.dirty_hash_xor_word, hash_xor);
+}
+
+void SpineL0Maintenance::enqueue_dirty_mark_edge_read() {
+  if (scan_index_ >= sorted_scan_edges_.size()) {
+    return;
+  }
+  enqueue_task(
+      *ports_.sorted_edges, MemoryOperation::kRead,
+      config_.sorted_edges_base + scan_index_ * kSpineSortWordBytes,
+      kSpineSortWordBytes, TaskClass::kSorted, {}, {}, streaming_scan_,
+      TaskPurpose::kDirtyMarkEdge);
+}
+
+void SpineL0Maintenance::enqueue_dirty_bitmap_read(std::uint32_t source) {
+  if (dirty_source_pending_) {
+    throw std::logic_error("overlapping Spine dirty-source updates");
+  }
+  dirty_source_pending_ = true;
+  dirty_pending_source_ = source;
+  enqueue_task(*ports_.sorted_edges, MemoryOperation::kRead,
+               config_.persistent_dirty_bitmap_base +
+                   (source >> 7) * kPersistentRecordBytes,
+               kPersistentRecordBytes, TaskClass::kPersistent, {}, {}, false,
+               TaskPurpose::kDirtyBitmapRead, source);
+}
+
+void SpineL0Maintenance::enqueue_dirty_final_metadata() {
+  counters_.dirty_count = dirty_count_;
+  counters_.dirty_generation = dirty_generation_;
+  counters_.dirty_hash_sum = dirty_hash_sum_;
+  counters_.dirty_hash_xor = dirty_hash_xor_;
+  const SpineMetadataLayout metadata = spine_metadata_layout(config_);
+  const auto write_word = [&](std::uint64_t word, std::uint64_t value) {
+    enqueue_task(*ports_.metadata, MemoryOperation::kWrite,
+                 config_.metadata_base + word * kMetadataWordBytes,
+                 kMetadataWordBytes, TaskClass::kMetadata,
+                 encode_u64_words({value}));
+  };
+  write_word(metadata.dirty_count_word, dirty_count_);
+  write_word(metadata.dirty_hash_sum_word, dirty_hash_sum_);
+  write_word(metadata.dirty_hash_xor_word, dirty_hash_xor_);
   write_word(metadata.dirty_last_mode_word, 0);
   write_word(metadata.dirty_last_status_word, 0);
+}
+
+void SpineL0Maintenance::finish_dirty_source_update() {
+  dirty_source_pending_ = false;
+  dirty_bitmap_original_payload_.clear();
+  if (scan_index_ < sorted_scan_edges_.size()) {
+    enqueue_dirty_mark_edge_read();
+  }
+}
+
+void SpineL0Maintenance::consume_dirty_memory_response(
+    const MemoryTask &task, const AxiResponse &response) {
+  switch (task.purpose) {
+  case TaskPurpose::kGeneric:
+    return;
+  case TaskPurpose::kDirtyMetadataLoad: {
+    const std::uint64_t value = read_u64_le(response.read_data, 0);
+    switch (task.source) {
+    case 0:
+      if (value > config_.max_vertices) {
+        failed_ = true;
+        done_ = true;
+        failure_ = "Spine persistent dirty count exceeds MAX_N";
+        return;
+      }
+      dirty_count_ = static_cast<std::uint32_t>(value);
+      counters_.dirty_count = dirty_count_;
+      break;
+    case 1:
+      dirty_generation_ = static_cast<std::uint32_t>(value);
+      counters_.dirty_generation = dirty_generation_;
+      break;
+    case 2:
+      dirty_hash_sum_ = value;
+      counters_.dirty_hash_sum = dirty_hash_sum_;
+      break;
+    case 3:
+      dirty_hash_xor_ = value;
+      counters_.dirty_hash_xor = dirty_hash_xor_;
+      break;
+    default:
+      throw std::logic_error("unknown Spine dirty metadata field");
+    }
+    return;
+  }
+  case TaskPurpose::kDirtyMarkEdge: {
+    if (task.stream_sorted_scan) {
+      return;
+    }
+    if (task.address < config_.sorted_edges_base ||
+        response.read_data.size() != kSpineSortWordBytes) {
+      throw std::logic_error("invalid non-streamed dirty mark edge response");
+    }
+    const std::size_t index = static_cast<std::size_t>(
+        (task.address - config_.sorted_edges_base) / kSpineSortWordBytes);
+    if (index >= sorted_scan_edges_.size() ||
+        !scan_response_edges_
+             .emplace(index, decode_spine_sort_edge(response.read_data))
+             .second) {
+      throw std::logic_error("duplicate dirty mark edge response");
+    }
+    counters_.sorted_payload_read_bytes += response.read_data.size();
+    counters_.max_sorted_scan_buffered_edges = std::max(
+        counters_.max_sorted_scan_buffered_edges, scan_response_edges_.size());
+    return;
+  }
+  case TaskPurpose::kDirtyBitmapRead: {
+    if (!dirty_source_pending_ || task.source != dirty_pending_source_) {
+      throw std::logic_error("dirty bitmap response source mismatch");
+    }
+    ++counters_.dirty_bitmap_reads;
+    const std::size_t byte = (task.source & 127U) >> 3;
+    const std::uint8_t mask =
+        static_cast<std::uint8_t>(1U << (task.source & 7U));
+    if ((response.read_data[byte] & mask) != 0) {
+      ++counters_.dirty_duplicates_suppressed;
+      finish_dirty_source_update();
+      return;
+    }
+    dirty_bitmap_original_payload_ = response.read_data;
+    std::vector<std::uint8_t> payload = response.read_data;
+    payload[byte] |= mask;
+    const bool overflow = dirty_count_ >= config_.max_vertices;
+    enqueue_task(*ports_.sorted_edges, MemoryOperation::kWrite, task.address,
+                 kPersistentRecordBytes, TaskClass::kPersistent,
+                 std::move(payload), {}, false,
+                 overflow ? TaskPurpose::kDirtyBitmapOverflowSet
+                          : TaskPurpose::kDirtyBitmapWrite,
+                 task.source);
+    return;
+  }
+  case TaskPurpose::kDirtyBitmapWrite:
+    ++counters_.dirty_bitmap_writes;
+    enqueue_task(*ports_.sorted_edges, MemoryOperation::kRead,
+                 config_.persistent_dirty_list_base +
+                     (dirty_count_ >> 2) * kPersistentRecordBytes,
+                 kPersistentRecordBytes, TaskClass::kPersistent, {}, {}, false,
+                 TaskPurpose::kDirtyListRead, task.source);
+    return;
+  case TaskPurpose::kDirtyBitmapOverflowSet:
+    enqueue_task(*ports_.sorted_edges, MemoryOperation::kWrite, task.address,
+                 kPersistentRecordBytes, TaskClass::kPersistent,
+                 dirty_bitmap_original_payload_, {}, false,
+                 TaskPurpose::kDirtyBitmapOverflowClear, task.source);
+    return;
+  case TaskPurpose::kDirtyBitmapOverflowClear:
+    failed_ = true;
+    done_ = true;
+    failure_ = "Spine persistent dirty list exceeds MAX_N";
+    return;
+  case TaskPurpose::kDirtyListRead: {
+    ++counters_.dirty_list_reads;
+    std::vector<std::uint8_t> payload = response.read_data;
+    write_u32_le(payload, (dirty_count_ & 3U) * sizeof(std::uint32_t),
+                 task.source);
+    enqueue_task(*ports_.sorted_edges, MemoryOperation::kWrite, task.address,
+                 kPersistentRecordBytes, TaskClass::kPersistent,
+                 std::move(payload), {}, false, TaskPurpose::kDirtyListWrite,
+                 task.source);
+    return;
+  }
+  case TaskPurpose::kDirtyListWrite:
+    ++counters_.dirty_list_appends;
+    ++dirty_count_;
+    dirty_hash_sum_ += spine_dirty_hash_sum_term(task.source);
+    dirty_hash_xor_ ^= spine_dirty_hash_xor_term(task.source);
+    finish_dirty_source_update();
+    return;
+  }
 }
 
 void SpineL0Maintenance::enqueue_family_writes(bool hot, std::size_t family,
@@ -1616,6 +1828,10 @@ void SpineL0Maintenance::advance(const CycleContext &context) {
                      spine_metadata_layout(config_).hot_enabled_word *
                          kMetadataWordBytes,
                  kMetadataWordBytes, TaskClass::kMetadata);
+    enqueue_dirty_metadata_load();
+    phase_ = Phase::kDirtyMetadataLoad;
+    return;
+  case Phase::kDirtyMetadataLoad:
     phase_ = Phase::kDirtyPreflightBegin;
     return;
   case Phase::kDirtyPreflightBegin:
@@ -1623,17 +1839,24 @@ void SpineL0Maintenance::advance(const CycleContext &context) {
     return;
   case Phase::kDirtyPreflightProcess:
     if (process_scan_edge(context)) {
-      phase_ = Phase::kDirtyUpdateBegin;
+      phase_ = Phase::kDirtyGenerationPrepare;
     }
+    return;
+  case Phase::kDirtyGenerationPrepare:
+    enqueue_dirty_generation_prepare();
+    phase_ = Phase::kDirtyUpdateBegin;
     return;
   case Phase::kDirtyUpdateBegin:
     begin_sorted_scan(Phase::kDirtyUpdateProcess, ScanKind::kDirtyMark);
     return;
   case Phase::kDirtyUpdateProcess:
     if (process_scan_edge(context)) {
-      enqueue_dirty_source_updates();
-      phase_ = Phase::kHotColdCountBegin;
+      phase_ = Phase::kDirtyFinalize;
     }
+    return;
+  case Phase::kDirtyFinalize:
+    enqueue_dirty_final_metadata();
+    phase_ = Phase::kHotColdCountBegin;
     return;
   case Phase::kHotColdCountBegin:
     begin_sorted_scan(Phase::kHotColdCountProcess, ScanKind::kHotColdCount);

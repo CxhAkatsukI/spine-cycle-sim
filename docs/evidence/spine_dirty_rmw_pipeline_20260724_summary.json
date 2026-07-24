@@ -1,0 +1,83 @@
+{
+  "date": "2026-07-24",
+  "evidence_tier": "structural_execution_driven",
+  "source_revision": "afb8199a2ca8d3fd208b985324bf4d8719e2b839",
+  "hardware_calibrated": false,
+  "persistent_state_cpp": {
+    "cycles": 1949,
+    "input_unique_sources": 2,
+    "bitmap_reads": 2,
+    "bitmap_writes": 1,
+    "list_reads": 1,
+    "list_appends": 1,
+    "persistent_duplicates_suppressed": 1,
+    "initial_count": 1,
+    "final_count": 2,
+    "initial_generation": 7,
+    "final_generation": 8,
+    "payload_readback_exact": true
+  },
+  "sst_runs": {
+    "amazon_l0": {
+      "cycles": 7139,
+      "backend_requests": 1382,
+      "dram_reads": 978,
+      "dram_writes": 404,
+      "dram_activates": 67,
+      "dram_precharges": 57,
+      "dram_read_row_hits": 928,
+      "dram_write_row_hits": 377,
+      "unique_sources": 1,
+      "adjacent_duplicates": 9,
+      "bitmap_reads": 1,
+      "bitmap_writes": 1,
+      "list_reads": 1,
+      "list_appends": 1,
+      "correctness_mismatches": 0,
+      "frontier_mismatches": 0
+    },
+    "carry_hot": {
+      "cycles": 8402,
+      "backend_requests": 1899,
+      "dram_reads": 1227,
+      "dram_writes": 672,
+      "dram_activates": 90,
+      "dram_precharges": 88,
+      "dram_read_row_hits": 1163,
+      "dram_write_row_hits": 621,
+      "unique_sources": 1,
+      "adjacent_duplicates": 1,
+      "bitmap_reads": 1,
+      "bitmap_writes": 1,
+      "list_reads": 1,
+      "list_appends": 1,
+      "correctness_mismatches": 0,
+      "frontier_mismatches": 0
+    },
+    "weighted_sssp": {
+      "cycles": 33794,
+      "backend_requests": 4179,
+      "dram_reads": 3077,
+      "dram_writes": 1102,
+      "dram_activates": 234,
+      "dram_precharges": 233,
+      "dram_read_row_hits": 2795,
+      "dram_write_row_hits": 1012,
+      "unique_sources": 5,
+      "adjacent_duplicates": 3,
+      "bitmap_reads": 5,
+      "bitmap_writes": 5,
+      "list_reads": 5,
+      "list_appends": 5,
+      "correctness_mismatches": 0,
+      "frontier_mismatches": 0
+    }
+  },
+  "remaining_boundaries": [
+    "no dirty-loop csynth or hardware timestamp calibration",
+    "carry merge and graph-write sub-pipelines remain coarse",
+    "on-chip RAM banking and port conflicts remain coarse",
+    "controller, CDC, and host-runtime timing remain incomplete",
+    "overflow and empty-update paths lack acceptance evidence"
+  ]
+}

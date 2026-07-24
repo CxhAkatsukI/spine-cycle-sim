@@ -161,3 +161,6 @@ profile are documented in
 The request-scoped maintenance read-beat stream, source scan ledger, and
 report-derived count/L0-write loop timing are documented in
 [`docs/spine_streamed_maintenance_scans_20260724.md`](docs/spine_streamed_maintenance_scans_20260724.md).
+The source-ordered persistent dirty bitmap/list read-modify-write path,
+duplicate suppression, and metadata lifecycle are documented in
+[`docs/spine_dirty_rmw_pipeline_20260724.md`](docs/spine_dirty_rmw_pipeline_20260724.md).

@@ -56,7 +56,9 @@ using spine::sim::ReadAfterWritePolicy;
 using spine::sim::Scheduler;
 using spine::sim::SourceValueWord;
 using spine::sim::spine_hot_shard;
+using spine::sim::spine_dirty_identity;
 using spine::sim::spine_level_layout;
+using spine::sim::spine_metadata_layout;
 using spine::sim::SpineActiveBins;
 using spine::sim::SpineActiveRecord;
 using spine::sim::SpineAxiInterfaceProfile;
@@ -902,12 +904,20 @@ void test_spine_l0_real_slice_vertical_path() {
   require(counters.persistent_read_bytes == 32 &&
               counters.persistent_write_bytes == 32,
           "Spine dirty-frontier HBM byte count mismatch");
+  require(counters.dirty_bitmap_reads == 1 &&
+              counters.dirty_bitmap_writes == 1 &&
+              counters.dirty_list_reads == 1 &&
+              counters.dirty_list_appends == 1 &&
+              counters.dirty_duplicates_suppressed == 9 &&
+              counters.dirty_generation_advances == 1 &&
+              counters.dirty_count == 1 && counters.dirty_generation == 1,
+          "Spine dirty-frontier operation ledger mismatch");
   require(counters.graph_write_bytes == 144,
           "Spine L0 graph layout write byte count mismatch");
   require(counters.graph_index_payload_write_bytes == 64 &&
               counters.graph_edge_payload_write_bytes == 80,
           "Spine L0 graph write payload ledger mismatch");
-  require(counters.metadata_read_bytes == 2'952 &&
+  require(counters.metadata_read_bytes == 2'984 &&
               counters.metadata_write_bytes == 1'224,
           "Spine L0 metadata byte ledger mismatch");
   require(counters.result_write_bytes == 384,
@@ -1034,6 +1044,153 @@ void test_spine_l0_real_slice_vertical_path() {
             << compute_counters.end_cycle - compute_counters.start_cycle
             << " edge_axis_max_occupancy=" << edge_stream.stats().max_occupancy
             << '\n';
+}
+
+void test_spine_dirty_mark_preserves_persistent_state() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("data", 141.0);
+  MockMemoryBackend backend("hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 5,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  const SpineAxiInterfaceProfile profile;
+  std::array<std::unique_ptr<FixedAxiPort>, 16> graph_ports;
+  SpineL0Ports ports;
+  for (std::size_t family = 0; family < graph_ports.size(); ++family) {
+    graph_ports[family] = std::make_unique<FixedAxiPort>(
+        "dirty-graph" + std::to_string(family), core,
+        profile.port_config(SpineAxiPortKind::kGraph, 32, family,
+                            static_cast<std::uint32_t>(family)),
+        backend);
+    ports.graph[family] = graph_ports[family].get();
+  }
+  FixedAxiPort sorted(
+      "dirty-sorted", core,
+      profile.port_config(SpineAxiPortKind::kSortedEdges, 32, 16, 16),
+      backend);
+  FixedAxiPort metadata(
+      "dirty-metadata", core,
+      profile.port_config(SpineAxiPortKind::kMetadata, 32, 20, 20), backend);
+  FixedAxiPort result(
+      "dirty-result", core,
+      profile.port_config(SpineAxiPortKind::kMaintenanceResult, 32, 21, 21),
+      backend);
+  ports.sorted_edges = &sorted;
+  ports.metadata = &metadata;
+  ports.result = &result;
+
+  SpineEdgeSlice workload{
+      .vertices = 8,
+      .edges =
+          {
+              {.src = 2, .dst = 4, .weight = 1, .diff = 1},
+              {.src = 3, .dst = 5, .weight = 1, .diff = 1},
+          },
+      .case_name = "persistent_dirty_duplicate_and_append",
+  };
+  SpineL0Config config;
+  SpineL0State state;
+  SpineL0Maintenance maintenance("dirty-maintenance", core, config, workload,
+                                 ports, state);
+
+  const std::vector<std::uint32_t> old_sources{2};
+  const SpineDirtyIdentity old_identity = spine_dirty_identity(7, old_sources);
+  const auto layout = spine_metadata_layout(config);
+  std::vector<std::uint8_t> metadata_payload;
+  for (const std::uint64_t word :
+       {static_cast<std::uint64_t>(old_identity.count),
+        static_cast<std::uint64_t>(old_identity.generation),
+        old_identity.hash_sum, old_identity.hash_xor}) {
+    const std::vector<std::uint8_t> bytes = u64_payload(word);
+    metadata_payload.insert(metadata_payload.end(), bytes.begin(), bytes.end());
+  }
+  metadata.initialize_payload(
+      config.metadata_base + layout.dirty_count_word * sizeof(std::uint64_t),
+      metadata_payload);
+  std::vector<std::uint8_t> bitmap(16, 0);
+  bitmap[0] = 1U << 2;
+  sorted.initialize_payload(config.persistent_dirty_bitmap_base, bitmap);
+  std::vector<std::uint8_t> list(16, 0);
+  const std::vector<std::uint8_t> source_two = u32_payload(2);
+  std::copy(source_two.begin(), source_two.end(), list.begin());
+  sorted.initialize_payload(config.persistent_dirty_list_base, list);
+
+  scheduler.add_component(maintenance);
+  for (auto &port : graph_ports) {
+    port->register_components(scheduler);
+  }
+  sorted.register_components(scheduler);
+  metadata.register_components(scheduler);
+  result.register_components(scheduler);
+  scheduler.add_component(backend);
+  scheduler.run_until(
+      [&] {
+        return maintenance.done() && sorted.idle() && metadata.idle() &&
+               result.idle();
+      },
+      200'000);
+
+  require(!maintenance.failed(),
+          "persistent dirty duplicate/append maintenance failed");
+  const auto &counters = maintenance.counters();
+  const std::vector<std::uint32_t> expected_sources{2, 3};
+  const SpineDirtyIdentity expected =
+      spine_dirty_identity(8, expected_sources);
+  std::cout << "EVIDENCE spine_dirty_persistent_state cycles="
+            << scheduler.clock(core).completed_cycles
+            << " bitmap_reads=" << counters.dirty_bitmap_reads
+            << " bitmap_writes=" << counters.dirty_bitmap_writes
+            << " list_appends=" << counters.dirty_list_appends
+            << " duplicates=" << counters.dirty_duplicates_suppressed
+            << " final_count=" << counters.dirty_count
+            << " final_generation=" << counters.dirty_generation << '\n';
+  require(counters.unique_sources == 2 && counters.dirty_bitmap_reads == 2 &&
+              counters.dirty_bitmap_writes == 1 &&
+              counters.dirty_list_reads == 1 &&
+              counters.dirty_list_appends == 1 &&
+              counters.dirty_duplicates_suppressed == 1 &&
+              counters.dirty_generation_advances == 1 &&
+              counters.dirty_count == expected.count &&
+              counters.dirty_generation == expected.generation &&
+              counters.dirty_hash_sum == expected.hash_sum &&
+              counters.dirty_hash_xor == expected.hash_xor,
+          "persistent dirty operation/state ledger diverged from HLS");
+  require(counters.persistent_read_bytes == 48 &&
+              counters.persistent_write_bytes == 32 &&
+              counters.sorted_scan_passes == 20 &&
+              counters.sorted_edge_visits == 40 &&
+              counters.sorted_read_beats_received == 40,
+          "persistent dirty memory/scan ledger diverged from HLS");
+
+  const std::vector<std::uint8_t> final_bitmap = backend.inspect_payload(
+      16, config.persistent_dirty_bitmap_base, 16);
+  const std::vector<std::uint8_t> final_list = backend.inspect_payload(
+      16, config.persistent_dirty_list_base, 16);
+  require((final_bitmap[0] & ((1U << 2) | (1U << 3))) ==
+              ((1U << 2) | (1U << 3)) &&
+              final_list[0] == 2 && final_list[4] == 3,
+          "persistent dirty bitmap/list payload was not preserved and appended");
+  const std::vector<std::uint8_t> final_metadata = backend.inspect_payload(
+      20,
+      config.metadata_base + layout.dirty_count_word * sizeof(std::uint64_t),
+      4 * sizeof(std::uint64_t));
+  require(final_metadata ==
+              [&] {
+                std::vector<std::uint8_t> bytes;
+                for (const std::uint64_t word :
+                     {static_cast<std::uint64_t>(expected.count),
+                      static_cast<std::uint64_t>(expected.generation),
+                      expected.hash_sum, expected.hash_xor}) {
+                  const auto encoded = u64_payload(word);
+                  bytes.insert(bytes.end(), encoded.begin(), encoded.end());
+                }
+                return bytes;
+              }(),
+          "persistent dirty metadata payload did not close");
 }
 
 void test_spine_reusable_system_matches_vertical_slice() {
@@ -3165,6 +3322,8 @@ int main(int argc, char **argv) {
       {"axi_multi_initiator", test_axi_multi_initiator_fixed_channel_isolation},
       {"axi_duplicate_initiator", test_axi_rejects_duplicate_initiator_id},
       {"spine_l0_real_slice", test_spine_l0_real_slice_vertical_path},
+      {"spine_dirty_persistent_state",
+       test_spine_dirty_mark_preserves_persistent_state},
       {"spine_reusable_system",
        test_spine_reusable_system_matches_vertical_slice},
       {"spine_host_dirty_coverage",
