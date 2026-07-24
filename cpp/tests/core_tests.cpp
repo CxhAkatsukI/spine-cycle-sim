@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <array>
 #include <bit>
+#include <cmath>
 #include <cstdint>
 #include <exception>
 #include <filesystem>
@@ -12,6 +13,7 @@
 #include <utility>
 #include <vector>
 
+#include "spine_sim/algorithm.hpp"
 #include "spine_sim/axi.hpp"
 #include "spine_sim/banked_memory.hpp"
 #include "spine_sim/component.hpp"
@@ -31,6 +33,10 @@ using spine::sim::AxiReadBeatResponse;
 using spine::sim::AxiRequest;
 using spine::sim::AxiResponse;
 using spine::sim::AxiStats;
+using spine::sim::AlgorithmIterationContext;
+using spine::sim::AlgorithmPolicyConfig;
+using spine::sim::AlgorithmUpdateMode;
+using spine::sim::AlgorithmVertexState;
 using spine::sim::BankedMemory;
 using spine::sim::BankedMemoryConfig;
 using spine::sim::ClockId;
@@ -46,6 +52,8 @@ using spine::sim::Fifo;
 using spine::sim::FifoStats;
 using spine::sim::FixedAxiPort;
 using spine::sim::FixedAxiPortConfig;
+using spine::sim::GraphAlgorithmKind;
+using spine::sim::GraphAlgorithmPolicy;
 using spine::sim::load_spine_edge_slice;
 using spine::sim::MemoryOperation;
 using spine::sim::MockMemoryBackend;
@@ -4871,6 +4879,174 @@ void test_spine_edge_pipeline_propagates_axis_backpressure() {
           "backpressured replay changed the final distances");
 }
 
+void test_algorithm_policy_rejects_invalid_configuration() {
+  bool rejected = false;
+  try {
+    (void)GraphAlgorithmPolicy(
+        AlgorithmPolicyConfig{.vertices = 0, .source = 0});
+  } catch (const std::invalid_argument &) {
+    rejected = true;
+  }
+  require(rejected, "algorithm policy accepted an empty graph");
+
+  rejected = false;
+  try {
+    (void)GraphAlgorithmPolicy(AlgorithmPolicyConfig{
+        .kind = GraphAlgorithmKind::kFullPageRank,
+        .vertices = 4,
+        .source = 0,
+        .damping = 1.0F,
+    });
+  } catch (const std::invalid_argument &) {
+    rejected = true;
+  }
+  require(rejected, "algorithm policy accepted invalid PageRank damping");
+}
+
+void test_algorithm_policy_profiles_and_update_modes() {
+  const GraphAlgorithmPolicy sssp(
+      AlgorithmPolicyConfig{.vertices = 8, .source = 2});
+  const GraphAlgorithmPolicy full(AlgorithmPolicyConfig{
+      .kind = GraphAlgorithmKind::kFullPageRank,
+      .vertices = 8,
+      .source = 0,
+  });
+  const GraphAlgorithmPolicy residual(AlgorithmPolicyConfig{
+      .kind = GraphAlgorithmKind::kResidualPageRank,
+      .vertices = 8,
+      .source = 0,
+  });
+
+  const auto sssp_storage = sssp.storage_profile();
+  const auto full_storage = full.storage_profile();
+  const auto residual_storage = residual.storage_profile();
+  require(sssp.name() == "weighted_sssp" &&
+              sssp_storage.primary_state_arrays == 1 &&
+              sssp_storage.auxiliary_state_arrays == 0 &&
+              sssp_storage.degree_arrays == 0,
+          "weighted SSSP storage profile is not one distance array");
+  require(full.name() == "full_pagerank" &&
+              full_storage.primary_state_arrays == 2 &&
+              full_storage.degree_arrays == 1 &&
+              full_storage.double_buffered_primary,
+          "full PageRank storage profile does not expose ping-pong ranks");
+  require(residual.name() == "thresholded_residual_pagerank" &&
+              residual_storage.primary_state_arrays == 1 &&
+              residual_storage.auxiliary_state_arrays == 1 &&
+              residual_storage.degree_arrays == 1,
+          "residual PageRank storage profile does not expose rank and residual");
+  require(!sssp.operation_profile().timing_characterized &&
+              !full.operation_profile().timing_characterized &&
+              !residual.operation_profile().timing_characterized,
+          "an unintegrated algorithm policy claimed characterized timing");
+
+  require(sssp.update_mode(true, false) ==
+              AlgorithmUpdateMode::kIncremental &&
+              sssp.update_mode(false, true) ==
+                  AlgorithmUpdateMode::kFullRecomputeFallback,
+          "weighted SSSP update safety modes are wrong");
+  require(full.update_mode(true, true) == AlgorithmUpdateMode::kWarmStart &&
+              residual.update_mode(true, true) ==
+                  AlgorithmUpdateMode::kSignedResidual,
+          "PageRank update modes are wrong");
+}
+
+void test_weighted_sssp_algorithm_policy_semantics() {
+  const GraphAlgorithmPolicy policy(
+      AlgorithmPolicyConfig{.vertices = 4, .source = 0});
+  require(policy.initial_state(0).primary == 0 &&
+              policy.initial_state(1).primary ==
+                  GraphAlgorithmPolicy::kSsspInfinity,
+          "weighted SSSP initial state is wrong");
+
+  const auto source = policy.prepare_source({.primary = 5}, 3);
+  require(source.edge_payload == 5 && !source.primary_changed &&
+              policy.map_edge(source.edge_payload, 7) == 12,
+          "weighted SSSP source/map semantics are wrong");
+  require(policy.map_edge(GraphAlgorithmPolicy::kSsspInfinity, 1) ==
+              GraphAlgorithmPolicy::kSsspInfinity,
+          "weighted SSSP infinity did not saturate");
+  const std::uint32_t reduced = policy.reduce(15, 12);
+  const auto improved = policy.apply({.primary = 20}, reduced);
+  const auto unchanged = policy.apply({.primary = 10}, reduced);
+  require(improved.active && improved.state_after.primary == 12 &&
+              !unchanged.active && unchanged.state_after.primary == 10,
+          "weighted SSSP min-reduce/apply semantics are wrong");
+}
+
+void test_full_pagerank_algorithm_policy_semantics() {
+  const GraphAlgorithmPolicy policy(AlgorithmPolicyConfig{
+      .kind = GraphAlgorithmKind::kFullPageRank,
+      .vertices = 4,
+      .source = 0,
+      .damping = 0.85F,
+  });
+  const std::uint32_t rank_word = GraphAlgorithmPolicy::float_to_word(0.25F);
+  const auto source = policy.prepare_source({.primary = rank_word}, 2);
+  require(std::fabs(GraphAlgorithmPolicy::word_to_float(source.edge_payload) -
+                    0.10625F) < 1.0e-6F,
+          "full PageRank source contribution is wrong");
+  const auto dangling = policy.prepare_source({.primary = rank_word}, 0);
+  require(GraphAlgorithmPolicy::word_to_float(dangling.edge_payload) == 0.0F &&
+              GraphAlgorithmPolicy::word_to_float(
+                  dangling.dangling_payload) == 0.25F,
+          "full PageRank dangling contribution is wrong");
+
+  const auto reduced = policy.reduce(
+      GraphAlgorithmPolicy::float_to_word(0.1F),
+      GraphAlgorithmPolicy::float_to_word(0.2F));
+  const auto applied = policy.apply(
+      {.primary = rank_word}, reduced,
+      AlgorithmIterationContext{
+          .base = policy.initial_base_word(),
+          .dangling_share = GraphAlgorithmPolicy::float_to_word(0.01F),
+      });
+  require(applied.active &&
+              std::fabs(GraphAlgorithmPolicy::word_to_float(
+                            applied.state_after.primary) -
+                        0.3475F) < 1.0e-6F &&
+              std::fabs(applied.error - 0.0975F) < 1.0e-6F,
+          "full PageRank sum/apply semantics are wrong");
+}
+
+void test_residual_pagerank_algorithm_policy_semantics() {
+  const GraphAlgorithmPolicy policy(AlgorithmPolicyConfig{
+      .kind = GraphAlgorithmKind::kResidualPageRank,
+      .vertices = 4,
+      .source = 0,
+      .damping = 0.85F,
+      .epsilon = 0.04F,
+  });
+  const auto source = policy.prepare_source(
+      {.primary = GraphAlgorithmPolicy::float_to_word(0.3F),
+       .auxiliary = GraphAlgorithmPolicy::float_to_word(-0.1F)},
+      2);
+  require(source.primary_changed && source.auxiliary_changed &&
+              std::fabs(GraphAlgorithmPolicy::word_to_float(
+                            source.state_after.primary) -
+                        0.2F) < 1.0e-6F &&
+              GraphAlgorithmPolicy::word_to_float(
+                  source.state_after.auxiliary) == 0.0F &&
+              std::fabs(GraphAlgorithmPolicy::word_to_float(
+                            source.edge_payload) +
+                        0.0425F) < 1.0e-6F,
+          "residual PageRank signed source-map semantics are wrong");
+
+  const auto applied = policy.apply(
+      {.primary = GraphAlgorithmPolicy::float_to_word(0.2F),
+       .auxiliary = GraphAlgorithmPolicy::float_to_word(0.01F)},
+      GraphAlgorithmPolicy::float_to_word(-0.02F),
+      AlgorithmIterationContext{
+          .dangling_share = GraphAlgorithmPolicy::float_to_word(-0.005F),
+      });
+  require(applied.active &&
+              std::fabs(GraphAlgorithmPolicy::word_to_float(
+                            applied.state_after.auxiliary) +
+                        0.015F) < 1.0e-6F &&
+              std::fabs(applied.error - 0.015F) < 1.0e-6F,
+          "residual PageRank signed reduce/apply semantics are wrong");
+}
+
 }  // namespace
 
 int main(int argc, char **argv) {
@@ -4973,6 +5149,16 @@ int main(int argc, char **argv) {
        test_spine_l0_online_writer_backpressure_is_finite},
       {"spine_edge_pipeline_backpressure",
        test_spine_edge_pipeline_propagates_axis_backpressure},
+      {"algorithm_policy_invalid",
+       test_algorithm_policy_rejects_invalid_configuration},
+      {"algorithm_policy_profiles",
+       test_algorithm_policy_profiles_and_update_modes},
+      {"algorithm_policy_weighted_sssp",
+       test_weighted_sssp_algorithm_policy_semantics},
+      {"algorithm_policy_full_pagerank",
+       test_full_pagerank_algorithm_policy_semantics},
+      {"algorithm_policy_residual_pagerank",
+       test_residual_pagerank_algorithm_policy_semantics},
   };
   const std::string filter = argc > 1 ? argv[1] : "";
   std::size_t failures = 0;

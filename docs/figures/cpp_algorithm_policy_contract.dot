@@ -1,0 +1,20 @@
+digraph CppAlgorithmPolicyContract {
+  graph [rankdir=LR, bgcolor="white", pad="0.25", nodesep="0.42", ranksep="0.55"];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+        color="#374151", fillcolor="#f8fafc"];
+  edge [fontname="Helvetica", fontsize=9, color="#475569"];
+
+  state [label="Source state read\nprimary / auxiliary / degree", fillcolor="#dbeafe"];
+  source [label="prepare_source\n32-bit source response", fillcolor="#fef3c7"];
+  axis [label="Existing source-response AXIS\nno protocol widening", fillcolor="#e0f2fe"];
+  edge_map [label="map_edge\nweight add or contribution forward", fillcolor="#dcfce7"];
+  reduce [label="reduce\nmin or float32 sum", fillcolor="#dcfce7"];
+  apply [label="apply\nstate update + activation", fillcolor="#dcfce7"];
+  store [label="State / active writes", fillcolor="#dbeafe"];
+  untimed [label="Next timed integration\nstate AXI + FP pipeline + backpressure",
+           shape=note, fillcolor="#fee2e2"];
+
+  state -> source -> axis -> edge_map -> reduce -> apply -> store;
+  source -> untimed [style=dashed];
+  apply -> untimed [style=dashed];
+}

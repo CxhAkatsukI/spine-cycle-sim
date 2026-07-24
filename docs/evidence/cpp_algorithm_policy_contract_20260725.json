@@ -1,0 +1,49 @@
+{
+  "date": "2026-07-25",
+  "branch": "codex/fine-grained-cycle-sim",
+  "scope": "hardware-shaped C++ algorithm semantics; no PageRank timing claim",
+  "algorithms": {
+    "weighted_sssp": {
+      "primary_state_arrays": 1,
+      "auxiliary_state_arrays": 0,
+      "degree_arrays": 0,
+      "source_payload": "uint32 distance",
+      "map": "saturating distance plus uint16 edge weight",
+      "reduce": "minimum",
+      "apply": "strict distance improvement",
+      "dynamic_update": "incremental insert/decrease; full recompute delete/increase"
+    },
+    "full_pagerank": {
+      "primary_state_arrays": 2,
+      "auxiliary_state_arrays": 0,
+      "degree_arrays": 1,
+      "source_payload": "float32 damping times rank divided by out-degree",
+      "map": "forward pre-scaled contribution",
+      "reduce": "float32 sum",
+      "apply": "base plus dangling share plus incoming sum",
+      "dynamic_update": "warm start"
+    },
+    "thresholded_residual_pagerank": {
+      "primary_state_arrays": 1,
+      "auxiliary_state_arrays": 1,
+      "degree_arrays": 1,
+      "source_payload": "signed float32 damping times residual divided by out-degree",
+      "map": "forward pre-scaled signed contribution",
+      "reduce": "float32 sum",
+      "apply": "accumulate residual and compare abs residual with epsilon divided by vertices",
+      "dynamic_update": "signed residual"
+    }
+  },
+  "shared_protocol": {
+    "source_response_bits": 32,
+    "edge_payload_bits": 32,
+    "requires_axis_widening": false,
+    "timing_characterized": false
+  },
+  "validation": {
+    "focused_cpp_tests_passed": 5,
+    "full_cpp_tests_passed": 62,
+    "full_python_tests_passed": 153,
+    "git_diff_check": "clean"
+  }
+}

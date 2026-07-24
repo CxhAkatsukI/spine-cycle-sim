@@ -1,4 +1,5 @@
 add_library(spine_cycle_core STATIC
+  src/algorithm.cpp
   src/axi.cpp
   src/banked_memory.cpp
   src/memory_backend.cpp
