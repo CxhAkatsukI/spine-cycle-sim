@@ -59,6 +59,13 @@ float32 architecture and float64 mathematical oracles. Its timing ledger and
 untimed dynamic-degree boundary are documented in
 [`docs/grasu_regraph_full_pagerank_20260725.md`](docs/grasu_regraph_full_pagerank_20260725.md).
 
+Thresholded residual PageRank uses the same PMA-native path with signed
+residual push and an explicit packed 64-bit `{rank, residual}` vertex state.
+This doubles source-cache and apply traffic relative to Full PageRank rather
+than hiding the additional state in the host model. Its dual-oracle evidence
+and exact claim boundary are documented in
+[`docs/grasu_regraph_residual_pagerank_20260725.md`](docs/grasu_regraph_residual_pagerank_20260725.md).
+
 ## Quick Start
 
 Run one workload:

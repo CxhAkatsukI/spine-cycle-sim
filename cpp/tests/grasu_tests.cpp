@@ -5,6 +5,7 @@
 #include <iostream>
 #include <limits>
 #include <map>
+#include <numeric>
 #include <queue>
 #include <set>
 #include <stdexcept>
@@ -28,6 +29,7 @@ using spine::sim::GraSuPmaLayout;
 using spine::sim::GraSuPmaUpdateSystem;
 using spine::sim::GraSuReGraphConfig;
 using spine::sim::GraSuReGraphPageRankSystem;
+using spine::sim::GraSuReGraphResidualPageRankSystem;
 using spine::sim::GraSuReGraphSsspSystem;
 using spine::sim::is_grasu_pma_empty;
 using spine::sim::MockMemoryBackend;
@@ -122,6 +124,77 @@ std::vector<Real> full_pagerank_oracle(std::size_t vertices,
     rank = std::move(next);
   }
   return rank;
+}
+
+template <typename Real> struct ResidualPageRankOracle {
+  std::vector<Real> ranks;
+  std::vector<Real> residuals;
+  std::size_t iterations{};
+  std::uint64_t active_edges{};
+  bool converged{};
+};
+
+template <typename Real>
+ResidualPageRankOracle<Real>
+residual_pagerank_oracle(std::size_t vertices,
+                         const std::vector<GraSuEdge> &edges,
+                         std::size_t max_iterations, Real damping,
+                         Real epsilon) {
+  std::vector<std::vector<std::uint32_t>> adjacency(vertices);
+  std::vector<std::uint32_t> degree(vertices);
+  for (const GraSuEdge &edge : edges) {
+    adjacency.at(edge.source).push_back(edge.destination);
+    ++degree.at(edge.source);
+  }
+  ResidualPageRankOracle<Real> result;
+  result.ranks.assign(vertices, Real{0});
+  result.residuals.assign(vertices,
+                          (Real{1} - damping) / static_cast<Real>(vertices));
+  std::vector<std::uint32_t> active(vertices);
+  std::iota(active.begin(), active.end(), 0U);
+  const Real threshold = epsilon / static_cast<Real>(vertices);
+  for (std::size_t iteration = 0; iteration < max_iterations; ++iteration) {
+    std::vector<Real> deltas(vertices, Real{0});
+    Real dangling = Real{0};
+    for (const std::uint32_t source : active) {
+      const Real delta = result.residuals[source];
+      deltas[source] = delta;
+      result.residuals[source] = Real{0};
+      result.ranks[source] += delta;
+      if (degree[source] == 0) {
+        dangling += delta;
+      } else {
+        result.active_edges += adjacency[source].size();
+      }
+    }
+    std::vector<Real> incoming(vertices, Real{0});
+    for (std::size_t source = 0; source < vertices; ++source) {
+      if (deltas[source] == Real{0} || degree[source] == 0) {
+        continue;
+      }
+      const Real contribution =
+          damping * deltas[source] / static_cast<Real>(degree[source]);
+      for (const std::uint32_t destination : adjacency[source]) {
+        incoming[destination] += contribution;
+      }
+    }
+    const Real dangling_share =
+        damping * dangling / static_cast<Real>(vertices);
+    std::vector<std::uint32_t> next;
+    for (std::size_t vertex = 0; vertex < vertices; ++vertex) {
+      result.residuals[vertex] += incoming[vertex] + dangling_share;
+      if (std::fabs(result.residuals[vertex]) > threshold) {
+        next.push_back(static_cast<std::uint32_t>(vertex));
+      }
+    }
+    ++result.iterations;
+    if (next.empty()) {
+      result.converged = true;
+      break;
+    }
+    active = std::move(next);
+  }
+  return result;
 }
 
 void test_weighted_pma_edge_abi_matches_regraph() {
@@ -465,6 +538,102 @@ void test_pma_native_regraph_full_pagerank_matches_oracle() {
             << " active_edges=" << counters.active_edges_mapped
             << " rank_sum=" << rank_sum
             << " l1_error=" << counters.last_iteration_error << '\n';
+}
+
+void test_pma_native_regraph_residual_pagerank_matches_oracles() {
+  constexpr std::size_t kVertices = 4;
+  constexpr std::size_t kMaxIterations = 256;
+  constexpr float kDamping = 0.85F;
+  constexpr float kEpsilon = 1.0e-6F;
+  const std::vector<GraSuEdge> edges = {
+      {.source = 0, .destination = 1},
+      {.source = 0, .destination = 2},
+      {.source = 1, .destination = 2},
+      {.source = 2, .destination = 0},
+  };
+  GraSuPmaLayout layout = GraSuPmaLayout::build(kVertices, edges, {});
+  std::vector<std::uint32_t> degrees(kVertices);
+  for (const GraSuEdge &edge : edges) {
+    ++degrees[edge.source];
+  }
+  const auto architecture = residual_pagerank_oracle<float>(
+      kVertices, edges, kMaxIterations, kDamping, kEpsilon);
+  require(architecture.converged,
+          "residual PageRank architecture oracle did not converge");
+
+  Scheduler scheduler;
+  const auto core =
+      scheduler.add_clock_mhz("grasu-regraph-residual-pagerank", 150.0);
+  MockMemoryBackend backend("shared-hbm", core,
+                            MockMemoryConfig{.channels = 32,
+                                             .latency_cycles = 7,
+                                             .accepts_per_channel_per_cycle = 1,
+                                             .max_outstanding_per_channel = 32,
+                                             .response_queue_depth = 128});
+  GraSuReGraphConfig config;
+  config.partition_vertices = 16;
+  config.source_buffer_vertices = 16;
+  config.edge_lanes = 4;
+  config.gather_banks = 4;
+  config.pagerank_source_map_latency = 3;
+  GraSuPmaUpdateSystem initializer(scheduler, core, backend, layout, {},
+                                   GraSuNativeConfig{});
+  initializer.register_components();
+  require(initializer.done(), "residual PageRank PMA initializer did not drain");
+  GraSuReGraphResidualPageRankSystem system(
+      scheduler, core, backend, layout, degrees, kMaxIterations, kDamping,
+      kEpsilon, config);
+  system.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until([&] { return system.done() || system.failed(); },
+                      10'000'000);
+
+  require(!system.failed(),
+          "PMA-native ReGraph residual PageRank failed: " + system.failure());
+  require(system.done(), "PMA-native ReGraph residual PageRank did not drain");
+  const auto ranks = system.ranks();
+  const auto residuals = system.residuals();
+  require(ranks.size() == architecture.ranks.size() &&
+              residuals.size() == architecture.residuals.size(),
+          "residual PageRank state size mismatch");
+  for (std::size_t vertex = 0; vertex < kVertices; ++vertex) {
+    require(std::fabs(ranks[vertex] - architecture.ranks[vertex]) < 1.0e-6F &&
+                std::fabs(residuals[vertex] -
+                          architecture.residuals[vertex]) < 1.0e-6F,
+            "PMA-native ReGraph residual PageRank differs from float32 oracle");
+  }
+  const auto mathematical = full_pagerank_oracle<double>(
+      kVertices, edges, 200, static_cast<double>(kDamping));
+  double max_mathematical_error = 0.0;
+  for (std::size_t vertex = 0; vertex < kVertices; ++vertex) {
+    max_mathematical_error =
+        std::max(max_mathematical_error,
+                 std::fabs(static_cast<double>(ranks[vertex]) -
+                           mathematical[vertex]));
+  }
+  require(max_mathematical_error < 5.0e-6,
+          "residual PageRank did not approach the float64 fixed point");
+
+  const auto counters = system.counters();
+  require(counters.state_bytes_per_vertex == 8 &&
+              counters.supersteps == architecture.iterations &&
+              counters.degree_reads == kVertices * counters.supersteps &&
+              counters.source_map_cycles ==
+                  kVertices * counters.supersteps *
+                      config.pagerank_source_map_latency &&
+              counters.active_edges_mapped == architecture.active_edges &&
+              counters.apply_read_bytes == counters.apply_state_reads * 128 &&
+              counters.apply_write_bytes ==
+                  counters.apply_state_writes * 128 &&
+              counters.source_state_write_bytes ==
+                  counters.source_state_writes * 128,
+          "PMA-native ReGraph residual PageRank packed-state ledger mismatch");
+  std::cout << "EVIDENCE grasu_regraph_residual_pagerank cycles="
+            << counters.end_cycle - counters.start_cycle
+            << " iterations=" << counters.supersteps
+            << " active_edges=" << counters.active_edges_mapped
+            << " state_bytes=" << counters.state_bytes_per_vertex
+            << " max_math_error=" << max_mathematical_error << '\n';
 }
 
 void test_unreserved_and_invalid_updates_are_rejected() {
@@ -1024,6 +1193,8 @@ int main() {
       {"weighted_dynamic_sssp",
        test_weighted_dynamic_pma_regraph_matches_dijkstra},
       {"full_pagerank", test_pma_native_regraph_full_pagerank_matches_oracle},
+      {"residual_pagerank",
+       test_pma_native_regraph_residual_pagerank_matches_oracles},
       {"invalid_updates", test_unreserved_and_invalid_updates_are_rejected},
       {"native_contention", test_native_shared_channel_contention_is_visible},
       {"pma_native_regraph_sssp", test_pma_native_regraph_sssp_matches_oracle},

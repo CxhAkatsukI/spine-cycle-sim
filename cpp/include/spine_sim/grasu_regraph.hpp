@@ -56,6 +56,7 @@ struct GraSuReGraphConfig {
 };
 
 struct GraSuReGraphCounters {
+  std::size_t state_bytes_per_vertex{};
   std::uint64_t supersteps{};
   std::uint64_t row_reads{};
   std::uint64_t source_state_reads{};
@@ -149,6 +150,7 @@ public:
   [[nodiscard]] GraSuReGraphCounters counters() const noexcept;
   [[nodiscard]] std::vector<std::uint32_t> distances() const;
   [[nodiscard]] std::vector<std::uint32_t> state_words() const;
+  [[nodiscard]] std::vector<std::uint32_t> auxiliary_state_words() const;
 
 private:
   class Impl;
@@ -174,6 +176,32 @@ public:
   [[nodiscard]] const std::string &failure() const noexcept;
   [[nodiscard]] GraSuReGraphCounters counters() const noexcept;
   [[nodiscard]] std::vector<float> ranks() const;
+
+private:
+  std::unique_ptr<GraSuReGraphSsspSystem> engine_;
+};
+
+class GraSuReGraphResidualPageRankSystem {
+public:
+  GraSuReGraphResidualPageRankSystem(
+      Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
+      GraSuPmaLayout layout, std::vector<std::uint32_t> out_degrees,
+      std::size_t max_iterations, float damping = 0.85F,
+      float epsilon = 1.0e-6F, GraSuReGraphConfig config = {});
+  ~GraSuReGraphResidualPageRankSystem();
+
+  GraSuReGraphResidualPageRankSystem(
+      const GraSuReGraphResidualPageRankSystem &) = delete;
+  GraSuReGraphResidualPageRankSystem &
+  operator=(const GraSuReGraphResidualPageRankSystem &) = delete;
+
+  void register_components();
+  [[nodiscard]] bool done() const noexcept;
+  [[nodiscard]] bool failed() const noexcept;
+  [[nodiscard]] const std::string &failure() const noexcept;
+  [[nodiscard]] GraSuReGraphCounters counters() const noexcept;
+  [[nodiscard]] std::vector<float> ranks() const;
+  [[nodiscard]] std::vector<float> residuals() const;
 
 private:
   std::unique_ptr<GraSuReGraphSsspSystem> engine_;

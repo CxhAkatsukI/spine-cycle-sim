@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "profile_id": "grasu_regraph_normalized_residual_pagerank_spine23",
+  "architecture": "grasu_regraph",
+  "status": "experimental",
+  "evidence_tier": "simulation_only",
+  "source": {
+    "repository": "/home/chuxiao/grasu-regraph-integration",
+    "revision": "a9aef064889faa190975ddfecb39c54631e962c6",
+    "branch": "codex/pure-hw-pipeline",
+    "dirty": false
+  },
+  "clocks": [
+    {
+      "name": "kernel",
+      "requested_mhz": 150.0,
+      "achieved_mhz": 150.0
+    },
+    {
+      "name": "hbm",
+      "requested_mhz": 450.0,
+      "achieved_mhz": 450.0
+    }
+  ],
+  "memory": {
+    "backend": "u55c_hbm",
+    "channels": 32,
+    "channel_capacity_bytes": 536870912,
+    "data_width_bits": 512,
+    "max_burst_bytes": 1024,
+    "max_outstanding_per_port": 32
+  },
+  "parameters": {
+    "comparison_role": "normalized",
+    "resource_reference_profile": "spine_latest_afb8199",
+    "hbm_pseudo_channels_budget": 23,
+    "grasu_bin_search_cus": 4,
+    "grasu_binary_search_workers_per_cu": 1,
+    "grasu_compact_hbm_ports": true,
+    "grasu_dispatch_cus": 1,
+    "grasu_process_cache_cus": 2,
+    "grasu_process_ddr_cus": 2,
+    "grasu_cache_lanes_per_cu": 1,
+    "grasu_direct_cache_hbm_rmw": true,
+    "grasu_ddr_halves_per_cu": 2,
+    "grasu_ddr_lanes_per_half": 16,
+    "grasu_segment_slots": 16,
+    "grasu_pma_edge_abi": "regraph_weighted32_dst19_weight12",
+    "grasu_cache_segments_per_cu": 131072,
+    "grasu_pma_hbm_channels": 4,
+    "regraph_pma_reader_cus": 1,
+    "regraph_map_reduce_lanes": 4,
+    "regraph_source_buffer_vertices": 4096,
+    "regraph_source_cache_request_fifo_depth": 8,
+    "regraph_source_cache_response_fifo_depth": 8,
+    "regraph_gather_bypass_distance": 6,
+    "regraph_gather_pipeline_latency": 9,
+    "regraph_source_state_channel": 1,
+    "regraph_source_state_mirror_channel": 3,
+    "regraph_apply_state_channel": 30,
+    "regraph_degree_channel": 30,
+    "regraph_source_state_copies": 2,
+    "regraph_gather_merger_fifo_depth": 16,
+    "regraph_merger_apply_fifo_depth": 16,
+    "regraph_apply_wrapper_fifo_depth": 16,
+    "regraph_hbm_wrapper_pipeline_latency": 71,
+    "regraph_hbm_wrapper_pipeline_capacity": 71,
+    "regraph_pagerank_source_map_latency": 3,
+    "pagerank_numeric_type": "float32",
+    "pagerank_damping": 0.85,
+    "pagerank_epsilon": 0.000001,
+    "pagerank_residual_max_iterations": 256,
+    "pagerank_activation_rule": "abs_residual_gt_epsilon_over_vertices",
+    "pagerank_state_layout": "packed_float32_rank_residual_64",
+    "pagerank_state_bytes_per_vertex": 8,
+    "pagerank_dangling_redistribution": true,
+    "pagerank_degree_reads_timed": true,
+    "pagerank_degree_update_timing": false,
+    "pma_native_compute": true,
+    "conversion_cost_included": false
+  },
+  "features": [
+    "same_memory_backend_as_spine",
+    "same_hbm_channel_budget_as_spine",
+    "same_data_clock_as_spine",
+    "weighted_pma_native_regraph_compute",
+    "thresholded_residual_pagerank",
+    "signed_residual_push",
+    "explicit_hbm_degree_reads",
+    "packed_rank_residual_hbm_state",
+    "shared_map_reduce_algorithm_contract"
+  ],
+  "evidence": [],
+  "limitations": [
+    "This profile supports one 19-bit destination partition and has no compiled xclbin yet.",
+    "Packed rank/residual state doubles source-cache and apply traffic relative to Full PageRank; this is an explicit simulation architecture choice.",
+    "The source-map latency is structural and has not been characterized by HLS synthesis.",
+    "Out-degree reads are timed, but dynamic insert/delete maintenance of the degree array is not yet timed.",
+    "Weighted GraSU PMA and PMA-native ReGraph are architecture changes, not native hardware results.",
+    "All timing and energy claims remain simulation-only until equivalent HLS is synthesized."
+  ]
+}

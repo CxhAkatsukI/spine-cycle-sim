@@ -1,0 +1,154 @@
+{
+  "schema_version": 1,
+  "date": "2026-07-25",
+  "status": "PASS",
+  "claim_class": "normalized_simulation",
+  "timing_evidence": "structural_execution_driven",
+  "scope": "one-partition thresholded residual PageRank over GraSU weighted PMA and PMA-native ReGraph",
+  "profile": {
+    "path": "configs/architectures/grasu_regraph_normalized_residual_pagerank_spine23.json",
+    "sha256": "594a5ecbcf8b50a101ddd922aa6a1185bef15f0759252d0bec93bb811b52fe51",
+    "core_mhz": 150,
+    "hbm_channels": 32,
+    "partition_vertices": 65536,
+    "edge_lanes": 4,
+    "degree_channel": 30,
+    "source_map_latency": 3,
+    "state_bytes_per_vertex": 8,
+    "epsilon": 0.000001
+  },
+  "workload": {
+    "path": "tests/data/grasu_regraph_pagerank_initial.slice",
+    "sha256": "e2ca3e1c0267f8bf130dd3c532aa1d1a2774b4071b1e8fa971a006d7707561ab",
+    "vertices": 4,
+    "edges": 4,
+    "dangling_vertices": 1,
+    "damping": 0.85
+  },
+  "component_result": {
+    "backend": "mock_hbm",
+    "cycles": 32944,
+    "iterations": 79,
+    "active_edges": 302,
+    "state_bytes_per_vertex": 8,
+    "architecture_oracle": "PASS",
+    "float64_mathematical_oracle": "PASS",
+    "mathematical_max_abs_error": 0.00000163528
+  },
+  "sst_smoke": {
+    "result_path": "results/grasu_regraph_residual_pagerank_dual_oracle_smoke_20260725/result.json",
+    "result_sha256": "b24ff93d0e9773e7e6a446e19a947bcd89d2e53cb2d1e729df838cc70da77f38",
+    "manifest_path": "results/grasu_regraph_residual_pagerank_dual_oracle_smoke_20260725/manifest.json",
+    "manifest_sha256": "5338fe04b0283cf4b4c92ccbfb69d45a64619553f655b149fdb224a70a5c0c5d",
+    "claim_class": "component_validation_simulation",
+    "partition_vertices": 16,
+    "cycles": 107831,
+    "backend_requests": 82397,
+    "correctness_mismatches": 0
+  },
+  "sst_normalized": {
+    "result_path": "results/grasu_regraph_residual_pagerank_dual_oracle_normalized_20260725/result.json",
+    "result_sha256": "fbec2505d6823e99fbbebc1b1796bfe5bcf1fffe3c6b2b44fd8d72ec07927a45",
+    "manifest_path": "results/grasu_regraph_residual_pagerank_dual_oracle_normalized_20260725/manifest.json",
+    "manifest_sha256": "cf41f2f7d6b005b5d2545d4d5735a2985cd065f74440fa623f5e1ba63e35b124",
+    "backend": "sst_memHierarchy_dramsim3",
+    "cycles": 2727372,
+    "update_cycles": 1,
+    "compute_cycles": 2727371,
+    "iterations": 79,
+    "architecture_correctness_mismatches": 0,
+    "mathematical_correctness_mismatches": 0,
+    "architecture_max_abs_error": 0.0,
+    "mathematical_max_abs_error": 0.00000163528,
+    "rank_sum": 0.999996,
+    "residual_l1": 0.0000006435,
+    "degree_reads": 316,
+    "degree_read_bytes": 1264,
+    "source_map_cycles": 948,
+    "active_edges_mapped": 302,
+    "gather_rows": 2588672,
+    "apply_state_reads": 323584,
+    "apply_state_writes": 323584,
+    "apply_read_bytes": 41418752,
+    "apply_write_bytes": 41418752,
+    "source_state_write_bytes": 82837504,
+    "compute_read_bytes": 46615056,
+    "compute_write_bytes": 124256256,
+    "backend_requests": 2670437,
+    "backend_max_outstanding": 33,
+    "dram_channels": 32,
+    "dram_reads": 728933,
+    "dram_writes": 1941504,
+    "dram_activates": 81652,
+    "dram_precharges": 81646,
+    "dram_total_energy_pj": 40628812488.0,
+    "degree_update_timing_included": false,
+    "degree_updates_required": 0
+  },
+  "regressions": {
+    "full_pagerank_cycles": 132886,
+    "full_pagerank_backend_requests": 50721,
+    "weighted_dynamic_sssp_cycles": 132967,
+    "weighted_dynamic_sssp_backend_requests": 50744,
+    "unit_weight_sssp_cycles": 99379,
+    "unit_weight_sssp_backend_requests": 33838,
+    "correctness_mismatches": 0
+  },
+  "simulator_sources": {
+    "regraph_header": {
+      "path": "cpp/include/spine_sim/grasu_regraph.hpp",
+      "sha256": "8136d812411947856960317fdc5abbe5b8bbd9d218387c9344fdc4111c33fa1d"
+    },
+    "regraph_compute": {
+      "path": "cpp/src/grasu_regraph.cpp",
+      "sha256": "8d0b3d456780546ecb6265f9ed2a70a4af4c3543daae057f707b184719b2592c"
+    },
+    "sst_component": {
+      "path": "cpp/sst/online_memory_probe.cpp",
+      "sha256": "d9968822d23d5a3d0c8a877baa590b99071ebcec4a35a3955a09b1c2c25c6a33"
+    },
+    "component_tests": {
+      "path": "cpp/tests/grasu_tests.cpp",
+      "sha256": "c6c02fd230033c180c5a016d7ae4b748764cd75879653c7229a76b577ce82a0f"
+    },
+    "runner": {
+      "path": "scripts/run_sst_grasu_regraph_residual_pagerank.py",
+      "sha256": "2dd4eaadb01c81064cfa2348068ef6a7f80db08ba1d8ab5eb403d68f648bd5a1"
+    },
+    "sst_configuration": {
+      "path": "sst/grasu_regraph_vertical.py",
+      "sha256": "60a7a849a2010dd7ccbcb13ac133acae5092cb2e01461a5fe463ab76d868c8df"
+    }
+  },
+  "validation": {
+    "release_ctest": "2/2 PASS",
+    "address_undefined_sanitizer_ctest": "2/2 PASS",
+    "python_unittest": "161/161 PASS",
+    "grasu_component_tests": "14/14 PASS",
+    "sst_smoke": "PASS",
+    "sst_normalized": "PASS",
+    "old_algorithm_regressions": "3/3 PASS"
+  },
+  "claim_boundary": {
+    "validated": [
+      "thresholded residual push with abs(residual) > epsilon / N activation",
+      "float32 rank/residual architecture-oracle equality",
+      "float64 Full PageRank fixed-point agreement",
+      "explicit packed 64-bit rank/residual HBM state",
+      "doubled source-cache, apply, and mirrored state traffic",
+      "payload-backed PMA row, segment, source-state, degree, and apply traffic",
+      "finite FIFO, AXI, and online SST-HBM backpressure",
+      "complete fixed-partition gather and apply work ledger",
+      "unchanged Full PageRank and weighted/unit SSSP regressions"
+    ],
+    "not_validated": [
+      "dynamic out-degree maintenance timing",
+      "negative residual generated by a dynamic update crossing the packed comparator HBM path",
+      "graphs requiring more than one 19-bit destination partition",
+      "matching residual PageRank HLS synthesis or xclbin",
+      "hardware-cycle calibration",
+      "three-real-dataset runtime validation",
+      "PPA and total accelerator energy"
+    ]
+  }
+}

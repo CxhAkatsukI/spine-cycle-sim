@@ -54,6 +54,7 @@ struct ResidualPageRankReference {
   std::vector<float> residuals;
   std::vector<std::size_t> frontier_in_sizes;
   std::vector<std::size_t> frontier_out_sizes;
+  std::uint64_t active_edges{};
   bool converged{};
 };
 
@@ -174,6 +175,8 @@ ResidualPageRankReference run_residual_pagerank_reference(
       reference.ranks[source] += delta;
       if (out_degrees[source] == 0) {
         dangling += delta;
+      } else {
+        reference.active_edges += adjacency[source].size();
       }
     }
     const float dangling_share =
@@ -1032,7 +1035,8 @@ class OnlineMemoryProbe final : public SST::Component {
          mode_ != "spine_vertical" && mode_ != "spine_compute" &&
          mode_ != "spine_sssp" && mode_ != "spine_pagerank" &&
          mode_ != "spine_residual_pagerank" && mode_ != "grasu_regraph_sssp" &&
-         mode_ != "grasu_regraph_pagerank") ||
+         mode_ != "grasu_regraph_pagerank" &&
+         mode_ != "grasu_regraph_residual_pagerank") ||
         channels_ == 0 || channel_capacity_bytes_ == 0 || max_rounds_ == 0 ||
         pagerank_iterations_ == 0 || !(pagerank_damping_ > 0.0F) ||
         !(pagerank_damping_ < 1.0F) || !(pagerank_epsilon_ > 0.0F) ||
@@ -1071,9 +1075,11 @@ class OnlineMemoryProbe final : public SST::Component {
         ((mode_ == "spine_vertical" || mode_ == "spine_compute" ||
           mode_ == "spine_sssp" || mode_ == "spine_pagerank" ||
           mode_ == "spine_residual_pagerank" || mode_ == "grasu_regraph_sssp" ||
-          mode_ == "grasu_regraph_pagerank") &&
+          mode_ == "grasu_regraph_pagerank" ||
+          mode_ == "grasu_regraph_residual_pagerank") &&
          (channels_ < 23 || workload_path_.empty())) ||
-        ((mode_ == "grasu_regraph_sssp" || mode_ == "grasu_regraph_pagerank") &&
+        ((mode_ == "grasu_regraph_sssp" || mode_ == "grasu_regraph_pagerank" ||
+          mode_ == "grasu_regraph_residual_pagerank") &&
          channels_ < 32)) {
       output_.fatal(
           CALL_INFO, -1,
@@ -1127,7 +1133,8 @@ class OnlineMemoryProbe final : public SST::Component {
     const ClockId core = scheduler_.add_clock_mhz("core", core_mhz_);
     backend_ = std::make_unique<SstMemoryBackend>(
         core, interfaces_, channel_capacity_bytes_, 1, 32, 128);
-    if (mode_ == "grasu_regraph_sssp" || mode_ == "grasu_regraph_pagerank") {
+    if (mode_ == "grasu_regraph_sssp" || mode_ == "grasu_regraph_pagerank" ||
+        mode_ == "grasu_regraph_residual_pagerank") {
       SpineEdgeSlice initial = load_spine_edge_slice(workload_path_);
       std::vector<GraSuEdge> initial_edges;
       std::vector<GraSuEdge> reserved_updates;
@@ -1184,13 +1191,28 @@ class OnlineMemoryProbe final : public SST::Component {
           throw std::invalid_argument(
               "GraSU/ReGraph SST SSSP reference did not converge");
         }
-      } else {
+      } else if (mode_ == "grasu_regraph_pagerank") {
         grasu_pagerank_reference_ = run_full_pagerank_reference(
             final_snapshot, pagerank_damping_, pagerank_iterations_);
         grasu_pagerank_mathematical_reference_ =
             run_full_pagerank_mathematical_reference(
                 final_snapshot, static_cast<double>(pagerank_damping_),
                 pagerank_iterations_);
+        grasu_pagerank_degrees_.assign(final_snapshot.vertices, 0);
+        for (const SpineEdgeRecord &edge : final_snapshot.edges) {
+          ++grasu_pagerank_degrees_.at(edge.src);
+        }
+      } else {
+        grasu_residual_pagerank_reference_ = run_residual_pagerank_reference(
+            final_snapshot, pagerank_damping_, pagerank_epsilon_,
+            residual_max_iterations_);
+        if (!grasu_residual_pagerank_reference_.converged) {
+          throw std::invalid_argument(
+              "GraSU/ReGraph residual PageRank reference did not converge");
+        }
+        grasu_residual_mathematical_reference_ =
+            run_full_pagerank_mathematical_reference(
+                final_snapshot, static_cast<double>(pagerank_damping_), 200);
         grasu_pagerank_degrees_.assign(final_snapshot.vertices, 0);
         for (const SpineEdgeRecord &edge : final_snapshot.edges) {
           ++grasu_pagerank_degrees_.at(edge.src);
@@ -1526,7 +1548,8 @@ class OnlineMemoryProbe final : public SST::Component {
 
   bool clock_tick(SST::Cycle_t) {
     scheduler_.step();
-    if (mode_ == "grasu_regraph_sssp" || mode_ == "grasu_regraph_pagerank") {
+    if (mode_ == "grasu_regraph_sssp" || mode_ == "grasu_regraph_pagerank" ||
+        mode_ == "grasu_regraph_residual_pagerank") {
       if (grasu_update_system_->failed()) {
         write_result(false);
         primaryComponentOKToEndSim();
@@ -1534,6 +1557,7 @@ class OnlineMemoryProbe final : public SST::Component {
       }
       if (grasu_compute_system_ == nullptr &&
           grasu_pagerank_compute_system_ == nullptr &&
+          grasu_residual_compute_system_ == nullptr &&
           grasu_update_system_->done() && backend_->outstanding() == 0) {
         grasu_update_counters_ = grasu_update_system_->counters();
         grasu_update_counters_captured_ = true;
@@ -1542,25 +1566,36 @@ class OnlineMemoryProbe final : public SST::Component {
               scheduler_, 0, *backend_, grasu_layout_, source_vertex_,
               grasu_config_);
           grasu_compute_system_->register_components();
-        } else {
+        } else if (mode_ == "grasu_regraph_pagerank") {
           grasu_pagerank_compute_system_ =
               std::make_unique<GraSuReGraphPageRankSystem>(
                   scheduler_, 0, *backend_, grasu_layout_,
                   grasu_pagerank_degrees_, pagerank_iterations_,
                   pagerank_damping_, grasu_config_);
           grasu_pagerank_compute_system_->register_components();
+        } else {
+          grasu_residual_compute_system_ =
+              std::make_unique<GraSuReGraphResidualPageRankSystem>(
+                  scheduler_, 0, *backend_, grasu_layout_,
+                  grasu_pagerank_degrees_, residual_max_iterations_,
+                  pagerank_damping_, pagerank_epsilon_, grasu_config_);
+          grasu_residual_compute_system_->register_components();
         }
         return false;
       }
       const bool compute_done =
           (grasu_compute_system_ != nullptr && grasu_compute_system_->done()) ||
           (grasu_pagerank_compute_system_ != nullptr &&
-           grasu_pagerank_compute_system_->done());
+           grasu_pagerank_compute_system_->done()) ||
+          (grasu_residual_compute_system_ != nullptr &&
+           grasu_residual_compute_system_->done());
       if (compute_done && backend_->outstanding() == 0) {
         const bool compute_failed =
             grasu_compute_system_ != nullptr
                 ? grasu_compute_system_->failed()
-                : grasu_pagerank_compute_system_->failed();
+                : (grasu_pagerank_compute_system_ != nullptr
+                       ? grasu_pagerank_compute_system_->failed()
+                       : grasu_residual_compute_system_->failed());
         write_result(!compute_failed);
         primaryComponentOKToEndSim();
         return true;
@@ -1742,7 +1777,7 @@ class OnlineMemoryProbe final : public SST::Component {
        "probe, payload_roundtrip, spine_vertical, spine_compute, spine_sssp, "
        "or "
        "spine_pagerank/spine_residual_pagerank/grasu_regraph_sssp/"
-       "grasu_regraph_pagerank",
+       "grasu_regraph_pagerank/grasu_regraph_residual_pagerank",
        "probe"},
       {"workload", "Spine .slice workload path", ""},
       {"update_workload", "Optional positive incremental Spine .slice", ""},
@@ -1910,6 +1945,259 @@ class OnlineMemoryProbe final : public SST::Component {
     }
     result_written_ = true;
     std::ofstream result(result_path_);
+    if (mode_ == "grasu_regraph_residual_pagerank") {
+      const bool compute_available = grasu_residual_compute_system_ != nullptr;
+      const std::vector<float> ranks =
+          compute_available ? grasu_residual_compute_system_->ranks()
+                            : std::vector<float>{};
+      const std::vector<float> residuals =
+          compute_available ? grasu_residual_compute_system_->residuals()
+                            : std::vector<float>{};
+      std::uint64_t architecture_mismatches =
+          ranks.size() == grasu_residual_pagerank_reference_.ranks.size() &&
+                  residuals.size() ==
+                      grasu_residual_pagerank_reference_.residuals.size()
+              ? 0
+              : 1;
+      std::uint64_t mathematical_mismatches =
+          ranks.size() == grasu_residual_mathematical_reference_.size() ? 0 : 1;
+      float architecture_max_abs_error = 0.0F;
+      double mathematical_max_abs_error = 0.0;
+      float rank_sum = 0.0F;
+      float residual_l1 = 0.0F;
+      for (std::size_t vertex = 0; vertex < ranks.size(); ++vertex) {
+        rank_sum += ranks[vertex];
+        residual_l1 += std::fabs(residuals[vertex]);
+        if (vertex < grasu_residual_pagerank_reference_.ranks.size()) {
+          const float rank_error = std::fabs(
+              ranks[vertex] - grasu_residual_pagerank_reference_.ranks[vertex]);
+          const float residual_error =
+              std::fabs(residuals[vertex] -
+                        grasu_residual_pagerank_reference_.residuals[vertex]);
+          architecture_max_abs_error =
+              std::max({architecture_max_abs_error, rank_error, residual_error});
+          architecture_mismatches +=
+              rank_error <= 1.0e-5F && residual_error <= 1.0e-5F ? 0 : 1;
+        }
+        if (vertex < grasu_residual_mathematical_reference_.size()) {
+          const double error = std::fabs(
+              static_cast<double>(ranks[vertex]) -
+              grasu_residual_mathematical_reference_[vertex]);
+          mathematical_max_abs_error =
+              std::max(mathematical_max_abs_error, error);
+          mathematical_mismatches +=
+              error <= 5.0 * static_cast<double>(pagerank_epsilon_) ? 0 : 1;
+        }
+      }
+      const GraSuReGraphCounters compute =
+          compute_available ? grasu_residual_compute_system_->counters()
+                            : GraSuReGraphCounters{};
+      const GraSuUpdateCounters update =
+          grasu_update_counters_captured_
+              ? grasu_update_counters_
+              : grasu_update_system_->counters();
+      const bool normalized_profile =
+          std::fabs(core_mhz_ - 150.0) < 1.0e-9 && channels_ == 32 &&
+          grasu_config_.partition_vertices == 65'536 &&
+          grasu_config_.source_buffer_vertices == 4096 &&
+          grasu_config_.edge_lanes == 4 && grasu_config_.gather_banks == 4 &&
+          grasu_config_.pagerank_source_map_latency == 3 &&
+          grasu_config_.degree_channel == 30;
+      const bool passed =
+          success && compute_available &&
+          !grasu_residual_compute_system_->failed() &&
+          architecture_mismatches == 0 && mathematical_mismatches == 0 &&
+          compute.supersteps ==
+              grasu_residual_pagerank_reference_.frontier_in_sizes.size() &&
+          compute.active_edges_mapped ==
+              grasu_residual_pagerank_reference_.active_edges;
+      result << "{\n"
+             << "  \"success\": " << (passed ? "true" : "false") << ",\n"
+             << "  \"mode\": \"grasu_regraph_residual_pagerank\",\n"
+             << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
+             << "  \"claim_class\": \""
+             << (normalized_profile ? "normalized_simulation"
+                                    : "component_validation_simulation")
+             << "\",\n"
+             << "  \"timing_evidence\": "
+                "\"structural_execution_driven\",\n"
+             << "  \"pma_edge_abi\": "
+                "\"regraph_weighted32_dst19_weight12\",\n"
+             << "  \"cycles\": " << scheduler_.clock(0).completed_cycles
+             << ",\n"
+             << "  \"update_cycles\": "
+             << update.end_cycle - update.start_cycle << ",\n"
+             << "  \"compute_cycles\": "
+             << compute.end_cycle - compute.start_cycle << ",\n"
+             << "  \"vertices\": " << grasu_layout_.vertices << ",\n"
+             << "  \"initial_edges\": " << grasu_initial_edges_ << ",\n"
+             << "  \"updates\": " << grasu_update_edges_ << ",\n"
+             << "  \"update_inserts\": " << update.inserts << ",\n"
+             << "  \"update_deletes\": " << update.deletes << ",\n"
+             << "  \"update_weight_decreases\": "
+             << update.weight_decreases << ",\n"
+             << "  \"update_weight_increases\": "
+             << update.weight_increases << ",\n"
+             << "  \"iterations\": " << compute.supersteps << ",\n"
+             << "  \"expected_iterations\": "
+             << grasu_residual_pagerank_reference_.frontier_in_sizes.size()
+             << ",\n"
+             << "  \"converged\": " << (passed ? "true" : "false")
+             << ",\n"
+             << "  \"pagerank_damping\": " << pagerank_damping_ << ",\n"
+             << "  \"pagerank_epsilon\": " << pagerank_epsilon_ << ",\n"
+             << "  \"partition_vertices\": "
+             << grasu_config_.partition_vertices << ",\n"
+             << "  \"state_bytes_per_vertex\": "
+             << compute.state_bytes_per_vertex << ",\n"
+             << "  \"edge_lanes\": " << grasu_config_.edge_lanes << ",\n"
+             << "  \"gather_banks\": " << grasu_config_.gather_banks
+             << ",\n"
+             << "  \"source_state_channel\": "
+             << grasu_config_.source_state_channel << ",\n"
+             << "  \"source_state_mirror_channel\": "
+             << grasu_config_.source_state_mirror_channel << ",\n"
+             << "  \"apply_state_channel\": "
+             << grasu_config_.vertex_state_channel << ",\n"
+             << "  \"degree_channel\": " << grasu_config_.degree_channel
+             << ",\n"
+             << "  \"pagerank_source_map_latency\": "
+             << grasu_config_.pagerank_source_map_latency << ",\n"
+             << "  \"correctness_mismatches\": "
+             << architecture_mismatches + mathematical_mismatches << ",\n"
+             << "  \"architecture_correctness_mismatches\": "
+             << architecture_mismatches << ",\n"
+             << "  \"mathematical_correctness_mismatches\": "
+             << mathematical_mismatches << ",\n"
+             << "  \"max_abs_error\": " << architecture_max_abs_error
+             << ",\n"
+             << "  \"mathematical_max_abs_error\": "
+             << mathematical_max_abs_error << ",\n"
+             << "  \"rank_sum\": " << rank_sum << ",\n"
+             << "  \"residual_l1\": " << residual_l1 << ",\n"
+             << "  \"degree_reads\": " << compute.degree_reads << ",\n"
+             << "  \"degree_read_bytes\": " << compute.degree_read_bytes
+             << ",\n"
+             << "  \"degree_update_timing_included\": false,\n"
+             << "  \"degree_updates_required\": "
+             << update.inserts + update.deletes << ",\n"
+             << "  \"source_map_cycles\": " << compute.source_map_cycles
+             << ",\n"
+             << "  \"compute_row_reads\": " << compute.row_reads << ",\n"
+             << "  \"compute_source_state_reads\": "
+             << compute.source_state_reads << ",\n"
+             << "  \"compute_source_state_writes\": "
+             << compute.source_state_writes << ",\n"
+             << "  \"source_cache_requests\": "
+             << compute.source_cache_requests << ",\n"
+             << "  \"source_cache_request_markers\": "
+             << compute.source_cache_request_markers << ",\n"
+             << "  \"source_cache_lines\": " << compute.source_cache_lines
+             << ",\n"
+             << "  \"source_cache_lane_writes\": "
+             << compute.source_cache_lane_writes << ",\n"
+             << "  \"source_cache_response_markers\": "
+             << compute.source_cache_response_markers << ",\n"
+             << "  \"source_cache_request_fifo_max_occupancy\": "
+             << compute.source_cache_request_fifo_max_occupancy << ",\n"
+             << "  \"source_cache_response_fifo_max_occupancy\": "
+             << compute.source_cache_response_fifo_max_occupancy << ",\n"
+             << "  \"compute_pma_segment_reads\": "
+             << compute.pma_segment_reads << ",\n"
+             << "  \"compute_pma_slots\": " << compute.pma_slots_scanned
+             << ",\n"
+             << "  \"compute_live_edges\": " << compute.live_edges_scanned
+             << ",\n"
+             << "  \"compute_active_edges\": "
+             << compute.active_edges_mapped << ",\n"
+             << "  \"expected_active_edges\": "
+             << grasu_residual_pagerank_reference_.active_edges << ",\n"
+             << "  \"gather_bank_updates\": "
+             << compute.gather_bank_updates << ",\n"
+             << "  \"gather_bank_conflict_cycles\": "
+             << compute.gather_bank_conflict_cycles << ",\n"
+             << "  \"gather_bypass_hits\": " << compute.gather_bypass_hits
+             << ",\n"
+             << "  \"gather_bypass_misses\": "
+             << compute.gather_bypass_misses << ",\n"
+             << "  \"gather_pipeline_drain_cycles\": "
+             << compute.gather_pipeline_drain_cycles << ",\n"
+             << "  \"gather_rows_emitted\": "
+             << compute.gather_rows_emitted << ",\n"
+             << "  \"merger_rows_consumed\": "
+             << compute.merger_rows_consumed << ",\n"
+             << "  \"merger_bursts_emitted\": "
+             << compute.merger_bursts_emitted << ",\n"
+             << "  \"apply_state_reads\": " << compute.apply_state_reads
+             << ",\n"
+             << "  \"apply_state_writes\": " << compute.apply_state_writes
+             << ",\n"
+             << "  \"apply_input_bursts\": " << compute.apply_input_bursts
+             << ",\n"
+             << "  \"hbm_wrapper_input_bursts\": "
+             << compute.hbm_wrapper_input_bursts << ",\n"
+             << "  \"gather_merger_fifo_max_occupancy\": "
+             << compute.gather_merger_fifo_max_occupancy << ",\n"
+             << "  \"merger_apply_fifo_max_occupancy\": "
+             << compute.merger_apply_fifo_max_occupancy << ",\n"
+             << "  \"apply_wrapper_fifo_max_occupancy\": "
+             << compute.apply_wrapper_fifo_max_occupancy << ",\n"
+             << "  \"row_read_bytes\": " << compute.row_read_bytes << ",\n"
+             << "  \"source_state_read_bytes\": "
+             << compute.source_state_read_bytes << ",\n"
+             << "  \"source_state_write_bytes\": "
+             << compute.source_state_write_bytes << ",\n"
+             << "  \"pma_read_bytes\": " << compute.pma_read_bytes << ",\n"
+             << "  \"apply_read_bytes\": " << compute.apply_read_bytes
+             << ",\n"
+             << "  \"apply_write_bytes\": " << compute.apply_write_bytes
+             << ",\n"
+             << "  \"compute_read_bytes\": "
+             << compute.row_read_bytes + compute.source_state_read_bytes +
+                    compute.degree_read_bytes + compute.pma_read_bytes +
+                    compute.apply_read_bytes
+             << ",\n"
+             << "  \"compute_write_bytes\": "
+             << compute.apply_write_bytes + compute.source_state_write_bytes
+             << ",\n"
+             << "  \"update_read_bytes\": "
+             << update.update_read_bytes + update.row_read_bytes +
+                    update.binary_read_bytes + update.pma_read_bytes
+             << ",\n"
+             << "  \"update_write_bytes\": " << update.pma_write_bytes
+             << ",\n"
+             << "  \"axi_backend_stalls\": "
+             << update.axi_backend_submit_stalls +
+                    compute.axi_backend_submit_stalls
+             << ",\n"
+             << "  \"axis_push_stalls\": "
+             << update.axis_push_stalls + compute.axis_push_stalls << ",\n"
+             << "  \"backend_requests\": " << backend_->accepted() << ",\n"
+             << "  \"backend_submit_stalls\": "
+             << backend_->submit_stalls() << ",\n"
+             << "  \"backend_response_queue_stalls\": "
+             << backend_->response_queue_stalls() << ",\n"
+             << "  \"backend_max_outstanding\": "
+             << backend_->max_outstanding() << ",\n"
+             << "  \"ranks\": ";
+      write_json_array(result, ranks);
+      result << ",\n  \"residuals\": ";
+      write_json_array(result, residuals);
+      result << ",\n  \"frontier_in_sizes\": ";
+      write_json_array(result,
+                       grasu_residual_pagerank_reference_.frontier_in_sizes);
+      result << ",\n  \"frontier_out_sizes\": ";
+      write_json_array(result,
+                       grasu_residual_pagerank_reference_.frontier_out_sizes);
+      result << "\n}\n";
+      output_.output(
+          "completed GraSU + PMA-native ReGraph residual PageRank in %llu "
+          "core cycles -> %s\n",
+          static_cast<unsigned long long>(
+              scheduler_.clock(0).completed_cycles),
+          result_path_.c_str());
+      return;
+    }
     if (mode_ == "grasu_regraph_pagerank") {
       const bool compute_available = grasu_pagerank_compute_system_ != nullptr;
       const std::vector<float> ranks =
@@ -4716,10 +5004,14 @@ class OnlineMemoryProbe final : public SST::Component {
   std::unique_ptr<GraSuPmaUpdateSystem> grasu_update_system_;
   std::unique_ptr<GraSuReGraphSsspSystem> grasu_compute_system_;
   std::unique_ptr<GraSuReGraphPageRankSystem> grasu_pagerank_compute_system_;
+  std::unique_ptr<GraSuReGraphResidualPageRankSystem>
+      grasu_residual_compute_system_;
   GraSuUpdateCounters grasu_update_counters_;
   SsspReference grasu_sssp_reference_;
   std::vector<float> grasu_pagerank_reference_;
   std::vector<double> grasu_pagerank_mathematical_reference_;
+  ResidualPageRankReference grasu_residual_pagerank_reference_;
+  std::vector<double> grasu_residual_mathematical_reference_;
   std::vector<std::uint32_t> grasu_pagerank_degrees_;
   std::size_t grasu_initial_edges_{};
   std::size_t grasu_update_edges_{};

@@ -50,6 +50,12 @@ probe.addParams(
         "pagerank_damping": float(
             os.environ.get("GRASU_SST_PAGERANK_DAMPING", "0.85")
         ),
+        "pagerank_epsilon": float(
+            os.environ.get("GRASU_SST_PAGERANK_EPSILON", "0.000001")
+        ),
+        "residual_max_iterations": int(
+            os.environ.get("GRASU_SST_RESIDUAL_MAX_ITERATIONS", "256")
+        ),
         "grasu_cache_segments_per_half": int(
             os.environ.get("GRASU_SST_CACHE_SEGMENTS_PER_HALF", "131072")
         ),

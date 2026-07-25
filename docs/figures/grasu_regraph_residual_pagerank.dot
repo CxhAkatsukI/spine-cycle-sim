@@ -1,0 +1,50 @@
+digraph grasu_regraph_residual_pagerank {
+  graph [
+    rankdir=LR,
+    bgcolor="white",
+    pad="0.25",
+    nodesep="0.38",
+    ranksep="0.62",
+    fontname="DejaVu Sans"
+  ];
+  node [
+    shape=box,
+    style="rounded,filled",
+    color="#344054",
+    fillcolor="#F8FAFC",
+    fontname="DejaVu Sans",
+    fontsize=10,
+    margin="0.14,0.09"
+  ];
+  edge [color="#475467", fontname="DejaVu Sans", fontsize=9];
+
+  workload [label="File-backed graph\n+ optional PMA updates", fillcolor="#E8F3FF"];
+  update [label="GraSU PMA update\nAXIS + AXI + HBM", fillcolor="#E8F3FF"];
+  controller [label="Residual controller\nactive: |r| > epsilon / N", fillcolor="#FFF4E5"];
+  reader [label="PMA-native reader\nrow + degree + source state", fillcolor="#ECFDF3"];
+  map [label="Map\nsigned residual push\n+ dangling mass", fillcolor="#ECFDF3"];
+  gather [label="4-bank Gather\nRAW forwarding", fillcolor="#ECFDF3"];
+  merger [label="Merger\n16 vertices / burst", fillcolor="#ECFDF3"];
+  apply [label="Apply + Activate\nrank/residual update", fillcolor="#ECFDF3"];
+  mirror [label="HBM wrapper\n2 source-state copies", fillcolor="#ECFDF3"];
+  oracle [label="Float32 architecture oracle\n+ Float64 fixed-point oracle", fillcolor="#F3E8FF"];
+
+  hbm_pma [label="HBM PMA rows/segments\n32-bit weighted slots", shape=cylinder, fillcolor="#F2F4F7"];
+  hbm_degree [label="HBM[30] degree\n4 B / source", shape=cylinder, fillcolor="#F2F4F7"];
+  hbm_apply [label="HBM[30] apply state\n{rank,residual}: 8 B / vertex", shape=cylinder, fillcolor="#F2F4F7"];
+  hbm_source [label="HBM[1]/HBM[3] source state\n128-B mirrored bursts", shape=cylinder, fillcolor="#F2F4F7"];
+
+  workload -> update -> hbm_pma;
+  update -> controller [label="native on-device handoff"];
+  controller -> reader [label="iteration start"];
+  hbm_pma -> reader [label="row + PMA reads"];
+  hbm_degree -> reader [label="degree reads"];
+  hbm_source -> reader [label="64-B source beats\n8 vertices / beat"];
+  reader -> map [label="active source + edge"];
+  map -> gather -> merger -> apply;
+  hbm_apply -> apply [dir=both, label="128-B read/write"];
+  apply -> mirror [label="128-B next state"];
+  mirror -> hbm_source;
+  apply -> controller [label="next active / convergence"];
+  apply -> oracle [label="final ranks + residuals"];
+}
