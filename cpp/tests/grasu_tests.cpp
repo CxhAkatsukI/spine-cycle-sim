@@ -26,6 +26,7 @@ using spine::sim::encode_grasu_pma_edge;
 using spine::sim::GraSuEdge;
 using spine::sim::GraSuNativeConfig;
 using spine::sim::GraSuPmaLayout;
+using spine::sim::GraSuPartitionedPmaLayout;
 using spine::sim::GraSuPmaUpdateSystem;
 using spine::sim::GraSuReGraphConfig;
 using spine::sim::GraSuReGraphPageRankSystem;
@@ -268,6 +269,52 @@ void test_pma_layout_preserves_segment_reservations() {
           "GraSU binary search selected the wrong reserved segment");
   require(edge_set(layout.live_edges()) == edge_set(initial),
           "GraSU PMA layout changed initial live edges");
+}
+
+void test_partitioned_pma_layout_preserves_global_destinations() {
+  constexpr std::size_t kVertices = 17;
+  constexpr std::size_t kPartitionVertices = 8;
+  const std::vector<GraSuEdge> initial = {
+      {.source = 0, .destination = 7, .weight = 2},
+      {.source = 0, .destination = 8, .weight = 3},
+      {.source = 16, .destination = 0, .weight = 4},
+      {.source = 8, .destination = 16, .weight = 5},
+  };
+  const std::vector<GraSuEdge> reserved = {
+      {.source = 1, .destination = 15, .weight = 6},
+  };
+  const GraSuPartitionedPmaLayout layout = GraSuPartitionedPmaLayout::build(
+      kVertices, kPartitionVertices, initial, reserved);
+
+  require(layout.partitions.size() == 3,
+          "partitioned PMA did not preserve the partial final partition");
+  require(layout.partitions[0].destination_base == 0 &&
+              layout.partitions[0].destination_vertices == 8 &&
+              layout.partitions[1].destination_base == 8 &&
+              layout.partitions[1].destination_vertices == 8 &&
+              layout.partitions[2].destination_base == 16 &&
+              layout.partitions[2].destination_vertices == 1,
+          "partitioned PMA destination windows mismatch");
+  require(edge_set(layout.live_edges()) == edge_set(initial),
+          "partitioned PMA did not restore global destinations");
+  require(layout.partition_for({.source = 0, .destination = 8})
+                  .local_destination(8) == 0 &&
+              layout.partition_for({.source = 8, .destination = 16})
+                  .local_destination(16) == 0,
+          "partitioned PMA did not localize destination boundaries");
+  const auto reserved_segment = layout.partitions[1].segment_for(
+      {.source = 1, .destination = 15, .weight = 6});
+  require(reserved_segment < layout.partitions[1].segments.size(),
+          "partitioned PMA lost a reserved cross-partition insertion");
+
+  bool rejected = false;
+  try {
+    (void)layout.partitions[0].segment_for(
+        {.source = 0, .destination = 8, .weight = 3});
+  } catch (const std::invalid_argument &) {
+    rejected = true;
+  }
+  require(rejected, "PMA partition accepted a destination from its neighbor");
 }
 
 void test_native_update_crosses_cache_ddr_and_parity() {
@@ -1189,6 +1236,8 @@ int main() {
       {"weighted_pma_abi", test_weighted_pma_edge_abi_matches_regraph},
       {"pma_layout_reservations",
        test_pma_layout_preserves_segment_reservations},
+      {"partitioned_pma_layout",
+       test_partitioned_pma_layout_preserves_global_destinations},
       {"native_update_routes", test_native_update_crosses_cache_ddr_and_parity},
       {"weighted_dynamic_sssp",
        test_weighted_dynamic_pma_regraph_matches_dijkstra},

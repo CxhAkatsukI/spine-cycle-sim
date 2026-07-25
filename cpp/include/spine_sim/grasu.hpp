@@ -41,7 +41,12 @@ struct GraSuEdge {
 };
 
 struct GraSuPmaLayout {
+  // Source rows remain globally indexed. Destinations are encoded relative to
+  // this layout's destination window so the PMA word keeps ReGraph's 19-bit
+  // local-destination ABI.
   std::size_t vertices{};
+  std::uint32_t destination_base{};
+  std::size_t destination_vertices{};
   std::vector<std::pair<std::uint32_t, std::uint32_t>> row_slot_bounds;
   std::vector<std::uint64_t> binary_heads;
   std::vector<std::array<std::uint32_t, kGraSuSegmentSlots>> segments;
@@ -51,8 +56,34 @@ struct GraSuPmaLayout {
   [[nodiscard]] static GraSuPmaLayout
   build(std::size_t vertices, const std::vector<GraSuEdge> &initial_edges,
         const std::vector<GraSuEdge> &reserved_updates);
+  [[nodiscard]] static GraSuPmaLayout build_partition(
+      std::size_t source_vertices, std::uint32_t destination_base,
+      std::size_t destination_vertices,
+      const std::vector<GraSuEdge> &initial_edges,
+      const std::vector<GraSuEdge> &reserved_updates);
   [[nodiscard]] std::vector<GraSuEdge> live_edges() const;
   [[nodiscard]] std::size_t segment_for(const GraSuEdge &edge) const;
+  [[nodiscard]] bool contains_destination(
+      std::uint32_t destination) const noexcept;
+  [[nodiscard]] std::uint32_t
+  local_destination(std::uint32_t destination) const;
+};
+
+// Host-visible destination partitioning used by ReGraph. Every partition has
+// global source rows but an independent PMA containing local destinations.
+struct GraSuPartitionedPmaLayout {
+  std::size_t vertices{};
+  std::size_t partition_vertices{};
+  std::vector<GraSuPmaLayout> partitions;
+
+  [[nodiscard]] static GraSuPartitionedPmaLayout
+  build(std::size_t vertices, std::size_t partition_vertices,
+        const std::vector<GraSuEdge> &initial_edges,
+        const std::vector<GraSuEdge> &reserved_updates);
+  [[nodiscard]] std::size_t
+  partition_for_destination(std::uint32_t destination) const;
+  [[nodiscard]] const GraSuPmaLayout &partition_for(const GraSuEdge &edge) const;
+  [[nodiscard]] std::vector<GraSuEdge> live_edges() const;
 };
 
 struct GraSuNativeConfig {

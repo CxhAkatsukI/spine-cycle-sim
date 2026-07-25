@@ -70,11 +70,20 @@ std::uint64_t packed_edge(const GraSuEdge &edge) {
          edge.destination;
 }
 
-void validate_vertex(std::size_t vertices, const GraSuEdge &edge) {
-  if (edge.source >= vertices || edge.destination >= vertices ||
-      edge.destination > kGraSuPmaDestinationMask ||
+void validate_global_vertex(std::size_t vertices, const GraSuEdge &edge) {
+  if (vertices == 0 || vertices > std::numeric_limits<std::uint32_t>::max() ||
+      edge.source >= vertices || edge.destination >= vertices ||
       edge.weight > kGraSuPmaWeightMask) {
     throw std::invalid_argument("GraSU edge endpoint is outside PMA encoding");
+  }
+}
+
+void validate_layout_edge(const GraSuPmaLayout &layout,
+                          const GraSuEdge &edge) {
+  if (edge.source >= layout.vertices ||
+      !layout.contains_destination(edge.destination) ||
+      edge.weight > kGraSuPmaWeightMask) {
+    throw std::invalid_argument("GraSU edge endpoint is outside PMA layout");
   }
 }
 
@@ -777,28 +786,62 @@ GraSuPmaLayout GraSuPmaLayout::build(
     throw std::invalid_argument(
         "weighted GraSU/ReGraph PMA currently supports one 19-bit partition");
   }
-  std::vector<std::map<std::uint32_t, std::uint16_t>> initial(vertices);
-  std::vector<std::set<std::uint32_t>> reserved(vertices);
+  return build_partition(vertices, 0, vertices, initial_edges,
+                         reserved_updates);
+}
+
+GraSuPmaLayout GraSuPmaLayout::build_partition(
+    std::size_t source_vertices, std::uint32_t destination_base,
+    std::size_t destination_vertices,
+    const std::vector<GraSuEdge> &initial_edges,
+    const std::vector<GraSuEdge> &reserved_updates) {
+  if (source_vertices == 0 ||
+      source_vertices > std::numeric_limits<std::uint32_t>::max() ||
+      destination_vertices == 0 ||
+      destination_vertices > kGraSuPmaLocalVertexCapacity ||
+      static_cast<std::uint64_t>(destination_base) + destination_vertices >
+          source_vertices) {
+    throw std::invalid_argument("invalid GraSU destination partition");
+  }
+  std::vector<std::map<std::uint32_t, std::uint16_t>> initial(source_vertices);
+  std::vector<std::set<std::uint32_t>> reserved(source_vertices);
   for (const GraSuEdge &edge : initial_edges) {
-    validate_vertex(vertices, edge);
+    validate_global_vertex(source_vertices, edge);
+    if (edge.destination < destination_base ||
+        edge.destination >=
+            static_cast<std::uint64_t>(destination_base) +
+                destination_vertices) {
+      throw std::invalid_argument(
+          "initial GraSU edge is outside destination partition");
+    }
     if (edge.delete_op) {
       throw std::invalid_argument("initial GraSU edge cannot be a deletion");
     }
-    initial[edge.source][edge.destination] = edge.weight;
-    reserved[edge.source].insert(edge.destination);
+    const std::uint32_t local = edge.destination - destination_base;
+    initial[edge.source][local] = edge.weight;
+    reserved[edge.source].insert(local);
   }
   for (const GraSuEdge &edge : reserved_updates) {
-    validate_vertex(vertices, edge);
+    validate_global_vertex(source_vertices, edge);
+    if (edge.destination < destination_base ||
+        edge.destination >=
+            static_cast<std::uint64_t>(destination_base) +
+                destination_vertices) {
+      throw std::invalid_argument(
+          "reserved GraSU edge is outside destination partition");
+    }
     if (!edge.delete_op) {
-      reserved[edge.source].insert(edge.destination);
+      reserved[edge.source].insert(edge.destination - destination_base);
     }
   }
 
   GraSuPmaLayout layout;
-  layout.vertices = vertices;
-  layout.row_slot_bounds.resize(vertices);
+  layout.vertices = source_vertices;
+  layout.destination_base = destination_base;
+  layout.destination_vertices = destination_vertices;
+  layout.row_slot_bounds.resize(source_vertices);
   std::uint32_t next_slot = 0;
-  for (std::size_t source = 0; source < vertices; ++source) {
+  for (std::size_t source = 0; source < source_vertices; ++source) {
     const std::uint32_t begin = next_slot;
     const std::vector<std::uint32_t> destinations(reserved[source].begin(),
                                                   reserved[source].end());
@@ -825,6 +868,10 @@ GraSuPmaLayout GraSuPmaLayout::build(
           reserved_segment.front());
       layout.reserved_segments.push_back(reserved_segment);
       layout.segments.push_back(live_segment);
+      if (next_slot > std::numeric_limits<std::uint32_t>::max() -
+                          kGraSuSegmentSlots) {
+        throw std::overflow_error("GraSU PMA row offsets exceed 32 bits");
+      }
       next_slot += kGraSuSegmentSlots;
     }
     layout.row_slot_bounds[source] = {begin, next_slot};
@@ -842,7 +889,8 @@ std::vector<GraSuEdge> GraSuPmaLayout::live_edges() const {
         if (!is_grasu_pma_empty(encoded)) {
           edges.push_back(GraSuEdge{
               .source = static_cast<std::uint32_t>(source),
-              .destination = decode_grasu_pma_destination(encoded),
+              .destination = destination_base +
+                             decode_grasu_pma_destination(encoded),
               .weight = decode_grasu_pma_weight(encoded),
           });
         }
@@ -853,7 +901,8 @@ std::vector<GraSuEdge> GraSuPmaLayout::live_edges() const {
 }
 
 std::size_t GraSuPmaLayout::segment_for(const GraSuEdge &edge) const {
-  validate_vertex(vertices, edge);
+  validate_layout_edge(*this, edge);
+  const std::uint32_t local = local_destination(edge.destination);
   const auto [begin_slot, end_slot] = row_slot_bounds.at(edge.source);
   std::size_t begin = begin_slot / kGraSuSegmentSlots;
   std::size_t end = end_slot / kGraSuSegmentSlots;
@@ -861,7 +910,8 @@ std::size_t GraSuPmaLayout::segment_for(const GraSuEdge &edge) const {
     throw std::invalid_argument("GraSU edge source has no reserved PMA segment");
   }
   std::size_t mid = (begin + end) >> 1;
-  const std::uint64_t edge_word = packed_edge(edge);
+  const std::uint64_t edge_word =
+      (static_cast<std::uint64_t>(edge.source) << 32) | local;
   while (begin != mid) {
     if (binary_heads.at(mid) <= edge_word) {
       begin = mid;
@@ -871,11 +921,92 @@ std::size_t GraSuPmaLayout::segment_for(const GraSuEdge &edge) const {
     mid = (begin + end) >> 1;
   }
   const auto &reserved = reserved_segments.at(begin);
-  if (std::find(reserved.begin(), reserved.end(), edge.destination) ==
+  if (std::find(reserved.begin(), reserved.end(), local) ==
       reserved.end()) {
     throw std::invalid_argument("GraSU insertion was not reserved by host PMA layout");
   }
   return begin;
+}
+
+bool GraSuPmaLayout::contains_destination(
+    std::uint32_t destination) const noexcept {
+  return destination >= destination_base &&
+         static_cast<std::uint64_t>(destination) <
+             static_cast<std::uint64_t>(destination_base) +
+                 destination_vertices;
+}
+
+std::uint32_t
+GraSuPmaLayout::local_destination(std::uint32_t destination) const {
+  if (!contains_destination(destination)) {
+    throw std::invalid_argument("GraSU destination is outside PMA partition");
+  }
+  return destination - destination_base;
+}
+
+GraSuPartitionedPmaLayout GraSuPartitionedPmaLayout::build(
+    std::size_t vertices, std::size_t partition_vertices,
+    const std::vector<GraSuEdge> &initial_edges,
+    const std::vector<GraSuEdge> &reserved_updates) {
+  if (vertices == 0 || vertices > std::numeric_limits<std::uint32_t>::max() ||
+      partition_vertices == 0 ||
+      partition_vertices > kGraSuPmaLocalVertexCapacity) {
+    throw std::invalid_argument("invalid GraSU partitioned PMA dimensions");
+  }
+  const std::size_t partition_count =
+      (vertices + partition_vertices - 1) / partition_vertices;
+  std::vector<std::vector<GraSuEdge>> initial_by_partition(partition_count);
+  std::vector<std::vector<GraSuEdge>> reserved_by_partition(partition_count);
+  for (const GraSuEdge &edge : initial_edges) {
+    validate_global_vertex(vertices, edge);
+    initial_by_partition[edge.destination / partition_vertices].push_back(edge);
+  }
+  for (const GraSuEdge &edge : reserved_updates) {
+    validate_global_vertex(vertices, edge);
+    reserved_by_partition[edge.destination / partition_vertices].push_back(edge);
+  }
+
+  GraSuPartitionedPmaLayout result;
+  result.vertices = vertices;
+  result.partition_vertices = partition_vertices;
+  result.partitions.reserve(partition_count);
+  for (std::size_t partition = 0; partition < partition_count; ++partition) {
+    const std::size_t base = partition * partition_vertices;
+    const std::size_t count = std::min(partition_vertices, vertices - base);
+    result.partitions.push_back(GraSuPmaLayout::build_partition(
+        vertices, static_cast<std::uint32_t>(base), count,
+        initial_by_partition[partition], reserved_by_partition[partition]));
+  }
+  return result;
+}
+
+std::size_t GraSuPartitionedPmaLayout::partition_for_destination(
+    std::uint32_t destination) const {
+  if (destination >= vertices || partition_vertices == 0) {
+    throw std::out_of_range("GraSU destination is outside partitioned PMA");
+  }
+  return destination / partition_vertices;
+}
+
+const GraSuPmaLayout &
+GraSuPartitionedPmaLayout::partition_for(const GraSuEdge &edge) const {
+  if (edge.source >= vertices) {
+    throw std::out_of_range("GraSU source is outside partitioned PMA");
+  }
+  return partitions.at(partition_for_destination(edge.destination));
+}
+
+std::vector<GraSuEdge> GraSuPartitionedPmaLayout::live_edges() const {
+  std::vector<GraSuEdge> result;
+  for (const GraSuPmaLayout &partition : partitions) {
+    auto edges = partition.live_edges();
+    result.insert(result.end(), edges.begin(), edges.end());
+  }
+  std::sort(result.begin(), result.end(), [](const auto &left, const auto &right) {
+    return std::tuple(left.source, left.destination, left.weight) <
+           std::tuple(right.source, right.destination, right.weight);
+  });
+  return result;
 }
 
 class GraSuPmaUpdateSystem::Impl {
@@ -1055,7 +1186,8 @@ class GraSuPmaUpdateSystem::Impl {
           if (!is_grasu_pma_empty(encoded)) {
             edges.push_back(GraSuEdge{
                 .source = static_cast<std::uint32_t>(source),
-                .destination = decode_grasu_pma_destination(encoded),
+                .destination = layout_.destination_base +
+                               decode_grasu_pma_destination(encoded),
                 .weight = decode_grasu_pma_weight(encoded),
             });
           }
@@ -1102,7 +1234,7 @@ class GraSuPmaUpdateSystem::Impl {
       live.emplace(std::pair(edge.source, edge.destination), edge.weight);
     }
     for (const GraSuEdge &edge : updates_) {
-      validate_vertex(layout_.vertices, edge);
+      validate_layout_edge(layout_, edge);
       (void)layout_.segment_for(edge);
       const auto key = std::pair(edge.source, edge.destination);
       if (edge.delete_op) {
@@ -1183,7 +1315,8 @@ class GraSuPmaUpdateSystem::Impl {
       for (const GraSuEdge &edge : striped[channel]) {
         std::uint64_t value =
             (static_cast<std::uint64_t>(edge.source) << 32) |
-            encode_grasu_pma_edge(edge.destination, edge.weight);
+            encode_grasu_pma_edge(layout_.local_destination(edge.destination),
+                                  edge.weight);
         if (edge.delete_op) {
           value |= std::uint64_t{1} << 63;
         }
