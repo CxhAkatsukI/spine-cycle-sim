@@ -573,7 +573,7 @@ SpineSsspRunResult SpineVerticalSliceSystem::run_sssp_to_convergence(
     const std::vector<std::uint32_t> active_out = compute_->next_active();
     result.rounds.push_back(SpineSsspRoundEvidence{
         .round = round,
-        .active_in = current_frontier_,
+        .active_in = attempted_active_in,
         .reader_sources = reader_->active_source_ids(),
         .active_out = active_out,
         .reader = reader_->counters(),

@@ -1974,6 +1974,63 @@ void test_spine_convergence_runner_records_host_handoff() {
           "fallback convergence result diverged from weighted SSSP oracle");
 }
 
+void test_spine_convergence_runner_separates_host_replay_from_frontier() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("data", 141.0);
+  MockMemoryBackend backend("hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 2,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  SpineEdgeSlice workload{
+      .vertices = 8'194,
+      .edges = {},
+      .case_name = "convergence_runner_4097_dirty_sources",
+  };
+  for (std::uint32_t source = 0; source < 4'097; ++source) {
+    workload.edges.push_back(SpineEdgeRecord{
+        .src = source,
+        .dst = 4'097 + source,
+        .weight = 1,
+        .diff = 1,
+    });
+  }
+  SpineVerticalSliceSystem system(scheduler, core, backend, workload, 0);
+  system.register_components();
+  scheduler.add_component(backend);
+
+  const auto result = system.run_sssp_to_convergence(4, 10'000'000);
+  require(result.converged && !result.failed && result.rounds.size() == 2 &&
+              result.host_handoffs.size() == 1,
+          "4097-source convergence did not recover one logical round");
+  const auto &handoff = result.host_handoffs.front();
+  require(handoff.logical_round == 0 && handoff.fallback_reason == 4 &&
+              handoff.source_count == 4'097 &&
+              handoff.device_attempt.active_in ==
+                  std::vector<std::uint32_t>{0} &&
+              handoff.device_attempt.reader.done_overflow &&
+              handoff.device_attempt.compute.done_overflow,
+          "4097-source DEVICE attempt lost its logical-frontier evidence");
+  require(result.rounds[0].active_in == std::vector<std::uint32_t>{0} &&
+              result.rounds[0].reader_sources.size() == 4'097 &&
+              result.rounds[0].reader_sources.front() == 0 &&
+              result.rounds[0].reader_sources.back() == 4'096 &&
+              result.rounds[0].active_out ==
+                  std::vector<std::uint32_t>{4'097} &&
+              result.rounds[1].active_in ==
+                  std::vector<std::uint32_t>{4'097} &&
+              result.rounds[1].active_out.empty(),
+          "host replay sources were conflated with the logical SSSP frontier");
+  require(system.compute().values()[0] == 0 &&
+              system.compute().values()[4'097] == 1 &&
+              system.compute().values()[4'098] ==
+                  SpineSplitSsspCompute::kInfinity,
+          "4097-source host replay diverged from weighted SSSP semantics");
+}
+
 void test_spine_dirty_ack_rejects_stale_and_malformed_candidates() {
   const auto run_case = [](std::uint32_t expected_generation,
                            SpineDirtyIdentity candidate,
@@ -6250,6 +6307,8 @@ int main(int argc, char **argv) {
        test_spine_device_task_limits_hand_off_to_tiled_fallback},
       {"spine_convergence_host_handoff",
        test_spine_convergence_runner_records_host_handoff},
+      {"spine_convergence_4097_host_handoff",
+       test_spine_convergence_runner_separates_host_replay_from_frontier},
       {"spine_dirty_ack_rejections",
        test_spine_dirty_ack_rejects_stale_and_malformed_candidates},
       {"spine_source_protocol_error",

@@ -1994,7 +1994,6 @@ class OnlineMemoryProbe final : public SST::Component {
               .host_control_timed = false,
               .device_attempt = std::move(device_attempt),
           });
-          sst_current_frontier_ = sources;
           return false;
         }
         if (sst_waiting_dirty_ack_) {

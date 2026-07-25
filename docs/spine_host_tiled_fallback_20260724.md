@@ -69,6 +69,14 @@ verifies that DEVICE does not read the oversized list, HOST recovers all 4,097
 IDs and exact identity, compute succeeds, and ACK clears all bits while
 advancing generation 1 to 2.
 
+`spine_convergence_4097_host_handoff` additionally separates algorithm and
+execution evidence across that exact boundary. The first accepted logical
+SSSP round keeps `active_in={0}`, while its physical `reader_sources` contains
+all 4,097 dirty sources replayed by HOST_ACTIVE. Only the one destination
+actually improved by source 0 enters the next logical frontier. The SST case
+`syn_source_window_e4097__weighted_sssp` enforces the same distinction against
+both synchronous-frontier and Dijkstra oracles.
+
 `spine_device_task_limit_handoffs` lowers one threshold at a time. Both
 descriptor-capacity reason 2 and payload-budget reason 3 must first produce a
 recoverable DEVICE transcript and then complete the same three-edge HOST tiled
@@ -96,6 +104,7 @@ Frozen evidence:
 
 - `docs/evidence/sst_spine_fallback_capacity_20260724_summary.json`
 - `docs/evidence/sst_spine_fallback_payload_20260724_summary.json`
+- `docs/evidence/sst_spine_frontier_handoff_4097_20260725.json`
 
 ## Reproduction
 
@@ -115,6 +124,12 @@ python3 scripts/run_sst_spine_vertical.py \
   --scenario fallback_payload \
   --out-dir results/sst_spine_fallback_payload_repro \
   --no-build
+
+python3 scripts/run_shared_comparison_matrix.py \
+  --run-id syn_source_window_e4097__weighted_sssp \
+  --system spine \
+  --out-dir results/shared_frontier_fix_repro \
+  --jobs 1 --timeout-seconds 1800 --no-build
 ```
 
 ## Claim boundary

@@ -55,7 +55,9 @@ struct SpineAxiInterfaceProfile {
 
 struct SpineSsspRoundEvidence {
   std::size_t round{};
+  // Map-reduce frontier for the logical algorithm round.
   std::vector<std::uint32_t> active_in;
+  // Physical sources consumed by the reader, including host fallback replay.
   std::vector<std::uint32_t> reader_sources;
   std::vector<std::uint32_t> active_out;
   SpineReaderCounters reader;

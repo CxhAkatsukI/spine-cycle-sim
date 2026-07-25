@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "claim_class": "normalized_structural_simulation",
+  "case": "syn_source_window_e4097__weighted_sssp",
+  "purpose": "separate the logical SSSP frontier from physical HOST_ACTIVE replay sources at the 4096-device-dirty-source boundary",
+  "command": "python3 scripts/run_shared_comparison_matrix.py --run-id syn_source_window_e4097__weighted_sssp --system spine --out-dir results/shared_frontier_fix_20260725 --jobs 1 --timeout-seconds 1800 --no-build",
+  "workload": {
+    "path": "tests/data/shared_comparison/syn_source_window_e4097.slice",
+    "sha256": "a527047ba042175af9314c1051d2aac8d1d89f35218f04ac4a7f7add33f28d01",
+    "vertices": 8195,
+    "edges": 4097,
+    "unique_sources": 4097
+  },
+  "implementation": {
+    "sst_plugin": "build/sst/libspine_cycle.so",
+    "sst_plugin_sha256": "b43b2a7995a784f6742eb738893d21d286a3611bfc98fafe0072a142b715b7f8",
+    "simulation_fingerprint_sha256": "5482430807b0d1f90ea0b6f302b611150394c8cfd38b62ad392469eb45e12c56",
+    "profile": "configs/architectures/spine_latest_afb8199.json",
+    "axi_profile": "hls_split_9c08763",
+    "core_mhz": 150
+  },
+  "result": {
+    "success": true,
+    "converged": true,
+    "cycles": 988082,
+    "simulated_ms": 6.587213333333334,
+    "wall_seconds": 14.228201531805098,
+    "rounds": 2,
+    "frontier_in_sizes": [1, 1],
+    "frontier_out_sizes": [1, 0],
+    "reader_source_sizes_per_round": [4097, 0],
+    "host_handoffs": 1,
+    "host_handoff_logical_rounds": [0],
+    "host_handoff_reasons": [4],
+    "host_handoff_source_counts": [4097],
+    "host_handoff_device_attempt_cycles": [347882],
+    "backend_requests": 181259,
+    "dram_reads": 152783,
+    "dram_writes": 28476,
+    "architecture_correctness_mismatches": 0,
+    "mathematical_correctness_mismatches": 0,
+    "frontier_mismatches": 0
+  },
+  "energy_scope": "bound-channel DRAMSim3 only; unbound-channel idle/background energy excluded"
+}
