@@ -16,6 +16,14 @@ from .comparison import (
     select_runs,
     validate_system_result,
 )
+from .profile_capabilities import (
+    AlgorithmCapability,
+    CapabilityCatalog,
+    CapabilityError,
+    ImplementationStatus,
+    ProfileCapability,
+    load_capability_catalog,
+)
 
 __all__ = [
     "DEFAULT_REAL_SOURCES",
@@ -30,4 +38,10 @@ __all__ = [
     "pair_rows",
     "select_runs",
     "validate_system_result",
+    "AlgorithmCapability",
+    "CapabilityCatalog",
+    "CapabilityError",
+    "ImplementationStatus",
+    "ProfileCapability",
+    "load_capability_catalog",
 ]

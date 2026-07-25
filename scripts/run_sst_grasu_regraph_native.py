@@ -9,12 +9,25 @@ import json
 import os
 from pathlib import Path
 import subprocess
-
+import sys
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from spine_cycle_sim.experiments.profile_capabilities import (  # noqa: E402
+    AlgorithmCapability,
+    CapabilityCatalog,
+    load_capability_catalog,
+)
+
+
 DEFAULT_SST = Path("/data/feiyang/sst/bin/sst")
 DEFAULT_PROFILE = (
     ROOT / "configs" / "architectures" / "grasu_regraph_native_a9aef06.json"
+)
+DEFAULT_CAPABILITY_CATALOG = (
+    ROOT / "configs" / "contracts" / "grasu_regraph_capabilities_v1.json"
 )
 
 
@@ -51,6 +64,27 @@ def native_active_hbm_channels(profile: dict[str, object]) -> tuple[int, ...]:
             "native HLS topology references an out-of-range HBM channel"
         )
     return ordered
+
+
+def require_native_algorithm_capability(
+    profile_path: Path, capability_catalog_path: Path
+) -> tuple[CapabilityCatalog, AlgorithmCapability]:
+    profile = json.loads(profile_path.read_text(encoding="utf-8"))
+    profile_id = str(profile.get("profile_id", ""))
+    catalog = load_capability_catalog(capability_catalog_path)
+    profile_capability = catalog.profile(profile_id)
+    if profile_capability.profile_path != profile_path.resolve():
+        raise ValueError(
+            "native capability profile path does not match the selected profile"
+        )
+    capability = profile_capability.require("unit_weight_sssp")
+    if (
+        profile_capability.comparison_role != "native"
+        or profile_capability.handoff != "pma_to_compact_edge_array"
+        or profile_capability.conversion_cost != "included"
+    ):
+        raise ValueError("native capability does not describe the existing HLS path")
+    return catalog, capability
 
 
 def validate_result(
@@ -117,6 +151,11 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--profile", type=Path, default=DEFAULT_PROFILE)
     parser.add_argument(
+        "--capability-catalog",
+        type=Path,
+        default=DEFAULT_CAPABILITY_CATALOG,
+    )
+    parser.add_argument(
         "--workload",
         type=Path,
         default=ROOT / "tests" / "data" / "grasu_regraph_unit_initial.slice",
@@ -144,6 +183,9 @@ def main() -> int:
     profile = json.loads(profile_path.read_text(encoding="utf-8"))
     if profile.get("profile_id") != "grasu_regraph_native_a9aef06":
         raise ValueError("runner requires the pinned native GraSU/ReGraph profile")
+    capability_catalog, algorithm_capability = require_native_algorithm_capability(
+        profile_path, args.capability_catalog.resolve()
+    )
     params = profile["parameters"]
     memory = profile["memory"]
     active_channels = native_active_hbm_channels(profile)
@@ -292,6 +334,10 @@ def main() -> int:
     manifest = {
         "schema_version": 1,
         "claim_class": "native_structural_simulation",
+        "algorithm": algorithm_capability.algorithm,
+        "algorithm_capability": algorithm_capability.manifest_record(),
+        "capability_catalog": str(capability_catalog.manifest_path),
+        "capability_catalog_sha256": capability_catalog.manifest_sha256,
         "profile": str(profile_path),
         "profile_sha256": sha256(profile_path),
         "workload": str(args.workload.resolve()),

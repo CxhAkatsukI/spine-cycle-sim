@@ -5,7 +5,9 @@ from pathlib import Path
 import unittest
 
 from scripts.run_sst_grasu_regraph_native import (
+    DEFAULT_CAPABILITY_CATALOG,
     native_active_hbm_channels,
+    require_native_algorithm_capability,
     validate_result,
 )
 
@@ -60,6 +62,17 @@ class GraSuNativeRunnerTests(unittest.TestCase):
 
     def test_accepts_closed_safe_native_ledger(self) -> None:
         validate_result(self.result, self.profile, 0)
+
+    def test_native_runner_is_bound_to_executable_unit_sssp_capability(self) -> None:
+        catalog, capability = require_native_algorithm_capability(
+            PROFILE.resolve(), DEFAULT_CAPABILITY_CATALOG.resolve()
+        )
+        self.assertEqual(capability.algorithm, "unit_weight_sssp")
+        self.assertEqual(capability.evidence_tier, "hardware_validated")
+        self.assertEqual(
+            catalog.profile(self.profile["profile_id"]).conversion_cost,
+            "included",
+        )
 
     def test_derives_only_hls_reachable_hbm_channels(self) -> None:
         self.assertEqual(

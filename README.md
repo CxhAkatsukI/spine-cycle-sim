@@ -47,6 +47,11 @@ records external/internal source IDs. Two FPGA workloads have exact
 graph/source/PMA/slot/superstep and SSSP alignment; absolute timing remains an
 explicitly trend-only result. See
 [`docs/grasu_regraph_native_e2e_20260725.md`](docs/grasu_regraph_native_e2e_20260725.md).
+The fail-closed algorithm capability catalog now makes the remaining native
+boundary machine-readable: the existing HLS profile can execute only
+unit-weight fixed-superstep SSSP, while weighted SSSP and both PageRank modes
+remain normalized simulation implementations. See
+[`docs/grasu_regraph_algorithm_capabilities_20260726.md`](docs/grasu_regraph_algorithm_capabilities_20260726.md).
 The frozen ten-case U55C calibration/holdout matrix now matches every graph,
 reordered source, PMA/compact count, superstep count, and SSSP output. Its
 unfitted timing remains optimistic by about 50% E2E median and is explicitly
