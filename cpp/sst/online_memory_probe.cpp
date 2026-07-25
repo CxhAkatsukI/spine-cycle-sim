@@ -3830,9 +3830,14 @@ class OnlineMemoryProbe final : public SST::Component {
       std::vector<std::uint64_t> compute_tiny_buffer_writes;
       std::vector<std::uint64_t> compute_tiny_buffer_reads;
       std::vector<std::uint64_t> compute_tile_active_clear_words;
+      std::vector<std::uint64_t> compute_tile_active_clear_lane_writes;
+      std::vector<std::uint64_t> compute_tile_active_mark_writes;
       std::vector<std::uint64_t> compute_sparse_store_scan_words;
+      std::vector<std::uint64_t> compute_sparse_store_lane_reads;
       std::vector<std::uint64_t> compute_sparse_store_bit_cycles;
       std::vector<std::uint64_t> compute_active_emit_scan_words;
+      std::vector<std::uint64_t> compute_active_emit_lane_reads;
+      std::vector<std::uint64_t> compute_active_emit_lane_writes;
       std::vector<std::uint64_t> compute_active_emit_bit_cycles;
       std::vector<std::uint64_t> compute_on_chip_controller_cycles;
       std::vector<std::uint64_t> compute_memory_requests_issued;
@@ -4002,12 +4007,22 @@ class OnlineMemoryProbe final : public SST::Component {
         compute_tiny_buffer_reads.push_back(round.compute.tiny_buffer_reads);
         compute_tile_active_clear_words.push_back(
             round.compute.tile_active_clear_words);
+        compute_tile_active_clear_lane_writes.push_back(
+            round.compute.tile_active_clear_lane_writes);
+        compute_tile_active_mark_writes.push_back(
+            round.compute.tile_active_mark_writes);
         compute_sparse_store_scan_words.push_back(
             round.compute.sparse_store_scan_words);
+        compute_sparse_store_lane_reads.push_back(
+            round.compute.sparse_store_lane_reads);
         compute_sparse_store_bit_cycles.push_back(
             round.compute.sparse_store_bit_cycles);
         compute_active_emit_scan_words.push_back(
             round.compute.active_emit_scan_words);
+        compute_active_emit_lane_reads.push_back(
+            round.compute.active_emit_lane_reads);
+        compute_active_emit_lane_writes.push_back(
+            round.compute.active_emit_lane_writes);
         compute_active_emit_bit_cycles.push_back(
             round.compute.active_emit_bit_cycles);
         compute_on_chip_controller_cycles.push_back(
@@ -4664,12 +4679,22 @@ class OnlineMemoryProbe final : public SST::Component {
       write_json_array(result, compute_tiny_buffer_reads);
       result << ",\n  \"compute_tile_active_clear_words_per_round\": ";
       write_json_array(result, compute_tile_active_clear_words);
+      result << ",\n  \"compute_tile_active_clear_lane_writes_per_round\": ";
+      write_json_array(result, compute_tile_active_clear_lane_writes);
+      result << ",\n  \"compute_tile_active_mark_writes_per_round\": ";
+      write_json_array(result, compute_tile_active_mark_writes);
       result << ",\n  \"compute_sparse_store_scan_words_per_round\": ";
       write_json_array(result, compute_sparse_store_scan_words);
+      result << ",\n  \"compute_sparse_store_lane_reads_per_round\": ";
+      write_json_array(result, compute_sparse_store_lane_reads);
       result << ",\n  \"compute_sparse_store_bit_cycles_per_round\": ";
       write_json_array(result, compute_sparse_store_bit_cycles);
       result << ",\n  \"compute_active_emit_scan_words_per_round\": ";
       write_json_array(result, compute_active_emit_scan_words);
+      result << ",\n  \"compute_active_emit_lane_reads_per_round\": ";
+      write_json_array(result, compute_active_emit_lane_reads);
+      result << ",\n  \"compute_active_emit_lane_writes_per_round\": ";
+      write_json_array(result, compute_active_emit_lane_writes);
       result << ",\n  \"compute_active_emit_bit_cycles_per_round\": ";
       write_json_array(result, compute_active_emit_bit_cycles);
       result << ",\n  \"compute_on_chip_controller_cycles_per_round\": ";

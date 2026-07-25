@@ -119,6 +119,13 @@ accepted Spine route as the primary result, and retains the canonical 134 MHz
 route as negative evidence. These numbers are native and non-normalized; see
 [`docs/fpga_routed_area_timing_20260725.md`](docs/fpga_routed_area_timing_20260725.md).
 
+Execution-driven physical array activity now feeds hash-pinned CACTI-P 6.5
+scratchpad characterizations while DRAMSim3 HBM energy remains a separate
+ledger. The first Spine and normalized GraSU/ReGraph vertical runs close every
+HBM request and explicitly label selected-array plus HBM energy as partial,
+not FPGA or total accelerator energy. See
+[`docs/onchip_energy_evidence_20260725.md`](docs/onchip_energy_evidence_20260725.md).
+
 ## Quick Start
 
 Run one workload:

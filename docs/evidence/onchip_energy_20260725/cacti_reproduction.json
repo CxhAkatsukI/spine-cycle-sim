@@ -1,0 +1,275 @@
+{
+  "build": {
+    "binary_sha256": "b2e4d844c81a947e7965914e56f57aa8164fb12c806f950863a6dcda93a9988a",
+    "command": [
+      "make",
+      "NTHREADS=1",
+      "-j2"
+    ],
+    "compatibility_patch": {
+      "after": "CXX = g++\nCC  = gcc",
+      "before": "CXX = g++ -m32\nCC  = gcc -m32",
+      "reason": "host has no 32-bit libstdc++ development headers",
+      "scope": "build_copy_only"
+    }
+  },
+  "characterizations": [
+    {
+      "characterization_id": "spine_tiny_edge_bram_32k_x64",
+      "config_sha256": "14445607523fd3c399cfa4d3278cd09282cf23c5ebf7b7784e803b7101bc745a",
+      "output_sha256": "8986afdab5ec9e3237af54d4d8b3b03c3bed6d29c8198681b31e455b327593ff",
+      "status": "PASS"
+    },
+    {
+      "characterization_id": "spine_vertex_tile_uram_256k_x32",
+      "config_sha256": "9c58cfd44c6cabbe0200d245549002296591462e6f4a6ab56e957b49e5a5825a",
+      "output_sha256": "925758b47541a3d61dcc6bab0bca052e8a69af9d7d5c4bf165f8c19d6a82e7a9",
+      "status": "PASS"
+    },
+    {
+      "characterization_id": "spine_active_bitmap_lane_128_x8",
+      "config_sha256": "60359bafc4f5b50b11d1a9d25e3ce8c2254f4794efcf8e820e78362e3663fa4f",
+      "output_sha256": "d1798bbd4a4488881429defbcc7b4cf4ef3623eed08a89772d87f46933a01784",
+      "status": "PASS"
+    },
+    {
+      "characterization_id": "grasu_source_cache_bank_16k_x512",
+      "config_sha256": "61af2138ecd4a0e504dcf92ff7422d8d311f137aa82c0d36293373fd92227d5f",
+      "output_sha256": "f354d25e8f8e51523b83ac5298b5d186ad343706184a013bc47489fbe06b8368",
+      "status": "PASS"
+    },
+    {
+      "characterization_id": "regraph_gather_bank_256k_x64",
+      "config_sha256": "0371bc5b8adc93842cb51ed691553ec1751c358a06009796edd655a9f6b8b796",
+      "output_sha256": "eed8f1a99c755a1aefdbafac088258f9e529e8eb2aae1e93f96ea83bf3f38883",
+      "status": "PASS"
+    }
+  ],
+  "source_identity": {
+    "file_count": 44,
+    "files": [
+      {
+        "bytes": 41500,
+        "path": "Ucache.cc",
+        "sha256": "ba45f8bca7b2f1760e68302dd02fb428ffe11245f972d0148fe50a4584b5aa31"
+      },
+      {
+        "bytes": 4010,
+        "path": "Ucache.h",
+        "sha256": "a68c336b97ead99e7e0c9e756731c4d988761ac85aae4de0e70831aa3226ddb3"
+      },
+      {
+        "bytes": 5114,
+        "path": "arbiter.cc",
+        "sha256": "f3f9d074752ee2165842d7ea721bc454e6a1a14b2460398805ed1d1bb5f31e20"
+      },
+      {
+        "bytes": 2765,
+        "path": "arbiter.h",
+        "sha256": "3997f06b614060c082f62c6c3b1e3092c9eeb42f5c841bc87c6cb6f848c9ba7c"
+      },
+      {
+        "bytes": 2059,
+        "path": "area.cc",
+        "sha256": "5681d2bffe02dcd29fa40cf62711f11e9826beed1c5d63b1a8c8f7300637dd80"
+      },
+      {
+        "bytes": 2418,
+        "path": "area.h",
+        "sha256": "40369e3dd9e4f5b61423a7a8ae8c136b3bcc748c1b1f8c257b081736a945c945"
+      },
+      {
+        "bytes": 8698,
+        "path": "bank.cc",
+        "sha256": "6c16c63b41409167865fac19ee74147fa89fae618a10e2ce1c00335bb46f1c16"
+      },
+      {
+        "bytes": 2666,
+        "path": "bank.h",
+        "sha256": "2c1795088d3137994825129b8155e00833cc9bf570102f7128e3da35afb739bd"
+      },
+      {
+        "bytes": 26513,
+        "path": "basic_circuit.cc",
+        "sha256": "8b6cff9c47d490093f19607445baf2eccfe9af624f611161102e2c9448889943"
+      },
+      {
+        "bytes": 6371,
+        "path": "basic_circuit.h",
+        "sha256": "a5bdf80a1ae869ce0a4b853d1ee292b8a733514621484ac3b315988e47238f46"
+      },
+      {
+        "bytes": 1248,
+        "path": "cacti.mk",
+        "sha256": "01cfae2b28aad5f3dfaa518adcc5dc5552d1b7891a471c43743d456cb3de9422"
+      },
+      {
+        "bytes": 6425,
+        "path": "cacti_interface.cc",
+        "sha256": "ee727e11a571dbd51708b2c35b00e91d6b874434b75c66f47ba0f7a6eab9c330"
+      },
+      {
+        "bytes": 23119,
+        "path": "cacti_interface.h",
+        "sha256": "a490dc3bad512ca177a13868d94b899c0418b15b605674b137124bf343900ba3"
+      },
+      {
+        "bytes": 7536,
+        "path": "component.cc",
+        "sha256": "60fb67dea97adc6eb4adec01e90b8c8419279d6a5632613d38c81e3b93d90ba0"
+      },
+      {
+        "bytes": 2839,
+        "path": "component.h",
+        "sha256": "bbfd2fb1b731a53caea9620dc3b2238aef2b12b335fe8577e02630c72fb50a86"
+      },
+      {
+        "bytes": 9501,
+        "path": "const.h",
+        "sha256": "3a780ee086301cd9482665a1edd655232dd72efc36b0d0304d68fce3485e6643"
+      },
+      {
+        "bytes": 7347,
+        "path": "crossbar.cc",
+        "sha256": "f4c5f294f5b2d7c77da6c208aca5f814a55122182e593cbbbba8660532010feb"
+      },
+      {
+        "bytes": 3198,
+        "path": "crossbar.h",
+        "sha256": "0339c9529e966a268200e4b90db4eded35838aee2434bc579ed8ff4d6a8f41d1"
+      },
+      {
+        "bytes": 64178,
+        "path": "decoder.cc",
+        "sha256": "326ce7b4ffe0f2fd5ab7c115dcf472f7e88f1e90417732f77662e1eff6e8b485"
+      },
+      {
+        "bytes": 7610,
+        "path": "decoder.h",
+        "sha256": "529376309e50fc5a2c091584b7e6e2f008e63be42da8fd856f7e3e8284502794"
+      },
+      {
+        "bytes": 25611,
+        "path": "htree2.cc",
+        "sha256": "d0805a29506b6cb8bd8bde4a86efc235d010649d3d53f5328d3e853678b8ccca"
+      },
+      {
+        "bytes": 3589,
+        "path": "htree2.h",
+        "sha256": "ea7516d307c21e71e66adc2f4c06391802150b7b2fdd30f10cf118968de6e72c"
+      },
+      {
+        "bytes": 129873,
+        "path": "io.cc",
+        "sha256": "612244f9903844bd11bac15c82c9860870f880e428f6d6bfb2e64abd24f1ba45"
+      },
+      {
+        "bytes": 2045,
+        "path": "io.h",
+        "sha256": "1937712bee078dff8d09ca709968d88a3bb1d9f76c82133cf31cd6a9d8f67fb8"
+      },
+      {
+        "bytes": 5648,
+        "path": "main.cc",
+        "sha256": "3ec75ee9915ddb68de08c7b9472e8ebd82a4b79956521a8a16970e195e701780"
+      },
+      {
+        "bytes": 407,
+        "path": "makefile",
+        "sha256": "6fa76e4a333bada92faf2a1c9f40782dc6dd4d092808de3772556e591187e560"
+      },
+      {
+        "bytes": 97657,
+        "path": "mat.cc",
+        "sha256": "e9271b11807b8ccf748feb3bf3df17a281ad5269d460446f9599f022a481b856"
+      },
+      {
+        "bytes": 5960,
+        "path": "mat.h",
+        "sha256": "cde504c44fbf4f20b0bbfe11a55c7fca13ba2faa16d3598a0755dd3a42d8bb17"
+      },
+      {
+        "bytes": 19607,
+        "path": "nuca.cc",
+        "sha256": "b294b38df888e0c5651bc1c442a461323ed7badd2e7a3cf658034ffecc20c624"
+      },
+      {
+        "bytes": 3300,
+        "path": "nuca.h",
+        "sha256": "b2c08c169d02e9900ce6a62fb0e2fedbc88f9ab36e2bce19aae3e6503ebf70cf"
+      },
+      {
+        "bytes": 27410,
+        "path": "parameter.cc",
+        "sha256": "05274bee836622b1a01cf032863365c5ca8237cf0eb6d3fcbec49d100b792c6f"
+      },
+      {
+        "bytes": 10432,
+        "path": "parameter.h",
+        "sha256": "895a02ebb820b7c4ecc01e40dbfd96763231d8f2cb3ca935f74c94ecff492282"
+      },
+      {
+        "bytes": 6821,
+        "path": "powergating.cc",
+        "sha256": "cc5b3dc23f8d12ec601519fdb1425e8575f65265a8c69381e612a21dc46fe493"
+      },
+      {
+        "bytes": 3053,
+        "path": "powergating.h",
+        "sha256": "8425f18bf3425c269eb0e53be574231de3af94fd93d8fd06c16a5a44c3c7ab5f"
+      },
+      {
+        "bytes": 10210,
+        "path": "router.cc",
+        "sha256": "9f5c61a3763af406376d845dcf82cfacbf98fc6f8bca1ca3382d1476b80be044"
+      },
+      {
+        "bytes": 3715,
+        "path": "router.h",
+        "sha256": "af179e650879fff27b8be679537acfc526e52e189074b8d5719618242b17808e"
+      },
+      {
+        "bytes": 8081,
+        "path": "subarray.cc",
+        "sha256": "a21c7d936469e7443030a717c19918625d54b9e4901e3159eedd02b2f476e6ff"
+      },
+      {
+        "bytes": 2544,
+        "path": "subarray.h",
+        "sha256": "c1325d188e48120013790177d2e6b01c86c10cac6f1404939958902259e04d4f"
+      },
+      {
+        "bytes": 143141,
+        "path": "technology.cc",
+        "sha256": "5a0543059b7e9dc9526a41740c337e645f21719c7333ae965e0a7b01069038f9"
+      },
+      {
+        "bytes": 20342,
+        "path": "uca.cc",
+        "sha256": "cfb0e0b3ace1a924d87972341c7e73a152ff2dde106620131d78e3f7896eb236"
+      },
+      {
+        "bytes": 3488,
+        "path": "uca.h",
+        "sha256": "87cf95ed8e72a38699c131b7f12bb889d33804e59dc7591bf910de026df7dcea"
+      },
+      {
+        "bytes": 2176,
+        "path": "version_cacti.h",
+        "sha256": "2634d7fc666bd350f373780e61a8db2fad2a361d32ffd0b9ddf76bc2528d70da"
+      },
+      {
+        "bytes": 31920,
+        "path": "wire.cc",
+        "sha256": "01faef0bf941fba8fa7525f3e14a0a1a42560f4e41510d62329c292eefaabbe5"
+      },
+      {
+        "bytes": 4668,
+        "path": "wire.h",
+        "sha256": "181205858a67d6951f0793795eb105a777cb32845161cac48b554fa1d812b688"
+      }
+    ],
+    "tree_sha256": "7a0111224b7537f53fbb31fa50d9718f7eca26d8c803e822a100555d27734a83"
+  },
+  "status": "PASS"
+}

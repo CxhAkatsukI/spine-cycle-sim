@@ -1,0 +1,301 @@
+{
+  "schema_version": 1,
+  "claim_class": "simulated_activity_plus_dramsim3_and_cacti_selected_arrays",
+  "repository_root": "../..",
+  "cacti": {
+    "tool": "CACTI-P 6.5",
+    "release": "June 2014",
+    "source_hint": "/data/feiyang/mcpat/cacti",
+    "source_tree_sha256": "7a0111224b7537f53fbb31fa50d9718f7eca26d8c803e822a100555d27734a83",
+    "source_file_count": 44,
+    "technology_nm": 32,
+    "temperature_k": 350,
+    "compiler": "g++ (Debian 15.2.0-14) 15.2.0",
+    "built_binary_sha256": "b2e4d844c81a947e7965914e56f57aa8164fb12c806f950863a6dcda93a9988a",
+    "compatibility_patch": "build-copy-only removal of cacti.mk -m32 from CXX and CC",
+    "claim_label": "projected_asic_sram_characterization_not_fpga_bram_uram_power"
+  },
+  "characterizations": [
+    {
+      "characterization_id": "spine_tiny_edge_bram_32k_x64",
+      "geometry": {
+        "size_bytes": 32768,
+        "word_bytes": 8,
+        "banks": 1,
+        "technology_nm": 32,
+        "temperature_k": 350,
+        "read_write_ports": 1,
+        "read_ports": 0,
+        "write_ports": 0
+      },
+      "config": {
+        "path": "docs/evidence/onchip_energy_20260725/raw/cacti/spine_tiny_edge_bram.cfg",
+        "archive_sha256": "14445607523fd3c399cfa4d3278cd09282cf23c5ebf7b7784e803b7101bc745a",
+        "content_sha256": "14445607523fd3c399cfa4d3278cd09282cf23c5ebf7b7784e803b7101bc745a"
+      },
+      "output": {
+        "path": "docs/evidence/onchip_energy_20260725/raw/cacti/spine_tiny_edge_bram.out",
+        "archive_sha256": "8986afdab5ec9e3237af54d4d8b3b03c3bed6d29c8198681b31e455b327593ff",
+        "content_sha256": "8986afdab5ec9e3237af54d4d8b3b03c3bed6d29c8198681b31e455b327593ff"
+      }
+    },
+    {
+      "characterization_id": "spine_vertex_tile_uram_256k_x32",
+      "geometry": {
+        "size_bytes": 262144,
+        "word_bytes": 4,
+        "banks": 1,
+        "technology_nm": 32,
+        "temperature_k": 350,
+        "read_write_ports": 0,
+        "read_ports": 1,
+        "write_ports": 1
+      },
+      "config": {
+        "path": "docs/evidence/onchip_energy_20260725/raw/cacti/spine_vertex_tile_uram.cfg",
+        "archive_sha256": "9c58cfd44c6cabbe0200d245549002296591462e6f4a6ab56e957b49e5a5825a",
+        "content_sha256": "9c58cfd44c6cabbe0200d245549002296591462e6f4a6ab56e957b49e5a5825a"
+      },
+      "output": {
+        "path": "docs/evidence/onchip_energy_20260725/raw/cacti/spine_vertex_tile_uram.out",
+        "archive_sha256": "925758b47541a3d61dcc6bab0bca052e8a69af9d7d5c4bf165f8c19d6a82e7a9",
+        "content_sha256": "925758b47541a3d61dcc6bab0bca052e8a69af9d7d5c4bf165f8c19d6a82e7a9"
+      }
+    },
+    {
+      "characterization_id": "spine_active_bitmap_lane_128_x8",
+      "geometry": {
+        "size_bytes": 128,
+        "word_bytes": 1,
+        "banks": 1,
+        "technology_nm": 32,
+        "temperature_k": 350,
+        "read_write_ports": 1,
+        "read_ports": 0,
+        "write_ports": 0
+      },
+      "config": {
+        "path": "docs/evidence/onchip_energy_20260725/raw/cacti/spine_active_lane_bram.cfg",
+        "archive_sha256": "60359bafc4f5b50b11d1a9d25e3ce8c2254f4794efcf8e820e78362e3663fa4f",
+        "content_sha256": "60359bafc4f5b50b11d1a9d25e3ce8c2254f4794efcf8e820e78362e3663fa4f"
+      },
+      "output": {
+        "path": "docs/evidence/onchip_energy_20260725/raw/cacti/spine_active_lane_bram.out",
+        "archive_sha256": "d1798bbd4a4488881429defbcc7b4cf4ef3623eed08a89772d87f46933a01784",
+        "content_sha256": "d1798bbd4a4488881429defbcc7b4cf4ef3623eed08a89772d87f46933a01784"
+      }
+    },
+    {
+      "characterization_id": "grasu_source_cache_bank_16k_x512",
+      "geometry": {
+        "size_bytes": 16384,
+        "word_bytes": 64,
+        "banks": 1,
+        "technology_nm": 32,
+        "temperature_k": 350,
+        "read_write_ports": 0,
+        "read_ports": 1,
+        "write_ports": 1
+      },
+      "config": {
+        "path": "docs/evidence/onchip_energy_20260725/raw/cacti/grasu_source_cache_bank.cfg",
+        "archive_sha256": "61af2138ecd4a0e504dcf92ff7422d8d311f137aa82c0d36293373fd92227d5f",
+        "content_sha256": "61af2138ecd4a0e504dcf92ff7422d8d311f137aa82c0d36293373fd92227d5f"
+      },
+      "output": {
+        "path": "docs/evidence/onchip_energy_20260725/raw/cacti/grasu_source_cache_bank.out",
+        "archive_sha256": "f354d25e8f8e51523b83ac5298b5d186ad343706184a013bc47489fbe06b8368",
+        "content_sha256": "f354d25e8f8e51523b83ac5298b5d186ad343706184a013bc47489fbe06b8368"
+      }
+    },
+    {
+      "characterization_id": "regraph_gather_bank_256k_x64",
+      "geometry": {
+        "size_bytes": 262144,
+        "word_bytes": 8,
+        "banks": 1,
+        "technology_nm": 32,
+        "temperature_k": 350,
+        "read_write_ports": 0,
+        "read_ports": 1,
+        "write_ports": 1
+      },
+      "config": {
+        "path": "docs/evidence/onchip_energy_20260725/raw/cacti/regraph_gather_bank.cfg",
+        "archive_sha256": "0371bc5b8adc93842cb51ed691553ec1751c358a06009796edd655a9f6b8b796",
+        "content_sha256": "0371bc5b8adc93842cb51ed691553ec1751c358a06009796edd655a9f6b8b796"
+      },
+      "output": {
+        "path": "docs/evidence/onchip_energy_20260725/raw/cacti/regraph_gather_bank.out",
+        "archive_sha256": "eed8f1a99c755a1aefdbafac088258f9e529e8eb2aae1e93f96ea83bf3f38883",
+        "content_sha256": "eed8f1a99c755a1aefdbafac088258f9e529e8eb2aae1e93f96ea83bf3f38883"
+      }
+    }
+  ],
+  "runs": [
+    {
+      "run_id": "spine_weighted_sssp_selected_arrays",
+      "system": "spine",
+      "profile_id": "spine_shared_engine_9c08763",
+      "comparison_role": "older_native_hardware_calibrated_profile",
+      "claim_label": "hardware_profile_structural_execution_selected_array_energy",
+      "profile": {
+        "path": "configs/architectures/spine_shared_engine_9c08763.json",
+        "archive_sha256": "aba0d6bbcbaa64240897ed3efc555d6ce6d6455d2f10e77e0ccdb77fa46466a7",
+        "content_sha256": "aba0d6bbcbaa64240897ed3efc555d6ce6d6455d2f10e77e0ccdb77fa46466a7"
+      },
+      "activity": {
+        "path": "docs/evidence/onchip_energy_20260725/raw/spine/summary.json.gz",
+        "archive_sha256": "3f4309e8b30e2a41754bbe83009b414d96611d65defaae006bd3783d762d1589",
+        "content_sha256": "e8baeed01ae098ff41353b93d34012ffc944506c4f3b7a8e2ddaaf230949cebd"
+      },
+      "activity_assertions": [
+        {"path": "status", "equals": "PASS"},
+        {"path": "architecture_profile_id", "equals": "spine_shared_engine_9c08763"},
+        {"path": "source_revision", "equals": "9c08763148644df262c0d374e782bc834f4c0f4f"},
+        {"path": "simulation_evidence_tier", "equals": "structural_execution_driven"}
+      ],
+      "success_path": "success",
+      "correctness_mismatches_path": "correctness_mismatches",
+      "cycles_path": "cycles",
+      "backend_requests_path": "backend_requests",
+      "clock_name": "data",
+      "clock_mhz": 141.0,
+      "dram": {
+        "directory": "docs/evidence/onchip_energy_20260725/raw/spine/dram",
+        "glob": "channel*/dramsim3.json.gz",
+        "expected_files": 32,
+        "content_bundle_sha256": "da0b63f2f2bff2997d837f6a42180f1e2e74148d3808ec58a75864817ce6271b"
+      },
+      "arrays": [
+        {
+          "array_id": "tiny_edge_buffer",
+          "hardware_mapping": "Spine tiny_edge_buffer: 4096 x 64-bit one-port BRAM",
+          "characterization_id": "spine_tiny_edge_bram_32k_x64",
+          "instances": 1,
+          "activity_scope": "total_physical_array_accesses",
+          "read_terms": [{"path": "compute_tiny_bram_read_requests_per_round"}],
+          "write_terms": [{"path": "compute_tiny_bram_write_requests_per_round"}]
+        },
+        {
+          "array_id": "vertex_state_tile",
+          "hardware_mapping": "Spine vs_tile: 65536 x 32-bit true-dual-port URAM",
+          "characterization_id": "spine_vertex_tile_uram_256k_x32",
+          "instances": 1,
+          "activity_scope": "total_physical_array_accesses",
+          "read_terms": [{"path": "compute_vs_uram_read_requests_per_round"}],
+          "write_terms": [{"path": "compute_vs_uram_write_requests_per_round"}]
+        },
+        {
+          "array_id": "active_bitmap_lanes",
+          "hardware_mapping": "Spine tile_active_bits[64][1024]: 64 independent one-bit lanes approximated as 128-byte x 8-bit CACTI banks",
+          "characterization_id": "spine_active_bitmap_lane_128_x8",
+          "instances": 64,
+          "activity_scope": "total_physical_array_accesses",
+          "read_terms": [
+            {"path": "compute_sparse_store_lane_reads_per_round"},
+            {"path": "compute_active_emit_lane_reads_per_round"}
+          ],
+          "write_terms": [
+            {"path": "compute_tile_active_clear_lane_writes_per_round"},
+            {"path": "compute_tile_active_mark_writes_per_round"},
+            {"path": "compute_active_emit_lane_writes_per_round"}
+          ]
+        }
+      ],
+      "selected_array_coverage": [
+        "compute tiny-edge BRAM",
+        "compute vertex-state tile URAM",
+        "compute 64-lane active bitmap"
+      ],
+      "omitted_energy": [
+        "latest afb8199 source delta relative to the older accepted 9c08763 profile",
+        "maintenance sort/reorder storage and small FIFOs",
+        "compute and maintenance logic, AXI fabric, and clock tree",
+        "host, PCIe, shell, and board power",
+        "FPGA BRAM/URAM technology-specific power"
+      ]
+    },
+    {
+      "run_id": "grasu_regraph_weighted_sssp_selected_arrays",
+      "system": "grasu_regraph",
+      "profile_id": "grasu_regraph_normalized_weighted_spine23",
+      "comparison_role": "normalized_conversion_free",
+      "claim_label": "normalized_simulation_selected_array_energy",
+      "profile": {
+        "path": "configs/architectures/grasu_regraph_normalized_weighted_spine23.json",
+        "archive_sha256": "eadcba6251c2cbe47ab45eb2bc45f5ca5e7c490df8cbfb2a280c9b6c099f6201",
+        "content_sha256": "eadcba6251c2cbe47ab45eb2bc45f5ca5e7c490df8cbfb2a280c9b6c099f6201"
+      },
+      "activity": {
+        "path": "docs/evidence/onchip_energy_20260725/raw/grasu_regraph/result.json.gz",
+        "archive_sha256": "de02ef294fc6c2ec6347769ee63b39d42de85885c05488131796cd4f33b0ef94",
+        "content_sha256": "56706c75c6a489d8a3bcc398482274b5d3403b722b0d2c073a9d8f1f32fc34d4"
+      },
+      "activity_assertions": [
+        {"path": "claim_class", "equals": "normalized_simulation"},
+        {"path": "timing_evidence", "equals": "structural_execution_driven"},
+        {"path": "pma_edge_abi", "equals": "regraph_weighted32_dst19_weight12"},
+        {"path": "edge_lanes", "equals": 4},
+        {"path": "gather_banks", "equals": 4}
+      ],
+      "success_path": "success",
+      "correctness_mismatches_path": "correctness_mismatches",
+      "cycles_path": "cycles",
+      "backend_requests_path": "backend_requests",
+      "clock_name": "kernel",
+      "clock_mhz": 150.0,
+      "dram": {
+        "directory": "docs/evidence/onchip_energy_20260725/raw/grasu_regraph/dram",
+        "glob": "channel*/dramsim3.json.gz",
+        "expected_files": 32,
+        "content_bundle_sha256": "9d74afe26f3bf74d3581f99518d6dc7c0ea18a525640ec5fd9a09be3af00f153"
+      },
+      "arrays": [
+        {
+          "array_id": "source_property_pingpong_banks",
+          "hardware_mapping": "normalized ReGraph source cache: 4 lane copies x 2 ping-pong slots, each 256 x 512-bit S2P bank",
+          "characterization_id": "grasu_source_cache_bank_16k_x512",
+          "instances": 8,
+          "activity_scope": "total_physical_array_accesses",
+          "read_terms": [{"path": "compute_edge_batches", "multiplier": 4}],
+          "write_terms": [{"path": "source_cache_lane_writes"}]
+        },
+        {
+          "array_id": "gather_temporary_property_banks",
+          "hardware_mapping": "normalized ReGraph gather: 4 independent 32768 x 64-bit S2P URAM banks",
+          "characterization_id": "regraph_gather_bank_256k_x64",
+          "instances": 4,
+          "activity_scope": "total_physical_array_accesses",
+          "read_terms": [
+            {"path": "gather_bank_updates"},
+            {"path": "gather_merge_cycles", "multiplier": 4}
+          ],
+          "write_terms": [
+            {"path": "gather_reset_cycles", "multiplier": 4},
+            {"path": "gather_bank_updates"},
+            {"path": "gather_merge_cycles", "multiplier": 4}
+          ]
+        }
+      ],
+      "selected_array_coverage": [
+        "normalized PMA-native ReGraph replicated source-property cache",
+        "normalized PMA-native ReGraph gather temporary-property URAM"
+      ],
+      "omitted_energy": [
+        "GraSU update control and ReGraph Map-Reduce/apply logic",
+        "small FIFO, bypass-register, and AXI fabric storage",
+        "host, PCIe, shell, and board power",
+        "matching synthesized HLS for the normalized weighted architecture"
+      ]
+    }
+  ],
+  "limitations": [
+    "The two archived workloads are vertical energy-accounting evidence, not a matched graph/workload performance or energy comparison.",
+    "The Spine run uses the accepted older 9c08763 hardware profile at its achieved 141 MHz clock; it is not an afb8199 latest-source energy result.",
+    "CACTI-P models projected 32 nm ASIC SRAM arrays; it does not model U55C BRAM/URAM or FPGA board power.",
+    "Selected-array plus DRAM energy is intentionally labeled partial and must not be reported as total accelerator energy.",
+    "Logic, interconnect, clock-tree, host, shell, and unlisted small-memory energy require synthesis activity or board measurements.",
+    "The GraSU/ReGraph result is normalized and conversion-free; no matching weighted PMA-native HLS has been synthesized yet."
+  ]
+}

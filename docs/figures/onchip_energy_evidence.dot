@@ -1,0 +1,29 @@
+digraph EnergyEvidence {
+  graph [rankdir=LR, bgcolor="white", pad="0.18", nodesep="0.30", ranksep="0.55"];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=10,
+        color="#4D5963", fillcolor="#F4F6F7", margin="0.10,0.06"];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#66727B", arrowsize=0.7];
+
+  subgraph cluster_execution {
+    label="Execution-driven simulator";
+    color="#9AA6AD";
+    activity [label="Spine or GraSU/ReGraph\ncycle/FIFO/array activity", fillcolor="#E8F1EC"];
+    axi [label="Shared AXI + SST-HBM\nrequest stream", fillcolor="#E8F1EC"];
+  }
+
+  subgraph cluster_memory {
+    label="Independent characterization";
+    color="#9AA6AD";
+    cacti [label="CACTI-P 6.5\n32 nm SRAM R/W + leakage + area", fillcolor="#F8F0E5"];
+    dram [label="DRAMSim3\nHBM commands + background energy", fillcolor="#F8F0E5"];
+  }
+
+  ledger [label="Hash-pinned partial ledger\nselected SRAM dynamic + leakage\n+ HBM-only energy", fillcolor="#E9EEF5"];
+  boundary [label="Explicit omissions\nlogic | AXI fabric | clocks | host | board\nnot total accelerator energy", fillcolor="#F5E9E8", color="#8B5D59"];
+
+  activity -> cacti [label="physical R/W counts"];
+  axi -> dram [label="accepted requests"];
+  cacti -> ledger [label="pJ/access, mW, mm2"];
+  dram -> ledger [label="pJ; R+W closure"];
+  ledger -> boundary [label="claim guard"];
+}

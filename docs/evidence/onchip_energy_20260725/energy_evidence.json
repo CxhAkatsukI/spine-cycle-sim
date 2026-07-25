@@ -1,0 +1,1027 @@
+{
+  "cacti": {
+    "built_binary_sha256": "b2e4d844c81a947e7965914e56f57aa8164fb12c806f950863a6dcda93a9988a",
+    "claim_label": "projected_asic_sram_characterization_not_fpga_bram_uram_power",
+    "compatibility_patch": "build-copy-only removal of cacti.mk -m32 from CXX and CC",
+    "compiler": "g++ (Debian 15.2.0-14) 15.2.0",
+    "release": "June 2014",
+    "source_file_count": 44,
+    "source_hint": "/data/feiyang/mcpat/cacti",
+    "source_tree_sha256": "7a0111224b7537f53fbb31fa50d9718f7eca26d8c803e822a100555d27734a83",
+    "technology_nm": 32,
+    "temperature_k": 350,
+    "tool": "CACTI-P 6.5"
+  },
+  "characterizations": [
+    {
+      "characterization_id": "spine_tiny_edge_bram_32k_x64",
+      "config_identity": {
+        "archive_bytes": 1703,
+        "archive_sha256": "14445607523fd3c399cfa4d3278cd09282cf23c5ebf7b7784e803b7101bc745a",
+        "compression": "none",
+        "content_bytes": 1703,
+        "content_sha256": "14445607523fd3c399cfa4d3278cd09282cf23c5ebf7b7784e803b7101bc745a",
+        "path": "docs/evidence/onchip_energy_20260725/raw/cacti/spine_tiny_edge_bram.cfg"
+      },
+      "geometry": {
+        "banks": 1,
+        "read_ports": 0,
+        "read_write_ports": 1,
+        "size_bytes": 32768,
+        "technology_nm": 32,
+        "temperature_k": 350,
+        "word_bytes": 8,
+        "write_ports": 0
+      },
+      "output_identity": {
+        "archive_bytes": 4729,
+        "archive_sha256": "8986afdab5ec9e3237af54d4d8b3b03c3bed6d29c8198681b31e455b327593ff",
+        "compression": "none",
+        "content_bytes": 4729,
+        "content_sha256": "8986afdab5ec9e3237af54d4d8b3b03c3bed6d29c8198681b31e455b327593ff",
+        "path": "docs/evidence/onchip_energy_20260725/raw/cacti/spine_tiny_edge_bram.out"
+      },
+      "result": {
+        "access_time_ns": 0.443513,
+        "area_mm2": 0.095032281696,
+        "claim_label": "projected_asic_sram_characterization",
+        "cycle_time_ns": 0.125604,
+        "geometry": {
+          "banks": 1,
+          "read_ports": 0,
+          "read_write_ports": 1,
+          "size_bytes": 32768,
+          "technology_nm": 32,
+          "word_bytes": 8,
+          "write_ports": 0
+        },
+        "height_mm": 0.647328,
+        "leakage_power_mw": 18.8837,
+        "organization": {
+          "ndbl": 16,
+          "ndcm": 1,
+          "ndsam1": 1,
+          "ndsam2": 4,
+          "ndwl": 4,
+          "nspd": 4.0
+        },
+        "read_energy_nj": 0.0144926,
+        "tool": "CACTI-P 6.5 (June 2014)",
+        "width_mm": 0.146807,
+        "write_energy_nj": 0.0148587
+      }
+    },
+    {
+      "characterization_id": "spine_vertex_tile_uram_256k_x32",
+      "config_identity": {
+        "archive_bytes": 1704,
+        "archive_sha256": "9c58cfd44c6cabbe0200d245549002296591462e6f4a6ab56e957b49e5a5825a",
+        "compression": "none",
+        "content_bytes": 1704,
+        "content_sha256": "9c58cfd44c6cabbe0200d245549002296591462e6f4a6ab56e957b49e5a5825a",
+        "path": "docs/evidence/onchip_energy_20260725/raw/cacti/spine_vertex_tile_uram.cfg"
+      },
+      "geometry": {
+        "banks": 1,
+        "read_ports": 1,
+        "read_write_ports": 0,
+        "size_bytes": 262144,
+        "technology_nm": 32,
+        "temperature_k": 350,
+        "word_bytes": 4,
+        "write_ports": 1
+      },
+      "output_identity": {
+        "archive_bytes": 4727,
+        "archive_sha256": "925758b47541a3d61dcc6bab0bca052e8a69af9d7d5c4bf165f8c19d6a82e7a9",
+        "compression": "none",
+        "content_bytes": 4727,
+        "content_sha256": "925758b47541a3d61dcc6bab0bca052e8a69af9d7d5c4bf165f8c19d6a82e7a9",
+        "path": "docs/evidence/onchip_energy_20260725/raw/cacti/spine_vertex_tile_uram.out"
+      },
+      "result": {
+        "access_time_ns": 1.01543,
+        "area_mm2": 1.63118752538,
+        "claim_label": "projected_asic_sram_characterization",
+        "cycle_time_ns": 0.09596,
+        "geometry": {
+          "banks": 1,
+          "read_ports": 1,
+          "read_write_ports": 0,
+          "size_bytes": 262144,
+          "technology_nm": 32,
+          "word_bytes": 4,
+          "write_ports": 1
+        },
+        "height_mm": 2.01286,
+        "leakage_power_mw": 148.921,
+        "organization": {
+          "ndbl": 64,
+          "ndcm": 1,
+          "ndsam1": 1,
+          "ndsam2": 2,
+          "ndwl": 64,
+          "nspd": 32.0
+        },
+        "read_energy_nj": 0.0480811,
+        "tool": "CACTI-P 6.5 (June 2014)",
+        "width_mm": 0.810383,
+        "write_energy_nj": 0.0482702
+      }
+    },
+    {
+      "characterization_id": "spine_active_bitmap_lane_128_x8",
+      "config_identity": {
+        "archive_bytes": 1700,
+        "archive_sha256": "60359bafc4f5b50b11d1a9d25e3ce8c2254f4794efcf8e820e78362e3663fa4f",
+        "compression": "none",
+        "content_bytes": 1700,
+        "content_sha256": "60359bafc4f5b50b11d1a9d25e3ce8c2254f4794efcf8e820e78362e3663fa4f",
+        "path": "docs/evidence/onchip_energy_20260725/raw/cacti/spine_active_lane_bram.cfg"
+      },
+      "geometry": {
+        "banks": 1,
+        "read_ports": 0,
+        "read_write_ports": 1,
+        "size_bytes": 128,
+        "technology_nm": 32,
+        "temperature_k": 350,
+        "word_bytes": 1,
+        "write_ports": 0
+      },
+      "output_identity": {
+        "archive_bytes": 4761,
+        "archive_sha256": "d1798bbd4a4488881429defbcc7b4cf4ef3623eed08a89772d87f46933a01784",
+        "compression": "none",
+        "content_bytes": 4761,
+        "content_sha256": "d1798bbd4a4488881429defbcc7b4cf4ef3623eed08a89772d87f46933a01784",
+        "path": "docs/evidence/onchip_energy_20260725/raw/cacti/spine_active_lane_bram.out"
+      },
+      "result": {
+        "access_time_ns": 0.182137,
+        "area_mm2": 0.00044859348755,
+        "claim_label": "projected_asic_sram_characterization",
+        "cycle_time_ns": 0.0673218,
+        "geometry": {
+          "banks": 1,
+          "read_ports": 0,
+          "read_write_ports": 1,
+          "size_bytes": 128,
+          "technology_nm": 32,
+          "word_bytes": 1,
+          "write_ports": 0
+        },
+        "height_mm": 0.0429461,
+        "leakage_power_mw": 0.0814287,
+        "organization": {
+          "ndbl": 2,
+          "ndcm": 1,
+          "ndsam1": 1,
+          "ndsam2": 2,
+          "ndwl": 4,
+          "nspd": 2.0
+        },
+        "read_energy_nj": 0.000129427,
+        "tool": "CACTI-P 6.5 (June 2014)",
+        "width_mm": 0.0104455,
+        "write_energy_nj": 0.000163533
+      }
+    },
+    {
+      "characterization_id": "grasu_source_cache_bank_16k_x512",
+      "config_identity": {
+        "archive_bytes": 1705,
+        "archive_sha256": "61af2138ecd4a0e504dcf92ff7422d8d311f137aa82c0d36293373fd92227d5f",
+        "compression": "none",
+        "content_bytes": 1705,
+        "content_sha256": "61af2138ecd4a0e504dcf92ff7422d8d311f137aa82c0d36293373fd92227d5f",
+        "path": "docs/evidence/onchip_energy_20260725/raw/cacti/grasu_source_cache_bank.cfg"
+      },
+      "geometry": {
+        "banks": 1,
+        "read_ports": 1,
+        "read_write_ports": 0,
+        "size_bytes": 16384,
+        "technology_nm": 32,
+        "temperature_k": 350,
+        "word_bytes": 64,
+        "write_ports": 1
+      },
+      "output_identity": {
+        "archive_bytes": 4715,
+        "archive_sha256": "f354d25e8f8e51523b83ac5298b5d186ad343706184a013bc47489fbe06b8368",
+        "compression": "none",
+        "content_bytes": 4715,
+        "content_sha256": "f354d25e8f8e51523b83ac5298b5d186ad343706184a013bc47489fbe06b8368",
+        "path": "docs/evidence/onchip_energy_20260725/raw/cacti/grasu_source_cache_bank.out"
+      },
+      "result": {
+        "access_time_ns": 0.422116,
+        "area_mm2": 0.28698989335,
+        "claim_label": "projected_asic_sram_characterization",
+        "cycle_time_ns": 0.137916,
+        "geometry": {
+          "banks": 1,
+          "read_ports": 1,
+          "read_write_ports": 0,
+          "size_bytes": 16384,
+          "technology_nm": 32,
+          "word_bytes": 64,
+          "write_ports": 1
+        },
+        "height_mm": 0.645725,
+        "leakage_power_mw": 33.0204,
+        "organization": {
+          "ndbl": 4,
+          "ndcm": 1,
+          "ndsam1": 1,
+          "ndsam2": 2,
+          "ndwl": 8,
+          "nspd": 1.0
+        },
+        "read_energy_nj": 0.12638,
+        "tool": "CACTI-P 6.5 (June 2014)",
+        "width_mm": 0.444446,
+        "write_energy_nj": 0.164092
+      }
+    },
+    {
+      "characterization_id": "regraph_gather_bank_256k_x64",
+      "config_identity": {
+        "archive_bytes": 1704,
+        "archive_sha256": "0371bc5b8adc93842cb51ed691553ec1751c358a06009796edd655a9f6b8b796",
+        "compression": "none",
+        "content_bytes": 1704,
+        "content_sha256": "0371bc5b8adc93842cb51ed691553ec1751c358a06009796edd655a9f6b8b796",
+        "path": "docs/evidence/onchip_energy_20260725/raw/cacti/regraph_gather_bank.cfg"
+      },
+      "geometry": {
+        "banks": 1,
+        "read_ports": 1,
+        "read_write_ports": 0,
+        "size_bytes": 262144,
+        "technology_nm": 32,
+        "temperature_k": 350,
+        "word_bytes": 8,
+        "write_ports": 1
+      },
+      "output_identity": {
+        "archive_bytes": 4718,
+        "archive_sha256": "eed8f1a99c755a1aefdbafac088258f9e529e8eb2aae1e93f96ea83bf3f38883",
+        "compression": "none",
+        "content_bytes": 4718,
+        "content_sha256": "eed8f1a99c755a1aefdbafac088258f9e529e8eb2aae1e93f96ea83bf3f38883",
+        "path": "docs/evidence/onchip_energy_20260725/raw/cacti/regraph_gather_bank.out"
+      },
+      "result": {
+        "access_time_ns": 1.04086,
+        "area_mm2": 1.86848574462,
+        "claim_label": "projected_asic_sram_characterization",
+        "cycle_time_ns": 0.09596,
+        "geometry": {
+          "banks": 1,
+          "read_ports": 1,
+          "read_write_ports": 0,
+          "size_bytes": 262144,
+          "technology_nm": 32,
+          "word_bytes": 8,
+          "write_ports": 1
+        },
+        "height_mm": 2.23498,
+        "leakage_power_mw": 169.017,
+        "organization": {
+          "ndbl": 64,
+          "ndcm": 1,
+          "ndsam1": 1,
+          "ndsam2": 1,
+          "ndwl": 64,
+          "nspd": 16.0
+        },
+        "read_energy_nj": 0.0746582,
+        "tool": "CACTI-P 6.5 (June 2014)",
+        "width_mm": 0.836019,
+        "write_energy_nj": 0.0751651
+      }
+    }
+  ],
+  "claim_class": "simulated_activity_plus_dramsim3_and_cacti_selected_arrays",
+  "limitations": [
+    "The two archived workloads are vertical energy-accounting evidence, not a matched graph/workload performance or energy comparison.",
+    "The Spine run uses the accepted older 9c08763 hardware profile at its achieved 141 MHz clock; it is not an afb8199 latest-source energy result.",
+    "CACTI-P models projected 32 nm ASIC SRAM arrays; it does not model U55C BRAM/URAM or FPGA board power.",
+    "Selected-array plus DRAM energy is intentionally labeled partial and must not be reported as total accelerator energy.",
+    "Logic, interconnect, clock-tree, host, shell, and unlisted small-memory energy require synthesis activity or board measurements.",
+    "The GraSU/ReGraph result is normalized and conversion-free; no matching weighted PMA-native HLS has been synthesized yet."
+  ],
+  "manifest": "configs/evidence/onchip_energy_20260725.json",
+  "manifest_sha256": "3f8be2b823ae2a7f65e7e8e8e79042ea6bfbad218e120debb51323e24a464c12",
+  "runs": [
+    {
+      "activity_identity": {
+        "archive_bytes": 3393,
+        "archive_sha256": "3f4309e8b30e2a41754bbe83009b414d96611d65defaae006bd3783d762d1589",
+        "compression": "gzip",
+        "content_bytes": 21521,
+        "content_sha256": "e8baeed01ae098ff41353b93d34012ffc944506c4f3b7a8e2ddaaf230949cebd",
+        "path": "docs/evidence/onchip_energy_20260725/raw/spine/summary.json.gz"
+      },
+      "backend_requests": 4197,
+      "claim_label": "hardware_profile_structural_execution_selected_array_energy",
+      "clock_mhz": 141.0,
+      "comparison_role": "older_native_hardware_calibrated_profile",
+      "cycles": 38479,
+      "dram": {
+        "activates": 251,
+        "claim_label": "dramsim3_hbm_only",
+        "content_bundle_sha256": "da0b63f2f2bff2997d837f6a42180f1e2e74148d3808ec58a75864817ce6271b",
+        "files": [
+          {
+            "archive_bytes": 755,
+            "archive_sha256": "dae0a3a3514a7134a2582cd5c8cdfb76047d88ee3c9bc654d4a318a8223a10ab",
+            "compression": "gzip",
+            "content_bytes": 2273,
+            "content_sha256": "aae80e259e0b6e7db0b7bdca72bdf7d8d20e758a4136b7b954c33f05cde0df6f",
+            "path": "channel0/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 497,
+            "archive_sha256": "7d61e47a0c5821cf56321a7b6a248f653d38a257bf9c1f8557051818fe31e4e4",
+            "compression": "gzip",
+            "content_bytes": 1796,
+            "content_sha256": "3a1305447dbc2b861658beb14a729daca1f97f0f5fe36cdc155d84afa5ceb618",
+            "path": "channel1/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 497,
+            "archive_sha256": "7d61e47a0c5821cf56321a7b6a248f653d38a257bf9c1f8557051818fe31e4e4",
+            "compression": "gzip",
+            "content_bytes": 1796,
+            "content_sha256": "3a1305447dbc2b861658beb14a729daca1f97f0f5fe36cdc155d84afa5ceb618",
+            "path": "channel10/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 497,
+            "archive_sha256": "7d61e47a0c5821cf56321a7b6a248f653d38a257bf9c1f8557051818fe31e4e4",
+            "compression": "gzip",
+            "content_bytes": 1796,
+            "content_sha256": "3a1305447dbc2b861658beb14a729daca1f97f0f5fe36cdc155d84afa5ceb618",
+            "path": "channel11/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 497,
+            "archive_sha256": "7d61e47a0c5821cf56321a7b6a248f653d38a257bf9c1f8557051818fe31e4e4",
+            "compression": "gzip",
+            "content_bytes": 1796,
+            "content_sha256": "3a1305447dbc2b861658beb14a729daca1f97f0f5fe36cdc155d84afa5ceb618",
+            "path": "channel12/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 497,
+            "archive_sha256": "7d61e47a0c5821cf56321a7b6a248f653d38a257bf9c1f8557051818fe31e4e4",
+            "compression": "gzip",
+            "content_bytes": 1796,
+            "content_sha256": "3a1305447dbc2b861658beb14a729daca1f97f0f5fe36cdc155d84afa5ceb618",
+            "path": "channel13/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 497,
+            "archive_sha256": "7d61e47a0c5821cf56321a7b6a248f653d38a257bf9c1f8557051818fe31e4e4",
+            "compression": "gzip",
+            "content_bytes": 1796,
+            "content_sha256": "3a1305447dbc2b861658beb14a729daca1f97f0f5fe36cdc155d84afa5ceb618",
+            "path": "channel14/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 497,
+            "archive_sha256": "7d61e47a0c5821cf56321a7b6a248f653d38a257bf9c1f8557051818fe31e4e4",
+            "compression": "gzip",
+            "content_bytes": 1796,
+            "content_sha256": "3a1305447dbc2b861658beb14a729daca1f97f0f5fe36cdc155d84afa5ceb618",
+            "path": "channel15/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 732,
+            "archive_sha256": "c840acec6f3272d42788c4bb20c3f2dce2a7223117b664a4159d99616b4a531a",
+            "compression": "gzip",
+            "content_bytes": 2177,
+            "content_sha256": "e22b4a2ea511278af1be66d607eaf320316342d24a558f9757266e90ed203277",
+            "path": "channel16/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 661,
+            "archive_sha256": "006e8274d130a67b0f86c8043e75cb8741ea7cc473ed7e71b76b8f5900e726df",
+            "compression": "gzip",
+            "content_bytes": 2036,
+            "content_sha256": "946b31e126f2e018c9e9a7b93509c9e1445145e386c9b5c6041d8ad01c25544c",
+            "path": "channel17/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 601,
+            "archive_sha256": "fed8555ac5d00cbc7bcf5015d2011f4ed81e48ffb241b7bd2c3d2908766dc4e8",
+            "compression": "gzip",
+            "content_bytes": 1913,
+            "content_sha256": "7b30b5a28fbdd84ad641ae63f807616f1a86670d5d82866f81032e47b8dc2121",
+            "path": "channel18/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 560,
+            "archive_sha256": "d7042aa4474bae450bfe2e6f2f7e517bb41c00b968abb63b3e3dc663d3ef8f4a",
+            "compression": "gzip",
+            "content_bytes": 1885,
+            "content_sha256": "46afc0a16b4c08bff298d44520832f10a1d215b30a06e97ff50336a38b7e80a9",
+            "path": "channel19/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 497,
+            "archive_sha256": "7d61e47a0c5821cf56321a7b6a248f653d38a257bf9c1f8557051818fe31e4e4",
+            "compression": "gzip",
+            "content_bytes": 1796,
+            "content_sha256": "3a1305447dbc2b861658beb14a729daca1f97f0f5fe36cdc155d84afa5ceb618",
+            "path": "channel2/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 1157,
+            "archive_sha256": "8271d4f83a5d012085046fc963952107e890f7984f2c33de238f49c1b8071527",
+            "compression": "gzip",
+            "content_bytes": 3330,
+            "content_sha256": "dda2fc45997b15baeceef92e8033433db14f05c0439930a50bb0b1de07be001e",
+            "path": "channel20/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 909,
+            "archive_sha256": "1a6e9761489c9556a57e3532ee27ce22142b835d780672c5ac323ba0bbf969af",
+            "compression": "gzip",
+            "content_bytes": 2801,
+            "content_sha256": "6e1e1f03df69e83578d381c52e33c57a9f04cdeb9e7cc39325e9206cbd7e8712",
+            "path": "channel21/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 603,
+            "archive_sha256": "1b751487d7e9bd68664aa6de3ccc4e9dbc23b96e8874ab70fbfe7878516d392b",
+            "compression": "gzip",
+            "content_bytes": 1917,
+            "content_sha256": "a8f9c897cfa174c8860923683d554caa9fa6da11881e258e0c0c07858d4c599c",
+            "path": "channel22/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 497,
+            "archive_sha256": "7d61e47a0c5821cf56321a7b6a248f653d38a257bf9c1f8557051818fe31e4e4",
+            "compression": "gzip",
+            "content_bytes": 1796,
+            "content_sha256": "3a1305447dbc2b861658beb14a729daca1f97f0f5fe36cdc155d84afa5ceb618",
+            "path": "channel23/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 497,
+            "archive_sha256": "7d61e47a0c5821cf56321a7b6a248f653d38a257bf9c1f8557051818fe31e4e4",
+            "compression": "gzip",
+            "content_bytes": 1796,
+            "content_sha256": "3a1305447dbc2b861658beb14a729daca1f97f0f5fe36cdc155d84afa5ceb618",
+            "path": "channel24/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 497,
+            "archive_sha256": "7d61e47a0c5821cf56321a7b6a248f653d38a257bf9c1f8557051818fe31e4e4",
+            "compression": "gzip",
+            "content_bytes": 1796,
+            "content_sha256": "3a1305447dbc2b861658beb14a729daca1f97f0f5fe36cdc155d84afa5ceb618",
+            "path": "channel25/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 497,
+            "archive_sha256": "7d61e47a0c5821cf56321a7b6a248f653d38a257bf9c1f8557051818fe31e4e4",
+            "compression": "gzip",
+            "content_bytes": 1796,
+            "content_sha256": "3a1305447dbc2b861658beb14a729daca1f97f0f5fe36cdc155d84afa5ceb618",
+            "path": "channel26/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 497,
+            "archive_sha256": "7d61e47a0c5821cf56321a7b6a248f653d38a257bf9c1f8557051818fe31e4e4",
+            "compression": "gzip",
+            "content_bytes": 1796,
+            "content_sha256": "3a1305447dbc2b861658beb14a729daca1f97f0f5fe36cdc155d84afa5ceb618",
+            "path": "channel27/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 497,
+            "archive_sha256": "7d61e47a0c5821cf56321a7b6a248f653d38a257bf9c1f8557051818fe31e4e4",
+            "compression": "gzip",
+            "content_bytes": 1796,
+            "content_sha256": "3a1305447dbc2b861658beb14a729daca1f97f0f5fe36cdc155d84afa5ceb618",
+            "path": "channel28/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 497,
+            "archive_sha256": "7d61e47a0c5821cf56321a7b6a248f653d38a257bf9c1f8557051818fe31e4e4",
+            "compression": "gzip",
+            "content_bytes": 1796,
+            "content_sha256": "3a1305447dbc2b861658beb14a729daca1f97f0f5fe36cdc155d84afa5ceb618",
+            "path": "channel29/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 497,
+            "archive_sha256": "7d61e47a0c5821cf56321a7b6a248f653d38a257bf9c1f8557051818fe31e4e4",
+            "compression": "gzip",
+            "content_bytes": 1796,
+            "content_sha256": "3a1305447dbc2b861658beb14a729daca1f97f0f5fe36cdc155d84afa5ceb618",
+            "path": "channel3/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 497,
+            "archive_sha256": "7d61e47a0c5821cf56321a7b6a248f653d38a257bf9c1f8557051818fe31e4e4",
+            "compression": "gzip",
+            "content_bytes": 1796,
+            "content_sha256": "3a1305447dbc2b861658beb14a729daca1f97f0f5fe36cdc155d84afa5ceb618",
+            "path": "channel30/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 497,
+            "archive_sha256": "7d61e47a0c5821cf56321a7b6a248f653d38a257bf9c1f8557051818fe31e4e4",
+            "compression": "gzip",
+            "content_bytes": 1796,
+            "content_sha256": "3a1305447dbc2b861658beb14a729daca1f97f0f5fe36cdc155d84afa5ceb618",
+            "path": "channel31/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 497,
+            "archive_sha256": "7d61e47a0c5821cf56321a7b6a248f653d38a257bf9c1f8557051818fe31e4e4",
+            "compression": "gzip",
+            "content_bytes": 1796,
+            "content_sha256": "3a1305447dbc2b861658beb14a729daca1f97f0f5fe36cdc155d84afa5ceb618",
+            "path": "channel4/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 497,
+            "archive_sha256": "7d61e47a0c5821cf56321a7b6a248f653d38a257bf9c1f8557051818fe31e4e4",
+            "compression": "gzip",
+            "content_bytes": 1796,
+            "content_sha256": "3a1305447dbc2b861658beb14a729daca1f97f0f5fe36cdc155d84afa5ceb618",
+            "path": "channel5/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 497,
+            "archive_sha256": "7d61e47a0c5821cf56321a7b6a248f653d38a257bf9c1f8557051818fe31e4e4",
+            "compression": "gzip",
+            "content_bytes": 1796,
+            "content_sha256": "3a1305447dbc2b861658beb14a729daca1f97f0f5fe36cdc155d84afa5ceb618",
+            "path": "channel6/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 497,
+            "archive_sha256": "7d61e47a0c5821cf56321a7b6a248f653d38a257bf9c1f8557051818fe31e4e4",
+            "compression": "gzip",
+            "content_bytes": 1796,
+            "content_sha256": "3a1305447dbc2b861658beb14a729daca1f97f0f5fe36cdc155d84afa5ceb618",
+            "path": "channel7/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 497,
+            "archive_sha256": "7d61e47a0c5821cf56321a7b6a248f653d38a257bf9c1f8557051818fe31e4e4",
+            "compression": "gzip",
+            "content_bytes": 1796,
+            "content_sha256": "3a1305447dbc2b861658beb14a729daca1f97f0f5fe36cdc155d84afa5ceb618",
+            "path": "channel8/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 497,
+            "archive_sha256": "7d61e47a0c5821cf56321a7b6a248f653d38a257bf9c1f8557051818fe31e4e4",
+            "compression": "gzip",
+            "content_bytes": 1796,
+            "content_sha256": "3a1305447dbc2b861658beb14a729daca1f97f0f5fe36cdc155d84afa5ceb618",
+            "path": "channel9/dramsim3.json.gz"
+          }
+        ],
+        "precharges": 250,
+        "reads": 3078,
+        "total_energy_pj": 561998742.0,
+        "writes": 1119
+      },
+      "omitted_energy": [
+        "latest afb8199 source delta relative to the older accepted 9c08763 profile",
+        "maintenance sort/reorder storage and small FIFOs",
+        "compute and maintenance logic, AXI fabric, and clock tree",
+        "host, PCIe, shell, and board power",
+        "FPGA BRAM/URAM technology-specific power"
+      ],
+      "partial_energy_ledger": {
+        "claim_label": "partial_sum_not_total_accelerator_energy",
+        "dram_energy_pj": 561998742.0,
+        "selected_onchip_energy_pj": 47273637.17901,
+        "sum_pj": 609272379.17901
+      },
+      "profile_id": "spine_shared_engine_9c08763",
+      "profile_identity": {
+        "archive_bytes": 2624,
+        "archive_sha256": "aba0d6bbcbaa64240897ed3efc555d6ce6d6455d2f10e77e0ccdb77fa46466a7",
+        "compression": "none",
+        "content_bytes": 2624,
+        "content_sha256": "aba0d6bbcbaa64240897ed3efc555d6ce6d6455d2f10e77e0ccdb77fa46466a7",
+        "path": "configs/architectures/spine_shared_engine_9c08763.json"
+      },
+      "run_id": "spine_weighted_sssp_selected_arrays",
+      "runtime_ns": 272900.70921985817,
+      "selected_onchip": {
+        "arrays": [
+          {
+            "array_id": "tiny_edge_buffer",
+            "characterization_id": "spine_tiny_edge_bram_32k_x64",
+            "claim_label": "selected_array_projected_asic_sram",
+            "dynamic_energy_pj": 701.5024,
+            "hardware_mapping": "Spine tiny_edge_buffer: 4096 x 64-bit one-port BRAM",
+            "instances": 1,
+            "leakage_energy_pj": 5153375.122695036,
+            "projected_asic_sram_area_mm2": 0.095032281696,
+            "reads": 32,
+            "selected_array_energy_pj": 5154076.625095036,
+            "writes": 16
+          },
+          {
+            "array_id": "vertex_state_tile",
+            "characterization_id": "spine_vertex_tile_uram_256k_x32",
+            "claim_label": "selected_array_projected_asic_sram",
+            "dynamic_energy_pj": 2985.9447999999998,
+            "hardware_mapping": "Spine vs_tile: 65536 x 32-bit true-dual-port URAM",
+            "instances": 1,
+            "leakage_energy_pj": 40640646.5177305,
+            "projected_asic_sram_area_mm2": 1.63118752538,
+            "reads": 36,
+            "selected_array_energy_pj": 40643632.462530494,
+            "writes": 26
+          },
+          {
+            "array_id": "active_bitmap_lanes",
+            "characterization_id": "spine_active_bitmap_lane_128_x8",
+            "claim_label": "selected_array_projected_asic_sram",
+            "dynamic_energy_pj": 53723.292610000004,
+            "hardware_mapping": "Spine tile_active_bits[64][1024]: 64 independent one-bit lanes approximated as 128-byte x 8-bit CACTI banks",
+            "instances": 64,
+            "leakage_energy_pj": 1422204.7987744682,
+            "projected_asic_sram_area_mm2": 0.0287099832032,
+            "reads": 640,
+            "selected_array_energy_pj": 1475928.0913844681,
+            "writes": 328010
+          }
+        ],
+        "claim_label": "partial_selected_array_energy_not_total_accelerator",
+        "coverage": [
+          "compute tiny-edge BRAM",
+          "compute vertex-state tile URAM",
+          "compute 64-lane active bitmap"
+        ],
+        "dynamic_energy_pj": 57410.73981000001,
+        "leakage_energy_pj": 47216226.4392,
+        "projected_asic_sram_area_mm2": 1.7549297902792,
+        "total_energy_pj": 47273637.17901
+      },
+      "system": "spine"
+    },
+    {
+      "activity_identity": {
+        "archive_bytes": 961,
+        "archive_sha256": "de02ef294fc6c2ec6347769ee63b39d42de85885c05488131796cd4f33b0ef94",
+        "compression": "gzip",
+        "content_bytes": 3264,
+        "content_sha256": "56706c75c6a489d8a3bcc398482274b5d3403b722b0d2c073a9d8f1f32fc34d4",
+        "path": "docs/evidence/onchip_energy_20260725/raw/grasu_regraph/result.json.gz"
+      },
+      "backend_requests": 50744,
+      "claim_label": "normalized_simulation_selected_array_energy",
+      "clock_mhz": 150.0,
+      "comparison_role": "normalized_conversion_free",
+      "cycles": 132967,
+      "dram": {
+        "activates": 1801,
+        "claim_label": "dramsim3_hbm_only",
+        "content_bundle_sha256": "9d74afe26f3bf74d3581f99518d6dc7c0ea18a525640ec5fd9a09be3af00f153",
+        "files": [
+          {
+            "archive_bytes": 678,
+            "archive_sha256": "b6ef66eb08ce24f562fc6dc4bcb2fd68c0b9b47daee85cc0fd54fc4c38fbbd96",
+            "compression": "gzip",
+            "content_bytes": 2056,
+            "content_sha256": "65badac396e1f114a48cd7ce2b68de14ad7167634de9846d94bdcb6a804a83e8",
+            "path": "channel0/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 2898,
+            "archive_sha256": "03103bb81839732d5df47691f267333439be98ebf18343d8d0a53fc7b6b16c4b",
+            "compression": "gzip",
+            "content_bytes": 8235,
+            "content_sha256": "253d6251cc2ea71a757bbe59875736ca4224367a19209329ce6e047aa53de790",
+            "path": "channel1/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 498,
+            "archive_sha256": "9c3609e46431ebd03ca39f252b20e00400289def33511f157d068fac59f8d632",
+            "compression": "gzip",
+            "content_bytes": 1798,
+            "content_sha256": "7cba6d6b9dbd23831abd3225aa8288684368fd7ad0432310a9b88620a4208a1f",
+            "path": "channel10/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 498,
+            "archive_sha256": "9c3609e46431ebd03ca39f252b20e00400289def33511f157d068fac59f8d632",
+            "compression": "gzip",
+            "content_bytes": 1798,
+            "content_sha256": "7cba6d6b9dbd23831abd3225aa8288684368fd7ad0432310a9b88620a4208a1f",
+            "path": "channel11/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 498,
+            "archive_sha256": "9c3609e46431ebd03ca39f252b20e00400289def33511f157d068fac59f8d632",
+            "compression": "gzip",
+            "content_bytes": 1798,
+            "content_sha256": "7cba6d6b9dbd23831abd3225aa8288684368fd7ad0432310a9b88620a4208a1f",
+            "path": "channel12/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 498,
+            "archive_sha256": "9c3609e46431ebd03ca39f252b20e00400289def33511f157d068fac59f8d632",
+            "compression": "gzip",
+            "content_bytes": 1798,
+            "content_sha256": "7cba6d6b9dbd23831abd3225aa8288684368fd7ad0432310a9b88620a4208a1f",
+            "path": "channel13/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 498,
+            "archive_sha256": "9c3609e46431ebd03ca39f252b20e00400289def33511f157d068fac59f8d632",
+            "compression": "gzip",
+            "content_bytes": 1798,
+            "content_sha256": "7cba6d6b9dbd23831abd3225aa8288684368fd7ad0432310a9b88620a4208a1f",
+            "path": "channel14/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 498,
+            "archive_sha256": "9c3609e46431ebd03ca39f252b20e00400289def33511f157d068fac59f8d632",
+            "compression": "gzip",
+            "content_bytes": 1798,
+            "content_sha256": "7cba6d6b9dbd23831abd3225aa8288684368fd7ad0432310a9b88620a4208a1f",
+            "path": "channel15/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 498,
+            "archive_sha256": "9c3609e46431ebd03ca39f252b20e00400289def33511f157d068fac59f8d632",
+            "compression": "gzip",
+            "content_bytes": 1798,
+            "content_sha256": "7cba6d6b9dbd23831abd3225aa8288684368fd7ad0432310a9b88620a4208a1f",
+            "path": "channel16/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 498,
+            "archive_sha256": "9c3609e46431ebd03ca39f252b20e00400289def33511f157d068fac59f8d632",
+            "compression": "gzip",
+            "content_bytes": 1798,
+            "content_sha256": "7cba6d6b9dbd23831abd3225aa8288684368fd7ad0432310a9b88620a4208a1f",
+            "path": "channel17/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 498,
+            "archive_sha256": "9c3609e46431ebd03ca39f252b20e00400289def33511f157d068fac59f8d632",
+            "compression": "gzip",
+            "content_bytes": 1798,
+            "content_sha256": "7cba6d6b9dbd23831abd3225aa8288684368fd7ad0432310a9b88620a4208a1f",
+            "path": "channel18/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 498,
+            "archive_sha256": "9c3609e46431ebd03ca39f252b20e00400289def33511f157d068fac59f8d632",
+            "compression": "gzip",
+            "content_bytes": 1798,
+            "content_sha256": "7cba6d6b9dbd23831abd3225aa8288684368fd7ad0432310a9b88620a4208a1f",
+            "path": "channel19/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 615,
+            "archive_sha256": "412c434eb952d72c1dada2927b7ff53f7150007f66088329f85a63ff843a692d",
+            "compression": "gzip",
+            "content_bytes": 1938,
+            "content_sha256": "8b864e093c8197382ffbc6c44790fef2b42329c73603dd6a43810dc3af0945c4",
+            "path": "channel2/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 498,
+            "archive_sha256": "9c3609e46431ebd03ca39f252b20e00400289def33511f157d068fac59f8d632",
+            "compression": "gzip",
+            "content_bytes": 1798,
+            "content_sha256": "7cba6d6b9dbd23831abd3225aa8288684368fd7ad0432310a9b88620a4208a1f",
+            "path": "channel20/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 498,
+            "archive_sha256": "9c3609e46431ebd03ca39f252b20e00400289def33511f157d068fac59f8d632",
+            "compression": "gzip",
+            "content_bytes": 1798,
+            "content_sha256": "7cba6d6b9dbd23831abd3225aa8288684368fd7ad0432310a9b88620a4208a1f",
+            "path": "channel21/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 498,
+            "archive_sha256": "9c3609e46431ebd03ca39f252b20e00400289def33511f157d068fac59f8d632",
+            "compression": "gzip",
+            "content_bytes": 1798,
+            "content_sha256": "7cba6d6b9dbd23831abd3225aa8288684368fd7ad0432310a9b88620a4208a1f",
+            "path": "channel22/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 498,
+            "archive_sha256": "9c3609e46431ebd03ca39f252b20e00400289def33511f157d068fac59f8d632",
+            "compression": "gzip",
+            "content_bytes": 1798,
+            "content_sha256": "7cba6d6b9dbd23831abd3225aa8288684368fd7ad0432310a9b88620a4208a1f",
+            "path": "channel23/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 498,
+            "archive_sha256": "9c3609e46431ebd03ca39f252b20e00400289def33511f157d068fac59f8d632",
+            "compression": "gzip",
+            "content_bytes": 1798,
+            "content_sha256": "7cba6d6b9dbd23831abd3225aa8288684368fd7ad0432310a9b88620a4208a1f",
+            "path": "channel24/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 498,
+            "archive_sha256": "9c3609e46431ebd03ca39f252b20e00400289def33511f157d068fac59f8d632",
+            "compression": "gzip",
+            "content_bytes": 1798,
+            "content_sha256": "7cba6d6b9dbd23831abd3225aa8288684368fd7ad0432310a9b88620a4208a1f",
+            "path": "channel25/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 498,
+            "archive_sha256": "9c3609e46431ebd03ca39f252b20e00400289def33511f157d068fac59f8d632",
+            "compression": "gzip",
+            "content_bytes": 1798,
+            "content_sha256": "7cba6d6b9dbd23831abd3225aa8288684368fd7ad0432310a9b88620a4208a1f",
+            "path": "channel26/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 498,
+            "archive_sha256": "9c3609e46431ebd03ca39f252b20e00400289def33511f157d068fac59f8d632",
+            "compression": "gzip",
+            "content_bytes": 1798,
+            "content_sha256": "7cba6d6b9dbd23831abd3225aa8288684368fd7ad0432310a9b88620a4208a1f",
+            "path": "channel27/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 498,
+            "archive_sha256": "9c3609e46431ebd03ca39f252b20e00400289def33511f157d068fac59f8d632",
+            "compression": "gzip",
+            "content_bytes": 1798,
+            "content_sha256": "7cba6d6b9dbd23831abd3225aa8288684368fd7ad0432310a9b88620a4208a1f",
+            "path": "channel28/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 498,
+            "archive_sha256": "9c3609e46431ebd03ca39f252b20e00400289def33511f157d068fac59f8d632",
+            "compression": "gzip",
+            "content_bytes": 1798,
+            "content_sha256": "7cba6d6b9dbd23831abd3225aa8288684368fd7ad0432310a9b88620a4208a1f",
+            "path": "channel29/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 2641,
+            "archive_sha256": "c8117bd7b0419e422aee0cf7356631f7141375bb56606655687fc20f6d541978",
+            "compression": "gzip",
+            "content_bytes": 7483,
+            "content_sha256": "4159011e41c72f099007ebb6c79d7b007c12a14b0da69c972ef8780bd7998404",
+            "path": "channel3/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 3188,
+            "archive_sha256": "9c657f4faf65b2dcd36e5481a030c88de8827f9b961358b98860b883ec78bdec",
+            "compression": "gzip",
+            "content_bytes": 9401,
+            "content_sha256": "06596adc111ea477a0fe61b44bd447fd1805ddf9bf8ebf5e35301927a87276de",
+            "path": "channel30/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 498,
+            "archive_sha256": "9c3609e46431ebd03ca39f252b20e00400289def33511f157d068fac59f8d632",
+            "compression": "gzip",
+            "content_bytes": 1798,
+            "content_sha256": "7cba6d6b9dbd23831abd3225aa8288684368fd7ad0432310a9b88620a4208a1f",
+            "path": "channel31/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 498,
+            "archive_sha256": "9c3609e46431ebd03ca39f252b20e00400289def33511f157d068fac59f8d632",
+            "compression": "gzip",
+            "content_bytes": 1798,
+            "content_sha256": "7cba6d6b9dbd23831abd3225aa8288684368fd7ad0432310a9b88620a4208a1f",
+            "path": "channel4/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 498,
+            "archive_sha256": "9c3609e46431ebd03ca39f252b20e00400289def33511f157d068fac59f8d632",
+            "compression": "gzip",
+            "content_bytes": 1798,
+            "content_sha256": "7cba6d6b9dbd23831abd3225aa8288684368fd7ad0432310a9b88620a4208a1f",
+            "path": "channel5/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 498,
+            "archive_sha256": "9c3609e46431ebd03ca39f252b20e00400289def33511f157d068fac59f8d632",
+            "compression": "gzip",
+            "content_bytes": 1798,
+            "content_sha256": "7cba6d6b9dbd23831abd3225aa8288684368fd7ad0432310a9b88620a4208a1f",
+            "path": "channel6/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 498,
+            "archive_sha256": "9c3609e46431ebd03ca39f252b20e00400289def33511f157d068fac59f8d632",
+            "compression": "gzip",
+            "content_bytes": 1798,
+            "content_sha256": "7cba6d6b9dbd23831abd3225aa8288684368fd7ad0432310a9b88620a4208a1f",
+            "path": "channel7/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 498,
+            "archive_sha256": "9c3609e46431ebd03ca39f252b20e00400289def33511f157d068fac59f8d632",
+            "compression": "gzip",
+            "content_bytes": 1798,
+            "content_sha256": "7cba6d6b9dbd23831abd3225aa8288684368fd7ad0432310a9b88620a4208a1f",
+            "path": "channel8/dramsim3.json.gz"
+          },
+          {
+            "archive_bytes": 498,
+            "archive_sha256": "9c3609e46431ebd03ca39f252b20e00400289def33511f157d068fac59f8d632",
+            "compression": "gzip",
+            "content_bytes": 1798,
+            "content_sha256": "7cba6d6b9dbd23831abd3225aa8288684368fd7ad0432310a9b88620a4208a1f",
+            "path": "channel9/dramsim3.json.gz"
+          }
+        ],
+        "precharges": 1798,
+        "reads": 13875,
+        "total_energy_pj": 1889070450.0,
+        "writes": 36869
+      },
+      "omitted_energy": [
+        "GraSU update control and ReGraph Map-Reduce/apply logic",
+        "small FIFO, bypass-register, and AXI fabric storage",
+        "host, PCIe, shell, and board power",
+        "matching synthesized HLS for the normalized weighted architecture"
+      ],
+      "partial_energy_ledger": {
+        "claim_label": "partial_sum_not_total_accelerator_energy",
+        "dram_energy_pj": 1889070450.0,
+        "selected_onchip_energy_pj": 903262967.1804999,
+        "sum_pj": 2792333417.1805
+      },
+      "profile_id": "grasu_regraph_normalized_weighted_spine23",
+      "profile_identity": {
+        "archive_bytes": 2737,
+        "archive_sha256": "eadcba6251c2cbe47ab45eb2bc45f5ca5e7c490df8cbfb2a280c9b6c099f6201",
+        "compression": "none",
+        "content_bytes": 2737,
+        "content_sha256": "eadcba6251c2cbe47ab45eb2bc45f5ca5e7c490df8cbfb2a280c9b6c099f6201",
+        "path": "configs/architectures/grasu_regraph_normalized_weighted_spine23.json"
+      },
+      "run_id": "grasu_regraph_weighted_sssp_selected_arrays",
+      "runtime_ns": 886446.6666666666,
+      "selected_onchip": {
+        "arrays": [
+          {
+            "array_id": "source_property_pingpong_banks",
+            "characterization_id": "grasu_source_cache_bank_16k_x512",
+            "claim_label": "selected_array_projected_asic_sram",
+            "dynamic_energy_pj": 1032446.2079999999,
+            "hardware_mapping": "normalized ReGraph source cache: 4 lane copies x 2 ping-pong slots, each 256 x 512-bit S2P bank",
+            "instances": 8,
+            "leakage_energy_pj": 234166588.09600002,
+            "projected_asic_sram_area_mm2": 2.2959191468,
+            "reads": 192,
+            "selected_array_energy_pj": 235199034.30400002,
+            "writes": 6144
+          },
+          {
+            "array_id": "gather_temporary_property_banks",
+            "characterization_id": "regraph_gather_bank_256k_x64",
+            "claim_label": "selected_array_projected_asic_sram",
+            "dynamic_energy_pj": 68765707.83649999,
+            "hardware_mapping": "normalized ReGraph gather: 4 independent 32768 x 64-bit S2P URAM banks",
+            "instances": 4,
+            "leakage_energy_pj": 599298225.04,
+            "projected_asic_sram_area_mm2": 7.47394297848,
+            "reads": 393221,
+            "selected_array_energy_pj": 668063932.8764999,
+            "writes": 524293
+          }
+        ],
+        "claim_label": "partial_selected_array_energy_not_total_accelerator",
+        "coverage": [
+          "normalized PMA-native ReGraph replicated source-property cache",
+          "normalized PMA-native ReGraph gather temporary-property URAM"
+        ],
+        "dynamic_energy_pj": 69798154.0445,
+        "leakage_energy_pj": 833464813.1359999,
+        "projected_asic_sram_area_mm2": 9.76986212528,
+        "total_energy_pj": 903262967.1804999
+      },
+      "system": "grasu_regraph"
+    }
+  ],
+  "schema_version": 1,
+  "status": "PASS"
+}
