@@ -1,0 +1,7 @@
+system,phase_bottleneck,runs,total_runs
+spine,structure_update_dominant,6,73
+spine,balanced,1,73
+spine,compute_dominant,66,73
+grasu_regraph,structure_update_dominant,0,73
+grasu_regraph,balanced,0,73
+grasu_regraph,compute_dominant,73,73

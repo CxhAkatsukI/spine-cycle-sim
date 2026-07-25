@@ -136,9 +136,13 @@ The shared runner dispatches byte-identical inputs to normalized Spine and
 conversion-free GraSU/PMA-native-ReGraph, enforces independent architecture and
 mathematical oracles, closes each explicitly bound DRAM request ledger within
 the shared 32-channel physical namespace, and emits paired cycle/runtime rows.
-Only a filtered smoke case has run so far; the complete
-73-pair matrix remains pending. See
+The complete frozen matrix now passes all 146 system rows and 73 pairs. Spine
+wins 48 pairs with a 1.849x geometric-mean normalized cycle speedup, while the
+three compact real-dataset validation slices remain effectively tied overall
+(0.912x geometric mean) and are not full-dataset performance evidence. See
 [`docs/shared_comparison_runner_20260725.md`](docs/shared_comparison_runner_20260725.md).
+The fail-closed results and frozen raw evidence are documented in
+[`docs/shared_comparison_analysis_20260725.md`](docs/shared_comparison_analysis_20260725.md).
 
 The normalized SST runners retain a 32-channel physical namespace while
 instantiating only profile/workload-reachable DRAMSim3 controllers by default.

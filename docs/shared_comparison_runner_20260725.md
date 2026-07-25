@@ -162,10 +162,14 @@ It is complete only when `comparison_manifest.json` says
 
 ## Remaining evidence
 
-- Finish and summarize the currently running complete frozen matrix.
 - Add full real-dataset performance runs; committed compact slices validate
   shapes and correctness only.
 - Add dynamic PageRank batches rather than static PageRank alone.
 - Add dense-batch, multi-partition scalability, and ablation matrices.
 - Attach native and projected paths without relabeling normalized results.
 - Extend selected-array activity evidence to every architecture/run class.
+
+The frozen normalized matrix completed on 2026-07-25 with 146 passing system
+rows and 73 passing pairs. Its fail-closed analysis and structured raw evidence
+are in `docs/evidence/shared_comparison_sparse_full_20260725/`; see
+`docs/shared_comparison_analysis_20260725.md` for conclusions and claim limits.

@@ -240,6 +240,12 @@ class SharedComparisonAnalysisTests(unittest.TestCase):
             )
 
             result = analyze_completed_matrix(matrix_dir, analysis_dir)
+            for output_name in result["outputs"]:
+                self.assertNotIn(
+                    b"\r",
+                    (analysis_dir / output_name).read_bytes(),
+                    f"{output_name} must use reproducible LF line endings",
+                )
 
         self.assertEqual(result["status"], "PASS")
         self.assertEqual(result["system_rows"], 2)
