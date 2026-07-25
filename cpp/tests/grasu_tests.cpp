@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "spine_sim/grasu.hpp"
+#include "spine_sim/grasu_native.hpp"
 #include "spine_sim/grasu_regraph.hpp"
 #include "spine_sim/memory_backend.hpp"
 #include "spine_sim/scheduler.hpp"
@@ -25,7 +26,10 @@ using spine::sim::decode_grasu_pma_weight;
 using spine::sim::encode_grasu_pma_edge;
 using spine::sim::GraSuEdge;
 using spine::sim::GraSuNativeConfig;
+using spine::sim::GraSuNativeCompactorConfig;
+using spine::sim::GraSuNativeCompactorSystem;
 using spine::sim::GraSuPmaLayout;
+using spine::sim::GraSuPmaWordAbi;
 using spine::sim::GraSuPartitionedPmaLayout;
 using spine::sim::GraSuPmaUpdateSystem;
 using spine::sim::GraSuReGraphConfig;
@@ -1588,6 +1592,123 @@ void test_pma_native_compute_propagates_contention() {
             << counters.hbm_wrapper_write_window_stalls << '\n';
 }
 
+void test_native_raw_pma_compactor_matches_hls_edge_array() {
+  constexpr std::size_t kVertices = 64;
+  const std::vector<GraSuEdge> initial = {
+      {.source = 0, .destination = 1},
+      {.source = 0, .destination = 2},
+      {.source = 1, .destination = 3},
+      {.source = 3, .destination = 4},
+  };
+  const std::vector<GraSuEdge> updates = {
+      {.source = 0, .destination = 2, .delete_op = true},
+      {.source = 1, .destination = 5},
+  };
+  GraSuPmaLayout layout = GraSuPmaLayout::build(kVertices, initial, updates);
+
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("grasu-native-conversion", 200.0);
+  MockMemoryBackend backend("shared-hbm", core,
+                            MockMemoryConfig{.channels = 32,
+                                             .latency_cycles = 5,
+                                             .accepts_per_channel_per_cycle = 1,
+                                             .max_outstanding_per_channel = 8,
+                                             .response_queue_depth = 128});
+  GraSuNativeConfig update_config;
+  update_config.pma_word_abi = GraSuPmaWordAbi::kNativeRawDestination;
+  GraSuPmaUpdateSystem update(scheduler, core, backend, layout, updates,
+                              update_config);
+  update.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until([&] { return update.done() || update.failed(); },
+                      1'000'000);
+  require(!update.failed() && update.done(),
+          "native raw-PMA update did not complete");
+  const std::vector<GraSuEdge> final_edges = update.live_edges();
+  require(edge_set(final_edges) ==
+              std::set<std::pair<std::uint32_t, std::uint32_t>>{
+                  {0, 1}, {1, 3}, {1, 5}, {3, 4}},
+          "native raw-PMA update differs from edge-state oracle");
+  for (std::size_t segment = 0; segment < layout.segments.size(); ++segment) {
+    for (std::uint32_t word : update.inspect_segment(segment)) {
+      if (!is_grasu_pma_empty(word)) {
+        require(word < kVertices,
+                "native PMA payload retained normalized weight bits");
+      }
+    }
+  }
+
+  GraSuNativeCompactorConfig compact_config;
+  GraSuNativeCompactorSystem compactor(scheduler, core, backend, layout, 32,
+                                       compact_config);
+  compactor.register_components();
+  scheduler.run_until(
+      [&] { return compactor.done() || compactor.failed(); }, 1'000'000);
+  require(!compactor.failed() && compactor.done(),
+          "native raw-PMA compactor did not drain: " + compactor.failure());
+  const std::vector<GraSuEdge> compacted_edges =
+      compactor.compacted_live_edges();
+  require(edge_set(compacted_edges) == edge_set(final_edges),
+          "native compactor edge array differs from PMA state");
+  require(std::all_of(compacted_edges.begin(), compacted_edges.end(),
+                      [](const GraSuEdge &edge) { return edge.weight == 1; }),
+          "native compactor did not inject ReGraph unit weights");
+  const auto payload = compactor.edge_array_payload();
+  require(payload.size() == 32 * 8,
+          "native compactor edge-array payload size mismatch");
+  for (std::size_t slot = final_edges.size(); slot < 32; ++slot) {
+    require((read_u32(payload, slot * 8) & spine::sim::kGraSuPmaEmpty) != 0 &&
+                (read_u32(payload, slot * 8 + 4) &
+                 spine::sim::kGraSuPmaEmpty) != 0,
+            "native compactor padding did not use HLS dummy markers");
+  }
+  const auto counters = compactor.counters();
+  require(counters.completion_token_reads == 4 &&
+              counters.barrier_cycles == 4 &&
+              counters.row_reads == kVertices + 1 &&
+              counters.pma_segment_reads == layout.segments.size() &&
+              counters.pma_slots_scanned ==
+                  layout.segments.size() * spine::sim::kGraSuSegmentSlots &&
+              counters.lane_pipeline_cycles ==
+                  layout.segments.size() * compact_config.lane_pipeline_latency &&
+              counters.valid_edges_seen == final_edges.size() &&
+              counters.emitted_edge_slots == 32 &&
+              counters.dummy_edge_slots == 32 - final_edges.size() &&
+              counters.edge_array_writes == 4 &&
+              counters.row_read_bytes == (kVertices + 1) * 8 &&
+              counters.pma_read_bytes == layout.segments.size() * 64 &&
+              counters.edge_array_write_bytes == 4 * 64,
+          "native compactor component ledger mismatch");
+  std::cout << "EVIDENCE grasu_native_compactor cycles="
+            << counters.end_cycle - counters.start_cycle
+            << " barrier_cycles=" << counters.barrier_cycles
+            << " rows=" << counters.row_reads
+            << " segments=" << counters.pma_segment_reads
+            << " valid_edges=" << counters.valid_edges_seen
+            << " output_slots=" << counters.emitted_edge_slots << '\n';
+}
+
+void test_native_compactor_rejects_normalized_pma_payload() {
+  const std::vector<GraSuEdge> edges = {{.source = 0, .destination = 1}};
+  GraSuPmaLayout layout = GraSuPmaLayout::build(16, edges, {});
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("native-abi-guard", 200.0);
+  MockMemoryBackend backend("shared-hbm", core,
+                            MockMemoryConfig{.channels = 32,
+                                             .latency_cycles = 2,
+                                             .accepts_per_channel_per_cycle = 1,
+                                             .max_outstanding_per_channel = 8,
+                                             .response_queue_depth = 64});
+  initialize_grasu_pma_layout_payloads(backend, layout, GraSuNativeConfig{});
+  GraSuNativeCompactorSystem compactor(scheduler, core, backend, layout, 32);
+  compactor.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until(
+      [&] { return compactor.done() || compactor.failed(); }, 100'000);
+  require(compactor.failed() && !compactor.done(),
+          "native compactor silently accepted normalized weighted PMA words");
+}
+
 } // namespace
 
 int main() {
@@ -1621,6 +1742,10 @@ int main() {
       {"native_partition_scan", test_native_partition_scan_cost_is_explicit},
       {"normalized_four_lane", test_normalized_four_lane_batches_are_executed},
       {"pma_compute_contention", test_pma_native_compute_propagates_contention},
+      {"native_raw_pma_compactor",
+       test_native_raw_pma_compactor_matches_hls_edge_array},
+      {"native_compactor_abi_guard",
+       test_native_compactor_rejects_normalized_pma_payload},
   };
   std::size_t failures = 0;
   for (const auto &[name, test] : tests) {

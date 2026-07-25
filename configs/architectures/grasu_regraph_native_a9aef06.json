@@ -43,6 +43,12 @@
     "regraph_little_gs_cus": 1,
     "regraph_apply_cus": 1,
     "regraph_hbm_wrapper_cus": 1,
+    "pma_word_abi": "native_raw_destination",
+    "pma_compactor_completion_tokens": 4,
+    "pma_compactor_lane_pipeline_latency_cycles": 72,
+    "pma_compactor_lane_ii": 1,
+    "pma_compactor_segment_slots": 16,
+    "pma_compactor_edges_per_output_burst": 8,
     "regraph_vertex_prop_hbm_channel": 30,
     "pma_native_compute": false,
     "conversion_cost_included": true
@@ -52,6 +58,8 @@
     "cache_ddr_segment_dispatch",
     "serial_direct_cache_hbm_rmw",
     "payload_backed_pma",
+    "simulator_native_raw_pma_abi_guard",
+    "execution_driven_pma_to_edge_array_compactor",
     "measured_pma_to_edge_array_compactor",
     "regraph_little_gs_sssp"
   ],

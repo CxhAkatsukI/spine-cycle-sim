@@ -4,6 +4,7 @@ add_library(spine_cycle_core STATIC
   src/axi.cpp
   src/banked_memory.cpp
   src/grasu.cpp
+  src/grasu_native.cpp
   src/grasu_regraph.cpp
   src/memory_backend.cpp
   src/scheduler.cpp

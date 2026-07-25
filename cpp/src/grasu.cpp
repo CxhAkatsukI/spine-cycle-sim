@@ -113,9 +113,40 @@ void validate_layout_edge(const GraSuPmaLayout &layout, const GraSuEdge &edge) {
   }
 }
 
-std::uint32_t pma_destination_sort_key(std::uint32_t encoded) {
+std::uint32_t encode_pma_word(std::uint32_t destination, std::uint16_t weight,
+                              GraSuPmaWordAbi abi) {
+  if (abi == GraSuPmaWordAbi::kNativeRawDestination) {
+    if (destination >= kGraSuPmaEmpty || weight != 1) {
+      throw std::invalid_argument("native GraSU PMA requires unit-weight raw dst");
+    }
+    return destination;
+  }
+  return encode_grasu_pma_edge(destination, weight);
+}
+
+std::uint32_t decode_pma_destination(std::uint32_t encoded,
+                                     GraSuPmaWordAbi abi) {
+  if (is_grasu_pma_empty(encoded)) {
+    throw std::invalid_argument("cannot decode an empty GraSU PMA slot");
+  }
+  return abi == GraSuPmaWordAbi::kNativeRawDestination
+             ? encoded & ~kGraSuPmaEmpty
+             : decode_grasu_pma_destination(encoded);
+}
+
+std::uint16_t decode_pma_weight(std::uint32_t encoded, GraSuPmaWordAbi abi) {
+  if (is_grasu_pma_empty(encoded)) {
+    throw std::invalid_argument("cannot decode an empty GraSU PMA slot");
+  }
+  return abi == GraSuPmaWordAbi::kNativeRawDestination
+             ? std::uint16_t{1}
+             : decode_grasu_pma_weight(encoded);
+}
+
+std::uint32_t pma_destination_sort_key(std::uint32_t encoded,
+                                       GraSuPmaWordAbi abi) {
   return is_grasu_pma_empty(encoded) ? std::numeric_limits<std::uint32_t>::max()
-                                     : decode_grasu_pma_destination(encoded);
+                                     : decode_pma_destination(encoded, abi);
 }
 
 struct LocatedUpdate {
@@ -338,8 +369,9 @@ class GraSuDirectSearch final : public Component {
         const std::uint64_t edge = value & ~(std::uint64_t{1} << 63);
         current_.source = static_cast<std::uint32_t>(edge >> 32);
         const std::uint32_t encoded = static_cast<std::uint32_t>(edge);
-        current_.destination = decode_grasu_pma_destination(encoded);
-        current_.weight = decode_grasu_pma_weight(encoded);
+        current_.destination =
+            decode_pma_destination(encoded, config_.pma_word_abi);
+        current_.weight = decode_pma_weight(encoded, config_.pma_word_abi);
         current_partition_ = 0;
       }
       phase_ = Phase::kNeedRow;
@@ -484,10 +516,12 @@ class GraSuPmaProcessor final : public Component {
 
   GraSuPmaProcessor(std::string name, ClockId clock_id, bool cache_direct,
                     std::size_t lane_fifo_depth, std::uint64_t pma_base,
-                    std::uint64_t partition_address_stride, Ports ports)
+                    std::uint64_t partition_address_stride,
+                    GraSuPmaWordAbi pma_word_abi, Ports ports)
       : Component(std::move(name), clock_id), cache_direct_(cache_direct),
         lane_fifo_depth_(lane_fifo_depth), pma_base_(pma_base),
-        partition_address_stride_(partition_address_stride), ports_(ports),
+        partition_address_stride_(partition_address_stride),
+        pma_word_abi_(pma_word_abi), ports_(ports),
         lanes_(cache_direct ? 1 : 32) {
     if (lane_fifo_depth_ == 0 || ports_.input == nullptr ||
         ports_.reads[0] == nullptr || ports_.writes[0] == nullptr ||
@@ -779,19 +813,19 @@ class GraSuPmaProcessor final : public Component {
     lane.phase = LanePhase::kNeedWrite;
   }
 
-  static std::pair<std::array<std::uint32_t, kGraSuSegmentSlots>, std::int32_t>
+  std::pair<std::array<std::uint32_t, kGraSuSegmentSlots>, std::int32_t>
   apply_update(std::array<std::uint32_t, kGraSuSegmentSlots> segment,
-               const LocatedUpdate &item) {
+               const LocatedUpdate &item) const {
     const auto position = std::lower_bound(
         segment.begin(), segment.end(), item.destination,
-        [](std::uint32_t encoded, std::uint32_t destination) {
-          return pma_destination_sort_key(encoded) < destination;
+        [this](std::uint32_t encoded, std::uint32_t destination) {
+          return pma_destination_sort_key(encoded, pma_word_abi_) < destination;
         });
     const bool found =
         position != segment.end() && !is_grasu_pma_empty(*position) &&
-        decode_grasu_pma_destination(*position) == item.destination;
+        decode_pma_destination(*position, pma_word_abi_) == item.destination;
     if (item.delete_op) {
-      if (!found || decode_grasu_pma_weight(*position) != item.weight) {
+      if (!found || decode_pma_weight(*position, pma_word_abi_) != item.weight) {
         throw std::runtime_error(
             "GraSU delete target is not live in PMA segment");
       }
@@ -800,9 +834,9 @@ class GraSuPmaProcessor final : public Component {
       return {segment, -1};
     }
     const std::uint32_t encoded =
-        encode_grasu_pma_edge(item.destination, item.weight);
+        encode_pma_word(item.destination, item.weight, pma_word_abi_);
     if (found) {
-      if (decode_grasu_pma_weight(*position) == item.weight) {
+      if (decode_pma_weight(*position, pma_word_abi_) == item.weight) {
         throw std::runtime_error(
             "GraSU weight update does not change PMA state");
       }
@@ -822,6 +856,7 @@ class GraSuPmaProcessor final : public Component {
   std::size_t lane_fifo_depth_{};
   std::uint64_t pma_base_{};
   std::uint64_t partition_address_stride_{};
+  GraSuPmaWordAbi pma_word_abi_{GraSuPmaWordAbi::kNormalizedWeighted};
   Ports ports_;
   std::vector<Lane> lanes_;
   std::optional<std::pair<std::size_t, LocatedUpdate>> staged_route_;
@@ -1347,7 +1382,16 @@ void initialize_grasu_pma_layout_payloads(
   for (std::size_t segment = 0; segment < layout.segments.size(); ++segment) {
     const std::size_t parity = segment & 1U;
     const std::size_t local = segment >> 1;
-    const auto bytes = encode_segment(layout.segments[segment]);
+    auto words = layout.segments[segment];
+    if (config.pma_word_abi == GraSuPmaWordAbi::kNativeRawDestination) {
+      for (std::uint32_t &word : words) {
+        if (!is_grasu_pma_empty(word)) {
+          word = encode_pma_word(decode_grasu_pma_destination(word), 1,
+                                 config.pma_word_abi);
+        }
+      }
+    }
+    const auto bytes = encode_segment(words);
     backend.initialize_payload(parity * 2,
                                config.pma_base + local * kGraSuSegmentBytes,
                                bytes);
@@ -1602,9 +1646,10 @@ class GraSuPmaUpdateSystem::Impl {
             if (!is_grasu_pma_empty(encoded)) {
               edges.push_back(GraSuEdge{
                   .source = static_cast<std::uint32_t>(source),
-                  .destination = layout.destination_base +
-                                 decode_grasu_pma_destination(encoded),
-                  .weight = decode_grasu_pma_weight(encoded),
+                  .destination =
+                      layout.destination_base +
+                      decode_pma_destination(encoded, config_.pma_word_abi),
+                  .weight = decode_pma_weight(encoded, config_.pma_word_abi),
               });
             }
           }
@@ -1658,7 +1703,9 @@ class GraSuPmaUpdateSystem::Impl {
         layout_.partitions.empty() ||
         layout_.partitions.size() !=
             (layout_.vertices + layout_.partition_vertices - 1) /
-                layout_.partition_vertices) {
+                layout_.partition_vertices ||
+        (config_.pma_word_abi == GraSuPmaWordAbi::kNativeRawDestination &&
+         layout_.partitions.size() != 1)) {
       throw std::invalid_argument("invalid GraSU native configuration");
     }
     for (std::size_t partition = 0; partition < layout_.partitions.size();
@@ -1682,9 +1729,19 @@ class GraSuPmaUpdateSystem::Impl {
   void validate_updates() const {
     std::map<std::pair<std::uint32_t, std::uint32_t>, std::uint16_t> live;
     for (const GraSuEdge &edge : layout_.live_edges()) {
+      if (config_.pma_word_abi == GraSuPmaWordAbi::kNativeRawDestination &&
+          edge.weight != 1) {
+        throw std::invalid_argument(
+            "native GraSU PMA supports unit-weight edges only");
+      }
       live.emplace(std::pair(edge.source, edge.destination), edge.weight);
     }
     for (const GraSuEdge &edge : updates_) {
+      if (config_.pma_word_abi == GraSuPmaWordAbi::kNativeRawDestination &&
+          edge.weight != 1) {
+        throw std::invalid_argument(
+            "native GraSU PMA supports unit-weight updates only");
+      }
       const GraSuPmaLayout &partition = layout_.partition_for(edge);
       validate_layout_edge(partition, edge);
       (void)partition.segment_for(edge);
@@ -1783,8 +1840,8 @@ class GraSuPmaUpdateSystem::Impl {
           const GraSuPmaLayout &layout = layout_.partitions.front();
           std::uint64_t value =
               (static_cast<std::uint64_t>(edge.source) << 32) |
-              encode_grasu_pma_edge(layout.local_destination(edge.destination),
-                                    edge.weight);
+              encode_pma_word(layout.local_destination(edge.destination),
+                              edge.weight, config_.pma_word_abi);
           if (edge.delete_op) {
             value |= std::uint64_t{1} << 63;
           }
@@ -1851,7 +1908,7 @@ class GraSuPmaUpdateSystem::Impl {
       processors_[index] = std::make_unique<GraSuPmaProcessor>(
           "grasu-processor" + std::to_string(index), clock_id_, cache,
           config_.lane_fifo_depth, config_.pma_base,
-          config_.partition_address_stride,
+          config_.partition_address_stride, config_.pma_word_abi,
           GraSuPmaProcessor::Ports{
               .input = process_inputs_[index].get(),
               .reads = {ports.reads[0].get(), ports.reads[1].get()},

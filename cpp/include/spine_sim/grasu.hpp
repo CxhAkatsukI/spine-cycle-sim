@@ -24,6 +24,13 @@ constexpr std::size_t kGraSuPmaLocalVertexCapacity =
 constexpr std::size_t kGraSuSegmentSlots = 16;
 constexpr std::size_t kGraSuSegmentBytes = 64;
 
+enum class GraSuPmaWordAbi {
+  // Simulator-native deep integration: local destination plus 12-bit weight.
+  kNormalizedWeighted,
+  // Existing GraSU HLS ABI: bit 31 is empty and bits 30:0 are raw dst.
+  kNativeRawDestination,
+};
+
 [[nodiscard]] std::uint32_t encode_grasu_pma_edge(std::uint32_t destination,
                                                   std::uint16_t weight);
 [[nodiscard]] std::uint32_t
@@ -87,6 +94,7 @@ struct GraSuPartitionedPmaLayout {
 };
 
 struct GraSuNativeConfig {
+  GraSuPmaWordAbi pma_word_abi{GraSuPmaWordAbi::kNormalizedWeighted};
   std::size_t memory_channels{32};
   std::size_t cache_segments_per_half{131072};
   std::size_t axis_fifo_depth{16};
