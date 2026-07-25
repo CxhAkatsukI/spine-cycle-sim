@@ -19,8 +19,10 @@ if str(ROOT) not in sys.path:
 
 from spine_cycle_sim.sst_binding import grasu_normalized_memory_binding  # noqa: E402
 from spine_cycle_sim.experiments.regraph_contracts import (  # noqa: E402
-    expected_source_cache_requests,
+    expected_weighted_source_cache_requests,
+    materialized_max_source,
 )
+from spine_cycle_sim.experiments.shared_workloads import load_slice  # noqa: E402
 
 
 DEFAULT_SST = Path("/data/feiyang/sst/bin/sst")
@@ -220,14 +222,28 @@ def main() -> int:
 
     result = json.loads(result_path.read_text(encoding="utf-8"))
     dram = load_dram_stats(dram_dir)
+    graph = load_slice(args.workload.resolve())
+    update = load_slice(args.update_workload.resolve())
+    if graph.vertices != update.vertices:
+        raise ValueError("graph and update workloads must have the same vertex count")
+    max_live_source = materialized_max_source(
+        (
+            (record.src, record.dst, record.weight, record.diff)
+            for record in graph.records
+        ),
+        (
+            (record.src, record.dst, record.weight, record.diff)
+            for record in update.records
+        ),
+    )
     expected_claim = (
         "component_validation_simulation" if args.smoke else "normalized_simulation"
     )
     supersteps = result.get("supersteps", -1)
     expected_rows = partition_vertices // 2 * supersteps
     expected_bursts = partition_vertices // 16 * supersteps
-    expected_source_requests = expected_source_cache_requests(
-        result.get("vertices", -1),
+    expected_source_requests = expected_weighted_source_cache_requests(
+        max_live_source,
         params["regraph_source_buffer_vertices"],
         supersteps,
     )
@@ -243,6 +259,9 @@ def main() -> int:
         != "synchronous_frontier_uint32"
         or result.get("mathematical_oracle") != "uint64_dijkstra"
         or result.get("claim_class") != expected_claim
+        or result.get("vertices") != graph.vertices
+        or result.get("initial_edges") != len(graph.records)
+        or result.get("updates") != len(update.records)
         or abs(result.get("core_mhz", -1.0) - kernel_clock["achieved_mhz"])
         > 1.0e-9
         or result.get("partition_vertices") != partition_vertices
@@ -312,6 +331,13 @@ def main() -> int:
         "smoke": args.smoke,
         "sst_memory_binding": binding.as_manifest(),
         "sst_host_wall_seconds": sst_host_wall_seconds,
+        "validation": {
+            "materialized_max_live_source": max_live_source,
+            "expected_source_cache_requests": expected_source_requests,
+            "source_cache_request_basis": (
+                "highest_live_source_window_plus_one_prefetch_per_superstep"
+            ),
+        },
         "command": command,
         "result": result,
         "dram": dram,

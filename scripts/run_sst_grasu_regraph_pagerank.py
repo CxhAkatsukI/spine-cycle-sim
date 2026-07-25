@@ -20,7 +20,7 @@ if str(ROOT) not in sys.path:
 
 from spine_cycle_sim.sst_binding import grasu_normalized_memory_binding  # noqa: E402
 from spine_cycle_sim.experiments.regraph_contracts import (  # noqa: E402
-    expected_source_cache_requests,
+    expected_pagerank_source_cache_requests,
     float32_sequential_rank_sum_tolerance,
     full_pagerank_rank_sum_tolerance,
 )
@@ -238,7 +238,7 @@ def main() -> int:
     expected_bursts = partition_vertices // 16 * args.iterations
     expected_active_edges = result.get("initial_edges", -1) * args.iterations
     vertices = result.get("vertices", -1)
-    expected_source_requests = expected_source_cache_requests(
+    expected_source_requests = expected_pagerank_source_cache_requests(
         vertices,
         params["regraph_source_buffer_vertices"],
         args.iterations,
