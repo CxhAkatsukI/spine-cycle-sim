@@ -1,0 +1,44 @@
+{
+  "acceptance": {
+    "holdout_event_e2e_max_absolute_error_pct_max": 10.0,
+    "holdout_event_e2e_median_absolute_error_pct_max": 5.0,
+    "passed": true
+  },
+  "calibration_cases": [
+    "tiny_chain_v16",
+    "tiny_star_v16_u12",
+    "small_spread_v4096_u1024",
+    "small_hotdst_v4096_u1024",
+    "medium_star_v65536_u8192"
+  ],
+  "claim_class": "hardware_event_window_calibrated_partial_repeats",
+  "fit_role": "calibration_only",
+  "hardware_sample_counts": {
+    "medium_spread_v65536_u16384": 1,
+    "medium_star_v65536_u8192": 1,
+    "small_chain_v64": 1,
+    "small_hotdst_v4096_u1024": 1,
+    "small_spread_v4096_u1024": 1,
+    "small_star_v4096_u1024": 1,
+    "tiny_chain_v16": 6,
+    "tiny_hotdst_v64_u32": 6,
+    "tiny_spread_v16_u8": 6,
+    "tiny_star_v16_u12": 6
+  },
+  "holdout_event_e2e_max_absolute_error_pct": 2.381769686214126,
+  "holdout_event_e2e_median_absolute_error_pct": 0.3987187963176148,
+  "holdout_used_for_fit": false,
+  "limitations": [
+    "The fitted targets are OpenCL event windows, not on-kernel cycle counters.",
+    "Four tiny cases use six repeats; the remaining small/medium cases still have one sample.",
+    "The measured envelope is valid only for the pinned U55C xclbin/profile until transferred."
+  ],
+  "matrix": "/home/chuxiao/spine-cycle-sim/configs/experiments/grasu_native_hw_matrix_20260725.json",
+  "matrix_sha256": "fdfa3a9a371b70c499e4b2300c25ec564af5d119536e2a838eff52d408a1ec12",
+  "record_count": 10,
+  "repeat_manifest": "/home/chuxiao/spine-cycle-sim/configs/experiments/grasu_native_hw_repeats_20260725.json",
+  "repeat_manifest_sha256": "cefbe35035b6333128ec2f1b659f49c294420a740da3e4c2bb9081e2a640a324",
+  "schema_version": 1,
+  "simulation_dir": "/home/chuxiao/spine-cycle-sim/docs/evidence/grasu_native_hw_matrix/simulation",
+  "status": "PASS"
+}

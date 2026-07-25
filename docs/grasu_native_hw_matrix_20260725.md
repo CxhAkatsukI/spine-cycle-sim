@@ -100,6 +100,12 @@ work must isolate startup, row/segment scan, compact edge traffic, and
 supersteps independently, then fit only calibration cases and evaluate the
 frozen holdout once.
 
+That follow-up is now complete as a separate measured-envelope layer. It uses
+component-specific predictors, adds six-sample evidence for the four tiny
+cases, and reaches 0.40% median / 2.38% maximum E2E error on the untouched
+holdout. It does not rewrite this unfitted baseline or claim kernel-internal
+cycle accuracy. See `docs/grasu_native_timing_envelope_20260725.md`.
+
 ## Evidence
 
 Committed evidence is under `docs/evidence/grasu_native_hw_matrix/`:

@@ -1,0 +1,165 @@
+PURE_PIPELINE_INPUT vertices=64 static_edges=63 update_edges=32 final_edges=95 pma_slots=1008 compact_edge_slots=96 source_external=0 source_internal=62 supersteps=16
+Using XCL_DEVICE_INDEX=0
+PURE_PIPELINE_HOST stage=launch_grasu
+PURE_PIPELINE_HOST stage=enqueued_process_cache_1
+PURE_PIPELINE_HOST stage=enqueued_process_cache_2
+PURE_PIPELINE_HOST stage=enqueued_process_ddr_1
+PURE_PIPELINE_HOST stage=enqueued_process_ddr_2
+PURE_PIPELINE_HOST stage=enqueued_dispatch
+PURE_PIPELINE_HOST stage=enqueued_bin_search_1
+PURE_PIPELINE_HOST stage=enqueued_bin_search_2
+PURE_PIPELINE_HOST stage=enqueued_bin_search_3
+PURE_PIPELINE_HOST stage=enqueued_bin_search_4
+PURE_PIPELINE_HOST stage=flushed_grasu_producers
+PURE_PIPELINE_HOST stage=enqueue_barrier
+PURE_PIPELINE_HOST stage=enqueued_barrier
+PURE_PIPELINE_HOST stage=enqueue_pma_compactor
+PURE_PIPELINE_HOST stage=enqueued_pma_compactor
+PURE_PIPELINE_HOST stage=wait_pma_compactor
+PURE_PIPELINE_HOST stage=pma_compactor_done
+PURE_PIPELINE_HOST stage=launch_step step=1
+PURE_PIPELINE_HOST stage=enqueue_hbm step=1
+PURE_PIPELINE_HOST stage=enqueued_hbm step=1
+PURE_PIPELINE_HOST stage=enqueue_apply step=1
+PURE_PIPELINE_HOST stage=enqueued_apply step=1
+PURE_PIPELINE_HOST stage=enqueue_lksg step=1
+PURE_PIPELINE_HOST stage=enqueued_lksg step=1
+PURE_PIPELINE_HOST stage=wait_step step=1
+PURE_PIPELINE_SUPERSTEP step=1 lksg_ms=0.441281 apply_ms=0.467691 hbm_ms=0.501272
+PURE_PIPELINE_HOST stage=launch_step step=2
+PURE_PIPELINE_HOST stage=enqueue_hbm step=2
+PURE_PIPELINE_HOST stage=enqueued_hbm step=2
+PURE_PIPELINE_HOST stage=enqueue_apply step=2
+PURE_PIPELINE_HOST stage=enqueued_apply step=2
+PURE_PIPELINE_HOST stage=enqueue_lksg step=2
+PURE_PIPELINE_HOST stage=enqueued_lksg step=2
+PURE_PIPELINE_HOST stage=wait_step step=2
+PURE_PIPELINE_SUPERSTEP step=2 lksg_ms=0.246506 apply_ms=0.271026 hbm_ms=0.298197
+PURE_PIPELINE_HOST stage=launch_step step=3
+PURE_PIPELINE_HOST stage=enqueue_hbm step=3
+PURE_PIPELINE_HOST stage=enqueued_hbm step=3
+PURE_PIPELINE_HOST stage=enqueue_apply step=3
+PURE_PIPELINE_HOST stage=enqueued_apply step=3
+PURE_PIPELINE_HOST stage=enqueue_lksg step=3
+PURE_PIPELINE_HOST stage=enqueued_lksg step=3
+PURE_PIPELINE_HOST stage=wait_step step=3
+PURE_PIPELINE_SUPERSTEP step=3 lksg_ms=0.215105 apply_ms=0.238436 hbm_ms=0.274107
+PURE_PIPELINE_HOST stage=launch_step step=4
+PURE_PIPELINE_HOST stage=enqueue_hbm step=4
+PURE_PIPELINE_HOST stage=enqueued_hbm step=4
+PURE_PIPELINE_HOST stage=enqueue_apply step=4
+PURE_PIPELINE_HOST stage=enqueued_apply step=4
+PURE_PIPELINE_HOST stage=enqueue_lksg step=4
+PURE_PIPELINE_HOST stage=enqueued_lksg step=4
+PURE_PIPELINE_HOST stage=wait_step step=4
+PURE_PIPELINE_SUPERSTEP step=4 lksg_ms=0.253856 apply_ms=0.275526 hbm_ms=0.300887
+PURE_PIPELINE_HOST stage=launch_step step=5
+PURE_PIPELINE_HOST stage=enqueue_hbm step=5
+PURE_PIPELINE_HOST stage=enqueued_hbm step=5
+PURE_PIPELINE_HOST stage=enqueue_apply step=5
+PURE_PIPELINE_HOST stage=enqueued_apply step=5
+PURE_PIPELINE_HOST stage=enqueue_lksg step=5
+PURE_PIPELINE_HOST stage=enqueued_lksg step=5
+PURE_PIPELINE_HOST stage=wait_step step=5
+PURE_PIPELINE_SUPERSTEP step=5 lksg_ms=0.220756 apply_ms=0.243866 hbm_ms=0.269367
+PURE_PIPELINE_HOST stage=launch_step step=6
+PURE_PIPELINE_HOST stage=enqueue_hbm step=6
+PURE_PIPELINE_HOST stage=enqueued_hbm step=6
+PURE_PIPELINE_HOST stage=enqueue_apply step=6
+PURE_PIPELINE_HOST stage=enqueued_apply step=6
+PURE_PIPELINE_HOST stage=enqueue_lksg step=6
+PURE_PIPELINE_HOST stage=enqueued_lksg step=6
+PURE_PIPELINE_HOST stage=wait_step step=6
+PURE_PIPELINE_SUPERSTEP step=6 lksg_ms=0.212665 apply_ms=0.236786 hbm_ms=0.266186
+PURE_PIPELINE_HOST stage=launch_step step=7
+PURE_PIPELINE_HOST stage=enqueue_hbm step=7
+PURE_PIPELINE_HOST stage=enqueued_hbm step=7
+PURE_PIPELINE_HOST stage=enqueue_apply step=7
+PURE_PIPELINE_HOST stage=enqueued_apply step=7
+PURE_PIPELINE_HOST stage=enqueue_lksg step=7
+PURE_PIPELINE_HOST stage=enqueued_lksg step=7
+PURE_PIPELINE_HOST stage=wait_step step=7
+PURE_PIPELINE_SUPERSTEP step=7 lksg_ms=0.219565 apply_ms=0.247606 hbm_ms=0.276767
+PURE_PIPELINE_HOST stage=launch_step step=8
+PURE_PIPELINE_HOST stage=enqueue_hbm step=8
+PURE_PIPELINE_HOST stage=enqueued_hbm step=8
+PURE_PIPELINE_HOST stage=enqueue_apply step=8
+PURE_PIPELINE_HOST stage=enqueued_apply step=8
+PURE_PIPELINE_HOST stage=enqueue_lksg step=8
+PURE_PIPELINE_HOST stage=enqueued_lksg step=8
+PURE_PIPELINE_HOST stage=wait_step step=8
+PURE_PIPELINE_SUPERSTEP step=8 lksg_ms=0.217215 apply_ms=0.240396 hbm_ms=0.267746
+PURE_PIPELINE_HOST stage=launch_step step=9
+PURE_PIPELINE_HOST stage=enqueue_hbm step=9
+PURE_PIPELINE_HOST stage=enqueued_hbm step=9
+PURE_PIPELINE_HOST stage=enqueue_apply step=9
+PURE_PIPELINE_HOST stage=enqueued_apply step=9
+PURE_PIPELINE_HOST stage=enqueue_lksg step=9
+PURE_PIPELINE_HOST stage=enqueued_lksg step=9
+PURE_PIPELINE_HOST stage=wait_step step=9
+PURE_PIPELINE_SUPERSTEP step=9 lksg_ms=0.215705 apply_ms=0.237875 hbm_ms=0.263206
+PURE_PIPELINE_HOST stage=launch_step step=10
+PURE_PIPELINE_HOST stage=enqueue_hbm step=10
+PURE_PIPELINE_HOST stage=enqueued_hbm step=10
+PURE_PIPELINE_HOST stage=enqueue_apply step=10
+PURE_PIPELINE_HOST stage=enqueued_apply step=10
+PURE_PIPELINE_HOST stage=enqueue_lksg step=10
+PURE_PIPELINE_HOST stage=enqueued_lksg step=10
+PURE_PIPELINE_HOST stage=wait_step step=10
+PURE_PIPELINE_SUPERSTEP step=10 lksg_ms=0.217895 apply_ms=0.242036 hbm_ms=0.268767
+PURE_PIPELINE_HOST stage=launch_step step=11
+PURE_PIPELINE_HOST stage=enqueue_hbm step=11
+PURE_PIPELINE_HOST stage=enqueued_hbm step=11
+PURE_PIPELINE_HOST stage=enqueue_apply step=11
+PURE_PIPELINE_HOST stage=enqueued_apply step=11
+PURE_PIPELINE_HOST stage=enqueue_lksg step=11
+PURE_PIPELINE_HOST stage=enqueued_lksg step=11
+PURE_PIPELINE_HOST stage=wait_step step=11
+PURE_PIPELINE_SUPERSTEP step=11 lksg_ms=0.211155 apply_ms=0.237395 hbm_ms=0.265546
+PURE_PIPELINE_HOST stage=launch_step step=12
+PURE_PIPELINE_HOST stage=enqueue_hbm step=12
+PURE_PIPELINE_HOST stage=enqueued_hbm step=12
+PURE_PIPELINE_HOST stage=enqueue_apply step=12
+PURE_PIPELINE_HOST stage=enqueued_apply step=12
+PURE_PIPELINE_HOST stage=enqueue_lksg step=12
+PURE_PIPELINE_HOST stage=enqueued_lksg step=12
+PURE_PIPELINE_HOST stage=wait_step step=12
+PURE_PIPELINE_SUPERSTEP step=12 lksg_ms=0.212975 apply_ms=0.238186 hbm_ms=0.267487
+PURE_PIPELINE_HOST stage=launch_step step=13
+PURE_PIPELINE_HOST stage=enqueue_hbm step=13
+PURE_PIPELINE_HOST stage=enqueued_hbm step=13
+PURE_PIPELINE_HOST stage=enqueue_apply step=13
+PURE_PIPELINE_HOST stage=enqueued_apply step=13
+PURE_PIPELINE_HOST stage=enqueue_lksg step=13
+PURE_PIPELINE_HOST stage=enqueued_lksg step=13
+PURE_PIPELINE_HOST stage=wait_step step=13
+PURE_PIPELINE_SUPERSTEP step=13 lksg_ms=0.210805 apply_ms=0.234346 hbm_ms=0.259746
+PURE_PIPELINE_HOST stage=launch_step step=14
+PURE_PIPELINE_HOST stage=enqueue_hbm step=14
+PURE_PIPELINE_HOST stage=enqueued_hbm step=14
+PURE_PIPELINE_HOST stage=enqueue_apply step=14
+PURE_PIPELINE_HOST stage=enqueued_apply step=14
+PURE_PIPELINE_HOST stage=enqueue_lksg step=14
+PURE_PIPELINE_HOST stage=enqueued_lksg step=14
+PURE_PIPELINE_HOST stage=wait_step step=14
+PURE_PIPELINE_SUPERSTEP step=14 lksg_ms=0.213535 apply_ms=0.237325 hbm_ms=0.263296
+PURE_PIPELINE_HOST stage=launch_step step=15
+PURE_PIPELINE_HOST stage=enqueue_hbm step=15
+PURE_PIPELINE_HOST stage=enqueued_hbm step=15
+PURE_PIPELINE_HOST stage=enqueue_apply step=15
+PURE_PIPELINE_HOST stage=enqueued_apply step=15
+PURE_PIPELINE_HOST stage=enqueue_lksg step=15
+PURE_PIPELINE_HOST stage=enqueued_lksg step=15
+PURE_PIPELINE_HOST stage=wait_step step=15
+PURE_PIPELINE_SUPERSTEP step=15 lksg_ms=0.209535 apply_ms=0.236765 hbm_ms=0.262306
+PURE_PIPELINE_HOST stage=launch_step step=16
+PURE_PIPELINE_HOST stage=enqueue_hbm step=16
+PURE_PIPELINE_HOST stage=enqueued_hbm step=16
+PURE_PIPELINE_HOST stage=enqueue_apply step=16
+PURE_PIPELINE_HOST stage=enqueued_apply step=16
+PURE_PIPELINE_HOST stage=enqueue_lksg step=16
+PURE_PIPELINE_HOST stage=enqueued_lksg step=16
+PURE_PIPELINE_HOST stage=wait_step step=16
+PURE_PIPELINE_SUPERSTEP step=16 lksg_ms=0.211485 apply_ms=0.236556 hbm_ms=0.267057
+PURE_PIPELINE_TIMING grasu_ms=0.477421 barrier_ms=0.064502 adapter_ms=0.129823 pma_compact_ms=0.129823 lksg_ms=3.730039 apply_ms=4.121817 hbm_ms=4.571940 event_e2e_ms=6.116865 wall_ms=6.195687
+PURE_PIPELINE_RESULT status=PASS mismatches=0 vertices=64 final_edges=95 pma_scan_slots_once=1008 processed_edge_slots_per_superstep=96 source_external=0 source_internal=62 supersteps=16

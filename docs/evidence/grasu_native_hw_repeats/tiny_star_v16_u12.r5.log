@@ -1,0 +1,39 @@
+PURE_PIPELINE_INPUT vertices=16 static_edges=16 update_edges=12 final_edges=28 pma_slots=256 compact_edge_slots=32 source_external=0 source_internal=0 supersteps=2
+Using XCL_DEVICE_INDEX=0
+PURE_PIPELINE_HOST stage=launch_grasu
+PURE_PIPELINE_HOST stage=enqueued_process_cache_1
+PURE_PIPELINE_HOST stage=enqueued_process_cache_2
+PURE_PIPELINE_HOST stage=enqueued_process_ddr_1
+PURE_PIPELINE_HOST stage=enqueued_process_ddr_2
+PURE_PIPELINE_HOST stage=enqueued_dispatch
+PURE_PIPELINE_HOST stage=enqueued_bin_search_1
+PURE_PIPELINE_HOST stage=enqueued_bin_search_2
+PURE_PIPELINE_HOST stage=enqueued_bin_search_3
+PURE_PIPELINE_HOST stage=enqueued_bin_search_4
+PURE_PIPELINE_HOST stage=flushed_grasu_producers
+PURE_PIPELINE_HOST stage=enqueue_barrier
+PURE_PIPELINE_HOST stage=enqueued_barrier
+PURE_PIPELINE_HOST stage=enqueue_pma_compactor
+PURE_PIPELINE_HOST stage=enqueued_pma_compactor
+PURE_PIPELINE_HOST stage=wait_pma_compactor
+PURE_PIPELINE_HOST stage=pma_compactor_done
+PURE_PIPELINE_HOST stage=launch_step step=1
+PURE_PIPELINE_HOST stage=enqueue_hbm step=1
+PURE_PIPELINE_HOST stage=enqueued_hbm step=1
+PURE_PIPELINE_HOST stage=enqueue_apply step=1
+PURE_PIPELINE_HOST stage=enqueued_apply step=1
+PURE_PIPELINE_HOST stage=enqueue_lksg step=1
+PURE_PIPELINE_HOST stage=enqueued_lksg step=1
+PURE_PIPELINE_HOST stage=wait_step step=1
+PURE_PIPELINE_SUPERSTEP step=1 lksg_ms=0.397990 apply_ms=0.424760 hbm_ms=0.457401
+PURE_PIPELINE_HOST stage=launch_step step=2
+PURE_PIPELINE_HOST stage=enqueue_hbm step=2
+PURE_PIPELINE_HOST stage=enqueued_hbm step=2
+PURE_PIPELINE_HOST stage=enqueue_apply step=2
+PURE_PIPELINE_HOST stage=enqueued_apply step=2
+PURE_PIPELINE_HOST stage=enqueue_lksg step=2
+PURE_PIPELINE_HOST stage=enqueued_lksg step=2
+PURE_PIPELINE_HOST stage=wait_step step=2
+PURE_PIPELINE_SUPERSTEP step=2 lksg_ms=0.239266 apply_ms=0.264306 hbm_ms=0.291587
+PURE_PIPELINE_TIMING grasu_ms=0.398500 barrier_ms=0.027000 adapter_ms=0.111292 pma_compact_ms=0.111292 lksg_ms=0.637256 apply_ms=0.689066 hbm_ms=0.748988 event_e2e_ms=1.507916 wall_ms=1.590748
+PURE_PIPELINE_RESULT status=PASS mismatches=0 vertices=16 final_edges=28 pma_scan_slots_once=256 processed_edge_slots_per_superstep=32 source_external=0 source_internal=0 supersteps=2

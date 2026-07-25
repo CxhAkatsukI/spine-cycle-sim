@@ -1,0 +1,78 @@
+{
+  "calibration_cases": [
+    "tiny_chain_v16",
+    "tiny_star_v16_u12",
+    "small_spread_v4096_u1024",
+    "small_hotdst_v4096_u1024",
+    "medium_star_v65536_u8192"
+  ],
+  "claim_class": "hardware_event_window_calibrated_partial_repeats",
+  "envelopes": {
+    "compute_span": {
+      "calibration_r2": 0.9999092916131536,
+      "coefficients": {
+        "supersteps": 20070.491250421423,
+        "vertices": 1.2018011846843246
+      },
+      "features": [
+        "supersteps",
+        "vertices"
+      ],
+      "intercept_cycles": 10475.587917805533,
+      "samples": 5,
+      "semantic": "per-superstep ReGraph controller envelope plus first-sweep vertex-scale gap",
+      "target": "compute_span"
+    },
+    "conversion": {
+      "calibration_r2": 0.9999955632564297,
+      "coefficients": {
+        "compactor_pma_segment_reads": 54.47578552096489
+      },
+      "features": [
+        "compactor_pma_segment_reads"
+      ],
+      "intercept_cycles": 27506.60187158757,
+      "samples": 5,
+      "semantic": "compactor/event startup plus per-segment AXI platform gap",
+      "target": "conversion"
+    },
+    "event_gap": {
+      "calibration_r2": 0.9842729297507389,
+      "coefficients": {
+        "supersteps": 9777.614688843001,
+        "vertices": 0.6613994966165273
+      },
+      "features": [
+        "supersteps",
+        "vertices"
+      ],
+      "intercept_cycles": 34872.294857648376,
+      "samples": 5,
+      "semantic": "host out-of-order queue scheduling and inter-kernel event-window gaps",
+      "target": "event_gap"
+    },
+    "update": {
+      "calibration_r2": 0.9999633037958906,
+      "coefficients": {
+        "update_binary_probes": 10.55382092765628,
+        "updates": 86.70685172463043
+      },
+      "features": [
+        "updates",
+        "update_binary_probes"
+      ],
+      "intercept_cycles": 91027.74636181525,
+      "samples": 5,
+      "semantic": "kernel/event startup plus per-update issue and binary-probe AXI/controller gap",
+      "target": "update"
+    }
+  },
+  "fit_role": "calibration_only",
+  "kernel_clock_mhz": 200.0,
+  "limitations": [
+    "The fitted targets are OpenCL event windows, not on-kernel cycle counters.",
+    "Four tiny cases use six repeats; the remaining small/medium cases still have one sample.",
+    "The measured envelope is valid only for the pinned U55C xclbin/profile until transferred."
+  ],
+  "schema_version": 1
+}

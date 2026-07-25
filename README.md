@@ -52,6 +52,13 @@ reordered source, PMA/compact count, superstep count, and SSSP output. Its
 unfitted timing remains optimistic by about 50% E2E median and is explicitly
 trend-only; raw evidence, runtime, and component diagnostics are in
 [`docs/grasu_native_hw_matrix_20260725.md`](docs/grasu_native_hw_matrix_20260725.md).
+An explicit measured-envelope layer now preserves those execution-driven core
+cycles while accounting separately for update, compactor, ReGraph controller,
+and host/event-window gaps. Five calibration cases predict the frozen holdout
+at 0.40% median and 2.38% maximum E2E error; four tiny cases use six FPGA
+repeats, while the remaining single-sample component limitations stay visible.
+See
+[`docs/grasu_native_timing_envelope_20260725.md`](docs/grasu_native_timing_envelope_20260725.md).
 
 The PMA-native ReGraph SSSP path now includes finite gather/merger, merger/apply,
 and apply/HBM-wrapper streams with online SST-HBM backpressure. Its overlap and

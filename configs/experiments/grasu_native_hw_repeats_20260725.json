@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "repeat_set_id": "grasu_native_hw_repeats_20260725",
+  "base_matrix": "configs/experiments/grasu_native_hw_matrix_20260725.json",
+  "base_matrix_sha256": "fdfa3a9a371b70c499e4b2300c25ec564af5d119536e2a838eff52d408a1ec12",
+  "measurement_policy": "componentwise_median",
+  "device_index": 0,
+  "cases": [
+    {
+      "case": "tiny_chain_v16",
+      "logs": [
+        {"path": "docs/evidence/grasu_native_hw_matrix/tiny_chain_v16.log", "sha256": "1840fa0e1868965426801d752c42c03acd92be6ecfd0ee0558e0f13f6060d270"},
+        {"path": "docs/evidence/grasu_native_hw_repeats/tiny_chain_v16.r1.log", "sha256": "e5688b797f938d6b435775612c1c90e9918956c8e86808e346816026454a5539"},
+        {"path": "docs/evidence/grasu_native_hw_repeats/tiny_chain_v16.r2.log", "sha256": "852be0e8c4f6486e6dc30d3b6cc8416125ff238d6b6a70e8539eafdfe6a39d15"},
+        {"path": "docs/evidence/grasu_native_hw_repeats/tiny_chain_v16.r3.log", "sha256": "aaf7d087be00252219c8567cb97f5cecb17d24f294869c98488975efacd80daf"},
+        {"path": "docs/evidence/grasu_native_hw_repeats/tiny_chain_v16.r4.log", "sha256": "b660e400be29fe3c2ff6cc17a9dd101bf9f142548656dbf6f85f35208314386d"},
+        {"path": "docs/evidence/grasu_native_hw_repeats/tiny_chain_v16.r5.log", "sha256": "628158d58f14d3a41e33129dc3c08793b641d3fe8794953928c395ab901f36f8"}
+      ]
+    },
+    {
+      "case": "tiny_star_v16_u12",
+      "logs": [
+        {"path": "docs/evidence/grasu_native_hw_matrix/tiny_star_v16_u12.log", "sha256": "dc60efb6afce5b52c0263ad69c6c57c7e37840155340d9966743c88bb2e8fc9e"},
+        {"path": "docs/evidence/grasu_native_hw_repeats/tiny_star_v16_u12.r1.log", "sha256": "e4fe36226389374a92bdcfa093227aa075f6d4e3d04123943f54630dcc54d2df"},
+        {"path": "docs/evidence/grasu_native_hw_repeats/tiny_star_v16_u12.r2.log", "sha256": "38d135f11bd0bc8bf8420371680ffd64b16e57b631aa48bed1151e4d5205d73a"},
+        {"path": "docs/evidence/grasu_native_hw_repeats/tiny_star_v16_u12.r3.log", "sha256": "b9195807e4c1d4b5765fc4a57488240e51b74795d744416bfc93f7e8a99558b3"},
+        {"path": "docs/evidence/grasu_native_hw_repeats/tiny_star_v16_u12.r4.log", "sha256": "bbd987e6e70fec3f049c9809f2eab1cca34f5e07dc08a35457ff3df366d7c1b8"},
+        {"path": "docs/evidence/grasu_native_hw_repeats/tiny_star_v16_u12.r5.log", "sha256": "864dd400dd7d12c29f8ab7c3e049b6963ac4b656442cd11706ca3be021334dfa"}
+      ]
+    },
+    {
+      "case": "tiny_spread_v16_u8",
+      "logs": [
+        {"path": "docs/evidence/grasu_native_hw_matrix/tiny_spread_v16_u8.log", "sha256": "42777778e342ddf16ea01915cfb1d2099a27989f09efb37de8d9a81b245f8050"},
+        {"path": "docs/evidence/grasu_native_hw_repeats/tiny_spread_v16_u8.r1.log", "sha256": "167104f9caa7063bcb7f409d122104501db9a1362da77e917edd4464f0c2c137"},
+        {"path": "docs/evidence/grasu_native_hw_repeats/tiny_spread_v16_u8.r2.log", "sha256": "a1c9b538e611232e344cc51e3815bf282d0b59c22b2d9bd6909d028e07fcad7c"},
+        {"path": "docs/evidence/grasu_native_hw_repeats/tiny_spread_v16_u8.r3.log", "sha256": "989ed2e22e5db85dacbfe22b0586663c35f0972263e7ab4e1cb7474809bea5f9"},
+        {"path": "docs/evidence/grasu_native_hw_repeats/tiny_spread_v16_u8.r4.log", "sha256": "40c09768ab003eb1c353ea69362c987b36c5a999b7075ccfe9f2f14f2a59bae5"},
+        {"path": "docs/evidence/grasu_native_hw_repeats/tiny_spread_v16_u8.r5.log", "sha256": "0ff6b895baa217a82f9c0daed0d9b813b8c832697c88645562b5fc1825a6a465"}
+      ]
+    },
+    {
+      "case": "tiny_hotdst_v64_u32",
+      "logs": [
+        {"path": "docs/evidence/grasu_native_hw_matrix/tiny_hotdst_v64_u32.log", "sha256": "ba2582bbb625e0e9fa77c5af23df415592fea51538d2d0f10023b96aa0424b11"},
+        {"path": "docs/evidence/grasu_native_hw_repeats/tiny_hotdst_v64_u32.r1.log", "sha256": "66870d610f0e59b5a117cbe2da97309c044379669b218cf8f3e16aa2ebfff176"},
+        {"path": "docs/evidence/grasu_native_hw_repeats/tiny_hotdst_v64_u32.r2.log", "sha256": "8b8f5b40056fce8ec9563b39edc1a907a4499bf0e282033e37efd96dc2fc20ca"},
+        {"path": "docs/evidence/grasu_native_hw_repeats/tiny_hotdst_v64_u32.r3.log", "sha256": "5f7b6b0570dae691d1ee6df1968a587ffe93ba70550cc268153161c3098b36a8"},
+        {"path": "docs/evidence/grasu_native_hw_repeats/tiny_hotdst_v64_u32.r4.log", "sha256": "737a855d85baa374c998187142ab1185faa7b16f75209f6fa726d17de98a26e9"},
+        {"path": "docs/evidence/grasu_native_hw_repeats/tiny_hotdst_v64_u32.r5.log", "sha256": "7700d9b6299846719ac3a2cc8bafe53f177131317a498c16c25bde80b0de4f5f"}
+      ]
+    }
+  ]
+}

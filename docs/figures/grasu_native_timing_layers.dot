@@ -1,0 +1,27 @@
+digraph grasu_native_timing_layers {
+  graph [rankdir=LR, bgcolor="white", pad="0.25", nodesep="0.35", ranksep="0.65"];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11, color="#334155", fillcolor="#f8fafc", margin="0.12,0.08"];
+  edge [fontname="Helvetica", fontsize=10, color="#475569"];
+
+  input [label="Graph + update batch", fillcolor="#e2e8f0"];
+  update [label="Execution-driven GraSU update\nFIFO + AXI + SST-HBM", fillcolor="#dbeafe"];
+  convert [label="Execution-driven native compactor\ncapacity scan + edge-array writes", fillcolor="#dcfce7"];
+  compute [label="Execution-driven ReGraph SSSP\nAXIS + AXI + SST-HBM", fillcolor="#fef3c7"];
+  result [label="Distances + raw core cycles", fillcolor="#e2e8f0"];
+
+  uenv [label="Measured update envelope\nfixed + updates + binary probes", fillcolor="#fee2e2"];
+  cenv [label="Measured conversion envelope\nfixed + PMA segments", fillcolor="#fee2e2"];
+  denv [label="Measured compute envelope\nfixed + supersteps + vertices", fillcolor="#fee2e2"];
+  gap [label="Measured host/event gap\nfixed + supersteps + vertices", fillcolor="#f3e8ff"];
+  prediction [label="U55C event-window prediction\nraw components + explicit envelopes", fillcolor="#ccfbf1", penwidth=2];
+
+  input -> update -> convert -> compute -> result;
+  update -> uenv [style=dashed];
+  convert -> cenv [style=dashed];
+  compute -> denv [style=dashed];
+  uenv -> prediction;
+  cenv -> prediction;
+  denv -> prediction;
+  gap -> prediction;
+  result -> prediction;
+}
