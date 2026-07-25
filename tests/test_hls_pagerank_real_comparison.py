@@ -5,9 +5,13 @@ import unittest
 from spine_cycle_sim.experiments.hls_pagerank_real_comparison import (
     pair_row,
     rank_vector,
+    residual_pair_row,
+    residual_system_row,
     system_row,
     validate_grasu_pagerank_result,
+    validate_grasu_residual_result,
     validate_spine_pagerank_result,
+    validate_spine_residual_result,
 )
 
 
@@ -201,6 +205,175 @@ class HlsPageRankRealComparisonTests(unittest.TestCase):
         )
         self.assertEqual(row["e2e_ms"], 0.002)
         self.assertEqual(row["update_backend_bytes"], 640)
+        self.assertEqual(row["compute_backend_bytes"], 1920)
+
+    def test_residual_validators_require_convergence_and_frontiers(self) -> None:
+        common_result = {
+            "success": True,
+            "core_mhz": 141.0,
+            "vertices": 4,
+            "initial_edges": 4,
+            "logical_updates": 16,
+            "physical_updates": 16,
+            "update_edges": 16,
+            "materialized_snapshot_edges": 4,
+            "pagerank_damping": 0.85,
+            "pagerank_epsilon": 1.0e-6,
+            "iterations": 2,
+            "converged": True,
+            "residual_bound_passed": True,
+            "frontier_in_sizes": [4, 1],
+            "frontier_out_sizes": [1, 0],
+            "architecture_correctness_mismatches": 0,
+            "mathematical_correctness_mismatches": 0,
+            "correctness_mismatches": 0,
+            "max_abs_error": 1.0e-7,
+            "mathematical_max_abs_error": 2.0e-7,
+            "residual_l1": 5.0e-7,
+            "cycles": 400,
+            "backend_requests": 40,
+        }
+        spine = {
+            **common_result,
+            "status": "PASS",
+            "mode": "spine_residual_pagerank",
+            "architecture_profile_id": "spine",
+            "dynamic_update": True,
+            "pipeline_order": (
+                "zero_time_l0_preload_then_update_maintenance_then_compute"
+            ),
+            "maintenance_persisted_edges": 4,
+            "residual_max_iterations": 256,
+            "final_active": 0,
+            "frontier_match": True,
+            "memory_ledger_match": True,
+            "ranks": [0.25] * 4,
+            "residuals": [1.0e-7] * 4,
+            "maintenance_cycles": 100,
+            "maintenance_backend_requests": 10,
+            "compute_backend_requests": 30,
+            "dram_reads": 25,
+            "dram_writes": 15,
+        }
+        spine_arguments = dict(
+            expected_profile_id="spine",
+            expected_core_mhz=141.0,
+            damping=0.85,
+            epsilon=1.0e-6,
+            max_iterations=256,
+        )
+        self.assertEqual(
+            validate_spine_residual_result(_run(), spine, **spine_arguments), []
+        )
+        grasu_result = {
+            **common_result,
+            "mode": "grasu_regraph_hls_weighted_residual_pagerank",
+            "claim_class": (
+                "hls_equivalent_proposed_execution_driven_simulation"
+            ),
+            "pipeline_order": "update_then_degree_barrier_then_pma_native_compute",
+            "core_mhz": 200.0,
+            "ranks_external": [0.25] * 4,
+            "residuals_external": [1.0e-7] * 4,
+            "compute_active_edges": 4,
+            "expected_active_edges": 4,
+            "update_cycles": 100,
+            "compute_cycles": 300,
+            "update_pma_reads": 16,
+            "update_pma_writes": 16,
+            "degree_update_reads": 16,
+            "degree_update_writes": 16,
+            "update_backend_requests": 10,
+            "compute_backend_requests": 30,
+            "expected_backend_requests": 40,
+        }
+        child = {
+            "status": "PASS",
+            "profile_sha256": "profile",
+            "result": grasu_result,
+            "dram": {"reads": 25, "writes": 15},
+        }
+        grasu_arguments = dict(
+            expected_profile_sha256="profile",
+            expected_core_mhz=200.0,
+            damping=0.85,
+            epsilon=1.0e-6,
+            max_iterations=256,
+        )
+        self.assertEqual(
+            validate_grasu_residual_result(_run(), child, **grasu_arguments), []
+        )
+        grasu_result["frontier_out_sizes"] = [1, 1]
+        self.assertIn(
+            "frontier",
+            validate_grasu_residual_result(_run(), child, **grasu_arguments),
+        )
+
+    def test_residual_pair_requires_rank_residual_and_frontier_match(self) -> None:
+        common = {
+            "run_id": "r",
+            "dataset_id": "d",
+            "scenario": "insert",
+            "iterations": 2,
+            "user_mutations": 8,
+            "physical_records": 8,
+            "e2e_ms": 2.0,
+            "update_ms": 0.1,
+            "compute_ms": 1.9,
+            "backend_requests": 100,
+            "compute_backend_requests": 90,
+            "ranks": (0.2, 0.8),
+            "residuals": (1.0e-7, 2.0e-7),
+            "frontier_in": (2, 1),
+            "frontier_out": (1, 0),
+        }
+        grasu = {
+            **common,
+            "e2e_ms": 3.0,
+            "compute_ms": 2.9,
+            "backend_requests": 200,
+            "compute_backend_requests": 190,
+            "ranks": (0.200001, 0.799999),
+        }
+        pair = residual_pair_row(common, grasu)
+        self.assertEqual(pair["spine_speedup_over_grasu_e2e"], 1.5)
+        self.assertTrue(pair["cross_system_frontiers_match"])
+        broken = {**grasu, "frontier_out": (2, 0)}
+        with self.assertRaisesRegex(ValueError, "residual mismatch"):
+            residual_pair_row(common, broken)
+
+    def test_residual_system_row_preserves_frontier_evidence(self) -> None:
+        result = {
+            "cycles": 400,
+            "maintenance_cycles": 100,
+            "maintenance_backend_requests": 10,
+            "compute_backend_requests": 30,
+            "backend_requests": 40,
+            "core_mhz": 200.0,
+            "iterations": 2,
+            "residual_l1": 5.0e-7,
+            "ranks": [0.25] * 4,
+            "residuals": [1.0e-7] * 4,
+            "frontier_in_sizes": [4, 1],
+            "frontier_out_sizes": [1, 0],
+            "correctness_mismatches": 0,
+        }
+        dram = {
+            "reads": 25,
+            "writes": 15,
+            "activates": 5,
+            "precharges": 4,
+            "total_energy_pj": 100.0,
+        }
+        row = residual_system_row(
+            _run(),
+            system="spine",
+            result=result,
+            dram=dram,
+            wall_seconds=1.0,
+            profile_id="spine",
+        )
+        self.assertEqual(row["frontier_in"], (4, 1))
         self.assertEqual(row["compute_backend_bytes"], 1920)
 
 

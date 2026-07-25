@@ -37,8 +37,11 @@ from .hls_real_comparison import (
 )
 from .hls_pagerank_real_comparison import (
     pair_row as hls_pagerank_real_pair_row,
+    residual_pair_row as hls_residual_pagerank_real_pair_row,
     validate_grasu_pagerank_result,
+    validate_grasu_residual_result,
     validate_spine_pagerank_result,
+    validate_spine_residual_result,
 )
 
 __all__ = [
@@ -69,6 +72,9 @@ __all__ = [
     "validate_grasu_hls_result",
     "validate_spine_dynamic_result",
     "hls_pagerank_real_pair_row",
+    "hls_residual_pagerank_real_pair_row",
     "validate_grasu_pagerank_result",
+    "validate_grasu_residual_result",
     "validate_spine_pagerank_result",
+    "validate_spine_residual_result",
 ]

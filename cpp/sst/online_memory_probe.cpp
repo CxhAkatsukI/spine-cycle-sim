@@ -2953,6 +2953,13 @@ class OnlineMemoryProbe final : public SST::Component {
              << ",\n"
              << "  \"update_write_bytes\": "
              << update.pma_write_bytes + update.degree_write_bytes << ",\n"
+             << "  \"update_pma_reads\": " << update.pma_reads << ",\n"
+             << "  \"update_pma_writes\": " << update.pma_writes
+             << ",\n"
+             << "  \"update_pma_read_bytes\": "
+             << update.pma_read_bytes << ",\n"
+             << "  \"update_pma_write_bytes\": "
+             << update.pma_write_bytes << ",\n"
              << "  \"update_backend_requests\": " << update_requests
              << ",\n"
              << "  \"compute_backend_requests\": " << compute_requests
