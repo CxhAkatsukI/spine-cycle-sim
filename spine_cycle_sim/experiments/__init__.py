@@ -35,6 +35,11 @@ from .hls_real_comparison import (
     validate_grasu_hls_result,
     validate_spine_dynamic_result,
 )
+from .hls_pagerank_real_comparison import (
+    pair_row as hls_pagerank_real_pair_row,
+    validate_grasu_pagerank_result,
+    validate_spine_pagerank_result,
+)
 
 __all__ = [
     "DEFAULT_REAL_SOURCES",
@@ -63,4 +68,7 @@ __all__ = [
     "hls_real_pair_row",
     "validate_grasu_hls_result",
     "validate_spine_dynamic_result",
+    "hls_pagerank_real_pair_row",
+    "validate_grasu_pagerank_result",
+    "validate_spine_pagerank_result",
 ]

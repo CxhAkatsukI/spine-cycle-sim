@@ -142,6 +142,14 @@ def validate_generic_result(
                 "dynamic_pipeline_order": (not dynamic)
                 or result.get("pipeline_order")
                 == "zero_time_l0_preload_then_update_maintenance_then_compute",
+                "phase_backend_ledger": (not dynamic)
+                or (
+                    int(result.get("maintenance_backend_requests", -1)) > 0
+                    and int(result.get("compute_backend_requests", -1)) > 0
+                    and int(result["maintenance_backend_requests"])
+                    + int(result["compute_backend_requests"])
+                    == int(result.get("backend_requests", -1))
+                ),
             }
         )
     if expected_mode == "spine_sssp":

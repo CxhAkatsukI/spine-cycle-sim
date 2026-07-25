@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "evidence_id": "hls_full_pagerank_real_compact_comparison_20260726",
+  "claim_class": "profile_clock_adjusted_real_compact_execution_driven",
+  "algorithm": "full_pagerank",
+  "raw_matrix_manifest": {
+    "path": "results/hls_full_pagerank_real_comparison_release_20260726/matrix_manifest.json",
+    "sha256": "c81f4e9dc1974cc4ccf4729ce96f74632b2ab3e13aff06274770f4c813c2f2e0"
+  },
+  "system_rows_sha256": "bce19de7d3cc616df63eccbee4b6b1b303737a0a5e6acd8457e0a9bf2453a0e1",
+  "pairs_sha256": "a46868f726d0a7a5f981cb715c85ee60187b984eec5a9376902bc775ac893391",
+  "input_manifest_sha256": "1c0a362a82b34eb235153b815dbfbeb9121932cd4d2b40e87b8d8e5370a40bd9",
+  "spine_profile_sha256": "aba0d6bbcbaa64240897ed3efc555d6ce6d6455d2f10e77e0ccdb77fa46466a7",
+  "grasu_profile_sha256": "53e1688e3f944d59cb2e482f040ed82e4a253e65b0c2e1353103aedb23a9dcda",
+  "capability_catalog_sha256": "a4f1c2134a5957c8a7faf258b0205498ef19c1e9eda29c0d1fc1bc4a7183108a",
+  "execution_sha256": "022e3e116e4d99226300ff65819991b37f76b14a47b24dd629ea2bc3cfa4e428",
+  "system_rows": 18,
+  "pairs": 9,
+  "all_correct": true,
+  "maximum_cross_system_rank_difference": 0.0,
+  "spine_e2e_wins": 0,
+  "geometric_means": {
+    "spine_speedup_over_grasu_e2e": 0.7802725128213671,
+    "spine_speedup_over_grasu_update": 0.0029412418793401786,
+    "spine_speedup_over_grasu_compute": 0.9804500935751941,
+    "grasu_to_spine_backend_request_ratio": 1.3071619792790639,
+    "grasu_to_spine_update_request_ratio": 0.010412432865934192,
+    "grasu_to_spine_compute_request_ratio": 1.5234767407869922
+  },
+  "matrix_wall_seconds": 26.05860267719254,
+  "status": "PASS"
+}

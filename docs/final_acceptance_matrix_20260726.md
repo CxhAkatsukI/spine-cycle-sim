@@ -19,8 +19,8 @@ cannot silently satisfy an HLS-aligned requirement.
 | GraSU/ReGraph weighted SSSP | Normalized executable mode; native unit-weight mode; `ff13a67` weighted full-word HLS-aligned mode; 10 synthetic plus 9 real-compact dynamic cases | Implemented | Scale beyond compact slices and compare with hw/hw_emu timing evidence |
 | GraSU/ReGraph Full PageRank | Normalized modes plus executable ff13a67 full-word HLS-equivalent proposed profile with dual oracle | Implemented | Run the common three-dataset compact matrix, then scale beyond compact slices |
 | GraSU/ReGraph thresholded residual PageRank | Normalized modes plus executable ff13a67 full-word HLS-equivalent proposed profile with dual oracle | Implemented | Run the common three-dataset compact matrix, then scale beyond compact slices |
-| Differential correctness | Shared dynamic fixtures, per-run architecture/mathematical oracles, and 9/9 cross-system real-compact distance matches | Partial | Preserve fail-closed checks on PageRank and full-dataset experiments |
-| End-to-end small-batch performance | 73-pair normalized matrix plus 9-pair weighted-SSSP HLS-profile real-compact matrix | Partial | Add HLS-aligned PageRank and publication-scale datasets |
+| Differential correctness | Shared dynamic fixtures, per-run architecture/mathematical oracles, 9/9 weighted-SSSP distance matches, and 9/9 Full-PageRank rank matches | Partial | Preserve fail-closed checks on residual PageRank and full-dataset experiments |
+| End-to-end small-batch performance | 73-pair normalized matrix, 9-pair weighted-SSSP matrix, and 9-pair Full-PageRank HLS-profile real-compact matrix | Partial | Add residual PageRank and publication-scale datasets |
 | Update throughput | Common real-compact batches report user mutations and physical records for Spine maintenance and GraSU PMA | Partial | Sweep batch size/density on full-scale inputs and validate against hw |
 | Memory behavior | Per-component bytes/requests, AXI stalls, DRAM reads/writes/ACT/PRE, sparse channel binding | Partial | Add common sequential/random classification and per-algorithm tables |
 | Energy by component | DRAMSim3 active-channel energy and selected CACTI evidence | Partial | Complete on-chip activity-to-energy mapping; keep idle-channel assumptions explicit |
@@ -68,12 +68,19 @@ window, profile clocks, update throughput, aligned backend requests, stalls,
 and runtime are frozen in
 `docs/hls_weighted_real_compact_comparison_20260726.md`.
 
+## Closed Real-Compact Full PageRank Gate
+
+The common nine-pair matrix covers the same three real compact slices and
+insert/delete/weight-change batches. All 18 system rows pass dual oracles and
+all cross-system rank vectors match. Profile-clock-adjusted E2E results favor
+GraSU/ReGraph by 1.282x geometric mean, while the component breakdown exposes
+a 340x update advantage and near-parity compute. See
+`docs/hls_full_pagerank_real_compact_comparison_20260726.md`.
+
 ## Immediate Next Gate
 
-Run the common nine-case real-compact Full PageRank matrix using the now-shared
-contract: initial graph preload excluded, differential update plus compute
-included, three iterations at damping 0.85, and independent float32/float64
-oracles in every row. Then repeat for thresholded residual PageRank. In
-parallel, add phase snapshots for Spine DRAM read/write/ACT/PRE/energy and a
-common sequential/random classifier; until then, total requests are comparable
-but update/compute locality and DRAM energy ratios are not.
+Repeat the common nine-case real-compact matrix for thresholded residual
+PageRank. Then add a common per-phase sequential/random address classifier and
+close the publication-scale checkpoint loader/runtime gate. Total and phase
+backend requests are now comparable, but update/compute locality and total
+energy ratios are not.

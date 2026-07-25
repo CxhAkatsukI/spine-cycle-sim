@@ -2088,6 +2088,11 @@ class OnlineMemoryProbe final : public SST::Component {
       }
     } else if (mode_ == "spine_pagerank" ||
                mode_ == "spine_residual_pagerank") {
+      if (!pagerank_maintenance_backend_captured_ &&
+          pagerank_system_->maintenance_done()) {
+        pagerank_maintenance_backend_requests_ = backend_->accepted();
+        pagerank_maintenance_backend_captured_ = true;
+      }
       if (pagerank_system_->done() && pagerank_system_->idle() &&
           backend_->outstanding() == 0) {
         const std::uint64_t now = scheduler_.clock(0).completed_cycles;
@@ -3824,6 +3829,11 @@ class OnlineMemoryProbe final : public SST::Component {
           << pagerank_system_->compute().next_active().size() << ",\n"
           << "  \"maintenance_cycles\": "
           << maintenance.end_cycle - maintenance.start_cycle << ",\n"
+          << "  \"maintenance_backend_requests\": "
+          << pagerank_maintenance_backend_requests_ << ",\n"
+          << "  \"compute_backend_requests\": "
+          << backend_->accepted() - pagerank_maintenance_backend_requests_
+          << ",\n"
           << "  \"maintenance_persisted_edges\": "
           << maintenance.persisted_edges << ",\n"
           << "  \"reader_edges\": " << reader.edges_emitted << ",\n"
@@ -4010,6 +4020,11 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"rank_sum\": " << rank_sum << ",\n"
           << "  \"maintenance_cycles\": "
           << maintenance.end_cycle - maintenance.start_cycle << ",\n"
+          << "  \"maintenance_backend_requests\": "
+          << pagerank_maintenance_backend_requests_ << ",\n"
+          << "  \"compute_backend_requests\": "
+          << backend_->accepted() - pagerank_maintenance_backend_requests_
+          << ",\n"
           << "  \"maintenance_persisted_edges\": "
           << maintenance.persisted_edges << ",\n"
           << "  \"reader_edges\": " << reader.edges_emitted << ",\n"
@@ -6241,6 +6256,7 @@ class OnlineMemoryProbe final : public SST::Component {
   std::vector<std::size_t> pagerank_frontier_out_sizes_;
   std::vector<std::uint64_t> pagerank_compute_requests_per_iteration_;
   std::uint64_t pagerank_iteration_start_cycle_{};
+  std::uint64_t pagerank_maintenance_backend_requests_{};
   std::size_t pagerank_completed_iterations_{};
   std::vector<SpineSsspRoundEvidence> sst_rounds_;
   std::vector<SpineHostHandoffEvidence> sst_host_handoffs_;
@@ -6253,6 +6269,7 @@ class OnlineMemoryProbe final : public SST::Component {
   bool sst_waiting_dirty_ack_{};
   bool dynamic_sssp_enabled_{};
   bool dynamic_pagerank_enabled_{};
+  bool pagerank_maintenance_backend_captured_{};
   bool dynamic_sssp_started_{};
   bool dynamic_full_rebuild_{};
   bool result_written_{};

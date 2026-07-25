@@ -78,6 +78,8 @@ class SstSpineVerticalValidationTests(unittest.TestCase):
             "update_edges": 2,
             "materialized_snapshot_edges": 4,
             "maintenance_persisted_edges": 4,
+            "maintenance_backend_requests": 5,
+            "compute_backend_requests": 7,
             "dynamic_update": True,
             "pipeline_order": (
                 "zero_time_l0_preload_then_update_maintenance_then_compute"

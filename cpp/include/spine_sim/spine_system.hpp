@@ -200,6 +200,7 @@ class SpinePageRankVerticalSliceSystem {
 
   void register_components();
   void restart_iteration();
+  [[nodiscard]] bool maintenance_done() const noexcept;
   [[nodiscard]] bool done() const noexcept;
   [[nodiscard]] bool failed() const noexcept;
   [[nodiscard]] bool idle() const noexcept;

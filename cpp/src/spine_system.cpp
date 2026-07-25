@@ -873,6 +873,10 @@ void SpinePageRankVerticalSliceSystem::restart_iteration() {
   compute_->reset_iteration();
 }
 
+bool SpinePageRankVerticalSliceSystem::maintenance_done() const noexcept {
+  return maintenance_->done();
+}
+
 bool SpinePageRankVerticalSliceSystem::done() const noexcept {
   return maintenance_->done() && reader_->done() && compute_->done();
 }
