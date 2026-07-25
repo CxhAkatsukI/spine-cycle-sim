@@ -6,9 +6,58 @@ import hashlib
 import json
 from typing import Mapping
 
+from .memory_traffic import split_memory_metrics
 
 SPINE_INFINITY = 0xFFFFFFFF
 GRASU_HLS_INFINITY = 0x7FFFFFFE
+
+
+def spine_memory_metrics(
+    result: Mapping[str, object],
+) -> dict[str, int | float]:
+    backend_requests = int(result["backend_requests"])
+    cold_requests = int(result["cold_backend_requests"])
+    aligned_requests = int(result["update_backend_requests"])
+    return split_memory_metrics(
+        result,
+        first_key="cold_backend_traffic",
+        first_prefix="cold_backend",
+        second_key="update_backend_traffic",
+        second_prefix="aligned_backend",
+        backend_requests=backend_requests,
+        first_requests=cold_requests,
+        second_requests=aligned_requests,
+    )
+
+
+def grasu_memory_metrics(
+    result: Mapping[str, object],
+) -> dict[str, int | float]:
+    return split_memory_metrics(
+        result,
+        first_key="update_backend_traffic",
+        first_prefix="update_backend",
+        second_key="compute_backend_traffic",
+        second_prefix="compute_backend",
+        backend_requests=int(result["backend_requests"]),
+        first_requests=int(result["update_backend_requests"]),
+        second_requests=int(result["compute_backend_requests"]),
+    )
+
+
+def _memory_metrics_valid(
+    result: Mapping[str, object], *, system: str
+) -> bool:
+    try:
+        if system == "spine":
+            spine_memory_metrics(result)
+        elif system == "grasu_regraph":
+            grasu_memory_metrics(result)
+        else:
+            return False
+    except (KeyError, TypeError, ValueError):
+        return False
+    return True
 
 
 def expected_spine_update_path(scenario: str) -> str:
@@ -98,6 +147,8 @@ def validate_spine_dynamic_result(
         "dram_closure": int(result.get("dram_reads", -1))
         + int(result.get("dram_writes", -1))
         == backend_requests,
+        "memory_locality": result.get("memory_locality_ledger_match") is True
+        and _memory_metrics_valid(result, system="spine"),
         "distance_count": isinstance(result.get("final_values"), list)
         and len(result["final_values"]) == run["graph"]["vertices"],  # type: ignore[index]
     }
@@ -119,6 +170,8 @@ def validate_grasu_hls_result(
     update_cycles = int(result.get("update_cycles", -1))
     compute_cycles = int(result.get("compute_cycles", -1))
     backend_requests = int(result.get("backend_requests", -1))
+    update_backend_requests = int(result.get("update_backend_requests", -1))
+    compute_backend_requests = int(result.get("compute_backend_requests", -1))
     checks = {
         "child_status": child.get("status") == "PASS",
         "success": result.get("success") is True,
@@ -152,10 +205,15 @@ def validate_grasu_hls_result(
         "pma_ledger": result.get("update_pma_reads")
         == run["physical_records"]
         and result.get("update_pma_writes") == run["physical_records"],
-        "backend_window": backend_requests > 0,
+        "backend_window": update_backend_requests > 0
+        and compute_backend_requests > 0
+        and update_backend_requests + compute_backend_requests
+        == backend_requests,
         "dram_closure": int(dram.get("reads", -1))
         + int(dram.get("writes", -1))
         == backend_requests,
+        "memory_locality": result.get("memory_locality_ledger_match") is True
+        and _memory_metrics_valid(result, system="grasu_regraph"),
         "distance_count": isinstance(result.get("distances_external"), list)
         and len(result["distances_external"]) == run["graph"]["vertices"],  # type: ignore[index]
     }
@@ -185,6 +243,7 @@ def system_row(
         dram_scope = "cold_plus_update_not_aligned"
         claim_class = "routed_reference_profile_execution_driven_simulation"
         resolved_profile_id = str(result["architecture_profile_id"])
+        memory_metrics = spine_memory_metrics(result)
     elif system == "grasu_regraph":
         aligned_cycles = int(result["cycles"])
         structure_cycles = int(result["update_cycles"])
@@ -199,6 +258,7 @@ def system_row(
         if profile_id is None:
             raise ValueError("GraSU row requires a validated profile ID")
         resolved_profile_id = profile_id
+        memory_metrics = grasu_memory_metrics(result)
     else:
         raise ValueError(f"unsupported system: {system}")
 
@@ -234,6 +294,7 @@ def system_row(
         "cold_backend_requests": cold_backend_requests,
         "aligned_backend_requests": aligned_backend_requests,
         "total_backend_requests": total_backend_requests,
+        **memory_metrics,
         "axis_push_stalls": axis_push_stalls,
         "dram_reads": int(dram["reads"]),
         "dram_writes": int(dram["writes"]),
@@ -274,6 +335,10 @@ def pair_row(
             grasu["aligned_backend_requests"]
         )
         / float(spine["aligned_backend_requests"]),
+        "grasu_to_spine_aligned_backend_byte_ratio": float(
+            grasu["backend_bytes"]
+        )
+        / float(spine["aligned_backend_bytes"]),
         "cross_system_distances_match": distances_match,
         "dram_energy_ratio_valid": False,
         "dram_energy_ratio_reason": "Spine DRAM counters include cold plus update",

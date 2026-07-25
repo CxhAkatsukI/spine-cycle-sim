@@ -22,8 +22,8 @@ are encoded as eight exact deletes followed by eight inserts.
 cd /home/chuxiao/spine-cycle-sim
 make -C cpp/sst -j2
 python3 scripts/run_hls_pagerank_real_comparison.py \
-  --out-dir results/hls_full_pagerank_real_comparison_release_20260726 \
-  --jobs 3 \
+  --out-dir results/hls_full_pagerank_memory_locality_final_20260726 \
+  --jobs 2 \
   --timeout-seconds 300 \
   --max-cycles 100000000 \
   --no-build
@@ -76,10 +76,16 @@ report closed update and compute request ledgers.
 
 GraSU does far less update traffic, but more PageRank compute traffic. Its E2E
 lead therefore comes from cheap PMA updates, its 200 MHz profile clock, and its
-pipeline schedule, not from universally lower memory volume. This matrix does
-not yet classify requests as sequential or random. DRAMSim3 energy covers only
-instantiated active channels and excludes on-chip and idle-channel energy, so
-it is retained as raw evidence rather than promoted to total-energy results.
+pipeline schedule, not from universally lower memory volume.
+
+The accepted-request ledger reports 3,153,624 requested bytes for Spine and
+30,256,284 for GraSU/ReGraph across the nine rows; the per-pair geometric-mean
+GraSU/Spine byte ratio is 10.595x. Of non-first-request bytes, Spine is 73.01%
+contiguous and 26.12% discontinuous, while GraSU/ReGraph is 99.05% contiguous
+and 0.91% discontinuous. These are logical request-stream locality classes,
+not DRAM row hits. DRAMSim3 energy covers only instantiated active channels
+and excludes on-chip and idle-channel energy, so it is retained as raw
+evidence rather than promoted to total-energy results.
 
 ## Claim boundary
 
@@ -92,6 +98,6 @@ it is retained as raw evidence rather than promoted to total-energy results.
 - Full PageRank here means all vertices are processed for three fixed
   iterations; it is not a convergence-to-tolerance experiment.
 
-The result closes the real-compact Full PageRank gate. It does not close
-thresholded residual PageRank, locality classification, total energy/PPA,
+The result closes the real-compact Full PageRank and accepted-request locality
+gates. It does not close physical DRAM burst/row locality, total energy/PPA,
 dense-batch, or publication-scale runtime gates.

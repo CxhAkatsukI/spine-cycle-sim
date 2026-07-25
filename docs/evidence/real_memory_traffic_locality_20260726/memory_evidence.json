@@ -1,0 +1,104 @@
+{
+  "address_basis": "logical_channel_and_byte_address",
+  "algorithms": [
+    "weighted_sssp",
+    "full_pagerank",
+    "thresholded_residual_pagerank"
+  ],
+  "all_input_matrices_correct": true,
+  "analysis_sources": {
+    "model": {
+      "path": "spine_cycle_sim/experiments/real_memory_analysis.py",
+      "sha256": "ce169cde9b5447f2dafed305d95ff22a6c37ff06434b7b1ec3912a3e453d460a"
+    },
+    "runner": {
+      "path": "scripts/analyze_real_memory_traffic.py",
+      "sha256": "250883e7ec96015edd8bfa191f9301d1688bdf125bc3c38aee6e148af043302d"
+    }
+  },
+  "claim_class": "accepted_backend_request_trace_locality",
+  "classification": "per_initiator_and_operation_accepted_backend_request",
+  "evidence_id": "real_compact_memory_traffic_locality_20260726",
+  "input_matrices": {
+    "full_pagerank": {
+      "directory": "results/hls_full_pagerank_memory_locality_final_20260726",
+      "execution_sha256": "925930ea1388c538d832fd68a65a7c2231ec0be4bad705e2e0fe0021dded5f26",
+      "manifest_sha256": "bc07c67ee2a6a078911a5c49269ce8c527781345ef8b6c0c1bc111dcd2d7bfd4"
+    },
+    "thresholded_residual_pagerank": {
+      "directory": "results/hls_residual_pagerank_memory_locality_final_20260726",
+      "execution_sha256": "af1dd878b0cdd4ded4ec567924ec5c5cd5fb126f7de03e3e341e774996848bdf",
+      "manifest_sha256": "50ba0467c1f4810f7ff8e91f7bc769c298dd6ea2e1ce315c2b1388c31de374ea"
+    },
+    "weighted_sssp": {
+      "directory": "results/hls_weighted_sssp_memory_locality_release_20260726",
+      "execution_sha256": "1b157f63ddd4f6369a785572de2adb50b8c75ccc31145b0ea280e55c2adec448",
+      "manifest_sha256": "f250447684a6694d4be4eedd8a2f045be0c708eecddac1449338857e3502a724"
+    }
+  },
+  "limitations": [
+    "Contiguous, repeated, and discontinuous classify accepted logical backend requests; they do not identify DRAM row hits.",
+    "Requested bytes exclude controller burst amplification and are distinct from physical HBM transfer bytes.",
+    "Weighted Spine currently exposes cold versus aligned E2E traffic, not an internal maintenance-versus-compute split.",
+    "Inputs are compact real-edge slices, not full datasets."
+  ],
+  "outputs": {
+    "memory_group_summary_sha256": "2154b334b474023feec49f17b5aebeb52f15dc77432abdf7c8b8c98b636a08dc",
+    "memory_pairs_sha256": "3a22b4b17a752854319454f8fb11393479f094c0a1edec49f38f5bd743b45cc8",
+    "memory_system_rows_sha256": "06f51908588050b3247e9f10821f2edd8917ee4b6918a48ac11ad1f2207002ff"
+  },
+  "pairs": 27,
+  "schema_version": 1,
+  "status": "PASS",
+  "summaries": [
+    {
+      "algorithm": "weighted_sssp",
+      "grasu_contiguous_byte_ratio_aggregate": 0.9907876623625794,
+      "grasu_discontinuous_byte_ratio_aggregate": 0.008965516138728471,
+      "grasu_repeated_byte_ratio_aggregate": 0.00024682149869214583,
+      "grasu_requested_bytes": 40035912,
+      "grasu_to_spine_byte_ratio_geomean": 10.686533990331206,
+      "grasu_to_spine_request_ratio_geomean": 2.1012320301331155,
+      "pairs": 9,
+      "spine_contiguous_byte_ratio_aggregate": 0.9228866928763493,
+      "spine_discontinuous_byte_ratio_aggregate": 0.07160663004361059,
+      "spine_e2e_wins": 5,
+      "spine_repeated_byte_ratio_aggregate": 0.005506677080040141,
+      "spine_requested_bytes": 7263424,
+      "spine_speedup_geomean": 1.3056530600245444
+    },
+    {
+      "algorithm": "full_pagerank",
+      "grasu_contiguous_byte_ratio_aggregate": 0.9905325074468104,
+      "grasu_discontinuous_byte_ratio_aggregate": 0.009117863379623496,
+      "grasu_repeated_byte_ratio_aggregate": 0.0003496291735660245,
+      "grasu_requested_bytes": 30256284,
+      "grasu_to_spine_byte_ratio_geomean": 10.594946793134225,
+      "grasu_to_spine_request_ratio_geomean": 1.3071619792790639,
+      "pairs": 9,
+      "spine_contiguous_byte_ratio_aggregate": 0.730114198705748,
+      "spine_discontinuous_byte_ratio_aggregate": 0.26118385991625426,
+      "spine_e2e_wins": 0,
+      "spine_repeated_byte_ratio_aggregate": 0.008701941377997716,
+      "spine_requested_bytes": 3153624,
+      "spine_speedup_geomean": 0.7802725128213671
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "grasu_contiguous_byte_ratio_aggregate": 0.9699043795212415,
+      "grasu_discontinuous_byte_ratio_aggregate": 0.030089603404655333,
+      "grasu_repeated_byte_ratio_aggregate": 6.017074103182812e-06,
+      "grasu_requested_bytes": 1757672000,
+      "grasu_to_spine_byte_ratio_geomean": 23.39284250128827,
+      "grasu_to_spine_request_ratio_geomean": 2.2789072700355946,
+      "pairs": 9,
+      "spine_contiguous_byte_ratio_aggregate": 0.5597950311929192,
+      "spine_discontinuous_byte_ratio_aggregate": 0.4320781072568099,
+      "spine_e2e_wins": 3,
+      "spine_repeated_byte_ratio_aggregate": 0.00812686155027094,
+      "spine_requested_bytes": 83772800,
+      "spine_speedup_geomean": 0.8960156903620201
+    }
+  ],
+  "system_rows": 54
+}

@@ -582,6 +582,49 @@ void write_json_array(std::ostream &output, const std::vector<T> &values) {
   output << ']';
 }
 
+void write_memory_locality_stats(std::ostream &output,
+                                 const MemoryLocalityStats &stats) {
+  output << "{\"requests\":" << stats.requests << ",\"bytes\":"
+         << stats.bytes << ",\"first_requests\":" << stats.first_requests
+         << ",\"first_bytes\":" << stats.first_bytes
+         << ",\"contiguous_requests\":" << stats.contiguous_requests
+         << ",\"contiguous_bytes\":" << stats.contiguous_bytes
+         << ",\"repeated_requests\":" << stats.repeated_requests
+         << ",\"repeated_bytes\":" << stats.repeated_bytes
+         << ",\"discontinuous_requests\":"
+         << stats.discontinuous_requests << ",\"discontinuous_bytes\":"
+         << stats.discontinuous_bytes << '}';
+}
+
+void write_memory_traffic(std::ostream &output,
+                          const MemoryTrafficStats &stats) {
+  output << "{\"classification\":"
+            "\"per_initiator_and_operation_accepted_backend_request\","
+            "\"address_basis\":\"logical_channel_and_byte_address\","
+            "\"reads\":";
+  write_memory_locality_stats(output, stats.reads);
+  output << ",\"writes\":";
+  write_memory_locality_stats(output, stats.writes);
+  output << ",\"combined\":";
+  write_memory_locality_stats(output, combine_memory_traffic(stats));
+  output << '}';
+}
+
+bool memory_locality_closes(const MemoryLocalityStats &stats) {
+  return stats.requests ==
+             stats.first_requests + stats.contiguous_requests +
+                 stats.repeated_requests + stats.discontinuous_requests &&
+         stats.bytes == stats.first_bytes + stats.contiguous_bytes +
+                            stats.repeated_bytes + stats.discontinuous_bytes;
+}
+
+bool memory_traffic_closes(const MemoryTrafficStats &stats,
+                           std::uint64_t expected_requests) {
+  return memory_locality_closes(stats.reads) &&
+         memory_locality_closes(stats.writes) &&
+         combine_memory_traffic(stats).requests == expected_requests;
+}
+
 class ProbeSource final : public Component {
  public:
   ProbeSource(ClockId clock_id, Fifo<AxiRequest> &output,
@@ -931,6 +974,7 @@ class SstMemoryBackend final : public MemoryBackend {
                         });
       ++channel_outstanding_[request.channel];
       ++initiator_outstanding_[request.initiator_id];
+      record_accepted_request(request);
       ++accepted_;
       interfaces_[request.channel]->send(standard_request);
     }
@@ -1972,6 +2016,8 @@ class OnlineMemoryProbe final : public SST::Component {
           grasu_update_system_->done() && backend_->outstanding() == 0) {
         grasu_update_counters_ = grasu_update_system_->counters();
         grasu_update_counters_captured_ = true;
+        grasu_update_backend_traffic_ = backend_->traffic_stats();
+        backend_->begin_traffic_epoch();
         grasu_update_system_->unregister_components();
         grasu_compactor_system_ =
             std::make_unique<GraSuNativeCompactorSystem>(
@@ -2025,6 +2071,8 @@ class OnlineMemoryProbe final : public SST::Component {
           grasu_update_system_->done() && backend_->outstanding() == 0) {
         grasu_update_counters_ = grasu_update_system_->counters();
         grasu_update_counters_captured_ = true;
+        grasu_update_backend_traffic_ = backend_->traffic_stats();
+        backend_->begin_traffic_epoch();
         if (mode_ == "grasu_regraph_sssp" ||
             mode_ == "grasu_regraph_hls_weighted_sssp") {
           if (mode_ == "grasu_regraph_hls_weighted_sssp") {
@@ -2091,6 +2139,8 @@ class OnlineMemoryProbe final : public SST::Component {
       if (!pagerank_maintenance_backend_captured_ &&
           pagerank_system_->maintenance_done()) {
         pagerank_maintenance_backend_requests_ = backend_->accepted();
+        pagerank_maintenance_backend_traffic_ = backend_->traffic_stats();
+        backend_->begin_traffic_epoch();
         pagerank_maintenance_backend_captured_ = true;
       }
       if (pagerank_system_->done() && pagerank_system_->idle() &&
@@ -2433,6 +2483,8 @@ class OnlineMemoryProbe final : public SST::Component {
         spine_system_->dirty_ack_counters().result.generation;
     cold_cycles_ = scheduler_.clock(0).completed_cycles;
     cold_backend_requests_ = backend_->accepted();
+    cold_backend_traffic_ = backend_->traffic_stats();
+    backend_->begin_traffic_epoch();
 
     if (dynamic_full_rebuild_) {
       spine_system_->restart_full_rebuild(dynamic_materialized_snapshot_);
@@ -2726,6 +2778,17 @@ class OnlineMemoryProbe final : public SST::Component {
                compute.source_state_writes);
       const std::uint64_t expected_backend_requests =
           update_requests + compute_requests;
+      const MemoryTrafficStats total_backend_traffic =
+          backend_->traffic_stats();
+      const MemoryTrafficStats compute_backend_traffic =
+          subtract_memory_traffic(total_backend_traffic,
+                                  grasu_update_backend_traffic_);
+      const bool memory_locality_ledger_match =
+          memory_traffic_closes(grasu_update_backend_traffic_,
+                                update_requests) &&
+          memory_traffic_closes(compute_backend_traffic, compute_requests) &&
+          memory_traffic_closes(total_backend_traffic,
+                                expected_backend_requests);
       const bool normalized_profile =
           std::fabs(core_mhz_ - 150.0) < 1.0e-9 && channels_ == 32 &&
           grasu_config_.partition_vertices == 65'536 &&
@@ -2748,7 +2811,8 @@ class OnlineMemoryProbe final : public SST::Component {
           (!hls_weighted ||
            (update.degree_reads == update.inserts + update.deletes &&
             update.degree_writes == update.inserts + update.deletes &&
-            expected_backend_requests == backend_->accepted()));
+            expected_backend_requests == backend_->accepted() &&
+            memory_locality_ledger_match));
       result << "{\n"
              << "  \"success\": " << (passed ? "true" : "false") << ",\n"
              << "  \"mode\": \"" << mode_ << "\",\n"
@@ -2966,6 +3030,8 @@ class OnlineMemoryProbe final : public SST::Component {
              << ",\n"
              << "  \"expected_backend_requests\": "
              << expected_backend_requests << ",\n"
+             << "  \"memory_locality_ledger_match\": "
+             << (memory_locality_ledger_match ? "true" : "false") << ",\n"
              << "  \"axi_backend_stalls\": "
              << update.axi_backend_submit_stalls +
                     compute.axi_backend_submit_stalls
@@ -2979,6 +3045,13 @@ class OnlineMemoryProbe final : public SST::Component {
              << backend_->response_queue_stalls() << ",\n"
              << "  \"backend_max_outstanding\": "
              << backend_->max_outstanding() << ",\n";
+      result << "  \"backend_traffic\": ";
+      write_memory_traffic(result, total_backend_traffic);
+      result << ",\n  \"update_backend_traffic\": ";
+      write_memory_traffic(result, grasu_update_backend_traffic_);
+      result << ",\n  \"compute_backend_traffic\": ";
+      write_memory_traffic(result, compute_backend_traffic);
+      result << ",\n";
       if (hls_weighted) {
         result << "  \"external_to_internal\": ";
         write_json_array(result, grasu_external_to_internal_);
@@ -3105,6 +3178,17 @@ class OnlineMemoryProbe final : public SST::Component {
           compute.apply_state_writes + compute.source_state_writes;
       const std::uint64_t expected_backend_requests =
           update_requests + compute_requests;
+      const MemoryTrafficStats total_backend_traffic =
+          backend_->traffic_stats();
+      const MemoryTrafficStats compute_backend_traffic =
+          subtract_memory_traffic(total_backend_traffic,
+                                  grasu_update_backend_traffic_);
+      const bool memory_locality_ledger_match =
+          memory_traffic_closes(grasu_update_backend_traffic_,
+                                update_requests) &&
+          memory_traffic_closes(compute_backend_traffic, compute_requests) &&
+          memory_traffic_closes(total_backend_traffic,
+                                expected_backend_requests);
       const std::uint64_t total_cycles =
           scheduler_.clock(0).completed_cycles;
       const std::uint64_t update_cycles = update.end_cycle - update.start_cycle;
@@ -3137,7 +3221,8 @@ class OnlineMemoryProbe final : public SST::Component {
                                 destination_partitions &&
                             compute.partition_passes ==
                                 destination_partitions * compute.supersteps &&
-                            expected_backend_requests == backend_->accepted()));
+                            expected_backend_requests == backend_->accepted() &&
+                            memory_locality_ledger_match));
       result
           << "{\n"
           << "  \"success\": " << (passed ? "true" : "false") << ",\n"
@@ -3323,6 +3408,8 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"compute_backend_requests\": " << compute_requests << ",\n"
           << "  \"expected_backend_requests\": " << expected_backend_requests
           << ",\n"
+          << "  \"memory_locality_ledger_match\": "
+          << (memory_locality_ledger_match ? "true" : "false") << ",\n"
           << "  \"axi_backend_stalls\": "
           << update.axi_backend_submit_stalls +
                  compute.axi_backend_submit_stalls
@@ -3336,6 +3423,13 @@ class OnlineMemoryProbe final : public SST::Component {
           << backend_->response_queue_stalls() << ",\n"
           << "  \"backend_max_outstanding\": " << backend_->max_outstanding()
           << ",\n";
+      result << "  \"backend_traffic\": ";
+      write_memory_traffic(result, total_backend_traffic);
+      result << ",\n  \"update_backend_traffic\": ";
+      write_memory_traffic(result, grasu_update_backend_traffic_);
+      result << ",\n  \"compute_backend_traffic\": ";
+      write_memory_traffic(result, compute_backend_traffic);
+      result << ",\n";
       if (hls_weighted) {
         result << "  \"external_to_internal\": ";
         write_json_array(result, grasu_external_to_internal_);
@@ -3384,10 +3478,29 @@ class OnlineMemoryProbe final : public SST::Component {
           grasu_update_counters_captured_
               ? grasu_update_counters_
               : grasu_update_system_->counters();
+      const MemoryTrafficStats total_backend_traffic =
+          backend_->traffic_stats();
+      const MemoryTrafficStats compute_backend_traffic =
+          subtract_memory_traffic(total_backend_traffic,
+                                  grasu_update_backend_traffic_);
+      const std::uint64_t update_backend_requests =
+          combine_memory_traffic(grasu_update_backend_traffic_).requests;
+      const std::uint64_t compute_backend_requests =
+          combine_memory_traffic(compute_backend_traffic).requests;
+      const bool memory_locality_ledger_match =
+          memory_traffic_closes(grasu_update_backend_traffic_,
+                                update_backend_requests) &&
+          memory_traffic_closes(compute_backend_traffic,
+                                compute_backend_requests) &&
+          memory_traffic_closes(total_backend_traffic,
+                                backend_->accepted()) &&
+          update_backend_requests + compute_backend_requests ==
+              backend_->accepted();
       const bool passed = success && compute_available &&
                           !grasu_compute_system_->failed() &&
                           architecture_mismatches == 0 &&
-                          mathematical_mismatches == 0;
+                          mathematical_mismatches == 0 &&
+                          memory_locality_ledger_match;
       const bool normalized_profile =
           !hls_weighted && std::fabs(core_mhz_ - 150.0) < 1.0e-9 &&
           channels_ == 32 &&
@@ -3619,6 +3732,12 @@ class OnlineMemoryProbe final : public SST::Component {
              << ",\n"
              << "  \"axis_push_stalls\": "
              << update.axis_push_stalls + compute.axis_push_stalls << ",\n"
+             << "  \"update_backend_requests\": "
+             << update_backend_requests << ",\n"
+             << "  \"compute_backend_requests\": "
+             << compute_backend_requests << ",\n"
+             << "  \"memory_locality_ledger_match\": "
+             << (memory_locality_ledger_match ? "true" : "false") << ",\n"
              << "  \"backend_requests\": " << backend_->accepted()
              << ",\n"
              << "  \"backend_submit_stalls\": "
@@ -3627,6 +3746,13 @@ class OnlineMemoryProbe final : public SST::Component {
              << backend_->response_queue_stalls() << ",\n"
              << "  \"backend_max_outstanding\": "
              << backend_->max_outstanding() << ",\n";
+      result << "  \"backend_traffic\": ";
+      write_memory_traffic(result, total_backend_traffic);
+      result << ",\n  \"update_backend_traffic\": ";
+      write_memory_traffic(result, grasu_update_backend_traffic_);
+      result << ",\n  \"compute_backend_traffic\": ";
+      write_memory_traffic(result, compute_backend_traffic);
+      result << ",\n";
       if (hls_weighted) {
         result << "  \"external_to_internal\": ";
         write_json_array(result, grasu_external_to_internal_);
@@ -3737,8 +3863,21 @@ class OnlineMemoryProbe final : public SST::Component {
       const bool converged = pagerank_system_->compute().next_active().empty();
       const bool residual_bound_passed =
           residual_l1 <= pagerank_epsilon_ * 1.01F;
+      const MemoryTrafficStats total_backend_traffic =
+          backend_->traffic_stats();
+      const MemoryTrafficStats compute_backend_traffic =
+          subtract_memory_traffic(total_backend_traffic,
+                                  pagerank_maintenance_backend_traffic_);
+      const bool memory_locality_ledger_match =
+          memory_traffic_closes(pagerank_maintenance_backend_traffic_,
+                                pagerank_maintenance_backend_requests_) &&
+          memory_traffic_closes(
+              compute_backend_traffic,
+              backend_->accepted() - pagerank_maintenance_backend_requests_) &&
+          memory_traffic_closes(total_backend_traffic, backend_->accepted());
       const bool passed = success && residual_pagerank_reference_.converged &&
                           converged && frontier_match && memory_ledger_match &&
+                          memory_locality_ledger_match &&
                           mismatches == 0 && mathematical_mismatches == 0 &&
                           max_abs_error <= 1.0e-5F && residual_bound_passed;
       result
@@ -3823,6 +3962,8 @@ class OnlineMemoryProbe final : public SST::Component {
           << (frontier_match ? "true" : "false") << ",\n"
           << "  \"memory_ledger_match\": "
           << (memory_ledger_match ? "true" : "false") << ",\n"
+          << "  \"memory_locality_ledger_match\": "
+          << (memory_locality_ledger_match ? "true" : "false") << ",\n"
           << "  \"max_abs_error\": " << max_abs_error << ",\n"
           << "  \"mathematical_max_abs_error\": "
           << mathematical_max_abs_error << ",\n"
@@ -3878,7 +4019,13 @@ class OnlineMemoryProbe final : public SST::Component {
           << backend_->response_queue_stalls() << ",\n"
           << "  \"backend_max_outstanding\": " << backend_->max_outstanding()
           << ",\n"
-          << "  \"iteration_cycles\": ";
+          << "  \"backend_traffic\": ";
+      write_memory_traffic(result, total_backend_traffic);
+      result << ",\n  \"maintenance_backend_traffic\": ";
+      write_memory_traffic(result, pagerank_maintenance_backend_traffic_);
+      result << ",\n  \"compute_backend_traffic\": ";
+      write_memory_traffic(result, compute_backend_traffic);
+      result << ",\n  \"iteration_cycles\": ";
       write_json_array(result, pagerank_iteration_cycles_);
       result << ",\n  \"frontier_in_sizes\": ";
       write_json_array(result, pagerank_frontier_in_sizes_);
@@ -3942,9 +4089,22 @@ class OnlineMemoryProbe final : public SST::Component {
       const auto &reader = pagerank_system_->reader_counters();
       const auto &compute = pagerank_system_->compute_counters();
       const auto &pipeline = pagerank_system_->compute().pipeline_counters();
+      const MemoryTrafficStats total_backend_traffic =
+          backend_->traffic_stats();
+      const MemoryTrafficStats compute_backend_traffic =
+          subtract_memory_traffic(total_backend_traffic,
+                                  pagerank_maintenance_backend_traffic_);
+      const bool memory_locality_ledger_match =
+          memory_traffic_closes(pagerank_maintenance_backend_traffic_,
+                                pagerank_maintenance_backend_requests_) &&
+          memory_traffic_closes(
+              compute_backend_traffic,
+              backend_->accepted() - pagerank_maintenance_backend_requests_) &&
+          memory_traffic_closes(total_backend_traffic, backend_->accepted());
       const bool passed = success &&
                           actual.size() == pagerank_reference_.size() &&
                           mismatches == 0 && mathematical_mismatches == 0 &&
+                          memory_locality_ledger_match &&
                           max_abs_error <= 1.0e-5F &&
                           mathematical_max_abs_error <= 1.0e-5;
       result
@@ -4024,6 +4184,8 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"max_abs_error\": " << max_abs_error << ",\n"
           << "  \"mathematical_max_abs_error\": "
           << mathematical_max_abs_error << ",\n"
+          << "  \"memory_locality_ledger_match\": "
+          << (memory_locality_ledger_match ? "true" : "false") << ",\n"
           << "  \"rank_sum\": " << rank_sum << ",\n"
           << "  \"maintenance_cycles\": "
           << maintenance.end_cycle - maintenance.start_cycle << ",\n"
@@ -4078,7 +4240,13 @@ class OnlineMemoryProbe final : public SST::Component {
           << backend_->response_queue_stalls() << ",\n"
           << "  \"backend_max_outstanding\": " << backend_->max_outstanding()
           << ",\n"
-          << "  \"iteration_cycles\": ";
+          << "  \"backend_traffic\": ";
+      write_memory_traffic(result, total_backend_traffic);
+      result << ",\n  \"maintenance_backend_traffic\": ";
+      write_memory_traffic(result, pagerank_maintenance_backend_traffic_);
+      result << ",\n  \"compute_backend_traffic\": ";
+      write_memory_traffic(result, compute_backend_traffic);
+      result << ",\n  \"iteration_cycles\": ";
       write_json_array(result, pagerank_iteration_cycles_);
       result << ",\n  \"ranks\": ";
       write_json_array(result, actual);
@@ -4344,10 +4512,27 @@ class OnlineMemoryProbe final : public SST::Component {
               : mismatches;
       const bool converged =
           !sst_rounds_.empty() && sst_rounds_.back().active_out.empty();
+      const MemoryTrafficStats total_backend_traffic =
+          backend_->traffic_stats();
+      const MemoryTrafficStats update_backend_traffic =
+          dynamic_sssp_enabled_
+              ? subtract_memory_traffic(total_backend_traffic,
+                                        cold_backend_traffic_)
+              : total_backend_traffic;
+      const bool memory_locality_ledger_match =
+          memory_traffic_closes(total_backend_traffic,
+                                backend_->accepted()) &&
+          (!dynamic_sssp_enabled_ ||
+           (memory_traffic_closes(cold_backend_traffic_,
+                                  cold_backend_requests_) &&
+            memory_traffic_closes(
+                update_backend_traffic,
+                backend_->accepted() - cold_backend_requests_)));
       const bool passed =
           success && converged && mismatches == 0 &&
           mathematical_mismatches == 0 &&
           full_recompute_mismatches == 0 && frontier_mismatches == 0 &&
+          memory_locality_ledger_match &&
           (!dynamic_sssp_enabled_ ||
            (dynamic_sssp_started_ && cold_value_mismatches_ == 0 &&
             cold_frontier_mismatches_ == 0 &&
@@ -4791,6 +4976,11 @@ class OnlineMemoryProbe final : public SST::Component {
             << cold_backend_requests_ << ",\n"
             << "  \"update_backend_requests\": "
             << backend_->accepted() - cold_backend_requests_ << ",\n"
+            << "  \"cold_backend_traffic\": ";
+        write_memory_traffic(result, cold_backend_traffic_);
+        result << ",\n  \"update_backend_traffic\": ";
+        write_memory_traffic(result, update_backend_traffic);
+        result << ",\n"
             << "  \"cold_correctness_mismatches\": "
             << cold_value_mismatches_ << ",\n"
             << "  \"cold_mathematical_correctness_mismatches\": "
@@ -5438,8 +5628,12 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"backend_response_queue_stalls\": "
              << backend_->response_queue_stalls() << ",\n"
              << "  \"backend_max_outstanding\": " << backend_->max_outstanding()
-             << "\n"
-             << "}\n";
+             << ",\n"
+             << "  \"memory_locality_ledger_match\": "
+             << (memory_locality_ledger_match ? "true" : "false") << ",\n"
+             << "  \"backend_traffic\": ";
+      write_memory_traffic(result, total_backend_traffic);
+      result << "\n}\n";
       output_.output(
           "completed Spine multi-round SSSP in %zu rounds and %llu core cycles "
           "-> %s\n",
@@ -6247,6 +6441,7 @@ class OnlineMemoryProbe final : public SST::Component {
   std::uint64_t cold_cycles_{};
   std::uint64_t dynamic_update_start_cycle_{};
   std::uint64_t cold_backend_requests_{};
+  MemoryTrafficStats cold_backend_traffic_;
   std::uint64_t cold_maintenance_cycles_{};
   std::uint64_t cold_value_mismatches_{};
   std::uint64_t cold_frontier_mismatches_{};
@@ -6264,6 +6459,8 @@ class OnlineMemoryProbe final : public SST::Component {
   std::vector<std::uint64_t> pagerank_compute_requests_per_iteration_;
   std::uint64_t pagerank_iteration_start_cycle_{};
   std::uint64_t pagerank_maintenance_backend_requests_{};
+  MemoryTrafficStats pagerank_maintenance_backend_traffic_;
+  MemoryTrafficStats grasu_update_backend_traffic_;
   std::size_t pagerank_completed_iterations_{};
   std::vector<SpineSsspRoundEvidence> sst_rounds_;
   std::vector<SpineHostHandoffEvidence> sst_host_handoffs_;

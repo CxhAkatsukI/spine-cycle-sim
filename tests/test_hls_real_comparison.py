@@ -26,6 +26,58 @@ def _run() -> dict[str, object]:
     }
 
 
+def _locality_group(requests: int, first: int = 1) -> dict[str, int]:
+    if requests == 0:
+        first = 0
+    return {
+        "requests": requests,
+        "bytes": requests * 32,
+        "first_requests": first,
+        "first_bytes": first * 32,
+        "contiguous_requests": requests - first,
+        "contiguous_bytes": (requests - first) * 32,
+        "repeated_requests": 0,
+        "repeated_bytes": 0,
+        "discontinuous_requests": 0,
+        "discontinuous_bytes": 0,
+    }
+
+
+def _traffic(requests: int, first: int = 1) -> dict[str, object]:
+    reads = _locality_group(requests, first)
+    writes = _locality_group(0, 0)
+    return {
+        "classification": (
+            "per_initiator_and_operation_accepted_backend_request"
+        ),
+        "address_basis": "logical_channel_and_byte_address",
+        "reads": reads,
+        "writes": writes,
+        "combined": dict(reads),
+    }
+
+
+def _with_split_traffic(
+    result: dict[str, object],
+    *,
+    first_key: str,
+    first_requests: int,
+    second_key: str,
+    second_requests: int,
+) -> dict[str, object]:
+    result.update(
+        {
+            "memory_locality_ledger_match": True,
+            "backend_traffic": _traffic(
+                first_requests + second_requests, first=2
+            ),
+            first_key: _traffic(first_requests),
+            second_key: _traffic(second_requests),
+        }
+    )
+    return result
+
+
 class HlsRealComparisonTests(unittest.TestCase):
     def test_update_path_is_fail_closed(self) -> None:
         self.assertEqual(expected_spine_update_path("insert"), "incremental_relax")
@@ -75,6 +127,13 @@ class HlsRealComparisonTests(unittest.TestCase):
             "dram_writes": 12,
             "final_values": [0, 1, 2, 0xFFFFFFFF],
         }
+        result = _with_split_traffic(
+            result,
+            first_key="cold_backend_traffic",
+            first_requests=10,
+            second_key="update_backend_traffic",
+            second_requests=20,
+        )
         self.assertEqual(
             validate_spine_dynamic_result(
                 _run(), result, expected_profile_id="spine", expected_core_mhz=141.0
@@ -111,11 +170,20 @@ class HlsRealComparisonTests(unittest.TestCase):
                 "compute_cycles": 200,
                 "update_pma_reads": 16,
                 "update_pma_writes": 16,
+                "update_backend_requests": 10,
+                "compute_backend_requests": 20,
                 "backend_requests": 30,
                 "distances_external": [0, 1, 2, 0x7FFFFFFE],
             },
             "dram": {"reads": 20, "writes": 10},
         }
+        child["result"] = _with_split_traffic(
+            child["result"],  # type: ignore[arg-type]
+            first_key="update_backend_traffic",
+            first_requests=10,
+            second_key="compute_backend_traffic",
+            second_requests=20,
+        )
         self.assertEqual(
             validate_grasu_hls_result(
                 _run(),
@@ -147,6 +215,7 @@ class HlsRealComparisonTests(unittest.TestCase):
             "structure_update_cycles": 141,
             "core_mhz": 141.0,
             "aligned_backend_requests": 10,
+            "aligned_backend_bytes": 320,
             "normalized_distances": (0, 1, None),
         }
         grasu = {
@@ -155,6 +224,7 @@ class HlsRealComparisonTests(unittest.TestCase):
             "structure_update_cycles": 400,
             "core_mhz": 200.0,
             "aligned_backend_requests": 20,
+            "backend_bytes": 640,
         }
         pair = pair_row(spine, grasu)
         self.assertEqual(pair["spine_speedup_over_grasu_e2e"], 1.5)

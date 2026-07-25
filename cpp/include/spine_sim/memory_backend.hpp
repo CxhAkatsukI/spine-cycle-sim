@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <deque>
@@ -31,6 +32,29 @@ struct BackendResponse {
   std::vector<std::uint8_t> read_data;
 };
 
+struct MemoryLocalityStats {
+  std::uint64_t requests{};
+  std::uint64_t bytes{};
+  std::uint64_t first_requests{};
+  std::uint64_t first_bytes{};
+  std::uint64_t contiguous_requests{};
+  std::uint64_t contiguous_bytes{};
+  std::uint64_t repeated_requests{};
+  std::uint64_t repeated_bytes{};
+  std::uint64_t discontinuous_requests{};
+  std::uint64_t discontinuous_bytes{};
+};
+
+struct MemoryTrafficStats {
+  MemoryLocalityStats reads;
+  MemoryLocalityStats writes;
+};
+
+[[nodiscard]] MemoryLocalityStats combine_memory_traffic(
+    const MemoryTrafficStats& stats) noexcept;
+[[nodiscard]] MemoryTrafficStats subtract_memory_traffic(
+    const MemoryTrafficStats& after, const MemoryTrafficStats& before);
+
 class MemoryBackend : public Component {
  public:
   using Component::Component;
@@ -52,6 +76,14 @@ class MemoryBackend : public Component {
   [[nodiscard]] virtual std::size_t outstanding() const noexcept = 0;
   [[nodiscard]] virtual std::size_t outstanding_for(
       std::uint32_t initiator_id) const noexcept = 0;
+  [[nodiscard]] const MemoryTrafficStats& traffic_stats() const noexcept {
+    return traffic_stats_;
+  }
+  [[nodiscard]] const std::unordered_map<std::uint32_t, MemoryTrafficStats>&
+  traffic_stats_by_initiator() const noexcept {
+    return traffic_stats_by_initiator_;
+  }
+  void begin_traffic_epoch() noexcept;
 
  protected:
   [[nodiscard]] bool initiator_registered(
@@ -59,8 +91,20 @@ class MemoryBackend : public Component {
   void commit_write_payload(const BackendRequest& request);
   [[nodiscard]] std::vector<std::uint8_t> complete_read_payload(
       const BackendRequest& request) const;
+  void record_accepted_request(const BackendRequest& request);
 
  private:
+  struct AccessCursor {
+    bool valid{};
+    std::size_t channel{};
+    std::uint64_t address{};
+    std::uint32_t bytes{};
+  };
+
+  struct InitiatorCursors {
+    std::array<AccessCursor, 2> operations;
+  };
+
   struct FillRegion {
     std::uint64_t address{};
     std::uint64_t bytes{};
@@ -72,6 +116,10 @@ class MemoryBackend : public Component {
       std::size_t, std::unordered_map<std::uint64_t, std::uint8_t>>
       payload_storage_;
   std::unordered_map<std::size_t, std::vector<FillRegion>> payload_fills_;
+  MemoryTrafficStats traffic_stats_;
+  std::unordered_map<std::uint32_t, MemoryTrafficStats>
+      traffic_stats_by_initiator_;
+  std::unordered_map<std::uint32_t, InitiatorCursors> traffic_cursors_;
 };
 
 struct MockMemoryConfig {

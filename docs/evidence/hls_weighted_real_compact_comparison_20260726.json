@@ -49,7 +49,8 @@
         "grasu_to_spine_backend_request_ratio_geomean": 0.9901564058931513
       }
     },
-    "matrix_wall_seconds_jobs_3": 31.737826601136476
+    "grasu_to_spine_aligned_backend_byte_ratio_geomean": 10.686533990331206,
+    "matrix_wall_seconds_jobs_2": 44.46189131587744
   },
   "pairs": [
     {"run_id": "real_amazon_2008_insert_u8", "spine_ms": 0.27517021276595743, "grasu_ms": 1.021485, "spine_speedup": 3.7121932266295525, "spine_structure_ms": 0.19631914893617022, "grasu_structure_ms": 0.000885, "grasu_to_spine_request_ratio": 14.43673469387755},
@@ -63,11 +64,11 @@
     {"run_id": "real_soc_flickr_und_weight_change_u8", "spine_ms": 2.125304964539007, "grasu_ms": 1.4774, "spine_speedup": 0.6951472963412844, "spine_structure_ms": 1.61054609929078, "grasu_structure_ms": 0.001195, "grasu_to_spine_request_ratio": 0.7108650805805039}
   ],
   "raw": {
-    "directory": "results/hls_weighted_real_comparison_release_20260726",
-    "matrix_manifest_sha256": "28b04d874eca23be71cef4e52afbfa5a7fc7a9e02d8984e7cda61c7460d9b4de",
-    "system_rows_sha256": "02a1b0f490f6c4d9fc913ee2d6c0d2bc64849383db9e8c00bef0aeeb6f117cdb",
-    "pairs_sha256": "5c963b129d47075c4d3f91cc0ac0aa1aab4f26121c168af884eada9492441da5",
-    "execution_sha256": "990898b33c90f6f1018bc9f6fab587c2fff9e921c8789eedd1f86a37e812b35d",
+    "directory": "results/hls_weighted_sssp_memory_locality_release_20260726",
+    "matrix_manifest_sha256": "f250447684a6694d4be4eedd8a2f045be0c708eecddac1449338857e3502a724",
+    "system_rows_sha256": "c6edadf303dd095bdf7a0b7c69605294b2de4d6bbffa7a6ac0b967444304d20f",
+    "pairs_sha256": "5bd4328b64a6a1e3b4824d364152d269c53a6c1a59886b08c08431ae67119ffb",
+    "execution_sha256": "1b157f63ddd4f6369a785572de2adb50b8c75ccc31145b0ea280e55c2adec448",
     "input_manifest_sha256": "1c0a362a82b34eb235153b815dbfbeb9121932cd4d2b40e87b8d8e5370a40bd9"
   },
   "limitations": [
@@ -75,6 +76,6 @@
     "The Spine clock is routed evidence while the GraSU/ReGraph 200 MHz clock is requested-profile evidence, not routed timing closure.",
     "The execution-driven simulator is not calibrated cycle-for-cycle against hw.",
     "Spine DRAM transaction and energy counters include cold plus update; no cross-system DRAM energy ratio is claimed.",
-    "Sequential/random address classification, HLS-aligned PageRank, full-dataset runtime, and total PPA remain open."
+    "Accepted-request locality is classified, but physical DRAM burst/row locality, full-dataset runtime, and total PPA remain open."
   ]
 }

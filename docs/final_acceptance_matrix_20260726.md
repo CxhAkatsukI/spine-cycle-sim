@@ -13,16 +13,16 @@ cannot silently satisfy an HLS-aligned requirement.
 
 | Requirement | Current evidence | Status | Remaining gate |
 | --- | --- | --- | --- |
-| Spine weighted SSSP | Execution-driven shared core, dynamic fallback, SST/DRAMSim3, dual oracle | Implemented | Run final real-dataset matrix and freeze manifests |
-| Spine Full PageRank | Timed Map/Reduce policy, SST vertical slice, and zero-time compact preload plus timed dynamic update | Implemented | Run final real-dataset small-batch matrix |
+| Spine weighted SSSP | Execution-driven shared core, dynamic fallback, SST/DRAMSim3, dual oracle, and 9-case real-compact matrix | Implemented | Scale beyond compact slices and split aligned maintenance from compute traffic |
+| Spine Full PageRank | Timed Map/Reduce policy, SST vertical slice, and 9-case real-compact matrix | Implemented | Scale beyond compact slices |
 | Spine thresholded residual PageRank | Timed signed-residual policy, shared dynamic-update contract, and 9-case real-compact matrix | Implemented | Scale beyond compact slices |
 | GraSU/ReGraph weighted SSSP | Normalized executable mode; native unit-weight mode; `ff13a67` weighted full-word HLS-aligned mode; 10 synthetic plus 9 real-compact dynamic cases | Implemented | Scale beyond compact slices and compare with hw/hw_emu timing evidence |
-| GraSU/ReGraph Full PageRank | Normalized modes plus executable ff13a67 full-word HLS-equivalent proposed profile with dual oracle | Implemented | Run the common three-dataset compact matrix, then scale beyond compact slices |
+| GraSU/ReGraph Full PageRank | Normalized modes plus executable ff13a67 full-word HLS-equivalent proposed profile, dual oracle, and 9-case real-compact matrix | Implemented | Scale beyond compact slices |
 | GraSU/ReGraph thresholded residual PageRank | Executable ff13a67 full-word proposed profile, dual oracle, and 9-case real-compact matrix | Implemented | Scale beyond compact slices |
 | Differential correctness | Per-run dual oracles plus 9/9 cross-system matches for weighted SSSP, Full PageRank, and residual PageRank | Partial | Preserve fail-closed checks on full-dataset experiments |
 | End-to-end small-batch performance | 9-pair real-compact HLS-profile matrices for weighted SSSP, Full PageRank, and residual PageRank | Partial | Add publication-scale datasets and batch sweeps |
 | Update throughput | Common real-compact batches report user mutations and physical records for Spine maintenance and GraSU PMA | Partial | Sweep batch size/density on full-scale inputs and validate against hw |
-| Memory behavior | Per-component bytes/requests, AXI stalls, DRAM reads/writes/ACT/PRE, sparse channel binding | Partial | Add common sequential/random classification and per-algorithm tables |
+| Memory behavior | Common accepted-request bytes and per-initiator/per-operation contiguous/repeated/discontinuous classification; 54 system rows and 27 paired rows | Partial | Add physical burst amplification/row-locality tables and split weighted-Spine maintenance from compute |
 | Energy by component | DRAMSim3 active-channel energy and selected CACTI evidence | Partial | Complete on-chip activity-to-energy mapping; keep idle-channel assumptions explicit |
 | Area and timing | Existing routed Spine/native GraSU evidence | Partial | Add reports for the final HLS-equivalent design and map simulator components to reports |
 | Dense batches | Synthetic dense/pathological fixtures exist | Partial | Sweep batch density/size and report crossover and failure/capacity boundaries |
@@ -87,7 +87,8 @@ faster by geometric mean. See
 
 ## Immediate Next Gate
 
-Add a common per-phase sequential/random address classifier, then close the
-publication-scale checkpoint loader/runtime gate and dense-batch sweep. Total
-and phase backend requests are now comparable, but update/compute locality and
-total energy ratios are not.
+Complete matched component-energy/PPA evidence next, then close the
+publication-scale checkpoint loader/runtime gate and dense-batch sweep.
+Accepted-request volume and locality are now comparable for all three
+algorithms; DRAM burst amplification, row-hit behavior, weighted-Spine's
+internal maintenance/compute split, and total energy ratios remain open.

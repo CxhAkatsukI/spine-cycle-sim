@@ -43,6 +43,19 @@ from .hls_pagerank_real_comparison import (
     validate_spine_pagerank_result,
     validate_spine_residual_result,
 )
+from .memory_traffic import (
+    BACKEND_LINE_BYTES,
+    memory_traffic_metrics,
+    phase_memory_is_valid,
+    phase_memory_metrics,
+    split_memory_metrics,
+)
+from .real_memory_analysis import (
+    load_matrix as load_real_memory_matrix,
+    normalize_system_row as normalize_real_memory_system_row,
+    pair_memory_rows,
+    summarize_pairs as summarize_real_memory_pairs,
+)
 
 __all__ = [
     "DEFAULT_REAL_SOURCES",
@@ -77,4 +90,13 @@ __all__ = [
     "validate_grasu_residual_result",
     "validate_spine_pagerank_result",
     "validate_spine_residual_result",
+    "BACKEND_LINE_BYTES",
+    "memory_traffic_metrics",
+    "phase_memory_is_valid",
+    "phase_memory_metrics",
+    "split_memory_metrics",
+    "load_real_memory_matrix",
+    "normalize_real_memory_system_row",
+    "pair_memory_rows",
+    "summarize_real_memory_pairs",
 ]

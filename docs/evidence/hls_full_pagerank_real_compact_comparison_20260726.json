@@ -4,16 +4,16 @@
   "claim_class": "profile_clock_adjusted_real_compact_execution_driven",
   "algorithm": "full_pagerank",
   "raw_matrix_manifest": {
-    "path": "results/hls_full_pagerank_real_comparison_release_20260726/matrix_manifest.json",
-    "sha256": "c81f4e9dc1974cc4ccf4729ce96f74632b2ab3e13aff06274770f4c813c2f2e0"
+    "path": "results/hls_full_pagerank_memory_locality_final_20260726/matrix_manifest.json",
+    "sha256": "bc07c67ee2a6a078911a5c49269ce8c527781345ef8b6c0c1bc111dcd2d7bfd4"
   },
-  "system_rows_sha256": "bce19de7d3cc616df63eccbee4b6b1b303737a0a5e6acd8457e0a9bf2453a0e1",
-  "pairs_sha256": "a46868f726d0a7a5f981cb715c85ee60187b984eec5a9376902bc775ac893391",
+  "system_rows_sha256": "2441e94a9cc5b8aa7000f407c8b56863c17d688485f0a097baebd3f2b4085402",
+  "pairs_sha256": "1efc87a11a3456ce778ee510bbc6ed1660c59676bbe44a8b743e11804076bc39",
   "input_manifest_sha256": "1c0a362a82b34eb235153b815dbfbeb9121932cd4d2b40e87b8d8e5370a40bd9",
   "spine_profile_sha256": "aba0d6bbcbaa64240897ed3efc555d6ce6d6455d2f10e77e0ccdb77fa46466a7",
   "grasu_profile_sha256": "53e1688e3f944d59cb2e482f040ed82e4a253e65b0c2e1353103aedb23a9dcda",
   "capability_catalog_sha256": "a4f1c2134a5957c8a7faf258b0205498ef19c1e9eda29c0d1fc1bc4a7183108a",
-  "execution_sha256": "022e3e116e4d99226300ff65819991b37f76b14a47b24dd629ea2bc3cfa4e428",
+  "execution_sha256": "925930ea1388c538d832fd68a65a7c2231ec0be4bad705e2e0fe0021dded5f26",
   "system_rows": 18,
   "pairs": 9,
   "all_correct": true,
@@ -24,9 +24,12 @@
     "spine_speedup_over_grasu_update": 0.0029412418793401786,
     "spine_speedup_over_grasu_compute": 0.9804500935751941,
     "grasu_to_spine_backend_request_ratio": 1.3071619792790639,
+    "grasu_to_spine_backend_byte_ratio": 10.594946793134225,
     "grasu_to_spine_update_request_ratio": 0.010412432865934192,
-    "grasu_to_spine_compute_request_ratio": 1.5234767407869922
+    "grasu_to_spine_update_byte_ratio": 0.02863577368869972,
+    "grasu_to_spine_compute_request_ratio": 1.5234767407869922,
+    "grasu_to_spine_compute_byte_ratio": 12.902514087775849
   },
-  "matrix_wall_seconds": 26.05860267719254,
+  "matrix_wall_seconds": 36.519752914085984,
   "status": "PASS"
 }

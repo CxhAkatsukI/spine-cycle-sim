@@ -28,6 +28,61 @@ def _run() -> dict[str, object]:
     }
 
 
+def _locality_group(requests: int, *, first_requests: int = 1) -> dict[str, int]:
+    if requests == 0:
+        first_requests = 0
+    bytes_ = requests * 32
+    first_bytes = first_requests * 32
+    return {
+        "requests": requests,
+        "bytes": bytes_,
+        "first_requests": first_requests,
+        "first_bytes": first_bytes,
+        "contiguous_requests": requests - first_requests,
+        "contiguous_bytes": bytes_ - first_bytes,
+        "repeated_requests": 0,
+        "repeated_bytes": 0,
+        "discontinuous_requests": 0,
+        "discontinuous_bytes": 0,
+    }
+
+
+def _traffic(requests: int, *, first_requests: int = 1) -> dict[str, object]:
+    reads = _locality_group(requests, first_requests=first_requests)
+    writes = _locality_group(0, first_requests=0)
+    return {
+        "classification": (
+            "per_initiator_and_operation_accepted_backend_request"
+        ),
+        "address_basis": "logical_channel_and_byte_address",
+        "reads": reads,
+        "writes": writes,
+        "combined": dict(reads),
+    }
+
+
+def _with_traffic(
+    result: dict[str, object], *, update_key: str
+) -> dict[str, object]:
+    update_requests = int(
+        result.get(
+            "maintenance_backend_requests",
+            result.get("update_backend_requests", 0),
+        )
+    )
+    compute_requests = int(result["compute_backend_requests"])
+    backend_requests = int(result["backend_requests"])
+    result.update(
+        {
+            "memory_locality_ledger_match": True,
+            "backend_traffic": _traffic(backend_requests, first_requests=2),
+            update_key: _traffic(update_requests),
+            "compute_backend_traffic": _traffic(compute_requests),
+        }
+    )
+    return result
+
+
 class HlsPageRankRealComparisonTests(unittest.TestCase):
     def test_rank_vector_rejects_missing_and_nonfinite_values(self) -> None:
         self.assertEqual(rank_vector([0.25, 0.75]), (0.25, 0.75))
@@ -70,6 +125,9 @@ class HlsPageRankRealComparisonTests(unittest.TestCase):
             "dram_reads": 25,
             "dram_writes": 15,
         }
+        result = _with_traffic(
+            result, update_key="maintenance_backend_traffic"
+        )
         arguments = dict(
             expected_profile_id="spine",
             expected_core_mhz=141.0,
@@ -82,6 +140,12 @@ class HlsPageRankRealComparisonTests(unittest.TestCase):
         result["compute_backend_requests"] = 29
         self.assertIn(
             "backend_window",
+            validate_spine_pagerank_result(_run(), result, **arguments),
+        )
+        result["compute_backend_requests"] = 30
+        result["backend_traffic"]["combined"]["bytes"] += 1  # type: ignore[index,operator]
+        self.assertIn(
+            "memory_locality",
             validate_spine_pagerank_result(_run(), result, **arguments),
         )
 
@@ -126,6 +190,9 @@ class HlsPageRankRealComparisonTests(unittest.TestCase):
             },
             "dram": {"reads": 25, "writes": 15},
         }
+        child["result"] = _with_traffic(
+            child["result"], update_key="update_backend_traffic"  # type: ignore[arg-type]
+        )
         arguments = dict(
             expected_profile_sha256="profile-hash",
             expected_core_mhz=200.0,
@@ -149,8 +216,11 @@ class HlsPageRankRealComparisonTests(unittest.TestCase):
             "user_mutations": 8,
             "physical_records": 8,
             "backend_requests": 100,
+            "backend_bytes": 3200,
             "update_backend_requests": 10,
+            "update_backend_bytes": 320,
             "compute_backend_requests": 90,
+            "compute_backend_bytes": 2880,
             "ranks": (0.2, 0.8),
         }
         spine = {
@@ -165,12 +235,16 @@ class HlsPageRankRealComparisonTests(unittest.TestCase):
             "update_ms": 0.1,
             "compute_ms": 3.9,
             "backend_requests": 200,
+            "backend_bytes": 6400,
             "update_backend_requests": 20,
+            "update_backend_bytes": 640,
             "compute_backend_requests": 180,
+            "compute_backend_bytes": 5760,
             "ranks": (0.200001, 0.799999),
         }
         pair = pair_row(spine, grasu)
         self.assertEqual(pair["spine_speedup_over_grasu_e2e"], 2.0)
+        self.assertEqual(pair["grasu_to_spine_backend_byte_ratio"], 2.0)
         self.assertTrue(pair["cross_system_ranks_match"])
         broken = {**grasu, "ranks": (0.3, 0.7)}
         with self.assertRaisesRegex(ValueError, "rank mismatch"):
@@ -188,6 +262,9 @@ class HlsPageRankRealComparisonTests(unittest.TestCase):
             "core_mhz": 200.0,
             "correctness_mismatches": 0,
         }
+        result = _with_traffic(
+            result, update_key="maintenance_backend_traffic"
+        )
         dram = {
             "reads": 25,
             "writes": 15,
@@ -204,8 +281,11 @@ class HlsPageRankRealComparisonTests(unittest.TestCase):
             profile_id="spine",
         )
         self.assertEqual(row["e2e_ms"], 0.002)
-        self.assertEqual(row["update_backend_bytes"], 640)
-        self.assertEqual(row["compute_backend_bytes"], 1920)
+        self.assertEqual(row["update_backend_bytes"], 320)
+        self.assertEqual(row["compute_backend_bytes"], 960)
+        self.assertEqual(row["update_backend_nominal_64b_bytes"], 640)
+        self.assertEqual(row["compute_backend_nominal_64b_bytes"], 1920)
+        self.assertEqual(row["backend_contiguous_byte_ratio"], 1.0)
 
     def test_residual_validators_require_convergence_and_frontiers(self) -> None:
         common_result = {
@@ -255,6 +335,9 @@ class HlsPageRankRealComparisonTests(unittest.TestCase):
             "dram_reads": 25,
             "dram_writes": 15,
         }
+        spine = _with_traffic(
+            spine, update_key="maintenance_backend_traffic"
+        )
         spine_arguments = dict(
             expected_profile_id="spine",
             expected_core_mhz=141.0,
@@ -287,6 +370,9 @@ class HlsPageRankRealComparisonTests(unittest.TestCase):
             "compute_backend_requests": 30,
             "expected_backend_requests": 40,
         }
+        grasu_result = _with_traffic(
+            grasu_result, update_key="update_backend_traffic"
+        )
         child = {
             "status": "PASS",
             "profile_sha256": "profile",
@@ -321,7 +407,9 @@ class HlsPageRankRealComparisonTests(unittest.TestCase):
             "update_ms": 0.1,
             "compute_ms": 1.9,
             "backend_requests": 100,
+            "backend_bytes": 3200,
             "compute_backend_requests": 90,
+            "compute_backend_bytes": 2880,
             "ranks": (0.2, 0.8),
             "residuals": (1.0e-7, 2.0e-7),
             "frontier_in": (2, 1),
@@ -332,7 +420,9 @@ class HlsPageRankRealComparisonTests(unittest.TestCase):
             "e2e_ms": 3.0,
             "compute_ms": 2.9,
             "backend_requests": 200,
+            "backend_bytes": 6400,
             "compute_backend_requests": 190,
+            "compute_backend_bytes": 6080,
             "ranks": (0.200001, 0.799999),
         }
         pair = residual_pair_row(common, grasu)
@@ -358,6 +448,9 @@ class HlsPageRankRealComparisonTests(unittest.TestCase):
             "frontier_out_sizes": [1, 0],
             "correctness_mismatches": 0,
         }
+        result = _with_traffic(
+            result, update_key="maintenance_backend_traffic"
+        )
         dram = {
             "reads": 25,
             "writes": 15,
@@ -374,7 +467,8 @@ class HlsPageRankRealComparisonTests(unittest.TestCase):
             profile_id="spine",
         )
         self.assertEqual(row["frontier_in"], (4, 1))
-        self.assertEqual(row["compute_backend_bytes"], 1920)
+        self.assertEqual(row["compute_backend_bytes"], 960)
+        self.assertEqual(row["compute_backend_nominal_64b_bytes"], 1920)
 
 
 if __name__ == "__main__":

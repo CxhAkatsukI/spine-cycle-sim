@@ -7,6 +7,97 @@
 
 namespace spine::sim {
 
+namespace {
+
+MemoryLocalityStats add_locality(const MemoryLocalityStats& left,
+                                 const MemoryLocalityStats& right) noexcept {
+  return MemoryLocalityStats{
+      .requests = left.requests + right.requests,
+      .bytes = left.bytes + right.bytes,
+      .first_requests = left.first_requests + right.first_requests,
+      .first_bytes = left.first_bytes + right.first_bytes,
+      .contiguous_requests =
+          left.contiguous_requests + right.contiguous_requests,
+      .contiguous_bytes = left.contiguous_bytes + right.contiguous_bytes,
+      .repeated_requests = left.repeated_requests + right.repeated_requests,
+      .repeated_bytes = left.repeated_bytes + right.repeated_bytes,
+      .discontinuous_requests =
+          left.discontinuous_requests + right.discontinuous_requests,
+      .discontinuous_bytes =
+          left.discontinuous_bytes + right.discontinuous_bytes,
+  };
+}
+
+MemoryLocalityStats subtract_locality(const MemoryLocalityStats& after,
+                                      const MemoryLocalityStats& before) {
+  const auto subtract = [](std::uint64_t later, std::uint64_t earlier) {
+    if (later < earlier) {
+      throw std::invalid_argument("memory traffic snapshots are not ordered");
+    }
+    return later - earlier;
+  };
+  return MemoryLocalityStats{
+      .requests = subtract(after.requests, before.requests),
+      .bytes = subtract(after.bytes, before.bytes),
+      .first_requests =
+          subtract(after.first_requests, before.first_requests),
+      .first_bytes = subtract(after.first_bytes, before.first_bytes),
+      .contiguous_requests =
+          subtract(after.contiguous_requests, before.contiguous_requests),
+      .contiguous_bytes =
+          subtract(after.contiguous_bytes, before.contiguous_bytes),
+      .repeated_requests =
+          subtract(after.repeated_requests, before.repeated_requests),
+      .repeated_bytes =
+          subtract(after.repeated_bytes, before.repeated_bytes),
+      .discontinuous_requests = subtract(after.discontinuous_requests,
+                                          before.discontinuous_requests),
+      .discontinuous_bytes =
+          subtract(after.discontinuous_bytes, before.discontinuous_bytes),
+  };
+}
+
+enum class LocalityClass { kFirst, kContiguous, kRepeated, kDiscontinuous };
+
+void record_locality(MemoryLocalityStats& stats, LocalityClass locality,
+                     std::uint32_t bytes) {
+  ++stats.requests;
+  stats.bytes += bytes;
+  switch (locality) {
+    case LocalityClass::kFirst:
+      ++stats.first_requests;
+      stats.first_bytes += bytes;
+      break;
+    case LocalityClass::kContiguous:
+      ++stats.contiguous_requests;
+      stats.contiguous_bytes += bytes;
+      break;
+    case LocalityClass::kRepeated:
+      ++stats.repeated_requests;
+      stats.repeated_bytes += bytes;
+      break;
+    case LocalityClass::kDiscontinuous:
+      ++stats.discontinuous_requests;
+      stats.discontinuous_bytes += bytes;
+      break;
+  }
+}
+
+}  // namespace
+
+MemoryLocalityStats combine_memory_traffic(
+    const MemoryTrafficStats& stats) noexcept {
+  return add_locality(stats.reads, stats.writes);
+}
+
+MemoryTrafficStats subtract_memory_traffic(const MemoryTrafficStats& after,
+                                           const MemoryTrafficStats& before) {
+  return MemoryTrafficStats{
+      .reads = subtract_locality(after.reads, before.reads),
+      .writes = subtract_locality(after.writes, before.writes),
+  };
+}
+
 void MemoryBackend::register_initiator(std::uint32_t initiator_id) {
   if (!initiators_.insert(initiator_id).second) {
     throw std::invalid_argument("memory initiator ID is already registered");
@@ -16,6 +107,46 @@ void MemoryBackend::register_initiator(std::uint32_t initiator_id) {
 bool MemoryBackend::initiator_registered(
     std::uint32_t initiator_id) const noexcept {
   return initiators_.contains(initiator_id);
+}
+
+void MemoryBackend::begin_traffic_epoch() noexcept {
+  traffic_cursors_.clear();
+}
+
+void MemoryBackend::record_accepted_request(const BackendRequest& request) {
+  const std::size_t operation_index =
+      request.operation == MemoryOperation::kRead ? 0 : 1;
+  AccessCursor& cursor =
+      traffic_cursors_[request.initiator_id].operations[operation_index];
+  LocalityClass locality = LocalityClass::kFirst;
+  if (cursor.valid) {
+    const bool same_channel = cursor.channel == request.channel;
+    if (same_channel && cursor.address == request.address) {
+      locality = LocalityClass::kRepeated;
+    } else if (same_channel && request.address >= cursor.address &&
+               request.address - cursor.address == cursor.bytes) {
+      locality = LocalityClass::kContiguous;
+    } else {
+      locality = LocalityClass::kDiscontinuous;
+    }
+  }
+
+  MemoryLocalityStats& total = request.operation == MemoryOperation::kRead
+                                   ? traffic_stats_.reads
+                                   : traffic_stats_.writes;
+  MemoryTrafficStats& initiator =
+      traffic_stats_by_initiator_[request.initiator_id];
+  MemoryLocalityStats& per_initiator =
+      request.operation == MemoryOperation::kRead ? initiator.reads
+                                                  : initiator.writes;
+  record_locality(total, locality, request.bytes);
+  record_locality(per_initiator, locality, request.bytes);
+  cursor = AccessCursor{
+      .valid = true,
+      .channel = request.channel,
+      .address = request.address,
+      .bytes = request.bytes,
+  };
 }
 
 void MemoryBackend::initialize_payload(
@@ -215,6 +346,7 @@ void MockMemoryBackend::commit(const CycleContext& context) {
         .due_cycle = context.domain_cycle + config_.latency_cycles,
         .completed = false,
     });
+    record_accepted_request(request);
     ++stats_.accepted;
   }
   staged_submissions_.clear();

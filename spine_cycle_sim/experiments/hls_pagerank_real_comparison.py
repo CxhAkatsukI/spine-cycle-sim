@@ -7,9 +7,9 @@ import json
 import math
 from typing import Mapping
 
+from .memory_traffic import phase_memory_is_valid, phase_memory_metrics
 
 RANK_TOLERANCE = 1.0e-5
-BACKEND_LINE_BYTES = 64
 
 
 def rank_vector(values: object) -> tuple[float, ...]:
@@ -86,6 +86,14 @@ def validate_spine_pagerank_result(
         "dram_closure": int(result.get("dram_reads", -1))
         + int(result.get("dram_writes", -1))
         == backend_requests,
+        "memory_locality": result.get("memory_locality_ledger_match") is True
+        and phase_memory_is_valid(
+            result,
+            update_key="maintenance_backend_traffic",
+            backend_requests=backend_requests,
+            update_requests=update_requests,
+            compute_requests=compute_requests,
+        ),
     }
     return [name for name, passed in checks.items() if not passed]
 
@@ -165,6 +173,14 @@ def validate_grasu_pagerank_result(
         "dram_closure": int(dram.get("reads", -1))
         + int(dram.get("writes", -1))
         == backend_requests,
+        "memory_locality": result.get("memory_locality_ledger_match") is True
+        and phase_memory_is_valid(
+            result,
+            update_key="update_backend_traffic",
+            backend_requests=backend_requests,
+            update_requests=update_requests,
+            compute_requests=compute_requests,
+        ),
     }
     return [name for name, passed in checks.items() if not passed]
 
@@ -187,6 +203,7 @@ def system_row(
         ranks = rank_vector(result["ranks"])
         axis_push_stalls = int(result.get("edge_axis_push_stalls", 0))
         claim_class = "routed_reference_profile_execution_driven_simulation"
+        update_traffic_key = "maintenance_backend_traffic"
     elif system == "grasu_regraph":
         cycles = int(result["cycles"])
         update_cycles = int(result["update_cycles"])
@@ -196,6 +213,7 @@ def system_row(
         ranks = rank_vector(result["ranks_external"])
         axis_push_stalls = int(result.get("axis_push_stalls", 0))
         claim_class = str(result["claim_class"])
+        update_traffic_key = "update_backend_traffic"
     else:
         raise ValueError(f"unsupported system: {system}")
 
@@ -206,6 +224,13 @@ def system_row(
     user_mutations = int(run["user_mutations"])
     physical_records = int(run["physical_records"])
     backend_requests = int(result["backend_requests"])
+    memory_metrics = phase_memory_metrics(
+        result,
+        update_key=update_traffic_key,
+        backend_requests=backend_requests,
+        update_requests=update_requests,
+        compute_requests=compute_requests,
+    )
     return {
         "run_id": run["run_id"],
         "dataset_id": run["dataset_id"],
@@ -229,12 +254,7 @@ def system_row(
         "compute_ms": compute_seconds * 1_000.0,
         "user_mutations_per_second_update": user_mutations / update_seconds,
         "physical_records_per_second_update": physical_records / update_seconds,
-        "backend_requests": backend_requests,
-        "backend_bytes": backend_requests * BACKEND_LINE_BYTES,
-        "update_backend_requests": update_requests,
-        "update_backend_bytes": update_requests * BACKEND_LINE_BYTES,
-        "compute_backend_requests": compute_requests,
-        "compute_backend_bytes": compute_requests * BACKEND_LINE_BYTES,
+        **memory_metrics,
         "axis_push_stalls": axis_push_stalls,
         "dram_reads": int(dram["reads"]),
         "dram_writes": int(dram["writes"]),
@@ -283,14 +303,24 @@ def pair_row(
         / float(spine["compute_ms"]),
         "grasu_to_spine_backend_request_ratio": float(grasu["backend_requests"])
         / float(spine["backend_requests"]),
+        "grasu_to_spine_backend_byte_ratio": float(grasu["backend_bytes"])
+        / float(spine["backend_bytes"]),
         "grasu_to_spine_update_request_ratio": float(
             grasu["update_backend_requests"]
         )
         / float(spine["update_backend_requests"]),
+        "grasu_to_spine_update_byte_ratio": float(
+            grasu["update_backend_bytes"]
+        )
+        / float(spine["update_backend_bytes"]),
         "grasu_to_spine_compute_request_ratio": float(
             grasu["compute_backend_requests"]
         )
         / float(spine["compute_backend_requests"]),
+        "grasu_to_spine_compute_byte_ratio": float(
+            grasu["compute_backend_bytes"]
+        )
+        / float(spine["compute_backend_bytes"]),
         "cross_system_max_abs_rank_difference": max_abs_difference,
         "cross_system_ranks_match": True,
         "dram_energy_ratio_valid": False,
@@ -361,6 +391,14 @@ def validate_spine_residual_result(
         and frontier_out[-1] == 0
         and result.get("frontier_match") is True,
         "memory_ledger": result.get("memory_ledger_match") is True,
+        "memory_locality": result.get("memory_locality_ledger_match") is True
+        and phase_memory_is_valid(
+            result,
+            update_key="maintenance_backend_traffic",
+            backend_requests=backend_requests,
+            update_requests=update_requests,
+            compute_requests=compute_requests,
+        ),
         "architecture_correctness": result.get(
             "architecture_correctness_mismatches"
         )
@@ -475,6 +513,14 @@ def validate_grasu_residual_result(
         and result.get("update_pma_writes") == run["physical_records"]
         and result.get("degree_update_reads") == run["physical_records"]
         and result.get("degree_update_writes") == run["physical_records"],
+        "memory_locality": result.get("memory_locality_ledger_match") is True
+        and phase_memory_is_valid(
+            result,
+            update_key="update_backend_traffic",
+            backend_requests=backend_requests,
+            update_requests=update_requests,
+            compute_requests=compute_requests,
+        ),
         "backend_window": update_requests > 0
         and compute_requests > 0
         and update_requests + compute_requests == backend_requests
@@ -504,6 +550,7 @@ def residual_system_row(
         ranks = rank_vector(result["ranks"])
         residuals = rank_vector(result["residuals"])
         claim_class = "routed_reference_profile_execution_driven_simulation"
+        update_traffic_key = "maintenance_backend_traffic"
     elif system == "grasu_regraph":
         cycles = int(result["cycles"])
         update_cycles = int(result["update_cycles"])
@@ -513,6 +560,7 @@ def residual_system_row(
         ranks = rank_vector(result["ranks_external"])
         residuals = rank_vector(result["residuals_external"])
         claim_class = str(result["claim_class"])
+        update_traffic_key = "update_backend_traffic"
     else:
         raise ValueError(f"unsupported system: {system}")
 
@@ -521,6 +569,13 @@ def residual_system_row(
     update_seconds = update_cycles / (core_mhz * 1_000_000.0)
     compute_seconds = compute_cycles / (core_mhz * 1_000_000.0)
     backend_requests = int(result["backend_requests"])
+    memory_metrics = phase_memory_metrics(
+        result,
+        update_key=update_traffic_key,
+        backend_requests=backend_requests,
+        update_requests=update_requests,
+        compute_requests=compute_requests,
+    )
     return {
         "run_id": run["run_id"],
         "dataset_id": run["dataset_id"],
@@ -548,12 +603,7 @@ def residual_system_row(
         / update_seconds,
         "physical_records_per_second_update": int(run["physical_records"])
         / update_seconds,
-        "backend_requests": backend_requests,
-        "backend_bytes": backend_requests * BACKEND_LINE_BYTES,
-        "update_backend_requests": update_requests,
-        "update_backend_bytes": update_requests * BACKEND_LINE_BYTES,
-        "compute_backend_requests": compute_requests,
-        "compute_backend_bytes": compute_requests * BACKEND_LINE_BYTES,
+        **memory_metrics,
         "dram_reads": int(dram["reads"]),
         "dram_writes": int(dram["writes"]),
         "dram_activates": int(dram["activates"]),
@@ -622,10 +672,16 @@ def residual_pair_row(
         / float(spine["compute_ms"]),
         "grasu_to_spine_backend_request_ratio": float(grasu["backend_requests"])
         / float(spine["backend_requests"]),
+        "grasu_to_spine_backend_byte_ratio": float(grasu["backend_bytes"])
+        / float(spine["backend_bytes"]),
         "grasu_to_spine_compute_request_ratio": float(
             grasu["compute_backend_requests"]
         )
         / float(spine["compute_backend_requests"]),
+        "grasu_to_spine_compute_byte_ratio": float(
+            grasu["compute_backend_bytes"]
+        )
+        / float(spine["compute_backend_bytes"]),
         "cross_system_max_abs_rank_difference": rank_difference,
         "cross_system_max_abs_residual_difference": residual_difference,
         "cross_system_frontiers_match": frontiers_match,

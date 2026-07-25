@@ -47,7 +47,9 @@ using spine::sim::AlgorithmUpdateMode;
 using spine::sim::AlgorithmVertexState;
 using spine::sim::BankedMemory;
 using spine::sim::BankedMemoryConfig;
+using spine::sim::BackendRequest;
 using spine::sim::ClockId;
+using spine::sim::combine_memory_traffic;
 using spine::sim::Component;
 using spine::sim::CycleContext;
 using spine::sim::decode_spine_level_edge;
@@ -105,6 +107,7 @@ using spine::sim::SpineSplitReader;
 using spine::sim::SpineSplitSsspCompute;
 using spine::sim::SpineSsspRunResult;
 using spine::sim::SpineVerticalSliceSystem;
+using spine::sim::subtract_memory_traffic;
 
 void require(bool condition, const std::string &message) {
   if (!condition) {
@@ -642,6 +645,87 @@ MockMemoryConfig mock_memory_config(std::uint64_t latency = 3) {
       .max_outstanding_per_channel = 32,
       .response_queue_depth = 16,
   };
+}
+
+void test_memory_backend_tracks_per_initiator_locality_and_epochs() {
+  MockMemoryBackend backend("locality-hbm", 0,
+                            MockMemoryConfig{
+                                .channels = 2,
+                                .latency_cycles = 100,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 32,
+                                .response_queue_depth = 16,
+                            });
+  backend.register_initiator(10);
+  backend.register_initiator(11);
+  std::uint64_t request_id = 0;
+  std::uint64_t cycle = 0;
+  const auto submit = [&](std::uint32_t initiator, std::size_t channel,
+                          MemoryOperation operation, std::uint64_t address) {
+    BackendRequest request{
+        .initiator_id = initiator,
+        .request_id = request_id++,
+        .channel = channel,
+        .operation = operation,
+        .address = address,
+        .bytes = 64,
+        .write_data = operation == MemoryOperation::kWrite
+                          ? std::vector<std::uint8_t>(64, 0x5a)
+                          : std::vector<std::uint8_t>{},
+    };
+    require(backend.try_submit(request),
+            "locality test request was unexpectedly rejected");
+    backend.commit(CycleContext{.domain_cycle = cycle++, .clock_id = 0});
+  };
+
+  submit(10, 0, MemoryOperation::kRead, 0);
+  submit(11, 1, MemoryOperation::kRead, 4096);
+  submit(10, 0, MemoryOperation::kRead, 64);
+  submit(11, 1, MemoryOperation::kRead, 4160);
+  submit(10, 0, MemoryOperation::kRead, 64);
+  submit(10, 0, MemoryOperation::kRead, 256);
+  submit(10, 0, MemoryOperation::kWrite, 1024);
+  submit(10, 0, MemoryOperation::kWrite, 1088);
+  submit(10, 0, MemoryOperation::kRead, 320);
+
+  const auto phase_one = backend.traffic_stats();
+  const auto combined = combine_memory_traffic(phase_one);
+  require(phase_one.reads.requests == 7 && phase_one.reads.bytes == 448 &&
+              phase_one.reads.first_requests == 2 &&
+              phase_one.reads.contiguous_requests == 3 &&
+              phase_one.reads.repeated_requests == 1 &&
+              phase_one.reads.discontinuous_requests == 1,
+          "read locality classes did not preserve independent initiators");
+  require(phase_one.writes.requests == 2 && phase_one.writes.bytes == 128 &&
+              phase_one.writes.first_requests == 1 &&
+              phase_one.writes.contiguous_requests == 1 &&
+              phase_one.writes.repeated_requests == 0 &&
+              phase_one.writes.discontinuous_requests == 0,
+          "write locality was not independent from the read stream");
+  require(combined.requests == 9 && combined.bytes == 576 &&
+              combined.first_requests == 3 &&
+              combined.contiguous_requests == 4 &&
+              combined.repeated_requests == 1 &&
+              combined.discontinuous_requests == 1,
+          "combined memory locality does not close over read and write traffic");
+  const auto &initiators = backend.traffic_stats_by_initiator();
+  require(initiators.at(10).reads.requests == 5 &&
+              initiators.at(10).reads.first_requests == 1 &&
+              initiators.at(11).reads.requests == 2 &&
+              initiators.at(11).reads.contiguous_requests == 1,
+          "per-initiator traffic accounting was mixed");
+
+  backend.begin_traffic_epoch();
+  submit(10, 0, MemoryOperation::kRead, 384);
+  submit(11, 1, MemoryOperation::kRead, 4224);
+  const auto phase_two =
+      subtract_memory_traffic(backend.traffic_stats(), phase_one);
+  require(phase_two.reads.requests == 2 &&
+              phase_two.reads.first_requests == 2 &&
+              phase_two.reads.contiguous_requests == 0 &&
+              phase_two.reads.repeated_requests == 0 &&
+              phase_two.reads.discontinuous_requests == 0,
+          "traffic epoch did not reset locality predecessors");
 }
 
 struct TwoMasterResult {
@@ -6364,6 +6448,8 @@ int main(int argc, char **argv) {
       {"spine_empty_update_slice",
        test_spine_edge_slice_empty_update_contract},
       {"axi_online_backend", test_axi_splits_bursts_and_uses_backend_online},
+      {"memory_backend_locality",
+       test_memory_backend_tracks_per_initiator_locality_and_epochs},
       {"axi_response_backpressure", test_axi_response_backpressure_is_lossless},
       {"axi_payload_round_trip",
        test_axi_payload_round_trip_across_beats_and_bursts},

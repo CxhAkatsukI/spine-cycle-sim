@@ -75,6 +75,16 @@ set remains sparse. For deletion and weight replacement, the ratio is near
 1.0x overall: Amazon still favors Spine's request count, while web-Google and
 Flickr full rebuilds make Spine issue more requests.
 
+The shared accepted-request ledger now also reports requested bytes and
+address locality. Across all nine rows, GraSU/ReGraph uses 2.101x as many
+requests and 10.687x as many requested bytes by geometric mean. Aggregated
+non-first-request byte locality is 92.29% contiguous / 7.16% discontinuous for
+Spine and 99.08% contiguous / 0.90% discontinuous for GraSU/ReGraph. GraSU is
+therefore more sequential, but its wide PMA/state sweeps move substantially
+more requested data. Weighted Spine currently exposes cold versus aligned-E2E
+traffic; it does not yet split the aligned window into maintenance and compute
+traffic.
+
 The GraSU/ReGraph rows also expose about 32K AXIS push stalls on each real
 slice, so finite stream pressure is represented. This matrix does not report a
 DRAM energy ratio: Spine's current DRAMSim3 counters span cold plus update,
@@ -83,7 +93,7 @@ read/write/ACT/PRE/energy snapshot is required before that comparison is valid.
 
 ## Runtime And Reproduction
 
-Three concurrent jobs completed all 18 child simulations in 31.74 host
+Two concurrent jobs completed all 18 child simulations in 44.46 host
 seconds. This satisfies only the compact-matrix runtime gate, not the
 publication-scale graph gate.
 
@@ -92,8 +102,8 @@ cd /home/chuxiao/spine-cycle-sim
 python3 scripts/prepare_hls_weighted_real_batches.py --verify-only
 python3 scripts/run_hls_weighted_real_comparison.py \
   --no-build \
-  --jobs 3 \
-  --out-dir results/hls_weighted_real_comparison_release_20260726
+  --jobs 2 \
+  --out-dir results/hls_weighted_sssp_memory_locality_release_20260726
 ```
 
 The tracked summary is
@@ -104,7 +114,6 @@ fingerprint. Raw child directories remain ignored by Git.
 ## Remaining Boundary
 
 This closes HLS-profile weighted-SSSP correctness and dynamic E2E comparison
-for compact real slices. It does not close full-dataset E2E, sequential/random
-memory classification, phase-aligned DRAM energy, HLS-aligned Full PageRank,
-HLS-aligned thresholded residual PageRank, total area/power/timing, dense batch
-sweeps, or scalability.
+for compact real slices. It does not close full-dataset E2E, physical DRAM
+burst/row locality, phase-aligned DRAM energy, weighted-Spine's internal phase
+split, total area/power/timing, dense batch sweeps, or scalability.

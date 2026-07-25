@@ -279,6 +279,7 @@ def main() -> int:
         / "spine_cycle_sim"
         / "experiments"
         / "hls_pagerank_real_comparison.py",
+        ROOT / "spine_cycle_sim" / "experiments" / "memory_traffic.py",
         ROOT / "scripts" / "run_sst_spine_vertical.py",
         ROOT / "scripts" / "run_sst_grasu_regraph_hls_residual_pagerank.py",
         args.input_manifest,
@@ -367,7 +368,15 @@ def main() -> int:
             "Inputs are compact real-edge slices, not full datasets.",
             "GraSU/ReGraph residual PageRank is proposed, not a compiled xclbin.",
             "Simulator cycles are not calibrated cycle-for-cycle against hw.",
-            "Sequential/random classification and total energy remain open.",
+            (
+                "Contiguous/repeated/discontinuous classes describe accepted "
+                "backend requests per initiator and operation; they are not "
+                "DRAM row-hit classifications."
+            ),
+            (
+                "Actual requested bytes exclude DRAM burst amplification; "
+                "complete DRAM plus on-chip energy remains open."
+            ),
         ],
     }
     (args.out_dir / "matrix_manifest.json").write_text(

@@ -19,15 +19,16 @@ frontier-out sizes.
 cd /home/chuxiao/spine-cycle-sim
 make -C cpp/sst -j2
 python3 scripts/run_hls_residual_pagerank_real_comparison.py \
-  --out-dir results/hls_residual_pagerank_real_comparison_release_20260726 \
-  --jobs 3 \
+  --out-dir results/hls_residual_pagerank_memory_locality_final_20260726 \
+  --jobs 2 \
   --timeout-seconds 600 \
   --max-cycles 100000000 \
   --no-build
 ```
 
-The complete matrix took 612.4 seconds with three concurrent workers. The
-slowest individual simulated run took 143.5 host seconds. No HBM event,
+The complete matrix took 875.3 seconds with two concurrent workers while the
+Full PageRank matrix initially shared the host. The slowest individual
+simulated run took 141.9 host seconds. No HBM event,
 frontier round, or correctness check was skipped.
 
 ## Correctness
@@ -66,6 +67,16 @@ This is the crossover direction the simulator is meant to expose: reducing
 Spine maintenance alone will help small batches, but the Web/Flickr result also
 points to Reader/compute throughput as a necessary optimization target.
 
+## Memory locality
+
+Across the nine rows, Spine issues 83,772,800 requested bytes and
+GraSU/ReGraph issues 1,757,672,000; the per-pair geometric-mean byte ratio is
+23.393x. Of non-first-request bytes, Spine is 55.98% contiguous and 43.21%
+discontinuous, while GraSU/ReGraph is 96.99% contiguous and 3.01%
+discontinuous. GraSU's PMA sweep is much more sequential but repeatedly moves
+the much larger fixed-partition state. These classes describe accepted logical
+requests per initiator and operation; they do not claim DRAM row-hit behavior.
+
 ## Claim boundary
 
 - The graph slices are real-edge inputs but compact, not full datasets.
@@ -75,5 +86,5 @@ points to Reader/compute throughput as a necessary optimization target.
   evidence.
 - DRAM energy includes active channels only; on-chip and idle-channel energy
   remain excluded.
-- Sequential/random address classification, arbitrary multi-level checkpoint
-  loading, dense batches, and publication-scale runtime remain open gates.
+- Physical DRAM burst/row locality, arbitrary multi-level checkpoint loading,
+  dense batches, and publication-scale runtime remain open gates.

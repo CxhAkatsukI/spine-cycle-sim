@@ -1,0 +1,36 @@
+digraph memory_traffic_locality {
+  graph [rankdir=LR, bgcolor="white", pad=0.25, nodesep=0.35, ranksep=0.65];
+  node [shape=box, style="rounded,filled", fontname="Arial", fontsize=10,
+        color="#4b5563", fillcolor="#f8fafc"];
+  edge [fontname="Arial", fontsize=9, color="#475569"];
+
+  subgraph cluster_spine {
+    label="Spine execution-driven model";
+    color="#0f766e";
+    maintenance [label="Maintenance\n(level/family/partition)", fillcolor="#ccfbf1"];
+    spine_compute [label="Reader + Map/Reduce compute", fillcolor="#ccfbf1"];
+    spine_axi [label="Finite AXI ports\nqueues + outstanding", fillcolor="#d1fae5"];
+    maintenance -> spine_axi;
+    spine_compute -> spine_axi;
+  }
+
+  subgraph cluster_grasu {
+    label="GraSU + ReGraph execution-driven model";
+    color="#b45309";
+    pma [label="PMA update", fillcolor="#ffedd5"];
+    regraph [label="PMA-native Map/Reduce compute", fillcolor="#ffedd5"];
+    grasu_axi [label="Finite AXI ports\nqueues + outstanding", fillcolor="#fef3c7"];
+    pma -> grasu_axi;
+    regraph -> grasu_axi;
+  }
+
+  ledger [label="Shared accepted-request ledger\nper initiator x read/write\nbytes + first/contiguous/repeated/discontinuous",
+          fillcolor="#e0f2fe", color="#0369a1"];
+  backend [label="Shared MemoryBackend\nMock or SST StandardMem", fillcolor="#e0e7ff", color="#4338ca"];
+  dram [label="SST memHierarchy + DRAMSim3\nlatency, contention, row activity", fillcolor="#f3e8ff", color="#7e22ce"];
+
+  spine_axi -> ledger;
+  grasu_axi -> ledger;
+  ledger -> backend [label="accepted requests"];
+  backend -> dram;
+}

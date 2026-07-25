@@ -339,6 +339,7 @@ def main() -> int:
         / "spine_cycle_sim"
         / "experiments"
         / "hls_pagerank_real_comparison.py",
+        ROOT / "spine_cycle_sim" / "experiments" / "memory_traffic.py",
         ROOT / "scripts" / "run_sst_spine_vertical.py",
         ROOT / "scripts" / "run_sst_grasu_regraph_hls_pagerank.py",
         args.input_manifest,
@@ -429,7 +430,15 @@ def main() -> int:
             "GraSU/ReGraph PageRank is HLS-equivalent proposed, not a compiled xclbin.",
             "Simulator cycles are not calibrated cycle-for-cycle against hw.",
             "DRAM energy covers active channels only and excludes on-chip energy.",
-            "Sequential/random address classification remains open.",
+            (
+                "Contiguous/repeated/discontinuous classes describe accepted "
+                "backend requests per initiator and operation; they are not "
+                "DRAM row-hit classifications."
+            ),
+            (
+                "Actual requested bytes exclude DRAM burst amplification and "
+                "controller-internal transfer granularity."
+            ),
         ],
     }
     (args.out_dir / "matrix_manifest.json").write_text(

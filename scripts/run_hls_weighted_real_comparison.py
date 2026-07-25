@@ -52,8 +52,16 @@ DEFAULT_SST = Path("/data/feiyang/sst/bin/sst")
 
 
 def _write_csv(path: Path, rows: list[dict[str, object]]) -> None:
+    if not rows:
+        raise ValueError("cannot write an empty CSV")
     serialized = []
+    fieldnames: list[str] = []
+    seen_fields: set[str] = set()
     for row in rows:
+        for key in row:
+            if key not in seen_fields:
+                seen_fields.add(key)
+                fieldnames.append(key)
         serialized.append(
             {
                 key: json.dumps(value, separators=(",", ":"))
@@ -63,7 +71,7 @@ def _write_csv(path: Path, rows: list[dict[str, object]]) -> None:
             }
         )
     with path.open("w", encoding="utf-8", newline="") as stream:
-        writer = csv.DictWriter(stream, fieldnames=list(serialized[0]))
+        writer = csv.DictWriter(stream, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(serialized)
 
@@ -325,6 +333,7 @@ def main() -> int:
     fingerprint_paths = [
         Path(__file__),
         ROOT / "spine_cycle_sim" / "experiments" / "hls_real_comparison.py",
+        ROOT / "spine_cycle_sim" / "experiments" / "memory_traffic.py",
         ROOT / "scripts" / "run_sst_spine_vertical.py",
         ROOT / "scripts" / "run_sst_grasu_regraph_hls_weighted.py",
         args.input_manifest,
@@ -426,7 +435,15 @@ def main() -> int:
                 "Spine DRAM read/write/energy counters include cold plus update, "
                 "so cross-system DRAM energy ratios are invalid here."
             ),
-            "Sequential/random address classification and PageRank HLS profiles remain open.",
+            (
+                "Contiguous/repeated/discontinuous classes describe accepted "
+                "backend requests per initiator and operation; they are not "
+                "DRAM row-hit classifications."
+            ),
+            (
+                "Actual requested bytes do not include DRAM burst amplification "
+                "or controller-internal transfer granularity."
+            ),
         ],
     }
     (args.out_dir / "matrix_manifest.json").write_text(
