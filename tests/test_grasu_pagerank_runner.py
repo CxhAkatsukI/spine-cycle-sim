@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import unittest
 
-from scripts.run_sst_grasu_regraph_pagerank import (
+from spine_cycle_sim.experiments.regraph_contracts import (
+    float32_sequential_rank_sum_tolerance,
     full_pagerank_rank_sum_tolerance,
 )
 
@@ -14,6 +15,13 @@ class FullPageRankRunnerContractTest(unittest.TestCase):
 
         self.assertAlmostEqual(tolerance, 1.0e-5 + 8191 * error)
         self.assertGreaterEqual(tolerance, abs(0.99997 - 1.0))
+
+    def test_reported_float32_sum_gets_a_separate_roundoff_bound(self) -> None:
+        accurate = full_pagerank_rank_sum_tolerance(8193, 7.92032e-10)
+        reported = float32_sequential_rank_sum_tolerance(8193, accurate)
+
+        self.assertLess(accurate, abs(0.999913 - 1.0))
+        self.assertGreaterEqual(reported, abs(0.999913 - 1.0))
 
     def test_rank_sum_bound_preserves_small_graph_floor(self) -> None:
         self.assertEqual(full_pagerank_rank_sum_tolerance(4, 0.0), 1.0e-5)

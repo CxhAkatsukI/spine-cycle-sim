@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import shutil
@@ -18,6 +19,11 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from spine_cycle_sim.sst_binding import grasu_normalized_memory_binding  # noqa: E402
+from spine_cycle_sim.experiments.regraph_contracts import (  # noqa: E402
+    expected_source_cache_requests,
+    float32_sequential_rank_sum_tolerance,
+    full_pagerank_rank_sum_tolerance,
+)
 
 
 DEFAULT_SST = Path("/data/feiyang/sst/bin/sst")
@@ -30,18 +36,6 @@ DEFAULT_PROFILE = (
 DEFAULT_WORKLOAD = (
     ROOT / "tests" / "data" / "grasu_regraph_pagerank_initial.slice"
 )
-
-
-def full_pagerank_rank_sum_tolerance(
-    vertices: int, mathematical_max_abs_error: float
-) -> float:
-    """Bound aggregate float32 rank drift using the per-vertex oracle error."""
-
-    if vertices <= 0:
-        raise ValueError("vertices must be positive")
-    if mathematical_max_abs_error < 0.0:
-        raise ValueError("mathematical max absolute error cannot be negative")
-    return 1.0e-5 + vertices * mathematical_max_abs_error
 
 
 def sha256(path: Path) -> str:
@@ -243,14 +237,27 @@ def main() -> int:
     expected_rows = partition_vertices // 2 * args.iterations
     expected_bursts = partition_vertices // 16 * args.iterations
     expected_active_edges = result.get("initial_edges", -1) * args.iterations
-    expected_source_requests = result.get("source_cache_requests", -1)
+    vertices = result.get("vertices", -1)
+    expected_source_requests = expected_source_cache_requests(
+        vertices,
+        params["regraph_source_buffer_vertices"],
+        args.iterations,
+    )
     expected_source_lines = (
         expected_source_requests * params["regraph_source_buffer_vertices"] // 16
     )
-    rank_sum_error = abs(result.get("rank_sum", 0.0) - 1.0)
+    ranks = result.get("ranks", [])
+    rank_values = [float(rank) for rank in ranks] if isinstance(ranks, list) else []
+    accurate_rank_sum = math.fsum(rank_values)
+    accurate_rank_sum_error = abs(accurate_rank_sum - 1.0)
     rank_sum_tolerance = full_pagerank_rank_sum_tolerance(
-        result.get("vertices", -1),
+        vertices,
         result.get("mathematical_max_abs_error", 1.0),
+    )
+    reported_rank_sum = float(result.get("rank_sum", math.nan))
+    reported_rank_sum_error = abs(reported_rank_sum - 1.0)
+    reported_rank_sum_tolerance = float32_sequential_rank_sum_tolerance(
+        vertices, rank_sum_tolerance
     )
     if (
         not result.get("success")
@@ -263,7 +270,11 @@ def main() -> int:
         or result.get("mathematical_oracle") != "iterative_float64"
         or result.get("max_abs_error", 1.0) > 1.0e-5
         or result.get("mathematical_max_abs_error", 1.0) > 1.0e-5
-        or rank_sum_error > rank_sum_tolerance
+        or len(rank_values) != vertices
+        or not all(math.isfinite(rank) for rank in rank_values)
+        or accurate_rank_sum_error > rank_sum_tolerance
+        or not math.isfinite(reported_rank_sum)
+        or reported_rank_sum_error > reported_rank_sum_tolerance
         or result.get("iterations") != args.iterations
         or abs(result.get("pagerank_damping", -1.0) - damping) > 1.0e-7
         or abs(result.get("core_mhz", -1.0) - kernel_clock["achieved_mhz"])
@@ -290,7 +301,7 @@ def main() -> int:
         or result.get("apply_state_reads") != expected_bursts
         or result.get("apply_state_writes") != expected_bursts
         or result.get("compute_source_state_writes") != 2 * expected_bursts
-        or expected_source_requests < 2 * args.iterations
+        or result.get("source_cache_requests") != expected_source_requests
         or result.get("source_cache_lines") != expected_source_lines
         or result.get("source_cache_lane_writes")
         != expected_source_lines * params["regraph_map_reduce_lanes"]
@@ -318,11 +329,15 @@ def main() -> int:
         "sst_memory_binding": binding.as_manifest(),
         "sst_host_wall_seconds": sst_host_wall_seconds,
         "validation": {
-            "rank_sum_error": rank_sum_error,
-            "rank_sum_tolerance": rank_sum_tolerance,
+            "accurate_rank_sum": accurate_rank_sum,
+            "accurate_rank_sum_error": accurate_rank_sum_error,
+            "accurate_rank_sum_tolerance": rank_sum_tolerance,
+            "reported_float32_rank_sum": reported_rank_sum,
+            "reported_float32_rank_sum_error": reported_rank_sum_error,
+            "reported_float32_rank_sum_tolerance": reported_rank_sum_tolerance,
             "rank_sum_tolerance_basis": (
-                "1e-5_float64_oracle_sum_plus_vertices_times_"
-                "mathematical_max_abs_error"
+                "accurate_fsum_uses_1e-5_plus_vertices_times_per_vertex_error;_"
+                "reported_sum_adds_standard_float32_sequential_gamma_bound"
             ),
         },
         "command": command,

@@ -18,6 +18,9 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from spine_cycle_sim.sst_binding import grasu_normalized_memory_binding  # noqa: E402
+from spine_cycle_sim.experiments.regraph_contracts import (  # noqa: E402
+    expected_source_cache_requests,
+)
 
 
 DEFAULT_SST = Path("/data/feiyang/sst/bin/sst")
@@ -68,17 +71,6 @@ def load_dram_stats(dram_dir: Path) -> dict[str, int | float]:
         totals["write_row_hits"] += int(row["num_write_row_hits"])
         totals["total_energy_pj"] += float(row["total_energy"])
     return totals
-
-
-def expected_source_cache_requests(
-    vertices: int, source_buffer_vertices: int, iterations: int
-) -> int:
-    """Mirror the reader's one-window-ahead ping-pong prefetch contract."""
-
-    if vertices <= 0 or source_buffer_vertices <= 0 or iterations <= 0:
-        raise ValueError("source-cache request dimensions must be positive")
-    source_windows = (vertices + source_buffer_vertices - 1) // source_buffer_vertices
-    return (source_windows + 1) * iterations
 
 
 def main() -> int:

@@ -18,6 +18,9 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from spine_cycle_sim.sst_binding import grasu_normalized_memory_binding  # noqa: E402
+from spine_cycle_sim.experiments.regraph_contracts import (  # noqa: E402
+    expected_source_cache_requests,
+)
 
 
 DEFAULT_SST = Path("/data/feiyang/sst/bin/sst")
@@ -223,7 +226,11 @@ def main() -> int:
     supersteps = result.get("supersteps", -1)
     expected_rows = partition_vertices // 2 * supersteps
     expected_bursts = partition_vertices // 16 * supersteps
-    expected_source_requests = result.get("source_cache_requests", -1)
+    expected_source_requests = expected_source_cache_requests(
+        result.get("vertices", -1),
+        params["regraph_source_buffer_vertices"],
+        supersteps,
+    )
     expected_source_lines = (
         expected_source_requests * params["regraph_source_buffer_vertices"] // 16
     )
@@ -257,7 +264,7 @@ def main() -> int:
         != result.get("updates", -2)
         or result.get("compute_source_state_writes")
         != 2 * result.get("apply_state_writes", -1)
-        or expected_source_requests < 2 * supersteps
+        or result.get("source_cache_requests") != expected_source_requests
         or result.get("compute_source_state_reads") != expected_source_requests
         or result.get("source_cache_lines") != expected_source_lines
         or result.get("source_cache_lane_writes")

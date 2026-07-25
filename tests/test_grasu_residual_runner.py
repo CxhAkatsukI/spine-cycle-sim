@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import unittest
 
-from scripts.run_sst_grasu_regraph_residual_pagerank import (
+from spine_cycle_sim.experiments.regraph_contracts import (
     expected_source_cache_requests,
 )
 
