@@ -325,6 +325,7 @@ def main() -> int:
         [
             Path(__file__),
             ROOT / "spine_cycle_sim" / "experiments" / "comparison.py",
+            ROOT / "spine_cycle_sim" / "experiments" / "regraph_contracts.py",
             ROOT / "spine_cycle_sim" / "experiments" / "shared_workloads.py",
         ]
     )

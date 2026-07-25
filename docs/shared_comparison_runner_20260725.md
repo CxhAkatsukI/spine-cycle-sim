@@ -110,15 +110,26 @@ reducing host wall time by 3.20x to 4.33x. This does not change simulated
 cycles or requests. Sparse-run DRAM energy excludes idle/background energy for
 unbound channels; see `docs/normalized_sparse_hbm_binding_20260725.md`.
 
-The next complete attempt exposed a validator boundary at 4,096 source-buffer
-vertices. ReGraph's ping-pong source-cache reader keeps one window prefetched,
-so each algorithm iteration issues
-`ceil(vertices / source_buffer_vertices) + 1` source-cache requests. The old
-residual PageRank child gate assumed exactly two requests per iteration and
-incorrectly rejected the 4,097-vertex case even though both oracles, residual
-bound, and memory ledger passed. The corrected formula is locked at 4,095,
-4,096, 4,097, 8,192, and 8,193 vertices. Re-execution passed with 10,157,843
-cycles and 3,163,796 backend requests; simulator behavior was unchanged.
+The next complete attempts exposed validator boundaries at the 4,096-vertex
+source-buffer boundary. PageRank scans all vertex state and keeps one window
+prefetched, so each iteration issues
+`ceil(vertices / source_buffer_vertices) + 1` requests. Weighted SSSP is
+source-driven instead: after differential updates are materialized, it issues
+`floor(max_live_source / source_buffer_vertices) + 2` requests per superstep.
+The extra request is the one-window-ahead prefetch. Thus a 4,097-vertex graph
+whose live edges all come from source zero still issues two requests, while a
+live edge from source 4,096 makes it issue three. Both contracts are now
+explicit and fail closed. PageRank boundaries are locked at 4,095, 4,096,
+4,097, 8,192, and 8,193 vertices; weighted tests cover max live sources 0,
+4,095, 4,096, and 8,192 plus insert/delete/weight-change materialization.
+
+Full PageRank also separates two sums. Correctness uses `math.fsum` over the
+returned rank vector and the per-vertex oracle error bound. The C++ diagnostic
+`rank_sum` is a sequential float32 accumulation and is checked against the
+standard `gamma_n` roundoff bound. This prevents thousands of individually
+correct ranks from being rejected solely because a diagnostic float32 sum
+accumulates rounding error. No simulator cycles or requests changed in these
+validator fixes.
 
 ## Reproduction
 
@@ -134,10 +145,15 @@ python3 scripts/run_shared_comparison_matrix.py \
   --no-build
 
 python3 scripts/run_shared_comparison_matrix.py \
-  --out-dir results/shared_comparison_full_20260725 \
+  --out-dir results/shared_comparison_sparse_full_20260725 \
   --jobs 4 \
+  --timeout-seconds 1800 \
   --resume \
   --no-build
+
+python3 scripts/analyze_shared_comparison_matrix.py \
+  --matrix-dir results/shared_comparison_sparse_full_20260725 \
+  --out-dir results/shared_comparison_sparse_analysis_20260725
 ```
 
 The complete command schedules 146 system runs: 73 run IDs times two systems.
@@ -146,7 +162,7 @@ It is complete only when `comparison_manifest.json` says
 
 ## Remaining evidence
 
-- Execute and summarize the complete frozen matrix.
+- Finish and summarize the currently running complete frozen matrix.
 - Add full real-dataset performance runs; committed compact slices validate
   shapes and correctness only.
 - Add dynamic PageRank batches rather than static PageRank alone.

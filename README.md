@@ -266,6 +266,21 @@ time metadata invalidation, graph rebuild, vertex-state reset, and full SSSP
 recomputation. See
 [`docs/spine_dynamic_sssp_full_rebuild_20260725.md`](docs/spine_dynamic_sssp_full_rebuild_20260725.md).
 
+Run and analyze the frozen normalized cross-architecture matrix:
+
+```bash
+python3 scripts/run_shared_comparison_matrix.py \
+  --out-dir results/shared_comparison_sparse_full_20260725 \
+  --jobs 4 --timeout-seconds 1800 --resume --no-build
+python3 scripts/analyze_shared_comparison_matrix.py \
+  --matrix-dir results/shared_comparison_sparse_full_20260725 \
+  --out-dir results/shared_comparison_sparse_analysis_20260725
+```
+
+The analyzer refuses partial matrices and labels DRAM energy as sparse
+active-channel evidence. See
+[`docs/shared_comparison_analysis_20260725.md`](docs/shared_comparison_analysis_20260725.md).
+
 ## Current Scope
 
 The legacy Python/calibration model targets trend validation against historical
