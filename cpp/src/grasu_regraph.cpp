@@ -187,6 +187,22 @@ struct ReGraphAppliedBurst {
   std::vector<std::uint8_t> data;
 };
 
+struct ReGraphPartitionPlan {
+  std::size_t destination_base{};
+  std::size_t destination_vertices{};
+  std::uint64_t row_base{};
+  std::uint64_t pma_base{};
+};
+
+GraSuPartitionedPmaLayout one_partition_layout(GraSuPmaLayout layout,
+                                                std::size_t partition_vertices) {
+  GraSuPartitionedPmaLayout result;
+  result.vertices = layout.vertices;
+  result.partition_vertices = partition_vertices;
+  result.partitions.push_back(std::move(layout));
+  return result;
+}
+
 class ReGraphSourceHbmReader final : public Component {
 public:
   ReGraphSourceHbmReader(std::string name, ClockId clock_id,
@@ -198,11 +214,12 @@ public:
       : Component(std::move(name), clock_id), config_(config), input_(input),
         output_(output), port_(port), policy_(std::move(policy)) {}
 
-  void start_round(std::uint64_t round) {
+  void start_partition(std::uint64_t round, std::size_t partition) {
     if (round == 0 || (phase_ != Phase::kIdle && phase_ != Phase::kDone)) {
       throw std::logic_error("ReGraph source HBM reader started while busy");
     }
     algorithm_round_ = round;
+    partition_ = partition;
     source_state_base_ =
         config_.source_state_base +
         ((round - 1) & 1U) * config_.source_state_buffer_stride;
@@ -358,7 +375,9 @@ private:
     return config_.source_buffer_vertices * state_bytes_per_vertex(policy_);
   }
   [[nodiscard]] std::uint64_t transaction_id(std::size_t source_round) const {
-    return (algorithm_round_ << 48) | (1ULL << 47) | source_round;
+    return (algorithm_round_ << 52) |
+           (static_cast<std::uint64_t>(partition_) << 44) | (1ULL << 43) |
+           source_round;
   }
 
   void validate_beat(const AxiReadBeatResponse &beat) const {
@@ -379,6 +398,7 @@ private:
   GraphAlgorithmPolicy policy_;
   Phase phase_{Phase::kDone};
   std::uint64_t algorithm_round_{};
+  std::size_t partition_{};
   std::uint64_t source_state_base_{};
   std::size_t active_source_round_{};
   std::size_t lines_emitted_this_request_{};
@@ -422,7 +442,8 @@ public:
     }
   }
 
-  void start_round(std::uint64_t round) {
+  void start_partition(std::uint64_t round, const ReGraphPartitionPlan &plan,
+                       bool accumulate_dangling) {
     if (phase_ != Phase::kIdle && phase_ != Phase::kDone) {
       throw std::logic_error("PMA reader round started while busy");
     }
@@ -430,6 +451,9 @@ public:
       throw std::invalid_argument("PMA reader round is one-based");
     }
     round_ = round;
+    row_base_ = plan.row_base;
+    pma_base_ = plan.pma_base;
+    accumulate_dangling_ = accumulate_dangling;
     source_ = 0;
     begin_segment_ = 0;
     end_segment_ = 0;
@@ -442,7 +466,12 @@ public:
     source_end_sent_ = false;
     source_degree_ = 0;
     source_map_cycles_remaining_ = 0;
-    dangling_mass_.reset();
+    if (accumulate_dangling_) {
+      dangling_mass_.reset();
+    } else if (uses_degree() && !dangling_mass_.has_value()) {
+      throw std::logic_error(
+          "PMA reader partition started before dangling context was computed");
+    }
     for (auto &slot : source_cache_) {
       slot.round = std::numeric_limits<std::size_t>::max();
       slot.lines_received = 0;
@@ -525,7 +554,7 @@ public:
       break;
     case Phase::kNeedDegree:
       if (ports_.degree->requests().try_push(AxiRequest{
-              .transaction_id = transaction_id(3),
+              .transaction_id = next_transaction_id_,
               .operation = MemoryOperation::kRead,
               .address = config_.degree_base + source_ * 4,
               .bytes = 4,
@@ -548,9 +577,9 @@ public:
       break;
     case Phase::kNeedRow:
       if (ports_.rows->requests().try_push(AxiRequest{
-              .transaction_id = transaction_id(0),
+              .transaction_id = next_transaction_id_,
               .operation = MemoryOperation::kRead,
-              .address = config_.row_offset_base + source_ * 8,
+              .address = row_base_ + source_ * 8,
               .bytes = 8,
               .stream_read_beats = false,
               .write_data = {},
@@ -614,6 +643,9 @@ public:
       ++degree_reads_;
       phase_ = Phase::kWaitDegree;
     }
+    if (staged_request_ != RequestKind::kNone) {
+      ++next_transaction_id_;
+    }
     if (staged_advance_) {
       advance_source();
     }
@@ -662,10 +694,6 @@ private:
     std::vector<std::uint32_t> auxiliary_words;
   };
 
-  [[nodiscard]] std::uint64_t transaction_id(std::uint64_t stage) const {
-    return (round_ << 48) | (static_cast<std::uint64_t>(source_) << 16) | stage;
-  }
-
   [[nodiscard]] std::size_t pma_channel(std::size_t segment) const {
     const std::size_t local = segment >> 1;
     const std::size_t parity = segment & 1U;
@@ -674,7 +702,7 @@ private:
   }
 
   [[nodiscard]] std::uint64_t pma_address(std::size_t segment) const {
-    return config_.pma_base + (segment >> 1) * kGraSuSegmentBytes;
+    return pma_base_ + (segment >> 1) * kGraSuSegmentBytes;
   }
 
   void stage_scalar_response(FixedAxiPort &port) {
@@ -799,10 +827,12 @@ private:
         out_degree);
     source_payload_ = source_active_ ? prepared.edge_payload : 0;
     if (uses_degree()) {
-      dangling_mass_ = policy_.reduce(
-          dangling_mass_,
-          source_active_ ? prepared.dangling_payload
-                         : GraphAlgorithmPolicy::float_to_word(0.0F));
+      if (accumulate_dangling_) {
+        dangling_mass_ = policy_.reduce(
+            dangling_mass_,
+            source_active_ ? prepared.dangling_payload
+                           : GraphAlgorithmPolicy::float_to_word(0.0F));
+      }
       source_map_cycles_remaining_ = config_.pagerank_source_map_latency;
       phase_ = source_map_cycles_remaining_ == 0 ? Phase::kScan
                                                  : Phase::kSourceMapDelay;
@@ -830,7 +860,7 @@ private:
     }
     FixedAxiPort &port = *ports_.pma[pma_channel(next_segment_)];
     if (port.requests().try_push(AxiRequest{
-            .transaction_id = transaction_id(2) + next_segment_,
+            .transaction_id = next_transaction_id_,
             .operation = MemoryOperation::kRead,
             .address = pma_address(next_segment_),
             .bytes = kGraSuSegmentBytes,
@@ -869,7 +899,8 @@ private:
           static_cast<std::uint32_t>(bounds >> 32) / kGraSuSegmentSlots;
       end_segment_ = static_cast<std::uint32_t>(bounds) / kGraSuSegmentSlots;
       next_segment_ = begin_segment_;
-      if (begin_segment_ == end_segment_ && !uses_degree()) {
+      if (begin_segment_ == end_segment_ &&
+          (!uses_degree() || !accumulate_dangling_)) {
         advance_source();
       } else {
         pp_read_round_ = source_ / config_.source_buffer_vertices;
@@ -928,6 +959,10 @@ private:
   Ports ports_;
   Phase phase_{Phase::kIdle};
   std::uint64_t round_{};
+  std::uint64_t row_base_{};
+  std::uint64_t pma_base_{};
+  bool accumulate_dangling_{};
+  std::uint64_t next_transaction_id_{0x7100'0000'0000'0000ULL};
   std::size_t source_{};
   std::size_t begin_segment_{};
   std::size_t end_segment_{};
@@ -981,10 +1016,12 @@ public:
         bypass_(config.gather_banks,
                 std::vector<BypassEntry>(config.gather_bypass_distance + 1)) {}
 
-  void start_round(bool reset_tmp_prop) {
+  void start_partition(std::size_t destination_vertices,
+                       bool reset_tmp_prop) {
     if (phase_ != Phase::kIdle && phase_ != Phase::kDone) {
       throw std::logic_error("ReGraph gather round started while busy");
     }
+    destination_vertices_ = destination_vertices;
     for (auto &rows : bank_rows_) {
       rows.clear();
     }
@@ -1061,7 +1098,7 @@ public:
       ReGraphGatherRow row{.row = next_output_row_};
       for (std::size_t half = 0; half < row.candidates.size(); ++half) {
         const std::size_t vertex = next_output_row_ * 2 + half;
-        if (vertex >= vertices_) {
+        if (vertex >= destination_vertices_) {
           continue;
         }
         for (const auto &bank : bank_rows_) {
@@ -1203,7 +1240,7 @@ private:
       }
       ++live_edges_;
       const std::uint32_t destination = batch.destinations[lane];
-      if (destination >= vertices_) {
+      if (destination >= destination_vertices_) {
         throw std::runtime_error("PMA edge exceeds ReGraph vertex range");
       }
       if (!batch.source_active) {
@@ -1247,6 +1284,7 @@ private:
   }
 
   std::size_t vertices_{};
+  std::size_t destination_vertices_{};
   GraphAlgorithmPolicy policy_;
   GraSuReGraphConfig config_;
   Fifo<PmaEdgeBatch> &input_;
@@ -1406,7 +1444,9 @@ public:
         output_(output), read_port_(read_port), write_port_(write_port),
         reader_(reader) {}
 
-  void start_round(std::uint64_t round) {
+  void start_partition(std::uint64_t round, std::size_t destination_base,
+                       std::size_t destination_vertices,
+                       bool reset_iteration_totals) {
     if (round == 0 || running_ || !read_inflight_.empty() ||
         !write_inflight_.empty() || !ready_writes_.empty()) {
       throw std::logic_error("ReGraph apply round started while busy");
@@ -1414,8 +1454,12 @@ public:
     completed_writes_ = 0;
     input_bursts_this_round_ = 0;
     next_write_offset_ = 0;
-    active_vertices_ = 0;
-    iteration_error_ = 0.0F;
+    destination_base_ = destination_base;
+    destination_vertices_ = destination_vertices;
+    if (reset_iteration_totals) {
+      active_vertices_ = 0;
+      iteration_error_ = 0.0F;
+    }
     done_ = false;
     running_ = true;
   }
@@ -1497,7 +1541,8 @@ public:
                   .transaction_id = transaction_id(item.offset),
                   .operation = MemoryOperation::kWrite,
                   .address = config_.vertex_state_base +
-                             item.offset * state_bytes_per_vertex(policy_),
+                             global_offset(item.offset) *
+                                 state_bytes_per_vertex(policy_),
                   .bytes = static_cast<std::uint32_t>(item.data.size()),
                   .stream_read_beats = false,
                   .write_data = item.data,
@@ -1533,7 +1578,8 @@ public:
             .transaction_id = transaction_id(next.offset),
             .operation = MemoryOperation::kRead,
             .address = config_.vertex_state_base +
-                       next.offset * state_bytes_per_vertex(policy_),
+                       global_offset(next.offset) *
+                           state_bytes_per_vertex(policy_),
             .bytes = static_cast<std::uint32_t>(
                 kStateWordsPerBurst * state_bytes_per_vertex(policy_)),
             .stream_read_beats = false,
@@ -1600,7 +1646,11 @@ private:
   };
 
   [[nodiscard]] std::uint64_t transaction_id(std::size_t offset) const {
-    return offset / kStateWordsPerBurst;
+    return global_offset(offset) / kStateWordsPerBurst;
+  }
+
+  [[nodiscard]] std::size_t global_offset(std::size_t offset) const noexcept {
+    return destination_base_ + offset;
   }
 
   [[nodiscard]] std::size_t total_bursts() const noexcept {
@@ -1624,12 +1674,13 @@ private:
     std::array<std::uint32_t, kStateWordsPerBurst> result{};
     std::array<std::uint32_t, kStateWordsPerBurst> auxiliary{};
     for (std::size_t lane = 0; lane < result.size(); ++lane) {
-      const std::size_t vertex = burst.offset + lane;
+      const std::size_t local_vertex = burst.offset + lane;
+      const std::size_t vertex = destination_base_ + local_vertex;
       const std::size_t byte_offset =
           lane * state_bytes_per_vertex(policy_);
       const std::uint32_t encoded =
           decode_u32(response.read_data, byte_offset);
-      if (vertex >= vertices_) {
+      if (local_vertex >= destination_vertices_ || vertex >= vertices_) {
         result[lane] = policy_.config().kind == GraphAlgorithmKind::kWeightedSssp
                            ? kReGraphInfinity
                            : GraphAlgorithmPolicy::float_to_word(0.0F);
@@ -1678,6 +1729,8 @@ private:
   }
 
   std::size_t vertices_{};
+  std::size_t destination_base_{};
+  std::size_t destination_vertices_{};
   GraphAlgorithmPolicy policy_;
   GraSuReGraphConfig config_;
   Fifo<ReGraphMergedBurst> &input_;
@@ -1725,7 +1778,7 @@ public:
         write_ports_{&primary_write_port, &mirror_write_port},
         policy_(std::move(policy)) {}
 
-  void start_round(std::uint64_t round) {
+  void start_partition(std::uint64_t round, std::size_t destination_base) {
     const bool writes_pending =
         std::any_of(write_inflight_.begin(), write_inflight_.end(),
                     [](const auto &entries) { return !entries.empty(); });
@@ -1733,7 +1786,9 @@ public:
       throw std::logic_error("ReGraph HBM wrapper round started while busy");
     }
     target_source_base_ = config_.source_state_base +
-                          (round & 1U) * config_.source_state_buffer_stride;
+                          (round & 1U) * config_.source_state_buffer_stride +
+                          destination_base * state_bytes_per_vertex(policy_);
+    destination_base_ = destination_base;
     input_bursts_this_round_ = 0;
     completed_writes_ = 0;
     done_ = false;
@@ -1882,7 +1937,7 @@ private:
   }
 
   [[nodiscard]] std::uint64_t transaction_id(std::size_t offset) const {
-    return offset / kStateWordsPerBurst;
+    return (destination_base_ + offset) / kStateWordsPerBurst;
   }
 
   [[nodiscard]] bool write_window_available() const noexcept {
@@ -1922,6 +1977,7 @@ private:
   std::size_t input_bursts_this_round_{};
   std::size_t completed_writes_{};
   std::uint64_t target_source_base_{};
+  std::size_t destination_base_{};
   bool running_{};
   bool done_{};
   std::uint64_t input_bursts_{};
@@ -1936,18 +1992,27 @@ class GraSuReGraphController final : public Component {
 public:
   GraSuReGraphController(std::string name, ClockId clock_id,
                          GraphAlgorithmKind algorithm, std::size_t round_limit,
+                         std::vector<ReGraphPartitionPlan> partitions,
                          ReGraphSourceHbmReader &source_hbm,
                          PmaNativeReader &reader, ReGraphGather &gather,
                          ReGraphMerger &merger, ReGraphApply &apply,
                          ReGraphHbmWrapper &wrapper)
       : Component(std::move(name), clock_id), algorithm_(algorithm),
-        round_limit_(round_limit), source_hbm_(source_hbm), reader_(reader),
-        gather_(gather), merger_(merger), apply_(apply), wrapper_(wrapper) {}
+        round_limit_(round_limit), partitions_(std::move(partitions)),
+        source_hbm_(source_hbm), reader_(reader), gather_(gather),
+        merger_(merger), apply_(apply), wrapper_(wrapper) {
+    if (partitions_.empty()) {
+      throw std::invalid_argument("ReGraph controller requires a partition");
+    }
+  }
 
   [[nodiscard]] bool done() const noexcept { return phase_ == Phase::kDone; }
   [[nodiscard]] bool failed() const noexcept { return !failure_.empty(); }
   [[nodiscard]] const std::string &failure() const noexcept { return failure_; }
   [[nodiscard]] std::uint64_t supersteps() const noexcept { return round_; }
+  [[nodiscard]] std::uint64_t partition_passes() const noexcept {
+    return partition_passes_;
+  }
 
   void evaluate(const CycleContext &) override {
     staged_ = Action::kNone;
@@ -1955,33 +2020,36 @@ public:
       return;
     }
     if (phase_ == Phase::kStart) {
-      staged_ = Action::kStartRound;
+      staged_ = Action::kStartSuperstep;
     } else if (phase_ == Phase::kRound && source_hbm_.done() &&
                reader_.done() && gather_.done() && merger_.done() &&
                apply_.done() && wrapper_.done()) {
-      if (algorithm_ == GraphAlgorithmKind::kFullPageRank) {
-        staged_ = round_ == round_limit_ ? Action::kFinish : Action::kNextRound;
+      if (partition_ + 1 < partitions_.size()) {
+        staged_ = Action::kNextPartition;
+      } else if (algorithm_ == GraphAlgorithmKind::kFullPageRank) {
+        staged_ = round_ == round_limit_ ? Action::kFinish
+                                        : Action::kNextSuperstep;
       } else {
         staged_ = apply_.active_vertices() == 0 ? Action::kFinish
-                                                : Action::kNextRound;
+                                                : Action::kNextSuperstep;
       }
     }
   }
 
   void commit(const CycleContext &) override {
-    if (staged_ == Action::kStartRound || staged_ == Action::kNextRound) {
+    if (staged_ == Action::kStartSuperstep ||
+        staged_ == Action::kNextSuperstep) {
       if (round_ == round_limit_) {
         failure_ = "ReGraph algorithm exceeded configured round limit";
         return;
       }
       ++round_;
-      source_hbm_.start_round(round_);
-      reader_.start_round(round_);
-      gather_.start_round(round_ == 1);
-      merger_.start_round();
-      apply_.start_round(round_);
-      wrapper_.start_round(round_);
+      partition_ = 0;
+      start_partition();
       phase_ = Phase::kRound;
+    } else if (staged_ == Action::kNextPartition) {
+      ++partition_;
+      start_partition();
     } else if (staged_ == Action::kFinish) {
       phase_ = Phase::kDone;
     }
@@ -1989,10 +2057,29 @@ public:
 
 private:
   enum class Phase { kStart, kRound, kDone };
-  enum class Action { kNone, kStartRound, kNextRound, kFinish };
+  enum class Action {
+    kNone,
+    kStartSuperstep,
+    kNextPartition,
+    kNextSuperstep,
+    kFinish
+  };
+
+  void start_partition() {
+    const ReGraphPartitionPlan &plan = partitions_.at(partition_);
+    source_hbm_.start_partition(round_, partition_);
+    reader_.start_partition(round_, plan, partition_ == 0);
+    gather_.start_partition(plan.destination_vertices, round_ == 1);
+    merger_.start_round();
+    apply_.start_partition(round_, plan.destination_base,
+                           plan.destination_vertices, partition_ == 0);
+    wrapper_.start_partition(round_, plan.destination_base);
+    ++partition_passes_;
+  }
 
   GraphAlgorithmKind algorithm_{GraphAlgorithmKind::kWeightedSssp};
   std::size_t round_limit_{};
+  std::vector<ReGraphPartitionPlan> partitions_;
   ReGraphSourceHbmReader &source_hbm_;
   PmaNativeReader &reader_;
   ReGraphGather &gather_;
@@ -2002,6 +2089,8 @@ private:
   Phase phase_{Phase::kStart};
   Action staged_{Action::kNone};
   std::uint64_t round_{};
+  std::size_t partition_{};
+  std::uint64_t partition_passes_{};
   std::string failure_;
 };
 
@@ -2010,7 +2099,7 @@ private:
 class GraSuReGraphSsspSystem::Impl {
 public:
   Impl(Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
-       GraSuPmaLayout layout, GraphAlgorithmPolicy policy,
+       GraSuPartitionedPmaLayout layout, GraphAlgorithmPolicy policy,
        std::vector<std::uint32_t> out_degrees, std::size_t fixed_rounds,
        GraSuReGraphConfig config)
       : scheduler_(scheduler), clock_id_(clock_id), backend_(backend),
@@ -2031,6 +2120,7 @@ public:
                       config_.apply_wrapper_fifo_depth),
         start_cycle_(scheduler_.clock(clock_id_).completed_cycles) {
     validate_config();
+    construct_partition_plans();
     construct_ports();
     initialize_state();
     construct_components();
@@ -2079,7 +2169,9 @@ public:
   [[nodiscard]] GraSuReGraphCounters counters() const noexcept {
     GraSuReGraphCounters result;
     result.state_bytes_per_vertex = state_bytes_per_vertex(policy_);
+    result.destination_partitions = layout_.partitions.size();
     result.supersteps = controller_->supersteps();
+    result.partition_passes = controller_->partition_passes();
     result.row_reads = reader_->row_reads();
     result.source_state_reads = source_hbm_reader_->requests();
     result.source_cache_requests = reader_->source_requests();
@@ -2229,11 +2321,15 @@ private:
         (pagerank &&
          (out_degrees_.size() != layout_.vertices || fixed_rounds_ == 0)) ||
         (!pagerank && !out_degrees_.empty()) ||
-        config_.memory_channels < 4 ||
-        config_.partition_vertices < layout_.vertices ||
+        config_.memory_channels < 4 || layout_.partitions.empty() ||
+        layout_.partitions.size() !=
+            (layout_.vertices + config_.partition_vertices - 1) /
+                config_.partition_vertices ||
+        layout_.partition_vertices != config_.partition_vertices ||
         config_.partition_vertices % kStateWordsPerBurst != 0 ||
         config_.source_state_buffer_stride <
-            config_.partition_vertices * state_bytes_per_vertex(policy_) ||
+            layout_.partitions.size() * config_.partition_vertices *
+                state_bytes_per_vertex(policy_) ||
         config_.source_state_buffer_stride % 4096 != 0 ||
         config_.source_buffer_vertices == 0 ||
         config_.source_buffer_vertices % kStateWordsPerBurst != 0 ||
@@ -2259,13 +2355,46 @@ private:
         config_.apply_pipeline_capacity == 0 ||
         config_.hbm_wrapper_pipeline_latency == 0 ||
         config_.hbm_wrapper_pipeline_capacity == 0 ||
-        config_.max_supersteps == 0 ||
+        config_.max_supersteps == 0 || config_.partition_address_stride == 0 ||
         config_.row_channel >= config_.memory_channels ||
         config_.source_state_channel >= config_.memory_channels ||
         config_.source_state_mirror_channel >= config_.memory_channels ||
         config_.vertex_state_channel >= config_.memory_channels ||
         (pagerank && config_.degree_channel >= config_.memory_channels)) {
       throw std::invalid_argument("invalid GraSU-ReGraph configuration");
+    }
+    for (std::size_t partition = 0; partition < layout_.partitions.size();
+         ++partition) {
+      const GraSuPmaLayout &part = layout_.partitions[partition];
+      const std::size_t expected_base = partition * config_.partition_vertices;
+      const std::size_t expected_vertices = std::min(
+          config_.partition_vertices, layout_.vertices - expected_base);
+      if (part.vertices != layout_.vertices ||
+          part.destination_base != expected_base ||
+          part.destination_vertices != expected_vertices) {
+        throw std::invalid_argument(
+            "GraSU-ReGraph PMA partitions are not contiguous");
+      }
+    }
+  }
+
+  void construct_partition_plans() {
+    partition_plans_.reserve(layout_.partitions.size());
+    for (std::size_t partition = 0; partition < layout_.partitions.size();
+         ++partition) {
+      const std::uint64_t offset =
+          partition * config_.partition_address_stride;
+      if (offset > std::numeric_limits<std::uint64_t>::max() -
+                       std::max(config_.row_offset_base, config_.pma_base)) {
+        throw std::overflow_error("GraSU-ReGraph partition address overflow");
+      }
+      const GraSuPmaLayout &part = layout_.partitions[partition];
+      partition_plans_.push_back(ReGraphPartitionPlan{
+          .destination_base = part.destination_base,
+          .destination_vertices = part.destination_vertices,
+          .row_base = config_.row_offset_base + offset,
+          .pma_base = config_.pma_base + offset,
+      });
     }
   }
 
@@ -2311,9 +2440,10 @@ private:
 
   void initialize_state() {
     const std::size_t bytes_per_vertex = state_bytes_per_vertex(policy_);
-    std::vector<std::uint8_t> bytes(config_.partition_vertices *
-                                    bytes_per_vertex);
-    for (std::size_t vertex = 0; vertex < config_.partition_vertices;
+    const std::size_t padded_vertices =
+        layout_.partitions.size() * config_.partition_vertices;
+    std::vector<std::uint8_t> bytes(padded_vertices * bytes_per_vertex);
+    for (std::size_t vertex = 0; vertex < padded_vertices;
          ++vertex) {
       std::uint32_t encoded =
           policy_.config().kind == GraphAlgorithmKind::kWeightedSssp
@@ -2392,7 +2522,8 @@ private:
         policy_.config().kind == GraphAlgorithmKind::kWeightedSssp
             ? config_.max_supersteps
             : fixed_rounds_,
-        *source_hbm_reader_, *reader_, *gather_, *merger_, *apply_, *wrapper_);
+        partition_plans_, *source_hbm_reader_, *reader_, *gather_, *merger_,
+        *apply_, *wrapper_);
   }
 
   [[nodiscard]] bool all_ports_idle() const noexcept {
@@ -2415,12 +2546,13 @@ private:
   Scheduler &scheduler_;
   ClockId clock_id_{};
   MemoryBackend &backend_;
-  GraSuPmaLayout layout_;
+  GraSuPartitionedPmaLayout layout_;
   std::uint32_t source_{};
   GraSuReGraphConfig config_;
   GraphAlgorithmPolicy policy_;
   std::vector<std::uint32_t> out_degrees_;
   std::size_t fixed_rounds_{};
+  std::vector<ReGraphPartitionPlan> partition_plans_;
   Fifo<PmaEdgeBatch> edge_axis_;
   Fifo<ReGraphSourceCacheRequest> source_request_axis_;
   Fifo<ReGraphSourceCacheResponse> source_response_axis_;
@@ -2451,7 +2583,9 @@ GraSuReGraphSsspSystem::GraSuReGraphSsspSystem(
     Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
     GraSuPmaLayout layout, std::uint32_t source, GraSuReGraphConfig config)
     : impl_(
-          std::make_unique<Impl>(scheduler, clock_id, backend, layout,
+          std::make_unique<Impl>(scheduler, clock_id, backend,
+                                 one_partition_layout(
+                                     layout, config.partition_vertices),
                                  GraphAlgorithmPolicy(AlgorithmPolicyConfig{
                                      .kind = GraphAlgorithmKind::kWeightedSssp,
                                      .vertices = layout.vertices,
@@ -2462,6 +2596,29 @@ GraSuReGraphSsspSystem::GraSuReGraphSsspSystem(
 GraSuReGraphSsspSystem::GraSuReGraphSsspSystem(
     Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
     GraSuPmaLayout layout, GraphAlgorithmPolicy policy,
+    std::vector<std::uint32_t> out_degrees, std::size_t fixed_rounds,
+    GraSuReGraphConfig config)
+    : impl_(std::make_unique<Impl>(
+          scheduler, clock_id, backend,
+          one_partition_layout(std::move(layout), config.partition_vertices),
+          std::move(policy), std::move(out_degrees), fixed_rounds, config)) {}
+
+GraSuReGraphSsspSystem::GraSuReGraphSsspSystem(
+    Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
+    GraSuPartitionedPmaLayout layout, std::uint32_t source,
+    GraSuReGraphConfig config)
+    : impl_(std::make_unique<Impl>(
+          scheduler, clock_id, backend, layout,
+          GraphAlgorithmPolicy(AlgorithmPolicyConfig{
+              .kind = GraphAlgorithmKind::kWeightedSssp,
+              .vertices = layout.vertices,
+              .source = source,
+          }),
+          std::vector<std::uint32_t>{}, 0, config)) {}
+
+GraSuReGraphSsspSystem::GraSuReGraphSsspSystem(
+    Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
+    GraSuPartitionedPmaLayout layout, GraphAlgorithmPolicy policy,
     std::vector<std::uint32_t> out_degrees, std::size_t fixed_rounds,
     GraSuReGraphConfig config)
     : impl_(std::make_unique<Impl>(
@@ -2513,6 +2670,21 @@ GraSuReGraphPageRankSystem::GraSuReGraphPageRankSystem(
           }),
           std::move(out_degrees), iterations, config)) {}
 
+GraSuReGraphPageRankSystem::GraSuReGraphPageRankSystem(
+    Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
+    GraSuPartitionedPmaLayout layout,
+    std::vector<std::uint32_t> out_degrees, std::size_t iterations,
+    float damping, GraSuReGraphConfig config)
+    : engine_(std::make_unique<GraSuReGraphSsspSystem>(
+          scheduler, clock_id, backend, layout,
+          GraphAlgorithmPolicy(AlgorithmPolicyConfig{
+              .kind = GraphAlgorithmKind::kFullPageRank,
+              .vertices = layout.vertices,
+              .source = 0,
+              .damping = damping,
+          }),
+          std::move(out_degrees), iterations, config)) {}
+
 GraSuReGraphPageRankSystem::~GraSuReGraphPageRankSystem() = default;
 
 void GraSuReGraphPageRankSystem::register_components() {
@@ -2548,6 +2720,22 @@ GraSuReGraphResidualPageRankSystem::GraSuReGraphResidualPageRankSystem(
     GraSuPmaLayout layout, std::vector<std::uint32_t> out_degrees,
     std::size_t max_iterations, float damping, float epsilon,
     GraSuReGraphConfig config)
+    : engine_(std::make_unique<GraSuReGraphSsspSystem>(
+          scheduler, clock_id, backend, layout,
+          GraphAlgorithmPolicy(AlgorithmPolicyConfig{
+              .kind = GraphAlgorithmKind::kResidualPageRank,
+              .vertices = layout.vertices,
+              .source = 0,
+              .damping = damping,
+              .epsilon = epsilon,
+          }),
+          std::move(out_degrees), max_iterations, config)) {}
+
+GraSuReGraphResidualPageRankSystem::GraSuReGraphResidualPageRankSystem(
+    Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
+    GraSuPartitionedPmaLayout layout,
+    std::vector<std::uint32_t> out_degrees, std::size_t max_iterations,
+    float damping, float epsilon, GraSuReGraphConfig config)
     : engine_(std::make_unique<GraSuReGraphSsspSystem>(
           scheduler, clock_id, backend, layout,
           GraphAlgorithmPolicy(AlgorithmPolicyConfig{

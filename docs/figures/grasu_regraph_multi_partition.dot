@@ -1,0 +1,28 @@
+digraph grasu_regraph_multi_partition {
+  graph [rankdir=LR, bgcolor="white", pad="0.25", nodesep="0.45", ranksep="0.7"];
+  node [shape=box, style="rounded,filled", fillcolor="#f7f7f7", color="#333333", fontname="DejaVu Sans", fontsize=10];
+  edge [color="#555555", fontname="DejaVu Sans", fontsize=9];
+
+  old [label="Old source-state epoch\n(global vertices)", fillcolor="#dceef8"];
+  ctrl [label="Superstep controller\npartition = 0..P-1", fillcolor="#ffe6a7"];
+  pma0 [label="PMA partition 0\nglobal src / local dst"];
+  pma1 [label="PMA partition 1\nglobal src / local dst"];
+  pman [label="PMA partition P-1\nglobal src / local dst"];
+  pipe [label="One reused ReGraph pipeline\nreader -> gather -> merger -> apply", fillcolor="#d9ead3"];
+  state [label="Global vertex state\nbase + part_dst_offset"];
+  next [label="Next source-state epoch\ndisjoint partition windows", fillcolor="#dceef8"];
+  barrier [shape=diamond, label="All partitions done?", fillcolor="#f4cccc"];
+
+  ctrl -> pma0 [label="pass 0"];
+  ctrl -> pma1 [label="pass 1"];
+  ctrl -> pman [label="pass P-1"];
+  pma0 -> pipe;
+  pma1 -> pipe;
+  pman -> pipe;
+  old -> pipe [label="same old epoch"];
+  pipe -> state [label="global-offset RMW"];
+  pipe -> next [label="window write"];
+  next -> barrier;
+  barrier -> ctrl [label="yes: advance epoch"];
+  barrier -> ctrl [label="no: next partition", style=dashed];
+}

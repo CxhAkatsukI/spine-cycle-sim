@@ -33,6 +33,7 @@ using spine::sim::GraSuReGraphPageRankSystem;
 using spine::sim::GraSuReGraphResidualPageRankSystem;
 using spine::sim::GraSuReGraphSsspSystem;
 using spine::sim::is_grasu_pma_empty;
+using spine::sim::initialize_grasu_pma_layout_payloads;
 using spine::sim::MockMemoryBackend;
 using spine::sim::MockMemoryConfig;
 using spine::sim::Scheduler;
@@ -196,6 +197,24 @@ residual_pagerank_oracle(std::size_t vertices,
     active = std::move(next);
   }
   return result;
+}
+
+void initialize_partitioned_pma_payloads(
+    MockMemoryBackend &backend, const GraSuPartitionedPmaLayout &layout,
+    const GraSuReGraphConfig &compute_config) {
+  for (std::size_t partition = 0; partition < layout.partitions.size();
+       ++partition) {
+    const std::uint64_t offset =
+        partition * compute_config.partition_address_stride;
+    GraSuNativeConfig config;
+    config.cache_segments_per_half = compute_config.cache_segments_per_half;
+    config.update_base += offset;
+    config.row_offset_base = compute_config.row_offset_base + offset;
+    config.binary_base += offset;
+    config.pma_base = compute_config.pma_base + offset;
+    initialize_grasu_pma_layout_payloads(backend, layout.partitions[partition],
+                                         config);
+  }
 }
 
 void test_weighted_pma_edge_abi_matches_regraph() {
@@ -493,6 +512,59 @@ void test_weighted_dynamic_pma_regraph_matches_dijkstra() {
             << " supersteps=" << compute_counters.supersteps << '\n';
 }
 
+void test_partitioned_regraph_sssp_crosses_destination_windows() {
+  constexpr std::size_t kVertices = 33;
+  constexpr std::size_t kPartitionVertices = 16;
+  const std::vector<GraSuEdge> edges = {
+      {.source = 0, .destination = 16, .weight = 1},
+      {.source = 16, .destination = 1, .weight = 1},
+      {.source = 1, .destination = 32, .weight = 1},
+      {.source = 32, .destination = 17, .weight = 1},
+      {.source = 17, .destination = 0, .weight = 9},
+  };
+  const GraSuPartitionedPmaLayout layout = GraSuPartitionedPmaLayout::build(
+      kVertices, kPartitionVertices, edges, {});
+
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("partitioned-regraph-sssp", 200.0);
+  MockMemoryBackend backend("shared-hbm", core,
+                            MockMemoryConfig{.channels = 32,
+                                             .latency_cycles = 7,
+                                             .accepts_per_channel_per_cycle = 1,
+                                             .max_outstanding_per_channel = 32,
+                                             .response_queue_depth = 128});
+  GraSuReGraphConfig config;
+  config.partition_vertices = kPartitionVertices;
+  config.source_buffer_vertices = 16;
+  config.edge_lanes = 4;
+  config.gather_banks = 4;
+  initialize_partitioned_pma_payloads(backend, layout, config);
+  GraSuReGraphSsspSystem system(scheduler, core, backend, layout, 0, config);
+  system.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until([&] { return system.done() || system.failed(); },
+                      5'000'000);
+
+  require(!system.failed() && system.done(),
+          "partitioned PMA-native ReGraph SSSP did not complete");
+  require(system.distances() == weighted_sssp_oracle(kVertices, edges, 0),
+          "partitioned PMA-native ReGraph SSSP differs from Dijkstra");
+  const auto counters = system.counters();
+  require(counters.destination_partitions == 3 && counters.supersteps == 5 &&
+              counters.partition_passes == 15 &&
+              counters.row_reads == kVertices * counters.partition_passes &&
+              counters.live_edges_scanned == edges.size() * counters.supersteps &&
+              counters.apply_state_reads == counters.partition_passes &&
+              counters.source_state_writes == 2 * counters.partition_passes,
+          "partitioned ReGraph SSSP work ledger mismatch");
+  std::cout << "EVIDENCE grasu_regraph_partitioned_sssp cycles="
+            << counters.end_cycle - counters.start_cycle
+            << " partitions=" << counters.destination_partitions
+            << " supersteps=" << counters.supersteps
+            << " partition_passes=" << counters.partition_passes
+            << " row_reads=" << counters.row_reads << '\n';
+}
+
 void test_pma_native_regraph_full_pagerank_matches_oracle() {
   constexpr std::size_t kVertices = 4;
   constexpr std::size_t kIterations = 3;
@@ -585,6 +657,144 @@ void test_pma_native_regraph_full_pagerank_matches_oracle() {
             << " active_edges=" << counters.active_edges_mapped
             << " rank_sum=" << rank_sum
             << " l1_error=" << counters.last_iteration_error << '\n';
+}
+
+void test_partitioned_regraph_pagerank_counts_dangling_once() {
+  constexpr std::size_t kVertices = 33;
+  constexpr std::size_t kPartitionVertices = 16;
+  constexpr std::size_t kIterations = 3;
+  constexpr float kDamping = 0.85F;
+  const std::vector<GraSuEdge> edges = {
+      {.source = 0, .destination = 16},
+      {.source = 16, .destination = 1},
+      {.source = 1, .destination = 32},
+      {.source = 32, .destination = 17},
+  };
+  const GraSuPartitionedPmaLayout layout = GraSuPartitionedPmaLayout::build(
+      kVertices, kPartitionVertices, edges, {});
+  std::vector<std::uint32_t> degrees(kVertices);
+  for (const GraSuEdge &edge : edges) {
+    ++degrees[edge.source];
+  }
+
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("partitioned-regraph-pr", 200.0);
+  MockMemoryBackend backend("shared-hbm", core,
+                            MockMemoryConfig{.channels = 32,
+                                             .latency_cycles = 7,
+                                             .accepts_per_channel_per_cycle = 1,
+                                             .max_outstanding_per_channel = 32,
+                                             .response_queue_depth = 128});
+  GraSuReGraphConfig config;
+  config.partition_vertices = kPartitionVertices;
+  config.source_buffer_vertices = 16;
+  config.edge_lanes = 4;
+  config.gather_banks = 4;
+  initialize_partitioned_pma_payloads(backend, layout, config);
+  GraSuReGraphPageRankSystem system(scheduler, core, backend, layout, degrees,
+                                    kIterations, kDamping, config);
+  system.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until([&] { return system.done() || system.failed(); },
+                      5'000'000);
+
+  require(!system.failed() && system.done(),
+          "partitioned PMA-native ReGraph PageRank did not complete");
+  const auto expected =
+      full_pagerank_oracle<float>(kVertices, edges, kIterations, kDamping);
+  const auto actual = system.ranks();
+  float rank_sum = 0.0F;
+  for (std::size_t vertex = 0; vertex < kVertices; ++vertex) {
+    require(std::fabs(actual[vertex] - expected[vertex]) < 1.0e-6F,
+            "partitioned PageRank differs from float32 oracle at vertex " +
+                std::to_string(vertex));
+    rank_sum += actual[vertex];
+  }
+  require(std::fabs(rank_sum - 1.0F) < 1.0e-5F,
+          "partitioned PageRank counted dangling mass more than once");
+  const auto counters = system.counters();
+  require(counters.destination_partitions == 3 &&
+              counters.partition_passes == 3 * kIterations &&
+              counters.row_reads == 3 * kVertices * kIterations &&
+              counters.degree_reads == (kVertices + 3) * kIterations &&
+              counters.active_edges_mapped == edges.size() * kIterations,
+          "partitioned PageRank work ledger mismatch");
+  std::cout << "EVIDENCE grasu_regraph_partitioned_pagerank cycles="
+            << counters.end_cycle - counters.start_cycle
+            << " partitions=" << counters.destination_partitions
+            << " degree_reads=" << counters.degree_reads
+            << " rank_sum=" << rank_sum << '\n';
+}
+
+void test_partitioned_residual_pagerank_unions_active_frontiers() {
+  constexpr std::size_t kVertices = 33;
+  constexpr std::size_t kPartitionVertices = 16;
+  constexpr std::size_t kMaxIterations = 256;
+  constexpr float kDamping = 0.85F;
+  constexpr float kEpsilon = 1.0e-4F;
+  const std::vector<GraSuEdge> edges = {
+      {.source = 0, .destination = 16},
+      {.source = 16, .destination = 1},
+      {.source = 1, .destination = 32},
+      {.source = 32, .destination = 17},
+      {.source = 17, .destination = 0},
+  };
+  const GraSuPartitionedPmaLayout layout = GraSuPartitionedPmaLayout::build(
+      kVertices, kPartitionVertices, edges, {});
+  std::vector<std::uint32_t> degrees(kVertices);
+  for (const GraSuEdge &edge : edges) {
+    ++degrees[edge.source];
+  }
+  const auto expected = residual_pagerank_oracle<float>(
+      kVertices, edges, kMaxIterations, kDamping, kEpsilon);
+  require(expected.converged,
+          "partitioned residual PageRank oracle did not converge");
+
+  Scheduler scheduler;
+  const auto core =
+      scheduler.add_clock_mhz("partitioned-regraph-residual-pr", 200.0);
+  MockMemoryBackend backend("shared-hbm", core,
+                            MockMemoryConfig{.channels = 32,
+                                             .latency_cycles = 7,
+                                             .accepts_per_channel_per_cycle = 1,
+                                             .max_outstanding_per_channel = 32,
+                                             .response_queue_depth = 128});
+  GraSuReGraphConfig config;
+  config.partition_vertices = kPartitionVertices;
+  config.source_buffer_vertices = 16;
+  config.edge_lanes = 4;
+  config.gather_banks = 4;
+  initialize_partitioned_pma_payloads(backend, layout, config);
+  GraSuReGraphResidualPageRankSystem system(
+      scheduler, core, backend, layout, degrees, kMaxIterations, kDamping,
+      kEpsilon, config);
+  system.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until([&] { return system.done() || system.failed(); },
+                      20'000'000);
+
+  require(!system.failed() && system.done(),
+          "partitioned residual PageRank did not complete");
+  const auto ranks = system.ranks();
+  const auto residuals = system.residuals();
+  for (std::size_t vertex = 0; vertex < kVertices; ++vertex) {
+    require(std::fabs(ranks[vertex] - expected.ranks[vertex]) < 1.0e-6F &&
+                std::fabs(residuals[vertex] - expected.residuals[vertex]) <
+                    1.0e-6F,
+            "partitioned residual PageRank differs from oracle at vertex " +
+                std::to_string(vertex));
+  }
+  const auto counters = system.counters();
+  require(counters.supersteps == expected.iterations &&
+              counters.partition_passes ==
+                  layout.partitions.size() * expected.iterations &&
+              counters.active_edges_mapped == expected.active_edges,
+          "partitioned residual PageRank frontier ledger mismatch");
+  std::cout << "EVIDENCE grasu_regraph_partitioned_residual cycles="
+            << counters.end_cycle - counters.start_cycle
+            << " iterations=" << counters.supersteps
+            << " partition_passes=" << counters.partition_passes
+            << " active_edges=" << counters.active_edges_mapped << '\n';
 }
 
 void test_pma_native_regraph_residual_pagerank_matches_oracles() {
@@ -1241,7 +1451,13 @@ int main() {
       {"native_update_routes", test_native_update_crosses_cache_ddr_and_parity},
       {"weighted_dynamic_sssp",
        test_weighted_dynamic_pma_regraph_matches_dijkstra},
+      {"partitioned_sssp",
+       test_partitioned_regraph_sssp_crosses_destination_windows},
       {"full_pagerank", test_pma_native_regraph_full_pagerank_matches_oracle},
+      {"partitioned_pagerank",
+       test_partitioned_regraph_pagerank_counts_dangling_once},
+      {"partitioned_residual_pagerank",
+       test_partitioned_residual_pagerank_unions_active_frontiers},
       {"residual_pagerank",
        test_pma_native_regraph_residual_pagerank_matches_oracles},
       {"invalid_updates", test_unreserved_and_invalid_updates_are_rejected},

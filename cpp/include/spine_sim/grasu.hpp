@@ -124,6 +124,13 @@ struct GraSuUpdateCounters {
   std::uint64_t end_cycle{};
 };
 
+// Host-side initialization is outside the measured update kernel window. It
+// writes one destination partition's row, binary-head, and PMA payloads without
+// registering AXI initiators.
+void initialize_grasu_pma_layout_payloads(MemoryBackend &backend,
+                                          const GraSuPmaLayout &layout,
+                                          const GraSuNativeConfig &config);
+
 class GraSuPmaUpdateSystem {
  public:
   GraSuPmaUpdateSystem(Scheduler &scheduler, ClockId clock_id,

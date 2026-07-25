@@ -1009,6 +1009,39 @@ std::vector<GraSuEdge> GraSuPartitionedPmaLayout::live_edges() const {
   return result;
 }
 
+void initialize_grasu_pma_layout_payloads(
+    MemoryBackend &backend, const GraSuPmaLayout &layout,
+    const GraSuNativeConfig &config) {
+  for (std::size_t channel = 0; channel < 4; ++channel) {
+    std::vector<std::uint8_t> row_bytes;
+    for (const auto &[begin, end] : layout.row_slot_bounds) {
+      const auto encoded =
+          encode_u64((static_cast<std::uint64_t>(begin) << 32) | end);
+      row_bytes.insert(row_bytes.end(), encoded.begin(), encoded.end());
+    }
+    backend.initialize_payload(channel, config.row_offset_base, row_bytes);
+
+    std::vector<std::uint8_t> binary_bytes;
+    for (std::uint64_t head : layout.binary_heads) {
+      const auto encoded = encode_u64(head);
+      binary_bytes.insert(binary_bytes.end(), encoded.begin(), encoded.end());
+    }
+    backend.initialize_payload(channel, config.binary_base, binary_bytes);
+  }
+
+  for (std::size_t segment = 0; segment < layout.segments.size(); ++segment) {
+    const std::size_t parity = segment & 1U;
+    const std::size_t local = segment >> 1;
+    const auto bytes = encode_segment(layout.segments[segment]);
+    backend.initialize_payload(parity * 2,
+                               config.pma_base + local * kGraSuSegmentBytes,
+                               bytes);
+    backend.initialize_payload(parity * 2 + 1,
+                               config.pma_base + local * kGraSuSegmentBytes,
+                               bytes);
+  }
+}
+
 class GraSuPmaUpdateSystem::Impl {
  public:
   Impl(Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
@@ -1324,32 +1357,8 @@ class GraSuPmaUpdateSystem::Impl {
         update_bytes.insert(update_bytes.end(), encoded.begin(), encoded.end());
       }
       backend_.initialize_payload(channel, config_.update_base, update_bytes);
-
-      std::vector<std::uint8_t> row_bytes;
-      for (const auto &[begin, end] : layout_.row_slot_bounds) {
-        const auto encoded = encode_u64(
-            (static_cast<std::uint64_t>(begin) << 32) | end);
-        row_bytes.insert(row_bytes.end(), encoded.begin(), encoded.end());
-      }
-      backend_.initialize_payload(channel, config_.row_offset_base, row_bytes);
-
-      std::vector<std::uint8_t> binary_bytes;
-      for (std::uint64_t head : layout_.binary_heads) {
-        const auto encoded = encode_u64(head);
-        binary_bytes.insert(binary_bytes.end(), encoded.begin(), encoded.end());
-      }
-      backend_.initialize_payload(channel, config_.binary_base, binary_bytes);
     }
-
-    for (std::size_t segment = 0; segment < layout_.segments.size(); ++segment) {
-      const std::size_t parity = segment & 1U;
-      const std::size_t local = segment >> 1;
-      const auto bytes = encode_segment(layout_.segments[segment]);
-      backend_.initialize_payload(parity * 2, config_.pma_base + local * 64,
-                                  bytes);
-      backend_.initialize_payload(parity * 2 + 1,
-                                  config_.pma_base + local * 64, bytes);
-    }
+    initialize_grasu_pma_layout_payloads(backend_, layout_, config_);
   }
 
   void construct_components() {

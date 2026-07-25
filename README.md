@@ -66,6 +66,13 @@ than hiding the additional state in the host model. Its dual-oracle evidence
 and exact claim boundary are documented in
 [`docs/grasu_regraph_residual_pagerank_20260725.md`](docs/grasu_regraph_residual_pagerank_20260725.md).
 
+The compute path now supports multiple destination partitions while preserving
+ReGraph's 19-bit local-destination ABI. All partitions share one old source
+epoch and cross a barrier before state swap or convergence; Full and residual
+PageRank count dangling mass once per superstep. The serial one-pipeline
+execution contract, HLS mapping, and three-algorithm evidence are documented in
+[`docs/grasu_regraph_multi_partition_20260725.md`](docs/grasu_regraph_multi_partition_20260725.md).
+
 ## Quick Start
 
 Run one workload:

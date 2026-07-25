@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "date": "2026-07-25",
+  "claim_tier": "simulation-only normalized architecture proposal",
+  "architecture": {
+    "physical_compute_pipelines": 1,
+    "destination_partitions": 3,
+    "partition_vertices": 16,
+    "vertices": 33,
+    "partition_execution": "serial",
+    "edge_destination_encoding": "19-bit partition-local",
+    "superstep_barrier": "after all destination partitions",
+    "dangling_mass_passes_per_superstep": 1
+  },
+  "results": {
+    "weighted_sssp": {
+      "cycles": 10576,
+      "supersteps": 5,
+      "partition_passes": 15,
+      "row_reads": 495,
+      "oracle": "Dijkstra",
+      "mismatches": 0
+    },
+    "full_pagerank": {
+      "cycles": 8095,
+      "iterations": 3,
+      "partition_passes": 9,
+      "degree_reads": 108,
+      "rank_sum": 1.0,
+      "oracle": "float32 fixed-iteration PageRank",
+      "mismatches": 0
+    },
+    "residual_pagerank": {
+      "cycles": 155326,
+      "iterations": 57,
+      "partition_passes": 171,
+      "active_edges": 285,
+      "oracle": "float32 thresholded residual PageRank",
+      "mismatches": 0
+    }
+  },
+  "single_partition_regression_cycles": {
+    "full_pagerank": 1243,
+    "residual_pagerank": 32944,
+    "native_partition_scan": 99257,
+    "finite_stream_contention": 15037
+  },
+  "limitations": [
+    "partitioned GraSU update routing is not yet timed",
+    "dynamic degree maintenance is not yet timed",
+    "multi-partition SST-HBM closure is not yet collected",
+    "one physical compute pipeline serializes destination partitions",
+    "no real-dataset or hardware calibration claim"
+  ]
+}

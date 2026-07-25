@@ -48,6 +48,9 @@ struct GraSuReGraphConfig {
   std::uint64_t source_state_base{0x5000'0000ULL};
   std::uint64_t source_state_buffer_stride{0x0010'0000ULL};
   std::uint64_t degree_base{0x4100'0000ULL};
+  // A partition keeps the first partition's historical addresses and moves
+  // subsequent row/PMA windows by this stride.
+  std::uint64_t partition_address_stride{0x1'0000'0000ULL};
   std::size_t row_channel{0};
   std::size_t source_state_channel{1};
   std::size_t source_state_mirror_channel{3};
@@ -57,7 +60,9 @@ struct GraSuReGraphConfig {
 
 struct GraSuReGraphCounters {
   std::size_t state_bytes_per_vertex{};
+  std::size_t destination_partitions{};
   std::uint64_t supersteps{};
+  std::uint64_t partition_passes{};
   std::uint64_t row_reads{};
   std::uint64_t source_state_reads{};
   std::uint64_t source_cache_requests{};
@@ -123,10 +128,9 @@ struct GraSuReGraphCounters {
   float last_iteration_error{};
 };
 
-// Direct PMA-to-ReGraph weighted-SSSP vertical slice. Its normalized PMA word
-// uses ReGraph's 19-bit local destination and 12-bit weight ABI;
-// multi-partition destination routing remains outside this one-partition
-// system.
+// Direct PMA-to-ReGraph compute path. Its normalized PMA word uses ReGraph's
+// 19-bit local destination and 12-bit weight ABI. The partitioned overloads
+// reuse one physical compute pipeline and synchronize at a superstep barrier.
 class GraSuReGraphSsspSystem {
 public:
   GraSuReGraphSsspSystem(Scheduler &scheduler, ClockId clock_id,
@@ -134,6 +138,18 @@ public:
                          std::uint32_t source, GraSuReGraphConfig config = {});
   GraSuReGraphSsspSystem(Scheduler &scheduler, ClockId clock_id,
                          MemoryBackend &backend, GraSuPmaLayout layout,
+                         GraphAlgorithmPolicy policy,
+                         std::vector<std::uint32_t> out_degrees,
+                         std::size_t fixed_rounds,
+                         GraSuReGraphConfig config = {});
+  GraSuReGraphSsspSystem(Scheduler &scheduler, ClockId clock_id,
+                         MemoryBackend &backend,
+                         GraSuPartitionedPmaLayout layout,
+                         std::uint32_t source,
+                         GraSuReGraphConfig config = {});
+  GraSuReGraphSsspSystem(Scheduler &scheduler, ClockId clock_id,
+                         MemoryBackend &backend,
+                         GraSuPartitionedPmaLayout layout,
                          GraphAlgorithmPolicy policy,
                          std::vector<std::uint32_t> out_degrees,
                          std::size_t fixed_rounds,
@@ -164,6 +180,11 @@ public:
                              std::vector<std::uint32_t> out_degrees,
                              std::size_t iterations, float damping = 0.85F,
                              GraSuReGraphConfig config = {});
+  GraSuReGraphPageRankSystem(
+      Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
+      GraSuPartitionedPmaLayout layout,
+      std::vector<std::uint32_t> out_degrees, std::size_t iterations,
+      float damping = 0.85F, GraSuReGraphConfig config = {});
   ~GraSuReGraphPageRankSystem();
 
   GraSuReGraphPageRankSystem(const GraSuReGraphPageRankSystem &) = delete;
@@ -186,6 +207,12 @@ public:
   GraSuReGraphResidualPageRankSystem(
       Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
       GraSuPmaLayout layout, std::vector<std::uint32_t> out_degrees,
+      std::size_t max_iterations, float damping = 0.85F,
+      float epsilon = 1.0e-6F, GraSuReGraphConfig config = {});
+  GraSuReGraphResidualPageRankSystem(
+      Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
+      GraSuPartitionedPmaLayout layout,
+      std::vector<std::uint32_t> out_degrees,
       std::size_t max_iterations, float damping = 0.85F,
       float epsilon = 1.0e-6F, GraSuReGraphConfig config = {});
   ~GraSuReGraphResidualPageRankSystem();
