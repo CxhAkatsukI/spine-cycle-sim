@@ -32,6 +32,18 @@ DEFAULT_WORKLOAD = (
 )
 
 
+def full_pagerank_rank_sum_tolerance(
+    vertices: int, mathematical_max_abs_error: float
+) -> float:
+    """Bound aggregate float32 rank drift using the per-vertex oracle error."""
+
+    if vertices <= 0:
+        raise ValueError("vertices must be positive")
+    if mathematical_max_abs_error < 0.0:
+        raise ValueError("mathematical max absolute error cannot be negative")
+    return 1.0e-5 + vertices * mathematical_max_abs_error
+
+
 def sha256(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as source:
@@ -235,6 +247,11 @@ def main() -> int:
     expected_source_lines = (
         expected_source_requests * params["regraph_source_buffer_vertices"] // 16
     )
+    rank_sum_error = abs(result.get("rank_sum", 0.0) - 1.0)
+    rank_sum_tolerance = full_pagerank_rank_sum_tolerance(
+        result.get("vertices", -1),
+        result.get("mathematical_max_abs_error", 1.0),
+    )
     if (
         not result.get("success")
         or result.get("mode") != "grasu_regraph_pagerank"
@@ -246,7 +263,7 @@ def main() -> int:
         or result.get("mathematical_oracle") != "iterative_float64"
         or result.get("max_abs_error", 1.0) > 1.0e-5
         or result.get("mathematical_max_abs_error", 1.0) > 1.0e-5
-        or abs(result.get("rank_sum", 0.0) - 1.0) > 1.0e-5
+        or rank_sum_error > rank_sum_tolerance
         or result.get("iterations") != args.iterations
         or abs(result.get("pagerank_damping", -1.0) - damping) > 1.0e-7
         or abs(result.get("core_mhz", -1.0) - kernel_clock["achieved_mhz"])
@@ -300,6 +317,14 @@ def main() -> int:
         "smoke": args.smoke,
         "sst_memory_binding": binding.as_manifest(),
         "sst_host_wall_seconds": sst_host_wall_seconds,
+        "validation": {
+            "rank_sum_error": rank_sum_error,
+            "rank_sum_tolerance": rank_sum_tolerance,
+            "rank_sum_tolerance_basis": (
+                "1e-5_float64_oracle_sum_plus_vertices_times_"
+                "mathematical_max_abs_error"
+            ),
+        },
         "command": command,
         "result": result,
         "dram": dram,
