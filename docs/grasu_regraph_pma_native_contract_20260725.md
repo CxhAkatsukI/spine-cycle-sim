@@ -5,18 +5,21 @@ Date: 2026-07-25
 ## Purpose
 
 This freezes the implementation boundary for the GraSU comparator before its
-cycle model is added. It distinguishes three systems that must never be mixed
+cycle model is added. It distinguishes four systems that must never be mixed
 in one performance label:
 
 | Label | Meaning | Conversion treatment |
 | --- | --- | --- |
 | `native` | Existing routed U55C GraSU + ReGraph integration | Measures the one-shot PMA-to-edge-array compactor |
+| `hls_sw_emu` | Conversion-free weighted-PMA HLS at revision `ff13a67` | Direct 8-lane AXIS handoff; correctness only, no performance claim |
 | `normalized` | Same fine-grained memory/FIFO/AXI core and resource budget used for the Spine comparison | ReGraph reads PMA directly; no conversion exists |
 | `projected` | Explicitly optimized PMA-native design-space point | Direct PMA reader plus change-aware activation |
 
-The native profile validates source shape and available hardware trends. The
-normalized profile is the primary fair simulator comparison. The projected
-profile is an optimization experiment, not a hardware result.
+The native profile validates the old compactor path and available hardware
+trends. The HLS-emulated profile proves that a weighted conversion-free whole
+system can compile and execute, but not its hardware speed. The normalized
+profile is the primary fair simulator comparison. The projected profile is an
+optimization experiment, not a hardware result.
 
 ## Source Identities
 
@@ -24,6 +27,8 @@ profile is an optimization experiment, not a hardware result.
   `codex/explore-grasu-u55c`.
 - Existing integration: `/home/chuxiao/grasu-regraph-integration`, revision
   `a9aef06`, branch `codex/pure-hw-pipeline`.
+- Weighted PMA-native HLS: `/home/chuxiao/grasu-regraph-integration`, revision
+  `ff13a67`, branch `codex/weighted-pma-native-hls`.
 - ReGraph source: `/home/chuxiao/ReGraph` (the root is not a Git repository, so
   every mapped file must be hashed in later implementation evidence).
 
@@ -67,7 +72,7 @@ than the HLS design.
 
 ## ReGraph Boundary
 
-The current hardware path is:
+The old routed hardware path is:
 
 ```text
 GraSU PMA -> capacity-wide PMA compactor -> edge array -> ReGraph little-GS
@@ -76,6 +81,19 @@ GraSU PMA -> capacity-wide PMA compactor -> edge array -> ReGraph little-GS
 It is valid native hardware evidence, but the compactor dominates larger sparse
 cases because it scans reserved slots. Removing its time while retaining its
 materialized edge array is forbidden.
+
+The `ff13a67` HLS-emulated path is:
+
+```text
+GraSU weighted PMA -> completion barrier -> 8-lane AXIS PMA adapter
+                   -> ReGraph little-GS -> merger -> apply/HBM wrapper
+```
+
+It has no compact edge array. Weight changes lower to deletion of the old
+encoded word followed by insertion of the new encoded word. PMA reservations,
+binary heads, and ordering use the complete encoded destination-and-weight
+word. The host reorders vertices using physical update density and executes a
+fixed number of synchronous SSSP rounds.
 
 The normalized and projected simulator path is instead:
 
@@ -102,7 +120,7 @@ The first executable vertical slice is accepted only when it provides:
 5. identical final algorithm values from PMA-native compute and a graph oracle;
 6. byte ledgers for updates, row metadata, binary heads, PMA RMW, vertex state,
    and any native-only conversion;
-7. separate result manifests for native, normalized, and projected profiles.
+7. separate result manifests for native, HLS-emulated, normalized, and projected profiles.
 
 Until those gates pass, the remaining GraSU/ReGraph comparison gap is
 structural, not a calibrated performance result.

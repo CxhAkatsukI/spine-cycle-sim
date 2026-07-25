@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "date": "2026-07-26",
+  "status": "PASS",
+  "claim_class": "whole_system_sw_emu_correctness",
+  "timing_evidence": "not_performance_evidence",
+  "scope": "conversion-free GraSU weighted PMA update to ReGraph weighted SSSP",
+  "source": {
+    "repository": "/home/chuxiao/grasu-regraph-integration",
+    "revision": "ff13a6784d376fb88f90c8b91b8ed8d1e75ed7ec",
+    "branch": "codex/weighted-pma-native-hls",
+    "dirty_at_run_start": false,
+    "grasu_revision": "b79ccb0bc6aae4a2b7dededcee095bf0ad1b67dc"
+  },
+  "build": {
+    "target": "sw_emu",
+    "platform": "xilinx_u55c_gen3x16_xdma_3_202210_1",
+    "requested_kernel_mhz": 200,
+    "xclbin_sha256": "3e819201c8846299a0b5f40ed66be7043fa6f2b1e97bdc7dbba2e2171edaa0ba",
+    "host_sha256": "cbe32e71ff832b4378a69b888e25b11aa8b4116a737f87ae8e95d51397b1fe53",
+    "bitsize_warnings": 8,
+    "compute_units": 15,
+    "compiled_kernel_objects": 10
+  },
+  "topology": {
+    "grasu_bin_search_cus": 4,
+    "grasu_dispatch_cus": 1,
+    "grasu_process_cache_cus": 2,
+    "grasu_process_ddr_cus": 2,
+    "pma_completion_barrier_cus": 1,
+    "pma_to_regraph_adapter_cus": 1,
+    "regraph_little_gs_cus": 1,
+    "regraph_little_merger_cus": 1,
+    "regraph_apply_cus": 1,
+    "regraph_hbm_wrapper_cus": 1,
+    "pma_hbm_channels": [0, 1, 2, 3],
+    "source_state_hbm_channels": [1, 3],
+    "apply_state_hbm_channel": 30,
+    "pma_segment_slots": 16,
+    "axis_edge_lanes": 8,
+    "adapter_to_little_gs_fifo_depth": 32,
+    "pma_to_compact_edge_array": false
+  },
+  "semantic_contract": {
+    "pma_edge_abi": "regraph_weighted32_full_word_compare_dst19_weight12",
+    "weight_change_lowering": "delete_old_word_then_insert_new_word",
+    "reservation_key": "encoded_destination_and_weight_word",
+    "host_vertex_reorder": "physical_update_density_descending_vertex_id_tiebreak",
+    "compute_schedule": "host_fixed_supersteps",
+    "conversion_cost": "absent"
+  },
+  "workload": {
+    "path": "/home/chuxiao/grasu-regraph-integration/workloads/weighted_pma_native_tiny/weighted_pma_native_tiny.graph",
+    "sha256": "adb3c32417e73a172ae6cb6eaced7d93618942e53260e9dea2a5c9bd6634a959",
+    "vertices": 8,
+    "final_edges": 5,
+    "logical_updates": 5,
+    "physical_updates": 8,
+    "source_external": 0,
+    "source_internal": 0,
+    "supersteps": 4,
+    "processed_edge_slots_per_superstep": 64
+  },
+  "correctness": {
+    "result_line_count": 1,
+    "mismatches": 0,
+    "independent_cpu_oracle": "PASS",
+    "external_vertex_distances": [
+      0,
+      3,
+      10,
+      14,
+      12,
+      2147483646,
+      2147483646,
+      2147483646
+    ]
+  },
+  "observed_emulation_ms": {
+    "grasu": 3.136760,
+    "barrier": 0.326010,
+    "adapter": 4.892870,
+    "little_gs": 940.836824,
+    "apply": 1485.962425,
+    "hbm": 1482.277250,
+    "event_e2e": 1494.147299,
+    "wall": 1494.565181
+  },
+  "artifacts": {
+    "run_env": {
+      "path": "/home/chuxiao/grasu-regraph-integration/evidence/weighted_pma_native_sw_emu_ff13a67/run.env",
+      "sha256": "f531be0599da4cdb5e7e57c4117124ff705c4fcf61015a36d4b1b1ee0754f5ce"
+    },
+    "result": {
+      "path": "/home/chuxiao/grasu-regraph-integration/evidence/weighted_pma_native_sw_emu_ff13a67/result.txt",
+      "sha256": "85a0532ca3cd6583761c83c0b71f16e2a1b8aeb52401b73e87656cb026a3af58"
+    },
+    "summary": {
+      "path": "/home/chuxiao/grasu-regraph-integration/evidence/weighted_pma_native_sw_emu_ff13a67/summary.tsv",
+      "sha256": "a7e8dc35895677829f1c47024ed33872a878e097645525d1cdaf9a71d9ad2609"
+    },
+    "build_inputs": {
+      "path": "/home/chuxiao/grasu-regraph-integration/evidence/weighted_pma_native_sw_emu_ff13a67/build_metadata/inputs.tsv",
+      "sha256": "0abebdfcf217686601fd696512a2cc65b761a7686615b4c522b6f4ef48c2c653"
+    },
+    "build_manifest": {
+      "path": "/home/chuxiao/grasu-regraph-integration/evidence/weighted_pma_native_sw_emu_ff13a67/build_metadata/manifest.env",
+      "sha256": "dab6e23da3816135d6c036c56c0b2d2814aca04c309314a841fec73d07271cf6"
+    },
+    "compile_commands": {
+      "path": "/home/chuxiao/grasu-regraph-integration/evidence/weighted_pma_native_sw_emu_ff13a67/build_metadata/compile_commands.sh",
+      "sha256": "ab9595e01faab4f9ae5960c871747bde82173b268ba167d181a57b7f0531ecea"
+    },
+    "link_command": {
+      "path": "/home/chuxiao/grasu-regraph-integration/evidence/weighted_pma_native_sw_emu_ff13a67/build_metadata/link_command.sh",
+      "sha256": "a72a33ff07cd3996d0c5a8059a94c7c8ec948144d964e6b5b4bd4c16a76cc510"
+    }
+  },
+  "claim_boundary": {
+    "validated": [
+      "complete 15-CU weighted PMA-native pipeline launches and terminates under sw_emu",
+      "five logical updates lower to eight physical full-word PMA operations",
+      "weighted PMA is streamed directly to ReGraph without a compact edge array",
+      "four fixed synchronous SSSP rounds match the independent CPU oracle"
+    ],
+    "not_validated": [
+      "real-hardware latency or throughput",
+      "routed timing closure, area, or energy",
+      "hw_emu or hw correctness",
+      "broad-workload correctness",
+      "simulator execution of the exact full-word update and fixed-round contract",
+      "Full PageRank or thresholded residual PageRank in this HLS implementation"
+    ]
+  }
+}

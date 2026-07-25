@@ -16,16 +16,20 @@ silently execute an algorithm under a profile that does not implement it.
 | Profile class | Handoff | Conversion | Executable algorithms | Claim boundary |
 | --- | --- | --- | --- | --- |
 | Existing HLS native `a9aef06` | PMA -> compactor -> edge array | Included | Unit-weight SSSP | Hardware-aligned structure; fixed host supersteps |
+| Weighted HLS `sw_emu` `ff13a67` | Full-word PMA -> 8-lane AXIS | Absent | Profile-only weighted SSSP | Whole-system correctness; simulator execution pending |
 | Normalized weighted | PMA-native | Absent by construction | Weighted SSSP; weighted dynamic SSSP | Simulation only |
 | Normalized PageRank | PMA-native | Absent by construction | Full PageRank | Simulation only |
 | Normalized residual | PMA-native | Absent by construction | Thresholded residual PageRank | Simulation only |
 | Partitioned dynamic PageRank | Partitioned PMA-native | Absent by construction | Full PageRank with timed degree updates | Simulation only |
 | Projected profiles | Parallel PMA-native | Absent by proposal | Profile descriptions only | Not executable |
 
-The important negative result is explicit: the existing routed xclbin does not
-implement weighted PMA words, Full PageRank, residual PageRank, or automatic
-dynamic-SSSP fallback. Those algorithms cannot be labeled `native` merely
-because they reuse the same simulator core.
+The old routed xclbin still does not implement weighted PMA words, Full
+PageRank, residual PageRank, or automatic dynamic-SSSP fallback. Revision
+`ff13a67` closes only the first hardware gap: weighted full-word PMA update and
+conversion-free fixed-round weighted SSSP pass `sw_emu`. The profile remains
+`profile_only` because the simulator still uses destination-keyed replacement,
+logical-update reorder, and convergence-to-quiescence. Those semantics must
+not be presented as the HLS-emulated profile.
 
 ## Enforced Invariants
 
@@ -60,11 +64,12 @@ This is a structural smoke, not a new hardware calibration point.
 ## What This Does Not Implement
 
 This contract prevents claim leakage; it does not turn normalized algorithms
-into native hardware. Closing that gap requires a compile-ready HLS path with
-the weighted PMA ABI and a replaceable Map/Reduce/Apply policy, followed by
-`sw_emu`, `hw_emu`, synthesis, and hardware correctness evidence. Until then,
-the complete 73-pair comparison remains correctly labeled normalized and
-conversion-free.
+into native hardware. Weighted fixed-round SSSP now has a compile-ready HLS
+path and `sw_emu` evidence. The remaining steps are exact simulator execution,
+broader dual-oracle workloads, `hw_emu`, synthesis/routing, and hardware
+correctness. Full and residual PageRank still require matching HLS policies.
+Until then, the complete 73-pair comparison remains correctly labeled
+normalized and conversion-free.
 
 ## Reproduction
 

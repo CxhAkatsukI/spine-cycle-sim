@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "profile_id": "grasu_regraph_weighted_pma_hls_sw_emu_ff13a67",
+  "architecture": "grasu_regraph",
+  "status": "experimental",
+  "evidence_tier": "emulation_validated",
+  "source": {
+    "repository": "/home/chuxiao/grasu-regraph-integration",
+    "revision": "ff13a6784d376fb88f90c8b91b8ed8d1e75ed7ec",
+    "branch": "codex/weighted-pma-native-hls",
+    "dirty": false
+  },
+  "clocks": [
+    {"name": "kernel", "requested_mhz": 200.0, "achieved_mhz": 200.0},
+    {"name": "hbm", "requested_mhz": 450.0, "achieved_mhz": 450.0}
+  ],
+  "memory": {
+    "backend": "u55c_hbm",
+    "channels": 32,
+    "channel_capacity_bytes": 536870912,
+    "data_width_bits": 512,
+    "max_burst_bytes": 1024,
+    "max_outstanding_per_port": 16
+  },
+  "parameters": {
+    "comparison_role": "hls_sw_emu",
+    "clock_claim": "requested_configuration_only",
+    "grasu_revision": "b79ccb0bc6aae4a2b7dededcee095bf0ad1b67dc",
+    "grasu_bin_search_cus": 4,
+    "grasu_binary_search_workers_per_cu": 1,
+    "grasu_compact_hbm_ports": true,
+    "grasu_dispatch_cus": 1,
+    "grasu_process_cache_cus": 2,
+    "grasu_process_ddr_cus": 2,
+    "grasu_cache_lanes_per_cu": 1,
+    "grasu_direct_cache_hbm_rmw": true,
+    "grasu_ddr_halves_per_cu": 2,
+    "grasu_ddr_lanes_per_half": 16,
+    "grasu_segment_slots": 16,
+    "grasu_cache_segments_per_cu": 131072,
+    "grasu_pma_hbm_channels": 4,
+    "grasu_pma_hbm_first_channel": 0,
+    "grasu_pma_edge_abi": "regraph_weighted32_full_word_compare_dst19_weight12",
+    "grasu_weight_change_lowering": "delete_old_word_then_insert_new_word",
+    "grasu_pma_reservation_key": "encoded_destination_and_weight_word",
+    "grasu_host_reorder": "physical_update_density_descending_vertex_id_tiebreak",
+    "pma_completion_barrier_cus": 1,
+    "regraph_pma_adapter_cus": 1,
+    "regraph_pma_adapter_edge_lanes": 8,
+    "regraph_pma_adapter_axis_fifo_depth": 32,
+    "regraph_little_gs_cus": 1,
+    "regraph_little_merger_cus": 1,
+    "regraph_apply_cus": 1,
+    "regraph_hbm_wrapper_cus": 1,
+    "regraph_map_reduce_lanes": 8,
+    "regraph_partition_vertices": 65536,
+    "regraph_source_buffer_vertices": 4096,
+    "regraph_source_cache_request_fifo_depth": 8,
+    "regraph_source_cache_response_fifo_depth": 8,
+    "regraph_gather_bypass_distance": 6,
+    "regraph_gather_pipeline_latency": 9,
+    "regraph_gather_merger_fifo_depth": 16,
+    "regraph_merger_apply_fifo_depth": 16,
+    "regraph_apply_wrapper_fifo_depth": 16,
+    "regraph_apply_request_window": 16,
+    "regraph_apply_pipeline_latency": 100,
+    "regraph_apply_pipeline_capacity": 100,
+    "regraph_hbm_wrapper_pipeline_latency": 71,
+    "regraph_hbm_wrapper_pipeline_capacity": 71,
+    "regraph_source_state_channel": 1,
+    "regraph_source_state_mirror_channel": 3,
+    "regraph_apply_state_channel": 30,
+    "regraph_source_state_copies": 2,
+    "hls_validation_supersteps": 4,
+    "hls_compute_schedule": "host_fixed_supersteps",
+    "hls_compute_units": 15,
+    "pma_native_compute": true,
+    "conversion_cost_included": false
+  },
+  "features": [
+    "whole_system_sw_emu_correctness",
+    "weighted_full_word_pma_update",
+    "weight_change_delete_insert_lowering",
+    "physical_update_density_vertex_reorder",
+    "completion_barrier",
+    "conversion_free_weighted_pma_axis_handoff",
+    "eight_lane_regraph_little_gs",
+    "fixed_host_supersteps",
+    "independent_cpu_sssp_oracle"
+  ],
+  "evidence": [
+    {
+      "kind": "parsed_sw_emu_summary",
+      "path": "docs/evidence/grasu_regraph_weighted_pma_sw_emu_20260726.json",
+      "sha256": "3870f91ea85e4fdf4128f25c04664ef16f1f03a3e30f335f99ea58d5bd59f47b"
+    },
+    {
+      "kind": "sw_emu_run_env",
+      "path": "/home/chuxiao/grasu-regraph-integration/evidence/weighted_pma_native_sw_emu_ff13a67/run.env",
+      "sha256": "f531be0599da4cdb5e7e57c4117124ff705c4fcf61015a36d4b1b1ee0754f5ce"
+    },
+    {
+      "kind": "sw_emu_result",
+      "path": "/home/chuxiao/grasu-regraph-integration/evidence/weighted_pma_native_sw_emu_ff13a67/result.txt",
+      "sha256": "85a0532ca3cd6583761c83c0b71f16e2a1b8aeb52401b73e87656cb026a3af58"
+    },
+    {
+      "kind": "sw_emu_xclbin_identity",
+      "path": "/home/chuxiao/grasu-regraph-integration/.tmp_build/weighted_pma_native_sw_emu_df7d30c/build/grasu_regraph_weighted_pma_native.sw_emu.xclbin",
+      "sha256": "3e819201c8846299a0b5f40ed66be7043fa6f2b1e97bdc7dbba2e2171edaa0ba"
+    }
+  ],
+  "limitations": [
+    "The 200 MHz kernel and 450 MHz HBM entries describe the requested build configuration; sw_emu does not prove achieved clock or timing closure.",
+    "sw_emu event and wall times are not hardware performance evidence.",
+    "Only one eight-vertex weighted dynamic workload and four fixed SSSP rounds are validated.",
+    "The current simulator does not yet execute this profile's full-word update, physical-update reorder, and fixed-round semantics.",
+    "Graphs beyond one 19-bit destination partition require an explicit partitioned PMA design.",
+    "Full PageRank and thresholded residual PageRank are not implemented by this HLS profile.",
+    "The eight inherited GraSU ap_uint bitsize warnings remain a synthesis-audit item."
+  ]
+}

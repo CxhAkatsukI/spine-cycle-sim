@@ -34,6 +34,37 @@
       ]
     },
     {
+      "profile_id": "grasu_regraph_weighted_pma_hls_sw_emu_ff13a67",
+      "profile_path": "configs/architectures/grasu_regraph_weighted_pma_hls_sw_emu_ff13a67.json",
+      "profile_sha256": "491e57bac84d95ec7af794a0496fc23ee191909d405cb78d877ac2cabd62c72c",
+      "comparison_role": "hls_sw_emu",
+      "handoff": "weighted_pma_to_axis_stream",
+      "conversion_cost": "absent",
+      "supported_algorithms": {
+        "weighted_sssp": {
+          "implementation_status": "profile_only",
+          "claim_class": "hls_sw_emu_validated_profile_not_simulator_executable",
+          "edge_semantics": "weighted32_full_word_compare_dst19_weight12",
+          "update_semantics": "full_word_delete_insert_then_fixed_round_recompute",
+          "convergence": "host_fixed_supersteps",
+          "evidence_tier": "emulation_validated"
+        },
+        "weighted_dynamic_sssp": {
+          "implementation_status": "profile_only",
+          "claim_class": "hls_sw_emu_validated_profile_not_simulator_executable",
+          "edge_semantics": "weighted32_full_word_compare_dst19_weight12",
+          "update_semantics": "logical_weight_change_lowers_to_delete_old_insert_new_then_fixed_round_recompute",
+          "convergence": "host_fixed_supersteps",
+          "evidence_tier": "emulation_validated"
+        }
+      },
+      "unsupported_algorithms": [
+        "unit_weight_sssp",
+        "full_pagerank",
+        "thresholded_residual_pagerank"
+      ]
+    },
+    {
       "profile_id": "grasu_regraph_normalized_spine23",
       "profile_path": "configs/architectures/grasu_regraph_normalized_spine23.json",
       "profile_sha256": "b0692a76b2f512c65633ebe49ceca790380991afeb6f93bf0478607e92c411ea",

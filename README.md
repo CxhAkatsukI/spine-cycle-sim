@@ -29,11 +29,19 @@ and evidence contract is documented in
 The legacy Python/calibration path remains available for regression while that
 new path is implemented.
 
-The frozen native, normalized, and projected GraSU + ReGraph comparison
+The frozen native, HLS-emulated, normalized, and projected GraSU + ReGraph comparison
 contract is documented in
 [`docs/grasu_regraph_pma_native_contract_20260725.md`](docs/grasu_regraph_pma_native_contract_20260725.md).
 It records the real GraSU PMA topology and prevents the existing capacity-wide
 conversion cost from being silently removed from native results.
+
+A conversion-free weighted-PMA HLS implementation now passes whole-system
+`sw_emu` against an independent weighted-SSSP oracle. Its 15-CU topology,
+full-word delete/insert update semantics, requested clock, fixed four-round
+host schedule, and non-performance claim boundary are frozen in
+[`docs/grasu_regraph_weighted_pma_hls_sw_emu_20260726.md`](docs/grasu_regraph_weighted_pma_hls_sw_emu_20260726.md).
+It remains fail-closed as `profile_only` until the simulator executes those
+exact semantics.
 
 The first executable GraSU comparator slice now performs payload-backed PMA
 insert/delete updates through finite AXIS, AXI, and shared-HBM components. Its

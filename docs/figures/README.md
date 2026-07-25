@@ -12,6 +12,10 @@
   explicit split between the currently measured capacity-wide compactor path
   and the target PMA-native ReGraph path. Its editable source is the adjacent
   `.dot` file.
+- `grasu_regraph_profile_ladder.svg`: claim-preserving progression from the old
+  routed compactor baseline through the weighted-PMA `sw_emu` implementation,
+  normalized three-algorithm simulator, and projected design points. Its
+  editable source is the adjacent `.dot` file.
 - `grasu_native_update_vertical.svg`: implemented execution-driven GraSU U55C
   update path, including payload-backed PMA RMW, finite queues, shared-HBM
   contention, and the correctness/statistics sinks. Its editable source is the

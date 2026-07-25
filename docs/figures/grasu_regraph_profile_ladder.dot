@@ -1,0 +1,22 @@
+digraph G {
+  graph [rankdir=LR, bgcolor="white", pad="0.25", nodesep="0.35", ranksep="0.55"];
+  node [shape=box, style="rounded,filled", fillcolor="#f7f7f4", color="#333333", fontname="DejaVu Sans", fontsize=10];
+  edge [color="#555555", fontname="DejaVu Sans", fontsize=9];
+
+  native [label="Native a9aef06\nPMA -> compactor -> edge array\nunit SSSP | routed HW", fillcolor="#f3d4d4"];
+  hls [label="HLS sw_emu ff13a67\nweighted full-word PMA -> AXIS\nweighted SSSP | correctness only", fillcolor="#f4e4bf"];
+  normalized [label="Normalized simulator\nPMA-native shared core\nSSSP | Full PR | residual PR", fillcolor="#dcebd9"];
+  projected [label="Projected design points\nparallel readers / change awareness\nprofile only", fillcolor="#dfeaf4"];
+
+  conversion [label="Conversion included", shape=note, fillcolor="#ffffff"];
+  no_conversion [label="Conversion absent", shape=note, fillcolor="#ffffff"];
+  profile_only [label="No executable simulator yet", shape=note, fillcolor="#ffffff"];
+
+  native -> hls [label="replace compactor\nadd weighted stream ABI"];
+  hls -> normalized [label="align full-word update,\nreorder, fixed rounds"];
+  normalized -> projected [label="explicit optimization delta"];
+  native -> conversion [style=dashed];
+  hls -> no_conversion [style=dashed];
+  normalized -> no_conversion [style=dashed];
+  projected -> profile_only [style=dashed];
+}

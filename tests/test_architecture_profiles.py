@@ -19,9 +19,38 @@ PROFILES = ROOT / "configs" / "architectures"
 
 
 class ArchitectureProfileTests(unittest.TestCase):
+    def test_weighted_pma_hls_sw_emu_profile_freezes_real_topology(self) -> None:
+        profile = load_architecture_profile(
+            ROOT
+            / "configs"
+            / "architectures"
+            / "grasu_regraph_weighted_pma_hls_sw_emu_ff13a67.json"
+        )
+        self.assertEqual(profile.evidence_tier, EvidenceTier.EMULATION_VALIDATED)
+        self.assertEqual(profile.parameters["comparison_role"], "hls_sw_emu")
+        self.assertEqual(profile.parameters["hls_compute_units"], 15)
+        self.assertEqual(profile.parameters["regraph_map_reduce_lanes"], 8)
+        self.assertEqual(
+            profile.parameters["grasu_pma_edge_abi"],
+            "regraph_weighted32_full_word_compare_dst19_weight12",
+        )
+        self.assertEqual(
+            profile.parameters["grasu_weight_change_lowering"],
+            "delete_old_word_then_insert_new_word",
+        )
+        self.assertEqual(profile.parameters["hls_validation_supersteps"], 4)
+        self.assertTrue(profile.parameters["pma_native_compute"])
+        self.assertFalse(profile.parameters["conversion_cost_included"])
+        self.assertEqual(profile.memory.max_outstanding_per_port, 16)
+        evidence = {artifact.kind: artifact for artifact in profile.evidence}
+        self.assertEqual(
+            evidence["sw_emu_xclbin_identity"].sha256,
+            "3e819201c8846299a0b5f40ed66be7043fa6f2b1e97bdc7dbba2e2171edaa0ba",
+        )
+
     def test_repository_profiles_load_and_have_unique_ids(self) -> None:
         loaded = [load_architecture_profile(path) for path in sorted(PROFILES.glob("*.json"))]
-        self.assertEqual(len(loaded), 11)
+        self.assertEqual(len(loaded), 12)
         self.assertEqual(len({profile.profile_id for profile in loaded}), len(loaded))
         self.assertTrue(all(profile.manifest_sha256 for profile in loaded))
 
