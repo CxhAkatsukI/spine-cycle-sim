@@ -50,7 +50,7 @@ class ArchitectureProfileTests(unittest.TestCase):
 
     def test_repository_profiles_load_and_have_unique_ids(self) -> None:
         loaded = [load_architecture_profile(path) for path in sorted(PROFILES.glob("*.json"))]
-        self.assertEqual(len(loaded), 13)
+        self.assertEqual(len(loaded), 14)
         self.assertEqual(len({profile.profile_id for profile in loaded}), len(loaded))
         self.assertTrue(all(profile.manifest_sha256 for profile in loaded))
 
@@ -133,6 +133,10 @@ class ArchitectureProfileTests(unittest.TestCase):
             PROFILES
             / "grasu_regraph_weighted_pma_hls_proposed_pagerank_ff13a67.json"
         )
+        hls_proposed_residual = load_architecture_profile(
+            PROFILES
+            / "grasu_regraph_weighted_pma_hls_proposed_residual_pagerank_ff13a67.json"
+        )
 
         self.assertEqual(native.parameters["comparison_role"], "native")
         self.assertFalse(native.parameters["pma_native_compute"])
@@ -209,6 +213,21 @@ class ArchitectureProfileTests(unittest.TestCase):
         )
         self.assertFalse(
             hls_proposed_pagerank.parameters["conversion_cost_included"]
+        )
+        self.assertEqual(
+            hls_proposed_residual.parameters["comparison_role"],
+            "hls_equivalent_proposed",
+        )
+        self.assertEqual(
+            hls_proposed_residual.parameters["pagerank_state_bytes_per_vertex"],
+            8,
+        )
+        self.assertEqual(
+            hls_proposed_residual.parameters["pagerank_activation_rule"],
+            "abs_residual_gt_epsilon_over_vertices",
+        )
+        self.assertTrue(
+            hls_proposed_residual.parameters["pagerank_degree_update_timing"]
         )
         self.assertTrue(
             pagerank_normalized.parameters["pagerank_degree_reads_timed"]

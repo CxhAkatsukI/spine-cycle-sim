@@ -124,6 +124,21 @@ class ProfileCapabilityTests(unittest.TestCase):
             "hls_equivalent_proposed_execution_driven_simulation",
         )
 
+    def test_proposed_hls_residual_profile_is_executable(self) -> None:
+        profile = load_capability_catalog(CATALOG).profile(
+            "grasu_regraph_weighted_pma_hls_proposed_residual_pagerank_ff13a67"
+        )
+        capability = profile.require("thresholded_residual_pagerank")
+        self.assertEqual(profile.comparison_role, "hls_equivalent_proposed")
+        self.assertEqual(
+            capability.implementation_status, ImplementationStatus.EXECUTABLE
+        )
+        self.assertEqual(capability.evidence_tier, "simulation_only")
+        self.assertEqual(
+            capability.convergence,
+            "signed_residual_threshold_or_iteration_limit",
+        )
+
     def test_projected_profile_is_not_an_executable_implementation(self) -> None:
         projected = load_capability_catalog(CATALOG).profile(
             "grasu_regraph_weighted_pma_native_projected"
