@@ -21,7 +21,7 @@ PROFILES = ROOT / "configs" / "architectures"
 class ArchitectureProfileTests(unittest.TestCase):
     def test_repository_profiles_load_and_have_unique_ids(self) -> None:
         loaded = [load_architecture_profile(path) for path in sorted(PROFILES.glob("*.json"))]
-        self.assertEqual(len(loaded), 8)
+        self.assertEqual(len(loaded), 9)
         self.assertEqual(len({profile.profile_id for profile in loaded}), len(loaded))
         self.assertTrue(all(profile.manifest_sha256 for profile in loaded))
 
@@ -89,6 +89,9 @@ class ArchitectureProfileTests(unittest.TestCase):
         weighted_projected = load_architecture_profile(
             PROFILES / "grasu_regraph_weighted_pma_native_projected.json"
         )
+        pagerank_normalized = load_architecture_profile(
+            PROFILES / "grasu_regraph_normalized_pagerank_spine23.json"
+        )
 
         self.assertEqual(native.parameters["comparison_role"], "native")
         self.assertFalse(native.parameters["pma_native_compute"])
@@ -140,6 +143,19 @@ class ArchitectureProfileTests(unittest.TestCase):
         self.assertEqual(
             weighted_projected.parameters["grasu_pma_edge_abi"],
             "regraph_weighted32_dst19_weight12",
+        )
+        self.assertEqual(
+            pagerank_normalized.parameters["regraph_degree_channel"], 30
+        )
+        self.assertEqual(
+            pagerank_normalized.parameters["regraph_pagerank_source_map_latency"],
+            3,
+        )
+        self.assertTrue(
+            pagerank_normalized.parameters["pagerank_degree_reads_timed"]
+        )
+        self.assertFalse(
+            pagerank_normalized.parameters["pagerank_degree_update_timing"]
         )
 
     def test_grasu_native_profile_matches_hls_topology(self) -> None:

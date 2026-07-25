@@ -1,0 +1,158 @@
+{
+  "schema_version": 1,
+  "date": "2026-07-25",
+  "status": "PASS",
+  "claim_class": "normalized_simulation",
+  "timing_evidence": "structural_execution_driven",
+  "scope": "one-partition fixed-iteration Full PageRank over GraSU weighted PMA and PMA-native ReGraph",
+  "profile": {
+    "path": "configs/architectures/grasu_regraph_normalized_pagerank_spine23.json",
+    "sha256": "65050071426511b9be958a66aba649336ac3972214366929ba742a71bf371bec",
+    "core_mhz": 150,
+    "hbm_channels": 32,
+    "partition_vertices": 65536,
+    "edge_lanes": 4,
+    "degree_channel": 30,
+    "source_map_latency": 3
+  },
+  "workload": {
+    "path": "tests/data/grasu_regraph_pagerank_initial.slice",
+    "sha256": "e2ca3e1c0267f8bf130dd3c532aa1d1a2774b4071b1e8fa971a006d7707561ab",
+    "vertices": 4,
+    "edges": 4,
+    "dangling_vertices": 1,
+    "iterations": 3,
+    "damping": 0.85
+  },
+  "component_result": {
+    "backend": "mock_hbm",
+    "cycles": 1243,
+    "iterations": 3,
+    "degree_reads": 12,
+    "source_map_cycles": 36,
+    "active_edges": 12,
+    "rank_sum": 1.0,
+    "architecture_oracle": "PASS",
+    "float64_mathematical_oracle": "PASS"
+  },
+  "sst_smoke": {
+    "result_path": "results/grasu_regraph_pagerank_dual_oracle_smoke_20260725/result.json",
+    "result_sha256": "73bd63bea88c875473a2ebcad141b2a7da0ce0e168355f9829a101d2b9529af3",
+    "manifest_path": "results/grasu_regraph_pagerank_dual_oracle_smoke_20260725/manifest.json",
+    "manifest_sha256": "55fa8e863bae4d8aa06f01697d07732dd3c0a299a5c00f766f50e1e536e7e188",
+    "claim_class": "component_validation_simulation",
+    "partition_vertices": 16,
+    "cycles": 2364,
+    "backend_requests": 1581,
+    "correctness_mismatches": 0
+  },
+  "sst_normalized": {
+    "result_path": "results/grasu_regraph_pagerank_dual_oracle_normalized_20260725/result.json",
+    "result_sha256": "3ce6234101a152d7bfae71c6a2589db268eef25480914eb77f79e2a4e47beb89",
+    "manifest_path": "results/grasu_regraph_pagerank_dual_oracle_normalized_20260725/manifest.json",
+    "manifest_sha256": "3b843dfa24d75de85e7867ec19a83b52a007c35473f2154afca2efc7a9f4c26f",
+    "backend": "sst_memHierarchy_dramsim3",
+    "cycles": 132886,
+    "update_cycles": 1,
+    "compute_cycles": 132885,
+    "iterations": 3,
+    "architecture_correctness_mismatches": 0,
+    "mathematical_correctness_mismatches": 0,
+    "architecture_max_abs_error": 0.0,
+    "mathematical_max_abs_error": 1.81955e-8,
+    "rank_sum": 1.0,
+    "degree_reads": 12,
+    "degree_read_bytes": 48,
+    "source_map_cycles": 36,
+    "pma_segment_reads": 9,
+    "pma_slots_scanned": 144,
+    "live_edges_scanned": 12,
+    "active_edges_mapped": 12,
+    "gather_rows": 98304,
+    "apply_state_reads": 12288,
+    "apply_state_writes": 12288,
+    "compute_read_bytes": 885456,
+    "compute_write_bytes": 2359296,
+    "backend_requests": 50721,
+    "backend_max_outstanding": 33,
+    "degree_update_timing_included": false,
+    "degree_updates_required": 0
+  },
+  "sssp_regression": {
+    "weighted_dynamic_cycles": 132967,
+    "weighted_dynamic_backend_requests": 50744,
+    "unit_weight_cycles": 99379,
+    "unit_weight_backend_requests": 33838,
+    "correctness_mismatches": 0
+  },
+  "simulator_sources": {
+    "regraph_header": {
+      "path": "cpp/include/spine_sim/grasu_regraph.hpp",
+      "sha256": "9044d91e90b1ffafa85539d54153bd4a28d11cb0961daf9c44ea45a2f04c98cb"
+    },
+    "regraph_compute": {
+      "path": "cpp/src/grasu_regraph.cpp",
+      "sha256": "18e38f3b169fd772e9847834ae0860eebc61ee394e546d71a57f9412f9f33f55"
+    },
+    "sst_component": {
+      "path": "cpp/sst/online_memory_probe.cpp",
+      "sha256": "29a51bf75dfa11364fbb5f1b41c0e6861e12a72da875a5dd8bba178a84cd39ae"
+    },
+    "component_tests": {
+      "path": "cpp/tests/grasu_tests.cpp",
+      "sha256": "29fc3c4624510b332007c0dec10f77214b93ded008ed1d220d55b14f21142050"
+    },
+    "runner": {
+      "path": "scripts/run_sst_grasu_regraph_pagerank.py",
+      "sha256": "60da53002a2735be040ed262f810d21af424ff2907176469fd20a87db11c0eb8"
+    },
+    "sst_configuration": {
+      "path": "sst/grasu_regraph_vertical.py",
+      "sha256": "fc20e1568a54dcec40b9a49d3583e0a9f15b364ae9ddb0225fc587180e911a74"
+    }
+  },
+  "hardware_reference": {
+    "regraph_config": {
+      "path": "/home/chuxiao/ReGraph/acc_template/common/acc_config.h",
+      "sha256": "cea3424ec1faff3c48c3e26b62f4e09c1483da41eb424aa4ca8086ecee4bba08"
+    },
+    "regraph_scatter": {
+      "path": "/home/chuxiao/ReGraph/acc_template/kernel_little_gs/acc_scatter.h",
+      "sha256": "33e88abf5b83f558b21825bd492bbf301f96825250953b9bbf5bb13aa78529e9"
+    },
+    "regraph_gather": {
+      "path": "/home/chuxiao/ReGraph/acc_template/kernel_little_gs/acc_gather.h",
+      "sha256": "6a8b5daf4a3ed9b4573c9ad90a4a0babb1fdea46426758bcc0b5cf6914af142f"
+    }
+  },
+  "validation": {
+    "release_ctest": "2/2 PASS",
+    "python_unittest": "161/161 PASS",
+    "grasu_component_tests": "13/13 PASS",
+    "grasu_address_undefined_sanitizers": "13/13 PASS",
+    "sst_smoke": "PASS",
+    "sst_normalized": "PASS",
+    "weighted_sssp_regressions": "2/2 PASS"
+  },
+  "claim_boundary": {
+    "validated": [
+      "fixed-iteration Full PageRank with float32 state",
+      "dangling-mass redistribution",
+      "payload-backed PMA row, segment, source-state, degree, and apply traffic",
+      "finite FIFO, AXI, and online SST-HBM backpressure",
+      "float32 architecture-oracle equality",
+      "float64 mathematical-oracle agreement",
+      "complete fixed-partition gather and apply work ledger",
+      "unchanged weighted and unit-weight SSSP regressions"
+    ],
+    "not_validated": [
+      "dynamic out-degree maintenance timing",
+      "graphs requiring more than one 19-bit destination partition",
+      "matching PageRank HLS synthesis or xclbin",
+      "hardware-cycle calibration",
+      "thresholded residual PageRank on the comparator",
+      "three-real-dataset runtime validation",
+      "PPA and total accelerator energy"
+    ]
+  }
+}

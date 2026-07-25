@@ -40,16 +40,19 @@ struct GraSuReGraphConfig {
   std::size_t apply_pipeline_capacity{100};
   std::size_t hbm_wrapper_pipeline_latency{71};
   std::size_t hbm_wrapper_pipeline_capacity{71};
+  std::size_t pagerank_source_map_latency{1};
   std::size_t max_supersteps{1024};
   std::uint64_t row_offset_base{0x1000'0000ULL};
   std::uint64_t pma_base{0x3000'0000ULL};
   std::uint64_t vertex_state_base{0x4000'0000ULL};
   std::uint64_t source_state_base{0x5000'0000ULL};
   std::uint64_t source_state_buffer_stride{0x0010'0000ULL};
+  std::uint64_t degree_base{0x4100'0000ULL};
   std::size_t row_channel{0};
   std::size_t source_state_channel{1};
   std::size_t source_state_mirror_channel{3};
   std::size_t vertex_state_channel{30};
+  std::size_t degree_channel{30};
 };
 
 struct GraSuReGraphCounters {
@@ -66,6 +69,8 @@ struct GraSuReGraphCounters {
   std::size_t source_cache_request_fifo_max_occupancy{};
   std::size_t source_cache_response_fifo_max_occupancy{};
   std::uint64_t source_state_writes{};
+  std::uint64_t degree_reads{};
+  std::uint64_t source_map_cycles{};
   std::uint64_t pma_segment_reads{};
   std::uint64_t edge_batches_scanned{};
   std::uint64_t pma_slots_scanned{};
@@ -106,6 +111,7 @@ struct GraSuReGraphCounters {
   std::uint64_t row_read_bytes{};
   std::uint64_t source_state_read_bytes{};
   std::uint64_t source_state_write_bytes{};
+  std::uint64_t degree_read_bytes{};
   std::uint64_t pma_read_bytes{};
   std::uint64_t apply_read_bytes{};
   std::uint64_t apply_write_bytes{};
@@ -113,16 +119,24 @@ struct GraSuReGraphCounters {
   std::uint64_t axis_push_stalls{};
   std::uint64_t start_cycle{};
   std::uint64_t end_cycle{};
+  float last_iteration_error{};
 };
 
 // Direct PMA-to-ReGraph weighted-SSSP vertical slice. Its normalized PMA word
-// uses ReGraph's 19-bit local destination and 12-bit weight ABI; multi-partition
-// destination routing remains outside this one-partition system.
+// uses ReGraph's 19-bit local destination and 12-bit weight ABI;
+// multi-partition destination routing remains outside this one-partition
+// system.
 class GraSuReGraphSsspSystem {
 public:
   GraSuReGraphSsspSystem(Scheduler &scheduler, ClockId clock_id,
                          MemoryBackend &backend, GraSuPmaLayout layout,
                          std::uint32_t source, GraSuReGraphConfig config = {});
+  GraSuReGraphSsspSystem(Scheduler &scheduler, ClockId clock_id,
+                         MemoryBackend &backend, GraSuPmaLayout layout,
+                         GraphAlgorithmPolicy policy,
+                         std::vector<std::uint32_t> out_degrees,
+                         std::size_t fixed_rounds,
+                         GraSuReGraphConfig config = {});
   ~GraSuReGraphSsspSystem();
 
   GraSuReGraphSsspSystem(const GraSuReGraphSsspSystem &) = delete;
@@ -134,10 +148,35 @@ public:
   [[nodiscard]] const std::string &failure() const noexcept;
   [[nodiscard]] GraSuReGraphCounters counters() const noexcept;
   [[nodiscard]] std::vector<std::uint32_t> distances() const;
+  [[nodiscard]] std::vector<std::uint32_t> state_words() const;
 
 private:
   class Impl;
   std::unique_ptr<Impl> impl_;
+};
+
+class GraSuReGraphPageRankSystem {
+public:
+  GraSuReGraphPageRankSystem(Scheduler &scheduler, ClockId clock_id,
+                             MemoryBackend &backend, GraSuPmaLayout layout,
+                             std::vector<std::uint32_t> out_degrees,
+                             std::size_t iterations, float damping = 0.85F,
+                             GraSuReGraphConfig config = {});
+  ~GraSuReGraphPageRankSystem();
+
+  GraSuReGraphPageRankSystem(const GraSuReGraphPageRankSystem &) = delete;
+  GraSuReGraphPageRankSystem &
+  operator=(const GraSuReGraphPageRankSystem &) = delete;
+
+  void register_components();
+  [[nodiscard]] bool done() const noexcept;
+  [[nodiscard]] bool failed() const noexcept;
+  [[nodiscard]] const std::string &failure() const noexcept;
+  [[nodiscard]] GraSuReGraphCounters counters() const noexcept;
+  [[nodiscard]] std::vector<float> ranks() const;
+
+private:
+  std::unique_ptr<GraSuReGraphSsspSystem> engine_;
 };
 
 } // namespace spine::sim

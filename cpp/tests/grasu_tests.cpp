@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cmath>
 #include <cstdint>
 #include <functional>
 #include <iostream>
@@ -18,19 +19,20 @@
 
 namespace {
 
+using spine::sim::decode_grasu_pma_destination;
+using spine::sim::decode_grasu_pma_weight;
+using spine::sim::encode_grasu_pma_edge;
 using spine::sim::GraSuEdge;
 using spine::sim::GraSuNativeConfig;
 using spine::sim::GraSuPmaLayout;
 using spine::sim::GraSuPmaUpdateSystem;
 using spine::sim::GraSuReGraphConfig;
+using spine::sim::GraSuReGraphPageRankSystem;
 using spine::sim::GraSuReGraphSsspSystem;
+using spine::sim::is_grasu_pma_empty;
 using spine::sim::MockMemoryBackend;
 using spine::sim::MockMemoryConfig;
 using spine::sim::Scheduler;
-using spine::sim::decode_grasu_pma_destination;
-using spine::sim::decode_grasu_pma_weight;
-using spine::sim::encode_grasu_pma_edge;
-using spine::sim::is_grasu_pma_empty;
 
 void require(bool condition, const std::string &message) {
   if (!condition) {
@@ -94,6 +96,34 @@ weighted_sssp_oracle(std::size_t vertices, const std::vector<GraSuEdge> &edges,
   return distances;
 }
 
+template <typename Real>
+std::vector<Real> full_pagerank_oracle(std::size_t vertices,
+                                       const std::vector<GraSuEdge> &edges,
+                                       std::size_t iterations, Real damping) {
+  std::vector<std::uint32_t> degree(vertices);
+  for (const GraSuEdge &edge : edges) {
+    ++degree.at(edge.source);
+  }
+  std::vector<Real> rank(vertices, Real{1} / static_cast<Real>(vertices));
+  for (std::size_t iteration = 0; iteration < iterations; ++iteration) {
+    Real dangling = Real{0};
+    for (std::size_t vertex = 0; vertex < vertices; ++vertex) {
+      if (degree[vertex] == 0) {
+        dangling += rank[vertex];
+      }
+    }
+    const Real initial = (Real{1} - damping) / static_cast<Real>(vertices) +
+                         damping * dangling / static_cast<Real>(vertices);
+    std::vector<Real> next(vertices, initial);
+    for (const GraSuEdge &edge : edges) {
+      next[edge.destination] +=
+          damping * rank[edge.source] / static_cast<Real>(degree[edge.source]);
+    }
+    rank = std::move(next);
+  }
+  return rank;
+}
+
 void test_weighted_pma_edge_abi_matches_regraph() {
   const std::uint32_t encoded = encode_grasu_pma_edge(0x7ffffU, 0xfffU);
   require(!is_grasu_pma_empty(encoded) &&
@@ -128,18 +158,18 @@ void test_weighted_pma_edge_abi_matches_regraph() {
 
   rejected = false;
   try {
-    (void)GraSuPmaLayout::build(
-        spine::sim::kGraSuPmaLocalVertexCapacity + 1, {}, {});
+    (void)GraSuPmaLayout::build(spine::sim::kGraSuPmaLocalVertexCapacity + 1,
+                                {}, {});
   } catch (const std::invalid_argument &) {
     rejected = true;
   }
   require(rejected, "weighted PMA accepted more than one local partition");
 
-  const GraSuPmaLayout duplicate_layout = GraSuPmaLayout::build(
-      8,
-      {{.source = 0, .destination = 1, .weight = 3},
-       {.source = 0, .destination = 1, .weight = 7}},
-      {});
+  const GraSuPmaLayout duplicate_layout =
+      GraSuPmaLayout::build(8,
+                            {{.source = 0, .destination = 1, .weight = 3},
+                             {.source = 0, .destination = 1, .weight = 7}},
+                            {});
   const auto duplicate_edges = duplicate_layout.live_edges();
   require(duplicate_edges.size() == 1 && duplicate_edges.front().weight == 7,
           "weighted PMA initial duplicate is not last-write-wins");
@@ -301,8 +331,7 @@ void test_weighted_dynamic_pma_regraph_matches_dijkstra() {
       [&] { return update_system.done() || update_system.failed(); },
       2'000'000);
   require(update_system.done() && !update_system.failed(),
-          "weighted GraSU update did not complete: " +
-              update_system.failure());
+          "weighted GraSU update did not complete: " + update_system.failure());
   const std::vector<GraSuEdge> final_edges = update_system.live_edges();
   require(weighted_edge_map(final_edges) == expected,
           "weighted PMA payload differs from the edge-state oracle");
@@ -342,6 +371,100 @@ void test_weighted_dynamic_pma_regraph_matches_dijkstra() {
             << " decreases=" << update_counters.weight_decreases
             << " increases=" << update_counters.weight_increases
             << " supersteps=" << compute_counters.supersteps << '\n';
+}
+
+void test_pma_native_regraph_full_pagerank_matches_oracle() {
+  constexpr std::size_t kVertices = 4;
+  constexpr std::size_t kIterations = 3;
+  constexpr float kDamping = 0.85F;
+  const std::vector<GraSuEdge> edges = {
+      {.source = 0, .destination = 1},
+      {.source = 0, .destination = 2},
+      {.source = 1, .destination = 2},
+      {.source = 2, .destination = 0},
+  };
+  GraSuPmaLayout layout = GraSuPmaLayout::build(kVertices, edges, {});
+  std::vector<std::uint32_t> degrees(kVertices);
+  for (const GraSuEdge &edge : edges) {
+    ++degrees[edge.source];
+  }
+
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("grasu-regraph-pagerank", 150.0);
+  MockMemoryBackend backend("shared-hbm", core,
+                            MockMemoryConfig{.channels = 32,
+                                             .latency_cycles = 7,
+                                             .accepts_per_channel_per_cycle = 1,
+                                             .max_outstanding_per_channel = 32,
+                                             .response_queue_depth = 128});
+  GraSuReGraphConfig config;
+  config.partition_vertices = 16;
+  config.source_buffer_vertices = 16;
+  config.edge_lanes = 4;
+  config.gather_banks = 4;
+  config.pagerank_source_map_latency = 3;
+  GraSuPmaUpdateSystem initializer(scheduler, core, backend, layout, {},
+                                   GraSuNativeConfig{});
+  initializer.register_components();
+  require(initializer.done(), "PageRank PMA initializer did not drain");
+  GraSuReGraphPageRankSystem system(scheduler, core, backend, layout, degrees,
+                                    kIterations, kDamping, config);
+  system.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until([&] { return system.done() || system.failed(); },
+                      2'000'000);
+
+  require(!system.failed(),
+          "PMA-native ReGraph PageRank failed: " + system.failure());
+  require(system.done(), "PMA-native ReGraph PageRank did not drain");
+  const auto expected =
+      full_pagerank_oracle<float>(kVertices, edges, kIterations, kDamping);
+  const auto mathematical = full_pagerank_oracle<double>(
+      kVertices, edges, kIterations, static_cast<double>(kDamping));
+  const auto actual = system.ranks();
+  require(actual.size() == expected.size(),
+          "PMA-native ReGraph PageRank rank count mismatch");
+  for (std::size_t vertex = 0; vertex < actual.size(); ++vertex) {
+    require(std::fabs(actual[vertex] - expected[vertex]) < 1.0e-6F,
+            "PMA-native ReGraph PageRank differs from CPU oracle at vertex " +
+                std::to_string(vertex) +
+                ": actual=" + std::to_string(actual[vertex]) +
+                " expected=" + std::to_string(expected[vertex]));
+    require(
+        std::fabs(static_cast<double>(actual[vertex]) - mathematical[vertex]) <
+            1.0e-6,
+        "PMA-native ReGraph PageRank differs from float64 oracle at vertex " +
+            std::to_string(vertex));
+  }
+  float rank_sum = 0.0F;
+  for (float value : actual) {
+    rank_sum += value;
+  }
+  require(std::fabs(rank_sum - 1.0F) < 1.0e-5F,
+          "PMA-native ReGraph PageRank lost dangling mass");
+
+  const auto counters = system.counters();
+  require(counters.supersteps == kIterations &&
+              counters.row_reads == kVertices * kIterations &&
+              counters.degree_reads == kVertices * kIterations &&
+              counters.degree_read_bytes ==
+                  kVertices * kIterations * sizeof(std::uint32_t) &&
+              counters.source_map_cycles ==
+                  kVertices * kIterations *
+                      config.pagerank_source_map_latency &&
+              counters.active_edges_mapped == edges.size() * kIterations &&
+              counters.apply_state_reads == kIterations &&
+              counters.apply_state_writes == kIterations &&
+              counters.source_state_writes == 2 * kIterations,
+          "PMA-native ReGraph PageRank work ledger mismatch");
+  std::cout << "EVIDENCE grasu_regraph_full_pagerank cycles="
+            << counters.end_cycle - counters.start_cycle
+            << " iterations=" << counters.supersteps
+            << " degree_reads=" << counters.degree_reads
+            << " source_map_cycles=" << counters.source_map_cycles
+            << " active_edges=" << counters.active_edges_mapped
+            << " rank_sum=" << rank_sum
+            << " l1_error=" << counters.last_iteration_error << '\n';
 }
 
 void test_unreserved_and_invalid_updates_are_rejected() {
@@ -385,10 +508,9 @@ void test_unreserved_and_invalid_updates_are_rejected() {
   try {
     GraSuPmaLayout layout = GraSuPmaLayout::build(
         8, {{.source = 0, .destination = 1, .weight = 7}}, {});
-    GraSuPmaUpdateSystem system(
-        scheduler, core, backend, std::move(layout),
-        {{.source = 0, .destination = 1, .weight = 7}},
-        GraSuNativeConfig{});
+    GraSuPmaUpdateSystem system(scheduler, core, backend, std::move(layout),
+                                {{.source = 0, .destination = 1, .weight = 7}},
+                                GraSuNativeConfig{});
     (void)system;
   } catch (const std::invalid_argument &error) {
     unchanged_weight_failed =
@@ -403,10 +525,7 @@ void test_unreserved_and_invalid_updates_are_rejected() {
         8, {{.source = 0, .destination = 1, .weight = 7}}, {});
     GraSuPmaUpdateSystem system(
         scheduler, core, backend, std::move(layout),
-        {{.source = 0,
-          .destination = 1,
-          .weight = 6,
-          .delete_op = true}},
+        {{.source = 0, .destination = 1, .weight = 6, .delete_op = true}},
         GraSuNativeConfig{});
     (void)system;
   } catch (const std::invalid_argument &error) {
@@ -904,6 +1023,7 @@ int main() {
       {"native_update_routes", test_native_update_crosses_cache_ddr_and_parity},
       {"weighted_dynamic_sssp",
        test_weighted_dynamic_pma_regraph_matches_dijkstra},
+      {"full_pagerank", test_pma_native_regraph_full_pagerank_matches_oracle},
       {"invalid_updates", test_unreserved_and_invalid_updates_are_rejected},
       {"native_contention", test_native_shared_channel_contention_is_visible},
       {"pma_native_regraph_sssp", test_pma_native_regraph_sssp_matches_oracle},

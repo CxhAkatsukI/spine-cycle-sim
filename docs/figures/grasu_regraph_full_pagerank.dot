@@ -1,0 +1,44 @@
+digraph grasu_regraph_full_pagerank {
+  graph [rankdir=LR, bgcolor="white", pad="0.2", nodesep="0.3", ranksep="0.55"];
+  node [shape=box, style="rounded,filled", fillcolor="#f7f7f7", color="#4a4a4a", fontname="DejaVu Sans", fontsize=10];
+  edge [color="#555555", fontname="DejaVu Sans", fontsize=9];
+
+  update [label="GraSU PMA update\npayload-backed RMW", fillcolor="#dfeaf4"];
+  barrier [label="Completion barrier\nserial baseline", shape=diamond, fillcolor="#fff3cd"];
+  pma [label="Weighted PMA\n16 slots / 64 B", shape=cylinder, fillcolor="#e8e8e8"];
+  rows [label="Row bounds\n8 B / source", shape=cylinder, fillcolor="#e8e8e8"];
+  degree [label="Out-degree array\n4 B / source\nHBM channel 30", shape=cylinder, fillcolor="#e8e8e8"];
+  source_state [label="Ping-pong rank state\nHBM channels 1 and 3", shape=cylinder, fillcolor="#e8e8e8"];
+  source_cache [label="4096-word source cache\nfinite request / response FIFO", fillcolor="#dcebd9"];
+  reader [label="PMA-native reader\nrow + degree + segment AXI", fillcolor="#dcebd9"];
+  source_map [label="Source Map\nrank / out-degree\ndangling accumulation\nlatency 3", fillcolor="#e6e0f3"];
+  edge_map [label="Edge Map\nrank contribution\n4 lanes", fillcolor="#e6e0f3"];
+  gather [label="Banked Reduce\nRAW forwarding\nfull reset sweep", fillcolor="#f0d9e7"];
+  merger [label="Little merger\n98304 rows -> 12288 bursts\nfor 3 iterations", fillcolor="#f4e1c1"];
+  apply [label="Apply\nbase + dangling + incoming\npartition-wide HBM R/W", fillcolor="#d9e8f5"];
+  mirror [label="HBM wrapper\nmirror next rank state", fillcolor="#d9e8f5"];
+  arch_oracle [label="float32 architecture oracle\nbit-level policy semantics", fillcolor="#dcebd9"];
+  math_oracle [label="float64 mathematical oracle\nindependent recurrence", fillcolor="#dcebd9"];
+  missing [label="Dynamic degree maintenance\nNOT TIMED in this milestone", style="rounded,dashed,filled", fillcolor="#fde2e2", color="#a33a3a"];
+
+  update -> pma;
+  update -> barrier;
+  barrier -> reader;
+  pma -> reader [label="64 B responses"];
+  rows -> reader [label="8 B responses"];
+  degree -> reader [label="4 B responses"];
+  source_state -> source_cache [label="AXI reads"];
+  source_cache -> source_map [label="rank"];
+  reader -> source_map [label="source + degree"];
+  source_map -> edge_map [label="contribution"];
+  reader -> edge_map [label="live PMA edges"];
+  edge_map -> gather [label="finite AXIS"];
+  gather -> merger [label="full partition rows"];
+  merger -> apply [label="512-bit bursts"];
+  source_map -> apply [label="dangling context"];
+  apply -> mirror;
+  mirror -> source_state [label="two copies"];
+  mirror -> arch_oracle;
+  mirror -> math_oracle;
+  missing -> degree [style=dashed, color="#a33a3a"];
+}

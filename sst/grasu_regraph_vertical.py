@@ -9,6 +9,7 @@ import sst
 
 
 ROOT = Path(__file__).resolve().parents[1]
+mode = os.environ.get("GRASU_SST_MODE", "grasu_regraph_sssp")
 channels = int(os.environ.get("GRASU_SST_CHANNELS", "32"))
 channel_bytes = int(os.environ.get("GRASU_SST_CHANNEL_BYTES", str(512 << 20)))
 workload = Path(
@@ -17,12 +18,11 @@ workload = Path(
         str(ROOT / "tests" / "data" / "grasu_regraph_unit_initial.slice"),
     )
 ).resolve()
-update = Path(
-    os.environ.get(
-        "GRASU_SST_UPDATE_WORKLOAD",
-        str(ROOT / "tests" / "data" / "grasu_regraph_unit_update.slice"),
-    )
-).resolve()
+update_text = os.environ.get(
+    "GRASU_SST_UPDATE_WORKLOAD",
+    str(ROOT / "tests" / "data" / "grasu_regraph_unit_update.slice"),
+)
+update = Path(update_text).resolve() if update_text else None
 output = os.environ.get("GRASU_SST_OUTPUT", "sst_grasu_regraph.json")
 dram_output = Path(
     os.environ.get("GRASU_SST_DRAM_OUTPUT", "/tmp/grasu_regraph_dramsim3")
@@ -33,10 +33,10 @@ core_mhz = float(os.environ.get("GRASU_SST_CORE_MHZ", "150"))
 probe = sst.Component("grasu_regraph", "spine_cycle.OnlineMemoryProbe")
 probe.addParams(
     {
-        "mode": "grasu_regraph_sssp",
+        "mode": mode,
         "output": output,
         "workload": str(workload),
-        "update_workload": str(update),
+        "update_workload": str(update) if update is not None else "",
         "source_vertex": int(os.environ.get("GRASU_SST_SOURCE", "0")),
         "core_clock": f"{core_mhz:g}MHz",
         "core_mhz": core_mhz,
@@ -44,6 +44,12 @@ probe.addParams(
         "channel_capacity_bytes": channel_bytes,
         "max_cycles": int(os.environ.get("GRASU_SST_MAX_CYCLES", "2000000")),
         "max_rounds": int(os.environ.get("GRASU_SST_MAX_ROUNDS", "256")),
+        "pagerank_iterations": int(
+            os.environ.get("GRASU_SST_PAGERANK_ITERATIONS", "3")
+        ),
+        "pagerank_damping": float(
+            os.environ.get("GRASU_SST_PAGERANK_DAMPING", "0.85")
+        ),
         "grasu_cache_segments_per_half": int(
             os.environ.get("GRASU_SST_CACHE_SEGMENTS_PER_HALF", "131072")
         ),
@@ -113,6 +119,12 @@ probe.addParams(
         ),
         "grasu_hbm_wrapper_pipeline_capacity": int(
             os.environ.get("GRASU_SST_HBM_WRAPPER_PIPELINE_CAPACITY", "71")
+        ),
+        "grasu_pagerank_source_map_latency": int(
+            os.environ.get("GRASU_SST_PAGERANK_SOURCE_MAP_LATENCY", "1")
+        ),
+        "grasu_degree_channel": int(
+            os.environ.get("GRASU_SST_DEGREE_CHANNEL", "30")
         ),
     }
 )

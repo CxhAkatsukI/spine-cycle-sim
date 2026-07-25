@@ -53,6 +53,12 @@ through GraSU PMA updates and validates PMA state plus SSSP against independent
 oracles. Its single-partition boundary and required HLS delta are documented in
 [`docs/grasu_regraph_weighted_dynamic_sssp_20260725.md`](docs/grasu_regraph_weighted_dynamic_sssp_20260725.md).
 
+The same PMA-native path now runs fixed-iteration Full PageRank with explicit
+HBM degree reads, dangling redistribution, complete partition sweeps, and both
+float32 architecture and float64 mathematical oracles. Its timing ledger and
+untimed dynamic-degree boundary are documented in
+[`docs/grasu_regraph_full_pagerank_20260725.md`](docs/grasu_regraph_full_pagerank_20260725.md).
+
 ## Quick Start
 
 Run one workload:
