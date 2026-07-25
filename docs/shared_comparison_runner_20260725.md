@@ -110,6 +110,16 @@ reducing host wall time by 3.20x to 4.33x. This does not change simulated
 cycles or requests. Sparse-run DRAM energy excludes idle/background energy for
 unbound channels; see `docs/normalized_sparse_hbm_binding_20260725.md`.
 
+The next complete attempt exposed a validator boundary at 4,096 source-buffer
+vertices. ReGraph's ping-pong source-cache reader keeps one window prefetched,
+so each algorithm iteration issues
+`ceil(vertices / source_buffer_vertices) + 1` source-cache requests. The old
+residual PageRank child gate assumed exactly two requests per iteration and
+incorrectly rejected the 4,097-vertex case even though both oracles, residual
+bound, and memory ledger passed. The corrected formula is locked at 4,095,
+4,096, 4,097, 8,192, and 8,193 vertices. Re-execution passed with 10,157,843
+cycles and 3,163,796 backend requests; simulator behavior was unchanged.
+
 ## Reproduction
 
 ```bash

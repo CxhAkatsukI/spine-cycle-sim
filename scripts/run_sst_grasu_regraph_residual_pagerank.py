@@ -70,6 +70,17 @@ def load_dram_stats(dram_dir: Path) -> dict[str, int | float]:
     return totals
 
 
+def expected_source_cache_requests(
+    vertices: int, source_buffer_vertices: int, iterations: int
+) -> int:
+    """Mirror the reader's one-window-ahead ping-pong prefetch contract."""
+
+    if vertices <= 0 or source_buffer_vertices <= 0 or iterations <= 0:
+        raise ValueError("source-cache request dimensions must be positive")
+    source_windows = (vertices + source_buffer_vertices - 1) // source_buffer_vertices
+    return (source_windows + 1) * iterations
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--profile", type=Path, default=DEFAULT_PROFILE)
@@ -253,7 +264,11 @@ def main() -> int:
     expected_rows = partition_vertices // 2 * iterations
     expected_bursts = partition_vertices // 16 * iterations
     expected_live_edges = result.get("initial_edges", -1) * iterations
-    expected_source_requests = 2 * iterations
+    expected_source_requests = expected_source_cache_requests(
+        vertices,
+        params["regraph_source_buffer_vertices"],
+        iterations,
+    )
     expected_source_lines = (
         expected_source_requests
         * params["regraph_source_buffer_vertices"]
