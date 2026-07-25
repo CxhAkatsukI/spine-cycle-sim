@@ -10,6 +10,24 @@ import sst
 
 ROOT = Path(__file__).resolve().parents[1]
 channels = int(os.environ.get("SPINE_SST_CHANNELS", "32"))
+active_channel_text = os.environ.get("SPINE_SST_ACTIVE_CHANNELS", "").strip()
+if active_channel_text:
+    try:
+        active_channels = tuple(int(value) for value in active_channel_text.split(","))
+    except ValueError as exc:
+        raise ValueError(
+            "SPINE_SST_ACTIVE_CHANNELS must be a comma-separated integer list"
+        ) from exc
+    if (
+        not active_channels
+        or len(set(active_channels)) != len(active_channels)
+        or any(channel < 0 or channel >= channels for channel in active_channels)
+    ):
+        raise ValueError(
+            "SPINE_SST_ACTIVE_CHANNELS must contain unique in-range channels"
+        )
+else:
+    active_channels = tuple(range(channels))
 channel_bytes = int(os.environ.get("SPINE_SST_CHANNEL_BYTES", str(512 << 20)))
 workload = Path(
     os.environ.get(
@@ -40,6 +58,9 @@ probe.addParams(
         "core_clock": f"{core_mhz}MHz",
         "core_mhz": core_mhz,
         "channels": channels,
+        "active_memory_channels": ",".join(
+            str(channel) for channel in active_channels
+        ),
         "channel_capacity_bytes": channel_bytes,
         "max_cycles": int(os.environ.get("SPINE_SST_MAX_CYCLES", "1000000")),
         "max_rounds": int(os.environ.get("SPINE_SST_MAX_ROUNDS", "256")),
@@ -162,7 +183,7 @@ probe.addParams(
 )
 
 dram_config = ROOT / "configs" / "memory" / "HBM2_1ch_x128.ini"
-for channel in range(channels):
+for channel in active_channels:
     interface = probe.setSubComponent(
         "memory", "memHierarchy.standardInterface", channel
     )

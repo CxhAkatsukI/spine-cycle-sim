@@ -5,7 +5,9 @@
 This milestone implements the fail-closed runner for the frozen 73-case shared
 workload corpus. It compares source-following Spine against the normalized,
 conversion-free GraSU plus PMA-native ReGraph proposal. Both run at 150 MHz and
-use the same 32-channel SST/DRAMSim3 backend.
+use the same 32-physical-channel SST/DRAMSim3 backend. By default, SST only
+instantiates controllers reachable by the profile and workload; physical
+channel IDs and active-channel contention are unchanged.
 
 This is **normalized structural execution-driven simulation**. It is not a
 native FPGA measurement, a calibrated absolute-cycle claim, or evidence that a
@@ -30,7 +32,9 @@ the child result and rejects it unless all of the following hold:
 - the named oracles match the algorithm contract;
 - vertex, edge, and update counts match the frozen manifest;
 - both systems report 150 MHz for normalized pairing;
-- DRAM reports exactly 32 channels;
+- the binding reports exactly 32 physical channels, preserves channel numbers,
+  and uses a fatal policy for requests to unbound channels;
+- DRAM reports exactly the explicitly instantiated channel set;
 - DRAM reads plus writes equal the component backend-request ledger.
 
 | Algorithm | Architecture oracle | Mathematical oracle |
@@ -98,6 +102,13 @@ runner now uses a shared stop latch and process registry. A deliberate
 0.01-second timeout test starts only the two active worker slots, terminates
 both process groups, leaves no SST child, emits a partial `FAIL` manifest, and
 returns nonzero in 0.12 seconds.
+
+The runtime diagnosis led to fail-closed sparse controller binding. Six
+full-vs-sparse cases spanning all three algorithms and both architectures have
+byte-identical result files and active-channel DRAMSim3 transcripts, while
+reducing host wall time by 3.20x to 4.33x. This does not change simulated
+cycles or requests. Sparse-run DRAM energy excludes idle/background energy for
+unbound channels; see `docs/normalized_sparse_hbm_binding_20260725.md`.
 
 ## Reproduction
 

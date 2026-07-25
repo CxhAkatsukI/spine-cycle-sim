@@ -128,15 +128,15 @@ def _completed_row(
     wall_seconds: float,
     cache_reused: bool,
 ) -> dict[str, object]:
-    result, dram = load_system_result(invocation)
-    problems = validate_system_result(run, invocation, result, dram)
+    result, dram, binding = load_system_result(invocation)
+    problems = validate_system_result(run, invocation, result, dram, binding)
     if problems:
         raise RuntimeError(
             f"{invocation.run_id}/{invocation.system} parent gate failed: "
             + ", ".join(problems)
         )
     row = result_row(
-        run, invocation, result, dram, wall_seconds=wall_seconds
+        run, invocation, result, dram, binding, wall_seconds=wall_seconds
     )
     row["cache_reused"] = cache_reused
     return row
@@ -300,6 +300,7 @@ def main() -> int:
             ROOT / "scripts" / "run_sst_grasu_regraph.py",
             ROOT / "scripts" / "run_sst_grasu_regraph_pagerank.py",
             ROOT / "scripts" / "run_sst_grasu_regraph_residual_pagerank.py",
+            ROOT / "spine_cycle_sim" / "sst_binding.py",
             ROOT / "sst" / "spine_vertical_slice.py",
             ROOT / "sst" / "grasu_regraph_vertical.py",
             ROOT / "configs" / "memory" / "HBM2_1ch_x128.ini",
@@ -418,6 +419,15 @@ def main() -> int:
         ),
         "complete_matrix": complete_matrix,
         "systems": systems,
+        "sst_memory_binding_policy": {
+            "physical_hbm_channels": 32,
+            "default": "instantiate_only_profile_and_workload_reachable_channels",
+            "unbound_request_policy": "fatal",
+            "timing_semantics": "unchanged_physical_channel_ids_and_active_contention",
+            "sparse_energy_semantics": (
+                "bound_channel_dramsim3_only_excludes_unbound_idle_background"
+            ),
+        },
         "selected_run_ids": sorted(selected_run_ids),
         "matrix_wall_seconds": matrix_wall_seconds,
         "executed_rows": len(rows) - reused_rows,

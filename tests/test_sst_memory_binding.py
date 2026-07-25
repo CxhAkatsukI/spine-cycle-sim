@@ -1,0 +1,139 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+import tempfile
+import unittest
+
+from spine_cycle_sim.sst_binding import (
+    SstMemoryBinding,
+    grasu_normalized_memory_binding,
+    make_sst_memory_binding,
+    spine_memory_binding,
+)
+from scripts.analyze_sparse_hbm_equivalence import compare_case
+
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+class SstMemoryBindingTests(unittest.TestCase):
+    def test_grasu_normalized_reachable_channels(self) -> None:
+        profile = json.loads(
+            (
+                ROOT
+                / "configs"
+                / "architectures"
+                / "grasu_regraph_normalized_pagerank_spine23.json"
+            ).read_text(encoding="utf-8")
+        )
+        binding = grasu_normalized_memory_binding(profile)
+        self.assertEqual(binding.physical_channels, 32)
+        self.assertEqual(binding.reachable_channels, (0, 1, 2, 3, 30))
+        self.assertEqual(binding.instantiated_channels, (0, 1, 2, 3, 30))
+        self.assertTrue(binding.sparse)
+        self.assertIn("excludes_unbound", binding.energy_claim)
+
+    def test_grasu_full_binding_preserves_reachable_set(self) -> None:
+        profile = json.loads(
+            (
+                ROOT
+                / "configs"
+                / "architectures"
+                / "grasu_regraph_normalized_weighted_spine23.json"
+            ).read_text(encoding="utf-8")
+        )
+        binding = grasu_normalized_memory_binding(profile, instantiate_all=True)
+        self.assertEqual(binding.reachable_channels, (0, 1, 2, 3, 30))
+        self.assertEqual(binding.instantiated_channels, tuple(range(32)))
+        self.assertFalse(binding.sparse)
+
+    def test_spine_single_partition_reachable_channels(self) -> None:
+        profile = json.loads(
+            (
+                ROOT / "configs" / "architectures" / "spine_latest_afb8199.json"
+            ).read_text(encoding="utf-8")
+        )
+        binding = spine_memory_binding(
+            profile,
+            [ROOT / "tests" / "data" / "shared_comparison" / "syn_chain_v64.slice"],
+        )
+        self.assertEqual(
+            binding.reachable_channels,
+            (0, 16, 17, 18, 19, 20, 21, 22),
+        )
+
+    def test_spine_uses_cold_partition_and_hot_shard_channel_numbers(self) -> None:
+        profile = json.loads(
+            (
+                ROOT / "configs" / "architectures" / "spine_latest_afb8199.json"
+            ).read_text(encoding="utf-8")
+        )
+        with tempfile.TemporaryDirectory(dir=ROOT) as tmp:
+            workload = Path(tmp) / "binding.slice"
+            workload.write_text(
+                "# vertices=2097154\n"
+                "0 1048577 1 1\n"
+                "0 17 1 1\n",
+                encoding="ascii",
+            )
+            cold = spine_memory_binding(profile, [workload])
+            hot = spine_memory_binding(profile, [workload], hot_vertices=(17,))
+        self.assertIn(1, cold.reachable_channels)
+        self.assertIn(1, hot.reachable_channels)
+        self.assertIn(5, hot.reachable_channels)
+
+    def test_binding_rejects_omitted_reachable_channel(self) -> None:
+        with self.assertRaisesRegex(ValueError, "omit a reachable"):
+            SstMemoryBinding(32, (0, 30), (0,))
+
+    def test_binding_rejects_unsorted_or_out_of_range_channels(self) -> None:
+        with self.assertRaisesRegex(ValueError, "sorted and unique"):
+            SstMemoryBinding(32, (2, 1), (1, 2))
+        with self.assertRaisesRegex(ValueError, "out-of-range"):
+            make_sst_memory_binding(32, (32,), instantiate_all=False)
+
+    def test_equivalence_analyzer_checks_results_and_active_dram_files(self) -> None:
+        with tempfile.TemporaryDirectory(dir=ROOT) as tmp:
+            root = Path(tmp)
+            full = root / "full"
+            sparse = root / "sparse"
+            result = {
+                "cycles": 123,
+                "backend_requests": 7,
+                "correctness_mismatches": 0,
+            }
+            for run, channels, wall in (
+                (full, tuple(range(32)), 4.0),
+                (sparse, (0, 30), 1.0),
+            ):
+                run.mkdir()
+                (run / "result.json").write_text(
+                    json.dumps(result, sort_keys=True) + "\n", encoding="utf-8"
+                )
+                binding = SstMemoryBinding(32, (0, 30), channels).as_manifest()
+                (run / "manifest.json").write_text(
+                    json.dumps(
+                        {
+                            "sst_memory_binding": binding,
+                            "sst_host_wall_seconds": wall,
+                        }
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
+                for channel in channels:
+                    channel_dir = run / "dram" / f"channel{channel}"
+                    channel_dir.mkdir(parents=True)
+                    for filename in ("dramsim3.json", "dramsim3.txt"):
+                        (channel_dir / filename).write_text(
+                            f"channel={channel}\n", encoding="utf-8"
+                        )
+            evidence = compare_case("unit", full, sparse)
+        self.assertEqual(evidence["cycles"], 123)
+        self.assertEqual(evidence["host_runtime_speedup"], 4.0)
+        self.assertEqual(evidence["status"], "PASS_EXACT_EQUIVALENCE")
+
+
+if __name__ == "__main__":
+    unittest.main()

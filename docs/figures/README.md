@@ -3,6 +3,11 @@
 - `fine_grained_cycle_sim_architecture.svg`: target architecture and evidence
   flow for `codex/fine-grained-cycle-sim`. Its editable Graphviz source is the
   adjacent `.dot` file.
+- `normalized_sparse_hbm_binding.svg`: fail-closed sparse SST controller
+  binding for normalized Spine and GraSU/ReGraph runs. It distinguishes the
+  32-channel physical namespace, workload-reachable controller set, exact
+  timing-equivalence claim, and sparse DRAM energy boundary. Its editable
+  source is the adjacent `.dot` file.
 - `grasu_regraph_pma_native_contract.svg`: frozen GraSU update topology and the
   explicit split between the currently measured capacity-wide compactor path
   and the target PMA-native ReGraph path. Its editable source is the adjacent

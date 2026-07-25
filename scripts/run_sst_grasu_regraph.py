@@ -8,10 +8,18 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import shutil
 import subprocess
-
+import sys
+import time
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from spine_cycle_sim.sst_binding import grasu_normalized_memory_binding  # noqa: E402
+
+
 DEFAULT_SST = Path("/data/feiyang/sst/bin/sst")
 DEFAULT_PROFILE = (
     ROOT
@@ -80,6 +88,11 @@ def main() -> int:
         help="Use a 16-word partition and label the result component validation.",
     )
     parser.add_argument("--no-build", action="store_true")
+    parser.add_argument(
+        "--instantiate-all-hbm-channels",
+        action="store_true",
+        help="instantiate idle SST HBM controllers for equivalence or energy runs",
+    )
     args = parser.parse_args()
 
     profile_path = args.profile.resolve()
@@ -90,6 +103,9 @@ def main() -> int:
         )
     params = profile["parameters"]
     memory = profile["memory"]
+    binding = grasu_normalized_memory_binding(
+        profile, instantiate_all=args.instantiate_all_hbm_channels
+    )
     kernel_clock = next(
         clock for clock in profile["clocks"] if clock["name"] == "kernel"
     )
@@ -99,11 +115,16 @@ def main() -> int:
     args.out_dir.mkdir(parents=True, exist_ok=True)
     result_path = (args.out_dir / "result.json").resolve()
     dram_dir = (args.out_dir / "dram").resolve()
+    result_path.unlink(missing_ok=True)
+    shutil.rmtree(dram_dir, ignore_errors=True)
     partition_vertices = 16 if args.smoke else 65_536
     env = os.environ.copy()
     env.update(
         {
             "GRASU_SST_CHANNELS": str(memory["channels"]),
+            "GRASU_SST_ACTIVE_CHANNELS": ",".join(
+                str(channel) for channel in binding.instantiated_channels
+            ),
             "GRASU_SST_CHANNEL_BYTES": str(memory["channel_capacity_bytes"]),
             "GRASU_SST_WORKLOAD": str(args.workload.resolve()),
             "GRASU_SST_UPDATE_WORKLOAD": str(args.update_workload.resolve()),
@@ -176,6 +197,7 @@ def main() -> int:
         f"--add-lib-path={args.lib_dir.resolve()}",
         str(ROOT / "sst" / "grasu_regraph_vertical.py"),
     ]
+    sst_start = time.monotonic()
     completed = subprocess.run(
         command,
         cwd=ROOT,
@@ -185,6 +207,7 @@ def main() -> int:
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
     )
+    sst_host_wall_seconds = time.monotonic() - sst_start
     (args.out_dir / "sst.log").write_text(completed.stdout, encoding="utf-8")
     if completed.returncode != 0:
         raise RuntimeError(
@@ -266,7 +289,7 @@ def main() -> int:
         <= params["regraph_merger_apply_fifo_depth"]
         or not 0 < result.get("apply_wrapper_fifo_max_occupancy", 0)
         <= params["regraph_apply_wrapper_fifo_depth"]
-        or dram["channels"] != memory["channels"]
+        or dram["channels"] != len(binding.instantiated_channels)
         or dram["reads"] + dram["writes"] != result.get("backend_requests")
     ):
         raise RuntimeError(f"SST GraSU/ReGraph validation failed: {result}")
@@ -280,6 +303,8 @@ def main() -> int:
         "update_workload": str(args.update_workload.resolve()),
         "update_workload_sha256": sha256(args.update_workload.resolve()),
         "smoke": args.smoke,
+        "sst_memory_binding": binding.as_manifest(),
+        "sst_host_wall_seconds": sst_host_wall_seconds,
         "command": command,
         "result": result,
         "dram": dram,

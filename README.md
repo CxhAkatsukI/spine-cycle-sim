@@ -134,10 +134,18 @@ architectures pass the shared runner and dual-oracle gates. See
 
 The shared runner dispatches byte-identical inputs to normalized Spine and
 conversion-free GraSU/PMA-native-ReGraph, enforces independent architecture and
-mathematical oracles, closes each 32-channel DRAM ledger, and emits paired
-cycle/runtime rows. Only a filtered smoke case has run so far; the complete
+mathematical oracles, closes each explicitly bound DRAM request ledger within
+the shared 32-channel physical namespace, and emits paired cycle/runtime rows.
+Only a filtered smoke case has run so far; the complete
 73-pair matrix remains pending. See
 [`docs/shared_comparison_runner_20260725.md`](docs/shared_comparison_runner_20260725.md).
+
+The normalized SST runners retain a 32-channel physical namespace while
+instantiating only profile/workload-reachable DRAMSim3 controllers by default.
+Six full-vs-sparse cases prove byte-identical cycles, results, and active DRAM
+transcripts across all three algorithms and both architectures. Sparse DRAM
+energy excludes unbound-channel idle/background energy. See
+[`docs/normalized_sparse_hbm_binding_20260725.md`](docs/normalized_sparse_hbm_binding_20260725.md).
 
 ## Quick Start
 

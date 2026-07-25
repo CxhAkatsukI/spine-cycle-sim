@@ -1,0 +1,34 @@
+digraph normalized_sparse_hbm_binding {
+  graph [rankdir=LR, bgcolor="white", pad=0.25, nodesep=0.35, ranksep=0.65];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=10,
+        color="#31363b", fillcolor="#f5f7f8", margin="0.12,0.08"];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#56606a"];
+
+  profile [label="Architecture profile\n32 physical U55C HBM pseudo-channels",
+           fillcolor="#e8f0f2"];
+  derive [label="Fail-closed reachability\nprofile ports + workload graph families",
+          fillcolor="#fff3cf"];
+
+  spine [label="Spine normalized run\nbound: 0, 16..22\nshared corpus: one graph family",
+         fillcolor="#e9f4df"];
+  grasu [label="GraSU + ReGraph normalized run\nbound: 0..3, 30\nPMA + source/apply state",
+         fillcolor="#e9f4df"];
+
+  namespace [label="C++ backend keeps 32 channel slots\nphysical channel IDs unchanged\nunbound request -> fatal",
+             fillcolor="#f5e7ea"];
+  dramsim [label="DRAMSim3 only for reachable slots\nactive timing/contention unchanged\nidle controller ticks omitted",
+           fillcolor="#e7edf7"];
+  timing [label="Timing claim\ncycles, requests and active DRAM transcript\nexactly equal to 32-controller run",
+          fillcolor="#e4f2ed"];
+  energy [label="Energy boundary\nsparse: active/bound channels only\nfull 32 required for device idle/background",
+          fillcolor="#f8e8d8"];
+
+  profile -> derive;
+  derive -> spine;
+  derive -> grasu;
+  spine -> namespace;
+  grasu -> namespace;
+  namespace -> dramsim;
+  dramsim -> timing;
+  dramsim -> energy;
+}

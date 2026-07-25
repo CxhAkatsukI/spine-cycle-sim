@@ -146,8 +146,16 @@ class SharedComparisonRunnerTests(unittest.TestCase):
             "backend_requests": 7,
         }
         dram = {"channels": 32, "reads": 5, "writes": 2}
+        binding = {
+            "physical_channels": 32,
+            "reachable_channels": list(range(32)),
+            "instantiated_channels": list(range(32)),
+            "channel_numbers_preserved": True,
+            "unbound_request_policy": "fatal",
+            "dram_energy_claim": "all_physical_channel_dramsim3",
+        }
         self.assertEqual(
-            set(validate_system_result(run, invocation, result, dram)),
+            set(validate_system_result(run, invocation, result, dram, binding)),
             {"mathematical_oracle", "clock"},
         )
 

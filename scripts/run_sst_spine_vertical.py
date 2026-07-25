@@ -8,11 +8,19 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import shutil
 import subprocess
+import sys
+import time
 from typing import Any
 
-
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from spine_cycle_sim.sst_binding import spine_memory_binding  # noqa: E402
+
+
 DEFAULT_SST = Path("/data/feiyang/sst/bin/sst")
 DEFAULT_WORKLOAD = ROOT / "tests" / "data" / "amazon_top1_exact.slice"
 DEFAULT_CARRY_WORKLOAD = ROOT / "tests" / "data" / "carry_hot_batch.slice"
@@ -1260,6 +1268,11 @@ def parse_args() -> argparse.Namespace:
         default="hls_split_9c08763",
     )
     parser.add_argument("--no-build", action="store_true")
+    parser.add_argument(
+        "--instantiate-all-hbm-channels",
+        action="store_true",
+        help="instantiate idle SST HBM controllers for equivalence or energy runs",
+    )
     return parser.parse_args()
 
 
@@ -1381,6 +1394,21 @@ def main() -> int:
         if args.update_workload is None
         else load_slice_shape(args.update_workload)[1]
     )
+    hot_vertices = tuple(
+        int(item) for item in args.hot_vertices.split(",") if item
+    )
+    binding_paths = [args.workload]
+    if args.preload is not None:
+        binding_paths.append(args.preload)
+    if args.update_workload is not None:
+        binding_paths.append(args.update_workload)
+    binding = spine_memory_binding(
+        profile,
+        binding_paths,
+        hot_vertices=hot_vertices,
+        physical_channels=args.channels,
+        instantiate_all=args.instantiate_all_hbm_channels,
+    )
     if not args.no_build:
         subprocess.run(["make", "-C", "cpp/sst"], cwd=ROOT, check=True)
     library = args.lib_dir / "libspine_cycle.so"
@@ -1388,10 +1416,15 @@ def main() -> int:
         raise SystemExit(f"missing SST element library: {library}")
     args.out_dir.mkdir(parents=True, exist_ok=True)
     result_path = args.out_dir / "result.json"
+    result_path.unlink(missing_ok=True)
+    shutil.rmtree(args.out_dir / "dram", ignore_errors=True)
     env = os.environ.copy()
     env.update(
         {
             "SPINE_SST_CHANNELS": str(args.channels),
+            "SPINE_SST_ACTIVE_CHANNELS": ",".join(
+                str(channel) for channel in binding.instantiated_channels
+            ),
             "SPINE_SST_MODE": {
                 "amazon_full_compute": "spine_compute",
                 "full_pagerank": "spine_pagerank",
@@ -1515,6 +1548,7 @@ def main() -> int:
         f"--add-lib-path={args.lib_dir}",
         str(ROOT / "sst" / "spine_vertical_slice.py"),
     ]
+    sst_start = time.monotonic()
     completed = subprocess.run(
         command,
         cwd=ROOT,
@@ -1524,6 +1558,7 @@ def main() -> int:
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
     )
+    sst_host_wall_seconds = time.monotonic() - sst_start
     (args.out_dir / "sst.log").write_text(completed.stdout, encoding="utf-8")
     if completed.returncode != 0:
         raise RuntimeError(
@@ -1584,7 +1619,7 @@ def main() -> int:
         problems = validate_generic_result(
             result,
             dram,
-            channels=args.channels,
+            channels=len(binding.instantiated_channels),
             scenario=args.scenario,
             vertices=workload_vertices,
             input_edges=workload_edges,
@@ -1599,7 +1634,9 @@ def main() -> int:
         )
     else:
         validator = validators[args.scenario]
-        problems = validator(result, dram, channels=args.channels)
+        problems = validator(
+            result, dram, channels=len(binding.instantiated_channels)
+        )
     if args.scenario in generic_scenarios:
         if result.get("architecture_correctness_mismatches") != 0:
             problems.append("architecture_correctness")
@@ -1697,6 +1734,9 @@ def main() -> int:
         "source_revision": profile["source"]["revision"],
         "architecture_profile_evidence_tier": profile["evidence_tier"],
         "simulation_evidence_tier": "structural_execution_driven",
+        "sst_memory_binding": binding.as_manifest(),
+        "dram_energy_claim": binding.energy_claim,
+        "sst_host_wall_seconds": sst_host_wall_seconds,
         "status": "PASS",
     }
     (args.out_dir / "summary.json").write_text(

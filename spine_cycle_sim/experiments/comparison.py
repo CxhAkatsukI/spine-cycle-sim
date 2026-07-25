@@ -243,7 +243,7 @@ def expected_oracles(algorithm: str) -> tuple[str, str]:
 
 def load_system_result(
     invocation: RunInvocation,
-) -> tuple[dict[str, object], dict[str, object]]:
+) -> tuple[dict[str, object], dict[str, object], dict[str, object]]:
     if invocation.system == "spine":
         summary_path = invocation.out_dir / "summary.json"
         summary = json.loads(summary_path.read_text(encoding="utf-8"))
@@ -256,12 +256,14 @@ def load_system_result(
             "precharges": summary.get("dram_precharges"),
             "total_energy_pj": summary.get("dram_total_energy_pj"),
         }
+        binding = dict(summary["sst_memory_binding"])
     else:
         manifest_path = invocation.out_dir / "manifest.json"
         child = json.loads(manifest_path.read_text(encoding="utf-8"))
         result = dict(child["result"])
         dram = dict(child["dram"])
-    return result, dram
+        binding = dict(child["sst_memory_binding"])
+    return result, dram, binding
 
 
 def validate_system_result(
@@ -269,6 +271,7 @@ def validate_system_result(
     invocation: RunInvocation,
     result: Mapping[str, object],
     dram: Mapping[str, object],
+    binding: Mapping[str, object],
     *,
     expected_clock_mhz: float = 150.0,
 ) -> list[str]:
@@ -279,6 +282,19 @@ def validate_system_result(
     expected_edges = int(run["graph"]["records"])  # type: ignore[index]
     result_edges_key = (
         "input_edges" if invocation.system == "spine" else "initial_edges"
+    )
+    physical_channels = int(binding.get("physical_channels", -1))
+    instantiated_channels = binding.get("instantiated_channels")
+    reachable_channels = binding.get("reachable_channels")
+    instantiated = (
+        tuple(int(channel) for channel in instantiated_channels)
+        if isinstance(instantiated_channels, list)
+        else ()
+    )
+    reachable = (
+        tuple(int(channel) for channel in reachable_channels)
+        if isinstance(reachable_channels, list)
+        else ()
     )
     problems: list[str] = []
     checks = {
@@ -300,7 +316,17 @@ def validate_system_result(
         < 1.0e-9,
         "vertices": result.get("vertices") == expected_vertices,
         "edges": result.get(result_edges_key) == expected_edges,
-        "dram_channels": dram.get("channels") == 32,
+        "physical_hbm_channels": physical_channels == 32,
+        "bound_dram_channels": dram.get("channels") == len(instantiated),
+        "binding_nonempty": bool(instantiated),
+        "binding_range": all(
+            0 <= channel < physical_channels for channel in instantiated
+        ),
+        "binding_unique": tuple(sorted(set(instantiated))) == instantiated,
+        "binding_reachability": bool(reachable)
+        and set(reachable).issubset(instantiated),
+        "binding_channel_numbers": binding.get("channel_numbers_preserved") is True,
+        "binding_fail_closed": binding.get("unbound_request_policy") == "fatal",
         "dram_closure": int(dram.get("reads", -1))
         + int(dram.get("writes", -1))
         == result.get("backend_requests"),
@@ -323,6 +349,7 @@ def result_row(
     invocation: RunInvocation,
     result: Mapping[str, object],
     dram: Mapping[str, object],
+    binding: Mapping[str, object],
     *,
     wall_seconds: float,
 ) -> dict[str, object]:
@@ -349,6 +376,12 @@ def result_row(
         "dram_activates": dram.get("activates", 0),
         "dram_precharges": dram.get("precharges", 0),
         "dram_total_energy_pj": dram.get("total_energy_pj", 0.0),
+        "physical_hbm_channels": binding["physical_channels"],
+        "bound_dram_channels": len(binding["instantiated_channels"]),
+        "instantiated_hbm_channels": ",".join(
+            str(channel) for channel in binding["instantiated_channels"]
+        ),
+        "dram_energy_claim": binding["dram_energy_claim"],
         "architecture_correctness_mismatches": result[
             "architecture_correctness_mismatches"
         ],
