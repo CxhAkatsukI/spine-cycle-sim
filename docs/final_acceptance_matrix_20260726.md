@@ -16,7 +16,7 @@ cannot silently satisfy an HLS-aligned requirement.
 | Spine weighted SSSP | Execution-driven shared core, dynamic fallback, SST/DRAMSim3, dual oracle | Implemented | Run final real-dataset matrix and freeze manifests |
 | Spine Full PageRank | Timed Map/Reduce policy and SST vertical slice | Implemented | Run final real-dataset small-batch matrix |
 | Spine thresholded residual PageRank | Timed signed-residual policy and SST vertical slice | Implemented | Run final real-dataset small-batch matrix |
-| GraSU/ReGraph weighted SSSP | Normalized executable mode; native unit-weight mode; `ff13a67` weighted full-word HLS-aligned mode | Implemented | Broaden HLS-aligned workload coverage beyond one fixture |
+| GraSU/ReGraph weighted SSSP | Normalized executable mode; native unit-weight mode; `ff13a67` weighted full-word HLS-aligned mode; 10-case synthetic HLS matrix | Implemented | Run common real-dataset small-batch matrix and compare with hw/hw_emu evidence |
 | GraSU/ReGraph Full PageRank | Normalized PMA-native and partitioned dynamic mode | Normalized only | Define and implement the HLS-aligned PageRank profile or label comparison normalized |
 | GraSU/ReGraph thresholded residual PageRank | Normalized PMA-native and multi-partition mode | Normalized only | Define and implement the HLS-aligned residual profile or label comparison normalized |
 | Differential correctness | Shared dynamic fixtures and per-run architecture/mathematical oracles | Partial | Every final experiment row must emit zero mismatches; add deletion/increase cases to final real datasets |
@@ -51,12 +51,20 @@ cannot silently satisfy an HLS-aligned requirement.
 7. The final large-graph runner records host wall time and must complete in the
    agreed tens-of-minutes range without skipping correctness or memory events.
 
+## Closed Synthetic Gate
+
+The 10-case `ff13a67` weighted-SSSP matrix now covers insertion, exact
+deletion, weight decrease/increase, mixed update, four-round convergence,
+dense fan-in, the 4,096-source-window boundary, multi-segment PMA variants,
+and deterministic reorder ties. All cases pass the architecture and Dijkstra
+oracles. See `docs/grasu_hls_weighted_matrix_20260726.md`.
+
 ## Immediate Next Gate
 
-Build a multi-workload HLS-aligned weighted-SSSP matrix around
-`scripts/run_sst_grasu_regraph_hls_weighted.py`: insertion, exact deletion,
-weight decrease, weight increase, mixed update, sparse long-diameter, dense
-fan-in, and source-window boundary cases. Each case must compare the simulator
-to the Python lowering/Dijkstra oracle and retain logical/physical update and
-memory ledgers. This closes the single-fixture limitation before extending the
-same architecture profile to PageRank.
+Freeze at least three common real datasets and deterministic small insertion,
+deletion, and weight-change batches. Run Spine and the HLS-aligned weighted
+GraSU/ReGraph mode with correctness enabled in every row, then report E2E,
+logical/physical update throughput, memory requests/bytes, sequential/random
+classification, stalls, and simulator wall time. In parallel, define explicit
+HLS-aligned Full PageRank and thresholded residual PageRank profiles; normalized
+PageRank rows cannot satisfy the final HLS-aligned comparison requirement.

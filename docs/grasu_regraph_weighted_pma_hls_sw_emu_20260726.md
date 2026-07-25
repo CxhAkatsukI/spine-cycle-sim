@@ -169,7 +169,10 @@ dot -Tsvg docs/figures/grasu_regraph_profile_ladder.dot \
   -o docs/figures/grasu_regraph_profile_ladder.svg
 ```
 
-The profile capability is now `executable`. The remaining work is broad
-workload validation, hw/hw_emu timing comparison when those artifacts are
-available, the two PageRank algorithms in the HLS-aligned profile, and complete
+The profile capability is now `executable`. A subsequent 10-case synthetic
+matrix covers update types, fixed-round convergence, stream pressure, PMA
+segments, source-window boundaries, and host reorder ties; see
+`docs/grasu_hls_weighted_matrix_20260726.md`. The remaining work is real-dataset
+validation, hw/hw_emu timing comparison when those artifacts are available,
+the two PageRank algorithms in the HLS-aligned profile, and complete
 logic/on-chip-memory PPA evidence.

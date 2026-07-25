@@ -36,7 +36,7 @@
     {
       "profile_id": "grasu_regraph_weighted_pma_hls_sw_emu_ff13a67",
       "profile_path": "configs/architectures/grasu_regraph_weighted_pma_hls_sw_emu_ff13a67.json",
-      "profile_sha256": "a7d0831731c0b9f2ed687887780bb5c09a8c78090c74083e276a805e908749d8",
+      "profile_sha256": "d8ed8e09683ffa297e6c0e19e07532cdbf91e04099f83ec1410dc335389d6d57",
       "comparison_role": "hls_sw_emu",
       "handoff": "weighted_pma_to_axis_stream",
       "conversion_cost": "absent",

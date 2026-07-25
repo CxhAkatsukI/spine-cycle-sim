@@ -24,6 +24,7 @@ from .profile_capabilities import (
     ProfileCapability,
     load_capability_catalog,
 )
+from .hls_weighted_workloads import HlsWeightedFixture, hls_weighted_fixtures
 
 __all__ = [
     "DEFAULT_REAL_SOURCES",
@@ -44,4 +45,6 @@ __all__ = [
     "ImplementationStatus",
     "ProfileCapability",
     "load_capability_catalog",
+    "HlsWeightedFixture",
+    "hls_weighted_fixtures",
 ]

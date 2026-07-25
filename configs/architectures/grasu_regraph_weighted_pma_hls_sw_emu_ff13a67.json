@@ -115,7 +115,7 @@
   "limitations": [
     "The 200 MHz kernel and 450 MHz HBM entries describe the requested build configuration; sw_emu does not prove achieved clock or timing closure.",
     "sw_emu event and wall times are not hardware performance evidence.",
-    "Only one eight-vertex weighted dynamic workload and four fixed SSSP rounds are validated.",
+    "sw_emu is validated on one eight-vertex workload; the simulator additionally passes ten synthetic update/topology microbenchmarks up to 8194 vertices, but no real dataset is validated for this profile yet.",
     "The execution-driven simulator implements the full-word update, physical-update reorder, and fixed-round semantics, but its timing is not calibrated cycle-for-cycle against hw.",
     "Graphs beyond one 19-bit destination partition require an explicit partitioned PMA design.",
     "Full PageRank and thresholded residual PageRank are not implemented by this HLS profile.",

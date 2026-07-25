@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "status": "PASS",
+  "date": "2026-07-26",
+  "matrix_id": "grasu_hls_weighted_ff13a67_microbench_20260726",
+  "profile_id": "grasu_regraph_weighted_pma_hls_sw_emu_ff13a67",
+  "mode": "grasu_regraph_hls_weighted_sssp",
+  "claim_class": "complete_hls_aligned_synthetic_validation_matrix",
+  "coverage": {
+    "cases": 10,
+    "families": 10,
+    "calibration_cases": 4,
+    "holdout_cases": 6,
+    "minimum_vertices": 8,
+    "maximum_vertices": 8194,
+    "minimum_initial_edges": 3,
+    "maximum_initial_edges": 4097,
+    "logical_update_range": [1, 20],
+    "physical_update_range": [1, 34]
+  },
+  "correctness": {
+    "passing_cases": 10,
+    "failing_cases": 0,
+    "aggregate_mismatches": 0,
+    "validation": "Every child run fail-closes on architecture, mathematical Dijkstra, HLS contract, and external-order oracle checks."
+  },
+  "observations": {
+    "small_case_cycle_range": [166543, 170669],
+    "source_window_boundary_cycles": 821312,
+    "source_window_over_insert_baseline": 4.931531196147541,
+    "source_window_backend_request_ratio": 1.7414833215046133,
+    "source_window_dram_energy_ratio": 4.20062943198322,
+    "maximum_axis_push_stalls": 32057,
+    "maximum_logical_update_edges_per_second": 10416666.666666666,
+    "matrix_wall_seconds": 26.23218133300543
+  },
+  "cases": [
+    {"case_id": "hls_insert_shortcut_v8", "family": "insert", "role": "calibration", "vertices": 8, "initial_edges": 4, "logical_updates": 1, "physical_updates": 1, "cycles": 166543, "update_cycles": 51, "compute_cycles": 166492, "axis_push_stalls": 0, "backend_requests": 67632, "dram_energy_pj": 367422702.0},
+    {"case_id": "hls_exact_delete_v8", "family": "delete", "role": "holdout", "vertices": 8, "initial_edges": 4, "logical_updates": 1, "physical_updates": 1, "cycles": 166543, "update_cycles": 51, "compute_cycles": 166492, "axis_push_stalls": 0, "backend_requests": 67632, "dram_energy_pj": 367422702.0},
+    {"case_id": "hls_weight_decrease_v8", "family": "weight_decrease", "role": "calibration", "vertices": 8, "initial_edges": 4, "logical_updates": 1, "physical_updates": 2, "cycles": 166577, "update_cycles": 66, "compute_cycles": 166511, "axis_push_stalls": 0, "backend_requests": 67636, "dram_energy_pj": 367519596.0},
+    {"case_id": "hls_weight_increase_v8", "family": "weight_increase", "role": "holdout", "vertices": 8, "initial_edges": 4, "logical_updates": 1, "physical_updates": 2, "cycles": 166577, "update_cycles": 66, "compute_cycles": 166511, "axis_push_stalls": 0, "backend_requests": 67636, "dram_energy_pj": 367519596.0},
+    {"case_id": "hls_mixed_update_v8", "family": "mixed", "role": "holdout", "vertices": 8, "initial_edges": 5, "logical_updates": 5, "physical_updates": 8, "cycles": 166622, "update_cycles": 127, "compute_cycles": 166495, "axis_push_stalls": 0, "backend_requests": 67664, "dram_energy_pj": 367744158.0},
+    {"case_id": "hls_chain_exact_four_hops_v8", "family": "four_hop_boundary", "role": "holdout", "vertices": 8, "initial_edges": 4, "logical_updates": 1, "physical_updates": 2, "cycles": 166579, "update_cycles": 66, "compute_cycles": 166513, "axis_push_stalls": 0, "backend_requests": 67640, "dram_energy_pj": 367517694.0},
+    {"case_id": "hls_dense_fanin_v64", "family": "dense_fanin", "role": "calibration", "vertices": 64, "initial_edges": 48, "logical_updates": 20, "physical_updates": 28, "cycles": 170179, "update_cycles": 384, "compute_cycles": 169795, "axis_push_stalls": 32036, "backend_requests": 68100, "dram_energy_pj": 374522634.0},
+    {"case_id": "hls_source_window_4096_v8194", "family": "source_window_boundary", "role": "holdout", "vertices": 8194, "initial_edges": 4097, "logical_updates": 1, "physical_updates": 2, "cycles": 821312, "update_cycles": 66, "compute_cycles": 821246, "axis_push_stalls": 32057, "backend_requests": 117780, "dram_energy_pj": 1543406616.0},
+    {"case_id": "hls_multisegment_variants_v128", "family": "pma_multisegment", "role": "calibration", "vertices": 128, "initial_edges": 48, "logical_updates": 17, "physical_updates": 34, "cycles": 170669, "update_cycles": 514, "compute_cycles": 170155, "axis_push_stalls": 0, "backend_requests": 68320, "dram_energy_pj": 375205200.0},
+    {"case_id": "hls_reorder_tie_v8", "family": "reorder_tiebreak", "role": "holdout", "vertices": 8, "initial_edges": 3, "logical_updates": 3, "physical_updates": 6, "cycles": 166627, "update_cycles": 112, "compute_cycles": 166515, "axis_push_stalls": 0, "backend_requests": 67652, "dram_energy_pj": 367665756.0}
+  ],
+  "raw": {
+    "directory": "results/grasu_hls_weighted_matrix_final_20260726",
+    "matrix_manifest_sha256": "a0ff9f429a3aea5bd1c4e3cd6a8251799c895ee56f3eead0d3ad9e1ee4e0662c",
+    "rows_sha256": "6af93d9e212e93c30552d0d4a5c76f66784ea11f612ce524ac8526c2233a1e24",
+    "profile_sha256": "d8ed8e09683ffa297e6c0e19e07532cdbf91e04099f83ec1410dc335389d6d57",
+    "capability_catalog_sha256": "5e12bbcd122db7456fdb1e1945364bcb23210e3e237548641e9f6d2465046a97"
+  },
+  "limitations": [
+    "All ten workloads are synthetic; no real graph dataset is covered by this matrix.",
+    "The HLS-aligned profile executes exactly four host SSSP supersteps, so workloads are constructed to converge within four rounds.",
+    "Cycles are execution-driven SST/DRAMSim3 estimates and are not cycle-calibrated against hw.",
+    "DRAM energy covers active instantiated channels only; on-chip and logic energy are not included.",
+    "Sequential/random access classification, PageRank profiles, total PPA, dense sweeps, and publication-scale runtime remain open."
+  ]
+}
