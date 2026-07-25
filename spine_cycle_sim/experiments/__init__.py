@@ -30,6 +30,11 @@ from .real_small_batches import (
     build_real_small_batches,
     validate_real_small_batch_manifest,
 )
+from .hls_real_comparison import (
+    pair_row as hls_real_pair_row,
+    validate_grasu_hls_result,
+    validate_spine_dynamic_result,
+)
 
 __all__ = [
     "DEFAULT_REAL_SOURCES",
@@ -55,4 +60,7 @@ __all__ = [
     "RealSmallBatch",
     "build_real_small_batches",
     "validate_real_small_batch_manifest",
+    "hls_real_pair_row",
+    "validate_grasu_hls_result",
+    "validate_spine_dynamic_result",
 ]

@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "status": "PASS",
+  "date": "2026-07-26",
+  "matrix_id": "hls_weighted_real_compact_comparison_20260726",
+  "claim_class": "profile_clock_adjusted_real_compact_execution_driven",
+  "coverage": {
+    "datasets": ["amazon_2008", "web_google", "soc_flickr_und"],
+    "scenarios": ["insert", "delete", "weight_change"],
+    "pairs": 9,
+    "system_rows": 18,
+    "user_mutations_per_batch": 8,
+    "all_correct": true,
+    "cross_system_distance_matches": 9
+  },
+  "profiles": {
+    "spine": {
+      "profile_id": "spine_shared_engine_9c08763",
+      "core_mhz": 141.0,
+      "profile_sha256": "aba0d6bbcbaa64240897ed3efc555d6ce6d6455d2f10e77e0ccdb77fa46466a7",
+      "timing_window": "update_cycles; cold_cycles excluded and reported separately"
+    },
+    "grasu_regraph": {
+      "profile_id": "grasu_regraph_weighted_pma_hls_sw_emu_ff13a67",
+      "core_mhz": 200.0,
+      "profile_sha256": "4aa897350dfdd9bddd45ec47654e58edd599050507b3156a77143d9008765f1e",
+      "timing_window": "PMA update_cycles plus fixed-four-round compute_cycles"
+    }
+  },
+  "summary": {
+    "spine_e2e_wins": 5,
+    "grasu_regraph_e2e_wins": 4,
+    "spine_speedup_over_grasu_e2e_geomean": 1.3056530600245444,
+    "spine_speedup_over_grasu_e2e_median": 1.2440360176807792,
+    "by_scenario": {
+      "insert": {
+        "spine_e2e_speedup_geomean": 2.7459958798827913,
+        "grasu_structure_update_speedup_geomean": 513.9993820920477,
+        "grasu_to_spine_backend_request_ratio_geomean": 9.35771996496689
+      },
+      "delete": {
+        "spine_e2e_speedup_geomean": 0.914441507757423,
+        "grasu_structure_update_speedup_geomean": 1517.0271709859255,
+        "grasu_to_spine_backend_request_ratio_geomean": 1.0012630533781979
+      },
+      "weight_change": {
+        "spine_e2e_speedup_geomean": 0.8863955364249124,
+        "grasu_structure_update_speedup_geomean": 895.7294433107384,
+        "grasu_to_spine_backend_request_ratio_geomean": 0.9901564058931513
+      }
+    },
+    "matrix_wall_seconds_jobs_3": 31.737826601136476
+  },
+  "pairs": [
+    {"run_id": "real_amazon_2008_insert_u8", "spine_ms": 0.27517021276595743, "grasu_ms": 1.021485, "spine_speedup": 3.7121932266295525, "spine_structure_ms": 0.19631914893617022, "grasu_structure_ms": 0.000885, "grasu_to_spine_request_ratio": 14.43673469387755},
+    {"run_id": "real_amazon_2008_delete_u8", "spine_ms": 0.8105815602836879, "grasu_ms": 1.0211000000000001, "spine_speedup": 1.2597128407937566, "spine_structure_ms": 0.5485673758865248, "grasu_structure_ms": 0.00084, "grasu_to_spine_request_ratio": 1.8424987626019225},
+    {"run_id": "real_amazon_2008_weight_change_u8", "spine_ms": 0.8215035460992908, "grasu_ms": 1.02198, "spine_speedup": 1.2440360176807792, "spine_structure_ms": 0.5500141843971631, "grasu_structure_ms": 0.001345, "grasu_to_spine_request_ratio": 1.833916310402902},
+    {"run_id": "real_web_google_insert_u8", "spine_ms": 0.6497872340425532, "grasu_ms": 1.5936299999999999, "spine_speedup": 2.4525412573673866, "spine_structure_ms": 0.5686312056737589, "grasu_structure_ms": 0.000695, "grasu_to_spine_request_ratio": 7.627571239856577},
+    {"run_id": "real_web_google_delete_u8", "spine_ms": 1.9735177304964537, "grasu_ms": 1.59341, "spine_speedup": 0.807395837076754, "spine_structure_ms": 1.606709219858156, "grasu_structure_ms": 0.000705, "grasu_to_spine_request_ratio": 0.7455769762936998},
+    {"run_id": "real_web_google_weight_change_u8", "spine_ms": 1.9794042553191489, "grasu_ms": 1.5940699999999999, "spine_speedup": 0.8053281666523346, "spine_structure_ms": 1.6104255319148937, "grasu_structure_ms": 0.001235, "grasu_to_spine_request_ratio": 0.744637168793386},
+    {"run_id": "real_soc_flickr_und_insert_u8", "spine_ms": 0.6494539007092198, "grasu_ms": 1.47707, "spine_speedup": 2.274326166009632, "spine_structure_ms": 0.5686382978723404, "grasu_structure_ms": 0.00076, "grasu_to_spine_request_ratio": 7.44140403849783},
+    {"run_id": "real_soc_flickr_und_delete_u8", "spine_ms": 1.9643120567375887, "grasu_ms": 1.4767949999999999, "spine_speedup": 0.7518128267525489, "spine_structure_ms": 1.6068368794326242, "grasu_structure_ms": 0.000685, "grasu_to_spine_request_ratio": 0.7307097120935534},
+    {"run_id": "real_soc_flickr_und_weight_change_u8", "spine_ms": 2.125304964539007, "grasu_ms": 1.4774, "spine_speedup": 0.6951472963412844, "spine_structure_ms": 1.61054609929078, "grasu_structure_ms": 0.001195, "grasu_to_spine_request_ratio": 0.7108650805805039}
+  ],
+  "raw": {
+    "directory": "results/hls_weighted_real_comparison_release_20260726",
+    "matrix_manifest_sha256": "28b04d874eca23be71cef4e52afbfa5a7fc7a9e02d8984e7cda61c7460d9b4de",
+    "system_rows_sha256": "02a1b0f490f6c4d9fc913ee2d6c0d2bc64849383db9e8c00bef0aeeb6f117cdb",
+    "pairs_sha256": "5c963b129d47075c4d3f91cc0ac0aa1aab4f26121c168af884eada9492441da5",
+    "execution_sha256": "990898b33c90f6f1018bc9f6fab587c2fff9e921c8789eedd1f86a37e812b35d",
+    "input_manifest_sha256": "1c0a362a82b34eb235153b815dbfbeb9121932cd4d2b40e87b8d8e5370a40bd9"
+  },
+  "limitations": [
+    "The graph inputs are compact real-edge slices, not full datasets.",
+    "The Spine clock is routed evidence while the GraSU/ReGraph 200 MHz clock is requested-profile evidence, not routed timing closure.",
+    "The execution-driven simulator is not calibrated cycle-for-cycle against hw.",
+    "Spine DRAM transaction and energy counters include cold plus update; no cross-system DRAM energy ratio is claimed.",
+    "Sequential/random address classification, HLS-aligned PageRank, full-dataset runtime, and total PPA remain open."
+  ]
+}

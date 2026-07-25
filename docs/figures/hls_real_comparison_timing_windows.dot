@@ -1,0 +1,38 @@
+digraph hls_real_comparison_timing_windows {
+  graph [rankdir=LR, bgcolor="white", pad=0.25, nodesep=0.35, ranksep=0.65];
+  node [shape=box, style="rounded,filled", fontname="Arial", fontsize=11, color="#4A5568", penwidth=1.2];
+  edge [fontname="Arial", fontsize=10, color="#59636E", penwidth=1.2, arrowsize=0.75];
+
+  input [label="Byte-identical real slice\n+ 8-mutation batch", fillcolor="#F4F5F6"];
+
+  subgraph cluster_spine {
+    label="Spine | routed-reference profile | 141 MHz";
+    color="#4E7A63";
+    fontname="Arial";
+    spine_cold [label="Cold graph setup + SSSP\nreported, excluded from pair", fillcolor="#E8EEE9"];
+    spine_update [label="Maintenance\nincremental or full rebuild", fillcolor="#DCEBDD"];
+    spine_rest [label="Reader + Map/Reduce + control\npost-structure cycles", fillcolor="#EAF2EB"];
+    spine_out [label="Final external distances", fillcolor="#F3F7F3"];
+    spine_cold -> spine_update [label="aligned window starts"];
+    spine_update -> spine_rest;
+    spine_rest -> spine_out;
+  }
+
+  subgraph cluster_grasu {
+    label="GraSU/ReGraph | ff13a67 profile | 200 MHz";
+    color="#A45D3D";
+    fontname="Arial";
+    grasu_update [label="Full-word PMA update", fillcolor="#F5E5DC"];
+    grasu_compute [label="Direct AXIS handoff\n4 fixed ReGraph rounds", fillcolor="#FAECE4"];
+    grasu_out [label="Final external distances", fillcolor="#FCF4EF"];
+    grasu_update -> grasu_compute;
+    grasu_compute -> grasu_out;
+  }
+
+  oracle [label="Cross-system vector SHA\n+ architecture oracle + Dijkstra", shape=box, fillcolor="#E8EDF3", color="#55728F"];
+
+  input -> spine_cold;
+  input -> grasu_update [label="aligned window starts"];
+  spine_out -> oracle;
+  grasu_out -> oracle;
+}

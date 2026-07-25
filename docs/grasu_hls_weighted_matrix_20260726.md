@@ -32,7 +32,7 @@ terminates the matrix.
 | `hls_reorder_tie_v8` | stable host reorder tie-break | 8 / 3 | 3 / 6 | 166,627 / 112 | 0 |
 
 All 10 cases passed with zero architecture, mathematical, and aggregate
-correctness mismatches. The full matrix took 26.23 host seconds.
+correctness mismatches. The final-profile matrix took 25.97 host seconds.
 
 ## What It Shows
 
@@ -74,10 +74,10 @@ state converges within that window.
 cd /home/chuxiao/spine-cycle-sim
 python3 scripts/run_grasu_hls_weighted_matrix.py \
   --no-build \
-  --out-dir results/grasu_hls_weighted_matrix_final_20260726
+  --out-dir results/grasu_hls_weighted_matrix_profile_final_20260726
 sha256sum \
-  results/grasu_hls_weighted_matrix_final_20260726/matrix_manifest.json \
-  results/grasu_hls_weighted_matrix_final_20260726/rows.csv
+  results/grasu_hls_weighted_matrix_profile_final_20260726/matrix_manifest.json \
+  results/grasu_hls_weighted_matrix_profile_final_20260726/rows.csv
 ```
 
 Expected hashes are pinned in

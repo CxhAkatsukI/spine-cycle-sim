@@ -172,7 +172,9 @@ dot -Tsvg docs/figures/grasu_regraph_profile_ladder.dot \
 The profile capability is now `executable`. A subsequent 10-case synthetic
 matrix covers update types, fixed-round convergence, stream pressure, PMA
 segments, source-window boundaries, and host reorder ties; see
-`docs/grasu_hls_weighted_matrix_20260726.md`. The remaining work is real-dataset
-validation, hw/hw_emu timing comparison when those artifacts are available,
-the two PageRank algorithms in the HLS-aligned profile, and complete
+`docs/grasu_hls_weighted_matrix_20260726.md`. A 9-pair follow-up covers dynamic
+updates on compact real-edge slices; see
+`docs/hls_weighted_real_compact_comparison_20260726.md`. The remaining work is
+full-dataset validation, hw/hw_emu timing comparison when those artifacts are
+available, the two PageRank algorithms in the HLS-aligned profile, and complete
 logic/on-chip-memory PPA evidence.

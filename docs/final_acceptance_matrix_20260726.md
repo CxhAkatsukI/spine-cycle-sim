@@ -16,12 +16,12 @@ cannot silently satisfy an HLS-aligned requirement.
 | Spine weighted SSSP | Execution-driven shared core, dynamic fallback, SST/DRAMSim3, dual oracle | Implemented | Run final real-dataset matrix and freeze manifests |
 | Spine Full PageRank | Timed Map/Reduce policy and SST vertical slice | Implemented | Run final real-dataset small-batch matrix |
 | Spine thresholded residual PageRank | Timed signed-residual policy and SST vertical slice | Implemented | Run final real-dataset small-batch matrix |
-| GraSU/ReGraph weighted SSSP | Normalized executable mode; native unit-weight mode; `ff13a67` weighted full-word HLS-aligned mode; 10-case synthetic HLS matrix | Implemented | Run common real-dataset small-batch matrix and compare with hw/hw_emu evidence |
+| GraSU/ReGraph weighted SSSP | Normalized executable mode; native unit-weight mode; `ff13a67` weighted full-word HLS-aligned mode; 10 synthetic plus 9 real-compact dynamic cases | Implemented | Scale beyond compact slices and compare with hw/hw_emu timing evidence |
 | GraSU/ReGraph Full PageRank | Normalized PMA-native and partitioned dynamic mode | Normalized only | Define and implement the HLS-aligned PageRank profile or label comparison normalized |
 | GraSU/ReGraph thresholded residual PageRank | Normalized PMA-native and multi-partition mode | Normalized only | Define and implement the HLS-aligned residual profile or label comparison normalized |
-| Differential correctness | Shared dynamic fixtures and per-run architecture/mathematical oracles | Partial | Every final experiment row must emit zero mismatches; add deletion/increase cases to final real datasets |
-| End-to-end small-batch performance | 73-pair normalized comparison plus native/HLS vertical slices | Partial | Freeze datasets from GraSU/Dynamic-ACTS practice and run final HLS-aligned matrix |
-| Update throughput | Timed Spine maintenance and GraSU PMA update counters | Partial | Report logical and physical edge/s separately on common real small batches |
+| Differential correctness | Shared dynamic fixtures, per-run architecture/mathematical oracles, and 9/9 cross-system real-compact distance matches | Partial | Preserve fail-closed checks on PageRank and full-dataset experiments |
+| End-to-end small-batch performance | 73-pair normalized matrix plus 9-pair weighted-SSSP HLS-profile real-compact matrix | Partial | Add HLS-aligned PageRank and publication-scale datasets |
+| Update throughput | Common real-compact batches report user mutations and physical records for Spine maintenance and GraSU PMA | Partial | Sweep batch size/density on full-scale inputs and validate against hw |
 | Memory behavior | Per-component bytes/requests, AXI stalls, DRAM reads/writes/ACT/PRE, sparse channel binding | Partial | Add common sequential/random classification and per-algorithm tables |
 | Energy by component | DRAMSim3 active-channel energy and selected CACTI evidence | Partial | Complete on-chip activity-to-energy mapping; keep idle-channel assumptions explicit |
 | Area and timing | Existing routed Spine/native GraSU evidence | Partial | Add reports for the final HLS-equivalent design and map simulator components to reports |
@@ -59,12 +59,21 @@ dense fan-in, the 4,096-source-window boundary, multi-segment PMA variants,
 and deterministic reorder ties. All cases pass the architecture and Dijkstra
 oracles. See `docs/grasu_hls_weighted_matrix_20260726.md`.
 
+## Closed Real-Compact Weighted Gate
+
+The 9-pair matrix now covers Amazon-2008, web-Google, and soc-Flickr compact
+real-edge slices with insertion, deletion, and explicit weight replacement.
+All 18 system rows and all cross-system distance vectors pass. The timing
+window, profile clocks, update throughput, aligned backend requests, stalls,
+and runtime are frozen in
+`docs/hls_weighted_real_compact_comparison_20260726.md`.
+
 ## Immediate Next Gate
 
-Freeze at least three common real datasets and deterministic small insertion,
-deletion, and weight-change batches. Run Spine and the HLS-aligned weighted
-GraSU/ReGraph mode with correctness enabled in every row, then report E2E,
-logical/physical update throughput, memory requests/bytes, sequential/random
-classification, stalls, and simulator wall time. In parallel, define explicit
-HLS-aligned Full PageRank and thresholded residual PageRank profiles; normalized
-PageRank rows cannot satisfy the final HLS-aligned comparison requirement.
+Define executable HLS-aligned Full PageRank and thresholded residual PageRank
+profiles for GraSU/ReGraph using the same PMA, direct AXIS handoff, FIFO, AXI,
+HBM, and profile-clock rules. Each profile needs an independent float oracle,
+synthetic boundary coverage, and the same three real compact datasets before
+joining the common matrix. In parallel, add phase snapshots for Spine DRAM
+read/write/ACT/PRE/energy and sequential/random classification; until then,
+the weighted matrix may claim aligned request counts but not DRAM energy ratios.

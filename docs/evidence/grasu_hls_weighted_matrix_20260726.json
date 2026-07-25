@@ -32,7 +32,7 @@
     "source_window_dram_energy_ratio": 4.20062943198322,
     "maximum_axis_push_stalls": 32057,
     "maximum_logical_update_edges_per_second": 10416666.666666666,
-    "matrix_wall_seconds": 26.23218133300543
+    "matrix_wall_seconds": 25.965855649206787
   },
   "cases": [
     {"case_id": "hls_insert_shortcut_v8", "family": "insert", "role": "calibration", "vertices": 8, "initial_edges": 4, "logical_updates": 1, "physical_updates": 1, "cycles": 166543, "update_cycles": 51, "compute_cycles": 166492, "axis_push_stalls": 0, "backend_requests": 67632, "dram_energy_pj": 367422702.0},
@@ -47,11 +47,11 @@
     {"case_id": "hls_reorder_tie_v8", "family": "reorder_tiebreak", "role": "holdout", "vertices": 8, "initial_edges": 3, "logical_updates": 3, "physical_updates": 6, "cycles": 166627, "update_cycles": 112, "compute_cycles": 166515, "axis_push_stalls": 0, "backend_requests": 67652, "dram_energy_pj": 367665756.0}
   ],
   "raw": {
-    "directory": "results/grasu_hls_weighted_matrix_final_20260726",
-    "matrix_manifest_sha256": "a0ff9f429a3aea5bd1c4e3cd6a8251799c895ee56f3eead0d3ad9e1ee4e0662c",
-    "rows_sha256": "6af93d9e212e93c30552d0d4a5c76f66784ea11f612ce524ac8526c2233a1e24",
-    "profile_sha256": "d8ed8e09683ffa297e6c0e19e07532cdbf91e04099f83ec1410dc335389d6d57",
-    "capability_catalog_sha256": "5e12bbcd122db7456fdb1e1945364bcb23210e3e237548641e9f6d2465046a97"
+    "directory": "results/grasu_hls_weighted_matrix_profile_final_20260726",
+    "matrix_manifest_sha256": "6831e4ad6df05e900f383000562a4aac118504235e16f0c3827904af9def89eb",
+    "rows_sha256": "ff859307489d7f9504299f64728dd6f6e4561cc4d889caa0c6a5fdcaf70fe480",
+    "profile_sha256": "4aa897350dfdd9bddd45ec47654e58edd599050507b3156a77143d9008765f1e",
+    "capability_catalog_sha256": "fd4a5a68b82008238cdebcba566f9904aac7ce7362614b5343001be89a5985b2"
   },
   "limitations": [
     "All ten workloads are synthetic; no real graph dataset is covered by this matrix.",
