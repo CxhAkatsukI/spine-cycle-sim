@@ -6,12 +6,14 @@ import tempfile
 import unittest
 
 from spine_cycle_sim.experiments.comparison import (
+    RunInvocation,
     build_invocation,
     implementation_fingerprint,
     pair_rows,
     select_runs,
     validate_system_result,
 )
+from scripts.run_shared_comparison_matrix import ProcessRegistry
 from spine_cycle_sim.experiments.shared_workloads import (
     validate_shared_comparison_manifest,
 )
@@ -93,6 +95,23 @@ class SharedComparisonRunnerTests(unittest.TestCase):
             after = implementation_fingerprint([first, second])
         self.assertNotEqual(before["sha256"], after["sha256"])
         self.assertEqual(len(before["files"]), 2)
+
+    def test_process_registry_preserves_first_failure(self) -> None:
+        registry = ProcessRegistry()
+        first = RunInvocation("first", "spine", (), ROOT)
+        second = RunInvocation("second", "grasu_regraph", (), ROOT)
+        registry.record_failure(first, RuntimeError("root cause"))
+        registry.record_failure(second, RuntimeError("shutdown noise"))
+        self.assertTrue(registry.stopping)
+        self.assertEqual(
+            registry.failure,
+            {
+                "run_id": "first",
+                "system": "spine",
+                "error_type": "RuntimeError",
+                "message": "root cause",
+            },
+        )
 
     def test_parent_gate_rejects_wrong_clock_or_oracle(self) -> None:
         run = next(

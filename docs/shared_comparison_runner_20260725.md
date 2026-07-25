@@ -48,10 +48,15 @@ Child processes start in separate process groups. A timeout first terminates
 and then kills the complete process group so that SST or DRAMSim3 children are
 not orphaned. `--resume` reuses a passing result only when both the complete
 command, serialized run contract hash, and implementation fingerprint still
-match. The fingerprint covers the compiled component library, SST executable,
-memory config, architecture profiles, SST topology scripts, and child runners.
+match. The simulation fingerprint covers the compiled component library, SST
+executable, memory config, architecture profiles, SST topology scripts, and
+child runners. A separate orchestration fingerprint covers command generation,
+parent validation, and scheduling, so reporting-only changes do not invalidate
+cycle evidence.
 The matrix manifest reports executed and reused row counts separately; cached
 rows retain the original simulation wall time and are marked in `results.csv`.
+On the first failed child, the runner cancels pending work, terminates every
+active child process group, writes a partial `FAIL` manifest, and exits nonzero.
 
 ## Current smoke evidence
 
@@ -71,6 +76,28 @@ and sets `complete_matrix` to false.
 Separate direct smoke runs also pass weighted SSSP, Full PageRank, thresholded
 residual PageRank, and mixed dynamic SSSP on both normalized systems. These are
 component bring-up checks, not a substitute for the complete frozen matrix.
+
+## First full-matrix runtime gate
+
+The first 4-worker complete attempt produced 55 child `PASS` caches with zero
+reported oracle or memory-ledger mismatch. It then hit the 1,800-second child
+timeout on the Spine side of
+`syn_source_window_e4095__residual_pagerank`. That graph spreads 4,095 edges
+across 4,095 sources and is deliberately hostile to source-oriented metadata
+and reader control.
+
+This is a **simulator runtime failure**, not a simulated-hardware correctness
+failure. No aggregate speedup is reported from the partial matrix. Increasing
+the timeout would hide the acceptance failure: the next implementation task is
+to improve scheduler/runtime efficiency while preserving cycle, contention,
+FIFO, and memory-event semantics.
+
+That attempt also exposed an orchestration issue in the first runner revision:
+`ThreadPoolExecutor` could continue queued work after one child failed. The
+runner now uses a shared stop latch and process registry. A deliberate
+0.01-second timeout test starts only the two active worker slots, terminates
+both process groups, leaves no SST child, emits a partial `FAIL` manifest, and
+returns nonzero in 0.12 seconds.
 
 ## Reproduction
 

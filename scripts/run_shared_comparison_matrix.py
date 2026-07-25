@@ -13,6 +13,7 @@ from pathlib import Path
 import signal
 import subprocess
 import sys
+import threading
 import time
 from typing import Any
 
@@ -42,8 +43,77 @@ DEFAULT_MANIFEST = (
 )
 
 
+class ProcessRegistry:
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self._processes: set[subprocess.Popen[str]] = set()
+        self._stopping = False
+        self._failure: dict[str, str] | None = None
+
+    @property
+    def stopping(self) -> bool:
+        with self._lock:
+            return self._stopping
+
+    @property
+    def failure(self) -> dict[str, str] | None:
+        with self._lock:
+            return None if self._failure is None else dict(self._failure)
+
+    def record_failure(
+        self, invocation: RunInvocation, error: Exception
+    ) -> None:
+        with self._lock:
+            self._stopping = True
+            if self._failure is None:
+                self._failure = {
+                    "run_id": invocation.run_id,
+                    "system": invocation.system,
+                    "error_type": type(error).__name__,
+                    "message": str(error),
+                }
+
+    def register(self, process: subprocess.Popen[str]) -> None:
+        with self._lock:
+            stopping = self._stopping
+            if not stopping:
+                self._processes.add(process)
+        if stopping and process.poll() is None:
+            try:
+                os.killpg(process.pid, signal.SIGTERM)
+            except ProcessLookupError:
+                pass
+
+    def unregister(self, process: subprocess.Popen[str]) -> None:
+        with self._lock:
+            self._processes.discard(process)
+
+    def terminate_all(self, *, grace_seconds: float = 5.0) -> None:
+        with self._lock:
+            self._stopping = True
+            processes = list(self._processes)
+        for process in processes:
+            if process.poll() is None:
+                try:
+                    os.killpg(process.pid, signal.SIGTERM)
+                except ProcessLookupError:
+                    pass
+        deadline = time.monotonic() + grace_seconds
+        while time.monotonic() < deadline:
+            if all(process.poll() is not None for process in processes):
+                return
+            time.sleep(0.05)
+        for process in processes:
+            if process.poll() is None:
+                try:
+                    os.killpg(process.pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
+
+
 def _write_csv(path: Path, rows: list[dict[str, object]]) -> None:
     if not rows:
+        path.unlink(missing_ok=True)
         return
     with path.open("w", encoding="utf-8", newline="") as stream:
         writer = csv.DictWriter(stream, fieldnames=list(rows[0]))
@@ -72,13 +142,14 @@ def _completed_row(
     return row
 
 
-def _run_one(
+def _run_one_impl(
     run: dict[str, object],
     invocation: RunInvocation,
     *,
     timeout_seconds: float,
     resume: bool,
-    implementation_sha256: str,
+    simulation_sha256: str,
+    registry: ProcessRegistry,
 ) -> dict[str, object]:
     invocation.out_dir.mkdir(parents=True, exist_ok=True)
     resume_path = invocation.out_dir / "shared_run.json"
@@ -91,7 +162,7 @@ def _run_one(
             cached.get("status") == "PASS"
             and cached.get("command") == list(invocation.command)
             and cached.get("input_contract_sha256") == input_contract_sha256
-            and cached.get("implementation_sha256") == implementation_sha256
+            and cached.get("simulation_sha256") == simulation_sha256
         ):
             return _completed_row(
                 run,
@@ -108,22 +179,26 @@ def _run_one(
         stderr=subprocess.STDOUT,
         start_new_session=True,
     )
+    registry.register(process)
     try:
-        stdout, _ = process.communicate(timeout=timeout_seconds)
-    except subprocess.TimeoutExpired as error:
-        os.killpg(process.pid, signal.SIGTERM)
         try:
-            stdout, _ = process.communicate(timeout=10.0)
-        except subprocess.TimeoutExpired:
-            os.killpg(process.pid, signal.SIGKILL)
-            stdout, _ = process.communicate()
-        (invocation.out_dir / "driver.log").write_text(
-            stdout, encoding="utf-8"
-        )
-        raise RuntimeError(
-            f"{invocation.run_id}/{invocation.system} exceeded "
-            f"{timeout_seconds:.1f}s and its process group was terminated"
-        ) from error
+            stdout, _ = process.communicate(timeout=timeout_seconds)
+        except subprocess.TimeoutExpired as error:
+            os.killpg(process.pid, signal.SIGTERM)
+            try:
+                stdout, _ = process.communicate(timeout=10.0)
+            except subprocess.TimeoutExpired:
+                os.killpg(process.pid, signal.SIGKILL)
+                stdout, _ = process.communicate()
+            (invocation.out_dir / "driver.log").write_text(
+                stdout, encoding="utf-8"
+            )
+            raise RuntimeError(
+                f"{invocation.run_id}/{invocation.system} exceeded "
+                f"{timeout_seconds:.1f}s and its process group was terminated"
+            ) from error
+    finally:
+        registry.unregister(process)
     wall_seconds = time.monotonic() - start
     (invocation.out_dir / "driver.log").write_text(
         stdout, encoding="utf-8"
@@ -139,12 +214,12 @@ def _run_one(
     resume_path.write_text(
         json.dumps(
             {
-                "schema_version": 1,
+                "schema_version": 2,
                 "run_id": invocation.run_id,
                 "system": invocation.system,
                 "command": list(invocation.command),
                 "input_contract_sha256": input_contract_sha256,
-                "implementation_sha256": implementation_sha256,
+                "simulation_sha256": simulation_sha256,
                 "wall_seconds": wall_seconds,
                 "row": row,
                 "status": "PASS",
@@ -156,6 +231,32 @@ def _run_one(
         encoding="utf-8",
     )
     return row
+
+
+def _run_one(
+    run: dict[str, object],
+    invocation: RunInvocation,
+    *,
+    timeout_seconds: float,
+    resume: bool,
+    simulation_sha256: str,
+    registry: ProcessRegistry,
+) -> dict[str, object]:
+    if registry.stopping:
+        raise RuntimeError("comparison run cancelled after an earlier failure")
+    try:
+        return _run_one_impl(
+            run,
+            invocation,
+            timeout_seconds=timeout_seconds,
+            resume=resume,
+            simulation_sha256=simulation_sha256,
+            registry=registry,
+        )
+    except Exception as error:
+        registry.record_failure(invocation, error)
+        registry.terminate_all()
+        raise
 
 
 def main() -> int:
@@ -193,11 +294,8 @@ def main() -> int:
     systems = args.system or ["spine", "grasu_regraph"]
     if not args.no_build:
         subprocess.run(["make", "-C", "cpp/sst", "-j2"], cwd=ROOT, check=True)
-    implementation = implementation_fingerprint(
+    simulation_implementation = implementation_fingerprint(
         [
-            Path(__file__),
-            ROOT / "spine_cycle_sim" / "experiments" / "comparison.py",
-            ROOT / "spine_cycle_sim" / "experiments" / "shared_workloads.py",
             ROOT / "scripts" / "run_sst_spine_vertical.py",
             ROOT / "scripts" / "run_sst_grasu_regraph.py",
             ROOT / "scripts" / "run_sst_grasu_regraph_pagerank.py",
@@ -222,6 +320,13 @@ def main() -> int:
             args.sst,
         ]
     )
+    orchestration_implementation = implementation_fingerprint(
+        [
+            Path(__file__),
+            ROOT / "spine_cycle_sim" / "experiments" / "comparison.py",
+            ROOT / "spine_cycle_sim" / "experiments" / "shared_workloads.py",
+        ]
+    )
     args.out_dir.mkdir(parents=True, exist_ok=True)
     invocations: list[tuple[dict[str, object], RunInvocation]] = []
     for run in selected:
@@ -244,46 +349,71 @@ def main() -> int:
 
     matrix_start = time.monotonic()
     rows: list[dict[str, object]] = []
-    with ThreadPoolExecutor(max_workers=args.jobs) as executor:
-        futures = {
-            executor.submit(
-                _run_one,
-                run,
-                invocation,
-                timeout_seconds=args.timeout_seconds,
-                resume=args.resume,
-                implementation_sha256=str(implementation["sha256"]),
-            ): invocation
-            for run, invocation in invocations
-        }
-        for future in as_completed(futures):
-            invocation = futures[future]
+    registry = ProcessRegistry()
+    failure: dict[str, str] | None = None
+    executor = ThreadPoolExecutor(max_workers=args.jobs)
+    futures = {
+        executor.submit(
+            _run_one,
+            run,
+            invocation,
+            timeout_seconds=args.timeout_seconds,
+            resume=args.resume,
+            simulation_sha256=str(simulation_implementation["sha256"]),
+            registry=registry,
+        ): invocation
+        for run, invocation in invocations
+    }
+    for future in as_completed(futures):
+        invocation = futures[future]
+        try:
             row = future.result()
-            rows.append(row)
+        except Exception as error:  # noqa: BLE001 - preserve child diagnostics
+            failure = registry.failure or {
+                "run_id": invocation.run_id,
+                "system": invocation.system,
+                "error_type": type(error).__name__,
+                "message": str(error),
+            }
             print(
-                f"PASS {invocation.run_id}/{invocation.system}: "
-                f"cycles={row['cycles']} wall={float(row['wall_seconds']):.2f}s",
+                f"FAIL {failure['run_id']}/{failure['system']}: "
+                f"{failure['message']}",
                 flush=True,
             )
+            registry.terminate_all()
+            for pending in futures:
+                pending.cancel()
+            break
+        rows.append(row)
+        print(
+            f"PASS {invocation.run_id}/{invocation.system}: "
+            f"cycles={row['cycles']} wall={float(row['wall_seconds']):.2f}s",
+            flush=True,
+        )
+    executor.shutdown(wait=True, cancel_futures=True)
     matrix_wall_seconds = time.monotonic() - matrix_start
     rows.sort(key=lambda row: (str(row["run_id"]), str(row["system"])))
     pairs = pair_rows(rows)
     reused_rows = sum(bool(row["cache_reused"]) for row in rows)
     all_run_ids = {str(run["run_id"]) for run in manifest["runs"]}
     selected_run_ids = {str(run["run_id"]) for run in selected}
-    complete_matrix = selected_run_ids == all_run_ids and set(systems) == {
-        "spine",
-        "grasu_regraph",
-    }
+    complete_matrix = (
+        failure is None
+        and selected_run_ids == all_run_ids
+        and set(systems) == {"spine", "grasu_regraph"}
+    )
     output: dict[str, Any] = {
         "schema_version": 1,
         "matrix_id": manifest["matrix_id"],
         "source_manifest": str(args.manifest.resolve()),
         "source_manifest_sha256": sha256_file(args.manifest.resolve()),
-        "implementation": implementation,
+        "simulation_implementation": simulation_implementation,
+        "orchestration_implementation": orchestration_implementation,
         "claim_class": (
             "complete_normalized_structural_matrix"
             if complete_matrix
+            else "failed_normalized_structural_matrix"
+            if failure is not None
             else "filtered_normalized_structural_subset"
         ),
         "complete_matrix": complete_matrix,
@@ -294,13 +424,19 @@ def main() -> int:
         "reused_rows": reused_rows,
         "result_rows": len(rows),
         "paired_rows": len(pairs),
-        "status": "PASS",
+        "failure": failure,
+        "status": "PASS" if failure is None else "FAIL",
     }
     (args.out_dir / "comparison_manifest.json").write_text(
         json.dumps(output, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
     _write_csv(args.out_dir / "results.csv", rows)
     _write_csv(args.out_dir / "pairs.csv", pairs)
+    if failure is not None:
+        raise RuntimeError(
+            "shared comparison matrix failed: "
+            f"{failure['run_id']}/{failure['system']}: {failure['message']}"
+        )
     print(
         f"PASS shared matrix: rows={len(rows)} pairs={len(pairs)} "
         f"complete={complete_matrix} wall={matrix_wall_seconds:.2f}s"
