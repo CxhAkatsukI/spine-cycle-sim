@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "claim_class": "fpga_routed_measured_native_non_normalized",
+  "repository_root": "../..",
+  "comparison_build_ids": [
+    "spine_accepted_9c08763",
+    "grasu_regraph_native_a9aef06"
+  ],
+  "builds": [
+    {
+      "build_id": "spine_accepted_9c08763",
+      "system": "spine",
+      "role": "comparison_primary",
+      "claim_label": "measured_native_older_hls_accepted_auto_scaled",
+      "source": {
+        "repository": "/home/chuxiao/spine-dynamic-graph-reduce-levels",
+        "revision": "9c08763148644df262c0d374e782bc834f4c0f4f",
+        "xclbin_sha256": "1828434e164bf0aef28fff9fba7925cfa39f93ad86f6bfc3878f504461c76dbf",
+        "current_reference_revision": "afb8199a2ca8d3fd208b985324bf4d8719e2b839",
+        "alignment": "older_than_current_reduce_levels_for_routing_reference"
+      },
+      "tool_version": "Vivado v.2024.1",
+      "platform_vbnv": "xilinx_u55c_gen3x16_xdma_3_202210_1",
+      "kernel_clock_name": "clk_kernel_00_unbuffered_net",
+      "system_clock_name": "ulp_ucs_aclk_kernel_00",
+      "expected_utilization_design_state": "Fully Placed",
+      "expected_timing_design_state": "Physopt postRoute",
+      "expected_timing_disposition": "packaged_after_auto_scaling",
+      "reports": {
+        "utilization": {
+          "path": "docs/evidence/fpga_routed_native_20260725/raw/spine_accepted_9c08763_kernel_util_routed.rpt.gz",
+          "archive_sha256": "deac5d504b627d7ec5e8b2dc6eb5f9990c01c87c0d801958797b1bb35b1e892d",
+          "content_sha256": "74ca4abd2bd2ad4f0596f2e0979483e0d8de05adaed92873724356becf8df54f"
+        },
+        "timing": {
+          "path": "docs/evidence/fpga_routed_native_20260725/raw/spine_accepted_9c08763_timing_postroute_physopted.rpt.gz",
+          "archive_sha256": "a9c266a40bd391d7ce889f9e9e2665780e266866238f2ab815404ec6cea5e5f4",
+          "content_sha256": "9f43d9ed59228338e48dc604941d9b0fef6941972401bf1f8b289fca8381b2bf"
+        },
+        "xclbin_info": {
+          "path": "docs/evidence/fpga_routed_native_20260725/raw/spine_accepted_9c08763_xclbin.info.gz",
+          "archive_sha256": "b79e722053fc53f48b8f47bc0aaa0ed2d229bc05ab26d44cb9b48f4d94a07908",
+          "content_sha256": "4918fe5f51cae366b9ec9e2cccd1c83b8c26534d443d2a851327fc1e7488614e"
+        }
+      },
+      "limitations": [
+        "This routed build predates the current afb8199 reduce-levels-for-routing reference.",
+        "The 150 MHz requested timing constraint is not met; Vitis packages DATA_CLK at 141 MHz after auto-scaling.",
+        "Resource counts describe the native Spine HLS build, not a normalized or projected design."
+      ]
+    },
+    {
+      "build_id": "grasu_regraph_native_a9aef06",
+      "system": "grasu_regraph",
+      "role": "comparison_primary",
+      "claim_label": "measured_native_with_conversion_timing_closed",
+      "source": {
+        "repository": "/home/chuxiao/grasu-regraph-integration",
+        "revision": "a9aef064889faa190975ddfecb39c54631e962c6",
+        "xclbin_sha256": "5a730a2da85ddf522f577ca7d7024f7aa401bb07802f3bf9b4326dfd312e917e",
+        "branch": "codex/pure-hw-pipeline",
+        "alignment": "exact_pinned_native_integration"
+      },
+      "tool_version": "Vivado v.2024.1",
+      "platform_vbnv": "xilinx_u55c_gen3x16_xdma_3_202210_1",
+      "kernel_clock_name": "clk_kernel_00_unbuffered_net",
+      "system_clock_name": "ulp_ucs_aclk_kernel_00",
+      "expected_utilization_design_state": "Routed",
+      "expected_timing_design_state": "Routed",
+      "expected_timing_disposition": "requested_clock_closed",
+      "reports": {
+        "utilization": {
+          "path": "docs/evidence/fpga_routed_native_20260725/raw/grasu_regraph_a9aef06_kernel_util_routed.rpt.gz",
+          "archive_sha256": "9d4a5bb75d1273ea86982883651b4de909d932670f496d1899216b344e133122",
+          "content_sha256": "15ee659a0af3566169bbce40e49ac5f9978331fac955f2e286300580185de995"
+        },
+        "timing": {
+          "path": "docs/evidence/fpga_routed_native_20260725/raw/grasu_regraph_a9aef06_timing_routed.rpt.gz",
+          "archive_sha256": "585e8c92b1291a7889d7a367b3839a94b92fa1ee9a2cdec8c0cace8df8eb3f5b",
+          "content_sha256": "07b5e928609871051666a3fd7d22026b7d85d4a615b504f838791837fc5c8882"
+        },
+        "xclbin_info": {
+          "path": "docs/evidence/fpga_routed_native_20260725/raw/grasu_regraph_a9aef06_xclbin.info.gz",
+          "archive_sha256": "e7cc8f0f93200ef58fa4625d8259db3a9917592458f1bdfe1fd62c0aec847e5d",
+          "content_sha256": "d3a951cea4fdd51e1f42af51dbd377228e1f53693e7c13adfdad856a944bbe69"
+        }
+      },
+      "limitations": [
+        "The native design includes the PMA-to-ReGraph edge-array conversion kernel.",
+        "This is SSSP-specialized ReGraph hardware and does not synthesize the proposed shared Map-Reduce policy interface.",
+        "Resource counts describe the native integration, not the conversion-free normalized profile."
+      ]
+    },
+    {
+      "build_id": "spine_negative_9c08763_134",
+      "system": "spine",
+      "role": "negative_evidence",
+      "claim_label": "measured_native_rejected_timing_not_closed",
+      "source": {
+        "repository": "/home/chuxiao/spine-dynamic-graph-reduce-levels",
+        "revision": "9c08763148644df262c0d374e782bc834f4c0f4f",
+        "xclbin_sha256": "09a4087aeb1ddf0fd794c8ff7c9728bddfcba9b63f431839f695db1fe4ecf474",
+        "current_reference_revision": "afb8199a2ca8d3fd208b985324bf4d8719e2b839",
+        "alignment": "older_than_current_reduce_levels_for_routing_reference"
+      },
+      "tool_version": "Vivado v.2024.1",
+      "platform_vbnv": "xilinx_u55c_gen3x16_xdma_3_202210_1",
+      "kernel_clock_name": "clk_kernel_00_unbuffered_net",
+      "system_clock_name": "ulp_ucs_aclk_kernel_00",
+      "expected_utilization_design_state": "Fully Placed",
+      "expected_timing_design_state": "Routed",
+      "expected_timing_disposition": "timing_not_closed_at_packaged_clock",
+      "reports": {
+        "utilization": {
+          "path": "docs/evidence/fpga_routed_native_20260725/raw/spine_negative_9c08763_kernel_util_routed.rpt.gz",
+          "archive_sha256": "999ce9f20862470326f9c881f06bbc0b603de24aafeace247a1869840cddae10",
+          "content_sha256": "a457e56c42abe19eab4fba2d12d7491fe0bb37e4d10d727fd24130b6c4885686"
+        },
+        "timing": {
+          "path": "docs/evidence/fpga_routed_native_20260725/raw/spine_negative_9c08763_timing_routed.rpt.gz",
+          "archive_sha256": "b79ade37c4f59ca88bab0f659d3cdd56df99b42eea2e8981cdc9ae8edc5a30bf",
+          "content_sha256": "fe6e06a67ad316b811efc4d890e4a149f51834c17e7a837526af1ade2d34798c"
+        },
+        "xclbin_info": {
+          "path": "docs/evidence/fpga_routed_native_20260725/raw/spine_negative_9c08763_xclbin.info.gz",
+          "archive_sha256": "e64aaee7a412bbda095fc24dbd8fcda0bc5b39d192a9825bbcf40e510b81af4a",
+          "content_sha256": "9a094d9e04b2c9995ffde04d13850bc22b2f08170e42c1027c92e498dc545631"
+        }
+      },
+      "limitations": [
+        "This route is retained only as negative evidence and is not the primary Spine area/timing result.",
+        "Its packaged 134 MHz DATA_CLK still has negative setup slack in the routed timing report.",
+        "The acceptance bundle also rejected this configuration on direct-hardware performance thresholds."
+      ]
+    }
+  ],
+  "limitations": [
+    "All resource counts are post-route FPGA kernel resources on the same U55C platform, not ASIC area.",
+    "The primary comparison is native and non-normalized: GraSU+ReGraph includes conversion, while Spine comes from an older routed HLS revision.",
+    "Different requested and packaged clocks must not be converted into a same-frequency throughput claim without simulator normalization.",
+    "No normalized or projected design receives a measured FPGA area/timing label until matching HLS is synthesized and routed."
+  ]
+}

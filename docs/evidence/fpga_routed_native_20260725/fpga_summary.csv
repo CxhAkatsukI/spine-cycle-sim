@@ -1,0 +1,4 @@
+build_id,system,role,claim_label,lut,lut_as_mem,reg,bram,uram,dsp,requested_mhz,achieved_mhz,packaged_mhz,global_wns_ns,global_tns_ns,kernel_wns_ns,kernel_tns_ns,requested_constraints_met,timing_disposition
+spine_accepted_9c08763,spine,comparison_primary,measured_native_older_hls_accepted_auto_scaled,123707,11605,144033,92,99,34,150.0,141.7,141.0,-0.389,-179.09,-0.389,-179.09,False,packaged_after_auto_scaling
+grasu_regraph_native_a9aef06,grasu_regraph,comparison_primary,measured_native_with_conversion_timing_closed,99404,13492,115954,248,64,0,200.0,200.0,200.0,0.003,0.0,0.087,0.0,True,requested_clock_closed
+spine_negative_9c08763_134,spine,negative_evidence,measured_native_rejected_timing_not_closed,123073,11605,144014,92,99,34,134.0,134.0,134.0,-0.252,-0.933,-0.252,-0.252,False,timing_not_closed_at_packaged_clock

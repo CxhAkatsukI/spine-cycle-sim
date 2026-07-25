@@ -1,0 +1,58 @@
+digraph fpga_evidence {
+  graph [
+    rankdir=LR,
+    bgcolor="white",
+    fontname="DejaVu Sans",
+    fontsize=11,
+    nodesep=0.35,
+    ranksep=0.65,
+    pad=0.2
+  ];
+  node [
+    shape=box,
+    style="rounded,filled",
+    fontname="DejaVu Sans",
+    fontsize=10,
+    color="#46515c",
+    penwidth=1.1,
+    margin="0.13,0.09"
+  ];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#59636d"];
+
+  spine [
+    label="Spine native accepted\n9c08763 | 2 HLS CUs",
+    fillcolor="#dcebd9"
+  ];
+  grasu [
+    label="GraSU + ReGraph native\na9aef06 | conversion included",
+    fillcolor="#d8e8f3"
+  ];
+  negative [
+    label="Spine canonical 134\nnegative evidence",
+    fillcolor="#f5dddd",
+    style="rounded,filled,dashed"
+  ];
+
+  util [label="Accelerator utilization\nresource hierarchy", fillcolor="#f1f2f3"];
+  timing [label="Timing summary\nrequested clock + WNS/TNS", fillcolor="#f1f2f3"];
+  xclbin [label="xclbin metadata\nachieved + packaged clock", fillcolor="#f1f2f3"];
+  parser [label="Hash-gated parser\nstate + clock consistency", fillcolor="#efe6c9"];
+  ledger [
+    label="Claim-labeled ledger\nJSON + summary/component CSV",
+    fillcolor="#e7dde9"
+  ];
+
+  spine -> util;
+  spine -> timing;
+  spine -> xclbin;
+  grasu -> util;
+  grasu -> timing;
+  grasu -> xclbin;
+  negative -> util [style=dashed];
+  negative -> timing [style=dashed];
+  negative -> xclbin [style=dashed];
+  util -> parser;
+  timing -> parser;
+  xclbin -> parser;
+  parser -> ledger [label="native measured\nnon-normalized"];
+}

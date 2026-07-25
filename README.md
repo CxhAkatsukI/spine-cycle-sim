@@ -112,6 +112,13 @@ without an intermediate conversion layer. Its explicit native-versus-proposed
 claim boundary is documented in
 [`docs/grasu_regraph_partitioned_dynamic_pagerank_20260725.md`](docs/grasu_regraph_partitioned_dynamic_pagerank_20260725.md).
 
+Post-implementation FPGA area and timing evidence is now hash-pinned and
+machine parsed from archived Vivado reports and xclbin metadata. It separates
+requested timing closure from packaged auto-scaled clocks, uses the formally
+accepted Spine route as the primary result, and retains the canonical 134 MHz
+route as negative evidence. These numbers are native and non-normalized; see
+[`docs/fpga_routed_area_timing_20260725.md`](docs/fpga_routed_area_timing_20260725.md).
+
 ## Quick Start
 
 Run one workload:

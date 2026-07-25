@@ -1,0 +1,15 @@
+build_id,system,component,lut,lut_as_mem,reg,bram,uram,dsp
+spine_accepted_9c08763,spine,spine_partconv_compute_kernel,10021,1427,13574,44,16,0
+spine_accepted_9c08763,spine,spine_partconv_rdmaint_kernel,113686,10178,130459,48,83,34
+grasu_regraph_native_a9aef06,grasu_regraph,bin_search,12470,2172,16216,12,0,0
+grasu_regraph_native_a9aef06,grasu_regraph,dispatch,1112,0,1928,0,0,0
+grasu_regraph_native_a9aef06,grasu_regraph,kernelApply,7409,2230,10469,15,0,0
+grasu_regraph_native_a9aef06,grasu_regraph,kernelHBMWrapper,5677,1081,9969,23,0,0
+grasu_regraph_native_a9aef06,grasu_regraph,kernelLittleGSMerger,1121,0,1851,0,0,0
+grasu_regraph_native_a9aef06,grasu_regraph,littleKernelScatterGather,11719,1787,15378,67,64,0
+grasu_regraph_native_a9aef06,grasu_regraph,pma_completion_barrier,41,0,52,0,0,0
+grasu_regraph_native_a9aef06,grasu_regraph,pma_to_regraph_edge_array,9911,1502,13501,39,0,0
+grasu_regraph_native_a9aef06,grasu_regraph,process_cache,13469,1220,9246,30,0,0
+grasu_regraph_native_a9aef06,grasu_regraph,process_ddr,36475,3500,37344,62,0,0
+spine_negative_9c08763_134,spine,spine_partconv_compute_kernel,10018,1427,13574,44,16,0
+spine_negative_9c08763_134,spine,spine_partconv_rdmaint_kernel,113055,10178,130440,48,83,34

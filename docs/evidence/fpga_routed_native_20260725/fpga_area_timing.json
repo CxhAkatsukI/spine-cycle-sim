@@ -1,0 +1,3591 @@
+{
+  "builds": [
+    {
+      "build_id": "spine_accepted_9c08763",
+      "claim_label": "measured_native_older_hls_accepted_auto_scaled",
+      "limitations": [
+        "This routed build predates the current afb8199 reduce-levels-for-routing reference.",
+        "The 150 MHz requested timing constraint is not met; Vitis packages DATA_CLK at 141 MHz after auto-scaling.",
+        "Resource counts describe the native Spine HLS build, not a normalized or projected design."
+      ],
+      "report_identity": {
+        "timing": {
+          "archive_bytes": 386072,
+          "archive_sha256": "a9c266a40bd391d7ce889f9e9e2665780e266866238f2ab815404ec6cea5e5f4",
+          "compression": "gzip",
+          "content_bytes": 17077515,
+          "content_sha256": "9f43d9ed59228338e48dc604941d9b0fef6941972401bf1f8b289fca8381b2bf",
+          "path": "docs/evidence/fpga_routed_native_20260725/raw/spine_accepted_9c08763_timing_postroute_physopted.rpt.gz"
+        },
+        "utilization": {
+          "archive_bytes": 917,
+          "archive_sha256": "deac5d504b627d7ec5e8b2dc6eb5f9990c01c87c0d801958797b1bb35b1e892d",
+          "compression": "gzip",
+          "content_bytes": 3368,
+          "content_sha256": "74ca4abd2bd2ad4f0596f2e0979483e0d8de05adaed92873724356becf8df54f",
+          "path": "docs/evidence/fpga_routed_native_20260725/raw/spine_accepted_9c08763_kernel_util_routed.rpt.gz"
+        },
+        "xclbin_info": {
+          "archive_bytes": 3461,
+          "archive_sha256": "b79e722053fc53f48b8f47bc0aaa0ed2d229bc05ab26d44cb9b48f4d94a07908",
+          "compression": "gzip",
+          "content_bytes": 27178,
+          "content_sha256": "4918fe5f51cae366b9ec9e2cccd1c83b8c26534d443d2a851327fc1e7488614e",
+          "path": "docs/evidence/fpga_routed_native_20260725/raw/spine_accepted_9c08763_xclbin.info.gz"
+        }
+      },
+      "role": "comparison_primary",
+      "source": {
+        "alignment": "older_than_current_reduce_levels_for_routing_reference",
+        "current_reference_revision": "afb8199a2ca8d3fd208b985324bf4d8719e2b839",
+        "repository": "/home/chuxiao/spine-dynamic-graph-reduce-levels",
+        "revision": "9c08763148644df262c0d374e782bc834f4c0f4f",
+        "xclbin_sha256": "1828434e164bf0aef28fff9fba7925cfa39f93ad86f6bfc3878f504461c76dbf"
+      },
+      "system": "spine",
+      "timing": {
+        "constraints_met_at_requested_clock": false,
+        "design_summary": {
+          "hold_failing_endpoints": 0,
+          "hold_total_endpoints": 1093648,
+          "pulse_width_failing_endpoints": 0,
+          "pulse_width_total_endpoints": 440032,
+          "setup_failing_endpoints": 876,
+          "setup_total_endpoints": 1096741,
+          "ths_ns": 0.0,
+          "tns_ns": -179.09,
+          "tpws_ns": 0.0,
+          "whs_ns": 0.0,
+          "wns_ns": -0.389,
+          "wpws_ns": 0.0
+        },
+        "kernel_clock": {
+          "name": "clk_kernel_00_unbuffered_net",
+          "period_ns": 6.667,
+          "requested_mhz": 150.0,
+          "timing": {
+            "hold_failing_endpoints": 0,
+            "hold_total_endpoints": 503393,
+            "pulse_width_failing_endpoints": 0,
+            "pulse_width_total_endpoints": 190580,
+            "setup_failing_endpoints": 876,
+            "setup_total_endpoints": 503393,
+            "ths_ns": 0.0,
+            "tns_ns": -179.09,
+            "tpws_ns": 0.0,
+            "whs_ns": 0.0,
+            "wns_ns": -0.389,
+            "wpws_ns": 2.633
+          }
+        },
+        "metadata": {
+          "command": "report_timing_summary -max_paths 10 -file hw_bb_locked_timing_summary_postroute_physopted.rpt -pb hw_bb_locked_timing_summary_postroute_physopted.pb -rpx hw_bb_locked_timing_summary_postroute_physopted.rpx -warn_on_violation",
+          "date": "Wed Jul 22 14:22:46 2026",
+          "design": "level0_wrapper",
+          "design_state": "Physopt postRoute",
+          "device": "xcu55c-fsvh2892",
+          "host": "trifoliate running 64-bit Debian GNU/Linux trixie/sid",
+          "tool_version": "Vivado v.2024.1 (lin64) Build 5076996 Wed May 22 18:36:09 MDT 2024"
+        }
+      },
+      "timing_disposition": "packaged_after_auto_scaling",
+      "utilization": {
+        "components": [
+          {
+            "indent": 1,
+            "name": "spine_partconv_compute_kernel",
+            "resources": {
+              "bram": {
+                "count": 44,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 2.42
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 10021,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.88
+              },
+              "lut_as_mem": {
+                "count": 1427,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.25
+              },
+              "reg": {
+                "count": 13574,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.58
+              },
+              "uram": {
+                "count": 16,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.67
+              }
+            }
+          },
+          {
+            "indent": 1,
+            "name": "spine_partconv_rdmaint_kernel",
+            "resources": {
+              "bram": {
+                "count": 48,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 2.64
+              },
+              "dsp": {
+                "count": 34,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.38
+              },
+              "lut": {
+                "count": 113686,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 9.93
+              },
+              "lut_as_mem": {
+                "count": 10178,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.75
+              },
+              "reg": {
+                "count": 130459,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 5.53
+              },
+              "uram": {
+                "count": 83,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 8.65
+              }
+            }
+          }
+        ],
+        "instances": [
+          {
+            "indent": 4,
+            "name": "spine_partconv_compute_kernel_1",
+            "resources": {
+              "bram": {
+                "count": 44,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 2.42
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 10021,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.88
+              },
+              "lut_as_mem": {
+                "count": 1427,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.25
+              },
+              "reg": {
+                "count": 13574,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.58
+              },
+              "uram": {
+                "count": 16,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.67
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "spine_partconv_rdmaint_kernel_1",
+            "resources": {
+              "bram": {
+                "count": 48,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 2.64
+              },
+              "dsp": {
+                "count": 34,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.38
+              },
+              "lut": {
+                "count": 113686,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 9.93
+              },
+              "lut_as_mem": {
+                "count": 10178,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.75
+              },
+              "reg": {
+                "count": 130459,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 5.53
+              },
+              "uram": {
+                "count": 83,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 8.65
+              }
+            }
+          }
+        ],
+        "metadata": {
+          "command": "report_accelerator_utilization -kernels { spine_partconv_compute_kernel:level0_i/ulp/spine_partconv_compute_kernel_1/inst:spine_partconv_compute_kernel_1 spine_partconv_rdmaint_kernel:level0_i/ulp/spine_partconv_rdmaint_kernel_1/inst:spine_partconv_rdmaint_kernel_1} -file kernel_util_routed.rpt -name kernel_util_routed -json",
+          "date": "Wed Jul 22 13:43:59 2026",
+          "design": "level0_wrapper",
+          "design_state": "Fully Placed",
+          "device": "xcu55c",
+          "host": "trifoliate running 64-bit Debian GNU/Linux trixie/sid",
+          "tool_version": "Vivado v.2024.1 (lin64) Build 5076996 Wed May 22 18:36:09 MDT 2024"
+        },
+        "platform": {
+          "bram": {
+            "count": 200,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 9.92
+          },
+          "dsp": {
+            "count": 4,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 0.04
+          },
+          "lut": {
+            "count": 159309,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 12.22
+          },
+          "lut_as_mem": {
+            "count": 19659,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 3.27
+          },
+          "reg": {
+            "count": 247544,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 9.49
+          },
+          "uram": {
+            "count": 0,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 0.0
+          }
+        },
+        "rows": [
+          {
+            "indent": 1,
+            "name": "Platform",
+            "resources": {
+              "bram": {
+                "count": 200,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 9.92
+              },
+              "dsp": {
+                "count": 4,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.04
+              },
+              "lut": {
+                "count": 159309,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 12.22
+              },
+              "lut_as_mem": {
+                "count": 19659,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 3.27
+              },
+              "reg": {
+                "count": 247544,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 9.49
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 1,
+            "name": "User Budget",
+            "resources": {
+              "bram": {
+                "count": 1816,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 100.0
+              },
+              "dsp": {
+                "count": 9020,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 100.0
+              },
+              "lut": {
+                "count": 1144371,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 100.0
+              },
+              "lut_as_mem": {
+                "count": 581301,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 100.0
+              },
+              "reg": {
+                "count": 2359816,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 100.0
+              },
+              "uram": {
+                "count": 960,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 100.0
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "Used Resources",
+            "resources": {
+              "bram": {
+                "count": 92,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 5.07
+              },
+              "dsp": {
+                "count": 34,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.38
+              },
+              "lut": {
+                "count": 123707,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 10.81
+              },
+              "lut_as_mem": {
+                "count": 11605,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 2.0
+              },
+              "reg": {
+                "count": 144033,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 6.1
+              },
+              "uram": {
+                "count": 99,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 10.31
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "Unused Resources",
+            "resources": {
+              "bram": {
+                "count": 1724,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 94.93
+              },
+              "dsp": {
+                "count": 8986,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 99.62
+              },
+              "lut": {
+                "count": 1020664,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 89.19
+              },
+              "lut_as_mem": {
+                "count": 569696,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 98.0
+              },
+              "reg": {
+                "count": 2215783,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 93.9
+              },
+              "uram": {
+                "count": 861,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 89.69
+              }
+            }
+          },
+          {
+            "indent": 1,
+            "name": "spine_partconv_compute_kernel",
+            "resources": {
+              "bram": {
+                "count": 44,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 2.42
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 10021,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.88
+              },
+              "lut_as_mem": {
+                "count": 1427,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.25
+              },
+              "reg": {
+                "count": 13574,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.58
+              },
+              "uram": {
+                "count": 16,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.67
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "spine_partconv_compute_kernel_1",
+            "resources": {
+              "bram": {
+                "count": 44,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 2.42
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 10021,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.88
+              },
+              "lut_as_mem": {
+                "count": 1427,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.25
+              },
+              "reg": {
+                "count": 13574,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.58
+              },
+              "uram": {
+                "count": 16,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.67
+              }
+            }
+          },
+          {
+            "indent": 1,
+            "name": "spine_partconv_rdmaint_kernel",
+            "resources": {
+              "bram": {
+                "count": 48,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 2.64
+              },
+              "dsp": {
+                "count": 34,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.38
+              },
+              "lut": {
+                "count": 113686,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 9.93
+              },
+              "lut_as_mem": {
+                "count": 10178,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.75
+              },
+              "reg": {
+                "count": 130459,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 5.53
+              },
+              "uram": {
+                "count": 83,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 8.65
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "spine_partconv_rdmaint_kernel_1",
+            "resources": {
+              "bram": {
+                "count": 48,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 2.64
+              },
+              "dsp": {
+                "count": 34,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.38
+              },
+              "lut": {
+                "count": 113686,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 9.93
+              },
+              "lut_as_mem": {
+                "count": 10178,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.75
+              },
+              "reg": {
+                "count": 130459,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 5.53
+              },
+              "uram": {
+                "count": 83,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 8.65
+              }
+            }
+          }
+        ],
+        "used_resources": {
+          "bram": {
+            "count": 92,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 5.07
+          },
+          "dsp": {
+            "count": 34,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 0.38
+          },
+          "lut": {
+            "count": 123707,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 10.81
+          },
+          "lut_as_mem": {
+            "count": 11605,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 2.0
+          },
+          "reg": {
+            "count": 144033,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 6.1
+          },
+          "uram": {
+            "count": 99,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 10.31
+          }
+        },
+        "user_budget": {
+          "bram": {
+            "count": 1816,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 100.0
+          },
+          "dsp": {
+            "count": 9020,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 100.0
+          },
+          "lut": {
+            "count": 1144371,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 100.0
+          },
+          "lut_as_mem": {
+            "count": 581301,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 100.0
+          },
+          "reg": {
+            "count": 2359816,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 100.0
+          },
+          "uram": {
+            "count": 960,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 100.0
+          }
+        }
+      },
+      "xclbin": {
+        "data_clock": {
+          "achieved_mhz": 141.7,
+          "default_mhz": 300.0,
+          "name": "ulp_ucs_aclk_kernel_00",
+          "packaged_mhz": 141.0,
+          "requested_mhz": 150.0,
+          "type": "SCALABLE"
+        },
+        "packaged_clocks": {
+          "DATA_CLK": {
+            "frequency_mhz": 141.0,
+            "type": "DATA"
+          },
+          "KERNEL_CLK": {
+            "frequency_mhz": 500.0,
+            "type": "KERNEL"
+          },
+          "hbm_aclk": {
+            "frequency_mhz": 450.0,
+            "type": "SYSTEM"
+          }
+        },
+        "platform_vbnv": "xilinx_u55c_gen3x16_xdma_3_202210_1",
+        "system_clocks": {
+          "ulp_ucs_aclk_kernel_00": {
+            "achieved_mhz": 141.7,
+            "default_mhz": 300.0,
+            "requested_mhz": 150.0,
+            "type": "SCALABLE"
+          },
+          "ulp_ucs_aclk_kernel_01": {
+            "achieved_mhz": 500.0,
+            "default_mhz": 500.0,
+            "requested_mhz": 500.0,
+            "type": "SCALABLE"
+          }
+        }
+      }
+    },
+    {
+      "build_id": "grasu_regraph_native_a9aef06",
+      "claim_label": "measured_native_with_conversion_timing_closed",
+      "limitations": [
+        "The native design includes the PMA-to-ReGraph edge-array conversion kernel.",
+        "This is SSSP-specialized ReGraph hardware and does not synthesize the proposed shared Map-Reduce policy interface.",
+        "Resource counts describe the native integration, not the conversion-free normalized profile."
+      ],
+      "report_identity": {
+        "timing": {
+          "archive_bytes": 355045,
+          "archive_sha256": "585e8c92b1291a7889d7a367b3839a94b92fa1ee9a2cdec8c0cace8df8eb3f5b",
+          "compression": "gzip",
+          "content_bytes": 16736245,
+          "content_sha256": "07b5e928609871051666a3fd7d22026b7d85d4a615b504f838791837fc5c8882",
+          "path": "docs/evidence/fpga_routed_native_20260725/raw/grasu_regraph_a9aef06_timing_routed.rpt.gz"
+        },
+        "utilization": {
+          "archive_bytes": 1484,
+          "archive_sha256": "9d4a5bb75d1273ea86982883651b4de909d932670f496d1899216b344e133122",
+          "compression": "gzip",
+          "content_bytes": 8726,
+          "content_sha256": "15ee659a0af3566169bbce40e49ac5f9978331fac955f2e286300580185de995",
+          "path": "docs/evidence/fpga_routed_native_20260725/raw/grasu_regraph_a9aef06_kernel_util_routed.rpt.gz"
+        },
+        "xclbin_info": {
+          "archive_bytes": 5454,
+          "archive_sha256": "e7cc8f0f93200ef58fa4625d8259db3a9917592458f1bdfe1fd62c0aec847e5d",
+          "compression": "gzip",
+          "content_bytes": 57781,
+          "content_sha256": "d3a951cea4fdd51e1f42af51dbd377228e1f53693e7c13adfdad856a944bbe69",
+          "path": "docs/evidence/fpga_routed_native_20260725/raw/grasu_regraph_a9aef06_xclbin.info.gz"
+        }
+      },
+      "role": "comparison_primary",
+      "source": {
+        "alignment": "exact_pinned_native_integration",
+        "branch": "codex/pure-hw-pipeline",
+        "repository": "/home/chuxiao/grasu-regraph-integration",
+        "revision": "a9aef064889faa190975ddfecb39c54631e962c6",
+        "xclbin_sha256": "5a730a2da85ddf522f577ca7d7024f7aa401bb07802f3bf9b4326dfd312e917e"
+      },
+      "system": "grasu_regraph",
+      "timing": {
+        "constraints_met_at_requested_clock": true,
+        "design_summary": {
+          "hold_failing_endpoints": 0,
+          "hold_total_endpoints": 1226498,
+          "pulse_width_failing_endpoints": 0,
+          "pulse_width_total_endpoints": 541144,
+          "setup_failing_endpoints": 0,
+          "setup_total_endpoints": 1230228,
+          "ths_ns": 0.0,
+          "tns_ns": 0.0,
+          "tpws_ns": 0.0,
+          "whs_ns": 0.009,
+          "wns_ns": 0.003,
+          "wpws_ns": 0.0
+        },
+        "kernel_clock": {
+          "name": "clk_kernel_00_unbuffered_net",
+          "period_ns": 5.0,
+          "requested_mhz": 200.0,
+          "timing": {
+            "hold_failing_endpoints": 0,
+            "hold_total_endpoints": 462490,
+            "pulse_width_failing_endpoints": 0,
+            "pulse_width_total_endpoints": 168456,
+            "setup_failing_endpoints": 0,
+            "setup_total_endpoints": 462490,
+            "ths_ns": 0.0,
+            "tns_ns": 0.0,
+            "tpws_ns": 0.0,
+            "whs_ns": 0.01,
+            "wns_ns": 0.087,
+            "wpws_ns": 1.8
+          }
+        },
+        "metadata": {
+          "command": "report_timing_summary -max_paths 10 -file hw_bb_locked_timing_summary_routed.rpt -pb hw_bb_locked_timing_summary_routed.pb -rpx hw_bb_locked_timing_summary_routed.rpx -warn_on_violation",
+          "date": "Thu Jul 16 01:15:20 2026",
+          "design": "level0_wrapper",
+          "design_state": "Routed",
+          "device": "xcu55c-fsvh2892",
+          "host": "trifoliate running 64-bit Debian GNU/Linux trixie/sid",
+          "tool_version": "Vivado v.2024.1 (lin64) Build 5076996 Wed May 22 18:36:09 MDT 2024"
+        }
+      },
+      "timing_disposition": "requested_clock_closed",
+      "utilization": {
+        "components": [
+          {
+            "indent": 1,
+            "name": "bin_search",
+            "resources": {
+              "bram": {
+                "count": 12,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.66
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 12470,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.11
+              },
+              "lut_as_mem": {
+                "count": 2172,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.38
+              },
+              "reg": {
+                "count": 16216,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.72
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 1,
+            "name": "dispatch",
+            "resources": {
+              "bram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 1112,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.1
+              },
+              "lut_as_mem": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "reg": {
+                "count": 1928,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.09
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 1,
+            "name": "kernelApply",
+            "resources": {
+              "bram": {
+                "count": 15,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.83
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 7409,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.66
+              },
+              "lut_as_mem": {
+                "count": 2230,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.39
+              },
+              "reg": {
+                "count": 10469,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.46
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 1,
+            "name": "kernelHBMWrapper",
+            "resources": {
+              "bram": {
+                "count": 23,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.27
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 5677,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.51
+              },
+              "lut_as_mem": {
+                "count": 1081,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.19
+              },
+              "reg": {
+                "count": 9969,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.44
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 1,
+            "name": "kernelLittleGSMerger",
+            "resources": {
+              "bram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 1121,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.1
+              },
+              "lut_as_mem": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "reg": {
+                "count": 1851,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.08
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 1,
+            "name": "littleKernelScatterGather",
+            "resources": {
+              "bram": {
+                "count": 67,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 3.69
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 11719,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.04
+              },
+              "lut_as_mem": {
+                "count": 1787,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.32
+              },
+              "reg": {
+                "count": 15378,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.68
+              },
+              "uram": {
+                "count": 64,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 6.67
+              }
+            }
+          },
+          {
+            "indent": 1,
+            "name": "pma_completion_barrier",
+            "resources": {
+              "bram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 41,
+                "percent_is_upper_bound": true,
+                "user_budget_pct": 0.01
+              },
+              "lut_as_mem": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "reg": {
+                "count": 52,
+                "percent_is_upper_bound": true,
+                "user_budget_pct": 0.01
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 1,
+            "name": "pma_to_regraph_edge_array",
+            "resources": {
+              "bram": {
+                "count": 39,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 2.15
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 9911,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.88
+              },
+              "lut_as_mem": {
+                "count": 1502,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.27
+              },
+              "reg": {
+                "count": 13501,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.6
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 1,
+            "name": "process_cache",
+            "resources": {
+              "bram": {
+                "count": 30,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.65
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 13469,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.2
+              },
+              "lut_as_mem": {
+                "count": 1220,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.22
+              },
+              "reg": {
+                "count": 9246,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.41
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 1,
+            "name": "process_ddr",
+            "resources": {
+              "bram": {
+                "count": 62,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 3.41
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 36475,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 3.25
+              },
+              "lut_as_mem": {
+                "count": 3500,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.62
+              },
+              "reg": {
+                "count": 37344,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.66
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          }
+        ],
+        "instances": [
+          {
+            "indent": 4,
+            "name": "bin_search_1",
+            "resources": {
+              "bram": {
+                "count": 3,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.17
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 3032,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.27
+              },
+              "lut_as_mem": {
+                "count": 507,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.09
+              },
+              "reg": {
+                "count": 3946,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.18
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "bin_search_2",
+            "resources": {
+              "bram": {
+                "count": 3,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.17
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 3146,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.28
+              },
+              "lut_as_mem": {
+                "count": 555,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.1
+              },
+              "reg": {
+                "count": 4090,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.18
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "bin_search_3",
+            "resources": {
+              "bram": {
+                "count": 3,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.17
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 3148,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.28
+              },
+              "lut_as_mem": {
+                "count": 555,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.1
+              },
+              "reg": {
+                "count": 4090,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.18
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "bin_search_4",
+            "resources": {
+              "bram": {
+                "count": 3,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.17
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 3144,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.28
+              },
+              "lut_as_mem": {
+                "count": 555,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.1
+              },
+              "reg": {
+                "count": 4090,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.18
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "dispatch_1",
+            "resources": {
+              "bram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 1112,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.1
+              },
+              "lut_as_mem": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "reg": {
+                "count": 1928,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.09
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "kernelApply_1",
+            "resources": {
+              "bram": {
+                "count": 15,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.83
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 7409,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.66
+              },
+              "lut_as_mem": {
+                "count": 2230,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.39
+              },
+              "reg": {
+                "count": 10469,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.46
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "kernelHBMWrapper_1",
+            "resources": {
+              "bram": {
+                "count": 23,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.27
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 5677,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.51
+              },
+              "lut_as_mem": {
+                "count": 1081,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.19
+              },
+              "reg": {
+                "count": 9969,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.44
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "kernelLittleGSMerger_1",
+            "resources": {
+              "bram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 1121,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.1
+              },
+              "lut_as_mem": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "reg": {
+                "count": 1851,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.08
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "littleKernelScatterGather_1",
+            "resources": {
+              "bram": {
+                "count": 67,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 3.69
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 11719,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.04
+              },
+              "lut_as_mem": {
+                "count": 1787,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.32
+              },
+              "reg": {
+                "count": 15378,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.68
+              },
+              "uram": {
+                "count": 64,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 6.67
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "pma_completion_barrier_1",
+            "resources": {
+              "bram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 41,
+                "percent_is_upper_bound": true,
+                "user_budget_pct": 0.01
+              },
+              "lut_as_mem": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "reg": {
+                "count": 52,
+                "percent_is_upper_bound": true,
+                "user_budget_pct": 0.01
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "pma_to_regraph_edge_array_1",
+            "resources": {
+              "bram": {
+                "count": 39,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 2.15
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 9911,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.88
+              },
+              "lut_as_mem": {
+                "count": 1502,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.27
+              },
+              "reg": {
+                "count": 13501,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.6
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "process_cache_1",
+            "resources": {
+              "bram": {
+                "count": 15,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.83
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 6734,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.6
+              },
+              "lut_as_mem": {
+                "count": 610,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.11
+              },
+              "reg": {
+                "count": 4616,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.2
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "process_cache_2",
+            "resources": {
+              "bram": {
+                "count": 15,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.83
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 6735,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.6
+              },
+              "lut_as_mem": {
+                "count": 610,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.11
+              },
+              "reg": {
+                "count": 4630,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.21
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "process_ddr_1",
+            "resources": {
+              "bram": {
+                "count": 31,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.71
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 18236,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.62
+              },
+              "lut_as_mem": {
+                "count": 1750,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.31
+              },
+              "reg": {
+                "count": 18673,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.83
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "process_ddr_2",
+            "resources": {
+              "bram": {
+                "count": 31,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.71
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 18239,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.62
+              },
+              "lut_as_mem": {
+                "count": 1750,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.31
+              },
+              "reg": {
+                "count": 18671,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.83
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          }
+        ],
+        "metadata": {
+          "command": "report_accelerator_utilization -kernels { bin_search:level0_i/ulp/bin_search_1/inst:bin_search_1 bin_search:level0_i/ulp/bin_search_2/inst:bin_search_2 bin_search:level0_i/ulp/bin_search_3/inst:bin_search_3 bin_search:level0_i/ulp/bin_search_4/inst:bin_search_4 dispatch:level0_i/ulp/dispatch_1/inst:dispatch_1 kernelApply:level0_i/ulp/kernelApply_1/inst:kernelApply_1 kernelHBMWrapper:level0_i/ulp/kernelHBMWrapper_1/inst:kernelHBMWrapper_1 kernelLittleGSMerger:level0_i/ulp/kernelLittleGSMerger_1/inst:kernelLittleGSMerger_1 littleKernelScatterGather:level0_i/ulp/littleKernelScatterGather_1/inst:littleKernelScatterGather_1 pma_completion_barrier:level0_i/ulp/pma_completion_barrier_1/inst:pma_completion_barrier_1 pma_to_regraph_edge_array:level0_i/ulp/pma_to_regraph_edge_array_1/inst:pma_to_regraph_edge_array_1 process_cache:level0_i/ulp/process_cache_1/inst:process_cache_1 process_cache:level0_i/ulp/process_cache_2/inst:process_cache_2 process_ddr:level0_i/ulp/process_ddr_1/inst:process_ddr_1 process_ddr:level0_i/ulp/process_ddr_2/inst:process_ddr_2} -file kernel_util_routed.rpt -name kernel_util_routed -json",
+          "date": "Thu Jul 16 01:16:11 2026",
+          "design": "level0_wrapper",
+          "design_state": "Routed",
+          "device": "xcu55c",
+          "host": "trifoliate running 64-bit Debian GNU/Linux trixie/sid",
+          "tool_version": "Vivado v.2024.1 (lin64) Build 5076996 Wed May 22 18:36:09 MDT 2024"
+        },
+        "platform": {
+          "bram": {
+            "count": 200,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 9.92
+          },
+          "dsp": {
+            "count": 4,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 0.04
+          },
+          "lut": {
+            "count": 180612,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 13.85
+          },
+          "lut_as_mem": {
+            "count": 34721,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 5.78
+          },
+          "reg": {
+            "count": 353457,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 13.56
+          },
+          "uram": {
+            "count": 0,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 0.0
+          }
+        },
+        "rows": [
+          {
+            "indent": 1,
+            "name": "Platform",
+            "resources": {
+              "bram": {
+                "count": 200,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 9.92
+              },
+              "dsp": {
+                "count": 4,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.04
+              },
+              "lut": {
+                "count": 180612,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 13.85
+              },
+              "lut_as_mem": {
+                "count": 34721,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 5.78
+              },
+              "reg": {
+                "count": 353457,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 13.56
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 1,
+            "name": "User Budget",
+            "resources": {
+              "bram": {
+                "count": 1816,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 100.0
+              },
+              "dsp": {
+                "count": 9020,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 100.0
+              },
+              "lut": {
+                "count": 1123068,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 100.0
+              },
+              "lut_as_mem": {
+                "count": 566239,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 100.0
+              },
+              "reg": {
+                "count": 2253903,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 100.0
+              },
+              "uram": {
+                "count": 960,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 100.0
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "Used Resources",
+            "resources": {
+              "bram": {
+                "count": 248,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 13.66
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 99404,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 8.85
+              },
+              "lut_as_mem": {
+                "count": 13492,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 2.38
+              },
+              "reg": {
+                "count": 115954,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 5.14
+              },
+              "uram": {
+                "count": 64,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 6.67
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "Unused Resources",
+            "resources": {
+              "bram": {
+                "count": 1568,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 86.34
+              },
+              "dsp": {
+                "count": 9020,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 100.0
+              },
+              "lut": {
+                "count": 1023664,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 91.15
+              },
+              "lut_as_mem": {
+                "count": 552747,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 97.62
+              },
+              "reg": {
+                "count": 2137949,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 94.86
+              },
+              "uram": {
+                "count": 896,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 93.33
+              }
+            }
+          },
+          {
+            "indent": 1,
+            "name": "bin_search",
+            "resources": {
+              "bram": {
+                "count": 12,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.66
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 12470,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.11
+              },
+              "lut_as_mem": {
+                "count": 2172,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.38
+              },
+              "reg": {
+                "count": 16216,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.72
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "bin_search_1",
+            "resources": {
+              "bram": {
+                "count": 3,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.17
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 3032,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.27
+              },
+              "lut_as_mem": {
+                "count": 507,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.09
+              },
+              "reg": {
+                "count": 3946,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.18
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "bin_search_2",
+            "resources": {
+              "bram": {
+                "count": 3,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.17
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 3146,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.28
+              },
+              "lut_as_mem": {
+                "count": 555,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.1
+              },
+              "reg": {
+                "count": 4090,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.18
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "bin_search_3",
+            "resources": {
+              "bram": {
+                "count": 3,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.17
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 3148,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.28
+              },
+              "lut_as_mem": {
+                "count": 555,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.1
+              },
+              "reg": {
+                "count": 4090,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.18
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "bin_search_4",
+            "resources": {
+              "bram": {
+                "count": 3,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.17
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 3144,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.28
+              },
+              "lut_as_mem": {
+                "count": 555,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.1
+              },
+              "reg": {
+                "count": 4090,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.18
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 1,
+            "name": "dispatch",
+            "resources": {
+              "bram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 1112,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.1
+              },
+              "lut_as_mem": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "reg": {
+                "count": 1928,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.09
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "dispatch_1",
+            "resources": {
+              "bram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 1112,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.1
+              },
+              "lut_as_mem": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "reg": {
+                "count": 1928,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.09
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 1,
+            "name": "kernelApply",
+            "resources": {
+              "bram": {
+                "count": 15,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.83
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 7409,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.66
+              },
+              "lut_as_mem": {
+                "count": 2230,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.39
+              },
+              "reg": {
+                "count": 10469,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.46
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "kernelApply_1",
+            "resources": {
+              "bram": {
+                "count": 15,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.83
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 7409,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.66
+              },
+              "lut_as_mem": {
+                "count": 2230,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.39
+              },
+              "reg": {
+                "count": 10469,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.46
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 1,
+            "name": "kernelHBMWrapper",
+            "resources": {
+              "bram": {
+                "count": 23,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.27
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 5677,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.51
+              },
+              "lut_as_mem": {
+                "count": 1081,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.19
+              },
+              "reg": {
+                "count": 9969,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.44
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "kernelHBMWrapper_1",
+            "resources": {
+              "bram": {
+                "count": 23,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.27
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 5677,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.51
+              },
+              "lut_as_mem": {
+                "count": 1081,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.19
+              },
+              "reg": {
+                "count": 9969,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.44
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 1,
+            "name": "kernelLittleGSMerger",
+            "resources": {
+              "bram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 1121,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.1
+              },
+              "lut_as_mem": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "reg": {
+                "count": 1851,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.08
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "kernelLittleGSMerger_1",
+            "resources": {
+              "bram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 1121,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.1
+              },
+              "lut_as_mem": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "reg": {
+                "count": 1851,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.08
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 1,
+            "name": "littleKernelScatterGather",
+            "resources": {
+              "bram": {
+                "count": 67,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 3.69
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 11719,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.04
+              },
+              "lut_as_mem": {
+                "count": 1787,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.32
+              },
+              "reg": {
+                "count": 15378,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.68
+              },
+              "uram": {
+                "count": 64,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 6.67
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "littleKernelScatterGather_1",
+            "resources": {
+              "bram": {
+                "count": 67,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 3.69
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 11719,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.04
+              },
+              "lut_as_mem": {
+                "count": 1787,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.32
+              },
+              "reg": {
+                "count": 15378,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.68
+              },
+              "uram": {
+                "count": 64,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 6.67
+              }
+            }
+          },
+          {
+            "indent": 1,
+            "name": "pma_completion_barrier",
+            "resources": {
+              "bram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 41,
+                "percent_is_upper_bound": true,
+                "user_budget_pct": 0.01
+              },
+              "lut_as_mem": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "reg": {
+                "count": 52,
+                "percent_is_upper_bound": true,
+                "user_budget_pct": 0.01
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "pma_completion_barrier_1",
+            "resources": {
+              "bram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 41,
+                "percent_is_upper_bound": true,
+                "user_budget_pct": 0.01
+              },
+              "lut_as_mem": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "reg": {
+                "count": 52,
+                "percent_is_upper_bound": true,
+                "user_budget_pct": 0.01
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 1,
+            "name": "pma_to_regraph_edge_array",
+            "resources": {
+              "bram": {
+                "count": 39,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 2.15
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 9911,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.88
+              },
+              "lut_as_mem": {
+                "count": 1502,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.27
+              },
+              "reg": {
+                "count": 13501,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.6
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "pma_to_regraph_edge_array_1",
+            "resources": {
+              "bram": {
+                "count": 39,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 2.15
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 9911,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.88
+              },
+              "lut_as_mem": {
+                "count": 1502,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.27
+              },
+              "reg": {
+                "count": 13501,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.6
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 1,
+            "name": "process_cache",
+            "resources": {
+              "bram": {
+                "count": 30,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.65
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 13469,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.2
+              },
+              "lut_as_mem": {
+                "count": 1220,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.22
+              },
+              "reg": {
+                "count": 9246,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.41
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "process_cache_1",
+            "resources": {
+              "bram": {
+                "count": 15,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.83
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 6734,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.6
+              },
+              "lut_as_mem": {
+                "count": 610,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.11
+              },
+              "reg": {
+                "count": 4616,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.2
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "process_cache_2",
+            "resources": {
+              "bram": {
+                "count": 15,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.83
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 6735,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.6
+              },
+              "lut_as_mem": {
+                "count": 610,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.11
+              },
+              "reg": {
+                "count": 4630,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.21
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 1,
+            "name": "process_ddr",
+            "resources": {
+              "bram": {
+                "count": 62,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 3.41
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 36475,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 3.25
+              },
+              "lut_as_mem": {
+                "count": 3500,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.62
+              },
+              "reg": {
+                "count": 37344,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.66
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "process_ddr_1",
+            "resources": {
+              "bram": {
+                "count": 31,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.71
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 18236,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.62
+              },
+              "lut_as_mem": {
+                "count": 1750,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.31
+              },
+              "reg": {
+                "count": 18673,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.83
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "process_ddr_2",
+            "resources": {
+              "bram": {
+                "count": 31,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.71
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 18239,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.62
+              },
+              "lut_as_mem": {
+                "count": 1750,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.31
+              },
+              "reg": {
+                "count": 18671,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.83
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          }
+        ],
+        "used_resources": {
+          "bram": {
+            "count": 248,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 13.66
+          },
+          "dsp": {
+            "count": 0,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 0.0
+          },
+          "lut": {
+            "count": 99404,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 8.85
+          },
+          "lut_as_mem": {
+            "count": 13492,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 2.38
+          },
+          "reg": {
+            "count": 115954,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 5.14
+          },
+          "uram": {
+            "count": 64,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 6.67
+          }
+        },
+        "user_budget": {
+          "bram": {
+            "count": 1816,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 100.0
+          },
+          "dsp": {
+            "count": 9020,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 100.0
+          },
+          "lut": {
+            "count": 1123068,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 100.0
+          },
+          "lut_as_mem": {
+            "count": 566239,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 100.0
+          },
+          "reg": {
+            "count": 2253903,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 100.0
+          },
+          "uram": {
+            "count": 960,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 100.0
+          }
+        }
+      },
+      "xclbin": {
+        "data_clock": {
+          "achieved_mhz": 200.0,
+          "default_mhz": 300.0,
+          "name": "ulp_ucs_aclk_kernel_00",
+          "packaged_mhz": 200.0,
+          "requested_mhz": 200.0,
+          "type": "SCALABLE"
+        },
+        "packaged_clocks": {
+          "DATA_CLK": {
+            "frequency_mhz": 200.0,
+            "type": "DATA"
+          },
+          "KERNEL_CLK": {
+            "frequency_mhz": 500.0,
+            "type": "KERNEL"
+          },
+          "hbm_aclk": {
+            "frequency_mhz": 450.0,
+            "type": "SYSTEM"
+          }
+        },
+        "platform_vbnv": "xilinx_u55c_gen3x16_xdma_3_202210_1",
+        "system_clocks": {
+          "ulp_ucs_aclk_kernel_00": {
+            "achieved_mhz": 200.0,
+            "default_mhz": 300.0,
+            "requested_mhz": 200.0,
+            "type": "SCALABLE"
+          },
+          "ulp_ucs_aclk_kernel_01": {
+            "achieved_mhz": 500.0,
+            "default_mhz": 500.0,
+            "requested_mhz": 500.0,
+            "type": "SCALABLE"
+          }
+        }
+      }
+    },
+    {
+      "build_id": "spine_negative_9c08763_134",
+      "claim_label": "measured_native_rejected_timing_not_closed",
+      "limitations": [
+        "This route is retained only as negative evidence and is not the primary Spine area/timing result.",
+        "Its packaged 134 MHz DATA_CLK still has negative setup slack in the routed timing report.",
+        "The acceptance bundle also rejected this configuration on direct-hardware performance thresholds."
+      ],
+      "report_identity": {
+        "timing": {
+          "archive_bytes": 385840,
+          "archive_sha256": "b79ade37c4f59ca88bab0f659d3cdd56df99b42eea2e8981cdc9ae8edc5a30bf",
+          "compression": "gzip",
+          "content_bytes": 17063599,
+          "content_sha256": "fe6e06a67ad316b811efc4d890e4a149f51834c17e7a837526af1ade2d34798c",
+          "path": "docs/evidence/fpga_routed_native_20260725/raw/spine_negative_9c08763_timing_routed.rpt.gz"
+        },
+        "utilization": {
+          "archive_bytes": 923,
+          "archive_sha256": "999ce9f20862470326f9c881f06bbc0b603de24aafeace247a1869840cddae10",
+          "compression": "gzip",
+          "content_bytes": 3368,
+          "content_sha256": "a457e56c42abe19eab4fba2d12d7491fe0bb37e4d10d727fd24130b6c4885686",
+          "path": "docs/evidence/fpga_routed_native_20260725/raw/spine_negative_9c08763_kernel_util_routed.rpt.gz"
+        },
+        "xclbin_info": {
+          "archive_bytes": 3438,
+          "archive_sha256": "e64aaee7a412bbda095fc24dbd8fcda0bc5b39d192a9825bbcf40e510b81af4a",
+          "compression": "gzip",
+          "content_bytes": 27071,
+          "content_sha256": "9a094d9e04b2c9995ffde04d13850bc22b2f08170e42c1027c92e498dc545631",
+          "path": "docs/evidence/fpga_routed_native_20260725/raw/spine_negative_9c08763_xclbin.info.gz"
+        }
+      },
+      "role": "negative_evidence",
+      "source": {
+        "alignment": "older_than_current_reduce_levels_for_routing_reference",
+        "current_reference_revision": "afb8199a2ca8d3fd208b985324bf4d8719e2b839",
+        "repository": "/home/chuxiao/spine-dynamic-graph-reduce-levels",
+        "revision": "9c08763148644df262c0d374e782bc834f4c0f4f",
+        "xclbin_sha256": "09a4087aeb1ddf0fd794c8ff7c9728bddfcba9b63f431839f695db1fe4ecf474"
+      },
+      "system": "spine",
+      "timing": {
+        "constraints_met_at_requested_clock": false,
+        "design_summary": {
+          "hold_failing_endpoints": 0,
+          "hold_total_endpoints": 1093616,
+          "pulse_width_failing_endpoints": 0,
+          "pulse_width_total_endpoints": 439996,
+          "setup_failing_endpoints": 23,
+          "setup_total_endpoints": 1096709,
+          "ths_ns": 0.0,
+          "tns_ns": -0.933,
+          "tpws_ns": 0.0,
+          "whs_ns": 0.006,
+          "wns_ns": -0.252,
+          "wpws_ns": 0.0
+        },
+        "kernel_clock": {
+          "name": "clk_kernel_00_unbuffered_net",
+          "period_ns": 7.463,
+          "requested_mhz": 134.0,
+          "timing": {
+            "hold_failing_endpoints": 0,
+            "hold_total_endpoints": 503373,
+            "pulse_width_failing_endpoints": 0,
+            "pulse_width_total_endpoints": 190559,
+            "setup_failing_endpoints": 1,
+            "setup_total_endpoints": 503373,
+            "ths_ns": 0.0,
+            "tns_ns": -0.252,
+            "tpws_ns": 0.0,
+            "whs_ns": 0.009,
+            "wns_ns": -0.252,
+            "wpws_ns": 3.031
+          }
+        },
+        "metadata": {
+          "command": "report_timing_summary -max_paths 10 -file hw_bb_locked_timing_summary_routed.rpt -pb hw_bb_locked_timing_summary_routed.pb -rpx hw_bb_locked_timing_summary_routed.rpx",
+          "date": "Tue Jul 21 23:00:37 2026",
+          "design": "level0_wrapper",
+          "design_state": "Routed",
+          "device": "xcu55c-fsvh2892",
+          "host": "trifoliate running 64-bit Debian GNU/Linux trixie/sid",
+          "tool_version": "Vivado v.2024.1 (lin64) Build 5076996 Wed May 22 18:36:09 MDT 2024"
+        }
+      },
+      "timing_disposition": "timing_not_closed_at_packaged_clock",
+      "utilization": {
+        "components": [
+          {
+            "indent": 1,
+            "name": "spine_partconv_compute_kernel",
+            "resources": {
+              "bram": {
+                "count": 44,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 2.42
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 10018,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.88
+              },
+              "lut_as_mem": {
+                "count": 1427,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.25
+              },
+              "reg": {
+                "count": 13574,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.58
+              },
+              "uram": {
+                "count": 16,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.67
+              }
+            }
+          },
+          {
+            "indent": 1,
+            "name": "spine_partconv_rdmaint_kernel",
+            "resources": {
+              "bram": {
+                "count": 48,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 2.64
+              },
+              "dsp": {
+                "count": 34,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.38
+              },
+              "lut": {
+                "count": 113055,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 9.88
+              },
+              "lut_as_mem": {
+                "count": 10178,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.75
+              },
+              "reg": {
+                "count": 130440,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 5.53
+              },
+              "uram": {
+                "count": 83,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 8.65
+              }
+            }
+          }
+        ],
+        "instances": [
+          {
+            "indent": 4,
+            "name": "spine_partconv_compute_kernel_1",
+            "resources": {
+              "bram": {
+                "count": 44,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 2.42
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 10018,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.88
+              },
+              "lut_as_mem": {
+                "count": 1427,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.25
+              },
+              "reg": {
+                "count": 13574,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.58
+              },
+              "uram": {
+                "count": 16,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.67
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "spine_partconv_rdmaint_kernel_1",
+            "resources": {
+              "bram": {
+                "count": 48,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 2.64
+              },
+              "dsp": {
+                "count": 34,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.38
+              },
+              "lut": {
+                "count": 113055,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 9.88
+              },
+              "lut_as_mem": {
+                "count": 10178,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.75
+              },
+              "reg": {
+                "count": 130440,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 5.53
+              },
+              "uram": {
+                "count": 83,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 8.65
+              }
+            }
+          }
+        ],
+        "metadata": {
+          "command": "report_accelerator_utilization -kernels { spine_partconv_compute_kernel:level0_i/ulp/spine_partconv_compute_kernel_1/inst:spine_partconv_compute_kernel_1 spine_partconv_rdmaint_kernel:level0_i/ulp/spine_partconv_rdmaint_kernel_1/inst:spine_partconv_rdmaint_kernel_1} -file kernel_util_routed.rpt -name kernel_util_routed -json",
+          "date": "Tue Jul 21 23:01:19 2026",
+          "design": "level0_wrapper",
+          "design_state": "Fully Placed",
+          "device": "xcu55c",
+          "host": "trifoliate running 64-bit Debian GNU/Linux trixie/sid",
+          "tool_version": "Vivado v.2024.1 (lin64) Build 5076996 Wed May 22 18:36:09 MDT 2024"
+        },
+        "platform": {
+          "bram": {
+            "count": 200,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 9.92
+          },
+          "dsp": {
+            "count": 4,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 0.04
+          },
+          "lut": {
+            "count": 159324,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 12.22
+          },
+          "lut_as_mem": {
+            "count": 19659,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 3.27
+          },
+          "reg": {
+            "count": 247527,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 9.49
+          },
+          "uram": {
+            "count": 0,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 0.0
+          }
+        },
+        "rows": [
+          {
+            "indent": 1,
+            "name": "Platform",
+            "resources": {
+              "bram": {
+                "count": 200,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 9.92
+              },
+              "dsp": {
+                "count": 4,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.04
+              },
+              "lut": {
+                "count": 159324,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 12.22
+              },
+              "lut_as_mem": {
+                "count": 19659,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 3.27
+              },
+              "reg": {
+                "count": 247527,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 9.49
+              },
+              "uram": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              }
+            }
+          },
+          {
+            "indent": 1,
+            "name": "User Budget",
+            "resources": {
+              "bram": {
+                "count": 1816,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 100.0
+              },
+              "dsp": {
+                "count": 9020,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 100.0
+              },
+              "lut": {
+                "count": 1144356,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 100.0
+              },
+              "lut_as_mem": {
+                "count": 581301,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 100.0
+              },
+              "reg": {
+                "count": 2359833,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 100.0
+              },
+              "uram": {
+                "count": 960,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 100.0
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "Used Resources",
+            "resources": {
+              "bram": {
+                "count": 92,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 5.07
+              },
+              "dsp": {
+                "count": 34,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.38
+              },
+              "lut": {
+                "count": 123073,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 10.75
+              },
+              "lut_as_mem": {
+                "count": 11605,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 2.0
+              },
+              "reg": {
+                "count": 144014,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 6.1
+              },
+              "uram": {
+                "count": 99,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 10.31
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "Unused Resources",
+            "resources": {
+              "bram": {
+                "count": 1724,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 94.93
+              },
+              "dsp": {
+                "count": 8986,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 99.62
+              },
+              "lut": {
+                "count": 1021283,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 89.25
+              },
+              "lut_as_mem": {
+                "count": 569696,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 98.0
+              },
+              "reg": {
+                "count": 2215819,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 93.9
+              },
+              "uram": {
+                "count": 861,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 89.69
+              }
+            }
+          },
+          {
+            "indent": 1,
+            "name": "spine_partconv_compute_kernel",
+            "resources": {
+              "bram": {
+                "count": 44,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 2.42
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 10018,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.88
+              },
+              "lut_as_mem": {
+                "count": 1427,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.25
+              },
+              "reg": {
+                "count": 13574,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.58
+              },
+              "uram": {
+                "count": 16,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.67
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "spine_partconv_compute_kernel_1",
+            "resources": {
+              "bram": {
+                "count": 44,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 2.42
+              },
+              "dsp": {
+                "count": 0,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.0
+              },
+              "lut": {
+                "count": 10018,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.88
+              },
+              "lut_as_mem": {
+                "count": 1427,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.25
+              },
+              "reg": {
+                "count": 13574,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.58
+              },
+              "uram": {
+                "count": 16,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.67
+              }
+            }
+          },
+          {
+            "indent": 1,
+            "name": "spine_partconv_rdmaint_kernel",
+            "resources": {
+              "bram": {
+                "count": 48,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 2.64
+              },
+              "dsp": {
+                "count": 34,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.38
+              },
+              "lut": {
+                "count": 113055,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 9.88
+              },
+              "lut_as_mem": {
+                "count": 10178,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.75
+              },
+              "reg": {
+                "count": 130440,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 5.53
+              },
+              "uram": {
+                "count": 83,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 8.65
+              }
+            }
+          },
+          {
+            "indent": 4,
+            "name": "spine_partconv_rdmaint_kernel_1",
+            "resources": {
+              "bram": {
+                "count": 48,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 2.64
+              },
+              "dsp": {
+                "count": 34,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 0.38
+              },
+              "lut": {
+                "count": 113055,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 9.88
+              },
+              "lut_as_mem": {
+                "count": 10178,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 1.75
+              },
+              "reg": {
+                "count": 130440,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 5.53
+              },
+              "uram": {
+                "count": 83,
+                "percent_is_upper_bound": false,
+                "user_budget_pct": 8.65
+              }
+            }
+          }
+        ],
+        "used_resources": {
+          "bram": {
+            "count": 92,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 5.07
+          },
+          "dsp": {
+            "count": 34,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 0.38
+          },
+          "lut": {
+            "count": 123073,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 10.75
+          },
+          "lut_as_mem": {
+            "count": 11605,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 2.0
+          },
+          "reg": {
+            "count": 144014,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 6.1
+          },
+          "uram": {
+            "count": 99,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 10.31
+          }
+        },
+        "user_budget": {
+          "bram": {
+            "count": 1816,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 100.0
+          },
+          "dsp": {
+            "count": 9020,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 100.0
+          },
+          "lut": {
+            "count": 1144356,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 100.0
+          },
+          "lut_as_mem": {
+            "count": 581301,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 100.0
+          },
+          "reg": {
+            "count": 2359833,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 100.0
+          },
+          "uram": {
+            "count": 960,
+            "percent_is_upper_bound": false,
+            "user_budget_pct": 100.0
+          }
+        }
+      },
+      "xclbin": {
+        "data_clock": {
+          "achieved_mhz": 134.0,
+          "default_mhz": 300.0,
+          "name": "ulp_ucs_aclk_kernel_00",
+          "packaged_mhz": 134.0,
+          "requested_mhz": 134.0,
+          "type": "SCALABLE"
+        },
+        "packaged_clocks": {
+          "DATA_CLK": {
+            "frequency_mhz": 134.0,
+            "type": "DATA"
+          },
+          "KERNEL_CLK": {
+            "frequency_mhz": 500.0,
+            "type": "KERNEL"
+          },
+          "hbm_aclk": {
+            "frequency_mhz": 436.0,
+            "type": "SYSTEM"
+          }
+        },
+        "platform_vbnv": "xilinx_u55c_gen3x16_xdma_3_202210_1",
+        "system_clocks": {
+          "ulp_ucs_aclk_kernel_00": {
+            "achieved_mhz": 134.0,
+            "default_mhz": 300.0,
+            "requested_mhz": 134.0,
+            "type": "SCALABLE"
+          },
+          "ulp_ucs_aclk_kernel_01": {
+            "achieved_mhz": 500.0,
+            "default_mhz": 500.0,
+            "requested_mhz": 500.0,
+            "type": "SCALABLE"
+          }
+        }
+      }
+    }
+  ],
+  "claim_class": "fpga_routed_measured_native_non_normalized",
+  "comparison_build_ids": [
+    "spine_accepted_9c08763",
+    "grasu_regraph_native_a9aef06"
+  ],
+  "limitations": [
+    "All resource counts are post-route FPGA kernel resources on the same U55C platform, not ASIC area.",
+    "The primary comparison is native and non-normalized: GraSU+ReGraph includes conversion, while Spine comes from an older routed HLS revision.",
+    "Different requested and packaged clocks must not be converted into a same-frequency throughput claim without simulator normalization.",
+    "No normalized or projected design receives a measured FPGA area/timing label until matching HLS is synthesized and routed."
+  ],
+  "manifest": "configs/evidence/fpga_routed_native_20260725.json",
+  "manifest_sha256": "1c5035b1cf2e1072065847d972ff1f764e0387ec572afc841492c015a06cc5a4",
+  "resource_comparison": {
+    "bram": {
+      "first_minus_second": -156,
+      "first_over_second": 0.3709677419354839,
+      "grasu_regraph": 248,
+      "spine": 92
+    },
+    "dsp": {
+      "first_minus_second": 34,
+      "first_over_second": null,
+      "grasu_regraph": 0,
+      "spine": 34
+    },
+    "lut": {
+      "first_minus_second": 24303,
+      "first_over_second": 1.2444871433745122,
+      "grasu_regraph": 99404,
+      "spine": 123707
+    },
+    "lut_as_mem": {
+      "first_minus_second": -1887,
+      "first_over_second": 0.8601393418321969,
+      "grasu_regraph": 13492,
+      "spine": 11605
+    },
+    "reg": {
+      "first_minus_second": 28079,
+      "first_over_second": 1.2421563723545543,
+      "grasu_regraph": 115954,
+      "spine": 144033
+    },
+    "uram": {
+      "first_minus_second": 35,
+      "first_over_second": 1.546875,
+      "grasu_regraph": 64,
+      "spine": 99
+    }
+  },
+  "schema_version": 1,
+  "status": "PASS"
+}
