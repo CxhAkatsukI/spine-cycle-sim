@@ -661,7 +661,8 @@ SpineMaintenanceResult decode_spine_maintenance_result(
   return result;
 }
 
-SpineEdgeSlice load_spine_edge_slice(const std::filesystem::path &path) {
+SpineEdgeSlice load_spine_edge_slice(const std::filesystem::path &path,
+                                     bool allow_empty) {
   std::ifstream input(path);
   if (!input) {
     throw std::runtime_error("cannot open Spine edge slice: " + path.string());
@@ -726,8 +727,16 @@ SpineEdgeSlice load_spine_edge_slice(const std::filesystem::path &path) {
         std::max(max_vertex, static_cast<std::uint32_t>(std::max(src, dst)));
   }
   if (slice.edges.empty()) {
-    throw std::runtime_error("Spine edge slice has no edge records: " +
-                             path.string());
+    if (!allow_empty) {
+      throw std::runtime_error("Spine edge slice has no edge records: " +
+                               path.string());
+    }
+    if (slice.vertices == 0) {
+      throw std::runtime_error(
+          "Empty Spine edge slice requires vertices metadata: " +
+          path.string());
+    }
+    return slice;
   }
   if (slice.vertices == 0) {
     slice.vertices = static_cast<std::size_t>(max_vertex) + 1;

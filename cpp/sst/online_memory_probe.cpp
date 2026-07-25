@@ -1234,7 +1234,8 @@ class OnlineMemoryProbe final : public SST::Component {
         append_initial(edge);
       }
       if (!update_workload_path_.empty()) {
-        SpineEdgeSlice update = load_spine_edge_slice(update_workload_path_);
+        SpineEdgeSlice update =
+            load_spine_edge_slice(update_workload_path_, true);
         if (update.vertices != initial.vertices) {
           throw std::invalid_argument(
               "GraSU/ReGraph update vertex count does not match snapshot");

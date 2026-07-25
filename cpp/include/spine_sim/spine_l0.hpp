@@ -32,7 +32,8 @@ struct SpineEdgeSlice {
   std::string case_name;
 };
 
-SpineEdgeSlice load_spine_edge_slice(const std::filesystem::path &path);
+SpineEdgeSlice load_spine_edge_slice(const std::filesystem::path &path,
+                                     bool allow_empty = false);
 inline constexpr std::uint64_t kSpineSortWordBytes = 16;
 inline constexpr std::uint64_t kSpineGraphWordBytes = 8;
 inline constexpr std::uint64_t kSpineMetadataWordBytes = 8;

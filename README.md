@@ -47,6 +47,11 @@ records external/internal source IDs. Two FPGA workloads have exact
 graph/source/PMA/slot/superstep and SSSP alignment; absolute timing remains an
 explicitly trend-only result. See
 [`docs/grasu_regraph_native_e2e_20260725.md`](docs/grasu_regraph_native_e2e_20260725.md).
+The frozen ten-case U55C calibration/holdout matrix now matches every graph,
+reordered source, PMA/compact count, superstep count, and SSSP output. Its
+unfitted timing remains optimistic by about 50% E2E median and is explicitly
+trend-only; raw evidence, runtime, and component diagnostics are in
+[`docs/grasu_native_hw_matrix_20260725.md`](docs/grasu_native_hw_matrix_20260725.md).
 
 The PMA-native ReGraph SSSP path now includes finite gather/merger, merger/apply,
 and apply/HBM-wrapper streams with online SST-HBM backpressure. Its overlap and

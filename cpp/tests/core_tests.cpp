@@ -112,6 +112,34 @@ void require(bool condition, const std::string &message) {
   }
 }
 
+void test_spine_edge_slice_empty_update_contract() {
+  const std::filesystem::path data =
+      std::filesystem::path(SPINE_SOURCE_DIR) / "tests" / "data";
+  const std::filesystem::path valid = data / "empty_update_v16.slice";
+  bool rejected_by_default = false;
+  try {
+    (void)load_spine_edge_slice(valid);
+  } catch (const std::runtime_error &) {
+    rejected_by_default = true;
+  }
+  require(rejected_by_default,
+          "generic Spine workload loader silently accepted an empty graph");
+  const SpineEdgeSlice update = load_spine_edge_slice(valid, true);
+  require(update.vertices == 16 && update.edges.empty() &&
+              update.case_name == "empty_update_v16",
+          "empty update slice lost required metadata");
+
+  bool missing_vertices_rejected = false;
+  try {
+    (void)load_spine_edge_slice(data / "empty_update_missing_vertices.slice",
+                                true);
+  } catch (const std::runtime_error &) {
+    missing_vertices_rejected = true;
+  }
+  require(missing_vertices_rejected,
+          "empty update slice without vertex metadata was accepted");
+}
+
 std::uint64_t maintenance_result_counter(const SpineMaintenanceResult &result,
                                          std::size_t base,
                                          std::size_t counter) {
@@ -6121,6 +6149,8 @@ int main(int argc, char **argv) {
       {"bank_conflict", test_banked_memory_conflict_and_round_robin},
       {"raw_hazard", test_banked_memory_stalls_read_after_write},
       {"invalid_config", test_invalid_clock_and_capacity_are_rejected},
+      {"spine_empty_update_slice",
+       test_spine_edge_slice_empty_update_contract},
       {"axi_online_backend", test_axi_splits_bursts_and_uses_backend_online},
       {"axi_response_backpressure", test_axi_response_backpressure_is_lossless},
       {"axi_payload_round_trip",

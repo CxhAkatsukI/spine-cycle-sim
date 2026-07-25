@@ -1,0 +1,142 @@
+{
+  "schema_version": 1,
+  "matrix_id": "grasu_native_hw_matrix_20260725",
+  "claim_class": "native_hardware_alignment_unfitted_baseline",
+  "profile": "configs/architectures/grasu_regraph_native_a9aef06.json",
+  "artifact": {
+    "target": "hw",
+    "board": "xilinx_u55c_gen3x16_xdma_3_202210_1",
+    "host_sha256": "0189b94f16af5ea4e9a5803f963db6558229be76447187862737aadf5a9ad9cb",
+    "xclbin_sha256": "5a730a2da85ddf522f577ca7d7024f7aa401bb07802f3bf9b4326dfd312e917e",
+    "workload_manifest_sha256": "094dbe66fa58b6fa14d22fc74edcc564978c7c8c3e5ea9ff7407cc78077a098a"
+  },
+  "split_policy": {
+    "calibration": "May be used for a future mechanism-based timing fit.",
+    "holdout": "Frozen before any native timing fit; must not select or fit parameters.",
+    "stress": "Correctness/runtime stress only; excluded from the default matrix and timing gates."
+  },
+  "cases": [
+    {
+      "case": "tiny_chain_v16",
+      "role": "calibration",
+      "family": "chain",
+      "source": 0,
+      "supersteps": 16,
+      "graph": "tests/data/grasu_native_hw_matrix/tiny_chain_v16.graph",
+      "graph_sha256": "409b4bca29a0003c8e1ac91c8681de3aed25d7e9772bf44c32d17a332dcc07cf",
+      "hardware_log": "docs/evidence/grasu_native_hw_matrix/tiny_chain_v16.log",
+      "hardware_log_sha256": "1840fa0e1868965426801d752c42c03acd92be6ecfd0ee0558e0f13f6060d270"
+    },
+    {
+      "case": "tiny_star_v16_u12",
+      "role": "calibration",
+      "family": "hot-source",
+      "source": 0,
+      "supersteps": 2,
+      "graph": "tests/data/grasu_native_hw_matrix/tiny_star_v16_u12.graph",
+      "graph_sha256": "f91f7add86e3422f1be6faf512a6ec6c603ba48a0098660618ea463a0a0716ef",
+      "hardware_log": "docs/evidence/grasu_native_hw_matrix/tiny_star_v16_u12.log",
+      "hardware_log_sha256": "dc60efb6afce5b52c0263ad69c6c57c7e37840155340d9966743c88bb2e8fc9e"
+    },
+    {
+      "case": "small_spread_v4096_u1024",
+      "role": "calibration",
+      "family": "spread",
+      "source": 0,
+      "supersteps": 16,
+      "graph": "tests/data/grasu_native_hw_matrix/small_spread_v4096_u1024.graph",
+      "graph_sha256": "8f34b4da903ebdcda390a6ccabd192705a2bb50399678ba3156890b539eab86f",
+      "hardware_log": "docs/evidence/grasu_native_hw_matrix/small_spread_v4096_u1024.log",
+      "hardware_log_sha256": "48141117a63e735d6bf730b7468a11077208ffdc086c556c9c4738ac49eead8a"
+    },
+    {
+      "case": "small_hotdst_v4096_u1024",
+      "role": "calibration",
+      "family": "hot-dest",
+      "source": 0,
+      "supersteps": 32,
+      "graph": "tests/data/grasu_native_hw_matrix/small_hotdst_v4096_u1024.graph",
+      "graph_sha256": "9c381e64df3aa2ab2f57c1a725ca56b284f0cccc6659b1da15f6db7fdbb51bb0",
+      "hardware_log": "docs/evidence/grasu_native_hw_matrix/small_hotdst_v4096_u1024.log",
+      "hardware_log_sha256": "be3cb83b3ea4f1558a6d3a59b657ba8dc46a6e4d5f5d0fe58e3ab0cb736734ff"
+    },
+    {
+      "case": "medium_star_v65536_u8192",
+      "role": "calibration",
+      "family": "hot-source",
+      "source": 0,
+      "supersteps": 2,
+      "graph": "tests/data/grasu_native_hw_matrix/medium_star_v65536_u8192.graph",
+      "graph_sha256": "f31387815b0051dad90e65ddc62a8f2a3995a2b737f64f42235a86219f8ed110",
+      "hardware_log": "docs/evidence/grasu_native_hw_matrix/medium_star_v65536_u8192.log",
+      "hardware_log_sha256": "764a94a984ecca9faec9eff7042d2c5b5a2503a6d3746dd4c8d62e63829537ee"
+    },
+    {
+      "case": "tiny_spread_v16_u8",
+      "role": "holdout",
+      "family": "spread",
+      "source": 0,
+      "supersteps": 16,
+      "graph": "tests/data/grasu_native_hw_matrix/tiny_spread_v16_u8.graph",
+      "graph_sha256": "8a99213b0aa3f39e181d1eaf8743df0b59ed081f91a2fc43b3d7103a9685980b",
+      "hardware_log": "docs/evidence/grasu_native_hw_matrix/tiny_spread_v16_u8.log",
+      "hardware_log_sha256": "42777778e342ddf16ea01915cfb1d2099a27989f09efb37de8d9a81b245f8050"
+    },
+    {
+      "case": "tiny_hotdst_v64_u32",
+      "role": "holdout",
+      "family": "hot-dest",
+      "source": 0,
+      "supersteps": 16,
+      "graph": "tests/data/grasu_native_hw_matrix/tiny_hotdst_v64_u32.graph",
+      "graph_sha256": "3afc03755e5a3eb247b0b0ae3163489955ba2b36d74cf6e2a2be9694228d877b",
+      "hardware_log": "docs/evidence/grasu_native_hw_matrix/tiny_hotdst_v64_u32.log",
+      "hardware_log_sha256": "ba2582bbb625e0e9fa77c5af23df415592fea51538d2d0f10023b96aa0424b11"
+    },
+    {
+      "case": "small_chain_v64",
+      "role": "holdout",
+      "family": "chain",
+      "source": 0,
+      "supersteps": 64,
+      "graph": "tests/data/grasu_native_hw_matrix/small_chain_v64.graph",
+      "graph_sha256": "3f4655e789566b20a3af5c8a0821acc6883109c2eebe3306cccc1bd91eec4d08",
+      "hardware_log": "docs/evidence/grasu_native_hw_matrix/small_chain_v64.log",
+      "hardware_log_sha256": "f862242adc1334870d6457fd1578c8d782cfa1aef882991f6b2a5abecd547af8"
+    },
+    {
+      "case": "small_star_v4096_u1024",
+      "role": "holdout",
+      "family": "hot-source",
+      "source": 0,
+      "supersteps": 2,
+      "graph": "tests/data/grasu_native_hw_matrix/small_star_v4096_u1024.graph",
+      "graph_sha256": "c5199f90e7dca0bd93da23570f6ab0e65af4e0710879e90deed3823701dd5248",
+      "hardware_log": "docs/evidence/grasu_native_hw_matrix/small_star_v4096_u1024.log",
+      "hardware_log_sha256": "7245109092314e4ea609c7e298cf817b8bc1373eddba724dce5c67f7b27b4216"
+    },
+    {
+      "case": "medium_spread_v65536_u16384",
+      "role": "holdout",
+      "family": "spread",
+      "source": 0,
+      "supersteps": 32,
+      "graph": "tests/data/grasu_native_hw_matrix/medium_spread_v65536_u16384.graph",
+      "graph_sha256": "9b4fa5faeddc17d71b13a34808e75c6e0f4f9cf4ecd027ab9cb46ea73c54a707",
+      "hardware_log": "docs/evidence/grasu_native_hw_matrix/medium_spread_v65536_u16384.log",
+      "hardware_log_sha256": "b25722b37cae041850c9e46acb5178583240df60b0d5786c30ddbd54d4fc2496"
+    },
+    {
+      "case": "large_chain_v4096",
+      "role": "stress",
+      "family": "chain",
+      "source": 0,
+      "supersteps": 4096,
+      "max_cycles": 300000000,
+      "graph": "tests/data/grasu_native_hw_matrix/large_chain_v4096.graph",
+      "graph_sha256": "7b3b5164c7160e019c13ad6ac8d96be709642b63f50a87a9388b1e165039c536",
+      "hardware_log": "docs/evidence/grasu_native_hw_matrix/large_chain_v4096.log",
+      "hardware_log_sha256": "9843e0325ae950b1e53d329c153217d4c7aa24f18e73cdc37271f643156183f4"
+    }
+  ]
+}

@@ -1,0 +1,122 @@
+{
+  "claim_class": "native_hardware_alignment",
+  "inputs": {
+    "hardware_log": "/home/chuxiao/spine-cycle-sim/docs/evidence/grasu_native_hw_matrix/tiny_star_v16_u12.log",
+    "hardware_log_sha256": "dc60efb6afce5b52c0263ad69c6c57c7e37840155340d9966743c88bb2e8fc9e",
+    "profile": "/home/chuxiao/spine-cycle-sim/configs/architectures/grasu_regraph_native_a9aef06.json",
+    "profile_sha256": "ca47981158689d995973992df47ed659aa886b5b1a71ac99f468a0361f72adaf",
+    "simulation_result": "/home/chuxiao/spine-cycle-sim/results/grasu_native_hw_matrix_20260725/tiny_star_v16_u12/sst/result.json",
+    "simulation_result_sha256": "831a3217adaa6ac6318f03f057291fa5684ba99c5c8c6162011e26d618f4dc6d"
+  },
+  "kernel_clock_mhz": 200.0,
+  "limitations": [
+    "FPGA values are OpenCL event windows, not on-kernel cycle counters.",
+    "The simulator does not include PCIe launch or host scheduling time.",
+    "One workload cannot establish timing calibration or transferability."
+  ],
+  "schema_version": 1,
+  "structural_checks": {
+    "compact_edge_slots": {
+      "hardware": 32,
+      "match": true,
+      "simulation": 32
+    },
+    "correctness_mismatches": {
+      "hardware": 0,
+      "match": true,
+      "simulation": 0
+    },
+    "edge_slots_per_superstep": {
+      "hardware": 32,
+      "match": true,
+      "simulation": 32
+    },
+    "final_edges": {
+      "hardware": 28,
+      "match": true,
+      "simulation": 28
+    },
+    "initial_edges": {
+      "hardware": 16,
+      "match": true,
+      "simulation": 16
+    },
+    "native_host_vertex_reorder": {
+      "hardware": 1,
+      "match": true,
+      "simulation": 1
+    },
+    "pma_slots": {
+      "hardware": 256,
+      "match": true,
+      "simulation": 256
+    },
+    "pma_slots_scanned_once": {
+      "hardware": 256,
+      "match": true,
+      "simulation": 256
+    },
+    "source_external": {
+      "hardware": 0,
+      "match": true,
+      "simulation": 0
+    },
+    "source_internal": {
+      "hardware": 0,
+      "match": true,
+      "simulation": 0
+    },
+    "supersteps": {
+      "hardware": 2,
+      "match": true,
+      "simulation": 2
+    },
+    "updates": {
+      "hardware": 12,
+      "match": true,
+      "simulation": 12
+    },
+    "vertices": {
+      "hardware": 16,
+      "match": true,
+      "simulation": 16
+    }
+  },
+  "structural_claim": "hardware_aligned",
+  "structure_matches": true,
+  "timing": {
+    "compute_span": {
+      "absolute_error_pct": 35.01717907319358,
+      "hardware_ms": 0.764302,
+      "signed_error_pct": -35.01717907319358,
+      "simulation_cycles": 99333,
+      "simulation_ms": 0.496665,
+      "simulation_over_hardware": 0.6498282092680642
+    },
+    "conversion": {
+      "absolute_error_pct": 92.37314087549557,
+      "hardware_ms": 0.120823,
+      "signed_error_pct": -92.37314087549557,
+      "simulation_cycles": 1843,
+      "simulation_ms": 0.009215,
+      "simulation_over_hardware": 0.0762685912450444
+    },
+    "event_e2e": {
+      "absolute_error_pct": 67.98905988777041,
+      "hardware_ms": 1.583896,
+      "signed_error_pct": -67.98905988777041,
+      "simulation_cycles": 101404,
+      "simulation_ms": 0.50702,
+      "simulation_over_hardware": 0.3201094011222959
+    },
+    "update": {
+      "absolute_error_pct": 99.75603701389305,
+      "hardware_ms": 0.467284,
+      "signed_error_pct": -99.75603701389305,
+      "simulation_cycles": 228,
+      "simulation_ms": 0.00114,
+      "simulation_over_hardware": 0.0024396298610694996
+    }
+  },
+  "timing_claim": "trend_only_not_cycle_calibrated"
+}
