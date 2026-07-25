@@ -54,9 +54,11 @@ must not be reported as accelerator speedups.
 ## Runtime gate
 
 Linear extrapolation from the measured sparse 64-superstep case places the
-4096-superstep chain at approximately 19.4 minutes. That is inside the intended
-"tens of minutes" range, but it remains a projection until the complete stress
-run is executed. No architecture cycle or HBM transaction is fast-forwarded.
+4096-superstep chain at approximately 19.4 minutes. The subsequent complete
+stress run finished in 19.16 minutes, 1.24% below that projection, without
+fast-forwarding an architecture cycle or HBM transaction. The measured gate
+and raw evidence are documented in
+`docs/grasu_native_stress_runtime_20260725.md`.
 
 ## Reproduction
 

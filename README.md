@@ -64,6 +64,12 @@ host scheduler only after their AXI ports and shared backend drain. This leaves
 the cycle/counter result byte-identical while reducing native SST wall time by
 about 10% on the 64-superstep chain; see
 [`docs/grasu_native_scheduler_runtime_20260725.md`](docs/grasu_native_scheduler_runtime_20260725.md).
+Binding DRAMSim3 only to the five HBM pseudo-channels reachable by the native
+HLS topology preserves the physical 32-channel namespace and gives an exact
+full-versus-sparse result check. With that host optimization, the complete
+4096-superstep stress case now passes in 19.16 minutes. Its structural,
+correctness, pressure, DRAM, and explicit unfitted-timing evidence is in
+[`docs/grasu_native_stress_runtime_20260725.md`](docs/grasu_native_stress_runtime_20260725.md).
 
 The PMA-native ReGraph SSSP path now includes finite gather/merger, merger/apply,
 and apply/HBM-wrapper streams with online SST-HBM backpressure. Its overlap and

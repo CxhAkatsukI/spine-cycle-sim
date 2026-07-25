@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "claim_class": "simulator_host_runtime_and_native_structural_validation",
+  "date": "2026-07-25",
+  "simulator_commit": "27143ca",
+  "case": {
+    "name": "large_chain_v4096",
+    "vertices": 4096,
+    "initial_edges": 4095,
+    "updates": 0,
+    "final_edges": 4095,
+    "pma_slots": 65520,
+    "compact_edge_slots": 4096,
+    "source_external": 0,
+    "source_internal": 2721,
+    "supersteps": 4096
+  },
+  "architecture_binding": {
+    "physical_hbm_channels": 32,
+    "instantiated_reachable_channels": [0, 1, 2, 3, 30],
+    "channel_numbers_preserved": true,
+    "conversion_cost_included": true,
+    "pipeline_order": "update_then_barrier_compactor_then_compute",
+    "fast_forwarding": false
+  },
+  "host_runtime": {
+    "host_cpu": "AMD EPYC 7C13 64-Core Processor",
+    "samples": 1,
+    "runtime_seconds": 1149.3853384461254,
+    "runtime_minutes": 19.156422307435424,
+    "projected_seconds_from_small_chain_v64": 1163.84,
+    "projection_signed_error_pct": -1.241980130763209,
+    "projection_absolute_error_pct": 1.241980130763209,
+    "gate": "tens_of_minutes",
+    "status": "PASS",
+    "claim": "simulator_host_runtime_only_not_accelerator_performance"
+  },
+  "simulation": {
+    "cycles": 141070050,
+    "update_cycles": 1,
+    "conversion_cycles": 462648,
+    "compute_cycles": 140607401,
+    "controller_gap_cycles": 0,
+    "correctness_mismatches": 0,
+    "native_hls_contract_safe": true,
+    "structure_gate_passed": true,
+    "status": "PASS"
+  },
+  "pressure": {
+    "backend_requests": 71311872,
+    "backend_max_outstanding": 64,
+    "backend_submit_stalls": 665423,
+    "backend_response_queue_stalls": 5325289,
+    "edge_array_output_stall_cycles": 3247262
+  },
+  "dramsim3": {
+    "channels": [0, 1, 2, 3, 30],
+    "final_cumulative_reports_archived": true,
+    "epoch_reports_archived": false,
+    "num_reads_done": 20979712,
+    "num_writes_done": 50332160,
+    "completed_transactions_match_backend_requests": true,
+    "num_read_cmds": 20946944,
+    "num_write_cmds": 50332128,
+    "num_act_cmds": 2315475,
+    "num_pre_cmds": 2315475,
+    "num_ref_cmds": 904295,
+    "total_energy_pj": 331247755860.0,
+    "total_energy_j": 0.33124775586,
+    "energy_claim": "dram_only_not_total_accelerator_energy"
+  },
+  "unfitted_timing": {
+    "kernel_clock_mhz": 200.0,
+    "simulation_event_e2e_ms": 705.35025,
+    "hardware_event_e2e_ms": 1432.892907,
+    "event_e2e_absolute_error_pct": 50.77439168313226,
+    "conversion_absolute_error_pct": 37.023608387922636,
+    "compute_span_absolute_error_pct": 40.21708038963446,
+    "claim": "trend_only_not_cycle_calibrated"
+  },
+  "artifacts": {
+    "result": {
+      "path": "docs/evidence/grasu_native_stress_4096_20260725/result.json",
+      "sha256": "c0bc82b3c079b733377dff5478c26ae13567852d57b40fad1bfc9c1d58541f6b"
+    },
+    "native_manifest": {
+      "path": "docs/evidence/grasu_native_stress_4096_20260725/native_manifest.json",
+      "sha256": "d61d828ec27c7e6c9bd7870e6318ae1840fc00658af5c04a0f74f8e390a29be6"
+    },
+    "alignment": {
+      "path": "docs/evidence/grasu_native_stress_4096_20260725/alignment.json",
+      "sha256": "cf91df200d66f88692cb402497a77c7c51916bf5abf21fb6a0be590023986b85"
+    },
+    "matrix_manifest": {
+      "path": "docs/evidence/grasu_native_stress_4096_20260725/matrix_manifest.json",
+      "sha256": "d3503ab0141963b02ef5f8d4a4434571a20faaa2fcf8edfbb8ba753e3c016e60"
+    }
+  },
+  "limitations": [
+    "Host runtime and memory use are single-run engineering measurements.",
+    "The raw execution-driven cycle result is not an absolute timing calibration.",
+    "The FPGA reference uses OpenCL event windows rather than on-kernel cycle counters.",
+    "DRAMSim3 energy excludes logic, on-chip memory, host, and board energy."
+  ],
+  "status": "PASS"
+}

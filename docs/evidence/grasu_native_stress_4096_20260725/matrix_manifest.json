@@ -1,0 +1,159 @@
+{
+  "artifact": {
+    "board": "xilinx_u55c_gen3x16_xdma_3_202210_1",
+    "host_sha256": "0189b94f16af5ea4e9a5803f963db6558229be76447187862737aadf5a9ad9cb",
+    "target": "hw",
+    "workload_manifest_sha256": "094dbe66fa58b6fa14d22fc74edcc564978c7c8c3e5ea9ff7407cc78077a098a",
+    "xclbin_sha256": "5a730a2da85ddf522f577ca7d7024f7aa401bb07802f3bf9b4326dfd312e917e"
+  },
+  "cases": [
+    {
+      "case": "large_chain_v4096",
+      "commands": {
+        "analyze": [
+          "/usr/bin/python3",
+          "/home/chuxiao/spine-cycle-sim/scripts/analyze_grasu_native_hw_alignment.py",
+          "--sim-result",
+          "/tmp/grasu_native_sparse_large_20260725/large_chain_v4096/sst/result.json",
+          "--hardware-log",
+          "/home/chuxiao/spine-cycle-sim/docs/evidence/grasu_native_hw_matrix/large_chain_v4096.log",
+          "--profile",
+          "/home/chuxiao/spine-cycle-sim/configs/architectures/grasu_regraph_native_a9aef06.json",
+          "--out",
+          "/tmp/grasu_native_sparse_large_20260725/large_chain_v4096/alignment.json"
+        ],
+        "convert": [
+          "/usr/bin/python3",
+          "/home/chuxiao/spine-cycle-sim/scripts/convert_grasu_graph_to_slices.py",
+          "/home/chuxiao/spine-cycle-sim/tests/data/grasu_native_hw_matrix/large_chain_v4096.graph",
+          "--initial-out",
+          "/tmp/grasu_native_sparse_large_20260725/large_chain_v4096/input/initial.slice",
+          "--update-out",
+          "/tmp/grasu_native_sparse_large_20260725/large_chain_v4096/input/update.slice",
+          "--metadata-out",
+          "/tmp/grasu_native_sparse_large_20260725/large_chain_v4096/input/metadata.json"
+        ],
+        "run": [
+          "/usr/bin/python3",
+          "/home/chuxiao/spine-cycle-sim/scripts/run_sst_grasu_regraph_native.py",
+          "--no-build",
+          "--workload",
+          "/tmp/grasu_native_sparse_large_20260725/large_chain_v4096/input/initial.slice",
+          "--update-workload",
+          "/tmp/grasu_native_sparse_large_20260725/large_chain_v4096/input/update.slice",
+          "--source",
+          "0",
+          "--supersteps",
+          "4096",
+          "--max-cycles",
+          "300000000",
+          "--sst",
+          "/data/feiyang/sst/bin/sst",
+          "--lib-dir",
+          "/home/chuxiao/spine-cycle-sim/build/sst",
+          "--out-dir",
+          "/tmp/grasu_native_sparse_large_20260725/large_chain_v4096/sst"
+        ]
+      },
+      "graph": "tests/data/grasu_native_hw_matrix/large_chain_v4096.graph",
+      "graph_sha256": "7b3b5164c7160e019c13ad6ac8d96be709642b63f50a87a9388b1e165039c536",
+      "hardware_log": "docs/evidence/grasu_native_hw_matrix/large_chain_v4096.log",
+      "hardware_log_sha256": "9843e0325ae950b1e53d329c153217d4c7aa24f18e73cdc37271f643156183f4",
+      "role": "stress",
+      "runtime_seconds": 1149.3853384461254,
+      "status": "PASS"
+    }
+  ],
+  "claim_class": "native_hardware_alignment_unfitted_baseline",
+  "failures": [],
+  "group_summary": [
+    {
+      "cases": 1,
+      "max_absolute_error_pct": 99.99894983134293,
+      "median_absolute_error_pct": 99.99894983134293,
+      "median_signed_error_pct": -99.99894983134293,
+      "role": "stress",
+      "structural_matches": 1,
+      "target": "update"
+    },
+    {
+      "cases": 1,
+      "max_absolute_error_pct": 37.023608387922636,
+      "median_absolute_error_pct": 37.023608387922636,
+      "median_signed_error_pct": -37.023608387922636,
+      "role": "stress",
+      "structural_matches": 1,
+      "target": "conversion"
+    },
+    {
+      "cases": 1,
+      "max_absolute_error_pct": 40.21708038963446,
+      "median_absolute_error_pct": 40.21708038963446,
+      "median_signed_error_pct": -40.21708038963446,
+      "role": "stress",
+      "structural_matches": 1,
+      "target": "compute_span"
+    },
+    {
+      "cases": 1,
+      "max_absolute_error_pct": 50.77439168313226,
+      "median_absolute_error_pct": 50.77439168313226,
+      "median_signed_error_pct": -50.77439168313226,
+      "role": "stress",
+      "structural_matches": 1,
+      "target": "event_e2e"
+    },
+    {
+      "cases": 1,
+      "max_absolute_error_pct": 99.99894983134293,
+      "median_absolute_error_pct": 99.99894983134293,
+      "median_signed_error_pct": -99.99894983134293,
+      "role": "all",
+      "structural_matches": 1,
+      "target": "update"
+    },
+    {
+      "cases": 1,
+      "max_absolute_error_pct": 37.023608387922636,
+      "median_absolute_error_pct": 37.023608387922636,
+      "median_signed_error_pct": -37.023608387922636,
+      "role": "all",
+      "structural_matches": 1,
+      "target": "conversion"
+    },
+    {
+      "cases": 1,
+      "max_absolute_error_pct": 40.21708038963446,
+      "median_absolute_error_pct": 40.21708038963446,
+      "median_signed_error_pct": -40.21708038963446,
+      "role": "all",
+      "structural_matches": 1,
+      "target": "compute_span"
+    },
+    {
+      "cases": 1,
+      "max_absolute_error_pct": 50.77439168313226,
+      "median_absolute_error_pct": 50.77439168313226,
+      "median_signed_error_pct": -50.77439168313226,
+      "role": "all",
+      "structural_matches": 1,
+      "target": "event_e2e"
+    }
+  ],
+  "matrix": "/home/chuxiao/spine-cycle-sim/configs/experiments/grasu_native_hw_matrix_20260725.json",
+  "matrix_id": "grasu_native_hw_matrix_20260725",
+  "matrix_sha256": "fdfa3a9a371b70c499e4b2300c25ec564af5d119536e2a838eff52d408a1ec12",
+  "profile": "configs/architectures/grasu_regraph_native_a9aef06.json",
+  "profile_sha256": "ca47981158689d995973992df47ed659aa886b5b1a71ac99f468a0361f72adaf",
+  "schema_version": 1,
+  "selected_cases": [
+    "large_chain_v4096"
+  ],
+  "selected_roles": [
+    "stress"
+  ],
+  "status": "PASS",
+  "structure_gate_passed": true,
+  "timing_claim": "unfitted_trend_only_not_cycle_calibrated",
+  "timing_gate": "not_applied_before_mechanism_based_calibration"
+}

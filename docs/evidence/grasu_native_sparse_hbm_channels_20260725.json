@@ -21,7 +21,7 @@
     "samples_per_configuration": 1,
     "limitations": [
       "Wall time is a single-run engineering measurement, not accelerator performance.",
-      "The 4096-superstep runtime is a linear projection and was not executed in this milestone.",
+      "The sparse-controller equivalence measurements and the later 4096-superstep runtime each have one host-runtime sample.",
       "Exact equivalence is proven for the native unit and frozen small_chain_v64 cases, not every possible workload."
     ]
   },
@@ -67,7 +67,14 @@
     "basis_case": "small_chain_v64",
     "method": "sparse_seconds * 4096 / 64",
     "projected_minutes": 19.397333,
-    "status": "projected_inside_tens_of_minutes_gate_not_yet_measured"
+    "status": "superseded_by_measured_followup"
   },
-  "status": "PASS_EXACT_EQUIVALENCE_STRESS_RUN_PENDING"
+  "stress_followup": {
+    "runtime_seconds": 1149.3853384461254,
+    "runtime_minutes": 19.156422307435424,
+    "projection_absolute_error_pct": 1.241980130763209,
+    "status": "PASS",
+    "evidence": "docs/evidence/grasu_native_stress_runtime_20260725.json"
+  },
+  "status": "PASS_EXACT_EQUIVALENCE_AND_MEASURED_STRESS_RUNTIME"
 }
