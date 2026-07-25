@@ -86,7 +86,9 @@
     "conversion_free_weighted_pma_axis_handoff",
     "eight_lane_regraph_little_gs",
     "fixed_host_supersteps",
-    "independent_cpu_sssp_oracle"
+    "independent_cpu_sssp_oracle",
+    "execution_driven_sst_hbm_simulation",
+    "dual_oracle_simulator_validation"
   ],
   "evidence": [
     {
@@ -114,7 +116,7 @@
     "The 200 MHz kernel and 450 MHz HBM entries describe the requested build configuration; sw_emu does not prove achieved clock or timing closure.",
     "sw_emu event and wall times are not hardware performance evidence.",
     "Only one eight-vertex weighted dynamic workload and four fixed SSSP rounds are validated.",
-    "The current simulator does not yet execute this profile's full-word update, physical-update reorder, and fixed-round semantics.",
+    "The execution-driven simulator implements the full-word update, physical-update reorder, and fixed-round semantics, but its timing is not calibrated cycle-for-cycle against hw.",
     "Graphs beyond one 19-bit destination partition require an explicit partitioned PMA design.",
     "Full PageRank and thresholded residual PageRank are not implemented by this HLS profile.",
     "The eight inherited GraSU ap_uint bitsize warnings remain a synthesis-audit item."

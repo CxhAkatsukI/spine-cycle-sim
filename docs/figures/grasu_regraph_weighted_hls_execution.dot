@@ -1,0 +1,49 @@
+digraph G {
+  graph [rankdir=LR, bgcolor="white", pad="0.25", nodesep="0.28", ranksep="0.55"];
+  node [shape=box, style="filled", fillcolor="#f7f7f4", color="#333333", fontname="DejaVu Sans", fontsize=9];
+  edge [color="#555555", fontname="DejaVu Sans", fontsize=8];
+
+  host [label="Host preprocessing\nlogical -> physical updates\nvertex reorder + fixed 4 rounds", fillcolor="#e8edf3"];
+
+  subgraph cluster_update {
+    label="GraSU weighted full-word PMA update";
+    color="#b87a71";
+    search [label="Binary search\n4 CUs"];
+    dispatch [label="Dispatch\n1 CU"];
+    cache [label="Process cache\n2 CUs"];
+    ddr [label="Process DDR\n2 CUs"];
+    barrier [label="Completion barrier\n1 CU"];
+    search -> dispatch;
+    dispatch -> cache;
+    dispatch -> ddr;
+    cache -> barrier;
+    ddr -> barrier;
+  }
+
+  subgraph cluster_compute {
+    label="PMA-native ReGraph weighted SSSP";
+    color="#6f8f72";
+    adapter [label="PMA adapter\n16 slots -> 2 x 8 edges\n1 CU"];
+    axis [label="AXIS FIFO\ndepth 32", shape=box3d, fillcolor="#ffffff"];
+    little [label="Little-GS map/reduce\n8 lanes | 1 CU"];
+    merger [label="Little merger\n1 CU"];
+    apply [label="Apply\n1 CU"];
+    wrapper [label="HBM wrapper\n1 CU"];
+    adapter -> axis -> little -> merger -> apply -> wrapper;
+  }
+
+  hbm_pma [label="HBM channels 0-3\nrow offsets + binary heads + PMA", shape=cylinder, fillcolor="#dbe8f0"];
+  hbm_source [label="HBM channels 1 and 3\nmirrored source state", shape=cylinder, fillcolor="#dbe8f0"];
+  hbm_apply [label="HBM channel 30\napply state", shape=cylinder, fillcolor="#dbe8f0"];
+
+  host -> search [label="8 physical ops"];
+  barrier -> adapter [label="serial barrier"];
+  hbm_pma -> search [dir=both, label="AXI R/W"];
+  hbm_pma -> cache [dir=both, label="AXI RMW"];
+  hbm_pma -> ddr [dir=both, label="AXI RMW"];
+  hbm_pma -> adapter [label="AXI reads"];
+  hbm_source -> little [label="source windows"];
+  wrapper -> hbm_source [label="two copies"];
+  hbm_apply -> apply [dir=both, label="AXI R/W"];
+  wrapper -> hbm_apply [label="AXI writes"];
+}

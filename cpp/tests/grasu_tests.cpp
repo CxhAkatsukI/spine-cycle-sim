@@ -25,24 +25,25 @@ using spine::sim::decode_grasu_pma_destination;
 using spine::sim::decode_grasu_pma_weight;
 using spine::sim::encode_grasu_pma_edge;
 using spine::sim::GraSuEdge;
-using spine::sim::GraSuNativeConfig;
 using spine::sim::GraSuNativeCompactorConfig;
 using spine::sim::GraSuNativeCompactorSystem;
+using spine::sim::GraSuNativeConfig;
 using spine::sim::GraSuNativeReGraphSsspSystem;
 using spine::sim::GraSuNativeReorderedGraph;
-using spine::sim::GraSuPmaLayout;
-using spine::sim::GraSuPmaWordAbi;
 using spine::sim::GraSuPartitionedPmaLayout;
+using spine::sim::GraSuPmaLayout;
 using spine::sim::GraSuPmaUpdateSystem;
+using spine::sim::GraSuPmaWordAbi;
 using spine::sim::GraSuReGraphConfig;
 using spine::sim::GraSuReGraphPageRankSystem;
 using spine::sim::GraSuReGraphResidualPageRankSystem;
 using spine::sim::GraSuReGraphSsspSystem;
-using spine::sim::is_grasu_pma_empty;
 using spine::sim::initialize_grasu_pma_layout_payloads;
-using spine::sim::reorder_grasu_native_graph;
+using spine::sim::is_grasu_pma_empty;
 using spine::sim::MockMemoryBackend;
 using spine::sim::MockMemoryConfig;
+using spine::sim::prepare_grasu_weighted_full_word_graph;
+using spine::sim::reorder_grasu_native_graph;
 using spine::sim::Scheduler;
 
 void require(bool condition, const std::string &message) {
@@ -65,8 +66,7 @@ void write_u32(std::vector<std::uint8_t> &bytes, std::size_t offset,
                std::uint32_t value) {
   require(offset + 4 <= bytes.size(), "test payload is too short for u32");
   for (std::size_t byte = 0; byte < 4; ++byte) {
-    bytes[offset + byte] =
-        static_cast<std::uint8_t>(value >> (byte * 8));
+    bytes[offset + byte] = static_cast<std::uint8_t>(value >> (byte * 8));
   }
 }
 
@@ -79,8 +79,8 @@ void test_native_host_vertex_reorder_matches_current_artifact() {
   const GraSuNativeReorderedGraph reordered64 =
       reorder_grasu_native_graph(64, chain64, {});
   const std::map<std::uint32_t, std::uint32_t> expected64 = {
-      {0, 33},  {1, 16},  {2, 34},  {15, 47}, {31, 62},
-      {32, 1},  {33, 2},  {62, 31}, {63, 63},
+      {0, 33}, {1, 16}, {2, 34},  {15, 47}, {31, 62},
+      {32, 1}, {33, 2}, {62, 31}, {63, 63},
   };
   for (const auto [external, internal] : expected64) {
     require(reordered64.external_to_internal.at(external) == internal,
@@ -123,8 +123,7 @@ void test_native_host_vertex_reorder_matches_current_artifact() {
 
   bool rejected = false;
   try {
-    (void)reorder_grasu_native_graph(
-        4, {{.source = 4, .destination = 0}}, {});
+    (void)reorder_grasu_native_graph(4, {{.source = 4, .destination = 0}}, {});
   } catch (const std::invalid_argument &) {
     rejected = true;
   }
@@ -224,11 +223,9 @@ template <typename Real> struct ResidualPageRankOracle {
 };
 
 template <typename Real>
-ResidualPageRankOracle<Real>
-residual_pagerank_oracle(std::size_t vertices,
-                         const std::vector<GraSuEdge> &edges,
-                         std::size_t max_iterations, Real damping,
-                         Real epsilon) {
+ResidualPageRankOracle<Real> residual_pagerank_oracle(
+    std::size_t vertices, const std::vector<GraSuEdge> &edges,
+    std::size_t max_iterations, Real damping, Real epsilon) {
   std::vector<std::vector<std::uint32_t>> adjacency(vertices);
   std::vector<std::uint32_t> degree(vertices);
   for (const GraSuEdge &edge : edges) {
@@ -404,9 +401,9 @@ void test_partitioned_pma_layout_preserves_global_destinations() {
   require(edge_set(layout.live_edges()) == edge_set(initial),
           "partitioned PMA did not restore global destinations");
   require(layout.partition_for({.source = 0, .destination = 8})
-                  .local_destination(8) == 0 &&
+                      .local_destination(8) == 0 &&
               layout.partition_for({.source = 8, .destination = 16})
-                  .local_destination(16) == 0,
+                      .local_destination(16) == 0,
           "partitioned PMA did not localize destination boundaries");
   const auto reserved_segment = layout.partitions[1].segment_for(
       {.source = 1, .destination = 15, .weight = 6});
@@ -599,6 +596,141 @@ void test_weighted_dynamic_pma_regraph_matches_dijkstra() {
             << " supersteps=" << compute_counters.supersteps << '\n';
 }
 
+void test_weighted_full_word_hls_contract_matches_sw_emu_oracle() {
+  const std::vector<GraSuEdge> initial = {
+      {.source = 0, .destination = 1, .weight = 8},
+      {.source = 0, .destination = 2, .weight = 2},
+      {.source = 1, .destination = 3, .weight = 1},
+      {.source = 2, .destination = 3, .weight = 8},
+      {.source = 3, .destination = 4, .weight = 1},
+  };
+  const std::vector<GraSuEdge> logical_updates = {
+      {.source = 0, .destination = 1, .weight = 3},
+      {.source = 0, .destination = 2, .weight = 10},
+      {.source = 1, .destination = 3, .weight = 1, .delete_op = true},
+      {.source = 2, .destination = 3, .weight = 4},
+      {.source = 2, .destination = 4, .weight = 2},
+  };
+  const auto prepared =
+      prepare_grasu_weighted_full_word_graph(8, initial, logical_updates);
+  require(
+      prepared.logical_updates == 5 && prepared.physical_updates.size() == 8,
+      "weighted HLS host did not lower five logical updates to eight PMA ops");
+  require(prepared.external_to_internal ==
+                  std::vector<std::uint32_t>({0, 2, 1, 3, 4, 5, 6, 7}) &&
+              prepared.internal_to_external ==
+                  std::vector<std::uint32_t>({0, 2, 1, 3, 4, 5, 6, 7}),
+          "weighted HLS physical-update density reorder drifted");
+  require(prepared.physical_updates[0].delete_op &&
+              prepared.physical_updates[0].weight == 8 &&
+              !prepared.physical_updates[1].delete_op &&
+              prepared.physical_updates[1].weight == 3,
+          "weighted HLS weight change was not delete-old then insert-new");
+
+  GraSuPmaLayout layout = GraSuPmaLayout::build(
+      8, prepared.initial_edges, prepared.physical_updates,
+      GraSuPmaWordAbi::kWeightedFullWord);
+  require(layout.pma_word_abi == GraSuPmaWordAbi::kWeightedFullWord,
+          "weighted HLS layout lost its full-word ABI");
+  const GraSuEdge old_variant = prepared.physical_updates[0];
+  const GraSuEdge new_variant = prepared.physical_updates[1];
+  require(layout.segment_for(old_variant) == layout.segment_for(new_variant),
+          "weighted HLS PMA did not reserve both encoded weight variants");
+
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("grasu-weighted-hls", 200.0);
+  MockMemoryBackend backend("shared-hbm", core,
+                            MockMemoryConfig{.channels = 32,
+                                             .latency_cycles = 7,
+                                             .accepts_per_channel_per_cycle = 1,
+                                             .max_outstanding_per_channel = 16,
+                                             .response_queue_depth = 128});
+  GraSuNativeConfig update_config;
+  update_config.pma_word_abi = GraSuPmaWordAbi::kWeightedFullWord;
+  update_config.cache_segments_per_half = 1;
+  GraSuPmaUpdateSystem update_system(scheduler, core, backend, layout,
+                                     prepared.physical_updates, update_config);
+  update_system.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until(
+      [&] { return update_system.done() || update_system.failed(); },
+      2'000'000);
+  require(update_system.done() && !update_system.failed(),
+          "weighted full-word GraSU update did not complete: " +
+              update_system.failure());
+  require(weighted_edge_map(update_system.live_edges()) ==
+              weighted_edge_map(prepared.final_edges),
+          "weighted full-word PMA differs from the independent edge oracle");
+  const auto update_counters = update_system.counters();
+  require(update_counters.updates == 8 && update_counters.inserts == 4 &&
+              update_counters.deletes == 4 &&
+              update_counters.weight_decreases == 0 &&
+              update_counters.weight_increases == 0 &&
+              update_counters.pma_reads == 8 && update_counters.pma_writes == 8,
+          "weighted full-word physical update ledger mismatch");
+
+  GraSuReGraphConfig compute_config;
+  compute_config.cache_segments_per_half = 1;
+  compute_config.partition_vertices = 16;
+  compute_config.source_buffer_vertices = 16;
+  compute_config.edge_lanes = 8;
+  compute_config.gather_banks = 8;
+  compute_config.axis_fifo_depth = 32;
+  compute_config.reader_buffer_batches = 32;
+  compute_config.max_pending_requests = 16;
+  compute_config.max_outstanding_bursts = 16;
+  compute_config.apply_request_window = 16;
+  const std::uint32_t source_internal = prepared.external_to_internal.at(0);
+  GraSuReGraphSsspSystem compute(
+      scheduler, core, backend, layout,
+      spine::sim::GraphAlgorithmPolicy(spine::sim::AlgorithmPolicyConfig{
+          .kind = spine::sim::GraphAlgorithmKind::kWeightedSssp,
+          .vertices = layout.vertices,
+          .source = source_internal,
+      }),
+      {}, 4, compute_config);
+  compute.register_components();
+  scheduler.run_until([&] { return compute.done() || compute.failed(); },
+                      3'000'000);
+  require(compute.done() && !compute.failed(),
+          "weighted full-word fixed-round ReGraph did not complete");
+  const auto internal_oracle =
+      weighted_sssp_oracle(8, prepared.final_edges, source_internal);
+  require(compute.distances() == internal_oracle,
+          "weighted full-word ReGraph differs from internal Dijkstra oracle");
+  require(compute.counters().supersteps == 4,
+          "weighted HLS profile did not execute exactly four host rounds");
+  std::vector<std::uint32_t> external_distances(8);
+  for (std::size_t internal = 0; internal < external_distances.size();
+       ++internal) {
+    const std::uint32_t distance = compute.distances()[internal];
+    external_distances[prepared.internal_to_external[internal]] =
+        distance == spine::sim::GraphAlgorithmPolicy::kSsspInfinity
+            ? 2147483646U
+            : distance;
+  }
+  require(external_distances ==
+              std::vector<std::uint32_t>(
+                  {0, 3, 10, 14, 12, 2147483646U, 2147483646U, 2147483646U}),
+          "weighted HLS simulator differs from the sw_emu external oracle");
+
+  bool unlowered_rejected = false;
+  try {
+    GraSuPmaLayout bad_layout = GraSuPmaLayout::build(
+        8, initial, logical_updates, GraSuPmaWordAbi::kWeightedFullWord);
+    GraSuPmaUpdateSystem bad_update(scheduler, core, backend, bad_layout,
+                                    logical_updates, update_config);
+  } catch (const std::invalid_argument &) {
+    unlowered_rejected = true;
+  }
+  require(unlowered_rejected,
+          "weighted full-word PMA silently accepted an in-place weight change");
+  std::cout << "EVIDENCE grasu_weighted_hls_full_word logical_updates=5"
+            << " physical_updates=" << update_counters.updates
+            << " supersteps=" << compute.counters().supersteps
+            << " mismatches=0\n";
+}
+
 void test_partitioned_regraph_sssp_crosses_destination_windows() {
   constexpr std::size_t kVertices = 33;
   constexpr std::size_t kPartitionVertices = 16;
@@ -640,7 +772,8 @@ void test_partitioned_regraph_sssp_crosses_destination_windows() {
   require(counters.destination_partitions == 3 && counters.supersteps == 5 &&
               counters.partition_passes == 15 &&
               counters.row_reads == kVertices * counters.partition_passes &&
-              counters.live_edges_scanned == edges.size() * counters.supersteps &&
+              counters.live_edges_scanned ==
+                  edges.size() * counters.supersteps &&
               counters.apply_state_reads == counters.partition_passes &&
               counters.source_state_writes == 2 * counters.partition_passes,
           "partitioned ReGraph SSSP work ledger mismatch");
@@ -754,9 +887,9 @@ void test_partitioned_update_times_degree_rmw_and_feeds_pagerank() {
   compute_config.gather_banks = 4;
   compute_config.initialize_degree_payload = false;
   const std::vector<std::uint32_t> poisoned_host_degrees(kVertices, 99);
-  GraSuReGraphPageRankSystem compute(
-      scheduler, core, backend, layout, poisoned_host_degrees, kIterations,
-      0.85F, compute_config);
+  GraSuReGraphPageRankSystem compute(scheduler, core, backend, layout,
+                                     poisoned_host_degrees, kIterations, 0.85F,
+                                     compute_config);
   compute.register_components();
   scheduler.run_until([&] { return compute.done() || compute.failed(); },
                       5'000'000);
@@ -959,10 +1092,8 @@ void test_partitioned_residual_pagerank_unions_active_frontiers() {
   constexpr float kDamping = 0.85F;
   constexpr float kEpsilon = 1.0e-4F;
   const std::vector<GraSuEdge> edges = {
-      {.source = 0, .destination = 16},
-      {.source = 16, .destination = 1},
-      {.source = 1, .destination = 32},
-      {.source = 32, .destination = 17},
+      {.source = 0, .destination = 16}, {.source = 16, .destination = 1},
+      {.source = 1, .destination = 32}, {.source = 32, .destination = 17},
       {.source = 17, .destination = 0},
   };
   const GraSuPartitionedPmaLayout layout = GraSuPartitionedPmaLayout::build(
@@ -991,9 +1122,9 @@ void test_partitioned_residual_pagerank_unions_active_frontiers() {
   config.edge_lanes = 4;
   config.gather_banks = 4;
   initialize_partitioned_pma_payloads(backend, layout, config);
-  GraSuReGraphResidualPageRankSystem system(
-      scheduler, core, backend, layout, degrees, kMaxIterations, kDamping,
-      kEpsilon, config);
+  GraSuReGraphResidualPageRankSystem system(scheduler, core, backend, layout,
+                                            degrees, kMaxIterations, kDamping,
+                                            kEpsilon, config);
   system.register_components();
   scheduler.add_component(backend);
   scheduler.run_until([&] { return system.done() || system.failed(); },
@@ -1062,10 +1193,11 @@ void test_pma_native_regraph_residual_pagerank_matches_oracles() {
   GraSuPmaUpdateSystem initializer(scheduler, core, backend, layout, {},
                                    GraSuNativeConfig{});
   initializer.register_components();
-  require(initializer.done(), "residual PageRank PMA initializer did not drain");
-  GraSuReGraphResidualPageRankSystem system(
-      scheduler, core, backend, layout, degrees, kMaxIterations, kDamping,
-      kEpsilon, config);
+  require(initializer.done(),
+          "residual PageRank PMA initializer did not drain");
+  GraSuReGraphResidualPageRankSystem system(scheduler, core, backend, layout,
+                                            degrees, kMaxIterations, kDamping,
+                                            kEpsilon, config);
   system.register_components();
   scheduler.add_component(backend);
   scheduler.run_until([&] { return system.done() || system.failed(); },
@@ -1081,18 +1213,17 @@ void test_pma_native_regraph_residual_pagerank_matches_oracles() {
           "residual PageRank state size mismatch");
   for (std::size_t vertex = 0; vertex < kVertices; ++vertex) {
     require(std::fabs(ranks[vertex] - architecture.ranks[vertex]) < 1.0e-6F &&
-                std::fabs(residuals[vertex] -
-                          architecture.residuals[vertex]) < 1.0e-6F,
+                std::fabs(residuals[vertex] - architecture.residuals[vertex]) <
+                    1.0e-6F,
             "PMA-native ReGraph residual PageRank differs from float32 oracle");
   }
   const auto mathematical = full_pagerank_oracle<double>(
       kVertices, edges, 200, static_cast<double>(kDamping));
   double max_mathematical_error = 0.0;
   for (std::size_t vertex = 0; vertex < kVertices; ++vertex) {
-    max_mathematical_error =
-        std::max(max_mathematical_error,
-                 std::fabs(static_cast<double>(ranks[vertex]) -
-                           mathematical[vertex]));
+    max_mathematical_error = std::max(
+        max_mathematical_error,
+        std::fabs(static_cast<double>(ranks[vertex]) - mathematical[vertex]));
   }
   require(max_mathematical_error < 5.0e-6,
           "residual PageRank did not approach the float64 fixed point");
@@ -1106,8 +1237,7 @@ void test_pma_native_regraph_residual_pagerank_matches_oracles() {
                       config.pagerank_source_map_latency &&
               counters.active_edges_mapped == architecture.active_edges &&
               counters.apply_read_bytes == counters.apply_state_reads * 128 &&
-              counters.apply_write_bytes ==
-                  counters.apply_state_writes * 128 &&
+              counters.apply_write_bytes == counters.apply_state_writes * 128 &&
               counters.source_state_write_bytes ==
                   counters.source_state_writes * 128,
           "PMA-native ReGraph residual PageRank packed-state ledger mismatch");
@@ -1737,8 +1867,8 @@ void test_native_raw_pma_compactor_matches_hls_edge_array() {
   }
   require(early_compactor_unregister_rejected,
           "running native compactor was allowed to unregister");
-  scheduler.run_until(
-      [&] { return compactor.done() || compactor.failed(); }, 1'000'000);
+  scheduler.run_until([&] { return compactor.done() || compactor.failed(); },
+                      1'000'000);
   require(!compactor.failed() && compactor.done(),
           "native raw-PMA compactor did not drain: " + compactor.failure());
   const std::vector<GraSuEdge> compacted_edges =
@@ -1752,28 +1882,28 @@ void test_native_raw_pma_compactor_matches_hls_edge_array() {
   require(payload.size() == 32 * 8,
           "native compactor edge-array payload size mismatch");
   for (std::size_t slot = final_edges.size(); slot < 32; ++slot) {
-    require((read_u32(payload, slot * 8) & spine::sim::kGraSuPmaEmpty) != 0 &&
-                (read_u32(payload, slot * 8 + 4) &
-                 spine::sim::kGraSuPmaEmpty) != 0,
-            "native compactor padding did not use HLS dummy markers");
+    require(
+        (read_u32(payload, slot * 8) & spine::sim::kGraSuPmaEmpty) != 0 &&
+            (read_u32(payload, slot * 8 + 4) & spine::sim::kGraSuPmaEmpty) != 0,
+        "native compactor padding did not use HLS dummy markers");
   }
   const auto counters = compactor.counters();
-  require(counters.completion_token_reads == 4 &&
-              counters.barrier_cycles == 4 &&
-              counters.row_reads == kVertices + 1 &&
-              counters.pma_segment_reads == layout.segments.size() &&
-              counters.pma_slots_scanned ==
-                  layout.segments.size() * spine::sim::kGraSuSegmentSlots &&
-              counters.lane_pipeline_cycles ==
-                  layout.segments.size() * compact_config.lane_pipeline_latency &&
-              counters.valid_edges_seen == final_edges.size() &&
-              counters.emitted_edge_slots == 32 &&
-              counters.dummy_edge_slots == 32 - final_edges.size() &&
-              counters.edge_array_writes == 4 &&
-              counters.row_read_bytes == (kVertices + 1) * 8 &&
-              counters.pma_read_bytes == layout.segments.size() * 64 &&
-              counters.edge_array_write_bytes == 4 * 64,
-          "native compactor component ledger mismatch");
+  require(
+      counters.completion_token_reads == 4 && counters.barrier_cycles == 4 &&
+          counters.row_reads == kVertices + 1 &&
+          counters.pma_segment_reads == layout.segments.size() &&
+          counters.pma_slots_scanned ==
+              layout.segments.size() * spine::sim::kGraSuSegmentSlots &&
+          counters.lane_pipeline_cycles ==
+              layout.segments.size() * compact_config.lane_pipeline_latency &&
+          counters.valid_edges_seen == final_edges.size() &&
+          counters.emitted_edge_slots == 32 &&
+          counters.dummy_edge_slots == 32 - final_edges.size() &&
+          counters.edge_array_writes == 4 &&
+          counters.row_read_bytes == (kVertices + 1) * 8 &&
+          counters.pma_read_bytes == layout.segments.size() * 64 &&
+          counters.edge_array_write_bytes == 4 * 64,
+      "native compactor component ledger mismatch");
   std::cout << "EVIDENCE grasu_native_compactor cycles="
             << counters.end_cycle - counters.start_cycle
             << " barrier_cycles=" << counters.barrier_cycles
@@ -1810,8 +1940,7 @@ void test_native_raw_pma_compactor_matches_hls_edge_array() {
               compute_counters.edge_array_requests == kSupersteps &&
               compute_counters.edge_array_bursts == 4 * kSupersteps &&
               compute_counters.edge_array_slots_scanned == 32 * kSupersteps &&
-              compute_counters.edge_array_read_bytes ==
-                  32 * 8 * kSupersteps &&
+              compute_counters.edge_array_read_bytes == 32 * 8 * kSupersteps &&
               compute_counters.pipeline.live_edges_scanned ==
                   final_edges.size() * kSupersteps &&
               compute_counters.cross_source_round_bursts == 0,
@@ -1821,8 +1950,7 @@ void test_native_raw_pma_compactor_matches_hls_edge_array() {
                    compute_counters.pipeline.start_cycle
             << " supersteps=" << compute_counters.pipeline.supersteps
             << " edge_array_bursts=" << compute_counters.edge_array_bursts
-            << " edge_array_bytes="
-            << compute_counters.edge_array_read_bytes
+            << " edge_array_bytes=" << compute_counters.edge_array_read_bytes
             << " live_edges=" << compute_counters.pipeline.live_edges_scanned
             << '\n';
 }
@@ -1842,8 +1970,8 @@ void test_native_compactor_rejects_normalized_pma_payload() {
   GraSuNativeCompactorSystem compactor(scheduler, core, backend, layout, 32);
   compactor.register_components();
   scheduler.add_component(backend);
-  scheduler.run_until(
-      [&] { return compactor.done() || compactor.failed(); }, 100'000);
+  scheduler.run_until([&] { return compactor.done() || compactor.failed(); },
+                      100'000);
   require(compactor.failed() && !compactor.done(),
           "native compactor silently accepted normalized weighted PMA words");
 }
@@ -1851,10 +1979,10 @@ void test_native_compactor_rejects_normalized_pma_payload() {
 void test_native_edge_array_flags_cross_source_window_hls_contract() {
   constexpr std::size_t kVertices = 4097;
   constexpr std::uint32_t kSource = 4096;
-  constexpr std::uint32_t kUnitWeight =
-      1U << spine::sim::kGraSuPmaWeightShift;
+  constexpr std::uint32_t kUnitWeight = 1U << spine::sim::kGraSuPmaWeightShift;
   Scheduler scheduler;
-  const auto core = scheduler.add_clock_mhz("native-cross-source-window", 200.0);
+  const auto core =
+      scheduler.add_clock_mhz("native-cross-source-window", 200.0);
   MockMemoryBackend backend("shared-hbm", core,
                             MockMemoryConfig{.channels = 32,
                                              .latency_cycles = 2,
@@ -1887,14 +2015,13 @@ void test_native_edge_array_flags_cross_source_window_hls_contract() {
   require(counters.cross_source_round_bursts == 1,
           "native model did not expose the HLS lane-0 source-window contract");
   const auto distances = compute.distances();
-  require(distances.at(1) ==
-              spine::sim::GraphAlgorithmPolicy::kSsspInfinity,
+  require(distances.at(1) == spine::sim::GraphAlgorithmPolicy::kSsspInfinity,
           "native model silently fixed the current HLS cross-window behavior");
-  require(distances != weighted_sssp_oracle(
-                           kVertices,
-                           {{.source = 4095, .destination = 2},
-                            {.source = kSource, .destination = 1}},
-                           kSource),
+  require(distances !=
+              weighted_sssp_oracle(kVertices,
+                                   {{.source = 4095, .destination = 2},
+                                    {.source = kSource, .destination = 1}},
+                                   kSource),
           "cross-window guard no longer exposes the native HLS mismatch");
   std::cout << "EVIDENCE grasu_native_cross_source_window bursts="
             << counters.edge_array_bursts
@@ -1916,6 +2043,8 @@ int main() {
       {"native_update_routes", test_native_update_crosses_cache_ddr_and_parity},
       {"weighted_dynamic_sssp",
        test_weighted_dynamic_pma_regraph_matches_dijkstra},
+      {"weighted_full_word_hls",
+       test_weighted_full_word_hls_contract_matches_sw_emu_oracle},
       {"partitioned_sssp",
        test_partitioned_regraph_sssp_crosses_destination_windows},
       {"partitioned_update_degree",

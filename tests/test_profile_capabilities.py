@@ -56,7 +56,7 @@ class ProfileCapabilityTests(unittest.TestCase):
                 with self.assertRaisesRegex(CapabilityError, "does not support"):
                     native.require(algorithm)
 
-    def test_weighted_hls_sw_emu_profile_fails_closed_until_executable(self) -> None:
+    def test_weighted_hls_sw_emu_profile_is_executable(self) -> None:
         profile = load_capability_catalog(CATALOG).profile(
             "grasu_regraph_weighted_pma_hls_sw_emu_ff13a67"
         )
@@ -65,14 +65,16 @@ class ProfileCapabilityTests(unittest.TestCase):
         self.assertEqual(profile.conversion_cost, "absent")
         for algorithm in ("weighted_sssp", "weighted_dynamic_sssp"):
             with self.subTest(algorithm=algorithm):
-                descriptive = profile.require(algorithm, executable=False)
+                descriptive = profile.require(algorithm)
                 self.assertEqual(
                     descriptive.implementation_status,
-                    ImplementationStatus.PROFILE_ONLY,
+                    ImplementationStatus.EXECUTABLE,
                 )
                 self.assertEqual(descriptive.evidence_tier, "emulation_validated")
-                with self.assertRaisesRegex(CapabilityError, "not executable"):
-                    profile.require(algorithm)
+                self.assertEqual(
+                    descriptive.claim_class,
+                    "hls_sw_emu_aligned_execution_driven_simulation",
+                )
         for algorithm in (
             "unit_weight_sssp",
             "full_pagerank",

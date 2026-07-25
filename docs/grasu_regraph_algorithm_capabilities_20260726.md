@@ -16,7 +16,7 @@ silently execute an algorithm under a profile that does not implement it.
 | Profile class | Handoff | Conversion | Executable algorithms | Claim boundary |
 | --- | --- | --- | --- | --- |
 | Existing HLS native `a9aef06` | PMA -> compactor -> edge array | Included | Unit-weight SSSP | Hardware-aligned structure; fixed host supersteps |
-| Weighted HLS `sw_emu` `ff13a67` | Full-word PMA -> 8-lane AXIS | Absent | Profile-only weighted SSSP | Whole-system correctness; simulator execution pending |
+| Weighted HLS-aligned `ff13a67` | Full-word PMA -> 8-lane AXIS | Absent | Weighted SSSP; weighted dynamic SSSP | `sw_emu` correctness plus execution-driven SST; not cycle-calibrated |
 | Normalized weighted | PMA-native | Absent by construction | Weighted SSSP; weighted dynamic SSSP | Simulation only |
 | Normalized PageRank | PMA-native | Absent by construction | Full PageRank | Simulation only |
 | Normalized residual | PMA-native | Absent by construction | Thresholded residual PageRank | Simulation only |
@@ -26,10 +26,11 @@ silently execute an algorithm under a profile that does not implement it.
 The old routed xclbin still does not implement weighted PMA words, Full
 PageRank, residual PageRank, or automatic dynamic-SSSP fallback. Revision
 `ff13a67` closes only the first hardware gap: weighted full-word PMA update and
-conversion-free fixed-round weighted SSSP pass `sw_emu`. The profile remains
-`profile_only` because the simulator still uses destination-keyed replacement,
-logical-update reorder, and convergence-to-quiescence. Those semantics must
-not be presented as the HLS-emulated profile.
+conversion-free fixed-round weighted SSSP pass `sw_emu`. The separate
+`grasu_regraph_hls_weighted_sssp` simulator mode now implements full-word
+lookup, physical update lowering/reorder, eight lanes, and fixed host rounds.
+The older normalized mode deliberately keeps destination-keyed replacement and
+quiescence semantics and must not be presented as the HLS-emulated profile.
 
 ## Enforced Invariants
 
@@ -42,6 +43,8 @@ The catalog loader checks all of the following before returning a capability:
 4. Every known algorithm is explicitly supported or unsupported; omission is
    an error.
 5. `profile_only` projected designs fail an executable-capability request.
+6. The weighted HLS runner requires an executable weighted-dynamic-SSSP
+   capability and validates the full-word ABI before launching SST.
 
 `scripts/run_sst_grasu_regraph_native.py` now requires the executable
 `unit_weight_sssp` capability before launching SST. Its output manifest embeds
@@ -65,9 +68,10 @@ This is a structural smoke, not a new hardware calibration point.
 
 This contract prevents claim leakage; it does not turn normalized algorithms
 into native hardware. Weighted fixed-round SSSP now has a compile-ready HLS
-path and `sw_emu` evidence. The remaining steps are exact simulator execution,
-broader dual-oracle workloads, `hw_emu`, synthesis/routing, and hardware
-correctness. Full and residual PageRank still require matching HLS policies.
+path, `sw_emu` evidence, and an execution-driven SST mode. The remaining steps
+are broader dual-oracle workloads, `hw_emu`, synthesis/routing, and hardware
+timing comparison. Full and residual PageRank still require matching
+HLS-aligned policies.
 Until then, the complete 73-pair comparison remains correctly labeled
 normalized and conversion-free.
 
@@ -78,9 +82,13 @@ cd /home/chuxiao/spine-cycle-sim
 
 python3 -m unittest \
   tests.test_profile_capabilities \
+  tests.test_grasu_hls_weighted_runner \
   tests.test_grasu_native_runner \
   tests.test_architecture_profiles
 
 python3 scripts/run_sst_grasu_regraph_native.py --no-build \
   --out-dir results/native_capability_smoke_20260726
+
+python3 scripts/run_sst_grasu_regraph_hls_weighted.py --no-build \
+  --out-dir results/grasu_regraph_hls_weighted_ff13a67_20260726
 ```

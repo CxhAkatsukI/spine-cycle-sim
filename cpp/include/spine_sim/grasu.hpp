@@ -26,7 +26,12 @@ constexpr std::size_t kGraSuSegmentBytes = 64;
 
 enum class GraSuPmaWordAbi {
   // Simulator-native deep integration: local destination plus 12-bit weight.
+  // Search, reservation, and replacement are keyed by destination.
   kNormalizedWeighted,
+  // ff13a67 weighted HLS: the complete encoded destination-and-weight word is
+  // the PMA search and reservation key. Weight changes must be lowered to an
+  // exact delete followed by an insert.
+  kWeightedFullWord,
   // Existing GraSU HLS ABI: bit 31 is empty and bits 30:0 are raw dst.
   kNativeRawDestination,
 };
@@ -60,6 +65,22 @@ struct GraSuNativeReorderedGraph {
     std::size_t vertices, const std::vector<GraSuEdge> &initial_edges,
     const std::vector<GraSuEdge> &updates);
 
+// Exact host preprocessing used by the ff13a67 weighted-PMA HLS path.
+// Logical weight changes become two physical PMA operations before the
+// deterministic update-density vertex reorder is computed.
+struct GraSuWeightedFullWordGraph {
+  std::vector<std::uint32_t> external_to_internal;
+  std::vector<std::uint32_t> internal_to_external;
+  std::vector<GraSuEdge> initial_edges;
+  std::vector<GraSuEdge> physical_updates;
+  std::vector<GraSuEdge> final_edges;
+  std::size_t logical_updates{};
+};
+
+[[nodiscard]] GraSuWeightedFullWordGraph prepare_grasu_weighted_full_word_graph(
+    std::size_t vertices, const std::vector<GraSuEdge> &initial_edges,
+    const std::vector<GraSuEdge> &logical_updates);
+
 struct GraSuPmaLayout {
   // Source rows remain globally indexed. Destinations are encoded relative to
   // this layout's destination window so the PMA word keeps ReGraph's 19-bit
@@ -67,6 +88,7 @@ struct GraSuPmaLayout {
   std::size_t vertices{};
   std::uint32_t destination_base{};
   std::size_t destination_vertices{};
+  GraSuPmaWordAbi pma_word_abi{GraSuPmaWordAbi::kNormalizedWeighted};
   std::vector<std::pair<std::uint32_t, std::uint32_t>> row_slot_bounds;
   std::vector<std::uint64_t> binary_heads;
   std::vector<std::array<std::uint32_t, kGraSuSegmentSlots>> segments;
@@ -75,12 +97,14 @@ struct GraSuPmaLayout {
 
   [[nodiscard]] static GraSuPmaLayout
   build(std::size_t vertices, const std::vector<GraSuEdge> &initial_edges,
-        const std::vector<GraSuEdge> &reserved_updates);
+        const std::vector<GraSuEdge> &reserved_updates,
+        GraSuPmaWordAbi pma_word_abi = GraSuPmaWordAbi::kNormalizedWeighted);
   [[nodiscard]] static GraSuPmaLayout build_partition(
       std::size_t source_vertices, std::uint32_t destination_base,
       std::size_t destination_vertices,
       const std::vector<GraSuEdge> &initial_edges,
-      const std::vector<GraSuEdge> &reserved_updates);
+      const std::vector<GraSuEdge> &reserved_updates,
+      GraSuPmaWordAbi pma_word_abi = GraSuPmaWordAbi::kNormalizedWeighted);
   [[nodiscard]] std::vector<GraSuEdge> live_edges() const;
   [[nodiscard]] std::size_t segment_for(const GraSuEdge &edge) const;
   [[nodiscard]] bool contains_destination(
@@ -99,7 +123,8 @@ struct GraSuPartitionedPmaLayout {
   [[nodiscard]] static GraSuPartitionedPmaLayout
   build(std::size_t vertices, std::size_t partition_vertices,
         const std::vector<GraSuEdge> &initial_edges,
-        const std::vector<GraSuEdge> &reserved_updates);
+        const std::vector<GraSuEdge> &reserved_updates,
+        GraSuPmaWordAbi pma_word_abi = GraSuPmaWordAbi::kNormalizedWeighted);
   [[nodiscard]] std::size_t
   partition_for_destination(std::uint32_t destination) const;
   [[nodiscard]] const GraSuPmaLayout &partition_for(const GraSuEdge &edge) const;

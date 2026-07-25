@@ -46,6 +46,8 @@ mirrored in channels 1 and 3, and apply state is in channel 30. The adapter
 reads one 512-bit, 16-slot PMA segment and emits two 512-bit, eight-edge AXIS
 beats, including dummy lanes. No compact edge array is materialized.
 
+![Weighted HLS-aligned execution path](figures/grasu_regraph_weighted_hls_execution.svg)
+
 ## Exact Semantic Delta From The Normalized Simulator
 
 The HLS implementation orders and searches complete encoded PMA words:
@@ -55,11 +57,44 @@ reserves every encoded word variant, builds binary heads from those variants,
 and reorders vertices by physical-update density with vertex ID as a stable
 tie-breaker.
 
-The current normalized simulator instead searches by destination, replaces a
+The normalized comparison mode instead searches by destination, replaces a
 changed weight in place, reserves destinations, reorders from logical updates,
-uses four compute lanes at 150 MHz, and stops at quiescence. Therefore this
-profile is intentionally `profile_only` until those behaviors are implemented
-as a separate executable mode. The normalized mode will remain unchanged.
+uses four compute lanes at 150 MHz, and stops at quiescence. The separate
+`grasu_regraph_hls_weighted_sssp` mode now executes the HLS semantics while the
+normalized mode remains unchanged.
+
+## Execution-Driven Simulator Result
+
+The HLS-aligned mode uses the same FIFO, AXI master, SST memHierarchy, and
+DRAMSim3 components as the normalized GraSU/ReGraph and Spine simulations. It
+implements full-word PMA lookup, logical-to-physical update lowering,
+physical-update-density reorder, eight edge lanes, a 32-entry adapter AXIS
+FIFO, and exactly four host supersteps.
+
+The tracked SST run passed both the synchronous architecture oracle and an
+independent Dijkstra oracle:
+
+| Metric | Result |
+| --- | ---: |
+| total cycles | 166,622 |
+| PMA update cycles | 127 |
+| ReGraph compute cycles | 166,495 |
+| logical / physical updates | 5 / 8 |
+| PMA reads / writes | 8 / 8 |
+| backend requests | 67,664 |
+| DRAM reads / writes | 18,504 / 49,160 |
+| host wall time | 1.880 s |
+| correctness mismatches | 0 |
+
+The five reachable physical HBM channels are 0, 1, 2, 3, and 30. Their
+DRAMSim3 transactions sum exactly to the simulator backend request count. The
+active-channel DRAMSim3 energy is 367,744,158 pJ; it excludes the 27 unbound
+idle channels and all on-chip/logic energy.
+
+This tiny graph is dominated by the fixed ReGraph destination sweep: four
+rounds emit 131,072 gather rows and 16,384 apply bursts although only five
+edges remain live. That is a valid result for this profile and workload, not a
+claim that compute always dominates on larger or denser graphs.
 
 ## Correctness Result
 
@@ -84,9 +119,10 @@ superstep and explicitly reported `conversion_cost=absent`.
 
 ## Claim Boundary
 
-The result proves that the weighted full-word PMA update, completion barrier,
+The combined `sw_emu` and SST results prove that the weighted full-word PMA update, completion barrier,
 direct AXIS handoff, and fixed-round ReGraph SSSP form a functioning whole
-system under `sw_emu`. It does not prove real-hardware latency, throughput,
+system, and that the same contract is executable against SST/DRAMSim3. It does
+not prove cycle-for-cycle real-hardware latency, throughput,
 energy, area, timing closure, or general workload correctness. In particular,
 the roughly 1.49-second emulation event and wall times are tool execution times,
 not accelerator performance measurements.
@@ -113,6 +149,19 @@ python3 -m unittest \
   tests.test_profile_capabilities
 ```
 
+Reproduce the execution-driven SST result:
+
+```bash
+cd /home/chuxiao/spine-cycle-sim
+python3 scripts/run_sst_grasu_regraph_hls_weighted.py \
+  --out-dir results/grasu_regraph_hls_weighted_ff13a67_20260726
+```
+
+The tracked summary is
+`docs/evidence/grasu_regraph_weighted_hls_sst_20260726.json`. The generated raw
+directory is ignored by Git and its three key file hashes are pinned in that
+summary.
+
 Regenerate the profile ladder:
 
 ```bash
@@ -120,7 +169,7 @@ dot -Tsvg docs/figures/grasu_regraph_profile_ladder.dot \
   -o docs/figures/grasu_regraph_profile_ladder.svg
 ```
 
-The next milestone implements full-word PMA semantics, physical-update reorder,
-eight-lane adapter timing, and fixed-round execution in the fine-grained core.
-After dual-oracle validation, the capability can be upgraded from
-`profile_only` to `executable` without changing this evidence record.
+The profile capability is now `executable`. The remaining work is broad
+workload validation, hw/hw_emu timing comparison when those artifacts are
+available, the two PageRank algorithms in the HLS-aligned profile, and complete
+logic/on-chip-memory PPA evidence.

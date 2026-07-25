@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "status": "PASS",
+  "date": "2026-07-26",
+  "profile_id": "grasu_regraph_weighted_pma_hls_sw_emu_ff13a67",
+  "mode": "grasu_regraph_hls_weighted_sssp",
+  "claim_class": "hls_sw_emu_aligned_execution_driven_simulation",
+  "timing_evidence": "execution_driven_sst_hbm_not_cycle_calibrated",
+  "workload": {
+    "initial": "tests/data/grasu_regraph_weighted_dynamic_initial.slice",
+    "update": "tests/data/grasu_regraph_weighted_dynamic_update.slice",
+    "vertices": 8,
+    "initial_edges": 5,
+    "logical_updates": 5,
+    "physical_updates": 8,
+    "final_edges": 5,
+    "source_external": 0
+  },
+  "correctness": {
+    "architecture_mismatches": 0,
+    "mathematical_mismatches": 0,
+    "external_to_internal": [0, 2, 1, 3, 4, 5, 6, 7],
+    "external_distances": [0, 3, 10, 14, 12, 2147483646, 2147483646, 2147483646],
+    "sw_emu_external_oracle_match": true
+  },
+  "timing": {
+    "core_mhz_requested_profile": 200.0,
+    "cycles": 166622,
+    "update_cycles": 127,
+    "compute_cycles": 166495,
+    "host_wall_seconds": 1.8801026777364314,
+    "supersteps": 4
+  },
+  "activity": {
+    "update_inserts": 4,
+    "update_deletes": 4,
+    "update_pma_reads": 8,
+    "update_pma_writes": 8,
+    "compute_pma_segment_reads": 16,
+    "compute_pma_slots": 256,
+    "compute_live_edges": 20,
+    "compute_active_edges": 5,
+    "gather_rows_emitted": 131072,
+    "merger_bursts_emitted": 16384,
+    "apply_state_reads": 16384,
+    "apply_state_writes": 16384,
+    "axi_backend_stalls": 756,
+    "axis_push_stalls": 0
+  },
+  "memory": {
+    "physical_channels": 32,
+    "instantiated_reachable_channels": [0, 1, 2, 3, 30],
+    "backend_requests": 67664,
+    "dram_reads": 18504,
+    "dram_writes": 49160,
+    "dram_activates": 2227,
+    "dram_precharges": 2219,
+    "active_channel_dramsim3_energy_pj": 367744158.0,
+    "update_read_bytes": 640,
+    "update_write_bytes": 512,
+    "compute_read_bytes": 1180928,
+    "compute_write_bytes": 3145728
+  },
+  "raw": {
+    "directory": "results/grasu_regraph_hls_weighted_ff13a67_20260726",
+    "result_sha256": "0c2aa4ad557b82ec120f9067c5652a74ea7922734be0dda768f385373af25b68",
+    "manifest_sha256": "9841a17d180698f24474a2e37597f188becceafdb0916d86068fd1e8597d2c5d",
+    "sst_log_sha256": "823d13408ecaad2702852b5e34a82df589c7dbdf48b1f26d4ab1b6c3a6ec5561"
+  },
+  "limitations": [
+    "The SST timing is execution-driven but not calibrated cycle-for-cycle against hw.",
+    "This is one eight-vertex correctness workload with a 65536-vertex physical partition.",
+    "DRAMSim3 energy covers only the five instantiated reachable HBM channels.",
+    "The result is not yet a general sparse, dense, scale, PPA, or cross-architecture performance claim."
+  ]
+}

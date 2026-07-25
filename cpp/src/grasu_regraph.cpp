@@ -2422,15 +2422,16 @@ class GraSuReGraphController final : public Component {
 public:
   GraSuReGraphController(std::string name, ClockId clock_id,
                          GraphAlgorithmKind algorithm, std::size_t round_limit,
+                         bool fixed_round_limit,
                          std::vector<ReGraphPartitionPlan> partitions,
                          ReGraphSourceHbmReader &source_hbm,
                          PmaNativeReader &reader, ReGraphGather &gather,
                          ReGraphMerger &merger, ReGraphApply &apply,
                          ReGraphHbmWrapper &wrapper)
       : Component(std::move(name), clock_id), algorithm_(algorithm),
-        round_limit_(round_limit), partitions_(std::move(partitions)),
-        source_hbm_(source_hbm), reader_(reader), gather_(gather),
-        merger_(merger), apply_(apply), wrapper_(wrapper) {
+        round_limit_(round_limit), fixed_round_limit_(fixed_round_limit),
+        partitions_(std::move(partitions)), source_hbm_(source_hbm),         reader_(reader), gather_(gather), merger_(merger), apply_(apply),
+        wrapper_(wrapper) {
     if (partitions_.empty()) {
       throw std::invalid_argument("ReGraph controller requires a partition");
     }
@@ -2456,7 +2457,8 @@ public:
                apply_.done() && wrapper_.done()) {
       if (partition_ + 1 < partitions_.size()) {
         staged_ = Action::kNextPartition;
-      } else if (algorithm_ == GraphAlgorithmKind::kFullPageRank) {
+      } else if (fixed_round_limit_ ||
+                 algorithm_ == GraphAlgorithmKind::kFullPageRank) {
         staged_ = round_ == round_limit_ ? Action::kFinish
                                         : Action::kNextSuperstep;
       } else {
@@ -2509,6 +2511,7 @@ private:
 
   GraphAlgorithmKind algorithm_{GraphAlgorithmKind::kWeightedSssp};
   std::size_t round_limit_{};
+  bool fixed_round_limit_{};
   std::vector<ReGraphPartitionPlan> partitions_;
   ReGraphSourceHbmReader &source_hbm_;
   PmaNativeReader &reader_;
@@ -3019,9 +3022,12 @@ private:
         *source_state_primary_write_port_, *source_state_mirror_write_port_);
     controller_ = std::make_unique<GraSuReGraphController>(
         "grasu-regraph-controller", clock_id_, policy_.config().kind,
-        policy_.config().kind == GraphAlgorithmKind::kWeightedSssp
+        policy_.config().kind == GraphAlgorithmKind::kWeightedSssp &&
+                fixed_rounds_ == 0
             ? config_.max_supersteps
             : fixed_rounds_,
+        policy_.config().kind == GraphAlgorithmKind::kWeightedSssp &&
+            fixed_rounds_ != 0,
         partition_plans_, *source_hbm_reader_, *reader_, *gather_, *merger_,
         *apply_, *wrapper_);
   }
