@@ -4,9 +4,9 @@
     "hardware_log": "/home/chuxiao/spine-cycle-sim/docs/evidence/grasu_regraph_native_small_star_hw_20260725.log",
     "hardware_log_sha256": "cd4acca516d0baa164c5305cfffdfe47b885f8ec851ff2626ea42e58d4b72451",
     "profile": "/home/chuxiao/spine-cycle-sim/configs/architectures/grasu_regraph_native_a9aef06.json",
-    "profile_sha256": "23ecbea6e2ae4cf07b65c650eedfc24a76d379d733099e8174e64250b5c91ccd",
-    "simulation_result": "/home/chuxiao/spine-cycle-sim/results/grasu_regraph_native_hw_alignment_20260725/sst/result.json",
-    "simulation_result_sha256": "8ee2fb9f84d34d2ad88f72e8d26760eddc34bfad2c00923932a3271440973a8e"
+    "profile_sha256": "ca47981158689d995973992df47ed659aa886b5b1a71ac99f468a0361f72adaf",
+    "simulation_result": "/home/chuxiao/spine-cycle-sim/results/grasu_regraph_native_host_reorder_20260725/small_star/result.json",
+    "simulation_result_sha256": "0c532d1645acf29d90c5619555fa483bead328e4d44c5ab4715b8a907e7d1656"
   },
   "kernel_clock_mhz": 200.0,
   "limitations": [
@@ -41,6 +41,11 @@
       "match": true,
       "simulation": 4096
     },
+    "native_host_vertex_reorder": {
+      "hardware": 1,
+      "match": true,
+      "simulation": 1
+    },
     "pma_slots": {
       "hardware": 66560,
       "match": true,
@@ -51,7 +56,12 @@
       "match": true,
       "simulation": 66560
     },
-    "source": {
+    "source_external": {
+      "hardware": 0,
+      "match": true,
+      "simulation": 0
+    },
+    "source_internal": {
       "hardware": 0,
       "match": true,
       "simulation": 0
@@ -84,28 +94,28 @@
       "simulation_over_hardware": 0.6905209099774096
     },
     "conversion": {
-      "absolute_error_pct": 35.62918486022001,
+      "absolute_error_pct": 35.61272320969262,
       "hardware_ms": 3.644835,
-      "signed_error_pct": -35.62918486022001,
-      "simulation_cycles": 469242,
-      "simulation_ms": 2.34621,
-      "simulation_over_hardware": 0.6437081513977999
+      "signed_error_pct": -35.61272320969262,
+      "simulation_cycles": 469362,
+      "simulation_ms": 2.34681,
+      "simulation_over_hardware": 0.6438727679030738
     },
     "event_e2e": {
-      "absolute_error_pct": 49.3876048375494,
+      "absolute_error_pct": 49.37770292571873,
       "hardware_ms": 5.90795,
-      "signed_error_pct": -49.3876048375494,
-      "simulation_cycles": 598031,
-      "simulation_ms": 2.990155,
-      "simulation_over_hardware": 0.506123951624506
+      "signed_error_pct": -49.37770292571873,
+      "simulation_cycles": 598148,
+      "simulation_ms": 2.99074,
+      "simulation_over_hardware": 0.5062229707428128
     },
     "update": {
-      "absolute_error_pct": 89.44202589096591,
+      "absolute_error_pct": 89.44318845005299,
       "hardware_ms": 1.290257,
-      "signed_error_pct": -89.44202589096591,
-      "simulation_cycles": 27245,
-      "simulation_ms": 0.136225,
-      "simulation_over_hardware": 0.10557974109034093
+      "signed_error_pct": -89.44318845005299,
+      "simulation_cycles": 27242,
+      "simulation_ms": 0.13621,
+      "simulation_over_hardware": 0.10556811549947026
     }
   },
   "timing_claim": "trend_only_not_cycle_calibrated"

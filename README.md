@@ -42,8 +42,10 @@ scope, byte ledger, and correctness evidence are in
 
 The existing-HLS native baseline now executes the full serial GraSU update,
 PMA compactor, edge-array ReGraph SSSP path on SST-HBM with no hidden
-conversion. The committed FPGA workload has exact graph/PMA/slot/superstep and
-SSSP alignment; absolute timing remains an explicitly trend-only result. See
+conversion. It also reproduces the host's update-density vertex reorder and
+records external/internal source IDs. Two FPGA workloads have exact
+graph/source/PMA/slot/superstep and SSSP alignment; absolute timing remains an
+explicitly trend-only result. See
 [`docs/grasu_regraph_native_e2e_20260725.md`](docs/grasu_regraph_native_e2e_20260725.md).
 
 The PMA-native ReGraph SSSP path now includes finite gather/merger, merger/apply,

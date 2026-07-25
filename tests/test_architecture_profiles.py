@@ -263,6 +263,7 @@ class ArchitectureProfileTests(unittest.TestCase):
             profile.parameters["regraph_source_state_mirror_channel"], 3
         )
         self.assertEqual(profile.parameters["regraph_vertex_prop_hbm_channel"], 30)
+        self.assertIn("native_host_vertex_reorder", profile.features)
         self.assertTrue(profile.parameters["conversion_cost_included"])
         self.assertFalse(profile.parameters["pma_native_compute"])
         self.assertEqual(verify_profile_artifacts(profile), [])

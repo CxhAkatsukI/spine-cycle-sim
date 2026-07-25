@@ -141,5 +141,5 @@ controller, closed ledger, and SST-HBM runner are complete. The remaining
 native calibration gap is a multi-workload hardware matrix that independently
 varies update count, source-row capacity, reserved PMA slots, compact slots,
 and supersteps. The first exact-workload result is structurally exact but
-underestimates the FPGA event end-to-end time by 49.39%, so it is explicitly
+underestimates the FPGA event end-to-end time by 49.38%, so it is explicitly
 labeled trend-only rather than cycle calibrated.

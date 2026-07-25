@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <array>
 #include <deque>
+#include <iterator>
 #include <limits>
 #include <map>
 #include <optional>
@@ -1127,6 +1128,93 @@ std::uint16_t decode_grasu_pma_weight(std::uint32_t encoded) {
 
 bool is_grasu_pma_empty(std::uint32_t encoded) noexcept {
   return (encoded & kGraSuPmaEmpty) != 0;
+}
+
+GraSuNativeReorderedGraph reorder_grasu_native_graph(
+    std::size_t vertices, const std::vector<GraSuEdge> &initial_edges,
+    const std::vector<GraSuEdge> &updates) {
+  if (vertices == 0 ||
+      vertices > std::numeric_limits<unsigned int>::max()) {
+    throw std::invalid_argument("invalid GraSU native vertex count");
+  }
+
+  std::vector<unsigned int> update_count(vertices, 0);
+  std::vector<unsigned int> segment_count(vertices, 0);
+  std::vector<std::uint64_t> reserved_edges;
+  reserved_edges.reserve(initial_edges.size() + updates.size());
+
+  for (const GraSuEdge &edge : initial_edges) {
+    validate_global_vertex(vertices, edge);
+    if (edge.delete_op) {
+      throw std::invalid_argument("initial GraSU edge cannot be a deletion");
+    }
+    reserved_edges.push_back(packed_edge(edge));
+  }
+  for (const GraSuEdge &edge : updates) {
+    validate_global_vertex(vertices, edge);
+    if (update_count.at(edge.source) ==
+        std::numeric_limits<unsigned int>::max()) {
+      throw std::overflow_error("GraSU native per-source update count overflow");
+    }
+    ++update_count[edge.source];
+    if (!edge.delete_op) {
+      reserved_edges.push_back(packed_edge(edge));
+    }
+  }
+
+  std::sort(reserved_edges.begin(), reserved_edges.end());
+  reserved_edges.erase(
+      std::unique(reserved_edges.begin(), reserved_edges.end()),
+      reserved_edges.end());
+  for (const std::uint64_t edge : reserved_edges) {
+    const std::size_t source = edge >> 32;
+    if (segment_count.at(source) ==
+        std::numeric_limits<unsigned int>::max()) {
+      throw std::overflow_error("GraSU native per-source edge count overflow");
+    }
+    ++segment_count[source];
+  }
+
+  std::vector<std::pair<unsigned int, double>> ranked_vertices;
+  ranked_vertices.reserve(vertices);
+  for (std::size_t vertex = 0; vertex < vertices; ++vertex) {
+    const unsigned int segments =
+        segment_count[vertex] / kGraSuSegmentSlots +
+        (segment_count[vertex] % kGraSuSegmentSlots == 0 ? 0U : 1U);
+    const double update_per_segment =
+        segments == 0 ? -1.0
+                      : static_cast<double>(update_count[vertex]) / segments;
+    ranked_vertices.emplace_back(static_cast<unsigned int>(vertex),
+                                 update_per_segment);
+  }
+
+  // Deliberately preserve the host's comparator without a tie breaker. The
+  // native profile is pinned to the current C++/libstdc++ host artifact, whose
+  // tie permutation changes PMA addresses and the ReGraph source window.
+  std::sort(ranked_vertices.begin(), ranked_vertices.end(),
+            [](const auto &left, const auto &right) {
+              return left.second > right.second;
+            });
+
+  GraSuNativeReorderedGraph reordered;
+  reordered.external_to_internal.resize(vertices);
+  for (std::size_t internal = 0; internal < vertices; ++internal) {
+    reordered.external_to_internal[ranked_vertices[internal].first] =
+        static_cast<std::uint32_t>(internal);
+  }
+  const auto remap = [&reordered](const GraSuEdge &edge) {
+    GraSuEdge result = edge;
+    result.source = reordered.external_to_internal.at(edge.source);
+    result.destination = reordered.external_to_internal.at(edge.destination);
+    return result;
+  };
+  reordered.initial_edges.reserve(initial_edges.size());
+  std::transform(initial_edges.begin(), initial_edges.end(),
+                 std::back_inserter(reordered.initial_edges), remap);
+  reordered.updates.reserve(updates.size());
+  std::transform(updates.begin(), updates.end(),
+                 std::back_inserter(reordered.updates), remap);
+  return reordered;
 }
 
 GraSuPmaLayout GraSuPmaLayout::build(

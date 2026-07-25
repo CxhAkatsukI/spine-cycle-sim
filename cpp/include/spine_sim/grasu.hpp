@@ -47,6 +47,19 @@ struct GraSuEdge {
   friend bool operator==(const GraSuEdge &, const GraSuEdge &) = default;
 };
 
+// Exact host-side vertex numbering used by the current GraSU HLS integration.
+// The native profile applies this before PMA construction; normalized profiles
+// intentionally retain the workload's external numbering.
+struct GraSuNativeReorderedGraph {
+  std::vector<std::uint32_t> external_to_internal;
+  std::vector<GraSuEdge> initial_edges;
+  std::vector<GraSuEdge> updates;
+};
+
+[[nodiscard]] GraSuNativeReorderedGraph reorder_grasu_native_graph(
+    std::size_t vertices, const std::vector<GraSuEdge> &initial_edges,
+    const std::vector<GraSuEdge> &updates);
+
 struct GraSuPmaLayout {
   // Source rows remain globally indexed. Destinations are encoded relative to
   // this layout's destination window so the PMA word keeps ReGraph's 19-bit

@@ -4,6 +4,7 @@ digraph G {
   edge [color="#555555", fontname="DejaVu Sans", fontsize=8];
 
   graph_input [label="initial graph + update batch\nunit-weight native ABI", fillcolor="#dfeaf4"];
+  host_reorder [label="native host vertex reorder\nupdates / reserved segments\nexternal ID -> internal ID", fillcolor="#dfeaf4"];
 
   subgraph cluster_update {
     label="GraSU update (4 HBM channels)";
@@ -56,7 +57,7 @@ digraph G {
     axi -> backend -> dram;
   }
 
-  graph_input -> update_hbm;
+  graph_input -> host_reorder -> update_hbm;
   processors -> barrier [label="completion"];
   pma -> compactor [label="row + PMA AXI"];
   edge_array -> reader [label="AXI reads / step"];

@@ -35,6 +35,8 @@ and routed timing report by SHA-256.
 
 The model preserves these native details:
 
+- the host's vertex reorder by `update_count / reserved_segment_count`, applied
+  to both edge endpoints and the SSSP source before PMA construction;
 - four serial `bin_search_direct` CUs, fixed-round-robin dispatch, two direct
   cache HBM RMW CUs, and two DDR CUs;
 - native raw 32-bit destination PMA words, 16 slots per segment, and explicit
@@ -82,6 +84,7 @@ All comparable structural counters match exactly:
 | --- | ---: | ---: | --- |
 | vertices | 4,096 | 4,096 | exact |
 | initial/update/final edges | 4,096 / 1,024 / 5,120 | 4,096 / 1,024 / 5,120 | exact |
+| source external/internal | 0 / 0 | 0 / 0 | exact |
 | reserved PMA slots | 66,560 | 66,560 | exact |
 | PMA slots scanned once | 66,560 | 66,560 | exact |
 | compact slots per superstep | 5,120 | 5,120 | exact |
@@ -103,10 +106,10 @@ PMA writes      = 1024
 The serial simulated cycle ledger closes without a hidden controller gap:
 
 ```text
-update       27,245 cycles
-conversion  469,242 cycles
+update       27,242 cycles
+conversion  469,362 cycles
 compute     101,544 cycles
-total       598,031 cycles
+total       598,148 cycles
 component sum == total
 ```
 
@@ -116,10 +119,10 @@ At the pinned 200 MHz kernel clock:
 
 | Window | FPGA event ms | Simulation ms | Signed error |
 | --- | ---: | ---: | ---: |
-| GraSU update | 1.290257 | 0.136225 | -89.44% |
-| barrier + compactor | 3.644835 | 2.346210 | -35.63% |
+| GraSU update | 1.290257 | 0.136210 | -89.44% |
+| barrier + compactor | 3.644835 | 2.346810 | -35.61% |
 | ReGraph compute span | 0.735271 | 0.507720 | -30.95% |
-| event end to end | 5.907950 | 2.990155 | -49.39% |
+| event end to end | 5.907950 | 2.990740 | -49.38% |
 
 The hardware component windows sum to 5.670363 ms; the remaining 0.237587 ms
 is event-window/controller gap. Simulation shares a closed serial controller
@@ -133,13 +136,43 @@ latency outside that DRAM-device model. The large update delta therefore points
 to missing platform/AXI/control latency or a measurement-window difference; it
 does not justify inserting a fitted constant yet.
 
+## Host reorder validation
+
+The current GraSU host counts every update by source, divides that count by the
+number of 16-slot PMA segments reserved for the source, and sorts vertices by
+the resulting ratio. Initial edges, updates, destinations, and the requested
+SSSP source are then mapped from external to internal IDs. Native simulation
+now performs this exact operation before building its PMA. Normalized profiles
+do not reorder their input.
+
+The host comparator intentionally has no tie breaker. The model therefore uses
+the same `std::sort` comparator and is pinned to the current host/libstdc++
+artifact. Unit evidence checks the non-stable 64-vertex chain permutation,
+including `0 -> 33`, while a second real FPGA case exercises a data-dependent
+mapping:
+
+| Counter | tiny_hotdst FPGA | SST native | Result |
+| --- | ---: | ---: | --- |
+| source external/internal | 0 / 62 | 0 / 62 | exact |
+| initial/update/final edges | 63 / 32 / 95 | 63 / 32 / 95 | exact |
+| reserved PMA slots | 1,008 | 1,008 | exact |
+| compact slots per superstep | 96 | 96 | exact |
+| supersteps | 16 | 16 | exact |
+| SSSP mismatches | 0 | 0 | exact |
+
+The raw log and generated report are
+`docs/evidence/grasu_regraph_native_tiny_hotdst_hw_20260725.log` and
+`docs/evidence/grasu_regraph_native_tiny_hotdst_hw_alignment_20260725.json`.
+This case remains timing-optimistic (`-55.40%` event E2E), which reinforces
+that structural fidelity and timing calibration are separate claims.
+
 ## What this milestone establishes
 
 1. Native and normalized paths are now distinct executable systems.
 2. Native timing contains the full PMA conversion. On this workload conversion
    is 78.46% of simulated time and 61.69% of the measured event window.
-3. The exact graph, PMA capacity, compact output, fixed supersteps, and SSSP
-   answer agree with the existing FPGA run.
+3. The exact graph, host source mapping, PMA capacity, compact output, fixed
+   supersteps, and SSSP answer agree with the existing FPGA runs.
 4. Native absolute time is still optimistic. The next hardware campaign must
    vary update count, source-row capacity, PMA reserved slots, compact slots,
    and supersteps independently before any calibrated timing claim.

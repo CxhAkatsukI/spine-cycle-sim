@@ -1259,6 +1259,26 @@ class OnlineMemoryProbe final : public SST::Component {
           }
         }
       }
+      if (native_grasu_sssp) {
+        if (source_vertex_ >= initial.vertices) {
+          throw std::invalid_argument(
+              "native GraSU source vertex is outside the graph");
+        }
+        grasu_source_external_ = source_vertex_;
+        GraSuNativeReorderedGraph reordered = reorder_grasu_native_graph(
+            initial.vertices, initial_edges, updates);
+        source_vertex_ =
+            reordered.external_to_internal.at(grasu_source_external_);
+        initial_edges = std::move(reordered.initial_edges);
+        updates = std::move(reordered.updates);
+        reserved_updates.clear();
+        for (const GraSuEdge &edge : updates) {
+          if (!edge.delete_op) {
+            reserved_updates.push_back(edge);
+          }
+        }
+        grasu_native_host_reorder_applied_ = true;
+      }
       const SpineEdgeSlice final_snapshot = materialize_grasu_weighted_snapshot(
           initial.vertices, initial_edges, updates);
       grasu_initial_edges_ = initial_edges.size();
@@ -2195,6 +2215,11 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"compute_cycles\": " << compute_cycles << ",\n"
              << "  \"vertices\": " << grasu_layout_.vertices << ",\n"
              << "  \"source\": " << source_vertex_ << ",\n"
+             << "  \"source_external\": " << grasu_source_external_ << ",\n"
+             << "  \"source_internal\": " << source_vertex_ << ",\n"
+             << "  \"native_host_vertex_reorder\": "
+             << (grasu_native_host_reorder_applied_ ? "true" : "false")
+             << ",\n"
              << "  \"initial_edges\": " << grasu_initial_edges_ << ",\n"
              << "  \"updates\": " << grasu_update_edges_ << ",\n"
              << "  \"final_edges\": " << grasu_final_edges_.size() << ",\n"
@@ -5410,6 +5435,7 @@ class OnlineMemoryProbe final : public SST::Component {
   std::string preload_path_;
   std::string hot_vertices_text_;
   std::uint32_t source_vertex_{};
+  std::uint32_t grasu_source_external_{};
   std::string core_clock_;
   double core_mhz_{};
   std::uint64_t request_count_{};
@@ -5492,6 +5518,7 @@ class OnlineMemoryProbe final : public SST::Component {
   std::size_t grasu_update_edges_{};
   bool grasu_update_counters_captured_{};
   bool grasu_compactor_counters_captured_{};
+  bool grasu_native_host_reorder_applied_{};
   SsspReference sssp_reference_;
   SsspReference cold_sssp_reference_;
   SsspReference dynamic_sssp_reference_;

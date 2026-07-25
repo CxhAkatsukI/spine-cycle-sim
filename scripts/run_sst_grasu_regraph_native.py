@@ -26,7 +26,11 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def validate_result(result: dict[str, object], profile: dict[str, object]) -> None:
+def validate_result(
+    result: dict[str, object],
+    profile: dict[str, object],
+    expected_source_external: int | None = None,
+) -> None:
     params = profile["parameters"]
     assert isinstance(params, dict)
     supersteps = int(result.get("supersteps", -1))
@@ -41,6 +45,10 @@ def validate_result(result: dict[str, object], profile: dict[str, object]) -> No
         "claim": result.get("claim_class") == "native_structural_simulation",
         "backend": result.get("backend") == "sst_memHierarchy_dramsim3",
         "conversion": result.get("conversion_cost_included") is True,
+        "host_reorder": result.get("native_host_vertex_reorder") is True,
+        "source_alias": result.get("source") == result.get("source_internal"),
+        "source_external": expected_source_external is None
+        or result.get("source_external") == expected_source_external,
         "serial_order": result.get("pipeline_order")
         == "update_then_barrier_compactor_then_compute",
         "ledger": result.get("cycles")
@@ -239,7 +247,7 @@ def main() -> int:
     result = json.loads(result_path.read_text(encoding="utf-8"))
     validation_profile = json.loads(json.dumps(profile))
     validation_profile["parameters"]["native_validation_supersteps"] = supersteps
-    validate_result(result, validation_profile)
+    validate_result(result, validation_profile, args.source)
     manifest = {
         "schema_version": 1,
         "claim_class": "native_structural_simulation",
@@ -250,7 +258,8 @@ def main() -> int:
         "update_workload": str(args.update_workload.resolve()),
         "update_workload_sha256": sha256(args.update_workload.resolve()),
         "hardware_evidence": profile.get("evidence", []),
-        "source": args.source,
+        "source_external": args.source,
+        "source_internal": result["source_internal"],
         "supersteps": supersteps,
         "command": command,
         "result": result,

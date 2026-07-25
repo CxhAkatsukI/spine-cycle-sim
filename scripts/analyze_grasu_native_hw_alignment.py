@@ -99,7 +99,15 @@ def analyze(
     hw_timing = hardware["timing_ms"]
     structural = {
         "vertices": _comparison(hw_input["vertices"], simulation["vertices"]),
-        "source": _comparison(hw_input["source_internal"], simulation["source"]),
+        "source_external": _comparison(
+            hw_input["source_external"], simulation["source_external"]
+        ),
+        "source_internal": _comparison(
+            hw_input["source_internal"], simulation["source_internal"]
+        ),
+        "native_host_vertex_reorder": _comparison(
+            1, int(simulation.get("native_host_vertex_reorder") is True)
+        ),
         "initial_edges": _comparison(
             hw_input["static_edges"], simulation["initial_edges"]
         ),

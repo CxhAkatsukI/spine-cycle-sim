@@ -85,6 +85,7 @@
     "execution_driven_pma_to_edge_array_compactor",
     "execution_driven_regraph_edge_array_reader",
     "execution_driven_native_serial_pipeline",
+    "native_host_vertex_reorder",
     "native_cross_source_window_guard",
     "measured_pma_to_edge_array_compactor",
     "regraph_little_gs_sssp"

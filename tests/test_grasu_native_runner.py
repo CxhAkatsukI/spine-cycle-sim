@@ -22,6 +22,10 @@ class GraSuNativeRunnerTests(unittest.TestCase):
             "claim_class": "native_structural_simulation",
             "backend": "sst_memHierarchy_dramsim3",
             "conversion_cost_included": True,
+            "native_host_vertex_reorder": True,
+            "source": 0,
+            "source_external": 0,
+            "source_internal": 0,
             "pipeline_order": "update_then_barrier_compactor_then_compute",
             "cycles": 100,
             "component_cycles": 100,
@@ -52,7 +56,7 @@ class GraSuNativeRunnerTests(unittest.TestCase):
         }
 
     def test_accepts_closed_safe_native_ledger(self) -> None:
-        validate_result(self.result, self.profile)
+        validate_result(self.result, self.profile, 0)
 
     def test_rejects_hidden_conversion_or_cross_window_burst(self) -> None:
         for field, value in (
@@ -60,12 +64,21 @@ class GraSuNativeRunnerTests(unittest.TestCase):
             ("cross_source_round_bursts", 1),
             ("native_hls_contract_safe", False),
             ("correctness_mismatches", 1),
+            ("native_host_vertex_reorder", False),
         ):
             with self.subTest(field=field):
                 invalid = dict(self.result)
                 invalid[field] = value
                 with self.assertRaises(RuntimeError):
                     validate_result(invalid, self.profile)
+
+    def test_rejects_wrong_external_source_or_internal_alias(self) -> None:
+        with self.assertRaises(RuntimeError):
+            validate_result(self.result, self.profile, 7)
+        invalid = dict(self.result)
+        invalid["source"] = 1
+        with self.assertRaises(RuntimeError):
+            validate_result(invalid, self.profile, 0)
 
 
 if __name__ == "__main__":

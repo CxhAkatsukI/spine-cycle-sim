@@ -29,6 +29,7 @@ using spine::sim::GraSuNativeConfig;
 using spine::sim::GraSuNativeCompactorConfig;
 using spine::sim::GraSuNativeCompactorSystem;
 using spine::sim::GraSuNativeReGraphSsspSystem;
+using spine::sim::GraSuNativeReorderedGraph;
 using spine::sim::GraSuPmaLayout;
 using spine::sim::GraSuPmaWordAbi;
 using spine::sim::GraSuPartitionedPmaLayout;
@@ -39,6 +40,7 @@ using spine::sim::GraSuReGraphResidualPageRankSystem;
 using spine::sim::GraSuReGraphSsspSystem;
 using spine::sim::is_grasu_pma_empty;
 using spine::sim::initialize_grasu_pma_layout_payloads;
+using spine::sim::reorder_grasu_native_graph;
 using spine::sim::MockMemoryBackend;
 using spine::sim::MockMemoryConfig;
 using spine::sim::Scheduler;
@@ -66,6 +68,67 @@ void write_u32(std::vector<std::uint8_t> &bytes, std::size_t offset,
     bytes[offset + byte] =
         static_cast<std::uint8_t>(value >> (byte * 8));
   }
+}
+
+void test_native_host_vertex_reorder_matches_current_artifact() {
+  std::vector<GraSuEdge> chain64;
+  for (std::uint32_t source = 0; source + 1 < 64; ++source) {
+    chain64.push_back(
+        {.source = source, .destination = source + 1, .weight = 1});
+  }
+  const GraSuNativeReorderedGraph reordered64 =
+      reorder_grasu_native_graph(64, chain64, {});
+  const std::map<std::uint32_t, std::uint32_t> expected64 = {
+      {0, 33},  {1, 16},  {2, 34},  {15, 47}, {31, 62},
+      {32, 1},  {33, 2},  {62, 31}, {63, 63},
+  };
+  for (const auto [external, internal] : expected64) {
+    require(reordered64.external_to_internal.at(external) == internal,
+            "native chain64 host vertex permutation drifted");
+  }
+  require(reordered64.initial_edges.front() ==
+              GraSuEdge{.source = 33, .destination = 16, .weight = 1},
+          "native host reorder did not remap both edge endpoints");
+
+  std::vector<GraSuEdge> chain16;
+  for (std::uint32_t source = 0; source + 1 < 16; ++source) {
+    chain16.push_back(
+        {.source = source, .destination = source + 1, .weight = 1});
+  }
+  const GraSuNativeReorderedGraph reordered16 =
+      reorder_grasu_native_graph(16, chain16, {});
+  require(reordered16.external_to_internal.at(0) == 0,
+          "native chain16 host source mapping drifted");
+
+  const std::vector<GraSuEdge> density_initial = {
+      {.source = 0, .destination = 1},
+      {.source = 1, .destination = 2},
+      {.source = 2, .destination = 3},
+  };
+  const std::vector<GraSuEdge> density_updates = {
+      {.source = 2, .destination = 0},
+      {.source = 2, .destination = 3, .delete_op = true},
+  };
+  const GraSuNativeReorderedGraph density =
+      reorder_grasu_native_graph(4, density_initial, density_updates);
+  require(density.external_to_internal.at(2) == 0,
+          "highest native updates-per-segment vertex was not ranked first");
+  require(density.updates.at(0).source == 0 &&
+              density.updates.at(0).destination ==
+                  density.external_to_internal.at(0) &&
+              !density.updates.at(0).delete_op,
+          "native insertion metadata changed during host reorder");
+  require(density.updates.at(1).delete_op,
+          "native deletion marker changed during host reorder");
+
+  bool rejected = false;
+  try {
+    (void)reorder_grasu_native_graph(
+        4, {{.source = 4, .destination = 0}}, {});
+  } catch (const std::invalid_argument &) {
+    rejected = true;
+  }
+  require(rejected, "native host reorder accepted an out-of-range endpoint");
 }
 
 std::set<std::pair<std::uint32_t, std::uint32_t>>
@@ -1815,6 +1878,8 @@ void test_native_edge_array_flags_cross_source_window_hls_contract() {
 
 int main() {
   const std::vector<std::pair<std::string, std::function<void()>>> tests = {
+      {"native_host_vertex_reorder",
+       test_native_host_vertex_reorder_matches_current_artifact},
       {"weighted_pma_abi", test_weighted_pma_edge_abi_matches_regraph},
       {"pma_layout_reservations",
        test_pma_layout_preserves_segment_reservations},
