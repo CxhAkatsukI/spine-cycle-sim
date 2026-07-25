@@ -263,6 +263,20 @@ class ArchitectureProfileTests(unittest.TestCase):
             profile.parameters["regraph_source_state_mirror_channel"], 3
         )
         self.assertEqual(profile.parameters["regraph_vertex_prop_hbm_channel"], 30)
+        active_channels = {
+            *range(
+                profile.parameters["grasu_pma_hbm_first_channel"],
+                profile.parameters["grasu_pma_hbm_first_channel"]
+                + profile.parameters["grasu_pma_hbm_channels"],
+            ),
+            profile.parameters["pma_compactor_row_channel"],
+            profile.parameters["regraph_edge_array_channel"],
+            profile.parameters["regraph_source_state_channel"],
+            profile.parameters["regraph_source_state_mirror_channel"],
+            profile.parameters["regraph_vertex_prop_hbm_channel"],
+        }
+        self.assertEqual(active_channels, {0, 1, 2, 3, 30})
+        self.assertEqual(profile.memory.channels, 32)
         self.assertIn("native_host_vertex_reorder", profile.features)
         self.assertTrue(profile.parameters["conversion_cost_included"])
         self.assertFalse(profile.parameters["pma_native_compute"])

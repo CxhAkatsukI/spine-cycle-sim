@@ -59,6 +59,44 @@ struct ResidualPageRankReference {
   bool converged{};
 };
 
+std::vector<std::size_t> parse_active_memory_channels(
+    const std::string &text, std::size_t channels) {
+  if (text.empty()) {
+    std::vector<std::size_t> all(channels);
+    std::iota(all.begin(), all.end(), 0);
+    return all;
+  }
+  if (text.front() == ',' || text.back() == ',' ||
+      text.find(",,") != std::string::npos) {
+    throw std::invalid_argument("malformed active memory channel list");
+  }
+  std::vector<std::size_t> active;
+  std::unordered_set<std::size_t> seen;
+  std::istringstream stream(text);
+  std::string token;
+  while (std::getline(stream, token, ',')) {
+    if (token.empty() ||
+        !std::all_of(token.begin(), token.end(),
+                     [](char value) { return value >= '0' && value <= '9'; })) {
+      throw std::invalid_argument("malformed active memory channel list");
+    }
+    std::size_t consumed = 0;
+    const auto parsed = std::stoull(token, &consumed, 10);
+    if (consumed != token.size() || parsed >= channels) {
+      throw std::invalid_argument("active memory channel is out of range");
+    }
+    const auto channel = static_cast<std::size_t>(parsed);
+    if (!seen.insert(channel).second) {
+      throw std::invalid_argument("duplicate active memory channel");
+    }
+    active.push_back(channel);
+  }
+  if (active.empty()) {
+    throw std::invalid_argument("active memory channel list is empty");
+  }
+  return active;
+}
+
 std::vector<float> run_full_pagerank_reference(const SpineEdgeSlice &workload,
                                                float damping,
                                                std::size_t iterations) {
@@ -662,7 +700,10 @@ class SstMemoryBackend final : public MemoryBackend {
         max_outstanding_per_channel_(max_outstanding_per_channel),
         response_queue_depth_(response_queue_depth),
         channel_outstanding_(interfaces_.size(), 0) {
-    if (interfaces_.empty() || channel_capacity_bytes_ == 0 ||
+    if (interfaces_.empty() ||
+        std::none_of(interfaces_.begin(), interfaces_.end(),
+                     [](const auto *interface) { return interface != nullptr; }) ||
+        channel_capacity_bytes_ == 0 ||
         accepts_per_channel_per_cycle_ == 0 ||
         max_outstanding_per_channel_ == 0 || response_queue_depth_ == 0) {
       throw std::invalid_argument("invalid SST memory backend configuration");
@@ -673,6 +714,10 @@ class SstMemoryBackend final : public MemoryBackend {
     if (!initiator_registered(request.initiator_id) ||
         request.channel >= interfaces_.size() || request.bytes == 0) {
       throw std::invalid_argument("invalid SST backend request");
+    }
+    if (interfaces_[request.channel] == nullptr) {
+      throw std::invalid_argument(
+          "SST backend request targets an unbound memory channel");
     }
     if ((request.operation == MemoryOperation::kRead &&
          !request.write_data.empty()) ||
@@ -890,6 +935,8 @@ class OnlineMemoryProbe final : public SST::Component {
     request_bytes_ = params.find<std::uint64_t>("request_bytes", 64);
     stride_bytes_ = params.find<std::uint64_t>("stride_bytes", 64);
     channels_ = params.find<std::size_t>("channels", 1);
+    active_memory_channels_text_ =
+        params.find<std::string>("active_memory_channels", "");
     channel_capacity_bytes_ =
         params.find<std::uint64_t>("channel_capacity_bytes", 1ULL << 30);
     write_percent_ = params.find<std::uint32_t>("write_percent", 0);
@@ -1166,6 +1213,13 @@ class OnlineMemoryProbe final : public SST::Component {
           workload_path_.c_str());
     }
     spine_axi_profile_ = spine_axi_profile_from_id(spine_axi_profile_id_);
+    try {
+      active_memory_channels_ =
+          parse_active_memory_channels(active_memory_channels_text_, channels_);
+    } catch (const std::exception &error) {
+      output_.fatal(CALL_INFO, -1, "invalid active_memory_channels=%s: %s\n",
+                    active_memory_channels_text_.c_str(), error.what());
+    }
 
     clock_converter_ = registerClock(
         core_clock_,
@@ -1177,7 +1231,7 @@ class OnlineMemoryProbe final : public SST::Component {
       output_.fatal(CALL_INFO, -1, "memory subcomponent slots are required\n");
     }
     interfaces_.resize(channels_, nullptr);
-    for (std::size_t channel = 0; channel < channels_; ++channel) {
+    for (const std::size_t channel : active_memory_channels_) {
       interfaces_[channel] = slot->create<SST::Interfaces::StandardMem>(
           channel, SST::ComponentInfo::SHARE_NONE, clock_converter_,
           new SST::Interfaces::StandardMem::Handler<
@@ -1195,13 +1249,17 @@ class OnlineMemoryProbe final : public SST::Component {
 
   void init(unsigned int phase) override {
     for (auto *interface : interfaces_) {
-      interface->init(phase);
+      if (interface != nullptr) {
+        interface->init(phase);
+      }
     }
   }
 
   void setup() override {
     for (auto *interface : interfaces_) {
-      interface->setup();
+      if (interface != nullptr) {
+        interface->setup();
+      }
     }
     const ClockId core = scheduler_.add_clock_mhz("core", core_mhz_);
     backend_ = std::make_unique<SstMemoryBackend>(
@@ -1986,6 +2044,9 @@ class OnlineMemoryProbe final : public SST::Component {
       {"request_bytes", "Bytes per AXI request", "64"},
       {"stride_bytes", "Address stride between requests", "64"},
       {"channels", "Number of HBM channel interfaces", "1"},
+      {"active_memory_channels",
+       "Comma-separated physical HBM channels instantiated in SST; empty is all",
+       ""},
       {"channel_capacity_bytes", "Capacity of each HBM channel", "1073741824"},
       {"write_percent", "Deterministic write percentage", "0"},
       {"max_cycles", "Core-cycle timeout", "1000000"},
@@ -5445,6 +5506,8 @@ class OnlineMemoryProbe final : public SST::Component {
   std::uint64_t request_bytes_{};
   std::uint64_t stride_bytes_{};
   std::size_t channels_{};
+  std::string active_memory_channels_text_;
+  std::vector<std::size_t> active_memory_channels_;
   std::uint64_t channel_capacity_bytes_{};
   std::uint32_t write_percent_{};
   std::uint64_t max_cycles_{};

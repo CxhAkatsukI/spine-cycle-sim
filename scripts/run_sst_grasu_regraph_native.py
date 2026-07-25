@@ -26,6 +26,33 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def native_active_hbm_channels(profile: dict[str, object]) -> tuple[int, ...]:
+    """Derive the HBM channels reachable by the pinned native HLS topology."""
+
+    memory = profile.get("memory")
+    params = profile.get("parameters")
+    if not isinstance(memory, dict) or not isinstance(params, dict):
+        raise ValueError("native profile requires memory and parameters objects")
+    physical_channels = int(memory["channels"])
+    first_pma = int(params["grasu_pma_hbm_first_channel"])
+    pma_channels = int(params["grasu_pma_hbm_channels"])
+    active = set(range(first_pma, first_pma + pma_channels))
+    for field in (
+        "pma_compactor_row_channel",
+        "regraph_edge_array_channel",
+        "regraph_source_state_channel",
+        "regraph_source_state_mirror_channel",
+        "regraph_vertex_prop_hbm_channel",
+    ):
+        active.add(int(params[field]))
+    ordered = tuple(sorted(active))
+    if not ordered or ordered[0] < 0 or ordered[-1] >= physical_channels:
+        raise ValueError(
+            "native HLS topology references an out-of-range HBM channel"
+        )
+    return ordered
+
+
 def validate_result(
     result: dict[str, object],
     profile: dict[str, object],
@@ -106,6 +133,11 @@ def main() -> int:
     parser.add_argument("--lib-dir", type=Path, default=ROOT / "build" / "sst")
     parser.add_argument("--max-cycles", type=int, default=20_000_000)
     parser.add_argument("--no-build", action="store_true")
+    parser.add_argument(
+        "--instantiate-all-hbm-channels",
+        action="store_true",
+        help="instantiate idle SST HBM controllers for equivalence testing",
+    )
     args = parser.parse_args()
 
     profile_path = args.profile.resolve()
@@ -114,6 +146,12 @@ def main() -> int:
         raise ValueError("runner requires the pinned native GraSU/ReGraph profile")
     params = profile["parameters"]
     memory = profile["memory"]
+    active_channels = native_active_hbm_channels(profile)
+    instantiated_channels = (
+        tuple(range(int(memory["channels"])))
+        if args.instantiate_all_hbm_channels
+        else active_channels
+    )
     kernel_clock = next(
         clock for clock in profile["clocks"] if clock["name"] == "kernel"
     )
@@ -136,6 +174,9 @@ def main() -> int:
         {
             "GRASU_SST_MODE": "grasu_regraph_native_sssp",
             "GRASU_SST_CHANNELS": str(memory["channels"]),
+            "GRASU_SST_ACTIVE_CHANNELS": ",".join(
+                str(channel) for channel in instantiated_channels
+            ),
             "GRASU_SST_CHANNEL_BYTES": str(memory["channel_capacity_bytes"]),
             "GRASU_SST_WORKLOAD": str(args.workload.resolve()),
             "GRASU_SST_UPDATE_WORKLOAD": str(args.update_workload.resolve()),
@@ -261,6 +302,15 @@ def main() -> int:
         "source_external": args.source,
         "source_internal": result["source_internal"],
         "supersteps": supersteps,
+        "sst_memory_binding": {
+            "physical_channels": memory["channels"],
+            "hls_reachable_channels": list(active_channels),
+            "instantiated_channels": list(instantiated_channels),
+            "unbound_request_policy": "fatal",
+            "claim": (
+                "host_runtime_optimization_only_physical_architecture_unchanged"
+            ),
+        },
         "command": command,
         "result": result,
         "status": "PASS",

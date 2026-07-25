@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "claim_class": "simulator_host_runtime_only",
+  "date": "2026-07-25",
+  "baseline_commit": "6694244",
+  "host": {
+    "cpu": "AMD EPYC 7C13 64-Core Processor",
+    "kernel": "Linux 6.1.0-35-amd64 x86_64",
+    "sst": "/data/feiyang/sst/bin/sst"
+  },
+  "architecture_binding": {
+    "physical_hbm_channels": 32,
+    "hls_reachable_channels": [0, 1, 2, 3, 30],
+    "sparse_instantiated_channels": [0, 1, 2, 3, 30],
+    "omitted_permanently_idle_channels": 27,
+    "channel_numbers_preserved": true,
+    "unbound_request_policy": "fatal",
+    "conversion_cost_included": true
+  },
+  "measurement": {
+    "samples_per_configuration": 1,
+    "limitations": [
+      "Wall time is a single-run engineering measurement, not accelerator performance.",
+      "The 4096-superstep runtime is a linear projection and was not executed in this milestone.",
+      "Exact equivalence is proven for the native unit and frozen small_chain_v64 cases, not every possible workload."
+    ]
+  },
+  "cases": [
+    {
+      "case": "native_unit",
+      "supersteps": 2,
+      "scope": "native SST runner",
+      "full_channels_seconds": 3.934,
+      "sparse_channels_seconds": 1.026,
+      "host_speedup": 3.834308,
+      "host_reduction_pct": 73.919675,
+      "full_result_sha256": "e955ebc225f43a3c03a04ae3838aa956e2d4ca5f782fdc2bc534171ba5b9fb57",
+      "sparse_result_sha256": "e955ebc225f43a3c03a04ae3838aa956e2d4ca5f782fdc2bc534171ba5b9fb57",
+      "active_dramsim_outputs_byte_identical": true,
+      "active_dramsim_sha256": {
+        "channel0/dramsim3.json": "c7ca93e3699535065630347ff8f44d0b4d434af8dbeaefca1b13c110099dbea0",
+        "channel0/dramsim3.txt": "7e07c75e0155cca187d1f84faee67b74c33805f558ff0925c2e21d0a6f1504e2",
+        "channel1/dramsim3.json": "6488f91af0e8c358d82014b4b25f649460a247f1dc2ec3385312f2fac2521395",
+        "channel1/dramsim3.txt": "883cab67eff4c8b037472a25616dc5adf838d9bb7a8affa5d078db68eaa8af04",
+        "channel2/dramsim3.json": "8528c463b00a35f6e5a3fc65e4fb30389089ac83797d1230d9ba1385b019c5ad",
+        "channel2/dramsim3.txt": "2f01dfbeb9b5165d84c55acaf6b3b0e8f38f3c7f4be5a6afdc2a91682434439a",
+        "channel3/dramsim3.json": "e26eca767c3c72faaef86a4bf190ed4d92a99e52479b9c22031edcd49385fee5",
+        "channel3/dramsim3.txt": "2b44774290d5247147a75a32d973d40ad3c6ca35cc62a503d6eecd9d07db390b",
+        "channel30/dramsim3.json": "f000cb7a4d1a917d5b441c594179f320ece92af394be26a263da9728e8297e81",
+        "channel30/dramsim3.txt": "05b77da58c70b1dce02209042a727cc924ce70f81fd048cf49347f4e1a0b9385"
+      }
+    },
+    {
+      "case": "small_chain_v64",
+      "supersteps": 64,
+      "scope": "graph conversion plus SST run plus hardware-alignment analysis",
+      "full_channels_seconds": 84.654733,
+      "sparse_channels_seconds": 18.185,
+      "host_speedup": 4.655196,
+      "host_reduction_pct": 78.518626,
+      "full_result_sha256": "7265d22fdb3edcc05ca8c55c0c66feac19d3db02e0f4c7929d709a7ec2ec56f0",
+      "sparse_result_sha256": "7265d22fdb3edcc05ca8c55c0c66feac19d3db02e0f4c7929d709a7ec2ec56f0"
+    }
+  ],
+  "stress_projection": {
+    "case": "large_chain_v4096",
+    "basis_case": "small_chain_v64",
+    "method": "sparse_seconds * 4096 / 64",
+    "projected_minutes": 19.397333,
+    "status": "projected_inside_tens_of_minutes_gate_not_yet_measured"
+  },
+  "status": "PASS_EXACT_EQUIVALENCE_STRESS_RUN_PENDING"
+}

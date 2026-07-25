@@ -4,7 +4,10 @@ import json
 from pathlib import Path
 import unittest
 
-from scripts.run_sst_grasu_regraph_native import validate_result
+from scripts.run_sst_grasu_regraph_native import (
+    native_active_hbm_channels,
+    validate_result,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -57,6 +60,17 @@ class GraSuNativeRunnerTests(unittest.TestCase):
 
     def test_accepts_closed_safe_native_ledger(self) -> None:
         validate_result(self.result, self.profile, 0)
+
+    def test_derives_only_hls_reachable_hbm_channels(self) -> None:
+        self.assertEqual(
+            native_active_hbm_channels(self.profile), (0, 1, 2, 3, 30)
+        )
+
+    def test_rejects_out_of_range_hls_channel(self) -> None:
+        invalid = json.loads(json.dumps(self.profile))
+        invalid["parameters"]["regraph_vertex_prop_hbm_channel"] = 32
+        with self.assertRaisesRegex(ValueError, "out-of-range"):
+            native_active_hbm_channels(invalid)
 
     def test_rejects_hidden_conversion_or_cross_window_burst(self) -> None:
         for field, value in (
