@@ -1,0 +1,24 @@
+digraph shared_comparison_workloads {
+  graph [rankdir=LR, bgcolor="white", pad="0.25", nodesep="0.35", ranksep="0.65"];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+        color="#3f4a54", fillcolor="#f5f7f8", margin="0.14,0.09"];
+  edge [fontname="Helvetica", fontsize=9, color="#596773", arrowsize=0.7];
+
+  synthetic [label="20 synthetic fixtures\n10 calibration + 10 holdout", fillcolor="#e8f2ec"];
+  raw [label="3 raw MatrixMarket datasets\nhash-pinned source copies", fillcolor="#eaf0f7"];
+  extract [label="Deterministic compact extraction\ntop-128 sources, round-robin edges\nID map + positive weights", fillcolor="#edf3f8"];
+  manifest [label="Frozen manifest\ngraph/update/profile hashes\n73 system-neutral run cases", fillcolor="#fff3d9"];
+  algorithms [label="Shared Map-Reduce policies\nweighted dynamic SSSP\nFull PR | residual PR", fillcolor="#f7eee4"];
+  spine [label="Spine\nnative 141 MHz evidence\nnormalized 150 MHz projection", fillcolor="#e8f2ec"];
+  grasu [label="GraSU + PMA-native ReGraph\nnormalized conversion-free\nnative conversion separate", fillcolor="#eaf0f7"];
+  gates [label="Required next gate\ndual-oracle correctness\nclosed memory/protocol ledgers\nruntime + labeled clocks", fillcolor="#f8e7e7"];
+
+  raw -> extract;
+  extract -> manifest [label="3 compact real slices"];
+  synthetic -> manifest;
+  manifest -> algorithms [label="identical bytes + parameters"];
+  algorithms -> spine;
+  algorithms -> grasu;
+  spine -> gates;
+  grasu -> gates;
+}

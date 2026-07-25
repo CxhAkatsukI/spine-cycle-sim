@@ -1,0 +1,4 @@
+# spine_real_slice_version=1
+# case=syn_pagerank_dangling_v33_empty_update
+# vertices=33
+# columns=src dst weight diff

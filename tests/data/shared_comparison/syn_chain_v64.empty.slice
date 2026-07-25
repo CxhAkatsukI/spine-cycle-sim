@@ -1,0 +1,4 @@
+# spine_real_slice_version=1
+# case=syn_chain_v64_empty_update
+# vertices=64
+# columns=src dst weight diff

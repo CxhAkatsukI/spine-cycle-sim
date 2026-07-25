@@ -1,0 +1,4 @@
+# spine_real_slice_version=1
+# case=syn_tiny_threshold_e4096_empty_update
+# vertices=4097
+# columns=src dst weight diff

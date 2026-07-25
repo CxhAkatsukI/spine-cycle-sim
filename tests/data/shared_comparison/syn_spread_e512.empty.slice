@@ -1,0 +1,4 @@
+# spine_real_slice_version=1
+# case=syn_spread_e512_empty_update
+# vertices=256
+# columns=src dst weight diff

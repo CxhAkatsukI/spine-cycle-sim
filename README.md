@@ -126,6 +126,12 @@ HBM request and explicitly label selected-array plus HBM energy as partial,
 not FPGA or total accelerator energy. See
 [`docs/onchip_energy_evidence_20260725.md`](docs/onchip_energy_evidence_20260725.md).
 
+A system-neutral comparison corpus now freezes 20 disjoint synthetic fixtures,
+three compact real-dataset slices, identical algorithm parameters, and 73 run
+cases. It is input evidence only; no performance result is inferred until both
+architectures pass the shared runner and dual-oracle gates. See
+[`docs/shared_comparison_workloads_20260725.md`](docs/shared_comparison_workloads_20260725.md).
+
 ## Quick Start
 
 Run one workload:

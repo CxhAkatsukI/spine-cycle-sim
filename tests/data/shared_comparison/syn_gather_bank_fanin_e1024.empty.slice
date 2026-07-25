@@ -1,0 +1,4 @@
+# spine_real_slice_version=1
+# case=syn_gather_bank_fanin_e1024_empty_update
+# vertices=33281
+# columns=src dst weight diff
