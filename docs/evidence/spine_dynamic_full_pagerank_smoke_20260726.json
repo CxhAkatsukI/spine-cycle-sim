@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "evidence_id": "spine_dynamic_full_pagerank_smoke_20260726",
+  "claim_class": "hls_aligned_profile_execution_driven_simulation",
+  "timing_evidence": "provisional_algorithm_pipeline_not_cycle_calibrated",
+  "profile_sha256": "aba0d6bbcbaa64240897ed3efc555d6ce6d6455d2f10e77e0ccdb77fa46466a7",
+  "input_manifest_sha256": "1c0a362a82b34eb235153b815dbfbeb9121932cd4d2b40e87b8d8e5370a40bd9",
+  "raw_result": {
+    "path": "results/spine_hls_full_pagerank_dynamic_smoke_20260726/result.json",
+    "sha256": "101335c36ad866ed5feb4fcdd14afe9e0a5dbfa5fff773db0cc49f706539d79b"
+  },
+  "initial_edges": 1280,
+  "update_edges": 8,
+  "materialized_snapshot_edges": 1288,
+  "maintenance_persisted_edges": 1288,
+  "cycles": 137280,
+  "core_mhz": 141.0,
+  "maintenance_cycles": 27504,
+  "pagerank_iterations": 3,
+  "architecture_correctness_mismatches": 0,
+  "mathematical_correctness_mismatches": 0,
+  "max_abs_error": 9.31323e-10,
+  "backend_requests": 22793,
+  "dram": {
+    "channels": 8,
+    "reads": 18986,
+    "writes": 3807,
+    "activates": 1710,
+    "precharges": 1708,
+    "total_energy_pj": 535726674.0
+  },
+  "sst_host_wall_seconds": 2.1442983117885888,
+  "status": "PASS"
+}

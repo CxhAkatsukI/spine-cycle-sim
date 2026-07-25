@@ -342,6 +342,50 @@ SpineEdgeSlice materialize_weighted_snapshot(const SpineEdgeSlice &initial,
   return snapshot;
 }
 
+SpineL0State preload_spine_l0_snapshot(const SpineEdgeSlice &snapshot,
+                                       const SpineL0Config &config) {
+  SpineL0State state;
+  state.hot_vertices.insert(config.hot_vertices.begin(),
+                            config.hot_vertices.end());
+  state.hot_enabled = !state.hot_vertices.empty();
+  for (const SpineEdgeRecord &edge : snapshot.edges) {
+    if (edge.src >= snapshot.vertices || edge.dst >= snapshot.vertices ||
+        edge.diff != 1) {
+      throw std::invalid_argument(
+          "Spine zero-time L0 preload requires in-range insertion edges");
+    }
+    const bool hot = state.hot_vertices.contains(edge.dst);
+    const std::size_t family =
+        hot ? spine_hot_shard(edge.dst)
+            : std::min<std::size_t>(
+                  edge.dst / config.vertex_partition_size,
+                  config.partitions - 1);
+    auto &level =
+        hot ? state.hot_levels[family][0] : state.cold_levels[family][0];
+    level.push_back(edge);
+  }
+  const auto edge_less = [](const SpineEdgeRecord &left,
+                            const SpineEdgeRecord &right) {
+    return std::tuple(left.src, left.dst, left.weight, left.diff) <
+           std::tuple(right.src, right.dst, right.weight, right.diff);
+  };
+  const std::uint64_t cold_capacity =
+      spine_level_layout(config, false, 0).edge_capacity;
+  const std::uint64_t hot_capacity =
+      spine_level_layout(config, true, 0).edge_capacity;
+  for (std::size_t family = 0; family < config.partitions; ++family) {
+    auto &cold = state.cold_levels[family][0];
+    auto &hot = state.hot_levels[family][0];
+    if (cold.size() > cold_capacity || hot.size() > hot_capacity) {
+      throw std::overflow_error(
+          "Spine compact PageRank preload exceeds the L0 profile capacity");
+    }
+    std::sort(cold.begin(), cold.end(), edge_less);
+    std::sort(hot.begin(), hot.end(), edge_less);
+  }
+  return state;
+}
+
 SpineEdgeSlice materialize_grasu_weighted_snapshot(
     std::size_t vertices, const std::vector<GraSuEdge> &initial,
     const std::vector<GraSuEdge> &updates) {
@@ -1545,22 +1589,43 @@ class OnlineMemoryProbe final : public SST::Component {
       return;
     }
     if (mode_ == "spine_pagerank" || mode_ == "spine_residual_pagerank") {
-      SpineEdgeSlice workload = load_spine_edge_slice(workload_path_);
-      spine_expected_edges_ = workload.edges.size();
+      SpineEdgeSlice initial = load_spine_edge_slice(workload_path_);
+      spine_expected_edges_ = initial.edges.size();
+      SpineEdgeSlice maintenance_workload = initial;
+      SpineEdgeSlice execution_graph = initial;
+      SpineL0State initial_state;
+      std::optional<SpineDirtyIdentity> host_coverage;
+      if (!update_workload_path_.empty()) {
+        dynamic_update_workload_ =
+            load_spine_edge_slice(update_workload_path_, true);
+        if (dynamic_update_workload_.vertices != initial.vertices ||
+            dynamic_update_workload_.edges.empty()) {
+          output_.fatal(
+              CALL_INFO, -1,
+              "dynamic PageRank update must be non-empty and use the same "
+              "vertex count\n");
+        }
+        execution_graph =
+            materialize_weighted_snapshot(initial, dynamic_update_workload_);
+        maintenance_workload = dynamic_update_workload_;
+        dynamic_materialized_snapshot_ = execution_graph;
+        dynamic_pagerank_enabled_ = true;
+        spine_preload_edges_ = initial.edges.size();
+      }
       if (mode_ == "spine_pagerank") {
         pagerank_reference_ = run_full_pagerank_reference(
-            workload, pagerank_damping_, pagerank_iterations_);
+            execution_graph, pagerank_damping_, pagerank_iterations_);
         pagerank_mathematical_reference_ =
             run_full_pagerank_mathematical_reference(
-                workload, static_cast<double>(pagerank_damping_),
+                execution_graph, static_cast<double>(pagerank_damping_),
                 pagerank_iterations_);
       } else {
         residual_pagerank_reference_ = run_residual_pagerank_reference(
-            workload, pagerank_damping_, pagerank_epsilon_,
+            execution_graph, pagerank_damping_, pagerank_epsilon_,
             residual_max_iterations_);
         residual_mathematical_reference_ =
             run_full_pagerank_mathematical_reference(
-                workload, static_cast<double>(pagerank_damping_), 200);
+                execution_graph, static_cast<double>(pagerank_damping_), 200);
       }
       SpineL0Config maintenance_config;
       maintenance_config.device_dirty_source_limit = device_dirty_source_limit_;
@@ -1593,12 +1658,25 @@ class OnlineMemoryProbe final : public SST::Component {
               static_cast<std::uint32_t>(std::stoul(item)));
         }
       }
+      if (dynamic_pagerank_enabled_) {
+        initial_state = preload_spine_l0_snapshot(initial, maintenance_config);
+        std::vector<std::uint32_t> dirty_sources;
+        dirty_sources.reserve(dynamic_update_workload_.edges.size());
+        for (const SpineEdgeRecord &edge : dynamic_update_workload_.edges) {
+          dirty_sources.push_back(edge.src);
+        }
+        std::sort(dirty_sources.begin(), dirty_sources.end());
+        dirty_sources.erase(
+            std::unique(dirty_sources.begin(), dirty_sources.end()),
+            dirty_sources.end());
+        host_coverage = spine_dirty_identity(1, dirty_sources);
+      }
       const GraphAlgorithmKind kind =
           mode_ == "spine_pagerank" ? GraphAlgorithmKind::kFullPageRank
                                     : GraphAlgorithmKind::kResidualPageRank;
-      const std::size_t vertices = workload.vertices;
+      const std::size_t vertices = execution_graph.vertices;
       pagerank_system_ = std::make_unique<SpinePageRankVerticalSliceSystem>(
-          scheduler_, core, *backend_, std::move(workload),
+          scheduler_, core, *backend_, std::move(maintenance_workload),
           GraphAlgorithmPolicy(AlgorithmPolicyConfig{
               .kind = kind,
               .vertices = vertices,
@@ -1607,7 +1685,12 @@ class OnlineMemoryProbe final : public SST::Component {
               .epsilon = pagerank_epsilon_,
           }),
           std::move(maintenance_config), spine_axi_profile_,
-          pagerank_pipeline_config_, compute_memory_request_window_);
+          pagerank_pipeline_config_, compute_memory_request_window_,
+          std::move(initial_state),
+          dynamic_pagerank_enabled_
+              ? std::optional<SpineEdgeSlice>(std::move(execution_graph))
+              : std::nullopt,
+          host_coverage);
       pagerank_system_->register_components();
       pagerank_iteration_start_cycle_ = scheduler_.clock(core).completed_cycles;
       scheduler_.add_component(*backend_);
@@ -3656,6 +3739,21 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"core_mhz\": " << core_mhz_ << ",\n"
           << "  \"cycles\": " << scheduler_.clock(0).completed_cycles << ",\n"
           << "  \"input_edges\": " << spine_expected_edges_ << ",\n"
+          << "  \"dynamic_update\": "
+          << (dynamic_pagerank_enabled_ ? "true" : "false") << ",\n"
+          << "  \"initial_edges\": " << spine_expected_edges_ << ",\n"
+          << "  \"update_edges\": "
+          << dynamic_update_workload_.edges.size() << ",\n"
+          << "  \"materialized_snapshot_edges\": "
+          << (dynamic_pagerank_enabled_
+                  ? dynamic_materialized_snapshot_.edges.size()
+                  : spine_expected_edges_)
+          << ",\n"
+          << "  \"pipeline_order\": \""
+          << (dynamic_pagerank_enabled_
+                  ? "zero_time_l0_preload_then_update_maintenance_then_compute"
+                  : "maintenance_then_compute")
+          << "\",\n"
           << "  \"vertices\": " << actual_ranks.size() << ",\n"
           << "  \"converged\": " << (converged ? "true" : "false") << ",\n"
           << "  \"iterations\": " << pagerank_completed_iterations_ << ",\n"
@@ -3842,6 +3940,21 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"core_mhz\": " << core_mhz_ << ",\n"
           << "  \"cycles\": " << scheduler_.clock(0).completed_cycles << ",\n"
           << "  \"input_edges\": " << spine_expected_edges_ << ",\n"
+          << "  \"dynamic_update\": "
+          << (dynamic_pagerank_enabled_ ? "true" : "false") << ",\n"
+          << "  \"initial_edges\": " << spine_expected_edges_ << ",\n"
+          << "  \"update_edges\": "
+          << dynamic_update_workload_.edges.size() << ",\n"
+          << "  \"materialized_snapshot_edges\": "
+          << (dynamic_pagerank_enabled_
+                  ? dynamic_materialized_snapshot_.edges.size()
+                  : spine_expected_edges_)
+          << ",\n"
+          << "  \"pipeline_order\": \""
+          << (dynamic_pagerank_enabled_
+                  ? "zero_time_l0_preload_then_update_maintenance_then_compute"
+                  : "maintenance_then_compute")
+          << "\",\n"
           << "  \"vertices\": " << actual.size() << ",\n"
           << "  \"pagerank_iterations\": " << pagerank_iterations_ << ",\n"
           << "  \"pagerank_completed_iterations\": "
@@ -6139,6 +6252,7 @@ class OnlineMemoryProbe final : public SST::Component {
   std::unordered_map<std::uint32_t, std::uint32_t> expected_distances_;
   bool sst_waiting_dirty_ack_{};
   bool dynamic_sssp_enabled_{};
+  bool dynamic_pagerank_enabled_{};
   bool dynamic_sssp_started_{};
   bool dynamic_full_rebuild_{};
   bool result_written_{};

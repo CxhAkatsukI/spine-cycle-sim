@@ -67,6 +67,58 @@ class SstSpineVerticalValidationTests(unittest.TestCase):
             [],
         )
 
+    def test_generic_dynamic_pagerank_requires_final_snapshot_contract(self) -> None:
+        result = {
+            "success": True,
+            "mode": "spine_pagerank",
+            "core_mhz": 141.0,
+            "vertices": 4,
+            "input_edges": 4,
+            "initial_edges": 4,
+            "update_edges": 2,
+            "materialized_snapshot_edges": 4,
+            "maintenance_persisted_edges": 4,
+            "dynamic_update": True,
+            "pipeline_order": (
+                "zero_time_l0_preload_then_update_maintenance_then_compute"
+            ),
+            "architecture_oracle": "iterative_float32",
+            "mathematical_oracle": "iterative_float64",
+            "architecture_correctness_mismatches": 0,
+            "mathematical_correctness_mismatches": 0,
+            "correctness_mismatches": 0,
+            "pagerank_iterations": 3,
+            "pagerank_completed_iterations": 3,
+            "pagerank_damping": 0.85,
+            "iteration_cycles": [100, 90, 80],
+            "ranks": [0.25, 0.25, 0.25, 0.25],
+            "max_abs_error": 1.0e-7,
+            "mathematical_max_abs_error": 1.0e-7,
+            "reader_protocol_status": 0,
+            "backend_requests": 12,
+        }
+        dram = {"dram_reads": 10, "dram_writes": 2, "dram_channels": 32}
+        arguments = dict(
+            channels=32,
+            scenario="full_pagerank",
+            vertices=4,
+            input_edges=4,
+            update_edges=2,
+            source=0,
+            core_mhz=141.0,
+            max_rounds=256,
+            pagerank_iterations=3,
+            pagerank_damping=0.85,
+            pagerank_epsilon=1.0e-6,
+            residual_max_iterations=256,
+        )
+        self.assertEqual(validate_generic_result(result, dram, **arguments), [])
+        result["maintenance_persisted_edges"] = 3
+        self.assertIn(
+            "materialized_snapshot",
+            validate_generic_result(result, dram, **arguments),
+        )
+
     def test_dynamic_sssp_closes_cold_update_and_memory_ledgers(self) -> None:
         result = {
             "success": True,

@@ -6124,6 +6124,89 @@ void test_spine_full_pagerank_vertical_slice_reads_level_edges() {
             << " maintenance_reruns=0\n";
 }
 
+void test_spine_dynamic_pagerank_times_only_update_then_final_graph() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("dynamic-pagerank", 200.0);
+  MockMemoryBackend backend("dynamic-pagerank-hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 4,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  const SpineEdgeSlice initial{
+      .vertices = 4,
+      .edges = {
+          {.src = 0, .dst = 1, .weight = 1, .diff = 1},
+          {.src = 0, .dst = 2, .weight = 1, .diff = 1},
+          {.src = 1, .dst = 2, .weight = 1, .diff = 1},
+          {.src = 3, .dst = 2, .weight = 1, .diff = 1},
+      },
+      .case_name = "dynamic_pagerank_initial",
+  };
+  SpineEdgeSlice update{
+      .vertices = 4,
+      .edges = {
+          {.src = 0, .dst = 2, .weight = 1, .diff = -1},
+          {.src = 2, .dst = 3, .weight = 1, .diff = 1},
+      },
+      .case_name = "dynamic_pagerank_update",
+  };
+  const SpineEdgeSlice final_graph{
+      .vertices = 4,
+      .edges = {
+          {.src = 0, .dst = 1, .weight = 1, .diff = 1},
+          {.src = 1, .dst = 2, .weight = 1, .diff = 1},
+          {.src = 2, .dst = 3, .weight = 1, .diff = 1},
+          {.src = 3, .dst = 2, .weight = 1, .diff = 1},
+      },
+      .case_name = "dynamic_pagerank_final",
+  };
+  SpineL0State initial_state;
+  initial_state.cold_levels[0][0] = initial.edges;
+  const GraphAlgorithmPolicy policy(AlgorithmPolicyConfig{
+      .kind = GraphAlgorithmKind::kFullPageRank,
+      .vertices = final_graph.vertices,
+      .source = 0,
+      .damping = 0.8F,
+  });
+  SpinePageRankVerticalSliceSystem system(
+      scheduler, core, backend, std::move(update), policy, SpineL0Config{},
+      SpineAxiInterfaceProfile{}, AlgorithmPipelineConfig{},
+      SpineSplitPageRankCompute::kDefaultMemoryRequestWindow,
+      std::move(initial_state), final_graph,
+      spine::sim::spine_dirty_identity(
+          1, std::vector<std::uint32_t>{0, 2}));
+  system.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until([&] { return system.done() && system.idle(); },
+                      500'000);
+
+  const std::vector<float> expected{0.05F, 0.25F, 0.45F, 0.25F};
+  for (std::size_t vertex = 0; vertex < expected.size(); ++vertex) {
+    require(std::fabs(GraphAlgorithmPolicy::word_to_float(
+                          system.compute().rank_words().at(vertex)) -
+                      expected[vertex]) < 1.0e-5F,
+            "dynamic PageRank computed the pre-update graph");
+  }
+  const auto &level = system.level_state().cold_levels[0][1];
+  require(!system.failed() && system.maintenance_counters().target_level == 1 &&
+              system.maintenance_counters().persisted_edges == 4 &&
+              system.level_state().cold_levels[0][0].empty() &&
+              level == final_graph.edges &&
+              system.reader_counters().host_coverage_match &&
+              system.reader_counters().edges_emitted == 4,
+          "dynamic PageRank did not preserve update, level, or host coverage");
+  std::cout << "EVIDENCE spine_dynamic_pagerank update_edges=2 final_edges=4"
+            << " maintenance_cycles="
+            << system.maintenance_counters().end_cycle -
+                   system.maintenance_counters().start_cycle
+            << " total_cycles=" << scheduler.clock(core).completed_cycles
+            << " target_level="
+            << system.maintenance_counters().target_level << '\n';
+}
+
 void test_spine_residual_pagerank_tracks_thresholded_frontier() {
   Scheduler scheduler;
   const auto core = scheduler.add_clock_mhz("residual-pagerank-system", 200.0);
@@ -6397,6 +6480,8 @@ int main(int argc, char **argv) {
        test_spine_timed_full_pagerank_compute_uses_hbm_and_pipelines},
       {"spine_pagerank_vertical_slice",
        test_spine_full_pagerank_vertical_slice_reads_level_edges},
+      {"spine_dynamic_pagerank",
+       test_spine_dynamic_pagerank_times_only_update_then_final_graph},
       {"spine_residual_pagerank",
        test_spine_residual_pagerank_tracks_thresholded_frontier},
   };

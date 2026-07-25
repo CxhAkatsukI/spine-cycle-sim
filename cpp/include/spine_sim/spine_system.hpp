@@ -182,7 +182,10 @@ class SpinePageRankVerticalSliceSystem {
       SpineAxiInterfaceProfile axi_profile = {},
       AlgorithmPipelineConfig pipeline_config = {},
       std::size_t compute_memory_request_window =
-          SpineSplitPageRankCompute::kDefaultMemoryRequestWindow);
+          SpineSplitPageRankCompute::kDefaultMemoryRequestWindow,
+      SpineL0State initial_state = {},
+      std::optional<SpineEdgeSlice> execution_graph = std::nullopt,
+      std::optional<SpineDirtyIdentity> host_coverage = std::nullopt);
   SpinePageRankVerticalSliceSystem(
       Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
       SpineEdgeSlice workload, GraphAlgorithmPolicy policy,
@@ -190,7 +193,10 @@ class SpinePageRankVerticalSliceSystem {
       SpineAxiInterfaceProfile axi_profile = {},
       AlgorithmPipelineConfig pipeline_config = {},
       std::size_t compute_memory_request_window =
-          SpineSplitPageRankCompute::kDefaultMemoryRequestWindow);
+          SpineSplitPageRankCompute::kDefaultMemoryRequestWindow,
+      SpineL0State initial_state = {},
+      std::optional<SpineEdgeSlice> execution_graph = std::nullopt,
+      std::optional<SpineDirtyIdentity> host_coverage = std::nullopt);
 
   void register_components();
   void restart_iteration();

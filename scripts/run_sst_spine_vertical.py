@@ -122,6 +122,28 @@ def validate_generic_result(
         == result.get("backend_requests"),
         "channel_count": dram.get("dram_channels") == channels,
     }
+    if expected_mode in {"spine_pagerank", "spine_residual_pagerank"}:
+        dynamic = update_edges > 0
+        checks.update(
+            {
+                "dynamic_flag": (not dynamic)
+                or result.get("dynamic_update") is True,
+                "initial_edges": (not dynamic)
+                or result.get("initial_edges") == input_edges,
+                "update_edges": (not dynamic)
+                or result.get("update_edges") == update_edges,
+                "materialized_snapshot": (not dynamic)
+                or (
+                    isinstance(result.get("materialized_snapshot_edges"), int)
+                    and result["materialized_snapshot_edges"] > 0
+                    and result.get("maintenance_persisted_edges")
+                    == result["materialized_snapshot_edges"]
+                ),
+                "dynamic_pipeline_order": (not dynamic)
+                or result.get("pipeline_order")
+                == "zero_time_l0_preload_then_update_maintenance_then_compute",
+            }
+        )
     if expected_mode == "spine_sssp":
         rounds = result.get("rounds", -1)
         dynamic = scenario != "weighted_sssp"

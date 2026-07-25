@@ -729,7 +729,9 @@ SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
     SpineEdgeSlice workload, float damping,
     SpineL0Config maintenance_config, SpineAxiInterfaceProfile axi_profile,
     AlgorithmPipelineConfig pipeline_config,
-    std::size_t compute_memory_request_window)
+    std::size_t compute_memory_request_window, SpineL0State initial_state,
+    std::optional<SpineEdgeSlice> execution_graph,
+    std::optional<SpineDirtyIdentity> host_coverage)
     : SpinePageRankVerticalSliceSystem(
           scheduler, clock_id, backend, workload,
           GraphAlgorithmPolicy(AlgorithmPolicyConfig{
@@ -739,28 +741,39 @@ SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
               .damping = damping,
           }),
           std::move(maintenance_config), std::move(axi_profile),
-          std::move(pipeline_config), compute_memory_request_window) {}
+          std::move(pipeline_config), compute_memory_request_window,
+          std::move(initial_state), std::move(execution_graph),
+          host_coverage) {}
 
 SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
     Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
     SpineEdgeSlice workload, GraphAlgorithmPolicy policy,
     SpineL0Config maintenance_config, SpineAxiInterfaceProfile axi_profile,
     AlgorithmPipelineConfig pipeline_config,
-    std::size_t compute_memory_request_window)
+    std::size_t compute_memory_request_window, SpineL0State initial_state,
+    std::optional<SpineEdgeSlice> execution_graph,
+    std::optional<SpineDirtyIdentity> host_coverage)
     : scheduler_(scheduler),
       clock_id_(clock_id),
       backend_(backend),
       axi_profile_(std::move(axi_profile)),
       maintenance_config_(maintenance_config),
       edge_stream_("pagerank-edge-axis", clock_id, 32),
-      value_stream_("pagerank-value-axis", clock_id, 32) {
-  if (policy.config().vertices != workload.vertices ||
+      value_stream_("pagerank-value-axis", clock_id, 32),
+      state_(std::move(initial_state)) {
+  const SpineEdgeSlice &logical_graph =
+      execution_graph.has_value() ? *execution_graph : workload;
+  if (logical_graph.vertices != workload.vertices ||
+      policy.config().vertices != logical_graph.vertices ||
       (policy.config().kind != GraphAlgorithmKind::kFullPageRank &&
        policy.config().kind != GraphAlgorithmKind::kResidualPageRank)) {
     throw std::invalid_argument("invalid Spine PageRank system policy");
   }
-  const PageRankHostInput host =
-      build_pagerank_host_input(workload, maintenance_config);
+  PageRankHostInput host =
+      build_pagerank_host_input(logical_graph, maintenance_config);
+  if (host_coverage.has_value()) {
+    host.coverage = host_coverage;
+  }
   active_bins_payload_ = host.bins;
   source_refresh_ = host.sources;
   host_coverage_ = host.coverage;

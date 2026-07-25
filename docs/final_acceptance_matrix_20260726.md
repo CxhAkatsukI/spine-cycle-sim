@@ -14,11 +14,11 @@ cannot silently satisfy an HLS-aligned requirement.
 | Requirement | Current evidence | Status | Remaining gate |
 | --- | --- | --- | --- |
 | Spine weighted SSSP | Execution-driven shared core, dynamic fallback, SST/DRAMSim3, dual oracle | Implemented | Run final real-dataset matrix and freeze manifests |
-| Spine Full PageRank | Timed Map/Reduce policy and SST vertical slice | Implemented | Run final real-dataset small-batch matrix |
-| Spine thresholded residual PageRank | Timed signed-residual policy and SST vertical slice | Implemented | Run final real-dataset small-batch matrix |
+| Spine Full PageRank | Timed Map/Reduce policy, SST vertical slice, and zero-time compact preload plus timed dynamic update | Implemented | Run final real-dataset small-batch matrix |
+| Spine thresholded residual PageRank | Timed signed-residual policy, SST vertical slice, and shared dynamic-update contract | Implemented | Run final real-dataset small-batch matrix |
 | GraSU/ReGraph weighted SSSP | Normalized executable mode; native unit-weight mode; `ff13a67` weighted full-word HLS-aligned mode; 10 synthetic plus 9 real-compact dynamic cases | Implemented | Scale beyond compact slices and compare with hw/hw_emu timing evidence |
-| GraSU/ReGraph Full PageRank | Normalized PMA-native and partitioned dynamic mode | Normalized only | Define and implement the HLS-aligned PageRank profile or label comparison normalized |
-| GraSU/ReGraph thresholded residual PageRank | Normalized PMA-native and multi-partition mode | Normalized only | Define and implement the HLS-aligned residual profile or label comparison normalized |
+| GraSU/ReGraph Full PageRank | Normalized modes plus executable ff13a67 full-word HLS-equivalent proposed profile with dual oracle | Implemented | Run the common three-dataset compact matrix, then scale beyond compact slices |
+| GraSU/ReGraph thresholded residual PageRank | Normalized modes plus executable ff13a67 full-word HLS-equivalent proposed profile with dual oracle | Implemented | Run the common three-dataset compact matrix, then scale beyond compact slices |
 | Differential correctness | Shared dynamic fixtures, per-run architecture/mathematical oracles, and 9/9 cross-system real-compact distance matches | Partial | Preserve fail-closed checks on PageRank and full-dataset experiments |
 | End-to-end small-batch performance | 73-pair normalized matrix plus 9-pair weighted-SSSP HLS-profile real-compact matrix | Partial | Add HLS-aligned PageRank and publication-scale datasets |
 | Update throughput | Common real-compact batches report user mutations and physical records for Spine maintenance and GraSU PMA | Partial | Sweep batch size/density on full-scale inputs and validate against hw |
@@ -70,10 +70,10 @@ and runtime are frozen in
 
 ## Immediate Next Gate
 
-Define executable HLS-aligned Full PageRank and thresholded residual PageRank
-profiles for GraSU/ReGraph using the same PMA, direct AXIS handoff, FIFO, AXI,
-HBM, and profile-clock rules. Each profile needs an independent float oracle,
-synthetic boundary coverage, and the same three real compact datasets before
-joining the common matrix. In parallel, add phase snapshots for Spine DRAM
-read/write/ACT/PRE/energy and sequential/random classification; until then,
-the weighted matrix may claim aligned request counts but not DRAM energy ratios.
+Run the common nine-case real-compact Full PageRank matrix using the now-shared
+contract: initial graph preload excluded, differential update plus compute
+included, three iterations at damping 0.85, and independent float32/float64
+oracles in every row. Then repeat for thresholded residual PageRank. In
+parallel, add phase snapshots for Spine DRAM read/write/ACT/PRE/energy and a
+common sequential/random classifier; until then, total requests are comparable
+but update/compute locality and DRAM energy ratios are not.
