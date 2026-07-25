@@ -1,0 +1,12 @@
+# spine_real_slice_version=1
+# case=real_soc_flickr_und_insert_u8
+# vertices=2552
+# columns=src dst weight diff
+0 128 1 1
+0 129 8 1
+0 130 15 1
+0 131 22 1
+0 132 29 1
+0 133 5 1
+0 134 12 1
+0 135 19 1

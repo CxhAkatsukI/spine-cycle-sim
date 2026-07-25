@@ -1,0 +1,272 @@
+{
+  "batch_contract": {
+    "correctness_gate": "architecture_oracle_and_uint64_dijkstra",
+    "datasets": 3,
+    "graph_and_update_bytes_identical_across_architectures": true,
+    "maximum_required_sssp_rounds": 4,
+    "scenarios": [
+      "insert",
+      "delete",
+      "weight_change"
+    ],
+    "scenarios_per_dataset": 3,
+    "user_mutations_per_batch": 8,
+    "weight_change_encoding": "exact_delete_then_insert"
+  },
+  "claim_class": "hls_aligned_real_compact_small_batch_input_contract",
+  "limitations": [
+    "These are compact real-edge slices, not full real datasets.",
+    "Batches target source 0 direct edges or sink destinations to remain within the fixed four-round HLS profile.",
+    "Weight changes are one user mutation but two explicit differential records.",
+    "No performance claim is made by this input manifest."
+  ],
+  "matrix_id": "hls_weighted_real_small_batches_20260726",
+  "runs": [
+    {
+      "dataset_id": "amazon_2008",
+      "dataset_kind": "real_compact_slice",
+      "final_edges": 1288,
+      "graph": {
+        "case_id": "real_amazon_2008_compact",
+        "path": "tests/data/shared_comparison/real_amazon_2008_compact.slice",
+        "records": 1280,
+        "sha256": "e97c8c6eaaddb42b90327999ba969b5f6483d52b67057d654ec0417219353b17",
+        "vertices": 650
+      },
+      "hls_host_supersteps": 4,
+      "physical_records": 8,
+      "required_sssp_rounds": 1,
+      "role": "validation",
+      "run_id": "real_amazon_2008_insert_u8",
+      "scenario": "insert",
+      "source": 0,
+      "update": {
+        "case_id": "real_amazon_2008_insert_u8",
+        "path": "tests/data/hls_weighted_real_batches/real_amazon_2008_insert_u8.slice",
+        "records": 8,
+        "sha256": "9d3d4597086854f9226ec3b508f2e8696ea86c6096ff44321cc6ce1802725971",
+        "vertices": 650
+      },
+      "user_mutations": 8
+    },
+    {
+      "dataset_id": "amazon_2008",
+      "dataset_kind": "real_compact_slice",
+      "final_edges": 1272,
+      "graph": {
+        "case_id": "real_amazon_2008_compact",
+        "path": "tests/data/shared_comparison/real_amazon_2008_compact.slice",
+        "records": 1280,
+        "sha256": "e97c8c6eaaddb42b90327999ba969b5f6483d52b67057d654ec0417219353b17",
+        "vertices": 650
+      },
+      "hls_host_supersteps": 4,
+      "physical_records": 8,
+      "required_sssp_rounds": 1,
+      "role": "validation",
+      "run_id": "real_amazon_2008_delete_u8",
+      "scenario": "delete",
+      "source": 0,
+      "update": {
+        "case_id": "real_amazon_2008_delete_u8",
+        "path": "tests/data/hls_weighted_real_batches/real_amazon_2008_delete_u8.slice",
+        "records": 8,
+        "sha256": "1e432a5c18f888a9284155838e028aea1b07026689fcfc7fc8008b3d46633bf6",
+        "vertices": 650
+      },
+      "user_mutations": 8
+    },
+    {
+      "dataset_id": "amazon_2008",
+      "dataset_kind": "real_compact_slice",
+      "final_edges": 1280,
+      "graph": {
+        "case_id": "real_amazon_2008_compact",
+        "path": "tests/data/shared_comparison/real_amazon_2008_compact.slice",
+        "records": 1280,
+        "sha256": "e97c8c6eaaddb42b90327999ba969b5f6483d52b67057d654ec0417219353b17",
+        "vertices": 650
+      },
+      "hls_host_supersteps": 4,
+      "physical_records": 16,
+      "required_sssp_rounds": 1,
+      "role": "validation",
+      "run_id": "real_amazon_2008_weight_change_u8",
+      "scenario": "weight_change",
+      "source": 0,
+      "update": {
+        "case_id": "real_amazon_2008_weight_change_u8",
+        "path": "tests/data/hls_weighted_real_batches/real_amazon_2008_weight_change_u8.slice",
+        "records": 16,
+        "sha256": "70c63b06ed50dc0c3653c774b1d19af5701c2af91c41085f5ddcaf09f285b47c",
+        "vertices": 650
+      },
+      "user_mutations": 8
+    },
+    {
+      "dataset_id": "web_google",
+      "dataset_kind": "real_compact_slice",
+      "final_edges": 4104,
+      "graph": {
+        "case_id": "real_web_google_compact",
+        "path": "tests/data/shared_comparison/real_web_google_compact.slice",
+        "records": 4096,
+        "sha256": "25037a62c5b743d582e087b78db7142d2e9d63e448529ce5bf347fc607aa285a",
+        "vertices": 3045
+      },
+      "hls_host_supersteps": 4,
+      "physical_records": 8,
+      "required_sssp_rounds": 1,
+      "role": "validation",
+      "run_id": "real_web_google_insert_u8",
+      "scenario": "insert",
+      "source": 0,
+      "update": {
+        "case_id": "real_web_google_insert_u8",
+        "path": "tests/data/hls_weighted_real_batches/real_web_google_insert_u8.slice",
+        "records": 8,
+        "sha256": "90702e9ae81113e96149e7e4cc80a554c389b087c1c6404e55b714c2a1a692d5",
+        "vertices": 3045
+      },
+      "user_mutations": 8
+    },
+    {
+      "dataset_id": "web_google",
+      "dataset_kind": "real_compact_slice",
+      "final_edges": 4088,
+      "graph": {
+        "case_id": "real_web_google_compact",
+        "path": "tests/data/shared_comparison/real_web_google_compact.slice",
+        "records": 4096,
+        "sha256": "25037a62c5b743d582e087b78db7142d2e9d63e448529ce5bf347fc607aa285a",
+        "vertices": 3045
+      },
+      "hls_host_supersteps": 4,
+      "physical_records": 8,
+      "required_sssp_rounds": 1,
+      "role": "validation",
+      "run_id": "real_web_google_delete_u8",
+      "scenario": "delete",
+      "source": 0,
+      "update": {
+        "case_id": "real_web_google_delete_u8",
+        "path": "tests/data/hls_weighted_real_batches/real_web_google_delete_u8.slice",
+        "records": 8,
+        "sha256": "61be9e1c8490f271d53d98f3b261a06644f7c2904106d132890e0716fc74f7a1",
+        "vertices": 3045
+      },
+      "user_mutations": 8
+    },
+    {
+      "dataset_id": "web_google",
+      "dataset_kind": "real_compact_slice",
+      "final_edges": 4096,
+      "graph": {
+        "case_id": "real_web_google_compact",
+        "path": "tests/data/shared_comparison/real_web_google_compact.slice",
+        "records": 4096,
+        "sha256": "25037a62c5b743d582e087b78db7142d2e9d63e448529ce5bf347fc607aa285a",
+        "vertices": 3045
+      },
+      "hls_host_supersteps": 4,
+      "physical_records": 16,
+      "required_sssp_rounds": 1,
+      "role": "validation",
+      "run_id": "real_web_google_weight_change_u8",
+      "scenario": "weight_change",
+      "source": 0,
+      "update": {
+        "case_id": "real_web_google_weight_change_u8",
+        "path": "tests/data/hls_weighted_real_batches/real_web_google_weight_change_u8.slice",
+        "records": 16,
+        "sha256": "d9226b9d7cae4beb8dd62b779beeafd7a6a9f37d5a8a235c12e21e64a6e4c158",
+        "vertices": 3045
+      },
+      "user_mutations": 8
+    },
+    {
+      "dataset_id": "soc_flickr_und",
+      "dataset_kind": "real_compact_slice",
+      "final_edges": 4104,
+      "graph": {
+        "case_id": "real_soc_flickr_und_compact",
+        "path": "tests/data/shared_comparison/real_soc_flickr_und_compact.slice",
+        "records": 4096,
+        "sha256": "1a931fde67a7825f81971a05250a6dbee5b84bd75b4f6980fa5c2a4059843e78",
+        "vertices": 2552
+      },
+      "hls_host_supersteps": 4,
+      "physical_records": 8,
+      "required_sssp_rounds": 4,
+      "role": "validation",
+      "run_id": "real_soc_flickr_und_insert_u8",
+      "scenario": "insert",
+      "source": 0,
+      "update": {
+        "case_id": "real_soc_flickr_und_insert_u8",
+        "path": "tests/data/hls_weighted_real_batches/real_soc_flickr_und_insert_u8.slice",
+        "records": 8,
+        "sha256": "59bf44625c96d286b289c6adfb7964346dc72d43577d9b0b221a1e84f5315f14",
+        "vertices": 2552
+      },
+      "user_mutations": 8
+    },
+    {
+      "dataset_id": "soc_flickr_und",
+      "dataset_kind": "real_compact_slice",
+      "final_edges": 4088,
+      "graph": {
+        "case_id": "real_soc_flickr_und_compact",
+        "path": "tests/data/shared_comparison/real_soc_flickr_und_compact.slice",
+        "records": 4096,
+        "sha256": "1a931fde67a7825f81971a05250a6dbee5b84bd75b4f6980fa5c2a4059843e78",
+        "vertices": 2552
+      },
+      "hls_host_supersteps": 4,
+      "physical_records": 8,
+      "required_sssp_rounds": 1,
+      "role": "validation",
+      "run_id": "real_soc_flickr_und_delete_u8",
+      "scenario": "delete",
+      "source": 0,
+      "update": {
+        "case_id": "real_soc_flickr_und_delete_u8",
+        "path": "tests/data/hls_weighted_real_batches/real_soc_flickr_und_delete_u8.slice",
+        "records": 8,
+        "sha256": "f5ee89d64caf952b7d5f3b71a57b09d141cf5d6d153e62c5727cb2f57e8211dc",
+        "vertices": 2552
+      },
+      "user_mutations": 8
+    },
+    {
+      "dataset_id": "soc_flickr_und",
+      "dataset_kind": "real_compact_slice",
+      "final_edges": 4096,
+      "graph": {
+        "case_id": "real_soc_flickr_und_compact",
+        "path": "tests/data/shared_comparison/real_soc_flickr_und_compact.slice",
+        "records": 4096,
+        "sha256": "1a931fde67a7825f81971a05250a6dbee5b84bd75b4f6980fa5c2a4059843e78",
+        "vertices": 2552
+      },
+      "hls_host_supersteps": 4,
+      "physical_records": 16,
+      "required_sssp_rounds": 4,
+      "role": "validation",
+      "run_id": "real_soc_flickr_und_weight_change_u8",
+      "scenario": "weight_change",
+      "source": 0,
+      "update": {
+        "case_id": "real_soc_flickr_und_weight_change_u8",
+        "path": "tests/data/hls_weighted_real_batches/real_soc_flickr_und_weight_change_u8.slice",
+        "records": 16,
+        "sha256": "e88c9a8d76964261d43b06912ed3c53bb517ed5848dcf1b07fea06c6a97881b4",
+        "vertices": 2552
+      },
+      "user_mutations": 8
+    }
+  ],
+  "schema_version": 1,
+  "source_manifest": "configs/experiments/shared_comparison_workloads_20260725.json",
+  "source_manifest_sha256": "075c16ecb46dc24322b674310d08c9fcb686ace544440343ab4285cb0fa22089"
+}

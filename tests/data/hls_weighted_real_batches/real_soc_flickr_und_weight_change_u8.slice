@@ -1,0 +1,20 @@
+# spine_real_slice_version=1
+# case=real_soc_flickr_und_weight_change_u8
+# vertices=2552
+# columns=src dst weight diff
+0 4 22 -1
+0 4 11 1
+0 10 31 -1
+0 10 15 1
+0 53 18 -1
+0 53 9 1
+0 396 21 -1
+0 396 10 1
+0 432 13 -1
+0 432 30 1
+0 433 30 -1
+0 433 47 1
+0 434 16 -1
+0 434 33 1
+0 435 2 -1
+0 435 19 1

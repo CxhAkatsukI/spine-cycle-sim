@@ -1,0 +1,12 @@
+# spine_real_slice_version=1
+# case=real_web_google_delete_u8
+# vertices=3045
+# columns=src dst weight diff
+0 202 9 -1
+0 240 4 -1
+0 246 13 -1
+0 260 3 -1
+0 278 30 -1
+0 288 14 -1
+0 303 21 -1
+0 409 25 -1

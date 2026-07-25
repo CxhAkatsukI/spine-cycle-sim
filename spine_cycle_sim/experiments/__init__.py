@@ -25,6 +25,11 @@ from .profile_capabilities import (
     load_capability_catalog,
 )
 from .hls_weighted_workloads import HlsWeightedFixture, hls_weighted_fixtures
+from .real_small_batches import (
+    RealSmallBatch,
+    build_real_small_batches,
+    validate_real_small_batch_manifest,
+)
 
 __all__ = [
     "DEFAULT_REAL_SOURCES",
@@ -47,4 +52,7 @@ __all__ = [
     "load_capability_catalog",
     "HlsWeightedFixture",
     "hls_weighted_fixtures",
+    "RealSmallBatch",
+    "build_real_small_batches",
+    "validate_real_small_batch_manifest",
 ]
