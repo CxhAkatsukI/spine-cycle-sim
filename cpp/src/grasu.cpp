@@ -1557,6 +1557,51 @@ class GraSuPmaUpdateSystem::Impl {
       scheduler_.add_component(*degree_updater_);
     }
     registered_ = true;
+    active_ = true;
+  }
+
+  void unregister_components() {
+    if (!registered_ || !active_ || !done()) {
+      throw std::logic_error(
+          "GraSU update system can only unregister after completion");
+    }
+    if (degree_updater_ != nullptr) {
+      scheduler_.remove_component(*degree_updater_);
+    }
+    for (auto &processor : processors_) {
+      scheduler_.remove_component(*processor);
+    }
+    scheduler_.remove_component(*dispatch_);
+    for (auto &search : searches_) {
+      scheduler_.remove_component(*search);
+    }
+    if (degree_port_ != nullptr) {
+      degree_port_->unregister_components(scheduler_);
+    }
+    for (auto &processor : processor_ports_) {
+      for (auto iterator = processor.owned_registration_order.rbegin();
+           iterator != processor.owned_registration_order.rend(); ++iterator) {
+        (*iterator)->unregister_components(scheduler_);
+      }
+    }
+    for (auto &ports : search_ports_) {
+      ports.binary->unregister_components(scheduler_);
+      ports.rows->unregister_components(scheduler_);
+      ports.updates->unregister_components(scheduler_);
+    }
+    for (auto &fifo : degree_outputs_) {
+      if (fifo != nullptr) {
+        scheduler_.remove_component(*fifo);
+      }
+    }
+    for (auto &fifo : process_inputs_) {
+      scheduler_.remove_component(*fifo);
+    }
+    for (auto &fifo : search_outputs_) {
+      scheduler_.remove_component(*fifo);
+    }
+    end_cycle_ = scheduler_.clock(clock_id_).completed_cycles;
+    active_ = false;
   }
 
   [[nodiscard]] bool failed() const noexcept {
@@ -1695,7 +1740,8 @@ class GraSuPmaUpdateSystem::Impl {
       result.axis_push_stalls += fifo->stats().push_stalls;
     }
     result.start_cycle = start_cycle_;
-    result.end_cycle = scheduler_.clock(clock_id_).completed_cycles;
+    result.end_cycle = active_ ? scheduler_.clock(clock_id_).completed_cycles
+                               : end_cycle_;
     return result;
   }
 
@@ -2055,7 +2101,9 @@ class GraSuPmaUpdateSystem::Impl {
   std::unique_ptr<GraSuDegreeUpdater> degree_updater_;
   std::uint32_t next_initiator_{3000};
   std::uint64_t start_cycle_{};
+  std::uint64_t end_cycle_{};
   bool registered_{};
+  bool active_{};
 };
 
 GraSuPmaUpdateSystem::GraSuPmaUpdateSystem(Scheduler &scheduler,
@@ -2083,6 +2131,10 @@ GraSuPmaUpdateSystem::~GraSuPmaUpdateSystem() = default;
 
 void GraSuPmaUpdateSystem::register_components() {
   impl_->register_components();
+}
+
+void GraSuPmaUpdateSystem::unregister_components() {
+  impl_->unregister_components();
 }
 
 bool GraSuPmaUpdateSystem::done() const noexcept { return impl_->done(); }

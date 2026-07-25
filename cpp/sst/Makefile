@@ -23,11 +23,12 @@ SOURCES := online_memory_probe.cpp \
            $(ROOT)/cpp/src/spine_pagerank.cpp \
            $(ROOT)/cpp/src/spine_split.cpp \
            $(ROOT)/cpp/src/spine_system.cpp
+HEADERS := $(wildcard $(ROOT)/cpp/include/spine_sim/*.hpp)
 
 .PHONY: all clean
 all: $(TARGET)
 
-$(TARGET): $(SOURCES)
+$(TARGET): $(SOURCES) $(HEADERS) Makefile
 	mkdir -p $(BUILD_DIR)
 	$(CXX) $(CXXFLAGS) $(SOURCES) -shared -o $@
 

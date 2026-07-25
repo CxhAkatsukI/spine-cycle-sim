@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "claim_class": "simulator_host_runtime_only",
+  "date": "2026-07-25",
+  "baseline_commit": "28661ce",
+  "optimized_worktree": "post-28661ce native stage unregister and single-clock scheduler fast path",
+  "host": {
+    "cpu": "AMD EPYC 7C13 64-Core Processor",
+    "kernel": "Linux 6.1.0-35-amd64 x86_64",
+    "sst": "/data/feiyang/sst/bin/sst"
+  },
+  "measurement": {
+    "samples_per_version": 1,
+    "scope": "graph conversion plus SST run plus hardware-alignment analysis",
+    "timer": "Python time.monotonic",
+    "limitations": [
+      "Wall time is a single-run engineering measurement, not an architecture performance result.",
+      "The 4096-superstep runtime is a linear extrapolation and was not executed in this milestone.",
+      "Result SHA equality proves simulator outputs are unchanged for these two cases, not every possible workload."
+    ]
+  },
+  "cases": [
+    {
+      "case": "tiny_chain_v16",
+      "supersteps": 16,
+      "baseline_seconds": 24.963089,
+      "optimized_seconds": 21.723254,
+      "speedup": 1.149140,
+      "reduction_pct": 12.978502,
+      "baseline_result_sha256": "6982b5bc138838bc6928284eb28112d71194786da6c76a09734dd2cd130fbabd",
+      "optimized_result_sha256": "6982b5bc138838bc6928284eb28112d71194786da6c76a09734dd2cd130fbabd"
+    },
+    {
+      "case": "small_chain_v64",
+      "supersteps": 64,
+      "baseline_seconds": 93.84639182500541,
+      "optimized_seconds": 84.654733,
+      "speedup": 1.108578,
+      "reduction_pct": 9.794366,
+      "baseline_result_sha256": "7265d22fdb3edcc05ca8c55c0c66feac19d3db02e0f4c7929d709a7ec2ec56f0",
+      "optimized_result_sha256": "7265d22fdb3edcc05ca8c55c0c66feac19d3db02e0f4c7929d709a7ec2ec56f0"
+    }
+  ],
+  "stress_projection": {
+    "case": "large_chain_v4096",
+    "basis_case": "small_chain_v64",
+    "method": "optimized_seconds * 4096 / 64",
+    "projected_minutes": 90.29838186666666,
+    "status": "runtime_gate_not_met"
+  },
+  "status": "PASS_EQUIVALENCE_RUNTIME_GATE_OPEN"
+}

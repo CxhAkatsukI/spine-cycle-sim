@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
@@ -65,6 +66,16 @@ class FixedAxiPort {
     scheduler.add_component(master_);
     scheduler.add_component(responses_);
     scheduler.add_component(read_beats_);
+  }
+
+  void unregister_components(Scheduler &scheduler) {
+    if (!idle()) {
+      throw std::logic_error("cannot unregister a busy fixed AXI port");
+    }
+    scheduler.remove_component(read_beats_);
+    scheduler.remove_component(responses_);
+    scheduler.remove_component(master_);
+    scheduler.remove_component(requests_);
   }
 
   [[nodiscard]] Fifo<AxiRequest> &requests() noexcept { return requests_; }

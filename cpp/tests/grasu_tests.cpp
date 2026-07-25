@@ -1692,6 +1692,14 @@ void test_native_raw_pma_compactor_matches_hls_edge_array() {
   GraSuPmaUpdateSystem update(scheduler, core, backend, layout, updates,
                               update_config);
   update.register_components();
+  bool early_update_unregister_rejected = false;
+  try {
+    update.unregister_components();
+  } catch (const std::logic_error &) {
+    early_update_unregister_rejected = true;
+  }
+  require(early_update_unregister_rejected,
+          "running native update was allowed to unregister");
   scheduler.add_component(backend);
   scheduler.run_until([&] { return update.done() || update.failed(); },
                       1'000'000);
@@ -1710,11 +1718,25 @@ void test_native_raw_pma_compactor_matches_hls_edge_array() {
       }
     }
   }
+  const auto update_end_cycle = update.counters().end_cycle;
+  const auto update_components = scheduler.component_count();
+  update.unregister_components();
+  require(scheduler.component_count() < update_components && update.done() &&
+              update.counters().end_cycle == update_end_cycle,
+          "completed native update did not unregister with frozen timing");
 
   GraSuNativeCompactorConfig compact_config;
   GraSuNativeCompactorSystem compactor(scheduler, core, backend, layout, 32,
                                        compact_config);
   compactor.register_components();
+  bool early_compactor_unregister_rejected = false;
+  try {
+    compactor.unregister_components();
+  } catch (const std::logic_error &) {
+    early_compactor_unregister_rejected = true;
+  }
+  require(early_compactor_unregister_rejected,
+          "running native compactor was allowed to unregister");
   scheduler.run_until(
       [&] { return compactor.done() || compactor.failed(); }, 1'000'000);
   require(!compactor.failed() && compactor.done(),
@@ -1759,6 +1781,12 @@ void test_native_raw_pma_compactor_matches_hls_edge_array() {
             << " segments=" << counters.pma_segment_reads
             << " valid_edges=" << counters.valid_edges_seen
             << " output_slots=" << counters.emitted_edge_slots << '\n';
+  const auto compactor_components = scheduler.component_count();
+  compactor.unregister_components();
+  require(scheduler.component_count() < compactor_components &&
+              compactor.done() &&
+              compactor.counters().end_cycle == counters.end_cycle,
+          "completed native compactor did not unregister with frozen timing");
 
   constexpr std::size_t kSupersteps = 4;
   GraSuReGraphConfig compute_config;

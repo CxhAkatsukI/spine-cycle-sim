@@ -40,6 +40,14 @@ void Scheduler::add_component(Component& component) {
   components_.push_back(&component);
 }
 
+void Scheduler::remove_component(Component& component) {
+  const auto found = std::find(components_.begin(), components_.end(), &component);
+  if (found == components_.end()) {
+    throw std::invalid_argument("component is not registered");
+  }
+  components_.erase(found);
+}
+
 const ClockDomainSnapshot& Scheduler::clock(ClockId id) const {
   if (id >= clocks_.size()) {
     throw std::out_of_range("unknown clock domain");
@@ -57,46 +65,58 @@ void Scheduler::step() {
       });
   now_fs_ = next->next_edge_fs;
 
-  std::vector<ClockId> active_clocks;
-  for (ClockId id = 0; id < clocks_.size(); ++id) {
-    if (clocks_[id].next_edge_fs == now_fs_) {
-      active_clocks.push_back(id);
+  if (clocks_.size() == 1) {
+    const CycleContext context{
+        .now_fs = now_fs_,
+        .domain_cycle = clocks_.front().completed_cycles,
+        .clock_id = 0,
+    };
+    for (Component* component : components_) {
+      component->prepare(context);
+    }
+    for (Component* component : components_) {
+      component->evaluate(context);
+    }
+    for (Component* component : components_) {
+      component->commit(context);
+    }
+  } else {
+    for (Component* component : components_) {
+      const ClockId id = component->clock_id();
+      if (clocks_[id].next_edge_fs == now_fs_) {
+        component->prepare(CycleContext{
+            .now_fs = now_fs_,
+            .domain_cycle = clocks_[id].completed_cycles,
+            .clock_id = id,
+        });
+      }
+    }
+    for (Component* component : components_) {
+      const ClockId id = component->clock_id();
+      if (clocks_[id].next_edge_fs == now_fs_) {
+        component->evaluate(CycleContext{
+            .now_fs = now_fs_,
+            .domain_cycle = clocks_[id].completed_cycles,
+            .clock_id = id,
+        });
+      }
+    }
+    for (Component* component : components_) {
+      const ClockId id = component->clock_id();
+      if (clocks_[id].next_edge_fs == now_fs_) {
+        component->commit(CycleContext{
+            .now_fs = now_fs_,
+            .domain_cycle = clocks_[id].completed_cycles,
+            .clock_id = id,
+        });
+      }
     }
   }
 
-  for (Component* component : components_) {
-    const ClockId id = component->clock_id();
-    if (clocks_[id].next_edge_fs == now_fs_) {
-      component->prepare(CycleContext{
-          .now_fs = now_fs_,
-          .domain_cycle = clocks_[id].completed_cycles,
-          .clock_id = id,
-      });
+  for (auto& clock : clocks_) {
+    if (clock.next_edge_fs != now_fs_) {
+      continue;
     }
-  }
-  for (Component* component : components_) {
-    const ClockId id = component->clock_id();
-    if (clocks_[id].next_edge_fs == now_fs_) {
-      component->evaluate(CycleContext{
-          .now_fs = now_fs_,
-          .domain_cycle = clocks_[id].completed_cycles,
-          .clock_id = id,
-      });
-    }
-  }
-  for (Component* component : components_) {
-    const ClockId id = component->clock_id();
-    if (clocks_[id].next_edge_fs == now_fs_) {
-      component->commit(CycleContext{
-          .now_fs = now_fs_,
-          .domain_cycle = clocks_[id].completed_cycles,
-          .clock_id = id,
-      });
-    }
-  }
-
-  for (ClockId id : active_clocks) {
-    auto& clock = clocks_[id];
     if (clock.next_edge_fs >
         std::numeric_limits<TimestampFs>::max() - clock.period_fs) {
       throw std::overflow_error("simulation timestamp overflow");

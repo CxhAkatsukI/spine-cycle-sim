@@ -66,6 +66,7 @@ public:
   operator=(const GraSuNativeCompactorSystem &) = delete;
 
   void register_components();
+  void unregister_components();
   [[nodiscard]] bool done() const noexcept;
   [[nodiscard]] bool failed() const noexcept;
   [[nodiscard]] const std::string &failure() const noexcept;

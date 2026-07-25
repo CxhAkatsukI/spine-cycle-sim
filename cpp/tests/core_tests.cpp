@@ -359,6 +359,74 @@ void test_multiclock_scheduler() {
   require(scheduler.now_fs() == 16'000'000, "unexpected absolute timestamp");
 }
 
+void test_scheduler_component_removal_is_exact() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("core", 100.0);
+  EdgeCounter retained("retained", core);
+  EdgeCounter removed("removed", core);
+  scheduler.add_component(retained);
+  scheduler.add_component(removed);
+  scheduler.run_events(3);
+
+  require(scheduler.component_count() == 2 && removed.evaluations == 3 &&
+              removed.commits == 3,
+          "scheduler removal setup did not execute both components");
+  scheduler.remove_component(removed);
+  scheduler.run_events(4);
+  require(scheduler.component_count() == 1 && retained.evaluations == 7 &&
+              retained.commits == 7 && removed.evaluations == 3 &&
+              removed.commits == 3,
+          "removed component received cycles or retained component stopped");
+
+  bool duplicate_removal_rejected = false;
+  try {
+    scheduler.remove_component(removed);
+  } catch (const std::invalid_argument &) {
+    duplicate_removal_rejected = true;
+  }
+  require(duplicate_removal_rejected,
+          "scheduler silently accepted duplicate component removal");
+}
+
+void test_fixed_axi_port_rejects_busy_unregister() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("core", 100.0);
+  MockMemoryBackend backend("backend", core,
+                            MockMemoryConfig{
+                                .channels = 1,
+                                .latency_cycles = 3,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 8,
+                                .response_queue_depth = 16,
+                            });
+  FixedAxiPort port(
+      "port", core,
+      FixedAxiPortConfig{
+          .memory_channels = 1, .channel = 0, .initiator_id = 99},
+      backend);
+  port.register_components(scheduler);
+  scheduler.add_component(backend);
+  require(port.requests().try_push(AxiRequest{
+              .transaction_id = 1,
+              .operation = MemoryOperation::kRead,
+              .address = 0,
+              .bytes = 64,
+              .stream_read_beats = false,
+              .write_data = {},
+          }),
+          "busy unregister test could not stage its request");
+  scheduler.step();
+
+  bool busy_rejected = false;
+  try {
+    port.unregister_components(scheduler);
+  } catch (const std::logic_error &) {
+    busy_rejected = true;
+  }
+  require(busy_rejected && scheduler.component_count() == 5,
+          "busy fixed AXI port was partially or fully unregistered");
+}
+
 void test_fifo_has_no_same_cycle_fallthrough() {
   Scheduler scheduler;
   const auto core = scheduler.add_clock_mhz("core", 100.0);
@@ -6143,6 +6211,10 @@ void test_spine_residual_pagerank_tracks_thresholded_frontier() {
 int main(int argc, char **argv) {
   const std::vector<std::pair<std::string, std::function<void()>>> tests = {
       {"multiclock_scheduler", test_multiclock_scheduler},
+      {"scheduler_component_removal",
+       test_scheduler_component_removal_is_exact},
+      {"fixed_axi_busy_unregister",
+       test_fixed_axi_port_rejects_busy_unregister},
       {"fifo_no_fallthrough", test_fifo_has_no_same_cycle_fallthrough},
       {"fifo_order_independent", test_fifo_is_registration_order_independent},
       {"fifo_backpressure", test_fifo_backpressure_is_counted},

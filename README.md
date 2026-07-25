@@ -59,6 +59,11 @@ at 0.40% median and 2.38% maximum E2E error; four tiny cases use six FPGA
 repeats, while the remaining single-sample component limitations stay visible.
 See
 [`docs/grasu_native_timing_envelope_20260725.md`](docs/grasu_native_timing_envelope_20260725.md).
+Completed native update and conversion components are now removed from the
+host scheduler only after their AXI ports and shared backend drain. This leaves
+the cycle/counter result byte-identical while reducing native SST wall time by
+about 10% on the 64-superstep chain; see
+[`docs/grasu_native_scheduler_runtime_20260725.md`](docs/grasu_native_scheduler_runtime_20260725.md).
 
 The PMA-native ReGraph SSSP path now includes finite gather/merger, merger/apply,
 and apply/HBM-wrapper streams with online SST-HBM backpressure. Its overlap and

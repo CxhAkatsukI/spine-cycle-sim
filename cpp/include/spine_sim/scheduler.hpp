@@ -23,6 +23,7 @@ class Scheduler {
   ClockId add_clock_mhz(std::string name, double frequency_mhz,
                         TimestampFs phase_fs = 0);
   void add_component(Component& component);
+  void remove_component(Component& component);
 
   void step();
   void run_events(std::uint64_t event_count);
@@ -36,6 +37,9 @@ class Scheduler {
   [[nodiscard]] const ClockDomainSnapshot& clock(ClockId id) const;
   [[nodiscard]] std::size_t clock_count() const noexcept {
     return clocks_.size();
+  }
+  [[nodiscard]] std::size_t component_count() const noexcept {
+    return components_.size();
   }
 
  private:

@@ -523,6 +523,23 @@ public:
     edge_array_port_->register_components(scheduler_);
     scheduler_.add_component(*compactor_);
     registered_ = true;
+    active_ = true;
+  }
+
+  void unregister_components() {
+    if (!registered_ || !active_ || !done()) {
+      throw std::logic_error(
+          "native compactor can only unregister after completion");
+    }
+    scheduler_.remove_component(*compactor_);
+    edge_array_port_->unregister_components(scheduler_);
+    for (auto iterator = pma_ports_.rbegin(); iterator != pma_ports_.rend();
+         ++iterator) {
+      (*iterator)->unregister_components(scheduler_);
+    }
+    row_port_->unregister_components(scheduler_);
+    end_cycle_ = scheduler_.clock(clock_id_).completed_cycles;
+    active_ = false;
   }
 
   [[nodiscard]] bool done() const noexcept {
@@ -547,7 +564,8 @@ public:
           port->master().stats().backend_submit_stalls;
     }
     result.start_cycle = start_cycle_;
-    result.end_cycle = scheduler_.clock(clock_id_).completed_cycles;
+    result.end_cycle = active_ ? scheduler_.clock(clock_id_).completed_cycles
+                               : end_cycle_;
     return result;
   }
 
@@ -631,7 +649,9 @@ private:
   std::unique_ptr<NativePmaCompactor> compactor_;
   std::uint32_t next_initiator_{3200};
   std::uint64_t start_cycle_{};
+  std::uint64_t end_cycle_{};
   bool registered_{};
+  bool active_{};
 };
 
 GraSuNativeCompactorSystem::GraSuNativeCompactorSystem(
@@ -646,6 +666,10 @@ GraSuNativeCompactorSystem::~GraSuNativeCompactorSystem() = default;
 
 void GraSuNativeCompactorSystem::register_components() {
   impl_->register_components();
+}
+
+void GraSuNativeCompactorSystem::unregister_components() {
+  impl_->unregister_components();
 }
 
 bool GraSuNativeCompactorSystem::done() const noexcept { return impl_->done(); }

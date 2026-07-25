@@ -1696,6 +1696,7 @@ class OnlineMemoryProbe final : public SST::Component {
           grasu_update_system_->done() && backend_->outstanding() == 0) {
         grasu_update_counters_ = grasu_update_system_->counters();
         grasu_update_counters_captured_ = true;
+        grasu_update_system_->unregister_components();
         grasu_compactor_system_ =
             std::make_unique<GraSuNativeCompactorSystem>(
                 scheduler_, 0, *backend_, grasu_layout_,
@@ -1714,6 +1715,7 @@ class OnlineMemoryProbe final : public SST::Component {
           grasu_compactor_system_->done() && backend_->outstanding() == 0) {
         grasu_compactor_counters_ = grasu_compactor_system_->counters();
         grasu_compactor_counters_captured_ = true;
+        grasu_compactor_system_->unregister_components();
         grasu_native_compute_system_ =
             std::make_unique<GraSuNativeReGraphSsspSystem>(
                 scheduler_, 0, *backend_, grasu_layout_.vertices,
