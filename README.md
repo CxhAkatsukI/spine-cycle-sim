@@ -40,6 +40,12 @@ insert/delete updates through finite AXIS, AXI, and shared-HBM components. Its
 scope, byte ledger, and correctness evidence are in
 [`docs/grasu_native_update_vertical_20260725.md`](docs/grasu_native_update_vertical_20260725.md).
 
+The existing-HLS native baseline now executes the full serial GraSU update,
+PMA compactor, edge-array ReGraph SSSP path on SST-HBM with no hidden
+conversion. The committed FPGA workload has exact graph/PMA/slot/superstep and
+SSSP alignment; absolute timing remains an explicitly trend-only result. See
+[`docs/grasu_regraph_native_e2e_20260725.md`](docs/grasu_regraph_native_e2e_20260725.md).
+
 The PMA-native ReGraph SSSP path now includes finite gather/merger, merger/apply,
 and apply/HBM-wrapper streams with online SST-HBM backpressure. Its overlap and
 pressure evidence are in

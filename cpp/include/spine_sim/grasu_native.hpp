@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "spine_sim/grasu.hpp"
+#include "spine_sim/grasu_regraph.hpp"
 #include "spine_sim/memory_backend.hpp"
 #include "spine_sim/scheduler.hpp"
 
@@ -71,6 +72,43 @@ public:
   [[nodiscard]] GraSuNativeCompactorCounters counters() const noexcept;
   [[nodiscard]] std::vector<GraSuEdge> compacted_live_edges() const;
   [[nodiscard]] std::vector<std::uint8_t> edge_array_payload() const;
+
+private:
+  class Impl;
+  std::unique_ptr<Impl> impl_;
+};
+
+struct GraSuNativeReGraphCounters {
+  GraSuReGraphCounters pipeline;
+  std::uint64_t edge_array_requests{};
+  std::uint64_t edge_array_bursts{};
+  std::uint64_t edge_array_slots_scanned{};
+  std::uint64_t edge_array_read_bytes{};
+  std::uint64_t edge_array_output_stall_cycles{};
+  std::uint64_t cross_source_round_bursts{};
+};
+
+// Existing ReGraph little-GS unit-weight SSSP path. It reads the padded edge
+// array produced by GraSuNativeCompactorSystem on every fixed superstep.
+class GraSuNativeReGraphSsspSystem {
+public:
+  GraSuNativeReGraphSsspSystem(
+      Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
+      std::size_t vertices, std::size_t compact_edge_slots,
+      std::uint32_t source, std::size_t supersteps,
+      GraSuReGraphConfig config = {});
+  ~GraSuNativeReGraphSsspSystem();
+
+  GraSuNativeReGraphSsspSystem(const GraSuNativeReGraphSsspSystem &) = delete;
+  GraSuNativeReGraphSsspSystem &
+  operator=(const GraSuNativeReGraphSsspSystem &) = delete;
+
+  void register_components();
+  [[nodiscard]] bool done() const noexcept;
+  [[nodiscard]] bool failed() const noexcept;
+  [[nodiscard]] const std::string &failure() const noexcept;
+  [[nodiscard]] GraSuNativeReGraphCounters counters() const noexcept;
+  [[nodiscard]] std::vector<std::uint32_t> distances() const;
 
 private:
   class Impl;

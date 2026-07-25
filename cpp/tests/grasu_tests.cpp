@@ -28,6 +28,7 @@ using spine::sim::GraSuEdge;
 using spine::sim::GraSuNativeConfig;
 using spine::sim::GraSuNativeCompactorConfig;
 using spine::sim::GraSuNativeCompactorSystem;
+using spine::sim::GraSuNativeReGraphSsspSystem;
 using spine::sim::GraSuPmaLayout;
 using spine::sim::GraSuPmaWordAbi;
 using spine::sim::GraSuPartitionedPmaLayout;
@@ -56,6 +57,15 @@ std::uint32_t read_u32(const std::vector<std::uint8_t> &bytes,
     value |= static_cast<std::uint32_t>(bytes[offset + byte]) << (byte * 8);
   }
   return value;
+}
+
+void write_u32(std::vector<std::uint8_t> &bytes, std::size_t offset,
+               std::uint32_t value) {
+  require(offset + 4 <= bytes.size(), "test payload is too short for u32");
+  for (std::size_t byte = 0; byte < 4; ++byte) {
+    bytes[offset + byte] =
+        static_cast<std::uint8_t>(value >> (byte * 8));
+  }
 }
 
 std::set<std::pair<std::uint32_t, std::uint32_t>>
@@ -1686,6 +1696,44 @@ void test_native_raw_pma_compactor_matches_hls_edge_array() {
             << " segments=" << counters.pma_segment_reads
             << " valid_edges=" << counters.valid_edges_seen
             << " output_slots=" << counters.emitted_edge_slots << '\n';
+
+  constexpr std::size_t kSupersteps = 4;
+  GraSuReGraphConfig compute_config;
+  GraSuNativeReGraphSsspSystem compute(scheduler, core, backend, kVertices, 32,
+                                       0, kSupersteps, compute_config);
+  compute.register_components();
+  scheduler.run_until([&] { return compute.done() || compute.failed(); },
+                      1'000'000);
+  require(!compute.failed() && compute.done(),
+          "native edge-array ReGraph did not drain: " + compute.failure());
+  require(compute.distances() ==
+              weighted_sssp_oracle(kVertices, final_edges, 0),
+          "native edge-array ReGraph differs from unit-weight SSSP oracle");
+  const auto compute_counters = compute.counters();
+  require(compute_counters.pipeline.supersteps == kSupersteps &&
+              compute_counters.pipeline.partition_passes == kSupersteps &&
+              compute_counters.pipeline.row_reads == 0 &&
+              compute_counters.pipeline.pma_segment_reads == 0 &&
+              compute_counters.pipeline.pma_slots_scanned == 0 &&
+              compute_counters.pipeline.pma_read_bytes == 0 &&
+              compute_counters.edge_array_requests == kSupersteps &&
+              compute_counters.edge_array_bursts == 4 * kSupersteps &&
+              compute_counters.edge_array_slots_scanned == 32 * kSupersteps &&
+              compute_counters.edge_array_read_bytes ==
+                  32 * 8 * kSupersteps &&
+              compute_counters.pipeline.live_edges_scanned ==
+                  final_edges.size() * kSupersteps &&
+              compute_counters.cross_source_round_bursts == 0,
+          "native edge-array ReGraph component ledger mismatch");
+  std::cout << "EVIDENCE grasu_native_regraph cycles="
+            << compute_counters.pipeline.end_cycle -
+                   compute_counters.pipeline.start_cycle
+            << " supersteps=" << compute_counters.pipeline.supersteps
+            << " edge_array_bursts=" << compute_counters.edge_array_bursts
+            << " edge_array_bytes="
+            << compute_counters.edge_array_read_bytes
+            << " live_edges=" << compute_counters.pipeline.live_edges_scanned
+            << '\n';
 }
 
 void test_native_compactor_rejects_normalized_pma_payload() {
@@ -1707,6 +1755,60 @@ void test_native_compactor_rejects_normalized_pma_payload() {
       [&] { return compactor.done() || compactor.failed(); }, 100'000);
   require(compactor.failed() && !compactor.done(),
           "native compactor silently accepted normalized weighted PMA words");
+}
+
+void test_native_edge_array_flags_cross_source_window_hls_contract() {
+  constexpr std::size_t kVertices = 4097;
+  constexpr std::uint32_t kSource = 4096;
+  constexpr std::uint32_t kUnitWeight =
+      1U << spine::sim::kGraSuPmaWeightShift;
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("native-cross-source-window", 200.0);
+  MockMemoryBackend backend("shared-hbm", core,
+                            MockMemoryConfig{.channels = 32,
+                                             .latency_cycles = 2,
+                                             .accepts_per_channel_per_cycle = 1,
+                                             .max_outstanding_per_channel = 8,
+                                             .response_queue_depth = 128});
+  GraSuReGraphConfig config;
+  GraSuNativeReGraphSsspSystem compute(scheduler, core, backend, kVertices, 8,
+                                       kSource, 1, config);
+
+  std::vector<std::uint8_t> edge_array(64);
+  write_u32(edge_array, 0, 4095);
+  write_u32(edge_array, 4, 2 | kUnitWeight);
+  write_u32(edge_array, 8, kSource);
+  write_u32(edge_array, 12, 1 | kUnitWeight);
+  for (std::size_t lane = 2; lane < 8; ++lane) {
+    write_u32(edge_array, lane * 8, spine::sim::kGraSuPmaEmpty);
+    write_u32(edge_array, lane * 8 + 4,
+              spine::sim::kGraSuPmaEmpty | kUnitWeight);
+  }
+  backend.initialize_payload(config.edge_array_channel, config.edge_array_base,
+                             edge_array);
+  compute.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until([&] { return compute.done() || compute.failed(); },
+                      500'000);
+  require(!compute.failed() && compute.done(),
+          "native cross-window ReGraph case did not drain");
+  const auto counters = compute.counters();
+  require(counters.cross_source_round_bursts == 1,
+          "native model did not expose the HLS lane-0 source-window contract");
+  const auto distances = compute.distances();
+  require(distances.at(1) ==
+              spine::sim::GraphAlgorithmPolicy::kSsspInfinity,
+          "native model silently fixed the current HLS cross-window behavior");
+  require(distances != weighted_sssp_oracle(
+                           kVertices,
+                           {{.source = 4095, .destination = 2},
+                            {.source = kSource, .destination = 1}},
+                           kSource),
+          "cross-window guard no longer exposes the native HLS mismatch");
+  std::cout << "EVIDENCE grasu_native_cross_source_window bursts="
+            << counters.edge_array_bursts
+            << " unsafe_bursts=" << counters.cross_source_round_bursts
+            << " oracle_match=false\n";
 }
 
 } // namespace
@@ -1746,6 +1848,8 @@ int main() {
        test_native_raw_pma_compactor_matches_hls_edge_array},
       {"native_compactor_abi_guard",
        test_native_compactor_rejects_normalized_pma_payload},
+      {"native_cross_source_window_guard",
+       test_native_edge_array_flags_cross_source_window_hls_contract},
   };
   std::size_t failures = 0;
   for (const auto &[name, test] : tests) {

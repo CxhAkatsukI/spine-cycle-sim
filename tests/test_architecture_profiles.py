@@ -254,6 +254,17 @@ class ArchitectureProfileTests(unittest.TestCase):
         self.assertEqual(profile.parameters["grasu_ddr_halves_per_cu"], 2)
         self.assertEqual(profile.parameters["grasu_ddr_lanes_per_half"], 16)
         self.assertEqual(profile.parameters["grasu_segment_slots"], 16)
+        self.assertEqual(profile.parameters["regraph_partition_vertices"], 65536)
+        self.assertEqual(profile.parameters["regraph_map_reduce_lanes"], 8)
+        self.assertEqual(profile.parameters["regraph_edge_array_fifo_depth"], 8)
+        self.assertEqual(profile.parameters["regraph_source_buffer_vertices"], 4096)
+        self.assertEqual(profile.parameters["regraph_source_state_channel"], 1)
+        self.assertEqual(
+            profile.parameters["regraph_source_state_mirror_channel"], 3
+        )
+        self.assertEqual(profile.parameters["regraph_vertex_prop_hbm_channel"], 30)
+        self.assertTrue(profile.parameters["conversion_cost_included"])
+        self.assertFalse(profile.parameters["pma_native_compute"])
         self.assertEqual(verify_profile_artifacts(profile), [])
 
 

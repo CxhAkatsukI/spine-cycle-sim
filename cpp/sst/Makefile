@@ -14,6 +14,7 @@ SOURCES := online_memory_probe.cpp \
            $(ROOT)/cpp/src/algorithm_pipeline.cpp \
            $(ROOT)/cpp/src/axi.cpp \
            $(ROOT)/cpp/src/grasu.cpp \
+           $(ROOT)/cpp/src/grasu_native.cpp \
            $(ROOT)/cpp/src/grasu_regraph.cpp \
            $(ROOT)/cpp/src/memory_backend.cpp \
            $(ROOT)/cpp/src/scheduler.cpp \

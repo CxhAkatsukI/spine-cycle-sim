@@ -44,6 +44,9 @@ probe.addParams(
         "channel_capacity_bytes": channel_bytes,
         "max_cycles": int(os.environ.get("GRASU_SST_MAX_CYCLES", "2000000")),
         "max_rounds": int(os.environ.get("GRASU_SST_MAX_ROUNDS", "256")),
+        "grasu_native_supersteps": int(
+            os.environ.get("GRASU_SST_NATIVE_SUPERSTEPS", "2")
+        ),
         "pagerank_iterations": int(
             os.environ.get("GRASU_SST_PAGERANK_ITERATIONS", "3")
         ),
@@ -70,6 +73,9 @@ probe.addParams(
         ),
         "grasu_source_cache_response_fifo_depth": int(
             os.environ.get("GRASU_SST_SOURCE_CACHE_RESPONSE_FIFO_DEPTH", "8")
+        ),
+        "grasu_edge_array_fifo_depth": int(
+            os.environ.get("GRASU_SST_EDGE_ARRAY_FIFO_DEPTH", "8")
         ),
         "grasu_edge_lanes": int(os.environ.get("GRASU_SST_EDGE_LANES", "4")),
         "grasu_gather_banks": int(
@@ -161,6 +167,18 @@ probe.addParams(
         ),
         "grasu_degree_base": int(
             os.environ.get("GRASU_SST_DEGREE_BASE", str(0x41000000))
+        ),
+        "grasu_edge_array_base": int(
+            os.environ.get("GRASU_SST_EDGE_ARRAY_BASE", str(0x60000000))
+        ),
+        "grasu_edge_array_channel": int(
+            os.environ.get("GRASU_SST_EDGE_ARRAY_CHANNEL", "0")
+        ),
+        "grasu_compactor_completion_tokens": int(
+            os.environ.get("GRASU_SST_COMPACTOR_COMPLETION_TOKENS", "4")
+        ),
+        "grasu_compactor_lane_pipeline_latency": int(
+            os.environ.get("GRASU_SST_COMPACTOR_LANE_PIPELINE_LATENCY", "72")
         ),
         "grasu_partition_address_stride": int(
             os.environ.get("GRASU_SST_PARTITION_ADDRESS_STRIDE", str(1 << 32))

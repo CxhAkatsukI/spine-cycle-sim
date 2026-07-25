@@ -1,0 +1,73 @@
+digraph G {
+  graph [rankdir=TB, bgcolor="white", pad="0.25", nodesep="0.32", ranksep="0.65", compound=true];
+  node [shape=box, style="rounded,filled", fillcolor="#f7f7f4", color="#333333", fontname="DejaVu Sans", fontsize=9];
+  edge [color="#555555", fontname="DejaVu Sans", fontsize=8];
+
+  graph_input [label="initial graph + update batch\nunit-weight native ABI", fillcolor="#dfeaf4"];
+
+  subgraph cluster_update {
+    label="GraSU update (4 HBM channels)";
+    color="#8aa9c2";
+    update_hbm [label="4 striped update arrays"];
+    search [label="4 x bin_search_direct\nserial row + binary probes"];
+    dispatch [label="1 x dispatch\nfixed round robin"];
+    processors [label="2 x cache direct RMW\n2 x DDR, 2 halves x 16 lanes"];
+    pma [label="PMA HBM[0..3]\n16 slots / 512-bit segment", fillcolor="#f4e4bf"];
+    update_hbm -> search [label="AXI reads"];
+    search -> dispatch [label="4 finite AXIS"];
+    dispatch -> processors [label="4 finite AXIS"];
+    processors -> pma [dir=both, label="512-bit RMW"];
+  }
+
+  subgraph cluster_conversion {
+    label="Native conversion (serial barrier)";
+    color="#c18a8a";
+    barrier [label="4 completion tokens"];
+    compactor [label="1 x PMA compactor\nrow walk + capacity scan\n16 lanes, II=1, latency=72"];
+    edge_array [label="padded edge array HBM[0]\n8 edges / 512-bit burst", fillcolor="#f3d4d4"];
+    barrier -> compactor;
+    compactor -> edge_array [label="AXI writes"];
+  }
+
+  subgraph cluster_compute {
+    label="Native ReGraph SSSP (fixed supersteps)";
+    color="#91a87b";
+    reader [label="edge-array reader\n8-edge bursts + FIFO"];
+    source [label="source-state ping/pong\nHBM[1] + HBM[3]\n4096-vertex window", fillcolor="#f4e4bf"];
+    scatter [label="8 x Scatter/Map\nHLS lane-0 window rule"];
+    gather [label="8-bank Gather\nRAW bypass depth=6"];
+    merger [label="Merger/Reduce"];
+    apply [label="Apply + HBM wrapper\n65536-vertex sweep"];
+    vertex [label="vertex state HBM[30]", fillcolor="#f4e4bf"];
+    reader -> scatter [label="finite FIFO"];
+    source -> scatter [dir=both, label="window load/store"];
+    scatter -> gather [label="8 lanes"];
+    gather -> merger [label="finite FIFO"];
+    merger -> apply [label="finite FIFO"];
+    apply -> vertex [dir=both, label="AXI RMW"];
+  }
+
+  subgraph cluster_memory {
+    label="Shared execution substrate";
+    color="#999999";
+    axi [label="FixedAxiPort\nfinite request/response queues"];
+    backend [label="OnlineSstMemoryBackend\nper-channel contention + outstanding"];
+    dram [label="32 x SST memHierarchy\nDRAMSim3 HBM2", fillcolor="#e5e5e5"];
+    axi -> backend -> dram;
+  }
+
+  graph_input -> update_hbm;
+  processors -> barrier [label="completion"];
+  pma -> compactor [label="row + PMA AXI"];
+  edge_array -> reader [label="AXI reads / step"];
+  pma -> axi [style=dashed, constraint=false, label="all HBM traffic"];
+  edge_array -> axi [style=dashed, constraint=false];
+  source -> axi [style=dashed, constraint=false];
+  vertex -> axi [style=dashed, constraint=false];
+
+  { rank=same; update_hbm; search; dispatch; processors; pma; }
+  { rank=same; barrier; compactor; edge_array; }
+  { rank=same; reader; source; scatter; gather; }
+  { rank=same; merger; apply; vertex; }
+  { rank=same; axi; backend; dram; }
+}

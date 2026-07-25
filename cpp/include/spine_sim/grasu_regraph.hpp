@@ -21,6 +21,7 @@ struct GraSuReGraphConfig {
   std::size_t source_buffer_vertices{4096};
   std::size_t source_cache_request_fifo_depth{8};
   std::size_t source_cache_response_fifo_depth{8};
+  std::size_t edge_array_fifo_depth{8};
   std::size_t edge_lanes{8};
   std::size_t gather_banks{8};
   std::size_t gather_bypass_distance{6};
@@ -49,6 +50,7 @@ struct GraSuReGraphConfig {
   std::uint64_t source_state_base{0x5000'0000ULL};
   std::uint64_t source_state_buffer_stride{0x0010'0000ULL};
   std::uint64_t degree_base{0x4100'0000ULL};
+  std::uint64_t edge_array_base{0x6000'0000ULL};
   // A partition keeps the first partition's historical addresses and moves
   // subsequent row/PMA windows by this stride.
   std::uint64_t partition_address_stride{0x1'0000'0000ULL};
@@ -57,6 +59,7 @@ struct GraSuReGraphConfig {
   std::size_t source_state_mirror_channel{3};
   std::size_t vertex_state_channel{30};
   std::size_t degree_channel{30};
+  std::size_t edge_array_channel{0};
 };
 
 struct GraSuReGraphCounters {

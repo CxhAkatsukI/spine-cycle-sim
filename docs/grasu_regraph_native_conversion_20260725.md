@@ -4,9 +4,10 @@ Date: 2026-07-25
 
 ## Claim boundary
 
-This milestone models the existing HLS conversion path through the output edge
-array. It does **not** yet model the native ReGraph edge-array compute pipeline,
-so it is not a native end-to-end result.
+This document records the conversion-component milestone. The native ReGraph
+edge-array compute pipeline and serial SST-HBM end-to-end controller were added
+afterward; see `docs/grasu_regraph_native_e2e_20260725.md` for the current
+status, exact-workload FPGA alignment, and timing claim boundary.
 
 The two comparison paths are deliberately separate:
 
@@ -133,13 +134,12 @@ PASS native_raw_pma_compactor
 PASS native_compactor_abi_guard
 ```
 
-## Remaining native gaps
+## Follow-up status
 
-1. An execution-driven ReGraph reader must reread the padded edge array on each
-   superstep and feed the existing gather/apply/wrapper structure.
-2. Update, barrier, conversion, and compute need one serial end-to-end
-   controller and a closed cycle/byte/request ledger.
-3. The native mode must run on SST-HBM with the same profile and manifest rules
-   as the normalized mode.
-4. Multiple hardware workloads are needed to separate fixed launch/control
-   overhead from row, reserved-capacity, output-write, and per-superstep costs.
+The execution-driven edge-array reader, Gather/Merger/Apply path, serial
+controller, closed ledger, and SST-HBM runner are complete. The remaining
+native calibration gap is a multi-workload hardware matrix that independently
+varies update count, source-row capacity, reserved PMA slots, compact slots,
+and supersteps. The first exact-workload result is structurally exact but
+underestimates the FPGA event end-to-end time by 49.39%, so it is explicitly
+labeled trend-only rather than cycle calibrated.

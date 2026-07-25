@@ -49,7 +49,30 @@
     "pma_compactor_lane_ii": 1,
     "pma_compactor_segment_slots": 16,
     "pma_compactor_edges_per_output_burst": 8,
+    "pma_compactor_min_output_slots": 32,
+    "pma_compactor_row_channel": 0,
+    "regraph_edge_array_channel": 0,
+    "regraph_edge_array_fifo_depth": 8,
+    "regraph_partition_vertices": 65536,
+    "regraph_map_reduce_lanes": 8,
+    "regraph_source_buffer_vertices": 4096,
+    "regraph_source_cache_request_fifo_depth": 8,
+    "regraph_source_cache_response_fifo_depth": 8,
+    "regraph_gather_bypass_distance": 6,
+    "regraph_gather_pipeline_latency": 9,
+    "regraph_gather_merger_fifo_depth": 8,
+    "regraph_merger_apply_fifo_depth": 8,
+    "regraph_apply_wrapper_fifo_depth": 8,
+    "regraph_apply_request_window": 16,
+    "regraph_apply_pipeline_latency": 100,
+    "regraph_apply_pipeline_capacity": 100,
+    "regraph_hbm_wrapper_pipeline_latency": 71,
+    "regraph_hbm_wrapper_pipeline_capacity": 71,
+    "regraph_source_state_channel": 1,
+    "regraph_source_state_mirror_channel": 3,
     "regraph_vertex_prop_hbm_channel": 30,
+    "regraph_source_state_copies": 2,
+    "native_validation_supersteps": 2,
     "pma_native_compute": false,
     "conversion_cost_included": true
   },
@@ -60,6 +83,9 @@
     "payload_backed_pma",
     "simulator_native_raw_pma_abi_guard",
     "execution_driven_pma_to_edge_array_compactor",
+    "execution_driven_regraph_edge_array_reader",
+    "execution_driven_native_serial_pipeline",
+    "native_cross_source_window_guard",
     "measured_pma_to_edge_array_compactor",
     "regraph_little_gs_sssp"
   ],
@@ -78,6 +104,7 @@
   "limitations": [
     "This is the existing hardware-validation baseline, not the intended PMA-native comparison architecture.",
     "Its measured kernel window includes a one-shot PMA-to-edge-array compactor that scans reserved PMA capacity.",
+    "The current little-GS HLS chooses one 4096-source property window from edge lane 0 for all eight lanes; native results with a cross-window burst are correctness-ineligible.",
     "The simulator must not silently remove this compactor while labeling results as native measured hardware."
   ]
 }
