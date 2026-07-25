@@ -1,0 +1,130 @@
+Cache size                    : 65536
+Block size                    : 8
+Associativity                 : 1
+Read only ports               : 1
+Write only ports              : 1
+Read write ports              : 0
+Single ended read ports       : 0
+Cache banks (UCA)             : 1
+Technology                    : 0.032
+User specified HP   Vdd (v)?  : false
+User specified LSTP Vdd (v)?  : false
+User specified LOP  Vdd (v)?  : false
+Temperature                   : 350
+Tag size                      : 0
+array type                    : Scratch RAM
+Model as memory               : false
+Access mode                   : 0
+Data array cell type          : 0
+Data array peripheral type    : 0
+Tag array cell type           : 0
+Tag array peripheral type     : 0
+Optimization target           : 0
+Design objective (UCA wt)     : 0 0 0 100 0
+Design objective (UCA dev)    : 100000 100000 100000 20 100000
+Cache model                   : 0
+Nuca bank                     : 0
+Wire inside mat               : 1
+Wire outside mat              : 1
+Interconnect projection       : 1
+Wire signalling               : 0
+Print level                   : 0
+ECC overhead                  : false
+Page size                     : 8192
+Burst length                  : 8
+Internal prefetch width       : 8
+Force cache config            : false
+
+---------- CACTI-P,  with new features: CAM and fully associative cache, power gating, and DVS of June, 2014), Uniform Cache Access SRAM Model ----------
+
+Cache Parameters:
+    Total cache size (bytes): 65536
+    Number of banks: 1
+    Associativity: direct mapped
+    Block size (bytes): 8
+    Read/write Ports: 0
+    Read ports: 1
+    Write ports: 1
+    Technology size (nm): 32
+
+    Access time (ns): 0.669222 (@DVS_Level0); 0.680174 (@DVS_Level1_Vdd=0.8); 0.656865 (@DVS_Level2_Vdd=1.1); 0.650603 (@DVS_Level3_Vdd=1.3); 0.648637 (@DVS_Level4_Vdd=1.4); 0.647166 (@DVS_Level5_Vdd=1.5); 
+    Cycle time (ns):  0.112915 (@DVS_Level0); 0.12275 (@DVS_Level1_Vdd=0.8); 0.0998515 (@DVS_Level2_Vdd=1.1); 0.0913257 (@DVS_Level3_Vdd=1.3); 0.0880243 (@DVS_Level4_Vdd=1.4); 0.0851734 (@DVS_Level5_Vdd=1.5); 
+    Total dynamic read energy per access (nJ): 0.0339353 (@DVS_Level0); 0.0271969 (@DVS_Level1_Vdd=0.8); 0.049703 (@DVS_Level2_Vdd=1.1); 0.0685176 (@DVS_Level3_Vdd=1.3); 0.0790663 (@DVS_Level4_Vdd=1.4); 0.0903755 (@DVS_Level5_Vdd=1.5); 
+    Total dynamic write energy per access (nJ): 0.0354481 (@DVS_Level0); 0.0283371 (@DVS_Level1_Vdd=0.8); 0.0521144 (@DVS_Level2_Vdd=1.1); 0.0720323 (@DVS_Level3_Vdd=1.3); 0.0832092 (@DVS_Level4_Vdd=1.4); 0.0951978 (@DVS_Level5_Vdd=1.5); 
+    Total leakage power of a bank without power gating, including its network outside (mW): 43.2247 (@DVS_Level0); 30.3581 (@DVS_Level1_Vdd=0.8); 78.9191 (@DVS_Level2_Vdd=1.1); 130.267 (@DVS_Level3_Vdd=1.3); 162.7 (@DVS_Level4_Vdd=1.4); 200.114 (@DVS_Level5_Vdd=1.5); 
+    Cache height x width (mm): 0.949494 x 0.384092
+
+
+
+    Best Ndwl : 16
+    Best Ndbl : 32
+    Best Nspd : 8
+    Best Ndcm : 1
+    Best Ndsam L1 : 1
+    Best Ndsam L2 : 8
+
+    Data array, H-tree wire type: Delay optimized global wires
+
+Wire Properties at DVS level 0:
+
+  Delay Optimal
+	Repeater size - 82.5849 
+	Repeater spacing - 0.123967 (mm) 
+	Delay - 0.0984137 (ns/mm) 
+	PowerD - 0.000365241 (nJ/mm) 
+	PowerL - 0.0131994 (mW/mm) 
+	PowerLgate - 0.00321397 (mW/mm)
+	Wire width - 0.064 microns
+	Wire spacing - 0.064 microns
+
+  5% Overhead
+	Repeater size - 40.5849 
+	Repeater spacing - 0.123967 (mm) 
+	Delay - 0.10274 (ns/mm) 
+	PowerD - 0.000258375 (nJ/mm) 
+	PowerL - 0.00648659 (mW/mm) 
+	PowerLgate - 0.00157945 (mW/mm)
+	Wire width - 0.064 microns
+	Wire spacing - 0.064 microns
+
+  10% Overhead
+	Repeater size - 46.5849 
+	Repeater spacing - 0.223967 (mm) 
+	Delay - 0.108097 (ns/mm) 
+	PowerD - 0.000230781 (nJ/mm) 
+	PowerL - 0.00412117 (mW/mm) 
+	PowerLgate - 0.00100348 (mW/mm)
+	Wire width - 0.064 microns
+	Wire spacing - 0.064 microns
+
+  20% Overhead
+	Repeater size - 32.5849 
+	Repeater spacing - 0.223967 (mm) 
+	Delay - 0.117913 (ns/mm) 
+	PowerD - 0.000209001 (nJ/mm) 
+	PowerL - 0.00288265 (mW/mm) 
+	PowerLgate - 0.000701908 (mW/mm)
+	Wire width - 0.064 microns
+	Wire spacing - 0.064 microns
+
+  30% Overhead
+	Repeater size - 26.5849 
+	Repeater spacing - 0.223967 (mm) 
+	Delay - 0.127056 (ns/mm) 
+	PowerD - 0.000199877 (nJ/mm) 
+	PowerL - 0.00235185 (mW/mm) 
+	PowerLgate - 0.000572663 (mW/mm)
+	Wire width - 0.064 microns
+	Wire spacing - 0.064 microns
+
+  Low-swing wire (1 mm) - Note: Unlike repeated wires, 
+	delay and power values of low-swing wires do not
+	have a linear relationship with length. 
+	delay - 0.117734 (ns) 
+	powerD - 3.76988e-06 (nJ) 
+	PowerL - 1.9674e-07 (mW) 
+	PowerLgate - 8.80006e-08 (mW)
+	Wire width - 1.28e-07 microns
+	Wire spacing - 1.28e-07 microns
+
+

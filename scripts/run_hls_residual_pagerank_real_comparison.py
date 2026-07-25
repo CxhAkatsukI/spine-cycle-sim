@@ -22,6 +22,7 @@ from scripts.run_hls_pagerank_real_comparison import (  # noqa: E402
     DEFAULT_INPUT_MANIFEST,
     DEFAULT_SPINE_PROFILE,
     DEFAULT_SST,
+    _display_path,
     _profile,
     _run_process,
     _select_runs,
@@ -60,7 +61,7 @@ def _command(
     graph = ROOT / run["graph"]["path"]  # type: ignore[index]
     update = ROOT / run["update"]["path"]  # type: ignore[index]
     if system == "spine":
-        return [
+        command = [
             args.python,
             str(ROOT / "scripts" / "run_sst_spine_vertical.py"),
             "--no-build",
@@ -89,8 +90,11 @@ def _command(
             "--out-dir",
             str(out_dir.resolve()),
         ]
+        if args.instantiate_all_hbm_channels:
+            command.append("--instantiate-all-hbm-channels")
+        return command
     if system == "grasu_regraph":
-        return [
+        command = [
             args.python,
             str(
                 ROOT
@@ -115,6 +119,9 @@ def _command(
             "--out-dir",
             str(out_dir.resolve()),
         ]
+        if args.instantiate_all_hbm_channels:
+            command.append("--instantiate-all-hbm-channels")
+        return command
     raise ValueError(f"unsupported system: {system}")
 
 
@@ -198,7 +205,7 @@ def _run_system(
         wall_seconds=wall_seconds,
         profile_id=profile_id,
     )
-    row["raw_result_path"] = str(raw_result_path.resolve().relative_to(ROOT))
+    row["raw_result_path"] = _display_path(raw_result_path)
     row["raw_result_sha256"] = sha256_file(raw_result_path)
     if not reusable:
         cache_path.write_text(
@@ -237,6 +244,11 @@ def main() -> int:
     parser.add_argument("--max-cycles", type=int, default=100_000_000)
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--no-build", action="store_true")
+    parser.add_argument(
+        "--instantiate-all-hbm-channels",
+        action="store_true",
+        help="instantiate all 32 HBM controllers so DRAM background energy is comparable",
+    )
     args = parser.parse_args()
     if args.jobs <= 0 or args.timeout_seconds <= 0.0 or args.max_cycles <= 0:
         raise ValueError("jobs, timeout, and max cycles must be positive")
@@ -357,6 +369,10 @@ def main() -> int:
         "capability_catalog_sha256": sha256_file(args.capability_catalog),
         "execution_sha256": execution_sha256,
         "selected_run_ids": [run["run_id"] for run in selected],
+        "instantiate_all_hbm_channels": args.instantiate_all_hbm_channels,
+        "hbm_controller_instances": (
+            32 if args.instantiate_all_hbm_channels else None
+        ),
         "system_rows": len(rows),
         "pairs": len(pairs),
         "all_correct": all(int(row["correctness_mismatches"]) == 0 for row in rows)
@@ -368,6 +384,11 @@ def main() -> int:
             "Inputs are compact real-edge slices, not full datasets.",
             "GraSU/ReGraph residual PageRank is proposed, not a compiled xclbin.",
             "Simulator cycles are not calibrated cycle-for-cycle against hw.",
+            (
+                "DRAM energy includes all 32 HBM controller instances."
+                if args.instantiate_all_hbm_channels
+                else "DRAM energy covers active channels only and excludes idle-channel energy."
+            ),
             (
                 "Contiguous/repeated/discontinuous classes describe accepted "
                 "backend requests per initiator and operation; they are not "

@@ -141,6 +141,10 @@ def validate_grasu_pagerank_result(
         < 1.0e-7,
         "final_edges": result.get("compute_live_edges")
         == int(run["final_edges"]) * iterations,
+        "gather_activity": int(result.get("gather_reset_cycles", -1)) > 0
+        and int(result.get("gather_merge_cycles", -1)) > 0
+        and result.get("gather_merge_cycles")
+        == result.get("gather_rows_emitted"),
         "architecture_correctness": result.get(
             "architecture_correctness_mismatches"
         )
@@ -485,6 +489,10 @@ def validate_grasu_residual_result(
         and frontier_out[-1] == 0,
         "active_edges": result.get("compute_active_edges")
         == result.get("expected_active_edges"),
+        "gather_activity": int(result.get("gather_reset_cycles", -1)) > 0
+        and int(result.get("gather_merge_cycles", -1)) > 0
+        and result.get("gather_merge_cycles")
+        == result.get("gather_rows_emitted"),
         "architecture_correctness": result.get(
             "architecture_correctness_mismatches"
         )

@@ -170,6 +170,9 @@ class HlsPageRankRealComparisonTests(unittest.TestCase):
                 "iterations": 3,
                 "pagerank_damping": 0.85,
                 "compute_live_edges": 12,
+                "gather_reset_cycles": 12,
+                "gather_merge_cycles": 24,
+                "gather_rows_emitted": 24,
                 "architecture_correctness_mismatches": 0,
                 "mathematical_correctness_mismatches": 0,
                 "correctness_mismatches": 0,
@@ -205,6 +208,12 @@ class HlsPageRankRealComparisonTests(unittest.TestCase):
         child["result"]["degree_update_reads"] = 15
         self.assertIn(
             "update_ledger",
+            validate_grasu_pagerank_result(_run(), child, **arguments),
+        )
+        child["result"]["degree_update_reads"] = 16
+        child["result"].pop("gather_reset_cycles")
+        self.assertIn(
+            "gather_activity",
             validate_grasu_pagerank_result(_run(), child, **arguments),
         )
 
@@ -360,6 +369,9 @@ class HlsPageRankRealComparisonTests(unittest.TestCase):
             "residuals_external": [1.0e-7] * 4,
             "compute_active_edges": 4,
             "expected_active_edges": 4,
+            "gather_reset_cycles": 8,
+            "gather_merge_cycles": 16,
+            "gather_rows_emitted": 16,
             "update_cycles": 100,
             "compute_cycles": 300,
             "update_pma_reads": 16,

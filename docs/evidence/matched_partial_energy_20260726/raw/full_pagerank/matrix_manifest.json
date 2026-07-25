@@ -1,0 +1,46 @@
+{
+  "algorithm": "full_pagerank",
+  "all_correct": true,
+  "capability_catalog": "/home/chuxiao/spine-cycle-sim/configs/contracts/grasu_regraph_capabilities_v1.json",
+  "capability_catalog_sha256": "a4f1c2134a5957c8a7faf258b0205498ef19c1e9eda29c0d1fc1bc4a7183108a",
+  "claim_class": "profile_clock_adjusted_real_compact_execution_driven",
+  "complete_matrix": false,
+  "execution_sha256": "143635dc6b723e0a905668e367929258296258e8f718ecd43ced730ac3abf577",
+  "grasu_profile_id": "grasu_regraph_weighted_pma_hls_proposed_pagerank_ff13a67",
+  "grasu_profile_sha256": "53e1688e3f944d59cb2e482f040ed82e4a253e65b0c2e1353103aedb23a9dcda",
+  "hbm_controller_instances": 32,
+  "input_manifest": "/home/chuxiao/spine-cycle-sim/configs/experiments/hls_weighted_real_small_batches_20260726.json",
+  "input_manifest_sha256": "1c0a362a82b34eb235153b815dbfbeb9121932cd4d2b40e87b8d8e5370a40bd9",
+  "instantiate_all_hbm_channels": true,
+  "limitations": [
+    "Inputs are compact real-edge slices, not full datasets.",
+    "GraSU/ReGraph PageRank is HLS-equivalent proposed, not a compiled xclbin.",
+    "Simulator cycles are not calibrated cycle-for-cycle against hw.",
+    "DRAM energy includes all 32 HBM controller instances.",
+    "DRAM energy excludes on-chip energy.",
+    "Contiguous/repeated/discontinuous classes describe accepted backend requests per initiator and operation; they are not DRAM row-hit classifications.",
+    "Actual requested bytes exclude DRAM burst amplification and controller-internal transfer granularity."
+  ],
+  "matrix_id": "hls_full_pagerank_real_compact_comparison_20260726",
+  "matrix_wall_seconds": 44.019632743671536,
+  "pagerank_damping": 0.85,
+  "pagerank_iterations": 3,
+  "pairs": 3,
+  "pairs_sha256": "10c66e410a80d06048f82808f10d4850f45e432a52cfe0e825968b6b2c2e57e5",
+  "schema_version": 1,
+  "selected_run_ids": [
+    "real_amazon_2008_insert_u8",
+    "real_web_google_insert_u8",
+    "real_soc_flickr_und_insert_u8"
+  ],
+  "spine_profile_id": "spine_shared_engine_9c08763",
+  "spine_profile_sha256": "aba0d6bbcbaa64240897ed3efc555d6ce6d6455d2f10e77e0ccdb77fa46466a7",
+  "status": "PASS",
+  "system_rows": 6,
+  "system_rows_sha256": "04d6a2a92fd897e2092d5f314a1ad2c5ef0e606efa0514e11db63a72691ade04",
+  "timing_window": {
+    "clock_rule": "convert cycles using each profile clock",
+    "grasu_regraph": "zero-time PMA build; timed PMA and degree update plus compute",
+    "spine": "zero-time compact L0 preload; timed update maintenance plus compute"
+  }
+}

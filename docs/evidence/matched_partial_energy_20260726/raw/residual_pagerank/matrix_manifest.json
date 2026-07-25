@@ -1,0 +1,40 @@
+{
+  "algorithm": "thresholded_residual_pagerank",
+  "all_correct": true,
+  "capability_catalog_sha256": "a4f1c2134a5957c8a7faf258b0205498ef19c1e9eda29c0d1fc1bc4a7183108a",
+  "claim_class": "profile_clock_adjusted_real_compact_execution_driven",
+  "complete_matrix": false,
+  "execution_sha256": "c6372805aeeaf0ffbc70ea3fc330b8b8d0e078171895928c0b63bac6fcb0cb00",
+  "grasu_profile_id": "grasu_regraph_weighted_pma_hls_proposed_residual_pagerank_ff13a67",
+  "grasu_profile_sha256": "fc86f67e6f9b5c1f8487f1865873bd7a9b9cb26f96f9626cd23e45a7847152c5",
+  "hbm_controller_instances": 32,
+  "input_manifest": "/home/chuxiao/spine-cycle-sim/configs/experiments/hls_weighted_real_small_batches_20260726.json",
+  "input_manifest_sha256": "1c0a362a82b34eb235153b815dbfbeb9121932cd4d2b40e87b8d8e5370a40bd9",
+  "instantiate_all_hbm_channels": true,
+  "limitations": [
+    "Inputs are compact real-edge slices, not full datasets.",
+    "GraSU/ReGraph residual PageRank is proposed, not a compiled xclbin.",
+    "Simulator cycles are not calibrated cycle-for-cycle against hw.",
+    "DRAM energy includes all 32 HBM controller instances.",
+    "Contiguous/repeated/discontinuous classes describe accepted backend requests per initiator and operation; they are not DRAM row-hit classifications.",
+    "Actual requested bytes exclude DRAM burst amplification; complete DRAM plus on-chip energy remains open."
+  ],
+  "matrix_id": "hls_residual_pagerank_real_compact_comparison_20260726",
+  "matrix_wall_seconds": 1066.2041767970659,
+  "pagerank_damping": 0.85,
+  "pagerank_epsilon": 1e-06,
+  "pairs": 3,
+  "pairs_sha256": "327f95b230d41dbb3dff2e28d226a45e00db175c69f4633243ff6adc979560ba",
+  "residual_max_iterations": 256,
+  "schema_version": 1,
+  "selected_run_ids": [
+    "real_amazon_2008_insert_u8",
+    "real_web_google_insert_u8",
+    "real_soc_flickr_und_insert_u8"
+  ],
+  "spine_profile_id": "spine_shared_engine_9c08763",
+  "spine_profile_sha256": "aba0d6bbcbaa64240897ed3efc555d6ce6d6455d2f10e77e0ccdb77fa46466a7",
+  "status": "PASS",
+  "system_rows": 6,
+  "system_rows_sha256": "c9642e895215881d0483ccc7177e41cc5766a829373a120864ab2bc377612b63"
+}

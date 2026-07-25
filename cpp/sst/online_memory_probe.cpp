@@ -2964,6 +2964,10 @@ class OnlineMemoryProbe final : public SST::Component {
              << grasu_residual_pagerank_reference_.active_edges << ",\n"
              << "  \"gather_bank_updates\": "
              << compute.gather_bank_updates << ",\n"
+             << "  \"gather_reset_cycles\": "
+             << compute.gather_reset_cycles << ",\n"
+             << "  \"gather_merge_cycles\": "
+             << compute.gather_merge_cycles << ",\n"
              << "  \"gather_bank_conflict_cycles\": "
              << compute.gather_bank_conflict_cycles << ",\n"
              << "  \"gather_bypass_hits\": " << compute.gather_bypass_hits
@@ -3351,6 +3355,10 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"compute_active_edges\": " << compute.active_edges_mapped
           << ",\n"
           << "  \"gather_bank_updates\": " << compute.gather_bank_updates
+          << ",\n"
+          << "  \"gather_reset_cycles\": " << compute.gather_reset_cycles
+          << ",\n"
+          << "  \"gather_merge_cycles\": " << compute.gather_merge_cycles
           << ",\n"
           << "  \"gather_rows_emitted\": " << compute.gather_rows_emitted
           << ",\n"

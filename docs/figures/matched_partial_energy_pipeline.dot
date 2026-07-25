@@ -1,0 +1,48 @@
+digraph matched_energy {
+  graph [
+    rankdir=LR,
+    bgcolor="white",
+    fontname="DejaVu Sans",
+    fontsize=12,
+    nodesep=0.38,
+    ranksep=0.70,
+    pad=0.18
+  ];
+  node [
+    shape=box,
+    style="rounded,filled",
+    fontname="DejaVu Sans",
+    fontsize=10,
+    color="#44515f",
+    fillcolor="#f7f9fa",
+    margin="0.14,0.10"
+  ];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#586674"];
+
+  workload [label="Matched real insert batches\nAmazon / Web-Google / Flickr", fillcolor="#e8f3ec"];
+  spine [label="Spine execution-driven model\nFull PR / residual PR", fillcolor="#e8f0f7"];
+  grasu [label="GraSU + PMA-native ReGraph\nFull PR / residual PR", fillcolor="#f8efe1"];
+  hbm [label="Shared SST memHierarchy + DRAMSim3\n32 physical HBM controllers", fillcolor="#eef0f2"];
+  counters [label="Accepted requests + activity counters\nsource cache / gather reset-update-merge"];
+  cacti [label="CACTI-P 6.5 at 32 nm\n16 KiB x 512b source bank\n64 KiB x 64b gather bank", fillcolor="#f3eaf4"];
+  ledger [label="Fail-closed matched ledger\nHBM components + selected SRAM\ncorrectness / request / energy closure", fillcolor="#e8f3ec"];
+
+  workload -> spine;
+  workload -> grasu;
+  spine -> hbm [label="AXI requests"];
+  grasu -> hbm [label="AXI requests"];
+  spine -> counters [label="cycles + correctness"];
+  grasu -> counters [label="cycles + physical activity"];
+  hbm -> ledger [label="activate / R / W / refresh / standby"];
+  counters -> ledger;
+  cacti -> ledger [label="per-access, leakage, area"];
+
+  scope [
+    label="Claim boundary\nMatched: 32-controller HBM energy\nProjected: selected ASIC SRAM\nOmitted: logic, FIFO, NoC, clock, board",
+    shape=note,
+    style="filled",
+    fillcolor="#fff7d9",
+    color="#8b7a31"
+  ];
+  ledger -> scope [style=dashed];
+}
