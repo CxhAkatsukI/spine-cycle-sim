@@ -73,6 +73,10 @@ class SharedComparisonWorkloadTests(unittest.TestCase):
         )
         for item in dynamic:
             assert item.dynamic_update is not None
+            self.assertEqual(
+                [(edge.src, edge.dst) for edge in item.dynamic_update.records],
+                sorted((edge.src, edge.dst) for edge in item.dynamic_update.records),
+            )
             final = _materialize_update(item.graph, item.dynamic_update)
             self.assertTrue(any(count > 0 for count in final.values()))
 

@@ -132,6 +132,13 @@ cases. It is input evidence only; no performance result is inferred until both
 architectures pass the shared runner and dual-oracle gates. See
 [`docs/shared_comparison_workloads_20260725.md`](docs/shared_comparison_workloads_20260725.md).
 
+The shared runner dispatches byte-identical inputs to normalized Spine and
+conversion-free GraSU/PMA-native-ReGraph, enforces independent architecture and
+mathematical oracles, closes each 32-channel DRAM ledger, and emits paired
+cycle/runtime rows. Only a filtered smoke case has run so far; the complete
+73-pair matrix remains pending. See
+[`docs/shared_comparison_runner_20260725.md`](docs/shared_comparison_runner_20260725.md).
+
 ## Quick Start
 
 Run one workload:

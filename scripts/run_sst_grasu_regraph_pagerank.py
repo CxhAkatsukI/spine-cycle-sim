@@ -32,11 +32,38 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def load_dram_stats(dram_dir: Path) -> dict[str, int | float]:
+    totals: dict[str, int | float] = {
+        "channels": 0,
+        "reads": 0,
+        "writes": 0,
+        "activates": 0,
+        "precharges": 0,
+        "total_energy_pj": 0.0,
+    }
+    paths = sorted(dram_dir.glob("channel*/dramsim3.json"))
+    if not paths:
+        raise ValueError(f"no DRAMSim3 JSON found under {dram_dir}")
+    for path in paths:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        if len(payload) != 1:
+            raise ValueError(f"expected one DRAM channel record in {path}")
+        row = next(iter(payload.values()))
+        totals["channels"] += 1
+        totals["reads"] += int(row["num_reads_done"])
+        totals["writes"] += int(row["num_writes_done"])
+        totals["activates"] += int(row["num_act_cmds"])
+        totals["precharges"] += int(row["num_pre_cmds"])
+        totals["total_energy_pj"] += float(row["total_energy"])
+    return totals
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--profile", type=Path, default=DEFAULT_PROFILE)
     parser.add_argument("--workload", type=Path, default=DEFAULT_WORKLOAD)
     parser.add_argument("--iterations", type=int, default=3)
+    parser.add_argument("--damping", type=float)
     parser.add_argument("--out-dir", type=Path, required=True)
     parser.add_argument("--sst", type=Path, default=DEFAULT_SST)
     parser.add_argument("--lib-dir", type=Path, default=ROOT / "build" / "sst")
@@ -57,6 +84,13 @@ def main() -> int:
     if profile.get("profile_id") != "grasu_regraph_normalized_pagerank_spine23":
         raise ValueError("runner requires the pinned normalized PageRank profile")
     params = profile["parameters"]
+    damping = (
+        float(params["pagerank_damping"])
+        if args.damping is None
+        else args.damping
+    )
+    if not 0.0 < damping < 1.0:
+        raise ValueError("damping must be between zero and one")
     memory = profile["memory"]
     kernel_clock = next(
         clock for clock in profile["clocks"] if clock["name"] == "kernel"
@@ -81,7 +115,7 @@ def main() -> int:
             "GRASU_SST_CORE_MHZ": str(kernel_clock["achieved_mhz"]),
             "GRASU_SST_MAX_CYCLES": str(args.max_cycles),
             "GRASU_SST_PAGERANK_ITERATIONS": str(args.iterations),
-            "GRASU_SST_PAGERANK_DAMPING": str(params["pagerank_damping"]),
+            "GRASU_SST_PAGERANK_DAMPING": str(damping),
             "GRASU_SST_CACHE_SEGMENTS_PER_HALF": str(
                 params["grasu_cache_segments_per_cu"]
             ),
@@ -166,6 +200,7 @@ def main() -> int:
         )
 
     result = json.loads(result_path.read_text(encoding="utf-8"))
+    dram = load_dram_stats(dram_dir)
     expected_claim = (
         "component_validation_simulation" if args.smoke else "normalized_simulation"
     )
@@ -184,11 +219,15 @@ def main() -> int:
         or result.get("correctness_mismatches") != 0
         or result.get("architecture_correctness_mismatches") != 0
         or result.get("mathematical_correctness_mismatches") != 0
+        or result.get("architecture_oracle") != "iterative_float32"
+        or result.get("mathematical_oracle") != "iterative_float64"
         or result.get("max_abs_error", 1.0) > 1.0e-5
         or result.get("mathematical_max_abs_error", 1.0) > 1.0e-5
         or abs(result.get("rank_sum", 0.0) - 1.0) > 1.0e-5
         or result.get("iterations") != args.iterations
-        or result.get("pagerank_damping") != params["pagerank_damping"]
+        or abs(result.get("pagerank_damping", -1.0) - damping) > 1.0e-7
+        or abs(result.get("core_mhz", -1.0) - kernel_clock["achieved_mhz"])
+        > 1.0e-9
         or result.get("updates") != 0
         or result.get("degree_update_timing_included") is not False
         or result.get("degree_updates_required") != 0
@@ -222,6 +261,8 @@ def main() -> int:
         or not 0 < result.get("apply_wrapper_fifo_max_occupancy", 0)
         <= params["regraph_apply_wrapper_fifo_depth"]
         or result.get("compute_write_bytes") != 3 * expected_bursts * 64
+        or dram["channels"] != memory["channels"]
+        or dram["reads"] + dram["writes"] != result.get("backend_requests")
     ):
         raise RuntimeError(f"SST GraSU/ReGraph PageRank validation failed: {result}")
 
@@ -232,9 +273,11 @@ def main() -> int:
         "workload": str(workload_path),
         "workload_sha256": sha256(workload_path),
         "iterations": args.iterations,
+        "damping": damping,
         "smoke": args.smoke,
         "command": command,
         "result": result,
+        "dram": dram,
         "status": "PASS",
     }
     (args.out_dir / "manifest.json").write_text(

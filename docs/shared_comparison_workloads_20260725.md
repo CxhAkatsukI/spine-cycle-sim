@@ -3,10 +3,10 @@
 ## Status and claim boundary
 
 This milestone freezes the inputs for a normalized, execution-driven Spine
-versus GraSU/PMA-native-ReGraph comparison. It does **not** report a winner or
-claim that the matrix has run. The next milestone must execute every selected
-run through both systems and pass the architecture and mathematical correctness
-oracles before timing is usable.
+versus GraSU/PMA-native-ReGraph comparison. The shared runner now exists and a
+single filtered smoke case passes, but the complete matrix has **not** run. It
+does **not** report a winner. Every selected run must pass both architectures
+and both correctness oracles before aggregate timing is usable.
 
 The authoritative manifest is
 `configs/experiments/shared_comparison_workloads_20260725.json`. Every graph,
@@ -101,3 +101,6 @@ python3 -m unittest discover -s tests
 
 The complete flow and claim boundary are summarized in
 `docs/figures/shared_comparison_workloads.svg`.
+
+The dual-oracle execution runner and its current smoke evidence are documented
+in `docs/shared_comparison_runner_20260725.md`.

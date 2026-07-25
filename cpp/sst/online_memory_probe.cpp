@@ -8,9 +8,12 @@
 #include <cstdint>
 #include <deque>
 #include <fstream>
+#include <functional>
+#include <limits>
 #include <map>
 #include <memory>
 #include <numeric>
+#include <queue>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -436,6 +439,56 @@ SsspReference run_sssp_reference(const SpineEdgeSlice &workload,
   values[source] = 0;
   return run_sssp_reference_from_state(workload, std::move(values), {source},
                                        max_rounds);
+}
+
+std::vector<std::uint32_t> run_sssp_mathematical_reference(
+    const SpineEdgeSlice &workload, std::uint32_t source) {
+  if (source >= workload.vertices) {
+    throw std::invalid_argument("SSSP source is outside the workload");
+  }
+  const SsspAdjacency adjacency = build_sssp_adjacency(workload);
+  constexpr std::uint64_t kUnreachable =
+      std::numeric_limits<std::uint64_t>::max();
+  std::vector<std::uint64_t> distances(workload.vertices, kUnreachable);
+  using QueueEntry = std::pair<std::uint64_t, std::uint32_t>;
+  std::priority_queue<QueueEntry, std::vector<QueueEntry>,
+                      std::greater<QueueEntry>>
+      pending;
+  distances[source] = 0;
+  pending.push({0, source});
+  while (!pending.empty()) {
+    const auto [distance, vertex] = pending.top();
+    pending.pop();
+    if (distance != distances[vertex]) {
+      continue;
+    }
+    for (const auto &[destination, weight] : adjacency[vertex]) {
+      const std::uint64_t candidate = distance + weight;
+      if (candidate < distances[destination]) {
+        distances[destination] = candidate;
+        pending.push({candidate, destination});
+      }
+    }
+  }
+  std::vector<std::uint32_t> reference(workload.vertices,
+                                       SpineSplitSsspCompute::kInfinity);
+  for (std::size_t vertex = 0; vertex < distances.size(); ++vertex) {
+    if (distances[vertex] < SpineSplitSsspCompute::kInfinity) {
+      reference[vertex] = static_cast<std::uint32_t>(distances[vertex]);
+    }
+  }
+  return reference;
+}
+
+std::uint64_t count_value_mismatches(
+    const std::vector<std::uint32_t> &actual,
+    const std::vector<std::uint32_t> &expected) {
+  std::uint64_t mismatches = actual.size() == expected.size() ? 0 : 1;
+  const std::size_t compared = std::min(actual.size(), expected.size());
+  for (std::size_t vertex = 0; vertex < compared; ++vertex) {
+    mismatches += actual[vertex] == expected[vertex] ? 0 : 1;
+  }
+  return mismatches;
 }
 
 SsspComparison compare_sssp_result(
@@ -1368,6 +1421,8 @@ class OnlineMemoryProbe final : public SST::Component {
             run_sssp_reference(final_snapshot, source_vertex_,
                                native_grasu_sssp ? grasu_native_supersteps_
                                                  : max_rounds_);
+        grasu_sssp_mathematical_reference_ =
+            run_sssp_mathematical_reference(final_snapshot, source_vertex_);
         if (!native_grasu_sssp && !grasu_sssp_reference_.converged) {
           throw std::invalid_argument(
               "GraSU/ReGraph SST SSSP reference did not converge");
@@ -1427,10 +1482,17 @@ class OnlineMemoryProbe final : public SST::Component {
       if (mode_ == "spine_pagerank") {
         pagerank_reference_ = run_full_pagerank_reference(
             workload, pagerank_damping_, pagerank_iterations_);
+        pagerank_mathematical_reference_ =
+            run_full_pagerank_mathematical_reference(
+                workload, static_cast<double>(pagerank_damping_),
+                pagerank_iterations_);
       } else {
         residual_pagerank_reference_ = run_residual_pagerank_reference(
             workload, pagerank_damping_, pagerank_epsilon_,
             residual_max_iterations_);
+        residual_mathematical_reference_ =
+            run_full_pagerank_mathematical_reference(
+                workload, static_cast<double>(pagerank_damping_), 200);
       }
       SpineL0Config maintenance_config;
       maintenance_config.device_dirty_source_limit = device_dirty_source_limit_;
@@ -1572,6 +1634,8 @@ class OnlineMemoryProbe final : public SST::Component {
       if (mode_ == "spine_sssp") {
         sssp_reference_ =
             run_sssp_reference(workload, source_vertex_, max_rounds_);
+        sssp_mathematical_reference_ =
+            run_sssp_mathematical_reference(workload, source_vertex_);
         if (!sssp_reference_.converged || !preload_path_.empty()) {
           output_.fatal(CALL_INFO, -1,
                         "SSSP reference did not converge or preload is set\n");
@@ -1592,6 +1656,7 @@ class OnlineMemoryProbe final : public SST::Component {
               dynamic_update_workload_.edges.end(),
               [](const SpineEdgeRecord &edge) { return edge.diff < 0; });
           cold_sssp_reference_ = sssp_reference_;
+          cold_sssp_mathematical_reference_ = sssp_mathematical_reference_;
           for (const SpineEdgeRecord &edge : dynamic_update_workload_.edges) {
             dynamic_update_sources_.push_back(edge.src);
           }
@@ -1607,6 +1672,8 @@ class OnlineMemoryProbe final : public SST::Component {
           sssp_reference_ =
               run_sssp_reference(dynamic_materialized_snapshot_, source_vertex_,
                                  max_rounds_);
+          sssp_mathematical_reference_ = run_sssp_mathematical_reference(
+              dynamic_materialized_snapshot_, source_vertex_);
           if (!dynamic_full_rebuild_) {
             dynamic_sssp_reference_ = run_sssp_reference_from_state(
                 dynamic_materialized_snapshot_, cold_sssp_reference_.values,
@@ -2174,6 +2241,8 @@ class OnlineMemoryProbe final : public SST::Component {
         spine_system_->compute().values(), sst_rounds_, cold_sssp_reference_);
     cold_value_mismatches_ = comparison.value_mismatches;
     cold_frontier_mismatches_ = comparison.frontier_mismatches;
+    cold_mathematical_mismatches_ = count_value_mismatches(
+        spine_system_->compute().values(), cold_sssp_mathematical_reference_);
     cold_final_values_ = spine_system_->compute().values();
     cold_rounds_ = sst_rounds_.size();
     cold_round_cycles_.clear();
@@ -2221,15 +2290,10 @@ class OnlineMemoryProbe final : public SST::Component {
       const std::vector<std::uint32_t> distances =
           compute_available ? grasu_native_compute_system_->distances()
                             : std::vector<std::uint32_t>{};
-      std::uint64_t mismatches =
-          distances.size() == grasu_sssp_reference_.values.size() ? 0 : 1;
-      for (std::size_t vertex = 0;
-           vertex < std::min(distances.size(),
-                             grasu_sssp_reference_.values.size());
-           ++vertex) {
-        mismatches +=
-            distances[vertex] == grasu_sssp_reference_.values[vertex] ? 0 : 1;
-      }
+      const std::uint64_t architecture_mismatches = count_value_mismatches(
+          distances, grasu_sssp_reference_.values);
+      const std::uint64_t mathematical_mismatches = count_value_mismatches(
+          distances, grasu_sssp_mathematical_reference_);
       const GraSuUpdateCounters update =
           grasu_update_counters_captured_
               ? grasu_update_counters_
@@ -2257,7 +2321,8 @@ class OnlineMemoryProbe final : public SST::Component {
       const bool passed = success && compactor_available && compute_available &&
                           !grasu_compactor_system_->failed() &&
                           !grasu_native_compute_system_->failed() &&
-                          mismatches == 0 && hls_contract_safe;
+                          architecture_mismatches == 0 &&
+                          mathematical_mismatches == 0 && hls_contract_safe;
       result << "{\n"
              << "  \"success\": " << (passed ? "true" : "false") << ",\n"
              << "  \"mode\": \"grasu_regraph_native_sssp\",\n"
@@ -2268,6 +2333,7 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"pipeline_order\": "
                 "\"update_then_barrier_compactor_then_compute\",\n"
              << "  \"conversion_cost_included\": true,\n"
+             << "  \"core_mhz\": " << core_mhz_ << ",\n"
              << "  \"cycles\": " << total_cycles << ",\n"
              << "  \"component_cycles\": " << component_cycles << ",\n"
              << "  \"controller_gap_cycles\": "
@@ -2293,7 +2359,15 @@ class OnlineMemoryProbe final : public SST::Component {
              << grasu_native_compact_edge_slots_ << ",\n"
              << "  \"pma_edge_abi\": \"native_raw_destination32\",\n"
              << "  \"supersteps\": " << compute.supersteps << ",\n"
-             << "  \"correctness_mismatches\": " << mismatches << ",\n"
+             << "  \"correctness_mismatches\": "
+             << architecture_mismatches + mathematical_mismatches << ",\n"
+             << "  \"architecture_correctness_mismatches\": "
+             << architecture_mismatches << ",\n"
+             << "  \"mathematical_correctness_mismatches\": "
+             << mathematical_mismatches << ",\n"
+             << "  \"architecture_oracle\": "
+                "\"synchronous_frontier_uint32\",\n"
+             << "  \"mathematical_oracle\": \"uint64_dijkstra\",\n"
              << "  \"native_hls_contract_safe\": "
              << (hls_contract_safe ? "true" : "false") << ",\n"
              << "  \"cross_source_round_bursts\": "
@@ -2445,10 +2519,13 @@ class OnlineMemoryProbe final : public SST::Component {
           grasu_config_.edge_lanes == 4 && grasu_config_.gather_banks == 4 &&
           grasu_config_.pagerank_source_map_latency == 3 &&
           grasu_config_.degree_channel == 30;
+      const bool residual_bound_passed =
+          residual_l1 <= pagerank_epsilon_ * 1.01F;
       const bool passed =
           success && compute_available &&
           !grasu_residual_compute_system_->failed() &&
           architecture_mismatches == 0 && mathematical_mismatches == 0 &&
+          residual_bound_passed &&
           compute.supersteps ==
               grasu_residual_pagerank_reference_.frontier_in_sizes.size() &&
           compute.active_edges_mapped ==
@@ -2465,6 +2542,7 @@ class OnlineMemoryProbe final : public SST::Component {
                 "\"structural_execution_driven\",\n"
              << "  \"pma_edge_abi\": "
                 "\"regraph_weighted32_dst19_weight12\",\n"
+             << "  \"core_mhz\": " << core_mhz_ << ",\n"
              << "  \"cycles\": " << scheduler_.clock(0).completed_cycles
              << ",\n"
              << "  \"update_cycles\": "
@@ -2511,10 +2589,18 @@ class OnlineMemoryProbe final : public SST::Component {
              << architecture_mismatches << ",\n"
              << "  \"mathematical_correctness_mismatches\": "
              << mathematical_mismatches << ",\n"
+             << "  \"architecture_oracle\": "
+                "\"thresholded_residual_float32\",\n"
+             << "  \"mathematical_oracle\": "
+                "\"full_pagerank_float64_200_iterations\",\n"
              << "  \"max_abs_error\": " << architecture_max_abs_error
              << ",\n"
              << "  \"mathematical_max_abs_error\": "
              << mathematical_max_abs_error << ",\n"
+             << "  \"mathematical_error_tolerance\": "
+             << 5.0 * static_cast<double>(pagerank_epsilon_) << ",\n"
+             << "  \"residual_bound_passed\": "
+             << (residual_bound_passed ? "true" : "false") << ",\n"
              << "  \"rank_sum\": " << rank_sum << ",\n"
              << "  \"residual_l1\": " << residual_l1 << ",\n"
              << "  \"degree_reads\": " << compute.degree_reads << ",\n"
@@ -2761,6 +2847,7 @@ class OnlineMemoryProbe final : public SST::Component {
              "\"structural_execution_driven\",\n"
           << "  \"pma_edge_abi\": "
              "\"regraph_weighted32_dst19_weight12\",\n"
+          << "  \"core_mhz\": " << core_mhz_ << ",\n"
           << "  \"cycles\": " << total_cycles << ",\n"
           << "  \"update_cycles\": " << update_cycles << ",\n"
           << "  \"compute_cycles\": " << compute_cycles << ",\n"
@@ -2811,6 +2898,8 @@ class OnlineMemoryProbe final : public SST::Component {
           << architecture_mismatches << ",\n"
           << "  \"mathematical_correctness_mismatches\": "
           << mathematical_mismatches << ",\n"
+          << "  \"architecture_oracle\": \"iterative_float32\",\n"
+          << "  \"mathematical_oracle\": \"iterative_float64\",\n"
           << "  \"update_state_mismatches\": " << update_state_mismatches
           << ",\n"
           << "  \"degree_state_mismatches\": " << degree_state_mismatches
@@ -2940,15 +3029,10 @@ class OnlineMemoryProbe final : public SST::Component {
       const std::vector<std::uint32_t> distances =
           compute_available ? grasu_compute_system_->distances()
                             : std::vector<std::uint32_t>{};
-      std::uint64_t mismatches =
-          distances.size() == grasu_sssp_reference_.values.size() ? 0 : 1;
-      for (std::size_t vertex = 0;
-           vertex < std::min(distances.size(),
-                             grasu_sssp_reference_.values.size());
-           ++vertex) {
-        mismatches +=
-            distances[vertex] == grasu_sssp_reference_.values[vertex] ? 0 : 1;
-      }
+      const std::uint64_t architecture_mismatches = count_value_mismatches(
+          distances, grasu_sssp_reference_.values);
+      const std::uint64_t mathematical_mismatches = count_value_mismatches(
+          distances, grasu_sssp_mathematical_reference_);
       const GraSuReGraphCounters compute =
           compute_available ? grasu_compute_system_->counters()
                             : GraSuReGraphCounters{};
@@ -2957,7 +3041,9 @@ class OnlineMemoryProbe final : public SST::Component {
               ? grasu_update_counters_
               : grasu_update_system_->counters();
       const bool passed = success && compute_available &&
-                          !grasu_compute_system_->failed() && mismatches == 0;
+                          !grasu_compute_system_->failed() &&
+                          architecture_mismatches == 0 &&
+                          mathematical_mismatches == 0;
       const bool normalized_profile =
           std::fabs(core_mhz_ - 150.0) < 1.0e-9 && channels_ == 32 &&
           grasu_config_.partition_vertices == 65'536 &&
@@ -2976,6 +3062,7 @@ class OnlineMemoryProbe final : public SST::Component {
              << "\",\n"
              << "  \"timing_evidence\": \"structural_execution_driven\",\n"
              << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
+             << "  \"core_mhz\": " << core_mhz_ << ",\n"
              << "  \"cycles\": " << scheduler_.clock(0).completed_cycles
              << ",\n"
              << "  \"update_cycles\": "
@@ -3030,7 +3117,15 @@ class OnlineMemoryProbe final : public SST::Component {
              << grasu_config_.hbm_wrapper_pipeline_latency << ",\n"
              << "  \"hbm_wrapper_pipeline_capacity\": "
              << grasu_config_.hbm_wrapper_pipeline_capacity << ",\n"
-             << "  \"correctness_mismatches\": " << mismatches << ",\n"
+             << "  \"correctness_mismatches\": "
+             << architecture_mismatches + mathematical_mismatches << ",\n"
+             << "  \"architecture_correctness_mismatches\": "
+             << architecture_mismatches << ",\n"
+             << "  \"mathematical_correctness_mismatches\": "
+             << mathematical_mismatches << ",\n"
+             << "  \"architecture_oracle\": "
+                "\"synchronous_frontier_uint32\",\n"
+             << "  \"mathematical_oracle\": \"uint64_dijkstra\",\n"
              << "  \"supersteps\": " << compute.supersteps << ",\n"
              << "  \"update_binary_probes\": " << update.binary_probes
              << ",\n"
@@ -3177,7 +3272,19 @@ class OnlineMemoryProbe final : public SST::Component {
       float rank_sum = 0.0F;
       float residual_l1 = 0.0F;
       float max_abs_error = 0.0F;
-      std::uint64_t mismatches = 0;
+      double mathematical_max_abs_error = 0.0;
+      std::uint64_t mismatches =
+          pagerank_system_->compute().rank_words().size() ==
+                  residual_pagerank_reference_.ranks.size() &&
+                  pagerank_system_->compute().residual_words().size() ==
+                      residual_pagerank_reference_.residuals.size()
+              ? 0
+              : 1;
+      std::uint64_t mathematical_mismatches =
+          pagerank_system_->compute().rank_words().size() ==
+                  residual_mathematical_reference_.size()
+              ? 0
+              : 1;
       for (std::size_t vertex = 0;
            vertex < pagerank_system_->compute().rank_words().size(); ++vertex) {
         const float rank = GraphAlgorithmPolicy::word_to_float(
@@ -3201,6 +3308,18 @@ class OnlineMemoryProbe final : public SST::Component {
         if (rank_error > 1.0e-5F || residual_error > 1.0e-5F) {
           ++mismatches;
         }
+        if (vertex < residual_mathematical_reference_.size()) {
+          const double mathematical_error = std::fabs(
+              static_cast<double>(rank) -
+              residual_mathematical_reference_[vertex]);
+          mathematical_max_abs_error =
+              std::max(mathematical_max_abs_error, mathematical_error);
+          mathematical_mismatches +=
+              mathematical_error <=
+                      5.0 * static_cast<double>(pagerank_epsilon_)
+                  ? 0
+                  : 1;
+        }
       }
       const auto &maintenance = pagerank_system_->maintenance_counters();
       const auto &reader = pagerank_system_->reader_counters();
@@ -3222,9 +3341,12 @@ class OnlineMemoryProbe final : public SST::Component {
             5 * pagerank_frontier_in_sizes_[round] + 2 * actual_ranks.size();
       }
       const bool converged = pagerank_system_->compute().next_active().empty();
+      const bool residual_bound_passed =
+          residual_l1 <= pagerank_epsilon_ * 1.01F;
       const bool passed = success && residual_pagerank_reference_.converged &&
                           converged && frontier_match && memory_ledger_match &&
-                          mismatches == 0 && max_abs_error <= 1.0e-5F;
+                          mismatches == 0 && mathematical_mismatches == 0 &&
+                          max_abs_error <= 1.0e-5F && residual_bound_passed;
       result
           << "{\n"
           << "  \"success\": " << (passed ? "true" : "false") << ",\n"
@@ -3232,6 +3354,7 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
           << "  \"spine_axi_profile\": \"" << spine_axi_profile_id_ << "\",\n"
           << "  \"timing_evidence\": \"provisional_algorithm_pipeline\",\n"
+          << "  \"core_mhz\": " << core_mhz_ << ",\n"
           << "  \"cycles\": " << scheduler_.clock(0).completed_cycles << ",\n"
           << "  \"input_edges\": " << spine_expected_edges_ << ",\n"
           << "  \"vertices\": " << actual_ranks.size() << ",\n"
@@ -3277,12 +3400,27 @@ class OnlineMemoryProbe final : public SST::Component {
           << maintenance_l0_write_scan_tail_cycles_ << ",\n"
           << "  \"maintenance_scan_response_capacity\": "
           << maintenance_scan_response_capacity_ << ",\n"
-          << "  \"correctness_mismatches\": " << mismatches << ",\n"
+          << "  \"correctness_mismatches\": "
+          << mismatches + mathematical_mismatches << ",\n"
+          << "  \"architecture_correctness_mismatches\": " << mismatches
+          << ",\n"
+          << "  \"mathematical_correctness_mismatches\": "
+          << mathematical_mismatches << ",\n"
+          << "  \"architecture_oracle\": "
+             "\"thresholded_residual_float32\",\n"
+          << "  \"mathematical_oracle\": "
+             "\"full_pagerank_float64_200_iterations\",\n"
           << "  \"frontier_match\": "
           << (frontier_match ? "true" : "false") << ",\n"
           << "  \"memory_ledger_match\": "
           << (memory_ledger_match ? "true" : "false") << ",\n"
           << "  \"max_abs_error\": " << max_abs_error << ",\n"
+          << "  \"mathematical_max_abs_error\": "
+          << mathematical_max_abs_error << ",\n"
+          << "  \"mathematical_error_tolerance\": "
+          << 5.0 * static_cast<double>(pagerank_epsilon_) << ",\n"
+          << "  \"residual_bound_passed\": "
+          << (residual_bound_passed ? "true" : "false") << ",\n"
           << "  \"rank_sum\": " << rank_sum << ",\n"
           << "  \"residual_l1\": " << residual_l1 << ",\n"
           << "  \"final_active\": "
@@ -3351,7 +3489,17 @@ class OnlineMemoryProbe final : public SST::Component {
       actual.reserve(pagerank_system_->compute().rank_words().size());
       float rank_sum = 0.0F;
       float max_abs_error = 0.0F;
-      std::uint64_t mismatches = 0;
+      double mathematical_max_abs_error = 0.0;
+      std::uint64_t mismatches =
+          pagerank_system_->compute().rank_words().size() ==
+                  pagerank_reference_.size()
+              ? 0
+              : 1;
+      std::uint64_t mathematical_mismatches =
+          pagerank_system_->compute().rank_words().size() ==
+                  pagerank_mathematical_reference_.size()
+              ? 0
+              : 1;
       for (std::size_t vertex = 0;
            vertex < pagerank_system_->compute().rank_words().size(); ++vertex) {
         const float rank = GraphAlgorithmPolicy::word_to_float(
@@ -3367,6 +3515,14 @@ class OnlineMemoryProbe final : public SST::Component {
         if (error > 1.0e-5F) {
           ++mismatches;
         }
+        if (vertex < pagerank_mathematical_reference_.size()) {
+          const double mathematical_error =
+              std::fabs(static_cast<double>(rank) -
+                        pagerank_mathematical_reference_[vertex]);
+          mathematical_max_abs_error =
+              std::max(mathematical_max_abs_error, mathematical_error);
+          mathematical_mismatches += mathematical_error <= 1.0e-5 ? 0 : 1;
+        }
       }
       const auto &maintenance = pagerank_system_->maintenance_counters();
       const auto &reader = pagerank_system_->reader_counters();
@@ -3374,7 +3530,9 @@ class OnlineMemoryProbe final : public SST::Component {
       const auto &pipeline = pagerank_system_->compute().pipeline_counters();
       const bool passed = success &&
                           actual.size() == pagerank_reference_.size() &&
-                          mismatches == 0 && max_abs_error <= 1.0e-5F;
+                          mismatches == 0 && mathematical_mismatches == 0 &&
+                          max_abs_error <= 1.0e-5F &&
+                          mathematical_max_abs_error <= 1.0e-5;
       result
           << "{\n"
           << "  \"success\": " << (passed ? "true" : "false") << ",\n"
@@ -3382,6 +3540,7 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
           << "  \"spine_axi_profile\": \"" << spine_axi_profile_id_ << "\",\n"
           << "  \"timing_evidence\": \"provisional_algorithm_pipeline\",\n"
+          << "  \"core_mhz\": " << core_mhz_ << ",\n"
           << "  \"cycles\": " << scheduler_.clock(0).completed_cycles << ",\n"
           << "  \"input_edges\": " << spine_expected_edges_ << ",\n"
           << "  \"vertices\": " << actual.size() << ",\n"
@@ -3425,8 +3584,17 @@ class OnlineMemoryProbe final : public SST::Component {
           << maintenance_l0_write_scan_tail_cycles_ << ",\n"
           << "  \"maintenance_scan_response_capacity\": "
           << maintenance_scan_response_capacity_ << ",\n"
-          << "  \"correctness_mismatches\": " << mismatches << ",\n"
+          << "  \"correctness_mismatches\": "
+          << mismatches + mathematical_mismatches << ",\n"
+          << "  \"architecture_correctness_mismatches\": " << mismatches
+          << ",\n"
+          << "  \"mathematical_correctness_mismatches\": "
+          << mathematical_mismatches << ",\n"
+          << "  \"architecture_oracle\": \"iterative_float32\",\n"
+          << "  \"mathematical_oracle\": \"iterative_float64\",\n"
           << "  \"max_abs_error\": " << max_abs_error << ",\n"
+          << "  \"mathematical_max_abs_error\": "
+          << mathematical_max_abs_error << ",\n"
           << "  \"rank_sum\": " << rank_sum << ",\n"
           << "  \"maintenance_cycles\": "
           << maintenance.end_cycle - maintenance.start_cycle << ",\n"
@@ -3733,6 +3901,8 @@ class OnlineMemoryProbe final : public SST::Component {
       const std::uint64_t mismatches = comparison.value_mismatches;
       const std::uint64_t frontier_mismatches =
           comparison.frontier_mismatches;
+      const std::uint64_t mathematical_mismatches = count_value_mismatches(
+          actual_values, sssp_mathematical_reference_);
       const std::uint64_t full_recompute_mismatches =
           dynamic_sssp_started_
               ? compare_sssp_result(actual_values, {}, sssp_reference_)
@@ -3742,10 +3912,12 @@ class OnlineMemoryProbe final : public SST::Component {
           !sst_rounds_.empty() && sst_rounds_.back().active_out.empty();
       const bool passed =
           success && converged && mismatches == 0 &&
+          mathematical_mismatches == 0 &&
           full_recompute_mismatches == 0 && frontier_mismatches == 0 &&
           (!dynamic_sssp_enabled_ ||
            (dynamic_sssp_started_ && cold_value_mismatches_ == 0 &&
-            cold_frontier_mismatches_ == 0));
+            cold_frontier_mismatches_ == 0 &&
+            cold_mathematical_mismatches_ == 0));
       std::vector<std::size_t> frontier_in_sizes;
       std::vector<std::size_t> frontier_out_sizes;
       std::vector<std::uint64_t> processed_edges;
@@ -4140,6 +4312,7 @@ class OnlineMemoryProbe final : public SST::Component {
           << ",\n"
           << "  \"axi_max_outstanding_bursts\": "
           << spine_axi_profile_.max_outstanding_bursts << ",\n"
+          << "  \"core_mhz\": " << core_mhz_ << ",\n"
           << "  \"cycles\": " << scheduler_.clock(0).completed_cycles << ",\n"
           << "  \"maintenance_start_cycle\": " << maintenance.start_cycle
           << ",\n"
@@ -4152,6 +4325,8 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"maintenance_persisted_edges\": "
           << maintenance.persisted_edges << ",\n"
           << "  \"input_edges\": " << spine_expected_edges_ << ",\n"
+          << "  \"vertices\": " << actual_values.size() << ",\n"
+          << "  \"source\": " << source_vertex_ << ",\n"
           << "  \"rounds\": " << sst_rounds_.size() << ",\n"
           << "  \"host_handoffs\": " << sst_host_handoffs_.size() << ",\n"
           << "  \"dynamic_update\": "
@@ -4184,6 +4359,8 @@ class OnlineMemoryProbe final : public SST::Component {
             << backend_->accepted() - cold_backend_requests_ << ",\n"
             << "  \"cold_correctness_mismatches\": "
             << cold_value_mismatches_ << ",\n"
+            << "  \"cold_mathematical_correctness_mismatches\": "
+            << cold_mathematical_mismatches_ << ",\n"
             << "  \"cold_frontier_mismatches\": "
             << cold_frontier_mismatches_ << ",\n"
             << "  \"full_recompute_correctness_mismatches\": "
@@ -4214,7 +4391,15 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"maintenance_scan_response_capacity\": "
           << maintenance_scan_response_capacity_ << ",\n"
           << "  \"converged\": " << (converged ? "true" : "false") << ",\n"
-          << "  \"correctness_mismatches\": " << mismatches << ",\n"
+          << "  \"correctness_mismatches\": "
+          << mismatches + mathematical_mismatches << ",\n"
+          << "  \"architecture_correctness_mismatches\": " << mismatches
+          << ",\n"
+          << "  \"mathematical_correctness_mismatches\": "
+          << mathematical_mismatches << ",\n"
+          << "  \"architecture_oracle\": "
+             "\"synchronous_frontier_uint32\",\n"
+          << "  \"mathematical_oracle\": \"uint64_dijkstra\",\n"
           << "  \"frontier_mismatches\": " << frontier_mismatches << ",\n"
           << "  \"maintenance_scan_passes\": " << maintenance.sorted_scan_passes
           << ",\n"
@@ -5599,6 +5784,7 @@ class OnlineMemoryProbe final : public SST::Component {
   GraSuNativeCompactorCounters grasu_compactor_counters_;
   std::size_t grasu_native_compact_edge_slots_{};
   SsspReference grasu_sssp_reference_;
+  std::vector<std::uint32_t> grasu_sssp_mathematical_reference_;
   std::vector<float> grasu_pagerank_reference_;
   std::vector<double> grasu_pagerank_mathematical_reference_;
   ResidualPageRankReference grasu_residual_pagerank_reference_;
@@ -5613,6 +5799,8 @@ class OnlineMemoryProbe final : public SST::Component {
   SsspReference sssp_reference_;
   SsspReference cold_sssp_reference_;
   SsspReference dynamic_sssp_reference_;
+  std::vector<std::uint32_t> sssp_mathematical_reference_;
+  std::vector<std::uint32_t> cold_sssp_mathematical_reference_;
   SpineEdgeSlice dynamic_update_workload_;
   SpineEdgeSlice dynamic_materialized_snapshot_;
   std::vector<std::uint32_t> dynamic_update_sources_;
@@ -5624,11 +5812,14 @@ class OnlineMemoryProbe final : public SST::Component {
   std::uint64_t cold_maintenance_cycles_{};
   std::uint64_t cold_value_mismatches_{};
   std::uint64_t cold_frontier_mismatches_{};
+  std::uint64_t cold_mathematical_mismatches_{};
   std::size_t cold_rounds_{};
   std::int32_t cold_maintenance_target_level_{-1};
   std::uint32_t cold_dirty_generation_after_ack_{};
   std::vector<float> pagerank_reference_;
+  std::vector<double> pagerank_mathematical_reference_;
   ResidualPageRankReference residual_pagerank_reference_;
+  std::vector<double> residual_mathematical_reference_;
   std::vector<std::uint64_t> pagerank_iteration_cycles_;
   std::vector<std::size_t> pagerank_frontier_in_sizes_;
   std::vector<std::size_t> pagerank_frontier_out_sizes_;

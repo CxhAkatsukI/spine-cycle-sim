@@ -1,0 +1,28 @@
+digraph shared_comparison_runner {
+  graph [rankdir=LR, bgcolor="white", pad="0.25", nodesep="0.35", ranksep="0.7"];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+        color="#3f4a54", fillcolor="#f5f7f8", margin="0.14,0.09"];
+  edge [fontname="Helvetica", fontsize=9, color="#596773", arrowsize=0.7];
+
+  manifest [label="Hash-pinned shared manifest\n73 run contracts", fillcolor="#fff3d9"];
+  dispatch [label="Parallel fail-closed runner\ntimeout + resumable contract", fillcolor="#edf3f8"];
+  spine [label="Normalized Spine\n150 MHz\nSST/DRAMSim3 x32", fillcolor="#e8f2ec"];
+  grasu [label="Normalized GraSU + PMA-native ReGraph\nconversion-free | 150 MHz\nSST/DRAMSim3 x32", fillcolor="#eaf0f7"];
+  arch [label="Architecture oracle\nfloat32 / frontier semantics", fillcolor="#f7eee4"];
+  math [label="Independent mathematical oracle\nfloat64 PR / uint64 Dijkstra", fillcolor="#f7eee4"];
+  gate [label="Parent acceptance gate\nshape + oracle + clock\nprotocol + DRAM closure", fillcolor="#f8e7e7"];
+  rows [label="results.csv\n146 passing system rows", fillcolor="#f5f7f8"];
+  pairs [label="pairs.csv\n73 normalized paired rows", fillcolor="#e8f2ec"];
+
+  manifest -> dispatch;
+  dispatch -> spine;
+  dispatch -> grasu;
+  spine -> arch;
+  grasu -> arch;
+  spine -> math;
+  grasu -> math;
+  arch -> gate;
+  math -> gate;
+  gate -> rows [label="only PASS"];
+  rows -> pairs [label="same run ID + clock"];
+}

@@ -11,6 +11,7 @@ from scripts.run_sst_spine_vertical import (
     validate_fallback_result,
     validate_full_compute_result,
     validate_full_pagerank_result,
+    validate_generic_result,
     validate_multiround_sssp_result,
     validate_nonmonotonic_sssp_result,
     validate_protocol_window_result,
@@ -23,6 +24,49 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class SstSpineVerticalValidationTests(unittest.TestCase):
+    def test_generic_full_pagerank_accepts_dual_oracle_result(self) -> None:
+        result = {
+            "success": True,
+            "mode": "spine_pagerank",
+            "core_mhz": 150.0,
+            "vertices": 4,
+            "input_edges": 4,
+            "architecture_oracle": "iterative_float32",
+            "mathematical_oracle": "iterative_float64",
+            "architecture_correctness_mismatches": 0,
+            "mathematical_correctness_mismatches": 0,
+            "correctness_mismatches": 0,
+            "pagerank_iterations": 3,
+            "pagerank_completed_iterations": 3,
+            "pagerank_damping": 0.85,
+            "iteration_cycles": [100, 90, 80],
+            "ranks": [0.25, 0.25, 0.25, 0.25],
+            "max_abs_error": 1.0e-7,
+            "mathematical_max_abs_error": 1.0e-7,
+            "reader_protocol_status": 0,
+            "backend_requests": 12,
+        }
+        dram = {"dram_reads": 10, "dram_writes": 2, "dram_channels": 32}
+        self.assertEqual(
+            validate_generic_result(
+                result,
+                dram,
+                channels=32,
+                scenario="full_pagerank",
+                vertices=4,
+                input_edges=4,
+                update_edges=0,
+                source=0,
+                core_mhz=150.0,
+                max_rounds=256,
+                pagerank_iterations=3,
+                pagerank_damping=0.85,
+                pagerank_epsilon=1.0e-6,
+                residual_max_iterations=256,
+            ),
+            [],
+        )
+
     def test_dynamic_sssp_closes_cold_update_and_memory_ledgers(self) -> None:
         result = {
             "success": True,

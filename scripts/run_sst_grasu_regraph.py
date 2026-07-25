@@ -29,6 +29,32 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def load_dram_stats(dram_dir: Path) -> dict[str, int | float]:
+    totals: dict[str, int | float] = {
+        "channels": 0,
+        "reads": 0,
+        "writes": 0,
+        "activates": 0,
+        "precharges": 0,
+        "total_energy_pj": 0.0,
+    }
+    paths = sorted(dram_dir.glob("channel*/dramsim3.json"))
+    if not paths:
+        raise ValueError(f"no DRAMSim3 JSON found under {dram_dir}")
+    for path in paths:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        if len(payload) != 1:
+            raise ValueError(f"expected one DRAM channel record in {path}")
+        row = next(iter(payload.values()))
+        totals["channels"] += 1
+        totals["reads"] += int(row["num_reads_done"])
+        totals["writes"] += int(row["num_writes_done"])
+        totals["activates"] += int(row["num_act_cmds"])
+        totals["precharges"] += int(row["num_pre_cmds"])
+        totals["total_energy_pj"] += float(row["total_energy"])
+    return totals
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--profile", type=Path, default=DEFAULT_PROFILE)
@@ -167,6 +193,7 @@ def main() -> int:
         )
 
     result = json.loads(result_path.read_text(encoding="utf-8"))
+    dram = load_dram_stats(dram_dir)
     expected_claim = (
         "component_validation_simulation" if args.smoke else "normalized_simulation"
     )
@@ -180,7 +207,14 @@ def main() -> int:
     if (
         not result.get("success")
         or result.get("correctness_mismatches") != 0
+        or result.get("architecture_correctness_mismatches") != 0
+        or result.get("mathematical_correctness_mismatches") != 0
+        or result.get("architecture_oracle")
+        != "synchronous_frontier_uint32"
+        or result.get("mathematical_oracle") != "uint64_dijkstra"
         or result.get("claim_class") != expected_claim
+        or abs(result.get("core_mhz", -1.0) - kernel_clock["achieved_mhz"])
+        > 1.0e-9
         or result.get("partition_vertices") != partition_vertices
         or result.get("source_state_channel")
         != params["regraph_source_state_channel"]
@@ -232,6 +266,8 @@ def main() -> int:
         <= params["regraph_merger_apply_fifo_depth"]
         or not 0 < result.get("apply_wrapper_fifo_max_occupancy", 0)
         <= params["regraph_apply_wrapper_fifo_depth"]
+        or dram["channels"] != memory["channels"]
+        or dram["reads"] + dram["writes"] != result.get("backend_requests")
     ):
         raise RuntimeError(f"SST GraSU/ReGraph validation failed: {result}")
 
@@ -246,6 +282,7 @@ def main() -> int:
         "smoke": args.smoke,
         "command": command,
         "result": result,
+        "dram": dram,
         "status": "PASS",
     }
     (args.out_dir / "manifest.json").write_text(

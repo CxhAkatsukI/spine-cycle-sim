@@ -48,6 +48,193 @@ DEFAULT_FALLBACK_WORKLOAD = (
 PROFILE_PATH = ROOT / "configs" / "architectures" / "spine_shared_engine_9c08763.json"
 
 
+def load_slice_shape(path: Path) -> tuple[int, int]:
+    vertices: int | None = None
+    records = 0
+    for line_number, raw_line in enumerate(
+        path.read_text(encoding="ascii").splitlines(), start=1
+    ):
+        line = raw_line.strip()
+        if not line:
+            continue
+        if line.startswith("#"):
+            metadata = line[1:].strip()
+            if metadata.startswith("vertices="):
+                vertices = int(metadata.split("=", 1)[1])
+            continue
+        if len(line.split()) != 4:
+            raise ValueError(f"{path}:{line_number}: expected four edge fields")
+        records += 1
+    if vertices is None or vertices <= 0:
+        raise ValueError(f"{path}: missing positive vertices metadata")
+    return vertices, records
+
+
+def validate_generic_result(
+    result: dict[str, Any],
+    dram: dict[str, int | float],
+    *,
+    channels: int,
+    scenario: str,
+    vertices: int,
+    input_edges: int,
+    update_edges: int,
+    source: int,
+    core_mhz: float,
+    max_rounds: int,
+    pagerank_iterations: int,
+    pagerank_damping: float,
+    pagerank_epsilon: float,
+    residual_max_iterations: int,
+) -> list[str]:
+    expected_mode = {
+        "weighted_sssp": "spine_sssp",
+        "dynamic_sssp": "spine_sssp",
+        "dynamic_sssp_delete": "spine_sssp",
+        "dynamic_sssp_increase": "spine_sssp",
+        "full_pagerank": "spine_pagerank",
+        "residual_pagerank": "spine_residual_pagerank",
+    }[scenario]
+    checks: dict[str, bool] = {
+        "success": result.get("success") is True,
+        "mode": result.get("mode") == expected_mode,
+        "core_mhz": abs(float(result.get("core_mhz", -1.0)) - core_mhz) < 1.0e-9,
+        "input_edges": result.get("input_edges") == input_edges,
+        "architecture_oracle": bool(result.get("architecture_oracle")),
+        "mathematical_oracle": bool(result.get("mathematical_oracle")),
+        "architecture_correctness": (
+            result.get("architecture_correctness_mismatches") == 0
+        ),
+        "mathematical_correctness": (
+            result.get("mathematical_correctness_mismatches") == 0
+        ),
+        "combined_correctness": result.get("correctness_mismatches") == 0,
+        "dram_matches_backend": int(dram.get("dram_reads", 0))
+        + int(dram.get("dram_writes", 0))
+        == result.get("backend_requests"),
+        "channel_count": dram.get("dram_channels") == channels,
+    }
+    if expected_mode == "spine_sssp":
+        rounds = result.get("rounds", -1)
+        dynamic = scenario != "weighted_sssp"
+        expected_update_path = (
+            "incremental_relax" if scenario == "dynamic_sssp" else "full_rebuild"
+        )
+        per_round_fields = (
+            "frontier_in_sizes",
+            "frontier_out_sizes",
+            "reader_protocol_status_per_round",
+            "compute_protocol_status_per_round",
+            "reader_memory_requests_issued_per_round",
+            "reader_memory_requests_completed_per_round",
+            "compute_memory_requests_issued_per_round",
+            "compute_memory_requests_completed_per_round",
+        )
+        checks.update(
+            {
+                "vertices": result.get("vertices") == vertices,
+                "source": result.get("source") == source,
+                "converged": result.get("converged") is True,
+                "rounds": isinstance(rounds, int) and 0 < rounds <= max_rounds,
+                "final_values": len(result.get("final_values", [])) == vertices,
+                "frontier_correctness": result.get("frontier_mismatches") == 0,
+                "round_ledgers": all(
+                    len(result.get(field, [])) == rounds for field in per_round_fields
+                ),
+                "protocol_status": all(
+                    value == 0
+                    for field in (
+                        "reader_protocol_status_per_round",
+                        "compute_protocol_status_per_round",
+                    )
+                    for value in result.get(field, [-1])
+                ),
+                "reader_request_closure": result.get(
+                    "reader_memory_requests_issued_per_round"
+                )
+                == result.get("reader_memory_requests_completed_per_round"),
+                "compute_request_closure": result.get(
+                    "compute_memory_requests_issued_per_round"
+                )
+                == result.get("compute_memory_requests_completed_per_round"),
+                "dynamic_flag": result.get("dynamic_update") is dynamic,
+                "update_edges": (not dynamic)
+                or result.get("update_edges") == update_edges,
+                "update_path": (not dynamic)
+                or result.get("dynamic_update_path") == expected_update_path,
+                "cold_correctness": (not dynamic)
+                or (
+                    result.get("cold_correctness_mismatches") == 0
+                    and result.get("cold_mathematical_correctness_mismatches") == 0
+                    and result.get("cold_frontier_mismatches") == 0
+                    and result.get("full_recompute_correctness_mismatches") == 0
+                ),
+            }
+        )
+    elif expected_mode == "spine_pagerank":
+        checks.update(
+            {
+                "vertices": result.get("vertices") == vertices,
+                "iterations": result.get("pagerank_iterations")
+                == pagerank_iterations
+                and result.get("pagerank_completed_iterations")
+                == pagerank_iterations
+                and len(result.get("iteration_cycles", []))
+                == pagerank_iterations,
+                "damping": abs(
+                    float(result.get("pagerank_damping", -1.0))
+                    - pagerank_damping
+                )
+                < 1.0e-7,
+                "rank_vector": len(result.get("ranks", [])) == vertices,
+                "architecture_error": result.get("max_abs_error", 1.0)
+                <= 1.0e-5,
+                "mathematical_error": result.get(
+                    "mathematical_max_abs_error", 1.0
+                )
+                <= 1.0e-5,
+                "reader_protocol": result.get("reader_protocol_status") == 0,
+            }
+        )
+    else:
+        rounds = result.get("iterations", -1)
+        checks.update(
+            {
+                "vertices": result.get("vertices") == vertices,
+                "converged": result.get("converged") is True
+                and result.get("final_active") == 0,
+                "iterations": isinstance(rounds, int)
+                and 0 < rounds <= residual_max_iterations,
+                "damping": abs(
+                    float(result.get("pagerank_damping", -1.0))
+                    - pagerank_damping
+                )
+                < 1.0e-7,
+                "epsilon": abs(
+                    float(result.get("pagerank_epsilon", -1.0))
+                    - pagerank_epsilon
+                )
+                < 1.0e-12,
+                "state_vectors": len(result.get("ranks", [])) == vertices
+                and len(result.get("residuals", [])) == vertices,
+                "frontier_ledgers": len(result.get("frontier_in_sizes", []))
+                == rounds
+                and len(result.get("frontier_out_sizes", [])) == rounds,
+                "frontier_match": result.get("frontier_match") is True,
+                "memory_ledger": result.get("memory_ledger_match") is True,
+                "residual_bound": result.get("residual_bound_passed") is True,
+                "architecture_error": result.get("max_abs_error", 1.0)
+                <= 1.0e-5,
+                "mathematical_error": result.get(
+                    "mathematical_max_abs_error", 1.0
+                )
+                <= result.get("mathematical_error_tolerance", -1.0),
+                "reader_protocol": result.get("reader_protocol_status") == 0,
+            }
+        )
+    return [name for name, passed in checks.items() if not passed]
+
+
 def maintenance_timing_profile_matches(
     result: dict[str, Any], expected: dict[str, int]
 ) -> bool:
@@ -969,6 +1156,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--sst", type=Path, default=DEFAULT_SST)
     parser.add_argument("--lib-dir", type=Path, default=ROOT / "build" / "sst")
     parser.add_argument("--workload", type=Path, default=DEFAULT_WORKLOAD)
+    parser.add_argument("--profile", type=Path, default=PROFILE_PATH)
+    parser.add_argument(
+        "--validation-mode",
+        choices=("fixture", "generic"),
+        default="fixture",
+    )
+    parser.add_argument("--max-cycles", type=int)
+    parser.add_argument("--max-rounds", type=int, default=256)
     parser.add_argument(
         "--scenario",
         choices=(
@@ -1070,6 +1265,18 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
+    profile_path = args.profile.resolve()
+    profile_bytes = profile_path.read_bytes()
+    profile = json.loads(profile_bytes)
+    if profile.get("architecture") != "spine":
+        raise SystemExit("profile must describe the Spine architecture")
+    try:
+        data_clock = next(
+            clock for clock in profile["clocks"] if clock["name"] == "data"
+        )
+        core_mhz = float(data_clock["achieved_mhz"])
+    except (KeyError, StopIteration, TypeError, ValueError) as error:
+        raise SystemExit("profile lacks an achieved Spine data clock") from error
     if args.source is None:
         args.source = 2 if args.scenario == "amazon_l0" else 0
     if args.scenario == "carry_hot":
@@ -1150,12 +1357,30 @@ def main() -> int:
         or args.maintenance_count_scan_tail_cycles < 0
         or args.maintenance_l0_write_scan_tail_cycles < 0
         or args.maintenance_scan_response_capacity <= 0
+        or args.max_rounds <= 0
+        or (args.max_cycles is not None and args.max_cycles <= 0)
     ):
         raise SystemExit("maintenance scan IIs must be positive and tails non-negative")
     if args.preload is not None and not args.preload.is_file():
         raise SystemExit(f"preload workload is missing: {args.preload}")
     if args.update_workload is not None and not args.update_workload.is_file():
         raise SystemExit(f"update workload is missing: {args.update_workload}")
+    generic_scenarios = {
+        "weighted_sssp",
+        "dynamic_sssp",
+        "dynamic_sssp_delete",
+        "dynamic_sssp_increase",
+        "full_pagerank",
+        "residual_pagerank",
+    }
+    if args.validation_mode == "generic" and args.scenario not in generic_scenarios:
+        raise SystemExit("generic validation supports only shared algorithm scenarios")
+    workload_vertices, workload_edges = load_slice_shape(args.workload)
+    update_edges = (
+        0
+        if args.update_workload is None
+        else load_slice_shape(args.update_workload)[1]
+    )
     if not args.no_build:
         subprocess.run(["make", "-C", "cpp/sst"], cwd=ROOT, check=True)
     library = args.lib_dir / "libspine_cycle.so"
@@ -1189,10 +1414,15 @@ def main() -> int:
             "SPINE_SST_HOT_VERTICES": args.hot_vertices,
             "SPINE_SST_OUTPUT": str(result_path),
             "SPINE_SST_DRAM_OUTPUT": str(args.out_dir / "dram"),
-            "SPINE_SST_MAX_CYCLES": "5000000"
-            if args.scenario == "amazon_full_compute"
-            else "1000000",
-            "SPINE_SST_MAX_ROUNDS": "256",
+            "SPINE_SST_CORE_MHZ": str(core_mhz),
+            "SPINE_SST_MAX_CYCLES": str(
+                args.max_cycles
+                if args.max_cycles is not None
+                else 5_000_000
+                if args.scenario == "amazon_full_compute"
+                else 1_000_000
+            ),
+            "SPINE_SST_MAX_ROUNDS": str(args.max_rounds),
             "SPINE_SST_PAGERANK_ITERATIONS": str(args.pagerank_iterations),
             "SPINE_SST_PAGERANK_DAMPING": str(args.pagerank_damping),
             "SPINE_SST_PAGERANK_EPSILON": str(args.pagerank_epsilon),
@@ -1350,8 +1580,37 @@ def main() -> int:
             )
         ),
     }
-    validator = validators[args.scenario]
-    problems = validator(result, dram, channels=args.channels)
+    if args.validation_mode == "generic":
+        problems = validate_generic_result(
+            result,
+            dram,
+            channels=args.channels,
+            scenario=args.scenario,
+            vertices=workload_vertices,
+            input_edges=workload_edges,
+            update_edges=update_edges,
+            source=args.source,
+            core_mhz=core_mhz,
+            max_rounds=args.max_rounds,
+            pagerank_iterations=args.pagerank_iterations,
+            pagerank_damping=args.pagerank_damping,
+            pagerank_epsilon=args.pagerank_epsilon,
+            residual_max_iterations=args.residual_max_iterations,
+        )
+    else:
+        validator = validators[args.scenario]
+        problems = validator(result, dram, channels=args.channels)
+    if args.scenario in generic_scenarios:
+        if result.get("architecture_correctness_mismatches") != 0:
+            problems.append("architecture_correctness")
+        if result.get("mathematical_correctness_mismatches") != 0:
+            problems.append("mathematical_correctness")
+        if not result.get("architecture_oracle"):
+            problems.append("architecture_oracle")
+        if not result.get("mathematical_oracle"):
+            problems.append("mathematical_oracle")
+        if abs(float(result.get("core_mhz", -1.0)) - core_mhz) > 1.0e-9:
+            problems.append("core_mhz")
     if result.get("spine_axi_profile") != args.axi_profile:
         problems.append("axi_profile")
     if (
@@ -1412,8 +1671,6 @@ def main() -> int:
         problems.append("maintenance_scan_timing_profile")
     if problems:
         raise RuntimeError(f"SST Spine checks failed: {', '.join(problems)}")
-    profile_bytes = PROFILE_PATH.read_bytes()
-    profile = json.loads(profile_bytes)
     summary_result = dict(result)
     final_values = summary_result.get("final_values")
     if isinstance(final_values, list) and len(final_values) > 4_096:
@@ -1435,6 +1692,7 @@ def main() -> int:
         **summary_result,
         **dram,
         "architecture_profile_id": profile["profile_id"],
+        "architecture_profile_path": str(profile_path),
         "architecture_profile_sha256": hashlib.sha256(profile_bytes).hexdigest(),
         "source_revision": profile["source"]["revision"],
         "architecture_profile_evidence_tier": profile["evidence_tier"],

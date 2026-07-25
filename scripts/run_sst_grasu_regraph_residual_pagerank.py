@@ -70,6 +70,9 @@ def main() -> int:
     parser.add_argument("--sst", type=Path, default=DEFAULT_SST)
     parser.add_argument("--lib-dir", type=Path, default=ROOT / "build" / "sst")
     parser.add_argument("--max-cycles", type=int, default=50_000_000)
+    parser.add_argument("--damping", type=float)
+    parser.add_argument("--epsilon", type=float)
+    parser.add_argument("--max-iterations", type=int)
     parser.add_argument(
         "--smoke",
         action="store_true",
@@ -98,8 +101,23 @@ def main() -> int:
     result_path = (args.out_dir / "result.json").resolve()
     dram_dir = (args.out_dir / "dram").resolve()
     partition_vertices = 16 if args.smoke else 65_536
-    max_iterations = int(params["pagerank_residual_max_iterations"])
-    epsilon = float(params["pagerank_epsilon"])
+    max_iterations = (
+        int(params["pagerank_residual_max_iterations"])
+        if args.max_iterations is None
+        else args.max_iterations
+    )
+    epsilon = (
+        float(params["pagerank_epsilon"])
+        if args.epsilon is None
+        else args.epsilon
+    )
+    damping = (
+        float(params["pagerank_damping"])
+        if args.damping is None
+        else args.damping
+    )
+    if max_iterations <= 0 or epsilon <= 0.0 or not 0.0 < damping < 1.0:
+        raise ValueError("residual parameters must be positive with 0 < damping < 1")
     env = os.environ.copy()
     env.update(
         {
@@ -114,7 +132,7 @@ def main() -> int:
             "GRASU_SST_MAX_CYCLES": str(args.max_cycles),
             "GRASU_SST_MAX_ROUNDS": str(max_iterations),
             "GRASU_SST_RESIDUAL_MAX_ITERATIONS": str(max_iterations),
-            "GRASU_SST_PAGERANK_DAMPING": str(params["pagerank_damping"]),
+            "GRASU_SST_PAGERANK_DAMPING": str(damping),
             "GRASU_SST_PAGERANK_EPSILON": str(epsilon),
             "GRASU_SST_CACHE_SEGMENTS_PER_HALF": str(
                 params["grasu_cache_segments_per_cu"]
@@ -238,15 +256,22 @@ def main() -> int:
         or result.get("correctness_mismatches") != 0
         or result.get("architecture_correctness_mismatches") != 0
         or result.get("mathematical_correctness_mismatches") != 0
+        or result.get("architecture_oracle")
+        != "thresholded_residual_float32"
+        or result.get("mathematical_oracle")
+        != "full_pagerank_float64_200_iterations"
         or result.get("max_abs_error", 1.0) > 1.0e-5
         or result.get("mathematical_max_abs_error", 1.0) > 5.0 * epsilon
+        or result.get("residual_bound_passed") is not True
         or abs(result.get("rank_sum", 0.0) - 1.0) > 5.0 * epsilon * vertices
         or result.get("residual_l1", 1.0) > 2.0 * epsilon
         or not result.get("converged")
         or not 0 < iterations <= max_iterations
         or result.get("expected_iterations") != iterations
-        or result.get("pagerank_damping") != params["pagerank_damping"]
+        or abs(result.get("pagerank_damping", -1.0) - damping) > 1.0e-7
         or result.get("pagerank_epsilon") != epsilon
+        or abs(result.get("core_mhz", -1.0) - kernel_clock["achieved_mhz"])
+        > 1.0e-9
         or result.get("state_bytes_per_vertex") != state_bytes
         or result.get("updates") != 0
         or result.get("degree_update_timing_included") is not False
@@ -321,6 +346,7 @@ def main() -> int:
         "workload_sha256": sha256(workload_path),
         "max_iterations": max_iterations,
         "epsilon": epsilon,
+        "damping": damping,
         "smoke": args.smoke,
         "command": command,
         "result": result,

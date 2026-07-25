@@ -20,6 +20,7 @@ preload_workload = os.environ.get("SPINE_SST_PRELOAD", "")
 update_workload = os.environ.get("SPINE_SST_UPDATE_WORKLOAD", "")
 hot_vertices = os.environ.get("SPINE_SST_HOT_VERTICES", "")
 mode = os.environ.get("SPINE_SST_MODE", "spine_vertical")
+core_mhz = float(os.environ.get("SPINE_SST_CORE_MHZ", "141.0"))
 output = os.environ.get("SPINE_SST_OUTPUT", "sst_spine_vertical.json")
 dram_output = Path(
     os.environ.get("SPINE_SST_DRAM_OUTPUT", "/tmp/spine_vertical_dramsim3")
@@ -36,8 +37,8 @@ probe.addParams(
         "preload_workload": preload_workload,
         "hot_vertices": hot_vertices,
         "source_vertex": int(os.environ.get("SPINE_SST_SOURCE", "2")),
-        "core_clock": "141MHz",
-        "core_mhz": 141.0,
+        "core_clock": f"{core_mhz}MHz",
+        "core_mhz": core_mhz,
         "channels": channels,
         "channel_capacity_bytes": channel_bytes,
         "max_cycles": int(os.environ.get("SPINE_SST_MAX_CYCLES", "1000000")),

@@ -351,7 +351,7 @@
         "case_id": "syn_dynamic_mixed_update_update",
         "path": "tests/data/shared_comparison/syn_dynamic_mixed_update.update.slice",
         "records": 4,
-        "sha256": "8cca3d367004acf7b26aa1d4796e0a4aac95898bae53bfb7a54b39d07b4293ae",
+        "sha256": "1e0facb484dd3484fe46cab8b9fdf797517197c6478cab62dbc4693b6587391e",
         "vertices": 8
       },
       "empty_update": {
@@ -1678,7 +1678,7 @@
         "case_id": "syn_dynamic_mixed_update_update",
         "path": "tests/data/shared_comparison/syn_dynamic_mixed_update.update.slice",
         "records": 4,
-        "sha256": "8cca3d367004acf7b26aa1d4796e0a4aac95898bae53bfb7a54b39d07b4293ae",
+        "sha256": "1e0facb484dd3484fe46cab8b9fdf797517197c6478cab62dbc4693b6587391e",
         "vertices": 8
       }
     },

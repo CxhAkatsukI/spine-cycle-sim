@@ -163,7 +163,12 @@ def _dynamic_fixture(
     update = SliceGraph(
         f"{fixture_id}_update",
         vertices,
-        tuple(SliceRecord(*record) for record in updates),
+        tuple(
+            sorted(
+                (SliceRecord(*record) for record in updates),
+                key=lambda record: (record.src, record.dst),
+            )
+        ),
     )
     return SyntheticFixture(
         fixture_id, role, family, graph, update, dynamic_path
@@ -712,6 +717,11 @@ def validate_shared_comparison_manifest(root: Path, manifest_path: Path) -> dict
             for edge in graph.records
         ):
             raise ValueError(f"invalid graph record in {fixture['fixture_id']}")
+        if any(
+            (left.src, left.dst) > (right.src, right.dst)
+            for left, right in zip(graph.records, graph.records[1:])
+        ):
+            raise ValueError(f"graph is not sorted by src,dst: {fixture['fixture_id']}")
         graph_hash = str(fixture["graph"]["sha256"])
         if graph_hash in graph_hashes:
             raise ValueError("fixture graphs must have disjoint content hashes")
@@ -725,6 +735,13 @@ def validate_shared_comparison_manifest(root: Path, manifest_path: Path) -> dict
             update = load_slice(update_path)
             if update.vertices != graph.vertices or not update.records:
                 raise ValueError(f"invalid dynamic update for {fixture['fixture_id']}")
+            if any(
+                (left.src, left.dst) > (right.src, right.dst)
+                for left, right in zip(update.records, update.records[1:])
+            ):
+                raise ValueError(
+                    f"dynamic update is not sorted by src,dst: {fixture['fixture_id']}"
+                )
             _materialize_update(graph, update)
         if "mapping" in fixture:
             mapping_path = _resolve_artifact(root, fixture["mapping"])
