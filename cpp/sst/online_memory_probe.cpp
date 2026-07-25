@@ -1171,10 +1171,14 @@ class OnlineMemoryProbe final : public SST::Component {
     const bool native_grasu_sssp = mode_ == "grasu_regraph_native_sssp";
     const bool hls_weighted_grasu_sssp =
         mode_ == "grasu_regraph_hls_weighted_sssp";
+    const bool hls_weighted_grasu_pagerank =
+        mode_ == "grasu_regraph_hls_weighted_pagerank";
+    const bool hls_weighted_grasu =
+        hls_weighted_grasu_sssp || hls_weighted_grasu_pagerank;
     if (native_grasu_sssp) {
       grasu_update_config_.pma_word_abi =
           GraSuPmaWordAbi::kNativeRawDestination;
-    } else if (hls_weighted_grasu_sssp) {
+    } else if (hls_weighted_grasu) {
       grasu_update_config_.pma_word_abi = GraSuPmaWordAbi::kWeightedFullWord;
     }
     grasu_compactor_config_.memory_channels = channels_;
@@ -1198,14 +1202,17 @@ class OnlineMemoryProbe final : public SST::Component {
         grasu_config_.edge_array_channel;
     const bool partitioned_dynamic_pagerank =
         mode_ == "grasu_regraph_partitioned_dynamic_pagerank";
-    grasu_update_config_.maintain_out_degree = partitioned_dynamic_pagerank;
-    grasu_config_.initialize_degree_payload = !partitioned_dynamic_pagerank;
+    const bool timed_degree_pagerank =
+        partitioned_dynamic_pagerank || hls_weighted_grasu_pagerank;
+    grasu_update_config_.maintain_out_degree = timed_degree_pagerank;
+    grasu_config_.initialize_degree_payload = !timed_degree_pagerank;
     if ((mode_ != "probe" && mode_ != "payload_roundtrip" &&
          mode_ != "spine_vertical" && mode_ != "spine_compute" &&
          mode_ != "spine_sssp" && mode_ != "spine_pagerank" &&
          mode_ != "spine_residual_pagerank" && mode_ != "grasu_regraph_sssp" &&
          mode_ != "grasu_regraph_native_sssp" &&
          mode_ != "grasu_regraph_hls_weighted_sssp" &&
+         mode_ != "grasu_regraph_hls_weighted_pagerank" &&
          mode_ != "grasu_regraph_pagerank" &&
          mode_ != "grasu_regraph_residual_pagerank" &&
          mode_ != "grasu_regraph_partitioned_dynamic_pagerank") ||
@@ -1250,6 +1257,7 @@ class OnlineMemoryProbe final : public SST::Component {
           mode_ == "spine_residual_pagerank" || mode_ == "grasu_regraph_sssp" ||
           mode_ == "grasu_regraph_native_sssp" ||
           mode_ == "grasu_regraph_hls_weighted_sssp" ||
+          mode_ == "grasu_regraph_hls_weighted_pagerank" ||
           mode_ == "grasu_regraph_pagerank" ||
           mode_ == "grasu_regraph_residual_pagerank" ||
           mode_ == "grasu_regraph_partitioned_dynamic_pagerank") &&
@@ -1257,6 +1265,7 @@ class OnlineMemoryProbe final : public SST::Component {
         ((mode_ == "grasu_regraph_sssp" ||
           mode_ == "grasu_regraph_native_sssp" ||
           mode_ == "grasu_regraph_hls_weighted_sssp" ||
+          mode_ == "grasu_regraph_hls_weighted_pagerank" ||
           mode_ == "grasu_regraph_pagerank" ||
           mode_ == "grasu_regraph_residual_pagerank" ||
           mode_ == "grasu_regraph_partitioned_dynamic_pagerank") &&
@@ -1329,8 +1338,12 @@ class OnlineMemoryProbe final : public SST::Component {
     const bool native_grasu_sssp = mode_ == "grasu_regraph_native_sssp";
     const bool hls_weighted_grasu_sssp =
         mode_ == "grasu_regraph_hls_weighted_sssp";
+    const bool hls_weighted_grasu_pagerank =
+        mode_ == "grasu_regraph_hls_weighted_pagerank";
+    const bool hls_weighted_grasu =
+        hls_weighted_grasu_sssp || hls_weighted_grasu_pagerank;
     if (mode_ == "grasu_regraph_sssp" || native_grasu_sssp ||
-        hls_weighted_grasu_sssp ||
+        hls_weighted_grasu ||
         mode_ == "grasu_regraph_pagerank" ||
         mode_ == "grasu_regraph_residual_pagerank" ||
         mode_ == "grasu_regraph_partitioned_dynamic_pagerank") {
@@ -1401,10 +1414,10 @@ class OnlineMemoryProbe final : public SST::Component {
           }
         }
         grasu_native_host_reorder_applied_ = true;
-      } else if (hls_weighted_grasu_sssp) {
+      } else if (hls_weighted_grasu) {
         if (source_vertex_ >= initial.vertices) {
           throw std::invalid_argument(
-              "weighted HLS GraSU source vertex is outside the graph");
+              "weighted HLS GraSU vertex is outside the graph");
         }
         grasu_source_external_ = source_vertex_;
         GraSuWeightedFullWordGraph prepared =
@@ -1431,7 +1444,7 @@ class OnlineMemoryProbe final : public SST::Component {
           initial.vertices, initial_edges, updates);
       grasu_initial_edges_ = initial_edges.size();
       grasu_update_edges_ = updates.size();
-      if (!hls_weighted_grasu_sssp) {
+      if (!hls_weighted_grasu) {
         grasu_final_edges_.reserve(final_snapshot.edges.size());
         for (const SpineEdgeRecord &edge : final_snapshot.edges) {
           grasu_final_edges_.push_back(GraSuEdge{
@@ -1453,7 +1466,7 @@ class OnlineMemoryProbe final : public SST::Component {
       } else {
         grasu_layout_ = GraSuPmaLayout::build(initial.vertices, initial_edges,
                                               reserved_updates,
-                                              hls_weighted_grasu_sssp
+                                              hls_weighted_grasu
                                                   ? GraSuPmaWordAbi::kWeightedFullWord
                                                   : GraSuPmaWordAbi::kNormalizedWeighted);
       }
@@ -1480,6 +1493,7 @@ class OnlineMemoryProbe final : public SST::Component {
               32, ((grasu_final_edges_.size() + 7) / 8) * 8);
         }
       } else if (mode_ == "grasu_regraph_pagerank" ||
+                 hls_weighted_grasu_pagerank ||
                  mode_ == "grasu_regraph_partitioned_dynamic_pagerank") {
         grasu_pagerank_reference_ = run_full_pagerank_reference(
             final_snapshot, pagerank_damping_, pagerank_iterations_);
@@ -1902,6 +1916,7 @@ class OnlineMemoryProbe final : public SST::Component {
       }
     } else if (mode_ == "grasu_regraph_sssp" ||
         mode_ == "grasu_regraph_hls_weighted_sssp" ||
+        mode_ == "grasu_regraph_hls_weighted_pagerank" ||
         mode_ == "grasu_regraph_pagerank" ||
         mode_ == "grasu_regraph_residual_pagerank" ||
         mode_ == "grasu_regraph_partitioned_dynamic_pagerank") {
@@ -1934,7 +1949,8 @@ class OnlineMemoryProbe final : public SST::Component {
                 grasu_config_);
           }
           grasu_compute_system_->register_components();
-        } else if (mode_ == "grasu_regraph_pagerank") {
+        } else if (mode_ == "grasu_regraph_pagerank" ||
+                   mode_ == "grasu_regraph_hls_weighted_pagerank") {
           grasu_pagerank_compute_system_ =
               std::make_unique<GraSuReGraphPageRankSystem>(
                   scheduler_, 0, *backend_, grasu_layout_,
@@ -2153,6 +2169,7 @@ class OnlineMemoryProbe final : public SST::Component {
        "or "
        "spine_pagerank/spine_residual_pagerank/grasu_regraph_sssp/"
        "grasu_regraph_native_sssp/grasu_regraph_hls_weighted_sssp/"
+       "grasu_regraph_hls_weighted_pagerank/"
        "grasu_regraph_pagerank/grasu_regraph_residual_pagerank/"
        "grasu_regraph_partitioned_dynamic_pagerank",
        "probe"},
@@ -2784,34 +2801,40 @@ class OnlineMemoryProbe final : public SST::Component {
       return;
     }
     if (mode_ == "grasu_regraph_pagerank" ||
+        mode_ == "grasu_regraph_hls_weighted_pagerank" ||
         mode_ == "grasu_regraph_partitioned_dynamic_pagerank") {
       const bool partitioned_dynamic =
           mode_ == "grasu_regraph_partitioned_dynamic_pagerank";
+      const bool hls_weighted =
+          mode_ == "grasu_regraph_hls_weighted_pagerank";
+      const bool timed_degree_updates = partitioned_dynamic || hls_weighted;
       const bool compute_available = grasu_pagerank_compute_system_ != nullptr;
-      const std::vector<float> ranks =
+      const std::vector<float> ranks_internal =
           compute_available ? grasu_pagerank_compute_system_->ranks()
                             : std::vector<float>{};
       std::uint64_t architecture_mismatches =
-          ranks.size() == grasu_pagerank_reference_.size() ? 0 : 1;
+          ranks_internal.size() == grasu_pagerank_reference_.size() ? 0 : 1;
       std::uint64_t mathematical_mismatches =
-          ranks.size() == grasu_pagerank_mathematical_reference_.size() ? 0 : 1;
+          ranks_internal.size() == grasu_pagerank_mathematical_reference_.size()
+              ? 0
+              : 1;
       float architecture_max_abs_error = 0.0F;
       double mathematical_max_abs_error = 0.0;
       float rank_sum = 0.0F;
       const std::size_t compared =
-          std::min(ranks.size(), grasu_pagerank_reference_.size());
-      for (std::size_t vertex = 0; vertex < ranks.size(); ++vertex) {
-        rank_sum += ranks[vertex];
+          std::min(ranks_internal.size(), grasu_pagerank_reference_.size());
+      for (std::size_t vertex = 0; vertex < ranks_internal.size(); ++vertex) {
+        rank_sum += ranks_internal[vertex];
         if (vertex < compared) {
-          const float error =
-              std::fabs(ranks[vertex] - grasu_pagerank_reference_[vertex]);
+          const float error = std::fabs(ranks_internal[vertex] -
+                                        grasu_pagerank_reference_[vertex]);
           architecture_max_abs_error =
               std::max(architecture_max_abs_error, error);
           architecture_mismatches += error <= 1.0e-5F ? 0 : 1;
         }
         if (vertex < grasu_pagerank_mathematical_reference_.size()) {
           const double error =
-              std::fabs(static_cast<double>(ranks[vertex]) -
+              std::fabs(static_cast<double>(ranks_internal[vertex]) -
                         grasu_pagerank_mathematical_reference_[vertex]);
           mathematical_max_abs_error =
               std::max(mathematical_max_abs_error, error);
@@ -2834,7 +2857,7 @@ class OnlineMemoryProbe final : public SST::Component {
       const std::uint64_t update_state_mismatches =
           actual_edges == grasu_final_edges_ ? 0 : 1;
       std::uint64_t degree_state_mismatches = 0;
-      if (partitioned_dynamic) {
+      if (timed_degree_updates) {
         for (std::size_t vertex = 0; vertex < grasu_pagerank_degrees_.size();
              ++vertex) {
           const std::vector<std::uint8_t> bytes = backend_->inspect_payload(
@@ -2882,7 +2905,7 @@ class OnlineMemoryProbe final : public SST::Component {
                           mathematical_max_abs_error <= 1.0e-5 &&
                           update_state_mismatches == 0 &&
                           degree_state_mismatches == 0 &&
-                          (!partitioned_dynamic ||
+                          (!timed_degree_updates ||
                            (update.degree_reads == update.inserts + update.deletes &&
                             update.degree_writes ==
                                 update.inserts + update.deletes &&
@@ -2897,13 +2920,24 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"mode\": \"" << mode_ << "\",\n"
           << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
           << "  \"claim_class\": \""
-          << (normalized_profile ? "normalized_simulation"
-                                 : "component_validation_simulation")
+          << (hls_weighted
+                  ? "hls_equivalent_proposed_execution_driven_simulation"
+                  : (normalized_profile ? "normalized_simulation"
+                                        : "component_validation_simulation"))
           << "\",\n"
-          << "  \"timing_evidence\": "
-             "\"structural_execution_driven\",\n"
-          << "  \"pma_edge_abi\": "
-             "\"regraph_weighted32_dst19_weight12\",\n"
+          << "  \"timing_evidence\": \""
+          << (hls_weighted
+                  ? "execution_driven_sst_hbm_not_cycle_calibrated"
+                  : "structural_execution_driven")
+          << "\",\n"
+          << "  \"pipeline_order\": "
+             "\"update_then_degree_barrier_then_pma_native_compute\",\n"
+          << "  \"conversion_cost_included\": false,\n"
+          << "  \"pma_edge_abi\": \""
+          << (hls_weighted
+                  ? "regraph_weighted32_full_word_compare_dst19_weight12"
+                  : "regraph_weighted32_dst19_weight12")
+          << "\",\n"
           << "  \"core_mhz\": " << core_mhz_ << ",\n"
           << "  \"cycles\": " << total_cycles << ",\n"
           << "  \"update_cycles\": " << update_cycles << ",\n"
@@ -2913,6 +2947,13 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"vertices\": " << vertices << ",\n"
           << "  \"initial_edges\": " << grasu_initial_edges_ << ",\n"
           << "  \"updates\": " << grasu_update_edges_ << ",\n"
+          << "  \"logical_updates\": " << grasu_logical_update_edges_ << ",\n"
+          << "  \"physical_updates\": " << grasu_update_edges_ << ",\n"
+          << "  \"host_vertex_reorder\": "
+          << (hls_weighted && grasu_weighted_hls_host_reorder_applied_
+                  ? "true"
+                  : "false")
+          << ",\n"
           << "  \"update_inserts\": " << update.inserts << ",\n"
           << "  \"update_deletes\": " << update.deletes << ",\n"
           << "  \"update_weight_decreases\": " << update.weight_decreases
@@ -2968,7 +3009,7 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"degree_reads\": " << compute.degree_reads << ",\n"
           << "  \"degree_read_bytes\": " << compute.degree_read_bytes << ",\n"
           << "  \"degree_update_timing_included\": "
-          << (partitioned_dynamic ? "true" : "false") << ",\n"
+          << (timed_degree_updates ? "true" : "false") << ",\n"
           << "  \"degree_updates_required\": "
           << update.inserts + update.deletes << ",\n"
           << "  \"degree_update_reads\": " << update.degree_reads << ",\n"
@@ -3070,9 +3111,26 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"backend_response_queue_stalls\": "
           << backend_->response_queue_stalls() << ",\n"
           << "  \"backend_max_outstanding\": " << backend_->max_outstanding()
-          << ",\n"
-          << "  \"ranks\": ";
-      write_json_array(result, ranks);
+          << ",\n";
+      if (hls_weighted) {
+        result << "  \"external_to_internal\": ";
+        write_json_array(result, grasu_external_to_internal_);
+        result << ",\n  \"internal_to_external\": ";
+        write_json_array(result, grasu_internal_to_external_);
+        result << ",\n";
+      }
+      result << "  \"ranks_internal\": ";
+      write_json_array(result, ranks_internal);
+      if (hls_weighted) {
+        std::vector<float> ranks_external(ranks_internal.size());
+        for (std::size_t internal = 0; internal < ranks_internal.size();
+             ++internal) {
+          ranks_external.at(grasu_internal_to_external_.at(internal)) =
+              ranks_internal[internal];
+        }
+        result << ",\n  \"ranks_external\": ";
+        write_json_array(result, ranks_external);
+      }
       result << "\n}\n";
       output_.output(
           "completed GraSU + PMA-native ReGraph PageRank in %llu core "

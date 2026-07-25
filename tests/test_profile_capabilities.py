@@ -107,6 +107,23 @@ class ProfileCapabilityTests(unittest.TestCase):
                 )
                 self.assertEqual(capability.evidence_tier, "simulation_only")
 
+    def test_proposed_hls_pagerank_profile_is_explicitly_simulation_only(self) -> None:
+        profile = load_capability_catalog(CATALOG).profile(
+            "grasu_regraph_weighted_pma_hls_proposed_pagerank_ff13a67"
+        )
+        capability = profile.require("full_pagerank")
+        self.assertEqual(profile.comparison_role, "hls_equivalent_proposed")
+        self.assertEqual(profile.handoff, "weighted_pma_to_axis_stream")
+        self.assertEqual(profile.conversion_cost, "absent")
+        self.assertEqual(
+            capability.implementation_status, ImplementationStatus.EXECUTABLE
+        )
+        self.assertEqual(capability.evidence_tier, "simulation_only")
+        self.assertEqual(
+            capability.claim_class,
+            "hls_equivalent_proposed_execution_driven_simulation",
+        )
+
     def test_projected_profile_is_not_an_executable_implementation(self) -> None:
         projected = load_capability_catalog(CATALOG).profile(
             "grasu_regraph_weighted_pma_native_projected"

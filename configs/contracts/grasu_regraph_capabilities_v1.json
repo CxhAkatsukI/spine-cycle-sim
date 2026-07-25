@@ -65,6 +65,30 @@
       ]
     },
     {
+      "profile_id": "grasu_regraph_weighted_pma_hls_proposed_pagerank_ff13a67",
+      "profile_path": "configs/architectures/grasu_regraph_weighted_pma_hls_proposed_pagerank_ff13a67.json",
+      "profile_sha256": "53e1688e3f944d59cb2e482f040ed82e4a253e65b0c2e1353103aedb23a9dcda",
+      "comparison_role": "hls_equivalent_proposed",
+      "handoff": "weighted_pma_to_axis_stream",
+      "conversion_cost": "absent",
+      "supported_algorithms": {
+        "full_pagerank": {
+          "implementation_status": "executable",
+          "claim_class": "hls_equivalent_proposed_execution_driven_simulation",
+          "edge_semantics": "weighted32_full_word_compare_dst19_weight12",
+          "update_semantics": "logical_weight_change_lowers_to_delete_old_insert_new_with_timed_degree_rmw",
+          "convergence": "host_fixed_iterations",
+          "evidence_tier": "simulation_only"
+        }
+      },
+      "unsupported_algorithms": [
+        "unit_weight_sssp",
+        "weighted_sssp",
+        "weighted_dynamic_sssp",
+        "thresholded_residual_pagerank"
+      ]
+    },
+    {
       "profile_id": "grasu_regraph_normalized_spine23",
       "profile_path": "configs/architectures/grasu_regraph_normalized_spine23.json",
       "profile_sha256": "b0692a76b2f512c65633ebe49ceca790380991afeb6f93bf0478607e92c411ea",

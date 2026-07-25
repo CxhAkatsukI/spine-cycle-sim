@@ -50,7 +50,7 @@ class ArchitectureProfileTests(unittest.TestCase):
 
     def test_repository_profiles_load_and_have_unique_ids(self) -> None:
         loaded = [load_architecture_profile(path) for path in sorted(PROFILES.glob("*.json"))]
-        self.assertEqual(len(loaded), 12)
+        self.assertEqual(len(loaded), 13)
         self.assertEqual(len({profile.profile_id for profile in loaded}), len(loaded))
         self.assertTrue(all(profile.manifest_sha256 for profile in loaded))
 
@@ -129,6 +129,10 @@ class ArchitectureProfileTests(unittest.TestCase):
             PROFILES
             / "grasu_regraph_partitioned_dynamic_pagerank_spine23.json"
         )
+        hls_proposed_pagerank = load_architecture_profile(
+            PROFILES
+            / "grasu_regraph_weighted_pma_hls_proposed_pagerank_ff13a67.json"
+        )
 
         self.assertEqual(native.parameters["comparison_role"], "native")
         self.assertFalse(native.parameters["pma_native_compute"])
@@ -187,6 +191,24 @@ class ArchitectureProfileTests(unittest.TestCase):
         self.assertEqual(
             pagerank_normalized.parameters["regraph_pagerank_source_map_latency"],
             3,
+        )
+        self.assertEqual(
+            hls_proposed_pagerank.parameters["comparison_role"],
+            "hls_equivalent_proposed",
+        )
+        self.assertEqual(hls_proposed_pagerank.clock("kernel").achieved_mhz, 200.0)
+        self.assertEqual(
+            hls_proposed_pagerank.parameters["grasu_pma_edge_abi"],
+            "regraph_weighted32_full_word_compare_dst19_weight12",
+        )
+        self.assertEqual(
+            hls_proposed_pagerank.parameters["regraph_map_reduce_lanes"], 8
+        )
+        self.assertTrue(
+            hls_proposed_pagerank.parameters["pagerank_degree_update_timing"]
+        )
+        self.assertFalse(
+            hls_proposed_pagerank.parameters["conversion_cost_included"]
         )
         self.assertTrue(
             pagerank_normalized.parameters["pagerank_degree_reads_timed"]
