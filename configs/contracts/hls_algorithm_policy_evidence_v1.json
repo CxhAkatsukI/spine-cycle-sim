@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "contract_id": "hls_algorithm_policy_evidence_20260726",
+  "integration_repository": {
+    "path": "/home/chuxiao/grasu-regraph-integration",
+    "remote": "git@github.com:CxhAkatsukI/grasu-regraph-integration.git",
+    "branch": "codex/map-reduce-algorithm-hls",
+    "commit": "15b92edfef006ff8d5c6097ae2dbabd4522156a9",
+    "tracked_dirty": false
+  },
+  "policy_core": {
+    "source": "kernels/regraph_algorithm_policy/regraph_algorithm_policy.cpp",
+    "source_sha256": "18422dd7d722649121823b92c4a2c9f95b099801488b46473a31c933582b248b",
+    "lanes": 8,
+    "requested_clock_mhz": 200,
+    "operations": [
+      "source_map",
+      "edge_map_reduce",
+      "apply"
+    ],
+    "claim_class": "synthesizable_policy_core_not_full_system_native",
+    "sw_emu_compile": "passed",
+    "hw_synthesis": "pending"
+  },
+  "pma_adapter": {
+    "source": "kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp",
+    "source_sha256": "06f0290d44a9c51d3fdcaaab981d731db5c7f9d07ae94199a93724a2188c8061",
+    "modes": [
+      "legacy_unit_weight",
+      "weighted_dst19_weight12",
+      "destination_only_projection"
+    ],
+    "host_conversion_required": false,
+    "functional_test": "passed"
+  },
+  "algorithms": {
+    "weighted_sssp": {
+      "policy_state_bytes_per_vertex": 4,
+      "policy_sw_emu_compile": "passed",
+      "normalized_execution_driven_simulator": "passed",
+      "full_system_hls_sw_emu": "passed",
+      "full_system_hls_hw": "build_pending",
+      "native_claim_allowed": "sw_emu_correctness_only",
+      "remaining_full_system_components": []
+    },
+    "full_pagerank": {
+      "policy_state_bytes_per_vertex": 4,
+      "policy_sw_emu_compile": "passed",
+      "normalized_execution_driven_simulator": "passed",
+      "full_system_hls_sw_emu": "not_integrated",
+      "full_system_hls_hw": "not_integrated",
+      "native_claim_allowed": "no",
+      "remaining_full_system_components": [
+        "device_dangling_mass_reduction",
+        "degree_maintenance_and_binding",
+        "rank_ping_pong_storage",
+        "iteration_control_and_convergence",
+        "destination_only_adapter_build_profile",
+        "whole_xclbin_host_and_dual_oracle_validation"
+      ]
+    },
+    "thresholded_residual_pagerank": {
+      "policy_state_bytes_per_vertex": 8,
+      "policy_sw_emu_compile": "passed",
+      "normalized_execution_driven_simulator": "passed",
+      "full_system_hls_sw_emu": "not_integrated",
+      "full_system_hls_hw": "not_integrated",
+      "native_claim_allowed": "no",
+      "remaining_full_system_components": [
+        "device_dangling_residual_reduction",
+        "degree_maintenance_and_binding",
+        "rank_and_signed_residual_storage",
+        "threshold_frontier_generation",
+        "iteration_control_and_quiescence",
+        "destination_only_adapter_build_profile",
+        "whole_xclbin_host_and_dual_oracle_validation"
+      ]
+    }
+  },
+  "evidence": {
+    "integration_readme": "evidence/regraph_algorithm_policy_sw_emu_20260726/README.md",
+    "weighted_full_system_sw_emu": "evidence/weighted_pma_native_sw_emu_ff13a67/README.md",
+    "local_sw_emu_build_root": "/data/tmp/chuxiao/regraph_algorithm_policy_sw_emu_precommit_a927186_20260726",
+    "weighted_hw_build_root": "/data/tmp/chuxiao/grasu_regraph_weighted_sssp_native_hw_15b92ed_20260726"
+  }
+}

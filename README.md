@@ -60,6 +60,11 @@ boundary machine-readable: the existing HLS profile can execute only
 unit-weight fixed-superstep SSSP, while weighted SSSP and both PageRank modes
 remain normalized simulation implementations. See
 [`docs/grasu_regraph_algorithm_capabilities_20260726.md`](docs/grasu_regraph_algorithm_capabilities_20260726.md).
+The same three Map/Reduce/Apply policies now have an eight-lane HLS arithmetic
+core and pass Vitis `sw_emu` compilation. This is incremental policy evidence,
+not a native PageRank whole-system claim; the exact evidence boundary and
+remaining integration modules are recorded in
+[`docs/hls_algorithm_policy_evidence_20260726.md`](docs/hls_algorithm_policy_evidence_20260726.md).
 The frozen ten-case U55C calibration/holdout matrix now matches every graph,
 reordered source, PMA/compact count, superstep count, and SSSP output. Its
 unfitted timing remains optimistic by about 50% E2E median and is explicitly

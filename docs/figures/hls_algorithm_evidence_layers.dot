@@ -1,0 +1,49 @@
+digraph HlsAlgorithmEvidenceLayers {
+  graph [
+    rankdir=LR,
+    bgcolor="white",
+    pad="0.25",
+    nodesep="0.35",
+    ranksep="0.75",
+    fontname="Arial"
+  ];
+  node [shape=box, style="rounded,filled", fontname="Arial", fontsize=10,
+        color="#56616b", fillcolor="#f7f8f9", margin="0.12,0.08"];
+  edge [fontname="Arial", fontsize=9, color="#56616b", arrowsize=0.7];
+
+  pma [label="GraSU PMA\nfull dst19 + weight12", fillcolor="#e8f1fb"];
+  adapter [label="PMA AXIS adapter\nweighted or dst-only", fillcolor="#e8f1fb"];
+  hbm [label="Shared AXI / SST-HBM\n32-channel namespace", fillcolor="#e8f1fb"];
+
+  subgraph cluster_policy {
+    label="Common 8-lane Map / Reduce / Apply policy core";
+    color="#9aa5af";
+    style="rounded";
+    source [label="source-map", fillcolor="#e8f6eb"];
+    mapreduce [label="edge-map + reduce", fillcolor="#e8f6eb"];
+    apply [label="apply + active decision", fillcolor="#e8f6eb"];
+    source -> mapreduce -> apply;
+  }
+
+  sssp [label="Weighted SSSP\nfull-system sw_emu PASS\nhw build pending", fillcolor="#e8f6eb"];
+  full [label="Full PageRank\npolicy-core sw_emu PASS", fillcolor="#fff3cd"];
+  residual [label="Residual PageRank\npolicy-core sw_emu PASS", fillcolor="#fff3cd"];
+
+  full_missing [label="Still needed for native Full PR\ndangling reduce + degree + ping-pong\niteration host + whole-xclbin oracle", fillcolor="#f1f3f5"];
+  residual_missing [label="Still needed for native Residual PR\ndangling reduce + degree + rank/residual\nthreshold frontier + whole-xclbin oracle", fillcolor="#f1f3f5"];
+
+  normalized [label="Normalized execution-driven simulator\nall 3 algorithms PASS", fillcolor="#dff3f1"];
+  ppa [label="Evidence boundary\npolicy XO: incremental PPA only\nwhole xclbin: native PPA", fillcolor="#fce8e6"];
+
+  pma -> adapter -> source;
+  hbm -> source [dir=both, label="timed requests"];
+  apply -> sssp;
+  apply -> full;
+  apply -> residual;
+  full -> full_missing [style=dashed];
+  residual -> residual_missing [style=dashed];
+  normalized -> source [style=dashed, label="same policy semantics"];
+  sssp -> ppa;
+  full_missing -> ppa [style=dashed];
+  residual_missing -> ppa [style=dashed];
+}
