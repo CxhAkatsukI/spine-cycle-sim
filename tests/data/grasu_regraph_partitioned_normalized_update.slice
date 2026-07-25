@@ -1,0 +1,10 @@
+# spine_real_slice_version=1
+# case=grasu_regraph_partitioned_normalized_update
+# vertices=65537
+# columns=src dst weight diff
+0 1 1 1
+0 65535 1 1
+0 65536 5 -1
+1 32768 3 -1
+2 65535 7 1
+2 65536 2 1

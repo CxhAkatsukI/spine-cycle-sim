@@ -1,0 +1,66 @@
+digraph grasu_regraph_partitioned_dynamic_pagerank {
+  graph [
+    rankdir=LR,
+    bgcolor="white",
+    pad="0.25",
+    nodesep="0.35",
+    ranksep="0.65",
+    fontname="DejaVu Sans",
+    label="Normalized GraSU + PMA-native ReGraph dynamic PageRank",
+    labelloc="t",
+    fontsize=18
+  ];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=10,
+        color="#334155", fillcolor="#f8fafc", margin="0.12,0.08"];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#475569", arrowsize=0.75];
+
+  updates [label="Sorted update batch\n16 B: src, global dst, weight, op", fillcolor="#fff7ed", color="#c2410c"];
+  search [label="4 x direct-search CU\npartition route + row/binary probes", fillcolor="#fffbeb", color="#a16207"];
+  dispatch [label="1 x dispatch\ncache / DDR lane route", fillcolor="#fffbeb", color="#a16207"];
+  pma_rmw [label="2 cache + 2 DDR processors\n64 B PMA read-modify-write", fillcolor="#fffbeb", color="#a16207"];
+  degree_fifo [label="4 finite degree FIFOs\n{update index, src, delta}", fillcolor="#f0fdf4", color="#15803d"];
+  degree_order [label="Round-robin collector: 1 completion/cycle\n4096-entry scoreboard, restore order", fillcolor="#f0fdf4", color="#15803d"];
+  degree_rmw [label="Serial degree updater\n4 B read + 4 B write\ninsert/delete only", fillcolor="#f0fdf4", color="#15803d"];
+
+  controller [label="Superstep controller\nserial partition passes\none barrier per PageRank iteration", fillcolor="#eff6ff", color="#1d4ed8"];
+  reader [label="1 x PMA reader\nrow + source state + degree + PMA", fillcolor="#eff6ff", color="#1d4ed8"];
+  gather [label="4 map/reduce lanes\n4 gather banks + RAW bypass", fillcolor="#eff6ff", color="#1d4ed8"];
+  merger [label="Fixed-window merger\n64 B state bursts", fillcolor="#eff6ff", color="#1d4ed8"];
+  apply [label="Apply pipeline\nrank update + dangling share", fillcolor="#eff6ff", color="#1d4ed8"];
+  wrapper [label="HBM wrapper\nwrite both source-state copies", fillcolor="#eff6ff", color="#1d4ed8"];
+
+  pma [label="Destination-partitioned weighted PMA\n19-bit local dst + 12-bit weight", shape=cylinder,
+       style="filled", fillcolor="#f5f3ff", color="#7e22ce"];
+  degree [label="Out-degree array\nHBM channel 30", shape=cylinder,
+          style="filled", fillcolor="#f0fdf4", color="#15803d"];
+  state [label="Rank / source-state arrays\nHBM channels 1, 3, 30", shape=cylinder,
+         style="filled", fillcolor="#eff6ff", color="#1d4ed8"];
+  sst [label="Shared FIFO + AXI core\nSST StandardMem + DRAMSim3 HBM", shape=box3d,
+       style="filled", fillcolor="#f1f5f9", color="#334155"];
+
+  updates -> search [label="4 finite AXIS paths"];
+  search -> dispatch;
+  dispatch -> pma_rmw;
+  pma_rmw -> pma [label="timed PMA RMW"];
+  pma_rmw -> degree_fifo [label="delta after PMA write response"];
+  degree_fifo -> degree_order [label="out-of-order completions"];
+  degree_order -> degree_rmw [label="next update index"];
+  degree_rmw -> degree [label="timed degree RMW"];
+
+  controller -> reader [label="partition 0..N-1"];
+  pma -> reader [label="same payload, no conversion"];
+  degree -> reader [label="timed 4 B reads"];
+  state -> reader [label="source epoch"];
+  reader -> gather [label="finite edge/value streams"];
+  gather -> merger;
+  merger -> apply;
+  apply -> wrapper;
+  wrapper -> state [label="next epoch"];
+  wrapper -> controller [label="partition / iteration done"];
+
+  pma_rmw -> sst [style=dashed, arrowhead=none];
+  degree_rmw -> sst [style=dashed, arrowhead=none];
+  reader -> sst [style=dashed, arrowhead=none];
+  apply -> sst [style=dashed, arrowhead=none];
+  wrapper -> sst [style=dashed, arrowhead=none];
+}

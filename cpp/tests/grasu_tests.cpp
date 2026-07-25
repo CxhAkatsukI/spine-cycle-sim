@@ -44,6 +44,16 @@ void require(bool condition, const std::string &message) {
   }
 }
 
+std::uint32_t read_u32(const std::vector<std::uint8_t> &bytes,
+                       std::size_t offset) {
+  require(offset + 4 <= bytes.size(), "test payload is too short for u32");
+  std::uint32_t value = 0;
+  for (std::size_t byte = 0; byte < 4; ++byte) {
+    value |= static_cast<std::uint32_t>(bytes[offset + byte]) << (byte * 8);
+  }
+  return value;
+}
+
 std::set<std::pair<std::uint32_t, std::uint32_t>>
 edge_set(const std::vector<GraSuEdge> &edges) {
   std::set<std::pair<std::uint32_t, std::uint32_t>> result;
@@ -563,6 +573,145 @@ void test_partitioned_regraph_sssp_crosses_destination_windows() {
             << " supersteps=" << counters.supersteps
             << " partition_passes=" << counters.partition_passes
             << " row_reads=" << counters.row_reads << '\n';
+}
+
+void test_partitioned_update_times_degree_rmw_and_feeds_pagerank() {
+  constexpr std::size_t kVertices = 33;
+  constexpr std::size_t kPartitionVertices = 16;
+  constexpr std::size_t kIterations = 2;
+  const std::vector<GraSuEdge> initial = {
+      {.source = 0, .destination = 16, .weight = 5},
+      {.source = 0, .destination = 1, .weight = 2},
+      {.source = 1, .destination = 32, .weight = 3},
+      {.source = 2, .destination = 17, .weight = 4},
+  };
+  const std::vector<GraSuEdge> updates = {
+      {.source = 0, .destination = 32, .weight = 1},
+      {.source = 0, .destination = 16, .weight = 5, .delete_op = true},
+      {.source = 0, .destination = 1, .weight = 1},
+      {.source = 2, .destination = 0, .weight = 2},
+      {.source = 1, .destination = 32, .weight = 3, .delete_op = true},
+      {.source = 2, .destination = 17, .weight = 7},
+  };
+  const GraSuPartitionedPmaLayout layout = GraSuPartitionedPmaLayout::build(
+      kVertices, kPartitionVertices, initial, updates);
+  WeightedEdgeMap expected_edges = weighted_edge_map(initial);
+  for (const GraSuEdge &edge : updates) {
+    const auto key = std::pair(edge.source, edge.destination);
+    if (edge.delete_op) {
+      expected_edges.erase(key);
+    } else {
+      expected_edges[key] = edge.weight;
+    }
+  }
+
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("partitioned-grasu-update", 200.0);
+  MockMemoryBackend backend("shared-hbm", core,
+                            MockMemoryConfig{.channels = 32,
+                                             .latency_cycles = 7,
+                                             .accepts_per_channel_per_cycle = 1,
+                                             .max_outstanding_per_channel = 32,
+                                             .response_queue_depth = 128});
+  GraSuNativeConfig update_config;
+  update_config.cache_segments_per_half = 1;
+  update_config.maintain_out_degree = true;
+  update_config.degree_fifo_depth = 2;
+  GraSuNativeConfig undersized_config = update_config;
+  undersized_config.degree_reorder_entries = updates.size() - 1;
+  bool undersized_rejected = false;
+  try {
+    GraSuPmaUpdateSystem undersized(scheduler, core, backend, layout, updates,
+                                    undersized_config);
+  } catch (const std::invalid_argument &) {
+    undersized_rejected = true;
+  }
+  require(undersized_rejected,
+          "undersized degree completion scoreboard was not rejected");
+  GraSuPmaUpdateSystem update_system(scheduler, core, backend, layout, updates,
+                                     update_config);
+  update_system.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until(
+      [&] { return update_system.done() || update_system.failed(); },
+      5'000'000);
+
+  require(!update_system.failed() && update_system.done(),
+          "partitioned GraSU update with degree RMW did not complete");
+  const auto final_edges = update_system.live_edges();
+  require(weighted_edge_map(final_edges) == expected_edges,
+          "partitioned GraSU PMA differs from edge-state oracle");
+  const auto update_counters = update_system.counters();
+  require(update_counters.update_record_bytes == 16 &&
+              update_counters.destination_partitions_touched == 3 &&
+              update_counters.partition_routes == updates.size() &&
+              update_counters.inserts == 2 && update_counters.deletes == 2 &&
+              update_counters.weight_decreases == 1 &&
+              update_counters.weight_increases == 1 &&
+              update_counters.degree_reads == 4 &&
+              update_counters.degree_writes == 4 &&
+              update_counters.degree_read_bytes == 16 &&
+              update_counters.degree_write_bytes == 16 &&
+              update_counters.degree_fifo_max_occupancy > 0 &&
+              update_counters.degree_fifo_max_occupancy <=
+                  update_config.degree_fifo_depth &&
+              update_counters.degree_reorder_max_occupancy > 1 &&
+              update_counters.degree_reorder_max_occupancy <= updates.size(),
+          "partitioned GraSU update or degree ledger mismatch");
+
+  const auto degree_bytes = backend.inspect_payload(
+      update_config.degree_channel, update_config.degree_base, kVertices * 4);
+  std::vector<std::uint32_t> degrees(kVertices);
+  for (std::size_t vertex = 0; vertex < kVertices; ++vertex) {
+    degrees[vertex] = read_u32(degree_bytes, vertex * 4);
+  }
+  require(degrees[0] == 2 && degrees[1] == 0 && degrees[2] == 2 &&
+              std::accumulate(degrees.begin(), degrees.end(), 0U) ==
+                  final_edges.size(),
+          "timed GraSU degree HBM payload differs from final PMA state");
+
+  GraSuReGraphConfig compute_config;
+  compute_config.partition_vertices = kPartitionVertices;
+  compute_config.source_buffer_vertices = 16;
+  compute_config.edge_lanes = 4;
+  compute_config.gather_banks = 4;
+  compute_config.initialize_degree_payload = false;
+  const std::vector<std::uint32_t> poisoned_host_degrees(kVertices, 99);
+  GraSuReGraphPageRankSystem compute(
+      scheduler, core, backend, layout, poisoned_host_degrees, kIterations,
+      0.85F, compute_config);
+  compute.register_components();
+  scheduler.run_until([&] { return compute.done() || compute.failed(); },
+                      5'000'000);
+  require(!compute.failed() && compute.done(),
+          "PageRank did not consume the timed dynamic degree state");
+  const std::vector<GraSuEdge> oracle_edges = [&] {
+    std::vector<GraSuEdge> result;
+    result.reserve(expected_edges.size());
+    for (const auto &[key, weight] : expected_edges) {
+      result.push_back(
+          {.source = key.first, .destination = key.second, .weight = weight});
+    }
+    return result;
+  }();
+  const auto expected =
+      full_pagerank_oracle<float>(kVertices, oracle_edges, kIterations, 0.85F);
+  const auto actual = compute.ranks();
+  for (std::size_t vertex = 0; vertex < kVertices; ++vertex) {
+    require(std::fabs(actual[vertex] - expected[vertex]) < 1.0e-6F,
+            "PageRank after partitioned updates differs at vertex " +
+                std::to_string(vertex));
+  }
+  const auto compute_counters = compute.counters();
+  std::cout << "EVIDENCE grasu_partitioned_update_degree update_cycles="
+            << update_counters.end_cycle - update_counters.start_cycle
+            << " update_bytes=" << update_counters.update_read_bytes
+            << " degree_rmw=" << update_counters.degree_reads
+            << " degree_reorder_max="
+            << update_counters.degree_reorder_max_occupancy
+            << " pagerank_cycles="
+            << compute_counters.end_cycle - compute_counters.start_cycle
+            << '\n';
 }
 
 void test_pma_native_regraph_full_pagerank_matches_oracle() {
@@ -1453,6 +1602,8 @@ int main() {
        test_weighted_dynamic_pma_regraph_matches_dijkstra},
       {"partitioned_sssp",
        test_partitioned_regraph_sssp_crosses_destination_windows},
+      {"partitioned_update_degree",
+       test_partitioned_update_times_degree_rmw_and_feeds_pagerank},
       {"full_pagerank", test_pma_native_regraph_full_pagerank_matches_oracle},
       {"partitioned_pagerank",
        test_partitioned_regraph_pagerank_counts_dangling_once},

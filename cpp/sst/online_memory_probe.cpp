@@ -1022,6 +1022,20 @@ class OnlineMemoryProbe final : public SST::Component {
         params.find<std::size_t>("grasu_pagerank_source_map_latency", 1);
     grasu_config_.degree_channel =
         params.find<std::size_t>("grasu_degree_channel", 30);
+    grasu_config_.row_offset_base =
+        params.find<std::uint64_t>("grasu_row_offset_base", 0x1000'0000ULL);
+    grasu_config_.pma_base =
+        params.find<std::uint64_t>("grasu_pma_base", 0x3000'0000ULL);
+    grasu_config_.vertex_state_base =
+        params.find<std::uint64_t>("grasu_vertex_state_base", 0x4000'0000ULL);
+    grasu_config_.source_state_base =
+        params.find<std::uint64_t>("grasu_source_state_base", 0x5000'0000ULL);
+    grasu_config_.source_state_buffer_stride = params.find<std::uint64_t>(
+        "grasu_source_state_buffer_stride", 0x0010'0000ULL);
+    grasu_config_.degree_base =
+        params.find<std::uint64_t>("grasu_degree_base", 0x4100'0000ULL);
+    grasu_config_.partition_address_stride = params.find<std::uint64_t>(
+        "grasu_partition_address_stride", 0x1'0000'0000ULL);
     grasu_config_.max_supersteps = max_rounds_;
     grasu_update_config_.memory_channels = channels_;
     grasu_update_config_.cache_segments_per_half =
@@ -1031,12 +1045,31 @@ class OnlineMemoryProbe final : public SST::Component {
         grasu_config_.max_pending_requests;
     grasu_update_config_.max_outstanding_bursts =
         grasu_config_.max_outstanding_bursts;
+    grasu_update_config_.partition_address_stride =
+        grasu_config_.partition_address_stride;
+    grasu_update_config_.update_base =
+        params.find<std::uint64_t>("grasu_update_base", 0x0000'0000ULL);
+    grasu_update_config_.row_offset_base = grasu_config_.row_offset_base;
+    grasu_update_config_.binary_base =
+        params.find<std::uint64_t>("grasu_binary_base", 0x2000'0000ULL);
+    grasu_update_config_.pma_base = grasu_config_.pma_base;
+    grasu_update_config_.degree_base = grasu_config_.degree_base;
+    grasu_update_config_.degree_channel = grasu_config_.degree_channel;
+    grasu_update_config_.degree_fifo_depth =
+        params.find<std::size_t>("grasu_degree_fifo_depth", 16);
+    grasu_update_config_.degree_reorder_entries =
+        params.find<std::size_t>("grasu_degree_reorder_entries", 4096);
+    const bool partitioned_dynamic_pagerank =
+        mode_ == "grasu_regraph_partitioned_dynamic_pagerank";
+    grasu_update_config_.maintain_out_degree = partitioned_dynamic_pagerank;
+    grasu_config_.initialize_degree_payload = !partitioned_dynamic_pagerank;
     if ((mode_ != "probe" && mode_ != "payload_roundtrip" &&
          mode_ != "spine_vertical" && mode_ != "spine_compute" &&
          mode_ != "spine_sssp" && mode_ != "spine_pagerank" &&
          mode_ != "spine_residual_pagerank" && mode_ != "grasu_regraph_sssp" &&
          mode_ != "grasu_regraph_pagerank" &&
-         mode_ != "grasu_regraph_residual_pagerank") ||
+         mode_ != "grasu_regraph_residual_pagerank" &&
+         mode_ != "grasu_regraph_partitioned_dynamic_pagerank") ||
         channels_ == 0 || channel_capacity_bytes_ == 0 || max_rounds_ == 0 ||
         pagerank_iterations_ == 0 || !(pagerank_damping_ > 0.0F) ||
         !(pagerank_damping_ < 1.0F) || !(pagerank_epsilon_ > 0.0F) ||
@@ -1076,10 +1109,12 @@ class OnlineMemoryProbe final : public SST::Component {
           mode_ == "spine_sssp" || mode_ == "spine_pagerank" ||
           mode_ == "spine_residual_pagerank" || mode_ == "grasu_regraph_sssp" ||
           mode_ == "grasu_regraph_pagerank" ||
-          mode_ == "grasu_regraph_residual_pagerank") &&
+          mode_ == "grasu_regraph_residual_pagerank" ||
+          mode_ == "grasu_regraph_partitioned_dynamic_pagerank") &&
          (channels_ < 23 || workload_path_.empty())) ||
         ((mode_ == "grasu_regraph_sssp" || mode_ == "grasu_regraph_pagerank" ||
-          mode_ == "grasu_regraph_residual_pagerank") &&
+          mode_ == "grasu_regraph_residual_pagerank" ||
+          mode_ == "grasu_regraph_partitioned_dynamic_pagerank") &&
          channels_ < 32)) {
       output_.fatal(
           CALL_INFO, -1,
@@ -1133,8 +1168,11 @@ class OnlineMemoryProbe final : public SST::Component {
     const ClockId core = scheduler_.add_clock_mhz("core", core_mhz_);
     backend_ = std::make_unique<SstMemoryBackend>(
         core, interfaces_, channel_capacity_bytes_, 1, 32, 128);
+    const bool partitioned_dynamic_pagerank =
+        mode_ == "grasu_regraph_partitioned_dynamic_pagerank";
     if (mode_ == "grasu_regraph_sssp" || mode_ == "grasu_regraph_pagerank" ||
-        mode_ == "grasu_regraph_residual_pagerank") {
+        mode_ == "grasu_regraph_residual_pagerank" ||
+        mode_ == "grasu_regraph_partitioned_dynamic_pagerank") {
       SpineEdgeSlice initial = load_spine_edge_slice(workload_path_);
       std::vector<GraSuEdge> initial_edges;
       std::vector<GraSuEdge> reserved_updates;
@@ -1182,8 +1220,27 @@ class OnlineMemoryProbe final : public SST::Component {
           initial.vertices, initial_edges, updates);
       grasu_initial_edges_ = initial_edges.size();
       grasu_update_edges_ = updates.size();
-      grasu_layout_ = GraSuPmaLayout::build(initial.vertices, initial_edges,
-                                            reserved_updates);
+      grasu_final_edges_.reserve(final_snapshot.edges.size());
+      for (const SpineEdgeRecord &edge : final_snapshot.edges) {
+        grasu_final_edges_.push_back(GraSuEdge{
+            .source = edge.src,
+            .destination = edge.dst,
+            .weight = edge.weight,
+        });
+      }
+      std::sort(grasu_final_edges_.begin(), grasu_final_edges_.end(),
+                [](const auto &left, const auto &right) {
+                  return std::tuple(left.source, left.destination, left.weight) <
+                         std::tuple(right.source, right.destination, right.weight);
+                });
+      if (partitioned_dynamic_pagerank) {
+        grasu_partitioned_layout_ = GraSuPartitionedPmaLayout::build(
+            initial.vertices, grasu_config_.partition_vertices, initial_edges,
+            reserved_updates);
+      } else {
+        grasu_layout_ = GraSuPmaLayout::build(initial.vertices, initial_edges,
+                                              reserved_updates);
+      }
       if (mode_ == "grasu_regraph_sssp") {
         grasu_sssp_reference_ =
             run_sssp_reference(final_snapshot, source_vertex_, max_rounds_);
@@ -1191,7 +1248,8 @@ class OnlineMemoryProbe final : public SST::Component {
           throw std::invalid_argument(
               "GraSU/ReGraph SST SSSP reference did not converge");
         }
-      } else if (mode_ == "grasu_regraph_pagerank") {
+      } else if (mode_ == "grasu_regraph_pagerank" ||
+                 mode_ == "grasu_regraph_partitioned_dynamic_pagerank") {
         grasu_pagerank_reference_ = run_full_pagerank_reference(
             final_snapshot, pagerank_damping_, pagerank_iterations_);
         grasu_pagerank_mathematical_reference_ =
@@ -1218,9 +1276,15 @@ class OnlineMemoryProbe final : public SST::Component {
           ++grasu_pagerank_degrees_.at(edge.src);
         }
       }
-      grasu_update_system_ = std::make_unique<GraSuPmaUpdateSystem>(
-          scheduler_, core, *backend_, grasu_layout_, std::move(updates),
-          grasu_update_config_);
+      if (partitioned_dynamic_pagerank) {
+        grasu_update_system_ = std::make_unique<GraSuPmaUpdateSystem>(
+            scheduler_, core, *backend_, grasu_partitioned_layout_,
+            std::move(updates), grasu_update_config_);
+      } else {
+        grasu_update_system_ = std::make_unique<GraSuPmaUpdateSystem>(
+            scheduler_, core, *backend_, grasu_layout_, std::move(updates),
+            grasu_update_config_);
+      }
       grasu_update_system_->register_components();
       scheduler_.add_component(*backend_);
       return;
@@ -1549,7 +1613,8 @@ class OnlineMemoryProbe final : public SST::Component {
   bool clock_tick(SST::Cycle_t) {
     scheduler_.step();
     if (mode_ == "grasu_regraph_sssp" || mode_ == "grasu_regraph_pagerank" ||
-        mode_ == "grasu_regraph_residual_pagerank") {
+        mode_ == "grasu_regraph_residual_pagerank" ||
+        mode_ == "grasu_regraph_partitioned_dynamic_pagerank") {
       if (grasu_update_system_->failed()) {
         write_result(false);
         primaryComponentOKToEndSim();
@@ -1570,6 +1635,14 @@ class OnlineMemoryProbe final : public SST::Component {
           grasu_pagerank_compute_system_ =
               std::make_unique<GraSuReGraphPageRankSystem>(
                   scheduler_, 0, *backend_, grasu_layout_,
+                  grasu_pagerank_degrees_, pagerank_iterations_,
+                  pagerank_damping_, grasu_config_);
+          grasu_pagerank_compute_system_->register_components();
+        } else if (mode_ ==
+                   "grasu_regraph_partitioned_dynamic_pagerank") {
+          grasu_pagerank_compute_system_ =
+              std::make_unique<GraSuReGraphPageRankSystem>(
+                  scheduler_, 0, *backend_, grasu_partitioned_layout_,
                   grasu_pagerank_degrees_, pagerank_iterations_,
                   pagerank_damping_, grasu_config_);
           grasu_pagerank_compute_system_->register_components();
@@ -1777,7 +1850,8 @@ class OnlineMemoryProbe final : public SST::Component {
        "probe, payload_roundtrip, spine_vertical, spine_compute, spine_sssp, "
        "or "
        "spine_pagerank/spine_residual_pagerank/grasu_regraph_sssp/"
-       "grasu_regraph_pagerank/grasu_regraph_residual_pagerank",
+       "grasu_regraph_pagerank/grasu_regraph_residual_pagerank/"
+       "grasu_regraph_partitioned_dynamic_pagerank",
        "probe"},
       {"workload", "Spine .slice workload path", ""},
       {"update_workload", "Optional positive incremental Spine .slice", ""},
@@ -1888,7 +1962,20 @@ class OnlineMemoryProbe final : public SST::Component {
        "ReGraph HBM-wrapper in-flight capacity", "71"},
       {"grasu_pagerank_source_map_latency",
        "ReGraph PageRank source-map pipeline latency", "1"},
-      {"grasu_degree_channel", "ReGraph PageRank out-degree HBM channel", "30"})
+      {"grasu_degree_channel", "ReGraph PageRank out-degree HBM channel", "30"},
+      {"grasu_degree_fifo_depth", "GraSU degree-update AXIS FIFO depth", "16"},
+      {"grasu_degree_reorder_entries",
+       "GraSU ordered degree-completion scoreboard entries", "4096"},
+      {"grasu_update_base", "GraSU update payload base address", "0"},
+      {"grasu_binary_base", "GraSU binary-head payload base address", "536870912"},
+      {"grasu_row_offset_base", "GraSU/ReGraph row-offset base address", "268435456"},
+      {"grasu_pma_base", "GraSU/ReGraph PMA base address", "805306368"},
+      {"grasu_vertex_state_base", "ReGraph apply-state base address", "1073741824"},
+      {"grasu_source_state_base", "ReGraph source-state base address", "1342177280"},
+      {"grasu_source_state_buffer_stride", "ReGraph ping-pong source-state stride", "1048576"},
+      {"grasu_degree_base", "ReGraph out-degree base address", "1090519040"},
+      {"grasu_partition_address_stride",
+       "Per-destination-partition row/PMA address-window stride", "4294967296"})
 
   SST_ELI_DOCUMENT_SUBCOMPONENT_SLOTS(
       {"memory", "One StandardMem interface per HBM channel",
@@ -2198,7 +2285,10 @@ class OnlineMemoryProbe final : public SST::Component {
           result_path_.c_str());
       return;
     }
-    if (mode_ == "grasu_regraph_pagerank") {
+    if (mode_ == "grasu_regraph_pagerank" ||
+        mode_ == "grasu_regraph_partitioned_dynamic_pagerank") {
+      const bool partitioned_dynamic =
+          mode_ == "grasu_regraph_partitioned_dynamic_pagerank";
       const bool compute_available = grasu_pagerank_compute_system_ != nullptr;
       const std::vector<float> ranks =
           compute_available ? grasu_pagerank_compute_system_->ranks()
@@ -2236,6 +2326,49 @@ class OnlineMemoryProbe final : public SST::Component {
       const GraSuUpdateCounters update = grasu_update_counters_captured_
                                              ? grasu_update_counters_
                                              : grasu_update_system_->counters();
+      const std::size_t vertices = partitioned_dynamic
+                                       ? grasu_partitioned_layout_.vertices
+                                       : grasu_layout_.vertices;
+      const std::size_t destination_partitions =
+          partitioned_dynamic ? grasu_partitioned_layout_.partitions.size() : 1;
+      const std::vector<GraSuEdge> actual_edges =
+          grasu_update_system_->live_edges();
+      const std::uint64_t update_state_mismatches =
+          actual_edges == grasu_final_edges_ ? 0 : 1;
+      std::uint64_t degree_state_mismatches = 0;
+      if (partitioned_dynamic) {
+        for (std::size_t vertex = 0; vertex < grasu_pagerank_degrees_.size();
+             ++vertex) {
+          const std::vector<std::uint8_t> bytes = backend_->inspect_payload(
+              grasu_config_.degree_channel,
+              grasu_config_.degree_base + vertex * 4, 4);
+          std::uint32_t degree = 0;
+          for (std::size_t byte = 0; byte < bytes.size(); ++byte) {
+            degree |= static_cast<std::uint32_t>(bytes[byte]) << (byte * 8);
+          }
+          degree_state_mismatches +=
+              degree == grasu_pagerank_degrees_[vertex] ? 0 : 1;
+        }
+      }
+      const std::uint64_t update_requests =
+          update.updates + update.row_reads + update.binary_probes +
+          update.pma_reads + update.pma_writes + update.degree_reads +
+          update.degree_writes;
+      const std::uint64_t compute_requests =
+          compute.row_reads + compute.source_cache_lines + compute.degree_reads +
+          compute.pma_segment_reads + compute.apply_state_reads +
+          compute.apply_state_writes + compute.source_state_writes;
+      const std::uint64_t expected_backend_requests =
+          update_requests + compute_requests;
+      const std::uint64_t total_cycles =
+          scheduler_.clock(0).completed_cycles;
+      const std::uint64_t update_cycles = update.end_cycle - update.start_cycle;
+      const std::uint64_t compute_cycles =
+          compute.end_cycle - compute.start_cycle;
+      const std::uint64_t serial_unattributed_cycles =
+          total_cycles >= update_cycles + compute_cycles
+              ? total_cycles - update_cycles - compute_cycles
+              : 0;
       const bool normalized_profile =
           std::fabs(core_mhz_ - 150.0) < 1.0e-9 && channels_ == 32 &&
           grasu_config_.partition_vertices == 65'536 &&
@@ -2248,11 +2381,22 @@ class OnlineMemoryProbe final : public SST::Component {
                           architecture_mismatches == 0 &&
                           mathematical_mismatches == 0 &&
                           architecture_max_abs_error <= 1.0e-5F &&
-                          mathematical_max_abs_error <= 1.0e-5;
+                          mathematical_max_abs_error <= 1.0e-5 &&
+                          update_state_mismatches == 0 &&
+                          degree_state_mismatches == 0 &&
+                          (!partitioned_dynamic ||
+                           (update.degree_reads == update.inserts + update.deletes &&
+                            update.degree_writes ==
+                                update.inserts + update.deletes &&
+                            compute.destination_partitions ==
+                                destination_partitions &&
+                            compute.partition_passes ==
+                                destination_partitions * compute.supersteps &&
+                            expected_backend_requests == backend_->accepted()));
       result
           << "{\n"
           << "  \"success\": " << (passed ? "true" : "false") << ",\n"
-          << "  \"mode\": \"grasu_regraph_pagerank\",\n"
+          << "  \"mode\": \"" << mode_ << "\",\n"
           << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
           << "  \"claim_class\": \""
           << (normalized_profile ? "normalized_simulation"
@@ -2262,12 +2406,12 @@ class OnlineMemoryProbe final : public SST::Component {
              "\"structural_execution_driven\",\n"
           << "  \"pma_edge_abi\": "
              "\"regraph_weighted32_dst19_weight12\",\n"
-          << "  \"cycles\": " << scheduler_.clock(0).completed_cycles << ",\n"
-          << "  \"update_cycles\": " << update.end_cycle - update.start_cycle
-          << ",\n"
-          << "  \"compute_cycles\": " << compute.end_cycle - compute.start_cycle
-          << ",\n"
-          << "  \"vertices\": " << grasu_layout_.vertices << ",\n"
+          << "  \"cycles\": " << total_cycles << ",\n"
+          << "  \"update_cycles\": " << update_cycles << ",\n"
+          << "  \"compute_cycles\": " << compute_cycles << ",\n"
+          << "  \"serial_unattributed_cycles\": "
+          << serial_unattributed_cycles << ",\n"
+          << "  \"vertices\": " << vertices << ",\n"
           << "  \"initial_edges\": " << grasu_initial_edges_ << ",\n"
           << "  \"updates\": " << grasu_update_edges_ << ",\n"
           << "  \"update_inserts\": " << update.inserts << ",\n"
@@ -2276,6 +2420,19 @@ class OnlineMemoryProbe final : public SST::Component {
           << ",\n"
           << "  \"update_weight_increases\": " << update.weight_increases
           << ",\n"
+          << "  \"update_record_bytes\": " << update.update_record_bytes
+          << ",\n"
+          << "  \"destination_partitions\": " << destination_partitions
+          << ",\n"
+          << "  \"destination_partitions_touched\": "
+          << update.destination_partitions_touched << ",\n"
+          << "  \"partition_routes\": " << update.partition_routes << ",\n"
+          << "  \"partition_passes\": " << compute.partition_passes << ",\n"
+          << "  \"update_row_reads\": " << update.row_reads << ",\n"
+          << "  \"update_binary_probes\": " << update.binary_probes
+          << ",\n"
+          << "  \"update_pma_reads\": " << update.pma_reads << ",\n"
+          << "  \"update_pma_writes\": " << update.pma_writes << ",\n"
           << "  \"iterations\": " << compute.supersteps << ",\n"
           << "  \"pagerank_damping\": " << pagerank_damping_ << ",\n"
           << "  \"partition_vertices\": " << grasu_config_.partition_vertices
@@ -2292,20 +2449,39 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"pagerank_source_map_latency\": "
           << grasu_config_.pagerank_source_map_latency << ",\n"
           << "  \"correctness_mismatches\": "
-          << architecture_mismatches + mathematical_mismatches << ",\n"
+          << architecture_mismatches + mathematical_mismatches +
+                 update_state_mismatches + degree_state_mismatches
+          << ",\n"
           << "  \"architecture_correctness_mismatches\": "
           << architecture_mismatches << ",\n"
           << "  \"mathematical_correctness_mismatches\": "
           << mathematical_mismatches << ",\n"
+          << "  \"update_state_mismatches\": " << update_state_mismatches
+          << ",\n"
+          << "  \"degree_state_mismatches\": " << degree_state_mismatches
+          << ",\n"
           << "  \"max_abs_error\": " << architecture_max_abs_error << ",\n"
           << "  \"mathematical_max_abs_error\": " << mathematical_max_abs_error
           << ",\n"
           << "  \"rank_sum\": " << rank_sum << ",\n"
           << "  \"degree_reads\": " << compute.degree_reads << ",\n"
           << "  \"degree_read_bytes\": " << compute.degree_read_bytes << ",\n"
-          << "  \"degree_update_timing_included\": false,\n"
+          << "  \"degree_update_timing_included\": "
+          << (partitioned_dynamic ? "true" : "false") << ",\n"
           << "  \"degree_updates_required\": "
           << update.inserts + update.deletes << ",\n"
+          << "  \"degree_update_reads\": " << update.degree_reads << ",\n"
+          << "  \"degree_update_writes\": " << update.degree_writes << ",\n"
+          << "  \"degree_update_read_bytes\": " << update.degree_read_bytes
+          << ",\n"
+          << "  \"degree_update_write_bytes\": " << update.degree_write_bytes
+          << ",\n"
+          << "  \"degree_fifo_stalls\": " << update.degree_fifo_stalls
+          << ",\n"
+          << "  \"degree_fifo_max_occupancy\": "
+          << update.degree_fifo_max_occupancy << ",\n"
+          << "  \"degree_reorder_max_occupancy\": "
+          << update.degree_reorder_max_occupancy << ",\n"
           << "  \"source_map_cycles\": " << compute.source_map_cycles << ",\n"
           << "  \"compute_row_reads\": " << compute.row_reads << ",\n"
           << "  \"compute_source_state_reads\": " << compute.source_state_reads
@@ -2344,6 +2520,24 @@ class OnlineMemoryProbe final : public SST::Component {
           << compute.apply_wrapper_fifo_max_occupancy << ",\n"
           << "  \"last_iteration_l1_error\": " << compute.last_iteration_error
           << ",\n"
+          << "  \"update_record_read_bytes\": " << update.update_read_bytes
+          << ",\n"
+          << "  \"update_row_read_bytes\": " << update.row_read_bytes << ",\n"
+          << "  \"update_binary_read_bytes\": "
+          << update.binary_read_bytes << ",\n"
+          << "  \"update_pma_read_bytes\": " << update.pma_read_bytes
+          << ",\n"
+          << "  \"update_pma_write_bytes\": " << update.pma_write_bytes
+          << ",\n"
+          << "  \"row_read_bytes\": " << compute.row_read_bytes << ",\n"
+          << "  \"source_state_read_bytes\": "
+          << compute.source_state_read_bytes << ",\n"
+          << "  \"source_state_write_bytes\": "
+          << compute.source_state_write_bytes << ",\n"
+          << "  \"pma_read_bytes\": " << compute.pma_read_bytes << ",\n"
+          << "  \"apply_read_bytes\": " << compute.apply_read_bytes << ",\n"
+          << "  \"apply_write_bytes\": " << compute.apply_write_bytes
+          << ",\n"
           << "  \"compute_read_bytes\": "
           << compute.row_read_bytes + compute.source_state_read_bytes +
                  compute.degree_read_bytes + compute.pma_read_bytes +
@@ -2354,9 +2548,15 @@ class OnlineMemoryProbe final : public SST::Component {
           << ",\n"
           << "  \"update_read_bytes\": "
           << update.update_read_bytes + update.row_read_bytes +
-                 update.binary_read_bytes + update.pma_read_bytes
+                 update.binary_read_bytes + update.pma_read_bytes +
+                 update.degree_read_bytes
           << ",\n"
-          << "  \"update_write_bytes\": " << update.pma_write_bytes << ",\n"
+          << "  \"update_write_bytes\": "
+          << update.pma_write_bytes + update.degree_write_bytes << ",\n"
+          << "  \"update_backend_requests\": " << update_requests << ",\n"
+          << "  \"compute_backend_requests\": " << compute_requests << ",\n"
+          << "  \"expected_backend_requests\": " << expected_backend_requests
+          << ",\n"
           << "  \"axi_backend_stalls\": "
           << update.axi_backend_submit_stalls +
                  compute.axi_backend_submit_stalls
@@ -5001,6 +5201,7 @@ class OnlineMemoryProbe final : public SST::Component {
   GraSuNativeConfig grasu_update_config_;
   GraSuReGraphConfig grasu_config_;
   GraSuPmaLayout grasu_layout_;
+  GraSuPartitionedPmaLayout grasu_partitioned_layout_;
   std::unique_ptr<GraSuPmaUpdateSystem> grasu_update_system_;
   std::unique_ptr<GraSuReGraphSsspSystem> grasu_compute_system_;
   std::unique_ptr<GraSuReGraphPageRankSystem> grasu_pagerank_compute_system_;
@@ -5013,6 +5214,7 @@ class OnlineMemoryProbe final : public SST::Component {
   ResidualPageRankReference grasu_residual_pagerank_reference_;
   std::vector<double> grasu_residual_mathematical_reference_;
   std::vector<std::uint32_t> grasu_pagerank_degrees_;
+  std::vector<GraSuEdge> grasu_final_edges_;
   std::size_t grasu_initial_edges_{};
   std::size_t grasu_update_edges_{};
   bool grasu_update_counters_captured_{};

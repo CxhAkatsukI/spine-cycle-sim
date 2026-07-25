@@ -21,7 +21,7 @@ PROFILES = ROOT / "configs" / "architectures"
 class ArchitectureProfileTests(unittest.TestCase):
     def test_repository_profiles_load_and_have_unique_ids(self) -> None:
         loaded = [load_architecture_profile(path) for path in sorted(PROFILES.glob("*.json"))]
-        self.assertEqual(len(loaded), 10)
+        self.assertEqual(len(loaded), 11)
         self.assertEqual(len({profile.profile_id for profile in loaded}), len(loaded))
         self.assertTrue(all(profile.manifest_sha256 for profile in loaded))
 
@@ -95,6 +95,10 @@ class ArchitectureProfileTests(unittest.TestCase):
         residual_normalized = load_architecture_profile(
             PROFILES
             / "grasu_regraph_normalized_residual_pagerank_spine23.json"
+        )
+        partitioned_dynamic = load_architecture_profile(
+            PROFILES
+            / "grasu_regraph_partitioned_dynamic_pagerank_spine23.json"
         )
 
         self.assertEqual(native.parameters["comparison_role"], "native")
@@ -177,6 +181,61 @@ class ArchitectureProfileTests(unittest.TestCase):
         )
         self.assertFalse(
             residual_normalized.parameters["pagerank_degree_update_timing"]
+        )
+        self.assertEqual(
+            partitioned_dynamic.parameters["comparison_role"], "normalized"
+        )
+        self.assertEqual(
+            partitioned_dynamic.parameters["grasu_update_record_bytes"], 16
+        )
+        self.assertTrue(
+            partitioned_dynamic.parameters[
+                "grasu_update_global_destination_routing"
+            ]
+        )
+        self.assertEqual(
+            partitioned_dynamic.parameters["regraph_compute_pipelines"], 1
+        )
+        self.assertEqual(
+            partitioned_dynamic.parameters["regraph_partition_execution"],
+            "serial",
+        )
+        self.assertTrue(
+            partitioned_dynamic.parameters["pagerank_degree_update_timing"]
+        )
+        self.assertEqual(
+            partitioned_dynamic.parameters["grasu_degree_reorder_entries"],
+            4096,
+        )
+        self.assertFalse(
+            partitioned_dynamic.parameters["conversion_cost_included"]
+        )
+        channel_bytes = partitioned_dynamic.memory.channel_capacity_bytes
+        address_fields = (
+            "grasu_update_base_bytes",
+            "grasu_binary_base_bytes",
+            "grasu_row_offset_base_bytes",
+            "grasu_pma_base_bytes",
+            "grasu_vertex_state_base_bytes",
+            "grasu_source_state_base_bytes",
+            "grasu_degree_base_bytes",
+        )
+        self.assertTrue(
+            all(
+                0 <= partitioned_dynamic.parameters[field] < channel_bytes
+                for field in address_fields
+            )
+        )
+        self.assertNotEqual(
+            partitioned_dynamic.parameters["grasu_partition_address_stride_bytes"]
+            % channel_bytes,
+            0,
+        )
+        self.assertEqual(
+            partitioned_dynamic.parameters[
+                "max_destination_partitions_without_address_remap"
+            ],
+            4,
         )
 
     def test_grasu_native_profile_matches_hls_topology(self) -> None:

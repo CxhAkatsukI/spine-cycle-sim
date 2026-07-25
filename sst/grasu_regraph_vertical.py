@@ -132,6 +132,39 @@ probe.addParams(
         "grasu_degree_channel": int(
             os.environ.get("GRASU_SST_DEGREE_CHANNEL", "30")
         ),
+        "grasu_degree_fifo_depth": int(
+            os.environ.get("GRASU_SST_DEGREE_FIFO_DEPTH", "16")
+        ),
+        "grasu_degree_reorder_entries": int(
+            os.environ.get("GRASU_SST_DEGREE_REORDER_ENTRIES", "4096")
+        ),
+        "grasu_update_base": int(
+            os.environ.get("GRASU_SST_UPDATE_BASE", "0")
+        ),
+        "grasu_binary_base": int(
+            os.environ.get("GRASU_SST_BINARY_BASE", str(0x20000000))
+        ),
+        "grasu_row_offset_base": int(
+            os.environ.get("GRASU_SST_ROW_OFFSET_BASE", str(0x10000000))
+        ),
+        "grasu_pma_base": int(
+            os.environ.get("GRASU_SST_PMA_BASE", str(0x30000000))
+        ),
+        "grasu_vertex_state_base": int(
+            os.environ.get("GRASU_SST_VERTEX_STATE_BASE", str(0x40000000))
+        ),
+        "grasu_source_state_base": int(
+            os.environ.get("GRASU_SST_SOURCE_STATE_BASE", str(0x50000000))
+        ),
+        "grasu_source_state_buffer_stride": int(
+            os.environ.get("GRASU_SST_SOURCE_STATE_BUFFER_STRIDE", str(1 << 20))
+        ),
+        "grasu_degree_base": int(
+            os.environ.get("GRASU_SST_DEGREE_BASE", str(0x41000000))
+        ),
+        "grasu_partition_address_stride": int(
+            os.environ.get("GRASU_SST_PARTITION_ADDRESS_STRIDE", str(1 << 32))
+        ),
     }
 )
 

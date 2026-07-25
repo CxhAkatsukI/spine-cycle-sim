@@ -98,10 +98,19 @@ struct GraSuNativeConfig {
   std::uint64_t row_offset_base{0x1000'0000ULL};
   std::uint64_t binary_base{0x2000'0000ULL};
   std::uint64_t pma_base{0x3000'0000ULL};
+  std::uint64_t partition_address_stride{0x1'0000'0000ULL};
+  bool maintain_out_degree{};
+  std::uint64_t degree_base{0x4100'0000ULL};
+  std::size_t degree_channel{30};
+  std::size_t degree_fifo_depth{16};
+  std::size_t degree_reorder_entries{4096};
 };
 
 struct GraSuUpdateCounters {
   std::uint64_t updates{};
+  std::size_t update_record_bytes{};
+  std::size_t destination_partitions_touched{};
+  std::uint64_t partition_routes{};
   std::uint64_t inserts{};
   std::uint64_t deletes{};
   std::uint64_t weight_decreases{};
@@ -112,11 +121,18 @@ struct GraSuUpdateCounters {
   std::uint64_t ddr_updates{};
   std::uint64_t pma_reads{};
   std::uint64_t pma_writes{};
+  std::uint64_t degree_reads{};
+  std::uint64_t degree_writes{};
   std::uint64_t update_read_bytes{};
   std::uint64_t row_read_bytes{};
   std::uint64_t binary_read_bytes{};
   std::uint64_t pma_read_bytes{};
   std::uint64_t pma_write_bytes{};
+  std::uint64_t degree_read_bytes{};
+  std::uint64_t degree_write_bytes{};
+  std::uint64_t degree_fifo_stalls{};
+  std::size_t degree_fifo_max_occupancy{};
+  std::size_t degree_reorder_max_occupancy{};
   std::uint64_t axi_backend_submit_stalls{};
   std::uint64_t axis_push_stalls{};
   std::uint64_t lane_queue_stalls{};
@@ -137,6 +153,11 @@ class GraSuPmaUpdateSystem {
                        MemoryBackend &backend, GraSuPmaLayout layout,
                        std::vector<GraSuEdge> updates,
                        GraSuNativeConfig config = {});
+  GraSuPmaUpdateSystem(Scheduler &scheduler, ClockId clock_id,
+                       MemoryBackend &backend,
+                       GraSuPartitionedPmaLayout layout,
+                       std::vector<GraSuEdge> updates,
+                       GraSuNativeConfig config = {});
   ~GraSuPmaUpdateSystem();
 
   GraSuPmaUpdateSystem(const GraSuPmaUpdateSystem &) = delete;
@@ -150,7 +171,11 @@ class GraSuPmaUpdateSystem {
   [[nodiscard]] std::vector<GraSuEdge> live_edges() const;
   [[nodiscard]] std::array<std::uint32_t, kGraSuSegmentSlots>
   inspect_segment(std::size_t global_segment) const;
+  [[nodiscard]] std::array<std::uint32_t, kGraSuSegmentSlots>
+  inspect_segment(std::size_t partition, std::size_t local_segment) const;
   [[nodiscard]] const GraSuPmaLayout &initial_layout() const noexcept;
+  [[nodiscard]] const GraSuPartitionedPmaLayout &
+  initial_partitioned_layout() const noexcept;
 
  private:
   class Impl;

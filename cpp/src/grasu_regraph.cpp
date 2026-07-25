@@ -2474,7 +2474,8 @@ private:
                                 config_.source_state_base, bytes);
     backend_.initialize_payload(config_.source_state_mirror_channel,
                                 config_.source_state_base, bytes);
-    if (policy_.config().kind != GraphAlgorithmKind::kWeightedSssp) {
+    if (policy_.config().kind != GraphAlgorithmKind::kWeightedSssp &&
+        config_.initialize_degree_payload) {
       std::vector<std::uint8_t> degree_bytes(layout_.vertices * 4);
       for (std::size_t vertex = 0; vertex < out_degrees_.size(); ++vertex) {
         for (std::size_t byte = 0; byte < 4; ++byte) {

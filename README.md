@@ -73,6 +73,14 @@ PageRank count dangling mass once per superstep. The serial one-pipeline
 execution contract, HLS mapping, and three-algorithm evidence are documented in
 [`docs/grasu_regraph_multi_partition_20260725.md`](docs/grasu_regraph_multi_partition_20260725.md).
 
+Partitioned GraSU updates now maintain the PageRank out-degree array through
+timed 4-byte HBM read-modify-writes and feed the same PMA and degree payloads
+directly into serial multi-partition ReGraph. The normalized SST run closes the
+cycle, byte, backend-request, DRAM-command, PMA, degree, and dual-oracle ledgers
+without an intermediate conversion layer. Its explicit native-versus-proposed
+claim boundary is documented in
+[`docs/grasu_regraph_partitioned_dynamic_pagerank_20260725.md`](docs/grasu_regraph_partitioned_dynamic_pagerank_20260725.md).
+
 ## Quick Start
 
 Run one workload:
