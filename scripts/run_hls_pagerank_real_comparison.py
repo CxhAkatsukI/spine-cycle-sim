@@ -34,6 +34,7 @@ from spine_cycle_sim.experiments.dense_batch_sweep import (  # noqa: E402
     validate_dense_batch_manifest,
 )
 from spine_cycle_sim.experiments.large_real_pagerank import (  # noqa: E402
+    evaluate_large_real_runtime_gate,
     validate_large_real_pagerank_manifest,
 )
 from spine_cycle_sim.experiments.shared_workloads import sha256_file  # noqa: E402
@@ -499,6 +500,9 @@ def main() -> int:
     input_scope = str(manifest.get("input_scope", "real_compact_slice"))
     dense_sweep = input_scope == "synthetic_dense_batch_sweep"
     large_real = input_scope == "real_large_slice"
+    runtime_gate = (
+        evaluate_large_real_runtime_gate(manifest, rows) if large_real else None
+    )
     matrix_manifest = {
         "schema_version": 1,
         "matrix_id": (
@@ -508,7 +512,11 @@ def main() -> int:
             if large_real
             else "hls_full_pagerank_real_compact_comparison_20260726"
         ),
-        "status": "PASS",
+        "status": (
+            "COMPLETE_RUNTIME_GATE_FAILED"
+            if runtime_gate is not None and not runtime_gate["pass"]
+            else "PASS"
+        ),
         "complete_matrix": complete,
         "claim_class": (
             "profile_clock_adjusted_synthetic_dense_batch_execution_driven"
@@ -549,6 +557,7 @@ def main() -> int:
         "all_correct": all(int(row["correctness_mismatches"]) == 0 for row in rows)
         and all(bool(pair["cross_system_ranks_match"]) for pair in pairs),
         "matrix_wall_seconds": time.monotonic() - started,
+        "runtime_gate": runtime_gate,
         "system_rows_sha256": sha256_file(args.out_dir / "system_rows.csv"),
         "pairs_sha256": sha256_file(args.out_dir / "pairs.csv"),
         "timing_window": {
@@ -599,7 +608,7 @@ def main() -> int:
         encoding="utf-8",
     )
     print(
-        f"PASS Full PageRank comparison: pairs={len(pairs)} "
+        f"{matrix_manifest['status']} Full PageRank comparison: pairs={len(pairs)} "
         f"complete={complete} wall_s={matrix_manifest['matrix_wall_seconds']:.3f}"
     )
     return 0

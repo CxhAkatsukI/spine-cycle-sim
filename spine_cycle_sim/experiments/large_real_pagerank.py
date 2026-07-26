@@ -5,7 +5,7 @@ from __future__ import annotations
 import csv
 import json
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, Mapping
 
 from .real_small_batches import apply_explicit_weighted_updates
 from .shared_workloads import (
@@ -354,3 +354,63 @@ def validate_large_real_pagerank_manifest(
     ) > SPINE_STRICT_FAMILY_CAPACITY:
         raise ValueError("large real final graph exceeds strict family capacity")
     return manifest
+
+
+def evaluate_large_real_runtime_gate(
+    manifest: Mapping[str, object], system_rows: Iterable[Mapping[str, object]]
+) -> dict[str, object]:
+    """Evaluate the per-system host-runtime contract without discarding data."""
+
+    contract = manifest.get("runtime_contract")
+    if not isinstance(contract, Mapping):
+        raise ValueError("large real manifest lacks a runtime contract")
+    limit = contract.get("host_runtime_limit_seconds_per_system")
+    if isinstance(limit, bool) or not isinstance(limit, (int, float)) or limit <= 0:
+        raise ValueError("large real runtime limit must be positive")
+    observations = []
+    seen: set[tuple[str, str]] = set()
+    for row in system_rows:
+        run_id = str(row.get("run_id", ""))
+        system = str(row.get("system", ""))
+        wall = row.get("host_wall_seconds")
+        if (
+            not run_id
+            or system not in {"spine", "grasu_regraph"}
+            or isinstance(wall, bool)
+            or not isinstance(wall, (int, float))
+            or wall <= 0
+        ):
+            raise ValueError("invalid large real runtime observation")
+        identity = (run_id, system)
+        if identity in seen:
+            raise ValueError("duplicate large real runtime observation")
+        seen.add(identity)
+        observations.append(
+            {
+                "run_id": run_id,
+                "system": system,
+                "host_wall_seconds": float(wall),
+                "limit_seconds": float(limit),
+                "pass": float(wall) <= float(limit),
+            }
+        )
+    expected = {
+        (str(run["run_id"]), system)
+        for run in manifest.get("runs", [])  # type: ignore[union-attr]
+        for system in ("spine", "grasu_regraph")
+    }
+    if seen != expected:
+        raise ValueError("large real runtime observations are incomplete")
+    observations.sort(key=lambda row: (row["run_id"], row["system"]))
+    failed = [
+        {"run_id": row["run_id"], "system": row["system"]}
+        for row in observations
+        if not row["pass"]
+    ]
+    return {
+        "status": "PASS" if not failed else "FAIL",
+        "pass": not failed,
+        "limit_seconds_per_system": float(limit),
+        "observations": observations,
+        "failed_systems": failed,
+    }

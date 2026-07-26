@@ -8,6 +8,7 @@ import unittest
 from spine_cycle_sim.experiments.large_real_pagerank import (
     build_large_real_update,
     classify_hot_destinations,
+    evaluate_large_real_runtime_gate,
     extract_large_real_slice,
     spine_hot_hash,
     validate_large_real_pagerank_manifest,
@@ -16,6 +17,43 @@ from spine_cycle_sim.experiments.shared_workloads import SliceGraph, SliceRecord
 
 
 class LargeRealPageRankTests(unittest.TestCase):
+    def test_runtime_gate_preserves_complete_over_limit_observations(self) -> None:
+        manifest = {
+            "runtime_contract": {"host_runtime_limit_seconds_per_system": 30},
+            "runs": [{"run_id": "large"}],
+        }
+        gate = evaluate_large_real_runtime_gate(
+            manifest,
+            [
+                {"run_id": "large", "system": "spine", "host_wall_seconds": 31.0},
+                {
+                    "run_id": "large",
+                    "system": "grasu_regraph",
+                    "host_wall_seconds": 20.0,
+                },
+            ],
+        )
+        self.assertEqual(gate["status"], "FAIL")
+        self.assertFalse(gate["pass"])
+        self.assertEqual(gate["failed_systems"], [{"run_id": "large", "system": "spine"}])
+
+    def test_runtime_gate_rejects_incomplete_rows(self) -> None:
+        manifest = {
+            "runtime_contract": {"host_runtime_limit_seconds_per_system": 30},
+            "runs": [{"run_id": "large"}],
+        }
+        with self.assertRaisesRegex(ValueError, "incomplete"):
+            evaluate_large_real_runtime_gate(
+                manifest,
+                [
+                    {
+                        "run_id": "large",
+                        "system": "spine",
+                        "host_wall_seconds": 20.0,
+                    }
+                ],
+            )
+
     def test_frozen_manifest_requires_candidate10_hls_v3(self) -> None:
         root = Path(__file__).resolve().parents[1]
         source = (
