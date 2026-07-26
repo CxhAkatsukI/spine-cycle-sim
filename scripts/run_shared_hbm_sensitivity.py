@@ -223,6 +223,55 @@ def _write_csv(path: Path, rows: list[dict[str, object]]) -> None:
         writer.writerows(rows)
 
 
+def collect_profile_evidence(
+    output_root: Path,
+    profiles: Mapping[str, Mapping[str, object]],
+    *,
+    expected_pairs: int,
+) -> tuple[list[dict[str, object]], str]:
+    rows: list[dict[str, object]] = []
+    for profile_id, profile in profiles.items():
+        profile_root = output_root / profile_id
+        manifest_path = profile_root / "comparison_manifest.json"
+        results_path = profile_root / "results.csv"
+        pairs_path = profile_root / "pairs.csv"
+        manifest = _read_json(manifest_path)
+        expected_role = "frozen_baseline" if profile_id == "baseline" else "hbm_sensitivity"
+        hbm = manifest.get("hbm_dram_config")
+        if (
+            manifest.get("status") != "PASS"
+            or manifest.get("failure") is not None
+            or manifest.get("result_rows") != expected_pairs * 2
+            or manifest.get("paired_rows") != expected_pairs
+            or not isinstance(hbm, dict)
+            or hbm.get("experiment_role") != expected_role
+            or hbm.get("sha256") != profile["sha256"]
+        ):
+            raise ValueError(f"invalid child sensitivity evidence: {profile_id}")
+        if len(_read_csv(results_path)) != expected_pairs * 2 or len(
+            _read_csv(pairs_path)
+        ) != expected_pairs:
+            raise ValueError(f"child sensitivity CSV coverage mismatch: {profile_id}")
+        rows.append(
+            {
+                "profile_id": profile_id,
+                "hbm_config_sha256": profile["sha256"],
+                "simulation_sha256": manifest["simulation_implementation"]["sha256"],  # type: ignore[index]
+                "comparison_manifest_sha256": sha256_file(manifest_path),
+                "results_csv_sha256": sha256_file(results_path),
+                "pairs_csv_sha256": sha256_file(pairs_path),
+                "claim_class": manifest["claim_class"],
+                "result_rows": manifest["result_rows"],
+                "paired_rows": manifest["paired_rows"],
+                "status": "PASS",
+            }
+        )
+    digest = hashlib.sha256(
+        json.dumps(rows, sort_keys=True, separators=(",", ":")).encode("ascii")
+    ).hexdigest()
+    return rows, digest
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--contract", type=Path, default=DEFAULT_CONTRACT)
@@ -298,14 +347,22 @@ def main() -> int:
     _write_csv(args.out_dir / "sensitivity_details.csv", details)
     _write_csv(args.out_dir / "sensitivity_summary.csv", groups)
     contract_sha = sha256_file(args.contract.resolve())
+    profile_evidence, raw_evidence_sha256 = collect_profile_evidence(
+        args.out_dir,
+        expected_profiles,
+        expected_pairs=len(pairs_by_profile["baseline"]),
+    )
     output = {
-        "schema_version": 1,
+        "schema_version": 2,
         "matrix_id": contract["matrix_id"],
         "contract": str(args.contract.resolve()),
         "contract_sha256": contract_sha,
         "profiles": list(expected_profiles),
         "run_ids": contract["run_ids"],
         "pairs_per_profile": len(pairs_by_profile["baseline"]),
+        "profile_evidence": profile_evidence,
+        "raw_evidence_sha256": raw_evidence_sha256,
+        "analysis_script_sha256": sha256_file(Path(__file__).resolve()),
         "strict_rank_inversions": sum(int(row["strict_rank_inversions"]) for row in groups),
         "status": "PASS",
     }
