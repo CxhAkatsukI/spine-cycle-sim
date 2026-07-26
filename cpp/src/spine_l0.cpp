@@ -353,6 +353,50 @@ std::uint64_t spine_candidate10_publication_window_min_cycles(
   return cycles;
 }
 
+std::uint64_t spine_candidate10_l0_writer_min_cycles(
+    const SpineL0Config &config, std::size_t input_records,
+    std::size_t output_rows, std::size_t output_pages,
+    std::size_t final_source_groups) {
+  if (input_records == 0) {
+    if (output_rows != 0 || output_pages != 0 || final_source_groups != 0) {
+      throw std::invalid_argument("invalid empty Candidate-10 writer state");
+    }
+    return 0;
+  }
+  if (output_rows == 0 || output_pages == 0 ||
+      output_pages > output_rows || final_source_groups == 0 ||
+      final_source_groups > input_records ||
+      config.candidate_l0_write_scan_ii == 0 ||
+      config.candidate_l0_writer_base_residual_cycles == 0 ||
+      config.candidate_l0_writer_single_record_cycles == 0 ||
+      config.candidate_l0_writer_late_source_cycles == 0 ||
+      config.candidate_l0_writer_packer_cycles == 0 ||
+      config.candidate_l0_writer_page_tail_cycles == 0) {
+    throw std::invalid_argument("invalid Candidate-10 writer schedule state");
+  }
+  if (input_records == 1) {
+    return config.candidate_l0_writer_single_record_cycles;
+  }
+
+  std::uint64_t residual =
+      config.candidate_l0_writer_base_residual_cycles;
+  if (final_source_groups == 1) {
+    residual += config.candidate_l0_writer_late_source_cycles;
+    if (output_rows > 1 && output_rows % 4 == 1) {
+      residual += config.candidate_l0_writer_packer_cycles;
+    }
+    if (output_pages > 1) {
+      residual += config.candidate_l0_writer_page_tail_cycles;
+      if (output_pages % 2 == 1) {
+        residual += config.candidate_l0_writer_packer_cycles;
+      }
+    }
+  } else if (output_rows % 2 == 0 && output_pages % 4 != 0) {
+    residual += config.candidate_l0_writer_packer_cycles;
+  }
+  return config.candidate_l0_write_scan_ii * input_records + residual;
+}
+
 SpineMetadataLayout spine_metadata_layout(const SpineL0Config &config) {
   if (config.partitions != 16 || config.levels != kSpineLevelCount ||
       config.page_vertices != 256 || config.max_vertices == 0) {
@@ -889,6 +933,11 @@ SpineL0Maintenance::SpineL0Maintenance(std::string name, ClockId clock_id,
       config_.maintenance_l0_write_scan_ii == 0 ||
       config_.candidate_l0_precount_ii == 0 ||
       config_.candidate_l0_write_scan_ii == 0 ||
+      config_.candidate_l0_writer_base_residual_cycles == 0 ||
+      config_.candidate_l0_writer_single_record_cycles == 0 ||
+      config_.candidate_l0_writer_late_source_cycles == 0 ||
+      config_.candidate_l0_writer_packer_cycles == 0 ||
+      config_.candidate_l0_writer_page_tail_cycles == 0 ||
       config_.candidate_list_word_first_lane_cycles == 0 ||
       config_.candidate_publication_base_cycles == 0 ||
       config_.candidate_publication_source_cycles == 0 ||
@@ -1116,6 +1165,9 @@ void SpineL0Maintenance::reset_batch(SpineEdgeSlice workload) {
   target_scan_candidate_ = -1;
   target_scan_start_cycle_ = 0;
   target_scan_min_finish_cycle_ = 0;
+  candidate_l0_writer_start_cycle_ = 0;
+  candidate_l0_writer_min_finish_cycle_ = 0;
+  candidate_l0_writer_schedule_active_ = false;
   active_writer_current_epoch_ = 0;
   active_writer_next_epoch_ = 0;
   active_writer_epoch_ready_ = false;
@@ -2765,12 +2817,20 @@ void SpineL0Maintenance::begin_logical_overflow(
   phase_ = Phase::kWriteResult;
 }
 
-void SpineL0Maintenance::enqueue_active_writer_epoch_read() {
+void SpineL0Maintenance::enqueue_active_writer_epoch_read(
+    const CycleContext &context) {
   if (active_family_index_ >= family_write_tasks_.size()) {
     ++counters_.slice_epoch_validation_failures;
     throw std::logic_error("Spine epoch read has no active writer");
   }
   const FamilyWriteTask &task = family_write_tasks_[active_family_index_];
+  candidate_l0_writer_schedule_active_ =
+      config_.candidate_l0_writer_rtl_schedule && task.target == 0 &&
+      config_.maintenance_architecture ==
+          SpineMaintenanceArchitecture::kCandidate10OnePass;
+  candidate_l0_writer_start_cycle_ =
+      candidate_l0_writer_schedule_active_ ? context.domain_cycle : 0;
+  candidate_l0_writer_min_finish_cycle_ = 0;
   const std::size_t logical_family =
       task.hot ? config_.partitions + task.family : task.family;
   const std::uint64_t slice =
@@ -4220,6 +4280,7 @@ void SpineL0Maintenance::emit_level_writer_group(
 
   if (!level_writer_.have_last_source ||
       group.src != level_writer_.last_source) {
+    level_writer_.current_source_groups = 1;
     level_writer_write_u32(
         level_writer_.layout.row_offset_offset_words,
         level_writer_.row_index, level_writer_.edge_index, level_writer_.row,
@@ -4275,6 +4336,8 @@ void SpineL0Maintenance::emit_level_writer_group(
     ++level_writer_.row_index;
     level_writer_.last_source = group.src;
     level_writer_.have_last_source = true;
+  } else {
+    ++level_writer_.current_source_groups;
   }
 
   const std::size_t partition = std::min<std::size_t>(
@@ -4393,6 +4456,17 @@ void SpineL0Maintenance::finalize_level_writer(
         stats.page_list_word_writes;
     counters_.l0_writer_page_epoch_word_writes +=
         stats.page_epoch_word_writes;
+    if (candidate_l0_writer_schedule_active_) {
+      const std::uint64_t min_cycles =
+          spine_candidate10_l0_writer_min_cycles(
+              config_, scan_index_, level_writer_.row_index,
+              level_writer_.page_list_count,
+              level_writer_.current_source_groups);
+      candidate_l0_writer_min_finish_cycle_ =
+          candidate_l0_writer_start_cycle_ + min_cycles;
+      ++counters_.l0_writer_rtl_schedule_invocations;
+      counters_.l0_writer_rtl_min_cycles += min_cycles;
+    }
   } else {
     counters_.carry_writer_groups_seen += stats.groups_seen;
     counters_.carry_writer_groups_emitted += stats.groups_emitted;
@@ -5222,7 +5296,7 @@ void SpineL0Maintenance::advance(const CycleContext &context) {
     if (active_family_index_ == family_write_tasks_.size()) {
       phase_ = Phase::kCommitMetadata;
     } else {
-      enqueue_active_writer_epoch_read();
+      enqueue_active_writer_epoch_read(context);
       phase_ = Phase::kWriteEpochResolve;
     }
     return;
@@ -5245,7 +5319,9 @@ void SpineL0Maintenance::advance(const CycleContext &context) {
       if (logical_overflow_) {
         return;
       }
-      phase_ = Phase::kWriteAdvance;
+      phase_ = candidate_l0_writer_schedule_active_
+                   ? Phase::kWriteSchedule
+                   : Phase::kWriteAdvance;
     } else if (scan_index_ != before) {
       const SpineEdgeRecord &edge = sorted_scan_edges_[before];
       if (scan_kind_ == ScanKind::kCandidateBucketWrite) {
@@ -5261,6 +5337,20 @@ void SpineL0Maintenance::advance(const CycleContext &context) {
     }
     return;
   }
+  case Phase::kWriteSchedule:
+    if (!candidate_l0_writer_schedule_active_ ||
+        candidate_l0_writer_min_finish_cycle_ == 0) {
+      throw std::logic_error("invalid Candidate-10 writer schedule phase");
+    }
+    if (context.domain_cycle < candidate_l0_writer_min_finish_cycle_) {
+      ++counters_.l0_writer_rtl_padding_cycles;
+      return;
+    }
+    counters_.l0_writer_rtl_memory_overrun_cycles +=
+        context.domain_cycle - candidate_l0_writer_min_finish_cycle_;
+    candidate_l0_writer_schedule_active_ = false;
+    phase_ = Phase::kWriteAdvance;
+    return;
   case Phase::kCarryProcess: {
     if (carry_cursor_refill_cycles_remaining_ != 0) {
       --carry_cursor_refill_cycles_remaining_;

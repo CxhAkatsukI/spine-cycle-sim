@@ -1,0 +1,220 @@
+{
+  "claim": "candidate10_l0_writer_control_schedule_alignment",
+  "claim_boundary": {
+    "modeled": [
+      "Candidate10 L0 writer structural control lower bound",
+      "payload-backed child requests and response dependencies",
+      "finite request FIFOs, burst splitting, outstanding limits, and backpressure",
+      "concurrent writer-control and memory completion"
+    ],
+    "remaining": [
+      "outer family-range and kernel-wrapper control schedule",
+      "cycle-exact Vitis child-to-m_axi adapter arbitration",
+      "U55C external AXI interconnect and HBM contention calibration"
+    ]
+  },
+  "execution_driven_ab": {
+    "cycle_delta": 483,
+    "disabled": {
+      "backend_requests": 731,
+      "cycles": 3687,
+      "dram_activates": 47,
+      "dram_read_row_hits": 400,
+      "dram_reads": 431,
+      "dram_write_row_hits": 267,
+      "dram_writes": 300,
+      "maintenance_cycles": 3686,
+      "maintenance_l0_writer_rtl_memory_overrun_cycles": 0,
+      "maintenance_l0_writer_rtl_min_cycles": 0,
+      "maintenance_l0_writer_rtl_padding_cycles": 0,
+      "maintenance_l0_writer_rtl_schedule_invocations": 0
+    },
+    "disabled_summary_sha256": "2846503006ce35aa0c54041a1810233e9f3f48532c5f47b7b5051b941cd75532",
+    "enabled": {
+      "backend_requests": 731,
+      "cycles": 4170,
+      "dram_activates": 40,
+      "dram_read_row_hits": 406,
+      "dram_reads": 431,
+      "dram_write_row_hits": 266,
+      "dram_writes": 300,
+      "maintenance_cycles": 4169,
+      "maintenance_l0_writer_rtl_memory_overrun_cycles": 0,
+      "maintenance_l0_writer_rtl_min_cycles": 941,
+      "maintenance_l0_writer_rtl_padding_cycles": 503,
+      "maintenance_l0_writer_rtl_schedule_invocations": 1
+    },
+    "enabled_summary_sha256": "e6a614c3404c46df96dfc8d0fda607aa66d311f3051599766a15ad7082ca174b",
+    "request_count_equal": true,
+    "traffic_equal": true
+  },
+  "hardware_holdout": {
+    "baseline_matrix_sha256": "048e78cbd6ccab2419897831dd7ad2fcde2768ce9f5d1bbf6e36f967e956fe59",
+    "cases": [
+      {
+        "active_families": 0,
+        "baseline_simulated_cycles": 2584,
+        "case_id": "cal_zero",
+        "hardware_cycles": 39016.200000000004,
+        "input_edges": 0,
+        "role": "calibration",
+        "unique_sources": 0,
+        "writer_cycle_delta": 0,
+        "writer_raw_error_pct": -93.37711002096565,
+        "writer_simulated_cycles": 2584
+      },
+      {
+        "active_families": 1,
+        "baseline_simulated_cycles": 3405,
+        "case_id": "cal_one",
+        "hardware_cycles": 38768.549999999996,
+        "input_edges": 1,
+        "role": "calibration",
+        "unique_sources": 1,
+        "writer_cycle_delta": 585,
+        "writer_raw_error_pct": -89.7081526133941,
+        "writer_simulated_cycles": 3990
+      },
+      {
+        "active_families": 1,
+        "baseline_simulated_cycles": 28039,
+        "case_id": "cal_generated_128",
+        "hardware_cycles": 77249.25,
+        "input_edges": 128,
+        "role": "calibration",
+        "unique_sources": 128,
+        "writer_cycle_delta": 9129,
+        "writer_raw_error_pct": -51.8856170124629,
+        "writer_simulated_cycles": 37168
+      },
+      {
+        "active_families": 32,
+        "baseline_simulated_cycles": 703812,
+        "case_id": "cal_dirty_4096",
+        "hardware_cycles": 827778.0,
+        "input_edges": 4096,
+        "role": "calibration",
+        "unique_sources": 4096,
+        "writer_cycle_delta": 707,
+        "writer_raw_error_pct": -14.890344995880538,
+        "writer_simulated_cycles": 704519
+      },
+      {
+        "active_families": 1,
+        "baseline_simulated_cycles": 3717,
+        "case_id": "holdout_current_value",
+        "hardware_cycles": 33774.9,
+        "input_edges": 3,
+        "role": "holdout",
+        "unique_sources": 3,
+        "writer_cycle_delta": 574,
+        "writer_raw_error_pct": -87.29529917187023,
+        "writer_simulated_cycles": 4291
+      },
+      {
+        "active_families": 1,
+        "baseline_simulated_cycles": 4467,
+        "case_id": "holdout_tiny",
+        "hardware_cycles": 36969.9,
+        "input_edges": 7,
+        "role": "holdout",
+        "unique_sources": 4,
+        "writer_cycle_delta": 1982,
+        "writer_raw_error_pct": -82.5560794051377,
+        "writer_simulated_cycles": 6449
+      },
+      {
+        "active_families": 1,
+        "baseline_simulated_cycles": 3432,
+        "case_id": "holdout_sparse_wide",
+        "hardware_cycles": 40867.049999999996,
+        "input_edges": 2,
+        "role": "holdout",
+        "unique_sources": 1,
+        "writer_cycle_delta": 509,
+        "writer_raw_error_pct": -90.35653417606605,
+        "writer_simulated_cycles": 3941
+      },
+      {
+        "active_families": 1,
+        "baseline_simulated_cycles": 9252,
+        "case_id": "holdout_sparse_sources_16",
+        "hardware_cycles": 46090.35,
+        "input_edges": 16,
+        "role": "holdout",
+        "unique_sources": 16,
+        "writer_cycle_delta": 9309,
+        "writer_raw_error_pct": -59.729097305618204,
+        "writer_simulated_cycles": 18561
+      },
+      {
+        "active_families": 1,
+        "baseline_simulated_cycles": 14542,
+        "case_id": "cal_duplicate_128",
+        "hardware_cycles": 58778.85,
+        "input_edges": 128,
+        "role": "calibration",
+        "unique_sources": 32,
+        "writer_cycle_delta": 9238,
+        "writer_raw_error_pct": -59.54327109155759,
+        "writer_simulated_cycles": 23780
+      },
+      {
+        "active_families": 33,
+        "baseline_simulated_cycles": 704705,
+        "case_id": "holdout_fallback_4112",
+        "hardware_cycles": 815092.5,
+        "input_edges": 4112,
+        "role": "holdout",
+        "unique_sources": 4097,
+        "writer_cycle_delta": 829,
+        "writer_raw_error_pct": -13.441235197232215,
+        "writer_simulated_cycles": 705534
+      },
+      {
+        "active_families": 65,
+        "baseline_simulated_cycles": 251487,
+        "case_id": "holdout_tiny_mixed_fallback_8193",
+        "hardware_cycles": 480376.5,
+        "input_edges": 8193,
+        "role": "holdout",
+        "unique_sources": 1,
+        "writer_cycle_delta": 508,
+        "writer_raw_error_pct": -47.54218826274808,
+        "writer_simulated_cycles": 251995
+      }
+    ],
+    "matrix_sha256": "332edcae64dfaa8702e5ec8d4157ab12b032e70a1ea1ddd8cc8926113717d0df",
+    "median_abs_error_pct_by_role": {
+      "calibration": 59.54327109155759,
+      "holdout": 71.14258835537795
+    }
+  },
+  "rtl_oracle": {
+    "backpressure": [
+      {
+        "case_id": "same_source_16_backpressure_5_2",
+        "cycles": 1116,
+        "delta_cycles": 31,
+        "ideal_case_id": "same_source_16",
+        "slowdown": 1.028571429
+      },
+      {
+        "case_id": "page_sources_16_backpressure_8_4",
+        "cycles": 1569,
+        "delta_cycles": 269,
+        "ideal_case_id": "page_sources_16",
+        "slowdown": 1.206923077
+      }
+    ],
+    "backpressure_cases": 2,
+    "cases": 56,
+    "frozen_xo_sha256": "629e185724467cc14eec4ae14018ff0a89a94aa518ef77499ca6cc2363b28be5",
+    "max_abs_prediction_error_cycles": 0,
+    "negative_contract_cases": 2,
+    "oracle_csv_sha256": "ddefe689efd11877fd0e9e2b41ca649b5be50ba1c8569e0f135173cf9b59bbde",
+    "oracle_manifest_sha256": "3189001bc66d81e9a5660a35d5b6726ed852aa86122a49ec6f25f622c54a12d5",
+    "valid_ideal_cases": 52
+  },
+  "schema_version": 1
+}

@@ -48,12 +48,14 @@ class OracleCase:
     rows: int
     pattern: int
     source_stride: int = 1
+    group_size: int = 4
     stall_period: int = 0
     stall_width: int = 0
     expect_family_local_contract_failure: bool = False
 
 
 CASES = [
+    OracleCase("empty", 0, 0, 0, 0),
     *(OracleCase(f"same_source_{count}", count, count, 1, 0)
       for count in (1, 2, 3, 4, 5, 15, 16, 17, 128, 1024)),
     *(OracleCase(f"dense_sources_{count}", count, count, count, 1)
@@ -67,10 +69,26 @@ CASES = [
     OracleCase("four_per_source_12", 12, 12, 3, 4),
     OracleCase("four_per_source_16", 16, 16, 4, 4),
     OracleCase("four_per_source_20", 20, 20, 5, 4),
-    OracleCase("family_local_contract_violation_4", 4, 2, 2, 3, 1, 0, 0, True),
-    OracleCase("family_local_contract_violation_16", 16, 8, 8, 3, 1, 0, 0, True),
-    OracleCase("same_source_16_backpressure_5_2", 16, 16, 1, 0, 1, 5, 2),
-    OracleCase("page_sources_16_backpressure_8_4", 16, 16, 16, 1, 256, 8, 4),
+    *(OracleCase(f"two_per_source_{count}", count, count, count // 2, 4,
+                 group_size=2)
+      for count in (4, 6, 8, 10, 30, 32, 34)),
+    *(OracleCase(f"three_per_source_{count}", count, count, count // 3, 4,
+                 group_size=3)
+      for count in (6, 9, 12, 15)),
+    *(OracleCase(f"five_per_source_{count}", count, count, count // 5, 4,
+                 group_size=5)
+      for count in (10, 15, 20, 25)),
+    *(OracleCase(f"page_two_per_source_{count}", count, count, count // 2, 4,
+                 source_stride=256, group_size=2)
+      for count in (4, 6, 8, 10)),
+    OracleCase("family_local_contract_violation_4", 4, 2, 2, 3,
+               expect_family_local_contract_failure=True),
+    OracleCase("family_local_contract_violation_16", 16, 8, 8, 3,
+               expect_family_local_contract_failure=True),
+    OracleCase("same_source_16_backpressure_5_2", 16, 16, 1, 0,
+               stall_period=5, stall_width=2),
+    OracleCase("page_sources_16_backpressure_8_4", 16, 16, 16, 1,
+               source_stride=256, stall_period=8, stall_width=4),
 ]
 
 
@@ -86,6 +104,16 @@ def add_derived_metrics(rows: list[dict[str, object]]) -> None:
         row["graph_child_write_bytes"] = int(row["graph_requested_w_beats"]) * 8
         row["metadata_child_read_bytes"] = int(row["meta_requested_r_beats"]) * 8
         row["metadata_child_write_bytes"] = int(row["meta_requested_w_beats"]) * 8
+        final_source_groups = int(row["final_source_groups"])
+        row["writer_rtl_min_prediction_cycles"] = writer_rtl_min_cycles(
+            inputs,
+            int(row["result_rows"]),
+            int(row["result_pages"]),
+            final_source_groups,
+        )
+        row["writer_rtl_min_prediction_error_cycles"] = (
+            cycles - int(row["writer_rtl_min_prediction_cycles"])
+        )
 
         case_id = str(row["case_id"])
         if int(row["stall_period"]) == 0:
@@ -133,6 +161,44 @@ def frozen_source_manifest() -> dict[str, object]:
     }
 
 
+def case_final_source_groups(case: OracleCase) -> int:
+    if case.inputs == 0:
+        return 0
+    if case.pattern == 0:
+        return case.inputs
+    if case.pattern in (1, 2, 3):
+        return 1
+    if case.pattern == 4:
+        remainder = case.inputs % case.group_size
+        return remainder or min(case.inputs, case.group_size)
+    raise ValueError(f"unsupported oracle pattern {case.pattern}")
+
+
+def writer_rtl_min_cycles(
+    inputs: int,
+    rows: int,
+    pages: int,
+    final_source_groups: int,
+) -> int:
+    """Frozen Candidate10 ideal-child writer schedule lower bound."""
+    if inputs == 0:
+        return 0
+    if inputs == 1:
+        return 799
+    residual = 701
+    if final_source_groups <= 1:
+        residual += 71
+        if rows > 1 and rows % 4 == 1:
+            residual += 69
+        if pages > 1:
+            residual += 144
+            if pages % 2 == 1:
+                residual += 69
+    elif rows % 2 == 0 and pages % 4 != 0:
+        residual += 69
+    return 24 * inputs + residual
+
+
 def parse_oracle(output: str) -> dict[str, int]:
     matches = [match for line in output.splitlines()
                if (match := ORACLE_RE.search(line))]
@@ -156,6 +222,7 @@ def validate_oracle(case: OracleCase, oracle: dict[str, int]) -> list[str]:
         "rows": case.rows,
         "pattern": case.pattern,
         "source_stride": case.source_stride,
+        "group_size": case.group_size,
         "stall_period": case.stall_period,
         "stall_width": case.stall_width,
         "result_edges": result_edges,
@@ -178,6 +245,17 @@ def validate_oracle(case: OracleCase, oracle: dict[str, int]) -> list[str]:
         failures.append("graph responses exceed requests")
     if oracle.get("meta_b", 0) > oracle.get("meta_aw", 0):
         failures.append("metadata responses exceed requests")
+    if not case.stall_period and not case.expect_family_local_contract_failure:
+        predicted = writer_rtl_min_cycles(
+            case.inputs,
+            oracle.get("result_rows", 0),
+            oracle.get("result_pages", 0),
+            case_final_source_groups(case),
+        )
+        if oracle.get("cycles") != predicted:
+            failures.append(
+                f"RTL schedule: expected {predicted}, got {oracle.get('cycles')}"
+            )
     return failures
 
 
@@ -223,6 +301,7 @@ def main() -> int:
             f"ROWS={case.rows}",
             f"PATTERN={case.pattern}",
             f"SOURCE_STRIDE={case.source_stride}",
+            f"GROUP_SIZE={case.group_size}",
             f"STALL_PERIOD={case.stall_period}",
             f"STALL_WIDTH={case.stall_width}",
             "MAX_CYCLES=2000000",
@@ -245,6 +324,7 @@ def main() -> int:
         failures = validate_oracle(case, oracle)
         row: dict[str, object] = {
             **asdict(case),
+            "final_source_groups": case_final_source_groups(case),
             **oracle,
             "status": "PASS" if not failures else "FAIL",
             "failures": "; ".join(failures),
@@ -291,6 +371,7 @@ def main() -> int:
             "writer_control_residual_cycles": "observed cycles - writer_loop_ii_cycles; includes fill, drain, final flush, and deterministic child-protocol waits",
             "child_request_bytes": "requested beats multiplied by the corresponding child port width; not an assertion about final HBM traffic",
             "backpressure_delta_cycles": "periodically stalled run minus the matching ideal run",
+            "writer_rtl_min_prediction_cycles": "state-dependent Candidate10 ideal-child lower bound validated on all non-stalled valid cases",
         },
         "limitations": [
             "This oracle isolates the HLS child writer with deterministic response timing.",

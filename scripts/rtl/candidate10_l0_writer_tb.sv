@@ -78,6 +78,7 @@ module candidate10_axi_read_source #(
     input  integer                stall_width,
     input  integer                pattern,
     input  integer                source_stride,
+    input  integer                group_size,
     input  wire [63:0]            base_address,
     input  wire                   arvalid,
     output wire                   arready,
@@ -143,7 +144,7 @@ module candidate10_axi_read_source #(
           destination = (edge_index & 1) ? 1048576 + edge_index : edge_index;
         end
         4: begin
-          key_index = edge_index / 4;
+          key_index = edge_index / group_size;
           source = key_index * source_stride;
           destination = edge_index;
         end
@@ -221,6 +222,7 @@ module candidate10_l0_writer_tb;
   integer rows_arg;
   integer pattern_arg;
   integer source_stride_arg;
+  integer group_size_arg;
   integer stall_period_arg;
   integer stall_width_arg;
   integer max_cycles_arg;
@@ -312,6 +314,7 @@ module candidate10_l0_writer_tb;
       .clk(ap_clk), .rst(ap_rst),
       .stall_period(stall_period_arg), .stall_width(stall_width_arg),
       .pattern(pattern_arg), .source_stride(source_stride_arg),
+      .group_size(group_size_arg),
       .base_address(SORTER_BASE >> 4), .arvalid(sorter_arvalid),
       .arready(sorter_arready), .araddr(sorter_araddr), .arlen(sorter_arlen),
       .rvalid(sorter_rvalid), .rready(sorter_rready), .rdata(sorter_rdata),
@@ -333,6 +336,7 @@ module candidate10_l0_writer_tb;
       .clk(ap_clk), .rst(ap_rst),
       .stall_period(stall_period_arg), .stall_width(stall_width_arg),
       .pattern(pattern_arg), .source_stride(source_stride_arg),
+      .group_size(group_size_arg),
       .base_address(META_BASE >> 3), .arvalid(meta_arvalid), .arready(meta_arready),
       .araddr(meta_araddr), .arlen(meta_arlen), .rvalid(meta_rvalid),
       .rready(meta_rready), .rdata(meta_rdata), .rlast(meta_rlast),
@@ -418,6 +422,7 @@ module candidate10_l0_writer_tb;
     if (!$value$plusargs("ROWS=%d", rows_arg)) rows_arg = 1;
     if (!$value$plusargs("PATTERN=%d", pattern_arg)) pattern_arg = 0;
     if (!$value$plusargs("SOURCE_STRIDE=%d", source_stride_arg)) source_stride_arg = 1;
+    if (!$value$plusargs("GROUP_SIZE=%d", group_size_arg)) group_size_arg = 4;
     if (!$value$plusargs("STALL_PERIOD=%d", stall_period_arg)) stall_period_arg = 0;
     if (!$value$plusargs("STALL_WIDTH=%d", stall_width_arg)) stall_width_arg = 0;
     if (!$value$plusargs("MAX_CYCLES=%d", max_cycles_arg)) max_cycles_arg = 2000000;
@@ -455,9 +460,9 @@ module candidate10_l0_writer_tb;
     if (started && !ap_done)
       active_cycles <= active_cycles + 1;
     if (started && ap_done) begin
-      $display("L0_WRITER_RTL inputs=%0d edges=%0d rows=%0d pattern=%0d source_stride=%0d stall_period=%0d stall_width=%0d cycles=%0d result_edges=%0d result_rows=%0d result_epoch=%0d result_pages=%0d result_occupied=%0d result_pages_stamped=%0d result_overflow=%0d result_page_ids=%0d result_validation=%0d result_outputs=%0d graph_aw=%0d graph_w=%0d graph_b=%0d graph_max_awlen=%0d graph_requested_w_beats=%0d sorter_ar=%0d sorter_r=%0d sorter_max_arlen=%0d sorter_requested_r_beats=%0d meta_aw=%0d meta_w=%0d meta_b=%0d meta_max_awlen=%0d meta_requested_w_beats=%0d meta_ar=%0d meta_r=%0d meta_max_arlen=%0d meta_requested_r_beats=%0d",
+      $display("L0_WRITER_RTL inputs=%0d edges=%0d rows=%0d pattern=%0d source_stride=%0d group_size=%0d stall_period=%0d stall_width=%0d cycles=%0d result_edges=%0d result_rows=%0d result_epoch=%0d result_pages=%0d result_occupied=%0d result_pages_stamped=%0d result_overflow=%0d result_page_ids=%0d result_validation=%0d result_outputs=%0d graph_aw=%0d graph_w=%0d graph_b=%0d graph_max_awlen=%0d graph_requested_w_beats=%0d sorter_ar=%0d sorter_r=%0d sorter_max_arlen=%0d sorter_requested_r_beats=%0d meta_aw=%0d meta_w=%0d meta_b=%0d meta_max_awlen=%0d meta_requested_w_beats=%0d meta_ar=%0d meta_r=%0d meta_max_arlen=%0d meta_requested_r_beats=%0d",
                inputs_arg, edges_arg, rows_arg, pattern_arg, source_stride_arg,
-               stall_period_arg, stall_width_arg, active_cycles,
+               group_size_arg, stall_period_arg, stall_width_arg, active_cycles,
                result_edges, result_rows, result_epoch, result_pages,
                result_occupied, result_pages_stamped, result_overflow,
                result_page_ids_written, result_validation_failures,

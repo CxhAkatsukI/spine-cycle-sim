@@ -187,6 +187,34 @@ probe.addParams(
                 "SPINE_SST_CANDIDATE_L0_WRITE_SCAN_TAIL_CYCLES", "149"
             )
         ),
+        "candidate_l0_writer_rtl_schedule": int(
+            os.environ.get("SPINE_SST_CANDIDATE_L0_WRITER_RTL_SCHEDULE", "1")
+        ),
+        "candidate_l0_writer_base_residual_cycles": int(
+            os.environ.get(
+                "SPINE_SST_CANDIDATE_L0_WRITER_BASE_RESIDUAL_CYCLES", "701"
+            )
+        ),
+        "candidate_l0_writer_single_record_cycles": int(
+            os.environ.get(
+                "SPINE_SST_CANDIDATE_L0_WRITER_SINGLE_RECORD_CYCLES", "799"
+            )
+        ),
+        "candidate_l0_writer_late_source_cycles": int(
+            os.environ.get(
+                "SPINE_SST_CANDIDATE_L0_WRITER_LATE_SOURCE_CYCLES", "71"
+            )
+        ),
+        "candidate_l0_writer_packer_cycles": int(
+            os.environ.get(
+                "SPINE_SST_CANDIDATE_L0_WRITER_PACKER_CYCLES", "69"
+            )
+        ),
+        "candidate_l0_writer_page_tail_cycles": int(
+            os.environ.get(
+                "SPINE_SST_CANDIDATE_L0_WRITER_PAGE_TAIL_CYCLES", "144"
+            )
+        ),
         "candidate_list_word_first_lane_cycles": int(
             os.environ.get(
                 "SPINE_SST_CANDIDATE_LIST_WORD_FIRST_LANE_CYCLES", "81"

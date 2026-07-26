@@ -1,14 +1,15 @@
 {
   "all_pass": true,
-  "build_dir": "/data/tmp/chuxiao/candidate10_l0_writer_oracle.lzze3zr5",
-  "cases": 36,
+  "build_dir": "/data/tmp/chuxiao/candidate10_l0_writer_oracle.a2jxfmis",
+  "cases": 56,
   "claim": "frozen_candidate10_l0_writer_rtl_control_and_internal_request_oracle",
-  "collector_sha256": "70d26d5e3491e1fb4e32177aff808ad6468c1967dc133ab5c4c9774fd463c2a8",
+  "collector_sha256": "616ae2cb67a9d1d3458abc6d7bea4d644d928f5162fe0fab21d039c2904123b5",
   "derived_metrics": {
     "backpressure_delta_cycles": "periodically stalled run minus the matching ideal run",
     "child_request_bytes": "requested beats multiplied by the corresponding child port width; not an assertion about final HBM traffic",
     "writer_control_residual_cycles": "observed cycles - writer_loop_ii_cycles; includes fill, drain, final flush, and deterministic child-protocol waits",
-    "writer_loop_ii_cycles": "24 * inputs; the synthesized edge-loop throughput term"
+    "writer_loop_ii_cycles": "24 * inputs; the synthesized edge-loop throughput term",
+    "writer_rtl_min_prediction_cycles": "state-dependent Candidate10 ideal-child lower bound validated on all non-stalled valid cases"
   },
   "hls_source_root": "/data/feiyang/spine-dynamic-graph-builds/pipeline_dirty_frontier_publication_1e61fc0_20260725/production/hls_v5_candidate_10/audit/source",
   "hls_source_sha256": {
@@ -29,7 +30,7 @@
   "runner_sha256": "513d2dae3c85fd62311050fa47f1a4aaae7e4a6882a233dd15694fc603ea7318",
   "schema_version": 2,
   "tcl_sha256": "55eedd5439c15fcf0916c4f81dd301a78458ec1f05b4143ed3a00c9a6487dff5",
-  "testbench_sha256": "da6fe0806006fff0ffb10f8c20cc1e23bc95b98527a9fa3a37a0cb77ca81f7f5",
+  "testbench_sha256": "42b81025904b1b822e9bfd72f1ab0d285287c3340e2ae12a07a02366db60cd92",
   "xo": "/data/feiyang/spine-dynamic-graph-builds/pipeline_dirty_frontier_publication_1e61fc0_20260725/production/hls_v5_candidate_10/spine_partconv_rdmaint_kernel.hw.xo",
   "xo_rtl_members": {
     "graph_axi_adapter": "ip_repo/xilinx_com_hls_spine_partconv_rdmaint_kernel_1_0/hdl/verilog/spine_partconv_rdmaint_kernel_gmem_p0_m_axi.v",

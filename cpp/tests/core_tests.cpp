@@ -81,6 +81,7 @@ using spine::sim::spine_dirty_identity;
 using spine::sim::spine_level_layout;
 using spine::sim::spine_metadata_layout;
 using spine::sim::spine_candidate10_publication_window_min_cycles;
+using spine::sim::spine_candidate10_l0_writer_min_cycles;
 using spine::sim::SpineActiveBins;
 using spine::sim::SpineActiveRecord;
 using spine::sim::SpineAxiInterfaceProfile;
@@ -303,6 +304,28 @@ void test_spine_candidate10_publication_rtl_window_formula() {
           "Candidate-10 grouped-pass formula diverged from the RTL oracle");
 }
 
+void test_spine_candidate10_l0_writer_rtl_formula() {
+  const SpineL0Config config;
+  require(spine_candidate10_l0_writer_min_cycles(config, 0, 0, 0, 0) == 0 &&
+              spine_candidate10_l0_writer_min_cycles(config, 1, 1, 1, 1) ==
+                  799 &&
+              spine_candidate10_l0_writer_min_cycles(config, 16, 1, 1, 16) ==
+                  1'085 &&
+              spine_candidate10_l0_writer_min_cycles(config, 16, 16, 1, 1) ==
+                  1'156 &&
+              spine_candidate10_l0_writer_min_cycles(config, 17, 17, 1, 1) ==
+                  1'249 &&
+              spine_candidate10_l0_writer_min_cycles(config, 16, 16, 16, 1) ==
+                  1'300 &&
+              spine_candidate10_l0_writer_min_cycles(config, 17, 17, 17, 1) ==
+                  1'462 &&
+              spine_candidate10_l0_writer_min_cycles(config, 8, 4, 1, 2) ==
+                  962 &&
+              spine_candidate10_l0_writer_min_cycles(config, 8, 4, 4, 2) ==
+                  893,
+          "Candidate-10 L0 writer formula diverged from the RTL oracle");
+}
+
 void test_spine_candidate10_one_pass_publication_payloads() {
   SpineL0Config config;
   config.maintenance_architecture =
@@ -366,7 +389,11 @@ void test_spine_candidate10_one_pass_publication_payloads() {
   require(counters.sorted_scan_passes == 39 &&
               counters.sorted_edge_visits == 5 * input.size() &&
               counters.candidate_l0_precount_edge_visits == input.size() &&
-              counters.persisted_edges == input.size(),
+              counters.persisted_edges == input.size() &&
+              counters.l0_writer_rtl_schedule_invocations == 4 &&
+              counters.l0_writer_rtl_min_cycles == 3'241 &&
+              counters.l0_writer_rtl_padding_cycles != 0 &&
+              counters.l0_writer_rtl_memory_overrun_cycles == 0,
           "candidate-10 scan/bucket writer closure mismatch");
 
   std::vector<std::uint8_t> expected_directory(16, 0);
@@ -6933,6 +6960,8 @@ int main(int argc, char **argv) {
        test_spine_candidate10_one_pass_publication_payloads},
       {"spine_candidate10_publication_formula",
        test_spine_candidate10_publication_rtl_window_formula},
+      {"spine_candidate10_l0_writer_formula",
+       test_spine_candidate10_l0_writer_rtl_formula},
       {"spine_candidate10_repeated_frontier",
        test_spine_candidate10_repeated_frontier_uses_grouped_payload_reads},
       {"spine_candidate10_boundaries",

@@ -62,13 +62,16 @@ negative protocol tests, not valid workloads.
 
 ## Matrix and result
 
-All 36 cases pass payload-count, request-count, overflow, and validation
+All 56 cases pass payload-count, request-count, overflow, schedule, and
+validation
 expectations. The matrix covers:
 
+- the empty invocation;
 - 1 through 1024 records with one source;
 - unique sources in one page at 2/3/4/5 and 15/16/17 boundaries;
 - one new page per source at the same boundaries;
-- duplicate coalescing and four records per source;
+- duplicate coalescing and two/three/four/five records per source;
+- two records per source across page transitions;
 - family-local contract violations;
 - same-source and page-heavy deterministic backpressure.
 
@@ -79,7 +82,31 @@ input once the one-record special case is excluded:
 writer_cycles = 24 * input_records + control_residual
 ```
 
-The residual is state-dependent:
+The residual is state-dependent. A structural predictor derived from the RTL
+matches all 52 valid, unstalled cases with exactly zero cycle error:
+
+```text
+N = input records
+G = groups belonging to the final source
+R = output rows
+P = output pages
+
+N == 0: cycles = 0
+N == 1: cycles = 799
+N >= 2: cycles = 24*N + residual
+
+residual starts at 701
+if G == 1:
+    residual += 71
+    if R > 1 and R mod 4 == 1: residual += 69
+    if P > 1:
+        residual += 144
+        if P is odd: residual += 69
+else if R is even and P mod 4 != 0:
+    residual += 69
+```
+
+Representative observations are:
 
 | case | cycles | `24*N` | residual |
 | --- | ---: | ---: | ---: |
@@ -95,15 +122,15 @@ The residual is state-dependent:
 | one page/source, N=16 | 1,300 | 384 | 916 |
 | one page/source, N=17 | 1,462 | 408 | 1,054 |
 
-The jumps are real RTL behavior. They follow pending row/page packing and final
-flush state, rather than only edge count. The one-record case is also special:
-799 total cycles and a 775-cycle residual.
+The jumps are real RTL behavior. A final source with multiple groups allows
+row/page side effects to overlap later `II=24` iterations. A final source with
+only one group exposes the late row/page/final flush drain. The one-record case
+is also special: 799 total cycles and a 775-cycle residual.
 
-This disproves a single-intercept correction. The simulator's current
-Candidate10 loop setting represents `24*(N-1)+150 = 24*N+126`; it captures the
-steady-state II but not the full writer invocation schedule. Depending on final
-state, the isolated RTL has another 575 to 928 cycles beyond that loop-only
-term. This is per active family invocation, not per edge.
+This disproves a single-intercept correction. The simulator now evaluates the
+same structural state per active family invocation and enforces the resulting
+RTL control lower bound. It does not fit a hardware-wide residual or charge
+this latency per edge.
 
 ## Internal request evidence
 
@@ -159,22 +186,60 @@ The page-heavy writer is more sensitive because each transition emits more
 graph and metadata requests. A model with only aggregate bytes cannot reproduce
 this difference.
 
-## Simulator correction boundary
+## Simulator implementation
 
-The simulator already has payload-backed addresses, packing, request FIFOs,
-burst splitting, 4 KiB boundaries, outstanding limits, responses, and finite
-backpressure. The remaining correction is therefore:
+The simulator has payload-backed addresses, packing, request FIFOs, burst
+splitting, 4 KiB boundaries, outstanding limits, responses, and finite
+backpressure. Candidate10 L0 writing now additionally:
 
-1. expose writer row/page/final-flush schedule state;
-2. enforce an RTL-derived control lower bound per family invocation;
-3. preserve actual memory completion as a concurrent causal constraint;
-4. configure adapter burst/outstanding independently from backend HBM limits;
-5. validate page-transition and outstanding-pressure holdouts against hardware.
+1. tracks input records, emitted rows/pages, and final-source group count;
+2. computes the RTL-derived control lower bound per active family invocation;
+3. completes at `max(control deadline, dependent memory completion)`;
+4. reports schedule invocations, minimum cycles, control padding, and memory
+   overrun separately;
+5. keeps the HLS adapter outstanding limit separate from backend HBM capacity.
 
-The RTL residual must not simply be added to existing memory latency. The
-writer completion must be the later of control completion and dependent memory
-completion, with queue stalls feeding back into control. Adding both opaque
-totals would double-count protocol waits.
+The RTL residual is not added to existing memory latency. Queue stalls still
+feed back through real request/response dependencies, while the writer control
+deadline advances concurrently. This avoids double-counting protocol waits.
+
+## Execution-driven A/B
+
+The same exact Amazon slice was run with only the structural writer schedule
+toggled:
+
+| mode | total cycles | maintenance cycles | backend requests | DRAM reads | DRAM writes | ACT |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| schedule off | 3,687 | 3,686 | 731 | 431 | 300 | 47 |
+| schedule on | 4,170 | 4,169 | 731 | 431 | 300 | 40 |
+
+The enabled run reports one invocation, a 941-cycle RTL lower bound, 503
+control-padding cycles, and zero memory-overrun cycles. Request count and bytes
+are identical. Total latency increases by 483 rather than 503 cycles because
+the changed issue timing also changes HBM row-buffer interleaving. That is the
+intended execution-driven behavior: control and memory are causally coupled,
+not two independent spreadsheet terms.
+
+## Hardware holdout
+
+All 11 Candidate10 maintenance hardware cases remain functionally passing. The
+new schedule increases simulated cycles by 0 to 9,309 depending on the number
+and final state of active writer invocations. It is largely hidden by memory
+completion for the 4,096/4,112-edge cases, but material for small workloads
+with many active families.
+
+Raw, uncalibrated full-maintenance error is still substantial:
+
+| role | median absolute error |
+| --- | ---: |
+| calibration | 59.54% |
+| holdout | 71.14% |
+
+This is useful negative evidence. The writer edge-loop slope and final flush
+are no longer the main unexplained term, but the correction does not justify a
+cycle-exact end-to-end claim. Tiny/sparse cases still expose outer family-range
+and kernel-wrapper control cost; larger cases still expose adapter and external
+memory timing.
 
 ## Reproduction
 
@@ -185,6 +250,30 @@ python3 -m unittest tests.test_candidate10_l0_writer_rtl_oracle
 
 python3 scripts/collect_candidate10_l0_writer_rtl_oracle.py \
   --out-dir docs/evidence/candidate10_l0_writer_rtl_oracle_20260726
+
+python3 scripts/run_sst_spine_vertical.py \
+  --scenario candidate10_maintenance \
+  --profile configs/architectures/spine_candidate10_one_pass_1e61fc0.json \
+  --validation-mode generic \
+  --workload tests/data/amazon_top1_exact.slice \
+  --no-build \
+  --out-dir results/candidate10_l0_writer_rtl_schedule_on_final_20260726
+
+python3 scripts/run_sst_spine_vertical.py \
+  --scenario candidate10_maintenance \
+  --profile configs/architectures/spine_candidate10_one_pass_1e61fc0.json \
+  --validation-mode generic \
+  --workload tests/data/amazon_top1_exact.slice \
+  --no-build \
+  --no-candidate-l0-writer-rtl-schedule \
+  --out-dir results/candidate10_l0_writer_rtl_schedule_off_final_20260726
+
+python3 scripts/run_candidate10_maintenance_matrix.py \
+  --out-dir results/candidate10_l0_writer_rtl_schedule_hw_matrix_20260726 \
+  --no-build
+
+python3 scripts/collect_candidate10_l0_writer_schedule_alignment.py \
+  --out docs/evidence/candidate10_l0_writer_schedule_alignment_20260726.json
 ```
 
 For one traceable case:
@@ -200,7 +289,18 @@ Vivado/XSim 2024.1 is taken from
 
 ## Remaining claims boundary
 
-This milestone supports exact statements about the frozen writer RTL's control
-cycles and child requests under the testbench response policy. It does not yet
-support claims about U55C HBM latency distributions, inter-port contention,
-external AXI arbitration, or end-to-end hardware error after the writer fix.
+This milestone supports exact statements about the frozen writer RTL's
+unstalled structural control schedule, child requests under the testbench
+response policy, and the simulator's causal composition of that schedule with
+its current memory backend. It does not yet support claims about cycle-exact
+Vitis adapter arbitration, U55C HBM latency distributions, inter-port
+contention, or calibrated end-to-end hardware accuracy.
+
+The next evidence layers are deliberately ordered:
+
+1. oracle and model the outer family-range/kernel-wrapper schedule;
+2. replay exact child requests through the generated Vitis `m_axi` adapter and
+   validate burst splitting, 4 KiB boundaries, adapter outstanding limits, and
+   response backpressure;
+3. calibrate only the remaining external AXI/HBM service and contention terms
+   against U55C microbenchmarks.

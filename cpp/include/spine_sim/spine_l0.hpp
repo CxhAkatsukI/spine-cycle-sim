@@ -199,6 +199,16 @@ struct SpineL0Config {
   // 24*(N-1)+150 cycles, represented by II=24 and a 149-cycle scan tail.
   std::size_t candidate_l0_write_scan_ii{24};
   std::size_t candidate_l0_write_scan_tail_cycles{149};
+  // Full-function RTL oracle constants. The completion deadline includes the
+  // writer's epoch read, loop, pending row/page packers, and final drain. It is
+  // a lower bound that overlaps memory completion rather than an additive
+  // latency term.
+  bool candidate_l0_writer_rtl_schedule{true};
+  std::size_t candidate_l0_writer_base_residual_cycles{701};
+  std::size_t candidate_l0_writer_single_record_cycles{799};
+  std::size_t candidate_l0_writer_late_source_cycles{71};
+  std::size_t candidate_l0_writer_packer_cycles{69};
+  std::size_t candidate_l0_writer_page_tail_cycles{144};
   // The non-pipelined dirty-list word loop costs 81 cycles for one valid
   // source lane and 120 cycles for each additional lane (441 for four).
   std::size_t candidate_list_word_first_lane_cycles{81};
@@ -229,6 +239,11 @@ struct SpineL0Config {
 [[nodiscard]] std::uint64_t spine_candidate10_publication_window_min_cycles(
     const SpineL0Config &config, std::size_t sources, std::size_t groups,
     std::size_t new_bits, bool empty_bitmap_fast_path, bool first_window);
+
+[[nodiscard]] std::uint64_t spine_candidate10_l0_writer_min_cycles(
+    const SpineL0Config &config, std::size_t input_records,
+    std::size_t output_rows, std::size_t output_pages,
+    std::size_t final_source_groups);
 
 struct SpineMetadataLayout {
   std::uint64_t page_count{};
@@ -525,6 +540,10 @@ struct SpineL0Counters {
   std::uint64_t l0_writer_memory_wait_cycles{};
   std::uint64_t l0_writer_memory_overlap_cycles{};
   std::uint64_t l0_writer_backpressure_stall_cycles{};
+  std::uint64_t l0_writer_rtl_schedule_invocations{};
+  std::uint64_t l0_writer_rtl_min_cycles{};
+  std::uint64_t l0_writer_rtl_padding_cycles{};
+  std::uint64_t l0_writer_rtl_memory_overrun_cycles{};
   std::uint64_t l0_writer_validation_failures{};
   std::size_t l0_writer_max_pending_tasks{};
   std::size_t l0_writer_max_pending_tasks_per_port{};
@@ -614,6 +633,7 @@ class SpineL0Maintenance final : public Component {
     kWriteEpochResolve,
     kWriteEpochClear,
     kWriteProcess,
+    kWriteSchedule,
     kCarryProcess,
     kWriteAdvance,
     kCommitMetadata,
@@ -792,7 +812,7 @@ class SpineL0Maintenance final : public Component {
   void enqueue_maintenance_result();
   void begin_logical_overflow(std::string failure,
                               SpineDirtyStatus dirty_status);
-  void enqueue_active_writer_epoch_read();
+  void enqueue_active_writer_epoch_read(const CycleContext &context);
   void consume_active_writer_epoch_response(const MemoryTask &task,
                                             const AxiResponse &response);
   void prepare_active_writer_epoch();
@@ -921,6 +941,7 @@ class SpineL0Maintenance final : public Component {
     std::uint32_t current_mask_index{};
     std::uint32_t bitmap_page{};
     std::uint32_t page_list_count{};
+    std::uint32_t current_source_groups{};
     std::uint32_t expected_rows{};
     std::uint32_t expected_edges{};
     std::uint16_t current_mask{};
@@ -1070,6 +1091,9 @@ class SpineL0Maintenance final : public Component {
   std::int32_t target_scan_candidate_{-1};
   std::uint64_t target_scan_start_cycle_{};
   std::uint64_t target_scan_min_finish_cycle_{};
+  std::uint64_t candidate_l0_writer_start_cycle_{};
+  std::uint64_t candidate_l0_writer_min_finish_cycle_{};
+  bool candidate_l0_writer_schedule_active_{};
   std::uint32_t active_writer_current_epoch_{};
   std::uint32_t active_writer_next_epoch_{};
   std::uint64_t next_transaction_id_{};

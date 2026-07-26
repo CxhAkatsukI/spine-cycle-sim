@@ -1277,6 +1277,18 @@ class OnlineMemoryProbe final : public SST::Component {
         params.find<std::size_t>("candidate_l0_write_scan_ii", 24);
     candidate_l0_write_scan_tail_cycles_ =
         params.find<std::size_t>("candidate_l0_write_scan_tail_cycles", 149);
+    candidate_l0_writer_rtl_schedule_ =
+        params.find<int>("candidate_l0_writer_rtl_schedule", 1) != 0;
+    candidate_l0_writer_base_residual_cycles_ = params.find<std::size_t>(
+        "candidate_l0_writer_base_residual_cycles", 701);
+    candidate_l0_writer_single_record_cycles_ = params.find<std::size_t>(
+        "candidate_l0_writer_single_record_cycles", 799);
+    candidate_l0_writer_late_source_cycles_ = params.find<std::size_t>(
+        "candidate_l0_writer_late_source_cycles", 71);
+    candidate_l0_writer_packer_cycles_ = params.find<std::size_t>(
+        "candidate_l0_writer_packer_cycles", 69);
+    candidate_l0_writer_page_tail_cycles_ = params.find<std::size_t>(
+        "candidate_l0_writer_page_tail_cycles", 144);
     candidate_list_word_first_lane_cycles_ = params.find<std::size_t>(
         "candidate_list_word_first_lane_cycles", 81);
     candidate_list_word_additional_lane_cycles_ = params.find<std::size_t>(
@@ -1490,6 +1502,11 @@ class OnlineMemoryProbe final : public SST::Component {
         maintenance_count_scan_ii_ == 0 || maintenance_l0_write_scan_ii_ == 0 ||
         candidate_l0_precount_ii_ == 0 ||
         candidate_l0_write_scan_ii_ == 0 ||
+        candidate_l0_writer_base_residual_cycles_ == 0 ||
+        candidate_l0_writer_single_record_cycles_ == 0 ||
+        candidate_l0_writer_late_source_cycles_ == 0 ||
+        candidate_l0_writer_packer_cycles_ == 0 ||
+        candidate_l0_writer_page_tail_cycles_ == 0 ||
         candidate_list_word_first_lane_cycles_ == 0 ||
         candidate_publication_base_cycles_ == 0 ||
         candidate_publication_source_cycles_ == 0 ||
@@ -1817,6 +1834,18 @@ class OnlineMemoryProbe final : public SST::Component {
       config.candidate_l0_write_scan_ii = candidate_l0_write_scan_ii_;
       config.candidate_l0_write_scan_tail_cycles =
           candidate_l0_write_scan_tail_cycles_;
+      config.candidate_l0_writer_rtl_schedule =
+          candidate_l0_writer_rtl_schedule_;
+      config.candidate_l0_writer_base_residual_cycles =
+          candidate_l0_writer_base_residual_cycles_;
+      config.candidate_l0_writer_single_record_cycles =
+          candidate_l0_writer_single_record_cycles_;
+      config.candidate_l0_writer_late_source_cycles =
+          candidate_l0_writer_late_source_cycles_;
+      config.candidate_l0_writer_packer_cycles =
+          candidate_l0_writer_packer_cycles_;
+      config.candidate_l0_writer_page_tail_cycles =
+          candidate_l0_writer_page_tail_cycles_;
       config.candidate_list_word_first_lane_cycles =
           candidate_list_word_first_lane_cycles_;
       config.candidate_list_word_additional_lane_cycles =
@@ -1963,6 +1992,18 @@ class OnlineMemoryProbe final : public SST::Component {
           candidate_l0_write_scan_ii_;
       maintenance_config.candidate_l0_write_scan_tail_cycles =
           candidate_l0_write_scan_tail_cycles_;
+      maintenance_config.candidate_l0_writer_rtl_schedule =
+          candidate_l0_writer_rtl_schedule_;
+      maintenance_config.candidate_l0_writer_base_residual_cycles =
+          candidate_l0_writer_base_residual_cycles_;
+      maintenance_config.candidate_l0_writer_single_record_cycles =
+          candidate_l0_writer_single_record_cycles_;
+      maintenance_config.candidate_l0_writer_late_source_cycles =
+          candidate_l0_writer_late_source_cycles_;
+      maintenance_config.candidate_l0_writer_packer_cycles =
+          candidate_l0_writer_packer_cycles_;
+      maintenance_config.candidate_l0_writer_page_tail_cycles =
+          candidate_l0_writer_page_tail_cycles_;
       maintenance_config.candidate_list_word_first_lane_cycles =
           candidate_list_word_first_lane_cycles_;
       maintenance_config.candidate_list_word_additional_lane_cycles =
@@ -2209,6 +2250,18 @@ class OnlineMemoryProbe final : public SST::Component {
           candidate_l0_write_scan_ii_;
       maintenance_config.candidate_l0_write_scan_tail_cycles =
           candidate_l0_write_scan_tail_cycles_;
+      maintenance_config.candidate_l0_writer_rtl_schedule =
+          candidate_l0_writer_rtl_schedule_;
+      maintenance_config.candidate_l0_writer_base_residual_cycles =
+          candidate_l0_writer_base_residual_cycles_;
+      maintenance_config.candidate_l0_writer_single_record_cycles =
+          candidate_l0_writer_single_record_cycles_;
+      maintenance_config.candidate_l0_writer_late_source_cycles =
+          candidate_l0_writer_late_source_cycles_;
+      maintenance_config.candidate_l0_writer_packer_cycles =
+          candidate_l0_writer_packer_cycles_;
+      maintenance_config.candidate_l0_writer_page_tail_cycles =
+          candidate_l0_writer_page_tail_cycles_;
       maintenance_config.candidate_list_word_first_lane_cycles =
           candidate_list_word_first_lane_cycles_;
       maintenance_config.candidate_list_word_additional_lane_cycles =
@@ -2749,6 +2802,18 @@ class OnlineMemoryProbe final : public SST::Component {
        "Candidate-10 family-local L0 writer initiation interval", "24"},
       {"candidate_l0_write_scan_tail_cycles",
        "Candidate-10 family-local L0 writer scan tail cycles", "149"},
+      {"candidate_l0_writer_rtl_schedule",
+       "Enable the full Candidate-10 L0 writer RTL completion deadline", "1"},
+      {"candidate_l0_writer_base_residual_cycles",
+       "Candidate-10 L0 writer base full-function residual", "701"},
+      {"candidate_l0_writer_single_record_cycles",
+       "Candidate-10 one-record L0 writer full-function cycles", "799"},
+      {"candidate_l0_writer_late_source_cycles",
+       "Candidate-10 final single-group source drain cycles", "71"},
+      {"candidate_l0_writer_packer_cycles",
+       "Candidate-10 pending row/page packer drain quantum", "69"},
+      {"candidate_l0_writer_page_tail_cycles",
+       "Candidate-10 late page transition drain cycles", "144"},
       {"candidate_list_word_first_lane_cycles",
        "Candidate-10 dirty-list word schedule for its first valid lane", "81"},
       {"candidate_list_word_additional_lane_cycles",
@@ -2936,6 +3001,19 @@ class OnlineMemoryProbe final : public SST::Component {
              << candidate_l0_write_scan_ii_ << ",\n"
              << "  \"candidate_l0_write_scan_tail_cycles\": "
              << candidate_l0_write_scan_tail_cycles_ << ",\n"
+             << "  \"candidate_l0_writer_rtl_schedule\": "
+             << (candidate_l0_writer_rtl_schedule_ ? "true" : "false")
+             << ",\n"
+             << "  \"candidate_l0_writer_base_residual_cycles\": "
+             << candidate_l0_writer_base_residual_cycles_ << ",\n"
+             << "  \"candidate_l0_writer_single_record_cycles\": "
+             << candidate_l0_writer_single_record_cycles_ << ",\n"
+             << "  \"candidate_l0_writer_late_source_cycles\": "
+             << candidate_l0_writer_late_source_cycles_ << ",\n"
+             << "  \"candidate_l0_writer_packer_cycles\": "
+             << candidate_l0_writer_packer_cycles_ << ",\n"
+             << "  \"candidate_l0_writer_page_tail_cycles\": "
+             << candidate_l0_writer_page_tail_cycles_ << ",\n"
              << "  \"candidate_list_word_first_lane_cycles\": "
              << candidate_list_word_first_lane_cycles_ << ",\n"
              << "  \"candidate_list_word_additional_lane_cycles\": "
@@ -3022,6 +3100,14 @@ class OnlineMemoryProbe final : public SST::Component {
              << maintenance.l0_writer_memory_overlap_cycles << ",\n"
              << "  \"maintenance_l0_writer_backpressure_stall_cycles\": "
              << maintenance.l0_writer_backpressure_stall_cycles << ",\n"
+             << "  \"maintenance_l0_writer_rtl_schedule_invocations\": "
+             << maintenance.l0_writer_rtl_schedule_invocations << ",\n"
+             << "  \"maintenance_l0_writer_rtl_min_cycles\": "
+             << maintenance.l0_writer_rtl_min_cycles << ",\n"
+             << "  \"maintenance_l0_writer_rtl_padding_cycles\": "
+             << maintenance.l0_writer_rtl_padding_cycles << ",\n"
+             << "  \"maintenance_l0_writer_rtl_memory_overrun_cycles\": "
+             << maintenance.l0_writer_rtl_memory_overrun_cycles << ",\n"
              << "  \"maintenance_l0_writer_max_pending_tasks\": "
              << maintenance.l0_writer_max_pending_tasks << ",\n"
              << "  \"maintenance_l0_writer_max_pending_tasks_per_port\": "
@@ -4517,6 +4603,18 @@ class OnlineMemoryProbe final : public SST::Component {
           << candidate_l0_write_scan_ii_ << ",\n"
           << "  \"candidate_l0_write_scan_tail_cycles\": "
           << candidate_l0_write_scan_tail_cycles_ << ",\n"
+          << "  \"candidate_l0_writer_rtl_schedule\": "
+          << (candidate_l0_writer_rtl_schedule_ ? "true" : "false") << ",\n"
+          << "  \"candidate_l0_writer_base_residual_cycles\": "
+          << candidate_l0_writer_base_residual_cycles_ << ",\n"
+          << "  \"candidate_l0_writer_single_record_cycles\": "
+          << candidate_l0_writer_single_record_cycles_ << ",\n"
+          << "  \"candidate_l0_writer_late_source_cycles\": "
+          << candidate_l0_writer_late_source_cycles_ << ",\n"
+          << "  \"candidate_l0_writer_packer_cycles\": "
+          << candidate_l0_writer_packer_cycles_ << ",\n"
+          << "  \"candidate_l0_writer_page_tail_cycles\": "
+          << candidate_l0_writer_page_tail_cycles_ << ",\n"
           << "  \"candidate_list_word_first_lane_cycles\": "
           << candidate_list_word_first_lane_cycles_ << ",\n"
           << "  \"candidate_list_word_additional_lane_cycles\": "
@@ -4783,6 +4881,18 @@ class OnlineMemoryProbe final : public SST::Component {
           << candidate_l0_write_scan_ii_ << ",\n"
           << "  \"candidate_l0_write_scan_tail_cycles\": "
           << candidate_l0_write_scan_tail_cycles_ << ",\n"
+          << "  \"candidate_l0_writer_rtl_schedule\": "
+          << (candidate_l0_writer_rtl_schedule_ ? "true" : "false") << ",\n"
+          << "  \"candidate_l0_writer_base_residual_cycles\": "
+          << candidate_l0_writer_base_residual_cycles_ << ",\n"
+          << "  \"candidate_l0_writer_single_record_cycles\": "
+          << candidate_l0_writer_single_record_cycles_ << ",\n"
+          << "  \"candidate_l0_writer_late_source_cycles\": "
+          << candidate_l0_writer_late_source_cycles_ << ",\n"
+          << "  \"candidate_l0_writer_packer_cycles\": "
+          << candidate_l0_writer_packer_cycles_ << ",\n"
+          << "  \"candidate_l0_writer_page_tail_cycles\": "
+          << candidate_l0_writer_page_tail_cycles_ << ",\n"
           << "  \"candidate_list_word_first_lane_cycles\": "
           << candidate_list_word_first_lane_cycles_ << ",\n"
           << "  \"candidate_list_word_additional_lane_cycles\": "
@@ -5661,6 +5771,18 @@ class OnlineMemoryProbe final : public SST::Component {
           << candidate_l0_write_scan_ii_ << ",\n"
           << "  \"candidate_l0_write_scan_tail_cycles\": "
           << candidate_l0_write_scan_tail_cycles_ << ",\n"
+          << "  \"candidate_l0_writer_rtl_schedule\": "
+          << (candidate_l0_writer_rtl_schedule_ ? "true" : "false") << ",\n"
+          << "  \"candidate_l0_writer_base_residual_cycles\": "
+          << candidate_l0_writer_base_residual_cycles_ << ",\n"
+          << "  \"candidate_l0_writer_single_record_cycles\": "
+          << candidate_l0_writer_single_record_cycles_ << ",\n"
+          << "  \"candidate_l0_writer_late_source_cycles\": "
+          << candidate_l0_writer_late_source_cycles_ << ",\n"
+          << "  \"candidate_l0_writer_packer_cycles\": "
+          << candidate_l0_writer_packer_cycles_ << ",\n"
+          << "  \"candidate_l0_writer_page_tail_cycles\": "
+          << candidate_l0_writer_page_tail_cycles_ << ",\n"
           << "  \"candidate_list_word_first_lane_cycles\": "
           << candidate_list_word_first_lane_cycles_ << ",\n"
           << "  \"candidate_list_word_additional_lane_cycles\": "
@@ -5916,6 +6038,14 @@ class OnlineMemoryProbe final : public SST::Component {
           << maintenance.l0_writer_memory_overlap_cycles << ",\n"
           << "  \"maintenance_l0_writer_backpressure_stall_cycles\": "
           << maintenance.l0_writer_backpressure_stall_cycles << ",\n"
+          << "  \"maintenance_l0_writer_rtl_schedule_invocations\": "
+          << maintenance.l0_writer_rtl_schedule_invocations << ",\n"
+          << "  \"maintenance_l0_writer_rtl_min_cycles\": "
+          << maintenance.l0_writer_rtl_min_cycles << ",\n"
+          << "  \"maintenance_l0_writer_rtl_padding_cycles\": "
+          << maintenance.l0_writer_rtl_padding_cycles << ",\n"
+          << "  \"maintenance_l0_writer_rtl_memory_overrun_cycles\": "
+          << maintenance.l0_writer_rtl_memory_overrun_cycles << ",\n"
           << "  \"maintenance_l0_writer_validation_failures\": "
           << maintenance.l0_writer_validation_failures << ",\n"
           << "  \"maintenance_l0_writer_max_pending_tasks\": "
@@ -6400,6 +6530,18 @@ class OnlineMemoryProbe final : public SST::Component {
           << candidate_l0_write_scan_ii_ << ",\n"
           << "  \"candidate_l0_write_scan_tail_cycles\": "
           << candidate_l0_write_scan_tail_cycles_ << ",\n"
+          << "  \"candidate_l0_writer_rtl_schedule\": "
+          << (candidate_l0_writer_rtl_schedule_ ? "true" : "false") << ",\n"
+          << "  \"candidate_l0_writer_base_residual_cycles\": "
+          << candidate_l0_writer_base_residual_cycles_ << ",\n"
+          << "  \"candidate_l0_writer_single_record_cycles\": "
+          << candidate_l0_writer_single_record_cycles_ << ",\n"
+          << "  \"candidate_l0_writer_late_source_cycles\": "
+          << candidate_l0_writer_late_source_cycles_ << ",\n"
+          << "  \"candidate_l0_writer_packer_cycles\": "
+          << candidate_l0_writer_packer_cycles_ << ",\n"
+          << "  \"candidate_l0_writer_page_tail_cycles\": "
+          << candidate_l0_writer_page_tail_cycles_ << ",\n"
           << "  \"candidate_list_word_first_lane_cycles\": "
           << candidate_list_word_first_lane_cycles_ << ",\n"
           << "  \"candidate_list_word_additional_lane_cycles\": "
@@ -6656,6 +6798,14 @@ class OnlineMemoryProbe final : public SST::Component {
           << maintenance.l0_writer_memory_overlap_cycles << ",\n"
           << "  \"maintenance_l0_writer_backpressure_stall_cycles\": "
           << maintenance.l0_writer_backpressure_stall_cycles << ",\n"
+          << "  \"maintenance_l0_writer_rtl_schedule_invocations\": "
+          << maintenance.l0_writer_rtl_schedule_invocations << ",\n"
+          << "  \"maintenance_l0_writer_rtl_min_cycles\": "
+          << maintenance.l0_writer_rtl_min_cycles << ",\n"
+          << "  \"maintenance_l0_writer_rtl_padding_cycles\": "
+          << maintenance.l0_writer_rtl_padding_cycles << ",\n"
+          << "  \"maintenance_l0_writer_rtl_memory_overrun_cycles\": "
+          << maintenance.l0_writer_rtl_memory_overrun_cycles << ",\n"
           << "  \"maintenance_l0_writer_validation_failures\": "
           << maintenance.l0_writer_validation_failures << ",\n"
           << "  \"maintenance_l0_writer_max_pending_tasks\": "
@@ -7083,6 +7233,12 @@ class OnlineMemoryProbe final : public SST::Component {
   std::size_t candidate_l0_precount_tail_cycles_{};
   std::size_t candidate_l0_write_scan_ii_{};
   std::size_t candidate_l0_write_scan_tail_cycles_{};
+  bool candidate_l0_writer_rtl_schedule_{};
+  std::size_t candidate_l0_writer_base_residual_cycles_{};
+  std::size_t candidate_l0_writer_single_record_cycles_{};
+  std::size_t candidate_l0_writer_late_source_cycles_{};
+  std::size_t candidate_l0_writer_packer_cycles_{};
+  std::size_t candidate_l0_writer_page_tail_cycles_{};
   std::size_t candidate_list_word_first_lane_cycles_{};
   std::size_t candidate_list_word_additional_lane_cycles_{};
   std::size_t candidate_publication_base_cycles_{};

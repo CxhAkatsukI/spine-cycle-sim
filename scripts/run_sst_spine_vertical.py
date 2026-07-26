@@ -1347,6 +1347,26 @@ def parse_args() -> argparse.Namespace:
         "--candidate-l0-write-scan-tail-cycles", type=int, default=149
     )
     parser.add_argument(
+        "--candidate-l0-writer-rtl-schedule",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+    )
+    parser.add_argument(
+        "--candidate-l0-writer-base-residual-cycles", type=int, default=701
+    )
+    parser.add_argument(
+        "--candidate-l0-writer-single-record-cycles", type=int, default=799
+    )
+    parser.add_argument(
+        "--candidate-l0-writer-late-source-cycles", type=int, default=71
+    )
+    parser.add_argument(
+        "--candidate-l0-writer-packer-cycles", type=int, default=69
+    )
+    parser.add_argument(
+        "--candidate-l0-writer-page-tail-cycles", type=int, default=144
+    )
+    parser.add_argument(
         "--candidate-list-word-first-lane-cycles", type=int, default=81
     )
     parser.add_argument(
@@ -1473,6 +1493,11 @@ def main() -> int:
         or args.maintenance_l0_write_scan_ii <= 0
         or args.candidate_l0_precount_ii <= 0
         or args.candidate_l0_write_scan_ii <= 0
+        or args.candidate_l0_writer_base_residual_cycles <= 0
+        or args.candidate_l0_writer_single_record_cycles <= 0
+        or args.candidate_l0_writer_late_source_cycles <= 0
+        or args.candidate_l0_writer_packer_cycles <= 0
+        or args.candidate_l0_writer_page_tail_cycles <= 0
         or args.candidate_list_word_first_lane_cycles <= 0
         or args.candidate_publication_base_cycles <= 0
         or args.candidate_publication_source_cycles <= 0
@@ -1694,6 +1719,24 @@ def main() -> int:
             "SPINE_SST_CANDIDATE_L0_WRITE_SCAN_TAIL_CYCLES": str(
                 args.candidate_l0_write_scan_tail_cycles
             ),
+            "SPINE_SST_CANDIDATE_L0_WRITER_RTL_SCHEDULE": str(
+                int(args.candidate_l0_writer_rtl_schedule)
+            ),
+            "SPINE_SST_CANDIDATE_L0_WRITER_BASE_RESIDUAL_CYCLES": str(
+                args.candidate_l0_writer_base_residual_cycles
+            ),
+            "SPINE_SST_CANDIDATE_L0_WRITER_SINGLE_RECORD_CYCLES": str(
+                args.candidate_l0_writer_single_record_cycles
+            ),
+            "SPINE_SST_CANDIDATE_L0_WRITER_LATE_SOURCE_CYCLES": str(
+                args.candidate_l0_writer_late_source_cycles
+            ),
+            "SPINE_SST_CANDIDATE_L0_WRITER_PACKER_CYCLES": str(
+                args.candidate_l0_writer_packer_cycles
+            ),
+            "SPINE_SST_CANDIDATE_L0_WRITER_PAGE_TAIL_CYCLES": str(
+                args.candidate_l0_writer_page_tail_cycles
+            ),
             "SPINE_SST_CANDIDATE_LIST_WORD_FIRST_LANE_CYCLES": str(
                 args.candidate_list_word_first_lane_cycles
             ),
@@ -1913,6 +1956,24 @@ def main() -> int:
         "candidate_l0_write_scan_ii": args.candidate_l0_write_scan_ii,
         "candidate_l0_write_scan_tail_cycles": (
             args.candidate_l0_write_scan_tail_cycles
+        ),
+        "candidate_l0_writer_rtl_schedule": (
+            args.candidate_l0_writer_rtl_schedule
+        ),
+        "candidate_l0_writer_base_residual_cycles": (
+            args.candidate_l0_writer_base_residual_cycles
+        ),
+        "candidate_l0_writer_single_record_cycles": (
+            args.candidate_l0_writer_single_record_cycles
+        ),
+        "candidate_l0_writer_late_source_cycles": (
+            args.candidate_l0_writer_late_source_cycles
+        ),
+        "candidate_l0_writer_packer_cycles": (
+            args.candidate_l0_writer_packer_cycles
+        ),
+        "candidate_l0_writer_page_tail_cycles": (
+            args.candidate_l0_writer_page_tail_cycles
         ),
         "candidate_list_word_first_lane_cycles": (
             args.candidate_list_word_first_lane_cycles
