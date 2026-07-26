@@ -15,7 +15,11 @@ from spine_cycle_sim.experiments.comparison import (
     validate_normalized_profile_contract,
     validate_system_result,
 )
-from scripts.run_shared_comparison_matrix import ProcessRegistry
+from scripts.run_shared_comparison_matrix import (
+    ProcessRegistry,
+    override_invocation_max_cycles,
+    parse_run_cycle_overrides,
+)
 from spine_cycle_sim.experiments.shared_workloads import (
     validate_shared_comparison_manifest,
 )
@@ -154,6 +158,29 @@ class SharedComparisonRunnerTests(unittest.TestCase):
                 "message": "root cause",
             },
         )
+
+    def test_per_run_cycle_override_changes_only_safety_limit(self) -> None:
+        invocation = RunInvocation(
+            "slow", "spine", ("runner", "--max-cycles", "100"), ROOT
+        )
+        updated = override_invocation_max_cycles(invocation, 500)
+        self.assertEqual(invocation.command, ("runner", "--max-cycles", "100"))
+        self.assertEqual(updated.command, ("runner", "--max-cycles", "500"))
+        self.assertEqual(updated.out_dir, invocation.out_dir)
+        with self.assertRaises(ValueError):
+            override_invocation_max_cycles(invocation, 0)
+
+    def test_per_run_cycle_override_parser_is_strict(self) -> None:
+        self.assertEqual(
+            parse_run_cycle_overrides(["slow=500", "slower=900"]),
+            {"slow": 500, "slower": 900},
+        )
+        for invalid in ("slow", "=500", "slow=0", "slow=-1", "slow=nope"):
+            with self.subTest(invalid=invalid):
+                with self.assertRaises(ValueError):
+                    parse_run_cycle_overrides([invalid])
+        with self.assertRaisesRegex(ValueError, "duplicate"):
+            parse_run_cycle_overrides(["slow=1", "slow=2"])
 
     def test_parent_gate_rejects_wrong_clock_or_oracle(self) -> None:
         run = next(

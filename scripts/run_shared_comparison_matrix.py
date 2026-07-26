@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import csv
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from dataclasses import replace
 import hashlib
 import json
 import os
@@ -51,6 +52,46 @@ DEFAULT_MANIFEST = (
     / "experiments"
     / "shared_comparison_candidate10_hls_v3_20260726.json"
 )
+
+
+def parse_run_cycle_overrides(values: list[str]) -> dict[str, int]:
+    overrides: dict[str, int] = {}
+    for value in values:
+        run_id, separator, cycle_text = value.partition("=")
+        if not separator or not run_id or not cycle_text:
+            raise ValueError(
+                "--max-cycles-run must use RUN_ID=POSITIVE_CYCLES"
+            )
+        if run_id in overrides:
+            raise ValueError(f"duplicate --max-cycles-run for {run_id}")
+        try:
+            cycles = int(cycle_text)
+        except ValueError as error:
+            raise ValueError(
+                f"invalid max-cycle count for {run_id}: {cycle_text}"
+            ) from error
+        if cycles <= 0:
+            raise ValueError(f"max cycles must be positive for {run_id}")
+        overrides[run_id] = cycles
+    return overrides
+
+
+def override_invocation_max_cycles(
+    invocation: RunInvocation, cycles: int
+) -> RunInvocation:
+    if cycles <= 0:
+        raise ValueError("max cycles must be positive")
+    command = list(invocation.command)
+    positions = [
+        index for index, argument in enumerate(command) if argument == "--max-cycles"
+    ]
+    if len(positions) != 1 or positions[0] + 1 >= len(command):
+        raise ValueError(
+            f"{invocation.run_id}/{invocation.system} must have exactly one "
+            "--max-cycles value"
+        )
+    command[positions[0] + 1] = str(cycles)
+    return replace(invocation, command=tuple(command))
 
 
 class ProcessRegistry:
@@ -282,6 +323,16 @@ def main() -> int:
     parser.add_argument("--limit", type=int)
     parser.add_argument("--jobs", type=int, default=1)
     parser.add_argument("--timeout-seconds", type=float, default=1800.0)
+    parser.add_argument(
+        "--max-cycles-run",
+        action="append",
+        default=[],
+        metavar="RUN_ID=CYCLES",
+        help=(
+            "Override the simulated-cycle safety limit for one run. May be "
+            "repeated; unchanged runs retain resume-compatible commands."
+        ),
+    )
     parser.add_argument("--resume", action="store_true")
     parser.add_argument(
         "--claim-scope",
@@ -309,6 +360,7 @@ def main() -> int:
     args = parser.parse_args()
     if args.jobs <= 0 or args.timeout_seconds <= 0.0:
         raise ValueError("jobs and timeout must be positive")
+    cycle_overrides = parse_run_cycle_overrides(args.max_cycles_run)
     manifest = validate_shared_comparison_manifest(ROOT, args.manifest)
     profile_set = normalized_profile_set(manifest)
     grasu_profiles = normalized_grasu_profile_paths(ROOT, profile_set)
@@ -332,6 +384,13 @@ def main() -> int:
         run_ids=args.run_id,
         limit=args.limit,
     )
+    selected_run_ids = {str(run["run_id"]) for run in selected}
+    unknown_overrides = sorted(set(cycle_overrides) - selected_run_ids)
+    if unknown_overrides:
+        parser.error(
+            "--max-cycles-run does not match a selected run: "
+            + ", ".join(unknown_overrides)
+        )
     systems = args.system or ["spine", "grasu_regraph"]
     if not args.no_build:
         subprocess.run(["make", "-C", "cpp/sst", "-j2"], cwd=ROOT, check=True)
@@ -380,21 +439,26 @@ def main() -> int:
     invocations: list[tuple[dict[str, object], RunInvocation]] = []
     for run in selected:
         for system in systems:
+            invocation = build_invocation(
+                ROOT,
+                run,
+                system=system,
+                output_root=args.out_dir,
+                python=args.python,
+                sst=args.sst,
+                lib_dir=args.lib_dir,
+                spine_profile=args.spine_profile,
+                grasu_profile_paths=grasu_profiles,
+                grasu_capability_catalog=grasu_capability_catalog,
+            )
+            if str(run["run_id"]) in cycle_overrides:
+                invocation = override_invocation_max_cycles(
+                    invocation, cycle_overrides[str(run["run_id"])]
+                )
             invocations.append(
                 (
                     run,
-                    build_invocation(
-                        ROOT,
-                        run,
-                        system=system,
-                        output_root=args.out_dir,
-                        python=args.python,
-                        sst=args.sst,
-                        lib_dir=args.lib_dir,
-                        spine_profile=args.spine_profile,
-                        grasu_profile_paths=grasu_profiles,
-                        grasu_capability_catalog=grasu_capability_catalog,
-                    ),
+                    invocation,
                 )
             )
 
