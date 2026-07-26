@@ -203,6 +203,7 @@ class SpinePageRankVerticalSliceSystem {
   [[nodiscard]] bool maintenance_done() const noexcept;
   [[nodiscard]] bool done() const noexcept;
   [[nodiscard]] bool failed() const noexcept;
+  [[nodiscard]] std::string failure() const;
   [[nodiscard]] bool idle() const noexcept;
   [[nodiscard]] const SpineL0Counters &maintenance_counters() const noexcept;
   [[nodiscard]] const SpineReaderCounters &reader_counters() const noexcept;

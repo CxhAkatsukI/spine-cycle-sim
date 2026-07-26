@@ -303,6 +303,10 @@ The analyzer refuses partial matrices and labels DRAM energy as sparse
 active-channel evidence. See
 [`docs/shared_comparison_analysis_20260725.md`](docs/shared_comparison_analysis_20260725.md).
 
+Run the paired Full PageRank dense-batch timing and explicit capacity-cliff
+checks with the commands in
+[`docs/dense_full_pagerank_20260726.md`](docs/dense_full_pagerank_20260726.md).
+
 ## Current Scope
 
 The legacy Python/calibration model targets trend validation against historical

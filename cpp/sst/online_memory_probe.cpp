@@ -582,6 +582,37 @@ void write_json_array(std::ostream &output, const std::vector<T> &values) {
   output << ']';
 }
 
+void write_json_string(std::ostream &output, const std::string &value) {
+  output << '"';
+  for (const unsigned char character : value) {
+    switch (character) {
+      case '"':
+        output << "\\\"";
+        break;
+      case '\\':
+        output << "\\\\";
+        break;
+      case '\n':
+        output << "\\n";
+        break;
+      case '\r':
+        output << "\\r";
+        break;
+      case '\t':
+        output << "\\t";
+        break;
+      default:
+        if (character < 0x20U) {
+          output << "?";
+        } else {
+          output << character;
+        }
+        break;
+    }
+  }
+  output << '"';
+}
+
 void write_memory_locality_stats(std::ostream &output,
                                  const MemoryLocalityStats &stats) {
   output << "{\"requests\":" << stats.requests << ",\"bytes\":"
@@ -2142,6 +2173,15 @@ class OnlineMemoryProbe final : public SST::Component {
         pagerank_maintenance_backend_traffic_ = backend_->traffic_stats();
         backend_->begin_traffic_epoch();
         pagerank_maintenance_backend_captured_ = true;
+      }
+      if (pagerank_system_->failed()) {
+        write_result(false);
+        output_.output("Spine PageRank failed after %llu cycles: %s\n",
+                       static_cast<unsigned long long>(
+                           scheduler_.clock(0).completed_cycles),
+                       pagerank_system_->failure().c_str());
+        primaryComponentOKToEndSim();
+        return true;
       }
       if (pagerank_system_->done() && pagerank_system_->idle() &&
           backend_->outstanding() == 0) {
@@ -3895,6 +3935,10 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
           << "  \"spine_axi_profile\": \"" << spine_axi_profile_id_ << "\",\n"
           << "  \"timing_evidence\": \"provisional_algorithm_pipeline\",\n"
+          << "  \"failure\": ";
+      write_json_string(result, pagerank_system_->failure());
+      result
+          << ",\n"
           << "  \"core_mhz\": " << core_mhz_ << ",\n"
           << "  \"cycles\": " << scheduler_.clock(0).completed_cycles << ",\n"
           << "  \"input_edges\": " << spine_expected_edges_ << ",\n"
@@ -3992,6 +4036,10 @@ class OnlineMemoryProbe final : public SST::Component {
           << ",\n"
           << "  \"maintenance_persisted_edges\": "
           << maintenance.persisted_edges << ",\n"
+          << "  \"maintenance_target_level\": " << maintenance.target_level
+          << ",\n"
+          << "  \"maintenance_logical_overflow_events\": "
+          << maintenance.logical_overflow_events << ",\n"
           << "  \"reader_edges\": " << reader.edges_emitted << ",\n"
           << "  \"reader_source_requests\": " << reader.source_requests
           << ",\n"
@@ -4122,6 +4170,10 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
           << "  \"spine_axi_profile\": \"" << spine_axi_profile_id_ << "\",\n"
           << "  \"timing_evidence\": \"provisional_algorithm_pipeline\",\n"
+          << "  \"failure\": ";
+      write_json_string(result, pagerank_system_->failure());
+      result
+          << ",\n"
           << "  \"core_mhz\": " << core_mhz_ << ",\n"
           << "  \"cycles\": " << scheduler_.clock(0).completed_cycles << ",\n"
           << "  \"input_edges\": " << spine_expected_edges_ << ",\n"
@@ -4204,6 +4256,10 @@ class OnlineMemoryProbe final : public SST::Component {
           << ",\n"
           << "  \"maintenance_persisted_edges\": "
           << maintenance.persisted_edges << ",\n"
+          << "  \"maintenance_target_level\": " << maintenance.target_level
+          << ",\n"
+          << "  \"maintenance_logical_overflow_events\": "
+          << maintenance.logical_overflow_events << ",\n"
           << "  \"reader_edges\": " << reader.edges_emitted << ",\n"
           << "  \"reader_graph_payload_bytes\": "
           << reader.graph_edge_payload_read_bytes << ",\n"

@@ -1,0 +1,32 @@
+digraph DensePageRankAcceptance {
+  graph [rankdir=LR, bgcolor="white", pad="0.25", nodesep="0.35", ranksep="0.65"];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+        color="#374151", fillcolor="#f8fafc", margin="0.13,0.09"];
+  edge [fontname="Helvetica", fontsize=9, color="#64748b", arrowsize=0.7];
+
+  input [label="Same file-backed graph + update\nV=8192, Full PageRank x3", fillcolor="#e0f2fe"];
+  shape [label="Two update shapes\nsource-concentrated / source-scattered"];
+  sizes [label="Batch axis\n8, 64, 512, 4096, 8192, 16384"];
+
+  timing [label="Common timing domain\n8..4096", fillcolor="#dcfce7"];
+  spine_ok [label="Spine\nmaintenance -> reader -> compute\ndual-oracle PASS"];
+  grasu_ok [label="GraSU + ReGraph\nPMA update -> degree RMW -> compute\ndual-oracle PASS"];
+  pair [label="Comparable evidence\nE2E / update edge/s / memory traffic\nNo hidden conversion", fillcolor="#dcfce7"];
+
+  boundary [label="Capacity domain\n8192 / 16384", fillcolor="#fef3c7"];
+  at8192 [label="8192 updates\nSpine PASS at L1=16384 edges\nGraSU profile rejects >4096 tags"];
+  at16384 [label="16384 updates\nSpine cold-family L1 overflow\nGraSU profile rejects >4096 tags", fillcolor="#fee2e2"];
+  no_ratio [label="Support boundary only\nLatency ratio is undefined", fillcolor="#fee2e2"];
+
+  input -> shape -> sizes;
+  sizes -> timing;
+  timing -> spine_ok;
+  timing -> grasu_ok;
+  spine_ok -> pair;
+  grasu_ok -> pair;
+  sizes -> boundary;
+  boundary -> at8192;
+  boundary -> at16384;
+  at8192 -> no_ratio;
+  at16384 -> no_ratio;
+}

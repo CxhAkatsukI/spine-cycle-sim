@@ -259,6 +259,15 @@ class HlsPageRankRealComparisonTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "rank mismatch"):
             pair_row(spine, broken)
 
+        dense_spine = {
+            **spine,
+            "input_scope": "synthetic_dense_batch_sweep",
+        }
+        self.assertEqual(
+            pair_row(dense_spine, grasu)["claim_label"],
+            "profile_clock_adjusted_synthetic_dense_batch_execution_driven",
+        )
+
     def test_system_row_reports_update_and_compute_memory(self) -> None:
         result = {
             "cycles": 400,

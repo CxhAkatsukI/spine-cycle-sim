@@ -30,6 +30,9 @@ from spine_cycle_sim.experiments.hls_pagerank_real_comparison import (  # noqa: 
 from spine_cycle_sim.experiments.real_small_batches import (  # noqa: E402
     validate_real_small_batch_manifest,
 )
+from spine_cycle_sim.experiments.dense_batch_sweep import (  # noqa: E402
+    validate_dense_batch_manifest,
+)
 from spine_cycle_sim.experiments.shared_workloads import sha256_file  # noqa: E402
 
 
@@ -51,6 +54,16 @@ DEFAULT_CAPABILITIES = (
 DEFAULT_SST = Path("/data/feiyang/sst/bin/sst")
 PAGERANK_ITERATIONS = 3
 PAGERANK_DAMPING = 0.85
+
+
+def _validate_input_manifest(path: Path) -> dict[str, object]:
+    payload = json.loads(path.resolve().read_text(encoding="utf-8"))
+    matrix_id = payload.get("matrix_id")
+    if matrix_id == "hls_weighted_real_small_batches_20260726":
+        return validate_real_small_batch_manifest(ROOT, path)
+    if matrix_id == "hls_full_pagerank_dense_batch_sweep_20260726":
+        return validate_dense_batch_manifest(ROOT, path)
+    raise ValueError(f"unsupported Full PageRank input matrix: {matrix_id}")
 
 
 def _write_csv(path: Path, rows: list[dict[str, object]]) -> None:
@@ -325,8 +338,23 @@ def main() -> int:
     if args.jobs <= 0 or args.timeout_seconds <= 0.0 or args.max_cycles <= 0:
         raise ValueError("jobs, timeout, and max cycles must be positive")
 
-    manifest = validate_real_small_batch_manifest(ROOT, args.input_manifest)
+    manifest = _validate_input_manifest(args.input_manifest)
     selected = _select_runs(list(manifest["runs"]), args.run_id, args.limit)
+    capacity_limited = [
+        run
+        for run in selected
+        if run.get("expected_spine_capacity_status") == "FAIL"
+        or run.get("expected_grasu_capacity_status") == "FAIL"
+    ]
+    if capacity_limited and args.run_id:
+        ids = ", ".join(str(run["run_id"]) for run in capacity_limited)
+        raise ValueError(
+            "capacity-cliff runs are not timing pairs; use "
+            f"run_spine_dense_capacity_cliff.py for: {ids}"
+        )
+    selected = [run for run in selected if run not in capacity_limited]
+    if not selected:
+        raise ValueError("PageRank timing selection contains only capacity-cliff runs")
     spine_profile, spine_mhz = _profile(
         args.spine_profile, "spine_shared_engine_9c08763"
     )
@@ -359,6 +387,7 @@ def main() -> int:
         / "experiments"
         / "hls_pagerank_real_comparison.py",
         ROOT / "spine_cycle_sim" / "experiments" / "memory_traffic.py",
+        ROOT / "spine_cycle_sim" / "experiments" / "dense_batch_sweep.py",
         ROOT / "scripts" / "run_sst_spine_vertical.py",
         ROOT / "scripts" / "run_sst_grasu_regraph_hls_pagerank.py",
         args.input_manifest,
@@ -412,13 +441,30 @@ def main() -> int:
     csv_rows = [{key: value for key, value in row.items() if key != "ranks"} for row in rows]
     _write_csv(args.out_dir / "system_rows.csv", csv_rows)
     _write_csv(args.out_dir / "pairs.csv", pairs)
-    complete = len(selected) == len(manifest["runs"]) and not args.run_id
+    timing_run_count = sum(
+        run.get("expected_spine_capacity_status") != "FAIL"
+        and run.get("expected_grasu_capacity_status") != "FAIL"
+        for run in manifest["runs"]
+    )
+    complete = len(selected) == timing_run_count and not args.run_id
+    input_scope = str(manifest.get("input_scope", "real_compact_slice"))
+    dense_sweep = input_scope == "synthetic_dense_batch_sweep"
     matrix_manifest = {
         "schema_version": 1,
-        "matrix_id": "hls_full_pagerank_real_compact_comparison_20260726",
+        "matrix_id": (
+            "hls_full_pagerank_dense_batch_comparison_20260726"
+            if dense_sweep
+            else "hls_full_pagerank_real_compact_comparison_20260726"
+        ),
         "status": "PASS",
         "complete_matrix": complete,
-        "claim_class": "profile_clock_adjusted_real_compact_execution_driven",
+        "claim_class": (
+            "profile_clock_adjusted_synthetic_dense_batch_execution_driven"
+            if dense_sweep
+            else "profile_clock_adjusted_real_compact_execution_driven"
+        ),
+        "input_scope": input_scope,
+        "input_matrix_id": manifest["matrix_id"],
         "algorithm": "full_pagerank",
         "pagerank_iterations": PAGERANK_ITERATIONS,
         "pagerank_damping": PAGERANK_DAMPING,
@@ -432,6 +478,13 @@ def main() -> int:
         "capability_catalog_sha256": sha256_file(args.capability_catalog),
         "execution_sha256": execution_sha256,
         "selected_run_ids": [run["run_id"] for run in selected],
+        "capacity_cliff_run_ids": [
+            run["run_id"]
+            for run in manifest["runs"]
+            if run.get("expected_spine_capacity_status") == "FAIL"
+            or run.get("expected_grasu_capacity_status") == "FAIL"
+        ],
+        "capacity_cliff_evidence_required": dense_sweep,
         "instantiate_all_hbm_channels": args.instantiate_all_hbm_channels,
         "hbm_controller_instances": (
             32 if args.instantiate_all_hbm_channels else None
@@ -449,7 +502,11 @@ def main() -> int:
             "clock_rule": "convert cycles using each profile clock",
         },
         "limitations": [
-            "Inputs are compact real-edge slices, not full datasets.",
+            (
+                "Inputs are synthetic dense-batch sweeps, not full datasets."
+                if dense_sweep
+                else "Inputs are compact real-edge slices, not full datasets."
+            ),
             "GraSU/ReGraph PageRank is HLS-equivalent proposed, not a compiled xclbin.",
             "Simulator cycles are not calibrated cycle-for-cycle against hw.",
             (
@@ -474,7 +531,7 @@ def main() -> int:
         encoding="utf-8",
     )
     print(
-        f"PASS real Full PageRank comparison: pairs={len(pairs)} "
+        f"PASS Full PageRank comparison: pairs={len(pairs)} "
         f"complete={complete} wall_s={matrix_manifest['matrix_wall_seconds']:.3f}"
     )
     return 0

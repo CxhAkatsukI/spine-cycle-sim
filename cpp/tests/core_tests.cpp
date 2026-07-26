@@ -6208,6 +6208,48 @@ void test_spine_full_pagerank_vertical_slice_reads_level_edges() {
             << " maintenance_reruns=0\n";
 }
 
+void test_spine_pagerank_reports_maintenance_failure_without_compute_done() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("pagerank-failure", 200.0);
+  MockMemoryBackend backend("pagerank-failure-hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 1,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  SpineEdgeSlice workload{
+      .vertices = 128,
+      .edges = {},
+      .case_name = "pagerank_maintenance_failure",
+  };
+  for (std::uint32_t source = 1; source <= 16; ++source) {
+    workload.edges.push_back(
+        {.src = source, .dst = source + 1, .weight = 1, .diff = 1});
+  }
+  SpineL0Config config;
+  config.max_vertices = 512;
+  config.max_sort_edges = 16;
+  SpineL0State initial_state;
+  initial_state.cold_levels[0][0] = {
+      {.src = 0, .dst = 1, .weight = 1, .diff = 1}};
+  SpinePageRankVerticalSliceSystem system(scheduler, core, backend, workload,
+                                          0.8F, config,
+                                          SpineAxiInterfaceProfile{},
+                                          AlgorithmPipelineConfig{},
+                                          SpineSplitPageRankCompute::
+                                              kDefaultMemoryRequestWindow,
+                                          std::move(initial_state));
+  system.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until([&] { return system.failed(); }, 500'000);
+
+  require(system.failed() && system.maintenance_done() && !system.done() &&
+              system.failure().find("maintenance: ") == 0,
+          "PageRank system did not expose terminal maintenance failure");
+}
+
 void test_spine_dynamic_pagerank_times_only_update_then_final_graph() {
   Scheduler scheduler;
   const auto core = scheduler.add_clock_mhz("dynamic-pagerank", 200.0);
@@ -6566,6 +6608,8 @@ int main(int argc, char **argv) {
        test_spine_timed_full_pagerank_compute_uses_hbm_and_pipelines},
       {"spine_pagerank_vertical_slice",
        test_spine_full_pagerank_vertical_slice_reads_level_edges},
+      {"spine_pagerank_maintenance_failure",
+       test_spine_pagerank_reports_maintenance_failure_without_compute_done},
       {"spine_dynamic_pagerank",
        test_spine_dynamic_pagerank_times_only_update_then_final_graph},
       {"spine_residual_pagerank",

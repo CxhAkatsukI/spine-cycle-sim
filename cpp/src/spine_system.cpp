@@ -885,6 +885,19 @@ bool SpinePageRankVerticalSliceSystem::failed() const noexcept {
   return maintenance_->failed() || reader_->failed() || compute_->failed();
 }
 
+std::string SpinePageRankVerticalSliceSystem::failure() const {
+  if (maintenance_->failed()) {
+    return "maintenance: " + maintenance_->failure();
+  }
+  if (reader_->failed()) {
+    return "reader: " + reader_->failure();
+  }
+  if (compute_->failed()) {
+    return "compute: protocol or memory failure";
+  }
+  return {};
+}
+
 bool SpinePageRankVerticalSliceSystem::idle() const noexcept {
   for (const auto &port : graph_ports_) {
     if (!port->idle()) {
