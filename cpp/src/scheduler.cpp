@@ -134,9 +134,12 @@ void Scheduler::add_component(Component& component) {
   }
   if (component.has_evaluate_phase()) {
     evaluate_components_.push_back(&component);
+    evaluate_dynamic_guards_.push_back(
+        component.has_dynamic_evaluate_guard());
   }
   if (component.has_commit_phase()) {
     commit_components_.push_back(&component);
+    commit_dynamic_guards_.push_back(component.has_dynamic_commit_guard());
   }
 }
 
@@ -153,9 +156,23 @@ void Scheduler::remove_component(Component& component) {
       phase_components.erase(phase_found);
     }
   };
+  const auto remove_from_guarded_phase = [&component](
+                                          auto& phase_components,
+                                          auto& dynamic_guards) {
+    const auto phase_found =
+        std::find(phase_components.begin(), phase_components.end(), &component);
+    if (phase_found == phase_components.end()) {
+      return;
+    }
+    const auto index = static_cast<std::size_t>(
+        std::distance(phase_components.begin(), phase_found));
+    phase_components.erase(phase_found);
+    dynamic_guards.erase(dynamic_guards.begin() +
+                         static_cast<std::ptrdiff_t>(index));
+  };
   remove_from_phase(prepare_components_);
-  remove_from_phase(evaluate_components_);
-  remove_from_phase(commit_components_);
+  remove_from_guarded_phase(evaluate_components_, evaluate_dynamic_guards_);
+  remove_from_guarded_phase(commit_components_, commit_dynamic_guards_);
 }
 
 const ClockDomainSnapshot& Scheduler::clock(ClockId id) const {
@@ -201,11 +218,25 @@ void Scheduler::step() {
       invoke(*component, ProfilePhase::kPrepare,
              [&] { component->prepare(context); });
     }
-    for (Component* component : evaluate_components_) {
+    for (std::size_t index = 0; index < evaluate_components_.size(); ++index) {
+      Component* component = evaluate_components_[index];
+      if (evaluate_dynamic_guards_[index] && !component->evaluate_ready()) {
+        continue;
+      }
       invoke(*component, ProfilePhase::kEvaluate,
              [&] { component->evaluate(context); });
     }
-    for (Component* component : commit_components_) {
+    commit_readiness_.resize(commit_components_.size());
+    for (std::size_t index = 0; index < commit_components_.size(); ++index) {
+      commit_readiness_[index] =
+          !commit_dynamic_guards_[index] ||
+          commit_components_[index]->commit_ready();
+    }
+    for (std::size_t index = 0; index < commit_components_.size(); ++index) {
+      if (!commit_readiness_[index]) {
+        continue;
+      }
+      Component* component = commit_components_[index];
       invoke(*component, ProfilePhase::kCommit,
              [&] { component->commit(context); });
     }
@@ -222,9 +253,11 @@ void Scheduler::step() {
                [&] { component->prepare(context); });
       }
     }
-    for (Component* component : evaluate_components_) {
+    for (std::size_t index = 0; index < evaluate_components_.size(); ++index) {
+      Component* component = evaluate_components_[index];
       const ClockId id = component->clock_id();
-      if (clocks_[id].next_edge_fs == now_fs_) {
+      if (clocks_[id].next_edge_fs == now_fs_ &&
+          (!evaluate_dynamic_guards_[index] || component->evaluate_ready())) {
         const CycleContext context{
             .now_fs = now_fs_,
             .domain_cycle = clocks_[id].completed_cycles,
@@ -234,9 +267,21 @@ void Scheduler::step() {
                [&] { component->evaluate(context); });
       }
     }
-    for (Component* component : commit_components_) {
+    commit_readiness_.resize(commit_components_.size());
+    for (std::size_t index = 0; index < commit_components_.size(); ++index) {
+      Component* component = commit_components_[index];
       const ClockId id = component->clock_id();
-      if (clocks_[id].next_edge_fs == now_fs_) {
+      commit_readiness_[index] =
+          clocks_[id].next_edge_fs == now_fs_ &&
+          (!commit_dynamic_guards_[index] || component->commit_ready());
+    }
+    for (std::size_t index = 0; index < commit_components_.size(); ++index) {
+      if (!commit_readiness_[index]) {
+        continue;
+      }
+      Component* component = commit_components_[index];
+      const ClockId id = component->clock_id();
+      {
         const CycleContext context{
             .now_fs = now_fs_,
             .domain_cycle = clocks_[id].completed_cycles,
