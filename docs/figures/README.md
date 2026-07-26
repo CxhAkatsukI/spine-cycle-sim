@@ -1,5 +1,10 @@
 # Architecture figures
 
+- `candidate10_normalized_freeze_v3.svg`: machine-frozen Candidate10 Spine
+  versus conversion-free GraSU/ReGraph architecture, shared execution-driven
+  AXI/HBM substrate, and the explicitly non-equivalent parts of the latest
+  `6378d9e` PageRank HLS feasibility prototype. Its editable source is the
+  adjacent `.dot` file.
 - `fine_grained_cycle_sim_architecture.svg`: target architecture and evidence
   flow for `codex/fine-grained-cycle-sim`. Its editable Graphviz source is the
   adjacent `.dot` file.

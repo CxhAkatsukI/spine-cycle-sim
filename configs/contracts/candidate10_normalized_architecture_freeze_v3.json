@@ -1,0 +1,345 @@
+{
+  "algorithm_contracts": {
+    "full_pagerank": {
+      "active": "all_vertices_each_iteration",
+      "convergence": "exactly_three_host_iterations",
+      "map": "float32_damping_times_rank_over_out_degree",
+      "reduce": "float32_sum",
+      "state": "float32_rank"
+    },
+    "thresholded_residual_pagerank": {
+      "active": "abs_residual_gt_epsilon_over_vertices",
+      "convergence": "zero_active_or_256_host_iterations",
+      "map": "float32_damping_times_residual_over_out_degree",
+      "reduce": "float32_signed_sum",
+      "state": "float32_rank_plus_float32_residual"
+    },
+    "weighted_sssp": {
+      "active": "new_distance_less_than_old_distance",
+      "convergence": "frozen_oracle_minimum_host_fixed_supersteps",
+      "map": "saturating source_distance_plus_edge_weight",
+      "reduce": "unsigned_min",
+      "state": "uint32_distance_with_infinity"
+    }
+  },
+  "claim_boundary": {
+    "allowed_now": [
+      "dual-oracle correctness",
+      "structural exploratory cycles and traffic",
+      "component activity and sensitivity"
+    ],
+    "blocked_now": [
+      "matching-HLS normalized label for PageRank",
+      "FPGA-measured label for simulator cycles",
+      "iso-resource headline before crosswalk blockers close"
+    ]
+  },
+  "contract_id": "candidate10_normalized_architecture_freeze_v3_20260726",
+  "freeze_policy": {
+    "allowed_changes": [
+      "bug fixes that preserve the frozen parameter hash",
+      "new evidence and report status",
+      "explicit projected profiles with new profile IDs"
+    ],
+    "baseline_mutation": "forbidden_after_formal_matrix_start",
+    "forbidden_changes": [
+      "tuning FIFO, lane, AXI, HBM, or clock parameters after results",
+      "moving required work outside the measured E2E window",
+      "calling a prototype matching HLS while blockers remain"
+    ]
+  },
+  "freeze_status": "frozen_before_full_matrix",
+  "frozen_artifacts": {
+    "experiment_matrix": {
+      "fixtures": 23,
+      "path": "configs/experiments/shared_comparison_candidate10_hls_v3_20260726.json",
+      "run_cases": 73,
+      "sha256": "68e36a835f35c277ddff0571d9baae46385674239085c12197ab5b91bdc9bbc7"
+    },
+    "grasu_regraph_profiles": {
+      "full_pagerank": {
+        "path": "configs/architectures/grasu_regraph_candidate10_normalized_hls_pagerank_v3.json",
+        "profile_id": "grasu_regraph_candidate10_normalized_hls_pagerank_v3",
+        "sha256": "7155f87efa086a6563e80296f8460db14716e2f60f277ea5997f1d976897877e"
+      },
+      "thresholded_residual_pagerank": {
+        "path": "configs/architectures/grasu_regraph_candidate10_normalized_hls_residual_pagerank_v3.json",
+        "profile_id": "grasu_regraph_candidate10_normalized_hls_residual_pagerank_v3",
+        "sha256": "6ef8a8c9fe4beca4ea76a86a1041c47b15968cd8d846122358ce5b28ecdfa14d"
+      },
+      "weighted_sssp": {
+        "path": "configs/architectures/grasu_regraph_candidate10_normalized_hls_weighted_v3.json",
+        "profile_id": "grasu_regraph_candidate10_normalized_hls_weighted_v3",
+        "sha256": "51d1edd1bc9eca864d5c57858d80ef3890152f4a6062bc1259833d38c2be4823"
+      }
+    },
+    "spine_profile": {
+      "path": "configs/architectures/spine_candidate10_normalized_v1.json",
+      "profile_id": "spine_candidate10_normalized_v1",
+      "sha256": "4e31633c55abfdc57fd4537119d6abb6d7a4f0313dcfc81332fa0ed0a6320c0a"
+    }
+  },
+  "grasu_regraph_normalized": {
+    "classification": "normalized_conversion_free_architecture_truth",
+    "dataflow": "GraSU PMA update -> finite AXIS adapter -> ReGraph gather/merge -> apply -> mirrored source-state HBM",
+    "hbm_channels": {
+      "apply_state": 30,
+      "degree": 30,
+      "pma": "0-3",
+      "source_state_mirror": 3,
+      "source_state_primary": 1
+    },
+    "modules_by_algorithm": {
+      "full_pagerank": {
+        "conversion_free_handoff": {
+          "adapter_cus": 1,
+          "axis_fifo_depth": 32,
+          "edge_lanes": 8,
+          "materialized_edge_array": false
+        },
+        "grasu": {
+          "bin_search_cus": 4,
+          "degree_fifo_depth": 16,
+          "degree_input_fifos": 4,
+          "degree_reorder_entries": 4096,
+          "degree_update_cus": 1,
+          "dispatch_cus": 1,
+          "process_cache_cus": 2,
+          "process_ddr_cus": 2
+        },
+        "regraph": {
+          "apply_cus": 1,
+          "apply_wrapper_fifo_depth": 16,
+          "gather_merger_fifo_depth": 16,
+          "hbm_wrapper_cus": 1,
+          "little_gs_cus": 1,
+          "little_merger_cus": 1,
+          "map_reduce_lanes": 8,
+          "merger_apply_fifo_depth": 16,
+          "source_cache_request_fifo_depth": 8,
+          "source_cache_response_fifo_depth": 8
+        }
+      },
+      "thresholded_residual_pagerank": {
+        "conversion_free_handoff": {
+          "adapter_cus": 1,
+          "axis_fifo_depth": 32,
+          "edge_lanes": 8,
+          "materialized_edge_array": false
+        },
+        "grasu": {
+          "bin_search_cus": 4,
+          "degree_fifo_depth": 16,
+          "degree_input_fifos": 4,
+          "degree_reorder_entries": 4096,
+          "degree_update_cus": 1,
+          "dispatch_cus": 1,
+          "process_cache_cus": 2,
+          "process_ddr_cus": 2
+        },
+        "regraph": {
+          "apply_cus": 1,
+          "apply_wrapper_fifo_depth": 16,
+          "gather_merger_fifo_depth": 16,
+          "hbm_wrapper_cus": 1,
+          "little_gs_cus": 1,
+          "little_merger_cus": 1,
+          "map_reduce_lanes": 8,
+          "merger_apply_fifo_depth": 16,
+          "source_cache_request_fifo_depth": 8,
+          "source_cache_response_fifo_depth": 8
+        }
+      },
+      "weighted_sssp": {
+        "conversion_free_handoff": {
+          "adapter_cus": 1,
+          "axis_fifo_depth": 32,
+          "edge_lanes": 8,
+          "materialized_edge_array": false
+        },
+        "grasu": {
+          "bin_search_cus": 4,
+          "degree_fifo_depth": 0,
+          "degree_input_fifos": 0,
+          "degree_reorder_entries": 0,
+          "degree_update_cus": 0,
+          "dispatch_cus": 1,
+          "process_cache_cus": 2,
+          "process_ddr_cus": 2
+        },
+        "regraph": {
+          "apply_cus": 1,
+          "apply_wrapper_fifo_depth": 16,
+          "gather_merger_fifo_depth": 16,
+          "hbm_wrapper_cus": 1,
+          "little_gs_cus": 1,
+          "little_merger_cus": 1,
+          "map_reduce_lanes": 8,
+          "merger_apply_fifo_depth": 16,
+          "source_cache_request_fifo_depth": 8,
+          "source_cache_response_fifo_depth": 8
+        }
+      }
+    }
+  },
+  "latest_hls_prototype": {
+    "axis_depths": {
+      "apply_to_hbm_wrapper": 16,
+      "bin_search_to_dispatch": 16,
+      "dispatch_to_degree_update": 64,
+      "dispatch_to_processors": 16,
+      "little_gs_memory_request_response": 32,
+      "little_gs_to_merger": 16,
+      "merger_to_apply": 16,
+      "pma_to_little_gs": 32
+    },
+    "branch": "codex/map-reduce-algorithm-hls",
+    "common_page_rank_cus": 16,
+    "components": {
+      "bin_search": 4,
+      "degree_update": 1,
+      "dispatch_degree": 1,
+      "hbm_wrapper": 1,
+      "little_gs": 1,
+      "little_merger": 1,
+      "pagerank_apply": 1,
+      "pagerank_source_prepare": 1,
+      "pma_to_regraph_adapter": 1,
+      "process_cache": 2,
+      "process_ddr": 2
+    },
+    "handoff": "pma_native_axis_no_materialized_edge_conversion",
+    "hbm_channels": {
+      "degree": 6,
+      "pma": "0-3",
+      "rank": 4,
+      "residual": 5,
+      "source_mirrors": [
+        1,
+        3
+      ],
+      "stats": 7
+    },
+    "repository": "/home/chuxiao/grasu-regraph-integration",
+    "revision": "6378d9e8fa4f8a7a2542ee443d2a3622024bee54",
+    "source_sha256": {
+      "include/grasu_degree_delta.hpp": "e78b4349c7eff14738cdaef5c031fa8a92b40f38260711fb96b9ca0f42e05578",
+      "include/regraph_pagerank_apply.hpp": "6b3d5c0362a739da83c9ddb6b9b706df2c5402c5c9c4a22b979c21bd31877784",
+      "kernels/grasu_degree_update/grasu_degree_update.cpp": "5b8172883c871e621b31ba285ebd50e9a23327568952084dbb777895cba44bca",
+      "kernels/grasu_dispatch_degree/grasu_dispatch_degree.cpp": "e0392187797b3cad16e7600e682332fc18624d890dca5075341921a8eb70aa66",
+      "kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp": "06f0290d44a9c51d3fdcaaab981d731db5c7f9d07ae94199a93724a2188c8061",
+      "kernels/regraph_pagerank_apply/regraph_pagerank_apply.cpp": "35cb0e68a5641d73f3b13ce1c1edd2727787739a09381bdc0fda4b412aa16a9c",
+      "kernels/regraph_pagerank_source_prepare/regraph_pagerank_source_prepare.cpp": "8345d50e332d3cfd4d4e8ffb6ca1010f26df9ffb2f30a8793384cbf2dc118c77",
+      "kernels/regraph_stream_little_gs/little_gs_stream.cpp": "aa7e8df97bb1e933fc860ca51d4547b7e301da48b9a37d82cef245df310fd2a8",
+      "scripts/prepare_pagerank_pipeline_build.sh": "1540235e0452af865039ba391e23f28ed0ba50750b021c871e2ca02c45013836"
+    },
+    "status": "full_and_residual_hw_rebuild_running"
+  },
+  "prototype_crosswalk": [
+    {
+      "difference_class": "exact_configuration",
+      "disposition": "absorb csynth achieved clock when available",
+      "latest_hls": "150 MHz requested",
+      "mechanism": "kernel_clock",
+      "normalized": "150 MHz",
+      "performance_sensitive": true,
+      "publication_blocker": false
+    },
+    {
+      "difference_class": "structurally_equivalent",
+      "disposition": "retain",
+      "latest_hls": "finite 8-lane PMA-to-AXIS adapter",
+      "mechanism": "conversion_free_handoff",
+      "normalized": "finite 8-lane PMA-to-AXIS adapter",
+      "performance_sensitive": true,
+      "publication_blocker": false
+    },
+    {
+      "difference_class": "latest_hls_optimization",
+      "disposition": "model both; normalized result keeps frozen path until explicit projected profile",
+      "latest_hls": "single ordered depth-64 AXIS emitted by dispatch",
+      "mechanism": "degree_completion",
+      "normalized": "four depth-16 completion FIFOs plus 4096-entry reorder",
+      "performance_sensitive": true,
+      "publication_blocker": true
+    },
+    {
+      "difference_class": "feasibility_prototype_mismatch",
+      "disposition": "add native-prototype profile; do not relabel normalized traffic",
+      "latest_hls": "rank HBM[4], residual HBM[5], degree HBM[6]",
+      "mechanism": "pagerank_state_layout",
+      "normalized": "apply state on HBM[30]; residual packed rank+residual",
+      "performance_sensitive": true,
+      "publication_blocker": true
+    },
+    {
+      "difference_class": "feasibility_prototype_mismatch",
+      "disposition": "add exact prototype mode and compare traffic before promotion",
+      "latest_hls": "separate full-vertex source-prepare pass writing HBM[1] and HBM[3]",
+      "mechanism": "source_preparation",
+      "normalized": "execution-driven per-source cache refill, degree read, and source-map",
+      "performance_sensitive": true,
+      "publication_blocker": true
+    },
+    {
+      "difference_class": "feasibility_prototype_mismatch",
+      "disposition": "keep normalized frozen; report prototype PPA separately",
+      "latest_hls": "separate 32-bit rank and residual arrays",
+      "mechanism": "residual_state_storage",
+      "normalized": "packed 64-bit rank/residual state transaction",
+      "performance_sensitive": true,
+      "publication_blocker": true
+    },
+    {
+      "difference_class": "missing_feasibility_evidence",
+      "disposition": "validate launch/order/drain and measured control scope",
+      "latest_hls": "per-kernel ap_ctrl with host sequencing not yet validated E2E",
+      "mechanism": "host_control",
+      "normalized": "fixed PageRank iterations or residual active-count termination",
+      "performance_sensitive": true,
+      "publication_blocker": true
+    }
+  ],
+  "schema_version": 1,
+  "shared_platform": {
+    "architecture_specific_outstanding": {
+      "grasu_regraph": 16,
+      "spine": 32
+    },
+    "device": "xilinx_u55c_gen3x16_xdma_3_202210_1",
+    "hbm_channel_capacity_bytes": 536870912,
+    "hbm_channels": 32,
+    "hbm_clock_mhz": 450,
+    "hbm_data_width_bits": 512,
+    "kernel_clock_mhz": 150,
+    "max_burst_bytes": 1024,
+    "memory_backend": "common_execution_driven_sst_dramsim3",
+    "resource_budget_pseudo_channels": 23
+  },
+  "spine": {
+    "capacities": {
+      "tile_vertices": 65536,
+      "tiny_active_threshold": 4096,
+      "vertex_partition_size": 1048576
+    },
+    "classification": "normalized_from_existing_candidate10_hls",
+    "hbm_channels": {
+      "active_bins": 18,
+      "active_bitmap": 22,
+      "active_out": 19,
+      "graph_levels": "0-15",
+      "metadata": 20,
+      "result": 21,
+      "sorted_edges": 16,
+      "vertex_state": 17
+    },
+    "modules": {
+      "compute_lanes": 4,
+      "families": 32,
+      "graph_hbm_channels": 16,
+      "hot_shards": 16,
+      "levels": 11,
+      "partitions": 16
+    }
+  }
+}

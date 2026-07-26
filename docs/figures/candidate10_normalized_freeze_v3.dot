@@ -1,0 +1,62 @@
+digraph Candidate10NormalizedFreezeV3 {
+  graph [rankdir=LR, bgcolor="white", pad="0.2", nodesep="0.32", ranksep="0.55",
+         fontname="DejaVu Sans", label="Candidate10 normalized-v3 frozen architecture", labelloc=t];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=9,
+        color="#475569", fillcolor="#f8fafc", margin="0.10,0.07"];
+  edge [fontname="DejaVu Sans", fontsize=8, color="#64748b", arrowsize=0.65];
+
+  subgraph cluster_spine {
+    label="Spine Candidate10 normalized";
+    color="#93c5fd"; style="rounded";
+    su [label="Update input\nII=1", fillcolor="#dbeafe"];
+    sm [label="One-pass maintenance\n16 partitions | 32 families | 11 levels", fillcolor="#dbeafe"];
+    sl [label="HBM level state\nHBM[0..15]", fillcolor="#e0f2fe"];
+    sr [label="Reader / tile path\n65,536 vertices per tile", fillcolor="#dbeafe"];
+    sc [label="Map/Reduce/Apply\n4 compute lanes", fillcolor="#dbeafe"];
+    su -> sm -> sl -> sr -> sc;
+  }
+
+  subgraph cluster_grasu {
+    label="GraSU + ReGraph normalized conversion-free";
+    color="#86efac"; style="rounded";
+    gu [label="4 bin search CUs", fillcolor="#dcfce7"];
+    gd [label="Dispatch\n4 processor paths", fillcolor="#dcfce7"];
+    gp [label="2 cache + 2 DDR PMA RMW", fillcolor="#dcfce7"];
+    gdeg [label="PageRank degree path\n4 x FIFO(16) + reorder(4096)", fillcolor="#fef3c7"];
+    ga [label="PMA-native AXIS adapter\n8 lanes | FIFO 32\nno edge-array conversion", fillcolor="#dcfce7"];
+    gr [label="Little gather -> merger -> apply\nfinite FIFO 16 boundaries", fillcolor="#dcfce7"];
+    gs [label="State + source mirrors\nHBM[30], HBM[1], HBM[3]", fillcolor="#dcfce7"];
+    gu -> gd -> gp -> ga -> gr -> gs;
+    gd -> gdeg -> gs;
+  }
+
+  subgraph cluster_common {
+    label="Shared execution substrate";
+    color="#cbd5e1"; style="rounded";
+    axi [label="Finite AXI adapters\nburst + 4 KiB split + outstanding\nresponse queues + backpressure", fillcolor="#f1f5f9"];
+    arb [label="Per-channel arbitration\nand contention", fillcolor="#f1f5f9"];
+    hbm [shape=cylinder, label="SST / DRAMSim3 U55C HBM\n32 x 512-bit | 450 MHz", fillcolor="#e2e8f0"];
+    ledger [label="Request / byte / completion\nactivity and stall ledgers", fillcolor="#f1f5f9"];
+    axi -> arb -> hbm -> ledger;
+  }
+
+  sc -> axi [label="execution-driven requests"];
+  gs -> axi [label="execution-driven requests"];
+
+  subgraph cluster_hls {
+    label="Latest HLS feasibility prototype @ 6378d9e";
+    color="#fca5a5"; style="rounded,dashed";
+    hp [label="16-CU PageRank pipeline\n150 MHz requested", fillcolor="#fee2e2"];
+    hd [label="Ordered degree AXIS(64)\nnew optimization", fillcolor="#ffedd5"];
+    hs [label="Full-vertex source prepare\nrank[4] residual[5] degree[6]", fillcolor="#fee2e2"];
+    hp -> hd -> hs;
+  }
+
+  ga -> hp [style=dashed, label="handoff equivalent"];
+  gdeg -> hd [style=dashed, color="#dc2626", label="not equivalent"];
+  gs -> hs [style=dashed, color="#dc2626", label="not equivalent"];
+
+  freeze [shape=note, label="Frozen before formal matrix\n23 fixtures | 73 runs | 3 algorithms\nNo result-driven retuning", fillcolor="#fef9c3"];
+  freeze -> su [style=dotted];
+  freeze -> gu [style=dotted];
+}
