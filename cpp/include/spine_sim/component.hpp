@@ -47,16 +47,28 @@ class Component {
   [[nodiscard]] virtual bool has_dynamic_commit_guard() const noexcept {
     return false;
   }
+  [[nodiscard]] virtual bool has_latched_commit_guard() const noexcept {
+    return false;
+  }
   [[nodiscard]] virtual bool evaluate_ready() const noexcept { return true; }
   [[nodiscard]] virtual bool commit_ready() const noexcept { return true; }
+  [[nodiscard]] bool latched_commit_ready() const noexcept {
+    return latched_commit_ready_;
+  }
 
   virtual void prepare(const CycleContext&) {}
   virtual void evaluate(const CycleContext& context) = 0;
   virtual void commit(const CycleContext& context) = 0;
 
+ protected:
+  void set_latched_commit_ready(bool ready) noexcept {
+    latched_commit_ready_ = ready;
+  }
+
  private:
   std::string name_;
   ClockId clock_id_;
+  bool latched_commit_ready_{};
 };
 
 }  // namespace spine::sim
