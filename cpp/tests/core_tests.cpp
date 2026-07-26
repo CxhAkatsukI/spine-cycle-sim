@@ -1044,6 +1044,31 @@ void test_scheduler_dynamic_phase_readiness() {
           "scheduler did not wake only the ready commit phase");
 }
 
+void test_fifo_latched_commit_readiness() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("fifo-latched-ready", 100.0);
+  Fifo<std::uint32_t> fifo("fifo-latched-ready", core, 2);
+  scheduler.add_component(fifo);
+
+  require(!fifo.latched_commit_ready(),
+          "new FIFO unexpectedly requested a commit");
+  require(fifo.try_push(17), "FIFO rejected its first staged push");
+  require(fifo.latched_commit_ready(),
+          "staged FIFO push did not request a commit");
+  scheduler.run_events(1);
+  require(fifo.size() == 1 && !fifo.latched_commit_ready(),
+          "FIFO push commit did not clear its readiness latch");
+
+  std::uint32_t value = 0;
+  require(fifo.try_pop(value) && value == 17,
+          "FIFO rejected or corrupted its staged pop");
+  require(fifo.latched_commit_ready(),
+          "staged FIFO pop did not request a commit");
+  scheduler.run_events(1);
+  require(fifo.empty() && !fifo.latched_commit_ready(),
+          "FIFO pop commit did not clear its readiness latch");
+}
+
 void test_fixed_axi_port_rejects_busy_unregister() {
   Scheduler scheduler;
   const auto core = scheduler.add_clock_mhz("core", 100.0);
@@ -7753,6 +7778,7 @@ int main(int argc, char **argv) {
        test_scheduler_component_sampling_profile},
       {"scheduler_dynamic_readiness",
        test_scheduler_dynamic_phase_readiness},
+      {"fifo_latched_commit_readiness", test_fifo_latched_commit_readiness},
       {"fixed_axi_busy_unregister",
        test_fixed_axi_port_rejects_busy_unregister},
       {"fifo_no_fallthrough", test_fifo_has_no_same_cycle_fallthrough},

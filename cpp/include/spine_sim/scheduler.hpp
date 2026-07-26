@@ -74,6 +74,7 @@ class Scheduler {
   std::vector<bool> evaluate_dynamic_guards_;
   std::vector<Component*> commit_components_;
   std::vector<bool> commit_dynamic_guards_;
+  std::vector<bool> commit_latched_guards_;
   std::vector<bool> commit_readiness_;
   std::unordered_map<Component*, SchedulerComponentProfile> profiles_;
   std::uint64_t profiling_period_{};
