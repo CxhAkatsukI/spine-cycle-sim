@@ -2675,7 +2675,7 @@ PartConvWord SpineSplitReader::current_stream_word() const {
     };
   case Phase::kFallbackTileEnd:
     return PartConvWord{.kind = PartConvWordKind::kTileEnd,
-                        .first = fallback_tile_end() - fallback_tile_base()};
+                        .first = fallback_tile_base()};
   case Phase::kDiagnostic:
       return current_diagnostic_word();
     case Phase::kDone:
