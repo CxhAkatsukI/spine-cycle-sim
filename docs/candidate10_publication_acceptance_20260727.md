@@ -7,6 +7,8 @@ feasibility, and energy evidence. Candidate10 is a normalized,
 conversion-free, execution-driven comparison at 150 MHz. It is not native FPGA
 runtime and is not an iso-resource comparison.
 
+![Candidate10 evidence layers](figures/candidate10_publication_evidence_layers.svg)
+
 ## Acceptance status
 
 | Gate | Status | Evidence |
