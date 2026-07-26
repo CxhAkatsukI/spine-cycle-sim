@@ -44,6 +44,29 @@ DEFAULT_GRASU_PROFILE = (
 )
 DEFAULT_CAPABILITIES = ROOT / "configs/contracts/grasu_regraph_capabilities_v1.json"
 DEFAULT_SST = Path("/data/feiyang/sst/bin/sst")
+PROFILE_SETS = {
+    "legacy": {
+        "spine_profile": DEFAULT_SPINE_PROFILE,
+        "spine_profile_id": "spine_shared_engine_9c08763",
+        "grasu_profile": DEFAULT_GRASU_PROFILE,
+        "grasu_profile_id": (
+            "grasu_regraph_weighted_pma_hls_proposed_pagerank_ff13a67"
+        ),
+        "capability_catalog": DEFAULT_CAPABILITIES,
+    },
+    "candidate10_hls_v3": {
+        "spine_profile": ROOT
+        / "configs/architectures/spine_candidate10_normalized_v1.json",
+        "spine_profile_id": "spine_candidate10_normalized_v1",
+        "grasu_profile": ROOT
+        / "configs/architectures/grasu_regraph_candidate10_normalized_hls_pagerank_v3.json",
+        "grasu_profile_id": (
+            "grasu_regraph_candidate10_normalized_hls_pagerank_v3"
+        ),
+        "capability_catalog": ROOT
+        / "configs/contracts/grasu_regraph_candidate10_hls_capabilities_v3.json",
+    },
+}
 
 
 def _profile_clock(path: Path, profile_id: str, clock_name: str) -> float:
@@ -140,9 +163,12 @@ def _write_csv(path: Path, rows: list[dict[str, object]]) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input-manifest", type=Path, default=DEFAULT_INPUT)
-    parser.add_argument("--spine-profile", type=Path, default=DEFAULT_SPINE_PROFILE)
-    parser.add_argument("--grasu-profile", type=Path, default=DEFAULT_GRASU_PROFILE)
-    parser.add_argument("--capability-catalog", type=Path, default=DEFAULT_CAPABILITIES)
+    parser.add_argument(
+        "--profile-set", choices=tuple(PROFILE_SETS), default="legacy"
+    )
+    parser.add_argument("--spine-profile", type=Path)
+    parser.add_argument("--grasu-profile", type=Path)
+    parser.add_argument("--capability-catalog", type=Path)
     parser.add_argument("--out-dir", type=Path, required=True)
     parser.add_argument("--run-id", action="append", default=[])
     parser.add_argument("--sst", type=Path, default=DEFAULT_SST)
@@ -154,6 +180,12 @@ def main() -> int:
     args = parser.parse_args()
     if args.timeout_seconds <= 0.0 or args.max_cycles <= 0:
         raise ValueError("timeout and max cycles must be positive")
+    profile_set = PROFILE_SETS[args.profile_set]
+    args.spine_profile = args.spine_profile or profile_set["spine_profile"]
+    args.grasu_profile = args.grasu_profile or profile_set["grasu_profile"]
+    args.capability_catalog = (
+        args.capability_catalog or profile_set["capability_catalog"]
+    )
 
     manifest = validate_dense_batch_manifest(ROOT, args.input_manifest)
     runs = [
@@ -172,11 +204,11 @@ def main() -> int:
         raise ValueError("no capacity-cliff runs selected")
 
     spine_mhz = _profile_clock(
-        args.spine_profile, "spine_shared_engine_9c08763", "data"
+        args.spine_profile, str(profile_set["spine_profile_id"]), "data"
     )
     grasu_mhz = _profile_clock(
         args.grasu_profile,
-        "grasu_regraph_weighted_pma_hls_proposed_pagerank_ff13a67",
+        str(profile_set["grasu_profile_id"]),
         "kernel",
     )
     capabilities = json.loads(args.capability_catalog.read_text(encoding="utf-8"))
@@ -185,8 +217,7 @@ def main() -> int:
     capability = next(
         item
         for item in capabilities["profiles"]
-        if item["profile_id"]
-        == "grasu_regraph_weighted_pma_hls_proposed_pagerank_ff13a67"
+        if item["profile_id"] == profile_set["grasu_profile_id"]
     )
     if capability["profile_sha256"] != grasu_profile_hash:
         raise ValueError("GraSU capability/profile hash mismatch")
@@ -227,7 +258,7 @@ def main() -> int:
             spine_problems = validate_spine_pagerank_result(
                 run,
                 spine_result,
-                expected_profile_id="spine_shared_engine_9c08763",
+                expected_profile_id=str(profile_set["spine_profile_id"]),
                 expected_core_mhz=spine_mhz,
                 iterations=3,
                 damping=0.85,
@@ -341,6 +372,7 @@ def main() -> int:
         "status": "PASS",
         "claim_class": "architecture_capacity_support_boundary",
         "algorithm": "full_pagerank",
+        "profile_set": args.profile_set,
         "input_manifest": str(args.input_manifest.resolve()),
         "input_manifest_sha256": sha256_file(args.input_manifest),
         "selected_run_ids": [run["run_id"] for run in runs],
@@ -364,8 +396,8 @@ def main() -> int:
         ).hexdigest(),
         "limitations": [
             "GraSU failures above 4096 updates are static checks against the "
-            "pinned proposed PageRank profile, not executions of a synthesized "
-            "whole-system xclbin.",
+            "pinned PageRank profile; no latency ratio is inferred from a "
+            "capacity rejection.",
             "Spine capacity is the current cold-family L1 layout boundary for "
             "this intentionally single-family workload.",
             "Capacity evidence is not a performance comparison.",
