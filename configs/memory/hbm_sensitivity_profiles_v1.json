@@ -11,6 +11,7 @@
       "axis": "latency",
       "direction": "low",
       "output": "configs/memory/sensitivity/HBM2_1ch_x128_latency_low_v1.ini",
+      "sha256": "aa2da472faf260a13cd9a33fd79dd6ba402916a615499355d894d0a29243b63d",
       "description": "Approximately 20 percent lower core read/write latency while preserving command spacing.",
       "changes": {
         "timing.CL": "11",
@@ -25,6 +26,7 @@
       "axis": "latency",
       "direction": "high",
       "output": "configs/memory/sensitivity/HBM2_1ch_x128_latency_high_v1.ini",
+      "sha256": "1d1cc4ea34575067fe4ac7097f85e774047ba4bd3a9b9a96422c5b58098676ae",
       "description": "Approximately 20 percent higher core read/write latency while preserving command spacing.",
       "changes": {
         "timing.CL": "17",
@@ -39,6 +41,7 @@
       "axis": "bandwidth",
       "direction": "high",
       "output": "configs/memory/sensitivity/HBM2_1ch_x128_bandwidth_high_v1.ini",
+      "sha256": "ed47cc1559c6a3777622d3751b51fdec12396f6d4d90a2c1ecf9b84607ceb5eb",
       "description": "Allow consecutive column commands across both same and different bank groups.",
       "changes": {
         "timing.tCCD_L": "1"
@@ -49,6 +52,7 @@
       "axis": "bandwidth",
       "direction": "low",
       "output": "configs/memory/sensitivity/HBM2_1ch_x128_bandwidth_low_v1.ini",
+      "sha256": "bdac453bbe31d1de77da2853ff88e7832720aa4d73756187a8a7fe48037df7db",
       "description": "Double column-command spacing without changing core access latency.",
       "changes": {
         "timing.tCCD_S": "2",

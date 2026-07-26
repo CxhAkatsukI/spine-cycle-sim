@@ -95,3 +95,31 @@ smoke. The resulting cycles were 618,454, 647,916, 619,131, and 619,131,
 respectively. The bandwidth overlays intentionally have no effect on this
 serial chain: a formal bandwidth sensitivity run must include spread, fan-in,
 and hub workloads with enough concurrent column commands to expose `tCCD`.
+
+## Frozen sweep
+
+`configs/experiments/candidate10_hbm_sensitivity_matrix_v1.json` selects 12
+disjoint calibration, holdout, and validation runs. It covers all three
+headline algorithms plus dynamic weighted SSSP, and includes chain, source/dest
+hub, spread, bank-fanin, mixed-update, residual-skew, and a real Amazon compact
+slice.
+
+Run the complete baseline plus four sensitivity profiles with:
+
+```bash
+cd /home/chuxiao/spine-cycle-sim-runtime
+python3 scripts/run_shared_hbm_sensitivity.py \
+  --out-dir /data/tmp/chuxiao/candidate10_hbm_sensitivity_v1 \
+  --jobs 2 --timeout-seconds 1800 --resume --no-build \
+  --lib-dir /home/chuxiao/spine-cycle-sim-runtime/build/sst
+```
+
+For an incremental profile run, `--profile-id latency_high` automatically
+includes the baseline. `--analyze-only` rebuilds the summary from existing
+submatrices without launching SST.
+
+The runner writes `sensitivity_details.csv` with per-system cycle ratios,
+baseline/sensitivity winners, and strict rank inversions. The group summary
+reports geometric-mean Spine speedup and inversion counts for each profile. A
+winner is treated as tied inside a 1% ratio band, preventing a negligible
+near-1.0 change from being reported as an architectural reversal.
