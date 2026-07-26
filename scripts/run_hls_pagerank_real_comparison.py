@@ -33,6 +33,9 @@ from spine_cycle_sim.experiments.real_small_batches import (  # noqa: E402
 from spine_cycle_sim.experiments.dense_batch_sweep import (  # noqa: E402
     validate_dense_batch_manifest,
 )
+from spine_cycle_sim.experiments.large_real_pagerank import (  # noqa: E402
+    validate_large_real_pagerank_manifest,
+)
 from spine_cycle_sim.experiments.shared_workloads import sha256_file  # noqa: E402
 
 
@@ -63,6 +66,8 @@ def _validate_input_manifest(path: Path) -> dict[str, object]:
         return validate_real_small_batch_manifest(ROOT, path)
     if matrix_id == "hls_full_pagerank_dense_batch_sweep_20260726":
         return validate_dense_batch_manifest(ROOT, path)
+    if matrix_id == "hls_full_pagerank_real_large_runtime_20260726":
+        return validate_large_real_pagerank_manifest(ROOT, path)
     raise ValueError(f"unsupported Full PageRank input matrix: {matrix_id}")
 
 
@@ -155,6 +160,11 @@ def _command(
         ]
         if args.instantiate_all_hbm_channels:
             command.append("--instantiate-all-hbm-channels")
+        hot_vertices = run.get("hot_vertices", [])
+        if hot_vertices:
+            command.extend(
+                ["--hot-vertices", ",".join(str(item) for item in hot_vertices)]
+            )
         return command
     if system == "grasu_regraph":
         command = [
@@ -196,7 +206,7 @@ def _run_process(command: list[str], log_path: Path, timeout: float) -> float:
     )
     try:
         stdout, _ = process.communicate(timeout=timeout)
-    except subprocess.TimeoutExpired as error:
+    except subprocess.TimeoutExpired:
         os.killpg(process.pid, signal.SIGTERM)
         try:
             stdout, _ = process.communicate(timeout=10.0)
@@ -204,7 +214,7 @@ def _run_process(command: list[str], log_path: Path, timeout: float) -> float:
             os.killpg(process.pid, signal.SIGKILL)
             stdout, _ = process.communicate()
         log_path.write_text(stdout, encoding="utf-8")
-        raise RuntimeError(f"child exceeded {timeout:.1f}s") from error
+        raise RuntimeError(f"child exceeded {timeout:.1f}s") from None
     wall_seconds = time.monotonic() - started
     log_path.write_text(stdout, encoding="utf-8")
     if process.returncode != 0:
@@ -388,6 +398,7 @@ def main() -> int:
         / "hls_pagerank_real_comparison.py",
         ROOT / "spine_cycle_sim" / "experiments" / "memory_traffic.py",
         ROOT / "spine_cycle_sim" / "experiments" / "dense_batch_sweep.py",
+        ROOT / "spine_cycle_sim" / "experiments" / "large_real_pagerank.py",
         ROOT / "scripts" / "run_sst_spine_vertical.py",
         ROOT / "scripts" / "run_sst_grasu_regraph_hls_pagerank.py",
         args.input_manifest,
@@ -449,11 +460,14 @@ def main() -> int:
     complete = len(selected) == timing_run_count and not args.run_id
     input_scope = str(manifest.get("input_scope", "real_compact_slice"))
     dense_sweep = input_scope == "synthetic_dense_batch_sweep"
+    large_real = input_scope == "real_large_slice"
     matrix_manifest = {
         "schema_version": 1,
         "matrix_id": (
             "hls_full_pagerank_dense_batch_comparison_20260726"
             if dense_sweep
+            else "hls_full_pagerank_real_large_runtime_20260726"
+            if large_real
             else "hls_full_pagerank_real_compact_comparison_20260726"
         ),
         "status": "PASS",
@@ -461,6 +475,8 @@ def main() -> int:
         "claim_class": (
             "profile_clock_adjusted_synthetic_dense_batch_execution_driven"
             if dense_sweep
+            else "profile_clock_adjusted_real_large_slice_execution_driven"
+            if large_real
             else "profile_clock_adjusted_real_compact_execution_driven"
         ),
         "input_scope": input_scope,
@@ -505,7 +521,13 @@ def main() -> int:
             (
                 "Inputs are synthetic dense-batch sweeps, not full datasets."
                 if dense_sweep
-                else "Inputs are compact real-edge slices, not full datasets."
+                else (
+                    f"Input is a {manifest['runtime_contract']['initial_edges']}-edge "
+                    "real slice within the normalized 65536-vertex cap, not the "
+                    "complete source dataset."
+                    if large_real
+                    else "Inputs are compact real-edge slices, not full datasets."
+                )
             ),
             "GraSU/ReGraph PageRank is HLS-equivalent proposed, not a compiled xclbin.",
             "Simulator cycles are not calibrated cycle-for-cycle against hw.",

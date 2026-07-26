@@ -267,6 +267,11 @@ class HlsPageRankRealComparisonTests(unittest.TestCase):
             pair_row(dense_spine, grasu)["claim_label"],
             "profile_clock_adjusted_synthetic_dense_batch_execution_driven",
         )
+        large_spine = {**spine, "input_scope": "real_large_slice"}
+        self.assertEqual(
+            pair_row(large_spine, grasu)["claim_label"],
+            "profile_clock_adjusted_real_large_slice_execution_driven",
+        )
 
     def test_system_row_reports_update_and_compute_memory(self) -> None:
         result = {

@@ -333,6 +333,12 @@ def _iter_matrix_market_edges(path: Path) -> Iterator[tuple[int, int]]:
         raise ValueError(f"{path}: no MatrixMarket dimensions")
 
 
+def iter_matrix_market_edges(path: Path) -> Iterator[tuple[int, int]]:
+    """Yield one-based MatrixMarket edges after validating the header."""
+
+    yield from _iter_matrix_market_edges(path)
+
+
 def _matrix_dimensions(path: Path) -> tuple[int, int, int]:
     with path.open("r", encoding="ascii", errors="strict") as stream:
         for raw_line in stream:

@@ -1,0 +1,29 @@
+digraph FullPageRankLargeRuntime {
+  graph [rankdir=LR, bgcolor="#FAFAF8", pad="0.24", nodesep="0.32", ranksep="0.55", splines=ortho, fontname="DejaVu Sans"];
+  node [shape=box, style="rounded,filled", fillcolor="#F4F6F8", color="#52647A", fontname="DejaVu Sans", fontsize=10, margin="0.14,0.09"];
+  edge [color="#667A93", arrowsize=0.7, fontname="DejaVu Sans", fontsize=9];
+
+  raw [label="Amazon-2008 MatrixMarket\n5,158,388 declared edges\nSHA-256 pinned", fillcolor="#E6F3FB"];
+  slice [label="Deterministic real slice\n19,399 real vertices (cap 65,536)\n50,000 unique real edges"];
+  update [label="Shared insert batch\n8 records\nsource-scattered"];
+  classify [label="Current HLS host classifier\nin-degree descending, dst ascending\nstrict 16,384-edge family target", fillcolor="#FFF3CD"];
+  contract [label="Hash-pinned common contract\ngraph + update + mapping + hot bitmap", fillcolor="#DDF5E7"];
+
+  spine [label="Spine\nL0 preload -> maintenance -> reader -> PageRank x3\nAXI/FIFO/SST-HBM"];
+  grasu [label="GraSU + ReGraph\nPMA update -> degree barrier -> PageRank x3\nAXI/FIFO/SST-HBM"];
+  gates [label="Acceptance gates\narchitecture oracle + float64 oracle\ncross-system ranks + memory ledger\n<= 1,800 host seconds/system", fillcolor="#FFF3CD"];
+  result [label="FAIL-CLOSED\nSpine: timeout during iteration 1\nGraSU/ReGraph: PASS, 0 mismatch\nNo paired speed ratio", fillcolor="#FBE2E2", color="#A94442"];
+
+  raw -> slice;
+  slice -> update;
+  slice -> classify;
+  update -> classify;
+  slice -> contract;
+  update -> contract;
+  classify -> contract;
+  contract -> spine;
+  contract -> grasu;
+  spine -> gates;
+  grasu -> gates;
+  gates -> result;
+}

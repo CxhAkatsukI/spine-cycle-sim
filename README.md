@@ -307,6 +307,9 @@ Run the paired Full PageRank dense-batch timing and explicit capacity-cliff
 checks with the commands in
 [`docs/dense_full_pagerank_20260726.md`](docs/dense_full_pagerank_20260726.md).
 
+The 50,000/100,000-edge Amazon real-slice runtime stress gates are documented in
+[`docs/full_pagerank_large_runtime_20260726.md`](docs/full_pagerank_large_runtime_20260726.md).
+
 ## Current Scope
 
 The legacy Python/calibration model targets trend validation against historical

@@ -239,10 +239,13 @@ def system_row(
         "run_id": run["run_id"],
         "dataset_id": run["dataset_id"],
         "dataset_kind": run["dataset_kind"],
-        "input_scope": (
-            "synthetic_dense_batch_sweep"
-            if run["dataset_kind"] == "synthetic_dense_batch_sweep"
-            else "real_compact_slice"
+        "input_scope": run.get(
+            "input_scope",
+            (
+                "synthetic_dense_batch_sweep"
+                if run["dataset_kind"] == "synthetic_dense_batch_sweep"
+                else "real_compact_slice"
+            ),
         ),
         "batch_size": run.get("batch_size", user_mutations),
         "update_pattern": run.get("pattern", run["scenario"]),
@@ -338,10 +341,16 @@ def pair_row(
         "dram_energy_ratio_reason": (
             "active-channel DRAM only; on-chip and idle-channel energy excluded"
         ),
-        "claim_label": (
-            "profile_clock_adjusted_synthetic_dense_batch_execution_driven"
-            if spine.get("input_scope") == "synthetic_dense_batch_sweep"
-            else "profile_clock_adjusted_real_compact_execution_driven"
+        "claim_label": {
+            "synthetic_dense_batch_sweep": (
+                "profile_clock_adjusted_synthetic_dense_batch_execution_driven"
+            ),
+            "real_large_slice": (
+                "profile_clock_adjusted_real_large_slice_execution_driven"
+            ),
+        }.get(
+            str(spine.get("input_scope")),
+            "profile_clock_adjusted_real_compact_execution_driven",
         ),
     }
 

@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "claim_class": "simulator_host_runtime_stress_boundary",
+  "dataset": "amazon_2008",
+  "input_scope": "real_large_slice",
+  "input_manifest_sha256": "c10f272034fbc82251513b6bb4858dae6ffa22c7fb0bfa3292d260f2c2dfeb3c",
+  "graph_sha256": "65877fe7185e301bb666892ae356ca2afc91b9cc96b4eac0eef3f9dd2b59bfa7",
+  "update_sha256": "752732b844539a43ef1195363dd2c7d62d3528c5cf20bbbb363780a10b875300",
+  "mapping_sha256": "b7f0c0a9a027a6144080e7325b0800f60577e2784fca42e28f52bd8e336044cb",
+  "vertices": 19399,
+  "initial_edges": 50000,
+  "batch_size": 8,
+  "final_edges": 50008,
+  "algorithm": "full_pagerank",
+  "iterations_requested": 3,
+  "timeout_seconds_per_system": 1800,
+  "systems": [
+    {
+      "system": "spine",
+      "status": "TIMEOUT",
+      "host_wall_seconds_lower_bound": 1800.0,
+      "partial_result_sha256": "eab9bf527f4f207c2d3035828b69cc34149021a0b706a98d3b95d6694e846880",
+      "partial_cycles": 46246619,
+      "maintenance_cycles": 1514177,
+      "maintenance_persisted_edges": 50008,
+      "pagerank_completed_iterations": 0,
+      "partial_iteration_edges": 34425,
+      "partial_backend_requests": 3653834,
+      "partial_maintenance_backend_requests": 166513,
+      "partial_compute_backend_requests": 3487321,
+      "correctness_status": "NOT_EVALUATED_INCOMPLETE_ITERATION"
+    },
+    {
+      "system": "grasu_regraph",
+      "status": "PASS",
+      "host_wall_seconds": 25.17114753322676,
+      "result_sha256": "888009b327d484791ef5f2ea7ecbd6067fb6946cc4d7ee445060aa79e3dc16c2",
+      "cycles": 2656384,
+      "update_cycles": 219,
+      "compute_cycles": 2656165,
+      "backend_requests": 227376,
+      "correctness_mismatches": 0
+    }
+  ],
+  "ratio_status": "NOT_COMPUTED",
+  "reason": "A paired performance ratio is invalid because Spine did not complete the same workload.",
+  "acceptance_status": "FAIL",
+  "claim_boundary": "This evidence measures simulator host-runtime feasibility, not accelerator latency or a hardware speed ratio."
+}

@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "claim_class": "simulator_host_runtime_stress_boundary",
+  "dataset": "amazon_2008",
+  "input_scope": "real_large_slice",
+  "initial_edges": 100000,
+  "batch_size": 8,
+  "algorithm": "full_pagerank",
+  "iterations_requested": 3,
+  "timeout_seconds_per_system": 1800,
+  "attempts": [
+    {
+      "attempt": "padded_domain",
+      "declared_vertices": 65536,
+      "mapped_real_vertices": 37956,
+      "artificial_edgeless_vertices": 27580,
+      "system": "spine",
+      "status": "TIMEOUT",
+      "completed_iterations": 0,
+      "interpretation": "Full PageRank scanned the padded vertex domain; excluded from performance ratios."
+    },
+    {
+      "attempt": "mapped_domain_only",
+      "declared_vertices": 37956,
+      "mapped_real_vertices": 37956,
+      "hot_vertices": 6828,
+      "cold_edges_after_update": 16382,
+      "hot_edges_after_update": 83626,
+      "largest_hot_shard_edges": 5625,
+      "system": "spine",
+      "status": "TIMEOUT",
+      "completed_iterations": 0,
+      "partial_cycles": 48557530,
+      "partial_maintenance_cycles": 3107570,
+      "partial_persisted_edges": 100008,
+      "partial_backend_requests": 3850776,
+      "partial_maintenance_requests": 339560,
+      "partial_compute_requests": 3511216,
+      "result_sha256": "9450ed93e832ee87646dccd7dabefe589d390c6baeec0e1b1fafd026d4865fa2"
+    },
+    {
+      "attempt": "mapped_domain_only",
+      "declared_vertices": 37956,
+      "mapped_real_vertices": 37956,
+      "system": "grasu_regraph",
+      "status": "PASS",
+      "host_wall_seconds": 44.969373835250735,
+      "cycles": 5072071,
+      "update_cycles": 219,
+      "compute_cycles": 5071852,
+      "backend_requests": 397077,
+      "correctness_mismatches": 0,
+      "matrix_manifest_sha256": "faef042fcceeaf69bc671eb7cfcbb42c2eb46915eea82bd63dfe3782f44d30cd"
+    }
+  ],
+  "ratio_status": "NOT_COMPUTED",
+  "reason": "A paired performance ratio is invalid because Spine did not complete the same workload.",
+  "claim_boundary": "This evidence measures simulator host-runtime feasibility, not accelerator latency or a hardware speed ratio."
+}

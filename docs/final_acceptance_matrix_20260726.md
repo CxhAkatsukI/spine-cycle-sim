@@ -25,8 +25,8 @@ cannot silently satisfy an HLS-aligned requirement.
 | Memory behavior | Common accepted-request bytes and per-initiator/per-operation contiguous/repeated/discontinuous classification; 54 system rows and 27 paired rows | Partial | Add physical burst amplification/row-locality tables and split weighted-Spine maintenance from compute |
 | Energy by component | DRAMSim3 active-channel energy and selected CACTI evidence | Partial | Complete on-chip activity-to-energy mapping; keep idle-channel assumptions explicit |
 | Area and timing | Existing routed Spine/native GraSU evidence | Partial | Add reports for the final HLS-equivalent design and map simulator components to reports |
-| Dense batches | Synthetic dense/pathological fixtures exist | Partial | Sweep batch density/size and report crossover and failure/capacity boundaries |
-| Large-graph runtime | Sparse HBM binding and native stress runtime evidence | Partial | Run at least one publication-scale graph per required algorithm within the agreed tens-of-minutes budget |
+| Dense batches | 8 paired Full PageRank timing points plus 4 explicit Spine/GraSU capacity endpoints, all fail-closed | Implemented for Full PageRank | Repeat only where SSSP/residual behavior is algorithm-specific |
+| Large-graph runtime | 50k and 100k Amazon real slices fail the 1,800-second Spine host-runtime gate before iteration 1 completes; GraSU passes both | Open/failed | Optimize simulator throughput without skipping memory/protocol events, then pass one large real graph per required algorithm |
 | Ablation | What-if/profile mechanisms exist | Optional/open | Run only after required rows close |
 | Scalability | Projected profiles are fail-closed `profile_only` | Optional/open | Model resource-scaled kernels/BRAM/URAM and report non-linear contention before claiming speedup |
 
@@ -85,10 +85,28 @@ wins all six Web-Google and Flickr cases; overall GraSU/ReGraph is 1.116x
 faster by geometric mean. See
 `docs/hls_residual_pagerank_real_compact_comparison_20260726.md`.
 
+## Closed Full PageRank Dense Gate
+
+The 12-case dense contract provides eight comparable timing points and four
+capacity endpoints. All 16 timed system executions pass correctness and all
+eight rank vectors match across systems. Spine accepts 8,192 updates exactly
+at its final 16,384-edge capacity and fails closed at 16,384 updates; the GraSU
+profile fails closed above its 4,096-degree scoreboard. See
+`docs/dense_full_pagerank_20260726.md`.
+
+## Failed Large-Runtime Gate
+
+The 50,000-edge Amazon slice reaches the 1,800-second Spine host-runtime limit
+after maintenance and 34,425 edges of the first PageRank iteration. The
+100,000-edge stress point also times out before iteration 1 completes. GraSU
+passes both, but no speed ratio is formed because the pairs are incomplete.
+This exposes a simulator-throughput gap, not measured FPGA latency. See
+`docs/full_pagerank_large_runtime_20260726.md`.
+
 ## Immediate Next Gate
 
-Complete matched component-energy/PPA evidence next, then close the
-publication-scale checkpoint loader/runtime gate and dense-batch sweep.
-Accepted-request volume and locality are now comparable for all three
-algorithms; DRAM burst amplification, row-hit behavior, weighted-Spine's
-internal maintenance/compute split, and total energy ratios remain open.
+Freeze Feiyang's routed candidate-10 xclbin/source snapshot as the new Spine
+native baseline, derive explicit normalized/projected profiles, and validate
+the simulator against its direct-hardware cases. Then optimize execution-driven
+host throughput while preserving AXI ordering, FIFO backpressure, HBM
+contention, and DRAM row behavior before rerunning the large-graph gate.
