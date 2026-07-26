@@ -1,0 +1,61 @@
+{
+  "algorithm": "full_pagerank",
+  "all_correct": true,
+  "capability_catalog": "/home/chuxiao/spine-cycle-sim-runtime-audit/configs/contracts/grasu_regraph_candidate10_hls_capabilities_v3.json",
+  "capability_catalog_sha256": "25794099eaba54d5b693afd626c563afba19d687b71609c7cd46bf4c0cc13f1c",
+  "capacity_cliff_evidence_required": true,
+  "capacity_cliff_run_ids": [
+    "dense_source_concentrated_u8192_v8192",
+    "dense_source_concentrated_u16384_v8192",
+    "dense_source_scattered_u8192_v8192",
+    "dense_source_scattered_u16384_v8192"
+  ],
+  "claim_class": "profile_clock_adjusted_synthetic_dense_batch_execution_driven",
+  "complete_matrix": true,
+  "execution_sha256": "a7433a3ee5df83e5fbd23d8d72823bcf7d86d3401d422d08c096e2121278548c",
+  "grasu_profile_id": "grasu_regraph_candidate10_normalized_hls_pagerank_v3",
+  "grasu_profile_sha256": "7155f87efa086a6563e80296f8460db14716e2f60f277ea5997f1d976897877e",
+  "hbm_controller_instances": null,
+  "input_manifest": "/home/chuxiao/spine-cycle-sim-runtime-audit/configs/experiments/hls_full_pagerank_dense_batch_sweep_20260726.json",
+  "input_manifest_sha256": "4f6aa83ecdc1aa048865dcc4f22d8d2a754fe5dfab7b9814688abb9c957077c6",
+  "input_matrix_id": "hls_full_pagerank_dense_batch_sweep_20260726",
+  "input_scope": "synthetic_dense_batch_sweep",
+  "instantiate_all_hbm_channels": false,
+  "limitations": [
+    "Inputs are synthetic dense-batch sweeps, not full datasets.",
+    "GraSU/ReGraph PageRank uses the frozen Candidate10 HLS-derived conversion-free profile; whole-system implementation evidence is reported separately.",
+    "Simulator cycles are not calibrated cycle-for-cycle against hw.",
+    "DRAM energy covers active channels only and excludes idle-channel energy.",
+    "DRAM energy excludes on-chip energy.",
+    "Contiguous/repeated/discontinuous classes describe accepted backend requests per initiator and operation; they are not DRAM row-hit classifications.",
+    "Actual requested bytes exclude DRAM burst amplification and controller-internal transfer granularity."
+  ],
+  "matrix_id": "hls_full_pagerank_dense_batch_comparison_20260726",
+  "matrix_wall_seconds": 193.75028239097446,
+  "pagerank_damping": 0.85,
+  "pagerank_iterations": 3,
+  "pairs": 8,
+  "pairs_sha256": "987f897b626642a064585a4b6c4c5407a2233465a7cc243a1e99b6312a9b38d0",
+  "profile_set": "candidate10_hls_v3",
+  "schema_version": 1,
+  "selected_run_ids": [
+    "dense_source_concentrated_u8_v8192",
+    "dense_source_concentrated_u64_v8192",
+    "dense_source_concentrated_u512_v8192",
+    "dense_source_concentrated_u4096_v8192",
+    "dense_source_scattered_u8_v8192",
+    "dense_source_scattered_u64_v8192",
+    "dense_source_scattered_u512_v8192",
+    "dense_source_scattered_u4096_v8192"
+  ],
+  "spine_profile_id": "spine_candidate10_normalized_v1",
+  "spine_profile_sha256": "4e31633c55abfdc57fd4537119d6abb6d7a4f0313dcfc81332fa0ed0a6320c0a",
+  "status": "PASS",
+  "system_rows": 16,
+  "system_rows_sha256": "4a1258c2c10cc64be862e6f8ef15116a6dc0297e35c87ad51034a0f3ef6b02cc",
+  "timing_window": {
+    "clock_rule": "convert cycles using each profile clock",
+    "grasu_regraph": "zero-time PMA build; timed PMA and degree update plus compute",
+    "spine": "zero-time compact L0 preload; timed update maintenance plus compute"
+  }
+}
