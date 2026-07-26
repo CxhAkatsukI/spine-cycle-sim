@@ -1,0 +1,68 @@
+
+****** xsim v2024.1 (64-bit)
+  **** SW Build 5076996 on Wed May 22 18:36:09 MDT 2024
+  **** IP Build 5075265 on Wed May 22 21:45:21 MDT 2024
+  **** SharedData Build 5076995 on Wed May 22 18:29:18 MDT 2024
+  **** Start of session at: Sun Jul 26 15:53:32 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source xsim.dir/candidate10_m_axi_adapter_oracle/xsim_script.tcl
+# xsim {candidate10_m_axi_adapter_oracle} -testplusarg OP=0 -testplusarg REQUESTS=3 -testplusarg START_WORD=0 -testplusarg BEATS=256 -testplusarg STRIDE_WORDS=256 -testplusarg RESPONSE_DELAY=1 -testplusarg AR_STALL_PERIOD=0 -testplusarg AR_STALL_WIDTH=0 -testplusarg AW_STALL_PERIOD=0 -testplusarg AW_STALL_WIDTH=0 -testplusarg W_STALL_PERIOD=0 -testplusarg W_STALL_WIDTH=0 -testplusarg R_STALL_PERIOD=0 -testplusarg R_STALL_WIDTH=0 -testplusarg CHILD_R_STALL_PERIOD=16 -testplusarg CHILD_R_STALL_WIDTH=15 -testplusarg CHILD_B_STALL_PERIOD=0 -testplusarg CHILD_B_STALL_WIDTH=0 -testplusarg MAX_CYCLES=100000 -autoloadwcfg -tclbatch {/home/chuxiao/spine-cycle-sim/scripts/rtl/run_all.tcl}
+Time resolution is 1 ps
+source /home/chuxiao/spine-cycle-sim/scripts/rtl/run_all.tcl
+## run all
+AXI_ADAPTER_BURST op=0 index=0 addr=0 beats=16 issue_cycle=7
+AXI_ADAPTER_BURST op=0 index=1 addr=128 beats=16 issue_cycle=8
+AXI_ADAPTER_BURST op=0 index=2 addr=256 beats=16 issue_cycle=9
+AXI_ADAPTER_BURST op=0 index=3 addr=384 beats=16 issue_cycle=10
+AXI_ADAPTER_BURST op=0 index=4 addr=512 beats=16 issue_cycle=11
+AXI_ADAPTER_BURST op=0 index=5 addr=640 beats=16 issue_cycle=12
+AXI_ADAPTER_BURST op=0 index=6 addr=768 beats=16 issue_cycle=13
+AXI_ADAPTER_BURST op=0 index=7 addr=896 beats=16 issue_cycle=14
+AXI_ADAPTER_BURST op=0 index=8 addr=1024 beats=16 issue_cycle=15
+AXI_ADAPTER_BURST op=0 index=9 addr=1152 beats=16 issue_cycle=16
+AXI_ADAPTER_BURST op=0 index=10 addr=1280 beats=16 issue_cycle=17
+AXI_ADAPTER_BURST op=0 index=11 addr=1408 beats=16 issue_cycle=18
+AXI_ADAPTER_BURST op=0 index=12 addr=1536 beats=16 issue_cycle=19
+AXI_ADAPTER_BURST op=0 index=13 addr=1664 beats=16 issue_cycle=20
+AXI_ADAPTER_BURST op=0 index=14 addr=1792 beats=16 issue_cycle=21
+AXI_ADAPTER_BURST op=0 index=15 addr=1920 beats=16 issue_cycle=22
+AXI_ADAPTER_BURST op=0 index=16 addr=2048 beats=16 issue_cycle=258
+AXI_ADAPTER_BURST op=0 index=17 addr=2176 beats=16 issue_cycle=514
+AXI_ADAPTER_BURST op=0 index=18 addr=2304 beats=16 issue_cycle=770
+AXI_ADAPTER_BURST op=0 index=19 addr=2432 beats=16 issue_cycle=1026
+AXI_ADAPTER_BURST op=0 index=20 addr=2560 beats=16 issue_cycle=1282
+AXI_ADAPTER_BURST op=0 index=21 addr=2688 beats=16 issue_cycle=1538
+AXI_ADAPTER_BURST op=0 index=22 addr=2816 beats=16 issue_cycle=1794
+AXI_ADAPTER_BURST op=0 index=23 addr=2944 beats=16 issue_cycle=2050
+AXI_ADAPTER_BURST op=0 index=24 addr=3072 beats=16 issue_cycle=2306
+AXI_ADAPTER_BURST op=0 index=25 addr=3200 beats=16 issue_cycle=2562
+AXI_ADAPTER_BURST op=0 index=26 addr=3328 beats=16 issue_cycle=2818
+AXI_ADAPTER_BURST op=0 index=27 addr=3456 beats=16 issue_cycle=3074
+AXI_ADAPTER_BURST op=0 index=28 addr=3584 beats=16 issue_cycle=3330
+AXI_ADAPTER_BURST op=0 index=29 addr=3712 beats=16 issue_cycle=3586
+AXI_ADAPTER_BURST op=0 index=30 addr=3840 beats=16 issue_cycle=3842
+AXI_ADAPTER_BURST op=0 index=31 addr=3968 beats=16 issue_cycle=4098
+AXI_ADAPTER_BURST op=0 index=32 addr=4096 beats=16 issue_cycle=4354
+AXI_ADAPTER_BURST op=0 index=33 addr=4224 beats=16 issue_cycle=4610
+AXI_ADAPTER_BURST op=0 index=34 addr=4352 beats=16 issue_cycle=4866
+AXI_ADAPTER_BURST op=0 index=35 addr=4480 beats=16 issue_cycle=5122
+AXI_ADAPTER_BURST op=0 index=36 addr=4608 beats=16 issue_cycle=5378
+AXI_ADAPTER_BURST op=0 index=37 addr=4736 beats=16 issue_cycle=5634
+AXI_ADAPTER_BURST op=0 index=38 addr=4864 beats=16 issue_cycle=5890
+AXI_ADAPTER_BURST op=0 index=39 addr=4992 beats=16 issue_cycle=6146
+AXI_ADAPTER_BURST op=0 index=40 addr=5120 beats=16 issue_cycle=6402
+AXI_ADAPTER_BURST op=0 index=41 addr=5248 beats=16 issue_cycle=6658
+AXI_ADAPTER_BURST op=0 index=42 addr=5376 beats=16 issue_cycle=6914
+AXI_ADAPTER_BURST op=0 index=43 addr=5504 beats=16 issue_cycle=7170
+AXI_ADAPTER_BURST op=0 index=44 addr=5632 beats=16 issue_cycle=7426
+AXI_ADAPTER_BURST op=0 index=45 addr=5760 beats=16 issue_cycle=7682
+AXI_ADAPTER_BURST op=0 index=46 addr=5888 beats=16 issue_cycle=7938
+AXI_ADAPTER_BURST op=0 index=47 addr=6016 beats=16 issue_cycle=8194
+AXI_ADAPTER_RTL op=0 requests=3 start_word=0 beats=256 stride_words=256 response_delay=1 cycles=12288 child_requests=3 child_write_beats=0 child_read_beats=768 child_responses=0 external_bursts=48 external_beats=768 max_outstanding=16 child_request_stalls=0 child_data_stalls=0 child_response_stalls=11509 external_address_stalls=0 external_data_stalls=0 external_response_stalls=0 child_first_request_cycle=0 child_last_request_cycle=2 child_first_write_cycle=-1 child_last_write_cycle=-1 child_first_read_cycle=15 child_last_read_cycle=12287 child_first_response_cycle=-1 child_last_response_cycle=-1 external_first_data_cycle=8 external_last_data_cycle=8210 external_first_response_cycle=-1 external_last_response_cycle=-1 errors=0
+$finish called at time : 122985 ns : File "/home/chuxiao/spine-cycle-sim/scripts/rtl/candidate10_m_axi_adapter_tb.sv" Line 269
+## quit 0
+INFO: [Common 17-206] Exiting xsim at Sun Jul 26 15:53:35 2026...
+Candidate10 XO SHA256: 629e185724467cc14eec4ae14018ff0a89a94aa518ef77499ca6cc2363b28be5
+RTL oracle build directory: /data/tmp/chuxiao/candidate10_m_axi_adapter_oracle.iu9lxdlz

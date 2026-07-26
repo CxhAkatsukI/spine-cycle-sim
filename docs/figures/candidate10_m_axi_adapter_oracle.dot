@@ -1,0 +1,34 @@
+digraph candidate10_m_axi_adapter_oracle {
+  graph [rankdir=LR, bgcolor="white", pad=0.25, nodesep=0.35, ranksep=0.65,
+         fontname="DejaVu Sans"];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans",
+        fontsize=11, color="#344054", fillcolor="#F8FAFC", margin="0.12,0.08"];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#475467"];
+
+  child [label="HLS child port\nword address + beat count\nAW/W/B or AR/R",
+         fillcolor="#EAF2FF"];
+  request_fifo [label="Parent request FIFO\nUSER_MAXREQS = 70",
+                fillcolor="#F2F4F7"];
+  preprocess [label="Address/length preprocessor\nword -> byte\nbeats -> bytes"];
+  split [label="Burst converter\nmax 16 beats\n4 KiB boundary", fillcolor="#FFF4E5"];
+  read_issue [label="Read issue/throttle\n16 outstanding\nread FIFO credit",
+              fillcolor="#E8F7EE"];
+  write_buffer [label="Write data buffer\nparent/burst ordered\n16 outstanding",
+                fillcolor="#FCECEC"];
+  axi [label="External AXI\nAR/R + AW/W/B\n64 bit, 1 beat/cycle",
+       fillcolor="#EEF2F6"];
+  responder [label="Deterministic oracle responder\nindependent channel stalls\nconfigurable response delay",
+             fillcolor="#F4EBFF"];
+
+  child -> request_fifo [label="child handshake"];
+  request_fifo -> preprocess;
+  preprocess -> split;
+  split -> read_issue [label="read"];
+  split -> write_buffer [label="write"];
+  read_issue -> axi [label="AR"];
+  write_buffer -> axi [label="AW/W"];
+  axi -> responder;
+  responder -> axi [label="R/B", dir=back];
+  read_issue -> child [label="ordered R", constraint=false];
+  write_buffer -> child [label="parent B", constraint=false];
+}

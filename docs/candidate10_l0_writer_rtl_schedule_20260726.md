@@ -298,9 +298,10 @@ contention, or calibrated end-to-end hardware accuracy.
 
 The next evidence layers are deliberately ordered:
 
-1. oracle and model the outer family-range/kernel-wrapper schedule;
-2. replay exact child requests through the generated Vitis `m_axi` adapter and
+1. replay exact child requests through the generated Vitis `m_axi` adapter and
    validate burst splitting, 4 KiB boundaries, adapter outstanding limits, and
-   response backpressure;
+   response backpressure (completed in
+   `candidate10_m_axi_adapter_rtl_oracle_20260726.md`);
+2. oracle and model the outer family-range/kernel-wrapper schedule;
 3. calibrate only the remaining external AXI/HBM service and contention terms
    against U55C microbenchmarks.

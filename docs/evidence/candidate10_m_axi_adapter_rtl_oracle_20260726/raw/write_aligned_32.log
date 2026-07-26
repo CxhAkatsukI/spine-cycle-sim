@@ -1,0 +1,22 @@
+
+****** xsim v2024.1 (64-bit)
+  **** SW Build 5076996 on Wed May 22 18:36:09 MDT 2024
+  **** IP Build 5075265 on Wed May 22 21:45:21 MDT 2024
+  **** SharedData Build 5076995 on Wed May 22 18:29:18 MDT 2024
+  **** Start of session at: Sun Jul 26 15:52:32 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source xsim.dir/candidate10_m_axi_adapter_oracle/xsim_script.tcl
+# xsim {candidate10_m_axi_adapter_oracle} -testplusarg OP=1 -testplusarg REQUESTS=1 -testplusarg START_WORD=0 -testplusarg BEATS=32 -testplusarg STRIDE_WORDS=64 -testplusarg RESPONSE_DELAY=1 -testplusarg AR_STALL_PERIOD=0 -testplusarg AR_STALL_WIDTH=0 -testplusarg AW_STALL_PERIOD=0 -testplusarg AW_STALL_WIDTH=0 -testplusarg W_STALL_PERIOD=0 -testplusarg W_STALL_WIDTH=0 -testplusarg R_STALL_PERIOD=0 -testplusarg R_STALL_WIDTH=0 -testplusarg CHILD_R_STALL_PERIOD=0 -testplusarg CHILD_R_STALL_WIDTH=0 -testplusarg CHILD_B_STALL_PERIOD=0 -testplusarg CHILD_B_STALL_WIDTH=0 -testplusarg MAX_CYCLES=100000 -autoloadwcfg -tclbatch {/home/chuxiao/spine-cycle-sim/scripts/rtl/run_all.tcl}
+Time resolution is 1 ps
+source /home/chuxiao/spine-cycle-sim/scripts/rtl/run_all.tcl
+## run all
+AXI_ADAPTER_BURST op=1 index=0 addr=0 beats=16 issue_cycle=26
+AXI_ADAPTER_BURST op=1 index=1 addr=128 beats=16 issue_cycle=45
+AXI_ADAPTER_RTL op=1 requests=1 start_word=0 beats=32 stride_words=64 response_delay=1 cycles=66 child_requests=1 child_write_beats=32 child_read_beats=0 child_responses=1 external_bursts=2 external_beats=32 max_outstanding=1 child_request_stalls=0 child_data_stalls=0 child_response_stalls=0 external_address_stalls=0 external_data_stalls=2 external_response_stalls=0 child_first_request_cycle=0 child_last_request_cycle=0 child_first_write_cycle=0 child_last_write_cycle=31 child_first_read_cycle=-1 child_last_read_cycle=-1 child_first_response_cycle=65 child_last_response_cycle=65 external_first_data_cycle=27 external_last_data_cycle=61 external_first_response_cycle=43 external_last_response_cycle=62 errors=0
+$finish called at time : 765 ns : File "/home/chuxiao/spine-cycle-sim/scripts/rtl/candidate10_m_axi_adapter_tb.sv" Line 269
+## quit 0
+INFO: [Common 17-206] Exiting xsim at Sun Jul 26 15:52:35 2026...
+Candidate10 XO SHA256: 629e185724467cc14eec4ae14018ff0a89a94aa518ef77499ca6cc2363b28be5
+RTL oracle build directory: /data/tmp/chuxiao/candidate10_m_axi_adapter_oracle.iu9lxdlz

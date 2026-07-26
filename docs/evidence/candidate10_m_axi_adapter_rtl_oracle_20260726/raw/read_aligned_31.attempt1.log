@@ -1,0 +1,24 @@
+
+****** xsim v2024.1 (64-bit)
+  **** SW Build 5076996 on Wed May 22 18:36:09 MDT 2024
+  **** IP Build 5075265 on Wed May 22 21:45:21 MDT 2024
+  **** SharedData Build 5076995 on Wed May 22 18:29:18 MDT 2024
+  **** Start of session at: Sun Jul 26 15:51:56 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source xsim.dir/candidate10_m_axi_adapter_oracle/xsim_script.tcl
+# xsim {candidate10_m_axi_adapter_oracle} -testplusarg OP=0 -testplusarg REQUESTS=1 -testplusarg START_WORD=0 -testplusarg BEATS=31 -testplusarg STRIDE_WORDS=64 -testplusarg RESPONSE_DELAY=1 -testplusarg AR_STALL_PERIOD=0 -testplusarg AR_STALL_WIDTH=0 -testplusarg AW_STALL_PERIOD=0 -testplusarg AW_STALL_WIDTH=0 -testplusarg W_STALL_PERIOD=0 -testplusarg W_STALL_WIDTH=0 -testplusarg R_STALL_PERIOD=0 -testplusarg R_STALL_WIDTH=0 -testplusarg CHILD_R_STALL_PERIOD=0 -testplusarg CHILD_R_STALL_WIDTH=0 -testplusarg CHILD_B_STALL_PERIOD=0 -testplusarg CHILD_B_STALL_WIDTH=0 -testplusarg MAX_CYCLES=100000 -autoloadwcfg -tclbatch {/home/chuxiao/spine-cycle-sim/scripts/rtl/run_all.tcl}
+Time resolution is 1 ps
+source /home/chuxiao/spine-cycle-sim/scripts/rtl/run_all.tcl
+## run all
+AXI_ADAPTER_BURST op=0 index=0 addr=0 beats=16 issue_cycle=7
+AXI_ADAPTER_BURST op=0 index=1 addr=128 beats=15 issue_cycle=8
+AXI_ADAPTER_RTL op=0 requests=1 start_word=0 beats=31 stride_words=64 response_delay=1 cycles=42 child_requests=1 child_write_beats=0 child_read_beats=31 child_responses=0 external_bursts=2 external_beats=31 max_outstanding=2 child_request_stalls=0 child_data_stalls=0 child_response_stalls=0 external_address_stalls=0 external_data_stalls=0 external_response_stalls=0 child_first_request_cycle=0 child_last_request_cycle=0 child_first_write_cycle=-1 child_last_write_cycle=-1 child_first_read_cycle=11 child_last_read_cycle=41 child_first_response_cycle=-1 child_last_response_cycle=-1 external_first_data_cycle=8 external_last_data_cycle=38 external_first_response_cycle=-1 external_last_response_cycle=-1 errors=0
+$finish called at time : 525 ns : File "/home/chuxiao/spine-cycle-sim/scripts/rtl/candidate10_m_axi_adapter_tb.sv" Line 269
+## quit 0
+INFO: [Common 17-206] Exiting xsim at Sun Jul 26 15:51:59 2026...
+malloc_consolidate(): unaligned fastbin chunk detected
+Abnormal program termination (11)
+Please check '/data/tmp/chuxiao/candidate10_m_axi_adapter_oracle.iu9lxdlz/xsim/hs_err_pid142784.log' for details
+segfault in /data/yxx/tools/xilinx/Vivado/2024.1/bin/unwrapped/lnx64.o/xsim -exec xsim candidate10_m_axi_adapter_oracle --tclbatch /home/chuxiao/spine-cycle-sim/scripts/rtl/run_all.tcl --testplusarg OP=0 --testplusarg REQUESTS=1 --testplusarg START_WORD=0 --testplusarg BEATS=31 --testplusarg STRIDE_WORDS=64 --testplusarg RESPONSE_DELAY=1 --testplusarg AR_STALL_PERIOD=0 --testplusarg AR_STALL_WIDTH=0 --testplusarg AW_STALL_PERIOD=0 --testplusarg AW_STALL_WIDTH=0 --testplusarg W_STALL_PERIOD=0 --testplusarg W_STALL_WIDTH=0 --testplusarg R_STALL_PERIOD=0 --testplusarg R_STALL_WIDTH=0 --testplusarg CHILD_R_STALL_PERIOD=0 --testplusarg CHILD_R_STALL_WIDTH=0 --testplusarg CHILD_B_STALL_PERIOD=0 --testplusarg CHILD_B_STALL_WIDTH=0 --testplusarg MAX_CYCLES=100000, exiting...
