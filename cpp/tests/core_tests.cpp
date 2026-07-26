@@ -6480,6 +6480,19 @@ void test_spine_candidate10_writer_propagates_finite_queue_backpressure() {
               maintenance_axi.write_burst_serialization_stalls > 0 &&
               maintenance_axi.max_outstanding_bursts <= 16,
           "Candidate10 bucket writer bypassed finite issue-queue backpressure");
+  require(maintenance.memory_ledger_closed &&
+              maintenance.first_memory_issue_cycle >= maintenance.start_cycle &&
+              maintenance.last_memory_issue_cycle >=
+                  maintenance.first_memory_issue_cycle &&
+              maintenance.last_memory_completion_cycle >=
+                  maintenance.last_memory_issue_cycle &&
+              maintenance.memory_active_span_cycles ==
+                  maintenance.last_memory_completion_cycle -
+                      maintenance.first_memory_issue_cycle &&
+              maintenance.post_memory_drain_cycles ==
+                  maintenance.end_cycle -
+                      maintenance.last_memory_completion_cycle,
+          "Candidate10 launch/memory/drain timing ledger did not close");
 }
 
 void test_spine_edge_pipeline_propagates_axis_backpressure() {

@@ -813,6 +813,20 @@ void write_maintenance_axi_stats(std::ostream &output,
 void write_candidate_maintenance_counters(
     std::ostream &output, const SpineL0Counters &counters) {
   output
+      << "  \"maintenance_first_memory_issue_cycle\": "
+      << counters.first_memory_issue_cycle << ",\n"
+      << "  \"maintenance_last_memory_issue_cycle\": "
+      << counters.last_memory_issue_cycle << ",\n"
+      << "  \"maintenance_last_memory_completion_cycle\": "
+      << counters.last_memory_completion_cycle << ",\n"
+      << "  \"maintenance_launch_to_first_memory_issue_cycles\": "
+      << counters.launch_to_first_memory_issue_cycles << ",\n"
+      << "  \"maintenance_memory_active_span_cycles\": "
+      << counters.memory_active_span_cycles << ",\n"
+      << "  \"maintenance_post_memory_drain_cycles\": "
+      << counters.post_memory_drain_cycles << ",\n"
+      << "  \"maintenance_memory_ledger_closed\": "
+      << (counters.memory_ledger_closed ? "true" : "false") << ",\n"
       << "  \"maintenance_candidate_classify_edge_visits\": "
       << counters.candidate_classify_edge_visits << ",\n"
       << "  \"maintenance_candidate_reduce_edge_visits\": "

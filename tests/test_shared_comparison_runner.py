@@ -191,6 +191,14 @@ class SharedComparisonRunnerTests(unittest.TestCase):
             "vertices": run["graph"]["vertices"],
             "input_edges": run["graph"]["records"],
             "backend_requests": 7,
+            "maintenance_start_cycle": 2,
+            "maintenance_end_cycle": 20,
+            "maintenance_first_memory_issue_cycle": 4,
+            "maintenance_last_memory_completion_cycle": 17,
+            "maintenance_launch_to_first_memory_issue_cycles": 2,
+            "maintenance_memory_active_span_cycles": 13,
+            "maintenance_post_memory_drain_cycles": 3,
+            "maintenance_memory_ledger_closed": True,
             "backend_arbitration": {
                 "policy": "registered_round_robin_per_pseudo_channel",
                 "unique_intents": 7,
@@ -223,6 +231,12 @@ class SharedComparisonRunnerTests(unittest.TestCase):
         result["backend_arbitration"]["ledger_closed"] = False
         self.assertIn(
             "registered_arbitration_ledger",
+            validate_system_result(run, invocation, result, dram, binding),
+        )
+        result["backend_arbitration"]["ledger_closed"] = True
+        result["maintenance_memory_active_span_cycles"] = 12
+        self.assertIn(
+            "spine_maintenance_timing_ledger",
             validate_system_result(run, invocation, result, dram, binding),
         )
 

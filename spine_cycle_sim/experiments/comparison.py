@@ -793,6 +793,32 @@ def validate_system_result(
         checks["spine_axi_profile"] = (
             result.get("spine_axi_profile") == invocation.expected_spine_axi
         )
+        maintenance_start = int(result.get("maintenance_start_cycle", -1))
+        maintenance_end = int(result.get("maintenance_end_cycle", -1))
+        first_issue = int(result.get("maintenance_first_memory_issue_cycle", -1))
+        last_completion = int(
+            result.get("maintenance_last_memory_completion_cycle", -1)
+        )
+        launch_cycles = int(
+            result.get("maintenance_launch_to_first_memory_issue_cycles", -1)
+        )
+        active_span_cycles = int(
+            result.get("maintenance_memory_active_span_cycles", -1)
+        )
+        drain_cycles = int(
+            result.get("maintenance_post_memory_drain_cycles", -1)
+        )
+        checks["spine_maintenance_memory_ledger"] = (
+            result.get("maintenance_memory_ledger_closed") is True
+        )
+        checks["spine_maintenance_timing_ledger"] = (
+            maintenance_start <= first_issue <= last_completion <= maintenance_end
+            and launch_cycles == first_issue - maintenance_start
+            and active_span_cycles == last_completion - first_issue
+            and drain_cycles == maintenance_end - last_completion
+            and launch_cycles + active_span_cycles + drain_cycles
+            == maintenance_end - maintenance_start
+        )
     if str(run["algorithm"]) == "weighted_dynamic_sssp":
         expected_updates = int(run["update"]["records"])  # type: ignore[index]
         checks["updates"] = (
@@ -844,6 +870,18 @@ def result_row(
         "input_edges": run["graph"]["records"],  # type: ignore[index]
         "updates": run.get("update", {}).get("records", 0),  # type: ignore[union-attr]
         "backend_requests": result["backend_requests"],
+        "maintenance_launch_to_first_memory_issue_cycles": result.get(
+            "maintenance_launch_to_first_memory_issue_cycles", ""
+        ),
+        "maintenance_memory_active_span_cycles": result.get(
+            "maintenance_memory_active_span_cycles", ""
+        ),
+        "maintenance_post_memory_drain_cycles": result.get(
+            "maintenance_post_memory_drain_cycles", ""
+        ),
+        "maintenance_memory_ledger_closed": result.get(
+            "maintenance_memory_ledger_closed", ""
+        ),
         "backend_arbitration_request_waits": arbitration["request_waits"],
         "backend_arbitration_contended_cycles": arbitration[
             "contended_cycles"

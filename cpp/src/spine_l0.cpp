@@ -1471,6 +1471,7 @@ void SpineL0Maintenance::commit(const CycleContext &context) {
       consume_memory_response(found->second, response);
       inflight_tasks_.erase(found);
       ++counters_.memory_requests_completed;
+      counters_.last_memory_completion_cycle = context.domain_cycle;
     }
   }
   if (!staged_memory_issues_.empty()) {
@@ -1490,6 +1491,10 @@ void SpineL0Maintenance::commit(const CycleContext &context) {
               [](const auto &left, const auto &right) {
                 return left.first < right.first;
               });
+    if (counters_.memory_requests_issued == 0) {
+      counters_.first_memory_issue_cycle = context.domain_cycle;
+    }
+    counters_.last_memory_issue_cycle = context.domain_cycle;
     for (auto &[transaction_id, task] : issued) {
       if (task.stream_sorted_scan) {
         if (scan_transaction_valid_) {
@@ -5422,6 +5427,26 @@ void SpineL0Maintenance::advance(const CycleContext &context) {
           elapsed - config_.candidate_zero_edge_control_min_cycles;
     }
     counters_.end_cycle = context.domain_cycle;
+    counters_.memory_ledger_closed =
+        counters_.memory_requests_issued ==
+            counters_.memory_requests_completed &&
+        tasks_.empty() && inflight_tasks_.empty() &&
+        staged_memory_issues_.empty();
+    if (counters_.memory_requests_issued != 0) {
+      if (counters_.first_memory_issue_cycle < counters_.start_cycle ||
+          counters_.last_memory_completion_cycle <
+              counters_.first_memory_issue_cycle ||
+          counters_.end_cycle < counters_.last_memory_completion_cycle) {
+        throw std::logic_error("invalid Spine maintenance memory timing ledger");
+      }
+      counters_.launch_to_first_memory_issue_cycles =
+          counters_.first_memory_issue_cycle - counters_.start_cycle;
+      counters_.memory_active_span_cycles =
+          counters_.last_memory_completion_cycle -
+          counters_.first_memory_issue_cycle;
+      counters_.post_memory_drain_cycles =
+          counters_.end_cycle - counters_.last_memory_completion_cycle;
+    }
     done_ = true;
     failed_ = logical_overflow_;
     return;

@@ -371,6 +371,13 @@ struct SpineL0State {
 struct SpineL0Counters {
   std::uint64_t start_cycle{};
   std::uint64_t end_cycle{};
+  std::uint64_t first_memory_issue_cycle{};
+  std::uint64_t last_memory_issue_cycle{};
+  std::uint64_t last_memory_completion_cycle{};
+  std::uint64_t launch_to_first_memory_issue_cycles{};
+  std::uint64_t memory_active_span_cycles{};
+  std::uint64_t post_memory_drain_cycles{};
+  bool memory_ledger_closed{};
   std::uint64_t full_rebuild_clear_cycles{};
   std::uint64_t full_rebuild_clear_requests{};
   std::uint64_t full_rebuild_clear_bytes{};
