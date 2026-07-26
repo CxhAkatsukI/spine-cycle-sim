@@ -813,6 +813,8 @@ void write_maintenance_axi_stats(std::ostream &output,
 void write_candidate_maintenance_counters(
     std::ostream &output, const SpineL0Counters &counters) {
   output
+      << "  \"maintenance_start_cycle\": " << counters.start_cycle << ",\n"
+      << "  \"maintenance_end_cycle\": " << counters.end_cycle << ",\n"
       << "  \"maintenance_first_memory_issue_cycle\": "
       << counters.first_memory_issue_cycle << ",\n"
       << "  \"maintenance_last_memory_issue_cycle\": "
@@ -3181,10 +3183,6 @@ class OnlineMemoryProbe final : public SST::Component {
       write_spine_axi_profile_fields(result, spine_axi_profile_);
       write_maintenance_axi_stats(result, maintenance_axi);
       result << "  \"cycles\": " << scheduler_.clock(0).completed_cycles
-             << ",\n"
-             << "  \"maintenance_start_cycle\": "
-             << maintenance.start_cycle << ",\n"
-             << "  \"maintenance_end_cycle\": " << maintenance.end_cycle
              << ",\n"
              << "  \"maintenance_cycles\": "
              << maintenance.end_cycle - maintenance.start_cycle << ",\n"
@@ -5946,10 +5944,6 @@ class OnlineMemoryProbe final : public SST::Component {
           << spine_axi_profile_.max_outstanding_bursts << ",\n"
           << "  \"core_mhz\": " << core_mhz_ << ",\n"
           << "  \"cycles\": " << scheduler_.clock(0).completed_cycles << ",\n"
-          << "  \"maintenance_start_cycle\": " << maintenance.start_cycle
-          << ",\n"
-          << "  \"maintenance_end_cycle\": " << maintenance.end_cycle
-          << ",\n"
           << "  \"maintenance_cycles\": "
           << maintenance.end_cycle - maintenance.start_cycle << ",\n"
           << "  \"maintenance_target_level\": "
@@ -6784,10 +6778,6 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"axi_max_outstanding_bursts\": "
           << spine_axi_profile_.max_outstanding_bursts << ",\n"
           << "  \"cycles\": " << scheduler_.clock(0).completed_cycles << ",\n"
-          << "  \"maintenance_start_cycle\": " << maintenance.start_cycle
-          << ",\n"
-          << "  \"maintenance_end_cycle\": " << maintenance.end_cycle
-          << ",\n"
           << "  \"maintenance_cycles\": "
           << maintenance.end_cycle - maintenance.start_cycle << ",\n"
           << "  \"sim_time_fs\": "
