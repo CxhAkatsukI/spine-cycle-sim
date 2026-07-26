@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import configparser
 import csv
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import hashlib
@@ -79,6 +80,8 @@ PROFILE_SETS = {
     },
 }
 DEFAULT_SST = Path("/data/feiyang/sst/bin/sst")
+DEFAULT_DRAM_CONFIG = ROOT / "configs" / "memory" / "HBM2_1ch_x128.ini"
+DRAM_CONFIG_ENV = "CANDIDATE10_SST_DRAM_CONFIG"
 PAGERANK_ITERATIONS = 3
 PAGERANK_DAMPING = 0.85
 
@@ -126,6 +129,28 @@ def _display_path(path: Path) -> str:
         return str(resolved.relative_to(ROOT))
     except ValueError:
         return str(resolved)
+
+
+def _dram_config_contract(path: Path) -> dict[str, object]:
+    resolved = path.resolve()
+    if not resolved.is_file():
+        raise ValueError(f"DRAMSim3 config is missing: {resolved}")
+    parser = configparser.ConfigParser()
+    parser.read(resolved)
+    try:
+        output_level = parser.getint("other", "output_level")
+        epoch_period = parser.getint("other", "epoch_period")
+    except (configparser.Error, ValueError) as error:
+        raise ValueError(f"invalid DRAMSim3 output contract: {resolved}") from error
+    if output_level not in {0, 1, 2} or epoch_period <= 0:
+        raise ValueError(f"invalid DRAMSim3 output contract: {resolved}")
+    return {
+        "path": str(resolved),
+        "sha256": sha256_file(resolved),
+        "output_level": output_level,
+        "epoch_period": epoch_period,
+        "output_level_effect": "statistics_serialization_only",
+    }
 
 
 def _select_runs(
@@ -218,7 +243,12 @@ def _command(
     raise ValueError(f"unsupported system: {system}")
 
 
-def _run_process(command: list[str], log_path: Path, timeout: float) -> float:
+def _run_process(
+    command: list[str],
+    log_path: Path,
+    timeout: float,
+    environment: Mapping[str, str] | None = None,
+) -> float:
     started = time.monotonic()
     process = subprocess.Popen(
         command,
@@ -227,6 +257,7 @@ def _run_process(command: list[str], log_path: Path, timeout: float) -> float:
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         start_new_session=True,
+        env=environment,
     )
     try:
         stdout, _ = process.communicate(timeout=timeout)
@@ -278,7 +309,10 @@ def _run_system(
             wall_seconds = float(cache["wall_seconds"])
     if not reusable:
         wall_seconds = _run_process(
-            command, out_dir / "parent_driver.log", args.timeout_seconds
+            command,
+            out_dir / "parent_driver.log",
+            args.timeout_seconds,
+            args.child_environment,
         )
 
     if system == "spine":
@@ -358,6 +392,7 @@ def main() -> int:
     parser.add_argument("--out-dir", type=Path, required=True)
     parser.add_argument("--sst", type=Path, default=DEFAULT_SST)
     parser.add_argument("--lib-dir", type=Path, default=ROOT / "build" / "sst")
+    parser.add_argument("--dram-config", type=Path, default=DEFAULT_DRAM_CONFIG)
     parser.add_argument("--python", default=sys.executable)
     parser.add_argument("--run-id", action="append", default=[])
     parser.add_argument("--limit", type=int)
@@ -380,6 +415,9 @@ def main() -> int:
     args.capability_catalog = (
         args.capability_catalog or profile_set["capability_catalog"]
     )
+    dram_contract = _dram_config_contract(args.dram_config)
+    args.child_environment = os.environ.copy()
+    args.child_environment[DRAM_CONFIG_ENV] = str(dram_contract["path"])
 
     manifest = _validate_input_manifest(args.input_manifest)
     required_profile_set = manifest.get("required_profile_set")
@@ -444,6 +482,7 @@ def main() -> int:
         args.spine_profile,
         args.grasu_profile,
         args.capability_catalog,
+        args.dram_config,
         args.lib_dir / "libspine_cycle.so",
         args.sst,
     ]
@@ -540,6 +579,7 @@ def main() -> int:
         "capability_catalog": str(args.capability_catalog.resolve()),
         "capability_catalog_sha256": sha256_file(args.capability_catalog),
         "execution_sha256": execution_sha256,
+        "dram_config": dram_contract,
         "selected_run_ids": [run["run_id"] for run in selected],
         "capacity_cliff_run_ids": [
             run["run_id"]

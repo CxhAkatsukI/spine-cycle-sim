@@ -64,6 +64,40 @@ CXX_FLAGS = -O3 -DNDEBUG -std=c++11 -fPIC -Wall
 Rebuilding DRAMSim3 with ordinary release flags therefore cannot explain or
 close the runtime gap. This audit changes no binary and no simulated event.
 
+## DRAMSim3 epoch-output suppression
+
+DRAMSim3 supports `output_level=0`, which retains the final aggregate JSON but
+does not serialize a JSON record every `epoch_period`.  The real-comparison
+runner now accepts `--dram-config`, passes it to both systems through
+`CANDIDATE10_SST_DRAM_CONFIG`, hashes the config into the execution identity,
+and records its output contract in the matrix manifest.  The checked-in
+`configs/memory/HBM2_1ch_x128_summary_only.ini` differs from the frozen HBM
+config only in `output_level`.
+
+An AB run used Candidate10 Spine `syn_spread_e512` thresholded residual
+PageRank, with 4,778,979 core cycles, 410,621 DRAM requests, and the same
+release binaries as the frozen matrix:
+
+| DRAMSim3 output | Host wall seconds | Result SHA-256 |
+| --- | ---: | --- |
+| epoch plus final summary | 61.022 | `da33883dd1f6c4f01ca1c1826e348e57bd7c02b07111e1e82169f92114e2c758` |
+| final summary only | 60.971 | `da33883dd1f6c4f01ca1c1826e348e57bd7c02b07111e1e82169f92114e2c758` |
+
+After removing only `sst_host_wall_seconds`, both complete summaries also have
+the same SHA-256,
+`4854d259d2b3eec89a8aba82e15aeb40ed6b015fc8cbc7164a7e3710ebf9b438`.
+Cycles, requests, ACT/PRE/row-hit counts, final DRAM energy, queue activity,
+and correctness are therefore unchanged.  The observed 0.08% host-time
+reduction is noise-sized and cannot close the large-runtime gate.  The
+summary-only config remains an explicit reproducibility option, not the
+publication baseline and not an accepted performance optimization.
+
+Raw AB evidence is retained outside Git at:
+
+```text
+/data/tmp/chuxiao/dramsim_summary_long_ab_20260727/
+```
+
 ## Implication
 
 The remaining large-run host cost is dominated by valid, already release-built
@@ -81,4 +115,5 @@ Raw outputs are retained outside Git:
 /data/tmp/chuxiao/scheduler_release_flags_o3_run1
 /data/tmp/chuxiao/sst_threads4_spread_residual_20260727
 /data/tmp/chuxiao/sst_threads4_partitioned_spread_residual_20260727
+/data/tmp/chuxiao/dramsim_summary_long_ab_20260727
 ```
