@@ -63,6 +63,9 @@ class BankedMemory final : public Component {
   }
   [[nodiscard]] std::size_t outstanding() const noexcept;
 
+  [[nodiscard]] bool has_commit_phase() const noexcept override {
+    return false;
+  }
   void evaluate(const CycleContext& context) override;
   void commit(const CycleContext&) override {}
 

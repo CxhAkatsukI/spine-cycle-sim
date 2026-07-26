@@ -30,6 +30,18 @@ class Component {
   [[nodiscard]] const std::string& name() const noexcept { return name_; }
   [[nodiscard]] ClockId clock_id() const noexcept { return clock_id_; }
 
+  // Phase participation is fixed for a component's lifetime. The scheduler
+  // uses these declarations only to omit virtual calls to known no-op phases;
+  // every simulated clock edge and the prepare/evaluate/commit ordering remain
+  // unchanged.
+  [[nodiscard]] virtual bool has_prepare_phase() const noexcept {
+    return false;
+  }
+  [[nodiscard]] virtual bool has_evaluate_phase() const noexcept {
+    return true;
+  }
+  [[nodiscard]] virtual bool has_commit_phase() const noexcept { return true; }
+
   virtual void prepare(const CycleContext&) {}
   virtual void evaluate(const CycleContext& context) = 0;
   virtual void commit(const CycleContext& context) = 0;

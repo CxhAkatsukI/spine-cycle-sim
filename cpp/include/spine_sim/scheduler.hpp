@@ -45,6 +45,9 @@ class Scheduler {
  private:
   std::vector<ClockDomainSnapshot> clocks_;
   std::vector<Component*> components_;
+  std::vector<Component*> prepare_components_;
+  std::vector<Component*> evaluate_components_;
+  std::vector<Component*> commit_components_;
   TimestampFs now_fs_{};
   std::uint64_t event_count_{};
 };
