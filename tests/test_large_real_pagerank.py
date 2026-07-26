@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import json
 import tempfile
 import unittest
 
@@ -9,11 +10,30 @@ from spine_cycle_sim.experiments.large_real_pagerank import (
     classify_hot_destinations,
     extract_large_real_slice,
     spine_hot_hash,
+    validate_large_real_pagerank_manifest,
 )
 from spine_cycle_sim.experiments.shared_workloads import SliceGraph, SliceRecord
 
 
 class LargeRealPageRankTests(unittest.TestCase):
+    def test_frozen_manifest_requires_candidate10_hls_v3(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        source = (
+            root
+            / "configs/experiments/hls_full_pagerank_real_large_runtime_20260726.json"
+        )
+        manifest = validate_large_real_pagerank_manifest(root, source)
+        self.assertEqual(manifest["required_profile_set"], "candidate10_hls_v3")
+        with tempfile.TemporaryDirectory() as temporary:
+            invalid = json.loads(source.read_text(encoding="ascii"))
+            invalid["required_profile_set"] = "legacy"
+            invalid_path = Path(temporary) / "invalid.json"
+            invalid_path.write_text(
+                json.dumps(invalid, sort_keys=True), encoding="ascii"
+            )
+            with self.assertRaisesRegex(ValueError, "profile-set identity"):
+                validate_large_real_pagerank_manifest(root, invalid_path)
+
     def test_extraction_is_deterministic_and_uses_real_vertex_domain(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             source = Path(temporary) / "graph.mtx"

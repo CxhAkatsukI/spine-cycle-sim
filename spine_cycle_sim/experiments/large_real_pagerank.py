@@ -22,6 +22,7 @@ LARGE_REAL_VERTEX_CAP = 65_536
 LARGE_REAL_EXPECTED_VERTICES = 19_399
 LARGE_REAL_EDGES = 50_000
 LARGE_REAL_BATCH = 8
+LARGE_REAL_PROFILE_SET = "candidate10_hls_v3"
 SPINE_STRICT_FAMILY_CAPACITY = 16_384
 SPINE_PARTITION_VERTICES = 1_048_576
 SPINE_FAMILIES = 16
@@ -257,6 +258,7 @@ def build_large_real_pagerank_manifest(
         "matrix_id": "hls_full_pagerank_real_large_runtime_20260726",
         "claim_class": "real_large_slice_runtime_input_contract",
         "input_scope": "real_large_slice",
+        "required_profile_set": LARGE_REAL_PROFILE_SET,
         "source": {
             "dataset_id": "amazon_2008",
             "raw_path_hint": str(source_path),
@@ -284,8 +286,8 @@ def build_large_real_pagerank_manifest(
             "Amazon-2008 graph.",
             "Hot destinations use the current HLS host classifier with a strict "
             "L1 family target so an occupied L0 can accept the timed batch.",
-            "GraSU/ReGraph PageRank is an HLS-equivalent proposed profile, not a "
-            "compiled whole-system xclbin.",
+            "The Candidate10 normalized v3 profiles are required; routed HLS "
+            "PPA/timing evidence is tracked separately from simulator timing.",
         ],
     }
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
@@ -303,6 +305,8 @@ def validate_large_real_pagerank_manifest(
     manifest = json.loads(manifest_path.resolve().read_text(encoding="ascii"))
     if manifest.get("matrix_id") != "hls_full_pagerank_real_large_runtime_20260726":
         raise ValueError("large real PageRank matrix identity mismatch")
+    if manifest.get("required_profile_set") != LARGE_REAL_PROFILE_SET:
+        raise ValueError("large real PageRank profile-set identity mismatch")
     runs = manifest.get("runs", [])
     if len(runs) != 1:
         raise ValueError("large real PageRank manifest requires exactly one run")

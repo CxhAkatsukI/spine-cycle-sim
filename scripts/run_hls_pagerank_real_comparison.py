@@ -381,6 +381,12 @@ def main() -> int:
     )
 
     manifest = _validate_input_manifest(args.input_manifest)
+    required_profile_set = manifest.get("required_profile_set")
+    if required_profile_set is not None and args.profile_set != required_profile_set:
+        raise ValueError(
+            f"input manifest requires profile set {required_profile_set}, "
+            f"not {args.profile_set}"
+        )
     selected = _select_runs(list(manifest["runs"]), args.run_id, args.limit)
     capacity_limited = [
         run
