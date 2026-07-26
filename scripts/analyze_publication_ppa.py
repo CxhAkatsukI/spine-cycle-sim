@@ -36,6 +36,7 @@ def _summary_rows(ledger: dict[str, object]) -> list[dict[str, object]]:
     rows = []
     for build in ledger["builds"]:
         timing = build["timing"]
+        topology = build["topology"]
         rows.append(
             {
                 "build_id": build["build_id"],
@@ -43,6 +44,14 @@ def _summary_rows(ledger: dict[str, object]) -> list[dict[str, object]]:
                 "algorithm": build["algorithm"],
                 "claim_scope": build["claim_scope"],
                 **{key: build["resources"][key] for key in RESOURCE_KEYS},
+                "kernel_kinds": len(topology["kernels"]),
+                "kernel_cus": sum(topology["kernels"].values()),
+                "hbm_channels": json.dumps(
+                    topology["hbm_channels"], separators=(",", ":")
+                ),
+                "hbm_port_bindings": topology["hbm_port_bindings"],
+                "stream_connections": topology["stream_connections"],
+                "slr_assignments": topology["slr_assignments"],
                 "target_mhz": build["target_mhz"],
                 "wns_ns": timing["wns_ns"],
                 "tns_ns": timing["tns_ns"],
