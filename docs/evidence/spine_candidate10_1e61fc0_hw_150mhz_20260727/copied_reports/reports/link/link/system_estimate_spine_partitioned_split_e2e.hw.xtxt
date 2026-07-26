@@ -1,0 +1,436 @@
+===============================================================================
+Version:    v++ v2024.1 (64-bit)
+Build:      SW Build 5074859 on 2024-05-20-23:21:20
+Copyright:  Copyright 1986-2024 Xilinx, Inc. All Rights Reserved.
+Created:    Sun Jul 26 06:21:12 2026
+===============================================================================
+
+-------------------------------------------------------------------------------
+Design Name:             spine_partitioned_split_e2e.hw
+Target Device:           xilinx:u55c:gen3x16_xdma_3:202210.1
+Target Clock:            150MHz
+Total number of kernels: 2
+-------------------------------------------------------------------------------
+
+Kernel Summary
+Kernel Name                    Type  Target              OpenCL Library                  Compute Units
+-----------------------------  ----  ------------------  ------------------------------  -------------
+spine_partconv_compute_kernel  c     fpga0:OCL_REGION_0  spine_partitioned_split_e2e.hw  1
+spine_partconv_rdmaint_kernel  c     fpga0:OCL_REGION_0  spine_partitioned_split_e2e.hw  1
+
+
+-------------------------------------------------------------------------------
+OpenCL Binary:     spine_partitioned_split_e2e.hw
+Kernels mapped to: clc_region
+
+Timing Information (MHz)
+Compute Unit                     Kernel Name                    Module Name                                                                         Target Frequency  Estimated Frequency
+-------------------------------  -----------------------------  ----------------------------------------------------------------------------------  ----------------  -------------------
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  entry_proc                                                                          149.925034        682.593811
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_preflight_read_input_Pipeline_PARTITIONED_DIRTY_PREFLIGHT_READ          149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_preflight_read_input                                                    149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_preflight_validate_input_Pipeline_PARTITIONED_DIRTY_PREFLIGHT_VALIDA    149.925034        378.214813
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_preflight_validate_input                                                149.925034        378.214813
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_preflight_input                                                         149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  entry_proc136                                                                       149.925034        709.219849
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_read_edges_Pipeline_PARTITIONED_FRONTIER_EDGE_READ             149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_read_edges                                                     149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_classify_reduce_Pipeline_PARTITIONED_FRONTIER_CLEAR_COUNTS     149.925034        558.035706
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_classify_reduce_Pipeline_PARTITIONED_FRONTIER_CLASSIFY         149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_classify_reduce_Pipeline_PARTITIONED_FRONTIER_REDUCE           149.925034        255.167145
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_classify_reduce_Pipeline_PARTITIONED_FRONTIER_FLUSH_TAGS       149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_classify_reduce_Pipeline_PARTITIONED_FRONTIER_FLUSH_SOURCES    149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_classify_reduce_Pipeline_PARTITIONED_FRONTIER_EXPORT_COUNTS    149.925034        675.675659
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_classify_reduce                                                149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_classify_dataflow                                              149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_maintenance_Pipeline_PARTITIONED_FAMILY_PREFIX                      149.925034        283.929565
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_maintenance_Pipeline_PARTITIONED_FAMILY_DISPATCH                    149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_maintenance_Pipeline_PARTITIONED_FAMILY_CURSOR_VALIDATE             149.925034        397.140594
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_publish_grouped_pass_Pipeline_PARTITIONED_FRONTIER_SOURCE_P    149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_publish_grouped_pass_Pipeline_PARTITIONED_FRONTIER_GROUP_CL    149.925034        548.245605
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_publish_grouped_pass_Pipeline_PARTITIONED_FRONTIER_GROUP_RE    149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_publish_grouped_pass_Pipeline_PARTITIONED_FRONTIER_GROUP_WR    149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_publish_grouped_pass                                           149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_level_occupied_in_family_range                                          149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_level_occupied                                                          149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_select_binary_target                                                    149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_select_binary_target_for_family_range                                   149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_fixed_level_layout                                                      149.925034        221.729477
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_fixed_level_layout_with_base                                            149.925034        221.729477
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_fixed_family_level_layout                                               149.925034        205.80365
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_fixed_target_index_area_Pipeline_PARTITIONED_CLEAR_TARGET_BITM    149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_fixed_target_index_area_Pipeline_PARTITIONED_CLEAR_TARGET_PAGE    149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_fixed_target_index_area_Pipeline_PARTITIONED_CLEAR_TARGET_ROW_s   149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_fixed_target_index_area_Pipeline_PARTITIONED_CLEAR_TARGET_MASK    149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_fixed_target_index_area                                           149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_new_batch_next_local                                                    149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_carry_cursor_next_Pipeline_PARTITIONED_CURSOR_FIND_SOURCE               149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_carry_cursor_next                                                       149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_write_carry_target_family                                               149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_write_carry_target_family_staged                                        149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_write_carry_target_family_range                                         149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_count_l0_coalesced_rows_local_Pipeline_PARTITIONED_COUNT_L0_COALESCE    149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_count_l0_coalesced_rows_local                                           149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_l0_index_area_with_base_Pipeline_PARTITIONED_CLEAR_L0_BITMAP      149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_l0_index_area_with_base_Pipeline_PARTITIONED_CLEAR_L0_PAGE_BAS    149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_l0_index_area_with_base                                           149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_l0_reachable_index_area_with_base_Pipeline_PARTITIONED_CLEAR_L    149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_l0_reachable_index_area_with_base_Pipeline_PARTITIONED_CLEAR_L_1  149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_l0_reachable_index_area_with_base                                 149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_write_l0_family_Pipeline_PARTITIONED_WRITE_L0_EDGES                     149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_write_l0_family                                                         149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_write_l0_family_staged                                                  149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_write_l0_family_range                                                   149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_write_family_range                                                      149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_commit_target_metadata_family_range_Pipeline_PARTITIONED_COMMIT_TARG    149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_commit_target_metadata_family_range                                     149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_level_all_partitions                                              149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_lower_levels_after_commit                                         149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_level_family_range                                                149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_lower_levels_after_family_commit                                  149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_maintenance_Pipeline_PARTITIONED_COUNT_COMMITTED_TRANSACTION_FAM    149.925034        342.348511
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_retire_staged_target_epochs_Pipeline_PARTITIONED_RETIRE_STAGED_TARGE    149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_retire_staged_target_epochs                                             149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_maintenance_Pipeline_PARTITIONED_MAINT_RESULT_PARTITIONS            149.925034        117.000114
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_maintenance_Pipeline_PARTITIONED_MAINT_RESULT_HOT_SHARDS            149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_maintenance_Pipeline_PARTITIONED_MAINT_RESULT_CLEAR_RESERVED        149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_maintenance                                                         149.925034        117.000114
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_emit_format_rejection                                                   149.925034        1672.24084
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_dirty_ack_Pipeline_PARTITIONED_DIRTY_ACK_VALIDATE_LIST              149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_dirty_ack_Pipeline_PARTITIONED_DIRTY_ACK_CLEAR_BITMAP               149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_dirty_ack_Pipeline_PARTITIONED_DIRTY_ACK_CLEAR_RESULT               149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_dirty_ack                                                           149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_convergence_reader_Pipeline_PARTITIONED_RANGE_TASK_VALIDATE_ACTI    149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_prepare_device_dirty_sources_Pipeline_PARTITIONED_DIRTY_CACHE_AND_VA    149.925034        82.9462509
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_reader_write_protocol_word                                              149.925034        1672.24084
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_prepare_device_dirty_sources_Pipeline_PARTITIONED_DIRTY_SEND_SOURCE_s   149.925034        309.981384
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_reader_read_protocol_word                                               149.925034        12820.5127
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_prepare_device_dirty_sources_Pipeline_PARTITIONED_DIRTY_DRAIN_SOURCE    149.925034        115.088043
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_prepare_device_dirty_sources                                            149.925034        82.9462509
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_convergence_reader_Pipeline_PARTITIONED_RANGE_TASK_CACHE_ACTIVE_s   149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_load_range_task_level_cache                                             149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_convergence_reader_Pipeline_PARTITIONED_RANGE_TASK_CACHE_LEVEL_F    149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_convergence_reader_Pipeline_PARTITIONED_RANGE_TASK_CLEAR_TILE_ST    149.925034        435.16098
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_build_exact_family_tasks_Pipeline_PARTITIONED_LOOKUP_RANK_WORDS         149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_lower_bound_dst                                                         149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_append_range_task                                                       149.925034        225.22522
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_build_exact_row_tasks_Pipeline_PARTITIONED_BUILD_EXACT_ROW_TASKS        149.925034        137.155396
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_build_exact_row_tasks                                                   149.925034        137.155396
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_build_exact_family_tasks                                                149.925034        137.155396
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_build_exact_family_tasks_bank                                           149.925034        137.155396
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_bin_range_tasks_Pipeline_PARTITIONED_RANGE_TASK_PREFIX                  149.925034        274.273193
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_bin_range_tasks_Pipeline_PARTITIONED_RANGE_TASK_SCATTER                 149.925034        233.972855
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_bin_range_tasks_Pipeline_PARTITIONED_RANGE_TASK_VERIFY_CURSORS          149.925034        273.52298
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_bin_range_tasks                                                         149.925034        233.972855
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_emit_edge_range_tile_Pipeline_PARTITIONED_EMIT_EDGE_LOOP                149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_emit_edge_range_tile                                                    149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_replay_range_task                                                       149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_replay_range_task_bank                                                  149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_replay_binned_range_tasks                                               149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_discover_touched_tiles_Pipeline_PARTITIONED_LOOKUP_RANK_WORDS           149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_discover_touched_tiles                                                  149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_discover_touched_tiles_bank                                             149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_discover_hot_shard_touched_tiles_Pipeline_PARTITIONED_LOOKUP_RANK_WO    149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_discover_hot_shard_touched_tiles                                        149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_discover_hot_shard_touched_tiles_bank                                   149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_emit_active_records_for_tile_Pipeline_PARTITIONED_LOOKUP_RANK_WORDS     149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_emit_active_records_for_tile                                            149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_emit_active_records_for_tile_bank                                       149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_emit_hot_shard_records_for_tile_Pipeline_PARTITIONED_LOOKUP_RANK_WOR    149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_emit_hot_shard_records_for_tile                                         149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_emit_hot_shard_records_for_tile_bank                                    149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_process_one_partition_tiled_reader                                      149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_write_dirty_reader_result                                               149.925034        205.465378
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_emit_range_task_diagnostics                                             149.925034        1672.24084
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_convergence_reader                                                  149.925034        82.9462509
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  spine_partconv_rdmaint_kernel                                                       149.925034        82.9462509
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_compute_read_protocol_word                                              134.048264        12820.5127
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_compute_write_protocol_word                                             134.048264        1672.24084
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_run_convergence_compute_Pipeline_PARTCONV_SPECULATIVE_RECEIVE_LOOP      134.048264        457.038391
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_run_convergence_compute_Pipeline_PARTCONV_TINY_GATHER_LOOP              134.048264        183.553604
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_run_convergence_compute_Pipeline_PARTCONV_TINY_BUFFER_RELAX_LOOP        134.048264        190.150223
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_store_vs_tile_active_Pipeline_PARTITIONED_STORE_TILE_ACTIVE_BITS        134.048264        183.553604
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_store_vs_tile_active                                                    134.048264        183.553604
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_load_vs_tile                                                            134.048264        183.553604
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_run_convergence_compute_Pipeline_PARTCONV_DENSE_BUFFER_REPLAY_LOOP      134.048264        190.150223
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_run_convergence_compute_Pipeline_PARTCONV_DENSE_STREAM_RELAX_LOOP       134.048264        190.150223
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_store_vs_tile                                                           134.048264        183.553604
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_emit_tile_active_Pipeline_PARTITIONED_EMIT_TILE_ACTIVE_BITS             134.048264        183.553604
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_emit_tile_active                                                        134.048264        183.553604
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_run_convergence_compute                                                 134.048264        183.553604
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  spine_partconv_compute_kernel                                                       134.048264        183.553604
+
+Latency Information
+Compute Unit                     Kernel Name                    Module Name                                                                         Start Interval           Best (cycles)  Avg (cycles)    Worst (cycles)    Best (absolute)  Avg (absolute)  Worst (absolute)
+-------------------------------  -----------------------------  ----------------------------------------------------------------------------------  -----------------------  -------------  --------------  ----------------  ---------------  --------------  ----------------
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  entry_proc                                                                          0                        0              0               0                 0 ns             0 ns            0 ns
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_preflight_read_input_Pipeline_PARTITIONED_DIRTY_PREFLIGHT_READ          2 ~ 131073               75             65610           131146            0.500 us         0.437 ms        0.874 ms
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_preflight_read_input                                                    77 ~ 131148              77             65612           131148            0.513 us         0.437 ms        0.874 ms
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_preflight_validate_input_Pipeline_PARTITIONED_DIRTY_PREFLIGHT_VALIDA    4 ~ 131076               4              65540           131076            26.668 ns        0.437 ms        0.874 ms
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_preflight_validate_input                                                7 ~ 131079               7              65543           131079            46.669 ns        0.437 ms        0.874 ms
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_preflight_input                                                         78 ~ 131149              80             65616           131152            0.533 us         0.437 ms        0.874 ms
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  entry_proc136                                                                       0                        0              0               0                 0 ns             0 ns            0 ns
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_read_edges_Pipeline_PARTITIONED_FRONTIER_EDGE_READ             2 ~ 131073               75             65610           131146            0.500 us         0.437 ms        0.874 ms
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_read_edges                                                     77 ~ 131148              77             65612           131148            0.513 us         0.437 ms        0.874 ms
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_classify_reduce_Pipeline_PARTITIONED_FRONTIER_CLEAR_COUNTS     33                       34             34              34                0.227 us         0.227 us        0.227 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_classify_reduce_Pipeline_PARTITIONED_FRONTIER_CLASSIFY         76 ~ 204                 76             140             204               0.507 us         0.933 us        1.360 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_classify_reduce_Pipeline_PARTITIONED_FRONTIER_REDUCE           5 ~ 133                  5              69              133               33.335 ns        0.460 us        0.887 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_classify_reduce_Pipeline_PARTITIONED_FRONTIER_FLUSH_TAGS       2 ~ 17                   72             79              87                0.480 us         0.527 us        0.580 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_classify_reduce_Pipeline_PARTITIONED_FRONTIER_FLUSH_SOURCES    1 ~ 130                  2              135             200               13.334 ns        0.900 us        1.333 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_classify_reduce_Pipeline_PARTITIONED_FRONTIER_EXPORT_COUNTS    33                       34             34              34                0.227 us         0.227 us        0.227 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_classify_reduce                                                235 ~ 648263             235            221255          648263            1.567 us         1.475 ms        4.322 ms
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_classify_dataflow                                              236 ~ 648264             307            221327          648335            2.047 us         1.476 ms        4.322 ms
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_maintenance_Pipeline_PARTITIONED_FAMILY_PREFIX                      33                       34             34              34                0.227 us         0.227 us        0.227 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_maintenance_Pipeline_PARTITIONED_FAMILY_DISPATCH                    2 ~ 131073               146            65681           131217            0.973 us         0.438 ms        0.875 ms
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_maintenance_Pipeline_PARTITIONED_FAMILY_CURSOR_VALIDATE             33                       34             34              34                0.227 us         0.227 us        0.227 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_publish_grouped_pass_Pipeline_PARTITIONED_FRONTIER_SOURCE_P    2 ~ 17                   75             82              90                0.500 us         0.547 us        0.600 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_publish_grouped_pass_Pipeline_PARTITIONED_FRONTIER_GROUP_CL    2 ~ 17                   3              10              18                20.001 ns        66.670 ns       0.120 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_publish_grouped_pass_Pipeline_PARTITIONED_FRONTIER_GROUP_RE    2 ~ 17                   76             83              91                0.507 us         0.553 us        0.607 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_publish_grouped_pass_Pipeline_PARTITIONED_FRONTIER_GROUP_WR    2 ~ 17                   74             81              89                0.493 us         0.540 us        0.593 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_publish_grouped_pass                                           95 ~ 44553207886         95             1867644969      44553207886       0.633 us         12.452 sec      297.036 sec
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_level_occupied_in_family_range                                          34                       110            110             110               0.733 us         0.733 us        0.733 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_level_occupied                                                          111                      111            111             111               0.740 us         0.740 us        0.740 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_select_binary_target                                                    1244                     1244           1244            1244              8.294 us         8.294 us        8.294 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_select_binary_target_for_family_range                                   1233                     1233           1233            1233              8.220 us         8.220 us        8.220 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_fixed_level_layout                                                      1                        1              1               1                 6.667 ns         6.667 ns        6.667 ns
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_fixed_level_layout_with_base                                            1                        1              1               1                 6.667 ns         6.667 ns        6.667 ns
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_fixed_family_level_layout                                               1                        1              1               1                 6.667 ns         6.667 ns        6.667 ns
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_fixed_target_index_area_Pipeline_PARTITIONED_CLEAR_TARGET_BITM    262145                   262146         262146          262146            1.748 ms         1.748 ms        1.748 ms
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_fixed_target_index_area_Pipeline_PARTITIONED_CLEAR_TARGET_PAGE    32770                    32771          32771           32771             0.218 ms         0.218 ms        0.218 ms
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_fixed_target_index_area_Pipeline_PARTITIONED_CLEAR_TARGET_ROW_s   2 ~ 16777217             72             8388679         16777287          0.480 us         55.927 ms       0.112 sec
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_fixed_target_index_area_Pipeline_PARTITIONED_CLEAR_TARGET_MASK    2 ~ 16777217             72             8388679         16777287          0.480 us         55.927 ms       0.112 sec
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_fixed_target_index_area                                           295206 ~ 33849636        295206         17072420        33849636          1.968 ms         0.114 sec       0.226 sec
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_new_batch_next_local                                                    1 ~ 73                   1              37              73                6.667 ns         0.247 us        0.487 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_carry_cursor_next_Pipeline_PARTITIONED_CURSOR_FIND_SOURCE               5 ~ 155257               5              39167           155257            33.335 ns        0.261 ms        1.035 ms
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_carry_cursor_next                                                       1 ~ 155409               1              30822           155409            6.667 ns         0.205 ms        1.036 ms
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_write_carry_target_family                                               267 ~ 41870331262857     267            1825101646627   41870331262857    1.780 us         1.2e+04 sec     2.8e+05 sec
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_write_carry_target_family_staged                                        268 ~ 41870331262858     268            1825101646628   41870331262858    1.787 us         1.2e+04 sec     2.8e+05 sec
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_write_carry_target_family_range                                         4320 ~ 669925300205760   4320           29201626346080  669925300205760   28.801 us        1.9e+05 sec     4.5e+06 sec
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_count_l0_coalesced_rows_local_Pipeline_PARTITIONED_COUNT_L0_COALESCE    76 ~ 131147              76             65611           131147            0.507 us         0.437 ms        0.874 ms
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_count_l0_coalesced_rows_local                                           78 ~ 131149              78             65613           131149            0.520 us         0.437 ms        0.874 ms
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_l0_index_area_with_base_Pipeline_PARTITIONED_CLEAR_L0_BITMAP      262145                   262146         262146          262146            1.748 ms         1.748 ms        1.748 ms
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_l0_index_area_with_base_Pipeline_PARTITIONED_CLEAR_L0_PAGE_BAS    32770                    32771          32771           32771             0.218 ms         0.218 ms        0.218 ms
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_l0_index_area_with_base                                           295058                   295058         295058          295058            1.967 ms         1.967 ms        1.967 ms
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_l0_reachable_index_area_with_base_Pipeline_PARTITIONED_CLEAR_L    2 ~ 65538                72             32840           65608             0.480 us         0.219 ms        0.437 ms
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_l0_reachable_index_area_with_base_Pipeline_PARTITIONED_CLEAR_L_1  1 ~ 32769                2              16455           32839             13.334 ns        0.110 ms        0.219 ms
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_l0_reachable_index_area_with_base                                 295137 ~ 393510          295137         344358          393510            1.968 ms         2.296 ms        2.624 ms
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_write_l0_family_Pipeline_PARTITIONED_WRITE_L0_EDGES                     48 ~ 3145752             152            1572992         3145856           1.013 us         10.487 ms       20.973 ms
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_write_l0_family                                                         1 ~ 3540502              1              872797          3540502           6.667 ns         5.819 ms        23.605 ms
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_write_l0_family_staged                                                  2 ~ 3540503              2              872798          3540503           13.334 ns        5.819 ms        23.605 ms
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_write_l0_family_range                                                   1297 ~ 58746512          1297           8032257         58746512          8.647 us         53.551 ms       0.392 sec
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_write_family_range                                                      1 ~ 669925300205761      1              7300408594585   669925300205761   6.667 ns         4.9e+04 sec     4.5e+06 sec
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_commit_target_metadata_family_range_Pipeline_PARTITIONED_COMMIT_TARG    187                      250            250             250               1.667 us         1.667 us        1.667 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_commit_target_metadata_family_range                                     1 ~ 251                  1              126             251               6.667 ns         0.840 us        1.673 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_level_all_partitions                                              153                      218            218             218               1.453 us         1.453 us        1.453 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_lower_levels_after_commit                                         2421                     2421           2421            2421              16.141 us        16.141 us       16.141 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_level_family_range                                                153                      215            215             215               1.433 us         1.433 us        1.433 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_lower_levels_after_family_commit                                  2388                     2388           2388            2388              15.921 us        15.921 us       15.921 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_maintenance_Pipeline_PARTITIONED_COUNT_COMMITTED_TRANSACTION_FAM    17                       18             18              18                0.120 us         0.120 us        0.120 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_retire_staged_target_epochs_Pipeline_PARTITIONED_RETIRE_STAGED_TARGE    17                       91             91              91                0.607 us         0.607 us        0.607 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_retire_staged_target_epochs                                             1 ~ 92                   1              47              92                6.667 ns         0.313 us        0.613 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_maintenance_Pipeline_PARTITIONED_MAINT_RESULT_PARTITIONS            1139                     1140           1140            1140              9.743 us         9.743 us        9.743 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_maintenance_Pipeline_PARTITIONED_MAINT_RESULT_HOT_SHARDS            17                       93             93              93                0.620 us         0.620 us        0.620 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_maintenance_Pipeline_PARTITIONED_MAINT_RESULT_CLEAR_RESERVED        17                       18             18              18                0.120 us         0.120 us        0.120 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_maintenance                                                         1517 ~ 1339984275701996  1517           6814426597571   1339984275701996  12.966 us        5.8e+04 sec     1.1e+07 sec
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_emit_format_rejection                                                   2                        2              2               2                 13.334 ns        13.334 ns       13.334 ns
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_dirty_ack_Pipeline_PARTITIONED_DIRTY_ACK_VALIDATE_LIST              147 ~ 2466250752         148            1233125377      2466250753        0.987 us         8.221 sec       16.442 sec
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_dirty_ack_Pipeline_PARTITIONED_DIRTY_ACK_CLEAR_BITMAP               1 ~ 3607101441           2              1803550722      3607101442        13.334 ns        12.024 sec      24.049 sec
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_dirty_ack_Pipeline_PARTITIONED_DIRTY_ACK_CLEAR_RESULT               97                       98             98              98                0.653 us         0.653 us        0.653 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_dirty_ack                                                           263 ~ 6073352534         263            1333369544      6073352534        1.753 us         8.890 sec       40.491 sec
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_convergence_reader_Pipeline_PARTITIONED_RANGE_TASK_VALIDATE_ACTI    34                       107            107             107               0.713 us         0.713 us        0.713 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_prepare_device_dirty_sources_Pipeline_PARTITIONED_DIRTY_CACHE_AND_VA    144 ~ 585873             144            293009          585873            1.736 us         3.532 ms        7.063 ms
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_reader_write_protocol_word                                              1                        1              1               1                 6.667 ns         6.667 ns        6.667 ns
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_prepare_device_dirty_sources_Pipeline_PARTITIONED_DIRTY_SEND_SOURCE_s   3 ~ 20                   3              12              20                20.001 ns        80.004 ns       0.133 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_reader_read_protocol_word                                               1                        0              0               0                 0 ns             0 ns            0 ns
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_prepare_device_dirty_sources_Pipeline_PARTITIONED_DIRTY_DRAIN_SOURCE    74 ~ 1210                74             642             1210              0.643 us         5.578 us        10.513 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_prepare_device_dirty_sources                                            76 ~ 902117              76             223536          902117            0.916 us         2.695 ms        10.876 ms
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_convergence_reader_Pipeline_PARTITIONED_RANGE_TASK_CACHE_ACTIVE_s   1 ~ 16385                2              8195            16387             13.334 ns        54.636 us       0.109 ms
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_load_range_task_level_cache                                             80                       228            228             228               1.520 us         1.520 us        1.520 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_convergence_reader_Pipeline_PARTITIONED_RANGE_TASK_CACHE_LEVEL_F    28240                    28311          28311           28311             0.189 ms         0.189 ms        0.189 ms
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_convergence_reader_Pipeline_PARTITIONED_RANGE_TASK_CLEAR_TILE_ST    257                      258            258             258               1.720 us         1.720 us        1.720 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_build_exact_family_tasks_Pipeline_PARTITIONED_LOOKUP_RANK_WORDS         5                        8              8               8                 53.336 ns        53.336 ns       53.336 ns
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_lower_bound_dst                                                         75 ~ 2369                76             1186            2370              0.507 us         7.907 us        15.801 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_append_range_task                                                       2                        1              1               1                 6.667 ns         6.667 ns        6.667 ns
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_build_exact_row_tasks_Pipeline_PARTITIONED_BUILD_EXACT_ROW_TASKS        74 ~ 77594624            75             38797313        77594625          0.547 us         0.283 sec       0.566 sec
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_build_exact_row_tasks                                                   1 ~ 77599373             1              15519878        77599373          7.291 ns         0.113 sec       0.566 sec
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_build_exact_family_tasks                                                1 ~ 13985357398020       1              87410618370     13985357398020    7.291 ns         637.303 sec     1.0e+05 sec
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_build_exact_family_tasks_bank                                           2 ~ 13985357398021       2              87410618371     13985357398021    14.582 ns        637.303 sec     1.0e+05 sec
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_bin_range_tasks_Pipeline_PARTITIONED_RANGE_TASK_PREFIX                  257                      258            258             258               1.720 us         1.720 us        1.720 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_bin_range_tasks_Pipeline_PARTITIONED_RANGE_TASK_SCATTER                 4 ~ 262144               5              131073          262145            33.335 ns        0.874 ms        1.748 ms
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_bin_range_tasks_Pipeline_PARTITIONED_RANGE_TASK_VERIFY_CURSORS          257                      258            258             258               1.720 us         1.720 us        1.720 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_bin_range_tasks                                                         261 ~ 262667             261            44039           262667            1.740 us         0.294 ms        1.751 ms
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_emit_edge_range_tile_Pipeline_PARTITIONED_EMIT_EDGE_LOOP                1 ~ 4097                 2              2052            4100              13.334 ns        13.681 us       27.335 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_emit_edge_range_tile                                                    76 ~ 4174                76             2126            4174              0.507 us         14.174 us       27.828 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_replay_range_task                                                       1 ~ 4175                 1              1064            4175              6.667 ns         7.094 us        27.835 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_replay_range_task_bank                                                  2 ~ 4176                 2              1065            4176              13.334 ns        7.100 us        27.841 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_replay_binned_range_tasks                                               769 ~ 70128764170        769            2989141510      70128764170       5.127 us         19.929 sec      467.548 sec
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_discover_touched_tiles_Pipeline_PARTITIONED_LOOKUP_RANK_WORDS           5                        8              8               8                 53.336 ns        53.336 ns       53.336 ns
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_discover_touched_tiles                                                  145 ~ 36647057           145            7532689         36647057          0.967 us         50.220 ms       0.244 sec
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_discover_touched_tiles_bank                                             146 ~ 36647058           146            7532690         36647058          0.973 us         50.220 ms       0.244 sec
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_discover_hot_shard_touched_tiles_Pipeline_PARTITIONED_LOOKUP_RANK_WO    5                        8              8               8                 53.336 ns        53.336 ns       53.336 ns
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_discover_hot_shard_touched_tiles                                        74 ~ 250347739           74             12502163        250347739         0.493 us         83.352 ms       1.669 sec
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_discover_hot_shard_touched_tiles_bank                                   75 ~ 250347740           75             12502164        250347740         0.500 us         83.352 ms       1.669 sec
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_emit_active_records_for_tile_Pipeline_PARTITIONED_LOOKUP_RANK_WORDS     5                        8              8               8                 53.336 ns        53.336 ns       53.336 ns
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_emit_active_records_for_tile                                            145 ~ 435122321          145            45424785        435122321         0.967 us         0.303 sec       2.901 sec
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_emit_active_records_for_tile_bank                                       146 ~ 435122322          146            45424786        435122322         0.973 us         0.303 sec       2.901 sec
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_emit_hot_shard_records_for_tile_Pipeline_PARTITIONED_LOOKUP_RANK_WOR    5                        8              8               8                 53.336 ns        53.336 ns       53.336 ns
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_emit_hot_shard_records_for_tile                                         74 ~ 435122396           74             10092009        435122396         0.493 us         67.283 ms       2.901 sec
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_emit_hot_shard_records_for_tile_bank                                    75 ~ 435122397           75             10092010        435122397         0.500 us         67.283 ms       2.901 sec
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_process_one_partition_tiled_reader                                      77 ~ 122395503687        77             110306020       122395503687      0.513 us         0.735 sec       816.011 sec
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_write_dirty_reader_result                                               77                       77             77              77                0.513 us         0.513 us        0.513 us
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_emit_range_task_diagnostics                                             8                        8              8               8                 53.336 ns        53.336 ns       53.336 ns
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_convergence_reader                                                  308 ~ 3806045670544544   308            4476311109574   3806045670544544  3.713 us         5.4e+04 sec     4.6e+07 sec
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  spine_partconv_rdmaint_kernel                                                       148 ~ 3806045670544694   147            4526457747512   3806045670544693  1.772 us         5.5e+04 sec     4.6e+07 sec
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_compute_read_protocol_word                                              0                        0              0               0                 0 ns             0 ns            0 ns
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_compute_write_protocol_word                                             1                        1              1               1                 7.463 ns         7.463 ns        7.463 ns
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_run_convergence_compute_Pipeline_PARTCONV_SPECULATIVE_RECEIVE_LOOP      2 ~ 4098                 3              2051            4099              22.389 ns        15.307 us       30.591 us
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_run_convergence_compute_Pipeline_PARTCONV_TINY_GATHER_LOOP              1 ~ 4097                 2              2123            4171              14.926 ns        15.844 us       31.128 us
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_run_convergence_compute_Pipeline_PARTCONV_TINY_BUFFER_RELAX_LOOP        4 ~ 4101                 4              2053            4101              29.852 ns        15.322 us       30.606 us
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_store_vs_tile_active_Pipeline_PARTITIONED_STORE_TILE_ACTIVE_BITS        65                       135            135             135               1.008 us         1.008 us        1.008 us
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_store_vs_tile_active                                                    4 ~ 142337               4              36353           142337            29.852 ns        0.271 ms        1.062 ms
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_load_vs_tile                                                            65537                    65610          65610           65610             0.490 ms         0.490 ms        0.490 ms
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_run_convergence_compute_Pipeline_PARTCONV_DENSE_BUFFER_REPLAY_LOOP      4 ~ 4101                 4              2053            4101              29.852 ns        15.322 us       30.606 us
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_run_convergence_compute_Pipeline_PARTCONV_DENSE_STREAM_RELAX_LOOP       0                        undef          undef           undef             undef            undef           undef
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_store_vs_tile                                                           65537                    65607          65607           65607             0.490 ms         0.490 ms        0.490 ms
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_emit_tile_active_Pipeline_PARTITIONED_EMIT_TILE_ACTIVE_BITS             65                       135            135             135               1.008 us         1.008 us        1.008 us
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_emit_tile_active                                                        4 ~ 142337               4              36353           142337            29.852 ns        0.271 ms        1.062 ms
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_run_convergence_compute                                                 undef                    undef          undef           undef             undef            undef           undef
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  spine_partconv_compute_kernel                                                       undef                    undef          undef           undef             undef            undef           undef
+
+Area Information
+Compute Unit                     Kernel Name                    Module Name                                                                         FF      LUT     DSP  BRAM  URAM
+-------------------------------  -----------------------------  ----------------------------------------------------------------------------------  ------  ------  ---  ----  ----
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  entry_proc                                                                          3       47      0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_preflight_read_input_Pipeline_PARTITIONED_DIRTY_PREFLIGHT_READ          289     218     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_preflight_read_input                                                    294     285     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_preflight_validate_input_Pipeline_PARTITIONED_DIRTY_PREFLIGHT_VALIDA    154     526     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_preflight_validate_input                                                343     644     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_preflight_input                                                         872     1188    0    2     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  entry_proc136                                                                       2       38      0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_read_edges_Pipeline_PARTITIONED_FRONTIER_EDGE_READ             289     218     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_read_edges                                                     294     285     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_classify_reduce_Pipeline_PARTITIONED_FRONTIER_CLEAR_COUNTS     8       54      0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_classify_reduce_Pipeline_PARTITIONED_FRONTIER_CLASSIFY         618     690     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_classify_reduce_Pipeline_PARTITIONED_FRONTIER_REDUCE           453     1127    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_classify_reduce_Pipeline_PARTITIONED_FRONTIER_FLUSH_TAGS       271     211     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_classify_reduce_Pipeline_PARTITIONED_FRONTIER_FLUSH_SOURCES    274     245     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_classify_reduce_Pipeline_PARTITIONED_FRONTIER_EXPORT_COUNTS    14      65      0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_classify_reduce                                                2724    3614    0    5     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_classify_dataflow                                              3253    4178    0    7     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_maintenance_Pipeline_PARTITIONED_FAMILY_PREFIX                      32      604     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_maintenance_Pipeline_PARTITIONED_FAMILY_DISPATCH                    2081    2856    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_maintenance_Pipeline_PARTITIONED_FAMILY_CURSOR_VALIDATE             29      458     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_publish_grouped_pass_Pipeline_PARTITIONED_FRONTIER_SOURCE_P    481     330     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_publish_grouped_pass_Pipeline_PARTITIONED_FRONTIER_GROUP_CL    7       64      0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_publish_grouped_pass_Pipeline_PARTITIONED_FRONTIER_GROUP_RE    434     231     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_publish_grouped_pass_Pipeline_PARTITIONED_FRONTIER_GROUP_WR    436     387     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_frontier_publish_grouped_pass                                           3631    5759    0    1     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_level_occupied_in_family_range                                          415     803     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_level_occupied                                                          419     844     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_select_binary_target                                                    464     1001    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_select_binary_target_for_family_range                                   460     960     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_fixed_level_layout                                                      23      1353    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_fixed_level_layout_with_base                                            46      1710    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_fixed_family_level_layout                                               48      1733    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_fixed_target_index_area_Pipeline_PARTITIONED_CLEAR_TARGET_BITM    22      102     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_fixed_target_index_area_Pipeline_PARTITIONED_CLEAR_TARGET_PAGE    19      95      0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_fixed_target_index_area_Pipeline_PARTITIONED_CLEAR_TARGET_ROW_s   227     346     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_fixed_target_index_area_Pipeline_PARTITIONED_CLEAR_TARGET_MASK    227     346     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_fixed_target_index_area                                           767     2350    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_new_batch_next_local                                                    584     614     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_carry_cursor_next_Pipeline_PARTITIONED_CURSOR_FIND_SOURCE               1549    3409    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_carry_cursor_next                                                       4523    8588    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_write_carry_target_family                                               29320   39572   0    2     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_write_carry_target_family_staged                                        29772   39829   0    2     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_write_carry_target_family_range                                         32097   44982   0    2     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_count_l0_coalesced_rows_local_Pipeline_PARTITIONED_COUNT_L0_COALESCE    654     1304    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_count_l0_coalesced_rows_local                                           952     1699    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_l0_index_area_with_base_Pipeline_PARTITIONED_CLEAR_L0_BITMAP      22      102     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_l0_index_area_with_base_Pipeline_PARTITIONED_CLEAR_L0_PAGE_BAS    19      95      0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_l0_index_area_with_base                                           307     1448    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_l0_reachable_index_area_with_base_Pipeline_PARTITIONED_CLEAR_L    219     256     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_l0_reachable_index_area_with_base_Pipeline_PARTITIONED_CLEAR_L_1  218     266     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_l0_reachable_index_area_with_base                                 753     2387    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_write_l0_family_Pipeline_PARTITIONED_WRITE_L0_EDGES                     6619    6703    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_write_l0_family                                                         15994   21293   0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_write_l0_family_staged                                                  16222   21469   0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_write_l0_family_range                                                   19343   28259   0    2     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_write_family_range                                                      52409   79146   0    4     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_commit_target_metadata_family_range_Pipeline_PARTITIONED_COMMIT_TARG    1783    4615    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_commit_target_metadata_family_range                                     1848    4697    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_level_all_partitions                                              315     1089    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_lower_levels_after_commit                                         327     1207    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_level_family_range                                                317     1172    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_clear_lower_levels_after_family_commit                                  329     1291    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_maintenance_Pipeline_PARTITIONED_COUNT_COMMITTED_TRANSACTION_FAM    42      282     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_retire_staged_target_epochs_Pipeline_PARTITIONED_RETIRE_STAGED_TARGE    550     1186    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_retire_staged_target_epochs                                             585     1229    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_maintenance_Pipeline_PARTITIONED_MAINT_RESULT_PARTITIONS            218     824     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_maintenance_Pipeline_PARTITIONED_MAINT_RESULT_HOT_SHARDS            414     358     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_maintenance_Pipeline_PARTITIONED_MAINT_RESULT_CLEAR_RESERVED        16      109     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_maintenance                                                         84543   133347  0    18    0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_emit_format_rejection                                                   3       45      0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_dirty_ack_Pipeline_PARTITIONED_DIRTY_ACK_VALIDATE_LIST              645     1966    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_dirty_ack_Pipeline_PARTITIONED_DIRTY_ACK_CLEAR_BITMAP               693     1975    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_dirty_ack_Pipeline_PARTITIONED_DIRTY_ACK_CLEAR_RESULT               11      79      0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_dirty_ack                                                           3633    8148    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_convergence_reader_Pipeline_PARTITIONED_RANGE_TASK_VALIDATE_ACTI    506     815     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_prepare_device_dirty_sources_Pipeline_PARTITIONED_DIRTY_CACHE_AND_VA    522     1952    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_reader_write_protocol_word                                              2       17      0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_prepare_device_dirty_sources_Pipeline_PARTITIONED_DIRTY_SEND_SOURCE_s   563     328     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_reader_read_protocol_word                                               1       11      0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_prepare_device_dirty_sources_Pipeline_PARTITIONED_DIRTY_DRAIN_SOURCE    560     1223    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_prepare_device_dirty_sources                                            4241    5641    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_convergence_reader_Pipeline_PARTITIONED_RANGE_TASK_CACHE_ACTIVE_s   321     148     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_load_range_task_level_cache                                             1621    2413    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_convergence_reader_Pipeline_PARTITIONED_RANGE_TASK_CACHE_LEVEL_F    1805    3054    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_convergence_reader_Pipeline_PARTITIONED_RANGE_TASK_CLEAR_TILE_ST    11      60      0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_build_exact_family_tasks_Pipeline_PARTITIONED_LOOKUP_RANK_WORDS         374     822     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_lower_bound_dst                                                         370     906     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_append_range_task                                                       175     464     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_build_exact_row_tasks_Pipeline_PARTITIONED_BUILD_EXACT_ROW_TASKS        890     1570    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_build_exact_row_tasks                                                   1890    3866    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_build_exact_family_tasks                                                5637    11186   0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_build_exact_family_tasks_bank                                           5848    12453   0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_bin_range_tasks_Pipeline_PARTITIONED_RANGE_TASK_PREFIX                  61      257     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_bin_range_tasks_Pipeline_PARTITIONED_RANGE_TASK_SCATTER                 258     278     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_bin_range_tasks_Pipeline_PARTITIONED_RANGE_TASK_VERIFY_CURSORS          20      168     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_bin_range_tasks                                                         376     1100    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_emit_edge_range_tile_Pipeline_PARTITIONED_EMIT_EDGE_LOOP                262     430     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_emit_edge_range_tile                                                    497     1422    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_replay_range_task                                                       684     1743    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_replay_range_task_bank                                                  728     2814    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_replay_binned_range_tasks                                               1347    3730    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_discover_touched_tiles_Pipeline_PARTITIONED_LOOKUP_RANK_WORDS           374     822     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_discover_touched_tiles                                                  4323    8921    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_discover_touched_tiles_bank                                             4471    10107   0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_discover_hot_shard_touched_tiles_Pipeline_PARTITIONED_LOOKUP_RANK_WO    374     822     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_discover_hot_shard_touched_tiles                                        5091    9341    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_discover_hot_shard_touched_tiles_bank                                   5239    10563   0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_emit_active_records_for_tile_Pipeline_PARTITIONED_LOOKUP_RANK_WORDS     374     822     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_emit_active_records_for_tile                                            5112    10121   0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_emit_active_records_for_tile_bank                                       5308    11336   0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_emit_hot_shard_records_for_tile_Pipeline_PARTITIONED_LOOKUP_RANK_WOR    374     822     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_emit_hot_shard_records_for_tile                                         5527    9150    0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_emit_hot_shard_records_for_tile_bank                                    5723    10347   0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_process_one_partition_tiled_reader                                      22541   51886   0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_write_dirty_reader_result                                               153     540     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_emit_range_task_diagnostics                                             9       114     0    0     0
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  partitioned_run_convergence_reader                                                  43414   94219   0    3     84
+spine_partconv_rdmaint_kernel_1  spine_partconv_rdmaint_kernel  spine_partconv_rdmaint_kernel                                                       153383  262707  0    107   84
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_compute_read_protocol_word                                              65      28      0    0     0
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_compute_write_protocol_word                                             2       33      0    0     0
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_run_convergence_compute_Pipeline_PARTCONV_SPECULATIVE_RECEIVE_LOOP      16      128     0    0     0
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_run_convergence_compute_Pipeline_PARTCONV_TINY_GATHER_LOOP              338     255     0    0     0
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_run_convergence_compute_Pipeline_PARTCONV_TINY_BUFFER_RELAX_LOOP        531     764     0    0     0
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_store_vs_tile_active_Pipeline_PARTITIONED_STORE_TILE_ACTIVE_BITS        374     792     0    0     0
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_store_vs_tile_active                                                    577     1056    0    0     0
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_load_vs_tile                                                            2807    389     0    0     0
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_run_convergence_compute_Pipeline_PARTCONV_DENSE_BUFFER_REPLAY_LOOP      724     746     0    0     0
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_run_convergence_compute_Pipeline_PARTCONV_DENSE_STREAM_RELAX_LOOP       542     720     0    0     0
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_store_vs_tile                                                           319     314     0    0     0
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_emit_tile_active_Pipeline_PARTITIONED_EMIT_TILE_ACTIVE_BITS             725     897     0    0     0
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_emit_tile_active                                                        929     1172    0    0     0
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  partitioned_run_convergence_compute                                                 11412   20993   0    79    16
+spine_partconv_compute_kernel_1  spine_partconv_compute_kernel  spine_partconv_compute_kernel                                                       14898   24967   0    88    16
+-------------------------------------------------------------------------------
