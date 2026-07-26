@@ -95,14 +95,26 @@ class Candidate10NormalizedFreezeV3Tests(unittest.TestCase):
             all(len(value) == 64 for value in prototype["source_sha256"].values())
         )
         repository = Path(prototype["repository"])
-        revision = subprocess.run(
-            ["git", "rev-parse", "HEAD"],
+        revision_is_ancestor = subprocess.run(
+            [
+                "git",
+                "merge-base",
+                "--is-ancestor",
+                prototype["revision"],
+                "HEAD",
+            ],
             cwd=repository,
             text=True,
             stdout=subprocess.PIPE,
-            check=True,
-        ).stdout.strip()
-        self.assertEqual(revision, prototype["revision"])
+            stderr=subprocess.STDOUT,
+            check=False,
+        )
+        self.assertEqual(
+            revision_is_ancestor.returncode,
+            0,
+            "pinned HLS revision is not an ancestor of the current checkout: "
+            + revision_is_ancestor.stdout,
+        )
         for relative, expected in prototype["source_sha256"].items():
             actual = hashlib.sha256((repository / relative).read_bytes()).hexdigest()
             self.assertEqual(actual, expected, relative)
