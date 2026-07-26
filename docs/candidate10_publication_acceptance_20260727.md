@@ -95,6 +95,8 @@ done
 
 The large-runtime manifest now pins `candidate10_hls_v3`; invoking its runner
 with the legacy default fails before launching a child process.
+Rejected compiler-only and SST thread-scaling runtime experiments are recorded
+in `docs/runtime_rejected_paths_20260727.md`.
 
 ## Remaining publication work
 
