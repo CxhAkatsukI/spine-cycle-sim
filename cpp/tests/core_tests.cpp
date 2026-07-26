@@ -7649,6 +7649,51 @@ void test_spine_full_pagerank_vertical_slice_reads_level_edges() {
             << " maintenance_reruns=0\n";
 }
 
+void test_spine_pagerank_active_gate_fallback_preserves_tile_identity() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("pagerank-fallback", 200.0);
+  MockMemoryBackend backend("pagerank-fallback-hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 2,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  SpineEdgeSlice workload{
+      .vertices = 3,
+      .edges = {
+          {.src = 0, .dst = 1, .weight = 1, .diff = 1},
+          {.src = 1, .dst = 2, .weight = 1, .diff = 1},
+          {.src = 2, .dst = 0, .weight = 1, .diff = 1},
+      },
+      .case_name = "pagerank_active_gate_fallback",
+  };
+  SpineL0Config maintenance_config;
+  maintenance_config.range_task_active_gate = 1;
+  SpinePageRankVerticalSliceSystem system(
+      scheduler, core, backend, workload, 0.8F, maintenance_config);
+  system.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until(
+      [&] {
+        return (system.done() || system.failed()) && system.idle() &&
+               backend.outstanding() == 0;
+      },
+      500'000);
+
+  const auto &reader = system.reader_counters();
+  const auto &compute = system.compute_counters();
+  require(!system.failed() && system.done() && reader.range_task_path == 2 &&
+              reader.range_task_fallback_reason == 1 &&
+              reader.range_task_active_records == 3 &&
+              reader.fallback_replay_edges == 3 &&
+              compute.edges_received == 3 && compute.tiles_received == 1 &&
+              compute.vertices_applied == 3 && compute.done_words == 1,
+          "PageRank active-gate fallback changed the tile identity between "
+          "TileBegin and TileEnd");
+}
+
 void test_spine_pagerank_reports_maintenance_failure_without_compute_done() {
   Scheduler scheduler;
   const auto core = scheduler.add_clock_mhz("pagerank-failure", 200.0);
@@ -8083,6 +8128,8 @@ int main(int argc, char **argv) {
        test_spine_timed_full_pagerank_compute_uses_hbm_and_pipelines},
       {"spine_pagerank_vertical_slice",
        test_spine_full_pagerank_vertical_slice_reads_level_edges},
+      {"spine_pagerank_active_gate_fallback",
+       test_spine_pagerank_active_gate_fallback_preserves_tile_identity},
       {"spine_pagerank_maintenance_failure",
        test_spine_pagerank_reports_maintenance_failure_without_compute_done},
       {"spine_dynamic_pagerank",
