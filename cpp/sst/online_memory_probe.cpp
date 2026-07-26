@@ -5507,10 +5507,22 @@ class OnlineMemoryProbe final : public SST::Component {
            (dynamic_sssp_started_ && cold_value_mismatches_ == 0 &&
             cold_frontier_mismatches_ == 0 &&
             cold_mathematical_mismatches_ == 0));
+      const auto &maintenance = spine_system_->maintenance_counters();
       std::vector<std::size_t> frontier_in_sizes;
       std::vector<std::size_t> frontier_out_sizes;
       std::vector<std::uint64_t> processed_edges;
       std::vector<std::uint64_t> round_cycles;
+      std::vector<std::uint64_t> round_start_cycles;
+      std::vector<std::uint64_t> round_end_cycles;
+      std::vector<std::uint64_t> round_post_maintenance_cycles;
+      std::vector<std::uint64_t> reader_start_cycles;
+      std::vector<std::uint64_t> reader_end_cycles;
+      std::vector<std::uint64_t> reader_active_cycles;
+      std::vector<std::uint32_t> reader_interval_valid;
+      std::vector<std::uint64_t> compute_start_cycles;
+      std::vector<std::uint64_t> compute_end_cycles;
+      std::vector<std::uint64_t> compute_active_cycles;
+      std::vector<std::uint32_t> compute_interval_valid;
       std::vector<std::uint64_t> reader_graph_bytes;
       std::vector<std::uint64_t> reader_graph_index_payload_bytes;
       std::vector<std::uint64_t> reader_graph_payload_bytes;
@@ -5642,6 +5654,35 @@ class OnlineMemoryProbe final : public SST::Component {
         frontier_out_sizes.push_back(round.active_out.size());
         processed_edges.push_back(round.compute.processed_edges);
         round_cycles.push_back(round.end_cycle - round.start_cycle);
+        round_start_cycles.push_back(round.start_cycle);
+        round_end_cycles.push_back(round.end_cycle);
+        const std::uint64_t post_maintenance_start =
+            std::max(round.start_cycle, maintenance.end_cycle);
+        round_post_maintenance_cycles.push_back(
+            round.end_cycle >= post_maintenance_start
+                ? round.end_cycle - post_maintenance_start
+                : 0);
+        const bool reader_valid =
+            round.reader.end_cycle >= round.reader.start_cycle &&
+            round.reader.end_cycle != 0;
+        reader_start_cycles.push_back(round.reader.start_cycle);
+        reader_end_cycles.push_back(round.reader.end_cycle);
+        reader_active_cycles.push_back(
+            reader_valid
+                ? round.reader.end_cycle - round.reader.start_cycle
+                : 0);
+        reader_interval_valid.push_back(reader_valid ? 1U : 0U);
+        const bool compute_valid =
+            round.compute.end_cycle >= round.compute.start_cycle &&
+            round.compute.end_cycle != 0 &&
+            (round.compute.start_cycle != 0 || round.start_cycle == 0);
+        compute_start_cycles.push_back(round.compute.start_cycle);
+        compute_end_cycles.push_back(round.compute.end_cycle);
+        compute_active_cycles.push_back(
+            compute_valid
+                ? round.compute.end_cycle - round.compute.start_cycle
+                : 0);
+        compute_interval_valid.push_back(compute_valid ? 1U : 0U);
         reader_graph_bytes.push_back(round.reader.graph_read_bytes);
         reader_graph_index_payload_bytes.push_back(
             round.reader.graph_index_payload_read_bytes);
@@ -5879,7 +5920,6 @@ class OnlineMemoryProbe final : public SST::Component {
         handoff_device_compute_overflow.push_back(
             handoff.device_attempt.compute.done_overflow ? 1U : 0U);
       }
-      const auto &maintenance = spine_system_->maintenance_counters();
       const auto &sorted_axi =
           spine_system_->axi_stats(SpineAxiPortKind::kSortedEdges);
       const auto &dirty_ack = spine_system_->dirty_ack_counters();
@@ -6351,6 +6391,28 @@ class OnlineMemoryProbe final : public SST::Component {
       write_json_array(result, processed_edges);
       result << ",\n  \"round_cycles\": ";
       write_json_array(result, round_cycles);
+      result << ",\n  \"round_start_cycles\": ";
+      write_json_array(result, round_start_cycles);
+      result << ",\n  \"round_end_cycles\": ";
+      write_json_array(result, round_end_cycles);
+      result << ",\n  \"round_post_maintenance_cycles\": ";
+      write_json_array(result, round_post_maintenance_cycles);
+      result << ",\n  \"reader_start_cycles_per_round\": ";
+      write_json_array(result, reader_start_cycles);
+      result << ",\n  \"reader_end_cycles_per_round\": ";
+      write_json_array(result, reader_end_cycles);
+      result << ",\n  \"reader_active_cycles_per_round\": ";
+      write_json_array(result, reader_active_cycles);
+      result << ",\n  \"reader_interval_valid_per_round\": ";
+      write_json_array(result, reader_interval_valid);
+      result << ",\n  \"compute_start_cycles_per_round\": ";
+      write_json_array(result, compute_start_cycles);
+      result << ",\n  \"compute_end_cycles_per_round\": ";
+      write_json_array(result, compute_end_cycles);
+      result << ",\n  \"compute_active_cycles_per_round\": ";
+      write_json_array(result, compute_active_cycles);
+      result << ",\n  \"compute_interval_valid_per_round\": ";
+      write_json_array(result, compute_interval_valid);
       result << ",\n  \"reader_graph_bytes_per_round\": ";
       write_json_array(result, reader_graph_bytes);
       result << ",\n  \"reader_graph_index_payload_bytes_per_round\": ";

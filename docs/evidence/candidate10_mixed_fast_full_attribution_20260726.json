@@ -1,0 +1,53 @@
+{
+  "attribution": {
+    "hardware_absolute_cycle_calibration_claim": false,
+    "outer_launch_drain_explains_maintenance_gap": false,
+    "shared_channel_contention_observed": false,
+    "unresolved_maintenance_gap_location": "active_memory_and_control_interval"
+  },
+  "case": "tiny_mixed_fallback",
+  "diagnostic_differences": {
+    "e2e_sim_minus_hw_cycles": -1169993.0,
+    "first_d_sim_minus_hw_cycles": -994551.0,
+    "maintenance_sim_minus_hw_cycles": -184183.5,
+    "scope_matched": false
+  },
+  "frequency_mhz": 150.0,
+  "hardware_schedule": {
+    "construction_payloads": 8193,
+    "fallback_reason": 0,
+    "fast_tiles": 1,
+    "full_tiles": 1,
+    "range_tasks": 2,
+    "replay_payloads": 8193
+  },
+  "hardware_timing": {
+    "compute_event_cycles": 1107045.0,
+    "e2e_event_cycles": 1587420.0,
+    "maintenance_event_cycles": 480376.5,
+    "scope": "xrt_kernel_event_cycles"
+  },
+  "path_class": "mixed_fast_full_no_fallback",
+  "schedule_match": true,
+  "simulator_schedule": {
+    "construction_payloads": 8193,
+    "fallback_reason": 0,
+    "fast_tiles": 1,
+    "full_tiles": 1,
+    "range_tasks": 2,
+    "replay_payloads": 8193
+  },
+  "simulator_timing": {
+    "dirty_ack_cycles": 598,
+    "first_d_core_span_cycles": 112494,
+    "maintenance_cycles": 296193,
+    "maintenance_drain_cycles": 1,
+    "maintenance_launch_cycles": 1,
+    "maintenance_memory_active_span_cycles": 296191,
+    "scheduler_boundary_cycles": 1,
+    "scope": "execution_driven_core_cycles",
+    "termination_round_cycles": 8141,
+    "total_cycles": 417427
+  },
+  "status": "PASS"
+}
