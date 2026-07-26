@@ -41,6 +41,14 @@ class Component {
     return true;
   }
   [[nodiscard]] virtual bool has_commit_phase() const noexcept { return true; }
+  [[nodiscard]] virtual bool has_dynamic_evaluate_guard() const noexcept {
+    return false;
+  }
+  [[nodiscard]] virtual bool has_dynamic_commit_guard() const noexcept {
+    return false;
+  }
+  [[nodiscard]] virtual bool evaluate_ready() const noexcept { return true; }
+  [[nodiscard]] virtual bool commit_ready() const noexcept { return true; }
 
   virtual void prepare(const CycleContext&) {}
   virtual void evaluate(const CycleContext& context) = 0;

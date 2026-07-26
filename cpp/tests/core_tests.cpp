@@ -787,6 +787,32 @@ class PhaseCounter final : public Component {
   bool commit_phase_{};
 };
 
+class ReadyPhaseCounter final : public Component {
+ public:
+  ReadyPhaseCounter(std::string name, ClockId clock)
+      : Component(std::move(name), clock) {}
+
+  [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool evaluate_ready() const noexcept override {
+    return evaluate_is_ready;
+  }
+  [[nodiscard]] bool commit_ready() const noexcept override {
+    return commit_is_ready;
+  }
+  void evaluate(const CycleContext&) override { ++evaluations; }
+  void commit(const CycleContext&) override { ++commits; }
+
+  bool evaluate_is_ready{};
+  bool commit_is_ready{};
+  std::uint64_t evaluations{};
+  std::uint64_t commits{};
+};
+
 template <typename T>
 class SequenceProducer final : public Component {
  public:
@@ -996,6 +1022,26 @@ void test_scheduler_component_sampling_profile() {
   require(rows[0].name == "profiled" && rows[0].prepare_samples == 3 &&
               rows[0].evaluate_samples == 3 && rows[0].commit_samples == 3,
           "scheduler sampled the wrong component cycles or phases");
+}
+
+void test_scheduler_dynamic_phase_readiness() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("core", 100.0);
+  ReadyPhaseCounter component("dynamic-ready", core);
+  scheduler.add_component(component);
+
+  scheduler.run_events(3);
+  require(component.evaluations == 0 && component.commits == 0,
+          "scheduler invoked a dynamically sleeping phase");
+  component.evaluate_is_ready = true;
+  scheduler.run_events(2);
+  require(component.evaluations == 2 && component.commits == 0,
+          "scheduler did not wake only the ready evaluate phase");
+  component.evaluate_is_ready = false;
+  component.commit_is_ready = true;
+  scheduler.run_events(4);
+  require(component.evaluations == 2 && component.commits == 4,
+          "scheduler did not wake only the ready commit phase");
 }
 
 void test_fixed_axi_port_rejects_busy_unregister() {
@@ -7705,6 +7751,8 @@ int main(int argc, char **argv) {
        test_scheduler_dispatches_only_declared_phases},
       {"scheduler_component_profile",
        test_scheduler_component_sampling_profile},
+      {"scheduler_dynamic_readiness",
+       test_scheduler_dynamic_phase_readiness},
       {"fixed_axi_busy_unregister",
        test_fixed_axi_port_rejects_busy_unregister},
       {"fifo_no_fallthrough", test_fifo_has_no_same_cycle_fallthrough},
