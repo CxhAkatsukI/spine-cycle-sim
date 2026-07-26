@@ -29,6 +29,10 @@
   bypass. Its editable source is the adjacent `.dot` file.
 - `spine_cycle_sim_architecture.svg`: legacy Python simulator architecture.
   The `.dot` file is its source and the `.png` is a raster export.
+- `spine_candidate10_grouped_publication_schedule.svg`: frozen Candidate-10
+  grouped-publication RTL control lower bound and its composition with the
+  execution-driven AXI/SST-HBM window. Its editable source is the adjacent
+  `.dot` file.
 - `spine_architecture_annotated.svg`: detailed mapping between the split Spine
   HLS design and the calibrated legacy simulator. Its own header pins the old
   source/calibration snapshot; it is not the current fine-grained core design.

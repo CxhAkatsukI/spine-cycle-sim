@@ -1,0 +1,21 @@
+{
+  "all_pass": true,
+  "build_dir": "/data/tmp/chuxiao/candidate10_grouped_oracle.jv_wh0mu",
+  "cases": 23,
+  "claim": "frozen_candidate10_grouped_pass_rtl_control_oracle",
+  "collector_sha256": "5620b16d7a4d9d6c5eb599043a5c63ee7e9a93798c09f5b1d9924dd163873f38",
+  "formula": {
+    "empty_bitmap": "156 + 5*S + 9*G + 72*(ceil(S/16)-1) - full_window*4 - continuation*3",
+    "normal": "229 + 5*S + 20*G + 2*E + 72*(ceil(S/16)-1) - full_window*4 - continuation*3"
+  },
+  "limitations": [
+    "The testbench supplies ideal unlimited-outstanding AXI responses.",
+    "The result is an HLS RTL control lower bound; SST-HBM models additional memory delay and contention."
+  ],
+  "runner_sha256": "8382ebd09120e811a15ba5f2e8a40632a6fd68d299eb8d4b215fab953fe2ad1e",
+  "schema_version": 1,
+  "tcl_sha256": "55eedd5439c15fcf0916c4f81dd301a78458ec1f05b4143ed3a00c9a6487dff5",
+  "testbench_sha256": "5205e7189860371510c810ee6aed87f32d20d6a6e86f86a6f133c97561480a84",
+  "xo": "/data/feiyang/spine-dynamic-graph-builds/pipeline_dirty_frontier_publication_1e61fc0_20260725/production/hls_v5_candidate_10/spine_partconv_rdmaint_kernel.hw.xo",
+  "xo_sha256": "629e185724467cc14eec4ae14018ff0a89a94aa518ef77499ca6cc2363b28be5"
+}

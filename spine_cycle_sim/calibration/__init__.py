@@ -44,6 +44,15 @@ from .bridge import (
     sim_result_to_evidence,
     write_sim_evidence_dir,
 )
+from .candidate10 import (
+    Candidate10ResidualModel,
+    Candidate10TimingRecord,
+    candidate10_prediction_rows,
+    fit_candidate10_residual,
+    read_candidate10_matrix,
+    summarize_candidate10_predictions,
+    write_candidate10_analysis,
+)
 from .reader import (
     READER_COMPONENT_ORDER,
     READER_WHATIF_ORDER,
@@ -94,6 +103,13 @@ __all__ = [
     "predict_e2e_from_results",
     "sim_result_to_evidence",
     "write_sim_evidence_dir",
+    "Candidate10ResidualModel",
+    "Candidate10TimingRecord",
+    "candidate10_prediction_rows",
+    "fit_candidate10_residual",
+    "read_candidate10_matrix",
+    "summarize_candidate10_predictions",
+    "write_candidate10_analysis",
     "READER_COMPONENT_ORDER",
     "READER_WHATIF_ORDER",
     "ReaderComponentModel",

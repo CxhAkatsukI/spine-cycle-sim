@@ -171,6 +171,69 @@ probe.addParams(
                 "SPINE_SST_MAINTENANCE_L0_WRITE_SCAN_TAIL_CYCLES", "42"
             )
         ),
+        "candidate_l0_precount_ii": int(
+            os.environ.get("SPINE_SST_CANDIDATE_L0_PRECOUNT_II", "1")
+        ),
+        "candidate_l0_precount_tail_cycles": int(
+            os.environ.get(
+                "SPINE_SST_CANDIDATE_L0_PRECOUNT_TAIL_CYCLES", "77"
+            )
+        ),
+        "candidate_l0_write_scan_ii": int(
+            os.environ.get("SPINE_SST_CANDIDATE_L0_WRITE_SCAN_II", "24")
+        ),
+        "candidate_l0_write_scan_tail_cycles": int(
+            os.environ.get(
+                "SPINE_SST_CANDIDATE_L0_WRITE_SCAN_TAIL_CYCLES", "149"
+            )
+        ),
+        "candidate_list_word_first_lane_cycles": int(
+            os.environ.get(
+                "SPINE_SST_CANDIDATE_LIST_WORD_FIRST_LANE_CYCLES", "81"
+            )
+        ),
+        "candidate_list_word_additional_lane_cycles": int(
+            os.environ.get(
+                "SPINE_SST_CANDIDATE_LIST_WORD_ADDITIONAL_LANE_CYCLES", "120"
+            )
+        ),
+        "candidate_publication_base_cycles": int(
+            os.environ.get("SPINE_SST_CANDIDATE_PUBLICATION_BASE_CYCLES", "229")
+        ),
+        "candidate_publication_source_cycles": int(
+            os.environ.get("SPINE_SST_CANDIDATE_PUBLICATION_SOURCE_CYCLES", "5")
+        ),
+        "candidate_publication_group_cycles": int(
+            os.environ.get("SPINE_SST_CANDIDATE_PUBLICATION_GROUP_CYCLES", "20")
+        ),
+        "candidate_publication_new_bit_cycles": int(
+            os.environ.get("SPINE_SST_CANDIDATE_PUBLICATION_NEW_BIT_CYCLES", "2")
+        ),
+        "candidate_publication_prefetch_restart_cycles": int(
+            os.environ.get(
+                "SPINE_SST_CANDIDATE_PUBLICATION_PREFETCH_RESTART_CYCLES", "72"
+            )
+        ),
+        "candidate_publication_empty_base_cycles": int(
+            os.environ.get(
+                "SPINE_SST_CANDIDATE_PUBLICATION_EMPTY_BASE_CYCLES", "156"
+            )
+        ),
+        "candidate_publication_empty_group_cycles": int(
+            os.environ.get(
+                "SPINE_SST_CANDIDATE_PUBLICATION_EMPTY_GROUP_CYCLES", "9"
+            )
+        ),
+        "candidate_publication_full_window_rebate_cycles": int(
+            os.environ.get(
+                "SPINE_SST_CANDIDATE_PUBLICATION_FULL_WINDOW_REBATE_CYCLES", "4"
+            )
+        ),
+        "candidate_publication_next_window_overlap_cycles": int(
+            os.environ.get(
+                "SPINE_SST_CANDIDATE_PUBLICATION_NEXT_WINDOW_OVERLAP_CYCLES", "3"
+            )
+        ),
         "maintenance_scan_response_capacity": int(
             os.environ.get(
                 "SPINE_SST_MAINTENANCE_SCAN_RESPONSE_CAPACITY", "32"

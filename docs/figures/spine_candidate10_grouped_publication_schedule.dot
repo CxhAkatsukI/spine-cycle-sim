@@ -1,0 +1,49 @@
+digraph candidate10_grouped_publication {
+  graph [
+    rankdir=LR,
+    bgcolor="white",
+    pad="0.25",
+    nodesep="0.42",
+    ranksep="0.65",
+    fontname="DejaVu Sans",
+    label="Candidate-10 grouped frontier publication: RTL control lower bound plus execution-driven HBM",
+    labelloc=t,
+    fontsize=20
+  ];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=11, color="#475569", penwidth=1.2];
+  edge [fontname="DejaVu Sans", fontsize=10, color="#475569", penwidth=1.3, arrowsize=0.8];
+
+  subgraph cluster_oracle {
+    label="Frozen HLS/RTL oracle";
+    color="#94a3b8";
+    style="rounded";
+    source [label="Candidate-10 .xo\nSHA-256 pinned", fillcolor="#dbeafe"];
+    prefetch [label="Source prefetch\n16 records/chunk", fillcolor="#dcfce7"];
+    grouping [label="Group window\nmax 16 packed words", fillcolor="#fef3c7"];
+    normal [label="Directory / probe / bitmap\n229 + 5S + 20G + 2E\n+ 72(C-1) - rebates", fillcolor="#ccfbf1"];
+    empty [label="Empty bitmap fast path\n156 + 5S + 9G\n+ 72(C-1) - rebates", fillcolor="#fee2e2"];
+    source -> prefetch -> grouping;
+    grouping -> normal [label="normal"];
+    grouping -> empty [label="empty"];
+  }
+
+  subgraph cluster_simulator {
+    label="Execution-driven simulator window";
+    color="#94a3b8";
+    style="rounded";
+    start [label="Record window start cycle", fillcolor="#e0f2fe"];
+    meta [label="Metadata source reads\nfinite AXI outstanding", fillcolor="#f3e8ff"];
+    persistent [label="HBM16 packed-word RMW\nSST + DRAMSim3", fillcolor="#ffedd5"];
+    elapsed [label="Observed request span\nelapsed cycles", fillcolor="#e2e8f0"];
+    maxgate [shape=diamond, label="max(elapsed,\nRTL minimum)", fillcolor="#fef3c7"];
+    stall [label="Schedule stall only if\nRTL minimum is longer", fillcolor="#dcfce7"];
+    next [label="Next window/pass", fillcolor="#dbeafe"];
+    start -> meta -> persistent -> elapsed -> maxgate -> stall -> next;
+  }
+
+  normal -> maxgate [label="structural lower bound", style=dashed];
+  empty -> maxgate [style=dashed];
+
+  evidence [shape=note, style="filled", label="Evidence\n23/23 RTL points exact\n1..4096 sources\ncontiguous + spread\nprobe + empty paths", fillcolor="#f1f5f9"];
+  normal -> evidence [style=dotted, arrowhead=none];
+}

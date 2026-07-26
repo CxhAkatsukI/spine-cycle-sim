@@ -273,6 +273,54 @@ def validate_generic_result(
     return [name for name, passed in checks.items() if not passed]
 
 
+def validate_candidate10_maintenance_result(
+    result: dict[str, Any],
+    dram: dict[str, int | float],
+    *,
+    channels: int,
+    input_edges: int,
+    core_mhz: float,
+) -> list[str]:
+    candidate_visits = int(
+        result.get("maintenance_candidate_classify_edge_visits", -1)
+    )
+    dispatch_reads = int(result.get("maintenance_dispatch_input_reads", -1))
+    dispatch_writes = int(result.get("maintenance_dispatch_bucket_writes", -1))
+    target_level = int(result.get("maintenance_target_level", -1))
+    expected_precount_visits = input_edges if target_level == 0 else 0
+    checks = {
+        "success": result.get("success") is True,
+        "mode": result.get("mode") == "spine_maintenance",
+        "architecture": (
+            result.get("spine_maintenance_architecture")
+            == "candidate10_one_pass"
+        ),
+        "core_mhz": abs(float(result.get("core_mhz", -1.0)) - core_mhz)
+        < 1.0e-9,
+        "input_edges": result.get("input_edges") == input_edges,
+        "maintenance_timed": int(result.get("maintenance_cycles", 0)) > 0,
+        "classify_closure": candidate_visits == input_edges,
+        "dispatch_read_closure": dispatch_reads == input_edges,
+        "dispatch_write_closure": dispatch_writes == input_edges,
+        "l0_precount_closure": (
+            result.get("maintenance_candidate_l0_precount_edge_visits")
+            == expected_precount_visits
+        ),
+        "dispatch_status": result.get("maintenance_dispatch_status") == 0,
+        "dispatch_cursor_closure": (
+            result.get("maintenance_dispatch_cursor_mismatches") == 0
+        ),
+        "publication_complete": (
+            result.get("maintenance_publication_complete") is True
+        ),
+        "dram_matches_backend": int(dram.get("dram_reads", 0))
+        + int(dram.get("dram_writes", 0))
+        == result.get("backend_requests"),
+        "channel_count": dram.get("dram_channels") == channels,
+    }
+    return [name for name, passed in checks.items() if not passed]
+
+
 def maintenance_timing_profile_matches(
     result: dict[str, Any], expected: dict[str, int]
 ) -> bool:
@@ -1217,6 +1265,7 @@ def parse_args() -> argparse.Namespace:
             "protocol_window",
             "fallback_capacity",
             "fallback_payload",
+            "candidate10_maintenance",
         ),
         default="amazon_l0",
     )
@@ -1288,6 +1337,39 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--maintenance-l0-write-scan-ii", type=int, default=24)
     parser.add_argument(
         "--maintenance-l0-write-scan-tail-cycles", type=int, default=42
+    )
+    parser.add_argument("--candidate-l0-precount-ii", type=int, default=1)
+    parser.add_argument(
+        "--candidate-l0-precount-tail-cycles", type=int, default=77
+    )
+    parser.add_argument("--candidate-l0-write-scan-ii", type=int, default=24)
+    parser.add_argument(
+        "--candidate-l0-write-scan-tail-cycles", type=int, default=149
+    )
+    parser.add_argument(
+        "--candidate-list-word-first-lane-cycles", type=int, default=81
+    )
+    parser.add_argument(
+        "--candidate-list-word-additional-lane-cycles", type=int, default=120
+    )
+    parser.add_argument("--candidate-publication-base-cycles", type=int, default=229)
+    parser.add_argument("--candidate-publication-source-cycles", type=int, default=5)
+    parser.add_argument("--candidate-publication-group-cycles", type=int, default=20)
+    parser.add_argument("--candidate-publication-new-bit-cycles", type=int, default=2)
+    parser.add_argument(
+        "--candidate-publication-prefetch-restart-cycles", type=int, default=72
+    )
+    parser.add_argument(
+        "--candidate-publication-empty-base-cycles", type=int, default=156
+    )
+    parser.add_argument(
+        "--candidate-publication-empty-group-cycles", type=int, default=9
+    )
+    parser.add_argument(
+        "--candidate-publication-full-window-rebate-cycles", type=int, default=4
+    )
+    parser.add_argument(
+        "--candidate-publication-next-window-overlap-cycles", type=int, default=3
     )
     parser.add_argument(
         "--maintenance-scan-response-capacity", type=int, default=32
@@ -1389,6 +1471,14 @@ def main() -> int:
     if (
         args.maintenance_count_scan_ii <= 0
         or args.maintenance_l0_write_scan_ii <= 0
+        or args.candidate_l0_precount_ii <= 0
+        or args.candidate_l0_write_scan_ii <= 0
+        or args.candidate_list_word_first_lane_cycles <= 0
+        or args.candidate_publication_base_cycles <= 0
+        or args.candidate_publication_source_cycles <= 0
+        or args.candidate_publication_group_cycles <= 0
+        or args.candidate_publication_empty_base_cycles <= 0
+        or args.candidate_publication_empty_group_cycles <= 0
         or args.compute_memory_request_window <= 0
         or args.compute_writeonly_request_window <= 0
         or args.compute_tiny_bram_read_latency <= 0
@@ -1414,6 +1504,13 @@ def main() -> int:
         or args.pagerank_apply_capacity <= 0
         or args.maintenance_count_scan_tail_cycles < 0
         or args.maintenance_l0_write_scan_tail_cycles < 0
+        or args.candidate_l0_precount_tail_cycles < 0
+        or args.candidate_l0_write_scan_tail_cycles < 0
+        or args.candidate_list_word_additional_lane_cycles < 0
+        or args.candidate_publication_new_bit_cycles < 0
+        or args.candidate_publication_prefetch_restart_cycles < 0
+        or args.candidate_publication_full_window_rebate_cycles < 0
+        or args.candidate_publication_next_window_overlap_cycles < 0
         or args.maintenance_scan_response_capacity <= 0
         or args.max_rounds <= 0
         or (args.max_cycles is not None and args.max_cycles <= 0)
@@ -1431,7 +1528,9 @@ def main() -> int:
         "full_pagerank",
         "residual_pagerank",
     }
-    if args.validation_mode == "generic" and args.scenario not in generic_scenarios:
+    if args.validation_mode == "generic" and args.scenario not in (
+        generic_scenarios | {"candidate10_maintenance"}
+    ):
         raise SystemExit("generic validation supports only shared algorithm scenarios")
     workload_vertices, workload_edges = load_slice_shape(args.workload)
     update_edges = (
@@ -1480,6 +1579,7 @@ def main() -> int:
                 "dynamic_sssp_increase": "spine_sssp",
                 "fallback_capacity": "spine_sssp",
                 "fallback_payload": "spine_sssp",
+                "candidate10_maintenance": "spine_maintenance",
             }.get(args.scenario, "spine_vertical"),
             "SPINE_SST_WORKLOAD": str(args.workload.resolve()),
             "SPINE_SST_UPDATE_WORKLOAD": ""
@@ -1582,6 +1682,51 @@ def main() -> int:
             "SPINE_SST_MAINTENANCE_L0_WRITE_SCAN_TAIL_CYCLES": str(
                 args.maintenance_l0_write_scan_tail_cycles
             ),
+            "SPINE_SST_CANDIDATE_L0_PRECOUNT_II": str(
+                args.candidate_l0_precount_ii
+            ),
+            "SPINE_SST_CANDIDATE_L0_PRECOUNT_TAIL_CYCLES": str(
+                args.candidate_l0_precount_tail_cycles
+            ),
+            "SPINE_SST_CANDIDATE_L0_WRITE_SCAN_II": str(
+                args.candidate_l0_write_scan_ii
+            ),
+            "SPINE_SST_CANDIDATE_L0_WRITE_SCAN_TAIL_CYCLES": str(
+                args.candidate_l0_write_scan_tail_cycles
+            ),
+            "SPINE_SST_CANDIDATE_LIST_WORD_FIRST_LANE_CYCLES": str(
+                args.candidate_list_word_first_lane_cycles
+            ),
+            "SPINE_SST_CANDIDATE_LIST_WORD_ADDITIONAL_LANE_CYCLES": str(
+                args.candidate_list_word_additional_lane_cycles
+            ),
+            "SPINE_SST_CANDIDATE_PUBLICATION_BASE_CYCLES": str(
+                args.candidate_publication_base_cycles
+            ),
+            "SPINE_SST_CANDIDATE_PUBLICATION_SOURCE_CYCLES": str(
+                args.candidate_publication_source_cycles
+            ),
+            "SPINE_SST_CANDIDATE_PUBLICATION_GROUP_CYCLES": str(
+                args.candidate_publication_group_cycles
+            ),
+            "SPINE_SST_CANDIDATE_PUBLICATION_NEW_BIT_CYCLES": str(
+                args.candidate_publication_new_bit_cycles
+            ),
+            "SPINE_SST_CANDIDATE_PUBLICATION_PREFETCH_RESTART_CYCLES": str(
+                args.candidate_publication_prefetch_restart_cycles
+            ),
+            "SPINE_SST_CANDIDATE_PUBLICATION_EMPTY_BASE_CYCLES": str(
+                args.candidate_publication_empty_base_cycles
+            ),
+            "SPINE_SST_CANDIDATE_PUBLICATION_EMPTY_GROUP_CYCLES": str(
+                args.candidate_publication_empty_group_cycles
+            ),
+            "SPINE_SST_CANDIDATE_PUBLICATION_FULL_WINDOW_REBATE_CYCLES": str(
+                args.candidate_publication_full_window_rebate_cycles
+            ),
+            "SPINE_SST_CANDIDATE_PUBLICATION_NEXT_WINDOW_OVERLAP_CYCLES": str(
+                args.candidate_publication_next_window_overlap_cycles
+            ),
             "SPINE_SST_MAINTENANCE_SCAN_RESPONSE_CAPACITY": str(
                 args.maintenance_scan_response_capacity
             ),
@@ -1663,7 +1808,15 @@ def main() -> int:
             )
         ),
     }
-    if args.validation_mode == "generic":
+    if args.scenario == "candidate10_maintenance":
+        problems = validate_candidate10_maintenance_result(
+            result,
+            dram,
+            channels=len(binding.instantiated_channels),
+            input_edges=workload_edges,
+            core_mhz=core_mhz,
+        )
+    elif args.validation_mode == "generic":
         problems = validate_generic_result(
             result,
             dram,
@@ -1703,7 +1856,7 @@ def main() -> int:
         != args.maintenance_architecture
     ):
         problems.append("maintenance_architecture")
-    if (
+    if args.scenario != "candidate10_maintenance" and (
         result.get("compute_memory_request_window")
         != args.compute_memory_request_window
     ):
@@ -1726,7 +1879,7 @@ def main() -> int:
         for key, expected in expected_pagerank_pipeline.items():
             if result.get(key) != expected:
                 problems.append(key)
-    else:
+    elif args.scenario != "candidate10_maintenance":
         if (
             result.get("compute_writeonly_request_window")
             != args.compute_writeonly_request_window
@@ -1752,6 +1905,43 @@ def main() -> int:
         "maintenance_l0_write_scan_ii": args.maintenance_l0_write_scan_ii,
         "maintenance_l0_write_scan_tail_cycles": (
             args.maintenance_l0_write_scan_tail_cycles
+        ),
+        "candidate_l0_precount_ii": args.candidate_l0_precount_ii,
+        "candidate_l0_precount_tail_cycles": (
+            args.candidate_l0_precount_tail_cycles
+        ),
+        "candidate_l0_write_scan_ii": args.candidate_l0_write_scan_ii,
+        "candidate_l0_write_scan_tail_cycles": (
+            args.candidate_l0_write_scan_tail_cycles
+        ),
+        "candidate_list_word_first_lane_cycles": (
+            args.candidate_list_word_first_lane_cycles
+        ),
+        "candidate_list_word_additional_lane_cycles": (
+            args.candidate_list_word_additional_lane_cycles
+        ),
+        "candidate_publication_base_cycles": args.candidate_publication_base_cycles,
+        "candidate_publication_source_cycles": (
+            args.candidate_publication_source_cycles
+        ),
+        "candidate_publication_group_cycles": args.candidate_publication_group_cycles,
+        "candidate_publication_new_bit_cycles": (
+            args.candidate_publication_new_bit_cycles
+        ),
+        "candidate_publication_prefetch_restart_cycles": (
+            args.candidate_publication_prefetch_restart_cycles
+        ),
+        "candidate_publication_empty_base_cycles": (
+            args.candidate_publication_empty_base_cycles
+        ),
+        "candidate_publication_empty_group_cycles": (
+            args.candidate_publication_empty_group_cycles
+        ),
+        "candidate_publication_full_window_rebate_cycles": (
+            args.candidate_publication_full_window_rebate_cycles
+        ),
+        "candidate_publication_next_window_overlap_cycles": (
+            args.candidate_publication_next_window_overlap_cycles
         ),
         "maintenance_scan_response_capacity": (
             args.maintenance_scan_response_capacity

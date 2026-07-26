@@ -80,6 +80,7 @@ using spine::sim::spine_hot_shard;
 using spine::sim::spine_dirty_identity;
 using spine::sim::spine_level_layout;
 using spine::sim::spine_metadata_layout;
+using spine::sim::spine_candidate10_publication_window_min_cycles;
 using spine::sim::SpineActiveBins;
 using spine::sim::SpineActiveRecord;
 using spine::sim::SpineAxiInterfaceProfile;
@@ -285,6 +286,23 @@ MaintenanceOnlyRun run_maintenance_only(
   };
 }
 
+void test_spine_candidate10_publication_rtl_window_formula() {
+  const SpineL0Config config;
+  require(spine_candidate10_publication_window_min_cycles(
+              config, 1, 1, 1, false, true) == 256 &&
+              spine_candidate10_publication_window_min_cycles(
+                  config, 16, 4, 16, false, true) == 421 &&
+              spine_candidate10_publication_window_min_cycles(
+                  config, 64, 16, 64, false, true) == 1'209 &&
+              spine_candidate10_publication_window_min_cycles(
+                  config, 64, 16, 64, false, false) == 1'206 &&
+              spine_candidate10_publication_window_min_cycles(
+                  config, 16, 1, 0, true, true) == 245 &&
+              spine_candidate10_publication_window_min_cycles(
+                  config, 16, 16, 0, true, true) == 376,
+          "Candidate-10 grouped-pass formula diverged from the RTL oracle");
+}
+
 void test_spine_candidate10_one_pass_publication_payloads() {
   SpineL0Config config;
   config.maintenance_architecture =
@@ -335,11 +353,19 @@ void test_spine_candidate10_one_pass_publication_payloads() {
               counters.publication_list_word_writes == 1 &&
               counters.publication_scratch_word_reads == 0 &&
               counters.publication_scratch_word_writes == 0 &&
+              counters.candidate_publication_windows == 2 &&
+              counters.candidate_publication_groups == 5 &&
+              counters.candidate_publication_prefetch_chunks == 2 &&
+              counters.candidate_publication_new_bits_enumerated == 6 &&
+              counters.candidate_publication_rtl_min_cycles == 515 &&
+              counters.candidate_publication_schedule_stall_cycles != 0 &&
+              counters.candidate_list_schedule_cycles == 441 &&
               counters.publication_empty_frontier_fast_path &&
               counters.publication_complete && counters.dirty_count == 4,
           "candidate-10 grouped publication ledger mismatch");
-  require(counters.sorted_scan_passes == 7 &&
-              counters.sorted_edge_visits == 4 * input.size() &&
+  require(counters.sorted_scan_passes == 39 &&
+              counters.sorted_edge_visits == 5 * input.size() &&
+              counters.candidate_l0_precount_edge_visits == input.size() &&
               counters.persisted_edges == input.size(),
           "candidate-10 scan/bucket writer closure mismatch");
 
@@ -614,8 +640,9 @@ void test_spine_candidate10_block_and_publication_window_boundaries() {
               counters.dirty_bitmap_writes == 2 &&
               counters.publication_list_word_reads == 1 &&
               counters.publication_list_word_writes == 33 &&
-              counters.dirty_count == 130 && counters.sorted_scan_passes == 4 &&
-              counters.sorted_edge_visits == 520,
+              counters.dirty_count == 130 && counters.sorted_scan_passes == 20 &&
+              counters.sorted_edge_visits == 650 &&
+              counters.candidate_l0_precount_edge_visits == 130,
           "candidate packed-word grouping crossed a boundary incorrectly");
   for (std::size_t index = 0; index < 130; ++index) {
     require(decode_spine_sort_edge(std::vector<std::uint8_t>(
@@ -6904,6 +6931,8 @@ int main(int argc, char **argv) {
       {"spine_l0_real_slice", test_spine_l0_real_slice_vertical_path},
       {"spine_candidate10_one_pass",
        test_spine_candidate10_one_pass_publication_payloads},
+      {"spine_candidate10_publication_formula",
+       test_spine_candidate10_publication_rtl_window_formula},
       {"spine_candidate10_repeated_frontier",
        test_spine_candidate10_repeated_frontier_uses_grouped_payload_reads},
       {"spine_candidate10_boundaries",

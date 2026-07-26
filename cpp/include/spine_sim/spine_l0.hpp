@@ -190,6 +190,30 @@ struct SpineL0Config {
   std::size_t candidate_source_prefetch{16};
   std::size_t candidate_publication_window{16};
   std::size_t candidate_memory_request_window{16};
+  // The frozen Candidate-10 HLS invokes the family-local coalesced-row
+  // counter before every L0 family writer. Its synthesized function latency
+  // is N+77 cycles with an II=1, 74-stage edge loop.
+  std::size_t candidate_l0_precount_ii{1};
+  std::size_t candidate_l0_precount_tail_cycles{77};
+  // Candidate-10's family-local writer has a separate synthesized loop:
+  // 24*(N-1)+150 cycles, represented by II=24 and a 149-cycle scan tail.
+  std::size_t candidate_l0_write_scan_ii{24};
+  std::size_t candidate_l0_write_scan_tail_cycles{149};
+  // The non-pipelined dirty-list word loop costs 81 cycles for one valid
+  // source lane and 120 cycles for each additional lane (441 for four).
+  std::size_t candidate_list_word_first_lane_cycles{81};
+  std::size_t candidate_list_word_additional_lane_cycles{120};
+  // Extracted from the frozen Candidate-10 grouped-pass RTL with ideal AXI.
+  // The window schedule is structural; SST-HBM can only make it longer.
+  std::size_t candidate_publication_base_cycles{229};
+  std::size_t candidate_publication_source_cycles{5};
+  std::size_t candidate_publication_group_cycles{20};
+  std::size_t candidate_publication_new_bit_cycles{2};
+  std::size_t candidate_publication_prefetch_restart_cycles{72};
+  std::size_t candidate_publication_empty_base_cycles{156};
+  std::size_t candidate_publication_empty_group_cycles{9};
+  std::size_t candidate_publication_full_window_rebate_cycles{4};
+  std::size_t candidate_publication_next_window_overlap_cycles{3};
   std::vector<std::uint32_t> hot_vertices;
   std::uint64_t sorted_edges_base{};
   // HBM16 is shared by sorted input/range-task scratch and the persistent
@@ -201,6 +225,10 @@ struct SpineL0Config {
   std::uint64_t metadata_base{};
   std::uint64_t result_base{};
 };
+
+[[nodiscard]] std::uint64_t spine_candidate10_publication_window_min_cycles(
+    const SpineL0Config &config, std::size_t sources, std::size_t groups,
+    std::size_t new_bits, bool empty_bitmap_fast_path, bool first_window);
 
 struct SpineMetadataLayout {
   std::uint64_t page_count{};
@@ -387,6 +415,7 @@ struct SpineL0Counters {
   std::uint64_t candidate_family_tag_word_writes{};
   std::uint64_t candidate_source_record_word_writes{};
   std::uint64_t candidate_prefix_iterations{};
+  std::uint64_t candidate_l0_precount_edge_visits{};
   std::uint64_t dispatch_input_reads{};
   std::uint64_t dispatch_bucket_writes{};
   std::uint64_t dispatch_cursor_mismatches{};
@@ -402,6 +431,13 @@ struct SpineL0Counters {
   std::uint64_t publication_scratch_word_writes{};
   std::uint64_t publication_list_word_reads{};
   std::uint64_t publication_list_word_writes{};
+  std::uint64_t candidate_publication_windows{};
+  std::uint64_t candidate_publication_groups{};
+  std::uint64_t candidate_publication_prefetch_chunks{};
+  std::uint64_t candidate_publication_new_bits_enumerated{};
+  std::uint64_t candidate_publication_rtl_min_cycles{};
+  std::uint64_t candidate_publication_schedule_stall_cycles{};
+  std::uint64_t candidate_list_schedule_cycles{};
   bool publication_fallback{};
   bool publication_empty_frontier_fast_path{};
   bool publication_complete{};
@@ -556,12 +592,16 @@ class SpineL0Maintenance final : public Component {
     kCandidatePublicationLoad,
     kCandidatePublicationRead,
     kCandidatePublicationWrite,
+    kCandidatePublicationSchedule,
     kCandidatePublicationAdvance,
     kCandidateListBegin,
     kCandidateListSourceLoad,
     kCandidateListRead,
     kCandidateListWrite,
+    kCandidateListSchedule,
     kCandidateFinalize,
+    kCandidateL0PrecountBegin,
+    kCandidateL0PrecountProcess,
     kHotColdCountBegin,
     kHotColdCountProcess,
     kTargetSelect,
@@ -646,6 +686,7 @@ class SpineL0Maintenance final : public Component {
     kL0Write,
     kCandidateClassify,
     kCandidateDispatch,
+    kCandidateL0Precount,
     kCandidateBucketWrite,
   };
 
@@ -726,11 +767,11 @@ class SpineL0Maintenance final : public Component {
   void consume_candidate_memory_response(const MemoryTask &task,
                                          const AxiResponse &response);
   void candidate_finish_classify_block();
-  void candidate_begin_publication_pass();
-  void candidate_load_publication_window();
+  void candidate_begin_publication_pass(const CycleContext &context);
+  void candidate_load_publication_window(const CycleContext &context);
   void candidate_build_publication_groups();
   void candidate_write_publication_groups();
-  void candidate_advance_publication_pass();
+  void candidate_advance_publication_pass(const CycleContext &context);
   void candidate_begin_list_source_load();
   void candidate_build_list_words();
   void candidate_write_list_words();
@@ -1002,9 +1043,15 @@ class SpineL0Maintenance final : public Component {
   std::size_t candidate_publication_loaded_{};
   std::size_t candidate_publication_responses_{};
   std::size_t candidate_publication_writes_{};
+  std::size_t candidate_publication_window_index_{};
+  std::size_t candidate_publication_window_new_bits_{};
+  std::uint64_t candidate_publication_window_start_cycle_{};
+  std::uint64_t candidate_publication_window_min_cycles_{};
+  std::uint64_t candidate_publication_schedule_cycles_remaining_{};
   std::size_t candidate_list_source_cursor_{};
   std::size_t candidate_list_source_loaded_{};
   std::size_t candidate_list_read_responses_{};
+  std::size_t candidate_list_schedule_cycles_remaining_{};
   std::size_t candidate_probe_new_count_{};
   CandidatePublicationKind candidate_publication_kind_{
       CandidatePublicationKind::kDirectory};

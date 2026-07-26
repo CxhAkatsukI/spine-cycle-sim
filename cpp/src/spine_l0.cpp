@@ -314,6 +314,45 @@ std::vector<GraphPayloadWrite> build_level_index_payloads(
 
 }  // namespace
 
+std::uint64_t spine_candidate10_publication_window_min_cycles(
+    const SpineL0Config &config, std::size_t sources, std::size_t groups,
+    std::size_t new_bits, bool empty_bitmap_fast_path, bool first_window) {
+  if (sources == 0 || groups == 0 ||
+      groups > config.candidate_publication_window ||
+      config.candidate_source_prefetch == 0) {
+    throw std::invalid_argument("invalid Candidate-10 publication window");
+  }
+  const std::uint64_t prefetch_chunks =
+      (sources + config.candidate_source_prefetch - 1) /
+      config.candidate_source_prefetch;
+  std::uint64_t cycles = empty_bitmap_fast_path
+                             ? config.candidate_publication_empty_base_cycles
+                             : config.candidate_publication_base_cycles;
+  cycles += config.candidate_publication_source_cycles * sources;
+  cycles += (empty_bitmap_fast_path
+                 ? config.candidate_publication_empty_group_cycles
+                 : config.candidate_publication_group_cycles) *
+            groups;
+  if (!empty_bitmap_fast_path) {
+    cycles += config.candidate_publication_new_bit_cycles * new_bits;
+  }
+  cycles += config.candidate_publication_prefetch_restart_cycles *
+            (prefetch_chunks - 1);
+  if (groups == config.candidate_publication_window) {
+    if (cycles < config.candidate_publication_full_window_rebate_cycles) {
+      throw std::invalid_argument("Candidate-10 publication rebate underflow");
+    }
+    cycles -= config.candidate_publication_full_window_rebate_cycles;
+  }
+  if (!first_window) {
+    if (cycles < config.candidate_publication_next_window_overlap_cycles) {
+      throw std::invalid_argument("Candidate-10 publication overlap underflow");
+    }
+    cycles -= config.candidate_publication_next_window_overlap_cycles;
+  }
+  return cycles;
+}
+
 SpineMetadataLayout spine_metadata_layout(const SpineL0Config &config) {
   if (config.partitions != 16 || config.levels != kSpineLevelCount ||
       config.page_vertices != 256 || config.max_vertices == 0) {
@@ -848,6 +887,14 @@ SpineL0Maintenance::SpineL0Maintenance(std::string name, ClockId clock_id,
       config_.reader_edge_response_capacity == 0 ||
       config_.maintenance_count_scan_ii == 0 ||
       config_.maintenance_l0_write_scan_ii == 0 ||
+      config_.candidate_l0_precount_ii == 0 ||
+      config_.candidate_l0_write_scan_ii == 0 ||
+      config_.candidate_list_word_first_lane_cycles == 0 ||
+      config_.candidate_publication_base_cycles == 0 ||
+      config_.candidate_publication_source_cycles == 0 ||
+      config_.candidate_publication_group_cycles == 0 ||
+      config_.candidate_publication_empty_base_cycles == 0 ||
+      config_.candidate_publication_empty_group_cycles == 0 ||
       config_.maintenance_scan_response_capacity == 0 ||
       config_.candidate_classify_block_edges == 0 ||
       config_.candidate_classify_block_edges % 8 != 0 ||
@@ -1043,9 +1090,15 @@ void SpineL0Maintenance::reset_batch(SpineEdgeSlice workload) {
   candidate_publication_loaded_ = 0;
   candidate_publication_responses_ = 0;
   candidate_publication_writes_ = 0;
+  candidate_publication_window_index_ = 0;
+  candidate_publication_window_new_bits_ = 0;
+  candidate_publication_window_start_cycle_ = 0;
+  candidate_publication_window_min_cycles_ = 0;
+  candidate_publication_schedule_cycles_remaining_ = 0;
   candidate_list_source_cursor_ = 0;
   candidate_list_source_loaded_ = 0;
   candidate_list_read_responses_ = 0;
+  candidate_list_schedule_cycles_remaining_ = 0;
   candidate_probe_new_count_ = 0;
   candidate_publication_kind_ = CandidatePublicationKind::kDirectory;
   candidate_have_source_ = false;
@@ -1278,6 +1331,30 @@ void SpineL0Maintenance::evaluate(const CycleContext &context) {
     return;
   }
   if (phase_ == Phase::kCandidateClassifyReduce) {
+    staged_action_ = StagedAction::kAdvance;
+    return;
+  }
+  if (phase_ == Phase::kCandidatePublicationSchedule) {
+    if (candidate_publication_schedule_cycles_remaining_ != 0) {
+      staged_action_ = StagedAction::kAdvance;
+      return;
+    }
+    if (!tasks_.empty() || !inflight_tasks_.empty() ||
+        staged_memory_completion_ || staged_read_beat_completion_) {
+      return;
+    }
+    staged_action_ = StagedAction::kAdvance;
+    return;
+  }
+  if (phase_ == Phase::kCandidateListSchedule) {
+    if (candidate_list_schedule_cycles_remaining_ != 0) {
+      staged_action_ = StagedAction::kAdvance;
+      return;
+    }
+    if (!tasks_.empty() || !inflight_tasks_.empty() ||
+        staged_memory_completion_ || staged_read_beat_completion_) {
+      return;
+    }
     staged_action_ = StagedAction::kAdvance;
     return;
   }
@@ -1743,7 +1820,8 @@ void SpineL0Maintenance::begin_sorted_scan(Phase process_phase, ScanKind kind) {
   scan_hot_results_.clear();
   scan_hot_requests_pending_.clear();
   edge_by_edge_scan_ = kind == ScanKind::kDirtyMark;
-  if (kind != ScanKind::kCandidateBucketWrite) {
+  if (kind != ScanKind::kCandidateL0Precount &&
+      kind != ScanKind::kCandidateBucketWrite) {
     scan_base_address_ = config_.sorted_edges_base;
   }
   scan_have_last_source_ = false;
@@ -1756,6 +1834,10 @@ void SpineL0Maintenance::begin_sorted_scan(Phase process_phase, ScanKind kind) {
                  scan_base_address_,
                  sorted_scan_edges_.size() * kSpineSortWordBytes,
                  TaskClass::kSorted, {}, {}, streaming_scan_);
+  } else if (kind == ScanKind::kCandidateL0Precount) {
+    // HLS still invokes the local counter for an empty family. Its loop exits
+    // on the first bound check without issuing an HBM request.
+    scan_tail_remaining_ = scan_tail_cycles();
   }
   phase_ = process_phase;
 }
@@ -1766,6 +1848,7 @@ bool SpineL0Maintenance::scan_process_phase() const noexcept {
   case Phase::kDirtyUpdateProcess:
   case Phase::kHotColdCountProcess:
   case Phase::kPrecountProcess:
+  case Phase::kCandidateL0PrecountProcess:
   case Phase::kWriteProcess:
   case Phase::kCandidateClassifyProcess:
   case Phase::kCandidateDispatchProcess:
@@ -1776,8 +1859,13 @@ bool SpineL0Maintenance::scan_process_phase() const noexcept {
 }
 
 std::size_t SpineL0Maintenance::scan_initiation_interval() const noexcept {
-  return scan_kind_ == ScanKind::kL0Write ||
-                 scan_kind_ == ScanKind::kCandidateBucketWrite
+  if (scan_kind_ == ScanKind::kCandidateL0Precount) {
+    return config_.candidate_l0_precount_ii;
+  }
+  if (scan_kind_ == ScanKind::kCandidateBucketWrite) {
+    return config_.candidate_l0_write_scan_ii;
+  }
+  return scan_kind_ == ScanKind::kL0Write
              ? config_.maintenance_l0_write_scan_ii
              : config_.maintenance_count_scan_ii;
 }
@@ -1787,9 +1875,12 @@ std::size_t SpineL0Maintenance::scan_tail_cycles() const noexcept {
   case ScanKind::kHotColdCount:
   case ScanKind::kFamilyPrecount:
     return config_.maintenance_count_scan_tail_cycles;
+  case ScanKind::kCandidateL0Precount:
+    return config_.candidate_l0_precount_tail_cycles;
   case ScanKind::kL0Write:
-  case ScanKind::kCandidateBucketWrite:
     return config_.maintenance_l0_write_scan_tail_cycles;
+  case ScanKind::kCandidateBucketWrite:
+    return config_.candidate_l0_write_scan_tail_cycles;
   case ScanKind::kDirtyValidate:
   case ScanKind::kDirtyMark:
   case ScanKind::kCandidateClassify:
@@ -1953,6 +2044,9 @@ bool SpineL0Maintenance::process_scan_edge(const CycleContext &context) {
     break;
   case ScanKind::kFamilyPrecount:
     ++counters_.family_precount_edge_visits;
+    break;
+  case ScanKind::kCandidateL0Precount:
+    ++counters_.candidate_l0_precount_edge_visits;
     break;
   case ScanKind::kL0Write:
     ++counters_.l0_write_edge_visits;
@@ -2913,10 +3007,21 @@ void SpineL0Maintenance::finish_target_selector(
   }
   family_index_ = 0;
   precount_hot_ = false;
-  phase_ = config_.maintenance_architecture ==
-                   SpineMaintenanceArchitecture::kCandidate10OnePass
-               ? Phase::kBuildOutputs
-               : Phase::kPrecountBegin;
+  if (config_.maintenance_architecture ==
+      SpineMaintenanceArchitecture::kCandidate10OnePass) {
+    const bool cold_l0 = counters_.target_level == 0;
+    const bool hot_l0 = metadata_hot_enabled_ && counters_.hot_target_level == 0;
+    if (cold_l0) {
+      phase_ = Phase::kCandidateL0PrecountBegin;
+    } else if (hot_l0) {
+      precount_hot_ = true;
+      phase_ = Phase::kCandidateL0PrecountBegin;
+    } else {
+      phase_ = Phase::kBuildOutputs;
+    }
+  } else {
+    phase_ = Phase::kPrecountBegin;
+  }
 }
 
 std::vector<SpineEdgeRecord> SpineL0Maintenance::merge_family(
@@ -3071,18 +3176,25 @@ void SpineL0Maintenance::candidate_finish_classify_block() {
   candidate_classify_flush_pending_ = true;
 }
 
-void SpineL0Maintenance::candidate_begin_publication_pass() {
+void SpineL0Maintenance::candidate_begin_publication_pass(
+    const CycleContext &context) {
   candidate_publication_cursor_ = 0;
   candidate_publication_loaded_ = 0;
   candidate_publication_responses_ = 0;
   candidate_publication_writes_ = 0;
+  candidate_publication_window_index_ = 0;
   candidate_publication_window_records_.clear();
   candidate_publication_words_.clear();
   phase_ = Phase::kCandidatePublicationLoad;
-  candidate_load_publication_window();
+  candidate_load_publication_window(context);
 }
 
-void SpineL0Maintenance::candidate_load_publication_window() {
+void SpineL0Maintenance::candidate_load_publication_window(
+    const CycleContext &context) {
+  candidate_publication_window_start_cycle_ = context.domain_cycle;
+  candidate_publication_window_new_bits_ = 0;
+  candidate_publication_window_min_cycles_ = 0;
+  candidate_publication_schedule_cycles_remaining_ = 0;
   const std::size_t remaining =
       candidate_source_records_.size() - candidate_publication_cursor_;
   candidate_publication_loaded_ = 0;
@@ -3156,6 +3268,11 @@ void SpineL0Maintenance::candidate_build_publication_groups() {
     }
     candidate_publication_words_.back().requested[lane] |= mask;
   }
+  ++counters_.candidate_publication_windows;
+  counters_.candidate_publication_groups += candidate_publication_words_.size();
+  counters_.candidate_publication_prefetch_chunks +=
+      (candidate_publication_loaded_ + config_.candidate_source_prefetch - 1) /
+      config_.candidate_source_prefetch;
   candidate_publication_responses_ = 0;
   const bool skip_bitmap_reads =
       candidate_publication_kind_ == CandidatePublicationKind::kBitmap &&
@@ -3194,7 +3311,11 @@ void SpineL0Maintenance::candidate_write_publication_groups() {
       candidate_publication_kind_ == CandidatePublicationKind::kDirectory;
   const bool probe =
       candidate_publication_kind_ == CandidatePublicationKind::kBitmapProbe;
+  const bool empty_bitmap_fast_path =
+      candidate_publication_kind_ == CandidatePublicationKind::kBitmap &&
+      candidate_publication_empty_proven_;
   candidate_publication_writes_ = 0;
+  candidate_publication_window_new_bits_ = 0;
   for (std::size_t slot = 0; slot < candidate_publication_words_.size(); ++slot) {
     CandidatePublicationWord &word = candidate_publication_words_[slot];
     if (word.persisted.size() != kPersistentRecordBytes) {
@@ -3219,6 +3340,7 @@ void SpineL0Maintenance::candidate_write_publication_groups() {
         }
       }
     }
+    candidate_publication_window_new_bits_ += new_bits;
     if (directory) {
       counters_.family_directory_bits_set += new_bits;
       word.write = true;
@@ -3248,12 +3370,27 @@ void SpineL0Maintenance::candidate_write_publication_groups() {
       ++counters_.dirty_bitmap_writes;
     }
   }
+
+  if (!empty_bitmap_fast_path) {
+    counters_.candidate_publication_new_bits_enumerated +=
+        candidate_publication_window_new_bits_;
+  }
+  candidate_publication_window_min_cycles_ =
+      spine_candidate10_publication_window_min_cycles(
+          config_, candidate_publication_loaded_,
+          candidate_publication_words_.size(),
+          candidate_publication_window_new_bits_, empty_bitmap_fast_path,
+          candidate_publication_window_index_ == 0);
+  counters_.candidate_publication_rtl_min_cycles +=
+      candidate_publication_window_min_cycles_;
 }
 
-void SpineL0Maintenance::candidate_advance_publication_pass() {
+void SpineL0Maintenance::candidate_advance_publication_pass(
+    const CycleContext &context) {
   if (candidate_publication_cursor_ < candidate_source_records_.size()) {
+    ++candidate_publication_window_index_;
     phase_ = Phase::kCandidatePublicationLoad;
-    candidate_load_publication_window();
+    candidate_load_publication_window(context);
     return;
   }
   if (candidate_publication_kind_ == CandidatePublicationKind::kDirectory) {
@@ -3261,7 +3398,7 @@ void SpineL0Maintenance::candidate_advance_publication_pass() {
         counters_.publication_fallback ? CandidatePublicationKind::kBitmapProbe
                                        : CandidatePublicationKind::kBitmap;
     candidate_probe_new_count_ = 0;
-    candidate_begin_publication_pass();
+    candidate_begin_publication_pass(context);
     return;
   }
   if (candidate_publication_kind_ == CandidatePublicationKind::kBitmapProbe) {
@@ -3274,7 +3411,7 @@ void SpineL0Maintenance::candidate_advance_publication_pass() {
     }
     candidate_publication_kind_ = CandidatePublicationKind::kBitmap;
     candidate_new_dirty_sources_.clear();
-    candidate_begin_publication_pass();
+    candidate_begin_publication_pass(context);
     return;
   }
   counters_.dirty_list_appends = candidate_new_dirty_sources_.size();
@@ -3350,6 +3487,8 @@ void SpineL0Maintenance::candidate_write_list_words() {
     return;
   }
   const std::uint64_t first_word = dirty_count_ >> 2;
+  const std::uint64_t final_count = dirty_count_ + new_count;
+  candidate_list_schedule_cycles_remaining_ = 0;
   for (std::size_t source_index = 0; source_index < new_count; ++source_index) {
     const std::uint64_t logical = dirty_count_ + source_index;
     const std::size_t slot = static_cast<std::size_t>((logical >> 2) - first_word);
@@ -3358,6 +3497,20 @@ void SpineL0Maintenance::candidate_write_list_words() {
                  candidate_list_sources_[source_index]);
   }
   for (std::size_t slot = 0; slot < candidate_list_words_.size(); ++slot) {
+    const std::uint64_t word_begin = (first_word + slot) << 2;
+    const std::uint64_t valid_begin = std::max<std::uint64_t>(
+        word_begin, static_cast<std::uint64_t>(dirty_count_));
+    const std::uint64_t valid_end =
+        std::min<std::uint64_t>(word_begin + 4, final_count);
+    if (valid_end <= valid_begin) {
+      throw std::logic_error("candidate list word has no valid source lane");
+    }
+    const std::size_t valid_lanes =
+        static_cast<std::size_t>(valid_end - valid_begin);
+    candidate_list_schedule_cycles_remaining_ +=
+        config_.candidate_list_word_first_lane_cycles +
+        (valid_lanes - 1) *
+            config_.candidate_list_word_additional_lane_cycles;
     enqueue_task(
         *ports_.sorted_edges, MemoryOperation::kWrite,
         config_.persistent_dirty_list_base +
@@ -4871,7 +5024,7 @@ void SpineL0Maintenance::advance(const CycleContext &context) {
       return;
     }
     candidate_publication_kind_ = CandidatePublicationKind::kDirectory;
-    candidate_begin_publication_pass();
+    candidate_begin_publication_pass(context);
     return;
   case Phase::kCandidatePublicationLoad:
     if (candidate_publication_responses_ != candidate_publication_loaded_) {
@@ -4893,10 +5046,26 @@ void SpineL0Maintenance::advance(const CycleContext &context) {
     return;
   }
   case Phase::kCandidatePublicationWrite:
+    {
+      const std::uint64_t elapsed =
+          context.domain_cycle - candidate_publication_window_start_cycle_ + 1;
+      candidate_publication_schedule_cycles_remaining_ =
+          candidate_publication_window_min_cycles_ > elapsed
+              ? candidate_publication_window_min_cycles_ - elapsed
+              : 0;
+    }
+    phase_ = Phase::kCandidatePublicationSchedule;
+    return;
+  case Phase::kCandidatePublicationSchedule:
+    if (candidate_publication_schedule_cycles_remaining_ != 0) {
+      --candidate_publication_schedule_cycles_remaining_;
+      ++counters_.candidate_publication_schedule_stall_cycles;
+      return;
+    }
     phase_ = Phase::kCandidatePublicationAdvance;
     return;
   case Phase::kCandidatePublicationAdvance:
-    candidate_advance_publication_pass();
+    candidate_advance_publication_pass(context);
     return;
   case Phase::kCandidateListBegin: {
     if (!candidate_publication_empty_proven_) {
@@ -4936,6 +5105,14 @@ void SpineL0Maintenance::advance(const CycleContext &context) {
     return;
   case Phase::kCandidateListWrite:
     candidate_write_list_words();
+    phase_ = Phase::kCandidateListSchedule;
+    return;
+  case Phase::kCandidateListSchedule:
+    if (candidate_list_schedule_cycles_remaining_ != 0) {
+      --candidate_list_schedule_cycles_remaining_;
+      ++counters_.candidate_list_schedule_cycles;
+      return;
+    }
     phase_ = Phase::kCandidateFinalize;
     return;
   case Phase::kCandidateFinalize: {
@@ -4950,6 +5127,41 @@ void SpineL0Maintenance::advance(const CycleContext &context) {
     phase_ = Phase::kTargetSelect;
     return;
   }
+  case Phase::kCandidateL0PrecountBegin: {
+    const std::size_t logical_family =
+        precount_hot_ ? config_.partitions + family_index_ : family_index_;
+    sorted_scan_edges_ = candidate_family_buckets_.at(logical_family);
+    scan_base_address_ =
+        config_.persistent_family_bucket_base +
+        static_cast<std::uint64_t>(candidate_family_begin_.at(logical_family)) *
+            kSpineSortWordBytes;
+    begin_sorted_scan(Phase::kCandidateL0PrecountProcess,
+                      ScanKind::kCandidateL0Precount);
+    return;
+  }
+  case Phase::kCandidateL0PrecountProcess:
+    if (process_scan_edge(context)) {
+      const std::size_t logical_family =
+          precount_hot_ ? config_.partitions + family_index_ : family_index_;
+      // The later writer must consume the HBM-returned bucket payload, not the
+      // host-side vector used to initialize it.
+      candidate_family_buckets_.at(logical_family) = sorted_scan_edges_;
+      ++family_index_;
+      if (family_index_ == config_.partitions) {
+        const bool hot_l0 =
+            metadata_hot_enabled_ && counters_.hot_target_level == 0;
+        if (!precount_hot_ && hot_l0) {
+          precount_hot_ = true;
+          family_index_ = 0;
+          phase_ = Phase::kCandidateL0PrecountBegin;
+        } else {
+          phase_ = Phase::kBuildOutputs;
+        }
+      } else {
+        phase_ = Phase::kCandidateL0PrecountBegin;
+      }
+    }
+    return;
   case Phase::kHotColdCountBegin:
     begin_sorted_scan(Phase::kHotColdCountProcess, ScanKind::kHotColdCount);
     return;

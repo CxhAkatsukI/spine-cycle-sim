@@ -3,6 +3,7 @@
 // clang-format on
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -682,6 +683,8 @@ void write_candidate_maintenance_counters(
       << counters.candidate_source_record_word_writes << ",\n"
       << "  \"maintenance_candidate_prefix_iterations\": "
       << counters.candidate_prefix_iterations << ",\n"
+      << "  \"maintenance_candidate_l0_precount_edge_visits\": "
+      << counters.candidate_l0_precount_edge_visits << ",\n"
       << "  \"maintenance_dispatch_input_reads\": "
       << counters.dispatch_input_reads << ",\n"
       << "  \"maintenance_dispatch_bucket_writes\": "
@@ -712,6 +715,20 @@ void write_candidate_maintenance_counters(
       << counters.publication_list_word_reads << ",\n"
       << "  \"maintenance_publication_list_word_writes\": "
       << counters.publication_list_word_writes << ",\n"
+      << "  \"maintenance_candidate_publication_windows\": "
+      << counters.candidate_publication_windows << ",\n"
+      << "  \"maintenance_candidate_publication_groups\": "
+      << counters.candidate_publication_groups << ",\n"
+      << "  \"maintenance_candidate_publication_prefetch_chunks\": "
+      << counters.candidate_publication_prefetch_chunks << ",\n"
+      << "  \"maintenance_candidate_publication_new_bits_enumerated\": "
+      << counters.candidate_publication_new_bits_enumerated << ",\n"
+      << "  \"maintenance_candidate_publication_rtl_min_cycles\": "
+      << counters.candidate_publication_rtl_min_cycles << ",\n"
+      << "  \"maintenance_candidate_publication_schedule_stall_cycles\": "
+      << counters.candidate_publication_schedule_stall_cycles << ",\n"
+      << "  \"maintenance_candidate_list_schedule_cycles\": "
+      << counters.candidate_list_schedule_cycles << ",\n"
       << "  \"maintenance_publication_fallback\": "
       << (counters.publication_fallback ? "true" : "false") << ",\n"
       << "  \"maintenance_publication_empty_frontier_fast_path\": "
@@ -1252,6 +1269,37 @@ class OnlineMemoryProbe final : public SST::Component {
         params.find<std::size_t>("maintenance_l0_write_scan_ii", 24);
     maintenance_l0_write_scan_tail_cycles_ =
         params.find<std::size_t>("maintenance_l0_write_scan_tail_cycles", 42);
+    candidate_l0_precount_ii_ =
+        params.find<std::size_t>("candidate_l0_precount_ii", 1);
+    candidate_l0_precount_tail_cycles_ =
+        params.find<std::size_t>("candidate_l0_precount_tail_cycles", 77);
+    candidate_l0_write_scan_ii_ =
+        params.find<std::size_t>("candidate_l0_write_scan_ii", 24);
+    candidate_l0_write_scan_tail_cycles_ =
+        params.find<std::size_t>("candidate_l0_write_scan_tail_cycles", 149);
+    candidate_list_word_first_lane_cycles_ = params.find<std::size_t>(
+        "candidate_list_word_first_lane_cycles", 81);
+    candidate_list_word_additional_lane_cycles_ = params.find<std::size_t>(
+        "candidate_list_word_additional_lane_cycles", 120);
+    candidate_publication_base_cycles_ =
+        params.find<std::size_t>("candidate_publication_base_cycles", 229);
+    candidate_publication_source_cycles_ =
+        params.find<std::size_t>("candidate_publication_source_cycles", 5);
+    candidate_publication_group_cycles_ =
+        params.find<std::size_t>("candidate_publication_group_cycles", 20);
+    candidate_publication_new_bit_cycles_ =
+        params.find<std::size_t>("candidate_publication_new_bit_cycles", 2);
+    candidate_publication_prefetch_restart_cycles_ = params.find<std::size_t>(
+        "candidate_publication_prefetch_restart_cycles", 72);
+    candidate_publication_empty_base_cycles_ = params.find<std::size_t>(
+        "candidate_publication_empty_base_cycles", 156);
+    candidate_publication_empty_group_cycles_ = params.find<std::size_t>(
+        "candidate_publication_empty_group_cycles", 9);
+    candidate_publication_full_window_rebate_cycles_ = params.find<std::size_t>(
+        "candidate_publication_full_window_rebate_cycles", 4);
+    candidate_publication_next_window_overlap_cycles_ =
+        params.find<std::size_t>(
+            "candidate_publication_next_window_overlap_cycles", 3);
     maintenance_scan_response_capacity_ =
         params.find<std::size_t>("maintenance_scan_response_capacity", 32);
     spine_axi_profile_id_ =
@@ -1399,7 +1447,8 @@ class OnlineMemoryProbe final : public SST::Component {
     grasu_update_config_.maintain_out_degree = timed_degree_pagerank;
     grasu_config_.initialize_degree_payload = !timed_degree_pagerank;
     if ((mode_ != "probe" && mode_ != "payload_roundtrip" &&
-         mode_ != "spine_vertical" && mode_ != "spine_compute" &&
+         mode_ != "spine_vertical" && mode_ != "spine_maintenance" &&
+         mode_ != "spine_compute" &&
          mode_ != "spine_sssp" && mode_ != "spine_pagerank" &&
          mode_ != "spine_residual_pagerank" && mode_ != "grasu_regraph_sssp" &&
          mode_ != "grasu_regraph_native_sssp" &&
@@ -1439,13 +1488,22 @@ class OnlineMemoryProbe final : public SST::Component {
         reader_edge_pipeline_depth_ == 0 ||
         reader_edge_response_capacity_ == 0 ||
         maintenance_count_scan_ii_ == 0 || maintenance_l0_write_scan_ii_ == 0 ||
+        candidate_l0_precount_ii_ == 0 ||
+        candidate_l0_write_scan_ii_ == 0 ||
+        candidate_list_word_first_lane_cycles_ == 0 ||
+        candidate_publication_base_cycles_ == 0 ||
+        candidate_publication_source_cycles_ == 0 ||
+        candidate_publication_group_cycles_ == 0 ||
+        candidate_publication_empty_base_cycles_ == 0 ||
+        candidate_publication_empty_group_cycles_ == 0 ||
         maintenance_scan_response_capacity_ == 0 ||
         (spine_axi_profile_id_ != "hls_split_9c08763" &&
          spine_axi_profile_id_ != "legacy_uniform64") ||
         write_percent_ > 100 ||
         (mode_ == "probe" &&
          (request_count_ == 0 || request_bytes_ == 0 || stride_bytes_ == 0)) ||
-        ((mode_ == "spine_vertical" || mode_ == "spine_compute" ||
+        ((mode_ == "spine_vertical" || mode_ == "spine_maintenance" ||
+          mode_ == "spine_compute" ||
           mode_ == "spine_sssp" || mode_ == "spine_pagerank" ||
           mode_ == "spine_residual_pagerank" || mode_ == "grasu_regraph_sssp" ||
           mode_ == "grasu_regraph_native_sssp" ||
@@ -1644,11 +1702,14 @@ class OnlineMemoryProbe final : public SST::Component {
       grasu_update_edges_ = updates.size();
       if (!hls_weighted_grasu) {
         grasu_final_edges_.reserve(final_snapshot.edges.size());
-        for (const SpineEdgeRecord &edge : final_snapshot.edges) {
+
+      for (const SpineEdgeRecord &edge : final_snapshot.edges) {
           grasu_final_edges_.push_back(GraSuEdge{
-              .source = edge.src,
+
+            .source = edge.src,
               .destination = edge.dst,
-              .weight = edge.weight,
+
+            .weight = edge.weight,
           });
         }
       }
@@ -1673,8 +1734,7 @@ class OnlineMemoryProbe final : public SST::Component {
         grasu_sssp_reference_ =
             run_sssp_reference(final_snapshot, source_vertex_,
                                (native_grasu_sssp || hls_weighted_grasu_sssp)
-                                   ? grasu_native_supersteps_
-                                   : max_rounds_);
+                                   ? grasu_native_supersteps_                                    : max_rounds_);
         grasu_sssp_mathematical_reference_ =
             run_sssp_mathematical_reference(final_snapshot, source_vertex_);
         if (!native_grasu_sssp && !hls_weighted_grasu_sssp &&
@@ -1729,6 +1789,111 @@ class OnlineMemoryProbe final : public SST::Component {
             grasu_update_config_);
       }
       grasu_update_system_->register_components();
+      scheduler_.add_component(*backend_);
+      return;
+    }
+    if (mode_ == "spine_maintenance") {
+      SpineEdgeSlice workload = load_spine_edge_slice(workload_path_, true);
+      spine_expected_edges_ = workload.edges.size();
+      SpineL0Config config;
+      config.device_dirty_source_limit = device_dirty_source_limit_;
+      config.maintenance_architecture = spine_maintenance_architecture_;
+      config.range_task_active_gate = range_task_active_gate_;
+      config.range_task_capacity = range_task_capacity_;
+      config.range_task_payload_budget = range_task_payload_budget_;
+      config.fallback_replay_threshold = fallback_replay_threshold_;
+      config.memory_request_window = memory_request_window_;
+      config.reader_edge_pipeline_depth = reader_edge_pipeline_depth_;
+      config.reader_edge_response_capacity = reader_edge_response_capacity_;
+      config.maintenance_count_scan_ii = maintenance_count_scan_ii_;
+      config.maintenance_count_scan_tail_cycles =
+          maintenance_count_scan_tail_cycles_;
+      config.maintenance_l0_write_scan_ii = maintenance_l0_write_scan_ii_;
+      config.maintenance_l0_write_scan_tail_cycles =
+          maintenance_l0_write_scan_tail_cycles_;
+      config.candidate_l0_precount_ii = candidate_l0_precount_ii_;
+      config.candidate_l0_precount_tail_cycles =
+          candidate_l0_precount_tail_cycles_;
+      config.candidate_l0_write_scan_ii = candidate_l0_write_scan_ii_;
+      config.candidate_l0_write_scan_tail_cycles =
+          candidate_l0_write_scan_tail_cycles_;
+      config.candidate_list_word_first_lane_cycles =
+          candidate_list_word_first_lane_cycles_;
+      config.candidate_list_word_additional_lane_cycles =
+          candidate_list_word_additional_lane_cycles_;
+      config.candidate_publication_base_cycles =
+          candidate_publication_base_cycles_;
+      config.candidate_publication_source_cycles =
+          candidate_publication_source_cycles_;
+      config.candidate_publication_group_cycles =
+          candidate_publication_group_cycles_;
+      config.candidate_publication_new_bit_cycles =
+          candidate_publication_new_bit_cycles_;
+      config.candidate_publication_prefetch_restart_cycles =
+          candidate_publication_prefetch_restart_cycles_;
+      config.candidate_publication_empty_base_cycles =
+          candidate_publication_empty_base_cycles_;
+      config.candidate_publication_empty_group_cycles =
+          candidate_publication_empty_group_cycles_;
+      config.candidate_publication_full_window_rebate_cycles =
+          candidate_publication_full_window_rebate_cycles_;
+      config.candidate_publication_next_window_overlap_cycles =
+          candidate_publication_next_window_overlap_cycles_;
+      config.maintenance_scan_response_capacity =
+          maintenance_scan_response_capacity_;
+      if (!hot_vertices_text_.empty()) {
+        std::istringstream vertices(hot_vertices_text_);
+        std::string item;
+        while (std::getline(vertices, item, ',')) {
+          if (item.empty()) {
+            output_.fatal(CALL_INFO, -1, "empty hot vertex token\n");
+          }
+          config.hot_vertices.push_back(
+              static_cast<std::uint32_t>(std::stoul(item)));
+        }
+      }
+      spine_maintenance_state_.hot_vertices.insert(
+          config.hot_vertices.begin(), config.hot_vertices.end());
+      spine_maintenance_state_.hot_enabled =
+          !spine_maintenance_state_.hot_vertices.empty();
+      const auto make_port = [&](const std::string &name,
+                                 std::uint32_t initiator,
+                                 std::size_t channel,
+                                 SpineAxiPortKind kind) {
+        return std::make_unique<FixedAxiPort>(
+            name, core,
+            spine_axi_profile_.port_config(kind, channels_, channel,
+                                           initiator),
+            *backend_);
+      };
+      SpineL0Ports ports;
+      for (std::size_t family = 0; family < ports.graph.size(); ++family) {
+        spine_maintenance_graph_[family] = make_port(
+            "maintenance-graph" + std::to_string(family),
+            static_cast<std::uint32_t>(family), family,
+            SpineAxiPortKind::kGraph);
+        ports.graph[family] = spine_maintenance_graph_[family].get();
+      }
+      spine_maintenance_sorted_ = make_port(
+          "maintenance-sorted", 16, 16, SpineAxiPortKind::kSortedEdges);
+      spine_maintenance_metadata_ = make_port(
+          "maintenance-metadata", 20, 20, SpineAxiPortKind::kMetadata);
+      spine_maintenance_result_ = make_port(
+          "maintenance-result", 21, 21,
+          SpineAxiPortKind::kMaintenanceResult);
+      ports.sorted_edges = spine_maintenance_sorted_.get();
+      ports.metadata = spine_maintenance_metadata_.get();
+      ports.result = spine_maintenance_result_.get();
+      spine_maintenance_ = std::make_unique<SpineL0Maintenance>(
+          "spine-maintenance-only", core, std::move(config),
+          std::move(workload), ports, spine_maintenance_state_);
+      scheduler_.add_component(*spine_maintenance_);
+      for (auto &port : spine_maintenance_graph_) {
+        port->register_components(scheduler_);
+      }
+      spine_maintenance_sorted_->register_components(scheduler_);
+      spine_maintenance_metadata_->register_components(scheduler_);
+      spine_maintenance_result_->register_components(scheduler_);
       scheduler_.add_component(*backend_);
       return;
     }
@@ -1791,6 +1956,35 @@ class OnlineMemoryProbe final : public SST::Component {
           maintenance_l0_write_scan_ii_;
       maintenance_config.maintenance_l0_write_scan_tail_cycles =
           maintenance_l0_write_scan_tail_cycles_;
+      maintenance_config.candidate_l0_precount_ii = candidate_l0_precount_ii_;
+      maintenance_config.candidate_l0_precount_tail_cycles =
+          candidate_l0_precount_tail_cycles_;
+      maintenance_config.candidate_l0_write_scan_ii =
+          candidate_l0_write_scan_ii_;
+      maintenance_config.candidate_l0_write_scan_tail_cycles =
+          candidate_l0_write_scan_tail_cycles_;
+      maintenance_config.candidate_list_word_first_lane_cycles =
+          candidate_list_word_first_lane_cycles_;
+      maintenance_config.candidate_list_word_additional_lane_cycles =
+          candidate_list_word_additional_lane_cycles_;
+      maintenance_config.candidate_publication_base_cycles =
+          candidate_publication_base_cycles_;
+      maintenance_config.candidate_publication_source_cycles =
+          candidate_publication_source_cycles_;
+      maintenance_config.candidate_publication_group_cycles =
+          candidate_publication_group_cycles_;
+      maintenance_config.candidate_publication_new_bit_cycles =
+          candidate_publication_new_bit_cycles_;
+      maintenance_config.candidate_publication_prefetch_restart_cycles =
+          candidate_publication_prefetch_restart_cycles_;
+      maintenance_config.candidate_publication_empty_base_cycles =
+          candidate_publication_empty_base_cycles_;
+      maintenance_config.candidate_publication_empty_group_cycles =
+          candidate_publication_empty_group_cycles_;
+      maintenance_config.candidate_publication_full_window_rebate_cycles =
+          candidate_publication_full_window_rebate_cycles_;
+      maintenance_config.candidate_publication_next_window_overlap_cycles =
+          candidate_publication_next_window_overlap_cycles_;
       maintenance_config.maintenance_scan_response_capacity =
           maintenance_scan_response_capacity_;
       if (!hot_vertices_text_.empty()) {
@@ -1926,7 +2120,8 @@ class OnlineMemoryProbe final : public SST::Component {
       return;
     }
     if (mode_ == "spine_vertical" || mode_ == "spine_sssp") {
-      SpineEdgeSlice workload = load_spine_edge_slice(workload_path_);
+      SpineEdgeSlice workload = load_spine_edge_slice(
+          workload_path_, mode_ == "spine_vertical");
       spine_expected_edges_ = workload.edges.size();
       if (mode_ == "spine_sssp") {
         sssp_reference_ =
@@ -2007,6 +2202,35 @@ class OnlineMemoryProbe final : public SST::Component {
           maintenance_l0_write_scan_ii_;
       maintenance_config.maintenance_l0_write_scan_tail_cycles =
           maintenance_l0_write_scan_tail_cycles_;
+      maintenance_config.candidate_l0_precount_ii = candidate_l0_precount_ii_;
+      maintenance_config.candidate_l0_precount_tail_cycles =
+          candidate_l0_precount_tail_cycles_;
+      maintenance_config.candidate_l0_write_scan_ii =
+          candidate_l0_write_scan_ii_;
+      maintenance_config.candidate_l0_write_scan_tail_cycles =
+          candidate_l0_write_scan_tail_cycles_;
+      maintenance_config.candidate_list_word_first_lane_cycles =
+          candidate_list_word_first_lane_cycles_;
+      maintenance_config.candidate_list_word_additional_lane_cycles =
+          candidate_list_word_additional_lane_cycles_;
+      maintenance_config.candidate_publication_base_cycles =
+          candidate_publication_base_cycles_;
+      maintenance_config.candidate_publication_source_cycles =
+          candidate_publication_source_cycles_;
+      maintenance_config.candidate_publication_group_cycles =
+          candidate_publication_group_cycles_;
+      maintenance_config.candidate_publication_new_bit_cycles =
+          candidate_publication_new_bit_cycles_;
+      maintenance_config.candidate_publication_prefetch_restart_cycles =
+          candidate_publication_prefetch_restart_cycles_;
+      maintenance_config.candidate_publication_empty_base_cycles =
+          candidate_publication_empty_base_cycles_;
+      maintenance_config.candidate_publication_empty_group_cycles =
+          candidate_publication_empty_group_cycles_;
+      maintenance_config.candidate_publication_full_window_rebate_cycles =
+          candidate_publication_full_window_rebate_cycles_;
+      maintenance_config.candidate_publication_next_window_overlap_cycles =
+          candidate_publication_next_window_overlap_cycles_;
       maintenance_config.maintenance_scan_response_capacity =
           maintenance_scan_response_capacity_;
       if (!hot_vertices_text_.empty()) {
@@ -2180,7 +2404,8 @@ class OnlineMemoryProbe final : public SST::Component {
         if (mode_ == "grasu_regraph_sssp" ||
             mode_ == "grasu_regraph_hls_weighted_sssp") {
           if (mode_ == "grasu_regraph_hls_weighted_sssp") {
-            grasu_compute_system_ = std::make_unique<GraSuReGraphSsspSystem>(
+
+          grasu_compute_system_ = std::make_unique<GraSuReGraphSsspSystem>(
                 scheduler_, 0, *backend_, grasu_layout_,
                 GraphAlgorithmPolicy(AlgorithmPolicyConfig{
                     .kind = GraphAlgorithmKind::kWeightedSssp,
@@ -2191,7 +2416,8 @@ class OnlineMemoryProbe final : public SST::Component {
                 grasu_config_);
           } else {
             grasu_compute_system_ = std::make_unique<GraSuReGraphSsspSystem>(
-                scheduler_, 0, *backend_, grasu_layout_, source_vertex_,
+
+              scheduler_, 0, *backend_, grasu_layout_, source_vertex_,
                 grasu_config_);
           }
           grasu_compute_system_->register_components();
@@ -2235,6 +2461,18 @@ class OnlineMemoryProbe final : public SST::Component {
                        ? grasu_pagerank_compute_system_->failed()
                        : grasu_residual_compute_system_->failed());
         write_result(!compute_failed);
+        primaryComponentOKToEndSim();
+        return true;
+      }
+    } else if (mode_ == "spine_maintenance") {
+      const bool graph_ports_idle = std::all_of(
+          spine_maintenance_graph_.begin(), spine_maintenance_graph_.end(),
+          [](const auto &port) { return port->idle(); });
+      if (spine_maintenance_->done() && graph_ports_idle &&
+          spine_maintenance_sorted_->idle() &&
+          spine_maintenance_metadata_->idle() &&
+          spine_maintenance_result_->idle() && backend_->outstanding() == 0) {
+        write_result(!spine_maintenance_->failed());
         primaryComponentOKToEndSim();
         return true;
       }
@@ -2427,7 +2665,8 @@ class OnlineMemoryProbe final : public SST::Component {
   SST_ELI_DOCUMENT_PARAMS(
       {"output", "JSON result path", "sst_memory_probe.json"},
       {"mode",
-       "probe, payload_roundtrip, spine_vertical, spine_compute, spine_sssp, "
+       "probe, payload_roundtrip, spine_vertical, spine_maintenance, "
+       "spine_compute, spine_sssp, "
        "or "
        "spine_pagerank/spine_residual_pagerank/grasu_regraph_sssp/"
        "grasu_regraph_native_sssp/grasu_regraph_hls_weighted_sssp/"
@@ -2502,6 +2741,36 @@ class OnlineMemoryProbe final : public SST::Component {
       {"maintenance_l0_write_scan_ii", "Achieved HLS L0-write scan II", "24"},
       {"maintenance_l0_write_scan_tail_cycles",
        "Achieved HLS L0-write scan tail cycles", "42"},
+      {"candidate_l0_precount_ii",
+       "Candidate-10 family-local L0 precount initiation interval", "1"},
+      {"candidate_l0_precount_tail_cycles",
+       "Candidate-10 family-local L0 precount function tail cycles", "77"},
+      {"candidate_l0_write_scan_ii",
+       "Candidate-10 family-local L0 writer initiation interval", "24"},
+      {"candidate_l0_write_scan_tail_cycles",
+       "Candidate-10 family-local L0 writer scan tail cycles", "149"},
+      {"candidate_list_word_first_lane_cycles",
+       "Candidate-10 dirty-list word schedule for its first valid lane", "81"},
+      {"candidate_list_word_additional_lane_cycles",
+       "Candidate-10 dirty-list schedule per additional valid lane", "120"},
+      {"candidate_publication_base_cycles",
+       "Candidate-10 grouped-pass nonempty window base cycles", "229"},
+      {"candidate_publication_source_cycles",
+       "Candidate-10 grouped-pass cycles per source", "5"},
+      {"candidate_publication_group_cycles",
+       "Candidate-10 grouped-pass nonempty cycles per group", "20"},
+      {"candidate_publication_new_bit_cycles",
+       "Candidate-10 grouped-pass cycles per newly enumerated bit", "2"},
+      {"candidate_publication_prefetch_restart_cycles",
+       "Candidate-10 grouped-pass cycles per extra source-prefetch chunk", "72"},
+      {"candidate_publication_empty_base_cycles",
+       "Candidate-10 empty-bitmap fast-path base cycles", "156"},
+      {"candidate_publication_empty_group_cycles",
+       "Candidate-10 empty-bitmap fast-path cycles per group", "9"},
+      {"candidate_publication_full_window_rebate_cycles",
+       "Candidate-10 full 16-group window overlap rebate", "4"},
+      {"candidate_publication_next_window_overlap_cycles",
+       "Candidate-10 continuation-window overlap rebate", "3"},
       {"maintenance_scan_response_capacity",
        "Maintenance sorted-edge response/reorder capacity", "32"},
       {"spine_axi_profile",
@@ -2627,6 +2896,169 @@ class OnlineMemoryProbe final : public SST::Component {
     }
     result_written_ = true;
     std::ofstream result(result_path_);
+    if (mode_ == "spine_maintenance") {
+      const SpineL0Counters &maintenance = spine_maintenance_->counters();
+      const bool passed = success && !spine_maintenance_->failed();
+      result << "{\n"
+             << "  \"success\": " << (passed ? "true" : "false") << ",\n"
+             << "  \"mode\": \"spine_maintenance\",\n"
+             << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
+             << "  \"core_mhz\": " << core_mhz_ << ",\n"
+             << "  \"spine_axi_profile\": \"" << spine_axi_profile_id_
+             << "\",\n"
+             << "  \"spine_maintenance_architecture\": \""
+             << spine_maintenance_architecture_id_ << "\",\n";
+      write_candidate_maintenance_counters(result, maintenance);
+      result << "  \"cycles\": " << scheduler_.clock(0).completed_cycles
+             << ",\n"
+             << "  \"maintenance_start_cycle\": "
+             << maintenance.start_cycle << ",\n"
+             << "  \"maintenance_end_cycle\": " << maintenance.end_cycle
+             << ",\n"
+             << "  \"maintenance_cycles\": "
+             << maintenance.end_cycle - maintenance.start_cycle << ",\n"
+             << "  \"input_edges\": " << spine_expected_edges_ << ",\n"
+             << "  \"memory_request_window\": " << memory_request_window_
+             << ",\n"
+             << "  \"maintenance_count_scan_ii\": "
+             << maintenance_count_scan_ii_ << ",\n"
+             << "  \"maintenance_count_scan_tail_cycles\": "
+             << maintenance_count_scan_tail_cycles_ << ",\n"
+             << "  \"maintenance_l0_write_scan_ii\": "
+             << maintenance_l0_write_scan_ii_ << ",\n"
+             << "  \"maintenance_l0_write_scan_tail_cycles\": "
+             << maintenance_l0_write_scan_tail_cycles_ << ",\n"
+             << "  \"candidate_l0_precount_ii\": "
+             << candidate_l0_precount_ii_ << ",\n"
+             << "  \"candidate_l0_precount_tail_cycles\": "
+             << candidate_l0_precount_tail_cycles_ << ",\n"
+             << "  \"candidate_l0_write_scan_ii\": "
+             << candidate_l0_write_scan_ii_ << ",\n"
+             << "  \"candidate_l0_write_scan_tail_cycles\": "
+             << candidate_l0_write_scan_tail_cycles_ << ",\n"
+             << "  \"candidate_list_word_first_lane_cycles\": "
+             << candidate_list_word_first_lane_cycles_ << ",\n"
+             << "  \"candidate_list_word_additional_lane_cycles\": "
+             << candidate_list_word_additional_lane_cycles_ << ",\n"
+             << "  \"candidate_publication_base_cycles\": "
+             << candidate_publication_base_cycles_ << ",\n"
+             << "  \"candidate_publication_source_cycles\": "
+             << candidate_publication_source_cycles_ << ",\n"
+             << "  \"candidate_publication_group_cycles\": "
+             << candidate_publication_group_cycles_ << ",\n"
+             << "  \"candidate_publication_new_bit_cycles\": "
+             << candidate_publication_new_bit_cycles_ << ",\n"
+             << "  \"candidate_publication_prefetch_restart_cycles\": "
+             << candidate_publication_prefetch_restart_cycles_ << ",\n"
+             << "  \"candidate_publication_empty_base_cycles\": "
+             << candidate_publication_empty_base_cycles_ << ",\n"
+             << "  \"candidate_publication_empty_group_cycles\": "
+             << candidate_publication_empty_group_cycles_ << ",\n"
+             << "  \"candidate_publication_full_window_rebate_cycles\": "
+             << candidate_publication_full_window_rebate_cycles_ << ",\n"
+             << "  \"candidate_publication_next_window_overlap_cycles\": "
+             << candidate_publication_next_window_overlap_cycles_ << ",\n"
+             << "  \"maintenance_scan_response_capacity\": "
+             << maintenance_scan_response_capacity_ << ",\n"
+             << "  \"maintenance_target_level\": "
+             << maintenance.target_level << ",\n"
+             << "  \"maintenance_persisted_edges\": "
+             << maintenance.persisted_edges << ",\n"
+             << "  \"maintenance_unique_sources\": "
+             << maintenance.unique_sources << ",\n"
+             << "  \"maintenance_active_families\": "
+             << maintenance.active_families << ",\n"
+             << "  \"maintenance_sorted_read_bytes\": "
+             << maintenance.sorted_read_bytes << ",\n"
+             << "  \"maintenance_sorted_scan_passes\": "
+             << maintenance.sorted_scan_passes << ",\n"
+             << "  \"maintenance_sorted_edge_visits\": "
+             << maintenance.sorted_edge_visits << ",\n"
+             << "  \"maintenance_sorted_payload_read_bytes\": "
+             << maintenance.sorted_payload_read_bytes << ",\n"
+             << "  \"maintenance_sorted_scan_response_stall_cycles\": "
+             << maintenance.sorted_scan_response_stall_cycles << ",\n"
+             << "  \"maintenance_sorted_scan_ii_stall_cycles\": "
+             << maintenance.sorted_scan_ii_stall_cycles << ",\n"
+             << "  \"maintenance_sorted_scan_tail_cycles\": "
+             << maintenance.sorted_scan_tail_cycles << ",\n"
+             << "  \"maintenance_persistent_read_bytes\": "
+             << maintenance.persistent_read_bytes << ",\n"
+             << "  \"maintenance_persistent_write_bytes\": "
+             << maintenance.persistent_write_bytes << ",\n"
+             << "  \"maintenance_metadata_read_bytes\": "
+             << maintenance.metadata_read_bytes << ",\n"
+             << "  \"maintenance_metadata_write_bytes\": "
+             << maintenance.metadata_write_bytes << ",\n"
+             << "  \"maintenance_graph_read_bytes\": "
+             << maintenance.graph_read_bytes << ",\n"
+             << "  \"maintenance_graph_write_bytes\": "
+             << maintenance.graph_write_bytes << ",\n"
+             << "  \"maintenance_l0_write_edge_visits\": "
+             << maintenance.l0_write_edge_visits << ",\n"
+             << "  \"maintenance_l0_writer_groups_seen\": "
+             << maintenance.l0_writer_groups_seen << ",\n"
+             << "  \"maintenance_l0_writer_groups_emitted\": "
+             << maintenance.l0_writer_groups_emitted << ",\n"
+             << "  \"maintenance_l0_writer_groups_cancelled\": "
+             << maintenance.l0_writer_groups_cancelled << ",\n"
+             << "  \"maintenance_l0_writer_edge_word_writes\": "
+             << maintenance.l0_writer_edge_word_writes << ",\n"
+             << "  \"maintenance_l0_writer_row_word_writes\": "
+             << maintenance.l0_writer_row_word_writes << ",\n"
+             << "  \"maintenance_l0_writer_mask_word_writes\": "
+             << maintenance.l0_writer_mask_word_writes << ",\n"
+             << "  \"maintenance_l0_writer_page_base_word_writes\": "
+             << maintenance.l0_writer_page_base_word_writes << ",\n"
+             << "  \"maintenance_l0_writer_bitmap_page_writes\": "
+             << maintenance.l0_writer_bitmap_page_writes << ",\n"
+             << "  \"maintenance_l0_writer_page_list_word_writes\": "
+             << maintenance.l0_writer_page_list_word_writes << ",\n"
+             << "  \"maintenance_l0_writer_page_epoch_word_writes\": "
+             << maintenance.l0_writer_page_epoch_word_writes << ",\n"
+             << "  \"maintenance_l0_writer_memory_wait_cycles\": "
+             << maintenance.l0_writer_memory_wait_cycles << ",\n"
+             << "  \"maintenance_l0_writer_memory_overlap_cycles\": "
+             << maintenance.l0_writer_memory_overlap_cycles << ",\n"
+             << "  \"maintenance_l0_writer_backpressure_stall_cycles\": "
+             << maintenance.l0_writer_backpressure_stall_cycles << ",\n"
+             << "  \"maintenance_l0_writer_max_pending_tasks\": "
+             << maintenance.l0_writer_max_pending_tasks << ",\n"
+             << "  \"maintenance_l0_writer_max_pending_tasks_per_port\": "
+             << maintenance.l0_writer_max_pending_tasks_per_port << ",\n"
+             << "  \"maintenance_result_write_bytes\": "
+             << maintenance.result_write_bytes << ",\n"
+             << "  \"maintenance_memory_requests_issued\": "
+             << maintenance.memory_requests_issued << ",\n"
+             << "  \"maintenance_memory_requests_completed\": "
+             << maintenance.memory_requests_completed << ",\n"
+             << "  \"maintenance_memory_window_stall_cycles\": "
+             << maintenance.memory_window_stall_cycles << ",\n"
+             << "  \"maintenance_memory_dependency_stall_cycles\": "
+             << maintenance.memory_dependency_stall_cycles << ",\n"
+             << "  \"maintenance_memory_request_fifo_stall_cycles\": "
+             << maintenance.memory_request_fifo_stall_cycles << ",\n"
+             << "  \"maintenance_max_memory_requests_inflight\": "
+             << maintenance.max_memory_requests_inflight << ",\n"
+             << "  \"backend_requests\": " << backend_->accepted() << ",\n"
+             << "  \"backend_submit_stalls\": "
+             << backend_->submit_stalls() << ",\n"
+             << "  \"backend_response_queue_stalls\": "
+             << backend_->response_queue_stalls() << ",\n"
+             << "  \"backend_max_outstanding\": "
+             << backend_->max_outstanding() << ",\n"
+             << "  \"backend_traffic\": ";
+      write_memory_traffic(result, backend_->traffic_stats());
+      result << ",\n  \"failure\": ";
+      write_json_string(result, spine_maintenance_->failure());
+      result << "\n}\n";
+      output_.output(
+          "completed Spine maintenance-only run in %llu core cycles -> %s\n",
+          static_cast<unsigned long long>(
+              scheduler_.clock(0).completed_cycles),
+          result_path_.c_str());
+      return;
+    }
     if (mode_ == "grasu_regraph_native_sssp") {
       const bool compute_available = grasu_native_compute_system_ != nullptr;
       const bool compactor_available = grasu_compactor_system_ != nullptr;
@@ -3643,8 +4075,7 @@ class OnlineMemoryProbe final : public SST::Component {
              << (hls_weighted
                      ? "hls_sw_emu_aligned_execution_driven_simulation"
                      : (normalized_profile
-                            ? "normalized_simulation"
-                            : "component_validation_simulation"))
+                            ? "normalized_simulation"                             : "component_validation_simulation"))
              << "\",\n"
              << "  \"timing_evidence\": \""
              << (hls_weighted
@@ -4078,6 +4509,36 @@ class OnlineMemoryProbe final : public SST::Component {
           << maintenance_l0_write_scan_ii_ << ",\n"
           << "  \"maintenance_l0_write_scan_tail_cycles\": "
           << maintenance_l0_write_scan_tail_cycles_ << ",\n"
+          << "  \"candidate_l0_precount_ii\": "
+          << candidate_l0_precount_ii_ << ",\n"
+          << "  \"candidate_l0_precount_tail_cycles\": "
+          << candidate_l0_precount_tail_cycles_ << ",\n"
+          << "  \"candidate_l0_write_scan_ii\": "
+          << candidate_l0_write_scan_ii_ << ",\n"
+          << "  \"candidate_l0_write_scan_tail_cycles\": "
+          << candidate_l0_write_scan_tail_cycles_ << ",\n"
+          << "  \"candidate_list_word_first_lane_cycles\": "
+          << candidate_list_word_first_lane_cycles_ << ",\n"
+          << "  \"candidate_list_word_additional_lane_cycles\": "
+          << candidate_list_word_additional_lane_cycles_ << ",\n"
+          << "  \"candidate_publication_base_cycles\": "
+          << candidate_publication_base_cycles_ << ",\n"
+          << "  \"candidate_publication_source_cycles\": "
+          << candidate_publication_source_cycles_ << ",\n"
+          << "  \"candidate_publication_group_cycles\": "
+          << candidate_publication_group_cycles_ << ",\n"
+          << "  \"candidate_publication_new_bit_cycles\": "
+          << candidate_publication_new_bit_cycles_ << ",\n"
+          << "  \"candidate_publication_prefetch_restart_cycles\": "
+          << candidate_publication_prefetch_restart_cycles_ << ",\n"
+          << "  \"candidate_publication_empty_base_cycles\": "
+          << candidate_publication_empty_base_cycles_ << ",\n"
+          << "  \"candidate_publication_empty_group_cycles\": "
+          << candidate_publication_empty_group_cycles_ << ",\n"
+          << "  \"candidate_publication_full_window_rebate_cycles\": "
+          << candidate_publication_full_window_rebate_cycles_ << ",\n"
+          << "  \"candidate_publication_next_window_overlap_cycles\": "
+          << candidate_publication_next_window_overlap_cycles_ << ",\n"
           << "  \"maintenance_scan_response_capacity\": "
           << maintenance_scan_response_capacity_ << ",\n"
           << "  \"correctness_mismatches\": "
@@ -4314,6 +4775,36 @@ class OnlineMemoryProbe final : public SST::Component {
           << maintenance_l0_write_scan_ii_ << ",\n"
           << "  \"maintenance_l0_write_scan_tail_cycles\": "
           << maintenance_l0_write_scan_tail_cycles_ << ",\n"
+          << "  \"candidate_l0_precount_ii\": "
+          << candidate_l0_precount_ii_ << ",\n"
+          << "  \"candidate_l0_precount_tail_cycles\": "
+          << candidate_l0_precount_tail_cycles_ << ",\n"
+          << "  \"candidate_l0_write_scan_ii\": "
+          << candidate_l0_write_scan_ii_ << ",\n"
+          << "  \"candidate_l0_write_scan_tail_cycles\": "
+          << candidate_l0_write_scan_tail_cycles_ << ",\n"
+          << "  \"candidate_list_word_first_lane_cycles\": "
+          << candidate_list_word_first_lane_cycles_ << ",\n"
+          << "  \"candidate_list_word_additional_lane_cycles\": "
+          << candidate_list_word_additional_lane_cycles_ << ",\n"
+          << "  \"candidate_publication_base_cycles\": "
+          << candidate_publication_base_cycles_ << ",\n"
+          << "  \"candidate_publication_source_cycles\": "
+          << candidate_publication_source_cycles_ << ",\n"
+          << "  \"candidate_publication_group_cycles\": "
+          << candidate_publication_group_cycles_ << ",\n"
+          << "  \"candidate_publication_new_bit_cycles\": "
+          << candidate_publication_new_bit_cycles_ << ",\n"
+          << "  \"candidate_publication_prefetch_restart_cycles\": "
+          << candidate_publication_prefetch_restart_cycles_ << ",\n"
+          << "  \"candidate_publication_empty_base_cycles\": "
+          << candidate_publication_empty_base_cycles_ << ",\n"
+          << "  \"candidate_publication_empty_group_cycles\": "
+          << candidate_publication_empty_group_cycles_ << ",\n"
+          << "  \"candidate_publication_full_window_rebate_cycles\": "
+          << candidate_publication_full_window_rebate_cycles_ << ",\n"
+          << "  \"candidate_publication_next_window_overlap_cycles\": "
+          << candidate_publication_next_window_overlap_cycles_ << ",\n"
           << "  \"maintenance_scan_response_capacity\": "
           << maintenance_scan_response_capacity_ << ",\n"
           << "  \"correctness_mismatches\": "
@@ -5162,6 +5653,36 @@ class OnlineMemoryProbe final : public SST::Component {
           << maintenance_l0_write_scan_ii_ << ",\n"
           << "  \"maintenance_l0_write_scan_tail_cycles\": "
           << maintenance_l0_write_scan_tail_cycles_ << ",\n"
+          << "  \"candidate_l0_precount_ii\": "
+          << candidate_l0_precount_ii_ << ",\n"
+          << "  \"candidate_l0_precount_tail_cycles\": "
+          << candidate_l0_precount_tail_cycles_ << ",\n"
+          << "  \"candidate_l0_write_scan_ii\": "
+          << candidate_l0_write_scan_ii_ << ",\n"
+          << "  \"candidate_l0_write_scan_tail_cycles\": "
+          << candidate_l0_write_scan_tail_cycles_ << ",\n"
+          << "  \"candidate_list_word_first_lane_cycles\": "
+          << candidate_list_word_first_lane_cycles_ << ",\n"
+          << "  \"candidate_list_word_additional_lane_cycles\": "
+          << candidate_list_word_additional_lane_cycles_ << ",\n"
+          << "  \"candidate_publication_base_cycles\": "
+          << candidate_publication_base_cycles_ << ",\n"
+          << "  \"candidate_publication_source_cycles\": "
+          << candidate_publication_source_cycles_ << ",\n"
+          << "  \"candidate_publication_group_cycles\": "
+          << candidate_publication_group_cycles_ << ",\n"
+          << "  \"candidate_publication_new_bit_cycles\": "
+          << candidate_publication_new_bit_cycles_ << ",\n"
+          << "  \"candidate_publication_prefetch_restart_cycles\": "
+          << candidate_publication_prefetch_restart_cycles_ << ",\n"
+          << "  \"candidate_publication_empty_base_cycles\": "
+          << candidate_publication_empty_base_cycles_ << ",\n"
+          << "  \"candidate_publication_empty_group_cycles\": "
+          << candidate_publication_empty_group_cycles_ << ",\n"
+          << "  \"candidate_publication_full_window_rebate_cycles\": "
+          << candidate_publication_full_window_rebate_cycles_ << ",\n"
+          << "  \"candidate_publication_next_window_overlap_cycles\": "
+          << candidate_publication_next_window_overlap_cycles_ << ",\n"
           << "  \"maintenance_scan_response_capacity\": "
           << maintenance_scan_response_capacity_ << ",\n"
           << "  \"converged\": " << (converged ? "true" : "false") << ",\n"
@@ -5241,6 +5762,8 @@ class OnlineMemoryProbe final : public SST::Component {
           << maintenance.hot_cold_count_edge_visits << ",\n"
           << "  \"maintenance_family_precount_visits\": "
           << maintenance.family_precount_edge_visits << ",\n"
+          << "  \"maintenance_candidate_l0_precount_visits\": "
+          << maintenance.candidate_l0_precount_edge_visits << ",\n"
           << "  \"maintenance_l0_write_visits\": "
           << maintenance.l0_write_edge_visits << ",\n"
           << "  \"maintenance_target_selector_invocations\": "
@@ -5869,6 +6392,36 @@ class OnlineMemoryProbe final : public SST::Component {
           << maintenance_l0_write_scan_ii_ << ",\n"
           << "  \"maintenance_l0_write_scan_tail_cycles\": "
           << maintenance_l0_write_scan_tail_cycles_ << ",\n"
+          << "  \"candidate_l0_precount_ii\": "
+          << candidate_l0_precount_ii_ << ",\n"
+          << "  \"candidate_l0_precount_tail_cycles\": "
+          << candidate_l0_precount_tail_cycles_ << ",\n"
+          << "  \"candidate_l0_write_scan_ii\": "
+          << candidate_l0_write_scan_ii_ << ",\n"
+          << "  \"candidate_l0_write_scan_tail_cycles\": "
+          << candidate_l0_write_scan_tail_cycles_ << ",\n"
+          << "  \"candidate_list_word_first_lane_cycles\": "
+          << candidate_list_word_first_lane_cycles_ << ",\n"
+          << "  \"candidate_list_word_additional_lane_cycles\": "
+          << candidate_list_word_additional_lane_cycles_ << ",\n"
+          << "  \"candidate_publication_base_cycles\": "
+          << candidate_publication_base_cycles_ << ",\n"
+          << "  \"candidate_publication_source_cycles\": "
+          << candidate_publication_source_cycles_ << ",\n"
+          << "  \"candidate_publication_group_cycles\": "
+          << candidate_publication_group_cycles_ << ",\n"
+          << "  \"candidate_publication_new_bit_cycles\": "
+          << candidate_publication_new_bit_cycles_ << ",\n"
+          << "  \"candidate_publication_prefetch_restart_cycles\": "
+          << candidate_publication_prefetch_restart_cycles_ << ",\n"
+          << "  \"candidate_publication_empty_base_cycles\": "
+          << candidate_publication_empty_base_cycles_ << ",\n"
+          << "  \"candidate_publication_empty_group_cycles\": "
+          << candidate_publication_empty_group_cycles_ << ",\n"
+          << "  \"candidate_publication_full_window_rebate_cycles\": "
+          << candidate_publication_full_window_rebate_cycles_ << ",\n"
+          << "  \"candidate_publication_next_window_overlap_cycles\": "
+          << candidate_publication_next_window_overlap_cycles_ << ",\n"
           << "  \"maintenance_scan_response_capacity\": "
           << maintenance_scan_response_capacity_ << ",\n"
           << "  \"correctness_mismatches\": " << mismatches << ",\n"
@@ -5931,6 +6484,8 @@ class OnlineMemoryProbe final : public SST::Component {
           << maintenance.hot_cold_count_edge_visits << ",\n"
           << "  \"maintenance_family_precount_visits\": "
           << maintenance.family_precount_edge_visits << ",\n"
+          << "  \"maintenance_candidate_l0_precount_visits\": "
+          << maintenance.candidate_l0_precount_edge_visits << ",\n"
           << "  \"maintenance_l0_write_visits\": "
           << maintenance.l0_write_edge_visits << ",\n"
           << "  \"maintenance_target_selector_invocations\": "
@@ -6524,6 +7079,21 @@ class OnlineMemoryProbe final : public SST::Component {
   std::size_t maintenance_count_scan_tail_cycles_{};
   std::size_t maintenance_l0_write_scan_ii_{};
   std::size_t maintenance_l0_write_scan_tail_cycles_{};
+  std::size_t candidate_l0_precount_ii_{};
+  std::size_t candidate_l0_precount_tail_cycles_{};
+  std::size_t candidate_l0_write_scan_ii_{};
+  std::size_t candidate_l0_write_scan_tail_cycles_{};
+  std::size_t candidate_list_word_first_lane_cycles_{};
+  std::size_t candidate_list_word_additional_lane_cycles_{};
+  std::size_t candidate_publication_base_cycles_{};
+  std::size_t candidate_publication_source_cycles_{};
+  std::size_t candidate_publication_group_cycles_{};
+  std::size_t candidate_publication_new_bit_cycles_{};
+  std::size_t candidate_publication_prefetch_restart_cycles_{};
+  std::size_t candidate_publication_empty_base_cycles_{};
+  std::size_t candidate_publication_empty_group_cycles_{};
+  std::size_t candidate_publication_full_window_rebate_cycles_{};
+  std::size_t candidate_publication_next_window_overlap_cycles_{};
   std::size_t maintenance_scan_response_capacity_{};
   std::string spine_axi_profile_id_;
   SpineAxiInterfaceProfile spine_axi_profile_;
@@ -6540,6 +7110,12 @@ class OnlineMemoryProbe final : public SST::Component {
   std::unique_ptr<ProbeSource> source_;
   std::unique_ptr<ProbeSink> sink_;
   std::unique_ptr<PayloadRoundTrip> payload_round_trip_;
+  std::array<std::unique_ptr<FixedAxiPort>, 16> spine_maintenance_graph_;
+  std::unique_ptr<FixedAxiPort> spine_maintenance_sorted_;
+  std::unique_ptr<FixedAxiPort> spine_maintenance_metadata_;
+  std::unique_ptr<FixedAxiPort> spine_maintenance_result_;
+  SpineL0State spine_maintenance_state_;
+  std::unique_ptr<SpineL0Maintenance> spine_maintenance_;
   std::unique_ptr<SpineVerticalSliceSystem> spine_system_;
   std::unique_ptr<SpinePageRankVerticalSliceSystem> pagerank_system_;
   std::unique_ptr<Fifo<PartConvWord>> spine_edge_stream_;
