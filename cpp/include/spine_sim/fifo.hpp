@@ -79,6 +79,9 @@ class Fifo final : public Component {
     return true;
   }
 
+  [[nodiscard]] bool has_evaluate_phase() const noexcept override {
+    return false;
+  }
   void evaluate(const CycleContext&) override {}
 
   void commit(const CycleContext&) override {

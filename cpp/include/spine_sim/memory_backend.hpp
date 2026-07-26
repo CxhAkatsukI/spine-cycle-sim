@@ -62,6 +62,13 @@ class MemoryBackend : public Component {
  public:
   using Component::Component;
 
+  [[nodiscard]] bool has_prepare_phase() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_evaluate_phase() const noexcept override {
+    return false;
+  }
+
   void register_initiator(std::uint32_t initiator_id);
   void initialize_payload(std::size_t channel, std::uint64_t address,
                           const std::vector<std::uint8_t>& data);

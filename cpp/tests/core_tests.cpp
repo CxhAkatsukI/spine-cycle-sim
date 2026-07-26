@@ -755,6 +755,38 @@ class EdgeCounter final : public Component {
   std::uint64_t commits{};
 };
 
+class PhaseCounter final : public Component {
+ public:
+  PhaseCounter(std::string name, ClockId clock, bool prepare_phase,
+               bool evaluate_phase, bool commit_phase)
+      : Component(std::move(name), clock),
+        prepare_phase_(prepare_phase),
+        evaluate_phase_(evaluate_phase),
+        commit_phase_(commit_phase) {}
+
+  [[nodiscard]] bool has_prepare_phase() const noexcept override {
+    return prepare_phase_;
+  }
+  [[nodiscard]] bool has_evaluate_phase() const noexcept override {
+    return evaluate_phase_;
+  }
+  [[nodiscard]] bool has_commit_phase() const noexcept override {
+    return commit_phase_;
+  }
+  void prepare(const CycleContext&) override { ++prepares; }
+  void evaluate(const CycleContext&) override { ++evaluations; }
+  void commit(const CycleContext&) override { ++commits; }
+
+  std::uint64_t prepares{};
+  std::uint64_t evaluations{};
+  std::uint64_t commits{};
+
+ private:
+  bool prepare_phase_{};
+  bool evaluate_phase_{};
+  bool commit_phase_{};
+};
+
 template <typename T>
 class SequenceProducer final : public Component {
  public:
@@ -902,6 +934,49 @@ void test_scheduler_component_removal_is_exact() {
   }
   require(duplicate_removal_rejected,
           "scheduler silently accepted duplicate component removal");
+}
+
+void test_scheduler_dispatches_only_declared_phases() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("core", 100.0);
+  const auto hbm = scheduler.add_clock_mhz("hbm", 250.0);
+  PhaseCounter prepare_only("prepare-only", core, true, false, false);
+  PhaseCounter evaluate_only("evaluate-only", core, false, true, false);
+  PhaseCounter commit_only("commit-only", hbm, false, false, true);
+  PhaseCounter all_phases("all-phases", core, true, true, true);
+  PhaseCounter no_phases("no-phases", core, false, false, false);
+  scheduler.add_component(prepare_only);
+  scheduler.add_component(evaluate_only);
+  scheduler.add_component(commit_only);
+  scheduler.add_component(all_phases);
+  scheduler.add_component(no_phases);
+
+  scheduler.run_events(6);
+
+  require(prepare_only.prepares == 2 && prepare_only.evaluations == 0 &&
+              prepare_only.commits == 0,
+          "scheduler called an undeclared prepare-only component phase");
+  require(evaluate_only.prepares == 0 && evaluate_only.evaluations == 2 &&
+              evaluate_only.commits == 0,
+          "scheduler called an undeclared evaluate-only component phase");
+  require(commit_only.prepares == 0 && commit_only.evaluations == 0 &&
+              commit_only.commits == 5,
+          "scheduler called an undeclared commit-only component phase");
+  require(all_phases.prepares == 2 && all_phases.evaluations == 2 &&
+              all_phases.commits == 2,
+          "scheduler skipped a declared component phase");
+  require(no_phases.prepares == 0 && no_phases.evaluations == 0 &&
+              no_phases.commits == 0,
+          "scheduler called a phase-free component");
+
+  scheduler.remove_component(all_phases);
+  scheduler.run_events(5);
+  require(all_phases.prepares == 2 && all_phases.evaluations == 2 &&
+              all_phases.commits == 2,
+          "component removal left a stale phase registration");
+  require(prepare_only.prepares == 4 && evaluate_only.evaluations == 4 &&
+              commit_only.commits == 9,
+          "phase dispatch changed surviving multi-clock components");
 }
 
 void test_fixed_axi_port_rejects_busy_unregister() {
@@ -7607,6 +7682,8 @@ int main(int argc, char **argv) {
       {"multiclock_scheduler", test_multiclock_scheduler},
       {"scheduler_component_removal",
        test_scheduler_component_removal_is_exact},
+      {"scheduler_phase_dispatch",
+       test_scheduler_dispatches_only_declared_phases},
       {"fixed_axi_busy_unregister",
        test_fixed_axi_port_rejects_busy_unregister},
       {"fifo_no_fallthrough", test_fifo_has_no_same_cycle_fallthrough},

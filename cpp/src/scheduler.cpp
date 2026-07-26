@@ -38,6 +38,15 @@ void Scheduler::add_component(Component& component) {
     throw std::invalid_argument("component registered more than once");
   }
   components_.push_back(&component);
+  if (component.has_prepare_phase()) {
+    prepare_components_.push_back(&component);
+  }
+  if (component.has_evaluate_phase()) {
+    evaluate_components_.push_back(&component);
+  }
+  if (component.has_commit_phase()) {
+    commit_components_.push_back(&component);
+  }
 }
 
 void Scheduler::remove_component(Component& component) {
@@ -46,6 +55,16 @@ void Scheduler::remove_component(Component& component) {
     throw std::invalid_argument("component is not registered");
   }
   components_.erase(found);
+  const auto remove_from_phase = [&component](auto& phase_components) {
+    const auto phase_found =
+        std::find(phase_components.begin(), phase_components.end(), &component);
+    if (phase_found != phase_components.end()) {
+      phase_components.erase(phase_found);
+    }
+  };
+  remove_from_phase(prepare_components_);
+  remove_from_phase(evaluate_components_);
+  remove_from_phase(commit_components_);
 }
 
 const ClockDomainSnapshot& Scheduler::clock(ClockId id) const {
@@ -71,17 +90,17 @@ void Scheduler::step() {
         .domain_cycle = clocks_.front().completed_cycles,
         .clock_id = 0,
     };
-    for (Component* component : components_) {
+    for (Component* component : prepare_components_) {
       component->prepare(context);
     }
-    for (Component* component : components_) {
+    for (Component* component : evaluate_components_) {
       component->evaluate(context);
     }
-    for (Component* component : components_) {
+    for (Component* component : commit_components_) {
       component->commit(context);
     }
   } else {
-    for (Component* component : components_) {
+    for (Component* component : prepare_components_) {
       const ClockId id = component->clock_id();
       if (clocks_[id].next_edge_fs == now_fs_) {
         component->prepare(CycleContext{
@@ -91,7 +110,7 @@ void Scheduler::step() {
         });
       }
     }
-    for (Component* component : components_) {
+    for (Component* component : evaluate_components_) {
       const ClockId id = component->clock_id();
       if (clocks_[id].next_edge_fs == now_fs_) {
         component->evaluate(CycleContext{
@@ -101,7 +120,7 @@ void Scheduler::step() {
         });
       }
     }
-    for (Component* component : components_) {
+    for (Component* component : commit_components_) {
       const ClockId id = component->clock_id();
       if (clocks_[id].next_edge_fs == now_fs_) {
         component->commit(CycleContext{
