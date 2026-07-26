@@ -46,12 +46,20 @@ struct SpineAxiInterfaceProfile {
   std::uint64_t read_data_pipeline_cycles{};
   std::uint64_t write_buffer_pipeline_cycles{};
   bool serialize_write_bursts{};
+  std::size_t write_ingress_fifo_depth{};
+  std::size_t write_throttle_fifo_depth{};
+  std::uint64_t write_ingress_pipeline_cycles{};
+  std::uint64_t write_address_after_full_burst_cycles{};
   // Zero/false means inherit the generic/compute setting above.
   std::size_t maintenance_read_reorder_capacity{};
   std::uint64_t maintenance_read_address_pipeline_cycles{};
   std::uint64_t maintenance_read_data_pipeline_cycles{};
   std::uint64_t maintenance_write_buffer_pipeline_cycles{};
   bool maintenance_serialize_write_bursts{};
+  std::size_t maintenance_write_ingress_fifo_depth{};
+  std::size_t maintenance_write_throttle_fifo_depth{};
+  std::uint64_t maintenance_write_ingress_pipeline_cycles{};
+  std::uint64_t maintenance_write_address_after_full_burst_cycles{};
   std::size_t burst_trace_limit{};
   std::uint32_t graph_bytes{8};
   std::uint32_t sorted_edge_bytes{16};

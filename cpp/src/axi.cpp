@@ -33,6 +33,12 @@ void accumulate_axi_stats(AxiStats &total, const AxiStats &sample) noexcept {
   total.write_data_channel_stalls += sample.write_data_channel_stalls;
   total.read_response_channel_stalls += sample.read_response_channel_stalls;
   total.write_response_channel_stalls += sample.write_response_channel_stalls;
+  total.write_child_beats_accepted += sample.write_child_beats_accepted;
+  total.write_child_data_stalls += sample.write_child_data_stalls;
+  total.write_store_to_bridge_beats += sample.write_store_to_bridge_beats;
+  total.write_bridge_to_throttle_beats +=
+      sample.write_bridge_to_throttle_beats;
+  total.write_throttle_data_stalls += sample.write_throttle_data_stalls;
   total.four_kib_splits += sample.four_kib_splits;
   total.read_bytes += sample.read_bytes;
   total.write_bytes += sample.write_bytes;
@@ -40,8 +46,15 @@ void accumulate_axi_stats(AxiStats &total, const AxiStats &sample) noexcept {
   total.max_outstanding_bursts =
       std::max(total.max_outstanding_bursts,
                sample.max_outstanding_bursts);
+  total.max_write_store_occupancy =
+      std::max(total.max_write_store_occupancy,
+               sample.max_write_store_occupancy);
+  total.max_write_throttle_occupancy =
+      std::max(total.max_write_throttle_occupancy,
+               sample.max_write_throttle_occupancy);
   total.burst_trace_dropped += sample.burst_trace_dropped;
   total.beat_trace_dropped += sample.beat_trace_dropped;
+  total.write_ingress_trace_dropped += sample.write_ingress_trace_dropped;
 }
 
 AxiMaster::AxiMaster(std::string name, ClockId clock_id, AxiConfig config,
@@ -63,7 +76,13 @@ AxiMaster::AxiMaster(std::string name, ClockId clock_id, AxiConfig config,
       !config_.write_address_stall.valid() ||
       !config_.write_data_stall.valid() ||
       !config_.read_response_stall.valid() ||
-      !config_.write_response_stall.valid()) {
+      !config_.write_response_stall.valid() ||
+      (config_.write_ingress_fifo_depth != 0 &&
+       config_.write_throttle_fifo_depth == 0) ||
+      (config_.write_ingress_fifo_depth == 0 &&
+       (config_.write_throttle_fifo_depth != 0 ||
+        config_.write_ingress_pipeline_cycles != 0 ||
+        config_.write_address_after_full_burst_cycles != 0))) {
     throw std::invalid_argument("AXI configuration values must be positive");
   }
   if (config_.fixed_channel.has_value() &&
@@ -85,7 +104,9 @@ std::size_t AxiMaster::pending_requests() const noexcept {
 
 bool AxiMaster::idle() const noexcept {
   return parents_.empty() && pending_address_.empty() && active_bursts_.empty() &&
-      ready_responses_.empty() &&
+      ready_responses_.empty() && pending_write_input_.empty() &&
+      write_store_fifo_.empty() && !write_bridge_.has_value() &&
+      write_throttle_fifo_.empty() &&
       backend_.outstanding_for(config_.initiator_id) == 0;
 }
 
@@ -120,13 +141,15 @@ std::vector<AxiMaster::Burst> AxiMaster::split_request(
         (parent_offset + bytes + config_.data_width_bytes - 1) /
         config_.data_width_bytes;
     const std::uint64_t address_ready_cycle =
-        accepted_cycle +
-        (request.operation == MemoryOperation::kRead
-             ? config_.read_address_pipeline_cycles
-             : (config_.write_buffer_pipeline_cycles == 0
-                    ? 0
-                    : config_.write_buffer_pipeline_cycles +
-                          cumulative_beats));
+        request.operation == MemoryOperation::kRead
+            ? accepted_cycle + config_.read_address_pipeline_cycles
+            : (write_ingress_enabled()
+                   ? std::numeric_limits<std::uint64_t>::max() - 1
+                   : accepted_cycle +
+                         (config_.write_buffer_pipeline_cycles == 0
+                              ? 0
+                              : config_.write_buffer_pipeline_cycles +
+                                    cumulative_beats));
     bursts.push_back(Burst{
         .burst_id = next_burst_id_ + bursts.size(),
         .parent_id = parent_id,
@@ -160,6 +183,10 @@ AxiMaster::Burst* AxiMaster::find_active(std::uint64_t burst_id) {
 void AxiMaster::reset_staging() {
   staged_input_.reset();
   staged_new_bursts_.clear();
+  staged_new_write_beats_.clear();
+  staged_child_write_beat_.reset();
+  staged_store_to_bridge_.reset();
+  staged_bridge_to_throttle_.reset();
   staged_address_bursts_.clear();
   staged_beats_.clear();
   staged_backend_responses_.clear();
@@ -292,6 +319,57 @@ void AxiMaster::evaluate_request_input(const CycleContext &context) {
   staged_input_ = request;
   staged_new_bursts_ =
       split_request(staged_parent_id_, request, context.domain_cycle);
+  if (write_ingress_enabled() &&
+      request.operation == MemoryOperation::kWrite) {
+    if (context.domain_cycle >
+        std::numeric_limits<std::uint64_t>::max() -
+            config_.write_ingress_pipeline_cycles) {
+      throw std::overflow_error("AXI write ingress cycle overflow");
+    }
+    const std::uint64_t ready_cycle =
+        context.domain_cycle + config_.write_ingress_pipeline_cycles;
+    for (const Burst &burst : staged_new_bursts_) {
+      for (std::size_t beat = 0; beat < burst.beats_total; ++beat) {
+        staged_new_write_beats_.push_back(WriteIngressBeat{
+            .burst_id = burst.burst_id,
+            .last = beat + 1 == burst.beats_total,
+            .store_ready_cycle = ready_cycle,
+        });
+      }
+    }
+  }
+}
+
+void AxiMaster::evaluate_write_ingress(const CycleContext &context) {
+  if (!write_ingress_enabled()) {
+    return;
+  }
+
+  if (!pending_write_input_.empty()) {
+    if (write_store_fifo_.size() < config_.write_ingress_fifo_depth) {
+      staged_child_write_beat_ = pending_write_input_.front();
+    } else {
+      ++stats_.write_child_data_stalls;
+    }
+  } else if (!staged_new_write_beats_.empty()) {
+    if (write_store_fifo_.size() < config_.write_ingress_fifo_depth) {
+      staged_child_write_beat_ = staged_new_write_beats_.front();
+    } else {
+      ++stats_.write_child_data_stalls;
+    }
+  }
+
+  const bool bridge_can_advance =
+      write_bridge_.has_value() &&
+      write_throttle_fifo_.size() < config_.write_throttle_fifo_depth;
+  if (bridge_can_advance) {
+    staged_bridge_to_throttle_ = *write_bridge_;
+  }
+  if (!write_store_fifo_.empty() &&
+      context.domain_cycle >= write_store_fifo_.front().store_ready_cycle &&
+      (!write_bridge_.has_value() || bridge_can_advance)) {
+    staged_store_to_bridge_ = write_store_fifo_.front();
+  }
 }
 
 void AxiMaster::evaluate_address_channel(const CycleContext &context) {
@@ -385,6 +463,15 @@ void AxiMaster::evaluate_data_channel(const CycleContext &context) {
     const std::size_t extra = additional_issued[burst.burst_id];
     if (burst.beats_issued + extra < burst.beats_total) {
       if (burst.operation == MemoryOperation::kWrite &&
+          write_ingress_enabled() &&
+          (write_throttle_fifo_.empty() ||
+           write_throttle_fifo_.front().burst_id != burst.burst_id)) {
+        ++stats_.write_throttle_data_stalls;
+        ++inspected_without_issue;
+        cursor = (cursor + 1) % active_bursts_.size();
+        continue;
+      }
+      if (burst.operation == MemoryOperation::kWrite &&
           config_.write_data_stall.stalled(context.domain_cycle)) {
         ++stats_.write_data_channel_stalls;
         break;
@@ -451,6 +538,7 @@ void AxiMaster::evaluate(const CycleContext &context) {
   evaluate_read_beat_output(context);
   evaluate_backend_responses(context);
   evaluate_request_input(context);
+  evaluate_write_ingress(context);
   evaluate_address_channel(context);
   evaluate_data_channel(context);
 }
@@ -580,6 +668,100 @@ void AxiMaster::commit_request_input() {
   ++stats_.requests_accepted;
 }
 
+void AxiMaster::record_write_ingress(AxiWriteIngressStage stage,
+                                     const WriteIngressBeat &beat,
+                                     std::uint64_t cycle) {
+  if (config_.beat_trace_limit == 0) {
+    return;
+  }
+  if (write_ingress_trace_.size() >= config_.beat_trace_limit * 3) {
+    ++stats_.write_ingress_trace_dropped;
+    return;
+  }
+  write_ingress_trace_.push_back(AxiWriteIngressTrace{
+      .stage = stage,
+      .burst_id = beat.burst_id,
+      .last = beat.last,
+      .cycle = cycle,
+  });
+}
+
+void AxiMaster::commit_write_ingress(const CycleContext &context) {
+  if (!write_ingress_enabled()) {
+    return;
+  }
+  for (const WriteIngressBeat &beat : staged_new_write_beats_) {
+    pending_write_input_.push_back(beat);
+  }
+  if (staged_child_write_beat_.has_value()) {
+    if (pending_write_input_.empty() ||
+        pending_write_input_.front().burst_id !=
+            staged_child_write_beat_->burst_id ||
+        pending_write_input_.front().last != staged_child_write_beat_->last) {
+      throw std::logic_error("AXI child write stream changed before commit");
+    }
+    const WriteIngressBeat beat = pending_write_input_.front();
+    pending_write_input_.pop_front();
+    write_store_fifo_.push_back(beat);
+    ++stats_.write_child_beats_accepted;
+    record_write_ingress(AxiWriteIngressStage::kChildAccept, beat,
+                         context.domain_cycle);
+  }
+
+  if (staged_bridge_to_throttle_.has_value()) {
+    if (!write_bridge_.has_value() ||
+        write_bridge_->burst_id != staged_bridge_to_throttle_->burst_id ||
+        write_bridge_->last != staged_bridge_to_throttle_->last) {
+      throw std::logic_error("AXI write bridge changed before commit");
+    }
+    const WriteIngressBeat beat = *write_bridge_;
+    write_bridge_.reset();
+    write_throttle_fifo_.push_back(beat);
+    ++stats_.write_bridge_to_throttle_beats;
+    record_write_ingress(AxiWriteIngressStage::kBridgeToThrottle, beat,
+                         context.domain_cycle);
+    if (beat.last) {
+      const auto pending = std::find_if(
+          pending_address_.begin(), pending_address_.end(),
+          [&beat](const Burst &burst) { return burst.burst_id == beat.burst_id; });
+      if (pending == pending_address_.end()) {
+        throw std::logic_error(
+            "AXI completed write burst has no pending address");
+      }
+      if (context.domain_cycle >
+          std::numeric_limits<std::uint64_t>::max() -
+              config_.write_address_after_full_burst_cycles) {
+        throw std::overflow_error("AXI write address cycle overflow");
+      }
+      pending->address_ready_cycle =
+          context.domain_cycle +
+          config_.write_address_after_full_burst_cycles;
+    }
+  }
+  if (staged_store_to_bridge_.has_value()) {
+    if (write_store_fifo_.empty() ||
+        write_store_fifo_.front().burst_id !=
+            staged_store_to_bridge_->burst_id ||
+        write_store_fifo_.front().last != staged_store_to_bridge_->last) {
+      throw std::logic_error("AXI write store changed before commit");
+    }
+    const WriteIngressBeat beat = write_store_fifo_.front();
+    write_store_fifo_.pop_front();
+    if (write_bridge_.has_value()) {
+      throw std::logic_error("AXI write bridge was not released before refill");
+    }
+    write_bridge_ = beat;
+    ++stats_.write_store_to_bridge_beats;
+    record_write_ingress(AxiWriteIngressStage::kStoreToBridge, beat,
+                         context.domain_cycle);
+  }
+  stats_.max_write_store_occupancy =
+      std::max(stats_.max_write_store_occupancy, write_store_fifo_.size());
+  stats_.max_write_throttle_occupancy =
+      std::max(stats_.max_write_throttle_occupancy,
+               write_throttle_fifo_.size());
+}
+
 void AxiMaster::commit_address_channel(const CycleContext &context) {
   for (std::uint64_t burst_id : staged_address_bursts_) {
     if (pending_address_.empty() || pending_address_.front().burst_id != burst_id) {
@@ -615,6 +797,15 @@ void AxiMaster::commit_data_channel() {
     Burst* burst = find_active(staged.burst_id);
     if (burst == nullptr) {
       throw std::logic_error("AXI staged beat references a non-active burst");
+    }
+    if (staged.request.operation == MemoryOperation::kWrite &&
+        write_ingress_enabled()) {
+      if (write_throttle_fifo_.empty() ||
+          write_throttle_fifo_.front().burst_id != staged.burst_id) {
+        throw std::logic_error(
+            "AXI external write beat diverged from throttle FIFO");
+      }
+      write_throttle_fifo_.pop_front();
     }
     ++burst->beats_issued;
     std::optional<std::size_t> trace_index;
@@ -720,6 +911,7 @@ void AxiMaster::commit(const CycleContext &context) {
   commit_request_input();
   commit_address_channel(context);
   commit_data_channel();
+  commit_write_ingress(context);
   commit_read_beat_output();
 }
 

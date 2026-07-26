@@ -22,8 +22,11 @@ digraph Candidate10MAxiExecution {
            fillcolor="#e0f2fe"];
     read [label="Read path\nAR after +7 cycles\nreorder 256 + R output stage",
           fillcolor="#dbeafe"];
-    write [label="Write path\nbuffer +10 cycles + beats\nserialize burst data",
+    store [label="Write store FIFO\n16 child W beats\nstrict full backpressure",
            fillcolor="#f3e8ff"];
+    bridge [label="Elastic register\n1 beat", fillcolor="#fae8ff"];
+    throttle [label="Conservative throttle FIFO\n16 beats; full burst gates AW",
+              fillcolor="#fce7f3"];
     out [label="External AXI\nAR/AW/W/R/B availability\nmax 16 outstanding",
          fillcolor="#e5e7eb"];
   }
@@ -40,17 +43,22 @@ digraph Candidate10MAxiExecution {
   child -> req;
   req -> split;
   split -> read [label="read"];
-  split -> write [label="write"];
+  child -> store [label="child W"];
+  split -> throttle [label="burst metadata"];
+  store -> bridge;
+  bridge -> throttle;
   read -> out;
-  write -> out;
+  throttle -> out;
   out -> hbm [label="execution-driven request"];
   hbm -> out [label="timed response", dir=back];
   out -> trace [style=dashed, label="issue / completion"];
   read -> trace [style=dashed, label="child R"];
-  write -> trace [style=dashed, label="child B"];
+  store -> trace [style=dashed, label="child W / stall"];
+  throttle -> trace [style=dashed, label="AW / W / child B"];
 
   issue -> stats [style=dashed];
   read -> stats [style=dashed];
-  write -> stats [style=dashed];
+  store -> stats [style=dashed];
+  throttle -> stats [style=dashed];
   hbm -> stats [style=dashed];
 }

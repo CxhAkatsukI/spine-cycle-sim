@@ -42,8 +42,12 @@ older split-compute defaults:
 | read reorder capacity | 256 beats |
 | read address pipeline | 7 cycles |
 | read data output pipeline | 1 additional registered cycle |
-| write buffer pipeline | 10 cycles + accepted child beats |
-| write burst policy | ordered/serialized data stream |
+| child write store FIFO | 16 beats |
+| elastic write bridge | 1 beat |
+| conservative throttle FIFO | 16 beats |
+| first store-to-bridge transfer | child accept + 8 cycles |
+| write address eligibility | 2 cycles after a complete burst reaches throttle |
+| write burst policy | complete-burst gated, ordered/serialized data stream |
 | maintenance result width | 8 bytes |
 
 The architecture profile selects this adapter with:
@@ -68,21 +72,38 @@ normalized by its one-cycle registered input FIFO origin before comparison.
 | elapsed cycles | exact, 137 | exact, 158 |
 | child requests | 2/2 exact | 2/2 exact |
 | burst address and length | 6/6 exact | 6/6 exact |
-| burst address issue cycle | 6/6 exact | 5/6 exact; one is 1 cycle early |
+| burst address issue cycle | 6/6 exact | 6/6 exact |
 | external data beats | 66/66 exact | 66/66 exact |
 | external write responses | n/a | 6/6 exact |
 | child output events | 66/66 exact | 2/2 exact |
+| child write beats | n/a | 66/66 exact |
+| store to elastic bridge | n/a | 66/66 exact |
+| elastic bridge to throttle | n/a | 66/66 exact |
 | maximum outstanding | exact, 5 | exact, 2 |
 
 The read output comparison exposed one missing adapter register stage. It is
 now explicit as `read_data_pipeline_cycles=1`; the delay sits in the causal
 response path and therefore propagates through the finite read FIFO.
 
-The write total is not accepted merely because it matches. The fifth AW event
-is still one cycle early, and the core accepts an aggregate write payload
-rather than exposing the generated adapter's child-side W-beat FIFO. External
-W and B schedules are exact in this oracle, but internal child-W occupancy and
-its per-cycle stall ledger remain a proxy claim.
+The write path is no longer represented by the old
+`10 + cumulative_beats` address-ready proxy. The core now advances explicit
+write-beat tokens through the generated adapter's 16-entry store FIFO,
+one-entry elastic register, and 16-entry conservative throttle FIFO. In the
+backpressure oracle, all 66 child accepts, all 132 internal transfers, all six
+internal burst-last markers, all six AW events, all W/B events, and the
+158-cycle elapsed time are exact. The model
+also reproduces 20 child-W stall cycles and a peak occupancy of 16 entries in
+both FIFOs.
+
+The superseded `write_buffer_pipeline_cycles` knob is therefore zero in the
+Candidate10 profile. It remains available only for generic/legacy profiles
+that do not enable the structural ingress model.
+
+The public `AxiRequest` API remains aggregate at the component boundary. The
+adapter expands that request into execution-driven child beats internally.
+Consequently this result proves the adapter schedule when its HLS child can
+offer a continuous ordered W stream; producer bubbles from a future writer
+microarchitecture must still be supplied explicitly rather than inferred.
 
 RTL `VALID&&!READY` counters and C++ configured-availability counters are kept
 separate: their event schedules can match while the counter definitions do
@@ -96,12 +117,14 @@ the generic defaults used by GraSU and older Spine profiles:
 
 1. parent acceptance cycles and external burst issue cycles are traceable;
 2. read bursts wait for the generated adapter's address pipeline;
-3. write addresses wait for child-data buffering and cumulative burst beats;
-4. split writes preserve their ordered external data stream;
-5. parent boundaries, 16-beat limits, and 4 KiB boundaries remain explicit;
-6. request capacity, outstanding burst capacity, read reorder capacity, and
+3. child writes occupy finite store, elastic, and throttle stages;
+4. write addresses become eligible only after a full burst reaches throttle;
+5. split writes preserve their ordered external data stream and propagate W
+   backpressure to child-W acceptance;
+6. parent boundaries, 16-beat limits, and 4 KiB boundaries remain explicit;
+7. request capacity, outstanding burst capacity, read reorder capacity, and
    backend HBM capacity remain independent controls;
-7. queue, address-pipeline, write-serialization, reorder, response, and backend
+8. child-W, store/throttle occupancy, channel, reorder, response, and backend
    stalls are reported separately.
 
 The maintenance result port changes from the old 32-bit assumption to the
@@ -141,11 +164,11 @@ For `amazon_top1_exact.slice`:
 
 | metric | old adapter profile | Candidate10 adapter |
 | --- | ---: | ---: |
-| total cycles | 4,170 | 4,931 |
+| total cycles | 4,170 | 4,932 |
 | logical maintenance requests | 476 | 476 |
 | logical bytes | unchanged | unchanged |
 | backend beat requests | 731 | 683 |
-| writer memory wait | 45 | 108 cycles |
+| child write beats through adapter | n/a | 252 |
 
 The Candidate10 run additionally reports:
 
@@ -154,10 +177,10 @@ The Candidate10 run additionally reports:
 | parent requests accepted/completed | 476 / 476 |
 | bursts accepted | 478 |
 | beats issued/completed | 683 / 683 |
-| address-pipeline stalls | 1,137 |
-| write-serialization stalls | 14 |
+| address-pipeline stalls | 1,138 |
+| write-serialization stalls | 11 |
 | backend submit stalls | 0 |
-| maximum outstanding bursts | 16 |
+| maximum outstanding bursts | 9 |
 
 The small-slice delta is therefore adapter control latency, not HBM rejection.
 
@@ -168,16 +191,16 @@ residual fit is applied in this comparison.
 
 | role | before median absolute error | after | improvement |
 | --- | ---: | ---: | ---: |
-| calibration | 59.54% | 57.88% | 1.66 percentage points |
-| holdout | 71.14% | 69.24% | 1.90 percentage points |
+| calibration | 59.54% | 57.86% | 1.69 percentage points |
+| holdout | 71.14% | 69.14% | 2.01 percentage points |
 
 Large writer-pressure cases benefit more:
 
 | case | edges | before error | after error | added simulated cycles |
 | --- | ---: | ---: | ---: | ---: |
-| dirty boundary | 4,096 | -14.89% | -10.93% | 32,778 |
-| forced fallback | 4,112 | -13.44% | -9.41% | 32,876 |
-| mixed fallback | 8,193 | -47.54% | -45.38% | 10,409 |
+| dirty boundary | 4,096 | -14.89% | -10.93% | 32,779 |
+| forced fallback | 4,112 | -13.44% | -9.41% | 32,884 |
+| mixed fallback | 8,193 | -47.54% | -45.37% | 10,414 |
 
 The first two large cases now fall near 10% raw error. Tiny/sparse cases still
 underestimate hardware by roughly 80-92%, so adapter alignment does not support
@@ -226,15 +249,15 @@ capacities, and execution-driven propagation through the current SST-HBM
 backend. It also supports functional and raw timing comparisons for the 11
 hardware cases.
 
-It does not yet model the complete kernel wrapper/ap_ctrl schedule, exact
-child-side write-data FIFO occupancy, U55C AXI crossbar arbitration policy, or
-a measured HBM controller timing distribution. The next timing layer should
-isolate the fixed wrapper/family
-range cost with zero/tiny microbenchmarks, then calibrate only the remaining
-external HBM service terms using burst/locality/contention sweeps. Those terms
-must remain visible and must not be folded back into the verified writer or
-adapter schedules.
+It does not yet model the complete kernel wrapper/ap_ctrl schedule, a measured
+U55C AXI crossbar arbitration policy, or a calibrated HBM controller timing
+distribution. The next timing layer is shared-pseudochannel arbitration across
+multiple AXI masters, followed by burst/locality/contention calibration against
+SST-HBM and hardware evidence. Those terms remain visible and are not folded
+back into the verified writer or adapter schedules.
 
-The 11-case hardware matrix in the combined JSON remains the archived matrix
-from the preceding adapter milestone. It predates the explicit one-cycle read
-output stage and is not represented as a new calibration of this revision.
+The 11-case hardware matrix in the combined JSON was regenerated with this
+revision. It uses the frozen accepted xclbin timings and applies no residual
+fit. Large write-pressure slices are near 10% raw error, while zero/tiny/sparse
+slices remain deliberately reported as large misses rather than being hidden
+with a fixed offset.

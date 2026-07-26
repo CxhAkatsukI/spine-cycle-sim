@@ -81,6 +81,13 @@ struct AxiConfig {
   std::uint64_t read_data_pipeline_cycles{};
   std::uint64_t write_buffer_pipeline_cycles{};
   bool serialize_write_bursts{};
+  // Optional structural model for Vitis' generated write ingress:
+  // child W beats -> store FIFO -> elastic register -> throttle FIFO.
+  // A zero store depth disables the model and preserves aggregate writes.
+  std::size_t write_ingress_fifo_depth{};
+  std::size_t write_throttle_fifo_depth{};
+  std::uint64_t write_ingress_pipeline_cycles{};
+  std::uint64_t write_address_after_full_burst_cycles{};
   AxiPeriodicStall read_address_stall{};
   AxiPeriodicStall write_address_stall{};
   AxiPeriodicStall write_data_stall{};
@@ -111,6 +118,19 @@ struct AxiBeatTrace {
   std::uint64_t completion_cycle{};
 };
 
+enum class AxiWriteIngressStage {
+  kChildAccept,
+  kStoreToBridge,
+  kBridgeToThrottle,
+};
+
+struct AxiWriteIngressTrace {
+  AxiWriteIngressStage stage{AxiWriteIngressStage::kChildAccept};
+  std::uint64_t burst_id{};
+  bool last{};
+  std::uint64_t cycle{};
+};
+
 struct AxiStats {
   std::uint64_t requests_accepted{};
   std::uint64_t requests_completed{};
@@ -131,13 +151,21 @@ struct AxiStats {
   std::uint64_t write_data_channel_stalls{};
   std::uint64_t read_response_channel_stalls{};
   std::uint64_t write_response_channel_stalls{};
+  std::uint64_t write_child_beats_accepted{};
+  std::uint64_t write_child_data_stalls{};
+  std::uint64_t write_store_to_bridge_beats{};
+  std::uint64_t write_bridge_to_throttle_beats{};
+  std::uint64_t write_throttle_data_stalls{};
   std::uint64_t four_kib_splits{};
   std::uint64_t read_bytes{};
   std::uint64_t write_bytes{};
   std::uint64_t zero_filled_write_bytes{};
   std::size_t max_outstanding_bursts{};
+  std::size_t max_write_store_occupancy{};
+  std::size_t max_write_throttle_occupancy{};
   std::uint64_t burst_trace_dropped{};
   std::uint64_t beat_trace_dropped{};
+  std::uint64_t write_ingress_trace_dropped{};
 };
 
 void accumulate_axi_stats(AxiStats &total, const AxiStats &sample) noexcept;
@@ -161,6 +189,10 @@ class AxiMaster final : public Component {
   }
   [[nodiscard]] const std::vector<AxiBeatTrace> &beat_trace() const noexcept {
     return beat_trace_;
+  }
+  [[nodiscard]] const std::vector<AxiWriteIngressTrace> &
+  write_ingress_trace() const noexcept {
+    return write_ingress_trace_;
   }
 
   void evaluate(const CycleContext& context) override;
@@ -207,6 +239,12 @@ class AxiMaster final : public Component {
     BackendRequest request;
   };
 
+  struct WriteIngressBeat {
+    std::uint64_t burst_id{};
+    bool last{};
+    std::uint64_t store_ready_cycle{};
+  };
+
   struct BackendMapping {
     std::uint64_t burst_id{};
     std::uint64_t parent_offset{};
@@ -229,16 +267,24 @@ class AxiMaster final : public Component {
   void evaluate_read_beat_output(const CycleContext &context);
   void evaluate_backend_responses(const CycleContext &context);
   void evaluate_request_input(const CycleContext &context);
+  void evaluate_write_ingress(const CycleContext &context);
   void evaluate_address_channel(const CycleContext &context);
   void evaluate_data_channel(const CycleContext &context);
   void commit_backend_responses(const CycleContext &context);
   void commit_request_input();
+  void commit_write_ingress(const CycleContext &context);
   void commit_address_channel(const CycleContext &context);
   void commit_data_channel();
   void commit_output();
   void commit_read_beat_output();
   void queue_parent_response_if_ready(std::uint64_t parent_id);
   [[nodiscard]] std::size_t read_reorder_occupancy() const noexcept;
+  [[nodiscard]] bool write_ingress_enabled() const noexcept {
+    return config_.write_ingress_fifo_depth != 0;
+  }
+  void record_write_ingress(AxiWriteIngressStage stage,
+                            const WriteIngressBeat &beat,
+                            std::uint64_t cycle);
 
   AxiConfig config_;
   Fifo<AxiRequest> &requests_;
@@ -256,11 +302,20 @@ class AxiMaster final : public Component {
   std::deque<ReadyResponse> ready_responses_;
   std::vector<AxiBurstTrace> burst_trace_;
   std::vector<AxiBeatTrace> beat_trace_;
+  std::vector<AxiWriteIngressTrace> write_ingress_trace_;
   std::size_t issue_round_robin_{};
+  std::deque<WriteIngressBeat> pending_write_input_;
+  std::deque<WriteIngressBeat> write_store_fifo_;
+  std::optional<WriteIngressBeat> write_bridge_;
+  std::deque<WriteIngressBeat> write_throttle_fifo_;
 
   std::optional<AxiRequest> staged_input_;
   std::uint64_t staged_parent_id_{};
   std::vector<Burst> staged_new_bursts_;
+  std::vector<WriteIngressBeat> staged_new_write_beats_;
+  std::optional<WriteIngressBeat> staged_child_write_beat_;
+  std::optional<WriteIngressBeat> staged_store_to_bridge_;
+  std::optional<WriteIngressBeat> staged_bridge_to_throttle_;
   std::vector<std::uint64_t> staged_address_bursts_;
   std::vector<StagedBeat> staged_beats_;
   std::vector<BackendResponse> staged_backend_responses_;

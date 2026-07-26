@@ -722,6 +722,26 @@ void write_spine_axi_profile_fields(
               ? "true"
               : "false")
       << ",\n"
+      << "  \"axi_write_ingress_fifo_depth\": "
+      << (profile.maintenance_write_ingress_fifo_depth == 0
+              ? profile.write_ingress_fifo_depth
+              : profile.maintenance_write_ingress_fifo_depth)
+      << ",\n"
+      << "  \"axi_write_throttle_fifo_depth\": "
+      << (profile.maintenance_write_throttle_fifo_depth == 0
+              ? profile.write_throttle_fifo_depth
+              : profile.maintenance_write_throttle_fifo_depth)
+      << ",\n"
+      << "  \"axi_write_ingress_pipeline_cycles\": "
+      << (profile.maintenance_write_ingress_fifo_depth == 0
+              ? profile.write_ingress_pipeline_cycles
+              : profile.maintenance_write_ingress_pipeline_cycles)
+      << ",\n"
+      << "  \"axi_write_address_after_full_burst_cycles\": "
+      << (profile.maintenance_write_ingress_fifo_depth == 0
+              ? profile.write_address_after_full_burst_cycles
+              : profile.maintenance_write_address_after_full_burst_cycles)
+      << ",\n"
       << "  \"axi_maintenance_result_data_width_bytes\": "
       << (profile.maintenance_result_bytes == 0
               ? profile.result_bytes
@@ -766,6 +786,20 @@ void write_maintenance_axi_stats(std::ostream &output,
       << stats.read_response_channel_stalls << ",\n"
       << "  \"maintenance_axi_write_response_channel_stall_cycles\": "
       << stats.write_response_channel_stalls << ",\n"
+      << "  \"maintenance_axi_write_child_beats_accepted\": "
+      << stats.write_child_beats_accepted << ",\n"
+      << "  \"maintenance_axi_write_child_data_stall_cycles\": "
+      << stats.write_child_data_stalls << ",\n"
+      << "  \"maintenance_axi_write_store_to_bridge_beats\": "
+      << stats.write_store_to_bridge_beats << ",\n"
+      << "  \"maintenance_axi_write_bridge_to_throttle_beats\": "
+      << stats.write_bridge_to_throttle_beats << ",\n"
+      << "  \"maintenance_axi_write_throttle_data_stall_cycles\": "
+      << stats.write_throttle_data_stalls << ",\n"
+      << "  \"maintenance_axi_max_write_store_occupancy\": "
+      << stats.max_write_store_occupancy << ",\n"
+      << "  \"maintenance_axi_max_write_throttle_occupancy\": "
+      << stats.max_write_throttle_occupancy << ",\n"
       << "  \"maintenance_axi_four_kib_splits\": "
       << stats.four_kib_splits << ",\n"
       << "  \"maintenance_axi_max_outstanding_bursts\": "

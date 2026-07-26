@@ -38,6 +38,8 @@ using spine::sim::AxiReadBeatResponse;
 using spine::sim::AxiRequest;
 using spine::sim::AxiResponse;
 using spine::sim::AxiStats;
+using spine::sim::AxiWriteIngressStage;
+using spine::sim::AxiWriteIngressTrace;
 using spine::sim::AlgorithmIterationContext;
 using spine::sim::AlgorithmPipeline;
 using spine::sim::AlgorithmPipelineConfig;
@@ -1528,6 +1530,32 @@ void test_candidate10_axi_adapter_schedule_matches_rtl_oracle() {
               single_write_trace[3].address_issue_cycle ==
                   single_write_trace[2].address_issue_cycle + 2,
           "Candidate10 single-beat write stream diverged from RTL");
+
+  const std::array<std::size_t, 7> aligned_beats{1, 15, 16, 17, 31, 32, 33};
+  const std::array<std::vector<std::uint64_t>, 7> expected_aw_cycles{
+      std::vector<std::uint64_t>{11},
+      std::vector<std::uint64_t>{25},
+      std::vector<std::uint64_t>{26},
+      std::vector<std::uint64_t>{26, 43},
+      std::vector<std::uint64_t>{26, 44},
+      std::vector<std::uint64_t>{26, 45},
+      std::vector<std::uint64_t>{26, 45, 62},
+  };
+  for (std::size_t index = 0; index < aligned_beats.size(); ++index) {
+    const auto [trace, stats] = run_requests(
+        MemoryOperation::kWrite, 0, aligned_beats[index] * 8);
+    require(trace.size() == expected_aw_cycles[index].size() &&
+                stats.write_child_beats_accepted == aligned_beats[index] &&
+                stats.write_store_to_bridge_beats == aligned_beats[index] &&
+                stats.write_bridge_to_throttle_beats == aligned_beats[index],
+            "Candidate10 aligned write ingress ledger changed at a boundary");
+    for (std::size_t burst = 0; burst < trace.size(); ++burst) {
+      require(trace[burst].address_issue_cycle -
+                      trace.front().parent_accept_cycle ==
+                  expected_aw_cycles[index][burst],
+              "Candidate10 aligned write AW schedule diverged from RTL");
+    }
+  }
 }
 
 struct PeriodicAxiRun {
@@ -1535,6 +1563,7 @@ struct PeriodicAxiRun {
   AxiStats stats;
   std::vector<AxiBurstTrace> bursts;
   std::vector<AxiBeatTrace> beats;
+  std::vector<AxiWriteIngressTrace> write_ingress;
   std::vector<std::uint64_t> child_accept_cycles;
   std::uint64_t child_stall_cycles{};
 };
@@ -1614,6 +1643,7 @@ PeriodicAxiRun run_candidate10_periodic_axi(MemoryOperation operation) {
       .stats = port.master().stats(),
       .bursts = port.master().burst_trace(),
       .beats = port.master().beat_trace(),
+      .write_ingress = port.master().write_ingress_trace(),
       .child_accept_cycles = operation == MemoryOperation::kRead
                                  ? read_consumer.accepted_cycles
                                  : response_consumer.accepted_cycles,
@@ -1663,6 +1693,22 @@ void test_candidate10_axi_periodic_backpressure_trace() {
               write.stats.read_response_channel_stalls == 0 &&
               write.child_stall_cycles > 0,
           "periodic write AW/W/B-child backpressure was not observable");
+  require(write.stats.write_child_beats_accepted == 66 &&
+              write.stats.write_child_data_stalls == 20 &&
+              write.stats.write_store_to_bridge_beats == 66 &&
+              write.stats.write_bridge_to_throttle_beats == 66 &&
+              write.stats.max_write_store_occupancy == 16 &&
+              write.stats.max_write_throttle_occupancy == 16 &&
+              write.write_ingress.size() == 198 &&
+              std::count_if(
+                  write.write_ingress.begin(), write.write_ingress.end(),
+                  [](const AxiWriteIngressTrace &event) {
+                    return event.stage ==
+                               AxiWriteIngressStage::kBridgeToThrottle &&
+                           event.last;
+                  }) == 6 &&
+              write.stats.write_ingress_trace_dropped == 0,
+          "Candidate10 structural write-ingress ledger diverged from RTL");
   require(read.stats.beat_trace_dropped == 0 &&
               write.stats.beat_trace_dropped == 0 &&
               read.stats.beats_issued == read.stats.beats_completed &&
@@ -1699,6 +1745,31 @@ void test_candidate10_axi_periodic_backpressure_trace() {
                 << " issue_cycle=" << beat.issue_cycle
                 << " completion_cycle=" << beat.completion_cycle << '\n';
     }
+    if (operation == MemoryOperation::kWrite) {
+      std::array<std::size_t, 3> stage_indices{};
+      for (const AxiWriteIngressTrace &event : run.write_ingress) {
+        const char *kind = nullptr;
+        std::size_t stage_index = 0;
+        switch (event.stage) {
+        case AxiWriteIngressStage::kChildAccept:
+          kind = "child_data";
+          stage_index = 0;
+          break;
+        case AxiWriteIngressStage::kStoreToBridge:
+          kind = "internal_store_to_bridge";
+          stage_index = 1;
+          break;
+        case AxiWriteIngressStage::kBridgeToThrottle:
+          kind = "internal_bridge_to_throttle";
+          stage_index = 2;
+          break;
+        }
+        std::cout << "AXI_CORE_EVENT kind=" << kind << " op=1 index="
+                  << stage_indices[stage_index]++
+                  << " cycle=" << event.cycle
+                  << " last=" << (event.last ? 1 : 0) << '\n';
+      }
+    }
     for (std::size_t index = 0; index < run.child_accept_cycles.size();
          ++index) {
       std::cout << "AXI_CORE_EVENT kind="
@@ -1718,7 +1789,9 @@ void test_candidate10_axi_periodic_backpressure_trace() {
                       ? run.stats.read_response_channel_stalls
                       : run.stats.write_response_channel_stalls)
               << " max_outstanding=" << run.stats.max_outstanding_bursts
-              << " child_stalls=" << run.child_stall_cycles << '\n';
+              << " child_stalls=" << run.child_stall_cycles
+              << " child_data_stalls="
+              << run.stats.write_child_data_stalls << '\n';
   };
   print_trace(MemoryOperation::kRead, read);
   print_trace(MemoryOperation::kWrite, write);
@@ -6119,8 +6192,12 @@ void test_spine_axi_interface_profile_matches_hls_rtl() {
               candidate_graph.read_reorder_capacity == 256 &&
               candidate_graph.read_address_pipeline_cycles == 7 &&
               candidate_graph.read_data_pipeline_cycles == 1 &&
-              candidate_graph.write_buffer_pipeline_cycles == 10 &&
+              candidate_graph.write_buffer_pipeline_cycles == 0 &&
               candidate_graph.serialize_write_bursts &&
+              candidate_graph.write_ingress_fifo_depth == 16 &&
+              candidate_graph.write_throttle_fifo_depth == 16 &&
+              candidate_graph.write_ingress_pipeline_cycles == 8 &&
+              candidate_graph.write_address_after_full_burst_cycles == 2 &&
               candidate_result.data_width_bytes == 8 &&
               candidate_result.max_pending_requests == 67 &&
               inherited_compute.data_width_bytes == 4 &&
@@ -6128,6 +6205,8 @@ void test_spine_axi_interface_profile_matches_hls_rtl() {
               inherited_compute.read_reorder_capacity == 32 &&
               inherited_compute.read_address_pipeline_cycles == 0 &&
               inherited_compute.write_buffer_pipeline_cycles == 0 &&
+              inherited_compute.write_ingress_fifo_depth == 0 &&
+              inherited_compute.write_throttle_fifo_depth == 0 &&
               !inherited_compute.serialize_write_bursts,
           "Candidate10 maintenance adapter profile lost frozen RTL parameters");
 }

@@ -407,6 +407,7 @@ def main() -> int:
             "read and write external outstanding counts are capped at 16",
             "channel stalls propagate through RTL and read-FIFO saturation throttles future address issue",
             "backpressure cases retain child/external data and response cycle transcripts",
+            "write backpressure retains store-to-bridge and bridge-to-throttle cycle transcripts",
         ],
         "limitations": [
             "The external AXI responder is deterministic, not an HBM model.",

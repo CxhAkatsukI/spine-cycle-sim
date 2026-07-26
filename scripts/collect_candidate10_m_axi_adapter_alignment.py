@@ -57,6 +57,13 @@ AXI_STAT_FIELDS = (
     "maintenance_axi_read_reorder_stall_cycles",
     "maintenance_axi_four_kib_splits",
     "maintenance_axi_max_outstanding_bursts",
+    "maintenance_axi_write_child_beats_accepted",
+    "maintenance_axi_write_child_data_stall_cycles",
+    "maintenance_axi_write_store_to_bridge_beats",
+    "maintenance_axi_write_bridge_to_throttle_beats",
+    "maintenance_axi_write_throttle_data_stall_cycles",
+    "maintenance_axi_max_write_store_occupancy",
+    "maintenance_axi_max_write_throttle_occupancy",
     "maintenance_axi_read_bytes",
     "maintenance_axi_write_bytes",
 )
@@ -112,6 +119,11 @@ def parse_core_trace(path: Path) -> dict[str, list[dict[str, int | str]]]:
 
 def _cycles(events: list[dict[str, int | str]], kind: str) -> list[int]:
     return [int(event["cycle"]) for event in events if event["kind"] == kind]
+
+
+def _lasts(events: list[dict[str, int | str]], kind: str) -> list[int]:
+    return [int(event.get("last", 0))
+            for event in events if event["kind"] == kind]
 
 
 def _delta_summary(reference: list[int], observed: list[int]) -> dict[str, object]:
@@ -181,6 +193,7 @@ def compare_backpressure_transcripts(
                  for cycle in _cycles(core_events, "child_data")],
             )
             external_response_alignment = None
+            bridge_last_markers_exact = None
         else:
             external_alignment = _delta_summary(
                 _cycles(rtl_events, "external_data"),
@@ -202,6 +215,34 @@ def compare_backpressure_transcripts(
                 _cycles(rtl_events, "external_response"),
                 core_burst_completions,
             )
+            child_write_alignment = _delta_summary(
+                _cycles(rtl_events, "child_data"),
+                [cycle - core_origin
+                 for cycle in _cycles(core_events, "child_data")],
+            )
+            store_bridge_alignment = _delta_summary(
+                _cycles(rtl_events, "internal_store_to_bridge"),
+                [cycle - core_origin for cycle in _cycles(
+                    core_events, "internal_store_to_bridge"
+                )],
+            )
+            bridge_throttle_alignment = _delta_summary(
+                _cycles(rtl_events, "internal_bridge_to_throttle"),
+                [cycle - core_origin for cycle in _cycles(
+                    core_events, "internal_bridge_to_throttle"
+                )],
+            )
+            if _lasts(rtl_events, "internal_bridge_to_throttle") != _lasts(
+                core_events, "internal_bridge_to_throttle"
+            ):
+                raise RuntimeError(
+                    f"{case_id}: throttle burst-last markers differ"
+                )
+            bridge_last_markers_exact = True
+        if op == 0:
+            child_write_alignment = None
+            store_bridge_alignment = None
+            bridge_throttle_alignment = None
 
         elapsed_alignment = _delta_summary(
             [int(rtl_row["cycles"])],
@@ -213,18 +254,27 @@ def compare_backpressure_transcripts(
             and child_alignment["max_abs_delta_cycles"] == 0
             and elapsed_alignment["max_abs_delta_cycles"] == 0
             and (
+                child_write_alignment is None
+                or child_write_alignment["max_abs_delta_cycles"] == 0
+            )
+            and (
+                store_bridge_alignment is None
+                or store_bridge_alignment["max_abs_delta_cycles"] == 0
+            )
+            and (
+                bridge_throttle_alignment is None
+                or bridge_throttle_alignment["max_abs_delta_cycles"] == 0
+            )
+            and (
                 external_response_alignment is None
                 or external_response_alignment["max_abs_delta_cycles"] == 0
             )
         )
-        bounded_address_schedule = burst_alignment["max_abs_delta_cycles"] <= 1
-        if not exact_data_schedule or not bounded_address_schedule:
+        exact_address_schedule = burst_alignment["max_abs_delta_cycles"] == 0
+        if not exact_data_schedule or not exact_address_schedule:
             raise RuntimeError(f"{case_id}: AXI transcript exceeded its bound")
         cases[case_id] = {
-            "status": (
-                "EXACT" if burst_alignment["max_abs_delta_cycles"] == 0
-                else "BOUNDED_1_CYCLE"
-            ),
+            "status": "EXACT",
             "core_origin_cycle": core_origin,
             "elapsed": elapsed_alignment,
             "requests": request_alignment,
@@ -233,6 +283,11 @@ def compare_backpressure_transcripts(
             "external_data": external_alignment,
             "external_response": external_response_alignment,
             "child_output": child_alignment,
+            "child_write_ingress": child_write_alignment,
+            "store_to_bridge": store_bridge_alignment,
+            "bridge_to_throttle": bridge_throttle_alignment,
+            "bridge_to_throttle_last_markers_exact":
+                bridge_last_markers_exact,
             "max_outstanding": {
                 "rtl": int(rtl_row["max_outstanding"]),
                 "core": int(core_summary["max_outstanding"]),
@@ -267,7 +322,7 @@ def compare_backpressure_transcripts(
             },
         }
     return {
-        "status": "PASS_BOUNDED",
+        "status": "PASS_EXACT",
         "core_log": str(core_log),
         "core_log_sha256": sha256(core_log),
         "core_source_sha256": {
@@ -275,14 +330,11 @@ def compare_backpressure_transcripts(
         },
         "cases": cases,
         "claim": (
-            "Deterministic external AXI data/response and child output events "
-            "are exact after removing the core's one-cycle registered-input "
-            "origin; write AW issue is bounded to one cycle."
+            "Deterministic child write ingress, internal write buffering, "
+            "external AXI address/data/response, and child output events are "
+            "exact after removing the core's one-cycle registered-input origin."
         ),
-        "limitation": (
-            "The core still accepts an aggregate write request; it does not "
-            "expose Candidate10 child-side W-beat FIFO occupancy."
-        ),
+        "limitation": "Shared pseudochannel arbitration remains structural-only.",
     }
 
 
@@ -369,8 +421,12 @@ def compare_matrices(before_dir: Path, after_dir: Path) -> dict[str, object]:
             "axi_maintenance_writeonly_max_pending_requests": 67,
             "axi_read_reorder_capacity": 256,
             "axi_read_address_pipeline_cycles": 7,
-            "axi_write_buffer_pipeline_cycles": 10,
+            "axi_write_buffer_pipeline_cycles": 0,
             "axi_serialize_write_bursts": True,
+            "axi_write_ingress_fifo_depth": 16,
+            "axi_write_throttle_fifo_depth": 16,
+            "axi_write_ingress_pipeline_cycles": 8,
+            "axi_write_address_after_full_burst_cycles": 2,
             "axi_maintenance_result_data_width_bytes": 8,
         }
         for field, expected in expected_profile.items():
@@ -449,9 +505,9 @@ def collect(
 ) -> dict[str, object]:
     hardware_holdout = compare_matrices(before_dir, after_dir)
     hardware_holdout["scope"] = (
-        "Archived Candidate10 adapter matrix collected before the explicit "
-        "one-cycle read-output pipeline stage; it is retained as historical "
-        "hardware evidence and is not a calibration of this exact revision."
+        "Current 11-case Candidate10 maintenance matrix using the explicit "
+        "read-output stage and structural write ingress. No residual fit is "
+        "applied; hardware timings come from the frozen accepted xclbin."
     )
     return {
         "schema_version": 2,
@@ -469,11 +525,11 @@ def collect(
                 "deterministic AR/R/AW/W/B availability and FIFO backpressure",
                 "16 outstanding bursts, 256-beat read reorder capacity",
                 "ordered write-burst issue and finite FIFO backpressure",
+                "Candidate10 16-entry store and throttle write FIFOs",
                 "Candidate10 maintenance adapter request capacities and result width",
             ],
             "remaining": [
                 "kernel wrapper and ap_ctrl launch/finish fixed schedule",
-                "Candidate10 child-side write-beat FIFO occupancy",
                 "full inter-port U55C AXI crossbar arbitration",
                 "measured HBM controller timing calibration",
                 "compute-XO adapter equivalence beyond inherited source shape",

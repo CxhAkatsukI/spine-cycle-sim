@@ -164,11 +164,19 @@ SpineAxiInterfaceProfile SpineAxiInterfaceProfile::legacy_uniform64() {
       .read_data_pipeline_cycles = 0,
       .write_buffer_pipeline_cycles = 0,
       .serialize_write_bursts = false,
+      .write_ingress_fifo_depth = 0,
+      .write_throttle_fifo_depth = 0,
+      .write_ingress_pipeline_cycles = 0,
+      .write_address_after_full_burst_cycles = 0,
       .maintenance_read_reorder_capacity = 0,
       .maintenance_read_address_pipeline_cycles = 0,
       .maintenance_read_data_pipeline_cycles = 0,
       .maintenance_write_buffer_pipeline_cycles = 0,
       .maintenance_serialize_write_bursts = false,
+      .maintenance_write_ingress_fifo_depth = 0,
+      .maintenance_write_throttle_fifo_depth = 0,
+      .maintenance_write_ingress_pipeline_cycles = 0,
+      .maintenance_write_address_after_full_burst_cycles = 0,
       .burst_trace_limit = 0,
       .graph_bytes = 64,
       .sorted_edge_bytes = 64,
@@ -190,8 +198,12 @@ SpineAxiInterfaceProfile SpineAxiInterfaceProfile::candidate10_1e61fc0() {
   profile.maintenance_read_reorder_capacity = 256;
   profile.maintenance_read_address_pipeline_cycles = 7;
   profile.maintenance_read_data_pipeline_cycles = 1;
-  profile.maintenance_write_buffer_pipeline_cycles = 10;
+  profile.maintenance_write_buffer_pipeline_cycles = 0;
   profile.maintenance_serialize_write_bursts = true;
+  profile.maintenance_write_ingress_fifo_depth = 16;
+  profile.maintenance_write_throttle_fifo_depth = 16;
+  profile.maintenance_write_ingress_pipeline_cycles = 8;
+  profile.maintenance_write_address_after_full_burst_cycles = 2;
   profile.maintenance_result_bytes = 8;
   return profile;
 }
@@ -275,6 +287,22 @@ FixedAxiPortConfig SpineAxiInterfaceProfile::port_config(
       maintenance_port && maintenance_serialize_write_bursts
           ? true
           : serialize_write_bursts;
+  const std::size_t port_write_ingress_fifo_depth =
+      maintenance_port && maintenance_write_ingress_fifo_depth != 0
+          ? maintenance_write_ingress_fifo_depth
+          : write_ingress_fifo_depth;
+  const std::size_t port_write_throttle_fifo_depth =
+      maintenance_port && maintenance_write_throttle_fifo_depth != 0
+          ? maintenance_write_throttle_fifo_depth
+          : write_throttle_fifo_depth;
+  const std::uint64_t port_write_ingress_pipeline_cycles =
+      maintenance_port && maintenance_write_ingress_fifo_depth != 0
+          ? maintenance_write_ingress_pipeline_cycles
+          : write_ingress_pipeline_cycles;
+  const std::uint64_t port_write_address_after_full_burst_cycles =
+      maintenance_port && maintenance_write_ingress_fifo_depth != 0
+          ? maintenance_write_address_after_full_burst_cycles
+          : write_address_after_full_burst_cycles;
   return FixedAxiPortConfig{
       .memory_channels = memory_channels,
       .channel = channel,
@@ -293,6 +321,11 @@ FixedAxiPortConfig SpineAxiInterfaceProfile::port_config(
       .read_data_pipeline_cycles = port_read_data_pipeline_cycles,
       .write_buffer_pipeline_cycles = port_write_buffer_pipeline_cycles,
       .serialize_write_bursts = port_serialize_write_bursts,
+      .write_ingress_fifo_depth = port_write_ingress_fifo_depth,
+      .write_throttle_fifo_depth = port_write_throttle_fifo_depth,
+      .write_ingress_pipeline_cycles = port_write_ingress_pipeline_cycles,
+      .write_address_after_full_burst_cycles =
+          port_write_address_after_full_burst_cycles,
       .burst_trace_limit = burst_trace_limit,
   };
 }

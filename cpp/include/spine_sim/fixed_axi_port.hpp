@@ -34,6 +34,10 @@ struct FixedAxiPortConfig {
   std::uint64_t read_data_pipeline_cycles{};
   std::uint64_t write_buffer_pipeline_cycles{};
   bool serialize_write_bursts{};
+  std::size_t write_ingress_fifo_depth{};
+  std::size_t write_throttle_fifo_depth{};
+  std::uint64_t write_ingress_pipeline_cycles{};
+  std::uint64_t write_address_after_full_burst_cycles{};
   AxiPeriodicStall read_address_stall{};
   AxiPeriodicStall write_address_stall{};
   AxiPeriodicStall write_data_stall{};
@@ -71,6 +75,13 @@ class FixedAxiPort {
                 .write_buffer_pipeline_cycles =
                     config.write_buffer_pipeline_cycles,
                 .serialize_write_bursts = config.serialize_write_bursts,
+                .write_ingress_fifo_depth = config.write_ingress_fifo_depth,
+                .write_throttle_fifo_depth =
+                    config.write_throttle_fifo_depth,
+                .write_ingress_pipeline_cycles =
+                    config.write_ingress_pipeline_cycles,
+                .write_address_after_full_burst_cycles =
+                    config.write_address_after_full_burst_cycles,
                 .read_address_stall = config.read_address_stall,
                 .write_address_stall = config.write_address_stall,
                 .write_data_stall = config.write_data_stall,

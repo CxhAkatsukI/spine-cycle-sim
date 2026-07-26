@@ -152,6 +152,8 @@ module candidate10_m_axi_adapter_tb;
   integer external_last_response_cycle;
   integer external_data_events;
   integer external_response_events;
+  integer internal_store_events;
+  integer internal_throttle_events;
 
   reg [31:0] read_remaining [0:QUEUE_DEPTH-1];
   reg [31:0] read_ready_cycle [0:QUEUE_DEPTH-1];
@@ -304,6 +306,8 @@ module candidate10_m_axi_adapter_tb;
       external_last_response_cycle <= -1;
       external_data_events <= 0;
       external_response_events <= 0;
+      internal_store_events <= 0;
+      internal_throttle_events <= 0;
       read_head <= 0;
       read_tail <= 0;
       read_queued <= 0;
@@ -340,6 +344,18 @@ module candidate10_m_axi_adapter_tb;
       end
       if (child_wvalid && !child_wready)
         child_data_stall_cycles <= child_data_stall_cycles + 1;
+      if (trace_arg != 0 && dut.bus_write.next_data)
+        $display("AXI_ADAPTER_EVENT kind=internal_store_to_bridge op=1 index=%0d cycle=%0d",
+                 internal_store_events, cycle_count);
+      if (trace_arg != 0 && dut.bus_write.WVALID_Dummy &&
+          dut.bus_write.WREADY_Dummy)
+        $display("AXI_ADAPTER_EVENT kind=internal_bridge_to_throttle op=1 index=%0d cycle=%0d last=%0d",
+                 internal_throttle_events,
+                 cycle_count, dut.bus_write.WLAST_Dummy);
+      if (dut.bus_write.next_data)
+        internal_store_events <= internal_store_events + 1;
+      if (dut.bus_write.WVALID_Dummy && dut.bus_write.WREADY_Dummy)
+        internal_throttle_events <= internal_throttle_events + 1;
       if (child_rvalid && child_rready) begin
         if (trace_arg != 0)
           $display("AXI_ADAPTER_EVENT kind=child_data op=0 index=%0d cycle=%0d",

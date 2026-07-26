@@ -28,14 +28,14 @@ class Candidate10MAxiAdapterAlignmentTest(unittest.TestCase):
         self.assertEqual(evidence["rtl_oracle"]["cases"], 29)
         self.assertEqual(evidence["rtl_oracle"]["max_observed_outstanding"], 16)
         schedule = evidence["backpressure_schedule"]
-        self.assertEqual(schedule["status"], "PASS_BOUNDED")
+        self.assertEqual(schedule["status"], "PASS_EXACT")
         self.assertEqual(
             schedule["cases"]["read_channel_backpressure"]["status"],
             "EXACT",
         )
         self.assertEqual(
             schedule["cases"]["write_channel_backpressure"]["status"],
-            "BOUNDED_1_CYCLE",
+            "EXACT",
         )
         for case in schedule["cases"].values():
             self.assertEqual(case["elapsed"]["max_abs_delta_cycles"], 0)
@@ -43,6 +43,17 @@ class Candidate10MAxiAdapterAlignmentTest(unittest.TestCase):
                 case["external_data"]["max_abs_delta_cycles"], 0
             )
             self.assertEqual(case["child_output"]["max_abs_delta_cycles"], 0)
+            self.assertEqual(case["burst_issue"]["max_abs_delta_cycles"], 0)
+        write = schedule["cases"]["write_channel_backpressure"]
+        for field in (
+            "child_write_ingress",
+            "store_to_bridge",
+            "bridge_to_throttle",
+        ):
+            self.assertEqual(write[field]["events"], 66)
+            self.assertEqual(write[field]["exact_events"], 66)
+            self.assertEqual(write[field]["max_abs_delta_cycles"], 0)
+        self.assertTrue(write["bridge_to_throttle_last_markers_exact"])
         hardware = evidence["hardware_holdout"]
         self.assertEqual(len(hardware["cases"]), 11)
         self.assertGreater(
@@ -69,6 +80,14 @@ class Candidate10MAxiAdapterAlignmentTest(unittest.TestCase):
             )
             self.assertLessEqual(
                 stats["maintenance_axi_max_outstanding_bursts"], 16
+            )
+            self.assertEqual(
+                stats["maintenance_axi_write_child_beats_accepted"],
+                stats["maintenance_axi_write_store_to_bridge_beats"],
+            )
+            self.assertEqual(
+                stats["maintenance_axi_write_store_to_bridge_beats"],
+                stats["maintenance_axi_write_bridge_to_throttle_beats"],
             )
 
     def test_comparison_rejects_changed_logical_traffic(self) -> None:
