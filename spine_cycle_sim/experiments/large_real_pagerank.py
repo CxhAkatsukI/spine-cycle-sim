@@ -414,3 +414,91 @@ def evaluate_large_real_runtime_gate(
         "observations": observations,
         "failed_systems": failed,
     }
+
+
+def build_large_real_runtime_acceptance(
+    manifest: Mapping[str, object],
+    matrix_manifest: Mapping[str, object],
+    system_rows: Iterable[Mapping[str, object]],
+    pair_rows: Iterable[Mapping[str, object]],
+) -> dict[str, object]:
+    """Validate a completed large-real matrix and evaluate its runtime gate."""
+
+    if matrix_manifest.get("input_scope") != "real_large_slice":
+        raise ValueError("runtime acceptance requires a real_large_slice matrix")
+    if matrix_manifest.get("input_matrix_id") != manifest.get("matrix_id"):
+        raise ValueError("runtime acceptance input matrix identity mismatch")
+    if matrix_manifest.get("profile_set") != manifest.get("required_profile_set"):
+        raise ValueError("runtime acceptance profile-set identity mismatch")
+    if matrix_manifest.get("complete_matrix") is not True:
+        raise ValueError("runtime acceptance requires a complete matrix")
+    if matrix_manifest.get("all_correct") is not True:
+        raise ValueError("runtime acceptance requires matrix correctness")
+
+    expected_runs = {str(run["run_id"]) for run in manifest.get("runs", [])}
+    selected_runs = {str(run_id) for run_id in matrix_manifest.get("selected_run_ids", [])}
+    if not expected_runs or selected_runs != expected_runs:
+        raise ValueError("runtime acceptance selected-run coverage mismatch")
+
+    rows = [dict(row) for row in system_rows]
+    expected_systems = {
+        (run_id, system)
+        for run_id in expected_runs
+        for system in ("spine", "grasu_regraph")
+    }
+    observed_systems: set[tuple[str, str]] = set()
+    normalized_rows: list[dict[str, object]] = []
+    for row in rows:
+        identity = (str(row.get("run_id", "")), str(row.get("system", "")))
+        if identity in observed_systems:
+            raise ValueError("duplicate large-real system row")
+        observed_systems.add(identity)
+        try:
+            mismatches = int(str(row.get("correctness_mismatches", "")))
+            wall_seconds = float(str(row.get("host_wall_seconds", "")))
+        except ValueError as error:
+            raise ValueError("invalid large-real system observation") from error
+        if mismatches != 0:
+            raise ValueError("runtime acceptance rejects correctness mismatch")
+        normalized_rows.append(
+            {
+                "run_id": identity[0],
+                "system": identity[1],
+                "host_wall_seconds": wall_seconds,
+            }
+        )
+    if observed_systems != expected_systems:
+        raise ValueError("runtime acceptance system-row coverage mismatch")
+
+    pairs = [dict(row) for row in pair_rows]
+    observed_pairs: set[str] = set()
+    for pair in pairs:
+        run_id = str(pair.get("run_id", ""))
+        if run_id in observed_pairs:
+            raise ValueError("duplicate large-real pair row")
+        observed_pairs.add(run_id)
+        rank_match = pair.get("cross_system_ranks_match")
+        if rank_match is not True and str(rank_match).lower() != "true":
+            raise ValueError("runtime acceptance rejects cross-system rank mismatch")
+    if observed_pairs != expected_runs:
+        raise ValueError("runtime acceptance pair coverage mismatch")
+
+    if int(matrix_manifest.get("system_rows", -1)) != len(rows):
+        raise ValueError("runtime acceptance system-row count mismatch")
+    if int(matrix_manifest.get("pairs", -1)) != len(pairs):
+        raise ValueError("runtime acceptance pair count mismatch")
+
+    gate = evaluate_large_real_runtime_gate(manifest, normalized_rows)
+    return {
+        "schema_version": 1,
+        "claim_class": "candidate10_large_real_host_runtime_observation",
+        "status": "PASS" if gate["pass"] else "COMPLETE_RUNTIME_GATE_FAILED",
+        "simulation_complete": True,
+        "all_correct": True,
+        "performance_results_modified": False,
+        "input_matrix_id": manifest["matrix_id"],
+        "profile_set": matrix_manifest["profile_set"],
+        "system_rows": len(rows),
+        "pairs": len(pairs),
+        "runtime_gate": gate,
+    }

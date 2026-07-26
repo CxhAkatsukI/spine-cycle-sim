@@ -6,6 +6,7 @@ import tempfile
 import unittest
 
 from spine_cycle_sim.experiments.large_real_pagerank import (
+    build_large_real_runtime_acceptance,
     build_large_real_update,
     classify_hot_destinations,
     evaluate_large_real_runtime_gate,
@@ -17,6 +18,56 @@ from spine_cycle_sim.experiments.shared_workloads import SliceGraph, SliceRecord
 
 
 class LargeRealPageRankTests(unittest.TestCase):
+    def test_posthoc_runtime_acceptance_is_fail_closed(self) -> None:
+        manifest = {
+            "matrix_id": "large-v1",
+            "required_profile_set": "candidate10_hls_v3",
+            "runtime_contract": {"host_runtime_limit_seconds_per_system": 30},
+            "runs": [{"run_id": "large"}],
+        }
+        matrix = {
+            "input_scope": "real_large_slice",
+            "input_matrix_id": "large-v1",
+            "profile_set": "candidate10_hls_v3",
+            "complete_matrix": True,
+            "all_correct": True,
+            "selected_run_ids": ["large"],
+            "system_rows": 2,
+            "pairs": 1,
+        }
+        rows = [
+            {
+                "run_id": "large",
+                "system": "spine",
+                "host_wall_seconds": "31.0",
+                "correctness_mismatches": "0",
+            },
+            {
+                "run_id": "large",
+                "system": "grasu_regraph",
+                "host_wall_seconds": "20.0",
+                "correctness_mismatches": "0",
+            },
+        ]
+        result = build_large_real_runtime_acceptance(
+            manifest,
+            matrix,
+            rows,
+            [{"run_id": "large", "cross_system_ranks_match": "True"}],
+        )
+        self.assertEqual(result["status"], "COMPLETE_RUNTIME_GATE_FAILED")
+        self.assertTrue(result["simulation_complete"])
+        self.assertFalse(result["performance_results_modified"])
+
+        rows[0]["correctness_mismatches"] = "1"
+        with self.assertRaisesRegex(ValueError, "correctness mismatch"):
+            build_large_real_runtime_acceptance(
+                manifest,
+                matrix,
+                rows,
+                [{"run_id": "large", "cross_system_ranks_match": "True"}],
+            )
+
     def test_runtime_gate_preserves_complete_over_limit_observations(self) -> None:
         manifest = {
             "runtime_contract": {"host_runtime_limit_seconds_per_system": 30},
