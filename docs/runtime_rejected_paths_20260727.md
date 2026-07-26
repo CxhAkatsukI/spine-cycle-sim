@@ -98,6 +98,27 @@ Raw AB evidence is retained outside Git at:
 /data/tmp/chuxiao/dramsim_summary_long_ab_20260727/
 ```
 
+## Fail-closed post-hoc runtime acceptance
+
+A long simulation can outlive the runner revision that launched it. Re-running
+the same multi-hour simulation solely to add a newer acceptance field would
+waste compute and would create a different execution fingerprint. The checked-in
+post-hoc finalizer therefore evaluates the host-runtime gate from the completed
+matrix without launching SST:
+
+```bash
+python3 scripts/finalize_large_real_runtime.py \
+  --result-dir /data/tmp/chuxiao/candidate10_hls_v3_large_runtime_fixed_fallback_v5_20260727
+```
+
+The finalizer fails closed unless both system rows and the comparison pair are
+present, all simulator and cross-system correctness checks pass, the input and
+result-table hashes match the matrix manifest, and every raw result JSON still
+matches its recorded SHA-256. Its `runtime_acceptance.json` records that no
+cycle or performance result was modified. A failed 1,800-second host-runtime
+gate remains a completed scientific observation; it is not converted into a
+simulator PASS.
+
 ## Implication
 
 The remaining large-run host cost is dominated by valid, already release-built
