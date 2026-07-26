@@ -5012,10 +5012,16 @@ class OnlineMemoryProbe final : public SST::Component {
               compute_backend_traffic,
               backend_->accepted() - pagerank_maintenance_backend_requests_) &&
           memory_traffic_closes(total_backend_traffic, backend_->accepted());
+      const bool reader_memory_ledger_match =
+          reader.memory_requests_issued == reader.memory_requests_completed;
+      const bool compute_memory_ledger_match =
+          compute.memory_requests_issued == compute.memory_requests_completed;
       const bool passed = success &&
                           actual.size() == pagerank_reference_.size() &&
                           mismatches == 0 && mathematical_mismatches == 0 &&
                           memory_locality_ledger_match &&
+                          reader_memory_ledger_match &&
+                          compute_memory_ledger_match &&
                           max_abs_error <= 1.0e-5F &&
                           mathematical_max_abs_error <= 1.0e-5;
       result
@@ -5161,8 +5167,54 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"maintenance_logical_overflow_events\": "
           << maintenance.logical_overflow_events << ",\n"
           << "  \"reader_edges\": " << reader.edges_emitted << ",\n"
+          << "  \"reader_tiles\": " << reader.tiles_emitted << ",\n"
+          << "  \"reader_occupied_levels\": " << reader.occupied_levels
+          << ",\n"
+          << "  \"reader_cold_edges\": " << reader.cold_edges_emitted
+          << ",\n"
+          << "  \"reader_hot_edges\": " << reader.hot_edges_emitted
+          << ",\n"
+          << "  \"reader_graph_bytes\": " << reader.graph_read_bytes
+          << ",\n"
+          << "  \"reader_graph_index_payload_bytes\": "
+          << reader.graph_index_payload_read_bytes << ",\n"
           << "  \"reader_graph_payload_bytes\": "
           << reader.graph_edge_payload_read_bytes << ",\n"
+          << "  \"reader_construction_payload_bytes\": "
+          << reader.graph_construction_payload_read_bytes << ",\n"
+          << "  \"reader_replay_payload_bytes\": "
+          << reader.graph_replay_payload_read_bytes << ",\n"
+          << "  \"reader_graph_index_bitmap_misses\": "
+          << reader.graph_index_bitmap_misses << ",\n"
+          << "  \"reader_graph_index_bitmap_words\": "
+          << reader.graph_index_bitmap_words << ",\n"
+          << "  \"reader_level_cache_bytes\": "
+          << reader.level_cache_read_bytes << ",\n"
+          << "  \"reader_row_lookup_metadata_bytes\": "
+          << reader.row_lookup_metadata_bytes << ",\n"
+          << "  \"reader_metadata_bytes\": " << reader.metadata_read_bytes
+          << ",\n"
+          << "  \"reader_range_active_records\": "
+          << reader.range_task_active_records << ",\n"
+          << "  \"reader_range_family_probes\": "
+          << reader.range_task_family_probes << ",\n"
+          << "  \"reader_range_family_skips\": "
+          << reader.range_task_family_skips << ",\n"
+          << "  \"reader_range_level_checks\": "
+          << reader.range_task_level_checks << ",\n"
+          << "  \"reader_range_row_lookups\": "
+          << reader.range_task_row_lookups << ",\n"
+          << "  \"reader_range_construction_payloads\": "
+          << reader.range_task_construction_payloads << ",\n"
+          << "  \"reader_range_replay_payloads\": "
+          << reader.range_task_replay_payloads << ",\n"
+          << "  \"reader_range_tasks\": " << reader.range_task_count
+          << ",\n"
+          << "  \"reader_range_path\": " << reader.range_task_path << ",\n"
+          << "  \"reader_range_fallback_reason\": "
+          << reader.range_task_fallback_reason << ",\n"
+          << "  \"reader_range_error\": " << reader.range_task_error
+          << ",\n"
           << "  \"reader_source_requests\": " << reader.source_requests << ",\n"
           << "  \"reader_source_responses\": " << reader.source_responses
           << ",\n"
@@ -5170,11 +5222,59 @@ class OnlineMemoryProbe final : public SST::Component {
           << ",\n"
           << "  \"reader_protocol_status\": " << reader.source_protocol_status
           << ",\n"
+          << "  \"reader_memory_requests_issued\": "
+          << reader.memory_requests_issued << ",\n"
+          << "  \"reader_memory_requests_completed\": "
+          << reader.memory_requests_completed << ",\n"
+          << "  \"reader_memory_ledger_match\": "
+          << (reader_memory_ledger_match ? "true" : "false") << ",\n"
+          << "  \"reader_memory_window_stall_cycles\": "
+          << reader.memory_window_stall_cycles << ",\n"
+          << "  \"reader_memory_dependency_stall_cycles\": "
+          << reader.memory_dependency_stall_cycles << ",\n"
+          << "  \"reader_memory_request_fifo_stall_cycles\": "
+          << reader.memory_request_fifo_stall_cycles << ",\n"
+          << "  \"reader_max_memory_requests_inflight\": "
+          << reader.max_memory_requests_inflight << ",\n"
+          << "  \"reader_max_memory_requests_inflight_per_port\": "
+          << reader.max_memory_requests_inflight_per_port << ",\n"
+          << "  \"reader_max_active_memory_ports\": "
+          << reader.max_active_memory_ports << ",\n"
+          << "  \"reader_memory_cross_port_overlap_cycles\": "
+          << reader.memory_cross_port_overlap_cycles << ",\n"
+          << "  \"reader_construction_pipeline_requests\": "
+          << reader.construction_pipeline_requests << ",\n"
+          << "  \"reader_construction_pipeline_retires\": "
+          << reader.construction_pipeline_retires << ",\n"
+          << "  \"reader_replay_pipeline_requests\": "
+          << reader.replay_pipeline_requests << ",\n"
+          << "  \"reader_replay_pipeline_retires\": "
+          << reader.replay_pipeline_retires << ",\n"
+          << "  \"reader_edge_pipeline_credit_stall_cycles\": "
+          << reader.edge_pipeline_credit_stall_cycles << ",\n"
+          << "  \"reader_edge_pipeline_request_fifo_stall_cycles\": "
+          << reader.edge_pipeline_request_fifo_stall_cycles << ",\n"
+          << "  \"reader_edge_pipeline_axis_stall_cycles\": "
+          << reader.edge_pipeline_axis_stall_cycles << ",\n"
+          << "  \"reader_edge_pipeline_max_inflight\": "
+          << reader.edge_pipeline_max_inflight << ",\n"
+          << "  \"reader_edge_pipeline_max_buffered\": "
+          << reader.edge_pipeline_max_buffered << ",\n"
           << "  \"compute_edges\": " << compute.edges_received << ",\n"
           << "  \"compute_vertices_applied\": " << compute.vertices_applied
           << ",\n"
           << "  \"compute_memory_requests\": " << compute.memory_requests_issued
           << ",\n"
+          << "  \"compute_memory_requests_completed\": "
+          << compute.memory_requests_completed << ",\n"
+          << "  \"compute_memory_ledger_match\": "
+          << (compute_memory_ledger_match ? "true" : "false") << ",\n"
+          << "  \"compute_memory_window_stall_cycles\": "
+          << compute.memory_window_stall_cycles << ",\n"
+          << "  \"compute_memory_request_fifo_stall_cycles\": "
+          << compute.memory_request_fifo_stall_cycles << ",\n"
+          << "  \"compute_max_memory_requests_inflight\": "
+          << compute.max_memory_requests_inflight << ",\n"
           << "  \"compute_primary_read_bytes\": " << compute.primary_read_bytes
           << ",\n"
           << "  \"compute_primary_write_bytes\": "
