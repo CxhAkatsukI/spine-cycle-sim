@@ -1,5 +1,9 @@
 # Full PageRank Dense-Batch Sweep
 
+> This document preserves the legacy-profile run. The frozen Candidate10 v3
+> rerun and current publication-facing claim boundary are in
+> `candidate10_hls_v3_dense_full_pagerank_20260727.md`.
+
 ## Purpose
 
 This milestone measures how update-batch size and source concentration affect
