@@ -6,6 +6,7 @@ import csv
 import hashlib
 import json
 from pathlib import Path
+import re
 from typing import Any
 
 
@@ -101,6 +102,8 @@ def _parse_build(root: Path, build: object) -> dict[str, Any]:
     if not isinstance(evidence, dict) or set(evidence) != {
         "accelerator_util",
         "artifacts",
+        "connectivity",
+        "link_kernels",
         "timing",
     }:
         raise PublicationPpaError(f"{build_id}: incomplete evidence tables")
@@ -111,9 +114,17 @@ def _parse_build(root: Path, build: object) -> dict[str, Any]:
     artifacts_path = _evidence_path(
         root, evidence["artifacts"], f"{build_id}.artifacts"
     )
+    kernels_path = _evidence_path(
+        root, evidence["link_kernels"], f"{build_id}.link_kernels"
+    )
+    connectivity_path = _evidence_path(
+        root, evidence["connectivity"], f"{build_id}.connectivity"
+    )
 
     used_rows = [
-        row for row in _read_tsv(utilization_path) if row.get("name") == "Used Resources"
+        row
+        for row in _read_tsv(utilization_path)
+        if row.get("name") == "Used Resources"
     ]
     used = _single_row(used_rows, f"{build_id}.Used Resources")
     if used.get("stage") != "routed":
@@ -122,6 +133,44 @@ def _parse_build(root: Path, build: object) -> dict[str, Any]:
         resource: _as_int(used.get(resource, ""), f"{build_id}.{resource}")
         for resource in RESOURCE_KEYS
     }
+
+    kernels: dict[str, int] = {}
+    for row in _read_tsv(kernels_path):
+        kernel = row.get("kernel", "")
+        if not kernel or kernel in kernels:
+            raise PublicationPpaError(f"{build_id}: invalid or duplicate kernel")
+        if row.get("target") != "TT_HW":
+            raise PublicationPpaError(f"{build_id}.{kernel}: target is not TT_HW")
+        kernels[kernel] = _as_int(row.get("cu_count", ""), f"{build_id}.{kernel}")
+        if kernels[kernel] == 0:
+            raise PublicationPpaError(f"{build_id}.{kernel}: CU count is zero")
+
+    connectivity_rows = _read_tsv(connectivity_path)
+    hbm_bindings = {
+        (row.get("cu", ""), row.get("port", ""), row.get("target", ""))
+        for row in connectivity_rows
+        if row.get("kind") == "sp"
+        and re.fullmatch(r"HBM\[\d+\]", row.get("target", ""))
+    }
+    hbm_channels = sorted(
+        {
+            int(target.removeprefix("HBM[").removesuffix("]"))
+            for _, _, target in hbm_bindings
+        }
+    )
+    stream_connections = {
+        row.get("connections", "") or row.get("raw", "")
+        for row in connectivity_rows
+        if row.get("kind") in {"stream_connect", "sc"}
+    }
+    stream_connections.discard("")
+    slr_assignments = {
+        (row.get("cu", ""), row.get("target", ""))
+        for row in connectivity_rows
+        if row.get("kind") == "slr"
+    }
+    if not hbm_bindings or not slr_assignments:
+        raise PublicationPpaError(f"{build_id}: incomplete routed connectivity")
 
     timing = _single_row(_read_tsv(timing_path), f"{build_id}.timing")
     wns_ns = _as_float(timing.get("wns_ns", ""), f"{build_id}.wns_ns")
@@ -158,6 +207,18 @@ def _parse_build(root: Path, build: object) -> dict[str, Any]:
         raise PublicationPpaError(
             f"{build_id}: timing disposition differs from frozen expectation"
         )
+    expected_topology = expected.get("topology")
+    topology = {
+        "kernels": kernels,
+        "hbm_channels": hbm_channels,
+        "hbm_port_bindings": len(hbm_bindings),
+        "stream_connections": len(stream_connections),
+        "slr_assignments": len(slr_assignments),
+    }
+    if expected_topology != topology:
+        raise PublicationPpaError(
+            f"{build_id}: topology differs from frozen expectation"
+        )
 
     claim_scope = build.get("claim_scope")
     if claim_scope not in {
@@ -177,6 +238,7 @@ def _parse_build(root: Path, build: object) -> dict[str, Any]:
         "source": source,
         "target_mhz": float(target_mhz),
         "resources": resources,
+        "topology": topology,
         "timing": {
             "wns_ns": wns_ns,
             "tns_ns": tns_ns,

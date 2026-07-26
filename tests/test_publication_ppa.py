@@ -60,6 +60,15 @@ class PublicationPpaTests(unittest.TestCase):
             util = directory / "accelerator_util.tsv"
             timing = directory / "timing.tsv"
             artifacts = directory / "artifacts.tsv"
+            kernels = directory / "link_kernels.tsv"
+            connectivity = directory / "connectivity.tsv"
+            topology = {
+                "kernels": {f"kernel_{index}": 1},
+                "hbm_channels": [index],
+                "hbm_port_bindings": 1,
+                "stream_connections": 1,
+                "slr_assignments": 1,
+            }
             evidence = {
                 "accelerator_util": {
                     "path": str(util.relative_to(root)),
@@ -94,6 +103,51 @@ class PublicationPpaTests(unittest.TestCase):
                         ],
                     ),
                 },
+                "link_kernels": {
+                    "path": str(kernels.relative_to(root)),
+                    "sha256": _write_tsv(
+                        kernels,
+                        [
+                            {
+                                "target": "TT_HW",
+                                "kernel": f"kernel_{index}",
+                                "cu_count": 1,
+                            }
+                        ],
+                    ),
+                },
+                "connectivity": {
+                    "path": str(connectivity.relative_to(root)),
+                    "sha256": _write_tsv(
+                        connectivity,
+                        [
+                            {
+                                "kind": "sp",
+                                "cu": f"kernel_{index}_1",
+                                "port": "memory",
+                                "target": f"HBM[{index}]",
+                                "connections": "",
+                                "raw": "",
+                            },
+                            {
+                                "kind": "stream_connect",
+                                "cu": "",
+                                "port": "",
+                                "target": "",
+                                "connections": "source:destination:4",
+                                "raw": "",
+                            },
+                            {
+                                "kind": "slr",
+                                "cu": f"kernel_{index}_1",
+                                "port": "",
+                                "target": "SLR0",
+                                "connections": "",
+                                "raw": "",
+                            },
+                        ],
+                    ),
+                },
             }
             builds.append(
                 {
@@ -107,6 +161,7 @@ class PublicationPpaTests(unittest.TestCase):
                     "evidence": evidence,
                     "expected": {
                         "resources": resources,
+                        "topology": topology,
                         "wns_ns": wns,
                         "timing_disposition": (
                             "target_closed" if wns >= 0 else "routed_target_missed"
