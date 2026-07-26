@@ -39,6 +39,10 @@ from .candidate10 import (
     parse_metric_line,
     verify_sha256_manifest,
 )
+from .publication_ppa import (
+    PublicationPpaError,
+    analyze_publication_ppa_manifest,
+)
 
 __all__ = [
     "FpgaEvidenceError",
@@ -72,4 +76,6 @@ __all__ = [
     "load_focused_trials",
     "parse_metric_line",
     "verify_sha256_manifest",
+    "PublicationPpaError",
+    "analyze_publication_ppa_manifest",
 ]
