@@ -188,6 +188,59 @@ def _write_csv(path: Path, rows: list[dict[str, object]]) -> None:
         writer.writerows(rows)
 
 
+def _raw_evidence_problems(
+    invocation: RunInvocation, row: dict[str, object]
+) -> list[str]:
+    problems: list[str] = []
+    raw_result_path = invocation.out_dir / (
+        "summary.json" if invocation.system == "spine" else "result.json"
+    )
+    try:
+        raw_result = json.loads(raw_result_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError, TypeError, ValueError):
+        return ["raw_result_unreadable"]
+
+    for field in ("cycles", "backend_requests"):
+        try:
+            if int(raw_result[field]) != int(row[field]):
+                problems.append(f"raw_{field}")
+        except (KeyError, TypeError, ValueError):
+            problems.append(f"raw_{field}")
+    for field in (
+        "correctness_mismatches",
+        "architecture_correctness_mismatches",
+        "mathematical_correctness_mismatches",
+    ):
+        try:
+            if int(raw_result[field]) != 0:
+                problems.append(f"raw_{field}")
+        except (KeyError, TypeError, ValueError):
+            problems.append(f"raw_{field}")
+
+    dram_paths = sorted((invocation.out_dir / "dram").glob("channel*/dramsim3.json"))
+    reads = 0
+    writes = 0
+    try:
+        for path in dram_paths:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            if len(payload) != 1:
+                raise ValueError("expected one channel record")
+            channel = next(iter(payload.values()))
+            reads += int(channel["num_reads_done"])
+            writes += int(channel["num_writes_done"])
+    except (OSError, json.JSONDecodeError, KeyError, TypeError, ValueError):
+        problems.append("raw_dram_unreadable")
+    else:
+        try:
+            if len(dram_paths) != int(row["bound_dram_channels"]):
+                problems.append("raw_dram_channels")
+            if reads + writes != int(row["backend_requests"]):
+                problems.append("raw_dram_requests")
+        except (KeyError, TypeError, ValueError):
+            problems.append("raw_dram_ledger")
+    return problems
+
+
 def _completed_row(
     run: dict[str, object],
     invocation: RunInvocation,
@@ -206,6 +259,12 @@ def _completed_row(
         run, invocation, result, dram, binding, wall_seconds=wall_seconds
     )
     row["cache_reused"] = cache_reused
+    raw_problems = _raw_evidence_problems(invocation, row)
+    if raw_problems:
+        raise RuntimeError(
+            f"{invocation.run_id}/{invocation.system} raw evidence gate failed: "
+            + ", ".join(raw_problems)
+        )
     return row
 
 
@@ -230,6 +289,8 @@ def _run_one_impl(
             and cached.get("command") == list(invocation.command)
             and cached.get("input_contract_sha256") == input_contract_sha256
             and cached.get("simulation_sha256") == simulation_sha256
+            and isinstance(cached.get("row"), dict)
+            and not _raw_evidence_problems(invocation, cached["row"])
         ):
             return _completed_row(
                 run,

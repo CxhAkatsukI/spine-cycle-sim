@@ -17,6 +17,7 @@ from spine_cycle_sim.experiments.comparison import (
 )
 from scripts.run_shared_comparison_matrix import (
     ProcessRegistry,
+    _raw_evidence_problems,
     override_invocation_max_cycles,
     parse_run_cycle_overrides,
 )
@@ -158,6 +159,43 @@ class SharedComparisonRunnerTests(unittest.TestCase):
                 "message": "root cause",
             },
         )
+
+    def test_raw_evidence_gate_rejects_late_output_overwrite(self) -> None:
+        with tempfile.TemporaryDirectory(dir=ROOT) as tmp:
+            out_dir = Path(tmp)
+            invocation = RunInvocation("case", "grasu_regraph", (), out_dir)
+            (out_dir / "dram" / "channel0").mkdir(parents=True)
+            raw_result = {
+                "cycles": 100,
+                "backend_requests": 3,
+                "correctness_mismatches": 0,
+                "architecture_correctness_mismatches": 0,
+                "mathematical_correctness_mismatches": 0,
+            }
+            (out_dir / "result.json").write_text(
+                json.dumps(raw_result), encoding="utf-8"
+            )
+            (out_dir / "dram" / "channel0" / "dramsim3.json").write_text(
+                json.dumps(
+                    {"0": {"num_reads_done": 2, "num_writes_done": 1}}
+                ),
+                encoding="utf-8",
+            )
+            row = {
+                "cycles": 100,
+                "backend_requests": 3,
+                "bound_dram_channels": 1,
+            }
+            self.assertEqual(_raw_evidence_problems(invocation, row), [])
+            raw_result["cycles"] = 90
+            raw_result["correctness_mismatches"] = 1
+            (out_dir / "result.json").write_text(
+                json.dumps(raw_result), encoding="utf-8"
+            )
+            self.assertEqual(
+                set(_raw_evidence_problems(invocation, row)),
+                {"raw_cycles", "raw_correctness_mismatches"},
+            )
 
     def test_per_run_cycle_override_changes_only_safety_limit(self) -> None:
         invocation = RunInvocation(
