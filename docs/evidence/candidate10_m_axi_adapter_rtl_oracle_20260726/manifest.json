@@ -11,10 +11,10 @@
     "write_outstanding": 16
   },
   "all_pass": true,
-  "build_dir": "/data/tmp/chuxiao/candidate10_m_axi_adapter_oracle.iu9lxdlz",
+  "build_dir": "/data/tmp/chuxiao/candidate10_m_axi_adapter_trace_20260726",
   "cases": 29,
   "claim": "frozen_candidate10_child_to_m_axi_adapter_transaction_oracle",
-  "collector_sha256": "5f53229dd8fa28db810f763d64b881185226e418c4dca933d59f796dda0dc9b7",
+  "collector_sha256": "8268214b8d5691560a4bc706f4dba2c0c6d6e23b7727cf8fc51b83adcb7056f3",
   "limitations": [
     "The external AXI responder is deterministic, not an HBM model.",
     "This oracle validates one generated gmem_p0 adapter; other Candidate10 adapters require profile/hash equivalence before inheriting the claim.",
@@ -23,15 +23,16 @@
   "rtl_member": "ip_repo/xilinx_com_hls_spine_partconv_rdmaint_kernel_1_0/hdl/verilog/spine_partconv_rdmaint_kernel_gmem_p0_m_axi.v",
   "rtl_member_sha256": "b9fe66112350752935c3282a29afb5c600aba45d2dcbf6e65cd9486cc3f20c4d",
   "runner_sha256": "4a2284693b8e3ee8f5242e7b67de4bf4a1f80fe509f316c0a6bf872260061bb4",
-  "schema_version": 1,
-  "testbench_sha256": "8be911b2f9246991a7cfceed3ce8a3fabe7ee4311ee62bd8cbd1e263b04033a8",
+  "schema_version": 2,
+  "testbench_sha256": "1ecb36fd80a226a8b7344246a33c650d85517ec0a06c34edb63e7210caae4b0e",
   "validated": [
     "child word addresses convert to external byte addresses",
     "child beat counts convert to external AXI AxLEN plus one",
     "each child request splits at 16 beats and 4 KiB boundaries",
     "adjacent child requests are not coalesced",
     "read and write external outstanding counts are capped at 16",
-    "channel stalls propagate through RTL and read-FIFO saturation throttles future address issue"
+    "channel stalls propagate through RTL and read-FIFO saturation throttles future address issue",
+    "backpressure cases retain child/external data and response cycle transcripts"
   ],
   "xo": "/data/feiyang/spine-dynamic-graph-builds/pipeline_dirty_frontier_publication_1e61fc0_20260725/production/hls_v5_candidate_10/spine_partconv_rdmaint_kernel.hw.xo",
   "xo_sha256": "629e185724467cc14eec4ae14018ff0a89a94aa518ef77499ca6cc2363b28be5"

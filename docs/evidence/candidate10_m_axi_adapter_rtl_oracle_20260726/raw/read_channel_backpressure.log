@@ -3,15 +3,148 @@
   **** SW Build 5076996 on Wed May 22 18:36:09 MDT 2024
   **** IP Build 5075265 on Wed May 22 21:45:21 MDT 2024
   **** SharedData Build 5076995 on Wed May 22 18:29:18 MDT 2024
-  **** Start of session at: Sun Jul 26 15:53:28 2026
     ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
     ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
 
 source xsim.dir/candidate10_m_axi_adapter_oracle/xsim_script.tcl
-# xsim {candidate10_m_axi_adapter_oracle} -testplusarg OP=0 -testplusarg REQUESTS=2 -testplusarg START_WORD=510 -testplusarg BEATS=33 -testplusarg STRIDE_WORDS=64 -testplusarg RESPONSE_DELAY=8 -testplusarg AR_STALL_PERIOD=4 -testplusarg AR_STALL_WIDTH=2 -testplusarg AW_STALL_PERIOD=0 -testplusarg AW_STALL_WIDTH=0 -testplusarg W_STALL_PERIOD=0 -testplusarg W_STALL_WIDTH=0 -testplusarg R_STALL_PERIOD=5 -testplusarg R_STALL_WIDTH=2 -testplusarg CHILD_R_STALL_PERIOD=7 -testplusarg CHILD_R_STALL_WIDTH=3 -testplusarg CHILD_B_STALL_PERIOD=0 -testplusarg CHILD_B_STALL_WIDTH=0 -testplusarg MAX_CYCLES=100000 -autoloadwcfg -tclbatch {/home/chuxiao/spine-cycle-sim/scripts/rtl/run_all.tcl}
+# xsim {candidate10_m_axi_adapter_oracle} -testplusarg OP=0 -testplusarg REQUESTS=2 -testplusarg START_WORD=510 -testplusarg BEATS=33 -testplusarg STRIDE_WORDS=64 -testplusarg RESPONSE_DELAY=8 -testplusarg AR_STALL_PERIOD=4 -testplusarg AR_STALL_WIDTH=2 -testplusarg AW_STALL_PERIOD=0 -testplusarg AW_STALL_WIDTH=0 -testplusarg W_STALL_PERIOD=0 -testplusarg W_STALL_WIDTH=0 -testplusarg R_STALL_PERIOD=5 -testplusarg R_STALL_WIDTH=2 -testplusarg CHILD_R_STALL_PERIOD=7 -testplusarg CHILD_R_STALL_WIDTH=3 -testplusarg CHILD_B_STALL_PERIOD=0 -testplusarg CHILD_B_STALL_WIDTH=0 -testplusarg MAX_CYCLES=100000 -testplusarg TRACE=1 -autoloadwcfg -tclbatch {/home/chuxiao/spine-cycle-sim/scripts/rtl/run_all.tcl}
 Time resolution is 1 ps
 source /home/chuxiao/spine-cycle-sim/scripts/rtl/run_all.tcl
 ## run all
+AXI_ADAPTER_EVENT kind=child_request op=0 index=0 cycle=0
+AXI_ADAPTER_EVENT kind=child_request op=0 index=1 cycle=1
+AXI_ADAPTER_EVENT kind=external_data op=0 index=0 cycle=17 last=0
+AXI_ADAPTER_EVENT kind=external_data op=0 index=1 cycle=18 last=1
+AXI_ADAPTER_EVENT kind=external_data op=0 index=2 cycle=19 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=0 cycle=20
+AXI_ADAPTER_EVENT kind=external_data op=0 index=3 cycle=22 last=0
+AXI_ADAPTER_EVENT kind=external_data op=0 index=4 cycle=23 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=1 cycle=24
+AXI_ADAPTER_EVENT kind=external_data op=0 index=5 cycle=24 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=2 cycle=25
+AXI_ADAPTER_EVENT kind=child_data op=0 index=3 cycle=26
+AXI_ADAPTER_EVENT kind=child_data op=0 index=4 cycle=27
+AXI_ADAPTER_EVENT kind=external_data op=0 index=6 cycle=27 last=0
+AXI_ADAPTER_EVENT kind=external_data op=0 index=7 cycle=28 last=0
+AXI_ADAPTER_EVENT kind=external_data op=0 index=8 cycle=29 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=5 cycle=31
+AXI_ADAPTER_EVENT kind=child_data op=0 index=6 cycle=32
+AXI_ADAPTER_EVENT kind=external_data op=0 index=9 cycle=32 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=7 cycle=33
+AXI_ADAPTER_EVENT kind=external_data op=0 index=10 cycle=33 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=8 cycle=34
+AXI_ADAPTER_EVENT kind=external_data op=0 index=11 cycle=34 last=0
+AXI_ADAPTER_EVENT kind=external_data op=0 index=12 cycle=37 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=9 cycle=38
+AXI_ADAPTER_EVENT kind=external_data op=0 index=13 cycle=38 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=10 cycle=39
+AXI_ADAPTER_EVENT kind=external_data op=0 index=14 cycle=39 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=11 cycle=40
+AXI_ADAPTER_EVENT kind=child_data op=0 index=12 cycle=41
+AXI_ADAPTER_EVENT kind=external_data op=0 index=15 cycle=42 last=0
+AXI_ADAPTER_EVENT kind=external_data op=0 index=16 cycle=43 last=0
+AXI_ADAPTER_EVENT kind=external_data op=0 index=17 cycle=44 last=1
+AXI_ADAPTER_EVENT kind=child_data op=0 index=13 cycle=45
+AXI_ADAPTER_EVENT kind=child_data op=0 index=14 cycle=46
+AXI_ADAPTER_EVENT kind=child_data op=0 index=15 cycle=47
+AXI_ADAPTER_EVENT kind=external_data op=0 index=18 cycle=47 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=16 cycle=48
+AXI_ADAPTER_EVENT kind=external_data op=0 index=19 cycle=48 last=0
+AXI_ADAPTER_EVENT kind=external_data op=0 index=20 cycle=49 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=17 cycle=52
+AXI_ADAPTER_EVENT kind=external_data op=0 index=21 cycle=52 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=18 cycle=53
+AXI_ADAPTER_EVENT kind=external_data op=0 index=22 cycle=53 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=19 cycle=54
+AXI_ADAPTER_EVENT kind=external_data op=0 index=23 cycle=54 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=20 cycle=55
+AXI_ADAPTER_EVENT kind=external_data op=0 index=24 cycle=57 last=0
+AXI_ADAPTER_EVENT kind=external_data op=0 index=25 cycle=58 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=21 cycle=59
+AXI_ADAPTER_EVENT kind=external_data op=0 index=26 cycle=59 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=22 cycle=60
+AXI_ADAPTER_EVENT kind=child_data op=0 index=23 cycle=61
+AXI_ADAPTER_EVENT kind=child_data op=0 index=24 cycle=62
+AXI_ADAPTER_EVENT kind=external_data op=0 index=27 cycle=62 last=0
+AXI_ADAPTER_EVENT kind=external_data op=0 index=28 cycle=63 last=0
+AXI_ADAPTER_EVENT kind=external_data op=0 index=29 cycle=64 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=25 cycle=66
+AXI_ADAPTER_EVENT kind=child_data op=0 index=26 cycle=67
+AXI_ADAPTER_EVENT kind=external_data op=0 index=30 cycle=67 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=27 cycle=68
+AXI_ADAPTER_EVENT kind=external_data op=0 index=31 cycle=68 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=28 cycle=69
+AXI_ADAPTER_EVENT kind=external_data op=0 index=32 cycle=69 last=1
+AXI_ADAPTER_EVENT kind=external_data op=0 index=33 cycle=72 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=29 cycle=73
+AXI_ADAPTER_EVENT kind=external_data op=0 index=34 cycle=73 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=30 cycle=74
+AXI_ADAPTER_EVENT kind=external_data op=0 index=35 cycle=74 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=31 cycle=75
+AXI_ADAPTER_EVENT kind=child_data op=0 index=32 cycle=76
+AXI_ADAPTER_EVENT kind=external_data op=0 index=36 cycle=77 last=0
+AXI_ADAPTER_EVENT kind=external_data op=0 index=37 cycle=78 last=0
+AXI_ADAPTER_EVENT kind=external_data op=0 index=38 cycle=79 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=33 cycle=80
+AXI_ADAPTER_EVENT kind=child_data op=0 index=34 cycle=81
+AXI_ADAPTER_EVENT kind=child_data op=0 index=35 cycle=82
+AXI_ADAPTER_EVENT kind=external_data op=0 index=39 cycle=82 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=36 cycle=83
+AXI_ADAPTER_EVENT kind=external_data op=0 index=40 cycle=83 last=0
+AXI_ADAPTER_EVENT kind=external_data op=0 index=41 cycle=84 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=37 cycle=87
+AXI_ADAPTER_EVENT kind=external_data op=0 index=42 cycle=87 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=38 cycle=88
+AXI_ADAPTER_EVENT kind=external_data op=0 index=43 cycle=88 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=39 cycle=89
+AXI_ADAPTER_EVENT kind=external_data op=0 index=44 cycle=89 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=40 cycle=90
+AXI_ADAPTER_EVENT kind=external_data op=0 index=45 cycle=92 last=0
+AXI_ADAPTER_EVENT kind=external_data op=0 index=46 cycle=93 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=41 cycle=94
+AXI_ADAPTER_EVENT kind=external_data op=0 index=47 cycle=94 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=42 cycle=95
+AXI_ADAPTER_EVENT kind=child_data op=0 index=43 cycle=96
+AXI_ADAPTER_EVENT kind=child_data op=0 index=44 cycle=97
+AXI_ADAPTER_EVENT kind=external_data op=0 index=48 cycle=97 last=1
+AXI_ADAPTER_EVENT kind=external_data op=0 index=49 cycle=98 last=0
+AXI_ADAPTER_EVENT kind=external_data op=0 index=50 cycle=99 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=45 cycle=101
+AXI_ADAPTER_EVENT kind=child_data op=0 index=46 cycle=102
+AXI_ADAPTER_EVENT kind=external_data op=0 index=51 cycle=102 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=47 cycle=103
+AXI_ADAPTER_EVENT kind=external_data op=0 index=52 cycle=103 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=48 cycle=104
+AXI_ADAPTER_EVENT kind=external_data op=0 index=53 cycle=104 last=0
+AXI_ADAPTER_EVENT kind=external_data op=0 index=54 cycle=107 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=49 cycle=108
+AXI_ADAPTER_EVENT kind=external_data op=0 index=55 cycle=108 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=50 cycle=109
+AXI_ADAPTER_EVENT kind=external_data op=0 index=56 cycle=109 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=51 cycle=110
+AXI_ADAPTER_EVENT kind=child_data op=0 index=52 cycle=111
+AXI_ADAPTER_EVENT kind=external_data op=0 index=57 cycle=112 last=0
+AXI_ADAPTER_EVENT kind=external_data op=0 index=58 cycle=113 last=0
+AXI_ADAPTER_EVENT kind=external_data op=0 index=59 cycle=114 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=53 cycle=115
+AXI_ADAPTER_EVENT kind=child_data op=0 index=54 cycle=116
+AXI_ADAPTER_EVENT kind=child_data op=0 index=55 cycle=117
+AXI_ADAPTER_EVENT kind=external_data op=0 index=60 cycle=117 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=56 cycle=118
+AXI_ADAPTER_EVENT kind=external_data op=0 index=61 cycle=118 last=0
+AXI_ADAPTER_EVENT kind=external_data op=0 index=62 cycle=119 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=57 cycle=122
+AXI_ADAPTER_EVENT kind=external_data op=0 index=63 cycle=122 last=0
+AXI_ADAPTER_EVENT kind=child_data op=0 index=58 cycle=123
+AXI_ADAPTER_EVENT kind=external_data op=0 index=64 cycle=123 last=1
+AXI_ADAPTER_EVENT kind=child_data op=0 index=59 cycle=124
+AXI_ADAPTER_EVENT kind=external_data op=0 index=65 cycle=124 last=1
+AXI_ADAPTER_EVENT kind=child_data op=0 index=60 cycle=125
+AXI_ADAPTER_EVENT kind=child_data op=0 index=61 cycle=129
+AXI_ADAPTER_EVENT kind=child_data op=0 index=62 cycle=130
+AXI_ADAPTER_EVENT kind=child_data op=0 index=63 cycle=131
+AXI_ADAPTER_EVENT kind=child_data op=0 index=64 cycle=132
+AXI_ADAPTER_EVENT kind=child_data op=0 index=65 cycle=136
 AXI_ADAPTER_BURST op=0 index=0 addr=4080 beats=2 issue_cycle=7
 AXI_ADAPTER_BURST op=0 index=1 addr=4096 beats=16 issue_cycle=10
 AXI_ADAPTER_BURST op=0 index=2 addr=4224 beats=15 issue_cycle=11
@@ -19,8 +152,5 @@ AXI_ADAPTER_BURST op=0 index=3 addr=4592 beats=16 issue_cycle=14
 AXI_ADAPTER_BURST op=0 index=4 addr=4720 beats=16 issue_cycle=15
 AXI_ADAPTER_BURST op=0 index=5 addr=4848 beats=1 issue_cycle=18
 AXI_ADAPTER_RTL op=0 requests=2 start_word=510 beats=33 stride_words=64 response_delay=8 cycles=137 child_requests=2 child_write_beats=0 child_read_beats=66 child_responses=0 external_bursts=6 external_beats=66 max_outstanding=5 child_request_stalls=0 child_data_stalls=0 child_response_stalls=51 external_address_stalls=6 external_data_stalls=0 external_response_stalls=0 child_first_request_cycle=0 child_last_request_cycle=1 child_first_write_cycle=-1 child_last_write_cycle=-1 child_first_read_cycle=20 child_last_read_cycle=136 child_first_response_cycle=-1 child_last_response_cycle=-1 external_first_data_cycle=17 external_last_data_cycle=124 external_first_response_cycle=-1 external_last_response_cycle=-1 errors=0
-$finish called at time : 1475 ns : File "/home/chuxiao/spine-cycle-sim/scripts/rtl/candidate10_m_axi_adapter_tb.sv" Line 269
 ## quit 0
-INFO: [Common 17-206] Exiting xsim at Sun Jul 26 15:53:31 2026...
 Candidate10 XO SHA256: 629e185724467cc14eec4ae14018ff0a89a94aa518ef77499ca6cc2363b28be5
-RTL oracle build directory: /data/tmp/chuxiao/candidate10_m_axi_adapter_oracle.iu9lxdlz

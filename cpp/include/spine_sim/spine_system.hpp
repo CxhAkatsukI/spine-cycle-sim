@@ -43,11 +43,13 @@ struct SpineAxiInterfaceProfile {
   std::size_t response_beats_per_cycle{1};
   std::size_t read_reorder_capacity{32};
   std::uint64_t read_address_pipeline_cycles{};
+  std::uint64_t read_data_pipeline_cycles{};
   std::uint64_t write_buffer_pipeline_cycles{};
   bool serialize_write_bursts{};
   // Zero/false means inherit the generic/compute setting above.
   std::size_t maintenance_read_reorder_capacity{};
   std::uint64_t maintenance_read_address_pipeline_cycles{};
+  std::uint64_t maintenance_read_data_pipeline_cycles{};
   std::uint64_t maintenance_write_buffer_pipeline_cycles{};
   bool maintenance_serialize_write_bursts{};
   std::size_t burst_trace_limit{};

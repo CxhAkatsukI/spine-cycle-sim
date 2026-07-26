@@ -21,6 +21,15 @@ DEFAULT_BEFORE = (
 DEFAULT_AFTER = (
     ROOT / "results/candidate10_m_axi_adapter_hw_matrix_stats_20260726"
 )
+DEFAULT_CORE_LOG = (
+    ROOT / "docs/evidence/candidate10_m_axi_adapter_backpressure_20260726/"
+    "core_trace.log"
+)
+CORE_SOURCES = (
+    ROOT / "cpp/include/spine_sim/axi.hpp",
+    ROOT / "cpp/src/axi.cpp",
+    ROOT / "cpp/tests/core_tests.cpp",
+)
 
 LOGICAL_LEDGER_FIELDS = (
     "maintenance_memory_requests_issued",
@@ -68,6 +77,213 @@ def read_csv(path: Path) -> list[dict[str, str]]:
 
 def read_json(path: Path) -> dict[str, object]:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def parse_trace_fields(line: str) -> dict[str, int | str]:
+    fields: dict[str, int | str] = {}
+    for item in line.split()[1:]:
+        key, value = item.split("=", 1)
+        try:
+            fields[key] = int(value)
+        except ValueError:
+            fields[key] = value
+    return fields
+
+
+def parse_core_trace(path: Path) -> dict[str, list[dict[str, int | str]]]:
+    prefixes = {
+        "events": "AXI_CORE_EVENT ",
+        "bursts": "AXI_CORE_BURST ",
+        "beats": "AXI_CORE_BEAT ",
+        "summaries": "AXI_CORE_SUMMARY ",
+    }
+    result: dict[str, list[dict[str, int | str]]] = {
+        key: [] for key in prefixes
+    }
+    for line in path.read_text(encoding="utf-8").splitlines():
+        for key, prefix in prefixes.items():
+            if line.startswith(prefix):
+                result[key].append(parse_trace_fields(line))
+                break
+    if len(result["summaries"]) != 2:
+        raise RuntimeError("core AXI transcript does not contain two summaries")
+    return result
+
+
+def _cycles(events: list[dict[str, int | str]], kind: str) -> list[int]:
+    return [int(event["cycle"]) for event in events if event["kind"] == kind]
+
+
+def _delta_summary(reference: list[int], observed: list[int]) -> dict[str, object]:
+    if len(reference) != len(observed):
+        raise RuntimeError("AXI event transcript lengths differ")
+    deltas = [right - left for left, right in zip(reference, observed)]
+    return {
+        "events": len(reference),
+        "exact_events": sum(delta == 0 for delta in deltas),
+        "max_abs_delta_cycles": max(map(abs, deltas), default=0),
+        "deltas": deltas,
+    }
+
+
+def compare_backpressure_transcripts(
+    oracle_dir: Path, core_log: Path
+) -> dict[str, object]:
+    rows = {
+        row["case_id"]: row
+        for row in read_csv(oracle_dir / "m_axi_adapter_oracle.csv")
+    }
+    core = parse_core_trace(core_log)
+    cases: dict[str, object] = {}
+    for op, case_id in (
+        (0, "read_channel_backpressure"),
+        (1, "write_channel_backpressure"),
+    ):
+        rtl_row = rows[case_id]
+        rtl_events = json.loads(rtl_row["event_trace"])
+        rtl_bursts = json.loads(rtl_row["burst_trace"])
+        core_events = [event for event in core["events"] if event["op"] == op]
+        core_bursts = [burst for burst in core["bursts"] if burst["op"] == op]
+        core_beats = [beat for beat in core["beats"] if beat["op"] == op]
+        core_summary = next(
+            summary for summary in core["summaries"] if summary["op"] == op
+        )
+        core_origin = min(_cycles(core_events, "child_request"))
+        core_request_cycles = [
+            cycle - core_origin for cycle in _cycles(core_events, "child_request")
+        ]
+        request_alignment = _delta_summary(
+            _cycles(rtl_events, "child_request"), core_request_cycles
+        )
+
+        rtl_shape = [
+            (int(burst["addr"]), int(burst["beats"])) for burst in rtl_bursts
+        ]
+        core_shape = [
+            (int(burst["addr"]), int(burst["beats"])) for burst in core_bursts
+        ]
+        if rtl_shape != core_shape:
+            raise RuntimeError(f"{case_id}: burst shape differs")
+        burst_alignment = _delta_summary(
+            [int(burst["issue_cycle"]) for burst in rtl_bursts],
+            [int(burst["issue_cycle"]) - core_origin for burst in core_bursts],
+        )
+
+        if op == 0:
+            external_alignment = _delta_summary(
+                _cycles(rtl_events, "external_data"),
+                [int(beat["completion_cycle"]) - core_origin
+                 for beat in core_beats],
+            )
+            child_alignment = _delta_summary(
+                _cycles(rtl_events, "child_data"),
+                [cycle - core_origin
+                 for cycle in _cycles(core_events, "child_data")],
+            )
+            external_response_alignment = None
+        else:
+            external_alignment = _delta_summary(
+                _cycles(rtl_events, "external_data"),
+                [int(beat["issue_cycle"]) - core_origin for beat in core_beats],
+            )
+            child_alignment = _delta_summary(
+                _cycles(rtl_events, "child_response"),
+                [cycle - core_origin
+                 for cycle in _cycles(core_events, "child_response")],
+            )
+            core_burst_completions: list[int] = []
+            cursor = 0
+            for burst in core_bursts:
+                cursor += int(burst["beats"])
+                core_burst_completions.append(
+                    int(core_beats[cursor - 1]["completion_cycle"]) - core_origin
+                )
+            external_response_alignment = _delta_summary(
+                _cycles(rtl_events, "external_response"),
+                core_burst_completions,
+            )
+
+        elapsed_alignment = _delta_summary(
+            [int(rtl_row["cycles"])],
+            [int(core_summary["cycles"]) - core_origin],
+        )
+        exact_data_schedule = (
+            request_alignment["max_abs_delta_cycles"] == 0
+            and external_alignment["max_abs_delta_cycles"] == 0
+            and child_alignment["max_abs_delta_cycles"] == 0
+            and elapsed_alignment["max_abs_delta_cycles"] == 0
+            and (
+                external_response_alignment is None
+                or external_response_alignment["max_abs_delta_cycles"] == 0
+            )
+        )
+        bounded_address_schedule = burst_alignment["max_abs_delta_cycles"] <= 1
+        if not exact_data_schedule or not bounded_address_schedule:
+            raise RuntimeError(f"{case_id}: AXI transcript exceeded its bound")
+        cases[case_id] = {
+            "status": (
+                "EXACT" if burst_alignment["max_abs_delta_cycles"] == 0
+                else "BOUNDED_1_CYCLE"
+            ),
+            "core_origin_cycle": core_origin,
+            "elapsed": elapsed_alignment,
+            "requests": request_alignment,
+            "burst_addresses_and_lengths_exact": True,
+            "burst_issue": burst_alignment,
+            "external_data": external_alignment,
+            "external_response": external_response_alignment,
+            "child_output": child_alignment,
+            "max_outstanding": {
+                "rtl": int(rtl_row["max_outstanding"]),
+                "core": int(core_summary["max_outstanding"]),
+            },
+            "stall_ledger": {
+                "rtl_address_valid_without_ready": int(
+                    rtl_row["external_address_stalls"]
+                ),
+                "rtl_data_valid_without_ready": int(
+                    rtl_row["external_data_stalls"]
+                ),
+                "rtl_child_output_valid_without_ready": int(
+                    rtl_row["child_response_stalls"]
+                ),
+                "core_configured_address_withholding": int(
+                    core_summary["address_stalls"]
+                ),
+                "core_configured_data_withholding": int(
+                    core_summary["data_stalls"]
+                ),
+                "core_configured_response_withholding": int(
+                    core_summary["response_stalls"]
+                ),
+                "core_child_output_withholding": int(
+                    core_summary["child_stalls"]
+                ),
+                "semantics": (
+                    "Diagnostic only: RTL counters observe VALID&&!READY; core "
+                    "counters observe configured availability suppression and "
+                    "registered FIFO occupancy, so totals are not equivalent."
+                ),
+            },
+        }
+    return {
+        "status": "PASS_BOUNDED",
+        "core_log": str(core_log),
+        "core_log_sha256": sha256(core_log),
+        "core_source_sha256": {
+            str(path.relative_to(ROOT)): sha256(path) for path in CORE_SOURCES
+        },
+        "cases": cases,
+        "claim": (
+            "Deterministic external AXI data/response and child output events "
+            "are exact after removing the core's one-cycle registered-input "
+            "origin; write AW issue is bounded to one cycle."
+        ),
+        "limitation": (
+            "The core still accepts an aggregate write request; it does not "
+            "expose Candidate10 child-side W-beat FIFO occupancy."
+        ),
+    }
 
 
 def summarize_oracle(path: Path) -> dict[str, object]:
@@ -228,24 +444,36 @@ def compare_matrices(before_dir: Path, after_dir: Path) -> dict[str, object]:
 
 
 def collect(
-    oracle_dir: Path, before_dir: Path, after_dir: Path
+    oracle_dir: Path, before_dir: Path, after_dir: Path,
+    core_log: Path = DEFAULT_CORE_LOG,
 ) -> dict[str, object]:
+    hardware_holdout = compare_matrices(before_dir, after_dir)
+    hardware_holdout["scope"] = (
+        "Archived Candidate10 adapter matrix collected before the explicit "
+        "one-cycle read-output pipeline stage; it is retained as historical "
+        "hardware evidence and is not a calibration of this exact revision."
+    )
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "claim": "candidate10_m_axi_adapter_execution_alignment",
         "rtl_oracle": summarize_oracle(oracle_dir),
-        "hardware_holdout": compare_matrices(before_dir, after_dir),
+        "backpressure_schedule": compare_backpressure_transcripts(
+            oracle_dir, core_log
+        ),
+        "hardware_holdout": hardware_holdout,
         "claim_boundary": {
             "modeled": [
                 "64-bit child word address to AXI byte address conversion",
                 "16-beat and 4-KiB burst splitting",
                 "read-address and write-buffer adapter pipelines",
+                "deterministic AR/R/AW/W/B availability and FIFO backpressure",
                 "16 outstanding bursts, 256-beat read reorder capacity",
                 "ordered write-burst issue and finite FIFO backpressure",
                 "Candidate10 maintenance adapter request capacities and result width",
             ],
             "remaining": [
                 "kernel wrapper and ap_ctrl launch/finish fixed schedule",
+                "Candidate10 child-side write-beat FIFO occupancy",
                 "full inter-port U55C AXI crossbar arbitration",
                 "measured HBM controller timing calibration",
                 "compute-XO adapter equivalence beyond inherited source shape",
@@ -259,12 +487,14 @@ def main() -> int:
     parser.add_argument("--oracle-dir", type=Path, default=DEFAULT_ORACLE)
     parser.add_argument("--before-dir", type=Path, default=DEFAULT_BEFORE)
     parser.add_argument("--after-dir", type=Path, default=DEFAULT_AFTER)
+    parser.add_argument("--core-log", type=Path, default=DEFAULT_CORE_LOG)
     parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args()
     evidence = collect(
         args.oracle_dir.resolve(),
         args.before_dir.resolve(),
         args.after_dir.resolve(),
+        args.core_log.resolve(),
     )
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(

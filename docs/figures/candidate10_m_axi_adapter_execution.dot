@@ -20,17 +20,19 @@ digraph Candidate10MAxiExecution {
     req [label="Request capacity\nRW 70 / WO 67", fillcolor="#e0f2fe"];
     split [label="Burst converter\nmax 16 beats + 4 KiB split",
            fillcolor="#e0f2fe"];
-    read [label="Read path\nAR after +7 cycles\nreorder capacity 256",
+    read [label="Read path\nAR after +7 cycles\nreorder 256 + R output stage",
           fillcolor="#dbeafe"];
     write [label="Write path\nbuffer +10 cycles + beats\nserialize burst data",
            fillcolor="#f3e8ff"];
-    out [label="External AXI\nmax 16 outstanding",
+    out [label="External AXI\nAR/AW/W/R/B availability\nmax 16 outstanding",
          fillcolor="#e5e7eb"];
   }
 
   hbm [label="Shared SST-HBM backend\nchannels, rows, queues, responses",
        fillcolor="#ccfbf1"];
-  stats [label="Evidence ledger\nqueue / pipeline / serialization /\nbackend stalls + bytes + bursts",
+  trace [label="Cycle transcript\nrequest / burst / beat / response",
+         fillcolor="#ffedd5"];
+  stats [label="Evidence ledger\nqueue / channel / pipeline / serialization /\nbackend stalls + bytes + bursts",
          fillcolor="#fce7f3"];
 
   writer -> issue [label="atomic packer bundle"];
@@ -43,6 +45,9 @@ digraph Candidate10MAxiExecution {
   write -> out;
   out -> hbm [label="execution-driven request"];
   hbm -> out [label="timed response", dir=back];
+  out -> trace [style=dashed, label="issue / completion"];
+  read -> trace [style=dashed, label="child R"];
+  write -> trace [style=dashed, label="child B"];
 
   issue -> stats [style=dashed];
   read -> stats [style=dashed];

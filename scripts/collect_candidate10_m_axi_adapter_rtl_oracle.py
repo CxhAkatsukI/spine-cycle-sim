@@ -31,6 +31,7 @@ RTL_MEMBER = (
 )
 SUMMARY_RE = re.compile(r"\bAXI_ADAPTER_RTL\s+(?P<fields>.+)$")
 BURST_RE = re.compile(r"\bAXI_ADAPTER_BURST\s+(?P<fields>.+)$")
+EVENT_RE = re.compile(r"\bAXI_ADAPTER_EVENT\s+(?P<fields>.+)$")
 
 
 @dataclass(frozen=True)
@@ -57,6 +58,7 @@ class AdapterCase:
     expect_outstanding_limit: bool = False
     expect_backpressure: bool = False
     expect_issue_throttle: bool = False
+    trace_events: bool = False
 
 
 CASES = [
@@ -90,6 +92,7 @@ CASES = [
         r_stall_period=5, r_stall_width=2,
         child_r_stall_period=7, child_r_stall_width=3,
         expect_backpressure=True,
+        trace_events=True,
     ),
     AdapterCase(
         "read_fifo_saturation", 0, 3, 0, 256, 256,
@@ -106,6 +109,7 @@ CASES = [
         w_stall_period=5, w_stall_width=2,
         child_b_stall_period=7, child_b_stall_width=3,
         expect_backpressure=True,
+        trace_events=True,
     ),
 ]
 
@@ -124,6 +128,38 @@ def parse_fields(text: str) -> dict[str, int]:
         key, value = item.split("=", 1)
         fields[key] = int(value)
     return fields
+
+
+def parse_event_fields(text: str) -> dict[str, int | str]:
+    fields: dict[str, int | str] = {}
+    for item in text.split():
+        key, value = item.split("=", 1)
+        try:
+            fields[key] = int(value)
+        except ValueError:
+            fields[key] = value
+    return fields
+
+
+def parse_events(output: str) -> list[dict[str, int | str]]:
+    return [
+        parse_event_fields(match.group("fields"))
+        for line in output.splitlines()
+        if (match := EVENT_RE.search(line))
+    ]
+
+
+def normalize_raw_log(output: str) -> str:
+    nondeterministic = (
+        "  **** Start of session at:",
+        "INFO: [Common 17-206] Exiting xsim at ",
+        "$finish called at time :",
+        "RTL oracle build directory:",
+    )
+    return "\n".join(
+        line for line in output.splitlines()
+        if not line.startswith(nondeterministic)
+    ) + "\n"
 
 
 def parse_oracle(output: str) -> tuple[dict[str, int], list[dict[str, int]]]:
@@ -251,6 +287,8 @@ def main() -> int:
         adapter_sha256 = hashlib.sha256(archive.read(RTL_MEMBER)).hexdigest()
 
     rows: list[dict[str, object]] = []
+    for stale_attempt in raw_dir.glob("*.attempt*.log"):
+        stale_attempt.unlink()
     for index, case in enumerate(CASES):
         snapshot = build_dir / "xsim/xsim.dir/candidate10_m_axi_adapter_oracle"
         environment = os.environ.copy()
@@ -274,6 +312,8 @@ def main() -> int:
         ):
             command.append(f"{key.upper()}={values[key]}")
         command.append("MAX_CYCLES=100000")
+        if case.trace_events:
+            command.append("TRACE=1")
         completed: subprocess.CompletedProcess[str] | None = None
         for attempt in range(2):
             completed = subprocess.run(
@@ -288,16 +328,18 @@ def main() -> int:
             )
             if completed.returncode == 0:
                 break
-            (raw_dir / f"{case.case_id}.attempt{attempt + 1}.log").write_text(
-                completed.stdout, encoding="utf-8"
-            )
         assert completed is not None
         raw_path = raw_dir / f"{case.case_id}.log"
-        raw_path.write_text(completed.stdout, encoding="utf-8")
+        raw_path.write_text(normalize_raw_log(completed.stdout), encoding="utf-8")
         if completed.returncode:
             raise RuntimeError(f"adapter RTL failed for {case.case_id}: {raw_path}")
         summary, bursts = parse_oracle(completed.stdout)
+        events = parse_events(completed.stdout)
         failures = validate_oracle(case, summary, bursts)
+        if case.trace_events and not events:
+            failures.append("trace case did not emit an event transcript")
+        if not case.trace_events and events:
+            failures.append("non-trace case emitted an event transcript")
         row: dict[str, object] = {
             **values,
             **summary,
@@ -308,6 +350,7 @@ def main() -> int:
                 default=0,
             ),
             "burst_trace": json.dumps(bursts, separators=(",", ":")),
+            "event_trace": json.dumps(events, separators=(",", ":")),
             "status": "PASS" if not failures else "FAIL",
             "failures": "; ".join(failures),
             "raw_log": str(raw_path.relative_to(out_dir)),
@@ -333,7 +376,7 @@ def main() -> int:
         writer.writerows(rows)
 
     manifest = {
-        "schema_version": 1,
+        "schema_version": 2,
         "claim": "frozen_candidate10_child_to_m_axi_adapter_transaction_oracle",
         "xo": str(XO),
         "xo_sha256": XO_SHA256,
@@ -363,6 +406,7 @@ def main() -> int:
             "adjacent child requests are not coalesced",
             "read and write external outstanding counts are capped at 16",
             "channel stalls propagate through RTL and read-FIFO saturation throttles future address issue",
+            "backpressure cases retain child/external data and response cycle transcripts",
         ],
         "limitations": [
             "The external AXI responder is deterministic, not an HBM model.",

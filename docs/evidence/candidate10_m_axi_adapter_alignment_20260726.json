@@ -1,16 +1,372 @@
 {
+  "backpressure_schedule": {
+    "cases": {
+      "read_channel_backpressure": {
+        "burst_addresses_and_lengths_exact": true,
+        "burst_issue": {
+          "deltas": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "events": 6,
+          "exact_events": 6,
+          "max_abs_delta_cycles": 0
+        },
+        "child_output": {
+          "deltas": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "events": 66,
+          "exact_events": 66,
+          "max_abs_delta_cycles": 0
+        },
+        "core_origin_cycle": 1,
+        "elapsed": {
+          "deltas": [
+            0
+          ],
+          "events": 1,
+          "exact_events": 1,
+          "max_abs_delta_cycles": 0
+        },
+        "external_data": {
+          "deltas": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "events": 66,
+          "exact_events": 66,
+          "max_abs_delta_cycles": 0
+        },
+        "external_response": null,
+        "max_outstanding": {
+          "core": 5,
+          "rtl": 5
+        },
+        "requests": {
+          "deltas": [
+            0,
+            0
+          ],
+          "events": 2,
+          "exact_events": 2,
+          "max_abs_delta_cycles": 0
+        },
+        "stall_ledger": {
+          "core_child_output_withholding": 51,
+          "core_configured_address_withholding": 6,
+          "core_configured_data_withholding": 0,
+          "core_configured_response_withholding": 43,
+          "rtl_address_valid_without_ready": 6,
+          "rtl_child_output_valid_without_ready": 51,
+          "rtl_data_valid_without_ready": 0,
+          "semantics": "Diagnostic only: RTL counters observe VALID&&!READY; core counters observe configured availability suppression and registered FIFO occupancy, so totals are not equivalent."
+        },
+        "status": "EXACT"
+      },
+      "write_channel_backpressure": {
+        "burst_addresses_and_lengths_exact": true,
+        "burst_issue": {
+          "deltas": [
+            0,
+            0,
+            0,
+            0,
+            -1,
+            0
+          ],
+          "events": 6,
+          "exact_events": 5,
+          "max_abs_delta_cycles": 1
+        },
+        "child_output": {
+          "deltas": [
+            0,
+            0
+          ],
+          "events": 2,
+          "exact_events": 2,
+          "max_abs_delta_cycles": 0
+        },
+        "core_origin_cycle": 1,
+        "elapsed": {
+          "deltas": [
+            0
+          ],
+          "events": 1,
+          "exact_events": 1,
+          "max_abs_delta_cycles": 0
+        },
+        "external_data": {
+          "deltas": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "events": 66,
+          "exact_events": 66,
+          "max_abs_delta_cycles": 0
+        },
+        "external_response": {
+          "deltas": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "events": 6,
+          "exact_events": 6,
+          "max_abs_delta_cycles": 0
+        },
+        "max_outstanding": {
+          "core": 2,
+          "rtl": 2
+        },
+        "requests": {
+          "deltas": [
+            0,
+            0
+          ],
+          "events": 2,
+          "exact_events": 2,
+          "max_abs_delta_cycles": 0
+        },
+        "stall_ledger": {
+          "core_child_output_withholding": 4,
+          "core_configured_address_withholding": 7,
+          "core_configured_data_withholding": 45,
+          "core_configured_response_withholding": 0,
+          "rtl_address_valid_without_ready": 4,
+          "rtl_child_output_valid_without_ready": 2,
+          "rtl_data_valid_without_ready": 54,
+          "semantics": "Diagnostic only: RTL counters observe VALID&&!READY; core counters observe configured availability suppression and registered FIFO occupancy, so totals are not equivalent."
+        },
+        "status": "BOUNDED_1_CYCLE"
+      }
+    },
+    "claim": "Deterministic external AXI data/response and child output events are exact after removing the core's one-cycle registered-input origin; write AW issue is bounded to one cycle.",
+    "core_log": "/home/chuxiao/spine-cycle-sim/docs/evidence/candidate10_m_axi_adapter_backpressure_20260726/core_trace.log",
+    "core_log_sha256": "c1d4c7ccea0bfb22af49fd6aad64874d3defecac3a20e6d73c8a7eb015fb8973",
+    "core_source_sha256": {
+      "cpp/include/spine_sim/axi.hpp": "3137a2b5a16c0c7a6a21f5d550ca073cf33eccb823e0ceca0dc8437edbcbf83e",
+      "cpp/src/axi.cpp": "67694425b8a36b46629857056ff3f9a17fcb256c81aed6a479091ad0863b12ee",
+      "cpp/tests/core_tests.cpp": "02fb6e06f3d19c74180bbcf19fa29435fac37f36e2846555fc2f40fcdad1d789"
+    },
+    "limitation": "The core still accepts an aggregate write request; it does not expose Candidate10 child-side W-beat FIFO occupancy.",
+    "status": "PASS_BOUNDED"
+  },
   "claim": "candidate10_m_axi_adapter_execution_alignment",
   "claim_boundary": {
     "modeled": [
       "64-bit child word address to AXI byte address conversion",
       "16-beat and 4-KiB burst splitting",
       "read-address and write-buffer adapter pipelines",
+      "deterministic AR/R/AW/W/B availability and FIFO backpressure",
       "16 outstanding bursts, 256-beat read reorder capacity",
       "ordered write-burst issue and finite FIFO backpressure",
       "Candidate10 maintenance adapter request capacities and result width"
     ],
     "remaining": [
       "kernel wrapper and ap_ctrl launch/finish fixed schedule",
+      "Candidate10 child-side write-beat FIFO occupancy",
       "full inter-port U55C AXI crossbar arbitration",
       "measured HBM controller timing calibration",
       "compute-XO adapter equivalence beyond inherited source shape"
@@ -498,7 +854,8 @@
         "cases": 6,
         "median_abs_error_improvement_pct_points": 1.9049949816558325
       }
-    }
+    },
+    "scope": "Archived Candidate10 adapter matrix collected before the explicit one-cycle read-output pipeline stage; it is retained as historical hardware evidence and is not a calibration of this exact revision."
   },
   "rtl_oracle": {
     "adapter_profile": {
@@ -515,9 +872,9 @@
     "all_pass": true,
     "backpressure_cases": 3,
     "cases": 29,
-    "manifest_sha256": "bacff080042822fa0d764d44fe602cb4335266f357268ae6e3948b7faf878291",
+    "manifest_sha256": "f1593c7f0318744c871681a962ecbe5b6523fb5f8347b4bea5d1b85f8b4d6611",
     "max_observed_outstanding": 16,
-    "oracle_csv_sha256": "0adc1ad6af0e14f2790a0145f7c9e25d8ee920705a8fbf6fe0eb8224176adf33",
+    "oracle_csv_sha256": "718bdd2407540732bbf4c4e1d61a5addf2ee08aedcfbb06856eaaa47228e1f17",
     "outstanding_limit_cases": 3,
     "read_cases": 15,
     "rtl_member": "ip_repo/xilinx_com_hls_spine_partconv_rdmaint_kernel_1_0/hdl/verilog/spine_partconv_rdmaint_kernel_gmem_p0_m_axi.v",
@@ -525,5 +882,5 @@
     "write_cases": 14,
     "xo_sha256": "629e185724467cc14eec4ae14018ff0a89a94aa518ef77499ca6cc2363b28be5"
   },
-  "schema_version": 1
+  "schema_version": 2
 }

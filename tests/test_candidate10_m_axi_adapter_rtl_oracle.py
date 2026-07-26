@@ -30,6 +30,7 @@ class Candidate10MAxiAdapterOracleTest(unittest.TestCase):
             sum(case.expect_backpressure for case in MODULE.CASES), 3
         )
         self.assertEqual(sum(case.expect_issue_throttle for case in MODULE.CASES), 1)
+        self.assertEqual(sum(case.trace_events for case in MODULE.CASES), 2)
 
     def test_expected_bursts_split_at_length_and_4k(self) -> None:
         case = MODULE.AdapterCase("boundary", 0, 1, 511, 33, 64)
@@ -58,6 +59,19 @@ class Candidate10MAxiAdapterOracleTest(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "timed out"):
             MODULE.parse_oracle("AXI_ADAPTER_TIMEOUT cycle=100")
 
+    def test_parse_event_transcript(self) -> None:
+        events = MODULE.parse_events(
+            "AXI_ADAPTER_EVENT kind=external_data op=0 index=3 "
+            "cycle=17 last=1\n"
+        )
+        self.assertEqual(events, [{
+            "kind": "external_data",
+            "op": 0,
+            "index": 3,
+            "cycle": 17,
+            "last": 1,
+        }])
+
     def test_repository_evidence_passes_when_present(self) -> None:
         evidence = (
             ROOT / "docs/evidence/"
@@ -76,6 +90,11 @@ class Candidate10MAxiAdapterOracleTest(unittest.TestCase):
         self.assertEqual(
             max(int(row["max_outstanding"]) for row in rows), 16
         )
+        self.assertTrue(all(
+            bool(json.loads(row["event_trace"]))
+            == (row["trace_events"] == "True")
+            for row in rows
+        ))
 
 
 if __name__ == "__main__":

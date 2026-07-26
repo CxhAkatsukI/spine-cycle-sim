@@ -40,6 +40,29 @@ struct AxiReadBeatResponse {
   std::vector<std::uint8_t> read_data;
 };
 
+struct AxiPeriodicStall {
+  std::uint64_t period_cycles{};
+  std::uint64_t stall_cycles{};
+  std::uint64_t phase_cycles{};
+
+  [[nodiscard]] bool valid() const noexcept {
+    return (period_cycles == 0 && stall_cycles == 0) ||
+           (period_cycles != 0 && stall_cycles < period_cycles);
+  }
+  [[nodiscard]] bool stalled(std::uint64_t cycle) const noexcept {
+    if (period_cycles == 0) {
+      return false;
+    }
+    const std::uint64_t cycle_mod = cycle % period_cycles;
+    const std::uint64_t phase_mod = phase_cycles % period_cycles;
+    const std::uint64_t position =
+        cycle_mod < period_cycles - phase_mod
+            ? cycle_mod + phase_mod
+            : cycle_mod - (period_cycles - phase_mod);
+    return position < stall_cycles;
+  }
+};
+
 struct AxiConfig {
   std::uint32_t initiator_id{};
   std::uint32_t data_width_bytes{};
@@ -55,9 +78,16 @@ struct AxiConfig {
   // Generated Vitis adapters pipeline read addresses and buffer write data
   // before exposing an external burst. Zero preserves the generic core.
   std::uint64_t read_address_pipeline_cycles{};
+  std::uint64_t read_data_pipeline_cycles{};
   std::uint64_t write_buffer_pipeline_cycles{};
   bool serialize_write_bursts{};
+  AxiPeriodicStall read_address_stall{};
+  AxiPeriodicStall write_address_stall{};
+  AxiPeriodicStall write_data_stall{};
+  AxiPeriodicStall read_response_stall{};
+  AxiPeriodicStall write_response_stall{};
   std::size_t burst_trace_limit{};
+  std::size_t beat_trace_limit{};
   std::optional<std::size_t> fixed_channel;
 };
 
@@ -71,6 +101,16 @@ struct AxiBurstTrace {
   std::uint64_t address_issue_cycle{};
 };
 
+struct AxiBeatTrace {
+  std::uint64_t backend_request_id{};
+  std::uint64_t transaction_id{};
+  MemoryOperation operation{MemoryOperation::kRead};
+  std::uint64_t address{};
+  std::uint32_t bytes{};
+  std::uint64_t issue_cycle{};
+  std::uint64_t completion_cycle{};
+};
+
 struct AxiStats {
   std::uint64_t requests_accepted{};
   std::uint64_t requests_completed{};
@@ -78,6 +118,7 @@ struct AxiStats {
   std::uint64_t response_queue_stalls{};
   std::uint64_t read_beat_queue_stalls{};
   std::uint64_t read_reorder_stalls{};
+  std::uint64_t read_data_pipeline_stalls{};
   std::uint64_t read_beats_streamed{};
   std::uint64_t bursts_accepted{};
   std::uint64_t beats_issued{};
@@ -85,12 +126,18 @@ struct AxiStats {
   std::uint64_t backend_submit_stalls{};
   std::uint64_t address_pipeline_stalls{};
   std::uint64_t write_burst_serialization_stalls{};
+  std::uint64_t read_address_channel_stalls{};
+  std::uint64_t write_address_channel_stalls{};
+  std::uint64_t write_data_channel_stalls{};
+  std::uint64_t read_response_channel_stalls{};
+  std::uint64_t write_response_channel_stalls{};
   std::uint64_t four_kib_splits{};
   std::uint64_t read_bytes{};
   std::uint64_t write_bytes{};
   std::uint64_t zero_filled_write_bytes{};
   std::size_t max_outstanding_bursts{};
   std::uint64_t burst_trace_dropped{};
+  std::uint64_t beat_trace_dropped{};
 };
 
 void accumulate_axi_stats(AxiStats &total, const AxiStats &sample) noexcept;
@@ -112,11 +159,19 @@ class AxiMaster final : public Component {
   [[nodiscard]] const std::vector<AxiBurstTrace> &burst_trace() const noexcept {
     return burst_trace_;
   }
+  [[nodiscard]] const std::vector<AxiBeatTrace> &beat_trace() const noexcept {
+    return beat_trace_;
+  }
 
   void evaluate(const CycleContext& context) override;
   void commit(const CycleContext& context) override;
 
  private:
+  struct TimedReadBeat {
+    AxiReadBeatResponse response;
+    std::uint64_t ready_cycle{};
+  };
+
   struct Parent {
     AxiRequest request;
     std::size_t total_bursts{};
@@ -126,7 +181,7 @@ class AxiMaster final : public Component {
     std::size_t stream_beats_expected{};
     std::size_t stream_beats_published{};
     std::uint64_t next_stream_offset{};
-    std::map<std::uint64_t, AxiReadBeatResponse> ready_stream_beats;
+    std::map<std::uint64_t, TimedReadBeat> ready_stream_beats;
     bool memory_complete{};
     bool response_queued{};
   };
@@ -148,6 +203,7 @@ class AxiMaster final : public Component {
   struct StagedBeat {
     std::uint64_t burst_id{};
     std::uint64_t parent_offset{};
+    std::uint64_t issue_cycle{};
     BackendRequest request;
   };
 
@@ -155,6 +211,7 @@ class AxiMaster final : public Component {
     std::uint64_t burst_id{};
     std::uint64_t parent_offset{};
     std::uint32_t bytes{};
+    std::optional<std::size_t> trace_index;
   };
 
   struct ReadyResponse {
@@ -169,12 +226,12 @@ class AxiMaster final : public Component {
   [[nodiscard]] Burst* find_active(std::uint64_t burst_id);
   void reset_staging();
   void evaluate_output();
-  void evaluate_read_beat_output();
-  void evaluate_backend_responses();
+  void evaluate_read_beat_output(const CycleContext &context);
+  void evaluate_backend_responses(const CycleContext &context);
   void evaluate_request_input(const CycleContext &context);
   void evaluate_address_channel(const CycleContext &context);
-  void evaluate_data_channel();
-  void commit_backend_responses();
+  void evaluate_data_channel(const CycleContext &context);
+  void commit_backend_responses(const CycleContext &context);
   void commit_request_input();
   void commit_address_channel(const CycleContext &context);
   void commit_data_channel();
@@ -198,6 +255,7 @@ class AxiMaster final : public Component {
   std::unordered_map<std::uint64_t, BackendMapping> backend_mappings_;
   std::deque<ReadyResponse> ready_responses_;
   std::vector<AxiBurstTrace> burst_trace_;
+  std::vector<AxiBeatTrace> beat_trace_;
   std::size_t issue_round_robin_{};
 
   std::optional<AxiRequest> staged_input_;

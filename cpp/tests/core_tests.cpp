@@ -30,7 +30,10 @@
 namespace {
 
 using spine::sim::AxiConfig;
+using spine::sim::AxiBeatTrace;
+using spine::sim::AxiBurstTrace;
 using spine::sim::AxiMaster;
+using spine::sim::AxiPeriodicStall;
 using spine::sim::AxiReadBeatResponse;
 using spine::sim::AxiRequest;
 using spine::sim::AxiResponse;
@@ -806,6 +809,51 @@ class SequenceConsumer final : public Component {
   bool accepted_{};
 };
 
+template <typename T>
+class PeriodicSequenceConsumer final : public Component {
+ public:
+  PeriodicSequenceConsumer(std::string name, ClockId clock, Fifo<T> &input,
+                           AxiPeriodicStall stall)
+      : Component(std::move(name), clock), input_(input), stall_(stall) {
+    if (!stall_.valid()) {
+      throw std::invalid_argument("invalid periodic consumer stall");
+    }
+  }
+
+  void evaluate(const CycleContext &context) override {
+    accepted_ = false;
+    if (stall_.stalled(context.domain_cycle)) {
+      if (input_.front() != nullptr) {
+        ++stall_cycles;
+      }
+      return;
+    }
+    accepted_ = input_.try_pop(staged_);
+    if (accepted_) {
+      staged_cycle_ = context.domain_cycle;
+    }
+  }
+
+  void commit(const CycleContext &) override {
+    if (accepted_) {
+      values.push_back(staged_);
+      accepted_cycles.push_back(staged_cycle_);
+      accepted_ = false;
+    }
+  }
+
+  std::vector<T> values;
+  std::vector<std::uint64_t> accepted_cycles;
+  std::uint64_t stall_cycles{};
+
+ private:
+  Fifo<T> &input_;
+  AxiPeriodicStall stall_;
+  T staged_{};
+  std::uint64_t staged_cycle_{};
+  bool accepted_{};
+};
+
 void test_multiclock_scheduler() {
   Scheduler scheduler;
   const auto core = scheduler.add_clock_mhz("core", 100.0);
@@ -1480,6 +1528,239 @@ void test_candidate10_axi_adapter_schedule_matches_rtl_oracle() {
               single_write_trace[3].address_issue_cycle ==
                   single_write_trace[2].address_issue_cycle + 2,
           "Candidate10 single-beat write stream diverged from RTL");
+}
+
+struct PeriodicAxiRun {
+  std::uint64_t cycles{};
+  AxiStats stats;
+  std::vector<AxiBurstTrace> bursts;
+  std::vector<AxiBeatTrace> beats;
+  std::vector<std::uint64_t> child_accept_cycles;
+  std::uint64_t child_stall_cycles{};
+};
+
+PeriodicAxiRun run_candidate10_periodic_axi(MemoryOperation operation) {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("core", 150.0);
+  MockMemoryBackend backend("candidate10-periodic-hbm", core,
+                            mock_memory_config(8));
+  FixedAxiPortConfig config =
+      SpineAxiInterfaceProfile::candidate10_1e61fc0().port_config(
+          SpineAxiPortKind::kGraph, 1, 0, 91);
+  config.stream_read_beats = operation == MemoryOperation::kRead;
+  config.read_beat_fifo_depth = 256;
+  config.response_fifo_depth = 32;
+  config.burst_trace_limit = 16;
+  config.beat_trace_limit = 128;
+  if (operation == MemoryOperation::kRead) {
+    config.read_address_stall =
+        AxiPeriodicStall{
+            .period_cycles = 4, .stall_cycles = 2, .phase_cycles = 3};
+    config.read_response_stall =
+        AxiPeriodicStall{
+            .period_cycles = 5, .stall_cycles = 2, .phase_cycles = 4};
+  } else {
+    config.write_address_stall =
+        AxiPeriodicStall{
+            .period_cycles = 4, .stall_cycles = 2, .phase_cycles = 3};
+    config.write_data_stall =
+        AxiPeriodicStall{
+            .period_cycles = 5, .stall_cycles = 2, .phase_cycles = 4};
+  }
+  FixedAxiPort port("candidate10-periodic-adapter", core, config, backend);
+  std::vector<AxiRequest> requests;
+  for (std::size_t index = 0; index < 2; ++index) {
+    requests.push_back(AxiRequest{
+        .transaction_id = 100 + index,
+        .operation = operation,
+        .address = 4'080 + index * 512,
+        .bytes = 33 * 8,
+        .stream_read_beats = operation == MemoryOperation::kRead,
+        .write_data = operation == MemoryOperation::kWrite
+                          ? std::vector<std::uint8_t>(33 * 8, 0x5a)
+                          : std::vector<std::uint8_t>{},
+    });
+  }
+  SequenceProducer<AxiRequest> producer(
+      "candidate10-periodic-producer", core, port.requests(),
+      std::move(requests));
+  PeriodicSequenceConsumer<AxiReadBeatResponse> read_consumer(
+      "candidate10-periodic-read-consumer", core, port.read_beats(),
+      AxiPeriodicStall{
+          .period_cycles = 7, .stall_cycles = 3, .phase_cycles = 6});
+  PeriodicSequenceConsumer<AxiResponse> response_consumer(
+      "candidate10-periodic-response-consumer", core, port.responses(),
+      operation == MemoryOperation::kWrite
+          ? AxiPeriodicStall{
+                .period_cycles = 7, .stall_cycles = 3, .phase_cycles = 6}
+          : AxiPeriodicStall{});
+
+  scheduler.add_component(producer);
+  port.register_components(scheduler);
+  scheduler.add_component(backend);
+  scheduler.add_component(read_consumer);
+  scheduler.add_component(response_consumer);
+  scheduler.run_until(
+      [&] {
+        const bool responses_done = response_consumer.values.size() == 2;
+        const bool beats_done = operation == MemoryOperation::kWrite ||
+                                read_consumer.values.size() == 66;
+        return responses_done && beats_done && port.idle();
+      },
+      2'000);
+
+  return PeriodicAxiRun{
+      .cycles = scheduler.clock(core).completed_cycles,
+      .stats = port.master().stats(),
+      .bursts = port.master().burst_trace(),
+      .beats = port.master().beat_trace(),
+      .child_accept_cycles = operation == MemoryOperation::kRead
+                                 ? read_consumer.accepted_cycles
+                                 : response_consumer.accepted_cycles,
+      .child_stall_cycles = operation == MemoryOperation::kRead
+                                ? read_consumer.stall_cycles
+                                : response_consumer.stall_cycles,
+  };
+}
+
+void test_candidate10_axi_periodic_backpressure_trace() {
+  const PeriodicAxiRun read =
+      run_candidate10_periodic_axi(MemoryOperation::kRead);
+  const PeriodicAxiRun write =
+      run_candidate10_periodic_axi(MemoryOperation::kWrite);
+  const std::array<std::uint64_t, 6> expected_addresses{
+      4'080, 4'096, 4'224, 4'592, 4'720, 4'848};
+  const std::array<std::size_t, 6> expected_beats{2, 16, 15, 16, 16, 1};
+  const auto trace_matches = [&](const PeriodicAxiRun &run) {
+    if (run.bursts.size() != expected_addresses.size()) {
+      return false;
+    }
+    for (std::size_t index = 0; index < run.bursts.size(); ++index) {
+      if (run.bursts[index].address != expected_addresses[index] ||
+          run.bursts[index].beats != expected_beats[index]) {
+        return false;
+      }
+    }
+    return run.beats.size() == 66 &&
+           std::all_of(run.beats.begin(), run.beats.end(),
+                       [](const AxiBeatTrace &beat) {
+                         return beat.completion_cycle >= beat.issue_cycle &&
+                                beat.completion_cycle != 0;
+                       });
+  };
+
+  require(trace_matches(read) && trace_matches(write),
+          "periodic AXI backpressure changed the burst/beat ledger");
+  require(read.stats.read_address_channel_stalls > 0 &&
+              read.stats.read_response_channel_stalls > 0 &&
+              read.stats.write_address_channel_stalls == 0 &&
+              read.stats.write_data_channel_stalls == 0 &&
+              read.child_stall_cycles > 0,
+          "periodic read AR/R/child backpressure was not observable");
+  require(write.stats.write_address_channel_stalls > 0 &&
+              write.stats.write_data_channel_stalls > 0 &&
+              write.stats.read_address_channel_stalls == 0 &&
+              write.stats.read_response_channel_stalls == 0 &&
+              write.child_stall_cycles > 0,
+          "periodic write AW/W/B-child backpressure was not observable");
+  require(read.stats.beat_trace_dropped == 0 &&
+              write.stats.beat_trace_dropped == 0 &&
+              read.stats.beats_issued == read.stats.beats_completed &&
+              write.stats.beats_issued == write.stats.beats_completed,
+          "periodic AXI trace or completion ledger did not close");
+  require(read.cycles - read.bursts.front().parent_accept_cycle == 137 &&
+              write.cycles - write.bursts.front().parent_accept_cycle == 158 &&
+              read.stats.max_outstanding_bursts == 5 &&
+              write.stats.max_outstanding_bursts == 2 &&
+              read.stats.read_data_pipeline_stalls > 0,
+          "Candidate10 periodic AXI elapsed/outstanding schedule drifted");
+
+  const auto print_trace = [](MemoryOperation operation,
+                              const PeriodicAxiRun &run) {
+    const int op = operation == MemoryOperation::kRead ? 0 : 1;
+    std::uint64_t last_parent_cycle = std::numeric_limits<std::uint64_t>::max();
+    std::size_t request_index = 0;
+    for (std::size_t index = 0; index < run.bursts.size(); ++index) {
+      const AxiBurstTrace &burst = run.bursts[index];
+      if (burst.parent_accept_cycle != last_parent_cycle) {
+        std::cout << "AXI_CORE_EVENT kind=child_request op=" << op
+                  << " index=" << request_index++
+                  << " cycle=" << burst.parent_accept_cycle << '\n';
+        last_parent_cycle = burst.parent_accept_cycle;
+      }
+      std::cout << "AXI_CORE_BURST op=" << op << " index=" << index
+                << " addr=" << burst.address << " beats=" << burst.beats
+                << " issue_cycle=" << burst.address_issue_cycle << '\n';
+    }
+    for (std::size_t index = 0; index < run.beats.size(); ++index) {
+      const AxiBeatTrace &beat = run.beats[index];
+      std::cout << "AXI_CORE_BEAT op=" << op << " index=" << index
+                << " addr=" << beat.address
+                << " issue_cycle=" << beat.issue_cycle
+                << " completion_cycle=" << beat.completion_cycle << '\n';
+    }
+    for (std::size_t index = 0; index < run.child_accept_cycles.size();
+         ++index) {
+      std::cout << "AXI_CORE_EVENT kind="
+                << (operation == MemoryOperation::kRead ? "child_data"
+                                                        : "child_response")
+                << " op=" << op << " index=" << index
+                << " cycle=" << run.child_accept_cycles[index] << '\n';
+    }
+    std::cout << "AXI_CORE_SUMMARY op=" << op << " cycles=" << run.cycles
+              << " address_stalls="
+              << (operation == MemoryOperation::kRead
+                      ? run.stats.read_address_channel_stalls
+                      : run.stats.write_address_channel_stalls)
+              << " data_stalls=" << run.stats.write_data_channel_stalls
+              << " response_stalls="
+              << (operation == MemoryOperation::kRead
+                      ? run.stats.read_response_channel_stalls
+                      : run.stats.write_response_channel_stalls)
+              << " max_outstanding=" << run.stats.max_outstanding_bursts
+              << " child_stalls=" << run.child_stall_cycles << '\n';
+  };
+  print_trace(MemoryOperation::kRead, read);
+  print_trace(MemoryOperation::kWrite, write);
+
+  std::cout << "EVIDENCE candidate10_axi_periodic read_cycles=" << read.cycles
+            << " read_ar_stalls="
+            << read.stats.read_address_channel_stalls
+            << " read_r_stalls="
+            << read.stats.read_response_channel_stalls
+            << " read_child_stalls=" << read.child_stall_cycles
+            << " write_cycles=" << write.cycles
+            << " write_aw_stalls="
+            << write.stats.write_address_channel_stalls
+            << " write_w_stalls=" << write.stats.write_data_channel_stalls
+            << " write_child_stalls=" << write.child_stall_cycles << '\n';
+}
+
+void test_axi_periodic_stall_validation_and_phase() {
+  const AxiPeriodicStall shifted{
+      .period_cycles = 4, .stall_cycles = 2, .phase_cycles = 3};
+  require(shifted.valid() && shifted.stalled(1) && shifted.stalled(2) &&
+              !shifted.stalled(3) && !shifted.stalled(4),
+          "periodic AXI stall phase did not shift its closed interval");
+
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("core", 100.0);
+  Fifo<AxiRequest> requests("invalid-stall-requests", core, 2);
+  Fifo<AxiResponse> responses("invalid-stall-responses", core, 2);
+  MockMemoryBackend backend("invalid-stall-backend", core,
+                            mock_memory_config());
+  AxiConfig config = axi_config();
+  config.read_address_stall =
+      AxiPeriodicStall{.period_cycles = 4, .stall_cycles = 4};
+  bool rejected = false;
+  try {
+    AxiMaster invalid("invalid-stall-axi", core, config, requests, responses,
+                      backend);
+    (void)invalid;
+  } catch (const std::invalid_argument &) {
+    rejected = true;
+  }
+  require(rejected, "AXI accepted a schedule that stalls every cycle");
 }
 
 void test_axi_response_backpressure_is_lossless() {
@@ -5837,6 +6118,7 @@ void test_spine_axi_interface_profile_matches_hls_rtl() {
               candidate_graph.max_outstanding_bursts == 16 &&
               candidate_graph.read_reorder_capacity == 256 &&
               candidate_graph.read_address_pipeline_cycles == 7 &&
+              candidate_graph.read_data_pipeline_cycles == 1 &&
               candidate_graph.write_buffer_pipeline_cycles == 10 &&
               candidate_graph.serialize_write_bursts &&
               candidate_result.data_width_bytes == 8 &&
@@ -7193,6 +7475,10 @@ int main(int argc, char **argv) {
       {"axi_online_backend", test_axi_splits_bursts_and_uses_backend_online},
       {"candidate10_axi_adapter_schedule",
        test_candidate10_axi_adapter_schedule_matches_rtl_oracle},
+      {"candidate10_axi_periodic_backpressure",
+       test_candidate10_axi_periodic_backpressure_trace},
+      {"axi_periodic_stall_validation",
+       test_axi_periodic_stall_validation_and_phase},
       {"memory_backend_locality",
        test_memory_backend_tracks_per_initiator_locality_and_epochs},
       {"axi_response_backpressure", test_axi_response_backpressure_is_lossless},

@@ -3,7 +3,6 @@
   **** SW Build 5076996 on Wed May 22 18:36:09 MDT 2024
   **** IP Build 5075265 on Wed May 22 21:45:21 MDT 2024
   **** SharedData Build 5076995 on Wed May 22 18:29:18 MDT 2024
-  **** Start of session at: Sun Jul 26 15:51:44 2026
     ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
     ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
 
@@ -14,8 +13,5 @@ source /home/chuxiao/spine-cycle-sim/scripts/rtl/run_all.tcl
 ## run all
 AXI_ADAPTER_BURST op=0 index=0 addr=0 beats=15 issue_cycle=7
 AXI_ADAPTER_RTL op=0 requests=1 start_word=0 beats=15 stride_words=64 response_delay=1 cycles=26 child_requests=1 child_write_beats=0 child_read_beats=15 child_responses=0 external_bursts=1 external_beats=15 max_outstanding=1 child_request_stalls=0 child_data_stalls=0 child_response_stalls=0 external_address_stalls=0 external_data_stalls=0 external_response_stalls=0 child_first_request_cycle=0 child_last_request_cycle=0 child_first_write_cycle=-1 child_last_write_cycle=-1 child_first_read_cycle=11 child_last_read_cycle=25 child_first_response_cycle=-1 child_last_response_cycle=-1 external_first_data_cycle=8 external_last_data_cycle=22 external_first_response_cycle=-1 external_last_response_cycle=-1 errors=0
-$finish called at time : 365 ns : File "/home/chuxiao/spine-cycle-sim/scripts/rtl/candidate10_m_axi_adapter_tb.sv" Line 269
 ## quit 0
-INFO: [Common 17-206] Exiting xsim at Sun Jul 26 15:51:47 2026...
 Candidate10 XO SHA256: 629e185724467cc14eec4ae14018ff0a89a94aa518ef77499ca6cc2363b28be5
-RTL oracle build directory: /data/tmp/chuxiao/candidate10_m_axi_adapter_oracle.iu9lxdlz

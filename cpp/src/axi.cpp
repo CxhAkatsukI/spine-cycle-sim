@@ -19,6 +19,7 @@ void accumulate_axi_stats(AxiStats &total, const AxiStats &sample) noexcept {
   total.response_queue_stalls += sample.response_queue_stalls;
   total.read_beat_queue_stalls += sample.read_beat_queue_stalls;
   total.read_reorder_stalls += sample.read_reorder_stalls;
+  total.read_data_pipeline_stalls += sample.read_data_pipeline_stalls;
   total.read_beats_streamed += sample.read_beats_streamed;
   total.bursts_accepted += sample.bursts_accepted;
   total.beats_issued += sample.beats_issued;
@@ -27,6 +28,11 @@ void accumulate_axi_stats(AxiStats &total, const AxiStats &sample) noexcept {
   total.address_pipeline_stalls += sample.address_pipeline_stalls;
   total.write_burst_serialization_stalls +=
       sample.write_burst_serialization_stalls;
+  total.read_address_channel_stalls += sample.read_address_channel_stalls;
+  total.write_address_channel_stalls += sample.write_address_channel_stalls;
+  total.write_data_channel_stalls += sample.write_data_channel_stalls;
+  total.read_response_channel_stalls += sample.read_response_channel_stalls;
+  total.write_response_channel_stalls += sample.write_response_channel_stalls;
   total.four_kib_splits += sample.four_kib_splits;
   total.read_bytes += sample.read_bytes;
   total.write_bytes += sample.write_bytes;
@@ -35,6 +41,7 @@ void accumulate_axi_stats(AxiStats &total, const AxiStats &sample) noexcept {
       std::max(total.max_outstanding_bursts,
                sample.max_outstanding_bursts);
   total.burst_trace_dropped += sample.burst_trace_dropped;
+  total.beat_trace_dropped += sample.beat_trace_dropped;
 }
 
 AxiMaster::AxiMaster(std::string name, ClockId clock_id, AxiConfig config,
@@ -51,7 +58,12 @@ AxiMaster::AxiMaster(std::string name, ClockId clock_id, AxiConfig config,
       config_.address_accepts_per_cycle == 0 ||
       config_.beat_issues_per_cycle == 0 ||
       config_.response_beats_per_cycle == 0 ||
-      config_.read_reorder_capacity == 0) {
+      config_.read_reorder_capacity == 0 ||
+      !config_.read_address_stall.valid() ||
+      !config_.write_address_stall.valid() ||
+      !config_.write_data_stall.valid() ||
+      !config_.read_response_stall.valid() ||
+      !config_.write_response_stall.valid()) {
     throw std::invalid_argument("AXI configuration values must be positive");
   }
   if (config_.fixed_channel.has_value() &&
@@ -174,12 +186,12 @@ std::size_t AxiMaster::read_reorder_occupancy() const noexcept {
   return occupancy;
 }
 
-void AxiMaster::evaluate_read_beat_output() {
+void AxiMaster::evaluate_read_beat_output(const CycleContext &context) {
   if (read_beats_ == nullptr) {
     return;
   }
   std::uint64_t selected_parent = std::numeric_limits<std::uint64_t>::max();
-  const AxiReadBeatResponse *selected = nullptr;
+  const TimedReadBeat *selected = nullptr;
   for (const auto &[parent_id, parent] : parents_) {
     if (!parent.request.stream_read_beats || parent_id >= selected_parent) {
       continue;
@@ -194,15 +206,19 @@ void AxiMaster::evaluate_read_beat_output() {
   if (selected == nullptr) {
     return;
   }
-  if (!read_beats_->try_push(*selected)) {
+  if (context.domain_cycle < selected->ready_cycle) {
+    ++stats_.read_data_pipeline_stalls;
+    return;
+  }
+  if (!read_beats_->try_push(selected->response)) {
     ++stats_.read_beat_queue_stalls;
     return;
   }
   staged_read_beat_output_ =
-      std::pair(selected_parent, selected->parent_offset);
+      std::pair(selected_parent, selected->response.parent_offset);
 }
 
-void AxiMaster::evaluate_backend_responses() {
+void AxiMaster::evaluate_backend_responses(const CycleContext &context) {
   const std::size_t available =
       std::min(config_.response_beats_per_cycle,
                backend_.response_count(config_.initiator_id));
@@ -223,6 +239,18 @@ void AxiMaster::evaluate_backend_responses() {
     if (burst == nullptr) {
       throw std::logic_error(
           "AXI backend response references no active burst during evaluate");
+    }
+    const AxiPeriodicStall &response_stall =
+        burst->operation == MemoryOperation::kRead
+            ? config_.read_response_stall
+            : config_.write_response_stall;
+    if (response_stall.stalled(context.domain_cycle)) {
+      if (burst->operation == MemoryOperation::kRead) {
+        ++stats_.read_response_channel_stalls;
+      } else {
+        ++stats_.write_response_channel_stalls;
+      }
+      break;
     }
     const Parent &parent = parents_.at(burst->parent_id);
     if (burst->operation == MemoryOperation::kRead &&
@@ -292,6 +320,18 @@ void AxiMaster::evaluate_address_channel(const CycleContext &context) {
         break;
       }
     }
+    const AxiPeriodicStall &address_stall =
+        candidate.operation == MemoryOperation::kRead
+            ? config_.read_address_stall
+            : config_.write_address_stall;
+    if (address_stall.stalled(context.domain_cycle)) {
+      if (candidate.operation == MemoryOperation::kRead) {
+        ++stats_.read_address_channel_stalls;
+      } else {
+        ++stats_.write_address_channel_stalls;
+      }
+      break;
+    }
     staged_address_bursts_.push_back(pending_address_[index].burst_id);
     serialized_write_staged =
         serialized_write_staged ||
@@ -300,7 +340,7 @@ void AxiMaster::evaluate_address_channel(const CycleContext &context) {
   }
 }
 
-void AxiMaster::evaluate_data_channel() {
+void AxiMaster::evaluate_data_channel(const CycleContext &context) {
   if (active_bursts_.empty()) {
     return;
   }
@@ -344,6 +384,11 @@ void AxiMaster::evaluate_data_channel() {
     const Burst &burst = active_bursts_[cursor];
     const std::size_t extra = additional_issued[burst.burst_id];
     if (burst.beats_issued + extra < burst.beats_total) {
+      if (burst.operation == MemoryOperation::kWrite &&
+          config_.write_data_stall.stalled(context.domain_cycle)) {
+        ++stats_.write_data_channel_stalls;
+        break;
+      }
       const std::uint64_t beat_address =
           burst.address + static_cast<std::uint64_t>(burst.beats_issued + extra) *
                               config_.data_width_bytes;
@@ -379,6 +424,7 @@ void AxiMaster::evaluate_data_channel() {
         staged_beats_.push_back(StagedBeat{
             .burst_id = burst.burst_id,
             .parent_offset = parent_offset,
+            .issue_cycle = context.domain_cycle,
             .request = request,
         });
         ++additional_issued[burst.burst_id];
@@ -402,14 +448,14 @@ void AxiMaster::evaluate_data_channel() {
 void AxiMaster::evaluate(const CycleContext &context) {
   reset_staging();
   evaluate_output();
-  evaluate_read_beat_output();
-  evaluate_backend_responses();
+  evaluate_read_beat_output(context);
+  evaluate_backend_responses(context);
   evaluate_request_input(context);
   evaluate_address_channel(context);
-  evaluate_data_channel();
+  evaluate_data_channel(context);
 }
 
-void AxiMaster::commit_backend_responses() {
+void AxiMaster::commit_backend_responses(const CycleContext &context) {
   for (const BackendResponse& response : staged_backend_responses_) {
     if (response.initiator_id != config_.initiator_id) {
       throw std::logic_error("AXI received a response for another initiator");
@@ -446,13 +492,25 @@ void AxiMaster::commit_backend_responses() {
             .read_data = response.read_data,
         };
         if (!parent.ready_stream_beats
-                 .emplace(mapping->second.parent_offset, std::move(beat))
+                 .emplace(mapping->second.parent_offset,
+                          TimedReadBeat{
+                              .response = std::move(beat),
+                              .ready_cycle = context.domain_cycle + 1 +
+                                  config_.read_data_pipeline_cycles,
+                          })
                  .second) {
           throw std::logic_error("AXI received a duplicate streamed read beat");
         }
       }
     } else if (!response.read_data.empty()) {
       throw std::logic_error("AXI write response unexpectedly carried data");
+    }
+    if (mapping->second.trace_index.has_value()) {
+      AxiBeatTrace &trace = beat_trace_.at(*mapping->second.trace_index);
+      if (trace.completion_cycle != 0) {
+        throw std::logic_error("AXI beat trace completed more than once");
+      }
+      trace.completion_cycle = context.domain_cycle;
     }
     backend_mappings_.erase(mapping);
   }
@@ -559,12 +617,32 @@ void AxiMaster::commit_data_channel() {
       throw std::logic_error("AXI staged beat references a non-active burst");
     }
     ++burst->beats_issued;
+    std::optional<std::size_t> trace_index;
+    if (config_.beat_trace_limit != 0) {
+      if (beat_trace_.size() < config_.beat_trace_limit) {
+        trace_index = beat_trace_.size();
+        const Burst &accepted_burst = *burst;
+        beat_trace_.push_back(AxiBeatTrace{
+            .backend_request_id = staged.request.request_id,
+            .transaction_id =
+                parents_.at(accepted_burst.parent_id).request.transaction_id,
+            .operation = staged.request.operation,
+            .address = staged.request.address,
+            .bytes = staged.request.bytes,
+            .issue_cycle = staged.issue_cycle,
+            .completion_cycle = 0,
+        });
+      } else {
+        ++stats_.beat_trace_dropped;
+      }
+    }
     backend_mappings_.emplace(
         staged.request.request_id,
         BackendMapping{
             .burst_id = staged.burst_id,
             .parent_offset = staged.parent_offset,
             .bytes = staged.request.bytes,
+            .trace_index = trace_index,
         });
     ++stats_.beats_issued;
     if (staged.request.operation == MemoryOperation::kRead) {
@@ -629,7 +707,7 @@ void AxiMaster::commit_read_beat_output() {
       offset != parent.next_stream_offset) {
     throw std::logic_error("AXI streamed read beat changed before commit");
   }
-  parent.next_stream_offset += beat->second.read_data.size();
+  parent.next_stream_offset += beat->second.response.read_data.size();
   parent.ready_stream_beats.erase(beat);
   ++parent.stream_beats_published;
   ++stats_.read_beats_streamed;
@@ -638,7 +716,7 @@ void AxiMaster::commit_read_beat_output() {
 
 void AxiMaster::commit(const CycleContext &context) {
   commit_output();
-  commit_backend_responses();
+  commit_backend_responses(context);
   commit_request_input();
   commit_address_channel(context);
   commit_data_channel();

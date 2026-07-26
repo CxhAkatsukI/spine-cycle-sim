@@ -1,0 +1,221 @@
+AXI_CORE_EVENT kind=child_request op=0 index=0 cycle=1
+AXI_CORE_BURST op=0 index=0 addr=4080 beats=2 issue_cycle=8
+AXI_CORE_BURST op=0 index=1 addr=4096 beats=16 issue_cycle=11
+AXI_CORE_BURST op=0 index=2 addr=4224 beats=15 issue_cycle=12
+AXI_CORE_EVENT kind=child_request op=0 index=1 cycle=2
+AXI_CORE_BURST op=0 index=3 addr=4592 beats=16 issue_cycle=15
+AXI_CORE_BURST op=0 index=4 addr=4720 beats=16 issue_cycle=16
+AXI_CORE_BURST op=0 index=5 addr=4848 beats=1 issue_cycle=19
+AXI_CORE_BEAT op=0 index=0 addr=4080 issue_cycle=9 completion_cycle=18
+AXI_CORE_BEAT op=0 index=1 addr=4088 issue_cycle=10 completion_cycle=19
+AXI_CORE_BEAT op=0 index=2 addr=4096 issue_cycle=12 completion_cycle=20
+AXI_CORE_BEAT op=0 index=3 addr=4104 issue_cycle=13 completion_cycle=23
+AXI_CORE_BEAT op=0 index=4 addr=4112 issue_cycle=14 completion_cycle=24
+AXI_CORE_BEAT op=0 index=5 addr=4120 issue_cycle=15 completion_cycle=25
+AXI_CORE_BEAT op=0 index=6 addr=4128 issue_cycle=16 completion_cycle=28
+AXI_CORE_BEAT op=0 index=7 addr=4136 issue_cycle=17 completion_cycle=29
+AXI_CORE_BEAT op=0 index=8 addr=4144 issue_cycle=18 completion_cycle=30
+AXI_CORE_BEAT op=0 index=9 addr=4152 issue_cycle=19 completion_cycle=33
+AXI_CORE_BEAT op=0 index=10 addr=4160 issue_cycle=20 completion_cycle=34
+AXI_CORE_BEAT op=0 index=11 addr=4168 issue_cycle=21 completion_cycle=35
+AXI_CORE_BEAT op=0 index=12 addr=4176 issue_cycle=22 completion_cycle=38
+AXI_CORE_BEAT op=0 index=13 addr=4184 issue_cycle=23 completion_cycle=39
+AXI_CORE_BEAT op=0 index=14 addr=4192 issue_cycle=24 completion_cycle=40
+AXI_CORE_BEAT op=0 index=15 addr=4200 issue_cycle=25 completion_cycle=43
+AXI_CORE_BEAT op=0 index=16 addr=4208 issue_cycle=26 completion_cycle=44
+AXI_CORE_BEAT op=0 index=17 addr=4216 issue_cycle=27 completion_cycle=45
+AXI_CORE_BEAT op=0 index=18 addr=4224 issue_cycle=28 completion_cycle=48
+AXI_CORE_BEAT op=0 index=19 addr=4232 issue_cycle=29 completion_cycle=49
+AXI_CORE_BEAT op=0 index=20 addr=4240 issue_cycle=30 completion_cycle=50
+AXI_CORE_BEAT op=0 index=21 addr=4248 issue_cycle=31 completion_cycle=53
+AXI_CORE_BEAT op=0 index=22 addr=4256 issue_cycle=32 completion_cycle=54
+AXI_CORE_BEAT op=0 index=23 addr=4264 issue_cycle=33 completion_cycle=55
+AXI_CORE_BEAT op=0 index=24 addr=4272 issue_cycle=34 completion_cycle=58
+AXI_CORE_BEAT op=0 index=25 addr=4280 issue_cycle=35 completion_cycle=59
+AXI_CORE_BEAT op=0 index=26 addr=4288 issue_cycle=36 completion_cycle=60
+AXI_CORE_BEAT op=0 index=27 addr=4296 issue_cycle=37 completion_cycle=63
+AXI_CORE_BEAT op=0 index=28 addr=4304 issue_cycle=38 completion_cycle=64
+AXI_CORE_BEAT op=0 index=29 addr=4312 issue_cycle=39 completion_cycle=65
+AXI_CORE_BEAT op=0 index=30 addr=4320 issue_cycle=40 completion_cycle=68
+AXI_CORE_BEAT op=0 index=31 addr=4328 issue_cycle=41 completion_cycle=69
+AXI_CORE_BEAT op=0 index=32 addr=4336 issue_cycle=42 completion_cycle=70
+AXI_CORE_BEAT op=0 index=33 addr=4592 issue_cycle=43 completion_cycle=73
+AXI_CORE_BEAT op=0 index=34 addr=4600 issue_cycle=44 completion_cycle=74
+AXI_CORE_BEAT op=0 index=35 addr=4608 issue_cycle=45 completion_cycle=75
+AXI_CORE_BEAT op=0 index=36 addr=4616 issue_cycle=46 completion_cycle=78
+AXI_CORE_BEAT op=0 index=37 addr=4624 issue_cycle=47 completion_cycle=79
+AXI_CORE_BEAT op=0 index=38 addr=4632 issue_cycle=48 completion_cycle=80
+AXI_CORE_BEAT op=0 index=39 addr=4640 issue_cycle=49 completion_cycle=83
+AXI_CORE_BEAT op=0 index=40 addr=4648 issue_cycle=50 completion_cycle=84
+AXI_CORE_BEAT op=0 index=41 addr=4656 issue_cycle=51 completion_cycle=85
+AXI_CORE_BEAT op=0 index=42 addr=4664 issue_cycle=52 completion_cycle=88
+AXI_CORE_BEAT op=0 index=43 addr=4672 issue_cycle=53 completion_cycle=89
+AXI_CORE_BEAT op=0 index=44 addr=4680 issue_cycle=54 completion_cycle=90
+AXI_CORE_BEAT op=0 index=45 addr=4688 issue_cycle=55 completion_cycle=93
+AXI_CORE_BEAT op=0 index=46 addr=4696 issue_cycle=56 completion_cycle=94
+AXI_CORE_BEAT op=0 index=47 addr=4704 issue_cycle=57 completion_cycle=95
+AXI_CORE_BEAT op=0 index=48 addr=4712 issue_cycle=58 completion_cycle=98
+AXI_CORE_BEAT op=0 index=49 addr=4720 issue_cycle=59 completion_cycle=99
+AXI_CORE_BEAT op=0 index=50 addr=4728 issue_cycle=60 completion_cycle=100
+AXI_CORE_BEAT op=0 index=51 addr=4736 issue_cycle=61 completion_cycle=103
+AXI_CORE_BEAT op=0 index=52 addr=4744 issue_cycle=62 completion_cycle=104
+AXI_CORE_BEAT op=0 index=53 addr=4752 issue_cycle=63 completion_cycle=105
+AXI_CORE_BEAT op=0 index=54 addr=4760 issue_cycle=64 completion_cycle=108
+AXI_CORE_BEAT op=0 index=55 addr=4768 issue_cycle=65 completion_cycle=109
+AXI_CORE_BEAT op=0 index=56 addr=4776 issue_cycle=66 completion_cycle=110
+AXI_CORE_BEAT op=0 index=57 addr=4784 issue_cycle=67 completion_cycle=113
+AXI_CORE_BEAT op=0 index=58 addr=4792 issue_cycle=68 completion_cycle=114
+AXI_CORE_BEAT op=0 index=59 addr=4800 issue_cycle=69 completion_cycle=115
+AXI_CORE_BEAT op=0 index=60 addr=4808 issue_cycle=70 completion_cycle=118
+AXI_CORE_BEAT op=0 index=61 addr=4816 issue_cycle=71 completion_cycle=119
+AXI_CORE_BEAT op=0 index=62 addr=4824 issue_cycle=72 completion_cycle=120
+AXI_CORE_BEAT op=0 index=63 addr=4832 issue_cycle=73 completion_cycle=123
+AXI_CORE_BEAT op=0 index=64 addr=4840 issue_cycle=74 completion_cycle=124
+AXI_CORE_BEAT op=0 index=65 addr=4848 issue_cycle=75 completion_cycle=125
+AXI_CORE_EVENT kind=child_data op=0 index=0 cycle=21
+AXI_CORE_EVENT kind=child_data op=0 index=1 cycle=25
+AXI_CORE_EVENT kind=child_data op=0 index=2 cycle=26
+AXI_CORE_EVENT kind=child_data op=0 index=3 cycle=27
+AXI_CORE_EVENT kind=child_data op=0 index=4 cycle=28
+AXI_CORE_EVENT kind=child_data op=0 index=5 cycle=32
+AXI_CORE_EVENT kind=child_data op=0 index=6 cycle=33
+AXI_CORE_EVENT kind=child_data op=0 index=7 cycle=34
+AXI_CORE_EVENT kind=child_data op=0 index=8 cycle=35
+AXI_CORE_EVENT kind=child_data op=0 index=9 cycle=39
+AXI_CORE_EVENT kind=child_data op=0 index=10 cycle=40
+AXI_CORE_EVENT kind=child_data op=0 index=11 cycle=41
+AXI_CORE_EVENT kind=child_data op=0 index=12 cycle=42
+AXI_CORE_EVENT kind=child_data op=0 index=13 cycle=46
+AXI_CORE_EVENT kind=child_data op=0 index=14 cycle=47
+AXI_CORE_EVENT kind=child_data op=0 index=15 cycle=48
+AXI_CORE_EVENT kind=child_data op=0 index=16 cycle=49
+AXI_CORE_EVENT kind=child_data op=0 index=17 cycle=53
+AXI_CORE_EVENT kind=child_data op=0 index=18 cycle=54
+AXI_CORE_EVENT kind=child_data op=0 index=19 cycle=55
+AXI_CORE_EVENT kind=child_data op=0 index=20 cycle=56
+AXI_CORE_EVENT kind=child_data op=0 index=21 cycle=60
+AXI_CORE_EVENT kind=child_data op=0 index=22 cycle=61
+AXI_CORE_EVENT kind=child_data op=0 index=23 cycle=62
+AXI_CORE_EVENT kind=child_data op=0 index=24 cycle=63
+AXI_CORE_EVENT kind=child_data op=0 index=25 cycle=67
+AXI_CORE_EVENT kind=child_data op=0 index=26 cycle=68
+AXI_CORE_EVENT kind=child_data op=0 index=27 cycle=69
+AXI_CORE_EVENT kind=child_data op=0 index=28 cycle=70
+AXI_CORE_EVENT kind=child_data op=0 index=29 cycle=74
+AXI_CORE_EVENT kind=child_data op=0 index=30 cycle=75
+AXI_CORE_EVENT kind=child_data op=0 index=31 cycle=76
+AXI_CORE_EVENT kind=child_data op=0 index=32 cycle=77
+AXI_CORE_EVENT kind=child_data op=0 index=33 cycle=81
+AXI_CORE_EVENT kind=child_data op=0 index=34 cycle=82
+AXI_CORE_EVENT kind=child_data op=0 index=35 cycle=83
+AXI_CORE_EVENT kind=child_data op=0 index=36 cycle=84
+AXI_CORE_EVENT kind=child_data op=0 index=37 cycle=88
+AXI_CORE_EVENT kind=child_data op=0 index=38 cycle=89
+AXI_CORE_EVENT kind=child_data op=0 index=39 cycle=90
+AXI_CORE_EVENT kind=child_data op=0 index=40 cycle=91
+AXI_CORE_EVENT kind=child_data op=0 index=41 cycle=95
+AXI_CORE_EVENT kind=child_data op=0 index=42 cycle=96
+AXI_CORE_EVENT kind=child_data op=0 index=43 cycle=97
+AXI_CORE_EVENT kind=child_data op=0 index=44 cycle=98
+AXI_CORE_EVENT kind=child_data op=0 index=45 cycle=102
+AXI_CORE_EVENT kind=child_data op=0 index=46 cycle=103
+AXI_CORE_EVENT kind=child_data op=0 index=47 cycle=104
+AXI_CORE_EVENT kind=child_data op=0 index=48 cycle=105
+AXI_CORE_EVENT kind=child_data op=0 index=49 cycle=109
+AXI_CORE_EVENT kind=child_data op=0 index=50 cycle=110
+AXI_CORE_EVENT kind=child_data op=0 index=51 cycle=111
+AXI_CORE_EVENT kind=child_data op=0 index=52 cycle=112
+AXI_CORE_EVENT kind=child_data op=0 index=53 cycle=116
+AXI_CORE_EVENT kind=child_data op=0 index=54 cycle=117
+AXI_CORE_EVENT kind=child_data op=0 index=55 cycle=118
+AXI_CORE_EVENT kind=child_data op=0 index=56 cycle=119
+AXI_CORE_EVENT kind=child_data op=0 index=57 cycle=123
+AXI_CORE_EVENT kind=child_data op=0 index=58 cycle=124
+AXI_CORE_EVENT kind=child_data op=0 index=59 cycle=125
+AXI_CORE_EVENT kind=child_data op=0 index=60 cycle=126
+AXI_CORE_EVENT kind=child_data op=0 index=61 cycle=130
+AXI_CORE_EVENT kind=child_data op=0 index=62 cycle=131
+AXI_CORE_EVENT kind=child_data op=0 index=63 cycle=132
+AXI_CORE_EVENT kind=child_data op=0 index=64 cycle=133
+AXI_CORE_EVENT kind=child_data op=0 index=65 cycle=137
+AXI_CORE_SUMMARY op=0 cycles=138 address_stalls=6 data_stalls=0 response_stalls=43 max_outstanding=5 child_stalls=51
+AXI_CORE_EVENT kind=child_request op=1 index=0 cycle=1
+AXI_CORE_BURST op=1 index=0 addr=4080 beats=2 issue_cycle=15
+AXI_CORE_BURST op=1 index=1 addr=4096 beats=16 issue_cycle=31
+AXI_CORE_BURST op=1 index=2 addr=4224 beats=15 issue_cycle=59
+AXI_CORE_EVENT kind=child_request op=1 index=1 cycle=2
+AXI_CORE_BURST op=1 index=3 addr=4592 beats=16 issue_cycle=87
+AXI_CORE_BURST op=1 index=4 addr=4720 beats=16 issue_cycle=115
+AXI_CORE_BURST op=1 index=5 addr=4848 beats=1 issue_cycle=144
+AXI_CORE_BEAT op=1 index=0 addr=4080 issue_cycle=18 completion_cycle=26
+AXI_CORE_BEAT op=1 index=1 addr=4088 issue_cycle=19 completion_cycle=27
+AXI_CORE_BEAT op=1 index=2 addr=4096 issue_cycle=33 completion_cycle=41
+AXI_CORE_BEAT op=1 index=3 addr=4104 issue_cycle=34 completion_cycle=42
+AXI_CORE_BEAT op=1 index=4 addr=4112 issue_cycle=35 completion_cycle=43
+AXI_CORE_BEAT op=1 index=5 addr=4120 issue_cycle=38 completion_cycle=46
+AXI_CORE_BEAT op=1 index=6 addr=4128 issue_cycle=39 completion_cycle=47
+AXI_CORE_BEAT op=1 index=7 addr=4136 issue_cycle=40 completion_cycle=48
+AXI_CORE_BEAT op=1 index=8 addr=4144 issue_cycle=43 completion_cycle=51
+AXI_CORE_BEAT op=1 index=9 addr=4152 issue_cycle=44 completion_cycle=52
+AXI_CORE_BEAT op=1 index=10 addr=4160 issue_cycle=45 completion_cycle=53
+AXI_CORE_BEAT op=1 index=11 addr=4168 issue_cycle=48 completion_cycle=56
+AXI_CORE_BEAT op=1 index=12 addr=4176 issue_cycle=49 completion_cycle=57
+AXI_CORE_BEAT op=1 index=13 addr=4184 issue_cycle=50 completion_cycle=58
+AXI_CORE_BEAT op=1 index=14 addr=4192 issue_cycle=53 completion_cycle=61
+AXI_CORE_BEAT op=1 index=15 addr=4200 issue_cycle=54 completion_cycle=62
+AXI_CORE_BEAT op=1 index=16 addr=4208 issue_cycle=55 completion_cycle=63
+AXI_CORE_BEAT op=1 index=17 addr=4216 issue_cycle=58 completion_cycle=66
+AXI_CORE_BEAT op=1 index=18 addr=4224 issue_cycle=60 completion_cycle=68
+AXI_CORE_BEAT op=1 index=19 addr=4232 issue_cycle=63 completion_cycle=71
+AXI_CORE_BEAT op=1 index=20 addr=4240 issue_cycle=64 completion_cycle=72
+AXI_CORE_BEAT op=1 index=21 addr=4248 issue_cycle=65 completion_cycle=73
+AXI_CORE_BEAT op=1 index=22 addr=4256 issue_cycle=68 completion_cycle=76
+AXI_CORE_BEAT op=1 index=23 addr=4264 issue_cycle=69 completion_cycle=77
+AXI_CORE_BEAT op=1 index=24 addr=4272 issue_cycle=70 completion_cycle=78
+AXI_CORE_BEAT op=1 index=25 addr=4280 issue_cycle=73 completion_cycle=81
+AXI_CORE_BEAT op=1 index=26 addr=4288 issue_cycle=74 completion_cycle=82
+AXI_CORE_BEAT op=1 index=27 addr=4296 issue_cycle=75 completion_cycle=83
+AXI_CORE_BEAT op=1 index=28 addr=4304 issue_cycle=78 completion_cycle=86
+AXI_CORE_BEAT op=1 index=29 addr=4312 issue_cycle=79 completion_cycle=87
+AXI_CORE_BEAT op=1 index=30 addr=4320 issue_cycle=80 completion_cycle=88
+AXI_CORE_BEAT op=1 index=31 addr=4328 issue_cycle=83 completion_cycle=91
+AXI_CORE_BEAT op=1 index=32 addr=4336 issue_cycle=84 completion_cycle=92
+AXI_CORE_BEAT op=1 index=33 addr=4592 issue_cycle=88 completion_cycle=96
+AXI_CORE_BEAT op=1 index=34 addr=4600 issue_cycle=89 completion_cycle=97
+AXI_CORE_BEAT op=1 index=35 addr=4608 issue_cycle=90 completion_cycle=98
+AXI_CORE_BEAT op=1 index=36 addr=4616 issue_cycle=93 completion_cycle=101
+AXI_CORE_BEAT op=1 index=37 addr=4624 issue_cycle=94 completion_cycle=102
+AXI_CORE_BEAT op=1 index=38 addr=4632 issue_cycle=95 completion_cycle=103
+AXI_CORE_BEAT op=1 index=39 addr=4640 issue_cycle=98 completion_cycle=106
+AXI_CORE_BEAT op=1 index=40 addr=4648 issue_cycle=99 completion_cycle=107
+AXI_CORE_BEAT op=1 index=41 addr=4656 issue_cycle=100 completion_cycle=108
+AXI_CORE_BEAT op=1 index=42 addr=4664 issue_cycle=103 completion_cycle=111
+AXI_CORE_BEAT op=1 index=43 addr=4672 issue_cycle=104 completion_cycle=112
+AXI_CORE_BEAT op=1 index=44 addr=4680 issue_cycle=105 completion_cycle=113
+AXI_CORE_BEAT op=1 index=45 addr=4688 issue_cycle=108 completion_cycle=116
+AXI_CORE_BEAT op=1 index=46 addr=4696 issue_cycle=109 completion_cycle=117
+AXI_CORE_BEAT op=1 index=47 addr=4704 issue_cycle=110 completion_cycle=118
+AXI_CORE_BEAT op=1 index=48 addr=4712 issue_cycle=113 completion_cycle=121
+AXI_CORE_BEAT op=1 index=49 addr=4720 issue_cycle=118 completion_cycle=126
+AXI_CORE_BEAT op=1 index=50 addr=4728 issue_cycle=119 completion_cycle=127
+AXI_CORE_BEAT op=1 index=51 addr=4736 issue_cycle=120 completion_cycle=128
+AXI_CORE_BEAT op=1 index=52 addr=4744 issue_cycle=123 completion_cycle=131
+AXI_CORE_BEAT op=1 index=53 addr=4752 issue_cycle=124 completion_cycle=132
+AXI_CORE_BEAT op=1 index=54 addr=4760 issue_cycle=125 completion_cycle=133
+AXI_CORE_BEAT op=1 index=55 addr=4768 issue_cycle=128 completion_cycle=136
+AXI_CORE_BEAT op=1 index=56 addr=4776 issue_cycle=129 completion_cycle=137
+AXI_CORE_BEAT op=1 index=57 addr=4784 issue_cycle=130 completion_cycle=138
+AXI_CORE_BEAT op=1 index=58 addr=4792 issue_cycle=133 completion_cycle=141
+AXI_CORE_BEAT op=1 index=59 addr=4800 issue_cycle=134 completion_cycle=142
+AXI_CORE_BEAT op=1 index=60 addr=4808 issue_cycle=135 completion_cycle=143
+AXI_CORE_BEAT op=1 index=61 addr=4816 issue_cycle=138 completion_cycle=146
+AXI_CORE_BEAT op=1 index=62 addr=4824 issue_cycle=139 completion_cycle=147
+AXI_CORE_BEAT op=1 index=63 addr=4832 issue_cycle=140 completion_cycle=148
+AXI_CORE_BEAT op=1 index=64 addr=4840 issue_cycle=143 completion_cycle=151
+AXI_CORE_BEAT op=1 index=65 addr=4848 issue_cycle=145 completion_cycle=153
+AXI_CORE_EVENT kind=child_response op=1 index=0 cycle=95
+AXI_CORE_EVENT kind=child_response op=1 index=1 cycle=158
+AXI_CORE_SUMMARY op=1 cycles=159 address_stalls=7 data_stalls=45 response_stalls=0 max_outstanding=2 child_stalls=4
+EVIDENCE candidate10_axi_periodic read_cycles=138 read_ar_stalls=6 read_r_stalls=43 read_child_stalls=51 write_cycles=159 write_aw_stalls=7 write_w_stalls=45 write_child_stalls=4
+PASS candidate10_axi_periodic_backpressure
+1 test(s) passed

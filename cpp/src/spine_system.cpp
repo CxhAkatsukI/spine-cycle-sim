@@ -161,10 +161,12 @@ SpineAxiInterfaceProfile SpineAxiInterfaceProfile::legacy_uniform64() {
       .response_beats_per_cycle = 4,
       .read_reorder_capacity = 32,
       .read_address_pipeline_cycles = 0,
+      .read_data_pipeline_cycles = 0,
       .write_buffer_pipeline_cycles = 0,
       .serialize_write_bursts = false,
       .maintenance_read_reorder_capacity = 0,
       .maintenance_read_address_pipeline_cycles = 0,
+      .maintenance_read_data_pipeline_cycles = 0,
       .maintenance_write_buffer_pipeline_cycles = 0,
       .maintenance_serialize_write_bursts = false,
       .burst_trace_limit = 0,
@@ -187,6 +189,7 @@ SpineAxiInterfaceProfile SpineAxiInterfaceProfile::candidate10_1e61fc0() {
   profile.maintenance_writeonly_max_pending_requests = 67;
   profile.maintenance_read_reorder_capacity = 256;
   profile.maintenance_read_address_pipeline_cycles = 7;
+  profile.maintenance_read_data_pipeline_cycles = 1;
   profile.maintenance_write_buffer_pipeline_cycles = 10;
   profile.maintenance_serialize_write_bursts = true;
   profile.maintenance_result_bytes = 8;
@@ -260,6 +263,10 @@ FixedAxiPortConfig SpineAxiInterfaceProfile::port_config(
       maintenance_port && maintenance_read_address_pipeline_cycles != 0
           ? maintenance_read_address_pipeline_cycles
           : read_address_pipeline_cycles;
+  const std::uint64_t port_read_data_pipeline_cycles =
+      maintenance_port && maintenance_read_data_pipeline_cycles != 0
+          ? maintenance_read_data_pipeline_cycles
+          : read_data_pipeline_cycles;
   const std::uint64_t port_write_buffer_pipeline_cycles =
       maintenance_port && maintenance_write_buffer_pipeline_cycles != 0
           ? maintenance_write_buffer_pipeline_cycles
@@ -283,6 +290,7 @@ FixedAxiPortConfig SpineAxiInterfaceProfile::port_config(
       .max_outstanding_bursts = max_outstanding_bursts,
       .response_beats_per_cycle = response_beats_per_cycle,
       .read_address_pipeline_cycles = port_read_address_pipeline_cycles,
+      .read_data_pipeline_cycles = port_read_data_pipeline_cycles,
       .write_buffer_pipeline_cycles = port_write_buffer_pipeline_cycles,
       .serialize_write_bursts = port_serialize_write_bursts,
       .burst_trace_limit = burst_trace_limit,

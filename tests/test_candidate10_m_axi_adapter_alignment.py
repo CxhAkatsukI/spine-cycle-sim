@@ -27,6 +27,22 @@ class Candidate10MAxiAdapterAlignmentTest(unittest.TestCase):
         )
         self.assertEqual(evidence["rtl_oracle"]["cases"], 29)
         self.assertEqual(evidence["rtl_oracle"]["max_observed_outstanding"], 16)
+        schedule = evidence["backpressure_schedule"]
+        self.assertEqual(schedule["status"], "PASS_BOUNDED")
+        self.assertEqual(
+            schedule["cases"]["read_channel_backpressure"]["status"],
+            "EXACT",
+        )
+        self.assertEqual(
+            schedule["cases"]["write_channel_backpressure"]["status"],
+            "BOUNDED_1_CYCLE",
+        )
+        for case in schedule["cases"].values():
+            self.assertEqual(case["elapsed"]["max_abs_delta_cycles"], 0)
+            self.assertEqual(
+                case["external_data"]["max_abs_delta_cycles"], 0
+            )
+            self.assertEqual(case["child_output"]["max_abs_delta_cycles"], 0)
         hardware = evidence["hardware_holdout"]
         self.assertEqual(len(hardware["cases"]), 11)
         self.assertGreater(
@@ -92,6 +108,16 @@ class Candidate10MAxiAdapterAlignmentTest(unittest.TestCase):
             )
             with self.assertRaisesRegex(RuntimeError, "logical ledger changed"):
                 MODULE.compare_matrices(before_dir, after_dir)
+
+    def test_trace_parser_rejects_missing_summary(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            trace = Path(directory) / "trace.log"
+            trace.write_text(
+                "AXI_CORE_EVENT kind=child_request op=0 index=0 cycle=1\n",
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(RuntimeError, "two summaries"):
+                MODULE.parse_core_trace(trace)
 
 
 if __name__ == "__main__":

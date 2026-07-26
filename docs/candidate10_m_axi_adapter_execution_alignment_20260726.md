@@ -41,6 +41,7 @@ older split-compute defaults:
 | maintenance write-only request capacity | 67 |
 | read reorder capacity | 256 beats |
 | read address pipeline | 7 cycles |
+| read data output pipeline | 1 additional registered cycle |
 | write buffer pipeline | 10 cycles + accepted child beats |
 | write burst policy | ordered/serialized data stream |
 | maintenance result width | 8 bytes |
@@ -54,6 +55,39 @@ The architecture profile selects this adapter with:
 The compute ports intentionally keep the inherited split-compute request
 capacities and data widths. The Candidate10 XO changed maintenance, while its
 accepted build inherited the older compute XO.
+
+## Deterministic backpressure alignment
+
+The RTL and C++ oracles use the same two-request, 33-beat-per-request workload,
+including a 4 KiB crossing, periodic channel availability, eight-cycle memory
+response delay, and periodic child-output backpressure. C++ cycles are
+normalized by its one-cycle registered input FIFO origin before comparison.
+
+| event class | read | write |
+| --- | ---: | ---: |
+| elapsed cycles | exact, 137 | exact, 158 |
+| child requests | 2/2 exact | 2/2 exact |
+| burst address and length | 6/6 exact | 6/6 exact |
+| burst address issue cycle | 6/6 exact | 5/6 exact; one is 1 cycle early |
+| external data beats | 66/66 exact | 66/66 exact |
+| external write responses | n/a | 6/6 exact |
+| child output events | 66/66 exact | 2/2 exact |
+| maximum outstanding | exact, 5 | exact, 2 |
+
+The read output comparison exposed one missing adapter register stage. It is
+now explicit as `read_data_pipeline_cycles=1`; the delay sits in the causal
+response path and therefore propagates through the finite read FIFO.
+
+The write total is not accepted merely because it matches. The fifth AW event
+is still one cycle early, and the core accepts an aggregate write payload
+rather than exposing the generated adapter's child-side W-beat FIFO. External
+W and B schedules are exact in this oracle, but internal child-W occupancy and
+its per-cycle stall ledger remain a proxy claim.
+
+RTL `VALID&&!READY` counters and C++ configured-availability counters are kept
+separate: their event schedules can match while the counter definitions do
+not. The JSON evidence records both ledgers without treating their totals as
+equivalent.
 
 ## What changed in the core
 
@@ -163,6 +197,11 @@ python3 -m unittest \
   tests.test_candidate10_m_axi_adapter_rtl_oracle \
   tests.test_candidate10_m_axi_adapter_alignment
 
+mkdir -p docs/evidence/candidate10_m_axi_adapter_backpressure_20260726
+build/cycle-core/cpp/spine_cycle_core_tests \
+  candidate10_axi_periodic_backpressure \
+  > docs/evidence/candidate10_m_axi_adapter_backpressure_20260726/core_trace.log
+
 python3 scripts/run_candidate10_maintenance_matrix.py \
   --out-dir results/candidate10_m_axi_adapter_hw_matrix_stats_20260726 \
   --no-build
@@ -175,7 +214,8 @@ The exact RTL oracle can be regenerated with:
 
 ```bash
 python3 scripts/collect_candidate10_m_axi_adapter_rtl_oracle.py \
-  --out-dir docs/evidence/candidate10_m_axi_adapter_rtl_oracle_20260726
+  --out-dir docs/evidence/candidate10_m_axi_adapter_rtl_oracle_20260726 \
+  --build-dir /data/tmp/chuxiao/candidate10_m_axi_adapter_trace_20260726
 ```
 
 ## Claim boundary and next work
@@ -186,10 +226,15 @@ capacities, and execution-driven propagation through the current SST-HBM
 backend. It also supports functional and raw timing comparisons for the 11
 hardware cases.
 
-It does not yet model the complete kernel wrapper/ap_ctrl schedule, the exact
-U55C AXI crossbar arbitration policy, or a measured HBM controller timing
-distribution. The next timing layer should isolate the fixed wrapper/family
+It does not yet model the complete kernel wrapper/ap_ctrl schedule, exact
+child-side write-data FIFO occupancy, U55C AXI crossbar arbitration policy, or
+a measured HBM controller timing distribution. The next timing layer should
+isolate the fixed wrapper/family
 range cost with zero/tiny microbenchmarks, then calibrate only the remaining
 external HBM service terms using burst/locality/contention sweeps. Those terms
 must remain visible and must not be folded back into the verified writer or
 adapter schedules.
+
+The 11-case hardware matrix in the combined JSON remains the archived matrix
+from the preceding adapter milestone. It predates the explicit one-cycle read
+output stage and is not represented as a new calibration of this revision.

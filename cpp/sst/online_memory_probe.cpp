@@ -706,6 +706,11 @@ void write_spine_axi_profile_fields(
               ? profile.read_address_pipeline_cycles
               : profile.maintenance_read_address_pipeline_cycles)
       << ",\n"
+      << "  \"axi_read_data_pipeline_cycles\": "
+      << (profile.maintenance_read_data_pipeline_cycles == 0
+              ? profile.read_data_pipeline_cycles
+              : profile.maintenance_read_data_pipeline_cycles)
+      << ",\n"
       << "  \"axi_write_buffer_pipeline_cycles\": "
       << (profile.maintenance_write_buffer_pipeline_cycles == 0
               ? profile.write_buffer_pipeline_cycles
@@ -749,6 +754,18 @@ void write_maintenance_axi_stats(std::ostream &output,
       << stats.response_queue_stalls << ",\n"
       << "  \"maintenance_axi_read_reorder_stall_cycles\": "
       << stats.read_reorder_stalls << ",\n"
+      << "  \"maintenance_axi_read_data_pipeline_stall_cycles\": "
+      << stats.read_data_pipeline_stalls << ",\n"
+      << "  \"maintenance_axi_read_address_channel_stall_cycles\": "
+      << stats.read_address_channel_stalls << ",\n"
+      << "  \"maintenance_axi_write_address_channel_stall_cycles\": "
+      << stats.write_address_channel_stalls << ",\n"
+      << "  \"maintenance_axi_write_data_channel_stall_cycles\": "
+      << stats.write_data_channel_stalls << ",\n"
+      << "  \"maintenance_axi_read_response_channel_stall_cycles\": "
+      << stats.read_response_channel_stalls << ",\n"
+      << "  \"maintenance_axi_write_response_channel_stall_cycles\": "
+      << stats.write_response_channel_stalls << ",\n"
       << "  \"maintenance_axi_four_kib_splits\": "
       << stats.four_kib_splits << ",\n"
       << "  \"maintenance_axi_max_outstanding_bursts\": "

@@ -150,6 +150,8 @@ module candidate10_m_axi_adapter_tb;
   integer external_last_data_cycle;
   integer external_first_response_cycle;
   integer external_last_response_cycle;
+  integer external_data_events;
+  integer external_response_events;
 
   reg [31:0] read_remaining [0:QUEUE_DEPTH-1];
   reg [31:0] read_ready_cycle [0:QUEUE_DEPTH-1];
@@ -300,6 +302,8 @@ module candidate10_m_axi_adapter_tb;
       external_last_data_cycle <= -1;
       external_first_response_cycle <= -1;
       external_last_response_cycle <= -1;
+      external_data_events <= 0;
+      external_response_events <= 0;
       read_head <= 0;
       read_tail <= 0;
       read_queued <= 0;
@@ -314,6 +318,9 @@ module candidate10_m_axi_adapter_tb;
 
       if ((child_awvalid && child_awready) ||
           (child_arvalid && child_arready)) begin
+        if (trace_arg != 0)
+          $display("AXI_ADAPTER_EVENT kind=child_request op=%0d index=%0d cycle=%0d",
+                   op_arg, child_requests_accepted, cycle_count);
         child_requests_accepted <= child_requests_accepted + 1;
         if (child_first_request_cycle < 0)
           child_first_request_cycle <= cycle_count;
@@ -323,6 +330,9 @@ module candidate10_m_axi_adapter_tb;
           (child_arvalid && !child_arready))
         child_request_stall_cycles <= child_request_stall_cycles + 1;
       if (child_wvalid && child_wready) begin
+        if (trace_arg != 0)
+          $display("AXI_ADAPTER_EVENT kind=child_data op=1 index=%0d cycle=%0d",
+                   child_write_beats_accepted, cycle_count);
         child_write_beats_accepted <= child_write_beats_accepted + 1;
         if (child_first_write_cycle < 0)
           child_first_write_cycle <= cycle_count;
@@ -331,6 +341,9 @@ module candidate10_m_axi_adapter_tb;
       if (child_wvalid && !child_wready)
         child_data_stall_cycles <= child_data_stall_cycles + 1;
       if (child_rvalid && child_rready) begin
+        if (trace_arg != 0)
+          $display("AXI_ADAPTER_EVENT kind=child_data op=0 index=%0d cycle=%0d",
+                   child_read_beats_accepted, cycle_count);
         child_read_beats_accepted <= child_read_beats_accepted + 1;
         if (child_first_read_cycle < 0)
           child_first_read_cycle <= cycle_count;
@@ -339,6 +352,9 @@ module candidate10_m_axi_adapter_tb;
       if (child_rvalid && !child_rready)
         child_response_stall_cycles <= child_response_stall_cycles + 1;
       if (child_bvalid && child_bready) begin
+        if (trace_arg != 0)
+          $display("AXI_ADAPTER_EVENT kind=child_response op=1 index=%0d cycle=%0d",
+                   child_responses_accepted, cycle_count);
         child_responses_accepted <= child_responses_accepted + 1;
         if (child_first_response_cycle < 0)
           child_first_response_cycle <= cycle_count;
@@ -367,6 +383,11 @@ module candidate10_m_axi_adapter_tb;
           errors <= errors + 1;
       end
       if (read_handshake) begin
+        if (trace_arg != 0)
+          $display("AXI_ADAPTER_EVENT kind=external_data op=0 index=%0d cycle=%0d last=%0d",
+                   external_data_events,
+                   cycle_count, read_last_handshake);
+        external_data_events <= external_data_events + 1;
         rdata <= rdata + 1;
         if (external_first_data_cycle < 0)
           external_first_data_cycle <= cycle_count;
@@ -396,6 +417,11 @@ module candidate10_m_axi_adapter_tb;
           errors <= errors + 1;
       end
       if (write_handshake) begin
+        if (trace_arg != 0)
+          $display("AXI_ADAPTER_EVENT kind=external_data op=1 index=%0d cycle=%0d last=%0d",
+                   external_data_events, cycle_count,
+                   write_last_handshake);
+        external_data_events <= external_data_events + 1;
         if (external_first_data_cycle < 0)
           external_first_data_cycle <= cycle_count;
         external_last_data_cycle <= cycle_count;
@@ -413,6 +439,10 @@ module candidate10_m_axi_adapter_tb;
         end
       end
       if (b_handshake) begin
+        if (trace_arg != 0)
+          $display("AXI_ADAPTER_EVENT kind=external_response op=1 index=%0d cycle=%0d",
+                   external_response_events, cycle_count);
+        external_response_events <= external_response_events + 1;
         b_head <= (b_head + 1) % QUEUE_DEPTH;
         if (external_first_response_cycle < 0)
           external_first_response_cycle <= cycle_count;

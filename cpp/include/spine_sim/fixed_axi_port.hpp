@@ -31,9 +31,16 @@ struct FixedAxiPortConfig {
   std::size_t beat_issues_per_cycle{1};
   std::size_t response_beats_per_cycle{4};
   std::uint64_t read_address_pipeline_cycles{};
+  std::uint64_t read_data_pipeline_cycles{};
   std::uint64_t write_buffer_pipeline_cycles{};
   bool serialize_write_bursts{};
+  AxiPeriodicStall read_address_stall{};
+  AxiPeriodicStall write_address_stall{};
+  AxiPeriodicStall write_data_stall{};
+  AxiPeriodicStall read_response_stall{};
+  AxiPeriodicStall write_response_stall{};
   std::size_t burst_trace_limit{};
+  std::size_t beat_trace_limit{};
 };
 
 class FixedAxiPort {
@@ -60,10 +67,17 @@ class FixedAxiPort {
                 .read_reorder_capacity = config.read_reorder_capacity,
                 .read_address_pipeline_cycles =
                     config.read_address_pipeline_cycles,
+                .read_data_pipeline_cycles = config.read_data_pipeline_cycles,
                 .write_buffer_pipeline_cycles =
                     config.write_buffer_pipeline_cycles,
                 .serialize_write_bursts = config.serialize_write_bursts,
+                .read_address_stall = config.read_address_stall,
+                .write_address_stall = config.write_address_stall,
+                .write_data_stall = config.write_data_stall,
+                .read_response_stall = config.read_response_stall,
+                .write_response_stall = config.write_response_stall,
                 .burst_trace_limit = config.burst_trace_limit,
+                .beat_trace_limit = config.beat_trace_limit,
                 .fixed_channel = config.channel,
             },
             requests_, responses_, backend,
