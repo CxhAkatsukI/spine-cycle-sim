@@ -7684,14 +7684,24 @@ void test_spine_pagerank_active_gate_fallback_preserves_tile_identity() {
 
   const auto &reader = system.reader_counters();
   const auto &compute = system.compute_counters();
+  bool ranks_match = true;
+  for (const std::uint32_t rank_word : system.compute().rank_words()) {
+    ranks_match =
+        ranks_match &&
+        std::fabs(GraphAlgorithmPolicy::word_to_float(rank_word) - 1.0F / 3.0F) <
+            1.0e-5F;
+  }
   require(!system.failed() && system.done() && reader.range_task_path == 2 &&
               reader.range_task_fallback_reason == 1 &&
               reader.range_task_active_records == 3 &&
+              reader.source_requests == 3 && reader.source_responses == 3 &&
               reader.fallback_replay_edges == 3 &&
               compute.edges_received == 3 && compute.tiles_received == 1 &&
-              compute.vertices_applied == 3 && compute.done_words == 1,
-          "PageRank active-gate fallback changed the tile identity between "
-          "TileBegin and TileEnd");
+              compute.source_map_operations == 3 &&
+              compute.vertices_applied == 3 && compute.done_words == 1 &&
+              ranks_match,
+          "PageRank active-gate fallback lost source refresh, tile identity, "
+          "or arithmetic correctness");
 }
 
 void test_spine_pagerank_reports_maintenance_failure_without_compute_done() {

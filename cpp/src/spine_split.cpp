@@ -302,6 +302,7 @@ void SpineSplitReader::reset_state() {
   fallback_lower_second_ = false;
   fallback_active_record_valid_ = false;
   fallback_enabled_ = false;
+  fallback_after_source_refresh_ = false;
   metadata_control_ = 0;
   dirty_count_ = 0;
   dirty_generation_ = 0;
@@ -463,6 +464,9 @@ void SpineSplitReader::commit(const CycleContext &context) {
           counters_.range_task_error = kRangeTaskErrorProtocol;
           begin_terminal(
               true, "reader source-value protocol acknowledgement failed");
+        } else if (fallback_after_source_refresh_) {
+          fallback_after_source_refresh_ = false;
+          start_host_fallback(kRangeTaskFallbackActiveGate);
         } else {
           phase_ = Phase::kLevelOccupancyBegin;
         }
@@ -1487,6 +1491,7 @@ void SpineSplitReader::start_host_fallback(std::uint32_t reason) {
     edge_response_buffer_.clear();
   }
   fallback_enabled_ = true;
+  fallback_after_source_refresh_ = false;
   fallback_partition_ = 0;
   fallback_discovery_ = true;
   fallback_hot_ = false;
@@ -1865,6 +1870,20 @@ void SpineSplitReader::advance_fallback() {
       counters_.range_task_error = kRangeTaskErrorActiveBounds;
       begin_terminal(true, "fallback active record exceeds graph bounds");
       return;
+    }
+    if (algorithm_policy_->config().kind == GraphAlgorithmKind::kFullPageRank ||
+        algorithm_policy_->config().kind ==
+            GraphAlgorithmKind::kResidualPageRank) {
+      const auto source_value =
+          source_values_.find(fallback_lookup_.record.source);
+      if (source_value == source_values_.end()) {
+        counters_.range_task_path = kRangeTaskPathError;
+        counters_.range_task_error = kRangeTaskErrorProtocol;
+        begin_terminal(true,
+                       "PageRank fallback record has no refreshed source value");
+        return;
+      }
+      fallback_lookup_.record.source_value = source_value->second;
     }
     if (fallback_hot_ &&
         ((fallback_lookup_.record.hot_shard_mask >> fallback_shard_) & 1U) ==
@@ -2777,7 +2796,20 @@ void SpineSplitReader::advance(const CycleContext &context) {
       }
       counters_.range_task_active_records = total;
       if (total > maintenance_.config().range_task_active_gate) {
-        start_host_fallback(kRangeTaskFallbackActiveGate);
+        const GraphAlgorithmKind kind = algorithm_policy_->config().kind;
+        const bool pagerank = kind == GraphAlgorithmKind::kFullPageRank ||
+                              kind == GraphAlgorithmKind::kResidualPageRank;
+        if (!pagerank || active_sources_.empty()) {
+          start_host_fallback(kRangeTaskFallbackActiveGate);
+          return;
+        }
+        fallback_after_source_refresh_ = true;
+        source_request_index_ = 0;
+        source_response_index_ = 0;
+        source_window_end_ = std::min<std::size_t>(
+            kSpineDirtyRequestWindow, active_sources_.size());
+        ++counters_.source_request_windows;
+        phase_ = Phase::kRequestSourceWindow;
         return;
       }
       for (std::size_t partition = 0; partition < kPartitionCount;
