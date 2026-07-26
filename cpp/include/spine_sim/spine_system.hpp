@@ -36,18 +36,34 @@ struct SpineAxiInterfaceProfile {
   std::uint32_t max_burst_beats{16};
   std::size_t readwrite_max_pending_requests{7};
   std::size_t writeonly_max_pending_requests{4};
+  // Zero means use the corresponding generic/compute capacity above.
+  std::size_t maintenance_readwrite_max_pending_requests{};
+  std::size_t maintenance_writeonly_max_pending_requests{};
   std::size_t max_outstanding_bursts{16};
   std::size_t response_beats_per_cycle{1};
+  std::size_t read_reorder_capacity{32};
+  std::uint64_t read_address_pipeline_cycles{};
+  std::uint64_t write_buffer_pipeline_cycles{};
+  bool serialize_write_bursts{};
+  // Zero/false means inherit the generic/compute setting above.
+  std::size_t maintenance_read_reorder_capacity{};
+  std::uint64_t maintenance_read_address_pipeline_cycles{};
+  std::uint64_t maintenance_write_buffer_pipeline_cycles{};
+  bool maintenance_serialize_write_bursts{};
+  std::size_t burst_trace_limit{};
   std::uint32_t graph_bytes{8};
   std::uint32_t sorted_edge_bytes{16};
   std::uint32_t active_bin_bytes{32};
   std::uint32_t metadata_bytes{8};
   std::uint32_t result_bytes{4};
+  // Zero means use result_bytes for the maintenance result port.
+  std::uint32_t maintenance_result_bytes{};
   std::uint32_t vertex_state_bytes{4};
   std::uint32_t active_out_bytes{8};
   std::uint32_t active_bitmap_bytes{8};
 
   [[nodiscard]] static SpineAxiInterfaceProfile legacy_uniform64();
+  [[nodiscard]] static SpineAxiInterfaceProfile candidate10_1e61fc0();
   [[nodiscard]] FixedAxiPortConfig
   port_config(SpineAxiPortKind kind, std::size_t memory_channels,
               std::size_t channel, std::uint32_t initiator_id) const;
@@ -141,6 +157,7 @@ class SpineVerticalSliceSystem {
   }
   [[nodiscard]] const AxiConfig &axi_config(SpineAxiPortKind kind) const;
   [[nodiscard]] const AxiStats &axi_stats(SpineAxiPortKind kind) const;
+  [[nodiscard]] AxiStats maintenance_axi_stats() const noexcept;
 
  private:
   [[nodiscard]] std::unique_ptr<FixedAxiPort> make_port(

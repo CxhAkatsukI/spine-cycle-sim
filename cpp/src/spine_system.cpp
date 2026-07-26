@@ -155,17 +155,42 @@ SpineAxiInterfaceProfile SpineAxiInterfaceProfile::legacy_uniform64() {
       .max_burst_beats = 16,
       .readwrite_max_pending_requests = 32,
       .writeonly_max_pending_requests = 32,
+      .maintenance_readwrite_max_pending_requests = 0,
+      .maintenance_writeonly_max_pending_requests = 0,
       .max_outstanding_bursts = 32,
       .response_beats_per_cycle = 4,
+      .read_reorder_capacity = 32,
+      .read_address_pipeline_cycles = 0,
+      .write_buffer_pipeline_cycles = 0,
+      .serialize_write_bursts = false,
+      .maintenance_read_reorder_capacity = 0,
+      .maintenance_read_address_pipeline_cycles = 0,
+      .maintenance_write_buffer_pipeline_cycles = 0,
+      .maintenance_serialize_write_bursts = false,
+      .burst_trace_limit = 0,
       .graph_bytes = 64,
       .sorted_edge_bytes = 64,
       .active_bin_bytes = 64,
       .metadata_bytes = 64,
       .result_bytes = 64,
+      .maintenance_result_bytes = 0,
       .vertex_state_bytes = 64,
       .active_out_bytes = 64,
       .active_bitmap_bytes = 64,
   };
+}
+
+SpineAxiInterfaceProfile SpineAxiInterfaceProfile::candidate10_1e61fc0() {
+  SpineAxiInterfaceProfile profile;
+  profile.profile_id = "candidate10_gmem_1e61fc0";
+  profile.maintenance_readwrite_max_pending_requests = 70;
+  profile.maintenance_writeonly_max_pending_requests = 67;
+  profile.maintenance_read_reorder_capacity = 256;
+  profile.maintenance_read_address_pipeline_cycles = 7;
+  profile.maintenance_write_buffer_pipeline_cycles = 10;
+  profile.maintenance_serialize_write_bursts = true;
+  profile.maintenance_result_bytes = 8;
+  return profile;
 }
 
 FixedAxiPortConfig SpineAxiInterfaceProfile::port_config(
@@ -173,6 +198,7 @@ FixedAxiPortConfig SpineAxiInterfaceProfile::port_config(
     std::uint32_t initiator_id) const {
   std::uint32_t width = 0;
   bool write_only = false;
+  bool maintenance_port = true;
   switch (kind) {
   case SpineAxiPortKind::kGraph:
     width = graph_bytes;
@@ -187,19 +213,27 @@ FixedAxiPortConfig SpineAxiInterfaceProfile::port_config(
     width = metadata_bytes;
     break;
   case SpineAxiPortKind::kMaintenanceResult:
-  case SpineAxiPortKind::kComputeResult:
-    width = result_bytes;
+    width = maintenance_result_bytes == 0 ? result_bytes
+                                          : maintenance_result_bytes;
     write_only = true;
     break;
   case SpineAxiPortKind::kVertexState:
     width = vertex_state_bytes;
+    maintenance_port = false;
     break;
   case SpineAxiPortKind::kActiveOut:
     width = active_out_bytes;
     write_only = true;
+    maintenance_port = false;
     break;
   case SpineAxiPortKind::kActiveBitmap:
     width = active_bitmap_bytes;
+    maintenance_port = false;
+    break;
+  case SpineAxiPortKind::kComputeResult:
+    width = result_bytes;
+    write_only = true;
+    maintenance_port = false;
     break;
   }
   if (profile_id.empty() || width == 0 || max_burst_beats == 0 ||
@@ -208,20 +242,50 @@ FixedAxiPortConfig SpineAxiInterfaceProfile::port_config(
       response_beats_per_cycle == 0) {
     throw std::invalid_argument("invalid Spine AXI interface profile");
   }
+  std::size_t max_pending = write_only ? writeonly_max_pending_requests
+                                       : readwrite_max_pending_requests;
+  if (maintenance_port) {
+    const std::size_t override =
+        write_only ? maintenance_writeonly_max_pending_requests
+                   : maintenance_readwrite_max_pending_requests;
+    if (override != 0) {
+      max_pending = override;
+    }
+  }
+  const std::size_t port_read_reorder_capacity =
+      maintenance_port && maintenance_read_reorder_capacity != 0
+          ? maintenance_read_reorder_capacity
+          : read_reorder_capacity;
+  const std::uint64_t port_read_address_pipeline_cycles =
+      maintenance_port && maintenance_read_address_pipeline_cycles != 0
+          ? maintenance_read_address_pipeline_cycles
+          : read_address_pipeline_cycles;
+  const std::uint64_t port_write_buffer_pipeline_cycles =
+      maintenance_port && maintenance_write_buffer_pipeline_cycles != 0
+          ? maintenance_write_buffer_pipeline_cycles
+          : write_buffer_pipeline_cycles;
+  const bool port_serialize_write_bursts =
+      maintenance_port && maintenance_serialize_write_bursts
+          ? true
+          : serialize_write_bursts;
   return FixedAxiPortConfig{
       .memory_channels = memory_channels,
       .channel = channel,
       .initiator_id = initiator_id,
       .data_width_bytes = width,
       .max_burst_beats = max_burst_beats,
+      .read_reorder_capacity = port_read_reorder_capacity,
       .stream_read_beats =
           (kind == SpineAxiPortKind::kSortedEdges &&
            sorted_edge_bytes == kSpineSortWordBytes) ||
           kind == SpineAxiPortKind::kVertexState,
-      .max_pending_requests = write_only ? writeonly_max_pending_requests
-                                         : readwrite_max_pending_requests,
+      .max_pending_requests = max_pending,
       .max_outstanding_bursts = max_outstanding_bursts,
       .response_beats_per_cycle = response_beats_per_cycle,
+      .read_address_pipeline_cycles = port_read_address_pipeline_cycles,
+      .write_buffer_pipeline_cycles = port_write_buffer_pipeline_cycles,
+      .serialize_write_bursts = port_serialize_write_bursts,
+      .burst_trace_limit = burst_trace_limit,
   };
 }
 
@@ -722,6 +786,17 @@ SpineVerticalSliceSystem::axi_stats(SpineAxiPortKind kind) const {
     return compute_result_->master().stats();
   }
   throw std::logic_error("unknown Spine AXI port kind");
+}
+
+AxiStats SpineVerticalSliceSystem::maintenance_axi_stats() const noexcept {
+  AxiStats total;
+  for (const auto &port : graph_ports_) {
+    accumulate_axi_stats(total, port->master().stats());
+  }
+  accumulate_axi_stats(total, sorted_->master().stats());
+  accumulate_axi_stats(total, metadata_->master().stats());
+  accumulate_axi_stats(total, maintenance_result_->master().stats());
+  return total;
 }
 
 SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(

@@ -260,6 +260,9 @@ SpineAxiInterfaceProfile spine_axi_profile_from_id(const std::string &id) {
   if (id == "legacy_uniform64") {
     return SpineAxiInterfaceProfile::legacy_uniform64();
   }
+  if (id == "candidate10_gmem_1e61fc0") {
+    return SpineAxiInterfaceProfile::candidate10_1e61fc0();
+  }
   throw std::invalid_argument("unknown Spine AXI interface profile: " + id);
 }
 
@@ -666,6 +669,94 @@ bool memory_traffic_closes(const MemoryTrafficStats &stats,
   return memory_locality_closes(stats.reads) &&
          memory_locality_closes(stats.writes) &&
          combine_memory_traffic(stats).requests == expected_requests;
+}
+
+AxiStats maintenance_axi_stats(
+    const std::array<std::unique_ptr<FixedAxiPort>, 16> &graph,
+    const FixedAxiPort &sorted, const FixedAxiPort &metadata,
+    const FixedAxiPort &result) {
+  AxiStats total;
+  for (const auto &port : graph) {
+    accumulate_axi_stats(total, port->master().stats());
+  }
+  accumulate_axi_stats(total, sorted.master().stats());
+  accumulate_axi_stats(total, metadata.master().stats());
+  accumulate_axi_stats(total, result.master().stats());
+  return total;
+}
+
+void write_spine_axi_profile_fields(
+    std::ostream &output, const SpineAxiInterfaceProfile &profile) {
+  output
+      << "  \"axi_readwrite_max_pending_requests\": "
+      << profile.readwrite_max_pending_requests << ",\n"
+      << "  \"axi_writeonly_max_pending_requests\": "
+      << profile.writeonly_max_pending_requests << ",\n"
+      << "  \"axi_maintenance_readwrite_max_pending_requests\": "
+      << profile.maintenance_readwrite_max_pending_requests << ",\n"
+      << "  \"axi_maintenance_writeonly_max_pending_requests\": "
+      << profile.maintenance_writeonly_max_pending_requests << ",\n"
+      << "  \"axi_read_reorder_capacity\": "
+      << (profile.maintenance_read_reorder_capacity == 0
+              ? profile.read_reorder_capacity
+              : profile.maintenance_read_reorder_capacity)
+      << ",\n"
+      << "  \"axi_read_address_pipeline_cycles\": "
+      << (profile.maintenance_read_address_pipeline_cycles == 0
+              ? profile.read_address_pipeline_cycles
+              : profile.maintenance_read_address_pipeline_cycles)
+      << ",\n"
+      << "  \"axi_write_buffer_pipeline_cycles\": "
+      << (profile.maintenance_write_buffer_pipeline_cycles == 0
+              ? profile.write_buffer_pipeline_cycles
+              : profile.maintenance_write_buffer_pipeline_cycles)
+      << ",\n"
+      << "  \"axi_serialize_write_bursts\": "
+      << (profile.maintenance_serialize_write_bursts ||
+                  profile.serialize_write_bursts
+              ? "true"
+              : "false")
+      << ",\n"
+      << "  \"axi_maintenance_result_data_width_bytes\": "
+      << (profile.maintenance_result_bytes == 0
+              ? profile.result_bytes
+              : profile.maintenance_result_bytes)
+      << ",\n";
+}
+
+void write_maintenance_axi_stats(std::ostream &output,
+                                 const AxiStats &stats) {
+  output
+      << "  \"maintenance_axi_requests_accepted\": "
+      << stats.requests_accepted << ",\n"
+      << "  \"maintenance_axi_requests_completed\": "
+      << stats.requests_completed << ",\n"
+      << "  \"maintenance_axi_bursts_accepted\": "
+      << stats.bursts_accepted << ",\n"
+      << "  \"maintenance_axi_beats_issued\": " << stats.beats_issued
+      << ",\n"
+      << "  \"maintenance_axi_beats_completed\": "
+      << stats.beats_completed << ",\n"
+      << "  \"maintenance_axi_address_pipeline_stall_cycles\": "
+      << stats.address_pipeline_stalls << ",\n"
+      << "  \"maintenance_axi_write_burst_serialization_stall_cycles\": "
+      << stats.write_burst_serialization_stalls << ",\n"
+      << "  \"maintenance_axi_backend_submit_stall_cycles\": "
+      << stats.backend_submit_stalls << ",\n"
+      << "  \"maintenance_axi_request_queue_stall_cycles\": "
+      << stats.request_queue_stalls << ",\n"
+      << "  \"maintenance_axi_response_queue_stall_cycles\": "
+      << stats.response_queue_stalls << ",\n"
+      << "  \"maintenance_axi_read_reorder_stall_cycles\": "
+      << stats.read_reorder_stalls << ",\n"
+      << "  \"maintenance_axi_four_kib_splits\": "
+      << stats.four_kib_splits << ",\n"
+      << "  \"maintenance_axi_max_outstanding_bursts\": "
+      << stats.max_outstanding_bursts << ",\n"
+      << "  \"maintenance_axi_read_bytes\": " << stats.read_bytes
+      << ",\n"
+      << "  \"maintenance_axi_write_bytes\": " << stats.write_bytes
+      << ",\n";
 }
 
 void write_candidate_maintenance_counters(
@@ -1515,7 +1606,8 @@ class OnlineMemoryProbe final : public SST::Component {
         candidate_publication_empty_group_cycles_ == 0 ||
         maintenance_scan_response_capacity_ == 0 ||
         (spine_axi_profile_id_ != "hls_split_9c08763" &&
-         spine_axi_profile_id_ != "legacy_uniform64") ||
+         spine_axi_profile_id_ != "legacy_uniform64" &&
+         spine_axi_profile_id_ != "candidate10_gmem_1e61fc0") ||
         write_percent_ > 100 ||
         (mode_ == "probe" &&
          (request_count_ == 0 || request_bytes_ == 0 || stride_bytes_ == 0)) ||
@@ -2963,6 +3055,9 @@ class OnlineMemoryProbe final : public SST::Component {
     std::ofstream result(result_path_);
     if (mode_ == "spine_maintenance") {
       const SpineL0Counters &maintenance = spine_maintenance_->counters();
+      const AxiStats maintenance_axi = maintenance_axi_stats(
+          spine_maintenance_graph_, *spine_maintenance_sorted_,
+          *spine_maintenance_metadata_, *spine_maintenance_result_);
       const bool passed = success && !spine_maintenance_->failed();
       result << "{\n"
              << "  \"success\": " << (passed ? "true" : "false") << ",\n"
@@ -2974,6 +3069,8 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"spine_maintenance_architecture\": \""
              << spine_maintenance_architecture_id_ << "\",\n";
       write_candidate_maintenance_counters(result, maintenance);
+      write_spine_axi_profile_fields(result, spine_axi_profile_);
+      write_maintenance_axi_stats(result, maintenance_axi);
       result << "  \"cycles\": " << scheduler_.clock(0).completed_cycles
              << ",\n"
              << "  \"maintenance_start_cycle\": "

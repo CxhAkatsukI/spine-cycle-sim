@@ -1325,6 +1325,157 @@ void test_axi_splits_bursts_and_uses_backend_online() {
           "mock backend did not see every beat");
 }
 
+void test_candidate10_axi_adapter_schedule_matches_rtl_oracle() {
+  const auto run_requests = [](MemoryOperation operation,
+                               std::uint64_t address,
+                               std::uint64_t bytes,
+                               std::size_t requests = 1,
+                               std::uint64_t stride = 0,
+                               std::size_t address_accepts_per_cycle = 1) {
+    Scheduler scheduler;
+    const auto core = scheduler.add_clock_mhz("core", 150.0);
+    MockMemoryBackend backend("candidate10-adapter-hbm", core,
+                              mock_memory_config(1));
+    SpineAxiInterfaceProfile profile =
+        SpineAxiInterfaceProfile::candidate10_1e61fc0();
+    FixedAxiPortConfig config = profile.port_config(
+        SpineAxiPortKind::kGraph, 2, 0, 77);
+    config.burst_trace_limit = 16;
+    config.address_accepts_per_cycle = address_accepts_per_cycle;
+    FixedAxiPort port("candidate10-adapter", core, config, backend);
+    std::vector<std::uint8_t> write_data;
+    if (operation == MemoryOperation::kWrite) {
+      write_data.assign(bytes, 0x5a);
+    }
+    std::vector<AxiRequest> request_list;
+    request_list.reserve(requests);
+    for (std::size_t index = 0; index < requests; ++index) {
+      request_list.push_back(AxiRequest{
+          .transaction_id = 9 + index,
+          .operation = operation,
+          .address = address + index * stride,
+          .bytes = bytes,
+          .write_data = write_data,
+      });
+    }
+    SequenceProducer<AxiRequest> producer("candidate10-adapter-producer", core,
+                                          port.requests(),
+                                          std::move(request_list));
+    SequenceConsumer<AxiResponse> consumer(
+        "candidate10-adapter-consumer", core, port.responses());
+    scheduler.add_component(producer);
+    port.register_components(scheduler);
+    scheduler.add_component(backend);
+    scheduler.add_component(consumer);
+    scheduler.run_until(
+        [&] { return consumer.values.size() == requests; }, 2'000);
+    return std::pair{port.master().burst_trace(), port.master().stats()};
+  };
+
+  const auto [read_trace, read_stats] =
+      run_requests(MemoryOperation::kRead, 4'088, 17 * 8);
+  std::cout << "EVIDENCE candidate10_axi_read bursts=" << read_trace.size();
+  for (const auto &burst : read_trace) {
+    std::cout << " [addr=" << burst.address << ",beats=" << burst.beats
+              << ",accepted=" << burst.parent_accept_cycle
+              << ",cycle=" << burst.address_issue_cycle << ']';
+  }
+  std::cout << " pipeline_stalls=" << read_stats.address_pipeline_stalls
+            << '\n';
+  require(read_trace.size() == 2 && read_trace[0].address == 4'088 &&
+              read_trace[0].beats == 1 &&
+              read_trace[1].address == 4'096 &&
+              read_trace[1].beats == 16 &&
+              read_trace[0].address_issue_cycle ==
+                  read_trace[0].parent_accept_cycle + 7 &&
+              read_trace[1].address_issue_cycle ==
+                  read_trace[0].address_issue_cycle + 1 &&
+              read_stats.address_pipeline_stalls >= 6,
+          "Candidate10 read adapter schedule diverged from the RTL oracle");
+
+  const auto [boundary_write_trace, boundary_write_stats] =
+      run_requests(MemoryOperation::kWrite, 4'088, 17 * 8);
+  std::cout << "EVIDENCE candidate10_axi_boundary_write bursts="
+            << boundary_write_trace.size();
+  for (const auto &burst : boundary_write_trace) {
+    std::cout << " [addr=" << burst.address << ",beats=" << burst.beats
+              << ",accepted=" << burst.parent_accept_cycle
+              << ",cycle=" << burst.address_issue_cycle << ']';
+  }
+  std::cout << " pipeline_stalls="
+            << boundary_write_stats.address_pipeline_stalls << '\n';
+  require(boundary_write_trace.size() == 2 &&
+              boundary_write_trace[0].address == 4'088 &&
+              boundary_write_trace[0].beats == 1 &&
+              boundary_write_trace[1].address == 4'096 &&
+              boundary_write_trace[1].beats == 16 &&
+              boundary_write_trace[0].address_issue_cycle ==
+                  boundary_write_trace[0].parent_accept_cycle + 11 &&
+              boundary_write_trace[1].address_issue_cycle ==
+                  boundary_write_trace[0].address_issue_cycle + 16 &&
+              boundary_write_stats.address_pipeline_stalls != 0,
+          "Candidate10 boundary write buffering diverged from RTL");
+
+  const auto [aligned_write_trace, aligned_write_stats] =
+      run_requests(MemoryOperation::kWrite, 0, 17 * 8);
+  std::cout << "EVIDENCE candidate10_axi_aligned_write bursts="
+            << aligned_write_trace.size();
+  for (const auto &burst : aligned_write_trace) {
+    std::cout << " [addr=" << burst.address << ",beats=" << burst.beats
+              << ",accepted=" << burst.parent_accept_cycle
+              << ",cycle=" << burst.address_issue_cycle << ']';
+  }
+  std::cout << " serial_stalls="
+            << aligned_write_stats.write_burst_serialization_stalls << '\n';
+  require(aligned_write_trace.size() == 2 &&
+              aligned_write_trace[0].beats == 16 &&
+              aligned_write_trace[1].beats == 1 &&
+              aligned_write_trace[0].address_issue_cycle ==
+                  aligned_write_trace[0].parent_accept_cycle + 26 &&
+              aligned_write_trace[1].address_issue_cycle ==
+                  aligned_write_trace[0].address_issue_cycle + 17 &&
+              aligned_write_stats.write_burst_serialization_stalls != 0,
+          "Candidate10 ordered write bursts diverged from RTL");
+
+  const auto [adjacent_read_trace, adjacent_read_stats] =
+      run_requests(MemoryOperation::kRead, 0, 8 * 8, 2, 8 * 8);
+  (void)adjacent_read_stats;
+  require(adjacent_read_trace.size() == 2 &&
+              adjacent_read_trace[0].beats == 8 &&
+              adjacent_read_trace[1].beats == 8 &&
+              adjacent_read_trace[0].address_issue_cycle ==
+                  adjacent_read_trace[0].parent_accept_cycle + 7 &&
+              adjacent_read_trace[1].address_issue_cycle ==
+                  adjacent_read_trace[0].address_issue_cycle + 1,
+          "Candidate10 adjacent reads diverged from the RTL oracle");
+
+  const auto [adjacent_write_trace, adjacent_write_stats] =
+      run_requests(MemoryOperation::kWrite, 0, 8 * 8, 2, 8 * 8);
+  require(adjacent_write_trace.size() == 2 &&
+              adjacent_write_trace[0].beats == 8 &&
+              adjacent_write_trace[1].beats == 8 &&
+              adjacent_write_trace[0].address_issue_cycle ==
+                  adjacent_write_trace[0].parent_accept_cycle + 18 &&
+              adjacent_write_trace[1].address_issue_cycle ==
+                  adjacent_write_trace[0].address_issue_cycle + 9 &&
+              adjacent_write_stats.write_burst_serialization_stalls > 0,
+          "Candidate10 adjacent writes diverged from the RTL oracle");
+
+  const auto [single_write_trace, single_write_stats] =
+      run_requests(MemoryOperation::kWrite, 0, 8, 4, 8, 2);
+  (void)single_write_stats;
+  require(single_write_trace.size() == 4 &&
+              single_write_trace[0].address_issue_cycle ==
+                  single_write_trace[0].parent_accept_cycle + 11 &&
+              single_write_trace[1].address_issue_cycle ==
+                  single_write_trace[0].address_issue_cycle + 2 &&
+              single_write_trace[2].address_issue_cycle ==
+                  single_write_trace[1].address_issue_cycle + 2 &&
+              single_write_trace[3].address_issue_cycle ==
+                  single_write_trace[2].address_issue_cycle + 2,
+          "Candidate10 single-beat write stream diverged from RTL");
+}
+
 void test_axi_response_backpressure_is_lossless() {
   Scheduler scheduler;
   const auto core = scheduler.add_clock_mhz("core", 100.0);
@@ -5663,6 +5814,34 @@ void test_spine_axi_interface_profile_matches_hls_rtl() {
               legacy_graph.data_width_bytes == 64 &&
               legacy_sorted.response_beats_per_cycle == 4,
           "legacy uniform-64 AXI profile is not explicit and reproducible");
+
+  const SpineAxiInterfaceProfile candidate =
+      SpineAxiInterfaceProfile::candidate10_1e61fc0();
+  const auto candidate_graph =
+      candidate.port_config(SpineAxiPortKind::kGraph, 32, 0, 0);
+  const auto candidate_result = candidate.port_config(
+      SpineAxiPortKind::kMaintenanceResult, 32, 21, 21);
+  const auto inherited_compute = candidate.port_config(
+      SpineAxiPortKind::kVertexState, 32, 17, 117);
+  require(candidate.profile_id == "candidate10_gmem_1e61fc0" &&
+              candidate_graph.data_width_bytes == 8 &&
+              candidate_graph.request_fifo_depth == 32 &&
+              candidate_graph.response_fifo_depth == 32 &&
+              candidate_graph.max_pending_requests == 70 &&
+              candidate_graph.max_outstanding_bursts == 16 &&
+              candidate_graph.read_reorder_capacity == 256 &&
+              candidate_graph.read_address_pipeline_cycles == 7 &&
+              candidate_graph.write_buffer_pipeline_cycles == 10 &&
+              candidate_graph.serialize_write_bursts &&
+              candidate_result.data_width_bytes == 8 &&
+              candidate_result.max_pending_requests == 67 &&
+              inherited_compute.data_width_bytes == 4 &&
+              inherited_compute.max_pending_requests == 7 &&
+              inherited_compute.read_reorder_capacity == 32 &&
+              inherited_compute.read_address_pipeline_cycles == 0 &&
+              inherited_compute.write_buffer_pipeline_cycles == 0 &&
+              !inherited_compute.serialize_write_bursts,
+          "Candidate10 maintenance adapter profile lost frozen RTL parameters");
 }
 
 SpineMemoryWindowObservation run_spine_edge_pipeline(std::size_t depth,
@@ -5821,6 +6000,66 @@ void test_spine_l0_online_writer_backpressure_is_finite() {
               maintenance.memory_requests_issued ==
                   maintenance.memory_requests_completed,
           "L0 writer did not propagate finite issue-queue backpressure");
+}
+
+void test_spine_candidate10_writer_propagates_finite_queue_backpressure() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("data", 150.0);
+  MockMemoryBackend backend("candidate10-writer-hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 24,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  SpineEdgeSlice workload{
+      .vertices = 4'096,
+      .edges = {},
+      .case_name = "candidate10_writer_backpressure_4096_rows",
+  };
+  workload.edges.reserve(workload.vertices);
+  for (std::uint32_t source = 0; source < workload.vertices; ++source) {
+    workload.edges.push_back(SpineEdgeRecord{
+        .src = source,
+        .dst = static_cast<std::uint32_t>((source + 1) % workload.vertices),
+        .weight = static_cast<std::uint16_t>((source % 16) + 1),
+        .diff = 1,
+    });
+  }
+  SpineL0Config config;
+  config.maintenance_architecture =
+      SpineMaintenanceArchitecture::kCandidate10OnePass;
+  SpineVerticalSliceSystem system(
+      scheduler, core, backend, std::move(workload), 0, 4'096, config,
+      SpineL0State{}, SpineAxiInterfaceProfile::candidate10_1e61fc0());
+  system.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until([&system] { return system.done() && system.idle(); },
+                      10'000'000);
+
+  const SpineL0Counters &maintenance = system.maintenance_counters();
+  const AxiStats maintenance_axi = system.maintenance_axi_stats();
+  std::cout << "EVIDENCE spine_candidate10_writer_backpressure cycles="
+            << maintenance.end_cycle - maintenance.start_cycle
+            << " stalls=" << maintenance.l0_writer_backpressure_stall_cycles
+            << " max_pending_per_port="
+            << maintenance.l0_writer_max_pending_tasks_per_port << '\n';
+  require(!system.failed() &&
+              system.level_state().cold_levels[0][0].size() == 4'096,
+          "Candidate10 writer backpressure changed the persisted graph");
+  require(maintenance.l0_writer_groups_emitted == 4'096 &&
+              maintenance.l0_writer_backpressure_stall_cycles > 0 &&
+              maintenance.l0_writer_max_pending_tasks_per_port <= 32 &&
+              maintenance.l0_writer_validation_failures == 0 &&
+              maintenance.memory_requests_issued ==
+                  maintenance.memory_requests_completed &&
+              maintenance_axi.requests_accepted ==
+                  maintenance_axi.requests_completed &&
+              maintenance_axi.address_pipeline_stalls > 0 &&
+              maintenance_axi.write_burst_serialization_stalls > 0 &&
+              maintenance_axi.max_outstanding_bursts <= 16,
+          "Candidate10 bucket writer bypassed finite issue-queue backpressure");
 }
 
 void test_spine_edge_pipeline_propagates_axis_backpressure() {
@@ -6946,6 +7185,8 @@ int main(int argc, char **argv) {
       {"spine_empty_update_slice",
        test_spine_edge_slice_empty_update_contract},
       {"axi_online_backend", test_axi_splits_bursts_and_uses_backend_online},
+      {"candidate10_axi_adapter_schedule",
+       test_candidate10_axi_adapter_schedule_matches_rtl_oracle},
       {"memory_backend_locality",
        test_memory_backend_tracks_per_initiator_locality_and_epochs},
       {"axi_response_backpressure", test_axi_response_backpressure_is_lossless},
@@ -7055,6 +7296,8 @@ int main(int argc, char **argv) {
        test_spine_edge_pipeline_is_ordered_bounded_and_latency_hiding},
       {"spine_l0_writer_backpressure",
        test_spine_l0_online_writer_backpressure_is_finite},
+      {"spine_candidate10_writer_backpressure",
+       test_spine_candidate10_writer_propagates_finite_queue_backpressure},
       {"spine_edge_pipeline_backpressure",
        test_spine_edge_pipeline_propagates_axis_backpressure},
       {"algorithm_policy_invalid",

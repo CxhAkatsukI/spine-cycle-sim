@@ -12,6 +12,31 @@ namespace {
 constexpr std::uint64_t kAxiBoundaryBytes = 4096;
 }
 
+void accumulate_axi_stats(AxiStats &total, const AxiStats &sample) noexcept {
+  total.requests_accepted += sample.requests_accepted;
+  total.requests_completed += sample.requests_completed;
+  total.request_queue_stalls += sample.request_queue_stalls;
+  total.response_queue_stalls += sample.response_queue_stalls;
+  total.read_beat_queue_stalls += sample.read_beat_queue_stalls;
+  total.read_reorder_stalls += sample.read_reorder_stalls;
+  total.read_beats_streamed += sample.read_beats_streamed;
+  total.bursts_accepted += sample.bursts_accepted;
+  total.beats_issued += sample.beats_issued;
+  total.beats_completed += sample.beats_completed;
+  total.backend_submit_stalls += sample.backend_submit_stalls;
+  total.address_pipeline_stalls += sample.address_pipeline_stalls;
+  total.write_burst_serialization_stalls +=
+      sample.write_burst_serialization_stalls;
+  total.four_kib_splits += sample.four_kib_splits;
+  total.read_bytes += sample.read_bytes;
+  total.write_bytes += sample.write_bytes;
+  total.zero_filled_write_bytes += sample.zero_filled_write_bytes;
+  total.max_outstanding_bursts =
+      std::max(total.max_outstanding_bursts,
+               sample.max_outstanding_bursts);
+  total.burst_trace_dropped += sample.burst_trace_dropped;
+}
+
 AxiMaster::AxiMaster(std::string name, ClockId clock_id, AxiConfig config,
                      Fifo<AxiRequest> &requests, Fifo<AxiResponse> &responses,
                      MemoryBackend &backend,
@@ -61,7 +86,8 @@ std::size_t AxiMaster::channel_for(std::uint64_t address) const {
 }
 
 std::vector<AxiMaster::Burst> AxiMaster::split_request(
-    std::uint64_t parent_id, const AxiRequest& request) {
+    std::uint64_t parent_id, const AxiRequest &request,
+    std::uint64_t accepted_cycle) {
   if (request.bytes == 0) {
     throw std::invalid_argument("AXI request byte count must be positive");
   }
@@ -78,6 +104,17 @@ std::vector<AxiMaster::Burst> AxiMaster::split_request(
                                           boundary_remaining});
     const std::size_t beats = static_cast<std::size_t>(
         (bytes + config_.data_width_bytes - 1) / config_.data_width_bytes);
+    const std::uint64_t cumulative_beats =
+        (parent_offset + bytes + config_.data_width_bytes - 1) /
+        config_.data_width_bytes;
+    const std::uint64_t address_ready_cycle =
+        accepted_cycle +
+        (request.operation == MemoryOperation::kRead
+             ? config_.read_address_pipeline_cycles
+             : (config_.write_buffer_pipeline_cycles == 0
+                    ? 0
+                    : config_.write_buffer_pipeline_cycles +
+                          cumulative_beats));
     bursts.push_back(Burst{
         .burst_id = next_burst_id_ + bursts.size(),
         .parent_id = parent_id,
@@ -88,6 +125,8 @@ std::vector<AxiMaster::Burst> AxiMaster::split_request(
         .beats_total = beats,
         .beats_issued = 0,
         .beats_completed = 0,
+        .parent_accept_cycle = accepted_cycle,
+        .address_ready_cycle = address_ready_cycle,
     });
     if (bytes == boundary_remaining && remaining > bytes) {
       ++stats_.four_kib_splits;
@@ -210,7 +249,7 @@ void AxiMaster::evaluate_backend_responses() {
   }
 }
 
-void AxiMaster::evaluate_request_input() {
+void AxiMaster::evaluate_request_input(const CycleContext &context) {
   if (parents_.size() >= config_.max_pending_requests) {
     if (requests_.front() != nullptr) {
       ++stats_.request_queue_stalls;
@@ -223,17 +262,41 @@ void AxiMaster::evaluate_request_input() {
   }
   staged_parent_id_ = next_parent_id_;
   staged_input_ = request;
-  staged_new_bursts_ = split_request(staged_parent_id_, request);
+  staged_new_bursts_ =
+      split_request(staged_parent_id_, request, context.domain_cycle);
 }
 
-void AxiMaster::evaluate_address_channel() {
+void AxiMaster::evaluate_address_channel(const CycleContext &context) {
   const std::size_t free_slots = config_.max_outstanding_bursts > active_bursts_.size()
       ? config_.max_outstanding_bursts - active_bursts_.size()
       : 0;
-  const std::size_t count = std::min(
+  const std::size_t candidate_count = std::min(
       {config_.address_accepts_per_cycle, free_slots, pending_address_.size()});
-  for (std::size_t index = 0; index < count; ++index) {
+  bool serialized_write_staged = false;
+  for (std::size_t index = 0; index < candidate_count; ++index) {
+    const Burst &candidate = pending_address_[index];
+    if (context.domain_cycle < candidate.address_ready_cycle) {
+      ++stats_.address_pipeline_stalls;
+      break;
+    }
+    if (config_.serialize_write_bursts &&
+        candidate.operation == MemoryOperation::kWrite) {
+      const bool write_data_active = std::any_of(
+          active_bursts_.begin(), active_bursts_.end(),
+          [](const Burst &burst) {
+            return burst.operation == MemoryOperation::kWrite &&
+                   burst.beats_issued < burst.beats_total;
+          });
+      if (write_data_active || serialized_write_staged) {
+        ++stats_.write_burst_serialization_stalls;
+        break;
+      }
+    }
     staged_address_bursts_.push_back(pending_address_[index].burst_id);
+    serialized_write_staged =
+        serialized_write_staged ||
+        (config_.serialize_write_bursts &&
+         candidate.operation == MemoryOperation::kWrite);
   }
 }
 
@@ -336,13 +399,13 @@ void AxiMaster::evaluate_data_channel() {
   }
 }
 
-void AxiMaster::evaluate(const CycleContext&) {
+void AxiMaster::evaluate(const CycleContext &context) {
   reset_staging();
   evaluate_output();
   evaluate_read_beat_output();
   evaluate_backend_responses();
-  evaluate_request_input();
-  evaluate_address_channel();
+  evaluate_request_input(context);
+  evaluate_address_channel(context);
   evaluate_data_channel();
 }
 
@@ -459,12 +522,29 @@ void AxiMaster::commit_request_input() {
   ++stats_.requests_accepted;
 }
 
-void AxiMaster::commit_address_channel() {
+void AxiMaster::commit_address_channel(const CycleContext &context) {
   for (std::uint64_t burst_id : staged_address_bursts_) {
     if (pending_address_.empty() || pending_address_.front().burst_id != burst_id) {
       throw std::logic_error("AXI pending address queue changed before commit");
     }
-    active_bursts_.push_back(pending_address_.front());
+    const Burst &burst = pending_address_.front();
+    if (config_.burst_trace_limit != 0) {
+      if (burst_trace_.size() < config_.burst_trace_limit) {
+        burst_trace_.push_back(AxiBurstTrace{
+            .transaction_id = parents_.at(burst.parent_id)
+                                  .request.transaction_id,
+            .operation = burst.operation,
+            .address = burst.address,
+            .bytes = burst.bytes,
+            .beats = burst.beats_total,
+            .parent_accept_cycle = burst.parent_accept_cycle,
+            .address_issue_cycle = context.domain_cycle,
+        });
+      } else {
+        ++stats_.burst_trace_dropped;
+      }
+    }
+    active_bursts_.push_back(burst);
     pending_address_.pop_front();
     ++stats_.bursts_accepted;
   }
@@ -556,11 +636,11 @@ void AxiMaster::commit_read_beat_output() {
   queue_parent_response_if_ready(parent_id);
 }
 
-void AxiMaster::commit(const CycleContext &) {
+void AxiMaster::commit(const CycleContext &context) {
   commit_output();
   commit_backend_responses();
   commit_request_input();
-  commit_address_channel();
+  commit_address_channel(context);
   commit_data_channel();
   commit_read_beat_output();
 }

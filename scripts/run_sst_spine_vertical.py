@@ -1396,8 +1396,11 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--axi-profile",
-        choices=("hls_split_9c08763", "legacy_uniform64"),
-        default="hls_split_9c08763",
+        choices=(
+            "hls_split_9c08763",
+            "candidate10_gmem_1e61fc0",
+            "legacy_uniform64",
+        ),
     )
     parser.add_argument(
         "--maintenance-architecture",
@@ -1423,6 +1426,17 @@ def main() -> int:
     profile_maintenance_architecture = profile.get("parameters", {}).get(
         "maintenance_architecture", "shared_engine_serial"
     )
+    profile_axi = profile.get("parameters", {}).get(
+        "axi_profile", "hls_split_9c08763"
+    )
+    if profile_axi not in {
+        "hls_split_9c08763",
+        "candidate10_gmem_1e61fc0",
+        "legacy_uniform64",
+    }:
+        raise SystemExit("profile has an unknown axi_profile")
+    if args.axi_profile is None:
+        args.axi_profile = profile_axi
     if profile_maintenance_architecture not in {
         "shared_engine_serial",
         "candidate10_one_pass",

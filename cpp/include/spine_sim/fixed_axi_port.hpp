@@ -30,6 +30,10 @@ struct FixedAxiPortConfig {
   std::size_t address_accepts_per_cycle{1};
   std::size_t beat_issues_per_cycle{1};
   std::size_t response_beats_per_cycle{4};
+  std::uint64_t read_address_pipeline_cycles{};
+  std::uint64_t write_buffer_pipeline_cycles{};
+  bool serialize_write_bursts{};
+  std::size_t burst_trace_limit{};
 };
 
 class FixedAxiPort {
@@ -54,6 +58,12 @@ class FixedAxiPort {
                 .beat_issues_per_cycle = config.beat_issues_per_cycle,
                 .response_beats_per_cycle = config.response_beats_per_cycle,
                 .read_reorder_capacity = config.read_reorder_capacity,
+                .read_address_pipeline_cycles =
+                    config.read_address_pipeline_cycles,
+                .write_buffer_pipeline_cycles =
+                    config.write_buffer_pipeline_cycles,
+                .serialize_write_bursts = config.serialize_write_bursts,
+                .burst_trace_limit = config.burst_trace_limit,
                 .fixed_channel = config.channel,
             },
             requests_, responses_, backend,

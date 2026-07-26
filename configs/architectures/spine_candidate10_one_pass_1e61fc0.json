@@ -26,6 +26,7 @@
   "parameters": {
     "comparison_role": "native",
     "maintenance_architecture": "candidate10_one_pass",
+    "axi_profile": "candidate10_gmem_1e61fc0",
     "partitions": 16,
     "hot_shards": 16,
     "families": 32,

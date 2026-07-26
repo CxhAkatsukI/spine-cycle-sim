@@ -1819,7 +1819,11 @@ void SpineL0Maintenance::enqueue_task(
                  queued_on_port);
     if (queued_on_port > port.requests().depth()) {
       ++counters_.l0_writer_validation_failures;
-      throw std::logic_error("Spine L0 writer exceeded its finite issue queue");
+      throw std::logic_error(
+          "Spine L0 writer exceeded its finite issue queue on " +
+          port.master().name() + ": queued=" +
+          std::to_string(queued_on_port) + ", capacity=" +
+          std::to_string(port.requests().depth()));
     }
   }
   ++counters_.memory_tasks;
@@ -2001,9 +2005,10 @@ void SpineL0Maintenance::enqueue_carry_hot_bitmap_read(
 }
 
 bool SpineL0Maintenance::scan_can_advance(const CycleContext &context) {
+  const bool writer_scan = scan_kind_ == ScanKind::kL0Write ||
+                           scan_kind_ == ScanKind::kCandidateBucketWrite;
   if (scan_index_ == sorted_scan_edges_.size()) {
-    if (scan_kind_ == ScanKind::kL0Write &&
-        !l0_writer_has_queue_headroom()) {
+    if (writer_scan && !l0_writer_has_queue_headroom()) {
       ++counters_.l0_writer_backpressure_stall_cycles;
       return false;
     }
@@ -2020,8 +2025,7 @@ bool SpineL0Maintenance::scan_can_advance(const CycleContext &context) {
     ++counters_.sorted_scan_ii_stall_cycles;
     return false;
   }
-  if (scan_kind_ == ScanKind::kL0Write &&
-      !l0_writer_has_queue_headroom()) {
+  if (writer_scan && !l0_writer_has_queue_headroom()) {
     ++counters_.l0_writer_backpressure_stall_cycles;
     return false;
   }

@@ -1,0 +1,51 @@
+digraph Candidate10MAxiExecution {
+  graph [rankdir=LR, bgcolor="white", pad=0.2, nodesep=0.45, ranksep=0.65,
+         fontname="DejaVu Sans", fontsize=11, labeljust=l,
+         label="Candidate10 maintenance writer and generated m_axi adapter"];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans",
+        fontsize=10, color="#374151", penwidth=1.1, margin="0.13,0.08"];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#4b5563", arrowsize=0.75];
+
+  writer [label="L0 writer RTL schedule\nII=24 + final flush deadline",
+          fillcolor="#fef3c7"];
+  issue [label="Finite issue queue\ndepth 32, backpressure to scan",
+         fillcolor="#fee2e2"];
+  child [label="HLS child request\n64-bit word address + beat count",
+         fillcolor="#dcfce7"];
+
+  subgraph cluster_adapter {
+    label="Generated Vitis gmem adapter (frozen XO)";
+    color="#9ca3af";
+    style="rounded";
+    req [label="Request capacity\nRW 70 / WO 67", fillcolor="#e0f2fe"];
+    split [label="Burst converter\nmax 16 beats + 4 KiB split",
+           fillcolor="#e0f2fe"];
+    read [label="Read path\nAR after +7 cycles\nreorder capacity 256",
+          fillcolor="#dbeafe"];
+    write [label="Write path\nbuffer +10 cycles + beats\nserialize burst data",
+           fillcolor="#f3e8ff"];
+    out [label="External AXI\nmax 16 outstanding",
+         fillcolor="#e5e7eb"];
+  }
+
+  hbm [label="Shared SST-HBM backend\nchannels, rows, queues, responses",
+       fillcolor="#ccfbf1"];
+  stats [label="Evidence ledger\nqueue / pipeline / serialization /\nbackend stalls + bytes + bursts",
+         fillcolor="#fce7f3"];
+
+  writer -> issue [label="atomic packer bundle"];
+  issue -> child [label="<= 1 request/cycle"];
+  child -> req;
+  req -> split;
+  split -> read [label="read"];
+  split -> write [label="write"];
+  read -> out;
+  write -> out;
+  out -> hbm [label="execution-driven request"];
+  hbm -> out [label="timed response", dir=back];
+
+  issue -> stats [style=dashed];
+  read -> stats [style=dashed];
+  write -> stats [style=dashed];
+  hbm -> stats [style=dashed];
+}
