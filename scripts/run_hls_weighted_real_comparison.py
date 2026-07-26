@@ -48,6 +48,25 @@ DEFAULT_GRASU_PROFILE = (
 DEFAULT_CAPABILITIES = (
     ROOT / "configs" / "contracts" / "grasu_regraph_capabilities_v1.json"
 )
+PROFILE_SETS = {
+    "legacy": {
+        "spine_profile": DEFAULT_SPINE_PROFILE,
+        "spine_profile_id": "spine_shared_engine_9c08763",
+        "grasu_profile": DEFAULT_GRASU_PROFILE,
+        "grasu_profile_id": "grasu_regraph_weighted_pma_hls_sw_emu_ff13a67",
+        "capability_catalog": DEFAULT_CAPABILITIES,
+    },
+    "candidate10_hls_v3": {
+        "spine_profile": ROOT
+        / "configs/architectures/spine_candidate10_normalized_v1.json",
+        "spine_profile_id": "spine_candidate10_normalized_v1",
+        "grasu_profile": ROOT
+        / "configs/architectures/grasu_regraph_candidate10_normalized_hls_weighted_v3.json",
+        "grasu_profile_id": "grasu_regraph_candidate10_normalized_hls_weighted_v3",
+        "capability_catalog": ROOT
+        / "configs/contracts/grasu_regraph_candidate10_hls_capabilities_v3.json",
+    },
+}
 DEFAULT_SST = Path("/data/feiyang/sst/bin/sst")
 
 
@@ -292,9 +311,12 @@ def _run_system(
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input-manifest", type=Path, default=DEFAULT_INPUT_MANIFEST)
-    parser.add_argument("--spine-profile", type=Path, default=DEFAULT_SPINE_PROFILE)
-    parser.add_argument("--grasu-profile", type=Path, default=DEFAULT_GRASU_PROFILE)
-    parser.add_argument("--capability-catalog", type=Path, default=DEFAULT_CAPABILITIES)
+    parser.add_argument(
+        "--profile-set", choices=tuple(PROFILE_SETS), default="legacy"
+    )
+    parser.add_argument("--spine-profile", type=Path)
+    parser.add_argument("--grasu-profile", type=Path)
+    parser.add_argument("--capability-catalog", type=Path)
     parser.add_argument("--out-dir", type=Path, required=True)
     parser.add_argument("--sst", type=Path, default=DEFAULT_SST)
     parser.add_argument("--lib-dir", type=Path, default=ROOT / "build" / "sst")
@@ -309,14 +331,20 @@ def main() -> int:
     args = parser.parse_args()
     if args.jobs <= 0 or args.timeout_seconds <= 0.0 or args.max_cycles <= 0:
         raise ValueError("jobs, timeout, and max cycles must be positive")
+    profile_set = PROFILE_SETS[args.profile_set]
+    args.spine_profile = args.spine_profile or profile_set["spine_profile"]
+    args.grasu_profile = args.grasu_profile or profile_set["grasu_profile"]
+    args.capability_catalog = (
+        args.capability_catalog or profile_set["capability_catalog"]
+    )
 
     manifest = validate_real_small_batch_manifest(ROOT, args.input_manifest)
     selected = _select_runs(list(manifest["runs"]), args.run_id, args.limit)
     spine_profile, spine_mhz = _profile(
-        args.spine_profile, "spine_shared_engine_9c08763"
+        args.spine_profile, str(profile_set["spine_profile_id"])
     )
     grasu_profile, grasu_mhz = _profile(
-        args.grasu_profile, "grasu_regraph_weighted_pma_hls_sw_emu_ff13a67"
+        args.grasu_profile, str(profile_set["grasu_profile_id"])
     )
     capabilities = json.loads(args.capability_catalog.read_text(encoding="utf-8"))
     grasu_capability = next(
@@ -397,6 +425,7 @@ def main() -> int:
         "status": "PASS",
         "complete_matrix": complete,
         "claim_class": "profile_clock_adjusted_real_compact_execution_driven",
+        "profile_set": args.profile_set,
         "input_manifest": str(args.input_manifest.resolve()),
         "input_manifest_sha256": sha256_file(args.input_manifest),
         "spine_profile_id": spine_profile["profile_id"],
@@ -427,7 +456,10 @@ def main() -> int:
         "limitations": [
             "The three inputs are compact real-edge slices, not full datasets.",
             (
-                "Spine is the routed 141 MHz reference profile; GraSU/ReGraph "
+                "The Candidate10 comparison uses frozen HLS-derived normalized "
+                "profiles; whole-system implementation evidence is reported separately."
+                if args.profile_set == "candidate10_hls_v3"
+                else "Spine is the routed 141 MHz reference profile; GraSU/ReGraph "
                 "is the requested 200 MHz sw_emu-aligned profile."
             ),
             "Simulator cycles are not calibrated cycle-for-cycle against hw.",
