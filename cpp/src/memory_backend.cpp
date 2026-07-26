@@ -213,9 +213,122 @@ std::vector<std::uint8_t> MemoryBackend::complete_read_payload(
   return inspect_payload(request.channel, request.address, request.bytes);
 }
 
+RegisteredChannelArbiter::RegisteredChannelArbiter(
+    std::size_t channels, std::size_t grants_per_channel_per_cycle)
+    : channels_(channels),
+      grants_per_channel_per_cycle_(grants_per_channel_per_cycle),
+      intents_(channels),
+      grants_(channels),
+      next_initiator_(channels, 0) {
+  if (channels_ == 0 || grants_per_channel_per_cycle_ == 0) {
+    throw std::invalid_argument(
+        "registered channel arbiter configuration must be positive");
+  }
+}
+
+bool RegisteredChannelArbiter::try_acquire(const BackendRequest& request) {
+  if (request.channel >= channels_) {
+    throw std::invalid_argument("arbiter request targets an invalid channel");
+  }
+  auto& channel_grants = grants_[request.channel];
+  const auto granted = channel_grants.find(request.initiator_id);
+  if (granted != channel_grants.end()) {
+    channel_grants.erase(granted);
+    ++stats_.consumed_grants;
+    return true;
+  }
+
+  auto& channel_intents = intents_[request.channel];
+  const auto [pending, inserted] =
+      channel_intents.emplace(request.initiator_id, request);
+  (void)pending;
+  stats_.unique_intents += inserted ? 1 : 0;
+  ++stats_.request_waits;
+  return false;
+}
+
+void RegisteredChannelArbiter::arbitrate(
+    std::span<const std::size_t> channel_outstanding,
+    std::size_t max_outstanding_per_channel) {
+  if (channel_outstanding.size() != channels_ ||
+      max_outstanding_per_channel == 0) {
+    throw std::invalid_argument("invalid arbiter outstanding snapshot");
+  }
+  for (std::size_t channel = 0; channel < channels_; ++channel) {
+    auto& intents = intents_[channel];
+    auto& grants = grants_[channel];
+    stats_.max_contenders = std::max(stats_.max_contenders, intents.size());
+    if (intents.empty()) {
+      continue;
+    }
+    const std::size_t occupied = channel_outstanding[channel] + grants.size();
+    const std::size_t capacity =
+        occupied < max_outstanding_per_channel
+            ? max_outstanding_per_channel - occupied
+            : 0;
+    const std::size_t slots =
+        std::min(grants_per_channel_per_cycle_, capacity);
+    if (slots == 0) {
+      ++stats_.capacity_blocked_cycles;
+      stats_.contention_losers += intents.size();
+      continue;
+    }
+    if (intents.size() > slots) {
+      ++stats_.contended_cycles;
+      stats_.contention_losers += intents.size() - slots;
+    }
+
+    for (std::size_t slot = 0; slot < slots && !intents.empty(); ++slot) {
+      auto selected = intents.lower_bound(next_initiator_[channel]);
+      if (selected == intents.end()) {
+        selected = intents.begin();
+      }
+      const std::uint32_t initiator = selected->first;
+      if (!grants.emplace(initiator, std::move(selected->second)).second) {
+        throw std::logic_error("arbiter issued a duplicate initiator grant");
+      }
+      intents.erase(selected);
+      next_initiator_[channel] = initiator + 1;
+      ++stats_.grants;
+    }
+  }
+  stats_.max_pending_grants =
+      std::max(stats_.max_pending_grants, pending_grants());
+}
+
+std::size_t RegisteredChannelArbiter::pending_grants() const noexcept {
+  std::size_t count = 0;
+  for (const auto& grants : grants_) {
+    count += grants.size();
+  }
+  return count;
+}
+
+std::size_t RegisteredChannelArbiter::pending_intents() const noexcept {
+  std::size_t count = 0;
+  for (const auto& intents : intents_) {
+    count += intents.size();
+  }
+  return count;
+}
+
+std::size_t RegisteredChannelArbiter::pending_grants_for(
+    std::uint32_t initiator_id) const noexcept {
+  std::size_t count = 0;
+  for (const auto& grants : grants_) {
+    count += grants.contains(initiator_id) ? 1 : 0;
+  }
+  return count;
+}
+
 MockMemoryBackend::MockMemoryBackend(std::string name, ClockId clock_id,
                                      MockMemoryConfig config)
-    : MemoryBackend(std::move(name), clock_id), config_(config) {
+    : MemoryBackend(std::move(name), clock_id), config_(config),
+      arbiter_(config.registered_round_robin_arbitration
+                   ? std::make_unique<RegisteredChannelArbiter>(
+                         config.channels,
+                         config.accepts_per_channel_per_cycle)
+                   : nullptr) {
   if (config_.channels == 0 || config_.latency_cycles == 0 ||
       config_.accepts_per_channel_per_cycle == 0 ||
       config_.max_outstanding_per_channel == 0 ||
@@ -241,6 +354,10 @@ bool MockMemoryBackend::try_submit(const BackendRequest& request) {
       (request.operation == MemoryOperation::kWrite &&
        request.write_data.size() != request.bytes)) {
     throw std::invalid_argument("invalid mock memory request payload");
+  }
+  if (arbiter_ != nullptr && !arbiter_->try_acquire(request)) {
+    ++stats_.submit_stalls;
+    return false;
   }
   const auto staged_for_channel = static_cast<std::size_t>(std::count_if(
       staged_submissions_.begin(), staged_submissions_.end(),
@@ -283,7 +400,8 @@ bool MockMemoryBackend::stage_pop_responses(std::uint32_t initiator_id,
 }
 
 std::size_t MockMemoryBackend::outstanding() const noexcept {
-  return pending_.size() + staged_submissions_.size();
+  return pending_.size() + staged_submissions_.size() +
+         (arbiter_ == nullptr ? 0 : arbiter_->pending_grants());
 }
 
 std::size_t MockMemoryBackend::outstanding_for(
@@ -298,7 +416,9 @@ std::size_t MockMemoryBackend::outstanding_for(
       [initiator_id](const BackendRequest& request) {
         return request.initiator_id == initiator_id;
       }));
-  return pending + staged;
+  return pending + staged +
+         (arbiter_ == nullptr ? 0
+                              : arbiter_->pending_grants_for(initiator_id));
 }
 
 void MockMemoryBackend::prepare(const CycleContext& context) {
@@ -350,6 +470,15 @@ void MockMemoryBackend::commit(const CycleContext& context) {
     ++stats_.accepted;
   }
   staged_submissions_.clear();
+  if (arbiter_ != nullptr) {
+    std::vector<std::size_t> outstanding(config_.channels, 0);
+    for (const Pending& item : pending_) {
+      if (!item.completed) {
+        ++outstanding[item.channel];
+      }
+    }
+    arbiter_->arbitrate(outstanding, config_.max_outstanding_per_channel);
+  }
   stats_.max_outstanding = std::max(stats_.max_outstanding, pending_.size());
 }
 

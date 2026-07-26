@@ -1,0 +1,42 @@
+{
+  "claim_scope": "structural_exploratory",
+  "command_output_root": "/data/tmp/chuxiao/candidate10_registered_arbiter_smoke_v6_20260726",
+  "run_id": "syn_weighted_diamond_v8__weighted_sssp",
+  "schema_version": 1,
+  "systems": {
+    "grasu_regraph": {
+      "arbitration": {
+        "capacity_blocked_cycles": 0,
+        "consumed_grants": 84555,
+        "contended_cycles": 639,
+        "contention_losers": 639,
+        "grants": 84555,
+        "ledger_closed": true,
+        "max_contenders": 2,
+        "pending_grants": 0,
+        "pending_intents": 0,
+        "unique_intents": 84555
+      },
+      "cycles_before_registered_arbitration": 200002,
+      "cycles_with_registered_arbitration": 201826,
+      "success": true
+    },
+    "spine": {
+      "arbitration": {
+        "capacity_blocked_cycles": 0,
+        "consumed_grants": 3982,
+        "contended_cycles": 0,
+        "contention_losers": 0,
+        "grants": 3982,
+        "ledger_closed": true,
+        "max_contenders": 1,
+        "pending_grants": 0,
+        "pending_intents": 0,
+        "unique_intents": 3982
+      },
+      "cycles_before_registered_arbitration": 58618,
+      "cycles_with_registered_arbitration": 62210,
+      "success": true
+    }
+  }
+}

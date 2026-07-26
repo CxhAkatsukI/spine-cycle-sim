@@ -4,6 +4,9 @@
 #include <cstddef>
 #include <cstdint>
 #include <deque>
+#include <map>
+#include <memory>
+#include <span>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -122,12 +125,52 @@ class MemoryBackend : public Component {
   std::unordered_map<std::uint32_t, InitiatorCursors> traffic_cursors_;
 };
 
+struct RegisteredChannelArbiterStats {
+  std::uint64_t unique_intents{};
+  std::uint64_t request_waits{};
+  std::uint64_t grants{};
+  std::uint64_t consumed_grants{};
+  std::uint64_t contended_cycles{};
+  std::uint64_t contention_losers{};
+  std::uint64_t capacity_blocked_cycles{};
+  std::size_t max_contenders{};
+  std::size_t max_pending_grants{};
+};
+
+// Requests are collected during evaluate and granted during commit for
+// consumption on the next cycle. This removes component-order priority.
+class RegisteredChannelArbiter {
+ public:
+  RegisteredChannelArbiter(std::size_t channels,
+                           std::size_t grants_per_channel_per_cycle);
+
+  [[nodiscard]] bool try_acquire(const BackendRequest& request);
+  void arbitrate(std::span<const std::size_t> channel_outstanding,
+                 std::size_t max_outstanding_per_channel);
+  [[nodiscard]] std::size_t pending_intents() const noexcept;
+  [[nodiscard]] std::size_t pending_grants() const noexcept;
+  [[nodiscard]] std::size_t pending_grants_for(
+      std::uint32_t initiator_id) const noexcept;
+  [[nodiscard]] const RegisteredChannelArbiterStats& stats() const noexcept {
+    return stats_;
+  }
+
+ private:
+  std::size_t channels_{};
+  std::size_t grants_per_channel_per_cycle_{};
+  std::vector<std::map<std::uint32_t, BackendRequest>> intents_;
+  std::vector<std::map<std::uint32_t, BackendRequest>> grants_;
+  std::vector<std::uint32_t> next_initiator_;
+  RegisteredChannelArbiterStats stats_;
+};
+
 struct MockMemoryConfig {
   std::size_t channels{};
   std::uint64_t latency_cycles{};
   std::size_t accepts_per_channel_per_cycle{};
   std::size_t max_outstanding_per_channel{};
   std::size_t response_queue_depth{};
+  bool registered_round_robin_arbitration{};
 };
 
 struct MockMemoryStats {
@@ -152,6 +195,10 @@ class MockMemoryBackend final : public MemoryBackend {
   [[nodiscard]] std::size_t outstanding_for(
       std::uint32_t initiator_id) const noexcept override;
   [[nodiscard]] const MockMemoryStats& stats() const noexcept { return stats_; }
+  [[nodiscard]] const RegisteredChannelArbiterStats* arbitration_stats()
+      const noexcept {
+    return arbiter_ == nullptr ? nullptr : &arbiter_->stats();
+  }
 
   void prepare(const CycleContext& context) override;
   void evaluate(const CycleContext&) override {}
@@ -168,6 +215,7 @@ class MockMemoryBackend final : public MemoryBackend {
   [[nodiscard]] std::size_t channel_outstanding(std::size_t channel) const;
 
   MockMemoryConfig config_;
+  std::unique_ptr<RegisteredChannelArbiter> arbiter_;
   std::deque<Pending> pending_;
   std::unordered_map<std::uint32_t, std::deque<BackendResponse>> responses_;
   std::vector<BackendRequest> staged_submissions_;

@@ -191,6 +191,15 @@ class SharedComparisonRunnerTests(unittest.TestCase):
             "vertices": run["graph"]["vertices"],
             "input_edges": run["graph"]["records"],
             "backend_requests": 7,
+            "backend_arbitration": {
+                "policy": "registered_round_robin_per_pseudo_channel",
+                "unique_intents": 7,
+                "grants": 7,
+                "consumed_grants": 7,
+                "pending_intents": 0,
+                "pending_grants": 0,
+                "ledger_closed": True,
+            },
         }
         dram = {"channels": 32, "reads": 5, "writes": 2}
         binding = {
@@ -208,6 +217,12 @@ class SharedComparisonRunnerTests(unittest.TestCase):
         result["architecture_profile_id"] = "spine_latest_afb8199"
         self.assertIn(
             "profile_id",
+            validate_system_result(run, invocation, result, dram, binding),
+        )
+        result["architecture_profile_id"] = invocation.profile_id
+        result["backend_arbitration"]["ledger_closed"] = False
+        self.assertIn(
+            "registered_arbitration_ledger",
             validate_system_result(run, invocation, result, dram, binding),
         )
 

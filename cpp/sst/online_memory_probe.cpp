@@ -1100,7 +1100,8 @@ class SstMemoryBackend final : public MemoryBackend {
         accepts_per_channel_per_cycle_(accepts_per_channel_per_cycle),
         max_outstanding_per_channel_(max_outstanding_per_channel),
         response_queue_depth_(response_queue_depth),
-        channel_outstanding_(interfaces_.size(), 0) {
+        channel_outstanding_(interfaces_.size(), 0),
+        arbiter_(interfaces_.size(), accepts_per_channel_per_cycle) {
     if (interfaces_.empty() ||
         std::none_of(interfaces_.begin(), interfaces_.end(),
                      [](const auto *interface) { return interface != nullptr; }) ||
@@ -1125,6 +1126,10 @@ class SstMemoryBackend final : public MemoryBackend {
         (request.operation == MemoryOperation::kWrite &&
          request.write_data.size() != request.bytes)) {
       throw std::invalid_argument("invalid SST backend request payload");
+    }
+    if (!arbiter_.try_acquire(request)) {
+      ++submit_stalls_;
+      return false;
     }
     const auto staged_for_channel = static_cast<std::size_t>(
         std::count_if(staged_submissions_.begin(), staged_submissions_.end(),
@@ -1167,7 +1172,8 @@ class SstMemoryBackend final : public MemoryBackend {
   }
 
   [[nodiscard]] std::size_t outstanding() const noexcept override {
-    std::size_t count = staged_submissions_.size();
+    std::size_t count =
+        staged_submissions_.size() + arbiter_.pending_grants();
     for (std::size_t value : channel_outstanding_) {
       count += value;
     }
@@ -1182,7 +1188,7 @@ class SstMemoryBackend final : public MemoryBackend {
                         return request.initiator_id == initiator_id;
                       }));
     const auto inflight = initiator_outstanding_.find(initiator_id);
-    return staged +
+    return staged + arbiter_.pending_grants_for(initiator_id) +
            (inflight == initiator_outstanding_.end() ? 0 : inflight->second);
   }
 
@@ -1240,6 +1246,7 @@ class SstMemoryBackend final : public MemoryBackend {
       interfaces_[request.channel]->send(standard_request);
     }
     staged_submissions_.clear();
+    arbiter_.arbitrate(channel_outstanding_, max_outstanding_per_channel_);
     max_outstanding_ = std::max(max_outstanding_, outstanding());
   }
 
@@ -1285,6 +1292,36 @@ class SstMemoryBackend final : public MemoryBackend {
   [[nodiscard]] std::size_t max_outstanding() const noexcept {
     return max_outstanding_;
   }
+  [[nodiscard]] const RegisteredChannelArbiterStats &arbitration_stats()
+      const noexcept {
+    return arbiter_.stats();
+  }
+  [[nodiscard]] std::string arbitration_json() const {
+    const RegisteredChannelArbiterStats &stats = arbiter_.stats();
+    const std::size_t pending_intents = arbiter_.pending_intents();
+    const std::size_t pending_grants = arbiter_.pending_grants();
+    const bool ledger_closed =
+        stats.unique_intents == stats.grants &&
+        stats.grants == stats.consumed_grants && pending_intents == 0 &&
+        pending_grants == 0;
+    std::ostringstream stream;
+    stream << "{\"policy\":\"registered_round_robin_per_pseudo_channel\""
+           << ",\"unique_intents\":" << stats.unique_intents
+           << ",\"request_waits\":" << stats.request_waits
+           << ",\"grants\":" << stats.grants
+           << ",\"consumed_grants\":" << stats.consumed_grants
+           << ",\"pending_intents\":" << pending_intents
+           << ",\"pending_grants\":" << pending_grants
+           << ",\"ledger_closed\":" << (ledger_closed ? "true" : "false")
+           << ",\"contended_cycles\":" << stats.contended_cycles
+           << ",\"contention_losers\":" << stats.contention_losers
+           << ",\"capacity_blocked_cycles\":"
+           << stats.capacity_blocked_cycles
+           << ",\"max_contenders\":" << stats.max_contenders
+           << ",\"max_pending_grants\":" << stats.max_pending_grants
+           << '}';
+    return stream.str();
+  }
 
  private:
   struct Inflight {
@@ -1302,6 +1339,7 @@ class SstMemoryBackend final : public MemoryBackend {
   std::size_t max_outstanding_per_channel_{};
   std::size_t response_queue_depth_{};
   std::vector<std::size_t> channel_outstanding_;
+  RegisteredChannelArbiter arbiter_;
   std::unordered_map<std::uint32_t, std::size_t> initiator_outstanding_;
   std::vector<BackendRequest> staged_submissions_;
   std::unordered_map<SST::Interfaces::StandardMem::Request::id_t, Inflight>
@@ -3287,6 +3325,8 @@ class OnlineMemoryProbe final : public SST::Component {
              << backend_->response_queue_stalls() << ",\n"
              << "  \"backend_max_outstanding\": "
              << backend_->max_outstanding() << ",\n"
+             << "  \"backend_arbitration\": "
+             << backend_->arbitration_json() << ",\n"
              << "  \"backend_traffic\": ";
       write_memory_traffic(result, backend_->traffic_stats());
       result << ",\n  \"failure\": ";
@@ -3467,6 +3507,8 @@ class OnlineMemoryProbe final : public SST::Component {
              << backend_->response_queue_stalls() << ",\n"
              << "  \"backend_max_outstanding\": "
              << backend_->max_outstanding() << ",\n"
+             << "  \"backend_arbitration\": "
+             << backend_->arbitration_json() << ",\n"
              << "  \"distances\": ";
       write_json_array(result, distances);
       result << "\n}\n";
@@ -3837,7 +3879,9 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"backend_response_queue_stalls\": "
              << backend_->response_queue_stalls() << ",\n"
              << "  \"backend_max_outstanding\": "
-             << backend_->max_outstanding() << ",\n";
+             << backend_->max_outstanding() << ",\n"
+             << "  \"backend_arbitration\": "
+             << backend_->arbitration_json() << ",\n";
       result << "  \"backend_traffic\": ";
       write_memory_traffic(result, total_backend_traffic);
       result << ",\n  \"update_backend_traffic\": ";
@@ -4219,6 +4263,8 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"backend_response_queue_stalls\": "
           << backend_->response_queue_stalls() << ",\n"
           << "  \"backend_max_outstanding\": " << backend_->max_outstanding()
+          << ",\n"
+          << "  \"backend_arbitration\": " << backend_->arbitration_json()
           << ",\n";
       result << "  \"backend_traffic\": ";
       write_memory_traffic(result, total_backend_traffic);
@@ -4541,7 +4587,9 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"backend_response_queue_stalls\": "
              << backend_->response_queue_stalls() << ",\n"
              << "  \"backend_max_outstanding\": "
-             << backend_->max_outstanding() << ",\n";
+             << backend_->max_outstanding() << ",\n"
+             << "  \"backend_arbitration\": "
+             << backend_->arbitration_json() << ",\n";
       result << "  \"backend_traffic\": ";
       write_memory_traffic(result, total_backend_traffic);
       result << ",\n  \"update_backend_traffic\": ";
@@ -4868,6 +4916,8 @@ class OnlineMemoryProbe final : public SST::Component {
           << backend_->response_queue_stalls() << ",\n"
           << "  \"backend_max_outstanding\": " << backend_->max_outstanding()
           << ",\n"
+          << "  \"backend_arbitration\": " << backend_->arbitration_json()
+          << ",\n"
           << "  \"backend_traffic\": ";
       write_memory_traffic(result, total_backend_traffic);
       result << ",\n  \"maintenance_backend_traffic\": ";
@@ -5142,6 +5192,8 @@ class OnlineMemoryProbe final : public SST::Component {
           << backend_->response_queue_stalls() << ",\n"
           << "  \"backend_max_outstanding\": " << backend_->max_outstanding()
           << ",\n"
+          << "  \"backend_arbitration\": " << backend_->arbitration_json()
+          << ",\n"
           << "  \"backend_traffic\": ";
       write_memory_traffic(result, total_backend_traffic);
       result << ",\n  \"maintenance_backend_traffic\": ";
@@ -5386,7 +5438,9 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"backend_response_queue_stalls\": "
              << backend_->response_queue_stalls() << ",\n"
              << "  \"backend_max_outstanding\": " << backend_->max_outstanding()
-             << "\n"
+             << ",\n"
+             << "  \"backend_arbitration\": "
+             << backend_->arbitration_json() << "\n"
              << "}\n";
       output_.output(
           "completed Spine compute microbenchmark in %llu core cycles -> %s\n",
@@ -6586,6 +6640,8 @@ class OnlineMemoryProbe final : public SST::Component {
              << backend_->response_queue_stalls() << ",\n"
              << "  \"backend_max_outstanding\": " << backend_->max_outstanding()
              << ",\n"
+             << "  \"backend_arbitration\": "
+             << backend_->arbitration_json() << ",\n"
              << "  \"memory_locality_ledger_match\": "
              << (memory_locality_ledger_match ? "true" : "false") << ",\n"
              << "  \"backend_traffic\": ";
@@ -7301,6 +7357,8 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"backend_response_queue_stalls\": "
           << backend_->response_queue_stalls() << ",\n"
           << "  \"backend_max_outstanding\": " << backend_->max_outstanding()
+          << ",\n"
+          << "  \"backend_arbitration\": " << backend_->arbitration_json()
           << "\n"
           << "}\n";
       output_.output(
@@ -7332,6 +7390,8 @@ class OnlineMemoryProbe final : public SST::Component {
            << "  \"backend_response_queue_stalls\": "
            << backend_->response_queue_stalls() << ",\n"
            << "  \"backend_max_outstanding\": " << backend_->max_outstanding()
+           << ",\n"
+           << "  \"backend_arbitration\": " << backend_->arbitration_json()
            << "\n"
            << "}\n";
     output_.output(

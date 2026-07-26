@@ -73,6 +73,7 @@ using spine::sim::load_spine_edge_slice;
 using spine::sim::MemoryOperation;
 using spine::sim::MockMemoryBackend;
 using spine::sim::MockMemoryConfig;
+using spine::sim::RegisteredChannelArbiter;
 using spine::sim::OnChipOperation;
 using spine::sim::OnChipRequest;
 using spine::sim::OnChipResponse;
@@ -1238,6 +1239,58 @@ void test_memory_backend_tracks_per_initiator_locality_and_epochs() {
               phase_two.reads.repeated_requests == 0 &&
               phase_two.reads.discontinuous_requests == 0,
           "traffic epoch did not reset locality predecessors");
+}
+
+void test_registered_channel_arbiter_is_order_independent_and_fair() {
+  const auto request = [](std::uint32_t initiator) {
+    return BackendRequest{
+        .initiator_id = initiator,
+        .request_id = 0,
+        .channel = 0,
+        .operation = MemoryOperation::kRead,
+        .address = static_cast<std::uint64_t>(initiator) * 64,
+        .bytes = 64,
+        .write_data = {},
+    };
+  };
+
+  RegisteredChannelArbiter arbiter(1, 1);
+  const BackendRequest first = request(10);
+  const BackendRequest second = request(11);
+  require(!arbiter.try_acquire(second) && !arbiter.try_acquire(first),
+          "registered arbiter accepted an evaluate-phase intent");
+  const std::array<std::size_t, 1> empty{0};
+  arbiter.arbitrate(empty, 32);
+  require(arbiter.try_acquire(first),
+          "registered arbiter depended on caller evaluation order");
+  require(!arbiter.try_acquire(second),
+          "registered arbiter exceeded the per-channel grant rate");
+  const std::array<std::size_t, 1> one_outstanding{1};
+  arbiter.arbitrate(one_outstanding, 32);
+  require(arbiter.try_acquire(second),
+          "registered arbiter did not rotate to the waiting initiator");
+
+  const auto& stats = arbiter.stats();
+  require(stats.unique_intents == 2 && stats.grants == 2 &&
+              stats.consumed_grants == 2 && stats.contended_cycles == 1 &&
+              stats.contention_losers == 1 &&
+              arbiter.pending_grants() == 0,
+          "registered arbiter grant/consume/contention ledger did not close");
+
+  RegisteredChannelArbiter blocked(1, 1);
+  const BackendRequest blocked_request = request(12);
+  require(!blocked.try_acquire(blocked_request),
+          "capacity test unexpectedly bypassed evaluate/commit");
+  const std::array<std::size_t, 1> full{1};
+  blocked.arbitrate(full, 1);
+  require(blocked.pending_intents() == 1 && blocked.pending_grants() == 0 &&
+              blocked.stats().capacity_blocked_cycles == 1,
+          "full outstanding window did not preserve and classify the intent");
+  blocked.arbitrate(empty, 1);
+  require(blocked.try_acquire(blocked_request) &&
+              blocked.pending_intents() == 0 &&
+              blocked.pending_grants() == 0,
+          "capacity-blocked intent was not granted after the window reopened");
 }
 
 struct TwoMasterResult {
@@ -7560,6 +7613,8 @@ int main(int argc, char **argv) {
        test_axi_periodic_stall_validation_and_phase},
       {"memory_backend_locality",
        test_memory_backend_tracks_per_initiator_locality_and_epochs},
+      {"memory_registered_arbiter",
+       test_registered_channel_arbiter_is_order_independent_and_fair},
       {"axi_response_backpressure", test_axi_response_backpressure_is_lossless},
       {"axi_payload_round_trip",
        test_axi_payload_round_trip_across_beats_and_bursts},

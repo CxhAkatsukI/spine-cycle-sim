@@ -726,6 +726,11 @@ def validate_system_result(
         if isinstance(reachable_channels, list)
         else ()
     )
+    arbitration_value = result.get("backend_arbitration")
+    arbitration = (
+        arbitration_value if isinstance(arbitration_value, Mapping) else {}
+    )
+    backend_requests = result.get("backend_requests")
     problems: list[str] = []
     checks = {
         "success": result.get("success") is True,
@@ -766,7 +771,19 @@ def validate_system_result(
         "binding_fail_closed": binding.get("unbound_request_policy") == "fatal",
         "dram_closure": int(dram.get("reads", -1))
         + int(dram.get("writes", -1))
-        == result.get("backend_requests"),
+        == backend_requests,
+        "registered_arbitration_present": bool(arbitration),
+        "registered_arbitration_policy": arbitration.get("policy")
+        == "registered_round_robin_per_pseudo_channel",
+        "registered_arbitration_ledger": arbitration.get("ledger_closed")
+        is True,
+        "registered_arbitration_requests": arbitration.get("unique_intents")
+        == backend_requests
+        and arbitration.get("grants") == backend_requests
+        and arbitration.get("consumed_grants") == backend_requests,
+        "registered_arbitration_drained": arbitration.get("pending_intents")
+        == 0
+        and arbitration.get("pending_grants") == 0,
     }
     if invocation.system == "spine":
         checks["spine_maintenance_architecture"] = (
@@ -806,6 +823,9 @@ def result_row(
 ) -> dict[str, object]:
     cycles = int(result["cycles"])
     core_mhz = float(result["core_mhz"])
+    arbitration = result["backend_arbitration"]
+    if not isinstance(arbitration, Mapping):
+        raise TypeError("validated backend arbitration must be an object")
     return {
         "run_id": invocation.run_id,
         "fixture_id": run["fixture_id"],
@@ -824,6 +844,17 @@ def result_row(
         "input_edges": run["graph"]["records"],  # type: ignore[index]
         "updates": run.get("update", {}).get("records", 0),  # type: ignore[union-attr]
         "backend_requests": result["backend_requests"],
+        "backend_arbitration_request_waits": arbitration["request_waits"],
+        "backend_arbitration_contended_cycles": arbitration[
+            "contended_cycles"
+        ],
+        "backend_arbitration_contention_losers": arbitration[
+            "contention_losers"
+        ],
+        "backend_arbitration_capacity_blocked_cycles": arbitration[
+            "capacity_blocked_cycles"
+        ],
+        "backend_arbitration_max_contenders": arbitration["max_contenders"],
         "dram_reads": dram["reads"],
         "dram_writes": dram["writes"],
         "dram_activates": dram.get("activates", 0),
