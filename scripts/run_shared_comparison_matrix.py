@@ -25,8 +25,10 @@ if str(ROOT) not in sys.path:
 from spine_cycle_sim.experiments import (  # noqa: E402
     build_invocation,
     implementation_fingerprint,
+    normalized_grasu_profile_paths,
     pair_rows,
     select_runs,
+    validate_normalized_profile_contract,
     validate_shared_comparison_manifest,
     validate_system_result,
 )
@@ -39,7 +41,10 @@ from spine_cycle_sim.experiments.comparison import (  # noqa: E402
 
 
 DEFAULT_MANIFEST = (
-    ROOT / "configs" / "experiments" / "shared_comparison_workloads_20260725.json"
+    ROOT
+    / "configs"
+    / "experiments"
+    / "shared_comparison_candidate10_v2_20260726.json"
 )
 
 
@@ -116,7 +121,9 @@ def _write_csv(path: Path, rows: list[dict[str, object]]) -> None:
         path.unlink(missing_ok=True)
         return
     with path.open("w", encoding="utf-8", newline="") as stream:
-        writer = csv.DictWriter(stream, fieldnames=list(rows[0]))
+        writer = csv.DictWriter(
+            stream, fieldnames=list(rows[0]), lineterminator="\n"
+        )
         writer.writeheader()
         writer.writerows(rows)
 
@@ -278,12 +285,21 @@ def main() -> int:
     parser.add_argument(
         "--spine-profile",
         type=Path,
-        default=ROOT / "configs" / "architectures" / "spine_latest_afb8199.json",
+        default=(
+            ROOT
+            / "configs"
+            / "architectures"
+            / "spine_candidate10_normalized_v1.json"
+        ),
     )
     args = parser.parse_args()
     if args.jobs <= 0 or args.timeout_seconds <= 0.0:
         raise ValueError("jobs and timeout must be positive")
     manifest = validate_shared_comparison_manifest(ROOT, args.manifest)
+    normalized_contract = validate_normalized_profile_contract(
+        args.spine_profile,
+        normalized_grasu_profile_paths(ROOT),
+    )
     selected = select_runs(
         manifest,
         roles=args.role,
@@ -306,16 +322,9 @@ def main() -> int:
             ROOT / "configs" / "memory" / "HBM2_1ch_x128.ini",
             ROOT
             / "configs"
-            / "architectures"
-            / "grasu_regraph_normalized_weighted_spine23.json",
-            ROOT
-            / "configs"
-            / "architectures"
-            / "grasu_regraph_normalized_pagerank_spine23.json",
-            ROOT
-            / "configs"
-            / "architectures"
-            / "grasu_regraph_normalized_residual_pagerank_spine23.json",
+            / "contracts"
+            / "grasu_regraph_candidate10_capabilities_v2.json",
+            *normalized_grasu_profile_paths(ROOT),
             args.spine_profile,
             args.lib_dir / "libspine_cycle.so",
             args.sst,
@@ -409,14 +418,15 @@ def main() -> int:
         "matrix_id": manifest["matrix_id"],
         "source_manifest": str(args.manifest.resolve()),
         "source_manifest_sha256": sha256_file(args.manifest.resolve()),
+        "normalized_profile_contract": normalized_contract,
         "simulation_implementation": simulation_implementation,
         "orchestration_implementation": orchestration_implementation,
         "claim_class": (
-            "complete_normalized_structural_matrix"
+            "complete_candidate10_derived_normalized_structural_matrix"
             if complete_matrix
-            else "failed_normalized_structural_matrix"
+            else "failed_candidate10_derived_normalized_structural_matrix"
             if failure is not None
-            else "filtered_normalized_structural_subset"
+            else "filtered_candidate10_derived_normalized_structural_subset"
         ),
         "complete_matrix": complete_matrix,
         "systems": systems,

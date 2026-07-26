@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "catalog_id": "grasu_regraph_candidate10_normalized_capabilities_v2_20260726",
+  "algorithms": [
+    "unit_weight_sssp",
+    "weighted_sssp",
+    "weighted_dynamic_sssp",
+    "full_pagerank",
+    "thresholded_residual_pagerank"
+  ],
+  "profiles": [
+    {
+      "profile_id": "grasu_regraph_candidate10_normalized_weighted_v2",
+      "profile_path": "configs/architectures/grasu_regraph_candidate10_normalized_weighted_v2.json",
+      "profile_sha256": "465fecc4c5d3d4ba9f2c29f10381a9c4eb3a9dca7ceee26344afe7707f2a8991",
+      "comparison_role": "normalized",
+      "handoff": "pma_native",
+      "conversion_cost": "absent",
+      "supported_algorithms": {
+        "weighted_sssp": {
+          "implementation_status": "executable",
+          "claim_class": "candidate10_derived_normalized_structural_simulation",
+          "edge_semantics": "weighted32_dst19_weight12",
+          "update_semantics": "static_or_insert_decrease",
+          "convergence": "active_frontier_until_quiescence",
+          "evidence_tier": "simulation_only"
+        },
+        "weighted_dynamic_sssp": {
+          "implementation_status": "executable",
+          "claim_class": "candidate10_derived_normalized_structural_simulation",
+          "edge_semantics": "weighted32_dst19_weight12",
+          "update_semantics": "insert_decrease_incremental_delete_increase_full_recompute",
+          "convergence": "active_frontier_until_quiescence",
+          "evidence_tier": "simulation_only"
+        }
+      },
+      "unsupported_algorithms": [
+        "unit_weight_sssp",
+        "full_pagerank",
+        "thresholded_residual_pagerank"
+      ]
+    },
+    {
+      "profile_id": "grasu_regraph_candidate10_normalized_pagerank_v2",
+      "profile_path": "configs/architectures/grasu_regraph_candidate10_normalized_pagerank_v2.json",
+      "profile_sha256": "eaf5e578a4123e5e97baee79252ed5b249c0c77b435da1872cc2cfe95bf051e3",
+      "comparison_role": "normalized",
+      "handoff": "pma_native",
+      "conversion_cost": "absent",
+      "supported_algorithms": {
+        "full_pagerank": {
+          "implementation_status": "executable",
+          "claim_class": "candidate10_derived_normalized_structural_simulation",
+          "edge_semantics": "weighted32_destination_projection",
+          "update_semantics": "static_graph",
+          "convergence": "host_fixed_iterations",
+          "evidence_tier": "simulation_only"
+        }
+      },
+      "unsupported_algorithms": [
+        "unit_weight_sssp",
+        "weighted_sssp",
+        "weighted_dynamic_sssp",
+        "thresholded_residual_pagerank"
+      ]
+    },
+    {
+      "profile_id": "grasu_regraph_candidate10_normalized_residual_pagerank_v2",
+      "profile_path": "configs/architectures/grasu_regraph_candidate10_normalized_residual_pagerank_v2.json",
+      "profile_sha256": "ed78858e0d5fd41dc8e3bca381b7df095ba4a7153de2af26248e9b091a086faf",
+      "comparison_role": "normalized",
+      "handoff": "pma_native",
+      "conversion_cost": "absent",
+      "supported_algorithms": {
+        "thresholded_residual_pagerank": {
+          "implementation_status": "executable",
+          "claim_class": "candidate10_derived_normalized_structural_simulation",
+          "edge_semantics": "weighted32_destination_projection",
+          "update_semantics": "static_graph_signed_residual",
+          "convergence": "threshold_or_iteration_limit",
+          "evidence_tier": "simulation_only"
+        }
+      },
+      "unsupported_algorithms": [
+        "unit_weight_sssp",
+        "weighted_sssp",
+        "weighted_dynamic_sssp",
+        "full_pagerank"
+      ]
+    }
+  ]
+}

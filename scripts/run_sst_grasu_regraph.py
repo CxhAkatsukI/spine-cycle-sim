@@ -102,7 +102,11 @@ def main() -> int:
 
     profile_path = args.profile.resolve()
     profile = json.loads(profile_path.read_text(encoding="utf-8"))
-    if profile.get("profile_id") != "grasu_regraph_normalized_weighted_spine23":
+    allowed_profiles = {
+        "grasu_regraph_normalized_weighted_spine23",
+        "grasu_regraph_candidate10_normalized_weighted_v2",
+    }
+    if profile.get("profile_id") not in allowed_profiles:
         raise ValueError(
             "runner requires the pinned weighted normalized GraSU/ReGraph profile"
         )

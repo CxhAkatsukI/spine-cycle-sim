@@ -12,8 +12,10 @@ from .comparison import (
     RunInvocation,
     build_invocation,
     implementation_fingerprint,
+    normalized_grasu_profile_paths,
     pair_rows,
     select_runs,
+    validate_normalized_profile_contract,
     validate_system_result,
 )
 from .profile_capabilities import (
@@ -67,8 +69,10 @@ __all__ = [
     "RunInvocation",
     "build_invocation",
     "implementation_fingerprint",
+    "normalized_grasu_profile_paths",
     "pair_rows",
     "select_runs",
+    "validate_normalized_profile_contract",
     "validate_system_result",
     "AlgorithmCapability",
     "CapabilityCatalog",

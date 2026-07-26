@@ -1,0 +1,136 @@
+{
+  "claim_class": "filtered_candidate10_derived_normalized_structural_subset",
+  "complete_matrix": false,
+  "executed_rows": 0,
+  "failure": null,
+  "matrix_id": "shared_comparison_candidate10_v2_20260726",
+  "matrix_wall_seconds": 0.009498102124780416,
+  "normalized_profile_contract": {
+    "claim_class": "candidate10_derived_normalized_structural_execution_driven",
+    "clock_mhz": 150.0,
+    "grasu_capability_catalog_id": "grasu_regraph_candidate10_normalized_capabilities_v2_20260726",
+    "grasu_capability_catalog_sha256": "3f098854df7ea9d2e4e1b7114726d4de3b61cc20746dd10ea7fed51cd19a65ae",
+    "grasu_profile_ids": [
+      "grasu_regraph_candidate10_normalized_weighted_v2",
+      "grasu_regraph_candidate10_normalized_pagerank_v2",
+      "grasu_regraph_candidate10_normalized_residual_pagerank_v2"
+    ],
+    "hbm_clock_mhz": 450.0,
+    "hbm_pseudo_channels_budget": 23,
+    "matching_hls_gate": "pending_for_normalized_grasu_regraph",
+    "native_parent_profile_id": "spine_candidate10_one_pass_1e61fc0",
+    "native_parent_profile_sha256": "a23737c17f6650cea0185bd3eba9d425dbc151f35372d33130464df780312717",
+    "physical_hbm_channels": 32,
+    "spine_profile_id": "spine_candidate10_normalized_v1",
+    "spine_profile_sha256": "4e31633c55abfdc57fd4537119d6abb6d7a4f0313dcfc81332fa0ed0a6320c0a"
+  },
+  "orchestration_implementation": {
+    "files": [
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/scripts/run_shared_comparison_matrix.py",
+        "sha256": "e0e3e25fa96ffc5fb32b10b69c78810a0998990163ef29cadf8a07d3c57fe820"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/spine_cycle_sim/experiments/comparison.py",
+        "sha256": "5cc2cad5270b75c12000dadc7b79dd65bb0e30d88b5b9fb0019d02659d00a895"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/spine_cycle_sim/experiments/regraph_contracts.py",
+        "sha256": "096e250a1883aec16a17d2a340291bb4d02d7e28ff7cc5c4514771f3cabff7a1"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/spine_cycle_sim/experiments/shared_workloads.py",
+        "sha256": "5cdbb072d25702b8198b4da30ec8a7f9123e7fff2295dde8d8ba9c60d8cd2efa"
+      }
+    ],
+    "sha256": "5f18d734df43c0bdfaad6f817d0a3e4c114d772073d462e5627e0ff31c35e903"
+  },
+  "paired_rows": 3,
+  "result_rows": 6,
+  "reused_rows": 6,
+  "schema_version": 1,
+  "selected_run_ids": [
+    "syn_weighted_diamond_v8__full_pagerank",
+    "syn_weighted_diamond_v8__residual_pagerank",
+    "syn_weighted_diamond_v8__weighted_sssp"
+  ],
+  "simulation_implementation": {
+    "files": [
+      {
+        "path": "/data/feiyang/sst/bin/sst",
+        "sha256": "31d60def570079b1b6a104bc3dec06f0ecbc3eda3e6e0f828fa16aaf386633af"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/build/sst/libspine_cycle.so",
+        "sha256": "09295cd8d28b0fd5673c54dde503e01670715caddf2fee53105c2dd97f84ff72"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/configs/architectures/grasu_regraph_candidate10_normalized_pagerank_v2.json",
+        "sha256": "eaf5e578a4123e5e97baee79252ed5b249c0c77b435da1872cc2cfe95bf051e3"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/configs/architectures/grasu_regraph_candidate10_normalized_residual_pagerank_v2.json",
+        "sha256": "ed78858e0d5fd41dc8e3bca381b7df095ba4a7153de2af26248e9b091a086faf"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/configs/architectures/grasu_regraph_candidate10_normalized_weighted_v2.json",
+        "sha256": "465fecc4c5d3d4ba9f2c29f10381a9c4eb3a9dca7ceee26344afe7707f2a8991"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/configs/architectures/spine_candidate10_normalized_v1.json",
+        "sha256": "4e31633c55abfdc57fd4537119d6abb6d7a4f0313dcfc81332fa0ed0a6320c0a"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/configs/contracts/grasu_regraph_candidate10_capabilities_v2.json",
+        "sha256": "3f098854df7ea9d2e4e1b7114726d4de3b61cc20746dd10ea7fed51cd19a65ae"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/configs/memory/HBM2_1ch_x128.ini",
+        "sha256": "d1e865c6528acbc41f0768667063702bfb4033f24bcd46119ad25bfc5ad4fb5f"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/scripts/run_sst_grasu_regraph.py",
+        "sha256": "39e1e0521109151ea1920ef987543eb4d630c26716347982f663c1b335ab6719"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/scripts/run_sst_grasu_regraph_pagerank.py",
+        "sha256": "fef1bf265313a09b9264f596a1a27d0cdec1b94407c5b5a867d37f00a578fdb5"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/scripts/run_sst_grasu_regraph_residual_pagerank.py",
+        "sha256": "6489e85a59e15b8753efc83988017a3db0039a1b3429aa363b9ca748a8075bcb"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/scripts/run_sst_spine_vertical.py",
+        "sha256": "bc3f3a4831eb7f5ac59b7e1dbbdb8a0e0d5a749f2a0e86156fec1a71e724bef0"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/spine_cycle_sim/sst_binding.py",
+        "sha256": "c4c8dd67a685aa52b07b1bff0875744c55c9655addb6549e0bac9fade5af0bcb"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/sst/grasu_regraph_vertical.py",
+        "sha256": "d7e3cd1afb80b6941883ead903b8b92d3c72188349c7bf9515eb1302f476d5c8"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/sst/spine_vertical_slice.py",
+        "sha256": "7b07f54b829e17e853159dddc7a6245bcd668ccf69261ce593950e1036508a20"
+      }
+    ],
+    "sha256": "fc7725aa81acd0188ca772862df2a7b1ddc2e94b107d43976950b0a224ddb0ba"
+  },
+  "source_manifest": "/home/chuxiao/spine-cycle-sim/configs/experiments/shared_comparison_candidate10_v2_20260726.json",
+  "source_manifest_sha256": "692d6677fc418a77f03dd49e8e16adf9837c1ca6f207903be7d19b0154bc343e",
+  "sst_memory_binding_policy": {
+    "default": "instantiate_only_profile_and_workload_reachable_channels",
+    "physical_hbm_channels": 32,
+    "sparse_energy_semantics": "bound_channel_dramsim3_only_excludes_unbound_idle_background",
+    "timing_semantics": "unchanged_physical_channel_ids_and_active_contention",
+    "unbound_request_policy": "fatal"
+  },
+  "status": "PASS",
+  "systems": [
+    "spine",
+    "grasu_regraph"
+  ]
+}

@@ -20,7 +20,10 @@ from spine_cycle_sim.experiments.shared_workloads import (
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = (
-    ROOT / "configs" / "experiments" / "shared_comparison_workloads_20260725.json"
+    ROOT
+    / "configs"
+    / "experiments"
+    / "shared_comparison_candidate10_v2_20260726.json"
 )
 
 
@@ -124,6 +127,17 @@ class SharedComparisonWorkloadTests(unittest.TestCase):
             path = Path(tmp) / "manifest.json"
             path.write_text(json.dumps(payload), encoding="ascii")
             with self.assertRaisesRegex(ValueError, "hash mismatch"):
+                validate_shared_comparison_manifest(ROOT, path)
+
+    def test_candidate10_manifest_rejects_profile_lineage_tampering(self) -> None:
+        payload = json.loads(MANIFEST.read_text(encoding="ascii"))
+        payload["profiles"][1]["path"] = (
+            "configs/architectures/spine_latest_afb8199.json"
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "manifest.json"
+            path.write_text(json.dumps(payload), encoding="ascii")
+            with self.assertRaisesRegex(ValueError, "profile lineage"):
                 validate_shared_comparison_manifest(ROOT, path)
 
     def test_real_extraction_is_byte_deterministic(self) -> None:

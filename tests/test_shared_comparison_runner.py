@@ -9,8 +9,10 @@ from spine_cycle_sim.experiments.comparison import (
     RunInvocation,
     build_invocation,
     implementation_fingerprint,
+    normalized_grasu_profile_paths,
     pair_rows,
     select_runs,
+    validate_normalized_profile_contract,
     validate_system_result,
 )
 from scripts.run_shared_comparison_matrix import ProcessRegistry
@@ -21,7 +23,13 @@ from spine_cycle_sim.experiments.shared_workloads import (
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = (
-    ROOT / "configs" / "experiments" / "shared_comparison_workloads_20260725.json"
+    ROOT
+    / "configs"
+    / "experiments"
+    / "shared_comparison_candidate10_v2_20260726.json"
+)
+SPINE_PROFILE = (
+    ROOT / "configs" / "architectures" / "spine_candidate10_normalized_v1.json"
 )
 
 
@@ -58,7 +66,7 @@ class SharedComparisonRunnerTests(unittest.TestCase):
                 spine_profile=ROOT
                 / "configs"
                 / "architectures"
-                / "spine_latest_afb8199.json",
+                / "spine_candidate10_normalized_v1.json",
             )
             grasu = build_invocation(
                 ROOT,
@@ -71,7 +79,7 @@ class SharedComparisonRunnerTests(unittest.TestCase):
                 spine_profile=ROOT
                 / "configs"
                 / "architectures"
-                / "spine_latest_afb8199.json",
+                / "spine_candidate10_normalized_v1.json",
             )
         self.assertIn("dynamic_sssp_increase", spine.command)
         self.assertEqual(
@@ -95,6 +103,40 @@ class SharedComparisonRunnerTests(unittest.TestCase):
             after = implementation_fingerprint([first, second])
         self.assertNotEqual(before["sha256"], after["sha256"])
         self.assertEqual(len(before["files"]), 2)
+
+    def test_normalized_contract_accepts_only_candidate10_lineage(self) -> None:
+        contract = validate_normalized_profile_contract(
+            SPINE_PROFILE, normalized_grasu_profile_paths(ROOT)
+        )
+        self.assertEqual(
+            contract["spine_profile_id"], "spine_candidate10_normalized_v1"
+        )
+        with self.assertRaisesRegex(ValueError, "Candidate10-derived"):
+            validate_normalized_profile_contract(
+                ROOT / "configs" / "architectures" / "spine_latest_afb8199.json",
+                normalized_grasu_profile_paths(ROOT),
+            )
+
+    def test_normalized_contract_rejects_silent_candidate10_drift(self) -> None:
+        source = json.loads(SPINE_PROFILE.read_text(encoding="ascii"))
+        source["parameters"]["tile_vertices"] = 32768
+        with tempfile.TemporaryDirectory(dir=ROOT) as tmp:
+            profile_dir = Path(tmp)
+            candidate = profile_dir / SPINE_PROFILE.name
+            parent = profile_dir / "spine_candidate10_one_pass_1e61fc0.json"
+            candidate.write_text(json.dumps(source), encoding="ascii")
+            parent.write_bytes(
+                (
+                    ROOT
+                    / "configs"
+                    / "architectures"
+                    / "spine_candidate10_one_pass_1e61fc0.json"
+                ).read_bytes()
+            )
+            with self.assertRaisesRegex(ValueError, "protected Candidate10"):
+                validate_normalized_profile_contract(
+                    candidate, normalized_grasu_profile_paths(ROOT)
+                )
 
     def test_process_registry_preserves_first_failure(self) -> None:
         registry = ProcessRegistry()
@@ -131,7 +173,7 @@ class SharedComparisonRunnerTests(unittest.TestCase):
                 spine_profile=ROOT
                 / "configs"
                 / "architectures"
-                / "spine_latest_afb8199.json",
+                / "spine_candidate10_normalized_v1.json",
             )
         result = {
             "success": True,
@@ -141,6 +183,11 @@ class SharedComparisonRunnerTests(unittest.TestCase):
             "architecture_oracle": "iterative_float32",
             "mathematical_oracle": "wrong",
             "core_mhz": 141.0,
+            "architecture_profile_path": str(invocation.profile_path),
+            "architecture_profile_id": invocation.profile_id,
+            "architecture_profile_sha256": invocation.profile_sha256,
+            "spine_maintenance_architecture": invocation.expected_spine_maintenance,
+            "spine_axi_profile": invocation.expected_spine_axi,
             "vertices": run["graph"]["vertices"],
             "input_edges": run["graph"]["records"],
             "backend_requests": 7,
@@ -157,6 +204,11 @@ class SharedComparisonRunnerTests(unittest.TestCase):
         self.assertEqual(
             set(validate_system_result(run, invocation, result, dram, binding)),
             {"mathematical_oracle", "clock"},
+        )
+        result["architecture_profile_id"] = "spine_latest_afb8199"
+        self.assertIn(
+            "profile_id",
+            validate_system_result(run, invocation, result, dram, binding),
         )
 
     def test_pairing_requires_same_clock_and_reports_labeled_speedup(self) -> None:
@@ -178,7 +230,8 @@ class SharedComparisonRunnerTests(unittest.TestCase):
         self.assertEqual(len(pairs), 1)
         self.assertEqual(pairs[0]["spine_speedup_over_grasu"], 2.5)
         self.assertEqual(
-            pairs[0]["claim_label"], "normalized_structural_execution_driven"
+            pairs[0]["claim_label"],
+            "candidate10_derived_normalized_structural_execution_driven",
         )
 
 

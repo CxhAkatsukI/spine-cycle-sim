@@ -50,7 +50,7 @@ class ArchitectureProfileTests(unittest.TestCase):
 
     def test_repository_profiles_load_and_have_unique_ids(self) -> None:
         loaded = [load_architecture_profile(path) for path in sorted(PROFILES.glob("*.json"))]
-        self.assertEqual(len(loaded), 15)
+        self.assertEqual(len(loaded), 19)
         self.assertEqual(len({profile.profile_id for profile in loaded}), len(loaded))
         self.assertTrue(all(profile.manifest_sha256 for profile in loaded))
 
@@ -81,6 +81,29 @@ class ArchitectureProfileTests(unittest.TestCase):
             "551ed1e89755a8b97725efa4003e28007eabd66abb73f480c6ee087a627b9666",
         )
         self.assertEqual(verify_profile_artifacts(profile), [])
+
+    def test_candidate10_normalized_profile_preserves_native_lineage(self) -> None:
+        parent = load_architecture_profile(
+            PROFILES / "spine_candidate10_one_pass_1e61fc0.json"
+        )
+        normalized = load_architecture_profile(
+            PROFILES / "spine_candidate10_normalized_v1.json"
+        )
+        self.assertEqual(normalized.parameters["comparison_role"], "normalized")
+        self.assertEqual(
+            normalized.parameters["native_parent_profile"], parent.profile_id
+        )
+        self.assertEqual(
+            normalized.parameters["native_parent_profile_sha256"],
+            parent.manifest_sha256,
+        )
+        self.assertEqual(
+            normalized.parameters["maintenance_architecture"],
+            "candidate10_one_pass",
+        )
+        self.assertEqual(
+            normalized.parameters["axi_profile"], "candidate10_gmem_1e61fc0"
+        )
 
     def test_stable_profile_pins_accepted_clocks_and_hash(self) -> None:
         profile = load_architecture_profile(PROFILES / "spine_shared_engine_9c08763.json")

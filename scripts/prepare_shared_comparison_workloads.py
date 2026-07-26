@@ -36,7 +36,7 @@ def main() -> int:
         default=ROOT
         / "configs"
         / "experiments"
-        / "shared_comparison_workloads_20260725.json",
+        / "shared_comparison_candidate10_v2_20260726.json",
     )
     parser.add_argument(
         "--verify-only",

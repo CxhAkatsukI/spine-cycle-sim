@@ -210,6 +210,8 @@ def enrich_system_row(
 
 def build_pair_details(
     system_rows: Iterable[Mapping[str, object]],
+    *,
+    claim_label: str = "normalized_structural_execution_driven",
 ) -> list[dict[str, object]]:
     by_run: dict[str, dict[str, Mapping[str, object]]] = {}
     for row in system_rows:
@@ -247,7 +249,7 @@ def build_pair_details(
                 "spine_active_dram_energy_advantage": grasu_energy / spine_energy,
                 "spine_phase_bottleneck": spine["phase_bottleneck"],
                 "grasu_regraph_phase_bottleneck": grasu["phase_bottleneck"],
-                "claim_label": "normalized_structural_execution_driven",
+                "claim_label": claim_label,
                 "energy_claim": "sparse_active_channel_dramsim3_only",
             }
         )
@@ -325,7 +327,14 @@ def analyze_completed_matrix(
         raise ValueError("matrix run IDs do not match source workload manifest")
 
     enriched = [enrich_system_row(output_root, row) for row in result_rows]
-    pairs = build_pair_details(enriched)
+    pair_claims = {
+        str(row.get("claim_label", "normalized_structural_execution_driven"))
+        for row in original_pairs
+    }
+    if len(pair_claims) != 1:
+        raise ValueError("comparison matrix mixes pair claim labels")
+    pair_claim = pair_claims.pop()
+    pairs = build_pair_details(enriched, claim_label=pair_claim)
     original_speedups = {
         row["run_id"]: _float(row, "spine_speedup_over_grasu")
         for row in original_pairs
@@ -359,7 +368,7 @@ def analyze_completed_matrix(
     output = {
         "schema_version": 1,
         "status": "PASS",
-        "claim_class": "complete_normalized_structural_execution_driven_analysis",
+        "claim_class": f"complete_{pair_claim}_analysis",
         "matrix_manifest": str(matrix_path.resolve()),
         "matrix_manifest_sha256": sha256_file(matrix_path),
         "matrix_simulation_implementation": matrix["simulation_implementation"],

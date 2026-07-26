@@ -577,19 +577,32 @@ def build_shared_comparison_corpus(
         real_sources.append({"dataset_id": dataset_id, **provenance})
 
     profile_paths = (
-        "configs/architectures/spine_shared_engine_9c08763.json",
-        "configs/architectures/spine_latest_afb8199.json",
-        "configs/architectures/grasu_regraph_normalized_weighted_spine23.json",
-        "configs/architectures/grasu_regraph_normalized_pagerank_spine23.json",
-        "configs/architectures/grasu_regraph_normalized_residual_pagerank_spine23.json",
+        "configs/architectures/spine_candidate10_one_pass_1e61fc0.json",
+        "configs/architectures/spine_candidate10_normalized_v1.json",
+        "configs/architectures/grasu_regraph_candidate10_normalized_weighted_v2.json",
+        "configs/architectures/grasu_regraph_candidate10_normalized_pagerank_v2.json",
+        (
+            "configs/architectures/"
+            "grasu_regraph_candidate10_normalized_residual_pagerank_v2.json"
+        ),
     )
     profiles = [
         {"path": path, "sha256": sha256_file(root / path)} for path in profile_paths
     ]
+    capability_catalog_path = (
+        root
+        / "configs"
+        / "contracts"
+        / "grasu_regraph_candidate10_capabilities_v2.json"
+    )
+    capability_catalog = {
+        "path": _relative(capability_catalog_path, root),
+        "sha256": sha256_file(capability_catalog_path),
+    }
     runs = [run for fixture in fixtures for run in _run_cases(fixture)]
     manifest: dict[str, object] = {
         "schema_version": 1,
-        "matrix_id": "shared_comparison_workloads_20260725",
+        "matrix_id": "shared_comparison_candidate10_v2_20260726",
         "claim_class": "normalized_execution_driven_shared_workload_contract",
         "comparison_contract": {
             "graph_and_updates_identical": True,
@@ -597,7 +610,16 @@ def build_shared_comparison_corpus(
             "memory_backend": "SST memHierarchy plus DRAMSim3 HBM2",
             "hbm_channels": 32,
             "normalized_clock_mhz": 150.0,
-            "native_spine_clock_mhz": 141.0,
+            "native_spine_clock_mhz": 150.0,
+            "spine_architecture_lineage": (
+                "normalized profile preserves Candidate10 one-pass maintenance, "
+                "AXI, family, level, partition, and tile semantics"
+            ),
+            "profile_fail_closed": True,
+            "resource_feasibility_gate": (
+                "Candidate10 native routed evidence anchors Spine; normalized "
+                "GraSU/ReGraph requires matching HLS before iso-resource claims"
+            ),
             "clock_claim_rule": (
                 "report cycles plus separately labeled normalized and native time; "
                 "never silently mix clocks in one speedup"
@@ -637,6 +659,7 @@ def build_shared_comparison_corpus(
             "not_claimed": "multi-partition weighted SSSP or residual PageRank scalability",
         },
         "profiles": profiles,
+        "capability_catalog": capability_catalog,
         "real_sources": real_sources,
         "fixtures": fixtures,
         "runs": runs,
@@ -814,6 +837,40 @@ def validate_shared_comparison_manifest(root: Path, manifest_path: Path) -> dict
     }
     if manifest.get("counts") != expected_counts:
         raise ValueError("manifest counts do not match its frozen contents")
-    for profile in manifest.get("profiles", []):
+    profiles = manifest.get("profiles", [])
+    if manifest.get("matrix_id") == "shared_comparison_candidate10_v2_20260726":
+        expected_profile_paths = [
+            "configs/architectures/spine_candidate10_one_pass_1e61fc0.json",
+            "configs/architectures/spine_candidate10_normalized_v1.json",
+            "configs/architectures/grasu_regraph_candidate10_normalized_weighted_v2.json",
+            "configs/architectures/grasu_regraph_candidate10_normalized_pagerank_v2.json",
+            (
+                "configs/architectures/"
+                "grasu_regraph_candidate10_normalized_residual_pagerank_v2.json"
+            ),
+        ]
+        if [str(profile.get("path")) for profile in profiles] != expected_profile_paths:
+            raise ValueError("Candidate10 v2 manifest profile lineage is incomplete")
+        contract = manifest.get("comparison_contract", {})
+        required_contract = {
+            "graph_and_updates_identical": True,
+            "algorithm_parameters_identical": True,
+            "profile_fail_closed": True,
+            "hbm_channels": 32,
+            "normalized_clock_mhz": 150.0,
+            "native_spine_clock_mhz": 150.0,
+        }
+        if any(contract.get(key) != value for key, value in required_contract.items()):
+            raise ValueError("Candidate10 v2 comparison contract is incomplete")
+        capability_catalog = manifest.get("capability_catalog")
+        if not isinstance(capability_catalog, dict) or capability_catalog.get(
+            "path"
+        ) != (
+            "configs/contracts/"
+            "grasu_regraph_candidate10_capabilities_v2.json"
+        ):
+            raise ValueError("Candidate10 v2 capability catalog is not pinned")
+        _resolve_artifact(root, capability_catalog)
+    for profile in profiles:
         _resolve_artifact(root, profile)
     return manifest

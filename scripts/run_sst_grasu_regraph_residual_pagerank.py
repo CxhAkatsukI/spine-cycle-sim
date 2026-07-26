@@ -102,8 +102,11 @@ def main() -> int:
     profile_path = args.profile.resolve()
     workload_path = args.workload.resolve()
     profile = json.loads(profile_path.read_text(encoding="utf-8"))
-    expected_profile = "grasu_regraph_normalized_residual_pagerank_spine23"
-    if profile.get("profile_id") != expected_profile:
+    allowed_profiles = {
+        "grasu_regraph_normalized_residual_pagerank_spine23",
+        "grasu_regraph_candidate10_normalized_residual_pagerank_v2",
+    }
+    if profile.get("profile_id") not in allowed_profiles:
         raise ValueError("runner requires the pinned normalized residual profile")
     params = profile["parameters"]
     memory = profile["memory"]

@@ -1,0 +1,42 @@
+digraph Candidate10NormalizedComparison {
+  graph [
+    rankdir=TB,
+    bgcolor="white",
+    pad="0.25",
+    nodesep="0.35",
+    ranksep="0.5",
+    fontname="DejaVu Sans",
+    label="Candidate10-derived normalized comparison",
+    labelloc="t",
+    fontsize=18
+  ];
+  node [
+    shape=box,
+    style="rounded,filled",
+    color="#3c4653",
+    fillcolor="#f7f8fa",
+    fontname="DejaVu Sans",
+    fontsize=11,
+    margin="0.16,0.10"
+  ];
+  edge [color="#53606d", fontname="DejaVu Sans", fontsize=10];
+
+  workload [label="Frozen paired workload\nidentical graph, update, algorithm, numeric rules", fillcolor="#e8f1ed"];
+  spine [label="Candidate10-derived Spine\none-pass maintenance + native AXI/family/level/tile semantics", fillcolor="#dbeaf7"];
+  grasu [label="GraSU + PMA-native ReGraph\nconversion-free declared interface + explicit adapter/FIFOs", fillcolor="#f7e9d5"];
+  platform [label="Shared cycle primitives and platform contract\nFIFO / AXI / HBM / SST-DRAMSim3 / clocks / channel budget", fillcolor="#ece7f5"];
+  oracle [label="Symmetric acceptance gate\ndual oracle + profile identity + traffic/activity closure", fillcolor="#e8f1ed"];
+  normalized [label="Normalized structural result\ncycles, update rate, E2E, traffic, stalls, activity", fillcolor="#dbeaf7"];
+  hls [label="Matching HLS gate\narea + timing + resource feasibility", fillcolor="#f4dddd"];
+  headline [label="Publication comparison\nonly after holdout, sensitivity, and HLS gates", fillcolor="#e8f1ed"];
+
+  workload -> spine;
+  workload -> grasu;
+  platform -> spine [dir=both, label="same primitives"];
+  platform -> grasu [dir=both, label="same primitives"];
+  spine -> oracle;
+  grasu -> oracle;
+  oracle -> normalized;
+  normalized -> headline;
+  hls -> headline;
+}

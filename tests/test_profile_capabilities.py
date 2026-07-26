@@ -16,24 +16,35 @@ ROOT = Path(__file__).resolve().parents[1]
 CATALOG = (
     ROOT / "configs" / "contracts" / "grasu_regraph_capabilities_v1.json"
 )
+CATALOG_V2 = (
+    ROOT
+    / "configs"
+    / "contracts"
+    / "grasu_regraph_candidate10_capabilities_v2.json"
+)
 
 
 class ProfileCapabilityTests(unittest.TestCase):
     def test_catalog_covers_every_grasu_regraph_profile(self) -> None:
-        catalog = load_capability_catalog(CATALOG)
+        catalogs = (
+            load_capability_catalog(CATALOG),
+            load_capability_catalog(CATALOG_V2),
+        )
         profile_ids = {
             json.loads(path.read_text(encoding="utf-8"))["profile_id"]
             for path in (ROOT / "configs" / "architectures").glob(
                 "grasu_regraph_*.json"
             )
         }
-        self.assertEqual(set(catalog.profiles), profile_ids)
-        for profile in catalog.profiles.values():
-            self.assertEqual(
-                set(profile.supported_algorithms)
-                | set(profile.unsupported_algorithms),
-                set(catalog.algorithms),
-            )
+        covered = set().union(*(set(catalog.profiles) for catalog in catalogs))
+        self.assertEqual(covered, profile_ids)
+        for catalog in catalogs:
+            for profile in catalog.profiles.values():
+                self.assertEqual(
+                    set(profile.supported_algorithms)
+                    | set(profile.unsupported_algorithms),
+                    set(catalog.algorithms),
+                )
 
     def test_native_support_is_only_existing_hls_unit_sssp(self) -> None:
         native = load_capability_catalog(CATALOG).profile(
@@ -106,6 +117,35 @@ class ProfileCapabilityTests(unittest.TestCase):
                     ImplementationStatus.EXECUTABLE,
                 )
                 self.assertEqual(capability.evidence_tier, "simulation_only")
+
+    def test_candidate10_v2_three_algorithm_profiles_are_executable(self) -> None:
+        catalog = load_capability_catalog(CATALOG_V2)
+        cases = (
+            ("grasu_regraph_candidate10_normalized_weighted_v2", "weighted_sssp"),
+            (
+                "grasu_regraph_candidate10_normalized_weighted_v2",
+                "weighted_dynamic_sssp",
+            ),
+            (
+                "grasu_regraph_candidate10_normalized_pagerank_v2",
+                "full_pagerank",
+            ),
+            (
+                "grasu_regraph_candidate10_normalized_residual_pagerank_v2",
+                "thresholded_residual_pagerank",
+            ),
+        )
+        for profile_id, algorithm in cases:
+            with self.subTest(profile_id=profile_id, algorithm=algorithm):
+                capability = catalog.profile(profile_id).require(algorithm)
+                self.assertEqual(
+                    capability.implementation_status,
+                    ImplementationStatus.EXECUTABLE,
+                )
+                self.assertEqual(
+                    capability.claim_class,
+                    "candidate10_derived_normalized_structural_simulation",
+                )
 
     def test_proposed_hls_pagerank_profile_is_explicitly_simulation_only(self) -> None:
         profile = load_capability_catalog(CATALOG).profile(

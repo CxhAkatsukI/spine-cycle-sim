@@ -8,8 +8,69 @@ import json
 from pathlib import Path
 from typing import Iterable, Mapping, Sequence
 
+from spine_cycle_sim.profiles import ArchitectureProfile, load_architecture_profile
+from spine_cycle_sim.experiments.profile_capabilities import load_capability_catalog
+
 
 SYSTEMS = ("spine", "grasu_regraph")
+
+NORMALIZED_SPINE_PROFILE_ID = "spine_candidate10_normalized_v1"
+NORMALIZED_SPINE_PARENT_ID = "spine_candidate10_one_pass_1e61fc0"
+NORMALIZED_SPINE_MAINTENANCE = "candidate10_one_pass"
+NORMALIZED_SPINE_AXI = "candidate10_gmem_1e61fc0"
+NORMALIZED_CLOCK_MHZ = 150.0
+NORMALIZED_HBM_CLOCK_MHZ = 450.0
+NORMALIZED_HBM_BUDGET = 23
+
+_CANDIDATE10_PROTECTED_PARAMETERS = (
+    "maintenance_architecture",
+    "axi_profile",
+    "partitions",
+    "hot_shards",
+    "families",
+    "levels",
+    "level_ratio",
+    "vertex_partition_size",
+    "tile_vertices",
+    "tiny_active_threshold",
+    "split_compute_width",
+    "graph_hbm_channels",
+    "hbm_pseudo_channels_used",
+    "sorted_edges_hbm_channel",
+    "vertex_state_hbm_channel",
+    "active_bins_hbm_channel",
+    "active_out_hbm_channel",
+    "metadata_hbm_channel",
+    "result_hbm_channel",
+    "active_bitmap_hbm_channel",
+    "metadata_format_version",
+    "result_layout_version",
+    "classification_block_edges",
+    "publication_distinct_word_window",
+    "publication_source_prefetch_records",
+    "publication_base_cycles",
+    "publication_source_cycles",
+    "publication_group_cycles",
+    "publication_new_bit_cycles",
+    "publication_prefetch_restart_cycles",
+    "publication_empty_base_cycles",
+    "publication_empty_group_cycles",
+    "publication_full_window_rebate_cycles",
+    "publication_next_window_overlap_cycles",
+    "l0_writer_rtl_schedule",
+    "l0_writer_base_residual_cycles",
+    "l0_writer_single_record_cycles",
+    "l0_writer_late_source_cycles",
+    "l0_writer_packer_cycles",
+    "l0_writer_page_tail_cycles",
+    "zero_edge_control_min_cycles",
+    "hbm16_input_base_bytes",
+    "hbm16_dirty_bitmap_base_bytes",
+    "hbm16_dirty_list_base_bytes",
+    "hbm16_family_directory_base_bytes",
+    "hbm16_dispatch_bucket_base_bytes",
+    "hbm16_total_bytes",
+)
 
 
 @dataclass(frozen=True)
@@ -18,6 +79,11 @@ class RunInvocation:
     system: str
     command: tuple[str, ...]
     out_dir: Path
+    profile_path: Path | None = None
+    profile_id: str | None = None
+    profile_sha256: str | None = None
+    expected_spine_maintenance: str | None = None
+    expected_spine_axi: str | None = None
 
 
 def sha256_file(path: Path) -> str:
@@ -26,6 +92,148 @@ def sha256_file(path: Path) -> str:
         for block in iter(lambda: stream.read(1 << 20), b""):
             digest.update(block)
     return digest.hexdigest()
+
+
+def normalized_grasu_profile_paths(root: Path) -> tuple[Path, ...]:
+    profile_dir = root / "configs" / "architectures"
+    return (
+        profile_dir / "grasu_regraph_candidate10_normalized_weighted_v2.json",
+        profile_dir / "grasu_regraph_candidate10_normalized_pagerank_v2.json",
+        profile_dir
+        / "grasu_regraph_candidate10_normalized_residual_pagerank_v2.json",
+    )
+
+
+def _clock(profile: ArchitectureProfile, name: str) -> float:
+    try:
+        return profile.clock(name).achieved_mhz
+    except KeyError as error:
+        raise ValueError(
+            f"normalized profile {profile.profile_id} lacks {name} clock"
+        ) from error
+
+
+def validate_normalized_profile_contract(
+    spine_profile_path: Path,
+    grasu_profile_paths: Sequence[Path],
+) -> dict[str, object]:
+    """Reject silent architecture drift before a normalized matrix starts."""
+
+    spine_path = spine_profile_path.resolve()
+    spine = load_architecture_profile(spine_path)
+    if spine.profile_id != NORMALIZED_SPINE_PROFILE_ID:
+        raise ValueError(
+            "normalized comparison requires explicit Candidate10-derived Spine "
+            f"profile {NORMALIZED_SPINE_PROFILE_ID}, got {spine.profile_id}"
+        )
+    required_spine = {
+        "comparison_role": "normalized",
+        "native_parent_profile": NORMALIZED_SPINE_PARENT_ID,
+        "maintenance_architecture": NORMALIZED_SPINE_MAINTENANCE,
+        "axi_profile": NORMALIZED_SPINE_AXI,
+        "normalization_policy": (
+            "shared_platform_claim_only_no_microarchitecture_change"
+        ),
+        "hbm_pseudo_channels_budget": NORMALIZED_HBM_BUDGET,
+    }
+    for key, expected in required_spine.items():
+        if spine.parameters.get(key) != expected:
+            raise ValueError(
+                f"normalized Spine profile has {key}={spine.parameters.get(key)!r}; "
+                f"expected {expected!r}"
+            )
+
+    parent_path = spine_path.with_name(f"{NORMALIZED_SPINE_PARENT_ID}.json")
+    parent = load_architecture_profile(parent_path)
+    parent_digest = sha256_file(parent_path)
+    if spine.parameters.get("native_parent_profile_sha256") != parent_digest:
+        raise ValueError("normalized Spine native-parent SHA-256 is stale")
+    if spine.source != parent.source:
+        raise ValueError("normalized Spine source identity differs from its native parent")
+    for key in _CANDIDATE10_PROTECTED_PARAMETERS:
+        if key not in parent.parameters or spine.parameters.get(key) != parent.parameters[key]:
+            raise ValueError(
+                f"normalized Spine silently changes protected Candidate10 parameter {key}"
+            )
+
+    if _clock(spine, "data") != NORMALIZED_CLOCK_MHZ:
+        raise ValueError("normalized Spine data clock is not 150 MHz")
+    if _clock(spine, "hbm") != NORMALIZED_HBM_CLOCK_MHZ:
+        raise ValueError("normalized Spine HBM clock is not 450 MHz")
+
+    grasu_profiles = tuple(
+        load_architecture_profile(path.resolve()) for path in grasu_profile_paths
+    )
+    if len(grasu_profiles) != 3 or len(
+        {profile.profile_id for profile in grasu_profiles}
+    ) != 3:
+        raise ValueError("normalized comparison requires three distinct GraSU profiles")
+    for profile in grasu_profiles:
+        checks = {
+            "architecture": profile.architecture == "grasu_regraph",
+            "comparison_role": profile.parameters.get("comparison_role")
+            == "normalized",
+            "resource_reference_profile": profile.parameters.get(
+                "resource_reference_profile"
+            )
+            == spine.profile_id,
+            "hbm_budget": profile.parameters.get("hbm_pseudo_channels_budget")
+            == NORMALIZED_HBM_BUDGET,
+            "conversion_free": profile.parameters.get("conversion_cost_included")
+            is False,
+            "pma_native": profile.parameters.get("pma_native_compute") is True,
+            "memory": profile.memory == spine.memory,
+            "kernel_clock": _clock(profile, "kernel") == NORMALIZED_CLOCK_MHZ,
+            "hbm_clock": _clock(profile, "hbm") == NORMALIZED_HBM_CLOCK_MHZ,
+        }
+        failed = sorted(name for name, passed in checks.items() if not passed)
+        if failed:
+            raise ValueError(
+                f"normalized GraSU profile {profile.profile_id} violates: "
+                + ", ".join(failed)
+            )
+
+    catalog_path = (
+        spine_path.parents[1]
+        / "contracts"
+        / "grasu_regraph_candidate10_capabilities_v2.json"
+    )
+    catalog = load_capability_catalog(catalog_path)
+    required_algorithms = (
+        (grasu_profiles[0].profile_id, ("weighted_sssp", "weighted_dynamic_sssp")),
+        (grasu_profiles[1].profile_id, ("full_pagerank",)),
+        (
+            grasu_profiles[2].profile_id,
+            ("thresholded_residual_pagerank",),
+        ),
+    )
+    for profile_id, algorithms in required_algorithms:
+        capability_profile = catalog.profile(profile_id)
+        for algorithm in algorithms:
+            capability = capability_profile.require(algorithm)
+            if (
+                capability.implementation_status.value != "executable"
+                or capability.evidence_tier != "simulation_only"
+            ):
+                raise ValueError(
+                    f"normalized capability is not executable: {profile_id}/{algorithm}"
+                )
+
+    return {
+        "claim_class": "candidate10_derived_normalized_structural_execution_driven",
+        "spine_profile_id": spine.profile_id,
+        "spine_profile_sha256": spine.manifest_sha256,
+        "native_parent_profile_id": parent.profile_id,
+        "native_parent_profile_sha256": parent_digest,
+        "grasu_profile_ids": [profile.profile_id for profile in grasu_profiles],
+        "grasu_capability_catalog_id": catalog.catalog_id,
+        "grasu_capability_catalog_sha256": sha256_file(catalog_path),
+        "clock_mhz": NORMALIZED_CLOCK_MHZ,
+        "hbm_clock_mhz": NORMALIZED_HBM_CLOCK_MHZ,
+        "physical_hbm_channels": spine.memory.channels,
+        "hbm_pseudo_channels_budget": NORMALIZED_HBM_BUDGET,
+        "matching_hls_gate": "pending_for_normalized_grasu_regraph",
+    }
 
 
 def implementation_fingerprint(paths: Iterable[Path]) -> dict[str, object]:
@@ -109,6 +317,15 @@ def build_invocation(
     out_dir = (output_root / run_id / system).resolve()
     graph = artifact_path(root, run["graph"])  # type: ignore[arg-type]
     algorithm = str(run["algorithm"])
+    if system == "spine":
+        profile_path = spine_profile.resolve()
+    elif algorithm in {"weighted_sssp", "weighted_dynamic_sssp"}:
+        profile_path = normalized_grasu_profile_paths(root)[0].resolve()
+    elif algorithm == "full_pagerank":
+        profile_path = normalized_grasu_profile_paths(root)[1].resolve()
+    else:
+        profile_path = normalized_grasu_profile_paths(root)[2].resolve()
+    profile = load_architecture_profile(profile_path)
     common = [
         python,
         "",
@@ -128,7 +345,7 @@ def build_invocation(
             "--validation-mode",
             "generic",
             "--profile",
-            str(spine_profile.resolve()),
+            str(profile_path),
             "--workload",
             str(graph),
             "--source",
@@ -166,12 +383,7 @@ def build_invocation(
         update = artifact_path(root, run["update"])  # type: ignore[arg-type]
         command = common + [
             "--profile",
-            str(
-                root
-                / "configs"
-                / "architectures"
-                / "grasu_regraph_normalized_weighted_spine23.json"
-            ),
+            str(profile_path),
             "--workload",
             str(graph),
             "--update-workload",
@@ -187,12 +399,7 @@ def build_invocation(
         common[1] = str(root / "scripts" / "run_sst_grasu_regraph_pagerank.py")
         command = common + [
             "--profile",
-            str(
-                root
-                / "configs"
-                / "architectures"
-                / "grasu_regraph_normalized_pagerank_spine23.json"
-            ),
+            str(profile_path),
             "--workload",
             str(graph),
             "--iterations",
@@ -208,12 +415,7 @@ def build_invocation(
         )
         command = common + [
             "--profile",
-            str(
-                root
-                / "configs"
-                / "architectures"
-                / "grasu_regraph_normalized_residual_pagerank_spine23.json"
-            ),
+            str(profile_path),
             "--workload",
             str(graph),
             "--damping",
@@ -225,7 +427,25 @@ def build_invocation(
             "--max-cycles",
             "100000000",
         ]
-    return RunInvocation(run_id, system, tuple(command), out_dir)
+    return RunInvocation(
+        run_id,
+        system,
+        tuple(command),
+        out_dir,
+        profile_path=profile_path,
+        profile_id=profile.profile_id,
+        profile_sha256=profile.manifest_sha256,
+        expected_spine_maintenance=(
+            str(profile.parameters.get("maintenance_architecture", "shared_engine_serial"))
+            if system == "spine"
+            else None
+        ),
+        expected_spine_axi=(
+            str(profile.parameters.get("axi_profile", "hls_split_9c08763"))
+            if system == "spine"
+            else None
+        ),
+    )
 
 
 def expected_oracles(algorithm: str) -> tuple[str, str]:
@@ -261,6 +481,14 @@ def load_system_result(
         manifest_path = invocation.out_dir / "manifest.json"
         child = json.loads(manifest_path.read_text(encoding="utf-8"))
         result = dict(child["result"])
+        child_profile_path = Path(str(child.get("profile", ""))).resolve()
+        child_profile_sha256 = child.get("profile_sha256")
+        child_profile_id: str | None = None
+        if child_profile_path.is_file():
+            child_profile_id = load_architecture_profile(child_profile_path).profile_id
+        result["architecture_profile_path"] = str(child_profile_path)
+        result["architecture_profile_sha256"] = child_profile_sha256
+        result["architecture_profile_id"] = child_profile_id
         dram = dict(child["dram"])
         binding = dict(child["sst_memory_binding"])
     return result, dram, binding
@@ -314,6 +542,13 @@ def validate_system_result(
         == mathematical_oracle,
         "clock": abs(float(result.get("core_mhz", -1.0)) - expected_clock_mhz)
         < 1.0e-9,
+        "profile_path": invocation.profile_path is not None
+        and Path(str(result.get("architecture_profile_path", ""))).resolve()
+        == invocation.profile_path,
+        "profile_id": result.get("architecture_profile_id")
+        == invocation.profile_id,
+        "profile_sha256": result.get("architecture_profile_sha256")
+        == invocation.profile_sha256,
         "vertices": result.get("vertices") == expected_vertices,
         "edges": result.get(result_edges_key) == expected_edges,
         "physical_hbm_channels": physical_channels == 32,
@@ -331,6 +566,14 @@ def validate_system_result(
         + int(dram.get("writes", -1))
         == result.get("backend_requests"),
     }
+    if invocation.system == "spine":
+        checks["spine_maintenance_architecture"] = (
+            result.get("spine_maintenance_architecture")
+            == invocation.expected_spine_maintenance
+        )
+        checks["spine_axi_profile"] = (
+            result.get("spine_axi_profile") == invocation.expected_spine_axi
+        )
     if str(run["algorithm"]) == "weighted_dynamic_sssp":
         expected_updates = int(run["update"]["records"])  # type: ignore[index]
         checks["updates"] = (
@@ -363,6 +606,8 @@ def result_row(
         "algorithm": run["algorithm"],
         "system": invocation.system,
         "claim_class": result.get("claim_class", "normalized_structural_simulation"),
+        "architecture_profile_id": result["architecture_profile_id"],
+        "architecture_profile_sha256": result["architecture_profile_sha256"],
         "cycles": cycles,
         "core_mhz": core_mhz,
         "simulated_ms": cycles / (core_mhz * 1000.0),
@@ -417,7 +662,9 @@ def pair_rows(rows: Iterable[Mapping[str, object]]) -> list[dict[str, object]]:
                 "grasu_regraph_simulated_ms": grasu["simulated_ms"],
                 "spine_speedup_over_grasu": float(grasu["cycles"])
                 / float(spine["cycles"]),
-                "claim_label": "normalized_structural_execution_driven",
+                "claim_label": (
+                    "candidate10_derived_normalized_structural_execution_driven"
+                ),
             }
         )
     return paired

@@ -1,5 +1,11 @@
 # Shared normalized comparison runner
 
+> Historical evidence boundary: this matrix used `spine_latest_afb8199`, which
+> fell back to `shared_engine_serial` and `hls_split_9c08763`. Its 146 passing
+> rows remain orchestration and correctness evidence, but are superseded as the
+> latest-Spine performance baseline by the Candidate10-derived v2 contract in
+> `docs/candidate10_normalized_comparison_contract_20260726.md`.
+
 ## Claim boundary
 
 This milestone implements the fail-closed runner for the frozen 73-case shared

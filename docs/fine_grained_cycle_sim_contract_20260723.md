@@ -60,6 +60,13 @@ manifest SHA-256 must be copied into every run result.
   the default validation target until a newer accepted bundle exists.
 - `spine_latest_afb8199`: source-following experimental profile. It is not a
   performance baseline without accepted hardware evidence.
+- `spine_candidate10_one_pass_1e61fc0`: hardware-validated native Candidate10
+  anchor with frozen source, routed xclbin, area, timing, and selected cycle
+  evidence.
+- `spine_candidate10_normalized_v1`: Candidate10-derived normalized profile.
+  Its maintenance, AXI, family, level, partition, and tile parameters are
+  fail-closed against the native parent; this is now the normalized comparison
+  baseline, not a native measurement.
 
 The comparison report has three separate views:
 

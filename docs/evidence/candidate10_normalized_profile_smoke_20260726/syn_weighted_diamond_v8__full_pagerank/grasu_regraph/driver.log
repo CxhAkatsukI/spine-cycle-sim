@@ -1,0 +1,1 @@
+PASS grasu_regraph_pagerank_sst: claim=normalized_simulation cycles=133053 iterations=3 max_error=2.98023e-08 backend_requests=50757
