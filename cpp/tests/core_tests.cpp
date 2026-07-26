@@ -2185,6 +2185,53 @@ void test_axi_payload_round_trip_across_beats_and_bursts() {
           "explicit AXI write payload was reported as zero-filled");
 }
 
+void test_memory_backend_payload_pages_preserve_sparse_fill_semantics() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("core", 141.0);
+  MockMemoryBackend backend("mock-hbm", core, mock_memory_config(2));
+
+  constexpr std::uint64_t kCrossPageBase = 4090;
+  backend.fill_payload(0, 4088, 32, 0xaa);
+  backend.fill_payload(1, 4088, 32, 0x5c);
+
+  std::vector<std::uint8_t> explicit_payload(20);
+  for (std::size_t index = 0; index < explicit_payload.size(); ++index) {
+    explicit_payload[index] =
+        static_cast<std::uint8_t>((index * 19 + 7) & 0xffU);
+  }
+  backend.initialize_payload(0, kCrossPageBase, explicit_payload);
+
+  std::vector<std::uint8_t> expected(32, 0xaa);
+  std::copy(explicit_payload.begin(), explicit_payload.end(),
+            expected.begin() + 2);
+  require(backend.inspect_payload(0, 4088, expected.size()) == expected,
+          "paged payload storage changed cross-page sparse/fill resolution");
+  require(backend.inspect_payload(1, 4088, expected.size()) ==
+              std::vector<std::uint8_t>(expected.size(), 0x5c),
+          "paged payload storage leaked explicit bytes across channels");
+
+  backend.fill_payload(0, kCrossPageBase, explicit_payload.size(), 0x33);
+  require(backend.inspect_payload(0, kCrossPageBase, explicit_payload.size()) ==
+              explicit_payload,
+          "a later fill incorrectly overrode explicit payload bytes");
+
+  backend.initialize_payload(0, 4095, {0x11});
+  backend.initialize_payload(0, 4097, {0x22});
+  require(backend.inspect_payload(0, 4095, 3) ==
+              std::vector<std::uint8_t>({0x11, explicit_payload[6], 0x22}),
+          "paged payload validity lost a byte around the page boundary");
+
+  bool inspect_overflow_rejected = false;
+  try {
+    (void)backend.inspect_payload(
+        0, std::numeric_limits<std::uint64_t>::max() - 1, 2);
+  } catch (const std::invalid_argument&) {
+    inspect_overflow_rejected = true;
+  }
+  require(inspect_overflow_rejected,
+          "paged payload inspection accepted an overflowing address range");
+}
+
 void test_axi_read_beat_stream_is_bounded_and_request_scoped() {
   Scheduler scheduler;
   const auto core = scheduler.add_clock_mhz("core", 141.0);
@@ -7836,6 +7883,8 @@ int main(int argc, char **argv) {
       {"axi_response_backpressure", test_axi_response_backpressure_is_lossless},
       {"axi_payload_round_trip",
        test_axi_payload_round_trip_across_beats_and_bursts},
+      {"memory_backend_payload_pages",
+       test_memory_backend_payload_pages_preserve_sparse_fill_semantics},
       {"axi_read_beat_stream",
        test_axi_read_beat_stream_is_bounded_and_request_scoped},
       {"axi_multi_initiator", test_axi_multi_initiator_fixed_channel_isolation},
