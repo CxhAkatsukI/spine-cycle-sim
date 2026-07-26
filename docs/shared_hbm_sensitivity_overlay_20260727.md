@@ -70,3 +70,28 @@ This smoke proves parameter penetration, not ranking robustness. The formal
 sensitivity matrix must use committed low/high latency and bandwidth configs,
 multiple topology/algorithm groups, and report any rank inversion.
 
+## Frozen sensitivity assets
+
+The reproducible profile set is defined by
+`configs/memory/hbm_sensitivity_profiles_v1.json` and generated with:
+
+```bash
+cd /home/chuxiao/spine-cycle-sim-runtime
+python3 scripts/generate_hbm_sensitivity_configs.py
+python3 scripts/generate_hbm_sensitivity_configs.py --check
+```
+
+The four generated configs are:
+
+| Profile | Changed DRAMSim3 fields |
+| --- | --- |
+| `latency_low` | `CL/CWL/tRCDRD/tRCDWR/tRP = 11/3/11/11/11` |
+| `latency_high` | `CL/CWL/tRCDRD/tRCDWR/tRP = 17/5/17/17/17` |
+| `bandwidth_high` | `tCCD_L = 1` |
+| `bandwidth_low` | `tCCD_S/tCCD_L = 2/4` |
+
+All four were parsed and executed by DRAMSim3 on the same weighted-chain Spine
+smoke. The resulting cycles were 618,454, 647,916, 619,131, and 619,131,
+respectively. The bandwidth overlays intentionally have no effect on this
+serial chain: a formal bandwidth sensitivity run must include spread, fan-in,
+and hub workloads with enough concurrent column commands to expose `tCCD`.
