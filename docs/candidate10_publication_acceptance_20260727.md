@@ -22,7 +22,7 @@ runtime and is not an iso-resource comparison.
 | Matched HBM energy | PASS | 12 system runs, six pairs, all 32 controllers |
 | Spine routed feasibility | PASS | U55C routed xclbin, 150 MHz timing closed |
 | GraSU+ReGraph three-algorithm routed feasibility | IN PROGRESS | weighted and Full PageRank routed; residual build running |
-| 50K-edge real-slice runtime | IN PROGRESS | Candidate10 v3 rerun running after fallback repair |
+| 50K-edge real-slice runtime | COMPLETE / FAIL | both systems correct; Spine 9,381.996 s exceeds the 1,800 s host limit |
 | Matched total accelerator energy | BLOCKED | asymmetric on-chip coverage; logic/clock/interconnect omitted |
 | Three-algorithm iso-functional Spine PPA | BLOCKED | current Spine xclbin is the SSSP compute baseline |
 
@@ -44,6 +44,16 @@ reproduces the frozen profile limits: Spine accepts 16,384 final edges at its
 L1 boundary while GraSU+ReGraph rejects the corresponding 8,192-update case;
 at 24,576 final edges both profiles reject. No timing ratio is reported for a
 rejected endpoint.
+
+The 50,000-edge Amazon real slice completes correctly on both systems. For
+this one 19,399-vertex, eight-insertion, three-iteration Full PageRank case,
+GraSU+ReGraph is 108.772x faster in simulated E2E time (16.440 ms versus
+1,788.219 ms). Spine issues 58.063x as many backend requests. Its maintenance
+path does not take the publication fallback; 265.4M of its 268.2M cycles are
+in compute. This identifies a large-graph D/compute memory-traffic target, not
+a universal cross-dataset speedup. Spine's 9,381.996-second host runtime also
+fails the 1,800-second simulator-runtime gate; GraSU+ReGraph passes at 22.596
+seconds.
 
 ## Memory and energy
 
@@ -88,6 +98,7 @@ for bundle in \
   candidate10_hls_v3_real_small_batches_20260727 \
   candidate10_hls_v3_dense_full_pagerank_20260727 \
   candidate10_hls_v3_matched_pagerank_energy_20260727 \
+  candidate10_hls_v3_large_runtime_20260727 \
   candidate10_alignment_inputs_20260727; do
   (cd "docs/evidence/${bundle}" && sha256sum -c SHA256SUMS)
 done
@@ -102,8 +113,8 @@ in `docs/runtime_rejected_paths_20260727.md`.
 
 1. Freeze the residual PageRank routed artifact, resources, timing, and source
    identity after the active Vitis run completes.
-2. Accept or reject the 50K-edge runtime gate only after both systems finish,
-   all correctness checks pass, and the host wall time is recorded.
+2. Implement exact DRAMSim3 idle-interval advancement and rerun the 50K-edge
+   gate; the completed baseline currently fails on Spine host runtime.
 3. Implement and synthesize Spine Full/residual PageRank whole systems before
    making an iso-functional three-algorithm PPA claim.
 4. Add symmetric on-chip activity and characterized storage plus logic,
