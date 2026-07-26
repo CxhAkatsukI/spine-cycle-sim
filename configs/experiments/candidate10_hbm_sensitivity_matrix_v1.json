@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "matrix_id": "candidate10_hbm_sensitivity_matrix_v1",
+  "source_manifest": {
+    "path": "configs/experiments/shared_comparison_candidate10_hls_v3_20260726.json",
+    "sha256": "68e36a835f35c277ddff0571d9baae46385674239085c12197ab5b91bdc9bbc7"
+  },
+  "hbm_profiles": {
+    "path": "configs/memory/hbm_sensitivity_profiles_v1.json",
+    "sha256": "da8095094dfe3b06b6ba027bed90379e46b42a9a1fe92d1987ed94e5d2e42810"
+  },
+  "winner_tolerance_ratio": 1.01,
+  "run_ids": [
+    "syn_chain_v64__weighted_sssp",
+    "syn_chain_v64__full_pagerank",
+    "syn_chain_v64__residual_pagerank",
+    "syn_hot_source_e256__full_pagerank",
+    "syn_hot_destination_e256__residual_pagerank",
+    "syn_spread_e512__weighted_sssp",
+    "syn_spread_e512__full_pagerank",
+    "syn_spread_e512__residual_pagerank",
+    "syn_gather_bank_fanin_e1024__weighted_sssp",
+    "syn_dynamic_mixed_update__dynamic_weighted_sssp",
+    "syn_residual_skew_hub_v257__residual_pagerank",
+    "real_amazon_2008_compact__weighted_sssp"
+  ]
+}

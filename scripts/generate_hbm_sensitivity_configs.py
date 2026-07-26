@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import configparser
+import hashlib
 from io import StringIO
 import json
 from pathlib import Path
@@ -18,8 +19,6 @@ DEFAULT_MANIFEST = (
 
 
 def sha256_file(path: Path) -> str:
-    import hashlib
-
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
@@ -102,7 +101,13 @@ def render_profiles(manifest_path: Path) -> dict[Path, str]:
     for raw_profile in manifest["profiles"]:  # type: ignore[index]
         profile = dict(raw_profile)
         output = (ROOT / str(profile["output"])).resolve()
-        outputs[output] = render_profile(baseline, profile)
+        content = render_profile(baseline, profile)
+        digest = hashlib.sha256(content.encode("ascii")).hexdigest()
+        if digest != profile.get("sha256"):
+            raise ValueError(
+                f"generated sensitivity hash mismatch: {profile['profile_id']}"
+            )
+        outputs[output] = content
     return outputs
 
 
