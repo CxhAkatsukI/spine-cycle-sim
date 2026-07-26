@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "evidence_id": "grasu_regraph_matching_hls_status_20260726",
+  "claim_class": "hls_feasibility_crosswalk_not_normalized_performance",
+  "weighted_whole_system": {
+    "source_revision": "a927186446b61163bba04e3e263f370fa0e32d63",
+    "pipeline_mode": "weighted-axis",
+    "conversion_cost": "absent",
+    "compute_units": 15,
+    "functional_status": "whole_system_sw_emu_cpu_oracle_pass",
+    "sw_emu_profile_id": "grasu_regraph_weighted_pma_hls_sw_emu_ff13a67",
+    "sw_emu_profile_sha256": "4aa897350dfdd9bddd45ec47654e58edd599050507b3156a77143d9008765f1e",
+    "hw_build_root": "/data/tmp/chuxiao/grasu_regraph_weighted_sssp_native_hw_a927186_20260726",
+    "hw_xclbin": {
+      "path": "/data/tmp/chuxiao/grasu_regraph_weighted_sssp_native_hw_a927186_20260726/build/grasu_regraph_weighted_pma_native.hw.xclbin",
+      "sha256": "c646bc3ced3de64b641aae351a502d57a2475935cede9feb90617a7cdd700048",
+      "bytes": 61455497
+    },
+    "routed_utilization_report": {
+      "path": "/data/tmp/chuxiao/grasu_regraph_weighted_sssp_native_hw_a927186_20260726/reports/link/link/imp/impl_1_kernel_util_routed.rpt",
+      "sha256": "239a4151098c3eb583e1591cf2bb1ba25db488a82b0ba5e416094c1b1cad66b5",
+      "bytes": 8474
+    },
+    "routed_timing_report": {
+      "path": "/data/tmp/chuxiao/grasu_regraph_weighted_sssp_native_hw_a927186_20260726/reports/link/link/imp/impl_1_hw_bb_locked_timing_summary_routed.rpt",
+      "sha256": "e897e81b0e9347207260d51914183cb7c9af7505bffd62e1ea4fc7b0302c532e",
+      "bytes": 16773574
+    },
+    "used_resources": {
+      "lut": 98060,
+      "lut_as_mem": 12772,
+      "reg": 112582,
+      "bram": 233,
+      "uram": 64,
+      "dsp": 0
+    },
+    "requested_kernel_mhz": 200.0,
+    "kernel_clock_wns_ns": 0.218,
+    "kernel_clock_setup_failing_endpoints": 0,
+    "global_wns_ns": -0.187,
+    "global_tns_ns": -13.166,
+    "global_setup_failing_endpoints": 225,
+    "global_timing_status": "failed_hbm_aclk_paths_relink_pending"
+  },
+  "algorithm_policy_core": {
+    "source_revision": "9bb6a4d1ff457559651874bef9d38db80686cf25",
+    "source_path": "/home/chuxiao/grasu-regraph-integration/kernels/regraph_algorithm_policy/regraph_algorithm_policy.cpp",
+    "source_sha256": "18422dd7d722649121823b92c4a2c9f95b099801488b46473a31c933582b248b",
+    "lanes": 8,
+    "functional_status": "software_functional_tests_pass",
+    "sw_emu_compile_status": "three_policy_xos_pass",
+    "hw_compile_status": "not_started",
+    "scope": "isolated_map_reduce_apply_arithmetic_not_whole_system",
+    "algorithms": [
+      "weighted_sssp",
+      "full_pagerank",
+      "thresholded_residual_pagerank"
+    ]
+  },
+  "interpretation": [
+    "The weighted conversion-free architecture has whole-system functional and routed resource evidence, but global timing has not closed.",
+    "Full and residual PageRank have synthesizable arithmetic policy source only; degree maintenance, state paths, host control, and whole-system integration remain missing.",
+    "None of these artifacts exactly implements the current four-lane normalized-v2 GraSU/ReGraph profiles."
+  ]
+}

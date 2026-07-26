@@ -1,0 +1,32 @@
+digraph ComparisonGate {
+  graph [rankdir=LR, bgcolor="white", pad="0.25", nodesep="0.35", ranksep="0.65"];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=10, color="#374151", fillcolor="#f9fafb"];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#4b5563"];
+
+  spine_hw [label="Spine Candidate10\nnative HW + routed HLS", fillcolor="#dbeafe"];
+  grasu_hw [label="GraSU/ReGraph\nweighted HLS + policy cores", fillcolor="#dcfce7"];
+  shared [label="Shared cycle substrate\nFIFO + AXI + SST-HBM", fillcolor="#fef3c7"];
+  spine_norm [label="Candidate10 normalized\nprotected state machines", fillcolor="#dbeafe"];
+  grasu_v2 [label="Normalized v2\nstructural audit point", fillcolor="#fee2e2"];
+  grasu_v3 [label="HLS-derived v3\nfull-word, 8 lanes, degree RMW", fillcolor="#dcfce7"];
+  inputs [label="Identical graph/update\nalgorithm + numeric contract", fillcolor="#f3f4f6"];
+  oracle [label="Dual oracle\narchitecture + CPU", fillcolor="#f3f4f6"];
+  structural [label="Structural exploration\nALLOWED", fillcolor="#fef3c7"];
+  headline [label="Headline + iso-resource\nBLOCKED until matching HLS", fillcolor="#fee2e2"];
+  publish [label="Performance + traffic + PPA\nwith sensitivity", fillcolor="#dcfce7"];
+
+  spine_hw -> shared [label="validates components"];
+  grasu_hw -> shared [label="validates components"];
+  spine_hw -> spine_norm [label="semantic parent"];
+  grasu_hw -> grasu_v3 [label="exact crosswalk"];
+  grasu_v2 -> structural [label="current"];
+  inputs -> spine_norm;
+  inputs -> grasu_v3;
+  shared -> spine_norm;
+  shared -> grasu_v3;
+  spine_norm -> oracle;
+  grasu_v3 -> oracle;
+  oracle -> structural;
+  oracle -> headline;
+  headline -> publish [label="unblocks after 3/3 HLS"];
+}

@@ -1,0 +1,232 @@
+{
+  "schema_version": 1,
+  "contract_id": "candidate10_normalized_hls_feasibility_v1_20260726",
+  "claim_class": "normalized_feasibility_and_claim_gate_not_performance_result",
+  "shared_platform_status": "pass",
+  "spine": {
+    "normalized_profile": {
+      "path": "configs/architectures/spine_candidate10_normalized_v1.json",
+      "profile_id": "spine_candidate10_normalized_v1",
+      "sha256": "4e31633c55abfdc57fd4537119d6abb6d7a4f0313dcfc81332fa0ed0a6320c0a"
+    },
+    "native_parent_profile": {
+      "path": "configs/architectures/spine_candidate10_one_pass_1e61fc0.json",
+      "profile_id": "spine_candidate10_one_pass_1e61fc0",
+      "sha256": "a23737c17f6650cea0185bd3eba9d425dbc151f35372d33130464df780312717"
+    },
+    "equivalence_status": "candidate10_semantics_preserved_platform_normalized",
+    "matching_hls": true,
+    "evidence_status": "native_parent_routed_hardware_validated"
+  },
+  "algorithms": {
+    "weighted_sssp": {
+      "normalized_profile": {
+        "path": "configs/architectures/grasu_regraph_candidate10_normalized_weighted_v2.json",
+        "profile_id": "grasu_regraph_candidate10_normalized_weighted_v2",
+        "sha256": "465fecc4c5d3d4ba9f2c29f10381a9c4eb3a9dca7ceee26344afe7707f2a8991"
+      },
+      "closest_hls_profile": {
+        "path": "configs/architectures/grasu_regraph_weighted_pma_hls_sw_emu_ff13a67.json",
+        "profile_id": "grasu_regraph_weighted_pma_hls_sw_emu_ff13a67",
+        "sha256": "4aa897350dfdd9bddd45ec47654e58edd599050507b3156a77143d9008765f1e"
+      },
+      "functional_evidence_status": "whole_system_sw_emu_cpu_oracle_pass",
+      "whole_system_hls_status": "routed_global_timing_failed_relink_pending",
+      "matching_hls": false,
+      "parameter_crosswalk": [
+        {
+          "field": "/clocks/0/requested_mhz",
+          "normalized_value": 150.0,
+          "closest_hls_value": 200.0,
+          "difference_class": "intentional_shared_platform_normalization",
+          "publication_blocker": false,
+          "reason": "A 150 MHz normalized clock is below the HLS kernel clock that closes locally at 200 MHz."
+        },
+        {
+          "field": "/memory/max_outstanding_per_port",
+          "normalized_value": 32,
+          "closest_hls_value": 16,
+          "difference_class": "microarchitecture_profile_mismatch",
+          "publication_blocker": true,
+          "reason": "Outstanding depth changes attainable memory-level parallelism and buffering cost."
+        },
+        {
+          "field": "/parameters/regraph_map_reduce_lanes",
+          "normalized_value": 4,
+          "closest_hls_value": 8,
+          "difference_class": "compute_parallelism_mismatch",
+          "publication_blocker": true,
+          "reason": "The existing conversion-free HLS adapter and ReGraph datapath are eight-lane."
+        },
+        {
+          "field": "/parameters/grasu_pma_edge_abi",
+          "normalized_value": "regraph_weighted32_dst19_weight12",
+          "closest_hls_value": "regraph_weighted32_full_word_compare_dst19_weight12",
+          "difference_class": "update_semantics_mismatch",
+          "publication_blocker": true,
+          "reason": "The HLS PMA compares full words, so weight changes require delete-old plus insert-new."
+        }
+      ],
+      "missing_gates": [
+        "freeze an HLS-derived normalized profile with the full-word update ABI",
+        "close or explicitly waive whole-system routed timing",
+        "synthesize the exact normalized lane and outstanding configuration"
+      ]
+    },
+    "full_pagerank": {
+      "normalized_profile": {
+        "path": "configs/architectures/grasu_regraph_candidate10_normalized_pagerank_v2.json",
+        "profile_id": "grasu_regraph_candidate10_normalized_pagerank_v2",
+        "sha256": "eaf5e578a4123e5e97baee79252ed5b249c0c77b435da1872cc2cfe95bf051e3"
+      },
+      "closest_hls_profile": {
+        "path": "configs/architectures/grasu_regraph_weighted_pma_hls_proposed_pagerank_ff13a67.json",
+        "profile_id": "grasu_regraph_weighted_pma_hls_proposed_pagerank_ff13a67",
+        "sha256": "53e1688e3f944d59cb2e482f040ed82e4a253e65b0c2e1353103aedb23a9dcda"
+      },
+      "functional_evidence_status": "simulator_dual_oracle_and_isolated_policy_tests_pass",
+      "whole_system_hls_status": "not_implemented",
+      "matching_hls": false,
+      "parameter_crosswalk": [
+        {
+          "field": "/clocks/0/requested_mhz",
+          "normalized_value": 150.0,
+          "closest_hls_value": 200.0,
+          "difference_class": "intentional_shared_platform_normalization",
+          "publication_blocker": false,
+          "reason": "Clock normalization is allowed only after the same datapath is synthesized."
+        },
+        {
+          "field": "/memory/max_outstanding_per_port",
+          "normalized_value": 32,
+          "closest_hls_value": 16,
+          "difference_class": "microarchitecture_profile_mismatch",
+          "publication_blocker": true,
+          "reason": "Outstanding depth changes memory-level parallelism and buffering cost."
+        },
+        {
+          "field": "/parameters/regraph_map_reduce_lanes",
+          "normalized_value": 4,
+          "closest_hls_value": 8,
+          "difference_class": "compute_parallelism_mismatch",
+          "publication_blocker": true,
+          "reason": "The proposed HLS-equivalent PageRank datapath uses eight lanes."
+        },
+        {
+          "field": "/parameters/grasu_pma_edge_abi",
+          "normalized_value": "regraph_weighted32_dst19_weight12",
+          "closest_hls_value": "regraph_weighted32_full_word_compare_dst19_weight12",
+          "difference_class": "update_semantics_mismatch",
+          "publication_blocker": true,
+          "reason": "The PMA update engine retains full-word compare semantics even when compute projects destinations."
+        },
+        {
+          "field": "/parameters/pagerank_degree_update_timing",
+          "normalized_value": false,
+          "closest_hls_value": true,
+          "difference_class": "omitted_dynamic_update_work",
+          "publication_blocker": true,
+          "reason": "Dynamic PageRank must maintain out-degree on inserts and deletes."
+        }
+      ],
+      "missing_gates": [
+        "integrate degree RMW, dangling reduction, PageRank policy, state storage, and host iteration control",
+        "pass a whole-system HLS correctness oracle",
+        "obtain exact-profile synthesis resources and timing"
+      ]
+    },
+    "thresholded_residual_pagerank": {
+      "normalized_profile": {
+        "path": "configs/architectures/grasu_regraph_candidate10_normalized_residual_pagerank_v2.json",
+        "profile_id": "grasu_regraph_candidate10_normalized_residual_pagerank_v2",
+        "sha256": "ed78858e0d5fd41dc8e3bca381b7df095ba4a7153de2af26248e9b091a086faf"
+      },
+      "closest_hls_profile": {
+        "path": "configs/architectures/grasu_regraph_weighted_pma_hls_proposed_residual_pagerank_ff13a67.json",
+        "profile_id": "grasu_regraph_weighted_pma_hls_proposed_residual_pagerank_ff13a67",
+        "sha256": "fc86f67e6f9b5c1f8487f1865873bd7a9b9cb26f96f9626cd23e45a7847152c5"
+      },
+      "functional_evidence_status": "simulator_dual_oracle_and_isolated_policy_tests_pass",
+      "whole_system_hls_status": "not_implemented",
+      "matching_hls": false,
+      "parameter_crosswalk": [
+        {
+          "field": "/clocks/0/requested_mhz",
+          "normalized_value": 150.0,
+          "closest_hls_value": 200.0,
+          "difference_class": "intentional_shared_platform_normalization",
+          "publication_blocker": false,
+          "reason": "Clock normalization is allowed only after the same datapath is synthesized."
+        },
+        {
+          "field": "/memory/max_outstanding_per_port",
+          "normalized_value": 32,
+          "closest_hls_value": 16,
+          "difference_class": "microarchitecture_profile_mismatch",
+          "publication_blocker": true,
+          "reason": "Outstanding depth changes memory-level parallelism and buffering cost."
+        },
+        {
+          "field": "/parameters/regraph_map_reduce_lanes",
+          "normalized_value": 4,
+          "closest_hls_value": 8,
+          "difference_class": "compute_parallelism_mismatch",
+          "publication_blocker": true,
+          "reason": "The proposed HLS-equivalent residual datapath uses eight lanes."
+        },
+        {
+          "field": "/parameters/grasu_pma_edge_abi",
+          "normalized_value": "regraph_weighted32_dst19_weight12",
+          "closest_hls_value": "regraph_weighted32_full_word_compare_dst19_weight12",
+          "difference_class": "update_semantics_mismatch",
+          "publication_blocker": true,
+          "reason": "The PMA update engine retains full-word compare semantics even when compute projects destinations."
+        },
+        {
+          "field": "/parameters/pagerank_degree_update_timing",
+          "normalized_value": false,
+          "closest_hls_value": true,
+          "difference_class": "omitted_dynamic_update_work",
+          "publication_blocker": true,
+          "reason": "Residual PageRank also requires degree maintenance for dynamic updates."
+        }
+      ],
+      "missing_gates": [
+        "integrate degree RMW, residual activation, packed rank-residual state, and host convergence control",
+        "pass a whole-system HLS correctness oracle",
+        "obtain exact-profile synthesis resources and timing"
+      ]
+    }
+  },
+  "evidence": {
+    "path": "docs/evidence/grasu_regraph_matching_hls_status_20260726.json",
+    "sha256": "9bdf345bf0de580ef6cd8cd5bff2c5c8a49d9351ff84802bd72f9c7dd3a47731"
+  },
+  "claim_gates": {
+    "correctness": {
+      "eligible": true,
+      "label": "dual_oracle_simulator_correctness_only",
+      "reason": "Every reported run must pass both the architecture-state and independent mathematical oracle."
+    },
+    "structural_exploratory": {
+      "eligible": true,
+      "label": "candidate10_derived_normalized_structural_execution_driven",
+      "reason": "The shared platform and execution-driven models are frozen, but GraSU/ReGraph HLS equivalence is incomplete."
+    },
+    "headline_normalized_performance": {
+      "eligible": false,
+      "label": "blocked_missing_symmetric_matching_hls",
+      "reason": "All three GraSU/ReGraph algorithms need an HLS-derived profile and matching whole-system implementation."
+    },
+    "iso_resource_performance": {
+      "eligible": false,
+      "label": "blocked_missing_exact_resource_crosswalk",
+      "reason": "Current normalized-v2 GraSU/ReGraph parameters differ from the available routed weighted design, and PageRank has no whole-system synthesis."
+    },
+    "fpga_measured_performance": {
+      "eligible": false,
+      "label": "blocked_normalized_is_not_measured_hardware",
+      "reason": "A normalized simulator result must never be relabeled as a native FPGA measurement."
+    }
+  }
+}

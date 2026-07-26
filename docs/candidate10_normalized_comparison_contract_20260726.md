@@ -15,6 +15,12 @@ native FPGA measurement. Matching HLS synthesis remains mandatory before an
 iso-resource publication claim because only the Spine side currently has a
 routed implementation of the normalized microarchitecture.
 
+The exact HLS/profile crosswalk and machine-enforced claim scopes are documented
+in `docs/candidate10_normalized_scientific_comparison_gate_20260726.md`.  In
+particular, the current four-lane GraSU/ReGraph v2 profiles differ from the
+available eight-lane HLS implementation and remain an immutable structural
+audit point rather than the final performance baseline.
+
 ![Candidate10-derived normalized comparison](figures/candidate10_normalized_comparison_contract.svg)
 
 ## Why the previous matrix is not the new performance baseline
@@ -72,6 +78,7 @@ Command:
 ```bash
 cd /home/chuxiao/spine-cycle-sim
 python3 scripts/run_shared_comparison_matrix.py \
+  --claim-scope structural_exploratory \
   --run-id syn_weighted_diamond_v8__weighted_sssp \
   --run-id syn_weighted_diamond_v8__full_pagerank \
   --run-id syn_weighted_diamond_v8__residual_pagerank \
@@ -116,6 +123,7 @@ cd /home/chuxiao/spine-cycle-sim
 python3 scripts/prepare_shared_comparison_workloads.py --verify-only
 python3 -m unittest \
   tests.test_architecture_profiles \
+  tests.test_normalized_hls_feasibility \
   tests.test_shared_comparison_workloads \
   tests.test_shared_comparison_runner
 ```

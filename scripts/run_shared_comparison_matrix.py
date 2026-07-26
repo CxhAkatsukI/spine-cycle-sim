@@ -23,12 +23,15 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from spine_cycle_sim.experiments import (  # noqa: E402
+    CLAIM_SCOPES,
+    FeasibilityError,
     build_invocation,
     implementation_fingerprint,
     normalized_grasu_profile_paths,
     pair_rows,
     select_runs,
     validate_normalized_profile_contract,
+    require_claim_eligibility,
     validate_shared_comparison_manifest,
     validate_system_result,
 )
@@ -278,6 +281,15 @@ def main() -> int:
     parser.add_argument("--jobs", type=int, default=1)
     parser.add_argument("--timeout-seconds", type=float, default=1800.0)
     parser.add_argument("--resume", action="store_true")
+    parser.add_argument(
+        "--claim-scope",
+        choices=CLAIM_SCOPES,
+        default="structural_exploratory",
+        help=(
+            "Fail before execution when the frozen HLS evidence does not support "
+            "the requested claim."
+        ),
+    )
     parser.add_argument("--no-build", action="store_true")
     parser.add_argument("--python", default=sys.executable)
     parser.add_argument("--sst", type=Path, default=Path("/data/feiyang/sst/bin/sst"))
@@ -300,6 +312,12 @@ def main() -> int:
         args.spine_profile,
         normalized_grasu_profile_paths(ROOT),
     )
+    try:
+        claim_gate = require_claim_eligibility(
+            normalized_contract["matching_hls_gate"], args.claim_scope
+        )
+    except FeasibilityError as error:
+        parser.error(str(error))
     selected = select_runs(
         manifest,
         roles=args.role,
@@ -334,8 +352,17 @@ def main() -> int:
         [
             Path(__file__),
             ROOT / "spine_cycle_sim" / "experiments" / "comparison.py",
+            ROOT / "spine_cycle_sim" / "experiments" / "feasibility.py",
             ROOT / "spine_cycle_sim" / "experiments" / "regraph_contracts.py",
             ROOT / "spine_cycle_sim" / "experiments" / "shared_workloads.py",
+            ROOT
+            / "configs"
+            / "contracts"
+            / "candidate10_normalized_hls_feasibility_v1.json",
+            ROOT
+            / "docs"
+            / "evidence"
+            / "grasu_regraph_matching_hls_status_20260726.json",
         ]
     )
     args.out_dir.mkdir(parents=True, exist_ok=True)
@@ -404,7 +431,7 @@ def main() -> int:
     executor.shutdown(wait=True, cancel_futures=True)
     matrix_wall_seconds = time.monotonic() - matrix_start
     rows.sort(key=lambda row: (str(row["run_id"]), str(row["system"])))
-    pairs = pair_rows(rows)
+    pairs = pair_rows(rows, claim_label=str(claim_gate["label"]))
     reused_rows = sum(bool(row["cache_reused"]) for row in rows)
     all_run_ids = {str(run["run_id"]) for run in manifest["runs"]}
     selected_run_ids = {str(run["run_id"]) for run in selected}
@@ -419,6 +446,8 @@ def main() -> int:
         "source_manifest": str(args.manifest.resolve()),
         "source_manifest_sha256": sha256_file(args.manifest.resolve()),
         "normalized_profile_contract": normalized_contract,
+        "requested_claim_scope": args.claim_scope,
+        "claim_gate": claim_gate,
         "simulation_implementation": simulation_implementation,
         "orchestration_implementation": orchestration_implementation,
         "claim_class": (

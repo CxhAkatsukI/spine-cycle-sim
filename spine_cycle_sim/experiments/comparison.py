@@ -10,6 +10,7 @@ from typing import Iterable, Mapping, Sequence
 
 from spine_cycle_sim.profiles import ArchitectureProfile, load_architecture_profile
 from spine_cycle_sim.experiments.profile_capabilities import load_capability_catalog
+from spine_cycle_sim.experiments.feasibility import load_normalized_hls_feasibility
 
 
 SYSTEMS = ("spine", "grasu_regraph")
@@ -219,6 +220,9 @@ def validate_normalized_profile_contract(
                     f"normalized capability is not executable: {profile_id}/{algorithm}"
                 )
 
+    repository_root = spine_path.parents[2]
+    hls_feasibility = load_normalized_hls_feasibility(repository_root)
+
     return {
         "claim_class": "candidate10_derived_normalized_structural_execution_driven",
         "spine_profile_id": spine.profile_id,
@@ -232,7 +236,7 @@ def validate_normalized_profile_contract(
         "hbm_clock_mhz": NORMALIZED_HBM_CLOCK_MHZ,
         "physical_hbm_channels": spine.memory.channels,
         "hbm_pseudo_channels_budget": NORMALIZED_HBM_BUDGET,
-        "matching_hls_gate": "pending_for_normalized_grasu_regraph",
+        "matching_hls_gate": hls_feasibility,
     }
 
 
@@ -636,7 +640,11 @@ def result_row(
     }
 
 
-def pair_rows(rows: Iterable[Mapping[str, object]]) -> list[dict[str, object]]:
+def pair_rows(
+    rows: Iterable[Mapping[str, object]],
+    *,
+    claim_label: str = "candidate10_derived_normalized_structural_execution_driven",
+) -> list[dict[str, object]]:
     by_run: dict[str, dict[str, Mapping[str, object]]] = {}
     for row in rows:
         by_run.setdefault(str(row["run_id"]), {})[str(row["system"])] = row
@@ -662,9 +670,7 @@ def pair_rows(rows: Iterable[Mapping[str, object]]) -> list[dict[str, object]]:
                 "grasu_regraph_simulated_ms": grasu["simulated_ms"],
                 "spine_speedup_over_grasu": float(grasu["cycles"])
                 / float(spine["cycles"]),
-                "claim_label": (
-                    "candidate10_derived_normalized_structural_execution_driven"
-                ),
+                "claim_label": claim_label,
             }
         )
     return paired

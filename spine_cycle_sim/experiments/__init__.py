@@ -26,6 +26,13 @@ from .profile_capabilities import (
     ProfileCapability,
     load_capability_catalog,
 )
+from .feasibility import (
+    CLAIM_SCOPES,
+    DEFAULT_FEASIBILITY_CONTRACT,
+    FeasibilityError,
+    load_normalized_hls_feasibility,
+    require_claim_eligibility,
+)
 from .hls_weighted_workloads import HlsWeightedFixture, hls_weighted_fixtures
 from .real_small_batches import (
     RealSmallBatch,
@@ -80,6 +87,11 @@ __all__ = [
     "ImplementationStatus",
     "ProfileCapability",
     "load_capability_catalog",
+    "CLAIM_SCOPES",
+    "DEFAULT_FEASIBILITY_CONTRACT",
+    "FeasibilityError",
+    "load_normalized_hls_feasibility",
+    "require_claim_eligibility",
     "HlsWeightedFixture",
     "hls_weighted_fixtures",
     "RealSmallBatch",
