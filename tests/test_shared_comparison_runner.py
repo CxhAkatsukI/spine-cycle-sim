@@ -172,15 +172,25 @@ class SharedComparisonRunnerTests(unittest.TestCase):
 
     def test_per_run_cycle_override_parser_is_strict(self) -> None:
         self.assertEqual(
-            parse_run_cycle_overrides(["slow=500", "slower=900"]),
-            {"slow": 500, "slower": 900},
+            parse_run_cycle_overrides(
+                ["slow/spine=500", "slower=900"]
+            ),
+            {("slow", "spine"): 500, ("slower", None): 900},
         )
-        for invalid in ("slow", "=500", "slow=0", "slow=-1", "slow=nope"):
+        for invalid in (
+            "slow",
+            "=500",
+            "slow/=500",
+            "slow/unknown=500",
+            "slow=0",
+            "slow=-1",
+            "slow=nope",
+        ):
             with self.subTest(invalid=invalid):
                 with self.assertRaises(ValueError):
                     parse_run_cycle_overrides([invalid])
         with self.assertRaisesRegex(ValueError, "duplicate"):
-            parse_run_cycle_overrides(["slow=1", "slow=2"])
+            parse_run_cycle_overrides(["slow/spine=1", "slow/spine=2"])
 
     def test_parent_gate_rejects_wrong_clock_or_oracle(self) -> None:
         run = next(

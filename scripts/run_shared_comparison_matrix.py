@@ -54,16 +54,30 @@ DEFAULT_MANIFEST = (
 )
 
 
-def parse_run_cycle_overrides(values: list[str]) -> dict[str, int]:
-    overrides: dict[str, int] = {}
+def parse_run_cycle_overrides(
+    values: list[str],
+) -> dict[tuple[str, str | None], int]:
+    overrides: dict[tuple[str, str | None], int] = {}
     for value in values:
-        run_id, separator, cycle_text = value.partition("=")
-        if not separator or not run_id or not cycle_text:
+        target, separator, cycle_text = value.partition("=")
+        target_parts = target.split("/")
+        if (
+            not separator
+            or not cycle_text
+            or len(target_parts) not in {1, 2}
+            or not all(target_parts)
+        ):
             raise ValueError(
-                "--max-cycles-run must use RUN_ID=POSITIVE_CYCLES"
+                "--max-cycles-run must use "
+                "RUN_ID[/SYSTEM]=POSITIVE_CYCLES"
             )
-        if run_id in overrides:
-            raise ValueError(f"duplicate --max-cycles-run for {run_id}")
+        run_id = target_parts[0]
+        system = target_parts[1] if len(target_parts) == 2 else None
+        if system not in {None, "spine", "grasu_regraph"}:
+            raise ValueError(f"invalid comparison system in override: {system}")
+        key = (run_id, system)
+        if key in overrides:
+            raise ValueError(f"duplicate --max-cycles-run for {target}")
         try:
             cycles = int(cycle_text)
         except ValueError as error:
@@ -72,7 +86,7 @@ def parse_run_cycle_overrides(values: list[str]) -> dict[str, int]:
             ) from error
         if cycles <= 0:
             raise ValueError(f"max cycles must be positive for {run_id}")
-        overrides[run_id] = cycles
+        overrides[key] = cycles
     return overrides
 
 
@@ -327,10 +341,11 @@ def main() -> int:
         "--max-cycles-run",
         action="append",
         default=[],
-        metavar="RUN_ID=CYCLES",
+        metavar="RUN_ID[/SYSTEM]=CYCLES",
         help=(
-            "Override the simulated-cycle safety limit for one run. May be "
-            "repeated; unchanged runs retain resume-compatible commands."
+            "Override the simulated-cycle safety limit for one run or one "
+            "run/system pair. May be repeated; unchanged invocations retain "
+            "resume-compatible commands."
         ),
     )
     parser.add_argument("--resume", action="store_true")
@@ -385,7 +400,11 @@ def main() -> int:
         limit=args.limit,
     )
     selected_run_ids = {str(run["run_id"]) for run in selected}
-    unknown_overrides = sorted(set(cycle_overrides) - selected_run_ids)
+    unknown_overrides = sorted(
+        run_id
+        for run_id, _system in cycle_overrides
+        if run_id not in selected_run_ids
+    )
     if unknown_overrides:
         parser.error(
             "--max-cycles-run does not match a selected run: "
@@ -451,9 +470,13 @@ def main() -> int:
                 grasu_profile_paths=grasu_profiles,
                 grasu_capability_catalog=grasu_capability_catalog,
             )
-            if str(run["run_id"]) in cycle_overrides:
+            run_id = str(run["run_id"])
+            override = cycle_overrides.get(
+                (run_id, system), cycle_overrides.get((run_id, None))
+            )
+            if override is not None:
                 invocation = override_invocation_max_cycles(
-                    invocation, cycle_overrides[str(run["run_id"])]
+                    invocation, override
                 )
             invocations.append(
                 (
