@@ -203,6 +203,18 @@ class HlsRealComparisonTests(unittest.TestCase):
                 expected_core_mhz=200.0,
             ),
         )
+        child["result"]["physical_updates"] = 16
+        child["result"]["supersteps"] = 1
+        self.assertEqual(
+            validate_grasu_hls_result(
+                _run(),
+                child,
+                expected_profile_sha256="profile-hash",
+                expected_core_mhz=200.0,
+                expected_supersteps=1,
+            ),
+            [],
+        )
 
     def test_pair_uses_time_not_raw_cycles_and_requires_equal_answers(self) -> None:
         spine = {

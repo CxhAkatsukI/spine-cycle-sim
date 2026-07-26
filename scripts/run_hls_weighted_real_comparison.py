@@ -95,6 +95,14 @@ def _write_csv(path: Path, rows: list[dict[str, object]]) -> None:
         writer.writerows(serialized)
 
 
+def _display_path(path: Path) -> str:
+    resolved = path.resolve()
+    try:
+        return str(resolved.relative_to(ROOT))
+    except ValueError:
+        return str(resolved)
+
+
 def _profile(path: Path, expected_id: str) -> tuple[dict[str, object], float]:
     profile = json.loads(path.read_text(encoding="utf-8"))
     if profile.get("profile_id") != expected_id:
@@ -273,6 +281,11 @@ def _run_system(
             child,
             expected_profile_sha256=sha256_file(args.grasu_profile),
             expected_core_mhz=grasu_mhz,
+            expected_supersteps=(
+                int(run["required_sssp_rounds"])
+                if args.profile_set == "candidate10_hls_v3"
+                else None
+            ),
         )
         result = child["result"]
         dram = child["dram"]
@@ -286,7 +299,7 @@ def _run_system(
         wall_seconds=wall_seconds,
         profile_id=grasu_profile_id if system == "grasu_regraph" else None,
     )
-    row["raw_result_path"] = str(raw_result_path.resolve().relative_to(ROOT))
+    row["raw_result_path"] = _display_path(raw_result_path)
     row["raw_result_sha256"] = sha256_file(raw_result_path)
     if not reusable:
         cache_path.write_text(

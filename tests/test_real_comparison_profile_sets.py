@@ -9,6 +9,7 @@ from scripts.run_hls_residual_pagerank_real_comparison import (
     PROFILE_SETS as RESIDUAL_SETS,
 )
 from scripts.run_hls_weighted_real_comparison import PROFILE_SETS as WEIGHTED_SETS
+from scripts.run_hls_weighted_real_comparison import _display_path
 from spine_cycle_sim.experiments.shared_workloads import sha256_file
 
 
@@ -16,6 +17,10 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class RealComparisonProfileSetTests(unittest.TestCase):
+    def test_weighted_evidence_path_supports_external_output_roots(self) -> None:
+        self.assertEqual(_display_path(ROOT / "results"), "results")
+        self.assertEqual(_display_path(Path("/data/tmp/evidence")), "/data/tmp/evidence")
+
     def test_all_runners_expose_candidate10_hls_v3(self) -> None:
         for profile_sets in (WEIGHTED_SETS, PAGERANK_SETS, RESIDUAL_SETS):
             with self.subTest(profile_sets=profile_sets):

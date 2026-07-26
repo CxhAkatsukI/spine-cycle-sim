@@ -161,6 +161,7 @@ def validate_grasu_hls_result(
     *,
     expected_profile_sha256: str,
     expected_core_mhz: float,
+    expected_supersteps: int | None = None,
 ) -> list[str]:
     result = child.get("result", {})
     dram = child.get("dram", {})
@@ -197,7 +198,12 @@ def validate_grasu_hls_result(
         == 0,
         "combined_correctness": result.get("correctness_mismatches") == 0,
         "fixed_rounds": result.get("fixed_host_supersteps") is True
-        and result.get("supersteps") == run["hls_host_supersteps"],
+        and result.get("supersteps")
+        == (
+            run["hls_host_supersteps"]
+            if expected_supersteps is None
+            else expected_supersteps
+        ),
         "cycle_window": cycles > 0
         and update_cycles > 0
         and compute_cycles > 0

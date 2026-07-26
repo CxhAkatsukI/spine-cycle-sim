@@ -154,6 +154,35 @@ def enrich_system_row(
         if system == "spine"
         else result.get("update_cycles", 0)
     )
+    input_update_records = int(row.get("updates", 0) or 0)
+    logical_update_records = int(
+        result.get("update_edges", 0)
+        if system == "spine"
+        else result.get("logical_updates", 0)
+    )
+    physical_update_records = int(
+        logical_update_records
+        if system == "spine"
+        else result.get("physical_updates", logical_update_records)
+    )
+    if logical_update_records != input_update_records:
+        raise ValueError(
+            f"{run_id}/{system}: logical update record closure failed: "
+            f"input={input_update_records} result={logical_update_records}"
+        )
+    if physical_update_records < logical_update_records:
+        raise ValueError(f"{run_id}/{system}: physical updates are below logical updates")
+    core_mhz = float(row.get("core_mhz", 0.0) or 0.0)
+    if core_mhz <= 0.0:
+        simulated_ms = _float(row, "simulated_ms")
+        core_mhz = cycles / (simulated_ms * 1_000.0)
+    update_records_per_second: float | str = ""
+    if input_update_records:
+        if phase_cycles <= 0:
+            raise ValueError(f"{run_id}/{system}: nonempty update has no timed phase")
+        update_records_per_second = (
+            input_update_records * core_mhz * 1_000_000.0 / phase_cycles
+        )
     if int(dram["requests"]) != backend_requests:
         raise ValueError(f"{run_id}/{system}: raw DRAM request closure failed")
     if int(dram["channels"]) != _int(row, "bound_dram_channels"):
@@ -181,12 +210,22 @@ def enrich_system_row(
         "system": system,
         "claim_class": row["claim_class"],
         "cycles": cycles,
+        "core_mhz": core_mhz,
         "simulated_ms": _float(row, "simulated_ms"),
         "phase_kind": phase_kind,
         "phase_cycles": phase_cycles,
         "compute_cycles": cycles - phase_cycles,
         "phase_fraction": phase_cycles / cycles,
         "phase_bottleneck": classify_phase_bottleneck(phase_cycles, cycles),
+        "input_update_records": input_update_records,
+        "logical_update_records": logical_update_records,
+        "physical_update_records": physical_update_records,
+        "input_update_records_per_second": update_records_per_second,
+        "update_throughput_scope": (
+            "input_differential_records_per_timed_update_phase"
+            if input_update_records
+            else "no_update"
+        ),
         "backend_requests": backend_requests,
         "backend_requests_per_cycle": backend_requests / cycles,
         "dram_reads": int(dram["reads"]),
@@ -229,6 +268,24 @@ def build_pair_details(
         grasu_requests = _int(grasu, "backend_requests")
         spine_energy = _float(spine, "active_channel_dram_energy_pj")
         grasu_energy = _float(grasu, "active_channel_dram_energy_pj")
+        input_updates = int(spine.get("input_update_records", 0) or 0)
+        if input_updates != int(grasu.get("input_update_records", 0) or 0):
+            raise ValueError(f"pair update count mismatch: {run_id}")
+        update_speedup: float | str = ""
+        spine_update_throughput: float | str = ""
+        grasu_update_throughput: float | str = ""
+        grasu_physical_amplification: float | str = ""
+        if input_updates:
+            spine_update_throughput = _float(
+                spine, "input_update_records_per_second"
+            )
+            grasu_update_throughput = _float(
+                grasu, "input_update_records_per_second"
+            )
+            update_speedup = spine_update_throughput / grasu_update_throughput
+            grasu_physical_amplification = (
+                _int(grasu, "physical_update_records") / input_updates
+            )
         pairs.append(
             {
                 "run_id": run_id,
@@ -239,6 +296,22 @@ def build_pair_details(
                 "spine_cycles": spine_cycles,
                 "grasu_regraph_cycles": grasu_cycles,
                 "spine_speedup_over_grasu": grasu_cycles / spine_cycles,
+                "input_update_records": input_updates,
+                "spine_update_cycles": spine["phase_cycles"] if input_updates else "",
+                "grasu_regraph_update_cycles": (
+                    grasu["phase_cycles"] if input_updates else ""
+                ),
+                "spine_input_update_records_per_second": spine_update_throughput,
+                "grasu_regraph_input_update_records_per_second": grasu_update_throughput,
+                "spine_speedup_over_grasu_update": update_speedup,
+                "grasu_regraph_physical_update_amplification": (
+                    grasu_physical_amplification
+                ),
+                "update_throughput_scope": (
+                    "input_differential_records_per_timed_update_phase"
+                    if input_updates
+                    else "no_update"
+                ),
                 "spine_backend_requests": spine_requests,
                 "grasu_regraph_backend_requests": grasu_requests,
                 "spine_request_advantage": grasu_requests / spine_requests,
@@ -296,6 +369,63 @@ def group_summaries(pairs: list[Mapping[str, object]]) -> list[dict[str, object]
     return [summarize_pairs(pairs, key, value) for key, value in groups]
 
 
+def update_summaries(pairs: list[Mapping[str, object]]) -> list[dict[str, object]]:
+    dynamic = [row for row in pairs if _int(row, "input_update_records") > 0]
+    if not dynamic:
+        return []
+    groups = [("overall", "all")]
+    groups.extend(
+        ("role", value) for value in sorted({str(row["role"]) for row in dynamic})
+    )
+    summaries: list[dict[str, object]] = []
+    for group_type, group_value in groups:
+        selected = (
+            dynamic
+            if group_type == "overall"
+            else [row for row in dynamic if str(row[group_type]) == group_value]
+        )
+        speedups = [
+            _float(row, "spine_speedup_over_grasu_update") for row in selected
+        ]
+        spine_rates = [
+            _float(row, "spine_input_update_records_per_second")
+            for row in selected
+        ]
+        grasu_rates = [
+            _float(row, "grasu_regraph_input_update_records_per_second")
+            for row in selected
+        ]
+        amplification = [
+            _float(row, "grasu_regraph_physical_update_amplification")
+            for row in selected
+        ]
+        summaries.append(
+            {
+                "group_type": group_type,
+                "group_value": group_value,
+                "pairs": len(selected),
+                "input_update_records": sum(
+                    _int(row, "input_update_records") for row in selected
+                ),
+                "spine_update_speedup_geomean": geometric_mean(speedups),
+                "spine_update_speedup_median": median(speedups),
+                "spine_input_update_records_per_second_geomean": geometric_mean(
+                    spine_rates
+                ),
+                "grasu_regraph_input_update_records_per_second_geomean": (
+                    geometric_mean(grasu_rates)
+                ),
+                "grasu_regraph_physical_update_amplification_geomean": (
+                    geometric_mean(amplification)
+                ),
+                "throughput_scope": (
+                    "input_differential_records_per_timed_update_phase"
+                ),
+            }
+        )
+    return summaries
+
+
 def analyze_completed_matrix(
     output_root: Path, analysis_dir: Path
 ) -> dict[str, object]:
@@ -347,6 +477,7 @@ def analyze_completed_matrix(
         ):
             raise ValueError(f"pair speedup does not match parent: {row['run_id']}")
     summaries = group_summaries(pairs)
+    update_summary = update_summaries(pairs)
     bottlenecks: list[dict[str, object]] = []
     for system in ("spine", "grasu_regraph"):
         selected = [row for row in enriched if row["system"] == system]
@@ -365,6 +496,8 @@ def analyze_completed_matrix(
     _write_csv(analysis_dir / "pair_details.csv", pairs)
     _write_csv(analysis_dir / "group_summary.csv", summaries)
     _write_csv(analysis_dir / "bottleneck_summary.csv", bottlenecks)
+    if update_summary:
+        _write_csv(analysis_dir / "update_summary.csv", update_summary)
     output = {
         "schema_version": 1,
         "status": "PASS",
@@ -388,6 +521,12 @@ def analyze_completed_matrix(
         "energy_not_claimed": "full_32_channel_idle_background_or_total_system_energy",
         "group_summary": summaries,
         "bottleneck_summary": bottlenecks,
+        "update_summary": update_summary,
+        "update_throughput_claim": (
+            "input_differential_records_per_timed_update_phase"
+            if update_summary
+            else "no_nonempty_updates_in_matrix"
+        ),
         "outputs": {
             name: sha256_file(analysis_dir / name)
             for name in (
@@ -395,6 +534,7 @@ def analyze_completed_matrix(
                 "pair_details.csv",
                 "group_summary.csv",
                 "bottleneck_summary.csv",
+                *(('update_summary.csv',) if update_summary else ()),
             )
         },
     }
