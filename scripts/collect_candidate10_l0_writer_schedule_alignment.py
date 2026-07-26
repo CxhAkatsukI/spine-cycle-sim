@@ -15,20 +15,18 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_ORACLE = (
     ROOT / "docs/evidence/candidate10_l0_writer_rtl_oracle_20260726"
 )
+DEFAULT_INPUTS = ROOT / "docs/evidence/candidate10_alignment_inputs_20260727"
 DEFAULT_SCHEDULE_ON = (
-    ROOT / "results/candidate10_l0_writer_rtl_schedule_on_final_20260726"
-    / "summary.json"
+    DEFAULT_INPUTS / "writer_ab/schedule_on_summary.json"
 )
 DEFAULT_SCHEDULE_OFF = (
-    ROOT / "results/candidate10_l0_writer_rtl_schedule_off_final_20260726"
-    / "summary.json"
+    DEFAULT_INPUTS / "writer_ab/schedule_off_summary.json"
 )
 DEFAULT_HW_MATRIX = (
-    ROOT / "results/candidate10_l0_writer_rtl_schedule_hw_matrix_20260726"
-    / "matrix.csv"
+    DEFAULT_INPUTS / "writer_hw/matrix.csv"
 )
 DEFAULT_BASELINE_MATRIX = (
-    ROOT / "results/candidate10_grouped_schedule_full_20260726/matrix.csv"
+    DEFAULT_INPUTS / "writer_baseline/matrix.csv"
 )
 
 
