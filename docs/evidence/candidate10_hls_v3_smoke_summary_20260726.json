@@ -1,0 +1,82 @@
+{
+  "claim_class": "candidate10_hls_derived_normalized_structural_execution_driven",
+  "claim_limit": "One tiny holdout fixture validates execution and accounting; it is not a performance conclusion.",
+  "dynamic_smoke": {
+    "full_pagerank": {
+      "backend_requests": 50796,
+      "compute_cycles": 132834,
+      "degree_update_reads": 8,
+      "degree_update_writes": 8,
+      "logical_updates": 5,
+      "manifest": "docs/evidence/candidate10_hls_v3_dynamic_smoke_20260726/pagerank/manifest.json",
+      "manifest_sha256": "213fecf622132583d5c009940e43bf2ece35108d34763093cca36ff08190bebd",
+      "physical_updates": 8,
+      "total_cycles": 133020,
+      "update_cycles": 186
+    },
+    "thresholded_residual_pagerank": {
+      "backend_requests": 2772632,
+      "compute_cycles": 2829751,
+      "degree_update_reads": 8,
+      "degree_update_writes": 8,
+      "logical_updates": 5,
+      "manifest": "docs/evidence/candidate10_hls_v3_dynamic_smoke_20260726/residual/manifest.json",
+      "manifest_sha256": "6fafe9a096ca98a45d85b76f1c00abe2799a5188fc041b4f21ede5e864c4ab03",
+      "physical_updates": 8,
+      "total_cycles": 2829937,
+      "update_cycles": 186
+    },
+    "weighted_sssp": {
+      "backend_requests": 33848,
+      "compute_cycles": 99294,
+      "logical_updates": 5,
+      "manifest": "docs/evidence/candidate10_hls_v3_dynamic_smoke_20260726/weighted/manifest.json",
+      "manifest_sha256": "97be0ff123cb2faf2c4835eff601d4165726252f2cbab9c87d4cf755c2abe6e6",
+      "minimum_supersteps": 2,
+      "physical_updates": 8,
+      "superstep_policy": "oracle_minimum",
+      "total_cycles": 99410,
+      "update_cycles": 116
+    }
+  },
+  "matching_hls": {
+    "grasu_regraph_complete_whole_system_algorithms": 0,
+    "required_grasu_regraph_algorithms": 3,
+    "spine_candidate10_parent": "native_parent_routed_hardware_validated"
+  },
+  "matrix_manifest": {
+    "path": "configs/experiments/shared_comparison_candidate10_hls_v3_20260726.json",
+    "sha256": "68e36a835f35c277ddff0571d9baae46385674239085c12197ab5b91bdc9bbc7"
+  },
+  "schema_version": 1,
+  "static_smoke": {
+    "comparison_manifest": {
+      "path": "docs/evidence/candidate10_hls_v3_profile_smoke_20260726/comparison_manifest.json",
+      "sha256": "501beaf8adf488ed2a2467b326064a1e325e8984cb49a0ec98cee47c56657ebf"
+    },
+    "fixture_id": "syn_weighted_diamond_v8",
+    "pairs": [
+      {
+        "algorithm": "weighted_sssp",
+        "grasu_regraph_cycles": 200002,
+        "grasu_to_spine_cycle_ratio": 3.4119553720700124,
+        "spine_cycles": 58618
+      },
+      {
+        "algorithm": "full_pagerank",
+        "grasu_regraph_cycles": 132892,
+        "grasu_to_spine_cycle_ratio": 4.143939630172441,
+        "spine_cycles": 32069
+      },
+      {
+        "algorithm": "thresholded_residual_pagerank",
+        "grasu_regraph_cycles": 2727372,
+        "grasu_to_spine_cycle_ratio": 3.957031369015752,
+        "spine_cycles": 689247
+      }
+    ],
+    "pairs_csv_sha256": "b57f4a0dbb60958e3fa6c3b50d092192cafafe9190ca6a04b7fcfca8123b6813",
+    "results_csv_sha256": "0d6afb5e06644b24e5501095fa26566930242186160ee1a04d9245458691a012"
+  },
+  "status": "PASS_STRUCTURAL_ONLY"
+}

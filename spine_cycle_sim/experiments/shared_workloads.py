@@ -838,15 +838,38 @@ def validate_shared_comparison_manifest(root: Path, manifest_path: Path) -> dict
     if manifest.get("counts") != expected_counts:
         raise ValueError("manifest counts do not match its frozen contents")
     profiles = manifest.get("profiles", [])
-    if manifest.get("matrix_id") == "shared_comparison_candidate10_v2_20260726":
+    matrix_id = manifest.get("matrix_id")
+    if matrix_id in {
+        "shared_comparison_candidate10_v2_20260726",
+        "shared_comparison_candidate10_hls_v3_20260726",
+    }:
         expected_profile_paths = [
             "configs/architectures/spine_candidate10_one_pass_1e61fc0.json",
             "configs/architectures/spine_candidate10_normalized_v1.json",
-            "configs/architectures/grasu_regraph_candidate10_normalized_weighted_v2.json",
-            "configs/architectures/grasu_regraph_candidate10_normalized_pagerank_v2.json",
-            (
-                "configs/architectures/"
-                "grasu_regraph_candidate10_normalized_residual_pagerank_v2.json"
+            *(
+                [
+                    "configs/architectures/grasu_regraph_candidate10_normalized_weighted_v2.json",
+                    "configs/architectures/grasu_regraph_candidate10_normalized_pagerank_v2.json",
+                    (
+                        "configs/architectures/"
+                        "grasu_regraph_candidate10_normalized_residual_pagerank_v2.json"
+                    ),
+                ]
+                if matrix_id == "shared_comparison_candidate10_v2_20260726"
+                else [
+                    (
+                        "configs/architectures/"
+                        "grasu_regraph_candidate10_normalized_hls_weighted_v3.json"
+                    ),
+                    (
+                        "configs/architectures/"
+                        "grasu_regraph_candidate10_normalized_hls_pagerank_v3.json"
+                    ),
+                    (
+                        "configs/architectures/"
+                        "grasu_regraph_candidate10_normalized_hls_residual_pagerank_v3.json"
+                    ),
+                ]
             ),
         ]
         if [str(profile.get("path")) for profile in profiles] != expected_profile_paths:
@@ -863,13 +886,29 @@ def validate_shared_comparison_manifest(root: Path, manifest_path: Path) -> dict
         if any(contract.get(key) != value for key, value in required_contract.items()):
             raise ValueError("Candidate10 v2 comparison contract is incomplete")
         capability_catalog = manifest.get("capability_catalog")
-        if not isinstance(capability_catalog, dict) or capability_catalog.get(
-            "path"
-        ) != (
-            "configs/contracts/"
-            "grasu_regraph_candidate10_capabilities_v2.json"
+        expected_catalog = (
+            "configs/contracts/grasu_regraph_candidate10_capabilities_v2.json"
+            if matrix_id == "shared_comparison_candidate10_v2_20260726"
+            else "configs/contracts/grasu_regraph_candidate10_hls_capabilities_v3.json"
+        )
+        if (
+            not isinstance(capability_catalog, dict)
+            or capability_catalog.get("path") != expected_catalog
         ):
-            raise ValueError("Candidate10 v2 capability catalog is not pinned")
+            raise ValueError("Candidate10 capability catalog is not pinned")
+        if matrix_id == "shared_comparison_candidate10_hls_v3_20260726":
+            if contract.get("grasu_profile_set") != "hls_v3":
+                raise ValueError("Candidate10 HLS-v3 profile set is not explicit")
+            for run in runs:
+                if run["algorithm"] in {
+                    "full_pagerank",
+                    "thresholded_residual_pagerank",
+                } and run.get("update") != fixture_lookup[str(run["fixture_id"])][
+                    "empty_update"
+                ]:
+                    raise ValueError(
+                        f"HLS-v3 PageRank run lacks frozen update: {run['run_id']}"
+                    )
         _resolve_artifact(root, capability_catalog)
     for profile in profiles:
         _resolve_artifact(root, profile)

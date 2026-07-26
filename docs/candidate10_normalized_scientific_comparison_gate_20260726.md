@@ -70,9 +70,8 @@ Currently blocked:
 
 ## HLS-Derived V3 Baseline
 
-Do not mutate v2 and do not simplify the working HLS merely to match it.  Create
-an immutable v3 baseline from the implementation that already has correctness
-and routing evidence:
+V3 is now generated, executable, and preserved separately from v2. It inherits
+the implementation that already has correctness and routing evidence:
 
 - full-word PMA comparison and delete-old/insert-new weight changes;
 - eight-lane PMA adapter and Map/Reduce datapath;
@@ -84,10 +83,13 @@ and routing evidence:
 - 150 MHz normalized comparison clock and the same 23-pseudo-channel budget as
   Spine.  The native 200 MHz build remains separately reported.
 
-This is an architecture-fidelity correction, not a projected optimization.  A
+The three static and three dynamic algorithm smoke runs pass. This is an
+architecture-fidelity correction, not a projected optimization. A
 later projected profile may change lanes, queues, channels, or update semantics,
 but every such change must name its hardware cost and appear only in ablation or
-design-space results.
+design-space results. See
+`docs/candidate10_hls_derived_normalized_v3_20260726.md` for exact artifacts,
+results, hashes, and reproduction commands.
 
 ## Scientific Comparison Protocol
 
@@ -116,14 +118,14 @@ design-space results.
    disposition.
 2. Compile all three isolated policy cores for incremental resource/timing
    evidence.
-3. Freeze the HLS-derived v3 simulator profiles and rerun the three-algorithm
-   smoke set.  Any v2-to-v3 cycle change is reported as a fidelity correction.
+3. HLS-derived v3 profiles and the three-algorithm static/dynamic smoke set are
+   complete. Any v2-to-v3 cycle change is a fidelity correction, not a speedup.
 4. Integrate Full and residual PageRank into complete HLS data paths and pass
    whole-system correctness tests.
 5. Synthesize the exact v3 variants, update the machine gate to matching, then
    execute the disjoint synthetic and real holdout matrix for headline results.
 
-Until gates 3-5 pass, the correct statement is: the platform can compare
+Until gates 4-5 pass, the correct statement is: the platform can compare
 execution-driven structures and validate correctness, but it has not yet
 established the final Spine-versus-GraSU/ReGraph performance claim.
 

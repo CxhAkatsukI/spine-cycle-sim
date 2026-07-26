@@ -1,0 +1,1 @@
+PASS grasu_regraph_hls_weighted_sst: cycles=200002 update=1 compute=200001 logical=0 physical=0 wall_s=2.659

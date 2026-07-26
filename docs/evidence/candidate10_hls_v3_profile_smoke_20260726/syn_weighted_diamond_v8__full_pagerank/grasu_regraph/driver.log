@@ -1,0 +1,1 @@
+PASS grasu_regraph_hls_pagerank_sst: cycles=132892 update=1 compute=132891 requests=50757

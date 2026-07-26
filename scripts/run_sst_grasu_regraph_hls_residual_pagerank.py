@@ -65,7 +65,8 @@ def require_hls_residual_capability(
         raise ValueError("HLS-equivalent residual capability profile path differs")
     capability = profile_capability.require("thresholded_residual_pagerank")
     if (
-        profile_capability.comparison_role != "hls_equivalent_proposed"
+        profile_capability.comparison_role
+        not in {"hls_equivalent_proposed", "normalized"}
         or profile_capability.handoff != "weighted_pma_to_axis_stream"
         or profile_capability.conversion_cost != "absent"
     ):
@@ -197,11 +198,12 @@ def main() -> int:
 
     profile_path = args.profile.resolve()
     profile = json.loads(profile_path.read_text(encoding="utf-8"))
-    expected_profile = (
-        "grasu_regraph_weighted_pma_hls_proposed_residual_pagerank_ff13a67"
-    )
-    if profile.get("profile_id") != expected_profile:
-        raise ValueError("runner requires the pinned proposed residual profile")
+    expected_profiles = {
+        "grasu_regraph_weighted_pma_hls_proposed_residual_pagerank_ff13a67",
+        "grasu_regraph_candidate10_normalized_hls_residual_pagerank_v3",
+    }
+    if profile.get("profile_id") not in expected_profiles:
+        raise ValueError("runner requires a pinned HLS-derived residual profile")
     catalog, capability = require_hls_residual_capability(
         profile_path, args.capability_catalog.resolve()
     )

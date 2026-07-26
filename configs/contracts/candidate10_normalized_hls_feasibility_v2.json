@@ -1,0 +1,143 @@
+{
+  "algorithms": {
+    "full_pagerank": {
+      "closest_hls_profile": {
+        "path": "configs/architectures/grasu_regraph_weighted_pma_hls_proposed_pagerank_ff13a67.json",
+        "profile_id": "grasu_regraph_weighted_pma_hls_proposed_pagerank_ff13a67",
+        "sha256": "53e1688e3f944d59cb2e482f040ed82e4a253e65b0c2e1353103aedb23a9dcda"
+      },
+      "functional_evidence_status": "simulator_dual_oracle_and_isolated_policy_tests_pass",
+      "matching_hls": false,
+      "missing_gates": [
+        "integrate degree RMW, dangling reduction, policy, state storage, and host control",
+        "pass a whole-system HLS correctness oracle",
+        "obtain whole-system synthesis resources and timing"
+      ],
+      "normalized_profile": {
+        "path": "configs/architectures/grasu_regraph_candidate10_normalized_hls_pagerank_v3.json",
+        "profile_id": "grasu_regraph_candidate10_normalized_hls_pagerank_v3",
+        "sha256": "7155f87efa086a6563e80296f8460db14716e2f60f277ea5997f1d976897877e"
+      },
+      "parameter_crosswalk": [
+        {
+          "closest_hls_value": 200.0,
+          "difference_class": "intentional_shared_platform_normalization",
+          "field": "/clocks/0/requested_mhz",
+          "normalized_value": 150.0,
+          "publication_blocker": false,
+          "reason": "The HLS-derived datapath is preserved; only the shared comparison clock is lowered to 150 MHz."
+        }
+      ],
+      "whole_system_hls_status": "not_implemented"
+    },
+    "thresholded_residual_pagerank": {
+      "closest_hls_profile": {
+        "path": "configs/architectures/grasu_regraph_weighted_pma_hls_proposed_residual_pagerank_ff13a67.json",
+        "profile_id": "grasu_regraph_weighted_pma_hls_proposed_residual_pagerank_ff13a67",
+        "sha256": "fc86f67e6f9b5c1f8487f1865873bd7a9b9cb26f96f9626cd23e45a7847152c5"
+      },
+      "functional_evidence_status": "simulator_dual_oracle_and_isolated_policy_tests_pass",
+      "matching_hls": false,
+      "missing_gates": [
+        "integrate degree RMW, residual activation, packed state, and host control",
+        "pass a whole-system HLS correctness oracle",
+        "obtain whole-system synthesis resources and timing"
+      ],
+      "normalized_profile": {
+        "path": "configs/architectures/grasu_regraph_candidate10_normalized_hls_residual_pagerank_v3.json",
+        "profile_id": "grasu_regraph_candidate10_normalized_hls_residual_pagerank_v3",
+        "sha256": "6ef8a8c9fe4beca4ea76a86a1041c47b15968cd8d846122358ce5b28ecdfa14d"
+      },
+      "parameter_crosswalk": [
+        {
+          "closest_hls_value": 200.0,
+          "difference_class": "intentional_shared_platform_normalization",
+          "field": "/clocks/0/requested_mhz",
+          "normalized_value": 150.0,
+          "publication_blocker": false,
+          "reason": "The HLS-derived datapath is preserved; only the shared comparison clock is lowered to 150 MHz."
+        }
+      ],
+      "whole_system_hls_status": "not_implemented"
+    },
+    "weighted_sssp": {
+      "closest_hls_profile": {
+        "path": "configs/architectures/grasu_regraph_weighted_pma_hls_sw_emu_ff13a67.json",
+        "profile_id": "grasu_regraph_weighted_pma_hls_sw_emu_ff13a67",
+        "sha256": "4aa897350dfdd9bddd45ec47654e58edd599050507b3156a77143d9008765f1e"
+      },
+      "functional_evidence_status": "whole_system_sw_emu_cpu_oracle_pass",
+      "matching_hls": false,
+      "missing_gates": [
+        "close the weighted whole-system HBM-clock timing paths",
+        "synthesize and archive the exact normalized profile identity"
+      ],
+      "normalized_profile": {
+        "path": "configs/architectures/grasu_regraph_candidate10_normalized_hls_weighted_v3.json",
+        "profile_id": "grasu_regraph_candidate10_normalized_hls_weighted_v3",
+        "sha256": "51d1edd1bc9eca864d5c57858d80ef3890152f4a6062bc1259833d38c2be4823"
+      },
+      "parameter_crosswalk": [
+        {
+          "closest_hls_value": 200.0,
+          "difference_class": "intentional_shared_platform_normalization",
+          "field": "/clocks/0/requested_mhz",
+          "normalized_value": 150.0,
+          "publication_blocker": false,
+          "reason": "The HLS-derived datapath is preserved; only the shared comparison clock is lowered to 150 MHz."
+        }
+      ],
+      "whole_system_hls_status": "routed_global_timing_failed_relink_pending"
+    }
+  },
+  "claim_class": "hls_derived_normalized_feasibility_gate_not_performance",
+  "claim_gates": {
+    "correctness": {
+      "eligible": true,
+      "label": "dual_oracle_simulator_correctness_only",
+      "reason": "Every reported run must pass both independent oracles."
+    },
+    "fpga_measured_performance": {
+      "eligible": false,
+      "label": "blocked_normalized_is_not_measured_hardware",
+      "reason": "Normalized simulator output is never native FPGA measurement."
+    },
+    "headline_normalized_performance": {
+      "eligible": false,
+      "label": "blocked_missing_symmetric_matching_hls",
+      "reason": "All three GraSU/ReGraph algorithms need matching whole-system HLS."
+    },
+    "iso_resource_performance": {
+      "eligible": false,
+      "label": "blocked_missing_exact_resource_crosswalk",
+      "reason": "PageRank lacks whole-system resources and timing."
+    },
+    "structural_exploratory": {
+      "eligible": true,
+      "label": "candidate10_hls_derived_normalized_structural_execution_driven",
+      "reason": "Both models use HLS-derived mechanisms on one platform, but three-algorithm matching HLS is incomplete."
+    }
+  },
+  "contract_id": "candidate10_normalized_hls_feasibility_v2_20260726",
+  "evidence": {
+    "path": "docs/evidence/grasu_regraph_matching_hls_status_20260726.json",
+    "sha256": "9bdf345bf0de580ef6cd8cd5bff2c5c8a49d9351ff84802bd72f9c7dd3a47731"
+  },
+  "schema_version": 1,
+  "shared_platform_status": "pass",
+  "spine": {
+    "equivalence_status": "candidate10_semantics_preserved_platform_normalized",
+    "evidence_status": "native_parent_routed_hardware_validated",
+    "matching_hls": true,
+    "native_parent_profile": {
+      "path": "configs/architectures/spine_candidate10_one_pass_1e61fc0.json",
+      "profile_id": "spine_candidate10_one_pass_1e61fc0",
+      "sha256": "a23737c17f6650cea0185bd3eba9d425dbc151f35372d33130464df780312717"
+    },
+    "normalized_profile": {
+      "path": "configs/architectures/spine_candidate10_normalized_v1.json",
+      "profile_id": "spine_candidate10_normalized_v1",
+      "sha256": "4e31633c55abfdc57fd4537119d6abb6d7a4f0313dcfc81332fa0ed0a6320c0a"
+    }
+  }
+}

@@ -1,5 +1,9 @@
 # Candidate10-derived normalized comparison contract
 
+> Historical v2 contract. The current HLS-derived structural baseline is v3;
+> see `docs/candidate10_hls_derived_normalized_v3_20260726.md`. V2 remains
+> immutable so earlier evidence can be audited and reproduced.
+
 ## Decision
 
 Native hardware alignment is a validation anchor, not the headline comparison.

@@ -1,0 +1,1 @@
+PASS grasu_regraph_hls_residual_pagerank_sst: cycles=2727372 iterations=79 active_edges=635 requests=2671385

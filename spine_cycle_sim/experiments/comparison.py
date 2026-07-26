@@ -95,14 +95,52 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
-def normalized_grasu_profile_paths(root: Path) -> tuple[Path, ...]:
+def normalized_grasu_profile_paths(
+    root: Path, profile_set: str = "v2"
+) -> tuple[Path, ...]:
     profile_dir = root / "configs" / "architectures"
+    if profile_set == "hls_v3":
+        return (
+            profile_dir
+            / "grasu_regraph_candidate10_normalized_hls_weighted_v3.json",
+            profile_dir
+            / "grasu_regraph_candidate10_normalized_hls_pagerank_v3.json",
+            profile_dir
+            / "grasu_regraph_candidate10_normalized_hls_residual_pagerank_v3.json",
+        )
+    if profile_set != "v2":
+        raise ValueError(f"unknown normalized GraSU profile set: {profile_set}")
     return (
         profile_dir / "grasu_regraph_candidate10_normalized_weighted_v2.json",
         profile_dir / "grasu_regraph_candidate10_normalized_pagerank_v2.json",
         profile_dir
         / "grasu_regraph_candidate10_normalized_residual_pagerank_v2.json",
     )
+
+
+def normalized_grasu_capability_catalog_path(
+    root: Path, profile_set: str = "v2"
+) -> Path:
+    filename = (
+        "grasu_regraph_candidate10_hls_capabilities_v3.json"
+        if profile_set == "hls_v3"
+        else "grasu_regraph_candidate10_capabilities_v2.json"
+        if profile_set == "v2"
+        else None
+    )
+    if filename is None:
+        raise ValueError(f"unknown normalized GraSU profile set: {profile_set}")
+    return root / "configs" / "contracts" / filename
+
+
+def normalized_profile_set(manifest: Mapping[str, object]) -> str:
+    contract = manifest.get("comparison_contract")
+    if not isinstance(contract, Mapping):
+        raise ValueError("comparison manifest lacks its platform contract")
+    profile_set = str(contract.get("grasu_profile_set", "v2"))
+    if profile_set not in {"v2", "hls_v3"}:
+        raise ValueError(f"unsupported manifest GraSU profile set: {profile_set}")
+    return profile_set
 
 
 def _clock(profile: ArchitectureProfile, name: str) -> float:
@@ -121,6 +159,7 @@ def validate_normalized_profile_contract(
     """Reject silent architecture drift before a normalized matrix starts."""
 
     spine_path = spine_profile_path.resolve()
+    repository_root = spine_path.parents[2]
     spine = load_architecture_profile(spine_path)
     if spine.profile_id != NORMALIZED_SPINE_PROFILE_ID:
         raise ValueError(
@@ -169,6 +208,33 @@ def validate_normalized_profile_contract(
         {profile.profile_id for profile in grasu_profiles}
     ) != 3:
         raise ValueError("normalized comparison requires three distinct GraSU profiles")
+    profile_ids = tuple(profile.profile_id for profile in grasu_profiles)
+    v2_ids = tuple(
+        path.stem for path in normalized_grasu_profile_paths(repository_root, "v2")
+    )
+    v3_ids = tuple(
+        path.stem
+        for path in normalized_grasu_profile_paths(repository_root, "hls_v3")
+    )
+    if profile_ids == v2_ids:
+        profile_set = "v2"
+        feasibility_path = (
+            repository_root
+            / "configs"
+            / "contracts"
+            / "candidate10_normalized_hls_feasibility_v1.json"
+        )
+    elif profile_ids == v3_ids:
+        profile_set = "hls_v3"
+        feasibility_path = (
+            repository_root
+            / "configs"
+            / "contracts"
+            / "candidate10_normalized_hls_feasibility_v2.json"
+        )
+    else:
+        raise ValueError("normalized comparison uses an unknown GraSU profile set")
+
     for profile in grasu_profiles:
         checks = {
             "architecture": profile.architecture == "grasu_regraph",
@@ -183,7 +249,14 @@ def validate_normalized_profile_contract(
             "conversion_free": profile.parameters.get("conversion_cost_included")
             is False,
             "pma_native": profile.parameters.get("pma_native_compute") is True,
-            "memory": profile.memory == spine.memory,
+            "memory_backend": profile.memory.backend == spine.memory.backend,
+            "memory_channels": profile.memory.channels == spine.memory.channels,
+            "memory_capacity": profile.memory.channel_capacity_bytes
+            == spine.memory.channel_capacity_bytes,
+            "memory_width": profile.memory.data_width_bits
+            == spine.memory.data_width_bits,
+            "memory_burst": profile.memory.max_burst_bytes
+            == spine.memory.max_burst_bytes,
             "kernel_clock": _clock(profile, "kernel") == NORMALIZED_CLOCK_MHZ,
             "hbm_clock": _clock(profile, "hbm") == NORMALIZED_HBM_CLOCK_MHZ,
         }
@@ -194,10 +267,32 @@ def validate_normalized_profile_contract(
                 + ", ".join(failed)
             )
 
-    catalog_path = (
-        spine_path.parents[1]
-        / "contracts"
-        / "grasu_regraph_candidate10_capabilities_v2.json"
+    if profile_set == "hls_v3":
+        for profile in grasu_profiles:
+            hls_checks = {
+                "outstanding_16": profile.memory.max_outstanding_per_port == 16,
+                "full_word_abi": profile.parameters.get("grasu_pma_edge_abi")
+                == "regraph_weighted32_full_word_compare_dst19_weight12",
+                "eight_lanes": profile.parameters.get("regraph_map_reduce_lanes")
+                == 8,
+                "hls_foundation": bool(
+                    profile.parameters.get("hls_foundation_profile")
+                ),
+            }
+            failed = sorted(name for name, passed in hls_checks.items() if not passed)
+            if failed:
+                raise ValueError(
+                    f"HLS-derived profile {profile.profile_id} violates: "
+                    + ", ".join(failed)
+                )
+        for profile in grasu_profiles[1:]:
+            if profile.parameters.get("pagerank_degree_update_timing") is not True:
+                raise ValueError(
+                    f"HLS-derived PageRank profile omits degree RMW: {profile.profile_id}"
+                )
+
+    catalog_path = normalized_grasu_capability_catalog_path(
+        repository_root, profile_set
     )
     catalog = load_capability_catalog(catalog_path)
     required_algorithms = (
@@ -220,11 +315,15 @@ def validate_normalized_profile_contract(
                     f"normalized capability is not executable: {profile_id}/{algorithm}"
                 )
 
-    repository_root = spine_path.parents[2]
-    hls_feasibility = load_normalized_hls_feasibility(repository_root)
+    hls_feasibility = load_normalized_hls_feasibility(
+        repository_root, feasibility_path
+    )
 
     return {
-        "claim_class": "candidate10_derived_normalized_structural_execution_driven",
+        "claim_class": hls_feasibility["claim_gates"][
+            "structural_exploratory"
+        ]["label"],
+        "grasu_profile_set": profile_set,
         "spine_profile_id": spine.profile_id,
         "spine_profile_sha256": spine.manifest_sha256,
         "native_parent_profile_id": parent.profile_id,
@@ -314,6 +413,8 @@ def build_invocation(
     sst: Path,
     lib_dir: Path,
     spine_profile: Path,
+    grasu_profile_paths: Sequence[Path] | None = None,
+    grasu_capability_catalog: Path | None = None,
 ) -> RunInvocation:
     if system not in SYSTEMS:
         raise ValueError(f"unsupported comparison system: {system}")
@@ -321,14 +422,22 @@ def build_invocation(
     out_dir = (output_root / run_id / system).resolve()
     graph = artifact_path(root, run["graph"])  # type: ignore[arg-type]
     algorithm = str(run["algorithm"])
+    selected_grasu_profiles = tuple(
+        path.resolve()
+        for path in (
+            grasu_profile_paths
+            if grasu_profile_paths is not None
+            else normalized_grasu_profile_paths(root, "v2")
+        )
+    )
     if system == "spine":
         profile_path = spine_profile.resolve()
     elif algorithm in {"weighted_sssp", "weighted_dynamic_sssp"}:
-        profile_path = normalized_grasu_profile_paths(root)[0].resolve()
+        profile_path = selected_grasu_profiles[0]
     elif algorithm == "full_pagerank":
-        profile_path = normalized_grasu_profile_paths(root)[1].resolve()
+        profile_path = selected_grasu_profiles[1]
     else:
-        profile_path = normalized_grasu_profile_paths(root)[2].resolve()
+        profile_path = selected_grasu_profiles[2]
     profile = load_architecture_profile(profile_path)
     common = [
         python,
@@ -383,8 +492,17 @@ def build_invocation(
                 )
             )
     elif algorithm in {"weighted_sssp", "weighted_dynamic_sssp"}:
-        common[1] = str(root / "scripts" / "run_sst_grasu_regraph.py")
         update = artifact_path(root, run["update"])  # type: ignore[arg-type]
+        hls_derived = profile.profile_id.endswith("_hls_weighted_v3")
+        common[1] = str(
+            root
+            / "scripts"
+            / (
+                "run_sst_grasu_regraph_hls_weighted.py"
+                if hls_derived
+                else "run_sst_grasu_regraph.py"
+            )
+        )
         command = common + [
             "--profile",
             str(profile_path),
@@ -396,41 +514,121 @@ def build_invocation(
             str(run.get("source", 0)),
             "--max-cycles",
             "100000000",
-            "--max-rounds",
-            str(run.get("max_rounds", 256)),
         ]
+        if hls_derived:
+            if grasu_capability_catalog is None:
+                raise ValueError("HLS-derived invocation lacks capability catalog")
+            command.extend(
+                ("--capability-catalog", str(grasu_capability_catalog.resolve()))
+            )
+        else:
+            command.extend(("--max-rounds", str(run.get("max_rounds", 256))))
     elif algorithm == "full_pagerank":
-        common[1] = str(root / "scripts" / "run_sst_grasu_regraph_pagerank.py")
-        command = common + [
-            "--profile",
-            str(profile_path),
-            "--workload",
-            str(graph),
-            "--iterations",
-            str(run["iterations"]),
-            "--damping",
-            str(run["damping"]),
-            "--max-cycles",
-            "100000000",
-        ]
-    else:
+        hls_derived = profile.profile_id.endswith("_hls_pagerank_v3")
         common[1] = str(
-            root / "scripts" / "run_sst_grasu_regraph_residual_pagerank.py"
+            root
+            / "scripts"
+            / (
+                "run_sst_grasu_regraph_hls_pagerank.py"
+                if hls_derived
+                else "run_sst_grasu_regraph_pagerank.py"
+            )
         )
         command = common + [
             "--profile",
             str(profile_path),
             "--workload",
             str(graph),
-            "--damping",
-            str(run["damping"]),
-            "--epsilon",
-            str(run["epsilon"]),
-            "--max-iterations",
-            str(run["max_iterations"]),
             "--max-cycles",
             "100000000",
         ]
+        if hls_derived:
+            if grasu_capability_catalog is None:
+                raise ValueError("HLS-derived invocation lacks capability catalog")
+            update = artifact_path(root, run["update"])  # type: ignore[arg-type]
+            command.extend(
+                (
+                    "--update-workload",
+                    str(update),
+                    "--capability-catalog",
+                    str(grasu_capability_catalog.resolve()),
+                )
+            )
+            if (
+                int(profile.parameters["pagerank_iterations"])
+                != int(run["iterations"])
+                or abs(
+                    float(profile.parameters["pagerank_damping"])
+                    - float(run["damping"])
+                )
+                > 1.0e-9
+            ):
+                raise ValueError("HLS-derived PageRank run differs from its profile")
+        else:
+            command.extend(
+                (
+                    "--iterations",
+                    str(run["iterations"]),
+                    "--damping",
+                    str(run["damping"]),
+                )
+            )
+    else:
+        hls_derived = profile.profile_id.endswith("_hls_residual_pagerank_v3")
+        common[1] = str(
+            root
+            / "scripts"
+            / (
+                "run_sst_grasu_regraph_hls_residual_pagerank.py"
+                if hls_derived
+                else "run_sst_grasu_regraph_residual_pagerank.py"
+            )
+        )
+        command = common + [
+            "--profile",
+            str(profile_path),
+            "--workload",
+            str(graph),
+            "--max-cycles",
+            "100000000",
+        ]
+        if hls_derived:
+            if grasu_capability_catalog is None:
+                raise ValueError("HLS-derived invocation lacks capability catalog")
+            update = artifact_path(root, run["update"])  # type: ignore[arg-type]
+            command.extend(
+                (
+                    "--update-workload",
+                    str(update),
+                    "--capability-catalog",
+                    str(grasu_capability_catalog.resolve()),
+                )
+            )
+            residual_parameters = (
+                ("pagerank_damping", "damping"),
+                ("pagerank_epsilon", "epsilon"),
+                ("pagerank_residual_max_iterations", "max_iterations"),
+            )
+            if any(
+                abs(
+                    float(profile.parameters[profile_key])
+                    - float(run[run_key])
+                )
+                > 1.0e-9
+                for profile_key, run_key in residual_parameters
+            ):
+                raise ValueError("HLS-derived residual run differs from its profile")
+        else:
+            command.extend(
+                (
+                    "--damping",
+                    str(run["damping"]),
+                    "--epsilon",
+                    str(run["epsilon"]),
+                    "--max-iterations",
+                    str(run["max_iterations"]),
+                )
+            )
     return RunInvocation(
         run_id,
         system,
@@ -583,7 +781,13 @@ def validate_system_result(
         checks["updates"] = (
             result.get("update_edges") == expected_updates
             if invocation.system == "spine"
-            else result.get("updates") == expected_updates
+            else result.get(
+                "logical_updates"
+                if invocation.profile_id
+                == "grasu_regraph_candidate10_normalized_hls_weighted_v3"
+                else "updates"
+            )
+            == expected_updates
         )
     for name, passed in checks.items():
         if not passed:

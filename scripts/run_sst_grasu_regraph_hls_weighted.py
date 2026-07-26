@@ -57,10 +57,13 @@ class HlsWeightedOracle:
     final_internal_edges: tuple[tuple[int, int, int], ...]
     external_distances: tuple[int, ...]
     source_internal: int
+    minimum_supersteps: int
 
 
 def require_hls_weighted_capability(
-    profile_path: Path, capability_catalog_path: Path
+    profile_path: Path,
+    capability_catalog_path: Path,
+    algorithm: str = "weighted_dynamic_sssp",
 ) -> tuple[CapabilityCatalog, AlgorithmCapability]:
     profile = json.loads(profile_path.read_text(encoding="utf-8"))
     profile_id = str(profile.get("profile_id", ""))
@@ -68,9 +71,11 @@ def require_hls_weighted_capability(
     profile_capability = catalog.profile(profile_id)
     if profile_capability.profile_path != profile_path.resolve():
         raise ValueError("weighted-HLS capability profile path does not match")
-    capability = profile_capability.require("weighted_dynamic_sssp")
+    if algorithm not in {"weighted_sssp", "weighted_dynamic_sssp"}:
+        raise ValueError(f"unsupported weighted HLS capability: {algorithm}")
+    capability = profile_capability.require(algorithm)
     if (
-        profile_capability.comparison_role != "hls_sw_emu"
+        profile_capability.comparison_role not in {"hls_sw_emu", "normalized"}
         or profile_capability.handoff != "weighted_pma_to_axis_stream"
         or profile_capability.conversion_cost != "absent"
     ):
@@ -98,6 +103,37 @@ def _dijkstra(
                 distances[destination] = candidate
                 heapq.heappush(pending, (candidate, destination))
     return tuple(HLS_INFINITY if value == unreachable else value for value in distances)
+
+
+def _minimum_synchronous_supersteps(
+    vertices: int, edges: tuple[tuple[int, int, int], ...], source: int
+) -> int:
+    adjacency: list[list[tuple[int, int]]] = [[] for _ in range(vertices)]
+    for src, dst, weight in edges:
+        adjacency[src].append((dst, weight))
+    unreachable = 1 << 63
+    distances = [unreachable] * vertices
+    hops = [unreachable] * vertices
+    distances[source] = 0
+    hops[source] = 0
+    pending: list[tuple[int, int, int]] = [(0, 0, source)]
+    while pending:
+        distance, hop_count, vertex = heapq.heappop(pending)
+        if distance != distances[vertex] or hop_count != hops[vertex]:
+            continue
+        for destination, weight in adjacency[vertex]:
+            candidate = distance + weight
+            candidate_hops = hop_count + 1
+            if candidate < distances[destination] or (
+                candidate == distances[destination]
+                and candidate_hops < hops[destination]
+            ):
+                distances[destination] = candidate
+                hops[destination] = candidate_hops
+                heapq.heappush(
+                    pending, (candidate, candidate_hops, destination)
+                )
+    return max(1, max((value for value in hops if value != unreachable), default=0))
 
 
 def build_hls_weighted_oracle(
@@ -175,6 +211,9 @@ def build_hls_weighted_oracle(
         final_internal_edges=internal_edges,
         external_distances=_dijkstra(vertices, external_edges, source_external),
         source_internal=external_to_internal[source_external],
+        minimum_supersteps=_minimum_synchronous_supersteps(
+            vertices, external_edges, source_external
+        ),
     )
 
 
@@ -182,10 +221,15 @@ def validate_result(
     result: dict[str, object],
     profile: dict[str, object],
     oracle: HlsWeightedOracle,
+    supersteps: int | None = None,
 ) -> None:
     params = profile["parameters"]
     assert isinstance(params, dict)
-    supersteps = int(params["hls_validation_supersteps"])
+    supersteps = (
+        int(params["hls_validation_supersteps"])
+        if supersteps is None
+        else supersteps
+    )
     partition_vertices = int(params["regraph_partition_vertices"])
     source_buffer_vertices = int(params["regraph_source_buffer_vertices"])
     max_internal_source = max(src for src, _, _ in oracle.final_internal_edges)
@@ -279,17 +323,14 @@ def main() -> int:
 
     profile_path = args.profile.resolve()
     profile = json.loads(profile_path.read_text(encoding="utf-8"))
-    expected_profile_id = "grasu_regraph_weighted_pma_hls_sw_emu_ff13a67"
-    if profile.get("profile_id") != expected_profile_id:
-        raise ValueError("runner requires the pinned ff13a67 weighted-HLS profile")
-    capability_catalog, algorithm_capability = require_hls_weighted_capability(
-        profile_path, args.capability_catalog.resolve()
-    )
+    expected_profile_ids = {
+        "grasu_regraph_weighted_pma_hls_sw_emu_ff13a67",
+        "grasu_regraph_candidate10_normalized_hls_weighted_v3",
+    }
+    if profile.get("profile_id") not in expected_profile_ids:
+        raise ValueError("runner requires a pinned HLS-derived weighted profile")
     params = profile["parameters"]
     memory = profile["memory"]
-    supersteps = args.supersteps or int(params["hls_validation_supersteps"])
-    if supersteps != int(params["hls_validation_supersteps"]):
-        raise ValueError("ff13a67 evidence mode requires the pinned superstep count")
     for evidence in profile.get("evidence", []):
         path = Path(evidence["path"])
         if not path.is_file() or sha256(path) != evidence["sha256"]:
@@ -297,6 +338,27 @@ def main() -> int:
     initial = load_slice(args.workload.resolve())
     update = load_slice(args.update_workload.resolve())
     oracle = build_hls_weighted_oracle(initial, update, args.source)
+    capability_catalog, algorithm_capability = require_hls_weighted_capability(
+        profile_path,
+        args.capability_catalog.resolve(),
+        "weighted_dynamic_sssp" if oracle.logical_updates else "weighted_sssp",
+    )
+    if profile["parameters"]["comparison_role"] == "hls_sw_emu":
+        supersteps = args.supersteps or int(params["hls_validation_supersteps"])
+        if supersteps != int(params["hls_validation_supersteps"]):
+            raise ValueError(
+                "ff13a67 evidence mode requires the pinned superstep count"
+            )
+        superstep_policy = "profile_pinned_hls_evidence"
+    else:
+        supersteps = args.supersteps or oracle.minimum_supersteps
+        if supersteps < oracle.minimum_supersteps:
+            raise ValueError(
+                "normalized HLS-derived supersteps are below the oracle minimum"
+            )
+        superstep_policy = (
+            "explicit" if args.supersteps is not None else "oracle_minimum"
+        )
     binding = grasu_normalized_memory_binding(
         profile, instantiate_all=args.instantiate_all_hbm_channels
     )
@@ -418,7 +480,7 @@ def main() -> int:
             f"see {args.out_dir / 'sst.log'}"
         )
     result = json.loads(result_path.read_text(encoding="utf-8"))
-    validate_result(result, profile, oracle)
+    validate_result(result, profile, oracle, supersteps)
     dram = load_dram_stats(dram_dir)
     if (
         dram["channels"] != len(binding.instantiated_channels)
@@ -445,7 +507,10 @@ def main() -> int:
             "physical_updates": oracle.physical_updates,
             "external_to_internal": list(oracle.external_to_internal),
             "external_distances": list(oracle.external_distances),
+            "minimum_supersteps": oracle.minimum_supersteps,
         },
+        "supersteps": supersteps,
+        "superstep_policy": superstep_policy,
         "command": command,
         "result": result,
         "dram": dram,

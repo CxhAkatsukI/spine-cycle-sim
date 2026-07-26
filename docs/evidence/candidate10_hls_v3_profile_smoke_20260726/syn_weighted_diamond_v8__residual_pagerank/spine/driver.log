@@ -1,0 +1,2 @@
+PASS spine_vertical: cycles=689247 backend_requests=41332 DRAM=41332 ACT=4334 row_hits=35902
+evidence: /home/chuxiao/spine-cycle-sim/docs/evidence/candidate10_hls_v3_profile_smoke_20260726/syn_weighted_diamond_v8__residual_pagerank/spine

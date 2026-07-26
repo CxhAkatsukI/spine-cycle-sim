@@ -27,7 +27,9 @@ from spine_cycle_sim.experiments import (  # noqa: E402
     FeasibilityError,
     build_invocation,
     implementation_fingerprint,
+    normalized_grasu_capability_catalog_path,
     normalized_grasu_profile_paths,
+    normalized_profile_set,
     pair_rows,
     select_runs,
     validate_normalized_profile_contract,
@@ -47,7 +49,7 @@ DEFAULT_MANIFEST = (
     ROOT
     / "configs"
     / "experiments"
-    / "shared_comparison_candidate10_v2_20260726.json"
+    / "shared_comparison_candidate10_hls_v3_20260726.json"
 )
 
 
@@ -308,9 +310,14 @@ def main() -> int:
     if args.jobs <= 0 or args.timeout_seconds <= 0.0:
         raise ValueError("jobs and timeout must be positive")
     manifest = validate_shared_comparison_manifest(ROOT, args.manifest)
+    profile_set = normalized_profile_set(manifest)
+    grasu_profiles = normalized_grasu_profile_paths(ROOT, profile_set)
+    grasu_capability_catalog = normalized_grasu_capability_catalog_path(
+        ROOT, profile_set
+    )
     normalized_contract = validate_normalized_profile_contract(
         args.spine_profile,
-        normalized_grasu_profile_paths(ROOT),
+        grasu_profiles,
     )
     try:
         claim_gate = require_claim_eligibility(
@@ -334,15 +341,15 @@ def main() -> int:
             ROOT / "scripts" / "run_sst_grasu_regraph.py",
             ROOT / "scripts" / "run_sst_grasu_regraph_pagerank.py",
             ROOT / "scripts" / "run_sst_grasu_regraph_residual_pagerank.py",
+            ROOT / "scripts" / "run_sst_grasu_regraph_hls_weighted.py",
+            ROOT / "scripts" / "run_sst_grasu_regraph_hls_pagerank.py",
+            ROOT / "scripts" / "run_sst_grasu_regraph_hls_residual_pagerank.py",
             ROOT / "spine_cycle_sim" / "sst_binding.py",
             ROOT / "sst" / "spine_vertical_slice.py",
             ROOT / "sst" / "grasu_regraph_vertical.py",
             ROOT / "configs" / "memory" / "HBM2_1ch_x128.ini",
-            ROOT
-            / "configs"
-            / "contracts"
-            / "grasu_regraph_candidate10_capabilities_v2.json",
-            *normalized_grasu_profile_paths(ROOT),
+            grasu_capability_catalog,
+            *grasu_profiles,
             args.spine_profile,
             args.lib_dir / "libspine_cycle.so",
             args.sst,
@@ -358,7 +365,11 @@ def main() -> int:
             ROOT
             / "configs"
             / "contracts"
-            / "candidate10_normalized_hls_feasibility_v1.json",
+            / (
+                "candidate10_normalized_hls_feasibility_v2.json"
+                if profile_set == "hls_v3"
+                else "candidate10_normalized_hls_feasibility_v1.json"
+            ),
             ROOT
             / "docs"
             / "evidence"
@@ -381,6 +392,8 @@ def main() -> int:
                         sst=args.sst,
                         lib_dir=args.lib_dir,
                         spine_profile=args.spine_profile,
+                        grasu_profile_paths=grasu_profiles,
+                        grasu_capability_catalog=grasu_capability_catalog,
                     ),
                 )
             )
