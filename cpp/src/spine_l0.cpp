@@ -21,6 +21,8 @@ constexpr std::uint64_t kPersistentRecordBytes = 16;
 constexpr std::uint64_t kMetadataMagic = 0x53504352ULL;
 constexpr std::uint64_t kMetadataVersion = 2;
 constexpr std::uint64_t kMetadataRequiredFeatures = 3;
+constexpr std::uint64_t kCandidateMetadataVersion = 5;
+constexpr std::uint64_t kCandidateMetadataRequiredFeatures = 31;
 constexpr std::uint64_t kMetadataWordsPerSlice = 8;
 constexpr std::uint64_t kMetadataEdgeCountWord = 0;
 constexpr std::uint64_t kMetadataOccupiedWord = 7;
@@ -148,6 +150,30 @@ std::uint64_t row_count_for_edges(const std::vector<SpineEdgeRecord> &edges) {
     }
   }
   return rows;
+}
+
+std::uint32_t candidate_hash_mix(std::uint32_t term) noexcept {
+  term ^= term << 13;
+  term ^= term >> 17;
+  term ^= term << 5;
+  return term;
+}
+
+std::uint32_t candidate_tag_hash_term(std::uint32_t source,
+                                      std::uint32_t family,
+                                      std::uint32_t input_index) noexcept {
+  return candidate_hash_mix(source ^ (family << 25) ^ input_index);
+}
+
+std::uint32_t candidate_dispatch_hash_term(const SpineEdgeRecord &edge,
+                                           std::uint32_t family,
+                                           std::uint32_t bucket_index) {
+  const std::vector<std::uint8_t> packed = encode_spine_sort_edge(edge);
+  std::uint32_t term = 0;
+  for (std::size_t word = 0; word < 4; ++word) {
+    term ^= read_u32_le(packed, word * sizeof(std::uint32_t));
+  }
+  return candidate_hash_mix(term ^ (family << 26) ^ bucket_index);
 }
 
 std::uint64_t pack_u32_lane(std::uint32_t value, bool high_lane) {
@@ -348,21 +374,59 @@ SpineMetadataLayout spine_metadata_layout(const SpineL0Config &config) {
   layout.dirty_host_valid_word = layout.dirty_base + 13;
   layout.dirty_last_mode_word = layout.dirty_base + 14;
   layout.dirty_last_status_word = layout.dirty_base + 15;
-  layout.total_words = layout.dirty_base + 16;
+  layout.family_directory_valid_word = layout.dirty_base + 16;
+  layout.family_tag_base = layout.family_directory_valid_word + 1;
+  layout.family_tag_words =
+      (static_cast<std::uint64_t>(config.max_sort_edges) + 7) / 8;
+  layout.source_record_base = layout.family_tag_base + layout.family_tag_words;
+  layout.source_record_words = config.max_sort_edges;
+  layout.new_dirty_base =
+      layout.source_record_base + layout.source_record_words;
+  layout.new_dirty_words =
+      (static_cast<std::uint64_t>(config.max_sort_edges) + 1) / 2;
+  layout.total_words =
+      config.maintenance_architecture ==
+              SpineMaintenanceArchitecture::kCandidate10OnePass
+          ? layout.new_dirty_base + layout.new_dirty_words
+          : layout.dirty_base + 16;
   return layout;
 }
 
 std::uint64_t spine_metadata_control_word(bool hot_enabled) {
-  return (kMetadataMagic << 32) | (kMetadataVersion << 16) |
-         (kMetadataRequiredFeatures << 1) | (hot_enabled ? 1ULL : 0ULL);
+  return spine_metadata_control_word(
+      hot_enabled, SpineMaintenanceArchitecture::kSharedEngineSerial);
+}
+
+std::uint64_t spine_metadata_control_word(
+    bool hot_enabled, SpineMaintenanceArchitecture architecture) {
+  const bool candidate =
+      architecture == SpineMaintenanceArchitecture::kCandidate10OnePass;
+  const std::uint64_t version =
+      candidate ? kCandidateMetadataVersion : kMetadataVersion;
+  const std::uint64_t features = candidate ? kCandidateMetadataRequiredFeatures
+                                           : kMetadataRequiredFeatures;
+  return (kMetadataMagic << 32) | (version << 16) | (features << 1) |
+         (hot_enabled ? 1ULL : 0ULL);
 }
 
 bool spine_metadata_control_valid(std::uint64_t control) noexcept {
+  return spine_metadata_control_valid(
+      control, SpineMaintenanceArchitecture::kSharedEngineSerial);
+}
+
+bool spine_metadata_control_valid(
+    std::uint64_t control,
+    SpineMaintenanceArchitecture architecture) noexcept {
   const std::uint64_t magic = control >> 32;
   const std::uint64_t version = (control >> 16) & 0xffffULL;
   const std::uint64_t features = (control >> 1) & 0x7fffULL;
-  return magic == kMetadataMagic && version == kMetadataVersion &&
-         features == kMetadataRequiredFeatures;
+  const bool candidate =
+      architecture == SpineMaintenanceArchitecture::kCandidate10OnePass;
+  return magic == kMetadataMagic &&
+         version ==
+             (candidate ? kCandidateMetadataVersion : kMetadataVersion) &&
+         features == (candidate ? kCandidateMetadataRequiredFeatures
+                                : kMetadataRequiredFeatures);
 }
 
 std::uint64_t spine_dirty_hash_sum_term(std::uint32_t source) noexcept {
@@ -785,8 +849,19 @@ SpineL0Maintenance::SpineL0Maintenance(std::string name, ClockId clock_id,
       config_.maintenance_count_scan_ii == 0 ||
       config_.maintenance_l0_write_scan_ii == 0 ||
       config_.maintenance_scan_response_capacity == 0 ||
+      config_.candidate_classify_block_edges == 0 ||
+      config_.candidate_classify_block_edges % 8 != 0 ||
+      config_.candidate_source_prefetch == 0 ||
+      config_.candidate_publication_window == 0 ||
+      config_.candidate_memory_request_window == 0 ||
+      config_.persistent_family_directory_base <
+          config_.persistent_dirty_list_base ||
+      config_.persistent_family_bucket_base <
+          config_.persistent_family_directory_base ||
       workload_.vertices == 0 || workload_.vertices > config_.max_vertices ||
-      workload_.edges.empty() ||
+      (workload_.edges.empty() &&
+       config_.maintenance_architecture ==
+           SpineMaintenanceArchitecture::kSharedEngineSerial) ||
       workload_.edges.size() > config_.max_sort_edges ||
       ports_.sorted_edges == nullptr || ports_.metadata == nullptr ||
       ports_.result == nullptr) {
@@ -819,8 +894,10 @@ SpineL0Maintenance::SpineL0Maintenance(std::string name, ClockId clock_id,
   state_.hot_vertices = std::move(configured_hot);
   state_.hot_enabled = !state_.hot_vertices.empty();
   sorted_scan_edges_ = workload_.edges;
-  ports_.sorted_edges->initialize_payload(
-      config_.sorted_edges_base, encode_spine_sort_edges(workload_.edges));
+  if (!workload_.edges.empty()) {
+    ports_.sorted_edges->initialize_payload(
+        config_.sorted_edges_base, encode_spine_sort_edges(workload_.edges));
+  }
   const auto initialize_levels = [&](const auto &families, bool hot) {
     for (std::size_t family = 0; family < families.size(); ++family) {
       for (std::size_t level = 0; level < families[family].size(); ++level) {
@@ -905,6 +982,19 @@ void SpineL0Maintenance::reset_batch(SpineEdgeSlice workload) {
   for (auto &family : hot_family_outputs_) {
     family.clear();
   }
+  for (auto &family : candidate_family_buckets_) {
+    family.clear();
+  }
+  candidate_family_begin_ = {};
+  candidate_family_cursor_ = {};
+  candidate_family_tags_.clear();
+  candidate_source_records_.clear();
+  candidate_classify_block_records_.clear();
+  candidate_publication_window_records_.clear();
+  candidate_publication_words_.clear();
+  candidate_new_dirty_sources_.clear();
+  candidate_list_sources_.clear();
+  candidate_list_words_.clear();
   staged_writer_epochs_ = {};
   target_edge_counts_ = {};
   target_occupied_ = {};
@@ -926,6 +1016,7 @@ void SpineL0Maintenance::reset_batch(SpineEdgeSlice workload) {
   scan_index_ = 0;
   scan_tail_remaining_ = 0;
   next_scan_consume_cycle_ = 0;
+  scan_base_address_ = config_.sorted_edges_base;
   scan_transaction_id_ = 0;
   scan_transaction_valid_ = false;
   streaming_scan_ = false;
@@ -940,6 +1031,28 @@ void SpineL0Maintenance::reset_batch(SpineEdgeSlice workload) {
   dirty_hash_xor_ = 0;
   dirty_status_ = SpineDirtyStatus::kOk;
   dirty_bitmap_original_payload_.clear();
+  candidate_current_source_ = 0;
+  candidate_current_source_mask_ = 0;
+  candidate_classified_tag_hash_ = 0;
+  candidate_dispatched_tag_hash_ = 0;
+  candidate_block_begin_ = 0;
+  candidate_block_edges_ = 0;
+  candidate_reduce_cycles_remaining_ = 0;
+  candidate_prefix_cycles_remaining_ = 0;
+  candidate_publication_cursor_ = 0;
+  candidate_publication_loaded_ = 0;
+  candidate_publication_responses_ = 0;
+  candidate_publication_writes_ = 0;
+  candidate_list_source_cursor_ = 0;
+  candidate_list_source_loaded_ = 0;
+  candidate_list_read_responses_ = 0;
+  candidate_probe_new_count_ = 0;
+  candidate_publication_kind_ = CandidatePublicationKind::kDirectory;
+  candidate_have_source_ = false;
+  candidate_classify_flush_pending_ = false;
+  candidate_publication_empty_proven_ = false;
+  candidate_dirty_candidate_valid_ = false;
+  candidate_dirty_host_valid_ = false;
   family_index_ = 0;
   active_family_index_ = 0;
   precount_hot_ = false;
@@ -1008,7 +1121,15 @@ void SpineL0Maintenance::initialize_metadata_payload() {
   std::map<std::uint64_t, std::uint64_t> page_list_count_words;
   ports_.metadata->initialize_payload(
       config_.metadata_base + metadata.hot_enabled_word * kMetadataWordBytes,
-      encode_u64_words({spine_metadata_control_word(state_.hot_enabled)}));
+      encode_u64_words({spine_metadata_control_word(
+          state_.hot_enabled, config_.maintenance_architecture)}));
+  if (config_.maintenance_architecture ==
+      SpineMaintenanceArchitecture::kCandidate10OnePass) {
+    ports_.metadata->initialize_payload(
+        config_.metadata_base +
+            metadata.family_directory_valid_word * kMetadataWordBytes,
+        encode_u64_words({1}));
+  }
   std::map<std::uint64_t, std::uint64_t> hot_bitmap_payload;
   for (const std::uint32_t vertex : state_.hot_vertices) {
     const std::uint64_t word = vertex >> 6;
@@ -1154,6 +1275,26 @@ void SpineL0Maintenance::evaluate(const CycleContext &context) {
     if (scan_can_advance(context)) {
       staged_action_ = StagedAction::kAdvance;
     }
+    return;
+  }
+  if (phase_ == Phase::kCandidateClassifyReduce) {
+    staged_action_ = StagedAction::kAdvance;
+    return;
+  }
+  if (phase_ == Phase::kCandidateClassifyFlush) {
+    const auto classify_flush_task = [](const MemoryTask &task) {
+      return task.purpose == TaskPurpose::kCandidateFamilyTagWrite ||
+             task.purpose == TaskPurpose::kCandidateSourceRecordWrite;
+    };
+    const bool queued =
+        std::any_of(tasks_.begin(), tasks_.end(), classify_flush_task);
+    const bool inflight = std::any_of(
+        inflight_tasks_.begin(), inflight_tasks_.end(),
+        [&](const auto &entry) { return classify_flush_task(entry.second); });
+    if (queued || inflight || staged_memory_completion_) {
+      return;
+    }
+    staged_action_ = StagedAction::kAdvance;
     return;
   }
   if (!tasks_.empty() || !inflight_tasks_.empty() ||
@@ -1309,6 +1450,23 @@ std::size_t SpineL0Maintenance::memory_request_window_for(
   if (task.purpose == TaskPurpose::kScanHotBitmap ||
       task.purpose == TaskPurpose::kCarryNewBatchHotBitmap) {
     return config_.maintenance_hot_bitmap_request_window;
+  }
+  if (task.purpose == TaskPurpose::kCandidatePublicationSourceRead ||
+      task.purpose == TaskPurpose::kCandidateListSourceRead) {
+    return std::min(config_.candidate_source_prefetch,
+                    config_.candidate_memory_request_window);
+  }
+  if (task.purpose == TaskPurpose::kCandidateFamilyTagWrite ||
+      task.purpose == TaskPurpose::kCandidateSourceRecordWrite ||
+      task.purpose == TaskPurpose::kCandidateBucketWrite ||
+      task.purpose == TaskPurpose::kCandidateDirectoryRead ||
+      task.purpose == TaskPurpose::kCandidateDirectoryWrite ||
+      task.purpose == TaskPurpose::kCandidateBitmapRead ||
+      task.purpose == TaskPurpose::kCandidateBitmapWrite ||
+      task.purpose == TaskPurpose::kCandidateScratchWrite ||
+      task.purpose == TaskPurpose::kCandidateListRead ||
+      task.purpose == TaskPurpose::kCandidateListWrite) {
+    return config_.candidate_memory_request_window;
   }
   return config_.memory_request_window;
 }
@@ -1475,7 +1633,7 @@ void SpineL0Maintenance::enqueue_task(
     std::vector<std::uint32_t> carry_edge_sources, bool stream_sorted_scan,
     TaskPurpose purpose, std::uint32_t source, std::size_t carry_stream,
     std::size_t carry_edge_index, std::size_t metadata_family,
-    std::size_t metadata_level) {
+    std::size_t metadata_level, std::size_t candidate_index) {
   if (bytes == 0) {
     return;
   }
@@ -1505,6 +1663,7 @@ void SpineL0Maintenance::enqueue_task(
       .carry_edge_index = carry_edge_index,
       .metadata_family = metadata_family,
       .metadata_level = metadata_level,
+      .candidate_index = candidate_index,
       .stream_sorted_scan = stream_sorted_scan,
       .streamed_read_beats_expected =
           stream_sorted_scan
@@ -1584,15 +1743,18 @@ void SpineL0Maintenance::begin_sorted_scan(Phase process_phase, ScanKind kind) {
   scan_hot_results_.clear();
   scan_hot_requests_pending_.clear();
   edge_by_edge_scan_ = kind == ScanKind::kDirtyMark;
+  if (kind != ScanKind::kCandidateBucketWrite) {
+    scan_base_address_ = config_.sorted_edges_base;
+  }
   scan_have_last_source_ = false;
   scan_last_source_ = 0;
   dirty_source_pending_ = false;
   if (edge_by_edge_scan_) {
     enqueue_dirty_mark_edge_read();
-  } else {
+  } else if (!sorted_scan_edges_.empty()) {
     enqueue_task(*ports_.sorted_edges, MemoryOperation::kRead,
-                 config_.sorted_edges_base,
-                 workload_.edges.size() * kSpineSortWordBytes,
+                 scan_base_address_,
+                 sorted_scan_edges_.size() * kSpineSortWordBytes,
                  TaskClass::kSorted, {}, {}, streaming_scan_);
   }
   phase_ = process_phase;
@@ -1605,6 +1767,8 @@ bool SpineL0Maintenance::scan_process_phase() const noexcept {
   case Phase::kHotColdCountProcess:
   case Phase::kPrecountProcess:
   case Phase::kWriteProcess:
+  case Phase::kCandidateClassifyProcess:
+  case Phase::kCandidateDispatchProcess:
     return true;
   default:
     return false;
@@ -1612,8 +1776,10 @@ bool SpineL0Maintenance::scan_process_phase() const noexcept {
 }
 
 std::size_t SpineL0Maintenance::scan_initiation_interval() const noexcept {
-  return scan_kind_ == ScanKind::kL0Write ? config_.maintenance_l0_write_scan_ii
-                                          : config_.maintenance_count_scan_ii;
+  return scan_kind_ == ScanKind::kL0Write ||
+                 scan_kind_ == ScanKind::kCandidateBucketWrite
+             ? config_.maintenance_l0_write_scan_ii
+             : config_.maintenance_count_scan_ii;
 }
 
 std::size_t SpineL0Maintenance::scan_tail_cycles() const noexcept {
@@ -1622,9 +1788,12 @@ std::size_t SpineL0Maintenance::scan_tail_cycles() const noexcept {
   case ScanKind::kFamilyPrecount:
     return config_.maintenance_count_scan_tail_cycles;
   case ScanKind::kL0Write:
+  case ScanKind::kCandidateBucketWrite:
     return config_.maintenance_l0_write_scan_tail_cycles;
   case ScanKind::kDirtyValidate:
   case ScanKind::kDirtyMark:
+  case ScanKind::kCandidateClassify:
+  case ScanKind::kCandidateDispatch:
     return 0;
   }
   return 0;
@@ -1633,7 +1802,8 @@ std::size_t SpineL0Maintenance::scan_tail_cycles() const noexcept {
 bool SpineL0Maintenance::scan_requires_hot_bitmap() const noexcept {
   return metadata_hot_enabled_ && (scan_kind_ == ScanKind::kHotColdCount ||
                                    scan_kind_ == ScanKind::kFamilyPrecount ||
-                                   scan_kind_ == ScanKind::kL0Write);
+                                   scan_kind_ == ScanKind::kL0Write ||
+                                   scan_kind_ == ScanKind::kCandidateClassify);
 }
 
 void SpineL0Maintenance::enqueue_scan_hot_bitmap_read(
@@ -1787,6 +1957,77 @@ bool SpineL0Maintenance::process_scan_edge(const CycleContext &context) {
   case ScanKind::kL0Write:
     ++counters_.l0_write_edge_visits;
     break;
+  case ScanKind::kCandidateClassify: {
+    const SpineEdgeRecord &edge = sorted_scan_edges_[scan_index_];
+    const bool hot = edge_is_hot(edge.dst);
+    const std::size_t family =
+        hot ? config_.partitions + spine_hot_shard(edge.dst)
+            : family_for(edge.dst);
+    if (family >= kSpineFamilyCount) {
+      throw std::logic_error("candidate-10 classifier produced bad family");
+    }
+    candidate_family_tags_[scan_index_] = static_cast<std::uint8_t>(family);
+    ++candidate_family_begin_[family + 1];
+    if (hot) {
+      ++counters_.hot_input_edges;
+    } else {
+      ++counters_.cold_input_edges;
+    }
+    ++counters_.candidate_classify_edge_visits;
+    if (candidate_have_source_ && edge.src != candidate_current_source_) {
+      CandidateSourceRecord record{candidate_current_source_,
+                                   candidate_current_source_mask_};
+      candidate_source_records_.push_back(record);
+      candidate_classify_block_records_.push_back(record);
+      candidate_current_source_mask_ = 0;
+    }
+    candidate_current_source_ = edge.src;
+    candidate_current_source_mask_ |= std::uint32_t{1} << family;
+    candidate_have_source_ = true;
+    const std::uint32_t term = candidate_tag_hash_term(
+        edge.src, static_cast<std::uint32_t>(family),
+        static_cast<std::uint32_t>(scan_index_));
+    candidate_classified_tag_hash_ =
+        std::rotl(candidate_classified_tag_hash_, 5) + term;
+    break;
+  }
+  case ScanKind::kCandidateDispatch: {
+    const SpineEdgeRecord &edge = sorted_scan_edges_[scan_index_];
+    const std::size_t family = candidate_family_tags_.at(scan_index_);
+    const std::uint32_t bucket_index = candidate_family_cursor_.at(family);
+    if (bucket_index < candidate_family_begin_[family] ||
+        bucket_index >= candidate_family_begin_[family + 1] ||
+        bucket_index >= config_.max_sort_edges) {
+      counters_.dispatch_status = 2;
+      ++counters_.dispatch_cursor_mismatches;
+      break;
+    }
+    std::vector<std::uint8_t> payload = encode_spine_sort_edge(edge);
+    enqueue_task(*ports_.sorted_edges, MemoryOperation::kWrite,
+                 config_.persistent_family_bucket_base +
+                     bucket_index * kSpineSortWordBytes,
+                 kSpineSortWordBytes, TaskClass::kPersistent,
+                 std::move(payload), {}, false,
+                 TaskPurpose::kCandidateBucketWrite, edge.src, 0, 0, 0, 0,
+                 bucket_index);
+    candidate_family_buckets_[family].push_back(edge);
+    ++candidate_family_cursor_[family];
+    ++counters_.dispatch_input_reads;
+    ++counters_.dispatch_bucket_writes;
+    const std::uint32_t tag_term = candidate_tag_hash_term(
+        edge.src, static_cast<std::uint32_t>(family),
+        static_cast<std::uint32_t>(scan_index_));
+    candidate_dispatched_tag_hash_ =
+        std::rotl(candidate_dispatched_tag_hash_, 5) + tag_term;
+    const std::uint32_t hash_term = candidate_dispatch_hash_term(
+        edge, static_cast<std::uint32_t>(family), bucket_index);
+    counters_.dispatch_hash_sum += hash_term;
+    counters_.dispatch_hash_xor ^= hash_term;
+    break;
+  }
+  case ScanKind::kCandidateBucketWrite:
+    ++counters_.l0_write_edge_visits;
+    break;
   }
   if (scan_requires_hot_bitmap()) {
     if (scan_hot_results_.erase(scan_index_) != 1) {
@@ -1796,6 +2037,21 @@ bool SpineL0Maintenance::process_scan_edge(const CycleContext &context) {
     }
   }
   ++scan_index_;
+  if (scan_kind_ == ScanKind::kCandidateClassify &&
+      (scan_index_ % config_.candidate_classify_block_edges == 0 ||
+       scan_index_ == sorted_scan_edges_.size())) {
+    if (scan_index_ == sorted_scan_edges_.size() && candidate_have_source_) {
+      CandidateSourceRecord record{candidate_current_source_,
+                                   candidate_current_source_mask_};
+      candidate_source_records_.push_back(record);
+      candidate_classify_block_records_.push_back(record);
+      candidate_have_source_ = false;
+    }
+    candidate_block_edges_ = scan_index_ - candidate_block_begin_;
+    candidate_reduce_cycles_remaining_ = candidate_block_edges_;
+    ++counters_.candidate_classify_blocks;
+    phase_ = Phase::kCandidateClassifyReduce;
+  }
   next_scan_consume_cycle_ = context.domain_cycle + scan_initiation_interval();
   if (edge_by_edge_scan_ && !dirty_source_pending_ &&
       scan_index_ < sorted_scan_edges_.size()) {
@@ -1825,11 +2081,11 @@ void SpineL0Maintenance::consume_read_beat(const AxiReadBeatResponse &beat) {
       beat.read_data.size() != kSpineSortWordBytes) {
     throw std::logic_error("invalid streamed Spine sorted-edge beat");
   }
-  if (beat.address < config_.sorted_edges_base) {
+  if (beat.address < scan_base_address_) {
     throw std::logic_error("streamed Spine sorted-edge address underflow");
   }
   const std::size_t index = static_cast<std::size_t>(
-      (edge_by_edge_scan_ ? beat.address - config_.sorted_edges_base
+      (edge_by_edge_scan_ ? beat.address - scan_base_address_
                           : beat.parent_offset) /
       kSpineSortWordBytes);
   const SpineEdgeRecord edge = decode_spine_sort_edge(beat.read_data);
@@ -1878,6 +2134,19 @@ void SpineL0Maintenance::consume_memory_response(const MemoryTask &task,
       task.purpose == TaskPurpose::kCarryLevelEdgeRead ||
       task.purpose == TaskPurpose::kLevelWriterGraphWrite ||
       task.purpose == TaskPurpose::kLevelWriterMetadataWrite;
+  const bool candidate_response =
+      task.purpose == TaskPurpose::kCandidateFamilyTagWrite ||
+      task.purpose == TaskPurpose::kCandidateSourceRecordWrite ||
+      task.purpose == TaskPurpose::kCandidateBucketWrite ||
+      task.purpose == TaskPurpose::kCandidatePublicationSourceRead ||
+      task.purpose == TaskPurpose::kCandidateDirectoryRead ||
+      task.purpose == TaskPurpose::kCandidateDirectoryWrite ||
+      task.purpose == TaskPurpose::kCandidateBitmapRead ||
+      task.purpose == TaskPurpose::kCandidateBitmapWrite ||
+      task.purpose == TaskPurpose::kCandidateScratchWrite ||
+      task.purpose == TaskPurpose::kCandidateListSourceRead ||
+      task.purpose == TaskPurpose::kCandidateListRead ||
+      task.purpose == TaskPurpose::kCandidateListWrite;
   if (task.operation == MemoryOperation::kWrite) {
     if (!response.read_data.empty()) {
       throw std::logic_error(
@@ -1900,6 +2169,8 @@ void SpineL0Maintenance::consume_memory_response(const MemoryTask &task,
       throw std::logic_error("Spine result metadata read path issued a write");
     } else if (carry_response) {
       consume_carry_memory_response(task, response);
+    } else if (candidate_response) {
+      consume_candidate_memory_response(task, response);
     } else if (task.purpose != TaskPurpose::kGeneric) {
       consume_dirty_memory_response(task, response);
     }
@@ -1920,6 +2191,8 @@ void SpineL0Maintenance::consume_memory_response(const MemoryTask &task,
     consume_active_writer_epoch_response(task, response);
   } else if (carry_response) {
     consume_carry_memory_response(task, response);
+  } else if (candidate_response) {
+    consume_candidate_memory_response(task, response);
   } else if (task.purpose != TaskPurpose::kGeneric) {
     consume_dirty_memory_response(task, response);
   }
@@ -1959,6 +2232,11 @@ bool SpineL0Maintenance::edge_is_hot(std::uint32_t dst) const {
 
 std::vector<SpineEdgeRecord> SpineL0Maintenance::coalesce_family(
     bool hot, std::size_t family) const {
+  if (config_.maintenance_architecture ==
+      SpineMaintenanceArchitecture::kCandidate10OnePass) {
+    const std::size_t logical_family = hot ? config_.partitions + family : family;
+    return coalesce_records(candidate_family_buckets_.at(logical_family));
+  }
   std::vector<SpineEdgeRecord> selected;
   for (const SpineEdgeRecord &edge : sorted_scan_edges_) {
     const bool is_hot = edge_is_hot(edge.dst);
@@ -2072,7 +2350,8 @@ void SpineL0Maintenance::consume_metadata_control_response(
     throw std::logic_error("invalid Spine metadata control response");
   }
   const std::uint64_t control = read_u64_le(response.read_data, 0);
-  if (!spine_metadata_control_valid(control)) {
+  if (!spine_metadata_control_valid(control,
+                                    config_.maintenance_architecture)) {
     ++counters_.hot_bitmap_validation_failures;
     throw std::logic_error("invalid Spine metadata control payload");
   }
@@ -2259,6 +2538,25 @@ SpineMaintenanceResult SpineL0Maintenance::build_maintenance_result() const {
       as_i32(persisted_edges);
   result.words[SpineMaintenanceResult::kNonemptyPartitions] =
       nonempty_partitions;
+  if (config_.maintenance_architecture ==
+      SpineMaintenanceArchitecture::kCandidate10OnePass) {
+    result.words[SpineMaintenanceResult::kDispatchStatus] =
+        as_i32(counters_.dispatch_status);
+    result.words[SpineMaintenanceResult::kDispatchInputReads] =
+        as_i32(counters_.dispatch_input_reads);
+    result.words[SpineMaintenanceResult::kDispatchBucketWrites] =
+        as_i32(counters_.dispatch_bucket_writes);
+    result.words[SpineMaintenanceResult::kDispatchHashSum] =
+        as_i32(counters_.dispatch_hash_sum);
+    result.words[SpineMaintenanceResult::kDispatchHashXor] =
+        as_i32(counters_.dispatch_hash_xor);
+    result.words[SpineMaintenanceResult::kFamilyDirectoryWordReads] =
+        as_i32(counters_.family_directory_word_reads);
+    result.words[SpineMaintenanceResult::kFamilyDirectoryWordWrites] =
+        as_i32(counters_.family_directory_word_writes);
+    result.words[SpineMaintenanceResult::kFamilyDirectoryBitsSet] =
+        as_i32(counters_.family_directory_bits_set);
+  }
   result.words[SpineMaintenanceResult::kEpochPartitionsWritten] =
       logical_overflow_ ? 0 : as_i32(counters_.active_families);
   result.words[SpineMaintenanceResult::kEpochPagesStamped] =
@@ -2294,9 +2592,13 @@ SpineMaintenanceResult SpineL0Maintenance::build_maintenance_result() const {
   write_carry(SpineMaintenanceResult::kCarryHotBase,
               carry_result_counters_[1]);
 
-  result.words[SpineMaintenanceResult::kLayoutVersion] = 3;
+  const bool candidate =
+      config_.maintenance_architecture ==
+      SpineMaintenanceArchitecture::kCandidate10OnePass;
+  result.words[SpineMaintenanceResult::kLayoutVersion] = candidate ? 6 : 3;
   result.words[SpineMaintenanceResult::kMetadataFormatVersion] =
-      static_cast<std::int32_t>(kMetadataVersion);
+      static_cast<std::int32_t>(candidate ? kCandidateMetadataVersion
+                                          : kMetadataVersion);
   result.words[SpineMaintenanceResult::kDirtyMode] = 0;
   result.words[SpineMaintenanceResult::kDirtyStatus] =
       static_cast<std::int32_t>(dirty_status_);
@@ -2321,8 +2623,28 @@ SpineMaintenanceResult SpineL0Maintenance::build_maintenance_result() const {
       as_i32(counters_.dirty_list_appends);
   result.words[SpineMaintenanceResult::kDirtyDuplicatesSuppressed] =
       as_i32(counters_.dirty_duplicates_suppressed);
-  result.words[SpineMaintenanceResult::kDirtyGenerationAdvances] =
-      as_i32(counters_.dirty_generation_advances);
+  if (candidate) {
+    const std::uint32_t publication_flags =
+        (counters_.dirty_generation_advances != 0 ? 1U : 0U) |
+        (static_cast<std::uint32_t>(
+             counters_.publication_scratch_word_writes & 0x1ffffU)
+         << 1) |
+        (counters_.publication_fallback ? (1U << 18) : 0U) |
+        (counters_.publication_empty_frontier_fast_path ? (1U << 19) : 0U);
+    result.words[SpineMaintenanceResult::kDirtyGenerationAdvances] =
+        as_i32(publication_flags);
+    const std::uint32_t list_flags =
+        static_cast<std::uint32_t>(
+            counters_.publication_list_word_writes & 0xffffU) |
+        (static_cast<std::uint32_t>(
+             counters_.publication_list_word_reads & 0x3U)
+         << 16) |
+        (counters_.publication_complete ? (1U << 18) : 0U);
+    result.words[SpineMaintenanceResult::kDirtyAux] = as_i32(list_flags);
+  } else {
+    result.words[SpineMaintenanceResult::kDirtyGenerationAdvances] =
+        as_i32(counters_.dirty_generation_advances);
+  }
   result.words[SpineMaintenanceResult::kDirtyConservativeSources] =
       logical_overflow_ ? as_i32(counters_.unique_sources) : 0;
   return result;
@@ -2471,7 +2793,20 @@ void SpineL0Maintenance::begin_active_family_write() {
   const FamilyWriteTask &task = family_write_tasks_[active_family_index_];
   if (task.target == 0) {
     initialize_l0_level_writer(task);
-    begin_sorted_scan(Phase::kWriteProcess, ScanKind::kL0Write);
+    if (config_.maintenance_architecture ==
+        SpineMaintenanceArchitecture::kCandidate10OnePass) {
+      const std::size_t logical_family =
+          task.hot ? config_.partitions + task.family : task.family;
+      sorted_scan_edges_ = candidate_family_buckets_[logical_family];
+      scan_base_address_ =
+          config_.persistent_family_bucket_base +
+          static_cast<std::uint64_t>(candidate_family_begin_[logical_family]) *
+              kSpineSortWordBytes;
+      begin_sorted_scan(Phase::kWriteProcess,
+                        ScanKind::kCandidateBucketWrite);
+    } else {
+      begin_sorted_scan(Phase::kWriteProcess, ScanKind::kL0Write);
+    }
   } else {
     initialize_carry_engine(task);
     phase_ = Phase::kCarryProcess;
@@ -2578,7 +2913,10 @@ void SpineL0Maintenance::finish_target_selector(
   }
   family_index_ = 0;
   precount_hot_ = false;
-  phase_ = Phase::kPrecountBegin;
+  phase_ = config_.maintenance_architecture ==
+                   SpineMaintenanceArchitecture::kCandidate10OnePass
+               ? Phase::kBuildOutputs
+               : Phase::kPrecountBegin;
 }
 
 std::vector<SpineEdgeRecord> SpineL0Maintenance::merge_family(
@@ -2669,6 +3007,438 @@ void SpineL0Maintenance::enqueue_dirty_metadata_load() {
                  kMetadataWordBytes, TaskClass::kMetadata, {}, {}, false,
                  TaskPurpose::kDirtyMetadataLoad, field);
   }
+  if (config_.maintenance_architecture ==
+      SpineMaintenanceArchitecture::kCandidate10OnePass) {
+    for (const std::uint32_t field : {8U, 13U}) {
+      enqueue_task(
+          *ports_.metadata, MemoryOperation::kRead,
+          config_.metadata_base +
+              (metadata.dirty_count_word + field) * kMetadataWordBytes,
+          kMetadataWordBytes, TaskClass::kMetadata, {}, {}, false,
+          TaskPurpose::kDirtyMetadataLoad, field);
+    }
+  }
+}
+
+void SpineL0Maintenance::candidate_finish_classify_block() {
+  if (candidate_block_edges_ == 0 ||
+      candidate_block_begin_ + candidate_block_edges_ >
+          candidate_family_tags_.size()) {
+    throw std::logic_error("invalid candidate-10 classify block");
+  }
+  const SpineMetadataLayout metadata = spine_metadata_layout(config_);
+  const std::size_t tag_words = (candidate_block_edges_ + 7) / 8;
+  for (std::size_t word = 0; word < tag_words; ++word) {
+    std::uint64_t packed = 0;
+    for (std::size_t lane = 0; lane < 8; ++lane) {
+      const std::size_t index = candidate_block_begin_ + word * 8 + lane;
+      if (index < candidate_block_begin_ + candidate_block_edges_) {
+        packed |= static_cast<std::uint64_t>(candidate_family_tags_[index])
+                  << (lane * 8);
+      }
+    }
+    enqueue_task(
+        *ports_.metadata, MemoryOperation::kWrite,
+        config_.metadata_base +
+            (metadata.family_tag_base + candidate_block_begin_ / 8 + word) *
+                kMetadataWordBytes,
+        kMetadataWordBytes, TaskClass::kMetadata,
+        encode_u64_words({packed}), {}, false,
+        TaskPurpose::kCandidateFamilyTagWrite, 0, 0, 0, 0, 0, word);
+    ++counters_.candidate_family_tag_word_writes;
+  }
+  const std::size_t record_base =
+      candidate_source_records_.size() - candidate_classify_block_records_.size();
+  for (std::size_t record = 0;
+       record < candidate_classify_block_records_.size(); ++record) {
+    const CandidateSourceRecord &value = candidate_classify_block_records_[record];
+    const std::uint64_t packed =
+        (static_cast<std::uint64_t>(value.family_mask) << 32) | value.source;
+    enqueue_task(
+        *ports_.metadata, MemoryOperation::kWrite,
+        config_.metadata_base +
+            (metadata.source_record_base + record_base + record) *
+                kMetadataWordBytes,
+        kMetadataWordBytes, TaskClass::kMetadata,
+        encode_u64_words({packed}), {}, false,
+        TaskPurpose::kCandidateSourceRecordWrite, value.source, 0, 0, 0, 0,
+        record_base + record);
+    ++counters_.candidate_source_record_word_writes;
+  }
+  candidate_classify_block_records_.clear();
+  candidate_block_begin_ += candidate_block_edges_;
+  candidate_block_edges_ = 0;
+  candidate_classify_flush_pending_ = true;
+}
+
+void SpineL0Maintenance::candidate_begin_publication_pass() {
+  candidate_publication_cursor_ = 0;
+  candidate_publication_loaded_ = 0;
+  candidate_publication_responses_ = 0;
+  candidate_publication_writes_ = 0;
+  candidate_publication_window_records_.clear();
+  candidate_publication_words_.clear();
+  phase_ = Phase::kCandidatePublicationLoad;
+  candidate_load_publication_window();
+}
+
+void SpineL0Maintenance::candidate_load_publication_window() {
+  const std::size_t remaining =
+      candidate_source_records_.size() - candidate_publication_cursor_;
+  candidate_publication_loaded_ = 0;
+  std::size_t completed_groups = 0;
+  std::uint64_t open_word = 0;
+  bool have_open_word = false;
+  const bool directory =
+      candidate_publication_kind_ == CandidatePublicationKind::kDirectory;
+  while (candidate_publication_loaded_ < remaining) {
+    const CandidateSourceRecord &record = candidate_source_records_[
+        candidate_publication_cursor_ + candidate_publication_loaded_];
+    const std::uint64_t word =
+        directory ? record.source >> 2 : record.source >> 7;
+    if (have_open_word && word != open_word) {
+      ++completed_groups;
+      if (completed_groups == config_.candidate_publication_window) {
+        break;
+      }
+    }
+    open_word = word;
+    have_open_word = true;
+    ++candidate_publication_loaded_;
+  }
+  if (candidate_publication_loaded_ == 0) {
+    throw std::logic_error("candidate publication made no source progress");
+  }
+  candidate_publication_window_records_.assign(candidate_publication_loaded_,
+                                                CandidateSourceRecord{});
+  candidate_publication_responses_ = 0;
+  const SpineMetadataLayout metadata = spine_metadata_layout(config_);
+  for (std::size_t local = 0; local < candidate_publication_loaded_; ++local) {
+    const std::size_t index = candidate_publication_cursor_ + local;
+    enqueue_task(
+        *ports_.metadata, MemoryOperation::kRead,
+        config_.metadata_base + (metadata.source_record_base + index) *
+                                    kMetadataWordBytes,
+        kMetadataWordBytes, TaskClass::kMetadata, {}, {}, false,
+        TaskPurpose::kCandidatePublicationSourceRead, 0, 0, 0, 0, 0, index);
+    ++counters_.publication_source_record_reads;
+  }
+  candidate_publication_cursor_ += candidate_publication_loaded_;
+}
+
+void SpineL0Maintenance::candidate_build_publication_groups() {
+  candidate_publication_words_.clear();
+  const bool directory =
+      candidate_publication_kind_ == CandidatePublicationKind::kDirectory;
+  for (const CandidateSourceRecord &record :
+       candidate_publication_window_records_) {
+    const std::uint64_t word_index =
+        directory ? record.source >> 2 : record.source >> 7;
+    const std::size_t lane =
+        directory ? (record.source & 3U) : ((record.source >> 5) & 3U);
+    const std::uint32_t mask =
+        directory ? record.family_mask
+                  : (std::uint32_t{1} << (record.source & 31U));
+    if (candidate_publication_words_.empty() ||
+        candidate_publication_words_.back().word_index != word_index) {
+      if (candidate_publication_words_.size() >=
+          config_.candidate_publication_window) {
+        throw std::logic_error("candidate publication window overflow");
+      }
+      candidate_publication_words_.push_back(
+          CandidatePublicationWord{
+              .word_index = word_index,
+              .requested = {},
+              .persisted = {},
+              .output = {},
+              .write = false,
+          });
+    }
+    candidate_publication_words_.back().requested[lane] |= mask;
+  }
+  candidate_publication_responses_ = 0;
+  const bool skip_bitmap_reads =
+      candidate_publication_kind_ == CandidatePublicationKind::kBitmap &&
+      candidate_publication_empty_proven_;
+  if (skip_bitmap_reads) {
+    for (CandidatePublicationWord &word : candidate_publication_words_) {
+      word.persisted.assign(kPersistentRecordBytes, 0);
+    }
+    return;
+  }
+  for (std::size_t slot = 0; slot < candidate_publication_words_.size(); ++slot) {
+    const CandidatePublicationWord &word = candidate_publication_words_[slot];
+    const std::uint64_t base = directory
+                                   ? config_.persistent_family_directory_base
+                                   : config_.persistent_dirty_bitmap_base;
+    enqueue_task(
+        *ports_.sorted_edges, MemoryOperation::kRead,
+        base + word.word_index * kPersistentRecordBytes,
+        kPersistentRecordBytes, TaskClass::kPersistent, {}, {}, false,
+        directory ? TaskPurpose::kCandidateDirectoryRead
+                  : TaskPurpose::kCandidateBitmapRead,
+        0, 0, 0, 0, 0, slot);
+    if (directory) {
+      ++counters_.family_directory_word_reads;
+    } else if (candidate_publication_kind_ ==
+               CandidatePublicationKind::kBitmapProbe) {
+      ++counters_.publication_bitmap_probe_reads;
+    } else {
+      ++counters_.dirty_bitmap_reads;
+    }
+  }
+}
+
+void SpineL0Maintenance::candidate_write_publication_groups() {
+  const bool directory =
+      candidate_publication_kind_ == CandidatePublicationKind::kDirectory;
+  const bool probe =
+      candidate_publication_kind_ == CandidatePublicationKind::kBitmapProbe;
+  candidate_publication_writes_ = 0;
+  for (std::size_t slot = 0; slot < candidate_publication_words_.size(); ++slot) {
+    CandidatePublicationWord &word = candidate_publication_words_[slot];
+    if (word.persisted.size() != kPersistentRecordBytes) {
+      throw std::logic_error("candidate publication missed HBM payload");
+    }
+    word.output = word.persisted;
+    std::size_t new_bits = 0;
+    for (std::size_t lane = 0; lane < 4; ++lane) {
+      const std::uint32_t old_value =
+          read_u32_le(word.persisted, lane * sizeof(std::uint32_t));
+      const std::uint32_t requested = word.requested[lane];
+      const std::uint32_t added = requested & ~old_value;
+      new_bits += std::popcount(added);
+      write_u32_le(word.output, lane * sizeof(std::uint32_t),
+                   old_value | requested);
+      if (!directory && !probe) {
+        for (std::size_t bit = 0; bit < 32; ++bit) {
+          if ((added & (std::uint32_t{1} << bit)) != 0) {
+            candidate_new_dirty_sources_.push_back(static_cast<std::uint32_t>(
+                word.word_index * 128 + lane * 32 + bit));
+          }
+        }
+      }
+    }
+    if (directory) {
+      counters_.family_directory_bits_set += new_bits;
+      word.write = true;
+    } else if (probe) {
+      candidate_probe_new_count_ += new_bits;
+      word.write = false;
+    } else {
+      word.write = new_bits != 0;
+    }
+    if (!word.write) {
+      continue;
+    }
+    const std::uint64_t base = directory
+                                   ? config_.persistent_family_directory_base
+                                   : config_.persistent_dirty_bitmap_base;
+    enqueue_task(
+        *ports_.sorted_edges, MemoryOperation::kWrite,
+        base + word.word_index * kPersistentRecordBytes,
+        kPersistentRecordBytes, TaskClass::kPersistent, word.output, {}, false,
+        directory ? TaskPurpose::kCandidateDirectoryWrite
+                  : TaskPurpose::kCandidateBitmapWrite,
+        0, 0, 0, 0, 0, slot);
+    ++candidate_publication_writes_;
+    if (directory) {
+      ++counters_.family_directory_word_writes;
+    } else {
+      ++counters_.dirty_bitmap_writes;
+    }
+  }
+}
+
+void SpineL0Maintenance::candidate_advance_publication_pass() {
+  if (candidate_publication_cursor_ < candidate_source_records_.size()) {
+    phase_ = Phase::kCandidatePublicationLoad;
+    candidate_load_publication_window();
+    return;
+  }
+  if (candidate_publication_kind_ == CandidatePublicationKind::kDirectory) {
+    candidate_publication_kind_ =
+        counters_.publication_fallback ? CandidatePublicationKind::kBitmapProbe
+                                       : CandidatePublicationKind::kBitmap;
+    candidate_probe_new_count_ = 0;
+    candidate_begin_publication_pass();
+    return;
+  }
+  if (candidate_publication_kind_ == CandidatePublicationKind::kBitmapProbe) {
+    if (static_cast<std::uint64_t>(dirty_count_) +
+            candidate_probe_new_count_ >
+        config_.max_vertices) {
+      begin_logical_overflow("candidate dirty frontier exceeds MAX_N",
+                             SpineDirtyStatus::kInvalidState);
+      return;
+    }
+    candidate_publication_kind_ = CandidatePublicationKind::kBitmap;
+    candidate_new_dirty_sources_.clear();
+    candidate_begin_publication_pass();
+    return;
+  }
+  counters_.dirty_list_appends = candidate_new_dirty_sources_.size();
+  counters_.dirty_duplicates_suppressed +=
+      candidate_source_records_.size() - candidate_new_dirty_sources_.size();
+  phase_ = Phase::kCandidateListBegin;
+}
+
+void SpineL0Maintenance::candidate_begin_list_source_load() {
+  candidate_list_sources_.assign(candidate_new_dirty_sources_.size(), 0);
+  candidate_list_source_cursor_ = 0;
+  candidate_list_source_loaded_ = 0;
+  const SpineMetadataLayout metadata = spine_metadata_layout(config_);
+  if (candidate_publication_empty_proven_) {
+    for (std::size_t index = 0; index < candidate_new_dirty_sources_.size();
+         ++index) {
+      enqueue_task(
+          *ports_.metadata, MemoryOperation::kRead,
+          config_.metadata_base + (metadata.source_record_base + index) *
+                                      kMetadataWordBytes,
+          kMetadataWordBytes, TaskClass::kMetadata, {}, {}, false,
+          TaskPurpose::kCandidateListSourceRead, 0, 0, 0, 0, 0, index);
+      ++counters_.publication_source_record_reads;
+    }
+  } else {
+    const std::size_t words = (candidate_new_dirty_sources_.size() + 1) / 2;
+    for (std::size_t word = 0; word < words; ++word) {
+      enqueue_task(
+          *ports_.metadata, MemoryOperation::kRead,
+          config_.metadata_base +
+              (metadata.new_dirty_base + word) * kMetadataWordBytes,
+          kMetadataWordBytes, TaskClass::kMetadata, {}, {}, false,
+          TaskPurpose::kCandidateListSourceRead, 0, 0, 0, 0, 0, word);
+      ++counters_.publication_scratch_word_reads;
+    }
+  }
+}
+
+void SpineL0Maintenance::candidate_build_list_words() {
+  candidate_list_words_.clear();
+  candidate_list_read_responses_ = 0;
+  const std::size_t new_count = candidate_list_sources_.size();
+  if (new_count == 0) {
+    return;
+  }
+  const std::uint64_t first_word = dirty_count_ >> 2;
+  const std::uint64_t final_count = dirty_count_ + new_count;
+  const std::uint64_t last_word = (final_count - 1) >> 2;
+  candidate_list_words_.assign(
+      static_cast<std::size_t>(last_word - first_word + 1),
+      std::vector<std::uint8_t>(kPersistentRecordBytes, 0));
+  for (std::size_t slot = 0; slot < candidate_list_words_.size(); ++slot) {
+    const std::uint64_t word_index = first_word + slot;
+    const bool preserve_first = word_index == first_word && (dirty_count_ & 3U);
+    const bool preserve_last =
+        word_index == last_word && (final_count & 3U);
+    if (!preserve_first && !preserve_last) {
+      continue;
+    }
+    enqueue_task(
+        *ports_.sorted_edges, MemoryOperation::kRead,
+        config_.persistent_dirty_list_base +
+            word_index * kPersistentRecordBytes,
+        kPersistentRecordBytes, TaskClass::kPersistent, {}, {}, false,
+        TaskPurpose::kCandidateListRead, 0, 0, 0, 0, 0, slot);
+    ++counters_.publication_list_word_reads;
+  }
+}
+
+void SpineL0Maintenance::candidate_write_list_words() {
+  const std::size_t new_count = candidate_list_sources_.size();
+  if (new_count == 0) {
+    return;
+  }
+  const std::uint64_t first_word = dirty_count_ >> 2;
+  for (std::size_t source_index = 0; source_index < new_count; ++source_index) {
+    const std::uint64_t logical = dirty_count_ + source_index;
+    const std::size_t slot = static_cast<std::size_t>((logical >> 2) - first_word);
+    write_u32_le(candidate_list_words_.at(slot),
+                 (logical & 3U) * sizeof(std::uint32_t),
+                 candidate_list_sources_[source_index]);
+  }
+  for (std::size_t slot = 0; slot < candidate_list_words_.size(); ++slot) {
+    enqueue_task(
+        *ports_.sorted_edges, MemoryOperation::kWrite,
+        config_.persistent_dirty_list_base +
+            (first_word + slot) * kPersistentRecordBytes,
+        kPersistentRecordBytes, TaskClass::kPersistent,
+        candidate_list_words_[slot], {}, false,
+        TaskPurpose::kCandidateListWrite, 0, 0, 0, 0, 0, slot);
+    ++counters_.publication_list_word_writes;
+  }
+}
+
+void SpineL0Maintenance::consume_candidate_memory_response(
+    const MemoryTask &task, const AxiResponse &response) {
+  if (task.operation == MemoryOperation::kWrite) {
+    if (!response.read_data.empty()) {
+      throw std::logic_error("candidate-10 write returned payload");
+    }
+    return;
+  }
+  if (task.purpose == TaskPurpose::kCandidatePublicationSourceRead) {
+    const std::size_t window_start =
+        candidate_publication_cursor_ - candidate_publication_loaded_;
+    if (task.candidate_index < window_start ||
+        task.candidate_index >= candidate_publication_cursor_) {
+      throw std::logic_error("candidate source-record response is out of window");
+    }
+    const std::uint64_t packed = read_u64_le(response.read_data, 0);
+    const CandidateSourceRecord record{static_cast<std::uint32_t>(packed),
+                                       static_cast<std::uint32_t>(packed >> 32)};
+    if (record.source != candidate_source_records_[task.candidate_index].source ||
+        record.family_mask !=
+            candidate_source_records_[task.candidate_index].family_mask) {
+      throw std::logic_error("candidate source-record payload mismatch");
+    }
+    candidate_publication_window_records_[task.candidate_index - window_start] =
+        record;
+    ++candidate_publication_responses_;
+    return;
+  }
+  if (task.purpose == TaskPurpose::kCandidateDirectoryRead ||
+      task.purpose == TaskPurpose::kCandidateBitmapRead) {
+    if (task.candidate_index >= candidate_publication_words_.size()) {
+      throw std::logic_error("candidate publication response slot overflow");
+    }
+    candidate_publication_words_[task.candidate_index].persisted =
+        response.read_data;
+    ++candidate_publication_responses_;
+    return;
+  }
+  if (task.purpose == TaskPurpose::kCandidateListSourceRead) {
+    if (candidate_publication_empty_proven_) {
+      if (task.candidate_index >= candidate_list_sources_.size()) {
+        throw std::logic_error("candidate list source response overflow");
+      }
+      const std::uint64_t packed = read_u64_le(response.read_data, 0);
+      candidate_list_sources_[task.candidate_index] =
+          static_cast<std::uint32_t>(packed);
+      ++candidate_list_source_loaded_;
+    } else {
+      const std::size_t low = task.candidate_index * 2;
+      if (low >= candidate_list_sources_.size()) {
+        throw std::logic_error("candidate scratch response overflow");
+      }
+      candidate_list_sources_[low] = read_u32_le(response.read_data, 0);
+      ++candidate_list_source_loaded_;
+      if (low + 1 < candidate_list_sources_.size()) {
+        candidate_list_sources_[low + 1] = read_u32_le(response.read_data, 4);
+        ++candidate_list_source_loaded_;
+      }
+    }
+    return;
+  }
+  if (task.purpose == TaskPurpose::kCandidateListRead) {
+    if (task.candidate_index >= candidate_list_words_.size()) {
+      throw std::logic_error("candidate list response slot overflow");
+    }
+    candidate_list_words_[task.candidate_index] = response.read_data;
+    ++candidate_list_read_responses_;
+    return;
+  }
+  throw std::logic_error("unexpected candidate-10 read response");
 }
 
 void SpineL0Maintenance::enqueue_dirty_generation_prepare() {
@@ -2772,6 +3542,12 @@ void SpineL0Maintenance::consume_dirty_memory_response(
       dirty_hash_xor_ = value;
       counters_.dirty_hash_xor = dirty_hash_xor_;
       break;
+    case 8:
+      candidate_dirty_candidate_valid_ = value != 0;
+      break;
+    case 13:
+      candidate_dirty_host_valid_ = value != 0;
+      break;
     default:
       throw std::logic_error("unknown Spine dirty metadata field");
     }
@@ -2861,6 +3637,20 @@ void SpineL0Maintenance::consume_dirty_memory_response(
     dirty_hash_xor_ ^= spine_dirty_hash_xor_term(task.source);
     finish_dirty_source_update();
     return;
+  case TaskPurpose::kCandidateFamilyTagWrite:
+  case TaskPurpose::kCandidateSourceRecordWrite:
+  case TaskPurpose::kCandidateBucketWrite:
+  case TaskPurpose::kCandidatePublicationSourceRead:
+  case TaskPurpose::kCandidateDirectoryRead:
+  case TaskPurpose::kCandidateDirectoryWrite:
+  case TaskPurpose::kCandidateBitmapRead:
+  case TaskPurpose::kCandidateBitmapWrite:
+  case TaskPurpose::kCandidateScratchWrite:
+  case TaskPurpose::kCandidateListSourceRead:
+  case TaskPurpose::kCandidateListRead:
+  case TaskPurpose::kCandidateListWrite:
+    throw std::logic_error(
+        "candidate response reached the serial dirty response handler");
   case TaskPurpose::kTargetMetadataOccupied:
   case TaskPurpose::kTargetMetadataEdgeCount:
     throw std::logic_error(
@@ -3523,15 +4313,29 @@ void SpineL0Maintenance::enqueue_carry_stream_refill(
     if (!stream.buffered.empty()) {
       return;
     }
-    if (stream.next_index >= workload_.edges.size()) {
+    const std::size_t logical_family =
+        task.hot ? config_.partitions + task.family : task.family;
+    const bool candidate =
+        config_.maintenance_architecture ==
+        SpineMaintenanceArchitecture::kCandidate10OnePass;
+    const std::size_t new_batch_edges =
+        candidate ? candidate_family_buckets_[logical_family].size()
+                  : workload_.edges.size();
+    if (stream.next_index >= new_batch_edges) {
       stream.exhausted = true;
       return;
     }
     const std::size_t edge_index = stream.next_index++;
     stream.request_pending = true;
+    const std::uint64_t base =
+        candidate
+            ? config_.persistent_family_bucket_base +
+                  static_cast<std::uint64_t>(
+                      candidate_family_begin_[logical_family]) *
+                      kSpineSortWordBytes
+            : config_.sorted_edges_base;
     enqueue_task(*ports_.sorted_edges, MemoryOperation::kRead,
-                 config_.sorted_edges_base +
-                     edge_index * kSpineSortWordBytes,
+                 base + edge_index * kSpineSortWordBytes,
                  kSpineSortWordBytes, TaskClass::kSorted, {}, {}, false,
                  TaskPurpose::kCarryNewBatchRead, 0, stream_index, edge_index);
     return;
@@ -3610,7 +4414,10 @@ void SpineL0Maintenance::consume_carry_memory_response(
     ++counters_.carry_new_batch_reads;
     counters_.carry_new_batch_read_bytes += response.read_data.size();
     counters_.sorted_payload_read_bytes += response.read_data.size();
-    if (metadata_hot_enabled_) {
+    if (config_.maintenance_architecture ==
+        SpineMaintenanceArchitecture::kCandidate10OnePass) {
+      stream.buffered.push_back(edge);
+    } else if (metadata_hot_enabled_) {
       enqueue_carry_hot_bitmap_read(task.carry_stream, edge);
     } else {
       const std::size_t family = family_for(edge.dst);
@@ -3925,7 +4732,10 @@ void SpineL0Maintenance::advance(const CycleContext &context) {
     return;
   case Phase::kDirtyPreflightProcess:
     if (process_scan_edge(context)) {
-      phase_ = Phase::kDirtyGenerationPrepare;
+      phase_ = config_.maintenance_architecture ==
+                       SpineMaintenanceArchitecture::kCandidate10OnePass
+                   ? Phase::kCandidateClassifyBegin
+                   : Phase::kDirtyGenerationPrepare;
     }
     return;
   case Phase::kDirtyGenerationPrepare:
@@ -3944,6 +4754,202 @@ void SpineL0Maintenance::advance(const CycleContext &context) {
     enqueue_dirty_final_metadata();
     phase_ = Phase::kHotColdCountBegin;
     return;
+  case Phase::kCandidateClassifyBegin:
+    candidate_family_tags_.assign(sorted_scan_edges_.size(), 0);
+    candidate_family_begin_ = {};
+    candidate_source_records_.clear();
+    candidate_classify_block_records_.clear();
+    candidate_block_begin_ = 0;
+    candidate_have_source_ = false;
+    candidate_current_source_mask_ = 0;
+    candidate_classified_tag_hash_ = 0;
+    begin_sorted_scan(Phase::kCandidateClassifyProcess,
+                      ScanKind::kCandidateClassify);
+    return;
+  case Phase::kCandidateClassifyProcess:
+    if (process_scan_edge(context)) {
+      if (candidate_source_records_.size() != counters_.unique_sources) {
+        begin_logical_overflow("candidate classify source count mismatch",
+                               SpineDirtyStatus::kInvalidState);
+        return;
+      }
+      candidate_prefix_cycles_remaining_ = kSpineFamilyCount;
+      phase_ = Phase::kCandidatePrefix;
+    }
+    return;
+  case Phase::kCandidateClassifyReduce:
+    if (candidate_reduce_cycles_remaining_ == 0) {
+      throw std::logic_error("candidate reduce phase has no work");
+    }
+    --candidate_reduce_cycles_remaining_;
+    ++counters_.candidate_reduce_edge_visits;
+    if (candidate_reduce_cycles_remaining_ == 0) {
+      candidate_finish_classify_block();
+      phase_ = Phase::kCandidateClassifyFlush;
+    }
+    return;
+  case Phase::kCandidateClassifyFlush:
+    candidate_classify_flush_pending_ = false;
+    phase_ = Phase::kCandidateClassifyProcess;
+    return;
+  case Phase::kCandidatePrefix:
+    if (candidate_prefix_cycles_remaining_ == 0) {
+      throw std::logic_error("candidate prefix phase has no work");
+    }
+    --candidate_prefix_cycles_remaining_;
+    ++counters_.candidate_prefix_iterations;
+    if (candidate_prefix_cycles_remaining_ == 0) {
+      std::uint32_t running = 0;
+      for (std::size_t family = 0; family < kSpineFamilyCount; ++family) {
+        const std::uint32_t count = candidate_family_begin_[family + 1];
+        candidate_family_begin_[family] = running;
+        running += count;
+      }
+      candidate_family_begin_[kSpineFamilyCount] = running;
+      candidate_family_cursor_ = {};
+      for (std::size_t family = 0; family < kSpineFamilyCount; ++family) {
+        candidate_family_cursor_[family] = candidate_family_begin_[family];
+      }
+      phase_ = Phase::kCandidateDispatchBegin;
+    }
+    return;
+  case Phase::kCandidateDispatchBegin:
+    for (auto &bucket : candidate_family_buckets_) {
+      bucket.clear();
+    }
+    counters_.dispatch_status = 0;
+    counters_.dispatch_input_reads = 0;
+    counters_.dispatch_bucket_writes = 0;
+    counters_.dispatch_cursor_mismatches = 0;
+    counters_.dispatch_hash_sum = 0;
+    counters_.dispatch_hash_xor = 0;
+    candidate_dispatched_tag_hash_ = 0;
+    begin_sorted_scan(Phase::kCandidateDispatchProcess,
+                      ScanKind::kCandidateDispatch);
+    return;
+  case Phase::kCandidateDispatchProcess:
+    if (process_scan_edge(context)) {
+      phase_ = Phase::kCandidateDispatchValidate;
+    }
+    return;
+  case Phase::kCandidateDispatchValidate: {
+    for (std::size_t family = 0; family < kSpineFamilyCount; ++family) {
+      if (candidate_family_cursor_[family] !=
+          candidate_family_begin_[family + 1]) {
+        counters_.dispatch_status = 3;
+        ++counters_.dispatch_cursor_mismatches;
+      }
+    }
+    if (counters_.dispatch_input_reads != sorted_scan_edges_.size() ||
+        counters_.dispatch_bucket_writes != sorted_scan_edges_.size() ||
+        candidate_dispatched_tag_hash_ != candidate_classified_tag_hash_) {
+      counters_.dispatch_status = 3;
+      ++counters_.dispatch_cursor_mismatches;
+    }
+    if (counters_.dispatch_status != 0) {
+      begin_logical_overflow("candidate family dispatch validation failed",
+                             SpineDirtyStatus::kInvalidState);
+      return;
+    }
+    counters_.publication_fallback =
+        static_cast<std::uint64_t>(dirty_count_) +
+            candidate_source_records_.size() >
+        config_.max_vertices;
+    candidate_publication_empty_proven_ =
+        dirty_count_ == 0 && dirty_hash_sum_ == 0 && dirty_hash_xor_ == 0 &&
+        !candidate_dirty_candidate_valid_ && !candidate_dirty_host_valid_;
+    counters_.publication_empty_frontier_fast_path =
+        candidate_publication_empty_proven_;
+    candidate_new_dirty_sources_.clear();
+    candidate_probe_new_count_ = 0;
+    phase_ = Phase::kCandidatePublicationBegin;
+    return;
+  }
+  case Phase::kCandidatePublicationBegin:
+    if (candidate_source_records_.empty()) {
+      phase_ = Phase::kCandidateListBegin;
+      return;
+    }
+    candidate_publication_kind_ = CandidatePublicationKind::kDirectory;
+    candidate_begin_publication_pass();
+    return;
+  case Phase::kCandidatePublicationLoad:
+    if (candidate_publication_responses_ != candidate_publication_loaded_) {
+      throw std::logic_error("candidate source-record window did not close");
+    }
+    candidate_build_publication_groups();
+    phase_ = Phase::kCandidatePublicationRead;
+    return;
+  case Phase::kCandidatePublicationRead: {
+    const bool skipped =
+        candidate_publication_kind_ == CandidatePublicationKind::kBitmap &&
+        candidate_publication_empty_proven_;
+    if (!skipped && candidate_publication_responses_ !=
+                        candidate_publication_words_.size()) {
+      throw std::logic_error("candidate publication read window did not close");
+    }
+    candidate_write_publication_groups();
+    phase_ = Phase::kCandidatePublicationWrite;
+    return;
+  }
+  case Phase::kCandidatePublicationWrite:
+    phase_ = Phase::kCandidatePublicationAdvance;
+    return;
+  case Phase::kCandidatePublicationAdvance:
+    candidate_advance_publication_pass();
+    return;
+  case Phase::kCandidateListBegin: {
+    if (!candidate_publication_empty_proven_) {
+      const SpineMetadataLayout metadata = spine_metadata_layout(config_);
+      for (std::size_t base = 0; base < candidate_new_dirty_sources_.size();
+           base += 2) {
+        std::uint64_t packed = candidate_new_dirty_sources_[base];
+        if (base + 1 < candidate_new_dirty_sources_.size()) {
+          packed |= static_cast<std::uint64_t>(
+                        candidate_new_dirty_sources_[base + 1])
+                    << 32;
+        }
+        enqueue_task(
+            *ports_.metadata, MemoryOperation::kWrite,
+            config_.metadata_base +
+                (metadata.new_dirty_base + base / 2) * kMetadataWordBytes,
+            kMetadataWordBytes, TaskClass::kMetadata,
+            encode_u64_words({packed}), {}, false,
+            TaskPurpose::kCandidateScratchWrite, 0, 0, 0, 0, 0, base / 2);
+        ++counters_.publication_scratch_word_writes;
+      }
+    }
+    phase_ = Phase::kCandidateListSourceLoad;
+    return;
+  }
+  case Phase::kCandidateListSourceLoad:
+    candidate_begin_list_source_load();
+    phase_ = Phase::kCandidateListRead;
+    return;
+  case Phase::kCandidateListRead:
+    if (candidate_list_source_loaded_ != candidate_list_sources_.size() ||
+        candidate_list_sources_ != candidate_new_dirty_sources_) {
+      throw std::logic_error("candidate list source payload mismatch");
+    }
+    candidate_build_list_words();
+    phase_ = Phase::kCandidateListWrite;
+    return;
+  case Phase::kCandidateListWrite:
+    candidate_write_list_words();
+    phase_ = Phase::kCandidateFinalize;
+    return;
+  case Phase::kCandidateFinalize: {
+    for (const std::uint32_t source : candidate_list_sources_) {
+      dirty_hash_sum_ += spine_dirty_hash_sum_term(source);
+      dirty_hash_xor_ ^= spine_dirty_hash_xor_term(source);
+    }
+    dirty_count_ += static_cast<std::uint32_t>(candidate_list_sources_.size());
+    enqueue_dirty_generation_prepare();
+    enqueue_dirty_final_metadata();
+    counters_.publication_complete = true;
+    phase_ = Phase::kTargetSelect;
+    return;
+  }
   case Phase::kHotColdCountBegin:
     begin_sorted_scan(Phase::kHotColdCountProcess, ScanKind::kHotColdCount);
     return;
@@ -4030,11 +5036,15 @@ void SpineL0Maintenance::advance(const CycleContext &context) {
       phase_ = Phase::kWriteAdvance;
     } else if (scan_index_ != before) {
       const SpineEdgeRecord &edge = sorted_scan_edges_[before];
-      const bool hot = edge_is_hot(edge.dst);
-      const std::size_t family =
-          hot ? spine_hot_shard(edge.dst) : family_for(edge.dst);
-      if (hot == task.hot && family == task.family) {
+      if (scan_kind_ == ScanKind::kCandidateBucketWrite) {
         accumulate_level_writer(edge);
+      } else {
+        const bool hot = edge_is_hot(edge.dst);
+        const std::size_t family =
+            hot ? spine_hot_shard(edge.dst) : family_for(edge.dst);
+        if (hot == task.hot && family == task.family) {
+          accumulate_level_writer(edge);
+        }
       }
     }
     return;

@@ -1297,6 +1297,11 @@ def parse_args() -> argparse.Namespace:
         choices=("hls_split_9c08763", "legacy_uniform64"),
         default="hls_split_9c08763",
     )
+    parser.add_argument(
+        "--maintenance-architecture",
+        choices=("shared_engine_serial", "candidate10_one_pass"),
+        help="override the maintenance architecture selected by the profile",
+    )
     parser.add_argument("--no-build", action="store_true")
     parser.add_argument(
         "--instantiate-all-hbm-channels",
@@ -1313,6 +1318,16 @@ def main() -> int:
     profile = json.loads(profile_bytes)
     if profile.get("architecture") != "spine":
         raise SystemExit("profile must describe the Spine architecture")
+    profile_maintenance_architecture = profile.get("parameters", {}).get(
+        "maintenance_architecture", "shared_engine_serial"
+    )
+    if profile_maintenance_architecture not in {
+        "shared_engine_serial",
+        "candidate10_one_pass",
+    }:
+        raise SystemExit("profile has an unknown maintenance_architecture")
+    if args.maintenance_architecture is None:
+        args.maintenance_architecture = profile_maintenance_architecture
     try:
         data_clock = next(
             clock for clock in profile["clocks"] if clock["name"] == "data"
@@ -1571,6 +1586,9 @@ def main() -> int:
                 args.maintenance_scan_response_capacity
             ),
             "SPINE_SST_AXI_PROFILE": args.axi_profile,
+            "SPINE_SST_MAINTENANCE_ARCHITECTURE": (
+                args.maintenance_architecture
+            ),
         }
     )
     command = [
@@ -1680,6 +1698,11 @@ def main() -> int:
             problems.append("core_mhz")
     if result.get("spine_axi_profile") != args.axi_profile:
         problems.append("axi_profile")
+    if (
+        result.get("spine_maintenance_architecture")
+        != args.maintenance_architecture
+    ):
+        problems.append("maintenance_architecture")
     if (
         result.get("compute_memory_request_window")
         != args.compute_memory_request_window

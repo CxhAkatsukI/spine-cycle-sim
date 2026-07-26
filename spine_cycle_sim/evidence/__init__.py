@@ -30,6 +30,15 @@ from .matched_energy import (
     grasu_selected_array_energy,
     load_current_grasu_characterizations,
 )
+from .candidate10 import (
+    Candidate10EvidenceError,
+    import_candidate10_evidence,
+    load_correctness_cases,
+    load_focused_cases,
+    load_focused_trials,
+    parse_metric_line,
+    verify_sha256_manifest,
+)
 
 __all__ = [
     "FpgaEvidenceError",
@@ -56,4 +65,11 @@ __all__ = [
     "flatten_system_rows",
     "grasu_selected_array_energy",
     "load_current_grasu_characterizations",
+    "Candidate10EvidenceError",
+    "import_candidate10_evidence",
+    "load_correctness_cases",
+    "load_focused_cases",
+    "load_focused_trials",
+    "parse_metric_line",
+    "verify_sha256_manifest",
 ]

@@ -50,9 +50,37 @@ class ArchitectureProfileTests(unittest.TestCase):
 
     def test_repository_profiles_load_and_have_unique_ids(self) -> None:
         loaded = [load_architecture_profile(path) for path in sorted(PROFILES.glob("*.json"))]
-        self.assertEqual(len(loaded), 14)
+        self.assertEqual(len(loaded), 15)
         self.assertEqual(len({profile.profile_id for profile in loaded}), len(loaded))
         self.assertTrue(all(profile.manifest_sha256 for profile in loaded))
+
+    def test_candidate10_profile_pins_frozen_dirty_source_and_routed_xclbin(
+        self,
+    ) -> None:
+        profile = load_architecture_profile(
+            PROFILES / "spine_candidate10_one_pass_1e61fc0.json"
+        )
+        self.assertEqual(profile.status, ProfileStatus.STABLE)
+        self.assertEqual(profile.evidence_tier, EvidenceTier.HARDWARE_VALIDATED)
+        self.assertTrue(profile.source.dirty)
+        self.assertEqual(
+            profile.parameters["maintenance_architecture"],
+            "candidate10_one_pass",
+        )
+        self.assertEqual(profile.parameters["metadata_format_version"], 5)
+        self.assertEqual(profile.parameters["result_layout_version"], 6)
+        self.assertEqual(profile.parameters["classification_block_edges"], 128)
+        self.assertEqual(profile.clock("data").achieved_mhz, 150.0)
+        evidence = {artifact.kind: artifact for artifact in profile.evidence}
+        self.assertEqual(
+            evidence["frozen_hls_source"].sha256,
+            "d98fb04cb59c3b00b894ba4d615d7dd1a6250f46fe1d998a951bb0a0843c7dbc",
+        )
+        self.assertEqual(
+            evidence["routed_xclbin"].sha256,
+            "551ed1e89755a8b97725efa4003e28007eabd66abb73f480c6ee087a627b9666",
+        )
+        self.assertEqual(verify_profile_artifacts(profile), [])
 
     def test_stable_profile_pins_accepted_clocks_and_hash(self) -> None:
         profile = load_architecture_profile(PROFILES / "spine_shared_engine_9c08763.json")

@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "profile_id": "spine_candidate10_one_pass_1e61fc0",
+  "architecture": "spine",
+  "status": "stable",
+  "evidence_tier": "hardware_validated",
+  "source": {
+    "repository": "/data/feiyang/spine-dynamic-graph",
+    "revision": "1e61fc0822608f8776399cc10a851f6fe5806f92",
+    "branch": "reduce-levels-for-routing",
+    "dirty": true
+  },
+  "clocks": [
+    {"name": "data", "requested_mhz": 150.0, "achieved_mhz": 150.0},
+    {"name": "hbm", "requested_mhz": 450.0, "achieved_mhz": 450.0},
+    {"name": "kernel", "requested_mhz": 500.0, "achieved_mhz": 500.0}
+  ],
+  "memory": {
+    "backend": "u55c_hbm",
+    "channels": 32,
+    "channel_capacity_bytes": 536870912,
+    "data_width_bits": 512,
+    "max_burst_bytes": 1024,
+    "max_outstanding_per_port": 32
+  },
+  "parameters": {
+    "comparison_role": "native",
+    "maintenance_architecture": "candidate10_one_pass",
+    "partitions": 16,
+    "hot_shards": 16,
+    "families": 32,
+    "levels": 11,
+    "level_ratio": 2,
+    "vertex_partition_size": 1048576,
+    "tile_vertices": 65536,
+    "tiny_active_threshold": 4096,
+    "split_compute_width": 4,
+    "graph_hbm_channels": 16,
+    "hbm_pseudo_channels_used": 23,
+    "sorted_edges_hbm_channel": 16,
+    "vertex_state_hbm_channel": 17,
+    "active_bins_hbm_channel": 18,
+    "active_out_hbm_channel": 19,
+    "metadata_hbm_channel": 20,
+    "result_hbm_channel": 21,
+    "active_bitmap_hbm_channel": 22,
+    "metadata_format_version": 5,
+    "result_layout_version": 6,
+    "classification_block_edges": 128,
+    "publication_distinct_word_window": 16,
+    "hbm16_input_base_bytes": 0,
+    "hbm16_dirty_bitmap_base_bytes": 2097152,
+    "hbm16_dirty_list_base_bytes": 4194304,
+    "hbm16_family_directory_base_bytes": 71303168,
+    "hbm16_dispatch_bucket_base_bytes": 138412032,
+    "hbm16_total_bytes": 140509184,
+    "routed_kernel_lut": 127910,
+    "routed_kernel_lut_as_memory": 12030,
+    "routed_kernel_register": 149746,
+    "routed_kernel_bram": 99,
+    "routed_kernel_uram": 99,
+    "routed_kernel_dsp": 22
+  },
+  "features": [
+    "one_pass_blocked_classify_reduce",
+    "hbm16_family_tag_and_source_record_flush",
+    "hbm16_family_bucket_dispatch",
+    "grouped_dirty_frontier_publication",
+    "family_directory_skip",
+    "stream_sparse_carry_cursors",
+    "split_readmaintenance_compute",
+    "persistent_frontier",
+    "tiny_active_convergence",
+    "full_tile_load_replay_store",
+    "host_relaunched_frontier_rounds"
+  ],
+  "evidence": [
+    {
+      "kind": "frozen_hls_source",
+      "path": "/data/feiyang/spine-dynamic-graph-builds/pipeline_dirty_frontier_publication_1e61fc0_20260725/production/hw_v5_candidate10_150/source/spine_partitioned.hpp",
+      "sha256": "d98fb04cb59c3b00b894ba4d615d7dd1a6250f46fe1d998a951bb0a0843c7dbc"
+    },
+    {
+      "kind": "routed_xclbin",
+      "path": "/data/feiyang/spine-dynamic-graph-builds/pipeline_dirty_frontier_publication_1e61fc0_20260725/production/hw_v5_candidate10_150/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+      "sha256": "551ed1e89755a8b97725efa4003e28007eabd66abb73f480c6ee087a627b9666"
+    },
+    {
+      "kind": "xclbin_info",
+      "path": "/data/feiyang/spine-dynamic-graph-builds/pipeline_dirty_frontier_publication_1e61fc0_20260725/production/hw_v5_candidate10_150/xclbin/spine_partitioned_split_e2e.hw.xclbin.info",
+      "sha256": "2a942ca794d3a7a2a72128cab4cc7e0415373c4c66b50fcfd1020799eb77afc0"
+    },
+    {
+      "kind": "routed_kernel_utilization",
+      "path": "/data/feiyang/spine-dynamic-graph-builds/pipeline_dirty_frontier_publication_1e61fc0_20260725/production/hw_v5_candidate10_150/reports/link/link/imp/impl_1_kernel_util_routed.rpt",
+      "sha256": "17da3d5b72a8f94a8a675228bd97c34f92a7536a5f8ab6f9337abbadf70247b7"
+    },
+    {
+      "kind": "routed_timing",
+      "path": "/data/feiyang/spine-dynamic-graph-builds/pipeline_dirty_frontier_publication_1e61fc0_20260725/production/hw_v5_candidate10_150/reports/link/link/imp/impl_1_hw_bb_locked_timing_summary_routed.rpt",
+      "sha256": "2f9c5742edafb2419ce0a66bd729abc2873d554cdbf50b233cd87df4c5e367c1"
+    },
+    {
+      "kind": "direct_hardware_evidence_manifest",
+      "path": "/data/feiyang/spine-dynamic-graph-builds/pipeline_dirty_frontier_publication_1e61fc0_20260725/production/direct_hw_v5_candidate10_150/SHA256SUMS",
+      "sha256": "4b39a09c4096538d5b7d1a35e5a85f8ba9d982f73ed3248abe643bc7c5ef5025"
+    }
+  ],
+  "limitations": [
+    "The routed candidate was built from a frozen dirty source snapshot; the frozen HLS source hash, not the Git revision alone, is authoritative.",
+    "Hardware evidence validates correctness, routing, resources, clocks, and selected timing cases; the new execution-driven simulator path is structural until holdout calibration is reported.",
+    "The compute XO is inherited from the earlier accepted split-compute build while the read-maintenance XO implements candidate-10."
+  ]
+}

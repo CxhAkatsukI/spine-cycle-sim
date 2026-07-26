@@ -96,6 +96,7 @@ using spine::sim::SpineL0Maintenance;
 using spine::sim::SpineL0Ports;
 using spine::sim::SpineL0State;
 using spine::sim::SpineMaintenanceResult;
+using spine::sim::SpineMaintenanceArchitecture;
 using spine::sim::SpineLevelLayout;
 using spine::sim::SpineMetadataLayout;
 using spine::sim::SpineOnChipMemoryProfile;
@@ -159,9 +160,15 @@ struct MaintenanceOnlyRun {
   SpineMaintenanceResult result;
   std::vector<std::uint8_t> graph0_word7;
   std::vector<std::uint8_t> slice_epoch_word0;
+  std::vector<std::uint8_t> family_directory_word0;
+  std::vector<std::uint8_t> dirty_bitmap_word0;
+  std::vector<std::uint8_t> dirty_list_word0;
+  std::vector<std::uint8_t> family_bucket_payload;
   bool failed{};
   std::string failure;
 };
+
+std::vector<std::uint8_t> u32_payload(std::uint32_t value);
 
 MaintenanceOnlyRun run_maintenance_only(
     SpineL0Config config, SpineL0State state, SpineEdgeSlice workload,
@@ -194,7 +201,18 @@ MaintenanceOnlyRun run_maintenance_only(
   FixedAxiPort sorted(
       "maintenance-only-sorted", core,
       FixedAxiPortConfig{
-          .memory_channels = 32, .channel = 16, .initiator_id = 816},
+          .memory_channels = 32,
+          .channel = 16,
+          .initiator_id = 816,
+          .data_width_bytes =
+              config.maintenance_architecture ==
+                      SpineMaintenanceArchitecture::kCandidate10OnePass
+                  ? 16U
+                  : 64U,
+          .stream_read_beats =
+              config.maintenance_architecture ==
+              SpineMaintenanceArchitecture::kCandidate10OnePass,
+      },
       backend);
   FixedAxiPort metadata(
       "maintenance-only-metadata", core,
@@ -245,9 +263,154 @@ MaintenanceOnlyRun run_maintenance_only(
               spine_metadata_layout(config).slice_epoch_base *
                   spine::sim::kSpineMetadataWordBytes,
           spine::sim::kSpineMetadataWordBytes),
+      .family_directory_word0 = backend.inspect_payload(
+          16, config.persistent_family_directory_base,
+          spine::sim::kSpineSortWordBytes),
+      .dirty_bitmap_word0 = backend.inspect_payload(
+          16, config.persistent_dirty_bitmap_base,
+          spine::sim::kSpineSortWordBytes),
+      .dirty_list_word0 = backend.inspect_payload(
+          16, config.persistent_dirty_list_base,
+          spine::sim::kSpineSortWordBytes),
+      .family_bucket_payload =
+          config.maintenance_architecture ==
+                  SpineMaintenanceArchitecture::kCandidate10OnePass
+              ? backend.inspect_payload(
+                    16, config.persistent_family_bucket_base,
+                    maintenance.counters().dispatch_bucket_writes *
+                        spine::sim::kSpineSortWordBytes)
+              : std::vector<std::uint8_t>{},
       .failed = maintenance.failed(),
       .failure = maintenance.failure(),
   };
+}
+
+void test_spine_candidate10_one_pass_publication_payloads() {
+  SpineL0Config config;
+  config.maintenance_architecture =
+      SpineMaintenanceArchitecture::kCandidate10OnePass;
+  config.hot_vertices = {3};
+  SpineEdgeSlice workload{
+      .vertices = (2U << 20) + 16,
+      .edges = {
+          SpineEdgeRecord{.src = 0, .dst = 1, .weight = 7, .diff = 1},
+          SpineEdgeRecord{.src = 0,
+                          .dst = (1U << 20) + 1,
+                          .weight = 6,
+                          .diff = 1},
+          SpineEdgeRecord{.src = 1, .dst = 2, .weight = 5, .diff = 1},
+          SpineEdgeRecord{.src = 4, .dst = 3, .weight = 4, .diff = 1},
+          SpineEdgeRecord{.src = 130, .dst = 4, .weight = 3, .diff = 1},
+          SpineEdgeRecord{.src = 130,
+                          .dst = (2U << 20) + 5,
+                          .weight = 2,
+                          .diff = 1},
+      },
+      .case_name = "candidate10_one_pass_empty_frontier",
+  };
+  const std::vector<SpineEdgeRecord> input = workload.edges;
+  const MaintenanceOnlyRun run =
+      run_maintenance_only(config, SpineL0State{}, std::move(workload));
+  require(!run.failed, "candidate-10 maintenance failed: " + run.failure);
+
+  const SpineL0Counters &counters = run.counters;
+  require(counters.candidate_classify_edge_visits == input.size() &&
+              counters.candidate_reduce_edge_visits == input.size() &&
+              counters.candidate_classify_blocks == 1 &&
+              counters.candidate_family_tag_word_writes == 1 &&
+              counters.candidate_source_record_word_writes == 4 &&
+              counters.candidate_prefix_iterations == 32,
+          "candidate-10 classify/reduce/prefix ledger mismatch");
+  require(counters.dispatch_status == 0 &&
+              counters.dispatch_input_reads == input.size() &&
+              counters.dispatch_bucket_writes == input.size() &&
+              counters.dispatch_cursor_mismatches == 0,
+          "candidate-10 dispatch ledger mismatch");
+  require(counters.family_directory_word_reads == 3 &&
+              counters.family_directory_word_writes == 3 &&
+              counters.family_directory_bits_set == 6 &&
+              counters.dirty_bitmap_reads == 0 &&
+              counters.dirty_bitmap_writes == 2 &&
+              counters.publication_list_word_reads == 0 &&
+              counters.publication_list_word_writes == 1 &&
+              counters.publication_scratch_word_reads == 0 &&
+              counters.publication_scratch_word_writes == 0 &&
+              counters.publication_empty_frontier_fast_path &&
+              counters.publication_complete && counters.dirty_count == 4,
+          "candidate-10 grouped publication ledger mismatch");
+  require(counters.sorted_scan_passes == 7 &&
+              counters.sorted_edge_visits == 4 * input.size() &&
+              counters.persisted_edges == input.size(),
+          "candidate-10 scan/bucket writer closure mismatch");
+
+  std::vector<std::uint8_t> expected_directory(16, 0);
+  expected_directory[0] = 3;
+  expected_directory[4] = 1;
+  require(run.family_directory_word0 == expected_directory,
+          "candidate-10 directory payload did not preserve packed masks");
+  std::vector<std::uint8_t> expected_bitmap(16, 0);
+  expected_bitmap[0] = 0x13;
+  require(run.dirty_bitmap_word0 == expected_bitmap,
+          "candidate-10 bitmap payload did not publish source bits");
+  std::vector<std::uint8_t> expected_list;
+  for (const std::uint32_t source : {0U, 1U, 4U, 130U}) {
+    const std::vector<std::uint8_t> packed = u32_payload(source);
+    expected_list.insert(expected_list.end(), packed.begin(), packed.end());
+  }
+  require(run.dirty_list_word0 == expected_list,
+          "candidate-10 dirty-list payload is not source ordered");
+
+  std::vector<SpineEdgeRecord> expected_bucket;
+  for (std::size_t family = 0; family < spine::sim::kSpineFamilyCount;
+       ++family) {
+    for (const SpineEdgeRecord &edge : input) {
+      const bool hot = edge.dst == 3;
+      const std::size_t owner =
+          hot ? config.partitions + spine_hot_shard(edge.dst)
+              : std::min<std::size_t>(
+                    edge.dst / config.vertex_partition_size,
+                    config.partitions - 1);
+      if (owner == family) {
+        expected_bucket.push_back(edge);
+      }
+    }
+  }
+  std::vector<SpineEdgeRecord> actual_bucket;
+  for (std::size_t offset = 0; offset < run.family_bucket_payload.size();
+       offset += spine::sim::kSpineSortWordBytes) {
+    actual_bucket.push_back(decode_spine_sort_edge(
+        std::vector<std::uint8_t>(
+            run.family_bucket_payload.begin() +
+                static_cast<std::ptrdiff_t>(offset),
+            run.family_bucket_payload.begin() +
+                static_cast<std::ptrdiff_t>(offset +
+                                            spine::sim::kSpineSortWordBytes))));
+  }
+  require(actual_bucket == expected_bucket,
+          "candidate-10 family bucket bypassed returned HBM payload");
+
+  const std::uint32_t publication_flags = std::bit_cast<std::uint32_t>(
+      run.result.words[SpineMaintenanceResult::kDirtyGenerationAdvances]);
+  const std::uint32_t list_flags = std::bit_cast<std::uint32_t>(
+      run.result.words[SpineMaintenanceResult::kDirtyAux]);
+  require(run.result[SpineMaintenanceResult::kLayoutVersion] == 6 &&
+              run.result[SpineMaintenanceResult::kMetadataFormatVersion] == 5 &&
+              run.result[SpineMaintenanceResult::kDispatchInputReads] == 6 &&
+              run.result[SpineMaintenanceResult::kDispatchBucketWrites] == 6 &&
+              run.result[SpineMaintenanceResult::kFamilyDirectoryWordReads] ==
+                  3 &&
+              run.result[SpineMaintenanceResult::kFamilyDirectoryBitsSet] == 6 &&
+              publication_flags == ((1U << 19) | 1U) &&
+              list_flags == ((1U << 18) | 1U),
+          "candidate-10 result ABI does not match frozen layout v6");
+  std::cout << "EVIDENCE spine_candidate10 scans="
+            << counters.sorted_scan_passes
+            << " dispatch=" << counters.dispatch_bucket_writes
+            << " directory_words=" << counters.family_directory_word_reads
+            << " bitmap_reads=" << counters.dirty_bitmap_reads
+            << " bitmap_writes=" << counters.dirty_bitmap_writes
+            << " list_writes=" << counters.publication_list_word_writes
+            << " cycles=" << counters.end_cycle - counters.start_cycle << '\n';
 }
 
 std::vector<std::uint8_t> u64_payload(std::uint64_t value) {
@@ -265,6 +428,245 @@ std::vector<std::uint8_t> u32_payload(std::uint32_t value) {
         static_cast<std::uint8_t>((value >> (byte * 8)) & 0xffU);
   }
   return data;
+}
+
+void test_spine_candidate10_repeated_frontier_uses_grouped_payload_reads() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("data", 141.0);
+  MockMemoryBackend backend("candidate-repeat-hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 3,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  SpineL0Config config;
+  config.maintenance_architecture =
+      SpineMaintenanceArchitecture::kCandidate10OnePass;
+  std::array<std::unique_ptr<FixedAxiPort>, 16> graph_ports;
+  SpineL0Ports ports;
+  for (std::size_t family = 0; family < graph_ports.size(); ++family) {
+    graph_ports[family] = std::make_unique<FixedAxiPort>(
+        "candidate-repeat-graph" + std::to_string(family), core,
+        FixedAxiPortConfig{
+            .memory_channels = 32,
+            .channel = family,
+            .initiator_id = static_cast<std::uint32_t>(900 + family),
+        },
+        backend);
+    ports.graph[family] = graph_ports[family].get();
+  }
+  FixedAxiPort sorted(
+      "candidate-repeat-sorted", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32,
+          .channel = 16,
+          .initiator_id = 916,
+          .data_width_bytes = 16,
+          .stream_read_beats = true,
+      },
+      backend);
+  FixedAxiPort metadata(
+      "candidate-repeat-metadata", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32, .channel = 20, .initiator_id = 920},
+      backend);
+  FixedAxiPort result(
+      "candidate-repeat-result", core,
+      FixedAxiPortConfig{
+          .memory_channels = 32, .channel = 21, .initiator_id = 921},
+      backend);
+  ports.sorted_edges = &sorted;
+  ports.metadata = &metadata;
+  ports.result = &result;
+
+  SpineL0State state;
+  SpineL0Maintenance maintenance(
+      "candidate-repeat-maintenance", core, config,
+      SpineEdgeSlice{
+          .vertices = 512,
+          .edges = {
+              SpineEdgeRecord{.src = 0, .dst = 10, .weight = 1, .diff = 1},
+              SpineEdgeRecord{.src = 1, .dst = 11, .weight = 1, .diff = 1},
+              SpineEdgeRecord{.src = 4, .dst = 12, .weight = 1, .diff = 1},
+          },
+          .case_name = "candidate_repeat_seed",
+      },
+      ports, state);
+  scheduler.add_component(maintenance);
+  for (auto &port : graph_ports) {
+    port->register_components(scheduler);
+  }
+  sorted.register_components(scheduler);
+  metadata.register_components(scheduler);
+  result.register_components(scheduler);
+  scheduler.add_component(backend);
+  const auto drained = [&] {
+    return maintenance.done() && sorted.idle() && metadata.idle() &&
+           result.idle() &&
+           std::all_of(graph_ports.begin(), graph_ports.end(),
+                       [](const auto &port) { return port->idle(); });
+  };
+  scheduler.run_until(drained, 200'000);
+  require(!maintenance.failed() && maintenance.counters().dirty_count == 3,
+          "candidate seed publication failed");
+
+  maintenance.reset_batch(SpineEdgeSlice{
+      .vertices = 512,
+      .edges = {
+          SpineEdgeRecord{.src = 1, .dst = 13, .weight = 1, .diff = 1},
+          SpineEdgeRecord{.src = 2, .dst = 14, .weight = 1, .diff = 1},
+          SpineEdgeRecord{.src = 130, .dst = 15, .weight = 1, .diff = 1},
+      },
+      .case_name = "candidate_repeat_mixed",
+  });
+  scheduler.run_until(drained, 300'000);
+  require(!maintenance.failed(),
+          "candidate repeated publication failed: " + maintenance.failure());
+  const SpineL0Counters &counters = maintenance.counters();
+  require(!counters.publication_empty_frontier_fast_path &&
+              counters.family_directory_word_reads == 2 &&
+              counters.family_directory_word_writes == 2 &&
+              counters.family_directory_bits_set == 2 &&
+              counters.dirty_bitmap_reads == 2 &&
+              counters.dirty_bitmap_writes == 2 &&
+              counters.dirty_list_appends == 2 &&
+              counters.dirty_duplicates_suppressed == 1 &&
+              counters.publication_scratch_word_writes == 1 &&
+              counters.publication_scratch_word_reads == 1 &&
+              counters.publication_list_word_reads == 2 &&
+              counters.publication_list_word_writes == 2 &&
+              counters.dirty_count == 5 && counters.dirty_generation == 2 &&
+              counters.sorted_scan_passes == 3 &&
+              counters.carry_new_batch_reads == 3,
+          "candidate nonempty grouped publication/carry ledger mismatch");
+
+  std::vector<std::uint8_t> expected_first_word;
+  for (const std::uint32_t source : {0U, 1U, 4U, 2U}) {
+    const auto packed = u32_payload(source);
+    expected_first_word.insert(expected_first_word.end(), packed.begin(),
+                               packed.end());
+  }
+  require(backend.inspect_payload(16, config.persistent_dirty_list_base, 16) ==
+                  expected_first_word &&
+              backend.inspect_payload(16,
+                                      config.persistent_dirty_list_base + 16,
+                                      4) == u32_payload(130),
+          "candidate repeated list did not preserve and append packed words");
+  const SpineDirtyIdentity expected_identity = spine_dirty_identity(
+      2, std::vector<std::uint32_t>{0, 1, 2, 4, 130});
+  require(counters.dirty_hash_sum == expected_identity.hash_sum &&
+              counters.dirty_hash_xor == expected_identity.hash_xor,
+          "candidate repeated publication identity diverged from payload");
+
+  const SpineMaintenanceResult second = decode_spine_maintenance_result(
+      backend.inspect_payload(21, config.result_base,
+                              spine::sim::kSpineMaintenanceResultBytes));
+  const std::uint32_t publication_flags = std::bit_cast<std::uint32_t>(
+      second.words[SpineMaintenanceResult::kDirtyGenerationAdvances]);
+  const std::uint32_t list_flags = std::bit_cast<std::uint32_t>(
+      second.words[SpineMaintenanceResult::kDirtyAux]);
+  require(publication_flags == 3U &&
+              list_flags == ((1U << 18) | (2U << 16) | 2U),
+          "candidate nonempty publication flags mismatch");
+  std::cout << "EVIDENCE spine_candidate10_repeat bitmap_reads="
+            << counters.dirty_bitmap_reads
+            << " bitmap_writes=" << counters.dirty_bitmap_writes
+            << " scratch_words="
+            << counters.publication_scratch_word_writes
+            << " list_reads=" << counters.publication_list_word_reads
+            << " list_writes=" << counters.publication_list_word_writes
+            << " target=" << counters.target_level << '\n';
+}
+
+void test_spine_candidate10_block_and_publication_window_boundaries() {
+  SpineL0Config config;
+  config.maintenance_architecture =
+      SpineMaintenanceArchitecture::kCandidate10OnePass;
+  SpineEdgeSlice workload{
+      .vertices = 256,
+      .edges = {},
+      .case_name = "candidate10_130_unique_sources",
+  };
+  for (std::uint32_t source = 0; source < 130; ++source) {
+    workload.edges.push_back(
+        SpineEdgeRecord{.src = source,
+                        .dst = 0,
+                        .weight = static_cast<std::uint16_t>(source + 1),
+                        .diff = 1});
+  }
+  const MaintenanceOnlyRun run =
+      run_maintenance_only(config, SpineL0State{}, std::move(workload));
+  const SpineL0Counters &counters = run.counters;
+  require(!run.failed, "candidate boundary run failed: " + run.failure);
+  require(counters.candidate_classify_blocks == 2 &&
+              counters.candidate_classify_edge_visits == 130 &&
+              counters.candidate_reduce_edge_visits == 130 &&
+              counters.candidate_family_tag_word_writes == 17 &&
+              counters.candidate_source_record_word_writes == 130 &&
+              counters.publication_source_record_reads == 390,
+          "candidate 128-edge/source-prefetch boundaries do not close");
+  require(counters.family_directory_word_reads == 33 &&
+              counters.family_directory_word_writes == 33 &&
+              counters.family_directory_bits_set == 130 &&
+              counters.dirty_bitmap_reads == 0 &&
+              counters.dirty_bitmap_writes == 2 &&
+              counters.publication_list_word_reads == 1 &&
+              counters.publication_list_word_writes == 33 &&
+              counters.dirty_count == 130 && counters.sorted_scan_passes == 4 &&
+              counters.sorted_edge_visits == 520,
+          "candidate packed-word grouping crossed a boundary incorrectly");
+  for (std::size_t index = 0; index < 130; ++index) {
+    require(decode_spine_sort_edge(std::vector<std::uint8_t>(
+                run.family_bucket_payload.begin() +
+                    static_cast<std::ptrdiff_t>(
+                        index * spine::sim::kSpineSortWordBytes),
+                run.family_bucket_payload.begin() +
+                    static_cast<std::ptrdiff_t>(
+                        (index + 1) * spine::sim::kSpineSortWordBytes)))
+                    .src == index,
+            "candidate bucket lost source order across classify blocks");
+  }
+  std::cout << "EVIDENCE spine_candidate10_boundary blocks="
+            << counters.candidate_classify_blocks
+            << " source_records="
+            << counters.candidate_source_record_word_writes
+            << " directory_words=" << counters.family_directory_word_reads
+            << " bitmap_words=" << counters.dirty_bitmap_writes
+            << " list_words=" << counters.publication_list_word_writes
+            << " cycles=" << counters.end_cycle - counters.start_cycle << '\n';
+}
+
+void test_spine_candidate10_zero_edge_batch() {
+  SpineL0Config config;
+  config.maintenance_architecture =
+      SpineMaintenanceArchitecture::kCandidate10OnePass;
+  SpineEdgeSlice workload{
+      .vertices = 1,
+      .edges = {},
+      .case_name = "candidate10_zero_edge",
+  };
+  const MaintenanceOnlyRun run =
+      run_maintenance_only(config, SpineL0State{}, std::move(workload));
+  require(!run.failed, "candidate zero-edge run failed: " + run.failure);
+  require(run.result.words[SpineMaintenanceResult::kInputEdges] == 0 &&
+              run.result.words[SpineMaintenanceResult::kPersistedEdges] == 0,
+          "candidate zero-edge result counts mismatch");
+  require(run.result.words[SpineMaintenanceResult::kDispatchStatus] == 0 &&
+              run.result.words[SpineMaintenanceResult::kDispatchInputReads] == 0 &&
+              run.result.words[SpineMaintenanceResult::kDispatchBucketWrites] == 0,
+          "candidate zero-edge dispatch must be empty and successful");
+  require(run.counters.candidate_classify_blocks == 0 &&
+              run.counters.publication_source_record_reads == 0 &&
+              run.counters.family_directory_word_reads == 0 &&
+              run.counters.publication_complete,
+          "candidate zero-edge publication counters mismatch");
+  std::cout << "EVIDENCE spine_candidate10_zero_edge cycles="
+            << run.counters.end_cycle - run.counters.start_cycle
+            << " dispatch=" << run.counters.dispatch_input_reads
+            << " publication_complete=" << run.counters.publication_complete
+            << '\n';
 }
 
 std::vector<SourceValueWord> source_protocol_reply(std::uint32_t source,
@@ -6500,6 +6902,13 @@ int main(int argc, char **argv) {
       {"axi_multi_initiator", test_axi_multi_initiator_fixed_channel_isolation},
       {"axi_duplicate_initiator", test_axi_rejects_duplicate_initiator_id},
       {"spine_l0_real_slice", test_spine_l0_real_slice_vertical_path},
+      {"spine_candidate10_one_pass",
+       test_spine_candidate10_one_pass_publication_payloads},
+      {"spine_candidate10_repeated_frontier",
+       test_spine_candidate10_repeated_frontier_uses_grouped_payload_reads},
+      {"spine_candidate10_boundaries",
+       test_spine_candidate10_block_and_publication_window_boundaries},
+      {"spine_candidate10_zero_edge", test_spine_candidate10_zero_edge_batch},
       {"spine_dirty_persistent_state",
        test_spine_dirty_mark_preserves_persistent_state},
       {"spine_reusable_system",

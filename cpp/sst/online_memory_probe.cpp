@@ -262,6 +262,17 @@ SpineAxiInterfaceProfile spine_axi_profile_from_id(const std::string &id) {
   throw std::invalid_argument("unknown Spine AXI interface profile: " + id);
 }
 
+SpineMaintenanceArchitecture spine_maintenance_architecture_from_id(
+    const std::string &id) {
+  if (id == "shared_engine_serial") {
+    return SpineMaintenanceArchitecture::kSharedEngineSerial;
+  }
+  if (id == "candidate10_one_pass") {
+    return SpineMaintenanceArchitecture::kCandidate10OnePass;
+  }
+  throw std::invalid_argument("unknown Spine maintenance architecture: " + id);
+}
+
 using SsspAdjacency =
     std::vector<std::vector<std::pair<std::uint32_t, std::uint16_t>>>;
 
@@ -654,6 +665,60 @@ bool memory_traffic_closes(const MemoryTrafficStats &stats,
   return memory_locality_closes(stats.reads) &&
          memory_locality_closes(stats.writes) &&
          combine_memory_traffic(stats).requests == expected_requests;
+}
+
+void write_candidate_maintenance_counters(
+    std::ostream &output, const SpineL0Counters &counters) {
+  output
+      << "  \"maintenance_candidate_classify_edge_visits\": "
+      << counters.candidate_classify_edge_visits << ",\n"
+      << "  \"maintenance_candidate_reduce_edge_visits\": "
+      << counters.candidate_reduce_edge_visits << ",\n"
+      << "  \"maintenance_candidate_classify_blocks\": "
+      << counters.candidate_classify_blocks << ",\n"
+      << "  \"maintenance_candidate_family_tag_word_writes\": "
+      << counters.candidate_family_tag_word_writes << ",\n"
+      << "  \"maintenance_candidate_source_record_word_writes\": "
+      << counters.candidate_source_record_word_writes << ",\n"
+      << "  \"maintenance_candidate_prefix_iterations\": "
+      << counters.candidate_prefix_iterations << ",\n"
+      << "  \"maintenance_dispatch_input_reads\": "
+      << counters.dispatch_input_reads << ",\n"
+      << "  \"maintenance_dispatch_bucket_writes\": "
+      << counters.dispatch_bucket_writes << ",\n"
+      << "  \"maintenance_dispatch_cursor_mismatches\": "
+      << counters.dispatch_cursor_mismatches << ",\n"
+      << "  \"maintenance_dispatch_status\": " << counters.dispatch_status
+      << ",\n"
+      << "  \"maintenance_dispatch_hash_sum\": "
+      << counters.dispatch_hash_sum << ",\n"
+      << "  \"maintenance_dispatch_hash_xor\": "
+      << counters.dispatch_hash_xor << ",\n"
+      << "  \"maintenance_family_directory_word_reads\": "
+      << counters.family_directory_word_reads << ",\n"
+      << "  \"maintenance_family_directory_word_writes\": "
+      << counters.family_directory_word_writes << ",\n"
+      << "  \"maintenance_family_directory_bits_set\": "
+      << counters.family_directory_bits_set << ",\n"
+      << "  \"maintenance_publication_source_record_reads\": "
+      << counters.publication_source_record_reads << ",\n"
+      << "  \"maintenance_publication_bitmap_probe_reads\": "
+      << counters.publication_bitmap_probe_reads << ",\n"
+      << "  \"maintenance_publication_scratch_word_reads\": "
+      << counters.publication_scratch_word_reads << ",\n"
+      << "  \"maintenance_publication_scratch_word_writes\": "
+      << counters.publication_scratch_word_writes << ",\n"
+      << "  \"maintenance_publication_list_word_reads\": "
+      << counters.publication_list_word_reads << ",\n"
+      << "  \"maintenance_publication_list_word_writes\": "
+      << counters.publication_list_word_writes << ",\n"
+      << "  \"maintenance_publication_fallback\": "
+      << (counters.publication_fallback ? "true" : "false") << ",\n"
+      << "  \"maintenance_publication_empty_frontier_fast_path\": "
+      << (counters.publication_empty_frontier_fast_path ? "true" : "false")
+      << ",\n"
+      << "  \"maintenance_publication_complete\": "
+      << (counters.publication_complete ? "true" : "false") << ",\n";
 }
 
 class ProbeSource final : public Component {
@@ -1191,6 +1256,10 @@ class OnlineMemoryProbe final : public SST::Component {
         params.find<std::size_t>("maintenance_scan_response_capacity", 32);
     spine_axi_profile_id_ =
         params.find<std::string>("spine_axi_profile", "hls_split_9c08763");
+    spine_maintenance_architecture_id_ = params.find<std::string>(
+        "spine_maintenance_architecture", "shared_engine_serial");
+    spine_maintenance_architecture_ = spine_maintenance_architecture_from_id(
+        spine_maintenance_architecture_id_);
     grasu_config_.memory_channels = channels_;
     grasu_config_.cache_segments_per_half =
         params.find<std::size_t>("grasu_cache_segments_per_half", 131072);
@@ -1704,6 +1773,8 @@ class OnlineMemoryProbe final : public SST::Component {
       }
       SpineL0Config maintenance_config;
       maintenance_config.device_dirty_source_limit = device_dirty_source_limit_;
+      maintenance_config.maintenance_architecture =
+          spine_maintenance_architecture_;
       maintenance_config.range_task_active_gate = range_task_active_gate_;
       maintenance_config.range_task_capacity = range_task_capacity_;
       maintenance_config.range_task_payload_budget = range_task_payload_budget_;
@@ -1918,6 +1989,8 @@ class OnlineMemoryProbe final : public SST::Component {
       }
       SpineL0Config maintenance_config;
       maintenance_config.device_dirty_source_limit = device_dirty_source_limit_;
+      maintenance_config.maintenance_architecture =
+          spine_maintenance_architecture_;
       maintenance_config.range_task_active_gate = range_task_active_gate_;
       maintenance_config.range_task_capacity = range_task_capacity_;
       maintenance_config.range_task_payload_budget = range_task_payload_budget_;
@@ -2434,6 +2507,10 @@ class OnlineMemoryProbe final : public SST::Component {
       {"spine_axi_profile",
        "Spine AXI profile: hls_split_9c08763 or legacy_uniform64",
        "hls_split_9c08763"},
+      {"spine_maintenance_architecture",
+       "Spine maintenance architecture: shared_engine_serial or "
+       "candidate10_one_pass",
+       "shared_engine_serial"},
       {"grasu_cache_segments_per_half", "GraSU cache segments per PMA half",
        "131072"},
       {"grasu_partition_vertices", "ReGraph destination partition size",
@@ -3934,8 +4011,11 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"mode\": \"spine_residual_pagerank\",\n"
           << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
           << "  \"spine_axi_profile\": \"" << spine_axi_profile_id_ << "\",\n"
-          << "  \"timing_evidence\": \"provisional_algorithm_pipeline\",\n"
-          << "  \"failure\": ";
+          << "  \"spine_maintenance_architecture\": \""
+          << spine_maintenance_architecture_id_ << "\",\n";
+      write_candidate_maintenance_counters(result, maintenance);
+      result << "  \"timing_evidence\": \"provisional_algorithm_pipeline\",\n"
+             << "  \"failure\": ";
       write_json_string(result, pagerank_system_->failure());
       result
           << ",\n"
@@ -4169,8 +4249,11 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"mode\": \"spine_pagerank\",\n"
           << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
           << "  \"spine_axi_profile\": \"" << spine_axi_profile_id_ << "\",\n"
-          << "  \"timing_evidence\": \"provisional_algorithm_pipeline\",\n"
-          << "  \"failure\": ";
+          << "  \"spine_maintenance_architecture\": \""
+          << spine_maintenance_architecture_id_ << "\",\n";
+      write_candidate_maintenance_counters(result, maintenance);
+      result << "  \"timing_evidence\": \"provisional_algorithm_pipeline\",\n"
+             << "  \"failure\": ";
       write_json_string(result, pagerank_system_->failure());
       result
           << ",\n"
@@ -4983,7 +5066,10 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"mode\": \"spine_sssp\",\n"
           << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
           << "  \"spine_axi_profile\": \"" << spine_axi_profile_id_ << "\",\n"
-          << "  \"axi_graph_data_width_bytes\": "
+          << "  \"spine_maintenance_architecture\": \""
+          << spine_maintenance_architecture_id_ << "\",\n";
+      write_candidate_maintenance_counters(result, maintenance);
+      result << "  \"axi_graph_data_width_bytes\": "
           << spine_axi_profile_.graph_bytes << ",\n"
           << "  \"axi_sorted_data_width_bytes\": "
           << spine_axi_profile_.sorted_edge_bytes << ",\n"
@@ -5743,7 +5829,10 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"mode\": \"spine_vertical\",\n"
           << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
           << "  \"spine_axi_profile\": \"" << spine_axi_profile_id_ << "\",\n"
-          << "  \"axi_graph_data_width_bytes\": "
+          << "  \"spine_maintenance_architecture\": \""
+          << spine_maintenance_architecture_id_ << "\",\n";
+      write_candidate_maintenance_counters(result, maintenance);
+      result << "  \"axi_graph_data_width_bytes\": "
           << spine_axi_profile_.graph_bytes << ",\n"
           << "  \"axi_sorted_data_width_bytes\": "
           << spine_axi_profile_.sorted_edge_bytes << ",\n"
@@ -6438,6 +6527,8 @@ class OnlineMemoryProbe final : public SST::Component {
   std::size_t maintenance_scan_response_capacity_{};
   std::string spine_axi_profile_id_;
   SpineAxiInterfaceProfile spine_axi_profile_;
+  std::string spine_maintenance_architecture_id_;
+  SpineMaintenanceArchitecture spine_maintenance_architecture_{};
   SST::TimeConverter clock_converter_{};
   std::vector<SST::Interfaces::StandardMem *> interfaces_;
 

@@ -1309,7 +1309,8 @@ void SpineSplitReader::begin_source_header_reads() {
 }
 
 void SpineSplitReader::validate_control() {
-  if (!spine_metadata_control_valid(metadata_control_)) {
+  if (!spine_metadata_control_valid(
+          metadata_control_, maintenance_.config().maintenance_architecture)) {
     counters_.range_task_path = kRangeTaskPathError;
     counters_.range_task_error = kRangeTaskErrorFormat;
     begin_terminal(

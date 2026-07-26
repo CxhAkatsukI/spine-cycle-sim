@@ -86,6 +86,11 @@ struct SpineMaintenanceResult {
   static constexpr std::size_t kPath = 8;
   static constexpr std::size_t kUnsupported = 9;
   static constexpr std::size_t kNonemptyPartitions = 10;
+  static constexpr std::size_t kDispatchStatus = 11;
+  static constexpr std::size_t kDispatchInputReads = 12;
+  static constexpr std::size_t kDispatchBucketWrites = 13;
+  static constexpr std::size_t kDispatchHashSum = 14;
+  static constexpr std::size_t kDispatchHashXor = 15;
   static constexpr std::size_t kPartitionEdgeCountBase = 16;
   static constexpr std::size_t kEpochPartitionsWritten = 32;
   static constexpr std::size_t kEpochPagesStamped = 33;
@@ -98,6 +103,9 @@ struct SpineMaintenanceResult {
   static constexpr std::size_t kCarryHotBase = 57;
   static constexpr std::size_t kLayoutVersion = 75;
   static constexpr std::size_t kMetadataFormatVersion = 76;
+  static constexpr std::size_t kFamilyDirectoryWordReads = 77;
+  static constexpr std::size_t kFamilyDirectoryWordWrites = 78;
+  static constexpr std::size_t kFamilyDirectoryBitsSet = 79;
   static constexpr std::size_t kDirtyMode = 80;
   static constexpr std::size_t kDirtyStatus = 81;
   static constexpr std::size_t kDirtyCount = 82;
@@ -127,7 +135,14 @@ struct SpineMaintenanceResult {
 [[nodiscard]] SpineMaintenanceResult decode_spine_maintenance_result(
     std::span<const std::uint8_t> data);
 
+enum class SpineMaintenanceArchitecture {
+  kSharedEngineSerial,
+  kCandidate10OnePass,
+};
+
 struct SpineL0Config {
+  SpineMaintenanceArchitecture maintenance_architecture{
+      SpineMaintenanceArchitecture::kSharedEngineSerial};
   std::size_t partitions{16};
   std::size_t levels{11};
   std::uint32_t vertex_partition_size{1U << 20};
@@ -169,12 +184,20 @@ struct SpineL0Config {
   std::size_t maintenance_l0_write_scan_ii{24};
   std::size_t maintenance_l0_write_scan_tail_cycles{42};
   std::size_t maintenance_scan_response_capacity{32};
+  // Candidate-10 constants are source-bound to the frozen routed HLS image.
+  // They remain configurable for explicit design-space projections.
+  std::size_t candidate_classify_block_edges{128};
+  std::size_t candidate_source_prefetch{16};
+  std::size_t candidate_publication_window{16};
+  std::size_t candidate_memory_request_window{16};
   std::vector<std::uint32_t> hot_vertices;
   std::uint64_t sorted_edges_base{};
   // HBM16 is shared by sorted input/range-task scratch and the persistent
   // dirty frontier. These defaults match the production HLS ABI.
   std::uint64_t persistent_dirty_bitmap_base{2ULL << 20};
   std::uint64_t persistent_dirty_list_base{4ULL << 20};
+  std::uint64_t persistent_family_directory_base{68ULL << 20};
+  std::uint64_t persistent_family_bucket_base{132ULL << 20};
   std::uint64_t metadata_base{};
   std::uint64_t result_base{};
 };
@@ -210,6 +233,13 @@ struct SpineMetadataLayout {
   std::uint64_t dirty_host_valid_word{};
   std::uint64_t dirty_last_mode_word{};
   std::uint64_t dirty_last_status_word{};
+  std::uint64_t family_directory_valid_word{};
+  std::uint64_t family_tag_base{};
+  std::uint64_t family_tag_words{};
+  std::uint64_t source_record_base{};
+  std::uint64_t source_record_words{};
+  std::uint64_t new_dirty_base{};
+  std::uint64_t new_dirty_words{};
   std::uint64_t total_words{};
 };
 
@@ -248,7 +278,11 @@ struct SpineDirtyIdentity {
 [[nodiscard]] SpineMetadataLayout spine_metadata_layout(
     const SpineL0Config &config);
 [[nodiscard]] std::uint64_t spine_metadata_control_word(bool hot_enabled);
+[[nodiscard]] std::uint64_t spine_metadata_control_word(
+    bool hot_enabled, SpineMaintenanceArchitecture architecture);
 [[nodiscard]] bool spine_metadata_control_valid(std::uint64_t control) noexcept;
+[[nodiscard]] bool spine_metadata_control_valid(
+    std::uint64_t control, SpineMaintenanceArchitecture architecture) noexcept;
 [[nodiscard]] std::uint64_t spine_dirty_hash_sum_term(
     std::uint32_t source) noexcept;
 [[nodiscard]] std::uint64_t spine_dirty_hash_xor_term(
@@ -347,6 +381,30 @@ struct SpineL0Counters {
   std::uint64_t dirty_list_appends{};
   std::uint64_t dirty_duplicates_suppressed{};
   std::uint64_t dirty_generation_advances{};
+  std::uint64_t candidate_classify_edge_visits{};
+  std::uint64_t candidate_reduce_edge_visits{};
+  std::uint64_t candidate_classify_blocks{};
+  std::uint64_t candidate_family_tag_word_writes{};
+  std::uint64_t candidate_source_record_word_writes{};
+  std::uint64_t candidate_prefix_iterations{};
+  std::uint64_t dispatch_input_reads{};
+  std::uint64_t dispatch_bucket_writes{};
+  std::uint64_t dispatch_cursor_mismatches{};
+  std::uint32_t dispatch_status{};
+  std::uint32_t dispatch_hash_sum{};
+  std::uint32_t dispatch_hash_xor{};
+  std::uint64_t family_directory_word_reads{};
+  std::uint64_t family_directory_word_writes{};
+  std::uint64_t family_directory_bits_set{};
+  std::uint64_t publication_source_record_reads{};
+  std::uint64_t publication_bitmap_probe_reads{};
+  std::uint64_t publication_scratch_word_reads{};
+  std::uint64_t publication_scratch_word_writes{};
+  std::uint64_t publication_list_word_reads{};
+  std::uint64_t publication_list_word_writes{};
+  bool publication_fallback{};
+  bool publication_empty_frontier_fast_path{};
+  bool publication_complete{};
   std::uint32_t dirty_count{};
   std::uint32_t dirty_generation{};
   std::uint64_t dirty_hash_sum{};
@@ -486,6 +544,24 @@ class SpineL0Maintenance final : public Component {
     kDirtyUpdateBegin,
     kDirtyUpdateProcess,
     kDirtyFinalize,
+    kCandidateClassifyBegin,
+    kCandidateClassifyProcess,
+    kCandidateClassifyReduce,
+    kCandidateClassifyFlush,
+    kCandidatePrefix,
+    kCandidateDispatchBegin,
+    kCandidateDispatchProcess,
+    kCandidateDispatchValidate,
+    kCandidatePublicationBegin,
+    kCandidatePublicationLoad,
+    kCandidatePublicationRead,
+    kCandidatePublicationWrite,
+    kCandidatePublicationAdvance,
+    kCandidateListBegin,
+    kCandidateListSourceLoad,
+    kCandidateListRead,
+    kCandidateListWrite,
+    kCandidateFinalize,
     kHotColdCountBegin,
     kHotColdCountProcess,
     kTargetSelect,
@@ -525,6 +601,18 @@ class SpineL0Maintenance final : public Component {
     kDirtyBitmapOverflowClear,
     kDirtyListRead,
     kDirtyListWrite,
+    kCandidateFamilyTagWrite,
+    kCandidateSourceRecordWrite,
+    kCandidateBucketWrite,
+    kCandidatePublicationSourceRead,
+    kCandidateDirectoryRead,
+    kCandidateDirectoryWrite,
+    kCandidateBitmapRead,
+    kCandidateBitmapWrite,
+    kCandidateScratchWrite,
+    kCandidateListSourceRead,
+    kCandidateListRead,
+    kCandidateListWrite,
     kMetadataControl,
     kScanHotBitmap,
     kTargetMetadataOccupied,
@@ -556,6 +644,9 @@ class SpineL0Maintenance final : public Component {
     kHotColdCount,
     kFamilyPrecount,
     kL0Write,
+    kCandidateClassify,
+    kCandidateDispatch,
+    kCandidateBucketWrite,
   };
 
   struct MemoryTask {
@@ -572,6 +663,7 @@ class SpineL0Maintenance final : public Component {
     std::size_t carry_edge_index{};
     std::size_t metadata_family{};
     std::size_t metadata_level{};
+    std::size_t candidate_index{};
     bool stream_sorted_scan{};
     std::size_t streamed_read_beats_expected{};
     std::size_t streamed_read_beats_received{};
@@ -599,7 +691,8 @@ class SpineL0Maintenance final : public Component {
                     std::size_t carry_stream = 0,
                     std::size_t carry_edge_index = 0,
                     std::size_t metadata_family = 0,
-                    std::size_t metadata_level = 0);
+                    std::size_t metadata_level = 0,
+                    std::size_t candidate_index = 0);
   void begin_sorted_scan(Phase process_phase, ScanKind kind);
   [[nodiscard]] bool process_scan_edge(const CycleContext &context);
   [[nodiscard]] bool scan_process_phase() const noexcept;
@@ -630,6 +723,17 @@ class SpineL0Maintenance final : public Component {
   void finish_dirty_source_update();
   void consume_dirty_memory_response(const MemoryTask &task,
                                      const AxiResponse &response);
+  void consume_candidate_memory_response(const MemoryTask &task,
+                                         const AxiResponse &response);
+  void candidate_finish_classify_block();
+  void candidate_begin_publication_pass();
+  void candidate_load_publication_window();
+  void candidate_build_publication_groups();
+  void candidate_write_publication_groups();
+  void candidate_advance_publication_pass();
+  void candidate_begin_list_source_load();
+  void candidate_build_list_words();
+  void candidate_write_list_words();
   void initialize_metadata_payload();
   void initialize_target_selector(bool hot, const CycleContext &context);
   void enqueue_target_selector_level();
@@ -710,6 +814,25 @@ class SpineL0Maintenance final : public Component {
     std::uint64_t value{};
     std::uint32_t index{};
     bool valid{};
+  };
+
+  struct CandidateSourceRecord {
+    std::uint32_t source{};
+    std::uint32_t family_mask{};
+  };
+
+  enum class CandidatePublicationKind {
+    kDirectory,
+    kBitmapProbe,
+    kBitmap,
+  };
+
+  struct CandidatePublicationWord {
+    std::uint64_t word_index{};
+    std::array<std::uint32_t, 4> requested{};
+    std::vector<std::uint8_t> persisted;
+    std::vector<std::uint8_t> output;
+    bool write{};
   };
 
   struct LevelWriterStats {
@@ -810,6 +933,18 @@ class SpineL0Maintenance final : public Component {
   LevelWriterState level_writer_;
   std::array<std::vector<SpineEdgeRecord>, 16> family_outputs_;
   std::array<std::vector<SpineEdgeRecord>, 16> hot_family_outputs_;
+  std::array<std::vector<SpineEdgeRecord>, kSpineFamilyCount>
+      candidate_family_buckets_;
+  std::array<std::uint32_t, kSpineFamilyCount + 1> candidate_family_begin_{};
+  std::array<std::uint32_t, kSpineFamilyCount> candidate_family_cursor_{};
+  std::vector<std::uint8_t> candidate_family_tags_;
+  std::vector<CandidateSourceRecord> candidate_source_records_;
+  std::vector<CandidateSourceRecord> candidate_classify_block_records_;
+  std::vector<CandidateSourceRecord> candidate_publication_window_records_;
+  std::vector<CandidatePublicationWord> candidate_publication_words_;
+  std::vector<std::uint32_t> candidate_new_dirty_sources_;
+  std::vector<std::uint32_t> candidate_list_sources_;
+  std::vector<std::vector<std::uint8_t>> candidate_list_words_;
   std::array<std::array<std::uint32_t, kSpineLevelCount>, kSpineFamilyCount>
       slice_epochs_{};
   std::array<std::array<std::uint32_t, kSpineLevelCount>, kSpineFamilyCount>
@@ -840,6 +975,7 @@ class SpineL0Maintenance final : public Component {
   std::size_t scan_index_{};
   std::size_t scan_tail_remaining_{};
   std::uint64_t next_scan_consume_cycle_{};
+  std::uint64_t scan_base_address_{};
   std::uint64_t scan_transaction_id_{};
   bool scan_transaction_valid_{};
   bool streaming_scan_{};
@@ -854,6 +990,29 @@ class SpineL0Maintenance final : public Component {
   std::uint64_t dirty_hash_xor_{};
   SpineDirtyStatus dirty_status_{SpineDirtyStatus::kOk};
   std::vector<std::uint8_t> dirty_bitmap_original_payload_;
+  std::uint32_t candidate_current_source_{};
+  std::uint32_t candidate_current_source_mask_{};
+  std::uint32_t candidate_classified_tag_hash_{};
+  std::uint32_t candidate_dispatched_tag_hash_{};
+  std::size_t candidate_block_begin_{};
+  std::size_t candidate_block_edges_{};
+  std::size_t candidate_reduce_cycles_remaining_{};
+  std::size_t candidate_prefix_cycles_remaining_{};
+  std::size_t candidate_publication_cursor_{};
+  std::size_t candidate_publication_loaded_{};
+  std::size_t candidate_publication_responses_{};
+  std::size_t candidate_publication_writes_{};
+  std::size_t candidate_list_source_cursor_{};
+  std::size_t candidate_list_source_loaded_{};
+  std::size_t candidate_list_read_responses_{};
+  std::size_t candidate_probe_new_count_{};
+  CandidatePublicationKind candidate_publication_kind_{
+      CandidatePublicationKind::kDirectory};
+  bool candidate_have_source_{};
+  bool candidate_classify_flush_pending_{};
+  bool candidate_publication_empty_proven_{};
+  bool candidate_dirty_candidate_valid_{};
+  bool candidate_dirty_host_valid_{};
   std::size_t family_index_{};
   std::size_t active_family_index_{};
   bool precount_hot_{};
