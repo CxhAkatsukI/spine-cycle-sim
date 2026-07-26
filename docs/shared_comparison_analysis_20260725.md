@@ -1,5 +1,9 @@
 # Normalized shared comparison analysis
 
+> This document preserves the earlier v2 matrix. The current HLS-derived v3
+> formal result and publication-facing claim boundary are in
+> `candidate10_hls_v3_formal_comparison_20260727.md`.
+
 ## Purpose and claim boundary
 
 `scripts/analyze_shared_comparison_matrix.py` is the fail-closed analysis layer

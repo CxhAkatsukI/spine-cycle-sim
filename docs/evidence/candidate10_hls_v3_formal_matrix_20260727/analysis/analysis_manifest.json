@@ -1,0 +1,344 @@
+{
+  "analysis_module": "/home/chuxiao/spine-cycle-sim/spine_cycle_sim/experiments/comparison_analysis.py",
+  "analysis_module_sha256": "e19262a7ac02097c757183a2fadce211e3a3c7d347ea0363eec6a87500f89444",
+  "bottleneck_summary": [
+    {
+      "phase_bottleneck": "structure_update_dominant",
+      "runs": 5,
+      "system": "spine",
+      "total_runs": 73
+    },
+    {
+      "phase_bottleneck": "balanced",
+      "runs": 1,
+      "system": "spine",
+      "total_runs": 73
+    },
+    {
+      "phase_bottleneck": "compute_dominant",
+      "runs": 67,
+      "system": "spine",
+      "total_runs": 73
+    },
+    {
+      "phase_bottleneck": "structure_update_dominant",
+      "runs": 0,
+      "system": "grasu_regraph",
+      "total_runs": 73
+    },
+    {
+      "phase_bottleneck": "balanced",
+      "runs": 0,
+      "system": "grasu_regraph",
+      "total_runs": 73
+    },
+    {
+      "phase_bottleneck": "compute_dominant",
+      "runs": 73,
+      "system": "grasu_regraph",
+      "total_runs": 73
+    }
+  ],
+  "claim_class": "complete_candidate10_hls_derived_normalized_structural_execution_driven_analysis",
+  "correctness": "all_rows_dual_oracle_zero_mismatch",
+  "energy_claim": "sparse_active_channel_dramsim3_only",
+  "energy_not_claimed": "full_32_channel_idle_background_or_total_system_energy",
+  "group_summary": [
+    {
+      "active_dram_energy_advantage_geomean": 0.9059577291176106,
+      "active_dram_energy_advantage_median": 1.0155645731828304,
+      "energy_claim": "sparse_active_channel_dramsim3_only",
+      "grasu_regraph_wins": 34,
+      "group_type": "overall",
+      "group_value": "all",
+      "pairs": 73,
+      "request_advantage_geomean": 4.197172608586811,
+      "request_advantage_median": 5.393027951960889,
+      "speedup_geomean": 1.1838307795505718,
+      "speedup_max": 4.257302870234837,
+      "speedup_median": 1.1871601159414102,
+      "speedup_min": 0.10904018761637305,
+      "spine_wins": 39,
+      "ties": 0
+    },
+    {
+      "active_dram_energy_advantage_geomean": 0.8797499432136396,
+      "active_dram_energy_advantage_median": 0.6183211759407663,
+      "energy_claim": "sparse_active_channel_dramsim3_only",
+      "grasu_regraph_wins": 12,
+      "group_type": "algorithm",
+      "group_value": "full_pagerank",
+      "pairs": 23,
+      "request_advantage_geomean": 3.261711489025789,
+      "request_advantage_median": 2.8776540863426554,
+      "speedup_geomean": 1.1991468751610908,
+      "speedup_max": 4.257302870234837,
+      "speedup_median": 0.8446464998147578,
+      "speedup_min": 0.25649452803182987,
+      "spine_wins": 11,
+      "ties": 0
+    },
+    {
+      "active_dram_energy_advantage_geomean": 1.0775768208445795,
+      "active_dram_energy_advantage_median": 1.0009562407271422,
+      "energy_claim": "sparse_active_channel_dramsim3_only",
+      "grasu_regraph_wins": 11,
+      "group_type": "algorithm",
+      "group_value": "thresholded_residual_pagerank",
+      "pairs": 23,
+      "request_advantage_geomean": 6.84721846752225,
+      "request_advantage_median": 9.00567676762757,
+      "speedup_geomean": 1.2879213768976125,
+      "speedup_max": 4.083504689302372,
+      "speedup_median": 1.1519927008866577,
+      "speedup_min": 0.29092547462966845,
+      "spine_wins": 12,
+      "ties": 0
+    },
+    {
+      "active_dram_energy_advantage_geomean": 1.159305547279257,
+      "active_dram_energy_advantage_median": 1.1907792182603831,
+      "energy_claim": "sparse_active_channel_dramsim3_only",
+      "grasu_regraph_wins": 0,
+      "group_type": "algorithm",
+      "group_value": "weighted_dynamic_sssp",
+      "pairs": 4,
+      "request_advantage_geomean": 6.359749015439592,
+      "request_advantage_median": 6.123870220444244,
+      "speedup_geomean": 1.5071364981177287,
+      "speedup_max": 1.6408980002206992,
+      "speedup_median": 1.5455615344306253,
+      "speedup_min": 1.321148361246262,
+      "spine_wins": 4,
+      "ties": 0
+    },
+    {
+      "active_dram_energy_advantage_geomean": 0.7514359537925219,
+      "active_dram_energy_advantage_median": 1.183471344116379,
+      "energy_claim": "sparse_active_channel_dramsim3_only",
+      "grasu_regraph_wins": 11,
+      "group_type": "algorithm",
+      "group_value": "weighted_sssp",
+      "pairs": 23,
+      "request_advantage_geomean": 3.079799104279755,
+      "request_advantage_median": 3.5918410041841002,
+      "speedup_geomean": 1.0300780053553928,
+      "speedup_max": 3.628351673555354,
+      "speedup_median": 1.6822001597487752,
+      "speedup_min": 0.10904018761637305,
+      "spine_wins": 12,
+      "ties": 0
+    },
+    {
+      "active_dram_energy_advantage_geomean": 0.5129480970617794,
+      "active_dram_energy_advantage_median": 0.5097226666106447,
+      "energy_claim": "sparse_active_channel_dramsim3_only",
+      "grasu_regraph_wins": 8,
+      "group_type": "dataset_kind",
+      "group_value": "real_compact_slice",
+      "pairs": 9,
+      "request_advantage_geomean": 1.275291897643284,
+      "request_advantage_median": 1.317977534886253,
+      "speedup_geomean": 0.7087235469260867,
+      "speedup_max": 1.1871601159414102,
+      "speedup_median": 0.6905302425920996,
+      "speedup_min": 0.3862242891187154,
+      "spine_wins": 1,
+      "ties": 0
+    },
+    {
+      "active_dram_energy_advantage_geomean": 0.9814025061473048,
+      "active_dram_energy_advantage_median": 1.2577693903954472,
+      "energy_claim": "sparse_active_channel_dramsim3_only",
+      "grasu_regraph_wins": 26,
+      "group_type": "dataset_kind",
+      "group_value": "synthetic",
+      "pairs": 64,
+      "request_advantage_geomean": 4.9625944335156955,
+      "request_advantage_median": 8.077360530669624,
+      "speedup_geomean": 1.2723971056369405,
+      "speedup_max": 4.257302870234837,
+      "speedup_median": 1.6615490799847372,
+      "speedup_min": 0.10904018761637305,
+      "spine_wins": 38,
+      "ties": 0
+    },
+    {
+      "active_dram_energy_advantage_geomean": 1.1498999864205397,
+      "active_dram_energy_advantage_median": 1.4248532093288397,
+      "energy_claim": "sparse_active_channel_dramsim3_only",
+      "grasu_regraph_wins": 10,
+      "group_type": "role",
+      "group_value": "calibration",
+      "pairs": 32,
+      "request_advantage_geomean": 6.058456658246649,
+      "request_advantage_median": 9.356439378966705,
+      "speedup_geomean": 1.4795312162863408,
+      "speedup_max": 4.257302870234837,
+      "speedup_median": 1.8577420669948614,
+      "speedup_min": 0.10905411644811938,
+      "spine_wins": 22,
+      "ties": 0
+    },
+    {
+      "active_dram_energy_advantage_geomean": 0.8375953478096386,
+      "active_dram_energy_advantage_median": 0.8323565371192728,
+      "energy_claim": "sparse_active_channel_dramsim3_only",
+      "grasu_regraph_wins": 16,
+      "group_type": "role",
+      "group_value": "holdout",
+      "pairs": 32,
+      "request_advantage_geomean": 4.064953320750215,
+      "request_advantage_median": 5.019111699442899,
+      "speedup_geomean": 1.0942617341302057,
+      "speedup_max": 4.257302870234837,
+      "speedup_median": 1.0220663388785423,
+      "speedup_min": 0.10904018761637305,
+      "spine_wins": 16,
+      "ties": 0
+    },
+    {
+      "active_dram_energy_advantage_geomean": 0.5129480970617794,
+      "active_dram_energy_advantage_median": 0.5097226666106447,
+      "energy_claim": "sparse_active_channel_dramsim3_only",
+      "grasu_regraph_wins": 8,
+      "group_type": "role",
+      "group_value": "validation",
+      "pairs": 9,
+      "request_advantage_geomean": 1.275291897643284,
+      "request_advantage_median": 1.317977534886253,
+      "speedup_geomean": 0.7087235469260867,
+      "speedup_max": 1.1871601159414102,
+      "speedup_median": 0.6905302425920996,
+      "speedup_min": 0.3862242891187154,
+      "spine_wins": 1,
+      "ties": 0
+    }
+  ],
+  "matrix_manifest": "/data/tmp/chuxiao/candidate10_hls_v3_formal_matrix_20260727/comparison_manifest.json",
+  "matrix_manifest_sha256": "77309d11eb6f27888a9134e76e49caac84e89c0a434d5c7d7cb79b0dece93c3e",
+  "matrix_orchestration_implementation": {
+    "files": [
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/configs/contracts/candidate10_normalized_hls_feasibility_v2.json",
+        "sha256": "29377ed3f567dee02779042d7d022324a132c1bdc9a6056c9c7b737352bcb754"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/docs/evidence/grasu_regraph_matching_hls_status_20260726.json",
+        "sha256": "9bdf345bf0de580ef6cd8cd5bff2c5c8a49d9351ff84802bd72f9c7dd3a47731"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/scripts/run_shared_comparison_matrix.py",
+        "sha256": "6754a66878f8f9d198766be57497372ef4cf5f2267170d5894fd3cff32198518"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/spine_cycle_sim/experiments/comparison.py",
+        "sha256": "267b99cccef695e4e1c1b4aa247a0c93c87e51dd951e8b3c08c1cc19dccf0d03"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/spine_cycle_sim/experiments/feasibility.py",
+        "sha256": "19dd9e9222625daf8f87bc2276dc7419496c478c0ae7f4cba9632122c7ac919c"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/spine_cycle_sim/experiments/regraph_contracts.py",
+        "sha256": "096e250a1883aec16a17d2a340291bb4d02d7e28ff7cc5c4514771f3cabff7a1"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/spine_cycle_sim/experiments/shared_workloads.py",
+        "sha256": "0468f19ca5cc2646f2023f80e1c331ee0a8f83a136414919b295d955ae65e484"
+      }
+    ],
+    "sha256": "60237f91b5046a30f69786b17760139a34f85a2e7496bbf9748dac57aafc2d62"
+  },
+  "matrix_simulation_implementation": {
+    "files": [
+      {
+        "path": "/data/feiyang/sst/bin/sst",
+        "sha256": "31d60def570079b1b6a104bc3dec06f0ecbc3eda3e6e0f828fa16aaf386633af"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/build/sst/libspine_cycle.so",
+        "sha256": "c42f2b9204cdff0f1dd4e2f8762fce49147723d7dc2750238aef866e99da87fc"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/configs/architectures/grasu_regraph_candidate10_normalized_hls_pagerank_v3.json",
+        "sha256": "7155f87efa086a6563e80296f8460db14716e2f60f277ea5997f1d976897877e"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/configs/architectures/grasu_regraph_candidate10_normalized_hls_residual_pagerank_v3.json",
+        "sha256": "6ef8a8c9fe4beca4ea76a86a1041c47b15968cd8d846122358ce5b28ecdfa14d"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/configs/architectures/grasu_regraph_candidate10_normalized_hls_weighted_v3.json",
+        "sha256": "51d1edd1bc9eca864d5c57858d80ef3890152f4a6062bc1259833d38c2be4823"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/configs/architectures/spine_candidate10_normalized_v1.json",
+        "sha256": "4e31633c55abfdc57fd4537119d6abb6d7a4f0313dcfc81332fa0ed0a6320c0a"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/configs/contracts/grasu_regraph_candidate10_hls_capabilities_v3.json",
+        "sha256": "25794099eaba54d5b693afd626c563afba19d687b71609c7cd46bf4c0cc13f1c"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/configs/memory/HBM2_1ch_x128.ini",
+        "sha256": "d1e865c6528acbc41f0768667063702bfb4033f24bcd46119ad25bfc5ad4fb5f"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/scripts/run_sst_grasu_regraph.py",
+        "sha256": "39e1e0521109151ea1920ef987543eb4d630c26716347982f663c1b335ab6719"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/scripts/run_sst_grasu_regraph_hls_pagerank.py",
+        "sha256": "a63153d8c513b474d771e82c702e240feaea8e33e3791ec84a4e307f0d641f14"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/scripts/run_sst_grasu_regraph_hls_residual_pagerank.py",
+        "sha256": "5adbdbc7c806f9a4431e5434dc284ea3afb3e8851183a3bb688b4039a8236151"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/scripts/run_sst_grasu_regraph_hls_weighted.py",
+        "sha256": "cfea062074e36eefbbff1b1d6d6ce42cd0e8874da578c2211b79bdfe0ed24d01"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/scripts/run_sst_grasu_regraph_pagerank.py",
+        "sha256": "fef1bf265313a09b9264f596a1a27d0cdec1b94407c5b5a867d37f00a578fdb5"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/scripts/run_sst_grasu_regraph_residual_pagerank.py",
+        "sha256": "6489e85a59e15b8753efc83988017a3db0039a1b3429aa363b9ca748a8075bcb"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/scripts/run_sst_spine_vertical.py",
+        "sha256": "bc3f3a4831eb7f5ac59b7e1dbbdb8a0e0d5a749f2a0e86156fec1a71e724bef0"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/spine_cycle_sim/sst_binding.py",
+        "sha256": "c4c8dd67a685aa52b07b1bff0875744c55c9655addb6549e0bac9fade5af0bcb"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/sst/grasu_regraph_vertical.py",
+        "sha256": "d7e3cd1afb80b6941883ead903b8b92d3c72188349c7bf9515eb1302f476d5c8"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/sst/spine_vertical_slice.py",
+        "sha256": "7b07f54b829e17e853159dddc7a6245bcd668ccf69261ce593950e1036508a20"
+      }
+    ],
+    "sha256": "1985e90a807bdea742f0b368808f8b3789c0eae0d86bcf476e2fa163d4f835ac"
+  },
+  "outputs": {
+    "bottleneck_summary.csv": "0d84b84ede2fbb56330f15af0484a5da1c5c81803f31d3a273b0d89a0729020a",
+    "group_summary.csv": "23af9cd78ff01eaeb7e60fb162b0fb3c65f6932ecfeee7edc27e0d54c4079be7",
+    "pair_details.csv": "e1397f88a584d0230fb577dce1a0dbf9d87d4f822f6f55598cc6c245a5fbb865",
+    "system_details.csv": "b0d366ad1146aa75bd9333e6807a860576dc1787fc2e7520033358f67aff93dc"
+  },
+  "pairs": 73,
+  "runs": 73,
+  "schema_version": 1,
+  "source_manifest": "/home/chuxiao/spine-cycle-sim/configs/experiments/shared_comparison_candidate10_hls_v3_20260726.json",
+  "source_manifest_sha256": "68e36a835f35c277ddff0571d9baae46385674239085c12197ab5b91bdc9bbc7",
+  "status": "PASS",
+  "system_rows": 146,
+  "timing_claim": "normalized_conversion_free_structural_execution_driven"
+}
