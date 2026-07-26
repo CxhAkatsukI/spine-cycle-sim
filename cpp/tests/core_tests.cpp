@@ -472,6 +472,39 @@ void test_spine_candidate10_one_pass_publication_payloads() {
             << " cycles=" << counters.end_cycle - counters.start_cycle << '\n';
 }
 
+void test_spine_candidate10_hot_metadata_carry_retires_new_batch_request() {
+  SpineL0Config config;
+  config.maintenance_architecture =
+      SpineMaintenanceArchitecture::kCandidate10OnePass;
+  config.hot_vertices = {7};
+
+  SpineL0State state;
+  state.hot_enabled = true;
+  state.hot_vertices.insert(7);
+  state.cold_levels[0][0] = {
+      SpineEdgeRecord{.src = 0, .dst = 1, .weight = 5, .diff = 1},
+  };
+  SpineEdgeSlice workload{
+      .vertices = 16,
+      .edges = {
+          SpineEdgeRecord{.src = 0, .dst = 2, .weight = 3, .diff = 1},
+      },
+      .case_name = "candidate10_hot_metadata_carry",
+  };
+
+  const MaintenanceOnlyRun run =
+      run_maintenance_only(config, std::move(state), std::move(workload));
+  require(!run.failed, "candidate-10 hot-metadata carry failed: " + run.failure);
+  require(run.counters.target_level == 1 &&
+              run.counters.carry_new_batch_reads == 1 &&
+              run.counters.carry_level_payload_reads == 1 &&
+              run.counters.hot_bitmap_carry_reads == 0 &&
+              run.counters.carry_merge_inputs == 2 &&
+              run.state.cold_levels[0][0].empty() &&
+              run.state.cold_levels[0][1].size() == 2,
+          "candidate-10 carry did not retire its preclassified new-batch stream");
+}
+
 std::vector<std::uint8_t> u64_payload(std::uint64_t value) {
   std::vector<std::uint8_t> data(sizeof(value));
   for (std::size_t byte = 0; byte < sizeof(value); ++byte) {
@@ -7810,6 +7843,8 @@ int main(int argc, char **argv) {
       {"spine_l0_real_slice", test_spine_l0_real_slice_vertical_path},
       {"spine_candidate10_one_pass",
        test_spine_candidate10_one_pass_publication_payloads},
+      {"spine_candidate10_hot_metadata_carry",
+       test_spine_candidate10_hot_metadata_carry_retires_new_batch_request},
       {"spine_candidate10_publication_formula",
        test_spine_candidate10_publication_rtl_window_formula},
       {"spine_candidate10_l0_writer_formula",

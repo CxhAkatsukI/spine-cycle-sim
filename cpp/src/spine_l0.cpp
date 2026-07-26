@@ -4620,8 +4620,12 @@ void SpineL0Maintenance::consume_carry_memory_response(
     if (!stream.request_pending) {
       throw std::logic_error("unexpected Spine carry stream response");
     }
-    if (task.purpose != TaskPurpose::kCarryNewBatchRead ||
-        !metadata_hot_enabled_) {
+    const bool legacy_hot_bitmap_follows =
+        task.purpose == TaskPurpose::kCarryNewBatchRead &&
+        metadata_hot_enabled_ &&
+        config_.maintenance_architecture !=
+            SpineMaintenanceArchitecture::kCandidate10OnePass;
+    if (!legacy_hot_bitmap_follows) {
       stream.request_pending = false;
     }
   }
@@ -4826,7 +4830,22 @@ bool SpineL0Maintenance::advance_carry_merge() {
                              stream.buffered.empty();
                     });
     if (!complete) {
-      throw std::logic_error("Spine carry merge lost a refill request");
+      std::ostringstream detail;
+      detail << "Spine carry merge lost a refill request:";
+      for (std::size_t index = 0; index < carry_streams_.size(); ++index) {
+        const CarryInputStream &stream = carry_streams_[index];
+        detail << " stream=" << index << " new=" << stream.new_batch
+               << " level=" << stream.level
+               << " cursor=" << stream.cursor_ready
+               << " pending=" << stream.request_pending
+               << " exhausted=" << stream.exhausted
+               << " next=" << stream.next_index
+               << " sources=" << stream.sources.size()
+               << " buffered=" << stream.buffered.size()
+               << " page-index-pending="
+               << stream.page_index_responses_pending;
+      }
+      throw std::logic_error(detail.str());
     }
     finalize_level_writer(family_write_tasks_[active_family_index_]);
     return true;
