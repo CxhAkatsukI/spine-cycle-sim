@@ -45,14 +45,34 @@ costs more than parallel DRAMSim3 clocks save. Increasing link latency would
 change modeled memory timing and was therefore not considered a valid runtime
 optimization. All partitioning changes were reverted and never committed.
 
+## DRAMSim3 build type
+
+The live 50K-edge process maps:
+
+```text
+/data/feiyang/sst-build/DRAMsim3/libdramsim3.so
+```
+
+This is not an accidental debug backend. Its CMake cache records
+`CMAKE_BUILD_TYPE=Release`, and
+`build/CMakeFiles/dramsim3.dir/flags.make` records:
+
+```text
+CXX_FLAGS = -O3 -DNDEBUG -std=c++11 -fPIC -Wall
+```
+
+Rebuilding DRAMSim3 with ordinary release flags therefore cannot explain or
+close the runtime gap. This audit changes no binary and no simulated event.
+
 ## Implication
 
-The remaining large-run host cost is dominated by valid DRAMSim3 clock work on
-the 23 pseudo-channels bound by Candidate10, not by debug compiler flags or
-idle FIFO polling. The accepted scheduler sleep changes remain useful but
-small. A material speedup requires either a more efficient exact DRAM backend
-integration or an event/wakeup scheme that preserves every controller-visible
-ordering and refresh effect; coarse cycle skipping is not authorized.
+The remaining large-run host cost is dominated by valid, already release-built
+DRAMSim3 clock work on the 23 pseudo-channels bound by Candidate10, not by debug
+compiler flags or idle FIFO polling. The accepted scheduler sleep changes
+remain useful but small. A material speedup requires either a more efficient
+exact DRAM backend integration or an event/wakeup scheme that preserves every
+controller-visible ordering and refresh effect; coarse cycle skipping is not
+authorized.
 
 Raw outputs are retained outside Git:
 
