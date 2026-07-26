@@ -1,0 +1,68 @@
+digraph candidate10_timing_layers {
+  graph [
+    rankdir=LR,
+    bgcolor="white",
+    pad="0.25",
+    nodesep="0.35",
+    ranksep="0.55",
+    fontname="DejaVu Sans"
+  ];
+  node [
+    shape=box,
+    style="rounded,filled",
+    fontname="DejaVu Sans",
+    fontsize=11,
+    margin="0.14,0.09",
+    color="#344054",
+    fillcolor="#F8FAFC"
+  ];
+  edge [
+    fontname="DejaVu Sans",
+    fontsize=9,
+    color="#667085",
+    arrowsize=0.75
+  ];
+
+  rtl [
+    label="Maintenance RTL control\nap_start -> ap_done\n4,490 cycles",
+    fillcolor="#E8F5E9",
+    color="#2E7D32"
+  ];
+  adapter [
+    label="Candidate10 m_axi adapters\nburst split + 4 KiB boundary\npipelines + outstanding + queues",
+    fillcolor="#E3F2FD",
+    color="#1565C0"
+  ];
+  hbm [
+    label="Shared AXI / U55C HBM\narbitration + bank/row timing\nturnaround + contention",
+    fillcolor="#FFF3E0",
+    color="#EF6C00"
+  ];
+  event [
+    label="Routed U55C XRT event\n39,016.2 cycles (zero edge)",
+    fillcolor="#FCE4EC",
+    color="#AD1457"
+  ];
+
+  rtl -> adapter [label="parent requests"];
+  adapter -> hbm [label="AXI bursts / beats"];
+  hbm -> adapter [label="R/B responses"];
+  adapter -> rtl [label="child completion"];
+  hbm -> event [label="shell-visible service window"];
+
+  simulator [
+    label="Current execution-driven simulator\nRTL floor + adapters + DRAMSim3\n4,490 cycles (zero edge)",
+    shape=note,
+    fillcolor="#F3E8FF",
+    color="#7E22CE"
+  ];
+  residual [
+    label="Unresolved board delta\n34,526.2 cycles\nnot an L0-writer constant",
+    shape=note,
+    fillcolor="#FFF7ED",
+    color="#C2410C"
+  ];
+
+  simulator -> residual [style=dashed, label="compare"];
+  residual -> event [style=dashed];
+}

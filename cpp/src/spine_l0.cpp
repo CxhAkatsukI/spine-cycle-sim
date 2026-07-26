@@ -938,6 +938,7 @@ SpineL0Maintenance::SpineL0Maintenance(std::string name, ClockId clock_id,
       config_.candidate_l0_writer_late_source_cycles == 0 ||
       config_.candidate_l0_writer_packer_cycles == 0 ||
       config_.candidate_l0_writer_page_tail_cycles == 0 ||
+      config_.candidate_zero_edge_control_min_cycles == 0 ||
       config_.candidate_list_word_first_lane_cycles == 0 ||
       config_.candidate_publication_base_cycles == 0 ||
       config_.candidate_publication_source_cycles == 0 ||
@@ -5406,6 +5407,20 @@ void SpineL0Maintenance::advance(const CycleContext &context) {
     phase_ = Phase::kFinish;
     return;
   case Phase::kFinish:
+    if (config_.maintenance_architecture ==
+            SpineMaintenanceArchitecture::kCandidate10OnePass &&
+        workload_.edges.empty()) {
+      const std::uint64_t elapsed =
+          context.domain_cycle - counters_.start_cycle;
+      counters_.candidate_zero_edge_control_min_cycles =
+          config_.candidate_zero_edge_control_min_cycles;
+      if (elapsed < config_.candidate_zero_edge_control_min_cycles) {
+        ++counters_.candidate_zero_edge_control_padding_cycles;
+        return;
+      }
+      counters_.candidate_zero_edge_control_memory_overrun_cycles =
+          elapsed - config_.candidate_zero_edge_control_min_cycles;
+    }
     counters_.end_cycle = context.domain_cycle;
     done_ = true;
     failed_ = logical_overflow_;

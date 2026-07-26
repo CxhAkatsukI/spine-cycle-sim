@@ -65,6 +65,7 @@
     "l0_writer_late_source_cycles": 71,
     "l0_writer_packer_cycles": 69,
     "l0_writer_page_tail_cycles": 144,
+    "zero_edge_control_min_cycles": 4490,
     "hbm16_input_base_bytes": 0,
     "hbm16_dirty_bitmap_base_bytes": 2097152,
     "hbm16_dirty_list_base_bytes": 4194304,

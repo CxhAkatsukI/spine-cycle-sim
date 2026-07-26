@@ -716,6 +716,12 @@ void test_spine_candidate10_zero_edge_batch() {
               run.counters.family_directory_word_reads == 0 &&
               run.counters.publication_complete,
           "candidate zero-edge publication counters mismatch");
+  require(run.counters.end_cycle - run.counters.start_cycle == 4'490 &&
+              run.counters.candidate_zero_edge_control_min_cycles == 4'490 &&
+              run.counters.candidate_zero_edge_control_padding_cycles > 0 &&
+              run.counters.candidate_zero_edge_control_memory_overrun_cycles ==
+                  0,
+          "candidate zero-edge control path finished before its RTL oracle");
   std::cout << "EVIDENCE spine_candidate10_zero_edge cycles="
             << run.counters.end_cycle - run.counters.start_cycle
             << " dispatch=" << run.counters.dispatch_input_reads

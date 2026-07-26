@@ -1,0 +1,19 @@
+
+****** xsim v2024.1 (64-bit)
+  **** SW Build 5076996 on Wed May 22 18:36:09 MDT 2024
+  **** IP Build 5075265 on Wed May 22 21:45:21 MDT 2024
+  **** SharedData Build 5076995 on Wed May 22 18:29:18 MDT 2024
+  **** Start of session at: Sun Jul 26 17:31:50 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source xsim.dir/candidate10_maintenance_control_oracle/xsim_script.tcl
+# xsim {candidate10_maintenance_control_oracle} -testplusarg MAX_CYCLES=200000 -autoloadwcfg -tclbatch {/home/chuxiao/spine-cycle-sim/scripts/rtl/run_all.tcl}
+Time resolution is 1 ps
+source /home/chuxiao/spine-cycle-sim/scripts/rtl/run_all.tcl
+## run all
+MAINT_CONTROL_RTL case=zero cycles=4490 meta_ar=370 meta_requested_r=373 meta_r=373 meta_aw=49 meta_requested_w=162 meta_w=162 meta_b=49 result_aw=67 result_requested_w=88 result_w=88 result_b=67 sorter_aw=0 sorter_w=0 sorter_ar=0
+$finish called at time : 30001333 ps : File "/home/chuxiao/spine-cycle-sim/scripts/rtl/candidate10_maintenance_control_tb.sv" Line 351
+## quit 0
+INFO: [Common 17-206] Exiting xsim at Sun Jul 26 17:31:54 2026...
+RTL oracle build directory: /data/tmp/chuxiao/candidate10_maintenance_control_dev

@@ -209,6 +209,11 @@ struct SpineL0Config {
   std::size_t candidate_l0_writer_late_source_cycles{71};
   std::size_t candidate_l0_writer_packer_cycles{69};
   std::size_t candidate_l0_writer_page_tail_cycles{144};
+  // Direct partitioned_run_maintenance RTL oracle, ap_start-to-ap_done, with
+  // ideal one-cycle child-protocol responders. This is currently proven only
+  // for the empty-batch control path and therefore is not applied to nonempty
+  // workloads.
+  std::size_t candidate_zero_edge_control_min_cycles{4490};
   // The non-pipelined dirty-list word loop costs 81 cycles for one valid
   // source lane and 120 cycles for each additional lane (441 for four).
   std::size_t candidate_list_word_first_lane_cycles{81};
@@ -453,6 +458,9 @@ struct SpineL0Counters {
   std::uint64_t candidate_publication_rtl_min_cycles{};
   std::uint64_t candidate_publication_schedule_stall_cycles{};
   std::uint64_t candidate_list_schedule_cycles{};
+  std::uint64_t candidate_zero_edge_control_min_cycles{};
+  std::uint64_t candidate_zero_edge_control_padding_cycles{};
+  std::uint64_t candidate_zero_edge_control_memory_overrun_cycles{};
   bool publication_fallback{};
   bool publication_empty_frontier_fast_path{};
   bool publication_complete{};
