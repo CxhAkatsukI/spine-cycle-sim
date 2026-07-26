@@ -1,0 +1,57 @@
+digraph candidate10_l0_writer_timing_layers {
+  graph [
+    rankdir=LR,
+    bgcolor="white",
+    pad="0.25",
+    nodesep="0.42",
+    ranksep="0.65",
+    fontname="Arial",
+    label="Candidate10 L0 writer timing layers",
+    labelloc="t",
+    fontsize=18
+  ];
+  node [shape=box, style="rounded,filled", fontname="Arial", fontsize=11,
+        color="#3f4652", fontcolor="#17202a", fillcolor="#f7f8fa", margin="0.14,0.10"];
+  edge [fontname="Arial", fontsize=9, color="#59636f", fontcolor="#3f4652", arrowsize=0.75];
+
+  subgraph cluster_writer {
+    label="Layer 1: synthesized writer RTL (exact oracle)";
+    color="#2a7f62";
+    penwidth=2;
+    style="rounded";
+    input [label="Family-local sorted records\n128-bit child reads", fillcolor="#e8f4ef"];
+    loop [label="Edge loop\nII = 24", fillcolor="#e8f4ef"];
+    state [label="Coalesce + row/page packers\npending words and page state", fillcolor="#e8f4ef"];
+    flush [label="Final flush + validation\nstate-dependent drain", fillcolor="#e8f4ef"];
+    input -> loop -> state -> flush;
+  }
+
+  subgraph cluster_adapter {
+    label="Layer 2: Vitis m_axi adapter (XO-audited)";
+    color="#3465a4";
+    penwidth=2;
+    style="rounded";
+    req [label="Child request FIFO\nUSER_MAXREQS = 70", fillcolor="#eaf1fb"];
+    conv [label="Word-to-byte conversion\nno cross-request merge", fillcolor="#eaf1fb"];
+    burst [label="Burst / 4 KiB splitter\nmax 16 beats", fillcolor="#eaf1fb"];
+    throttle [label="AXI throttle\n16 read + 16 write outstanding", fillcolor="#eaf1fb"];
+    req -> conv -> burst -> throttle;
+  }
+
+  subgraph cluster_hbm {
+    label="Layer 3: external AXI + HBM (next validation layer)";
+    color="#a15c19";
+    penwidth=2;
+    style="rounded,dashed";
+    axi [label="AW/W/B and AR/R queues\nREADY/VALID backpressure", fillcolor="#fff3e5"];
+    hbm [label="HBM channels\nlatency, banks, contention", fillcolor="#fff3e5"];
+    axi -> hbm;
+  }
+
+  flush -> req [label="64-bit graph/meta child requests"];
+  throttle -> axi [label="external AXI bursts"];
+  axi -> throttle [label="responses / pressure", dir=back];
+
+  oracle [shape=note, label="Current oracle boundary:\nwriter child protocol", fillcolor="#f0f7f4", color="#2a7f62"];
+  oracle -> state [style=dashed, arrowhead=none];
+}

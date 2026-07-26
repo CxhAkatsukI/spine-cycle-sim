@@ -1,0 +1,47 @@
+{
+  "all_pass": true,
+  "build_dir": "/data/tmp/chuxiao/candidate10_l0_writer_oracle.lzze3zr5",
+  "cases": 36,
+  "claim": "frozen_candidate10_l0_writer_rtl_control_and_internal_request_oracle",
+  "collector_sha256": "70d26d5e3491e1fb4e32177aff808ad6468c1967dc133ab5c4c9774fd463c2a8",
+  "derived_metrics": {
+    "backpressure_delta_cycles": "periodically stalled run minus the matching ideal run",
+    "child_request_bytes": "requested beats multiplied by the corresponding child port width; not an assertion about final HBM traffic",
+    "writer_control_residual_cycles": "observed cycles - writer_loop_ii_cycles; includes fill, drain, final flush, and deterministic child-protocol waits",
+    "writer_loop_ii_cycles": "24 * inputs; the synthesized edge-loop throughput term"
+  },
+  "hls_source_root": "/data/feiyang/spine-dynamic-graph-builds/pipeline_dirty_frontier_publication_1e61fc0_20260725/production/hls_v5_candidate_10/audit/source",
+  "hls_source_sha256": {
+    "common_types.hpp": "9a818b0b27101e568dc86c098e92437ffc0b9520da126a7933e15001ba9d2042",
+    "spine_partitioned.hpp": "d98fb04cb59c3b00b894ba4d615d7dd1a6250f46fe1d998a951bb0a0843c7dbc"
+  },
+  "limitations": [
+    "This oracle isolates the HLS child writer with deterministic response timing.",
+    "It observes child-to-adapter requests, not final U55C HBM AXI transactions.",
+    "Periodic stalls are deterministic protocol sensitivity tests, not an HBM model."
+  ],
+  "protocol": {
+    "address_unit": "port_data_words, converted to bytes by the kernel-level m_axi adapter",
+    "family_local": "the Candidate10 writer trusts upstream family buckets and detects count mismatches at final validation",
+    "request_length": "actual beats, not external AXI AxLEN minus one encoding",
+    "write_response": "one internal B response per accepted AW request"
+  },
+  "runner_sha256": "513d2dae3c85fd62311050fa47f1a4aaae7e4a6882a233dd15694fc603ea7318",
+  "schema_version": 2,
+  "tcl_sha256": "55eedd5439c15fcf0916c4f81dd301a78458ec1f05b4143ed3a00c9a6487dff5",
+  "testbench_sha256": "da6fe0806006fff0ffb10f8c20cc1e23bc95b98527a9fa3a37a0cb77ca81f7f5",
+  "xo": "/data/feiyang/spine-dynamic-graph-builds/pipeline_dirty_frontier_publication_1e61fc0_20260725/production/hls_v5_candidate_10/spine_partconv_rdmaint_kernel.hw.xo",
+  "xo_rtl_members": {
+    "graph_axi_adapter": "ip_repo/xilinx_com_hls_spine_partconv_rdmaint_kernel_1_0/hdl/verilog/spine_partconv_rdmaint_kernel_gmem_p0_m_axi.v",
+    "kernel_top": "ip_repo/xilinx_com_hls_spine_partconv_rdmaint_kernel_1_0/hdl/verilog/spine_partconv_rdmaint_kernel.v",
+    "writer": "ip_repo/xilinx_com_hls_spine_partconv_rdmaint_kernel_1_0/hdl/verilog/spine_partconv_rdmaint_kernel_partitioned_write_l0_family.v",
+    "writer_loop": "ip_repo/xilinx_com_hls_spine_partconv_rdmaint_kernel_1_0/hdl/verilog/spine_partconv_rdmaint_kernel_partitioned_write_l0_family_Pipeline_PARTITIONED_WRITE_L0_EDGES.v"
+  },
+  "xo_rtl_sha256": {
+    "graph_axi_adapter": "b9fe66112350752935c3282a29afb5c600aba45d2dcbf6e65cd9486cc3f20c4d",
+    "kernel_top": "12d98c609ee5b89ee7ed51e72fb3633dfe42c82ce1f1a2131f0453ea42a27789",
+    "writer": "22bd5d1fb8016b5da222cff5a1b2222dc9e85820dbfd5f68e30b8dcb5c815522",
+    "writer_loop": "a30a2da4f94c836cda15766da3a871f8ef533fcb83844fb6342808898a933908"
+  },
+  "xo_sha256": "629e185724467cc14eec4ae14018ff0a89a94aa518ef77499ca6cc2363b28be5"
+}

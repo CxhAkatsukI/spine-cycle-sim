@@ -1,0 +1,20 @@
+
+****** xsim v2024.1 (64-bit)
+  **** SW Build 5076996 on Wed May 22 18:36:09 MDT 2024
+  **** IP Build 5075265 on Wed May 22 21:45:21 MDT 2024
+  **** SharedData Build 5076995 on Wed May 22 18:29:18 MDT 2024
+  **** Start of session at: Sun Jul 26 14:41:02 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source xsim.dir/candidate10_l0_writer_oracle/xsim_script.tcl
+# xsim {candidate10_l0_writer_oracle} -testplusarg INPUTS=16 -testplusarg EDGES=16 -testplusarg ROWS=16 -testplusarg PATTERN=1 -testplusarg SOURCE_STRIDE=1 -testplusarg STALL_PERIOD=0 -testplusarg STALL_WIDTH=0 -testplusarg MAX_CYCLES=2000000 -autoloadwcfg -tclbatch {/home/chuxiao/spine-cycle-sim/scripts/rtl/run_all.tcl}
+Time resolution is 1 ps
+source /home/chuxiao/spine-cycle-sim/scripts/rtl/run_all.tcl
+## run all
+L0_WRITER_RTL inputs=16 edges=16 rows=16 pattern=1 source_stride=1 stall_period=0 stall_width=0 cycles=1156 result_edges=16 result_rows=16 result_epoch=1 result_pages=1 result_occupied=1 result_pages_stamped=1 result_overflow=0 result_page_ids=1 result_validation=0 result_outputs=16 graph_aw=32 graph_w=35 graph_b=32 graph_max_awlen=4 graph_requested_w_beats=35 sorter_ar=16 sorter_r=16 sorter_max_arlen=1 sorter_requested_r_beats=16 meta_aw=2 meta_w=2 meta_b=1 meta_max_awlen=1 meta_requested_w_beats=2 meta_ar=1 meta_r=1 meta_max_arlen=1 meta_requested_r_beats=1
+$finish called at time : 2331 ns : File "/home/chuxiao/spine-cycle-sim/scripts/rtl/candidate10_l0_writer_tb.sv" Line 470
+## quit 0
+INFO: [Common 17-206] Exiting xsim at Sun Jul 26 14:41:05 2026...
+Candidate10 XO SHA256: 629e185724467cc14eec4ae14018ff0a89a94aa518ef77499ca6cc2363b28be5
+RTL oracle build directory: /data/tmp/chuxiao/candidate10_l0_writer_oracle.lzze3zr5
