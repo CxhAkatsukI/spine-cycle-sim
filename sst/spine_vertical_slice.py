@@ -276,7 +276,14 @@ probe.addParams(
     }
 )
 
-dram_config = ROOT / "configs" / "memory" / "HBM2_1ch_x128.ini"
+dram_config = Path(
+    os.environ.get(
+        "CANDIDATE10_SST_DRAM_CONFIG",
+        str(ROOT / "configs" / "memory" / "HBM2_1ch_x128.ini"),
+    )
+).resolve()
+if not dram_config.is_file():
+    raise ValueError(f"CANDIDATE10_SST_DRAM_CONFIG is not a file: {dram_config}")
 for channel in active_channels:
     interface = probe.setSubComponent(
         "memory", "memHierarchy.standardInterface", channel

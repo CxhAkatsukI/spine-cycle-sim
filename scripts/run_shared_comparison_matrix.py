@@ -51,6 +51,28 @@ DEFAULT_MANIFEST = (
     / "experiments"
     / "shared_comparison_candidate10_hls_v3_20260726.json"
 )
+DEFAULT_DRAM_CONFIG = ROOT / "configs" / "memory" / "HBM2_1ch_x128.ini"
+FROZEN_DRAM_CONFIG_SHA256 = (
+    "d1e865c6528acbc41f0768667063702bfb4033f24bcd46119ad25bfc5ad4fb5f"
+)
+DRAM_CONFIG_ENV = "CANDIDATE10_SST_DRAM_CONFIG"
+
+
+def hbm_config_contract(path: Path) -> dict[str, object]:
+    resolved = path.resolve()
+    if not resolved.is_file():
+        raise ValueError(f"HBM DRAMSim3 config is missing: {resolved}")
+    digest = sha256_file(resolved)
+    baseline = digest == FROZEN_DRAM_CONFIG_SHA256
+    return {
+        "path": str(resolved),
+        "sha256": digest,
+        "frozen_baseline_sha256": FROZEN_DRAM_CONFIG_SHA256,
+        "is_frozen_baseline": baseline,
+        "experiment_role": "frozen_baseline" if baseline else "hbm_sensitivity",
+        "shared_by_systems": ["spine", "grasu_regraph"],
+        "environment_variable": DRAM_CONFIG_ENV,
+    }
 
 
 class ProcessRegistry:
@@ -161,6 +183,8 @@ def _run_one_impl(
     timeout_seconds: float,
     resume: bool,
     simulation_sha256: str,
+    hbm_config_sha256: str,
+    child_environment: dict[str, str],
     registry: ProcessRegistry,
 ) -> dict[str, object]:
     invocation.out_dir.mkdir(parents=True, exist_ok=True)
@@ -175,6 +199,7 @@ def _run_one_impl(
             and cached.get("command") == list(invocation.command)
             and cached.get("input_contract_sha256") == input_contract_sha256
             and cached.get("simulation_sha256") == simulation_sha256
+            and cached.get("hbm_config_sha256") == hbm_config_sha256
         ):
             return _completed_row(
                 run,
@@ -190,6 +215,7 @@ def _run_one_impl(
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         start_new_session=True,
+        env=child_environment,
     )
     registry.register(process)
     try:
@@ -226,12 +252,13 @@ def _run_one_impl(
     resume_path.write_text(
         json.dumps(
             {
-                "schema_version": 2,
+                "schema_version": 3,
                 "run_id": invocation.run_id,
                 "system": invocation.system,
                 "command": list(invocation.command),
                 "input_contract_sha256": input_contract_sha256,
                 "simulation_sha256": simulation_sha256,
+                "hbm_config_sha256": hbm_config_sha256,
                 "wall_seconds": wall_seconds,
                 "row": row,
                 "status": "PASS",
@@ -252,6 +279,8 @@ def _run_one(
     timeout_seconds: float,
     resume: bool,
     simulation_sha256: str,
+    hbm_config_sha256: str,
+    child_environment: dict[str, str],
     registry: ProcessRegistry,
 ) -> dict[str, object]:
     if registry.stopping:
@@ -263,6 +292,8 @@ def _run_one(
             timeout_seconds=timeout_seconds,
             resume=resume,
             simulation_sha256=simulation_sha256,
+            hbm_config_sha256=hbm_config_sha256,
+            child_environment=child_environment,
             registry=registry,
         )
     except Exception as error:
@@ -297,6 +328,15 @@ def main() -> int:
     parser.add_argument("--sst", type=Path, default=Path("/data/feiyang/sst/bin/sst"))
     parser.add_argument("--lib-dir", type=Path, default=ROOT / "build" / "sst")
     parser.add_argument(
+        "--dram-config",
+        type=Path,
+        default=DEFAULT_DRAM_CONFIG,
+        help=(
+            "One DRAMSim3 config shared by both systems. A non-frozen config "
+            "is labeled as an HBM sensitivity overlay."
+        ),
+    )
+    parser.add_argument(
         "--spine-profile",
         type=Path,
         default=(
@@ -309,6 +349,9 @@ def main() -> int:
     args = parser.parse_args()
     if args.jobs <= 0 or args.timeout_seconds <= 0.0:
         raise ValueError("jobs and timeout must be positive")
+    dram_contract = hbm_config_contract(args.dram_config)
+    child_environment = os.environ.copy()
+    child_environment[DRAM_CONFIG_ENV] = str(dram_contract["path"])
     manifest = validate_shared_comparison_manifest(ROOT, args.manifest)
     profile_set = normalized_profile_set(manifest)
     grasu_profiles = normalized_grasu_profile_paths(ROOT, profile_set)
@@ -347,7 +390,7 @@ def main() -> int:
             ROOT / "spine_cycle_sim" / "sst_binding.py",
             ROOT / "sst" / "spine_vertical_slice.py",
             ROOT / "sst" / "grasu_regraph_vertical.py",
-            ROOT / "configs" / "memory" / "HBM2_1ch_x128.ini",
+            Path(str(dram_contract["path"])),
             grasu_capability_catalog,
             *grasu_profiles,
             args.spine_profile,
@@ -411,6 +454,8 @@ def main() -> int:
             timeout_seconds=args.timeout_seconds,
             resume=args.resume,
             simulation_sha256=str(simulation_implementation["sha256"]),
+            hbm_config_sha256=str(dram_contract["sha256"]),
+            child_environment=child_environment,
             registry=registry,
         ): invocation
         for run, invocation in invocations
@@ -464,13 +509,22 @@ def main() -> int:
         "simulation_implementation": simulation_implementation,
         "orchestration_implementation": orchestration_implementation,
         "claim_class": (
-            "complete_candidate10_derived_normalized_structural_matrix"
-            if complete_matrix
-            else "failed_candidate10_derived_normalized_structural_matrix"
+            "failed_candidate10_derived_normalized_matrix"
             if failure is not None
-            else "filtered_candidate10_derived_normalized_structural_subset"
+            else (
+                "complete_candidate10_derived_normalized_structural_matrix"
+                if complete_matrix
+                else "filtered_candidate10_derived_normalized_structural_subset"
+            )
+            if bool(dram_contract["is_frozen_baseline"])
+            else (
+                "complete_candidate10_derived_normalized_hbm_sensitivity_matrix"
+                if complete_matrix
+                else "filtered_candidate10_derived_normalized_hbm_sensitivity_subset"
+            )
         ),
         "complete_matrix": complete_matrix,
+        "hbm_dram_config": dram_contract,
         "systems": systems,
         "sst_memory_binding_policy": {
             "physical_hbm_channels": 32,
