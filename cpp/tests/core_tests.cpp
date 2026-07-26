@@ -846,6 +846,38 @@ class ReadyPhaseCounter final : public Component {
   std::uint64_t commits{};
 };
 
+class LatchedCommitCounter final : public Component {
+ public:
+  LatchedCommitCounter(std::string name, ClockId clock, std::size_t identity,
+                       std::vector<std::size_t> &order)
+      : Component(std::move(name), clock),
+        identity_(identity),
+        order_(order) {}
+
+  [[nodiscard]] bool has_evaluate_phase() const noexcept override {
+    return false;
+  }
+  [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_latched_commit_guard() const noexcept override {
+    return true;
+  }
+  void arm() { set_latched_commit_ready(true); }
+  void evaluate(const CycleContext &) override {}
+  void commit(const CycleContext &context) override {
+    order_.push_back(identity_);
+    commit_cycles.push_back(context.domain_cycle);
+    set_latched_commit_ready(false);
+  }
+
+  std::vector<std::uint64_t> commit_cycles;
+
+ private:
+  std::size_t identity_{};
+  std::vector<std::size_t> &order_;
+};
+
 template <typename T>
 class SequenceProducer final : public Component {
  public:
@@ -1100,6 +1132,42 @@ void test_fifo_latched_commit_readiness() {
   scheduler.run_events(1);
   require(fifo.empty() && !fifo.latched_commit_ready(),
           "FIFO pop commit did not clear its readiness latch");
+}
+
+void test_scheduler_latched_commit_bitmap_ordering() {
+  Scheduler scheduler;
+  const auto fast = scheduler.add_clock_mhz("fast", 100.0);
+  const auto slow = scheduler.add_clock_mhz("slow", 50.0, 5'000'000);
+  std::vector<std::size_t> order;
+  std::vector<std::unique_ptr<LatchedCommitCounter>> counters;
+  counters.reserve(131);
+  for (std::size_t identity = 0; identity < 130; ++identity) {
+    counters.push_back(std::make_unique<LatchedCommitCounter>(
+        "latched-" + std::to_string(identity), fast, identity, order));
+    scheduler.add_component(*counters.back());
+  }
+  counters.push_back(std::make_unique<LatchedCommitCounter>(
+      "latched-slow", slow, 130, order));
+  scheduler.add_component(*counters.back());
+
+  counters[129]->arm();
+  counters[1]->arm();
+  counters[64]->arm();
+  counters[130]->arm();
+  scheduler.run_events(1);
+  require(order == std::vector<std::size_t>({1, 64, 129}),
+          "latched commit bitmap changed registration order or clock phase");
+
+  scheduler.run_events(1);
+  require(order == std::vector<std::size_t>({1, 64, 129, 130}) &&
+              counters[130]->commit_cycles == std::vector<std::uint64_t>({0}),
+          "latched multi-clock component committed before its own edge");
+
+  counters[129]->arm();
+  scheduler.remove_component(*counters[0]);
+  scheduler.run_events(1);
+  require(order == std::vector<std::size_t>({1, 64, 129, 130, 129}),
+          "component removal lost a rebased latched commit notification");
 }
 
 void test_fixed_axi_port_rejects_busy_unregister() {
@@ -7859,6 +7927,8 @@ int main(int argc, char **argv) {
       {"scheduler_dynamic_readiness",
        test_scheduler_dynamic_phase_readiness},
       {"fifo_latched_commit_readiness", test_fifo_latched_commit_readiness},
+      {"scheduler_latched_commit_bitmap",
+       test_scheduler_latched_commit_bitmap_ordering},
       {"fixed_axi_busy_unregister",
        test_fixed_axi_port_rejects_busy_unregister},
       {"fifo_no_fallthrough", test_fifo_has_no_same_cycle_fallthrough},
