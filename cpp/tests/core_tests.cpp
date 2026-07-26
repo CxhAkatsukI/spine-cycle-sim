@@ -979,6 +979,25 @@ void test_scheduler_dispatches_only_declared_phases() {
           "phase dispatch changed surviving multi-clock components");
 }
 
+void test_scheduler_component_sampling_profile() {
+  require(setenv("SPINE_SIM_PROFILE_COMPONENT_PERIOD", "2", 1) == 0,
+          "failed to configure scheduler sampling profile");
+  Scheduler scheduler;
+  require(unsetenv("SPINE_SIM_PROFILE_COMPONENT_PERIOD") == 0,
+          "failed to clear scheduler sampling profile");
+  const auto core = scheduler.add_clock_mhz("core", 100.0);
+  PhaseCounter all_phases("profiled", core, true, true, true);
+  scheduler.add_component(all_phases);
+  scheduler.run_events(5);
+
+  const auto rows = scheduler.component_profile();
+  require(scheduler.profiling_period() == 2 && rows.size() == 1,
+          "scheduler sampling profile configuration was not retained");
+  require(rows[0].name == "profiled" && rows[0].prepare_samples == 3 &&
+              rows[0].evaluate_samples == 3 && rows[0].commit_samples == 3,
+          "scheduler sampled the wrong component cycles or phases");
+}
+
 void test_fixed_axi_port_rejects_busy_unregister() {
   Scheduler scheduler;
   const auto core = scheduler.add_clock_mhz("core", 100.0);
@@ -7684,6 +7703,8 @@ int main(int argc, char **argv) {
        test_scheduler_component_removal_is_exact},
       {"scheduler_phase_dispatch",
        test_scheduler_dispatches_only_declared_phases},
+      {"scheduler_component_profile",
+       test_scheduler_component_sampling_profile},
       {"fixed_axi_busy_unregister",
        test_fixed_axi_port_rejects_busy_unregister},
       {"fifo_no_fallthrough", test_fifo_has_no_same_cycle_fallthrough},
