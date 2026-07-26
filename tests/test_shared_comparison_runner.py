@@ -16,8 +16,11 @@ from spine_cycle_sim.experiments.comparison import (
     validate_system_result,
 )
 from scripts.run_shared_comparison_matrix import (
+    DEFAULT_DRAM_CONFIG,
+    FROZEN_DRAM_CONFIG_SHA256,
     ProcessRegistry,
     _raw_evidence_problems,
+    hbm_config_contract,
     override_invocation_max_cycles,
     parse_run_cycle_overrides,
 )
@@ -108,6 +111,24 @@ class SharedComparisonRunnerTests(unittest.TestCase):
             after = implementation_fingerprint([first, second])
         self.assertNotEqual(before["sha256"], after["sha256"])
         self.assertEqual(len(before["files"]), 2)
+
+    def test_hbm_config_contract_labels_baseline_and_sensitivity(self) -> None:
+        baseline = hbm_config_contract(DEFAULT_DRAM_CONFIG)
+        self.assertTrue(baseline["is_frozen_baseline"])
+        self.assertEqual(baseline["sha256"], FROZEN_DRAM_CONFIG_SHA256)
+        self.assertEqual(
+            baseline["shared_by_systems"], ["spine", "grasu_regraph"]
+        )
+        with tempfile.TemporaryDirectory(dir=ROOT) as tmp:
+            sensitivity_path = Path(tmp) / "sensitivity.ini"
+            sensitivity_path.write_bytes(
+                DEFAULT_DRAM_CONFIG.read_bytes() + b"\n; sensitivity\n"
+            )
+            sensitivity = hbm_config_contract(sensitivity_path)
+            self.assertFalse(sensitivity["is_frozen_baseline"])
+            self.assertEqual(sensitivity["experiment_role"], "hbm_sensitivity")
+            with self.assertRaisesRegex(ValueError, "missing"):
+                hbm_config_contract(Path(tmp) / "missing.ini")
 
     def test_normalized_contract_accepts_only_candidate10_lineage(self) -> None:
         contract = validate_normalized_profile_contract(
