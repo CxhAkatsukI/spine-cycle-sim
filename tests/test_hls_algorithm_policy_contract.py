@@ -19,7 +19,7 @@ class HlsAlgorithmPolicyContractTests(unittest.TestCase):
         self.assertEqual(repository["branch"], "codex/map-reduce-algorithm-hls")
         self.assertEqual(
             repository["commit"],
-            "15b92edfef006ff8d5c6097ae2dbabd4522156a9",
+            "7b922ee24c488b8864f0951dc06275d9d0d54b1c",
         )
         self.assertFalse(repository["tracked_dirty"])
 
@@ -51,8 +51,12 @@ class HlsAlgorithmPolicyContractTests(unittest.TestCase):
         for name in ("full_pagerank", "thresholded_residual_pagerank"):
             algorithm = algorithms[name]
             self.assertEqual(algorithm["native_claim_allowed"], "no")
-            self.assertEqual(algorithm["full_system_hls_sw_emu"], "not_integrated")
-            self.assertGreaterEqual(len(algorithm["remaining_full_system_components"]), 6)
+            self.assertEqual(
+                algorithm["full_system_hls_sw_emu"],
+                "component_correctness_passed_whole_xclbin_pending",
+            )
+            self.assertEqual(algorithm["full_system_hls_hw"], "build_running")
+            self.assertGreaterEqual(len(algorithm["remaining_full_system_components"]), 3)
 
     def test_policy_core_is_not_mislabeled_as_full_system_ppa(self) -> None:
         core = self.contract["policy_core"]

@@ -33,34 +33,40 @@ MATRIX = (
     EXPERIMENT_DIR / "shared_comparison_candidate10_hls_v3_20260726.json"
 )
 
-HLS_REVISION = "6378d9e8fa4f8a7a2542ee443d2a3622024bee54"
+HLS_REVISION = "7b922ee24c488b8864f0951dc06275d9d0d54b1c"
 HLS_SOURCE_HASHES = {
     "scripts/prepare_pagerank_pipeline_build.sh": (
-        "1540235e0452af865039ba391e23f28ed0ba50750b021c871e2ca02c45013836"
+        "eed168a07b035d19e779d2f75c05f0dbf274cadfa7c136a10a46cc55bfcd23ad"
     ),
     "kernels/grasu_dispatch_degree/grasu_dispatch_degree.cpp": (
         "e0392187797b3cad16e7600e682332fc18624d890dca5075341921a8eb70aa66"
     ),
     "kernels/grasu_degree_update/grasu_degree_update.cpp": (
-        "5b8172883c871e621b31ba285ebd50e9a23327568952084dbb777895cba44bca"
+        "113bd82eb915da8594466cad115e972b9aaea733c3a73494a8007620a88410ba"
     ),
     "kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp": (
-        "06f0290d44a9c51d3fdcaaab981d731db5c7f9d07ae94199a93724a2188c8061"
+        "e5b3f2260447fb8caa7ad2d63db8d2677fef665c6a225b7e289eab67776be1f0"
     ),
     "kernels/regraph_stream_little_gs/little_gs_stream.cpp": (
         "aa7e8df97bb1e933fc860ca51d4547b7e301da48b9a37d82cef245df310fd2a8"
     ),
     "kernels/regraph_pagerank_apply/regraph_pagerank_apply.cpp": (
-        "35cb0e68a5641d73f3b13ce1c1edd2727787739a09381bdc0fda4b412aa16a9c"
+        "aa433c0ad7c0a8cec0362acfa2d7e8c3248861449c3ad8ac858e5d0cf9e003bd"
     ),
     "kernels/regraph_pagerank_source_prepare/regraph_pagerank_source_prepare.cpp": (
-        "8345d50e332d3cfd4d4e8ffb6ca1010f26df9ffb2f30a8793384cbf2dc118c77"
+        "f10825af7802d397ae999bdf8651ba6a923d97ecc86d0c3cd5bd2096e7cb085f"
     ),
     "include/grasu_degree_delta.hpp": (
         "e78b4349c7eff14738cdaef5c031fa8a92b40f38260711fb96b9ca0f42e05578"
     ),
     "include/regraph_pagerank_apply.hpp": (
         "6b3d5c0362a739da83c9ddb6b9b706df2c5402c5c9c4a22b979c21bd31877784"
+    ),
+    "patches/grasu_compact_bin_search_master_20260726.diff": (
+        "53317ef6f7f82530d92b45aea9a59d75fa8d522866f5658fa9fce8a0d31518c0"
+    ),
+    "scripts/check_xo_master_budget.py": (
+        "fdd0dc1324809add9aa6092d5bae92c3b677d406ebd67b43bd78651024a67771"
     ),
 }
 
@@ -257,7 +263,7 @@ def build_contract() -> dict[str, Any]:
             "branch": "codex/map-reduce-algorithm-hls",
             "revision": HLS_REVISION,
             "source_sha256": HLS_SOURCE_HASHES,
-            "status": "full_and_residual_hw_rebuild_running",
+            "status": "weighted_full_and_residual_hw_builds_running",
             "common_page_rank_cus": 16,
             "components": {
                 "bin_search": 4,
@@ -287,8 +293,18 @@ def build_contract() -> dict[str, Any]:
                 "rank": 4,
                 "residual": 5,
                 "degree": 6,
-                "stats": 7,
+                "stats": 6,
                 "source_mirrors": [1, 3],
+            },
+            "bin_search_axi": {
+                "masters_per_cu": 2,
+                "topology": "edge_input_plus_shared_binary_row_offset_metadata",
+                "xo_metadata_gate": "required_before_link",
+            },
+            "hmss_master_budget": {
+                "full_pagerank": 27,
+                "thresholded_residual_pagerank": 29,
+                "platform_limit_including_reserved": 33,
             },
             "handoff": "pma_native_axis_no_materialized_edge_conversion",
         },
@@ -310,6 +326,15 @@ def build_contract() -> dict[str, Any]:
                 "performance_sensitive": True,
                 "publication_blocker": False,
                 "disposition": "retain",
+            },
+            {
+                "mechanism": "bin_search_axi_master_topology",
+                "normalized": "two masters/CU: edge input plus shared binary/row-offset metadata",
+                "latest_hls": "two masters/CU: edge input plus shared binary/row-offset metadata",
+                "difference_class": "structurally_equivalent",
+                "performance_sensitive": True,
+                "publication_blocker": False,
+                "disposition": "retain and gate compiled XO metadata before link",
             },
             {
                 "mechanism": "degree_completion",

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 import subprocess
@@ -53,7 +54,7 @@ class Candidate10NormalizedFreezeV3Tests(unittest.TestCase):
             "missing_feasibility_evidence",
         }
         crosswalk = self.contract["prototype_crosswalk"]
-        self.assertGreaterEqual(len(crosswalk), 7)
+        self.assertGreaterEqual(len(crosswalk), 8)
         self.assertEqual(len({item["mechanism"] for item in crosswalk}), len(crosswalk))
         for item in crosswalk:
             self.assertIn(item["difference_class"], allowed)
@@ -84,10 +85,27 @@ class Candidate10NormalizedFreezeV3Tests(unittest.TestCase):
         prototype = self.contract["latest_hls_prototype"]
         self.assertEqual(len(prototype["revision"]), 40)
         self.assertEqual(prototype["common_page_rank_cus"], 16)
-        self.assertEqual(len(prototype["source_sha256"]), 9)
+        self.assertEqual(len(prototype["source_sha256"]), 11)
+        self.assertEqual(prototype["bin_search_axi"]["masters_per_cu"], 2)
+        self.assertEqual(
+            prototype["hmss_master_budget"]["thresholded_residual_pagerank"],
+            29,
+        )
         self.assertTrue(
             all(len(value) == 64 for value in prototype["source_sha256"].values())
         )
+        repository = Path(prototype["repository"])
+        revision = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=repository,
+            text=True,
+            stdout=subprocess.PIPE,
+            check=True,
+        ).stdout.strip()
+        self.assertEqual(revision, prototype["revision"])
+        for relative, expected in prototype["source_sha256"].items():
+            actual = hashlib.sha256((repository / relative).read_bytes()).hexdigest()
+            self.assertEqual(actual, expected, relative)
 
 
 if __name__ == "__main__":

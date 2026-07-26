@@ -48,7 +48,7 @@ mathematical oracle. A mismatch is a failed row, not a timing sample.
 ## Latest HLS prototype crosswalk
 
 The feasibility prototype is pinned to
-`grasu-regraph-integration@6378d9e8fa4f8a7a2542ee443d2a3622024bee54`.
+`grasu-regraph-integration@7b922ee24c488b8864f0951dc06275d9d0d54b1c`.
 It now contains complete conversion-free Full and residual PageRank build
 topologies with 16 CUs. It is valuable synthesis/PPA evidence, but it is not
 silently called matching normalized-v3 HLS:
@@ -56,6 +56,7 @@ silently called matching normalized-v3 HLS:
 | Mechanism | Frozen normalized v3 | Latest HLS prototype | Disposition |
 | --- | --- | --- | --- |
 | PMA handoff | finite eight-lane AXIS | finite eight-lane AXIS | structurally equivalent |
+| Bin-search AXI | edge input master + shared row/binary metadata master per CU | same two-master topology, checked from compiled XO | structurally equivalent |
 | Degree completion | four depth-16 FIFOs + 4,096 reorder entries | one ordered depth-64 AXIS from dispatch | model separately; optimization |
 | PageRank state | apply/degree on HBM[30] | rank HBM[4], residual HBM[5], degree HBM[6] | native-prototype mode required |
 | Source preparation | per-source cache refill, degree read, source-map | separate full-vertex pass to HBM[1]/HBM[3] | native-prototype mode required |

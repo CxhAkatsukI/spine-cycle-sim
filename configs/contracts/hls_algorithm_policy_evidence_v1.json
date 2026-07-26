@@ -5,12 +5,12 @@
     "path": "/home/chuxiao/grasu-regraph-integration",
     "remote": "git@github.com:CxhAkatsukI/grasu-regraph-integration.git",
     "branch": "codex/map-reduce-algorithm-hls",
-    "commit": "15b92edfef006ff8d5c6097ae2dbabd4522156a9",
+    "commit": "7b922ee24c488b8864f0951dc06275d9d0d54b1c",
     "tracked_dirty": false
   },
   "policy_core": {
     "source": "kernels/regraph_algorithm_policy/regraph_algorithm_policy.cpp",
-    "source_sha256": "18422dd7d722649121823b92c4a2c9f95b099801488b46473a31c933582b248b",
+    "source_sha256": "34299fc9b8c68e6cd6b81a50cffbd52fe2aadcaf588f3e7d220eb412c59993b7",
     "lanes": 8,
     "requested_clock_mhz": 200,
     "operations": [
@@ -24,7 +24,7 @@
   },
   "pma_adapter": {
     "source": "kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp",
-    "source_sha256": "06f0290d44a9c51d3fdcaaab981d731db5c7f9d07ae94199a93724a2188c8061",
+    "source_sha256": "e5b3f2260447fb8caa7ad2d63db8d2677fef665c6a225b7e289eab67776be1f0",
     "modes": [
       "legacy_unit_weight",
       "weighted_dst19_weight12",
@@ -39,7 +39,7 @@
       "policy_sw_emu_compile": "passed",
       "normalized_execution_driven_simulator": "passed",
       "full_system_hls_sw_emu": "passed",
-      "full_system_hls_hw": "build_pending",
+      "full_system_hls_hw": "build_running",
       "native_claim_allowed": "sw_emu_correctness_only",
       "remaining_full_system_components": []
     },
@@ -47,15 +47,12 @@
       "policy_state_bytes_per_vertex": 4,
       "policy_sw_emu_compile": "passed",
       "normalized_execution_driven_simulator": "passed",
-      "full_system_hls_sw_emu": "not_integrated",
-      "full_system_hls_hw": "not_integrated",
+      "full_system_hls_sw_emu": "component_correctness_passed_whole_xclbin_pending",
+      "full_system_hls_hw": "build_running",
       "native_claim_allowed": "no",
       "remaining_full_system_components": [
-        "device_dangling_mass_reduction",
-        "degree_maintenance_and_binding",
-        "rank_ping_pong_storage",
-        "iteration_control_and_convergence",
-        "destination_only_adapter_build_profile",
+        "whole_xclbin_link_and_timing",
+        "whole_xclbin_host_iteration_control",
         "whole_xclbin_host_and_dual_oracle_validation"
       ]
     },
@@ -63,16 +60,12 @@
       "policy_state_bytes_per_vertex": 8,
       "policy_sw_emu_compile": "passed",
       "normalized_execution_driven_simulator": "passed",
-      "full_system_hls_sw_emu": "not_integrated",
-      "full_system_hls_hw": "not_integrated",
+      "full_system_hls_sw_emu": "component_correctness_passed_whole_xclbin_pending",
+      "full_system_hls_hw": "build_running",
       "native_claim_allowed": "no",
       "remaining_full_system_components": [
-        "device_dangling_residual_reduction",
-        "degree_maintenance_and_binding",
-        "rank_and_signed_residual_storage",
-        "threshold_frontier_generation",
-        "iteration_control_and_quiescence",
-        "destination_only_adapter_build_profile",
+        "whole_xclbin_link_and_timing",
+        "whole_xclbin_host_iteration_control",
         "whole_xclbin_host_and_dual_oracle_validation"
       ]
     }
@@ -81,6 +74,10 @@
     "integration_readme": "evidence/regraph_algorithm_policy_sw_emu_20260726/README.md",
     "weighted_full_system_sw_emu": "evidence/weighted_pma_native_sw_emu_ff13a67/README.md",
     "local_sw_emu_build_root": "/data/tmp/chuxiao/regraph_algorithm_policy_sw_emu_precommit_a927186_20260726",
-    "weighted_hw_build_root": "/data/tmp/chuxiao/grasu_regraph_weighted_sssp_native_hw_15b92ed_20260726"
+    "weighted_hw_build_root": "/data/tmp/chuxiao/grasu_regraph_weighted_sssp_normalized_v3_hw_20260726",
+    "full_pagerank_hw_build_root": "/data/tmp/chuxiao/grasu_regraph_full_pagerank_normalized_v3_hw_retry4_2189bc1_150mhz_20260726",
+    "residual_pagerank_hw_build_root": "/data/tmp/chuxiao/grasu_regraph_residual_pagerank_normalized_v3_hw_retry5_4338022_150mhz_20260726",
+    "compact_bin_search_patch": "patches/grasu_compact_bin_search_master_20260726.diff",
+    "compiled_xo_master_gate": "scripts/check_xo_master_budget.py"
   }
 }
