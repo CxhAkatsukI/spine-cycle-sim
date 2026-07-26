@@ -1,12 +1,99 @@
 #include "spine_sim/scheduler.hpp"
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
+#include <cstdlib>
+#include <iostream>
 #include <limits>
 #include <stdexcept>
 #include <utility>
 
 namespace spine::sim {
+
+namespace {
+
+std::uint64_t profiling_period_from_environment() {
+  const char* text = std::getenv("SPINE_SIM_PROFILE_COMPONENT_PERIOD");
+  if (text == nullptr || *text == '\0') {
+    return 0;
+  }
+  try {
+    const std::string value(text);
+    std::size_t consumed = 0;
+    const std::uint64_t period = std::stoull(value, &consumed);
+    if (consumed != value.size() || period == 0) {
+      throw std::invalid_argument("not a positive integer");
+    }
+    return period;
+  } catch (const std::exception& error) {
+    throw std::invalid_argument(
+        std::string("invalid SPINE_SIM_PROFILE_COMPONENT_PERIOD: ") +
+        error.what());
+  }
+}
+
+}  // namespace
+
+Scheduler::Scheduler()
+    : profiling_period_(profiling_period_from_environment()),
+      emit_profile_report_(
+          std::getenv("SPINE_SIM_PROFILE_COMPONENT_REPORT") != nullptr) {}
+
+Scheduler::~Scheduler() {
+  if (!emit_profile_report_ || profiling_period_ == 0) {
+    return;
+  }
+  std::cerr << "SCHEDULER_PROFILE period=" << profiling_period_ << '\n';
+  for (const SchedulerComponentProfile& row : component_profile()) {
+    std::cerr << "SCHEDULER_PROFILE component=" << row.name
+              << " prepare_samples=" << row.prepare_samples
+              << " prepare_ns=" << row.prepare_nanoseconds
+              << " evaluate_samples=" << row.evaluate_samples
+              << " evaluate_ns=" << row.evaluate_nanoseconds
+              << " commit_samples=" << row.commit_samples
+              << " commit_ns=" << row.commit_nanoseconds << '\n';
+  }
+}
+
+std::vector<SchedulerComponentProfile> Scheduler::component_profile() const {
+  std::vector<SchedulerComponentProfile> rows;
+  rows.reserve(profiles_.size());
+  for (const auto& [component, profile] : profiles_) {
+    (void)component;
+    rows.push_back(profile);
+  }
+  std::sort(rows.begin(), rows.end(), [](const auto& left, const auto& right) {
+    const std::uint64_t left_total = left.prepare_nanoseconds +
+                                     left.evaluate_nanoseconds +
+                                     left.commit_nanoseconds;
+    const std::uint64_t right_total = right.prepare_nanoseconds +
+                                      right.evaluate_nanoseconds +
+                                      right.commit_nanoseconds;
+    return left_total != right_total ? left_total > right_total
+                                     : left.name < right.name;
+  });
+  return rows;
+}
+
+void Scheduler::record_profile(Component& component, ProfilePhase phase,
+                               std::uint64_t nanoseconds) {
+  SchedulerComponentProfile& row = profiles_.at(&component);
+  switch (phase) {
+    case ProfilePhase::kPrepare:
+      ++row.prepare_samples;
+      row.prepare_nanoseconds += nanoseconds;
+      return;
+    case ProfilePhase::kEvaluate:
+      ++row.evaluate_samples;
+      row.evaluate_nanoseconds += nanoseconds;
+      return;
+    case ProfilePhase::kCommit:
+      ++row.commit_samples;
+      row.commit_nanoseconds += nanoseconds;
+      return;
+  }
+}
 
 ClockId Scheduler::add_clock_mhz(std::string name, double frequency_mhz,
                                  TimestampFs phase_fs) {
@@ -38,6 +125,10 @@ void Scheduler::add_component(Component& component) {
     throw std::invalid_argument("component registered more than once");
   }
   components_.push_back(&component);
+  if (profiling_period_ != 0) {
+    profiles_.emplace(&component,
+                      SchedulerComponentProfile{.name = component.name()});
+  }
   if (component.has_prepare_phase()) {
     prepare_components_.push_back(&component);
   }
@@ -83,6 +174,22 @@ void Scheduler::step() {
         return left.next_edge_fs < right.next_edge_fs;
       });
   now_fs_ = next->next_edge_fs;
+  const bool profile_cycle =
+      profiling_period_ != 0 && event_count_ % profiling_period_ == 0;
+  const auto invoke = [this, profile_cycle](Component& component,
+                                             ProfilePhase phase,
+                                             auto&& action) {
+    if (!profile_cycle) {
+      action();
+      return;
+    }
+    const auto start = std::chrono::steady_clock::now();
+    action();
+    const auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now() - start);
+    record_profile(component, phase,
+                   static_cast<std::uint64_t>(elapsed.count()));
+  };
 
   if (clocks_.size() == 1) {
     const CycleContext context{
@@ -91,43 +198,52 @@ void Scheduler::step() {
         .clock_id = 0,
     };
     for (Component* component : prepare_components_) {
-      component->prepare(context);
+      invoke(*component, ProfilePhase::kPrepare,
+             [&] { component->prepare(context); });
     }
     for (Component* component : evaluate_components_) {
-      component->evaluate(context);
+      invoke(*component, ProfilePhase::kEvaluate,
+             [&] { component->evaluate(context); });
     }
     for (Component* component : commit_components_) {
-      component->commit(context);
+      invoke(*component, ProfilePhase::kCommit,
+             [&] { component->commit(context); });
     }
   } else {
     for (Component* component : prepare_components_) {
       const ClockId id = component->clock_id();
       if (clocks_[id].next_edge_fs == now_fs_) {
-        component->prepare(CycleContext{
+        const CycleContext context{
             .now_fs = now_fs_,
             .domain_cycle = clocks_[id].completed_cycles,
             .clock_id = id,
-        });
+        };
+        invoke(*component, ProfilePhase::kPrepare,
+               [&] { component->prepare(context); });
       }
     }
     for (Component* component : evaluate_components_) {
       const ClockId id = component->clock_id();
       if (clocks_[id].next_edge_fs == now_fs_) {
-        component->evaluate(CycleContext{
+        const CycleContext context{
             .now_fs = now_fs_,
             .domain_cycle = clocks_[id].completed_cycles,
             .clock_id = id,
-        });
+        };
+        invoke(*component, ProfilePhase::kEvaluate,
+               [&] { component->evaluate(context); });
       }
     }
     for (Component* component : commit_components_) {
       const ClockId id = component->clock_id();
       if (clocks_[id].next_edge_fs == now_fs_) {
-        component->commit(CycleContext{
+        const CycleContext context{
             .now_fs = now_fs_,
             .domain_cycle = clocks_[id].completed_cycles,
             .clock_id = id,
-        });
+        };
+        invoke(*component, ProfilePhase::kCommit,
+               [&] { component->commit(context); });
       }
     }
   }
