@@ -123,3 +123,28 @@ baseline/sensitivity winners, and strict rank inversions. The group summary
 reports geometric-mean Spine speedup and inversion counts for each profile. A
 winner is treated as tied inside a 1% ratio band, preventing a negligible
 near-1.0 change from being reported as an architectural reversal.
+
+## Completed result
+
+The complete frozen sweep passed all 120 system runs (5 memory profiles, 12
+workloads, 2 systems) with no correctness or memory-ledger failure:
+
+| Profile | Spine speedup geometric mean | Winner changes | Strict inversions |
+| --- | ---: | ---: | ---: |
+| latency low | 1.435x | 1 | 0 |
+| latency high | 1.385x | 1 | 0 |
+| bandwidth high | 1.413x | 0 | 0 |
+| bandwidth low | 1.413x | 0 | 0 |
+
+The two winner changes are both from a baseline tie, not from one architecture
+to the other. For `syn_spread_e512` residual PageRank, the baseline ratio is
+0.998x; low latency moves it to 1.025x for Spine, while high latency moves it
+to 0.977x for GraSU + ReGraph. This case is memory-latency-sensitive and should
+not be used alone as a headline winner. Across the full selected set, the main
+Spine advantage remains in the same direction under all four overlays.
+
+Compact evidence is committed under
+`docs/evidence/candidate10_hbm_sensitivity_v1_20260727`. The parent manifest
+hash-pins every child `comparison_manifest.json`, `results.csv`, and
+`pairs.csv`; its combined raw-evidence SHA-256 is
+`935ba5ab66d16dc57235a18849de0e256f1a3f3f78be042f7ae60cb17532eeba`.

@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 from pathlib import Path
+import json
+import tempfile
 import unittest
 
 from scripts.run_shared_hbm_sensitivity import (
     DEFAULT_CONTRACT,
+    collect_profile_evidence,
     load_contract,
     select_profiles,
     summarize_pairs,
@@ -86,6 +89,50 @@ class SharedHbmSensitivityTests(unittest.TestCase):
                 ],
                 tolerance=1.01,
             )
+
+    def test_profile_evidence_is_hash_pinned_and_fail_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            profile_root = root / "baseline"
+            profile_root.mkdir()
+            manifest = {
+                "status": "PASS",
+                "failure": None,
+                "result_rows": 2,
+                "paired_rows": 1,
+                "claim_class": "baseline",
+                "hbm_dram_config": {
+                    "experiment_role": "frozen_baseline",
+                    "sha256": "config-sha",
+                },
+                "simulation_implementation": {"sha256": "simulation-sha"},
+            }
+            (profile_root / "comparison_manifest.json").write_text(
+                json.dumps(manifest), encoding="ascii"
+            )
+            (profile_root / "results.csv").write_text(
+                "system\nspine\ngrasu_regraph\n", encoding="ascii"
+            )
+            (profile_root / "pairs.csv").write_text(
+                "run_id\ncase\n", encoding="ascii"
+            )
+            rows, digest = collect_profile_evidence(
+                root,
+                {"baseline": {"sha256": "config-sha"}},
+                expected_pairs=1,
+            )
+            self.assertEqual(rows[0]["simulation_sha256"], "simulation-sha")
+            self.assertEqual(len(digest), 64)
+            manifest["hbm_dram_config"]["sha256"] = "tampered"
+            (profile_root / "comparison_manifest.json").write_text(
+                json.dumps(manifest), encoding="ascii"
+            )
+            with self.assertRaisesRegex(ValueError, "invalid"):
+                collect_profile_evidence(
+                    root,
+                    {"baseline": {"sha256": "config-sha"}},
+                    expected_pairs=1,
+                )
 
 
 if __name__ == "__main__":
