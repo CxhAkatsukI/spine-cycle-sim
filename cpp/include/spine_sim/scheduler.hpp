@@ -66,6 +66,9 @@ class Scheduler {
 
   void record_profile(Component& component, ProfilePhase phase,
                       std::uint64_t nanoseconds);
+  void rebuild_phase_registrations();
+  static void notify_latched_commit(void *owner, std::size_t slot) noexcept;
+  void mark_latched_commit_ready(std::size_t slot) noexcept;
 
   std::vector<ClockDomainSnapshot> clocks_;
   std::vector<Component*> components_;
@@ -75,7 +78,10 @@ class Scheduler {
   std::vector<Component*> commit_components_;
   std::vector<bool> commit_dynamic_guards_;
   std::vector<bool> commit_latched_guards_;
-  std::vector<bool> commit_readiness_;
+  std::vector<std::size_t> unconditional_commit_slots_;
+  std::vector<std::size_t> dynamic_commit_slots_;
+  std::vector<std::uint64_t> latched_commit_words_;
+  std::vector<std::uint64_t> selected_commit_words_;
   std::unordered_map<Component*, SchedulerComponentProfile> profiles_;
   std::uint64_t profiling_period_{};
   bool emit_profile_report_{};

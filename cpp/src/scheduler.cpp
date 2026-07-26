@@ -1,6 +1,7 @@
 #include "spine_sim/scheduler.hpp"
 
 #include <algorithm>
+#include <bit>
 #include <chrono>
 #include <cmath>
 #include <cstdlib>
@@ -129,19 +130,7 @@ void Scheduler::add_component(Component& component) {
     profiles_.emplace(&component,
                       SchedulerComponentProfile{.name = component.name()});
   }
-  if (component.has_prepare_phase()) {
-    prepare_components_.push_back(&component);
-  }
-  if (component.has_evaluate_phase()) {
-    evaluate_components_.push_back(&component);
-    evaluate_dynamic_guards_.push_back(
-        component.has_dynamic_evaluate_guard());
-  }
-  if (component.has_commit_phase()) {
-    commit_components_.push_back(&component);
-    commit_dynamic_guards_.push_back(component.has_dynamic_commit_guard());
-    commit_latched_guards_.push_back(component.has_latched_commit_guard());
-  }
+  rebuild_phase_registrations();
 }
 
 void Scheduler::remove_component(Component& component) {
@@ -150,30 +139,72 @@ void Scheduler::remove_component(Component& component) {
     throw std::invalid_argument("component is not registered");
   }
   components_.erase(found);
-  const auto remove_from_phase = [&component](auto& phase_components) {
-    const auto phase_found =
-        std::find(phase_components.begin(), phase_components.end(), &component);
-    if (phase_found != phase_components.end()) {
-      phase_components.erase(phase_found);
+  rebuild_phase_registrations();
+}
+
+void Scheduler::notify_latched_commit(void *owner,
+                                      std::size_t slot) noexcept {
+  static_cast<Scheduler *>(owner)->mark_latched_commit_ready(slot);
+}
+
+void Scheduler::mark_latched_commit_ready(std::size_t slot) noexcept {
+  const std::size_t word = slot / 64;
+  if (word >= latched_commit_words_.size()) {
+    return;
+  }
+  latched_commit_words_[word] |= std::uint64_t{1} << (slot % 64);
+}
+
+void Scheduler::rebuild_phase_registrations() {
+  for (std::size_t slot = 0; slot < commit_components_.size(); ++slot) {
+    if (commit_latched_guards_[slot]) {
+      commit_components_[slot]->unbind_latched_commit_notifier();
     }
-  };
-  const auto remove_from_guarded_phase = [&component](
-                                          auto& phase_components,
-                                          auto&... guards) {
-    const auto phase_found =
-        std::find(phase_components.begin(), phase_components.end(), &component);
-    if (phase_found == phase_components.end()) {
-      return;
+  }
+  prepare_components_.clear();
+  evaluate_components_.clear();
+  evaluate_dynamic_guards_.clear();
+  commit_components_.clear();
+  commit_dynamic_guards_.clear();
+  commit_latched_guards_.clear();
+  unconditional_commit_slots_.clear();
+  dynamic_commit_slots_.clear();
+
+  for (Component *component : components_) {
+    if (component->has_prepare_phase()) {
+      prepare_components_.push_back(component);
     }
-    const auto index = static_cast<std::size_t>(
-        std::distance(phase_components.begin(), phase_found));
-    phase_components.erase(phase_found);
-    (guards.erase(guards.begin() + static_cast<std::ptrdiff_t>(index)), ...);
-  };
-  remove_from_phase(prepare_components_);
-  remove_from_guarded_phase(evaluate_components_, evaluate_dynamic_guards_);
-  remove_from_guarded_phase(commit_components_, commit_dynamic_guards_,
-                            commit_latched_guards_);
+    if (component->has_evaluate_phase()) {
+      evaluate_components_.push_back(component);
+      evaluate_dynamic_guards_.push_back(
+          component->has_dynamic_evaluate_guard());
+    }
+    if (component->has_commit_phase()) {
+      commit_components_.push_back(component);
+      commit_dynamic_guards_.push_back(
+          component->has_dynamic_commit_guard());
+      commit_latched_guards_.push_back(
+          component->has_latched_commit_guard());
+    }
+  }
+
+  const std::size_t word_count = (commit_components_.size() + 63) / 64;
+  latched_commit_words_.assign(word_count, 0);
+  selected_commit_words_.assign(word_count, 0);
+  for (std::size_t slot = 0; slot < commit_components_.size(); ++slot) {
+    Component *component = commit_components_[slot];
+    if (commit_latched_guards_[slot]) {
+      component->bind_latched_commit_notifier(
+          this, slot, &Scheduler::notify_latched_commit);
+      if (component->latched_commit_ready()) {
+        mark_latched_commit_ready(slot);
+      }
+    } else if (commit_dynamic_guards_[slot]) {
+      dynamic_commit_slots_.push_back(slot);
+    } else {
+      unconditional_commit_slots_.push_back(slot);
+    }
+  }
 }
 
 const ClockDomainSnapshot& Scheduler::clock(ClockId id) const {
@@ -208,6 +239,26 @@ void Scheduler::step() {
     record_profile(component, phase,
                    static_cast<std::uint64_t>(elapsed.count()));
   };
+  const auto select_commit = [this](std::size_t slot) {
+    selected_commit_words_[slot / 64] |=
+        std::uint64_t{1} << (slot % 64);
+  };
+  const auto invoke_selected_commits =
+      [this, &invoke](const auto &context_for_slot) {
+        for (std::size_t word_index = 0;
+             word_index < selected_commit_words_.size(); ++word_index) {
+          std::uint64_t word = selected_commit_words_[word_index];
+          while (word != 0) {
+            const unsigned bit = std::countr_zero(word);
+            const std::size_t slot = word_index * 64 + bit;
+            Component *component = commit_components_[slot];
+            const CycleContext context = context_for_slot(slot);
+            invoke(*component, ProfilePhase::kCommit,
+                   [&] { component->commit(context); });
+            word &= word - 1;
+          }
+        }
+      };
 
   if (clocks_.size() == 1) {
     const CycleContext context{
@@ -227,22 +278,17 @@ void Scheduler::step() {
       invoke(*component, ProfilePhase::kEvaluate,
              [&] { component->evaluate(context); });
     }
-    commit_readiness_.resize(commit_components_.size());
-    for (std::size_t index = 0; index < commit_components_.size(); ++index) {
-      commit_readiness_[index] =
-          !commit_dynamic_guards_[index] ||
-          (commit_latched_guards_[index]
-               ? commit_components_[index]->latched_commit_ready()
-               : commit_components_[index]->commit_ready());
+    selected_commit_words_ = latched_commit_words_;
+    std::fill(latched_commit_words_.begin(), latched_commit_words_.end(), 0);
+    for (const std::size_t slot : unconditional_commit_slots_) {
+      select_commit(slot);
     }
-    for (std::size_t index = 0; index < commit_components_.size(); ++index) {
-      if (!commit_readiness_[index]) {
-        continue;
+    for (const std::size_t slot : dynamic_commit_slots_) {
+      if (commit_components_[slot]->commit_ready()) {
+        select_commit(slot);
       }
-      Component* component = commit_components_[index];
-      invoke(*component, ProfilePhase::kCommit,
-             [&] { component->commit(context); });
     }
+    invoke_selected_commits([&context](std::size_t) { return context; });
   } else {
     for (Component* component : prepare_components_) {
       const ClockId id = component->clock_id();
@@ -270,33 +316,43 @@ void Scheduler::step() {
                [&] { component->evaluate(context); });
       }
     }
-    commit_readiness_.resize(commit_components_.size());
-    for (std::size_t index = 0; index < commit_components_.size(); ++index) {
-      Component* component = commit_components_[index];
-      const ClockId id = component->clock_id();
-      commit_readiness_[index] =
-          clocks_[id].next_edge_fs == now_fs_ &&
-          (!commit_dynamic_guards_[index] ||
-           (commit_latched_guards_[index]
-                ? component->latched_commit_ready()
-                : component->commit_ready()));
-    }
-    for (std::size_t index = 0; index < commit_components_.size(); ++index) {
-      if (!commit_readiness_[index]) {
-        continue;
-      }
-      Component* component = commit_components_[index];
-      const ClockId id = component->clock_id();
-      {
-        const CycleContext context{
-            .now_fs = now_fs_,
-            .domain_cycle = clocks_[id].completed_cycles,
-            .clock_id = id,
-        };
-        invoke(*component, ProfilePhase::kCommit,
-               [&] { component->commit(context); });
+    std::fill(selected_commit_words_.begin(), selected_commit_words_.end(), 0);
+    for (std::size_t word_index = 0;
+         word_index < latched_commit_words_.size(); ++word_index) {
+      std::uint64_t pending = latched_commit_words_[word_index];
+      while (pending != 0) {
+        const unsigned bit = std::countr_zero(pending);
+        const std::size_t slot = word_index * 64 + bit;
+        Component *component = commit_components_[slot];
+        if (clocks_[component->clock_id()].next_edge_fs == now_fs_) {
+          select_commit(slot);
+          latched_commit_words_[word_index] &=
+              ~(std::uint64_t{1} << bit);
+        }
+        pending &= pending - 1;
       }
     }
+    for (const std::size_t slot : unconditional_commit_slots_) {
+      Component *component = commit_components_[slot];
+      if (clocks_[component->clock_id()].next_edge_fs == now_fs_) {
+        select_commit(slot);
+      }
+    }
+    for (const std::size_t slot : dynamic_commit_slots_) {
+      Component *component = commit_components_[slot];
+      if (clocks_[component->clock_id()].next_edge_fs == now_fs_ &&
+          component->commit_ready()) {
+        select_commit(slot);
+      }
+    }
+    invoke_selected_commits([this](std::size_t slot) {
+      const ClockId id = commit_components_[slot]->clock_id();
+      return CycleContext{
+          .now_fs = now_fs_,
+          .domain_cycle = clocks_[id].completed_cycles,
+          .clock_id = id,
+      };
+    });
   }
 
   for (auto& clock : clocks_) {

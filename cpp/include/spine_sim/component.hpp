@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <limits>
 #include <string>
 #include <utility>
 
@@ -62,13 +63,37 @@ class Component {
 
  protected:
   void set_latched_commit_ready(bool ready) noexcept {
+    const bool notify = ready && !latched_commit_ready_ &&
+                        latched_commit_notifier_ != nullptr;
     latched_commit_ready_ = ready;
+    if (notify) {
+      latched_commit_notifier_(latched_commit_notifier_owner_,
+                               latched_commit_slot_);
+    }
   }
 
  private:
+  friend class Scheduler;
+  using LatchedCommitNotifier = void (*)(void *, std::size_t) noexcept;
+
+  void bind_latched_commit_notifier(void *owner, std::size_t slot,
+                                    LatchedCommitNotifier notifier) noexcept {
+    latched_commit_notifier_owner_ = owner;
+    latched_commit_slot_ = slot;
+    latched_commit_notifier_ = notifier;
+  }
+  void unbind_latched_commit_notifier() noexcept {
+    latched_commit_notifier_owner_ = nullptr;
+    latched_commit_slot_ = std::numeric_limits<std::size_t>::max();
+    latched_commit_notifier_ = nullptr;
+  }
+
   std::string name_;
   ClockId clock_id_;
   bool latched_commit_ready_{};
+  void *latched_commit_notifier_owner_{};
+  std::size_t latched_commit_slot_{std::numeric_limits<std::size_t>::max()};
+  LatchedCommitNotifier latched_commit_notifier_{};
 };
 
 }  // namespace spine::sim
