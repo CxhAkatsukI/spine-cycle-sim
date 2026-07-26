@@ -63,6 +63,17 @@ class RealSmallBatchAnalysisTests(unittest.TestCase):
         self.assertEqual(normalized["update_ms"], 0.001)
         self.assertEqual(normalized["compute_ms"], 3.999)
 
+    def test_weighted_grasu_row_falls_back_to_unsplit_backend_bytes(self) -> None:
+        row = {
+            **self._row("grasu_regraph", 0.0, 0.0),
+            "aligned_e2e_ms": 4.0,
+            "structure_update_cycles": 150,
+            "aligned_backend_requests": 50,
+            "aligned_backend_bytes": "",
+        }
+        normalized = normalize_system_row(row, "weighted_sssp")
+        self.assertEqual(normalized["backend_bytes"], 6_400)
+
 
 if __name__ == "__main__":
     unittest.main()

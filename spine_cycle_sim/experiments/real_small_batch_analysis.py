@@ -46,9 +46,11 @@ def normalize_system_row(
         e2e_ms = _float(row, "aligned_e2e_ms")
         update_ms = _float(row, "structure_update_cycles") / (core_mhz * 1_000.0)
         backend_requests = int(row["aligned_backend_requests"])
-        backend_bytes = int(row["aligned_backend_bytes"])
+        backend_bytes = int(row.get("aligned_backend_bytes") or row["backend_bytes"])
         discontinuous_ratio = float(
-            row.get("aligned_backend_discontinuous_request_ratio", 0.0) or 0.0
+            row.get("aligned_backend_discontinuous_request_ratio")
+            or row.get("backend_discontinuous_request_ratio", 0.0)
+            or 0.0
         )
     else:
         e2e_ms = _float(row, "e2e_ms")
