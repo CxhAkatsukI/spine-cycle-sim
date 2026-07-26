@@ -108,3 +108,10 @@ Compact evidence is frozen under
 `docs/evidence/candidate10_hls_v3_dense_full_pagerank_20260727/`. The raw child
 directories remain under `/data/tmp/chuxiao/` and are intentionally not
 committed.
+
+Verify the self-contained bundle with:
+
+```bash
+cd docs/evidence/candidate10_hls_v3_dense_full_pagerank_20260727
+sha256sum -c SHA256SUMS
+```
