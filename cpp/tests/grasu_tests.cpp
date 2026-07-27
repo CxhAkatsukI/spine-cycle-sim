@@ -1055,7 +1055,12 @@ void test_pma_native_regraph_full_pagerank_matches_oracle() {
   const auto counters = system.counters();
   require(counters.supersteps == kIterations &&
               counters.row_reads == kVertices * kIterations &&
-              counters.degree_reads == counters.apply_state_reads &&
+              counters.source_prepare_state_reads == 1 &&
+              counters.source_prepare_degree_reads == 1 &&
+              counters.source_prepare_writes == 2 &&
+              counters.source_prepare_cycles > 128 &&
+              counters.degree_reads == counters.apply_state_reads +
+                                           counters.source_prepare_degree_reads &&
               counters.degree_read_bytes ==
                   counters.degree_reads * 16 *
                       sizeof(std::uint32_t) &&
@@ -1063,12 +1068,17 @@ void test_pma_native_regraph_full_pagerank_matches_oracle() {
               counters.active_edges_mapped == edges.size() * kIterations &&
               counters.apply_state_reads == kIterations &&
               counters.apply_state_writes == kIterations &&
-              counters.source_state_writes == 2 * kIterations,
+              counters.source_state_writes ==
+                  2 * kIterations + counters.source_prepare_writes,
           "PMA-native ReGraph PageRank work ledger mismatch");
   std::cout << "EVIDENCE grasu_regraph_full_pagerank cycles="
             << counters.end_cycle - counters.start_cycle
             << " iterations=" << counters.supersteps
             << " degree_reads=" << counters.degree_reads
+            << " source_prepare_cycles=" << counters.source_prepare_cycles
+            << " source_prepare_reads="
+            << counters.source_prepare_state_reads
+            << " source_prepare_writes=" << counters.source_prepare_writes
             << " source_map_cycles=" << counters.source_map_cycles
             << " active_edges=" << counters.active_edges_mapped
             << " rank_sum=" << rank_sum
@@ -1135,13 +1145,18 @@ void test_partitioned_regraph_pagerank_counts_dangling_once() {
               counters.destination_partitions == 3 &&
               counters.partition_passes == 3 * kIterations &&
               counters.row_reads == 3 * kVertices * kIterations &&
-              counters.degree_reads == counters.partition_passes &&
+              counters.source_prepare_state_reads == 3 &&
+              counters.source_prepare_degree_reads == 3 &&
+              counters.source_prepare_writes == 6 &&
+              counters.degree_reads == counters.partition_passes +
+                                           counters.source_prepare_degree_reads &&
               counters.active_edges_mapped == edges.size() * kIterations,
           "partitioned PageRank work ledger mismatch");
   std::cout << "EVIDENCE grasu_regraph_partitioned_pagerank cycles="
             << counters.end_cycle - counters.start_cycle
             << " partitions=" << counters.destination_partitions
             << " degree_reads=" << counters.degree_reads
+            << " source_prepare_cycles=" << counters.source_prepare_cycles
             << " rank_sum=" << rank_sum << '\n';
 }
 
@@ -1294,7 +1309,12 @@ void test_pma_native_regraph_residual_pagerank_matches_oracles() {
   const auto counters = system.counters();
   require(counters.state_bytes_per_vertex == 8 &&
               counters.supersteps == architecture.iterations &&
-              counters.degree_reads == counters.apply_state_reads &&
+              counters.source_prepare_state_reads == 1 &&
+              counters.source_prepare_degree_reads == 1 &&
+              counters.source_prepare_writes == 2 &&
+              counters.source_prepare_cycles > 128 &&
+              counters.degree_reads == counters.apply_state_reads +
+                                           counters.source_prepare_degree_reads &&
               counters.source_map_cycles == 0 &&
               counters.active_edges_mapped == architecture.active_edges &&
               counters.apply_read_bytes == counters.apply_state_reads * 128 &&
@@ -1306,6 +1326,7 @@ void test_pma_native_regraph_residual_pagerank_matches_oracles() {
             << counters.end_cycle - counters.start_cycle
             << " iterations=" << counters.supersteps
             << " active_edges=" << counters.active_edges_mapped
+            << " source_prepare_cycles=" << counters.source_prepare_cycles
             << " state_bytes=" << counters.state_bytes_per_vertex
             << " max_math_error=" << max_mathematical_error << '\n';
 }

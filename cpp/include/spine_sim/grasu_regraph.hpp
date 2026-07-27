@@ -72,6 +72,11 @@ struct GraSuReGraphCounters {
   std::uint64_t supersteps{};
   std::uint64_t partition_passes{};
   std::uint64_t pipeline_busy_cycles{};
+  std::uint64_t source_prepare_cycles{};
+  std::uint64_t source_prepare_state_reads{};
+  std::uint64_t source_prepare_state_read_bytes{};
+  std::uint64_t source_prepare_degree_reads{};
+  std::uint64_t source_prepare_writes{};
   std::uint64_t row_reads{};
   std::uint64_t source_state_reads{};
   std::uint64_t source_cache_requests{};
@@ -130,6 +135,8 @@ struct GraSuReGraphCounters {
   std::uint64_t pma_read_bytes{};
   std::uint64_t apply_read_bytes{};
   std::uint64_t apply_write_bytes{};
+  std::uint64_t axi_beats_issued{};
+  std::uint64_t axi_beats_completed{};
   std::uint64_t axi_request_fifo_stalls{};
   std::uint64_t axi_backend_submit_stalls{};
   std::uint64_t axis_push_stalls{};
@@ -141,8 +148,8 @@ struct GraSuReGraphCounters {
 // Direct PMA-to-ReGraph compute path. Its normalized PMA word uses ReGraph's
 // 19-bit local destination and 12-bit weight ABI. The partitioned overloads
 // dispatch destination partitions across finite compute workers and synchronize
-// at a superstep barrier. PageRank remains single-worker until its global source
-// preparation and cross-worker statistics reduction are modeled explicitly.
+// at a superstep barrier. PageRank uses one global source-preparation pass and
+// reduces worker-local active/error/dangling statistics at that barrier.
 class GraSuReGraphSsspSystem {
 public:
   GraSuReGraphSsspSystem(Scheduler &scheduler, ClockId clock_id,

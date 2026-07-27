@@ -3625,18 +3625,18 @@ class OnlineMemoryProbe final : public SST::Component {
               degree == grasu_pagerank_degrees_[vertex] ? 0 : 1;
         }
       }
-      const std::uint64_t update_requests =
+      const std::uint64_t update_logical_requests =
           update.updates + update.row_reads + update.binary_probes +
           update.pma_reads + update.pma_writes + update.degree_reads +
           update.degree_writes;
-      const std::uint64_t state_backend_requests_per_operation =
-          (compute.state_bytes_per_vertex * 16 + 63) / 64;
-      const std::uint64_t compute_requests =
-          compute.row_reads + compute.source_cache_lines + compute.degree_reads +
-          compute.pma_segment_reads +
-          state_backend_requests_per_operation *
-              (compute.apply_state_reads + compute.apply_state_writes +
-               compute.source_state_writes);
+      const std::uint64_t compute_logical_operations =
+          compute.source_prepare_state_reads + compute.row_reads +
+          compute.source_state_reads + compute.degree_reads +
+          compute.pma_segment_reads + compute.apply_state_reads +
+          compute.apply_state_writes + compute.source_state_writes;
+      const std::uint64_t update_requests = combine_memory_traffic(
+          grasu_update_backend_traffic_).requests;
+      const std::uint64_t compute_requests = compute.axi_beats_issued;
       const std::uint64_t expected_backend_requests =
           update_requests + compute_requests;
       const MemoryTrafficStats total_backend_traffic =
@@ -3669,11 +3669,12 @@ class OnlineMemoryProbe final : public SST::Component {
               grasu_residual_pagerank_reference_.frontier_in_sizes.size() &&
           compute.active_edges_mapped ==
               grasu_residual_pagerank_reference_.active_edges &&
+          compute.axi_beats_issued == compute.axi_beats_completed &&
+          expected_backend_requests == backend_->accepted() &&
+          memory_locality_ledger_match &&
           (!hls_weighted ||
            (update.degree_reads == update.inserts + update.deletes &&
-            update.degree_writes == update.inserts + update.deletes &&
-            expected_backend_requests == backend_->accepted() &&
-            memory_locality_ledger_match));
+            update.degree_writes == update.inserts + update.deletes));
       result << "{\n"
              << "  \"success\": " << (passed ? "true" : "false") << ",\n"
              << "  \"mode\": \"" << mode_ << "\",\n"
@@ -3710,6 +3711,16 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"logical_updates\": " << grasu_logical_update_edges_
              << ",\n"
              << "  \"physical_updates\": " << grasu_update_edges_ << ",\n"
+             << "  \"destination_partitions\": "
+             << compute.destination_partitions << ",\n"
+             << "  \"compute_pipelines\": " << compute.compute_pipelines
+             << ",\n"
+             << "  \"max_parallel_partitions\": "
+             << compute.max_parallel_partitions << ",\n"
+             << "  \"pipeline_busy_cycles\": "
+             << compute.pipeline_busy_cycles << ",\n"
+             << "  \"partition_passes\": " << compute.partition_passes
+             << ",\n"
              << "  \"host_vertex_reorder\": "
              << (hls_weighted && grasu_weighted_hls_host_reorder_applied_
                      ? "true"
@@ -3772,6 +3783,16 @@ class OnlineMemoryProbe final : public SST::Component {
              << (residual_bound_passed ? "true" : "false") << ",\n"
              << "  \"rank_sum\": " << rank_sum << ",\n"
              << "  \"residual_l1\": " << residual_l1 << ",\n"
+             << "  \"source_prepare_cycles\": "
+             << compute.source_prepare_cycles << ",\n"
+             << "  \"source_prepare_state_reads\": "
+             << compute.source_prepare_state_reads << ",\n"
+             << "  \"source_prepare_state_read_bytes\": "
+             << compute.source_prepare_state_read_bytes << ",\n"
+             << "  \"source_prepare_degree_reads\": "
+             << compute.source_prepare_degree_reads << ",\n"
+             << "  \"source_prepare_writes\": "
+             << compute.source_prepare_writes << ",\n"
              << "  \"degree_reads\": " << compute.degree_reads << ",\n"
              << "  \"degree_read_bytes\": " << compute.degree_read_bytes
              << ",\n"
@@ -3868,13 +3889,22 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"apply_write_bytes\": " << compute.apply_write_bytes
              << ",\n"
              << "  \"compute_read_bytes\": "
-             << compute.row_read_bytes + compute.source_state_read_bytes +
+             << compute.source_prepare_state_read_bytes +
+                    compute.row_read_bytes + compute.source_state_read_bytes +
                     compute.degree_read_bytes + compute.pma_read_bytes +
                     compute.apply_read_bytes
              << ",\n"
              << "  \"compute_write_bytes\": "
              << compute.apply_write_bytes + compute.source_state_write_bytes
              << ",\n"
+             << "  \"update_logical_requests\": "
+             << update_logical_requests << ",\n"
+             << "  \"compute_logical_axi_operations\": "
+             << compute_logical_operations << ",\n"
+             << "  \"compute_axi_beats_issued\": "
+             << compute.axi_beats_issued << ",\n"
+             << "  \"compute_axi_beats_completed\": "
+             << compute.axi_beats_completed << ",\n"
              << "  \"update_read_bytes\": "
              << update.update_read_bytes + update.row_read_bytes +
                     update.binary_read_bytes + update.pma_read_bytes +
@@ -4043,14 +4073,18 @@ class OnlineMemoryProbe final : public SST::Component {
               degree == grasu_pagerank_degrees_[vertex] ? 0 : 1;
         }
       }
-      const std::uint64_t update_requests =
+      const std::uint64_t update_logical_requests =
           update.updates + update.row_reads + update.binary_probes +
           update.pma_reads + update.pma_writes + update.degree_reads +
           update.degree_writes;
-      const std::uint64_t compute_requests =
-          compute.row_reads + compute.source_cache_lines + compute.degree_reads +
+      const std::uint64_t compute_logical_operations =
+          compute.source_prepare_state_reads + compute.row_reads +
+          compute.source_state_reads + compute.degree_reads +
           compute.pma_segment_reads + compute.apply_state_reads +
           compute.apply_state_writes + compute.source_state_writes;
+      const std::uint64_t update_requests = combine_memory_traffic(
+          grasu_update_backend_traffic_).requests;
+      const std::uint64_t compute_requests = compute.axi_beats_issued;
       const std::uint64_t expected_backend_requests =
           update_requests + compute_requests;
       const MemoryTrafficStats total_backend_traffic =
@@ -4088,6 +4122,10 @@ class OnlineMemoryProbe final : public SST::Component {
                           mathematical_max_abs_error <= 1.0e-5 &&
                           update_state_mismatches == 0 &&
                           degree_state_mismatches == 0 &&
+                          compute.axi_beats_issued ==
+                              compute.axi_beats_completed &&
+                          expected_backend_requests == backend_->accepted() &&
+                          memory_locality_ledger_match &&
                           (!timed_degree_updates ||
                            (update.degree_reads == update.inserts + update.deletes &&
                             update.degree_writes ==
@@ -4095,9 +4133,7 @@ class OnlineMemoryProbe final : public SST::Component {
                             compute.destination_partitions ==
                                 destination_partitions &&
                             compute.partition_passes ==
-                                destination_partitions * compute.supersteps &&
-                            expected_backend_requests == backend_->accepted() &&
-                            memory_locality_ledger_match));
+                                destination_partitions * compute.supersteps));
       result
           << "{\n"
           << "  \"success\": " << (passed ? "true" : "false") << ",\n"
@@ -4195,6 +4231,16 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"mathematical_max_abs_error\": " << mathematical_max_abs_error
           << ",\n"
           << "  \"rank_sum\": " << rank_sum << ",\n"
+          << "  \"source_prepare_cycles\": "
+          << compute.source_prepare_cycles << ",\n"
+          << "  \"source_prepare_state_reads\": "
+          << compute.source_prepare_state_reads << ",\n"
+          << "  \"source_prepare_state_read_bytes\": "
+          << compute.source_prepare_state_read_bytes << ",\n"
+          << "  \"source_prepare_degree_reads\": "
+          << compute.source_prepare_degree_reads << ",\n"
+          << "  \"source_prepare_writes\": "
+          << compute.source_prepare_writes << ",\n"
           << "  \"degree_reads\": " << compute.degree_reads << ",\n"
           << "  \"degree_read_bytes\": " << compute.degree_read_bytes << ",\n"
           << "  \"degree_update_timing_included\": "
@@ -4274,13 +4320,22 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"apply_write_bytes\": " << compute.apply_write_bytes
           << ",\n"
           << "  \"compute_read_bytes\": "
-          << compute.row_read_bytes + compute.source_state_read_bytes +
+          << compute.source_prepare_state_read_bytes +
+                 compute.row_read_bytes + compute.source_state_read_bytes +
                  compute.degree_read_bytes + compute.pma_read_bytes +
                  compute.apply_read_bytes
           << ",\n"
           << "  \"compute_write_bytes\": "
           << compute.apply_write_bytes + compute.source_state_write_bytes
           << ",\n"
+          << "  \"update_logical_requests\": "
+          << update_logical_requests << ",\n"
+          << "  \"compute_logical_axi_operations\": "
+          << compute_logical_operations << ",\n"
+          << "  \"compute_axi_beats_issued\": "
+          << compute.axi_beats_issued << ",\n"
+          << "  \"compute_axi_beats_completed\": "
+          << compute.axi_beats_completed << ",\n"
           << "  \"update_read_bytes\": "
           << update.update_read_bytes + update.row_read_bytes +
                  update.binary_read_bytes + update.pma_read_bytes +

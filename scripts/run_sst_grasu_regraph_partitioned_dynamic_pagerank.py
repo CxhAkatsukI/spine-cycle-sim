@@ -9,10 +9,16 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import sys
 import time
 
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from spine_cycle_sim.sst_library import forced_sst_library_binding  # noqa: E402
+
 DEFAULT_SST = Path("/data/feiyang/sst/bin/sst")
 DEFAULT_PROFILE = (
     ROOT
@@ -395,9 +401,10 @@ def main() -> int:
             ),
         }
     )
+    library_binding = forced_sst_library_binding(args.sst, args.lib_dir)
     command = [
         str(args.sst.resolve()),
-        f"--add-lib-path={args.lib_dir.resolve()}",
+        library_binding["command_option"],
         str(ROOT / "sst" / "grasu_regraph_vertical.py"),
     ]
     wall_start = time.monotonic()
@@ -427,6 +434,9 @@ def main() -> int:
     expected_rows = expected["vertices"] * partition_passes
     expected_gather_rows = partition_vertices // 2 * partition_passes
     expected_bursts = partition_vertices // 16 * partition_passes
+    expected_prepare_bursts = (expected["vertices"] + 15) // 16
+    expected_degree_reads = expected_bursts + expected_prepare_bursts
+    expected_source_writes = 2 * (expected_bursts + expected_prepare_bursts)
     degree_updates = expected["inserts"] + expected["deletes"]
     expected_update_requests = sum(
         result.get(field, -1)
@@ -440,17 +450,16 @@ def main() -> int:
             "degree_update_writes",
         )
     )
-    expected_compute_requests = sum(
-        result.get(field, -1)
-        for field in (
-            "compute_row_reads",
-            "source_cache_lines",
-            "degree_reads",
-            "compute_pma_segment_reads",
-            "apply_state_reads",
-            "apply_state_writes",
-            "compute_source_state_writes",
-        )
+    expected_compute_requests = (
+        expected_prepare_bursts
+        + expected_prepare_bursts
+        + expected_rows
+        + result.get("source_cache_lines", -1)
+        + result.get("compute_pma_segment_reads", -1)
+        + 16 * expected_bursts
+        + expected_bursts
+        + expected_bursts
+        + expected_source_writes
     )
     expected_update_read_bytes = sum(
         result.get(field, -1)
@@ -468,6 +477,7 @@ def main() -> int:
     expected_compute_read_bytes = sum(
         result.get(field, -1)
         for field in (
+            "source_prepare_state_read_bytes",
             "row_read_bytes",
             "source_state_read_bytes",
             "degree_read_bytes",
@@ -536,18 +546,28 @@ def main() -> int:
         or result.get("apply_state_writes") != expected_bursts
         or result.get("apply_input_bursts") != expected_bursts
         or result.get("hbm_wrapper_input_bursts") != expected_bursts
-        or result.get("compute_source_state_writes") != 2 * expected_bursts
-        or result.get("source_map_cycles")
-        != result.get("degree_reads", -1) * params["regraph_pagerank_source_map_latency"]
+        or result.get("degree_reads") != expected_degree_reads
+        or result.get("degree_read_bytes") != 64 * expected_degree_reads
+        or result.get("source_prepare_state_reads") != expected_prepare_bursts
+        or result.get("source_prepare_degree_reads") != expected_prepare_bursts
+        or result.get("source_prepare_writes") != 2 * expected_prepare_bursts
+        or result.get("source_prepare_state_read_bytes")
+        != 64 * expected_prepare_bursts
+        or result.get("source_prepare_cycles", 0) <= 128
+        or result.get("compute_source_state_writes") != expected_source_writes
+        or result.get("source_map_cycles") != 0
         or result.get("update_read_bytes") != expected_update_read_bytes
         or result.get("update_write_bytes") != expected_update_write_bytes
         or result.get("compute_read_bytes") != expected_compute_read_bytes
         or result.get("compute_write_bytes") != expected_compute_write_bytes
         or result.get("update_backend_requests") != expected_update_requests
+        or result.get("compute_axi_beats_issued") != expected_compute_requests
+        or result.get("compute_axi_beats_completed") != expected_compute_requests
         or result.get("compute_backend_requests") != expected_compute_requests
         or result.get("expected_backend_requests")
         != expected_update_requests + expected_compute_requests
         or result.get("backend_requests") != result.get("expected_backend_requests")
+        or result.get("memory_locality_ledger_match") is not True
         or result.get("cycles")
         != result.get("update_cycles", -1) + result.get("compute_cycles", -1)
         or result.get("serial_unattributed_cycles") != 0
@@ -570,6 +590,7 @@ def main() -> int:
         "update_workload_sha256": sha256(update_path),
         "simulator_library": str(library_path),
         "simulator_library_sha256": sha256(library_path),
+        "sst_library_binding": library_binding,
         "smoke": args.smoke,
         "command": command,
         "expected": expected,
