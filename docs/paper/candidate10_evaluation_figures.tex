@@ -166,6 +166,39 @@ Compact slices and full datasets are reported as separate populations.
 }{\missingplot{Waiting for batch 1/8/64 insert, delete, and mixed updates.}}
 
 \section{Small-batch scaling}
+\IfFileExists{data/small_batch_by_algorithm.csv}{%
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}
+    \begin{semilogxaxis}[
+      width=0.96\linewidth, height=58mm,
+      xlabel={User mutations per batch},
+      ylabel={Spine speedup over GraSU+ReGraph},
+      xtick={1,8,64}, ymin=0.1, ymode=log,
+      legend style={at={(0.5,1.16)},anchor=south,legend columns=3},
+      extra y ticks={1}, extra y tick labels={},
+      extra y tick style={grid=major,grid style={black,dashed}}]
+      \addplot[spine,mark=square*] table[
+        x=batch,y=spine_speedup,col sep=comma,
+        row predicate/.code={\edef\temp{\thisrow{algorithm_id}}\edef\want{weighted_sssp}\ifx\temp\want\else\pgfplotstableuserowfalse\fi}]
+        {data/small_batch_by_algorithm.csv};
+      \addplot[grasu,mark=triangle*] table[
+        x=batch,y=spine_speedup,col sep=comma,
+        row predicate/.code={\edef\temp{\thisrow{algorithm_id}}\edef\want{full_pagerank}\ifx\temp\want\else\pgfplotstableuserowfalse\fi}]
+        {data/small_batch_by_algorithm.csv};
+      \addplot[muted,mark=diamond*] table[
+        x=batch,y=spine_speedup,col sep=comma,
+        row predicate/.code={\edef\temp{\thisrow{algorithm_id}}\edef\want{thresholded_residual_pagerank}\ifx\temp\want\else\pgfplotstableuserowfalse\fi}]
+        {data/small_batch_by_algorithm.csv};
+      \legend{Weighted SSSP,Full PageRank,Residual PageRank}
+    \end{semilogxaxis}
+  \end{tikzpicture}
+  \caption{Insertion E2E scaling over five compact real-topology slices.
+  Values above one favor Spine. Each point is the geometric mean of five
+  correctness-gated architecture pairs.}
+\end{figure}
+}{\missingplot{Waiting for the three-algorithm batch 1/8/64 matrix.}}
+
 \IfFileExists{data/e2e_by_batch.csv}{%
 \begin{figure}[H]
   \centering
