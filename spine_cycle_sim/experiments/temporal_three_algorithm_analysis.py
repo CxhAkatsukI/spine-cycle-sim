@@ -18,6 +18,14 @@ ALGORITHM_LABELS = {
 EXPECTED_SCENARIO = "insert"
 EXPECTED_BATCH = 8
 EXPANDED_BATCHES = (1, 8, 64)
+OPT_V2_SPINE_PROFILE = "spine_candidate10_opt_v2_reader_working_set"
+K1_GRASU_PROFILES = {
+    "weighted_sssp": "grasu_regraph_candidate10_k1_multipart_weighted_v4",
+    "full_pagerank": "grasu_regraph_candidate10_k1_multipart_pagerank_v4",
+    "thresholded_residual_pagerank": (
+        "grasu_regraph_candidate10_k1_multipart_residual_v4"
+    ),
+}
 
 
 def _read_csv(path: Path) -> list[dict[str, str]]:
@@ -605,6 +613,132 @@ def analyze_temporal_expanded_small_batches(
             "The expanded cross-algorithm matrix covers insertion only.",
             "Weighted SSSP uses oracle-minimum fixed host supersteps.",
             "All inputs remain within one normalized destination partition.",
+        ],
+    }
+    (out_dir / "analysis_manifest.json").write_text(
+        json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    return report
+
+
+def analyze_opt_v2_k1_temporal_small_batches(
+    *,
+    matrix_dirs: dict[str, Path],
+    input_manifest_path: Path,
+    out_dir: Path,
+    paper_data_dir: Path | None = None,
+) -> dict[str, object]:
+    if set(matrix_dirs) != set(ALGORITHM_LABELS):
+        raise ValueError("three-algorithm matrix directories are incomplete")
+    matrix_dirs = {key: path.resolve() for key, path in matrix_dirs.items()}
+    input_manifest_path = input_manifest_path.resolve()
+    out_dir = out_dir.resolve()
+    out_dir.mkdir(parents=True, exist_ok=True)
+    input_manifest = json.loads(input_manifest_path.read_text(encoding="utf-8"))
+    run_metadata = {
+        str(run["run_id"]): run
+        for run in input_manifest["runs"]
+        if str(run["scenario"]) == EXPECTED_SCENARIO
+        and int(run["batch_size"]) in EXPANDED_BATCHES
+    }
+    if len(run_metadata) != 15:
+        raise ValueError("input manifest lacks five insert runs per small batch")
+    expected_runs = set(run_metadata)
+
+    systems: list[dict[str, object]] = []
+    pairs: list[dict[str, object]] = []
+    source_manifests: dict[str, dict[str, object]] = {}
+    for algorithm, matrix_dir in matrix_dirs.items():
+        source_manifest = json.loads(
+            (matrix_dir / "matrix_manifest.json").read_text(encoding="utf-8")
+        )
+        if source_manifest.get("spine_profile_id") != OPT_V2_SPINE_PROFILE:
+            raise ValueError(f"{algorithm} matrix does not use opt-v2 Spine")
+        if source_manifest.get("grasu_profile_id") != K1_GRASU_PROFILES[algorithm]:
+            raise ValueError(f"{algorithm} matrix does not use the frozen K=1 profile")
+        source_manifests[algorithm] = source_manifest
+        algorithm_systems, algorithm_pairs = _load_algorithm(
+            algorithm=algorithm,
+            matrix_dir=matrix_dir,
+            expected_runs=expected_runs,
+        )
+        systems.extend(algorithm_systems)
+        pairs.extend(algorithm_pairs)
+
+    expected_keys = {
+        (algorithm, run_id)
+        for algorithm in ALGORITHM_LABELS
+        for run_id in expected_runs
+    }
+    observed_keys = {
+        (str(row["algorithm"]), str(row["run_id"])) for row in pairs
+    }
+    if observed_keys != expected_keys or len(pairs) != 45 or len(systems) != 90:
+        raise ValueError("opt-v2/K=1 small-batch matrix is incomplete")
+
+    correctness, batch_rows = _expanded_paper_tables(pairs)
+    batch8_pairs = [row for row in pairs if int(row["batch_size"]) == EXPECTED_BATCH]
+    abbreviation_by_dataset = {
+        str(dataset["dataset_id"]): str(dataset["abbreviation"])
+        for dataset in input_manifest["datasets"]
+    }
+    _, algorithm_rows, dataset_rows = _paper_tables(
+        batch8_pairs, abbreviation_by_dataset
+    )
+
+    outputs = {
+        "system_rows.csv": systems,
+        "pair_rows.csv": pairs,
+        "correctness_coverage.csv": correctness,
+        "small_batch_by_algorithm.csv": batch_rows,
+        "e2e_by_algorithm.csv": algorithm_rows,
+        "e2e_speedup_by_dataset_algorithm.csv": dataset_rows,
+    }
+    for filename, rows in outputs.items():
+        _write_csv(out_dir / filename, rows)
+    if paper_data_dir is not None:
+        paper_data_dir = paper_data_dir.resolve()
+        for filename in (
+            "correctness_coverage.csv",
+            "small_batch_by_algorithm.csv",
+            "e2e_by_algorithm.csv",
+            "e2e_speedup_by_dataset_algorithm.csv",
+        ):
+            _write_csv(paper_data_dir / filename, outputs[filename])
+
+    raw_archive = out_dir / "raw_results.tar.gz"
+    _archive_raw(raw_archive, matrix_dirs, expected_runs)
+    output_paths = [out_dir / filename for filename in outputs] + [raw_archive]
+    report = {
+        "schema_version": 1,
+        "analysis_id": "candidate10_opt_v2_k1_temporal_small_batches_v1_20260728",
+        "status": "PASS",
+        "algorithms": list(ALGORITHM_LABELS),
+        "batch_sizes": list(EXPANDED_BATCHES),
+        "scenario": EXPECTED_SCENARIO,
+        "datasets": sorted(abbreviation_by_dataset),
+        "pairs": len(pairs),
+        "system_rows": len(systems),
+        "all_correct": True,
+        "dram_request_ledgers_closed": True,
+        "spine_profile_id": OPT_V2_SPINE_PROFILE,
+        "grasu_profile_ids": K1_GRASU_PROFILES,
+        "input_manifest_sha256": sha256_file(input_manifest_path),
+        "source_matrix_manifest_sha256": {
+            algorithm: sha256_file(matrix_dir / "matrix_manifest.json")
+            for algorithm, matrix_dir in matrix_dirs.items()
+        },
+        "source_matrix_all_correct": {
+            algorithm: bool(manifest.get("all_correct"))
+            for algorithm, manifest in source_manifests.items()
+        },
+        "outputs": {path.name: sha256_file(path) for path in output_paths},
+        "limitations": [
+            "Inputs are 8192-edge compact file-order slices, not full datasets.",
+            "The cross-algorithm matrix covers insertion batches 1, 8, and 64.",
+            "Weighted SSSP uses oracle-minimum fixed host supersteps.",
+            "All inputs remain within one destination partition in both systems.",
+            "Active-channel DRAM energy excludes idle channels and on-chip energy.",
         ],
     }
     (out_dir / "analysis_manifest.json").write_text(
