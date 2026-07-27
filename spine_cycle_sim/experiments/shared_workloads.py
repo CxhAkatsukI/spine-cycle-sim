@@ -842,6 +842,7 @@ def validate_shared_comparison_manifest(root: Path, manifest_path: Path) -> dict
     if matrix_id in {
         "shared_comparison_candidate10_v2_20260726",
         "shared_comparison_candidate10_hls_v3_20260726",
+        "shared_comparison_candidate10_k1_multipart_v4_20260728",
     }:
         expected_profile_paths = [
             "configs/architectures/spine_candidate10_one_pass_1e61fc0.json",
@@ -856,6 +857,22 @@ def validate_shared_comparison_manifest(root: Path, manifest_path: Path) -> dict
                     ),
                 ]
                 if matrix_id == "shared_comparison_candidate10_v2_20260726"
+                else [
+                    (
+                        "configs/architectures/"
+                        "grasu_regraph_candidate10_k1_multipart_weighted_v4.json"
+                    ),
+                    (
+                        "configs/architectures/"
+                        "grasu_regraph_candidate10_k1_multipart_pagerank_v4.json"
+                    ),
+                    (
+                        "configs/architectures/"
+                        "grasu_regraph_candidate10_k1_multipart_residual_v4.json"
+                    ),
+                ]
+                if matrix_id
+                == "shared_comparison_candidate10_k1_multipart_v4_20260728"
                 else [
                     (
                         "configs/architectures/"
@@ -889,6 +906,9 @@ def validate_shared_comparison_manifest(root: Path, manifest_path: Path) -> dict
         expected_catalog = (
             "configs/contracts/grasu_regraph_candidate10_capabilities_v2.json"
             if matrix_id == "shared_comparison_candidate10_v2_20260726"
+            else "configs/contracts/grasu_regraph_k1_multipart_capabilities_v4.json"
+            if matrix_id
+            == "shared_comparison_candidate10_k1_multipart_v4_20260728"
             else "configs/contracts/grasu_regraph_candidate10_hls_capabilities_v3.json"
         )
         if (
@@ -896,9 +916,20 @@ def validate_shared_comparison_manifest(root: Path, manifest_path: Path) -> dict
             or capability_catalog.get("path") != expected_catalog
         ):
             raise ValueError("Candidate10 capability catalog is not pinned")
-        if matrix_id == "shared_comparison_candidate10_hls_v3_20260726":
-            if contract.get("grasu_profile_set") != "hls_v3":
-                raise ValueError("Candidate10 HLS-v3 profile set is not explicit")
+        if matrix_id in {
+            "shared_comparison_candidate10_hls_v3_20260726",
+            "shared_comparison_candidate10_k1_multipart_v4_20260728",
+        }:
+            expected_profile_set = (
+                "k1_v4"
+                if matrix_id
+                == "shared_comparison_candidate10_k1_multipart_v4_20260728"
+                else "hls_v3"
+            )
+            if contract.get("grasu_profile_set") != expected_profile_set:
+                raise ValueError(
+                    f"Candidate10 {expected_profile_set} profile set is not explicit"
+                )
             for run in runs:
                 if run["algorithm"] in {
                     "full_pagerank",

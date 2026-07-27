@@ -557,16 +557,16 @@
       "sha256": "4e31633c55abfdc57fd4537119d6abb6d7a4f0313dcfc81332fa0ed0a6320c0a"
     },
     {
-      "path": "configs/architectures/grasu_regraph_candidate10_normalized_hls_weighted_v3.json",
-      "sha256": "51d1edd1bc9eca864d5c57858d80ef3890152f4a6062bc1259833d38c2be4823"
+      "path": "configs/architectures/grasu_regraph_candidate10_k1_multipart_weighted_v4.json",
+      "sha256": "a6a2cca9dff4f55b3f096868c2e24b453c3a249cfcff443c50f5e7a61f5ca71e"
     },
     {
-      "path": "configs/architectures/grasu_regraph_candidate10_normalized_hls_pagerank_v3.json",
-      "sha256": "7155f87efa086a6563e80296f8460db14716e2f60f277ea5997f1d976897877e"
+      "path": "configs/architectures/grasu_regraph_candidate10_k1_multipart_pagerank_v4.json",
+      "sha256": "cb33252599584880ffb2281d161178f543db68e3dfb855df0f4b3fef4fa733ab"
     },
     {
-      "path": "configs/architectures/grasu_regraph_candidate10_normalized_hls_residual_pagerank_v3.json",
-      "sha256": "6ef8a8c9fe4beca4ea76a86a1041c47b15968cd8d846122358ce5b28ecdfa14d"
+      "path": "configs/architectures/grasu_regraph_candidate10_k1_multipart_residual_v4.json",
+      "sha256": "0d035f8c036c3632a6d99770abd91b7144b8ceb19b9777a4fd5e1d59b367a049"
     }
   ],
   "real_sources": [

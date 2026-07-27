@@ -55,6 +55,20 @@ class SharedComparisonRunnerTests(unittest.TestCase):
         self.assertEqual(len(runs), 10)
         self.assertTrue(all(run["role"] == "holdout" for run in runs))
 
+    def test_k1_manifest_pins_only_k1_profiles(self) -> None:
+        manifest = validate_shared_comparison_manifest(
+            ROOT,
+            ROOT
+            / "configs"
+            / "experiments"
+            / "shared_comparison_candidate10_k1_multipart_v4_20260728.json",
+        )
+        profile_paths = [item["path"] for item in manifest["profiles"]]
+        self.assertEqual(manifest["comparison_contract"]["grasu_profile_set"], "k1_v4")
+        self.assertTrue(
+            all("_k1_multipart_" in path for path in profile_paths[2:])
+        )
+
     def test_dynamic_commands_preserve_identical_graph_and_update(self) -> None:
         run = next(
             run
