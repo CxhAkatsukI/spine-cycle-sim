@@ -4,16 +4,16 @@
       "algorithm": "weighted_sssp",
       "artifact": {
         "path_from_build_root": "xclbin/spine_partitioned_split_e2e.hw.xclbin",
-        "sha256": "551ed1e89755a8b97725efa4003e28007eabd66abb73f480c6ee087a627b9666",
-        "size_bytes": 52769249
+        "sha256": "0ec3beac2ca32ccbf50234974fe9bffcd531b29793e4ff5dc97b910eeb7603ac",
+        "size_bytes": 52370982
       },
-      "build_id": "spine_candidate10_sssp_150mhz",
+      "build_id": "spine_candidate10_sssp_152mhz",
       "claim_scope": "spine_core_sssp_baseline",
       "resources": {
         "bram": 99,
         "dsp": 22,
-        "lut": 127910,
-        "reg": 149746,
+        "lut": 127847,
+        "reg": 149744,
         "uram": 99
       },
       "source": {
@@ -23,15 +23,15 @@
         "revision": "1e61fc0822608f8776399cc10a851f6fe5806f92"
       },
       "system": "spine",
-      "target_mhz": 150.0,
+      "target_mhz": 152.0,
       "timing": {
         "disposition": "target_closed",
         "failing_endpoints": 0,
-        "target_period_ns": 6.666666666666667,
+        "target_period_ns": 6.578947368421052,
         "tns_ns": 0.0,
         "wns_ns": 0.003,
-        "worst_path_frequency_mhz": 150.0675303886749,
-        "worst_path_period_ns": 6.663666666666667
+        "worst_path_frequency_mhz": 152.06934362069106,
+        "worst_path_period_ns": 6.575947368421052
       },
       "topology": {
         "hbm_channels": [
@@ -261,7 +261,7 @@
     "Weighted SSSP, Full PageRank, and thresholded residual PageRank routed and produced xclbins but miss the 150 MHz setup target by 0.013 ns, 0.130 ns, and 0.087 ns respectively.",
     "This ledger establishes routed HLS feasibility, topology, area, and timing only; dynamic energy requires simulator activity plus separately validated component and HBM energy models."
   ],
-  "manifest_sha256": "b033afc1523dd019618700233b250ef8d177d098e0ca94d866893c1ebeb99f62",
+  "manifest_sha256": "4048752a6bab08eb7982a1124bd805e6244fc4ffbfa94cbff45f76a435a83e73",
   "resource_ratio_eligible": false,
   "schema_version": 1,
   "status": "PASS"

@@ -299,19 +299,22 @@ Compact slices and full datasets are reported as separate populations.
   \resizebox{\linewidth}{!}{%
   \pgfplotstabletypeset[
     col sep=comma,
-    columns={label,lut,reg,bram,uram,dsp,wns_ns,timing},
+    columns={label,target_mhz,lut,reg,bram,uram,dsp,wns_ns,timing},
     columns/label/.style={string type,column name={Build}},
+    columns/target_mhz/.style={column name={Target (MHz)},fixed,precision=0},
     columns/lut/.style={column name={LUT},fixed,precision=0},
     columns/reg/.style={column name={REG},fixed,precision=0},
     columns/bram/.style={column name={BRAM},fixed,precision=0},
     columns/uram/.style={column name={URAM},fixed,precision=0},
     columns/dsp/.style={column name={DSP},fixed,precision=0},
     columns/wns_ns/.style={column name={WNS (ns)},fixed,precision=3},
-    columns/timing/.style={string type,column name={150 MHz setup}},
+    columns/timing/.style={string type,column name={Setup}},
     every head row/.style={before row=\toprule,after row=\midrule},
     every last row/.style={after row=\bottomrule}
   ]{data/ppa_summary.csv}}
-  \caption{Routed U55C HLS feasibility at a 150 MHz data-clock target. These
+  \caption{Routed U55C HLS feasibility at each row's stated data-clock target.
+  Spine is the latest source-identical 152 MHz implementation; the
+  GraSU+ReGraph implementations target 150 MHz. These
   builds are not iso-functional: Spine is the native SSSP core baseline,
   whereas the GraSU+ReGraph rows are algorithm-specific normalized whole
   systems. Absolute resource ratios are therefore not used as a comparative
@@ -336,8 +339,9 @@ Compact slices and full datasets are reported as separate populations.
         {(Spine SSSP,0) (G+R Residual PR,0)};
     \end{axis}
   \end{tikzpicture}
-  \caption{Post-route setup margin at the 150 MHz target. Non-negative WNS
-  closes timing; negative WNS identifies the remaining target miss.}
+  \caption{Post-route setup margin at each row's stated target (152 MHz for
+  Spine and 150 MHz for GraSU+ReGraph). Non-negative WNS closes timing;
+  negative WNS identifies the remaining target miss.}
 \end{figure}
 }{\missingplot{Waiting for routed artifacts for Spine and all three GraSU+ReGraph algorithms.}}
 

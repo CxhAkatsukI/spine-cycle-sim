@@ -2,7 +2,9 @@
 
 ## Scope
 
-This bundle validates four U55C `hw` artifacts at a 150 MHz data-clock target:
+This bundle validates four U55C `hw` artifacts. Spine uses the latest
+source-identical 152 MHz routed build; the three GraSU+ReGraph builds use a
+150 MHz data-clock target:
 
 - the native Candidate10 Spine weighted-SSSP core baseline;
 - normalized, conversion-free GraSU+ReGraph weighted SSSP;
@@ -16,14 +18,17 @@ any retained table or frozen expectation changes.
 
 ## Results
 
-| Build | LUT | REG | BRAM | URAM | DSP | WNS ns | 150 MHz setup |
-|---|---:|---:|---:|---:|---:|---:|---|
-| Spine SSSP | 127,910 | 149,746 | 99 | 99 | 22 | +0.003 | closed |
-| GraSU+ReGraph SSSP | 96,559 | 107,380 | 233 | 64 | 0 | -0.013 | target missed |
-| GraSU+ReGraph Full PR | 178,374 | 177,836 | 278 | 64 | 304 | -0.130 | target missed |
-| GraSU+ReGraph Residual PR | 247,692 | 301,029 | 293 | 64 | 336 | -0.087 | target missed |
+| Build | Target | LUT | REG | BRAM | URAM | DSP | WNS ns | Setup |
+|---|---:|---:|---:|---:|---:|---:|---:|---|
+| Spine SSSP | 152 MHz | 127,847 | 149,744 | 99 | 99 | 22 | +0.003 | closed |
+| GraSU+ReGraph SSSP | 150 MHz | 96,559 | 107,380 | 233 | 64 | 0 | -0.013 | target missed |
+| GraSU+ReGraph Full PR | 150 MHz | 178,374 | 177,836 | 278 | 64 | 304 | -0.130 | target missed |
+| GraSU+ReGraph Residual PR | 150 MHz | 247,692 | 301,029 | 293 | 64 | 336 | -0.087 | target missed |
 
-All four designs completed routing and produced an xclbin. The three
+All four designs completed routing and produced an xclbin. Spine closes its
+152 MHz target with +0.003 ns WNS. Its kernel source hash is byte-identical to
+the earlier 150 MHz baseline, so this updates native feasibility evidence
+without changing the frozen normalized 150 MHz simulator comparison. The three
 GraSU+ReGraph builds are close to, but do not close, the 150 MHz setup target.
 Their report-derived worst-path frequencies are approximately 149.71, 147.13,
 and 148.07 MHz respectively. A generated xclbin is implementation-feasibility

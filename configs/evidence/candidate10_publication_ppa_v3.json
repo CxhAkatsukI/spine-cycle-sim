@@ -4,7 +4,7 @@
   "repository_root": "../..",
   "builds": [
     {
-      "build_id": "spine_candidate10_sssp_150mhz",
+      "build_id": "spine_candidate10_sssp_152mhz",
       "system": "spine",
       "algorithm": "weighted_sssp",
       "claim_scope": "spine_core_sssp_baseline",
@@ -14,17 +14,17 @@
         "dirty": true,
         "identity_note": "Frozen spine_partitioned.hpp SHA256 d98fb04cb59c3b00b894ba4d615d7dd1a6250f46fe1d998a951bb0a0843c7dbc"
       },
-      "target_mhz": 150,
-      "artifact_sha256": "551ed1e89755a8b97725efa4003e28007eabd66abb73f480c6ee087a627b9666",
+      "target_mhz": 152,
+      "artifact_sha256": "0ec3beac2ca32ccbf50234974fe9bffcd531b29793e4ff5dc97b910eeb7603ac",
       "evidence": {
-        "accelerator_util": {"path": "docs/evidence/candidate10_publication_ppa_v3_20260727/spine_sssp/accelerator_util.tsv", "sha256": "22b919f45bf8d56b314fd9f064212b79aba6694ebb203c43834aaae0b6d6ada0"},
-        "artifacts": {"path": "docs/evidence/candidate10_publication_ppa_v3_20260727/spine_sssp/artifacts.tsv", "sha256": "f236e1c8eabcdef4224cb1636c2a267d7ec29d5c4f978dd65179161555c63592"},
-        "connectivity": {"path": "docs/evidence/candidate10_publication_ppa_v3_20260727/spine_sssp/connectivity.tsv", "sha256": "f66f9bb636412073a4fd0b3baba8ed2aefbd352b27320d1711bfa9e5d8d377ad"},
-        "link_kernels": {"path": "docs/evidence/candidate10_publication_ppa_v3_20260727/spine_sssp/link_kernels.tsv", "sha256": "f879502f555f9f2e3db9499e17de81f498d6f638b386b8e1efe20317266fe25d"},
-        "timing": {"path": "docs/evidence/candidate10_publication_ppa_v3_20260727/spine_sssp/timing.tsv", "sha256": "24d9485e5768ae63897213f028f4d5ffde5e7b9b663f94eaef7753b5db569b0f"}
+        "accelerator_util": {"path": "docs/evidence/candidate10_publication_ppa_v3_20260727/spine_sssp/accelerator_util.tsv", "sha256": "02bacd9d5539da9b91b84ddccf3032e4a934838248b4bbe2087e2ecdf01883d2"},
+        "artifacts": {"path": "docs/evidence/candidate10_publication_ppa_v3_20260727/spine_sssp/artifacts.tsv", "sha256": "aa781e9e3ba011c877bff828c33fbbc570060485a7b541c1a3a10cd8b29b47c3"},
+        "connectivity": {"path": "docs/evidence/candidate10_publication_ppa_v3_20260727/spine_sssp/connectivity.tsv", "sha256": "bf04c9d531a77e733558f108624f3042434d49f5324292a0b83108ed60c4aaaa"},
+        "link_kernels": {"path": "docs/evidence/candidate10_publication_ppa_v3_20260727/spine_sssp/link_kernels.tsv", "sha256": "939aeabc0482351cfb6332ddca5ceab6cedfa27aa64ea62a7e4bc0d80acdad8a"},
+        "timing": {"path": "docs/evidence/candidate10_publication_ppa_v3_20260727/spine_sssp/timing.tsv", "sha256": "f2e14452963e684d0c689bbd24f9aa410777b3f6a59f39e7f8974397163dd47b"}
       },
       "expected": {
-        "resources": {"lut": 127910, "reg": 149746, "bram": 99, "uram": 99, "dsp": 22},
+        "resources": {"lut": 127847, "reg": 149744, "bram": 99, "uram": 99, "dsp": 22},
         "wns_ns": 0.003,
         "timing_disposition": "target_closed",
         "topology": {

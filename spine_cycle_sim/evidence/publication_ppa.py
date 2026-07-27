@@ -295,8 +295,15 @@ def analyze_publication_ppa_manifest(manifest_path: str | Path) -> dict[str, Any
     spine_builds = [build for build in builds if build["system"] == "spine"]
     if len(spine_builds) != 1 or spine_builds[0]["claim_scope"] != "spine_core_sssp_baseline":
         raise PublicationPpaError("exactly one Spine core/SSSP baseline is required")
-    if any(build["target_mhz"] != 150.0 for build in builds):
-        raise PublicationPpaError("Candidate10 PPA evidence must target 150 MHz")
+    grasu_builds = [build for build in builds if build["system"] == "grasu_regraph"]
+    if any(build["target_mhz"] != 150.0 for build in grasu_builds):
+        raise PublicationPpaError(
+            "Candidate10 GraSU+ReGraph PPA evidence must target 150 MHz"
+        )
+    if spine_builds[0]["target_mhz"] < 150.0:
+        raise PublicationPpaError(
+            "Candidate10 native Spine baseline must target at least 150 MHz"
+        )
 
     return {
         "schema_version": 1,

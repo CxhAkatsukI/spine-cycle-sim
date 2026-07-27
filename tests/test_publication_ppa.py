@@ -226,6 +226,33 @@ class PublicationPpaTests(unittest.TestCase):
             with self.assertRaisesRegex(PublicationPpaError, "frozen expectation"):
                 analyze_publication_ppa_manifest(path)
 
+    def test_accepts_faster_native_spine_anchor(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            path = self._fixture(Path(temporary))
+            manifest = json.loads(path.read_text(encoding="utf-8"))
+            manifest["builds"][0]["target_mhz"] = 152
+            path.write_text(json.dumps(manifest), encoding="utf-8")
+            result = analyze_publication_ppa_manifest(path)
+        self.assertEqual(result["builds"][0]["target_mhz"], 152.0)
+
+    def test_rejects_non_normalized_grasu_target(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            path = self._fixture(Path(temporary))
+            manifest = json.loads(path.read_text(encoding="utf-8"))
+            manifest["builds"][1]["target_mhz"] = 152
+            path.write_text(json.dumps(manifest), encoding="utf-8")
+            with self.assertRaisesRegex(PublicationPpaError, "must target 150"):
+                analyze_publication_ppa_manifest(path)
+
+    def test_rejects_slow_native_spine_anchor(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            path = self._fixture(Path(temporary))
+            manifest = json.loads(path.read_text(encoding="utf-8"))
+            manifest["builds"][0]["target_mhz"] = 149
+            path.write_text(json.dumps(manifest), encoding="utf-8")
+            with self.assertRaisesRegex(PublicationPpaError, "at least 150"):
+                analyze_publication_ppa_manifest(path)
+
     def test_repository_manifest_closes_four_routed_builds(self) -> None:
         manifest = ROOT / "configs/evidence/candidate10_publication_ppa_v3.json"
         result = analyze_publication_ppa_manifest(manifest)
