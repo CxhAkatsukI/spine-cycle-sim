@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "claim_class": "targeted_multipartition_execution_driven_simulation",
+  "date": "2026-07-28",
+  "simulator_commit": "c48a5db",
+  "workload": {
+    "vertices": 65537,
+    "initial_records": 4,
+    "update_records": 6,
+    "final_records": 6,
+    "destination_partitions": 2,
+    "initial_sha256": "427dfa71300890b50be20a5930a5ffbc0704a25ec4085f1fe8c48c10ae97e1aa",
+    "update_sha256": "0703f584058eeb36004cd9ca734ac0cf0329ac58fd0905d365d7837a6bf55e1c"
+  },
+  "memory_backend": {
+    "kind": "SST_memHierarchy_DRAMSim3_exact_idle",
+    "spine_plugin_sha256": "b011c9d5fea17200690288f81c0e22aa98abd11084db2c3b5c9dcb7d8484e070",
+    "observable_equivalence_contract": "exact_idle_advance_only"
+  },
+  "spine": {
+    "profile_id": "spine_candidate10_opt_v2_reader_working_set",
+    "profile_sha256": "928a86a461d10cb3ea9bdd2b84d30b567b0200afdc5ca1742a36ef2301d5ab36",
+    "cycles": 6330094,
+    "backend_requests": 788573,
+    "maintenance_backend_requests": 824,
+    "compute_backend_requests": 787749,
+    "host_wall_seconds": 10.922185056842864,
+    "materialized_snapshot_edges": 6,
+    "maintenance_persisted_edges": 6,
+    "reader_edges": 6,
+    "compute_edges": 6,
+    "architecture_oracle_mismatches": 0,
+    "mathematical_oracle_mismatches": 0,
+    "memory_ledgers_closed": true,
+    "raw_summary": "/data/tmp/chuxiao/candidate10_opt_v2_multipart_fullpr_spine_fixed_20260728/summary.json"
+  },
+  "grasu_regraph": {
+    "profile_id": "grasu_regraph_candidate10_k1_multipart_pagerank_v4",
+    "profile_sha256": "cb33252599584880ffb2281d161178f543db68e3dfb855df0f4b3fef4fa733ab",
+    "capability_contract_sha256": "d8280936ff59c180df0de567444c1f43eb89deab9123eca7cf227a635e24f146",
+    "cycles": 5017117,
+    "update_cycles": 172,
+    "compute_cycles": 5016945,
+    "backend_requests": 904253,
+    "host_wall_seconds": 18.65250208415091,
+    "logical_updates": 6,
+    "physical_updates": 6,
+    "destination_partitions": 2,
+    "compute_pipelines": 1,
+    "architecture_oracle_mismatches": 0,
+    "mathematical_oracle_mismatches": 0,
+    "memory_ledgers_closed": true,
+    "raw_result": "/data/tmp/chuxiao/candidate10_opt_v2_multipart_fullpr_grasu_fixed_20260728/result.json"
+  },
+  "comparison": {
+    "grasu_regraph_speedup_over_spine": 1.2616994979387564,
+    "spine_speedup_over_grasu": 0.7925817531303643,
+    "spine_backend_request_reduction": 0.1279287986879778
+  },
+  "acceptance": {
+    "identical_graph_and_update": true,
+    "two_destination_partitions_exercised": true,
+    "dual_oracles_pass": true,
+    "spine_materialization_ledger_closed": true,
+    "memory_ledgers_closed": true
+  },
+  "claim_boundary": [
+    "This is a sparse partition-scan microbenchmark, not a real-dataset average.",
+    "K=1 is the frozen resource-normalized GraSU+ReGraph primary baseline.",
+    "The result supports mechanism diagnosis and does not replace the formal real-dataset matrix."
+  ]
+}
