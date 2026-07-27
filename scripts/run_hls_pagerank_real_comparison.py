@@ -38,6 +38,9 @@ from spine_cycle_sim.experiments.large_real_pagerank import (  # noqa: E402
     evaluate_large_real_runtime_gate,
     validate_large_real_pagerank_manifest,
 )
+from spine_cycle_sim.experiments.temporal_real_batches import (  # noqa: E402
+    validate_temporal_real_manifest,
+)
 from spine_cycle_sim.experiments.shared_workloads import sha256_file  # noqa: E402
 
 
@@ -95,6 +98,8 @@ def _validate_input_manifest(path: Path) -> dict[str, object]:
         return validate_dense_batch_manifest(ROOT, path)
     if matrix_id == "hls_full_pagerank_real_large_runtime_20260726":
         return validate_large_real_pagerank_manifest(ROOT, path)
+    if matrix_id == "candidate10_grasu_temporal_compact_batches_v1_20260727":
+        return validate_temporal_real_manifest(ROOT, path)
     raise ValueError(f"unsupported Full PageRank input matrix: {matrix_id}")
 
 
@@ -476,6 +481,7 @@ def main() -> int:
         ROOT / "spine_cycle_sim" / "experiments" / "memory_traffic.py",
         ROOT / "spine_cycle_sim" / "experiments" / "dense_batch_sweep.py",
         ROOT / "spine_cycle_sim" / "experiments" / "large_real_pagerank.py",
+        ROOT / "spine_cycle_sim" / "experiments" / "temporal_real_batches.py",
         ROOT / "scripts" / "run_sst_spine_vertical.py",
         ROOT / "scripts" / "run_sst_grasu_regraph_hls_pagerank.py",
         args.input_manifest,

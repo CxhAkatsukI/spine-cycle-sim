@@ -1,0 +1,12 @@
+# spine_real_slice_version=1
+# case=grasu_soc_bitcoin_file_order_e8192_insert_u8
+# vertices=10326
+# columns=src dst weight diff
+5934 8092 25 1
+6382 6637 2 1
+6971 7060 1 1
+7458 8582 20 1
+7543 7578 8 1
+9018 9024 9 1
+9478 9499 20 1
+9882 9883 14 1

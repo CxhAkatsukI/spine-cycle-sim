@@ -1,0 +1,12 @@
+# spine_real_slice_version=1
+# case=grasu_sx_superuser_file_order_e8192_mixed_u8
+# vertices=3224
+# columns=src dst weight diff
+0 1 27 -1
+205 374 22 -1
+312 3038 24 1
+538 1382 21 -1
+618 1173 4 1
+793 1173 20 1
+996 15 14 1
+1026 251 20 -1

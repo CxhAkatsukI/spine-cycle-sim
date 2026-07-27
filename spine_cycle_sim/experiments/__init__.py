@@ -67,6 +67,15 @@ from .real_memory_analysis import (
     pair_memory_rows,
     summarize_pairs as summarize_real_memory_pairs,
 )
+from .temporal_real_batches import (
+    GRASU_TEMPORAL_SOURCES,
+    TEMPORAL_BATCH_SIZES,
+    TEMPORAL_SCENARIOS,
+    build_temporal_real_manifest,
+    build_temporal_update,
+    extract_temporal_compact_slice,
+    validate_temporal_real_manifest,
+)
 
 __all__ = [
     "DEFAULT_REAL_SOURCES",
@@ -119,4 +128,11 @@ __all__ = [
     "normalize_real_memory_system_row",
     "pair_memory_rows",
     "summarize_real_memory_pairs",
+    "GRASU_TEMPORAL_SOURCES",
+    "TEMPORAL_BATCH_SIZES",
+    "TEMPORAL_SCENARIOS",
+    "build_temporal_real_manifest",
+    "build_temporal_update",
+    "extract_temporal_compact_slice",
+    "validate_temporal_real_manifest",
 ]

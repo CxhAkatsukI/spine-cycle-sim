@@ -1,0 +1,12 @@
+# spine_real_slice_version=1
+# case=grasu_sx_askubuntu_file_order_e8192_delete_u8
+# vertices=3409
+# columns=src dst weight diff
+0 1 27 -1
+95 418 31 -1
+180 286 25 -1
+317 1229 27 -1
+607 608 25 -1
+947 748 11 -1
+1241 996 23 -1
+1645 1646 13 -1
