@@ -3,13 +3,81 @@ from __future__ import annotations
 import unittest
 
 from spine_cycle_sim.experiments.temporal_real_analysis import (
+    _differential_scenario_rows,
     _group_summaries,
     _small_batch_expected_runs,
     _small_batch_paper_rows,
+    _validate_update_shape,
 )
 
 
 class TemporalRealAnalysisTest(unittest.TestCase):
+    def test_update_shape_distinguishes_semantic_and_physical_records(self) -> None:
+        for scenario, records, edge_delta in (
+            ("insert", 8, 8),
+            ("delete", 8, -8),
+            ("mixed", 8, 0),
+            ("weight_change", 16, 0),
+        ):
+            _validate_update_shape(
+                {
+                    "run_id": scenario,
+                    "scenario": scenario,
+                    "user_mutations": 8,
+                    "physical_records": records,
+                    "initial_edges": 100,
+                    "final_edges": 100 + edge_delta,
+                }
+            )
+        with self.assertRaisesRegex(ValueError, "invalid weight_change"):
+            _validate_update_shape(
+                {
+                    "run_id": "bad",
+                    "scenario": "weight_change",
+                    "user_mutations": 8,
+                    "physical_records": 8,
+                    "initial_edges": 100,
+                    "final_edges": 100,
+                }
+            )
+
+    def test_differential_scenario_rows_require_five_correct_pairs(self) -> None:
+        systems = []
+        pairs = []
+        for scenario in ("delete", "insert", "mixed", "weight_change"):
+            for index in range(5):
+                run_id = f"{scenario}_{index}"
+                pairs.append(
+                    {
+                        "run_id": run_id,
+                        "scenario": scenario,
+                        "cross_system_ranks_match": True,
+                    }
+                )
+                for system, mups, e2e in (
+                    ("spine", 2.0e6, 4.0),
+                    ("grasu_regraph", 4.0e6, 2.0),
+                ):
+                    systems.append(
+                        {
+                            "run_id": run_id,
+                            "scenario": scenario,
+                            "system": system,
+                            "user_mutations": 8,
+                            "physical_records": 16 if scenario == "weight_change" else 8,
+                            "user_mutations_per_second_update": mups,
+                            "e2e_ms": e2e,
+                        }
+                    )
+        rows = _differential_scenario_rows(systems, pairs)
+        self.assertEqual(len(rows), 4)
+        self.assertEqual(rows[-1]["scenario"], "Weight-chg")
+        self.assertEqual(rows[-1]["physical_records_per_user_mutation"], 2.0)
+        self.assertAlmostEqual(rows[0]["spine_update_speedup"], 0.5)
+        self.assertAlmostEqual(rows[0]["spine_e2e_norm"], 2.0)
+
+        with self.assertRaisesRegex(ValueError, "incomplete five-dataset"):
+            _differential_scenario_rows(systems, pairs[:-1])
     def test_group_summary_uses_geometric_speedups(self) -> None:
         rows = []
         for dataset, scenario, speedup in (

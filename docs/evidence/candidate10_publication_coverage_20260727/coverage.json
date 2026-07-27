@@ -1,7 +1,7 @@
 {
   "contract_id": "candidate10_publication_real_coverage_v1_20260727",
   "coverage": {
-    "correct_paper_pairs": 50,
+    "correct_paper_pairs": 55,
     "dense_bad_runs": 0,
     "dense_pairs": 9,
     "large_real_bad_runs": 0,
@@ -35,8 +35,8 @@
       "web_google",
       "wiki_talk_temporal"
     ],
-    "real_pairs": 77,
-    "real_system_rows": 164,
+    "real_pairs": 82,
+    "real_system_rows": 174,
     "real_update_scenarios": [
       "delete",
       "insert",
@@ -49,7 +49,7 @@
     "controller_memory_partial_coverage": true,
     "existing_real_rows_are_correct": true,
     "paper_reference_dataset_breadth": true,
-    "paper_reference_differential_scenarios": false,
+    "paper_reference_differential_scenarios": true,
     "paper_reference_small_batch_matrix": false,
     "paper_reference_three_algorithm_matrix": true,
     "paper_reference_update_matrix": true,

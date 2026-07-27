@@ -99,6 +99,50 @@ Compact slices and full datasets are reported as separate populations.
 }{\missingplot{Waiting for five correct pairs for each of the three algorithms.}}
 
 \section{Update throughput}
+\IfFileExists{data/differential_by_scenario.csv}{%
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}{0.49\linewidth}
+    \centering
+    \begin{tikzpicture}
+      \begin{axis}[ybar, width=0.92\linewidth, height=50mm, ymode=log,
+        ylabel={User updates/s (million)},
+        symbolic x coords={Insert,Delete,Mixed,Weight-chg}, xtick=data,
+        x tick label style={rotate=20,anchor=east}, ymin=0.0001,
+        legend style={at={(0.5,1.22)},anchor=south,legend columns=2,
+          font=\small,/tikz/every even column/.append style={column sep=4pt}}]
+        \addplot[fill=spine] table[x=scenario,y=spine_mups,col sep=comma]
+          {data/differential_by_scenario.csv};
+        \addplot[fill=grasu] table[x=scenario,y=grasu_mups,col sep=comma]
+          {data/differential_by_scenario.csv};
+        \legend{Spine, GraSU+ReGraph}
+      \end{axis}
+    \end{tikzpicture}
+    \caption{Semantic update throughput.}
+  \end{subfigure}
+  \begin{subfigure}{0.49\linewidth}
+    \centering
+    \begin{tikzpicture}
+      \begin{axis}[ybar, width=0.92\linewidth, height=50mm,
+        ylabel={Normalized E2E time},
+        symbolic x coords={Insert,Delete,Mixed,Weight-chg}, xtick=data,
+        x tick label style={rotate=20,anchor=east}, ymin=0]
+        \addplot[fill=spine] table[x=scenario,y=spine_e2e_norm,col sep=comma]
+          {data/differential_by_scenario.csv};
+        \addplot[fill=grasu] table[x=scenario,y=grasu_e2e_norm,col sep=comma]
+          {data/differential_by_scenario.csv};
+      \end{axis}
+    \end{tikzpicture}
+    \caption{E2E time; lower is better.}
+  \end{subfigure}
+  \caption{Full PageRank over four batch-8 differential scenarios and five
+  compact real-topology slices. Every one of the 20 architecture pairs passes
+  both numerical oracles, final graph-state checks, and cross-system rank
+  comparison. Weight change counts eight semantic updates but lowers them to
+  16 delete-old/insert-new physical records.}
+\end{figure}
+}{\missingplot{Waiting for insert/delete/mixed/weight-change differential evidence.}}
+
 \IfFileExists{data/update_throughput.csv}{%
 \begin{figure}[H]
   \centering

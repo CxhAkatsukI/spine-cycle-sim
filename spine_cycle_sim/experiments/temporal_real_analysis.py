@@ -13,6 +13,7 @@ from .comparison_analysis import aggregate_dram_stats, geometric_mean, sha256_fi
 
 
 EXPECTED_SCENARIOS = {"insert", "delete", "mixed"}
+DIFFERENTIAL_SCENARIOS = (*sorted(EXPECTED_SCENARIOS), "weight_change")
 EXPECTED_ALGORITHM = "full_pagerank"
 EXPECTED_BATCH = 8
 SMALL_BATCHES = {1, 8, 64}
@@ -408,6 +409,243 @@ def analyze_temporal_small_batch_pagerank(
         ),
         "outputs": {path.name: sha256_file(path) for path in outputs},
         "limitations": input_manifest["limitations"],
+    }
+    (out_dir / "analysis_manifest.json").write_text(
+        json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    return report
+
+
+def _validate_update_shape(row: dict[str, object]) -> None:
+    scenario = str(row["scenario"])
+    user_mutations = int(row["user_mutations"])
+    physical_records = int(row["physical_records"])
+    initial_edges = int(row["initial_edges"])
+    final_edges = int(row["final_edges"])
+    expected = {
+        "insert": (user_mutations, user_mutations),
+        "delete": (user_mutations, -user_mutations),
+        "mixed": (user_mutations, 0),
+        "weight_change": (2 * user_mutations, 0),
+    }
+    if scenario not in expected:
+        raise ValueError(f"unsupported differential scenario: {scenario}")
+    expected_records, expected_edge_delta = expected[scenario]
+    if physical_records != expected_records or final_edges - initial_edges != expected_edge_delta:
+        raise ValueError(f"invalid {scenario} update shape for {row['run_id']}")
+
+
+def _differential_scenario_rows(
+    system_rows: list[dict[str, object]], pair_rows: list[dict[str, object]]
+) -> list[dict[str, object]]:
+    labels = {
+        "insert": "Insert",
+        "delete": "Delete",
+        "mixed": "Mixed",
+        "weight_change": "Weight-chg",
+    }
+    rows: list[dict[str, object]] = []
+    for scenario in DIFFERENTIAL_SCENARIOS:
+        systems = [row for row in system_rows if row["scenario"] == scenario]
+        pairs = [row for row in pair_rows if row["scenario"] == scenario]
+        spine = [row for row in systems if row["system"] == "spine"]
+        grasu = [row for row in systems if row["system"] == "grasu_regraph"]
+        if len(pairs) != 5 or len(spine) != 5 or len(grasu) != 5:
+            raise ValueError(f"incomplete five-dataset differential scenario: {scenario}")
+        if any(not _bool(row["cross_system_ranks_match"]) for row in pairs):
+            raise ValueError(f"incorrect differential pair: {scenario}")
+        spine_mups = geometric_mean(
+            float(row["user_mutations_per_second_update"]) for row in spine
+        ) / 1.0e6
+        grasu_mups = geometric_mean(
+            float(row["user_mutations_per_second_update"]) for row in grasu
+        ) / 1.0e6
+        spine_e2e_ms = geometric_mean(float(row["e2e_ms"]) for row in spine)
+        grasu_e2e_ms = geometric_mean(float(row["e2e_ms"]) for row in grasu)
+        rows.append(
+            {
+                "scenario": labels[scenario],
+                "scenario_id": scenario,
+                "pairs": len(pairs),
+                "physical_records_per_user_mutation": fmean(
+                    float(row["physical_records"]) / float(row["user_mutations"])
+                    for row in spine
+                ),
+                "spine_mups": spine_mups,
+                "grasu_mups": grasu_mups,
+                "spine_update_speedup": spine_mups / grasu_mups,
+                "spine_e2e_ms": spine_e2e_ms,
+                "grasu_e2e_ms": grasu_e2e_ms,
+                "spine_e2e_norm": spine_e2e_ms / grasu_e2e_ms,
+                "grasu_e2e_norm": 1.0,
+                "spine_e2e_speedup": grasu_e2e_ms / spine_e2e_ms,
+            }
+        )
+    return rows
+
+
+def _validated_baseline_differential_rows(
+    evidence_dir: Path,
+    expected_runs: set[str],
+) -> tuple[list[dict[str, object]], list[dict[str, object]], dict[str, object]]:
+    manifest_path = evidence_dir / "analysis_manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    system_path = evidence_dir / "system_rows_enriched.csv"
+    pair_path = evidence_dir / "pairs_enriched.csv"
+    if (
+        manifest.get("status") != "PASS"
+        or manifest.get("all_correct") is not True
+        or set(manifest.get("scenarios", [])) != EXPECTED_SCENARIOS
+        or int(manifest.get("batch_size", -1)) != EXPECTED_BATCH
+    ):
+        raise ValueError("baseline differential evidence did not pass")
+    outputs = manifest.get("outputs", {})
+    if not isinstance(outputs, dict) or (
+        outputs.get(system_path.name) != sha256_file(system_path)
+        or outputs.get(pair_path.name) != sha256_file(pair_path)
+    ):
+        raise ValueError("baseline differential evidence hash mismatch")
+    systems = [dict(row) for row in _read_csv(system_path)]
+    pairs = [dict(row) for row in _read_csv(pair_path)]
+    if (
+        {str(row["run_id"]) for row in pairs} != expected_runs
+        or len(pairs) != 15
+        or len(systems) != 30
+    ):
+        raise ValueError("baseline differential evidence coverage mismatch")
+    if any(int(row["correctness_mismatches"]) != 0 for row in systems):
+        raise ValueError("incorrect baseline differential system row")
+    if any(not _bool(row["cross_system_ranks_match"]) for row in pairs):
+        raise ValueError("incorrect baseline differential pair")
+    return systems, pairs, manifest
+
+
+def analyze_temporal_differential_pagerank(
+    *,
+    baseline_evidence_dir: Path,
+    weight_change_matrix_dir: Path,
+    input_manifest_path: Path,
+    out_dir: Path,
+    paper_data_dir: Path | None = None,
+) -> dict[str, object]:
+    baseline_evidence_dir = baseline_evidence_dir.resolve()
+    weight_change_matrix_dir = weight_change_matrix_dir.resolve()
+    input_manifest_path = input_manifest_path.resolve()
+    out_dir = out_dir.resolve()
+    out_dir.mkdir(parents=True, exist_ok=True)
+    input_manifest = json.loads(input_manifest_path.read_text(encoding="utf-8"))
+    expected = {
+        scenario: {
+            str(run["run_id"])
+            for run in input_manifest["runs"]
+            if str(run["scenario"]) == scenario
+            and int(run["batch_size"]) == EXPECTED_BATCH
+        }
+        for scenario in DIFFERENTIAL_SCENARIOS
+    }
+    if any(len(run_ids) != 5 for run_ids in expected.values()):
+        raise ValueError("input manifest lacks five runs for each differential scenario")
+
+    baseline_runs = set().union(*(expected[item] for item in EXPECTED_SCENARIOS))
+    baseline_systems, baseline_pairs, baseline_manifest = (
+        _validated_baseline_differential_rows(
+            baseline_evidence_dir, baseline_runs
+        )
+    )
+
+    matrix_manifest_path = weight_change_matrix_dir / "matrix_manifest.json"
+    matrix_manifest = json.loads(matrix_manifest_path.read_text(encoding="utf-8"))
+    system_path = weight_change_matrix_dir / "system_rows.csv"
+    pair_path = weight_change_matrix_dir / "pairs.csv"
+    if matrix_manifest.get("status") != "PASS" or matrix_manifest.get("all_correct") is not True:
+        raise ValueError("weight-change source matrix did not pass correctness")
+    if (
+        matrix_manifest.get("system_rows_sha256") != sha256_file(system_path)
+        or matrix_manifest.get("pairs_sha256") != sha256_file(pair_path)
+    ):
+        raise ValueError("weight-change source matrix hash mismatch")
+    weight_run_ids = expected["weight_change"]
+    weight_systems_raw = [
+        row for row in _read_csv(system_path) if row["run_id"] in weight_run_ids
+    ]
+    weight_pairs_raw = [
+        row for row in _read_csv(pair_path) if row["run_id"] in weight_run_ids
+    ]
+    if (
+        {row["run_id"] for row in weight_pairs_raw} != weight_run_ids
+        or len(weight_pairs_raw) != 5
+        or len(weight_systems_raw) != 10
+    ):
+        raise ValueError("weight-change five-dataset coverage mismatch")
+    if any(int(row["correctness_mismatches"]) != 0 for row in weight_systems_raw):
+        raise ValueError("incorrect weight-change system row")
+    if any(not _bool(row["cross_system_ranks_match"]) for row in weight_pairs_raw):
+        raise ValueError("incorrect weight-change pair")
+
+    weight_systems = _enrich_system_rows(
+        weight_change_matrix_dir, weight_systems_raw
+    )
+    weight_pairs = _pair_enriched_rows(weight_pairs_raw, weight_systems)
+    systems = [*baseline_systems, *weight_systems]
+    pairs = [*baseline_pairs, *weight_pairs]
+    expected_all = set().union(*expected.values())
+    if {str(row["run_id"]) for row in pairs} != expected_all or len(pairs) != 20:
+        raise ValueError("combined differential matrix is incomplete")
+    for row in systems:
+        _validate_update_shape(row)
+    scenario_rows = _differential_scenario_rows(systems, pairs)
+
+    system_output = out_dir / "differential_system_rows.csv"
+    pair_output = out_dir / "differential_pairs.csv"
+    weight_system_output = out_dir / "weight_change_system_rows.csv"
+    weight_pair_output = out_dir / "weight_change_pairs.csv"
+    scenario_output = out_dir / "differential_by_scenario.csv"
+    _write_csv(system_output, systems)
+    _write_csv(pair_output, pairs)
+    _write_csv(weight_system_output, weight_systems)
+    _write_csv(weight_pair_output, weight_pairs)
+    _write_csv(scenario_output, scenario_rows)
+    if paper_data_dir is not None:
+        _write_csv(
+            paper_data_dir.resolve() / "differential_by_scenario.csv",
+            scenario_rows,
+        )
+    raw_archive = out_dir / "weight_change_raw_results.tar.gz"
+    _archive_raw(weight_change_matrix_dir, raw_archive, weight_run_ids)
+    outputs = (
+        system_output,
+        pair_output,
+        weight_system_output,
+        weight_pair_output,
+        scenario_output,
+        raw_archive,
+    )
+    report = {
+        "schema_version": 1,
+        "analysis_id": "candidate10_temporal_full_pr_differential_u8_v1_20260727",
+        "status": "PASS",
+        "algorithm": EXPECTED_ALGORITHM,
+        "batch_size": EXPECTED_BATCH,
+        "scenarios": list(DIFFERENTIAL_SCENARIOS),
+        "datasets": sorted({str(row["dataset_id"]) for row in pairs}),
+        "pairs": len(pairs),
+        "system_rows": len(systems),
+        "all_correct": True,
+        "all_update_shapes_valid": True,
+        "dram_request_ledgers_closed": True,
+        "input_manifest_sha256": sha256_file(input_manifest_path),
+        "baseline_analysis_manifest_sha256": sha256_file(
+            baseline_evidence_dir / "analysis_manifest.json"
+        ),
+        "baseline_outputs": baseline_manifest["outputs"],
+        "weight_change_matrix_manifest_sha256": sha256_file(matrix_manifest_path),
+        "outputs": {path.name: sha256_file(path) for path in outputs},
+        "limitations": [
+            "Inputs are compact slices, not complete GraSU datasets.",
+            "Delete, mixed, and weight-change batches are derived from real topology.",
+            "Weight changes are lowered into exact delete-old then insert-new records.",
+            "Reported update throughput counts successful user mutations, not lowered physical records.",
+        ],
     }
     (out_dir / "analysis_manifest.json").write_text(
         json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"
