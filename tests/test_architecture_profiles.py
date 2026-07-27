@@ -113,7 +113,7 @@ class ArchitectureProfileTests(unittest.TestCase):
             PROFILES / "spine_candidate10_opt_v1_fallback_level_cache.json"
         )
         self.assertEqual(optimized.status, ProfileStatus.PROJECTED)
-        self.assertEqual(optimized.evidence_tier, EvidenceTier.SIMULATION_ONLY)
+        self.assertEqual(optimized.evidence_tier, EvidenceTier.SYNTHESIS_ONLY)
         self.assertEqual(
             optimized.parameters["simulation_parent_profile"],
             normalized.profile_id,
@@ -127,6 +127,11 @@ class ArchitectureProfileTests(unittest.TestCase):
             optimized.parameters["optimization_id"],
             "fallback_launch_level_cache_reuse",
         )
+        self.assertEqual(
+            optimized.parameters["resource_feasibility_gate"],
+            "candidate10_opt_v1_readmaint_csynth_resource_pass_timing_open",
+        )
+        self.assertEqual(verify_profile_artifacts(optimized), [])
 
     def test_stable_profile_pins_accepted_clocks_and_hash(self) -> None:
         profile = load_architecture_profile(PROFILES / "spine_shared_engine_9c08763.json")

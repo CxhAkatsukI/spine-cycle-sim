@@ -3,10 +3,10 @@
   "profile_id": "spine_candidate10_opt_v1_fallback_level_cache",
   "architecture": "spine",
   "status": "projected",
-  "evidence_tier": "simulation_only",
+  "evidence_tier": "synthesis_only",
   "source": {
     "repository": "git@github.com:jayfeather9/spine-dynamic-graph.git",
-    "revision": "8df777afb05df3821f955c10f72b55f9f9168eaa",
+    "revision": "ec84f729828851c5909c2354c35016f9170ca16c",
     "branch": "codex/fallback-level-cache-reuse",
     "dirty": false
   },
@@ -33,7 +33,14 @@
     "optimization_round": 1,
     "fallback_level_cache_reuse": true,
     "normalization_policy": "shared_platform_with_explicit_bounded_microarchitecture_optimization",
-    "resource_feasibility_gate": "candidate10_opt_v1_readmaint_csynth_pending",
+    "resource_feasibility_gate": "candidate10_opt_v1_readmaint_csynth_resource_pass_timing_open",
+    "readmaint_csynth_target_ns": 3.33,
+    "readmaint_csynth_estimated_ns": 7.942,
+    "readmaint_csynth_bram_18k": 98,
+    "readmaint_csynth_dsp": 20,
+    "readmaint_csynth_ff": 134596,
+    "readmaint_csynth_lut": 203725,
+    "readmaint_csynth_uram": 84,
     "maintenance_architecture": "candidate10_one_pass",
     "axi_profile": "candidate10_gmem_1e61fc0",
     "partitions": 16,
@@ -106,11 +113,18 @@
     "bounded_launch_level_directory_cache",
     "fallback_invariant_metadata_reuse"
   ],
-  "evidence": [],
+  "evidence": [
+    {
+      "kind": "opt_v1_ab_and_csynth_manifest",
+      "path": "docs/evidence/spine_opt_v1_fallback_level_cache_20260728.json",
+      "sha256": "6c6a715084ee2b2e4ba6d149c51d900f9691650a9bfe137287764501683fd506"
+    }
+  ],
   "limitations": [
     "This profile differs from spine_candidate10_normalized_v1 only by the explicitly named fallback metadata-cache optimization.",
-    "The optimization is execution-driven and correctness-gated in both the cycle simulator and HLS C simulation; csynth and routing evidence remain pending.",
-    "Reported speedups remain projected until HLS resource and timing evidence closes the feasibility gate.",
+    "The optimization is execution-driven and correctness-gated in both the cycle simulator and HLS C simulation; same-tool top-level readmaint csynth is available.",
+    "The focused readmaint top does not meet its 3.33 ns synthesis target (7.942 ns estimated) in either baseline or optimized source, so routed timing remains open.",
+    "Reported speedups remain projected until the optimized integrated design is routed and the frozen holdout matrix passes.",
     "No post-hoc holdout result may be used to alter this profile."
   ]
 }
