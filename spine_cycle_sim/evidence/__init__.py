@@ -43,6 +43,10 @@ from .publication_ppa import (
     PublicationPpaError,
     analyze_publication_ppa_manifest,
 )
+from .exact_idle import (
+    ExactIdleEquivalenceError,
+    analyze_exact_idle_equivalence,
+)
 
 __all__ = [
     "FpgaEvidenceError",
@@ -78,4 +82,6 @@ __all__ = [
     "verify_sha256_manifest",
     "PublicationPpaError",
     "analyze_publication_ppa_manifest",
+    "ExactIdleEquivalenceError",
+    "analyze_exact_idle_equivalence",
 ]
