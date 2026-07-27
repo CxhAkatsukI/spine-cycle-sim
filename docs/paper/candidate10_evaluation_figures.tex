@@ -161,17 +161,17 @@ Compact slices and full datasets are reported as separate populations.
       legend style={at={(0.5,1.16)},anchor=south,legend columns=3},
       extra y ticks={1}, extra y tick labels={},
       extra y tick style={grid=major,grid style={black,dashed}}]
-      \addplot[spine,mark=square*] table[
-        x=batch,y=spine_speedup,col sep=comma,
-        row predicate/.code={\ifnum\thisrow{algorithm_index}=0\relax\else\pgfplotstableuserowfalse\fi}]
+      \addplot[spine,mark=square*,
+        restrict expr to domain={\thisrow{algorithm_index}}{0:0}] table[
+        x=batch,y=spine_speedup,col sep=comma]
         {\datadir/small_batch_by_algorithm.csv};
-      \addplot[grasu,mark=triangle*] table[
-        x=batch,y=spine_speedup,col sep=comma,
-        row predicate/.code={\ifnum\thisrow{algorithm_index}=1\relax\else\pgfplotstableuserowfalse\fi}]
+      \addplot[grasu,mark=triangle*,
+        restrict expr to domain={\thisrow{algorithm_index}}{1:1}] table[
+        x=batch,y=spine_speedup,col sep=comma]
         {\datadir/small_batch_by_algorithm.csv};
-      \addplot[muted,mark=diamond*] table[
-        x=batch,y=spine_speedup,col sep=comma,
-        row predicate/.code={\ifnum\thisrow{algorithm_index}=2\relax\else\pgfplotstableuserowfalse\fi}]
+      \addplot[muted,mark=diamond*,
+        restrict expr to domain={\thisrow{algorithm_index}}{2:2}] table[
+        x=batch,y=spine_speedup,col sep=comma]
         {\datadir/small_batch_by_algorithm.csv};
       \legend{Weighted SSSP,Full PageRank,Residual PageRank}
     \end{semilogxaxis}
