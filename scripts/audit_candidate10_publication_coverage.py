@@ -292,8 +292,11 @@ def audit(
         },
         "gates": statuses,
         "interpretation": (
-            "Existing evidence is a correct compact pilot, not a complete "
-            "paper-reference real-dataset evaluation."
+            "The frozen compact-slice publication contract is complete; "
+            "unsliced full-dataset and multi-partition claims remain outside "
+            "this gate."
+            if statuses["publication_real_matrix_complete"]
+            else "Existing evidence is a correct compact pilot with open gates."
         ),
     }
 

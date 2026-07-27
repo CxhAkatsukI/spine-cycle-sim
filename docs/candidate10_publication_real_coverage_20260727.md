@@ -20,10 +20,10 @@ The physical-memory matrix covers all three algorithms, five datasets, and both
 architectures at insertion batch 8. Accepted requests equal DRAM commands;
 request bytes, 64-byte burst amplification, row hits, activates/precharges,
 read latency, and finite AXIS/AXI/HBM backpressure counters are present. Full
-and residual PageRank have aligned controller windows. Weighted SSSP does not:
-Spine currently includes cold initialization in its DRAM window. The audit
-therefore exposes complete metrics but deliberately leaves the three-algorithm
-window-alignment gate false.
+and residual PageRank use direct controller windows. Weighted SSSP uses an
+exact, independently rerun cold-prefix subtraction at a quiescent boundary.
+All three algorithm windows are aligned and the frozen compact-slice coverage
+contract passes.
 
 The paper-facing TeX entry point is
 `docs/paper/candidate10_evaluation_figures.tex`. It contains correctness, E2E,
@@ -39,12 +39,12 @@ supports architectural behavior and compact-workload comparisons. It does not
 support an unsliced full-dataset, multi-partition scalability, total-chip
 energy, or iso-functional PPA claim.
 
-The remaining mandatory empirical work is:
+The remaining mandatory work beyond the compact-slice contract is:
 
-1. split cold initialization from the weighted SSSP physical controller window;
-2. run unsliced or explicitly scaled multi-partition real datasets;
-3. add matched on-chip power/activity evidence to the existing HBM-only energy;
-4. close or clearly report the remaining routed timing misses.
+1. run unsliced or explicitly scaled multi-partition real datasets;
+2. add matched on-chip power/activity evidence to the existing HBM-only energy;
+3. close or clearly report the remaining routed timing misses;
+4. add optional scalability and ablation sweeps after the mandatory matrix.
 
 ## Reproduce the audit
 
@@ -54,6 +54,5 @@ python3 scripts/audit_candidate10_publication_coverage.py \
   --out-dir docs/evidence/candidate10_publication_coverage_20260727
 ```
 
-The expected status is `INCOMPLETE` solely because
-`three_algorithm_memory_window_alignment=false`. This is a deliberate
-fail-closed result, not a correctness failure.
+The expected compact-slice status is `PASS`. Full-dataset and total-energy
+claims remain separately gated by the claim boundary above.

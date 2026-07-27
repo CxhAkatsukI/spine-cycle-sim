@@ -40,6 +40,7 @@ def _archive_sources(
     path: Path,
     inputs: tuple[tuple[str, Path], ...],
     run_ids: set[str],
+    cold_baseline_dir: Path,
 ) -> None:
     with tarfile.open(path, "w:gz") as archive:
         for algorithm, directory in inputs:
@@ -58,10 +59,26 @@ def _archive_sources(
                                     f"{source.relative_to(run_dir)}"
                                 ),
                             )
+        for name in ("matrix_manifest.json", "cold_baseline_rows.csv"):
+            source = cold_baseline_dir / name
+            archive.add(source, arcname=f"weighted_sssp_cold/{name}")
+        for run_id in sorted(run_ids):
+            run_dir = cold_baseline_dir / run_id / "spine"
+            for source in sorted(run_dir.rglob("*")):
+                if source.is_file():
+                    archive.add(
+                        source,
+                        arcname=(
+                            f"weighted_sssp_cold/{run_id}/spine/"
+                            f"{source.relative_to(run_dir)}"
+                        ),
+                    )
 
 
 def _validated_plugin_fingerprint(
-    inputs: tuple[tuple[str, Path], ...], run_ids: set[str]
+    inputs: tuple[tuple[str, Path], ...],
+    run_ids: set[str],
+    cold_baseline_dir: Path | None = None,
 ) -> dict[str, object]:
     observations: list[tuple[str, str, str, str]] = []
     for algorithm, directory in inputs:
@@ -98,8 +115,29 @@ def _validated_plugin_fingerprint(
                 observations.append(
                     (plugin_sha, plugin_path, search_path, command_option)
                 )
+    if cold_baseline_dir is not None:
+        for run_id in sorted(run_ids):
+            payload = json.loads(
+                (cold_baseline_dir / run_id / "spine" / "summary.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            binding = payload.get("sst_library_binding")
+            if not isinstance(binding, Mapping):
+                raise ValueError(f"missing cold SST library binding: {run_id}")
+            observations.append(
+                (
+                    str(payload.get("sst_plugin_sha256", "")),
+                    str(binding.get("plugin_path", "")),
+                    str(binding.get("search_path", "")),
+                    str(binding.get("command_option", "")),
+                )
+            )
     unique = set(observations)
-    if len(observations) != len(inputs) * len(run_ids) * 2 or len(unique) != 1:
+    expected = len(inputs) * len(run_ids) * 2 + (
+        len(run_ids) if cold_baseline_dir is not None else 0
+    )
+    if len(observations) != expected or len(unique) != 1:
         raise ValueError("physical matrix did not use one identical SST plugin binding")
     plugin_sha, plugin_path, search_path, command_option = observations[0]
     return {
@@ -114,6 +152,7 @@ def _validated_plugin_fingerprint(
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--weighted-dir", type=Path, required=True)
+    parser.add_argument("--weighted-cold-dir", type=Path, required=True)
     parser.add_argument("--full-pagerank-dir", type=Path, required=True)
     parser.add_argument("--residual-pagerank-dir", type=Path, required=True)
     parser.add_argument(
@@ -146,12 +185,50 @@ def main() -> int:
             args.residual_pagerank_dir.resolve(),
         ),
     )
-    plugin_fingerprint = _validated_plugin_fingerprint(inputs, expected_run_ids)
+    cold_baseline_dir = args.weighted_cold_dir.resolve()
+    cold_manifest_path = cold_baseline_dir / "matrix_manifest.json"
+    cold_rows_path = cold_baseline_dir / "cold_baseline_rows.csv"
+    cold_manifest = json.loads(cold_manifest_path.read_text(encoding="utf-8"))
+    if (
+        cold_manifest.get("status") != "PASS"
+        or cold_manifest.get("all_exact_dynamic_prefix_matches") is not True
+        or int(cold_manifest.get("runs", 0)) != len(expected_run_ids)
+        or cold_manifest.get("cold_baseline_rows_sha256")
+        != sha256_file(cold_rows_path)
+    ):
+        raise ValueError("weighted cold-baseline matrix did not pass")
+    with cold_rows_path.open(encoding="utf-8", newline="") as stream:
+        cold_rows = list(csv.DictReader(stream))
+    if len(cold_rows) != len(expected_run_ids) or {
+        row["run_id"] for row in cold_rows
+    } != expected_run_ids:
+        raise ValueError("weighted cold-baseline row coverage mismatch")
+    weighted_directory = dict(inputs)["weighted_sssp"]
+    for row in cold_rows:
+        run_id = row["run_id"]
+        summary_path = cold_baseline_dir / run_id / "spine" / "summary.json"
+        dynamic_path = weighted_directory / run_id / "spine" / "summary.json"
+        if (
+            row.get("exact_dynamic_prefix_match", "").lower() != "true"
+            or row.get("summary_sha256") != sha256_file(summary_path)
+            or row.get("dynamic_summary_sha256") != sha256_file(dynamic_path)
+        ):
+            raise ValueError(f"weighted cold-baseline child hash mismatch: {run_id}")
+    plugin_fingerprint = _validated_plugin_fingerprint(
+        inputs, expected_run_ids, cold_baseline_dir
+    )
+    if cold_manifest.get("plugin_sha256") != plugin_fingerprint["plugin_sha256"]:
+        raise ValueError("weighted cold-baseline plugin identity mismatch")
     manifests: dict[str, dict[str, object]] = {}
     rows: list[dict[str, object]] = []
     for algorithm, directory in inputs:
         manifest, selected = load_physical_selected_matrix(
-            algorithm, directory, expected_run_ids
+            algorithm,
+            directory,
+            expected_run_ids,
+            cold_baseline_dir=(
+                cold_baseline_dir if algorithm == "weighted_sssp" else None
+            ),
         )
         manifests[algorithm] = manifest
         rows.extend(selected)
@@ -176,13 +253,13 @@ def main() -> int:
         _write_csv(
             args.paper_data_dir / "physical_memory_by_algorithm.csv", paper_rows
         )
-    _archive_sources(archive_path, inputs, expected_run_ids)
+    _archive_sources(archive_path, inputs, expected_run_ids, cold_baseline_dir)
 
     report = {
         "schema_version": 1,
-        "evidence_id": "candidate10_physical_memory_insert_u8_v1_20260727",
+        "evidence_id": "candidate10_physical_memory_insert_u8_v2_20260727",
         "status": "PASS",
-        "claim_class": "controller_physical_memory_phase_aligned_partial",
+        "claim_class": "controller_physical_memory_phase_aligned_three_algorithm",
         "algorithms": list(ALGORITHMS),
         "phase_aligned_algorithms": aligned_algorithms,
         "excluded_from_phase_aligned_plot": sorted(
@@ -210,6 +287,14 @@ def main() -> int:
             }
             for algorithm, directory in inputs
         },
+        "weighted_cold_baseline": {
+            "directory": str(cold_baseline_dir),
+            "manifest_sha256": sha256_file(cold_manifest_path),
+            "rows_sha256": sha256_file(cold_rows_path),
+            "quiescent_boundary_contract": cold_manifest[
+                "quiescent_boundary_contract"
+            ],
+        },
         "outputs": {
             "physical_memory_system_rows.csv": sha256_file(system_path),
             "physical_memory_pairs.csv": sha256_file(pair_path),
@@ -220,9 +305,8 @@ def main() -> int:
             "Inputs are 8192-edge compact real-topology slices, not full datasets.",
             "Only active HBM channels are instantiated; energy is not total-board energy.",
             (
-                "Spine weighted SSSP includes cold initialization in the DRAM window, "
-                "so weighted SSSP is retained as diagnostic evidence but excluded from "
-                "the phase-aligned physical comparison plot."
+                "Spine weighted SSSP controller counters are derived by subtracting "
+                "an independently rerun, exact, quiescent cold prefix."
             ),
             (
                 "Stalls are port/request events and multiple events may occur in one "

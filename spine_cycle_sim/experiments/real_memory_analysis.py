@@ -9,7 +9,7 @@ import math
 from pathlib import Path
 from typing import Mapping, Sequence
 
-from .comparison_analysis import aggregate_dram_stats
+from .comparison_analysis import aggregate_dram_stats, aggregate_dram_stats_delta
 
 
 ALGORITHMS = (
@@ -178,6 +178,9 @@ def normalize_physical_system_row(
     algorithm: str,
     row: Mapping[str, str],
     dram: Mapping[str, int | float],
+    *,
+    cold_subtracted: bool = False,
+    stall_overrides: Mapping[str, int] | None = None,
 ) -> dict[str, object]:
     """Add controller and finite-queue observations to a logical memory row."""
 
@@ -187,7 +190,12 @@ def normalize_physical_system_row(
     ):
         raise ValueError("incomplete physical backpressure contract")
 
-    full_window = _prefix_metrics(row, "backend")
+    weighted_spine_aligned = (
+        cold_subtracted and algorithm == "weighted_sssp" and row.get("system") == "spine"
+    )
+    full_window = _prefix_metrics(
+        row, "aligned_backend" if weighted_spine_aligned else "backend"
+    )
     dram_requests = int(dram["requests"])
     if dram_requests != int(full_window["requests"]):
         raise ValueError("accepted-backend/DRAM request ledger does not close")
@@ -202,21 +210,31 @@ def normalize_physical_system_row(
         if int(dram[key]) < 0:
             raise ValueError(f"negative DRAM metric: {key}")
 
-    scope = row.get("dram_window_scope", "")
+    scope = (
+        "update_plus_compute_cold_prefix_subtracted"
+        if weighted_spine_aligned
+        else row.get("dram_window_scope", "")
+    )
     if not scope and algorithm == "thresholded_residual_pagerank":
         scope = "update_plus_compute_active_channels"
     physical_window_aligned = scope != "cold_plus_update_not_aligned"
-    if algorithm == "weighted_sssp":
+    if algorithm == "weighted_sssp" and not weighted_spine_aligned:
         physical_window_cycles = _integer(row, "aligned_e2e_cycles") + _integer(
             row, "cold_cycles"
         )
+    elif algorithm == "weighted_sssp":
+        physical_window_cycles = _integer(row, "aligned_e2e_cycles")
     else:
         physical_window_cycles = _integer(row, "e2e_cycles")
     if physical_window_cycles <= 0:
         raise ValueError("physical memory window must span positive cycles")
 
     stalls = {
-        key: _integer(row, key)
+        key: (
+            int(stall_overrides[key])
+            if stall_overrides is not None and key in stall_overrides
+            else _integer(row, key)
+        )
         for key in (
             "axis_push_stalls",
             "axi_issue_stalls",
@@ -231,6 +249,11 @@ def normalize_physical_system_row(
     normalized.update(
         {
             "physical_window_scope": scope,
+            "physical_window_derivation": (
+                "quiescent_identical_cold_prefix_subtraction"
+                if weighted_spine_aligned
+                else "direct_controller_window"
+            ),
             "dram_physical_window_aligned": physical_window_aligned,
             "physical_window_cycles": physical_window_cycles,
             "physical_backend_requests": int(full_window["requests"]),
@@ -272,6 +295,8 @@ def load_physical_selected_matrix(
     algorithm: str,
     directory: Path,
     expected_run_ids: set[str],
+    *,
+    cold_baseline_dir: Path | None = None,
 ) -> tuple[dict[str, object], list[dict[str, object]]]:
     """Load a correctness-gated subset and its raw controller statistics."""
 
@@ -284,8 +309,46 @@ def load_physical_selected_matrix(
     rows: list[dict[str, object]] = []
     for row in source_rows:
         run_dir = directory / row["run_id"] / row["system"]
+        cold_subtracted = (
+            algorithm == "weighted_sssp"
+            and row["system"] == "spine"
+            and cold_baseline_dir is not None
+        )
+        if cold_subtracted:
+            cold_run_dir = cold_baseline_dir / row["run_id"] / "spine"
+            cold_result = json.loads(
+                (cold_run_dir / "summary.json").read_text(encoding="utf-8")
+            )
+            if (
+                int(cold_result["cycles"]) != _integer(row, "cold_cycles")
+                or int(cold_result["backend_requests"])
+                != _integer(row, "cold_backend_requests")
+            ):
+                raise ValueError("weighted cold baseline does not match dynamic prefix")
+            dram = aggregate_dram_stats_delta(
+                run_dir / "dram", cold_run_dir / "dram"
+            )
+            stall_overrides = {
+                "axis_push_stalls": _integer(row, "axis_push_stalls"),
+                "axi_issue_stalls": _integer(row, "axi_issue_stalls"),
+                "hbm_queue_stalls": _integer(row, "hbm_queue_stalls")
+                - int(cold_result["hbm_queue_stalls"]),
+                "hbm_response_queue_stalls": _integer(
+                    row, "hbm_response_queue_stalls"
+                )
+                - int(cold_result["hbm_response_queue_stalls"]),
+            }
+            if any(value < 0 for value in stall_overrides.values()):
+                raise ValueError("negative weighted cold-prefix stall delta")
+        else:
+            dram = aggregate_dram_stats(run_dir / "dram")
+            stall_overrides = None
         normalized = normalize_physical_system_row(
-            algorithm, row, aggregate_dram_stats(run_dir / "dram")
+            algorithm,
+            row,
+            dram,
+            cold_subtracted=cold_subtracted,
+            stall_overrides=stall_overrides,
         )
         normalized["raw_result_path"] = str(
             run_dir / ("summary.json" if row["system"] == "spine" else "result.json")

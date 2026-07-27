@@ -12,6 +12,12 @@
 \definecolor{grasu}{HTML}{B44C43}
 \definecolor{muted}{HTML}{697077}
 
+\IfFileExists{data/correctness_coverage.csv}{%
+  \newcommand{\datadir}{data}%
+}{%
+  \newcommand{\datadir}{docs/paper/data}%
+}
+
 \newcommand{\missingplot}[1]{%
   \fbox{\parbox[c][42mm][c]{0.94\linewidth}{\centering
   \textbf{Evidence gate not complete}\\[3pt]#1}}}
@@ -29,7 +35,7 @@ the independent mathematical oracle, and the cross-system final-state check.
 Compact slices and full datasets are reported as separate populations.
 
 \section{Correctness coverage}
-\IfFileExists{data/correctness_coverage.csv}{%
+\IfFileExists{\datadir/correctness_coverage.csv}{%
 \begin{figure}[H]
   \centering
   \begin{tikzpicture}
@@ -39,9 +45,9 @@ Compact slices and full datasets are reported as separate populations.
       symbolic x coords={SSSP,Full PR,Residual PR}, xtick=data,
       ymin=0, nodes near coords, legend style={at={(0.5,1.16)},anchor=south,legend columns=2}]
       \addplot[fill=spine] table[x=algorithm,y=real_pairs,col sep=comma]
-        {data/correctness_coverage.csv};
+        {\datadir/correctness_coverage.csv};
       \addplot[fill=muted] table[x=algorithm,y=synthetic_pairs,col sep=comma]
-        {data/correctness_coverage.csv};
+        {\datadir/correctness_coverage.csv};
       \legend{Real, Synthetic}
     \end{axis}
   \end{tikzpicture}
@@ -50,7 +56,7 @@ Compact slices and full datasets are reported as separate populations.
 }{\missingplot{Waiting for the frozen real-data correctness matrix.}}
 
 \section{Small-batch end-to-end performance}
-\IfFileExists{data/e2e_by_dataset.csv}{%
+\IfFileExists{\datadir/e2e_by_dataset.csv}{%
 \begin{figure}[H]
   \centering
   \begin{tikzpicture}
@@ -60,9 +66,9 @@ Compact slices and full datasets are reported as separate populations.
       symbolic x coords={AU,SU,WK,SO,BC}, xtick=data,
       ymin=0, legend style={at={(0.5,1.14)},anchor=south,legend columns=2}]
       \addplot[fill=spine] table[x=dataset,y=spine_norm,col sep=comma]
-        {data/e2e_by_dataset.csv};
+        {\datadir/e2e_by_dataset.csv};
       \addplot[fill=grasu] table[x=dataset,y=grasu_norm,col sep=comma]
-        {data/e2e_by_dataset.csv};
+        {\datadir/e2e_by_dataset.csv};
       \legend{Spine, GraSU+ReGraph}
     \end{axis}
   \end{tikzpicture}
@@ -73,7 +79,7 @@ Compact slices and full datasets are reported as separate populations.
 }{\missingplot{Waiting for all five GraSU datasets and all required algorithms.}}
 
 \section{Cross-algorithm E2E ranking}
-\IfFileExists{data/e2e_speedup_by_dataset_algorithm.csv}{%
+\IfFileExists{\datadir/e2e_speedup_by_dataset_algorithm.csv}{%
 \begin{figure}[H]
   \centering
   \begin{tikzpicture}
@@ -84,11 +90,11 @@ Compact slices and full datasets are reported as separate populations.
       ymin=0.1, ymax=10, grid=major,
       legend style={at={(0.5,1.14)},anchor=south,legend columns=3}]
       \addplot[fill=spine] table[x=dataset,y=weighted_sssp_speedup,col sep=comma]
-        {data/e2e_speedup_by_dataset_algorithm.csv};
+        {\datadir/e2e_speedup_by_dataset_algorithm.csv};
       \addplot[fill=grasu] table[x=dataset,y=full_pagerank_speedup,col sep=comma]
-        {data/e2e_speedup_by_dataset_algorithm.csv};
+        {\datadir/e2e_speedup_by_dataset_algorithm.csv};
       \addplot[fill=muted] table[x=dataset,y=thresholded_residual_pagerank_speedup,col sep=comma]
-        {data/e2e_speedup_by_dataset_algorithm.csv};
+        {\datadir/e2e_speedup_by_dataset_algorithm.csv};
       \addplot[black,dashed,sharp plot] coordinates {(AU,1) (BC,1)};
       \legend{Weighted SSSP,Full PageRank,Residual PageRank}
     \end{semilogyaxis}
@@ -99,7 +105,7 @@ Compact slices and full datasets are reported as separate populations.
 }{\missingplot{Waiting for five correct pairs for each of the three algorithms.}}
 
 \section{Update throughput}
-\IfFileExists{data/differential_by_scenario.csv}{%
+\IfFileExists{\datadir/differential_by_scenario.csv}{%
 \begin{figure}[H]
   \centering
   \begin{subfigure}{0.49\linewidth}
@@ -112,9 +118,9 @@ Compact slices and full datasets are reported as separate populations.
         legend style={at={(0.5,1.22)},anchor=south,legend columns=2,
           font=\small,/tikz/every even column/.append style={column sep=4pt}}]
         \addplot[fill=spine] table[x=scenario,y=spine_mups,col sep=comma]
-          {data/differential_by_scenario.csv};
+          {\datadir/differential_by_scenario.csv};
         \addplot[fill=grasu] table[x=scenario,y=grasu_mups,col sep=comma]
-          {data/differential_by_scenario.csv};
+          {\datadir/differential_by_scenario.csv};
         \legend{Spine, GraSU+ReGraph}
       \end{axis}
     \end{tikzpicture}
@@ -128,9 +134,9 @@ Compact slices and full datasets are reported as separate populations.
         symbolic x coords={Insert,Delete,Mixed,Weight-chg}, xtick=data,
         x tick label style={rotate=20,anchor=east}, ymin=0]
         \addplot[fill=spine] table[x=scenario,y=spine_e2e_norm,col sep=comma]
-          {data/differential_by_scenario.csv};
+          {\datadir/differential_by_scenario.csv};
         \addplot[fill=grasu] table[x=scenario,y=grasu_e2e_norm,col sep=comma]
-          {data/differential_by_scenario.csv};
+          {\datadir/differential_by_scenario.csv};
       \end{axis}
     \end{tikzpicture}
     \caption{E2E time; lower is better.}
@@ -143,7 +149,7 @@ Compact slices and full datasets are reported as separate populations.
 \end{figure}
 }{\missingplot{Waiting for insert/delete/mixed/weight-change differential evidence.}}
 
-\IfFileExists{data/update_throughput.csv}{%
+\IfFileExists{\datadir/update_throughput.csv}{%
 \begin{figure}[H]
   \centering
   \begin{tikzpicture}
@@ -154,9 +160,9 @@ Compact slices and full datasets are reported as separate populations.
       xtick={1,8,64}, xticklabels={1,8,64},
       grid=major, legend style={at={(0.5,1.14)},anchor=south,legend columns=2}]
       \addplot[spine,mark=square*] table[x=batch,y=spine_mups,col sep=comma]
-        {data/update_throughput.csv};
+        {\datadir/update_throughput.csv};
       \addplot[grasu,mark=triangle*] table[x=batch,y=grasu_mups,col sep=comma]
-        {data/update_throughput.csv};
+        {\datadir/update_throughput.csv};
       \legend{Spine, GraSU+ReGraph}
     \end{loglogaxis}
   \end{tikzpicture}
@@ -166,7 +172,7 @@ Compact slices and full datasets are reported as separate populations.
 }{\missingplot{Waiting for batch 1/8/64 insert, delete, and mixed updates.}}
 
 \section{Small-batch scaling}
-\IfFileExists{data/small_batch_by_algorithm.csv}{%
+\IfFileExists{\datadir/small_batch_by_algorithm.csv}{%
 \begin{figure}[H]
   \centering
   \begin{tikzpicture}
@@ -181,15 +187,15 @@ Compact slices and full datasets are reported as separate populations.
       \addplot[spine,mark=square*] table[
         x=batch,y=spine_speedup,col sep=comma,
         row predicate/.code={\ifnum\thisrow{algorithm_index}=0\relax\else\pgfplotstableuserowfalse\fi}]
-        {data/small_batch_by_algorithm.csv};
+        {\datadir/small_batch_by_algorithm.csv};
       \addplot[grasu,mark=triangle*] table[
         x=batch,y=spine_speedup,col sep=comma,
         row predicate/.code={\ifnum\thisrow{algorithm_index}=1\relax\else\pgfplotstableuserowfalse\fi}]
-        {data/small_batch_by_algorithm.csv};
+        {\datadir/small_batch_by_algorithm.csv};
       \addplot[muted,mark=diamond*] table[
         x=batch,y=spine_speedup,col sep=comma,
         row predicate/.code={\ifnum\thisrow{algorithm_index}=2\relax\else\pgfplotstableuserowfalse\fi}]
-        {data/small_batch_by_algorithm.csv};
+        {\datadir/small_batch_by_algorithm.csv};
       \legend{Weighted SSSP,Full PageRank,Residual PageRank}
     \end{semilogxaxis}
   \end{tikzpicture}
@@ -199,7 +205,7 @@ Compact slices and full datasets are reported as separate populations.
 \end{figure}
 }{\missingplot{Waiting for the three-algorithm batch 1/8/64 matrix.}}
 
-\IfFileExists{data/e2e_by_batch.csv}{%
+\IfFileExists{\datadir/e2e_by_batch.csv}{%
 \begin{figure}[H]
   \centering
   \begin{tikzpicture}
@@ -209,9 +215,9 @@ Compact slices and full datasets are reported as separate populations.
       xtick={1,8,64}, xticklabels={1,8,64}, grid=major,
       legend style={at={(0.5,1.14)},anchor=south,legend columns=2}]
       \addplot[spine,mark=square*] table[x=batch,y=spine_ms,col sep=comma]
-        {data/e2e_by_batch.csv};
+        {\datadir/e2e_by_batch.csv};
       \addplot[grasu,mark=triangle*] table[x=batch,y=grasu_ms,col sep=comma]
-        {data/e2e_by_batch.csv};
+        {\datadir/e2e_by_batch.csv};
       \legend{Spine, GraSU+ReGraph}
     \end{semilogxaxis}
   \end{tikzpicture}
@@ -222,7 +228,7 @@ Compact slices and full datasets are reported as separate populations.
 }{\missingplot{Waiting for the five-dataset batch 1/8/64 Full PageRank sweep.}}
 
 \section{Memory traffic and locality}
-\IfFileExists{data/memory_by_algorithm.csv}{%
+\IfFileExists{\datadir/memory_by_algorithm.csv}{%
 \begin{figure}[H]
   \centering
   \begin{subfigure}{0.49\linewidth}
@@ -234,9 +240,9 @@ Compact slices and full datasets are reported as separate populations.
         legend style={at={(0.5,1.22)},anchor=south,legend columns=2,
           font=\small,/tikz/every even column/.append style={column sep=4pt}}]
         \addplot[fill=spine] table[x=algorithm,y=spine_bytes,col sep=comma]
-          {data/memory_by_algorithm.csv};
+          {\datadir/memory_by_algorithm.csv};
         \addplot[fill=grasu] table[x=algorithm,y=grasu_bytes,col sep=comma]
-          {data/memory_by_algorithm.csv};
+          {\datadir/memory_by_algorithm.csv};
         \legend{Spine, GraSU+ReGraph}
       \end{axis}
     \end{tikzpicture}
@@ -249,9 +255,9 @@ Compact slices and full datasets are reported as separate populations.
         ylabel={Discontinuous-byte fraction}, symbolic x coords={SSSP,Full PR,Residual PR},
         xtick=data, ymin=0, ymax=1]
         \addplot[fill=spine] table[x=algorithm,y=spine_discontinuous,col sep=comma]
-          {data/memory_by_algorithm.csv};
+          {\datadir/memory_by_algorithm.csv};
         \addplot[fill=grasu] table[x=algorithm,y=grasu_discontinuous,col sep=comma]
-          {data/memory_by_algorithm.csv};
+          {\datadir/memory_by_algorithm.csv};
       \end{axis}
     \end{tikzpicture}
     \caption{Logical request-stream locality.}
@@ -263,7 +269,7 @@ Compact slices and full datasets are reported as separate populations.
 \end{figure}
 }{\missingplot{Waiting for phase-aligned accepted-request traffic evidence.}}
 
-\IfFileExists{data/physical_memory_by_algorithm.csv}{%
+\IfFileExists{\datadir/physical_memory_by_algorithm.csv}{%
 \begin{figure}[H]
   \centering
   \begin{subfigure}{0.49\linewidth}
@@ -271,13 +277,13 @@ Compact slices and full datasets are reported as separate populations.
     \begin{tikzpicture}
       \begin{axis}[ybar, width=0.9\linewidth, height=48mm,
         ylabel={DRAM row-hit rate}, ymin=0, ymax=1,
-        symbolic x coords={Full PR,Residual PR}, xtick=data,
+        symbolic x coords={SSSP,Full PR,Residual PR}, xtick=data,
         legend style={at={(0.5,1.22)},anchor=south,legend columns=2,
           font=\small,/tikz/every even column/.append style={column sep=4pt}}]
         \addplot[fill=spine] table[x=algorithm,y=spine_row_hit_rate,col sep=comma]
-          {data/physical_memory_by_algorithm.csv};
+          {\datadir/physical_memory_by_algorithm.csv};
         \addplot[fill=grasu] table[x=algorithm,y=grasu_row_hit_rate,col sep=comma]
-          {data/physical_memory_by_algorithm.csv};
+          {\datadir/physical_memory_by_algorithm.csv};
         \legend{Spine, GraSU+ReGraph}
       \end{axis}
     \end{tikzpicture}
@@ -288,11 +294,11 @@ Compact slices and full datasets are reported as separate populations.
     \begin{tikzpicture}
       \begin{axis}[ybar, width=0.9\linewidth, height=48mm, ymode=log,
         ylabel={64B transfer / requested byte}, ymin=1,
-        symbolic x coords={Full PR,Residual PR}, xtick=data]
+        symbolic x coords={SSSP,Full PR,Residual PR}, xtick=data]
         \addplot[fill=spine] table[x=algorithm,y=spine_burst_amplification,col sep=comma]
-          {data/physical_memory_by_algorithm.csv};
+          {\datadir/physical_memory_by_algorithm.csv};
         \addplot[fill=grasu] table[x=algorithm,y=grasu_burst_amplification,col sep=comma]
-          {data/physical_memory_by_algorithm.csv};
+          {\datadir/physical_memory_by_algorithm.csv};
       \end{axis}
     \end{tikzpicture}
     \caption{Burst amplification.}
@@ -303,11 +309,11 @@ Compact slices and full datasets are reported as separate populations.
     \begin{tikzpicture}
       \begin{axis}[ybar, width=0.94\linewidth, height=48mm, ymode=log,
         ylabel={HBM-queue stall events / request}, ymin=0.01,
-        symbolic x coords={Full PR,Residual PR}, xtick=data]
+        symbolic x coords={SSSP,Full PR,Residual PR}, xtick=data]
         \addplot[fill=spine] table[x=algorithm,y=spine_hbm_stalls_per_request,col sep=comma]
-          {data/physical_memory_by_algorithm.csv};
+          {\datadir/physical_memory_by_algorithm.csv};
         \addplot[fill=grasu] table[x=algorithm,y=grasu_hbm_stalls_per_request,col sep=comma]
-          {data/physical_memory_by_algorithm.csv};
+          {\datadir/physical_memory_by_algorithm.csv};
       \end{axis}
     \end{tikzpicture}
     \caption{Shared-backend pressure.}
@@ -315,13 +321,13 @@ Compact slices and full datasets are reported as separate populations.
   \caption{Phase-aligned physical HBM behavior for batch-8 insertion on five
   compact real-topology slices.  The DRAMSim3 command ledger equals accepted
   AXI requests on every row. Stall values count rejected port attempts, so
-  multiple events may occur in one cycle. Weighted SSSP is excluded because
-  Spine's current controller window also contains cold initialization.}
+  multiple events may occur in one cycle. Spine weighted SSSP uses an exact
+  quiescent cold-prefix subtraction to align its controller window.}
 \end{figure}
 }{\missingplot{Waiting for complete FIFO/AXI/HBM backpressure evidence.}}
 
 \section{Dense-batch behavior}
-\IfFileExists{data/dense_batch.csv}{%
+\IfFileExists{\datadir/dense_batch.csv}{%
 \begin{figure}[H]
   \centering
   \begin{tikzpicture}
@@ -332,13 +338,13 @@ Compact slices and full datasets are reported as separate populations.
       grid=major,
       legend style={at={(0.5,1.14)},anchor=south,legend columns=4}]
       \addplot[spine,mark=square*] table[x=update_ratio,y=AU_speedup,col sep=comma]
-        {data/dense_batch.csv};
+        {\datadir/dense_batch.csv};
       \addplot[grasu,mark=triangle*] table[x=update_ratio,y=WK_speedup,col sep=comma]
-        {data/dense_batch.csv};
+        {\datadir/dense_batch.csv};
       \addplot[muted,mark=diamond*] table[x=update_ratio,y=BC_speedup,col sep=comma]
-        {data/dense_batch.csv};
+        {\datadir/dense_batch.csv};
       \addplot[black,very thick,mark=*] table[x=update_ratio,y=geomean_speedup,col sep=comma]
-        {data/dense_batch.csv};
+        {\datadir/dense_batch.csv};
       \addplot[muted,dashed] coordinates {(0.005,1) (0.7,1)};
       \legend{AU,WK,BC,Geomean}
     \end{semilogxaxis}
@@ -349,7 +355,7 @@ Compact slices and full datasets are reported as separate populations.
 }{\missingplot{Waiting for real-topology batch 64/512/4096 sweeps.}}
 
 \section{Matched HBM energy}
-\IfFileExists{data/hbm_energy_by_algorithm.csv}{%
+\IfFileExists{\datadir/hbm_energy_by_algorithm.csv}{%
 \begin{figure}[H]
   \centering
   \begin{tikzpicture}
@@ -360,11 +366,11 @@ Compact slices and full datasets are reported as separate populations.
       ymin=0.5, ymax=4, grid=major,
       legend style={at={(0.5,1.15)},anchor=south,legend columns=3}]
       \addplot[fill=spine] table[x=algorithm,y=grasu_to_spine_total_hbm,col sep=comma]
-        {data/hbm_energy_by_algorithm.csv};
+        {\datadir/hbm_energy_by_algorithm.csv};
       \addplot[fill=grasu] table[x=algorithm,y=grasu_to_spine_command_dynamic,col sep=comma]
-        {data/hbm_energy_by_algorithm.csv};
+        {\datadir/hbm_energy_by_algorithm.csv};
       \addplot[fill=muted] table[x=algorithm,y=grasu_to_spine_background_refresh,col sep=comma]
-        {data/hbm_energy_by_algorithm.csv};
+        {\datadir/hbm_energy_by_algorithm.csv};
       \addplot[black,dashed,sharp plot] coordinates {(Full PR,1) (Residual PR,1)};
       \legend{Total HBM,Command dynamic,Background + refresh}
     \end{semilogyaxis}
@@ -377,7 +383,7 @@ Compact slices and full datasets are reported as separate populations.
 }{\missingplot{Waiting for matched all-controller HBM energy evidence.}}
 
 \section{Routed HLS feasibility}
-\IfFileExists{data/ppa_summary.csv}{%
+\IfFileExists{\datadir/ppa_summary.csv}{%
 \begin{table}[H]
   \centering
   \small
@@ -396,7 +402,7 @@ Compact slices and full datasets are reported as separate populations.
     columns/timing/.style={string type,column name={Setup}},
     every head row/.style={before row=\toprule,after row=\midrule},
     every last row/.style={after row=\bottomrule}
-  ]{data/ppa_summary.csv}}
+  ]{\datadir/ppa_summary.csv}}
   \caption{Routed U55C HLS feasibility at each row's stated data-clock target.
   Spine is the latest source-identical 152 MHz implementation; the
   GraSU+ReGraph implementations target 150 MHz. These
@@ -419,7 +425,7 @@ Compact slices and full datasets are reported as separate populations.
       nodes near coords={\pgfmathprintnumber[fixed,precision=3]{\pgfplotspointmeta}},
       nodes near coords style={font=\small}]
       \addplot[fill=spine] table[x=label,y=wns_ns,col sep=comma]
-        {data/ppa_summary.csv};
+        {\datadir/ppa_summary.csv};
       \addplot[muted,dashed,sharp plot,nodes near coords={}] coordinates
         {(Spine SSSP,0) (G+R Residual PR,0)};
     \end{axis}

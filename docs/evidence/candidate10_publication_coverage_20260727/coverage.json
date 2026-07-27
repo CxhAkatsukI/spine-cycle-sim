@@ -53,10 +53,10 @@
     "paper_reference_small_batch_matrix": true,
     "paper_reference_three_algorithm_matrix": true,
     "paper_reference_update_matrix": true,
-    "publication_real_matrix_complete": false,
+    "publication_real_matrix_complete": true,
     "real_dense_coverage": true,
-    "three_algorithm_memory_window_alignment": false
+    "three_algorithm_memory_window_alignment": true
   },
-  "interpretation": "Existing evidence is a correct compact pilot, not a complete paper-reference real-dataset evaluation.",
-  "status": "INCOMPLETE"
+  "interpretation": "The frozen compact-slice publication contract is complete; unsliced full-dataset and multi-partition claims remain outside this gate.",
+  "status": "PASS"
 }

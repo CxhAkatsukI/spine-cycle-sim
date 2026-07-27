@@ -39,10 +39,24 @@ def classify_phase_bottleneck(phase_cycles: int, total_cycles: int) -> str:
     return "balanced"
 
 
-def aggregate_dram_stats(dram_dir: Path) -> dict[str, int | float]:
-    paths = sorted(dram_dir.glob("channel*/dramsim3.json"))
-    if not paths:
+def _dram_channel_rows(dram_dir: Path) -> dict[str, Mapping[str, object]]:
+    rows: dict[str, Mapping[str, object]] = {}
+    for path in sorted(dram_dir.glob("channel*/dramsim3.json")):
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        if len(payload) != 1:
+            raise ValueError(f"expected one DRAM channel record in {path}")
+        rows[path.parent.name] = next(iter(payload.values()))
+    if not rows:
         raise ValueError(f"no DRAMSim3 evidence under {dram_dir}")
+    return rows
+
+
+def _aggregate_dram_rows(
+    current: Mapping[str, Mapping[str, object]],
+    baseline: Mapping[str, Mapping[str, object]] | None = None,
+) -> dict[str, int | float]:
+    if baseline is not None and set(current) != set(baseline):
+        raise ValueError("DRAM delta requires identical channel sets")
     totals: dict[str, int | float] = {
         "channels": 0,
         "reads": 0,
@@ -56,33 +70,58 @@ def aggregate_dram_stats(dram_dir: Path) -> dict[str, int | float]:
         "weighted_write_latency": 0.0,
         "write_latency_samples": 0,
     }
-    for path in paths:
-        payload = json.loads(path.read_text(encoding="utf-8"))
-        if len(payload) != 1:
-            raise ValueError(f"expected one DRAM channel record in {path}")
-        row = next(iter(payload.values()))
-        reads = int(row["num_reads_done"])
-        writes = int(row["num_writes_done"])
+    counter_fields = (
+        "num_reads_done",
+        "num_writes_done",
+        "num_read_row_hits",
+        "num_write_row_hits",
+        "num_act_cmds",
+        "num_pre_cmds",
+    )
+    for channel, row in current.items():
+        base = baseline[channel] if baseline is not None else {}
+        counters = {
+            field: int(row[field]) - int(base.get(field, 0))
+            for field in counter_fields
+        }
+        if any(value < 0 for value in counters.values()):
+            raise ValueError(f"negative DRAM delta on {channel}")
+        reads = counters["num_reads_done"]
+        writes = counters["num_writes_done"]
         totals["channels"] += 1
         totals["reads"] += reads
         totals["writes"] += writes
-        totals["read_row_hits"] += int(row["num_read_row_hits"])
-        totals["write_row_hits"] += int(row["num_write_row_hits"])
-        totals["activates"] += int(row["num_act_cmds"])
-        totals["precharges"] += int(row["num_pre_cmds"])
-        totals["total_energy_pj"] += float(row["total_energy"])
-        totals["weighted_read_latency"] += reads * float(row["average_read_latency"])
-        if writes:
-            write_histogram = row.get("write_latency")
-            if isinstance(write_histogram, dict):
-                histogram_writes = sum(
-                    int(count) for count in write_histogram.values()
+        totals["read_row_hits"] += counters["num_read_row_hits"]
+        totals["write_row_hits"] += counters["num_write_row_hits"]
+        totals["activates"] += counters["num_act_cmds"]
+        totals["precharges"] += counters["num_pre_cmds"]
+        energy = float(row["total_energy"]) - float(base.get("total_energy", 0.0))
+        if energy < 0.0:
+            raise ValueError(f"negative DRAM energy delta on {channel}")
+        totals["total_energy_pj"] += energy
+        totals["weighted_read_latency"] += (
+            int(row["num_reads_done"]) * float(row["average_read_latency"])
+            - int(base.get("num_reads_done", 0))
+            * float(base.get("average_read_latency", 0.0))
+        )
+        current_histogram = row.get("write_latency")
+        baseline_histogram = base.get("write_latency")
+        if isinstance(current_histogram, dict):
+            latency_keys = set(current_histogram)
+            if isinstance(baseline_histogram, dict):
+                latency_keys |= set(baseline_histogram)
+            for latency in latency_keys:
+                count = int(current_histogram.get(latency, 0)) - int(
+                    baseline_histogram.get(latency, 0)
+                    if isinstance(baseline_histogram, dict)
+                    else 0
                 )
-                totals["write_latency_samples"] += histogram_writes
-                totals["weighted_write_latency"] += sum(
-                    int(latency) * int(count)
-                    for latency, count in write_histogram.items()
-                )
+                if count < 0:
+                    raise ValueError(
+                        f"negative DRAM write-latency delta on {channel}"
+                    )
+                totals["write_latency_samples"] += count
+                totals["weighted_write_latency"] += int(latency) * count
     reads = int(totals["reads"])
     writes = int(totals["writes"])
     write_latency_samples = int(totals["write_latency_samples"])
@@ -102,6 +141,20 @@ def aggregate_dram_stats(dram_dir: Path) -> dict[str, int | float]:
         write_latency_samples / writes if writes else 1.0
     )
     return totals
+
+
+def aggregate_dram_stats(dram_dir: Path) -> dict[str, int | float]:
+    return _aggregate_dram_rows(_dram_channel_rows(dram_dir))
+
+
+def aggregate_dram_stats_delta(
+    dram_dir: Path, baseline_dram_dir: Path
+) -> dict[str, int | float]:
+    """Subtract an identical quiescent-prefix run from cumulative DRAM stats."""
+
+    return _aggregate_dram_rows(
+        _dram_channel_rows(dram_dir), _dram_channel_rows(baseline_dram_dir)
+    )
 
 
 def _read_csv(path: Path) -> list[dict[str, str]]:

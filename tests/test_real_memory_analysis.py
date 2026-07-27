@@ -147,6 +147,35 @@ class RealMemoryAnalysisTests(unittest.TestCase):
         paper = physical_paper_rows(rows)
         self.assertEqual([row["algorithm_id"] for row in paper], ["full_pagerank"])
 
+    def test_weighted_cold_subtraction_uses_aligned_logical_window(self) -> None:
+        weighted = {
+            **_physical_row("spine", aligned=False),
+            **_group("aligned_backend", 2, 32),
+            "aligned_e2e_ms": "1.0",
+            "aligned_e2e_cycles": "50",
+            "cold_cycles": "50",
+        }
+        row = normalize_physical_system_row(
+            "weighted_sssp",
+            weighted,
+            _dram(2),
+            cold_subtracted=True,
+            stall_overrides={
+                "axis_push_stalls": 1,
+                "axi_issue_stalls": 2,
+                "hbm_queue_stalls": 3,
+                "hbm_response_queue_stalls": 4,
+            },
+        )
+        self.assertTrue(row["dram_physical_window_aligned"])
+        self.assertEqual(row["physical_backend_requests"], 2)
+        self.assertEqual(row["physical_window_cycles"], 50)
+        self.assertEqual(row["hbm_queue_stalls"], 3)
+        self.assertEqual(
+            row["physical_window_derivation"],
+            "quiescent_identical_cold_prefix_subtraction",
+        )
+
     def test_pagerank_requires_closed_update_compute_phases(self) -> None:
         row = {
             **_base("spine"),
