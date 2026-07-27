@@ -596,10 +596,19 @@ def build_invocation(
             "--max-rounds",
             str(run.get("max_rounds", 256)),
         ]
+        update_artifact = run.get("update")
+        update_records = (
+            int(update_artifact.get("records", 0))
+            if isinstance(update_artifact, Mapping)
+            else 0
+        )
         if algorithm == "weighted_dynamic_sssp":
             update = artifact_path(root, run["update"])  # type: ignore[arg-type]
             command.extend(("--update-workload", str(update)))
         elif algorithm == "full_pagerank":
+            if update_records > 0:
+                update = artifact_path(root, run["update"])  # type: ignore[arg-type]
+                command.extend(("--update-workload", str(update)))
             command.extend(
                 (
                     "--pagerank-iterations",
@@ -609,6 +618,9 @@ def build_invocation(
                 )
             )
         elif algorithm == "thresholded_residual_pagerank":
+            if update_records > 0:
+                update = artifact_path(root, run["update"])  # type: ignore[arg-type]
+                command.extend(("--update-workload", str(update)))
             command.extend(
                 (
                     "--pagerank-damping",

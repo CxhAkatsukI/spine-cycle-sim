@@ -114,6 +114,44 @@ class SharedComparisonRunnerTests(unittest.TestCase):
         )
         self.assertIn("--profile", grasu.command)
 
+    def test_nonempty_pagerank_updates_are_passed_to_spine(self) -> None:
+        update = {
+            "case_id": "multipart_update",
+            "path": "tests/data/grasu_regraph_partitioned_normalized_update.slice",
+            "records": 6,
+            "sha256": "0703f584058eeb36004cd9ca734ac0cf0329ac58fd0905d365d7837a6bf55e1c",
+            "vertices": 65537,
+        }
+        for algorithm in ("full_pagerank", "thresholded_residual_pagerank"):
+            run = dict(
+                next(
+                    item
+                    for item in self.manifest["runs"]
+                    if item["algorithm"] == algorithm
+                )
+            )
+            run["update"] = update
+            with self.subTest(algorithm=algorithm), tempfile.TemporaryDirectory(
+                dir=ROOT
+            ) as tmp:
+                invocation = build_invocation(
+                    ROOT,
+                    run,
+                    system="spine",
+                    output_root=Path(tmp),
+                    python="python3",
+                    sst=Path("/data/feiyang/sst/bin/sst"),
+                    lib_dir=ROOT / "build" / "sst",
+                    spine_profile=SPINE_PROFILE,
+                )
+                self.assertIn("--update-workload", invocation.command)
+                self.assertEqual(
+                    invocation.command[
+                        invocation.command.index("--update-workload") + 1
+                    ],
+                    str((ROOT / update["path"]).resolve()),
+                )
+
     def test_k1_profiles_select_hls_derived_runners_for_all_algorithms(self) -> None:
         profile_paths = normalized_grasu_profile_paths(ROOT, "k1_v4")
         k1_manifest = validate_shared_comparison_manifest(
