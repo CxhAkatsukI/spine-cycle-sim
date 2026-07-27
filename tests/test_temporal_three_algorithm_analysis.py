@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import csv
+from pathlib import Path
+import tempfile
 import unittest
 
 from spine_cycle_sim.experiments.temporal_three_algorithm_analysis import (
@@ -7,10 +10,27 @@ from spine_cycle_sim.experiments.temporal_three_algorithm_analysis import (
     EXPANDED_BATCHES,
     _expanded_paper_tables,
     _paper_tables,
+    _write_csv,
 )
 
 
 class TemporalThreeAlgorithmAnalysisTest(unittest.TestCase):
+    def test_csv_writer_uses_union_of_heterogeneous_row_fields(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            output = Path(temporary) / "rows.csv"
+            _write_csv(
+                output,
+                [
+                    {"run_id": "legacy", "cycles": 10},
+                    {"run_id": "physical", "cycles": 20, "dram_reads": 3},
+                ],
+            )
+            with output.open(encoding="utf-8", newline="") as stream:
+                rows = list(csv.DictReader(stream))
+            self.assertEqual(list(rows[0]), ["run_id", "cycles", "dram_reads"])
+            self.assertEqual(rows[0]["dram_reads"], "")
+            self.assertEqual(rows[1]["dram_reads"], "3")
+
     def test_expanded_tables_require_three_by_three_by_five(self) -> None:
         pairs = [
             {
@@ -27,11 +47,16 @@ class TemporalThreeAlgorithmAnalysisTest(unittest.TestCase):
         correctness, batches = _expanded_paper_tables(pairs)
         self.assertEqual([row["real_pairs"] for row in correctness], [15, 15, 15])
         self.assertEqual(len(batches), 9)
+        self.assertEqual(
+            [row["algorithm_index"] for row in batches],
+            [0, 0, 0, 1, 1, 1, 2, 2, 2],
+        )
         self.assertTrue(all(row["spine_speedup"] == 0.5 for row in batches))
 
         pairs[-1]["cross_system_correct"] = False
         with self.assertRaisesRegex(ValueError, "lacks five correct pairs"):
             _expanded_paper_tables(pairs)
+
     def test_paper_tables_require_complete_cross_product(self) -> None:
         abbreviations = {f"d{index}": f"D{index}" for index in range(5)}
         pairs = [

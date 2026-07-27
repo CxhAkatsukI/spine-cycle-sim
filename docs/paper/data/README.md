@@ -11,6 +11,7 @@ Expected CSV interfaces:
 - `e2e_speedup_by_dataset_algorithm.csv`
 - `update_throughput.csv`
 - `e2e_by_batch.csv`
+- `small_batch_by_algorithm.csv`
 - `memory_by_algorithm.csv`
 - `dense_batch.csv`
 

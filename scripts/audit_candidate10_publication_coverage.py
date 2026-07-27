@@ -33,8 +33,8 @@ DEFAULT_REAL_ROWS = [
     ROOT
     / "docs"
     / "evidence"
-    / "candidate10_grasu_temporal_three_algorithms_insert_u8_20260727"
-    / "system_rows.csv",
+    / "candidate10_grasu_temporal_three_algorithm_small_batches_20260727"
+    / "expanded_system_rows.csv",
     ROOT
     / "docs"
     / "evidence"
@@ -134,7 +134,10 @@ def _has_cross_product(
 
 def _has_fields(rows: Iterable[dict[str, str]], fields: set[str]) -> bool:
     rows = list(rows)
-    return bool(rows) and all(fields <= set(row) for row in rows)
+    return bool(rows) and all(
+        fields <= set(row) and all(row.get(field, "") != "" for field in fields)
+        for row in rows
+    )
 
 
 def audit(

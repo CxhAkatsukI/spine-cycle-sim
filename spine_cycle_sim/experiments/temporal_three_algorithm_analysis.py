@@ -28,11 +28,12 @@ def _read_csv(path: Path) -> list[dict[str, str]]:
 def _write_csv(path: Path, rows: list[dict[str, object]]) -> None:
     if not rows:
         raise ValueError(f"refusing to write empty table: {path}")
+    fieldnames = list(
+        dict.fromkeys(key for row in rows for key in row)
+    )
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8", newline="") as stream:
-        writer = csv.DictWriter(
-            stream, fieldnames=list(rows[0]), lineterminator="\n"
-        )
+        writer = csv.DictWriter(stream, fieldnames=fieldnames, lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
 
@@ -373,7 +374,7 @@ def _expanded_paper_tables(
 ) -> tuple[list[dict[str, object]], list[dict[str, object]]]:
     correctness: list[dict[str, object]] = []
     batch_rows: list[dict[str, object]] = []
-    for algorithm, label in ALGORITHM_LABELS.items():
+    for algorithm_index, (algorithm, label) in enumerate(ALGORITHM_LABELS.items()):
         selected_algorithm = [row for row in pairs if row["algorithm"] == algorithm]
         if len(selected_algorithm) != 15:
             raise ValueError(f"{algorithm} expanded correctness coverage is incomplete")
@@ -400,6 +401,7 @@ def _expanded_paper_tables(
                 {
                     "algorithm": label,
                     "algorithm_id": algorithm,
+                    "algorithm_index": algorithm_index,
                     "batch": batch,
                     "pairs": len(selected),
                     "spine_ms": spine_ms,

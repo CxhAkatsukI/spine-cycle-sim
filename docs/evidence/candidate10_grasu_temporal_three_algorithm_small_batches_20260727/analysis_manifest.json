@@ -1,0 +1,64 @@
+{
+  "algorithms": [
+    "weighted_sssp",
+    "full_pagerank",
+    "thresholded_residual_pagerank"
+  ],
+  "all_correct": true,
+  "analysis_id": "candidate10_temporal_three_algorithm_small_batches_v1_20260727",
+  "baseline_analysis_manifest_sha256": "afb19b467a4caacfd7d460922c195b8fb4277f135a1e5a45a963a83916c8f982",
+  "baseline_outputs": {
+    "correctness_coverage.csv": "8d247d21f5ca00e4aca8676efa7b4d4dbafba9156738c292e1ead54b163d99c0",
+    "e2e_by_algorithm.csv": "b917b76beda2b08e3bec4b3c5123fad4bef7f43ea60a9ce170fcc1db30ee17c0",
+    "e2e_speedup_by_dataset_algorithm.csv": "78aeff3bce7014e4f4b59fd0a13d4e400e6971e1fc404c388bc124d49e8d0e6a",
+    "pair_rows.csv": "a104c9433554ac411303c5ec760646e3d4ee07b29b5332dcf192901c369d54ad",
+    "raw_results.tar.gz": "f590b44a3c32933340f8ca507c5821792b3948d355679c936afa6d53804aa046",
+    "system_rows.csv": "65b8be1f471bf72568d77811d96ee0f703b7b9145ae3f83bec840942222ce6de"
+  },
+  "batch_sizes": [
+    1,
+    8,
+    64
+  ],
+  "datasets": [
+    "soc_bitcoin",
+    "sx_askubuntu",
+    "sx_stackoverflow",
+    "sx_superuser",
+    "wiki_talk_temporal"
+  ],
+  "dram_request_ledgers_closed": true,
+  "full_pagerank_analysis_manifest_sha256": "041f08e33cd02ee677be11f39390e225e63232ea9b6a875e76caa45ef83d8de3",
+  "full_pagerank_outputs": {
+    "e2e_by_batch.csv": "4b2c863bc8386d528fb2de5d2da65692c78a6971a26627ae1371285379163a03",
+    "pairs_enriched.csv": "1d99017f67c6c26d2a261dbc67022f637ad12c2ab36d41266e8b96a626a78ec2",
+    "raw_results.tar.gz": "b065f64a4c6c8d6d16962b080f6f5babfc3dc0d1e4b42a11f0b8b53e890b17f8",
+    "system_rows_enriched.csv": "f6a41fe7b3b222dd9cd4bf52340bfdac381a7a716910529f6cc18da25d39d189",
+    "update_throughput.csv": "94f4fff9674c21596d1bf8f7f6ffadc4fdb0dbd2e554e2e955d69d630b852f84"
+  },
+  "gap_matrix_manifest_sha256": {
+    "thresholded_residual_pagerank": "61d272caa80733014f760d62d43e664016dadf7c02e45c6d930df451831a0740",
+    "weighted_sssp": "0b4b441ef121826f87439993d478075465c24d20ff13940b9dd46f5486f7c7ac"
+  },
+  "input_manifest_sha256": "d6d45a212f569a4ea919e2ac13fad0ce7455584cfc0105086b46098363f78629",
+  "limitations": [
+    "Inputs are 8192-edge compact file-order slices, not full datasets.",
+    "The expanded cross-algorithm matrix covers insertion only.",
+    "Weighted SSSP uses oracle-minimum fixed host supersteps.",
+    "All inputs remain within one normalized destination partition."
+  ],
+  "outputs": {
+    "correctness_coverage.csv": "2caa248528b8a60bb5dde797faa166a96b8cfe71f58f2ea83930ce77afcc4277",
+    "expanded_pairs.csv": "93a6118f6d3c124533975d9d47fcf0cd73160a8d3e084ad030d0bbe3495dc567",
+    "expanded_system_rows.csv": "56b0bdc231f919235d6b02c6d4ab1242ab3ebdc8fbb0574ac3c6801bb25148ea",
+    "gap_pairs.csv": "61603ce455fa4c80fe8db212b49e9f99890c4680b3360679e6341da977432d65",
+    "gap_raw_results.tar.gz": "c80b9434579f79f8830020eeb0abb35fe6f59de8b0309a15fe70b407eb980c62",
+    "gap_system_rows.csv": "64ab5b042b8d11ed152380391a601167da6a91d1db1bf2a75de8e3aa4f56f097",
+    "small_batch_by_algorithm.csv": "a00c3b730c95a4a2d5b44b9e9b83786dbaa5d22fae188c3b2f7d172ba3332082"
+  },
+  "pairs": 45,
+  "scenario": "insert",
+  "schema_version": 1,
+  "status": "PASS",
+  "system_rows": 90
+}

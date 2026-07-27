@@ -76,3 +76,14 @@ class PublicationCoverageAuditTest(unittest.TestCase):
                 },
             )
         )
+
+    def test_complete_fields_require_nonempty_values(self) -> None:
+        fields = {"axis_push_stalls", "axi_issue_stalls", "hbm_queue_stalls"}
+        complete = {
+            "axis_push_stalls": "0",
+            "axi_issue_stalls": "0",
+            "hbm_queue_stalls": "12",
+        }
+        self.assertTrue(MODULE._has_fields([complete], fields))
+        incomplete = {**complete, "axi_issue_stalls": ""}
+        self.assertFalse(MODULE._has_fields([incomplete], fields))
