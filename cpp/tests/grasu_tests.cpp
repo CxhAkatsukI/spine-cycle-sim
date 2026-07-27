@@ -785,6 +785,64 @@ void test_partitioned_regraph_sssp_crosses_destination_windows() {
             << " row_reads=" << counters.row_reads << '\n';
 }
 
+void test_partitioned_regraph_sssp_uses_two_compute_pipelines() {
+  constexpr std::size_t kVertices = 33;
+  constexpr std::size_t kPartitionVertices = 16;
+  const std::vector<GraSuEdge> edges = {
+      {.source = 0, .destination = 16, .weight = 1},
+      {.source = 16, .destination = 1, .weight = 1},
+      {.source = 1, .destination = 32, .weight = 1},
+      {.source = 32, .destination = 17, .weight = 1},
+      {.source = 17, .destination = 0, .weight = 9},
+  };
+  const GraSuPartitionedPmaLayout layout = GraSuPartitionedPmaLayout::build(
+      kVertices, kPartitionVertices, edges, {});
+
+  Scheduler scheduler;
+  const auto core =
+      scheduler.add_clock_mhz("partitioned-regraph-sssp-k2", 200.0);
+  MockMemoryBackend backend("shared-hbm", core,
+                            MockMemoryConfig{.channels = 32,
+                                             .latency_cycles = 7,
+                                             .accepts_per_channel_per_cycle = 1,
+                                             .max_outstanding_per_channel = 32,
+                                             .response_queue_depth = 128});
+  GraSuReGraphConfig config;
+  config.compute_pipelines = 2;
+  config.partition_vertices = kPartitionVertices;
+  config.source_buffer_vertices = 16;
+  config.edge_lanes = 4;
+  config.gather_banks = 4;
+  initialize_partitioned_pma_payloads(backend, layout, config);
+  GraSuReGraphSsspSystem system(scheduler, core, backend, layout, 0, config);
+  system.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until([&] { return system.done() || system.failed(); },
+                      5'000'000);
+
+  require(!system.failed() && system.done(),
+          "two-pipeline PMA-native ReGraph SSSP did not complete");
+  require(system.distances() == weighted_sssp_oracle(kVertices, edges, 0),
+          "two-pipeline PMA-native ReGraph SSSP differs from Dijkstra");
+  const auto counters = system.counters();
+  require(counters.compute_pipelines == 2 &&
+              counters.max_parallel_partitions == 2 &&
+              counters.destination_partitions == 3 &&
+              counters.partition_passes ==
+                  counters.destination_partitions * counters.supersteps &&
+              counters.pipeline_busy_cycles >
+                  counters.end_cycle - counters.start_cycle &&
+              counters.row_reads == kVertices * counters.partition_passes &&
+              counters.live_edges_scanned == edges.size() * counters.supersteps,
+          "two-pipeline ReGraph SSSP work/parallelism ledger mismatch");
+  std::cout << "EVIDENCE grasu_regraph_partitioned_sssp_k2 cycles="
+            << counters.end_cycle - counters.start_cycle
+            << " partitions=" << counters.destination_partitions
+            << " pipelines=" << counters.compute_pipelines
+            << " max_parallel=" << counters.max_parallel_partitions
+            << " busy_cycles=" << counters.pipeline_busy_cycles << '\n';
+}
+
 void test_partitioned_update_times_degree_rmw_and_feeds_pagerank() {
   constexpr std::size_t kVertices = 33;
   constexpr std::size_t kPartitionVertices = 16;
@@ -2047,6 +2105,8 @@ int main() {
        test_weighted_full_word_hls_contract_matches_sw_emu_oracle},
       {"partitioned_sssp",
        test_partitioned_regraph_sssp_crosses_destination_windows},
+      {"partitioned_sssp_k2",
+       test_partitioned_regraph_sssp_uses_two_compute_pipelines},
       {"partitioned_update_degree",
        test_partitioned_update_times_degree_rmw_and_feeds_pagerank},
       {"full_pagerank", test_pma_native_regraph_full_pagerank_matches_oracle},

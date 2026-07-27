@@ -86,6 +86,9 @@ probe.addParams(
         "grasu_partition_vertices": int(
             os.environ.get("GRASU_SST_PARTITION_VERTICES", "16")
         ),
+        "grasu_compute_pipelines": int(
+            os.environ.get("GRASU_SST_COMPUTE_PIPELINES", "1")
+        ),
         "grasu_source_buffer_vertices": int(
             os.environ.get("GRASU_SST_SOURCE_BUFFER_VERTICES", "4096")
         ),

@@ -397,6 +397,9 @@ def main() -> int:
             "GRASU_SST_PARTITION_VERTICES": str(
                 params["regraph_partition_vertices"]
             ),
+            "GRASU_SST_COMPUTE_PIPELINES": str(
+                params.get("regraph_compute_pipelines", 1)
+            ),
             "GRASU_SST_SOURCE_BUFFER_VERTICES": str(
                 params["regraph_source_buffer_vertices"]
             ),

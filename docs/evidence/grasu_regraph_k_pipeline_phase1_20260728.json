@@ -1,0 +1,53 @@
+{
+  "schema": "grasu-regraph-k-pipeline-phase1-v1",
+  "date": "2026-07-28",
+  "baseline_commit": "10187de",
+  "scope": "weighted_sssp_k_pipeline_structure",
+  "k1_identity": {
+    "comparison": "exact_evidence_line",
+    "passed": true,
+    "cases": [
+      {
+        "name": "partitioned_weighted_sssp",
+        "cycles_before": 10576,
+        "cycles_after": 10576,
+        "partitions": 3,
+        "supersteps": 5,
+        "partition_passes": 15,
+        "row_reads": 495
+      },
+      {
+        "name": "partitioned_full_pagerank",
+        "cycles_before": 8095,
+        "cycles_after": 8095,
+        "partitions": 3,
+        "degree_reads": 108,
+        "rank_sum": 1.0
+      },
+      {
+        "name": "partitioned_residual_pagerank",
+        "cycles_before": 155326,
+        "cycles_after": 155326,
+        "iterations": 57,
+        "partition_passes": 171,
+        "active_edges": 285
+      }
+    ]
+  },
+  "weighted_sssp_k2": {
+    "cycles": 6891,
+    "k1_cycles": 10576,
+    "speedup": 1.5346103613,
+    "partitions": 3,
+    "compute_pipelines": 2,
+    "max_parallel_partitions": 2,
+    "pipeline_busy_cycles": 10580,
+    "correctness": "exact_dijkstra_match",
+    "work_ledger": "closed"
+  },
+  "page_rank_boundary": {
+    "compute_pipelines_supported": 1,
+    "k_greater_than_1": "explicitly_rejected",
+    "reason": "global_source_prepare_and_cross_worker_dangling_active_error_reduction_pending"
+  }
+}

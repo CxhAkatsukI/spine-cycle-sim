@@ -2418,22 +2418,43 @@ private:
   std::size_t max_writes_inflight_{};
 };
 
+struct GraSuReGraphWorker {
+  ReGraphSourceHbmReader *source_hbm{};
+  PmaNativeReader *reader{};
+  ReGraphGather *gather{};
+  ReGraphMerger *merger{};
+  ReGraphApply *apply{};
+  ReGraphHbmWrapper *wrapper{};
+  std::optional<std::size_t> partition;
+
+  [[nodiscard]] bool done() const noexcept {
+    return partition.has_value() && source_hbm->done() && reader->done() &&
+           gather->done() && merger->done() && apply->done() && wrapper->done();
+  }
+};
+
 class GraSuReGraphController final : public Component {
 public:
   GraSuReGraphController(std::string name, ClockId clock_id,
                          GraphAlgorithmKind algorithm, std::size_t round_limit,
                          bool fixed_round_limit,
                          std::vector<ReGraphPartitionPlan> partitions,
-                         ReGraphSourceHbmReader &source_hbm,
-                         PmaNativeReader &reader, ReGraphGather &gather,
-                         ReGraphMerger &merger, ReGraphApply &apply,
-                         ReGraphHbmWrapper &wrapper)
+                         std::vector<GraSuReGraphWorker> workers)
       : Component(std::move(name), clock_id), algorithm_(algorithm),
         round_limit_(round_limit), fixed_round_limit_(fixed_round_limit),
-        partitions_(std::move(partitions)), source_hbm_(source_hbm),         reader_(reader), gather_(gather), merger_(merger), apply_(apply),
-        wrapper_(wrapper) {
-    if (partitions_.empty()) {
-      throw std::invalid_argument("ReGraph controller requires a partition");
+        partitions_(std::move(partitions)), workers_(std::move(workers)) {
+    if (partitions_.empty() || workers_.empty()) {
+      throw std::invalid_argument(
+          "ReGraph controller requires partitions and compute workers");
+    }
+    const bool malformed = std::any_of(
+        workers_.begin(), workers_.end(), [](const GraSuReGraphWorker &worker) {
+          return worker.source_hbm == nullptr || worker.reader == nullptr ||
+                 worker.gather == nullptr || worker.merger == nullptr ||
+                 worker.apply == nullptr || worker.wrapper == nullptr;
+        });
+    if (malformed) {
+      throw std::invalid_argument("ReGraph controller received a null worker");
     }
   }
 
@@ -2444,31 +2465,58 @@ public:
   [[nodiscard]] std::uint64_t partition_passes() const noexcept {
     return partition_passes_;
   }
+  [[nodiscard]] std::uint64_t pipeline_busy_cycles() const noexcept {
+    return pipeline_busy_cycles_;
+  }
+  [[nodiscard]] std::size_t max_parallel_partitions() const noexcept {
+    return max_parallel_partitions_;
+  }
+  [[nodiscard]] float iteration_error() const noexcept {
+    return last_iteration_error_;
+  }
 
   void evaluate(const CycleContext &) override {
     staged_ = Action::kNone;
+    staged_completed_workers_.clear();
     if (failed() || done()) {
       return;
     }
     if (phase_ == Phase::kStart) {
       staged_ = Action::kStartSuperstep;
-    } else if (phase_ == Phase::kRound && source_hbm_.done() &&
-               reader_.done() && gather_.done() && merger_.done() &&
-               apply_.done() && wrapper_.done()) {
-      if (partition_ + 1 < partitions_.size()) {
-        staged_ = Action::kNextPartition;
-      } else if (fixed_round_limit_ ||
-                 algorithm_ == GraphAlgorithmKind::kFullPageRank) {
+    } else if (phase_ == Phase::kRound) {
+      for (std::size_t worker = 0; worker < workers_.size(); ++worker) {
+        if (workers_[worker].done()) {
+          staged_completed_workers_.push_back(worker);
+        }
+      }
+      const std::size_t remaining_busy =
+          busy_worker_count() - staged_completed_workers_.size();
+      if (remaining_busy != 0 || next_partition_ < partitions_.size()) {
+        return;
+      }
+      std::size_t prospective_active = iteration_active_vertices_;
+      for (const std::size_t worker : staged_completed_workers_) {
+        prospective_active += workers_[worker].apply->active_vertices();
+      }
+      if (fixed_round_limit_ ||
+          algorithm_ == GraphAlgorithmKind::kFullPageRank) {
         staged_ = round_ == round_limit_ ? Action::kFinish
                                         : Action::kNextSuperstep;
       } else {
-        staged_ = apply_.active_vertices() == 0 ? Action::kFinish
-                                                : Action::kNextSuperstep;
+        staged_ = prospective_active == 0 ? Action::kFinish
+                                          : Action::kNextSuperstep;
       }
     }
   }
 
   void commit(const CycleContext &) override {
+    for (const std::size_t worker_index : staged_completed_workers_) {
+      GraSuReGraphWorker &worker = workers_.at(worker_index);
+      iteration_active_vertices_ += worker.apply->active_vertices();
+      iteration_error_ += worker.apply->iteration_error();
+      ++completed_partitions_;
+      worker.partition.reset();
+    }
     if (staged_ == Action::kStartSuperstep ||
         staged_ == Action::kNextSuperstep) {
       if (round_ == round_limit_) {
@@ -2476,15 +2524,25 @@ public:
         return;
       }
       ++round_;
-      partition_ = 0;
-      start_partition();
+      next_partition_ = 0;
+      completed_partitions_ = 0;
+      iteration_active_vertices_ = 0;
+      iteration_error_ = 0.0F;
+      dispatch_available_workers();
       phase_ = Phase::kRound;
-    } else if (staged_ == Action::kNextPartition) {
-      ++partition_;
-      start_partition();
     } else if (staged_ == Action::kFinish) {
+      last_iteration_error_ = iteration_error_;
       phase_ = Phase::kDone;
     }
+    if (!staged_completed_workers_.empty() && staged_ == Action::kNone) {
+      dispatch_available_workers();
+      if (completed_partitions_ == partitions_.size()) {
+        last_iteration_error_ = iteration_error_;
+      }
+    }
+    const std::size_t busy = busy_worker_count();
+    pipeline_busy_cycles_ += busy;
+    max_parallel_partitions_ = std::max(max_parallel_partitions_, busy);
   }
 
 private:
@@ -2492,38 +2550,56 @@ private:
   enum class Action {
     kNone,
     kStartSuperstep,
-    kNextPartition,
     kNextSuperstep,
     kFinish
   };
 
-  void start_partition() {
-    const ReGraphPartitionPlan &plan = partitions_.at(partition_);
-    source_hbm_.start_partition(round_, partition_);
-    reader_.start_partition(round_, plan, partition_ == 0);
-    gather_.start_partition(plan.destination_vertices, round_ == 1);
-    merger_.start_round();
-    apply_.start_partition(round_, plan.destination_base,
-                           plan.destination_vertices, partition_ == 0);
-    wrapper_.start_partition(round_, plan.destination_base);
+  [[nodiscard]] std::size_t busy_worker_count() const noexcept {
+    return static_cast<std::size_t>(std::count_if(
+        workers_.begin(), workers_.end(), [](const GraSuReGraphWorker &worker) {
+          return worker.partition.has_value();
+        }));
+  }
+
+  void start_partition(GraSuReGraphWorker &worker, std::size_t partition) {
+    const ReGraphPartitionPlan &plan = partitions_.at(partition);
+    worker.source_hbm->start_partition(round_, partition);
+    worker.reader->start_partition(round_, plan, partition == 0);
+    worker.gather->start_partition(plan.destination_vertices, round_ == 1);
+    worker.merger->start_round();
+    worker.apply->start_partition(round_, plan.destination_base,
+                                  plan.destination_vertices, true);
+    worker.wrapper->start_partition(round_, plan.destination_base);
+    worker.partition = partition;
     ++partition_passes_;
+  }
+
+  void dispatch_available_workers() {
+    for (GraSuReGraphWorker &worker : workers_) {
+      if (worker.partition.has_value() || next_partition_ == partitions_.size()) {
+        continue;
+      }
+      start_partition(worker, next_partition_++);
+    }
   }
 
   GraphAlgorithmKind algorithm_{GraphAlgorithmKind::kWeightedSssp};
   std::size_t round_limit_{};
   bool fixed_round_limit_{};
   std::vector<ReGraphPartitionPlan> partitions_;
-  ReGraphSourceHbmReader &source_hbm_;
-  PmaNativeReader &reader_;
-  ReGraphGather &gather_;
-  ReGraphMerger &merger_;
-  ReGraphApply &apply_;
-  ReGraphHbmWrapper &wrapper_;
+  std::vector<GraSuReGraphWorker> workers_;
   Phase phase_{Phase::kStart};
   Action staged_{Action::kNone};
+  std::vector<std::size_t> staged_completed_workers_;
   std::uint64_t round_{};
-  std::size_t partition_{};
+  std::size_t next_partition_{};
+  std::size_t completed_partitions_{};
+  std::size_t iteration_active_vertices_{};
+  float iteration_error_{};
+  float last_iteration_error_{};
   std::uint64_t partition_passes_{};
+  std::uint64_t pipeline_busy_cycles_{};
+  std::size_t max_parallel_partitions_{};
   std::string failure_;
 };
 
@@ -2599,6 +2675,29 @@ private:
 } // namespace
 
 class GraSuReGraphSsspSystem::Impl {
+  struct Pipeline {
+    std::unique_ptr<Fifo<PmaEdgeBatch>> edge_axis;
+    std::unique_ptr<Fifo<ReGraphSourceCacheRequest>> source_request_axis;
+    std::unique_ptr<Fifo<ReGraphSourceCacheResponse>> source_response_axis;
+    std::unique_ptr<Fifo<ReGraphGatherRow>> gather_axis;
+    std::unique_ptr<Fifo<ReGraphMergedBurst>> merger_axis;
+    std::unique_ptr<Fifo<ReGraphAppliedBurst>> wrapper_axis;
+    std::unique_ptr<FixedAxiPort> row_port;
+    std::unique_ptr<FixedAxiPort> source_state_port;
+    std::unique_ptr<FixedAxiPort> degree_port;
+    std::array<std::unique_ptr<FixedAxiPort>, 4> pma_ports;
+    std::unique_ptr<FixedAxiPort> apply_state_read_port;
+    std::unique_ptr<FixedAxiPort> apply_state_write_port;
+    std::unique_ptr<FixedAxiPort> source_state_primary_write_port;
+    std::unique_ptr<FixedAxiPort> source_state_mirror_write_port;
+    std::unique_ptr<ReGraphSourceHbmReader> source_hbm_reader;
+    std::unique_ptr<PmaNativeReader> reader;
+    std::unique_ptr<ReGraphGather> gather;
+    std::unique_ptr<ReGraphMerger> merger;
+    std::unique_ptr<ReGraphApply> apply;
+    std::unique_ptr<ReGraphHbmWrapper> wrapper;
+  };
+
 public:
   Impl(Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
        GraSuPartitionedPmaLayout layout, GraphAlgorithmPolicy policy,
@@ -2608,18 +2707,6 @@ public:
         layout_(std::move(layout)), source_(policy.config().source),
         config_(config), policy_(std::move(policy)),
         out_degrees_(std::move(out_degrees)), fixed_rounds_(fixed_rounds),
-        edge_axis_("grasu-regraph-pma-axis", clock_id_,
-                   config_.axis_fifo_depth),
-        source_request_axis_("regraph-source-cache-request-axis", clock_id_,
-                             config_.source_cache_request_fifo_depth),
-        source_response_axis_("regraph-source-cache-response-axis", clock_id_,
-                              config_.source_cache_response_fifo_depth),
-        gather_axis_("regraph-gather-merger-axis", clock_id_,
-                     config_.gather_merger_fifo_depth),
-        merger_axis_("regraph-merger-apply-axis", clock_id_,
-                     config_.merger_apply_fifo_depth),
-        wrapper_axis_("regraph-apply-wrapper-axis", clock_id_,
-                      config_.apply_wrapper_fifo_depth),
         start_cycle_(scheduler_.clock(clock_id_).completed_cycles) {
     validate_config();
     construct_partition_plans();
@@ -2632,30 +2719,32 @@ public:
     if (registered_) {
       throw std::logic_error("GraSU-ReGraph system registered more than once");
     }
-    scheduler_.add_component(edge_axis_);
-    scheduler_.add_component(source_request_axis_);
-    scheduler_.add_component(source_response_axis_);
-    scheduler_.add_component(gather_axis_);
-    scheduler_.add_component(merger_axis_);
-    scheduler_.add_component(wrapper_axis_);
-    row_port_->register_components(scheduler_);
-    source_state_port_->register_components(scheduler_);
-    if (degree_port_ != nullptr) {
-      degree_port_->register_components(scheduler_);
+    for (Pipeline &pipeline : pipelines_) {
+      scheduler_.add_component(*pipeline.edge_axis);
+      scheduler_.add_component(*pipeline.source_request_axis);
+      scheduler_.add_component(*pipeline.source_response_axis);
+      scheduler_.add_component(*pipeline.gather_axis);
+      scheduler_.add_component(*pipeline.merger_axis);
+      scheduler_.add_component(*pipeline.wrapper_axis);
+      pipeline.row_port->register_components(scheduler_);
+      pipeline.source_state_port->register_components(scheduler_);
+      if (pipeline.degree_port != nullptr) {
+        pipeline.degree_port->register_components(scheduler_);
+      }
+      for (auto &port : pipeline.pma_ports) {
+        port->register_components(scheduler_);
+      }
+      pipeline.apply_state_read_port->register_components(scheduler_);
+      pipeline.apply_state_write_port->register_components(scheduler_);
+      pipeline.source_state_primary_write_port->register_components(scheduler_);
+      pipeline.source_state_mirror_write_port->register_components(scheduler_);
+      scheduler_.add_component(*pipeline.source_hbm_reader);
+      scheduler_.add_component(*pipeline.reader);
+      scheduler_.add_component(*pipeline.gather);
+      scheduler_.add_component(*pipeline.merger);
+      scheduler_.add_component(*pipeline.apply);
+      scheduler_.add_component(*pipeline.wrapper);
     }
-    for (auto &port : pma_ports_) {
-      port->register_components(scheduler_);
-    }
-    apply_state_read_port_->register_components(scheduler_);
-    apply_state_write_port_->register_components(scheduler_);
-    source_state_primary_write_port_->register_components(scheduler_);
-    source_state_mirror_write_port_->register_components(scheduler_);
-    scheduler_.add_component(*source_hbm_reader_);
-    scheduler_.add_component(*reader_);
-    scheduler_.add_component(*gather_);
-    scheduler_.add_component(*merger_);
-    scheduler_.add_component(*apply_);
-    scheduler_.add_component(*wrapper_);
     scheduler_.add_component(*controller_);
     registered_ = true;
   }
@@ -2676,70 +2765,105 @@ public:
       result.axi_backend_submit_stalls +=
           port.master().stats().backend_submit_stalls;
     };
+    const auto sum = [this](auto value) {
+      std::uint64_t total = 0;
+      for (const Pipeline &pipeline : pipelines_) {
+        total += value(pipeline);
+      }
+      return total;
+    };
+    const auto maximum = [this](auto value) {
+      std::size_t result = 0;
+      for (const Pipeline &pipeline : pipelines_) {
+        result = std::max(result, value(pipeline));
+      }
+      return result;
+    };
     result.state_bytes_per_vertex = state_bytes_per_vertex(policy_);
     result.destination_partitions = layout_.partitions.size();
+    result.compute_pipelines = pipelines_.size();
+    result.max_parallel_partitions = controller_->max_parallel_partitions();
     result.supersteps = controller_->supersteps();
     result.partition_passes = controller_->partition_passes();
-    result.row_reads = reader_->row_reads();
-    result.source_state_reads = source_hbm_reader_->requests();
-    result.source_cache_requests = reader_->source_requests();
-    result.source_cache_request_markers = reader_->source_request_markers();
-    result.source_cache_lines = reader_->source_lines();
-    result.source_cache_lane_writes = reader_->source_lane_writes();
-    result.source_cache_response_markers = reader_->source_response_markers();
-    result.source_cache_wait_cycles = reader_->source_wait_cycles();
-    result.source_cache_output_stall_cycles =
-        source_hbm_reader_->output_stall_cycles();
-    result.source_cache_request_fifo_max_occupancy =
-        source_request_axis_.stats().max_occupancy;
-    result.source_cache_response_fifo_max_occupancy =
-        source_response_axis_.stats().max_occupancy;
-    result.source_state_writes = wrapper_->source_writes();
-    result.degree_reads = reader_->degree_reads();
-    result.source_map_cycles = reader_->source_map_cycles();
-    result.pma_segment_reads = reader_->segment_reads();
-    result.edge_batches_scanned = gather_->batches_scanned();
-    result.pma_slots_scanned = gather_->slots_scanned();
-    result.live_edges_scanned = gather_->live_edges();
-    result.active_edges_mapped = gather_->active_edges();
-    result.gather_reset_cycles = gather_->reset_cycles();
-    result.gather_merge_cycles = gather_->merge_cycles();
-    result.gather_pipeline_drain_cycles = gather_->pipeline_drain_cycles();
-    result.gather_output_stall_cycles = gather_->output_stall_cycles();
-    result.gather_bank_conflict_cycles = gather_->conflict_cycles();
-    result.gather_bank_updates = gather_->bank_updates();
-    result.gather_bypass_hits = gather_->bypass_hits();
-    result.gather_bypass_misses = gather_->bypass_misses();
-    result.gather_cross_bank_reductions = gather_->cross_bank_reductions();
-    result.gather_rows_emitted = gather_->rows_emitted();
-    result.merger_rows_consumed = merger_->rows_consumed();
-    result.merger_bursts_emitted = merger_->bursts_emitted();
-    result.merger_output_stall_cycles = merger_->output_stall_cycles();
-    result.apply_state_reads = apply_->reads();
-    result.apply_state_writes = apply_->writes();
-    result.apply_input_bursts = apply_->input_bursts();
-    result.apply_output_stall_cycles = apply_->output_stall_cycles();
-    result.apply_read_window_stalls = apply_->read_window_stalls();
-    result.apply_pipeline_capacity_stalls = apply_->pipeline_capacity_stalls();
-    result.apply_write_window_stalls = apply_->write_window_stalls();
-    result.apply_max_reads_inflight = apply_->max_reads_inflight();
-    result.apply_max_pipeline_occupancy = apply_->max_pipeline_occupancy();
-    result.apply_max_writes_inflight = apply_->max_writes_inflight();
-    result.hbm_wrapper_input_bursts = wrapper_->input_bursts();
-    result.hbm_wrapper_pipeline_capacity_stalls =
-        wrapper_->pipeline_capacity_stalls();
-    result.hbm_wrapper_write_window_stalls = wrapper_->write_window_stalls();
-    result.hbm_wrapper_max_pipeline_occupancy =
-        wrapper_->max_pipeline_occupancy();
-    result.hbm_wrapper_max_writes_inflight = wrapper_->max_writes_inflight();
-    result.gather_merger_fifo_max_occupancy =
-        gather_axis_.stats().max_occupancy;
-    result.merger_apply_fifo_max_occupancy = merger_axis_.stats().max_occupancy;
-    result.apply_wrapper_fifo_max_occupancy =
-        wrapper_axis_.stats().max_occupancy;
-    result.activated_vertices = apply_->total_activated();
+    result.pipeline_busy_cycles = controller_->pipeline_busy_cycles();
+#define SUM_PIPELINE(field, expression)                                        \
+  result.field = sum([](const Pipeline &p) { return (expression); })
+#define MAX_PIPELINE(field, expression)                                        \
+  result.field = maximum([](const Pipeline &p) { return (expression); })
+    SUM_PIPELINE(row_reads, p.reader->row_reads());
+    SUM_PIPELINE(source_state_reads, p.source_hbm_reader->requests());
+    SUM_PIPELINE(source_cache_requests, p.reader->source_requests());
+    SUM_PIPELINE(source_cache_request_markers,
+                 p.reader->source_request_markers());
+    SUM_PIPELINE(source_cache_lines, p.reader->source_lines());
+    SUM_PIPELINE(source_cache_lane_writes, p.reader->source_lane_writes());
+    SUM_PIPELINE(source_cache_response_markers,
+                 p.reader->source_response_markers());
+    SUM_PIPELINE(source_cache_wait_cycles, p.reader->source_wait_cycles());
+    SUM_PIPELINE(source_cache_output_stall_cycles,
+                 p.source_hbm_reader->output_stall_cycles());
+    MAX_PIPELINE(source_cache_request_fifo_max_occupancy,
+                 p.source_request_axis->stats().max_occupancy);
+    MAX_PIPELINE(source_cache_response_fifo_max_occupancy,
+                 p.source_response_axis->stats().max_occupancy);
+    SUM_PIPELINE(source_state_writes, p.wrapper->source_writes());
+    SUM_PIPELINE(degree_reads, p.reader->degree_reads());
+    SUM_PIPELINE(source_map_cycles, p.reader->source_map_cycles());
+    SUM_PIPELINE(pma_segment_reads, p.reader->segment_reads());
+    SUM_PIPELINE(edge_batches_scanned, p.gather->batches_scanned());
+    SUM_PIPELINE(pma_slots_scanned, p.gather->slots_scanned());
+    SUM_PIPELINE(live_edges_scanned, p.gather->live_edges());
+    SUM_PIPELINE(active_edges_mapped, p.gather->active_edges());
+    SUM_PIPELINE(gather_reset_cycles, p.gather->reset_cycles());
+    SUM_PIPELINE(gather_merge_cycles, p.gather->merge_cycles());
+    SUM_PIPELINE(gather_pipeline_drain_cycles,
+                 p.gather->pipeline_drain_cycles());
+    SUM_PIPELINE(gather_output_stall_cycles, p.gather->output_stall_cycles());
+    SUM_PIPELINE(gather_bank_conflict_cycles, p.gather->conflict_cycles());
+    SUM_PIPELINE(gather_bank_updates, p.gather->bank_updates());
+    SUM_PIPELINE(gather_bypass_hits, p.gather->bypass_hits());
+    SUM_PIPELINE(gather_bypass_misses, p.gather->bypass_misses());
+    SUM_PIPELINE(gather_cross_bank_reductions,
+                 p.gather->cross_bank_reductions());
+    SUM_PIPELINE(gather_rows_emitted, p.gather->rows_emitted());
+    SUM_PIPELINE(merger_rows_consumed, p.merger->rows_consumed());
+    SUM_PIPELINE(merger_bursts_emitted, p.merger->bursts_emitted());
+    SUM_PIPELINE(merger_output_stall_cycles,
+                 p.merger->output_stall_cycles());
+    SUM_PIPELINE(apply_state_reads, p.apply->reads());
+    SUM_PIPELINE(apply_state_writes, p.apply->writes());
+    SUM_PIPELINE(apply_input_bursts, p.apply->input_bursts());
+    SUM_PIPELINE(apply_output_stall_cycles, p.apply->output_stall_cycles());
+    SUM_PIPELINE(apply_read_window_stalls, p.apply->read_window_stalls());
+    SUM_PIPELINE(apply_pipeline_capacity_stalls,
+                 p.apply->pipeline_capacity_stalls());
+    SUM_PIPELINE(apply_write_window_stalls, p.apply->write_window_stalls());
+    MAX_PIPELINE(apply_max_reads_inflight, p.apply->max_reads_inflight());
+    MAX_PIPELINE(apply_max_pipeline_occupancy,
+                 p.apply->max_pipeline_occupancy());
+    MAX_PIPELINE(apply_max_writes_inflight, p.apply->max_writes_inflight());
+    SUM_PIPELINE(hbm_wrapper_input_bursts, p.wrapper->input_bursts());
+    SUM_PIPELINE(hbm_wrapper_pipeline_capacity_stalls,
+                 p.wrapper->pipeline_capacity_stalls());
+    SUM_PIPELINE(hbm_wrapper_write_window_stalls,
+                 p.wrapper->write_window_stalls());
+    MAX_PIPELINE(hbm_wrapper_max_pipeline_occupancy,
+                 p.wrapper->max_pipeline_occupancy());
+    MAX_PIPELINE(hbm_wrapper_max_writes_inflight,
+                 p.wrapper->max_writes_inflight());
+    MAX_PIPELINE(gather_merger_fifo_max_occupancy,
+                 p.gather_axis->stats().max_occupancy);
+    MAX_PIPELINE(merger_apply_fifo_max_occupancy,
+                 p.merger_axis->stats().max_occupancy);
+    MAX_PIPELINE(apply_wrapper_fifo_max_occupancy,
+                 p.wrapper_axis->stats().max_occupancy);
+    SUM_PIPELINE(activated_vertices, p.apply->total_activated());
+#undef MAX_PIPELINE
+#undef SUM_PIPELINE
     result.row_read_bytes = result.row_reads * 8;
-    result.source_state_read_bytes = source_hbm_reader_->read_bytes();
+    result.source_state_read_bytes =
+        result.source_state_reads * config_.source_buffer_vertices *
+        state_bytes_per_vertex(policy_);
     result.source_state_write_bytes =
         result.source_state_writes * kStateWordsPerBurst *
         state_bytes_per_vertex(policy_);
@@ -2750,26 +2874,30 @@ public:
     result.apply_write_bytes = result.apply_state_writes *
                                kStateWordsPerBurst *
                                state_bytes_per_vertex(policy_);
-    account_axi_port(*row_port_);
-    account_axi_port(*source_state_port_);
-    account_axi_port(*apply_state_read_port_);
-    account_axi_port(*apply_state_write_port_);
-    account_axi_port(*source_state_primary_write_port_);
-    account_axi_port(*source_state_mirror_write_port_);
-    if (degree_port_ != nullptr) {
-      account_axi_port(*degree_port_);
+    for (const Pipeline &pipeline : pipelines_) {
+      account_axi_port(*pipeline.row_port);
+      account_axi_port(*pipeline.source_state_port);
+      account_axi_port(*pipeline.apply_state_read_port);
+      account_axi_port(*pipeline.apply_state_write_port);
+      account_axi_port(*pipeline.source_state_primary_write_port);
+      account_axi_port(*pipeline.source_state_mirror_write_port);
+      if (pipeline.degree_port != nullptr) {
+        account_axi_port(*pipeline.degree_port);
+      }
+      for (const auto &port : pipeline.pma_ports) {
+        account_axi_port(*port);
+      }
+      result.axis_push_stalls +=
+          pipeline.source_request_axis->stats().push_stalls +
+          pipeline.source_response_axis->stats().push_stalls +
+          pipeline.edge_axis->stats().push_stalls +
+          pipeline.gather_axis->stats().push_stalls +
+          pipeline.merger_axis->stats().push_stalls +
+          pipeline.wrapper_axis->stats().push_stalls;
     }
-    for (const auto &port : pma_ports_) {
-      account_axi_port(*port);
-    }
-    result.axis_push_stalls =
-        source_request_axis_.stats().push_stalls +
-        source_response_axis_.stats().push_stalls +
-        edge_axis_.stats().push_stalls + gather_axis_.stats().push_stalls +
-        merger_axis_.stats().push_stalls + wrapper_axis_.stats().push_stalls;
     result.start_cycle = start_cycle_;
     result.end_cycle = scheduler_.clock(clock_id_).completed_cycles;
-    result.last_iteration_error = apply_->iteration_error();
+    result.last_iteration_error = controller_->iteration_error();
     return result;
   }
 
@@ -2824,7 +2952,9 @@ private:
         (pagerank &&
          (out_degrees_.size() != layout_.vertices || fixed_rounds_ == 0)) ||
         (!pagerank && !out_degrees_.empty()) ||
-        config_.memory_channels < 4 || layout_.partitions.empty() ||
+        config_.memory_channels < 4 || config_.compute_pipelines == 0 ||
+        (pagerank && config_.compute_pipelines != 1) ||
+        layout_.partitions.empty() ||
         layout_.partitions.size() !=
             (layout_.vertices + config_.partition_vertices - 1) /
                 config_.partition_vertices ||
@@ -2908,37 +3038,67 @@ private:
         port_config(config_, channel, next_initiator_++, width), backend_);
   }
 
-  std::unique_ptr<FixedAxiPort> make_source_stream_port() {
+  std::unique_ptr<FixedAxiPort>
+  make_source_stream_port(const std::string &name) {
     FixedAxiPortConfig source = port_config(
         config_, config_.source_state_channel, next_initiator_++, 64);
     source.stream_read_beats = true;
     source.read_beat_fifo_depth = config_.source_cache_response_fifo_depth;
     source.read_reorder_capacity = config_.max_outstanding_bursts * 16;
-    return std::make_unique<FixedAxiPort>("grasu-regraph-source-state",
-                                          clock_id_, source, backend_);
+    return std::make_unique<FixedAxiPort>(name, clock_id_, source, backend_);
   }
 
   void construct_ports() {
-    row_port_ = make_port("grasu-regraph-row", config_.row_channel, 8);
-    source_state_port_ = make_source_stream_port();
-    if (policy_.config().kind != GraphAlgorithmKind::kWeightedSssp) {
-      degree_port_ =
-          make_port("grasu-regraph-degree", config_.degree_channel, 4);
+    pipelines_.resize(config_.compute_pipelines);
+    for (std::size_t index = 0; index < pipelines_.size(); ++index) {
+      Pipeline &pipeline = pipelines_[index];
+      const std::string prefix =
+          "grasu-regraph-p" + std::to_string(index) + "-";
+      pipeline.edge_axis = std::make_unique<Fifo<PmaEdgeBatch>>(
+          prefix + "pma-axis", clock_id_, config_.axis_fifo_depth);
+      pipeline.source_request_axis =
+          std::make_unique<Fifo<ReGraphSourceCacheRequest>>(
+              prefix + "source-cache-request-axis", clock_id_,
+              config_.source_cache_request_fifo_depth);
+      pipeline.source_response_axis =
+          std::make_unique<Fifo<ReGraphSourceCacheResponse>>(
+              prefix + "source-cache-response-axis", clock_id_,
+              config_.source_cache_response_fifo_depth);
+      pipeline.gather_axis = std::make_unique<Fifo<ReGraphGatherRow>>(
+          prefix + "gather-merger-axis", clock_id_,
+          config_.gather_merger_fifo_depth);
+      pipeline.merger_axis = std::make_unique<Fifo<ReGraphMergedBurst>>(
+          prefix + "merger-apply-axis", clock_id_,
+          config_.merger_apply_fifo_depth);
+      pipeline.wrapper_axis = std::make_unique<Fifo<ReGraphAppliedBurst>>(
+          prefix + "apply-wrapper-axis", clock_id_,
+          config_.apply_wrapper_fifo_depth);
+      pipeline.row_port =
+          make_port(prefix + "row", config_.row_channel, 8);
+      pipeline.source_state_port =
+          make_source_stream_port(prefix + "source-state");
+      if (policy_.config().kind != GraphAlgorithmKind::kWeightedSssp) {
+        pipeline.degree_port =
+            make_port(prefix + "degree", config_.degree_channel, 4);
+      }
+      for (std::size_t channel = 0; channel < pipeline.pma_ports.size();
+           ++channel) {
+        pipeline.pma_ports[channel] =
+            make_port(prefix + "pma" + std::to_string(channel), channel, 64);
+      }
+      pipeline.apply_state_read_port =
+          make_port(prefix + "apply-state-read", config_.vertex_state_channel,
+                    64);
+      pipeline.apply_state_write_port =
+          make_port(prefix + "apply-state-write", config_.vertex_state_channel,
+                    64);
+      pipeline.source_state_primary_write_port = make_port(
+          prefix + "source-state-primary-write",
+          config_.source_state_channel, 64);
+      pipeline.source_state_mirror_write_port = make_port(
+          prefix + "source-state-mirror-write",
+          config_.source_state_mirror_channel, 64);
     }
-    for (std::size_t channel = 0; channel < pma_ports_.size(); ++channel) {
-      pma_ports_[channel] =
-          make_port("grasu-regraph-pma" + std::to_string(channel), channel, 64);
-    }
-    apply_state_read_port_ = make_port("grasu-regraph-apply-state-read",
-                                       config_.vertex_state_channel, 64);
-    apply_state_write_port_ = make_port("grasu-regraph-apply-state-write",
-                                        config_.vertex_state_channel, 64);
-    source_state_primary_write_port_ =
-        make_port("grasu-regraph-source-state-primary-write",
-                  config_.source_state_channel, 64);
-    source_state_mirror_write_port_ =
-        make_port("grasu-regraph-source-state-mirror-write",
-                  config_.source_state_mirror_channel, 64);
   }
 
   void initialize_state() {
@@ -2992,35 +3152,56 @@ private:
   }
 
   void construct_components() {
-    std::array<FixedAxiPort *, 4> pma{};
-    for (std::size_t index = 0; index < pma.size(); ++index) {
-      pma[index] = pma_ports_[index].get();
+    std::vector<GraSuReGraphWorker> workers;
+    workers.reserve(pipelines_.size());
+    for (std::size_t index = 0; index < pipelines_.size(); ++index) {
+      Pipeline &pipeline = pipelines_[index];
+      const std::string prefix =
+          "grasu-regraph-p" + std::to_string(index) + "-";
+      std::array<FixedAxiPort *, 4> pma{};
+      for (std::size_t channel = 0; channel < pma.size(); ++channel) {
+        pma[channel] = pipeline.pma_ports[channel].get();
+      }
+      pipeline.source_hbm_reader =
+          std::make_unique<ReGraphSourceHbmReader>(
+              prefix + "source-hbm-reader", clock_id_, config_, policy_,
+              *pipeline.source_request_axis, *pipeline.source_response_axis,
+              *pipeline.source_state_port);
+      pipeline.reader = std::make_unique<PmaNativeReader>(
+          prefix + "reader", clock_id_, layout_.vertices, policy_, config_,
+          PmaNativeReader::Ports{
+              .rows = pipeline.row_port.get(),
+              .degree = pipeline.degree_port.get(),
+              .pma = pma,
+              .output = pipeline.edge_axis.get(),
+              .source_requests = pipeline.source_request_axis.get(),
+              .source_responses = pipeline.source_response_axis.get(),
+          });
+      pipeline.gather = std::make_unique<ReGraphGather>(
+          prefix + "gather", clock_id_, layout_.vertices, policy_, config_,
+          *pipeline.edge_axis, *pipeline.gather_axis, *pipeline.reader);
+      pipeline.merger = std::make_unique<ReGraphMerger>(
+          prefix + "merger", clock_id_, config_, *pipeline.gather_axis,
+          *pipeline.merger_axis);
+      pipeline.apply = std::make_unique<ReGraphApply>(
+          prefix + "apply", clock_id_, layout_.vertices, policy_, config_,
+          *pipeline.merger_axis, *pipeline.wrapper_axis,
+          *pipeline.apply_state_read_port, *pipeline.apply_state_write_port,
+          *pipeline.reader);
+      pipeline.wrapper = std::make_unique<ReGraphHbmWrapper>(
+          prefix + "hbm-wrapper", clock_id_, config_, policy_,
+          *pipeline.wrapper_axis, *pipeline.source_state_primary_write_port,
+          *pipeline.source_state_mirror_write_port);
+      workers.push_back(GraSuReGraphWorker{
+          .source_hbm = pipeline.source_hbm_reader.get(),
+          .reader = pipeline.reader.get(),
+          .gather = pipeline.gather.get(),
+          .merger = pipeline.merger.get(),
+          .apply = pipeline.apply.get(),
+          .wrapper = pipeline.wrapper.get(),
+          .partition = std::nullopt,
+      });
     }
-    source_hbm_reader_ = std::make_unique<ReGraphSourceHbmReader>(
-        "grasu-regraph-source-hbm-reader", clock_id_, config_, policy_,
-        source_request_axis_, source_response_axis_, *source_state_port_);
-    reader_ = std::make_unique<PmaNativeReader>(
-        "grasu-regraph-reader", clock_id_, layout_.vertices, policy_, config_,
-        PmaNativeReader::Ports{
-            .rows = row_port_.get(),
-            .degree = degree_port_.get(),
-            .pma = pma,
-            .output = &edge_axis_,
-            .source_requests = &source_request_axis_,
-            .source_responses = &source_response_axis_,
-        });
-    gather_ = std::make_unique<ReGraphGather>(
-        "grasu-regraph-gather", clock_id_, layout_.vertices, policy_, config_,
-        edge_axis_, gather_axis_, *reader_);
-    merger_ = std::make_unique<ReGraphMerger>(
-        "grasu-regraph-merger", clock_id_, config_, gather_axis_, merger_axis_);
-    apply_ = std::make_unique<ReGraphApply>(
-        "grasu-regraph-apply", clock_id_, layout_.vertices, policy_, config_,
-        merger_axis_, wrapper_axis_, *apply_state_read_port_,
-        *apply_state_write_port_, *reader_);
-    wrapper_ = std::make_unique<ReGraphHbmWrapper>(
-        "grasu-regraph-hbm-wrapper", clock_id_, config_, policy_, wrapper_axis_,
-        *source_state_primary_write_port_, *source_state_mirror_write_port_);
     controller_ = std::make_unique<GraSuReGraphController>(
         "grasu-regraph-controller", clock_id_, policy_.config().kind,
         policy_.config().kind == GraphAlgorithmKind::kWeightedSssp &&
@@ -3029,25 +3210,30 @@ private:
             : fixed_rounds_,
         policy_.config().kind == GraphAlgorithmKind::kWeightedSssp &&
             fixed_rounds_ != 0,
-        partition_plans_, *source_hbm_reader_, *reader_, *gather_, *merger_,
-        *apply_, *wrapper_);
+        partition_plans_, std::move(workers));
   }
 
   [[nodiscard]] bool all_ports_idle() const noexcept {
-    if (!source_request_axis_.empty() || !source_response_axis_.empty() ||
-        !edge_axis_.empty() || !gather_axis_.empty() || !merger_axis_.empty() ||
-        !wrapper_axis_.empty() || !row_port_->idle() ||
-        !source_state_port_->idle() || !apply_state_read_port_->idle() ||
-        !apply_state_write_port_->idle() ||
-        !source_state_primary_write_port_->idle() ||
-        !source_state_mirror_write_port_->idle()) {
-      return false;
-    }
-    if (degree_port_ != nullptr && !degree_port_->idle()) {
-      return false;
-    }
-    return std::all_of(pma_ports_.begin(), pma_ports_.end(),
-                       [](const auto &port) { return port->idle(); });
+    return std::all_of(pipelines_.begin(), pipelines_.end(),
+                       [](const Pipeline &pipeline) {
+      if (!pipeline.source_request_axis->empty() ||
+          !pipeline.source_response_axis->empty() ||
+          !pipeline.edge_axis->empty() || !pipeline.gather_axis->empty() ||
+          !pipeline.merger_axis->empty() || !pipeline.wrapper_axis->empty() ||
+          !pipeline.row_port->idle() || !pipeline.source_state_port->idle() ||
+          !pipeline.apply_state_read_port->idle() ||
+          !pipeline.apply_state_write_port->idle() ||
+          !pipeline.source_state_primary_write_port->idle() ||
+          !pipeline.source_state_mirror_write_port->idle()) {
+        return false;
+      }
+      if (pipeline.degree_port != nullptr && !pipeline.degree_port->idle()) {
+        return false;
+      }
+      return std::all_of(
+          pipeline.pma_ports.begin(), pipeline.pma_ports.end(),
+          [](const auto &port) { return port->idle(); });
+    });
   }
 
   Scheduler &scheduler_;
@@ -3060,26 +3246,7 @@ private:
   std::vector<std::uint32_t> out_degrees_;
   std::size_t fixed_rounds_{};
   std::vector<ReGraphPartitionPlan> partition_plans_;
-  Fifo<PmaEdgeBatch> edge_axis_;
-  Fifo<ReGraphSourceCacheRequest> source_request_axis_;
-  Fifo<ReGraphSourceCacheResponse> source_response_axis_;
-  Fifo<ReGraphGatherRow> gather_axis_;
-  Fifo<ReGraphMergedBurst> merger_axis_;
-  Fifo<ReGraphAppliedBurst> wrapper_axis_;
-  std::unique_ptr<FixedAxiPort> row_port_;
-  std::unique_ptr<FixedAxiPort> source_state_port_;
-  std::unique_ptr<FixedAxiPort> degree_port_;
-  std::array<std::unique_ptr<FixedAxiPort>, 4> pma_ports_;
-  std::unique_ptr<FixedAxiPort> apply_state_read_port_;
-  std::unique_ptr<FixedAxiPort> apply_state_write_port_;
-  std::unique_ptr<FixedAxiPort> source_state_primary_write_port_;
-  std::unique_ptr<FixedAxiPort> source_state_mirror_write_port_;
-  std::unique_ptr<ReGraphSourceHbmReader> source_hbm_reader_;
-  std::unique_ptr<PmaNativeReader> reader_;
-  std::unique_ptr<ReGraphGather> gather_;
-  std::unique_ptr<ReGraphMerger> merger_;
-  std::unique_ptr<ReGraphApply> apply_;
-  std::unique_ptr<ReGraphHbmWrapper> wrapper_;
+  std::vector<Pipeline> pipelines_;
   std::unique_ptr<GraSuReGraphController> controller_;
   std::uint32_t next_initiator_{3100};
   std::uint64_t start_cycle_{};

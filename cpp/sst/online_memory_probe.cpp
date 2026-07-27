@@ -1523,6 +1523,8 @@ class OnlineMemoryProbe final : public SST::Component {
     spine_maintenance_architecture_ = spine_maintenance_architecture_from_id(
         spine_maintenance_architecture_id_);
     grasu_config_.memory_channels = channels_;
+    grasu_config_.compute_pipelines =
+        params.find<std::size_t>("grasu_compute_pipelines", 1);
     grasu_config_.cache_segments_per_half =
         params.find<std::size_t>("grasu_cache_segments_per_half", 131072);
     grasu_config_.partition_vertices =
@@ -3052,6 +3054,7 @@ class OnlineMemoryProbe final : public SST::Component {
        "131072"},
       {"grasu_partition_vertices", "ReGraph destination partition size",
        "65536"},
+      {"grasu_compute_pipelines", "Parallel ReGraph partition workers", "1"},
       {"grasu_source_buffer_vertices", "ReGraph source-cache words", "4096"},
       {"grasu_source_cache_request_fifo_depth",
        "ReGraph source-cache request stream depth", "8"},
@@ -4144,6 +4147,11 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"update_record_bytes\": " << update.update_record_bytes
           << ",\n"
           << "  \"destination_partitions\": " << destination_partitions
+          << ",\n"
+          << "  \"compute_pipelines\": " << compute.compute_pipelines << ",\n"
+          << "  \"max_parallel_partitions\": "
+          << compute.max_parallel_partitions << ",\n"
+          << "  \"pipeline_busy_cycles\": " << compute.pipeline_busy_cycles
           << ",\n"
           << "  \"destination_partitions_touched\": "
           << update.destination_partitions_touched << ",\n"

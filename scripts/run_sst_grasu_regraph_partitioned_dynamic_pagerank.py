@@ -311,6 +311,9 @@ def main() -> int:
                 params["grasu_cache_segments_per_cu"]
             ),
             "GRASU_SST_PARTITION_VERTICES": str(partition_vertices),
+            "GRASU_SST_COMPUTE_PIPELINES": str(
+                params.get("regraph_compute_pipelines", 1)
+            ),
             "GRASU_SST_UPDATE_BASE": str(params["grasu_update_base_bytes"]),
             "GRASU_SST_BINARY_BASE": str(params["grasu_binary_base_bytes"]),
             "GRASU_SST_ROW_OFFSET_BASE": str(

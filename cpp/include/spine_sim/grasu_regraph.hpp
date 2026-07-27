@@ -16,6 +16,7 @@ namespace spine::sim {
 
 struct GraSuReGraphConfig {
   std::size_t memory_channels{32};
+  std::size_t compute_pipelines{1};
   std::size_t cache_segments_per_half{131072};
   std::size_t partition_vertices{65536};
   std::size_t source_buffer_vertices{4096};
@@ -65,8 +66,11 @@ struct GraSuReGraphConfig {
 struct GraSuReGraphCounters {
   std::size_t state_bytes_per_vertex{};
   std::size_t destination_partitions{};
+  std::size_t compute_pipelines{};
+  std::size_t max_parallel_partitions{};
   std::uint64_t supersteps{};
   std::uint64_t partition_passes{};
+  std::uint64_t pipeline_busy_cycles{};
   std::uint64_t row_reads{};
   std::uint64_t source_state_reads{};
   std::uint64_t source_cache_requests{};
@@ -135,7 +139,9 @@ struct GraSuReGraphCounters {
 
 // Direct PMA-to-ReGraph compute path. Its normalized PMA word uses ReGraph's
 // 19-bit local destination and 12-bit weight ABI. The partitioned overloads
-// reuse one physical compute pipeline and synchronize at a superstep barrier.
+// dispatch destination partitions across finite compute workers and synchronize
+// at a superstep barrier. PageRank remains single-worker until its global source
+// preparation and cross-worker statistics reduction are modeled explicitly.
 class GraSuReGraphSsspSystem {
 public:
   GraSuReGraphSsspSystem(Scheduler &scheduler, ClockId clock_id,
