@@ -1,0 +1,338 @@
+{
+  "claim_class": "complete_candidate10_derived_normalized_structural_matrix",
+  "claim_gate": {
+    "eligible": true,
+    "label": "routed_k1_multi_partition_structural",
+    "reason": "Both systems use routed HLS anchors and a shared memory model."
+  },
+  "complete_matrix": true,
+  "executed_rows": 146,
+  "failure": null,
+  "hbm_dram_config": {
+    "environment_variable": "CANDIDATE10_SST_DRAM_CONFIG",
+    "experiment_role": "frozen_baseline",
+    "frozen_baseline_sha256": "d1e865c6528acbc41f0768667063702bfb4033f24bcd46119ad25bfc5ad4fb5f",
+    "is_frozen_baseline": true,
+    "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/configs/memory/HBM2_1ch_x128.ini",
+    "sha256": "d1e865c6528acbc41f0768667063702bfb4033f24bcd46119ad25bfc5ad4fb5f",
+    "shared_by_systems": [
+      "spine",
+      "grasu_regraph"
+    ]
+  },
+  "matrix_id": "shared_comparison_candidate10_k1_multipart_v4_20260728",
+  "matrix_wall_seconds": 423.6958422185853,
+  "normalized_profile_contract": {
+    "claim_class": "routed_k1_multi_partition_structural",
+    "clock_mhz": 150.0,
+    "grasu_capability_catalog_id": "grasu_regraph_k1_multipart_capabilities_v4_20260728",
+    "grasu_capability_catalog_sha256": "d8280936ff59c180df0de567444c1f43eb89deab9123eca7cf227a635e24f146",
+    "grasu_profile_ids": [
+      "grasu_regraph_candidate10_k1_multipart_weighted_v4",
+      "grasu_regraph_candidate10_k1_multipart_pagerank_v4",
+      "grasu_regraph_candidate10_k1_multipart_residual_v4"
+    ],
+    "grasu_profile_set": "k1_v4",
+    "hbm_clock_mhz": 450.0,
+    "hbm_pseudo_channels_budget": 23,
+    "matching_hls_gate": {
+      "algorithms": {
+        "full_pagerank": {
+          "closest_hls_profile_id": "grasu_regraph_candidate10_k1_multipart_pagerank_v4",
+          "functional_evidence_status": "isolated_hls_csim_and_execution_driven_dual_oracle_pass",
+          "matching_hls": true,
+          "missing_gates": [],
+          "normalized_profile_id": "grasu_regraph_candidate10_k1_multipart_pagerank_v4",
+          "parameter_blockers": 0,
+          "parameter_differences": 0,
+          "whole_system_hls_status": "routed_k1_near_150mhz_negative_slack_timing_reported"
+        },
+        "thresholded_residual_pagerank": {
+          "closest_hls_profile_id": "grasu_regraph_candidate10_k1_multipart_residual_v4",
+          "functional_evidence_status": "isolated_hls_csim_and_execution_driven_dual_oracle_pass",
+          "matching_hls": true,
+          "missing_gates": [],
+          "normalized_profile_id": "grasu_regraph_candidate10_k1_multipart_residual_v4",
+          "parameter_blockers": 0,
+          "parameter_differences": 0,
+          "whole_system_hls_status": "routed_k1_near_150mhz_negative_slack_timing_reported"
+        },
+        "weighted_sssp": {
+          "closest_hls_profile_id": "grasu_regraph_candidate10_k1_multipart_weighted_v4",
+          "functional_evidence_status": "isolated_hls_csim_and_execution_driven_dual_oracle_pass",
+          "matching_hls": true,
+          "missing_gates": [],
+          "normalized_profile_id": "grasu_regraph_candidate10_k1_multipart_weighted_v4",
+          "parameter_blockers": 0,
+          "parameter_differences": 0,
+          "whole_system_hls_status": "routed_k1_near_150mhz_negative_slack_timing_reported"
+        }
+      },
+      "all_matching_hls": true,
+      "claim_class": "routed_k1_multi_partition_execution_driven_simulation",
+      "claim_gates": {
+        "correctness": {
+          "eligible": true,
+          "label": "dual_oracle_correctness_gated",
+          "reason": "Every performance row must pass both independent oracles."
+        },
+        "fpga_measured_performance": {
+          "eligible": false,
+          "label": "simulator_performance_not_fpga_runtime",
+          "reason": "Routed feasibility does not turn simulated cycles into FPGA measurements."
+        },
+        "headline_normalized_performance": {
+          "eligible": true,
+          "label": "routed_k1_normalized_simulator_performance",
+          "reason": "K=1 is frozen from routed evidence; multi-partition control is execution-driven and all rows remain correctness gated."
+        },
+        "iso_resource_performance": {
+          "eligible": false,
+          "label": "same_platform_resource_reported_not_iso_resource",
+          "reason": "Both systems report routed resources on the same U55C, but their LUT, memory, DSP, and AXI-master allocations are not equal."
+        },
+        "structural_exploratory": {
+          "eligible": true,
+          "label": "routed_k1_multi_partition_structural",
+          "reason": "Both systems use routed HLS anchors and a shared memory model."
+        }
+      },
+      "contract_id": "candidate10_k1_multipart_hls_feasibility_v3_20260728",
+      "contract_sha256": "a194349cd1de20ba6b8d4b1874017854fb306a716a99fc94f1ac37cca2034b36",
+      "grasu_matching_hls_algorithms": 3,
+      "grasu_required_algorithms": 3,
+      "publication_blockers": [],
+      "shared_platform_status": "pass",
+      "spine_matching_hls": true
+    },
+    "native_parent_profile_id": "spine_candidate10_one_pass_1e61fc0",
+    "native_parent_profile_sha256": "a23737c17f6650cea0185bd3eba9d425dbc151f35372d33130464df780312717",
+    "physical_hbm_channels": 32,
+    "spine_optimization_chain": [
+      {
+        "optimization_id": "finite_reader_source_page_working_set",
+        "optimization_round": 2,
+        "parent_profile_id": "spine_candidate10_opt_v1_fallback_level_cache",
+        "parent_profile_sha256": "2ff91b2804827f3187db2de15cad3dea6021fe583164b103607733047d570c9f",
+        "profile_id": "spine_candidate10_opt_v2_reader_working_set",
+        "profile_sha256": "928a86a461d10cb3ea9bdd2b84d30b567b0200afdc5ca1742a36ef2301d5ab36"
+      },
+      {
+        "optimization_id": "fallback_launch_level_cache_reuse",
+        "optimization_round": 1,
+        "parent_profile_id": "spine_candidate10_normalized_v1",
+        "parent_profile_sha256": "4e31633c55abfdc57fd4537119d6abb6d7a4f0313dcfc81332fa0ed0a6320c0a",
+        "profile_id": "spine_candidate10_opt_v1_fallback_level_cache",
+        "profile_sha256": "2ff91b2804827f3187db2de15cad3dea6021fe583164b103607733047d570c9f"
+      }
+    ],
+    "spine_profile_id": "spine_candidate10_opt_v2_reader_working_set",
+    "spine_profile_sha256": "928a86a461d10cb3ea9bdd2b84d30b567b0200afdc5ca1742a36ef2301d5ab36",
+    "spine_reference_profile_id": "spine_candidate10_normalized_v1",
+    "spine_reference_profile_sha256": "4e31633c55abfdc57fd4537119d6abb6d7a4f0313dcfc81332fa0ed0a6320c0a"
+  },
+  "orchestration_implementation": {
+    "files": [
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/configs/contracts/candidate10_normalized_hls_feasibility_v1.json",
+        "sha256": "9eb6af510d5c40d910d418141470e8a12040c1513113ef336dafa21a5f54d024"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/docs/evidence/grasu_regraph_matching_hls_status_20260726.json",
+        "sha256": "9bdf345bf0de580ef6cd8cd5bff2c5c8a49d9351ff84802bd72f9c7dd3a47731"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/scripts/run_shared_comparison_matrix.py",
+        "sha256": "5a4873d28a97937f87bcebf000491a1b38d56af0aede4ba05afb0ab8a1203aba"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/spine_cycle_sim/experiments/comparison.py",
+        "sha256": "892fe0e8727b1f538b080e64770672467a01816726061668ffcff6bc9490d93c"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/spine_cycle_sim/experiments/feasibility.py",
+        "sha256": "c0a0e6c835577558b51e9a1cedf4003540150a9d41479432c0bf89c6fc84a771"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/spine_cycle_sim/experiments/regraph_contracts.py",
+        "sha256": "096e250a1883aec16a17d2a340291bb4d02d7e28ff7cc5c4514771f3cabff7a1"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/spine_cycle_sim/experiments/shared_workloads.py",
+        "sha256": "f4be035e49d6823b65114ddadc3e2be81e7cd62d8ab8bead0797a391f6bc6b1e"
+      }
+    ],
+    "sha256": "d46d0655f8735474ec28825753c7b4e04b1705467ac338df7b80862b84307460"
+  },
+  "paired_rows": 73,
+  "requested_claim_scope": "structural_exploratory",
+  "result_rows": 146,
+  "reused_rows": 0,
+  "schema_version": 1,
+  "selected_run_ids": [
+    "real_amazon_2008_compact__full_pagerank",
+    "real_amazon_2008_compact__residual_pagerank",
+    "real_amazon_2008_compact__weighted_sssp",
+    "real_soc_flickr_und_compact__full_pagerank",
+    "real_soc_flickr_und_compact__residual_pagerank",
+    "real_soc_flickr_und_compact__weighted_sssp",
+    "real_web_google_compact__full_pagerank",
+    "real_web_google_compact__residual_pagerank",
+    "real_web_google_compact__weighted_sssp",
+    "syn_chain_v64__full_pagerank",
+    "syn_chain_v64__residual_pagerank",
+    "syn_chain_v64__weighted_sssp",
+    "syn_dynamic_delete_fallback__dynamic_weighted_sssp",
+    "syn_dynamic_delete_fallback__full_pagerank",
+    "syn_dynamic_delete_fallback__residual_pagerank",
+    "syn_dynamic_delete_fallback__weighted_sssp",
+    "syn_dynamic_increase_fallback__dynamic_weighted_sssp",
+    "syn_dynamic_increase_fallback__full_pagerank",
+    "syn_dynamic_increase_fallback__residual_pagerank",
+    "syn_dynamic_increase_fallback__weighted_sssp",
+    "syn_dynamic_mixed_update__dynamic_weighted_sssp",
+    "syn_dynamic_mixed_update__full_pagerank",
+    "syn_dynamic_mixed_update__residual_pagerank",
+    "syn_dynamic_mixed_update__weighted_sssp",
+    "syn_dynamic_shortcut_insert__dynamic_weighted_sssp",
+    "syn_dynamic_shortcut_insert__full_pagerank",
+    "syn_dynamic_shortcut_insert__residual_pagerank",
+    "syn_dynamic_shortcut_insert__weighted_sssp",
+    "syn_gather_bank_fanin_e1024__full_pagerank",
+    "syn_gather_bank_fanin_e1024__residual_pagerank",
+    "syn_gather_bank_fanin_e1024__weighted_sssp",
+    "syn_hot_destination_e256__full_pagerank",
+    "syn_hot_destination_e256__residual_pagerank",
+    "syn_hot_destination_e256__weighted_sssp",
+    "syn_hot_source_e256__full_pagerank",
+    "syn_hot_source_e256__residual_pagerank",
+    "syn_hot_source_e256__weighted_sssp",
+    "syn_pagerank_cycle_v32__full_pagerank",
+    "syn_pagerank_cycle_v32__residual_pagerank",
+    "syn_pagerank_cycle_v32__weighted_sssp",
+    "syn_pagerank_dangling_v33__full_pagerank",
+    "syn_pagerank_dangling_v33__residual_pagerank",
+    "syn_pagerank_dangling_v33__weighted_sssp",
+    "syn_residual_frontier_tree_v127__full_pagerank",
+    "syn_residual_frontier_tree_v127__residual_pagerank",
+    "syn_residual_frontier_tree_v127__weighted_sssp",
+    "syn_residual_skew_hub_v257__full_pagerank",
+    "syn_residual_skew_hub_v257__residual_pagerank",
+    "syn_residual_skew_hub_v257__weighted_sssp",
+    "syn_source_window_e4095__full_pagerank",
+    "syn_source_window_e4095__residual_pagerank",
+    "syn_source_window_e4095__weighted_sssp",
+    "syn_source_window_e4096__full_pagerank",
+    "syn_source_window_e4096__residual_pagerank",
+    "syn_source_window_e4096__weighted_sssp",
+    "syn_source_window_e4097__full_pagerank",
+    "syn_source_window_e4097__residual_pagerank",
+    "syn_source_window_e4097__weighted_sssp",
+    "syn_spread_e512__full_pagerank",
+    "syn_spread_e512__residual_pagerank",
+    "syn_spread_e512__weighted_sssp",
+    "syn_tiny_threshold_e4095__full_pagerank",
+    "syn_tiny_threshold_e4095__residual_pagerank",
+    "syn_tiny_threshold_e4095__weighted_sssp",
+    "syn_tiny_threshold_e4096__full_pagerank",
+    "syn_tiny_threshold_e4096__residual_pagerank",
+    "syn_tiny_threshold_e4096__weighted_sssp",
+    "syn_tiny_threshold_e4097__full_pagerank",
+    "syn_tiny_threshold_e4097__residual_pagerank",
+    "syn_tiny_threshold_e4097__weighted_sssp",
+    "syn_weighted_diamond_v8__full_pagerank",
+    "syn_weighted_diamond_v8__residual_pagerank",
+    "syn_weighted_diamond_v8__weighted_sssp"
+  ],
+  "simulation_implementation": {
+    "files": [
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/configs/architectures/grasu_regraph_candidate10_k1_multipart_pagerank_v4.json",
+        "sha256": "cb33252599584880ffb2281d161178f543db68e3dfb855df0f4b3fef4fa733ab"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/configs/architectures/grasu_regraph_candidate10_k1_multipart_residual_v4.json",
+        "sha256": "0d035f8c036c3632a6d99770abd91b7144b8ceb19b9777a4fd5e1d59b367a049"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/configs/architectures/grasu_regraph_candidate10_k1_multipart_weighted_v4.json",
+        "sha256": "a6a2cca9dff4f55b3f096868c2e24b453c3a249cfcff443c50f5e7a61f5ca71e"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/configs/architectures/spine_candidate10_opt_v2_reader_working_set.json",
+        "sha256": "928a86a461d10cb3ea9bdd2b84d30b567b0200afdc5ca1742a36ef2301d5ab36"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/configs/contracts/grasu_regraph_k1_multipart_capabilities_v4.json",
+        "sha256": "d8280936ff59c180df0de567444c1f43eb89deab9123eca7cf227a635e24f146"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/configs/memory/HBM2_1ch_x128.ini",
+        "sha256": "d1e865c6528acbc41f0768667063702bfb4033f24bcd46119ad25bfc5ad4fb5f"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/scripts/run_sst_exact_idle_dramsim3.sh",
+        "sha256": "f1466b19e95a7a973ea03e8cd8f09c024227fe6d420cf018430fa76441626b9d"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/scripts/run_sst_grasu_regraph.py",
+        "sha256": "39e1e0521109151ea1920ef987543eb4d630c26716347982f663c1b335ab6719"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/scripts/run_sst_grasu_regraph_hls_pagerank.py",
+        "sha256": "8cd2c9fcf1201f191fd89df0519793ecf2ee09db67f43177183c8135a527b88b"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/scripts/run_sst_grasu_regraph_hls_residual_pagerank.py",
+        "sha256": "9ed30c0f9d4728d7811274aa4f1e49ed15ddba5b9a1dc468bf3cc6cc685e3378"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/scripts/run_sst_grasu_regraph_hls_weighted.py",
+        "sha256": "dcda53b4ed562b7638a0dd1068ad9ce2010ea092c6204983abc95283f5b54718"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/scripts/run_sst_grasu_regraph_pagerank.py",
+        "sha256": "e02ad205b9e129a4320d46467c883141d2baf7f1491c72c805c46cc4bd0a1ef2"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/scripts/run_sst_grasu_regraph_residual_pagerank.py",
+        "sha256": "5027f6ed41d889444acfccd37f39ed3fdbe26158ef5cbad7d7a11d5867d85b9a"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/scripts/run_sst_spine_vertical.py",
+        "sha256": "367a3055a3ba4f049d245cb6043be171d439e88272c8094514e69a04ac4aaa50"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/spine_cycle_sim/sst_binding.py",
+        "sha256": "c4c8dd67a685aa52b07b1bff0875744c55c9655addb6549e0bac9fade5af0bcb"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/sst/grasu_regraph_vertical.py",
+        "sha256": "f9ea6529179792c1d89e3468779bc5927e43df78d71f3f9466001304e17f65b1"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/sst/spine_vertical_slice.py",
+        "sha256": "9678ef01dfb9ecee3dea28e826a82adc3a50a65cb8f985f2240776a636a21e58"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/build/sst/libspine_cycle.so",
+        "sha256": "b011c9d5fea17200690288f81c0e22aa98abd11084db2c3b5c9dcb7d8484e070"
+      }
+    ],
+    "sha256": "0ae444cac2809e457347bac12ff878e4a44fb09365215a2df413041899db7da0"
+  },
+  "source_manifest": "/home/chuxiao/spine-cycle-sim-multipart-fix/configs/experiments/shared_comparison_candidate10_k1_multipart_v4_20260728.json",
+  "source_manifest_sha256": "ce4cc91dc06ee3e7d9643ddeadf4ef03c866b64bb419767b8164c568c8225974",
+  "sst_memory_binding_policy": {
+    "default": "instantiate_only_profile_and_workload_reachable_channels",
+    "physical_hbm_channels": 32,
+    "sparse_energy_semantics": "bound_channel_dramsim3_only_excludes_unbound_idle_background",
+    "timing_semantics": "unchanged_physical_channel_ids_and_active_contention",
+    "unbound_request_policy": "fatal"
+  },
+  "status": "PASS",
+  "systems": [
+    "spine",
+    "grasu_regraph"
+  ]
+}

@@ -3,10 +3,10 @@
   "profile_id": "spine_candidate10_opt_v2_reader_working_set",
   "architecture": "spine",
   "status": "projected",
-  "evidence_tier": "simulation_only",
+  "evidence_tier": "synthesis_only",
   "source": {
     "repository": "git@github.com:jayfeather9/spine-dynamic-graph.git",
-    "revision": "3b16e8e9e74598547a510b1094974ea61362523d",
+    "revision": "c338b323d95707b7b5a84f622795439004a7f013",
     "branch": "codex/source-page-working-set-cache",
     "dirty": false
   },
@@ -43,7 +43,16 @@
     "range_task_active_cache_total_bytes": 786432,
     "range_task_active_cache_added_bytes": 393216,
     "normalization_policy": "shared_platform_with_explicit_bounded_microarchitecture_optimization",
-    "resource_feasibility_gate": "candidate10_opt_v2_readmaint_csynth_pending",
+    "resource_feasibility_gate": "focused_hls_csynth_complete_timing_target_missed",
+    "optimized_readmaint_bram_18k": 98,
+    "optimized_readmaint_dsp": 20,
+    "optimized_readmaint_ff": 146499,
+    "optimized_readmaint_lut": 222881,
+    "optimized_readmaint_uram": 100,
+    "optimized_readmaint_300mhz_schedule_estimated_ns": 7.942,
+    "optimized_readmaint_300mhz_schedule_estimated_mhz": 125.913,
+    "optimized_readmaint_150mhz_schedule_estimated_ns": 12.809,
+    "optimized_readmaint_150mhz_schedule_estimated_mhz": 78.070,
     "maintenance_architecture": "candidate10_one_pass",
     "axi_profile": "candidate10_gmem_1e61fc0",
     "partitions": 16,
@@ -118,12 +127,24 @@
     "finite_source_page_index_cache",
     "expanded_range_task_working_set"
   ],
-  "evidence": [],
+  "evidence": [
+    {
+      "kind": "opt_v2_ab_and_csynth_manifest",
+      "path": "docs/evidence/spine_opt_v2_reader_working_set_20260728.json",
+      "sha256": "c5084db2a11e450d5071b3c86085d9d4492c520e4bb9db986e3b9c1a3d23fb75"
+    },
+    {
+      "kind": "opt_v2_k1_formal_matrix_analysis",
+      "path": "docs/evidence/candidate10_opt_v2_k1_formal_matrix_20260728/analysis/analysis_manifest.json",
+      "sha256": "491eafa90977330ceccdab4193d6c779a1fbc36533c9138d0bff4c966320f38a"
+    }
+  ],
   "limitations": [
     "This profile adds only the finite source-page index cache and the explicitly costed 32768-record range-task working set on top of opt-v1.",
     "The source-page cache has one entry per level for the currently executing fixed family and is cleared at each HLS function invocation or fallback tile pass; it is not an unbounded global cache.",
     "The enlarged active-record gate adds 393216 bytes of logical on-chip storage relative to the 16384-record parent and must pass synthesis resource review.",
-    "The focused readmaint synthesis run is pending; until imported, this profile remains simulation-only and must not support an FPGA timing or area claim.",
+    "Focused 300 MHz-target csynth estimates 7.942 ns and does not close the 3.333 ns target; it supports resource feasibility, not timing closure.",
+    "A separate 150 MHz-target csynth selects a slower 12.809 ns schedule, so integrated 150 MHz placement-and-route remains the timing authority.",
     "No post-hoc holdout result may be used to alter this profile."
   ]
 }

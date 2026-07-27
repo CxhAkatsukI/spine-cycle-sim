@@ -141,7 +141,7 @@ class ArchitectureProfileTests(unittest.TestCase):
             PROFILES / "spine_candidate10_opt_v2_reader_working_set.json"
         )
         self.assertEqual(optimized.status, ProfileStatus.PROJECTED)
-        self.assertEqual(optimized.evidence_tier, EvidenceTier.SIMULATION_ONLY)
+        self.assertEqual(optimized.evidence_tier, EvidenceTier.SYNTHESIS_ONLY)
         self.assertEqual(
             optimized.parameters["simulation_parent_profile"],
             parent.profile_id,
@@ -161,6 +161,11 @@ class ArchitectureProfileTests(unittest.TestCase):
             optimized.parameters["range_task_active_cache_added_bytes"],
             393_216,
         )
+        self.assertEqual(
+            optimized.parameters["resource_feasibility_gate"],
+            "focused_hls_csynth_complete_timing_target_missed",
+        )
+        self.assertEqual(optimized.parameters["optimized_readmaint_uram"], 100)
         self.assertEqual(verify_profile_artifacts(optimized), [])
 
     def test_stable_profile_pins_accepted_clocks_and_hash(self) -> None:

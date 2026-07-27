@@ -171,6 +171,7 @@ def main() -> int:
     parser.add_argument("--large-combined", type=Path, required=True)
     parser.add_argument("--parent-csynth", type=Path, required=True)
     parser.add_argument("--optimized-csynth", type=Path, required=True)
+    parser.add_argument("--optimized-csynth-150", type=Path)
     parser.add_argument("--optimized-csynth-log", type=Path, required=True)
     parser.add_argument("--core-test-bin", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
@@ -213,6 +214,11 @@ def main() -> int:
 
     parent_csynth = _csynth(args.parent_csynth)
     optimized_csynth = _csynth(args.optimized_csynth)
+    optimized_csynth_150 = (
+        _csynth(args.optimized_csynth_150)
+        if args.optimized_csynth_150 is not None
+        else None
+    )
     csynth_log = args.optimized_csynth_log.read_text(encoding="utf-8")
     burst_evidence = (
         "Multiple burst reads of length 4 and bit width 64 in loop "
@@ -239,7 +245,12 @@ def main() -> int:
             ),
             "all_correctness_and_ledgers_pass": True,
             "hls_length4_bitmap_burst_inferred": True,
-            "csynth_target_met": bool(optimized_csynth["target_met"]),
+            "csynth_300mhz_target_met": bool(optimized_csynth["target_met"]),
+            "csynth_150mhz_target_met": (
+                bool(optimized_csynth_150["target_met"])
+                if optimized_csynth_150 is not None
+                else None
+            ),
         },
         "core_microbenchmark": _core_evidence(args.core_test_bin),
         "sst_compact_exact": {"parent": exact_parent, "cached": exact_cache},
@@ -255,6 +266,7 @@ def main() -> int:
         "hls_csynth": {
             "parent": parent_csynth,
             "optimized": optimized_csynth,
+            "optimized_150mhz": optimized_csynth_150,
             "delta": {
                 name: int(optimized_csynth[name]) - int(parent_csynth[name])
                 for name in ("bram_18k", "dsp", "ff", "lut", "uram")
@@ -273,7 +285,12 @@ def main() -> int:
                 ("large_gate", args.large_gate),
                 ("large_combined", args.large_combined),
             )
-        },
+        }
+        | (
+            {"optimized_csynth_150": _sha256(args.optimized_csynth_150)}
+            if args.optimized_csynth_150 is not None
+            else {}
+        ),
         "limitations": [
             "The native-gate large parent predates explicit effective-gate output; its path-2 result with 19058 active records is tied to the frozen 16384-gate runner revision.",
             "Focused csynth is a resource and pre-route timing gate, not integrated placement-and-route timing closure.",
