@@ -1,0 +1,268 @@
+{
+  "builds": [
+    {
+      "algorithm": "weighted_sssp",
+      "artifact": {
+        "path_from_build_root": "xclbin/spine_partitioned_split_e2e.hw.xclbin",
+        "sha256": "551ed1e89755a8b97725efa4003e28007eabd66abb73f480c6ee087a627b9666",
+        "size_bytes": 52769249
+      },
+      "build_id": "spine_candidate10_sssp_150mhz",
+      "claim_scope": "spine_core_sssp_baseline",
+      "resources": {
+        "bram": 99,
+        "dsp": 22,
+        "lut": 127910,
+        "reg": 149746,
+        "uram": 99
+      },
+      "source": {
+        "dirty": true,
+        "identity_note": "Frozen spine_partitioned.hpp SHA256 d98fb04cb59c3b00b894ba4d615d7dd1a6250f46fe1d998a951bb0a0843c7dbc",
+        "repository": "spine-dynamic-graph-reduce-levels",
+        "revision": "1e61fc0822608f8776399cc10a851f6fe5806f92"
+      },
+      "system": "spine",
+      "target_mhz": 150.0,
+      "timing": {
+        "disposition": "target_closed",
+        "failing_endpoints": 0,
+        "target_period_ns": 6.666666666666667,
+        "tns_ns": 0.0,
+        "wns_ns": 0.003,
+        "worst_path_frequency_mhz": 150.0675303886749,
+        "worst_path_period_ns": 6.663666666666667
+      },
+      "topology": {
+        "hbm_channels": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22
+        ],
+        "hbm_port_bindings": 24,
+        "kernels": {
+          "spine_partconv_compute_kernel": 1,
+          "spine_partconv_rdmaint_kernel": 1
+        },
+        "slr_assignments": 2,
+        "stream_connections": 2
+      }
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "artifact": {
+        "path_from_build_root": "build/grasu_regraph_weighted_pma_native.hw.xclbin",
+        "sha256": "81c88089dcdc26e067e2cd33b9dd4d9be4d1edfdc92f8013a737eb7ce7a0d3c4",
+        "size_bytes": 61522672
+      },
+      "build_id": "grasu_regraph_weighted_sssp_150mhz",
+      "claim_scope": "algorithm_specific_conversion_free_whole_system",
+      "resources": {
+        "bram": 233,
+        "dsp": 0,
+        "lut": 96559,
+        "reg": 107380,
+        "uram": 64
+      },
+      "source": {
+        "grasu_revision": "b79ccb0bc6aae4a2b7dededcee095bf0ad1b67dc",
+        "repository": "grasu-regraph-integration",
+        "revision": "ee1cf7a8972ce24867bdc367fd86679bfdd46e17"
+      },
+      "system": "grasu_regraph",
+      "target_mhz": 150.0,
+      "timing": {
+        "disposition": "routed_target_missed",
+        "failing_endpoints": 7,
+        "target_period_ns": 6.666666666666667,
+        "tns_ns": -0.045,
+        "wns_ns": -0.013,
+        "worst_path_frequency_mhz": 149.70806926493339,
+        "worst_path_period_ns": 6.679666666666667
+      },
+      "topology": {
+        "hbm_channels": [
+          0,
+          1,
+          2,
+          3,
+          30
+        ],
+        "hbm_port_bindings": 32,
+        "kernels": {
+          "bin_search": 4,
+          "dispatch": 1,
+          "kernelApply": 1,
+          "kernelHBMWrapper": 1,
+          "kernelLittleGSMerger": 1,
+          "lksg_stream": 1,
+          "pma_completion_barrier": 1,
+          "pma_to_regraph_adapter": 1,
+          "process_cache": 2,
+          "process_ddr": 2
+        },
+        "slr_assignments": 15,
+        "stream_connections": 18
+      }
+    },
+    {
+      "algorithm": "full_pagerank",
+      "artifact": {
+        "path_from_build_root": "build/grasu_regraph_full_pagerank.hw.xclbin",
+        "sha256": "2b9dc0a57c5474fb929dcf64ee3483e94361dade2ecc86e3da82f67c327e209f",
+        "size_bytes": 67330105
+      },
+      "build_id": "grasu_regraph_full_pagerank_150mhz",
+      "claim_scope": "algorithm_specific_conversion_free_whole_system",
+      "resources": {
+        "bram": 278,
+        "dsp": 304,
+        "lut": 178374,
+        "reg": 177836,
+        "uram": 64
+      },
+      "source": {
+        "grasu_revision": "d5c707c5b30b6c0e19ff1e56ea4b16801a46cfae",
+        "repository": "grasu-regraph-integration",
+        "revision": "7b922ee24c488b8864f0951dc06275d9d0d54b1c"
+      },
+      "system": "grasu_regraph",
+      "target_mhz": 150.0,
+      "timing": {
+        "disposition": "routed_target_missed",
+        "failing_endpoints": 311,
+        "target_period_ns": 6.666666666666667,
+        "tns_ns": -15.019,
+        "wns_ns": -0.13,
+        "worst_path_frequency_mhz": 147.13094654242275,
+        "worst_path_period_ns": 6.796666666666667
+      },
+      "topology": {
+        "hbm_channels": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          6
+        ],
+        "hbm_port_bindings": 37,
+        "kernels": {
+          "bin_search": 4,
+          "dispatch_degree": 1,
+          "grasu_degree_update": 1,
+          "kernelHBMWrapper": 1,
+          "kernelLittleGSMerger": 1,
+          "lksg_stream": 1,
+          "pma_to_regraph_adapter": 1,
+          "process_cache": 2,
+          "process_ddr": 2,
+          "regraph_pagerank_apply": 1,
+          "regraph_pagerank_source_prepare": 1
+        },
+        "slr_assignments": 16,
+        "stream_connections": 15
+      }
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "artifact": {
+        "path_from_build_root": "build/grasu_regraph_residual_pagerank.hw.xclbin",
+        "sha256": "ec09856e49db4149801fe8872ae369e1a8e35eb394d9112368d9a0a74a6be70c",
+        "size_bytes": 66724051
+      },
+      "build_id": "grasu_regraph_thresholded_residual_pagerank_150mhz",
+      "claim_scope": "algorithm_specific_conversion_free_whole_system",
+      "resources": {
+        "bram": 293,
+        "dsp": 336,
+        "lut": 247692,
+        "reg": 301029,
+        "uram": 64
+      },
+      "source": {
+        "grasu_revision": "d5c707c5b30b6c0e19ff1e56ea4b16801a46cfae",
+        "repository": "grasu-regraph-integration",
+        "revision": "4338022fd9a5e8e4bf393595d4c1c59f03d00e81"
+      },
+      "system": "grasu_regraph",
+      "target_mhz": 150.0,
+      "timing": {
+        "disposition": "routed_target_missed",
+        "failing_endpoints": 253,
+        "target_period_ns": 6.666666666666667,
+        "tns_ns": -8.814,
+        "wns_ns": -0.087,
+        "worst_path_frequency_mhz": 148.06771630225558,
+        "worst_path_period_ns": 6.753666666666667
+      },
+      "topology": {
+        "hbm_channels": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "hbm_port_bindings": 39,
+        "kernels": {
+          "bin_search": 4,
+          "dispatch_degree": 1,
+          "grasu_degree_update": 1,
+          "kernelHBMWrapper": 1,
+          "kernelLittleGSMerger": 1,
+          "lksg_stream": 1,
+          "pma_to_regraph_adapter": 1,
+          "process_cache": 2,
+          "process_ddr": 2,
+          "regraph_pagerank_apply": 1,
+          "regraph_pagerank_source_prepare": 1
+        },
+        "slr_assignments": 16,
+        "stream_connections": 15
+      }
+    }
+  ],
+  "claim_class": "candidate10_routed_hls_feasibility_non_iso_functional",
+  "coverage": {
+    "grasu_regraph_algorithms": [
+      "full_pagerank",
+      "thresholded_residual_pagerank",
+      "weighted_sssp"
+    ],
+    "grasu_regraph_three_algorithm_routed": true,
+    "spine_core_sssp_routed": true,
+    "spine_three_algorithm_iso_functional": false
+  },
+  "limitations": [
+    "The Spine build is a native weighted-SSSP core baseline, while the three GraSU+ReGraph builds are algorithm-specific normalized whole systems; cross-system resource ratios are not iso-functional and are therefore disabled.",
+    "Weighted SSSP, Full PageRank, and thresholded residual PageRank routed and produced xclbins but miss the 150 MHz setup target by 0.013 ns, 0.130 ns, and 0.087 ns respectively.",
+    "This ledger establishes routed HLS feasibility, topology, area, and timing only; dynamic energy requires simulator activity plus separately validated component and HBM energy models."
+  ],
+  "manifest_sha256": "b033afc1523dd019618700233b250ef8d177d098e0ca94d866893c1ebeb99f62",
+  "resource_ratio_eligible": false,
+  "schema_version": 1,
+  "status": "PASS"
+}

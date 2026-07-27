@@ -2,6 +2,7 @@
 \usepackage[margin=0.65in]{geometry}
 \usepackage{booktabs}
 \usepackage{pgfplots}
+\usepackage{pgfplotstable}
 \usepackage{subcaption}
 \usepackage{xcolor}
 \usepackage{float}
@@ -206,5 +207,55 @@ Compact slices and full datasets are reported as separate populations.
   batch size is retained in the companion data table.}
 \end{figure}
 }{\missingplot{Waiting for real-topology batch 64/512/4096 sweeps.}}
+
+\section{Routed HLS feasibility}
+\IfFileExists{data/ppa_summary.csv}{%
+\begin{table}[H]
+  \centering
+  \small
+  \resizebox{\linewidth}{!}{%
+  \pgfplotstabletypeset[
+    col sep=comma,
+    columns={label,lut,reg,bram,uram,dsp,wns_ns,timing},
+    columns/label/.style={string type,column name={Build}},
+    columns/lut/.style={column name={LUT},fixed,precision=0},
+    columns/reg/.style={column name={REG},fixed,precision=0},
+    columns/bram/.style={column name={BRAM},fixed,precision=0},
+    columns/uram/.style={column name={URAM},fixed,precision=0},
+    columns/dsp/.style={column name={DSP},fixed,precision=0},
+    columns/wns_ns/.style={column name={WNS (ns)},fixed,precision=3},
+    columns/timing/.style={string type,column name={150 MHz setup}},
+    every head row/.style={before row=\toprule,after row=\midrule},
+    every last row/.style={after row=\bottomrule}
+  ]{data/ppa_summary.csv}}
+  \caption{Routed U55C HLS feasibility at a 150 MHz data-clock target. These
+  builds are not iso-functional: Spine is the native SSSP core baseline,
+  whereas the GraSU+ReGraph rows are algorithm-specific normalized whole
+  systems. Absolute resource ratios are therefore not used as a comparative
+  performance claim.}
+\end{table}
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      ybar, bar width=14pt, width=0.92\linewidth, height=56mm,
+      ylabel={Worst negative slack (ns)},
+      symbolic x coords={Spine SSSP,G+R SSSP,G+R Full PR,G+R Residual PR},
+      xtick=data, x tick label style={rotate=12,anchor=north east},
+      ymin=-0.15, ymax=0.025, grid=major,
+      scaled y ticks=false,
+      yticklabel style={/pgf/number format/fixed,/pgf/number format/precision=3},
+      nodes near coords={\pgfmathprintnumber[fixed,precision=3]{\pgfplotspointmeta}},
+      nodes near coords style={font=\small}]
+      \addplot[fill=spine] table[x=label,y=wns_ns,col sep=comma]
+        {data/ppa_summary.csv};
+      \addplot[muted,dashed,sharp plot,nodes near coords={}] coordinates
+        {(Spine SSSP,0) (G+R Residual PR,0)};
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Post-route setup margin at the 150 MHz target. Non-negative WNS
+  closes timing; negative WNS identifies the remaining target miss.}
+\end{figure}
+}{\missingplot{Waiting for routed artifacts for Spine and all three GraSU+ReGraph algorithms.}}
 
 \end{document}

@@ -14,6 +14,9 @@ from spine_cycle_sim.evidence.publication_ppa import (
 )
 
 
+ROOT = Path(__file__).resolve().parents[1]
+
+
 def _write_tsv(path: Path, rows: list[dict[str, object]]) -> str:
     with path.open("w", encoding="utf-8", newline="") as stream:
         writer = csv.DictWriter(stream, fieldnames=list(rows[0]), delimiter="\t")
@@ -222,6 +225,14 @@ class PublicationPpaTests(unittest.TestCase):
             path.write_text(json.dumps(broken), encoding="utf-8")
             with self.assertRaisesRegex(PublicationPpaError, "frozen expectation"):
                 analyze_publication_ppa_manifest(path)
+
+    def test_repository_manifest_closes_four_routed_builds(self) -> None:
+        manifest = ROOT / "configs/evidence/candidate10_publication_ppa_v3.json"
+        result = analyze_publication_ppa_manifest(manifest)
+        self.assertEqual(result["status"], "PASS")
+        self.assertEqual(len(result["builds"]), 4)
+        self.assertTrue(result["coverage"]["grasu_regraph_three_algorithm_routed"])
+        self.assertFalse(result["resource_ratio_eligible"])
 
 
 if __name__ == "__main__":

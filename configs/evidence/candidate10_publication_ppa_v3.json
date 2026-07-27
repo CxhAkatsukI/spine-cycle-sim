@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "claim_class": "candidate10_routed_hls_feasibility_non_iso_functional",
+  "repository_root": "../..",
+  "builds": [
+    {
+      "build_id": "spine_candidate10_sssp_150mhz",
+      "system": "spine",
+      "algorithm": "weighted_sssp",
+      "claim_scope": "spine_core_sssp_baseline",
+      "source": {
+        "repository": "spine-dynamic-graph-reduce-levels",
+        "revision": "1e61fc0822608f8776399cc10a851f6fe5806f92",
+        "dirty": true,
+        "identity_note": "Frozen spine_partitioned.hpp SHA256 d98fb04cb59c3b00b894ba4d615d7dd1a6250f46fe1d998a951bb0a0843c7dbc"
+      },
+      "target_mhz": 150,
+      "artifact_sha256": "551ed1e89755a8b97725efa4003e28007eabd66abb73f480c6ee087a627b9666",
+      "evidence": {
+        "accelerator_util": {"path": "docs/evidence/candidate10_publication_ppa_v3_20260727/spine_sssp/accelerator_util.tsv", "sha256": "22b919f45bf8d56b314fd9f064212b79aba6694ebb203c43834aaae0b6d6ada0"},
+        "artifacts": {"path": "docs/evidence/candidate10_publication_ppa_v3_20260727/spine_sssp/artifacts.tsv", "sha256": "f236e1c8eabcdef4224cb1636c2a267d7ec29d5c4f978dd65179161555c63592"},
+        "connectivity": {"path": "docs/evidence/candidate10_publication_ppa_v3_20260727/spine_sssp/connectivity.tsv", "sha256": "f66f9bb636412073a4fd0b3baba8ed2aefbd352b27320d1711bfa9e5d8d377ad"},
+        "link_kernels": {"path": "docs/evidence/candidate10_publication_ppa_v3_20260727/spine_sssp/link_kernels.tsv", "sha256": "f879502f555f9f2e3db9499e17de81f498d6f638b386b8e1efe20317266fe25d"},
+        "timing": {"path": "docs/evidence/candidate10_publication_ppa_v3_20260727/spine_sssp/timing.tsv", "sha256": "24d9485e5768ae63897213f028f4d5ffde5e7b9b663f94eaef7753b5db569b0f"}
+      },
+      "expected": {
+        "resources": {"lut": 127910, "reg": 149746, "bram": 99, "uram": 99, "dsp": 22},
+        "wns_ns": 0.003,
+        "timing_disposition": "target_closed",
+        "topology": {
+          "kernels": {"spine_partconv_rdmaint_kernel": 1, "spine_partconv_compute_kernel": 1},
+          "hbm_channels": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22],
+          "hbm_port_bindings": 24,
+          "stream_connections": 2,
+          "slr_assignments": 2
+        }
+      }
+    },
+    {
+      "build_id": "grasu_regraph_weighted_sssp_150mhz",
+      "system": "grasu_regraph",
+      "algorithm": "weighted_sssp",
+      "claim_scope": "algorithm_specific_conversion_free_whole_system",
+      "source": {
+        "repository": "grasu-regraph-integration",
+        "revision": "ee1cf7a8972ce24867bdc367fd86679bfdd46e17",
+        "grasu_revision": "b79ccb0bc6aae4a2b7dededcee095bf0ad1b67dc"
+      },
+      "target_mhz": 150,
+      "artifact_sha256": "81c88089dcdc26e067e2cd33b9dd4d9be4d1edfdc92f8013a737eb7ce7a0d3c4",
+      "evidence": {
+        "accelerator_util": {"path": "docs/evidence/candidate10_publication_ppa_v3_20260727/grasu_weighted_sssp/accelerator_util.tsv", "sha256": "50324b62a952cfc947cb6632c554bef60e4fb71a22e446385909688898978ab2"},
+        "artifacts": {"path": "docs/evidence/candidate10_publication_ppa_v3_20260727/grasu_weighted_sssp/artifacts.tsv", "sha256": "cf88eb0206eee01110e2d6cd7c7359d9606cca966895818b155019706b60e982"},
+        "connectivity": {"path": "docs/evidence/candidate10_publication_ppa_v3_20260727/grasu_weighted_sssp/connectivity.tsv", "sha256": "a9d0ab842aa90479570c25c8c1d61dd2a795c881c817cde220eaf04ef5ccfef9"},
+        "link_kernels": {"path": "docs/evidence/candidate10_publication_ppa_v3_20260727/grasu_weighted_sssp/link_kernels.tsv", "sha256": "1647aa7baea834651483984b4438462144d4515e9488ac5a2c313b21cd306fa5"},
+        "timing": {"path": "docs/evidence/candidate10_publication_ppa_v3_20260727/grasu_weighted_sssp/timing.tsv", "sha256": "459a0d7b88599af787f4d339689feb0a7727cc7e61009389c154ecbae07398f0"}
+      },
+      "expected": {
+        "resources": {"lut": 96559, "reg": 107380, "bram": 233, "uram": 64, "dsp": 0},
+        "wns_ns": -0.013,
+        "timing_disposition": "routed_target_missed",
+        "topology": {
+          "kernels": {"bin_search": 4, "dispatch": 1, "kernelApply": 1, "kernelHBMWrapper": 1, "kernelLittleGSMerger": 1, "process_cache": 2, "process_ddr": 2, "pma_completion_barrier": 1, "pma_to_regraph_adapter": 1, "lksg_stream": 1},
+          "hbm_channels": [0, 1, 2, 3, 30],
+          "hbm_port_bindings": 32,
+          "stream_connections": 18,
+          "slr_assignments": 15
+        }
+      }
+    },
+    {
+      "build_id": "grasu_regraph_full_pagerank_150mhz",
+      "system": "grasu_regraph",
+      "algorithm": "full_pagerank",
+      "claim_scope": "algorithm_specific_conversion_free_whole_system",
+      "source": {
+        "repository": "grasu-regraph-integration",
+        "revision": "7b922ee24c488b8864f0951dc06275d9d0d54b1c",
+        "grasu_revision": "d5c707c5b30b6c0e19ff1e56ea4b16801a46cfae"
+      },
+      "target_mhz": 150,
+      "artifact_sha256": "2b9dc0a57c5474fb929dcf64ee3483e94361dade2ecc86e3da82f67c327e209f",
+      "evidence": {
+        "accelerator_util": {"path": "docs/evidence/candidate10_publication_ppa_v3_20260727/grasu_full_pagerank/accelerator_util.tsv", "sha256": "4cea6efe699d2af76c924372f7780f744ca10e6dbbae18b3208e2ea4a24c555f"},
+        "artifacts": {"path": "docs/evidence/candidate10_publication_ppa_v3_20260727/grasu_full_pagerank/artifacts.tsv", "sha256": "73ba71e71570532aa2fbf13379411040134353e1bc6a154fadb42fb76095d212"},
+        "connectivity": {"path": "docs/evidence/candidate10_publication_ppa_v3_20260727/grasu_full_pagerank/connectivity.tsv", "sha256": "bf794ada23d5de76030bfb0a8d66a31545b9c4caec0d2e0de6ee5b3c2227520a"},
+        "link_kernels": {"path": "docs/evidence/candidate10_publication_ppa_v3_20260727/grasu_full_pagerank/link_kernels.tsv", "sha256": "5052efe07872e4e38e7321083847f03dd4881c00662c3273d45a8059538825c3"},
+        "timing": {"path": "docs/evidence/candidate10_publication_ppa_v3_20260727/grasu_full_pagerank/timing.tsv", "sha256": "b73b422785ef9dfca9cd6740ebc1c0d66ac2059a1c3e8cf5d4d8a5a045c115bd"}
+      },
+      "expected": {
+        "resources": {"lut": 178374, "reg": 177836, "bram": 278, "uram": 64, "dsp": 304},
+        "wns_ns": -0.130,
+        "timing_disposition": "routed_target_missed",
+        "topology": {
+          "kernels": {"bin_search": 4, "dispatch_degree": 1, "process_cache": 2, "process_ddr": 2, "grasu_degree_update": 1, "pma_to_regraph_adapter": 1, "lksg_stream": 1, "kernelLittleGSMerger": 1, "regraph_pagerank_apply": 1, "regraph_pagerank_source_prepare": 1, "kernelHBMWrapper": 1},
+          "hbm_channels": [0, 1, 2, 3, 4, 6],
+          "hbm_port_bindings": 37,
+          "stream_connections": 15,
+          "slr_assignments": 16
+        }
+      }
+    },
+    {
+      "build_id": "grasu_regraph_thresholded_residual_pagerank_150mhz",
+      "system": "grasu_regraph",
+      "algorithm": "thresholded_residual_pagerank",
+      "claim_scope": "algorithm_specific_conversion_free_whole_system",
+      "source": {
+        "repository": "grasu-regraph-integration",
+        "revision": "4338022fd9a5e8e4bf393595d4c1c59f03d00e81",
+        "grasu_revision": "d5c707c5b30b6c0e19ff1e56ea4b16801a46cfae"
+      },
+      "target_mhz": 150,
+      "artifact_sha256": "ec09856e49db4149801fe8872ae369e1a8e35eb394d9112368d9a0a74a6be70c",
+      "evidence": {
+        "accelerator_util": {"path": "docs/evidence/candidate10_publication_ppa_v3_20260727/grasu_thresholded_residual_pagerank/accelerator_util.tsv", "sha256": "8f191157d31a5ff7618f2be0fe76a973b2fc6915d1f3d5488c27852408e698b3"},
+        "artifacts": {"path": "docs/evidence/candidate10_publication_ppa_v3_20260727/grasu_thresholded_residual_pagerank/artifacts.tsv", "sha256": "f29c57774fb9435278c319bc937b0d2f5af30ee485f1778121b04ac1b16b6521"},
+        "connectivity": {"path": "docs/evidence/candidate10_publication_ppa_v3_20260727/grasu_thresholded_residual_pagerank/connectivity.tsv", "sha256": "22a33f7adf1680e9ae83ffc3c360ec97176df28380eda65c83523753fcd152fc"},
+        "link_kernels": {"path": "docs/evidence/candidate10_publication_ppa_v3_20260727/grasu_thresholded_residual_pagerank/link_kernels.tsv", "sha256": "6da68381afb4fba84ef084d9176e7cbce58fa5efc2818a69e38f3ca6aa9f7f40"},
+        "timing": {"path": "docs/evidence/candidate10_publication_ppa_v3_20260727/grasu_thresholded_residual_pagerank/timing.tsv", "sha256": "ec4564e1807cccfb1caf2810e206145817ef9d54e595f60435d142f96e50156d"}
+      },
+      "expected": {
+        "resources": {"lut": 247692, "reg": 301029, "bram": 293, "uram": 64, "dsp": 336},
+        "wns_ns": -0.087,
+        "timing_disposition": "routed_target_missed",
+        "topology": {
+          "kernels": {"bin_search": 4, "dispatch_degree": 1, "process_cache": 2, "process_ddr": 2, "grasu_degree_update": 1, "pma_to_regraph_adapter": 1, "lksg_stream": 1, "kernelLittleGSMerger": 1, "regraph_pagerank_apply": 1, "regraph_pagerank_source_prepare": 1, "kernelHBMWrapper": 1},
+          "hbm_channels": [0, 1, 2, 3, 4, 5, 6],
+          "hbm_port_bindings": 39,
+          "stream_connections": 15,
+          "slr_assignments": 16
+        }
+      }
+    }
+  ],
+  "limitations": [
+    "The Spine build is a native weighted-SSSP core baseline, while the three GraSU+ReGraph builds are algorithm-specific normalized whole systems; cross-system resource ratios are not iso-functional and are therefore disabled.",
+    "Weighted SSSP, Full PageRank, and thresholded residual PageRank routed and produced xclbins but miss the 150 MHz setup target by 0.013 ns, 0.130 ns, and 0.087 ns respectively.",
+    "This ledger establishes routed HLS feasibility, topology, area, and timing only; dynamic energy requires simulator activity plus separately validated component and HBM energy models."
+  ]
+}

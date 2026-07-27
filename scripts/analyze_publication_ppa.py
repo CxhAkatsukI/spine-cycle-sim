@@ -64,10 +64,44 @@ def _summary_rows(ledger: dict[str, object]) -> list[dict[str, object]]:
     return rows
 
 
+def _paper_rows(ledger: dict[str, object]) -> list[dict[str, object]]:
+    labels = {
+        "spine_candidate10_sssp_150mhz": "Spine SSSP",
+        "grasu_regraph_weighted_sssp_150mhz": "G+R SSSP",
+        "grasu_regraph_full_pagerank_150mhz": "G+R Full PR",
+        "grasu_regraph_thresholded_residual_pagerank_150mhz": "G+R Residual PR",
+    }
+    rows = []
+    for build in ledger["builds"]:
+        timing = build["timing"]
+        rows.append(
+            {
+                "label": labels[build["build_id"]],
+                "lut": build["resources"]["lut"],
+                "reg": build["resources"]["reg"],
+                "bram": build["resources"]["bram"],
+                "uram": build["resources"]["uram"],
+                "dsp": build["resources"]["dsp"],
+                "wns_ns": timing["wns_ns"],
+                "timing": (
+                    "closed"
+                    if timing["disposition"] == "target_closed"
+                    else "target missed"
+                ),
+            }
+        )
+    return rows
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
     parser.add_argument("--out-dir", type=Path, required=True)
+    parser.add_argument(
+        "--paper-data-dir",
+        type=Path,
+        help="Also write the compact TeX-facing PPA table to this directory.",
+    )
     args = parser.parse_args()
 
     ledger = analyze_publication_ppa_manifest(args.manifest)
@@ -76,6 +110,9 @@ def main() -> int:
         json.dumps(ledger, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
     _write_csv(args.out_dir / "ppa_summary.csv", _summary_rows(ledger))
+    if args.paper_data_dir:
+        args.paper_data_dir.mkdir(parents=True, exist_ok=True)
+        _write_csv(args.paper_data_dir / "ppa_summary.csv", _paper_rows(ledger))
     print(
         "PASS Candidate10 routed HLS feasibility: "
         f"builds={len(ledger['builds'])} "

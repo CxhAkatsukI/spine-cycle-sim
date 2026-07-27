@@ -217,7 +217,8 @@ def _parse_build(root: Path, build: object) -> dict[str, Any]:
     }
     if expected_topology != topology:
         raise PublicationPpaError(
-            f"{build_id}: topology differs from frozen expectation"
+            f"{build_id}: topology differs from frozen expectation: "
+            f"expected {expected_topology}, got {topology}"
         )
 
     claim_scope = build.get("claim_scope")
