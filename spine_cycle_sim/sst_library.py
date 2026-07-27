@@ -15,7 +15,15 @@ def forced_sst_library_binding(sst: Path, plugin_dir: Path) -> dict[str, str]:
     plugin = plugin_dir / "libspine_cycle.so"
     if not plugin.is_file():
         raise ValueError(f"missing Spine SST plugin: {plugin}")
-    prefix = sst.parent.parent
+    if sst.name == "run_sst_exact_idle_dramsim3.sh":
+        idle_prefix = os.environ.get("SPINE_IDLE_SST_INSTALL_PREFIX")
+        if not idle_prefix:
+            raise ValueError(
+                "exact-idle SST wrapper requires SPINE_IDLE_SST_INSTALL_PREFIX"
+            )
+        prefix = Path(idle_prefix).resolve()
+    else:
+        prefix = sst.parent.parent
     candidates = (
         prefix / "lib/sst-elements-library",
         prefix / "lib64/sst-elements-library",
