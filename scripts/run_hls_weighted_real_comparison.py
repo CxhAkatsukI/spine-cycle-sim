@@ -30,6 +30,9 @@ from spine_cycle_sim.experiments.hls_real_comparison import (  # noqa: E402
 from spine_cycle_sim.experiments.real_small_batches import (  # noqa: E402
     validate_real_small_batch_manifest,
 )
+from spine_cycle_sim.experiments.temporal_real_batches import (  # noqa: E402
+    validate_temporal_real_manifest,
+)
 from spine_cycle_sim.experiments.shared_workloads import sha256_file  # noqa: E402
 
 
@@ -68,6 +71,16 @@ PROFILE_SETS = {
     },
 }
 DEFAULT_SST = Path("/data/feiyang/sst/bin/sst")
+
+
+def _validate_input_manifest(path: Path) -> dict[str, object]:
+    payload = json.loads(path.resolve().read_text(encoding="utf-8"))
+    matrix_id = payload.get("matrix_id")
+    if matrix_id == "hls_weighted_real_small_batches_20260726":
+        return validate_real_small_batch_manifest(ROOT, path)
+    if matrix_id == "candidate10_grasu_temporal_compact_batches_v1_20260727":
+        return validate_temporal_real_manifest(ROOT, path)
+    raise ValueError(f"unsupported weighted SSSP input matrix: {matrix_id}")
 
 
 def _write_csv(path: Path, rows: list[dict[str, object]]) -> None:
@@ -284,6 +297,7 @@ def _run_system(
             expected_supersteps=(
                 int(run["required_sssp_rounds"])
                 if args.profile_set == "candidate10_hls_v3"
+                and "required_sssp_rounds" in run
                 else None
             ),
         )
@@ -351,7 +365,7 @@ def main() -> int:
         args.capability_catalog or profile_set["capability_catalog"]
     )
 
-    manifest = validate_real_small_batch_manifest(ROOT, args.input_manifest)
+    manifest = _validate_input_manifest(args.input_manifest)
     selected = _select_runs(list(manifest["runs"]), args.run_id, args.limit)
     spine_profile, spine_mhz = _profile(
         args.spine_profile, str(profile_set["spine_profile_id"])
@@ -375,6 +389,7 @@ def main() -> int:
         Path(__file__),
         ROOT / "spine_cycle_sim" / "experiments" / "hls_real_comparison.py",
         ROOT / "spine_cycle_sim" / "experiments" / "memory_traffic.py",
+        ROOT / "spine_cycle_sim" / "experiments" / "temporal_real_batches.py",
         ROOT / "scripts" / "run_sst_spine_vertical.py",
         ROOT / "scripts" / "run_sst_grasu_regraph_hls_weighted.py",
         args.input_manifest,
@@ -467,7 +482,13 @@ def main() -> int:
             ),
         },
         "limitations": [
-            "The three inputs are compact real-edge slices, not full datasets.",
+            (
+                "The inputs are compact file-order slices from five GraSU "
+                "temporal datasets, not full datasets."
+                if manifest["matrix_id"]
+                == "candidate10_grasu_temporal_compact_batches_v1_20260727"
+                else "The three inputs are compact real-edge slices, not full datasets."
+            ),
             (
                 "The Candidate10 comparison uses frozen HLS-derived normalized "
                 "profiles; whole-system implementation evidence is reported separately."

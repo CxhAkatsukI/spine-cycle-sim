@@ -216,6 +216,66 @@ class HlsRealComparisonTests(unittest.TestCase):
             [],
         )
 
+    def test_grasu_temporal_validation_uses_independent_oracle_rounds(self) -> None:
+        run = {**_run()}
+        del run["hls_host_supersteps"]
+        child = {
+            "status": "PASS",
+            "profile_sha256": "profile-hash",
+            "supersteps": 3,
+            "oracle": {"minimum_supersteps": 3},
+            "result": {
+                "success": True,
+                "mode": "grasu_regraph_hls_weighted_sssp",
+                "core_mhz": 200.0,
+                "vertices": 4,
+                "initial_edges": 4,
+                "logical_updates": 16,
+                "physical_updates": 16,
+                "architecture_correctness_mismatches": 0,
+                "mathematical_correctness_mismatches": 0,
+                "correctness_mismatches": 0,
+                "fixed_host_supersteps": True,
+                "supersteps": 3,
+                "cycles": 210,
+                "update_cycles": 10,
+                "compute_cycles": 200,
+                "update_pma_reads": 16,
+                "update_pma_writes": 16,
+                "update_backend_requests": 10,
+                "compute_backend_requests": 20,
+                "backend_requests": 30,
+                "distances_external": [0, 1, 2, 0x7FFFFFFE],
+            },
+            "dram": {"reads": 20, "writes": 10},
+        }
+        child["result"] = _with_split_traffic(
+            child["result"],  # type: ignore[arg-type]
+            first_key="update_backend_traffic",
+            first_requests=10,
+            second_key="compute_backend_traffic",
+            second_requests=20,
+        )
+        self.assertEqual(
+            validate_grasu_hls_result(
+                run,
+                child,
+                expected_profile_sha256="profile-hash",
+                expected_core_mhz=200.0,
+            ),
+            [],
+        )
+        child["supersteps"] = 2
+        self.assertIn(
+            "fixed_rounds",
+            validate_grasu_hls_result(
+                run,
+                child,
+                expected_profile_sha256="profile-hash",
+                expected_core_mhz=200.0,
+            ),
+        )
+
     def test_pair_uses_time_not_raw_cycles_and_requires_equal_answers(self) -> None:
         spine = {
             "run_id": "r",

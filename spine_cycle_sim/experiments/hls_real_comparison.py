@@ -173,6 +173,15 @@ def validate_grasu_hls_result(
     backend_requests = int(result.get("backend_requests", -1))
     update_backend_requests = int(result.get("update_backend_requests", -1))
     compute_backend_requests = int(result.get("compute_backend_requests", -1))
+    oracle = child.get("oracle", {})
+    if expected_supersteps is not None:
+        required_supersteps = expected_supersteps
+    elif "hls_host_supersteps" in run:
+        required_supersteps = int(run["hls_host_supersteps"])
+    elif isinstance(oracle, Mapping):
+        required_supersteps = int(oracle.get("minimum_supersteps", -1))
+    else:
+        required_supersteps = -1
     checks = {
         "child_status": child.get("status") == "PASS",
         "success": result.get("success") is True,
@@ -198,12 +207,9 @@ def validate_grasu_hls_result(
         == 0,
         "combined_correctness": result.get("correctness_mismatches") == 0,
         "fixed_rounds": result.get("fixed_host_supersteps") is True
-        and result.get("supersteps")
-        == (
-            run["hls_host_supersteps"]
-            if expected_supersteps is None
-            else expected_supersteps
-        ),
+        and required_supersteps > 0
+        and result.get("supersteps") == required_supersteps
+        and child.get("supersteps", required_supersteps) == required_supersteps,
         "cycle_window": cycles > 0
         and update_cycles > 0
         and compute_cycles > 0
