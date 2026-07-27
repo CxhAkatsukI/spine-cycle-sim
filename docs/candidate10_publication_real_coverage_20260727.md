@@ -17,14 +17,14 @@ inputs is one of GraSU's five temporal datasets, it has no small-batch size
 sweep or mixed-update row, its dense tests use a synthetic ring, and its memory
 report classifies logical address adjacency rather than controller behavior.
 
-The first follow-up matrix now covers all five GraSU datasets for batch-8 Full
-PageRank insert/delete/mixed updates. Its 15 pairs and 30 system runs are all
-correct and include controller row-hit and read-latency evidence. The broader
-publication gate remains incomplete because SSSP and residual PageRank have not
-yet been run on those five inputs, batch 1/64 sweeps remain pending, and dense
-real-topology tests remain pending. Controller row-hit and latency counters are
-now available for this Full PageRank subset, but explicit AXI-issue and HBM
-queue/backpressure stall counters are still absent.
+The first follow-up matrix now covers all five GraSU datasets for Full PageRank
+at batches 1, 8, and 64. It contains 40 pairs and 80 system runs: insert/delete
+at every batch, plus mixed updates at batches 8 and 64. Every row is correct and
+includes controller row-hit and read-latency evidence. The broader publication
+gate remains incomplete because SSSP and residual PageRank have not yet been
+run on those five inputs, weight changes remain pending, and dense real-topology
+tests remain pending. Explicit AXI-issue and HBM queue/backpressure stall
+counters are also still absent.
 
 The audit combines the old and new evidence only as input rows. Every formal
 gate checks the required cross-product, so three algorithms on old datasets

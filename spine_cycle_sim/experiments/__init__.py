@@ -76,7 +76,10 @@ from .temporal_real_batches import (
     extract_temporal_compact_slice,
     validate_temporal_real_manifest,
 )
-from .temporal_real_analysis import analyze_temporal_full_pagerank
+from .temporal_real_analysis import (
+    analyze_temporal_full_pagerank,
+    analyze_temporal_small_batch_pagerank,
+)
 
 __all__ = [
     "DEFAULT_REAL_SOURCES",
@@ -137,4 +140,5 @@ __all__ = [
     "extract_temporal_compact_slice",
     "validate_temporal_real_manifest",
     "analyze_temporal_full_pagerank",
+    "analyze_temporal_small_batch_pagerank",
 ]

@@ -8,6 +8,7 @@ Expected CSV interfaces:
 - `correctness_coverage.csv`
 - `e2e_by_dataset.csv`
 - `update_throughput.csv`
+- `e2e_by_batch.csv`
 - `memory_by_algorithm.csv`
 - `dense_batch.csv`
 

@@ -15,6 +15,7 @@ from .comparison_analysis import aggregate_dram_stats, geometric_mean, sha256_fi
 EXPECTED_SCENARIOS = {"insert", "delete", "mixed"}
 EXPECTED_ALGORITHM = "full_pagerank"
 EXPECTED_BATCH = 8
+SMALL_BATCHES = {1, 8, 64}
 
 
 def _read_csv(path: Path) -> list[dict[str, str]]:
@@ -281,6 +282,131 @@ def analyze_temporal_full_pagerank(
         ),
         "outputs": {path.name: sha256_file(path) for path in outputs},
         "headline": summaries[0],
+        "limitations": input_manifest["limitations"],
+    }
+    (out_dir / "analysis_manifest.json").write_text(
+        json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    return report
+
+
+def _small_batch_expected_runs(input_manifest: dict[str, object]) -> set[str]:
+    return {
+        str(run["run_id"])
+        for run in input_manifest["runs"]  # type: ignore[index]
+        if int(run["batch_size"]) in SMALL_BATCHES
+        and str(run["scenario"]) in EXPECTED_SCENARIOS
+    }
+
+
+def _small_batch_paper_rows(
+    system_rows: list[dict[str, object]], pair_rows: list[dict[str, object]]
+) -> tuple[list[dict[str, object]], list[dict[str, object]]]:
+    throughput_rows: list[dict[str, object]] = []
+    e2e_rows: list[dict[str, object]] = []
+    for batch in sorted(SMALL_BATCHES):
+        systems = [row for row in system_rows if int(row["user_mutations"]) == batch]
+        pairs = [row for row in pair_rows if int(row["user_mutations"]) == batch]
+        spine = [row for row in systems if row["system"] == "spine"]
+        grasu = [row for row in systems if row["system"] == "grasu_regraph"]
+        if not pairs or len(spine) != len(pairs) or len(grasu) != len(pairs):
+            raise ValueError(f"incomplete small-batch pairing for batch {batch}")
+        spine_mups = geometric_mean(
+            float(row["user_mutations_per_second_update"]) for row in spine
+        ) / 1.0e6
+        grasu_mups = geometric_mean(
+            float(row["user_mutations_per_second_update"]) for row in grasu
+        ) / 1.0e6
+        spine_ms = geometric_mean(float(row["e2e_ms"]) for row in spine)
+        grasu_ms = geometric_mean(float(row["e2e_ms"]) for row in grasu)
+        throughput_rows.append(
+            {
+                "batch": batch,
+                "pairs": len(pairs),
+                "spine_mups": spine_mups,
+                "grasu_mups": grasu_mups,
+                "spine_speedup": spine_mups / grasu_mups,
+            }
+        )
+        e2e_rows.append(
+            {
+                "batch": batch,
+                "pairs": len(pairs),
+                "spine_ms": spine_ms,
+                "grasu_ms": grasu_ms,
+                "spine_norm": spine_ms / grasu_ms,
+                "grasu_norm": 1.0,
+                "spine_speedup": grasu_ms / spine_ms,
+            }
+        )
+    return throughput_rows, e2e_rows
+
+
+def analyze_temporal_small_batch_pagerank(
+    *,
+    matrix_dir: Path,
+    input_manifest_path: Path,
+    out_dir: Path,
+    paper_data_dir: Path | None = None,
+) -> dict[str, object]:
+    matrix_dir = matrix_dir.resolve()
+    input_manifest_path = input_manifest_path.resolve()
+    out_dir = out_dir.resolve()
+    out_dir.mkdir(parents=True, exist_ok=True)
+    matrix_manifest = json.loads(
+        (matrix_dir / "matrix_manifest.json").read_text(encoding="utf-8")
+    )
+    input_manifest = json.loads(input_manifest_path.read_text(encoding="utf-8"))
+    system_rows = _read_csv(matrix_dir / "system_rows.csv")
+    pair_rows = _read_csv(matrix_dir / "pairs.csv")
+    expected_runs = _small_batch_expected_runs(input_manifest)
+    actual_runs = {row["run_id"] for row in pair_rows}
+    if matrix_manifest.get("status") != "PASS" or not matrix_manifest.get("all_correct"):
+        raise ValueError("source small-batch matrix did not pass correctness")
+    if actual_runs != expected_runs or len(pair_rows) != 40 or len(system_rows) != 80:
+        raise ValueError("temporal Full PageRank small-batch matrix is incomplete")
+    if any(int(row["correctness_mismatches"]) != 0 for row in system_rows):
+        raise ValueError("incorrect system row entered small-batch analysis")
+
+    enriched_system = _enrich_system_rows(matrix_dir, system_rows)
+    enriched_pairs = _pair_enriched_rows(pair_rows, enriched_system)
+    throughput_rows, e2e_rows = _small_batch_paper_rows(
+        enriched_system, enriched_pairs
+    )
+    _write_csv(out_dir / "system_rows_enriched.csv", enriched_system)
+    _write_csv(out_dir / "pairs_enriched.csv", enriched_pairs)
+    _write_csv(out_dir / "update_throughput.csv", throughput_rows)
+    _write_csv(out_dir / "e2e_by_batch.csv", e2e_rows)
+    if paper_data_dir is not None:
+        paper_data_dir = paper_data_dir.resolve()
+        _write_csv(paper_data_dir / "update_throughput.csv", throughput_rows)
+        _write_csv(paper_data_dir / "e2e_by_batch.csv", e2e_rows)
+
+    raw_archive = out_dir / "raw_results.tar.gz"
+    _archive_raw(matrix_dir, raw_archive, expected_runs)
+    outputs = [
+        out_dir / "system_rows_enriched.csv",
+        out_dir / "pairs_enriched.csv",
+        out_dir / "update_throughput.csv",
+        out_dir / "e2e_by_batch.csv",
+        raw_archive,
+    ]
+    report = {
+        "schema_version": 1,
+        "analysis_id": "candidate10_grasu_temporal_full_pr_small_batch_v1_20260727",
+        "status": "PASS",
+        "algorithm": EXPECTED_ALGORITHM,
+        "batch_sizes": sorted(SMALL_BATCHES),
+        "datasets": sorted({row["dataset_id"] for row in pair_rows}),
+        "pairs": len(enriched_pairs),
+        "system_rows": len(enriched_system),
+        "all_correct": True,
+        "dram_request_ledgers_closed": True,
+        "input_manifest_sha256": sha256_file(input_manifest_path),
+        "source_matrix_manifest_sha256": sha256_file(
+            matrix_dir / "matrix_manifest.json"
+        ),
+        "outputs": {path.name: sha256_file(path) for path in outputs},
         "limitations": input_manifest["limitations"],
     }
     (out_dir / "analysis_manifest.json").write_text(

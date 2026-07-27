@@ -2,7 +2,11 @@ from __future__ import annotations
 
 import unittest
 
-from spine_cycle_sim.experiments.temporal_real_analysis import _group_summaries
+from spine_cycle_sim.experiments.temporal_real_analysis import (
+    _group_summaries,
+    _small_batch_expected_runs,
+    _small_batch_paper_rows,
+)
 
 
 class TemporalRealAnalysisTest(unittest.TestCase):
@@ -35,6 +39,45 @@ class TemporalRealAnalysisTest(unittest.TestCase):
         self.assertAlmostEqual(overall["spine_speedup_e2e_geomean"], 1.0)
         self.assertEqual(overall["spine_wins"], 1)
         self.assertEqual(len(summaries), 1 + 2 + 2)
+
+    def test_small_batch_expected_runs_respects_missing_mixed_u1(self) -> None:
+        manifest = {
+            "runs": [
+                {"run_id": "i1", "batch_size": 1, "scenario": "insert"},
+                {"run_id": "i8", "batch_size": 8, "scenario": "insert"},
+                {"run_id": "m8", "batch_size": 8, "scenario": "mixed"},
+                {"run_id": "w8", "batch_size": 8, "scenario": "weight_change"},
+                {"run_id": "i512", "batch_size": 512, "scenario": "insert"},
+            ]
+        }
+        self.assertEqual(_small_batch_expected_runs(manifest), {"i1", "i8", "m8"})
+
+    def test_small_batch_paper_rows_use_successful_user_throughput(self) -> None:
+        systems = []
+        pairs = []
+        for batch in (1, 8, 64):
+            pairs.append({"user_mutations": batch})
+            systems.extend(
+                [
+                    {
+                        "user_mutations": batch,
+                        "system": "spine",
+                        "user_mutations_per_second_update": 2.0e6,
+                        "e2e_ms": 4.0,
+                    },
+                    {
+                        "user_mutations": batch,
+                        "system": "grasu_regraph",
+                        "user_mutations_per_second_update": 4.0e6,
+                        "e2e_ms": 2.0,
+                    },
+                ]
+            )
+        throughput, e2e = _small_batch_paper_rows(systems, pairs)
+        self.assertEqual([row["batch"] for row in throughput], [1, 8, 64])
+        self.assertAlmostEqual(throughput[0]["spine_mups"], 2.0)
+        self.assertAlmostEqual(throughput[0]["spine_speedup"], 0.5)
+        self.assertAlmostEqual(e2e[0]["spine_norm"], 2.0)
 
 
 if __name__ == "__main__":

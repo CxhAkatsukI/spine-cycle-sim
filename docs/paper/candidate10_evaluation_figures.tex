@@ -4,6 +4,7 @@
 \usepackage{pgfplots}
 \usepackage{subcaption}
 \usepackage{xcolor}
+\usepackage{float}
 \pgfplotsset{compat=1.18}
 
 \definecolor{spine}{HTML}{176B87}
@@ -28,7 +29,7 @@ Compact slices and full datasets are reported as separate populations.
 
 \section{Correctness coverage}
 \IfFileExists{data/correctness_coverage.csv}{%
-\begin{figure}[ht]
+\begin{figure}[H]
   \centering
   \begin{tikzpicture}
     \begin{axis}[
@@ -49,7 +50,7 @@ Compact slices and full datasets are reported as separate populations.
 
 \section{Small-batch end-to-end performance}
 \IfFileExists{data/e2e_by_dataset.csv}{%
-\begin{figure}[ht]
+\begin{figure}[H]
   \centering
   \begin{tikzpicture}
     \begin{axis}[
@@ -72,12 +73,14 @@ Compact slices and full datasets are reported as separate populations.
 
 \section{Update throughput}
 \IfFileExists{data/update_throughput.csv}{%
-\begin{figure}[ht]
+\begin{figure}[H]
   \centering
   \begin{tikzpicture}
     \begin{loglogaxis}[
       width=0.96\linewidth, height=60mm,
-      xlabel={User mutations per batch}, ylabel={Successful mutations/s},
+      xlabel={User mutations per batch},
+      ylabel={Successful user mutations/s ($10^6$)},
+      xtick={1,8,64}, xticklabels={1,8,64},
       grid=major, legend style={at={(0.5,1.14)},anchor=south,legend columns=2}]
       \addplot[spine,mark=square*] table[x=batch,y=spine_mups,col sep=comma]
         {data/update_throughput.csv};
@@ -91,9 +94,32 @@ Compact slices and full datasets are reported as separate populations.
 \end{figure}
 }{\missingplot{Waiting for batch 1/8/64 insert, delete, and mixed updates.}}
 
+\section{Small-batch scaling}
+\IfFileExists{data/e2e_by_batch.csv}{%
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}
+    \begin{semilogxaxis}[
+      width=0.96\linewidth, height=60mm,
+      xlabel={User mutations per batch}, ylabel={E2E time (ms)},
+      xtick={1,8,64}, xticklabels={1,8,64}, grid=major,
+      legend style={at={(0.5,1.14)},anchor=south,legend columns=2}]
+      \addplot[spine,mark=square*] table[x=batch,y=spine_ms,col sep=comma]
+        {data/e2e_by_batch.csv};
+      \addplot[grasu,mark=triangle*] table[x=batch,y=grasu_ms,col sep=comma]
+        {data/e2e_by_batch.csv};
+      \legend{Spine, GraSU+ReGraph}
+    \end{semilogxaxis}
+  \end{tikzpicture}
+  \caption{Full PageRank E2E scaling over the five GraSU compact temporal
+  slices. Batch 1 includes insert/delete; batches 8 and 64 additionally include
+  mixed updates.}
+\end{figure}
+}{\missingplot{Waiting for the five-dataset batch 1/8/64 Full PageRank sweep.}}
+
 \section{Memory traffic and locality}
 \IfFileExists{data/memory_by_algorithm.csv}{%
-\begin{figure}[ht]
+\begin{figure}[H]
   \centering
   \begin{subfigure}{0.49\linewidth}
     \centering
@@ -129,7 +155,7 @@ Compact slices and full datasets are reported as separate populations.
 
 \section{Dense-batch behavior}
 \IfFileExists{data/dense_batch.csv}{%
-\begin{figure}[ht]
+\begin{figure}[H]
   \centering
   \begin{tikzpicture}
     \begin{semilogxaxis}[

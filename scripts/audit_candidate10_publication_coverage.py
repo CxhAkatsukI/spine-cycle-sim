@@ -28,7 +28,7 @@ DEFAULT_REAL_ROWS = [
     ROOT
     / "docs"
     / "evidence"
-    / "candidate10_grasu_temporal_full_pr_batch8_20260727"
+    / "candidate10_grasu_temporal_full_pr_small_batches_20260727"
     / "system_rows_enriched.csv",
 ]
 DEFAULT_DENSE_ROWS = (
@@ -55,7 +55,7 @@ DEFAULT_MEMORY_ROWS = [
     ROOT
     / "docs"
     / "evidence"
-    / "candidate10_grasu_temporal_full_pr_batch8_20260727"
+    / "candidate10_grasu_temporal_full_pr_small_batches_20260727"
     / "system_rows_enriched.csv",
 ]
 
@@ -218,8 +218,16 @@ def audit(
             correct_paper_pairs,
             {
                 "dataset_id": set(paper_datasets),
-                "scenario": required_update_scenarios,
+                "scenario": {"insert", "delete"},
                 "batch": required_update_batches,
+            },
+        )
+        and _has_cross_product(
+            correct_paper_pairs,
+            {
+                "dataset_id": set(paper_datasets),
+                "scenario": required_update_scenarios - {"insert", "delete"},
+                "batch": required_update_batches - {1},
             },
         ),
         "real_dense_coverage": len(_values(dense_rows, "dataset_id"))

@@ -1,0 +1,37 @@
+{
+  "algorithm": "full_pagerank",
+  "all_correct": true,
+  "analysis_id": "candidate10_grasu_temporal_full_pr_small_batch_v1_20260727",
+  "batch_sizes": [
+    1,
+    8,
+    64
+  ],
+  "datasets": [
+    "soc_bitcoin",
+    "sx_askubuntu",
+    "sx_stackoverflow",
+    "sx_superuser",
+    "wiki_talk_temporal"
+  ],
+  "dram_request_ledgers_closed": true,
+  "input_manifest_sha256": "d6d45a212f569a4ea919e2ac13fad0ce7455584cfc0105086b46098363f78629",
+  "limitations": [
+    "Inputs are compact slices, not complete GraSU datasets.",
+    "Edges preserve source-file order; global timestamp order is not reconstructed.",
+    "Compact vertex IDs alter original partition occupancy.",
+    "Delete, mixed, and weight-change batches are derived from real topology; only insert candidates come directly from later source-file events."
+  ],
+  "outputs": {
+    "e2e_by_batch.csv": "4b2c863bc8386d528fb2de5d2da65692c78a6971a26627ae1371285379163a03",
+    "pairs_enriched.csv": "1d99017f67c6c26d2a261dbc67022f637ad12c2ab36d41266e8b96a626a78ec2",
+    "raw_results.tar.gz": "b065f64a4c6c8d6d16962b080f6f5babfc3dc0d1e4b42a11f0b8b53e890b17f8",
+    "system_rows_enriched.csv": "f6a41fe7b3b222dd9cd4bf52340bfdac381a7a716910529f6cc18da25d39d189",
+    "update_throughput.csv": "94f4fff9674c21596d1bf8f7f6ffadc4fdb0dbd2e554e2e955d69d630b852f84"
+  },
+  "pairs": 40,
+  "schema_version": 1,
+  "source_matrix_manifest_sha256": "9922aac0357dff5022c94fd3847866e243273048a36acec26cc9089554a4df3e",
+  "status": "PASS",
+  "system_rows": 80
+}
