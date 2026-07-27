@@ -357,8 +357,8 @@ SpineEdgeSlice materialize_weighted_snapshot(const SpineEdgeSlice &initial,
   return snapshot;
 }
 
-SpineL0State preload_spine_l0_snapshot(const SpineEdgeSlice &snapshot,
-                                       const SpineL0Config &config) {
+SpineL0State preload_spine_level_snapshot(const SpineEdgeSlice &snapshot,
+                                          const SpineL0Config &config) {
   SpineL0State state;
   state.hot_vertices.insert(config.hot_vertices.begin(),
                             config.hot_vertices.end());
@@ -375,28 +375,37 @@ SpineL0State preload_spine_l0_snapshot(const SpineEdgeSlice &snapshot,
             : std::min<std::size_t>(
                   edge.dst / config.vertex_partition_size,
                   config.partitions - 1);
-    auto &level =
+    auto &family_edges =
         hot ? state.hot_levels[family][0] : state.cold_levels[family][0];
-    level.push_back(edge);
+    family_edges.push_back(edge);
   }
   const auto edge_less = [](const SpineEdgeRecord &left,
                             const SpineEdgeRecord &right) {
     return std::tuple(left.src, left.dst, left.weight, left.diff) <
            std::tuple(right.src, right.dst, right.weight, right.diff);
   };
-  const std::uint64_t cold_capacity =
-      spine_level_layout(config, false, 0).edge_capacity;
-  const std::uint64_t hot_capacity =
-      spine_level_layout(config, true, 0).edge_capacity;
   for (std::size_t family = 0; family < config.partitions; ++family) {
-    auto &cold = state.cold_levels[family][0];
-    auto &hot = state.hot_levels[family][0];
-    if (cold.size() > cold_capacity || hot.size() > hot_capacity) {
-      throw std::overflow_error(
-          "Spine compact PageRank preload exceeds the L0 profile capacity");
+    for (const bool hot : {false, true}) {
+      auto &levels = hot ? state.hot_levels[family] : state.cold_levels[family];
+      auto edges = std::move(levels[0]);
+      if (edges.empty()) {
+        continue;
+      }
+      std::sort(edges.begin(), edges.end(), edge_less);
+      std::size_t target = levels.size();
+      for (std::size_t level = 0; level < levels.size(); ++level) {
+        if (edges.size() <=
+            spine_level_layout(config, hot, level).edge_capacity) {
+          target = level;
+          break;
+        }
+      }
+      if (target == levels.size()) {
+        throw std::overflow_error(
+            "Spine resident snapshot exceeds the fixed-level profile capacity");
+      }
+      levels[target] = std::move(edges);
     }
-    std::sort(cold.begin(), cold.end(), edge_less);
-    std::sort(hot.begin(), hot.end(), edge_less);
   }
   return state;
 }
@@ -2257,7 +2266,8 @@ class OnlineMemoryProbe final : public SST::Component {
         }
       }
       if (dynamic_pagerank_enabled_) {
-        initial_state = preload_spine_l0_snapshot(initial, maintenance_config);
+        initial_state =
+            preload_spine_level_snapshot(initial, maintenance_config);
         std::vector<std::uint32_t> dirty_sources;
         dirty_sources.reserve(dynamic_update_workload_.edges.size());
         for (const SpineEdgeRecord &edge : dynamic_update_workload_.edges) {
@@ -2518,6 +2528,7 @@ class OnlineMemoryProbe final : public SST::Component {
         }
       }
       SpineL0State initial_state;
+      bool resident_snapshot = false;
       initial_state.hot_vertices.insert(maintenance_config.hot_vertices.begin(),
                                         maintenance_config.hot_vertices.end());
       initial_state.hot_enabled = !initial_state.hot_vertices.empty();
@@ -2554,11 +2565,21 @@ class OnlineMemoryProbe final : public SST::Component {
       for (const SpineEdgeRecord &edge : workload.edges) {
         add_expected(edge);
       }
+      if (dynamic_sssp_enabled_ &&
+          workload.edges.size() > maintenance_config.max_sort_edges) {
+        resident_snapshot = true;
+        initial_state =
+            preload_spine_level_snapshot(workload, maintenance_config);
+        spine_preload_edges_ = workload.edges.size();
+        workload.edges.clear();
+        workload.case_name += "_resident_snapshot";
+      }
       spine_system_ = std::make_unique<SpineVerticalSliceSystem>(
           scheduler_, core, *backend_, std::move(workload), source_vertex_,
           4096, std::move(maintenance_config), std::move(initial_state),
           spine_axi_profile_, compute_memory_request_window_,
-          compute_writeonly_request_window_, compute_on_chip_profile_);
+          compute_writeonly_request_window_, compute_on_chip_profile_,
+          resident_snapshot);
       spine_system_->register_components();
       scheduler_.add_component(*backend_);
       return;
@@ -2904,7 +2925,8 @@ class OnlineMemoryProbe final : public SST::Component {
             .start_cycle = sst_round_start_cycle_,
             .end_cycle = scheduler_.clock(0).completed_cycles,
         });
-        if (sst_rounds_.size() == 1 && !spine_system_->failed()) {
+        if (sst_rounds_.size() == 1 && !spine_system_->failed() &&
+            !spine_system_->resident_bootstrap_pending()) {
           sst_pending_active_out_ = active_out;
           spine_system_->start_dirty_ack();
           sst_waiting_dirty_ack_ = true;

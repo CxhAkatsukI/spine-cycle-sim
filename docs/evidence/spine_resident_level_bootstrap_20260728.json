@@ -1,0 +1,47 @@
+{
+  "claim": "large_dynamic_sssp_resident_level_bootstrap_correctness",
+  "status": "PASS",
+  "workload": {
+    "matrix_id": "candidate10_grasu_askubuntu_paper_scale_v1_20260728",
+    "run_id": "grasu_au_paper_scale_insert_u8",
+    "vertices": 157107,
+    "initial_edges": 540000,
+    "update_edges": 8,
+    "final_edges": 540008,
+    "resident_family": 0,
+    "resident_level": 7
+  },
+  "spine": {
+    "profile_id": "spine_candidate10_opt_v2_reader_working_set",
+    "cycles": 89661933,
+    "cold_cycles": 89426812,
+    "cold_rounds": 13,
+    "update_cycles": 235121,
+    "update_rounds": 2,
+    "maintenance_cycles": 6863,
+    "maintenance_target_level": 0,
+    "backend_requests": 7196117,
+    "cold_backend_requests": 7105839,
+    "update_backend_requests": 90278,
+    "architecture_correctness_mismatches": 0,
+    "mathematical_correctness_mismatches": 0,
+    "cold_correctness_mismatches": 0,
+    "cold_mathematical_correctness_mismatches": 0,
+    "frontier_mismatches": 0,
+    "cold_frontier_mismatches": 0,
+    "sst_host_wall_seconds": 258.27364865969867,
+    "result_sha256": "0b568025506eceacb48c3a89d83131163a0cbb56201d566b7e69f664ca974391",
+    "summary_sha256": "5720fa3adfbc585e97b54bab7cf14182fbe530a58aaeeff9d851b62962fc7825"
+  },
+  "regression": {
+    "small_dynamic_sssp_status": "PASS",
+    "python_tests_passed": 506,
+    "python_tests_skipped": 5,
+    "cpp_test_suites_passed": 2
+  },
+  "limitations": [
+    "This is a per-system smoke, not the formal cross-system paired result.",
+    "The zero-time resident preload represents an already-built dynamic graph and is excluded from the online update timing window.",
+    "The snapshot is placed in the smallest single fixed level that can hold each family; it does not reconstruct a historical update sequence."
+  ]
+}

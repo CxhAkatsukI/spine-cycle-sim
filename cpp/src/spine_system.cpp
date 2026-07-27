@@ -337,13 +337,14 @@ SpineVerticalSliceSystem::SpineVerticalSliceSystem(
     SpineAxiInterfaceProfile axi_profile,
     std::size_t compute_memory_request_window,
     std::size_t compute_writeonly_request_window,
-    SpineOnChipMemoryProfile on_chip_profile)
+    SpineOnChipMemoryProfile on_chip_profile, bool initial_host_active)
     : scheduler_(scheduler), clock_id_(clock_id), backend_(backend),
       axi_profile_(std::move(axi_profile)),
       source_(source),
       edge_stream_("edge-axis", clock_id, 32),
       value_stream_("value-axis", clock_id, 32),
-      state_(std::move(initial_state)), current_frontier_{source} {
+      state_(std::move(initial_state)), current_frontier_{source},
+      resident_bootstrap_pending_(initial_host_active) {
   if (source >= workload.vertices) {
     throw std::invalid_argument("Spine vertical-slice source is out of range");
   }
@@ -396,7 +397,9 @@ SpineVerticalSliceSystem::SpineVerticalSliceSystem(
   reader_ = std::make_unique<SpineSplitReader>(
       "spine-split-reader", clock_id_, *maintenance_, reader_ports,
       std::vector<std::uint32_t>{source}, edge_stream_, value_stream_,
-      SpineReaderMode::kDeviceDirty, algorithm_policy);
+      initial_host_active ? SpineReaderMode::kHostActive
+                          : SpineReaderMode::kDeviceDirty,
+      algorithm_policy);
   compute_ = std::make_unique<SpineSplitSsspCompute>(
       "spine-split-compute", clock_id_, vertices, source, tiny_threshold,
       SpineComputePorts{
@@ -407,6 +410,12 @@ SpineVerticalSliceSystem::SpineVerticalSliceSystem(
       },
       edge_stream_, value_stream_, compute_memory_request_window,
       compute_writeonly_request_window, on_chip_profile, algorithm_policy);
+  if (initial_host_active) {
+    SpineActiveBins bins = build_host_active_bins(
+        state_, maintenance_->config(), {source}, compute_->values());
+    reader_->configure_initial_host_round(
+        std::move(bins), std::nullopt, {source});
+  }
   dirty_ack_ = std::make_unique<SpineDirtyAck>(
       "spine-dirty-ack", clock_id_, maintenance_->config(),
       SpineDirtyAckPorts{
@@ -498,8 +507,10 @@ void SpineVerticalSliceSystem::restart_read_compute_bins(
 
 void SpineVerticalSliceSystem::restart_incremental_update(
     SpineEdgeSlice workload) {
+  const bool resident_bootstrap =
+      resident_bootstrap_pending_ && !dirty_ack_->started();
   if (!registered_ || !done() || failed() || !idle() ||
-      !dirty_ack_->done() || dirty_ack_->failed() ||
+      (!resident_bootstrap && !dirty_ack_->done()) || dirty_ack_->failed() ||
       workload.vertices != maintenance_->vertices() ||
       workload.edges.empty() ||
       std::any_of(workload.edges.begin(), workload.edges.end(),
@@ -519,17 +530,22 @@ void SpineVerticalSliceSystem::restart_incremental_update(
 
   edge_stream_.reset_stats();
   value_stream_.reset_stats();
-  dirty_ack_->reset();
+  if (!resident_bootstrap) {
+    dirty_ack_->reset();
+  }
   reader_->reset_round(changed_sources);
   compute_->reset_round();
   maintenance_->reset_batch(std::move(workload));
   current_frontier_ = std::move(changed_sources);
+  resident_bootstrap_pending_ = false;
   convergence_run_started_ = false;
 }
 
 void SpineVerticalSliceSystem::restart_full_rebuild(SpineEdgeSlice snapshot) {
+  const bool resident_bootstrap =
+      resident_bootstrap_pending_ && !dirty_ack_->started();
   if (!registered_ || !done() || failed() || !idle() ||
-      !dirty_ack_->done() || dirty_ack_->failed() ||
+      (!resident_bootstrap && !dirty_ack_->done()) || dirty_ack_->failed() ||
       snapshot.vertices != maintenance_->vertices() || snapshot.edges.empty() ||
       std::any_of(snapshot.edges.begin(), snapshot.edges.end(),
                   [](const SpineEdgeRecord &edge) { return edge.diff <= 0; })) {
@@ -539,11 +555,14 @@ void SpineVerticalSliceSystem::restart_full_rebuild(SpineEdgeSlice snapshot) {
 
   edge_stream_.reset_stats();
   value_stream_.reset_stats();
-  dirty_ack_->reset();
+  if (!resident_bootstrap) {
+    dirty_ack_->reset();
+  }
   reader_->reset_round({source_});
   compute_->reset_for_full_recompute();
   maintenance_->reset_full_rebuild(std::move(snapshot));
   current_frontier_ = {source_};
+  resident_bootstrap_pending_ = false;
   convergence_run_started_ = false;
 }
 
@@ -626,6 +645,10 @@ bool SpineVerticalSliceSystem::dirty_ack_done() const noexcept {
   return dirty_ack_->done();
 }
 
+bool SpineVerticalSliceSystem::resident_bootstrap_pending() const noexcept {
+  return resident_bootstrap_pending_;
+}
+
 SpineSsspRunResult SpineVerticalSliceSystem::run_sssp_to_convergence(
     std::size_t max_rounds, std::uint64_t max_events_per_round) {
   if (!registered_ || convergence_run_started_ || done() || max_rounds == 0 ||
@@ -692,7 +715,7 @@ SpineSsspRunResult SpineVerticalSliceSystem::run_sssp_to_convergence(
       result.failed = true;
       break;
     }
-    if (round == 0) {
+    if (round == 0 && !resident_bootstrap_pending_) {
       start_dirty_ack();
       scheduler_.run_until(
           [this] { return dirty_ack_->done() && idle(); },

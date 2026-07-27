@@ -128,7 +128,8 @@ class SpineVerticalSliceSystem {
                            std::size_t compute_writeonly_request_window =
                                SpineSplitSsspCompute::
                                    kDefaultWriteOnlyRequestWindow,
-                           SpineOnChipMemoryProfile on_chip_profile = {});
+                           SpineOnChipMemoryProfile on_chip_profile = {},
+                           bool initial_host_active = false);
 
   void register_components();
   void restart_read_compute(
@@ -146,6 +147,7 @@ class SpineVerticalSliceSystem {
   void start_dirty_ack();
   [[nodiscard]] bool dirty_ack_started() const noexcept;
   [[nodiscard]] bool dirty_ack_done() const noexcept;
+  [[nodiscard]] bool resident_bootstrap_pending() const noexcept;
   [[nodiscard]] SpineSsspRunResult run_sssp_to_convergence(
       std::size_t max_rounds, std::uint64_t max_events_per_round);
 
@@ -198,6 +200,7 @@ class SpineVerticalSliceSystem {
   std::vector<std::uint32_t> current_frontier_;
   bool registered_{};
   bool convergence_run_started_{};
+  bool resident_bootstrap_pending_{};
 };
 
 class SpinePageRankVerticalSliceSystem {
