@@ -410,6 +410,20 @@ SpineL0State preload_spine_level_snapshot(const SpineEdgeSlice &snapshot,
   return state;
 }
 
+std::size_t spine_snapshot_max_level(const SpineL0State &state) {
+  std::size_t maximum = 0;
+  for (const auto &families : {&state.cold_levels, &state.hot_levels}) {
+    for (const auto &levels : *families) {
+      for (std::size_t level = 0; level < levels.size(); ++level) {
+        if (!levels[level].empty()) {
+          maximum = std::max(maximum, level);
+        }
+      }
+    }
+  }
+  return maximum;
+}
+
 SpineEdgeSlice materialize_grasu_weighted_snapshot(
     std::size_t vertices, const std::vector<GraSuEdge> &initial,
     const std::vector<GraSuEdge> &updates) {
@@ -1959,7 +1973,9 @@ class OnlineMemoryProbe final : public SST::Component {
       if (grasu_partitioned_execution_) {
         grasu_partitioned_layout_ = GraSuPartitionedPmaLayout::build(
             initial.vertices, grasu_config_.partition_vertices, initial_edges,
-            reserved_updates);
+            reserved_updates,
+            hls_weighted_grasu ? GraSuPmaWordAbi::kWeightedFullWord
+                               : GraSuPmaWordAbi::kNormalizedWeighted);
       } else {
         grasu_layout_ = GraSuPmaLayout::build(initial.vertices, initial_edges,
                                               reserved_updates,
@@ -2268,6 +2284,8 @@ class OnlineMemoryProbe final : public SST::Component {
       if (dynamic_pagerank_enabled_) {
         initial_state =
             preload_spine_level_snapshot(initial, maintenance_config);
+        spine_resident_snapshot_max_level_ =
+            spine_snapshot_max_level(initial_state);
         std::vector<std::uint32_t> dirty_sources;
         dirty_sources.reserve(dynamic_update_workload_.edges.size());
         for (const SpineEdgeRecord &edge : dynamic_update_workload_.edges) {
@@ -2570,6 +2588,8 @@ class OnlineMemoryProbe final : public SST::Component {
         resident_snapshot = true;
         initial_state =
             preload_spine_level_snapshot(workload, maintenance_config);
+        spine_resident_snapshot_max_level_ =
+            spine_snapshot_max_level(initial_state);
         spine_preload_edges_ = workload.edges.size();
         workload.edges.clear();
         workload.case_name += "_resident_snapshot";
@@ -4031,6 +4051,9 @@ class OnlineMemoryProbe final : public SST::Component {
              << backend_->max_outstanding() << ",\n"
              << "  \"backend_arbitration\": "
              << backend_->arbitration_json() << ",\n";
+      result << "  \"update_failure\": ";
+      write_json_string(result, grasu_update_system_->failure());
+      result << ",\n";
       result << "  \"backend_traffic\": ";
       write_memory_traffic(result, total_backend_traffic);
       result << ",\n  \"update_backend_traffic\": ";
@@ -4798,6 +4821,9 @@ class OnlineMemoryProbe final : public SST::Component {
              << backend_->max_outstanding() << ",\n"
              << "  \"backend_arbitration\": "
              << backend_->arbitration_json() << ",\n";
+      result << "  \"update_failure\": ";
+      write_json_string(result, grasu_update_system_->failure());
+      result << ",\n";
       result << "  \"backend_traffic\": ";
       write_memory_traffic(result, total_backend_traffic);
       result << ",\n  \"update_backend_traffic\": ";
@@ -4963,9 +4989,11 @@ class OnlineMemoryProbe final : public SST::Component {
                   ? dynamic_materialized_snapshot_.edges.size()
                   : spine_expected_edges_)
           << ",\n"
+          << "  \"resident_snapshot_max_level\": "
+          << spine_resident_snapshot_max_level_ << ",\n"
           << "  \"pipeline_order\": \""
           << (dynamic_pagerank_enabled_
-                  ? "zero_time_l0_preload_then_update_maintenance_then_compute"
+                  ? "zero_time_resident_level_preload_then_update_maintenance_then_compute"
                   : "maintenance_then_compute")
           << "\",\n"
           << "  \"vertices\": " << actual_ranks.size() << ",\n"
@@ -5284,9 +5312,11 @@ class OnlineMemoryProbe final : public SST::Component {
                   ? dynamic_materialized_snapshot_.edges.size()
                   : spine_expected_edges_)
           << ",\n"
+          << "  \"resident_snapshot_max_level\": "
+          << spine_resident_snapshot_max_level_ << ",\n"
           << "  \"pipeline_order\": \""
           << (dynamic_pagerank_enabled_
-                  ? "zero_time_l0_preload_then_update_maintenance_then_compute"
+                  ? "zero_time_resident_level_preload_then_update_maintenance_then_compute"
                   : "maintenance_then_compute")
           << "\",\n"
           << "  \"vertices\": " << actual.size() << ",\n"
@@ -8091,6 +8121,7 @@ class OnlineMemoryProbe final : public SST::Component {
   std::uint64_t sst_round_start_cycle_{};
   std::size_t spine_expected_edges_{};
   std::size_t spine_preload_edges_{};
+  std::size_t spine_resident_snapshot_max_level_{};
   std::unordered_map<std::uint32_t, std::uint32_t> expected_distances_;
   bool sst_waiting_dirty_ack_{};
   bool dynamic_sssp_enabled_{};

@@ -8,13 +8,37 @@ import unittest
 from spine_cycle_sim.experiments.temporal_three_algorithm_analysis import (
     ALGORITHM_LABELS,
     EXPANDED_BATCHES,
+    PAPER_SCALE_BATCHES,
     _expanded_paper_tables,
     _paper_tables,
+    _paper_scale_tables,
     _write_csv,
 )
 
 
 class TemporalThreeAlgorithmAnalysisTest(unittest.TestCase):
+    def test_paper_scale_tables_require_three_algorithms_and_batches(self) -> None:
+        pairs = [
+            {
+                "algorithm": algorithm,
+                "batch_size": batch,
+                "dataset_id": "sx_askubuntu",
+                "spine_e2e_ms": float(batch),
+                "grasu_e2e_ms": float(2 * batch),
+                "cross_system_correct": True,
+            }
+            for algorithm in ALGORITHM_LABELS
+            for batch in PAPER_SCALE_BATCHES
+        ]
+        correctness, batches = _paper_scale_tables(pairs)
+        self.assertEqual([row["real_pairs"] for row in correctness], [3, 3, 3])
+        self.assertEqual(len(batches), 9)
+        self.assertTrue(all(row["spine_speedup"] == 2.0 for row in batches))
+
+        pairs[-1]["cross_system_correct"] = False
+        with self.assertRaisesRegex(ValueError, "correctness is incomplete"):
+            _paper_scale_tables(pairs)
+
     def test_csv_writer_uses_union_of_heterogeneous_row_fields(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             output = Path(temporary) / "rows.csv"

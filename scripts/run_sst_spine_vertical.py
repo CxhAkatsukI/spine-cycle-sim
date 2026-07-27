@@ -146,7 +146,7 @@ def validate_generic_result(
                 == result.get("materialized_snapshot_edges"),
                 "dynamic_pipeline_order": (not dynamic)
                 or result.get("pipeline_order")
-                == "zero_time_l0_preload_then_update_maintenance_then_compute",
+                == "zero_time_resident_level_preload_then_update_maintenance_then_compute",
                 "phase_backend_ledger": (not dynamic)
                 or (
                     int(result.get("maintenance_backend_requests", -1)) > 0

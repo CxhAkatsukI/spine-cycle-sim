@@ -785,6 +785,52 @@ void test_partitioned_regraph_sssp_crosses_destination_windows() {
             << " row_reads=" << counters.row_reads << '\n';
 }
 
+void test_partitioned_weighted_full_word_update_preserves_variants() {
+  constexpr std::size_t kVertices = 33;
+  constexpr std::size_t kPartitionVertices = 16;
+  std::vector<GraSuEdge> initial;
+  for (std::uint32_t destination = 16; destination < 32; ++destination) {
+    initial.push_back(
+        {.source = 0, .destination = destination, .weight = 31});
+  }
+  const std::vector<GraSuEdge> physical_updates = {
+      {.source = 0, .destination = 17, .weight = 31, .delete_op = true},
+      {.source = 0, .destination = 17, .weight = 2},
+  };
+  const GraSuPartitionedPmaLayout layout = GraSuPartitionedPmaLayout::build(
+      kVertices, kPartitionVertices, initial, physical_updates,
+      GraSuPmaWordAbi::kWeightedFullWord);
+  require(layout.partitions.at(1).pma_word_abi ==
+              GraSuPmaWordAbi::kWeightedFullWord &&
+              layout.partitions.at(1).segments.size() == 2,
+          "partitioned weighted layout lost its full-word reservations");
+
+  Scheduler scheduler;
+  const auto core =
+      scheduler.add_clock_mhz("partitioned-weighted-full-word", 200.0);
+  MockMemoryBackend backend("shared-hbm", core,
+                            MockMemoryConfig{.channels = 32,
+                                             .latency_cycles = 2,
+                                             .accepts_per_channel_per_cycle = 1,
+                                             .max_outstanding_per_channel = 16,
+                                             .response_queue_depth = 64});
+  GraSuNativeConfig config;
+  config.pma_word_abi = GraSuPmaWordAbi::kWeightedFullWord;
+  config.cache_segments_per_half = 1;
+  GraSuPmaUpdateSystem update(scheduler, core, backend, layout,
+                              physical_updates, config);
+  update.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until([&] { return update.done() || update.failed(); },
+                      500'000);
+  require(update.done() && !update.failed(),
+          "partitioned weighted full-word update failed: " +
+              update.failure());
+  const auto live = weighted_edge_map(update.live_edges());
+  require(live.at({0, 17}) == 2 && live.size() == initial.size(),
+          "partitioned full-word update produced the wrong edge state");
+}
+
 void test_partitioned_regraph_sssp_uses_two_compute_pipelines() {
   constexpr std::size_t kVertices = 33;
   constexpr std::size_t kPartitionVertices = 16;
@@ -2127,6 +2173,8 @@ int main() {
        test_weighted_dynamic_pma_regraph_matches_dijkstra},
       {"weighted_full_word_hls",
        test_weighted_full_word_hls_contract_matches_sw_emu_oracle},
+      {"partitioned_weighted_full_word",
+       test_partitioned_weighted_full_word_update_preserves_variants},
       {"partitioned_sssp",
        test_partitioned_regraph_sssp_crosses_destination_windows},
       {"partitioned_sssp_k2",

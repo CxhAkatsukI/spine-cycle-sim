@@ -100,7 +100,7 @@ class HlsPageRankRealComparisonTests(unittest.TestCase):
             "core_mhz": 141.0,
             "dynamic_update": True,
             "pipeline_order": (
-                "zero_time_l0_preload_then_update_maintenance_then_compute"
+                "zero_time_resident_level_preload_then_update_maintenance_then_compute"
             ),
             "vertices": 4,
             "initial_edges": 4,
@@ -343,7 +343,7 @@ class HlsPageRankRealComparisonTests(unittest.TestCase):
             "architecture_profile_id": "spine",
             "dynamic_update": True,
             "pipeline_order": (
-                "zero_time_l0_preload_then_update_maintenance_then_compute"
+                "zero_time_resident_level_preload_then_update_maintenance_then_compute"
             ),
             "maintenance_persisted_edges": 4,
             "residual_max_iterations": 256,

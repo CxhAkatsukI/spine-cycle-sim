@@ -83,7 +83,7 @@ class SstSpineVerticalValidationTests(unittest.TestCase):
             "compute_backend_requests": 7,
             "dynamic_update": True,
             "pipeline_order": (
-                "zero_time_l0_preload_then_update_maintenance_then_compute"
+                "zero_time_resident_level_preload_then_update_maintenance_then_compute"
             ),
             "architecture_oracle": "iterative_float32",
             "mathematical_oracle": "iterative_float64",
@@ -144,7 +144,7 @@ class SstSpineVerticalValidationTests(unittest.TestCase):
             "backend_requests": 12,
             "dynamic_update": True,
             "pipeline_order": (
-                "zero_time_l0_preload_then_update_maintenance_then_compute"
+                "zero_time_resident_level_preload_then_update_maintenance_then_compute"
             ),
             "architecture_oracle": "residual_float32",
             "mathematical_oracle": "residual_float64",

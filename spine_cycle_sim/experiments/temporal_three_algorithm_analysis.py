@@ -18,6 +18,7 @@ ALGORITHM_LABELS = {
 EXPECTED_SCENARIO = "insert"
 EXPECTED_BATCH = 8
 EXPANDED_BATCHES = (1, 8, 64)
+PAPER_SCALE_BATCHES = (8, 64, 4096)
 OPT_V2_SPINE_PROFILE = "spine_candidate10_opt_v2_reader_working_set"
 K1_GRASU_PROFILES = {
     "weighted_sssp": "grasu_regraph_candidate10_k1_multipart_weighted_v4",
@@ -113,7 +114,7 @@ def _load_algorithm(
     if manifest.get("status") != "PASS" or not manifest.get("all_correct"):
         raise ValueError(f"{algorithm} source matrix did not pass correctness")
     if {row["run_id"] for row in pairs} != expected_runs:
-        raise ValueError(f"{algorithm} five-dataset pair coverage is incomplete")
+        raise ValueError(f"{algorithm} pair coverage is incomplete")
     if len(rows) != 2 * len(expected_runs) or len(pairs) != len(expected_runs):
         raise ValueError(f"{algorithm} selected row count is incomplete")
     if any(int(row["correctness_mismatches"]) != 0 for row in rows):
@@ -418,6 +419,163 @@ def _expanded_paper_tables(
                 }
             )
     return correctness, batch_rows
+
+
+def _paper_scale_tables(
+    pairs: list[dict[str, object]],
+) -> tuple[list[dict[str, object]], list[dict[str, object]]]:
+    correctness: list[dict[str, object]] = []
+    batch_rows: list[dict[str, object]] = []
+    for algorithm_index, (algorithm, label) in enumerate(ALGORITHM_LABELS.items()):
+        selected_algorithm = [row for row in pairs if row["algorithm"] == algorithm]
+        if len(selected_algorithm) != len(PAPER_SCALE_BATCHES) or any(
+            not bool(row["cross_system_correct"]) for row in selected_algorithm
+        ):
+            raise ValueError(f"{algorithm} paper-scale correctness is incomplete")
+        correctness.append(
+            {
+                "algorithm": label,
+                "real_pairs": len(selected_algorithm),
+                "synthetic_pairs": 0,
+            }
+        )
+        for batch in PAPER_SCALE_BATCHES:
+            selected = [
+                row
+                for row in selected_algorithm
+                if int(row["batch_size"]) == batch
+            ]
+            if len(selected) != 1:
+                raise ValueError(f"{algorithm}/batch{batch} is not unique")
+            row = selected[0]
+            spine_ms = float(row["spine_e2e_ms"])
+            grasu_ms = float(row["grasu_e2e_ms"])
+            batch_rows.append(
+                {
+                    "algorithm": label,
+                    "algorithm_id": algorithm,
+                    "algorithm_index": algorithm_index,
+                    "batch": batch,
+                    "dataset_id": row["dataset_id"],
+                    "spine_ms": spine_ms,
+                    "grasu_ms": grasu_ms,
+                    "spine_speedup": grasu_ms / spine_ms,
+                }
+            )
+    return correctness, batch_rows
+
+
+def analyze_opt_v2_k1_paper_scale(
+    *,
+    matrix_dirs: dict[str, Path],
+    input_manifest_path: Path,
+    out_dir: Path,
+    paper_data_dir: Path | None = None,
+) -> dict[str, object]:
+    if set(matrix_dirs) != set(ALGORITHM_LABELS):
+        raise ValueError("three-algorithm matrix directories are incomplete")
+    matrix_dirs = {key: path.resolve() for key, path in matrix_dirs.items()}
+    input_manifest_path = input_manifest_path.resolve()
+    out_dir = out_dir.resolve()
+    out_dir.mkdir(parents=True, exist_ok=True)
+    input_manifest = json.loads(input_manifest_path.read_text(encoding="utf-8"))
+    if input_manifest.get("matrix_id") != (
+        "candidate10_grasu_askubuntu_paper_scale_v1_20260728"
+    ):
+        raise ValueError("unexpected paper-scale input matrix")
+    run_metadata = {
+        str(run["run_id"]): run
+        for run in input_manifest["runs"]
+        if str(run["scenario"]) == EXPECTED_SCENARIO
+        and int(run["batch_size"]) in PAPER_SCALE_BATCHES
+    }
+    if (
+        len(run_metadata) != len(PAPER_SCALE_BATCHES)
+        or {int(run["batch_size"]) for run in run_metadata.values()}
+        != set(PAPER_SCALE_BATCHES)
+    ):
+        raise ValueError("paper-scale matrix lacks one run per required batch")
+    expected_runs = set(run_metadata)
+
+    systems: list[dict[str, object]] = []
+    pairs: list[dict[str, object]] = []
+    source_manifests: dict[str, dict[str, object]] = {}
+    for algorithm, matrix_dir in matrix_dirs.items():
+        source_manifest = json.loads(
+            (matrix_dir / "matrix_manifest.json").read_text(encoding="utf-8")
+        )
+        if source_manifest.get("spine_profile_id") != OPT_V2_SPINE_PROFILE:
+            raise ValueError(f"{algorithm} matrix does not use opt-v2 Spine")
+        if source_manifest.get("grasu_profile_id") != K1_GRASU_PROFILES[algorithm]:
+            raise ValueError(f"{algorithm} matrix does not use frozen K=1 GraSU")
+        source_manifests[algorithm] = source_manifest
+        algorithm_systems, algorithm_pairs = _load_algorithm(
+            algorithm=algorithm,
+            matrix_dir=matrix_dir,
+            expected_runs=expected_runs,
+        )
+        systems.extend(algorithm_systems)
+        pairs.extend(algorithm_pairs)
+
+    expected_pair_keys = {
+        (algorithm, run_id)
+        for algorithm in ALGORITHM_LABELS
+        for run_id in expected_runs
+    }
+    if (
+        {(str(row["algorithm"]), str(row["run_id"])) for row in pairs}
+        != expected_pair_keys
+        or len(systems) != 2 * len(expected_pair_keys)
+    ):
+        raise ValueError("paper-scale three-algorithm cross product is incomplete")
+    correctness, batch_rows = _paper_scale_tables(pairs)
+
+    system_path = out_dir / "system_rows.csv"
+    pair_path = out_dir / "pair_rows.csv"
+    correctness_path = out_dir / "correctness_coverage.csv"
+    batch_path = out_dir / "paper_scale_by_algorithm_batch.csv"
+    _write_csv(system_path, systems)
+    _write_csv(pair_path, pairs)
+    _write_csv(correctness_path, correctness)
+    _write_csv(batch_path, batch_rows)
+    if paper_data_dir is not None:
+        paper_data_dir = paper_data_dir.resolve()
+        _write_csv(paper_data_dir / correctness_path.name, correctness)
+        _write_csv(paper_data_dir / batch_path.name, batch_rows)
+
+    raw_archive = out_dir / "raw_results.tar.gz"
+    _archive_raw(raw_archive, matrix_dirs, expected_runs)
+    outputs = (system_path, pair_path, correctness_path, batch_path, raw_archive)
+    report = {
+        "schema_version": 1,
+        "analysis_id": "candidate10_opt_v2_k1_askubuntu_paper_scale_v1_20260728",
+        "status": "PASS",
+        "algorithms": list(ALGORITHM_LABELS),
+        "batch_sizes": list(PAPER_SCALE_BATCHES),
+        "datasets": sorted({str(row["dataset_id"]) for row in pairs}),
+        "pairs": len(pairs),
+        "system_rows": len(systems),
+        "all_correct": True,
+        "dram_request_ledgers_closed": True,
+        "input_manifest_sha256": sha256_file(input_manifest_path),
+        "source_matrix_manifest_sha256": {
+            algorithm: sha256_file(matrix_dirs[algorithm] / "matrix_manifest.json")
+            for algorithm in ALGORITHM_LABELS
+        },
+        "source_profiles": {
+            algorithm: {
+                "spine": manifest["spine_profile_id"],
+                "grasu_regraph": manifest["grasu_profile_id"],
+            }
+            for algorithm, manifest in source_manifests.items()
+        },
+        "outputs": {path.name: sha256_file(path) for path in outputs},
+        "limitations": input_manifest.get("limitations", []),
+    }
+    (out_dir / "analysis_manifest.json").write_text(
+        json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    return report
 
 
 def analyze_temporal_expanded_small_batches(

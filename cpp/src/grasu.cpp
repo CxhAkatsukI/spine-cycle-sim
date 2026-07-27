@@ -169,6 +169,7 @@ struct LocatedUpdate {
   std::uint32_t destination{};
   std::uint16_t weight{1};
   bool delete_op{};
+  std::uint64_t last_binary_head{};
 };
 
 struct DegreeDelta {
@@ -286,6 +287,7 @@ public:
           .destination = current_.destination,
           .weight = current_.weight,
           .delete_op = current_.delete_op,
+          .last_binary_head = last_binary_head_,
       });
       break;
     default:
@@ -367,6 +369,7 @@ private:
     }
     switch (phase_) {
     case Phase::kWaitUpdate: {
+      last_binary_head_ = 0;
       if (partitioned_updates_) {
         current_.source = decode_u32(response.read_data, 0);
         const std::uint32_t destination = decode_u32(response.read_data, 4);
@@ -406,6 +409,7 @@ private:
     }
     case Phase::kWaitBinary: {
       const std::uint64_t value = decode_u64(response.read_data);
+      last_binary_head_ = value;
       const std::uint64_t edge =
           (static_cast<std::uint64_t>(current_.source) << 32) |
           pma_search_key(current_.destination, current_.weight,
@@ -445,6 +449,7 @@ private:
   std::string failure_;
   std::uint64_t row_reads_{};
   std::uint64_t binary_probes_{};
+  std::uint64_t last_binary_head_{};
 };
 
 class GraSuDispatch final : public Component {
@@ -863,7 +868,13 @@ private:
     }
     if (!is_grasu_pma_empty(segment.back())) {
       throw std::runtime_error(
-          "GraSU PMA segment has no reserved insertion slot");
+          "GraSU PMA segment has no reserved insertion slot (source=" +
+          std::to_string(item.source) + ", destination=" +
+          std::to_string(item.destination) + ", partition=" +
+          std::to_string(item.partition) + ", segment_head_slot=" +
+          std::to_string(item.segment_head_slot) + ", weight=" +
+          std::to_string(item.weight) + ", last_binary_head=" +
+          std::to_string(item.last_binary_head) + ")");
     }
     std::move_backward(position, segment.end() - 1, segment.end());
     *position = encoded;

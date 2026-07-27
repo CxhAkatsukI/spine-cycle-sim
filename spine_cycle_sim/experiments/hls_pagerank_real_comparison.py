@@ -54,7 +54,7 @@ def validate_spine_pagerank_result(
         < 1.0e-9,
         "dynamic": result.get("dynamic_update") is True,
         "pipeline": result.get("pipeline_order")
-        == "zero_time_l0_preload_then_update_maintenance_then_compute",
+        == "zero_time_resident_level_preload_then_update_maintenance_then_compute",
         "vertices": result.get("vertices")
         == run["graph"]["vertices"],  # type: ignore[index]
         "initial_edges": result.get("initial_edges")
@@ -398,7 +398,7 @@ def validate_spine_residual_result(
         < 1.0e-9,
         "dynamic": result.get("dynamic_update") is True,
         "pipeline": result.get("pipeline_order")
-        == "zero_time_l0_preload_then_update_maintenance_then_compute",
+        == "zero_time_resident_level_preload_then_update_maintenance_then_compute",
         "vertices": result.get("vertices")
         == run["graph"]["vertices"],  # type: ignore[index]
         "initial_edges": result.get("initial_edges")
