@@ -1,11 +1,16 @@
 from __future__ import annotations
 
 import csv
+import hashlib
+import json
 from pathlib import Path
 import tempfile
 import unittest
 
-from scripts.run_hls_weighted_real_comparison import _write_csv
+from scripts.run_hls_weighted_real_comparison import (
+    _restore_spine_final_values,
+    _write_csv,
+)
 
 
 class HlsWeightedRealRunnerTests(unittest.TestCase):
@@ -33,6 +38,25 @@ class HlsWeightedRealRunnerTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             with self.assertRaisesRegex(ValueError, "empty CSV"):
                 _write_csv(Path(temporary) / "rows.csv", [])
+
+    def test_restores_large_spine_vector_only_after_hash_check(self) -> None:
+        values = list(range(4_097))
+        encoded = json.dumps(values, separators=(",", ":")).encode("ascii")
+        summary = {
+            "final_values_count": len(values),
+            "final_values_sha256": hashlib.sha256(encoded).hexdigest(),
+        }
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "result.json").write_text(
+                json.dumps({"final_values": values}), encoding="utf-8"
+            )
+            restored = _restore_spine_final_values(root, summary)
+            self.assertEqual(restored["final_values"], values)
+
+            summary["final_values_sha256"] = "0" * 64
+            with self.assertRaisesRegex(RuntimeError, "hash"):
+                _restore_spine_final_values(root, summary)
 
 
 if __name__ == "__main__":

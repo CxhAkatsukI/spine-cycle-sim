@@ -83,6 +83,25 @@ def _validate_input_manifest(path: Path) -> dict[str, object]:
     raise ValueError(f"unsupported weighted SSSP input matrix: {matrix_id}")
 
 
+def _restore_spine_final_values(
+    out_dir: Path, summary: dict[str, object]
+) -> dict[str, object]:
+    if isinstance(summary.get("final_values"), list):
+        return summary
+    expected_count = int(summary.get("final_values_count", -1))
+    expected_sha256 = summary.get("final_values_sha256")
+    if expected_count <= 0 or not isinstance(expected_sha256, str):
+        return summary
+    raw = json.loads((out_dir / "result.json").read_text(encoding="utf-8"))
+    final_values = raw.get("final_values")
+    if not isinstance(final_values, list) or len(final_values) != expected_count:
+        raise RuntimeError("Spine raw final-value count does not match summary")
+    encoded = json.dumps(final_values, separators=(",", ":")).encode("ascii")
+    if hashlib.sha256(encoded).hexdigest() != expected_sha256:
+        raise RuntimeError("Spine raw final-value hash does not match summary")
+    return {**summary, "final_values": final_values}
+
+
 def _write_csv(path: Path, rows: list[dict[str, object]]) -> None:
     if not rows:
         raise ValueError("cannot write an empty CSV")
@@ -273,6 +292,7 @@ def _run_system(
     if system == "spine":
         raw_result_path = out_dir / "summary.json"
         result = json.loads(raw_result_path.read_text(encoding="utf-8"))
+        result = _restore_spine_final_values(out_dir, result)
         problems = validate_spine_dynamic_result(
             run,
             result,
