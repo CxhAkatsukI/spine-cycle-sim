@@ -338,6 +338,71 @@ Compact slices and full datasets are reported as separate populations.
 \end{figure}
 }{\missingplot{Waiting for matched all-controller HBM energy evidence.}}
 
+\section{Simulator host runtime}
+\IfFileExists{\datadir/simulator_host_runtime.csv}{%
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}{0.325\linewidth}
+    \centering
+    \begin{tikzpicture}
+      \begin{semilogyaxis}[
+        ybar, bar width=3pt, width=0.98\linewidth, height=54mm,
+        title={Weighted SSSP}, ylabel={Host wall time (s)},
+        symbolic x coords={AU,SU,WK,SO,BC}, xtick=data,
+        ymin=1, ymax=1000, ytick={1,10,100,1000}, grid=major,
+        x tick label style={font=\scriptsize}]
+        \addplot[fill=spine] table[x=dataset,y=sssp_spine_seconds,col sep=comma]
+          {\datadir/simulator_host_runtime.csv};
+        \addplot[fill=grasu] table[x=dataset,y=sssp_grasu_seconds,col sep=comma]
+          {\datadir/simulator_host_runtime.csv};
+      \end{semilogyaxis}
+    \end{tikzpicture}
+  \end{subfigure}%
+  \begin{subfigure}{0.325\linewidth}
+    \centering
+    \begin{tikzpicture}
+      \begin{semilogyaxis}[
+        ybar, bar width=3pt, width=0.98\linewidth, height=54mm,
+        title={Full PageRank},
+        symbolic x coords={AU,SU,WK,SO,BC}, xtick=data,
+        ymin=1, ymax=1000, ytick={1,10,100,1000}, grid=major,
+        yticklabels={}, x tick label style={font=\scriptsize},
+        legend style={at={(0.5,1.30)},anchor=south,legend columns=2,
+          font=\small,/tikz/every even column/.append style={column sep=5pt}}]
+        \addplot[fill=spine] table[x=dataset,y=full_pr_spine_seconds,col sep=comma]
+          {\datadir/simulator_host_runtime.csv};
+        \addplot[fill=grasu] table[x=dataset,y=full_pr_grasu_seconds,col sep=comma]
+          {\datadir/simulator_host_runtime.csv};
+        \legend{Spine, GraSU+ReGraph}
+      \end{semilogyaxis}
+    \end{tikzpicture}
+  \end{subfigure}%
+  \begin{subfigure}{0.325\linewidth}
+    \centering
+    \begin{tikzpicture}
+      \begin{semilogyaxis}[
+        ybar, bar width=3pt, width=0.98\linewidth, height=54mm,
+        title={Residual PageRank},
+        symbolic x coords={AU,SU,WK,SO,BC}, xtick=data,
+        ymin=1, ymax=1000, ytick={1,10,100,1000}, grid=major,
+        yticklabels={}, x tick label style={font=\scriptsize}]
+        \addplot[fill=spine] table[x=dataset,y=residual_pr_spine_seconds,col sep=comma]
+          {\datadir/simulator_host_runtime.csv};
+        \addplot[fill=grasu] table[x=dataset,y=residual_pr_grasu_seconds,col sep=comma]
+          {\datadir/simulator_host_runtime.csv};
+      \end{semilogyaxis}
+    \end{tikzpicture}
+  \end{subfigure}
+  \caption{Observed simulator host runtime for the archived insertion-batch-8
+  runs. Every dataset has 8,192 base edges, while vertex counts vary from
+  2,004 to 10,326 as listed in Table~\ref{tab:compact-slices}. Each bar is one
+  previously executed child-process observation from a parallel experiment
+  matrix, not a repeated controlled benchmark. These values are engineering
+  evidence for simulator-throughput planning and are not accelerator latency.}
+  \label{fig:simulator-host-runtime}
+\end{figure}
+}{\missingplot{Waiting for archived host-runtime observations.}}
+
 \section{Routed HLS feasibility}
 \IfFileExists{\datadir/ppa_summary.csv}{%
 \begin{table}[H]

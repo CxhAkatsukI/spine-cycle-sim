@@ -25,7 +25,18 @@ Expected CSV interfaces:
 - `physical_memory_by_algorithm.csv`
 - `dense_batch.csv`
 - `hbm_energy_by_algorithm.csv`
+- `simulator_host_runtime.csv`
 - `ppa_summary.csv`
+
+`simulator_host_runtime.csv` is extracted from the archived single-run,
+batch-8 child-process observations for the five 8,192-edge temporal slices.
+It reports simulator host wall time for engineering/runtime planning only; it
+is not modeled accelerator latency and is not used in architectural speedups.
+Regenerate it from the pinned raw-results archive with:
+
+```bash
+python3 scripts/analyze_candidate10_simulator_runtime.py
+```
 
 Missing files intentionally render as explicit evidence-gate placeholders.
 Compact real slices and unsliced datasets must never be mixed in one aggregate.
