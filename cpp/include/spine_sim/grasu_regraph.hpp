@@ -43,6 +43,7 @@ struct GraSuReGraphConfig {
   std::size_t hbm_wrapper_pipeline_latency{71};
   std::size_t hbm_wrapper_pipeline_capacity{71};
   std::size_t pagerank_source_map_latency{1};
+  bool pagerank_prepared_source{true};
   bool initialize_degree_payload{true};
   std::size_t max_supersteps{1024};
   std::uint64_t row_offset_base{0x1000'0000ULL};

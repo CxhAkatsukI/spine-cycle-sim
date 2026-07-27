@@ -1055,12 +1055,11 @@ void test_pma_native_regraph_full_pagerank_matches_oracle() {
   const auto counters = system.counters();
   require(counters.supersteps == kIterations &&
               counters.row_reads == kVertices * kIterations &&
-              counters.degree_reads == kVertices * kIterations &&
+              counters.degree_reads == counters.apply_state_reads &&
               counters.degree_read_bytes ==
-                  kVertices * kIterations * sizeof(std::uint32_t) &&
-              counters.source_map_cycles ==
-                  kVertices * kIterations *
-                      config.pagerank_source_map_latency &&
+                  counters.degree_reads * 16 *
+                      sizeof(std::uint32_t) &&
+              counters.source_map_cycles == 0 &&
               counters.active_edges_mapped == edges.size() * kIterations &&
               counters.apply_state_reads == kIterations &&
               counters.apply_state_writes == kIterations &&
@@ -1103,6 +1102,7 @@ void test_partitioned_regraph_pagerank_counts_dangling_once() {
                                              .max_outstanding_per_channel = 32,
                                              .response_queue_depth = 128});
   GraSuReGraphConfig config;
+  config.compute_pipelines = 2;
   config.partition_vertices = kPartitionVertices;
   config.source_buffer_vertices = 16;
   config.edge_lanes = 4;
@@ -1130,10 +1130,12 @@ void test_partitioned_regraph_pagerank_counts_dangling_once() {
   require(std::fabs(rank_sum - 1.0F) < 1.0e-5F,
           "partitioned PageRank counted dangling mass more than once");
   const auto counters = system.counters();
-  require(counters.destination_partitions == 3 &&
+  require(counters.compute_pipelines == 2 &&
+              counters.max_parallel_partitions == 2 &&
+              counters.destination_partitions == 3 &&
               counters.partition_passes == 3 * kIterations &&
               counters.row_reads == 3 * kVertices * kIterations &&
-              counters.degree_reads == (kVertices + 3) * kIterations &&
+              counters.degree_reads == counters.partition_passes &&
               counters.active_edges_mapped == edges.size() * kIterations,
           "partitioned PageRank work ledger mismatch");
   std::cout << "EVIDENCE grasu_regraph_partitioned_pagerank cycles="
@@ -1175,6 +1177,7 @@ void test_partitioned_residual_pagerank_unions_active_frontiers() {
                                              .max_outstanding_per_channel = 32,
                                              .response_queue_depth = 128});
   GraSuReGraphConfig config;
+  config.compute_pipelines = 2;
   config.partition_vertices = kPartitionVertices;
   config.source_buffer_vertices = 16;
   config.edge_lanes = 4;
@@ -1200,7 +1203,9 @@ void test_partitioned_residual_pagerank_unions_active_frontiers() {
                 std::to_string(vertex));
   }
   const auto counters = system.counters();
-  require(counters.supersteps == expected.iterations &&
+  require(counters.compute_pipelines == 2 &&
+              counters.max_parallel_partitions == 2 &&
+              counters.supersteps == expected.iterations &&
               counters.partition_passes ==
                   layout.partitions.size() * expected.iterations &&
               counters.active_edges_mapped == expected.active_edges,
@@ -1289,15 +1294,13 @@ void test_pma_native_regraph_residual_pagerank_matches_oracles() {
   const auto counters = system.counters();
   require(counters.state_bytes_per_vertex == 8 &&
               counters.supersteps == architecture.iterations &&
-              counters.degree_reads == kVertices * counters.supersteps &&
-              counters.source_map_cycles ==
-                  kVertices * counters.supersteps *
-                      config.pagerank_source_map_latency &&
+              counters.degree_reads == counters.apply_state_reads &&
+              counters.source_map_cycles == 0 &&
               counters.active_edges_mapped == architecture.active_edges &&
               counters.apply_read_bytes == counters.apply_state_reads * 128 &&
               counters.apply_write_bytes == counters.apply_state_writes * 128 &&
               counters.source_state_write_bytes ==
-                  counters.source_state_writes * 128,
+                  counters.source_state_writes * 64,
           "PMA-native ReGraph residual PageRank packed-state ledger mismatch");
   std::cout << "EVIDENCE grasu_regraph_residual_pagerank cycles="
             << counters.end_cycle - counters.start_cycle
