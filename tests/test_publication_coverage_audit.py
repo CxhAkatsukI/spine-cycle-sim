@@ -39,3 +39,40 @@ class PublicationCoverageAuditTest(unittest.TestCase):
             _row("incomplete", "full_pagerank", "spine"),
         ]
         self.assertEqual(MODULE._paired_runs(rows), (1, 1))
+
+    def test_cross_product_does_not_combine_disjoint_coverage(self) -> None:
+        rows = [
+            {"dataset_id": "a", "algorithm": "sssp", "batch_size": "8"},
+            {"dataset_id": "b", "algorithm": "pagerank", "batch_size": "8"},
+        ]
+        self.assertFalse(
+            MODULE._has_cross_product(
+                rows,
+                {
+                    "dataset_id": {"a", "b"},
+                    "algorithm": {"sssp", "pagerank"},
+                },
+            )
+        )
+
+    def test_cross_product_accepts_complete_grid_with_batch_alias(self) -> None:
+        rows = [
+            {
+                "dataset_id": dataset,
+                "algorithm": algorithm,
+                "user_mutations": str(batch),
+            }
+            for dataset in ("a", "b")
+            for algorithm in ("sssp", "pagerank")
+            for batch in (1, 8)
+        ]
+        self.assertTrue(
+            MODULE._has_cross_product(
+                rows,
+                {
+                    "dataset_id": {"a", "b"},
+                    "algorithm": {"sssp", "pagerank"},
+                    "batch": {1, 8},
+                },
+            )
+        )

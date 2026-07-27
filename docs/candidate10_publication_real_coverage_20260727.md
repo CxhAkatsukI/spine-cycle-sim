@@ -12,11 +12,24 @@ size of eight user mutations. This produces 27 complete architecture pairs and
 Amazon-2008 50K-edge Full PageRank case checks host runtime and a synthetic
 dense sweep checks the batch-size mechanism.
 
-The missing dimensions are important: none of the three compact inputs is one
-of GraSU's five temporal datasets, there is no small-batch size sweep, there is
-no mixed-update row, dense tests use a synthetic ring rather than real
-topologies, and the real memory report classifies logical address adjacency
-rather than freezing a full controller-level random/sequential analysis.
+The original pilot alone misses important dimensions: none of its three compact
+inputs is one of GraSU's five temporal datasets, it has no small-batch size
+sweep or mixed-update row, its dense tests use a synthetic ring, and its memory
+report classifies logical address adjacency rather than controller behavior.
+
+The first follow-up matrix now covers all five GraSU datasets for batch-8 Full
+PageRank insert/delete/mixed updates. Its 15 pairs and 30 system runs are all
+correct and include controller row-hit and read-latency evidence. The broader
+publication gate remains incomplete because SSSP and residual PageRank have not
+yet been run on those five inputs, batch 1/64 sweeps remain pending, and dense
+real-topology tests remain pending. Controller row-hit and latency counters are
+now available for this Full PageRank subset, but explicit AXI-issue and HBM
+queue/backpressure stall counters are still absent.
+
+The audit combines the old and new evidence only as input rows. Every formal
+gate checks the required cross-product, so three algorithms on old datasets
+plus one algorithm on five reference datasets cannot accidentally pass the
+five-dataset, three-algorithm requirement.
 
 ## Publication gate
 

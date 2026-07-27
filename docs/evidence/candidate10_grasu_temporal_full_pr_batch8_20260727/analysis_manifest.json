@@ -1,0 +1,55 @@
+{
+  "algorithm": "full_pagerank",
+  "all_correct": true,
+  "analysis_id": "candidate10_grasu_temporal_full_pr_batch8_v1_20260727",
+  "batch_size": 8,
+  "datasets": [
+    "soc_bitcoin",
+    "sx_askubuntu",
+    "sx_stackoverflow",
+    "sx_superuser",
+    "wiki_talk_temporal"
+  ],
+  "dram_request_ledgers_closed": true,
+  "headline": {
+    "grasu_dram_read_latency_mean": 25.480606563180466,
+    "grasu_dram_row_hit_rate_mean": 0.9462880345615008,
+    "grasu_e2e_ms_geomean": 3.725889478108057,
+    "grasu_to_spine_backend_bytes_geomean": 3.2698430453869114,
+    "grasu_to_spine_backend_requests_geomean": 0.5314457899712888,
+    "group": "all",
+    "group_type": "all",
+    "pairs": 15,
+    "spine_dram_read_latency_mean": 31.857885624851875,
+    "spine_dram_row_hit_rate_mean": 0.8439286083023994,
+    "spine_e2e_ms_geomean": 11.054607770083791,
+    "spine_speedup_compute_geomean": 0.4261315688718415,
+    "spine_speedup_e2e_geomean": 0.3370440232344683,
+    "spine_speedup_update_geomean": 0.000696174101339065,
+    "spine_wins": 0
+  },
+  "input_manifest_sha256": "d6d45a212f569a4ea919e2ac13fad0ce7455584cfc0105086b46098363f78629",
+  "limitations": [
+    "Inputs are compact slices, not complete GraSU datasets.",
+    "Edges preserve source-file order; global timestamp order is not reconstructed.",
+    "Compact vertex IDs alter original partition occupancy.",
+    "Delete, mixed, and weight-change batches are derived from real topology; only insert candidates come directly from later source-file events."
+  ],
+  "outputs": {
+    "e2e_by_dataset.csv": "fe3b3b159e0bbe624d9aa7e69b72e7e8a058b6c444a201da86f4a9fe604f9109",
+    "group_summary.csv": "5de0f41a875ba273d536bb603726e5d6eb07fa832cb1621bbc338dfff308616b",
+    "pairs_enriched.csv": "cc91298e5c74b102bcc59c47d1b67f13b56ff668dcc5187e330a168fe826db9f",
+    "raw_results.tar.gz": "b19bc60b96e2dd77867ac2d7b474bc7e2f7a7845f137ec02453578bafbada355",
+    "system_rows_enriched.csv": "32b1eed2671da22de086ad16ec21e1d7c6d0a081119a8f84cbeee78d3f4c39cf"
+  },
+  "pairs": 15,
+  "scenarios": [
+    "delete",
+    "insert",
+    "mixed"
+  ],
+  "schema_version": 1,
+  "source_matrix_manifest_sha256": "425d3b2fc8ad87d41ddfdb9023ba1717903b5f9483dbd96ce602834204a7df69",
+  "status": "PASS",
+  "system_rows": 30
+}

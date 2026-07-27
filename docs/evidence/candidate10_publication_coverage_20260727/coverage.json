@@ -1,0 +1,59 @@
+{
+  "contract_id": "candidate10_publication_real_coverage_v1_20260727",
+  "coverage": {
+    "correct_paper_pairs": 15,
+    "dense_bad_runs": 0,
+    "dense_pairs": 8,
+    "large_real_bad_runs": 0,
+    "large_real_pairs": 1,
+    "memory_bad_runs": 0,
+    "memory_pairs": 42,
+    "paper_reference_datasets": [
+      "soc_bitcoin",
+      "sx_askubuntu",
+      "sx_stackoverflow",
+      "sx_superuser",
+      "wiki_talk_temporal"
+    ],
+    "real_algorithms": [
+      "full_pagerank",
+      "thresholded_residual_pagerank",
+      "weighted_sssp"
+    ],
+    "real_batch_sizes": [
+      8
+    ],
+    "real_datasets": [
+      "amazon_2008",
+      "soc_bitcoin",
+      "soc_flickr_und",
+      "sx_askubuntu",
+      "sx_stackoverflow",
+      "sx_superuser",
+      "web_google",
+      "wiki_talk_temporal"
+    ],
+    "real_pairs": 42,
+    "real_system_rows": 84,
+    "real_update_scenarios": [
+      "delete",
+      "insert",
+      "mixed",
+      "weight_change"
+    ]
+  },
+  "gates": {
+    "complete_memory_metric_set": false,
+    "controller_memory_partial_coverage": true,
+    "existing_real_rows_are_correct": true,
+    "paper_reference_dataset_breadth": true,
+    "paper_reference_differential_scenarios": false,
+    "paper_reference_small_batch_matrix": false,
+    "paper_reference_three_algorithm_matrix": false,
+    "paper_reference_update_matrix": false,
+    "publication_real_matrix_complete": false,
+    "real_dense_coverage": false
+  },
+  "interpretation": "Existing evidence is a correct compact pilot, not a complete paper-reference real-dataset evaluation.",
+  "status": "INCOMPLETE"
+}
