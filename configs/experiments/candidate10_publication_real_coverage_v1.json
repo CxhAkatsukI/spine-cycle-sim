@@ -1,0 +1,103 @@
+{
+  "contract_id": "candidate10_publication_real_coverage_v1_20260727",
+  "claim_boundary": {
+    "full_dataset_claim_requires_unsliced_input": true,
+    "real_slice_results_must_be_labeled_as_slices": true,
+    "failed_correctness_rows_enter_performance_aggregates": false,
+    "performance_parameters_frozen_before_execution": true
+  },
+  "reference_datasets": {
+    "dynamic_acts_real": [
+      "hollywood_2009",
+      "soc_pokec",
+      "sx_stackoverflow",
+      "soc_orkut",
+      "soc_livejournal1",
+      "ljournal_2008",
+      "uk_2002"
+    ],
+    "grasu_temporal": [
+      "sx_askubuntu",
+      "sx_superuser",
+      "wiki_talk_temporal",
+      "sx_stackoverflow",
+      "soc_bitcoin"
+    ]
+  },
+  "required_gates": {
+    "correctness": {
+      "algorithms": [
+        "weighted_sssp",
+        "full_pagerank",
+        "thresholded_residual_pagerank"
+      ],
+      "minimum_paper_reference_datasets": 5,
+      "oracles": [
+        "architecture_precision",
+        "independent_mathematical",
+        "cross_system_final_state"
+      ],
+      "update_scenarios": [
+        "insert",
+        "delete",
+        "mixed",
+        "weight_change"
+      ]
+    },
+    "dense_batch": {
+      "batch_sizes": [
+        64,
+        512,
+        4096
+      ],
+      "minimum_real_datasets": 3,
+      "report_relative_update_ratio": true
+    },
+    "end_to_end_small_batch": {
+      "batch_sizes": [
+        1,
+        8,
+        64
+      ],
+      "minimum_paper_reference_datasets": 5,
+      "required_algorithms": [
+        "weighted_sssp",
+        "full_pagerank",
+        "thresholded_residual_pagerank"
+      ]
+    },
+    "memory": {
+      "minimum_paper_reference_datasets": 5,
+      "required_metrics": [
+        "logical_requests",
+        "requested_bytes",
+        "controller_reads_writes",
+        "row_hits",
+        "activates_precharges",
+        "average_latency",
+        "burst_amplification",
+        "queue_and_backpressure_stalls"
+      ]
+    },
+    "update_throughput": {
+      "batch_sizes": [
+        1,
+        8,
+        64
+      ],
+      "minimum_paper_reference_datasets": 5,
+      "throughput_unit": "successful_user_mutations_per_second",
+      "update_scenarios": [
+        "insert",
+        "delete",
+        "mixed"
+      ]
+    }
+  },
+  "source_notes": [
+    "GraSU evaluates five timestamped directed graphs and uses ten update batches by default.",
+    "Dynamic-ACTS provides static real and RMAT topology references; synthetic updates on those inputs must be labeled derived rather than temporal.",
+    "Compact-ID or edge-prefix extraction changes partition occupancy and cannot support a full-dataset scalability claim.",
+    "The existing Amazon-2008, Web-Google, and soc-Flickr-und compact slices are useful holdouts but are not GraSU's five temporal datasets."
+  ]
+}
