@@ -7,7 +7,7 @@
     "large_real_bad_runs": 0,
     "large_real_pairs": 1,
     "memory_bad_runs": 0,
-    "memory_pairs": 67,
+    "memory_pairs": 15,
     "paper_reference_datasets": [
       "soc_bitcoin",
       "sx_askubuntu",
@@ -45,7 +45,7 @@
     ]
   },
   "gates": {
-    "complete_memory_metric_set": false,
+    "complete_memory_metric_set": true,
     "controller_memory_partial_coverage": true,
     "existing_real_rows_are_correct": true,
     "paper_reference_dataset_breadth": true,
@@ -54,7 +54,8 @@
     "paper_reference_three_algorithm_matrix": true,
     "paper_reference_update_matrix": true,
     "publication_real_matrix_complete": false,
-    "real_dense_coverage": true
+    "real_dense_coverage": true,
+    "three_algorithm_memory_window_alignment": false
   },
   "interpretation": "Existing evidence is a correct compact pilot, not a complete paper-reference real-dataset evaluation.",
   "status": "INCOMPLETE"

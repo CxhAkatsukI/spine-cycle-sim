@@ -59,13 +59,8 @@ DEFAULT_MEMORY_ROWS = [
     ROOT
     / "docs"
     / "evidence"
-    / "real_memory_traffic_locality_20260726"
-    / "memory_system_rows.csv",
-    ROOT
-    / "docs"
-    / "evidence"
-    / "candidate10_grasu_temporal_full_pr_small_batches_20260727"
-    / "system_rows_enriched.csv",
+    / "candidate10_physical_memory_u8_20260727"
+    / "physical_memory_system_rows.csv",
 ]
 
 
@@ -140,6 +135,13 @@ def _has_fields(rows: Iterable[dict[str, str]], fields: set[str]) -> bool:
     )
 
 
+def _all_true(rows: Iterable[dict[str, str]], field: str) -> bool:
+    rows = list(rows)
+    return bool(rows) and all(
+        str(row.get(field, "")).strip().lower() == "true" for row in rows
+    )
+
+
 def audit(
     contract: dict[str, object],
     real_rows: list[dict[str, str]],
@@ -184,8 +186,8 @@ def audit(
         row for row in memory_rows if row.get("dataset_id") in paper_datasets
     ]
     controller_partial_fields = {
-        "backend_requests",
-        "backend_bytes",
+        "physical_backend_requests",
+        "physical_backend_requested_bytes",
         "dram_reads",
         "dram_writes",
         "dram_read_row_hits",
@@ -198,7 +200,11 @@ def audit(
         "axis_push_stalls",
         "axi_issue_stalls",
         "hbm_queue_stalls",
+        "hbm_response_queue_stalls",
+        "stall_metrics_complete",
+        "stall_metric_contract",
     }
+    physical_memory_algorithms = _values(controller_rows, "algorithm")
 
     statuses = {
         "existing_real_rows_are_correct": bad_real_runs == 0 and real_pairs > 0,
@@ -252,6 +258,10 @@ def audit(
         and _has_fields(controller_rows, controller_partial_fields),
         "complete_memory_metric_set": _has_fields(
             controller_rows, complete_memory_fields
+        ),
+        "three_algorithm_memory_window_alignment": (
+            physical_memory_algorithms == required_algorithms
+            and _all_true(controller_rows, "dram_physical_window_aligned")
         ),
     }
     required_statuses = {

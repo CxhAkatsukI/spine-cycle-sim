@@ -87,3 +87,17 @@ class PublicationCoverageAuditTest(unittest.TestCase):
         self.assertTrue(MODULE._has_fields([complete], fields))
         incomplete = {**complete, "axi_issue_stalls": ""}
         self.assertFalse(MODULE._has_fields([incomplete], fields))
+
+    def test_all_true_fails_closed_on_false_or_missing_value(self) -> None:
+        self.assertTrue(
+            MODULE._all_true(
+                [{"aligned": "true"}, {"aligned": "True"}], "aligned"
+            )
+        )
+        self.assertFalse(
+            MODULE._all_true(
+                [{"aligned": "true"}, {"aligned": "false"}], "aligned"
+            )
+        )
+        self.assertFalse(MODULE._all_true([{}], "aligned"))
+        self.assertFalse(MODULE._all_true([], "aligned"))

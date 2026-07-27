@@ -9,6 +9,7 @@ import json
 from pathlib import Path
 import sys
 import tarfile
+from typing import Mapping
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -59,6 +60,57 @@ def _archive_sources(
                             )
 
 
+def _validated_plugin_fingerprint(
+    inputs: tuple[tuple[str, Path], ...], run_ids: set[str]
+) -> dict[str, object]:
+    observations: list[tuple[str, str, str, str]] = []
+    for algorithm, directory in inputs:
+        for run_id in sorted(run_ids):
+            for system, filename in (
+                ("spine", "summary.json"),
+                ("grasu_regraph", "manifest.json"),
+            ):
+                payload = json.loads(
+                    (directory / run_id / system / filename).read_text(
+                        encoding="utf-8"
+                    )
+                )
+                binding = payload.get("sst_library_binding")
+                if not isinstance(binding, Mapping):
+                    raise ValueError(
+                        f"missing SST library binding: {algorithm}/{run_id}/{system}"
+                    )
+                plugin_sha = str(payload.get("sst_plugin_sha256", ""))
+                if len(plugin_sha) != 64 or binding.get("plugin_sha256") != plugin_sha:
+                    raise ValueError(
+                        f"invalid SST plugin identity: {algorithm}/{run_id}/{system}"
+                    )
+                plugin_path = str(binding.get("plugin_path", ""))
+                search_path = str(binding.get("search_path", ""))
+                command_option = str(binding.get("command_option", ""))
+                if not plugin_path or search_path.split(":", 1)[0] != str(
+                    Path(plugin_path).parent
+                ) or command_option != f"--lib-path={search_path}":
+                    raise ValueError(
+                        f"SST plugin is not first in the exact library path: "
+                        f"{algorithm}/{run_id}/{system}"
+                    )
+                observations.append(
+                    (plugin_sha, plugin_path, search_path, command_option)
+                )
+    unique = set(observations)
+    if len(observations) != len(inputs) * len(run_ids) * 2 or len(unique) != 1:
+        raise ValueError("physical matrix did not use one identical SST plugin binding")
+    plugin_sha, plugin_path, search_path, command_option = observations[0]
+    return {
+        "plugin_sha256": plugin_sha,
+        "plugin_path_at_execution": plugin_path,
+        "search_path": search_path,
+        "command_option": command_option,
+        "validated_child_results": len(observations),
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--weighted-dir", type=Path, required=True)
@@ -94,6 +146,7 @@ def main() -> int:
             args.residual_pagerank_dir.resolve(),
         ),
     )
+    plugin_fingerprint = _validated_plugin_fingerprint(inputs, expected_run_ids)
     manifests: dict[str, dict[str, object]] = {}
     rows: list[dict[str, object]] = []
     for algorithm, directory in inputs:
@@ -145,6 +198,7 @@ def main() -> int:
         ),
         "all_backend_dram_ledgers_closed": True,
         "all_backpressure_contracts_complete": True,
+        "sst_plugin_fingerprint": plugin_fingerprint,
         "three_algorithm_windows_aligned": len(aligned_algorithms)
         == len(ALGORITHMS),
         "input_manifest_sha256": sha256_file(args.input_manifest),
