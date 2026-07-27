@@ -1,0 +1,145 @@
+{
+  "claim_class": "near_grasu_paper_initial_size_real_topology_simple_graph",
+  "contract": {
+    "base_edges_per_dataset": 540000,
+    "batch_sizes": [
+      8,
+      64,
+      4096
+    ],
+    "datasets": 1,
+    "graph_and_update_bytes_identical_across_architectures": true,
+    "insert_pool_edges_per_dataset": 4096,
+    "mixed_batch_one_omitted": false,
+    "performance_parameters_frozen_before_execution": true,
+    "scenarios": [
+      "insert"
+    ]
+  },
+  "datasets": [
+    {
+      "abbreviation": "AU",
+      "archive_member": null,
+      "dataset_id": "sx_askubuntu",
+      "graph": {
+        "case_id": "grasu_sx_askubuntu_file_order_e540000",
+        "path": "tests/data/candidate10_askubuntu_paper_scale/sx_askubuntu_base_e540000.slice",
+        "records": 540000,
+        "sha256": "4d47dad68581004dff4194c2e0e5b2b842821ed9bc63a599991fa384c9de678c",
+        "vertices": 157107
+      },
+      "mapping_path": "tests/data/candidate10_askubuntu_paper_scale/sx_askubuntu_mapping.csv",
+      "mapping_sha256": "93e5fb6cd60e01c2fb7322e2db0d7980088a77d142e8c213e703366db36a8954",
+      "paper_base_edges": 590000,
+      "paper_edges": 960000,
+      "paper_vertices": 160000,
+      "provenance": {
+        "base_edges": 540000,
+        "compact_vertices": 157107,
+        "extraction_policy": "unique_nonself_edges_in_source_file_order_compact_ids_v1",
+        "insert_pool_edges": 4096,
+        "scanned_events": 963253,
+        "selected_timestamp_max": 1457265496,
+        "selected_timestamp_min": 1231431607,
+        "selected_unique_edges": 544096,
+        "timestamp_order_reconstructed": false
+      },
+      "source_encoding": "gzip",
+      "source_path_hint": "/data/feiyang/Graph_Datasets/sx-askubuntu/sx-askubuntu.txt.gz",
+      "source_sha256": "54af4be03bf77030e8894e445679c4e20614f0b82d68fc8cb49431f70e07a0f6"
+    }
+  ],
+  "input_scope": "near_paper_base_graph",
+  "limitations": [
+    "The 540000-edge simple graph is 91.5% of GraSU's 590000-event AskUbuntu paper base.",
+    "The source contains only 544621 unique non-self edges, so exact 590000-edge simple-graph parity is impossible.",
+    "Edges preserve source-file order; global timestamp order is not reconstructed.",
+    "Compact vertex IDs alter original partition occupancy while preserving topology.",
+    "Only insertion batches 8, 64, and 4096 are included in this large-graph matrix."
+  ],
+  "matrix_id": "candidate10_grasu_askubuntu_paper_scale_v1_20260728",
+  "runs": [
+    {
+      "batch_size": 8,
+      "dataset_abbreviation": "AU",
+      "dataset_id": "sx_askubuntu",
+      "dataset_kind": "grasu_temporal_real_paper_scale_compact_file_order",
+      "final_edges": 540008,
+      "graph": {
+        "case_id": "grasu_sx_askubuntu_file_order_e540000",
+        "path": "tests/data/candidate10_askubuntu_paper_scale/sx_askubuntu_base_e540000.slice",
+        "records": 540000,
+        "sha256": "4d47dad68581004dff4194c2e0e5b2b842821ed9bc63a599991fa384c9de678c",
+        "vertices": 157107
+      },
+      "input_scope": "near_paper_base_graph",
+      "physical_records": 8,
+      "run_id": "grasu_au_paper_scale_insert_u8",
+      "scenario": "insert",
+      "update": {
+        "case_id": "grasu_sx_askubuntu_file_order_e540000_insert_u8",
+        "path": "tests/data/candidate10_askubuntu_paper_scale/sx_askubuntu_insert_u8.slice",
+        "records": 8,
+        "sha256": "504690fa633920b08c77cd32db7993bfafdc5d50bcd6a44786a97cd20400631f",
+        "vertices": 157107
+      },
+      "update_pattern": "insert",
+      "user_mutations": 8
+    },
+    {
+      "batch_size": 64,
+      "dataset_abbreviation": "AU",
+      "dataset_id": "sx_askubuntu",
+      "dataset_kind": "grasu_temporal_real_paper_scale_compact_file_order",
+      "final_edges": 540064,
+      "graph": {
+        "case_id": "grasu_sx_askubuntu_file_order_e540000",
+        "path": "tests/data/candidate10_askubuntu_paper_scale/sx_askubuntu_base_e540000.slice",
+        "records": 540000,
+        "sha256": "4d47dad68581004dff4194c2e0e5b2b842821ed9bc63a599991fa384c9de678c",
+        "vertices": 157107
+      },
+      "input_scope": "near_paper_base_graph",
+      "physical_records": 64,
+      "run_id": "grasu_au_paper_scale_insert_u64",
+      "scenario": "insert",
+      "update": {
+        "case_id": "grasu_sx_askubuntu_file_order_e540000_insert_u64",
+        "path": "tests/data/candidate10_askubuntu_paper_scale/sx_askubuntu_insert_u64.slice",
+        "records": 64,
+        "sha256": "24ac5b51fcc6196ca976e004ad98b86a8ee084691dcd0c475485c3c9a176ed14",
+        "vertices": 157107
+      },
+      "update_pattern": "insert",
+      "user_mutations": 64
+    },
+    {
+      "batch_size": 4096,
+      "dataset_abbreviation": "AU",
+      "dataset_id": "sx_askubuntu",
+      "dataset_kind": "grasu_temporal_real_paper_scale_compact_file_order",
+      "final_edges": 544096,
+      "graph": {
+        "case_id": "grasu_sx_askubuntu_file_order_e540000",
+        "path": "tests/data/candidate10_askubuntu_paper_scale/sx_askubuntu_base_e540000.slice",
+        "records": 540000,
+        "sha256": "4d47dad68581004dff4194c2e0e5b2b842821ed9bc63a599991fa384c9de678c",
+        "vertices": 157107
+      },
+      "input_scope": "near_paper_base_graph",
+      "physical_records": 4096,
+      "run_id": "grasu_au_paper_scale_insert_u4096",
+      "scenario": "insert",
+      "update": {
+        "case_id": "grasu_sx_askubuntu_file_order_e540000_insert_u4096",
+        "path": "tests/data/candidate10_askubuntu_paper_scale/sx_askubuntu_insert_u4096.slice",
+        "records": 4096,
+        "sha256": "5af1a205b9c24553db37a8b8957cfbf5d9e7bfaa6dc13fa7c2ab94aa74db6125",
+        "vertices": 157107
+      },
+      "update_pattern": "insert",
+      "user_mutations": 4096
+    }
+  ],
+  "schema_version": 1
+}

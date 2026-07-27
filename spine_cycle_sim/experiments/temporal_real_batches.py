@@ -19,6 +19,11 @@ BASE_EDGE_COUNT = 8_192
 INSERT_POOL_COUNT = 4_096
 TEMPORAL_BATCH_SIZES = (1, 8, 64, 512, 4_096)
 TEMPORAL_SCENARIOS = ("insert", "delete", "mixed", "weight_change")
+ASKUBUNTU_PAPER_SCALE_EDGE_COUNT = 540_000
+ASKUBUNTU_PAPER_SCALE_BATCH_SIZES = (8, 64, 4_096)
+ASKUBUNTU_PAPER_SCALE_MATRIX_ID = (
+    "candidate10_grasu_askubuntu_paper_scale_v1_20260728"
+)
 
 
 @dataclass(frozen=True)
@@ -400,17 +405,133 @@ def build_temporal_real_manifest(
     return manifest
 
 
-def validate_temporal_real_manifest(root: Path, manifest_path: Path) -> dict[str, object]:
+def build_askubuntu_paper_scale_manifest(
+    root: Path,
+    *,
+    source_root: Path,
+    output_dir: Path,
+    manifest_path: Path,
+) -> dict[str, object]:
+    """Build a near-paper-scale AskUbuntu simple graph and update batches."""
+
     root = root.resolve()
-    manifest = json.loads(manifest_path.resolve().read_text(encoding="utf-8"))
-    if manifest.get("matrix_id") != "candidate10_grasu_temporal_compact_batches_v1_20260727":
-        raise ValueError("unexpected temporal real matrix identity")
+    source_root = source_root.resolve()
+    output_dir = output_dir.resolve()
+    output_dir.mkdir(parents=True, exist_ok=True)
+    spec = next(item for item in GRASU_TEMPORAL_SOURCES if item.dataset_id == "sx_askubuntu")
+    source_path = source_root / spec.relative_path
+    if sha256_file(source_path) != spec.sha256:
+        raise ValueError("source hash mismatch for sx_askubuntu")
+    graph, mapping, insert_pool, provenance = extract_temporal_compact_slice(
+        source_path,
+        spec,
+        base_edges=ASKUBUNTU_PAPER_SCALE_EDGE_COUNT,
+        insert_pool_edges=INSERT_POOL_COUNT,
+    )
+    graph_path = output_dir / (
+        f"{spec.dataset_id}_base_e{ASKUBUNTU_PAPER_SCALE_EDGE_COUNT}.slice"
+    )
+    mapping_path = output_dir / f"{spec.dataset_id}_mapping.csv"
+    write_slice(graph_path, graph)
+    with mapping_path.open("w", encoding="ascii", newline="") as stream:
+        writer = csv.writer(stream, lineterminator="\n")
+        writer.writerow(("local_id", "external_id"))
+        writer.writerows(enumerate(mapping))
+    graph_artifact = _artifact(graph_path, root)
+    dataset = {
+        "dataset_id": spec.dataset_id,
+        "abbreviation": spec.abbreviation,
+        "source_path_hint": str(source_path),
+        "source_sha256": spec.sha256,
+        "source_encoding": spec.compression,
+        "archive_member": spec.archive_member,
+        "paper_vertices": spec.paper_vertices,
+        "paper_edges": spec.paper_edges,
+        "paper_base_edges": spec.paper_base_edges,
+        "graph": graph_artifact,
+        "mapping_path": str(mapping_path.relative_to(root)),
+        "mapping_sha256": sha256_file(mapping_path),
+        "provenance": provenance,
+    }
+    runs: list[dict[str, object]] = []
+    for batch_size in ASKUBUNTU_PAPER_SCALE_BATCH_SIZES:
+        update, physical_records = build_temporal_update(
+            graph,
+            insert_pool,
+            scenario="insert",
+            batch_size=batch_size,
+        )
+        update_path = output_dir / f"{spec.dataset_id}_insert_u{batch_size}.slice"
+        write_slice(update_path, update)
+        final_graph = apply_explicit_weighted_updates(graph, update)
+        runs.append(
+            {
+                "run_id": f"grasu_au_paper_scale_insert_u{batch_size}",
+                "dataset_id": spec.dataset_id,
+                "dataset_abbreviation": spec.abbreviation,
+                "dataset_kind": "grasu_temporal_real_paper_scale_compact_file_order",
+                "input_scope": "near_paper_base_graph",
+                "batch_size": batch_size,
+                "update_pattern": "insert",
+                "scenario": "insert",
+                "user_mutations": batch_size,
+                "physical_records": physical_records,
+                "final_edges": len(final_graph.records),
+                "graph": graph_artifact,
+                "update": _artifact(update_path, root),
+            }
+        )
+    manifest = {
+        "schema_version": 1,
+        "matrix_id": ASKUBUNTU_PAPER_SCALE_MATRIX_ID,
+        "input_scope": "near_paper_base_graph",
+        "claim_class": "near_grasu_paper_initial_size_real_topology_simple_graph",
+        "contract": {
+            "datasets": 1,
+            "base_edges_per_dataset": ASKUBUNTU_PAPER_SCALE_EDGE_COUNT,
+            "insert_pool_edges_per_dataset": INSERT_POOL_COUNT,
+            "batch_sizes": list(ASKUBUNTU_PAPER_SCALE_BATCH_SIZES),
+            "scenarios": ["insert"],
+            "mixed_batch_one_omitted": False,
+            "graph_and_update_bytes_identical_across_architectures": True,
+            "performance_parameters_frozen_before_execution": True,
+        },
+        "datasets": [dataset],
+        "runs": runs,
+        "limitations": [
+            "The 540000-edge simple graph is 91.5% of GraSU's 590000-event AskUbuntu paper base.",
+            "The source contains only 544621 unique non-self edges, so exact 590000-edge simple-graph parity is impossible.",
+            "Edges preserve source-file order; global timestamp order is not reconstructed.",
+            "Compact vertex IDs alter original partition occupancy while preserving topology.",
+            "Only insertion batches 8, 64, and 4096 are included in this large-graph matrix.",
+        ],
+    }
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    return manifest
+
+
+def _validate_temporal_manifest_payload(
+    root: Path, manifest: dict[str, object]
+) -> dict[str, object]:
     datasets = manifest.get("datasets", [])
     runs = manifest.get("runs", [])
-    if len(datasets) != len(GRASU_TEMPORAL_SOURCES):
+    contract = manifest.get("contract", {})
+    if not isinstance(datasets, list) or not isinstance(runs, list):
+        raise ValueError("temporal manifest datasets/runs must be lists")
+    if not isinstance(contract, dict):
+        raise ValueError("temporal manifest contract must be an object")
+    if len(datasets) != int(contract.get("datasets", -1)):
         raise ValueError("temporal manifest dataset coverage is incomplete")
-    expected_runs = len(GRASU_TEMPORAL_SOURCES) * (
-        len(TEMPORAL_BATCH_SIZES) * len(TEMPORAL_SCENARIOS) - 1
+    batch_sizes = tuple(int(value) for value in contract.get("batch_sizes", []))
+    scenarios = tuple(str(value) for value in contract.get("scenarios", []))
+    expected_runs = len(datasets) * sum(
+        1
+        for batch_size in batch_sizes
+        for scenario in scenarios
+        if not (scenario == "mixed" and batch_size < 2)
     )
     if len(runs) != expected_runs:
         raise ValueError("temporal manifest run coverage is incomplete")
@@ -427,6 +548,8 @@ def validate_temporal_real_manifest(root: Path, manifest_path: Path) -> dict[str
         if key in seen:
             raise ValueError(f"duplicate temporal run: {key}")
         seen.add(key)
+        if int(run["batch_size"]) not in batch_sizes or run["scenario"] not in scenarios:
+            raise ValueError(f"run falls outside temporal contract: {run['run_id']}")
         graph_path = root / run["graph"]["path"]
         update_path = root / run["update"]["path"]
         if sha256_file(graph_path) != run["graph"]["sha256"]:
@@ -443,3 +566,21 @@ def validate_temporal_real_manifest(root: Path, manifest_path: Path) -> dict[str
         if len(final_graph.records) != int(run["final_edges"]):
             raise ValueError(f"final edge mismatch for {run['run_id']}")
     return manifest
+
+
+def validate_temporal_real_manifest(root: Path, manifest_path: Path) -> dict[str, object]:
+    root = root.resolve()
+    manifest = json.loads(manifest_path.resolve().read_text(encoding="utf-8"))
+    if manifest.get("matrix_id") != "candidate10_grasu_temporal_compact_batches_v1_20260727":
+        raise ValueError("unexpected temporal real matrix identity")
+    return _validate_temporal_manifest_payload(root, manifest)
+
+
+def validate_askubuntu_paper_scale_manifest(
+    root: Path, manifest_path: Path
+) -> dict[str, object]:
+    root = root.resolve()
+    manifest = json.loads(manifest_path.resolve().read_text(encoding="utf-8"))
+    if manifest.get("matrix_id") != ASKUBUNTU_PAPER_SCALE_MATRIX_ID:
+        raise ValueError("unexpected AskUbuntu paper-scale matrix identity")
+    return _validate_temporal_manifest_payload(root, manifest)

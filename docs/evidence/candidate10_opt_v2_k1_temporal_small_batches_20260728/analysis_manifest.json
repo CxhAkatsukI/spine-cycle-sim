@@ -1,0 +1,60 @@
+{
+  "algorithms": [
+    "weighted_sssp",
+    "full_pagerank",
+    "thresholded_residual_pagerank"
+  ],
+  "all_correct": true,
+  "analysis_id": "candidate10_opt_v2_k1_temporal_small_batches_v1_20260728",
+  "batch_sizes": [
+    1,
+    8,
+    64
+  ],
+  "datasets": [
+    "soc_bitcoin",
+    "sx_askubuntu",
+    "sx_stackoverflow",
+    "sx_superuser",
+    "wiki_talk_temporal"
+  ],
+  "dram_request_ledgers_closed": true,
+  "grasu_profile_ids": {
+    "full_pagerank": "grasu_regraph_candidate10_k1_multipart_pagerank_v4",
+    "thresholded_residual_pagerank": "grasu_regraph_candidate10_k1_multipart_residual_v4",
+    "weighted_sssp": "grasu_regraph_candidate10_k1_multipart_weighted_v4"
+  },
+  "input_manifest_sha256": "d6d45a212f569a4ea919e2ac13fad0ce7455584cfc0105086b46098363f78629",
+  "limitations": [
+    "Inputs are 8192-edge compact file-order slices, not full datasets.",
+    "The cross-algorithm matrix covers insertion batches 1, 8, and 64.",
+    "Weighted SSSP uses oracle-minimum fixed host supersteps.",
+    "All inputs remain within one destination partition in both systems.",
+    "Active-channel DRAM energy excludes idle channels and on-chip energy."
+  ],
+  "outputs": {
+    "correctness_coverage.csv": "2caa248528b8a60bb5dde797faa166a96b8cfe71f58f2ea83930ce77afcc4277",
+    "e2e_by_algorithm.csv": "ad7d8aef83666fde167a53e5f39d74ef2c39668b01b143aa247570831c27a78d",
+    "e2e_speedup_by_dataset_algorithm.csv": "965c86020652698fad84339e659929552589c05b654f024ac3ca01c7de617e4d",
+    "pair_rows.csv": "4b4cc56decfaf828a84bfaa1e597959e62f6998f4cb8e6a42889b8cb29adf032",
+    "raw_results.tar.gz": "15262672789e5ab83410f7331c0061391aba1501b423ecde89e80ef24e5fb40a",
+    "small_batch_by_algorithm.csv": "437e9aaee382442b896c9db0eddaa92f75f025fa9671d0a7dde8a5f106fc66fe",
+    "system_rows.csv": "eb3207b02b76dcd5c38f1af073f9222942ec07dea2b6ca805459032629f15277"
+  },
+  "pairs": 45,
+  "scenario": "insert",
+  "schema_version": 1,
+  "source_matrix_all_correct": {
+    "full_pagerank": true,
+    "thresholded_residual_pagerank": true,
+    "weighted_sssp": true
+  },
+  "source_matrix_manifest_sha256": {
+    "full_pagerank": "2b88bdad74cba6ebda73a7a785f86ace20b838b9d4e2617710f4c4b9df0920db",
+    "thresholded_residual_pagerank": "4f2e1dcbb26cf600f654a6dc20716e73be34ff00ac09f54f433221d48fe7ec91",
+    "weighted_sssp": "f03d349ac16a8671d9be6c42cdf9b06eeb18132f7c4c2b6abf6bfc1c04237314"
+  },
+  "spine_profile_id": "spine_candidate10_opt_v2_reader_working_set",
+  "status": "PASS",
+  "system_rows": 90
+}

@@ -40,6 +40,7 @@ from spine_cycle_sim.experiments.large_real_pagerank import (  # noqa: E402
 )
 from spine_cycle_sim.experiments.temporal_real_batches import (  # noqa: E402
     validate_temporal_real_manifest,
+    validate_askubuntu_paper_scale_manifest,
 )
 from spine_cycle_sim.experiments.shared_workloads import sha256_file  # noqa: E402
 
@@ -100,6 +101,8 @@ def _validate_input_manifest(path: Path) -> dict[str, object]:
         return validate_large_real_pagerank_manifest(ROOT, path)
     if matrix_id == "candidate10_grasu_temporal_compact_batches_v1_20260727":
         return validate_temporal_real_manifest(ROOT, path)
+    if matrix_id == "candidate10_grasu_askubuntu_paper_scale_v1_20260728":
+        return validate_askubuntu_paper_scale_manifest(ROOT, path)
     raise ValueError(f"unsupported Full PageRank input matrix: {matrix_id}")
 
 

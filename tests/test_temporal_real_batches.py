@@ -7,6 +7,7 @@ import unittest
 
 from spine_cycle_sim.experiments.temporal_real_batches import (
     TemporalSourceSpec,
+    _validate_temporal_manifest_payload,
     build_temporal_update,
     extract_temporal_compact_slice,
 )
@@ -75,6 +76,65 @@ class TemporalRealBatchesTest(unittest.TestCase):
                     deletion, insertion = update.records[index : index + 2]
                     self.assertEqual((deletion.src, deletion.dst), (insertion.src, insertion.dst))
                     self.assertEqual((deletion.diff, insertion.diff), (-1, 1))
+
+    def test_generic_manifest_validator_checks_contract_and_hashes(self) -> None:
+        from spine_cycle_sim.experiments.shared_workloads import sha256_file, write_slice
+
+        root = Path(self.temporary.name)
+        graph, mapping, pool, _provenance = extract_temporal_compact_slice(
+            self.path, self.spec, base_edges=12, insert_pool_edges=8
+        )
+        update, physical = build_temporal_update(
+            graph, pool, scenario="insert", batch_size=8
+        )
+        graph_path = root / "graph.slice"
+        update_path = root / "update.slice"
+        mapping_path = root / "mapping.csv"
+        write_slice(graph_path, graph)
+        write_slice(update_path, update)
+        mapping_path.write_text(
+            "local_id,external_id\n"
+            + "".join(f"{local},{external}\n" for local, external in enumerate(mapping)),
+            encoding="ascii",
+        )
+        graph_artifact = {
+            "path": graph_path.name,
+            "sha256": sha256_file(graph_path),
+        }
+        manifest = {
+            "contract": {
+                "datasets": 1,
+                "batch_sizes": [8],
+                "scenarios": ["insert"],
+            },
+            "datasets": [
+                {
+                    "dataset_id": "fixture",
+                    "graph": graph_artifact,
+                    "mapping_path": mapping_path.name,
+                    "mapping_sha256": sha256_file(mapping_path),
+                }
+            ],
+            "runs": [
+                {
+                    "run_id": "fixture_insert_u8",
+                    "dataset_id": "fixture",
+                    "scenario": "insert",
+                    "batch_size": 8,
+                    "physical_records": physical,
+                    "final_edges": 20,
+                    "graph": graph_artifact,
+                    "update": {
+                        "path": update_path.name,
+                        "sha256": sha256_file(update_path),
+                    },
+                }
+            ],
+        }
+        self.assertIs(_validate_temporal_manifest_payload(root, manifest), manifest)
+        manifest["runs"][0]["final_edges"] = 19
+        with self.assertRaisesRegex(ValueError, "final edge mismatch"):
+            _validate_temporal_manifest_payload(root, manifest)
 
 
 if __name__ == "__main__":
