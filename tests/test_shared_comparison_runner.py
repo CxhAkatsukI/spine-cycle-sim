@@ -100,6 +100,52 @@ class SharedComparisonRunnerTests(unittest.TestCase):
         )
         self.assertIn("--profile", grasu.command)
 
+    def test_k1_profiles_select_hls_derived_runners_for_all_algorithms(self) -> None:
+        profile_paths = normalized_grasu_profile_paths(ROOT, "k1_v4")
+        k1_manifest = validate_shared_comparison_manifest(
+            ROOT,
+            ROOT
+            / "configs"
+            / "experiments"
+            / "shared_comparison_candidate10_k1_multipart_v4_20260728.json",
+        )
+        catalog = (
+            ROOT
+            / "configs"
+            / "contracts"
+            / "grasu_regraph_k1_multipart_capabilities_v4.json"
+        )
+        expected_scripts = {
+            "weighted_sssp": "run_sst_grasu_regraph_hls_weighted.py",
+            "full_pagerank": "run_sst_grasu_regraph_hls_pagerank.py",
+            "thresholded_residual_pagerank": (
+                "run_sst_grasu_regraph_hls_residual_pagerank.py"
+            ),
+        }
+        for algorithm, expected_script in expected_scripts.items():
+            run = next(
+                item
+                for item in k1_manifest["runs"]
+                if item["algorithm"] == algorithm
+            )
+            with self.subTest(algorithm=algorithm), tempfile.TemporaryDirectory(
+                dir=ROOT
+            ) as tmp:
+                invocation = build_invocation(
+                    ROOT,
+                    run,
+                    system="grasu_regraph",
+                    output_root=Path(tmp),
+                    python="python3",
+                    sst=Path("/data/feiyang/sst/bin/sst"),
+                    lib_dir=ROOT / "build" / "sst",
+                    spine_profile=SPINE_PROFILE,
+                    grasu_profile_paths=profile_paths,
+                    grasu_capability_catalog=catalog,
+                )
+                self.assertTrue(invocation.command[1].endswith(expected_script))
+                self.assertIn("--capability-catalog", invocation.command)
+
     def test_implementation_fingerprint_changes_with_binary(self) -> None:
         with tempfile.TemporaryDirectory(dir=ROOT) as tmp:
             first = Path(tmp) / "first"
@@ -136,6 +182,26 @@ class SharedComparisonRunnerTests(unittest.TestCase):
         )
         self.assertEqual(
             contract["spine_profile_id"], "spine_candidate10_normalized_v1"
+        )
+        self.assertEqual(contract["spine_optimization_chain"], [])
+        projected = validate_normalized_profile_contract(
+            ROOT
+            / "configs"
+            / "architectures"
+            / "spine_candidate10_opt_v2_reader_working_set.json",
+            normalized_grasu_profile_paths(ROOT),
+        )
+        self.assertEqual(
+            projected["spine_profile_id"],
+            "spine_candidate10_opt_v2_reader_working_set",
+        )
+        self.assertEqual(
+            projected["spine_reference_profile_id"],
+            "spine_candidate10_normalized_v1",
+        )
+        self.assertEqual(
+            [item["optimization_round"] for item in projected["spine_optimization_chain"]],
+            [2, 1],
         )
         with self.assertRaisesRegex(ValueError, "Candidate10-derived"):
             validate_normalized_profile_contract(

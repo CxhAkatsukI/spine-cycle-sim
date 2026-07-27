@@ -172,10 +172,73 @@ def validate_normalized_profile_contract(
     spine_path = spine_profile_path.resolve()
     repository_root = spine_path.parents[2]
     spine = load_architecture_profile(spine_path)
-    if spine.profile_id != NORMALIZED_SPINE_PROFILE_ID:
+    reference_spine = spine
+    optimization_chain: list[dict[str, object]] = []
+    seen_profiles: set[str] = set()
+    while reference_spine.profile_id != NORMALIZED_SPINE_PROFILE_ID:
+        if reference_spine.profile_id in seen_profiles:
+            raise ValueError("projected Spine profile lineage contains a cycle")
+        seen_profiles.add(reference_spine.profile_id)
+        if (
+            reference_spine.architecture != "spine"
+            or reference_spine.status.value != "projected"
+            or reference_spine.parameters.get("comparison_role")
+            != "projected_optimized"
+            or reference_spine.parameters.get("normalization_policy")
+            != (
+                "shared_platform_with_explicit_bounded_"
+                "microarchitecture_optimization"
+            )
+        ):
+            raise ValueError(
+                "normalized comparison requires explicit Candidate10-derived Spine "
+                f"profile {NORMALIZED_SPINE_PROFILE_ID} or a validated projected "
+                f"descendant, got {reference_spine.profile_id}"
+            )
+        parent_id = reference_spine.parameters.get("simulation_parent_profile")
+        parent_sha256 = reference_spine.parameters.get(
+            "simulation_parent_profile_sha256"
+        )
+        if not isinstance(parent_id, str) or not isinstance(parent_sha256, str):
+            raise ValueError(
+                f"projected Spine profile {reference_spine.profile_id} lacks "
+                "its simulation-parent identity"
+            )
+        parent_path = spine_path.with_name(f"{parent_id}.json")
+        if not parent_path.is_file():
+            raise ValueError(f"projected Spine parent is missing: {parent_path}")
+        actual_parent_sha256 = sha256_file(parent_path)
+        if actual_parent_sha256 != parent_sha256:
+            raise ValueError(
+                f"projected Spine parent hash is stale for {reference_spine.profile_id}"
+            )
+        parent_profile = load_architecture_profile(parent_path)
+        if parent_profile.profile_id != parent_id:
+            raise ValueError(
+                f"projected Spine parent ID mismatch for {reference_spine.profile_id}"
+            )
+        optimization_chain.append(
+            {
+                "profile_id": reference_spine.profile_id,
+                "profile_sha256": reference_spine.manifest_sha256,
+                "optimization_id": reference_spine.parameters.get(
+                    "optimization_id"
+                ),
+                "optimization_round": reference_spine.parameters.get(
+                    "optimization_round"
+                ),
+                "parent_profile_id": parent_id,
+                "parent_profile_sha256": parent_sha256,
+            }
+        )
+        reference_spine = parent_profile
+        if len(optimization_chain) > 2:
+            raise ValueError("at most two projected Spine optimization rounds are allowed")
+
+    rounds = [item["optimization_round"] for item in optimization_chain]
+    if rounds and rounds != list(range(len(rounds), 0, -1)):
         raise ValueError(
-            "normalized comparison requires explicit Candidate10-derived Spine "
-            f"profile {NORMALIZED_SPINE_PROFILE_ID}, got {spine.profile_id}"
+            f"projected Spine optimization rounds are not contiguous: {rounds}"
         )
     required_spine = {
         "comparison_role": "normalized",
@@ -188,25 +251,37 @@ def validate_normalized_profile_contract(
         "hbm_pseudo_channels_budget": NORMALIZED_HBM_BUDGET,
     }
     for key, expected in required_spine.items():
-        if spine.parameters.get(key) != expected:
+        if reference_spine.parameters.get(key) != expected:
             raise ValueError(
-                f"normalized Spine profile has {key}={spine.parameters.get(key)!r}; "
+                "normalized Spine reference profile has "
+                f"{key}={reference_spine.parameters.get(key)!r}; "
                 f"expected {expected!r}"
             )
 
     parent_path = spine_path.with_name(f"{NORMALIZED_SPINE_PARENT_ID}.json")
     parent = load_architecture_profile(parent_path)
     parent_digest = sha256_file(parent_path)
-    if spine.parameters.get("native_parent_profile_sha256") != parent_digest:
+    if reference_spine.parameters.get("native_parent_profile_sha256") != parent_digest:
         raise ValueError("normalized Spine native-parent SHA-256 is stale")
-    if spine.source != parent.source:
+    if reference_spine.source != parent.source:
         raise ValueError("normalized Spine source identity differs from its native parent")
     for key in _CANDIDATE10_PROTECTED_PARAMETERS:
-        if key not in parent.parameters or spine.parameters.get(key) != parent.parameters[key]:
+        if (
+            key not in parent.parameters
+            or reference_spine.parameters.get(key) != parent.parameters[key]
+        ):
             raise ValueError(
                 f"normalized Spine silently changes protected Candidate10 parameter {key}"
             )
+        if spine.parameters.get(key) != reference_spine.parameters[key]:
+            raise ValueError(
+                f"projected Spine silently changes protected Candidate10 parameter {key}"
+            )
 
+    if spine.memory != reference_spine.memory:
+        raise ValueError("projected Spine changes the shared HBM platform")
+    if spine.parameters.get("hbm_pseudo_channels_budget") != NORMALIZED_HBM_BUDGET:
+        raise ValueError("projected Spine changes the HBM pseudo-channel budget")
     if _clock(spine, "data") != NORMALIZED_CLOCK_MHZ:
         raise ValueError("normalized Spine data clock is not 150 MHz")
     if _clock(spine, "hbm") != NORMALIZED_HBM_CLOCK_MHZ:
@@ -266,7 +341,7 @@ def validate_normalized_profile_contract(
             "resource_reference_profile": profile.parameters.get(
                 "resource_reference_profile"
             )
-            == spine.profile_id,
+            == reference_spine.profile_id,
             "hbm_budget": profile.parameters.get("hbm_pseudo_channels_budget")
             == NORMALIZED_HBM_BUDGET,
             "conversion_free": profile.parameters.get("conversion_cost_included")
@@ -376,6 +451,9 @@ def validate_normalized_profile_contract(
         "grasu_profile_set": profile_set,
         "spine_profile_id": spine.profile_id,
         "spine_profile_sha256": spine.manifest_sha256,
+        "spine_reference_profile_id": reference_spine.profile_id,
+        "spine_reference_profile_sha256": reference_spine.manifest_sha256,
+        "spine_optimization_chain": optimization_chain,
         "native_parent_profile_id": parent.profile_id,
         "native_parent_profile_sha256": parent_digest,
         "grasu_profile_ids": [profile.profile_id for profile in grasu_profiles],
@@ -543,7 +621,7 @@ def build_invocation(
             )
     elif algorithm in {"weighted_sssp", "weighted_dynamic_sssp"}:
         update = artifact_path(root, run["update"])  # type: ignore[arg-type]
-        hls_derived = profile.profile_id.endswith("_hls_weighted_v3")
+        hls_derived = bool(profile.parameters.get("hls_foundation_profile"))
         common[1] = str(
             root
             / "scripts"
@@ -574,7 +652,7 @@ def build_invocation(
         else:
             command.extend(("--max-rounds", str(run.get("max_rounds", 256))))
     elif algorithm == "full_pagerank":
-        hls_derived = profile.profile_id.endswith("_hls_pagerank_v3")
+        hls_derived = bool(profile.parameters.get("hls_foundation_profile"))
         common[1] = str(
             root
             / "scripts"
@@ -624,7 +702,7 @@ def build_invocation(
                 )
             )
     else:
-        hls_derived = profile.profile_id.endswith("_hls_residual_pagerank_v3")
+        hls_derived = bool(profile.parameters.get("hls_foundation_profile"))
         common[1] = str(
             root
             / "scripts"
