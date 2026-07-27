@@ -151,13 +151,16 @@ Compact slices and full datasets are reported as separate populations.
   \begin{subfigure}{0.49\linewidth}
     \centering
     \begin{tikzpicture}
-      \begin{axis}[ybar, width=\linewidth, height=52mm, ymode=log,
-        ylabel={Requested bytes}, symbolic x coords={SSSP,Full PR,Residual PR},
-        xtick=data, ymin=1]
+      \begin{axis}[ybar, width=0.9\linewidth, height=50mm, ymode=log,
+        ylabel={Requested bytes / batch}, symbolic x coords={SSSP,Full PR,Residual PR},
+        xtick=data, ymin=1,
+        legend style={at={(0.5,1.22)},anchor=south,legend columns=2,
+          font=\small,/tikz/every even column/.append style={column sep=4pt}}]
         \addplot[fill=spine] table[x=algorithm,y=spine_bytes,col sep=comma]
           {data/memory_by_algorithm.csv};
         \addplot[fill=grasu] table[x=algorithm,y=grasu_bytes,col sep=comma]
           {data/memory_by_algorithm.csv};
+        \legend{Spine, GraSU+ReGraph}
       \end{axis}
     \end{tikzpicture}
     \caption{Logical requested bytes.}
@@ -165,20 +168,23 @@ Compact slices and full datasets are reported as separate populations.
   \begin{subfigure}{0.49\linewidth}
     \centering
     \begin{tikzpicture}
-      \begin{axis}[ybar, width=\linewidth, height=52mm,
-        ylabel={DRAM row-hit rate}, symbolic x coords={SSSP,Full PR,Residual PR},
+      \begin{axis}[ybar, width=0.9\linewidth, height=50mm,
+        ylabel={Discontinuous-byte fraction}, symbolic x coords={SSSP,Full PR,Residual PR},
         xtick=data, ymin=0, ymax=1]
-        \addplot[fill=spine] table[x=algorithm,y=spine_row_hit,col sep=comma]
+        \addplot[fill=spine] table[x=algorithm,y=spine_discontinuous,col sep=comma]
           {data/memory_by_algorithm.csv};
-        \addplot[fill=grasu] table[x=algorithm,y=grasu_row_hit,col sep=comma]
+        \addplot[fill=grasu] table[x=algorithm,y=grasu_discontinuous,col sep=comma]
           {data/memory_by_algorithm.csv};
       \end{axis}
     \end{tikzpicture}
-    \caption{Controller-observed locality.}
+    \caption{Logical request-stream locality.}
   \end{subfigure}
-  \caption{Memory volume and physical locality use separate metrics.}
+  \caption{Phase-aligned accepted backend traffic for insert batches of eight
+  over five compact real-topology slices (mean bytes per pair).  Locality is
+  classified per initiator and operation after excluding each stream's first
+  request.  It is not a DRAM row-hit metric and excludes burst amplification.}
 \end{figure}
-}{\missingplot{Waiting for phase-aligned request, burst, and DRAM-controller counters.}}
+}{\missingplot{Waiting for phase-aligned accepted-request traffic evidence.}}
 
 \section{Dense-batch behavior}
 \IfFileExists{data/dense_batch.csv}{%

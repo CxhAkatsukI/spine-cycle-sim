@@ -15,6 +15,11 @@ ALGORITHMS = (
     "full_pagerank",
     "thresholded_residual_pagerank",
 )
+ALGORITHM_LABELS = {
+    "weighted_sssp": "SSSP",
+    "full_pagerank": "Full PR",
+    "thresholded_residual_pagerank": "Residual PR",
+}
 SYSTEMS = ("spine", "grasu_regraph")
 LOCALITY_CATEGORIES = ("first", "contiguous", "repeated", "discontinuous")
 
@@ -160,6 +165,73 @@ def load_matrix(
     return manifest, rows
 
 
+def _bool(value: object) -> bool:
+    if isinstance(value, bool):
+        return value
+    return str(value).lower() == "true"
+
+
+def _pair_correct(algorithm: str, row: Mapping[str, str]) -> bool:
+    key = {
+        "weighted_sssp": "cross_system_distances_match",
+        "full_pagerank": "cross_system_ranks_match",
+        "thresholded_residual_pagerank": "cross_system_state_match",
+    }[algorithm]
+    return _bool(row.get(key, False))
+
+
+def load_selected_matrix(
+    algorithm: str,
+    directory: Path,
+    expected_run_ids: set[str],
+) -> tuple[dict[str, object], list[dict[str, object]]]:
+    """Load an explicitly frozen correct subset from a larger PASS matrix."""
+
+    if algorithm not in ALGORITHMS:
+        raise ValueError(f"unsupported algorithm: {algorithm}")
+    if not expected_run_ids:
+        raise ValueError("expected run IDs must not be empty")
+    manifest_path = directory / "matrix_manifest.json"
+    rows_path = directory / "system_rows.csv"
+    pairs_path = directory / "pairs.csv"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    if manifest.get("status") != "PASS" or manifest.get("all_correct") is not True:
+        raise ValueError(f"matrix did not pass correctness: {directory}")
+    if manifest.get("system_rows_sha256") != sha256_file(rows_path):
+        raise ValueError(f"system-row hash mismatch: {directory}")
+    if manifest.get("pairs_sha256") != sha256_file(pairs_path):
+        raise ValueError(f"pair-row hash mismatch: {directory}")
+
+    with rows_path.open(encoding="utf-8", newline="") as stream:
+        source_rows = [
+            row for row in csv.DictReader(stream) if row["run_id"] in expected_run_ids
+        ]
+    observed_keys = [(row["run_id"], row["system"]) for row in source_rows]
+    expected_keys = {
+        (run_id, system) for run_id in expected_run_ids for system in SYSTEMS
+    }
+    if len(observed_keys) != len(set(observed_keys)):
+        raise ValueError(f"duplicate selected system row: {directory}")
+    if set(observed_keys) != expected_keys:
+        raise ValueError(f"selected system-row coverage mismatch: {directory}")
+    if any(int(row.get("correctness_mismatches", "0")) != 0 for row in source_rows):
+        raise ValueError(f"incorrect selected system row: {directory}")
+
+    with pairs_path.open(encoding="utf-8", newline="") as stream:
+        pair_rows = [
+            row for row in csv.DictReader(stream) if row["run_id"] in expected_run_ids
+        ]
+    if len(pair_rows) != len(expected_run_ids) or {
+        row["run_id"] for row in pair_rows
+    } != expected_run_ids:
+        raise ValueError(f"selected pair coverage mismatch: {directory}")
+    if any(not _pair_correct(algorithm, row) for row in pair_rows):
+        raise ValueError(f"selected cross-system result mismatch: {directory}")
+
+    rows = [normalize_system_row(algorithm, row) for row in source_rows]
+    return manifest, rows
+
+
 def pair_memory_rows(rows: Sequence[Mapping[str, object]]) -> list[dict[str, object]]:
     grouped: dict[tuple[str, str], dict[str, Mapping[str, object]]] = {}
     for row in rows:
@@ -285,3 +357,39 @@ def summarize_pairs(pairs: Sequence[Mapping[str, object]]) -> list[dict[str, obj
             }
         )
     return summaries
+
+
+def paper_memory_rows(
+    summaries: Sequence[Mapping[str, object]],
+) -> list[dict[str, object]]:
+    """Produce compact, explicitly logical request metrics for paper plots."""
+
+    indexed = {str(row["algorithm"]): row for row in summaries}
+    if set(indexed) != set(ALGORITHMS):
+        raise ValueError("paper memory table requires all three algorithms")
+    rows: list[dict[str, object]] = []
+    for algorithm in ALGORITHMS:
+        summary = indexed[algorithm]
+        pairs = int(summary["pairs"])
+        if pairs <= 0:
+            raise ValueError(f"{algorithm} has no memory pairs")
+        rows.append(
+            {
+                "algorithm": ALGORITHM_LABELS[algorithm],
+                "spine_bytes": float(summary["spine_requested_bytes"]) / pairs,
+                "grasu_bytes": float(summary["grasu_requested_bytes"]) / pairs,
+                "spine_discontinuous": summary[
+                    "spine_discontinuous_byte_ratio_aggregate"
+                ],
+                "grasu_discontinuous": summary[
+                    "grasu_discontinuous_byte_ratio_aggregate"
+                ],
+                "spine_contiguous": summary[
+                    "spine_contiguous_byte_ratio_aggregate"
+                ],
+                "grasu_contiguous": summary[
+                    "grasu_contiguous_byte_ratio_aggregate"
+                ],
+            }
+        )
+    return rows
