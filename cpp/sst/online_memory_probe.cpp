@@ -1443,6 +1443,8 @@ class OnlineMemoryProbe final : public SST::Component {
         params.find<std::uint64_t>("range_task_payload_budget", 1'048'576);
     fallback_replay_threshold_ =
         params.find<std::uint64_t>("fallback_replay_threshold", 65'536);
+    fallback_level_cache_reuse_ =
+        params.find<bool>("fallback_level_cache_reuse", false);
     memory_request_window_ =
         params.find<std::size_t>("memory_request_window", 1);
     compute_memory_request_window_ =
@@ -2027,6 +2029,7 @@ class OnlineMemoryProbe final : public SST::Component {
       config.range_task_capacity = range_task_capacity_;
       config.range_task_payload_budget = range_task_payload_budget_;
       config.fallback_replay_threshold = fallback_replay_threshold_;
+      config.fallback_level_cache_reuse = fallback_level_cache_reuse_;
       config.memory_request_window = memory_request_window_;
       config.reader_edge_pipeline_depth = reader_edge_pipeline_depth_;
       config.reader_edge_response_capacity = reader_edge_response_capacity_;
@@ -2181,6 +2184,8 @@ class OnlineMemoryProbe final : public SST::Component {
       maintenance_config.range_task_capacity = range_task_capacity_;
       maintenance_config.range_task_payload_budget = range_task_payload_budget_;
       maintenance_config.fallback_replay_threshold = fallback_replay_threshold_;
+      maintenance_config.fallback_level_cache_reuse =
+          fallback_level_cache_reuse_;
       maintenance_config.memory_request_window = memory_request_window_;
       maintenance_config.reader_edge_pipeline_depth =
           reader_edge_pipeline_depth_;
@@ -2439,6 +2444,8 @@ class OnlineMemoryProbe final : public SST::Component {
       maintenance_config.range_task_capacity = range_task_capacity_;
       maintenance_config.range_task_payload_budget = range_task_payload_budget_;
       maintenance_config.fallback_replay_threshold = fallback_replay_threshold_;
+      maintenance_config.fallback_level_cache_reuse =
+          fallback_level_cache_reuse_;
       maintenance_config.memory_request_window = memory_request_window_;
       maintenance_config.reader_edge_pipeline_depth =
           reader_edge_pipeline_depth_;
@@ -3006,6 +3013,8 @@ class OnlineMemoryProbe final : public SST::Component {
       {"range_task_payload_budget", "Exact-reader construction budget",
        "1048576"},
       {"fallback_replay_threshold", "HOST fallback replay threshold", "65536"},
+      {"fallback_level_cache_reuse",
+       "Reuse launch-loaded level metadata in HOST fallback", "false"},
       {"memory_request_window",
        "Coarse producer request window (greater than one is a what-if)", "1"},
       {"compute_memory_request_window",
@@ -3212,7 +3221,9 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"spine_axi_profile\": \"" << spine_axi_profile_id_
              << "\",\n"
              << "  \"spine_maintenance_architecture\": \""
-             << spine_maintenance_architecture_id_ << "\",\n";
+             << spine_maintenance_architecture_id_ << "\",\n"
+             << "  \"fallback_level_cache_reuse\": "
+             << (fallback_level_cache_reuse_ ? "true" : "false") << ",\n";
       write_candidate_maintenance_counters(result, maintenance);
       write_spine_axi_profile_fields(result, spine_axi_profile_);
       write_maintenance_axi_stats(result, maintenance_axi);
@@ -4897,7 +4908,9 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
           << "  \"spine_axi_profile\": \"" << spine_axi_profile_id_ << "\",\n"
           << "  \"spine_maintenance_architecture\": \""
-          << spine_maintenance_architecture_id_ << "\",\n";
+          << spine_maintenance_architecture_id_ << "\",\n"
+          << "  \"fallback_level_cache_reuse\": "
+          << (fallback_level_cache_reuse_ ? "true" : "false") << ",\n";
       write_candidate_maintenance_counters(result, maintenance);
       result << "  \"timing_evidence\": \"provisional_algorithm_pipeline\",\n"
              << "  \"failure\": ";
@@ -5048,6 +5061,10 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"maintenance_logical_overflow_events\": "
           << maintenance.logical_overflow_events << ",\n"
           << "  \"reader_edges\": " << reader.edges_emitted << ",\n"
+          << "  \"reader_fallback_level_cache_reuses\": "
+          << reader.fallback_level_cache_reuses << ",\n"
+          << "  \"reader_fallback_level_cache_empty_skips\": "
+          << reader.fallback_level_cache_empty_skips << ",\n"
           << "  \"reader_source_requests\": " << reader.source_requests
           << ",\n"
           << "  \"reader_source_responses\": " << reader.source_responses
@@ -5202,7 +5219,9 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
           << "  \"spine_axi_profile\": \"" << spine_axi_profile_id_ << "\",\n"
           << "  \"spine_maintenance_architecture\": \""
-          << spine_maintenance_architecture_id_ << "\",\n";
+          << spine_maintenance_architecture_id_ << "\",\n"
+          << "  \"fallback_level_cache_reuse\": "
+          << (fallback_level_cache_reuse_ ? "true" : "false") << ",\n";
       write_candidate_maintenance_counters(result, maintenance);
       result << "  \"timing_evidence\": \"provisional_algorithm_pipeline\",\n"
              << "  \"failure\": ";
@@ -5363,6 +5382,10 @@ class OnlineMemoryProbe final : public SST::Component {
           << reader.level_cache_read_bytes << ",\n"
           << "  \"reader_row_lookup_metadata_bytes\": "
           << reader.row_lookup_metadata_bytes << ",\n"
+          << "  \"reader_fallback_level_cache_reuses\": "
+          << reader.fallback_level_cache_reuses << ",\n"
+          << "  \"reader_fallback_level_cache_empty_skips\": "
+          << reader.fallback_level_cache_empty_skips << ",\n"
           << "  \"reader_metadata_bytes\": " << reader.metadata_read_bytes
           << ",\n"
           << "  \"reader_range_active_records\": "
@@ -5830,6 +5853,8 @@ class OnlineMemoryProbe final : public SST::Component {
       std::vector<std::uint64_t> reader_fallback_partitions;
       std::vector<std::uint64_t> reader_fallback_forced_dense_partitions;
       std::vector<std::uint64_t> reader_fallback_active_record_reads;
+      std::vector<std::uint64_t> reader_fallback_level_cache_reuses;
+      std::vector<std::uint64_t> reader_fallback_level_cache_empty_skips;
       std::vector<std::uint64_t> reader_fallback_row_lookups;
       std::vector<std::uint64_t> reader_fallback_replay_edges;
       std::vector<std::uint32_t> reader_range_paths;
@@ -6005,6 +6030,10 @@ class OnlineMemoryProbe final : public SST::Component {
             round.reader.fallback_forced_dense_partitions);
         reader_fallback_active_record_reads.push_back(
             round.reader.fallback_active_record_reads);
+        reader_fallback_level_cache_reuses.push_back(
+            round.reader.fallback_level_cache_reuses);
+        reader_fallback_level_cache_empty_skips.push_back(
+            round.reader.fallback_level_cache_empty_skips);
         reader_fallback_row_lookups.push_back(
             round.reader.fallback_row_lookups);
         reader_fallback_replay_edges.push_back(
@@ -6225,7 +6254,9 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
           << "  \"spine_axi_profile\": \"" << spine_axi_profile_id_ << "\",\n"
           << "  \"spine_maintenance_architecture\": \""
-          << spine_maintenance_architecture_id_ << "\",\n";
+          << spine_maintenance_architecture_id_ << "\",\n"
+          << "  \"fallback_level_cache_reuse\": "
+          << (fallback_level_cache_reuse_ ? "true" : "false") << ",\n";
       write_candidate_maintenance_counters(result, maintenance);
       result << "  \"axi_graph_data_width_bytes\": "
           << spine_axi_profile_.graph_bytes << ",\n"
@@ -6738,6 +6769,11 @@ class OnlineMemoryProbe final : public SST::Component {
       write_json_array(result, reader_fallback_forced_dense_partitions);
       result << ",\n  \"reader_fallback_active_record_reads_per_round\": ";
       write_json_array(result, reader_fallback_active_record_reads);
+      result << ",\n  \"reader_fallback_level_cache_reuses_per_round\": ";
+      write_json_array(result, reader_fallback_level_cache_reuses);
+      result
+          << ",\n  \"reader_fallback_level_cache_empty_skips_per_round\": ";
+      write_json_array(result, reader_fallback_level_cache_empty_skips);
       result << ",\n  \"reader_fallback_row_lookups_per_round\": ";
       write_json_array(result, reader_fallback_row_lookups);
       result << ",\n  \"reader_fallback_replay_edges_per_round\": ";
@@ -7087,7 +7123,9 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
           << "  \"spine_axi_profile\": \"" << spine_axi_profile_id_ << "\",\n"
           << "  \"spine_maintenance_architecture\": \""
-          << spine_maintenance_architecture_id_ << "\",\n";
+          << spine_maintenance_architecture_id_ << "\",\n"
+          << "  \"fallback_level_cache_reuse\": "
+          << (fallback_level_cache_reuse_ ? "true" : "false") << ",\n";
       write_candidate_maintenance_counters(result, maintenance);
       result << "  \"axi_graph_data_width_bytes\": "
           << spine_axi_profile_.graph_bytes << ",\n"
@@ -7470,6 +7508,10 @@ class OnlineMemoryProbe final : public SST::Component {
           << reader.graph_index_bitmap_misses << ",\n"
           << "  \"reader_graph_index_bitmap_words\": "
           << reader.graph_index_bitmap_words << ",\n"
+          << "  \"reader_fallback_level_cache_reuses\": "
+          << reader.fallback_level_cache_reuses << ",\n"
+          << "  \"reader_fallback_level_cache_empty_skips\": "
+          << reader.fallback_level_cache_empty_skips << ",\n"
           << "  \"reader_range_active_records\": "
           << reader.range_task_active_records << ",\n"
           << "  \"reader_range_family_probes\": "
@@ -7846,6 +7888,7 @@ class OnlineMemoryProbe final : public SST::Component {
   std::size_t range_task_capacity_{};
   std::uint64_t range_task_payload_budget_{};
   std::uint64_t fallback_replay_threshold_{};
+  bool fallback_level_cache_reuse_{};
   std::size_t memory_request_window_{};
   std::size_t compute_memory_request_window_{};
   std::size_t compute_writeonly_request_window_{};

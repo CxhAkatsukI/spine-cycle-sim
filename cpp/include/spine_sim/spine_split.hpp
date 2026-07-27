@@ -123,6 +123,8 @@ struct SpineReaderCounters {
   std::uint64_t fallback_active_record_reads{};
   std::uint64_t fallback_active_record_read_bytes{};
   std::uint64_t fallback_metadata_read_bytes{};
+  std::uint64_t fallback_level_cache_reuses{};
+  std::uint64_t fallback_level_cache_empty_skips{};
   std::uint64_t fallback_row_lookups{};
   std::uint64_t fallback_lower_bound_reads{};
   std::uint64_t fallback_endpoint_reads{};
@@ -382,6 +384,9 @@ class SpineSplitReader final : public Component {
     kEdgeRead,
     kEdgeEmit,
     kTileEnd,
+    kFallbackLevelCacheBegin,
+    kFallbackLevelCacheDetails,
+    kFallbackLevelCacheResolve,
     kFallbackPartitionBegin,
     kFallbackPassBegin,
     kFallbackRecordRead,
@@ -515,6 +520,7 @@ class SpineSplitReader final : public Component {
   std::vector<RangeTask> range_tasks_;
   std::array<LevelCacheEntry, kSpineFamilyCount * kSpineLevelCount>
       level_cache_{};
+  bool level_cache_ready_{};
   std::unordered_map<std::uint32_t, std::uint32_t> source_values_;
   FallbackLookup fallback_lookup_;
   SpineEdgeRecord fallback_binary_edge_;

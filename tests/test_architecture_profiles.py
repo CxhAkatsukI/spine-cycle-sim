@@ -50,7 +50,7 @@ class ArchitectureProfileTests(unittest.TestCase):
 
     def test_repository_profiles_load_and_have_unique_ids(self) -> None:
         loaded = [load_architecture_profile(path) for path in sorted(PROFILES.glob("*.json"))]
-        self.assertEqual(len(loaded), 31)
+        self.assertEqual(len(loaded), 32)
         self.assertEqual(len({profile.profile_id for profile in loaded}), len(loaded))
         self.assertTrue(all(profile.manifest_sha256 for profile in loaded))
 
@@ -103,6 +103,29 @@ class ArchitectureProfileTests(unittest.TestCase):
         )
         self.assertEqual(
             normalized.parameters["axi_profile"], "candidate10_gmem_1e61fc0"
+        )
+
+    def test_candidate10_opt_v1_is_an_explicit_projected_delta(self) -> None:
+        normalized = load_architecture_profile(
+            PROFILES / "spine_candidate10_normalized_v1.json"
+        )
+        optimized = load_architecture_profile(
+            PROFILES / "spine_candidate10_opt_v1_fallback_level_cache.json"
+        )
+        self.assertEqual(optimized.status, ProfileStatus.PROJECTED)
+        self.assertEqual(optimized.evidence_tier, EvidenceTier.SIMULATION_ONLY)
+        self.assertEqual(
+            optimized.parameters["simulation_parent_profile"],
+            normalized.profile_id,
+        )
+        self.assertEqual(
+            optimized.parameters["simulation_parent_profile_sha256"],
+            normalized.manifest_sha256,
+        )
+        self.assertTrue(optimized.parameters["fallback_level_cache_reuse"])
+        self.assertEqual(
+            optimized.parameters["optimization_id"],
+            "fallback_launch_level_cache_reuse",
         )
 
     def test_stable_profile_pins_accepted_clocks_and_hash(self) -> None:

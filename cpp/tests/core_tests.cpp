@@ -7704,6 +7704,107 @@ void test_spine_pagerank_active_gate_fallback_preserves_tile_identity() {
           "or arithmetic correctness");
 }
 
+void test_spine_pagerank_fallback_reuses_launch_level_cache() {
+  struct Run {
+    bool failed{};
+    std::uint64_t cycles{};
+    std::uint64_t backend_requests{};
+    SpineReaderCounters reader;
+    spine::sim::SpinePageRankCounters compute;
+    std::vector<std::uint32_t> ranks;
+  };
+  const auto run = [](bool reuse) {
+    Scheduler scheduler;
+    const auto core = scheduler.add_clock_mhz("pagerank-cache-reuse", 200.0);
+    MockMemoryBackend backend("pagerank-cache-reuse-hbm", core,
+                              MockMemoryConfig{
+                                  .channels = 32,
+                                  .latency_cycles = 2,
+                                  .accepts_per_channel_per_cycle = 1,
+                                  .max_outstanding_per_channel = 128,
+                                  .response_queue_depth = 256,
+                              });
+    SpineEdgeSlice workload{
+        .vertices = 129,
+        .edges = {},
+        .case_name = reuse ? "pagerank_cache_reuse_on"
+                           : "pagerank_cache_reuse_off",
+    };
+    for (std::uint32_t source = 0; source < workload.vertices; ++source) {
+      workload.edges.push_back(
+          {.src = source,
+           .dst = static_cast<std::uint32_t>((source + 1) % workload.vertices),
+           .weight = 1,
+           .diff = 1});
+    }
+    SpineL0Config config;
+    config.range_task_active_gate = 128;
+    config.fallback_level_cache_reuse = reuse;
+    SpinePageRankVerticalSliceSystem system(scheduler, core, backend, workload,
+                                            0.8F, config);
+    system.register_components();
+    scheduler.add_component(backend);
+    scheduler.run_until(
+        [&] {
+          return (system.done() || system.failed()) && system.idle() &&
+                 backend.outstanding() == 0;
+        },
+        500'000);
+    return Run{
+        .failed = system.failed(),
+        .cycles = scheduler.clock(core).completed_cycles,
+        .backend_requests = backend.stats().accepted,
+        .reader = system.reader_counters(),
+        .compute = system.compute_counters(),
+        .ranks = system.compute().rank_words(),
+    };
+  };
+
+  const Run baseline = run(false);
+  const Run optimized = run(true);
+  std::cout << "EVIDENCE spine_pagerank_fallback_level_cache_reuse"
+            << " baseline_failed=" << baseline.failed
+            << " optimized_failed=" << optimized.failed
+            << " ranks_equal=" << (baseline.ranks == optimized.ranks)
+            << " baseline_edges=" << baseline.reader.edges_emitted
+            << " optimized_edges=" << optimized.reader.edges_emitted
+            << " baseline_compute_edges=" << baseline.compute.edges_received
+            << " optimized_compute_edges=" << optimized.compute.edges_received
+            << " baseline_cycles=" << baseline.cycles
+            << " optimized_cycles=" << optimized.cycles
+            << " baseline_requests=" << baseline.backend_requests
+            << " optimized_requests=" << optimized.backend_requests
+            << " optimized_reuses="
+            << optimized.reader.fallback_level_cache_reuses
+            << " optimized_empty_skips="
+            << optimized.reader.fallback_level_cache_empty_skips
+            << " optimized_row_lookups="
+            << optimized.reader.fallback_row_lookups
+            << " optimized_bitmap_misses="
+            << optimized.reader.graph_index_bitmap_misses
+            << " optimized_epoch_misses="
+            << optimized.reader.graph_index_epoch_misses
+            << " optimized_range_error=" << optimized.reader.range_task_error
+            << '\n';
+  require(!baseline.failed && !optimized.failed &&
+              baseline.ranks == optimized.ranks &&
+              baseline.reader.edges_emitted == optimized.reader.edges_emitted &&
+              baseline.compute.edges_received == optimized.compute.edges_received,
+          "fallback level-cache reuse changed PageRank semantics or work");
+  require(baseline.reader.fallback_level_cache_reuses == 0 &&
+              optimized.reader.fallback_level_cache_reuses > 0 &&
+              optimized.reader.memory_requests_issued ==
+                  optimized.reader.memory_requests_completed,
+          "fallback level-cache reuse was bypassed or left an open ledger");
+  require(optimized.reader.fallback_metadata_read_bytes <
+                  baseline.reader.fallback_metadata_read_bytes &&
+              optimized.reader.row_lookup_metadata_bytes <
+                  baseline.reader.row_lookup_metadata_bytes &&
+              optimized.backend_requests < baseline.backend_requests &&
+              optimized.cycles < baseline.cycles,
+          "fallback level-cache reuse did not remove metadata traffic and cycles");
+}
+
 void test_spine_pagerank_reports_maintenance_failure_without_compute_done() {
   Scheduler scheduler;
   const auto core = scheduler.add_clock_mhz("pagerank-failure", 200.0);
@@ -8140,6 +8241,8 @@ int main(int argc, char **argv) {
        test_spine_full_pagerank_vertical_slice_reads_level_edges},
       {"spine_pagerank_active_gate_fallback",
        test_spine_pagerank_active_gate_fallback_preserves_tile_identity},
+      {"spine_pagerank_fallback_level_cache_reuse",
+       test_spine_pagerank_fallback_reuses_launch_level_cache},
       {"spine_pagerank_maintenance_failure",
        test_spine_pagerank_reports_maintenance_failure_without_compute_done},
       {"spine_dynamic_pagerank",

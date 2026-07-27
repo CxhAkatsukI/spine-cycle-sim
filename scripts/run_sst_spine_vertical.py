@@ -1299,6 +1299,12 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--fallback-replay-threshold", type=int, default=65_536)
     parser.add_argument(
+        "--fallback-level-cache-reuse",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="reuse launch-loaded level metadata during HOST fallback",
+    )
+    parser.add_argument(
         "--memory-request-window",
         type=int,
         default=1,
@@ -1430,6 +1436,9 @@ def main() -> int:
     profile_axi = profile.get("parameters", {}).get(
         "axi_profile", "hls_split_9c08763"
     )
+    profile_fallback_level_cache_reuse = bool(
+        profile.get("parameters", {}).get("fallback_level_cache_reuse", False)
+    )
     if profile_axi not in {
         "hls_split_9c08763",
         "candidate10_gmem_1e61fc0",
@@ -1445,6 +1454,8 @@ def main() -> int:
         raise SystemExit("profile has an unknown maintenance_architecture")
     if args.maintenance_architecture is None:
         args.maintenance_architecture = profile_maintenance_architecture
+    if args.fallback_level_cache_reuse is None:
+        args.fallback_level_cache_reuse = profile_fallback_level_cache_reuse
     try:
         data_clock = next(
             clock for clock in profile["clocks"] if clock["name"] == "data"
@@ -1683,6 +1694,9 @@ def main() -> int:
             "SPINE_SST_FALLBACK_REPLAY_THRESHOLD": str(
                 args.fallback_replay_threshold
             ),
+            "SPINE_SST_FALLBACK_LEVEL_CACHE_REUSE": (
+                "1" if args.fallback_level_cache_reuse else "0"
+            ),
             "SPINE_SST_MEMORY_REQUEST_WINDOW": str(args.memory_request_window),
             "SPINE_SST_COMPUTE_MEMORY_REQUEST_WINDOW": str(
                 args.compute_memory_request_window
@@ -1915,6 +1929,11 @@ def main() -> int:
         != args.maintenance_architecture
     ):
         problems.append("maintenance_architecture")
+    if (
+        result.get("fallback_level_cache_reuse")
+        is not args.fallback_level_cache_reuse
+    ):
+        problems.append("fallback_level_cache_reuse")
     if args.scenario != "candidate10_maintenance" and (
         result.get("compute_memory_request_window")
         != args.compute_memory_request_window

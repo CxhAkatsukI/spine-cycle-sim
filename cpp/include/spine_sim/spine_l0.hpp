@@ -157,6 +157,9 @@ struct SpineL0Config {
   std::size_t range_task_capacity{65'536};
   std::uint64_t range_task_payload_budget{1'048'576};
   std::uint64_t fallback_replay_threshold{65'536};
+  // Projected optimization: reuse the level metadata already loaded at reader
+  // launch instead of rereading invariant slice fields for every fallback row.
+  bool fallback_level_cache_reuse{false};
   // Logical parent-request window per independent m_axi initiator. A value of
   // one keeps each bundle ordered while allowing different HLS bundles to
   // overlap. Values above one remain an explicit same-bundle overlap what-if

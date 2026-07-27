@@ -260,6 +260,7 @@ void SpineSplitReader::reset_state() {
   active_records_.clear();
   host_active_bins_ = {};
   level_cache_ = {};
+  level_cache_ready_ = false;
   source_values_.clear();
   fallback_lookup_ = {};
   fallback_touched_masks_.fill(0);
@@ -1508,7 +1509,10 @@ void SpineSplitReader::start_host_fallback(std::uint32_t reason) {
   for (TileTask &tile : tiles_) {
     tile.ranges.clear();
   }
-  phase_ = Phase::kFallbackPartitionBegin;
+  phase_ = maintenance_.config().fallback_level_cache_reuse &&
+                   !level_cache_ready_
+               ? Phase::kFallbackLevelCacheBegin
+               : Phase::kFallbackPartitionBegin;
 }
 
 std::uint32_t SpineSplitReader::fallback_partition_base() const {
@@ -1598,6 +1602,10 @@ void SpineSplitReader::resolve_fallback_lookup_header() {
     phase_ = Phase::kFallbackLevelAdvance;
     return;
   }
+  if (maintenance_.config().fallback_level_cache_reuse) {
+    phase_ = Phase::kFallbackLookupBitmapOffsetResolve;
+    return;
+  }
   const std::size_t logical_family =
       fallback_lookup_.hot ? kPartitionCount + fallback_lookup_.family
                            : fallback_lookup_.family;
@@ -1661,6 +1669,10 @@ void SpineSplitReader::resolve_fallback_lookup_rank() {
         selected & ((std::uint64_t{1} << fallback_lookup_.lane_bit) - 1));
   }
   fallback_lookup_.rank = rank;
+  if (maintenance_.config().fallback_level_cache_reuse) {
+    phase_ = Phase::kFallbackLookupOffsetsResolve;
+    return;
+  }
   const std::size_t logical_family =
       fallback_lookup_.hot ? kPartitionCount + fallback_lookup_.family
                            : fallback_lookup_.family;
@@ -1737,6 +1749,10 @@ void SpineSplitReader::resolve_fallback_lookup_row() {
   }
   if (fallback_lookup_.end == fallback_lookup_.start) {
     phase_ = Phase::kFallbackLevelAdvance;
+    return;
+  }
+  if (maintenance_.config().fallback_level_cache_reuse) {
+    phase_ = Phase::kFallbackRangeResolve;
     return;
   }
   const std::size_t logical_family =
@@ -1827,6 +1843,18 @@ void SpineSplitReader::finish_fallback_discovery() {
 
 void SpineSplitReader::advance_fallback() {
   switch (phase_) {
+  case Phase::kFallbackLevelCacheBegin:
+    enqueue_level_cache_reads();
+    phase_ = Phase::kFallbackLevelCacheDetails;
+    return;
+  case Phase::kFallbackLevelCacheDetails:
+    enqueue_level_detail_reads();
+    phase_ = Phase::kFallbackLevelCacheResolve;
+    return;
+  case Phase::kFallbackLevelCacheResolve:
+    finalize_level_cache();
+    phase_ = Phase::kFallbackPartitionBegin;
+    return;
   case Phase::kFallbackPartitionBegin:
     if (fallback_partition_ == kPartitionCount ||
         fallback_partition_base() >= maintenance_.vertices()) {
@@ -1920,6 +1948,43 @@ void SpineSplitReader::advance_fallback() {
     fallback_lookup_.lane_bit =
         (record.source % maintenance_.config().page_vertices) % 64;
     ++counters_.fallback_row_lookups;
+    if (maintenance_.config().fallback_level_cache_reuse) {
+      const std::size_t logical_family =
+          fallback_lookup_.hot ? kPartitionCount + fallback_lookup_.family
+                               : fallback_lookup_.family;
+      const std::size_t slice =
+          logical_family * kLevelCount + fallback_lookup_.level;
+      const LevelCacheEntry &entry = level_cache_.at(slice);
+      ++counters_.fallback_level_cache_reuses;
+      if (!entry.occupied) {
+        ++counters_.fallback_level_cache_empty_skips;
+        phase_ = Phase::kFallbackLevelAdvance;
+        return;
+      }
+      if (!entry.valid) {
+        counters_.range_task_path = kRangeTaskPathError;
+        counters_.range_task_error = kRangeTaskErrorMetadata;
+        begin_terminal(true, "cached fallback level metadata is invalid");
+        return;
+      }
+      fallback_lookup_.occupied = true;
+      fallback_lookup_.slice_epoch = entry.slice_epoch;
+      fallback_lookup_.layout = entry.layout;
+      const SpineMetadataLayout metadata =
+          spine_metadata_layout(maintenance_.config());
+      const std::size_t page_epoch_index =
+          slice * metadata.page_count + fallback_lookup_.page;
+      enqueue_read(
+          *ports_.metadata,
+          maintenance_.config().metadata_base +
+              (metadata.page_epoch_base + (page_epoch_index >> 1)) *
+                  kMetadataWordBytes,
+          kMetadataWordBytes, MemoryPayloadKind::kFallbackPageEpoch);
+      counters_.fallback_metadata_read_bytes += kMetadataWordBytes;
+      counters_.row_lookup_metadata_bytes += kMetadataWordBytes;
+      phase_ = Phase::kFallbackLookupHeaderResolve;
+      return;
+    }
     enqueue_fallback_lookup_header();
     phase_ = Phase::kFallbackLookupHeaderResolve;
     return;
@@ -2479,6 +2544,7 @@ void SpineSplitReader::finalize_level_cache() {
         span_valid(entry.layout.mask_offset_words, mask_words) &&
         span_valid(entry.layout.edge_offset_words, entry.edge_count);
   }
+  level_cache_ready_ = true;
 }
 
 void SpineSplitReader::begin_terminal(bool overflow, std::string failure) {
@@ -3084,6 +3150,9 @@ void SpineSplitReader::advance(const CycleContext &context) {
     case Phase::kTileEnd:
     return;
   case Phase::kFallbackPartitionBegin:
+  case Phase::kFallbackLevelCacheBegin:
+  case Phase::kFallbackLevelCacheDetails:
+  case Phase::kFallbackLevelCacheResolve:
   case Phase::kFallbackPassBegin:
   case Phase::kFallbackRecordRead:
   case Phase::kFallbackRecordResolve:
