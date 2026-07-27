@@ -7,10 +7,17 @@ import csv
 import hashlib
 import json
 from pathlib import Path
+import sys
 from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from spine_cycle_sim.experiments.grasu_addressing import (  # noqa: E402
+    FROZEN_CANDIDATE10_ADDRESS_PARAMETERS,
+)
 PROFILE_DIR = ROOT / "configs" / "architectures"
 CONTRACT_PATH = ROOT / "configs" / "contracts" / "grasu_regraph_k_pipeline_freeze_v1.json"
 CATALOG_PATH = (
@@ -21,6 +28,12 @@ FEASIBILITY_PATH = (
     / "configs"
     / "contracts"
     / "candidate10_k1_multipart_hls_feasibility_v3.json"
+)
+SHARED_MANIFEST_PATH = (
+    ROOT
+    / "configs"
+    / "experiments"
+    / "shared_comparison_candidate10_k1_multipart_v4_20260728.json"
 )
 PPA_PATH = ROOT / "configs" / "evidence" / "candidate10_publication_ppa_v3.json"
 HLS_PIPELINE_BUILD_REVISION = "80c50937278a0835aee09b62cb1c61bdc4903d4f"
@@ -238,6 +251,8 @@ def make_profile(
             "pipeline_freeze_contract": str(CONTRACT_PATH.relative_to(ROOT)),
             "pipeline_freeze_contract_sha256": contract_sha,
             "pipeline_build_contract_revision": HLS_PIPELINE_BUILD_REVISION,
+            "physical_address_map_id": "candidate10_hbm_pc_nonalias_v1",
+            **FROZEN_CANDIDATE10_ADDRESS_PARAMETERS,
         }
     )
     profile["features"] = list(
@@ -247,6 +262,7 @@ def make_profile(
                 "runtime_destination_partitioning",
                 "finite_work_conserving_partition_dispatch",
                 "routed_k1_complete_compute_worker",
+                "physical_hbm_pseudo_channel_nonalias_map",
             ]
         )
     )
@@ -266,6 +282,10 @@ def make_profile(
         (
             "Timing is reported at the common 150 MHz comparison clock; the routed "
             "PageRank builds miss the target by less than 0.14 ns."
+        ),
+        (
+            "The physical buffer map supports at most four destination partitions "
+            "inside each 512 MiB HBM pseudo-channel; larger graphs require remapping."
         ),
     ]
     profile["evidence"] = [
@@ -526,6 +546,33 @@ def make_feasibility(payloads: dict[str, bytes]) -> dict[str, Any]:
     }
 
 
+def update_shared_manifest(
+    profile_payloads: dict[str, bytes], catalog_payload: bytes
+) -> None:
+    manifest = json.loads(SHARED_MANIFEST_PATH.read_text(encoding="utf-8"))
+    manifest["capability_catalog"]["sha256"] = hashlib.sha256(
+        catalog_payload
+    ).hexdigest()
+    profile_hashes = {
+        f"configs/architectures/{ALGORITHMS[algorithm]['output']}": hashlib.sha256(
+            payload
+        ).hexdigest()
+        for algorithm, payload in profile_payloads.items()
+    }
+    for artifact in manifest["profiles"]:
+        if artifact["path"] in profile_hashes:
+            artifact["sha256"] = profile_hashes[artifact["path"]]
+    manifest["limits"] = {
+        "normalized_vertices": 4 * 65_536,
+        "not_claimed": "more_than_four_destination_partitions_without_remapping",
+        "reason": (
+            "The frozen physical HBM map reserves four disjoint 16 MiB windows "
+            "per PMA, row, and binary region inside each 512 MiB pseudo-channel."
+        ),
+    }
+    SHARED_MANIFEST_PATH.write_bytes(encode(manifest))
+
+
 def main() -> int:
     contract = build_contract()
     contract_payload = encode(contract)
@@ -551,10 +598,12 @@ def main() -> int:
     for (algorithm, k), payload in scalability_payloads.items():
         _, output = scalability_identity(algorithm, k)
         (PROFILE_DIR / output).write_bytes(payload)
-    CATALOG_PATH.write_bytes(
-        encode(make_catalog(profiles, profile_payloads, scalability_payloads))
+    catalog_payload = encode(
+        make_catalog(profiles, profile_payloads, scalability_payloads)
     )
+    CATALOG_PATH.write_bytes(catalog_payload)
     FEASIBILITY_PATH.write_bytes(encode(make_feasibility(profile_payloads)))
+    update_shared_manifest(profile_payloads, catalog_payload)
     print(f"wrote {CONTRACT_PATH.relative_to(ROOT)} sha256={contract_sha}")
     for algorithm, spec in ALGORITHMS.items():
         print(
@@ -570,6 +619,7 @@ def main() -> int:
             )
     print(f"wrote {CATALOG_PATH.relative_to(ROOT)}")
     print(f"wrote {FEASIBILITY_PATH.relative_to(ROOT)}")
+    print(f"updated {SHARED_MANIFEST_PATH.relative_to(ROOT)}")
     return 0
 
 

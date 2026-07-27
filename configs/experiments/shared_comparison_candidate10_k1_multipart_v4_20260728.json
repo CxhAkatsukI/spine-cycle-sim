@@ -1,7 +1,7 @@
 {
   "capability_catalog": {
     "path": "configs/contracts/grasu_regraph_k1_multipart_capabilities_v4.json",
-    "sha256": "d8280936ff59c180df0de567444c1f43eb89deab9123eca7cf227a635e24f146"
+    "sha256": "b40237dedc8bcc1ed39f52dc838f3d18157aa8bc6dc9bda65becb04a5ad7b0dd"
   },
   "claim_class": "resource_normalized_k1_multipart_execution_driven_contract",
   "comparison_contract": {
@@ -542,9 +542,9 @@
     }
   ],
   "limits": {
-    "normalized_vertices": 65536,
-    "not_claimed": "multi-partition weighted SSSP or residual PageRank scalability",
-    "reason": "current normalized weighted GraSU/ReGraph ABI is one 19-bit destination partition; this corpus deliberately stays in one 65536-vertex compute partition"
+    "normalized_vertices": 262144,
+    "not_claimed": "more_than_four_destination_partitions_without_remapping",
+    "reason": "The frozen physical HBM map reserves four disjoint 16 MiB windows per PMA, row, and binary region inside each 512 MiB pseudo-channel."
   },
   "matrix_id": "shared_comparison_candidate10_k1_multipart_v4_20260728",
   "profiles": [
@@ -558,15 +558,15 @@
     },
     {
       "path": "configs/architectures/grasu_regraph_candidate10_k1_multipart_weighted_v4.json",
-      "sha256": "a6a2cca9dff4f55b3f096868c2e24b453c3a249cfcff443c50f5e7a61f5ca71e"
+      "sha256": "47adf5b1aa9c9dcc2357789f67a0eeb74b4cddd71cb67ed2ff3004eb5e0e3761"
     },
     {
       "path": "configs/architectures/grasu_regraph_candidate10_k1_multipart_pagerank_v4.json",
-      "sha256": "cb33252599584880ffb2281d161178f543db68e3dfb855df0f4b3fef4fa733ab"
+      "sha256": "b5e30d7bb8106c103fbae947fc90ef13b1af7b7f07f8593a515ae2068813d824"
     },
     {
       "path": "configs/architectures/grasu_regraph_candidate10_k1_multipart_residual_v4.json",
-      "sha256": "0d035f8c036c3632a6d99770abd91b7144b8ceb19b9777a4fd5e1d59b367a049"
+      "sha256": "00288ab8bf2b1856478afd08094f5379fc9cc4c6b8ba583153dc7c9c8609ad9d"
     }
   ],
   "real_sources": [

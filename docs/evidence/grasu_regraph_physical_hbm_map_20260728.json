@@ -1,0 +1,37 @@
+{
+  "address_map_id": "candidate10_hbm_pc_nonalias_v1",
+  "catalog_sha256": "b40237dedc8bcc1ed39f52dc838f3d18157aa8bc6dc9bda65becb04a5ad7b0dd",
+  "channel_capacity_bytes": 536870912,
+  "destination_partition_stride_bytes": 16777216,
+  "maximum_destination_partitions": 4,
+  "pre_fix_evidence_policy": "functional_regression_only_not_publication_timing_or_energy",
+  "profile_sha256": {
+    "full_pagerank": "b5e30d7bb8106c103fbae947fc90ef13b1af7b7f07f8593a515ae2068813d824",
+    "thresholded_residual_pagerank": "00288ab8bf2b1856478afd08094f5379fc9cc4c6b8ba583153dc7c9c8609ad9d",
+    "weighted_sssp": "47adf5b1aa9c9dcc2357789f67a0eeb74b4cddd71cb67ed2ff3004eb5e0e3761"
+  },
+  "schema_version": 1,
+  "smoke": [
+    {
+      "algorithm": "weighted_sssp",
+      "backend_requests": 33848,
+      "cycles": 99897,
+      "source_manifest": "/data/tmp/chuxiao/grasu_address_map_v4_tiny_smoke_v2_20260728/manifest.json",
+      "status": "PASS"
+    },
+    {
+      "algorithm": "full_pagerank",
+      "backend_requests": 247384,
+      "cycles": 438456,
+      "source_manifest": "/data/tmp/chuxiao/grasu_address_map_v4_pr_smoke_20260728/manifest.json",
+      "status": "PASS"
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "backend_requests": 7432205,
+      "cycles": 11211825,
+      "source_manifest": "/data/tmp/chuxiao/grasu_address_map_v4_residual_smoke_20260728/manifest.json",
+      "status": "PASS"
+    }
+  ]
+}

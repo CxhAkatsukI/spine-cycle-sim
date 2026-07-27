@@ -12,6 +12,9 @@ from spine_cycle_sim.experiments.comparison import (
 from spine_cycle_sim.experiments.feasibility import (
     load_normalized_hls_feasibility,
 )
+from spine_cycle_sim.experiments.grasu_addressing import (
+    validate_grasu_hbm_address_map,
+)
 from spine_cycle_sim.experiments.profile_capabilities import (
     load_capability_catalog,
 )
@@ -60,6 +63,17 @@ class GraSuKPipelineFreezeTests(unittest.TestCase):
                     "finite_work_conserving_serial_k1",
                 )
                 self.assertEqual(profile.parameters["regraph_destination_partitions"], 16)
+                self.assertEqual(
+                    profile.parameters["physical_address_map_id"],
+                    "candidate10_hbm_pc_nonalias_v1",
+                )
+                validate_grasu_hbm_address_map(
+                    profile.parameters,
+                    profile.memory.channel_capacity_bytes,
+                    4,
+                    4 * int(profile.parameters["regraph_partition_vertices"]),
+                    4096,
+                )
         catalog = load_capability_catalog(
             normalized_grasu_capability_catalog_path(ROOT, "k1_v4")
         )

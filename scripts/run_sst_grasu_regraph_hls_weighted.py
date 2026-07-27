@@ -24,6 +24,12 @@ from spine_cycle_sim.experiments.profile_capabilities import (  # noqa: E402
     CapabilityCatalog,
     load_capability_catalog,
 )
+from spine_cycle_sim.experiments.grasu_addressing import (  # noqa: E402
+    grasu_hbm_address_environment,
+    partition_layout_footprints,
+    validate_grasu_hbm_address_map,
+    validate_partition_footprints,
+)
 from spine_cycle_sim.experiments.regraph_contracts import (  # noqa: E402
     expected_weighted_source_cache_requests,
 )
@@ -363,6 +369,30 @@ def main() -> int:
     initial = load_slice(args.workload.resolve())
     update = load_slice(args.update_workload.resolve())
     oracle = build_hls_weighted_oracle(initial, update, args.source)
+    address_regions = None
+    address_environment: dict[str, str] = {}
+    if params.get("physical_address_map_id"):
+        partition_vertices = int(params["regraph_partition_vertices"])
+        destination_partitions = (
+            initial.vertices + partition_vertices - 1
+        ) // partition_vertices
+        footprints = partition_layout_footprints(
+            initial.records,
+            update.records,
+            initial.vertices,
+            partition_vertices,
+            oracle.external_to_internal,
+            weighted_full_word=True,
+        )
+        validate_partition_footprints(params, footprints)
+        address_regions = validate_grasu_hbm_address_map(
+            params,
+            int(memory["channel_capacity_bytes"]),
+            destination_partitions,
+            initial.vertices,
+            oracle.physical_updates,
+        )
+        address_environment = grasu_hbm_address_environment(params)
     capability_catalog, algorithm_capability = require_hls_weighted_capability(
         profile_path,
         args.capability_catalog.resolve(),
@@ -485,6 +515,7 @@ def main() -> int:
             ),
         }
     )
+    env.update(address_environment)
     sst_library = forced_sst_library_binding(args.sst, args.lib_dir)
     command = [
         str(args.sst.resolve()),
@@ -530,6 +561,7 @@ def main() -> int:
         "update_workload_sha256": sha256(args.update_workload.resolve()),
         "source_external": args.source,
         "sst_memory_binding": binding.as_manifest(),
+        "physical_hbm_address_regions": address_regions,
         "sst_library_binding": sst_library,
         "sst_plugin_sha256": sst_library["plugin_sha256"],
         "sst_host_wall_seconds": wall_seconds,
