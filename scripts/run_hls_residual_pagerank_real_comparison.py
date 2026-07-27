@@ -26,6 +26,7 @@ from scripts.run_hls_pagerank_real_comparison import (  # noqa: E402
     _profile,
     _run_process,
     _select_runs,
+    _validate_input_manifest,
     _write_csv,
 )
 from spine_cycle_sim.experiments.hls_pagerank_real_comparison import (  # noqa: E402
@@ -33,9 +34,6 @@ from spine_cycle_sim.experiments.hls_pagerank_real_comparison import (  # noqa: 
     residual_system_row,
     validate_grasu_residual_result,
     validate_spine_residual_result,
-)
-from spine_cycle_sim.experiments.real_small_batches import (  # noqa: E402
-    validate_real_small_batch_manifest,
 )
 from spine_cycle_sim.experiments.shared_workloads import sha256_file  # noqa: E402
 
@@ -285,7 +283,7 @@ def main() -> int:
         args.capability_catalog or profile_set["capability_catalog"]
     )
 
-    manifest = validate_real_small_batch_manifest(ROOT, args.input_manifest)
+    manifest = _validate_input_manifest(args.input_manifest)
     selected = _select_runs(list(manifest["runs"]), args.run_id, args.limit)
     spine_profile, spine_mhz = _profile(
         args.spine_profile, str(profile_set["spine_profile_id"])
