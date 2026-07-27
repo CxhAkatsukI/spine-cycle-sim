@@ -9,6 +9,8 @@ import math
 from pathlib import Path
 from typing import Mapping, Sequence
 
+from .comparison_analysis import aggregate_dram_stats
+
 
 ALGORITHMS = (
     "weighted_sssp",
@@ -22,6 +24,7 @@ ALGORITHM_LABELS = {
 }
 SYSTEMS = ("spine", "grasu_regraph")
 LOCALITY_CATEGORIES = ("first", "contiguous", "repeated", "discontinuous")
+PHYSICAL_STALL_CONTRACT = "axis_axi_request_fifo_hbm_backend_v1"
 
 
 def sha256_file(path: Path) -> str:
@@ -169,6 +172,248 @@ def _bool(value: object) -> bool:
     if isinstance(value, bool):
         return value
     return str(value).lower() == "true"
+
+
+def normalize_physical_system_row(
+    algorithm: str,
+    row: Mapping[str, str],
+    dram: Mapping[str, int | float],
+) -> dict[str, object]:
+    """Add controller and finite-queue observations to a logical memory row."""
+
+    normalized = normalize_system_row(algorithm, row)
+    if not _bool(row.get("stall_metrics_complete", False)) or (
+        row.get("stall_metric_contract") != PHYSICAL_STALL_CONTRACT
+    ):
+        raise ValueError("incomplete physical backpressure contract")
+
+    full_window = _prefix_metrics(row, "backend")
+    dram_requests = int(dram["requests"])
+    if dram_requests != int(full_window["requests"]):
+        raise ValueError("accepted-backend/DRAM request ledger does not close")
+    for key in (
+        "reads",
+        "writes",
+        "read_row_hits",
+        "write_row_hits",
+        "activates",
+        "precharges",
+    ):
+        if int(dram[key]) < 0:
+            raise ValueError(f"negative DRAM metric: {key}")
+
+    scope = row.get("dram_window_scope", "")
+    if not scope and algorithm == "thresholded_residual_pagerank":
+        scope = "update_plus_compute_active_channels"
+    physical_window_aligned = scope != "cold_plus_update_not_aligned"
+    if algorithm == "weighted_sssp":
+        physical_window_cycles = _integer(row, "aligned_e2e_cycles") + _integer(
+            row, "cold_cycles"
+        )
+    else:
+        physical_window_cycles = _integer(row, "e2e_cycles")
+    if physical_window_cycles <= 0:
+        raise ValueError("physical memory window must span positive cycles")
+
+    stalls = {
+        key: _integer(row, key)
+        for key in (
+            "axis_push_stalls",
+            "axi_issue_stalls",
+            "hbm_queue_stalls",
+            "hbm_response_queue_stalls",
+        )
+    }
+    requested_bytes = int(full_window["bytes"])
+    if requested_bytes <= 0 or dram_requests <= 0:
+        raise ValueError("physical memory evidence requires nonempty traffic")
+
+    normalized.update(
+        {
+            "physical_window_scope": scope,
+            "dram_physical_window_aligned": physical_window_aligned,
+            "physical_window_cycles": physical_window_cycles,
+            "physical_backend_requests": int(full_window["requests"]),
+            "physical_backend_requested_bytes": requested_bytes,
+            "backend_nominal_64b_bytes": int(full_window["nominal_64b_bytes"]),
+            "burst_amplification": int(full_window["nominal_64b_bytes"])
+            / requested_bytes,
+            **stalls,
+            "axis_push_stalls_per_backend_request": stalls["axis_push_stalls"]
+            / dram_requests,
+            "axi_issue_stalls_per_backend_request": stalls["axi_issue_stalls"]
+            / dram_requests,
+            "hbm_queue_stalls_per_backend_request": stalls["hbm_queue_stalls"]
+            / dram_requests,
+            "hbm_response_queue_stalls_per_backend_request": stalls[
+                "hbm_response_queue_stalls"
+            ]
+            / dram_requests,
+            "stall_metrics_complete": True,
+            "stall_metric_contract": PHYSICAL_STALL_CONTRACT,
+            "dram_controller_channels": int(dram["channels"]),
+            "dram_reads": int(dram["reads"]),
+            "dram_writes": int(dram["writes"]),
+            "dram_read_row_hits": int(dram["read_row_hits"]),
+            "dram_write_row_hits": int(dram["write_row_hits"]),
+            "dram_row_hit_rate": float(dram["row_hit_rate"]),
+            "dram_activates": int(dram["activates"]),
+            "dram_precharges": int(dram["precharges"]),
+            "dram_average_read_latency": float(dram["average_read_latency"]),
+            "dram_average_write_latency": float(dram["average_write_latency"]),
+            "dram_write_latency_coverage": float(dram["write_latency_coverage"]),
+            "dram_energy_pj_active_channels": float(dram["total_energy_pj"]),
+        }
+    )
+    return normalized
+
+
+def load_physical_selected_matrix(
+    algorithm: str,
+    directory: Path,
+    expected_run_ids: set[str],
+) -> tuple[dict[str, object], list[dict[str, object]]]:
+    """Load a correctness-gated subset and its raw controller statistics."""
+
+    manifest, _ = load_selected_matrix(algorithm, directory, expected_run_ids)
+    rows_path = directory / "system_rows.csv"
+    with rows_path.open(encoding="utf-8", newline="") as stream:
+        source_rows = [
+            row for row in csv.DictReader(stream) if row["run_id"] in expected_run_ids
+        ]
+    rows: list[dict[str, object]] = []
+    for row in source_rows:
+        run_dir = directory / row["run_id"] / row["system"]
+        normalized = normalize_physical_system_row(
+            algorithm, row, aggregate_dram_stats(run_dir / "dram")
+        )
+        normalized["raw_result_path"] = str(
+            run_dir / ("summary.json" if row["system"] == "spine" else "result.json")
+        )
+        rows.append(normalized)
+    return manifest, rows
+
+
+def physical_pair_rows(
+    rows: Sequence[Mapping[str, object]],
+) -> list[dict[str, object]]:
+    grouped: dict[tuple[str, str], dict[str, Mapping[str, object]]] = {}
+    for row in rows:
+        grouped.setdefault(
+            (str(row["algorithm"]), str(row["run_id"])), {}
+        )[str(row["system"])] = row
+    pairs: list[dict[str, object]] = []
+    for (algorithm, run_id), systems in sorted(grouped.items()):
+        if set(systems) != set(SYSTEMS):
+            raise ValueError(f"incomplete physical pair: {algorithm}/{run_id}")
+        spine = systems["spine"]
+        grasu = systems["grasu_regraph"]
+        pairs.append(
+            {
+                "algorithm": algorithm,
+                "run_id": run_id,
+                "dataset_id": spine["dataset_id"],
+                "scenario": spine["scenario"],
+                "physical_window_comparable": bool(
+                    spine["dram_physical_window_aligned"]
+                    and grasu["dram_physical_window_aligned"]
+                ),
+                "spine_dram_requests": spine["physical_backend_requests"],
+                "grasu_dram_requests": grasu["physical_backend_requests"],
+                "spine_row_hit_rate": spine["dram_row_hit_rate"],
+                "grasu_row_hit_rate": grasu["dram_row_hit_rate"],
+                "spine_burst_amplification": spine["burst_amplification"],
+                "grasu_burst_amplification": grasu["burst_amplification"],
+                "spine_hbm_queue_stalls_per_request": spine[
+                    "hbm_queue_stalls_per_backend_request"
+                ],
+                "grasu_hbm_queue_stalls_per_request": grasu[
+                    "hbm_queue_stalls_per_backend_request"
+                ],
+            }
+        )
+    return pairs
+
+
+def physical_paper_rows(
+    rows: Sequence[Mapping[str, object]],
+) -> list[dict[str, object]]:
+    """Aggregate only algorithms whose two controller windows are aligned."""
+
+    output: list[dict[str, object]] = []
+    for algorithm in ALGORITHMS:
+        selected = [row for row in rows if row["algorithm"] == algorithm]
+        if not selected:
+            continue
+        by_system = {
+            system: [row for row in selected if row["system"] == system]
+            for system in SYSTEMS
+        }
+        if any(not by_system[system] for system in SYSTEMS):
+            raise ValueError(f"{algorithm} lacks physical system coverage")
+        if not all(
+            bool(row["dram_physical_window_aligned"]) for row in selected
+        ):
+            continue
+
+        result: dict[str, object] = {
+            "algorithm": ALGORITHM_LABELS[algorithm],
+            "algorithm_id": algorithm,
+            "pairs": len(by_system["spine"]),
+        }
+        for system, prefix in (("spine", "spine"), ("grasu_regraph", "grasu")):
+            system_rows = by_system[system]
+            requests = sum(int(row["physical_backend_requests"]) for row in system_rows)
+            requested_bytes = sum(
+                int(row["physical_backend_requested_bytes"]) for row in system_rows
+            )
+            nominal_bytes = sum(
+                int(row["backend_nominal_64b_bytes"]) for row in system_rows
+            )
+            reads = sum(int(row["dram_reads"]) for row in system_rows)
+            row_hits = sum(
+                int(row["dram_read_row_hits"]) + int(row["dram_write_row_hits"])
+                for row in system_rows
+            )
+            result.update(
+                {
+                    f"{prefix}_dram_requests": requests,
+                    f"{prefix}_row_hit_rate": row_hits / requests,
+                    f"{prefix}_average_read_latency": (
+                        sum(
+                            int(row["dram_reads"])
+                            * float(row["dram_average_read_latency"])
+                            for row in system_rows
+                        )
+                        / reads
+                        if reads
+                        else 0.0
+                    ),
+                    f"{prefix}_burst_amplification": nominal_bytes
+                    / requested_bytes,
+                    f"{prefix}_axis_stalls_per_request": sum(
+                        int(row["axis_push_stalls"]) for row in system_rows
+                    )
+                    / requests,
+                    f"{prefix}_axi_stalls_per_request": sum(
+                        int(row["axi_issue_stalls"]) for row in system_rows
+                    )
+                    / requests,
+                    f"{prefix}_hbm_stalls_per_request": sum(
+                        int(row["hbm_queue_stalls"]) for row in system_rows
+                    )
+                    / requests,
+                    f"{prefix}_response_stalls_per_request": sum(
+                        int(row["hbm_response_queue_stalls"])
+                        for row in system_rows
+                    )
+                    / requests,
+                }
+            )
+        output.append(result)
+    if not output:
+        raise ValueError("no phase-aligned physical algorithms")
+    return output
 
 
 def _pair_correct(algorithm: str, row: Mapping[str, str]) -> bool:

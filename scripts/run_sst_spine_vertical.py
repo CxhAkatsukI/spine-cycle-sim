@@ -19,6 +19,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from spine_cycle_sim.sst_binding import spine_memory_binding  # noqa: E402
+from spine_cycle_sim.sst_library import forced_sst_library_binding  # noqa: E402
 
 
 DEFAULT_SST = Path("/data/feiyang/sst/bin/sst")
@@ -1597,6 +1598,7 @@ def main() -> int:
     library = args.lib_dir / "libspine_cycle.so"
     if not library.is_file():
         raise SystemExit(f"missing SST element library: {library}")
+    sst_library = forced_sst_library_binding(args.sst, args.lib_dir)
     args.out_dir.mkdir(parents=True, exist_ok=True)
     result_path = args.out_dir / "result.json"
     result_path.unlink(missing_ok=True)
@@ -1795,7 +1797,7 @@ def main() -> int:
     )
     command = [
         str(args.sst),
-        f"--add-lib-path={args.lib_dir}",
+        sst_library["command_option"],
         str(ROOT / "sst" / "spine_vertical_slice.py"),
     ]
     sst_start = time.monotonic()
@@ -2053,6 +2055,8 @@ def main() -> int:
         "architecture_profile_evidence_tier": profile["evidence_tier"],
         "simulation_evidence_tier": "structural_execution_driven",
         "sst_memory_binding": binding.as_manifest(),
+        "sst_library_binding": sst_library,
+        "sst_plugin_sha256": sst_library["plugin_sha256"],
         "dram_energy_claim": binding.energy_claim,
         "sst_host_wall_seconds": sst_host_wall_seconds,
         "status": "PASS",

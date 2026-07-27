@@ -1,0 +1,3 @@
+algorithm,algorithm_id,pairs,grasu_to_spine_total_hbm,grasu_to_spine_command_dynamic,grasu_to_spine_background_refresh
+Full PR,full_pagerank,3,0.7255437519916821,1.4626989675363842,0.7196087693936422
+Residual PR,thresholded_residual_pagerank,3,0.9025601224382471,2.5459941780660147,0.8832122997389447

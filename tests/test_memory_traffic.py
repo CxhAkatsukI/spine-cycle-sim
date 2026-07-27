@@ -146,6 +146,7 @@ class MemoryTrafficTests(unittest.TestCase):
     def test_reports_complete_three_layer_backpressure_contract(self) -> None:
         metrics = backpressure_metrics(
             {
+                "axis_push_stalls": 2,
                 "axi_issue_stalls": 3,
                 "hbm_queue_stalls": 5,
                 "hbm_response_queue_stalls": 7,

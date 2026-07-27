@@ -263,6 +263,63 @@ Compact slices and full datasets are reported as separate populations.
 \end{figure}
 }{\missingplot{Waiting for phase-aligned accepted-request traffic evidence.}}
 
+\IfFileExists{data/physical_memory_by_algorithm.csv}{%
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}{0.49\linewidth}
+    \centering
+    \begin{tikzpicture}
+      \begin{axis}[ybar, width=0.9\linewidth, height=48mm,
+        ylabel={DRAM row-hit rate}, ymin=0, ymax=1,
+        symbolic x coords={Full PR,Residual PR}, xtick=data,
+        legend style={at={(0.5,1.22)},anchor=south,legend columns=2,
+          font=\small,/tikz/every even column/.append style={column sep=4pt}}]
+        \addplot[fill=spine] table[x=algorithm,y=spine_row_hit_rate,col sep=comma]
+          {data/physical_memory_by_algorithm.csv};
+        \addplot[fill=grasu] table[x=algorithm,y=grasu_row_hit_rate,col sep=comma]
+          {data/physical_memory_by_algorithm.csv};
+        \legend{Spine, GraSU+ReGraph}
+      \end{axis}
+    \end{tikzpicture}
+    \caption{Controller row locality.}
+  \end{subfigure}
+  \begin{subfigure}{0.49\linewidth}
+    \centering
+    \begin{tikzpicture}
+      \begin{axis}[ybar, width=0.9\linewidth, height=48mm, ymode=log,
+        ylabel={64B transfer / requested byte}, ymin=1,
+        symbolic x coords={Full PR,Residual PR}, xtick=data]
+        \addplot[fill=spine] table[x=algorithm,y=spine_burst_amplification,col sep=comma]
+          {data/physical_memory_by_algorithm.csv};
+        \addplot[fill=grasu] table[x=algorithm,y=grasu_burst_amplification,col sep=comma]
+          {data/physical_memory_by_algorithm.csv};
+      \end{axis}
+    \end{tikzpicture}
+    \caption{Burst amplification.}
+  \end{subfigure}
+
+  \begin{subfigure}{0.72\linewidth}
+    \centering
+    \begin{tikzpicture}
+      \begin{axis}[ybar, width=0.94\linewidth, height=48mm, ymode=log,
+        ylabel={HBM-queue stall events / request}, ymin=0.01,
+        symbolic x coords={Full PR,Residual PR}, xtick=data]
+        \addplot[fill=spine] table[x=algorithm,y=spine_hbm_stalls_per_request,col sep=comma]
+          {data/physical_memory_by_algorithm.csv};
+        \addplot[fill=grasu] table[x=algorithm,y=grasu_hbm_stalls_per_request,col sep=comma]
+          {data/physical_memory_by_algorithm.csv};
+      \end{axis}
+    \end{tikzpicture}
+    \caption{Shared-backend pressure.}
+  \end{subfigure}
+  \caption{Phase-aligned physical HBM behavior for batch-8 insertion on five
+  compact real-topology slices.  The DRAMSim3 command ledger equals accepted
+  AXI requests on every row. Stall values count rejected port attempts, so
+  multiple events may occur in one cycle. Weighted SSSP is excluded because
+  Spine's current controller window also contains cold initialization.}
+\end{figure}
+}{\missingplot{Waiting for complete FIFO/AXI/HBM backpressure evidence.}}
+
 \section{Dense-batch behavior}
 \IfFileExists{data/dense_batch.csv}{%
 \begin{figure}[H]
@@ -290,6 +347,34 @@ Compact slices and full datasets are reported as separate populations.
   batch size is retained in the companion data table.}
 \end{figure}
 }{\missingplot{Waiting for real-topology batch 64/512/4096 sweeps.}}
+
+\section{Matched HBM energy}
+\IfFileExists{data/hbm_energy_by_algorithm.csv}{%
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}
+    \begin{semilogyaxis}[
+      ybar, bar width=8pt, width=0.9\linewidth, height=58mm,
+      ylabel={GraSU+ReGraph / Spine HBM energy},
+      symbolic x coords={Full PR,Residual PR}, xtick=data,
+      ymin=0.5, ymax=4, grid=major,
+      legend style={at={(0.5,1.15)},anchor=south,legend columns=3}]
+      \addplot[fill=spine] table[x=algorithm,y=grasu_to_spine_total_hbm,col sep=comma]
+        {data/hbm_energy_by_algorithm.csv};
+      \addplot[fill=grasu] table[x=algorithm,y=grasu_to_spine_command_dynamic,col sep=comma]
+        {data/hbm_energy_by_algorithm.csv};
+      \addplot[fill=muted] table[x=algorithm,y=grasu_to_spine_background_refresh,col sep=comma]
+        {data/hbm_energy_by_algorithm.csv};
+      \addplot[black,dashed,sharp plot] coordinates {(Full PR,1) (Residual PR,1)};
+      \legend{Total HBM,Command dynamic,Background + refresh}
+    \end{semilogyaxis}
+  \end{tikzpicture}
+  \caption{Matched all-32-controller DRAMSim3 energy on three compact holdout
+  slices. Values above one mean GraSU+ReGraph uses more energy. This is HBM
+  energy only, not total accelerator or board energy; asymmetric projected
+  on-chip energy is intentionally excluded.}
+\end{figure}
+}{\missingplot{Waiting for matched all-controller HBM energy evidence.}}
 
 \section{Routed HLS feasibility}
 \IfFileExists{data/ppa_summary.csv}{%

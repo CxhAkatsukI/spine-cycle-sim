@@ -397,6 +397,12 @@ def main() -> int:
         "grasu_profile_id": grasu_profile["profile_id"],
         "grasu_profile_sha256": sha256_file(args.grasu_profile),
         "capability_catalog_sha256": sha256_file(args.capability_catalog),
+        "sst_plugin_path": str(
+            (args.lib_dir / "libspine_cycle.so").resolve()
+        ),
+        "sst_plugin_sha256": sha256_file(
+            args.lib_dir / "libspine_cycle.so"
+        ),
         "execution_sha256": execution_sha256,
         "selected_run_ids": [run["run_id"] for run in selected],
         "instantiate_all_hbm_channels": args.instantiate_all_hbm_channels,

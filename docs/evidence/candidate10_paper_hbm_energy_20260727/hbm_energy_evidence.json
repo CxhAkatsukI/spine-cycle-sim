@@ -1,0 +1,20 @@
+{
+  "algorithms": [
+    "full_pagerank",
+    "thresholded_residual_pagerank"
+  ],
+  "claim_class": "matched_32_controller_hbm_energy_not_total_accelerator",
+  "evidence_id": "candidate10_paper_hbm_energy_v1_20260727",
+  "limitations": [
+    "The inputs are three compact holdout slices, not full datasets.",
+    "HBM energy is DRAMSim3 energy across all 32 controller instances.",
+    "Logic, FIFO, interconnect, clock, host, PCIe, shell, and board energy are excluded.",
+    "Projected CACTI SRAM energy is intentionally not used in this ratio."
+  ],
+  "output_sha256": "1a72222e79e65eeb9e38765b9b45e1c9ad25dd9ae54ba0de5419f43876de86a8",
+  "pairs": 6,
+  "schema_version": 1,
+  "source": "/home/chuxiao/spine-cycle-sim-publication/docs/evidence/candidate10_hls_v3_matched_pagerank_energy_20260727/analysis/pair_energy.csv",
+  "source_sha256": "addcdecbcc8b722be31473a50251a5e798dfd996f8c6d3c367624d42ec74c315",
+  "status": "PASS"
+}

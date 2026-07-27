@@ -51,6 +51,7 @@ def backpressure_metrics(
     if axis_push_stalls < 0:
         raise ValueError("axis_push_stalls must be non-negative")
     required = (
+        "axis_push_stalls",
         "axi_issue_stalls",
         "hbm_queue_stalls",
         "hbm_response_queue_stalls",
@@ -70,8 +71,10 @@ def backpressure_metrics(
                 result.get("backend_response_queue_stalls", 0)
             ),
             "stall_metrics_complete": False,
-            "stall_metric_contract": "legacy_missing_axi_issue",
+            "stall_metric_contract": "legacy_missing_unified_stalls",
         }
+    if int(result["axis_push_stalls"]) != axis_push_stalls:
+        raise ValueError("normalized axis_push_stalls disagrees with raw result")
     return {
         "axis_push_stalls": axis_push_stalls,
         "axi_issue_stalls": int(result["axi_issue_stalls"]),

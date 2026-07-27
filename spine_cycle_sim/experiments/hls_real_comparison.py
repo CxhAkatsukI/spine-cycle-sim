@@ -249,8 +249,14 @@ def system_row(
         cold_cycles = int(result["cold_cycles"])
         cold_backend_requests = int(result["cold_backend_requests"])
         final_values = result["final_values"]
-        axis_push_stalls = sum(
-            int(value) for value in result.get("edge_axis_push_stalls_per_round", [])
+        axis_push_stalls = int(
+            result.get(
+                "axis_push_stalls",
+                sum(
+                    int(value)
+                    for value in result.get("edge_axis_push_stalls_per_round", [])
+                ),
+            )
         )
         dram_scope = "cold_plus_update_not_aligned"
         claim_class = "routed_reference_profile_execution_driven_simulation"

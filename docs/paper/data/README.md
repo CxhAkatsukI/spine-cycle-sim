@@ -13,7 +13,9 @@ Expected CSV interfaces:
 - `e2e_by_batch.csv`
 - `small_batch_by_algorithm.csv`
 - `memory_by_algorithm.csv`
+- `physical_memory_by_algorithm.csv`
 - `dense_batch.csv`
+- `hbm_energy_by_algorithm.csv`
 
 Missing files intentionally render as explicit evidence-gate placeholders.
 Compact real slices and unsliced datasets must never be mixed in one aggregate.

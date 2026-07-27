@@ -4960,6 +4960,14 @@ class OnlineMemoryProbe final : public SST::Component {
           << ",\n"
           << "  \"reduce_operations\": " << pipeline.reduce.completed << ",\n"
           << "  \"apply_operations\": " << pipeline.apply.completed << ",\n"
+          << "  \"edge_axis_push_stalls\": "
+          << pagerank_system_->edge_stream_stats().push_stalls << ",\n"
+          << "  \"value_axis_push_stalls\": "
+          << pagerank_system_->value_stream_stats().push_stalls << ",\n"
+          << "  \"axis_push_stalls\": "
+          << pagerank_system_->edge_stream_stats().push_stalls +
+                 pagerank_system_->value_stream_stats().push_stalls
+          << ",\n"
           << "  \"axi_issue_stalls\": "
           << maintenance.memory_request_fifo_stall_cycles +
                  reader.memory_request_fifo_stall_cycles +
@@ -5339,6 +5347,12 @@ class OnlineMemoryProbe final : public SST::Component {
           << pagerank_system_->edge_stream_stats().push_stalls << ",\n"
           << "  \"value_axis_transfers\": "
           << pagerank_system_->value_stream_stats().pushes << ",\n"
+          << "  \"value_axis_push_stalls\": "
+          << pagerank_system_->value_stream_stats().push_stalls << ",\n"
+          << "  \"axis_push_stalls\": "
+          << pagerank_system_->edge_stream_stats().push_stalls +
+                 pagerank_system_->value_stream_stats().push_stalls
+          << ",\n"
           << "  \"dangling_mass\": "
           << pagerank_system_->compute().dangling_mass() << ",\n"
           << "  \"dangling_share\": "
@@ -5810,6 +5824,7 @@ class OnlineMemoryProbe final : public SST::Component {
       std::vector<std::uint64_t> edge_axis_push_stalls;
       std::vector<std::uint64_t> edge_axis_transfers;
       std::vector<std::uint64_t> value_axis_transfers;
+      std::vector<std::uint64_t> value_axis_push_stalls;
       std::vector<std::size_t> value_axis_max_occupancy;
       for (const SpineSsspRoundEvidence &round : sst_rounds_) {
         frontier_in_sizes.push_back(round.active_in.size());
@@ -6057,6 +6072,7 @@ class OnlineMemoryProbe final : public SST::Component {
         edge_axis_push_stalls.push_back(round.edge_axis.push_stalls);
         edge_axis_transfers.push_back(round.edge_axis.pushes);
         value_axis_transfers.push_back(round.value_axis.pushes);
+        value_axis_push_stalls.push_back(round.value_axis.push_stalls);
         value_axis_max_occupancy.push_back(round.value_axis.max_occupancy);
       }
       std::vector<std::size_t> handoff_logical_rounds;
@@ -6842,6 +6858,8 @@ class OnlineMemoryProbe final : public SST::Component {
       write_json_array(result, edge_axis_transfers);
       result << ",\n  \"value_axis_transfers_per_round\": ";
       write_json_array(result, value_axis_transfers);
+      result << ",\n  \"value_axis_push_stalls_per_round\": ";
+      write_json_array(result, value_axis_push_stalls);
       result << ",\n  \"value_axis_max_occupancy_per_round\": ";
       write_json_array(result, value_axis_max_occupancy);
       result << ",\n  \"host_handoff_logical_rounds\": ";
@@ -6872,6 +6890,14 @@ class OnlineMemoryProbe final : public SST::Component {
              << first_compute.full_recompute_reset_words << ",\n"
              << "  \"compute_full_recompute_reset_write_bytes\": "
              << first_compute.full_recompute_reset_write_bytes << ",\n"
+             << "  \"axis_push_stalls\": "
+             << std::accumulate(edge_axis_push_stalls.begin(),
+                                edge_axis_push_stalls.end(),
+                                std::uint64_t{0}) +
+                    std::accumulate(value_axis_push_stalls.begin(),
+                                    value_axis_push_stalls.end(),
+                                    std::uint64_t{0})
+             << ",\n"
              << "  \"axi_issue_stalls\": "
              << maintenance.memory_request_fifo_stall_cycles +
                     std::accumulate(reader_memory_request_fifo_stalls.begin(),
@@ -7600,6 +7626,14 @@ class OnlineMemoryProbe final : public SST::Component {
           << spine_system_->value_stream_stats().pushes << ",\n"
           << "  \"value_axis_max_occupancy\": "
           << spine_system_->value_stream_stats().max_occupancy << ",\n"
+          << "  \"edge_axis_push_stalls\": "
+          << spine_system_->edge_stream_stats().push_stalls << ",\n"
+          << "  \"value_axis_push_stalls\": "
+          << spine_system_->value_stream_stats().push_stalls << ",\n"
+          << "  \"axis_push_stalls\": "
+          << spine_system_->edge_stream_stats().push_stalls +
+                 spine_system_->value_stream_stats().push_stalls
+          << ",\n"
           << "  \"axi_issue_stalls\": "
           << maintenance.memory_request_fifo_stall_cycles +
                  reader.memory_request_fifo_stall_cycles +

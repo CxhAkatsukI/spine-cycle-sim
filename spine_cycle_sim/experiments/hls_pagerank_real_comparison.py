@@ -209,7 +209,7 @@ def system_row(
         update_requests = int(result["maintenance_backend_requests"])
         compute_requests = int(result["compute_backend_requests"])
         ranks = rank_vector(result["ranks"])
-        axis_push_stalls = int(result.get("edge_axis_push_stalls", 0))
+        axis_push_stalls = int(result.get("axis_push_stalls", 0))
         claim_class = "routed_reference_profile_execution_driven_simulation"
         update_traffic_key = "maintenance_backend_traffic"
     elif system == "grasu_regraph":
@@ -611,11 +611,7 @@ def residual_system_row(
         update_requests=update_requests,
         compute_requests=compute_requests,
     )
-    axis_push_stalls = int(
-        result.get("edge_axis_push_stalls", 0)
-        if system == "spine"
-        else result.get("axis_push_stalls", 0)
-    )
+    axis_push_stalls = int(result.get("axis_push_stalls", 0))
     stall_metrics = backpressure_metrics(
         result, axis_push_stalls=axis_push_stalls
     )
@@ -648,6 +644,7 @@ def residual_system_row(
         / update_seconds,
         **memory_metrics,
         **stall_metrics,
+        "dram_window_scope": "update_plus_compute_active_channels",
         "dram_reads": int(dram["reads"]),
         "dram_writes": int(dram["writes"]),
         "dram_activates": int(dram["activates"]),

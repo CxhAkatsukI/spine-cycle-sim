@@ -584,6 +584,12 @@ def main() -> int:
         "grasu_profile_sha256": sha256_file(args.grasu_profile),
         "capability_catalog": str(args.capability_catalog.resolve()),
         "capability_catalog_sha256": sha256_file(args.capability_catalog),
+        "sst_plugin_path": str(
+            (args.lib_dir / "libspine_cycle.so").resolve()
+        ),
+        "sst_plugin_sha256": sha256_file(
+            args.lib_dir / "libspine_cycle.so"
+        ),
         "execution_sha256": execution_sha256,
         "dram_config": dram_contract,
         "selected_run_ids": [run["run_id"] for run in selected],

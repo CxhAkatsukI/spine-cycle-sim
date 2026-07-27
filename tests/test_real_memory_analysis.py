@@ -10,8 +10,11 @@ import unittest
 from spine_cycle_sim.experiments.real_memory_analysis import (
     load_selected_matrix,
     normalize_system_row,
+    normalize_physical_system_row,
     pair_memory_rows,
     paper_memory_rows,
+    physical_pair_rows,
+    physical_paper_rows,
     summarize_pairs,
 )
 
@@ -58,7 +61,92 @@ def _base(system: str) -> dict[str, str]:
     }
 
 
+def _dram(requests: int) -> dict[str, int | float]:
+    return {
+        "channels": 2,
+        "reads": requests - 1,
+        "writes": 1,
+        "read_row_hits": requests // 2,
+        "write_row_hits": 0,
+        "activates": requests // 3,
+        "precharges": requests // 4,
+        "requests": requests,
+        "row_hit_rate": (requests // 2) / requests,
+        "average_read_latency": 30.0,
+        "average_write_latency": 28.0,
+        "write_latency_coverage": 1.0,
+        "total_energy_pj": 100.0,
+    }
+
+
+def _physical_row(system: str, *, aligned: bool = True) -> dict[str, str]:
+    return {
+        **_base(system),
+        **_group("backend", 6, 96),
+        **_group("update_backend", 2, 32),
+        **_group("compute_backend", 4, 64),
+        "e2e_cycles": "100",
+        "axis_push_stalls": "2",
+        "axi_issue_stalls": "3",
+        "hbm_queue_stalls": "5",
+        "hbm_response_queue_stalls": "7",
+        "stall_metrics_complete": "True",
+        "stall_metric_contract": "axis_axi_request_fifo_hbm_backend_v1",
+        "dram_window_scope": (
+            "update_plus_compute_active_channels"
+            if aligned
+            else "cold_plus_update_not_aligned"
+        ),
+    }
+
+
 class RealMemoryAnalysisTests(unittest.TestCase):
+    def test_physical_row_closes_controller_and_stall_ledgers(self) -> None:
+        row = normalize_physical_system_row(
+            "full_pagerank", _physical_row("spine"), _dram(6)
+        )
+        self.assertTrue(row["dram_physical_window_aligned"])
+        self.assertEqual(row["physical_backend_requests"], 6)
+        self.assertEqual(row["backend_nominal_64b_bytes"], 384)
+        self.assertEqual(row["burst_amplification"], 4.0)
+        self.assertEqual(row["hbm_queue_stalls_per_backend_request"], 5 / 6)
+
+    def test_physical_row_rejects_legacy_backpressure(self) -> None:
+        row = _physical_row("spine")
+        row["axi_issue_stalls"] = ""
+        row["stall_metrics_complete"] = "False"
+        with self.assertRaisesRegex(ValueError, "backpressure contract"):
+            normalize_physical_system_row("full_pagerank", row, _dram(6))
+
+    def test_physical_paper_rows_exclude_unaligned_algorithm(self) -> None:
+        rows: list[dict[str, object]] = []
+        for system in ("spine", "grasu_regraph"):
+            rows.append(
+                normalize_physical_system_row(
+                    "full_pagerank", _physical_row(system), _dram(6)
+                )
+            )
+            weighted = {
+                **_physical_row(system, aligned=system != "spine"),
+                **_group("aligned_backend", 2, 32),
+                "aligned_e2e_ms": "1.0",
+                "aligned_e2e_cycles": "50",
+                "cold_cycles": "50" if system == "spine" else "0",
+            }
+            rows.append(
+                normalize_physical_system_row(
+                    "weighted_sssp", weighted, _dram(6)
+                )
+            )
+        pairs = physical_pair_rows(rows)
+        self.assertFalse(
+            next(row for row in pairs if row["algorithm"] == "weighted_sssp")[
+                "physical_window_comparable"
+            ]
+        )
+        paper = physical_paper_rows(rows)
+        self.assertEqual([row["algorithm_id"] for row in paper], ["full_pagerank"])
+
     def test_pagerank_requires_closed_update_compute_phases(self) -> None:
         row = {
             **_base("spine"),
