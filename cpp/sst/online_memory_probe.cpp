@@ -3330,10 +3330,16 @@ class OnlineMemoryProbe final : public SST::Component {
              << maintenance.memory_request_fifo_stall_cycles << ",\n"
              << "  \"maintenance_max_memory_requests_inflight\": "
              << maintenance.max_memory_requests_inflight << ",\n"
+             << "  \"axi_issue_stalls\": "
+             << maintenance.memory_request_fifo_stall_cycles << ",\n"
              << "  \"backend_requests\": " << backend_->accepted() << ",\n"
              << "  \"backend_submit_stalls\": "
              << backend_->submit_stalls() << ",\n"
              << "  \"backend_response_queue_stalls\": "
+             << backend_->response_queue_stalls() << ",\n"
+             << "  \"hbm_queue_stalls\": " << backend_->submit_stalls()
+             << ",\n"
+             << "  \"hbm_response_queue_stalls\": "
              << backend_->response_queue_stalls() << ",\n"
              << "  \"backend_max_outstanding\": "
              << backend_->max_outstanding() << ",\n"
@@ -3509,6 +3515,11 @@ class OnlineMemoryProbe final : public SST::Component {
                     compactor.axi_backend_submit_stalls +
                     compute.axi_backend_submit_stalls
              << ",\n"
+             << "  \"axi_issue_stalls\": "
+             << update.axi_request_fifo_stalls +
+                    compactor.axi_request_fifo_stalls +
+                    compute.axi_request_fifo_stalls
+             << ",\n"
              << "  \"axis_push_stalls\": "
              << update.axis_push_stalls + compute.axis_push_stalls << ",\n"
              << "  \"backend_requests\": " << backend_->accepted()
@@ -3516,6 +3527,10 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"backend_submit_stalls\": "
              << backend_->submit_stalls() << ",\n"
              << "  \"backend_response_queue_stalls\": "
+             << backend_->response_queue_stalls() << ",\n"
+             << "  \"hbm_queue_stalls\": " << backend_->submit_stalls()
+             << ",\n"
+             << "  \"hbm_response_queue_stalls\": "
              << backend_->response_queue_stalls() << ",\n"
              << "  \"backend_max_outstanding\": "
              << backend_->max_outstanding() << ",\n"
@@ -3883,12 +3898,20 @@ class OnlineMemoryProbe final : public SST::Component {
              << update.axi_backend_submit_stalls +
                     compute.axi_backend_submit_stalls
              << ",\n"
+             << "  \"axi_issue_stalls\": "
+             << update.axi_request_fifo_stalls +
+                    compute.axi_request_fifo_stalls
+             << ",\n"
              << "  \"axis_push_stalls\": "
              << update.axis_push_stalls + compute.axis_push_stalls << ",\n"
              << "  \"backend_requests\": " << backend_->accepted() << ",\n"
              << "  \"backend_submit_stalls\": "
              << backend_->submit_stalls() << ",\n"
              << "  \"backend_response_queue_stalls\": "
+             << backend_->response_queue_stalls() << ",\n"
+             << "  \"hbm_queue_stalls\": " << backend_->submit_stalls()
+             << ",\n"
+             << "  \"hbm_response_queue_stalls\": "
              << backend_->response_queue_stalls() << ",\n"
              << "  \"backend_max_outstanding\": "
              << backend_->max_outstanding() << ",\n"
@@ -4267,12 +4290,20 @@ class OnlineMemoryProbe final : public SST::Component {
           << update.axi_backend_submit_stalls +
                  compute.axi_backend_submit_stalls
           << ",\n"
+          << "  \"axi_issue_stalls\": "
+          << update.axi_request_fifo_stalls +
+                 compute.axi_request_fifo_stalls
+          << ",\n"
           << "  \"axis_push_stalls\": "
           << update.axis_push_stalls + compute.axis_push_stalls << ",\n"
           << "  \"backend_requests\": " << backend_->accepted() << ",\n"
           << "  \"backend_submit_stalls\": " << backend_->submit_stalls()
           << ",\n"
           << "  \"backend_response_queue_stalls\": "
+          << backend_->response_queue_stalls() << ",\n"
+          << "  \"hbm_queue_stalls\": " << backend_->submit_stalls()
+          << ",\n"
+          << "  \"hbm_response_queue_stalls\": "
           << backend_->response_queue_stalls() << ",\n"
           << "  \"backend_max_outstanding\": " << backend_->max_outstanding()
           << ",\n"
@@ -4584,6 +4615,10 @@ class OnlineMemoryProbe final : public SST::Component {
              << update.axi_backend_submit_stalls +
                     compute.axi_backend_submit_stalls
              << ",\n"
+             << "  \"axi_issue_stalls\": "
+             << update.axi_request_fifo_stalls +
+                    compute.axi_request_fifo_stalls
+             << ",\n"
              << "  \"axis_push_stalls\": "
              << update.axis_push_stalls + compute.axis_push_stalls << ",\n"
              << "  \"update_backend_requests\": "
@@ -4597,6 +4632,10 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"backend_submit_stalls\": "
              << backend_->submit_stalls() << ",\n"
              << "  \"backend_response_queue_stalls\": "
+             << backend_->response_queue_stalls() << ",\n"
+             << "  \"hbm_queue_stalls\": " << backend_->submit_stalls()
+             << ",\n"
+             << "  \"hbm_response_queue_stalls\": "
              << backend_->response_queue_stalls() << ",\n"
              << "  \"backend_max_outstanding\": "
              << backend_->max_outstanding() << ",\n"
@@ -4921,10 +4960,19 @@ class OnlineMemoryProbe final : public SST::Component {
           << ",\n"
           << "  \"reduce_operations\": " << pipeline.reduce.completed << ",\n"
           << "  \"apply_operations\": " << pipeline.apply.completed << ",\n"
+          << "  \"axi_issue_stalls\": "
+          << maintenance.memory_request_fifo_stall_cycles +
+                 reader.memory_request_fifo_stall_cycles +
+                 compute.memory_request_fifo_stall_cycles
+          << ",\n"
           << "  \"backend_requests\": " << backend_->accepted() << ",\n"
           << "  \"backend_submit_stalls\": " << backend_->submit_stalls()
           << ",\n"
           << "  \"backend_response_queue_stalls\": "
+          << backend_->response_queue_stalls() << ",\n"
+          << "  \"hbm_queue_stalls\": " << backend_->submit_stalls()
+          << ",\n"
+          << "  \"hbm_response_queue_stalls\": "
           << backend_->response_queue_stalls() << ",\n"
           << "  \"backend_max_outstanding\": " << backend_->max_outstanding()
           << ",\n"
@@ -5297,10 +5345,19 @@ class OnlineMemoryProbe final : public SST::Component {
           << pagerank_system_->compute().dangling_share() << ",\n"
           << "  \"iteration_error\": "
           << pagerank_system_->compute().iteration_error() << ",\n"
+          << "  \"axi_issue_stalls\": "
+          << maintenance.memory_request_fifo_stall_cycles +
+                 reader.memory_request_fifo_stall_cycles +
+                 compute.memory_request_fifo_stall_cycles
+          << ",\n"
           << "  \"backend_requests\": " << backend_->accepted() << ",\n"
           << "  \"backend_submit_stalls\": " << backend_->submit_stalls()
           << ",\n"
           << "  \"backend_response_queue_stalls\": "
+          << backend_->response_queue_stalls() << ",\n"
+          << "  \"hbm_queue_stalls\": " << backend_->submit_stalls()
+          << ",\n"
+          << "  \"hbm_response_queue_stalls\": "
           << backend_->response_queue_stalls() << ",\n"
           << "  \"backend_max_outstanding\": " << backend_->max_outstanding()
           << ",\n"
@@ -5544,10 +5601,16 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"edge_axis_transfers\": " << axis.pushes << ",\n"
              << "  \"edge_axis_max_occupancy\": " << axis.max_occupancy << ",\n"
              << "  \"edge_axis_push_stalls\": " << axis.push_stalls << ",\n"
+             << "  \"axi_issue_stalls\": "
+             << compute.memory_request_fifo_stall_cycles << ",\n"
              << "  \"backend_requests\": " << backend_->accepted() << ",\n"
              << "  \"backend_submit_stalls\": " << backend_->submit_stalls()
              << ",\n"
              << "  \"backend_response_queue_stalls\": "
+             << backend_->response_queue_stalls() << ",\n"
+             << "  \"hbm_queue_stalls\": " << backend_->submit_stalls()
+             << ",\n"
+             << "  \"hbm_response_queue_stalls\": "
              << backend_->response_queue_stalls() << ",\n"
              << "  \"backend_max_outstanding\": " << backend_->max_outstanding()
              << ",\n"
@@ -5714,6 +5777,7 @@ class OnlineMemoryProbe final : public SST::Component {
       std::vector<std::uint64_t> compute_memory_requests_issued;
       std::vector<std::uint64_t> compute_memory_requests_completed;
       std::vector<std::uint64_t> compute_memory_window_stall_cycles;
+      std::vector<std::uint64_t> compute_memory_request_fifo_stall_cycles;
       std::vector<std::size_t> compute_max_vertex_requests_inflight;
       std::vector<std::size_t> compute_max_active_out_requests_inflight;
       std::vector<std::size_t> compute_max_active_memory_ports;
@@ -5933,6 +5997,8 @@ class OnlineMemoryProbe final : public SST::Component {
             round.compute.memory_requests_completed);
         compute_memory_window_stall_cycles.push_back(
             round.compute.memory_window_stall_cycles);
+        compute_memory_request_fifo_stall_cycles.push_back(
+            round.compute.memory_request_fifo_stall_cycles);
         compute_max_vertex_requests_inflight.push_back(
             round.compute.max_vertex_requests_inflight);
         compute_max_active_out_requests_inflight.push_back(
@@ -6709,6 +6775,9 @@ class OnlineMemoryProbe final : public SST::Component {
       write_json_array(result, compute_memory_requests_completed);
       result << ",\n  \"compute_memory_window_stall_cycles_per_round\": ";
       write_json_array(result, compute_memory_window_stall_cycles);
+      result
+          << ",\n  \"compute_memory_request_fifo_stall_cycles_per_round\": ";
+      write_json_array(result, compute_memory_request_fifo_stall_cycles);
       result << ",\n  \"compute_max_vertex_requests_inflight_per_round\": ";
       write_json_array(result, compute_max_vertex_requests_inflight);
       result << ",\n  \"compute_max_active_out_requests_inflight_per_round\": ";
@@ -6803,10 +6872,24 @@ class OnlineMemoryProbe final : public SST::Component {
              << first_compute.full_recompute_reset_words << ",\n"
              << "  \"compute_full_recompute_reset_write_bytes\": "
              << first_compute.full_recompute_reset_write_bytes << ",\n"
+             << "  \"axi_issue_stalls\": "
+             << maintenance.memory_request_fifo_stall_cycles +
+                    std::accumulate(reader_memory_request_fifo_stalls.begin(),
+                                    reader_memory_request_fifo_stalls.end(),
+                                    std::uint64_t{0}) +
+                    std::accumulate(
+                        compute_memory_request_fifo_stall_cycles.begin(),
+                        compute_memory_request_fifo_stall_cycles.end(),
+                        std::uint64_t{0})
+             << ",\n"
              << "  \"backend_requests\": " << backend_->accepted() << ",\n"
              << "  \"backend_submit_stalls\": " << backend_->submit_stalls()
              << ",\n"
              << "  \"backend_response_queue_stalls\": "
+             << backend_->response_queue_stalls() << ",\n"
+             << "  \"hbm_queue_stalls\": " << backend_->submit_stalls()
+             << ",\n"
+             << "  \"hbm_response_queue_stalls\": "
              << backend_->response_queue_stalls() << ",\n"
              << "  \"backend_max_outstanding\": " << backend_->max_outstanding()
              << ",\n"
@@ -7517,10 +7600,19 @@ class OnlineMemoryProbe final : public SST::Component {
           << spine_system_->value_stream_stats().pushes << ",\n"
           << "  \"value_axis_max_occupancy\": "
           << spine_system_->value_stream_stats().max_occupancy << ",\n"
+          << "  \"axi_issue_stalls\": "
+          << maintenance.memory_request_fifo_stall_cycles +
+                 reader.memory_request_fifo_stall_cycles +
+                 compute.memory_request_fifo_stall_cycles
+          << ",\n"
           << "  \"backend_requests\": " << backend_->accepted() << ",\n"
           << "  \"backend_submit_stalls\": " << backend_->submit_stalls()
           << ",\n"
           << "  \"backend_response_queue_stalls\": "
+          << backend_->response_queue_stalls() << ",\n"
+          << "  \"hbm_queue_stalls\": " << backend_->submit_stalls()
+          << ",\n"
+          << "  \"hbm_response_queue_stalls\": "
           << backend_->response_queue_stalls() << ",\n"
           << "  \"backend_max_outstanding\": " << backend_->max_outstanding()
           << ",\n"
@@ -7550,10 +7642,16 @@ class OnlineMemoryProbe final : public SST::Component {
            << "  \"axi_write_bytes\": " << stats.write_bytes << ",\n"
            << "  \"axi_backend_stalls\": " << stats.backend_submit_stalls
            << ",\n"
+           << "  \"axi_issue_stalls\": "
+           << stats.request_queue_stalls << ",\n"
            << "  \"backend_requests\": " << backend_->accepted() << ",\n"
            << "  \"backend_submit_stalls\": " << backend_->submit_stalls()
            << ",\n"
            << "  \"backend_response_queue_stalls\": "
+           << backend_->response_queue_stalls() << ",\n"
+           << "  \"hbm_queue_stalls\": " << backend_->submit_stalls()
+           << ",\n"
+           << "  \"hbm_response_queue_stalls\": "
            << backend_->response_queue_stalls() << ",\n"
            << "  \"backend_max_outstanding\": " << backend_->max_outstanding()
            << ",\n"

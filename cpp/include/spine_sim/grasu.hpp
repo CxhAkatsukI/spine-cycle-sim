@@ -179,6 +179,7 @@ struct GraSuUpdateCounters {
   std::uint64_t degree_fifo_stalls{};
   std::size_t degree_fifo_max_occupancy{};
   std::size_t degree_reorder_max_occupancy{};
+  std::uint64_t axi_request_fifo_stalls{};
   std::uint64_t axi_backend_submit_stalls{};
   std::uint64_t axis_push_stalls{};
   std::uint64_t lane_queue_stalls{};

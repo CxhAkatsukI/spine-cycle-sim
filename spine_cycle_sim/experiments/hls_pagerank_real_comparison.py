@@ -7,7 +7,11 @@ import json
 import math
 from typing import Mapping
 
-from .memory_traffic import phase_memory_is_valid, phase_memory_metrics
+from .memory_traffic import (
+    backpressure_metrics,
+    phase_memory_is_valid,
+    phase_memory_metrics,
+)
 
 RANK_TOLERANCE = 1.0e-5
 
@@ -235,6 +239,9 @@ def system_row(
         update_requests=update_requests,
         compute_requests=compute_requests,
     )
+    stall_metrics = backpressure_metrics(
+        result, axis_push_stalls=axis_push_stalls
+    )
     return {
         "run_id": run["run_id"],
         "dataset_id": run["dataset_id"],
@@ -269,7 +276,7 @@ def system_row(
         "user_mutations_per_second_update": user_mutations / update_seconds,
         "physical_records_per_second_update": physical_records / update_seconds,
         **memory_metrics,
-        "axis_push_stalls": axis_push_stalls,
+        **stall_metrics,
         "dram_reads": int(dram["reads"]),
         "dram_writes": int(dram["writes"]),
         "dram_activates": int(dram["activates"]),
@@ -604,6 +611,14 @@ def residual_system_row(
         update_requests=update_requests,
         compute_requests=compute_requests,
     )
+    axis_push_stalls = int(
+        result.get("edge_axis_push_stalls", 0)
+        if system == "spine"
+        else result.get("axis_push_stalls", 0)
+    )
+    stall_metrics = backpressure_metrics(
+        result, axis_push_stalls=axis_push_stalls
+    )
     return {
         "run_id": run["run_id"],
         "dataset_id": run["dataset_id"],
@@ -632,6 +647,7 @@ def residual_system_row(
         "physical_records_per_second_update": int(run["physical_records"])
         / update_seconds,
         **memory_metrics,
+        **stall_metrics,
         "dram_reads": int(dram["reads"]),
         "dram_writes": int(dram["writes"]),
         "dram_activates": int(dram["activates"]),

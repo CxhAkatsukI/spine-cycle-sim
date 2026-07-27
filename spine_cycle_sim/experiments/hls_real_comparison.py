@@ -6,7 +6,7 @@ import hashlib
 import json
 from typing import Mapping
 
-from .memory_traffic import split_memory_metrics
+from .memory_traffic import backpressure_metrics, split_memory_metrics
 
 SPINE_INFINITY = 0xFFFFFFFF
 GRASU_HLS_INFINITY = 0x7FFFFFFE
@@ -280,6 +280,9 @@ def system_row(
     user_mutations = int(run["user_mutations"])
     physical_records = int(run["physical_records"])
     normalized = normalized_distances(final_values)
+    stall_metrics = backpressure_metrics(
+        result, axis_push_stalls=axis_push_stalls
+    )
     return {
         "run_id": run["run_id"],
         "dataset_id": run["dataset_id"],
@@ -307,7 +310,7 @@ def system_row(
         "aligned_backend_requests": aligned_backend_requests,
         "total_backend_requests": total_backend_requests,
         **memory_metrics,
-        "axis_push_stalls": axis_push_stalls,
+        **stall_metrics,
         "dram_reads": int(dram["reads"]),
         "dram_writes": int(dram["writes"]),
         "dram_activates": int(dram["activates"]),

@@ -2670,6 +2670,12 @@ public:
 
   [[nodiscard]] GraSuReGraphCounters counters() const noexcept {
     GraSuReGraphCounters result;
+    const auto account_axi_port = [&result](const FixedAxiPort &port) {
+      result.axi_request_fifo_stalls +=
+          port.requests().stats().push_stalls;
+      result.axi_backend_submit_stalls +=
+          port.master().stats().backend_submit_stalls;
+    };
     result.state_bytes_per_vertex = state_bytes_per_vertex(policy_);
     result.destination_partitions = layout_.partitions.size();
     result.supersteps = controller_->supersteps();
@@ -2744,22 +2750,17 @@ public:
     result.apply_write_bytes = result.apply_state_writes *
                                kStateWordsPerBurst *
                                state_bytes_per_vertex(policy_);
-    result.axi_backend_submit_stalls =
-        row_port_->master().stats().backend_submit_stalls +
-        source_state_port_->master().stats().backend_submit_stalls +
-        apply_state_read_port_->master().stats().backend_submit_stalls +
-        apply_state_write_port_->master().stats().backend_submit_stalls +
-        source_state_primary_write_port_->master()
-            .stats()
-            .backend_submit_stalls +
-        source_state_mirror_write_port_->master().stats().backend_submit_stalls;
+    account_axi_port(*row_port_);
+    account_axi_port(*source_state_port_);
+    account_axi_port(*apply_state_read_port_);
+    account_axi_port(*apply_state_write_port_);
+    account_axi_port(*source_state_primary_write_port_);
+    account_axi_port(*source_state_mirror_write_port_);
     if (degree_port_ != nullptr) {
-      result.axi_backend_submit_stalls +=
-          degree_port_->master().stats().backend_submit_stalls;
+      account_axi_port(*degree_port_);
     }
     for (const auto &port : pma_ports_) {
-      result.axi_backend_submit_stalls +=
-          port->master().stats().backend_submit_stalls;
+      account_axi_port(*port);
     }
     result.axis_push_stalls =
         source_request_axis_.stats().push_stalls +
@@ -3165,6 +3166,12 @@ public:
   [[nodiscard]] GraSuNativeReGraphCounters counters() const noexcept {
     GraSuNativeReGraphCounters result;
     GraSuReGraphCounters &pipeline = result.pipeline;
+    const auto account_axi_port = [&pipeline](const FixedAxiPort &port) {
+      pipeline.axi_request_fifo_stalls +=
+          port.requests().stats().push_stalls;
+      pipeline.axi_backend_submit_stalls +=
+          port.master().stats().backend_submit_stalls;
+    };
     pipeline.state_bytes_per_vertex = state_bytes_per_vertex(policy_);
     pipeline.destination_partitions = 1;
     pipeline.supersteps = controller_->rounds();
@@ -3239,17 +3246,12 @@ public:
     pipeline.apply_write_bytes = pipeline.apply_state_writes *
                                  kStateWordsPerBurst *
                                  state_bytes_per_vertex(policy_);
-    pipeline.axi_backend_submit_stalls =
-        edge_array_port_->master().stats().backend_submit_stalls +
-        source_state_port_->master().stats().backend_submit_stalls +
-        apply_state_read_port_->master().stats().backend_submit_stalls +
-        apply_state_write_port_->master().stats().backend_submit_stalls +
-        source_state_primary_write_port_->master()
-            .stats()
-            .backend_submit_stalls +
-        source_state_mirror_write_port_->master()
-            .stats()
-            .backend_submit_stalls;
+    account_axi_port(*edge_array_port_);
+    account_axi_port(*source_state_port_);
+    account_axi_port(*apply_state_read_port_);
+    account_axi_port(*apply_state_write_port_);
+    account_axi_port(*source_state_primary_write_port_);
+    account_axi_port(*source_state_mirror_write_port_);
     pipeline.axis_push_stalls =
         edge_burst_axis_.stats().push_stalls +
         scatter_axis_.stats().push_stalls +

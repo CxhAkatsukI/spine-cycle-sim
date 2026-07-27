@@ -552,16 +552,20 @@ public:
 
   [[nodiscard]] GraSuNativeCompactorCounters counters() const noexcept {
     GraSuNativeCompactorCounters result = compactor_->counters();
+    const auto account_axi_port = [&result](const FixedAxiPort &port) {
+      result.axi_request_fifo_stalls +=
+          port.requests().stats().push_stalls;
+      result.axi_backend_submit_stalls +=
+          port.master().stats().backend_submit_stalls;
+    };
     result.row_read_bytes = result.row_reads * 8;
     result.pma_read_bytes = result.pma_segment_reads * kGraSuSegmentBytes;
     result.edge_array_write_bytes =
         result.edge_array_writes * kGraSuSegmentBytes;
-    result.axi_backend_submit_stalls =
-        row_port_->master().stats().backend_submit_stalls +
-        edge_array_port_->master().stats().backend_submit_stalls;
+    account_axi_port(*row_port_);
+    account_axi_port(*edge_array_port_);
     for (const auto &port : pma_ports_) {
-      result.axi_backend_submit_stalls +=
-          port->master().stats().backend_submit_stalls;
+      account_axi_port(*port);
     }
     result.start_cycle = start_cycle_;
     result.end_cycle = active_ ? scheduler_.clock(clock_id_).completed_cycles
