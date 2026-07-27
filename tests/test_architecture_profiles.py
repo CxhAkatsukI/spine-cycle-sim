@@ -50,7 +50,7 @@ class ArchitectureProfileTests(unittest.TestCase):
 
     def test_repository_profiles_load_and_have_unique_ids(self) -> None:
         loaded = [load_architecture_profile(path) for path in sorted(PROFILES.glob("*.json"))]
-        self.assertEqual(len(loaded), 32)
+        self.assertEqual(len(loaded), 33)
         self.assertEqual(len({profile.profile_id for profile in loaded}), len(loaded))
         self.assertTrue(all(profile.manifest_sha256 for profile in loaded))
 
@@ -130,6 +130,36 @@ class ArchitectureProfileTests(unittest.TestCase):
         self.assertEqual(
             optimized.parameters["resource_feasibility_gate"],
             "candidate10_opt_v1_readmaint_csynth_resource_pass_timing_open",
+        )
+        self.assertEqual(verify_profile_artifacts(optimized), [])
+
+    def test_candidate10_opt_v2_freezes_finite_reader_working_set(self) -> None:
+        parent = load_architecture_profile(
+            PROFILES / "spine_candidate10_opt_v1_fallback_level_cache.json"
+        )
+        optimized = load_architecture_profile(
+            PROFILES / "spine_candidate10_opt_v2_reader_working_set.json"
+        )
+        self.assertEqual(optimized.status, ProfileStatus.PROJECTED)
+        self.assertEqual(optimized.evidence_tier, EvidenceTier.SIMULATION_ONLY)
+        self.assertEqual(
+            optimized.parameters["simulation_parent_profile"],
+            parent.profile_id,
+        )
+        self.assertEqual(
+            optimized.parameters["simulation_parent_profile_sha256"],
+            parent.manifest_sha256,
+        )
+        self.assertTrue(optimized.parameters["fallback_level_cache_reuse"])
+        self.assertTrue(optimized.parameters["source_page_index_cache"])
+        self.assertEqual(optimized.parameters["range_task_active_gate"], 32_768)
+        self.assertEqual(
+            optimized.parameters["source_page_cache_entries_per_fixed_family"],
+            11,
+        )
+        self.assertEqual(
+            optimized.parameters["range_task_active_cache_added_bytes"],
+            393_216,
         )
         self.assertEqual(verify_profile_artifacts(optimized), [])
 

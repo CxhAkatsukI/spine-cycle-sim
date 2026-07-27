@@ -1292,7 +1292,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--pagerank-apply-capacity", type=int, default=8)
     parser.add_argument("--channels", type=int, default=32)
     parser.add_argument("--device-dirty-source-limit", type=int, default=4_096)
-    parser.add_argument("--range-task-active-gate", type=int, default=16_384)
+    parser.add_argument("--range-task-active-gate", type=int)
     parser.add_argument("--range-task-capacity", type=int, default=65_536)
     parser.add_argument(
         "--range-task-payload-budget", type=int, default=1_048_576
@@ -1448,6 +1448,13 @@ def main() -> int:
     profile_source_page_index_cache = bool(
         profile.get("parameters", {}).get("source_page_index_cache", False)
     )
+    profile_range_task_active_gate = int(
+        profile.get("parameters", {}).get(
+            "range_task_active_gate", 16_384
+        )
+    )
+    if profile_range_task_active_gate <= 0:
+        raise SystemExit("profile range_task_active_gate must be positive")
     if profile_axi not in {
         "hls_split_9c08763",
         "candidate10_gmem_1e61fc0",
@@ -1467,6 +1474,8 @@ def main() -> int:
         args.fallback_level_cache_reuse = profile_fallback_level_cache_reuse
     if args.source_page_index_cache is None:
         args.source_page_index_cache = profile_source_page_index_cache
+    if args.range_task_active_gate is None:
+        args.range_task_active_gate = profile_range_task_active_gate
     try:
         data_clock = next(
             clock for clock in profile["clocks"] if clock["name"] == "data"
@@ -2089,6 +2098,9 @@ def main() -> int:
         "source_revision": profile["source"]["revision"],
         "architecture_profile_evidence_tier": profile["evidence_tier"],
         "simulation_evidence_tier": "structural_execution_driven",
+        "range_task_active_gate": args.range_task_active_gate,
+        "range_task_capacity": args.range_task_capacity,
+        "range_task_payload_budget": args.range_task_payload_budget,
         "sst_memory_binding": binding.as_manifest(),
         "sst_library_binding": sst_library,
         "sst_plugin_sha256": sst_library["plugin_sha256"],
