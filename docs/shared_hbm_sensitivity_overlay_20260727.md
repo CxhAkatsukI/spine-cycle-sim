@@ -148,3 +148,13 @@ Compact evidence is committed under
 hash-pins every child `comparison_manifest.json`, `results.csv`, and
 `pairs.csv`; its combined raw-evidence SHA-256 is
 `935ba5ab66d16dc57235a18849de0e256f1a3f3f78be042f7ae60cb17532eeba`.
+
+## Exact-idle equivalence
+
+The complete sweep was repeated with the exact DRAMSim3 idle-advance backend.
+All 120 system runs remain correct. The fail-closed audit compares 23,530 old
+result fields and 1,300 final/epoch DRAM JSON files exactly; the derived detail
+and summary CSV files are byte-identical, including zero strict rank
+inversions. Host runtime improves by 3.861x geometric mean without changing a
+simulated cycle. Reproducible raw evidence is committed under
+`docs/evidence/candidate10_exact_idle_hbm_sensitivity_equivalence_20260727`.

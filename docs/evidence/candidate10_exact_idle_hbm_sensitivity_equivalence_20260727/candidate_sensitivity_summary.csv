@@ -1,0 +1,5 @@
+profile_id,axis,direction,pairs,spine_speedup_geomean,winner_changes,strict_rank_inversions
+latency_low,latency,low,12,1.434572985835291,1,0
+latency_high,latency,high,12,1.3852438131723057,1,0
+bandwidth_high,bandwidth,high,12,1.4132943929534325,0,0
+bandwidth_low,bandwidth,low,12,1.4133802788928702,0,0

@@ -16,7 +16,9 @@ equivalence**. FIFO depth, AXI ordering, outstanding capacity, HBM timing,
 refresh, energy, simulated cycles, and architecture parameters are unchanged.
 The stock always-clocked backend remains the immutable reference. The
 exact-idle backend has passed the complete formal matrix and becomes the
-default experiment launcher only after the remaining HBM-sensitivity gate.
+supported publication experiment launcher after also passing the frozen
+HBM-sensitivity gate. The tracked wrapper keeps activation explicit because
+the patched SST/DRAMSim3 plugin is built in an isolated external directory.
 
 ## Implementation
 
@@ -98,16 +100,20 @@ Machine-readable evidence is in
 | Residual host wall | 68.02s -> 7.82s | 8.70x sample speedup |
 | 50K real Full PageRank | 268,232,904 Spine cycles | runtime gate PASS in 389.09s |
 | Candidate10 formal matrix | 146 system runs, 73 pairs | 27,629 old fields and 1,578 DRAM JSON exact |
+| HBM sensitivity matrix | 120 system runs, 5 profiles | 23,530 old fields and 1,300 DRAM JSON exact |
 
 The formal matrix completes with zero architecture-oracle and mathematical-
 oracle mismatches. Its host-runtime speedup is 3.871x geometric mean. The
 result is recorded under
-`docs/evidence/candidate10_hls_v3_exact_idle_equivalence_20260727`.
+`docs/evidence/candidate10_hls_v3_exact_idle_equivalence_20260727`. The HBM
+sweep retains byte-identical derived tables and zero strict rank inversions;
+its evidence is under
+`docs/evidence/candidate10_exact_idle_hbm_sensitivity_equivalence_20260727`.
 
-## Remaining gates
+## Supported use
 
-1. Re-run the frozen HBM sensitivity subset and confirm no strict architecture
-   ranking inversion.
-2. Only after that check, make the exact-idle backend the default experiment
-   launcher. Existing publication performance numbers do not change because
-   simulated cycles do not change.
+Use `scripts/run_sst_exact_idle_dramsim3.sh` for publication-scale runs after
+building the pinned isolated plugin. Keep the stock always-clocked backend as
+the immutable reference and for environments without the plugin. Existing
+publication performance numbers do not change because simulated cycles do not
+change.
