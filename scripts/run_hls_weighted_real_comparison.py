@@ -173,7 +173,7 @@ def _command(
     common = [args.python]
     if system == "spine":
         scenario = "dynamic_sssp" if run["scenario"] == "insert" else "dynamic_sssp_delete"
-        return common + [
+        command = common + [
             str(ROOT / "scripts" / "run_sst_spine_vertical.py"),
             "--no-build",
             "--scenario",
@@ -199,8 +199,11 @@ def _command(
             "--out-dir",
             str(out_dir.resolve()),
         ]
+        if args.instantiate_all_hbm_channels:
+            command.append("--instantiate-all-hbm-channels")
+        return command
     if system == "grasu_regraph":
-        return common + [
+        command = common + [
             str(ROOT / "scripts" / "run_sst_grasu_regraph_hls_weighted.py"),
             "--no-build",
             "--profile",
@@ -222,6 +225,9 @@ def _command(
             "--out-dir",
             str(out_dir.resolve()),
         ]
+        if args.instantiate_all_hbm_channels:
+            command.append("--instantiate-all-hbm-channels")
+        return command
     raise ValueError(f"unsupported system: {system}")
 
 
@@ -375,6 +381,11 @@ def main() -> int:
     parser.add_argument("--max-cycles", type=int, default=100_000_000)
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--no-build", action="store_true")
+    parser.add_argument(
+        "--instantiate-all-hbm-channels",
+        action="store_true",
+        help="instantiate idle SST HBM controllers for matched energy runs",
+    )
     args = parser.parse_args()
     if args.jobs <= 0 or args.timeout_seconds <= 0.0 or args.max_cycles <= 0:
         raise ValueError("jobs, timeout, and max cycles must be positive")
@@ -490,6 +501,10 @@ def main() -> int:
         ),
         "execution_sha256": execution_sha256,
         "selected_run_ids": [run["run_id"] for run in selected],
+        "instantiate_all_hbm_channels": args.instantiate_all_hbm_channels,
+        "hbm_controller_instances": (
+            32 if args.instantiate_all_hbm_channels else None
+        ),
         "system_rows": len(rows),
         "pairs": len(pairs),
         "all_correct": all(

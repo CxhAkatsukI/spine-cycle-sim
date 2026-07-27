@@ -5,6 +5,7 @@ import hashlib
 import json
 from pathlib import Path
 import tempfile
+from types import SimpleNamespace
 import unittest
 
 
@@ -17,6 +18,25 @@ SPEC.loader.exec_module(MODULE)
 
 
 class WeightedColdBaselineRunnerTest(unittest.TestCase):
+    def test_batch_size_supports_both_manifest_schemas(self) -> None:
+        self.assertEqual(MODULE._batch_size({"batch_size": 8}), 8)
+        self.assertEqual(MODULE._batch_size({"user_mutations": 8}), 8)
+        self.assertEqual(MODULE._batch_size({"update": {"records": 8}}), 8)
+
+    def test_energy_command_instantiates_all_hbm_controllers(self) -> None:
+        args = SimpleNamespace(
+            python="python3",
+            profile=Path("spine.json"),
+            max_cycles=100,
+            sst=Path("sst"),
+            lib_dir=Path("lib"),
+            instantiate_all_hbm_channels=True,
+        )
+        command = MODULE._command(
+            {"graph": {"path": "tests/data/g.txt"}}, args, Path("out")
+        )
+        self.assertIn("--instantiate-all-hbm-channels", command)
+
     def test_restore_final_values_validates_compacted_sidecar(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

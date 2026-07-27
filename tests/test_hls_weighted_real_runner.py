@@ -5,15 +5,37 @@ import hashlib
 import json
 from pathlib import Path
 import tempfile
+from types import SimpleNamespace
 import unittest
 
 from scripts.run_hls_weighted_real_comparison import (
+    _command,
     _restore_spine_final_values,
     _write_csv,
 )
 
 
 class HlsWeightedRealRunnerTests(unittest.TestCase):
+    def test_energy_command_instantiates_all_hbm_controllers(self) -> None:
+        run = {
+            "scenario": "insert",
+            "graph": {"path": "tests/data/g.txt"},
+            "update": {"path": "tests/data/u.txt"},
+        }
+        args = SimpleNamespace(
+            python="python3",
+            spine_profile=Path("spine.json"),
+            grasu_profile=Path("grasu.json"),
+            capability_catalog=Path("capabilities.json"),
+            max_cycles=100,
+            sst=Path("sst"),
+            lib_dir=Path("lib"),
+            instantiate_all_hbm_channels=True,
+        )
+        for system in ("spine", "grasu_regraph"):
+            command = _command(run, system, args=args, out_dir=Path("out"))
+            self.assertIn("--instantiate-all-hbm-channels", command)
+
     def test_csv_writer_accepts_architecture_specific_fields(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             path = Path(temporary) / "rows.csv"

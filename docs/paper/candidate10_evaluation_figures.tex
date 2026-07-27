@@ -317,7 +317,7 @@ Compact slices and full datasets are reported as separate populations.
     \begin{semilogyaxis}[
       ybar, bar width=8pt, width=0.9\linewidth, height=58mm,
       ylabel={GraSU+ReGraph / Spine HBM energy},
-      symbolic x coords={Full PR,Residual PR}, xtick=data,
+      symbolic x coords={Weighted SSSP,Full PR,Residual PR}, xtick=data,
       ymin=0.5, ymax=4, grid=major,
       legend style={at={(0.5,1.15)},anchor=south,legend columns=3}]
       \addplot[fill=spine] table[x=algorithm,y=grasu_to_spine_total_hbm,col sep=comma]
@@ -326,14 +326,15 @@ Compact slices and full datasets are reported as separate populations.
         {\datadir/hbm_energy_by_algorithm.csv};
       \addplot[fill=muted] table[x=algorithm,y=grasu_to_spine_background_refresh,col sep=comma]
         {\datadir/hbm_energy_by_algorithm.csv};
-      \addplot[black,dashed,sharp plot] coordinates {(Full PR,1) (Residual PR,1)};
+      \addplot[black,dashed,sharp plot] coordinates {(Weighted SSSP,1) (Residual PR,1)};
       \legend{Total HBM,Command dynamic,Background + refresh}
     \end{semilogyaxis}
   \end{tikzpicture}
   \caption{Matched all-32-controller DRAMSim3 energy on three compact holdout
-  slices. Values above one mean GraSU+ReGraph uses more energy. This is HBM
-  energy only, not total accelerator or board energy; asymmetric projected
-  on-chip energy is intentionally excluded.}
+  slices. The Spine SSSP values use exact per-controller subtraction of a
+  reproduced quiescent cold prefix. Values above one mean GraSU+ReGraph uses
+  more energy. This is HBM energy only, not total accelerator or board energy;
+  asymmetric projected on-chip energy is intentionally excluded.}
 \end{figure}
 }{\missingplot{Waiting for matched all-controller HBM energy evidence.}}
 

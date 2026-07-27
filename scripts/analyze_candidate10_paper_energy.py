@@ -23,6 +23,11 @@ DEFAULT_SOURCE = (
     / "docs/evidence/candidate10_hls_v3_matched_pagerank_energy_20260727"
     / "analysis/pair_energy.csv"
 )
+DEFAULT_WEIGHTED_SOURCE = (
+    ROOT
+    / "docs/evidence/candidate10_hls_v3_matched_weighted_sssp_energy_20260727"
+    / "analysis/pair_energy.csv"
+)
 
 
 def _write_csv(path: Path, rows: list[dict[str, object]]) -> None:
@@ -38,12 +43,17 @@ def _write_csv(path: Path, rows: list[dict[str, object]]) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source", type=Path, default=DEFAULT_SOURCE)
+    parser.add_argument(
+        "--weighted-source", type=Path, default=DEFAULT_WEIGHTED_SOURCE
+    )
     parser.add_argument("--out-dir", type=Path, required=True)
     parser.add_argument("--paper-data-dir", type=Path)
     args = parser.parse_args()
 
     with args.source.open(encoding="utf-8", newline="") as stream:
         rows = list(csv.DictReader(stream))
+    with args.weighted_source.open(encoding="utf-8", newline="") as stream:
+        rows.extend(csv.DictReader(stream))
     paper_rows = paper_hbm_energy_rows(rows)
     args.out_dir.mkdir(parents=True, exist_ok=True)
     output = args.out_dir / "hbm_energy_by_algorithm.csv"
@@ -57,8 +67,16 @@ def main() -> int:
         "evidence_id": "candidate10_paper_hbm_energy_v1_20260727",
         "status": "PASS",
         "claim_class": "matched_32_controller_hbm_energy_not_total_accelerator",
-        "source": str(args.source.resolve()),
-        "source_sha256": sha256_file(args.source),
+        "sources": [
+            {
+                "path": str(args.weighted_source.resolve()),
+                "sha256": sha256_file(args.weighted_source),
+            },
+            {
+                "path": str(args.source.resolve()),
+                "sha256": sha256_file(args.source),
+            },
+        ],
         "output_sha256": sha256_file(output),
         "algorithms": [row["algorithm_id"] for row in paper_rows],
         "pairs": sum(int(row["pairs"]) for row in paper_rows),
@@ -75,7 +93,10 @@ def main() -> int:
     (args.out_dir / "hbm_energy_evidence.json").write_text(
         json.dumps(evidence, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
-    print(f"PASS matched HBM energy: algorithms={len(paper_rows)} pairs=6")
+    print(
+        f"PASS matched HBM energy: algorithms={len(paper_rows)} "
+        f"pairs={sum(int(row['pairs']) for row in paper_rows)}"
+    )
     return 0
 
 

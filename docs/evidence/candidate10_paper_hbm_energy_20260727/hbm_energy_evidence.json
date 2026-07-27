@@ -1,5 +1,6 @@
 {
   "algorithms": [
+    "weighted_sssp",
     "full_pagerank",
     "thresholded_residual_pagerank"
   ],
@@ -11,10 +12,18 @@
     "Logic, FIFO, interconnect, clock, host, PCIe, shell, and board energy are excluded.",
     "Projected CACTI SRAM energy is intentionally not used in this ratio."
   ],
-  "output_sha256": "1a72222e79e65eeb9e38765b9b45e1c9ad25dd9ae54ba0de5419f43876de86a8",
-  "pairs": 6,
+  "output_sha256": "64b317c19cd30f01e9aa61ad589bbd209246236c59f1e0170d81db8ff2d38594",
+  "pairs": 9,
   "schema_version": 1,
-  "source": "/home/chuxiao/spine-cycle-sim-publication/docs/evidence/candidate10_hls_v3_matched_pagerank_energy_20260727/analysis/pair_energy.csv",
-  "source_sha256": "addcdecbcc8b722be31473a50251a5e798dfd996f8c6d3c367624d42ec74c315",
+  "sources": [
+    {
+      "path": "/home/chuxiao/spine-cycle-sim-publication/docs/evidence/candidate10_hls_v3_matched_weighted_sssp_energy_20260727/analysis/pair_energy.csv",
+      "sha256": "d40c1ac078d7877bed3dfb248263730ee2c7ba49f5fb46b7839236c1fc582afc"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim-publication/docs/evidence/candidate10_hls_v3_matched_pagerank_energy_20260727/analysis/pair_energy.csv",
+      "sha256": "addcdecbcc8b722be31473a50251a5e798dfd996f8c6d3c367624d42ec74c315"
+    }
+  ],
   "status": "PASS"
 }

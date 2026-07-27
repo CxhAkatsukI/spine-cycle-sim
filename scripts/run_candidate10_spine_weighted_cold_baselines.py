@@ -85,7 +85,7 @@ def _restore_final_values(
 
 def _command(run: Mapping[str, object], args: argparse.Namespace, out_dir: Path) -> list[str]:
     graph = ROOT / run["graph"]["path"]  # type: ignore[index]
-    return [
+    command = [
         args.python,
         str(ROOT / "scripts/run_sst_spine_vertical.py"),
         "--no-build",
@@ -110,6 +110,20 @@ def _command(run: Mapping[str, object], args: argparse.Namespace, out_dir: Path)
         "--out-dir",
         str(out_dir.resolve()),
     ]
+    if args.instantiate_all_hbm_channels:
+        command.append("--instantiate-all-hbm-channels")
+    return command
+
+
+def _batch_size(run: Mapping[str, object]) -> int:
+    if "batch_size" in run:
+        return int(run["batch_size"])
+    if "user_mutations" in run:
+        return int(run["user_mutations"])
+    update = run.get("update")
+    if isinstance(update, Mapping) and "records" in update:
+        return int(update["records"])
+    raise ValueError(f"run {run.get('run_id')} has no batch-size field")
 
 
 def _run_case(run: dict[str, object], args: argparse.Namespace) -> dict[str, object]:
@@ -184,24 +198,39 @@ def main() -> int:
     parser.add_argument("--sst", type=Path, default=DEFAULT_SST)
     parser.add_argument("--lib-dir", type=Path, default=ROOT / "build/sst-stalls")
     parser.add_argument("--python", default=sys.executable)
+    parser.add_argument("--run-id", action="append", default=[])
     parser.add_argument("--jobs", type=int, default=4)
     parser.add_argument("--timeout-seconds", type=float, default=1200.0)
     parser.add_argument("--max-cycles", type=int, default=100_000_000)
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--no-build", action="store_true")
+    parser.add_argument(
+        "--instantiate-all-hbm-channels",
+        action="store_true",
+        help="instantiate idle SST HBM controllers for matched energy runs",
+    )
     args = parser.parse_args()
     args.dynamic_dir = args.dynamic_dir.resolve()
     args.out_dir = args.out_dir.resolve()
     if args.jobs <= 0 or args.timeout_seconds <= 0 or args.max_cycles <= 0:
         raise ValueError("jobs, timeout, and max cycles must be positive")
     manifest = json.loads(args.input_manifest.read_text(encoding="utf-8"))
-    runs = [
+    eligible_runs = [
         run
         for run in manifest["runs"]
-        if run["scenario"] == "insert" and int(run["batch_size"]) == 8
+        if run["scenario"] == "insert" and _batch_size(run) == 8
     ]
-    if len(runs) != 5:
-        raise ValueError("cold matrix requires five insert-u8 temporal runs")
+    known = {str(run["run_id"]) for run in eligible_runs}
+    unknown = sorted(set(args.run_id) - known)
+    if unknown:
+        raise ValueError(f"unknown cold-baseline run IDs: {unknown}")
+    runs = [
+        run
+        for run in eligible_runs
+        if not args.run_id or str(run["run_id"]) in args.run_id
+    ]
+    if not runs:
+        raise ValueError("cold matrix requires at least one insert-u8 run")
     if not args.no_build:
         subprocess.run(
             ["make", "-C", "cpp/sst", "BUILD_DIR=../../build/sst-stalls", "-j4"],
@@ -231,6 +260,11 @@ def main() -> int:
         "matrix_id": "candidate10_spine_weighted_cold_baselines_v1_20260727",
         "status": "PASS",
         "runs": len(rows),
+        "selected_run_ids": [row["run_id"] for row in rows],
+        "instantiate_all_hbm_channels": args.instantiate_all_hbm_channels,
+        "hbm_controller_instances": (
+            32 if args.instantiate_all_hbm_channels else None
+        ),
         "all_exact_dynamic_prefix_matches": True,
         "quiescent_boundary_contract": "spine_idle_and_backend_outstanding_zero",
         "input_manifest_sha256": sha256_file(args.input_manifest),

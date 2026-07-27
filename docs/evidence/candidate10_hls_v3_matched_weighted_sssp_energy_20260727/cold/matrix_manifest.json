@@ -1,0 +1,25 @@
+{
+  "all_exact_dynamic_prefix_matches": true,
+  "cold_baseline_rows_sha256": "680fa3c26bfe8fe0d1f6e754f2f80673bf034c832c01dba0e9e0262975ba80ec",
+  "driver_wall_seconds": 15.56198331527412,
+  "dynamic_dir": "/data/tmp/chuxiao/candidate10_hls_v3_energy_weighted_sssp_insert_20260727",
+  "execution_fingerprint": "df961caef375a89e8592a48820a788528cb01139c65cef1fb87a8f56e56c2b35",
+  "hbm_controller_instances": 32,
+  "input_manifest_sha256": "1c0a362a82b34eb235153b815dbfbeb9121932cd4d2b40e87b8d8e5370a40bd9",
+  "instantiate_all_hbm_channels": true,
+  "matrix_id": "candidate10_spine_weighted_cold_baselines_v1_20260727",
+  "max_child_sst_host_wall_seconds": 15.36682207044214,
+  "plugin_sha256": "9094f527995f9ea0a10d686ee7f90236400eca0619b634f039e98061bac328b8",
+  "profile_sha256": "4e31633c55abfdc57fd4537119d6abb6d7a4f0313dcfc81332fa0ed0a6320c0a",
+  "quiescent_boundary_contract": "spine_idle_and_backend_outstanding_zero",
+  "runs": 3,
+  "schema_version": 1,
+  "selected_run_ids": [
+    "real_amazon_2008_insert_u8",
+    "real_soc_flickr_und_insert_u8",
+    "real_web_google_insert_u8"
+  ],
+  "sst_sha256": "31d60def570079b1b6a104bc3dec06f0ecbc3eda3e6e0f828fa16aaf386633af",
+  "status": "PASS",
+  "sum_child_sst_host_wall_seconds": 35.49533214699477
+}

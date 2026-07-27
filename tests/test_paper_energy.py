@@ -28,13 +28,14 @@ class PaperEnergyTest(unittest.TestCase):
         rows = [
             _row(algorithm, f"d{index}")
             for algorithm in (
+                "weighted_sssp",
                 "full_pagerank",
                 "thresholded_residual_pagerank",
             )
             for index in range(3)
         ]
         result = paper_hbm_energy_rows(rows)
-        self.assertEqual(len(result), 2)
+        self.assertEqual(len(result), 3)
         self.assertAlmostEqual(result[0]["grasu_to_spine_total_hbm"], 2.0)
         self.assertAlmostEqual(
             result[0]["grasu_to_spine_command_dynamic"], 3.0
@@ -44,6 +45,7 @@ class PaperEnergyTest(unittest.TestCase):
         rows = [
             _row(algorithm, f"d{index}")
             for algorithm in (
+                "weighted_sssp",
                 "full_pagerank",
                 "thresholded_residual_pagerank",
             )

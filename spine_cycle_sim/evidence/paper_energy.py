@@ -7,6 +7,7 @@ from typing import Mapping, Sequence
 
 
 ALGORITHM_LABELS = {
+    "weighted_sssp": "Weighted SSSP",
     "full_pagerank": "Full PR",
     "thresholded_residual_pagerank": "Residual PR",
 }
