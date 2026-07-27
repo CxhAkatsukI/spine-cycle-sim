@@ -182,28 +182,6 @@ Compact slices and full datasets are reported as separate populations.
 \end{figure}
 }{\missingplot{Waiting for the three-algorithm batch 1/8/64 matrix.}}
 
-\IfFileExists{\datadir/e2e_by_batch.csv}{%
-\begin{figure}[H]
-  \centering
-  \begin{tikzpicture}
-    \begin{semilogxaxis}[
-      width=0.96\linewidth, height=60mm,
-      xlabel={User mutations per batch}, ylabel={E2E time (ms)},
-      xtick={1,8,64}, xticklabels={1,8,64}, grid=major,
-      legend style={at={(0.5,1.14)},anchor=south,legend columns=2}]
-      \addplot[spine,mark=square*] table[x=batch,y=spine_ms,col sep=comma]
-        {\datadir/e2e_by_batch.csv};
-      \addplot[grasu,mark=triangle*] table[x=batch,y=grasu_ms,col sep=comma]
-        {\datadir/e2e_by_batch.csv};
-      \legend{Spine, GraSU+ReGraph}
-    \end{semilogxaxis}
-  \end{tikzpicture}
-  \caption{Full PageRank E2E scaling over the five GraSU compact temporal
-  slices. Batch 1 includes insert/delete; batches 8 and 64 additionally include
-  mixed updates.}
-\end{figure}
-}{\missingplot{Waiting for the five-dataset batch 1/8/64 Full PageRank sweep.}}
-
 \section{Memory traffic and locality}
 \IfFileExists{\datadir/memory_by_algorithm.csv}{%
 \begin{figure}[H]
