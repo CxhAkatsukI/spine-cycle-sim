@@ -71,3 +71,29 @@ queue capacities.
 
 Until these checks pass, the current always-clocked DRAMSim3 path remains the
 publication baseline and the large-real runtime gate remains open or failed.
+
+## Prototype status
+
+An isolated exact-idle implementation now passes the first three validation
+layers. It is reproducible from
+`patches/dramsim3_exact_idle_advance.patch`,
+`patches/sst_elements_dramsim3_idle_clock.patch`, and
+`scripts/build_exact_idle_dramsim3_backend.py`.
+
+- A standalone 1,010,000-cycle test skipped 1,009,323 host-side DRAM ticks.
+  Twenty-one read/write completions, final statistics, epoch statistics, and
+  energy remained byte-identical. Requests straddle `tREFI` and epoch
+  boundaries and include a stable deferred write.
+- A 256-request SST AXI smoke retained the same 520 simulated core cycles and
+  byte-identical result and DRAM JSON.
+- The frozen Spine `syn_spread_e512` thresholded residual PageRank workload
+  retained 4,778,979 cycles and byte-identical result plus all eight bound HBM
+  channel JSON files. Host wall time fell from 68.02 seconds to 7.82 seconds,
+  an 8.70x reduction on that sample.
+
+The fresh 50,000-edge runtime gate now passes in 389.09 seconds for Spine and
+7.87 seconds for GraSU+ReGraph, with the pre-existing result fields and all
+bound-channel DRAM JSON unchanged. This is not yet the publication baseline:
+the broader three-algorithm, two-architecture equivalence matrix remains
+required. Detailed implementation and reproduction instructions are in
+`docs/dramsim3_exact_idle_advance_20260727.md`.
