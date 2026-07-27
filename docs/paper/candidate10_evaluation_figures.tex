@@ -6,11 +6,21 @@
 \usepackage{subcaption}
 \usepackage{xcolor}
 \usepackage{float}
+\usepackage{tabularx}
+\usepackage[hidelinks]{hyperref}
 \pgfplotsset{compat=1.18}
+\hypersetup{
+  pdftitle={Spine vs. GraSU+ReGraph: Correctness-Gated Simulator Evaluation and FPGA Feasibility},
+  pdfauthor={Chuxiao Han},
+  pdfsubject={Three-algorithm simulator evaluation and routed FPGA feasibility}
+}
 
 \definecolor{spine}{HTML}{176B87}
 \definecolor{grasu}{HTML}{B44C43}
 \definecolor{muted}{HTML}{697077}
+\definecolor{complete}{HTML}{237A57}
+\definecolor{partial}{HTML}{A65F00}
+\definecolor{openitem}{HTML}{8A3F3F}
 
 \IfFileExists{data/correctness_coverage.csv}{%
   \newcommand{\datadir}{data}%
@@ -22,17 +32,84 @@
   \fbox{\parbox[c][42mm][c]{0.94\linewidth}{\centering
   \textbf{Evidence gate not complete}\\[3pt]#1}}}
 
-\title{Candidate10 Evaluation Figures}
-\author{Generated from correctness-gated simulator evidence}
-\date{}
+\newcommand{\statuscomplete}{\textcolor{complete}{\textbf{Complete}}}
+\newcommand{\statuspartial}{\textcolor{partial}{\textbf{Partial}}}
+\newcommand{\statusopen}{\textcolor{openitem}{\textbf{Open}}}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+
+\title{\textbf{Spine vs. GraSU+ReGraph}\\
+  \large Correctness-Gated Simulator Evaluation and FPGA Feasibility\\[4pt]
+  \normalsize Three Graph Algorithms $\mid$ E2E and Update Performance
+  $\mid$ Memory Behavior $\mid$ HBM Energy $\mid$ Routed Resource and Timing}
+\author{Chuxiao Han}
+\date{July 2026}
 
 \begin{document}
 \maketitle
 
+\begin{abstract}
+This evidence pack evaluates normalized Spine and GraSU+ReGraph architectures
+with an execution-driven simulator and routed FPGA feasibility artifacts.  The
+reported compact-slice comparison covers weighted SSSP, full PageRank, and
+thresholded residual PageRank; every performance row is admitted only after
+architecture-precision, independent mathematical, and cross-system final-state
+checks pass.  Claims are scoped explicitly below so that compact-slice
+simulation, dense-update evidence, HBM-only energy, and non-iso-functional FPGA
+builds are not conflated.
+\end{abstract}
+
+\section*{Acceptance coverage}
+\small
+\begin{tabularx}{\linewidth}{@{}L{0.18\linewidth}L{0.13\linewidth}Y L{0.17\linewidth}@{}}
+  \toprule
+  Requirement & Status & Delivered evidence & Direct reference \\
+  \midrule
+  Correctness & \statuscomplete &
+  All reported rows pass two numerical oracles plus graph-state and
+  cross-system result checks. &
+  Figs.~\ref{fig:cross-algorithm-e2e}--\ref{fig:simulator-host-runtime} \\
+  Three algorithms and E2E & \statuscomplete &
+  Three algorithms, five real-topology 8,192-edge slices, and insertion
+  batches 1/8/64; 45 correctness-gated architecture pairs. &
+  Figs.~\ref{fig:cross-algorithm-e2e}, \ref{fig:small-batch-scaling};
+  Table~\ref{tab:compact-slices} \\
+  Update performance & \statuscomplete &
+  Full PageRank exercises the common structural path across insert, delete,
+  mixed, and weight-change scenarios; throughput counts semantic mutations. &
+  Figs.~\ref{fig:differential-scenarios}, \ref{fig:update-throughput} \\
+  Memory behavior & \statuscomplete &
+  Three-algorithm logical traffic, locality, DRAM row behavior, burst
+  amplification, and finite-queue pressure with request conservation. &
+  Figs.~\ref{fig:memory-logical}, \ref{fig:memory-physical} \\
+  Dense batches & \statuspartial &
+  Full PageRank on three real topologies at batches 64/512/4,096; broader
+  algorithm and multi-partition coverage remains open. &
+  Fig.~\ref{fig:dense-batch} \\
+  Energy & \statuspartial &
+  Matched all-controller HBM energy for all three algorithms; calibrated
+  on-chip component energy remains open. & Fig.~\ref{fig:hbm-energy} \\
+  Area and timing & \statuspartial &
+  Routed U55C resources and setup timing are available, but the Spine and
+  GraSU+ReGraph rows are not yet iso-functional. &
+  Table~\ref{tab:routed-ppa}; Fig.~\ref{fig:routed-timing} \\
+  Simulator runtime & \statuspartial &
+  All compact runs complete; a correctness-gated 50,000-edge full-PageRank
+  slice completes below the 1,800-second per-system gate. &
+  Fig.~\ref{fig:simulator-host-runtime} \\
+  Ablation and scalability & \statusopen &
+  Multi-partition comparison, replicated kernels/resources, structural
+  ablations, and full-dataset scaling are future experiments. & --- \\
+  \bottomrule
+\end{tabularx}
+\normalsize
+
+\vspace{0.6em}
 \noindent\textbf{Claim rule.}
 Every plotted performance row must pass the architecture-precision oracle,
 the independent mathematical oracle, and the cross-system final-state check.
-Compact slices and full datasets are reported as separate populations.
+Compact slices and larger validation slices are reported as separate
+populations; no full-dataset or multi-partition comparison is claimed.
 
 \section{Cross-algorithm E2E ranking}
 \IfFileExists{\datadir/e2e_speedup_by_dataset_algorithm.csv}{%
@@ -123,6 +200,7 @@ Compact slices and full datasets are reported as separate populations.
   both numerical oracles, final graph-state checks, and cross-system rank
   comparison. Weight change counts eight semantic updates but lowers them to
   16 delete-old/insert-new physical records.}
+  \label{fig:differential-scenarios}
 \end{figure}
 }{\missingplot{Waiting for insert/delete/mixed/weight-change differential evidence.}}
 
@@ -145,6 +223,7 @@ Compact slices and full datasets are reported as separate populations.
   \end{tikzpicture}
   \caption{Update throughput versus batch size. The denominator is the number
   of successful user mutations, not internal physical records.}
+  \label{fig:update-throughput}
 \end{figure}
 }{\missingplot{Waiting for batch 1/8/64 insert, delete, and mixed updates.}}
 
@@ -179,6 +258,7 @@ Compact slices and full datasets are reported as separate populations.
   \caption{Insertion E2E scaling over five compact real-topology slices.
   Values above one favor Spine. Each point is the geometric mean of five
   correctness-gated architecture pairs.}
+  \label{fig:small-batch-scaling}
 \end{figure}
 }{\missingplot{Waiting for the three-algorithm batch 1/8/64 matrix.}}
 
@@ -221,6 +301,7 @@ Compact slices and full datasets are reported as separate populations.
   over five compact real-topology slices (mean bytes per pair).  Locality is
   classified per initiator and operation after excluding each stream's first
   request.  It is not a DRAM row-hit metric and excludes burst amplification.}
+  \label{fig:memory-logical}
 \end{figure}
 }{\missingplot{Waiting for phase-aligned accepted-request traffic evidence.}}
 
@@ -278,6 +359,7 @@ Compact slices and full datasets are reported as separate populations.
   AXI requests on every row. Stall values count rejected port attempts, so
   multiple events may occur in one cycle. Spine weighted SSSP uses an exact
   quiescent cold-prefix subtraction to align its controller window.}
+  \label{fig:memory-physical}
 \end{figure}
 }{\missingplot{Waiting for complete FIFO/AXI/HBM backpressure evidence.}}
 
@@ -306,6 +388,7 @@ Compact slices and full datasets are reported as separate populations.
   \end{tikzpicture}
   \caption{Dense-update crossover on three compact real topologies. Absolute
   batch size is retained in the companion data table.}
+  \label{fig:dense-batch}
 \end{figure}
 }{\missingplot{Waiting for real-topology batch 64/512/4096 sweeps.}}
 
@@ -335,6 +418,7 @@ Compact slices and full datasets are reported as separate populations.
   reproduced quiescent cold prefix. Values above one mean GraSU+ReGraph uses
   more energy. This is HBM energy only, not total accelerator or board energy;
   asymmetric projected on-chip energy is intentionally excluded.}
+  \label{fig:hbm-energy}
 \end{figure}
 }{\missingplot{Waiting for matched all-controller HBM energy evidence.}}
 
@@ -401,6 +485,11 @@ Compact slices and full datasets are reported as separate populations.
   evidence for simulator-throughput planning and are not accelerator latency.}
   \label{fig:simulator-host-runtime}
 \end{figure}
+\noindent A separate correctness-gated full-PageRank run on a
+19,399-vertex/50,000-edge Amazon-2008 slice completed in 389.088 seconds for
+Spine and 7.873 seconds for GraSU+ReGraph.  This establishes the current
+large-slice runtime gate for full PageRank only; it is not a full-dataset or
+three-algorithm scaling claim.
 }{\missingplot{Waiting for archived host-runtime observations.}}
 
 \section{Routed HLS feasibility}
@@ -431,6 +520,7 @@ Compact slices and full datasets are reported as separate populations.
   whereas the GraSU+ReGraph rows are algorithm-specific normalized whole
   systems. Absolute resource ratios are therefore not used as a comparative
   performance claim.}
+  \label{tab:routed-ppa}
 \end{table}
 \begin{figure}[H]
   \centering
@@ -454,6 +544,7 @@ Compact slices and full datasets are reported as separate populations.
   \caption{Post-route setup margin at each row's stated target (152 MHz for
   Spine and 150 MHz for GraSU+ReGraph). Non-negative WNS closes timing;
   negative WNS identifies the remaining target miss.}
+  \label{fig:routed-timing}
 \end{figure}
 }{\missingplot{Waiting for routed artifacts for Spine and all three GraSU+ReGraph algorithms.}}
 
