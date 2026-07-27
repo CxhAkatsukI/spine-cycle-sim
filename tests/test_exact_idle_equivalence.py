@@ -30,6 +30,12 @@ class ExactIdleEquivalenceTests(unittest.TestCase):
             (matrix / "comparison_manifest.json").write_text(
                 json.dumps(manifest), encoding="utf-8"
             )
+            (matrix / "results.csv").write_text(
+                "run_id,system,algorithm\n"
+                f"{run_id},spine,full_pagerank\n"
+                f"{run_id},grasu_regraph,full_pagerank\n",
+                encoding="utf-8",
+            )
             for system in ("spine", "grasu_regraph"):
                 system_root = matrix / run_id / system
                 dram = system_root / "dram/channel0"

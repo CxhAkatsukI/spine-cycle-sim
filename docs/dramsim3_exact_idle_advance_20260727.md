@@ -14,8 +14,9 @@ channel.
 The only supported claim is **host-runtime optimization with exact observable
 equivalence**. FIFO depth, AXI ordering, outstanding capacity, HBM timing,
 refresh, energy, simulated cycles, and architecture parameters are unchanged.
-The stock always-clocked backend remains the publication baseline until the
-remaining acceptance matrix passes.
+The stock always-clocked backend remains the immutable reference. The
+exact-idle backend has passed the complete formal matrix and becomes the
+default experiment launcher only after the remaining HBM-sensitivity gate.
 
 ## Implementation
 
@@ -96,17 +97,17 @@ Machine-readable evidence is in
 | Spine residual PageRank | 4,778,979 cycles | result and 8 channel DRAM JSON |
 | Residual host wall | 68.02s -> 7.82s | 8.70x sample speedup |
 | 50K real Full PageRank | 268,232,904 Spine cycles | runtime gate PASS in 389.09s |
+| Candidate10 formal matrix | 146 system runs, 73 pairs | 27,629 old fields and 1,578 DRAM JSON exact |
 
-The residual run has zero architecture-oracle and mathematical-oracle
-mismatches. It preserves 410,621 backend requests and the exact ACT, PRE,
-read/write, arbitration, and HBM energy ledgers.
+The formal matrix completes with zero architecture-oracle and mathematical-
+oracle mismatches. Its host-runtime speedup is 3.871x geometric mean. The
+result is recorded under
+`docs/evidence/candidate10_hls_v3_exact_idle_equivalence_20260727`.
 
 ## Remaining gates
 
-1. Run both Candidate10 architectures across all three algorithms, including
-   update-heavy, refresh-boundary, and holdout cases.
-2. Re-run the frozen HBM sensitivity subset and confirm no strict architecture
+1. Re-run the frozen HBM sensitivity subset and confirm no strict architecture
    ranking inversion.
-3. Only after those checks, make the exact-idle backend the default experiment
+2. Only after that check, make the exact-idle backend the default experiment
    launcher. Existing publication performance numbers do not change because
    simulated cycles do not change.

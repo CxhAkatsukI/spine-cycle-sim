@@ -22,7 +22,7 @@ runtime and is not an iso-resource comparison.
 | Matched HBM energy | PASS | 12 system runs, six pairs, all 32 controllers |
 | Spine routed feasibility | PASS | U55C routed xclbin, 150 MHz timing closed |
 | GraSU+ReGraph three-algorithm routed feasibility | IN PROGRESS | weighted and Full PageRank routed; residual build running |
-| Exact-idle observable equivalence | IN PROGRESS | standalone, SST smoke, residual, and 50K real slice pass; full 73-pair audit running |
+| Exact-idle observable equivalence | FORMAL PASS / SENSITIVITY IN PROGRESS | 146 results, 27,629 old fields, and 1,578 DRAM JSON exact |
 | 50K-edge real-slice runtime | COMPLETE / PASS | both systems correct; Spine 389.088 s and GraSU+ReGraph 7.873 s are below the 1,800 s host limit |
 | Matched total accelerator energy | BLOCKED | asymmetric on-chip coverage; logic/clock/interconnect omitted |
 | Three-algorithm iso-functional Spine PPA | BLOCKED | current Spine xclbin is the SSSP compute baseline |
@@ -59,7 +59,8 @@ all final/epoch DRAM JSON bytes on this run. It reduces Spine host wall time
 from 9,381.996 to 389.088 seconds and GraSU+ReGraph from 22.596 to 7.873
 seconds, so both systems pass the 1,800-second runtime gate. These host
 speedups do not alter simulated cycles or hardware performance. The complete
-73-pair fail-closed equivalence audit remains in progress.
+73-pair fail-closed audit passes with 27,629 old fields and 1,578 final/epoch
+DRAM JSON files unchanged; the host-runtime speedup is 3.871x geometric mean.
 
 ## Memory and energy
 
@@ -106,6 +107,7 @@ for bundle in \
   candidate10_hls_v3_matched_pagerank_energy_20260727 \
   candidate10_hls_v3_large_runtime_20260727 \
   candidate10_hls_v3_large_runtime_idle_optimized_20260727 \
+  candidate10_hls_v3_exact_idle_equivalence_20260727 \
   candidate10_alignment_inputs_20260727; do
   (cd "docs/evidence/${bundle}" && sha256sum -c SHA256SUMS)
 done
@@ -122,8 +124,8 @@ compiler-only and SST thread-scaling runtime experiments are recorded in
 
 1. Freeze the residual PageRank routed artifact, resources, timing, and source
    identity after the active Vitis run completes.
-2. Finish the exact-idle 73-pair and HBM-sensitivity equivalence gates before
-   making the optimized backend the default experiment launcher.
+2. Finish the exact-idle HBM-sensitivity equivalence gate before making the
+   optimized backend the default experiment launcher.
 3. Implement and synthesize Spine Full/residual PageRank whole systems before
    making an iso-functional three-algorithm PPA claim.
 4. Add symmetric on-chip activity and characterized storage plus logic,

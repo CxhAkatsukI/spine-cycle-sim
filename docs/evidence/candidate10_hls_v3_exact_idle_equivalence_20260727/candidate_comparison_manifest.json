@@ -1,0 +1,338 @@
+{
+  "claim_class": "complete_candidate10_derived_normalized_structural_matrix",
+  "claim_gate": {
+    "eligible": true,
+    "label": "candidate10_hls_derived_normalized_structural_execution_driven",
+    "reason": "Both models use HLS-derived mechanisms on one platform, but three-algorithm matching HLS is incomplete."
+  },
+  "complete_matrix": true,
+  "executed_rows": 146,
+  "failure": null,
+  "hbm_dram_config": {
+    "environment_variable": "CANDIDATE10_SST_DRAM_CONFIG",
+    "experiment_role": "frozen_baseline",
+    "frozen_baseline_sha256": "d1e865c6528acbc41f0768667063702bfb4033f24bcd46119ad25bfc5ad4fb5f",
+    "is_frozen_baseline": true,
+    "path": "/home/chuxiao/spine-cycle-sim-publication/configs/memory/HBM2_1ch_x128.ini",
+    "sha256": "d1e865c6528acbc41f0768667063702bfb4033f24bcd46119ad25bfc5ad4fb5f",
+    "shared_by_systems": [
+      "spine",
+      "grasu_regraph"
+    ]
+  },
+  "matrix_id": "shared_comparison_candidate10_hls_v3_20260726",
+  "matrix_wall_seconds": 1033.5136752929538,
+  "normalized_profile_contract": {
+    "claim_class": "candidate10_hls_derived_normalized_structural_execution_driven",
+    "clock_mhz": 150.0,
+    "grasu_capability_catalog_id": "grasu_regraph_candidate10_hls_capabilities_v3_20260726",
+    "grasu_capability_catalog_sha256": "25794099eaba54d5b693afd626c563afba19d687b71609c7cd46bf4c0cc13f1c",
+    "grasu_profile_ids": [
+      "grasu_regraph_candidate10_normalized_hls_weighted_v3",
+      "grasu_regraph_candidate10_normalized_hls_pagerank_v3",
+      "grasu_regraph_candidate10_normalized_hls_residual_pagerank_v3"
+    ],
+    "grasu_profile_set": "hls_v3",
+    "hbm_clock_mhz": 450.0,
+    "hbm_pseudo_channels_budget": 23,
+    "matching_hls_gate": {
+      "algorithms": {
+        "full_pagerank": {
+          "closest_hls_profile_id": "grasu_regraph_weighted_pma_hls_proposed_pagerank_ff13a67",
+          "functional_evidence_status": "simulator_dual_oracle_and_isolated_policy_tests_pass",
+          "matching_hls": false,
+          "missing_gates": [
+            "integrate degree RMW, dangling reduction, policy, state storage, and host control",
+            "pass a whole-system HLS correctness oracle",
+            "obtain whole-system synthesis resources and timing"
+          ],
+          "normalized_profile_id": "grasu_regraph_candidate10_normalized_hls_pagerank_v3",
+          "parameter_blockers": 0,
+          "parameter_differences": 1,
+          "whole_system_hls_status": "not_implemented"
+        },
+        "thresholded_residual_pagerank": {
+          "closest_hls_profile_id": "grasu_regraph_weighted_pma_hls_proposed_residual_pagerank_ff13a67",
+          "functional_evidence_status": "simulator_dual_oracle_and_isolated_policy_tests_pass",
+          "matching_hls": false,
+          "missing_gates": [
+            "integrate degree RMW, residual activation, packed state, and host control",
+            "pass a whole-system HLS correctness oracle",
+            "obtain whole-system synthesis resources and timing"
+          ],
+          "normalized_profile_id": "grasu_regraph_candidate10_normalized_hls_residual_pagerank_v3",
+          "parameter_blockers": 0,
+          "parameter_differences": 1,
+          "whole_system_hls_status": "not_implemented"
+        },
+        "weighted_sssp": {
+          "closest_hls_profile_id": "grasu_regraph_weighted_pma_hls_sw_emu_ff13a67",
+          "functional_evidence_status": "whole_system_sw_emu_cpu_oracle_pass",
+          "matching_hls": false,
+          "missing_gates": [
+            "close the weighted whole-system HBM-clock timing paths",
+            "synthesize and archive the exact normalized profile identity"
+          ],
+          "normalized_profile_id": "grasu_regraph_candidate10_normalized_hls_weighted_v3",
+          "parameter_blockers": 0,
+          "parameter_differences": 1,
+          "whole_system_hls_status": "routed_global_timing_failed_relink_pending"
+        }
+      },
+      "all_matching_hls": false,
+      "claim_class": "hls_derived_normalized_feasibility_gate_not_performance",
+      "claim_gates": {
+        "correctness": {
+          "eligible": true,
+          "label": "dual_oracle_simulator_correctness_only",
+          "reason": "Every reported run must pass both independent oracles."
+        },
+        "fpga_measured_performance": {
+          "eligible": false,
+          "label": "blocked_normalized_is_not_measured_hardware",
+          "reason": "Normalized simulator output is never native FPGA measurement."
+        },
+        "headline_normalized_performance": {
+          "eligible": false,
+          "label": "blocked_missing_symmetric_matching_hls",
+          "reason": "All three GraSU/ReGraph algorithms need matching whole-system HLS."
+        },
+        "iso_resource_performance": {
+          "eligible": false,
+          "label": "blocked_missing_exact_resource_crosswalk",
+          "reason": "PageRank lacks whole-system resources and timing."
+        },
+        "structural_exploratory": {
+          "eligible": true,
+          "label": "candidate10_hls_derived_normalized_structural_execution_driven",
+          "reason": "Both models use HLS-derived mechanisms on one platform, but three-algorithm matching HLS is incomplete."
+        }
+      },
+      "contract_id": "candidate10_normalized_hls_feasibility_v2_20260726",
+      "contract_sha256": "29377ed3f567dee02779042d7d022324a132c1bdc9a6056c9c7b737352bcb754",
+      "grasu_matching_hls_algorithms": 0,
+      "grasu_required_algorithms": 3,
+      "publication_blockers": [
+        "full_pagerank: integrate degree RMW, dangling reduction, policy, state storage, and host control",
+        "full_pagerank: pass a whole-system HLS correctness oracle",
+        "full_pagerank: obtain whole-system synthesis resources and timing",
+        "thresholded_residual_pagerank: integrate degree RMW, residual activation, packed state, and host control",
+        "thresholded_residual_pagerank: pass a whole-system HLS correctness oracle",
+        "thresholded_residual_pagerank: obtain whole-system synthesis resources and timing",
+        "weighted_sssp: close the weighted whole-system HBM-clock timing paths",
+        "weighted_sssp: synthesize and archive the exact normalized profile identity"
+      ],
+      "shared_platform_status": "pass",
+      "spine_matching_hls": true
+    },
+    "native_parent_profile_id": "spine_candidate10_one_pass_1e61fc0",
+    "native_parent_profile_sha256": "a23737c17f6650cea0185bd3eba9d425dbc151f35372d33130464df780312717",
+    "physical_hbm_channels": 32,
+    "spine_profile_id": "spine_candidate10_normalized_v1",
+    "spine_profile_sha256": "4e31633c55abfdc57fd4537119d6abb6d7a4f0313dcfc81332fa0ed0a6320c0a"
+  },
+  "orchestration_implementation": {
+    "files": [
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/configs/contracts/candidate10_normalized_hls_feasibility_v2.json",
+        "sha256": "29377ed3f567dee02779042d7d022324a132c1bdc9a6056c9c7b737352bcb754"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/docs/evidence/grasu_regraph_matching_hls_status_20260726.json",
+        "sha256": "9bdf345bf0de580ef6cd8cd5bff2c5c8a49d9351ff84802bd72f9c7dd3a47731"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/scripts/run_shared_comparison_matrix.py",
+        "sha256": "5a4873d28a97937f87bcebf000491a1b38d56af0aede4ba05afb0ab8a1203aba"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/spine_cycle_sim/experiments/comparison.py",
+        "sha256": "267b99cccef695e4e1c1b4aa247a0c93c87e51dd951e8b3c08c1cc19dccf0d03"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/spine_cycle_sim/experiments/feasibility.py",
+        "sha256": "19dd9e9222625daf8f87bc2276dc7419496c478c0ae7f4cba9632122c7ac919c"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/spine_cycle_sim/experiments/regraph_contracts.py",
+        "sha256": "096e250a1883aec16a17d2a340291bb4d02d7e28ff7cc5c4514771f3cabff7a1"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/spine_cycle_sim/experiments/shared_workloads.py",
+        "sha256": "0468f19ca5cc2646f2023f80e1c331ee0a8f83a136414919b295d955ae65e484"
+      }
+    ],
+    "sha256": "6b70b0e23eda60a356fc176fe52e2e969f581535955cde72fe0a549b16831d18"
+  },
+  "paired_rows": 73,
+  "requested_claim_scope": "structural_exploratory",
+  "result_rows": 146,
+  "reused_rows": 0,
+  "schema_version": 1,
+  "selected_run_ids": [
+    "real_amazon_2008_compact__full_pagerank",
+    "real_amazon_2008_compact__residual_pagerank",
+    "real_amazon_2008_compact__weighted_sssp",
+    "real_soc_flickr_und_compact__full_pagerank",
+    "real_soc_flickr_und_compact__residual_pagerank",
+    "real_soc_flickr_und_compact__weighted_sssp",
+    "real_web_google_compact__full_pagerank",
+    "real_web_google_compact__residual_pagerank",
+    "real_web_google_compact__weighted_sssp",
+    "syn_chain_v64__full_pagerank",
+    "syn_chain_v64__residual_pagerank",
+    "syn_chain_v64__weighted_sssp",
+    "syn_dynamic_delete_fallback__dynamic_weighted_sssp",
+    "syn_dynamic_delete_fallback__full_pagerank",
+    "syn_dynamic_delete_fallback__residual_pagerank",
+    "syn_dynamic_delete_fallback__weighted_sssp",
+    "syn_dynamic_increase_fallback__dynamic_weighted_sssp",
+    "syn_dynamic_increase_fallback__full_pagerank",
+    "syn_dynamic_increase_fallback__residual_pagerank",
+    "syn_dynamic_increase_fallback__weighted_sssp",
+    "syn_dynamic_mixed_update__dynamic_weighted_sssp",
+    "syn_dynamic_mixed_update__full_pagerank",
+    "syn_dynamic_mixed_update__residual_pagerank",
+    "syn_dynamic_mixed_update__weighted_sssp",
+    "syn_dynamic_shortcut_insert__dynamic_weighted_sssp",
+    "syn_dynamic_shortcut_insert__full_pagerank",
+    "syn_dynamic_shortcut_insert__residual_pagerank",
+    "syn_dynamic_shortcut_insert__weighted_sssp",
+    "syn_gather_bank_fanin_e1024__full_pagerank",
+    "syn_gather_bank_fanin_e1024__residual_pagerank",
+    "syn_gather_bank_fanin_e1024__weighted_sssp",
+    "syn_hot_destination_e256__full_pagerank",
+    "syn_hot_destination_e256__residual_pagerank",
+    "syn_hot_destination_e256__weighted_sssp",
+    "syn_hot_source_e256__full_pagerank",
+    "syn_hot_source_e256__residual_pagerank",
+    "syn_hot_source_e256__weighted_sssp",
+    "syn_pagerank_cycle_v32__full_pagerank",
+    "syn_pagerank_cycle_v32__residual_pagerank",
+    "syn_pagerank_cycle_v32__weighted_sssp",
+    "syn_pagerank_dangling_v33__full_pagerank",
+    "syn_pagerank_dangling_v33__residual_pagerank",
+    "syn_pagerank_dangling_v33__weighted_sssp",
+    "syn_residual_frontier_tree_v127__full_pagerank",
+    "syn_residual_frontier_tree_v127__residual_pagerank",
+    "syn_residual_frontier_tree_v127__weighted_sssp",
+    "syn_residual_skew_hub_v257__full_pagerank",
+    "syn_residual_skew_hub_v257__residual_pagerank",
+    "syn_residual_skew_hub_v257__weighted_sssp",
+    "syn_source_window_e4095__full_pagerank",
+    "syn_source_window_e4095__residual_pagerank",
+    "syn_source_window_e4095__weighted_sssp",
+    "syn_source_window_e4096__full_pagerank",
+    "syn_source_window_e4096__residual_pagerank",
+    "syn_source_window_e4096__weighted_sssp",
+    "syn_source_window_e4097__full_pagerank",
+    "syn_source_window_e4097__residual_pagerank",
+    "syn_source_window_e4097__weighted_sssp",
+    "syn_spread_e512__full_pagerank",
+    "syn_spread_e512__residual_pagerank",
+    "syn_spread_e512__weighted_sssp",
+    "syn_tiny_threshold_e4095__full_pagerank",
+    "syn_tiny_threshold_e4095__residual_pagerank",
+    "syn_tiny_threshold_e4095__weighted_sssp",
+    "syn_tiny_threshold_e4096__full_pagerank",
+    "syn_tiny_threshold_e4096__residual_pagerank",
+    "syn_tiny_threshold_e4096__weighted_sssp",
+    "syn_tiny_threshold_e4097__full_pagerank",
+    "syn_tiny_threshold_e4097__residual_pagerank",
+    "syn_tiny_threshold_e4097__weighted_sssp",
+    "syn_weighted_diamond_v8__full_pagerank",
+    "syn_weighted_diamond_v8__residual_pagerank",
+    "syn_weighted_diamond_v8__weighted_sssp"
+  ],
+  "simulation_implementation": {
+    "files": [
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/build/sst/libspine_cycle.so",
+        "sha256": "dcf104a293a2443caacac9763e9d9bf505dedd21faa2460dba2727f4c6ec44b2"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/configs/architectures/grasu_regraph_candidate10_normalized_hls_pagerank_v3.json",
+        "sha256": "7155f87efa086a6563e80296f8460db14716e2f60f277ea5997f1d976897877e"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/configs/architectures/grasu_regraph_candidate10_normalized_hls_residual_pagerank_v3.json",
+        "sha256": "6ef8a8c9fe4beca4ea76a86a1041c47b15968cd8d846122358ce5b28ecdfa14d"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/configs/architectures/grasu_regraph_candidate10_normalized_hls_weighted_v3.json",
+        "sha256": "51d1edd1bc9eca864d5c57858d80ef3890152f4a6062bc1259833d38c2be4823"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/configs/architectures/spine_candidate10_normalized_v1.json",
+        "sha256": "4e31633c55abfdc57fd4537119d6abb6d7a4f0313dcfc81332fa0ed0a6320c0a"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/configs/contracts/grasu_regraph_candidate10_hls_capabilities_v3.json",
+        "sha256": "25794099eaba54d5b693afd626c563afba19d687b71609c7cd46bf4c0cc13f1c"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/configs/memory/HBM2_1ch_x128.ini",
+        "sha256": "d1e865c6528acbc41f0768667063702bfb4033f24bcd46119ad25bfc5ad4fb5f"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/scripts/run_sst_exact_idle_dramsim3.sh",
+        "sha256": "f1466b19e95a7a973ea03e8cd8f09c024227fe6d420cf018430fa76441626b9d"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/scripts/run_sst_grasu_regraph.py",
+        "sha256": "39e1e0521109151ea1920ef987543eb4d630c26716347982f663c1b335ab6719"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/scripts/run_sst_grasu_regraph_hls_pagerank.py",
+        "sha256": "a63153d8c513b474d771e82c702e240feaea8e33e3791ec84a4e307f0d641f14"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/scripts/run_sst_grasu_regraph_hls_residual_pagerank.py",
+        "sha256": "5adbdbc7c806f9a4431e5434dc284ea3afb3e8851183a3bb688b4039a8236151"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/scripts/run_sst_grasu_regraph_hls_weighted.py",
+        "sha256": "cfea062074e36eefbbff1b1d6d6ce42cd0e8874da578c2211b79bdfe0ed24d01"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/scripts/run_sst_grasu_regraph_pagerank.py",
+        "sha256": "fef1bf265313a09b9264f596a1a27d0cdec1b94407c5b5a867d37f00a578fdb5"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/scripts/run_sst_grasu_regraph_residual_pagerank.py",
+        "sha256": "6489e85a59e15b8753efc83988017a3db0039a1b3429aa363b9ca748a8075bcb"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/scripts/run_sst_spine_vertical.py",
+        "sha256": "bc3f3a4831eb7f5ac59b7e1dbbdb8a0e0d5a749f2a0e86156fec1a71e724bef0"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/spine_cycle_sim/sst_binding.py",
+        "sha256": "c4c8dd67a685aa52b07b1bff0875744c55c9655addb6549e0bac9fade5af0bcb"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/sst/grasu_regraph_vertical.py",
+        "sha256": "05267b2e267b4ff698e554b8b1638e759dcde884f6ffd738b596fb3a84e39c77"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/sst/spine_vertical_slice.py",
+        "sha256": "34a19c25f69c8dc0879cf803eef672e9315424da08f81bf5aee04f3356dc54e7"
+      }
+    ],
+    "sha256": "969d8a33f8b6c7986042d91f0f937c6dec5ddcf1751d80032e3bed7e95c6885c"
+  },
+  "source_manifest": "/home/chuxiao/spine-cycle-sim-publication/configs/experiments/shared_comparison_candidate10_hls_v3_20260726.json",
+  "source_manifest_sha256": "68e36a835f35c277ddff0571d9baae46385674239085c12197ab5b91bdc9bbc7",
+  "sst_memory_binding_policy": {
+    "default": "instantiate_only_profile_and_workload_reachable_channels",
+    "physical_hbm_channels": 32,
+    "sparse_energy_semantics": "bound_channel_dramsim3_only_excludes_unbound_idle_background",
+    "timing_semantics": "unchanged_physical_channel_ids_and_active_contention",
+    "unbound_request_policy": "fatal"
+  },
+  "status": "PASS",
+  "systems": [
+    "spine",
+    "grasu_regraph"
+  ]
+}

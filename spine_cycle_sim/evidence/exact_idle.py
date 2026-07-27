@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import csv
 import hashlib
 import json
 import math
@@ -88,7 +89,35 @@ def _require_same_bytes(baseline: Path, candidate: Path, label: str) -> None:
         raise ExactIdleEquivalenceError(f"{label} changed")
 
 
-def _validate_parent(root: Path) -> dict[str, Any]:
+def _result_algorithms(
+    root: Path, run_ids: list[str]
+) -> dict[tuple[str, str], str]:
+    path = root / "results.csv"
+    if not path.is_file():
+        raise ExactIdleEquivalenceError(f"missing result table: {path}")
+    with path.open("r", encoding="utf-8", newline="") as stream:
+        rows = list(csv.DictReader(stream))
+    algorithms: dict[tuple[str, str], str] = {}
+    for row in rows:
+        key = (row.get("run_id", ""), row.get("system", ""))
+        algorithm = row.get("algorithm", "")
+        if (
+            key in algorithms
+            or key[0] not in run_ids
+            or key[1] not in SYSTEMS
+            or not algorithm
+        ):
+            raise ExactIdleEquivalenceError(f"invalid result identity row: {row}")
+        algorithms[key] = algorithm
+    expected = {(run_id, system) for run_id in run_ids for system in SYSTEMS}
+    if set(algorithms) != expected:
+        raise ExactIdleEquivalenceError(f"incomplete result table: {path}")
+    return algorithms
+
+
+def _validate_parent(
+    root: Path,
+) -> tuple[dict[str, Any], dict[tuple[str, str], str]]:
     manifest = _json(root / "comparison_manifest.json")
     run_ids = manifest.get("selected_run_ids")
     if (
@@ -100,7 +129,7 @@ def _validate_parent(root: Path) -> dict[str, Any]:
         or manifest.get("paired_rows") != len(run_ids)
     ):
         raise ExactIdleEquivalenceError(f"incomplete comparison matrix: {root}")
-    return manifest
+    return manifest, _result_algorithms(root, run_ids)
 
 
 def analyze_exact_idle_equivalence(
@@ -110,11 +139,13 @@ def analyze_exact_idle_equivalence(
 
     baseline = Path(baseline_dir).resolve()
     candidate = Path(candidate_dir).resolve()
-    baseline_manifest = _validate_parent(baseline)
-    candidate_manifest = _validate_parent(candidate)
+    baseline_manifest, baseline_algorithms = _validate_parent(baseline)
+    candidate_manifest, candidate_algorithms = _validate_parent(candidate)
     baseline_runs = baseline_manifest["selected_run_ids"]
     if candidate_manifest["selected_run_ids"] != baseline_runs:
         raise ExactIdleEquivalenceError("run coverage or order changed")
+    if candidate_algorithms != baseline_algorithms:
+        raise ExactIdleEquivalenceError("result algorithm identity changed")
 
     rows: list[dict[str, Any]] = []
     total_dram_json = 0
@@ -133,9 +164,10 @@ def analyze_exact_idle_equivalence(
             missing = set(old) - set(new)
             changed = {key for key in old.keys() & new.keys() if old[key] != new[key]}
             additions = set(new) - set(old)
+            algorithm = baseline_algorithms[(run_id, system)]
             allowed = (
                 FULL_PAGERANK_SPINE_ADDITIONS
-                if system == "spine" and old.get("algorithm") == "full_pagerank"
+                if system == "spine" and algorithm == "full_pagerank"
                 else frozenset()
             )
             if missing or changed or additions != allowed:
@@ -186,7 +218,7 @@ def analyze_exact_idle_equivalence(
                 {
                     "run_id": run_id,
                     "system": system,
-                    "algorithm": old.get("algorithm", ""),
+                    "algorithm": algorithm,
                     "cycles": old.get("cycles", 0),
                     "old_fields": len(old),
                     "added_observability_fields": len(additions),
