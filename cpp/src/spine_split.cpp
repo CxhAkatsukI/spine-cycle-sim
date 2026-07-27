@@ -260,6 +260,7 @@ void SpineSplitReader::reset_state() {
   active_records_.clear();
   host_active_bins_ = {};
   level_cache_ = {};
+  clear_source_page_cache();
   level_cache_ready_ = false;
   source_values_.clear();
   fallback_lookup_ = {};
@@ -304,6 +305,7 @@ void SpineSplitReader::reset_state() {
   fallback_active_record_valid_ = false;
   fallback_enabled_ = false;
   fallback_after_source_refresh_ = false;
+  source_page_cache_current_hit_ = false;
   metadata_control_ = 0;
   dirty_count_ = 0;
   dirty_generation_ = 0;
@@ -915,6 +917,7 @@ void SpineSplitReader::consume_memory_response(const MemoryTask &task,
   }
   const bool probe_payload =
       task.payload_kind == MemoryPayloadKind::kPageEpoch ||
+      task.payload_kind == MemoryPayloadKind::kIndexBitmapPage ||
       task.payload_kind == MemoryPayloadKind::kIndexBitmapSelected ||
       task.payload_kind == MemoryPayloadKind::kIndexBitmapPrefix ||
       task.payload_kind == MemoryPayloadKind::kIndexPageBase ||
@@ -1039,6 +1042,20 @@ void SpineSplitReader::consume_memory_response(const MemoryTask &task,
           (packed >> ((probe.page & 1U) * 32)) & 0xffffffffULL);
       return;
     }
+    case MemoryPayloadKind::kIndexBitmapPage: {
+      RangeProbe &probe = range_probes_[task.item_index];
+      if (response.read_data.size() != 4 * kSpineGraphWordBytes) {
+        throw std::logic_error("source-page bitmap cache fill has wrong size");
+      }
+      probe.bitmap_words.resize(4);
+      for (std::size_t word = 0; word < 4; ++word) {
+        probe.bitmap_words[word] =
+            decode_u64(response.read_data, word * kSpineGraphWordBytes);
+      }
+      counters_.graph_index_payload_read_bytes += response.read_data.size();
+      counters_.graph_index_bitmap_words += 4;
+      return;
+    }
     case MemoryPayloadKind::kIndexBitmapSelected: {
       RangeProbe &probe = range_probes_[task.item_index];
       probe.bitmap_words.assign(probe.lane_word + 1, 0);
@@ -1155,6 +1172,18 @@ void SpineSplitReader::consume_memory_response(const MemoryTask &task,
         packed >> ((fallback_lookup_.page & 1U) * 32));
     return;
   }
+  case MemoryPayloadKind::kFallbackBitmapPage:
+    if (response.read_data.size() != 4 * kSpineGraphWordBytes) {
+      throw std::logic_error("fallback page-cache bitmap fill has wrong size");
+    }
+    fallback_lookup_.bitmap_words.resize(4);
+    for (std::size_t word = 0; word < 4; ++word) {
+      fallback_lookup_.bitmap_words[word] =
+          decode_u64(response.read_data, word * kSpineGraphWordBytes);
+    }
+    counters_.graph_index_payload_read_bytes += response.read_data.size();
+    counters_.graph_index_bitmap_words += 4;
+    return;
   case MemoryPayloadKind::kFallbackBitmapOffset:
     fallback_lookup_.layout.bitmap_offset_words =
         decode_u64(response.read_data);
@@ -1539,6 +1568,7 @@ std::uint32_t SpineSplitReader::fallback_tile_end() const {
 }
 
 void SpineSplitReader::begin_fallback_pass() {
+  clear_source_page_cache();
   fallback_record_index_ = 0;
   fallback_level_ = 0;
   fallback_active_record_valid_ = false;
@@ -1599,7 +1629,26 @@ void SpineSplitReader::resolve_fallback_lookup_header() {
   if (fallback_lookup_.slice_epoch == 0 ||
       fallback_lookup_.page_epoch != fallback_lookup_.slice_epoch) {
     ++counters_.graph_index_epoch_misses;
+    if (maintenance_.config().source_page_index_cache) {
+      fill_fallback_page_cache(false);
+    }
     phase_ = Phase::kFallbackLevelAdvance;
+    return;
+  }
+  if (maintenance_.config().source_page_index_cache) {
+    fallback_lookup_.bitmap_words.clear();
+    enqueue_read(*ports_.graph[fallback_lookup_.family],
+                 (fallback_lookup_.layout.bitmap_offset_words +
+                  static_cast<std::uint64_t>(fallback_lookup_.page) * 4) *
+                     kSpineGraphWordBytes,
+                 4 * kSpineGraphWordBytes,
+                 MemoryPayloadKind::kFallbackBitmapPage);
+    enqueue_read(*ports_.graph[fallback_lookup_.family],
+                 (fallback_lookup_.layout.page_base_offset_words +
+                  (fallback_lookup_.page >> 1)) *
+                     kSpineGraphWordBytes,
+                 kSpineGraphWordBytes, MemoryPayloadKind::kFallbackPageBase);
+    phase_ = Phase::kFallbackLookupIndexResolve;
     return;
   }
   if (maintenance_.config().fallback_level_cache_reuse) {
@@ -1633,14 +1682,22 @@ void SpineSplitReader::resolve_fallback_lookup_bitmap_offset() {
 }
 
 void SpineSplitReader::resolve_fallback_lookup_index() {
-  if (fallback_lookup_.bitmap_words.size() != fallback_lookup_.lane_word + 1) {
+  if (fallback_lookup_.bitmap_words.size() < fallback_lookup_.lane_word + 1) {
     throw std::logic_error("fallback bitmap lookup has wrong payload shape");
   }
   const std::uint64_t selected =
       fallback_lookup_.bitmap_words[fallback_lookup_.lane_word];
+  if (maintenance_.config().source_page_index_cache &&
+      !source_page_cache_current_hit_) {
+    fill_fallback_page_cache(true);
+  }
   if ((selected & (std::uint64_t{1} << fallback_lookup_.lane_bit)) == 0) {
     ++counters_.graph_index_bitmap_misses;
     phase_ = Phase::kFallbackLevelAdvance;
+    return;
+  }
+  if (maintenance_.config().source_page_index_cache) {
+    resolve_fallback_lookup_rank();
     return;
   }
   if (fallback_lookup_.lane_word != 0) {
@@ -1669,6 +1726,10 @@ void SpineSplitReader::resolve_fallback_lookup_rank() {
         selected & ((std::uint64_t{1} << fallback_lookup_.lane_bit) - 1));
   }
   fallback_lookup_.rank = rank;
+  if (maintenance_.config().source_page_index_cache) {
+    phase_ = Phase::kFallbackLookupPageResolve;
+    return;
+  }
   if (maintenance_.config().fallback_level_cache_reuse) {
     phase_ = Phase::kFallbackLookupOffsetsResolve;
     return;
@@ -1947,6 +2008,7 @@ void SpineSplitReader::advance_fallback() {
         (record.source % maintenance_.config().page_vertices) / 64;
     fallback_lookup_.lane_bit =
         (record.source % maintenance_.config().page_vertices) % 64;
+    source_page_cache_current_hit_ = false;
     ++counters_.fallback_row_lookups;
     if (maintenance_.config().fallback_level_cache_reuse) {
       const std::size_t logical_family =
@@ -1970,6 +2032,18 @@ void SpineSplitReader::advance_fallback() {
       fallback_lookup_.occupied = true;
       fallback_lookup_.slice_epoch = entry.slice_epoch;
       fallback_lookup_.layout = entry.layout;
+      if (maintenance_.config().source_page_index_cache) {
+        if (use_cached_fallback_page()) {
+          if (fallback_lookup_.page_epoch != fallback_lookup_.slice_epoch) {
+            ++counters_.graph_index_epoch_misses;
+            phase_ = Phase::kFallbackLevelAdvance;
+          } else {
+            phase_ = Phase::kFallbackLookupIndexResolve;
+          }
+          return;
+        }
+        ++counters_.source_page_cache_misses;
+      }
       const SpineMetadataLayout metadata =
           spine_metadata_layout(maintenance_.config());
       const std::size_t page_epoch_index =
@@ -2151,6 +2225,102 @@ void SpineSplitReader::advance_fallback() {
   }
 }
 
+std::size_t SpineSplitReader::source_page_cache_index(
+    std::size_t family, std::size_t level, bool hot) const {
+  const std::size_t logical_family = hot ? kPartitionCount + family : family;
+  return logical_family * kLevelCount + level;
+}
+
+void SpineSplitReader::clear_source_page_cache() {
+  source_page_cache_ = {};
+}
+
+bool SpineSplitReader::use_cached_probe_page(RangeProbe &probe) {
+  SourcePageCacheEntry &entry = source_page_cache_.at(
+      source_page_cache_index(probe.family, probe.level, probe.hot));
+  if (!entry.valid || entry.page != probe.page ||
+      entry.slice_epoch != probe.slice_epoch) {
+    return false;
+  }
+  probe.page_epoch = entry.page_epoch;
+  probe.bitmap_words.assign(entry.bitmap_words.begin(),
+                            entry.bitmap_words.end());
+  probe.page_base_word = entry.page_base_word;
+  source_page_cache_current_hit_ = true;
+  ++counters_.source_page_cache_hits;
+  if (!entry.epoch_matches) {
+    ++counters_.source_page_cache_negative_hits;
+  }
+  return true;
+}
+
+bool SpineSplitReader::use_cached_fallback_page() {
+  SourcePageCacheEntry &entry = source_page_cache_.at(source_page_cache_index(
+      fallback_lookup_.family, fallback_lookup_.level,
+      fallback_lookup_.hot));
+  if (!entry.valid || entry.page != fallback_lookup_.page ||
+      entry.slice_epoch != fallback_lookup_.slice_epoch) {
+    return false;
+  }
+  fallback_lookup_.page_epoch = entry.page_epoch;
+  fallback_lookup_.bitmap_words.assign(entry.bitmap_words.begin(),
+                                       entry.bitmap_words.end());
+  fallback_lookup_.page_base_word = entry.page_base_word;
+  source_page_cache_current_hit_ = true;
+  ++counters_.source_page_cache_hits;
+  if (!entry.epoch_matches) {
+    ++counters_.source_page_cache_negative_hits;
+  }
+  return true;
+}
+
+void SpineSplitReader::fill_probe_page_cache(const RangeProbe &probe,
+                                              bool epoch_matches) {
+  SourcePageCacheEntry &entry = source_page_cache_.at(
+      source_page_cache_index(probe.family, probe.level, probe.hot));
+  entry.valid = true;
+  entry.epoch_matches = epoch_matches;
+  entry.page = probe.page;
+  entry.slice_epoch = probe.slice_epoch;
+  entry.page_epoch = probe.page_epoch;
+  if (epoch_matches) {
+    if (probe.bitmap_words.size() != entry.bitmap_words.size()) {
+      throw std::logic_error("probe page-cache fill has incomplete bitmap");
+    }
+    std::copy(probe.bitmap_words.begin(), probe.bitmap_words.end(),
+              entry.bitmap_words.begin());
+    entry.page_base_word = probe.page_base_word;
+  } else {
+    entry.bitmap_words.fill(0);
+    entry.page_base_word = 0;
+  }
+  ++counters_.source_page_cache_fills;
+}
+
+void SpineSplitReader::fill_fallback_page_cache(bool epoch_matches) {
+  SourcePageCacheEntry &entry = source_page_cache_.at(source_page_cache_index(
+      fallback_lookup_.family, fallback_lookup_.level,
+      fallback_lookup_.hot));
+  entry.valid = true;
+  entry.epoch_matches = epoch_matches;
+  entry.page = fallback_lookup_.page;
+  entry.slice_epoch = fallback_lookup_.slice_epoch;
+  entry.page_epoch = fallback_lookup_.page_epoch;
+  if (epoch_matches) {
+    if (fallback_lookup_.bitmap_words.size() != entry.bitmap_words.size()) {
+      throw std::logic_error("fallback page-cache fill has incomplete bitmap");
+    }
+    std::copy(fallback_lookup_.bitmap_words.begin(),
+              fallback_lookup_.bitmap_words.end(),
+              entry.bitmap_words.begin());
+    entry.page_base_word = fallback_lookup_.page_base_word;
+  } else {
+    entry.bitmap_words.fill(0);
+    entry.page_base_word = 0;
+  }
+  ++counters_.source_page_cache_fills;
+}
+
 void SpineSplitReader::enqueue_probe_index_reads() {
   if (probe_index_ >= range_probes_.size()) {
     throw std::logic_error("range probe index is out of bounds");
@@ -2162,6 +2332,19 @@ void SpineSplitReader::enqueue_probe_index_reads() {
   probe.next_row_word = 0;
   probe.rank = 0;
   probe.page_epoch = 0;
+  source_page_cache_current_hit_ = false;
+  if (maintenance_.config().source_page_index_cache) {
+    if (use_cached_probe_page(probe)) {
+      if (probe.page_epoch != probe.slice_epoch) {
+        ++counters_.graph_index_epoch_misses;
+        phase_ = Phase::kProbeAdvance;
+      } else {
+        phase_ = Phase::kProbeIndexResolve;
+      }
+      return;
+    }
+    ++counters_.source_page_cache_misses;
+  }
   const std::uint64_t logical_family =
       probe.hot ? 16 + probe.family : probe.family;
   const std::uint64_t slice = logical_family * kLevelCount + probe.level;
@@ -2176,13 +2359,32 @@ void SpineSplitReader::enqueue_probe_index_reads() {
               kMetadataWordBytes,
       kMetadataWordBytes, MemoryPayloadKind::kPageEpoch, probe_index_);
   counters_.row_lookup_metadata_bytes += kMetadataWordBytes;
+  phase_ = Phase::kProbeEpochResolve;
 }
 
 void SpineSplitReader::resolve_probe_epoch() {
   RangeProbe &probe = range_probes_.at(probe_index_);
   if (probe.slice_epoch == 0 || probe.page_epoch != probe.slice_epoch) {
     ++counters_.graph_index_epoch_misses;
+    if (maintenance_.config().source_page_index_cache) {
+      fill_probe_page_cache(probe, false);
+    }
     phase_ = Phase::kProbeAdvance;
+    return;
+  }
+  if (maintenance_.config().source_page_index_cache) {
+    enqueue_read(*ports_.graph[probe.family],
+                 (probe.layout.bitmap_offset_words +
+                  static_cast<std::uint64_t>(probe.page) * 4) *
+                     kSpineGraphWordBytes,
+                 4 * kSpineGraphWordBytes,
+                 MemoryPayloadKind::kIndexBitmapPage, probe_index_);
+    enqueue_read(*ports_.graph[probe.family],
+                 (probe.layout.page_base_offset_words + (probe.page >> 1)) *
+                     kSpineGraphWordBytes,
+                 kSpineGraphWordBytes, MemoryPayloadKind::kIndexPageBase,
+                 probe_index_);
+    phase_ = Phase::kProbeIndexResolve;
     return;
   }
   enqueue_read(*ports_.graph[probe.family],
@@ -2196,13 +2398,21 @@ void SpineSplitReader::resolve_probe_epoch() {
 
 void SpineSplitReader::resolve_probe_index() {
   RangeProbe &probe = range_probes_.at(probe_index_);
-  if (probe.bitmap_words.size() != probe.lane_word + 1) {
+  if (probe.bitmap_words.size() < probe.lane_word + 1) {
     throw std::logic_error("range probe bitmap prefix has the wrong length");
   }
   const std::uint64_t selected = probe.bitmap_words[probe.lane_word];
+  if (maintenance_.config().source_page_index_cache &&
+      !source_page_cache_current_hit_) {
+    fill_probe_page_cache(probe, true);
+  }
   if ((selected & (std::uint64_t{1} << probe.lane_bit)) == 0) {
     ++counters_.graph_index_bitmap_misses;
     phase_ = Phase::kProbeAdvance;
+    return;
+  }
+  if (maintenance_.config().source_page_index_cache) {
+    resolve_probe_rank();
     return;
   }
   if (probe.lane_word != 0) {
@@ -2231,6 +2441,10 @@ void SpineSplitReader::resolve_probe_rank() {
         std::popcount(selected & ((std::uint64_t{1} << probe.lane_bit) - 1));
   }
   probe.rank = rank;
+  if (maintenance_.config().source_page_index_cache) {
+    phase_ = Phase::kProbePageResolve;
+    return;
+  }
   enqueue_read(*ports_.graph[probe.family],
                (probe.layout.page_base_offset_words + (probe.page >> 1)) *
                    kSpineGraphWordBytes,
@@ -2995,7 +3209,6 @@ void SpineSplitReader::advance(const CycleContext &context) {
         return;
       }
       enqueue_probe_index_reads();
-      phase_ = Phase::kProbeEpochResolve;
       return;
     case Phase::kProbeEpochResolve:
       resolve_probe_epoch();

@@ -1445,6 +1445,8 @@ class OnlineMemoryProbe final : public SST::Component {
         params.find<std::uint64_t>("fallback_replay_threshold", 65'536);
     fallback_level_cache_reuse_ =
         params.find<bool>("fallback_level_cache_reuse", false);
+    source_page_index_cache_ =
+        params.find<bool>("source_page_index_cache", false);
     memory_request_window_ =
         params.find<std::size_t>("memory_request_window", 1);
     compute_memory_request_window_ =
@@ -2030,6 +2032,7 @@ class OnlineMemoryProbe final : public SST::Component {
       config.range_task_payload_budget = range_task_payload_budget_;
       config.fallback_replay_threshold = fallback_replay_threshold_;
       config.fallback_level_cache_reuse = fallback_level_cache_reuse_;
+      config.source_page_index_cache = source_page_index_cache_;
       config.memory_request_window = memory_request_window_;
       config.reader_edge_pipeline_depth = reader_edge_pipeline_depth_;
       config.reader_edge_response_capacity = reader_edge_response_capacity_;
@@ -2186,6 +2189,7 @@ class OnlineMemoryProbe final : public SST::Component {
       maintenance_config.fallback_replay_threshold = fallback_replay_threshold_;
       maintenance_config.fallback_level_cache_reuse =
           fallback_level_cache_reuse_;
+      maintenance_config.source_page_index_cache = source_page_index_cache_;
       maintenance_config.memory_request_window = memory_request_window_;
       maintenance_config.reader_edge_pipeline_depth =
           reader_edge_pipeline_depth_;
@@ -2446,6 +2450,7 @@ class OnlineMemoryProbe final : public SST::Component {
       maintenance_config.fallback_replay_threshold = fallback_replay_threshold_;
       maintenance_config.fallback_level_cache_reuse =
           fallback_level_cache_reuse_;
+      maintenance_config.source_page_index_cache = source_page_index_cache_;
       maintenance_config.memory_request_window = memory_request_window_;
       maintenance_config.reader_edge_pipeline_depth =
           reader_edge_pipeline_depth_;
@@ -3015,6 +3020,8 @@ class OnlineMemoryProbe final : public SST::Component {
       {"fallback_replay_threshold", "HOST fallback replay threshold", "65536"},
       {"fallback_level_cache_reuse",
        "Reuse launch-loaded level metadata in HOST fallback", "false"},
+      {"source_page_index_cache",
+       "Finite per-family/level source-page index cache", "false"},
       {"memory_request_window",
        "Coarse producer request window (greater than one is a what-if)", "1"},
       {"compute_memory_request_window",
@@ -3224,6 +3231,8 @@ class OnlineMemoryProbe final : public SST::Component {
              << spine_maintenance_architecture_id_ << "\",\n"
              << "  \"fallback_level_cache_reuse\": "
              << (fallback_level_cache_reuse_ ? "true" : "false") << ",\n";
+      result << "  \"source_page_index_cache\": "
+             << (source_page_index_cache_ ? "true" : "false") << ",\n";
       write_candidate_maintenance_counters(result, maintenance);
       write_spine_axi_profile_fields(result, spine_axi_profile_);
       write_maintenance_axi_stats(result, maintenance_axi);
@@ -4911,6 +4920,8 @@ class OnlineMemoryProbe final : public SST::Component {
           << spine_maintenance_architecture_id_ << "\",\n"
           << "  \"fallback_level_cache_reuse\": "
           << (fallback_level_cache_reuse_ ? "true" : "false") << ",\n";
+      result << "  \"source_page_index_cache\": "
+             << (source_page_index_cache_ ? "true" : "false") << ",\n";
       write_candidate_maintenance_counters(result, maintenance);
       result << "  \"timing_evidence\": \"provisional_algorithm_pipeline\",\n"
              << "  \"failure\": ";
@@ -5065,6 +5076,14 @@ class OnlineMemoryProbe final : public SST::Component {
           << reader.fallback_level_cache_reuses << ",\n"
           << "  \"reader_fallback_level_cache_empty_skips\": "
           << reader.fallback_level_cache_empty_skips << ",\n"
+          << "  \"reader_source_page_cache_hits\": "
+          << reader.source_page_cache_hits << ",\n"
+          << "  \"reader_source_page_cache_misses\": "
+          << reader.source_page_cache_misses << ",\n"
+          << "  \"reader_source_page_cache_negative_hits\": "
+          << reader.source_page_cache_negative_hits << ",\n"
+          << "  \"reader_source_page_cache_fills\": "
+          << reader.source_page_cache_fills << ",\n"
           << "  \"reader_source_requests\": " << reader.source_requests
           << ",\n"
           << "  \"reader_source_responses\": " << reader.source_responses
@@ -5222,6 +5241,8 @@ class OnlineMemoryProbe final : public SST::Component {
           << spine_maintenance_architecture_id_ << "\",\n"
           << "  \"fallback_level_cache_reuse\": "
           << (fallback_level_cache_reuse_ ? "true" : "false") << ",\n";
+      result << "  \"source_page_index_cache\": "
+             << (source_page_index_cache_ ? "true" : "false") << ",\n";
       write_candidate_maintenance_counters(result, maintenance);
       result << "  \"timing_evidence\": \"provisional_algorithm_pipeline\",\n"
              << "  \"failure\": ";
@@ -5386,6 +5407,14 @@ class OnlineMemoryProbe final : public SST::Component {
           << reader.fallback_level_cache_reuses << ",\n"
           << "  \"reader_fallback_level_cache_empty_skips\": "
           << reader.fallback_level_cache_empty_skips << ",\n"
+          << "  \"reader_source_page_cache_hits\": "
+          << reader.source_page_cache_hits << ",\n"
+          << "  \"reader_source_page_cache_misses\": "
+          << reader.source_page_cache_misses << ",\n"
+          << "  \"reader_source_page_cache_negative_hits\": "
+          << reader.source_page_cache_negative_hits << ",\n"
+          << "  \"reader_source_page_cache_fills\": "
+          << reader.source_page_cache_fills << ",\n"
           << "  \"reader_metadata_bytes\": " << reader.metadata_read_bytes
           << ",\n"
           << "  \"reader_range_active_records\": "
@@ -6257,6 +6286,8 @@ class OnlineMemoryProbe final : public SST::Component {
           << spine_maintenance_architecture_id_ << "\",\n"
           << "  \"fallback_level_cache_reuse\": "
           << (fallback_level_cache_reuse_ ? "true" : "false") << ",\n";
+      result << "  \"source_page_index_cache\": "
+             << (source_page_index_cache_ ? "true" : "false") << ",\n";
       write_candidate_maintenance_counters(result, maintenance);
       result << "  \"axi_graph_data_width_bytes\": "
           << spine_axi_profile_.graph_bytes << ",\n"
@@ -7126,6 +7157,8 @@ class OnlineMemoryProbe final : public SST::Component {
           << spine_maintenance_architecture_id_ << "\",\n"
           << "  \"fallback_level_cache_reuse\": "
           << (fallback_level_cache_reuse_ ? "true" : "false") << ",\n";
+      result << "  \"source_page_index_cache\": "
+             << (source_page_index_cache_ ? "true" : "false") << ",\n";
       write_candidate_maintenance_counters(result, maintenance);
       result << "  \"axi_graph_data_width_bytes\": "
           << spine_axi_profile_.graph_bytes << ",\n"
@@ -7512,6 +7545,14 @@ class OnlineMemoryProbe final : public SST::Component {
           << reader.fallback_level_cache_reuses << ",\n"
           << "  \"reader_fallback_level_cache_empty_skips\": "
           << reader.fallback_level_cache_empty_skips << ",\n"
+          << "  \"reader_source_page_cache_hits\": "
+          << reader.source_page_cache_hits << ",\n"
+          << "  \"reader_source_page_cache_misses\": "
+          << reader.source_page_cache_misses << ",\n"
+          << "  \"reader_source_page_cache_negative_hits\": "
+          << reader.source_page_cache_negative_hits << ",\n"
+          << "  \"reader_source_page_cache_fills\": "
+          << reader.source_page_cache_fills << ",\n"
           << "  \"reader_range_active_records\": "
           << reader.range_task_active_records << ",\n"
           << "  \"reader_range_family_probes\": "
@@ -7889,6 +7930,7 @@ class OnlineMemoryProbe final : public SST::Component {
   std::uint64_t range_task_payload_budget_{};
   std::uint64_t fallback_replay_threshold_{};
   bool fallback_level_cache_reuse_{};
+  bool source_page_index_cache_{};
   std::size_t memory_request_window_{};
   std::size_t compute_memory_request_window_{};
   std::size_t compute_writeonly_request_window_{};

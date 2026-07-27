@@ -130,6 +130,9 @@ probe.addParams(
         "fallback_level_cache_reuse": int(
             os.environ.get("SPINE_SST_FALLBACK_LEVEL_CACHE_REUSE", "0")
         ),
+        "source_page_index_cache": int(
+            os.environ.get("SPINE_SST_SOURCE_PAGE_INDEX_CACHE", "0")
+        ),
         "memory_request_window": int(
             os.environ.get("SPINE_SST_MEMORY_REQUEST_WINDOW", "1")
         ),

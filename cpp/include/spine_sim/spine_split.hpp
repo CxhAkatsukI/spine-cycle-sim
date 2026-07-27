@@ -125,6 +125,10 @@ struct SpineReaderCounters {
   std::uint64_t fallback_metadata_read_bytes{};
   std::uint64_t fallback_level_cache_reuses{};
   std::uint64_t fallback_level_cache_empty_skips{};
+  std::uint64_t source_page_cache_hits{};
+  std::uint64_t source_page_cache_misses{};
+  std::uint64_t source_page_cache_negative_hits{};
+  std::uint64_t source_page_cache_fills{};
   std::uint64_t fallback_row_lookups{};
   std::uint64_t fallback_lower_bound_reads{};
   std::uint64_t fallback_endpoint_reads{};
@@ -251,6 +255,16 @@ class SpineSplitReader final : public Component {
     std::uint32_t slice_epoch{};
   };
 
+  struct SourcePageCacheEntry {
+    bool valid{};
+    bool epoch_matches{};
+    std::uint32_t page{};
+    std::uint32_t slice_epoch{};
+    std::uint32_t page_epoch{};
+    std::array<std::uint64_t, 4> bitmap_words{};
+    std::uint64_t page_base_word{};
+  };
+
   struct FallbackLookup {
     SpineActiveRecord record;
     std::size_t partition{};
@@ -294,6 +308,7 @@ class SpineSplitReader final : public Component {
     kLevelFields,
     kSliceEpoch,
     kPageEpoch,
+    kIndexBitmapPage,
     kIndexBitmapSelected,
     kIndexBitmapPrefix,
     kIndexPageBase,
@@ -305,6 +320,7 @@ class SpineSplitReader final : public Component {
     kFallbackOccupied,
     kFallbackSliceEpoch,
     kFallbackPageEpoch,
+    kFallbackBitmapPage,
     kFallbackBitmapOffset,
     kFallbackPageBaseOffset,
     kFallbackRowOffset,
@@ -433,6 +449,13 @@ class SpineSplitReader final : public Component {
   void finalize_level_cache();
   void prepare_range_probes();
   void enqueue_probe_index_reads();
+  [[nodiscard]] std::size_t source_page_cache_index(
+      std::size_t family, std::size_t level, bool hot) const;
+  [[nodiscard]] bool use_cached_probe_page(RangeProbe &probe);
+  [[nodiscard]] bool use_cached_fallback_page();
+  void fill_probe_page_cache(const RangeProbe &probe, bool epoch_matches);
+  void fill_fallback_page_cache(bool epoch_matches);
+  void clear_source_page_cache();
   void resolve_probe_epoch();
   void resolve_probe_index();
   void resolve_probe_rank();
@@ -520,6 +543,8 @@ class SpineSplitReader final : public Component {
   std::vector<RangeTask> range_tasks_;
   std::array<LevelCacheEntry, kSpineFamilyCount * kSpineLevelCount>
       level_cache_{};
+  std::array<SourcePageCacheEntry, kSpineFamilyCount * kSpineLevelCount>
+      source_page_cache_{};
   bool level_cache_ready_{};
   std::unordered_map<std::uint32_t, std::uint32_t> source_values_;
   FallbackLookup fallback_lookup_;
@@ -585,6 +610,7 @@ class SpineSplitReader final : public Component {
   bool fallback_active_record_valid_{};
   bool fallback_enabled_{};
   bool fallback_after_source_refresh_{};
+  bool source_page_cache_current_hit_{};
   std::uint64_t next_transaction_id_{};
   bool staged_memory_issue_{};
   bool staged_memory_completion_{};

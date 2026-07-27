@@ -160,6 +160,7 @@ struct SpineL0Config {
   // Projected optimization: reuse the level metadata already loaded at reader
   // launch instead of rereading invariant slice fields for every fallback row.
   bool fallback_level_cache_reuse{false};
+  bool source_page_index_cache{false};
   // Logical parent-request window per independent m_axi initiator. A value of
   // one keeps each bundle ordered while allowing different HLS bundles to
   // overlap. Values above one remain an explicit same-bundle overlap what-if

@@ -1305,6 +1305,12 @@ def parse_args() -> argparse.Namespace:
         help="reuse launch-loaded level metadata during HOST fallback",
     )
     parser.add_argument(
+        "--source-page-index-cache",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="enable the finite per-family/level source-page index cache",
+    )
+    parser.add_argument(
         "--memory-request-window",
         type=int,
         default=1,
@@ -1439,6 +1445,9 @@ def main() -> int:
     profile_fallback_level_cache_reuse = bool(
         profile.get("parameters", {}).get("fallback_level_cache_reuse", False)
     )
+    profile_source_page_index_cache = bool(
+        profile.get("parameters", {}).get("source_page_index_cache", False)
+    )
     if profile_axi not in {
         "hls_split_9c08763",
         "candidate10_gmem_1e61fc0",
@@ -1456,6 +1465,8 @@ def main() -> int:
         args.maintenance_architecture = profile_maintenance_architecture
     if args.fallback_level_cache_reuse is None:
         args.fallback_level_cache_reuse = profile_fallback_level_cache_reuse
+    if args.source_page_index_cache is None:
+        args.source_page_index_cache = profile_source_page_index_cache
     try:
         data_clock = next(
             clock for clock in profile["clocks"] if clock["name"] == "data"
@@ -1697,6 +1708,9 @@ def main() -> int:
             "SPINE_SST_FALLBACK_LEVEL_CACHE_REUSE": (
                 "1" if args.fallback_level_cache_reuse else "0"
             ),
+            "SPINE_SST_SOURCE_PAGE_INDEX_CACHE": (
+                "1" if args.source_page_index_cache else "0"
+            ),
             "SPINE_SST_MEMORY_REQUEST_WINDOW": str(args.memory_request_window),
             "SPINE_SST_COMPUTE_MEMORY_REQUEST_WINDOW": str(
                 args.compute_memory_request_window
@@ -1934,6 +1948,8 @@ def main() -> int:
         is not args.fallback_level_cache_reuse
     ):
         problems.append("fallback_level_cache_reuse")
+    if result.get("source_page_index_cache") is not args.source_page_index_cache:
+        problems.append("source_page_index_cache")
     if args.scenario != "candidate10_maintenance" and (
         result.get("compute_memory_request_window")
         != args.compute_memory_request_window
