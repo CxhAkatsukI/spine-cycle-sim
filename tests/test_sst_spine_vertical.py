@@ -78,6 +78,7 @@ class SstSpineVerticalValidationTests(unittest.TestCase):
             "update_edges": 2,
             "materialized_snapshot_edges": 4,
             "maintenance_persisted_edges": 4,
+            "reader_edges": 4,
             "maintenance_backend_requests": 5,
             "compute_backend_requests": 7,
             "dynamic_update": True,
@@ -118,6 +119,12 @@ class SstSpineVerticalValidationTests(unittest.TestCase):
         result["maintenance_persisted_edges"] = 3
         self.assertIn(
             "materialized_snapshot",
+            validate_generic_result(result, dram, **arguments),
+        )
+        result["maintenance_persisted_edges"] = 4
+        result["reader_edges"] = 3
+        self.assertIn(
+            "materialized_reader",
             validate_generic_result(result, dram, **arguments),
         )
 

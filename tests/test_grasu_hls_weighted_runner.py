@@ -155,7 +155,7 @@ class GrasuHlsWeightedRunnerTests(unittest.TestCase):
         )
         result = self._valid_result(profile, oracle, supersteps=1)
         result["update_inserts"] = 4
-        result["update_deletes"] = 4
+        result["update_deletes"] = 2
         validate_result(result, profile, oracle, supersteps=1)
         self.assertEqual(result["destination_partitions"], 2)
         self.assertEqual(result["compute_pipelines"], 2)

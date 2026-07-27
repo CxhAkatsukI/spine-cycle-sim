@@ -140,6 +140,9 @@ def validate_generic_result(
                     and result.get("maintenance_persisted_edges")
                     == result["materialized_snapshot_edges"]
                 ),
+                "materialized_reader": (not dynamic)
+                or result.get("reader_edges")
+                == result.get("materialized_snapshot_edges"),
                 "dynamic_pipeline_order": (not dynamic)
                 or result.get("pipeline_order")
                 == "zero_time_l0_preload_then_update_maintenance_then_compute",
