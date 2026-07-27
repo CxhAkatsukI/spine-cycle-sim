@@ -71,6 +71,32 @@ Compact slices and full datasets are reported as separate populations.
 \end{figure}
 }{\missingplot{Waiting for all five GraSU datasets and all required algorithms.}}
 
+\section{Cross-algorithm E2E ranking}
+\IfFileExists{data/e2e_speedup_by_dataset_algorithm.csv}{%
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}
+    \begin{semilogyaxis}[
+      ybar, bar width=4pt, width=0.98\linewidth, height=62mm,
+      ylabel={Spine speedup over GraSU+ReGraph}, xlabel={Dataset},
+      symbolic x coords={AU,SU,WK,SO,BC}, xtick=data,
+      ymin=0.1, ymax=10, grid=major,
+      legend style={at={(0.5,1.14)},anchor=south,legend columns=3}]
+      \addplot[fill=spine] table[x=dataset,y=weighted_sssp_speedup,col sep=comma]
+        {data/e2e_speedup_by_dataset_algorithm.csv};
+      \addplot[fill=grasu] table[x=dataset,y=full_pagerank_speedup,col sep=comma]
+        {data/e2e_speedup_by_dataset_algorithm.csv};
+      \addplot[fill=muted] table[x=dataset,y=thresholded_residual_pagerank_speedup,col sep=comma]
+        {data/e2e_speedup_by_dataset_algorithm.csv};
+      \addplot[black,dashed,sharp plot] coordinates {(AU,1) (BC,1)};
+      \legend{Weighted SSSP,Full PageRank,Residual PageRank}
+    \end{semilogyaxis}
+  \end{tikzpicture}
+  \caption{Insert-batch-8 E2E comparison on five compact temporal slices.
+  Values above one favor Spine; values below one favor GraSU+ReGraph.}
+\end{figure}
+}{\missingplot{Waiting for five correct pairs for each of the three algorithms.}}
+
 \section{Update throughput}
 \IfFileExists{data/update_throughput.csv}{%
 \begin{figure}[H]

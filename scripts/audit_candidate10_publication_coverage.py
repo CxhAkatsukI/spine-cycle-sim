@@ -30,6 +30,11 @@ DEFAULT_REAL_ROWS = [
     / "evidence"
     / "candidate10_grasu_temporal_full_pr_small_batches_20260727"
     / "system_rows_enriched.csv",
+    ROOT
+    / "docs"
+    / "evidence"
+    / "candidate10_grasu_temporal_three_algorithms_insert_u8_20260727"
+    / "system_rows.csv",
 ]
 DEFAULT_DENSE_ROWS = (
     ROOT

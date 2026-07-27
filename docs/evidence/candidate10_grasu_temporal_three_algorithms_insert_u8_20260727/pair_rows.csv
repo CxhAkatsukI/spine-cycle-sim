@@ -1,0 +1,16 @@
+run_id,dataset_id,algorithm,spine_e2e_ms,grasu_e2e_ms,spine_speedup,cross_system_correct
+grasu_au_insert_u8,sx_askubuntu,weighted_sssp,2.3404200000000004,6.30544,2.694148913442886,True
+grasu_bc_insert_u8,soc_bitcoin,weighted_sssp,2.21288,4.176013333333334,1.887139534603473,True
+grasu_so_insert_u8,sx_stackoverflow,weighted_sssp,2.3337466666666664,5.6871,2.436896892550463,True
+grasu_su_insert_u8,sx_superuser,weighted_sssp,2.3744533333333333,6.38166,2.6876333640304577,True
+grasu_wk_insert_u8,wiki_talk_temporal,weighted_sssp,2.5735933333333336,1.2787266666666668,0.4968643064560834,True
+grasu_au_insert_u8,sx_askubuntu,full_pagerank,9.849833333333335,3.0830533333333334,0.31300563461310676,True
+grasu_bc_insert_u8,soc_bitcoin,full_pagerank,10.440493333333334,6.478560000000001,0.6205224018788384,True
+grasu_so_insert_u8,sx_stackoverflow,full_pagerank,8.171513333333333,2.30152,0.2816516238934118,True
+grasu_su_insert_u8,sx_superuser,full_pagerank,10.36128,3.0374133333333333,0.29315039583268987,True
+grasu_wk_insert_u8,wiki_talk_temporal,full_pagerank,19.090200000000003,5.14838,0.2696870645671601,True
+grasu_au_insert_u8,sx_askubuntu,thresholded_residual_pagerank,208.88420666666664,84.6519,0.40525754125148317,True
+grasu_bc_insert_u8,soc_bitcoin,thresholded_residual_pagerank,253.56841333333335,163.3499666666667,0.6442047119328376,True
+grasu_so_insert_u8,sx_stackoverflow,thresholded_residual_pagerank,156.44687333333331,70.13902666666668,0.44832488609232257,True
+grasu_su_insert_u8,sx_superuser,thresholded_residual_pagerank,218.87176666666667,88.96608,0.40647581620470924,True
+grasu_wk_insert_u8,wiki_talk_temporal,thresholded_residual_pagerank,413.60007333333334,173.26120666666668,0.4189099998708898,True

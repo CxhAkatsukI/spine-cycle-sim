@@ -80,6 +80,7 @@ from .temporal_real_analysis import (
     analyze_temporal_full_pagerank,
     analyze_temporal_small_batch_pagerank,
 )
+from .temporal_three_algorithm_analysis import analyze_temporal_three_algorithms
 
 __all__ = [
     "DEFAULT_REAL_SOURCES",
@@ -141,4 +142,5 @@ __all__ = [
     "validate_temporal_real_manifest",
     "analyze_temporal_full_pagerank",
     "analyze_temporal_small_batch_pagerank",
+    "analyze_temporal_three_algorithms",
 ]

@@ -4,11 +4,13 @@ This fail-closed audit combines the committed compact real-data pilot with the
 five-dataset GraSU temporal Full PageRank matrix. It does not infer Cartesian
 coverage from independent sets of datasets, algorithms, batches, or scenarios.
 
-The current status is `INCOMPLETE`: 67 paired runs are correct, all five GraSU
-reference datasets have batch-1/8/64 Full PageRank results, and controller-level
-row-hit and latency evidence is present for that subset. Three-algorithm
-coverage on those datasets, weight changes, real-topology dense batches, and
-the complete queue/backpressure metric set remain open.
+The current status is `INCOMPLETE`: 77 unique paired runs are correct, all five
+GraSU reference datasets have batch-1/8/64 Full PageRank results, and all five
+have insert-batch-8 results for each of the three required algorithms.
+Controller-level row-hit and latency evidence is present for the Full PageRank
+subset. Weight changes, the complete three-algorithm batch cross-product,
+real-topology dense batches, and the full queue/backpressure metric set remain
+open.
 
 Reproduce with:
 

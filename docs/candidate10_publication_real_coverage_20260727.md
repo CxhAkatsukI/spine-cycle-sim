@@ -26,6 +26,13 @@ run on those five inputs, weight changes remain pending, and dense real-topology
 tests remain pending. Explicit AXI-issue and HBM queue/backpressure stall
 counters are also still absent.
 
+A second follow-up matrix covers weighted SSSP, Full PageRank, and thresholded
+residual PageRank on all five reference slices for insert batches of eight. Its
+15 pairs and 30 system runs all pass their independent mathematical oracle and
+cross-system final-state check. This closes the five-dataset, three-algorithm
+correctness breadth gate, but not the full three-algorithm batch-size cross
+product.
+
 The audit combines the old and new evidence only as input rows. Every formal
 gate checks the required cross-product, so three algorithms on old datasets
 plus one algorithm on five reference datasets cannot accidentally pass the
