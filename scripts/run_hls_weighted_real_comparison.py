@@ -135,11 +135,16 @@ def _display_path(path: Path) -> str:
         return str(resolved)
 
 
-def _profile(path: Path, expected_id: str) -> tuple[dict[str, object], float]:
+def _profile(
+    path: Path, expected_id: str | None
+) -> tuple[dict[str, object], float]:
     profile = json.loads(path.read_text(encoding="utf-8"))
-    if profile.get("profile_id") != expected_id:
+    profile_id = profile.get("profile_id")
+    if not isinstance(profile_id, str) or not profile_id:
+        raise ValueError(f"profile has no identity: {path}")
+    if expected_id is not None and profile_id != expected_id:
         raise ValueError(f"profile identity mismatch: {path}")
-    clock_name = "data" if expected_id.startswith("spine_") else "kernel"
+    clock_name = "data" if profile_id.startswith("spine_") else "kernel"
     clock = next(item for item in profile["clocks"] if item["name"] == clock_name)
     return profile, float(clock["achieved_mhz"])
 
@@ -390,6 +395,8 @@ def main() -> int:
     if args.jobs <= 0 or args.timeout_seconds <= 0.0 or args.max_cycles <= 0:
         raise ValueError("jobs, timeout, and max cycles must be positive")
     profile_set = PROFILE_SETS[args.profile_set]
+    custom_spine_profile = args.spine_profile is not None
+    custom_grasu_profile = args.grasu_profile is not None
     args.spine_profile = args.spine_profile or profile_set["spine_profile"]
     args.grasu_profile = args.grasu_profile or profile_set["grasu_profile"]
     args.capability_catalog = (
@@ -399,10 +406,12 @@ def main() -> int:
     manifest = _validate_input_manifest(args.input_manifest)
     selected = _select_runs(list(manifest["runs"]), args.run_id, args.limit)
     spine_profile, spine_mhz = _profile(
-        args.spine_profile, str(profile_set["spine_profile_id"])
+        args.spine_profile,
+        None if custom_spine_profile else str(profile_set["spine_profile_id"]),
     )
     grasu_profile, grasu_mhz = _profile(
-        args.grasu_profile, str(profile_set["grasu_profile_id"])
+        args.grasu_profile,
+        None if custom_grasu_profile else str(profile_set["grasu_profile_id"]),
     )
     capabilities = json.loads(args.capability_catalog.read_text(encoding="utf-8"))
     grasu_capability = next(

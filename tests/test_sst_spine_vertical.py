@@ -128,6 +128,49 @@ class SstSpineVerticalValidationTests(unittest.TestCase):
             validate_generic_result(result, dram, **arguments),
         )
 
+    def test_generic_dynamic_residual_may_scan_only_active_edges(self) -> None:
+        result = {
+            "success": True,
+            "mode": "spine_residual_pagerank",
+            "core_mhz": 141.0,
+            "input_edges": 4,
+            "initial_edges": 4,
+            "update_edges": 2,
+            "materialized_snapshot_edges": 4,
+            "maintenance_persisted_edges": 4,
+            "reader_edges": 0,
+            "maintenance_backend_requests": 5,
+            "compute_backend_requests": 7,
+            "backend_requests": 12,
+            "dynamic_update": True,
+            "pipeline_order": (
+                "zero_time_l0_preload_then_update_maintenance_then_compute"
+            ),
+            "architecture_oracle": "residual_float32",
+            "mathematical_oracle": "residual_float64",
+            "architecture_correctness_mismatches": 0,
+            "mathematical_correctness_mismatches": 0,
+            "correctness_mismatches": 0,
+        }
+        dram = {"dram_reads": 8, "dram_writes": 4, "dram_channels": 32}
+        problems = validate_generic_result(
+            result,
+            dram,
+            channels=32,
+            scenario="residual_pagerank",
+            vertices=4,
+            input_edges=4,
+            update_edges=2,
+            source=0,
+            core_mhz=141.0,
+            max_rounds=256,
+            pagerank_iterations=3,
+            pagerank_damping=0.85,
+            pagerank_epsilon=1.0e-6,
+            residual_max_iterations=256,
+        )
+        self.assertNotIn("materialized_reader", problems)
+
     def test_dynamic_sssp_closes_cold_update_and_memory_ledgers(self) -> None:
         result = {
             "success": True,

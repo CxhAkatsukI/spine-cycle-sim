@@ -277,6 +277,8 @@ def main() -> int:
     if args.jobs <= 0 or args.timeout_seconds <= 0.0 or args.max_cycles <= 0:
         raise ValueError("jobs, timeout, and max cycles must be positive")
     profile_set = PROFILE_SETS[args.profile_set]
+    custom_spine_profile = args.spine_profile is not None
+    custom_grasu_profile = args.grasu_profile is not None
     args.spine_profile = args.spine_profile or profile_set["spine_profile"]
     args.grasu_profile = args.grasu_profile or profile_set["grasu_profile"]
     args.capability_catalog = (
@@ -286,10 +288,12 @@ def main() -> int:
     manifest = _validate_input_manifest(args.input_manifest)
     selected = _select_runs(list(manifest["runs"]), args.run_id, args.limit)
     spine_profile, spine_mhz = _profile(
-        args.spine_profile, str(profile_set["spine_profile_id"])
+        args.spine_profile,
+        None if custom_spine_profile else str(profile_set["spine_profile_id"]),
     )
     grasu_profile, grasu_mhz = _profile(
-        args.grasu_profile, str(profile_set["grasu_profile_id"])
+        args.grasu_profile,
+        None if custom_grasu_profile else str(profile_set["grasu_profile_id"]),
     )
     parameters = grasu_profile["parameters"]
     if (

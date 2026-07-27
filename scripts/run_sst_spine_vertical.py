@@ -141,6 +141,7 @@ def validate_generic_result(
                     == result["materialized_snapshot_edges"]
                 ),
                 "materialized_reader": (not dynamic)
+                or expected_mode != "spine_pagerank"
                 or result.get("reader_edges")
                 == result.get("materialized_snapshot_edges"),
                 "dynamic_pipeline_order": (not dynamic)
