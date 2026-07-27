@@ -5,7 +5,7 @@ paper_reference_three_algorithm_matrix,true
 paper_reference_differential_scenarios,false
 paper_reference_small_batch_matrix,false
 paper_reference_update_matrix,true
-real_dense_coverage,false
+real_dense_coverage,true
 controller_memory_partial_coverage,true
 complete_memory_metric_set,false
 publication_real_matrix_complete,false

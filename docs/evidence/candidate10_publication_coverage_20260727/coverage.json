@@ -3,7 +3,7 @@
   "coverage": {
     "correct_paper_pairs": 50,
     "dense_bad_runs": 0,
-    "dense_pairs": 8,
+    "dense_pairs": 9,
     "large_real_bad_runs": 0,
     "large_real_pairs": 1,
     "memory_bad_runs": 0,
@@ -54,7 +54,7 @@
     "paper_reference_three_algorithm_matrix": true,
     "paper_reference_update_matrix": true,
     "publication_real_matrix_complete": false,
-    "real_dense_coverage": false
+    "real_dense_coverage": true
   },
   "interpretation": "Existing evidence is a correct compact pilot, not a complete paper-reference real-dataset evaluation.",
   "status": "INCOMPLETE"

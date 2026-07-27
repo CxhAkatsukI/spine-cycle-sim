@@ -40,9 +40,8 @@ DEFAULT_DENSE_ROWS = (
     ROOT
     / "docs"
     / "evidence"
-    / "candidate10_hls_v3_dense_full_pagerank_20260727"
-    / "timing"
-    / "system_rows.csv"
+    / "candidate10_grasu_temporal_real_dense_full_pr_20260727"
+    / "system_rows_enriched.csv"
 )
 DEFAULT_LARGE_ROWS = (
     ROOT

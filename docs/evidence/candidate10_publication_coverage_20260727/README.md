@@ -8,9 +8,9 @@ The current status is `INCOMPLETE`: 77 unique paired runs are correct, all five
 GraSU reference datasets have batch-1/8/64 Full PageRank results, and all five
 have insert-batch-8 results for each of the three required algorithms.
 Controller-level row-hit and latency evidence is present for the Full PageRank
-subset. Weight changes, the complete three-algorithm batch cross-product,
-real-topology dense batches, and the full queue/backpressure metric set remain
-open.
+subset, and three real topologies have Full PageRank batch-64/512/4096 dense
+sweeps. Weight changes, the complete three-algorithm batch cross-product, and
+the full queue/backpressure metric set remain open.
 
 Reproduce with:
 

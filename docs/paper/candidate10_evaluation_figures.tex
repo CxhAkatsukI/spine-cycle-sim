@@ -187,14 +187,23 @@ Compact slices and full datasets are reported as separate populations.
     \begin{semilogxaxis}[
       width=0.96\linewidth, height=60mm,
       xlabel={Updated edges / base edges}, ylabel={Spine speedup},
-      grid=major]
-      \addplot[spine,very thick,mark=*] table[x=update_ratio,y=speedup,col sep=comma]
+      xmin=0.005, xmax=0.7,
+      grid=major,
+      legend style={at={(0.5,1.14)},anchor=south,legend columns=4}]
+      \addplot[spine,mark=square*] table[x=update_ratio,y=AU_speedup,col sep=comma]
         {data/dense_batch.csv};
-      \addplot[muted,dashed] coordinates {(0.0001,1) (1,1)};
+      \addplot[grasu,mark=triangle*] table[x=update_ratio,y=WK_speedup,col sep=comma]
+        {data/dense_batch.csv};
+      \addplot[muted,mark=diamond*] table[x=update_ratio,y=BC_speedup,col sep=comma]
+        {data/dense_batch.csv};
+      \addplot[black,very thick,mark=*] table[x=update_ratio,y=geomean_speedup,col sep=comma]
+        {data/dense_batch.csv};
+      \addplot[muted,dashed] coordinates {(0.005,1) (0.7,1)};
+      \legend{AU,WK,BC,Geomean}
     \end{semilogxaxis}
   \end{tikzpicture}
-  \caption{Dense-update crossover on real topologies. Absolute batch size is
-  retained in the companion data table.}
+  \caption{Dense-update crossover on three compact real topologies. Absolute
+  batch size is retained in the companion data table.}
 \end{figure}
 }{\missingplot{Waiting for real-topology batch 64/512/4096 sweeps.}}
 

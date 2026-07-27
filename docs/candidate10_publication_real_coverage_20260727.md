@@ -33,6 +33,11 @@ cross-system final-state check. This closes the five-dataset, three-algorithm
 correctness breadth gate, but not the full three-algorithm batch-size cross
 product.
 
+The real-topology dense follow-up covers AU, WK, and BC at insertion batches
+64, 512, and 4096. All nine pairs are correct; the largest batch is 50% of the
+8192-edge base slice. This closes the minimum real-dense breadth gate for Full
+PageRank while retaining the compact-slice limitation.
+
 The audit combines the old and new evidence only as input rows. Every formal
 gate checks the required cross-product, so three algorithms on old datasets
 plus one algorithm on five reference datasets cannot accidentally pass the
