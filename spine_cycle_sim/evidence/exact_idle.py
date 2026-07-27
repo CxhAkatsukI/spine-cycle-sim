@@ -81,6 +81,13 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def _require_same_bytes(baseline: Path, candidate: Path, label: str) -> None:
+    if not baseline.is_file() or not candidate.is_file():
+        raise ExactIdleEquivalenceError(f"missing {label}")
+    if baseline.read_bytes() != candidate.read_bytes():
+        raise ExactIdleEquivalenceError(f"{label} changed")
+
+
 def _validate_parent(root: Path) -> dict[str, Any]:
     manifest = _json(root / "comparison_manifest.json")
     run_ids = manifest.get("selected_run_ids")
@@ -211,6 +218,105 @@ def analyze_exact_idle_equivalence(
         "all_dram_json_byte_identical": True,
         "dram_json_files_compared": total_dram_json,
         "host_speedup_geomean": geomean,
+        "rows": rows,
+        "status": "PASS",
+    }
+
+
+def analyze_exact_idle_sensitivity_equivalence(
+    baseline_dir: str | Path, candidate_dir: str | Path
+) -> dict[str, Any]:
+    """Validate every child of a shared-HBM sensitivity sweep."""
+
+    baseline = Path(baseline_dir).resolve()
+    candidate = Path(candidate_dir).resolve()
+    baseline_manifest = _json(baseline / "sensitivity_manifest.json")
+    candidate_manifest = _json(candidate / "sensitivity_manifest.json")
+    stable_fields = (
+        "schema_version",
+        "matrix_id",
+        "contract_sha256",
+        "profiles",
+        "run_ids",
+        "pairs_per_profile",
+        "strict_rank_inversions",
+        "status",
+    )
+    changed_fields = [
+        field
+        for field in stable_fields
+        if baseline_manifest.get(field) != candidate_manifest.get(field)
+    ]
+    profiles = baseline_manifest.get("profiles")
+    run_ids = baseline_manifest.get("run_ids")
+    if (
+        changed_fields
+        or baseline_manifest.get("schema_version") != 2
+        or baseline_manifest.get("status") != "PASS"
+        or baseline_manifest.get("strict_rank_inversions") != 0
+        or not isinstance(profiles, list)
+        or not profiles
+        or len(profiles) != len(set(profiles))
+        or not isinstance(run_ids, list)
+        or not run_ids
+        or len(run_ids) != len(set(run_ids))
+        or baseline_manifest.get("pairs_per_profile") != len(run_ids)
+    ):
+        raise ExactIdleEquivalenceError(
+            "invalid or changed sensitivity contract: "
+            f"changed={changed_fields}"
+        )
+
+    for table in ("sensitivity_details.csv", "sensitivity_summary.csv"):
+        _require_same_bytes(baseline / table, candidate / table, table)
+
+    rows: list[dict[str, Any]] = []
+    dram_json_files = 0
+    old_fields = 0
+    additions = 0
+    exact_result_files = 0
+    for profile_id in profiles:
+        if not isinstance(profile_id, str) or not profile_id:
+            raise ExactIdleEquivalenceError("invalid sensitivity profile ID")
+        report = analyze_exact_idle_equivalence(
+            baseline / profile_id, candidate / profile_id
+        )
+        if report["run_cases"] != len(run_ids):
+            raise ExactIdleEquivalenceError(
+                f"{profile_id}: child run coverage differs from parent"
+            )
+        for row in report.pop("rows"):
+            rows.append({"profile_id": profile_id, **row})
+        dram_json_files += int(report["dram_json_files_compared"])
+        old_fields += int(report["preexisting_result_fields_compared"])
+        additions += int(report["added_observability_fields"])
+        exact_result_files += int(report["byte_identical_result_files"])
+
+    speedups = [float(row["host_speedup"]) for row in rows]
+    host_geomean = math.exp(
+        sum(math.log(value) for value in speedups) / len(speedups)
+    )
+    return {
+        "schema_version": 1,
+        "claim": "exact_idle_hbm_sensitivity_observable_equivalence",
+        "baseline_sensitivity_manifest_sha256": _sha256(
+            baseline / "sensitivity_manifest.json"
+        ),
+        "candidate_sensitivity_manifest_sha256": _sha256(
+            candidate / "sensitivity_manifest.json"
+        ),
+        "profiles": profiles,
+        "run_cases_per_profile": len(run_ids),
+        "system_results": len(rows),
+        "all_preexisting_result_fields_identical": True,
+        "preexisting_result_fields_compared": old_fields,
+        "added_observability_fields": additions,
+        "byte_identical_result_files": exact_result_files,
+        "all_dram_json_byte_identical": True,
+        "dram_json_files_compared": dram_json_files,
+        "derived_sensitivity_tables_byte_identical": True,
+        "strict_rank_inversions": 0,
+        "host_speedup_geomean": host_geomean,
         "rows": rows,
         "status": "PASS",
     }

@@ -46,6 +46,7 @@ from .publication_ppa import (
 from .exact_idle import (
     ExactIdleEquivalenceError,
     analyze_exact_idle_equivalence,
+    analyze_exact_idle_sensitivity_equivalence,
 )
 
 __all__ = [
@@ -84,4 +85,5 @@ __all__ = [
     "analyze_publication_ppa_manifest",
     "ExactIdleEquivalenceError",
     "analyze_exact_idle_equivalence",
+    "analyze_exact_idle_sensitivity_equivalence",
 ]
