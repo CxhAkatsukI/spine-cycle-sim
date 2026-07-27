@@ -1,0 +1,105 @@
+{
+  "algorithms": {
+    "full_pagerank": {
+      "closest_hls_profile": {
+        "path": "configs/architectures/grasu_regraph_candidate10_k1_multipart_pagerank_v4.json",
+        "profile_id": "grasu_regraph_candidate10_k1_multipart_pagerank_v4",
+        "sha256": "cb33252599584880ffb2281d161178f543db68e3dfb855df0f4b3fef4fa733ab"
+      },
+      "functional_evidence_status": "isolated_hls_csim_and_execution_driven_dual_oracle_pass",
+      "matching_hls": true,
+      "missing_gates": [],
+      "normalized_profile": {
+        "path": "configs/architectures/grasu_regraph_candidate10_k1_multipart_pagerank_v4.json",
+        "profile_id": "grasu_regraph_candidate10_k1_multipart_pagerank_v4",
+        "sha256": "cb33252599584880ffb2281d161178f543db68e3dfb855df0f4b3fef4fa733ab"
+      },
+      "parameter_crosswalk": [],
+      "whole_system_hls_status": "routed_k1_near_150mhz_negative_slack_timing_reported"
+    },
+    "thresholded_residual_pagerank": {
+      "closest_hls_profile": {
+        "path": "configs/architectures/grasu_regraph_candidate10_k1_multipart_residual_v4.json",
+        "profile_id": "grasu_regraph_candidate10_k1_multipart_residual_v4",
+        "sha256": "0d035f8c036c3632a6d99770abd91b7144b8ceb19b9777a4fd5e1d59b367a049"
+      },
+      "functional_evidence_status": "isolated_hls_csim_and_execution_driven_dual_oracle_pass",
+      "matching_hls": true,
+      "missing_gates": [],
+      "normalized_profile": {
+        "path": "configs/architectures/grasu_regraph_candidate10_k1_multipart_residual_v4.json",
+        "profile_id": "grasu_regraph_candidate10_k1_multipart_residual_v4",
+        "sha256": "0d035f8c036c3632a6d99770abd91b7144b8ceb19b9777a4fd5e1d59b367a049"
+      },
+      "parameter_crosswalk": [],
+      "whole_system_hls_status": "routed_k1_near_150mhz_negative_slack_timing_reported"
+    },
+    "weighted_sssp": {
+      "closest_hls_profile": {
+        "path": "configs/architectures/grasu_regraph_candidate10_k1_multipart_weighted_v4.json",
+        "profile_id": "grasu_regraph_candidate10_k1_multipart_weighted_v4",
+        "sha256": "a6a2cca9dff4f55b3f096868c2e24b453c3a249cfcff443c50f5e7a61f5ca71e"
+      },
+      "functional_evidence_status": "isolated_hls_csim_and_execution_driven_dual_oracle_pass",
+      "matching_hls": true,
+      "missing_gates": [],
+      "normalized_profile": {
+        "path": "configs/architectures/grasu_regraph_candidate10_k1_multipart_weighted_v4.json",
+        "profile_id": "grasu_regraph_candidate10_k1_multipart_weighted_v4",
+        "sha256": "a6a2cca9dff4f55b3f096868c2e24b453c3a249cfcff443c50f5e7a61f5ca71e"
+      },
+      "parameter_crosswalk": [],
+      "whole_system_hls_status": "routed_k1_near_150mhz_negative_slack_timing_reported"
+    }
+  },
+  "claim_class": "routed_k1_multi_partition_execution_driven_simulation",
+  "claim_gates": {
+    "correctness": {
+      "eligible": true,
+      "label": "dual_oracle_correctness_gated",
+      "reason": "Every performance row must pass both independent oracles."
+    },
+    "fpga_measured_performance": {
+      "eligible": false,
+      "label": "simulator_performance_not_fpga_runtime",
+      "reason": "Routed feasibility does not turn simulated cycles into FPGA measurements."
+    },
+    "headline_normalized_performance": {
+      "eligible": true,
+      "label": "routed_k1_normalized_simulator_performance",
+      "reason": "K=1 is frozen from routed evidence; multi-partition control is execution-driven and all rows remain correctness gated."
+    },
+    "iso_resource_performance": {
+      "eligible": false,
+      "label": "same_platform_resource_reported_not_iso_resource",
+      "reason": "Both systems report routed resources on the same U55C, but their LUT, memory, DSP, and AXI-master allocations are not equal."
+    },
+    "structural_exploratory": {
+      "eligible": true,
+      "label": "routed_k1_multi_partition_structural",
+      "reason": "Both systems use routed HLS anchors and a shared memory model."
+    }
+  },
+  "contract_id": "candidate10_k1_multipart_hls_feasibility_v3_20260728",
+  "evidence": {
+    "path": "configs/evidence/candidate10_publication_ppa_v3.json",
+    "sha256": "4048752a6bab08eb7982a1124bd805e6244fc4ffbfa94cbff45f76a435a83e73"
+  },
+  "schema_version": 1,
+  "shared_platform_status": "pass",
+  "spine": {
+    "equivalence_status": "normalized_profile_preserves_routed_native_core",
+    "evidence_status": "routed_xclbin_and_execution_driven_model",
+    "matching_hls": true,
+    "native_parent_profile": {
+      "path": "configs/architectures/spine_candidate10_one_pass_1e61fc0.json",
+      "profile_id": "spine_candidate10_one_pass_1e61fc0",
+      "sha256": "a23737c17f6650cea0185bd3eba9d425dbc151f35372d33130464df780312717"
+    },
+    "normalized_profile": {
+      "path": "configs/architectures/spine_candidate10_normalized_v1.json",
+      "profile_id": "spine_candidate10_normalized_v1",
+      "sha256": "4e31633c55abfdc57fd4537119d6abb6d7a4f0313dcfc81332fa0ed0a6320c0a"
+    }
+  }
+}

@@ -31,7 +31,7 @@ from spine_cycle_sim.experiments.profile_capabilities import (  # noqa: E402
     load_capability_catalog,
 )
 from spine_cycle_sim.experiments.regraph_contracts import (  # noqa: E402
-    expected_pagerank_source_cache_requests,
+    expected_weighted_source_cache_requests,
 )
 from spine_cycle_sim.experiments.shared_workloads import load_slice  # noqa: E402
 from spine_cycle_sim.sst_binding import grasu_normalized_memory_binding  # noqa: E402
@@ -90,17 +90,35 @@ def validate_result(
     vertices = len(oracle.external_to_internal)
     partition_vertices = int(params["regraph_partition_vertices"])
     state_bytes = int(params["pagerank_state_bytes_per_vertex"])
-    vertices_per_beat = int(memory["data_width_bits"]) // 8 // state_bytes
-    source_requests = expected_pagerank_source_cache_requests(
-        vertices, int(params["regraph_source_buffer_vertices"]), iterations
+    prepared_source_bytes = 4
+    vertices_per_beat = (
+        int(memory["data_width_bits"]) // 8 // prepared_source_bytes
+    )
+    destination_partitions = (vertices + partition_vertices - 1) // partition_vertices
+    partition_max_sources: list[int | None] = [None] * destination_partitions
+    for source, destination, _ in oracle.final_internal_edges:
+        partition = destination // partition_vertices
+        previous = partition_max_sources[partition]
+        partition_max_sources[partition] = (
+            source if previous is None else max(previous, source)
+        )
+    source_requests = sum(
+        expected_weighted_source_cache_requests(
+            max_source,
+            int(params["regraph_source_buffer_vertices"]),
+            iterations,
+        )
+        for max_source in partition_max_sources
+        if max_source is not None
     )
     source_lines = (
         source_requests
         * int(params["regraph_source_buffer_vertices"])
         // vertices_per_beat
     )
-    rows = partition_vertices // 2 * iterations
-    bursts = partition_vertices // 16 * iterations
+    rows = destination_partitions * partition_vertices // 2 * iterations
+    bursts = destination_partitions * partition_vertices // 16 * iterations
+    source_prepare_degree_reads = (vertices + 15) // 16
     ranks = tuple(float(value) for value in result.get("ranks_external", []))
     residuals = tuple(
         float(value) for value in result.get("residuals_external", [])
@@ -157,7 +175,13 @@ def validate_result(
         == oracle.physical_updates
         and result.get("degree_update_reads") == oracle.physical_updates
         and result.get("degree_update_writes") == oracle.physical_updates,
-        "degree_reads": result.get("degree_reads") == vertices * iterations,
+        "partitions": result.get("destination_partitions")
+        == destination_partitions,
+        "pipelines": result.get("compute_pipelines")
+        == int(params.get("regraph_compute_pipelines", 1)),
+        "degree_reads": result.get("source_prepare_degree_reads")
+        == source_prepare_degree_reads
+        and result.get("degree_reads") == source_prepare_degree_reads + bursts,
         "state_width": result.get("state_bytes_per_vertex") == state_bytes,
         "lanes": result.get("edge_lanes") == params["regraph_map_reduce_lanes"]
         and result.get("gather_banks") == params["regraph_map_reduce_lanes"],
@@ -175,9 +199,18 @@ def validate_result(
     }
     failed = [name for name, passed in checks.items() if not passed]
     if failed:
+        source_detail = (
+            f"source_expected={source_requests}/{source_lines}/"
+            f"{source_lines * int(params['regraph_map_reduce_lanes'])} "
+            f"source_actual={result.get('source_cache_requests')}/"
+            f"{result.get('source_cache_lines')}/"
+            f"{result.get('source_cache_lane_writes')}"
+        )
         raise RuntimeError(
-            f"HLS-equivalent residual PageRank validation failed ({failed}): "
-            f"{result}"
+            f"HLS-equivalent residual PageRank validation failed ({failed}); "
+            f"cycles={result.get('cycles')} "
+            f"partitions={result.get('destination_partitions')} "
+            f"pipelines={result.get('compute_pipelines')} {source_detail}"
         )
 
 
@@ -194,6 +227,11 @@ def main() -> int:
     parser.add_argument("--lib-dir", type=Path, default=ROOT / "build" / "sst")
     parser.add_argument("--max-cycles", type=int, default=100_000_000)
     parser.add_argument("--no-build", action="store_true")
+    parser.add_argument(
+        "--reuse-result",
+        action="store_true",
+        help="validate an existing result.json and DRAM directory without rerunning SST",
+    )
     parser.add_argument("--instantiate-all-hbm-channels", action="store_true")
     args = parser.parse_args()
 
@@ -202,6 +240,9 @@ def main() -> int:
     expected_profiles = {
         "grasu_regraph_weighted_pma_hls_proposed_residual_pagerank_ff13a67",
         "grasu_regraph_candidate10_normalized_hls_residual_pagerank_v3",
+        "grasu_regraph_candidate10_k1_multipart_residual_v4",
+        "grasu_regraph_candidate10_k2_multipart_residual_v4",
+        "grasu_regraph_candidate10_k4_multipart_residual_v4",
     }
     if profile.get("profile_id") not in expected_profiles:
         raise ValueError("runner requires a pinned HLS-derived residual profile")
@@ -231,8 +272,11 @@ def main() -> int:
     args.out_dir.mkdir(parents=True, exist_ok=True)
     result_path = (args.out_dir / "result.json").resolve()
     dram_dir = (args.out_dir / "dram").resolve()
-    result_path.unlink(missing_ok=True)
-    shutil.rmtree(dram_dir, ignore_errors=True)
+    if not args.reuse_result:
+        result_path.unlink(missing_ok=True)
+        shutil.rmtree(dram_dir, ignore_errors=True)
+    elif not result_path.is_file() or not dram_dir.is_dir():
+        raise FileNotFoundError("--reuse-result requires result.json and dram/")
     env = os.environ.copy()
     env.update(
         {
@@ -257,6 +301,9 @@ def main() -> int:
             ),
             "GRASU_SST_PARTITION_VERTICES": str(
                 params["regraph_partition_vertices"]
+            ),
+            "GRASU_SST_COMPUTE_PIPELINES": str(
+                params.get("regraph_compute_pipelines", 1)
             ),
             "GRASU_SST_SOURCE_BUFFER_VERTICES": str(
                 params["regraph_source_buffer_vertices"]
@@ -352,23 +399,25 @@ def main() -> int:
         sst_library["command_option"],
         str(ROOT / "sst" / "grasu_regraph_vertical.py"),
     ]
-    started = time.monotonic()
-    completed = subprocess.run(
-        command,
-        cwd=ROOT,
-        env=env,
-        check=False,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-    )
-    wall_seconds = time.monotonic() - started
-    (args.out_dir / "sst.log").write_text(completed.stdout, encoding="utf-8")
-    if completed.returncode != 0:
-        raise RuntimeError(
-            f"HLS-equivalent residual PageRank SST failed with "
-            f"rc={completed.returncode}; see {args.out_dir / 'sst.log'}"
+    wall_seconds: float | None = None
+    if not args.reuse_result:
+        started = time.monotonic()
+        completed = subprocess.run(
+            command,
+            cwd=ROOT,
+            env=env,
+            check=False,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
         )
+        wall_seconds = time.monotonic() - started
+        (args.out_dir / "sst.log").write_text(completed.stdout, encoding="utf-8")
+        if completed.returncode != 0:
+            raise RuntimeError(
+                f"HLS-equivalent residual PageRank SST failed with "
+                f"rc={completed.returncode}; see {args.out_dir / 'sst.log'}"
+            )
     result = json.loads(result_path.read_text(encoding="utf-8"))
     validate_result(result, profile, oracle, full_solution)
     dram = load_dram_stats(dram_dir)
@@ -392,6 +441,7 @@ def main() -> int:
         "sst_library_binding": sst_library,
         "sst_plugin_sha256": sst_library["plugin_sha256"],
         "sst_host_wall_seconds": wall_seconds,
+        "reused_existing_result": args.reuse_result,
         "command": command,
         "result": result,
         "dram": dram,

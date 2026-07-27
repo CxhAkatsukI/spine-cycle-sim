@@ -233,13 +233,25 @@ def validate_result(
     )
     partition_vertices = int(params["regraph_partition_vertices"])
     source_buffer_vertices = int(params["regraph_source_buffer_vertices"])
-    max_internal_source = max(src for src, _, _ in oracle.final_internal_edges)
-    expected_source_requests = expected_weighted_source_cache_requests(
-        max_internal_source, source_buffer_vertices, supersteps
+    vertices = len(oracle.external_to_internal)
+    destination_partitions = (vertices + partition_vertices - 1) // partition_vertices
+    partition_max_sources: list[int | None] = [None] * destination_partitions
+    for source, destination, _ in oracle.final_internal_edges:
+        partition = destination // partition_vertices
+        previous = partition_max_sources[partition]
+        partition_max_sources[partition] = (
+            source if previous is None else max(previous, source)
+        )
+    expected_source_requests = sum(
+        expected_weighted_source_cache_requests(
+            max_source, source_buffer_vertices, supersteps
+        )
+        for max_source in partition_max_sources
+        if max_source is not None
     )
     expected_source_lines = expected_source_requests * source_buffer_vertices // 16
-    expected_rows = partition_vertices // 2 * supersteps
-    expected_bursts = partition_vertices // 16 * supersteps
+    expected_rows = destination_partitions * partition_vertices // 2 * supersteps
+    expected_bursts = destination_partitions * partition_vertices // 16 * supersteps
     checks = {
         "success": result.get("success") is True,
         "mode": result.get("mode") == "grasu_regraph_hls_weighted_sssp",
@@ -280,6 +292,10 @@ def validate_result(
         == list(oracle.external_distances),
         "lanes": result.get("edge_lanes") == params["regraph_map_reduce_lanes"]
         and result.get("gather_banks") == params["regraph_map_reduce_lanes"],
+        "partitions": result.get("destination_partitions")
+        == destination_partitions,
+        "pipelines": result.get("compute_pipelines")
+        == int(params.get("regraph_compute_pipelines", 1)),
         "source_requests": result.get("source_cache_requests")
         == expected_source_requests,
         "source_lines": result.get("source_cache_lines") == expected_source_lines,
@@ -293,7 +309,12 @@ def validate_result(
     }
     failed = [name for name, passed in checks.items() if not passed]
     if failed:
-        raise RuntimeError(f"weighted-HLS SST validation failed ({failed}): {result}")
+        raise RuntimeError(
+            f"weighted-HLS SST validation failed ({failed}); "
+            f"cycles={result.get('cycles')} "
+            f"partitions={result.get('destination_partitions')} "
+            f"pipelines={result.get('compute_pipelines')}"
+        )
 
 
 def main() -> int:
@@ -327,6 +348,9 @@ def main() -> int:
     expected_profile_ids = {
         "grasu_regraph_weighted_pma_hls_sw_emu_ff13a67",
         "grasu_regraph_candidate10_normalized_hls_weighted_v3",
+        "grasu_regraph_candidate10_k1_multipart_weighted_v4",
+        "grasu_regraph_candidate10_k2_multipart_weighted_v4",
+        "grasu_regraph_candidate10_k4_multipart_weighted_v4",
     }
     if profile.get("profile_id") not in expected_profile_ids:
         raise ValueError("runner requires a pinned HLS-derived weighted profile")

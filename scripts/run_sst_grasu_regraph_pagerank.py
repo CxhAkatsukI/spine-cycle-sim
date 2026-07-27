@@ -104,6 +104,9 @@ def main() -> int:
     allowed_profiles = {
         "grasu_regraph_normalized_pagerank_spine23",
         "grasu_regraph_candidate10_normalized_pagerank_v2",
+        "grasu_regraph_candidate10_k1_multipart_pagerank_v4",
+        "grasu_regraph_candidate10_k2_multipart_pagerank_v4",
+        "grasu_regraph_candidate10_k4_multipart_pagerank_v4",
     }
     if profile.get("profile_id") not in allowed_profiles:
         raise ValueError("runner requires the pinned normalized PageRank profile")
@@ -152,6 +155,9 @@ def main() -> int:
                 params["grasu_cache_segments_per_cu"]
             ),
             "GRASU_SST_PARTITION_VERTICES": str(partition_vertices),
+            "GRASU_SST_COMPUTE_PIPELINES": str(
+                params.get("regraph_compute_pipelines", 1)
+            ),
             "GRASU_SST_SOURCE_BUFFER_VERTICES": str(
                 params["regraph_source_buffer_vertices"]
             ),

@@ -108,6 +108,15 @@ def normalized_grasu_profile_paths(
             profile_dir
             / "grasu_regraph_candidate10_normalized_hls_residual_pagerank_v3.json",
         )
+    if profile_set == "k1_v4":
+        return (
+            profile_dir
+            / "grasu_regraph_candidate10_k1_multipart_weighted_v4.json",
+            profile_dir
+            / "grasu_regraph_candidate10_k1_multipart_pagerank_v4.json",
+            profile_dir
+            / "grasu_regraph_candidate10_k1_multipart_residual_v4.json",
+        )
     if profile_set != "v2":
         raise ValueError(f"unknown normalized GraSU profile set: {profile_set}")
     return (
@@ -122,7 +131,9 @@ def normalized_grasu_capability_catalog_path(
     root: Path, profile_set: str = "v2"
 ) -> Path:
     filename = (
-        "grasu_regraph_candidate10_hls_capabilities_v3.json"
+        "grasu_regraph_k1_multipart_capabilities_v4.json"
+        if profile_set == "k1_v4"
+        else "grasu_regraph_candidate10_hls_capabilities_v3.json"
         if profile_set == "hls_v3"
         else "grasu_regraph_candidate10_capabilities_v2.json"
         if profile_set == "v2"
@@ -138,7 +149,7 @@ def normalized_profile_set(manifest: Mapping[str, object]) -> str:
     if not isinstance(contract, Mapping):
         raise ValueError("comparison manifest lacks its platform contract")
     profile_set = str(contract.get("grasu_profile_set", "v2"))
-    if profile_set not in {"v2", "hls_v3"}:
+    if profile_set not in {"v2", "hls_v3", "k1_v4"}:
         raise ValueError(f"unsupported manifest GraSU profile set: {profile_set}")
     return profile_set
 
@@ -216,6 +227,10 @@ def validate_normalized_profile_contract(
         path.stem
         for path in normalized_grasu_profile_paths(repository_root, "hls_v3")
     )
+    v4_ids = tuple(
+        path.stem
+        for path in normalized_grasu_profile_paths(repository_root, "k1_v4")
+    )
     if profile_ids == v2_ids:
         profile_set = "v2"
         feasibility_path = (
@@ -231,6 +246,14 @@ def validate_normalized_profile_contract(
             / "configs"
             / "contracts"
             / "candidate10_normalized_hls_feasibility_v2.json"
+        )
+    elif profile_ids == v4_ids:
+        profile_set = "k1_v4"
+        feasibility_path = (
+            repository_root
+            / "configs"
+            / "contracts"
+            / "candidate10_k1_multipart_hls_feasibility_v3.json"
         )
     else:
         raise ValueError("normalized comparison uses an unknown GraSU profile set")
@@ -267,7 +290,7 @@ def validate_normalized_profile_contract(
                 + ", ".join(failed)
             )
 
-    if profile_set == "hls_v3":
+    if profile_set in {"hls_v3", "k1_v4"}:
         for profile in grasu_profiles:
             hls_checks = {
                 "outstanding_16": profile.memory.max_outstanding_per_port == 16,
@@ -290,6 +313,30 @@ def validate_normalized_profile_contract(
                 raise ValueError(
                     f"HLS-derived PageRank profile omits degree RMW: {profile.profile_id}"
                 )
+        if profile_set == "k1_v4":
+            for profile in grasu_profiles:
+                k_checks = {
+                    "compute_pipelines": profile.parameters.get(
+                        "regraph_compute_pipelines"
+                    )
+                    == 1,
+                    "partition_capacity": profile.parameters.get(
+                        "regraph_destination_partitions"
+                    )
+                    == 16,
+                    "finite_dispatch": profile.parameters.get(
+                        "regraph_partition_execution"
+                    )
+                    == "finite_work_conserving_serial_k1",
+                }
+                failed = sorted(
+                    name for name, passed in k_checks.items() if not passed
+                )
+                if failed:
+                    raise ValueError(
+                        f"K1 multi-partition profile {profile.profile_id} violates: "
+                        + ", ".join(failed)
+                    )
 
     catalog_path = normalized_grasu_capability_catalog_path(
         repository_root, profile_set
@@ -307,9 +354,12 @@ def validate_normalized_profile_contract(
         capability_profile = catalog.profile(profile_id)
         for algorithm in algorithms:
             capability = capability_profile.require(algorithm)
+            expected_evidence_tier = (
+                "synthesis_only" if profile_set == "k1_v4" else "simulation_only"
+            )
             if (
                 capability.implementation_status.value != "executable"
-                or capability.evidence_tier != "simulation_only"
+                or capability.evidence_tier != expected_evidence_tier
             ):
                 raise ValueError(
                     f"normalized capability is not executable: {profile_id}/{algorithm}"
@@ -827,7 +877,10 @@ def validate_system_result(
             else result.get(
                 "logical_updates"
                 if invocation.profile_id
-                == "grasu_regraph_candidate10_normalized_hls_weighted_v3"
+                in {
+                    "grasu_regraph_candidate10_normalized_hls_weighted_v3",
+                    "grasu_regraph_candidate10_k1_multipart_weighted_v4",
+                }
                 else "updates"
             )
             == expected_updates

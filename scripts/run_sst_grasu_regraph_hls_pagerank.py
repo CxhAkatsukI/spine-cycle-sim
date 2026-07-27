@@ -28,7 +28,7 @@ from spine_cycle_sim.experiments.profile_capabilities import (  # noqa: E402
     load_capability_catalog,
 )
 from spine_cycle_sim.experiments.regraph_contracts import (  # noqa: E402
-    expected_pagerank_source_cache_requests,
+    expected_weighted_source_cache_requests,
 )
 from spine_cycle_sim.experiments.shared_workloads import load_slice  # noqa: E402
 from spine_cycle_sim.sst_binding import grasu_normalized_memory_binding  # noqa: E402
@@ -116,16 +116,31 @@ def validate_result(
     partition_vertices = int(params["regraph_partition_vertices"])
     state_bytes = int(params["pagerank_state_bytes_per_vertex"])
     vertices_per_beat = int(memory["data_width_bits"]) // 8 // state_bytes
-    source_requests = expected_pagerank_source_cache_requests(
-        vertices, int(params["regraph_source_buffer_vertices"]), iterations
+    destination_partitions = (vertices + partition_vertices - 1) // partition_vertices
+    partition_max_sources: list[int | None] = [None] * destination_partitions
+    for source, destination, _ in oracle.final_internal_edges:
+        partition = destination // partition_vertices
+        previous = partition_max_sources[partition]
+        partition_max_sources[partition] = (
+            source if previous is None else max(previous, source)
+        )
+    source_requests = sum(
+        expected_weighted_source_cache_requests(
+            max_source,
+            int(params["regraph_source_buffer_vertices"]),
+            iterations,
+        )
+        for max_source in partition_max_sources
+        if max_source is not None
     )
     source_lines = (
         source_requests
         * int(params["regraph_source_buffer_vertices"])
         // vertices_per_beat
     )
-    rows = partition_vertices // 2 * iterations
-    bursts = partition_vertices // 16 * iterations
+    rows = destination_partitions * partition_vertices // 2 * iterations
+    bursts = destination_partitions * partition_vertices // 16 * iterations
+    source_prepare_degree_reads = (vertices + 15) // 16
     reported_ranks = tuple(float(value) for value in result.get("ranks_external", []))
     external_max_abs_error = (
         max(abs(actual - expected) for actual, expected in zip(reported_ranks, ranks_external))
@@ -162,7 +177,13 @@ def validate_result(
         and result.get("degree_update_reads") == oracle.physical_updates
         and result.get("degree_update_writes") == oracle.physical_updates,
         "fixed_iterations": result.get("iterations") == iterations,
-        "degree_reads": result.get("degree_reads") == vertices * iterations,
+        "partitions": result.get("destination_partitions")
+        == destination_partitions,
+        "pipelines": result.get("compute_pipelines")
+        == int(params.get("regraph_compute_pipelines", 1)),
+        "degree_reads": result.get("source_prepare_degree_reads")
+        == source_prepare_degree_reads
+        and result.get("degree_reads") == source_prepare_degree_reads + bursts,
         "live_edges": result.get("compute_live_edges")
         == len(oracle.final_external_edges) * iterations,
         "lanes": result.get("edge_lanes") == params["regraph_map_reduce_lanes"]
@@ -182,7 +203,10 @@ def validate_result(
     failed = [name for name, passed in checks.items() if not passed]
     if failed:
         raise RuntimeError(
-            f"HLS-equivalent PageRank validation failed ({failed}): {result}"
+            "HLS-equivalent PageRank validation failed "
+            f"({failed}); cycles={result.get('cycles')} "
+            f"partitions={result.get('destination_partitions')} "
+            f"pipelines={result.get('compute_pipelines')}"
         )
 
 
@@ -207,6 +231,9 @@ def main() -> int:
     expected_profiles = {
         "grasu_regraph_weighted_pma_hls_proposed_pagerank_ff13a67",
         "grasu_regraph_candidate10_normalized_hls_pagerank_v3",
+        "grasu_regraph_candidate10_k1_multipart_pagerank_v4",
+        "grasu_regraph_candidate10_k2_multipart_pagerank_v4",
+        "grasu_regraph_candidate10_k4_multipart_pagerank_v4",
     }
     if profile.get("profile_id") not in expected_profiles:
         raise ValueError("runner requires a pinned HLS-derived PageRank profile")
@@ -259,6 +286,9 @@ def main() -> int:
             ),
             "GRASU_SST_PARTITION_VERTICES": str(
                 params["regraph_partition_vertices"]
+            ),
+            "GRASU_SST_COMPUTE_PIPELINES": str(
+                params.get("regraph_compute_pipelines", 1)
             ),
             "GRASU_SST_SOURCE_BUFFER_VERTICES": str(
                 params["regraph_source_buffer_vertices"]

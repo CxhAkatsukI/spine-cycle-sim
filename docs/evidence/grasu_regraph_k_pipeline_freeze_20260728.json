@@ -1,0 +1,348 @@
+{
+  "schema_version": 1,
+  "claim_class": "execution_driven_projected_scalability_sensitivity",
+  "algorithms": {
+    "full_pagerank": {
+      "work_conservation": "PASS",
+      "correctness": "PASS",
+      "runs": {
+        "1": {
+          "algorithm": "full_pagerank",
+          "compute_pipelines": 1,
+          "directory": "/data/tmp/chuxiao/grasu_k1_multipart_full_pr_sensitivity_20260728_g",
+          "result_sha256": "9ccb6167498c341f2a308fcee93fcd32ad519dd56ec5f8d86abe05f091d81b3e",
+          "manifest_sha256": "f463fa81d294626de3491d067f3323d450793ec5094d242ab51f90361741267b",
+          "profile": "/home/chuxiao/spine-cycle-sim-publication/configs/architectures/grasu_regraph_candidate10_k1_multipart_pagerank_v4.json",
+          "profile_sha256": "cb33252599584880ffb2281d161178f543db68e3dfb855df0f4b3fef4fa733ab",
+          "sst_plugin_sha256": "ed25582a91b783fef4b5c1075216fe14c322645e220534fe53974aa97b9bb93e",
+          "sst_host_wall_seconds": 49.28136227745563,
+          "identity": {
+            "workload_sha256": "427dfa71300890b50be20a5930a5ffbc0704a25ec4085f1fe8c48c10ae97e1aa",
+            "update_workload_sha256": "77004626469442ab9c5fa96c808ab65f8c979368c75fed770af22cca9928576a",
+            "sst_plugin_sha256": "ed25582a91b783fef4b5c1075216fe14c322645e220534fe53974aa97b9bb93e"
+          },
+          "cycles": 5018108,
+          "compute_cycles": 5017901,
+          "update_cycles": 207,
+          "max_parallel_partitions": 1,
+          "conservation": {
+            "destination_partitions": 2,
+            "partition_passes": 6,
+            "backend_requests": 904265,
+            "compute_backend_requests": 904217,
+            "compute_row_reads": 393222,
+            "source_cache_requests": 12,
+            "source_cache_lines": 3072,
+            "gather_rows_emitted": 196608,
+            "merger_bursts_emitted": 24576,
+            "apply_input_bursts": 24576,
+            "hbm_wrapper_input_bursts": 24576,
+            "compute_live_edges": 12,
+            "compute_active_edges": 12
+          },
+          "speedup_over_k1": 1.0
+        },
+        "2": {
+          "algorithm": "full_pagerank",
+          "compute_pipelines": 2,
+          "directory": "/data/tmp/chuxiao/grasu_k2_multipart_full_pr_sensitivity_20260728_f",
+          "result_sha256": "3b97cdb01ceec2604b8492fb51412171a990ea2e0b45d41e6c6bb1c62eb3e61b",
+          "manifest_sha256": "99d4298f6c790a463abdd90dd4375d465694c0c23e5beeb5b5e2d773514ed1a4",
+          "profile": "/home/chuxiao/spine-cycle-sim-publication/configs/architectures/grasu_regraph_candidate10_k2_multipart_pagerank_v4.json",
+          "profile_sha256": "59b08e601438a79044bcab2ae796007e7f467ea2617ba86986e53545e9807812",
+          "sst_plugin_sha256": "ed25582a91b783fef4b5c1075216fe14c322645e220534fe53974aa97b9bb93e",
+          "sst_host_wall_seconds": 30.04804098047316,
+          "identity": {
+            "workload_sha256": "427dfa71300890b50be20a5930a5ffbc0704a25ec4085f1fe8c48c10ae97e1aa",
+            "update_workload_sha256": "77004626469442ab9c5fa96c808ab65f8c979368c75fed770af22cca9928576a",
+            "sst_plugin_sha256": "ed25582a91b783fef4b5c1075216fe14c322645e220534fe53974aa97b9bb93e"
+          },
+          "cycles": 2583052,
+          "compute_cycles": 2582845,
+          "update_cycles": 207,
+          "max_parallel_partitions": 2,
+          "conservation": {
+            "destination_partitions": 2,
+            "partition_passes": 6,
+            "backend_requests": 904265,
+            "compute_backend_requests": 904217,
+            "compute_row_reads": 393222,
+            "source_cache_requests": 12,
+            "source_cache_lines": 3072,
+            "gather_rows_emitted": 196608,
+            "merger_bursts_emitted": 24576,
+            "apply_input_bursts": 24576,
+            "hbm_wrapper_input_bursts": 24576,
+            "compute_live_edges": 12,
+            "compute_active_edges": 12
+          },
+          "speedup_over_k1": 1.9427049861946255
+        },
+        "4": {
+          "algorithm": "full_pagerank",
+          "compute_pipelines": 4,
+          "directory": "/data/tmp/chuxiao/grasu_k4_multipart_full_pr_sensitivity_20260728_f",
+          "result_sha256": "f84abffe56b86d2e19b24b768ed1691638e542df05cf13c88137432726db3953",
+          "manifest_sha256": "1ffdf2afce1e61b78050f48dbf71dcc08256daeb04be2a4bebb6da056bd2f7bc",
+          "profile": "/home/chuxiao/spine-cycle-sim-publication/configs/architectures/grasu_regraph_candidate10_k4_multipart_pagerank_v4.json",
+          "profile_sha256": "c8186f35192dde5c02514fe52a84ffa4c56ac5e2e5f32b9b9c2dd2ccd20ba7ab",
+          "sst_plugin_sha256": "ed25582a91b783fef4b5c1075216fe14c322645e220534fe53974aa97b9bb93e",
+          "sst_host_wall_seconds": 31.963514815084636,
+          "identity": {
+            "workload_sha256": "427dfa71300890b50be20a5930a5ffbc0704a25ec4085f1fe8c48c10ae97e1aa",
+            "update_workload_sha256": "77004626469442ab9c5fa96c808ab65f8c979368c75fed770af22cca9928576a",
+            "sst_plugin_sha256": "ed25582a91b783fef4b5c1075216fe14c322645e220534fe53974aa97b9bb93e"
+          },
+          "cycles": 2583052,
+          "compute_cycles": 2582845,
+          "update_cycles": 207,
+          "max_parallel_partitions": 2,
+          "conservation": {
+            "destination_partitions": 2,
+            "partition_passes": 6,
+            "backend_requests": 904265,
+            "compute_backend_requests": 904217,
+            "compute_row_reads": 393222,
+            "source_cache_requests": 12,
+            "source_cache_lines": 3072,
+            "gather_rows_emitted": 196608,
+            "merger_bursts_emitted": 24576,
+            "apply_input_bursts": 24576,
+            "hbm_wrapper_input_bursts": 24576,
+            "compute_live_edges": 12,
+            "compute_active_edges": 12
+          },
+          "speedup_over_k1": 1.9427049861946255
+        }
+      }
+    },
+    "thresholded_residual_pagerank": {
+      "work_conservation": "PASS",
+      "correctness": "PASS",
+      "runs": {
+        "1": {
+          "algorithm": "thresholded_residual_pagerank",
+          "compute_pipelines": 1,
+          "directory": "/data/tmp/chuxiao/grasu_k1_multipart_residual_sensitivity_20260728_b",
+          "result_sha256": "8a2348aa4209d4b482b28b0edbf89ef78fbe3aa09052d7edc816c32f9b067f3b",
+          "manifest_sha256": "08c5150bcfe99d64c467cb4ae3c082464f61c6235b14556435653e755394ccd9",
+          "profile": "/home/chuxiao/spine-cycle-sim-publication/configs/architectures/grasu_regraph_candidate10_k1_multipart_residual_v4.json",
+          "profile_sha256": "0d035f8c036c3632a6d99770abd91b7144b8ceb19b9777a4fd5e1d59b367a049",
+          "sst_plugin_sha256": "ed25582a91b783fef4b5c1075216fe14c322645e220534fe53974aa97b9bb93e",
+          "sst_host_wall_seconds": null,
+          "identity": {
+            "workload_sha256": "427dfa71300890b50be20a5930a5ffbc0704a25ec4085f1fe8c48c10ae97e1aa",
+            "update_workload_sha256": "77004626469442ab9c5fa96c808ab65f8c979368c75fed770af22cca9928576a",
+            "sst_plugin_sha256": "ed25582a91b783fef4b5c1075216fe14c322645e220534fe53974aa97b9bb93e"
+          },
+          "cycles": 125358030,
+          "compute_cycles": 125357823,
+          "update_cycles": 207,
+          "max_parallel_partitions": 1,
+          "conservation": {
+            "destination_partitions": 2,
+            "partition_passes": 150,
+            "backend_requests": 23445058,
+            "compute_backend_requests": 23445010,
+            "compute_row_reads": 9830550,
+            "source_cache_requests": 300,
+            "source_cache_lines": 76800,
+            "gather_rows_emitted": 4915200,
+            "merger_bursts_emitted": 614400,
+            "apply_input_bursts": 614400,
+            "hbm_wrapper_input_bursts": 614400,
+            "compute_live_edges": 300,
+            "compute_active_edges": 296
+          },
+          "speedup_over_k1": 1.0
+        },
+        "2": {
+          "algorithm": "thresholded_residual_pagerank",
+          "compute_pipelines": 2,
+          "directory": "/data/tmp/chuxiao/grasu_k2_multipart_residual_sensitivity_20260728_a",
+          "result_sha256": "9c25e2b1590013097a8d0800507a10e6f1db0d0721488a156ed59014131c2e6e",
+          "manifest_sha256": "dcf60ae217b961eb3879447a2013826c74e7923ea618f6ca6db98ae40400e603",
+          "profile": "/home/chuxiao/spine-cycle-sim-publication/configs/architectures/grasu_regraph_candidate10_k2_multipart_residual_v4.json",
+          "profile_sha256": "298eab759e671f809afc2f13cfb2132d4360733859befd649b4552bb9e56b959",
+          "sst_plugin_sha256": "ed25582a91b783fef4b5c1075216fe14c322645e220534fe53974aa97b9bb93e",
+          "sst_host_wall_seconds": null,
+          "identity": {
+            "workload_sha256": "427dfa71300890b50be20a5930a5ffbc0704a25ec4085f1fe8c48c10ae97e1aa",
+            "update_workload_sha256": "77004626469442ab9c5fa96c808ab65f8c979368c75fed770af22cca9928576a",
+            "sst_plugin_sha256": "ed25582a91b783fef4b5c1075216fe14c322645e220534fe53974aa97b9bb93e"
+          },
+          "cycles": 65387870,
+          "compute_cycles": 65387663,
+          "update_cycles": 207,
+          "max_parallel_partitions": 2,
+          "conservation": {
+            "destination_partitions": 2,
+            "partition_passes": 150,
+            "backend_requests": 23445058,
+            "compute_backend_requests": 23445010,
+            "compute_row_reads": 9830550,
+            "source_cache_requests": 300,
+            "source_cache_lines": 76800,
+            "gather_rows_emitted": 4915200,
+            "merger_bursts_emitted": 614400,
+            "apply_input_bursts": 614400,
+            "hbm_wrapper_input_bursts": 614400,
+            "compute_live_edges": 300,
+            "compute_active_edges": 296
+          },
+          "speedup_over_k1": 1.9171450301103248
+        },
+        "4": {
+          "algorithm": "thresholded_residual_pagerank",
+          "compute_pipelines": 4,
+          "directory": "/data/tmp/chuxiao/grasu_k4_multipart_residual_sensitivity_20260728_a",
+          "result_sha256": "cfbe15b6111ee580d439971c984dc492510a619da13567f0c4ab302b61f1c3fb",
+          "manifest_sha256": "3489d1c87fc59aac7631135ac4da815fba4778854cc5ab1b447194a9050fa351",
+          "profile": "/home/chuxiao/spine-cycle-sim-publication/configs/architectures/grasu_regraph_candidate10_k4_multipart_residual_v4.json",
+          "profile_sha256": "3dade0b272d71c99d659b41f5ef06e962c965ad52434f79012132a10a769c91b",
+          "sst_plugin_sha256": "ed25582a91b783fef4b5c1075216fe14c322645e220534fe53974aa97b9bb93e",
+          "sst_host_wall_seconds": null,
+          "identity": {
+            "workload_sha256": "427dfa71300890b50be20a5930a5ffbc0704a25ec4085f1fe8c48c10ae97e1aa",
+            "update_workload_sha256": "77004626469442ab9c5fa96c808ab65f8c979368c75fed770af22cca9928576a",
+            "sst_plugin_sha256": "ed25582a91b783fef4b5c1075216fe14c322645e220534fe53974aa97b9bb93e"
+          },
+          "cycles": 65387870,
+          "compute_cycles": 65387663,
+          "update_cycles": 207,
+          "max_parallel_partitions": 2,
+          "conservation": {
+            "destination_partitions": 2,
+            "partition_passes": 150,
+            "backend_requests": 23445058,
+            "compute_backend_requests": 23445010,
+            "compute_row_reads": 9830550,
+            "source_cache_requests": 300,
+            "source_cache_lines": 76800,
+            "gather_rows_emitted": 4915200,
+            "merger_bursts_emitted": 614400,
+            "apply_input_bursts": 614400,
+            "hbm_wrapper_input_bursts": 614400,
+            "compute_live_edges": 300,
+            "compute_active_edges": 296
+          },
+          "speedup_over_k1": 1.9171450301103248
+        }
+      }
+    },
+    "weighted_sssp": {
+      "work_conservation": "PASS",
+      "correctness": "PASS",
+      "runs": {
+        "1": {
+          "algorithm": "weighted_sssp",
+          "compute_pipelines": 1,
+          "directory": "/data/tmp/chuxiao/grasu_k1_multipart_weighted_sensitivity_20260728_b",
+          "result_sha256": "0b02e5cdddab9beb6a598d3600e9f718845132fe21136d90566cbc287a0702ff",
+          "manifest_sha256": "4ecc2b48113080b0f1e3876d9610feebe43c00ce5fef5802c8afa8ca7bf0188a",
+          "profile": "/home/chuxiao/spine-cycle-sim-publication/configs/architectures/grasu_regraph_candidate10_k1_multipart_weighted_v4.json",
+          "profile_sha256": "a6a2cca9dff4f55b3f096868c2e24b453c3a249cfcff443c50f5e7a61f5ca71e",
+          "sst_plugin_sha256": "ed25582a91b783fef4b5c1075216fe14c322645e220534fe53974aa97b9bb93e",
+          "sst_host_wall_seconds": 13.608898447826505,
+          "identity": {
+            "workload_sha256": "427dfa71300890b50be20a5930a5ffbc0704a25ec4085f1fe8c48c10ae97e1aa",
+            "update_workload_sha256": "77004626469442ab9c5fa96c808ab65f8c979368c75fed770af22cca9928576a",
+            "sst_plugin_sha256": "ed25582a91b783fef4b5c1075216fe14c322645e220534fe53974aa97b9bb93e"
+          },
+          "cycles": 1466848,
+          "compute_cycles": 1466719,
+          "update_cycles": 129,
+          "max_parallel_partitions": 1,
+          "conservation": {
+            "destination_partitions": 2,
+            "partition_passes": 2,
+            "backend_requests": 164903,
+            "compute_backend_requests": 164871,
+            "compute_row_reads": 131074,
+            "source_cache_requests": 4,
+            "source_cache_lines": 1024,
+            "gather_rows_emitted": 65536,
+            "merger_bursts_emitted": 8192,
+            "apply_input_bursts": 8192,
+            "hbm_wrapper_input_bursts": 8192,
+            "compute_live_edges": 4,
+            "compute_active_edges": 2
+          },
+          "speedup_over_k1": 1.0
+        },
+        "2": {
+          "algorithm": "weighted_sssp",
+          "compute_pipelines": 2,
+          "directory": "/data/tmp/chuxiao/grasu_k2_multipart_weighted_sensitivity_20260728_a",
+          "result_sha256": "8bfc65a125b7bddc4417d57a95aff63aa26f75f3f1d69715fa783d36d7b72cfa",
+          "manifest_sha256": "764be9b5fc37a37c3194ce1bd2c0904b2803704ed0ffad832affdf3a1912409d",
+          "profile": "/home/chuxiao/spine-cycle-sim-publication/configs/architectures/grasu_regraph_candidate10_k2_multipart_weighted_v4.json",
+          "profile_sha256": "f07d400acd3eea520d8e2a03b0beeab286ca4071f55220a7c8ded62b08b93e63",
+          "sst_plugin_sha256": "ed25582a91b783fef4b5c1075216fe14c322645e220534fe53974aa97b9bb93e",
+          "sst_host_wall_seconds": 7.6301995208486915,
+          "identity": {
+            "workload_sha256": "427dfa71300890b50be20a5930a5ffbc0704a25ec4085f1fe8c48c10ae97e1aa",
+            "update_workload_sha256": "77004626469442ab9c5fa96c808ab65f8c979368c75fed770af22cca9928576a",
+            "sst_plugin_sha256": "ed25582a91b783fef4b5c1075216fe14c322645e220534fe53974aa97b9bb93e"
+          },
+          "cycles": 734318,
+          "compute_cycles": 734189,
+          "update_cycles": 129,
+          "max_parallel_partitions": 2,
+          "conservation": {
+            "destination_partitions": 2,
+            "partition_passes": 2,
+            "backend_requests": 164903,
+            "compute_backend_requests": 164871,
+            "compute_row_reads": 131074,
+            "source_cache_requests": 4,
+            "source_cache_lines": 1024,
+            "gather_rows_emitted": 65536,
+            "merger_bursts_emitted": 8192,
+            "apply_input_bursts": 8192,
+            "hbm_wrapper_input_bursts": 8192,
+            "compute_live_edges": 4,
+            "compute_active_edges": 2
+          },
+          "speedup_over_k1": 1.9975650876050974
+        },
+        "4": {
+          "algorithm": "weighted_sssp",
+          "compute_pipelines": 4,
+          "directory": "/data/tmp/chuxiao/grasu_k4_multipart_weighted_sensitivity_20260728_a",
+          "result_sha256": "9eaaa2d4c4899ac5cd2ed3187fca058d2dc008e8c219eb9c5e44218a93d06bc4",
+          "manifest_sha256": "a74aec68c2f8a2f929a1753de8d14a4a55cd66564adf9e303131ed0f3cd9c2a1",
+          "profile": "/home/chuxiao/spine-cycle-sim-publication/configs/architectures/grasu_regraph_candidate10_k4_multipart_weighted_v4.json",
+          "profile_sha256": "f250984ff3bdb5b45d1577ae0f16438a8bf1d0c14aa9f064f076b38c0e8aab20",
+          "sst_plugin_sha256": "ed25582a91b783fef4b5c1075216fe14c322645e220534fe53974aa97b9bb93e",
+          "sst_host_wall_seconds": 8.12248936202377,
+          "identity": {
+            "workload_sha256": "427dfa71300890b50be20a5930a5ffbc0704a25ec4085f1fe8c48c10ae97e1aa",
+            "update_workload_sha256": "77004626469442ab9c5fa96c808ab65f8c979368c75fed770af22cca9928576a",
+            "sst_plugin_sha256": "ed25582a91b783fef4b5c1075216fe14c322645e220534fe53974aa97b9bb93e"
+          },
+          "cycles": 734318,
+          "compute_cycles": 734189,
+          "update_cycles": 129,
+          "max_parallel_partitions": 2,
+          "conservation": {
+            "destination_partitions": 2,
+            "partition_passes": 2,
+            "backend_requests": 164903,
+            "compute_backend_requests": 164871,
+            "compute_row_reads": 131074,
+            "source_cache_requests": 4,
+            "source_cache_lines": 1024,
+            "gather_rows_emitted": 65536,
+            "merger_bursts_emitted": 8192,
+            "apply_input_bursts": 8192,
+            "hbm_wrapper_input_bursts": 8192,
+            "compute_live_edges": 4,
+            "compute_active_edges": 2
+          },
+          "speedup_over_k1": 1.9975650876050974
+        }
+      }
+    }
+  }
+}

@@ -3464,56 +3464,102 @@ private:
     const bool residual_pagerank =
         policy_.config().kind == GraphAlgorithmKind::kResidualPageRank;
     const bool pagerank = full_pagerank || residual_pagerank;
-    if (layout_.vertices == 0 || source_ >= layout_.vertices ||
-        policy_.config().vertices != layout_.vertices ||
-        (policy_.config().kind != GraphAlgorithmKind::kWeightedSssp &&
-         !pagerank) ||
-        (pagerank &&
-         (out_degrees_.size() != layout_.vertices || fixed_rounds_ == 0)) ||
-        (!pagerank && !out_degrees_.empty()) ||
-        config_.memory_channels < 4 || config_.compute_pipelines == 0 ||
-        layout_.partitions.empty() ||
-        layout_.partitions.size() !=
-            (layout_.vertices + config_.partition_vertices - 1) /
-                config_.partition_vertices ||
-        layout_.partition_vertices != config_.partition_vertices ||
-        config_.partition_vertices % kStateWordsPerBurst != 0 ||
-        config_.source_state_buffer_stride <
-            layout_.partitions.size() * config_.partition_vertices *
-                state_bytes_per_vertex(policy_) ||
-        config_.source_state_buffer_stride % 4096 != 0 ||
-        config_.source_buffer_vertices == 0 ||
-        config_.source_buffer_vertices % kStateWordsPerBurst != 0 ||
-        config_.source_cache_request_fifo_depth == 0 ||
-        config_.source_cache_response_fifo_depth == 0 ||
-        config_.edge_lanes == 0 || config_.edge_lanes > 8 ||
-        kGraSuSegmentSlots % config_.edge_lanes != 0 ||
-        config_.gather_banks != config_.edge_lanes ||
-        config_.gather_bypass_distance == 0 ||
-        config_.gather_pipeline_latency <= config_.gather_bypass_distance ||
-        config_.gather_vertices_per_reset_cycle == 0 ||
-        config_.gather_vertices_per_merge_cycle != 2 ||
-        config_.axis_fifo_depth == 0 || config_.gather_merger_fifo_depth == 0 ||
-        config_.merger_apply_fifo_depth == 0 ||
-        config_.apply_wrapper_fifo_depth == 0 ||
-        config_.reader_buffer_batches <
-            kGraSuSegmentSlots / config_.edge_lanes ||
-        config_.max_pending_requests == 0 ||
-        config_.max_outstanding_bursts == 0 ||
-        config_.response_beats_per_cycle == 0 ||
-        config_.apply_request_window == 0 ||
-        config_.apply_pipeline_latency == 0 ||
-        config_.apply_pipeline_capacity == 0 ||
-        config_.hbm_wrapper_pipeline_latency == 0 ||
-        config_.hbm_wrapper_pipeline_capacity == 0 ||
-        config_.max_supersteps == 0 || config_.partition_address_stride == 0 ||
-        config_.row_channel >= config_.memory_channels ||
-        config_.source_state_channel >= config_.memory_channels ||
-        config_.source_state_mirror_channel >= config_.memory_channels ||
-        config_.vertex_state_channel >= config_.memory_channels ||
-        (pagerank && config_.degree_channel >= config_.memory_channels)) {
-      throw std::invalid_argument("invalid GraSU-ReGraph configuration");
-    }
+    const auto require = [](bool condition, const char *message) {
+      if (!condition) {
+        throw std::invalid_argument(
+            std::string("invalid GraSU-ReGraph configuration - ") + message);
+      }
+    };
+    require(layout_.vertices != 0, "empty graph");
+    require(source_ < layout_.vertices, "source outside graph");
+    require(policy_.config().vertices == layout_.vertices,
+            "policy vertex count mismatch");
+    require(policy_.config().kind == GraphAlgorithmKind::kWeightedSssp ||
+                pagerank,
+            "unsupported algorithm policy");
+    require(!pagerank || out_degrees_.size() == layout_.vertices,
+            "PageRank degree vector mismatch");
+    require(!pagerank || fixed_rounds_ != 0, "PageRank has zero rounds");
+    require(pagerank || out_degrees_.empty(),
+            "weighted SSSP unexpectedly has degrees");
+    require(config_.memory_channels >= 4, "fewer than four HBM channels");
+    require(config_.compute_pipelines != 0, "zero compute pipelines");
+    require(!layout_.partitions.empty(), "empty PMA partition list");
+    require(config_.partition_vertices != 0, "zero partition vertices");
+    require(layout_.partitions.size() ==
+                (layout_.vertices + config_.partition_vertices - 1) /
+                    config_.partition_vertices,
+            "PMA partition count mismatch");
+    require(layout_.partition_vertices == config_.partition_vertices,
+            "PMA partition span mismatch");
+    require(config_.partition_vertices % kStateWordsPerBurst == 0,
+            "partition span is not burst aligned");
+    require(config_.source_state_buffer_stride >=
+                layout_.partitions.size() * config_.partition_vertices *
+                    state_bytes_per_vertex(policy_),
+            "source-state double-buffer stride is too small");
+    require(config_.source_state_buffer_stride % 4096 == 0,
+            "source-state stride is not 4 KiB aligned");
+    require(config_.source_buffer_vertices != 0,
+            "zero source-cache capacity");
+    require(config_.source_buffer_vertices % kStateWordsPerBurst == 0,
+            "source-cache capacity is not burst aligned");
+    require(config_.source_cache_request_fifo_depth != 0,
+            "zero source request FIFO depth");
+    require(config_.source_cache_response_fifo_depth != 0,
+            "zero source response FIFO depth");
+    require(config_.edge_lanes != 0 && config_.edge_lanes <= 8,
+            "invalid edge lane count");
+    require(kGraSuSegmentSlots % config_.edge_lanes == 0,
+            "edge lanes do not divide PMA segment slots");
+    require(config_.gather_banks == config_.edge_lanes,
+            "gather banks differ from edge lanes");
+    require(config_.gather_bypass_distance != 0,
+            "zero gather bypass distance");
+    require(config_.gather_pipeline_latency > config_.gather_bypass_distance,
+            "gather latency does not exceed bypass distance");
+    require(config_.gather_vertices_per_reset_cycle != 0,
+            "zero gather reset width");
+    require(config_.gather_vertices_per_merge_cycle == 2,
+            "unsupported gather merge width");
+    require(config_.axis_fifo_depth != 0, "zero AXIS FIFO depth");
+    require(config_.gather_merger_fifo_depth != 0,
+            "zero gather-merger FIFO depth");
+    require(config_.merger_apply_fifo_depth != 0,
+            "zero merger-apply FIFO depth");
+    require(config_.apply_wrapper_fifo_depth != 0,
+            "zero apply-wrapper FIFO depth");
+    require(config_.reader_buffer_batches >=
+                kGraSuSegmentSlots / config_.edge_lanes,
+            "reader buffer cannot hold one PMA segment");
+    require(config_.max_pending_requests != 0,
+            "zero pending-request capacity");
+    require(config_.max_outstanding_bursts != 0,
+            "zero outstanding-burst capacity");
+    require(config_.response_beats_per_cycle != 0,
+            "zero response bandwidth");
+    require(config_.apply_request_window != 0, "zero apply request window");
+    require(config_.apply_pipeline_latency != 0,
+            "zero apply pipeline latency");
+    require(config_.apply_pipeline_capacity != 0,
+            "zero apply pipeline capacity");
+    require(config_.hbm_wrapper_pipeline_latency != 0,
+            "zero HBM-wrapper latency");
+    require(config_.hbm_wrapper_pipeline_capacity != 0,
+            "zero HBM-wrapper capacity");
+    require(config_.max_supersteps != 0, "zero maximum supersteps");
+    require(config_.partition_address_stride != 0,
+            "zero partition address stride");
+    require(config_.row_channel < config_.memory_channels,
+            "row channel outside HBM");
+    require(config_.source_state_channel < config_.memory_channels,
+            "source-state channel outside HBM");
+    require(config_.source_state_mirror_channel < config_.memory_channels,
+            "source-state mirror channel outside HBM");
+    require(config_.vertex_state_channel < config_.memory_channels,
+            "vertex-state channel outside HBM");
+    require(!pagerank || config_.degree_channel < config_.memory_channels,
+            "degree channel outside HBM");
     for (std::size_t partition = 0; partition < layout_.partitions.size();
          ++partition) {
       const GraSuPmaLayout &part = layout_.partitions[partition];

@@ -1873,6 +1873,9 @@ class OnlineMemoryProbe final : public SST::Component {
         }
       }
       grasu_logical_update_edges_ = updates.size();
+      grasu_partitioned_execution_ =
+          partitioned_dynamic_pagerank ||
+          initial.vertices > grasu_config_.partition_vertices;
       if (native_grasu_sssp) {
         if (source_vertex_ >= initial.vertices) {
           throw std::invalid_argument(
@@ -1940,7 +1943,7 @@ class OnlineMemoryProbe final : public SST::Component {
                   return std::tuple(left.source, left.destination, left.weight) <
                          std::tuple(right.source, right.destination, right.weight);
                 });
-      if (partitioned_dynamic_pagerank) {
+      if (grasu_partitioned_execution_) {
         grasu_partitioned_layout_ = GraSuPartitionedPmaLayout::build(
             initial.vertices, grasu_config_.partition_vertices, initial_edges,
             reserved_updates);
@@ -2001,7 +2004,7 @@ class OnlineMemoryProbe final : public SST::Component {
           ++grasu_pagerank_degrees_.at(edge.src);
         }
       }
-      if (partitioned_dynamic_pagerank) {
+      if (grasu_partitioned_execution_) {
         grasu_update_system_ = std::make_unique<GraSuPmaUpdateSystem>(
             scheduler_, core, *backend_, grasu_partitioned_layout_,
             std::move(updates), grasu_update_config_);
@@ -2662,45 +2665,73 @@ class OnlineMemoryProbe final : public SST::Component {
         if (mode_ == "grasu_regraph_sssp" ||
             mode_ == "grasu_regraph_hls_weighted_sssp") {
           if (mode_ == "grasu_regraph_hls_weighted_sssp") {
-
-          grasu_compute_system_ = std::make_unique<GraSuReGraphSsspSystem>(
-                scheduler_, 0, *backend_, grasu_layout_,
-                GraphAlgorithmPolicy(AlgorithmPolicyConfig{
-                    .kind = GraphAlgorithmKind::kWeightedSssp,
-                    .vertices = grasu_layout_.vertices,
-                    .source = source_vertex_,
-                }),
-                std::vector<std::uint32_t>{}, grasu_native_supersteps_,
-                grasu_config_);
+            const std::size_t vertices =
+                grasu_partitioned_execution_
+                    ? grasu_partitioned_layout_.vertices
+                    : grasu_layout_.vertices;
+            GraphAlgorithmPolicy policy(AlgorithmPolicyConfig{
+                .kind = GraphAlgorithmKind::kWeightedSssp,
+                .vertices = vertices,
+                .source = source_vertex_,
+            });
+            if (grasu_partitioned_execution_) {
+              grasu_compute_system_ =
+                  std::make_unique<GraSuReGraphSsspSystem>(
+                      scheduler_, 0, *backend_, grasu_partitioned_layout_,
+                      std::move(policy), std::vector<std::uint32_t>{},
+                      grasu_native_supersteps_, grasu_config_);
+            } else {
+              grasu_compute_system_ =
+                  std::make_unique<GraSuReGraphSsspSystem>(
+                      scheduler_, 0, *backend_, grasu_layout_,
+                      std::move(policy), std::vector<std::uint32_t>{},
+                      grasu_native_supersteps_, grasu_config_);
+            }
           } else {
-            grasu_compute_system_ = std::make_unique<GraSuReGraphSsspSystem>(
-
-              scheduler_, 0, *backend_, grasu_layout_, source_vertex_,
-                grasu_config_);
+            if (grasu_partitioned_execution_) {
+              grasu_compute_system_ =
+                  std::make_unique<GraSuReGraphSsspSystem>(
+                      scheduler_, 0, *backend_, grasu_partitioned_layout_,
+                      source_vertex_, grasu_config_);
+            } else {
+              grasu_compute_system_ =
+                  std::make_unique<GraSuReGraphSsspSystem>(
+                      scheduler_, 0, *backend_, grasu_layout_, source_vertex_,
+                      grasu_config_);
+            }
           }
           grasu_compute_system_->register_components();
         } else if (mode_ == "grasu_regraph_pagerank" ||
-                   mode_ == "grasu_regraph_hls_weighted_pagerank") {
-          grasu_pagerank_compute_system_ =
-              std::make_unique<GraSuReGraphPageRankSystem>(
-                  scheduler_, 0, *backend_, grasu_layout_,
-                  grasu_pagerank_degrees_, pagerank_iterations_,
-                  pagerank_damping_, grasu_config_);
-          grasu_pagerank_compute_system_->register_components();
-        } else if (mode_ ==
-                   "grasu_regraph_partitioned_dynamic_pagerank") {
-          grasu_pagerank_compute_system_ =
-              std::make_unique<GraSuReGraphPageRankSystem>(
-                  scheduler_, 0, *backend_, grasu_partitioned_layout_,
-                  grasu_pagerank_degrees_, pagerank_iterations_,
-                  pagerank_damping_, grasu_config_);
+                   mode_ == "grasu_regraph_hls_weighted_pagerank" ||
+                   mode_ == "grasu_regraph_partitioned_dynamic_pagerank") {
+          if (grasu_partitioned_execution_) {
+            grasu_pagerank_compute_system_ =
+                std::make_unique<GraSuReGraphPageRankSystem>(
+                    scheduler_, 0, *backend_, grasu_partitioned_layout_,
+                    grasu_pagerank_degrees_, pagerank_iterations_,
+                    pagerank_damping_, grasu_config_);
+          } else {
+            grasu_pagerank_compute_system_ =
+                std::make_unique<GraSuReGraphPageRankSystem>(
+                    scheduler_, 0, *backend_, grasu_layout_,
+                    grasu_pagerank_degrees_, pagerank_iterations_,
+                    pagerank_damping_, grasu_config_);
+          }
           grasu_pagerank_compute_system_->register_components();
         } else {
-          grasu_residual_compute_system_ =
-              std::make_unique<GraSuReGraphResidualPageRankSystem>(
-                  scheduler_, 0, *backend_, grasu_layout_,
-                  grasu_pagerank_degrees_, residual_max_iterations_,
-                  pagerank_damping_, pagerank_epsilon_, grasu_config_);
+          if (grasu_partitioned_execution_) {
+            grasu_residual_compute_system_ =
+                std::make_unique<GraSuReGraphResidualPageRankSystem>(
+                    scheduler_, 0, *backend_, grasu_partitioned_layout_,
+                    grasu_pagerank_degrees_, residual_max_iterations_,
+                    pagerank_damping_, pagerank_epsilon_, grasu_config_);
+          } else {
+            grasu_residual_compute_system_ =
+                std::make_unique<GraSuReGraphResidualPageRankSystem>(
+                    scheduler_, 0, *backend_, grasu_layout_,
+                    grasu_pagerank_degrees_, residual_max_iterations_,
+                    pagerank_damping_, pagerank_epsilon_, grasu_config_);
+          }
           grasu_residual_compute_system_->register_components();
         }
         return false;
@@ -3419,7 +3450,11 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"update_cycles\": " << update_cycles << ",\n"
              << "  \"conversion_cycles\": " << conversion_cycles << ",\n"
              << "  \"compute_cycles\": " << compute_cycles << ",\n"
-             << "  \"vertices\": " << grasu_layout_.vertices << ",\n"
+             << "  \"vertices\": "
+             << (grasu_partitioned_execution_
+                     ? grasu_partitioned_layout_.vertices
+                     : grasu_layout_.vertices)
+             << ",\n"
              << "  \"source\": " << source_vertex_ << ",\n"
              << "  \"source_external\": " << grasu_source_external_ << ",\n"
              << "  \"source_internal\": " << source_vertex_ << ",\n"
@@ -3705,7 +3740,11 @@ class OnlineMemoryProbe final : public SST::Component {
              << update.end_cycle - update.start_cycle << ",\n"
              << "  \"compute_cycles\": "
              << compute.end_cycle - compute.start_cycle << ",\n"
-             << "  \"vertices\": " << grasu_layout_.vertices << ",\n"
+             << "  \"vertices\": "
+             << (grasu_partitioned_execution_
+                     ? grasu_partitioned_layout_.vertices
+                     : grasu_layout_.vertices)
+             << ",\n"
              << "  \"initial_edges\": " << grasu_initial_edges_ << ",\n"
              << "  \"updates\": " << grasu_update_edges_ << ",\n"
              << "  \"logical_updates\": " << grasu_logical_update_edges_
@@ -4005,8 +4044,7 @@ class OnlineMemoryProbe final : public SST::Component {
     if (mode_ == "grasu_regraph_pagerank" ||
         mode_ == "grasu_regraph_hls_weighted_pagerank" ||
         mode_ == "grasu_regraph_partitioned_dynamic_pagerank") {
-      const bool partitioned_dynamic =
-          mode_ == "grasu_regraph_partitioned_dynamic_pagerank";
+      const bool partitioned_dynamic = grasu_partitioned_execution_;
       const bool hls_weighted =
           mode_ == "grasu_regraph_hls_weighted_pagerank";
       const bool timed_degree_updates = partitioned_dynamic || hls_weighted;
@@ -4490,6 +4528,16 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"logical_updates\": " << grasu_logical_update_edges_
              << ",\n"
              << "  \"physical_updates\": " << grasu_update_edges_ << ",\n"
+             << "  \"destination_partitions\": "
+             << compute.destination_partitions << ",\n"
+             << "  \"compute_pipelines\": " << compute.compute_pipelines
+             << ",\n"
+             << "  \"max_parallel_partitions\": "
+             << compute.max_parallel_partitions << ",\n"
+             << "  \"pipeline_busy_cycles\": "
+             << compute.pipeline_busy_cycles << ",\n"
+             << "  \"partition_passes\": " << compute.partition_passes
+             << ",\n"
              << "  \"pma_edge_abi\": \""
              << (hls_weighted
                      ? "regraph_weighted32_full_word_compare_dst19_weight12"
@@ -4512,7 +4560,11 @@ class OnlineMemoryProbe final : public SST::Component {
              << update.weight_decreases << ",\n"
              << "  \"update_weight_increases\": "
              << update.weight_increases << ",\n"
-             << "  \"vertices\": " << grasu_layout_.vertices << ",\n"
+             << "  \"vertices\": "
+             << (grasu_partitioned_execution_
+                     ? grasu_partitioned_layout_.vertices
+                     : grasu_layout_.vertices)
+             << ",\n"
              << "  \"partition_vertices\": "
              << grasu_config_.partition_vertices << ",\n"
              << "  \"edge_lanes\": " << grasu_config_.edge_lanes << ",\n"
@@ -7862,6 +7914,7 @@ class OnlineMemoryProbe final : public SST::Component {
   GraSuReGraphConfig grasu_config_;
   GraSuPmaLayout grasu_layout_;
   GraSuPartitionedPmaLayout grasu_partitioned_layout_;
+  bool grasu_partitioned_execution_{};
   std::unique_ptr<GraSuPmaUpdateSystem> grasu_update_system_;
   std::unique_ptr<GraSuNativeCompactorSystem> grasu_compactor_system_;
   std::unique_ptr<GraSuNativeReGraphSsspSystem>
