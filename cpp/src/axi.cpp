@@ -202,6 +202,10 @@ AxiMaster::Burst* AxiMaster::find_active(std::uint64_t burst_id) {
 }
 
 void AxiMaster::reset_staging() {
+  for (const std::size_t index : staged_additional_issued_touched_) {
+    staged_additional_issued_[index] = 0;
+  }
+  staged_additional_issued_touched_.clear();
   staged_input_.reset();
   staged_new_bursts_.clear();
   staged_new_write_beats_.clear();
@@ -436,7 +440,9 @@ void AxiMaster::evaluate_data_channel(const CycleContext &context) {
   if (active_issueable_bursts_ == 0) {
     return;
   }
-  staged_additional_issued_.assign(active_bursts_.size(), 0);
+  if (staged_additional_issued_.size() < active_bursts_.size()) {
+    staged_additional_issued_.resize(active_bursts_.size(), 0);
+  }
   std::size_t staged_fully_issued = 0;
   std::size_t inspected_without_issue = 0;
   const bool ordered_stream = active_stream_bursts_ != 0;
@@ -535,6 +541,9 @@ void AxiMaster::evaluate_data_channel(const CycleContext &context) {
             .issue_cycle = context.domain_cycle,
             .request = header,
         });
+        if (staged_additional_issued_[cursor] == 0) {
+          staged_additional_issued_touched_.push_back(cursor);
+        }
         ++staged_additional_issued_[cursor];
         staged_fully_issued +=
             burst.beats_issued + staged_additional_issued_[cursor] ==

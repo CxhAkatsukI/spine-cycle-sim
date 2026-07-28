@@ -1,0 +1,249 @@
+{
+  "claim_class": "filtered_candidate10_derived_normalized_structural_subset",
+  "claim_gate": {
+    "eligible": true,
+    "label": "routed_k1_multi_partition_structural",
+    "reason": "Both systems use routed HLS anchors and a shared memory model."
+  },
+  "complete_matrix": false,
+  "executed_rows": 2,
+  "failure": null,
+  "hbm_dram_config": {
+    "environment_variable": "CANDIDATE10_SST_DRAM_CONFIG",
+    "experiment_role": "frozen_baseline",
+    "frozen_baseline_sha256": "d1e865c6528acbc41f0768667063702bfb4033f24bcd46119ad25bfc5ad4fb5f",
+    "is_frozen_baseline": true,
+    "path": "/home/chuxiao/spine-cycle-sim-publication/configs/memory/HBM2_1ch_x128.ini",
+    "sha256": "d1e865c6528acbc41f0768667063702bfb4033f24bcd46119ad25bfc5ad4fb5f",
+    "shared_by_systems": [
+      "spine",
+      "grasu_regraph"
+    ]
+  },
+  "matrix_id": "shared_comparison_candidate10_k1_multipart_v4_20260728",
+  "matrix_wall_seconds": 29.531031175516546,
+  "normalized_profile_contract": {
+    "claim_class": "routed_k1_multi_partition_structural",
+    "clock_mhz": 150.0,
+    "grasu_capability_catalog_id": "grasu_regraph_k1_multipart_capabilities_v4_20260728",
+    "grasu_capability_catalog_sha256": "2394b8d0d6c3947e5a3a8750329f76ccb38ef1a9830e3ab65356b2bf350d1da6",
+    "grasu_profile_ids": [
+      "grasu_regraph_candidate10_k1_multipart_weighted_v4",
+      "grasu_regraph_candidate10_k1_multipart_pagerank_v4",
+      "grasu_regraph_candidate10_k1_multipart_residual_v4"
+    ],
+    "grasu_profile_set": "k1_v4",
+    "hbm_clock_mhz": 450.0,
+    "hbm_pseudo_channels_budget": 23,
+    "matching_hls_gate": {
+      "algorithms": {
+        "full_pagerank": {
+          "closest_hls_profile_id": "grasu_regraph_candidate10_k1_multipart_pagerank_v4",
+          "functional_evidence_status": "isolated_hls_csim_and_execution_driven_dual_oracle_pass",
+          "matching_hls": true,
+          "missing_gates": [],
+          "normalized_profile_id": "grasu_regraph_candidate10_k1_multipart_pagerank_v4",
+          "parameter_blockers": 0,
+          "parameter_differences": 0,
+          "whole_system_hls_status": "routed_k1_near_150mhz_negative_slack_timing_reported"
+        },
+        "thresholded_residual_pagerank": {
+          "closest_hls_profile_id": "grasu_regraph_candidate10_k1_multipart_residual_v4",
+          "functional_evidence_status": "isolated_hls_csim_and_execution_driven_dual_oracle_pass",
+          "matching_hls": true,
+          "missing_gates": [],
+          "normalized_profile_id": "grasu_regraph_candidate10_k1_multipart_residual_v4",
+          "parameter_blockers": 0,
+          "parameter_differences": 0,
+          "whole_system_hls_status": "routed_k1_near_150mhz_negative_slack_timing_reported"
+        },
+        "weighted_sssp": {
+          "closest_hls_profile_id": "grasu_regraph_candidate10_k1_multipart_weighted_v4",
+          "functional_evidence_status": "isolated_hls_csim_and_execution_driven_dual_oracle_pass",
+          "matching_hls": true,
+          "missing_gates": [],
+          "normalized_profile_id": "grasu_regraph_candidate10_k1_multipart_weighted_v4",
+          "parameter_blockers": 0,
+          "parameter_differences": 0,
+          "whole_system_hls_status": "routed_k1_near_150mhz_negative_slack_timing_reported"
+        }
+      },
+      "all_matching_hls": true,
+      "claim_class": "routed_k1_multi_partition_execution_driven_simulation",
+      "claim_gates": {
+        "correctness": {
+          "eligible": true,
+          "label": "dual_oracle_correctness_gated",
+          "reason": "Every performance row must pass both independent oracles."
+        },
+        "fpga_measured_performance": {
+          "eligible": false,
+          "label": "simulator_performance_not_fpga_runtime",
+          "reason": "Routed feasibility does not turn simulated cycles into FPGA measurements."
+        },
+        "headline_normalized_performance": {
+          "eligible": true,
+          "label": "routed_k1_normalized_simulator_performance",
+          "reason": "K=1 is frozen from routed evidence; multi-partition control is execution-driven and all rows remain correctness gated."
+        },
+        "iso_resource_performance": {
+          "eligible": false,
+          "label": "same_platform_resource_reported_not_iso_resource",
+          "reason": "Both systems report routed resources on the same U55C, but their LUT, memory, DSP, and AXI-master allocations are not equal."
+        },
+        "structural_exploratory": {
+          "eligible": true,
+          "label": "routed_k1_multi_partition_structural",
+          "reason": "Both systems use routed HLS anchors and a shared memory model."
+        }
+      },
+      "contract_id": "candidate10_k1_multipart_hls_feasibility_v3_20260728",
+      "contract_sha256": "f98cec4db4fa23ba88dbb597117f0c56922ecf41b984997c7c7f080fed7cae07",
+      "grasu_matching_hls_algorithms": 3,
+      "grasu_required_algorithms": 3,
+      "publication_blockers": [],
+      "shared_platform_status": "pass",
+      "spine_matching_hls": true
+    },
+    "native_parent_profile_id": "spine_candidate10_one_pass_1e61fc0",
+    "native_parent_profile_sha256": "a23737c17f6650cea0185bd3eba9d425dbc151f35372d33130464df780312717",
+    "physical_hbm_channels": 32,
+    "spine_optimization_chain": [],
+    "spine_profile_id": "spine_candidate10_normalized_v1",
+    "spine_profile_sha256": "4e31633c55abfdc57fd4537119d6abb6d7a4f0313dcfc81332fa0ed0a6320c0a",
+    "spine_reference_profile_id": "spine_candidate10_normalized_v1",
+    "spine_reference_profile_sha256": "4e31633c55abfdc57fd4537119d6abb6d7a4f0313dcfc81332fa0ed0a6320c0a"
+  },
+  "orchestration_implementation": {
+    "files": [
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/configs/contracts/candidate10_normalized_hls_feasibility_v1.json",
+        "sha256": "9eb6af510d5c40d910d418141470e8a12040c1513113ef336dafa21a5f54d024"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/docs/evidence/grasu_regraph_matching_hls_status_20260726.json",
+        "sha256": "9bdf345bf0de580ef6cd8cd5bff2c5c8a49d9351ff84802bd72f9c7dd3a47731"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/scripts/run_shared_comparison_matrix.py",
+        "sha256": "5a4873d28a97937f87bcebf000491a1b38d56af0aede4ba05afb0ab8a1203aba"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/spine_cycle_sim/experiments/comparison.py",
+        "sha256": "892fe0e8727b1f538b080e64770672467a01816726061668ffcff6bc9490d93c"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/spine_cycle_sim/experiments/feasibility.py",
+        "sha256": "c0a0e6c835577558b51e9a1cedf4003540150a9d41479432c0bf89c6fc84a771"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/spine_cycle_sim/experiments/regraph_contracts.py",
+        "sha256": "f862d9504496d8fc197ac7cd623dd8eace7665ab23567e7c8b57de4c0bf4ce39"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/spine_cycle_sim/experiments/shared_workloads.py",
+        "sha256": "f4be035e49d6823b65114ddadc3e2be81e7cd62d8ab8bead0797a391f6bc6b1e"
+      }
+    ],
+    "sha256": "fb5d161be3a826c789e25038bfb0dcc6a0babde548794c34a4e1e245861bd157"
+  },
+  "paired_rows": 1,
+  "requested_claim_scope": "structural_exploratory",
+  "result_rows": 2,
+  "reused_rows": 0,
+  "schema_version": 1,
+  "selected_run_ids": [
+    "syn_spread_e512__residual_pagerank"
+  ],
+  "simulation_implementation": {
+    "files": [
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/build/sst/libspine_cycle.so",
+        "sha256": "35ca7a40d1a542a6b65ad75e30a7d3768f5c4d375f5ff365cd0b59018fcc55ee"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/configs/architectures/grasu_regraph_candidate10_k1_multipart_pagerank_v4.json",
+        "sha256": "b5e30d7bb8106c103fbae947fc90ef13b1af7b7f07f8593a515ae2068813d824"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/configs/architectures/grasu_regraph_candidate10_k1_multipart_residual_v4.json",
+        "sha256": "a3ca6533e14fc0cb533a6e581275efce8b8a8dc192ea28cedc075a03933eddf9"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/configs/architectures/grasu_regraph_candidate10_k1_multipart_weighted_v4.json",
+        "sha256": "47adf5b1aa9c9dcc2357789f67a0eeb74b4cddd71cb67ed2ff3004eb5e0e3761"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/configs/architectures/spine_candidate10_normalized_v1.json",
+        "sha256": "4e31633c55abfdc57fd4537119d6abb6d7a4f0313dcfc81332fa0ed0a6320c0a"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/configs/contracts/grasu_regraph_k1_multipart_capabilities_v4.json",
+        "sha256": "2394b8d0d6c3947e5a3a8750329f76ccb38ef1a9830e3ab65356b2bf350d1da6"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/configs/memory/HBM2_1ch_x128.ini",
+        "sha256": "d1e865c6528acbc41f0768667063702bfb4033f24bcd46119ad25bfc5ad4fb5f"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/scripts/run_sst_exact_idle_dramsim3.sh",
+        "sha256": "f1466b19e95a7a973ea03e8cd8f09c024227fe6d420cf018430fa76441626b9d"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/scripts/run_sst_grasu_regraph.py",
+        "sha256": "39e1e0521109151ea1920ef987543eb4d630c26716347982f663c1b335ab6719"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/scripts/run_sst_grasu_regraph_hls_pagerank.py",
+        "sha256": "10d3655c3f1456177c0323f24d62f57be432075abdb261156c82f74268c5d8d8"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/scripts/run_sst_grasu_regraph_hls_residual_pagerank.py",
+        "sha256": "f867bee91527f0e705106768aefe0f3deb0555f1d2e695d47dfbf78ec5f662e1"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/scripts/run_sst_grasu_regraph_hls_weighted.py",
+        "sha256": "a938588a9e103feca939c56e74f590f06785f414f0f22a682f32ba4f2b633d66"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/scripts/run_sst_grasu_regraph_pagerank.py",
+        "sha256": "e02ad205b9e129a4320d46467c883141d2baf7f1491c72c805c46cc4bd0a1ef2"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/scripts/run_sst_grasu_regraph_residual_pagerank.py",
+        "sha256": "5027f6ed41d889444acfccd37f39ed3fdbe26158ef5cbad7d7a11d5867d85b9a"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/scripts/run_sst_spine_vertical.py",
+        "sha256": "41bd09fe3567f00c16b14c36c1aed8ca4483e921fa616b4429340b9d5c6f686f"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/spine_cycle_sim/sst_binding.py",
+        "sha256": "c4c8dd67a685aa52b07b1bff0875744c55c9655addb6549e0bac9fade5af0bcb"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/sst/grasu_regraph_vertical.py",
+        "sha256": "4dadaf09b79af7e59322f27c5bf818944d7ded983c8a21df88131ecd51c2d98c"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/sst/spine_vertical_slice.py",
+        "sha256": "c42085c57b504d5975fcdab65fe6ad3d6129aae18e1d5761d3c5be0fff2e4dce"
+      }
+    ],
+    "sha256": "a2e246f514de80e0e7dd7fa011894fc09ed14dbfe76ae3d6ed96959e59cde0d4"
+  },
+  "source_manifest": "/home/chuxiao/spine-cycle-sim-publication/configs/experiments/shared_comparison_candidate10_k1_multipart_v4_20260728.json",
+  "source_manifest_sha256": "a8846e94249d652313daacc818b6f74090b2362212c08fe63dcf4eb8338d4f03",
+  "sst_memory_binding_policy": {
+    "default": "instantiate_only_profile_and_workload_reachable_channels",
+    "physical_hbm_channels": 32,
+    "sparse_energy_semantics": "bound_channel_dramsim3_only_excludes_unbound_idle_background",
+    "timing_semantics": "unchanged_physical_channel_ids_and_active_contention",
+    "unbound_request_policy": "fatal"
+  },
+  "status": "PASS",
+  "systems": [
+    "spine",
+    "grasu_regraph"
+  ]
+}

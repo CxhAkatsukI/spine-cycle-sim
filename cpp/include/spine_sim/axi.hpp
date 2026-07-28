@@ -354,6 +354,7 @@ class AxiMaster final : public Component {
   std::optional<WriteIngressBeat> staged_bridge_to_throttle_;
   std::vector<std::uint64_t> staged_address_bursts_;
   std::vector<std::size_t> staged_additional_issued_;
+  std::vector<std::size_t> staged_additional_issued_touched_;
   std::vector<StagedBeat> staged_beats_;
   std::size_t staged_backend_response_count_{};
   std::optional<std::pair<std::uint64_t, std::uint64_t>>
