@@ -1,0 +1,14 @@
+{
+  "dramsim3_ab_epoch_sha256": "74426e8ab4430c424ecbd376f44d8e802aad37bc921454148fbee5921808cbd0",
+  "dramsim3_ab_final_sha256": "19ade76ccc3e9a58485257f383e31420b6ebfc99fa2be5a1e50c005de4676450",
+  "dramsim3_active_queue_patch_sha256": "f5db2d22098a855b098cc2cc7200026f78d5cdb96295af70f3a194dc71a08ce3",
+  "dramsim3_library": "/data/tmp/chuxiao/candidate12-reproduction-build-20260728/dramsim3/libdramsim3.so",
+  "dramsim3_patch_sha256": "934fdf9c699911c2391a900aa89e4f2988cfb7fe5298721844a3afd1e7ea9e49",
+  "dramsim3_revision": "29817593b3389f1337235d63cac515024ab8fd6e",
+  "dramsim3_stats_hotpath_patch_sha256": "67e6c5b2f8abcad7addee18e853a76a04e60bfa1eff3caaf78e9239694f1499e",
+  "memhierarchy_library": "/data/tmp/chuxiao/candidate12-reproduction-install-20260728/lib/sst-elements-library/libmemHierarchy.so",
+  "schema_version": 1,
+  "sst_elements_version": "16.0.0",
+  "sst_patch_sha256": "5207edd7d76534b13a9384470bd20bd2d8a1c18044af416d4cab0353a7336705",
+  "status": "PASS"
+}
