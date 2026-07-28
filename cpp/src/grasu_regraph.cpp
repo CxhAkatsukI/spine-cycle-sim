@@ -2891,10 +2891,12 @@ struct GraSuReGraphWorker {
   ReGraphApply *apply{};
   ReGraphHbmWrapper *wrapper{};
   std::optional<std::size_t> partition;
+  bool downstream_started{};
 
   [[nodiscard]] bool done() const noexcept {
-    return partition.has_value() && source_hbm->done() && reader->done() &&
-           gather->done() && merger->done() && apply->done() && wrapper->done();
+    return partition.has_value() && downstream_started &&
+           source_hbm->done() && reader->done() && gather->done() &&
+           merger->done() && apply->done() && wrapper->done();
   }
 };
 
@@ -2906,11 +2908,13 @@ public:
                          std::vector<ReGraphPartitionPlan> partitions,
                          std::vector<GraSuReGraphWorker> workers,
                          ReGraphIterationContext *iteration_context,
-                         ReGraphPageRankSourcePrepare *source_prepare)
+                         ReGraphPageRankSourcePrepare *source_prepare,
+                         bool shared_downstream)
       : Component(std::move(name), clock_id), algorithm_(algorithm),
         round_limit_(round_limit), fixed_round_limit_(fixed_round_limit),
         partitions_(std::move(partitions)), workers_(std::move(workers)),
-        iteration_context_(iteration_context), source_prepare_(source_prepare) {
+        iteration_context_(iteration_context), source_prepare_(source_prepare),
+        shared_downstream_(shared_downstream) {
     if (partitions_.empty() || workers_.empty()) {
       throw std::invalid_argument(
           "ReGraph controller requires partitions and compute workers");
@@ -2944,6 +2948,13 @@ public:
   }
   [[nodiscard]] std::size_t max_parallel_partitions() const noexcept {
     return max_parallel_partitions_;
+  }
+  [[nodiscard]] std::size_t max_parallel_downstream_partitions()
+      const noexcept {
+    return max_parallel_downstream_partitions_;
+  }
+  [[nodiscard]] std::uint64_t downstream_busy_cycles() const noexcept {
+    return downstream_busy_cycles_;
   }
   [[nodiscard]] float iteration_error() const noexcept {
     return last_iteration_error_;
@@ -2998,6 +3009,7 @@ public:
       iteration_dangling_ += worker.apply->next_dangling();
       ++completed_partitions_;
       worker.partition.reset();
+      worker.downstream_started = false;
     }
     if (staged_ == Action::kNextSuperstep || staged_ == Action::kFinish) {
       frontier_out_sizes_.push_back(iteration_active_vertices_);
@@ -3021,6 +3033,7 @@ public:
       iteration_error_ = 0.0F;
       iteration_dangling_ = 0.0F;
       dispatch_available_workers();
+      start_waiting_downstream();
       phase_ = Phase::kRound;
     } else if (staged_ == Action::kFinish) {
       last_iteration_error_ = iteration_error_;
@@ -3028,6 +3041,7 @@ public:
     }
     if (!staged_completed_workers_.empty() && staged_ == Action::kNone) {
       dispatch_available_workers();
+      start_waiting_downstream();
       if (completed_partitions_ == partitions_.size()) {
         last_iteration_error_ = iteration_error_;
       }
@@ -3035,6 +3049,10 @@ public:
     const std::size_t busy = busy_worker_count();
     pipeline_busy_cycles_ += busy;
     max_parallel_partitions_ = std::max(max_parallel_partitions_, busy);
+    const std::size_t downstream_busy = downstream_busy_worker_count();
+    downstream_busy_cycles_ += downstream_busy;
+    max_parallel_downstream_partitions_ =
+        std::max(max_parallel_downstream_partitions_, downstream_busy);
   }
 
 private:
@@ -3054,18 +3072,55 @@ private:
         }));
   }
 
+  [[nodiscard]] std::size_t downstream_busy_worker_count() const noexcept {
+    return static_cast<std::size_t>(std::count_if(
+        workers_.begin(), workers_.end(), [](const GraSuReGraphWorker &worker) {
+          return worker.partition.has_value() && worker.downstream_started;
+        }));
+  }
+
+  void start_downstream(GraSuReGraphWorker &worker) {
+    if (!worker.partition.has_value() || worker.downstream_started) {
+      throw std::logic_error("invalid ReGraph shared-downstream dispatch");
+    }
+    const ReGraphPartitionPlan &plan = partitions_.at(*worker.partition);
+    worker.merger->start_round();
+    worker.apply->start_partition(round_, plan.destination_base,
+                                  plan.destination_vertices, true);
+    worker.wrapper->start_partition(round_, plan.destination_base);
+    worker.downstream_started = true;
+  }
+
+  void start_waiting_downstream() {
+    if (!shared_downstream_ || downstream_busy_worker_count() != 0) {
+      return;
+    }
+    GraSuReGraphWorker *selected = nullptr;
+    for (GraSuReGraphWorker &worker : workers_) {
+      if (!worker.partition.has_value() || worker.downstream_started) {
+        continue;
+      }
+      if (selected == nullptr || *worker.partition < *selected->partition) {
+        selected = &worker;
+      }
+    }
+    if (selected != nullptr) {
+      start_downstream(*selected);
+    }
+  }
+
   void start_partition(GraSuReGraphWorker &worker, std::size_t partition) {
     const ReGraphPartitionPlan &plan = partitions_.at(partition);
+    worker.partition = partition;
+    worker.downstream_started = false;
     worker.source_hbm->start_partition(round_, partition);
     worker.reader->start_partition(
         round_, plan,
         partition == 0 && !uses_prepared_page_rank_source());
     worker.gather->start_partition(plan.destination_vertices, round_ == 1);
-    worker.merger->start_round();
-    worker.apply->start_partition(round_, plan.destination_base,
-                                  plan.destination_vertices, true);
-    worker.wrapper->start_partition(round_, plan.destination_base);
-    worker.partition = partition;
+    if (!shared_downstream_) {
+      start_downstream(worker);
+    }
     ++partition_passes_;
   }
 
@@ -3089,6 +3144,7 @@ private:
   std::vector<GraSuReGraphWorker> workers_;
   ReGraphIterationContext *iteration_context_{};
   ReGraphPageRankSourcePrepare *source_prepare_{};
+  bool shared_downstream_{};
   Phase phase_{Phase::kStart};
   Action staged_{Action::kNone};
   std::vector<std::size_t> staged_completed_workers_;
@@ -3102,6 +3158,8 @@ private:
   std::uint64_t partition_passes_{};
   std::uint64_t pipeline_busy_cycles_{};
   std::size_t max_parallel_partitions_{};
+  std::uint64_t downstream_busy_cycles_{};
+  std::size_t max_parallel_downstream_partitions_{};
   std::vector<std::size_t> frontier_out_sizes_;
   std::string failure_;
 };
@@ -3305,9 +3363,12 @@ public:
     result.destination_partitions = layout_.partitions.size();
     result.compute_pipelines = pipelines_.size();
     result.max_parallel_partitions = controller_->max_parallel_partitions();
+    result.max_parallel_downstream_partitions =
+        controller_->max_parallel_downstream_partitions();
     result.supersteps = controller_->supersteps();
     result.partition_passes = controller_->partition_passes();
     result.pipeline_busy_cycles = controller_->pipeline_busy_cycles();
+    result.downstream_busy_cycles = controller_->downstream_busy_cycles();
     if (source_prepare_ != nullptr) {
       result.source_prepare_cycles = source_prepare_->cycles();
       result.source_prepare_state_reads = source_prepare_->state_reads();
@@ -3878,7 +3939,7 @@ private:
         policy_.config().kind == GraphAlgorithmKind::kWeightedSssp &&
             fixed_rounds_ != 0,
         partition_plans_, std::move(workers), iteration_context_.get(),
-        source_prepare_.get());
+        source_prepare_.get(), config_.shared_downstream);
   }
 
   [[nodiscard]] bool all_ports_idle() const noexcept {

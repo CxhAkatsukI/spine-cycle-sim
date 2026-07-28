@@ -18,6 +18,7 @@ namespace spine::sim {
 struct GraSuReGraphConfig {
   std::size_t memory_channels{32};
   std::size_t compute_pipelines{1};
+  bool shared_downstream{};
   std::size_t cache_segments_per_half{131072};
   std::size_t partition_vertices{65536};
   std::size_t source_buffer_vertices{4096};
@@ -70,9 +71,11 @@ struct GraSuReGraphCounters {
   std::size_t destination_partitions{};
   std::size_t compute_pipelines{};
   std::size_t max_parallel_partitions{};
+  std::size_t max_parallel_downstream_partitions{};
   std::uint64_t supersteps{};
   std::uint64_t partition_passes{};
   std::uint64_t pipeline_busy_cycles{};
+  std::uint64_t downstream_busy_cycles{};
   std::uint64_t source_prepare_cycles{};
   std::uint64_t source_prepare_state_reads{};
   std::uint64_t source_prepare_state_read_bytes{};

@@ -56,6 +56,7 @@ def validate_result(
     expected_labels: tuple[int, ...],
     analysis: ReciprocalUpdateAnalysis,
     compute_pipelines: int,
+    downstream_sharing: str,
 ) -> dict[str, bool]:
     expected_mode = (
         "spine_connected_components"
@@ -96,6 +97,16 @@ def validate_result(
                 "pma_state": result.get("update_state_mismatches") == 0,
                 "compute_pipelines": result.get("compute_pipelines")
                 == compute_pipelines,
+                "downstream_sharing": result.get("downstream_sharing")
+                == downstream_sharing,
+                "downstream_parallelism": result.get(
+                    "max_parallel_downstream_partitions"
+                )
+                == (
+                    min(compute_pipelines, result.get("destination_partitions", 0))
+                    if downstream_sharing == "direct"
+                    else 1
+                ),
                 "partition_work": result.get("partition_passes")
                 == result.get("destination_partitions")
                 * result.get("iterations"),
@@ -130,6 +141,9 @@ def main() -> int:
     parser.add_argument("--max-rounds", type=int, default=4096)
     parser.add_argument("--partition-vertices", type=int, default=65_536)
     parser.add_argument("--compute-pipelines", type=int, default=1)
+    parser.add_argument(
+        "--downstream-sharing", choices=("direct", "shared"), default="direct"
+    )
     parser.add_argument("--source-buffer-vertices", type=int, default=4096)
     parser.add_argument("--no-build", action="store_true")
     parser.add_argument("--reuse-result", action="store_true")
@@ -202,6 +216,9 @@ def main() -> int:
                 "GRASU_SST_MAX_ROUNDS": str(args.max_rounds),
                 "GRASU_SST_PARTITION_VERTICES": str(args.partition_vertices),
                 "GRASU_SST_COMPUTE_PIPELINES": str(args.compute_pipelines),
+                "GRASU_SST_SHARED_DOWNSTREAM": (
+                    "1" if args.downstream_sharing == "shared" else "0"
+                ),
                 "GRASU_SST_SOURCE_BUFFER_VERTICES": str(args.source_buffer_vertices),
             }
         )
@@ -231,6 +248,7 @@ def main() -> int:
         expected_labels=oracle_labels,
         analysis=analysis,
         compute_pipelines=args.compute_pipelines,
+        downstream_sharing=args.downstream_sharing,
     )
     failed = [name for name, passed in checks.items() if not passed]
     manifest = {
@@ -248,6 +266,9 @@ def main() -> int:
         "dramsim3_src": str(args.dramsim3_src.resolve()),
         "core_mhz": args.core_mhz,
         "compute_pipelines": args.compute_pipelines if args.architecture == "grasu" else 1,
+        "downstream_sharing": (
+            args.downstream_sharing if args.architecture == "grasu" else None
+        ),
         "partition_vertices": args.partition_vertices if args.architecture == "grasu" else None,
         "logical_user_mutations": analysis.logical_user_mutations,
         "effective_mutations": analysis.effective_mutations,

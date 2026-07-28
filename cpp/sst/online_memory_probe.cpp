@@ -1944,6 +1944,8 @@ class OnlineMemoryProbe final : public SST::Component {
     grasu_config_.memory_channels = channels_;
     grasu_config_.compute_pipelines =
         params.find<std::size_t>("grasu_compute_pipelines", 1);
+    grasu_config_.shared_downstream =
+        params.find<bool>("grasu_shared_downstream", false);
     grasu_config_.cache_segments_per_half =
         params.find<std::size_t>("grasu_cache_segments_per_half", 131072);
     grasu_config_.partition_vertices =
@@ -3664,6 +3666,9 @@ class OnlineMemoryProbe final : public SST::Component {
       {"grasu_partition_vertices", "ReGraph destination partition size",
        "65536"},
       {"grasu_compute_pipelines", "Parallel ReGraph partition workers", "1"},
+      {"grasu_shared_downstream",
+       "Share one partition-granular merger/apply/HBM-wrapper across workers",
+       "false"},
       {"grasu_source_buffer_vertices", "ReGraph source-cache words", "4096"},
       {"grasu_source_cache_request_fifo_depth",
        "ReGraph source-cache request stream depth", "8"},
@@ -4074,8 +4079,17 @@ class OnlineMemoryProbe final : public SST::Component {
              << compute.destination_partitions << ",\n"
              << "  \"compute_pipelines\": " << compute.compute_pipelines
              << ",\n"
+             << "  \"downstream_sharing\": \""
+             << (grasu_config_.shared_downstream ? "shared" : "direct")
+             << "\",\n"
              << "  \"max_parallel_partitions\": "
              << compute.max_parallel_partitions << ",\n"
+             << "  \"max_parallel_downstream_partitions\": "
+             << compute.max_parallel_downstream_partitions << ",\n"
+             << "  \"pipeline_busy_cycles\": "
+             << compute.pipeline_busy_cycles << ",\n"
+             << "  \"downstream_busy_cycles\": "
+             << compute.downstream_busy_cycles << ",\n"
              << "  \"partition_passes\": " << compute.partition_passes
              << ",\n"
              << "  \"update_cycles\": "
@@ -4748,10 +4762,17 @@ class OnlineMemoryProbe final : public SST::Component {
              << compute.destination_partitions << ",\n"
              << "  \"compute_pipelines\": " << compute.compute_pipelines
              << ",\n"
+             << "  \"downstream_sharing\": \""
+             << (grasu_config_.shared_downstream ? "shared" : "direct")
+             << "\",\n"
              << "  \"max_parallel_partitions\": "
              << compute.max_parallel_partitions << ",\n"
+             << "  \"max_parallel_downstream_partitions\": "
+             << compute.max_parallel_downstream_partitions << ",\n"
              << "  \"pipeline_busy_cycles\": "
              << compute.pipeline_busy_cycles << ",\n"
+             << "  \"downstream_busy_cycles\": "
+             << compute.downstream_busy_cycles << ",\n"
              << "  \"partition_passes\": " << compute.partition_passes
              << ",\n"
              << "  \"host_vertex_reorder\": "
@@ -5262,10 +5283,17 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"destination_partitions\": " << destination_partitions
           << ",\n"
           << "  \"compute_pipelines\": " << compute.compute_pipelines << ",\n"
+          << "  \"downstream_sharing\": \""
+          << (grasu_config_.shared_downstream ? "shared" : "direct")
+          << "\",\n"
           << "  \"max_parallel_partitions\": "
           << compute.max_parallel_partitions << ",\n"
+          << "  \"max_parallel_downstream_partitions\": "
+          << compute.max_parallel_downstream_partitions << ",\n"
           << "  \"pipeline_busy_cycles\": " << compute.pipeline_busy_cycles
           << ",\n"
+          << "  \"downstream_busy_cycles\": "
+          << compute.downstream_busy_cycles << ",\n"
           << "  \"destination_partitions_touched\": "
           << update.destination_partitions_touched << ",\n"
           << "  \"partition_routes\": " << update.partition_routes << ",\n"
@@ -5571,10 +5599,17 @@ class OnlineMemoryProbe final : public SST::Component {
              << compute.destination_partitions << ",\n"
              << "  \"compute_pipelines\": " << compute.compute_pipelines
              << ",\n"
+             << "  \"downstream_sharing\": \""
+             << (grasu_config_.shared_downstream ? "shared" : "direct")
+             << "\",\n"
              << "  \"max_parallel_partitions\": "
              << compute.max_parallel_partitions << ",\n"
+             << "  \"max_parallel_downstream_partitions\": "
+             << compute.max_parallel_downstream_partitions << ",\n"
              << "  \"pipeline_busy_cycles\": "
              << compute.pipeline_busy_cycles << ",\n"
+             << "  \"downstream_busy_cycles\": "
+             << compute.downstream_busy_cycles << ",\n"
              << "  \"partition_passes\": " << compute.partition_passes
              << ",\n"
              << "  \"pma_edge_abi\": \""

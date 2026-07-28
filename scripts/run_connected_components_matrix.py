@@ -23,13 +23,16 @@ def _run_case(
     out_dir: Path,
     *,
     compute_pipelines: int,
+    downstream_sharing: str,
     partition_vertices: int,
     max_cycles: int,
     max_rounds: int,
     reuse_results: bool,
 ) -> dict[str, Any]:
     destination = out_dir / run["run_id"] / (
-        "spine_k1" if architecture == "spine" else f"grasu_k{compute_pipelines}"
+        "spine_k1"
+        if architecture == "spine"
+        else f"grasu_k{compute_pipelines}_{downstream_sharing}"
     )
     command = [
         sys.executable,
@@ -55,6 +58,8 @@ def _run_case(
                 str(compute_pipelines),
                 "--partition-vertices",
                 str(partition_vertices),
+                "--downstream-sharing",
+                downstream_sharing,
             ]
         )
     if reuse_results:
@@ -82,6 +87,9 @@ def _run_case(
         "role": run["role"],
         "architecture": architecture,
         "compute_pipelines": 1 if architecture == "spine" else compute_pipelines,
+        "downstream_sharing": (
+            "native" if architecture == "spine" else downstream_sharing
+        ),
         "vertices": run["graph"]["vertices"],
         "initial_edges": run["graph"]["records"],
         "logical_user_mutations": run["logical_user_mutations"],
@@ -102,6 +110,9 @@ def _run_case(
         ),
         "destination_partitions": result.get("destination_partitions", 1),
         "max_parallel_partitions": result.get("max_parallel_partitions", 1),
+        "max_parallel_downstream_partitions": result.get(
+            "max_parallel_downstream_partitions", 1
+        ),
         "correctness_mismatches": result["correctness_mismatches"],
         "performance_admitted": admission["admitted"]
         and run["effective_mutations"] > 0,
@@ -123,6 +134,9 @@ def main() -> int:
         dest="architectures",
     )
     parser.add_argument("--compute-pipelines", type=int, default=1)
+    parser.add_argument(
+        "--downstream-sharing", choices=("direct", "shared"), default="direct"
+    )
     parser.add_argument("--partition-vertices", type=int, default=65_536)
     parser.add_argument("--max-cycles", type=int, default=1_000_000_000)
     parser.add_argument("--max-rounds", type=int, default=4096)
@@ -162,6 +176,7 @@ def main() -> int:
                 architecture,
                 args.out_dir,
                 compute_pipelines=args.compute_pipelines,
+                downstream_sharing=args.downstream_sharing,
                 partition_vertices=args.partition_vertices,
                 max_cycles=args.max_cycles,
                 max_rounds=args.max_rounds,
@@ -202,6 +217,7 @@ def main() -> int:
         "schema_version": 1,
         "matrix_id": manifest["matrix_id"],
         "compute_pipelines": args.compute_pipelines,
+        "downstream_sharing": args.downstream_sharing,
         "partition_vertices": args.partition_vertices,
         "rows": rows,
         "pairs": pairs,

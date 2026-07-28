@@ -45,6 +45,7 @@ class SstConnectedComponentsRunnerTests(unittest.TestCase):
             expected_labels=(0, 0, 0, 3),
             analysis=self.analysis,
             compute_pipelines=1,
+            downstream_sharing="direct",
         )
         self.assertTrue(all(checks.values()))
         result["labels"] = [0, 0, 2, 3]
@@ -55,6 +56,7 @@ class SstConnectedComponentsRunnerTests(unittest.TestCase):
                 expected_labels=(0, 0, 0, 3),
                 analysis=self.analysis,
                 compute_pipelines=1,
+                downstream_sharing="direct",
             )["external_labels"]
         )
 
@@ -65,6 +67,8 @@ class SstConnectedComponentsRunnerTests(unittest.TestCase):
             conversion_cost_included=False,
             update_state_mismatches=0,
             compute_pipelines=4,
+            downstream_sharing="direct",
+            max_parallel_downstream_partitions=3,
             partition_passes=6,
             destination_partitions=3,
             iterations=2,
@@ -75,6 +79,7 @@ class SstConnectedComponentsRunnerTests(unittest.TestCase):
             expected_labels=(0, 0, 0, 3),
             analysis=self.analysis,
             compute_pipelines=4,
+            downstream_sharing="direct",
         )
         self.assertTrue(all(checks.values()))
         result["partition_passes"] = 5
@@ -85,8 +90,32 @@ class SstConnectedComponentsRunnerTests(unittest.TestCase):
                 expected_labels=(0, 0, 0, 3),
                 analysis=self.analysis,
                 compute_pipelines=4,
+                downstream_sharing="direct",
             )["partition_work"]
         )
+
+    def test_shared_downstream_requires_one_active_downstream(self) -> None:
+        result = dict(
+            self.base,
+            mode="grasu_regraph_connected_components",
+            conversion_cost_included=False,
+            update_state_mismatches=0,
+            compute_pipelines=4,
+            downstream_sharing="shared",
+            max_parallel_downstream_partitions=1,
+            partition_passes=8,
+            destination_partitions=4,
+            iterations=2,
+        )
+        checks = validate_result(
+            result,
+            architecture="grasu",
+            expected_labels=(0, 0, 0, 3),
+            analysis=self.analysis,
+            compute_pipelines=4,
+            downstream_sharing="shared",
+        )
+        self.assertTrue(all(checks.values()))
 
 
 if __name__ == "__main__":

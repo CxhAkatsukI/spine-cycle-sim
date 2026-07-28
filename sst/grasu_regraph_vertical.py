@@ -92,6 +92,9 @@ probe.addParams(
         "grasu_compute_pipelines": int(
             os.environ.get("GRASU_SST_COMPUTE_PIPELINES", "1")
         ),
+        "grasu_shared_downstream": int(
+            os.environ.get("GRASU_SST_SHARED_DOWNSTREAM", "0")
+        ),
         "grasu_source_buffer_vertices": int(
             os.environ.get("GRASU_SST_SOURCE_BUFFER_VERTICES", "4096")
         ),
