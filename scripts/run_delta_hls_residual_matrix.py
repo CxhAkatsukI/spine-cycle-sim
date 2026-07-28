@@ -57,6 +57,7 @@ def _validate_input_manifest(manifest_path: Path) -> dict[str, Any]:
     if manifest.get("matrix_id") not in {
         "deltahls_sinkfree_real_v1",
         "deltahls_sinkfree_scalability_p4_v1",
+        "askubuntu_reciprocal_large_v1",
     }:
         raise ValueError("runner requires the frozen Delta.hls sink-free matrix")
     invariants = manifest.get("invariants", {})
