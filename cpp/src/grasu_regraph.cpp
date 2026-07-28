@@ -166,6 +166,39 @@ struct PmaEdgeBatch {
   std::array<bool, 8> valid{};
 };
 
+class ReGraphDoneSignal {
+public:
+  using Notifier = void (*)(void *) noexcept;
+
+  void bind(void *owner, Notifier notifier) {
+    if (notifier == nullptr) {
+      throw std::invalid_argument("ReGraph done notifier is null");
+    }
+    if (notifier_ != nullptr && (owner_ != owner || notifier_ != notifier)) {
+      throw std::logic_error("ReGraph done notifier is already bound");
+    }
+    owner_ = owner;
+    notifier_ = notifier;
+  }
+
+  void unbind(void *owner) noexcept {
+    if (owner_ == owner) {
+      owner_ = nullptr;
+      notifier_ = nullptr;
+    }
+  }
+
+  void notify() const noexcept {
+    if (notifier_ != nullptr) {
+      notifier_(owner_);
+    }
+  }
+
+private:
+  void *owner_{};
+  Notifier notifier_{};
+};
+
 class ReGraphReaderContext {
 public:
   using DoneNotifier = void (*)(void *) noexcept;
@@ -310,6 +343,10 @@ public:
   [[nodiscard]] std::uint64_t degree_reads() const noexcept {
     return degree_reads_;
   }
+  void bind_done_notifier(void *owner, ReGraphDoneSignal::Notifier notifier) {
+    done_signal_.bind(owner, notifier);
+  }
+  void unbind_done_notifier(void *owner) noexcept { done_signal_.unbind(owner); }
   [[nodiscard]] std::uint64_t writes() const noexcept { return writes_issued_; }
 
   [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
@@ -463,6 +500,7 @@ public:
         iteration_context_.set_dangling(dangling_);
         running_ = false;
         done_ = true;
+        done_signal_.notify();
       }
     }
   }
@@ -596,6 +634,7 @@ private:
   std::uint64_t state_reads_{};
   std::uint64_t degree_reads_{};
   std::uint64_t writes_issued_{};
+  ReGraphDoneSignal done_signal_;
 };
 
 GraSuPartitionedPmaLayout one_partition_layout(GraSuPmaLayout layout,
@@ -2618,6 +2657,10 @@ public:
   [[nodiscard]] std::size_t max_writes_inflight() const noexcept {
     return max_writes_inflight_;
   }
+  void bind_done_notifier(void *owner, ReGraphDoneSignal::Notifier notifier) {
+    done_signal_.bind(owner, notifier);
+  }
+  void unbind_done_notifier(void *owner) noexcept { done_signal_.unbind(owner); }
   [[nodiscard]] float iteration_error() const noexcept {
     return iteration_error_;
   }
@@ -2825,6 +2868,7 @@ public:
     if (completed_writes_ == total_bursts()) {
       running_ = false;
       done_ = true;
+      done_signal_.notify();
     }
     clear_staged();
     refresh_evaluate_ready();
@@ -3072,6 +3116,7 @@ private:
   std::size_t max_reads_inflight_{};
   std::size_t max_pipeline_occupancy_{};
   std::size_t max_writes_inflight_{};
+  ReGraphDoneSignal done_signal_;
 };
 
 class ReGraphHbmWrapper final : public Component {
@@ -3138,6 +3183,10 @@ public:
   [[nodiscard]] std::size_t max_writes_inflight() const noexcept {
     return max_writes_inflight_;
   }
+  void bind_done_notifier(void *owner, ReGraphDoneSignal::Notifier notifier) {
+    done_signal_.bind(owner, notifier);
+  }
+  void unbind_done_notifier(void *owner) noexcept { done_signal_.unbind(owner); }
 
   [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
     return true;
@@ -3276,6 +3325,7 @@ public:
         completed_writes_ == total_bursts() * write_ports_.size()) {
       running_ = false;
       done_ = true;
+      done_signal_.notify();
     }
     clear_staged();
     refresh_evaluate_ready();
@@ -3372,6 +3422,7 @@ private:
   std::uint64_t write_window_stalls_{};
   std::size_t max_pipeline_occupancy_{};
   std::size_t max_writes_inflight_{};
+  ReGraphDoneSignal done_signal_;
 };
 
 struct GraSuReGraphWorker {
@@ -3425,6 +3476,27 @@ public:
       throw std::invalid_argument(
           "PageRank controller requires a shared iteration context");
     }
+    for (GraSuReGraphWorker &worker : workers_) {
+      worker.apply->bind_done_notifier(
+          this, &GraSuReGraphController::notify_worker_done);
+      worker.wrapper->bind_done_notifier(
+          this, &GraSuReGraphController::notify_worker_done);
+    }
+    if (source_prepare_ != nullptr) {
+      source_prepare_->bind_done_notifier(
+          this, &GraSuReGraphController::notify_worker_done);
+    }
+    refresh_evaluate_ready();
+  }
+
+  ~GraSuReGraphController() override {
+    for (GraSuReGraphWorker &worker : workers_) {
+      worker.apply->unbind_done_notifier(this);
+      worker.wrapper->unbind_done_notifier(this);
+    }
+    if (source_prepare_ != nullptr) {
+      source_prepare_->unbind_done_notifier(this);
+    }
   }
 
   [[nodiscard]] bool done() const noexcept { return phase_ == Phase::kDone; }
@@ -3458,16 +3530,18 @@ public:
   [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
     return true;
   }
+  [[nodiscard]] bool has_latched_evaluate_guard() const noexcept override {
+    return true;
+  }
   [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
     return true;
   }
   [[nodiscard]] bool evaluate_ready() const noexcept override {
-    return !failed() && !done();
+    return evaluate_ready_;
   }
   [[nodiscard]] bool commit_ready() const noexcept override {
     return !failed() && !done() &&
-           (staged_ != Action::kNone || !staged_completed_workers_.empty() ||
-            busy_worker_count() != 0);
+           (staged_ != Action::kNone || !staged_completed_workers_.empty());
   }
 
   void evaluate(const CycleContext &) override {
@@ -3490,6 +3564,7 @@ public:
       const std::size_t remaining_busy =
           busy_worker_count() - staged_completed_workers_.size();
       if (remaining_busy != 0 || next_partition_ < partitions_.size()) {
+        refresh_evaluate_ready();
         return;
       }
       std::size_t prospective_active = iteration_active_vertices_;
@@ -3505,9 +3580,11 @@ public:
                                           : Action::kNextSuperstep;
       }
     }
+    refresh_evaluate_ready();
   }
 
-  void commit(const CycleContext &) override {
+  void commit(const CycleContext &context) override {
+    account_suspended_busy_cycles(context.domain_cycle);
     for (const std::size_t worker_index : staged_completed_workers_) {
       GraSuReGraphWorker &worker = workers_.at(worker_index);
       iteration_active_vertices_ += worker.apply->active_vertices();
@@ -3559,6 +3636,13 @@ public:
     downstream_busy_cycles_ += downstream_busy;
     max_parallel_downstream_partitions_ =
         std::max(max_parallel_downstream_partitions_, downstream_busy);
+    last_busy_workers_ = busy;
+    last_downstream_busy_workers_ = downstream_busy;
+    last_commit_cycle_ = context.domain_cycle;
+    committed_once_ = true;
+    staged_ = Action::kNone;
+    staged_completed_workers_.clear();
+    refresh_evaluate_ready();
   }
 
 private:
@@ -3570,6 +3654,41 @@ private:
     kNextSuperstep,
     kFinish
   };
+
+  static void notify_worker_done(void *owner) noexcept {
+    static_cast<GraSuReGraphController *>(owner)->refresh_evaluate_ready();
+  }
+
+  void account_suspended_busy_cycles(std::uint64_t cycle) {
+    if (!committed_once_) {
+      return;
+    }
+    if (cycle <= last_commit_cycle_) {
+      throw std::logic_error(
+          "ReGraph controller suspended-cycle accounting moved backwards");
+    }
+    const std::uint64_t skipped = cycle - last_commit_cycle_ - 1;
+    pipeline_busy_cycles_ += skipped * last_busy_workers_;
+    downstream_busy_cycles_ += skipped * last_downstream_busy_workers_;
+  }
+
+  void refresh_evaluate_ready() noexcept {
+    evaluate_ready_ = false;
+    if (failed() || done()) {
+      set_latched_evaluate_ready(false);
+      return;
+    }
+    if (phase_ == Phase::kStart) {
+      evaluate_ready_ = true;
+    } else if (phase_ == Phase::kPrepare) {
+      evaluate_ready_ = source_prepare_->done();
+    } else if (phase_ == Phase::kRound) {
+      evaluate_ready_ = std::any_of(
+          workers_.begin(), workers_.end(),
+          [](const GraSuReGraphWorker &worker) { return worker.done(); });
+    }
+    set_latched_evaluate_ready(evaluate_ready_);
+  }
 
   [[nodiscard]] std::size_t busy_worker_count() const noexcept {
     return static_cast<std::size_t>(std::count_if(
@@ -3666,6 +3785,11 @@ private:
   std::size_t max_parallel_partitions_{};
   std::uint64_t downstream_busy_cycles_{};
   std::size_t max_parallel_downstream_partitions_{};
+  std::size_t last_busy_workers_{};
+  std::size_t last_downstream_busy_workers_{};
+  std::uint64_t last_commit_cycle_{};
+  bool committed_once_{};
+  bool evaluate_ready_{};
   std::vector<std::size_t> frontier_out_sizes_;
   std::string failure_;
 };

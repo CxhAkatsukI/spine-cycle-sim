@@ -1,0 +1,3 @@
+run_id,system,algorithm,cycles,old_fields,added_observability_fields,approved_provenance_changes,result_byte_identical,dram_json_files,baseline_wall_seconds,candidate_wall_seconds,host_speedup
+syn_spread_e512__residual_pagerank,spine,thresholded_residual_pagerank,4778979,187,0,,True,16,2.7897014813497663,2.725685019046068,1.0234863756657042
+syn_spread_e512__residual_pagerank,grasu_regraph,thresholded_residual_pagerank,15310428,169,0,,True,10,28.326925021596253,26.396364964544773,1.0731373452232753
