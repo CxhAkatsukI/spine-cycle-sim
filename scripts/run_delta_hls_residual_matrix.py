@@ -341,6 +341,12 @@ def _run_case(
         "downstream_sharing": result.get(
             "downstream_sharing", "spine_native"
         ),
+        "max_parallel_partitions": int(result.get("max_parallel_partitions", 1)),
+        "max_parallel_downstream_partitions": int(
+            result.get("max_parallel_downstream_partitions", 1)
+        ),
+        "pipeline_busy_cycles": int(result.get("pipeline_busy_cycles", 0)),
+        "downstream_busy_cycles": int(result.get("downstream_busy_cycles", 0)),
         "residual_contract": DELTA_CONTRACT,
         "epsilon": epsilon,
         "damping": DAMPING,
