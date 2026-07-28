@@ -1,0 +1,520 @@
+diff --git a/src/bankstate.cc b/src/bankstate.cc
+index 9db4d80..3c03c2f 100644
+--- a/src/bankstate.cc
++++ b/src/bankstate.cc
+@@ -18,7 +18,7 @@ BankState::BankState()
+ }
+
+
+-Command BankState::GetReadyCommand(const Command& cmd, uint64_t clk) const {
++Command BankState::RequiredCommand(const Command& cmd) const {
+     CommandType required_type = CommandType::SIZE;
+     switch (state_) {
+         case State::CLOSED:
+@@ -85,9 +85,15 @@ Command BankState::GetReadyCommand(const Command& cmd, uint64_t clk) const {
+     }
+
+     if (required_type != CommandType::SIZE) {
+-        if (clk >= cmd_timing_[static_cast<int>(required_type)]) {
+-            return Command(required_type, cmd.addr, cmd.hex_addr);
+-        }
++        return Command(required_type, cmd.addr, cmd.hex_addr);
++    }
++    return Command();
++}
++
++Command BankState::GetReadyCommand(const Command& cmd, uint64_t clk) const {
++    const Command required = RequiredCommand(cmd);
++    if (required.IsValid() && clk >= ReadyClock(required.cmd_type)) {
++        return required;
+     }
+     return Command();
+ }
+diff --git a/src/bankstate.h b/src/bankstate.h
+index ed9a264..8bffd15 100644
+--- a/src/bankstate.h
++++ b/src/bankstate.h
+@@ -12,6 +12,10 @@ class BankState {
+
+     enum class State { OPEN, CLOSED, SREF, PD, SIZE };
+     Command GetReadyCommand(const Command& cmd, uint64_t clk) const;
++    Command RequiredCommand(const Command& cmd) const;
++    uint64_t ReadyClock(CommandType cmd_type) const {
++        return cmd_timing_[static_cast<int>(cmd_type)];
++    }
+
+     // Update the state of the bank resulting after the execution of the command
+     void UpdateState(const Command& cmd);
+diff --git a/src/channel_state.cc b/src/channel_state.cc
+index c707046..a48b7ee 100644
+--- a/src/channel_state.cc
++++ b/src/channel_state.cc
+@@ -1,5 +1,8 @@
+ #include "channel_state.h"
+
++#include <algorithm>
++#include <limits>
++
+ namespace dramsim3 {
+ ChannelState::ChannelState(const Config& config, const Timing& timing)
+     : rank_idle_cycles(config.ranks, 0),
+@@ -108,6 +111,43 @@ Command ChannelState::GetReadyCommand(const Command& cmd, uint64_t clk) const {
+     }
+ }
+
++uint64_t ChannelState::NextReadyClock(const Command& cmd) const {
++    if (cmd.IsRankCMD()) {
++        uint64_t target_ready = 0;
++        uint64_t prerequisite_ready = std::numeric_limits<uint64_t>::max();
++        bool all_target = true;
++        for (auto j = 0; j < config_.bankgroups; j++) {
++            for (auto k = 0; k < config_.banks_per_group; k++) {
++                const BankState& bank = bank_states_[cmd.Rank()][j][k];
++                const Command required = bank.RequiredCommand(cmd);
++                if (!required.IsValid()) {
++                    return std::numeric_limits<uint64_t>::max();
++                }
++                const uint64_t ready = bank.ReadyClock(required.cmd_type);
++                if (required.cmd_type == cmd.cmd_type) {
++                    target_ready = std::max(target_ready, ready);
++                } else {
++                    all_target = false;
++                    prerequisite_ready = std::min(prerequisite_ready, ready);
++                }
++            }
++        }
++        return all_target ? target_ready : prerequisite_ready;
++    }
++
++    const BankState& bank =
++        bank_states_[cmd.Rank()][cmd.Bankgroup()][cmd.Bank()];
++    const Command required = bank.RequiredCommand(cmd);
++    if (!required.IsValid()) {
++        return std::numeric_limits<uint64_t>::max();
++    }
++    uint64_t ready = bank.ReadyClock(required.cmd_type);
++    if (required.cmd_type == CommandType::ACTIVATE) {
++        ready = std::max(ready, ActivationReadyClock(required.Rank()));
++    }
++    return ready;
++}
++
+ void ChannelState::UpdateState(const Command& cmd) {
+     if (cmd.IsRankCMD()) {
+         for (auto j = 0; j < config_.bankgroups; j++) {
+@@ -296,6 +336,17 @@ bool ChannelState::ActivationWindowOk(int rank, uint64_t curr_time) const {
+     return tfaw_ok;
+ }
+
++uint64_t ChannelState::ActivationReadyClock(int rank) const {
++    uint64_t ready = 0;
++    if (four_aw_[rank].size() >= 4) {
++        ready = four_aw_[rank].front();
++    }
++    if (config_.IsGDDR() && thirty_two_aw_[rank].size() >= 32) {
++        ready = std::max(ready, thirty_two_aw_[rank].front());
++    }
++    return ready;
++}
++
+ void ChannelState::UpdateActivationTimes(int rank, uint64_t curr_time) {
+     if (!four_aw_[rank].empty() && curr_time >= four_aw_[rank][0]) {
+         four_aw_[rank].erase(four_aw_[rank].begin());
+diff --git a/src/channel_state.h b/src/channel_state.h
+index f0fe447..2d9af55 100644
+--- a/src/channel_state.h
++++ b/src/channel_state.h
+@@ -13,6 +13,7 @@ class ChannelState {
+    public:
+     ChannelState(const Config& config, const Timing& timing);
+     Command GetReadyCommand(const Command& cmd, uint64_t clk) const;
++    uint64_t NextReadyClock(const Command& cmd) const;
+     void UpdateState(const Command& cmd);
+     void UpdateTiming(const Command& cmd, uint64_t clk);
+     void UpdateTimingAndStates(const Command& cmd, uint64_t clk);
+@@ -50,6 +51,7 @@ class ChannelState {
+     std::vector<std::vector<uint64_t> > thirty_two_aw_;
+     bool IsFAWReady(int rank, uint64_t curr_time) const;
+     bool Is32AWReady(int rank, uint64_t curr_time) const;
++    uint64_t ActivationReadyClock(int rank) const;
+     // Update timing of the bank the command corresponds to
+     void UpdateSameBankTiming(
+         const Address& addr,
+diff --git a/src/command_queue.cc b/src/command_queue.cc
+index e9d2c04..d5dc2e0 100644
+--- a/src/command_queue.cc
++++ b/src/command_queue.cc
+@@ -1,5 +1,8 @@
+ #include "command_queue.h"
+
++#include <algorithm>
++#include <limits>
++
+ namespace dramsim3 {
+
+ CommandQueue::CommandQueue(int channel_id, const Config& config,
+@@ -13,7 +16,9 @@ CommandQueue::CommandQueue(int channel_id, const Config& config,
+       queue_size_(static_cast<size_t>(config_.cmd_queue_size)),
+       queue_idx_(0),
+       nonempty_queue_mask_(0),
+-      clk_(0) {
++      clk_(0),
++      next_ready_clock_(std::numeric_limits<uint64_t>::max()),
++      next_ready_clock_valid_(false) {
+     if (config_.queue_structure == "PER_BANK") {
+         queue_structure_ = QueueStructure::PER_BANK;
+         num_queues_ = config_.banks * config_.ranks;
+@@ -41,6 +46,11 @@ CommandQueue::CommandQueue(int channel_id, const Config& config,
+ }
+
+ Command CommandQueue::GetCommandToIssue() {
++    if (next_ready_clock_valid_ && clk_ < next_ready_clock_) {
++        return Command();
++    }
++    next_ready_clock_ = std::numeric_limits<uint64_t>::max();
++    next_ready_clock_valid_ = false;
+     const int initial_queue = queue_idx_;
+     uint64_t remaining = nonempty_queue_mask_;
+     while (remaining != 0) {
+@@ -73,10 +83,12 @@ Command CommandQueue::GetCommandToIssue() {
+         }
+     }
+     queue_idx_ = initial_queue;
++    next_ready_clock_valid_ = true;
+     return Command();
+ }
+
+ Command CommandQueue::FinishRefresh() {
++    next_ready_clock_valid_ = false;
+     // we can do something fancy here like clearing the R/Ws
+     // that already had ACT on the way but by doing that we
+     // significantly pushes back the timing for a refresh
+@@ -99,6 +111,15 @@ Command CommandQueue::FinishRefresh() {
+
+ bool CommandQueue::ArbitratePrecharge(const CMDIterator& cmd_it,
+                                       const CMDQueue& queue) const {
++    if (!PrechargeAllowed(cmd_it, queue)) {
++        return false;
++    }
++    simple_stats_.Increment(SimpleStats::CounterStat::ONDEMAND_PRES);
++    return true;
++}
++
++bool CommandQueue::PrechargeAllowed(const CMDIterator& cmd_it,
++                                    const CMDQueue& queue) const {
+     auto cmd = *cmd_it;
+
+     for (auto prev_itr = queue.begin(); prev_itr != cmd_it; prev_itr++) {
+@@ -126,7 +147,6 @@ bool CommandQueue::ArbitratePrecharge(const CMDIterator& cmd_it,
+         channel_state_.RowHitCount(cmd.Rank(), cmd.Bankgroup(), cmd.Bank()) >=
+         4;
+     if (!pending_row_hits_exist || rowhit_limit_reached) {
+-        simple_stats_.Increment(SimpleStats::CounterStat::ONDEMAND_PRES);
+         return true;
+     }
+     return false;
+@@ -143,6 +163,7 @@ bool CommandQueue::QueueEmpty() const {
+
+
+ bool CommandQueue::AddCommand(Command cmd) {
++    next_ready_clock_valid_ = false;
+     auto& queue = GetQueue(cmd.Rank(), cmd.Bankgroup(), cmd.Bank());
+     if (queue.size() < queue_size_) {
+         queue.push_back(cmd);
+@@ -196,10 +217,25 @@ CMDQueue& CommandQueue::GetQueue(int rank, int bankgroup, int bank) {
+ }
+
+ Command CommandQueue::GetFirstReadyInQueue(CMDQueue& queue,
+-                                            CMDIterator& selected) const {
++                                            CMDIterator& selected) {
+     for (auto cmd_it = queue.begin(); cmd_it != queue.end(); cmd_it++) {
+         Command cmd = channel_state_.GetReadyCommand(*cmd_it, clk_);
+         if (!cmd.IsValid()) {
++            const uint64_t ready_clock =
++                channel_state_.NextReadyClock(*cmd_it);
++            if (ready_clock <= clk_ ||
++                ready_clock >= next_ready_clock_) {
++                continue;
++            }
++            const Command future =
++                channel_state_.GetReadyCommand(*cmd_it, ready_clock);
++            if (!future.IsValid() ||
++                (future.cmd_type == CommandType::PRECHARGE &&
++                 !PrechargeAllowed(cmd_it, queue)) ||
++                (future.IsWrite() && HasRWDependency(cmd_it, queue))) {
++                continue;
++            }
++            next_ready_clock_ = ready_clock;
+             continue;
+         }
+         if (cmd.cmd_type == CommandType::PRECHARGE) {
+diff --git a/src/command_queue.h b/src/command_queue.h
+index b76c942..185f5c7 100644
+--- a/src/command_queue.h
++++ b/src/command_queue.h
+@@ -26,16 +26,19 @@ class CommandQueue {
+     bool WillAcceptCommand(int rank, int bankgroup, int bank) const;
+     bool AddCommand(Command cmd);
+     bool QueueEmpty() const;
++    void InvalidateReadyClock() { next_ready_clock_valid_ = false; }
+     int QueueUsage() const;
+     std::vector<bool> rank_q_empty;
+
+    private:
+     bool ArbitratePrecharge(const CMDIterator& cmd_it,
+                             const CMDQueue& queue) const;
++    bool PrechargeAllowed(const CMDIterator& cmd_it,
++                          const CMDQueue& queue) const;
+     bool HasRWDependency(const CMDIterator& cmd_it,
+                          const CMDQueue& queue) const;
+     Command GetFirstReadyInQueue(CMDQueue& queue,
+-                                 CMDIterator& selected) const;
++                                 CMDIterator& selected);
+     int GetQueueIndex(int rank, int bankgroup, int bank) const;
+     CMDQueue& GetQueue(int rank, int bankgroup, int bank);
+     CMDQueue& GetNextQueue();
+@@ -58,6 +61,8 @@ class CommandQueue {
+     int queue_idx_;
+     uint64_t nonempty_queue_mask_;
+     uint64_t clk_;
++    uint64_t next_ready_clock_;
++    bool next_ready_clock_valid_;
+ };
+
+ }  // namespace dramsim3
+diff --git a/src/controller.cc b/src/controller.cc
+index 5f1fcba..8a205d3 100644
+--- a/src/controller.cc
++++ b/src/controller.cc
+@@ -1,4 +1,5 @@
+ #include "controller.h"
++#include <algorithm>
+ #include <cassert>
+ #include <iomanip>
+ #include <iostream>
+@@ -23,6 +24,7 @@ Controller::Controller(int channel, const Config &config, const Timing &timing)
+       thermal_calc_(thermal_calc),
+ #endif  // THERMAL
+       is_unified_queue_(config.unified_queue),
++      next_return_cycle_(std::numeric_limits<uint64_t>::max()),
+       row_buf_policy_(config.row_buf_policy == "CLOSE_PAGE"
+                           ? RowBufPolicy::CLOSE_PAGE
+                           : RowBufPolicy::OPEN_PAGE),
+@@ -44,6 +46,9 @@ Controller::Controller(int channel, const Config &config, const Timing &timing)
+ }
+
+ std::pair<uint64_t, int> Controller::ReturnDoneTrans(uint64_t clk) {
++    if (clk < next_return_cycle_) {
++        return std::make_pair(-1, -1);
++    }
+     auto it = return_queue_.begin();
+     while (it != return_queue_.end()) {
+         if (clk >= it->complete_cycle) {
+@@ -56,6 +61,7 @@ std::pair<uint64_t, int> Controller::ReturnDoneTrans(uint64_t clk) {
+             }
+             auto pair = std::make_pair(it->addr, it->is_write);
+             it = return_queue_.erase(it);
++            RecomputeNextReturnCycle();
+             return pair;
+         } else {
+             ++it;
+@@ -64,6 +70,18 @@ std::pair<uint64_t, int> Controller::ReturnDoneTrans(uint64_t clk) {
+     return std::make_pair(-1, -1);
+ }
+
++void Controller::EnqueueReturn(const Transaction &trans) {
++    return_queue_.push_back(trans);
++    next_return_cycle_ = std::min(next_return_cycle_, trans.complete_cycle);
++}
++
++void Controller::RecomputeNextReturnCycle() {
++    next_return_cycle_ = std::numeric_limits<uint64_t>::max();
++    for (const auto &trans : return_queue_) {
++        next_return_cycle_ = std::min(next_return_cycle_, trans.complete_cycle);
++    }
++}
++
+ void Controller::ClockTick() {
+     // update refresh counter
+     refresh_.ClockTick();
+@@ -225,13 +243,13 @@ bool Controller::AddTransaction(Transaction trans) {
+             }
+         }
+         trans.complete_cycle = clk_ + 1;
+-        return_queue_.push_back(trans);
++        EnqueueReturn(trans);
+         return true;
+     } else {  // read
+         // if in write buffer, use the write buffer value
+         if (pending_wr_q_.count(trans.addr) > 0) {
+             trans.complete_cycle = clk_ + 1;
+-            return_queue_.push_back(trans);
++            EnqueueReturn(trans);
+             return true;
+         }
+         pending_rd_q_.insert(std::make_pair(trans.addr, trans));
+@@ -297,7 +315,7 @@ void Controller::IssueCommand(const Command &cmd) {
+         while (num_reads > 0) {
+             auto it = pending_rd_q_.find(cmd.hex_addr);
+             it->second.complete_cycle = clk_ + config_.read_delay;
+-            return_queue_.push_back(it->second);
++            EnqueueReturn(it->second);
+             pending_rd_q_.erase(it);
+             num_reads -= 1;
+         }
+@@ -316,6 +334,7 @@ void Controller::IssueCommand(const Command &cmd) {
+     // must update stats before states (for row hits)
+     UpdateCommandStats(cmd);
+     channel_state_.UpdateTimingAndStates(cmd, clk_);
++    cmd_queue_.InvalidateReadyClock();
+ }
+
+ Command Controller::TransToCommand(const Transaction &trans) {
+diff --git a/src/controller.h b/src/controller.h
+index d46bcae..53820a0 100644
+--- a/src/controller.h
++++ b/src/controller.h
+@@ -66,6 +66,7 @@ class Controller {
+
+     // completed transactions
+     std::vector<Transaction> return_queue_;
++    uint64_t next_return_cycle_;
+
+     // row buffer policy
+     RowBufPolicy row_buf_policy_;
+@@ -80,6 +81,8 @@ class Controller {
+     // transaction queueing
+     int write_draining_;
+     void ScheduleTransaction();
++    void EnqueueReturn(const Transaction &trans);
++    void RecomputeNextReturnCycle();
+     void IssueCommand(const Command &tmp_cmd);
+     Command TransToCommand(const Transaction &trans);
+     void UpdateCommandStats(const Command &cmd);
+diff --git a/src/refresh.cc b/src/refresh.cc
+index 291a88e..20e0027 100644
+--- a/src/refresh.cc
++++ b/src/refresh.cc
+@@ -5,6 +5,7 @@
+ namespace dramsim3 {
+ Refresh::Refresh(const Config &config, ChannelState &channel_state)
+     : clk_(0),
++      next_refresh_clk_(0),
+       config_(config),
+       channel_state_(channel_state),
+       refresh_policy_(config.refresh_policy),
+@@ -18,22 +19,21 @@ Refresh::Refresh(const Config &config, ChannelState &channel_state)
+     } else {  // default refresh scheme: RANK STAGGERED
+         refresh_interval_ = config_.tREFI / config_.ranks;
+     }
++    next_refresh_clk_ = static_cast<uint64_t>(refresh_interval_);
+ }
+
+ void Refresh::ClockTick() {
+-    if (clk_ % refresh_interval_ == 0 && clk_ > 0) {
++    if (clk_ == next_refresh_clk_) {
+         InsertRefresh();
++        next_refresh_clk_ += static_cast<uint64_t>(refresh_interval_);
+     }
+     clk_++;
+     return;
+ }
+
+ uint64_t Refresh::ClocksUntilRefresh() const {
+-    if (clk_ == 0) {
+-        return static_cast<uint64_t>(refresh_interval_);
+-    }
+-    const uint64_t remainder = clk_ % refresh_interval_;
+-    return remainder == 0 ? 0 : refresh_interval_ - remainder;
++    assert(clk_ <= next_refresh_clk_);
++    return next_refresh_clk_ - clk_;
+ }
+
+ void Refresh::AdvanceIdle(uint64_t cycles) {
+diff --git a/src/refresh.h b/src/refresh.h
+index 2a3375f..829b8b9 100644
+--- a/src/refresh.h
++++ b/src/refresh.h
+@@ -18,6 +18,7 @@ class Refresh {
+
+    private:
+     uint64_t clk_;
++    uint64_t next_refresh_clk_;
+     int refresh_interval_;
+     const Config& config_;
+     ChannelState& channel_state_;
+diff --git a/src/simple_stats.cc b/src/simple_stats.cc
+index 374801c..a0b9a8f 100644
+--- a/src/simple_stats.cc
++++ b/src/simple_stats.cc
+@@ -106,22 +106,6 @@ SimpleStats::SimpleStats(const Config& config, int channel_id)
+     };
+ }
+
+-void SimpleStats::Increment(CounterStat stat) {
+-    ++*hot_counters_[static_cast<size_t>(stat)];
+-}
+-
+-void SimpleStats::IncrementBy(CounterStat stat, uint64_t count) {
+-    *hot_counters_[static_cast<size_t>(stat)] += count;
+-}
+-
+-void SimpleStats::IncrementVec(VectorStat stat, int pos) {
+-    ++hot_vec_counters_[static_cast<size_t>(stat)]->at(pos);
+-}
+-
+-void SimpleStats::IncrementVecBy(VectorStat stat, int pos, uint64_t count) {
+-    hot_vec_counters_[static_cast<size_t>(stat)]->at(pos) += count;
+-}
+-
+ void SimpleStats::AddValue(const std::string name, const int value) {
+     auto& epoch_counts = epoch_histo_counts_[name];
+     if (epoch_counts.count(value) <= 0) {
+@@ -131,11 +115,6 @@ void SimpleStats::AddValue(const std::string name, const int value) {
+     }
+ }
+
+-void SimpleStats::AddValue(HistogramStat stat, int value) {
+-    auto& epoch_counts = *hot_histo_counts_[static_cast<size_t>(stat)];
+-    ++epoch_counts[value];
+-}
+-
+ std::string SimpleStats::GetTextHeader(bool is_final) const {
+     std::string header =
+         "###########################################\n## Statistics of "
+diff --git a/src/simple_stats.h b/src/simple_stats.h
+index 1f2462b..9cdbef4 100644
+--- a/src/simple_stats.h
++++ b/src/simple_stats.h
+@@ -65,14 +65,26 @@ class SimpleStats {
+         epoch_vec_counters_[name][pos] += num;
+     }
+
+-    void Increment(CounterStat stat);
+-    void IncrementBy(CounterStat stat, uint64_t count);
+-    void IncrementVec(VectorStat stat, int pos);
+-    void IncrementVecBy(VectorStat stat, int pos, uint64_t count);
++    void Increment(CounterStat stat) {
++        ++*hot_counters_[static_cast<size_t>(stat)];
++    }
++    void IncrementBy(CounterStat stat, uint64_t count) {
++        *hot_counters_[static_cast<size_t>(stat)] += count;
++    }
++    void IncrementVec(VectorStat stat, int pos) {
++        ++hot_vec_counters_[static_cast<size_t>(stat)]->at(pos);
++    }
++    void IncrementVecBy(VectorStat stat, int pos, uint64_t count) {
++        hot_vec_counters_[static_cast<size_t>(stat)]->at(pos) += count;
++    }
+
+     // add historgram value
+     void AddValue(const std::string name, const int value);
+-    void AddValue(HistogramStat stat, int value);
++    void AddValue(HistogramStat stat, int value) {
++        auto& epoch_counts =
++            *hot_histo_counts_[static_cast<size_t>(stat)];
++        ++epoch_counts[value];
++    }
+
+     // return per rank background energy
+     double RankBackgroundEnergy(const int r) const;
