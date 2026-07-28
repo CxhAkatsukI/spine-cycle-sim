@@ -37,20 +37,30 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--log", type=Path, required=True)
     parser.add_argument("--out-dir", type=Path, required=True)
+    parser.add_argument("--label", default="Spine opt-v2")
+    parser.add_argument(
+        "--generic-components",
+        action="store_true",
+        help="parse the complete hierarchy without requiring Spine-specific names",
+    )
     args = parser.parse_args()
 
-    ledger = parse_vivado_power_log(args.log)
+    ledger = parse_vivado_power_log(
+        args.log,
+        required_components={} if args.generic_components else None,
+    )
     args.out_dir.mkdir(parents=True, exist_ok=True)
     (args.out_dir / "power_summary.json").write_text(
         json.dumps(ledger, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
     _write_csv(args.out_dir / "power_hierarchy.csv", ledger["hierarchy"])
-    _write_csv(
-        args.out_dir / "publication_components.csv",
-        ledger["publication_components"],
-    )
+    if ledger["publication_components"]:
+        _write_csv(
+            args.out_dir / "publication_components.csv",
+            ledger["publication_components"],
+        )
     summary = ledger["summary"]
-    readme = f"""# Spine opt-v2 Vivado power evidence
+    readme = f"""# {args.label} Vivado power evidence
 
 - Status: `{ledger['status']}`
 - Claim class: `{ledger['claim_class']}`

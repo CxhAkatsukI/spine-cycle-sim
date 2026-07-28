@@ -83,6 +83,15 @@ class VivadoPowerTests(unittest.TestCase):
         with self.assertRaisesRegex(VivadoPowerError, "missing hierarchy component"):
             self._parse(broken)
 
+    def test_generic_mode_keeps_hierarchy_without_spine_names(self) -> None:
+        text = REPORT.replace("spine_partconv_compute_kernel_1", "some_other_cu")
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "impl.log"
+            path.write_text(text, encoding="utf-8")
+            result = parse_vivado_power_log(path, required_components={})
+        self.assertEqual(result["publication_components"], [])
+        self.assertIn("some_other_cu", {row["name"] for row in result["hierarchy"]})
+
 
 if __name__ == "__main__":
     unittest.main()

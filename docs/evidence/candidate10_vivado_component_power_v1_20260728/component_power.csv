@@ -1,0 +1,5 @@
+build_id,label,system,algorithm,dynamic_w,device_static_w,ulp_power_w,platform_dynamic_residual_w,hbm_subsystem,update_maintenance,graph_compute,stream_fifos,other_user_logic
+spine_candidate10_opt_v2_sssp_150mhz,Spine opt-v2 SSSP,spine,weighted_sssp,27.677,10.588,19.888,7.788999999999998,17.674,1.891,0.205,0.003,0.11299999999999999
+grasu_regraph_weighted_sssp_150mhz,G+R SSSP,grasu_regraph,weighted_sssp,21.921,9.215,14.12,7.801,10.807,2.322,0.7770000000000001,0.035,0.177
+grasu_regraph_full_pagerank_150mhz,G+R Full PR,grasu_regraph,full_pagerank,25.104,9.926,17.288,7.815999999999999,12.685,1.202,3.133,0.079,0.189
+grasu_regraph_thresholded_residual_pagerank_150mhz,G+R Residual PR,grasu_regraph,thresholded_residual_pagerank,26.014,10.146,18.174,7.84,12.372,1.9569999999999999,3.589,0.068,0.186

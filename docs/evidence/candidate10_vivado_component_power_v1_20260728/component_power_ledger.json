@@ -1,0 +1,679 @@
+{
+  "builds": [
+    {
+      "algorithm": "weighted_sssp",
+      "build_id": "spine_candidate10_opt_v2_sssp_150mhz",
+      "components_w": {
+        "graph_compute": 0.205,
+        "hbm_subsystem": 17.674,
+        "other_user_logic": 0.11299999999999999,
+        "stream_fifos": 0.003,
+        "update_maintenance": 1.891
+      },
+      "confidence_level": "Low",
+      "device_static_w": 10.588,
+      "dynamic_w": 27.677,
+      "expected": {
+        "components_w": {
+          "graph_compute": 0.205,
+          "hbm_subsystem": 17.674,
+          "other_user_logic": 0.11299999999999999,
+          "stream_fifos": 0.003,
+          "update_maintenance": 1.891
+        },
+        "device_static_w": 10.588,
+        "dynamic_w": 27.677,
+        "ulp_power_w": 19.888
+      },
+      "label": "Spine opt-v2 SSSP",
+      "path": "docs/evidence/candidate10_spine_opt_v2_vivado_power_20260728/power_summary.json",
+      "platform_dynamic_residual_w": 7.788999999999998,
+      "sha256": "a8d9b138c08a7cb6c8dcc3f31d49df3e6b1450c5431b532a3a030745d202a260",
+      "system": "spine",
+      "ulp_children": [
+        {
+          "category": "other_user_logic",
+          "name": "SLR0",
+          "power_w": 0.023
+        },
+        {
+          "category": "other_user_logic",
+          "name": "SLR1",
+          "power_w": 0.012
+        },
+        {
+          "category": "other_user_logic",
+          "name": "SLR2",
+          "power_w": 0.005
+        },
+        {
+          "category": "stream_fifos",
+          "name": "buffer_spine_partconv_compute_kernel_1_value_out",
+          "power_w": 0.001
+        },
+        {
+          "category": "stream_fifos",
+          "name": "buffer_spine_partconv_rdmaint_kernel_1_edge_out",
+          "power_w": 0.002
+        },
+        {
+          "category": "hbm_subsystem",
+          "name": "hmss_0",
+          "power_w": 17.674
+        },
+        {
+          "category": "graph_compute",
+          "name": "spine_partconv_compute_kernel_1",
+          "power_w": 0.205
+        },
+        {
+          "category": "update_maintenance",
+          "name": "spine_partconv_rdmaint_kernel_1",
+          "power_w": 1.891
+        },
+        {
+          "category": "other_user_logic",
+          "name": "ulp_cmp",
+          "power_w": 0.002
+        },
+        {
+          "category": "other_user_logic",
+          "name": "ulp_ucs",
+          "power_w": 0.071
+        }
+      ],
+      "ulp_power_w": 19.888
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "build_id": "grasu_regraph_weighted_sssp_150mhz",
+      "components_w": {
+        "graph_compute": 0.7770000000000001,
+        "hbm_subsystem": 10.807,
+        "other_user_logic": 0.177,
+        "stream_fifos": 0.035,
+        "update_maintenance": 2.322
+      },
+      "confidence_level": "Low",
+      "device_static_w": 9.215,
+      "dynamic_w": 21.921,
+      "expected": {
+        "components_w": {
+          "graph_compute": 0.7770000000000001,
+          "hbm_subsystem": 10.807,
+          "other_user_logic": 0.177,
+          "stream_fifos": 0.035,
+          "update_maintenance": 2.322
+        },
+        "device_static_w": 9.215,
+        "dynamic_w": 21.921,
+        "ulp_power_w": 14.12
+      },
+      "label": "G+R SSSP",
+      "path": "docs/evidence/candidate10_grasu_regraph_vivado_power_20260728/weighted_sssp/power_summary.json",
+      "platform_dynamic_residual_w": 7.801,
+      "sha256": "d7fe07a99c16615e3b92ec340ff714837ec979bd56b1a2ce8a19e1fe5716caa9",
+      "system": "grasu_regraph",
+      "ulp_children": [
+        {
+          "category": "other_user_logic",
+          "name": "SLR0",
+          "power_w": 0.031
+        },
+        {
+          "category": "other_user_logic",
+          "name": "SLR1",
+          "power_w": 0.035
+        },
+        {
+          "category": "other_user_logic",
+          "name": "SLR2",
+          "power_w": 0.03
+        },
+        {
+          "category": "update_maintenance",
+          "name": "bin_search_1",
+          "power_w": 0.053
+        },
+        {
+          "category": "update_maintenance",
+          "name": "bin_search_2",
+          "power_w": 0.058
+        },
+        {
+          "category": "update_maintenance",
+          "name": "bin_search_3",
+          "power_w": 0.055
+        },
+        {
+          "category": "update_maintenance",
+          "name": "bin_search_4",
+          "power_w": 0.057
+        },
+        {
+          "category": "stream_fifos",
+          "name": "buffer_kernelApply_1_prop_write_burst_stm",
+          "power_w": 0.011
+        },
+        {
+          "category": "stream_fifos",
+          "name": "buffer_kernelLittleGSMerger_1_l_write_burst_stm",
+          "power_w": 0.011
+        },
+        {
+          "category": "stream_fifos",
+          "name": "buffer_lksg_stream_1_l_tmp_prop_stm",
+          "power_w": 0.002
+        },
+        {
+          "category": "stream_fifos",
+          "name": "buffer_pma_to_regraph_adapter_1_edge_burst_out",
+          "power_w": 0.011
+        },
+        {
+          "category": "update_maintenance",
+          "name": "dispatch_1",
+          "power_w": 0.013
+        },
+        {
+          "category": "hbm_subsystem",
+          "name": "hmss_0",
+          "power_w": 10.807
+        },
+        {
+          "category": "graph_compute",
+          "name": "kernelApply_1",
+          "power_w": 0.163
+        },
+        {
+          "category": "graph_compute",
+          "name": "kernelHBMWrapper_1",
+          "power_w": 0.266
+        },
+        {
+          "category": "graph_compute",
+          "name": "kernelLittleGSMerger_1",
+          "power_w": 0.011
+        },
+        {
+          "category": "graph_compute",
+          "name": "lksg_stream_1",
+          "power_w": 0.337
+        },
+        {
+          "category": "update_maintenance",
+          "name": "pma_to_regraph_adapter_1",
+          "power_w": 0.195
+        },
+        {
+          "category": "update_maintenance",
+          "name": "process_cache_1",
+          "power_w": 0.112
+        },
+        {
+          "category": "update_maintenance",
+          "name": "process_cache_2",
+          "power_w": 0.115
+        },
+        {
+          "category": "update_maintenance",
+          "name": "process_ddr_1",
+          "power_w": 0.825
+        },
+        {
+          "category": "update_maintenance",
+          "name": "process_ddr_2",
+          "power_w": 0.839
+        },
+        {
+          "category": "other_user_logic",
+          "name": "ulp_cmp",
+          "power_w": 0.002
+        },
+        {
+          "category": "other_user_logic",
+          "name": "ulp_ucs",
+          "power_w": 0.079
+        }
+      ],
+      "ulp_power_w": 14.12
+    },
+    {
+      "algorithm": "full_pagerank",
+      "build_id": "grasu_regraph_full_pagerank_150mhz",
+      "components_w": {
+        "graph_compute": 3.133,
+        "hbm_subsystem": 12.685,
+        "other_user_logic": 0.189,
+        "stream_fifos": 0.079,
+        "update_maintenance": 1.202
+      },
+      "confidence_level": "Low",
+      "device_static_w": 9.926,
+      "dynamic_w": 25.104,
+      "expected": {
+        "components_w": {
+          "graph_compute": 3.133,
+          "hbm_subsystem": 12.685,
+          "other_user_logic": 0.189,
+          "stream_fifos": 0.079,
+          "update_maintenance": 1.202
+        },
+        "device_static_w": 9.926,
+        "dynamic_w": 25.104,
+        "ulp_power_w": 17.288
+      },
+      "label": "G+R Full PR",
+      "path": "docs/evidence/candidate10_grasu_regraph_vivado_power_20260728/full_pagerank/power_summary.json",
+      "platform_dynamic_residual_w": 7.815999999999999,
+      "sha256": "69bf727b21ff04bf7112af8fe02d8d47ccb5f2dc8c7028a770d4d8c3a6730531",
+      "system": "grasu_regraph",
+      "ulp_children": [
+        {
+          "category": "other_user_logic",
+          "name": "SLR0",
+          "power_w": 0.03
+        },
+        {
+          "category": "other_user_logic",
+          "name": "SLR1",
+          "power_w": 0.053
+        },
+        {
+          "category": "other_user_logic",
+          "name": "SLR2",
+          "power_w": 0.029
+        },
+        {
+          "category": "update_maintenance",
+          "name": "bin_search_1",
+          "power_w": 0.043
+        },
+        {
+          "category": "update_maintenance",
+          "name": "bin_search_2",
+          "power_w": 0.045
+        },
+        {
+          "category": "update_maintenance",
+          "name": "bin_search_3",
+          "power_w": 0.045
+        },
+        {
+          "category": "update_maintenance",
+          "name": "bin_search_4",
+          "power_w": 0.045
+        },
+        {
+          "category": "stream_fifos",
+          "name": "buffer_bin_search_1_segment_head_stream_out",
+          "power_w": 0.002
+        },
+        {
+          "category": "stream_fifos",
+          "name": "buffer_bin_search_2_segment_head_stream_out",
+          "power_w": 0.002
+        },
+        {
+          "category": "stream_fifos",
+          "name": "buffer_bin_search_3_segment_head_stream_out",
+          "power_w": 0.002
+        },
+        {
+          "category": "stream_fifos",
+          "name": "buffer_bin_search_4_segment_head_stream_out",
+          "power_w": 0.002
+        },
+        {
+          "category": "stream_fifos",
+          "name": "buffer_dispatch_degree_1_degree_delta",
+          "power_w": 0.002
+        },
+        {
+          "category": "stream_fifos",
+          "name": "buffer_dispatch_degree_1_dispatch_to_process_cache_1",
+          "power_w": 0.003
+        },
+        {
+          "category": "stream_fifos",
+          "name": "buffer_dispatch_degree_1_dispatch_to_process_cache_2",
+          "power_w": 0.003
+        },
+        {
+          "category": "stream_fifos",
+          "name": "buffer_dispatch_degree_1_dispatch_to_process_ddr_1",
+          "power_w": 0.003
+        },
+        {
+          "category": "stream_fifos",
+          "name": "buffer_dispatch_degree_1_dispatch_to_process_ddr_2",
+          "power_w": 0.004
+        },
+        {
+          "category": "stream_fifos",
+          "name": "buffer_kernelHBMWrapper_1_l_ppb_response_stm_1",
+          "power_w": 0.02
+        },
+        {
+          "category": "stream_fifos",
+          "name": "buffer_kernelLittleGSMerger_1_l_write_burst_stm",
+          "power_w": 0.009
+        },
+        {
+          "category": "stream_fifos",
+          "name": "buffer_lksg_stream_1_l_tmp_prop_stm",
+          "power_w": 0.002
+        },
+        {
+          "category": "stream_fifos",
+          "name": "buffer_pma_to_regraph_adapter_1_edge_burst_out",
+          "power_w": 0.009
+        },
+        {
+          "category": "stream_fifos",
+          "name": "buffer_regraph_pagerank_apply_1_source_prop_write",
+          "power_w": 0.016
+        },
+        {
+          "category": "update_maintenance",
+          "name": "dispatch_degree_1",
+          "power_w": 0.016
+        },
+        {
+          "category": "update_maintenance",
+          "name": "grasu_degree_update_1",
+          "power_w": 0.04
+        },
+        {
+          "category": "hbm_subsystem",
+          "name": "hmss_0",
+          "power_w": 12.685
+        },
+        {
+          "category": "graph_compute",
+          "name": "kernelHBMWrapper_1",
+          "power_w": 0.267
+        },
+        {
+          "category": "graph_compute",
+          "name": "kernelLittleGSMerger_1",
+          "power_w": 0.012
+        },
+        {
+          "category": "graph_compute",
+          "name": "lksg_stream_1",
+          "power_w": 0.426
+        },
+        {
+          "category": "update_maintenance",
+          "name": "pma_to_regraph_adapter_1",
+          "power_w": 0.224
+        },
+        {
+          "category": "graph_compute",
+          "name": "pr_source_1",
+          "power_w": 1.205
+        },
+        {
+          "category": "update_maintenance",
+          "name": "process_cache_1",
+          "power_w": 0.115
+        },
+        {
+          "category": "update_maintenance",
+          "name": "process_cache_2",
+          "power_w": 0.113
+        },
+        {
+          "category": "update_maintenance",
+          "name": "process_ddr_1",
+          "power_w": 0.254
+        },
+        {
+          "category": "update_maintenance",
+          "name": "process_ddr_2",
+          "power_w": 0.262
+        },
+        {
+          "category": "graph_compute",
+          "name": "regraph_pagerank_apply_1",
+          "power_w": 1.223
+        },
+        {
+          "category": "other_user_logic",
+          "name": "ulp_cmp",
+          "power_w": 0.002
+        },
+        {
+          "category": "other_user_logic",
+          "name": "ulp_ucs",
+          "power_w": 0.075
+        }
+      ],
+      "ulp_power_w": 17.288
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "build_id": "grasu_regraph_thresholded_residual_pagerank_150mhz",
+      "components_w": {
+        "graph_compute": 3.589,
+        "hbm_subsystem": 12.372,
+        "other_user_logic": 0.186,
+        "stream_fifos": 0.068,
+        "update_maintenance": 1.9569999999999999
+      },
+      "confidence_level": "Low",
+      "device_static_w": 10.146,
+      "dynamic_w": 26.014,
+      "expected": {
+        "components_w": {
+          "graph_compute": 3.589,
+          "hbm_subsystem": 12.372,
+          "other_user_logic": 0.186,
+          "stream_fifos": 0.068,
+          "update_maintenance": 1.9569999999999999
+        },
+        "device_static_w": 10.146,
+        "dynamic_w": 26.014,
+        "ulp_power_w": 18.174
+      },
+      "label": "G+R Residual PR",
+      "path": "docs/evidence/candidate10_grasu_regraph_vivado_power_20260728/thresholded_residual_pagerank/power_summary.json",
+      "platform_dynamic_residual_w": 7.84,
+      "sha256": "647f1f7c26709256b6610b16b39107dac745eff3d103f167766a64685bd46b14",
+      "system": "grasu_regraph",
+      "ulp_children": [
+        {
+          "category": "other_user_logic",
+          "name": "SLR0",
+          "power_w": 0.032
+        },
+        {
+          "category": "other_user_logic",
+          "name": "SLR1",
+          "power_w": 0.048
+        },
+        {
+          "category": "other_user_logic",
+          "name": "SLR2",
+          "power_w": 0.028
+        },
+        {
+          "category": "update_maintenance",
+          "name": "bin_search_1",
+          "power_w": 0.042
+        },
+        {
+          "category": "update_maintenance",
+          "name": "bin_search_2",
+          "power_w": 0.043
+        },
+        {
+          "category": "update_maintenance",
+          "name": "bin_search_3",
+          "power_w": 0.041
+        },
+        {
+          "category": "update_maintenance",
+          "name": "bin_search_4",
+          "power_w": 0.041
+        },
+        {
+          "category": "stream_fifos",
+          "name": "buffer_bin_search_1_segment_head_stream_out",
+          "power_w": 0.002
+        },
+        {
+          "category": "stream_fifos",
+          "name": "buffer_bin_search_2_segment_head_stream_out",
+          "power_w": 0.002
+        },
+        {
+          "category": "stream_fifos",
+          "name": "buffer_bin_search_3_segment_head_stream_out",
+          "power_w": 0.002
+        },
+        {
+          "category": "stream_fifos",
+          "name": "buffer_bin_search_4_segment_head_stream_out",
+          "power_w": 0.002
+        },
+        {
+          "category": "stream_fifos",
+          "name": "buffer_dispatch_degree_1_degree_delta",
+          "power_w": 0.002
+        },
+        {
+          "category": "stream_fifos",
+          "name": "buffer_dispatch_degree_1_dispatch_to_process_cache_1",
+          "power_w": 0.003
+        },
+        {
+          "category": "stream_fifos",
+          "name": "buffer_dispatch_degree_1_dispatch_to_process_cache_2",
+          "power_w": 0.003
+        },
+        {
+          "category": "stream_fifos",
+          "name": "buffer_dispatch_degree_1_dispatch_to_process_ddr_1",
+          "power_w": 0.002
+        },
+        {
+          "category": "stream_fifos",
+          "name": "buffer_dispatch_degree_1_dispatch_to_process_ddr_2",
+          "power_w": 0.003
+        },
+        {
+          "category": "stream_fifos",
+          "name": "buffer_kernelHBMWrapper_1_l_ppb_response_stm_1",
+          "power_w": 0.014
+        },
+        {
+          "category": "stream_fifos",
+          "name": "buffer_kernelLittleGSMerger_1_l_write_burst_stm",
+          "power_w": 0.01
+        },
+        {
+          "category": "stream_fifos",
+          "name": "buffer_lksg_stream_1_l_tmp_prop_stm",
+          "power_w": 0.001
+        },
+        {
+          "category": "stream_fifos",
+          "name": "buffer_pma_to_regraph_adapter_1_edge_burst_out",
+          "power_w": 0.008
+        },
+        {
+          "category": "stream_fifos",
+          "name": "buffer_regraph_pagerank_apply_1_source_prop_write",
+          "power_w": 0.014
+        },
+        {
+          "category": "update_maintenance",
+          "name": "dispatch_degree_1",
+          "power_w": 0.012
+        },
+        {
+          "category": "update_maintenance",
+          "name": "grasu_degree_update_1",
+          "power_w": 0.037
+        },
+        {
+          "category": "hbm_subsystem",
+          "name": "hmss_0",
+          "power_w": 12.372
+        },
+        {
+          "category": "graph_compute",
+          "name": "kernelHBMWrapper_1",
+          "power_w": 0.249
+        },
+        {
+          "category": "graph_compute",
+          "name": "kernelLittleGSMerger_1",
+          "power_w": 0.01
+        },
+        {
+          "category": "graph_compute",
+          "name": "lksg_stream_1",
+          "power_w": 0.357
+        },
+        {
+          "category": "update_maintenance",
+          "name": "pma_to_regraph_adapter_1",
+          "power_w": 0.18
+        },
+        {
+          "category": "graph_compute",
+          "name": "pr_source_1",
+          "power_w": 1.143
+        },
+        {
+          "category": "update_maintenance",
+          "name": "process_cache_1",
+          "power_w": 0.107
+        },
+        {
+          "category": "update_maintenance",
+          "name": "process_cache_2",
+          "power_w": 0.108
+        },
+        {
+          "category": "update_maintenance",
+          "name": "process_ddr_1",
+          "power_w": 0.688
+        },
+        {
+          "category": "update_maintenance",
+          "name": "process_ddr_2",
+          "power_w": 0.658
+        },
+        {
+          "category": "graph_compute",
+          "name": "regraph_pagerank_apply_1",
+          "power_w": 1.83
+        },
+        {
+          "category": "other_user_logic",
+          "name": "ulp_cmp",
+          "power_w": 0.002
+        },
+        {
+          "category": "other_user_logic",
+          "name": "ulp_ucs",
+          "power_w": 0.076
+        }
+      ],
+      "ulp_power_w": 18.174
+    }
+  ],
+  "claim_class": "vivado_vectorless_hierarchy_component_attribution_not_workload_energy",
+  "limitations": [
+    "All hierarchy values use Vivado default vectorless activity and have Low confidence.",
+    "The values establish implementation component attribution, not workload-calibrated energy or board power.",
+    "Spine is one native weighted-SSSP core build; GraSU+ReGraph uses three algorithm-specific whole-system builds, so cross-row power ratios are not iso-functional.",
+    "Workload energy must use simulator activity and separately validated memory energy models."
+  ],
+  "schema_version": 1,
+  "status": "PASS"
+}

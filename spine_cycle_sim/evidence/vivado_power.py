@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 import re
 import subprocess
-from typing import Any
+from typing import Any, Mapping
 from typing import Sequence
 
 
@@ -162,7 +162,11 @@ def _float_value(value: str, label: str) -> float:
     return float(match.group(0))
 
 
-def parse_vivado_power_log(path: str | Path) -> dict[str, Any]:
+def parse_vivado_power_log(
+    path: str | Path,
+    *,
+    required_components: Mapping[str, str] | None = None,
+) -> dict[str, Any]:
     """Parse one completed Vivado report_power invocation and check conservation."""
 
     log_path = Path(path).resolve()
@@ -214,7 +218,12 @@ def parse_vivado_power_log(path: str | Path) -> dict[str, Any]:
 
     component_rows = []
     by_name = {row["name"]: row for row in hierarchy_rows}
-    for source_name, component in _PUBLICATION_COMPONENTS.items():
+    component_map = (
+        _PUBLICATION_COMPONENTS
+        if required_components is None
+        else dict(required_components)
+    )
+    for source_name, component in component_map.items():
         if source_name not in by_name:
             raise VivadoPowerError(f"missing hierarchy component: {source_name}")
         component_rows.append(

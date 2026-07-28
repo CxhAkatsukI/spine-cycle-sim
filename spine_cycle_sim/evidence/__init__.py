@@ -52,6 +52,11 @@ from .vivado_power import (
     VivadoPowerError,
     parse_vivado_power_log,
 )
+from .component_power import (
+    ComponentPowerError,
+    aggregate_vivado_component_power,
+    analyze_component_power_manifest,
+)
 
 __all__ = [
     "FpgaEvidenceError",
@@ -92,4 +97,7 @@ __all__ = [
     "analyze_exact_idle_sensitivity_equivalence",
     "VivadoPowerError",
     "parse_vivado_power_log",
+    "ComponentPowerError",
+    "aggregate_vivado_component_power",
+    "analyze_component_power_manifest",
 ]
