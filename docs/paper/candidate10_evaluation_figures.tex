@@ -99,9 +99,11 @@ builds are not conflated.
   All compact runs complete; a correctness-gated 50,000-edge full-PageRank
   slice completes below the 1,800-second per-system gate. &
   Fig.~\ref{fig:simulator-host-runtime} \\
-  Ablation and scalability & \statusopen &
-  Multi-partition comparison, replicated kernels/resources, structural
-  ablations, and full-dataset scaling are future experiments. & --- \\
+  Ablation and scalability & \statuspartial &
+  Two bounded Spine optimizations have controlled cycle/request ablations;
+  shared-HBM $\pm20\%$ sensitivity has no strict ranking inversion.
+  Replicated-kernel and full-dataset scaling remain open. &
+  Fig.~\ref{fig:optimization-robustness} \\
   \bottomrule
 \end{tabularx}
 \normalsize
@@ -619,6 +621,58 @@ $3.871\times$ geometric mean. A representative residual-PageRank case falls
 from 68.02 seconds to 7.82 seconds ($8.70\times$). These are simulator
 throughput gains only; modeled accelerator cycles are unchanged.
 }{\missingplot{Waiting for archived host-runtime observations.}}
+
+\section{Optimization ablation and robustness}
+\IfFileExists{\datadir/spine_optimization_ablation.csv}{%
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}{0.55\linewidth}
+    \centering
+    \begin{tikzpicture}
+      \begin{axis}[
+        ybar, bar width=13pt, width=0.98\linewidth, height=57mm,
+        ylabel={Cycle speedup over parent},
+        xtick={0,1,2,3,4},
+        xticklabels={Opt-v1 fallback,Exact cache,Fallback cache,Gate only,Combined},
+        x tick label style={rotate=24,anchor=north east,font=\scriptsize},
+        ymin=1, ymax=7.4, grid=major,
+        nodes near coords={\pgfmathprintnumber[fixed,precision=2]{\pgfplotspointmeta}$\times$},
+        nodes near coords style={font=\scriptsize}]
+        \addplot[fill=spine]
+          table[x=index,y=speedup,col sep=comma]
+          {\datadir/spine_optimization_ablation.csv};
+      \end{axis}
+    \end{tikzpicture}
+    \caption{Correctness-gated controlled Spine ablations.}
+  \end{subfigure}%
+  \begin{subfigure}{0.44\linewidth}
+    \centering
+    \begin{tikzpicture}
+      \begin{axis}[
+        ybar, bar width=12pt, width=0.98\linewidth, height=57mm,
+        ylabel={Spine speedup geometric mean},
+        xtick={0,1,2,3,4},
+        xticklabels={Base,$L-20\%$,$L+20\%$,$B+20\%$,$B-20\%$},
+        x tick label style={rotate=24,anchor=north east,font=\scriptsize},
+        ymin=1.32, ymax=1.48, grid=major,
+        scaled y ticks=false,
+        yticklabel style={/pgf/number format/fixed,/pgf/number format/precision=2}]
+        \addplot[fill=grasu]
+          table[x=index,y=spine_speedup_geomean,col sep=comma]
+          {\datadir/hbm_sensitivity.csv};
+      \end{axis}
+    \end{tikzpicture}
+    \caption{Shared-HBM latency ($L$) and bandwidth ($B$) sensitivity.}
+  \end{subfigure}
+  \caption{Optimization scope and robustness.  Opt-v1 reuses the launch-level
+  cache only in active-capacity fallback. Opt-v2 adds a finite source-page
+  working set and expands the exact-path active-record gate; the 50K ``gate
+  only'' and ``combined'' bars are mechanism ablations, not the paper-scale
+  three-algorithm mean. The HBM panel covers 12 correctness-gated pairs per
+  profile and has zero strict architecture-ranking inversions.}
+  \label{fig:optimization-robustness}
+\end{figure}
+}{\missingplot{Waiting for controlled optimization and HBM-sensitivity evidence.}}
 
 \section{Routed HLS feasibility}
 \IfFileExists{\datadir/ppa_summary.csv}{%

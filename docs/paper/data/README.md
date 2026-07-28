@@ -29,6 +29,8 @@ Expected CSV interfaces:
 - `component_power.csv`
 - `area_footprint.csv`
 - `simulator_host_runtime.csv`
+- `spine_optimization_ablation.csv`
+- `hbm_sensitivity.csv`
 - `ppa_summary.csv`
 
 `simulator_host_runtime.csv` is extracted from the archived single-run,
@@ -39,6 +41,12 @@ Regenerate it from the pinned raw-results archive with:
 
 ```bash
 python3 scripts/analyze_candidate10_simulator_runtime.py
+```
+
+Regenerate the optimization and robustness rows from their pinned evidence:
+
+```bash
+python3 scripts/analyze_candidate10_optimization_robustness.py
 ```
 
 Missing files intentionally render as explicit evidence-gate placeholders.

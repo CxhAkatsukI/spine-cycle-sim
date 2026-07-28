@@ -1,0 +1,6 @@
+index,profile_id,label,spine_speedup_geomean,winner_changes,strict_rank_inversions
+0,baseline,Baseline,1.4132943929534325,0,0
+1,latency_low,Latency -20%,1.434572985835291,1,0
+2,latency_high,Latency +20%,1.3852438131723057,1,0
+3,bandwidth_high,Bandwidth +20%,1.4132943929534325,0,0
+4,bandwidth_low,Bandwidth -20%,1.4133802788928702,0,0
