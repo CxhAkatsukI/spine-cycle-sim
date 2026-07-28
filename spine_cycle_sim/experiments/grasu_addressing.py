@@ -37,6 +37,33 @@ _ADDRESS_ENVIRONMENT = {
 }
 
 
+def source_state_bytes_per_vertex(parameters: Mapping[str, Any]) -> int:
+    """Return the external source-state width used by the algorithm policy."""
+
+    value = int(parameters.get("pagerank_state_bytes_per_vertex", 4))
+    if value <= 0:
+        raise ValueError("source-state bytes per vertex must be positive")
+    return value
+
+
+def required_source_state_stride_bytes(
+    parameters: Mapping[str, Any], destination_partitions: int
+) -> int:
+    """Return the 4 KiB-aligned capacity required by one ping-pong buffer."""
+
+    if destination_partitions <= 0:
+        raise ValueError("destination partition count must be positive")
+    partition_vertices = int(parameters["regraph_partition_vertices"])
+    if partition_vertices <= 0:
+        raise ValueError("partition vertex span must be positive")
+    required = (
+        destination_partitions
+        * partition_vertices
+        * source_state_bytes_per_vertex(parameters)
+    )
+    return ((required + 4095) // 4096) * 4096
+
+
 def grasu_hbm_address_environment(parameters: Mapping[str, Any]) -> dict[str, str]:
     """Return the fail-closed SST environment for every physical buffer base."""
 
@@ -149,6 +176,14 @@ def validate_grasu_hbm_address_map(
     apply_channel = int(parameters["regraph_apply_state_channel"])
     degree_channel = int(parameters.get("regraph_degree_channel", apply_channel))
     source_stride = int(parameters["grasu_source_state_buffer_stride_bytes"])
+    required_source_state_bytes = required_source_state_stride_bytes(
+        parameters, destination_partitions
+    )
+    if source_stride < required_source_state_bytes:
+        raise ValueError(
+            "source-state double-buffer stride is too small: "
+            f"{source_stride} < {required_source_state_bytes}"
+        )
     windows: dict[str, dict[str, object]] = {
         "update": {
             "base_bytes": int(parameters["grasu_update_base_bytes"]),
@@ -172,7 +207,7 @@ def validate_grasu_hbm_address_map(
         },
         "source_state": {
             "base_bytes": int(parameters["grasu_source_state_base_bytes"]),
-            "size_bytes": source_stride + vertices * 4,
+            "size_bytes": source_stride + required_source_state_bytes,
             "channels": sorted(source_channels),
         },
         "vertex_state": {

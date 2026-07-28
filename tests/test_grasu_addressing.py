@@ -28,6 +28,7 @@ def parameters() -> dict[str, object]:
         "grasu_pma_hbm_channels": 4,
         "regraph_source_state_channel": 1,
         "regraph_source_state_mirror_channel": 3,
+        "regraph_partition_vertices": 65_536,
         "regraph_apply_state_channel": 30,
         "regraph_degree_channel": 30,
     }

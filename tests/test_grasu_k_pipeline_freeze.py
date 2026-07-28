@@ -13,6 +13,7 @@ from spine_cycle_sim.experiments.feasibility import (
     load_normalized_hls_feasibility,
 )
 from spine_cycle_sim.experiments.grasu_addressing import (
+    required_source_state_stride_bytes,
     validate_grasu_hbm_address_map,
 )
 from spine_cycle_sim.experiments.profile_capabilities import (
@@ -67,6 +68,10 @@ class GraSuKPipelineFreezeTests(unittest.TestCase):
                     profile.parameters["physical_address_map_id"],
                     "candidate10_hbm_pc_nonalias_v1",
                 )
+                self.assertEqual(
+                    profile.parameters["grasu_source_state_buffer_stride_bytes"],
+                    required_source_state_stride_bytes(profile.parameters, 4),
+                )
                 validate_grasu_hbm_address_map(
                     profile.parameters,
                     profile.memory.channel_capacity_bytes,
@@ -88,6 +93,24 @@ class GraSuKPipelineFreezeTests(unittest.TestCase):
                 )
                 self.assertEqual(profile.parameters["regraph_compute_pipelines"], k)
                 self.assertEqual(profile.evidence_tier, EvidenceTier.SIMULATION_ONLY)
+
+    def test_residual_source_state_stride_rejects_three_partition_underflow(
+        self,
+    ) -> None:
+        profile = load_architecture_profile(
+            ROOT
+            / "configs/architectures/grasu_regraph_candidate10_k1_multipart_residual_v4.json"
+        )
+        parameters = dict(profile.parameters)
+        parameters["grasu_source_state_buffer_stride_bytes"] = 1 << 20
+        with self.assertRaisesRegex(ValueError, "double-buffer stride is too small"):
+            validate_grasu_hbm_address_map(
+                parameters,
+                profile.memory.channel_capacity_bytes,
+                3,
+                157_107,
+                4096,
+            )
 
     def test_v4_normalized_contract_is_publication_eligible_not_fpga_measured(
         self,

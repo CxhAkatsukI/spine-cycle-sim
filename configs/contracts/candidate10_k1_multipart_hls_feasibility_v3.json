@@ -21,7 +21,7 @@
       "closest_hls_profile": {
         "path": "configs/architectures/grasu_regraph_candidate10_k1_multipart_residual_v4.json",
         "profile_id": "grasu_regraph_candidate10_k1_multipart_residual_v4",
-        "sha256": "00288ab8bf2b1856478afd08094f5379fc9cc4c6b8ba583153dc7c9c8609ad9d"
+        "sha256": "a3ca6533e14fc0cb533a6e581275efce8b8a8dc192ea28cedc075a03933eddf9"
       },
       "functional_evidence_status": "isolated_hls_csim_and_execution_driven_dual_oracle_pass",
       "matching_hls": true,
@@ -29,7 +29,7 @@
       "normalized_profile": {
         "path": "configs/architectures/grasu_regraph_candidate10_k1_multipart_residual_v4.json",
         "profile_id": "grasu_regraph_candidate10_k1_multipart_residual_v4",
-        "sha256": "00288ab8bf2b1856478afd08094f5379fc9cc4c6b8ba583153dc7c9c8609ad9d"
+        "sha256": "a3ca6533e14fc0cb533a6e581275efce8b8a8dc192ea28cedc075a03933eddf9"
       },
       "parameter_crosswalk": [],
       "whole_system_hls_status": "routed_k1_near_150mhz_negative_slack_timing_reported"

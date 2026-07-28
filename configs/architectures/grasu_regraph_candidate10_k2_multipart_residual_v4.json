@@ -93,7 +93,7 @@
     "grasu_row_offset_base_bytes": 134217728,
     "grasu_segment_slots": 16,
     "grasu_source_state_base_bytes": 402653184,
-    "grasu_source_state_buffer_stride_bytes": 1048576,
+    "grasu_source_state_buffer_stride_bytes": 2097152,
     "grasu_update_base_bytes": 0,
     "grasu_update_record_bytes": 8,
     "grasu_vertex_state_base_bytes": 0,

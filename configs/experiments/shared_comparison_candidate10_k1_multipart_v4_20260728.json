@@ -1,7 +1,7 @@
 {
   "capability_catalog": {
     "path": "configs/contracts/grasu_regraph_k1_multipart_capabilities_v4.json",
-    "sha256": "b40237dedc8bcc1ed39f52dc838f3d18157aa8bc6dc9bda65becb04a5ad7b0dd"
+    "sha256": "2394b8d0d6c3947e5a3a8750329f76ccb38ef1a9830e3ab65356b2bf350d1da6"
   },
   "claim_class": "resource_normalized_k1_multipart_execution_driven_contract",
   "comparison_contract": {
@@ -566,7 +566,7 @@
     },
     {
       "path": "configs/architectures/grasu_regraph_candidate10_k1_multipart_residual_v4.json",
-      "sha256": "00288ab8bf2b1856478afd08094f5379fc9cc4c6b8ba583153dc7c9c8609ad9d"
+      "sha256": "a3ca6533e14fc0cb533a6e581275efce8b8a8dc192ea28cedc075a03933eddf9"
     }
   ],
   "real_sources": [

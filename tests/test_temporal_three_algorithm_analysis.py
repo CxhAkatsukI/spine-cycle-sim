@@ -33,6 +33,9 @@ class TemporalThreeAlgorithmAnalysisTest(unittest.TestCase):
             "parameters": {
                 **FROZEN_CANDIDATE10_ADDRESS_PARAMETERS,
                 "physical_address_map_id": "candidate10_hbm_pc_nonalias_v1",
+                "max_destination_partitions_without_address_remap": 4,
+                "regraph_partition_vertices": 65536,
+                "pagerank_state_bytes_per_vertex": 4,
             },
         }
         profile_path.write_text(json.dumps(profile), encoding="utf-8")

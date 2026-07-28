@@ -8,7 +8,10 @@ from pathlib import Path
 import tarfile
 
 from .comparison_analysis import aggregate_dram_stats, geometric_mean, sha256_file
-from .grasu_addressing import FROZEN_CANDIDATE10_ADDRESS_PARAMETERS
+from .grasu_addressing import (
+    FROZEN_CANDIDATE10_ADDRESS_PARAMETERS,
+    required_source_state_stride_bytes,
+)
 
 
 ALGORITHM_LABELS = {
@@ -122,6 +125,11 @@ def _validate_grasu_physical_manifest(
     if channel_bytes <= 0:
         raise ValueError("GraSU physical profile has no HBM channel capacity")
     for key, expected in FROZEN_CANDIDATE10_ADDRESS_PARAMETERS.items():
+        if key == "grasu_source_state_buffer_stride_bytes":
+            expected = required_source_state_stride_bytes(
+                parameters,
+                int(parameters["max_destination_partitions_without_address_remap"]),
+            )
         if int(parameters.get(key, -1)) != expected:
             raise ValueError(f"GraSU physical profile changed frozen {key}")
 

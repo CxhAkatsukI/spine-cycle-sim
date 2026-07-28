@@ -255,6 +255,8 @@ def make_profile(
             **FROZEN_CANDIDATE10_ADDRESS_PARAMETERS,
         }
     )
+    if algorithm == "thresholded_residual_pagerank":
+        parameters["grasu_source_state_buffer_stride_bytes"] = 2 * (1 << 20)
     profile["features"] = list(
         dict.fromkeys(
             [
