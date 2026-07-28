@@ -80,6 +80,14 @@ def main() -> int:
         ["git", "apply", str(ROOT / "patches/dramsim3_stats_hotpath.patch")],
         cwd=dramsim3,
     )
+    run(
+        [
+            "git",
+            "apply",
+            str(ROOT / "patches/dramsim3_command_timing_hotpath.patch"),
+        ],
+        cwd=dramsim3,
+    )
 
     sst_extract = work_root / "sst-elements-source"
     sst_extract.mkdir()
@@ -189,6 +197,9 @@ def main() -> int:
         ),
         "dramsim3_stats_hotpath_patch_sha256": sha256(
             ROOT / "patches/dramsim3_stats_hotpath.patch"
+        ),
+        "dramsim3_command_timing_patch_sha256": sha256(
+            ROOT / "patches/dramsim3_command_timing_hotpath.patch"
         ),
         "sst_elements_version": "16.0.0",
         "sst_patch_sha256": sha256(

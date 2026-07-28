@@ -417,6 +417,7 @@ void AxiMaster::evaluate_data_channel(const CycleContext &context) {
     return;
   }
   staged_additional_issued_.assign(active_bursts_.size(), 0);
+  std::size_t staged_fully_issued = 0;
   std::size_t inspected_without_issue = 0;
   const bool ordered_stream = active_stream_bursts_ != 0;
   std::size_t cursor = issue_round_robin_ % active_bursts_.size();
@@ -515,6 +516,11 @@ void AxiMaster::evaluate_data_channel(const CycleContext &context) {
             .request = header,
         });
         ++staged_additional_issued_[cursor];
+        staged_fully_issued +=
+            burst.beats_issued + staged_additional_issued_[cursor] ==
+                    burst.beats_total
+                ? 1
+                : 0;
         inspected_without_issue = 0;
       } else {
         ++stats_.backend_submit_stalls;
@@ -522,6 +528,49 @@ void AxiMaster::evaluate_data_channel(const CycleContext &context) {
           break;
         }
         ++inspected_without_issue;
+        if (config_.fixed_channel.has_value() &&
+            backend_.reservation_intent_pending(config_.initiator_id,
+                                                header.channel)) {
+          if (active_write_data_bursts_ == 0) {
+            if (active_issueable_bursts_ <= staged_fully_issued) {
+              throw std::logic_error(
+                  "AXI issueable read burst count underflow");
+            }
+            const std::uint64_t coalesced_stalls =
+                active_issueable_bursts_ - staged_fully_issued - 1;
+            stats_.backend_submit_stalls += coalesced_stalls;
+            backend_.account_same_cycle_reservation_stalls(
+                config_.initiator_id, header.channel, coalesced_stalls);
+            break;
+          }
+          std::uint64_t coalesced_stalls = 0;
+          cursor = (cursor + 1) % active_bursts_.size();
+          while (inspected_without_issue < active_bursts_.size()) {
+            const Burst &retry = active_bursts_[cursor];
+            const std::size_t retry_extra = staged_additional_issued_[cursor];
+            if (retry.beats_issued + retry_extra < retry.beats_total) {
+              if (retry.operation == MemoryOperation::kWrite &&
+                  write_ingress_enabled() &&
+                  (write_throttle_fifo_.empty() ||
+                   write_throttle_fifo_.front().burst_id != retry.burst_id)) {
+                ++stats_.write_throttle_data_stalls;
+              } else if (retry.operation == MemoryOperation::kWrite &&
+                         config_.write_data_stall.stalled(
+                             context.domain_cycle)) {
+                ++stats_.write_data_channel_stalls;
+                break;
+              } else {
+                ++stats_.backend_submit_stalls;
+                ++coalesced_stalls;
+              }
+            }
+            ++inspected_without_issue;
+            cursor = (cursor + 1) % active_bursts_.size();
+          }
+          backend_.account_same_cycle_reservation_stalls(
+              config_.initiator_id, header.channel, coalesced_stalls);
+          break;
+        }
       }
     } else {
       ++inspected_without_issue;
@@ -940,6 +989,23 @@ void AxiMaster::refresh_pending_work() noexcept {
 }
 
 void AxiMaster::commit(const CycleContext &context) {
+  const bool staged_state_change =
+      staged_output_ || !staged_backend_responses_.empty() ||
+      staged_input_.has_value() || !staged_address_bursts_.empty() ||
+      !staged_beats_.empty() || !staged_new_write_beats_.empty() ||
+      staged_child_write_beat_.has_value() ||
+      staged_store_to_bridge_.has_value() ||
+      staged_bridge_to_throttle_.has_value() ||
+      staged_read_beat_output_.has_value();
+  if (!staged_state_change) {
+    if (!active_bursts_.empty()) {
+      issue_round_robin_ =
+          (issue_round_robin_ + 1) % active_bursts_.size();
+    } else {
+      issue_round_robin_ = 0;
+    }
+    return;
+  }
   commit_output();
   commit_backend_responses(context);
   commit_request_input();

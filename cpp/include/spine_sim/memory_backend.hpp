@@ -6,6 +6,7 @@
 #include <deque>
 #include <memory>
 #include <span>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -90,6 +91,25 @@ class MemoryBackend : public Component {
   // evaluate-phase operation; reservations must not be retained by callers.
   virtual bool try_reserve(const BackendRequestHeader& request) = 0;
   virtual void submit_reserved(BackendRequest request) = 0;
+  // Registered arbitration state cannot change until the global commit
+  // phase. Fixed-channel AXI masters can collapse additional same-cycle
+  // retries while retaining every observable stall counter.
+  [[nodiscard]] virtual bool reservation_intent_pending(
+      std::uint32_t initiator_id, std::size_t channel) const noexcept {
+    (void)initiator_id;
+    (void)channel;
+    return false;
+  }
+  virtual void account_same_cycle_reservation_stalls(
+      std::uint32_t initiator_id, std::size_t channel,
+      std::uint64_t count) {
+    (void)initiator_id;
+    (void)channel;
+    if (count != 0) {
+      throw std::logic_error(
+          "backend cannot account coalesced reservation stalls");
+    }
+  }
   [[nodiscard]] virtual std::size_t response_count(
       std::uint32_t initiator_id) const noexcept = 0;
   [[nodiscard]] virtual const BackendResponse& response_at(
@@ -187,6 +207,10 @@ class RegisteredChannelArbiter {
   [[nodiscard]] std::size_t pending_grants() const noexcept;
   [[nodiscard]] std::size_t pending_grants_for(
       std::uint32_t initiator_id) const noexcept;
+  [[nodiscard]] bool intent_pending(std::uint32_t initiator_id,
+                                    std::size_t channel) const noexcept;
+  void account_duplicate_waits(std::uint32_t initiator_id,
+                               std::size_t channel, std::uint64_t count);
   [[nodiscard]] const RegisteredChannelArbiterStats& stats() const noexcept {
     return stats_;
   }
@@ -230,6 +254,12 @@ class MockMemoryBackend final : public MemoryBackend {
 
   bool try_reserve(const BackendRequestHeader& request) override;
   void submit_reserved(BackendRequest request) override;
+  [[nodiscard]] bool reservation_intent_pending(
+      std::uint32_t initiator_id,
+      std::size_t channel) const noexcept override;
+  void account_same_cycle_reservation_stalls(
+      std::uint32_t initiator_id, std::size_t channel,
+      std::uint64_t count) override;
   [[nodiscard]] std::size_t response_count(
       std::uint32_t initiator_id) const noexcept override;
   [[nodiscard]] const BackendResponse& response_at(

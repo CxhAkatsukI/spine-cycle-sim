@@ -426,6 +426,28 @@ std::size_t RegisteredChannelArbiter::pending_grants_for(
   return found == grant_masks_.end() ? 0 : std::popcount(found->second);
 }
 
+bool RegisteredChannelArbiter::intent_pending(
+    std::uint32_t initiator_id, std::size_t channel) const noexcept {
+  if (channel >= channels_) {
+    return false;
+  }
+  const auto found = intent_masks_.find(initiator_id);
+  return found != intent_masks_.end() &&
+         (found->second & (std::uint64_t{1} << channel)) != 0;
+}
+
+void RegisteredChannelArbiter::account_duplicate_waits(
+    std::uint32_t initiator_id, std::size_t channel, std::uint64_t count) {
+  if (count == 0) {
+    return;
+  }
+  if (!intent_pending(initiator_id, channel)) {
+    throw std::logic_error(
+        "cannot account duplicate waits without a pending intent");
+  }
+  stats_.request_waits += count;
+}
+
 MockMemoryBackend::MockMemoryBackend(std::string name, ClockId clock_id,
                                      MockMemoryConfig config)
     : MemoryBackend(std::move(name), clock_id), config_(config),
@@ -470,6 +492,22 @@ bool MockMemoryBackend::try_reserve(const BackendRequestHeader& request) {
     return false;
   }
   return true;
+}
+
+bool MockMemoryBackend::reservation_intent_pending(
+    std::uint32_t initiator_id, std::size_t channel) const noexcept {
+  return arbiter_ != nullptr && arbiter_->intent_pending(initiator_id, channel);
+}
+
+void MockMemoryBackend::account_same_cycle_reservation_stalls(
+    std::uint32_t initiator_id, std::size_t channel, std::uint64_t count) {
+  if (arbiter_ == nullptr || count == 0) {
+    MemoryBackend::account_same_cycle_reservation_stalls(
+        initiator_id, channel, count);
+    return;
+  }
+  arbiter_->account_duplicate_waits(initiator_id, channel, count);
+  stats_.submit_stalls += count;
 }
 
 void MockMemoryBackend::submit_reserved(BackendRequest request) {

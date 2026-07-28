@@ -1584,6 +1584,19 @@ class SstMemoryBackend final : public MemoryBackend {
     staged_submissions_.push_back(std::move(request));
   }
 
+  [[nodiscard]] bool reservation_intent_pending(
+      std::uint32_t initiator_id,
+      std::size_t channel) const noexcept override {
+    return arbiter_.intent_pending(initiator_id, channel);
+  }
+
+  void account_same_cycle_reservation_stalls(
+      std::uint32_t initiator_id, std::size_t channel,
+      std::uint64_t count) override {
+    arbiter_.account_duplicate_waits(initiator_id, channel, count);
+    submit_stalls_ += count;
+  }
+
   [[nodiscard]] std::size_t response_count(
       std::uint32_t initiator_id) const noexcept override {
     const auto found = responses_.find(initiator_id);

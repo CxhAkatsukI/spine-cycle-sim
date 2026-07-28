@@ -1544,6 +1544,10 @@ void test_registered_channel_arbiter_is_order_independent_and_fair() {
   const BackendRequest second = request(11);
   require(!arbiter.try_acquire(second) && !arbiter.try_acquire(first),
           "registered arbiter accepted an evaluate-phase intent");
+  require(arbiter.intent_pending(10, 0) &&
+              arbiter.intent_pending(11, 0),
+          "registered arbiter did not expose pending evaluate intents");
+  arbiter.account_duplicate_waits(10, 0, 7);
   const std::array<std::size_t, 1> empty{0};
   arbiter.arbitrate(empty, 32);
   require(arbiter.try_acquire(first),
@@ -1559,6 +1563,7 @@ void test_registered_channel_arbiter_is_order_independent_and_fair() {
   require(stats.unique_intents == 2 && stats.grants == 2 &&
               stats.consumed_grants == 2 && stats.contended_cycles == 1 &&
               stats.contention_losers == 1 &&
+              stats.request_waits == 10 &&
               arbiter.pending_grants() == 0,
           "registered arbiter grant/consume/contention ledger did not close");
 
