@@ -2484,12 +2484,14 @@ private:
   }
 
   void refresh_evaluate_ready() noexcept {
-    evaluate_ready_ =
-        running_ &&
-        ((pending_output_.has_value() &&
-          (!suspended_output_stall_ || !output_.full())) ||
-         (consumed_rows_this_round_ != rows_per_round() &&
-          input_.front() != nullptr));
+    if (!running_) {
+      evaluate_ready_ = false;
+    } else if (pending_output_.has_value()) {
+      evaluate_ready_ = !suspended_output_stall_ || !output_.full();
+    } else {
+      evaluate_ready_ = consumed_rows_this_round_ != rows_per_round() &&
+                        input_.front() != nullptr;
+    }
     set_latched_evaluate_ready(evaluate_ready_);
   }
 
