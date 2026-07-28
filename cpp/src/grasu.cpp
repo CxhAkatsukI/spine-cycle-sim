@@ -211,6 +211,31 @@ public:
     return binary_probes_;
   }
 
+  [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool evaluate_ready() const noexcept override {
+    if (failed() || done()) {
+      return false;
+    }
+    switch (phase_) {
+    case Phase::kWaitUpdate:
+      return ports_.updates->responses().front() != nullptr;
+    case Phase::kWaitRow:
+      return ports_.rows->responses().front() != nullptr;
+    case Phase::kWaitBinary:
+      return ports_.binary->responses().front() != nullptr;
+    default:
+      return true;
+    }
+  }
+  [[nodiscard]] bool commit_ready() const noexcept override {
+    return staged_response_.has_value() || staged_request_ || staged_emit_;
+  }
+
   void evaluate(const CycleContext &) override {
     staged_response_.reset();
     staged_request_ = false;
@@ -307,6 +332,7 @@ public:
     if (staged_emit_) {
       ++local_index_;
       phase_ = Phase::kNeedUpdate;
+      staged_emit_ = false;
       return;
     }
     if (!staged_request_) {
@@ -328,6 +354,7 @@ public:
       fail("GraSU direct-search issued from invalid phase");
       break;
     }
+    staged_request_ = false;
   }
 
 private:
@@ -472,6 +499,20 @@ public:
     return ddr_updates_;
   }
 
+  [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool evaluate_ready() const noexcept override {
+    return !done() && !failed() &&
+           inputs_[next_ & 3U]->front() != nullptr;
+  }
+  [[nodiscard]] bool commit_ready() const noexcept override {
+    return staged_;
+  }
+
   void evaluate(const CycleContext &) override {
     staged_ = false;
     if (done() || failed()) {
@@ -509,6 +550,7 @@ public:
     } else {
       ++ddr_updates_;
     }
+    staged_ = false;
   }
 
 private:
@@ -552,16 +594,49 @@ public:
   }
 
   [[nodiscard]] bool idle() const noexcept {
-    return ports_.input->empty() &&
-           std::all_of(lanes_.begin(), lanes_.end(), [](const Lane &lane) {
-             return lane.phase == LanePhase::kIdle && lane.queue.empty();
-           });
+    return ports_.input->empty() && work_items_ == 0;
   }
   [[nodiscard]] bool failed() const noexcept { return !failure_.empty(); }
   [[nodiscard]] const std::string &failure() const noexcept { return failure_; }
   [[nodiscard]] std::uint64_t completed() const noexcept { return completed_; }
   [[nodiscard]] std::uint64_t lane_queue_stalls() const noexcept {
     return lane_queue_stalls_;
+  }
+
+  [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool evaluate_ready() const noexcept override {
+    if (failed()) {
+      return false;
+    }
+    if (!ports_.input->empty()) {
+      return true;
+    }
+    if (work_items_ == 0) {
+      return false;
+    }
+    const std::size_t port_count = cache_direct_ ? 1 : 2;
+    for (std::size_t port = 0; port < port_count; ++port) {
+      if (ports_.reads[port]->responses().front() != nullptr ||
+          (ports_.writes[port] != ports_.reads[port] &&
+           ports_.writes[port]->responses().front() != nullptr)) {
+        return true;
+      }
+    }
+    return std::any_of(lanes_.begin(), lanes_.end(), [](const Lane &lane) {
+      return !lane.queue.empty() || lane.phase == LanePhase::kNeedRead ||
+             lane.phase == LanePhase::kNeedWrite ||
+             lane.phase == LanePhase::kNeedDegreeEmit;
+    });
+  }
+  [[nodiscard]] bool commit_ready() const noexcept override {
+    return staged_route_.has_value() || !staged_starts_.empty() ||
+           !staged_responses_.empty() || !staged_issues_.empty() ||
+           staged_degree_lane_.has_value();
   }
 
   void evaluate(const CycleContext &) override {
@@ -587,6 +662,7 @@ public:
     if (staged_route_.has_value()) {
       lanes_[staged_route_->first].queue.push_back(staged_route_->second);
       staged_route_.reset();
+      ++work_items_;
     }
     for (std::size_t lane_index : staged_starts_) {
       Lane &lane = lanes_[lane_index];
@@ -609,8 +685,17 @@ public:
     if (staged_degree_lane_.has_value()) {
       Lane &lane = lanes_[*staged_degree_lane_];
       lane.phase = LanePhase::kIdle;
+      if (work_items_ == 0) {
+        throw std::logic_error("GraSU PMA processor work count underflow");
+      }
+      --work_items_;
       ++completed_;
     }
+    staged_route_.reset();
+    staged_starts_.clear();
+    staged_responses_.clear();
+    staged_issues_.clear();
+    staged_degree_lane_.reset();
   }
 
 private:
@@ -810,6 +895,10 @@ private:
       }
       if (ports_.degree_output == nullptr) {
         lane.phase = LanePhase::kIdle;
+        if (work_items_ == 0) {
+          throw std::logic_error("GraSU PMA processor work count underflow");
+        }
+        --work_items_;
         ++completed_;
       } else {
         lane.phase = LanePhase::kNeedDegreeEmit;
@@ -898,6 +987,7 @@ private:
   std::array<std::size_t, 2> read_rr_{};
   std::array<std::size_t, 2> write_rr_{};
   std::uint64_t next_transaction_{};
+  std::size_t work_items_{};
   std::uint64_t completed_{};
   std::uint64_t lane_queue_stalls_{};
   std::string failure_;
@@ -928,6 +1018,35 @@ public:
   [[nodiscard]] std::uint64_t writes() const noexcept { return writes_; }
   [[nodiscard]] std::size_t reorder_max_occupancy() const noexcept {
     return reorder_max_occupancy_;
+  }
+
+  [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool evaluate_ready() const noexcept override {
+    if (failed() || done()) {
+      return false;
+    }
+    if (std::any_of(inputs_.begin(), inputs_.end(), [](const auto *input) {
+          return input->front() != nullptr;
+        })) {
+      return true;
+    }
+    if (phase_ == Phase::kWaitRead || phase_ == Phase::kWaitWrite) {
+      return port_.responses().front() != nullptr;
+    }
+    if (phase_ == Phase::kIdle) {
+      return next_ < updates_ && ready_[next_].has_value();
+    }
+    return true;
+  }
+  [[nodiscard]] bool commit_ready() const noexcept override {
+    return !staged_inputs_.empty() || staged_input_port_.has_value() ||
+           staged_ready_.has_value() || staged_response_.has_value() ||
+           staged_request_;
   }
 
   void evaluate(const CycleContext &) override {
@@ -1039,6 +1158,11 @@ public:
         phase_ = Phase::kWaitWrite;
       }
     }
+    staged_inputs_.clear();
+    staged_input_port_.reset();
+    staged_ready_.reset();
+    staged_response_.reset();
+    staged_request_ = false;
   }
 
 private:
