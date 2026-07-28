@@ -8,6 +8,7 @@ from pathlib import Path
 import tarfile
 
 from .comparison_analysis import aggregate_dram_stats, geometric_mean, sha256_file
+from .grasu_addressing import FROZEN_CANDIDATE10_ADDRESS_PARAMETERS
 
 
 ALGORITHM_LABELS = {
@@ -26,6 +27,16 @@ K1_GRASU_PROFILES = {
     "thresholded_residual_pagerank": (
         "grasu_regraph_candidate10_k1_multipart_residual_v4"
     ),
+}
+
+_GRASU_REGION_BASE_PARAMETERS = {
+    "update": "grasu_update_base_bytes",
+    "binary": "grasu_binary_base_bytes",
+    "row": "grasu_row_offset_base_bytes",
+    "pma": "grasu_pma_base_bytes",
+    "source_state": "grasu_source_state_base_bytes",
+    "vertex_state": "grasu_vertex_state_base_bytes",
+    "degree": "grasu_degree_base_bytes",
 }
 
 
@@ -84,6 +95,91 @@ def _aligned_backend(algorithm: str, row: dict[str, str]) -> tuple[int, int]:
         "aligned_backend_bytes" if row["system"] == "spine" else "backend_bytes"
     )
     return requests, int(row[bytes_key])
+
+
+def _validate_grasu_physical_manifest(
+    run_dir: Path, expected_profile_id: str
+) -> dict[str, object]:
+    """Fail closed if a completed GraSU run did not use the frozen HBM map."""
+
+    manifest_path = run_dir / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    profile_path = Path(str(manifest.get("profile", ""))).resolve()
+    if not profile_path.is_file():
+        raise ValueError(f"GraSU physical profile is missing: {profile_path}")
+    if manifest.get("profile_sha256") != sha256_file(profile_path):
+        raise ValueError(f"GraSU physical profile hash mismatch: {run_dir}")
+    profile = json.loads(profile_path.read_text(encoding="utf-8"))
+    if profile.get("profile_id") != expected_profile_id:
+        raise ValueError(f"unexpected GraSU physical profile: {run_dir}")
+    memory = profile.get("memory")
+    parameters = profile.get("parameters")
+    if not isinstance(memory, dict) or not isinstance(parameters, dict):
+        raise ValueError(f"malformed GraSU physical profile: {profile_path}")
+    if int(memory.get("channels", -1)) != 32:
+        raise ValueError("GraSU physical profile does not expose 32 HBM channels")
+    channel_bytes = int(memory.get("channel_capacity_bytes", -1))
+    if channel_bytes <= 0:
+        raise ValueError("GraSU physical profile has no HBM channel capacity")
+    for key, expected in FROZEN_CANDIDATE10_ADDRESS_PARAMETERS.items():
+        if int(parameters.get(key, -1)) != expected:
+            raise ValueError(f"GraSU physical profile changed frozen {key}")
+
+    regions = manifest.get("physical_hbm_address_regions")
+    if not isinstance(regions, dict) or not set(_GRASU_REGION_BASE_PARAMETERS).issubset(
+        regions
+    ):
+        raise ValueError(f"GraSU physical address regions are incomplete: {run_dir}")
+    normalized: dict[str, dict[str, object]] = {}
+    for name, parameter in _GRASU_REGION_BASE_PARAMETERS.items():
+        raw = regions[name]
+        if not isinstance(raw, dict):
+            raise ValueError(f"malformed GraSU physical region {name}: {run_dir}")
+        base = int(raw.get("base_bytes", -1))
+        size = int(raw.get("size_bytes", -1))
+        end = int(raw.get("end_bytes", -1))
+        raw_channels = raw.get("channels")
+        if (
+            base != int(parameters[parameter])
+            or size < 0
+            or end != base + size
+            or end > channel_bytes
+            or not isinstance(raw_channels, list)
+            or not raw_channels
+        ):
+            raise ValueError(f"invalid GraSU physical region {name}: {run_dir}")
+        channels = [int(channel) for channel in raw_channels]
+        if len(set(channels)) != len(channels) or any(
+            channel < 0 or channel >= int(memory["channels"])
+            for channel in channels
+        ):
+            raise ValueError(f"invalid GraSU physical channels for {name}: {run_dir}")
+        normalized[name] = {
+            "base_bytes": base,
+            "end_bytes": end,
+            "channels": channels,
+        }
+
+    names = tuple(normalized)
+    for left_index, left_name in enumerate(names):
+        left = normalized[left_name]
+        for right_name in names[left_index + 1 :]:
+            right = normalized[right_name]
+            if not set(left["channels"]).intersection(right["channels"]):
+                continue
+            if max(int(left["base_bytes"]), int(right["base_bytes"])) < min(
+                int(left["end_bytes"]), int(right["end_bytes"])
+            ):
+                raise ValueError(
+                    "GraSU physical HBM regions overlap on a shared channel: "
+                    f"{left_name}, {right_name}"
+                )
+    return {
+        "profile_id": expected_profile_id,
+        "profile_sha256": manifest["profile_sha256"],
+        "physical_address_map_id": parameters.get("physical_address_map_id"),
+        "regions": len(normalized),
+    }
 
 
 def _load_algorithm(
@@ -148,9 +244,15 @@ def _load_algorithm(
                 "aligned_backend_requests": aligned_requests,
                 "aligned_backend_bytes": aligned_bytes,
                 "dram_full_window_requests": int(dram["requests"]),
+                "dram_reads": int(dram["reads"]),
+                "dram_writes": int(dram["writes"]),
+                "dram_activates": int(dram["activates"]),
+                "dram_precharges": int(dram["precharges"]),
+                "dram_total_energy_pj": float(dram["total_energy_pj"]),
                 "dram_row_hit_rate": float(dram["row_hit_rate"]),
                 "dram_average_read_latency": float(dram["average_read_latency"]),
                 "dram_physical_window_aligned": physical_window_aligned,
+                "host_wall_seconds": float(row["wall_seconds"]),
                 "correctness_mismatches": 0,
                 "raw_result_sha256": row["raw_result_sha256"],
             }
@@ -500,6 +602,7 @@ def analyze_opt_v2_k1_paper_scale(
     systems: list[dict[str, object]] = []
     pairs: list[dict[str, object]] = []
     source_manifests: dict[str, dict[str, object]] = {}
+    physical_hbm_validation: dict[str, dict[str, dict[str, object]]] = {}
     for algorithm, matrix_dir in matrix_dirs.items():
         source_manifest = json.loads(
             (matrix_dir / "matrix_manifest.json").read_text(encoding="utf-8")
@@ -509,6 +612,13 @@ def analyze_opt_v2_k1_paper_scale(
         if source_manifest.get("grasu_profile_id") != K1_GRASU_PROFILES[algorithm]:
             raise ValueError(f"{algorithm} matrix does not use frozen K=1 GraSU")
         source_manifests[algorithm] = source_manifest
+        physical_hbm_validation[algorithm] = {
+            run_id: _validate_grasu_physical_manifest(
+                matrix_dir / run_id / "grasu_regraph",
+                K1_GRASU_PROFILES[algorithm],
+            )
+            for run_id in sorted(expected_runs)
+        }
         algorithm_systems, algorithm_pairs = _load_algorithm(
             algorithm=algorithm,
             matrix_dir=matrix_dir,
@@ -557,6 +667,8 @@ def analyze_opt_v2_k1_paper_scale(
         "system_rows": len(systems),
         "all_correct": True,
         "dram_request_ledgers_closed": True,
+        "grasu_physical_hbm_nonalias_validated": True,
+        "grasu_physical_hbm_validation": physical_hbm_validation,
         "input_manifest_sha256": sha256_file(input_manifest_path),
         "source_matrix_manifest_sha256": {
             algorithm: sha256_file(matrix_dirs[algorithm] / "matrix_manifest.json")

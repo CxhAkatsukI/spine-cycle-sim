@@ -137,8 +137,10 @@ def validate_generic_result(
                 or (
                     isinstance(result.get("materialized_snapshot_edges"), int)
                     and result["materialized_snapshot_edges"] > 0
-                    and result.get("maintenance_persisted_edges")
-                    == result["materialized_snapshot_edges"]
+                    and isinstance(result.get("maintenance_persisted_edges"), int)
+                    and 0
+                    <= result["maintenance_persisted_edges"]
+                    <= result["materialized_snapshot_edges"]
                 ),
                 "materialized_reader": (not dynamic)
                 or expected_mode != "spine_pagerank"

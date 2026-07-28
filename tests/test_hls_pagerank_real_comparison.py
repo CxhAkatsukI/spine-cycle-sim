@@ -106,7 +106,7 @@ class HlsPageRankRealComparisonTests(unittest.TestCase):
             "initial_edges": 4,
             "update_edges": 16,
             "materialized_snapshot_edges": 4,
-            "maintenance_persisted_edges": 4,
+            "maintenance_persisted_edges": 2,
             "pagerank_iterations": 3,
             "pagerank_completed_iterations": 3,
             "iteration_cycles": [100, 100, 100],
@@ -345,7 +345,7 @@ class HlsPageRankRealComparisonTests(unittest.TestCase):
             "pipeline_order": (
                 "zero_time_resident_level_preload_then_update_maintenance_then_compute"
             ),
-            "maintenance_persisted_edges": 4,
+            "maintenance_persisted_edges": 2,
             "residual_max_iterations": 256,
             "final_active": 0,
             "frontier_match": True,

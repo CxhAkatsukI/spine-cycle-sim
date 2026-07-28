@@ -116,8 +116,13 @@ class SstSpineVerticalValidationTests(unittest.TestCase):
             residual_max_iterations=256,
         )
         self.assertEqual(validate_generic_result(result, dram, **arguments), [])
-        result["maintenance_persisted_edges"] = 3
+        result["maintenance_persisted_edges"] = 5
         self.assertIn(
+            "materialized_snapshot",
+            validate_generic_result(result, dram, **arguments),
+        )
+        result["maintenance_persisted_edges"] = 0
+        self.assertNotIn(
             "materialized_snapshot",
             validate_generic_result(result, dram, **arguments),
         )

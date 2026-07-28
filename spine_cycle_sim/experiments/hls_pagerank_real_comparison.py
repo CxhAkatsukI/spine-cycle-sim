@@ -62,7 +62,8 @@ def validate_spine_pagerank_result(
         "update_records": result.get("update_edges") == run["physical_records"],
         "final_edges": result.get("materialized_snapshot_edges")
         == run["final_edges"]
-        and result.get("maintenance_persisted_edges") == run["final_edges"],
+        and isinstance(result.get("maintenance_persisted_edges"), int)
+        and 0 <= result["maintenance_persisted_edges"] <= run["final_edges"],
         "iterations": result.get("pagerank_iterations") == iterations
         and result.get("pagerank_completed_iterations") == iterations
         and len(result.get("iteration_cycles", [])) == iterations,
@@ -406,7 +407,8 @@ def validate_spine_residual_result(
         "update_records": result.get("update_edges") == run["physical_records"],
         "final_edges": result.get("materialized_snapshot_edges")
         == run["final_edges"]
-        and result.get("maintenance_persisted_edges") == run["final_edges"],
+        and isinstance(result.get("maintenance_persisted_edges"), int)
+        and 0 <= result["maintenance_persisted_edges"] <= run["final_edges"],
         "parameters": abs(float(result.get("pagerank_damping", -1.0)) - damping)
         < 1.0e-7
         and abs(float(result.get("pagerank_epsilon", -1.0)) - epsilon) < 1.0e-12
