@@ -1186,6 +1186,53 @@ void test_fifo_latched_commit_readiness() {
           "FIFO pop commit did not clear its readiness latch");
 }
 
+struct FifoNotifierProbe {
+  std::size_t nonempty{};
+  std::size_t nonfull{};
+
+  static void on_nonempty(void *owner) noexcept {
+    ++static_cast<FifoNotifierProbe *>(owner)->nonempty;
+  }
+
+  static void on_nonfull(void *owner) noexcept {
+    ++static_cast<FifoNotifierProbe *>(owner)->nonfull;
+  }
+};
+
+void test_fifo_transition_notifiers_and_bulk_stalls() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("fifo-transition-notifier", 100.0);
+  Fifo<std::uint32_t> fifo("fifo-transition-notifier", core, 1);
+  FifoNotifierProbe probe;
+  fifo.bind_nonempty_notifier(&probe, &FifoNotifierProbe::on_nonempty);
+  fifo.bind_nonfull_notifier(&probe, &FifoNotifierProbe::on_nonfull);
+  scheduler.add_component(fifo);
+
+  require(fifo.try_push(23), "notifier FIFO rejected staged push");
+  scheduler.run_events(1);
+  require(fifo.full() && probe.nonempty == 1 && probe.nonfull == 0,
+          "FIFO nonempty notifier did not follow the registered edge");
+
+  std::uint32_t value = 0;
+  require(fifo.try_pop(value) && value == 23,
+          "notifier FIFO rejected or corrupted staged pop");
+  scheduler.run_events(1);
+  require(fifo.empty() && probe.nonempty == 1 && probe.nonfull == 1,
+          "FIFO nonfull notifier did not follow the full-to-nonfull edge");
+
+  fifo.account_push_stalls(7);
+  fifo.account_pop_stalls(11);
+  require(fifo.stats().push_stalls == 7 && fifo.stats().pop_stalls == 11,
+          "FIFO bulk stall accounting changed the exact ledger");
+
+  fifo.unbind_nonempty_notifier(&probe);
+  fifo.unbind_nonfull_notifier(&probe);
+  require(fifo.try_push(29), "notifier FIFO rejected post-unbind push");
+  scheduler.run_events(1);
+  require(probe.nonempty == 1 && probe.nonfull == 1,
+          "FIFO invoked a transition notifier after unbind");
+}
+
 void test_scheduler_latched_evaluate_bitmap_ordering() {
   Scheduler scheduler;
   const auto core = scheduler.add_clock_mhz("latched-evaluate", 100.0);
@@ -8601,6 +8648,8 @@ int main(int argc, char **argv) {
       {"scheduler_latched_evaluate_bitmap",
        test_scheduler_latched_evaluate_bitmap_ordering},
       {"fifo_latched_commit_readiness", test_fifo_latched_commit_readiness},
+      {"fifo_transition_notifiers",
+       test_fifo_transition_notifiers_and_bulk_stalls},
       {"scheduler_latched_commit_bitmap",
        test_scheduler_latched_commit_bitmap_ordering},
       {"fixed_axi_busy_unregister",

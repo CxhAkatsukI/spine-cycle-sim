@@ -168,10 +168,55 @@ struct PmaEdgeBatch {
 
 class ReGraphReaderContext {
 public:
+  using DoneNotifier = void (*)(void *) noexcept;
+
   virtual ~ReGraphReaderContext() = default;
   [[nodiscard]] virtual bool done() const noexcept = 0;
   [[nodiscard]] virtual AlgorithmIterationContext
   iteration_context() const noexcept = 0;
+
+  void bind_done_notifier(void *owner, DoneNotifier notifier) {
+    if (notifier == nullptr) {
+      throw std::invalid_argument("ReGraph reader done notifier is null");
+    }
+    const auto duplicate =
+        std::find_if(done_notifiers_.begin(), done_notifiers_.end(),
+                     [owner](const DoneNotifierBinding &binding) {
+                       return binding.owner == owner;
+                     });
+    if (duplicate != done_notifiers_.end()) {
+      if (duplicate->notifier != notifier) {
+        throw std::logic_error(
+            "ReGraph reader done notifier owner is already bound");
+      }
+      return;
+    }
+    done_notifiers_.push_back({.owner = owner, .notifier = notifier});
+    if (done()) {
+      notifier(owner);
+    }
+  }
+
+  void unbind_done_notifier(void *owner) noexcept {
+    std::erase_if(done_notifiers_, [owner](const DoneNotifierBinding &binding) {
+      return binding.owner == owner;
+    });
+  }
+
+protected:
+  void notify_done() noexcept {
+    for (const DoneNotifierBinding &binding : done_notifiers_) {
+      binding.notifier(binding.owner);
+    }
+  }
+
+private:
+  struct DoneNotifierBinding {
+    void *owner{};
+    DoneNotifier notifier{};
+  };
+
+  std::vector<DoneNotifierBinding> done_notifiers_;
 };
 
 struct ReGraphSourceCacheRequest {
@@ -1172,6 +1217,7 @@ private:
       }
       ++source_response_markers_;
       phase_ = Phase::kDone;
+      notify_done();
       return;
     }
     if (response.line >= source_lines_per_round()) {
@@ -1764,6 +1810,7 @@ private:
       }
       ++source_response_markers_;
       phase_ = Phase::kDone;
+      notify_done();
       return;
     }
     if (response.line >= source_lines_per_round() ||
@@ -1846,12 +1893,23 @@ public:
   ReGraphGather(std::string name, ClockId clock_id, std::size_t vertices,
                 GraphAlgorithmPolicy policy, const GraSuReGraphConfig &config,
                 Fifo<PmaEdgeBatch> &input, Fifo<ReGraphGatherRow> &output,
-                const ReGraphReaderContext &reader)
+                ReGraphReaderContext &reader)
       : Component(std::move(name), clock_id), vertices_(vertices),
         policy_(std::move(policy)), config_(config), input_(input),
         output_(output), reader_(reader), bank_rows_(config.gather_banks),
         bypass_(config.gather_banks,
-                std::vector<BypassEntry>(config.gather_bypass_distance + 1)) {}
+                std::vector<BypassEntry>(config.gather_bypass_distance + 1)) {
+    input_.bind_nonempty_notifier(this, &ReGraphGather::notify_input_nonempty);
+    output_.bind_nonfull_notifier(this, &ReGraphGather::notify_output_nonfull);
+    reader_.bind_done_notifier(this, &ReGraphGather::notify_reader_done);
+    refresh_evaluate_ready();
+  }
+
+  ~ReGraphGather() override {
+    input_.unbind_nonempty_notifier(this);
+    output_.unbind_nonfull_notifier(this);
+    reader_.unbind_done_notifier(this);
+  }
 
   void start_partition(std::size_t destination_vertices,
                        bool reset_tmp_prop) {
@@ -1876,6 +1934,7 @@ public:
     }
     drain_cycles_remaining_ = 0;
     next_output_row_ = 0;
+    refresh_evaluate_ready();
   }
 
   [[nodiscard]] bool done() const noexcept { return phase_ == Phase::kDone; }
@@ -1923,17 +1982,27 @@ public:
   [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
     return true;
   }
+  [[nodiscard]] bool has_latched_evaluate_guard() const noexcept override {
+    return true;
+  }
   [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
     return true;
   }
+  [[nodiscard]] bool has_latched_commit_guard() const noexcept override {
+    return true;
+  }
   [[nodiscard]] bool evaluate_ready() const noexcept override {
-    return phase_ != Phase::kIdle && phase_ != Phase::kDone;
+    return evaluate_ready_;
   }
   [[nodiscard]] bool commit_ready() const noexcept override {
-    return phase_ != Phase::kIdle && phase_ != Phase::kDone;
+    return staged_tick_ || staged_start_drain_ || staged_output_stall_ ||
+           staged_row_output_ || staged_batch_.has_value();
   }
 
-  void evaluate(const CycleContext &) override {
+  void evaluate(const CycleContext &context) override {
+    account_suspended_output_stalls(context.domain_cycle);
+    last_evaluate_cycle_ = context.domain_cycle;
+    evaluated_once_ = true;
     staged_tick_ = false;
     staged_start_drain_ = false;
     staged_output_stall_ = false;
@@ -1984,6 +2053,8 @@ public:
     case Phase::kDone:
       break;
     }
+    set_latched_commit_ready(commit_ready());
+    refresh_evaluate_ready();
   }
 
   void commit(const CycleContext &context) override {
@@ -1994,13 +2065,18 @@ public:
       if (remaining_ == 0) {
         phase_ = Phase::kScan;
       }
+      clear_staged();
+      refresh_evaluate_ready();
       return;
     }
     if (phase_ == Phase::kMerge) {
       if (staged_output_stall_) {
         ++output_stall_cycles_;
+        suspended_output_stall_ = true;
       }
       if (!staged_row_output_) {
+        clear_staged();
+        refresh_evaluate_ready();
         return;
       }
       cross_bank_reductions_ += staged_cross_bank_reductions_;
@@ -2015,6 +2091,8 @@ public:
                       config_.gather_vertices_per_merge_cycle)) {
         phase_ = Phase::kDone;
       }
+      clear_staged();
+      refresh_evaluate_ready();
       return;
     }
     if (phase_ == Phase::kDrain && staged_tick_) {
@@ -2030,9 +2108,13 @@ public:
         next_output_row_ = 0;
         phase_ = Phase::kMerge;
       }
+      clear_staged();
+      refresh_evaluate_ready();
       return;
     }
     if (phase_ != Phase::kScan) {
+      clear_staged();
+      refresh_evaluate_ready();
       return;
     }
     if (staged_batch_.has_value()) {
@@ -2048,6 +2130,8 @@ public:
         phase_ = Phase::kDrain;
       }
     }
+    clear_staged();
+    refresh_evaluate_ready();
   }
 
 private:
@@ -2070,6 +2154,74 @@ private:
 
   static std::size_t divide_ceil(std::size_t value, std::size_t divisor) {
     return (value + divisor - 1) / divisor;
+  }
+
+  static void notify_input_nonempty(void *owner) noexcept {
+    auto *gather = static_cast<ReGraphGather *>(owner);
+    if (gather->phase_ == Phase::kScan) {
+      gather->evaluate_ready_ = true;
+      gather->set_latched_evaluate_ready(true);
+    }
+  }
+
+  static void notify_reader_done(void *owner) noexcept {
+    auto *gather = static_cast<ReGraphGather *>(owner);
+    if (gather->phase_ == Phase::kScan) {
+      gather->evaluate_ready_ = true;
+      gather->set_latched_evaluate_ready(true);
+    }
+  }
+
+  static void notify_output_nonfull(void *owner) noexcept {
+    auto *gather = static_cast<ReGraphGather *>(owner);
+    if (gather->phase_ == Phase::kMerge) {
+      gather->evaluate_ready_ = true;
+      gather->set_latched_evaluate_ready(true);
+    }
+  }
+
+  void account_suspended_output_stalls(std::uint64_t cycle) {
+    if (!suspended_output_stall_) {
+      return;
+    }
+    if (!evaluated_once_ || cycle <= last_evaluate_cycle_) {
+      throw std::logic_error(
+          "ReGraph gather suspended-cycle accounting moved backwards");
+    }
+    const std::uint64_t skipped = cycle - last_evaluate_cycle_ - 1;
+    output_stall_cycles_ += skipped;
+    output_.account_push_stalls(skipped);
+    suspended_output_stall_ = false;
+  }
+
+  void refresh_evaluate_ready() noexcept {
+    switch (phase_) {
+    case Phase::kReset:
+    case Phase::kDrain:
+      evaluate_ready_ = true;
+      break;
+    case Phase::kMerge:
+      evaluate_ready_ = !suspended_output_stall_ || !output_.full();
+      break;
+    case Phase::kScan:
+      evaluate_ready_ = input_.front() != nullptr || reader_.done();
+      break;
+    case Phase::kIdle:
+    case Phase::kDone:
+      evaluate_ready_ = false;
+      break;
+    }
+    set_latched_evaluate_ready(evaluate_ready_);
+  }
+
+  void clear_staged() noexcept {
+    staged_tick_ = false;
+    staged_start_drain_ = false;
+    staged_output_stall_ = false;
+    staged_row_output_ = false;
+    staged_batch_.reset();
+    staged_cross_bank_reductions_ = 0;
+    set_latched_commit_ready(false);
   }
 
   void commit_physical_writes(std::uint64_t cycle) {
@@ -2145,7 +2297,7 @@ private:
   GraSuReGraphConfig config_;
   Fifo<PmaEdgeBatch> &input_;
   Fifo<ReGraphGatherRow> &output_;
-  const ReGraphReaderContext &reader_;
+  ReGraphReaderContext &reader_;
   std::vector<std::unordered_map<std::size_t, GatherRow>> bank_rows_;
   std::vector<std::vector<BypassEntry>> bypass_;
   std::deque<PendingPhysicalWrite> pending_physical_writes_;
@@ -2172,6 +2324,10 @@ private:
   std::uint64_t bypass_hits_{};
   std::uint64_t bypass_misses_{};
   std::uint64_t cross_bank_reductions_{};
+  bool evaluate_ready_{};
+  bool evaluated_once_{};
+  bool suspended_output_stall_{};
+  std::uint64_t last_evaluate_cycle_{};
 };
 
 class ReGraphMerger final : public Component {
@@ -2180,7 +2336,16 @@ public:
                 const GraSuReGraphConfig &config, Fifo<ReGraphGatherRow> &input,
                 Fifo<ReGraphMergedBurst> &output)
       : Component(std::move(name), clock_id), config_(config), input_(input),
-        output_(output) {}
+        output_(output) {
+    input_.bind_nonempty_notifier(this, &ReGraphMerger::notify_input_nonempty);
+    output_.bind_nonfull_notifier(this, &ReGraphMerger::notify_output_nonfull);
+    refresh_evaluate_ready();
+  }
+
+  ~ReGraphMerger() override {
+    input_.unbind_nonempty_notifier(this);
+    output_.unbind_nonfull_notifier(this);
+  }
 
   void start_round() {
     if (running_ || pending_output_.has_value() || packed_rows_ != 0) {
@@ -2189,6 +2354,7 @@ public:
     consumed_rows_this_round_ = 0;
     done_ = false;
     running_ = true;
+    refresh_evaluate_ready();
   }
 
   [[nodiscard]] bool done() const noexcept { return done_; }
@@ -2205,22 +2371,29 @@ public:
   [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
     return true;
   }
+  [[nodiscard]] bool has_latched_evaluate_guard() const noexcept override {
+    return true;
+  }
   [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
     return true;
   }
   [[nodiscard]] bool evaluate_ready() const noexcept override {
-    return running_;
+    return evaluate_ready_;
   }
   [[nodiscard]] bool commit_ready() const noexcept override {
     return running_ && (staged_input_.has_value() || staged_output_ ||
                         staged_output_stall_);
   }
 
-  void evaluate(const CycleContext &) override {
+  void evaluate(const CycleContext &context) override {
+    account_suspended_output_stalls(context.domain_cycle);
+    last_evaluate_cycle_ = context.domain_cycle;
+    evaluated_once_ = true;
     staged_input_.reset();
     staged_output_ = false;
     staged_output_stall_ = false;
     if (!running_) {
+      refresh_evaluate_ready();
       return;
     }
     if (pending_output_.has_value()) {
@@ -2232,6 +2405,7 @@ public:
     }
     if (consumed_rows_this_round_ == rows_per_round() ||
         input_.front() == nullptr) {
+      refresh_evaluate_ready();
       return;
     }
     ReGraphGatherRow row;
@@ -2242,10 +2416,13 @@ public:
 
   void commit(const CycleContext &) override {
     if (!running_) {
+      clear_staged();
+      refresh_evaluate_ready();
       return;
     }
     if (staged_output_stall_) {
       ++output_stall_cycles_;
+      suspended_output_stall_ = true;
     }
     if (staged_output_) {
       pending_output_.reset();
@@ -2275,10 +2452,52 @@ public:
       running_ = false;
       done_ = true;
     }
+    clear_staged();
+    refresh_evaluate_ready();
   }
 
 private:
   static constexpr std::size_t kRowsPerBurst = kStateWordsPerBurst / 2;
+
+  static void notify_input_nonempty(void *owner) noexcept {
+    auto *merger = static_cast<ReGraphMerger *>(owner);
+    merger->refresh_evaluate_ready();
+  }
+
+  static void notify_output_nonfull(void *owner) noexcept {
+    auto *merger = static_cast<ReGraphMerger *>(owner);
+    merger->refresh_evaluate_ready();
+  }
+
+  void account_suspended_output_stalls(std::uint64_t cycle) {
+    if (!suspended_output_stall_) {
+      return;
+    }
+    if (!evaluated_once_ || cycle <= last_evaluate_cycle_) {
+      throw std::logic_error(
+          "ReGraph merger suspended-cycle accounting moved backwards");
+    }
+    const std::uint64_t skipped = cycle - last_evaluate_cycle_ - 1;
+    output_stall_cycles_ += skipped;
+    output_.account_push_stalls(skipped);
+    suspended_output_stall_ = false;
+  }
+
+  void refresh_evaluate_ready() noexcept {
+    evaluate_ready_ =
+        running_ &&
+        ((pending_output_.has_value() &&
+          (!suspended_output_stall_ || !output_.full())) ||
+         (consumed_rows_this_round_ != rows_per_round() &&
+          input_.front() != nullptr));
+    set_latched_evaluate_ready(evaluate_ready_);
+  }
+
+  void clear_staged() noexcept {
+    staged_input_.reset();
+    staged_output_ = false;
+    staged_output_stall_ = false;
+  }
 
   [[nodiscard]] std::size_t rows_per_round() const noexcept {
     return config_.partition_vertices / 2;
@@ -2297,6 +2516,10 @@ private:
   bool staged_output_stall_{};
   bool running_{};
   bool done_{};
+  bool evaluate_ready_{};
+  bool evaluated_once_{};
+  bool suspended_output_stall_{};
+  std::uint64_t last_evaluate_cycle_{};
   std::uint64_t rows_consumed_{};
   std::uint64_t bursts_emitted_{};
   std::uint64_t output_stall_cycles_{};
@@ -2316,6 +2539,25 @@ public:
         degree_port_(degree_port), iteration_context_(iteration_context) {
     if (uses_page_rank() && degree_port_ == nullptr) {
       throw std::invalid_argument("PageRank apply requires a degree AXI port");
+    }
+    input_.bind_nonempty_notifier(this, &ReGraphApply::notify_work_available);
+    read_port_.responses().bind_nonempty_notifier(
+        this, &ReGraphApply::notify_work_available);
+    write_port_.responses().bind_nonempty_notifier(
+        this, &ReGraphApply::notify_work_available);
+    if (degree_port_ != nullptr) {
+      degree_port_->responses().bind_nonempty_notifier(
+          this, &ReGraphApply::notify_work_available);
+    }
+    refresh_evaluate_ready();
+  }
+
+  ~ReGraphApply() override {
+    input_.unbind_nonempty_notifier(this);
+    read_port_.responses().unbind_nonempty_notifier(this);
+    write_port_.responses().unbind_nonempty_notifier(this);
+    if (degree_port_ != nullptr) {
+      degree_port_->responses().unbind_nonempty_notifier(this);
     }
   }
 
@@ -2338,6 +2580,7 @@ public:
     }
     done_ = false;
     running_ = true;
+    refresh_evaluate_ready();
   }
 
   [[nodiscard]] bool done() const noexcept { return done_; }
@@ -2384,11 +2627,14 @@ public:
   [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
     return true;
   }
+  [[nodiscard]] bool has_latched_evaluate_guard() const noexcept override {
+    return true;
+  }
   [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
     return true;
   }
   [[nodiscard]] bool evaluate_ready() const noexcept override {
-    return running_;
+    return evaluate_ready_;
   }
   [[nodiscard]] bool commit_ready() const noexcept override {
     return running_ &&
@@ -2400,6 +2646,9 @@ public:
   }
 
   void evaluate(const CycleContext &context) override {
+    account_suspended_read_window(context.domain_cycle);
+    last_evaluate_cycle_ = context.domain_cycle;
+    evaluated_once_ = true;
     staged_read_issue_.reset();
     staged_write_issue_.reset();
     staged_read_response_.reset();
@@ -2407,6 +2656,7 @@ public:
     staged_write_response_.reset();
     staged_output_stall_ = false;
     if (!running_) {
+      refresh_evaluate_ready();
       return;
     }
     if (read_port_.responses().front() != nullptr) {
@@ -2469,14 +2719,17 @@ public:
 
     if (input_bursts_this_round_ >= total_bursts() ||
         input_.front() == nullptr) {
+      refresh_evaluate_ready();
       return;
     }
     if (read_inflight_.size() >= config_.apply_request_window) {
       ++read_window_stalls_;
+      refresh_evaluate_ready();
       return;
     }
     if (pipeline_occupancy() >= config_.apply_pipeline_capacity) {
       ++pipeline_capacity_stalls_;
+      refresh_evaluate_ready();
       return;
     }
     const ReGraphMergedBurst &next = *input_.front();
@@ -2511,10 +2764,13 @@ public:
       }
       staged_read_issue_ = std::move(consumed);
     }
+    refresh_evaluate_ready();
   }
 
   void commit(const CycleContext &context) override {
     if (!running_) {
+      clear_staged();
+      refresh_evaluate_ready();
       return;
     }
     if (staged_read_response_.has_value()) {
@@ -2568,6 +2824,8 @@ public:
       running_ = false;
       done_ = true;
     }
+    clear_staged();
+    refresh_evaluate_ready();
   }
 
 private:
@@ -2583,6 +2841,58 @@ private:
     std::vector<std::uint8_t> data;
     std::vector<std::uint8_t> source_data;
   };
+
+  static void notify_work_available(void *owner) noexcept {
+    auto *apply = static_cast<ReGraphApply *>(owner);
+    apply->evaluate_ready_ = apply->running_;
+    apply->set_latched_evaluate_ready(apply->evaluate_ready_);
+  }
+
+  void account_suspended_read_window(std::uint64_t cycle) {
+    if (!suspended_read_window_) {
+      return;
+    }
+    if (!evaluated_once_ || cycle <= last_evaluate_cycle_) {
+      throw std::logic_error(
+          "ReGraph apply suspended-cycle accounting moved backwards");
+    }
+    read_window_stalls_ += cycle - last_evaluate_cycle_ - 1;
+    suspended_read_window_ = false;
+  }
+
+  [[nodiscard]] bool response_available() const noexcept {
+    return read_port_.responses().front() != nullptr ||
+           write_port_.responses().front() != nullptr ||
+           (degree_port_ != nullptr &&
+            degree_port_->responses().front() != nullptr);
+  }
+
+  void refresh_evaluate_ready() noexcept {
+    const bool input_available =
+        input_bursts_this_round_ < total_bursts() &&
+        input_.front() != nullptr;
+    const bool staged_response = staged_read_response_.has_value() ||
+                                 staged_degree_response_.has_value() ||
+                                 staged_write_response_.has_value();
+    const bool pure_read_window_wait =
+        running_ && input_available && ready_writes_.empty() &&
+        read_inflight_.size() >= config_.apply_request_window &&
+        !response_available() && !staged_response;
+    suspended_read_window_ = pure_read_window_wait;
+    evaluate_ready_ = running_ && !pure_read_window_wait &&
+                      (response_available() || staged_response ||
+                       !ready_writes_.empty() || input_available);
+    set_latched_evaluate_ready(evaluate_ready_);
+  }
+
+  void clear_staged() noexcept {
+    staged_read_response_.reset();
+    staged_degree_response_.reset();
+    staged_write_response_.reset();
+    staged_read_issue_.reset();
+    staged_write_issue_.reset();
+    staged_output_stall_ = false;
+  }
 
   [[nodiscard]] bool uses_page_rank() const noexcept {
     return policy_.config().kind == GraphAlgorithmKind::kFullPageRank ||
@@ -2744,6 +3054,10 @@ private:
   bool staged_output_stall_{};
   bool running_{};
   bool done_{};
+  bool evaluate_ready_{};
+  bool evaluated_once_{};
+  bool suspended_read_window_{};
+  std::uint64_t last_evaluate_cycle_{};
   std::uint64_t reads_{};
   std::uint64_t degree_reads_{};
   std::uint64_t writes_{};
@@ -2768,7 +3082,22 @@ public:
                     FixedAxiPort &mirror_write_port)
       : Component(std::move(name), clock_id), config_(config), input_(input),
         write_ports_{&primary_write_port, &mirror_write_port},
-        policy_(std::move(policy)) {}
+        policy_(std::move(policy)) {
+    input_.bind_nonempty_notifier(this,
+                                  &ReGraphHbmWrapper::notify_work_available);
+    for (FixedAxiPort *port : write_ports_) {
+      port->responses().bind_nonempty_notifier(
+          this, &ReGraphHbmWrapper::notify_work_available);
+    }
+    refresh_evaluate_ready();
+  }
+
+  ~ReGraphHbmWrapper() override {
+    input_.unbind_nonempty_notifier(this);
+    for (FixedAxiPort *port : write_ports_) {
+      port->responses().unbind_nonempty_notifier(this);
+    }
+  }
 
   void start_partition(std::uint64_t round, std::size_t destination_base) {
     const bool writes_pending =
@@ -2785,6 +3114,7 @@ public:
     completed_writes_ = 0;
     done_ = false;
     running_ = true;
+    refresh_evaluate_ready();
   }
 
   [[nodiscard]] bool done() const noexcept { return done_; }
@@ -2810,11 +3140,14 @@ public:
   [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
     return true;
   }
+  [[nodiscard]] bool has_latched_evaluate_guard() const noexcept override {
+    return true;
+  }
   [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
     return true;
   }
   [[nodiscard]] bool evaluate_ready() const noexcept override {
-    return running_;
+    return evaluate_ready_;
   }
   [[nodiscard]] bool commit_ready() const noexcept override {
     return running_ &&
@@ -2833,6 +3166,7 @@ public:
       response.reset();
     }
     if (!running_) {
+      refresh_evaluate_ready();
       return;
     }
     for (std::size_t port = 0; port < write_ports_.size(); ++port) {
@@ -2878,20 +3212,25 @@ public:
 
     if (input_bursts_this_round_ == total_bursts() ||
         input_.front() == nullptr) {
+      refresh_evaluate_ready();
       return;
     }
     if (pipeline_.size() >= config_.hbm_wrapper_pipeline_capacity) {
       ++pipeline_capacity_stalls_;
+      refresh_evaluate_ready();
       return;
     }
     ReGraphAppliedBurst burst;
     if (input_.try_pop(burst)) {
       staged_input_ = std::move(burst);
     }
+    refresh_evaluate_ready();
   }
 
   void commit(const CycleContext &context) override {
     if (!running_) {
+      clear_staged();
+      refresh_evaluate_ready();
       return;
     }
     for (std::size_t port = 0; port < staged_write_responses_.size(); ++port) {
@@ -2936,6 +3275,8 @@ public:
       running_ = false;
       done_ = true;
     }
+    clear_staged();
+    refresh_evaluate_ready();
   }
 
 private:
@@ -2943,6 +3284,36 @@ private:
     ReGraphAppliedBurst burst;
     std::uint64_t due_cycle{};
   };
+
+  static void notify_work_available(void *owner) noexcept {
+    auto *wrapper = static_cast<ReGraphHbmWrapper *>(owner);
+    wrapper->evaluate_ready_ = wrapper->running_;
+    wrapper->set_latched_evaluate_ready(wrapper->evaluate_ready_);
+  }
+
+  [[nodiscard]] bool response_available() const noexcept {
+    return std::any_of(write_ports_.begin(), write_ports_.end(),
+                       [](FixedAxiPort *port) {
+                         return port->responses().front() != nullptr;
+                       });
+  }
+
+  void refresh_evaluate_ready() noexcept {
+    evaluate_ready_ =
+        running_ &&
+        (response_available() || !pipeline_.empty() ||
+         (input_bursts_this_round_ < total_bursts() &&
+          input_.front() != nullptr));
+    set_latched_evaluate_ready(evaluate_ready_);
+  }
+
+  void clear_staged() noexcept {
+    staged_input_.reset();
+    staged_write_issue_.reset();
+    for (auto &response : staged_write_responses_) {
+      response.reset();
+    }
+  }
 
   [[nodiscard]] std::size_t total_bursts() const noexcept {
     return config_.partition_vertices / kStateWordsPerBurst;
@@ -2992,6 +3363,7 @@ private:
   std::size_t destination_base_{};
   bool running_{};
   bool done_{};
+  bool evaluate_ready_{};
   std::uint64_t input_bursts_{};
   std::uint64_t source_writes_{};
   std::uint64_t pipeline_capacity_stalls_{};
