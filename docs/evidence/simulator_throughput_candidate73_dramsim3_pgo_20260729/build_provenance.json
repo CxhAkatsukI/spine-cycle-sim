@@ -1,0 +1,22 @@
+{
+  "compiler": "g++ (Debian 15.2.0-14) 15.2.0",
+  "cpu": "AMD EPYC 7C13 64-Core Processor",
+  "dramsim3_library_sha256": "9db26860cde335dd62c9e013d444b67ec98e8772107b39e15eb15a0ffdb8d906",
+  "host_flags": [
+    "-fprofile-use",
+    "-fprofile-correction",
+    "-flto",
+    "-fno-semantic-interposition",
+    "-march=native"
+  ],
+  "plugin_sha256": "8f6019dc107d97e2c38cbb5c8a7806db70bd426ab03d840aa17cedf6318eeb2a",
+  "profiled_translation_units": 12,
+  "schema_version": 1,
+  "source_commit": "fca59f6",
+  "status": "PASS",
+  "training_run_id": "syn_spread_e512__residual_pagerank",
+  "training_systems": [
+    "spine",
+    "grasu_regraph"
+  ]
+}
