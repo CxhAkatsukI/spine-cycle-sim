@@ -12,6 +12,7 @@ from scripts.run_delta_hls_residual_matrix import (
     DEFAULT_SPINE_PROFILE,
     DELTA_CONTRACT,
     _command,
+    _display_path,
     _pair,
     _validate_input_manifest,
     epsilon_slug,
@@ -27,6 +28,12 @@ class DeltaHlsResidualMatrixRunnerTests(unittest.TestCase):
     def test_epsilon_slug_is_stable(self) -> None:
         self.assertEqual(epsilon_slug(1.0e-6), "eps_1e-06")
         self.assertEqual(epsilon_slug(1.0e-5), "eps_1e-05")
+
+    def test_display_path_is_repo_relative_for_evidence(self) -> None:
+        self.assertEqual(
+            _display_path(DEFAULT_MANIFEST),
+            "configs/experiments/deltahls_sinkfree_real_v1.json",
+        )
 
     def test_commands_pin_delta_contract_damping_and_profiles(self) -> None:
         run = _validate_input_manifest(DEFAULT_MANIFEST)["runs"][0]

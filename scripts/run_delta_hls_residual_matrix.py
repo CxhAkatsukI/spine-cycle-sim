@@ -44,6 +44,14 @@ def epsilon_slug(epsilon: float) -> str:
     return f"eps_{epsilon:.0e}".replace("+", "")
 
 
+def _display_path(path: Path) -> str:
+    resolved = path.resolve()
+    try:
+        return str(resolved.relative_to(ROOT))
+    except ValueError:
+        return str(resolved)
+
+
 def _validate_input_manifest(manifest_path: Path) -> dict[str, Any]:
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     if manifest.get("matrix_id") != "deltahls_sinkfree_real_v1":
@@ -336,7 +344,7 @@ def _run_case(
         "residuals": residuals,
         "frontier_in": tuple(result["frontier_in_sizes"]),
         "frontier_out": tuple(result["frontier_out_sizes"]),
-        "result_path": str(raw_path.resolve()),
+        "result_path": _display_path(raw_path),
     }
 
 
@@ -478,7 +486,7 @@ def main() -> int:
         "damping": DAMPING,
         "epsilons": epsilons,
         "max_iterations": MAX_ITERATIONS,
-        "input_manifest": str(args.manifest.resolve()),
+        "input_manifest": _display_path(args.manifest),
         "input_manifest_sha256": sha256_file(args.manifest.resolve()),
         "spine_profile_sha256": sha256_file(args.spine_profile.resolve()),
         "grasu_profile_sha256": sha256_file(args.grasu_profile.resolve()),
