@@ -19,6 +19,12 @@ DEFAULT_SENSITIVITY = (
     / "docs/evidence/deltahls_residual_threshold_sensitivity_u8_v1/summary.json"
 )
 DEFAULT_OUTPUT = ROOT / "docs/figures/deltahls_residual_k1_screening.svg"
+DEFAULT_SCALABILITY = (
+    ROOT / "docs/evidence/deltahls_residual_p4_scalability_v1/summary.json"
+)
+DEFAULT_SCALABILITY_OUTPUT = (
+    ROOT / "docs/figures/deltahls_residual_p4_scalability.svg"
+)
 SVG_NS = "http://www.w3.org/2000/svg"
 ET.register_namespace("", SVG_NS)
 
@@ -239,14 +245,132 @@ def render(screening: Path, sensitivity: Path, output: Path) -> None:
     ET.ElementTree(root).write(output, encoding="utf-8", xml_declaration=True)
 
 
+def render_scalability(summary: Path, output: Path) -> None:
+    data = json.loads(summary.read_text(encoding="utf-8"))
+    if data.get("status") != "PASS" or not all(data.get("checks", {}).values()):
+        raise ValueError("refusing to plot scalability evidence that failed gates")
+    labels = ("Spine", "GraSU K1", "GraSU K4 direct", "GraSU K4 shared")
+    rows = data["rows"]
+    cycles = [float(row["cycles"]) for row in rows]
+    root = _svg_element(
+        "svg",
+        width=920,
+        height=500,
+        viewBox="0 0 920 500",
+        role="img",
+        **{"aria-labelledby": "title description"},
+    )
+    title = _add(root, "title", id="title")
+    title.text = "Delta.hls residual PageRank four-partition scalability"
+    description = _add(root, "desc", id="description")
+    description.text = (
+        "Cycle counts for Spine and GraSU plus ReGraph K1, direct K4, and "
+        "shared K4 on a balanced four-partition sink-free workload."
+    )
+    _add(root, "rect", x=0, y=0, width=920, height=500, fill="#f7f8fa")
+    _text(
+        root,
+        "Four-partition residual PageRank scalability",
+        460,
+        42,
+        fill="#18212a",
+        **{"font-size": 22, "font-weight": 700, "text-anchor": "middle"},
+    )
+    left, right, top, bottom = 88.0, 880.0, 82.0, 390.0
+    y_max = math.ceil(max(cycles) / 5_000_000.0) * 5_000_000.0
+    for tick in range(0, int(y_max) + 1, 5_000_000):
+        y = bottom - tick / y_max * (bottom - top)
+        _add(
+            root,
+            "line",
+            x1=left,
+            y1=y,
+            x2=right,
+            y2=y,
+            stroke="#dfe4e8",
+            **{"stroke-width": 1},
+        )
+        _text(
+            root,
+            f"{tick / 1_000_000:.0f}",
+            left - 12,
+            y + 5,
+            fill="#4b5560",
+            **{"font-size": 13, "text-anchor": "end"},
+        )
+    bar_width = 118.0
+    centers = [170.0, 360.0, 560.0, 760.0]
+    colors = ("#c34d3f", "#68737d", "#147d92", "#3f8b68")
+    for center, label, value, color in zip(
+        centers, labels, cycles, colors, strict=True
+    ):
+        height = value / y_max * (bottom - top)
+        _add(
+            root,
+            "rect",
+            x=center - bar_width / 2,
+            y=bottom - height,
+            width=bar_width,
+            height=height,
+            fill=color,
+        )
+        _text(
+            root,
+            f"{value / 1_000_000:.2f}M",
+            center,
+            bottom - height - 12,
+            fill=color,
+            **{"font-size": 14, "font-weight": 700, "text-anchor": "middle"},
+        )
+        _text(
+            root,
+            label,
+            center,
+            bottom + 28,
+            fill="#303943",
+            **{"font-size": 13, "font-weight": 600, "text-anchor": "middle"},
+        )
+    _text(
+        root,
+        "Cycles (millions)",
+        24,
+        238,
+        fill="#303943",
+        transform="rotate(-90 24 238)",
+        **{"font-size": 14, "font-weight": 600, "text-anchor": "middle"},
+    )
+    metrics = data["metrics"]
+    _text(
+        root,
+        (
+            f"K1 to direct K4: {metrics['k1_to_direct_k4_speedup']:.2f}x   |   "
+            f"K1 to shared K4: {metrics['k1_to_shared_k4_speedup']:.2f}x   |   "
+            f"shared penalty: {(metrics['shared_k4_penalty_over_direct'] - 1) * 100:.2f}%"
+        ),
+        460,
+        472,
+        fill="#59636e",
+        **{"font-size": 13, "text-anchor": "middle"},
+    )
+    output.parent.mkdir(parents=True, exist_ok=True)
+    ET.ElementTree(root).write(output, encoding="utf-8", xml_declaration=True)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--screening", type=Path, default=DEFAULT_SCREENING)
     parser.add_argument("--sensitivity", type=Path, default=DEFAULT_SENSITIVITY)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument("--scalability", type=Path, default=DEFAULT_SCALABILITY)
+    parser.add_argument(
+        "--scalability-output", type=Path, default=DEFAULT_SCALABILITY_OUTPUT
+    )
     args = parser.parse_args()
     render(args.screening.resolve(), args.sensitivity.resolve(), args.output.resolve())
-    print(f"wrote {args.output}")
+    render_scalability(
+        args.scalability.resolve(), args.scalability_output.resolve()
+    )
+    print(f"wrote {args.output} and {args.scalability_output}")
     return 0
 
 

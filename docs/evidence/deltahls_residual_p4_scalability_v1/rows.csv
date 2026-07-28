@@ -1,0 +1,5 @@
+architecture,compute_pipelines,downstream_sharing,max_parallel_partitions,max_parallel_downstream_partitions,cycles,time_us,backend_requests,backend_bytes,iterations,active_edges,correctness_mismatches
+spine,1,spine_native,1,1,1117303,7448.6866666666665,525704,2109040,1,24,0
+grasu_regraph,1,direct,1,1,15955029,106366.86,1773366,39044736,1,24,0
+grasu_regraph,4,direct,4,4,4950600,33004.0,1773366,39044736,1,24,0
+grasu_regraph,4,shared,4,1,5075197,33834.64666666667,1773366,39044736,1,24,0

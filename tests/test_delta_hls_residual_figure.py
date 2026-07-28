@@ -6,7 +6,7 @@ import tempfile
 import unittest
 import xml.etree.ElementTree as ET
 
-from scripts.render_delta_hls_residual_figure import render
+from scripts.render_delta_hls_residual_figure import render, render_scalability
 
 
 class DeltaHlsResidualFigureTests(unittest.TestCase):
@@ -67,6 +67,36 @@ class DeltaHlsResidualFigureTests(unittest.TestCase):
             )
             with self.assertRaises(ValueError):
                 render(failed, passed, root / "figure.svg")
+
+    def test_render_scalability_emits_cycle_bars(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            summary = root / "summary.json"
+            output = root / "scalability.svg"
+            summary.write_text(
+                json.dumps(
+                    {
+                        "status": "PASS",
+                        "checks": {"work": True, "requests": True},
+                        "metrics": {
+                            "k1_to_direct_k4_speedup": 3.2,
+                            "k1_to_shared_k4_speedup": 3.1,
+                            "shared_k4_penalty_over_direct": 1.025,
+                        },
+                        "rows": [
+                            {"cycles": 1_000_000},
+                            {"cycles": 16_000_000},
+                            {"cycles": 5_000_000},
+                            {"cycles": 5_125_000},
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            render_scalability(summary, output)
+            text = output.read_text(encoding="utf-8")
+            self.assertIn("16.00M", text)
+            self.assertIn("shared penalty: 2.50%", text)
 
 
 if __name__ == "__main__":
