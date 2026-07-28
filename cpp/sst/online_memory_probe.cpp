@@ -75,6 +75,24 @@ struct DeltaHlsResidualSetup {
   float seed_linf{};
 };
 
+struct ConnectedComponentsReference {
+  std::vector<std::uint32_t> labels;
+  std::vector<std::size_t> frontier_in_sizes;
+  std::vector<std::size_t> frontier_out_sizes;
+  std::uint64_t active_edges{};
+  bool converged{};
+};
+
+struct ConnectedComponentsSetup {
+  AlgorithmInitialState initial_state;
+  ConnectedComponentsReference architecture_reference;
+  std::vector<std::uint32_t> mathematical_labels;
+  std::size_t logical_mutations{};
+  std::size_t physical_update_records{};
+  bool full_recompute{};
+  bool zero_net{};
+};
+
 std::vector<std::size_t> parse_active_memory_channels(
     const std::string &text, std::size_t channels) {
   if (text.empty()) {
@@ -540,6 +558,191 @@ SpineEdgeSlice materialize_weighted_snapshot(const SpineEdgeSlice &initial,
     throw std::invalid_argument("weighted update produced an empty graph");
   }
   return snapshot;
+}
+
+using ConnectedComponentsEdgeKey =
+    std::tuple<std::uint32_t, std::uint32_t, std::uint16_t>;
+
+std::map<ConnectedComponentsEdgeKey, std::int64_t>
+connected_components_edge_multiplicities(const SpineEdgeSlice &graph,
+                                         bool update) {
+  std::map<ConnectedComponentsEdgeKey, std::int64_t> edges;
+  for (const SpineEdgeRecord &edge : graph.edges) {
+    if (edge.src >= graph.vertices || edge.dst >= graph.vertices ||
+        edge.diff == 0 || (!update && edge.diff != 1) ||
+        (update && std::abs(edge.diff) != 1)) {
+      throw std::invalid_argument(
+          "connected-components graph contains an invalid edge record");
+    }
+    edges[{edge.src, edge.dst, edge.weight}] += edge.diff;
+  }
+  return edges;
+}
+
+void validate_connected_components_snapshot(const SpineEdgeSlice &graph) {
+  const auto edges = connected_components_edge_multiplicities(graph, false);
+  for (const auto &[key, count] : edges) {
+    const auto &[source, destination, weight] = key;
+    if (count != 1 ||
+        edges.find({destination, source, weight}) == edges.end() ||
+        edges.at({destination, source, weight}) != count) {
+      throw std::invalid_argument(
+          "connected-components snapshot is not a simple reciprocal graph");
+    }
+  }
+}
+
+std::vector<std::uint32_t>
+run_connected_components_mathematical_reference(const SpineEdgeSlice &graph) {
+  validate_connected_components_snapshot(graph);
+  std::vector<std::vector<std::uint32_t>> adjacency(graph.vertices);
+  for (const SpineEdgeRecord &edge : graph.edges) {
+    if (edge.src <= edge.dst) {
+      adjacency[edge.src].push_back(edge.dst);
+      if (edge.src != edge.dst) {
+        adjacency[edge.dst].push_back(edge.src);
+      }
+    }
+  }
+  std::vector<std::uint32_t> labels(
+      graph.vertices, std::numeric_limits<std::uint32_t>::max());
+  std::queue<std::uint32_t> pending;
+  for (std::uint32_t root = 0; root < graph.vertices; ++root) {
+    if (labels[root] != std::numeric_limits<std::uint32_t>::max()) {
+      continue;
+    }
+    labels[root] = root;
+    pending.push(root);
+    while (!pending.empty()) {
+      const std::uint32_t source = pending.front();
+      pending.pop();
+      for (const std::uint32_t destination : adjacency[source]) {
+        if (labels[destination] ==
+            std::numeric_limits<std::uint32_t>::max()) {
+          labels[destination] = root;
+          pending.push(destination);
+        }
+      }
+    }
+  }
+  return labels;
+}
+
+ConnectedComponentsReference run_connected_components_architecture_reference(
+    const SpineEdgeSlice &graph, std::vector<std::uint32_t> labels,
+    std::vector<std::uint32_t> active, std::size_t max_iterations) {
+  validate_connected_components_snapshot(graph);
+  if (labels.size() != graph.vertices) {
+    throw std::invalid_argument(
+        "connected-components initial label count does not match graph");
+  }
+  std::vector<std::vector<std::uint32_t>> adjacency(graph.vertices);
+  for (const SpineEdgeRecord &edge : graph.edges) {
+    adjacency[edge.src].push_back(edge.dst);
+  }
+  std::sort(active.begin(), active.end());
+  active.erase(std::unique(active.begin(), active.end()), active.end());
+  ConnectedComponentsReference reference{
+      .labels = std::move(labels),
+      .frontier_in_sizes = {},
+      .frontier_out_sizes = {},
+      .active_edges = 0,
+      .converged = false,
+  };
+  if (active.empty()) {
+    reference.frontier_in_sizes.push_back(0);
+    reference.frontier_out_sizes.push_back(0);
+    reference.converged = true;
+    return reference;
+  }
+  for (std::size_t iteration = 0; iteration < max_iterations; ++iteration) {
+    reference.frontier_in_sizes.push_back(active.size());
+    std::vector<std::uint32_t> reduced(
+        graph.vertices, std::numeric_limits<std::uint32_t>::max());
+    for (const std::uint32_t source : active) {
+      if (source >= graph.vertices) {
+        throw std::invalid_argument(
+            "connected-components active vertex is out of range");
+      }
+      reference.active_edges += adjacency[source].size();
+      for (const std::uint32_t destination : adjacency[source]) {
+        reduced[destination] =
+            std::min(reduced[destination], reference.labels[source]);
+      }
+    }
+    std::vector<std::uint32_t> next;
+    for (std::uint32_t vertex = 0; vertex < graph.vertices; ++vertex) {
+      if (reduced[vertex] < reference.labels[vertex]) {
+        reference.labels[vertex] = reduced[vertex];
+        next.push_back(vertex);
+      }
+    }
+    reference.frontier_out_sizes.push_back(next.size());
+    if (next.empty()) {
+      reference.converged = true;
+      return reference;
+    }
+    active = std::move(next);
+  }
+  return reference;
+}
+
+ConnectedComponentsSetup build_connected_components_setup(
+    const SpineEdgeSlice &old_graph, const SpineEdgeSlice &new_graph,
+    const SpineEdgeSlice &update, std::size_t max_iterations) {
+  if (old_graph.vertices == 0 || old_graph.vertices != new_graph.vertices ||
+      old_graph.vertices != update.vertices || update.edges.empty()) {
+    throw std::invalid_argument(
+        "connected-components update requires matching non-empty graphs");
+  }
+  validate_connected_components_snapshot(old_graph);
+  validate_connected_components_snapshot(new_graph);
+  const auto deltas = connected_components_edge_multiplicities(update, true);
+
+  ConnectedComponentsSetup setup;
+  setup.physical_update_records = update.edges.size();
+  std::vector<std::uint32_t> touched;
+  for (const auto &[key, delta] : deltas) {
+    const auto &[source, destination, weight] = key;
+    const auto reverse = deltas.find({destination, source, weight});
+    if (source == destination || reverse == deltas.end() ||
+        reverse->second != delta) {
+      throw std::invalid_argument(
+          "connected-components update is not an atomic reciprocal pair");
+    }
+    if (delta == 0 || source > destination) {
+      continue;
+    }
+    ++setup.logical_mutations;
+    setup.full_recompute = setup.full_recompute || delta < 0;
+    touched.push_back(source);
+    touched.push_back(destination);
+  }
+  setup.zero_net = setup.logical_mutations == 0;
+  setup.mathematical_labels =
+      run_connected_components_mathematical_reference(new_graph);
+
+  if (setup.full_recompute) {
+    setup.initial_state.primary.resize(old_graph.vertices);
+    std::iota(setup.initial_state.primary.begin(),
+              setup.initial_state.primary.end(), 0U);
+    setup.initial_state.active_vertices = setup.initial_state.primary;
+  } else {
+    setup.initial_state.primary =
+        run_connected_components_mathematical_reference(old_graph);
+    std::sort(touched.begin(), touched.end());
+    touched.erase(std::unique(touched.begin(), touched.end()), touched.end());
+    setup.initial_state.active_vertices = std::move(touched);
+  }
+  setup.architecture_reference = run_connected_components_architecture_reference(
+      new_graph, setup.initial_state.primary,
+      setup.initial_state.active_vertices, max_iterations);
+  if (!setup.architecture_reference.converged ||
+      setup.architecture_reference.labels != setup.mathematical_labels) {
+    throw std::invalid_argument(
+        "connected-components fixed-width reference did not converge to BFS");
+  }
+  return setup;
 }
 
 SpineL0State preload_spine_level_snapshot(const SpineEdgeSlice &snapshot,
@@ -1843,6 +2046,8 @@ class OnlineMemoryProbe final : public SST::Component {
         mode_ == "grasu_regraph_hls_weighted_pagerank";
     const bool hls_weighted_grasu_residual_pagerank =
         mode_ == "grasu_regraph_hls_weighted_residual_pagerank";
+    const bool grasu_connected_components =
+        mode_ == "grasu_regraph_connected_components";
     const bool hls_weighted_grasu =
         hls_weighted_grasu_sssp || hls_weighted_grasu_pagerank ||
         hls_weighted_grasu_residual_pagerank;
@@ -1882,13 +2087,16 @@ class OnlineMemoryProbe final : public SST::Component {
          mode_ != "spine_vertical" && mode_ != "spine_maintenance" &&
          mode_ != "spine_compute" &&
          mode_ != "spine_sssp" && mode_ != "spine_pagerank" &&
-         mode_ != "spine_residual_pagerank" && mode_ != "grasu_regraph_sssp" &&
+         mode_ != "spine_residual_pagerank" &&
+         mode_ != "spine_connected_components" &&
+         mode_ != "grasu_regraph_sssp" &&
          mode_ != "grasu_regraph_native_sssp" &&
          mode_ != "grasu_regraph_hls_weighted_sssp" &&
          mode_ != "grasu_regraph_hls_weighted_pagerank" &&
          mode_ != "grasu_regraph_hls_weighted_residual_pagerank" &&
          mode_ != "grasu_regraph_pagerank" &&
          mode_ != "grasu_regraph_residual_pagerank" &&
+         mode_ != "grasu_regraph_connected_components" &&
          mode_ != "grasu_regraph_partitioned_dynamic_pagerank") ||
         channels_ == 0 || channel_capacity_bytes_ == 0 || max_rounds_ == 0 ||
         grasu_native_supersteps_ == 0 ||
@@ -1948,13 +2156,16 @@ class OnlineMemoryProbe final : public SST::Component {
         ((mode_ == "spine_vertical" || mode_ == "spine_maintenance" ||
           mode_ == "spine_compute" ||
           mode_ == "spine_sssp" || mode_ == "spine_pagerank" ||
-          mode_ == "spine_residual_pagerank" || mode_ == "grasu_regraph_sssp" ||
+          mode_ == "spine_residual_pagerank" ||
+          mode_ == "spine_connected_components" ||
+          mode_ == "grasu_regraph_sssp" ||
           mode_ == "grasu_regraph_native_sssp" ||
           mode_ == "grasu_regraph_hls_weighted_sssp" ||
           mode_ == "grasu_regraph_hls_weighted_pagerank" ||
           mode_ == "grasu_regraph_hls_weighted_residual_pagerank" ||
           mode_ == "grasu_regraph_pagerank" ||
           mode_ == "grasu_regraph_residual_pagerank" ||
+          mode_ == "grasu_regraph_connected_components" ||
           mode_ == "grasu_regraph_partitioned_dynamic_pagerank") &&
          (channels_ < 23 || workload_path_.empty())) ||
         ((mode_ == "grasu_regraph_sssp" ||
@@ -1964,6 +2175,7 @@ class OnlineMemoryProbe final : public SST::Component {
           mode_ == "grasu_regraph_hls_weighted_residual_pagerank" ||
           mode_ == "grasu_regraph_pagerank" ||
           mode_ == "grasu_regraph_residual_pagerank" ||
+          grasu_connected_components ||
           mode_ == "grasu_regraph_partitioned_dynamic_pagerank") &&
          channels_ < 32)) {
       output_.fatal(
@@ -2038,6 +2250,8 @@ class OnlineMemoryProbe final : public SST::Component {
         mode_ == "grasu_regraph_hls_weighted_pagerank";
     const bool hls_weighted_grasu_residual_pagerank =
         mode_ == "grasu_regraph_hls_weighted_residual_pagerank";
+    const bool grasu_connected_components =
+        mode_ == "grasu_regraph_connected_components";
     const bool hls_weighted_grasu =
         hls_weighted_grasu_sssp || hls_weighted_grasu_pagerank ||
         hls_weighted_grasu_residual_pagerank;
@@ -2045,8 +2259,10 @@ class OnlineMemoryProbe final : public SST::Component {
         hls_weighted_grasu ||
         mode_ == "grasu_regraph_pagerank" ||
         mode_ == "grasu_regraph_residual_pagerank" ||
+        grasu_connected_components ||
         mode_ == "grasu_regraph_partitioned_dynamic_pagerank") {
       SpineEdgeSlice initial = load_spine_edge_slice(workload_path_);
+      std::optional<SpineEdgeSlice> logical_update_snapshot;
       std::vector<GraSuEdge> initial_edges;
       std::vector<GraSuEdge> reserved_updates;
       std::vector<GraSuEdge> updates;
@@ -2069,6 +2285,7 @@ class OnlineMemoryProbe final : public SST::Component {
       if (!update_workload_path_.empty()) {
         SpineEdgeSlice update =
             load_spine_edge_slice(update_workload_path_, true);
+        logical_update_snapshot = update;
         if (update.vertices != initial.vertices) {
           throw std::invalid_argument(
               "GraSU/ReGraph update vertex count does not match snapshot");
@@ -2214,6 +2431,14 @@ class OnlineMemoryProbe final : public SST::Component {
         for (const SpineEdgeRecord &edge : final_snapshot.edges) {
           ++grasu_pagerank_degrees_.at(edge.src);
         }
+      } else if (grasu_connected_components) {
+        if (!logical_update_snapshot.has_value()) {
+          throw std::invalid_argument(
+              "GraSU/ReGraph connected components requires an update workload");
+        }
+        connected_components_setup_ = build_connected_components_setup(
+            initial_snapshot, final_snapshot, *logical_update_snapshot,
+            max_rounds_);
       } else {
         if (delta_hls_residual_) {
           if (update_workload_path_.empty()) {
@@ -2375,7 +2600,8 @@ class OnlineMemoryProbe final : public SST::Component {
       scheduler_.add_component(*backend_);
       return;
     }
-    if (mode_ == "spine_pagerank" || mode_ == "spine_residual_pagerank") {
+    if (mode_ == "spine_pagerank" || mode_ == "spine_residual_pagerank" ||
+        mode_ == "spine_connected_components") {
       SpineEdgeSlice initial = load_spine_edge_slice(workload_path_);
       spine_expected_edges_ = initial.edges.size();
       SpineEdgeSlice maintenance_workload = initial;
@@ -2406,7 +2632,7 @@ class OnlineMemoryProbe final : public SST::Component {
             run_full_pagerank_mathematical_reference(
                 execution_graph, static_cast<double>(pagerank_damping_),
                 pagerank_iterations_);
-      } else {
+      } else if (mode_ == "spine_residual_pagerank") {
         if (delta_hls_residual_) {
           if (!dynamic_pagerank_enabled_) {
             throw std::invalid_argument(
@@ -2426,6 +2652,13 @@ class OnlineMemoryProbe final : public SST::Component {
               run_full_pagerank_mathematical_reference(
                   execution_graph, static_cast<double>(pagerank_damping_), 200);
         }
+      } else {
+        if (!dynamic_pagerank_enabled_) {
+          throw std::invalid_argument(
+              "Spine connected components requires an update workload");
+        }
+        connected_components_setup_ = build_connected_components_setup(
+            initial, execution_graph, dynamic_update_workload_, max_rounds_);
       }
       SpineL0Config maintenance_config;
       maintenance_config.device_dirty_source_limit = device_dirty_source_limit_;
@@ -2521,8 +2754,11 @@ class OnlineMemoryProbe final : public SST::Component {
         host_coverage = spine_dirty_identity(1, dirty_sources);
       }
       const GraphAlgorithmKind kind =
-          mode_ == "spine_pagerank" ? GraphAlgorithmKind::kFullPageRank
-                                    : GraphAlgorithmKind::kResidualPageRank;
+          mode_ == "spine_pagerank"
+              ? GraphAlgorithmKind::kFullPageRank
+              : (mode_ == "spine_residual_pagerank"
+                     ? GraphAlgorithmKind::kResidualPageRank
+                     : GraphAlgorithmKind::kConnectedComponents);
       const std::size_t vertices = execution_graph.vertices;
       pagerank_system_ = std::make_unique<SpinePageRankVerticalSliceSystem>(
           scheduler_, core, *backend_, std::move(maintenance_workload),
@@ -2544,10 +2780,13 @@ class OnlineMemoryProbe final : public SST::Component {
               ? std::optional<SpineEdgeSlice>(std::move(execution_graph))
               : std::nullopt,
           host_coverage,
-          delta_hls_residual_
+          mode_ == "spine_connected_components"
               ? std::optional<AlgorithmInitialState>(
-                    delta_hls_setup_->initial_state)
-              : std::nullopt);
+                    connected_components_setup_->initial_state)
+              : (delta_hls_residual_
+                     ? std::optional<AlgorithmInitialState>(
+                           delta_hls_setup_->initial_state)
+                     : std::nullopt));
       pagerank_system_->register_components();
       pagerank_iteration_start_cycle_ = scheduler_.clock(core).completed_cycles;
       scheduler_.add_component(*backend_);
@@ -2932,6 +3171,7 @@ class OnlineMemoryProbe final : public SST::Component {
         mode_ == "grasu_regraph_hls_weighted_residual_pagerank" ||
         mode_ == "grasu_regraph_pagerank" ||
         mode_ == "grasu_regraph_residual_pagerank" ||
+        mode_ == "grasu_regraph_connected_components" ||
         mode_ == "grasu_regraph_partitioned_dynamic_pagerank") {
       if (grasu_update_system_->failed()) {
         write_result(false);
@@ -2941,6 +3181,7 @@ class OnlineMemoryProbe final : public SST::Component {
       if (grasu_compute_system_ == nullptr &&
           grasu_pagerank_compute_system_ == nullptr &&
           grasu_residual_compute_system_ == nullptr &&
+          grasu_connected_components_system_ == nullptr &&
           grasu_update_system_->done() && backend_->outstanding() == 0) {
         grasu_update_counters_ = grasu_update_system_->counters();
         grasu_update_counters_captured_ = true;
@@ -3002,7 +3243,8 @@ class OnlineMemoryProbe final : public SST::Component {
                     pagerank_damping_, grasu_config_);
           }
           grasu_pagerank_compute_system_->register_components();
-        } else {
+        } else if (mode_ == "grasu_regraph_residual_pagerank" ||
+                   mode_ == "grasu_regraph_hls_weighted_residual_pagerank") {
           if (grasu_partitioned_execution_) {
             grasu_residual_compute_system_ =
                 std::make_unique<GraSuReGraphResidualPageRankSystem>(
@@ -3031,6 +3273,21 @@ class OnlineMemoryProbe final : public SST::Component {
                         : std::nullopt);
           }
           grasu_residual_compute_system_->register_components();
+        } else {
+          const std::optional<AlgorithmInitialState> initial_state =
+              connected_components_setup_->initial_state;
+          if (grasu_partitioned_execution_) {
+            grasu_connected_components_system_ =
+                std::make_unique<GraSuReGraphConnectedComponentsSystem>(
+                    scheduler_, 0, *backend_, grasu_partitioned_layout_,
+                    max_rounds_, grasu_config_, initial_state);
+          } else {
+            grasu_connected_components_system_ =
+                std::make_unique<GraSuReGraphConnectedComponentsSystem>(
+                    scheduler_, 0, *backend_, grasu_layout_, max_rounds_,
+                    grasu_config_, initial_state);
+          }
+          grasu_connected_components_system_->register_components();
         }
         return false;
       }
@@ -3039,14 +3296,18 @@ class OnlineMemoryProbe final : public SST::Component {
           (grasu_pagerank_compute_system_ != nullptr &&
            grasu_pagerank_compute_system_->done()) ||
           (grasu_residual_compute_system_ != nullptr &&
-           grasu_residual_compute_system_->done());
+           grasu_residual_compute_system_->done()) ||
+          (grasu_connected_components_system_ != nullptr &&
+           grasu_connected_components_system_->done());
       if (compute_done && backend_->outstanding() == 0) {
         const bool compute_failed =
             grasu_compute_system_ != nullptr
                 ? grasu_compute_system_->failed()
                 : (grasu_pagerank_compute_system_ != nullptr
                        ? grasu_pagerank_compute_system_->failed()
-                       : grasu_residual_compute_system_->failed());
+                       : (grasu_residual_compute_system_ != nullptr
+                              ? grasu_residual_compute_system_->failed()
+                              : grasu_connected_components_system_->failed()));
         write_result(!compute_failed);
         primaryComponentOKToEndSim();
         return true;
@@ -3064,7 +3325,8 @@ class OnlineMemoryProbe final : public SST::Component {
         return true;
       }
     } else if (mode_ == "spine_pagerank" ||
-               mode_ == "spine_residual_pagerank") {
+               mode_ == "spine_residual_pagerank" ||
+               mode_ == "spine_connected_components") {
       if (!pagerank_maintenance_backend_captured_ &&
           pagerank_system_->maintenance_done()) {
         pagerank_maintenance_backend_requests_ = backend_->accepted();
@@ -3092,14 +3354,22 @@ class OnlineMemoryProbe final : public SST::Component {
             pagerank_system_->compute().next_active().size());
         pagerank_compute_requests_per_iteration_.push_back(
             pagerank_system_->compute_counters().memory_requests_issued);
+        pagerank_reader_edges_per_iteration_.push_back(
+            pagerank_system_->reader_counters().edges_emitted);
+        pagerank_compute_edges_per_iteration_.push_back(
+            pagerank_system_->compute_counters().edges_received);
         ++pagerank_completed_iterations_;
-        const bool residual_converged =
-            mode_ == "spine_residual_pagerank" &&
+        const bool frontier_converged =
+            (mode_ == "spine_residual_pagerank" ||
+             mode_ == "spine_connected_components") &&
             pagerank_system_->compute().next_active().empty();
         const std::size_t iteration_limit =
-            mode_ == "spine_pagerank" ? pagerank_iterations_
-                                      : residual_max_iterations_;
-        if (!pagerank_system_->failed() && !residual_converged &&
+            mode_ == "spine_pagerank"
+                ? pagerank_iterations_
+                : (mode_ == "spine_residual_pagerank"
+                       ? residual_max_iterations_
+                       : max_rounds_);
+        if (!pagerank_system_->failed() && !frontier_converged &&
             pagerank_completed_iterations_ < iteration_limit) {
           pagerank_system_->restart_iteration();
           pagerank_iteration_start_cycle_ = now;
@@ -3108,7 +3378,7 @@ class OnlineMemoryProbe final : public SST::Component {
         const bool completed =
             mode_ == "spine_pagerank"
                 ? pagerank_completed_iterations_ == pagerank_iterations_
-                : residual_converged;
+                : frontier_converged;
         write_result(!pagerank_system_->failed() && completed);
         primaryComponentOKToEndSim();
         return true;
@@ -3256,11 +3526,13 @@ class OnlineMemoryProbe final : public SST::Component {
        "probe, payload_roundtrip, spine_vertical, spine_maintenance, "
        "spine_compute, spine_sssp, "
        "or "
-       "spine_pagerank/spine_residual_pagerank/grasu_regraph_sssp/"
+       "spine_pagerank/spine_residual_pagerank/"
+       "spine_connected_components/grasu_regraph_sssp/"
        "grasu_regraph_native_sssp/grasu_regraph_hls_weighted_sssp/"
        "grasu_regraph_hls_weighted_pagerank/"
        "grasu_regraph_hls_weighted_residual_pagerank/"
        "grasu_regraph_pagerank/grasu_regraph_residual_pagerank/"
+       "grasu_regraph_connected_components/"
        "grasu_regraph_partitioned_dynamic_pagerank",
        "probe"},
       {"workload", "Spine .slice workload path", ""},
@@ -3504,6 +3776,362 @@ class OnlineMemoryProbe final : public SST::Component {
     }
     result_written_ = true;
     std::ofstream result(result_path_);
+    if (mode_ == "spine_connected_components") {
+      const std::vector<std::uint32_t> labels =
+          pagerank_system_->compute().rank_words();
+      const ConnectedComponentsReference &reference =
+          connected_components_setup_->architecture_reference;
+      const std::uint64_t architecture_mismatches =
+          count_value_mismatches(labels, reference.labels);
+      const std::uint64_t mathematical_mismatches = count_value_mismatches(
+          labels, connected_components_setup_->mathematical_labels);
+      const bool frontier_match =
+          pagerank_frontier_in_sizes_ == reference.frontier_in_sizes &&
+          pagerank_frontier_out_sizes_ == reference.frontier_out_sizes;
+      const auto &maintenance = pagerank_system_->maintenance_counters();
+      const auto &compute = pagerank_system_->compute_counters();
+      const auto &pipeline = pagerank_system_->compute().pipeline_counters();
+      const std::uint64_t reader_edges = std::accumulate(
+          pagerank_reader_edges_per_iteration_.begin(),
+          pagerank_reader_edges_per_iteration_.end(), std::uint64_t{0});
+      const std::uint64_t compute_edges = std::accumulate(
+          pagerank_compute_edges_per_iteration_.begin(),
+          pagerank_compute_edges_per_iteration_.end(), std::uint64_t{0});
+      const bool active_edge_ledger_match =
+          reader_edges == reference.active_edges &&
+          compute_edges == reference.active_edges;
+      const MemoryTrafficStats total_backend_traffic =
+          backend_->traffic_stats();
+      const MemoryTrafficStats compute_backend_traffic =
+          subtract_memory_traffic(total_backend_traffic,
+                                  pagerank_maintenance_backend_traffic_);
+      const bool memory_locality_ledger_match =
+          memory_traffic_closes(pagerank_maintenance_backend_traffic_,
+                                pagerank_maintenance_backend_requests_) &&
+          memory_traffic_closes(
+              compute_backend_traffic,
+              backend_->accepted() - pagerank_maintenance_backend_requests_) &&
+          memory_traffic_closes(total_backend_traffic, backend_->accepted());
+      const bool converged = pagerank_system_->compute().next_active().empty();
+      std::unordered_set<std::uint32_t> components(labels.begin(),
+                                                   labels.end());
+      const bool passed =
+          success && reference.converged && converged && frontier_match &&
+          active_edge_ledger_match && memory_locality_ledger_match &&
+          architecture_mismatches == 0 && mathematical_mismatches == 0;
+      result << "{\n"
+             << "  \"success\": " << (passed ? "true" : "false")
+             << ",\n"
+             << "  \"mode\": \"spine_connected_components\",\n"
+             << "  \"algorithm_contract\": "
+                "\"weakly_connected_min_vertex_reciprocal_v1\",\n"
+             << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
+             << "  \"claim_class\": "
+                "\"execution_driven_normalized_cycle_simulation\",\n"
+             << "  \"timing_evidence\": "
+                "\"execution_driven_sst_hbm_not_cycle_calibrated\",\n"
+             << "  \"failure\": ";
+      write_json_string(result, pagerank_system_->failure());
+      result << ",\n"
+             << "  \"core_mhz\": " << core_mhz_ << ",\n"
+             << "  \"cycles\": " << scheduler_.clock(0).completed_cycles
+             << ",\n"
+             << "  \"vertices\": " << labels.size() << ",\n"
+             << "  \"components\": " << components.size() << ",\n"
+             << "  \"initial_edges\": " << spine_expected_edges_ << ",\n"
+             << "  \"update_edges\": "
+             << dynamic_update_workload_.edges.size() << ",\n"
+             << "  \"logical_mutations\": "
+             << connected_components_setup_->logical_mutations << ",\n"
+             << "  \"physical_update_records\": "
+             << connected_components_setup_->physical_update_records << ",\n"
+             << "  \"update_mode\": \""
+             << (connected_components_setup_->full_recompute
+                     ? "deletion_full_recompute"
+                     : (connected_components_setup_->zero_net
+                            ? "zero_net_no_repair"
+                            : "insertion_incremental_repair"))
+             << "\",\n"
+             << "  \"materialized_snapshot_edges\": "
+             << dynamic_materialized_snapshot_.edges.size() << ",\n"
+             << "  \"pipeline_order\": "
+                "\"zero_time_resident_level_preload_then_update_maintenance_then_compute\",\n"
+             << "  \"converged\": " << (converged ? "true" : "false")
+             << ",\n"
+             << "  \"iterations\": " << pagerank_completed_iterations_
+             << ",\n"
+             << "  \"initial_active_vertices\": "
+             << connected_components_setup_->initial_state.active_vertices.size()
+             << ",\n"
+             << "  \"correctness_mismatches\": "
+             << architecture_mismatches + mathematical_mismatches << ",\n"
+             << "  \"architecture_correctness_mismatches\": "
+             << architecture_mismatches << ",\n"
+             << "  \"mathematical_correctness_mismatches\": "
+             << mathematical_mismatches << ",\n"
+             << "  \"architecture_oracle\": "
+                "\"fixed_width_frontier_min_label_uint32\",\n"
+             << "  \"mathematical_oracle\": "
+                "\"independent_cpu_bfs_min_external_vertex\",\n"
+             << "  \"frontier_match\": "
+             << (frontier_match ? "true" : "false") << ",\n"
+             << "  \"active_edge_execution_ledger_match\": "
+             << (active_edge_ledger_match ? "true" : "false") << ",\n"
+             << "  \"memory_locality_ledger_match\": "
+             << (memory_locality_ledger_match ? "true" : "false") << ",\n"
+             << "  \"active_edges\": " << reference.active_edges << ",\n"
+             << "  \"maintenance_cycles\": "
+             << maintenance.end_cycle - maintenance.start_cycle << ",\n"
+             << "  \"maintenance_target_level\": "
+             << maintenance.target_level << ",\n"
+             << "  \"maintenance_backend_requests\": "
+             << pagerank_maintenance_backend_requests_ << ",\n"
+             << "  \"compute_backend_requests\": "
+             << backend_->accepted() - pagerank_maintenance_backend_requests_
+             << ",\n"
+             << "  \"reader_edges\": " << reader_edges << ",\n"
+             << "  \"compute_edges\": " << compute_edges << ",\n"
+             << "  \"compute_vertices_applied\": "
+             << compute.vertices_applied << ",\n"
+             << "  \"compute_vertices_activated\": "
+             << compute.vertices_activated << ",\n"
+             << "  \"compute_primary_read_bytes\": "
+             << compute.primary_read_bytes << ",\n"
+             << "  \"compute_primary_write_bytes\": "
+             << compute.primary_write_bytes << ",\n"
+             << "  \"compute_auxiliary_read_bytes\": "
+             << compute.auxiliary_read_bytes << ",\n"
+             << "  \"compute_degree_read_bytes\": "
+             << compute.degree_read_bytes << ",\n"
+             << "  \"source_map_operations\": "
+             << pipeline.source_map.completed << ",\n"
+             << "  \"reduce_operations\": " << pipeline.reduce.completed
+             << ",\n"
+             << "  \"apply_operations\": " << pipeline.apply.completed
+             << ",\n"
+             << "  \"backend_requests\": " << backend_->accepted()
+             << ",\n"
+             << "  \"backend_submit_stalls\": "
+             << backend_->submit_stalls() << ",\n"
+             << "  \"backend_response_queue_stalls\": "
+             << backend_->response_queue_stalls() << ",\n"
+             << "  \"backend_max_outstanding\": "
+             << backend_->max_outstanding() << ",\n"
+             << "  \"backend_arbitration\": "
+             << backend_->arbitration_json() << ",\n"
+             << "  \"backend_traffic\": ";
+      write_memory_traffic(result, total_backend_traffic);
+      result << ",\n  \"maintenance_backend_traffic\": ";
+      write_memory_traffic(result, pagerank_maintenance_backend_traffic_);
+      result << ",\n  \"compute_backend_traffic\": ";
+      write_memory_traffic(result, compute_backend_traffic);
+      result << ",\n  \"iteration_cycles\": ";
+      write_json_array(result, pagerank_iteration_cycles_);
+      result << ",\n  \"frontier_in_sizes\": ";
+      write_json_array(result, pagerank_frontier_in_sizes_);
+      result << ",\n  \"frontier_out_sizes\": ";
+      write_json_array(result, pagerank_frontier_out_sizes_);
+      result << ",\n  \"reader_edges_per_iteration\": ";
+      write_json_array(result, pagerank_reader_edges_per_iteration_);
+      result << ",\n  \"compute_edges_per_iteration\": ";
+      write_json_array(result, pagerank_compute_edges_per_iteration_);
+      result << ",\n  \"labels\": ";
+      write_json_array(result, labels);
+      result << "\n}\n";
+      output_.output(
+          "completed %zu SST Spine CC rounds in %llu cycles -> %s\n",
+          pagerank_completed_iterations_,
+          static_cast<unsigned long long>(scheduler_.clock(0).completed_cycles),
+          result_path_.c_str());
+      return;
+    }
+    if (mode_ == "grasu_regraph_connected_components") {
+      const bool compute_available =
+          grasu_connected_components_system_ != nullptr;
+      const std::vector<std::uint32_t> labels =
+          compute_available ? grasu_connected_components_system_->labels()
+                            : std::vector<std::uint32_t>{};
+      const ConnectedComponentsReference &reference =
+          connected_components_setup_->architecture_reference;
+      const std::uint64_t architecture_mismatches =
+          count_value_mismatches(labels, reference.labels);
+      const std::uint64_t mathematical_mismatches = count_value_mismatches(
+          labels, connected_components_setup_->mathematical_labels);
+      const GraSuReGraphCounters compute =
+          compute_available ? grasu_connected_components_system_->counters()
+                            : GraSuReGraphCounters{};
+      const std::vector<std::size_t> frontier_out =
+          compute_available
+              ? grasu_connected_components_system_->frontier_out_sizes()
+              : std::vector<std::size_t>{};
+      std::vector<std::size_t> frontier_in;
+      if (!frontier_out.empty()) {
+        frontier_in.push_back(
+            connected_components_setup_->initial_state.active_vertices.size());
+        frontier_in.insert(frontier_in.end(), frontier_out.begin(),
+                           frontier_out.end() - 1);
+      }
+      const bool frontier_match =
+          frontier_in == reference.frontier_in_sizes &&
+          frontier_out == reference.frontier_out_sizes;
+      const bool active_edge_ledger_match =
+          compute.active_edges_mapped == reference.active_edges;
+      const GraSuUpdateCounters update =
+          grasu_update_counters_captured_
+              ? grasu_update_counters_
+              : grasu_update_system_->counters();
+      const bool update_state_match =
+          grasu_update_system_->live_edges() == grasu_final_edges_;
+      const std::uint64_t update_requests =
+          combine_memory_traffic(grasu_update_backend_traffic_).requests;
+      const std::uint64_t compute_requests = compute.axi_beats_issued;
+      const MemoryTrafficStats total_backend_traffic =
+          backend_->traffic_stats();
+      const MemoryTrafficStats compute_backend_traffic =
+          subtract_memory_traffic(total_backend_traffic,
+                                  grasu_update_backend_traffic_);
+      const bool memory_locality_ledger_match =
+          memory_traffic_closes(grasu_update_backend_traffic_,
+                                update_requests) &&
+          memory_traffic_closes(compute_backend_traffic, compute_requests) &&
+          memory_traffic_closes(total_backend_traffic,
+                                update_requests + compute_requests);
+      const bool converged = compute_available &&
+                             !grasu_connected_components_system_->failed() &&
+                             !frontier_out.empty() && frontier_out.back() == 0;
+      std::unordered_set<std::uint32_t> components(labels.begin(),
+                                                   labels.end());
+      const bool passed =
+          success && reference.converged && converged && frontier_match &&
+          active_edge_ledger_match && update_state_match &&
+          memory_locality_ledger_match && architecture_mismatches == 0 &&
+          mathematical_mismatches == 0;
+      result << "{\n"
+             << "  \"success\": " << (passed ? "true" : "false")
+             << ",\n"
+             << "  \"mode\": \"grasu_regraph_connected_components\",\n"
+             << "  \"algorithm_contract\": "
+                "\"weakly_connected_min_vertex_reciprocal_v1\",\n"
+             << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
+             << "  \"claim_class\": "
+                "\"conversion_free_normalized_execution_driven_simulation\",\n"
+             << "  \"timing_evidence\": "
+                "\"execution_driven_sst_hbm_not_cycle_calibrated\",\n"
+             << "  \"conversion_cost_included\": false,\n"
+             << "  \"pma_edge_abi\": \"normalized_weighted_19_12\",\n"
+             << "  \"failure\": ";
+      write_json_string(
+          result, compute_available
+                      ? grasu_connected_components_system_->failure()
+                      : "compute did not start");
+      result << ",\n"
+             << "  \"core_mhz\": " << core_mhz_ << ",\n"
+             << "  \"cycles\": " << scheduler_.clock(0).completed_cycles
+             << ",\n"
+             << "  \"vertices\": " << labels.size() << ",\n"
+             << "  \"components\": " << components.size() << ",\n"
+             << "  \"initial_edges\": " << grasu_initial_edges_ << ",\n"
+             << "  \"update_edges\": " << grasu_update_edges_ << ",\n"
+             << "  \"logical_mutations\": "
+             << connected_components_setup_->logical_mutations << ",\n"
+             << "  \"physical_update_records\": "
+             << connected_components_setup_->physical_update_records << ",\n"
+             << "  \"update_mode\": \""
+             << (connected_components_setup_->full_recompute
+                     ? "deletion_full_recompute"
+                     : (connected_components_setup_->zero_net
+                            ? "zero_net_no_repair"
+                            : "insertion_incremental_repair"))
+             << "\",\n"
+             << "  \"pipeline_order\": "
+                "\"update_then_pma_native_compute\",\n"
+             << "  \"converged\": " << (converged ? "true" : "false")
+             << ",\n"
+             << "  \"iterations\": " << compute.supersteps << ",\n"
+             << "  \"initial_active_vertices\": "
+             << connected_components_setup_->initial_state.active_vertices.size()
+             << ",\n"
+             << "  \"correctness_mismatches\": "
+             << architecture_mismatches + mathematical_mismatches << ",\n"
+             << "  \"architecture_correctness_mismatches\": "
+             << architecture_mismatches << ",\n"
+             << "  \"mathematical_correctness_mismatches\": "
+             << mathematical_mismatches << ",\n"
+             << "  \"architecture_oracle\": "
+                "\"fixed_width_frontier_min_label_uint32\",\n"
+             << "  \"mathematical_oracle\": "
+                "\"independent_cpu_bfs_min_external_vertex\",\n"
+             << "  \"frontier_match\": "
+             << (frontier_match ? "true" : "false") << ",\n"
+             << "  \"active_edge_execution_ledger_match\": "
+             << (active_edge_ledger_match ? "true" : "false") << ",\n"
+             << "  \"update_state_mismatches\": "
+             << (update_state_match ? 0 : 1) << ",\n"
+             << "  \"memory_locality_ledger_match\": "
+             << (memory_locality_ledger_match ? "true" : "false") << ",\n"
+             << "  \"active_edges\": " << reference.active_edges << ",\n"
+             << "  \"destination_partitions\": "
+             << compute.destination_partitions << ",\n"
+             << "  \"compute_pipelines\": " << compute.compute_pipelines
+             << ",\n"
+             << "  \"max_parallel_partitions\": "
+             << compute.max_parallel_partitions << ",\n"
+             << "  \"partition_passes\": " << compute.partition_passes
+             << ",\n"
+             << "  \"update_cycles\": "
+             << update.end_cycle - update.start_cycle << ",\n"
+             << "  \"compute_cycles\": "
+             << compute.end_cycle - compute.start_cycle << ",\n"
+             << "  \"row_read_bytes\": " << compute.row_read_bytes
+             << ",\n"
+             << "  \"source_state_read_bytes\": "
+             << compute.source_state_read_bytes << ",\n"
+             << "  \"degree_read_bytes\": " << compute.degree_read_bytes
+             << ",\n"
+             << "  \"pma_read_bytes\": " << compute.pma_read_bytes
+             << ",\n"
+             << "  \"apply_read_bytes\": " << compute.apply_read_bytes
+             << ",\n"
+             << "  \"apply_write_bytes\": " << compute.apply_write_bytes
+             << ",\n"
+             << "  \"gather_bank_conflict_cycles\": "
+             << compute.gather_bank_conflict_cycles << ",\n"
+             << "  \"axis_push_stalls\": "
+             << update.axis_push_stalls + compute.axis_push_stalls << ",\n"
+             << "  \"axi_issue_stalls\": "
+             << update.axi_request_fifo_stalls +
+                    compute.axi_request_fifo_stalls
+             << ",\n"
+             << "  \"backend_requests\": " << backend_->accepted()
+             << ",\n"
+             << "  \"backend_submit_stalls\": "
+             << backend_->submit_stalls() << ",\n"
+             << "  \"backend_response_queue_stalls\": "
+             << backend_->response_queue_stalls() << ",\n"
+             << "  \"backend_max_outstanding\": "
+             << backend_->max_outstanding() << ",\n"
+             << "  \"backend_arbitration\": "
+             << backend_->arbitration_json() << ",\n"
+             << "  \"backend_traffic\": ";
+      write_memory_traffic(result, total_backend_traffic);
+      result << ",\n  \"update_backend_traffic\": ";
+      write_memory_traffic(result, grasu_update_backend_traffic_);
+      result << ",\n  \"compute_backend_traffic\": ";
+      write_memory_traffic(result, compute_backend_traffic);
+      result << ",\n  \"frontier_in_sizes\": ";
+      write_json_array(result, frontier_in);
+      result << ",\n  \"frontier_out_sizes\": ";
+      write_json_array(result, frontier_out);
+      result << ",\n  \"labels\": ";
+      write_json_array(result, labels);
+      result << "\n}\n";
+      output_.output(
+          "completed %llu SST GraSU+ReGraph CC rounds in %llu cycles -> %s\n",
+          static_cast<unsigned long long>(compute.supersteps),
+          static_cast<unsigned long long>(scheduler_.clock(0).completed_cycles),
+          result_path_.c_str());
+      return;
+    }
     if (mode_ == "spine_maintenance") {
       const SpineL0Counters &maintenance = spine_maintenance_->counters();
       const AxiStats maintenance_axi = maintenance_axi_stats(
@@ -8451,6 +9079,8 @@ class OnlineMemoryProbe final : public SST::Component {
   std::unique_ptr<GraSuReGraphPageRankSystem> grasu_pagerank_compute_system_;
   std::unique_ptr<GraSuReGraphResidualPageRankSystem>
       grasu_residual_compute_system_;
+  std::unique_ptr<GraSuReGraphConnectedComponentsSystem>
+      grasu_connected_components_system_;
   GraSuUpdateCounters grasu_update_counters_;
   GraSuNativeCompactorCounters grasu_compactor_counters_;
   std::size_t grasu_native_compact_edge_slots_{};
@@ -8461,6 +9091,7 @@ class OnlineMemoryProbe final : public SST::Component {
   ResidualPageRankReference grasu_residual_pagerank_reference_;
   std::vector<double> grasu_residual_mathematical_reference_;
   std::optional<DeltaHlsResidualSetup> delta_hls_setup_;
+  std::optional<ConnectedComponentsSetup> connected_components_setup_;
   std::vector<std::uint32_t> grasu_pagerank_degrees_;
   std::vector<GraSuEdge> grasu_final_edges_;
   std::vector<std::uint32_t> grasu_external_to_internal_;
@@ -8501,6 +9132,8 @@ class OnlineMemoryProbe final : public SST::Component {
   std::vector<std::size_t> pagerank_frontier_in_sizes_;
   std::vector<std::size_t> pagerank_frontier_out_sizes_;
   std::vector<std::uint64_t> pagerank_compute_requests_per_iteration_;
+  std::vector<std::uint64_t> pagerank_reader_edges_per_iteration_;
+  std::vector<std::uint64_t> pagerank_compute_edges_per_iteration_;
   std::uint64_t pagerank_iteration_start_cycle_{};
   std::uint64_t pagerank_maintenance_backend_requests_{};
   MemoryTrafficStats pagerank_maintenance_backend_traffic_;
