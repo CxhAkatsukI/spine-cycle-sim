@@ -1,0 +1,2 @@
+run_id,fixture_id,dataset_kind,role,algorithm,spine_cycles,grasu_regraph_cycles,spine_simulated_ms,grasu_regraph_simulated_ms,spine_speedup_over_grasu,claim_label
+syn_spread_e512__residual_pagerank,syn_spread_e512,synthetic,calibration,thresholded_residual_pagerank,4778979,15310428,31.85986,102.06952,3.2037027155800435,routed_k1_multi_partition_structural

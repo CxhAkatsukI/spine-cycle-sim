@@ -101,13 +101,22 @@ MemoryTrafficStats subtract_memory_traffic(const MemoryTrafficStats& after,
 
 void MemoryBackend::register_initiator(std::uint32_t initiator_id) {
   if (initiator_id >= initiators_.size()) {
-    initiators_.resize(static_cast<std::size_t>(initiator_id) + 1, 0);
-    response_notifications_.resize(static_cast<std::size_t>(initiator_id) + 1);
+    const std::size_t size = static_cast<std::size_t>(initiator_id) + 1;
+    initiators_.resize(size, 0);
+    response_notifications_.resize(size);
+    traffic_stats_by_initiator_dense_.resize(size, nullptr);
+    traffic_cursors_.resize(size);
   }
   if (initiators_[initiator_id] != 0) {
     throw std::invalid_argument("memory initiator ID is already registered");
   }
   initiators_[initiator_id] = 1;
+  auto [stats, inserted] =
+      traffic_stats_by_initiator_.try_emplace(initiator_id);
+  if (!inserted || traffic_stats_by_initiator_dense_[initiator_id] != nullptr) {
+    throw std::logic_error("memory initiator traffic state is duplicated");
+  }
+  traffic_stats_by_initiator_dense_[initiator_id] = &stats->second;
 }
 
 void MemoryBackend::bind_response_notifier(std::uint32_t initiator_id,
@@ -169,7 +178,8 @@ bool MemoryBackend::initiator_registered(
 }
 
 void MemoryBackend::begin_traffic_epoch() noexcept {
-  traffic_cursors_.clear();
+  std::fill(traffic_cursors_.begin(), traffic_cursors_.end(),
+            InitiatorCursors{});
 }
 
 void MemoryBackend::record_accepted_request(const BackendRequest& request) {
@@ -194,7 +204,7 @@ void MemoryBackend::record_accepted_request(const BackendRequest& request) {
                                    ? traffic_stats_.reads
                                    : traffic_stats_.writes;
   MemoryTrafficStats& initiator =
-      traffic_stats_by_initiator_[request.initiator_id];
+      *traffic_stats_by_initiator_dense_[request.initiator_id];
   MemoryLocalityStats& per_initiator =
       request.operation == MemoryOperation::kRead ? initiator.reads
                                                   : initiator.writes;
@@ -226,10 +236,7 @@ void MemoryBackend::initialize_payload(
     PayloadPage& page = storage[page_number];
     std::copy_n(data.begin() + static_cast<std::ptrdiff_t>(index), chunk,
                 page.bytes.begin() + static_cast<std::ptrdiff_t>(page_offset));
-    for (std::size_t offset = page_offset; offset < page_offset + chunk;
-         ++offset) {
-      page.mark(offset);
-    }
+    page.mark_range(page_offset, chunk);
     index += chunk;
   }
 }
@@ -265,6 +272,14 @@ std::vector<std::uint8_t> MemoryBackend::inspect_payload(
       if (found != channel_storage->second.end()) {
         page = &found->second;
       }
+    }
+    if (page != nullptr && page->contains_range(page_offset, chunk)) {
+      std::copy_n(page->bytes.begin() +
+                      static_cast<std::ptrdiff_t>(page_offset),
+                  chunk,
+                  result.begin() + static_cast<std::ptrdiff_t>(index));
+      index += chunk;
+      continue;
     }
     for (std::size_t within = 0; within < chunk; ++within) {
       const std::size_t offset = page_offset + within;
@@ -343,10 +358,14 @@ bool RegisteredChannelArbiter::try_acquire(
   }
   const std::uint64_t channel_bit =
       std::uint64_t{1} << request.channel;
-  const auto granted = grant_masks_.find(request.initiator_id);
-  if (granted != grant_masks_.end() &&
-      (granted->second & channel_bit) != 0) {
-    granted->second &= ~channel_bit;
+  if (request.initiator_id >= intent_masks_.size()) {
+    const std::size_t size = static_cast<std::size_t>(request.initiator_id) + 1;
+    intent_masks_.resize(size, 0);
+    grant_masks_.resize(size, 0);
+  }
+  std::uint64_t &grant_mask = grant_masks_[request.initiator_id];
+  if ((grant_mask & channel_bit) != 0) {
+    grant_mask &= ~channel_bit;
     if (pending_grant_count_ == 0 ||
         grants_by_channel_[request.channel] == 0) {
       throw std::logic_error("registered arbiter grant count underflow");
@@ -433,7 +452,7 @@ void RegisteredChannelArbiter::arbitrate(
       }
       grant_mask |= channel_bit;
       ++grants_by_channel_[channel];
-      std::uint64_t &intent_mask = intent_masks_.at(initiator);
+      std::uint64_t &intent_mask = intent_masks_[initiator];
       if ((intent_mask & channel_bit) == 0) {
         throw std::logic_error("arbiter selected an unregistered intent");
       }
@@ -464,8 +483,9 @@ std::size_t RegisteredChannelArbiter::pending_intents() const noexcept {
 
 std::size_t RegisteredChannelArbiter::pending_grants_for(
     std::uint32_t initiator_id) const noexcept {
-  const auto found = grant_masks_.find(initiator_id);
-  return found == grant_masks_.end() ? 0 : std::popcount(found->second);
+  return initiator_id >= grant_masks_.size()
+             ? 0
+             : std::popcount(grant_masks_[initiator_id]);
 }
 
 bool RegisteredChannelArbiter::intent_pending(
@@ -473,9 +493,8 @@ bool RegisteredChannelArbiter::intent_pending(
   if (channel >= channels_) {
     return false;
   }
-  const auto found = intent_masks_.find(initiator_id);
-  return found != intent_masks_.end() &&
-         (found->second & (std::uint64_t{1} << channel)) != 0;
+  return initiator_id < intent_masks_.size() &&
+         (intent_masks_[initiator_id] & (std::uint64_t{1} << channel)) != 0;
 }
 
 void RegisteredChannelArbiter::account_duplicate_waits(

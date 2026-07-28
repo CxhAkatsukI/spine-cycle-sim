@@ -1,9 +1,11 @@
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <cstddef>
 #include <cstdint>
 #include <deque>
+#include <limits>
 #include <memory>
 #include <span>
 #include <stdexcept>
@@ -155,8 +157,35 @@ class MemoryBackend : public Component {
     [[nodiscard]] bool contains(std::size_t offset) const noexcept {
       return (validity[offset / 64] & (std::uint64_t{1} << (offset % 64))) != 0;
     }
-    void mark(std::size_t offset) noexcept {
-      validity[offset / 64] |= std::uint64_t{1} << (offset % 64);
+    [[nodiscard]] bool contains_range(std::size_t offset,
+                                      std::size_t bytes) const noexcept {
+      while (bytes != 0) {
+        const std::size_t bit = offset % 64;
+        const std::size_t count = std::min<std::size_t>(64 - bit, bytes);
+        const std::uint64_t mask =
+            count == 64
+                ? std::numeric_limits<std::uint64_t>::max()
+                : ((std::uint64_t{1} << count) - 1) << bit;
+        if ((validity[offset / 64] & mask) != mask) {
+          return false;
+        }
+        offset += count;
+        bytes -= count;
+      }
+      return true;
+    }
+    void mark_range(std::size_t offset, std::size_t bytes) noexcept {
+      while (bytes != 0) {
+        const std::size_t bit = offset % 64;
+        const std::size_t count = std::min<std::size_t>(64 - bit, bytes);
+        const std::uint64_t mask =
+            count == 64
+                ? std::numeric_limits<std::uint64_t>::max()
+                : ((std::uint64_t{1} << count) - 1) << bit;
+        validity[offset / 64] |= mask;
+        offset += count;
+        bytes -= count;
+      }
     }
   };
 
@@ -191,7 +220,8 @@ class MemoryBackend : public Component {
   MemoryTrafficStats traffic_stats_;
   std::unordered_map<std::uint32_t, MemoryTrafficStats>
       traffic_stats_by_initiator_;
-  std::unordered_map<std::uint32_t, InitiatorCursors> traffic_cursors_;
+  std::vector<MemoryTrafficStats *> traffic_stats_by_initiator_dense_;
+  std::vector<InitiatorCursors> traffic_cursors_;
 };
 
 struct RegisteredChannelArbiterStats {
@@ -238,8 +268,8 @@ class RegisteredChannelArbiter {
   std::vector<std::vector<std::uint32_t>> intents_;
   std::vector<std::size_t> grants_by_channel_;
   std::vector<std::uint32_t> next_initiator_;
-  std::unordered_map<std::uint32_t, std::uint64_t> intent_masks_;
-  std::unordered_map<std::uint32_t, std::uint64_t> grant_masks_;
+  std::vector<std::uint64_t> intent_masks_;
+  std::vector<std::uint64_t> grant_masks_;
   std::uint64_t active_intent_channels_{};
   std::size_t pending_intent_count_{};
   std::size_t pending_grant_count_{};
