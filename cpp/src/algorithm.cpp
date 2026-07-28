@@ -193,6 +193,9 @@ AlgorithmSourceResult GraphAlgorithmPolicy::prepare_source(
     }
     case GraphAlgorithmKind::kResidualPageRank: {
       const float delta = word_to_float(state.auxiliary);
+      const bool redistribute_dangling =
+          config_.residual_contract ==
+          ResidualPageRankContract::kGenericDanglingL1Cold;
       AlgorithmVertexState after{
           .primary = float_to_word(word_to_float(state.primary) + delta),
           .auxiliary = float_to_word(0.0F),
@@ -202,7 +205,8 @@ AlgorithmSourceResult GraphAlgorithmPolicy::prepare_source(
               out_degree == 0
                   ? 0.0F
                   : config_.damping * delta / static_cast<float>(out_degree)),
-          .dangling_payload = float_to_word(out_degree == 0 ? delta : 0.0F),
+          .dangling_payload = float_to_word(
+              redistribute_dangling && out_degree == 0 ? delta : 0.0F),
           .state_after = after,
           .primary_changed = delta != 0.0F,
           .auxiliary_changed = delta != 0.0F,
@@ -262,9 +266,13 @@ AlgorithmApplyResult GraphAlgorithmPolicy::apply(
       };
     }
     case GraphAlgorithmKind::kResidualPageRank: {
+      const bool redistribute_dangling =
+          config_.residual_contract ==
+          ResidualPageRankContract::kGenericDanglingL1Cold;
       const float incoming =
           word_to_float(reduced.value_or(float_to_word(0.0F))) +
-          word_to_float(context.dangling_share);
+          (redistribute_dangling ? word_to_float(context.dangling_share)
+                                 : 0.0F);
       const float residual = word_to_float(old_state.auxiliary) + incoming;
       return {
           .state_after = {
@@ -286,7 +294,12 @@ std::uint32_t GraphAlgorithmPolicy::initial_base_word() const noexcept {
 
 std::uint32_t
 GraphAlgorithmPolicy::activation_threshold_word() const noexcept {
-  return float_to_word(config_.epsilon / config_.vertices);
+  const float threshold =
+      config_.residual_contract ==
+              ResidualPageRankContract::kDeltaHlsSinkFreeLinfWarm
+          ? config_.epsilon
+          : config_.epsilon / config_.vertices;
+  return float_to_word(threshold);
 }
 
 std::uint32_t GraphAlgorithmPolicy::float_to_word(float value) noexcept {

@@ -20,12 +20,19 @@ enum class AlgorithmUpdateMode {
   kSignedResidual,
 };
 
+enum class ResidualPageRankContract {
+  kGenericDanglingL1Cold,
+  kDeltaHlsSinkFreeLinfWarm,
+};
+
 struct AlgorithmPolicyConfig {
   GraphAlgorithmKind kind{GraphAlgorithmKind::kWeightedSssp};
   std::size_t vertices{};
   std::uint32_t source{};
   float damping{0.85F};
   float epsilon{1.0e-6F};
+  ResidualPageRankContract residual_contract{
+      ResidualPageRankContract::kGenericDanglingL1Cold};
 };
 
 struct AlgorithmStorageProfile {

@@ -7033,6 +7033,43 @@ void test_residual_pagerank_algorithm_policy_semantics() {
           "residual PageRank signed reduce/apply semantics are wrong");
 }
 
+void test_delta_hls_residual_pagerank_contract() {
+  const GraphAlgorithmPolicy policy(AlgorithmPolicyConfig{
+      .kind = GraphAlgorithmKind::kResidualPageRank,
+      .vertices = 4,
+      .source = 0,
+      .damping = 0.85F,
+      .epsilon = 0.04F,
+      .residual_contract =
+          spine::sim::ResidualPageRankContract::kDeltaHlsSinkFreeLinfWarm,
+  });
+  require(std::fabs(GraphAlgorithmPolicy::word_to_float(
+                        policy.activation_threshold_word()) -
+                    0.04F) < 1.0e-7F,
+          "Delta.hls residual activation threshold was divided by N");
+
+  const auto source = policy.prepare_source(
+      {.primary = GraphAlgorithmPolicy::float_to_word(0.3F),
+       .auxiliary = GraphAlgorithmPolicy::float_to_word(-0.1F)},
+      0);
+  require(GraphAlgorithmPolicy::word_to_float(source.dangling_payload) ==
+              0.0F,
+          "Delta.hls sink-free contract emitted a dangling contribution");
+
+  const auto applied = policy.apply(
+      {.primary = GraphAlgorithmPolicy::float_to_word(0.2F),
+       .auxiliary = GraphAlgorithmPolicy::float_to_word(0.03F)},
+      std::nullopt,
+      AlgorithmIterationContext{
+          .dangling_share = GraphAlgorithmPolicy::float_to_word(0.02F),
+      });
+  require(!applied.active &&
+              std::fabs(GraphAlgorithmPolicy::word_to_float(
+                            applied.state_after.auxiliary) -
+                        0.03F) < 1.0e-7F,
+          "Delta.hls sink-free contract consumed dangling mass");
+}
+
 void test_algorithm_state_layout_shares_one_hbm_channel() {
   const GraphAlgorithmPolicy sssp(
       AlgorithmPolicyConfig{.vertices = 1'025, .source = 0});
@@ -8340,6 +8377,8 @@ int main(int argc, char **argv) {
        test_full_pagerank_algorithm_policy_semantics},
       {"algorithm_policy_residual_pagerank",
        test_residual_pagerank_algorithm_policy_semantics},
+      {"algorithm_policy_delta_hls_residual",
+       test_delta_hls_residual_pagerank_contract},
       {"algorithm_state_layout",
        test_algorithm_state_layout_shares_one_hbm_channel},
       {"algorithm_pipeline",
