@@ -35,6 +35,7 @@ using spine::sim::GraSuPmaLayout;
 using spine::sim::GraSuPmaUpdateSystem;
 using spine::sim::GraSuPmaWordAbi;
 using spine::sim::GraSuReGraphConfig;
+using spine::sim::GraSuReGraphConnectedComponentsSystem;
 using spine::sim::GraSuReGraphPageRankSystem;
 using spine::sim::GraSuReGraphResidualPageRankSystem;
 using spine::sim::GraSuReGraphSsspSystem;
@@ -184,6 +185,37 @@ weighted_sssp_oracle(std::size_t vertices, const std::vector<GraSuEdge> &edges,
     }
   }
   return distances;
+}
+
+std::vector<std::uint32_t>
+connected_components_oracle(std::size_t vertices,
+                            const std::vector<GraSuEdge> &edges) {
+  std::vector<std::vector<std::uint32_t>> adjacency(vertices);
+  for (const GraSuEdge &edge : edges) {
+    adjacency.at(edge.source).push_back(edge.destination);
+    adjacency.at(edge.destination).push_back(edge.source);
+  }
+  std::vector<std::uint32_t> labels(vertices,
+                                    std::numeric_limits<std::uint32_t>::max());
+  std::queue<std::uint32_t> queue;
+  for (std::uint32_t root = 0; root < vertices; ++root) {
+    if (labels[root] != std::numeric_limits<std::uint32_t>::max()) {
+      continue;
+    }
+    labels[root] = root;
+    queue.push(root);
+    while (!queue.empty()) {
+      const std::uint32_t source = queue.front();
+      queue.pop();
+      for (const std::uint32_t destination : adjacency[source]) {
+        if (labels[destination] == std::numeric_limits<std::uint32_t>::max()) {
+          labels[destination] = root;
+          queue.push(destination);
+        }
+      }
+    }
+  }
+  return labels;
 }
 
 template <typename Real>
@@ -1447,6 +1479,78 @@ void test_grasu_delta_hls_residual_uses_warm_seed_frontier() {
           "GraSU+ReGraph Delta.hls warm residual seed was not isolated or drained");
 }
 
+void test_partitioned_regraph_connected_components_matches_bfs() {
+  constexpr std::size_t kVertices = 33;
+  constexpr std::size_t kPartitionVertices = 16;
+  const std::vector<GraSuEdge> edges = {
+      {.source = 0, .destination = 16},
+      {.source = 16, .destination = 0},
+      {.source = 16, .destination = 1},
+      {.source = 1, .destination = 16},
+      {.source = 1, .destination = 32},
+      {.source = 32, .destination = 1},
+      {.source = 32, .destination = 17},
+      {.source = 17, .destination = 32},
+      {.source = 2, .destination = 3},
+      {.source = 3, .destination = 2},
+  };
+  const GraSuPartitionedPmaLayout layout = GraSuPartitionedPmaLayout::build(
+      kVertices, kPartitionVertices, edges, {});
+
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("partitioned-regraph-cc", 200.0);
+  MockMemoryBackend backend("shared-hbm", core,
+                            MockMemoryConfig{.channels = 32,
+                                             .latency_cycles = 7,
+                                             .accepts_per_channel_per_cycle = 1,
+                                             .max_outstanding_per_channel = 32,
+                                             .response_queue_depth = 128});
+  GraSuReGraphConfig config;
+  config.compute_pipelines = 2;
+  config.partition_vertices = kPartitionVertices;
+  config.source_buffer_vertices = 16;
+  config.edge_lanes = 4;
+  config.gather_banks = 4;
+  initialize_partitioned_pma_payloads(backend, layout, config);
+  GraSuReGraphConnectedComponentsSystem system(
+      scheduler, core, backend, layout, 16, config);
+  system.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until([&] { return system.done() || system.failed(); },
+                      5'000'000);
+
+  const auto counters = system.counters();
+  std::cout << "EVIDENCE grasu_regraph_connected_components cycles="
+            << counters.end_cycle - counters.start_cycle
+            << " supersteps=" << counters.supersteps
+            << " partitions=" << counters.destination_partitions
+            << " pipelines=" << counters.compute_pipelines
+            << " max_parallel=" << counters.max_parallel_partitions
+            << " active_edges=" << counters.active_edges_mapped
+            << " degree_reads=" << counters.degree_reads
+            << " source_prepare_reads="
+            << counters.source_prepare_state_reads << '\n';
+  require(!system.failed() && system.done(),
+          "partitioned GraSU+ReGraph CC did not complete: " +
+              system.failure());
+  require(system.labels() == connected_components_oracle(kVertices, edges),
+          "partitioned GraSU+ReGraph CC differs from independent BFS oracle");
+  require(!system.frontier_out_sizes().empty() &&
+              system.frontier_out_sizes().back() == 0 &&
+              counters.destination_partitions == 3 &&
+              counters.compute_pipelines == 2 &&
+              counters.max_parallel_partitions == 2 &&
+              counters.partition_passes ==
+                  counters.destination_partitions * counters.supersteps &&
+              counters.state_bytes_per_vertex == 4 &&
+              counters.degree_reads == 0 &&
+              counters.degree_read_bytes == 0 &&
+              counters.source_prepare_state_reads == 0 &&
+              counters.source_prepare_degree_reads == 0 &&
+              counters.source_prepare_writes == 0,
+          "partitioned CC work, memory, or convergence ledger is wrong");
+}
+
 void test_unreserved_and_invalid_updates_are_rejected() {
   const std::vector<GraSuEdge> initial = {
       {.source = 0, .destination = 1},
@@ -2260,6 +2364,8 @@ int main() {
        test_pma_native_regraph_residual_pagerank_matches_oracles},
       {"delta_hls_warm_residual",
        test_grasu_delta_hls_residual_uses_warm_seed_frontier},
+      {"partitioned_connected_components",
+       test_partitioned_regraph_connected_components_matches_bfs},
       {"invalid_updates", test_unreserved_and_invalid_updates_are_rejected},
       {"native_contention", test_native_shared_channel_contention_is_visible},
       {"pma_native_regraph_sssp", test_pma_native_regraph_sssp_matches_oracle},

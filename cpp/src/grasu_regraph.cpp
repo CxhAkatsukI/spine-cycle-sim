@@ -77,15 +77,20 @@ std::uint32_t decode_policy_value(const GraphAlgorithmPolicy &policy,
   if (policy.config().kind == GraphAlgorithmKind::kWeightedSssp) {
     return policy_distance(encoded);
   }
-  return policy.config().kind == GraphAlgorithmKind::kFullPageRank
-             ? encoded & kReGraphValueMask
-             : encoded;
+  if (policy.config().kind == GraphAlgorithmKind::kFullPageRank ||
+      policy.config().kind == GraphAlgorithmKind::kConnectedComponents) {
+    return encoded & kReGraphValueMask;
+  }
+  return encoded;
 }
 
 std::uint32_t encode_policy_value(const GraphAlgorithmPolicy &policy,
                                   std::uint32_t value, bool active) {
   if (policy.config().kind == GraphAlgorithmKind::kWeightedSssp) {
     return encode_distance(value, active);
+  }
+  if (policy.config().kind == GraphAlgorithmKind::kConnectedComponents) {
+    return (value & kReGraphValueMask) | (active ? kReGraphActive : 0U);
   }
   if (policy.config().kind == GraphAlgorithmKind::kResidualPageRank) {
     return value;
@@ -2540,9 +2545,12 @@ private:
           lane * state_bytes_per_vertex(policy_);
       const std::uint32_t encoded = decode_u32(state_data, byte_offset);
       if (local_vertex >= destination_vertices_ || vertex >= vertices_) {
-        result[lane] = policy_.config().kind == GraphAlgorithmKind::kWeightedSssp
-                           ? kReGraphInfinity
-                           : GraphAlgorithmPolicy::float_to_word(0.0F);
+        result[lane] =
+            policy_.config().kind == GraphAlgorithmKind::kWeightedSssp ||
+                    policy_.config().kind ==
+                        GraphAlgorithmKind::kConnectedComponents
+                ? kReGraphInfinity
+                : GraphAlgorithmPolicy::float_to_word(0.0F);
         auxiliary[lane] = GraphAlgorithmPolicy::float_to_word(0.0F);
         source_payload[lane] = GraphAlgorithmPolicy::float_to_word(0.0F);
         continue;
@@ -3208,7 +3216,8 @@ public:
     validate_config();
     construct_partition_plans();
     construct_ports();
-    if (policy_.config().kind != GraphAlgorithmKind::kWeightedSssp) {
+    if (policy_.config().kind == GraphAlgorithmKind::kFullPageRank ||
+        policy_.config().kind == GraphAlgorithmKind::kResidualPageRank) {
       iteration_context_ =
           std::make_unique<ReGraphIterationContext>(policy_);
     }
@@ -3477,6 +3486,8 @@ private:
     const bool residual_pagerank =
         policy_.config().kind == GraphAlgorithmKind::kResidualPageRank;
     const bool pagerank = full_pagerank || residual_pagerank;
+    const bool connected_components =
+        policy_.config().kind == GraphAlgorithmKind::kConnectedComponents;
     const auto require = [](bool condition, const char *message) {
       if (!condition) {
         throw std::invalid_argument(
@@ -3488,13 +3499,17 @@ private:
     require(policy_.config().vertices == layout_.vertices,
             "policy vertex count mismatch");
     require(policy_.config().kind == GraphAlgorithmKind::kWeightedSssp ||
-                pagerank,
+                pagerank || connected_components,
             "unsupported algorithm policy");
     require(!pagerank || out_degrees_.size() == layout_.vertices,
             "PageRank degree vector mismatch");
     require(!pagerank || fixed_rounds_ != 0, "PageRank has zero rounds");
+    require(!connected_components || fixed_rounds_ != 0,
+            "connected components has zero round limit");
     require(pagerank || out_degrees_.empty(),
-            "weighted SSSP unexpectedly has degrees");
+            "non-PageRank algorithm unexpectedly has degrees");
+    require(!connected_components || layout_.vertices <= kReGraphValueMask,
+            "connected-components label exceeds ReGraph value field");
     if (initial_state_.has_value()) {
       const std::unordered_set<std::uint32_t> active(
           initial_state_->active_vertices.begin(),
@@ -3644,7 +3659,10 @@ private:
   }
 
   void construct_ports() {
-    if (policy_.config().kind != GraphAlgorithmKind::kWeightedSssp) {
+    const bool pagerank =
+        policy_.config().kind == GraphAlgorithmKind::kFullPageRank ||
+        policy_.config().kind == GraphAlgorithmKind::kResidualPageRank;
+    if (pagerank) {
       source_prepare_state_read_port_ = make_port(
           "grasu-regraph-source-prepare-state-read",
           config_.vertex_state_channel, 64);
@@ -3686,7 +3704,7 @@ private:
           make_port(prefix + "row", config_.row_channel, 8);
       pipeline.source_state_port =
           make_source_stream_port(prefix + "source-state");
-      if (policy_.config().kind != GraphAlgorithmKind::kWeightedSssp) {
+      if (pagerank) {
         pipeline.degree_port =
             make_port(prefix + "degree", config_.degree_channel, 4);
       }
@@ -3724,7 +3742,9 @@ private:
     for (std::size_t vertex = 0; vertex < padded_vertices;
          ++vertex) {
       std::uint32_t encoded =
-          policy_.config().kind == GraphAlgorithmKind::kWeightedSssp
+          policy_.config().kind == GraphAlgorithmKind::kWeightedSssp ||
+                  policy_.config().kind ==
+                      GraphAlgorithmKind::kConnectedComponents
               ? kReGraphInfinity
               : GraphAlgorithmPolicy::float_to_word(0.0F);
       if (vertex < layout_.vertices) {
@@ -3741,6 +3761,8 @@ private:
             initial_state_.has_value()
                 ? initial_active.contains(static_cast<std::uint32_t>(vertex))
                 : policy_.config().kind == GraphAlgorithmKind::kFullPageRank ||
+                      policy_.config().kind ==
+                          GraphAlgorithmKind::kConnectedComponents ||
                       vertex == source_;
         encoded = encode_policy_value(policy_, state.primary, active);
         if (uses_auxiliary_state(policy_)) {
@@ -3770,7 +3792,8 @@ private:
                                 config_.source_state_base, source_bytes);
     backend_.initialize_payload(config_.source_state_mirror_channel,
                                 config_.source_state_base, source_bytes);
-    if (policy_.config().kind != GraphAlgorithmKind::kWeightedSssp &&
+    if ((policy_.config().kind == GraphAlgorithmKind::kFullPageRank ||
+         policy_.config().kind == GraphAlgorithmKind::kResidualPageRank) &&
         config_.initialize_degree_payload) {
       std::vector<std::uint8_t> degree_bytes(layout_.vertices * 4);
       for (std::size_t vertex = 0; vertex < out_degrees_.size(); ++vertex) {
@@ -4551,6 +4574,73 @@ std::vector<float> GraSuReGraphResidualPageRankSystem::residuals() const {
 
 std::vector<std::size_t>
 GraSuReGraphResidualPageRankSystem::frontier_out_sizes() const {
+  return engine_->frontier_out_sizes();
+}
+
+GraSuReGraphConnectedComponentsSystem::
+    GraSuReGraphConnectedComponentsSystem(
+        Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
+        GraSuPmaLayout layout, std::size_t max_iterations,
+        GraSuReGraphConfig config,
+        std::optional<AlgorithmInitialState> initial_state)
+    : engine_(std::make_unique<GraSuReGraphSsspSystem>(
+          scheduler, clock_id, backend, layout,
+          GraphAlgorithmPolicy(AlgorithmPolicyConfig{
+              .kind = GraphAlgorithmKind::kConnectedComponents,
+              .vertices = layout.vertices,
+              .source = 0,
+          }),
+          std::vector<std::uint32_t>{}, max_iterations, config,
+          std::move(initial_state))) {}
+
+GraSuReGraphConnectedComponentsSystem::
+    GraSuReGraphConnectedComponentsSystem(
+        Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
+        GraSuPartitionedPmaLayout layout, std::size_t max_iterations,
+        GraSuReGraphConfig config,
+        std::optional<AlgorithmInitialState> initial_state)
+    : engine_(std::make_unique<GraSuReGraphSsspSystem>(
+          scheduler, clock_id, backend, layout,
+          GraphAlgorithmPolicy(AlgorithmPolicyConfig{
+              .kind = GraphAlgorithmKind::kConnectedComponents,
+              .vertices = layout.vertices,
+              .source = 0,
+          }),
+          std::vector<std::uint32_t>{}, max_iterations, config,
+          std::move(initial_state))) {}
+
+GraSuReGraphConnectedComponentsSystem::
+    ~GraSuReGraphConnectedComponentsSystem() = default;
+
+void GraSuReGraphConnectedComponentsSystem::register_components() {
+  engine_->register_components();
+}
+
+bool GraSuReGraphConnectedComponentsSystem::done() const noexcept {
+  return engine_->done();
+}
+
+bool GraSuReGraphConnectedComponentsSystem::failed() const noexcept {
+  return engine_->failed();
+}
+
+const std::string &
+GraSuReGraphConnectedComponentsSystem::failure() const noexcept {
+  return engine_->failure();
+}
+
+GraSuReGraphCounters
+GraSuReGraphConnectedComponentsSystem::counters() const noexcept {
+  return engine_->counters();
+}
+
+std::vector<std::uint32_t>
+GraSuReGraphConnectedComponentsSystem::labels() const {
+  return engine_->state_words();
+}
+
+std::vector<std::size_t>
+GraSuReGraphConnectedComponentsSystem::frontier_out_sizes() const {
   return engine_->frontier_out_sizes();
 }
 

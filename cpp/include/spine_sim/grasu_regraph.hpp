@@ -266,4 +266,35 @@ private:
   std::unique_ptr<GraSuReGraphSsspSystem> engine_;
 };
 
+class GraSuReGraphConnectedComponentsSystem {
+public:
+  GraSuReGraphConnectedComponentsSystem(
+      Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
+      GraSuPmaLayout layout, std::size_t max_iterations,
+      GraSuReGraphConfig config = {},
+      std::optional<AlgorithmInitialState> initial_state = std::nullopt);
+  GraSuReGraphConnectedComponentsSystem(
+      Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
+      GraSuPartitionedPmaLayout layout, std::size_t max_iterations,
+      GraSuReGraphConfig config = {},
+      std::optional<AlgorithmInitialState> initial_state = std::nullopt);
+  ~GraSuReGraphConnectedComponentsSystem();
+
+  GraSuReGraphConnectedComponentsSystem(
+      const GraSuReGraphConnectedComponentsSystem &) = delete;
+  GraSuReGraphConnectedComponentsSystem &
+  operator=(const GraSuReGraphConnectedComponentsSystem &) = delete;
+
+  void register_components();
+  [[nodiscard]] bool done() const noexcept;
+  [[nodiscard]] bool failed() const noexcept;
+  [[nodiscard]] const std::string &failure() const noexcept;
+  [[nodiscard]] GraSuReGraphCounters counters() const noexcept;
+  [[nodiscard]] std::vector<std::uint32_t> labels() const;
+  [[nodiscard]] std::vector<std::size_t> frontier_out_sizes() const;
+
+private:
+  std::unique_ptr<GraSuReGraphSsspSystem> engine_;
+};
+
 } // namespace spine::sim
