@@ -1,0 +1,13 @@
+{
+  "compiler": "g++ (Debian 15.2.0-14) 15.2.0",
+  "plugin_sha256": "08a59c8a710d3f4f66b62e86a394757237e930d4d50a998b98bb82c739c21563",
+  "profiled_translation_units": 15,
+  "schema_version": 1,
+  "source_commit": "07f6fa624317714d9dfff6608467509d5796154c",
+  "status": "PASS",
+  "training_run_id": "syn_spread_e512__residual_pagerank",
+  "training_systems": [
+    "spine",
+    "grasu_regraph"
+  ]
+}
