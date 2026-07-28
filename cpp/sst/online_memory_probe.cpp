@@ -63,6 +63,18 @@ struct ResidualPageRankReference {
   bool converged{};
 };
 
+struct DeltaHlsResidualSetup {
+  AlgorithmInitialState initial_state;
+  ResidualPageRankReference reference;
+  std::vector<double> mathematical_ranks;
+  std::size_t old_sink_vertices{};
+  std::size_t new_sink_vertices{};
+  std::size_t touched_sources{};
+  std::size_t old_rank_iterations{};
+  float old_rank_linf{};
+  float seed_linf{};
+};
+
 std::vector<std::size_t> parse_active_memory_channels(
     const std::string &text, std::size_t channels) {
   if (text.empty()) {
@@ -183,6 +195,179 @@ std::vector<double> run_full_pagerank_mathematical_reference(
     ranks = std::move(next);
   }
   return ranks;
+}
+
+struct SinkFreePageRankState {
+  std::vector<float> ranks;
+  std::size_t iterations{};
+  float linf{};
+};
+
+std::vector<std::vector<std::uint32_t>> sink_free_adjacency(
+    const SpineEdgeSlice &workload, std::size_t &sink_vertices) {
+  if (workload.vertices == 0) {
+    throw std::invalid_argument("Delta.hls PageRank graph is empty");
+  }
+  std::vector<std::vector<std::uint32_t>> adjacency(workload.vertices);
+  for (const SpineEdgeRecord &edge : workload.edges) {
+    if (edge.diff != 1 || edge.src >= workload.vertices ||
+        edge.dst >= workload.vertices) {
+      throw std::invalid_argument(
+          "Delta.hls PageRank requires an in-range materialized snapshot");
+    }
+    adjacency[edge.src].push_back(edge.dst);
+  }
+  sink_vertices = 0;
+  for (auto &neighbors : adjacency) {
+    std::sort(neighbors.begin(), neighbors.end());
+    if (neighbors.empty()) {
+      ++sink_vertices;
+    }
+  }
+  return adjacency;
+}
+
+SinkFreePageRankState run_sink_free_pagerank_to_convergence(
+    const std::vector<std::vector<std::uint32_t>> &adjacency, float damping,
+    float epsilon) {
+  const std::size_t vertices = adjacency.size();
+  SinkFreePageRankState result{
+      .ranks = std::vector<float>(vertices,
+                                 1.0F / static_cast<float>(vertices)),
+  };
+  const float base = (1.0F - damping) / static_cast<float>(vertices);
+  const float tolerance = std::max(1.0e-8F, epsilon * 0.01F);
+  constexpr std::size_t kMaxIterations = 10'000;
+  for (std::size_t iteration = 0; iteration < kMaxIterations; ++iteration) {
+    std::vector<float> next(vertices, base);
+    for (std::size_t source = 0; source < vertices; ++source) {
+      const float contribution =
+          damping * result.ranks[source] /
+          static_cast<float>(adjacency[source].size());
+      for (const std::uint32_t destination : adjacency[source]) {
+        next[destination] += contribution;
+      }
+    }
+    result.linf = 0.0F;
+    for (std::size_t vertex = 0; vertex < vertices; ++vertex) {
+      result.linf =
+          std::max(result.linf, std::fabs(next[vertex] - result.ranks[vertex]));
+    }
+    result.ranks = std::move(next);
+    result.iterations = iteration + 1;
+    if (result.linf <= tolerance) {
+      return result;
+    }
+  }
+  throw std::invalid_argument(
+      "Delta.hls old-graph PageRank did not converge during warm start");
+}
+
+ResidualPageRankReference run_delta_hls_residual_reference(
+    const std::vector<std::vector<std::uint32_t>> &adjacency,
+    const std::vector<float> &initial_ranks,
+    const std::vector<float> &initial_residuals,
+    const std::vector<std::uint32_t> &initial_active, float damping,
+    float epsilon, std::size_t max_iterations) {
+  ResidualPageRankReference reference;
+  reference.ranks = initial_ranks;
+  reference.residuals = initial_residuals;
+  std::vector<std::uint32_t> active = initial_active;
+  if (active.empty()) {
+    reference.frontier_in_sizes.push_back(0);
+    reference.frontier_out_sizes.push_back(0);
+    reference.converged = true;
+    return reference;
+  }
+  for (std::size_t iteration = 0; iteration < max_iterations; ++iteration) {
+    reference.frontier_in_sizes.push_back(active.size());
+    std::vector<float> incoming(adjacency.size(), 0.0F);
+    for (const std::uint32_t source : active) {
+      const float delta = reference.residuals[source];
+      reference.residuals[source] = 0.0F;
+      reference.ranks[source] += delta;
+      reference.active_edges += adjacency[source].size();
+      const float contribution =
+          damping * delta / static_cast<float>(adjacency[source].size());
+      for (const std::uint32_t destination : adjacency[source]) {
+        incoming[destination] += contribution;
+      }
+    }
+    std::vector<std::uint32_t> next;
+    for (std::size_t vertex = 0; vertex < adjacency.size(); ++vertex) {
+      reference.residuals[vertex] += incoming[vertex];
+      if (std::fabs(reference.residuals[vertex]) > epsilon) {
+        next.push_back(static_cast<std::uint32_t>(vertex));
+      }
+    }
+    reference.frontier_out_sizes.push_back(next.size());
+    if (next.empty()) {
+      reference.converged = true;
+      return reference;
+    }
+    active = std::move(next);
+  }
+  return reference;
+}
+
+DeltaHlsResidualSetup build_delta_hls_residual_setup(
+    const SpineEdgeSlice &old_graph, const SpineEdgeSlice &new_graph,
+    float damping, float epsilon, std::size_t max_iterations) {
+  if (old_graph.vertices != new_graph.vertices) {
+    throw std::invalid_argument(
+        "Delta.hls old/new PageRank graphs have different vertex counts");
+  }
+  DeltaHlsResidualSetup setup;
+  auto old_adjacency =
+      sink_free_adjacency(old_graph, setup.old_sink_vertices);
+  auto new_adjacency =
+      sink_free_adjacency(new_graph, setup.new_sink_vertices);
+  if (setup.old_sink_vertices != 0 || setup.new_sink_vertices != 0) {
+    throw std::invalid_argument(
+        "Delta.hls residual PageRank requires sink-free old and new graphs");
+  }
+  const SinkFreePageRankState old_rank =
+      run_sink_free_pagerank_to_convergence(old_adjacency, damping, epsilon);
+  setup.old_rank_iterations = old_rank.iterations;
+  setup.old_rank_linf = old_rank.linf;
+  std::vector<float> seed(old_graph.vertices, 0.0F);
+  for (std::size_t source = 0; source < old_graph.vertices; ++source) {
+    if (old_adjacency[source] == new_adjacency[source]) {
+      continue;
+    }
+    ++setup.touched_sources;
+    const float old_contribution =
+        damping * old_rank.ranks[source] /
+        static_cast<float>(old_adjacency[source].size());
+    for (const std::uint32_t destination : old_adjacency[source]) {
+      seed[destination] -= old_contribution;
+    }
+    const float new_contribution =
+        damping * old_rank.ranks[source] /
+        static_cast<float>(new_adjacency[source].size());
+    for (const std::uint32_t destination : new_adjacency[source]) {
+      seed[destination] += new_contribution;
+    }
+  }
+  setup.initial_state.primary.resize(old_graph.vertices);
+  setup.initial_state.auxiliary.resize(old_graph.vertices);
+  for (std::size_t vertex = 0; vertex < old_graph.vertices; ++vertex) {
+    setup.initial_state.primary[vertex] =
+        GraphAlgorithmPolicy::float_to_word(old_rank.ranks[vertex]);
+    setup.initial_state.auxiliary[vertex] =
+        GraphAlgorithmPolicy::float_to_word(seed[vertex]);
+    setup.seed_linf = std::max(setup.seed_linf, std::fabs(seed[vertex]));
+    if (std::fabs(seed[vertex]) > epsilon) {
+      setup.initial_state.active_vertices.push_back(
+          static_cast<std::uint32_t>(vertex));
+    }
+  }
+  setup.reference = run_delta_hls_residual_reference(
+      new_adjacency, old_rank.ranks, seed,
+      setup.initial_state.active_vertices, damping, epsilon, max_iterations);
+  setup.mathematical_ranks = run_full_pagerank_mathematical_reference(
+      new_graph, static_cast<double>(damping), 500);
+  return setup;
 }
 
 ResidualPageRankReference run_residual_pagerank_reference(
@@ -1426,6 +1611,10 @@ class OnlineMemoryProbe final : public SST::Component {
     pagerank_iterations_ = params.find<std::size_t>("pagerank_iterations", 1);
     pagerank_damping_ = params.find<float>("pagerank_damping", 0.85F);
     pagerank_epsilon_ = params.find<float>("pagerank_epsilon", 1.0e-6F);
+    residual_contract_id_ = params.find<std::string>(
+        "residual_contract", "generic_dangling_l1_cold");
+    delta_hls_residual_ =
+        residual_contract_id_ == "deltahls_sink_free_linf_warm";
     residual_max_iterations_ =
         params.find<std::size_t>("residual_max_iterations", 256);
     pagerank_pipeline_config_.source_map = {
@@ -1705,6 +1894,11 @@ class OnlineMemoryProbe final : public SST::Component {
         grasu_native_supersteps_ == 0 ||
         pagerank_iterations_ == 0 || !(pagerank_damping_ > 0.0F) ||
         !(pagerank_damping_ < 1.0F) || !(pagerank_epsilon_ > 0.0F) ||
+        (residual_contract_id_ != "generic_dangling_l1_cold" &&
+         residual_contract_id_ != "deltahls_sink_free_linf_warm") ||
+        (delta_hls_residual_ && mode_ != "spine_residual_pagerank" &&
+         mode_ != "grasu_regraph_residual_pagerank" &&
+         mode_ != "grasu_regraph_hls_weighted_residual_pagerank") ||
         residual_max_iterations_ == 0 ||
         pagerank_pipeline_config_.source_map.latency_cycles == 0 ||
         pagerank_pipeline_config_.source_map.initiation_interval == 0 ||
@@ -1948,6 +2142,9 @@ class OnlineMemoryProbe final : public SST::Component {
         }
         grasu_weighted_hls_host_reorder_applied_ = true;
       }
+      const SpineEdgeSlice initial_snapshot =
+          materialize_grasu_weighted_snapshot(initial.vertices, initial_edges,
+                                              {});
       const SpineEdgeSlice final_snapshot = materialize_grasu_weighted_snapshot(
           initial.vertices, initial_edges, updates);
       grasu_initial_edges_ = initial_edges.size();
@@ -2018,16 +2215,29 @@ class OnlineMemoryProbe final : public SST::Component {
           ++grasu_pagerank_degrees_.at(edge.src);
         }
       } else {
-        grasu_residual_pagerank_reference_ = run_residual_pagerank_reference(
-            final_snapshot, pagerank_damping_, pagerank_epsilon_,
-            residual_max_iterations_);
+        if (delta_hls_residual_) {
+          if (update_workload_path_.empty()) {
+            throw std::invalid_argument(
+                "Delta.hls GraSU residual PageRank requires an update workload");
+          }
+          delta_hls_setup_ = build_delta_hls_residual_setup(
+              initial_snapshot, final_snapshot, pagerank_damping_,
+              pagerank_epsilon_, residual_max_iterations_);
+          grasu_residual_pagerank_reference_ = delta_hls_setup_->reference;
+          grasu_residual_mathematical_reference_ =
+              delta_hls_setup_->mathematical_ranks;
+        } else {
+          grasu_residual_pagerank_reference_ = run_residual_pagerank_reference(
+              final_snapshot, pagerank_damping_, pagerank_epsilon_,
+              residual_max_iterations_);
+          grasu_residual_mathematical_reference_ =
+              run_full_pagerank_mathematical_reference(
+                  final_snapshot, static_cast<double>(pagerank_damping_), 200);
+        }
         if (!grasu_residual_pagerank_reference_.converged) {
           throw std::invalid_argument(
               "GraSU/ReGraph residual PageRank reference did not converge");
         }
-        grasu_residual_mathematical_reference_ =
-            run_full_pagerank_mathematical_reference(
-                final_snapshot, static_cast<double>(pagerank_damping_), 200);
         grasu_pagerank_degrees_.assign(final_snapshot.vertices, 0);
         for (const SpineEdgeRecord &edge : final_snapshot.edges) {
           ++grasu_pagerank_degrees_.at(edge.src);
@@ -2197,12 +2407,25 @@ class OnlineMemoryProbe final : public SST::Component {
                 execution_graph, static_cast<double>(pagerank_damping_),
                 pagerank_iterations_);
       } else {
-        residual_pagerank_reference_ = run_residual_pagerank_reference(
-            execution_graph, pagerank_damping_, pagerank_epsilon_,
-            residual_max_iterations_);
-        residual_mathematical_reference_ =
-            run_full_pagerank_mathematical_reference(
-                execution_graph, static_cast<double>(pagerank_damping_), 200);
+        if (delta_hls_residual_) {
+          if (!dynamic_pagerank_enabled_) {
+            throw std::invalid_argument(
+                "Delta.hls Spine residual PageRank requires an update workload");
+          }
+          delta_hls_setup_ = build_delta_hls_residual_setup(
+              initial, execution_graph, pagerank_damping_, pagerank_epsilon_,
+              residual_max_iterations_);
+          residual_pagerank_reference_ = delta_hls_setup_->reference;
+          residual_mathematical_reference_ =
+              delta_hls_setup_->mathematical_ranks;
+        } else {
+          residual_pagerank_reference_ = run_residual_pagerank_reference(
+              execution_graph, pagerank_damping_, pagerank_epsilon_,
+              residual_max_iterations_);
+          residual_mathematical_reference_ =
+              run_full_pagerank_mathematical_reference(
+                  execution_graph, static_cast<double>(pagerank_damping_), 200);
+        }
       }
       SpineL0Config maintenance_config;
       maintenance_config.device_dirty_source_limit = device_dirty_source_limit_;
@@ -2309,6 +2532,10 @@ class OnlineMemoryProbe final : public SST::Component {
               .source = 0,
               .damping = pagerank_damping_,
               .epsilon = pagerank_epsilon_,
+              .residual_contract =
+                  delta_hls_residual_
+                      ? ResidualPageRankContract::kDeltaHlsSinkFreeLinfWarm
+                      : ResidualPageRankContract::kGenericDanglingL1Cold,
           }),
           std::move(maintenance_config), spine_axi_profile_,
           pagerank_pipeline_config_, compute_memory_request_window_,
@@ -2316,7 +2543,11 @@ class OnlineMemoryProbe final : public SST::Component {
           dynamic_pagerank_enabled_
               ? std::optional<SpineEdgeSlice>(std::move(execution_graph))
               : std::nullopt,
-          host_coverage);
+          host_coverage,
+          delta_hls_residual_
+              ? std::optional<AlgorithmInitialState>(
+                    delta_hls_setup_->initial_state)
+              : std::nullopt);
       pagerank_system_->register_components();
       pagerank_iteration_start_cycle_ = scheduler_.clock(core).completed_cycles;
       scheduler_.add_component(*backend_);
@@ -2777,13 +3008,27 @@ class OnlineMemoryProbe final : public SST::Component {
                 std::make_unique<GraSuReGraphResidualPageRankSystem>(
                     scheduler_, 0, *backend_, grasu_partitioned_layout_,
                     grasu_pagerank_degrees_, residual_max_iterations_,
-                    pagerank_damping_, pagerank_epsilon_, grasu_config_);
+                    pagerank_damping_, pagerank_epsilon_, grasu_config_,
+                    delta_hls_residual_
+                        ? ResidualPageRankContract::kDeltaHlsSinkFreeLinfWarm
+                        : ResidualPageRankContract::kGenericDanglingL1Cold,
+                    delta_hls_residual_
+                        ? std::optional<AlgorithmInitialState>(
+                              delta_hls_setup_->initial_state)
+                        : std::nullopt);
           } else {
             grasu_residual_compute_system_ =
                 std::make_unique<GraSuReGraphResidualPageRankSystem>(
                     scheduler_, 0, *backend_, grasu_layout_,
                     grasu_pagerank_degrees_, residual_max_iterations_,
-                    pagerank_damping_, pagerank_epsilon_, grasu_config_);
+                    pagerank_damping_, pagerank_epsilon_, grasu_config_,
+                    delta_hls_residual_
+                        ? ResidualPageRankContract::kDeltaHlsSinkFreeLinfWarm
+                        : ResidualPageRankContract::kGenericDanglingL1Cold,
+                    delta_hls_residual_
+                        ? std::optional<AlgorithmInitialState>(
+                              delta_hls_setup_->initial_state)
+                        : std::nullopt);
           }
           grasu_residual_compute_system_->register_components();
         }
@@ -3041,6 +3286,9 @@ class OnlineMemoryProbe final : public SST::Component {
       {"pagerank_iterations", "Full PageRank iteration count", "1"},
       {"pagerank_damping", "Full PageRank damping factor", "0.85"},
       {"pagerank_epsilon", "Residual PageRank epsilon", "0.000001"},
+      {"residual_contract",
+       "generic_dangling_l1_cold or deltahls_sink_free_linf_warm",
+       "generic_dangling_l1_cold"},
       {"residual_max_iterations", "Residual PageRank iteration limit", "256"},
       {"pagerank_source_latency", "PageRank source-map latency", "3"},
       {"pagerank_source_ii", "PageRank source-map initiation interval", "1"},
@@ -3671,9 +3919,22 @@ class OnlineMemoryProbe final : public SST::Component {
       double mathematical_max_abs_error = 0.0;
       float rank_sum = 0.0F;
       float residual_l1 = 0.0F;
+      float residual_linf = 0.0F;
+      const float architecture_tolerance =
+          delta_hls_residual_
+              ? std::max(1.0e-7F, pagerank_epsilon_ * 0.25F)
+              : 1.0e-5F;
+      const double mathematical_tolerance =
+          delta_hls_residual_
+              ? 1.1 * static_cast<double>(
+                          pagerank_epsilon_ + delta_hls_setup_->old_rank_linf) /
+                    (1.0 - static_cast<double>(pagerank_damping_))
+              : 5.0 * static_cast<double>(pagerank_epsilon_);
       for (std::size_t vertex = 0; vertex < ranks_internal.size(); ++vertex) {
         rank_sum += ranks_internal[vertex];
         residual_l1 += std::fabs(residuals_internal[vertex]);
+        residual_linf =
+            std::max(residual_linf, std::fabs(residuals_internal[vertex]));
         if (vertex < grasu_residual_pagerank_reference_.ranks.size()) {
           const float rank_error = std::fabs(
               ranks_internal[vertex] -
@@ -3684,7 +3945,10 @@ class OnlineMemoryProbe final : public SST::Component {
           architecture_max_abs_error =
               std::max({architecture_max_abs_error, rank_error, residual_error});
           architecture_mismatches +=
-              rank_error <= 1.0e-5F && residual_error <= 1.0e-5F ? 0 : 1;
+              rank_error <= architecture_tolerance &&
+                      residual_error <= architecture_tolerance
+                  ? 0
+                  : 1;
         }
         if (vertex < grasu_residual_mathematical_reference_.size()) {
           const double error = std::fabs(
@@ -3692,8 +3956,7 @@ class OnlineMemoryProbe final : public SST::Component {
               grasu_residual_mathematical_reference_[vertex]);
           mathematical_max_abs_error =
               std::max(mathematical_max_abs_error, error);
-          mathematical_mismatches +=
-              error <= 5.0 * static_cast<double>(pagerank_epsilon_) ? 0 : 1;
+          mathematical_mismatches += error <= mathematical_tolerance ? 0 : 1;
         }
       }
       const GraSuReGraphCounters compute =
@@ -3706,7 +3969,10 @@ class OnlineMemoryProbe final : public SST::Component {
       std::vector<std::size_t> execution_frontier_in;
       if (!execution_frontier_out.empty()) {
         execution_frontier_in.reserve(execution_frontier_out.size());
-        execution_frontier_in.push_back(ranks_internal.size());
+        execution_frontier_in.push_back(
+            grasu_residual_pagerank_reference_.frontier_in_sizes.empty()
+                ? ranks_internal.size()
+                : grasu_residual_pagerank_reference_.frontier_in_sizes.front());
         execution_frontier_in.insert(execution_frontier_in.end(),
                                      execution_frontier_out.begin(),
                                      execution_frontier_out.end() - 1);
@@ -3767,7 +4033,14 @@ class OnlineMemoryProbe final : public SST::Component {
           grasu_config_.pagerank_source_map_latency == 3 &&
           grasu_config_.degree_channel == 30;
       const bool residual_bound_passed =
-          residual_l1 <= pagerank_epsilon_ * 1.01F;
+          delta_hls_residual_
+              ? residual_linf <= pagerank_epsilon_ * 1.01F
+              : residual_l1 <= pagerank_epsilon_ * 1.01F;
+      const bool frontier_match =
+          execution_frontier_in ==
+              grasu_residual_pagerank_reference_.frontier_in_sizes &&
+          execution_frontier_out ==
+              grasu_residual_pagerank_reference_.frontier_out_sizes;
       const bool execution_converged =
           compute_available && !grasu_residual_compute_system_->failed() &&
           execution_frontier_out.size() == compute.supersteps &&
@@ -3792,9 +4065,9 @@ class OnlineMemoryProbe final : public SST::Component {
           success && compute_available &&
           !grasu_residual_compute_system_->failed() &&
           architecture_mismatches == 0 && mathematical_mismatches == 0 &&
-          residual_bound_passed && execution_converged &&
+          residual_bound_passed && execution_converged && frontier_match &&
           update_state_mismatches == 0 && degree_state_mismatches == 0 &&
-          active_edge_execution_ledger_match &&
+          active_edge_execution_ledger_match && active_edge_reference_exact &&
           compute.axi_beats_issued == compute.axi_beats_completed &&
           expected_backend_requests == backend_->accepted() &&
           memory_locality_ledger_match &&
@@ -3804,6 +4077,8 @@ class OnlineMemoryProbe final : public SST::Component {
       result << "{\n"
              << "  \"success\": " << (passed ? "true" : "false") << ",\n"
              << "  \"mode\": \"" << mode_ << "\",\n"
+             << "  \"residual_contract\": \"" << residual_contract_id_
+             << "\",\n"
              << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
              << "  \"claim_class\": \""
              << (hls_weighted
@@ -3871,6 +4146,30 @@ class OnlineMemoryProbe final : public SST::Component {
              << ",\n"
              << "  \"pagerank_damping\": " << pagerank_damping_ << ",\n"
              << "  \"pagerank_epsilon\": " << pagerank_epsilon_ << ",\n"
+             << "  \"initial_active_vertices\": "
+             << (delta_hls_residual_
+                     ? delta_hls_setup_->initial_state.active_vertices.size()
+                     : grasu_residual_pagerank_reference_.ranks.size())
+             << ",\n"
+             << "  \"delta_touched_sources\": "
+             << (delta_hls_residual_ ? delta_hls_setup_->touched_sources : 0)
+             << ",\n"
+             << "  \"delta_seed_linf\": "
+             << (delta_hls_residual_ ? delta_hls_setup_->seed_linf : 0.0F)
+             << ",\n"
+             << "  \"old_rank_iterations\": "
+             << (delta_hls_residual_ ? delta_hls_setup_->old_rank_iterations
+                                     : 0)
+             << ",\n"
+             << "  \"old_rank_linf\": "
+             << (delta_hls_residual_ ? delta_hls_setup_->old_rank_linf : 0.0F)
+             << ",\n"
+             << "  \"old_sink_vertices\": "
+             << (delta_hls_residual_ ? delta_hls_setup_->old_sink_vertices : 0)
+             << ",\n"
+             << "  \"new_sink_vertices\": "
+             << (delta_hls_residual_ ? delta_hls_setup_->new_sink_vertices : 0)
+             << ",\n"
              << "  \"partition_vertices\": "
              << grasu_config_.partition_vertices << ",\n"
              << "  \"state_bytes_per_vertex\": "
@@ -3901,19 +4200,26 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"degree_state_mismatches\": "
              << degree_state_mismatches << ",\n"
              << "  \"architecture_oracle\": "
-                "\"thresholded_residual_float32\",\n"
+             << (delta_hls_residual_
+                     ? "\"deltahls_sink_free_warm_residual_float32\",\n"
+                     : "\"thresholded_residual_float32\",\n")
              << "  \"mathematical_oracle\": "
-                "\"full_pagerank_float64_200_iterations\",\n"
+             << (delta_hls_residual_
+                     ? "\"sink_free_full_pagerank_float64_500_iterations\",\n"
+                     : "\"full_pagerank_float64_200_iterations\",\n")
              << "  \"max_abs_error\": " << architecture_max_abs_error
              << ",\n"
              << "  \"mathematical_max_abs_error\": "
              << mathematical_max_abs_error << ",\n"
              << "  \"mathematical_error_tolerance\": "
-             << 5.0 * static_cast<double>(pagerank_epsilon_) << ",\n"
+             << mathematical_tolerance << ",\n"
+             << "  \"frontier_match\": "
+             << (frontier_match ? "true" : "false") << ",\n"
              << "  \"residual_bound_passed\": "
              << (residual_bound_passed ? "true" : "false") << ",\n"
              << "  \"rank_sum\": " << rank_sum << ",\n"
              << "  \"residual_l1\": " << residual_l1 << ",\n"
+             << "  \"residual_linf\": " << residual_linf << ",\n"
              << "  \"source_prepare_cycles\": "
              << compute.source_prepare_cycles << ",\n"
              << "  \"source_prepare_state_reads\": "
@@ -4909,8 +5215,19 @@ class OnlineMemoryProbe final : public SST::Component {
           pagerank_system_->compute().residual_words().size());
       float rank_sum = 0.0F;
       float residual_l1 = 0.0F;
+      float residual_linf = 0.0F;
       float max_abs_error = 0.0F;
       double mathematical_max_abs_error = 0.0;
+      const float architecture_tolerance =
+          delta_hls_residual_
+              ? std::max(1.0e-7F, pagerank_epsilon_ * 0.25F)
+              : 1.0e-5F;
+      const double mathematical_tolerance =
+          delta_hls_residual_
+              ? 1.1 * static_cast<double>(
+                          pagerank_epsilon_ + delta_hls_setup_->old_rank_linf) /
+                    (1.0 - static_cast<double>(pagerank_damping_))
+              : 5.0 * static_cast<double>(pagerank_epsilon_);
       std::uint64_t mismatches =
           pagerank_system_->compute().rank_words().size() ==
                   residual_pagerank_reference_.ranks.size() &&
@@ -4933,6 +5250,7 @@ class OnlineMemoryProbe final : public SST::Component {
         actual_residuals.push_back(residual);
         rank_sum += rank;
         residual_l1 += std::fabs(residual);
+        residual_linf = std::max(residual_linf, std::fabs(residual));
         if (vertex >= residual_pagerank_reference_.ranks.size()) {
           ++mismatches;
           continue;
@@ -4943,7 +5261,8 @@ class OnlineMemoryProbe final : public SST::Component {
             residual - residual_pagerank_reference_.residuals[vertex]);
         max_abs_error =
             std::max({max_abs_error, rank_error, residual_error});
-        if (rank_error > 1.0e-5F || residual_error > 1.0e-5F) {
+        if (rank_error > architecture_tolerance ||
+            residual_error > architecture_tolerance) {
           ++mismatches;
         }
         if (vertex < residual_mathematical_reference_.size()) {
@@ -4953,10 +5272,7 @@ class OnlineMemoryProbe final : public SST::Component {
           mathematical_max_abs_error =
               std::max(mathematical_max_abs_error, mathematical_error);
           mathematical_mismatches +=
-              mathematical_error <=
-                      5.0 * static_cast<double>(pagerank_epsilon_)
-                  ? 0
-                  : 1;
+              mathematical_error <= mathematical_tolerance ? 0 : 1;
         }
       }
       const auto &maintenance = pagerank_system_->maintenance_counters();
@@ -4980,7 +5296,9 @@ class OnlineMemoryProbe final : public SST::Component {
       }
       const bool converged = pagerank_system_->compute().next_active().empty();
       const bool residual_bound_passed =
-          residual_l1 <= pagerank_epsilon_ * 1.01F;
+          delta_hls_residual_
+              ? residual_linf <= pagerank_epsilon_ * 1.01F
+              : residual_l1 <= pagerank_epsilon_ * 1.01F;
       const MemoryTrafficStats total_backend_traffic =
           backend_->traffic_stats();
       const MemoryTrafficStats compute_backend_traffic =
@@ -4997,11 +5315,14 @@ class OnlineMemoryProbe final : public SST::Component {
                           converged && frontier_match && memory_ledger_match &&
                           memory_locality_ledger_match &&
                           mismatches == 0 && mathematical_mismatches == 0 &&
-                          max_abs_error <= 1.0e-5F && residual_bound_passed;
+                          max_abs_error <= architecture_tolerance &&
+                          residual_bound_passed;
       result
           << "{\n"
           << "  \"success\": " << (passed ? "true" : "false") << ",\n"
           << "  \"mode\": \"spine_residual_pagerank\",\n"
+          << "  \"residual_contract\": \"" << residual_contract_id_
+          << "\",\n"
           << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
           << "  \"spine_axi_profile\": \"" << spine_axi_profile_id_ << "\",\n"
           << "  \"spine_maintenance_architecture\": \""
@@ -5041,6 +5362,29 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"iterations\": " << pagerank_completed_iterations_ << ",\n"
           << "  \"pagerank_damping\": " << pagerank_damping_ << ",\n"
           << "  \"pagerank_epsilon\": " << pagerank_epsilon_ << ",\n"
+          << "  \"initial_active_vertices\": "
+          << (delta_hls_residual_
+                  ? delta_hls_setup_->initial_state.active_vertices.size()
+                  : actual_ranks.size())
+          << ",\n"
+          << "  \"delta_touched_sources\": "
+          << (delta_hls_residual_ ? delta_hls_setup_->touched_sources : 0)
+          << ",\n"
+          << "  \"delta_seed_linf\": "
+          << (delta_hls_residual_ ? delta_hls_setup_->seed_linf : 0.0F)
+          << ",\n"
+          << "  \"old_rank_iterations\": "
+          << (delta_hls_residual_ ? delta_hls_setup_->old_rank_iterations : 0)
+          << ",\n"
+          << "  \"old_rank_linf\": "
+          << (delta_hls_residual_ ? delta_hls_setup_->old_rank_linf : 0.0F)
+          << ",\n"
+          << "  \"old_sink_vertices\": "
+          << (delta_hls_residual_ ? delta_hls_setup_->old_sink_vertices : 0)
+          << ",\n"
+          << "  \"new_sink_vertices\": "
+          << (delta_hls_residual_ ? delta_hls_setup_->new_sink_vertices : 0)
+          << ",\n"
           << "  \"residual_max_iterations\": " << residual_max_iterations_
           << ",\n"
           << "  \"pagerank_source_latency\": "
@@ -5128,9 +5472,13 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"mathematical_correctness_mismatches\": "
           << mathematical_mismatches << ",\n"
           << "  \"architecture_oracle\": "
-             "\"thresholded_residual_float32\",\n"
+          << (delta_hls_residual_
+                  ? "\"deltahls_sink_free_warm_residual_float32\",\n"
+                  : "\"thresholded_residual_float32\",\n")
           << "  \"mathematical_oracle\": "
-             "\"full_pagerank_float64_200_iterations\",\n"
+          << (delta_hls_residual_
+                  ? "\"sink_free_full_pagerank_float64_500_iterations\",\n"
+                  : "\"full_pagerank_float64_200_iterations\",\n")
           << "  \"frontier_match\": "
           << (frontier_match ? "true" : "false") << ",\n"
           << "  \"memory_ledger_match\": "
@@ -5141,11 +5489,12 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"mathematical_max_abs_error\": "
           << mathematical_max_abs_error << ",\n"
           << "  \"mathematical_error_tolerance\": "
-          << 5.0 * static_cast<double>(pagerank_epsilon_) << ",\n"
+          << mathematical_tolerance << ",\n"
           << "  \"residual_bound_passed\": "
           << (residual_bound_passed ? "true" : "false") << ",\n"
           << "  \"rank_sum\": " << rank_sum << ",\n"
           << "  \"residual_l1\": " << residual_l1 << ",\n"
+          << "  \"residual_linf\": " << residual_linf << ",\n"
           << "  \"final_active\": "
           << pagerank_system_->compute().next_active().size() << ",\n"
           << "  \"maintenance_cycles\": "
@@ -8014,6 +8363,8 @@ class OnlineMemoryProbe final : public SST::Component {
   std::size_t pagerank_iterations_{};
   float pagerank_damping_{};
   float pagerank_epsilon_{};
+  std::string residual_contract_id_;
+  bool delta_hls_residual_{};
   std::size_t residual_max_iterations_{};
   AlgorithmPipelineConfig pagerank_pipeline_config_;
   std::size_t device_dirty_source_limit_{};
@@ -8109,6 +8460,7 @@ class OnlineMemoryProbe final : public SST::Component {
   std::vector<double> grasu_pagerank_mathematical_reference_;
   ResidualPageRankReference grasu_residual_pagerank_reference_;
   std::vector<double> grasu_residual_mathematical_reference_;
+  std::optional<DeltaHlsResidualSetup> delta_hls_setup_;
   std::vector<std::uint32_t> grasu_pagerank_degrees_;
   std::vector<GraSuEdge> grasu_final_edges_;
   std::vector<std::uint32_t> grasu_external_to_internal_;

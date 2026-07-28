@@ -73,6 +73,9 @@ probe.addParams(
         "pagerank_epsilon": float(
             os.environ.get("SPINE_SST_PAGERANK_EPSILON", "0.000001")
         ),
+        "residual_contract": os.environ.get(
+            "SPINE_SST_RESIDUAL_CONTRACT", "generic_dangling_l1_cold"
+        ),
         "residual_max_iterations": int(
             os.environ.get("SPINE_SST_RESIDUAL_MAX_ITERATIONS", "256")
         ),
