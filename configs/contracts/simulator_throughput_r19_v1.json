@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "contract_id": "simulator_throughput_r19_v1_20260728",
+  "claim_class": "host_runtime_optimization_only_exact_architecture_observables",
+  "baseline": {
+    "source_revision": "203c46523681de9b2fb3ed2dccf76bb65565f180",
+    "source_branch": "codex/deltahls-paper-optimization",
+    "sst_plugin_sha256": "b1136bc1c1967f33c439f5bd5eb110df43a5a0c0ab58764adab6e5a047028e37",
+    "exact_idle_backend": {
+      "dramsim3_patch_sha256": "934fdf9c699911c2391a900aa89e4f2988cfb7fe5298721844a3afd1e7ea9e49",
+      "sst_elements_patch_sha256": "5207edd7d76534b13a9384470bd20bd2d8a1c18044af416d4cab0353a7336705",
+      "wrapper_sha256": "f1466b19e95a7a973ea03e8cd8f09c024227fe6d420cf018430fa76441626b9d"
+    },
+    "hbm_config": {
+      "path": "configs/memory/HBM2_1ch_x128.ini",
+      "sha256": "d1e865c6528acbc41f0768667063702bfb4033f24bcd46119ad25bfc5ad4fb5f"
+    },
+    "fresh_probe": {
+      "run_id": "syn_spread_e512__residual_pagerank",
+      "manifest_path": "configs/experiments/shared_comparison_candidate10_k1_multipart_v4_20260728.json",
+      "manifest_sha256": "a8846e94249d652313daacc818b6f74090b2362212c08fe63dcf4eb8338d4f03",
+      "profile_period_cycles": 4096,
+      "evidence_path": "docs/evidence/simulator_throughput_r19_baseline_20260728/baseline_rows.csv"
+    },
+    "historical_real_topology_runtime": {
+      "path": "docs/paper/data/simulator_host_runtime.csv",
+      "sha256": "3b20c08c26d7a66ebce93717a174a9435e37e00e400ad980c62ba05d1f9c0b03",
+      "raw_archive_path": "docs/evidence/candidate10_grasu_temporal_three_algorithms_insert_u8_20260727/raw_results.tar.gz",
+      "raw_archive_sha256": "f590b44a3c32933340f8ca507c5821792b3948d355679c936afa6d53804aa046"
+    }
+  },
+  "architecture_freeze": {
+    "systems": [
+      "spine",
+      "grasu_regraph"
+    ],
+    "algorithms": [
+      "weighted_sssp",
+      "connected_components",
+      "full_pagerank",
+      "thresholded_residual_pagerank"
+    ],
+    "authoritative_memory_backend": "sst_16_dramsim3_exact_idle",
+    "prohibited_changes": [
+      "simulated_cycle_count",
+      "component_or_fifo_capacity",
+      "axi_or_hbm_request_order",
+      "memory_latency_or_bandwidth",
+      "architecture_parallelism",
+      "algorithm_threshold_or_convergence_contract"
+    ]
+  },
+  "equivalence_gate": {
+    "exact": [
+      "final_graph_and_vertex_state",
+      "convergence_rounds",
+      "simulated_cycles_and_phase_ledgers",
+      "fifo_push_pop_stall_counters",
+      "axi_hbm_request_response_counts_bytes_and_order",
+      "component_active_and_stall_cycles",
+      "dramsim3_commands_statistics_and_energy"
+    ],
+    "allowed_to_change": [
+      "host_wall_seconds",
+      "host_cycles_per_second",
+      "host_peak_rss_bytes",
+      "host_profiler_samples"
+    ]
+  },
+  "coverage": {
+    "primary_real_temporal_datasets": [
+      "sx_askubuntu",
+      "sx_superuser",
+      "wiki_talk_temporal",
+      "sx_stackoverflow",
+      "soc_bitcoin"
+    ],
+    "real_holdouts": [
+      "amazon_2008",
+      "web_google",
+      "soc_flickr_und"
+    ],
+    "scale_endpoint": {
+      "dataset_id": "rmat_19_32",
+      "nominal_vertices": 524288,
+      "raw_edges": 16777216,
+      "local_unique_directed_edges": 15481655
+    },
+    "reporting_policy": "report_every_selected_dataset_or_explicit_timeout_no_silent_omission"
+  },
+  "acceptance": {
+    "medium_large_wall_speedup_geomean_min": 10.0,
+    "non_tiny_wall_regression_max_fraction": 0.05,
+    "r19_wall_limit_seconds": {
+      "weighted_sssp": 1800,
+      "connected_components": 1800,
+      "full_pagerank": 3600,
+      "thresholded_residual_pagerank": 3600
+    },
+    "per_run_rss_limit_gib": 48,
+    "host_available_memory_reserve_gib": 32,
+    "stretch_speedup": 100.0
+  }
+}
