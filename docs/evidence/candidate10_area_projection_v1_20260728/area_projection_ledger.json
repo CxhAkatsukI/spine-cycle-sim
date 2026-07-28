@@ -1,0 +1,98 @@
+{
+  "builds": [
+    {
+      "algorithm": "weighted_sssp",
+      "allocated_bram_bytes": 437760,
+      "allocated_onchip_ram_mib": 4.46044921875,
+      "allocated_uram_bytes": 4239360,
+      "bram": 95,
+      "build_id": "spine_candidate10_opt_v2_sssp_150mhz",
+      "dsp": 18,
+      "full_asic_area_available": false,
+      "lut": 136437,
+      "projected_32nm_bram_capacity_area_mm2": 1.2695718882825,
+      "projected_32nm_sram_capacity_area_mm2": 27.648932650287186,
+      "projected_32nm_uram_capacity_area_mm2": 26.379360762004687,
+      "reg": 159403,
+      "system": "spine",
+      "uram": 115
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "allocated_bram_bytes": 1073664,
+      "allocated_onchip_ram_mib": 3.27392578125,
+      "allocated_uram_bytes": 2359296,
+      "bram": 233,
+      "build_id": "grasu_regraph_weighted_sssp_150mhz",
+      "dsp": 0,
+      "full_asic_area_available": false,
+      "lut": 96559,
+      "projected_32nm_bram_capacity_area_mm2": 3.1137921049455,
+      "projected_32nm_sram_capacity_area_mm2": 17.7944798333655,
+      "projected_32nm_uram_capacity_area_mm2": 14.680687728419999,
+      "reg": 107380,
+      "system": "grasu_regraph",
+      "uram": 64
+    },
+    {
+      "algorithm": "full_pagerank",
+      "allocated_bram_bytes": 1281024,
+      "allocated_onchip_ram_mib": 3.4716796875,
+      "allocated_uram_bytes": 2359296,
+      "bram": 278,
+      "build_id": "grasu_regraph_full_pagerank_150mhz",
+      "dsp": 304,
+      "full_asic_area_available": false,
+      "lut": 178374,
+      "projected_32nm_bram_capacity_area_mm2": 3.715168262553,
+      "projected_32nm_sram_capacity_area_mm2": 18.395855990972997,
+      "projected_32nm_uram_capacity_area_mm2": 14.680687728419999,
+      "reg": 177836,
+      "system": "grasu_regraph",
+      "uram": 64
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "allocated_bram_bytes": 1350144,
+      "allocated_onchip_ram_mib": 3.53759765625,
+      "allocated_uram_bytes": 2359296,
+      "bram": 293,
+      "build_id": "grasu_regraph_thresholded_residual_pagerank_150mhz",
+      "dsp": 336,
+      "full_asic_area_available": false,
+      "lut": 247692,
+      "projected_32nm_bram_capacity_area_mm2": 3.9156269817555,
+      "projected_32nm_sram_capacity_area_mm2": 18.5963147101755,
+      "projected_32nm_uram_capacity_area_mm2": 14.680687728419999,
+      "reg": 301029,
+      "system": "grasu_regraph",
+      "uram": 64
+    }
+  ],
+  "calibration": {
+    "bram": {
+      "area_mm2_per_byte": 2.9001550810546876e-06,
+      "capacity_bytes_per_block": 4608,
+      "characterization_id": "spine_tiny_edge_bram_32k_x64",
+      "source_area_mm2": 0.095032281696,
+      "source_size_bytes": 32768
+    },
+    "uram": {
+      "area_mm2_per_byte": 6.222486592788696e-06,
+      "capacity_bytes_per_block": 36864,
+      "characterization_id": "spine_vertex_tile_uram_256k_x32",
+      "source_area_mm2": 1.63118752538,
+      "source_size_bytes": 262144
+    }
+  },
+  "claim_class": "routed_fpga_footprint_plus_32nm_sram_capacity_equivalent_not_full_asic_area",
+  "full_asic_area_available": false,
+  "limitations": [
+    "FPGA LUT, REG, BRAM, URAM, and DSP counts are complete post-route accelerator footprints on U55C.",
+    "The mm2 projection covers allocated BRAM/URAM bit capacity only and scales two CACTI-P 32 nm SRAM characterizations linearly by byte capacity.",
+    "The projection excludes logic, DSP, interconnect, clock tree, I/O, shell, and physical macro overhead differences; it is not full accelerator-core ASIC area.",
+    "Spine and GraSU+ReGraph builds are not iso-functional, so area ratios are descriptive rather than a normalized efficiency claim."
+  ],
+  "schema_version": 1,
+  "status": "PASS"
+}

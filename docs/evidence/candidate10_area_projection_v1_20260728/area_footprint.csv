@@ -1,0 +1,5 @@
+build_id,system,algorithm,lut,reg,bram,uram,dsp,allocated_bram_bytes,allocated_uram_bytes,allocated_onchip_ram_mib,projected_32nm_bram_capacity_area_mm2,projected_32nm_uram_capacity_area_mm2,projected_32nm_sram_capacity_area_mm2,full_asic_area_available
+spine_candidate10_opt_v2_sssp_150mhz,spine,weighted_sssp,136437,159403,95,115,18,437760,4239360,4.46044921875,1.2695718882825,26.379360762004687,27.648932650287186,False
+grasu_regraph_weighted_sssp_150mhz,grasu_regraph,weighted_sssp,96559,107380,233,64,0,1073664,2359296,3.27392578125,3.1137921049455,14.680687728419999,17.7944798333655,False
+grasu_regraph_full_pagerank_150mhz,grasu_regraph,full_pagerank,178374,177836,278,64,304,1281024,2359296,3.4716796875,3.715168262553,14.680687728419999,18.395855990972997,False
+grasu_regraph_thresholded_residual_pagerank_150mhz,grasu_regraph,thresholded_residual_pagerank,247692,301029,293,64,336,1350144,2359296,3.53759765625,3.9156269817555,14.680687728419999,18.5963147101755,False

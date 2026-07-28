@@ -57,6 +57,10 @@ from .component_power import (
     aggregate_vivado_component_power,
     analyze_component_power_manifest,
 )
+from .area_projection import (
+    AreaProjectionError,
+    analyze_area_projection_manifest,
+)
 
 __all__ = [
     "FpgaEvidenceError",
@@ -100,4 +104,6 @@ __all__ = [
     "ComponentPowerError",
     "aggregate_vivado_component_power",
     "analyze_component_power_manifest",
+    "AreaProjectionError",
+    "analyze_area_projection_manifest",
 ]
