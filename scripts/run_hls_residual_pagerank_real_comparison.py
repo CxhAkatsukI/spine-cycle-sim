@@ -8,6 +8,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import hashlib
 import json
 from pathlib import Path
+import subprocess
 import sys
 import time
 from typing import Mapping
@@ -160,18 +161,20 @@ def _system_fingerprint_paths(
         / "hls_pagerank_real_comparison.py",
         ROOT / "spine_cycle_sim" / "experiments" / "memory_traffic.py",
         args.input_manifest,
-        args.lib_dir / "libspine_cycle.so",
         args.sst,
     ]
     if system == "spine":
+        plugin = getattr(args, "adopt_spine_plugin", None)
         return [
             *common,
+            Path(plugin) if plugin is not None else args.lib_dir / "libspine_cycle.so",
             ROOT / "scripts" / "run_sst_spine_vertical.py",
             args.spine_profile,
         ]
     if system == "grasu_regraph":
         return [
             *common,
+            args.lib_dir / "libspine_cycle.so",
             ROOT / "scripts" / "run_sst_grasu_regraph_hls_residual_pagerank.py",
             args.grasu_profile,
             args.capability_catalog,
@@ -261,9 +264,13 @@ def _run_system(
             args.spine_profile
         ):
             provenance_problems.append("profile_sha256")
-        if result.get("sst_plugin_sha256") != sha256_file(
-            args.lib_dir / "libspine_cycle.so"
-        ):
+        spine_plugin = getattr(args, "adopt_spine_plugin", None)
+        expected_plugin = (
+            Path(spine_plugin)
+            if spine_plugin is not None
+            else args.lib_dir / "libspine_cycle.so"
+        )
+        if result.get("sst_plugin_sha256") != sha256_file(expected_plugin):
             provenance_problems.append("sst_plugin_sha256")
         graph = ROOT / run["graph"]["path"]  # type: ignore[index]
         update = ROOT / run["update"]["path"]  # type: ignore[index]
@@ -383,6 +390,18 @@ def main() -> int:
             "profile/plugin/workload and correctness-ledger validation"
         ),
     )
+    parser.add_argument(
+        "--adopt-spine-plugin",
+        type=Path,
+        help=(
+            "reconstructed historical libspine_cycle.so accepted only for "
+            "Spine raw-result adoption; its hash must match the raw summary"
+        ),
+    )
+    parser.add_argument(
+        "--adopt-spine-plugin-source-revision",
+        help="auditable source revision used to rebuild --adopt-spine-plugin",
+    )
     parser.add_argument("--no-build", action="store_true")
     parser.add_argument(
         "--instantiate-all-hbm-channels",
@@ -394,6 +413,34 @@ def main() -> int:
         raise ValueError("jobs, timeout, and max cycles must be positive")
     if args.adopt_validated_results and not args.resume:
         raise ValueError("--adopt-validated-results requires --resume")
+    if (args.adopt_spine_plugin is None) != (
+        args.adopt_spine_plugin_source_revision is None
+    ):
+        raise ValueError(
+            "--adopt-spine-plugin and its source revision must be provided together"
+        )
+    if args.adopt_spine_plugin is not None:
+        if not args.resume or not args.adopt_validated_results:
+            raise ValueError(
+                "--adopt-spine-plugin requires --resume --adopt-validated-results"
+            )
+        args.adopt_spine_plugin = args.adopt_spine_plugin.resolve()
+        if not args.adopt_spine_plugin.is_file():
+            raise FileNotFoundError(args.adopt_spine_plugin)
+        revision_check = subprocess.run(
+            [
+                "git",
+                "cat-file",
+                "-e",
+                f"{args.adopt_spine_plugin_source_revision}^{{commit}}",
+            ],
+            cwd=ROOT,
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        if revision_check.returncode != 0:
+            raise ValueError("adopted Spine plugin source revision is not a commit")
     profile_set = PROFILE_SETS[args.profile_set]
     custom_spine_profile = args.spine_profile is not None
     custom_grasu_profile = args.grasu_profile is not None
@@ -405,6 +452,19 @@ def main() -> int:
 
     manifest = _validate_input_manifest(args.input_manifest)
     selected = _select_runs(list(manifest["runs"]), args.run_id, args.limit)
+    if args.adopt_spine_plugin is not None:
+        missing_raw = [
+            str(run["run_id"])
+            for run in selected
+            if not (
+                args.out_dir / str(run["run_id"]) / "spine" / "summary.json"
+            ).is_file()
+        ]
+        if missing_raw:
+            raise FileNotFoundError(
+                "historical Spine plugin adoption requires existing summaries: "
+                + ", ".join(missing_raw)
+            )
     spine_profile, spine_mhz = _profile(
         args.spine_profile,
         None if custom_spine_profile else str(profile_set["spine_profile_id"]),
@@ -430,8 +490,6 @@ def main() -> int:
     if grasu_capability["profile_sha256"] != sha256_file(args.grasu_profile):
         raise ValueError("GraSU capability/profile hash mismatch")
     if not args.no_build:
-        import subprocess
-
         subprocess.run(["make", "-C", "cpp/sst", "-j2"], cwd=ROOT, check=True)
     args.out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -513,6 +571,15 @@ def main() -> int:
         ),
         "sst_plugin_sha256": sha256_file(
             args.lib_dir / "libspine_cycle.so"
+        ),
+        "adopted_spine_plugin": (
+            {
+                "path": str(args.adopt_spine_plugin),
+                "sha256": sha256_file(args.adopt_spine_plugin),
+                "source_revision": args.adopt_spine_plugin_source_revision,
+            }
+            if args.adopt_spine_plugin is not None
+            else None
         ),
         "execution_sha256": execution_sha256,
         "system_execution_sha256": system_execution_sha256,

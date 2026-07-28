@@ -69,3 +69,36 @@ python3 scripts/run_sst_grasu_regraph_hls_residual_pagerank.py \
 The formal AskUbuntu rerun uses the frozen Candidate10 K1 v4 residual profile,
 540,000-edge base slice, and 8 / 64 / 4,096 insertion slices.  Those rows are
 admitted to paper tables only after the same contract produces a PASS manifest.
+
+## Concurrent Spine Plugin Provenance
+
+The three long-running Spine jobs started from simulator commit `256d70b`.
+Commit `2d931de` subsequently changed only the GraSU+ReGraph residual frontier
+validation path and rebuilt the monolithic SST plugin.  Rather than silently
+accepting the resulting plugin-hash difference or rerunning several hours of
+unaffected Spine execution, reconstruct the launch plugin from the pinned
+commit:
+
+```bash
+git worktree add --detach \
+  /data/tmp/chuxiao/spine-cycle-sim-plugin-256d70b 256d70b
+make -C /data/tmp/chuxiao/spine-cycle-sim-plugin-256d70b/cpp/sst \
+  BUILD_DIR=/data/tmp/chuxiao/spine-cycle-sim-plugin-256d70b/build/sst -j 2
+sha256sum \
+  /data/tmp/chuxiao/spine-cycle-sim-plugin-256d70b/build/sst/libspine_cycle.so
+```
+
+The reconstructed hash is
+`2880b2f1e325701b933dbb1766be35b4a34a2fc942feb6f0ac643db021502b8f`.
+The comparison recovery command may adopt a Spine summary only when its
+embedded plugin hash matches that file exactly:
+
+```bash
+--resume --adopt-validated-results \
+--adopt-spine-plugin \
+  /data/tmp/chuxiao/spine-cycle-sim-plugin-256d70b/build/sst/libspine_cycle.so \
+--adopt-spine-plugin-source-revision 256d70b
+```
+
+GraSU+ReGraph adoption continues to require the current plugin hash. The final
+matrix manifest records both current and adopted Spine plugin provenance.
