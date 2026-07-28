@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -160,7 +161,9 @@ public:
                          GraphAlgorithmPolicy policy,
                          std::vector<std::uint32_t> out_degrees,
                          std::size_t fixed_rounds,
-                         GraSuReGraphConfig config = {});
+                         GraSuReGraphConfig config = {},
+                         std::optional<AlgorithmInitialState> initial_state =
+                             std::nullopt);
   GraSuReGraphSsspSystem(Scheduler &scheduler, ClockId clock_id,
                          MemoryBackend &backend,
                          GraSuPartitionedPmaLayout layout,
@@ -172,7 +175,9 @@ public:
                          GraphAlgorithmPolicy policy,
                          std::vector<std::uint32_t> out_degrees,
                          std::size_t fixed_rounds,
-                         GraSuReGraphConfig config = {});
+                         GraSuReGraphConfig config = {},
+                         std::optional<AlgorithmInitialState> initial_state =
+                             std::nullopt);
   ~GraSuReGraphSsspSystem();
 
   GraSuReGraphSsspSystem(const GraSuReGraphSsspSystem &) = delete;
@@ -228,13 +233,19 @@ public:
       Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
       GraSuPmaLayout layout, std::vector<std::uint32_t> out_degrees,
       std::size_t max_iterations, float damping = 0.85F,
-      float epsilon = 1.0e-6F, GraSuReGraphConfig config = {});
+      float epsilon = 1.0e-6F, GraSuReGraphConfig config = {},
+      ResidualPageRankContract residual_contract =
+          ResidualPageRankContract::kGenericDanglingL1Cold,
+      std::optional<AlgorithmInitialState> initial_state = std::nullopt);
   GraSuReGraphResidualPageRankSystem(
       Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
       GraSuPartitionedPmaLayout layout,
       std::vector<std::uint32_t> out_degrees,
       std::size_t max_iterations, float damping = 0.85F,
-      float epsilon = 1.0e-6F, GraSuReGraphConfig config = {});
+      float epsilon = 1.0e-6F, GraSuReGraphConfig config = {},
+      ResidualPageRankContract residual_contract =
+          ResidualPageRankContract::kGenericDanglingL1Cold,
+      std::optional<AlgorithmInitialState> initial_state = std::nullopt);
   ~GraSuReGraphResidualPageRankSystem();
 
   GraSuReGraphResidualPageRankSystem(

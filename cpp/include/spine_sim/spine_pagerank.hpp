@@ -58,7 +58,8 @@ class SpineSplitPageRankCompute final : public Component {
       Fifo<PartConvWord> &edge_in, Fifo<SourceValueWord> &value_out,
       AlgorithmPipelineConfig pipeline_config = {},
       std::size_t memory_request_window = kDefaultMemoryRequestWindow,
-      std::size_t tile_vertices = kDefaultTileVertices);
+      std::size_t tile_vertices = kDefaultTileVertices,
+      std::optional<AlgorithmInitialState> initial_state = std::nullopt);
 
   void register_components(Scheduler &scheduler);
   [[nodiscard]] bool done() const noexcept { return done_; }
@@ -159,7 +160,9 @@ class SpineSplitPageRankCompute final : public Component {
     kDoneAll,
   };
 
-  void initialize_state_payload(const std::vector<std::uint32_t> &out_degrees);
+  void initialize_state_payload(
+      const std::vector<std::uint32_t> &out_degrees,
+      const std::optional<AlgorithmInitialState> &initial_state);
   void enqueue_read(std::uint64_t address, MemoryPayloadKind kind,
                     std::uint32_t vertex);
   void enqueue_write(std::uint64_t address, std::uint32_t value,

@@ -8215,6 +8215,81 @@ void test_spine_residual_pagerank_tracks_thresholded_frontier() {
           "thresholded residual PageRank failed to converge to its oracle");
 }
 
+void test_spine_delta_hls_residual_uses_warm_seed_frontier() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("delta-hls-warm-spine", 200.0);
+  MockMemoryBackend backend("delta-hls-warm-spine-hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 4,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  const SpineEdgeSlice graph{
+      .vertices = 4,
+      .edges = {
+          {.src = 0, .dst = 1, .weight = 1, .diff = 1},
+          {.src = 1, .dst = 2, .weight = 1, .diff = 1},
+          {.src = 2, .dst = 3, .weight = 1, .diff = 1},
+          {.src = 3, .dst = 0, .weight = 1, .diff = 1},
+      },
+      .case_name = "delta_hls_warm_spine",
+  };
+  const GraphAlgorithmPolicy policy(AlgorithmPolicyConfig{
+      .kind = GraphAlgorithmKind::kResidualPageRank,
+      .vertices = graph.vertices,
+      .source = 0,
+      .damping = 0.5F,
+      .epsilon = 0.04F,
+      .residual_contract =
+          spine::sim::ResidualPageRankContract::kDeltaHlsSinkFreeLinfWarm,
+  });
+  const spine::sim::AlgorithmInitialState warm{
+      .primary = {
+          GraphAlgorithmPolicy::float_to_word(0.1F),
+          GraphAlgorithmPolicy::float_to_word(0.2F),
+          GraphAlgorithmPolicy::float_to_word(0.3F),
+          GraphAlgorithmPolicy::float_to_word(0.4F),
+      },
+      .auxiliary = {
+          GraphAlgorithmPolicy::float_to_word(0.0F),
+          GraphAlgorithmPolicy::float_to_word(0.06F),
+          GraphAlgorithmPolicy::float_to_word(0.0F),
+          GraphAlgorithmPolicy::float_to_word(0.0F),
+      },
+      .active_vertices = {1},
+  };
+  SpinePageRankVerticalSliceSystem system(
+      scheduler, core, backend, graph, policy, SpineL0Config{},
+      SpineAxiInterfaceProfile{}, AlgorithmPipelineConfig{},
+      SpineSplitPageRankCompute::kDefaultMemoryRequestWindow, SpineL0State{},
+      std::nullopt, std::nullopt, warm);
+  system.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until([&] { return system.done() && system.idle(); },
+                      1'000'000);
+
+  const auto &rank = system.compute().rank_words();
+  const auto &residual = system.compute().residual_words();
+  std::cout << "EVIDENCE spine_delta_hls_warm sources="
+            << system.reader_counters().source_requests
+            << " edges=" << system.reader_counters().edges_emitted
+            << " next_active=" << system.compute().next_active().size()
+            << " rank1=" << GraphAlgorithmPolicy::word_to_float(rank[1])
+            << " residual2="
+            << GraphAlgorithmPolicy::word_to_float(residual[2]) << '\n';
+  require(!system.failed() && system.done() &&
+              system.reader_counters().source_requests == 1 &&
+              system.reader_counters().edges_emitted == 1 &&
+              system.compute().next_active().empty() &&
+              std::fabs(GraphAlgorithmPolicy::word_to_float(rank[1]) - 0.26F) <
+                  1.0e-6F &&
+              std::fabs(GraphAlgorithmPolicy::word_to_float(residual[2]) -
+                        0.03F) < 1.0e-6F,
+          "Spine Delta.hls warm residual seed was not isolated or drained");
+}
+
 }  // namespace
 
 int main(int argc, char **argv) {
@@ -8399,6 +8474,8 @@ int main(int argc, char **argv) {
        test_spine_dynamic_pagerank_times_only_update_then_final_graph},
       {"spine_residual_pagerank",
        test_spine_residual_pagerank_tracks_thresholded_frontier},
+      {"spine_delta_hls_warm_residual",
+       test_spine_delta_hls_residual_uses_warm_seed_frontier},
   };
   const std::string filter = argc > 1 ? argv[1] : "";
   std::size_t failures = 0;

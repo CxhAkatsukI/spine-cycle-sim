@@ -3197,11 +3197,13 @@ public:
   Impl(Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
        GraSuPartitionedPmaLayout layout, GraphAlgorithmPolicy policy,
        std::vector<std::uint32_t> out_degrees, std::size_t fixed_rounds,
-       GraSuReGraphConfig config)
+       GraSuReGraphConfig config,
+       std::optional<AlgorithmInitialState> initial_state = std::nullopt)
       : scheduler_(scheduler), clock_id_(clock_id), backend_(backend),
         layout_(std::move(layout)), source_(policy.config().source),
         config_(config), policy_(std::move(policy)),
-        out_degrees_(std::move(out_degrees)), fixed_rounds_(fixed_rounds),
+        out_degrees_(std::move(out_degrees)),
+        initial_state_(std::move(initial_state)), fixed_rounds_(fixed_rounds),
         start_cycle_(scheduler_.clock(clock_id_).completed_cycles) {
     validate_config();
     construct_partition_plans();
@@ -3493,6 +3495,24 @@ private:
     require(!pagerank || fixed_rounds_ != 0, "PageRank has zero rounds");
     require(pagerank || out_degrees_.empty(),
             "weighted SSSP unexpectedly has degrees");
+    if (initial_state_.has_value()) {
+      const std::unordered_set<std::uint32_t> active(
+          initial_state_->active_vertices.begin(),
+          initial_state_->active_vertices.end());
+      require(initial_state_->primary.size() == layout_.vertices,
+              "warm-start primary-state size mismatch");
+      require(uses_auxiliary_state(policy_)
+                  ? initial_state_->auxiliary.size() == layout_.vertices
+                  : initial_state_->auxiliary.empty(),
+              "warm-start auxiliary-state size mismatch");
+      require(active.size() == initial_state_->active_vertices.size(),
+              "warm-start frontier contains duplicates");
+      require(std::all_of(active.begin(), active.end(),
+                          [this](std::uint32_t vertex) {
+                            return vertex < layout_.vertices;
+                          }),
+              "warm-start frontier vertex outside graph");
+    }
     require(config_.memory_channels >= 4, "fewer than four HBM channels");
     require(config_.compute_pipelines != 0, "zero compute pipelines");
     require(!layout_.partitions.empty(), "empty PMA partition list");
@@ -3695,6 +3715,12 @@ private:
     const std::size_t padded_vertices =
         layout_.partitions.size() * config_.partition_vertices;
     std::vector<std::uint8_t> bytes(padded_vertices * bytes_per_vertex);
+    const std::unordered_set<std::uint32_t> initial_active =
+        initial_state_.has_value()
+            ? std::unordered_set<std::uint32_t>(
+                  initial_state_->active_vertices.begin(),
+                  initial_state_->active_vertices.end())
+            : std::unordered_set<std::uint32_t>{};
     for (std::size_t vertex = 0; vertex < padded_vertices;
          ++vertex) {
       std::uint32_t encoded =
@@ -3703,10 +3729,19 @@ private:
               : GraphAlgorithmPolicy::float_to_word(0.0F);
       if (vertex < layout_.vertices) {
         const AlgorithmVertexState state =
-            policy_.initial_state(static_cast<std::uint32_t>(vertex));
+            initial_state_.has_value()
+                ? AlgorithmVertexState{
+                      .primary = initial_state_->primary[vertex],
+                      .auxiliary = uses_auxiliary_state(policy_)
+                                       ? initial_state_->auxiliary[vertex]
+                                       : 0U,
+                  }
+                : policy_.initial_state(static_cast<std::uint32_t>(vertex));
         const bool active =
-            policy_.config().kind == GraphAlgorithmKind::kFullPageRank ||
-            vertex == source_;
+            initial_state_.has_value()
+                ? initial_active.contains(static_cast<std::uint32_t>(vertex))
+                : policy_.config().kind == GraphAlgorithmKind::kFullPageRank ||
+                      vertex == source_;
         encoded = encode_policy_value(policy_, state.primary, active);
         if (uses_auxiliary_state(policy_)) {
           for (std::size_t byte = 0; byte < 4; ++byte) {
@@ -3861,6 +3896,7 @@ private:
   GraSuReGraphConfig config_;
   GraphAlgorithmPolicy policy_;
   std::vector<std::uint32_t> out_degrees_;
+  std::optional<AlgorithmInitialState> initial_state_;
   std::size_t fixed_rounds_{};
   std::vector<ReGraphPartitionPlan> partition_plans_;
   std::unique_ptr<ReGraphIterationContext> iteration_context_;
@@ -4272,11 +4308,13 @@ GraSuReGraphSsspSystem::GraSuReGraphSsspSystem(
     Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
     GraSuPmaLayout layout, GraphAlgorithmPolicy policy,
     std::vector<std::uint32_t> out_degrees, std::size_t fixed_rounds,
-    GraSuReGraphConfig config)
+    GraSuReGraphConfig config,
+    std::optional<AlgorithmInitialState> initial_state)
     : impl_(std::make_unique<Impl>(
           scheduler, clock_id, backend,
           one_partition_layout(std::move(layout), config.partition_vertices),
-          std::move(policy), std::move(out_degrees), fixed_rounds, config)) {}
+          std::move(policy), std::move(out_degrees), fixed_rounds, config,
+          std::move(initial_state))) {}
 
 GraSuReGraphSsspSystem::GraSuReGraphSsspSystem(
     Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
@@ -4295,10 +4333,12 @@ GraSuReGraphSsspSystem::GraSuReGraphSsspSystem(
     Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
     GraSuPartitionedPmaLayout layout, GraphAlgorithmPolicy policy,
     std::vector<std::uint32_t> out_degrees, std::size_t fixed_rounds,
-    GraSuReGraphConfig config)
+    GraSuReGraphConfig config,
+    std::optional<AlgorithmInitialState> initial_state)
     : impl_(std::make_unique<Impl>(
           scheduler, clock_id, backend, std::move(layout), std::move(policy),
-          std::move(out_degrees), fixed_rounds, config)) {}
+          std::move(out_degrees), fixed_rounds, config,
+          std::move(initial_state))) {}
 
 GraSuReGraphSsspSystem::~GraSuReGraphSsspSystem() = default;
 
@@ -4434,7 +4474,8 @@ GraSuReGraphResidualPageRankSystem::GraSuReGraphResidualPageRankSystem(
     Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
     GraSuPmaLayout layout, std::vector<std::uint32_t> out_degrees,
     std::size_t max_iterations, float damping, float epsilon,
-    GraSuReGraphConfig config)
+    GraSuReGraphConfig config, ResidualPageRankContract residual_contract,
+    std::optional<AlgorithmInitialState> initial_state)
     : engine_(std::make_unique<GraSuReGraphSsspSystem>(
           scheduler, clock_id, backend, layout,
           GraphAlgorithmPolicy(AlgorithmPolicyConfig{
@@ -4443,14 +4484,18 @@ GraSuReGraphResidualPageRankSystem::GraSuReGraphResidualPageRankSystem(
               .source = 0,
               .damping = damping,
               .epsilon = epsilon,
+              .residual_contract = residual_contract,
           }),
-          std::move(out_degrees), max_iterations, config)) {}
+          std::move(out_degrees), max_iterations, config,
+          std::move(initial_state))) {}
 
 GraSuReGraphResidualPageRankSystem::GraSuReGraphResidualPageRankSystem(
     Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
     GraSuPartitionedPmaLayout layout,
     std::vector<std::uint32_t> out_degrees, std::size_t max_iterations,
-    float damping, float epsilon, GraSuReGraphConfig config)
+    float damping, float epsilon, GraSuReGraphConfig config,
+    ResidualPageRankContract residual_contract,
+    std::optional<AlgorithmInitialState> initial_state)
     : engine_(std::make_unique<GraSuReGraphSsspSystem>(
           scheduler, clock_id, backend, layout,
           GraphAlgorithmPolicy(AlgorithmPolicyConfig{
@@ -4459,8 +4504,10 @@ GraSuReGraphResidualPageRankSystem::GraSuReGraphResidualPageRankSystem(
               .source = 0,
               .damping = damping,
               .epsilon = epsilon,
+              .residual_contract = residual_contract,
           }),
-          std::move(out_degrees), max_iterations, config)) {}
+          std::move(out_degrees), max_iterations, config,
+          std::move(initial_state))) {}
 
 GraSuReGraphResidualPageRankSystem::~GraSuReGraphResidualPageRankSystem() =
     default;

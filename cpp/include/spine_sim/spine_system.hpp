@@ -215,7 +215,9 @@ class SpinePageRankVerticalSliceSystem {
           SpineSplitPageRankCompute::kDefaultMemoryRequestWindow,
       SpineL0State initial_state = {},
       std::optional<SpineEdgeSlice> execution_graph = std::nullopt,
-      std::optional<SpineDirtyIdentity> host_coverage = std::nullopt);
+      std::optional<SpineDirtyIdentity> host_coverage = std::nullopt,
+      std::optional<AlgorithmInitialState> algorithm_initial_state =
+          std::nullopt);
   SpinePageRankVerticalSliceSystem(
       Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
       SpineEdgeSlice workload, GraphAlgorithmPolicy policy,
@@ -226,7 +228,9 @@ class SpinePageRankVerticalSliceSystem {
           SpineSplitPageRankCompute::kDefaultMemoryRequestWindow,
       SpineL0State initial_state = {},
       std::optional<SpineEdgeSlice> execution_graph = std::nullopt,
-      std::optional<SpineDirtyIdentity> host_coverage = std::nullopt);
+      std::optional<SpineDirtyIdentity> host_coverage = std::nullopt,
+      std::optional<AlgorithmInitialState> algorithm_initial_state =
+          std::nullopt);
 
   void register_components();
   void restart_iteration();

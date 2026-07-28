@@ -1383,6 +1383,70 @@ void test_pma_native_regraph_residual_pagerank_matches_oracles() {
             << " max_math_error=" << max_mathematical_error << '\n';
 }
 
+void test_grasu_delta_hls_residual_uses_warm_seed_frontier() {
+  constexpr std::size_t kVertices = 4;
+  constexpr float kDamping = 0.5F;
+  constexpr float kEpsilon = 0.04F;
+  const std::vector<GraSuEdge> edges = {
+      {.source = 0, .destination = 1},
+      {.source = 1, .destination = 2},
+      {.source = 2, .destination = 3},
+      {.source = 3, .destination = 0},
+  };
+  GraSuPmaLayout layout = GraSuPmaLayout::build(kVertices, edges, {});
+  std::vector<std::uint32_t> degrees(kVertices, 1);
+  const spine::sim::AlgorithmInitialState warm{
+      .primary = {
+          spine::sim::GraphAlgorithmPolicy::float_to_word(0.1F),
+          spine::sim::GraphAlgorithmPolicy::float_to_word(0.2F),
+          spine::sim::GraphAlgorithmPolicy::float_to_word(0.3F),
+          spine::sim::GraphAlgorithmPolicy::float_to_word(0.4F),
+      },
+      .auxiliary = {
+          spine::sim::GraphAlgorithmPolicy::float_to_word(0.0F),
+          spine::sim::GraphAlgorithmPolicy::float_to_word(0.06F),
+          spine::sim::GraphAlgorithmPolicy::float_to_word(0.0F),
+          spine::sim::GraphAlgorithmPolicy::float_to_word(0.0F),
+      },
+      .active_vertices = {1},
+  };
+
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("delta-hls-warm-grasu", 200.0);
+  MockMemoryBackend backend("delta-hls-warm-grasu-hbm", core,
+                            MockMemoryConfig{.channels = 32,
+                                             .latency_cycles = 4,
+                                             .accepts_per_channel_per_cycle = 1,
+                                             .max_outstanding_per_channel = 32,
+                                             .response_queue_depth = 128});
+  GraSuReGraphConfig config;
+  config.partition_vertices = 16;
+  config.source_buffer_vertices = 16;
+  config.edge_lanes = 4;
+  config.gather_banks = 4;
+  GraSuPmaUpdateSystem initializer(scheduler, core, backend, layout, {},
+                                   GraSuNativeConfig{});
+  initializer.register_components();
+  require(initializer.done(), "Delta.hls warm PMA initializer did not drain");
+  GraSuReGraphResidualPageRankSystem system(
+      scheduler, core, backend, layout, degrees, 8, kDamping, kEpsilon, config,
+      spine::sim::ResidualPageRankContract::kDeltaHlsSinkFreeLinfWarm, warm);
+  system.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until([&] { return system.done() || system.failed(); },
+                      1'000'000);
+
+  const auto ranks = system.ranks();
+  const auto residuals = system.residuals();
+  const auto counters = system.counters();
+  require(!system.failed() && system.done() && counters.supersteps == 1 &&
+              counters.active_edges_mapped == 1 &&
+              system.frontier_out_sizes() == std::vector<std::size_t>{0} &&
+              std::fabs(ranks[1] - 0.26F) < 1.0e-6F &&
+              std::fabs(residuals[2] - 0.03F) < 1.0e-6F,
+          "GraSU+ReGraph Delta.hls warm residual seed was not isolated or drained");
+}
+
 void test_unreserved_and_invalid_updates_are_rejected() {
   const std::vector<GraSuEdge> initial = {
       {.source = 0, .destination = 1},
@@ -2194,6 +2258,8 @@ int main() {
        test_partitioned_residual_pagerank_unions_active_frontiers},
       {"residual_pagerank",
        test_pma_native_regraph_residual_pagerank_matches_oracles},
+      {"delta_hls_warm_residual",
+       test_grasu_delta_hls_residual_uses_warm_seed_frontier},
       {"invalid_updates", test_unreserved_and_invalid_updates_are_rejected},
       {"native_contention", test_native_shared_channel_contention_is_visible},
       {"pma_native_regraph_sssp", test_pma_native_regraph_sssp_matches_oracle},

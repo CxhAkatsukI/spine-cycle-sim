@@ -49,7 +49,8 @@ SpineSplitPageRankCompute::SpineSplitPageRankCompute(
     std::vector<std::uint32_t> out_degrees, FixedAxiPort &vertex_state,
     Fifo<PartConvWord> &edge_in, Fifo<SourceValueWord> &value_out,
     AlgorithmPipelineConfig pipeline_config,
-    std::size_t memory_request_window, std::size_t tile_vertices)
+    std::size_t memory_request_window, std::size_t tile_vertices,
+    std::optional<AlgorithmInitialState> initial_state)
     : Component(std::move(name), clock_id),
       policy_(std::move(policy)),
       vertices_(policy_.config().vertices),
@@ -94,7 +95,7 @@ SpineSplitPageRankCompute::SpineSplitPageRankCompute(
       vertex_state_.master().clock_id() != clock_id) {
     throw std::invalid_argument("invalid Spine PageRank compute configuration");
   }
-  initialize_state_payload(out_degrees);
+  initialize_state_payload(out_degrees, initial_state);
 }
 
 void SpineSplitPageRankCompute::register_components(Scheduler &scheduler) {
@@ -185,10 +186,30 @@ void SpineSplitPageRankCompute::reset_iteration() {
 }
 
 void SpineSplitPageRankCompute::initialize_state_payload(
-    const std::vector<std::uint32_t> &out_degrees) {
+    const std::vector<std::uint32_t> &out_degrees,
+    const std::optional<AlgorithmInitialState> &initial_state) {
+  if (initial_state.has_value() &&
+      (initial_state->primary.size() != vertices_ ||
+       (state_layout_.auxiliary.has_value()
+            ? initial_state->auxiliary.size() != vertices_
+            : !initial_state->auxiliary.empty()) ||
+       std::any_of(initial_state->active_vertices.begin(),
+                   initial_state->active_vertices.end(),
+                   [this](std::uint32_t vertex) {
+                     return vertex >= vertices_;
+                   }))) {
+    throw std::invalid_argument("invalid Spine algorithm initial state");
+  }
   for (std::size_t vertex = 0; vertex < vertices_; ++vertex) {
     const AlgorithmVertexState initial =
-        policy_.initial_state(static_cast<std::uint32_t>(vertex));
+        initial_state.has_value()
+            ? AlgorithmVertexState{
+                  .primary = initial_state->primary[vertex],
+                  .auxiliary = state_layout_.auxiliary.has_value()
+                                   ? initial_state->auxiliary[vertex]
+                                   : 0U,
+              }
+            : policy_.initial_state(static_cast<std::uint32_t>(vertex));
     rank_words_[vertex] = initial.primary;
     residual_words_[vertex] = initial.auxiliary;
   }

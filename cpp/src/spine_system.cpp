@@ -870,7 +870,8 @@ SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
     AlgorithmPipelineConfig pipeline_config,
     std::size_t compute_memory_request_window, SpineL0State initial_state,
     std::optional<SpineEdgeSlice> execution_graph,
-    std::optional<SpineDirtyIdentity> host_coverage)
+    std::optional<SpineDirtyIdentity> host_coverage,
+    std::optional<AlgorithmInitialState> algorithm_initial_state)
     : SpinePageRankVerticalSliceSystem(
           scheduler, clock_id, backend, workload,
           GraphAlgorithmPolicy(AlgorithmPolicyConfig{
@@ -882,7 +883,7 @@ SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
           std::move(maintenance_config), std::move(axi_profile),
           std::move(pipeline_config), compute_memory_request_window,
           std::move(initial_state), std::move(execution_graph),
-          host_coverage) {}
+          host_coverage, std::move(algorithm_initial_state)) {}
 
 SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
     Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
@@ -891,7 +892,8 @@ SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
     AlgorithmPipelineConfig pipeline_config,
     std::size_t compute_memory_request_window, SpineL0State initial_state,
     std::optional<SpineEdgeSlice> execution_graph,
-    std::optional<SpineDirtyIdentity> host_coverage)
+    std::optional<SpineDirtyIdentity> host_coverage,
+    std::optional<AlgorithmInitialState> algorithm_initial_state)
     : scheduler_(scheduler),
       clock_id_(clock_id),
       backend_(backend),
@@ -910,6 +912,31 @@ SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
   }
   PageRankHostInput host =
       build_pagerank_host_input(logical_graph, maintenance_config);
+  if (algorithm_initial_state.has_value()) {
+    const std::unordered_set<std::uint32_t> active(
+        algorithm_initial_state->active_vertices.begin(),
+        algorithm_initial_state->active_vertices.end());
+    if (algorithm_initial_state->primary.size() != logical_graph.vertices ||
+        active.size() != algorithm_initial_state->active_vertices.size() ||
+        std::any_of(active.begin(), active.end(),
+                    [&logical_graph](std::uint32_t vertex) {
+                      return vertex >= logical_graph.vertices;
+                    })) {
+      throw std::invalid_argument("invalid Spine algorithm warm-start frontier");
+    }
+    host.sources = algorithm_initial_state->active_vertices;
+    for (auto &bin : host.bins.bins) {
+      bin.erase(std::remove_if(bin.begin(), bin.end(),
+                               [&active](const SpineActiveRecord &record) {
+                                 return !active.contains(record.source);
+                               }),
+                bin.end());
+      for (SpineActiveRecord &record : bin) {
+        record.source_value =
+            algorithm_initial_state->primary[record.source];
+      }
+    }
+  }
   if (host_coverage.has_value()) {
     host.coverage = host_coverage;
   }
@@ -960,7 +987,9 @@ SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
   compute_ = std::make_unique<SpineSplitPageRankCompute>(
       "pagerank-compute", clock_id_, *algorithm_policy_, host.out_degrees,
       *vertex_state_, edge_stream_, value_stream_, pipeline_config,
-      compute_memory_request_window);
+      compute_memory_request_window,
+      SpineSplitPageRankCompute::kDefaultTileVertices,
+      std::move(algorithm_initial_state));
 }
 
 std::unique_ptr<FixedAxiPort> SpinePageRankVerticalSliceSystem::make_port(

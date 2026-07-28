@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <optional>
 #include <string_view>
+#include <vector>
 
 namespace spine::sim {
 
@@ -75,6 +76,12 @@ struct AlgorithmOperationProfile {
 struct AlgorithmVertexState {
   std::uint32_t primary{};
   std::uint32_t auxiliary{};
+};
+
+struct AlgorithmInitialState {
+  std::vector<std::uint32_t> primary;
+  std::vector<std::uint32_t> auxiliary;
+  std::vector<std::uint32_t> active_vertices;
 };
 
 struct AlgorithmSourceResult {
