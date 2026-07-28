@@ -27,6 +27,8 @@ struct FifoStats {
 template <typename T>
 class Fifo final : public Component {
  public:
+  using NonemptyNotifier = void (*)(void*) noexcept;
+
   Fifo(std::string name, ClockId clock_id, std::size_t depth)
       : Component(std::move(name), clock_id), depth_(depth) {
     if (depth_ == 0) {
@@ -39,6 +41,25 @@ class Fifo final : public Component {
   [[nodiscard]] bool empty() const noexcept { return queue_.empty(); }
   [[nodiscard]] bool full() const noexcept { return queue_.size() == depth_; }
   [[nodiscard]] const FifoStats& stats() const noexcept { return stats_; }
+
+  void bind_nonempty_notifier(void* owner, NonemptyNotifier notifier) {
+    if (notifier == nullptr ||
+        (nonempty_notifier_ != nullptr &&
+         (nonempty_notifier_owner_ != owner ||
+          nonempty_notifier_ != notifier))) {
+      throw std::logic_error("FIFO nonempty notifier is already bound");
+    }
+    nonempty_notifier_owner_ = owner;
+    nonempty_notifier_ = notifier;
+  }
+
+  void unbind_nonempty_notifier(void* owner) noexcept {
+    if (nonempty_notifier_owner_ != owner) {
+      return;
+    }
+    nonempty_notifier_owner_ = nullptr;
+    nonempty_notifier_ = nullptr;
+  }
 
   void reset_stats() {
     if (!queue_.empty() || staged_push_.has_value() || staged_pop_) {
@@ -103,6 +124,9 @@ class Fifo final : public Component {
       queue_.push_back(std::move(*staged_push_));
       staged_push_.reset();
       ++stats_.pushes;
+      if (nonempty_notifier_ != nullptr) {
+        nonempty_notifier_(nonempty_notifier_owner_);
+      }
     }
     stats_.max_occupancy = std::max(stats_.max_occupancy, queue_.size());
     set_latched_commit_ready(false);
@@ -113,6 +137,8 @@ class Fifo final : public Component {
   std::deque<T> queue_;
   std::optional<T> staged_push_;
   bool staged_pop_{};
+  void* nonempty_notifier_owner_{};
+  NonemptyNotifier nonempty_notifier_{};
   FifoStats stats_;
 };
 

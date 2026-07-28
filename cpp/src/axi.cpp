@@ -96,6 +96,16 @@ AxiMaster::AxiMaster(std::string name, ClockId clock_id, AxiConfig config,
         "AXI master, links, and backend must share a clock");
   }
   backend_.register_initiator(config_.initiator_id);
+  requests_.bind_nonempty_notifier(this, &AxiMaster::notify_request_nonempty);
+  refresh_pending_work();
+}
+
+AxiMaster::~AxiMaster() { requests_.unbind_nonempty_notifier(this); }
+
+void AxiMaster::notify_request_nonempty(void* owner) noexcept {
+  AxiMaster *master = static_cast<AxiMaster*>(owner);
+  master->scheduler_ready_ = true;
+  master->set_latched_evaluate_ready(true);
 }
 
 std::size_t AxiMaster::pending_requests() const noexcept {
@@ -590,6 +600,7 @@ void AxiMaster::evaluate(const CycleContext &context) {
   evaluate_write_ingress(context);
   evaluate_address_channel(context);
   evaluate_data_channel(context);
+  set_latched_commit_ready(true);
 }
 
 void AxiMaster::commit_backend_responses(const CycleContext &context) {
@@ -986,6 +997,8 @@ void AxiMaster::refresh_pending_work() noexcept {
       !ready_responses_.empty() || !pending_write_input_.empty() ||
       !write_store_fifo_.empty() || write_bridge_.has_value() ||
       !write_throttle_fifo_.empty();
+  scheduler_ready_ = !requests_.empty() || internal_pending_work_;
+  set_latched_evaluate_ready(scheduler_ready_);
 }
 
 void AxiMaster::commit(const CycleContext &context) {
@@ -1004,6 +1017,7 @@ void AxiMaster::commit(const CycleContext &context) {
     } else {
       issue_round_robin_ = 0;
     }
+    set_latched_commit_ready(false);
     return;
   }
   commit_output();
@@ -1014,6 +1028,7 @@ void AxiMaster::commit(const CycleContext &context) {
   commit_write_ingress(context);
   commit_read_beat_output();
   refresh_pending_work();
+  set_latched_commit_ready(false);
 }
 
 }  // namespace spine::sim

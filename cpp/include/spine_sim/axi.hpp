@@ -176,6 +176,7 @@ class AxiMaster final : public Component {
             Fifo<AxiRequest> &requests, Fifo<AxiResponse> &responses,
             MemoryBackend &backend,
             Fifo<AxiReadBeatResponse> *read_beats = nullptr);
+  ~AxiMaster() override;
 
   [[nodiscard]] const AxiStats& stats() const noexcept { return stats_; }
   [[nodiscard]] const AxiConfig &config() const noexcept { return config_; }
@@ -187,7 +188,13 @@ class AxiMaster final : public Component {
   [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
     return true;
   }
+  [[nodiscard]] bool has_latched_evaluate_guard() const noexcept override {
+    return true;
+  }
   [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_latched_commit_guard() const noexcept override {
     return true;
   }
   [[nodiscard]] bool evaluate_ready() const noexcept override {
@@ -195,6 +202,12 @@ class AxiMaster final : public Component {
   }
   [[nodiscard]] bool commit_ready() const noexcept override {
     return has_pending_work();
+  }
+  [[nodiscard]] const bool* evaluate_ready_token() const noexcept override {
+    return &scheduler_ready_;
+  }
+  [[nodiscard]] const bool* commit_ready_token() const noexcept override {
+    return &scheduler_ready_;
   }
   [[nodiscard]] const std::vector<AxiBurstTrace> &burst_trace() const noexcept {
     return burst_trace_;
@@ -290,6 +303,7 @@ class AxiMaster final : public Component {
   void commit_output();
   void commit_read_beat_output();
   void queue_parent_response_if_ready(std::uint64_t parent_id);
+  static void notify_request_nonempty(void* owner) noexcept;
   [[nodiscard]] std::size_t read_reorder_occupancy() const noexcept;
   [[nodiscard]] bool has_pending_work() const noexcept {
     return !requests_.empty() || internal_pending_work_;
@@ -343,6 +357,7 @@ class AxiMaster final : public Component {
       staged_read_beat_output_;
   bool staged_output_{};
   bool internal_pending_work_{};
+  bool scheduler_ready_{};
   AxiStats stats_;
 };
 

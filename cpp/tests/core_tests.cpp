@@ -890,6 +890,39 @@ class LatchedCommitCounter final : public Component {
   std::vector<std::size_t> &order_;
 };
 
+class LatchedEvaluateCounter final : public Component {
+ public:
+  LatchedEvaluateCounter(std::string name, ClockId clock,
+                         std::size_t identity,
+                         std::vector<std::size_t> &order)
+      : Component(std::move(name), clock),
+        identity_(identity),
+        order_(order) {}
+
+  [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_latched_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_commit_phase() const noexcept override {
+    return false;
+  }
+  void arm() { set_latched_evaluate_ready(true); }
+  void evaluate(const CycleContext &context) override {
+    order_.push_back(identity_);
+    evaluate_cycles.push_back(context.domain_cycle);
+    set_latched_evaluate_ready(false);
+  }
+  void commit(const CycleContext &) override {}
+
+  std::vector<std::uint64_t> evaluate_cycles;
+
+ private:
+  std::size_t identity_{};
+  std::vector<std::size_t> &order_;
+};
+
 template <typename T>
 class SequenceProducer final : public Component {
  public:
@@ -1151,6 +1184,39 @@ void test_fifo_latched_commit_readiness() {
   scheduler.run_events(1);
   require(fifo.empty() && !fifo.latched_commit_ready(),
           "FIFO pop commit did not clear its readiness latch");
+}
+
+void test_scheduler_latched_evaluate_bitmap_ordering() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("latched-evaluate", 100.0);
+  std::vector<std::size_t> order;
+  std::vector<std::unique_ptr<LatchedEvaluateCounter>> counters;
+  counters.reserve(130);
+  for (std::size_t identity = 0; identity < 130; ++identity) {
+    counters.push_back(std::make_unique<LatchedEvaluateCounter>(
+        "latched-evaluate-" + std::to_string(identity), core, identity,
+        order));
+    scheduler.add_component(*counters.back());
+  }
+
+  counters[129]->arm();
+  counters[1]->arm();
+  counters[64]->arm();
+  scheduler.run_events(1);
+  require(order == std::vector<std::size_t>({1, 64, 129}),
+          "latched evaluate bitmap changed registration order");
+
+  scheduler.run_events(1);
+  require(order == std::vector<std::size_t>({1, 64, 129}),
+          "one-shot evaluate latch ran again without a wakeup");
+
+  counters[129]->arm();
+  scheduler.remove_component(*counters[0]);
+  scheduler.run_events(1);
+  require(order == std::vector<std::size_t>({1, 64, 129, 129}) &&
+              counters[129]->evaluate_cycles ==
+                  std::vector<std::uint64_t>({0, 2}),
+          "component removal lost a rebased latched evaluate notification");
 }
 
 void test_scheduler_latched_commit_bitmap_ordering() {
@@ -8459,6 +8525,8 @@ int main(int argc, char **argv) {
        test_scheduler_component_sampling_profile},
       {"scheduler_dynamic_readiness",
        test_scheduler_dynamic_phase_readiness},
+      {"scheduler_latched_evaluate_bitmap",
+       test_scheduler_latched_evaluate_bitmap_ordering},
       {"fifo_latched_commit_readiness", test_fifo_latched_commit_readiness},
       {"scheduler_latched_commit_bitmap",
        test_scheduler_latched_commit_bitmap_ordering},

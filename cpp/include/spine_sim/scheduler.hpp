@@ -67,6 +67,9 @@ class Scheduler {
   void record_profile(Component& component, ProfilePhase phase,
                       std::uint64_t nanoseconds);
   void rebuild_phase_registrations();
+  static void notify_latched_evaluate(void *owner, std::size_t slot,
+                                      bool ready) noexcept;
+  void mark_latched_evaluate_ready(std::size_t slot, bool ready) noexcept;
   static void notify_latched_commit(void *owner, std::size_t slot) noexcept;
   void mark_latched_commit_ready(std::size_t slot) noexcept;
 
@@ -76,8 +79,15 @@ class Scheduler {
   std::vector<bool> prepare_dynamic_guards_;
   std::vector<Component*> evaluate_components_;
   std::vector<bool> evaluate_dynamic_guards_;
+  std::vector<bool> evaluate_latched_guards_;
+  std::vector<const bool*> evaluate_ready_tokens_;
+  std::vector<std::size_t> unconditional_evaluate_slots_;
+  std::vector<std::size_t> dynamic_evaluate_slots_;
+  std::vector<std::uint64_t> latched_evaluate_words_;
+  std::vector<std::uint64_t> selected_evaluate_words_;
   std::vector<Component*> commit_components_;
   std::vector<bool> commit_dynamic_guards_;
+  std::vector<const bool*> commit_ready_tokens_;
   std::vector<bool> commit_latched_guards_;
   std::vector<std::size_t> unconditional_commit_slots_;
   std::vector<std::size_t> dynamic_commit_slots_;
