@@ -240,6 +240,8 @@ def _load_algorithm(
                 "scenario": row["scenario"],
                 "dataset_kind": row.get("dataset_kind", ""),
                 "input_scope": row.get("input_scope", ""),
+                "vertices": int(row["vertices"]),
+                "initial_edges": int(row["initial_edges"]),
                 "e2e_ms": _e2e_ms(algorithm, row),
                 "aligned_backend_requests": aligned_requests,
                 "aligned_backend_bytes": aligned_bytes,
@@ -574,6 +576,70 @@ def _paper_scale_tables(
     return correctness, batch_rows
 
 
+def _enrich_paper_scale_rows(
+    batch_rows: list[dict[str, object]], systems: list[dict[str, object]]
+) -> None:
+    indexed = {
+        (str(row["algorithm"]), int(row["batch_size"]), str(row["system"])): row
+        for row in systems
+    }
+    if len(indexed) != len(systems):
+        raise ValueError("paper-scale system metrics are not unique")
+    for row in batch_rows:
+        algorithm = str(row["algorithm_id"])
+        batch = int(row["batch"])
+        spine = indexed[(algorithm, batch, "spine")]
+        grasu = indexed[(algorithm, batch, "grasu_regraph")]
+        if (
+            int(spine["vertices"]) != int(grasu["vertices"])
+            or int(spine["initial_edges"]) != int(grasu["initial_edges"])
+        ):
+            raise ValueError("paper-scale pair has mismatched graph dimensions")
+        row.update(
+            {
+                "vertices": int(spine["vertices"]),
+                "initial_edges": int(spine["initial_edges"]),
+                "spine_updates_per_second": batch
+                / (float(spine["e2e_ms"]) / 1000.0),
+                "grasu_updates_per_second": batch
+                / (float(grasu["e2e_ms"]) / 1000.0),
+                "spine_backend_requests": int(spine["aligned_backend_requests"]),
+                "grasu_backend_requests": int(grasu["aligned_backend_requests"]),
+                "grasu_to_spine_request_ratio": int(
+                    grasu["aligned_backend_requests"]
+                )
+                / int(spine["aligned_backend_requests"]),
+                "spine_backend_bytes": int(spine["aligned_backend_bytes"]),
+                "grasu_backend_bytes": int(grasu["aligned_backend_bytes"]),
+                "grasu_to_spine_byte_ratio": int(grasu["aligned_backend_bytes"])
+                / int(spine["aligned_backend_bytes"]),
+                "spine_dram_row_hit_rate": float(spine["dram_row_hit_rate"]),
+                "grasu_dram_row_hit_rate": float(grasu["dram_row_hit_rate"]),
+                "spine_dram_command_dynamic_pj": float(
+                    spine["dram_command_dynamic_energy_pj"]
+                ),
+                "grasu_dram_command_dynamic_pj": float(
+                    grasu["dram_command_dynamic_energy_pj"]
+                ),
+                "dram_energy_windows_aligned": bool(
+                    spine["dram_physical_window_aligned"]
+                )
+                and bool(grasu["dram_physical_window_aligned"]),
+                "grasu_to_spine_dram_command_dynamic_ratio": (
+                    float(grasu["dram_command_dynamic_energy_pj"])
+                    / float(spine["dram_command_dynamic_energy_pj"])
+                    if bool(spine["dram_physical_window_aligned"])
+                    and bool(grasu["dram_physical_window_aligned"])
+                    else ""
+                ),
+                "spine_active_hbm_channels": int(spine["dram_active_channels"]),
+                "grasu_active_hbm_channels": int(grasu["dram_active_channels"]),
+                "spine_host_wall_seconds": float(spine["host_wall_seconds"]),
+                "grasu_host_wall_seconds": float(grasu["host_wall_seconds"]),
+            }
+        )
+
+
 def analyze_opt_v2_k1_paper_scale(
     *,
     matrix_dirs: dict[str, Path],
@@ -646,6 +712,7 @@ def analyze_opt_v2_k1_paper_scale(
     ):
         raise ValueError("paper-scale three-algorithm cross product is incomplete")
     correctness, batch_rows = _paper_scale_tables(pairs)
+    _enrich_paper_scale_rows(batch_rows, systems)
 
     system_path = out_dir / "system_rows.csv"
     pair_path = out_dir / "pair_rows.csv"

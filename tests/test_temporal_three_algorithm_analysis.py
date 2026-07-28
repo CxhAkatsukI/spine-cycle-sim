@@ -12,6 +12,7 @@ from spine_cycle_sim.experiments.temporal_three_algorithm_analysis import (
     EXPANDED_BATCHES,
     PAPER_SCALE_BATCHES,
     _expanded_paper_tables,
+    _enrich_paper_scale_rows,
     _paper_tables,
     _paper_scale_tables,
     _validate_grasu_physical_manifest,
@@ -116,6 +117,48 @@ class TemporalThreeAlgorithmAnalysisTest(unittest.TestCase):
         pairs[-1]["cross_system_correct"] = False
         with self.assertRaisesRegex(ValueError, "correctness is incomplete"):
             _paper_scale_tables(pairs)
+
+    def test_paper_scale_metrics_preserve_alignment_boundary(self) -> None:
+        batch_rows = [
+            {
+                "algorithm_id": "weighted_sssp",
+                "batch": 8,
+            }
+        ]
+        common = {
+            "algorithm": "weighted_sssp",
+            "batch_size": 8,
+            "vertices": 100,
+            "initial_edges": 200,
+            "aligned_backend_bytes": 6400,
+            "dram_row_hit_rate": 0.5,
+            "dram_command_dynamic_energy_pj": 50.0,
+            "dram_active_channels": 4,
+            "host_wall_seconds": 1.0,
+        }
+        systems = [
+            {
+                **common,
+                "system": "spine",
+                "e2e_ms": 2.0,
+                "aligned_backend_requests": 100,
+                "dram_physical_window_aligned": False,
+            },
+            {
+                **common,
+                "system": "grasu_regraph",
+                "e2e_ms": 4.0,
+                "aligned_backend_requests": 200,
+                "dram_physical_window_aligned": True,
+            },
+        ]
+        _enrich_paper_scale_rows(batch_rows, systems)
+        self.assertEqual(batch_rows[0]["spine_updates_per_second"], 4000.0)
+        self.assertEqual(batch_rows[0]["grasu_to_spine_request_ratio"], 2.0)
+        self.assertFalse(batch_rows[0]["dram_energy_windows_aligned"])
+        self.assertEqual(
+            batch_rows[0]["grasu_to_spine_dram_command_dynamic_ratio"], ""
+        )
 
     def test_csv_writer_uses_union_of_heterogeneous_row_fields(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
