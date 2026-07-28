@@ -3,6 +3,7 @@ from __future__ import annotations
 import unittest
 
 from spine_cycle_sim.experiments.regraph_contracts import (
+    expected_partitioned_source_cache_requests,
     expected_weighted_source_cache_requests,
     materialized_max_source,
 )
@@ -14,6 +15,17 @@ class ReGraphWeightedContractsTest(unittest.TestCase):
         self.assertEqual(expected_weighted_source_cache_requests(4095, 4096, 2), 4)
         self.assertEqual(expected_weighted_source_cache_requests(4096, 4096, 2), 6)
         self.assertEqual(expected_weighted_source_cache_requests(8192, 4096, 2), 8)
+
+    def test_partitioned_prefetch_skips_absent_source_windows(self) -> None:
+        sources = [0, 4096, 8192, 65_536, 131_072, 196_608]
+        self.assertEqual(
+            expected_partitioned_source_cache_requests(sources, 4096, 1), 10
+        )
+
+    def test_partitioned_empty_pma_prefetches_initial_window_pair(self) -> None:
+        self.assertEqual(
+            expected_partitioned_source_cache_requests([], 4096, 3), 6
+        )
 
     def test_materialization_tracks_insert_delete_and_weight_change(self) -> None:
         initial = [(0, 1, 4, 1), (4096, 2, 8, 1)]

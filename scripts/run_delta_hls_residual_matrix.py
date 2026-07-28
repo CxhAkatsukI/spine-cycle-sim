@@ -54,15 +54,19 @@ def _display_path(path: Path) -> str:
 
 def _validate_input_manifest(manifest_path: Path) -> dict[str, Any]:
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    if manifest.get("matrix_id") != "deltahls_sinkfree_real_v1":
+    if manifest.get("matrix_id") not in {
+        "deltahls_sinkfree_real_v1",
+        "deltahls_sinkfree_scalability_p4_v1",
+    }:
         raise ValueError("runner requires the frozen Delta.hls sink-free matrix")
     invariants = manifest.get("invariants", {})
-    if invariants != {
+    required_invariants = {
         "new_snapshot_sinks": 0,
         "old_snapshot_sinks": 0,
         "one_sided_updates_rejected": True,
         "weighted_reciprocal_edges": True,
-    }:
+    }
+    if any(invariants.get(key) != value for key, value in required_invariants.items()):
         raise ValueError("Delta.hls sink-free matrix invariants changed")
     for run in manifest["runs"]:
         for key in ("graph", "update"):

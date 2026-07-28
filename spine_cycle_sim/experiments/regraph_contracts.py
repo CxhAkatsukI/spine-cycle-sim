@@ -49,6 +49,33 @@ def expected_weighted_source_cache_requests(
     return (highest_source_round + 2) * supersteps
 
 
+def expected_partitioned_source_cache_requests(
+    live_sources: Iterable[int], source_buffer_vertices: int, supersteps: int
+) -> int:
+    """Mirror sparse PMA-row cache prefetch, including window gaps."""
+
+    if source_buffer_vertices <= 0 or supersteps <= 0:
+        raise ValueError("partitioned source-cache dimensions must be positive")
+    sources = tuple(live_sources)
+    if any(source < 0 for source in sources):
+        raise ValueError("partitioned source-cache sources must be nonnegative")
+    source_rounds = sorted(
+        {source // source_buffer_vertices for source in sources}
+    )
+    next_request = 0
+    requests = 0
+    # The reader begins prefetching rounds 0 and 1 while it fetches the first
+    # row. A later nonempty row may jump across absent source windows.
+    for read_round in sorted({0, *source_rounds}):
+        if next_request < read_round:
+            requests += 2
+            next_request = read_round + 2
+        elif next_request < read_round + 2:
+            requests += read_round + 2 - next_request
+            next_request = read_round + 2
+    return requests * supersteps
+
+
 def full_pagerank_rank_sum_tolerance(
     vertices: int, mathematical_max_abs_error: float
 ) -> float:

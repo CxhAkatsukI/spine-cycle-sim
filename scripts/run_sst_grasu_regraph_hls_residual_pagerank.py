@@ -37,7 +37,7 @@ from spine_cycle_sim.experiments.profile_capabilities import (  # noqa: E402
     load_capability_catalog,
 )
 from spine_cycle_sim.experiments.regraph_contracts import (  # noqa: E402
-    expected_weighted_source_cache_requests,
+    expected_partitioned_source_cache_requests,
 )
 from spine_cycle_sim.experiments.shared_workloads import load_slice  # noqa: E402
 from spine_cycle_sim.sst_binding import grasu_normalized_memory_binding  # noqa: E402
@@ -153,21 +153,17 @@ def validate_result(
         int(memory["data_width_bits"]) // 8 // prepared_source_bytes
     )
     destination_partitions = (vertices + partition_vertices - 1) // partition_vertices
-    partition_max_sources: list[int | None] = [None] * destination_partitions
+    partition_sources: list[set[int]] = [set() for _ in range(destination_partitions)]
     for source, destination, _ in oracle.final_internal_edges:
         partition = destination // partition_vertices
-        previous = partition_max_sources[partition]
-        partition_max_sources[partition] = (
-            source if previous is None else max(previous, source)
-        )
+        partition_sources[partition].add(source)
     source_requests = sum(
-        expected_weighted_source_cache_requests(
-            max_source,
+        expected_partitioned_source_cache_requests(
+            sources,
             int(params["regraph_source_buffer_vertices"]),
             iterations,
         )
-        for max_source in partition_max_sources
-        if max_source is not None
+        for sources in partition_sources
     )
     source_lines = (
         source_requests

@@ -1,0 +1,12 @@
+# spine_real_slice_version=1
+# case=deltahls_balanced_matching_p4_insert_u4
+# vertices=262144
+# columns=src dst weight diff
+0 2 14 1
+2 0 14 1
+65536 65538 31 1
+65538 65536 31 1
+131072 131074 17 1
+131074 131072 17 1
+196608 196610 3 1
+196610 196608 3 1

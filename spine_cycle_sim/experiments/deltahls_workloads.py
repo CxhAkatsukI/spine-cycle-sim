@@ -21,6 +21,14 @@ class ReciprocalClosure:
     self_loops: int
 
 
+@dataclass(frozen=True)
+class DeltaHlsScalabilityFixture:
+    graph: SliceGraph
+    update: SliceGraph
+    partition_vertices: int
+    partitions: int
+
+
 def _positive_edges(graph: SliceGraph) -> dict[tuple[int, int], int]:
     edges: dict[tuple[int, int], int] = {}
     for record in graph.records:
@@ -145,3 +153,48 @@ def validate_reciprocal_update(base: SliceGraph, update: SliceGraph) -> None:
             raise ValueError("insert update already exists in the base graph")
         if updates.get((destination, source)) != weight:
             raise ValueError("insert update is not an atomic reciprocal pair")
+
+
+def balanced_partition_scalability_fixture(
+    *, partition_vertices: int = 65_536, partitions: int = 4
+) -> DeltaHlsScalabilityFixture:
+    """Build a balanced sink-free graph with one mutation per partition."""
+
+    if partition_vertices < 4 or partition_vertices % 2 != 0:
+        raise ValueError("partition vertex count must be even and at least four")
+    if partitions <= 0:
+        raise ValueError("partition count must be positive")
+    vertices = partition_vertices * partitions
+    records: list[SliceRecord] = []
+    updates: list[SliceRecord] = []
+    for partition in range(partitions):
+        base = partition * partition_vertices
+        for local in range(0, partition_vertices, 2):
+            left = base + local
+            right = left + 1
+            weight = _pair_weight(left, right)
+            records.append(SliceRecord(left, right, weight, 1))
+            records.append(SliceRecord(right, left, weight, 1))
+        left = base
+        right = base + 2
+        weight = _pair_weight(left, right)
+        updates.append(SliceRecord(left, right, weight, 1))
+        updates.append(SliceRecord(right, left, weight, 1))
+    graph = SliceGraph(
+        "deltahls_balanced_matching_p4_sinkfree_base",
+        vertices,
+        tuple(records),
+    )
+    update = SliceGraph(
+        "deltahls_balanced_matching_p4_insert_u4",
+        vertices,
+        tuple(updates),
+    )
+    validate_reciprocal_graph(graph)
+    validate_reciprocal_update(graph, update)
+    return DeltaHlsScalabilityFixture(
+        graph=graph,
+        update=update,
+        partition_vertices=partition_vertices,
+        partitions=partitions,
+    )

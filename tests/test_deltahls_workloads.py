@@ -3,6 +3,7 @@ from __future__ import annotations
 import unittest
 
 from spine_cycle_sim.experiments.deltahls_workloads import (
+    balanced_partition_scalability_fixture,
     reciprocal_closure,
     reciprocal_insert_batches,
     validate_reciprocal_graph,
@@ -54,6 +55,27 @@ class DeltaHlsWorkloadTests(unittest.TestCase):
         update = SliceGraph("bad", graph.vertices, (SliceRecord(1, 4, 1, 1),))
         with self.assertRaisesRegex(ValueError, "atomic reciprocal"):
             validate_reciprocal_update(graph, update)
+
+    def test_balanced_scalability_fixture_touches_every_partition(self) -> None:
+        fixture = balanced_partition_scalability_fixture(
+            partition_vertices=8, partitions=4
+        )
+        self.assertEqual(fixture.graph.vertices, 32)
+        self.assertEqual(len(fixture.graph.records), 32)
+        self.assertEqual(len(fixture.update.records), 8)
+        touched = {
+            record.dst // fixture.partition_vertices
+            for record in fixture.update.records
+        }
+        self.assertEqual(touched, {0, 1, 2, 3})
+        validate_reciprocal_graph(fixture.graph)
+        validate_reciprocal_update(fixture.graph, fixture.update)
+
+    def test_balanced_scalability_fixture_rejects_odd_partition_size(self) -> None:
+        with self.assertRaisesRegex(ValueError, "even"):
+            balanced_partition_scalability_fixture(
+                partition_vertices=7, partitions=4
+            )
 
 
 if __name__ == "__main__":

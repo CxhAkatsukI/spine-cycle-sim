@@ -1,0 +1,45 @@
+{
+  "claim_class": "synthetic_balanced_partition_scalability_contract",
+  "invariants": {
+    "all_partitions_touched": true,
+    "balanced_partition_records": true,
+    "new_snapshot_sinks": 0,
+    "old_snapshot_sinks": 0,
+    "one_sided_updates_rejected": true,
+    "weighted_reciprocal_edges": true
+  },
+  "limitations": [
+    "This is a synthetic balanced matching graph for K scaling, not a real topology.",
+    "One reciprocal insertion is applied independently in each partition."
+  ],
+  "matrix_id": "deltahls_sinkfree_scalability_p4_v1",
+  "partition_vertices": 65536,
+  "partitions": 4,
+  "runs": [
+    {
+      "dataset_id": "balanced_matching_p4_sinkfree",
+      "dataset_kind": "synthetic_balanced_four_partition_sinkfree",
+      "final_edges": 262152,
+      "graph": {
+        "case_id": "deltahls_balanced_matching_p4_sinkfree_base",
+        "path": "tests/data/deltahls_scalability/deltahls_balanced_matching_p4_sinkfree_base.slice",
+        "records": 262144,
+        "sha256": "ba4c57412a0e3ed2b21960c6877c21ac2964097f3779e348ab28a2de245f7f61",
+        "vertices": 262144
+      },
+      "physical_records": 8,
+      "role": "scalability",
+      "run_id": "deltahls_balanced_matching_p4_insert_u4",
+      "scenario": "insert",
+      "update": {
+        "case_id": "deltahls_balanced_matching_p4_insert_u4",
+        "path": "tests/data/deltahls_scalability/deltahls_balanced_matching_p4_insert_u4.slice",
+        "records": 8,
+        "sha256": "9d3c5876b18ba06418c411c2e9d3f6540b4a5d5c04396e303a5dac24a363d712",
+        "vertices": 262144
+      },
+      "user_mutations": 4
+    }
+  ],
+  "schema_version": 1
+}
