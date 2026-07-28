@@ -114,6 +114,8 @@ class MemoryBackend : public Component {
       std::uint32_t initiator_id) const noexcept = 0;
   [[nodiscard]] virtual const BackendResponse& response_at(
       std::uint32_t initiator_id, std::size_t index) const = 0;
+  [[nodiscard]] virtual const BackendResponse& staged_response_at(
+      std::uint32_t initiator_id, std::size_t index) const = 0;
   virtual bool stage_pop_responses(std::uint32_t initiator_id,
                                    std::size_t count) = 0;
   [[nodiscard]] virtual std::size_t outstanding() const noexcept = 0;
@@ -264,6 +266,8 @@ class MockMemoryBackend final : public MemoryBackend {
       std::uint32_t initiator_id) const noexcept override;
   [[nodiscard]] const BackendResponse& response_at(
       std::uint32_t initiator_id, std::size_t index) const override;
+  [[nodiscard]] const BackendResponse& staged_response_at(
+      std::uint32_t initiator_id, std::size_t index) const override;
   bool stage_pop_responses(std::uint32_t initiator_id,
                            std::size_t count) override;
   [[nodiscard]] std::size_t outstanding() const noexcept override;
@@ -293,6 +297,8 @@ class MockMemoryBackend final : public MemoryBackend {
   std::unique_ptr<RegisteredChannelArbiter> arbiter_;
   std::deque<Pending> pending_;
   std::unordered_map<std::uint32_t, std::deque<BackendResponse>> responses_;
+  std::unordered_map<std::uint32_t, std::vector<BackendResponse>>
+      retired_responses_;
   std::vector<BackendRequest> staged_submissions_;
   std::unordered_map<std::uint32_t, std::size_t> staged_response_pops_;
   MockMemoryStats stats_;

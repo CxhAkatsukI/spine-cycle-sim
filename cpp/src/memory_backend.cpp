@@ -535,6 +535,15 @@ const BackendResponse& MockMemoryBackend::response_at(
   return found->second[index];
 }
 
+const BackendResponse& MockMemoryBackend::staged_response_at(
+    std::uint32_t initiator_id, std::size_t index) const {
+  const auto retired = retired_responses_.find(initiator_id);
+  if (retired != retired_responses_.end() && index < retired->second.size()) {
+    return retired->second[index];
+  }
+  return response_at(initiator_id, index);
+}
+
 bool MockMemoryBackend::stage_pop_responses(std::uint32_t initiator_id,
                                             std::size_t count) {
   const std::size_t staged = staged_response_pops_[initiator_id];
@@ -568,6 +577,10 @@ std::size_t MockMemoryBackend::outstanding_for(
 }
 
 void MockMemoryBackend::prepare(const CycleContext& context) {
+  for (auto& [initiator_id, responses] : retired_responses_) {
+    (void)initiator_id;
+    responses.clear();
+  }
   for (auto iterator = pending_.begin(); iterator != pending_.end();) {
     if (iterator->due_cycle > context.domain_cycle) {
       ++iterator;
@@ -600,7 +613,11 @@ void MockMemoryBackend::prepare(const CycleContext& context) {
 void MockMemoryBackend::commit(const CycleContext& context) {
   for (const auto& [initiator_id, count] : staged_response_pops_) {
     auto& queue = responses_[initiator_id];
+    auto& retired = retired_responses_[initiator_id];
+    retired.clear();
+    retired.reserve(count);
     for (std::size_t index = 0; index < count; ++index) {
+      retired.push_back(std::move(queue.front()));
       queue.pop_front();
     }
   }

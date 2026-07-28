@@ -1790,6 +1790,79 @@ void test_axi_splits_bursts_and_uses_backend_online() {
           "mock backend did not see every beat");
 }
 
+struct AxiRegistrationOrderResult {
+  std::uint64_t cycles{};
+  std::vector<std::uint8_t> read_data;
+  std::uint64_t requests_completed{};
+  std::uint64_t bursts_accepted{};
+  std::uint64_t beats_completed{};
+  std::uint64_t backend_accepted{};
+};
+
+AxiRegistrationOrderResult run_axi_registration_order(bool backend_first) {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("core", 141.0);
+  Fifo<AxiRequest> requests("axi-requests", core, 4);
+  Fifo<AxiResponse> responses("axi-responses", core, 4);
+  MockMemoryBackend backend("mock-hbm", core, mock_memory_config());
+  AxiConfig config = axi_config();
+  config.fixed_channel = 0;
+  AxiMaster axi("axi", core, config, requests, responses, backend);
+
+  std::vector<std::uint8_t> payload(1600);
+  for (std::size_t index = 0; index < payload.size(); ++index) {
+    payload[index] = static_cast<std::uint8_t>((index * 31 + 7) & 0xff);
+  }
+  backend.initialize_payload(0, 4032, payload);
+  SequenceProducer<AxiRequest> producer(
+      "requester", core, requests,
+      {{.transaction_id = 42,
+        .operation = MemoryOperation::kRead,
+        .address = 4032,
+        .bytes = payload.size(),
+        .write_data = {}}});
+  SequenceConsumer<AxiResponse> consumer("response-sink", core, responses);
+
+  scheduler.add_component(producer);
+  scheduler.add_component(requests);
+  if (backend_first) {
+    scheduler.add_component(backend);
+    scheduler.add_component(axi);
+  } else {
+    scheduler.add_component(axi);
+    scheduler.add_component(backend);
+  }
+  scheduler.add_component(responses);
+  scheduler.add_component(consumer);
+  scheduler.run_until([&consumer] { return consumer.values.size() == 1; }, 300);
+
+  require(consumer.values[0].transaction_id == 42 &&
+              consumer.values[0].success,
+          "registration-order AXI response mismatch");
+  return AxiRegistrationOrderResult{
+      .cycles = scheduler.clock(core).completed_cycles,
+      .read_data = consumer.values[0].read_data,
+      .requests_completed = axi.stats().requests_completed,
+      .bursts_accepted = axi.stats().bursts_accepted,
+      .beats_completed = axi.stats().beats_completed,
+      .backend_accepted = backend.stats().accepted,
+  };
+}
+
+void test_axi_response_view_is_registration_order_independent() {
+  const AxiRegistrationOrderResult backend_first =
+      run_axi_registration_order(true);
+  const AxiRegistrationOrderResult axi_first =
+      run_axi_registration_order(false);
+  require(backend_first.cycles == axi_first.cycles &&
+              backend_first.read_data == axi_first.read_data &&
+              backend_first.requests_completed == axi_first.requests_completed &&
+              backend_first.bursts_accepted == axi_first.bursts_accepted &&
+              backend_first.beats_completed == axi_first.beats_completed &&
+              backend_first.backend_accepted == axi_first.backend_accepted,
+          "AXI response view depends on backend/component commit order");
+}
+
 void test_candidate10_axi_adapter_schedule_matches_rtl_oracle() {
   const auto run_requests = [](MemoryOperation operation,
                                std::uint64_t address,
@@ -8541,6 +8614,8 @@ int main(int argc, char **argv) {
       {"spine_empty_update_slice",
        test_spine_edge_slice_empty_update_contract},
       {"axi_online_backend", test_axi_splits_bursts_and_uses_backend_online},
+      {"axi_response_view_order_independent",
+       test_axi_response_view_is_registration_order_independent},
       {"candidate10_axi_adapter_schedule",
        test_candidate10_axi_adapter_schedule_matches_rtl_oracle},
       {"candidate10_axi_periodic_backpressure",

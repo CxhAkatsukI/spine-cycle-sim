@@ -199,7 +199,7 @@ void AxiMaster::reset_staging() {
   staged_bridge_to_throttle_.reset();
   staged_address_bursts_.clear();
   staged_beats_.clear();
-  staged_backend_responses_.clear();
+  staged_backend_response_count_ = 0;
   staged_read_beat_output_.reset();
   staged_output_ = false;
 }
@@ -262,7 +262,6 @@ void AxiMaster::evaluate_backend_responses(const CycleContext &context) {
   if (available == 0) {
     return;
   }
-  staged_backend_responses_.reserve(available);
   std::size_t staged_stream_beats = 0;
   for (std::size_t index = 0; index < available; ++index) {
     const BackendResponse &response =
@@ -303,13 +302,13 @@ void AxiMaster::evaluate_backend_responses(const CycleContext &context) {
       }
       ++staged_stream_beats;
     }
-    staged_backend_responses_.push_back(response);
+    ++staged_backend_response_count_;
   }
-  if (staged_backend_responses_.empty()) {
+  if (staged_backend_response_count_ == 0) {
     return;
   }
   if (!backend_.stage_pop_responses(config_.initiator_id,
-                                    staged_backend_responses_.size())) {
+                                    staged_backend_response_count_)) {
     throw std::logic_error("memory backend rejected a valid response pop");
   }
 }
@@ -604,7 +603,9 @@ void AxiMaster::evaluate(const CycleContext &context) {
 }
 
 void AxiMaster::commit_backend_responses(const CycleContext &context) {
-  for (const BackendResponse& response : staged_backend_responses_) {
+  for (std::size_t index = 0; index < staged_backend_response_count_; ++index) {
+    const BackendResponse& response =
+        backend_.staged_response_at(config_.initiator_id, index);
     if (response.initiator_id != config_.initiator_id) {
       throw std::logic_error("AXI received a response for another initiator");
     }
@@ -1003,7 +1004,7 @@ void AxiMaster::refresh_pending_work() noexcept {
 
 void AxiMaster::commit(const CycleContext &context) {
   const bool staged_state_change =
-      staged_output_ || !staged_backend_responses_.empty() ||
+      staged_output_ || staged_backend_response_count_ != 0 ||
       staged_input_.has_value() || !staged_address_bursts_.empty() ||
       !staged_beats_.empty() || !staged_new_write_beats_.empty() ||
       staged_child_write_beat_.has_value() ||

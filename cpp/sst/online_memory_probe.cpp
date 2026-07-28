@@ -1612,6 +1612,16 @@ class SstMemoryBackend final : public MemoryBackend {
     return found->second[index];
   }
 
+  [[nodiscard]] const BackendResponse &staged_response_at(
+      std::uint32_t initiator_id, std::size_t index) const override {
+    const auto retired = retired_responses_.find(initiator_id);
+    if (retired != retired_responses_.end() &&
+        index < retired->second.size()) {
+      return retired->second[index];
+    }
+    return response_at(initiator_id, index);
+  }
+
   bool stage_pop_responses(std::uint32_t initiator_id,
                            std::size_t count) override {
     const std::size_t staged = staged_response_pops_[initiator_id];
@@ -1644,7 +1654,7 @@ class SstMemoryBackend final : public MemoryBackend {
     return true;
   }
   [[nodiscard]] bool prepare_ready() const noexcept override {
-    return !external_arrivals_.empty();
+    return !external_arrivals_.empty() || !retired_responses_.empty();
   }
   [[nodiscard]] bool commit_ready() const noexcept override {
     return !staged_response_pops_.empty() || !staged_submissions_.empty() ||
@@ -1652,6 +1662,7 @@ class SstMemoryBackend final : public MemoryBackend {
   }
 
   void prepare(const CycleContext &) override {
+    retired_responses_.clear();
     for (auto iterator = external_arrivals_.begin();
          iterator != external_arrivals_.end();) {
       auto &queue = responses_[iterator->initiator_id];
@@ -1670,7 +1681,11 @@ class SstMemoryBackend final : public MemoryBackend {
   void commit(const CycleContext &) override {
     for (const auto &[initiator_id, count] : staged_response_pops_) {
       auto &queue = responses_[initiator_id];
+      auto &retired = retired_responses_[initiator_id];
+      retired.clear();
+      retired.reserve(count);
       for (std::size_t index = 0; index < count; ++index) {
+        retired.push_back(std::move(queue.front()));
         queue.pop_front();
       }
     }
@@ -1811,6 +1826,8 @@ class SstMemoryBackend final : public MemoryBackend {
       inflight_;
   std::deque<BackendResponse> external_arrivals_;
   std::unordered_map<std::uint32_t, std::deque<BackendResponse>> responses_;
+  std::unordered_map<std::uint32_t, std::vector<BackendResponse>>
+      retired_responses_;
   std::unordered_map<std::uint32_t, std::size_t> staged_response_pops_;
   std::uint64_t accepted_{};
   std::uint64_t submit_stalls_{};

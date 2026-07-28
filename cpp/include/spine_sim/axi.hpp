@@ -352,7 +352,7 @@ class AxiMaster final : public Component {
   std::vector<std::uint64_t> staged_address_bursts_;
   std::vector<std::size_t> staged_additional_issued_;
   std::vector<StagedBeat> staged_beats_;
-  std::vector<BackendResponse> staged_backend_responses_;
+  std::size_t staged_backend_response_count_{};
   std::optional<std::pair<std::uint64_t, std::uint64_t>>
       staged_read_beat_output_;
   bool staged_output_{};
