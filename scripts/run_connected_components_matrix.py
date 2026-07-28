@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import concurrent.futures
 import csv
+import hashlib
 import json
 from pathlib import Path
 import subprocess
@@ -228,6 +229,10 @@ def main() -> int:
     summary = {
         "schema_version": 1,
         "matrix_id": manifest["matrix_id"],
+        "input_manifest": str(args.manifest.resolve()),
+        "input_manifest_sha256": hashlib.sha256(
+            args.manifest.read_bytes()
+        ).hexdigest(),
         "compute_pipelines": args.compute_pipelines,
         "downstream_sharing": args.downstream_sharing,
         "partition_vertices": args.partition_vertices,

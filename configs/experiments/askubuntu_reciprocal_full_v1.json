@@ -1,5 +1,5 @@
 {
-  "claim_class": "derived_real_topology_large_reciprocal_gate",
+  "claim_class": "derived_real_topology_full_reciprocal_projection",
   "invariants": {
     "dual_oracle_required": true,
     "minimum_external_vertex_label": true,
@@ -10,7 +10,7 @@
   },
   "limitations": [
     "The graph is a deterministic reciprocal projection of real AskUbuntu topology, not the original directed graph.",
-    "The 540000 reciprocal records represent 270000 unique undirected pairs.",
+    "The 903774 reciprocal records represent 451887 unique undirected pairs.",
     "Component-bridge insertions are deterministic derived updates, not original temporal events.",
     "Compact remapping changes original destination-partition occupancy."
   ],
@@ -18,7 +18,7 @@
   "runs": [
     {
       "algorithm_contract": "weakly_connected_min_vertex_reciprocal_v1",
-      "dataset_id": "sx_askubuntu_reciprocal_gate",
+      "dataset_id": "sx_askubuntu_reciprocal_full",
       "dataset_kind": "derived_real_ordered_undirected_projection",
       "effective_mutations": 1,
       "final_components": 2187,
@@ -51,7 +51,7 @@
     },
     {
       "algorithm_contract": "weakly_connected_min_vertex_reciprocal_v1",
-      "dataset_id": "sx_askubuntu_reciprocal_gate",
+      "dataset_id": "sx_askubuntu_reciprocal_full",
       "dataset_kind": "derived_real_ordered_undirected_projection",
       "effective_mutations": 8,
       "final_components": 2180,
@@ -84,7 +84,7 @@
     },
     {
       "algorithm_contract": "weakly_connected_min_vertex_reciprocal_v1",
-      "dataset_id": "sx_askubuntu_reciprocal_gate",
+      "dataset_id": "sx_askubuntu_reciprocal_full",
       "dataset_kind": "derived_real_ordered_undirected_projection",
       "effective_mutations": 64,
       "final_components": 2124,
@@ -117,7 +117,7 @@
     },
     {
       "algorithm_contract": "weakly_connected_min_vertex_reciprocal_v1",
-      "dataset_id": "sx_askubuntu_reciprocal_gate",
+      "dataset_id": "sx_askubuntu_reciprocal_full",
       "dataset_kind": "derived_real_ordered_undirected_projection",
       "effective_mutations": 512,
       "final_components": 1676,

@@ -6,8 +6,9 @@ import unittest
 from scripts.analyze_large_real_algorithm_results import analyze_payloads
 
 
-def _manifest(records: int):
+def _manifest(records: int, file_sha256: str):
     return {
+        "_file_sha256": file_sha256,
         "runs": [
             {
                 "graph": {
@@ -20,7 +21,7 @@ def _manifest(records: int):
     }
 
 
-def _cc_summary(prefix: str):
+def _cc_summary(prefix: str, manifest_sha256: str):
     rows = []
     pairs = []
     for batch in (1, 8, 64, 512):
@@ -40,6 +41,7 @@ def _cc_summary(prefix: str):
                     "cycles": cycles,
                     "read_bytes": 1000,
                     "write_bytes": 500,
+                    "sst_host_wall_seconds": 1.0,
                     "correctness_mismatches": 0,
                 }
             )
@@ -53,12 +55,13 @@ def _cc_summary(prefix: str):
     return {
         "all_correct": True,
         "all_admission_checks_passed": True,
+        "input_manifest_sha256": manifest_sha256,
         "rows": rows,
         "pairs": pairs,
     }
 
 
-def _residual_summary(prefix: str):
+def _residual_summary(prefix: str, manifest_sha256: str):
     runs = []
     pairs = []
     for batch in (1, 8, 64, 512):
@@ -76,6 +79,7 @@ def _residual_summary(prefix: str):
                     "active_edges": 20,
                     "residual_linf": 5e-7,
                     "cycles": cycles,
+                    "sst_host_wall_seconds": 1.0,
                 }
             )
         pairs.append(
@@ -94,7 +98,12 @@ def _residual_summary(prefix: str):
                 "grasu_backend_bytes": 2000,
             }
         )
-    return {"all_correct": True, "runs": runs, "pairs": pairs}
+    return {
+        "all_correct": True,
+        "input_manifest_sha256": manifest_sha256,
+        "runs": runs,
+        "pairs": pairs,
+    }
 
 
 class LargeRealAlgorithmResultsTests(unittest.TestCase):
@@ -104,6 +113,7 @@ class LargeRealAlgorithmResultsTests(unittest.TestCase):
                 "status": "PASS",
                 "all_correct": True,
                 "complete_matrix": True,
+                "matrix_wall_seconds": 3.0,
             },
             "weighted_rows": [
                 {
@@ -116,13 +126,13 @@ class LargeRealAlgorithmResultsTests(unittest.TestCase):
                 }
                 for batch in (8, 64, 4096)
             ],
-            "weighted_input": _manifest(540000),
-            "cc_gate": _cc_summary("gate"),
-            "residual_gate": _residual_summary("gate"),
-            "cc_full": _cc_summary("full"),
-            "residual_full": _residual_summary("full"),
-            "gate_manifest": _manifest(540000),
-            "full_manifest": _manifest(903774),
+            "weighted_input": _manifest(540000, "weighted-sha"),
+            "cc_gate": _cc_summary("gate", "gate-sha"),
+            "residual_gate": _residual_summary("gate", "gate-sha"),
+            "cc_full": _cc_summary("full", "full-sha"),
+            "residual_full": _residual_summary("full", "full-sha"),
+            "gate_manifest": _manifest(540000, "gate-sha"),
+            "full_manifest": _manifest(903774, "full-sha"),
         }
 
     def test_analysis_accepts_complete_correct_matrices(self) -> None:
@@ -143,6 +153,12 @@ class LargeRealAlgorithmResultsTests(unittest.TestCase):
         arguments = copy.deepcopy(self.arguments)
         arguments["residual_full"]["runs"][0]["residual_linf"] = 2e-6
         with self.assertRaisesRegex(ValueError, "threshold"):
+            analyze_payloads(**arguments)
+
+    def test_analysis_rejects_stale_manifest_provenance(self) -> None:
+        arguments = copy.deepcopy(self.arguments)
+        arguments["cc_full"]["input_manifest_sha256"] = "stale"
+        with self.assertRaisesRegex(ValueError, "CC full.*hash mismatch"):
             analyze_payloads(**arguments)
 
 

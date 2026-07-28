@@ -99,12 +99,16 @@ Compact committed evidence is under
 `docs/evidence/deltahls_residual_threshold_sensitivity_u8_v1/`.  Raw SST and
 DRAMSim3 output remains under `evidence/` and is intentionally not committed.
 
-## Limitations and next evidence
+## Limitations and follow-up
 
 - The graph is a deterministic reciprocal closure of a compact real Flickr
   slice, not the full dataset; updates are synthetic.
-- These are K=1 GraSU+ReGraph screening results.  Direct and shared K=4
-  residual runs remain necessary before a routed multi-partition claim.
+- Direct/shared K4 partition-scaling evidence is reported in
+  `deltahls_residual_p4_scalability_20260728.md`.
+- The derived-real AskUbuntu 540,000-record gate and 903,774-record full
+  reciprocal projection are reported in
+  `large_real_three_algorithm_20260728.md`; a large-real K4 rerun remains a
+  separate follow-up.
 - The cycle model is execution-driven and uses SST/DRAMSim3, but it is not
   calibrated cycle-for-cycle to FPGA hardware.
 - The result supports a per-vertex Delta.hls residual claim only.  It must not

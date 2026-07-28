@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import math
 from pathlib import Path
@@ -47,6 +48,15 @@ def _speedup(value: float) -> float:
     if not math.isfinite(value) or value <= 0:
         raise ValueError("large-real speedup must be finite and positive")
     return value
+
+
+def _validate_manifest_provenance(
+    summary: Mapping[str, Any], manifest: Mapping[str, Any], label: str
+) -> None:
+    expected = manifest.get("_file_sha256")
+    observed = summary.get("input_manifest_sha256")
+    if expected is not None and observed != expected:
+        raise ValueError(f"{label} input manifest hash mismatch")
 
 
 def _cc_pairs(summary: Mapping[str, Any]) -> list[dict[str, Any]]:
@@ -95,6 +105,8 @@ def _cc_pairs(summary: Mapping[str, Any]) -> list[dict[str, Any]]:
                 ),
                 "spine_backend_bytes": spine["read_bytes"] + spine["write_bytes"],
                 "grasu_backend_bytes": grasu["read_bytes"] + grasu["write_bytes"],
+                "spine_host_wall_seconds": spine["sst_host_wall_seconds"],
+                "grasu_host_wall_seconds": grasu["sst_host_wall_seconds"],
             }
         )
     return sorted(output, key=lambda row: row["user_mutations"])
@@ -151,6 +163,8 @@ def _residual_pairs(summary: Mapping[str, Any]) -> list[dict[str, Any]]:
                 ),
                 "spine_backend_bytes": pair["spine_backend_bytes"],
                 "grasu_backend_bytes": pair["grasu_backend_bytes"],
+                "spine_host_wall_seconds": spine["sst_host_wall_seconds"],
+                "grasu_host_wall_seconds": grasu["sst_host_wall_seconds"],
             }
         )
     return sorted(output, key=lambda row: row["user_mutations"])
@@ -212,6 +226,10 @@ def analyze_payloads(
     gate_manifest: Mapping[str, Any],
     full_manifest: Mapping[str, Any],
 ) -> dict[str, Any]:
+    _validate_manifest_provenance(cc_gate, gate_manifest, "CC gate")
+    _validate_manifest_provenance(residual_gate, gate_manifest, "residual gate")
+    _validate_manifest_provenance(cc_full, full_manifest, "CC full")
+    _validate_manifest_provenance(residual_full, full_manifest, "residual full")
     weighted = _weighted_pairs(weighted_manifest, weighted_rows)
     cc_gate_pairs = _cc_pairs(cc_gate)
     residual_gate_pairs = _residual_pairs(residual_gate)
@@ -241,6 +259,7 @@ def analyze_payloads(
         "weighted_sssp": {
             "input_scope": "near_full_directed_unique_real_topology",
             "graph": weighted_graph,
+            "matrix_host_wall_seconds": weighted_manifest["matrix_wall_seconds"],
             "pairs": weighted,
         },
         "connected_components": {
@@ -283,7 +302,12 @@ def main() -> int:
     parser.add_argument("--weighted-input", type=Path, default=DEFAULT_WEIGHTED_INPUT)
     parser.add_argument("--out-dir", type=Path, required=True)
     args = parser.parse_args()
-    load = lambda path: json.loads(path.read_text(encoding="utf-8"))
+    def load(path: Path) -> dict[str, Any]:
+        payload = path.read_bytes()
+        result = json.loads(payload)
+        result["_file_sha256"] = hashlib.sha256(payload).hexdigest()
+        return result
+
     report = analyze_payloads(
         weighted_manifest=load(args.weighted_dir / "matrix_manifest.json"),
         weighted_rows=_read_csv(args.weighted_dir / "pairs.csv"),

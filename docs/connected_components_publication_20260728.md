@@ -93,11 +93,13 @@ byte conservation.  Compact committed evidence is in
 `docs/evidence/connected_components_publication_v1/`; raw SST/DRAMSim3 output
 remains under `evidence/`.
 
-## Limitations and next gate
+## Limitations and follow-up
 
 - The real-topology K1 screening graph has only 8,192 edge records.
 - The four-partition fixture is synthetic and has only 8,192 initial edge
   records; it is not a large real-graph result.
-- A derived-real AskUbuntu workload with at least 540,000 records is the next
-  mandatory CC runtime and scalability gate.
+- The derived-real AskUbuntu 540,000-record gate and 903,774-record full
+  reciprocal projection are now complete; see
+  `large_real_three_algorithm_20260728.md`.
+- A large-real direct/shared-K4 rerun remains a separate scalability follow-up.
 - Shared-K4 resource feasibility still requires HLS synthesis evidence.

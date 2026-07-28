@@ -56,13 +56,24 @@ def build_outputs(
     target_records: int,
     matrix_id: str = "askubuntu_reciprocal_large_v1",
 ) -> dict[str, object]:
+    if matrix_id not in {
+        "askubuntu_reciprocal_large_v1",
+        "askubuntu_reciprocal_full_v1",
+    }:
+        raise ValueError(f"unsupported reciprocal matrix id: {matrix_id}")
+    is_gate = matrix_id == "askubuntu_reciprocal_large_v1"
+    dataset_id = (
+        "sx_askubuntu_reciprocal_gate"
+        if is_gate
+        else "sx_askubuntu_reciprocal_full"
+    )
     source = load_slice(source_path)
     fixture = build_large_reciprocal_fixture(
         source,
         target_records=target_records,
         case_prefix=(
             "askubuntu_reciprocal_gate"
-            if matrix_id == "askubuntu_reciprocal_large_v1"
+            if is_gate
             else "askubuntu_reciprocal_full"
         ),
     )
@@ -81,10 +92,10 @@ def build_outputs(
             {
                 "run_id": (
                     f"askubuntu_reciprocal_large_bridge_u{size}"
-                    if matrix_id == "askubuntu_reciprocal_large_v1"
+                    if is_gate
                     else f"askubuntu_reciprocal_full_bridge_u{size}"
                 ),
-                "dataset_id": "sx_askubuntu_reciprocal_gate",
+                "dataset_id": dataset_id,
                 "dataset_kind": "derived_real_ordered_undirected_projection",
                 "workload_class": "large_real_component_bridge",
                 "role": "large_real_pilot" if size in {1, 8, 64} else "large_real_dense",
@@ -119,7 +130,11 @@ def build_outputs(
     manifest: dict[str, object] = {
         "schema_version": 1,
         "matrix_id": matrix_id,
-        "claim_class": "derived_real_topology_large_reciprocal_gate",
+        "claim_class": (
+            "derived_real_topology_large_reciprocal_gate"
+            if is_gate
+            else "derived_real_topology_full_reciprocal_projection"
+        ),
         "source": {
             "case_id": source.case_id,
             "path": _relative(source_path),
@@ -145,7 +160,7 @@ def build_outputs(
         "runs": runs,
         "limitations": [
             "The graph is a deterministic reciprocal projection of real AskUbuntu topology, not the original directed graph.",
-            "The 540000 reciprocal records represent 270000 unique undirected pairs.",
+            f"The {len(fixture.graph.records)} reciprocal records represent {fixture.selected_pairs} unique undirected pairs.",
             "Component-bridge insertions are deterministic derived updates, not original temporal events.",
             "Compact remapping changes original destination-partition occupancy.",
         ],

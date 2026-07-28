@@ -1,6 +1,7 @@
 \documentclass[10pt]{article}
 \usepackage[margin=0.65in]{geometry}
 \usepackage{booktabs}
+\usepackage{graphicx}
 \usepackage{pgfplots}
 \usepackage{pgfplotstable}
 \usepackage{subcaption}
@@ -50,13 +51,14 @@
 
 \begin{abstract}
 This evidence pack evaluates normalized Spine and GraSU+ReGraph architectures
-with an execution-driven simulator and routed FPGA feasibility artifacts.  The
-reported compact-slice comparison covers weighted SSSP, full PageRank, and
-thresholded residual PageRank; every performance row is admitted only after
-architecture-precision, independent mathematical, and cross-system final-state
-checks pass.  Claims are scoped explicitly below so that compact-slice
-simulation, dense-update evidence, HBM-only energy, and non-iso-functional FPGA
-builds are not conflated.
+with an execution-driven simulator and routed FPGA feasibility artifacts.  It
+combines compact breadth tests with correctness-gated large-real tests for
+weighted SSSP, connected components, and thresholded residual PageRank.  Full
+PageRank remains in the compact and dense-update matrices.  Every performance
+row is admitted only after architecture-precision, independent mathematical,
+and cross-system final-state checks pass.  Claims are scoped explicitly below
+so that directed inputs, reciprocal projections, compact slices, HBM-only
+energy, and non-iso-functional FPGA builds are not conflated.
 \end{abstract}
 
 \section*{Acceptance coverage}
@@ -70,10 +72,11 @@ builds are not conflated.
   cross-system result checks. &
   Figs.~\ref{fig:cross-algorithm-e2e}--\ref{fig:simulator-host-runtime} \\
   Three algorithms and E2E & \statuscomplete &
-  A 540,000-edge, 157,107-vertex, three-partition AskUbuntu slice at batches
-  8/64/4,096, plus five 8,192-edge real-topology breadth slices. &
-  Figs.~\ref{fig:paper-scale-e2e}, \ref{fig:cross-algorithm-e2e};
-  Tables~\ref{tab:paper-scale-workload}, \ref{tab:compact-slices} \\
+  Weighted SSSP uses a directed 540K-edge AskUbuntu graph. CC and residual
+  PageRank additionally use 540K- and 903,774-edge reciprocal projections;
+  full PageRank remains covered by five real-topology breadth slices. &
+  Figs.~\ref{fig:large-real-three}, \ref{fig:cross-algorithm-e2e};
+  Table~\ref{tab:compact-slices} \\
   Update performance & \statuscomplete &
   Full PageRank exercises the common structural path across insert, delete,
   mixed, and weight-change scenarios; throughput counts semantic mutations. &
@@ -96,8 +99,9 @@ builds are not conflated.
   Table~\ref{tab:routed-ppa}; Figs.~\ref{fig:routed-timing},
   \ref{fig:sram-area} \\
   Simulator runtime & \statuspartial &
-  All compact runs complete; a correctness-gated 50,000-edge full-PageRank
-  slice completes below the 1,800-second per-system gate. &
+  All compact runs complete. Every large-real CC/residual execution completes
+  below five host minutes; the six-run 540K weighted-SSSP matrix takes 13.0
+  minutes. &
   Fig.~\ref{fig:simulator-host-runtime} \\
   Ablation and scalability & \statuspartial &
   Two bounded Spine optimizations have controlled cycle/request ablations;
@@ -112,62 +116,34 @@ builds are not conflated.
 \noindent\textbf{Claim rule.}
 Every plotted performance row must pass the architecture-precision oracle,
 the independent mathematical oracle, and the cross-system final-state check.
-Compact slices and larger validation slices are reported as separate
-populations.  The 540,000-edge AskUbuntu experiment is multi-partition but is
-still a slice, not a full-dataset claim.
+Compact slices and larger validation inputs are reported as separate
+populations.  Weighted SSSP uses the directed frozen graph; CC and residual
+PageRank use declared reciprocal projections and deterministic component-bridge
+updates.  None is described as an unsliced raw temporal full-dataset claim.
 
-\section{Paper-scale multi-partition comparison}
-\IfFileExists{\datadir/paper_scale_by_algorithm_batch.csv}{%
+\section{Large-real sparse-update comparison}
 \begin{figure}[H]
   \centering
-  \begin{tikzpicture}
-    \begin{semilogxaxis}[
-      width=0.96\linewidth, height=62mm,
-      xlabel={Inserted edges per batch},
-      ylabel={Spine speedup over GraSU+ReGraph},
-      xtick={8,64,4096}, xticklabels={8,64,4096},
-      ymin=0.05, ymax=1000, ymode=log, grid=major,
-      legend style={at={(0.5,1.15)},anchor=south,legend columns=3},
-      extra y ticks={1}, extra y tick labels={},
-      extra y tick style={grid=major,grid style={black,dashed}}]
-      \addplot[spine,mark=square*]
-        table[x=batch,y=spine_speedup,col sep=comma,
-          restrict expr to domain={\thisrow{algorithm_index}}{0:0}]
-        {\datadir/paper_scale_by_algorithm_batch.csv};
-      \addplot[grasu,mark=triangle*]
-        table[x=batch,y=spine_speedup,col sep=comma,
-          restrict expr to domain={\thisrow{algorithm_index}}{1:1}]
-        {\datadir/paper_scale_by_algorithm_batch.csv};
-      \addplot[muted,mark=diamond*]
-        table[x=batch,y=spine_speedup,col sep=comma,
-          restrict expr to domain={\thisrow{algorithm_index}}{2:2}]
-        {\datadir/paper_scale_by_algorithm_batch.csv};
-      \legend{Weighted SSSP,Full PageRank,Residual PageRank}
-    \end{semilogxaxis}
-  \end{tikzpicture}
-  \caption{Correctness-gated E2E scaling on one 540,000-edge AskUbuntu slice.
-  GraSU+ReGraph spans three 65,536-vertex destination partitions; Spine uses
-  one 1,048,576-vertex partition. Values above one favor Spine. The algorithms
-  are not connected to one another; each line varies only batch size.}
-  \label{fig:paper-scale-e2e}
+  \IfFileExists{../figures/large_real_three_algorithm.png}{%
+    \includegraphics[width=\linewidth]{../figures/large_real_three_algorithm.png}%
+  }{%
+    \includegraphics[width=\linewidth]{docs/figures/large_real_three_algorithm.png}%
+  }
+  \caption{Correctness-gated Spine speedup over K=1 GraSU+ReGraph. Weighted
+  SSSP uses the directed 157,107-vertex, 540,000-edge near-full AskUbuntu
+  graph. CC and per-vertex-threshold residual PageRank use deterministic
+  reciprocal projections at 540,000 and 903,774 edge records. CC and residual
+  updates are nested component bridges rather than original temporal events.
+  All rows pass independent algorithm oracles and cross-system work checks.}
+  \label{fig:large-real-three}
 \end{figure}
-}{\missingplot{Waiting for all nine 540K-edge three-algorithm pairs to pass.}}
 
-\begin{table}[H]
-  \centering
-  \small
-  \begin{tabular}{lrrrr}
-    \toprule
-    Topology & Vertices & Base edges & G+R partitions & Batches \\
-    \midrule
-    AskUbuntu temporal slice & 157,107 & 540,000 & 3 & 8/64/4,096 \\
-    \bottomrule
-  \end{tabular}
-  \caption{Paper-scale workload. Base edges are unique, non-self edges. Each
-  batch uses a separate later-event insertion slice and is checked against two
-  numerical oracles plus cross-system final state before admission.}
-  \label{tab:paper-scale-workload}
-\end{table}
+The large-real ordering is stable across the tested sparse batches. CC obtains
+$8.07\times$--$13.65\times$ speedup and residual PageRank obtains
+$6.68\times$--$13.37\times$. Weighted SSSP obtains
+$34.35\times$--$364.96\times$ under its resident-state small-update timing
+contract. These values are K=1 baseline results; large-real direct/shared-K4
+scaling remains separate evidence.
 
 \section{Compact breadth validation}
 \IfFileExists{\datadir/e2e_speedup_by_dataset_algorithm.csv}{%
