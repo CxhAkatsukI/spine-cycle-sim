@@ -66,6 +66,13 @@ def _aggregate_dram_rows(
         "activates": 0,
         "precharges": 0,
         "total_energy_pj": 0.0,
+        "activate_energy_pj": 0.0,
+        "read_energy_pj": 0.0,
+        "write_energy_pj": 0.0,
+        "refresh_energy_pj": 0.0,
+        "active_standby_energy_pj": 0.0,
+        "precharge_standby_energy_pj": 0.0,
+        "self_refresh_energy_pj": 0.0,
         "weighted_read_latency": 0.0,
         "weighted_write_latency": 0.0,
         "write_latency_samples": 0,
@@ -99,6 +106,22 @@ def _aggregate_dram_rows(
         if energy < 0.0:
             raise ValueError(f"negative DRAM energy delta on {channel}")
         totals["total_energy_pj"] += energy
+        for output, fields in (
+            ("activate_energy_pj", ("act_energy",)),
+            ("read_energy_pj", ("read_energy",)),
+            ("write_energy_pj", ("write_energy",)),
+            ("refresh_energy_pj", ("ref_energy", "refb_energy")),
+            ("active_standby_energy_pj", ("act_stb_energy",)),
+            ("precharge_standby_energy_pj", ("pre_stb_energy",)),
+            ("self_refresh_energy_pj", ("sref_energy",)),
+        ):
+            component = sum(
+                float(row.get(field, 0.0)) - float(base.get(field, 0.0))
+                for field in fields
+            )
+            if component < 0.0:
+                raise ValueError(f"negative {output} delta on {channel}")
+            totals[output] += component
         totals["weighted_read_latency"] += (
             int(row["num_reads_done"]) * float(row["average_read_latency"])
             - int(base.get("num_reads_done", 0))
@@ -140,6 +163,17 @@ def _aggregate_dram_rows(
     totals["write_latency_coverage"] = (
         write_latency_samples / writes if writes else 1.0
     )
+    totals["command_dynamic_energy_pj"] = sum(
+        float(totals[field])
+        for field in (
+            "activate_energy_pj",
+            "read_energy_pj",
+            "write_energy_pj",
+        )
+    )
+    totals["background_refresh_energy_pj"] = float(
+        totals["total_energy_pj"]
+    ) - float(totals["command_dynamic_energy_pj"])
     return totals
 
 

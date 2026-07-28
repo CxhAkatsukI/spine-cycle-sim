@@ -244,11 +244,18 @@ def _load_algorithm(
                 "aligned_backend_requests": aligned_requests,
                 "aligned_backend_bytes": aligned_bytes,
                 "dram_full_window_requests": int(dram["requests"]),
+                "dram_active_channels": int(dram["channels"]),
                 "dram_reads": int(dram["reads"]),
                 "dram_writes": int(dram["writes"]),
                 "dram_activates": int(dram["activates"]),
                 "dram_precharges": int(dram["precharges"]),
                 "dram_total_energy_pj": float(dram["total_energy_pj"]),
+                "dram_command_dynamic_energy_pj": float(
+                    dram["command_dynamic_energy_pj"]
+                ),
+                "dram_background_refresh_energy_pj": float(
+                    dram["background_refresh_energy_pj"]
+                ),
                 "dram_row_hit_rate": float(dram["row_hit_rate"]),
                 "dram_average_read_latency": float(dram["average_read_latency"]),
                 "dram_physical_window_aligned": physical_window_aligned,
