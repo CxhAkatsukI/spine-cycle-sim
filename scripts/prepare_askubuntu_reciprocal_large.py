@@ -54,11 +54,17 @@ def build_outputs(
     manifest_path: Path,
     *,
     target_records: int,
+    matrix_id: str = "askubuntu_reciprocal_large_v1",
 ) -> dict[str, object]:
     source = load_slice(source_path)
     fixture = build_large_reciprocal_fixture(
         source,
         target_records=target_records,
+        case_prefix=(
+            "askubuntu_reciprocal_gate"
+            if matrix_id == "askubuntu_reciprocal_large_v1"
+            else "askubuntu_reciprocal_full"
+        ),
     )
     out_dir.mkdir(parents=True, exist_ok=True)
     graph_path = out_dir / f"{fixture.graph.case_id}.slice"
@@ -73,7 +79,11 @@ def build_outputs(
         final_labels = connected_components_labels(final)
         runs.append(
             {
-                "run_id": f"askubuntu_reciprocal_large_bridge_u{size}",
+                "run_id": (
+                    f"askubuntu_reciprocal_large_bridge_u{size}"
+                    if matrix_id == "askubuntu_reciprocal_large_v1"
+                    else f"askubuntu_reciprocal_full_bridge_u{size}"
+                ),
                 "dataset_id": "sx_askubuntu_reciprocal_gate",
                 "dataset_kind": "derived_real_ordered_undirected_projection",
                 "workload_class": "large_real_component_bridge",
@@ -108,7 +118,7 @@ def build_outputs(
         )
     manifest: dict[str, object] = {
         "schema_version": 1,
-        "matrix_id": "askubuntu_reciprocal_large_v1",
+        "matrix_id": matrix_id,
         "claim_class": "derived_real_topology_large_reciprocal_gate",
         "source": {
             "case_id": source.case_id,
@@ -153,12 +163,14 @@ def main() -> int:
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_OUT_DIR)
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
     parser.add_argument("--target-records", type=int, default=540_000)
+    parser.add_argument("--matrix-id", default="askubuntu_reciprocal_large_v1")
     args = parser.parse_args()
     manifest = build_outputs(
         args.source.resolve(),
         args.out_dir.resolve(),
         args.manifest.resolve(),
         target_records=args.target_records,
+        matrix_id=args.matrix_id,
     )
     graph = manifest["runs"][0]["graph"]
     print(

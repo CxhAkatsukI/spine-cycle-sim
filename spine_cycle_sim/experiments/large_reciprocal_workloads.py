@@ -127,11 +127,12 @@ def build_large_reciprocal_fixture(
     *,
     target_records: int = 540_000,
     batch_sizes: Iterable[int] = (1, 8, 64, 512),
+    case_prefix: str = "askubuntu_reciprocal_gate",
 ) -> LargeReciprocalFixture:
     graph, scanned = ordered_reciprocal_projection(
         source,
         target_records=target_records,
-        case_id=f"askubuntu_reciprocal_gate_e{target_records}",
+        case_id=f"{case_prefix}_e{target_records}",
     )
     updates = component_bridge_batches(
         graph,
