@@ -1,0 +1,9 @@
+source	stage	design_state	name	indent	is_cu	lut	lut_pct	lut_as_mem	lut_as_mem_pct	reg	reg_pct	bram	bram_pct	uram	uram_pct	dsp	dsp_pct
+/data/tmp/chuxiao/spine_opt_v2_hw_150_20260728/reports/link/imp/impl_1_kernel_util_routed.rpt	routed	Fully Placed	Platform	1	no	159508	12.24	19659	3.27	247505	9.49	200	9.92	0	0.00	4	0.04
+/data/tmp/chuxiao/spine_opt_v2_hw_150_20260728/reports/link/imp/impl_1_kernel_util_routed.rpt	routed	Fully Placed	User Budget	1	no	1144172	100.00	581301	100.00	2359855	100.00	1816	100.00	960	100.00	9020	100.00
+/data/tmp/chuxiao/spine_opt_v2_hw_150_20260728/reports/link/imp/impl_1_kernel_util_routed.rpt	routed	Fully Placed	Used Resources	4	no	136437	11.92	15063	2.59	159403	6.75	95	5.23	115	11.98	18	0.20
+/data/tmp/chuxiao/spine_opt_v2_hw_150_20260728/reports/link/imp/impl_1_kernel_util_routed.rpt	routed	Fully Placed	Unused Resources	4	no	1007735	88.08	566238	97.41	2200452	93.25	1721	94.77	845	88.02	9002	99.80
+/data/tmp/chuxiao/spine_opt_v2_hw_150_20260728/reports/link/imp/impl_1_kernel_util_routed.rpt	routed	Fully Placed	spine_partconv_compute_kernel	1	no	10311	0.90	1427	0.25	13936	0.59	44	2.42	16	1.67	0	0.00
+/data/tmp/chuxiao/spine_opt_v2_hw_150_20260728/reports/link/imp/impl_1_kernel_util_routed.rpt	routed	Fully Placed	spine_partconv_compute_kernel_1	4	yes	10311	0.90	1427	0.25	13936	0.59	44	2.42	16	1.67	0	0.00
+/data/tmp/chuxiao/spine_opt_v2_hw_150_20260728/reports/link/imp/impl_1_kernel_util_routed.rpt	routed	Fully Placed	spine_partconv_rdmaint_kernel	1	no	126126	11.02	13636	2.35	145467	6.16	51	2.81	99	10.31	18	0.20
+/data/tmp/chuxiao/spine_opt_v2_hw_150_20260728/reports/link/imp/impl_1_kernel_util_routed.rpt	routed	Fully Placed	spine_partconv_rdmaint_kernel_1	4	yes	126126	11.02	13636	2.35	145467	6.16	51	2.81	99	10.31	18	0.20

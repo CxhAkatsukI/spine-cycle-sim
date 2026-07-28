@@ -1,20 +1,24 @@
-"""Reproducible vectorless Vivado power-report collection."""
+"""Fail-closed parser for Vivado's automatic implementation power report."""
 
 from __future__ import annotations
 
 import hashlib
 import json
 from pathlib import Path
+import re
 import subprocess
+from typing import Any
 from typing import Sequence
 
 
+class VivadoPowerError(ValueError):
+    """Raised when a Vivado power log is missing or internally inconsistent."""
+
+
 def sha256_path(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as stream:
-        for block in iter(lambda: stream.read(1 << 20), b""):
-            digest.update(block)
-    return digest.hexdigest()
+    """Return a streaming SHA256 for one evidence artifact."""
+
+    return _sha256(path)
 
 
 def _tcl_path(path: Path) -> str:
@@ -22,6 +26,8 @@ def _tcl_path(path: Path) -> str:
 
 
 def render_power_tcl(checkpoint: Path, summary: Path, hierarchy: Path) -> str:
+    """Render the frozen vectorless power flow used when a DCP is retained."""
+
     return "\n".join(
         (
             f"open_checkpoint {_tcl_path(checkpoint)}",
@@ -44,6 +50,8 @@ def collect_vivado_power(
     label: str,
     extra_arguments: Sequence[str] = (),
 ) -> dict[str, object]:
+    """Run the frozen power flow when the routed DCP is available."""
+
     checkpoint = checkpoint.resolve()
     out_dir = out_dir.resolve()
     vivado = vivado.resolve()
@@ -106,3 +114,131 @@ def collect_vivado_power(
         json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
     return report
+
+
+_SUMMARY_LABELS = {
+    "Total On-Chip Power (W)": "total_on_chip_w",
+    "FPGA Power (W)": "fpga_w",
+    "HBM Power (W)": "hbm_w",
+    "Design Power Budget (W)": "design_budget_w",
+    "Dynamic (W)": "dynamic_w",
+    "Device Static (W)": "device_static_w",
+    "Confidence Level": "confidence_level",
+    "Simulation Activity File": "simulation_activity_file",
+}
+
+_PUBLICATION_COMPONENTS = {
+    "hmss_0": "hbm_subsystem",
+    "spine_partconv_compute_kernel_1": "compute_kernel",
+    "spine_partconv_rdmaint_kernel_1": "reader_maintenance_kernel",
+    "buffer_spine_partconv_compute_kernel_1_value_out": "value_stream_buffer",
+    "buffer_spine_partconv_rdmaint_kernel_1_edge_out": "edge_stream_buffer",
+}
+
+
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1 << 20), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _summary_value(text: str, label: str) -> str:
+    match = re.search(
+        rf"^\|\s*{re.escape(label)}\s*\|\s*([^|]+?)\s*\|$",
+        text,
+        flags=re.MULTILINE,
+    )
+    if match is None:
+        raise VivadoPowerError(f"missing Vivado power field: {label}")
+    return match.group(1).strip()
+
+
+def _float_value(value: str, label: str) -> float:
+    match = re.match(r"[-+]?\d+(?:\.\d+)?", value)
+    if match is None:
+        raise VivadoPowerError(f"non-numeric Vivado power field {label}: {value!r}")
+    return float(match.group(0))
+
+
+def parse_vivado_power_log(path: str | Path) -> dict[str, Any]:
+    """Parse one completed Vivado report_power invocation and check conservation."""
+
+    log_path = Path(path).resolve()
+    if not log_path.is_file():
+        raise VivadoPowerError(f"missing Vivado implementation log: {log_path}")
+    text = log_path.read_text(encoding="utf-8", errors="replace")
+    if "report_power completed successfully" not in text:
+        raise VivadoPowerError("Vivado report_power did not complete successfully")
+
+    summary: dict[str, object] = {}
+    for label, key in _SUMMARY_LABELS.items():
+        raw = _summary_value(text, label)
+        summary[key] = (
+            raw
+            if key in {"confidence_level", "simulation_activity_file"}
+            else _float_value(raw, label)
+        )
+
+    total = float(summary["total_on_chip_w"])
+    if abs(total - float(summary["fpga_w"]) - float(summary["hbm_w"])) > 0.002:
+        raise VivadoPowerError("FPGA + HBM power does not conserve total on-chip power")
+    if abs(total - float(summary["dynamic_w"]) - float(summary["device_static_w"])) > 0.002:
+        raise VivadoPowerError("dynamic + static power does not conserve total on-chip power")
+
+    hierarchy_match = re.search(
+        r"3\.1 By Hierarchy\s*-+\s*(?P<table>.*?)\n\+[-+]+\+\s*\n\s*\d+ Infos",
+        text,
+        flags=re.DOTALL,
+    )
+    if hierarchy_match is None:
+        raise VivadoPowerError("missing Vivado hierarchy power table")
+    hierarchy_rows: list[dict[str, object]] = []
+    for line in hierarchy_match.group("table").splitlines():
+        match = re.match(r"^\|(?P<name>[^|]+)\|\s*(?P<power>\d+(?:\.\d+)?)\s*\|$", line)
+        if match is None:
+            continue
+        raw_name = match.group("name").rstrip()
+        if raw_name.strip() == "Name":
+            continue
+        hierarchy_rows.append(
+            {
+                "name": raw_name.strip(),
+                "indent": len(raw_name) - len(raw_name.lstrip()),
+                "power_w": float(match.group("power")),
+            }
+        )
+    if not hierarchy_rows:
+        raise VivadoPowerError("empty Vivado hierarchy power table")
+
+    component_rows = []
+    by_name = {row["name"]: row for row in hierarchy_rows}
+    for source_name, component in _PUBLICATION_COMPONENTS.items():
+        if source_name not in by_name:
+            raise VivadoPowerError(f"missing hierarchy component: {source_name}")
+        component_rows.append(
+            {
+                "component": component,
+                "vivado_hierarchy_name": source_name,
+                "power_w": by_name[source_name]["power_w"],
+            }
+        )
+
+    return {
+        "schema_version": 1,
+        "claim_class": "vivado_automatic_vectorless_low_confidence_fpga_power",
+        "source": {
+            "path": str(log_path),
+            "sha256": _sha256(log_path),
+        },
+        "summary": summary,
+        "hierarchy": hierarchy_rows,
+        "publication_components": component_rows,
+        "limitations": [
+            "Vivado used default vectorless activity; this is not workload-calibrated energy.",
+            "Hierarchy values support implementation feasibility and component attribution only.",
+            "Simulator activity and DRAM command accounting remain the workload-energy source.",
+        ],
+        "status": "PASS",
+    }

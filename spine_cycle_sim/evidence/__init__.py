@@ -48,6 +48,10 @@ from .exact_idle import (
     analyze_exact_idle_equivalence,
     analyze_exact_idle_sensitivity_equivalence,
 )
+from .vivado_power import (
+    VivadoPowerError,
+    parse_vivado_power_log,
+)
 
 __all__ = [
     "FpgaEvidenceError",
@@ -86,4 +90,6 @@ __all__ = [
     "ExactIdleEquivalenceError",
     "analyze_exact_idle_equivalence",
     "analyze_exact_idle_sensitivity_equivalence",
+    "VivadoPowerError",
+    "parse_vivado_power_log",
 ]

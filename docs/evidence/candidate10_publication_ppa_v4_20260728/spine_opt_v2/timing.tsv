@@ -1,0 +1,2 @@
+source	design_state	wns_ns	tns_ns	tns_failing_endpoints	tns_total_endpoints	whs_ns	ths_ns	ths_failing_endpoints	ths_total_endpoints	wpws_ns	tpws_ns	tpws_failing_endpoints	tpws_total_endpoints
+/data/tmp/chuxiao/spine_opt_v2_hw_150_20260728/reports/link/imp/impl_1_hw_bb_locked_timing_summary_postroute_physopted.rpt		0.003	0.000	0	1153998	0.003	0.000	0	1150905	0.000	0.000	0	462372

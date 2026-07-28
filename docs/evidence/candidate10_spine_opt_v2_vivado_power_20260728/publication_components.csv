@@ -1,0 +1,6 @@
+component,vivado_hierarchy_name,power_w
+hbm_subsystem,hmss_0,17.674
+compute_kernel,spine_partconv_compute_kernel_1,0.205
+reader_maintenance_kernel,spine_partconv_rdmaint_kernel_1,1.891
+value_stream_buffer,buffer_spine_partconv_compute_kernel_1_value_out,0.001
+edge_stream_buffer,buffer_spine_partconv_rdmaint_kernel_1_edge_out,0.002

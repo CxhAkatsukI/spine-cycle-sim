@@ -261,6 +261,17 @@ class PublicationPpaTests(unittest.TestCase):
         self.assertTrue(result["coverage"]["grasu_regraph_three_algorithm_routed"])
         self.assertFalse(result["resource_ratio_eligible"])
 
+    def test_opt_v2_repository_manifest_closes_four_routed_builds(self) -> None:
+        manifest = ROOT / "configs/evidence/candidate10_publication_ppa_v4.json"
+        result = analyze_publication_ppa_manifest(manifest)
+        self.assertEqual(result["status"], "PASS")
+        self.assertEqual(result["builds"][0]["target_mhz"], 150.0)
+        self.assertEqual(result["builds"][0]["resources"]["uram"], 115)
+        self.assertEqual(
+            result["builds"][0]["artifact"]["sha256"],
+            "a6af7b51afbe2162b5d4fb624de5d4595b73690f1f6f3aee36211869f4bd38cc",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
