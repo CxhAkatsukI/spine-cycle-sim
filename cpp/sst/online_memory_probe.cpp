@@ -1687,6 +1687,7 @@ class SstMemoryBackend final : public MemoryBackend {
         continue;
       }
       queue.push_back(*iterator);
+      notify_response_available(iterator->initiator_id);
       iterator = external_arrivals_.erase(iterator);
     }
   }

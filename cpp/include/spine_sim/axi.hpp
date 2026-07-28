@@ -304,11 +304,14 @@ class AxiMaster final : public Component {
   void commit_read_beat_output();
   void queue_parent_response_if_ready(std::uint64_t parent_id);
   static void notify_request_nonempty(void* owner) noexcept;
+  static void notify_backend_response(void* owner) noexcept;
   [[nodiscard]] std::size_t read_reorder_occupancy() const noexcept;
   [[nodiscard]] bool has_pending_work() const noexcept {
     return !requests_.empty() || internal_pending_work_;
   }
   void refresh_pending_work() noexcept;
+  [[nodiscard]] bool waiting_only_for_backend() const noexcept;
+  void account_suspended_cycles(std::uint64_t cycle);
   [[nodiscard]] bool write_ingress_enabled() const noexcept {
     return config_.write_ingress_fifo_depth != 0;
   }
@@ -358,6 +361,9 @@ class AxiMaster final : public Component {
   bool staged_output_{};
   bool internal_pending_work_{};
   bool scheduler_ready_{};
+  bool suspended_wait_{};
+  bool evaluated_once_{};
+  std::uint64_t last_evaluate_cycle_{};
   AxiStats stats_;
 };
 

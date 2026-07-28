@@ -42,6 +42,10 @@ class Fifo final : public Component {
   [[nodiscard]] bool full() const noexcept { return queue_.size() == depth_; }
   [[nodiscard]] const FifoStats& stats() const noexcept { return stats_; }
 
+  void account_pop_stalls(std::uint64_t count) noexcept {
+    stats_.pop_stalls += count;
+  }
+
   void bind_nonempty_notifier(void* owner, NonemptyNotifier notifier) {
     if (notifier == nullptr ||
         (nonempty_notifier_ != nullptr &&

@@ -96,13 +96,24 @@ AxiMaster::AxiMaster(std::string name, ClockId clock_id, AxiConfig config,
         "AXI master, links, and backend must share a clock");
   }
   backend_.register_initiator(config_.initiator_id);
+  backend_.bind_response_notifier(config_.initiator_id, this,
+                                  &AxiMaster::notify_backend_response);
   requests_.bind_nonempty_notifier(this, &AxiMaster::notify_request_nonempty);
   refresh_pending_work();
 }
 
-AxiMaster::~AxiMaster() { requests_.unbind_nonempty_notifier(this); }
+AxiMaster::~AxiMaster() {
+  requests_.unbind_nonempty_notifier(this);
+  backend_.unbind_response_notifier(config_.initiator_id, this);
+}
 
 void AxiMaster::notify_request_nonempty(void* owner) noexcept {
+  AxiMaster *master = static_cast<AxiMaster*>(owner);
+  master->scheduler_ready_ = true;
+  master->set_latched_evaluate_ready(true);
+}
+
+void AxiMaster::notify_backend_response(void* owner) noexcept {
   AxiMaster *master = static_cast<AxiMaster*>(owner);
   master->scheduler_ready_ = true;
   master->set_latched_evaluate_ready(true);
@@ -591,6 +602,9 @@ void AxiMaster::evaluate_data_channel(const CycleContext &context) {
 }
 
 void AxiMaster::evaluate(const CycleContext &context) {
+  account_suspended_cycles(context.domain_cycle);
+  evaluated_once_ = true;
+  last_evaluate_cycle_ = context.domain_cycle;
   reset_staging();
   evaluate_output();
   evaluate_read_beat_output(context);
@@ -993,13 +1007,37 @@ void AxiMaster::commit_read_beat_output() {
 
 void AxiMaster::refresh_pending_work() noexcept {
   internal_pending_work_ =
-      !parents_.empty() || !pending_address_.empty() ||
-      !active_bursts_.empty() || !backend_mappings_.empty() ||
-      !ready_responses_.empty() || !pending_write_input_.empty() ||
-      !write_store_fifo_.empty() || write_bridge_.has_value() ||
-      !write_throttle_fifo_.empty();
+      !pending_address_.empty() || active_issueable_bursts_ != 0 ||
+      backend_.response_count(config_.initiator_id) != 0 ||
+      !ready_responses_.empty() || read_reorder_occupancy() != 0 ||
+      !pending_write_input_.empty() || !write_store_fifo_.empty() ||
+      write_bridge_.has_value() || !write_throttle_fifo_.empty();
   scheduler_ready_ = !requests_.empty() || internal_pending_work_;
   set_latched_evaluate_ready(scheduler_ready_);
+}
+
+bool AxiMaster::waiting_only_for_backend() const noexcept {
+  return !scheduler_ready_ &&
+         (!parents_.empty() || !active_bursts_.empty() ||
+          !backend_mappings_.empty() ||
+          backend_.outstanding_for(config_.initiator_id) != 0);
+}
+
+void AxiMaster::account_suspended_cycles(std::uint64_t cycle) {
+  if (!suspended_wait_) {
+    return;
+  }
+  if (!evaluated_once_ || cycle <= last_evaluate_cycle_) {
+    throw std::logic_error("AXI suspended-cycle accounting moved backwards");
+  }
+  const std::uint64_t skipped = cycle - last_evaluate_cycle_ - 1;
+  requests_.account_pop_stalls(skipped);
+  if (!active_bursts_.empty()) {
+    issue_round_robin_ =
+        (issue_round_robin_ + skipped % active_bursts_.size()) %
+        active_bursts_.size();
+  }
+  suspended_wait_ = false;
 }
 
 void AxiMaster::commit(const CycleContext &context) {
@@ -1018,6 +1056,8 @@ void AxiMaster::commit(const CycleContext &context) {
     } else {
       issue_round_robin_ = 0;
     }
+    refresh_pending_work();
+    suspended_wait_ = waiting_only_for_backend();
     set_latched_commit_ready(false);
     return;
   }
@@ -1029,6 +1069,7 @@ void AxiMaster::commit(const CycleContext &context) {
   commit_write_ingress(context);
   commit_read_beat_output();
   refresh_pending_work();
+  suspended_wait_ = waiting_only_for_backend();
   set_latched_commit_ready(false);
 }
 

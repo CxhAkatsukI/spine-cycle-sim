@@ -102,11 +102,49 @@ MemoryTrafficStats subtract_memory_traffic(const MemoryTrafficStats& after,
 void MemoryBackend::register_initiator(std::uint32_t initiator_id) {
   if (initiator_id >= initiators_.size()) {
     initiators_.resize(static_cast<std::size_t>(initiator_id) + 1, 0);
+    response_notifications_.resize(static_cast<std::size_t>(initiator_id) + 1);
   }
   if (initiators_[initiator_id] != 0) {
     throw std::invalid_argument("memory initiator ID is already registered");
   }
   initiators_[initiator_id] = 1;
+}
+
+void MemoryBackend::bind_response_notifier(std::uint32_t initiator_id,
+                                           void* owner,
+                                           ResponseNotifier notifier) {
+  if (!initiator_registered(initiator_id) || notifier == nullptr) {
+    throw std::invalid_argument("invalid memory response notifier");
+  }
+  ResponseNotification& registration = response_notifications_[initiator_id];
+  if (registration.notifier != nullptr &&
+      (registration.owner != owner || registration.notifier != notifier)) {
+    throw std::logic_error("memory response notifier is already bound");
+  }
+  registration = ResponseNotification{.owner = owner, .notifier = notifier};
+}
+
+void MemoryBackend::unbind_response_notifier(std::uint32_t initiator_id,
+                                             void* owner) noexcept {
+  if (initiator_id >= response_notifications_.size()) {
+    return;
+  }
+  ResponseNotification& registration = response_notifications_[initiator_id];
+  if (registration.owner == owner) {
+    registration = {};
+  }
+}
+
+void MemoryBackend::notify_response_available(
+    std::uint32_t initiator_id) noexcept {
+  if (initiator_id >= response_notifications_.size()) {
+    return;
+  }
+  const ResponseNotification& registration =
+      response_notifications_[initiator_id];
+  if (registration.notifier != nullptr) {
+    registration.notifier(registration.owner);
+  }
 }
 
 bool MemoryBackend::try_submit(const BackendRequest& request) {
@@ -610,6 +648,7 @@ void MockMemoryBackend::prepare(const CycleContext& context) {
                          ? complete_read_payload(iterator->request)
                          : std::vector<std::uint8_t>{},
     });
+    notify_response_available(iterator->request.initiator_id);
     iterator = pending_.erase(iterator);
   }
 }

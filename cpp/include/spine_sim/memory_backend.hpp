@@ -68,6 +68,8 @@ struct MemoryTrafficStats {
 
 class MemoryBackend : public Component {
  public:
+  using ResponseNotifier = void (*)(void*) noexcept;
+
   using Component::Component;
 
   [[nodiscard]] bool has_prepare_phase() const noexcept override {
@@ -78,6 +80,10 @@ class MemoryBackend : public Component {
   }
 
   void register_initiator(std::uint32_t initiator_id);
+  void bind_response_notifier(std::uint32_t initiator_id, void* owner,
+                              ResponseNotifier notifier);
+  void unbind_response_notifier(std::uint32_t initiator_id,
+                                void* owner) noexcept;
   void initialize_payload(std::size_t channel, std::uint64_t address,
                           const std::vector<std::uint8_t>& data);
   void fill_payload(std::size_t channel, std::uint64_t address,
@@ -135,7 +141,8 @@ class MemoryBackend : public Component {
   void commit_write_payload(const BackendRequest& request);
   [[nodiscard]] std::vector<std::uint8_t> complete_read_payload(
       const BackendRequest& request) const;
- void record_accepted_request(const BackendRequest& request);
+  void record_accepted_request(const BackendRequest& request);
+  void notify_response_available(std::uint32_t initiator_id) noexcept;
 
  private:
   static constexpr std::size_t kPayloadPageBytes = 4096;
@@ -170,7 +177,13 @@ class MemoryBackend : public Component {
     std::uint8_t value{};
   };
 
+  struct ResponseNotification {
+    void* owner{};
+    ResponseNotifier notifier{};
+  };
+
   std::vector<std::uint8_t> initiators_;
+  std::vector<ResponseNotification> response_notifications_;
   std::unordered_map<std::size_t,
                      std::unordered_map<std::uint64_t, PayloadPage>>
       payload_storage_;
