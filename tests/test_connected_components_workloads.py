@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
 import unittest
 
 from spine_cycle_sim.experiments.connected_components_workloads import (
@@ -8,7 +10,14 @@ from spine_cycle_sim.experiments.connected_components_workloads import (
     formal_connected_components_fixtures,
     materialize_reciprocal_update,
 )
-from spine_cycle_sim.experiments.shared_workloads import SliceGraph, SliceRecord
+from spine_cycle_sim.experiments.shared_workloads import (
+    SliceGraph,
+    SliceRecord,
+    load_slice,
+)
+
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 class ConnectedComponentsWorkloadTests(unittest.TestCase):
@@ -68,6 +77,22 @@ class ConnectedComponentsWorkloadTests(unittest.TestCase):
         update = SliceGraph("bad", 4, (SliceRecord(1, 2, 1, 1),))
         with self.assertRaisesRegex(ValueError, "atomic reciprocal"):
             analyze_reciprocal_update(graph, update)
+
+    def test_scalability_fixture_is_legal_four_partition_input(self) -> None:
+        manifest = json.loads(
+            (ROOT / "configs/experiments/connected_components_formal_v1.json")
+            .read_text(encoding="ascii")
+        )
+        run = next(item for item in manifest["runs"] if item["role"] == "scalability")
+        graph = load_slice(ROOT / run["graph"]["path"])
+        update = load_slice(ROOT / run["update"]["path"])
+        self.assertEqual(len(graph.records), 8192)
+        self.assertEqual(len(update.records), 8)
+        self.assertEqual(graph.records, tuple(sorted(graph.records)))
+        self.assertEqual(update.records, tuple(sorted(update.records)))
+        self.assertEqual({edge.dst // 65_536 for edge in graph.records}, {0, 1, 2, 3})
+        self.assertEqual({edge.dst // 65_536 for edge in update.records}, {0, 1, 2, 3})
+        self.assertEqual(analyze_reciprocal_update(graph, update).logical_user_mutations, 4)
 
 
 if __name__ == "__main__":

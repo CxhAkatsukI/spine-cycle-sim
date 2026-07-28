@@ -65,33 +65,60 @@ def _real_fixtures() -> tuple[ConnectedComponentsFixture, ...]:
     unit_update = load_slice(REAL_UPDATES[0])
     partition_span = 65_536
     replicas = 4
+    records_per_replica = 2_048
+    multipliers = (1, 3, 5, 7)
+    shifts = (0, 8192, 16_384, 24_576)
+
+    by_endpoints = {(edge.src, edge.dst): edge for edge in graph.records}
+    canonical = [edge for edge in graph.records if edge.src < edge.dst]
+    if len(canonical) * 2 != len(graph.records):
+        raise ValueError("Flickr CC scalability base must be exactly reciprocal")
+    selected_pairs = [
+        canonical[(index * len(canonical)) // (records_per_replica // 2)]
+        for index in range(records_per_replica // 2)
+    ]
+    scalability_records = tuple(
+        sorted(
+            edge
+            for forward in selected_pairs
+            for edge in (
+                forward,
+                by_endpoints[(forward.dst, forward.src)],
+            )
+        )
+    )
+
+    def replicated_vertex(vertex: int, replica: int) -> int:
+        local = (vertex * multipliers[replica] + shifts[replica]) % partition_span
+        return replica * partition_span + local
+
     replicated_graph = SliceGraph(
         "cc_real_soc_flickr_replicated_p4_base",
         partition_span * replicas,
-        tuple(
+        tuple(sorted(
             SliceRecord(
-                edge.src + replica * partition_span,
-                edge.dst + replica * partition_span,
+                replicated_vertex(edge.src, replica),
+                replicated_vertex(edge.dst, replica),
                 edge.weight,
                 edge.diff,
             )
             for replica in range(replicas)
-            for edge in graph.records
-        ),
+            for edge in scalability_records
+        )),
     )
     replicated_update = SliceGraph(
         "cc_real_soc_flickr_replicated_p4_insert_u4",
         partition_span * replicas,
-        tuple(
+        tuple(sorted(
             SliceRecord(
-                edge.src + replica * partition_span,
-                edge.dst + replica * partition_span,
+                replicated_vertex(edge.src, replica),
+                replicated_vertex(edge.dst, replica),
                 edge.weight,
                 edge.diff,
             )
             for replica in range(replicas)
             for edge in unit_update.records
-        ),
+        )),
     )
     return fixtures + (
         ConnectedComponentsFixture(
