@@ -146,6 +146,61 @@ def _command(
     raise ValueError(f"unsupported system: {system}")
 
 
+def _system_fingerprint_paths(
+    args: argparse.Namespace, system: str
+) -> list[Path]:
+    """Keep one system's implementation changes from invalidating the other."""
+
+    common = [
+        Path(__file__),
+        ROOT / "scripts" / "run_hls_pagerank_real_comparison.py",
+        ROOT
+        / "spine_cycle_sim"
+        / "experiments"
+        / "hls_pagerank_real_comparison.py",
+        ROOT / "spine_cycle_sim" / "experiments" / "memory_traffic.py",
+        args.input_manifest,
+        args.lib_dir / "libspine_cycle.so",
+        args.sst,
+    ]
+    if system == "spine":
+        return [
+            *common,
+            ROOT / "scripts" / "run_sst_spine_vertical.py",
+            args.spine_profile,
+        ]
+    if system == "grasu_regraph":
+        return [
+            *common,
+            ROOT / "scripts" / "run_sst_grasu_regraph_hls_residual_pagerank.py",
+            args.grasu_profile,
+            args.capability_catalog,
+        ]
+    raise ValueError(f"unsupported system: {system}")
+
+
+def _system_execution_sha256(args: argparse.Namespace, system: str) -> str:
+    return hashlib.sha256(
+        b"".join(
+            path.resolve().read_bytes()
+            for path in _system_fingerprint_paths(args, system)
+        )
+    ).hexdigest()
+
+
+def _adopted_wall_seconds(system: str, payload: Mapping[str, object]) -> float:
+    value = payload.get("sst_host_wall_seconds")
+    if system == "spine" and value is None:
+        value = payload.get("host_wall_seconds")
+    try:
+        wall_seconds = float(value)
+    except (TypeError, ValueError) as error:
+        raise RuntimeError("adopted raw result has no valid SST wall time") from error
+    if wall_seconds <= 0.0:
+        raise RuntimeError("adopted raw result has non-positive SST wall time")
+    return wall_seconds
+
+
 def _run_system(
     run: dict[str, object],
     system: str,
@@ -161,10 +216,12 @@ def _run_system(
     out_dir.mkdir(parents=True, exist_ok=True)
     command = _command(run, system, args=args, out_dir=out_dir)
     cache_path = out_dir / "comparison_cache.json"
+    raw_result_path = out_dir / ("summary.json" if system == "spine" else "manifest.json")
     input_sha256 = hashlib.sha256(
         json.dumps(run, sort_keys=True, separators=(",", ":")).encode("ascii")
     ).hexdigest()
     reusable = False
+    adopted = False
     wall_seconds = -1.0
     if args.resume and cache_path.is_file():
         cache = json.loads(cache_path.read_text(encoding="utf-8"))
@@ -176,13 +233,19 @@ def _run_system(
         )
         if reusable:
             wall_seconds = float(cache["wall_seconds"])
-    if not reusable:
+    if (
+        not reusable
+        and args.resume
+        and args.adopt_validated_results
+        and raw_result_path.is_file()
+    ):
+        adopted = True
+    if not reusable and not adopted:
         wall_seconds = _run_process(
             command, out_dir / "parent_driver.log", args.timeout_seconds
         )
 
     if system == "spine":
-        raw_result_path = out_dir / "summary.json"
         result = json.loads(raw_result_path.read_text(encoding="utf-8"))
         problems = validate_spine_residual_result(
             run,
@@ -193,6 +256,31 @@ def _run_system(
             epsilon=PAGERANK_EPSILON,
             max_iterations=RESIDUAL_MAX_ITERATIONS,
         )
+        provenance_problems = []
+        if result.get("architecture_profile_sha256") != sha256_file(
+            args.spine_profile
+        ):
+            provenance_problems.append("profile_sha256")
+        if result.get("sst_plugin_sha256") != sha256_file(
+            args.lib_dir / "libspine_cycle.so"
+        ):
+            provenance_problems.append("sst_plugin_sha256")
+        graph = ROOT / run["graph"]["path"]  # type: ignore[index]
+        update = ROOT / run["update"]["path"]  # type: ignore[index]
+        embedded_workload_hashes = all(
+            key in result
+            for key in ("workload_sha256", "update_workload_sha256")
+        )
+        if embedded_workload_hashes and result.get(
+            "workload_sha256"
+        ) != sha256_file(graph):
+            provenance_problems.append("workload_sha256")
+        if embedded_workload_hashes and result.get(
+            "update_workload_sha256"
+        ) != sha256_file(update):
+            provenance_problems.append("update_workload_sha256")
+        if adopted:
+            wall_seconds = _adopted_wall_seconds(system, result)
         dram = {
             "reads": result["dram_reads"],
             "writes": result["dram_writes"],
@@ -202,7 +290,6 @@ def _run_system(
         }
         profile_id = spine_profile_id
     else:
-        raw_result_path = out_dir / "manifest.json"
         child = json.loads(raw_result_path.read_text(encoding="utf-8"))
         problems = validate_grasu_residual_result(
             run,
@@ -213,9 +300,25 @@ def _run_system(
             epsilon=PAGERANK_EPSILON,
             max_iterations=RESIDUAL_MAX_ITERATIONS,
         )
+        provenance_problems = []
+        graph = ROOT / run["graph"]["path"]  # type: ignore[index]
+        update = ROOT / run["update"]["path"]  # type: ignore[index]
+        expected_provenance = {
+            "workload_sha256": sha256_file(graph),
+            "update_workload_sha256": sha256_file(update),
+            "profile_sha256": sha256_file(args.grasu_profile),
+            "sst_plugin_sha256": sha256_file(args.lib_dir / "libspine_cycle.so"),
+        }
+        provenance_problems.extend(
+            key for key, expected in expected_provenance.items()
+            if child.get(key) != expected
+        )
+        if adopted:
+            wall_seconds = _adopted_wall_seconds(system, child)
         result = child["result"]
         dram = child["dram"]
         profile_id = grasu_profile_id
+    problems.extend(provenance_problems)
     if problems:
         raise RuntimeError(f"{run['run_id']}/{system} failed gates: {problems}")
     row = residual_system_row(
@@ -238,6 +341,11 @@ def _run_system(
                     "input_sha256": input_sha256,
                     "execution_sha256": execution_sha256,
                     "wall_seconds": wall_seconds,
+                    "adopted_validated_result": adopted,
+                    "embedded_workload_hashes": (
+                        embedded_workload_hashes if system == "spine" else True
+                    ),
+                    "raw_result_sha256": sha256_file(raw_result_path),
                 },
                 indent=2,
                 sort_keys=True,
@@ -267,6 +375,14 @@ def main() -> int:
     parser.add_argument("--timeout-seconds", type=float, default=600.0)
     parser.add_argument("--max-cycles", type=int, default=100_000_000)
     parser.add_argument("--resume", action="store_true")
+    parser.add_argument(
+        "--adopt-validated-results",
+        action="store_true",
+        help=(
+            "with --resume, accept an existing raw result only after current "
+            "profile/plugin/workload and correctness-ledger validation"
+        ),
+    )
     parser.add_argument("--no-build", action="store_true")
     parser.add_argument(
         "--instantiate-all-hbm-channels",
@@ -276,6 +392,8 @@ def main() -> int:
     args = parser.parse_args()
     if args.jobs <= 0 or args.timeout_seconds <= 0.0 or args.max_cycles <= 0:
         raise ValueError("jobs, timeout, and max cycles must be positive")
+    if args.adopt_validated_results and not args.resume:
+        raise ValueError("--adopt-validated-results requires --resume")
     profile_set = PROFILE_SETS[args.profile_set]
     custom_spine_profile = args.spine_profile is not None
     custom_grasu_profile = args.grasu_profile is not None
@@ -317,25 +435,14 @@ def main() -> int:
         subprocess.run(["make", "-C", "cpp/sst", "-j2"], cwd=ROOT, check=True)
     args.out_dir.mkdir(parents=True, exist_ok=True)
 
-    fingerprint_paths = [
-        Path(__file__),
-        ROOT / "scripts" / "run_hls_pagerank_real_comparison.py",
-        ROOT
-        / "spine_cycle_sim"
-        / "experiments"
-        / "hls_pagerank_real_comparison.py",
-        ROOT / "spine_cycle_sim" / "experiments" / "memory_traffic.py",
-        ROOT / "scripts" / "run_sst_spine_vertical.py",
-        ROOT / "scripts" / "run_sst_grasu_regraph_hls_residual_pagerank.py",
-        args.input_manifest,
-        args.spine_profile,
-        args.grasu_profile,
-        args.capability_catalog,
-        args.lib_dir / "libspine_cycle.so",
-        args.sst,
-    ]
+    system_execution_sha256 = {
+        system: _system_execution_sha256(args, system)
+        for system in ("spine", "grasu_regraph")
+    }
     execution_sha256 = hashlib.sha256(
-        b"".join(path.resolve().read_bytes() for path in fingerprint_paths)
+        json.dumps(
+            system_execution_sha256, sort_keys=True, separators=(",", ":")
+        ).encode("ascii")
     ).hexdigest()
     started = time.monotonic()
     rows: list[dict[str, object]] = []
@@ -352,7 +459,7 @@ def main() -> int:
                     spine_mhz=spine_mhz,
                     grasu_profile_id=str(grasu_profile["profile_id"]),
                     grasu_mhz=grasu_mhz,
-                    execution_sha256=execution_sha256,
+                    execution_sha256=system_execution_sha256[system],
                 )
                 futures[future] = (run["run_id"], system)
         for future in as_completed(futures):
@@ -408,6 +515,8 @@ def main() -> int:
             args.lib_dir / "libspine_cycle.so"
         ),
         "execution_sha256": execution_sha256,
+        "system_execution_sha256": system_execution_sha256,
+        "validated_raw_result_adoption_enabled": args.adopt_validated_results,
         "selected_run_ids": [run["run_id"] for run in selected],
         "instantiate_all_hbm_channels": args.instantiate_all_hbm_channels,
         "hbm_controller_instances": (

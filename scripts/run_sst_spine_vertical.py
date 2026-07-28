@@ -2110,6 +2110,12 @@ def main() -> int:
         "sst_memory_binding": binding.as_manifest(),
         "sst_library_binding": sst_library,
         "sst_plugin_sha256": sst_library["plugin_sha256"],
+        "workload_sha256": hashlib.sha256(args.workload.read_bytes()).hexdigest(),
+        "update_workload_sha256": (
+            hashlib.sha256(args.update_workload.read_bytes()).hexdigest()
+            if args.update_workload is not None
+            else None
+        ),
         "dram_energy_claim": binding.energy_claim,
         "sst_host_wall_seconds": sst_host_wall_seconds,
         "status": "PASS",
