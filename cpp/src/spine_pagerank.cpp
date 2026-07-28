@@ -87,9 +87,13 @@ SpineSplitPageRankCompute::SpineSplitPageRankCompute(
       tile_applied_((vertices_ + tile_vertices_ - 1) / tile_vertices_, false),
       dangling_mass_word_(GraphAlgorithmPolicy::float_to_word(0.0F)),
       dangling_share_word_(GraphAlgorithmPolicy::float_to_word(0.0F)) {
+  const bool uses_degree = state_layout_.degree.has_value();
   if ((policy_.config().kind != GraphAlgorithmKind::kFullPageRank &&
-       policy_.config().kind != GraphAlgorithmKind::kResidualPageRank) ||
-      vertices_ == 0 || out_degrees.size() != vertices_ ||
+       policy_.config().kind != GraphAlgorithmKind::kResidualPageRank &&
+       policy_.config().kind != GraphAlgorithmKind::kConnectedComponents) ||
+      vertices_ == 0 ||
+      (uses_degree ? out_degrees.size() != vertices_
+                   : !out_degrees.empty()) ||
       tile_vertices_ == 0 || memory_request_window_ == 0 ||
       edge_in_.clock_id() != clock_id || value_out_.clock_id() != clock_id ||
       vertex_state_.master().clock_id() != clock_id) {
@@ -221,11 +225,10 @@ void SpineSplitPageRankCompute::initialize_state_payload(
     vertex_state_.initialize_payload(state_layout_.auxiliary->base,
                                      encode_words(residual_words_));
   }
-  if (!state_layout_.degree.has_value()) {
-    throw std::logic_error("PageRank state layout has no degree region");
+  if (state_layout_.degree.has_value()) {
+    vertex_state_.initialize_payload(state_layout_.degree->base,
+                                     encode_words(out_degrees));
   }
-  vertex_state_.initialize_payload(state_layout_.degree->base,
-                                   encode_words(out_degrees));
 }
 
 void SpineSplitPageRankCompute::enqueue_read(std::uint64_t address,
@@ -307,8 +310,7 @@ void SpineSplitPageRankCompute::begin_apply_tile(std::uint32_t tile_base,
   tile_base_ = tile_base;
   tile_size_ = std::min<std::size_t>(tile_vertices_, vertices_ - tile_base_);
   if (tile_accumulators_.size() != tile_size_) {
-    tile_accumulators_.assign(
-        tile_size_, GraphAlgorithmPolicy::float_to_word(0.0F));
+    tile_accumulators_.assign(tile_size_, policy_.reduction_identity_word());
   }
   tile_applied_.at(tile_base_ / tile_vertices_) = true;
   apply_reads_issued_ = 0;
@@ -502,8 +504,9 @@ void SpineSplitPageRankCompute::evaluate(const CycleContext &) {
   switch (phase_) {
     case Phase::kSourceMemory:
       if (pending_source_rank_.has_value() &&
-          pending_source_degree_.has_value() &&
-          (policy_.config().kind == GraphAlgorithmKind::kFullPageRank ||
+          (!state_layout_.degree.has_value() ||
+           pending_source_degree_.has_value()) &&
+          (!state_layout_.auxiliary.has_value() ||
            pending_source_residual_.has_value())) {
         staged_phase_transition_ = Phase::kSourceMapPush;
       }
@@ -514,7 +517,7 @@ void SpineSplitPageRankCompute::evaluate(const CycleContext &) {
       request.transaction_id = next_algorithm_transaction_;
       request.state.primary = *pending_source_rank_;
       request.state.auxiliary = pending_source_residual_.value_or(0);
-      request.out_degree = *pending_source_degree_;
+      request.out_degree = pending_source_degree_.value_or(0);
       if (source_requests_.try_push(request)) {
         staged_source_request_ = request;
       }
@@ -715,7 +718,9 @@ void SpineSplitPageRankCompute::commit(const CycleContext &context) {
                     pending_source_result_->state_after.auxiliary,
                     MemoryPayloadKind::kSourceAuxiliaryWrite, pending_source_);
     }
-    phase_ = Phase::kDanglingReducePush;
+    phase_ = policy_.config().kind == GraphAlgorithmKind::kConnectedComponents
+                 ? Phase::kSourceReply
+                 : Phase::kDanglingReducePush;
   }
   if (staged_reduce_request_.has_value()) {
     const std::uint64_t transaction = next_algorithm_transaction_++;
@@ -802,6 +807,12 @@ void SpineSplitPageRankCompute::commit(const CycleContext &context) {
       enqueue_write(primary_write_base_ + vertex * kWordBytes,
                     applied.state_after.primary,
                     MemoryPayloadKind::kApplyPrimaryWrite, vertex);
+      if (policy_.config().kind ==
+              GraphAlgorithmKind::kConnectedComponents &&
+          applied.active) {
+        next_active_.push_back(vertex);
+        ++counters_.vertices_activated;
+      }
     }
     apply_transactions_.erase(found);
     ++apply_operations_completed_;
@@ -840,13 +851,15 @@ void SpineSplitPageRankCompute::commit(const CycleContext &context) {
       pending_source_ = staged_input_word_.first;
       enqueue_read(primary_read_base_ + pending_source_ * kWordBytes,
                    MemoryPayloadKind::kSourcePrimary, pending_source_);
-      if (policy_.config().kind == GraphAlgorithmKind::kResidualPageRank) {
+      if (state_layout_.auxiliary.has_value()) {
         enqueue_read(state_layout_.auxiliary->base +
                          pending_source_ * kWordBytes,
                      MemoryPayloadKind::kSourceAuxiliary, pending_source_);
       }
-      enqueue_read(state_layout_.degree->base + pending_source_ * kWordBytes,
-                   MemoryPayloadKind::kSourceDegree, pending_source_);
+      if (state_layout_.degree.has_value()) {
+        enqueue_read(state_layout_.degree->base + pending_source_ * kWordBytes,
+                     MemoryPayloadKind::kSourceDegree, pending_source_);
+      }
       ++counters_.source_requests;
       phase_ = Phase::kSourceMemory;
       break;
@@ -873,8 +886,11 @@ void SpineSplitPageRankCompute::commit(const CycleContext &context) {
            counters_.source_count != vertices_)) {
         set_protocol_status(SpineSourceProtocolStatus::kCount);
       }
-      const float share = policy_.config().damping * dangling_mass() /
-                          static_cast<float>(vertices_);
+      const float share =
+          policy_.config().kind == GraphAlgorithmKind::kConnectedComponents
+              ? 0.0F
+              : policy_.config().damping * dangling_mass() /
+                    static_cast<float>(vertices_);
       dangling_share_word_ = GraphAlgorithmPolicy::float_to_word(share);
       source_ack_pending_ = true;
       phase_ = Phase::kSourceReply;
@@ -891,8 +907,7 @@ void SpineSplitPageRankCompute::commit(const CycleContext &context) {
       tile_base_ = staged_input_word_.first;
       tile_size_ =
           std::min<std::size_t>(tile_vertices_, vertices_ - tile_base_);
-      tile_accumulators_.assign(
-          tile_size_, GraphAlgorithmPolicy::float_to_word(0.0F));
+      tile_accumulators_.assign(tile_size_, policy_.reduction_identity_word());
       ++counters_.tiles_received;
       break;
     case InputAction::kEdge:

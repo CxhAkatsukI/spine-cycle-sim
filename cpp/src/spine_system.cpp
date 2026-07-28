@@ -907,7 +907,8 @@ SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
   if (logical_graph.vertices != workload.vertices ||
       policy.config().vertices != logical_graph.vertices ||
       (policy.config().kind != GraphAlgorithmKind::kFullPageRank &&
-       policy.config().kind != GraphAlgorithmKind::kResidualPageRank)) {
+       policy.config().kind != GraphAlgorithmKind::kResidualPageRank &&
+       policy.config().kind != GraphAlgorithmKind::kConnectedComponents)) {
     throw std::invalid_argument("invalid Spine PageRank system policy");
   }
   PageRankHostInput host =
@@ -985,7 +986,10 @@ SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
       algorithm_policy_);
   reader_->configure_initial_host_round(host.bins, host.coverage, host.sources);
   compute_ = std::make_unique<SpineSplitPageRankCompute>(
-      "pagerank-compute", clock_id_, *algorithm_policy_, host.out_degrees,
+      "pagerank-compute", clock_id_, *algorithm_policy_,
+      algorithm_policy_->storage_profile().degree_arrays != 0
+          ? std::move(host.out_degrees)
+          : std::vector<std::uint32_t>{},
       *vertex_state_, edge_stream_, value_stream_, pipeline_config,
       compute_memory_request_window,
       SpineSplitPageRankCompute::kDefaultTileVertices,
@@ -1028,10 +1032,12 @@ void SpinePageRankVerticalSliceSystem::restart_iteration() {
   edge_stream_.reset_stats();
   value_stream_.reset_stats();
   if (algorithm_policy_->config().kind ==
-      GraphAlgorithmKind::kResidualPageRank) {
+          GraphAlgorithmKind::kResidualPageRank ||
+      algorithm_policy_->config().kind ==
+          GraphAlgorithmKind::kConnectedComponents) {
     source_refresh_ = compute_->next_active();
     if (source_refresh_.empty()) {
-      throw std::logic_error("converged residual PageRank cannot restart");
+      throw std::logic_error("converged frontier algorithm cannot restart");
     }
     active_bins_payload_ = build_host_active_bins(
         state_, maintenance_config_, source_refresh_, compute_->rank_words());

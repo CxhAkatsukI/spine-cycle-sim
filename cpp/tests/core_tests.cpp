@@ -8275,6 +8275,78 @@ void test_spine_residual_pagerank_tracks_thresholded_frontier() {
           "thresholded residual PageRank failed to converge to its oracle");
 }
 
+void test_spine_connected_components_converges_with_min_labels() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("connected-components-system", 200.0);
+  MockMemoryBackend backend("connected-components-hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 4,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  const SpineEdgeSlice graph{
+      .vertices = 6,
+      .edges = {
+          {.src = 0, .dst = 1, .weight = 1, .diff = 1},
+          {.src = 1, .dst = 0, .weight = 1, .diff = 1},
+          {.src = 1, .dst = 2, .weight = 1, .diff = 1},
+          {.src = 2, .dst = 1, .weight = 1, .diff = 1},
+          {.src = 3, .dst = 4, .weight = 1, .diff = 1},
+          {.src = 4, .dst = 3, .weight = 1, .diff = 1},
+      },
+      .case_name = "connected_components_vertical_slice",
+  };
+  const GraphAlgorithmPolicy policy(AlgorithmPolicyConfig{
+      .kind = GraphAlgorithmKind::kConnectedComponents,
+      .vertices = graph.vertices,
+      .source = 0,
+  });
+  SpinePageRankVerticalSliceSystem system(
+      scheduler, core, backend, graph, policy, SpineL0Config{},
+      SpineAxiInterfaceProfile{}, AlgorithmPipelineConfig{});
+  system.register_components();
+  scheduler.add_component(backend);
+
+  const std::vector<std::vector<std::uint32_t>> expected_frontiers{
+      {1, 2, 4},
+      {2},
+      {},
+  };
+  std::uint64_t total_degree_reads = 0;
+  std::uint64_t total_auxiliary_reads = 0;
+  std::uint64_t total_dangling_reductions = 0;
+  std::size_t rounds = 0;
+  for (; rounds < expected_frontiers.size(); ++rounds) {
+    scheduler.run_until([&] { return system.done() && system.idle(); },
+                        500'000);
+    require(!system.failed() &&
+                system.compute().next_active() == expected_frontiers[rounds],
+            "Spine CC produced the wrong per-round frontier");
+    total_degree_reads += system.compute_counters().degree_read_bytes;
+    total_auxiliary_reads += system.compute_counters().auxiliary_read_bytes;
+    total_dangling_reductions +=
+        system.compute_counters().dangling_reduce_operations;
+    if (!system.compute().next_active().empty()) {
+      system.restart_iteration();
+    }
+  }
+
+  const std::vector<std::uint32_t> expected_labels{0, 0, 0, 3, 3, 5};
+  std::cout << "EVIDENCE spine_connected_components rounds=" << rounds
+            << " cycles=" << scheduler.clock(core).completed_cycles
+            << " final_active=" << system.compute().next_active().size()
+            << " degree_read_bytes=" << total_degree_reads
+            << " auxiliary_read_bytes=" << total_auxiliary_reads
+            << " dangling_reductions=" << total_dangling_reductions << '\n';
+  require(system.compute().rank_words() == expected_labels &&
+              system.compute().next_active().empty() &&
+              total_degree_reads == 0 && total_auxiliary_reads == 0 &&
+              total_dangling_reductions == 0,
+          "Spine CC labels or non-CC memory ledger are wrong");
+}
+
 void test_spine_delta_hls_residual_uses_warm_seed_frontier() {
   Scheduler scheduler;
   const auto core = scheduler.add_clock_mhz("delta-hls-warm-spine", 200.0);
@@ -8536,6 +8608,8 @@ int main(int argc, char **argv) {
        test_spine_dynamic_pagerank_times_only_update_then_final_graph},
       {"spine_residual_pagerank",
        test_spine_residual_pagerank_tracks_thresholded_frontier},
+      {"spine_connected_components",
+       test_spine_connected_components_converges_with_min_labels},
       {"spine_delta_hls_warm_residual",
        test_spine_delta_hls_residual_uses_warm_seed_frontier},
   };

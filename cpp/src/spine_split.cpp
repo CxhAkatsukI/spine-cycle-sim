@@ -1962,7 +1962,9 @@ void SpineSplitReader::advance_fallback() {
     }
     if (algorithm_policy_->config().kind == GraphAlgorithmKind::kFullPageRank ||
         algorithm_policy_->config().kind ==
-            GraphAlgorithmKind::kResidualPageRank) {
+            GraphAlgorithmKind::kResidualPageRank ||
+        algorithm_policy_->config().kind ==
+            GraphAlgorithmKind::kConnectedComponents) {
       const auto source_value =
           source_values_.find(fallback_lookup_.record.source);
       if (source_value == source_values_.end()) {
@@ -3077,9 +3079,11 @@ void SpineSplitReader::advance(const CycleContext &context) {
       counters_.range_task_active_records = total;
       if (total > maintenance_.config().range_task_active_gate) {
         const GraphAlgorithmKind kind = algorithm_policy_->config().kind;
-        const bool pagerank = kind == GraphAlgorithmKind::kFullPageRank ||
-                              kind == GraphAlgorithmKind::kResidualPageRank;
-        if (!pagerank || active_sources_.empty()) {
+        const bool needs_source_refresh =
+            kind == GraphAlgorithmKind::kFullPageRank ||
+            kind == GraphAlgorithmKind::kResidualPageRank ||
+            kind == GraphAlgorithmKind::kConnectedComponents;
+        if (!needs_source_refresh || active_sources_.empty()) {
           start_host_fallback(kRangeTaskFallbackActiveGate);
           return;
         }
