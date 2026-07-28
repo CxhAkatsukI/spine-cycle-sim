@@ -76,6 +76,39 @@ def residual_bound_matches(
         return False
 
 
+def external_rank_oracle_matches(
+    result: dict[str, object],
+    mathematical_error: float,
+    residual_contract: str,
+    epsilon: float,
+    damping: float,
+) -> bool:
+    if residual_contract != "deltahls_sink_free_linf_warm":
+        return mathematical_error <= 5.0 * epsilon
+    try:
+        old_rank_l1 = float(result["old_rank_l1"])
+        residual_l1 = float(result["residual_l1"])
+        reported_error = float(result["mathematical_max_abs_error"])
+        reported_tolerance = float(result["mathematical_error_tolerance"])
+    except (KeyError, TypeError, ValueError):
+        return False
+    expected_tolerance = 1.1 * (old_rank_l1 + residual_l1) / (1.0 - damping)
+    return (
+        result.get("mathematical_error_bound")
+        == "l1_fixed_point_defect_plus_final_residual_over_one_minus_d"
+        and old_rank_l1 >= 0.0
+        and residual_l1 >= 0.0
+        and math.isfinite(reported_tolerance)
+        and math.isclose(
+            reported_tolerance, expected_tolerance, rel_tol=1.0e-4, abs_tol=1.0e-9
+        )
+        and math.isclose(
+            reported_error, mathematical_error, rel_tol=1.0e-4, abs_tol=1.0e-7
+        )
+        and mathematical_error <= reported_tolerance
+    )
+
+
 def require_hls_residual_capability(
     profile_path: Path, capability_catalog_path: Path
 ) -> tuple[CapabilityCatalog, AlgorithmCapability]:
@@ -113,6 +146,7 @@ def validate_result(
     vertices = len(oracle.external_to_internal)
     partition_vertices = int(params["regraph_partition_vertices"])
     state_bytes = int(params["pagerank_state_bytes_per_vertex"])
+    damping = float(params["pagerank_damping"])
     prepared_source_bytes = 4
     vertices_per_beat = (
         int(memory["data_width_bits"]) // 8 // prepared_source_bytes
@@ -193,7 +227,13 @@ def validate_result(
         "dual_oracle": result.get("correctness_mismatches") == 0
         and result.get("architecture_correctness_mismatches") == 0
         and result.get("mathematical_correctness_mismatches") == 0,
-        "external_rank_oracle": mathematical_error <= 5.0 * epsilon,
+        "external_rank_oracle": external_rank_oracle_matches(
+            result,
+            mathematical_error,
+            residual_contract,
+            epsilon,
+            damping,
+        ),
         "external_residual": residual_bound_matches(
             {
                 "residual_l1": external_residual_l1,

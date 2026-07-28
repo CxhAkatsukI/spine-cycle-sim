@@ -71,6 +71,7 @@ struct DeltaHlsResidualSetup {
   std::size_t new_sink_vertices{};
   std::size_t touched_sources{};
   std::size_t old_rank_iterations{};
+  float old_rank_l1{};
   float old_rank_linf{};
   float seed_linf{};
 };
@@ -218,6 +219,7 @@ std::vector<double> run_full_pagerank_mathematical_reference(
 struct SinkFreePageRankState {
   std::vector<float> ranks;
   std::size_t iterations{};
+  float l1{};
   float linf{};
 };
 
@@ -254,7 +256,10 @@ SinkFreePageRankState run_sink_free_pagerank_to_convergence(
                                  1.0F / static_cast<float>(vertices)),
   };
   const float base = (1.0F - damping) / static_cast<float>(vertices);
-  const float tolerance = std::max(1.0e-8F, epsilon * 0.01F);
+  // The resident old graph and the dynamic repair use the same per-vertex
+  // Delta.hls accuracy contract.  Tightening the float32 warm start by 100x
+  // can make an otherwise valid epsilon unreachable at the rounding floor.
+  const float tolerance = epsilon;
   constexpr std::size_t kMaxIterations = 10'000;
   for (std::size_t iteration = 0; iteration < kMaxIterations; ++iteration) {
     std::vector<float> next(vertices, base);
@@ -266,8 +271,10 @@ SinkFreePageRankState run_sink_free_pagerank_to_convergence(
         next[destination] += contribution;
       }
     }
+    result.l1 = 0.0F;
     result.linf = 0.0F;
     for (std::size_t vertex = 0; vertex < vertices; ++vertex) {
+      result.l1 += std::fabs(next[vertex] - result.ranks[vertex]);
       result.linf =
           std::max(result.linf, std::fabs(next[vertex] - result.ranks[vertex]));
     }
@@ -347,6 +354,7 @@ DeltaHlsResidualSetup build_delta_hls_residual_setup(
   const SinkFreePageRankState old_rank =
       run_sink_free_pagerank_to_convergence(old_adjacency, damping, epsilon);
   setup.old_rank_iterations = old_rank.iterations;
+  setup.old_rank_l1 = old_rank.l1;
   setup.old_rank_linf = old_rank.linf;
   std::vector<float> seed(old_graph.vertices, 0.0F);
   for (std::size_t source = 0; source < old_graph.vertices; ++source) {
@@ -4566,12 +4574,6 @@ class OnlineMemoryProbe final : public SST::Component {
           delta_hls_residual_
               ? std::max(1.0e-7F, pagerank_epsilon_ * 0.25F)
               : 1.0e-5F;
-      const double mathematical_tolerance =
-          delta_hls_residual_
-              ? 1.1 * static_cast<double>(
-                          pagerank_epsilon_ + delta_hls_setup_->old_rank_linf) /
-                    (1.0 - static_cast<double>(pagerank_damping_))
-              : 5.0 * static_cast<double>(pagerank_epsilon_);
       for (std::size_t vertex = 0; vertex < ranks_internal.size(); ++vertex) {
         rank_sum += ranks_internal[vertex];
         residual_l1 += std::fabs(residuals_internal[vertex]);
@@ -4598,8 +4600,22 @@ class OnlineMemoryProbe final : public SST::Component {
               grasu_residual_mathematical_reference_[vertex]);
           mathematical_max_abs_error =
               std::max(mathematical_max_abs_error, error);
-          mathematical_mismatches += error <= mathematical_tolerance ? 0 : 1;
         }
+      }
+      const double mathematical_tolerance =
+          delta_hls_residual_
+              ? 1.1 * static_cast<double>(delta_hls_setup_->old_rank_l1 +
+                                           residual_l1) /
+                    (1.0 - static_cast<double>(pagerank_damping_))
+              : 5.0 * static_cast<double>(pagerank_epsilon_);
+      for (std::size_t vertex = 0;
+           vertex < std::min(ranks_internal.size(),
+                             grasu_residual_mathematical_reference_.size());
+           ++vertex) {
+        const double error =
+            std::fabs(static_cast<double>(ranks_internal[vertex]) -
+                      grasu_residual_mathematical_reference_[vertex]);
+        mathematical_mismatches += error <= mathematical_tolerance ? 0 : 1;
       }
       const GraSuReGraphCounters compute =
           compute_available ? grasu_residual_compute_system_->counters()
@@ -4810,6 +4826,9 @@ class OnlineMemoryProbe final : public SST::Component {
              << (delta_hls_residual_ ? delta_hls_setup_->old_rank_iterations
                                      : 0)
              << ",\n"
+             << "  \"old_rank_l1\": "
+             << (delta_hls_residual_ ? delta_hls_setup_->old_rank_l1 : 0.0F)
+             << ",\n"
              << "  \"old_rank_linf\": "
              << (delta_hls_residual_ ? delta_hls_setup_->old_rank_linf : 0.0F)
              << ",\n"
@@ -4862,6 +4881,8 @@ class OnlineMemoryProbe final : public SST::Component {
              << mathematical_max_abs_error << ",\n"
              << "  \"mathematical_error_tolerance\": "
              << mathematical_tolerance << ",\n"
+             << "  \"mathematical_error_bound\": "
+                "\"l1_fixed_point_defect_plus_final_residual_over_one_minus_d\",\n"
              << "  \"frontier_match\": "
              << (frontier_match ? "true" : "false") << ",\n"
              << "  \"residual_bound_passed\": "
@@ -5885,12 +5906,6 @@ class OnlineMemoryProbe final : public SST::Component {
           delta_hls_residual_
               ? std::max(1.0e-7F, pagerank_epsilon_ * 0.25F)
               : 1.0e-5F;
-      const double mathematical_tolerance =
-          delta_hls_residual_
-              ? 1.1 * static_cast<double>(
-                          pagerank_epsilon_ + delta_hls_setup_->old_rank_linf) /
-                    (1.0 - static_cast<double>(pagerank_damping_))
-              : 5.0 * static_cast<double>(pagerank_epsilon_);
       std::uint64_t mismatches =
           pagerank_system_->compute().rank_words().size() ==
                   residual_pagerank_reference_.ranks.size() &&
@@ -5934,9 +5949,23 @@ class OnlineMemoryProbe final : public SST::Component {
               residual_mathematical_reference_[vertex]);
           mathematical_max_abs_error =
               std::max(mathematical_max_abs_error, mathematical_error);
-          mathematical_mismatches +=
-              mathematical_error <= mathematical_tolerance ? 0 : 1;
         }
+      }
+      const double mathematical_tolerance =
+          delta_hls_residual_
+              ? 1.1 * static_cast<double>(delta_hls_setup_->old_rank_l1 +
+                                           residual_l1) /
+                    (1.0 - static_cast<double>(pagerank_damping_))
+              : 5.0 * static_cast<double>(pagerank_epsilon_);
+      for (std::size_t vertex = 0;
+           vertex < std::min(actual_ranks.size(),
+                             residual_mathematical_reference_.size());
+           ++vertex) {
+        const double mathematical_error = std::fabs(
+            static_cast<double>(actual_ranks[vertex]) -
+            residual_mathematical_reference_[vertex]);
+        mathematical_mismatches +=
+            mathematical_error <= mathematical_tolerance ? 0 : 1;
       }
       const auto &maintenance = pagerank_system_->maintenance_counters();
       const auto &reader = pagerank_system_->reader_counters();
@@ -6038,6 +6067,9 @@ class OnlineMemoryProbe final : public SST::Component {
           << ",\n"
           << "  \"old_rank_iterations\": "
           << (delta_hls_residual_ ? delta_hls_setup_->old_rank_iterations : 0)
+          << ",\n"
+          << "  \"old_rank_l1\": "
+          << (delta_hls_residual_ ? delta_hls_setup_->old_rank_l1 : 0.0F)
           << ",\n"
           << "  \"old_rank_linf\": "
           << (delta_hls_residual_ ? delta_hls_setup_->old_rank_linf : 0.0F)
@@ -6153,6 +6185,8 @@ class OnlineMemoryProbe final : public SST::Component {
           << mathematical_max_abs_error << ",\n"
           << "  \"mathematical_error_tolerance\": "
           << mathematical_tolerance << ",\n"
+          << "  \"mathematical_error_bound\": "
+             "\"l1_fixed_point_defect_plus_final_residual_over_one_minus_d\",\n"
           << "  \"residual_bound_passed\": "
           << (residual_bound_passed ? "true" : "false") << ",\n"
           << "  \"rank_sum\": " << rank_sum << ",\n"

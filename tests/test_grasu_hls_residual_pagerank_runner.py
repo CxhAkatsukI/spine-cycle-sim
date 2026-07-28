@@ -6,6 +6,7 @@ import unittest
 from scripts.run_sst_grasu_regraph_hls_residual_pagerank import (
     DEFAULT_CAPABILITY_CATALOG,
     DEFAULT_PROFILE,
+    external_rank_oracle_matches,
     require_hls_residual_capability,
     residual_bound_matches,
 )
@@ -52,6 +53,56 @@ class GraSuHlsResidualPageRankRunnerTests(unittest.TestCase):
         )
         self.assertFalse(
             residual_bound_matches(result, "generic_dangling_l1_cold", 1.0e-4)
+        )
+
+    def test_delta_rank_oracle_uses_fixed_point_defect_bound(self) -> None:
+        result = {
+            "old_rank_l1": 3.0e-5,
+            "residual_l1": 4.0e-5,
+            "mathematical_max_abs_error": 2.0e-5,
+            "mathematical_error_tolerance": 1.1 * 7.0e-5 / 0.15,
+            "mathematical_error_bound": (
+                "l1_fixed_point_defect_plus_final_residual_over_one_minus_d"
+            ),
+        }
+        self.assertTrue(
+            external_rank_oracle_matches(
+                result,
+                2.0e-5,
+                "deltahls_sink_free_linf_warm",
+                1.0e-6,
+                0.85,
+            )
+        )
+
+    def test_delta_rank_oracle_rejects_wrong_bound_label(self) -> None:
+        result = {
+            "old_rank_l1": 3.0e-5,
+            "residual_l1": 4.0e-5,
+            "mathematical_max_abs_error": 2.0e-5,
+            "mathematical_error_tolerance": 1.1 * 7.0e-5 / 0.15,
+            "mathematical_error_bound": "epsilon_over_vertices",
+        }
+        self.assertFalse(
+            external_rank_oracle_matches(
+                result,
+                2.0e-5,
+                "deltahls_sink_free_linf_warm",
+                1.0e-6,
+                0.85,
+            )
+        )
+
+    def test_generic_rank_oracle_keeps_five_epsilon_gate(self) -> None:
+        self.assertTrue(
+            external_rank_oracle_matches(
+                {}, 4.9e-4, "generic_dangling_l1_cold", 1.0e-4, 0.85
+            )
+        )
+        self.assertFalse(
+            external_rank_oracle_matches(
+                {}, 5.1e-4, "generic_dangling_l1_cold", 1.0e-4, 0.85
+            )
         )
 
 
