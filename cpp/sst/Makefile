@@ -2,11 +2,23 @@ CXX ?= g++
 SST_BIN ?= /data/feiyang/sst/bin
 SST_CONFIG := $(SST_BIN)/sst-config
 SST_CXXFLAGS := $(shell $(SST_CONFIG) --ELEMENT_CXXFLAGS)
-SPINE_HOST_OPT_FLAGS ?= -O3 -DNDEBUG -flto
 DRAMSIM3_ROOT ?= $(SPINE_IDLE_DRAMSIM3_SRC)
 
 ROOT := ../..
 BUILD_DIR ?= $(ROOT)/build/sst
+PGO_MODE ?= off
+PGO_PROFILE_DIR ?= $(BUILD_DIR)/pgo-data
+
+ifeq ($(PGO_MODE),off)
+SPINE_HOST_OPT_FLAGS ?= -O3 -DNDEBUG -flto
+else ifeq ($(PGO_MODE),generate)
+SPINE_HOST_OPT_FLAGS ?= -O3 -DNDEBUG -fprofile-generate=$(abspath $(PGO_PROFILE_DIR))
+else ifeq ($(PGO_MODE),use)
+SPINE_HOST_OPT_FLAGS ?= -O3 -DNDEBUG -fprofile-use=$(abspath $(PGO_PROFILE_DIR)) -fprofile-correction -flto
+else
+$(error unsupported PGO_MODE '$(PGO_MODE)'; expected off, generate, or use)
+endif
+
 TARGET := $(BUILD_DIR)/libspine_cycle.so
 INCLUDES := -I$(ROOT)/cpp/include
 CXXFLAGS := $(SST_CXXFLAGS) -std=c++20 $(SPINE_HOST_OPT_FLAGS) -fPIC \
@@ -33,8 +45,17 @@ SOURCES := online_memory_probe.cpp \
            $(ROOT)/cpp/src/spine_system.cpp
 HEADERS := $(wildcard $(ROOT)/cpp/include/spine_sim/*.hpp)
 
-.PHONY: all clean
+.PHONY: all clean pgo-generate pgo-use
 all: $(TARGET)
+
+pgo-generate:
+	mkdir -p $(PGO_PROFILE_DIR)
+	$(MAKE) -B all PGO_MODE=generate BUILD_DIR="$(BUILD_DIR)" PGO_PROFILE_DIR="$(PGO_PROFILE_DIR)"
+
+pgo-use:
+	@test -n "$$(find "$(PGO_PROFILE_DIR)" -type f -name '*.gcda' -print -quit 2>/dev/null)" || \
+		{ echo "error: no PGO training data under $(PGO_PROFILE_DIR)" >&2; exit 2; }
+	$(MAKE) -B all PGO_MODE=use BUILD_DIR="$(BUILD_DIR)" PGO_PROFILE_DIR="$(PGO_PROFILE_DIR)"
 
 $(TARGET): $(SOURCES) $(HEADERS) Makefile
 	mkdir -p $(BUILD_DIR)
