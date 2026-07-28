@@ -282,7 +282,10 @@ def formal_connected_components_fixtures() -> tuple[ConnectedComponentsFixture, 
     pair_graph = _reciprocal_graph(
         "cc_pair_bank_base_v8192", pair_vertices, pair_base_pairs, salt=17
     )
-    bridges = [(2 * component + 1, 2 * (component + 1)) for component in range(pair_count - 1)]
+    bridges = [
+        (2 * ((child - 1) // 2) + 1, 2 * child)
+        for child in range(1, pair_count)
+    ]
     bridges.append((0, pair_vertices - 1))
     for size in CC_BATCH_SIZES:
         update = _reciprocal_update(

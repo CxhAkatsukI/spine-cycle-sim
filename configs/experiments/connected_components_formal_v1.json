@@ -236,12 +236,12 @@
       "physical_records": 16,
       "role": "screening",
       "run_id": "cc_pair_bank_insert_u8",
-      "touched_vertices": 16,
+      "touched_vertices": 12,
       "update": {
         "case_id": "cc_pair_bank_insert_u8",
         "path": "tests/data/connected_components_formal/cc_pair_bank_insert_u8.slice",
         "records": 16,
-        "sha256": "ac801ea3d9149926f163030480709a33ef0dc7acc74b61eb4f1cc98b5d1d249e",
+        "sha256": "5017c50511fdd5435f35c93ba88d4644af0581670e9f66f3e687ceb3f686dcb4",
         "vertices": 8192
       },
       "update_mode": "insertion_incremental_repair",
@@ -265,12 +265,12 @@
       "physical_records": 128,
       "role": "screening",
       "run_id": "cc_pair_bank_insert_u64",
-      "touched_vertices": 128,
+      "touched_vertices": 96,
       "update": {
         "case_id": "cc_pair_bank_insert_u64",
         "path": "tests/data/connected_components_formal/cc_pair_bank_insert_u64.slice",
         "records": 128,
-        "sha256": "fa8042235c5f0dae3d0ef31b81c0748a1c3584729de81cc171e1a076eec73dc5",
+        "sha256": "a46d965c70100a752cd23dea92873d92bc0d75cb11aeaf49eb85d07e8ea2569c",
         "vertices": 8192
       },
       "update_mode": "insertion_incremental_repair",
@@ -294,12 +294,12 @@
       "physical_records": 8192,
       "role": "dense",
       "run_id": "cc_pair_bank_insert_u4096",
-      "touched_vertices": 8192,
+      "touched_vertices": 6145,
       "update": {
         "case_id": "cc_pair_bank_insert_u4096",
         "path": "tests/data/connected_components_formal/cc_pair_bank_insert_u4096.slice",
         "records": 8192,
-        "sha256": "73979b38a16e2ff642baf12dd50b83cdec103b56ff556c5382ba0bda097dc068",
+        "sha256": "b8054a91456f51b9638dcf0db4745a4f15619a7e18988e8f66482825008a32a3",
         "vertices": 8192
       },
       "update_mode": "insertion_incremental_repair",
