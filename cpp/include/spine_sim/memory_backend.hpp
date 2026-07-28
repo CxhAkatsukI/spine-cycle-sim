@@ -9,7 +9,6 @@
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
 #include "spine_sim/component.hpp"
@@ -171,7 +170,7 @@ class MemoryBackend : public Component {
     std::uint8_t value{};
   };
 
-  std::unordered_set<std::uint32_t> initiators_;
+  std::vector<std::uint8_t> initiators_;
   std::unordered_map<std::size_t,
                      std::unordered_map<std::uint64_t, PayloadPage>>
       payload_storage_;

@@ -1522,6 +1522,8 @@ class SpineWordSource final : public Component {
 };
 
 class SstMemoryBackend final : public MemoryBackend {
+  struct InitiatorState;
+
  public:
   SstMemoryBackend(ClockId clock_id,
                    std::vector<SST::Interfaces::StandardMem *> interfaces,
@@ -1561,6 +1563,7 @@ class SstMemoryBackend final : public MemoryBackend {
       ++submit_stalls_;
       return false;
     }
+    InitiatorState &initiator = ensure_initiator_state(request.initiator_id);
     const std::size_t staged_for_channel =
         staged_channel_submissions_[request.channel];
     if (staged_for_channel >= accepts_per_channel_per_cycle_ ||
@@ -1570,7 +1573,10 @@ class SstMemoryBackend final : public MemoryBackend {
       return false;
     }
     ++staged_channel_submissions_[request.channel];
-    ++staged_initiator_submissions_[request.initiator_id];
+    if (initiator.staged_submissions == 0) {
+      active_staged_initiators_.push_back(request.initiator_id);
+    }
+    ++initiator.staged_submissions;
     return true;
   }
 
@@ -1599,36 +1605,36 @@ class SstMemoryBackend final : public MemoryBackend {
 
   [[nodiscard]] std::size_t response_count(
       std::uint32_t initiator_id) const noexcept override {
-    const auto found = responses_.find(initiator_id);
-    return found == responses_.end() ? 0 : found->second.size();
+    const InitiatorState *state = find_initiator_state(initiator_id);
+    return state == nullptr ? 0 : state->responses.size();
   }
 
   [[nodiscard]] const BackendResponse &response_at(
       std::uint32_t initiator_id, std::size_t index) const override {
-    const auto found = responses_.find(initiator_id);
-    if (found == responses_.end() || index >= found->second.size()) {
+    const InitiatorState *state = find_initiator_state(initiator_id);
+    if (state == nullptr || index >= state->responses.size()) {
       throw std::out_of_range("SST backend response index out of range");
     }
-    return found->second[index];
+    return state->responses[index];
   }
 
   [[nodiscard]] const BackendResponse &staged_response_at(
       std::uint32_t initiator_id, std::size_t index) const override {
-    const auto retired = retired_responses_.find(initiator_id);
-    if (retired != retired_responses_.end() &&
-        index < retired->second.size()) {
-      return retired->second[index];
+    const InitiatorState *state = find_initiator_state(initiator_id);
+    if (state != nullptr && index < state->retired_responses.size()) {
+      return state->retired_responses[index];
     }
     return response_at(initiator_id, index);
   }
 
   bool stage_pop_responses(std::uint32_t initiator_id,
                            std::size_t count) override {
-    const std::size_t staged = staged_response_pops_[initiator_id];
-    if (staged != 0 || count > response_count(initiator_id)) {
+    InitiatorState &state = ensure_initiator_state(initiator_id);
+    if (state.staged_response_pop != 0 || count > state.responses.size()) {
       return false;
     }
-    staged_response_pops_[initiator_id] = count;
+    state.staged_response_pop = count;
+    active_response_pops_.push_back(initiator_id);
     return true;
   }
 
@@ -1639,12 +1645,10 @@ class SstMemoryBackend final : public MemoryBackend {
 
   [[nodiscard]] std::size_t outstanding_for(
       std::uint32_t initiator_id) const noexcept override {
-    const auto staged = staged_initiator_submissions_.find(initiator_id);
-    const auto inflight = initiator_outstanding_.find(initiator_id);
-    return (staged == staged_initiator_submissions_.end() ? 0
-                                                          : staged->second) +
+    const InitiatorState *state = find_initiator_state(initiator_id);
+    return (state == nullptr ? 0 : state->staged_submissions) +
            arbiter_.pending_grants_for(initiator_id) +
-           (inflight == initiator_outstanding_.end() ? 0 : inflight->second);
+           (state == nullptr ? 0 : state->outstanding);
   }
 
   [[nodiscard]] bool has_dynamic_prepare_guard() const noexcept override {
@@ -1654,18 +1658,22 @@ class SstMemoryBackend final : public MemoryBackend {
     return true;
   }
   [[nodiscard]] bool prepare_ready() const noexcept override {
-    return !external_arrivals_.empty() || !retired_responses_.empty();
+    return !external_arrivals_.empty() || !active_retired_initiators_.empty();
   }
   [[nodiscard]] bool commit_ready() const noexcept override {
-    return !staged_response_pops_.empty() || !staged_submissions_.empty() ||
+    return !active_response_pops_.empty() || !staged_submissions_.empty() ||
            arbiter_.pending_intents() != 0;
   }
 
   void prepare(const CycleContext &) override {
-    retired_responses_.clear();
+    for (const std::uint32_t initiator_id : active_retired_initiators_) {
+      ensure_initiator_state(initiator_id).retired_responses.clear();
+    }
+    active_retired_initiators_.clear();
     for (auto iterator = external_arrivals_.begin();
          iterator != external_arrivals_.end();) {
-      auto &queue = responses_[iterator->initiator_id];
+      auto &queue =
+          ensure_initiator_state(iterator->initiator_id).responses;
       if (queue.size() >= response_queue_depth_) {
         ++response_queue_stalls_;
         ++iterator;
@@ -1679,17 +1687,21 @@ class SstMemoryBackend final : public MemoryBackend {
   void evaluate(const CycleContext &) override {}
 
   void commit(const CycleContext &) override {
-    for (const auto &[initiator_id, count] : staged_response_pops_) {
-      auto &queue = responses_[initiator_id];
-      auto &retired = retired_responses_[initiator_id];
+    for (const std::uint32_t initiator_id : active_response_pops_) {
+      InitiatorState &state = ensure_initiator_state(initiator_id);
+      const std::size_t count = state.staged_response_pop;
+      auto &queue = state.responses;
+      auto &retired = state.retired_responses;
       retired.clear();
       retired.reserve(count);
       for (std::size_t index = 0; index < count; ++index) {
         retired.push_back(std::move(queue.front()));
         queue.pop_front();
       }
+      state.staged_response_pop = 0;
+      active_retired_initiators_.push_back(initiator_id);
     }
-    staged_response_pops_.clear();
+    active_response_pops_.clear();
 
     for (const BackendRequest &request : staged_submissions_) {
       const std::uint64_t local_address =
@@ -1714,7 +1726,7 @@ class SstMemoryBackend final : public MemoryBackend {
                             .request = request,
                         });
       ++channel_outstanding_[request.channel];
-      ++initiator_outstanding_[request.initiator_id];
+      ++ensure_initiator_state(request.initiator_id).outstanding;
       record_accepted_request(request);
       ++accepted_;
       interfaces_[request.channel]->send(standard_request);
@@ -1722,7 +1734,10 @@ class SstMemoryBackend final : public MemoryBackend {
     staged_submissions_.clear();
     std::fill(staged_channel_submissions_.begin(),
               staged_channel_submissions_.end(), 0);
-    staged_initiator_submissions_.clear();
+    for (const std::uint32_t initiator_id : active_staged_initiators_) {
+      ensure_initiator_state(initiator_id).staged_submissions = 0;
+    }
+    active_staged_initiators_.clear();
     arbiter_.arbitrate(channel_outstanding_, max_outstanding_per_channel_);
     max_outstanding_ = std::max(max_outstanding_, outstanding());
   }
@@ -1754,7 +1769,12 @@ class SstMemoryBackend final : public MemoryBackend {
         .read_data = std::move(read_data),
     });
     --channel_outstanding_[found->second.channel];
-    --initiator_outstanding_[found->second.initiator_id];
+    InitiatorState &initiator =
+        ensure_initiator_state(found->second.initiator_id);
+    if (initiator.outstanding == 0) {
+      throw std::logic_error("SST initiator outstanding count underflow");
+    }
+    --initiator.outstanding;
     inflight_.erase(found);
     delete request;
   }
@@ -1801,6 +1821,39 @@ class SstMemoryBackend final : public MemoryBackend {
   }
 
  private:
+  struct InitiatorState {
+    std::deque<BackendResponse> responses;
+    std::vector<BackendResponse> retired_responses;
+    std::size_t staged_response_pop{};
+    std::size_t staged_submissions{};
+    std::size_t outstanding{};
+  };
+
+  [[nodiscard]] InitiatorState *find_initiator_state(
+      std::uint32_t initiator_id) noexcept {
+    return initiator_id < initiator_states_.size()
+               ? initiator_states_[initiator_id].get()
+               : nullptr;
+  }
+
+  [[nodiscard]] const InitiatorState *find_initiator_state(
+      std::uint32_t initiator_id) const noexcept {
+    return initiator_id < initiator_states_.size()
+               ? initiator_states_[initiator_id].get()
+               : nullptr;
+  }
+
+  InitiatorState &ensure_initiator_state(std::uint32_t initiator_id) {
+    if (initiator_id >= initiator_states_.size()) {
+      initiator_states_.resize(static_cast<std::size_t>(initiator_id) + 1);
+    }
+    std::unique_ptr<InitiatorState> &state = initiator_states_[initiator_id];
+    if (state == nullptr) {
+      state = std::make_unique<InitiatorState>();
+    }
+    return *state;
+  }
+
   struct Inflight {
     std::uint64_t backend_request_id{};
     std::uint32_t initiator_id{};
@@ -1818,17 +1871,14 @@ class SstMemoryBackend final : public MemoryBackend {
   std::vector<std::size_t> channel_outstanding_;
   std::vector<std::size_t> staged_channel_submissions_;
   RegisteredChannelArbiter arbiter_;
-  std::unordered_map<std::uint32_t, std::size_t> initiator_outstanding_;
-  std::unordered_map<std::uint32_t, std::size_t>
-      staged_initiator_submissions_;
+  std::vector<std::unique_ptr<InitiatorState>> initiator_states_;
+  std::vector<std::uint32_t> active_staged_initiators_;
+  std::vector<std::uint32_t> active_response_pops_;
+  std::vector<std::uint32_t> active_retired_initiators_;
   std::vector<BackendRequest> staged_submissions_;
   std::unordered_map<SST::Interfaces::StandardMem::Request::id_t, Inflight>
       inflight_;
   std::deque<BackendResponse> external_arrivals_;
-  std::unordered_map<std::uint32_t, std::deque<BackendResponse>> responses_;
-  std::unordered_map<std::uint32_t, std::vector<BackendResponse>>
-      retired_responses_;
-  std::unordered_map<std::uint32_t, std::size_t> staged_response_pops_;
   std::uint64_t accepted_{};
   std::uint64_t submit_stalls_{};
   std::uint64_t response_queue_stalls_{};

@@ -100,9 +100,13 @@ MemoryTrafficStats subtract_memory_traffic(const MemoryTrafficStats& after,
 }
 
 void MemoryBackend::register_initiator(std::uint32_t initiator_id) {
-  if (!initiators_.insert(initiator_id).second) {
+  if (initiator_id >= initiators_.size()) {
+    initiators_.resize(static_cast<std::size_t>(initiator_id) + 1, 0);
+  }
+  if (initiators_[initiator_id] != 0) {
     throw std::invalid_argument("memory initiator ID is already registered");
   }
+  initiators_[initiator_id] = 1;
 }
 
 bool MemoryBackend::try_submit(const BackendRequest& request) {
@@ -123,7 +127,7 @@ bool MemoryBackend::try_submit(const BackendRequest& request) {
 
 bool MemoryBackend::initiator_registered(
     std::uint32_t initiator_id) const noexcept {
-  return initiators_.contains(initiator_id);
+  return initiator_id < initiators_.size() && initiators_[initiator_id] != 0;
 }
 
 void MemoryBackend::begin_traffic_epoch() noexcept {
