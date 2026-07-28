@@ -1,0 +1,6 @@
+# spine_real_slice_version=1
+# case=cc_pair_bank_insert_u1
+# vertices=8192
+# columns=src dst weight diff
+1 2 27 1
+2 1 27 1

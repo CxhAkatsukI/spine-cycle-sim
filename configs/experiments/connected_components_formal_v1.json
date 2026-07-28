@@ -1,0 +1,484 @@
+{
+  "algorithm_contract": "weakly_connected_min_vertex_reciprocal_v1",
+  "invariants": {
+    "atomic_reciprocal_updates": true,
+    "deletion_full_recompute": true,
+    "dual_oracle_required": true,
+    "insertion_warm_start": true,
+    "minimum_external_vertex_label": true,
+    "one_sided_updates_rejected": true
+  },
+  "limitations": [
+    "Controlled semantic and dense fixtures are synthetic reciprocal graphs.",
+    "The Flickr rows use a compact real-edge slice with deterministic reciprocal closure.",
+    "The frozen Flickr slice begins with 24 components; the manifest records how each batch merges them."
+  ],
+  "matrix_id": "connected_components_formal_v1",
+  "runs": [
+    {
+      "algorithm_contract": "weakly_connected_min_vertex_reciprocal_v1",
+      "effective_mutations": 1,
+      "final_components": 5,
+      "final_edges": 8,
+      "final_labels_sha256": "e693e65e6f19fea31b093a73c294b08dd9b027c269cdb23cb30e50fea09a2565",
+      "graph": {
+        "case_id": "cc_same_component_noop_base",
+        "path": "tests/data/connected_components_formal/cc_same_component_noop_base.slice",
+        "records": 6,
+        "sha256": "8991de7e8f03384849067db283e681ba743351a507dd03c34add854468e49a12",
+        "vertices": 8
+      },
+      "initial_components": 5,
+      "logical_user_mutations": 1,
+      "physical_records": 2,
+      "role": "semantic",
+      "run_id": "cc_same_component_noop",
+      "touched_vertices": 2,
+      "update": {
+        "case_id": "cc_same_component_noop_insert_u1",
+        "path": "tests/data/connected_components_formal/cc_same_component_noop_insert_u1.slice",
+        "records": 2,
+        "sha256": "a00ab2380b1e7d51f9fcadeaf7527bb25fad955cf07166afb2819a4da838b27c",
+        "vertices": 8
+      },
+      "update_mode": "insertion_incremental_repair",
+      "workload_class": "same_component_noop"
+    },
+    {
+      "algorithm_contract": "weakly_connected_min_vertex_reciprocal_v1",
+      "effective_mutations": 1,
+      "final_components": 4,
+      "final_edges": 8,
+      "final_labels_sha256": "20da99480af7c2f4a7c0882c14280956b792848d54681ea9eb3dcd3589f598c9",
+      "graph": {
+        "case_id": "cc_small_component_merge_base",
+        "path": "tests/data/connected_components_formal/cc_small_component_merge_base.slice",
+        "records": 6,
+        "sha256": "a5029ba0734e13db5b8af2d9bfb4e3550baef7a315096934c63085a59c67a63f",
+        "vertices": 8
+      },
+      "initial_components": 5,
+      "logical_user_mutations": 1,
+      "physical_records": 2,
+      "role": "semantic",
+      "run_id": "cc_small_component_merge",
+      "touched_vertices": 2,
+      "update": {
+        "case_id": "cc_small_component_merge_insert_u1",
+        "path": "tests/data/connected_components_formal/cc_small_component_merge_insert_u1.slice",
+        "records": 2,
+        "sha256": "0ff44e203e401ac02a0d641b78d60724cdc5afc8263204a1b3e169347635988c",
+        "vertices": 8
+      },
+      "update_mode": "insertion_incremental_repair",
+      "workload_class": "small_component_merge"
+    },
+    {
+      "algorithm_contract": "weakly_connected_min_vertex_reciprocal_v1",
+      "effective_mutations": 1,
+      "final_components": 31,
+      "final_edges": 66,
+      "final_labels_sha256": "26df3e0bd9e93bd548deeb6dcb574db5c7feb72ebdb744fb202d1004e0ae6aea",
+      "graph": {
+        "case_id": "cc_small_to_large_merge_base",
+        "path": "tests/data/connected_components_formal/cc_small_to_large_merge_base.slice",
+        "records": 64,
+        "sha256": "aa8947fcd4ce2fd36774c862502f1e70d617b8f6da6fc54e791eb9a6d5e1e3bf",
+        "vertices": 64
+      },
+      "initial_components": 32,
+      "logical_user_mutations": 1,
+      "physical_records": 2,
+      "role": "semantic",
+      "run_id": "cc_small_to_large_merge",
+      "touched_vertices": 2,
+      "update": {
+        "case_id": "cc_small_to_large_merge_insert_u1",
+        "path": "tests/data/connected_components_formal/cc_small_to_large_merge_insert_u1.slice",
+        "records": 2,
+        "sha256": "6c23a439fc0edc8792d23c67eb80eaae69f79cfdb39f6050b91f0331ab41954d",
+        "vertices": 64
+      },
+      "update_mode": "insertion_incremental_repair",
+      "workload_class": "small_to_large_merge"
+    },
+    {
+      "algorithm_contract": "weakly_connected_min_vertex_reciprocal_v1",
+      "effective_mutations": 1,
+      "final_components": 33,
+      "final_edges": 190,
+      "final_labels_sha256": "d1e092d71aecdd36b175764af4fb84e1f31de59998025dc0014a4c7c5aa7188c",
+      "graph": {
+        "case_id": "cc_large_component_merge_base",
+        "path": "tests/data/connected_components_formal/cc_large_component_merge_base.slice",
+        "records": 188,
+        "sha256": "9f7836a30d07c2f7b62e4cc13429d90e313c8568ab2ff3e9937293319f28153e",
+        "vertices": 128
+      },
+      "initial_components": 34,
+      "logical_user_mutations": 1,
+      "physical_records": 2,
+      "role": "semantic",
+      "run_id": "cc_large_component_merge",
+      "touched_vertices": 2,
+      "update": {
+        "case_id": "cc_large_component_merge_insert_u1",
+        "path": "tests/data/connected_components_formal/cc_large_component_merge_insert_u1.slice",
+        "records": 2,
+        "sha256": "f9128e074e856577cd8d3894a6d6d6df4742ebffaa82ce487ae710316082060d",
+        "vertices": 128
+      },
+      "update_mode": "insertion_incremental_repair",
+      "workload_class": "large_component_merge"
+    },
+    {
+      "algorithm_contract": "weakly_connected_min_vertex_reciprocal_v1",
+      "effective_mutations": 1,
+      "final_components": 3,
+      "final_edges": 510,
+      "final_labels_sha256": "5ab6067229b839ff1fd3afe81d0d23b629f64f0fd3d4e3550cd333453f4374b3",
+      "graph": {
+        "case_id": "cc_hub_bridge_base",
+        "path": "tests/data/connected_components_formal/cc_hub_bridge_base.slice",
+        "records": 508,
+        "sha256": "890d76964f72fe8ef5df19c986c6b32c9e37410355693996ac657c6102a6587f",
+        "vertices": 258
+      },
+      "initial_components": 4,
+      "logical_user_mutations": 1,
+      "physical_records": 2,
+      "role": "semantic",
+      "run_id": "cc_hub_bridge",
+      "touched_vertices": 2,
+      "update": {
+        "case_id": "cc_hub_bridge_insert_u1",
+        "path": "tests/data/connected_components_formal/cc_hub_bridge_insert_u1.slice",
+        "records": 2,
+        "sha256": "86cea242b22dae4683a0758b3a4e3440fc38def91a6a3c9c2fb03831288f0c7c",
+        "vertices": 258
+      },
+      "update_mode": "insertion_incremental_repair",
+      "workload_class": "hub_bridge"
+    },
+    {
+      "algorithm_contract": "weakly_connected_min_vertex_reciprocal_v1",
+      "effective_mutations": 0,
+      "final_components": 6,
+      "final_edges": 4,
+      "final_labels_sha256": "c8ec2e7c67e7503082224ea8d55c8ba277113d92abc8fc107c9d972a332d231b",
+      "graph": {
+        "case_id": "cc_zero_net_base",
+        "path": "tests/data/connected_components_formal/cc_zero_net_base.slice",
+        "records": 4,
+        "sha256": "0773e0c88f1e018326d33d29059e76cd9ec3d66177e068f8dc7c233230690b58",
+        "vertices": 8
+      },
+      "initial_components": 6,
+      "logical_user_mutations": 2,
+      "physical_records": 4,
+      "role": "semantic",
+      "run_id": "cc_zero_net",
+      "touched_vertices": 2,
+      "update": {
+        "case_id": "cc_zero_net_delete_then_reinsert_u2",
+        "path": "tests/data/connected_components_formal/cc_zero_net_delete_then_reinsert_u2.slice",
+        "records": 4,
+        "sha256": "5e0001cd0b77771f3f65ce11e0149a433ec6a377f4850c3cc5e5333521dd449e",
+        "vertices": 8
+      },
+      "update_mode": "zero_net_no_repair",
+      "workload_class": "zero_net_no_analytic_version"
+    },
+    {
+      "algorithm_contract": "weakly_connected_min_vertex_reciprocal_v1",
+      "effective_mutations": 1,
+      "final_components": 4095,
+      "final_edges": 8194,
+      "final_labels_sha256": "8557abe3516e9c1bee40f5d370f449fa594b01ccaf35b2302ff4263ded023e2e",
+      "graph": {
+        "case_id": "cc_pair_bank_base_v8192",
+        "path": "tests/data/connected_components_formal/cc_pair_bank_base_v8192.slice",
+        "records": 8192,
+        "sha256": "11b18556655beedcbbedcf7f1bf138201e5ac157cf708b3b52a6d301e99faac0",
+        "vertices": 8192
+      },
+      "initial_components": 4096,
+      "logical_user_mutations": 1,
+      "physical_records": 2,
+      "role": "screening",
+      "run_id": "cc_pair_bank_insert_u1",
+      "touched_vertices": 2,
+      "update": {
+        "case_id": "cc_pair_bank_insert_u1",
+        "path": "tests/data/connected_components_formal/cc_pair_bank_insert_u1.slice",
+        "records": 2,
+        "sha256": "ae7de24063608003e7463ac6311c9e40cd721f4fed24375257bdaab58dfa77a7",
+        "vertices": 8192
+      },
+      "update_mode": "insertion_incremental_repair",
+      "workload_class": "dense_nested_component_merge"
+    },
+    {
+      "algorithm_contract": "weakly_connected_min_vertex_reciprocal_v1",
+      "effective_mutations": 8,
+      "final_components": 4088,
+      "final_edges": 8208,
+      "final_labels_sha256": "1e221b7029a7264981a9c2f60dcc7d5e0eaf4b50b792d2e162e74041bd178ea2",
+      "graph": {
+        "case_id": "cc_pair_bank_base_v8192",
+        "path": "tests/data/connected_components_formal/cc_pair_bank_base_v8192.slice",
+        "records": 8192,
+        "sha256": "11b18556655beedcbbedcf7f1bf138201e5ac157cf708b3b52a6d301e99faac0",
+        "vertices": 8192
+      },
+      "initial_components": 4096,
+      "logical_user_mutations": 8,
+      "physical_records": 16,
+      "role": "screening",
+      "run_id": "cc_pair_bank_insert_u8",
+      "touched_vertices": 16,
+      "update": {
+        "case_id": "cc_pair_bank_insert_u8",
+        "path": "tests/data/connected_components_formal/cc_pair_bank_insert_u8.slice",
+        "records": 16,
+        "sha256": "ac801ea3d9149926f163030480709a33ef0dc7acc74b61eb4f1cc98b5d1d249e",
+        "vertices": 8192
+      },
+      "update_mode": "insertion_incremental_repair",
+      "workload_class": "dense_nested_component_merge"
+    },
+    {
+      "algorithm_contract": "weakly_connected_min_vertex_reciprocal_v1",
+      "effective_mutations": 64,
+      "final_components": 4032,
+      "final_edges": 8320,
+      "final_labels_sha256": "f596a85cef236af3c90e4f3838336f0dfc694182ebb2c1095c3bb2f49c86b3e1",
+      "graph": {
+        "case_id": "cc_pair_bank_base_v8192",
+        "path": "tests/data/connected_components_formal/cc_pair_bank_base_v8192.slice",
+        "records": 8192,
+        "sha256": "11b18556655beedcbbedcf7f1bf138201e5ac157cf708b3b52a6d301e99faac0",
+        "vertices": 8192
+      },
+      "initial_components": 4096,
+      "logical_user_mutations": 64,
+      "physical_records": 128,
+      "role": "screening",
+      "run_id": "cc_pair_bank_insert_u64",
+      "touched_vertices": 128,
+      "update": {
+        "case_id": "cc_pair_bank_insert_u64",
+        "path": "tests/data/connected_components_formal/cc_pair_bank_insert_u64.slice",
+        "records": 128,
+        "sha256": "fa8042235c5f0dae3d0ef31b81c0748a1c3584729de81cc171e1a076eec73dc5",
+        "vertices": 8192
+      },
+      "update_mode": "insertion_incremental_repair",
+      "workload_class": "dense_nested_component_merge"
+    },
+    {
+      "algorithm_contract": "weakly_connected_min_vertex_reciprocal_v1",
+      "effective_mutations": 4096,
+      "final_components": 1,
+      "final_edges": 16384,
+      "final_labels_sha256": "acfae9143ff2c3b79ee9ff7d91934fc8b315eda8e655af1a312d84a5ed841e7b",
+      "graph": {
+        "case_id": "cc_pair_bank_base_v8192",
+        "path": "tests/data/connected_components_formal/cc_pair_bank_base_v8192.slice",
+        "records": 8192,
+        "sha256": "11b18556655beedcbbedcf7f1bf138201e5ac157cf708b3b52a6d301e99faac0",
+        "vertices": 8192
+      },
+      "initial_components": 4096,
+      "logical_user_mutations": 4096,
+      "physical_records": 8192,
+      "role": "dense",
+      "run_id": "cc_pair_bank_insert_u4096",
+      "touched_vertices": 8192,
+      "update": {
+        "case_id": "cc_pair_bank_insert_u4096",
+        "path": "tests/data/connected_components_formal/cc_pair_bank_insert_u4096.slice",
+        "records": 8192,
+        "sha256": "73979b38a16e2ff642baf12dd50b83cdec103b56ff556c5382ba0bda097dc068",
+        "vertices": 8192
+      },
+      "update_mode": "insertion_incremental_repair",
+      "workload_class": "dense_nested_component_merge"
+    },
+    {
+      "algorithm_contract": "weakly_connected_min_vertex_reciprocal_v1",
+      "effective_mutations": 8,
+      "final_components": 9,
+      "final_edges": 242,
+      "final_labels_sha256": "4a641bce88d0234cad7928269fea722a30ea736fe292ce10d52e7d3708e9dde8",
+      "graph": {
+        "case_id": "cc_deletion_chain_base_v130",
+        "path": "tests/data/connected_components_formal/cc_deletion_chain_base_v130.slice",
+        "records": 258,
+        "sha256": "0b6a307f0852ee273ff152f3989cb7432895cd7e0082748532ad9b11df6c7402",
+        "vertices": 130
+      },
+      "initial_components": 1,
+      "logical_user_mutations": 8,
+      "physical_records": 16,
+      "role": "fallback",
+      "run_id": "cc_deletion_chain_delete_u8",
+      "touched_vertices": 16,
+      "update": {
+        "case_id": "cc_deletion_chain_delete_u8",
+        "path": "tests/data/connected_components_formal/cc_deletion_chain_delete_u8.slice",
+        "records": 16,
+        "sha256": "4cda910aae726994a4e44c4139c5e949a693e22ab9d62efaff9c357c18104841",
+        "vertices": 130
+      },
+      "update_mode": "deletion_full_recompute",
+      "workload_class": "reciprocal_deletion_full_recompute"
+    },
+    {
+      "algorithm_contract": "weakly_connected_min_vertex_reciprocal_v1",
+      "effective_mutations": 64,
+      "final_components": 65,
+      "final_edges": 130,
+      "final_labels_sha256": "cd8301ffce304963bde88cfe14030563c70b853ba948695a59d1582c530a6d32",
+      "graph": {
+        "case_id": "cc_deletion_chain_base_v130",
+        "path": "tests/data/connected_components_formal/cc_deletion_chain_base_v130.slice",
+        "records": 258,
+        "sha256": "0b6a307f0852ee273ff152f3989cb7432895cd7e0082748532ad9b11df6c7402",
+        "vertices": 130
+      },
+      "initial_components": 1,
+      "logical_user_mutations": 64,
+      "physical_records": 128,
+      "role": "fallback",
+      "run_id": "cc_deletion_chain_delete_u64",
+      "touched_vertices": 128,
+      "update": {
+        "case_id": "cc_deletion_chain_delete_u64",
+        "path": "tests/data/connected_components_formal/cc_deletion_chain_delete_u64.slice",
+        "records": 128,
+        "sha256": "36e4d3eb0db859bd30ecb6da4afffa09fd5b7ab13782be48373a4851bd3d979c",
+        "vertices": 130
+      },
+      "update_mode": "deletion_full_recompute",
+      "workload_class": "reciprocal_deletion_full_recompute"
+    },
+    {
+      "algorithm_contract": "weakly_connected_min_vertex_reciprocal_v1",
+      "effective_mutations": 1,
+      "final_components": 23,
+      "final_edges": 8194,
+      "final_labels_sha256": "c9c00e6210522e61db5cb7be29c769ae302cf9896975cd995386fac536dcdedb",
+      "graph": {
+        "case_id": "real_soc_flickr_und_reciprocal_sinkfree",
+        "path": "tests/data/connected_components_formal/real_soc_flickr_und_reciprocal_sinkfree.slice",
+        "records": 8192,
+        "sha256": "5e14bc0dafa2dcf5a02b66b715a4cd8c80a38ae71b7c388d9a764d128ff3cb2b",
+        "vertices": 2552
+      },
+      "initial_components": 24,
+      "logical_user_mutations": 1,
+      "physical_records": 2,
+      "role": "real_screening",
+      "run_id": "cc_real_soc_flickr_insert_u1",
+      "touched_vertices": 2,
+      "update": {
+        "case_id": "real_soc_flickr_und_reciprocal_sinkfree_insert_u1",
+        "path": "tests/data/connected_components_formal/real_soc_flickr_und_reciprocal_sinkfree_insert_u1.slice",
+        "records": 2,
+        "sha256": "a1ad1f285719ef60b8c06e265cc10e88bb31179cadd3b162576d3686e3119388",
+        "vertices": 2552
+      },
+      "update_mode": "insertion_incremental_repair",
+      "workload_class": "real_topology_component_merge"
+    },
+    {
+      "algorithm_contract": "weakly_connected_min_vertex_reciprocal_v1",
+      "effective_mutations": 8,
+      "final_components": 17,
+      "final_edges": 8208,
+      "final_labels_sha256": "86b411bbfb8c23b75680f51528a0efcb56c6ee39a94bbdb00719a8d8d744894a",
+      "graph": {
+        "case_id": "real_soc_flickr_und_reciprocal_sinkfree",
+        "path": "tests/data/connected_components_formal/real_soc_flickr_und_reciprocal_sinkfree.slice",
+        "records": 8192,
+        "sha256": "5e14bc0dafa2dcf5a02b66b715a4cd8c80a38ae71b7c388d9a764d128ff3cb2b",
+        "vertices": 2552
+      },
+      "initial_components": 24,
+      "logical_user_mutations": 8,
+      "physical_records": 16,
+      "role": "real_screening",
+      "run_id": "cc_real_soc_flickr_insert_u8",
+      "touched_vertices": 11,
+      "update": {
+        "case_id": "real_soc_flickr_und_reciprocal_sinkfree_insert_u8",
+        "path": "tests/data/connected_components_formal/real_soc_flickr_und_reciprocal_sinkfree_insert_u8.slice",
+        "records": 16,
+        "sha256": "7b463fcb6d1bd4e9e7e58f2d03a93faabf6b0d90845dca965927e7f57c1a9fbf",
+        "vertices": 2552
+      },
+      "update_mode": "insertion_incremental_repair",
+      "workload_class": "real_topology_component_merge"
+    },
+    {
+      "algorithm_contract": "weakly_connected_min_vertex_reciprocal_v1",
+      "effective_mutations": 64,
+      "final_components": 9,
+      "final_edges": 8320,
+      "final_labels_sha256": "07c3bb681344a997af163649e4abf675dddedf0a7d0d6720083bb639962598a3",
+      "graph": {
+        "case_id": "real_soc_flickr_und_reciprocal_sinkfree",
+        "path": "tests/data/connected_components_formal/real_soc_flickr_und_reciprocal_sinkfree.slice",
+        "records": 8192,
+        "sha256": "5e14bc0dafa2dcf5a02b66b715a4cd8c80a38ae71b7c388d9a764d128ff3cb2b",
+        "vertices": 2552
+      },
+      "initial_components": 24,
+      "logical_user_mutations": 64,
+      "physical_records": 128,
+      "role": "real_screening",
+      "run_id": "cc_real_soc_flickr_insert_u64",
+      "touched_vertices": 85,
+      "update": {
+        "case_id": "real_soc_flickr_und_reciprocal_sinkfree_insert_u64",
+        "path": "tests/data/connected_components_formal/real_soc_flickr_und_reciprocal_sinkfree_insert_u64.slice",
+        "records": 128,
+        "sha256": "82ff3ee91f5ec8a6bd390f0d44dd2b3f0b36ce0f246649f93662d215dbf4c1d4",
+        "vertices": 2552
+      },
+      "update_mode": "insertion_incremental_repair",
+      "workload_class": "real_topology_component_merge"
+    },
+    {
+      "algorithm_contract": "weakly_connected_min_vertex_reciprocal_v1",
+      "effective_mutations": 4096,
+      "final_components": 1,
+      "final_edges": 16384,
+      "final_labels_sha256": "3dbe38cd0f3049d133b65eaf7f6cb3e0903558855689ff1ef9c7613f8101720f",
+      "graph": {
+        "case_id": "real_soc_flickr_und_reciprocal_sinkfree",
+        "path": "tests/data/connected_components_formal/real_soc_flickr_und_reciprocal_sinkfree.slice",
+        "records": 8192,
+        "sha256": "5e14bc0dafa2dcf5a02b66b715a4cd8c80a38ae71b7c388d9a764d128ff3cb2b",
+        "vertices": 2552
+      },
+      "initial_components": 24,
+      "logical_user_mutations": 4096,
+      "physical_records": 8192,
+      "role": "real_dense",
+      "run_id": "cc_real_soc_flickr_insert_u4096",
+      "touched_vertices": 2461,
+      "update": {
+        "case_id": "real_soc_flickr_und_reciprocal_sinkfree_insert_u4096",
+        "path": "tests/data/connected_components_formal/real_soc_flickr_und_reciprocal_sinkfree_insert_u4096.slice",
+        "records": 8192,
+        "sha256": "c493a00c58d1ed6d3befefe270c3b7d743bbbfdc9f8d2c100f57a5a289eee5b5",
+        "vertices": 2552
+      },
+      "update_mode": "insertion_incremental_repair",
+      "workload_class": "real_topology_component_merge"
+    }
+  ],
+  "schema_version": 1
+}
