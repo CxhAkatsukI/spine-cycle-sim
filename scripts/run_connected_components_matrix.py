@@ -94,8 +94,8 @@ def _run_case(
         "iterations": result["iterations"],
         "active_edges": result["active_edges"],
         "backend_requests": result["backend_requests"],
-        "read_bytes": traffic.get("read_bytes", 0),
-        "write_bytes": traffic.get("write_bytes", 0),
+        "read_bytes": traffic.get("reads", {}).get("bytes", 0),
+        "write_bytes": traffic.get("writes", {}).get("bytes", 0),
         "hbm_queue_stalls": result.get("backend_submit_stalls", 0),
         "hbm_response_queue_stalls": result.get(
             "backend_response_queue_stalls", 0

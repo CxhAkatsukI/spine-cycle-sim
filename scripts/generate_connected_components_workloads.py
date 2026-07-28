@@ -22,6 +22,8 @@ from spine_cycle_sim.experiments.connected_components_workloads import (  # noqa
     materialize_reciprocal_update,
 )
 from spine_cycle_sim.experiments.shared_workloads import (  # noqa: E402
+    SliceGraph,
+    SliceRecord,
     load_slice,
     sha256_file,
     write_slice,
@@ -50,7 +52,7 @@ def _real_fixtures() -> tuple[ConnectedComponentsFixture, ...]:
     if not REAL_BASE.is_file() or any(not path.is_file() for path in REAL_UPDATES):
         return ()
     graph = load_slice(REAL_BASE)
-    return tuple(
+    fixtures = tuple(
         ConnectedComponentsFixture(
             fixture_id=f"cc_real_soc_flickr_insert_u{len(update.records) // 2}",
             workload_class="real_topology_component_merge",
@@ -59,6 +61,46 @@ def _real_fixtures() -> tuple[ConnectedComponentsFixture, ...]:
             update=update,
         )
         for update in (load_slice(path) for path in REAL_UPDATES)
+    )
+    unit_update = load_slice(REAL_UPDATES[0])
+    partition_span = 65_536
+    replicas = 4
+    replicated_graph = SliceGraph(
+        "cc_real_soc_flickr_replicated_p4_base",
+        partition_span * replicas,
+        tuple(
+            SliceRecord(
+                edge.src + replica * partition_span,
+                edge.dst + replica * partition_span,
+                edge.weight,
+                edge.diff,
+            )
+            for replica in range(replicas)
+            for edge in graph.records
+        ),
+    )
+    replicated_update = SliceGraph(
+        "cc_real_soc_flickr_replicated_p4_insert_u4",
+        partition_span * replicas,
+        tuple(
+            SliceRecord(
+                edge.src + replica * partition_span,
+                edge.dst + replica * partition_span,
+                edge.weight,
+                edge.diff,
+            )
+            for replica in range(replicas)
+            for edge in unit_update.records
+        ),
+    )
+    return fixtures + (
+        ConnectedComponentsFixture(
+            fixture_id="cc_real_soc_flickr_replicated_p4_insert_u4",
+            workload_class="replicated_real_topology_four_partition",
+            role="scalability",
+            graph=replicated_graph,
+            update=replicated_update,
+        ),
     )
 
 

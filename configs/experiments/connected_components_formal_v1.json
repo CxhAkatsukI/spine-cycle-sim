@@ -478,6 +478,35 @@
       },
       "update_mode": "insertion_incremental_repair",
       "workload_class": "real_topology_component_merge"
+    },
+    {
+      "algorithm_contract": "weakly_connected_min_vertex_reciprocal_v1",
+      "effective_mutations": 4,
+      "final_components": 252028,
+      "final_edges": 32776,
+      "final_labels_sha256": "6dec78d2ecf4dcb6ff5100dc6ce59223b93c8e1f5cc558ef0f76ab9373d4f304",
+      "graph": {
+        "case_id": "cc_real_soc_flickr_replicated_p4_base",
+        "path": "tests/data/connected_components_formal/cc_real_soc_flickr_replicated_p4_base.slice",
+        "records": 32768,
+        "sha256": "e466d7cba09532034bb91f494eb3f5a9cbe43916fc1a337d14db326189721d3a",
+        "vertices": 262144
+      },
+      "initial_components": 252032,
+      "logical_user_mutations": 4,
+      "physical_records": 8,
+      "role": "scalability",
+      "run_id": "cc_real_soc_flickr_replicated_p4_insert_u4",
+      "touched_vertices": 8,
+      "update": {
+        "case_id": "cc_real_soc_flickr_replicated_p4_insert_u4",
+        "path": "tests/data/connected_components_formal/cc_real_soc_flickr_replicated_p4_insert_u4.slice",
+        "records": 8,
+        "sha256": "861c70d8f3e5f4fee89f215f4b907f6a14b1460883c8a87da64f6a21e1a8faa9",
+        "vertices": 262144
+      },
+      "update_mode": "insertion_incremental_repair",
+      "workload_class": "replicated_real_topology_four_partition"
     }
   ],
   "schema_version": 1
