@@ -8,6 +8,15 @@ ROOT := ../..
 BUILD_DIR ?= $(ROOT)/build/sst
 PGO_MODE ?= off
 PGO_PROFILE_DIR ?= $(BUILD_DIR)/pgo-data
+NATIVE_HOST ?= 0
+
+ifeq ($(NATIVE_HOST),0)
+SPINE_HOST_ARCH_FLAGS ?=
+else ifeq ($(NATIVE_HOST),1)
+SPINE_HOST_ARCH_FLAGS ?= -march=native -fno-semantic-interposition
+else
+$(error unsupported NATIVE_HOST '$(NATIVE_HOST)'; expected 0 or 1)
+endif
 
 ifeq ($(PGO_MODE),off)
 SPINE_HOST_OPT_FLAGS ?= -O3 -DNDEBUG -flto
@@ -21,7 +30,8 @@ endif
 
 TARGET := $(BUILD_DIR)/libspine_cycle.so
 INCLUDES := -I$(ROOT)/cpp/include
-CXXFLAGS := $(SST_CXXFLAGS) -std=c++20 $(SPINE_HOST_OPT_FLAGS) -fPIC \
+CXXFLAGS := $(SST_CXXFLAGS) -std=c++20 $(SPINE_HOST_OPT_FLAGS) \
+            $(SPINE_HOST_ARCH_FLAGS) -fPIC \
             -Wall -Wextra -Wpedantic $(INCLUDES)
 LDFLAGS :=
 ifneq ($(strip $(DRAMSIM3_ROOT)),)
@@ -45,8 +55,12 @@ SOURCES := online_memory_probe.cpp \
            $(ROOT)/cpp/src/spine_system.cpp
 HEADERS := $(wildcard $(ROOT)/cpp/include/spine_sim/*.hpp)
 
-.PHONY: all clean pgo-generate pgo-use
+.PHONY: all clean native pgo-generate pgo-use pgo-native-generate \
+        pgo-native-use
 all: $(TARGET)
+
+native:
+	$(MAKE) -B all NATIVE_HOST=1 BUILD_DIR="$(BUILD_DIR)"
 
 pgo-generate:
 	mkdir -p $(PGO_PROFILE_DIR)
@@ -56,6 +70,14 @@ pgo-use:
 	@test -n "$$(find "$(PGO_PROFILE_DIR)" -type f -name '*.gcda' -print -quit 2>/dev/null)" || \
 		{ echo "error: no PGO training data under $(PGO_PROFILE_DIR)" >&2; exit 2; }
 	$(MAKE) -B all PGO_MODE=use BUILD_DIR="$(BUILD_DIR)" PGO_PROFILE_DIR="$(PGO_PROFILE_DIR)"
+
+pgo-native-generate:
+	$(MAKE) pgo-generate NATIVE_HOST=1 BUILD_DIR="$(BUILD_DIR)" \
+		PGO_PROFILE_DIR="$(PGO_PROFILE_DIR)"
+
+pgo-native-use:
+	$(MAKE) pgo-use NATIVE_HOST=1 BUILD_DIR="$(BUILD_DIR)" \
+		PGO_PROFILE_DIR="$(PGO_PROFILE_DIR)"
 
 $(TARGET): $(SOURCES) $(HEADERS) Makefile
 	mkdir -p $(BUILD_DIR)
