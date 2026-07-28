@@ -137,6 +137,7 @@ def validate_result(
     residual_contract: str,
     epsilon: float,
     max_iterations: int,
+    downstream_sharing: str,
 ) -> None:
     params = profile["parameters"]
     memory = profile["memory"]
@@ -263,6 +264,19 @@ def validate_result(
         == destination_partitions,
         "pipelines": result.get("compute_pipelines")
         == int(params.get("regraph_compute_pipelines", 1)),
+        "downstream_sharing": result.get("downstream_sharing")
+        == downstream_sharing,
+        "downstream_parallelism": result.get(
+            "max_parallel_downstream_partitions"
+        )
+        == (
+            min(
+                int(params.get("regraph_compute_pipelines", 1)),
+                destination_partitions,
+            )
+            if downstream_sharing == "direct"
+            else 1
+        ),
         "degree_reads": result.get("source_prepare_degree_reads")
         == source_prepare_degree_reads
         and result.get("degree_reads") == source_prepare_degree_reads + bursts,
@@ -320,6 +334,9 @@ def main() -> int:
     )
     parser.add_argument("--pagerank-epsilon", type=float)
     parser.add_argument("--residual-max-iterations", type=int)
+    parser.add_argument(
+        "--downstream-sharing", choices=("direct", "shared"), default="direct"
+    )
     parser.add_argument("--no-build", action="store_true")
     parser.add_argument(
         "--reuse-result",
@@ -433,6 +450,9 @@ def main() -> int:
             ),
             "GRASU_SST_COMPUTE_PIPELINES": str(
                 params.get("regraph_compute_pipelines", 1)
+            ),
+            "GRASU_SST_SHARED_DOWNSTREAM": (
+                "1" if args.downstream_sharing == "shared" else "0"
             ),
             "GRASU_SST_SOURCE_BUFFER_VERTICES": str(
                 params["regraph_source_buffer_vertices"]
@@ -557,6 +577,7 @@ def main() -> int:
         residual_contract=args.residual_contract,
         epsilon=epsilon,
         max_iterations=max_iterations,
+        downstream_sharing=args.downstream_sharing,
     )
     dram = load_dram_stats(dram_dir)
     if (
@@ -574,6 +595,7 @@ def main() -> int:
         "residual_contract": args.residual_contract,
         "pagerank_epsilon": epsilon,
         "residual_max_iterations": max_iterations,
+        "downstream_sharing": args.downstream_sharing,
         "workload": str(args.workload.resolve()),
         "workload_sha256": sha256(args.workload.resolve()),
         "update_workload": str(args.update_workload.resolve()),

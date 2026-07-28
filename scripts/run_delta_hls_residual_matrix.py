@@ -126,6 +126,8 @@ def _command(
             str(args.grasu_profile.resolve()),
             "--capability-catalog",
             str(args.capability_catalog.resolve()),
+            "--downstream-sharing",
+            args.downstream_sharing,
             *common,
         ]
     raise ValueError(f"unknown architecture: {architecture}")
@@ -253,6 +255,29 @@ def _validate_result(
         "shape": result.get("vertices") == vertices
         and result.get("initial_edges") == run["graph"]["records"],
     }
+    if architecture == "grasu_regraph":
+        expected_pipelines = int(
+            json.loads(args.grasu_profile.read_text())["parameters"].get(
+                "regraph_compute_pipelines", 1
+            )
+        )
+        destination_partitions = int(result.get("destination_partitions", 0))
+        checks.update(
+            {
+                "compute_pipelines": result.get("compute_pipelines")
+                == expected_pipelines,
+                "downstream_sharing": result.get("downstream_sharing")
+                == args.downstream_sharing,
+                "downstream_parallelism": result.get(
+                    "max_parallel_downstream_partitions"
+                )
+                == (
+                    min(expected_pipelines, destination_partitions)
+                    if args.downstream_sharing == "direct"
+                    else 1
+                ),
+            }
+        )
     failed = [name for name, passed in checks.items() if not passed]
     if failed:
         raise RuntimeError(f"{run['run_id']}/{architecture} failed gates: {failed}")
@@ -308,6 +333,10 @@ def _run_case(
         "run_id": run["run_id"],
         "role": run["role"],
         "architecture": architecture,
+        "compute_pipelines": int(result.get("compute_pipelines", 1)),
+        "downstream_sharing": result.get(
+            "downstream_sharing", "spine_native"
+        ),
         "residual_contract": DELTA_CONTRACT,
         "epsilon": epsilon,
         "damping": DAMPING,
@@ -409,6 +438,9 @@ def main() -> int:
     parser.add_argument("--role", action="append", dest="roles")
     parser.add_argument("--epsilon", action="append", type=float, dest="epsilons")
     parser.add_argument("--architecture", action="append", dest="architectures")
+    parser.add_argument(
+        "--downstream-sharing", choices=("direct", "shared"), default="direct"
+    )
     parser.add_argument("--jobs", type=int, default=2)
     parser.add_argument("--timeout-seconds", type=float, default=3600.0)
     parser.add_argument("--max-cycles", type=int, default=1_000_000_000)
@@ -491,6 +523,7 @@ def main() -> int:
         "spine_profile_sha256": sha256_file(args.spine_profile.resolve()),
         "grasu_profile_sha256": sha256_file(args.grasu_profile.resolve()),
         "capability_catalog_sha256": sha256_file(args.capability_catalog.resolve()),
+        "grasu_downstream_sharing": args.downstream_sharing,
         "sst_plugin_sha256": sha256_file(args.lib_dir.resolve() / "libspine_cycle.so"),
         "runs": compact_rows,
         "pairs": pairs,

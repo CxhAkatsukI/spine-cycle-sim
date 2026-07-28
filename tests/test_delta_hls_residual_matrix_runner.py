@@ -45,6 +45,7 @@ class DeltaHlsResidualMatrixRunnerTests(unittest.TestCase):
             spine_profile=DEFAULT_SPINE_PROFILE,
             grasu_profile=DEFAULT_GRASU_PROFILE,
             capability_catalog=DEFAULT_CAPABILITIES,
+            downstream_sharing="direct",
         )
         spine = _command("spine", run, Path("/out/s"), args=args, epsilon=1e-6)
         grasu = _command(
@@ -58,6 +59,9 @@ class DeltaHlsResidualMatrixRunnerTests(unittest.TestCase):
         )
         self.assertIn(str(DEFAULT_SPINE_PROFILE.resolve()), spine)
         self.assertIn(str(DEFAULT_GRASU_PROFILE.resolve()), grasu)
+        self.assertEqual(
+            grasu[grasu.index("--downstream-sharing") + 1], "direct"
+        )
 
     def test_pair_requires_identical_frontier_and_reports_speedup(self) -> None:
         common = {
