@@ -1,0 +1,131 @@
+{
+  "claim_class": "derived_real_topology_reciprocal_sinkfree_input_contract",
+  "invariants": {
+    "new_snapshot_sinks": 0,
+    "old_snapshot_sinks": 0,
+    "one_sided_updates_rejected": true,
+    "weighted_reciprocal_edges": true
+  },
+  "limitations": [
+    "The source is a compact real-edge slice, not the full Flickr graph.",
+    "Reciprocal closure is a declared deterministic transformation of the slice.",
+    "Insert batches are synthetic but execute on the frozen real topology."
+  ],
+  "matrix_id": "deltahls_sinkfree_real_v1",
+  "runs": [
+    {
+      "dataset_id": "soc_flickr_und_reciprocal_sinkfree",
+      "dataset_kind": "real_compact_slice_reciprocal_closure",
+      "final_edges": 8194,
+      "graph": {
+        "case_id": "real_soc_flickr_und_reciprocal_sinkfree",
+        "path": "tests/data/deltahls_real/real_soc_flickr_und_reciprocal_sinkfree.slice",
+        "records": 8192,
+        "sha256": "5e14bc0dafa2dcf5a02b66b715a4cd8c80a38ae71b7c388d9a764d128ff3cb2b",
+        "vertices": 2552
+      },
+      "physical_records": 2,
+      "role": "screening",
+      "run_id": "deltahls_soc_flickr_insert_u1",
+      "scenario": "insert",
+      "update": {
+        "case_id": "real_soc_flickr_und_reciprocal_sinkfree_insert_u1",
+        "path": "tests/data/deltahls_real/real_soc_flickr_und_insert_u1.slice",
+        "records": 2,
+        "sha256": "a1ad1f285719ef60b8c06e265cc10e88bb31179cadd3b162576d3686e3119388",
+        "vertices": 2552
+      },
+      "user_mutations": 1
+    },
+    {
+      "dataset_id": "soc_flickr_und_reciprocal_sinkfree",
+      "dataset_kind": "real_compact_slice_reciprocal_closure",
+      "final_edges": 8208,
+      "graph": {
+        "case_id": "real_soc_flickr_und_reciprocal_sinkfree",
+        "path": "tests/data/deltahls_real/real_soc_flickr_und_reciprocal_sinkfree.slice",
+        "records": 8192,
+        "sha256": "5e14bc0dafa2dcf5a02b66b715a4cd8c80a38ae71b7c388d9a764d128ff3cb2b",
+        "vertices": 2552
+      },
+      "physical_records": 16,
+      "role": "screening",
+      "run_id": "deltahls_soc_flickr_insert_u8",
+      "scenario": "insert",
+      "update": {
+        "case_id": "real_soc_flickr_und_reciprocal_sinkfree_insert_u8",
+        "path": "tests/data/deltahls_real/real_soc_flickr_und_insert_u8.slice",
+        "records": 16,
+        "sha256": "7b463fcb6d1bd4e9e7e58f2d03a93faabf6b0d90845dca965927e7f57c1a9fbf",
+        "vertices": 2552
+      },
+      "user_mutations": 8
+    },
+    {
+      "dataset_id": "soc_flickr_und_reciprocal_sinkfree",
+      "dataset_kind": "real_compact_slice_reciprocal_closure",
+      "final_edges": 8320,
+      "graph": {
+        "case_id": "real_soc_flickr_und_reciprocal_sinkfree",
+        "path": "tests/data/deltahls_real/real_soc_flickr_und_reciprocal_sinkfree.slice",
+        "records": 8192,
+        "sha256": "5e14bc0dafa2dcf5a02b66b715a4cd8c80a38ae71b7c388d9a764d128ff3cb2b",
+        "vertices": 2552
+      },
+      "physical_records": 128,
+      "role": "screening",
+      "run_id": "deltahls_soc_flickr_insert_u64",
+      "scenario": "insert",
+      "update": {
+        "case_id": "real_soc_flickr_und_reciprocal_sinkfree_insert_u64",
+        "path": "tests/data/deltahls_real/real_soc_flickr_und_insert_u64.slice",
+        "records": 128,
+        "sha256": "82ff3ee91f5ec8a6bd390f0d44dd2b3f0b36ce0f246649f93662d215dbf4c1d4",
+        "vertices": 2552
+      },
+      "user_mutations": 64
+    },
+    {
+      "dataset_id": "soc_flickr_und_reciprocal_sinkfree",
+      "dataset_kind": "real_compact_slice_reciprocal_closure",
+      "final_edges": 16384,
+      "graph": {
+        "case_id": "real_soc_flickr_und_reciprocal_sinkfree",
+        "path": "tests/data/deltahls_real/real_soc_flickr_und_reciprocal_sinkfree.slice",
+        "records": 8192,
+        "sha256": "5e14bc0dafa2dcf5a02b66b715a4cd8c80a38ae71b7c388d9a764d128ff3cb2b",
+        "vertices": 2552
+      },
+      "physical_records": 8192,
+      "role": "dense",
+      "run_id": "deltahls_soc_flickr_insert_u4096",
+      "scenario": "insert",
+      "update": {
+        "case_id": "real_soc_flickr_und_reciprocal_sinkfree_insert_u4096",
+        "path": "tests/data/deltahls_real/real_soc_flickr_und_insert_u4096.slice",
+        "records": 8192,
+        "sha256": "c493a00c58d1ed6d3befefe270c3b7d743bbbfdc9f8d2c100f57a5a289eee5b5",
+        "vertices": 2552
+      },
+      "user_mutations": 4096
+    }
+  ],
+  "schema_version": 1,
+  "source": {
+    "case_id": "real_soc_flickr_und_compact",
+    "path": "tests/data/shared_comparison/real_soc_flickr_und_compact.slice",
+    "records": 4096,
+    "sha256": "1a931fde67a7825f81971a05250a6dbee5b84bd75b4f6980fa5c2a4059843e78",
+    "vertices": 2552
+  },
+  "transformation": {
+    "candidate_seed": 864538,
+    "id": "weighted_reciprocal_closure_v1",
+    "nested_insert_batches": true,
+    "one_user_mutation_records": 2,
+    "original_records": 4096,
+    "preserves_compact_vertex_ids": true,
+    "reciprocal_records_added": 4096,
+    "self_loops": 0
+  }
+}
