@@ -42,6 +42,9 @@ class Component {
     return true;
   }
   [[nodiscard]] virtual bool has_commit_phase() const noexcept { return true; }
+  [[nodiscard]] virtual bool has_dynamic_prepare_guard() const noexcept {
+    return false;
+  }
   [[nodiscard]] virtual bool has_dynamic_evaluate_guard() const noexcept {
     return false;
   }
@@ -51,6 +54,7 @@ class Component {
   [[nodiscard]] virtual bool has_latched_commit_guard() const noexcept {
     return false;
   }
+  [[nodiscard]] virtual bool prepare_ready() const noexcept { return true; }
   [[nodiscard]] virtual bool evaluate_ready() const noexcept { return true; }
   [[nodiscard]] virtual bool commit_ready() const noexcept { return true; }
   [[nodiscard]] bool latched_commit_ready() const noexcept {

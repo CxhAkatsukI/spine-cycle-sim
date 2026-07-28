@@ -1536,6 +1536,7 @@ class SstMemoryBackend final : public MemoryBackend {
         max_outstanding_per_channel_(max_outstanding_per_channel),
         response_queue_depth_(response_queue_depth),
         channel_outstanding_(interfaces_.size(), 0),
+        staged_channel_submissions_(interfaces_.size(), 0),
         arbiter_(interfaces_.size(), accepts_per_channel_per_cycle) {
     if (interfaces_.empty() ||
         std::none_of(interfaces_.begin(), interfaces_.end(),
@@ -1566,11 +1567,8 @@ class SstMemoryBackend final : public MemoryBackend {
       ++submit_stalls_;
       return false;
     }
-    const auto staged_for_channel = static_cast<std::size_t>(
-        std::count_if(staged_submissions_.begin(), staged_submissions_.end(),
-                      [&request](const BackendRequest &staged) {
-                        return staged.channel == request.channel;
-                      }));
+    const std::size_t staged_for_channel =
+        staged_channel_submissions_[request.channel];
     if (staged_for_channel >= accepts_per_channel_per_cycle_ ||
         channel_outstanding_[request.channel] + staged_for_channel >=
             max_outstanding_per_channel_) {
@@ -1578,6 +1576,8 @@ class SstMemoryBackend final : public MemoryBackend {
       return false;
     }
     staged_submissions_.push_back(request);
+    ++staged_channel_submissions_[request.channel];
+    ++staged_initiator_submissions_[request.initiator_id];
     return true;
   }
 
@@ -1607,24 +1607,32 @@ class SstMemoryBackend final : public MemoryBackend {
   }
 
   [[nodiscard]] std::size_t outstanding() const noexcept override {
-    std::size_t count =
-        staged_submissions_.size() + arbiter_.pending_grants();
-    for (std::size_t value : channel_outstanding_) {
-      count += value;
-    }
-    return count;
+    return staged_submissions_.size() + arbiter_.pending_grants() +
+           inflight_.size();
   }
 
   [[nodiscard]] std::size_t outstanding_for(
       std::uint32_t initiator_id) const noexcept override {
-    const auto staged = static_cast<std::size_t>(
-        std::count_if(staged_submissions_.begin(), staged_submissions_.end(),
-                      [initiator_id](const BackendRequest &request) {
-                        return request.initiator_id == initiator_id;
-                      }));
+    const auto staged = staged_initiator_submissions_.find(initiator_id);
     const auto inflight = initiator_outstanding_.find(initiator_id);
-    return staged + arbiter_.pending_grants_for(initiator_id) +
+    return (staged == staged_initiator_submissions_.end() ? 0
+                                                          : staged->second) +
+           arbiter_.pending_grants_for(initiator_id) +
            (inflight == initiator_outstanding_.end() ? 0 : inflight->second);
+  }
+
+  [[nodiscard]] bool has_dynamic_prepare_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool prepare_ready() const noexcept override {
+    return !external_arrivals_.empty();
+  }
+  [[nodiscard]] bool commit_ready() const noexcept override {
+    return !staged_response_pops_.empty() || !staged_submissions_.empty() ||
+           arbiter_.pending_intents() != 0;
   }
 
   void prepare(const CycleContext &) override {
@@ -1681,6 +1689,9 @@ class SstMemoryBackend final : public MemoryBackend {
       interfaces_[request.channel]->send(standard_request);
     }
     staged_submissions_.clear();
+    std::fill(staged_channel_submissions_.begin(),
+              staged_channel_submissions_.end(), 0);
+    staged_initiator_submissions_.clear();
     arbiter_.arbitrate(channel_outstanding_, max_outstanding_per_channel_);
     max_outstanding_ = std::max(max_outstanding_, outstanding());
   }
@@ -1774,8 +1785,11 @@ class SstMemoryBackend final : public MemoryBackend {
   std::size_t max_outstanding_per_channel_{};
   std::size_t response_queue_depth_{};
   std::vector<std::size_t> channel_outstanding_;
+  std::vector<std::size_t> staged_channel_submissions_;
   RegisteredChannelArbiter arbiter_;
   std::unordered_map<std::uint32_t, std::size_t> initiator_outstanding_;
+  std::unordered_map<std::uint32_t, std::size_t>
+      staged_initiator_submissions_;
   std::vector<BackendRequest> staged_submissions_;
   std::unordered_map<SST::Interfaces::StandardMem::Request::id_t, Inflight>
       inflight_;

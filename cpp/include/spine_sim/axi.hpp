@@ -317,6 +317,9 @@ class AxiMaster final : public Component {
   std::unordered_map<std::uint64_t, Parent> parents_;
   std::deque<Burst> pending_address_;
   std::vector<Burst> active_bursts_;
+  std::size_t active_issueable_bursts_{};
+  std::size_t active_stream_bursts_{};
+  std::size_t active_write_data_bursts_{};
   std::unordered_map<std::uint64_t, BackendMapping> backend_mappings_;
   std::deque<ReadyResponse> ready_responses_;
   std::vector<AxiBurstTrace> burst_trace_;
@@ -336,6 +339,7 @@ class AxiMaster final : public Component {
   std::optional<WriteIngressBeat> staged_store_to_bridge_;
   std::optional<WriteIngressBeat> staged_bridge_to_throttle_;
   std::vector<std::uint64_t> staged_address_bursts_;
+  std::vector<std::size_t> staged_additional_issued_;
   std::vector<StagedBeat> staged_beats_;
   std::vector<BackendResponse> staged_backend_responses_;
   std::optional<std::pair<std::uint64_t, std::uint64_t>>

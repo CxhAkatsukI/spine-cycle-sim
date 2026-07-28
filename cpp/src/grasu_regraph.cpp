@@ -266,6 +266,19 @@ public:
   }
   [[nodiscard]] std::uint64_t writes() const noexcept { return writes_issued_; }
 
+  [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool evaluate_ready() const noexcept override {
+    return running_;
+  }
+  [[nodiscard]] bool commit_ready() const noexcept override {
+    return running_;
+  }
+
   void evaluate(const CycleContext &context) override {
     staged_read_issue_.reset();
     staged_write_issue_.reset();
@@ -589,6 +602,22 @@ public:
     return requests_ * source_round_bytes();
   }
 
+  [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool evaluate_ready() const noexcept override {
+    return phase_ != Phase::kDone;
+  }
+  [[nodiscard]] bool commit_ready() const noexcept override {
+    return phase_ != Phase::kDone &&
+           (staged_input_.has_value() || staged_axi_issue_ ||
+            staged_line_.has_value() || staged_parent_.has_value() ||
+            staged_end_response_);
+  }
+
   void evaluate(const CycleContext &) override {
     staged_input_.reset();
     staged_axi_issue_ = false;
@@ -880,6 +909,29 @@ public:
             policy_.config().damping * dangling /
             static_cast<float>(policy_.config().vertices)),
     };
+  }
+
+  [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool evaluate_ready() const noexcept override {
+    return phase_ != Phase::kIdle && phase_ != Phase::kDone;
+  }
+  [[nodiscard]] bool commit_ready() const noexcept override {
+    if (phase_ == Phase::kIdle || phase_ == Phase::kDone) {
+      return false;
+    }
+    return staged_tick_ || staged_request_ != RequestKind::kNone ||
+           staged_response_.has_value() ||
+           staged_degree_response_.has_value() ||
+           !staged_pma_responses_.empty() ||
+           staged_source_response_.has_value() ||
+           staged_source_request_.has_value() || staged_output_ ||
+           staged_advance_ || staged_cache_ready_ || staged_source_end_ ||
+           phase_ == Phase::kNeedSourceCache;
   }
 
   void evaluate(const CycleContext &) override {
@@ -1867,6 +1919,19 @@ public:
     return cross_bank_reductions_;
   }
 
+  [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool evaluate_ready() const noexcept override {
+    return phase_ != Phase::kIdle && phase_ != Phase::kDone;
+  }
+  [[nodiscard]] bool commit_ready() const noexcept override {
+    return phase_ != Phase::kIdle && phase_ != Phase::kDone;
+  }
+
   void evaluate(const CycleContext &) override {
     staged_tick_ = false;
     staged_start_drain_ = false;
@@ -2136,6 +2201,20 @@ public:
     return output_stall_cycles_;
   }
 
+  [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool evaluate_ready() const noexcept override {
+    return running_;
+  }
+  [[nodiscard]] bool commit_ready() const noexcept override {
+    return running_ && (staged_input_.has_value() || staged_output_ ||
+                        staged_output_stall_);
+  }
+
   void evaluate(const CycleContext &) override {
     staged_input_.reset();
     staged_output_ = false;
@@ -2299,6 +2378,24 @@ public:
   [[nodiscard]] float next_dangling() const noexcept { return next_dangling_; }
   [[nodiscard]] std::uint64_t degree_reads() const noexcept {
     return degree_reads_;
+  }
+
+  [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool evaluate_ready() const noexcept override {
+    return running_;
+  }
+  [[nodiscard]] bool commit_ready() const noexcept override {
+    return running_ &&
+           (staged_read_issue_.has_value() ||
+            staged_write_issue_.has_value() ||
+            staged_read_response_.has_value() ||
+            staged_degree_response_.has_value() ||
+            staged_write_response_.has_value() || staged_output_stall_);
   }
 
   void evaluate(const CycleContext &context) override {
@@ -2709,6 +2806,25 @@ public:
     return max_writes_inflight_;
   }
 
+  [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool evaluate_ready() const noexcept override {
+    return running_;
+  }
+  [[nodiscard]] bool commit_ready() const noexcept override {
+    return running_ &&
+           (staged_input_.has_value() || staged_write_issue_.has_value() ||
+            std::any_of(staged_write_responses_.begin(),
+                        staged_write_responses_.end(),
+                        [](const auto &response) {
+                          return response.has_value();
+                        }));
+  }
+
   void evaluate(const CycleContext &context) override {
     staged_input_.reset();
     staged_write_issue_.reset();
@@ -2964,6 +3080,21 @@ public:
     return frontier_out_sizes_;
   }
 
+  [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool evaluate_ready() const noexcept override {
+    return !failed() && !done();
+  }
+  [[nodiscard]] bool commit_ready() const noexcept override {
+    return !failed() && !done() &&
+           (staged_ != Action::kNone || !staged_completed_workers_.empty() ||
+            busy_worker_count() != 0);
+  }
+
   void evaluate(const CycleContext &) override {
     staged_ = Action::kNone;
     staged_completed_workers_.clear();
@@ -3179,6 +3310,19 @@ public:
 
   [[nodiscard]] bool done() const noexcept { return phase_ == Phase::kDone; }
   [[nodiscard]] std::uint64_t rounds() const noexcept { return round_; }
+
+  [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool evaluate_ready() const noexcept override {
+    return !done();
+  }
+  [[nodiscard]] bool commit_ready() const noexcept override {
+    return !done() && (staged_start_ || staged_finish_);
+  }
 
   void evaluate(const CycleContext &) override {
     staged_start_ = false;

@@ -73,6 +73,7 @@ class Scheduler {
   std::vector<ClockDomainSnapshot> clocks_;
   std::vector<Component*> components_;
   std::vector<Component*> prepare_components_;
+  std::vector<bool> prepare_dynamic_guards_;
   std::vector<Component*> evaluate_components_;
   std::vector<bool> evaluate_dynamic_guards_;
   std::vector<Component*> commit_components_;

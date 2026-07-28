@@ -825,7 +825,13 @@ class ReadyPhaseCounter final : public Component {
   ReadyPhaseCounter(std::string name, ClockId clock)
       : Component(std::move(name), clock) {}
 
+  [[nodiscard]] bool has_prepare_phase() const noexcept override {
+    return true;
+  }
   [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_dynamic_prepare_guard() const noexcept override {
     return true;
   }
   [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
@@ -834,14 +840,20 @@ class ReadyPhaseCounter final : public Component {
   [[nodiscard]] bool evaluate_ready() const noexcept override {
     return evaluate_is_ready;
   }
+  [[nodiscard]] bool prepare_ready() const noexcept override {
+    return prepare_is_ready;
+  }
   [[nodiscard]] bool commit_ready() const noexcept override {
     return commit_is_ready;
   }
   void evaluate(const CycleContext&) override { ++evaluations; }
+  void prepare(const CycleContext&) override { ++prepares; }
   void commit(const CycleContext&) override { ++commits; }
 
+  bool prepare_is_ready{};
   bool evaluate_is_ready{};
   bool commit_is_ready{};
+  std::uint64_t prepares{};
   std::uint64_t evaluations{};
   std::uint64_t commits{};
 };
@@ -1096,8 +1108,15 @@ void test_scheduler_dynamic_phase_readiness() {
   scheduler.add_component(component);
 
   scheduler.run_events(3);
-  require(component.evaluations == 0 && component.commits == 0,
+  require(component.prepares == 0 && component.evaluations == 0 &&
+              component.commits == 0,
           "scheduler invoked a dynamically sleeping phase");
+  component.prepare_is_ready = true;
+  scheduler.run_events(2);
+  require(component.prepares == 2 && component.evaluations == 0 &&
+              component.commits == 0,
+          "scheduler did not wake only the ready prepare phase");
+  component.prepare_is_ready = false;
   component.evaluate_is_ready = true;
   scheduler.run_events(2);
   require(component.evaluations == 2 && component.commits == 0,

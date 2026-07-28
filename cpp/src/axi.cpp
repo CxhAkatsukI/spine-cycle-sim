@@ -387,13 +387,7 @@ void AxiMaster::evaluate_address_channel(const CycleContext &context) {
     }
     if (config_.serialize_write_bursts &&
         candidate.operation == MemoryOperation::kWrite) {
-      const bool write_data_active = std::any_of(
-          active_bursts_.begin(), active_bursts_.end(),
-          [](const Burst &burst) {
-            return burst.operation == MemoryOperation::kWrite &&
-                   burst.beats_issued < burst.beats_total;
-          });
-      if (write_data_active || serialized_write_staged) {
+      if (active_write_data_bursts_ != 0 || serialized_write_staged) {
         ++stats_.write_burst_serialization_stalls;
         break;
       }
@@ -419,15 +413,12 @@ void AxiMaster::evaluate_address_channel(const CycleContext &context) {
 }
 
 void AxiMaster::evaluate_data_channel(const CycleContext &context) {
-  if (active_bursts_.empty()) {
+  if (active_issueable_bursts_ == 0) {
     return;
   }
-  std::unordered_map<std::uint64_t, std::size_t> additional_issued;
+  staged_additional_issued_.assign(active_bursts_.size(), 0);
   std::size_t inspected_without_issue = 0;
-  const bool ordered_stream = std::any_of(
-      active_bursts_.begin(), active_bursts_.end(), [this](const Burst &burst) {
-        return parents_.at(burst.parent_id).request.stream_read_beats;
-      });
+  const bool ordered_stream = active_stream_bursts_ != 0;
   std::size_t cursor = issue_round_robin_ % active_bursts_.size();
   while (staged_beats_.size() < config_.beat_issues_per_cycle &&
          inspected_without_issue < active_bursts_.size()) {
@@ -439,7 +430,7 @@ void AxiMaster::evaluate_data_channel(const CycleContext &context) {
       for (std::size_t index = 0; index < active_bursts_.size(); ++index) {
         const Burst &candidate = active_bursts_[index];
         const Parent &candidate_parent = parents_.at(candidate.parent_id);
-        const std::size_t extra = additional_issued[candidate.burst_id];
+        const std::size_t extra = staged_additional_issued_[index];
         if (!candidate_parent.request.stream_read_beats ||
             candidate.beats_issued + extra >= candidate.beats_total) {
           continue;
@@ -460,7 +451,7 @@ void AxiMaster::evaluate_data_channel(const CycleContext &context) {
       cursor = selected;
     }
     const Burst &burst = active_bursts_[cursor];
-    const std::size_t extra = additional_issued[burst.burst_id];
+    const std::size_t extra = staged_additional_issued_[cursor];
     if (burst.beats_issued + extra < burst.beats_total) {
       if (burst.operation == MemoryOperation::kWrite &&
           write_ingress_enabled() &&
@@ -514,7 +505,7 @@ void AxiMaster::evaluate_data_channel(const CycleContext &context) {
             .issue_cycle = context.domain_cycle,
             .request = request,
         });
-        ++additional_issued[burst.burst_id];
+        ++staged_additional_issued_[cursor];
         inspected_without_issue = 0;
       } else {
         ++stats_.backend_submit_stalls;
@@ -609,6 +600,12 @@ void AxiMaster::commit_backend_responses(const CycleContext &context) {
       continue;
     }
     Parent& parent = parents_.at(iterator->parent_id);
+    if (parent.request.stream_read_beats) {
+      if (active_stream_bursts_ == 0) {
+        throw std::logic_error("AXI active stream burst count underflow");
+      }
+      --active_stream_bursts_;
+    }
     ++parent.completed_bursts;
     if (parent.completed_bursts == parent.total_bursts) {
       parent.memory_complete = true;
@@ -785,6 +782,13 @@ void AxiMaster::commit_address_channel(const CycleContext &context) {
       }
     }
     active_bursts_.push_back(burst);
+    ++active_issueable_bursts_;
+    if (parents_.at(burst.parent_id).request.stream_read_beats) {
+      ++active_stream_bursts_;
+    }
+    if (burst.operation == MemoryOperation::kWrite) {
+      ++active_write_data_bursts_;
+    }
     pending_address_.pop_front();
     ++stats_.bursts_accepted;
   }
@@ -808,6 +812,18 @@ void AxiMaster::commit_data_channel() {
       write_throttle_fifo_.pop_front();
     }
     ++burst->beats_issued;
+    if (burst->beats_issued == burst->beats_total) {
+      if (active_issueable_bursts_ == 0) {
+        throw std::logic_error("AXI issueable burst count underflow");
+      }
+      --active_issueable_bursts_;
+      if (burst->operation == MemoryOperation::kWrite) {
+        if (active_write_data_bursts_ == 0) {
+          throw std::logic_error("AXI write-data burst count underflow");
+        }
+        --active_write_data_bursts_;
+      }
+    }
     std::optional<std::size_t> trace_index;
     if (config_.beat_trace_limit != 0) {
       if (beat_trace_.size() < config_.beat_trace_limit) {

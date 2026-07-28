@@ -162,6 +162,7 @@ void Scheduler::rebuild_phase_registrations() {
     }
   }
   prepare_components_.clear();
+  prepare_dynamic_guards_.clear();
   evaluate_components_.clear();
   evaluate_dynamic_guards_.clear();
   commit_components_.clear();
@@ -173,6 +174,8 @@ void Scheduler::rebuild_phase_registrations() {
   for (Component *component : components_) {
     if (component->has_prepare_phase()) {
       prepare_components_.push_back(component);
+      prepare_dynamic_guards_.push_back(
+          component->has_dynamic_prepare_guard());
     }
     if (component->has_evaluate_phase()) {
       evaluate_components_.push_back(component);
@@ -266,7 +269,11 @@ void Scheduler::step() {
         .domain_cycle = clocks_.front().completed_cycles,
         .clock_id = 0,
     };
-    for (Component* component : prepare_components_) {
+    for (std::size_t index = 0; index < prepare_components_.size(); ++index) {
+      Component *component = prepare_components_[index];
+      if (prepare_dynamic_guards_[index] && !component->prepare_ready()) {
+        continue;
+      }
       invoke(*component, ProfilePhase::kPrepare,
              [&] { component->prepare(context); });
     }
@@ -290,9 +297,11 @@ void Scheduler::step() {
     }
     invoke_selected_commits([&context](std::size_t) { return context; });
   } else {
-    for (Component* component : prepare_components_) {
+    for (std::size_t index = 0; index < prepare_components_.size(); ++index) {
+      Component *component = prepare_components_[index];
       const ClockId id = component->clock_id();
-      if (clocks_[id].next_edge_fs == now_fs_) {
+      if (clocks_[id].next_edge_fs == now_fs_ &&
+          (!prepare_dynamic_guards_[index] || component->prepare_ready())) {
         const CycleContext context{
             .now_fs = now_fs_,
             .domain_cycle = clocks_[id].completed_cycles,

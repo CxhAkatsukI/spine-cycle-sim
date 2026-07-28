@@ -6,6 +6,7 @@
 #include <deque>
 #include <map>
 #include <memory>
+#include <set>
 #include <span>
 #include <string>
 #include <unordered_map>
@@ -183,6 +184,10 @@ class RegisteredChannelArbiter {
   std::vector<std::map<std::uint32_t, BackendRequest>> intents_;
   std::vector<std::map<std::uint32_t, BackendRequest>> grants_;
   std::vector<std::uint32_t> next_initiator_;
+  std::set<std::size_t> active_intent_channels_;
+  std::unordered_map<std::uint32_t, std::size_t> grants_by_initiator_;
+  std::size_t pending_intent_count_{};
+  std::size_t pending_grant_count_{};
   RegisteredChannelArbiterStats stats_;
 };
 

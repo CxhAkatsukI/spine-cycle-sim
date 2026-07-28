@@ -269,6 +269,15 @@ bool RegisteredChannelArbiter::try_acquire(const BackendRequest& request) {
   const auto granted = channel_grants.find(request.initiator_id);
   if (granted != channel_grants.end()) {
     channel_grants.erase(granted);
+    if (pending_grant_count_ == 0 ||
+        grants_by_initiator_.at(request.initiator_id) == 0) {
+      throw std::logic_error("registered arbiter grant count underflow");
+    }
+    --pending_grant_count_;
+    auto grant_count = grants_by_initiator_.find(request.initiator_id);
+    if (--grant_count->second == 0) {
+      grants_by_initiator_.erase(grant_count);
+    }
     ++stats_.consumed_grants;
     return true;
   }
@@ -277,6 +286,10 @@ bool RegisteredChannelArbiter::try_acquire(const BackendRequest& request) {
   const auto [pending, inserted] =
       channel_intents.emplace(request.initiator_id, request);
   (void)pending;
+  if (inserted) {
+    ++pending_intent_count_;
+    active_intent_channels_.insert(request.channel);
+  }
   stats_.unique_intents += inserted ? 1 : 0;
   ++stats_.request_waits;
   return false;
@@ -289,12 +302,14 @@ void RegisteredChannelArbiter::arbitrate(
       max_outstanding_per_channel == 0) {
     throw std::invalid_argument("invalid arbiter outstanding snapshot");
   }
-  for (std::size_t channel = 0; channel < channels_; ++channel) {
+  for (auto active = active_intent_channels_.begin();
+       active != active_intent_channels_.end();) {
+    const std::size_t channel = *active;
     auto& intents = intents_[channel];
     auto& grants = grants_[channel];
     stats_.max_contenders = std::max(stats_.max_contenders, intents.size());
     if (intents.empty()) {
-      continue;
+      throw std::logic_error("registered arbiter active channel is empty");
     }
     const std::size_t occupied = channel_outstanding[channel] + grants.size();
     const std::size_t capacity =
@@ -306,6 +321,7 @@ void RegisteredChannelArbiter::arbitrate(
     if (slots == 0) {
       ++stats_.capacity_blocked_cycles;
       stats_.contention_losers += intents.size();
+      ++active;
       continue;
     }
     if (intents.size() > slots) {
@@ -323,8 +339,16 @@ void RegisteredChannelArbiter::arbitrate(
         throw std::logic_error("arbiter issued a duplicate initiator grant");
       }
       intents.erase(selected);
+      --pending_intent_count_;
+      ++pending_grant_count_;
+      ++grants_by_initiator_[initiator];
       next_initiator_[channel] = initiator + 1;
       ++stats_.grants;
+    }
+    if (intents.empty()) {
+      active = active_intent_channels_.erase(active);
+    } else {
+      ++active;
     }
   }
   stats_.max_pending_grants =
@@ -332,28 +356,17 @@ void RegisteredChannelArbiter::arbitrate(
 }
 
 std::size_t RegisteredChannelArbiter::pending_grants() const noexcept {
-  std::size_t count = 0;
-  for (const auto& grants : grants_) {
-    count += grants.size();
-  }
-  return count;
+  return pending_grant_count_;
 }
 
 std::size_t RegisteredChannelArbiter::pending_intents() const noexcept {
-  std::size_t count = 0;
-  for (const auto& intents : intents_) {
-    count += intents.size();
-  }
-  return count;
+  return pending_intent_count_;
 }
 
 std::size_t RegisteredChannelArbiter::pending_grants_for(
     std::uint32_t initiator_id) const noexcept {
-  std::size_t count = 0;
-  for (const auto& grants : grants_) {
-    count += grants.contains(initiator_id) ? 1 : 0;
-  }
-  return count;
+  const auto found = grants_by_initiator_.find(initiator_id);
+  return found == grants_by_initiator_.end() ? 0 : found->second;
 }
 
 MockMemoryBackend::MockMemoryBackend(std::string name, ClockId clock_id,
