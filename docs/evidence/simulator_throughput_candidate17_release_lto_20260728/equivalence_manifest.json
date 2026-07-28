@@ -1,0 +1,19 @@
+{
+  "added_observability_fields": 0,
+  "algorithms": [
+    "thresholded_residual_pagerank"
+  ],
+  "all_dram_json_byte_identical": true,
+  "all_preexisting_result_fields_identical": true,
+  "baseline_manifest_sha256": "3ed1da1c8aba491ccc6504195128c1c46f15c860d273f983495b2a8c64ec7899",
+  "byte_identical_result_files": 2,
+  "candidate_manifest_sha256": "2ea13bc12d3aee501c45e7615f70a0b3271ad582739f55e4a296cdf9aa76f25b",
+  "claim": "exact_idle_backend_observable_equivalence",
+  "dram_json_files_compared": 26,
+  "host_speedup_geomean": 2.1726217826809058,
+  "preexisting_result_fields_compared": 356,
+  "run_cases": 1,
+  "schema_version": 1,
+  "status": "PASS",
+  "system_results": 2
+}

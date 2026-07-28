@@ -2,13 +2,14 @@ CXX ?= g++
 SST_BIN ?= /data/feiyang/sst/bin
 SST_CONFIG := $(SST_BIN)/sst-config
 SST_CXXFLAGS := $(shell $(SST_CONFIG) --ELEMENT_CXXFLAGS)
+SPINE_HOST_OPT_FLAGS ?= -O3 -DNDEBUG -flto
 
 ROOT := ../..
 BUILD_DIR ?= $(ROOT)/build/sst
 TARGET := $(BUILD_DIR)/libspine_cycle.so
 INCLUDES := -I$(ROOT)/cpp/include
-CXXFLAGS := $(SST_CXXFLAGS) -std=c++20 -O2 -g -fPIC -Wall -Wextra \
-            -Wpedantic $(INCLUDES)
+CXXFLAGS := $(SST_CXXFLAGS) -std=c++20 $(SPINE_HOST_OPT_FLAGS) -fPIC \
+            -Wall -Wextra -Wpedantic $(INCLUDES)
 SOURCES := online_memory_probe.cpp \
            $(ROOT)/cpp/src/algorithm.cpp \
            $(ROOT)/cpp/src/algorithm_pipeline.cpp \
