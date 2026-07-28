@@ -34,6 +34,14 @@ def _run_case(
         if architecture == "spine"
         else f"grasu_k{compute_pipelines}_{downstream_sharing}"
     )
+    legacy_destination = out_dir / run["run_id"] / f"grasu_k{compute_pipelines}"
+    if (
+        reuse_results
+        and architecture == "grasu"
+        and not (destination / "result.json").is_file()
+        and (legacy_destination / "result.json").is_file()
+    ):
+        destination = legacy_destination
     command = [
         sys.executable,
         str(ROOT / "scripts/run_sst_connected_components.py"),
@@ -112,11 +120,15 @@ def _run_case(
         "max_parallel_partitions": result.get("max_parallel_partitions", 1),
         "max_parallel_downstream_partitions": result.get(
             "max_parallel_downstream_partitions", 1
-        ),
+        ) or 1,
         "correctness_mismatches": result["correctness_mismatches"],
         "performance_admitted": admission["admitted"]
         and run["effective_mutations"] > 0,
         "sst_host_wall_seconds": admission["sst_host_wall_seconds"],
+        "source_revision": admission["source_revision"],
+        "workload_sha256": admission["workload_sha256"],
+        "update_sha256": admission["update_sha256"],
+        "sst_plugin_sha256": admission["sst_plugin_sha256"],
         "result_path": str((destination / "result.json").resolve()),
     }
 

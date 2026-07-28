@@ -117,6 +117,29 @@ class SstConnectedComponentsRunnerTests(unittest.TestCase):
         )
         self.assertTrue(all(checks.values()))
 
+    def test_legacy_k1_without_downstream_fields_is_direct(self) -> None:
+        result = dict(
+            self.base,
+            mode="grasu_regraph_connected_components",
+            conversion_cost_included=False,
+            update_state_mismatches=0,
+            compute_pipelines=1,
+            downstream_sharing=None,
+            max_parallel_downstream_partitions=None,
+            partition_passes=2,
+            destination_partitions=1,
+            iterations=2,
+        )
+        checks = validate_result(
+            result,
+            architecture="grasu",
+            expected_labels=(0, 0, 0, 3),
+            analysis=self.analysis,
+            compute_pipelines=1,
+            downstream_sharing="direct",
+        )
+        self.assertTrue(all(checks.values()))
+
 
 if __name__ == "__main__":
     unittest.main()

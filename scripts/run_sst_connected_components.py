@@ -91,17 +91,22 @@ def validate_result(
         ),
     }
     if architecture == "grasu":
+        legacy_k1_downstream = (
+            compute_pipelines == 1
+            and downstream_sharing == "direct"
+            and result.get("downstream_sharing") is None
+            and result.get("max_parallel_downstream_partitions") is None
+        )
         checks.update(
             {
                 "conversion_free": result.get("conversion_cost_included") is False,
                 "pma_state": result.get("update_state_mismatches") == 0,
                 "compute_pipelines": result.get("compute_pipelines")
                 == compute_pipelines,
-                "downstream_sharing": result.get("downstream_sharing")
-                == downstream_sharing,
-                "downstream_parallelism": result.get(
-                    "max_parallel_downstream_partitions"
-                )
+                "downstream_sharing": legacy_k1_downstream
+                or result.get("downstream_sharing") == downstream_sharing,
+                "downstream_parallelism": legacy_k1_downstream
+                or result.get("max_parallel_downstream_partitions")
                 == (
                     min(compute_pipelines, result.get("destination_partitions", 0))
                     if downstream_sharing == "direct"

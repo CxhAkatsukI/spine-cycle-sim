@@ -1,0 +1,5 @@
+run_id,user_mutations,spine_cycles,grasu_cycles,spine_speedup_over_grasu
+cc_real_soc_flickr_insert_u1,1,262422,459369,1.7504972906234995
+cc_real_soc_flickr_insert_u8,8,534476,1099913,2.0579277647639933
+cc_real_soc_flickr_insert_u64,64,608763,781025,1.2829705484728868
+cc_real_soc_flickr_insert_u4096,4096,1608878,538677,0.334815318501465
