@@ -475,35 +475,44 @@ void AxiMaster::evaluate_data_channel(const CycleContext &context) {
           config_.data_width_bytes;
       const auto beat_bytes = static_cast<std::uint32_t>(
           std::min<std::uint64_t>(config_.data_width_bytes, burst.bytes - consumed));
-      BackendRequest request{
+      const BackendRequestHeader header{
           .initiator_id = config_.initiator_id,
           .request_id = next_backend_id_ + staged_beats_.size(),
           .channel = channel_for(beat_address),
           .operation = burst.operation,
           .address = beat_address,
           .bytes = beat_bytes,
-          .write_data = {},
       };
       const Parent& parent = parents_.at(burst.parent_id);
       const std::uint64_t parent_offset =
           burst.parent_offset +
           static_cast<std::uint64_t>(burst.beats_issued + extra) *
               config_.data_width_bytes;
-      if (burst.operation == MemoryOperation::kWrite) {
-        if (parent.request.write_data.empty()) {
-          request.write_data.assign(beat_bytes, 0);
-        } else {
-          const auto begin = parent.request.write_data.begin() +
-                             static_cast<std::ptrdiff_t>(parent_offset);
-          request.write_data.assign(begin, begin + beat_bytes);
+      if (backend_.try_reserve(header)) {
+        BackendRequest request{
+            .initiator_id = header.initiator_id,
+            .request_id = header.request_id,
+            .channel = header.channel,
+            .operation = header.operation,
+            .address = header.address,
+            .bytes = header.bytes,
+            .write_data = {},
+        };
+        if (burst.operation == MemoryOperation::kWrite) {
+          if (parent.request.write_data.empty()) {
+            request.write_data.assign(beat_bytes, 0);
+          } else {
+            const auto begin = parent.request.write_data.begin() +
+                               static_cast<std::ptrdiff_t>(parent_offset);
+            request.write_data.assign(begin, begin + beat_bytes);
+          }
         }
-      }
-      if (backend_.try_submit(request)) {
+        backend_.submit_reserved(std::move(request));
         staged_beats_.push_back(StagedBeat{
             .burst_id = burst.burst_id,
             .parent_offset = parent_offset,
             .issue_cycle = context.domain_cycle,
-            .request = request,
+            .request = header,
         });
         ++staged_additional_issued_[cursor];
         inspected_without_issue = 0;
@@ -921,6 +930,15 @@ void AxiMaster::commit_read_beat_output() {
   queue_parent_response_if_ready(parent_id);
 }
 
+void AxiMaster::refresh_pending_work() noexcept {
+  internal_pending_work_ =
+      !parents_.empty() || !pending_address_.empty() ||
+      !active_bursts_.empty() || !backend_mappings_.empty() ||
+      !ready_responses_.empty() || !pending_write_input_.empty() ||
+      !write_store_fifo_.empty() || write_bridge_.has_value() ||
+      !write_throttle_fifo_.empty();
+}
+
 void AxiMaster::commit(const CycleContext &context) {
   commit_output();
   commit_backend_responses(context);
@@ -929,6 +947,7 @@ void AxiMaster::commit(const CycleContext &context) {
   commit_data_channel();
   commit_write_ingress(context);
   commit_read_beat_output();
+  refresh_pending_work();
 }
 
 }  // namespace spine::sim

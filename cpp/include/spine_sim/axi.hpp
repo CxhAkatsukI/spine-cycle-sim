@@ -248,7 +248,7 @@ class AxiMaster final : public Component {
     std::uint64_t burst_id{};
     std::uint64_t parent_offset{};
     std::uint64_t issue_cycle{};
-    BackendRequest request;
+    BackendRequestHeader request;
   };
 
   struct WriteIngressBeat {
@@ -292,12 +292,9 @@ class AxiMaster final : public Component {
   void queue_parent_response_if_ready(std::uint64_t parent_id);
   [[nodiscard]] std::size_t read_reorder_occupancy() const noexcept;
   [[nodiscard]] bool has_pending_work() const noexcept {
-    return !requests_.empty() || !parents_.empty() ||
-           !pending_address_.empty() || !active_bursts_.empty() ||
-           !backend_mappings_.empty() || !ready_responses_.empty() ||
-           !pending_write_input_.empty() || !write_store_fifo_.empty() ||
-           write_bridge_.has_value() || !write_throttle_fifo_.empty();
+    return !requests_.empty() || internal_pending_work_;
   }
+  void refresh_pending_work() noexcept;
   [[nodiscard]] bool write_ingress_enabled() const noexcept {
     return config_.write_ingress_fifo_depth != 0;
   }
@@ -345,6 +342,7 @@ class AxiMaster final : public Component {
   std::optional<std::pair<std::uint64_t, std::uint64_t>>
       staged_read_beat_output_;
   bool staged_output_{};
+  bool internal_pending_work_{};
   AxiStats stats_;
 };
 

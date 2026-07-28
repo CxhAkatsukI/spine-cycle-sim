@@ -1548,7 +1548,7 @@ class SstMemoryBackend final : public MemoryBackend {
     }
   }
 
-  bool try_submit(const BackendRequest &request) override {
+  bool try_reserve(const BackendRequestHeader &request) override {
     if (!initiator_registered(request.initiator_id) ||
         request.channel >= interfaces_.size() || request.bytes == 0) {
       throw std::invalid_argument("invalid SST backend request");
@@ -1556,12 +1556,6 @@ class SstMemoryBackend final : public MemoryBackend {
     if (interfaces_[request.channel] == nullptr) {
       throw std::invalid_argument(
           "SST backend request targets an unbound memory channel");
-    }
-    if ((request.operation == MemoryOperation::kRead &&
-         !request.write_data.empty()) ||
-        (request.operation == MemoryOperation::kWrite &&
-         request.write_data.size() != request.bytes)) {
-      throw std::invalid_argument("invalid SST backend request payload");
     }
     if (!arbiter_.try_acquire(request)) {
       ++submit_stalls_;
@@ -1575,10 +1569,19 @@ class SstMemoryBackend final : public MemoryBackend {
       ++submit_stalls_;
       return false;
     }
-    staged_submissions_.push_back(request);
     ++staged_channel_submissions_[request.channel];
     ++staged_initiator_submissions_[request.initiator_id];
     return true;
+  }
+
+  void submit_reserved(BackendRequest request) override {
+    if ((request.operation == MemoryOperation::kRead &&
+         !request.write_data.empty()) ||
+        (request.operation == MemoryOperation::kWrite &&
+         request.write_data.size() != request.bytes)) {
+      throw std::invalid_argument("invalid SST backend request payload");
+    }
+    staged_submissions_.push_back(std::move(request));
   }
 
   [[nodiscard]] std::size_t response_count(

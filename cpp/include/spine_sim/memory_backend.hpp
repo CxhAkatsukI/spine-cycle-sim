@@ -4,9 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <deque>
-#include <map>
 #include <memory>
-#include <set>
 #include <span>
 #include <string>
 #include <unordered_map>
@@ -27,6 +25,15 @@ struct BackendRequest {
   std::uint64_t address{};
   std::uint32_t bytes{};
   std::vector<std::uint8_t> write_data;
+};
+
+struct BackendRequestHeader {
+  std::uint32_t initiator_id{};
+  std::uint64_t request_id{};
+  std::size_t channel{};
+  MemoryOperation operation{MemoryOperation::kRead};
+  std::uint64_t address{};
+  std::uint32_t bytes{};
 };
 
 struct BackendResponse {
@@ -77,7 +84,12 @@ class MemoryBackend : public Component {
                     std::uint64_t bytes, std::uint8_t value);
   [[nodiscard]] std::vector<std::uint8_t> inspect_payload(
       std::size_t channel, std::uint64_t address, std::size_t bytes) const;
-  virtual bool try_submit(const BackendRequest& request) = 0;
+  bool try_submit(const BackendRequest& request);
+  // A caller that owns an expensive write payload may reserve admission from
+  // the header first, then move the complete request immediately. This is one
+  // evaluate-phase operation; reservations must not be retained by callers.
+  virtual bool try_reserve(const BackendRequestHeader& request) = 0;
+  virtual void submit_reserved(BackendRequest request) = 0;
   [[nodiscard]] virtual std::size_t response_count(
       std::uint32_t initiator_id) const noexcept = 0;
   [[nodiscard]] virtual const BackendResponse& response_at(
@@ -168,6 +180,7 @@ class RegisteredChannelArbiter {
                            std::size_t grants_per_channel_per_cycle);
 
   [[nodiscard]] bool try_acquire(const BackendRequest& request);
+  [[nodiscard]] bool try_acquire(const BackendRequestHeader& request);
   void arbitrate(std::span<const std::size_t> channel_outstanding,
                  std::size_t max_outstanding_per_channel);
   [[nodiscard]] std::size_t pending_intents() const noexcept;
@@ -181,11 +194,15 @@ class RegisteredChannelArbiter {
  private:
   std::size_t channels_{};
   std::size_t grants_per_channel_per_cycle_{};
-  std::vector<std::map<std::uint32_t, BackendRequest>> intents_;
-  std::vector<std::map<std::uint32_t, BackendRequest>> grants_;
+  // HBM profiles expose at most 32 pseudo-channels. Keep per-initiator
+  // channel state in bitmasks so repeated blocked AXI attempts do not pay for
+  // ordered-map lookup or copy an unused BackendRequest payload.
+  std::vector<std::vector<std::uint32_t>> intents_;
+  std::vector<std::size_t> grants_by_channel_;
   std::vector<std::uint32_t> next_initiator_;
-  std::set<std::size_t> active_intent_channels_;
-  std::unordered_map<std::uint32_t, std::size_t> grants_by_initiator_;
+  std::unordered_map<std::uint32_t, std::uint64_t> intent_masks_;
+  std::unordered_map<std::uint32_t, std::uint64_t> grant_masks_;
+  std::uint64_t active_intent_channels_{};
   std::size_t pending_intent_count_{};
   std::size_t pending_grant_count_{};
   RegisteredChannelArbiterStats stats_;
@@ -211,7 +228,8 @@ class MockMemoryBackend final : public MemoryBackend {
  public:
   MockMemoryBackend(std::string name, ClockId clock_id, MockMemoryConfig config);
 
-  bool try_submit(const BackendRequest& request) override;
+  bool try_reserve(const BackendRequestHeader& request) override;
+  void submit_reserved(BackendRequest request) override;
   [[nodiscard]] std::size_t response_count(
       std::uint32_t initiator_id) const noexcept override;
   [[nodiscard]] const BackendResponse& response_at(
