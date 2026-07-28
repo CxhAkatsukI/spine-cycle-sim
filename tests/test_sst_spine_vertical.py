@@ -176,6 +176,71 @@ class SstSpineVerticalValidationTests(unittest.TestCase):
         )
         self.assertNotIn("materialized_reader", problems)
 
+    def test_delta_hls_residual_uses_linf_and_requires_sink_free_snapshots(self) -> None:
+        result = {
+            "success": True,
+            "mode": "spine_residual_pagerank",
+            "core_mhz": 141.0,
+            "vertices": 4,
+            "input_edges": 4,
+            "initial_edges": 4,
+            "update_edges": 2,
+            "materialized_snapshot_edges": 6,
+            "maintenance_persisted_edges": 2,
+            "maintenance_backend_requests": 5,
+            "compute_backend_requests": 7,
+            "backend_requests": 12,
+            "dynamic_update": True,
+            "pipeline_order": (
+                "zero_time_resident_level_preload_then_update_maintenance_then_compute"
+            ),
+            "architecture_oracle": "deltahls_residual_float32",
+            "mathematical_oracle": "full_pagerank_float64",
+            "architecture_correctness_mismatches": 0,
+            "mathematical_correctness_mismatches": 0,
+            "correctness_mismatches": 0,
+            "converged": True,
+            "final_active": 0,
+            "iterations": 2,
+            "pagerank_damping": 0.85,
+            "pagerank_epsilon": 1.0e-4,
+            "residual_contract": "deltahls_sink_free_linf_warm",
+            "old_sink_vertices": 0,
+            "new_sink_vertices": 0,
+            "ranks": [0.25] * 4,
+            "residuals": [9.0e-5] * 4,
+            "residual_l1": 3.6e-4,
+            "residual_linf": 9.0e-5,
+            "residual_bound_passed": True,
+            "frontier_in_sizes": [2, 1],
+            "frontier_out_sizes": [1, 0],
+            "frontier_match": True,
+            "memory_ledger_match": True,
+            "max_abs_error": 1.0e-7,
+            "mathematical_max_abs_error": 1.0e-5,
+            "mathematical_error_tolerance": 5.0e-4,
+            "reader_protocol_status": 0,
+        }
+        dram = {"dram_reads": 8, "dram_writes": 4, "dram_channels": 32}
+        arguments = dict(
+            channels=32,
+            scenario="residual_pagerank",
+            vertices=4,
+            input_edges=4,
+            update_edges=2,
+            source=0,
+            core_mhz=141.0,
+            max_rounds=256,
+            pagerank_iterations=3,
+            pagerank_damping=0.85,
+            pagerank_epsilon=1.0e-4,
+            residual_max_iterations=256,
+            residual_contract="deltahls_sink_free_linf_warm",
+        )
+        self.assertEqual(validate_generic_result(result, dram, **arguments), [])
+        result["new_sink_vertices"] = 1
+        self.assertIn("sink_free", validate_generic_result(result, dram, **arguments))
+
     def test_dynamic_sssp_closes_cold_update_and_memory_ledgers(self) -> None:
         result = {
             "success": True,

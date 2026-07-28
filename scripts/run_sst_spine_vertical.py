@@ -95,6 +95,7 @@ def validate_generic_result(
     pagerank_damping: float,
     pagerank_epsilon: float,
     residual_max_iterations: int,
+    residual_contract: str = "generic_dangling_l1_cold",
 ) -> list[str]:
     expected_mode = {
         "weighted_sssp": "spine_sssp",
@@ -243,6 +244,12 @@ def validate_generic_result(
         )
     else:
         rounds = result.get("iterations", -1)
+        delta_hls = residual_contract == "deltahls_sink_free_linf_warm"
+        residual_measure = (
+            result.get("residual_linf", float("inf"))
+            if delta_hls
+            else result.get("residual_l1", float("inf"))
+        )
         checks.update(
             {
                 "vertices": result.get("vertices") == vertices,
@@ -260,6 +267,13 @@ def validate_generic_result(
                     - pagerank_epsilon
                 )
                 < 1.0e-12,
+                "residual_contract": result.get("residual_contract")
+                == residual_contract,
+                "sink_free": (not delta_hls)
+                or (
+                    result.get("old_sink_vertices") == 0
+                    and result.get("new_sink_vertices") == 0
+                ),
                 "state_vectors": len(result.get("ranks", [])) == vertices
                 and len(result.get("residuals", [])) == vertices,
                 "frontier_ledgers": len(result.get("frontier_in_sizes", []))
@@ -267,7 +281,8 @@ def validate_generic_result(
                 and len(result.get("frontier_out_sizes", [])) == rounds,
                 "frontier_match": result.get("frontier_match") is True,
                 "memory_ledger": result.get("memory_ledger_match") is True,
-                "residual_bound": result.get("residual_bound_passed") is True,
+                "residual_bound": result.get("residual_bound_passed") is True
+                and float(residual_measure) <= pagerank_epsilon * 1.01,
                 "architecture_error": result.get("max_abs_error", 1.0)
                 <= 1.0e-5,
                 "mathematical_error": result.get(
@@ -1283,6 +1298,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--pagerank-iterations", type=int, default=2)
     parser.add_argument("--pagerank-damping", type=float, default=0.8)
     parser.add_argument("--pagerank-epsilon", type=float, default=1.0e-5)
+    parser.add_argument(
+        "--residual-contract",
+        choices=(
+            "generic_dangling_l1_cold",
+            "deltahls_sink_free_linf_warm",
+        ),
+        default="generic_dangling_l1_cold",
+    )
     parser.add_argument("--residual-max-iterations", type=int, default=256)
     parser.add_argument("--pagerank-source-latency", type=int, default=3)
     parser.add_argument("--pagerank-source-ii", type=int, default=1)
@@ -1682,6 +1705,7 @@ def main() -> int:
             "SPINE_SST_PAGERANK_ITERATIONS": str(args.pagerank_iterations),
             "SPINE_SST_PAGERANK_DAMPING": str(args.pagerank_damping),
             "SPINE_SST_PAGERANK_EPSILON": str(args.pagerank_epsilon),
+            "SPINE_SST_RESIDUAL_CONTRACT": args.residual_contract,
             "SPINE_SST_RESIDUAL_MAX_ITERATIONS": str(
                 args.residual_max_iterations
             ),
@@ -1934,6 +1958,7 @@ def main() -> int:
             pagerank_damping=args.pagerank_damping,
             pagerank_epsilon=args.pagerank_epsilon,
             residual_max_iterations=args.residual_max_iterations,
+            residual_contract=args.residual_contract,
         )
     else:
         validator = validators[args.scenario]

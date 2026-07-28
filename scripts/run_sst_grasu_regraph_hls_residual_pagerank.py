@@ -62,6 +62,20 @@ DEFAULT_UPDATE = (
 )
 
 
+def residual_bound_matches(
+    result: dict[str, object], residual_contract: str, epsilon: float
+) -> bool:
+    field = (
+        "residual_linf"
+        if residual_contract == "deltahls_sink_free_linf_warm"
+        else "residual_l1"
+    )
+    try:
+        return float(result[field]) <= epsilon * 1.01
+    except (KeyError, TypeError, ValueError):
+        return False
+
+
 def require_hls_residual_capability(
     profile_path: Path, capability_catalog_path: Path
 ) -> tuple[CapabilityCatalog, AlgorithmCapability]:
@@ -86,12 +100,15 @@ def validate_result(
     profile: dict[str, object],
     oracle: HlsWeightedOracle,
     full_solution_external: tuple[float, ...],
+    *,
+    residual_contract: str,
+    epsilon: float,
+    max_iterations: int,
 ) -> None:
     params = profile["parameters"]
     memory = profile["memory"]
     assert isinstance(params, dict) and isinstance(memory, dict)
-    epsilon = float(params["pagerank_epsilon"])
-    max_iterations = int(params["pagerank_residual_max_iterations"])
+    delta_hls = residual_contract == "deltahls_sink_free_linf_warm"
     iterations = int(result.get("iterations", -1))
     vertices = len(oracle.external_to_internal)
     partition_vertices = int(params["regraph_partition_vertices"])
@@ -142,6 +159,11 @@ def validate_result(
         if len(residuals) == vertices
         else math.inf
     )
+    external_residual_linf = (
+        max((abs(value) for value in residuals), default=0.0)
+        if len(residuals) == vertices
+        else math.inf
+    )
     checks = {
         "success": result.get("success") is True,
         "mode": result.get("mode")
@@ -150,6 +172,13 @@ def validate_result(
         == "hls_equivalent_proposed_execution_driven_simulation",
         "timing": result.get("timing_evidence")
         == "execution_driven_sst_hbm_not_cycle_calibrated",
+        "residual_contract": result.get("residual_contract")
+        == residual_contract,
+        "sink_free": (not delta_hls)
+        or (
+            result.get("old_sink_vertices") == 0
+            and result.get("new_sink_vertices") == 0
+        ),
         "serial_order": result.get("pipeline_order")
         == "update_then_degree_barrier_then_pma_native_compute",
         "conversion_absent": result.get("conversion_cost_included") is False,
@@ -165,7 +194,14 @@ def validate_result(
         and result.get("architecture_correctness_mismatches") == 0
         and result.get("mathematical_correctness_mismatches") == 0,
         "external_rank_oracle": mathematical_error <= 5.0 * epsilon,
-        "external_residual": external_residual_l1 <= epsilon * 1.01,
+        "external_residual": residual_bound_matches(
+            {
+                "residual_l1": external_residual_l1,
+                "residual_linf": external_residual_linf,
+            },
+            residual_contract,
+            epsilon,
+        ),
         "converged": result.get("converged") is True
         and result.get("residual_bound_passed") is True
         and 0 < iterations <= max_iterations,
@@ -234,6 +270,16 @@ def main() -> int:
     parser.add_argument("--sst", type=Path, default=DEFAULT_SST)
     parser.add_argument("--lib-dir", type=Path, default=ROOT / "build" / "sst")
     parser.add_argument("--max-cycles", type=int, default=100_000_000)
+    parser.add_argument(
+        "--residual-contract",
+        choices=(
+            "generic_dangling_l1_cold",
+            "deltahls_sink_free_linf_warm",
+        ),
+        default="generic_dangling_l1_cold",
+    )
+    parser.add_argument("--pagerank-epsilon", type=float)
+    parser.add_argument("--residual-max-iterations", type=int)
     parser.add_argument("--no-build", action="store_true")
     parser.add_argument(
         "--reuse-result",
@@ -287,8 +333,18 @@ def main() -> int:
         )
         address_environment = grasu_hbm_address_environment(params)
     damping = float(params["pagerank_damping"])
-    epsilon = float(params["pagerank_epsilon"])
-    max_iterations = int(params["pagerank_residual_max_iterations"])
+    epsilon = (
+        float(args.pagerank_epsilon)
+        if args.pagerank_epsilon is not None
+        else float(params["pagerank_epsilon"])
+    )
+    max_iterations = (
+        int(args.residual_max_iterations)
+        if args.residual_max_iterations is not None
+        else int(params["pagerank_residual_max_iterations"])
+    )
+    if epsilon <= 0.0 or max_iterations <= 0:
+        raise ValueError("epsilon and residual iteration limit must be positive")
     full_solution = full_pagerank_oracle(
         initial.vertices, oracle.final_external_edges, damping, 200
     )
@@ -328,6 +384,7 @@ def main() -> int:
             "GRASU_SST_RESIDUAL_MAX_ITERATIONS": str(max_iterations),
             "GRASU_SST_PAGERANK_DAMPING": str(damping),
             "GRASU_SST_PAGERANK_EPSILON": str(epsilon),
+            "GRASU_SST_RESIDUAL_CONTRACT": args.residual_contract,
             "GRASU_SST_CACHE_SEGMENTS_PER_HALF": str(
                 params["grasu_cache_segments_per_cu"]
             ),
@@ -452,7 +509,15 @@ def main() -> int:
                 f"rc={completed.returncode}; see {args.out_dir / 'sst.log'}"
             )
     result = json.loads(result_path.read_text(encoding="utf-8"))
-    validate_result(result, profile, oracle, full_solution)
+    validate_result(
+        result,
+        profile,
+        oracle,
+        full_solution,
+        residual_contract=args.residual_contract,
+        epsilon=epsilon,
+        max_iterations=max_iterations,
+    )
     dram = load_dram_stats(dram_dir)
     if (
         dram["channels"] != len(binding.instantiated_channels)
@@ -466,6 +531,9 @@ def main() -> int:
         "capability_catalog": str(catalog.manifest_path),
         "capability_catalog_sha256": catalog.manifest_sha256,
         "algorithm_capability": capability.manifest_record(),
+        "residual_contract": args.residual_contract,
+        "pagerank_epsilon": epsilon,
+        "residual_max_iterations": max_iterations,
         "workload": str(args.workload.resolve()),
         "workload_sha256": sha256(args.workload.resolve()),
         "update_workload": str(args.update_workload.resolve()),

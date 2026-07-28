@@ -7,6 +7,7 @@ from scripts.run_sst_grasu_regraph_hls_residual_pagerank import (
     DEFAULT_CAPABILITY_CATALOG,
     DEFAULT_PROFILE,
     require_hls_residual_capability,
+    residual_bound_matches,
 )
 from scripts.run_sst_grasu_regraph_hls_pagerank import full_pagerank_oracle
 from scripts.run_sst_grasu_regraph_hls_weighted import build_hls_weighted_oracle
@@ -41,6 +42,17 @@ class GraSuHlsResidualPageRankRunnerTests(unittest.TestCase):
         self.assertEqual(len(ranks), initial.vertices)
         self.assertAlmostEqual(sum(ranks), 1.0, places=12)
         self.assertGreater(prepared.physical_updates, prepared.logical_updates)
+
+    def test_delta_validator_accepts_linf_when_l1_exceeds_epsilon(self) -> None:
+        result = {"residual_l1": 3.6e-4, "residual_linf": 9.0e-5}
+        self.assertTrue(
+            residual_bound_matches(
+                result, "deltahls_sink_free_linf_warm", 1.0e-4
+            )
+        )
+        self.assertFalse(
+            residual_bound_matches(result, "generic_dangling_l1_cold", 1.0e-4)
+        )
 
 
 if __name__ == "__main__":
