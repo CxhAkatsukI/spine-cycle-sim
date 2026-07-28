@@ -183,6 +183,7 @@ public:
   [[nodiscard]] bool failed() const noexcept;
   [[nodiscard]] const std::string &failure() const noexcept;
   [[nodiscard]] GraSuReGraphCounters counters() const noexcept;
+  [[nodiscard]] std::vector<std::size_t> frontier_out_sizes() const;
   [[nodiscard]] std::vector<std::uint32_t> distances() const;
   [[nodiscard]] std::vector<std::uint32_t> state_words() const;
   [[nodiscard]] std::vector<std::uint32_t> auxiliary_state_words() const;
@@ -248,6 +249,7 @@ public:
   [[nodiscard]] GraSuReGraphCounters counters() const noexcept;
   [[nodiscard]] std::vector<float> ranks() const;
   [[nodiscard]] std::vector<float> residuals() const;
+  [[nodiscard]] std::vector<std::size_t> frontier_out_sizes() const;
 
 private:
   std::unique_ptr<GraSuReGraphSsspSystem> engine_;

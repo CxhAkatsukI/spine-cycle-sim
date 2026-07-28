@@ -172,8 +172,10 @@ def validate_result(
         "frontiers": len(result.get("frontier_in_sizes", [])) == iterations
         and len(result.get("frontier_out_sizes", [])) == iterations
         and result.get("frontier_out_sizes", [None])[-1] == 0,
-        "active_edges": result.get("compute_active_edges")
-        == result.get("expected_active_edges"),
+        "active_edge_execution_ledger": result.get(
+            "active_edge_execution_ledger_match"
+        )
+        is True,
         "update_state": result.get("update_state_mismatches") == 0,
         "degree_state": result.get("degree_state_mismatches") == 0,
         "degree_timed": result.get("degree_update_timing_included") is True,

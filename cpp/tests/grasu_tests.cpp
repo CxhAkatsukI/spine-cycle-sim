@@ -1264,12 +1264,15 @@ void test_partitioned_residual_pagerank_unions_active_frontiers() {
                 std::to_string(vertex));
   }
   const auto counters = system.counters();
+  const auto execution_frontier = system.frontier_out_sizes();
   require(counters.compute_pipelines == 2 &&
               counters.max_parallel_partitions == 2 &&
               counters.supersteps == expected.iterations &&
               counters.partition_passes ==
                   layout.partitions.size() * expected.iterations &&
-              counters.active_edges_mapped == expected.active_edges,
+              counters.active_edges_mapped == expected.active_edges &&
+              execution_frontier.size() == counters.supersteps &&
+              !execution_frontier.empty() && execution_frontier.back() == 0,
           "partitioned residual PageRank frontier ledger mismatch");
   std::cout << "EVIDENCE grasu_regraph_partitioned_residual cycles="
             << counters.end_cycle - counters.start_cycle
@@ -1353,6 +1356,7 @@ void test_pma_native_regraph_residual_pagerank_matches_oracles() {
           "residual PageRank did not approach the float64 fixed point");
 
   const auto counters = system.counters();
+  const auto execution_frontier = system.frontier_out_sizes();
   require(counters.state_bytes_per_vertex == 8 &&
               counters.supersteps == architecture.iterations &&
               counters.source_prepare_state_reads == 1 &&
@@ -1363,6 +1367,8 @@ void test_pma_native_regraph_residual_pagerank_matches_oracles() {
                                            counters.source_prepare_degree_reads &&
               counters.source_map_cycles == 0 &&
               counters.active_edges_mapped == architecture.active_edges &&
+              execution_frontier.size() == counters.supersteps &&
+              !execution_frontier.empty() && execution_frontier.back() == 0 &&
               counters.apply_read_bytes == counters.apply_state_reads * 128 &&
               counters.apply_write_bytes == counters.apply_state_writes * 128 &&
               counters.source_state_write_bytes ==

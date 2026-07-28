@@ -2940,6 +2940,10 @@ public:
   [[nodiscard]] float iteration_error() const noexcept {
     return last_iteration_error_;
   }
+  [[nodiscard]] const std::vector<std::size_t> &frontier_out_sizes()
+      const noexcept {
+    return frontier_out_sizes_;
+  }
 
   void evaluate(const CycleContext &) override {
     staged_ = Action::kNone;
@@ -2986,6 +2990,9 @@ public:
       iteration_dangling_ += worker.apply->next_dangling();
       ++completed_partitions_;
       worker.partition.reset();
+    }
+    if (staged_ == Action::kNextSuperstep || staged_ == Action::kFinish) {
+      frontier_out_sizes_.push_back(iteration_active_vertices_);
     }
     if (staged_ == Action::kStartPrepare) {
       source_prepare_->start();
@@ -3087,6 +3094,7 @@ private:
   std::uint64_t partition_passes_{};
   std::uint64_t pipeline_busy_cycles_{};
   std::size_t max_parallel_partitions_{};
+  std::vector<std::size_t> frontier_out_sizes_;
   std::string failure_;
 };
 
@@ -3253,6 +3261,9 @@ public:
   [[nodiscard]] bool failed() const noexcept { return controller_->failed(); }
   [[nodiscard]] const std::string &failure() const noexcept {
     return controller_->failure();
+  }
+  [[nodiscard]] std::vector<std::size_t> frontier_out_sizes() const {
+    return controller_->frontier_out_sizes();
   }
 
   [[nodiscard]] GraSuReGraphCounters counters() const noexcept {
@@ -4307,6 +4318,11 @@ GraSuReGraphCounters GraSuReGraphSsspSystem::counters() const noexcept {
   return impl_->counters();
 }
 
+std::vector<std::size_t>
+GraSuReGraphSsspSystem::frontier_out_sizes() const {
+  return impl_->frontier_out_sizes();
+}
+
 std::vector<std::uint32_t> GraSuReGraphSsspSystem::distances() const {
   return impl_->distances();
 }
@@ -4484,6 +4500,11 @@ std::vector<float> GraSuReGraphResidualPageRankSystem::residuals() const {
   std::transform(words.begin(), words.end(), values.begin(),
                  GraphAlgorithmPolicy::word_to_float);
   return values;
+}
+
+std::vector<std::size_t>
+GraSuReGraphResidualPageRankSystem::frontier_out_sizes() const {
+  return engine_->frontier_out_sizes();
 }
 
 } // namespace spine::sim

@@ -516,8 +516,10 @@ def validate_grasu_residual_result(
         and len(frontier_in) == len(frontier_out) == iterations
         and frontier_in[0] == run["graph"]["vertices"]  # type: ignore[index]
         and frontier_out[-1] == 0,
-        "active_edges": result.get("compute_active_edges")
-        == result.get("expected_active_edges"),
+        "active_edge_execution_ledger": result.get(
+            "active_edge_execution_ledger_match"
+        )
+        is True,
         "gather_activity": int(result.get("gather_reset_cycles", -1)) > 0
         and int(result.get("gather_merge_cycles", -1)) > 0
         and result.get("gather_merge_cycles")

@@ -3699,6 +3699,18 @@ class OnlineMemoryProbe final : public SST::Component {
       const GraSuReGraphCounters compute =
           compute_available ? grasu_residual_compute_system_->counters()
                             : GraSuReGraphCounters{};
+      const std::vector<std::size_t> execution_frontier_out =
+          compute_available
+              ? grasu_residual_compute_system_->frontier_out_sizes()
+              : std::vector<std::size_t>{};
+      std::vector<std::size_t> execution_frontier_in;
+      if (!execution_frontier_out.empty()) {
+        execution_frontier_in.reserve(execution_frontier_out.size());
+        execution_frontier_in.push_back(ranks_internal.size());
+        execution_frontier_in.insert(execution_frontier_in.end(),
+                                     execution_frontier_out.begin(),
+                                     execution_frontier_out.end() - 1);
+      }
       const GraSuUpdateCounters update =
           grasu_update_counters_captured_
               ? grasu_update_counters_
@@ -3756,16 +3768,33 @@ class OnlineMemoryProbe final : public SST::Component {
           grasu_config_.degree_channel == 30;
       const bool residual_bound_passed =
           residual_l1 <= pagerank_epsilon_ * 1.01F;
+      const bool execution_converged =
+          compute_available && !grasu_residual_compute_system_->failed() &&
+          execution_frontier_out.size() == compute.supersteps &&
+          !execution_frontier_out.empty() &&
+          execution_frontier_out.back() == 0;
+      const bool active_edge_execution_ledger_match =
+          compute.active_edges_mapped == compute.gather_bank_updates &&
+          compute.active_edges_mapped <= compute.live_edges_scanned;
+      const bool active_edge_reference_exact =
+          compute.active_edges_mapped ==
+          grasu_residual_pagerank_reference_.active_edges;
+      const double active_edge_reference_relative_error =
+          grasu_residual_pagerank_reference_.active_edges == 0
+              ? (compute.active_edges_mapped == 0 ? 0.0 : 1.0)
+              : std::fabs(
+                    static_cast<double>(compute.active_edges_mapped) -
+                    static_cast<double>(
+                        grasu_residual_pagerank_reference_.active_edges)) /
+                    static_cast<double>(
+                        grasu_residual_pagerank_reference_.active_edges);
       const bool passed =
           success && compute_available &&
           !grasu_residual_compute_system_->failed() &&
           architecture_mismatches == 0 && mathematical_mismatches == 0 &&
-          residual_bound_passed &&
+          residual_bound_passed && execution_converged &&
           update_state_mismatches == 0 && degree_state_mismatches == 0 &&
-          compute.supersteps ==
-              grasu_residual_pagerank_reference_.frontier_in_sizes.size() &&
-          compute.active_edges_mapped ==
-              grasu_residual_pagerank_reference_.active_edges &&
+          active_edge_execution_ledger_match &&
           compute.axi_beats_issued == compute.axi_beats_completed &&
           expected_backend_requests == backend_->accepted() &&
           memory_locality_ledger_match &&
@@ -3837,7 +3866,8 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"expected_iterations\": "
              << grasu_residual_pagerank_reference_.frontier_in_sizes.size()
              << ",\n"
-             << "  \"converged\": " << (passed ? "true" : "false")
+             << "  \"converged\": "
+             << (execution_converged ? "true" : "false")
              << ",\n"
              << "  \"pagerank_damping\": " << pagerank_damping_ << ",\n"
              << "  \"pagerank_epsilon\": " << pagerank_epsilon_ << ",\n"
@@ -3945,6 +3975,12 @@ class OnlineMemoryProbe final : public SST::Component {
              << compute.active_edges_mapped << ",\n"
              << "  \"expected_active_edges\": "
              << grasu_residual_pagerank_reference_.active_edges << ",\n"
+             << "  \"active_edge_execution_ledger_match\": "
+             << (active_edge_execution_ledger_match ? "true" : "false")
+             << ",\n  \"active_edge_reference_exact\": "
+             << (active_edge_reference_exact ? "true" : "false")
+             << ",\n  \"active_edge_reference_relative_error\": "
+             << active_edge_reference_relative_error << ",\n"
              << "  \"gather_bank_updates\": "
              << compute.gather_bank_updates << ",\n"
              << "  \"gather_reset_cycles\": "
@@ -4092,9 +4128,13 @@ class OnlineMemoryProbe final : public SST::Component {
         write_json_array(result, residuals_external);
       }
       result << ",\n  \"frontier_in_sizes\": ";
+      write_json_array(result, execution_frontier_in);
+      result << ",\n  \"frontier_out_sizes\": ";
+      write_json_array(result, execution_frontier_out);
+      result << ",\n  \"reference_frontier_in_sizes\": ";
       write_json_array(result,
                        grasu_residual_pagerank_reference_.frontier_in_sizes);
-      result << ",\n  \"frontier_out_sizes\": ";
+      result << ",\n  \"reference_frontier_out_sizes\": ";
       write_json_array(result,
                        grasu_residual_pagerank_reference_.frontier_out_sizes);
       result << "\n}\n";
