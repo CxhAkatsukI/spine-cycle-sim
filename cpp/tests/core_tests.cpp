@@ -6902,10 +6902,16 @@ void test_algorithm_policy_profiles_and_update_modes() {
       .vertices = 8,
       .source = 0,
   });
+  const GraphAlgorithmPolicy cc(AlgorithmPolicyConfig{
+      .kind = GraphAlgorithmKind::kConnectedComponents,
+      .vertices = 8,
+      .source = 0,
+  });
 
   const auto sssp_storage = sssp.storage_profile();
   const auto full_storage = full.storage_profile();
   const auto residual_storage = residual.storage_profile();
+  const auto cc_storage = cc.storage_profile();
   require(sssp.name() == "weighted_sssp" &&
               sssp_storage.primary_state_arrays == 1 &&
               sssp_storage.auxiliary_state_arrays == 0 &&
@@ -6921,9 +6927,18 @@ void test_algorithm_policy_profiles_and_update_modes() {
               residual_storage.auxiliary_state_arrays == 1 &&
               residual_storage.degree_arrays == 1,
           "residual PageRank storage profile does not expose rank and residual");
+  require(cc.name() == "connected_components" &&
+              cc_storage.primary_state_arrays == 1 &&
+              cc_storage.auxiliary_state_arrays == 0 &&
+              cc_storage.degree_arrays == 0 &&
+              !cc_storage.double_buffered_primary &&
+              cc.reduction_identity_word() ==
+                  std::numeric_limits<std::uint32_t>::max(),
+          "connected-components storage/reduction profile is wrong");
   require(!sssp.operation_profile().timing_characterized &&
               !full.operation_profile().timing_characterized &&
-              !residual.operation_profile().timing_characterized,
+              !residual.operation_profile().timing_characterized &&
+              !cc.operation_profile().timing_characterized,
           "an unintegrated algorithm policy claimed characterized timing");
 
   require(sssp.update_mode(true, false) ==
@@ -6933,8 +6948,38 @@ void test_algorithm_policy_profiles_and_update_modes() {
           "weighted SSSP update safety modes are wrong");
   require(full.update_mode(true, true) == AlgorithmUpdateMode::kWarmStart &&
               residual.update_mode(true, true) ==
-                  AlgorithmUpdateMode::kSignedResidual,
+                  AlgorithmUpdateMode::kSignedResidual &&
+              cc.update_mode(true, false) ==
+                  AlgorithmUpdateMode::kIncremental &&
+              cc.update_mode(false, true) ==
+                  AlgorithmUpdateMode::kFullRecomputeFallback,
           "PageRank update modes are wrong");
+}
+
+void test_connected_components_algorithm_policy_semantics() {
+  const GraphAlgorithmPolicy policy(AlgorithmPolicyConfig{
+      .kind = GraphAlgorithmKind::kConnectedComponents,
+      .vertices = 8,
+      .source = 0,
+  });
+  require(policy.initial_state(0).primary == 0 &&
+              policy.initial_state(7).primary == 7,
+          "connected-components initial labels are not vertex IDs");
+
+  const auto source = policy.prepare_source({.primary = 3}, 99);
+  require(source.edge_payload == 3 && !source.primary_changed &&
+              policy.map_edge(source.edge_payload, 65535) == 3,
+          "connected-components source/map semantics are wrong");
+  require(policy.reduce(5, 3) == 3 && policy.reduce(2, 3) == 2,
+          "connected-components reduction is not unsigned min");
+
+  const auto improved = policy.apply({.primary = 6}, 3);
+  const auto unchanged = policy.apply({.primary = 2}, 3);
+  const auto empty = policy.apply({.primary = 6}, std::nullopt);
+  require(improved.active && improved.state_after.primary == 3 &&
+              !unchanged.active && unchanged.state_after.primary == 2 &&
+              !empty.active && empty.state_after.primary == 6,
+          "connected-components apply did not enforce strict label decrease");
 }
 
 void test_weighted_sssp_algorithm_policy_semantics() {
@@ -7083,6 +7128,11 @@ void test_algorithm_state_layout_shares_one_hbm_channel() {
       .vertices = 1'025,
       .source = 0,
   });
+  const GraphAlgorithmPolicy cc(AlgorithmPolicyConfig{
+      .kind = GraphAlgorithmKind::kConnectedComponents,
+      .vertices = 1'025,
+      .source = 0,
+  });
 
   const auto sssp_layout = sssp.state_layout();
   require(sssp_layout.primary_read.base == 0 &&
@@ -7113,6 +7163,16 @@ void test_algorithm_state_layout_shares_one_hbm_channel() {
               residual_layout.degree->base == 16'384 &&
               residual_layout.total_bytes == 24'576,
           "residual PageRank state layout is wrong");
+
+  const auto cc_layout = cc.state_layout();
+  require(cc_layout.primary_read.base == 0 &&
+              cc_layout.primary_read.bytes == 4'100 &&
+              cc_layout.primary_write.base == 0 &&
+              !cc_layout.primary_ping_pong &&
+              !cc_layout.auxiliary.has_value() &&
+              !cc_layout.degree.has_value() &&
+              cc_layout.total_bytes == 8'192,
+          "connected-components state layout is wrong");
 
   bool rejected = false;
   try {
@@ -8446,6 +8506,8 @@ int main(int argc, char **argv) {
        test_algorithm_policy_rejects_invalid_configuration},
       {"algorithm_policy_profiles",
        test_algorithm_policy_profiles_and_update_modes},
+      {"algorithm_policy_connected_components",
+       test_connected_components_algorithm_policy_semantics},
       {"algorithm_policy_weighted_sssp",
        test_weighted_sssp_algorithm_policy_semantics},
       {"algorithm_policy_full_pagerank",

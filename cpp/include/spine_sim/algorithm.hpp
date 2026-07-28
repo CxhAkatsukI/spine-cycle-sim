@@ -12,6 +12,7 @@ enum class GraphAlgorithmKind {
   kWeightedSssp,
   kFullPageRank,
   kResidualPageRank,
+  kConnectedComponents,
 };
 
 enum class AlgorithmUpdateMode {
@@ -137,6 +138,7 @@ class GraphAlgorithmPolicy {
 
   [[nodiscard]] std::uint32_t initial_base_word() const noexcept;
   [[nodiscard]] std::uint32_t activation_threshold_word() const noexcept;
+  [[nodiscard]] std::uint32_t reduction_identity_word() const noexcept;
 
   [[nodiscard]] static std::uint32_t float_to_word(float value) noexcept;
   [[nodiscard]] static float word_to_float(std::uint32_t word) noexcept;

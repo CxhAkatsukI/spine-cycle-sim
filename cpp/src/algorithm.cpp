@@ -45,6 +45,8 @@ std::string_view GraphAlgorithmPolicy::name() const noexcept {
       return "full_pagerank";
     case GraphAlgorithmKind::kResidualPageRank:
       return "thresholded_residual_pagerank";
+    case GraphAlgorithmKind::kConnectedComponents:
+      return "connected_components";
   }
   return "unknown";
 }
@@ -66,6 +68,8 @@ AlgorithmStorageProfile GraphAlgorithmPolicy::storage_profile() const noexcept {
           .auxiliary_state_arrays = 1,
           .degree_arrays = 1,
       };
+    case GraphAlgorithmKind::kConnectedComponents:
+      return {.primary_state_arrays = 1};
   }
   return {};
 }
@@ -136,6 +140,8 @@ GraphAlgorithmPolicy::operation_profile() const noexcept {
           .fp_divides_per_source = 1,
           .fp_abs_compares_per_apply = 1,
       };
+    case GraphAlgorithmKind::kConnectedComponents:
+      return {.integer_compares_per_reduce = 1};
   }
   return {};
 }
@@ -152,6 +158,10 @@ AlgorithmUpdateMode GraphAlgorithmPolicy::update_mode(
       return AlgorithmUpdateMode::kWarmStart;
     case GraphAlgorithmKind::kResidualPageRank:
       return AlgorithmUpdateMode::kSignedResidual;
+    case GraphAlgorithmKind::kConnectedComponents:
+      return has_delete_or_increase
+                 ? AlgorithmUpdateMode::kFullRecomputeFallback
+                 : AlgorithmUpdateMode::kIncremental;
   }
   return AlgorithmUpdateMode::kFullRecomputeFallback;
 }
@@ -168,6 +178,8 @@ AlgorithmVertexState GraphAlgorithmPolicy::initial_state(
           .primary = float_to_word(0.0F),
           .auxiliary = initial_base_word(),
       };
+    case GraphAlgorithmKind::kConnectedComponents:
+      return {.primary = vertex};
   }
   return {};
 }
@@ -212,6 +224,11 @@ AlgorithmSourceResult GraphAlgorithmPolicy::prepare_source(
           .auxiliary_changed = delta != 0.0F,
       };
     }
+    case GraphAlgorithmKind::kConnectedComponents:
+      return {
+          .edge_payload = state.primary,
+          .state_after = state,
+      };
   }
   return {};
 }
@@ -229,7 +246,8 @@ std::uint32_t GraphAlgorithmPolicy::reduce(
   if (!current.has_value()) {
     return candidate;
   }
-  if (config_.kind == GraphAlgorithmKind::kWeightedSssp) {
+  if (config_.kind == GraphAlgorithmKind::kWeightedSssp ||
+      config_.kind == GraphAlgorithmKind::kConnectedComponents) {
     return std::min(*current, candidate);
   }
   return float_to_word(word_to_float(*current) + word_to_float(candidate));
@@ -284,6 +302,19 @@ AlgorithmApplyResult GraphAlgorithmPolicy::apply(
           .error = std::fabs(residual),
       };
     }
+    case GraphAlgorithmKind::kConnectedComponents: {
+      const std::uint32_t candidate =
+          reduced.value_or(reduction_identity_word());
+      const bool active = candidate < old_state.primary;
+      return {
+          .state_after = {
+              .primary = active ? candidate : old_state.primary,
+              .auxiliary = old_state.auxiliary,
+          },
+          .active = active,
+          .error = active ? 1.0F : 0.0F,
+      };
+    }
   }
   return {};
 }
@@ -300,6 +331,13 @@ GraphAlgorithmPolicy::activation_threshold_word() const noexcept {
           ? config_.epsilon
           : config_.epsilon / config_.vertices;
   return float_to_word(threshold);
+}
+
+std::uint32_t GraphAlgorithmPolicy::reduction_identity_word() const noexcept {
+  return config_.kind == GraphAlgorithmKind::kWeightedSssp ||
+                 config_.kind == GraphAlgorithmKind::kConnectedComponents
+             ? std::numeric_limits<std::uint32_t>::max()
+             : float_to_word(0.0F);
 }
 
 std::uint32_t GraphAlgorithmPolicy::float_to_word(float value) noexcept {
