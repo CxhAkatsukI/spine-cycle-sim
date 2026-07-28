@@ -46,6 +46,9 @@ dram_output = Path(
     os.environ.get("GRASU_SST_DRAM_OUTPUT", "/tmp/grasu_regraph_dramsim3")
 )
 dram_output.mkdir(parents=True, exist_ok=True)
+memory_backend = os.environ.get(
+    "GRASU_SST_MEMORY_BACKEND", "sst_memHierarchy_dramsim3"
+)
 core_mhz = float(os.environ.get("GRASU_SST_CORE_MHZ", "150"))
 
 probe = sst.Component("grasu_regraph", "spine_cycle.OnlineMemoryProbe")
@@ -53,6 +56,12 @@ probe.addParams(
     {
         "mode": mode,
         "output": output,
+        "memory_backend": memory_backend,
+        "direct_dram_config": os.environ.get(
+            "CANDIDATE10_SST_DRAM_CONFIG",
+            str(ROOT / "configs" / "memory" / "HBM2_1ch_x128.ini"),
+        ),
+        "direct_dram_output": str(dram_output),
         "workload": str(workload),
         "update_workload": str(update) if update is not None else "",
         "source_vertex": int(os.environ.get("GRASU_SST_SOURCE", "0")),
@@ -224,7 +233,7 @@ dram_config = Path(
 ).resolve()
 if not dram_config.is_file():
     raise ValueError(f"CANDIDATE10_SST_DRAM_CONFIG is not a file: {dram_config}")
-for channel in active_channels:
+for channel in active_channels if memory_backend == "sst_memHierarchy_dramsim3" else ():
     interface = probe.setSubComponent(
         "memory", "memHierarchy.standardInterface", channel
     )

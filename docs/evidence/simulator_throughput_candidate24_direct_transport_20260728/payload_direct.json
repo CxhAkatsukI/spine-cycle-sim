@@ -1,0 +1,13 @@
+{
+  "success": true,
+  "mode": "payload_roundtrip",
+  "backend": "direct_dramsim3_transport",
+  "cycles": 95,
+  "payload_bytes": 1600,
+  "axi_bursts": 6,
+  "axi_beats": 50,
+  "axi_read_bytes": 1600,
+  "axi_write_bytes": 1600,
+  "zero_filled_write_bytes": 0,
+  "backend_requests": 50
+}

@@ -14,6 +14,7 @@
 #include <map>
 #include <memory>
 #include <numeric>
+#include <optional>
 #include <queue>
 #include <sstream>
 #include <stdexcept>
@@ -24,6 +25,7 @@
 #include <utility>
 #include <vector>
 
+#include "direct_dramsim3_engine.hpp"
 #include "spine_sim/axi.hpp"
 #include "spine_sim/fifo.hpp"
 #include "spine_sim/grasu.hpp"
@@ -1530,9 +1532,11 @@ class SstMemoryBackend final : public MemoryBackend {
                    std::uint64_t channel_capacity_bytes,
                    std::size_t accepts_per_channel_per_cycle,
                    std::size_t max_outstanding_per_channel,
-                   std::size_t response_queue_depth)
+                   std::size_t response_queue_depth,
+                   std::unique_ptr<DirectDramSim3Engine> direct_engine = nullptr)
       : MemoryBackend("sst-hbm-backend", clock_id),
         interfaces_(std::move(interfaces)),
+        direct_engine_(std::move(direct_engine)),
         channel_capacity_bytes_(channel_capacity_bytes),
         accepts_per_channel_per_cycle_(accepts_per_channel_per_cycle),
         max_outstanding_per_channel_(max_outstanding_per_channel),
@@ -1541,8 +1545,11 @@ class SstMemoryBackend final : public MemoryBackend {
         staged_channel_submissions_(interfaces_.size(), 0),
         arbiter_(interfaces_.size(), accepts_per_channel_per_cycle) {
     if (interfaces_.empty() ||
-        std::none_of(interfaces_.begin(), interfaces_.end(),
-                     [](const auto *interface) { return interface != nullptr; }) ||
+        (direct_engine_ == nullptr &&
+         std::none_of(interfaces_.begin(), interfaces_.end(),
+                      [](const auto *interface) {
+                        return interface != nullptr;
+                      })) ||
         channel_capacity_bytes_ == 0 ||
         accepts_per_channel_per_cycle_ == 0 ||
         max_outstanding_per_channel_ == 0 || response_queue_depth_ == 0) {
@@ -1555,7 +1562,7 @@ class SstMemoryBackend final : public MemoryBackend {
         request.channel >= interfaces_.size() || request.bytes == 0) {
       throw std::invalid_argument("invalid SST backend request");
     }
-    if (interfaces_[request.channel] == nullptr) {
+    if (!channel_active(request.channel)) {
       throw std::invalid_argument(
           "SST backend request targets an unbound memory channel");
     }
@@ -1640,7 +1647,7 @@ class SstMemoryBackend final : public MemoryBackend {
 
   [[nodiscard]] std::size_t outstanding() const noexcept override {
     return staged_submissions_.size() + arbiter_.pending_grants() +
-           inflight_.size();
+           inflight_.size() + direct_inflight_count_;
   }
 
   [[nodiscard]] std::size_t outstanding_for(
@@ -1706,30 +1713,39 @@ class SstMemoryBackend final : public MemoryBackend {
     for (const BackendRequest &request : staged_submissions_) {
       const std::uint64_t local_address =
           request.address % channel_capacity_bytes_;
-      SST::Interfaces::StandardMem::Request *standard_request = nullptr;
-      if (request.operation == MemoryOperation::kWrite) {
-        standard_request = new SST::Interfaces::StandardMem::Write(
-            local_address, request.bytes, request.write_data);
-      } else {
-        standard_request = new SST::Interfaces::StandardMem::Read(
-            local_address, request.bytes);
-      }
-      standard_request->setNoncacheable();
-      const auto standard_id = standard_request->getID();
-      inflight_.emplace(standard_id,
-                        Inflight{
-                            .backend_request_id = request.request_id,
-                            .initiator_id = request.initiator_id,
-                            .channel = request.channel,
-                            .operation = request.operation,
-                            .bytes = request.bytes,
-                            .request = request,
-                        });
+      Inflight inflight{
+          .backend_request_id = request.request_id,
+          .initiator_id = request.initiator_id,
+          .channel = request.channel,
+          .operation = request.operation,
+          .bytes = request.bytes,
+          .request = request,
+      };
       ++channel_outstanding_[request.channel];
       ++ensure_initiator_state(request.initiator_id).outstanding;
       record_accepted_request(request);
       ++accepted_;
-      interfaces_[request.channel]->send(standard_request);
+      if (direct_engine_ != nullptr) {
+        const std::uint64_t token =
+            allocate_direct_inflight(std::move(inflight));
+        direct_engine_->submit(
+            token, request.channel, local_address,
+            request.operation == MemoryOperation::kWrite,
+            direct_submit_time_ps_);
+      } else {
+        SST::Interfaces::StandardMem::Request *standard_request = nullptr;
+        if (request.operation == MemoryOperation::kWrite) {
+          standard_request = new SST::Interfaces::StandardMem::Write(
+              local_address, request.bytes, request.write_data);
+        } else {
+          standard_request = new SST::Interfaces::StandardMem::Read(
+              local_address, request.bytes);
+        }
+        standard_request->setNoncacheable();
+        const auto standard_id = standard_request->getID();
+        inflight_.emplace(standard_id, inflight);
+        interfaces_[request.channel]->send(standard_request);
+      }
     }
     staged_submissions_.clear();
     std::fill(staged_channel_submissions_.begin(),
@@ -1747,7 +1763,6 @@ class SstMemoryBackend final : public MemoryBackend {
     if (found == inflight_.end()) {
       throw std::logic_error("SST returned an unknown StandardMem request");
     }
-    std::vector<std::uint8_t> read_data;
     if (found->second.operation == MemoryOperation::kRead) {
       auto *read_response =
           dynamic_cast<SST::Interfaces::StandardMem::ReadResp *>(request);
@@ -1755,28 +1770,43 @@ class SstMemoryBackend final : public MemoryBackend {
           read_response->data.size() != found->second.bytes) {
         throw std::logic_error("SST returned a malformed read response");
       }
-      read_data = complete_read_payload(found->second.request);
     } else if (dynamic_cast<SST::Interfaces::StandardMem::WriteResp *>(
                    request) == nullptr) {
       throw std::logic_error("SST returned a malformed write response");
-    } else {
-      commit_write_payload(found->second.request);
     }
-    external_arrivals_.push_back(BackendResponse{
-        .initiator_id = found->second.initiator_id,
-        .request_id = found->second.backend_request_id,
-        .success = request->getSuccess(),
-        .read_data = std::move(read_data),
-    });
-    --channel_outstanding_[found->second.channel];
-    InitiatorState &initiator =
-        ensure_initiator_state(found->second.initiator_id);
-    if (initiator.outstanding == 0) {
-      throw std::logic_error("SST initiator outstanding count underflow");
-    }
-    --initiator.outstanding;
+    complete_inflight(found->second, request->getSuccess());
     inflight_.erase(found);
     delete request;
+  }
+
+  void advance_direct_to(std::uint64_t time_ps) {
+    if (direct_engine_ == nullptr) {
+      return;
+    }
+    direct_engine_->advance_to(time_ps);
+    direct_engine_->take_completions(direct_completions_);
+    for (const DirectDramSim3Engine::Completion &completion :
+         direct_completions_) {
+      if (completion.token >= direct_inflight_.size() ||
+          !direct_inflight_[completion.token].has_value()) {
+        throw std::logic_error(
+            "direct DRAMSim3 returned an unknown request token");
+      }
+      complete_inflight(*direct_inflight_[completion.token], true);
+      release_direct_inflight(completion.token);
+    }
+    direct_submit_time_ps_ = time_ps;
+  }
+
+  void print_direct_stats() {
+    if (direct_engine_ != nullptr) {
+      direct_engine_->print_stats();
+    }
+  }
+
+  [[nodiscard]] const char *backend_label() const noexcept {
+    return direct_engine_ == nullptr ? "sst_memHierarchy_dramsim3"
+                                     : "direct_dramsim3_transport";
   }
 
   [[nodiscard]] std::uint64_t accepted() const noexcept { return accepted_; }
@@ -1863,7 +1893,62 @@ class SstMemoryBackend final : public MemoryBackend {
     BackendRequest request;
   };
 
+  [[nodiscard]] bool channel_active(std::size_t channel) const noexcept {
+    return direct_engine_ != nullptr
+               ? direct_engine_->channel_active(channel)
+               : channel < interfaces_.size() && interfaces_[channel] != nullptr;
+  }
+
+  void complete_inflight(const Inflight &inflight, bool success) {
+    std::vector<std::uint8_t> read_data;
+    if (inflight.operation == MemoryOperation::kRead) {
+      read_data = complete_read_payload(inflight.request);
+    } else {
+      commit_write_payload(inflight.request);
+    }
+    external_arrivals_.push_back(BackendResponse{
+        .initiator_id = inflight.initiator_id,
+        .request_id = inflight.backend_request_id,
+        .success = success,
+        .read_data = std::move(read_data),
+    });
+    if (channel_outstanding_[inflight.channel] == 0) {
+      throw std::logic_error("SST channel outstanding count underflow");
+    }
+    --channel_outstanding_[inflight.channel];
+    InitiatorState &initiator = ensure_initiator_state(inflight.initiator_id);
+    if (initiator.outstanding == 0) {
+      throw std::logic_error("SST initiator outstanding count underflow");
+    }
+    --initiator.outstanding;
+  }
+
+  [[nodiscard]] std::uint64_t allocate_direct_inflight(Inflight inflight) {
+    std::size_t slot{};
+    if (free_direct_inflight_.empty()) {
+      slot = direct_inflight_.size();
+      direct_inflight_.emplace_back(std::move(inflight));
+    } else {
+      slot = free_direct_inflight_.back();
+      free_direct_inflight_.pop_back();
+      direct_inflight_[slot].emplace(std::move(inflight));
+    }
+    ++direct_inflight_count_;
+    return slot;
+  }
+
+  void release_direct_inflight(std::uint64_t token) {
+    const std::size_t slot = static_cast<std::size_t>(token);
+    if (direct_inflight_count_ == 0) {
+      throw std::logic_error("direct DRAMSim3 inflight count underflow");
+    }
+    direct_inflight_[slot].reset();
+    free_direct_inflight_.push_back(slot);
+    --direct_inflight_count_;
+  }
+
   std::vector<SST::Interfaces::StandardMem *> interfaces_;
+  std::unique_ptr<DirectDramSim3Engine> direct_engine_;
   std::uint64_t channel_capacity_bytes_{};
   std::size_t accepts_per_channel_per_cycle_{};
   std::size_t max_outstanding_per_channel_{};
@@ -1878,11 +1963,16 @@ class SstMemoryBackend final : public MemoryBackend {
   std::vector<BackendRequest> staged_submissions_;
   std::unordered_map<SST::Interfaces::StandardMem::Request::id_t, Inflight>
       inflight_;
+  std::vector<std::optional<Inflight>> direct_inflight_;
+  std::vector<std::size_t> free_direct_inflight_;
+  std::vector<DirectDramSim3Engine::Completion> direct_completions_;
   std::deque<BackendResponse> external_arrivals_;
   std::uint64_t accepted_{};
   std::uint64_t submit_stalls_{};
   std::uint64_t response_queue_stalls_{};
   std::size_t max_outstanding_{};
+  std::size_t direct_inflight_count_{};
+  std::uint64_t direct_submit_time_ps_{};
 };
 
 }  // namespace
@@ -1895,6 +1985,12 @@ class OnlineMemoryProbe final : public SST::Component {
                  params.find<int>("verbose", 0), 0, SST::Output::STDOUT);
     result_path_ = params.find<std::string>("output", "sst_memory_probe.json");
     mode_ = params.find<std::string>("mode", "probe");
+    memory_backend_ = params.find<std::string>(
+        "memory_backend", "sst_memHierarchy_dramsim3");
+    direct_dram_config_path_ =
+        params.find<std::string>("direct_dram_config", "");
+    direct_dram_output_path_ =
+        params.find<std::string>("direct_dram_output", "");
     workload_path_ = params.find<std::string>("workload", "");
     update_workload_path_ =
         params.find<std::string>("update_workload", "");
@@ -2251,6 +2347,11 @@ class OnlineMemoryProbe final : public SST::Component {
         candidate_publication_base_cycles_ == 0 ||
         candidate_publication_source_cycles_ == 0 ||
         candidate_publication_group_cycles_ == 0 ||
+        (memory_backend_ != "sst_memHierarchy_dramsim3" &&
+         memory_backend_ != "direct_dramsim3_transport") ||
+        (memory_backend_ == "direct_dramsim3_transport" &&
+         (direct_dram_config_path_.empty() ||
+          direct_dram_output_path_.empty())) ||
         candidate_publication_empty_base_cycles_ == 0 ||
         candidate_publication_empty_group_cycles_ == 0 ||
         maintenance_scan_response_capacity_ == 0 ||
@@ -2309,21 +2410,26 @@ class OnlineMemoryProbe final : public SST::Component {
         core_clock_,
         new SST::Clock::Handler<OnlineMemoryProbe,
                                 &OnlineMemoryProbe::clock_tick>(this));
+    picosecond_converter_ = getTimeConverter("1ps");
 
-    SST::SubComponentSlotInfo *slot = getSubComponentSlotInfo("memory");
-    if (slot == nullptr) {
-      output_.fatal(CALL_INFO, -1, "memory subcomponent slots are required\n");
-    }
     interfaces_.resize(channels_, nullptr);
-    for (const std::size_t channel : active_memory_channels_) {
-      interfaces_[channel] = slot->create<SST::Interfaces::StandardMem>(
-          channel, SST::ComponentInfo::SHARE_NONE, clock_converter_,
-          new SST::Interfaces::StandardMem::Handler<
-              OnlineMemoryProbe, &OnlineMemoryProbe::on_memory_response>(this));
-      if (interfaces_[channel] == nullptr) {
+    if (memory_backend_ == "sst_memHierarchy_dramsim3") {
+      SST::SubComponentSlotInfo *slot = getSubComponentSlotInfo("memory");
+      if (slot == nullptr) {
         output_.fatal(CALL_INFO, -1,
-                      "memory slot %zu is not populated with StandardMem\n",
-                      channel);
+                      "memory subcomponent slots are required\n");
+      }
+      for (const std::size_t channel : active_memory_channels_) {
+        interfaces_[channel] = slot->create<SST::Interfaces::StandardMem>(
+            channel, SST::ComponentInfo::SHARE_NONE, clock_converter_,
+            new SST::Interfaces::StandardMem::Handler<
+                OnlineMemoryProbe,
+                &OnlineMemoryProbe::on_memory_response>(this));
+        if (interfaces_[channel] == nullptr) {
+          output_.fatal(CALL_INFO, -1,
+                        "memory slot %zu is not populated with StandardMem\n",
+                        channel);
+        }
       }
     }
 
@@ -2346,8 +2452,19 @@ class OnlineMemoryProbe final : public SST::Component {
       }
     }
     const ClockId core = scheduler_.add_clock_mhz("core", core_mhz_);
+    std::unique_ptr<DirectDramSim3Engine> direct_engine;
+    if (memory_backend_ == "direct_dramsim3_transport") {
+      direct_engine = std::make_unique<DirectDramSim3Engine>(
+          DirectDramSim3Engine::Config{
+              .channels = channels_,
+              .active_channels = active_memory_channels_,
+              .dram_config_path = direct_dram_config_path_,
+              .output_root = direct_dram_output_path_,
+          });
+    }
     backend_ = std::make_unique<SstMemoryBackend>(
-        core, interfaces_, channel_capacity_bytes_, 1, 32, 128);
+        core, interfaces_, channel_capacity_bytes_, 1, 32, 128,
+        std::move(direct_engine));
     const bool partitioned_dynamic_pagerank =
         mode_ == "grasu_regraph_partitioned_dynamic_pagerank";
     const bool native_grasu_sssp = mode_ == "grasu_regraph_native_sssp";
@@ -3221,9 +3338,13 @@ class OnlineMemoryProbe final : public SST::Component {
     if (!result_written_) {
       write_result(false);
     }
+    if (backend_ != nullptr) {
+      backend_->print_direct_stats();
+    }
   }
 
   bool clock_tick(SST::Cycle_t) {
+    backend_->advance_direct_to(getCurrentSimTime(picosecond_converter_));
     scheduler_.step();
     if (mode_ == "grasu_regraph_native_sssp") {
       if (grasu_update_system_->failed()) {
@@ -3629,6 +3750,12 @@ class OnlineMemoryProbe final : public SST::Component {
 
   SST_ELI_DOCUMENT_PARAMS(
       {"output", "JSON result path", "sst_memory_probe.json"},
+      {"memory_backend",
+       "sst_memHierarchy_dramsim3 or direct_dramsim3_transport",
+       "sst_memHierarchy_dramsim3"},
+      {"direct_dram_config", "DRAMSim3 INI for the direct transport", ""},
+      {"direct_dram_output", "DRAMSim3 output root for the direct transport",
+       ""},
       {"mode",
        "probe, payload_roundtrip, spine_vertical, spine_maintenance, "
        "spine_compute, spine_sssp, "
@@ -3935,7 +4062,8 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"mode\": \"spine_connected_components\",\n"
              << "  \"algorithm_contract\": "
                 "\"weakly_connected_min_vertex_reciprocal_v1\",\n"
-             << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
+             << "  \"backend\": \"" << backend_->backend_label()
+             << "\",\n"
              << "  \"claim_class\": "
                 "\"execution_driven_normalized_cycle_simulation\",\n"
              << "  \"timing_evidence\": "
@@ -4122,7 +4250,8 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"mode\": \"grasu_regraph_connected_components\",\n"
              << "  \"algorithm_contract\": "
                 "\"weakly_connected_min_vertex_reciprocal_v1\",\n"
-             << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
+             << "  \"backend\": \"" << backend_->backend_label()
+             << "\",\n"
              << "  \"claim_class\": "
                 "\"conversion_free_normalized_execution_driven_simulation\",\n"
              << "  \"timing_evidence\": "
@@ -4260,7 +4389,8 @@ class OnlineMemoryProbe final : public SST::Component {
       result << "{\n"
              << "  \"success\": " << (passed ? "true" : "false") << ",\n"
              << "  \"mode\": \"spine_maintenance\",\n"
-             << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
+             << "  \"backend\": \"" << backend_->backend_label()
+             << "\",\n"
              << "  \"core_mhz\": " << core_mhz_ << ",\n"
              << "  \"spine_axi_profile\": \"" << spine_axi_profile_id_
              << "\",\n"
@@ -4493,7 +4623,8 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"claim_class\": \"native_structural_simulation\",\n"
              << "  \"timing_evidence\": "
                 "\"execution_driven_sst_hbm_not_cycle_calibrated\",\n"
-             << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
+             << "  \"backend\": \"" << backend_->backend_label()
+             << "\",\n"
              << "  \"pipeline_order\": "
                 "\"update_then_barrier_compactor_then_compute\",\n"
              << "  \"conversion_cost_included\": true,\n"
@@ -4834,7 +4965,8 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"mode\": \"" << mode_ << "\",\n"
              << "  \"residual_contract\": \"" << residual_contract_id_
              << "\",\n"
-             << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
+             << "  \"backend\": \"" << backend_->backend_label()
+             << "\",\n"
              << "  \"claim_class\": \""
              << (hls_weighted
                      ? "hls_equivalent_proposed_execution_driven_simulation"
@@ -5354,7 +5486,8 @@ class OnlineMemoryProbe final : public SST::Component {
           << "{\n"
           << "  \"success\": " << (passed ? "true" : "false") << ",\n"
           << "  \"mode\": \"" << mode_ << "\",\n"
-          << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
+          << "  \"backend\": \"" << backend_->backend_label()
+          << "\",\n"
           << "  \"claim_class\": \""
           << (hls_weighted
                   ? "hls_equivalent_proposed_execution_driven_simulation"
@@ -5697,7 +5830,8 @@ class OnlineMemoryProbe final : public SST::Component {
                      ? "execution_driven_sst_hbm_not_cycle_calibrated"
                      : "structural_execution_driven")
              << "\",\n"
-             << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
+             << "  \"backend\": \"" << backend_->backend_label()
+             << "\",\n"
              << "  \"pipeline_order\": "
                 "\"update_then_barrier_then_pma_native_compute\",\n"
              << "  \"conversion_cost_included\": false,\n"
@@ -6122,7 +6256,8 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"mode\": \"spine_residual_pagerank\",\n"
           << "  \"residual_contract\": \"" << residual_contract_id_
           << "\",\n"
-          << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
+          << "  \"backend\": \"" << backend_->backend_label()
+          << "\",\n"
           << "  \"spine_axi_profile\": \"" << spine_axi_profile_id_ << "\",\n"
           << "  \"spine_maintenance_architecture\": \""
           << spine_maintenance_architecture_id_ << "\",\n"
@@ -6489,7 +6624,8 @@ class OnlineMemoryProbe final : public SST::Component {
           << "{\n"
           << "  \"success\": " << (passed ? "true" : "false") << ",\n"
           << "  \"mode\": \"spine_pagerank\",\n"
-          << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
+          << "  \"backend\": \"" << backend_->backend_label()
+          << "\",\n"
           << "  \"spine_axi_profile\": \"" << spine_axi_profile_id_ << "\",\n"
           << "  \"spine_maintenance_architecture\": \""
           << spine_maintenance_architecture_id_ << "\",\n"
@@ -6827,7 +6963,8 @@ class OnlineMemoryProbe final : public SST::Component {
       result << "{\n"
              << "  \"success\": " << (passed ? "true" : "false") << ",\n"
              << "  \"mode\": \"payload_roundtrip\",\n"
-             << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
+             << "  \"backend\": \"" << backend_->backend_label()
+             << "\",\n"
              << "  \"cycles\": " << scheduler_.clock(0).completed_cycles
              << ",\n"
              << "  \"payload_bytes\": " << payload_round_trip_->bytes() << ",\n"
@@ -6880,7 +7017,8 @@ class OnlineMemoryProbe final : public SST::Component {
       result << "{\n"
              << "  \"success\": " << (passed ? "true" : "false") << ",\n"
              << "  \"mode\": \"spine_compute\",\n"
-             << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
+             << "  \"backend\": \"" << backend_->backend_label()
+             << "\",\n"
              << "  \"spine_axi_profile\": \"" << spine_axi_profile_id_
              << "\",\n"
              << "  \"axi_vertex_state_data_width_bytes\": "
@@ -7536,7 +7674,8 @@ class OnlineMemoryProbe final : public SST::Component {
           << "{\n"
           << "  \"success\": " << (passed ? "true" : "false") << ",\n"
           << "  \"mode\": \"spine_sssp\",\n"
-          << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
+          << "  \"backend\": \"" << backend_->backend_label()
+          << "\",\n"
           << "  \"spine_axi_profile\": \"" << spine_axi_profile_id_ << "\",\n"
           << "  \"spine_maintenance_architecture\": \""
           << spine_maintenance_architecture_id_ << "\",\n"
@@ -8407,7 +8546,8 @@ class OnlineMemoryProbe final : public SST::Component {
           << "{\n"
           << "  \"success\": " << (passed ? "true" : "false") << ",\n"
           << "  \"mode\": \"spine_vertical\",\n"
-          << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
+          << "  \"backend\": \"" << backend_->backend_label()
+          << "\",\n"
           << "  \"spine_axi_profile\": \"" << spine_axi_profile_id_ << "\",\n"
           << "  \"spine_maintenance_architecture\": \""
           << spine_maintenance_architecture_id_ << "\",\n"
@@ -9116,7 +9256,8 @@ class OnlineMemoryProbe final : public SST::Component {
     const auto &stats = axi_->stats();
     result << "{\n"
            << "  \"success\": " << (success ? "true" : "false") << ",\n"
-           << "  \"backend\": \"sst_memHierarchy_dramsim3\",\n"
+           << "  \"backend\": \"" << backend_->backend_label()
+           << "\",\n"
            << "  \"cycles\": " << scheduler_.clock(0).completed_cycles << ",\n"
            << "  \"sim_time_fs\": "
            << scheduler_.clock(0).next_edge_fs - scheduler_.clock(0).phase_fs
@@ -9156,6 +9297,9 @@ class OnlineMemoryProbe final : public SST::Component {
   SST::Output output_;
   std::string result_path_;
   std::string mode_;
+  std::string memory_backend_;
+  std::string direct_dram_config_path_;
+  std::string direct_dram_output_path_;
   std::string workload_path_;
   std::string update_workload_path_;
   std::string preload_path_;
@@ -9226,6 +9370,7 @@ class OnlineMemoryProbe final : public SST::Component {
   std::string spine_maintenance_architecture_id_;
   SpineMaintenanceArchitecture spine_maintenance_architecture_{};
   SST::TimeConverter clock_converter_{};
+  SST::TimeConverter picosecond_converter_{};
   std::vector<SST::Interfaces::StandardMem *> interfaces_;
 
   Scheduler scheduler_;

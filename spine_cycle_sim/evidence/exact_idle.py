@@ -11,6 +11,10 @@ from typing import Any
 
 
 SYSTEMS = ("spine", "grasu_regraph")
+DIRECT_TRANSPORT_BACKEND_TRANSITION = (
+    "sst_memHierarchy_dramsim3",
+    "direct_dramsim3_transport",
+)
 FULL_PAGERANK_SPINE_ADDITIONS = frozenset(
     {
         "compute_max_memory_requests_inflight",
@@ -133,9 +137,12 @@ def _validate_parent(
 
 
 def analyze_exact_idle_equivalence(
-    baseline_dir: str | Path, candidate_dir: str | Path
+    baseline_dir: str | Path,
+    candidate_dir: str | Path,
+    *,
+    allow_direct_transport: bool = False,
 ) -> dict[str, Any]:
-    """Compare every old result field and every DRAM JSON byte-for-byte."""
+    """Compare every architectural result field and every DRAM JSON byte."""
 
     baseline = Path(baseline_dir).resolve()
     candidate = Path(candidate_dir).resolve()
@@ -153,6 +160,7 @@ def analyze_exact_idle_equivalence(
     old_fields = 0
     added_fields = 0
     speedups: list[float] = []
+    approved_provenance_changes = 0
     for run_id in baseline_runs:
         for system in SYSTEMS:
             old_root = baseline / run_id / system
@@ -163,6 +171,15 @@ def analyze_exact_idle_equivalence(
             new = _json(new_path)
             missing = set(old) - set(new)
             changed = {key for key in old.keys() & new.keys() if old[key] != new[key]}
+            provenance_changes: set[str] = set()
+            if "backend" in changed and allow_direct_transport:
+                transition = (old.get("backend"), new.get("backend"))
+                if transition != DIRECT_TRANSPORT_BACKEND_TRANSITION:
+                    raise ExactIdleEquivalenceError(
+                        f"{run_id}/{system} invalid backend transition: {transition}"
+                    )
+                changed.remove("backend")
+                provenance_changes.add("backend")
             additions = set(new) - set(old)
             algorithm = baseline_algorithms[(run_id, system)]
             allowed = (
@@ -213,6 +230,7 @@ def analyze_exact_idle_equivalence(
             exact_result_files += int(byte_identical)
             old_fields += len(old)
             added_fields += len(additions)
+            approved_provenance_changes += len(provenance_changes)
             total_dram_json += len(old_dram)
             rows.append(
                 {
@@ -222,6 +240,9 @@ def analyze_exact_idle_equivalence(
                     "cycles": old.get("cycles", 0),
                     "old_fields": len(old),
                     "added_observability_fields": len(additions),
+                    "approved_provenance_changes": ",".join(
+                        sorted(provenance_changes)
+                    ),
                     "result_byte_identical": byte_identical,
                     "dram_json_files": len(old_dram),
                     "baseline_wall_seconds": old_wall,
@@ -233,7 +254,11 @@ def analyze_exact_idle_equivalence(
     geomean = math.exp(sum(math.log(value) for value in speedups) / len(speedups))
     return {
         "schema_version": 1,
-        "claim": "exact_idle_backend_observable_equivalence",
+        "claim": (
+            "direct_dramsim3_transport_architectural_equivalence"
+            if allow_direct_transport
+            else "exact_idle_backend_observable_equivalence"
+        ),
         "baseline_manifest_sha256": _sha256(
             baseline / "comparison_manifest.json"
         ),
@@ -243,7 +268,10 @@ def analyze_exact_idle_equivalence(
         "run_cases": len(baseline_runs),
         "system_results": len(rows),
         "algorithms": sorted({str(row["algorithm"]) for row in rows}),
-        "all_preexisting_result_fields_identical": True,
+        "all_preexisting_result_fields_identical":
+            approved_provenance_changes == 0,
+        "all_architectural_result_fields_identical": True,
+        "approved_provenance_changes": approved_provenance_changes,
         "preexisting_result_fields_compared": old_fields,
         "added_observability_fields": added_fields,
         "byte_identical_result_files": exact_result_files,

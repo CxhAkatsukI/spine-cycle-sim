@@ -3,6 +3,7 @@ SST_BIN ?= /data/feiyang/sst/bin
 SST_CONFIG := $(SST_BIN)/sst-config
 SST_CXXFLAGS := $(shell $(SST_CONFIG) --ELEMENT_CXXFLAGS)
 SPINE_HOST_OPT_FLAGS ?= -O3 -DNDEBUG -flto
+DRAMSIM3_ROOT ?= $(SPINE_IDLE_DRAMSIM3_SRC)
 
 ROOT := ../..
 BUILD_DIR ?= $(ROOT)/build/sst
@@ -10,7 +11,13 @@ TARGET := $(BUILD_DIR)/libspine_cycle.so
 INCLUDES := -I$(ROOT)/cpp/include
 CXXFLAGS := $(SST_CXXFLAGS) -std=c++20 $(SPINE_HOST_OPT_FLAGS) -fPIC \
             -Wall -Wextra -Wpedantic $(INCLUDES)
+LDFLAGS :=
+ifneq ($(strip $(DRAMSIM3_ROOT)),)
+CXXFLAGS += -DSPINE_HAVE_DIRECT_DRAMSIM3 -I$(DRAMSIM3_ROOT)/src
+LDFLAGS += -L$(DRAMSIM3_ROOT) -Wl,-rpath,$(DRAMSIM3_ROOT) -ldramsim3
+endif
 SOURCES := online_memory_probe.cpp \
+           direct_dramsim3_engine.cpp \
            $(ROOT)/cpp/src/algorithm.cpp \
            $(ROOT)/cpp/src/algorithm_pipeline.cpp \
            $(ROOT)/cpp/src/axi.cpp \
@@ -31,7 +38,7 @@ all: $(TARGET)
 
 $(TARGET): $(SOURCES) $(HEADERS) Makefile
 	mkdir -p $(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) $(SOURCES) -shared -o $@
+	$(CXX) $(CXXFLAGS) $(SOURCES) -shared -o $@ $(LDFLAGS)
 
 clean:
 	rm -f $(TARGET)

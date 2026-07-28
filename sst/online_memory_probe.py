@@ -18,12 +18,24 @@ write_percent = int(os.environ.get("SPINE_SST_WRITE_PERCENT", "0"))
 output = os.environ.get("SPINE_SST_OUTPUT", "sst_memory_probe.json")
 dram_output = Path(os.environ.get("SPINE_SST_DRAM_OUTPUT", "/tmp/spine_cycle_dramsim3"))
 dram_output.mkdir(parents=True, exist_ok=True)
+memory_backend = os.environ.get(
+    "SPINE_SST_MEMORY_BACKEND", "sst_memHierarchy_dramsim3"
+)
+dram_config = Path(
+    os.environ.get(
+        "CANDIDATE10_SST_DRAM_CONFIG",
+        str(ROOT / "configs" / "memory" / "HBM2_1ch_x128.ini"),
+    )
+).resolve()
 
 probe = sst.Component("probe", "spine_cycle.OnlineMemoryProbe")
 probe.addParams(
     {
         "mode": os.environ.get("SPINE_SST_MODE", "probe"),
         "output": output,
+        "memory_backend": memory_backend,
+        "direct_dram_config": str(dram_config),
+        "direct_dram_output": str(dram_output),
         "core_clock": "141MHz",
         "core_mhz": 141.0,
         "requests": requests,
@@ -36,8 +48,9 @@ probe.addParams(
     }
 )
 
-dram_config = ROOT / "configs" / "memory" / "HBM2_1ch_x128.ini"
-for channel in range(channels):
+for channel in (
+    range(channels) if memory_backend == "sst_memHierarchy_dramsim3" else ()
+):
     interface = probe.setSubComponent(
         "memory", "memHierarchy.standardInterface", channel
     )
