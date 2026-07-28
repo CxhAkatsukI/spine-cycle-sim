@@ -5986,6 +5986,15 @@ class OnlineMemoryProbe final : public SST::Component {
             pagerank_compute_requests_per_iteration_[round] ==
             5 * pagerank_frontier_in_sizes_[round] + 2 * actual_ranks.size();
       }
+      const std::uint64_t reader_edges_total = std::accumulate(
+          pagerank_reader_edges_per_iteration_.begin(),
+          pagerank_reader_edges_per_iteration_.end(), std::uint64_t{0});
+      const std::uint64_t compute_edges_total = std::accumulate(
+          pagerank_compute_edges_per_iteration_.begin(),
+          pagerank_compute_edges_per_iteration_.end(), std::uint64_t{0});
+      const bool active_edge_execution_ledger_match =
+          reader_edges_total == residual_pagerank_reference_.active_edges &&
+          compute_edges_total == residual_pagerank_reference_.active_edges;
       const bool converged = pagerank_system_->compute().next_active().empty();
       const bool residual_bound_passed =
           delta_hls_residual_
@@ -6006,6 +6015,7 @@ class OnlineMemoryProbe final : public SST::Component {
       const bool passed = success && residual_pagerank_reference_.converged &&
                           converged && frontier_match && memory_ledger_match &&
                           memory_locality_ledger_match &&
+                          active_edge_execution_ledger_match &&
                           mismatches == 0 && mathematical_mismatches == 0 &&
                           max_abs_error <= architecture_tolerance &&
                           residual_bound_passed;
@@ -6208,6 +6218,13 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"maintenance_logical_overflow_events\": "
           << maintenance.logical_overflow_events << ",\n"
           << "  \"reader_edges\": " << reader.edges_emitted << ",\n"
+          << "  \"reader_edges_total\": " << reader_edges_total << ",\n"
+          << "  \"compute_edges_total\": " << compute_edges_total << ",\n"
+          << "  \"expected_active_edges\": "
+          << residual_pagerank_reference_.active_edges << ",\n"
+          << "  \"active_edge_execution_ledger_match\": "
+          << (active_edge_execution_ledger_match ? "true" : "false")
+          << ",\n"
           << "  \"reader_fallback_level_cache_reuses\": "
           << reader.fallback_level_cache_reuses << ",\n"
           << "  \"reader_fallback_level_cache_empty_skips\": "
@@ -6287,6 +6304,10 @@ class OnlineMemoryProbe final : public SST::Component {
       write_json_array(result, pagerank_frontier_out_sizes_);
       result << ",\n  \"compute_requests_per_iteration\": ";
       write_json_array(result, pagerank_compute_requests_per_iteration_);
+      result << ",\n  \"reader_edges_per_iteration\": ";
+      write_json_array(result, pagerank_reader_edges_per_iteration_);
+      result << ",\n  \"compute_edges_per_iteration\": ";
+      write_json_array(result, pagerank_compute_edges_per_iteration_);
       result << ",\n  \"ranks\": ";
       write_json_array(result, actual_ranks);
       result << ",\n  \"residuals\": ";

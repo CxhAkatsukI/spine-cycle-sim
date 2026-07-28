@@ -185,6 +185,10 @@ def _validate_result(
         memory_ledger = (
             result.get("memory_ledger_match") is True
             and result.get("memory_locality_ledger_match") is True
+            and result.get("active_edge_execution_ledger_match") is True
+            and result.get("reader_edges_total")
+            == result.get("compute_edges_total")
+            == result.get("expected_active_edges")
         )
     else:
         result = payload.get("result", {})
@@ -310,7 +314,9 @@ def _run_case(
         "compute_cycles": compute_cycles,
         "iterations": result["iterations"],
         "initial_active_vertices": result["initial_active_vertices"],
-        "active_edges": result.get("compute_active_edges", result.get("reader_edges")),
+        "active_edges": result.get(
+            "compute_active_edges", result.get("compute_edges_total")
+        ),
         "residual_l1": result["residual_l1"],
         "residual_linf": result["residual_linf"],
         "backend_requests": result["backend_requests"],
