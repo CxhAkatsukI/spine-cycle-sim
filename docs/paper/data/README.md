@@ -3,7 +3,7 @@
 This directory is populated only from correctness-gated experiment evidence.
 The TeX entry point is `../candidate10_evaluation_figures.tex`.
 
-From the repository root, build the six-page figure pack with:
+From the repository root, build the figure pack with:
 
 ```bash
 latexmk -pdf -interaction=nonstopmode -halt-on-error \
@@ -14,6 +14,7 @@ latexmk -pdf -interaction=nonstopmode -halt-on-error \
 Expected CSV interfaces:
 
 - `correctness_coverage.csv`
+- `paper_scale_by_algorithm_batch.csv`
 - `e2e_by_dataset.csv`
 - `e2e_by_algorithm.csv`
 - `e2e_speedup_by_dataset_algorithm.csv`
@@ -25,6 +26,8 @@ Expected CSV interfaces:
 - `physical_memory_by_algorithm.csv`
 - `dense_batch.csv`
 - `hbm_energy_by_algorithm.csv`
+- `component_power.csv`
+- `area_footprint.csv`
 - `simulator_host_runtime.csv`
 - `ppa_summary.csv`
 
