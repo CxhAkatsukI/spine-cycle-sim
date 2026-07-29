@@ -39,7 +39,7 @@ from spine_cycle_sim.experiments.publication_workloads import sha256_file  # noq
 
 DEFAULT_SST = Path("/data/feiyang/sst/bin/sst")
 DEFAULT_LIB_DIR = Path(
-    "/data/tmp/chuxiao/candidate86-cc-unweighted-native-pgo-build-20260729"
+    "/data/tmp/chuxiao/candidate92-capacity-hot-ledger-native-pgo-build-20260729"
 )
 DEFAULT_CAPABILITY = (
     ROOT / "configs/contracts/grasu_regraph_publication_capabilities_v6.json"

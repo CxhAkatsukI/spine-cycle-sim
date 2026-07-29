@@ -9,7 +9,6 @@
       8192,
       16384
     ],
-    "cold_family_l1_capacity": 16384,
     "correctness_gate": "per_system_architecture_and_mathematical_oracles_plus_cross_system_rank_vector",
     "graph_and_update_bytes_identical_across_architectures": true,
     "grasu_degree_reorder_entries": 4096,
@@ -18,6 +17,7 @@
       "source_concentrated",
       "source_scattered"
     ],
+    "spine_max_sort_edges": 131072,
     "updates_are_insertions": true,
     "vertices": 8192
   },
@@ -26,7 +26,7 @@
   "limitations": [
     "The sweep is synthetic and isolates batch size and source concentration.",
     "It is not a full real-dataset performance result.",
-    "All vertex IDs are below 2^20, so the cold path maps to one family; the 16384-update endpoint intentionally crosses that family's L1 capacity and is a capacity-cliff result, not a successful timing row.",
+    "All current endpoints are within Spine MAX_SORT_N=131072. The capacity-safe selector may skip undersized L1-L3 targets, so 16384 concentrated updates are a timing row rather than a capacity failure.",
     "The proposed GraSU PageRank degree-maintenance scoreboard has 4096 entries; larger batches are profile-capacity results until a windowed degree HLS implementation is supplied.",
     "GraSU/ReGraph PageRank remains an HLS-equivalent proposed profile."
   ],
@@ -39,7 +39,7 @@
       "dataset_kind": "synthetic_dense_batch_sweep",
       "expected_grasu_capacity_reason": "within_degree_reorder_entries",
       "expected_grasu_capacity_status": "PASS",
-      "expected_spine_capacity_reason": "within_cold_family_l1_capacity",
+      "expected_spine_capacity_reason": "within_max_sort_batch_capacity",
       "expected_spine_capacity_status": "PASS",
       "final_edges": 8200,
       "graph": {
@@ -75,7 +75,7 @@
       "dataset_kind": "synthetic_dense_batch_sweep",
       "expected_grasu_capacity_reason": "within_degree_reorder_entries",
       "expected_grasu_capacity_status": "PASS",
-      "expected_spine_capacity_reason": "within_cold_family_l1_capacity",
+      "expected_spine_capacity_reason": "within_max_sort_batch_capacity",
       "expected_spine_capacity_status": "PASS",
       "final_edges": 8256,
       "graph": {
@@ -111,7 +111,7 @@
       "dataset_kind": "synthetic_dense_batch_sweep",
       "expected_grasu_capacity_reason": "within_degree_reorder_entries",
       "expected_grasu_capacity_status": "PASS",
-      "expected_spine_capacity_reason": "within_cold_family_l1_capacity",
+      "expected_spine_capacity_reason": "within_max_sort_batch_capacity",
       "expected_spine_capacity_status": "PASS",
       "final_edges": 8704,
       "graph": {
@@ -147,7 +147,7 @@
       "dataset_kind": "synthetic_dense_batch_sweep",
       "expected_grasu_capacity_reason": "within_degree_reorder_entries",
       "expected_grasu_capacity_status": "PASS",
-      "expected_spine_capacity_reason": "within_cold_family_l1_capacity",
+      "expected_spine_capacity_reason": "within_max_sort_batch_capacity",
       "expected_spine_capacity_status": "PASS",
       "final_edges": 12288,
       "graph": {
@@ -183,7 +183,7 @@
       "dataset_kind": "synthetic_dense_batch_sweep",
       "expected_grasu_capacity_reason": "degree_reorder_entries",
       "expected_grasu_capacity_status": "FAIL",
-      "expected_spine_capacity_reason": "within_cold_family_l1_capacity",
+      "expected_spine_capacity_reason": "within_max_sort_batch_capacity",
       "expected_spine_capacity_status": "PASS",
       "final_edges": 16384,
       "graph": {
@@ -219,8 +219,8 @@
       "dataset_kind": "synthetic_dense_batch_sweep",
       "expected_grasu_capacity_reason": "degree_reorder_entries",
       "expected_grasu_capacity_status": "FAIL",
-      "expected_spine_capacity_reason": "cold_family_l1_capacity",
-      "expected_spine_capacity_status": "FAIL",
+      "expected_spine_capacity_reason": "within_max_sort_batch_capacity",
+      "expected_spine_capacity_status": "PASS",
       "final_edges": 24576,
       "graph": {
         "case_id": "dense_batch_base_v8192",
@@ -255,7 +255,7 @@
       "dataset_kind": "synthetic_dense_batch_sweep",
       "expected_grasu_capacity_reason": "within_degree_reorder_entries",
       "expected_grasu_capacity_status": "PASS",
-      "expected_spine_capacity_reason": "within_cold_family_l1_capacity",
+      "expected_spine_capacity_reason": "within_max_sort_batch_capacity",
       "expected_spine_capacity_status": "PASS",
       "final_edges": 8200,
       "graph": {
@@ -291,7 +291,7 @@
       "dataset_kind": "synthetic_dense_batch_sweep",
       "expected_grasu_capacity_reason": "within_degree_reorder_entries",
       "expected_grasu_capacity_status": "PASS",
-      "expected_spine_capacity_reason": "within_cold_family_l1_capacity",
+      "expected_spine_capacity_reason": "within_max_sort_batch_capacity",
       "expected_spine_capacity_status": "PASS",
       "final_edges": 8256,
       "graph": {
@@ -327,7 +327,7 @@
       "dataset_kind": "synthetic_dense_batch_sweep",
       "expected_grasu_capacity_reason": "within_degree_reorder_entries",
       "expected_grasu_capacity_status": "PASS",
-      "expected_spine_capacity_reason": "within_cold_family_l1_capacity",
+      "expected_spine_capacity_reason": "within_max_sort_batch_capacity",
       "expected_spine_capacity_status": "PASS",
       "final_edges": 8704,
       "graph": {
@@ -363,7 +363,7 @@
       "dataset_kind": "synthetic_dense_batch_sweep",
       "expected_grasu_capacity_reason": "within_degree_reorder_entries",
       "expected_grasu_capacity_status": "PASS",
-      "expected_spine_capacity_reason": "within_cold_family_l1_capacity",
+      "expected_spine_capacity_reason": "within_max_sort_batch_capacity",
       "expected_spine_capacity_status": "PASS",
       "final_edges": 12288,
       "graph": {
@@ -399,7 +399,7 @@
       "dataset_kind": "synthetic_dense_batch_sweep",
       "expected_grasu_capacity_reason": "degree_reorder_entries",
       "expected_grasu_capacity_status": "FAIL",
-      "expected_spine_capacity_reason": "within_cold_family_l1_capacity",
+      "expected_spine_capacity_reason": "within_max_sort_batch_capacity",
       "expected_spine_capacity_status": "PASS",
       "final_edges": 16384,
       "graph": {
@@ -435,8 +435,8 @@
       "dataset_kind": "synthetic_dense_batch_sweep",
       "expected_grasu_capacity_reason": "degree_reorder_entries",
       "expected_grasu_capacity_status": "FAIL",
-      "expected_spine_capacity_reason": "cold_family_l1_capacity",
-      "expected_spine_capacity_status": "FAIL",
+      "expected_spine_capacity_reason": "within_max_sort_batch_capacity",
+      "expected_spine_capacity_status": "PASS",
       "final_edges": 24576,
       "graph": {
         "case_id": "dense_batch_base_v8192",

@@ -87,18 +87,12 @@ class SpineSimulatorTests(unittest.TestCase):
         self.assertEqual(result["maintenance_events"][1]["path"], "cascade")
         self.assertLessEqual(max(result["level1_occupancy"]), config.level_family_capacity(1))
 
-    def test_one_partition_full_plus_one_fails_l1_partition_capacity(self) -> None:
+    def test_one_partition_full_plus_one_skips_to_capacity_safe_level(self) -> None:
         config = self.small_capacity_config()
         result = self.run_case("hotdst", config.max_vertices, 20, config)
-        self.assertEqual(result["capacity_status"], "FAIL")
-        self.assertEqual(result["capacity_failure"]["reason"], "level_family_capacity")
-        self.assertEqual(result["capacity_failure"]["failure_level"], 1)
-        self.assertEqual(result["capacity_failure"]["failure_partition"], 0)
-        self.assertEqual(result["capacity_failure"]["maintenance_path"], "cascade")
-        self.assertGreater(
-            result["capacity_failure"]["failure_partition_edges"],
-            result["capacity_failure"]["failure_partition_capacity"],
-        )
+        self.assertEqual(result["capacity_status"], "PASS")
+        self.assertEqual(result["maintenance_max_target_level"], 3)
+        self.assertEqual(result["target_selector_capacity_skips"], 2)
 
     def test_hot_cold_classifier_promotes_skewed_destinations(self) -> None:
         config = SpineConfig(

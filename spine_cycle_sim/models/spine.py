@@ -521,7 +521,9 @@ class Level0Buffer(Component):
         families = range(family_base, family_base + family_count)
         group_stats = {family: self._current_family_stats(family) for family in families}
         group_input = sum(stat.input_edges for stat in group_stats.values())
-        target = self._select_empty_target(family_base, family_count)
+        target = self._select_capacity_safe_target(
+            family_base, family_count, group_stats
+        )
         if target < 0:
             self.stats.set_failure(
                 "level_exhausted",
@@ -849,15 +851,29 @@ class Level0Buffer(Component):
         self.stats.max_value("maintenance.max_target_level", estimate.target_level)
         self.stats.max_value(f"{prefix}.max_target_level", estimate.target_level)
 
-    def _select_empty_target(self, family_base: int, family_count: int) -> int:
+    def _select_capacity_safe_target(
+        self,
+        family_base: int,
+        family_count: int,
+        group_stats: dict[int, FamilyBatchStats],
+    ) -> int:
+        cumulative = {
+            family: group_stats[family].input_edges
+            for family in range(family_base, family_base + family_count)
+        }
         for level in range(self.config.num_levels):
-            occupied = False
-            for family in range(family_base, family_base + family_count):
-                if self.level_counts[family][level] > 0:
-                    occupied = True
-                    break
+            occupied = any(
+                self.level_counts[family][level] > 0
+                for family in range(family_base, family_base + family_count)
+            )
             if not occupied:
-                return level
+                capacity = self.config.level_family_capacity(level)
+                if all(count <= capacity for count in cumulative.values()):
+                    return level
+                self.stats.inc("target_selector_capacity_skips")
+                continue
+            for family in range(family_base, family_base + family_count):
+                cumulative[family] += self.level_counts[family][level]
         return -1
 
 
@@ -1369,6 +1385,9 @@ class SpineV0Simulator:
             "maintenance_page_ids_written": int(counters.get("maintenance_page_ids_written", 0)),
             "maintenance_max_target_level": int(
                 self.stats.max_values.get("maintenance.max_target_level", 0)
+            ),
+            "target_selector_capacity_skips": int(
+                counters.get("target_selector_capacity_skips", 0)
             ),
             "maintenance_events": maintenance_events,
             "hbm_request_count": int(counters.get("hbm_request_count", 0)),

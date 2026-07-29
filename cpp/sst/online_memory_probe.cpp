@@ -771,59 +771,6 @@ ConnectedComponentsSetup build_connected_components_setup(
   return setup;
 }
 
-SpineL0State preload_spine_level_snapshot(const SpineEdgeSlice &snapshot,
-                                          const SpineL0Config &config) {
-  SpineL0State state;
-  state.hot_vertices.insert(config.hot_vertices.begin(),
-                            config.hot_vertices.end());
-  state.hot_enabled = !state.hot_vertices.empty();
-  for (const SpineEdgeRecord &edge : snapshot.edges) {
-    if (edge.src >= snapshot.vertices || edge.dst >= snapshot.vertices ||
-        edge.diff != 1) {
-      throw std::invalid_argument(
-          "Spine zero-time L0 preload requires in-range insertion edges");
-    }
-    const bool hot = state.hot_vertices.contains(edge.dst);
-    const std::size_t family =
-        hot ? spine_hot_shard(edge.dst)
-            : std::min<std::size_t>(
-                  edge.dst / config.vertex_partition_size,
-                  config.partitions - 1);
-    auto &family_edges =
-        hot ? state.hot_levels[family][0] : state.cold_levels[family][0];
-    family_edges.push_back(edge);
-  }
-  const auto edge_less = [](const SpineEdgeRecord &left,
-                            const SpineEdgeRecord &right) {
-    return std::tuple(left.src, left.dst, left.weight, left.diff) <
-           std::tuple(right.src, right.dst, right.weight, right.diff);
-  };
-  for (std::size_t family = 0; family < config.partitions; ++family) {
-    for (const bool hot : {false, true}) {
-      auto &levels = hot ? state.hot_levels[family] : state.cold_levels[family];
-      auto edges = std::move(levels[0]);
-      if (edges.empty()) {
-        continue;
-      }
-      std::sort(edges.begin(), edges.end(), edge_less);
-      std::size_t target = levels.size();
-      for (std::size_t level = 0; level < levels.size(); ++level) {
-        if (edges.size() <=
-            spine_level_layout(config, hot, level).edge_capacity) {
-          target = level;
-          break;
-        }
-      }
-      if (target == levels.size()) {
-        throw std::overflow_error(
-            "Spine resident snapshot exceeds the fixed-level profile capacity");
-      }
-      levels[target] = std::move(edges);
-    }
-  }
-  return state;
-}
-
 std::size_t spine_snapshot_max_level(const SpineL0State &state) {
   std::size_t maximum = 0;
   for (const auto &families : {&state.cold_levels, &state.hot_levels}) {
@@ -2994,8 +2941,9 @@ class OnlineMemoryProbe final : public SST::Component {
         }
       }
       if (dynamic_pagerank_enabled_) {
-        initial_state =
-            preload_spine_level_snapshot(initial, maintenance_config);
+        initial_state = preload_spine_resident_snapshot(
+            initial, maintenance_config, &spine_resident_classification_);
+        spine_resident_classification_valid_ = true;
         spine_resident_snapshot_max_level_ =
             spine_snapshot_max_level(initial_state);
         std::vector<std::uint32_t> dirty_sources;
@@ -3294,17 +3242,13 @@ class OnlineMemoryProbe final : public SST::Component {
         }
         spine_preload_edges_ = preload.edges.size();
         for (const SpineEdgeRecord &edge : preload.edges) {
-          const bool hot = initial_state.hot_vertices.contains(edge.dst);
-          const std::size_t family =
-              hot ? spine_hot_shard(edge.dst)
-                  : std::min<std::size_t>(
-                        edge.dst / maintenance_config.vertex_partition_size,
-                        15);
-          auto &level = hot ? initial_state.hot_levels[family][0]
-                            : initial_state.cold_levels[family][0];
-          level.push_back(edge);
           add_expected(edge);
         }
+        initial_state = preload_spine_resident_snapshot(
+            preload, maintenance_config, &spine_resident_classification_);
+        spine_resident_classification_valid_ = true;
+        spine_resident_snapshot_max_level_ =
+            spine_snapshot_max_level(initial_state);
       }
       for (const SpineEdgeRecord &edge : workload.edges) {
         add_expected(edge);
@@ -3312,8 +3256,9 @@ class OnlineMemoryProbe final : public SST::Component {
       if (dynamic_sssp_enabled_ &&
           workload.edges.size() > maintenance_config.max_sort_edges) {
         resident_snapshot = true;
-        initial_state =
-            preload_spine_level_snapshot(workload, maintenance_config);
+        initial_state = preload_spine_resident_snapshot(
+            workload, maintenance_config, &spine_resident_classification_);
+        spine_resident_classification_valid_ = true;
         spine_resident_snapshot_max_level_ =
             spine_snapshot_max_level(initial_state);
         spine_preload_edges_ = workload.edges.size();
@@ -4004,6 +3949,45 @@ class OnlineMemoryProbe final : public SST::Component {
        "SST::Interfaces::StandardMem"})
 
  private:
+  void write_spine_resident_classification(std::ostream &result) const {
+    const char *policy =
+        !spine_resident_classification_valid_
+            ? "not_applicable"
+            : (spine_resident_classification_.used_explicit_hot_set
+                   ? "explicit_hot_bitmap"
+                   : (spine_resident_classification_.automatic_hot_promotion
+                          ? "hls_degree_v1_promoted"
+                          : "hls_degree_v1_empty"));
+    result << "  \"resident_classification_valid\": "
+           << (spine_resident_classification_valid_ ? "true" : "false")
+           << ",\n"
+           << "  \"resident_hot_policy\": \"" << policy << "\",\n"
+           << "  \"resident_hot_vertices\": "
+           << spine_resident_classification_.hot_vertices.size() << ",\n"
+           << "  \"resident_hot_edges\": "
+           << spine_resident_classification_.hot_edges << ",\n"
+           << "  \"resident_cold_edges\": "
+           << spine_resident_classification_.cold_edges << ",\n"
+           << "  \"resident_max_cold_partition_edges\": "
+           << spine_resident_classification_.max_cold_partition_edges << ",\n"
+           << "  \"resident_max_hot_shard_edges\": "
+           << spine_resident_classification_.max_hot_shard_edges << ",\n"
+           << "  \"resident_family_edge_capacity\": "
+           << spine_resident_classification_.family_edge_capacity << ",\n"
+           << "  \"resident_cold_partition_target\": "
+           << spine_resident_classification_.cold_partition_target << ",\n"
+           << "  \"resident_hot_shard_edge_capacity\": "
+           << spine_resident_classification_.hot_shard_edge_capacity << ",\n"
+           << "  \"resident_top_level_preload\": "
+           << (spine_resident_classification_.top_level_preload ? "true"
+                                                               : "false")
+           << ",\n"
+           << "  \"resident_multilevel_fallback\": "
+           << (spine_resident_classification_.multilevel_fallback ? "true"
+                                                                 : "false")
+           << ",\n";
+  }
+
   bool begin_dynamic_sssp_update() {
     if (!dynamic_sssp_enabled_ || dynamic_sssp_started_ ||
         spine_system_->failed()) {
@@ -4229,8 +4213,9 @@ class OnlineMemoryProbe final : public SST::Component {
                             : "insertion_incremental_repair"))
              << "\",\n"
              << "  \"materialized_snapshot_edges\": "
-             << dynamic_materialized_snapshot_.edges.size() << ",\n"
-             << "  \"pipeline_order\": "
+             << dynamic_materialized_snapshot_.edges.size() << ",\n";
+      write_spine_resident_classification(result);
+      result << "  \"pipeline_order\": "
                 "\"zero_time_resident_level_preload_then_update_maintenance_then_compute\",\n"
              << "  \"converged\": " << (converged ? "true" : "false")
              << ",\n"
@@ -4260,6 +4245,8 @@ class OnlineMemoryProbe final : public SST::Component {
              << maintenance.end_cycle - maintenance.start_cycle << ",\n"
              << "  \"maintenance_target_level\": "
              << maintenance.target_level << ",\n"
+             << "  \"maintenance_target_selector_capacity_skips\": "
+             << maintenance.target_selector_capacity_skips << ",\n"
              << "  \"maintenance_backend_requests\": "
              << pagerank_maintenance_backend_requests_ << ",\n"
              << "  \"compute_backend_requests\": "
@@ -4603,6 +4590,8 @@ class OnlineMemoryProbe final : public SST::Component {
              << maintenance_scan_response_capacity_ << ",\n"
              << "  \"maintenance_target_level\": "
              << maintenance.target_level << ",\n"
+             << "  \"maintenance_target_selector_capacity_skips\": "
+             << maintenance.target_selector_capacity_skips << ",\n"
              << "  \"maintenance_persisted_edges\": "
              << maintenance.persisted_edges << ",\n"
              << "  \"maintenance_unique_sources\": "
@@ -6423,8 +6412,9 @@ class OnlineMemoryProbe final : public SST::Component {
                   : spine_expected_edges_)
           << ",\n"
           << "  \"resident_snapshot_max_level\": "
-          << spine_resident_snapshot_max_level_ << ",\n"
-          << "  \"pipeline_order\": \""
+          << spine_resident_snapshot_max_level_ << ",\n";
+      write_spine_resident_classification(result);
+      result << "  \"pipeline_order\": \""
           << (dynamic_pagerank_enabled_
                   ? "zero_time_resident_level_preload_then_update_maintenance_then_compute"
                   : "maintenance_then_compute")
@@ -6585,6 +6575,8 @@ class OnlineMemoryProbe final : public SST::Component {
           << maintenance.persisted_edges << ",\n"
           << "  \"maintenance_target_level\": " << maintenance.target_level
           << ",\n"
+          << "  \"maintenance_target_selector_capacity_skips\": "
+          << maintenance.target_selector_capacity_skips << ",\n"
           << "  \"maintenance_logical_overflow_events\": "
           << maintenance.logical_overflow_events << ",\n"
           << "  \"reader_edges\": " << reader.edges_emitted << ",\n"
@@ -6791,8 +6783,9 @@ class OnlineMemoryProbe final : public SST::Component {
                   : spine_expected_edges_)
           << ",\n"
           << "  \"resident_snapshot_max_level\": "
-          << spine_resident_snapshot_max_level_ << ",\n"
-          << "  \"pipeline_order\": \""
+          << spine_resident_snapshot_max_level_ << ",\n";
+      write_spine_resident_classification(result);
+      result << "  \"pipeline_order\": \""
           << (dynamic_pagerank_enabled_
                   ? "zero_time_resident_level_preload_then_update_maintenance_then_compute"
                   : "maintenance_then_compute")
@@ -6905,6 +6898,8 @@ class OnlineMemoryProbe final : public SST::Component {
           << maintenance.persisted_edges << ",\n"
           << "  \"maintenance_target_level\": " << maintenance.target_level
           << ",\n"
+          << "  \"maintenance_target_selector_capacity_skips\": "
+          << maintenance.target_selector_capacity_skips << ",\n"
           << "  \"maintenance_logical_overflow_events\": "
           << maintenance.logical_overflow_events << ",\n"
           << "  \"reader_edges\": " << reader.edges_emitted << ",\n"
@@ -7843,7 +7838,11 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"maintenance_persisted_edges\": "
           << maintenance.persisted_edges << ",\n"
           << "  \"input_edges\": " << spine_expected_edges_ << ",\n"
-          << "  \"vertices\": " << actual_values.size() << ",\n"
+          << "  \"preload_edges\": " << spine_preload_edges_ << ",\n"
+          << "  \"resident_snapshot_max_level\": "
+          << spine_resident_snapshot_max_level_ << ",\n";
+      write_spine_resident_classification(result);
+      result << "  \"vertices\": " << actual_values.size() << ",\n"
           << "  \"source\": " << source_vertex_ << ",\n"
           << "  \"rounds\": " << sst_rounds_.size() << ",\n"
           << "  \"host_handoffs\": " << sst_host_handoffs_.size() << ",\n"
@@ -8052,6 +8051,8 @@ class OnlineMemoryProbe final : public SST::Component {
           << maintenance.target_selector_cycles << ",\n"
           << "  \"maintenance_target_selector_min_padding_cycles\": "
           << maintenance.target_selector_min_padding_cycles << ",\n"
+          << "  \"maintenance_target_selector_capacity_skips\": "
+          << maintenance.target_selector_capacity_skips << ",\n"
           << "  \"maintenance_target_selector_validation_failures\": "
           << maintenance.target_selector_validation_failures << ",\n"
           << "  \"maintenance_target_selector_max_inflight\": "
@@ -8713,8 +8714,9 @@ class OnlineMemoryProbe final : public SST::Component {
           << scheduler_.clock(0).next_edge_fs - scheduler_.clock(0).phase_fs
           << ",\n"
           << "  \"input_edges\": " << spine_expected_edges_ << ",\n"
-          << "  \"preload_edges\": " << spine_preload_edges_ << ",\n"
-          << "  \"memory_request_window\": " << memory_request_window_ << ",\n"
+          << "  \"preload_edges\": " << spine_preload_edges_ << ",\n";
+      write_spine_resident_classification(result);
+      result << "  \"memory_request_window\": " << memory_request_window_ << ",\n"
           << "  \"reader_edge_pipeline_depth\": " << reader_edge_pipeline_depth_
           << ",\n"
           << "  \"reader_edge_response_capacity\": "
@@ -8851,6 +8853,8 @@ class OnlineMemoryProbe final : public SST::Component {
           << maintenance.target_selector_cycles << ",\n"
           << "  \"maintenance_target_selector_min_padding_cycles\": "
           << maintenance.target_selector_min_padding_cycles << ",\n"
+          << "  \"maintenance_target_selector_capacity_skips\": "
+          << maintenance.target_selector_capacity_skips << ",\n"
           << "  \"maintenance_target_selector_validation_failures\": "
           << maintenance.target_selector_validation_failures << ",\n"
           << "  \"maintenance_target_selector_max_inflight\": "
@@ -9621,6 +9625,8 @@ class OnlineMemoryProbe final : public SST::Component {
   std::size_t spine_expected_edges_{};
   std::size_t spine_preload_edges_{};
   std::size_t spine_resident_snapshot_max_level_{};
+  SpineResidentClassification spine_resident_classification_{};
+  bool spine_resident_classification_valid_{};
   std::unordered_map<std::uint32_t, std::uint32_t> expected_distances_;
   bool sst_waiting_dirty_ack_{};
   bool dynamic_sssp_enabled_{};

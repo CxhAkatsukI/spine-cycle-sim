@@ -52,7 +52,8 @@ There are now two different storage situations:
 ```text
 incremental update path:
   batches flow through L0/L1/... binary carry
-  a one-family 131072+1 update still fails at L1 capacity
+  a legal one-family batch skips any empty level that is too small
+  a batch larger than MAX_SORT_N or a hierarchy with no safe target fails closed
 
 graph preload / raw RMAT storage path:
   measured hot destinations are placed into hot shards
@@ -63,7 +64,8 @@ So the simulator should not use the old conclusion "large concentrated graph is
 always unsupported" as a global statement. The better statement is:
 
 ```text
-large concentrated incremental updates can still fail at low-level binary carry;
+large concentrated incremental updates skip undersized levels and fail only at
+the frozen batch or aggregate hierarchy boundary;
 full raw skewed graph preload is handled by hot/cold classification in the new branch.
 ```
 

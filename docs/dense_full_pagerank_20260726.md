@@ -3,6 +3,12 @@
 > This document preserves the legacy-profile run. The frozen Candidate10 v3
 > rerun and current publication-facing claim boundary are in
 > `candidate10_hls_v3_dense_full_pagerank_20260727.md`.
+>
+> **Capacity correction (2026-07-29):** the reported 16,384-update Spine
+> failure was caused by the old first-empty target selector choosing an
+> undersized level. It is useful bug evidence, but it is not a Spine hierarchy
+> capacity limit. Candidate92 skips undersized empty levels; the regenerated
+> contract admits all Spine endpoints in this sweep.
 
 ## Purpose
 
@@ -30,10 +36,12 @@ Generated slices are under `tests/data/hls_full_pagerank_dense_batches/`.
 
 ## Capacity domains
 
-The workload deliberately keeps destination IDs below 2^20. Spine therefore
-places all cold edges in one family. L0 can hold 131,072 edges, but after an
-update to an occupied L0 the carry target is L1, whose per-family capacity is
-16,384 edges in both the simulator and current HLS formula.
+The workload deliberately keeps destination IDs below 2^20, so it stresses one
+cold family. The old implementation selected the first empty target and then
+discovered too late that its per-family writer was too small. The corrected
+selector accumulates the raw input and occupied lower-level counts, skips any
+undersized empty target, and fails only if no level can safely receive the
+carry. All tested batches are below `MAX_SORT_N=131072`.
 
 The proposed GraSU PageRank profile has 4,096 degree-completion reorder
 entries. The full degree-maintenance HLS CU does not yet exist, so this is a
@@ -43,7 +51,7 @@ profile limit rather than a synthesized whole-system claim.
 |---:|---:|---|---|---|
 | 8..4,096 | 8,200..12,288 | PASS | PASS | paired timing and traffic |
 | 8,192 | 16,384 | PASS | profile capacity reject | support boundary only |
-| 16,384 | 24,576 | L1 family overflow | profile capacity reject | support boundary only |
+| 16,384 | 24,576 | PASS after safe-level selection | profile capacity reject | support boundary only |
 
 No speedup is reported where either architecture cannot enter the common
 successful timing window.
@@ -66,17 +74,10 @@ python3 scripts/run_hls_pagerank_real_comparison.py \
   --jobs 4 --timeout-seconds 300 --max-cycles 200000000 --no-build
 ```
 
-Run all four capacity endpoints:
-
-```bash
-python3 scripts/run_spine_dense_capacity_cliff.py \
-  --out-dir results/dense_full_pagerank_capacity_20260726 \
-  --timeout-seconds 300 --max-cycles 200000000 --no-build
-```
-
-The capacity runner accepts a nonzero Spine child only when the exact expected
-target-level overflow is present. GraSU batches above 4,096 are checked against
-the pinned profile and are not launched as doomed SST jobs.
+The old `run_spine_dense_capacity_cliff.py` output is retained only as a
+regression artifact for the selector defect. It must not be used to claim a
+16,384-update capacity boundary. GraSU batches above 4,096 remain static
+profile-capacity rows and are not launched as doomed SST jobs.
 
 ## Complete timing evidence
 
@@ -108,22 +109,24 @@ host seconds. Individual Spine jobs took 50.1--55.0 seconds; GraSU+ReGraph jobs
 took 11.3--14.6 seconds. This is simulator throughput evidence, not modeled
 accelerator latency.
 
-## Capacity evidence
+## Historical capacity-bug evidence
 
-All four capacity outcomes matched the declared contract:
+The 2026-07-26 run matched the old contract, but the second outcome below is
+now known to be a selector bug rather than a physical capacity result:
 
 - At 8,192 updates, Spine completed at the exact 16,384-edge L1 boundary for
   both shapes, in 27.583 ms concentrated and 29.262 ms scattered.
-- At 16,384 updates, Spine reported the exact target-level-1 family overflow
-  after 670,600 concentrated or 984,161 scattered cycles. Reader and compute
-  did not start, so this is a fail-fast capacity result.
+- At 16,384 updates, the old Spine selector reported a target-level-1 family
+  overflow after 670,600 concentrated or 984,161 scattered cycles. Candidate92
+  instead skips that unsafe target; fresh timing is required before using this
+  endpoint in performance figures.
 - GraSU+ReGraph rejected both batch sizes against the pinned 4,096-entry
   proposed PageRank profile. This is a static profile boundary, not a native
   synthesized-hardware failure.
 - No latency ratio is produced for any capacity row.
 
-The capacity matrix completed in 139.4 host seconds. Its successful runs also
-passed all PageRank correctness gates.
+The historical matrix completed in 139.4 host seconds. Its successful runs
+also passed all PageRank correctness gates.
 
 ## Claim boundary
 

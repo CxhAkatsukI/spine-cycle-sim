@@ -73,7 +73,7 @@ class MaintenanceTimingTests(unittest.TestCase):
             cascade["pages_visited"] * config.csr_vertices_per_page,
         )
 
-    def test_concentrated_batch_reports_l1_capacity_overflow(self) -> None:
+    def test_concentrated_batch_skips_undersized_empty_levels(self) -> None:
         config = SpineConfig(
             max_vertices=128,
             vs_partition_size=32,
@@ -94,10 +94,9 @@ class MaintenanceTimingTests(unittest.TestCase):
         )
         result = run_workload(workload, config)
 
-        self.assertEqual(result["capacity_status"], "FAIL")
-        self.assertEqual(result["capacity_failure"]["reason"], "level_family_capacity")
-        self.assertEqual(result["capacity_failure"]["failure_level"], 1)
-        self.assertEqual(result["capacity_failure"]["maintenance_path"], "cascade")
+        self.assertEqual(result["capacity_status"], "PASS")
+        self.assertEqual(result["maintenance_events"][1]["target_level"], 3)
+        self.assertEqual(result["target_selector_capacity_skips"], 2)
 
     def test_l0_store_uses_coalesced_edge_count_for_output(self) -> None:
         config = SpineConfig(

@@ -14,6 +14,7 @@ from spine_cycle_sim.experiments import (
     load_large_graph_campaign_contract,
     planned_system_runs,
     publication_case_requests,
+    spine_profile_vertex_admitted,
     validate_large_graph_campaign_contract,
     verify_large_graph_sources,
 )
@@ -202,6 +203,28 @@ class LargeGraphCampaignTests(unittest.TestCase):
         ] = "full_pagerank"
         with self.assertRaisesRegex(ValueError, "update-throughput"):
             validate_large_graph_campaign_contract(changed_update)
+
+    def test_spine_vertex_capacity_is_fail_closed_before_launch(self) -> None:
+        manifest = {"capacity": {"spine_max_vertices": 1 << 24}}
+        self.assertTrue(
+            spine_profile_vertex_admitted(
+                manifest, system="spine", vertices=1 << 24
+            )
+        )
+        self.assertFalse(
+            spine_profile_vertex_admitted(
+                manifest, system="spine", vertices=(1 << 24) + 1
+            )
+        )
+        self.assertTrue(
+            spine_profile_vertex_admitted(
+                manifest, system="grasu_regraph_k1", vertices=(1 << 24) + 1
+            )
+        )
+        with self.assertRaisesRegex(ValueError, "positive"):
+            spine_profile_vertex_admitted(manifest, system="spine", vertices=0)
+        with self.assertRaisesRegex(ValueError, "spine_max_vertices"):
+            spine_profile_vertex_admitted({}, system="spine", vertices=1)
 
     def test_formal_campaign_rejects_unknown_algorithm_and_system_filters(self) -> None:
         common = {

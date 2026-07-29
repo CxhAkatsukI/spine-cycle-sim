@@ -70,6 +70,7 @@ using spine::sim::FixedAxiPortConfig;
 using spine::sim::GraphAlgorithmKind;
 using spine::sim::GraphAlgorithmPolicy;
 using spine::sim::load_spine_edge_slice;
+using spine::sim::preload_spine_resident_snapshot;
 using spine::sim::MemoryOperation;
 using spine::sim::MockMemoryBackend;
 using spine::sim::MockMemoryConfig;
@@ -103,6 +104,7 @@ using spine::sim::SpineL0Counters;
 using spine::sim::SpineL0Maintenance;
 using spine::sim::SpineL0Ports;
 using spine::sim::SpineL0State;
+using spine::sim::SpineResidentClassification;
 using spine::sim::SpineMaintenanceResult;
 using spine::sim::SpineMaintenanceArchitecture;
 using spine::sim::SpineLevelLayout;
@@ -5737,7 +5739,7 @@ void test_spine_full_hierarchy_overflow_preserves_dirty_result() {
 
   require(run.failed &&
               run.failure ==
-                  "Spine cold level hierarchy has no free target" &&
+                  "Spine cold level hierarchy has no capacity-safe free target" &&
               run.counters.logical_overflow_events == 1 &&
               run.counters.target_selector_levels_scanned == 11 &&
               run.counters.result_metadata_reads == 0 &&
@@ -5879,60 +5881,256 @@ void test_spine_carry_epoch_wrap_uses_fixed_target_clear() {
             << " clear_wait=" << run.counters.epoch_clear_wait_cycles << '\n';
 }
 
-void test_spine_failed_writer_retires_staged_epoch() {
+void test_spine_l0_skips_undersized_empty_targets() {
   SpineL0Config config;
-  config.max_vertices = 512;
-  config.max_sort_edges = 16;
+  config.max_sort_edges = 8;
+  SpineL0State state;
+  state.cold_levels[0][0].reserve(8);
+  for (std::uint32_t index = 0; index < 8; ++index) {
+    state.cold_levels[0][0].push_back(
+        SpineEdgeRecord{.src = index, .dst = index + 1, .weight = 1, .diff = 1});
+  }
+  SpineEdgeSlice workload{
+      .vertices = 16,
+      .edges = {
+          SpineEdgeRecord{.src = 8, .dst = 9, .weight = 1, .diff = 1},
+      },
+      .case_name = "l0_capacity_escalation",
+  };
+  const MaintenanceOnlyRun run = run_maintenance_only(
+      config, std::move(state), std::move(workload));
+
+  require(!run.failed && run.counters.target_level == 5 &&
+              run.counters.target_selector_capacity_skips == 4 &&
+              run.result[SpineMaintenanceResult::kTargetLevel] == 5 &&
+              run.result[SpineMaintenanceResult::kPath] == 3 &&
+              run.state.cold_levels[0][0].empty() &&
+              run.state.cold_levels[0][5].size() == 9,
+          "Spine maintenance did not skip undersized empty target levels");
+}
+
+void test_spine_capacity_selector_uses_raw_family_input_bound() {
+  SpineL0Config config;
+  config.max_sort_edges = 8;
   SpineL0State state;
   state.cold_levels[0][0] = {
-      SpineEdgeRecord{.src = 0, .dst = 1, .weight = 1, .diff = 1}};
-  SpineEdgeSlice workload{
-      .vertices = 128,
-      .edges = {},
-      .case_name = "failed_writer_epoch_retirement",
+      SpineEdgeRecord{.src = 0, .dst = 1, .weight = 1, .diff = 1},
+      SpineEdgeRecord{.src = 1, .dst = 2, .weight = 1, .diff = 1},
   };
-  for (std::uint32_t source = 1; source <= 16; ++source) {
-    workload.edges.push_back(SpineEdgeRecord{
+  SpineEdgeSlice workload{
+      .vertices = 16,
+      .edges = {
+          SpineEdgeRecord{.src = 8, .dst = 9, .weight = 1, .diff = 1},
+          SpineEdgeRecord{.src = 8, .dst = 9, .weight = 1, .diff = 1},
+          SpineEdgeRecord{.src = 8, .dst = 9, .weight = 1, .diff = 1},
+      },
+      .case_name = "raw_family_capacity_bound",
+  };
+  const MaintenanceOnlyRun run = run_maintenance_only(
+      config, std::move(state), std::move(workload));
+
+  require(!run.failed && run.counters.target_level == 4 &&
+              run.counters.target_selector_capacity_skips == 3 &&
+              run.state.cold_levels[0][4].size() == 3,
+          "Spine selector did not use the HLS raw-family input bound");
+}
+
+void test_spine_resident_snapshot_spans_fixed_levels() {
+  SpineL0Config config;
+  config.max_sort_edges = 8;
+  SpineEdgeSlice snapshot{
+      .vertices = 1'024,
+      .edges = {},
+      .case_name = "resident_multilevel_snapshot",
+  };
+  snapshot.edges.reserve(600);
+  for (std::uint32_t source = 0; source < 600; ++source) {
+    snapshot.edges.push_back(SpineEdgeRecord{
         .src = source,
         .dst = source + 1,
         .weight = 1,
         .diff = 1,
     });
   }
+
+  SpineL0State state = preload_spine_resident_snapshot(snapshot, config);
+  require(state.cold_levels[0][0].empty() &&
+              state.cold_levels[0][8].size() == 88 &&
+              state.cold_levels[0][10].size() == 512,
+          "resident bootstrap did not span capacity-bounded fixed levels");
+  std::size_t persisted = 0;
+  for (std::size_t level = 0; level < config.levels; ++level) {
+    const auto &run = state.cold_levels[0][level];
+    persisted += run.size();
+    require(run.size() <= spine_level_layout(config, false, level).edge_capacity,
+            "resident bootstrap exceeded a per-level capacity");
+    require(std::is_sorted(
+                run.begin(), run.end(),
+                [](const SpineEdgeRecord &left, const SpineEdgeRecord &right) {
+                  return std::pair(left.src, left.dst) <
+                         std::pair(right.src, right.dst);
+                }),
+            "resident bootstrap emitted an unsorted run");
+  }
+  require(persisted == snapshot.edges.size(),
+          "resident bootstrap lost or duplicated records");
+
+  const MaintenanceOnlyRun update = run_maintenance_only(
+      config, std::move(state),
+      SpineEdgeSlice{
+          .vertices = snapshot.vertices,
+          .edges = {SpineEdgeRecord{
+              .src = 700, .dst = 701, .weight = 1, .diff = 1}},
+          .case_name = "resident_multilevel_update",
+      });
+  require(!update.failed && update.counters.target_level == 0 &&
+              update.state.cold_levels[0][0].size() == 1 &&
+              update.state.cold_levels[0][8].size() == 88 &&
+              update.state.cold_levels[0][10].size() == 512,
+          "resident bootstrap did not preserve L0 for the next micro-batch");
+}
+
+void test_spine_resident_snapshot_auto_promotes_hot_destinations() {
+  SpineL0Config config;
+  config.max_sort_edges = 8;
+  SpineEdgeSlice snapshot{
+      .vertices = 128,
+      .edges = {},
+      .case_name = "resident_hot_classification",
+  };
+  snapshot.edges.reserve(1'200);
+  for (std::uint32_t index = 0; index < 1'200; ++index) {
+    snapshot.edges.push_back(SpineEdgeRecord{
+        .src = index % 128,
+        .dst = index % 16,
+        .weight = static_cast<std::uint16_t>(index / 128 + 1),
+        .diff = 1,
+    });
+  }
+
+  SpineResidentClassification classification;
+  SpineL0State state =
+      preload_spine_resident_snapshot(snapshot, config, &classification);
+  require(classification.automatic_hot_promotion &&
+              !classification.hot_vertices.empty() &&
+              classification.top_level_preload &&
+              !classification.multilevel_fallback &&
+              classification.max_cold_partition_edges <=
+                  classification.cold_partition_target &&
+              classification.max_hot_shard_edges <=
+                  classification.hot_shard_edge_capacity &&
+              config.hot_vertices == classification.hot_vertices &&
+              state.hot_vertices.size() == classification.hot_vertices.size(),
+          "resident preload did not apply the HLS degree-based hot policy");
+  std::size_t persisted = 0;
+  for (const auto &families : {&state.cold_levels, &state.hot_levels}) {
+    for (const auto &levels : *families) {
+      for (std::size_t level = 0; level < config.levels; ++level) {
+        if (level != config.levels - 1) {
+          require(levels[level].empty(),
+                  "classified resident graph occupied a non-top level");
+        }
+        persisted += levels[level].size();
+      }
+    }
+  }
+  require(persisted == snapshot.edges.size(),
+          "classified resident preload lost physical records");
+}
+
+void test_spine_resident_snapshot_rejects_superhub() {
+  SpineL0Config config;
+  config.max_sort_edges = 8;
+  SpineEdgeSlice snapshot{
+      .vertices = 1'024,
+      .edges = {},
+      .case_name = "resident_superhub_overflow",
+  };
+  snapshot.edges.reserve(513);
+  for (std::uint32_t source = 0; source < 513; ++source) {
+    snapshot.edges.push_back(SpineEdgeRecord{
+        .src = source,
+        .dst = 700,
+        .weight = 1,
+        .diff = 1,
+    });
+  }
+  bool rejected = false;
+  try {
+    (void)preload_spine_resident_snapshot(snapshot, config);
+  } catch (const std::overflow_error &error) {
+    rejected = std::string(error.what()) ==
+               "Spine resident hot/cold classifier rejects a super-hub";
+  }
+  require(rejected, "resident bootstrap accepted an unshardable super-hub");
+}
+
+void test_spine_capacity_selector_rejects_before_writer() {
+  SpineL0Config config;
+  config.max_sort_edges = 16;
+  SpineL0State state;
+  std::uint32_t source = 0;
+  for (std::size_t level = 0; level < 10; ++level) {
+    const std::size_t count = static_cast<std::size_t>(
+        spine_level_layout(config, false, level).edge_capacity);
+    auto &run = state.cold_levels[0][level];
+    run.reserve(count);
+    for (std::size_t index = 0; index < count; ++index) {
+      run.push_back(SpineEdgeRecord{
+          .src = source,
+          .dst = source + 1,
+          .weight = 1,
+          .diff = 1,
+      });
+      ++source;
+    }
+  }
+  SpineEdgeSlice workload{
+      .vertices = 2'048,
+      .edges = {},
+      .case_name = "capacity_safe_target_overflow",
+  };
+  for (std::size_t index = 0; index < config.max_sort_edges; ++index) {
+    workload.edges.push_back(SpineEdgeRecord{
+        .src = source,
+        .dst = source + 1,
+        .weight = 1,
+        .diff = 1,
+    });
+    ++source;
+  }
   const MaintenanceOnlyRun run = run_maintenance_only(
       config, std::move(state), std::move(workload));
 
   require(run.failed &&
-              run.failure == "Spine level writer exceeds target edge capacity" &&
+              run.failure ==
+                  "Spine cold level hierarchy has no capacity-safe free target" &&
               run.counters.logical_overflow_events == 1 &&
-              run.counters.slice_epoch_reads == 1 &&
-              run.counters.slice_epoch_responses == 1,
-          "capacity overflow did not preserve the staged writer epoch");
-  require(run.counters.epoch_commit_failures == 1 &&
-              run.counters.epoch_retire_writes == 1 &&
-              run.counters.epoch_retire_write_responses == 1 &&
+              run.counters.target_selector_capacity_skips == 1 &&
+              run.counters.slice_epoch_reads == 0 &&
+              run.counters.slice_epoch_responses == 0,
+          "capacity overflow was not rejected before writer launch");
+  require(run.counters.epoch_commit_failures == 0 &&
+              run.counters.epoch_retire_writes == 0 &&
+              run.counters.epoch_retire_write_responses == 0 &&
               run.counters.result_payload_write_bytes == 384 &&
               run.counters.result_write_responses == 1,
-          "failed writer terminated before burning its staged epoch");
-  require(run.slice_epoch_word0.size() == 8 &&
-              run.slice_epoch_word0[0] == 1 &&
-              run.slice_epoch_word0[4] == 1 &&
-              std::count(run.slice_epoch_word0.begin(),
-                         run.slice_epoch_word0.end(),
-                         static_cast<std::uint8_t>(0)) == 6,
-          "retired epoch payload did not preserve the packed neighbor lane");
+          "capacity selector did not retire through the result path");
   require(run.result[SpineMaintenanceResult::kOverflow] == 1 &&
               run.result[SpineMaintenanceResult::kTargetLevel] == -1 &&
-              run.result[SpineMaintenanceResult::kEpochCommitFailures] == 1 &&
+              run.result[SpineMaintenanceResult::kEpochCommitFailures] == 0 &&
               run.result[SpineMaintenanceResult::kPath] == 5,
-          "failed writer epoch retirement is absent from the result ABI");
-  require(run.state.cold_levels[0][0].size() == 1 &&
-              run.state.cold_levels[0][1].empty(),
-          "failed writer committed partial logical level state");
-  std::cout << "EVIDENCE spine_epoch_retire writes="
-            << run.counters.epoch_retire_writes
-            << " responses=" << run.counters.epoch_retire_write_responses
-            << " commit_failures=" << run.counters.epoch_commit_failures
+          "capacity-selector failure is absent from the result ABI");
+  for (std::size_t level = 0; level < 10; ++level) {
+    require(run.state.cold_levels[0][level].size() ==
+                spine_level_layout(config, false, level).edge_capacity,
+            "capacity selector committed partial logical level state");
+  }
+  require(run.state.cold_levels[0][10].empty(),
+          "capacity selector wrote the undersized empty target");
+  std::cout << "EVIDENCE spine_capacity_safe_reject skips="
+            << run.counters.target_selector_capacity_skips
+            << " writer_epoch_reads=" << run.counters.slice_epoch_reads
             << '\n';
 }
 
@@ -8233,20 +8431,29 @@ void test_spine_pagerank_reports_maintenance_failure_without_compute_done() {
                                 .response_queue_depth = 256,
                             });
   SpineEdgeSlice workload{
-      .vertices = 128,
+      .vertices = 2'048,
       .edges = {},
       .case_name = "pagerank_maintenance_failure",
   };
-  for (std::uint32_t source = 1; source <= 16; ++source) {
-    workload.edges.push_back(
-        {.src = source, .dst = source + 1, .weight = 1, .diff = 1});
-  }
   SpineL0Config config;
-  config.max_vertices = 512;
+  config.max_vertices = 2'048;
   config.max_sort_edges = 16;
   SpineL0State initial_state;
-  initial_state.cold_levels[0][0] = {
-      {.src = 0, .dst = 1, .weight = 1, .diff = 1}};
+  std::uint32_t source = 0;
+  for (std::size_t level = 0; level < 10; ++level) {
+    const std::size_t count = static_cast<std::size_t>(
+        spine_level_layout(config, false, level).edge_capacity);
+    for (std::size_t index = 0; index < count; ++index) {
+      initial_state.cold_levels[0][level].push_back(
+          {.src = source, .dst = source + 1, .weight = 1, .diff = 1});
+      ++source;
+    }
+  }
+  for (std::size_t index = 0; index < config.max_sort_edges; ++index) {
+    workload.edges.push_back(
+        {.src = source, .dst = source + 1, .weight = 1, .diff = 1});
+    ++source;
+  }
   SpinePageRankVerticalSliceSystem system(scheduler, core, backend, workload,
                                           0.8F, config,
                                           SpineAxiInterfaceProfile{},
@@ -8259,7 +8466,9 @@ void test_spine_pagerank_reports_maintenance_failure_without_compute_done() {
   scheduler.run_until([&] { return system.failed(); }, 500'000);
 
   require(system.failed() && system.maintenance_done() && !system.done() &&
-              system.failure().find("maintenance: ") == 0,
+              system.failure() ==
+                  "maintenance: Spine cold level hierarchy has no "
+                  "capacity-safe free target",
           "PageRank system did not expose terminal maintenance failure");
 }
 
@@ -8760,10 +8969,20 @@ int main(int argc, char **argv) {
        test_spine_full_hierarchy_overflow_preserves_dirty_result},
       {"spine_l0_epoch_wrap",
        test_spine_l0_epoch_wrap_reads_hbm_and_clears_index},
+      {"spine_l0_level_escalation",
+       test_spine_l0_skips_undersized_empty_targets},
+      {"spine_raw_family_capacity_bound",
+       test_spine_capacity_selector_uses_raw_family_input_bound},
+      {"spine_resident_multilevel",
+       test_spine_resident_snapshot_spans_fixed_levels},
+      {"spine_resident_hot_classification",
+       test_spine_resident_snapshot_auto_promotes_hot_destinations},
+      {"spine_resident_superhub_capacity",
+       test_spine_resident_snapshot_rejects_superhub},
       {"spine_carry_epoch_wrap",
        test_spine_carry_epoch_wrap_uses_fixed_target_clear},
-      {"spine_epoch_retire",
-       test_spine_failed_writer_retires_staged_epoch},
+      {"spine_capacity_safe_reject",
+       test_spine_capacity_selector_rejects_before_writer},
       {"spine_maintenance_hbm_sorted_payload",
        test_spine_maintenance_consumes_sorted_payload_from_hbm},
       {"spine_carry_hbm_level_payload",

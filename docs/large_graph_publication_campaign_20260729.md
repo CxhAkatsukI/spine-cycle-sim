@@ -19,9 +19,14 @@ Connected Components additions are frozen in packed-v6 profiles documented in
 `docs/grasu_regraph_publication_profiles_v6_20260729.md`. Runtime packing
 matches host-managed partition-buffer allocation; it does not increase the
 frozen compute or HBM resources.
-The formal plugin is Candidate86 native+PGO at
-`/data/tmp/chuxiao/candidate86-cc-unweighted-native-pgo-build-20260729`; the contract
-pins its SHA-256 and every formal runner rejects a different binary.
+The formal plugin is Candidate92 native+PGO at
+`/data/tmp/chuxiao/candidate92-capacity-hot-ledger-native-pgo-build-20260729`; the
+contract pins SHA-256
+`88d44610461b876ec6617b705e338ed866f4ca18c41e1925bee4f8a26fcc3854`,
+and every formal runner rejects a different binary. Candidate92 retains the
+GraSU weighted destination-partition correction, selects only capacity-safe
+Spine carry targets, and mirrors the current HLS host's measured-indegree
+hot/cold resident classification.
 
 Large generated workloads and raw simulation outputs belong under
 `/data/tmp/chuxiao`. The repository tracks only contracts, source hashes,
@@ -81,7 +86,7 @@ python3 scripts/run_large_graph_campaign.py \
     /data/tmp/chuxiao/large_graph_campaign_v1/materialization_campaign.json \
   --run-dir \
     /data/tmp/chuxiao/large_graph_campaign_v1/materialization_run \
-  --jobs 6 --large-jobs 4 --memory-reserve-gib 32
+  --jobs 6 --large-jobs 2 --memory-reserve-gib 64
 ```
 
 Run one correctness-gated formal non-CC execution:
@@ -103,17 +108,19 @@ The contract contains 777 logical views over the 11 real datasets plus 12
 separately reported R19-32 endpoint views. The campaign generator removes
 overlap between tiers before launch and reuses one execution's E2E, update,
 memory, activity, and correctness outputs wherever their measurement boundaries
-are identical. The frozen matrix currently reduces 789 logical views to 657
-physical executions.
+are identical. Candidate92 admits 747 logical views and reduces them to 623
+physical executions. It excludes 42 Spine views before launch because the
+preserved vertex-ID ranges of `soc_bitcoin` (13 views) and `uk_2002` (29 views)
+exceed the frozen `MAX_N=2^24`; their GraSU+ReGraph views remain runnable.
 
 Generate the full de-duplicated execution manifest:
 
 ```bash
 python3 scripts/generate_publication_experiment_campaign.py \
   --materialization-root /data/tmp/chuxiao/large_graph_campaign_v1 \
-  --output-root /data/tmp/chuxiao/large_graph_campaign_v1/formal_candidate86_v1 \
+  --output-root /data/tmp/chuxiao/large_graph_campaign_v1/formal_candidate92_v1 \
   --manifest \
-    /data/tmp/chuxiao/large_graph_campaign_v1/formal_candidate86_v1/campaign_manifest.json
+    /data/tmp/chuxiao/large_graph_campaign_v1/formal_candidate92_v1/campaign_manifest.json
 ```
 
 Use repeatable `--tier`, `--dataset`, `--algorithm`, and `--system` filters for
@@ -124,7 +131,7 @@ isolated with `--tier endpoint_scalability`.
 ## Long-run process protocol
 
 The formal manifest is executed by a resource-aware process scheduler. It
-reserves 32 GiB of host memory, limits simultaneous large jobs separately,
+reserves 64 GiB of host memory, starts at two simultaneous large jobs,
 pins jobs to distinct physical cores by default, records process-group RSS and
 CPU time, and resumes only jobs that previously passed under the identical
 manifest hash. There is deliberately no automatic wall-clock timeout.
@@ -142,10 +149,10 @@ Launch a generated manifest:
 cd /home/chuxiao/spine-cycle-sim-publication
 python3 scripts/run_large_graph_campaign.py \
   --manifest \
-    /data/tmp/chuxiao/large_graph_campaign_v1/formal_candidate86_v1/campaign_manifest.json \
+    /data/tmp/chuxiao/large_graph_campaign_v1/formal_candidate92_v1/campaign_manifest.json \
   --run-dir \
-    /data/tmp/chuxiao/large_graph_campaign_v1/formal_candidate86_v1/run \
-  --jobs 8 --large-jobs 4 --memory-reserve-gib 32
+    /data/tmp/chuxiao/large_graph_campaign_v1/formal_candidate92_v1/run \
+  --jobs 6 --large-jobs 2 --memory-reserve-gib 64
 ```
 
 Watch one stable terminal snapshot every two seconds:
@@ -153,7 +160,7 @@ Watch one stable terminal snapshot every two seconds:
 ```bash
 watch -n 2 python3 scripts/monitor_large_graph_campaign.py \
   --run-dir \
-    /data/tmp/chuxiao/large_graph_campaign_v1/formal_candidate86_v1/run
+    /data/tmp/chuxiao/large_graph_campaign_v1/formal_candidate92_v1/run
 ```
 
 Soft-stop a stalled job without losing its elapsed/progress evidence:

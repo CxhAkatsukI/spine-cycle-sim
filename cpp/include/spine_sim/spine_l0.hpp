@@ -372,6 +372,34 @@ struct SpineL0State {
   bool hot_enabled{};
 };
 
+struct SpineResidentClassification {
+  std::vector<std::uint32_t> hot_vertices;
+  std::array<std::uint64_t, 16> cold_partition_edges{};
+  std::array<std::uint64_t, 16> hot_shard_edges{};
+  std::uint64_t total_edges{};
+  std::uint64_t hot_edges{};
+  std::uint64_t cold_edges{};
+  std::uint64_t family_edge_capacity{};
+  std::uint64_t cold_partition_target{};
+  std::uint64_t hot_shard_edge_capacity{};
+  std::uint64_t max_cold_partition_edges{};
+  std::uint64_t max_hot_shard_edges{};
+  bool used_explicit_hot_set{};
+  bool automatic_hot_promotion{};
+  bool top_level_preload{};
+  bool multilevel_fallback{};
+};
+
+[[nodiscard]] SpineResidentClassification classify_spine_resident_snapshot(
+    const SpineEdgeSlice &snapshot, const SpineL0Config &config);
+
+// Offline/bootstrap placement for an interval-zero resident graph. This
+// applies the HLS host's degree-based hot/cold policy when no explicit bitmap
+// is supplied and updates config.hot_vertices to match the returned state.
+[[nodiscard]] SpineL0State preload_spine_resident_snapshot(
+    const SpineEdgeSlice &snapshot, SpineL0Config &config,
+    SpineResidentClassification *classification = nullptr);
+
 struct SpineL0Counters {
   std::uint64_t start_cycle{};
   std::uint64_t end_cycle{};
@@ -506,6 +534,7 @@ struct SpineL0Counters {
   std::uint64_t target_selector_responses{};
   std::uint64_t target_selector_cycles{};
   std::uint64_t target_selector_min_padding_cycles{};
+  std::uint64_t target_selector_capacity_skips{};
   std::uint64_t target_selector_validation_failures{};
   std::size_t target_selector_max_inflight{};
   std::uint64_t metadata_control_reads{};
@@ -878,6 +907,8 @@ class SpineL0Maintenance final : public Component {
   void commit_level_state(bool hot, std::size_t target);
   [[nodiscard]] std::vector<SpineEdgeRecord> coalesce_family(
       bool hot, std::size_t family) const;
+  [[nodiscard]] std::uint64_t raw_family_input_count(
+      bool hot, std::size_t family) const;
   [[nodiscard]] std::vector<SpineEdgeRecord> merge_family(
       bool hot, std::size_t family, std::size_t target) const;
   [[nodiscard]] std::size_t family_for(std::uint32_t dst) const;
@@ -1039,6 +1070,10 @@ class SpineL0Maintenance final : public Component {
       target_occupied_{};
   std::array<std::array<std::uint8_t, kSpineLevelCount>, kSpineFamilyCount>
       target_metadata_ready_{};
+  std::array<std::uint64_t, kSpineFamilyCount>
+      target_input_edge_counts_{};
+  std::array<std::uint64_t, kSpineFamilyCount>
+      target_cumulative_edge_counts_{};
   std::array<std::uint64_t, 16> result_cold_edge_counts_{};
   std::array<std::uint64_t, 16> result_hot_edge_counts_{};
   std::array<bool, 16> result_cold_edge_counts_ready_{};

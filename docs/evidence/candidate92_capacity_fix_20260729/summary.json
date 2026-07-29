@@ -1,0 +1,64 @@
+{
+  "schema": "spine_capacity_fix_evidence_v1",
+  "date": "2026-07-29",
+  "formal_plugin": {
+    "milestone": "candidate92_capacity_safe_hot_classifier_ledger_native_pgo",
+    "path": "/data/tmp/chuxiao/candidate92-capacity-hot-ledger-native-pgo-build-20260729/libspine_cycle.so",
+    "sha256": "88d44610461b876ec6617b705e338ed866f4ca18c41e1925bee4f8a26fcc3854",
+    "pgo_training_cycles": {
+      "spine": 4778979,
+      "grasu_regraph": 15310428
+    },
+    "final_spine_equivalence_cycles": 4778979
+  },
+  "soc_pokec_full_admission": {
+    "plugin_milestone": "candidate91_logic_identical_admission_build",
+    "vertices": 1632803,
+    "edges": 44603928,
+    "termination": "deliberate_max_cycles_1_after_preload",
+    "resident_hot_policy": "hls_degree_v1_promoted",
+    "resident_hot_vertices": 646007,
+    "resident_hot_edges": 37694419,
+    "resident_cold_edges": 6909509,
+    "resident_max_cold_partition_edges": 4194300,
+    "resident_cold_partition_target": 4194304,
+    "resident_max_hot_shard_edges": 2376280,
+    "resident_hot_shard_edge_capacity": 8388608,
+    "resident_top_level_preload": true,
+    "resident_multilevel_fallback": false,
+    "raw_path": "/data/tmp/chuxiao/candidate91-hot-classifier-validation-20260729/soc_pokec"
+  },
+  "wiki_talk_writer_progression": {
+    "plugin_milestone": "candidate92_capacity_safe_hot_classifier_ledger_native_pgo",
+    "old_failure_cycle": 1011592,
+    "replayed_cycles": 2000000,
+    "termination": "deliberate_max_cycles_2000000",
+    "failure": "",
+    "maintenance_target_level": 0,
+    "maintenance_target_selector_capacity_skips": 0,
+    "raw_path": "/data/tmp/chuxiao/candidate92-capacity-validation-20260729/wiki_talk_writer_progress"
+  },
+  "formal_campaign": {
+    "logical_views": 789,
+    "runnable_logical_views": 747,
+    "physical_executions": 623,
+    "profile_vertex_capacity_exclusions": 42,
+    "excluded_spine_views_by_dataset": {
+      "soc_bitcoin": 13,
+      "uk_2002": 29
+    },
+    "manifest": "/data/tmp/chuxiao/large_graph_campaign_v1/formal_candidate92_v1/campaign_manifest.json"
+  },
+  "hls_patch": {
+    "worktree": "/data/tmp/chuxiao/spine-hls-capacity-aware-target",
+    "branch": "codex/capacity-aware-target",
+    "commit": "d597c35",
+    "host_test_status": "requires_vitis_ap_int_environment"
+  },
+  "test_summary": {
+    "python_tests": 635,
+    "python_skipped": 5,
+    "cpp_ctest_targets": 2,
+    "cpp_ctest_failures": 0
+  }
+}

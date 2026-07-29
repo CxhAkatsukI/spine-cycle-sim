@@ -1,5 +1,11 @@
 # Candidate10 v3 Dense Full PageRank
 
+> **Capacity correction (2026-07-29):** the 16,384-update Spine rejection in
+> this archived run exposed the first-empty selector defect. Candidate92 uses
+> raw family counts and skips undersized empty levels. The timing rows through
+> 4,096 remain historical measurements, but the capacity table below replaces
+> the old L1-boundary interpretation.
+
 ## Claim boundary
 
 This experiment compares the frozen 150 MHz Candidate10 normalized profiles:
@@ -69,22 +75,23 @@ only active HBM channels and excludes on-chip and idle-channel energy.
 
 ## Capacity boundary
 
-The four capacity endpoints reproduced the frozen profile contract:
+The four rows were originally labeled as capacity endpoints. Their corrected
+interpretation is:
 
 | Batch | Final edges | Spine | GraSU+ReGraph | Timing ratio |
 |---:|---:|---|---|---|
-| 8,192 | 16,384 | PASS at L1 boundary | profile capacity reject | undefined |
-| 16,384 | 24,576 | expected L1 family overflow | profile capacity reject | undefined |
+| 8,192 | 16,384 | PASS | profile capacity reject | undefined |
+| 16,384 | 24,576 | PASS under corrected selector; timing pending | profile capacity reject | undefined |
 
 The GraSU rejection is the pinned 4,096-entry PageRank degree-reorder limit,
-not a measured xclbin failure. The Spine overflow is the current single-family
-L1 target capacity. No performance ratio is reported where either system
-cannot enter the common timing window.
+not a measured xclbin failure. The old Spine overflow was not a physical
+single-family limit: a safe higher target exists. No performance ratio is
+reported where both systems cannot enter the common timing window.
 
 ## Runtime
 
 With four concurrent jobs, the eight-pair timing matrix completed in 193.75
-host seconds. The four serial capacity endpoints completed in 223.66 seconds.
+host seconds. The four historical endpoint runs completed in 223.66 seconds.
 These are simulator-throughput measurements, not accelerator latency.
 
 ## Reproduction
@@ -97,12 +104,10 @@ python3 scripts/run_hls_pagerank_real_comparison.py \
   --input-manifest configs/experiments/hls_full_pagerank_dense_batch_sweep_20260726.json \
   --out-dir /data/tmp/chuxiao/candidate10_hls_v3_dense_full_20260727 \
   --jobs 4 --timeout-seconds 900 --max-cycles 200000000 --no-build
-python3 scripts/run_spine_dense_capacity_cliff.py \
-  --profile-set candidate10_hls_v3 \
-  --input-manifest configs/experiments/hls_full_pagerank_dense_batch_sweep_20260726.json \
-  --out-dir /data/tmp/chuxiao/candidate10_hls_v3_dense_capacity_20260727 \
-  --timeout-seconds 900 --max-cycles 200000000 --no-build
 ```
+
+The removed capacity-cliff command reproduces only the superseded selector
+defect and is not part of the Candidate92 acceptance path.
 
 Compact evidence is frozen under
 `docs/evidence/candidate10_hls_v3_dense_full_pagerank_20260727/`. The raw child

@@ -64,8 +64,8 @@
       "sha256": "93b10252f3a2f998da9a851ebf2abeb588cb8edef4a8ac253d217553a793c346"
     },
     "simulator_baseline": {
-      "milestone": "candidate86_cc_unweighted_runtime_packed_native_pgo",
-      "plugin_sha256": "1cc810e3dbfcea9c55aff94cecfc601d762a732f8491d9f17caf8fcbb9e57527"
+      "milestone": "candidate92_capacity_safe_hot_classifier_ledger_native_pgo",
+      "plugin_sha256": "88d44610461b876ec6617b705e338ed866f4ca18c41e1925bee4f8a26fcc3854"
     }
   },
   "datasets": [
@@ -252,10 +252,10 @@
     "monitor_refresh_seconds": 2,
     "status_sample_seconds": 5,
     "no_progress_soft_stop_seconds": 1200,
-    "host_available_memory_reserve_gib": 32,
-    "per_run_rss_limit_gib": 48,
-    "initial_large_jobs": 4,
-    "maximum_large_jobs": 8,
+    "host_available_memory_reserve_gib": 64,
+    "per_run_rss_limit_gib": 64,
+    "initial_large_jobs": 2,
+    "maximum_large_jobs": 4,
     "stopped_status": "incomplete_with_elapsed_progress_and_eta",
     "formal_host_runtime_runs_are_contention_controlled": true
   },

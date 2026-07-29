@@ -35,7 +35,7 @@ def main() -> int:
         "--lib-dir",
         type=Path,
         default=Path(
-            "/data/tmp/chuxiao/candidate86-cc-unweighted-native-pgo-build-20260729"
+            "/data/tmp/chuxiao/candidate92-capacity-hot-ledger-native-pgo-build-20260729"
         ),
     )
     parser.add_argument(

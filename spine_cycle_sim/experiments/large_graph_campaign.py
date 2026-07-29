@@ -251,8 +251,13 @@ def validate_large_graph_campaign_contract(
     execution = contract.get("execution", {})
     if execution.get("automatic_timeout_seconds") is not None:
         raise ValueError("formal campaign must use auditable soft-stop, not timeout")
-    if execution.get("host_available_memory_reserve_gib") != 32:
-        raise ValueError("formal campaign memory reserve changed")
+    if (
+        execution.get("host_available_memory_reserve_gib") != 64
+        or execution.get("per_run_rss_limit_gib") != 64
+        or execution.get("initial_large_jobs") != 2
+        or execution.get("maximum_large_jobs") != 4
+    ):
+        raise ValueError("formal campaign memory-safety envelope changed")
 
 
 def load_large_graph_campaign_contract(
@@ -344,6 +349,27 @@ def planned_system_runs(contract: Mapping[str, Any]) -> dict[str, int]:
     }
 
 
+def spine_profile_vertex_admitted(
+    materialization_manifest: Mapping[str, Any],
+    *,
+    system: str,
+    vertices: int,
+) -> bool:
+    """Return whether a case fits the frozen Spine vertex-ID address space."""
+
+    if vertices <= 0:
+        raise ValueError("publication case vertices must be positive")
+    if system != "spine":
+        return True
+    capacity = materialization_manifest.get("capacity", {})
+    maximum = int(capacity.get("spine_max_vertices", 0))
+    if maximum <= 0:
+        raise ValueError(
+            "Spine publication admission requires a positive spine_max_vertices"
+        )
+    return vertices <= maximum
+
+
 def build_materialization_campaign_manifest(
     contract: Mapping[str, Any],
     *,
@@ -411,8 +437,11 @@ def build_materialization_campaign_manifest(
 
 
 def _publication_rss_gib(vertices: int, records: int) -> float:
-    estimated_bytes = 1.0 * 2**30 + vertices * 64 + records * 96
-    return round(min(48.0, max(1.5, estimated_bytes / 2**30)), 2)
+    # The Python oracle, normalized graph, C++ resident image, and SST backend
+    # coexist during startup. Campaign-v1 observations reached 17-30 GiB per
+    # large process; 384 B/record is the conservative measured envelope.
+    estimated_bytes = 2.0 * 2**30 + vertices * 128 + records * 384
+    return round(min(64.0, max(2.0, estimated_bytes / 2**30)), 2)
 
 
 def build_publication_experiment_campaign_manifest(
@@ -486,6 +515,7 @@ def build_publication_experiment_campaign_manifest(
 
     manifests: dict[str, tuple[Path, dict[str, Any]]] = {}
     requested_cases = []
+    capacity_exclusions = []
     edge_cap = int(contract["workload_semantics"]["full_pagerank"]["edge_cap"])
     for request in requests:
         if request.dataset_id not in manifests:
@@ -509,7 +539,30 @@ def build_publication_experiment_campaign_manifest(
             full_pagerank_edge_cap=edge_cap,
             source_cohort=request.source_cohort,
         )
+        capacity = manifest.get("capacity", {})
+        spine_max_vertices = int(capacity.get("spine_max_vertices", 0))
+        case_vertices = int(case.graph["vertices"])
+        if not spine_profile_vertex_admitted(
+            manifest, system=case.system, vertices=case_vertices
+        ):
+            capacity_exclusions.append(
+                {
+                    "tier": request.tier,
+                    "dataset_id": request.dataset_id,
+                    "algorithm": request.algorithm,
+                    "system": request.system,
+                    "scenario": request.scenario,
+                    "batch_size": request.batch_size,
+                    "reason": "profile_vertex_capacity",
+                    "vertices": case_vertices,
+                    "spine_max_vertices": spine_max_vertices,
+                    "performance_eligible": False,
+                }
+            )
+            continue
         requested_cases.append((request.tier, case))
+    if not requested_cases:
+        raise ValueError("publication campaign selection has no admitted cases")
     cases, views = deduplicate_publication_cases(requested_cases)
 
     tier_priority = {
@@ -601,12 +654,15 @@ def build_publication_experiment_campaign_manifest(
         "materialization_root": str(materialized),
         "output_root": str(output),
         "logical_view_count": len(requests),
+        "runnable_logical_view_count": len(requests) - len(capacity_exclusions),
+        "capacity_exclusion_count": len(capacity_exclusions),
         "physical_execution_count": len(cases),
         "selected_tiers": sorted(selected_tiers or known_tiers),
         "selected_datasets": sorted(selected_datasets or known_datasets),
         "selected_algorithms": sorted(selected_algorithms or known_algorithms),
         "selected_systems": sorted(selected_systems or known_systems),
         "execution_views": views,
+        "capacity_exclusions": capacity_exclusions,
         "materialization_manifests": {
             dataset_id: {
                 "path": str(path),

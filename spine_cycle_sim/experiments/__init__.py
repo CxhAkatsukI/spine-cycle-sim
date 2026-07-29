@@ -100,6 +100,7 @@ from .large_graph_campaign import (
     build_publication_experiment_campaign_manifest,
     load_large_graph_campaign_contract,
     planned_system_runs,
+    spine_profile_vertex_admitted,
     validate_large_graph_campaign_contract,
     verify_large_graph_sources,
 )
@@ -225,6 +226,7 @@ __all__ = [
     "build_publication_experiment_campaign_manifest",
     "load_large_graph_campaign_contract",
     "planned_system_runs",
+    "spine_profile_vertex_admitted",
     "validate_large_graph_campaign_contract",
     "verify_large_graph_sources",
     "PUBLICATION_BATCH_SIZES",
