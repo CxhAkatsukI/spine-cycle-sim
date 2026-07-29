@@ -1147,7 +1147,13 @@ def materialize_publication_workload(
         )
         pagerank_artifacts.append(
             {
-                **_artifact(metadata, role="full_pagerank_hash_slice"),
+                **_artifact(
+                    metadata,
+                    role="full_pagerank_hash_slice",
+                    source_cohorts=_source_cohorts(
+                        selected, seed=seed + 503
+                    ),
+                ),
                 "requested_edges": requested,
                 "actual_edges": actual,
                 "selection_policy": "exact_min_edge_hash_preserving_original_vertex_ids_v2",

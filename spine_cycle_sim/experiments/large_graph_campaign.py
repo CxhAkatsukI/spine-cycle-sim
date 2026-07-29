@@ -230,6 +230,14 @@ def validate_large_graph_campaign_contract(
         raise ValueError("Full PageRank slice policy changed")
     if semantics.get("preserve_external_vertex_ids") is not True:
         raise ValueError("large-graph campaign must preserve external vertex IDs")
+    weighted = semantics.get("weighted_sssp", {})
+    if "nonmonotonic_edge_cap" in weighted and (
+        weighted.get("nonmonotonic_edge_cap") != 64_000
+        or weighted.get("spine_max_sort_edges") != 131_072
+        or weighted.get("nonmonotonic_graph_scope")
+        != "bounded_real_topology_hash_slice"
+    ):
+        raise ValueError("non-monotonic SSSP bounded fallback contract changed")
 
     endpoint = contract.get("synthetic_endpoint", {})
     endpoint_source = endpoint.get("source", {})
@@ -526,6 +534,11 @@ def build_publication_experiment_campaign_manifest(
     requested_cases = []
     capacity_exclusions = []
     edge_cap = int(contract["workload_semantics"]["full_pagerank"]["edge_cap"])
+    nonmonotonic_sssp_edge_cap = int(
+        contract["workload_semantics"]["weighted_sssp"].get(
+            "nonmonotonic_edge_cap", 64_000
+        )
+    )
     for request in requests:
         if request.dataset_id not in manifests:
             path = (
@@ -546,6 +559,7 @@ def build_publication_experiment_campaign_manifest(
             scenario=request.scenario,
             batch_size=request.batch_size,
             full_pagerank_edge_cap=edge_cap,
+            nonmonotonic_sssp_edge_cap=nonmonotonic_sssp_edge_cap,
             source_cohort=request.source_cohort,
         )
         capacity = manifest.get("capacity", {})
@@ -623,6 +637,8 @@ def build_publication_experiment_campaign_manifest(
                     str(case.algorithm_parameters.get("source_cohort", "default")),
                     "--full-pagerank-edge-cap",
                     str(edge_cap),
+                    "--nonmonotonic-sssp-edge-cap",
+                    str(nonmonotonic_sssp_edge_cap),
                 )
             )
         for view in case_views:

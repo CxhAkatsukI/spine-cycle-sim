@@ -50,7 +50,7 @@ class ArchitectureProfileTests(unittest.TestCase):
 
     def test_repository_profiles_load_and_have_unique_ids(self) -> None:
         loaded = [load_architecture_profile(path) for path in sorted(PROFILES.glob("*.json"))]
-        self.assertEqual(len(loaded), 48)
+        self.assertEqual(len(loaded), 56)
         self.assertEqual(len({profile.profile_id for profile in loaded}), len(loaded))
         self.assertTrue(all(profile.manifest_sha256 for profile in loaded))
         packed_ids = {
@@ -60,6 +60,13 @@ class ArchitectureProfileTests(unittest.TestCase):
             == "runtime_packed_v1"
         }
         self.assertEqual(len(packed_ids), 15)
+        interleaved_ids = {
+            profile.profile_id
+            for profile in loaded
+            if profile.parameters.get("grasu_partition_address_layout")
+            == "runtime_packed_interleaved_v2"
+        }
+        self.assertEqual(len(interleaved_ids), 8)
 
     def test_candidate10_profile_pins_frozen_dirty_source_and_routed_xclbin(
         self,

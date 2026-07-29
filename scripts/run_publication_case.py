@@ -143,6 +143,9 @@ def main() -> int:
     parser.add_argument("--batch-size", type=int, required=True)
     parser.add_argument("--source-cohort", default="default")
     parser.add_argument("--full-pagerank-edge-cap", type=int, default=4_000_000)
+    parser.add_argument(
+        "--nonmonotonic-sssp-edge-cap", type=int, default=64_000
+    )
     parser.add_argument("--out-dir", type=Path, required=True)
     parser.add_argument("--contract", type=Path)
     parser.add_argument("--sst", type=Path, default=DEFAULT_SST)
@@ -172,6 +175,7 @@ def main() -> int:
         scenario=args.scenario,
         batch_size=args.batch_size,
         full_pagerank_edge_cap=args.full_pagerank_edge_cap,
+        nonmonotonic_sssp_edge_cap=args.nonmonotonic_sssp_edge_cap,
         source_cohort=args.source_cohort,
     )
     for artifact in (case.graph, case.update):

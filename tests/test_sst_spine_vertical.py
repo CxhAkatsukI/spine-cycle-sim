@@ -12,6 +12,7 @@ from scripts.run_sst_spine_vertical import (
     validate_carry_hot_result,
     validate_dynamic_sssp_result,
     validate_fallback_result,
+    validate_full_rebuild_capacity,
     validate_full_compute_result,
     validate_full_pagerank_result,
     validate_generic_result,
@@ -42,6 +43,11 @@ class SstSpineVerticalValidationTests(unittest.TestCase):
                 sha256_file(path),
                 "b41873890369e7f277fe83edbbe1a0e321044dec6be9abf5eb03a583a5247111",
             )
+
+    def test_nonmonotonic_full_rebuild_capacity_fails_before_bootstrap(self) -> None:
+        validate_full_rebuild_capacity(64_000, 8)
+        with self.assertRaisesRegex(ValueError, "MAX_SORT_EDGES=131072"):
+            validate_full_rebuild_capacity(390_847, 8)
 
     def test_generic_full_pagerank_accepts_dual_oracle_result(self) -> None:
         result = {

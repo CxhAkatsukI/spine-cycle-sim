@@ -20,6 +20,8 @@ PUBLICATION_SYSTEMS = (
     "grasu_regraph_k1",
     "grasu_regraph_k4_shared",
 )
+SPINE_MAX_SORT_EDGES = 131_072
+DEFAULT_NONMONOTONIC_SSSP_EDGE_CAP = 64_000
 
 
 @dataclass(frozen=True)
@@ -98,6 +100,41 @@ def _full_pagerank_graph(
     return matches[0], edge_cap
 
 
+def _slice_source_cohorts(artifact: Mapping[str, Any]) -> dict[str, int]:
+    """Choose deterministic reachable sources for a bounded weighted slice."""
+
+    degree: dict[int, int] = {}
+    path = Path(str(artifact["path"]))
+    with path.open("r", encoding="ascii") as stream:
+        for line_number, raw_line in enumerate(stream, start=1):
+            line = raw_line.strip()
+            if not line or line.startswith("#"):
+                continue
+            fields = line.split()
+            if len(fields) != 4:
+                raise ValueError(f"{path}:{line_number}: expected four edge fields")
+            source = int(fields[0])
+            degree[source] = degree.get(source, 0) + 1
+    if not degree:
+        raise ValueError(f"bounded weighted SSSP slice is empty: {path}")
+    high = min(degree, key=lambda source: (-degree[source], source))
+    ordered = sorted(degree, key=lambda source: (degree[source], source))
+    median = ordered[(len(ordered) - 1) // 2]
+    random_reachable = min(
+        degree,
+        key=lambda source: (
+            hashlib.sha256(f"bounded-sssp-v1:{source}".encode("ascii")).digest(),
+            source,
+        ),
+    )
+    return {
+        "default": high,
+        "high_degree": high,
+        "median_degree": median,
+        "random_reachable": random_reachable,
+    }
+
+
 def select_publication_case(
     manifest: Mapping[str, Any],
     *,
@@ -106,6 +143,7 @@ def select_publication_case(
     scenario: str,
     batch_size: int,
     full_pagerank_edge_cap: int = 4_000_000,
+    nonmonotonic_sssp_edge_cap: int = DEFAULT_NONMONOTONIC_SSSP_EDGE_CAP,
     source_cohort: str = "default",
 ) -> PublicationCase:
     if system not in PUBLICATION_SYSTEMS:
@@ -121,13 +159,36 @@ def select_publication_case(
     parameters: dict[str, Any]
     source = 0
     if algorithm == "weighted_sssp":
-        graph = graphs["directed"]
-        projection = "directed"
-        cohorts = graph.get("source_cohorts", {})
+        nonmonotonic = scenario in {"delete", "weight_change", "mixed"}
+        if nonmonotonic:
+            if not 0 < nonmonotonic_sssp_edge_cap <= SPINE_MAX_SORT_EDGES:
+                raise ValueError(
+                    "non-monotonic SSSP edge cap exceeds the Spine "
+                    f"MAX_SORT_EDGES={SPINE_MAX_SORT_EDGES} contract"
+                )
+            graph, requested = _full_pagerank_graph(
+                manifest, nonmonotonic_sssp_edge_cap
+            )
+            projection = f"full_pagerank_e{requested}"
+            cohorts = graph.get("source_cohorts") or _slice_source_cohorts(graph)
+        else:
+            graph = graphs["directed"]
+            projection = "directed"
+            cohorts = graph.get("source_cohorts", {})
         if source_cohort not in cohorts:
             raise ValueError(f"weighted SSSP source cohort is absent: {source_cohort}")
         source = int(cohorts[source_cohort])
-        parameters = {"source_cohort": source_cohort}
+        parameters = {
+            "source_cohort": source_cohort,
+            "graph_scope": (
+                "bounded_real_topology_nonmonotonic_fallback"
+                if nonmonotonic
+                else "full_directed_graph"
+            ),
+            "nonmonotonic_edge_cap": (
+                nonmonotonic_sssp_edge_cap if nonmonotonic else None
+            ),
+        }
     elif algorithm == "connected_components":
         graph = graphs["reciprocal"]
         projection = "reciprocal"

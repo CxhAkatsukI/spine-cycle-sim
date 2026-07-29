@@ -43,6 +43,17 @@ class PublicationCaseTests(unittest.TestCase):
             "requested_edges": 4_000_000,
             "actual_edges": 50,
         }
+        bounded_weighted = {
+            **artifact("bounded_weighted", 50),
+            "requested_edges": 64_000,
+            "actual_edges": 50,
+            "source_cohorts": {
+                "default": 13,
+                "high_degree": 13,
+                "median_degree": 5,
+                "random_reachable": 17,
+            },
+        }
         updates = []
         for projection in (
             "directed",
@@ -68,9 +79,18 @@ class PublicationCaseTests(unittest.TestCase):
                 "reciprocal": artifact("reciprocal", 180),
                 "residual_sink_free": residual,
             },
-            "full_pagerank_slices": [pagerank],
+            "full_pagerank_slices": [bounded_weighted, pagerank],
             "updates": updates,
         }
+        self.manifest["updates"].append(
+            {
+                **artifact("full_pagerank_e64000_delete", 8),
+                "projection": "full_pagerank_e64000",
+                "scenario": "delete",
+                "user_mutations": 8,
+                "physical_records": 8,
+            }
+        )
 
     def test_algorithm_projection_and_source_selection(self) -> None:
         weighted = select_publication_case(
@@ -102,6 +122,37 @@ class PublicationCaseTests(unittest.TestCase):
             residual.algorithm_parameters["residual_contract"],
             "deltahls_sink_free_linf_warm",
         )
+
+    def test_nonmonotonic_sssp_uses_bounded_real_topology_slice(self) -> None:
+        cases = [
+            select_publication_case(
+                self.manifest,
+                system=system,
+                algorithm="weighted_sssp",
+                scenario="delete",
+                batch_size=8,
+            )
+            for system in ("spine", "grasu_regraph_k4_shared")
+        ]
+        self.assertEqual(cases[0].graph, cases[1].graph)
+        self.assertEqual(cases[0].update, cases[1].update)
+        self.assertEqual(cases[0].graph["case_id"], "bounded_weighted")
+        self.assertEqual(cases[0].source, 13)
+        self.assertEqual(
+            cases[0].algorithm_parameters["graph_scope"],
+            "bounded_real_topology_nonmonotonic_fallback",
+        )
+
+    def test_nonmonotonic_sssp_cap_cannot_exceed_hardware_contract(self) -> None:
+        with self.assertRaisesRegex(ValueError, "MAX_SORT_EDGES=131072"):
+            select_publication_case(
+                self.manifest,
+                system="spine",
+                algorithm="weighted_sssp",
+                scenario="delete",
+                batch_size=8,
+                nonmonotonic_sssp_edge_cap=131_073,
+            )
 
     def test_identical_tier_views_share_one_execution(self) -> None:
         case = select_publication_case(

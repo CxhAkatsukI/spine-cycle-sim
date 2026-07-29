@@ -55,6 +55,7 @@ DEFAULT_FALLBACK_WORKLOAD = (
     ROOT / "tests" / "data" / "fallback_three_tiles.slice"
 )
 PROFILE_PATH = ROOT / "configs" / "architectures" / "spine_shared_engine_9c08763.json"
+SPINE_MAX_SORT_EDGES = 131_072
 
 
 def load_slice_shape(path: Path) -> tuple[int, int]:
@@ -76,6 +77,21 @@ def load_slice_shape(path: Path) -> tuple[int, int]:
     if vertices is None or vertices <= 0:
         raise ValueError(f"{path}: missing positive vertices metadata")
     return vertices, records
+
+
+def validate_full_rebuild_capacity(input_edges: int, update_edges: int) -> None:
+    """Fail before bootstrap when a materialized snapshot cannot enter B-stage."""
+
+    if input_edges < 0 or update_edges < 0:
+        raise ValueError("full-rebuild edge counts cannot be negative")
+    conservative_snapshot_edges = input_edges + update_edges
+    if conservative_snapshot_edges > SPINE_MAX_SORT_EDGES:
+        raise ValueError(
+            "Spine non-monotonic SSSP full-rebuild snapshot may contain "
+            f"{conservative_snapshot_edges} edges, exceeding the frozen "
+            f"MAX_SORT_EDGES={SPINE_MAX_SORT_EDGES}; use the bounded real-topology "
+            "non-monotonic workload"
+        )
 
 
 def sha256_file(path: Path) -> str:
@@ -1645,6 +1661,8 @@ def main() -> int:
         if args.update_workload is None
         else load_slice_shape(args.update_workload)[1]
     )
+    if args.scenario in {"dynamic_sssp_delete", "dynamic_sssp_increase"}:
+        validate_full_rebuild_capacity(workload_edges, update_edges)
     hot_vertices = tuple(
         int(item) for item in args.hot_vertices.split(",") if item
     )

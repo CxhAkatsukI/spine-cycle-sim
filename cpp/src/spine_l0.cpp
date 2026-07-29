@@ -1305,6 +1305,13 @@ SpineL0Maintenance::SpineL0Maintenance(std::string name, ClockId clock_id,
 }
 
 void SpineL0Maintenance::reset_batch(SpineEdgeSlice workload) {
+  if (workload.edges.size() > config_.max_sort_edges) {
+    throw std::length_error(
+        "Spine maintenance input has " +
+        std::to_string(workload.edges.size()) +
+        " edges but MAX_SORT_EDGES is " +
+        std::to_string(config_.max_sort_edges));
+  }
   const bool ports_idle =
       std::all_of(ports_.graph.begin(), ports_.graph.end(),
                   [](const FixedAxiPort *port) { return port->idle(); }) &&
@@ -1313,7 +1320,6 @@ void SpineL0Maintenance::reset_batch(SpineEdgeSlice workload) {
   if (!done_ || failed_ || !ports_idle || !tasks_.empty() ||
       !inflight_tasks_.empty() || !staged_memory_issues_.empty() ||
       workload.vertices != workload_.vertices || workload.edges.empty() ||
-      workload.edges.size() > config_.max_sort_edges ||
       !std::is_sorted(
           workload.edges.begin(), workload.edges.end(),
           [](const SpineEdgeRecord &left, const SpineEdgeRecord &right) {
