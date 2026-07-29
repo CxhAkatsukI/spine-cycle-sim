@@ -1,0 +1,2 @@
+index,label,batch_size,spine_cycles,k4_cycles,e2e_speedup,spine_cycles_per_mutation,k4_cycles_per_mutation,spine_growth,k4_growth,spine_update_cycles,k4_update_cycles,update_speedup
+0,64,64,25133564.0,153355230.0,6.101610977257344,392711.9375,2396175.46875,1.0,1.0,276896.0,888.0,0.003206980238067722

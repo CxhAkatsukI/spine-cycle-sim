@@ -214,6 +214,49 @@ def k4_update_sweep_rows(
     return output
 
 
+def dense_sweep_rows(
+    rows: Iterable[Mapping[str, str]],
+) -> list[dict[str, Any]]:
+    selected = [
+        row
+        for row in rows
+        if row.get("dataset_id") == "sx_askubuntu"
+        and row.get("algorithm") == "weighted_sssp"
+        and row.get("competitor") == "grasu_regraph_k4_shared"
+        and row.get("scenario") == "insert"
+        and row.get("batch_size") in {"64", "512", "4096"}
+    ]
+    selected.sort(key=lambda row: int(row["batch_size"]))
+    if not selected:
+        return []
+
+    spine_baseline = _float(selected[0], "spine_cycles")
+    k4_baseline = _float(selected[0], "competitor_cycles")
+    output = []
+    for index, row in enumerate(selected):
+        batch_size = int(row["batch_size"])
+        spine_cycles = _float(row, "spine_cycles")
+        k4_cycles = _float(row, "competitor_cycles")
+        output.append(
+            {
+                "index": index,
+                "label": str(batch_size),
+                "batch_size": batch_size,
+                "spine_cycles": spine_cycles,
+                "k4_cycles": k4_cycles,
+                "e2e_speedup": _float(row, "spine_speedup"),
+                "spine_cycles_per_mutation": spine_cycles / batch_size,
+                "k4_cycles_per_mutation": k4_cycles / batch_size,
+                "spine_growth": _ratio(spine_cycles, spine_baseline),
+                "k4_growth": _ratio(k4_cycles, k4_baseline),
+                "spine_update_cycles": _float(row, "spine_update_cycles"),
+                "k4_update_cycles": _float(row, "competitor_update_cycles"),
+                "update_speedup": _float(row, "spine_update_speedup"),
+            }
+        )
+    return output
+
+
 def _true(value: object) -> bool:
     return str(value).lower() == "true"
 
@@ -315,6 +358,7 @@ def render_tex(
     runtime: Sequence[Mapping[str, Any]],
     pair_count: int,
     update_count: int = 0,
+    dense_count: int = 0,
     correctness: Sequence[Mapping[str, Any]] = (),
     datasets: Sequence[Mapping[str, Any]] = (),
 ) -> str:
@@ -380,6 +424,7 @@ def render_tex(
 }
 \pgfplotstableread[col sep=comma]{\datadir/headline_pairs.csv}\pairdata
 \pgfplotstableread[col sep=comma]{\datadir/k4_update_sweep.csv}\updatedata
+\pgfplotstableread[col sep=comma]{\datadir/dense_sweep.csv}\densedata
 \hypersetup{pdftitle={Spine Large-Graph Campaign Results}}
 \title{\textbf{Spine Large-Graph Campaign Results}\\
 \large Correctness-Gated Spine vs. GraSU+ReGraph K1/K4-shared}
@@ -501,6 +546,51 @@ user mutations and the isolated update-phase cycle window.}
 \end{figure}
 \clearpage
 
+\section{Dense-batch behavior}
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{loglogaxis}[
+  width=0.92\linewidth, height=58mm,
+  xlabel={User mutations per batch}, ylabel={End-to-end device cycles},
+  xmin=32, xmax=8192, xtick=data,
+  xticklabels from table={\densedata}{label}, grid=major,
+  legend style={at={(0.5,1.14)},anchor=south,legend columns=2}]
+\addplot[spine,very thick,mark=square*]
+  table[x=batch_size,y=spine_cycles] {\densedata};
+\addplot[kfour,very thick,mark=triangle*]
+  table[x=batch_size,y=k4_cycles] {\densedata};
+\legend{Spine,G+R K4-shared}
+\end{loglogaxis}
+\end{tikzpicture}
+\caption{Correctness-gated AskUbuntu weighted-SSSP insertion latency as the
+batch grows from 64 toward 4096 mutations. Missing points are still running,
+not zero-valued measurements.}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{semilogyaxis}[
+  ybar, bar width=12pt, width=0.92\linewidth, height=54mm,
+  ylabel={Spine speedup over G+R K4-shared},
+  xtick=data, xticklabels from table={\densedata}{label},
+  xlabel={User mutations per batch}, xmin=-0.5, xmax=2.5,
+  ymin=0.00001, grid=major,
+  legend style={at={(0.5,1.14)},anchor=south,legend columns=2}]
+\addplot[fill=kfour] table[x=index,y=e2e_speedup] {\densedata};
+\addplot[fill=kone] table[x=index,y=update_speedup] {\densedata};
+\addplot[black,dashed,sharp plot]
+  coordinates {(0,1) (@@DENSE_MAX_INDEX@@,1)};
+\legend{End-to-end,Update phase only}
+\end{semilogyaxis}
+\end{tikzpicture}
+\caption{Dense-batch tradeoff. End-to-end and isolated update-phase windows
+are kept separate because the current Spine maintenance path can lose even
+when its complete execution wins.}
+\end{figure}
+\clearpage
+
 \section{Correctness coverage}
 \begin{table}[ht]
 \centering
@@ -559,6 +649,7 @@ cycle-for-cycle FPGA calibration or ASIC total power.
         "@@TRIPLETS@@": str(summary["complete_triplets"]),
         "@@MAX_INDEX@@": str(max(0, pair_count - 1)),
         "@@UPDATE_MAX_INDEX@@": str(max(0, update_count - 1)),
+        "@@DENSE_MAX_INDEX@@": str(max(0, dense_count - 1)),
         "@@CORRECTNESS_TABLE@@": correctness_table,
         "@@DATASET_TABLE@@": dataset_table,
         "@@RUNTIME_TABLE@@": runtime_table,
@@ -589,6 +680,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     pair_rows = read_csv(args.analysis_dir / "pair_rows.csv")
     pairs = headline_pair_rows(pair_rows)
     update_sweep = k4_update_sweep_rows(pair_rows)
+    dense_sweep = dense_sweep_rows(pair_rows)
     correctness = correctness_summary_rows(
         read_csv(args.analysis_dir / "correctness_groups.csv")
     )
@@ -596,6 +688,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     runtime = runtime_summary(read_csv(args.analysis_dir / "system_rows.csv"))
     write_csv(args.data_dir / "headline_pairs.csv", pairs)
     write_csv(args.data_dir / "k4_update_sweep.csv", update_sweep)
+    write_csv(args.data_dir / "dense_sweep.csv", dense_sweep)
     write_csv(args.data_dir / "correctness_summary.csv", correctness)
     write_csv(args.data_dir / "dataset_catalog.csv", datasets)
     write_csv(args.data_dir / "runtime_summary.csv", runtime)
@@ -606,6 +699,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             runtime=runtime,
             pair_count=len(pairs),
             update_count=len(update_sweep),
+            dense_count=len(dense_sweep),
             correctness=correctness,
             datasets=datasets,
         ),
@@ -613,7 +707,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     print(
         f"rendered {len(pairs)} headline groups, {len(update_sweep)} update "
-        f"groups, and {len(runtime)} runtime rows "
+        f"groups, {len(dense_sweep)} dense groups, and {len(runtime)} "
+        f"runtime rows "
         f"to {args.tex}"
     )
     return 0

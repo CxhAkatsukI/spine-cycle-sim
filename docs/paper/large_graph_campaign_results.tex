@@ -16,6 +16,7 @@
 }
 \pgfplotstableread[col sep=comma]{\datadir/headline_pairs.csv}\pairdata
 \pgfplotstableread[col sep=comma]{\datadir/k4_update_sweep.csv}\updatedata
+\pgfplotstableread[col sep=comma]{\datadir/dense_sweep.csv}\densedata
 \hypersetup{pdftitle={Spine Large-Graph Campaign Results}}
 \title{\textbf{Spine Large-Graph Campaign Results}\\
 \large Correctness-Gated Spine vs. GraSU+ReGraph K1/K4-shared}
@@ -134,6 +135,51 @@ maintenance cost even when end-to-end execution favors Spine.}
 \caption{AskUbuntu weighted-SSSP operation and batch sweep. Ins, Del, and Wgt
 denote insertion, deletion, and weight change. Update speedup uses semantic
 user mutations and the isolated update-phase cycle window.}
+\end{figure}
+\clearpage
+
+\section{Dense-batch behavior}
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{loglogaxis}[
+  width=0.92\linewidth, height=58mm,
+  xlabel={User mutations per batch}, ylabel={End-to-end device cycles},
+  xmin=32, xmax=8192, xtick=data,
+  xticklabels from table={\densedata}{label}, grid=major,
+  legend style={at={(0.5,1.14)},anchor=south,legend columns=2}]
+\addplot[spine,very thick,mark=square*]
+  table[x=batch_size,y=spine_cycles] {\densedata};
+\addplot[kfour,very thick,mark=triangle*]
+  table[x=batch_size,y=k4_cycles] {\densedata};
+\legend{Spine,G+R K4-shared}
+\end{loglogaxis}
+\end{tikzpicture}
+\caption{Correctness-gated AskUbuntu weighted-SSSP insertion latency as the
+batch grows from 64 toward 4096 mutations. Missing points are still running,
+not zero-valued measurements.}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{semilogyaxis}[
+  ybar, bar width=12pt, width=0.92\linewidth, height=54mm,
+  ylabel={Spine speedup over G+R K4-shared},
+  xtick=data, xticklabels from table={\densedata}{label},
+  xlabel={User mutations per batch}, xmin=-0.5, xmax=2.5,
+  ymin=0.00001, grid=major,
+  legend style={at={(0.5,1.14)},anchor=south,legend columns=2}]
+\addplot[fill=kfour] table[x=index,y=e2e_speedup] {\densedata};
+\addplot[fill=kone] table[x=index,y=update_speedup] {\densedata};
+\addplot[black,dashed,sharp plot]
+  coordinates {(0,1) (0,1)};
+\legend{End-to-end,Update phase only}
+\end{semilogyaxis}
+\end{tikzpicture}
+\caption{Dense-batch tradeoff. End-to-end and isolated update-phase windows
+are kept separate because the current Spine maintenance path can lose even
+when its complete execution wins.}
 \end{figure}
 \clearpage
 

@@ -8,6 +8,7 @@ import unittest
 from scripts.render_live_large_graph_report import (
     correctness_summary_rows,
     dataset_catalog_rows,
+    dense_sweep_rows,
     headline_pair_rows,
     k4_update_sweep_rows,
     render_tex,
@@ -147,6 +148,44 @@ class LiveLargeGraphReportTests(unittest.TestCase):
         self.assertEqual(rows[0]["cross_system_groups"], 1)
         self.assertEqual(rows[0]["exact_groups"], 1)
         self.assertEqual(rows[0]["failed_groups"], 0)
+
+    def test_dense_sweep_is_sorted_and_reports_absolute_cost(self) -> None:
+        base = {
+            "dataset_id": "sx_askubuntu",
+            "algorithm": "weighted_sssp",
+            "competitor": "grasu_regraph_k4_shared",
+            "scenario": "insert",
+            "spine_speedup": "4",
+            "spine_update_speedup": "0.25",
+            "spine_update_cycles": "40",
+            "competitor_update_cycles": "10",
+        }
+        rows = dense_sweep_rows(
+            [
+                {
+                    **base,
+                    "batch_size": "4096",
+                    "spine_cycles": "1600",
+                    "competitor_cycles": "6400",
+                },
+                {
+                    **base,
+                    "batch_size": "64",
+                    "spine_cycles": "100",
+                    "competitor_cycles": "400",
+                },
+                {
+                    **base,
+                    "batch_size": "8",
+                    "spine_cycles": "50",
+                    "competitor_cycles": "200",
+                },
+            ]
+        )
+        self.assertEqual([row["batch_size"] for row in rows], [64, 4096])
+        self.assertEqual(rows[0]["spine_cycles_per_mutation"], 100 / 64)
+        self.assertEqual(rows[1]["spine_growth"], 16.0)
+        self.assertEqual(rows[1]["k4_growth"], 16.0)
 
     def test_dataset_catalog_uses_frozen_graph_views(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
