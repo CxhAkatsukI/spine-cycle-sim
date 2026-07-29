@@ -91,3 +91,39 @@ At this checkpoint, the focused suite passes 29 tests, the complete Python
 suite passes 610 tests with 5 environment-dependent skips, and both C++ test
 targets pass. Formal large-graph cycles are intentionally not recorded here;
 they require the hash-frozen PGO SST plugin and correctness-gated campaign.
+
+## Publication plugin
+
+Candidate85 trains the native-host PGO build on the frozen residual PageRank
+case that executes both Spine and GraSU+ReGraph:
+
+```bash
+export BUILD=/data/tmp/chuxiao/candidate85-packed-native-pgo-build-20260729
+export PGO=/data/tmp/chuxiao/candidate85-packed-native-pgo-data-20260729
+export DRAMSIM3=/data/tmp/chuxiao/candidate73-dramsim3-pgo-src-20260729
+
+make -C cpp/sst pgo-native-generate -j8 \
+  BUILD_DIR="$BUILD" PGO_PROFILE_DIR="$PGO" DRAMSIM3_ROOT="$DRAMSIM3"
+
+SPINE_IDLE_DRAMSIM3_SRC="$DRAMSIM3" \
+SPINE_IDLE_SST_INSTALL_PREFIX=/data/tmp/chuxiao/candidate59-cleanpatch-reproduction-install-20260729 \
+SPINE_CYCLE_ELEMENT_DIR="$BUILD" \
+SPINE_SST_MEMORY_BACKEND=direct_dramsim3_transport \
+GRASU_SST_MEMORY_BACKEND=direct_dramsim3_transport \
+python3 scripts/run_shared_comparison_matrix.py \
+  --manifest configs/experiments/shared_comparison_candidate10_k1_multipart_v4_20260728.json \
+  --run-id syn_spread_e512__residual_pagerank \
+  --out-dir /data/tmp/chuxiao/candidate85-packed-native-pgo-training-20260729 \
+  --jobs 1 --timeout-seconds 1200 \
+  --sst scripts/run_sst_exact_idle_dramsim3.sh \
+  --lib-dir "$BUILD" --no-build
+
+make -C cpp/sst pgo-native-use -j8 \
+  BUILD_DIR="$BUILD" PGO_PROFILE_DIR="$PGO" DRAMSIM3_ROOT="$DRAMSIM3"
+sha256sum "$BUILD/libspine_cycle.so"
+```
+
+The training run reproduces 4,778,979 Spine cycles and 15,310,428
+GraSU+ReGraph cycles with zero architecture and mathematical mismatches. The
+final plugin SHA-256 is
+`c1ed6953ee16b89ff843557dc72eaf22c67f87a34142969c373a7ebd04b229dd`.

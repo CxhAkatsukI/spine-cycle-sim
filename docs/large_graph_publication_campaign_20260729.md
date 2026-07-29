@@ -16,6 +16,9 @@ All three use the capacity-checked packed-v5 address profiles described in
 `docs/grasu_regraph_runtime_packed_addressing_20260729.md`. Runtime packing
 matches host-managed partition-buffer allocation; it does not increase the
 frozen compute or HBM resources.
+The formal plugin is Candidate85 native+PGO at
+`/data/tmp/chuxiao/candidate85-packed-native-pgo-build-20260729`; the contract
+pins its SHA-256 and every formal runner rejects a different binary.
 
 Large generated workloads and raw simulation outputs belong under
 `/data/tmp/chuxiao`. The repository tracks only contracts, source hashes,
