@@ -24,6 +24,8 @@ campaigns=(
   formal_v3_au_spine_delete
   formal_v3_au_insert_endpoints
   formal_v3_au_dense_k4
+  formal_v3_remaining5_spine_weighted
+  formal_v3_remaining7_k4_weighted
   formal_v3_r19_spine
   formal_v3_r19_grasu_fullpr
   formal_v3_r19_k4_priority

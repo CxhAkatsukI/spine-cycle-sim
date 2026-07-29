@@ -28,6 +28,8 @@ tests because the current Spine maintenance launch has
 | `formal_v3_au_spine_delete` | Spine delete u1/u8/u64 | 3 | 49-51 |
 | `formal_v3_au_insert_endpoints` | Insert u1/u64 across three systems | 6 | 30-35 |
 | `formal_v3_au_dense_k4` | AU dense insert u512/u4096, Spine and K4-shared | 4 | 53-56 |
+| `formal_v3_remaining5_spine_weighted` | Weighted SSSP on five remaining Spine-admitted real graphs | 5 (1 concurrent) | 57 |
+| `formal_v3_remaining7_k4_weighted` | Weighted SSSP K4-shared on seven remaining real graphs | 7 (1 concurrent) | 58 |
 | `formal_v3_r19_spine` | R19-32 endpoint, four Spine algorithms | 4 | 36-39 |
 | `formal_v3_r19_grasu_fullpr` | R19-32 Full PageRank, GraSU+ReGraph K1/K4-shared | 2 | 40-41 |
 | `formal_v3_r19_k4_priority` | R19-32 K4-shared weighted SSSP then CC | 2 (1 concurrent) | 47 |
@@ -39,6 +41,13 @@ The v3 launchers use a 112 GiB admission reserve, 96 GiB emergency threshold,
 112 GiB recovery threshold, one start per five-second sample, and no automatic
 wall-time timeout. The memory circuit breaker soft-stops the fewest high-RSS
 jobs needed to recover before host OOM.
+
+The remaining-real-data K4 wave is a deliberate exception: every job carries
+a conservative 64 GiB estimate and only one may run. Its 96 GiB admission
+reserve means it waits until at least 160 GiB is available; the 80 GiB
+emergency threshold still leaves a large host safety margin. Bitcoin and
+UK-2002 exceed Spine's frozen $2^{24}$-vertex admission bound, so their K4 rows
+are capacity evidence and cannot form a Spine speedup pair.
 
 ## CPU-affinity correction
 
