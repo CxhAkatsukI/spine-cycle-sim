@@ -55,22 +55,52 @@ def _replace_option(command: tuple[str, ...], option: str, value: str) -> tuple[
     return tuple(updated)
 
 
-def _final_state_identity(result: Mapping[str, Any]) -> dict[str, Any]:
+def _final_state_identity(
+    result: Mapping[str, Any], algorithm: str | None = None
+) -> dict[str, Any]:
+    # The Spine dynamic SSSP runner compacts its post-update final vector to
+    # this digest.  cold_final_values is the pre-update baseline and must not
+    # be admitted as the publication final state.
     if result.get("final_values_sha256"):
         return {
             "field": "final_values",
             "count": int(result["final_values_count"]),
             "sha256": str(result["final_values_sha256"]),
         }
-    for field in ("final_values", "ranks", "labels"):
-        values = result.get(field)
-        if isinstance(values, list):
-            encoded = json.dumps(values, separators=(",", ":")).encode("ascii")
-            return {
-                "field": field,
-                "count": len(values),
-                "sha256": hashlib.sha256(encoded).hexdigest(),
-            }
+    fields: tuple[str, ...]
+    if algorithm == "weighted_sssp":
+        fields = ("distances_external", "final_values")
+    elif algorithm in {"full_pagerank", "thresholded_residual_pagerank"}:
+        fields = ("ranks_external", "ranks", "final_values")
+    else:
+        fields = (
+            "distances_external",
+            "ranks_external",
+            "labels_external",
+            "final_values",
+            "ranks",
+            "labels",
+        )
+    for field in fields:
+        raw_values = result.get(field)
+        if not isinstance(raw_values, list):
+            continue
+        values = raw_values
+        canonical_field = field
+        if algorithm == "weighted_sssp":
+            values = [
+                0xFFFFFFFF if int(value) >= 0x7FFFFFFE else int(value)
+                for value in raw_values
+            ]
+            canonical_field = "distances_external"
+        elif algorithm in {"full_pagerank", "thresholded_residual_pagerank"}:
+            canonical_field = "ranks_external"
+        encoded = json.dumps(values, separators=(",", ":")).encode("ascii")
+        return {
+            "field": canonical_field,
+            "count": len(values),
+            "sha256": hashlib.sha256(encoded).hexdigest(),
+        }
     raise ValueError("formal result lacks a full final-state vector")
 
 
@@ -80,6 +110,28 @@ def _scalar_metrics(result: Mapping[str, Any]) -> dict[str, Any]:
         for key, value in result.items()
         if isinstance(value, (bool, int, float, str)) or value is None
     }
+
+
+def _publication_system_row(
+    row: Mapping[str, Any], formal_system: str
+) -> dict[str, Any]:
+    labeled = dict(row)
+    labeled["model_system"] = row["system"]
+    labeled["system"] = formal_system
+    return labeled
+
+
+def _reused_wall_seconds(invocation: Any) -> float:
+    for name in ("manifest.json", "summary.json", "result.json"):
+        path = invocation.out_dir / name
+        if not path.is_file():
+            continue
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        for key in ("sst_host_wall_seconds", "wall_seconds"):
+            value = payload.get(key)
+            if isinstance(value, (int, float)) and value >= 0:
+                return float(value)
+    return 0.0
 
 
 def main() -> int:
@@ -98,6 +150,7 @@ def main() -> int:
     parser.add_argument("--capability-catalog", type=Path, default=DEFAULT_CAPABILITY)
     parser.add_argument("--max-cycles", type=int, default=10_000_000_000_000)
     parser.add_argument("--logical-view", action="append", default=[])
+    parser.add_argument("--reuse-child", action="store_true")
     args = parser.parse_args()
     if args.algorithm == "connected_components":
         raise ValueError("connected_components uses the dedicated publication CC runner")
@@ -183,37 +236,45 @@ def main() -> int:
         }
     )
     args.out_dir.mkdir(parents=True, exist_ok=True)
-    start = time.monotonic()
-    completed = subprocess.run(
-        invocation.command,
-        cwd=ROOT,
-        env=os.environ.copy(),
-        check=False,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-    )
-    wall_seconds = time.monotonic() - start
-    (args.out_dir / "child_runner.log").write_text(
-        completed.stdout, encoding="utf-8"
-    )
-    if completed.returncode != 0:
-        raise RuntimeError(
-            f"publication child failed with rc={completed.returncode}; "
-            f"see {args.out_dir / 'child_runner.log'}"
+    if args.reuse_child:
+        child_returncode = 0
+        wall_seconds = _reused_wall_seconds(invocation)
+    else:
+        start = time.monotonic()
+        completed = subprocess.run(
+            invocation.command,
+            cwd=ROOT,
+            env=os.environ.copy(),
+            check=False,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
         )
+        wall_seconds = time.monotonic() - start
+        (args.out_dir / "child_runner.log").write_text(
+            completed.stdout, encoding="utf-8"
+        )
+        child_returncode = completed.returncode
+        if child_returncode != 0:
+            raise RuntimeError(
+                f"publication child failed with rc={child_returncode}; "
+                f"see {args.out_dir / 'child_runner.log'}"
+            )
 
     result, dram, binding = load_system_result(invocation)
     problems = validate_system_result(run, invocation, result, dram, binding)
     if problems:
         raise RuntimeError("publication parent admission failed: " + ", ".join(problems))
-    row = result_row(
-        run,
-        invocation,
-        result,
-        dram,
-        binding,
-        wall_seconds=wall_seconds,
+    row = _publication_system_row(
+        result_row(
+            run,
+            invocation,
+            result,
+            dram,
+            binding,
+            wall_seconds=wall_seconds,
+        ),
+        case.system,
     )
     raw_result_path = invocation.out_dir / (
         "summary.json" if child_system == "spine" else "result.json"
@@ -225,7 +286,7 @@ def main() -> int:
         "logical_views": sorted(set(args.logical_view)),
         "run_contract": run,
         "row": row,
-        "final_state": _final_state_identity(result),
+        "final_state": _final_state_identity(result, case.algorithm),
         "scalar_metrics": _scalar_metrics(result),
         "backend_arbitration": result.get("backend_arbitration"),
         "backend_traffic": result.get("backend_traffic"),
@@ -236,7 +297,8 @@ def main() -> int:
         "plugin_sha256": sha256_file(plugin),
         "host_wall_seconds": wall_seconds,
         "admission": {
-            "child_returncode": completed.returncode,
+            "child_returncode": child_returncode,
+            "reused_child": args.reuse_child,
             "parent_problems": problems,
             "architecture_correctness_mismatches": result.get(
                 "architecture_correctness_mismatches"

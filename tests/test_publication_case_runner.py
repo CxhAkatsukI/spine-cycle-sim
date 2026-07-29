@@ -3,7 +3,11 @@ from __future__ import annotations
 import unittest
 from pathlib import Path
 
-from scripts.run_publication_case import _final_state_identity, _replace_option
+from scripts.run_publication_case import (
+    _final_state_identity,
+    _publication_system_row,
+    _replace_option,
+)
 from spine_cycle_sim.experiments.publication_cases import (
     PublicationCase,
     architecture_profile_path,
@@ -64,6 +68,44 @@ class PublicationCaseRunnerTests(unittest.TestCase):
         self.assertEqual(first, second)
         self.assertEqual(first["count"], 2)
 
+    def test_final_state_prefers_external_order_and_normalizes_infinity(self) -> None:
+        first = _final_state_identity(
+            {
+                "distances_external": [0, 0x7FFFFFFE, 7],
+                "distances_internal": [7, 0, 0x7FFFFFFE],
+            },
+            "weighted_sssp",
+        )
+        second = _final_state_identity(
+            {"final_values": [0, 0xFFFFFFFF, 7]},
+            "weighted_sssp",
+        )
+        self.assertEqual(first, second)
+        external = _final_state_identity(
+            {
+                "ranks": [0.75, 0.25],
+                "ranks_external": [0.25, 0.75],
+            },
+            "thresholded_residual_pagerank",
+        )
+        canonical = _final_state_identity(
+            {"ranks": [0.25, 0.75]},
+            "thresholded_residual_pagerank",
+        )
+        self.assertEqual(external, canonical)
+
+    def test_dynamic_sssp_uses_post_update_digest_not_cold_baseline(self) -> None:
+        identity = _final_state_identity(
+            {
+                "final_values_count": 3,
+                "final_values_sha256": "a" * 64,
+                "cold_final_values": [0, 85, 7],
+            },
+            "weighted_sssp",
+        )
+        self.assertEqual(identity["field"], "final_values")
+        self.assertEqual(identity["sha256"], "a" * 64)
+
     def test_option_replacement_is_exact(self) -> None:
         self.assertEqual(
             _replace_option(("runner", "--max-cycles", "1"), "--max-cycles", "9"),
@@ -71,6 +113,14 @@ class PublicationCaseRunnerTests(unittest.TestCase):
         )
         with self.assertRaises(ValueError):
             _replace_option(("runner",), "--max-cycles", "9")
+
+    def test_publication_row_preserves_model_and_formal_system_names(self) -> None:
+        row = _publication_system_row(
+            {"system": "grasu_regraph", "cycles": 10},
+            "grasu_regraph_k4_shared",
+        )
+        self.assertEqual(row["system"], "grasu_regraph_k4_shared")
+        self.assertEqual(row["model_system"], "grasu_regraph")
 
     def test_connected_components_profiles_are_selected_per_system(self) -> None:
         contract = {

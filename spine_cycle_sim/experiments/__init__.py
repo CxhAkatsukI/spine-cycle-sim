@@ -126,6 +126,13 @@ from .publication_cases import (
     publication_dataset_labels,
     select_publication_case,
 )
+from .publication_analysis import (
+    PUBLICATION_RESULT_SYSTEMS,
+    analyze_publication_case_results,
+    expected_execution_ids,
+    load_case_results,
+    write_publication_analysis,
+)
 from .campaign_runtime import (
     CampaignJob,
     CampaignRunner,
@@ -233,6 +240,11 @@ __all__ = [
     "publication_case_requests",
     "publication_dataset_labels",
     "select_publication_case",
+    "PUBLICATION_RESULT_SYSTEMS",
+    "analyze_publication_case_results",
+    "expected_execution_ids",
+    "load_case_results",
+    "write_publication_analysis",
     "SliceMetadata",
     "canonical_edge_weight",
     "materialize_publication_workload",
