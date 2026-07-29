@@ -20,7 +20,10 @@ from spine_cycle_sim.experiments import (
     verify_large_graph_sources,
 )
 from spine_cycle_sim.experiments.campaign_runtime import validate_campaign_manifest
-from spine_cycle_sim.experiments.large_graph_campaign import _publication_rss_gib
+from spine_cycle_sim.experiments.large_graph_campaign import (
+    _publication_job_priority,
+    _publication_rss_gib,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -54,6 +57,42 @@ class LargeGraphCampaignTests(unittest.TestCase):
             ),
             64.0,
         )
+
+    def test_publication_launches_k4_before_k1_for_the_same_workload(self) -> None:
+        priorities = {
+            system: _publication_job_priority(
+                base_priority=100,
+                records=15_000_000,
+                system=system,
+            )
+            for system in LARGE_GRAPH_REQUIRED_SYSTEMS
+        }
+        self.assertLess(priorities["spine"], priorities["grasu_regraph_k4_shared"])
+        self.assertLess(
+            priorities["grasu_regraph_k4_shared"],
+            priorities["grasu_regraph_k1"],
+        )
+
+    def test_publication_system_order_does_not_invert_workload_priority(self) -> None:
+        earlier_k1 = _publication_job_priority(
+            base_priority=0,
+            records=8_000_000,
+            system="grasu_regraph_k1",
+        )
+        later_spine = _publication_job_priority(
+            base_priority=0,
+            records=9_000_000,
+            system="spine",
+        )
+        self.assertLess(earlier_k1, later_spine)
+
+    def test_publication_priority_rejects_an_unknown_system(self) -> None:
+        with self.assertRaisesRegex(ValueError, "unknown publication system"):
+            _publication_job_priority(
+                base_priority=0,
+                records=1,
+                system="unknown",
+            )
 
     def test_frozen_dataset_algorithm_and_system_sets(self) -> None:
         self.assertEqual(

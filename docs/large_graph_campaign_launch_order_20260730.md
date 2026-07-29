@@ -1,0 +1,58 @@
+# Large-graph campaign launch order
+
+## Policy
+
+Formal campaign manifests assign deterministic launch priority in this order for
+the same workload-size bucket:
+
+1. Spine
+2. GraSU + ReGraph K4-shared
+3. GraSU + ReGraph K1
+
+K4-shared is the strongest resource-feasible GraSU baseline and therefore runs
+before the slower K1 diagnostic. K1 remains in the frozen matrix and is not
+removed from correctness, scaling, or performance evidence.
+
+The priority affects scheduling only. It does not alter graph inputs, update
+batches, architecture profiles, simulator timing, correctness gates, or result
+analysis. Workload priority remains dominant, so a lower-priority system for an
+earlier workload-size bucket still starts before any system in the next bucket.
+
+## Running campaigns
+
+Manifests already in flight are immutable because the campaign state records the
+manifest hash. Their running K1 jobs are allowed to finish when memory remains
+safe; future generated manifests use the launch order above. This preserves the
+audit trail and avoids discarding already invested simulation time.
+
+## Reproduction
+
+```bash
+cd /home/chuxiao/spine-cycle-sim-publication
+python3 -m unittest tests.test_large_graph_campaign
+python3 -m unittest discover -s tests
+```
+
+The focused tests prove `Spine < K4-shared < K1` within a workload bucket and
+prove that the system offset cannot invert adjacent workload priorities.
+
+## Arbitration admission found during monitoring
+
+The first AU K4-shared residual run completed simulation but exposed an
+over-constrained parent admission check. The check required arbitration intents
+to equal accepted HBM requests. With the 23-pseudo-channel physical mapper,
+multiple logical channels can contend for one physical channel, so a granted
+reservation attempt can be retried when that physical channel has consumed its
+same-cycle acceptance or outstanding capacity.
+
+The corrected admission keeps two strict ledgers:
+
+- arbitration: `unique_intents == grants == consumed_grants`, with no pending
+  intents or grants;
+- memory: accepted backend requests equal backend traffic, DRAM completions,
+  and the algorithm-specific expected request count.
+
+It additionally requires `unique_intents >= backend_requests`; a request that
+reached HBM without a corresponding arbitration intent remains fatal. The CSV
+row records both `backend_arbitration_unique_intents` and the derived retried
+intent count. This changes evidence admission only, not simulated timing.

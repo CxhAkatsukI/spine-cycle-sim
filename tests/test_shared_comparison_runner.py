@@ -452,6 +452,23 @@ class SharedComparisonRunnerTests(unittest.TestCase):
             validate_system_result(run, invocation, result, dram, binding),
         )
         result["backend_arbitration"]["ledger_closed"] = True
+        result["backend_arbitration"].update(
+            {"unique_intents": 8, "grants": 8, "consumed_grants": 8}
+        )
+        self.assertNotIn(
+            "registered_arbitration_requests",
+            validate_system_result(run, invocation, result, dram, binding),
+        )
+        result["backend_arbitration"].update(
+            {"unique_intents": 6, "grants": 6, "consumed_grants": 6}
+        )
+        self.assertIn(
+            "registered_arbitration_requests",
+            validate_system_result(run, invocation, result, dram, binding),
+        )
+        result["backend_arbitration"].update(
+            {"unique_intents": 7, "grants": 7, "consumed_grants": 7}
+        )
         result["maintenance_memory_active_span_cycles"] = 12
         self.assertIn(
             "spine_maintenance_timing_ledger",

@@ -937,10 +937,16 @@ def validate_system_result(
         == "registered_round_robin_per_pseudo_channel",
         "registered_arbitration_ledger": arbitration.get("ledger_closed")
         is True,
-        "registered_arbitration_requests": arbitration.get("unique_intents")
-        == backend_requests
-        and arbitration.get("grants") == backend_requests
-        and arbitration.get("consumed_grants") == backend_requests,
+        # An arbitration intent is a reservation attempt, not necessarily an
+        # accepted HBM request. Mapped pseudo-channels may retry after a grant
+        # when the physical channel's same-cycle capacity is already reserved.
+        "registered_arbitration_requests": isinstance(
+            arbitration.get("unique_intents"), int
+        )
+        and arbitration.get("unique_intents") >= backend_requests
+        and arbitration.get("grants") == arbitration.get("unique_intents")
+        and arbitration.get("consumed_grants")
+        == arbitration.get("unique_intents"),
         "registered_arbitration_drained": arbitration.get("pending_intents")
         == 0
         and arbitration.get("pending_grants") == 0,
@@ -1035,6 +1041,11 @@ def result_row(
         "input_edges": run["graph"]["records"],  # type: ignore[index]
         "updates": run.get("update", {}).get("records", 0),  # type: ignore[union-attr]
         "backend_requests": result["backend_requests"],
+        "backend_arbitration_unique_intents": arbitration["unique_intents"],
+        "backend_arbitration_retried_intents": int(
+            arbitration["unique_intents"]
+        )
+        - int(result["backend_requests"]),
         "maintenance_launch_to_first_memory_issue_cycles": result.get(
             "maintenance_launch_to_first_memory_issue_cycles", ""
         ),

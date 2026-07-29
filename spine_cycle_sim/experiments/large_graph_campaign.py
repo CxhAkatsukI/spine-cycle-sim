@@ -45,6 +45,11 @@ REQUIRED_SYSTEMS = (
     "grasu_regraph_k1",
     "grasu_regraph_k4_shared",
 )
+PUBLICATION_SYSTEM_LAUNCH_ORDER = (
+    "spine",
+    "grasu_regraph_k4_shared",
+    "grasu_regraph_k1",
+)
 
 
 @dataclass(frozen=True)
@@ -71,6 +76,20 @@ def _is_sha256(value: object) -> bool:
         isinstance(value, str)
         and len(value) == 64
         and all(character in "0123456789abcdef" for character in value)
+    )
+
+
+def _publication_job_priority(
+    *, base_priority: int, records: int, system: str
+) -> int:
+    """Preserve workload priority while launching the strongest baseline first."""
+
+    if system not in PUBLICATION_SYSTEM_LAUNCH_ORDER:
+        raise ValueError(f"unknown publication system: {system}")
+    workload_priority = base_priority + min(90, max(0, records) // 1_000_000)
+    return (
+        workload_priority * len(PUBLICATION_SYSTEM_LAUNCH_ORDER)
+        + PUBLICATION_SYSTEM_LAUNCH_ORDER.index(system)
     )
 
 
@@ -694,7 +713,11 @@ def build_publication_experiment_campaign_manifest(
                 "tier": "+".join(case_views),
                 "resource_class": "large" if rss_gib >= 4.0 else "small",
                 "estimated_rss_gib": rss_gib,
-                "priority": base_priority + min(90, records // 1_000_000),
+                "priority": _publication_job_priority(
+                    base_priority=base_priority,
+                    records=records,
+                    system=case.system,
+                ),
                 "dependencies": [],
                 "environment": {
                     "SPINE_CAMPAIGN_PROGRESS_INTERVAL_CYCLES": "1000000"
