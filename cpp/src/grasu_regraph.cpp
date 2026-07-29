@@ -333,6 +333,7 @@ public:
       throw std::logic_error("PageRank source prepare started twice");
     }
     running_ = true;
+    set_latched_evaluate_ready(true);
   }
 
   [[nodiscard]] bool done() const noexcept { return done_; }
@@ -352,7 +353,13 @@ public:
   [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
     return true;
   }
+  [[nodiscard]] bool has_latched_evaluate_guard() const noexcept override {
+    return true;
+  }
   [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_latched_commit_guard() const noexcept override {
     return true;
   }
   [[nodiscard]] bool evaluate_ready() const noexcept override {
@@ -371,6 +378,7 @@ public:
       response.reset();
     }
     if (!running_) {
+      set_latched_commit_ready(false);
       return;
     }
     if (state_read_.responses().front() != nullptr) {
@@ -446,6 +454,7 @@ public:
       }
       staged_read_issue_ = burst;
     }
+    set_latched_commit_ready(commit_ready());
   }
 
   void commit(const CycleContext &context) override {
@@ -503,6 +512,8 @@ public:
         done_signal_.notify();
       }
     }
+    set_latched_commit_ready(false);
+    set_latched_evaluate_ready(running_);
   }
 
 private:
@@ -669,6 +680,7 @@ public:
     active_source_round_ = 0;
     lines_emitted_this_request_ = 0;
     phase_ = Phase::kIdle;
+    set_latched_evaluate_ready(true);
   }
 
   [[nodiscard]] bool done() const noexcept { return phase_ == Phase::kDone; }
@@ -690,7 +702,13 @@ public:
   [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
     return true;
   }
+  [[nodiscard]] bool has_latched_evaluate_guard() const noexcept override {
+    return true;
+  }
   [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_latched_commit_guard() const noexcept override {
     return true;
   }
   [[nodiscard]] bool evaluate_ready() const noexcept override {
@@ -779,6 +797,7 @@ public:
     case Phase::kDone:
       break;
     }
+    set_latched_commit_ready(commit_ready());
   }
 
   void commit(const CycleContext &) override {
@@ -821,6 +840,8 @@ public:
       ++response_markers_;
       phase_ = Phase::kDone;
     }
+    set_latched_commit_ready(false);
+    set_latched_evaluate_ready(evaluate_ready());
   }
 
 private:
@@ -946,6 +967,7 @@ public:
       slot.auxiliary_words.assign(config_.source_buffer_vertices, 0);
     }
     phase_ = Phase::kNeedRow;
+    set_latched_evaluate_ready(true);
   }
 
   [[nodiscard]] bool done() const noexcept override {
@@ -999,7 +1021,13 @@ public:
   [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
     return true;
   }
+  [[nodiscard]] bool has_latched_evaluate_guard() const noexcept override {
+    return true;
+  }
   [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_latched_commit_guard() const noexcept override {
     return true;
   }
   [[nodiscard]] bool evaluate_ready() const noexcept override {
@@ -1032,6 +1060,7 @@ public:
     staged_cache_ready_ = false;
     staged_source_end_ = false;
     if (phase_ == Phase::kIdle || phase_ == Phase::kDone) {
+      set_latched_commit_ready(false);
       return;
     }
     stage_source_response();
@@ -1101,6 +1130,7 @@ public:
     case Phase::kDone:
       break;
     }
+    set_latched_commit_ready(commit_ready());
   }
 
   void commit(const CycleContext &) override {
@@ -1162,6 +1192,8 @@ public:
         phase_ = Phase::kScan;
       }
     }
+    set_latched_commit_ready(false);
+    set_latched_evaluate_ready(evaluate_ready());
   }
 
 private:
@@ -2416,6 +2448,9 @@ public:
   [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
     return true;
   }
+  [[nodiscard]] bool has_latched_commit_guard() const noexcept override {
+    return true;
+  }
   [[nodiscard]] bool evaluate_ready() const noexcept override {
     return evaluate_ready_;
   }
@@ -2433,24 +2468,28 @@ public:
     staged_output_stall_ = false;
     if (!running_) {
       refresh_evaluate_ready();
+      set_latched_commit_ready(false);
       return;
     }
     if (pending_output_.has_value()) {
       staged_output_ = output_.try_push(*pending_output_);
       if (!staged_output_) {
         staged_output_stall_ = true;
+        set_latched_commit_ready(true);
         return;
       }
     }
     if (consumed_rows_this_round_ == rows_per_round() ||
         input_.front() == nullptr) {
       refresh_evaluate_ready();
+      set_latched_commit_ready(commit_ready());
       return;
     }
     ReGraphGatherRow row;
     if (input_.try_pop(row)) {
       staged_input_ = std::move(row);
     }
+    set_latched_commit_ready(commit_ready());
   }
 
   void commit(const CycleContext &) override {
@@ -2538,6 +2577,7 @@ private:
     staged_input_.reset();
     staged_output_ = false;
     staged_output_stall_ = false;
+    set_latched_commit_ready(false);
   }
 
   [[nodiscard]] std::size_t rows_per_round() const noexcept {
@@ -2678,6 +2718,9 @@ public:
   [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
     return true;
   }
+  [[nodiscard]] bool has_latched_commit_guard() const noexcept override {
+    return true;
+  }
   [[nodiscard]] bool evaluate_ready() const noexcept override {
     return evaluate_ready_;
   }
@@ -2702,6 +2745,7 @@ public:
     staged_output_stall_ = false;
     if (!running_) {
       refresh_evaluate_ready();
+      set_latched_commit_ready(false);
       return;
     }
     if (read_port_.responses().front() != nullptr) {
@@ -2765,16 +2809,19 @@ public:
     if (input_bursts_this_round_ >= total_bursts() ||
         input_.front() == nullptr) {
       refresh_evaluate_ready();
+      set_latched_commit_ready(commit_ready());
       return;
     }
     if (read_inflight_.size() >= config_.apply_request_window) {
       ++read_window_stalls_;
       refresh_evaluate_ready();
+      set_latched_commit_ready(commit_ready());
       return;
     }
     if (pipeline_occupancy() >= config_.apply_pipeline_capacity) {
       ++pipeline_capacity_stalls_;
       refresh_evaluate_ready();
+      set_latched_commit_ready(commit_ready());
       return;
     }
     const ReGraphMergedBurst &next = *input_.front();
@@ -2810,6 +2857,7 @@ public:
       staged_read_issue_ = std::move(consumed);
     }
     refresh_evaluate_ready();
+    set_latched_commit_ready(commit_ready());
   }
 
   void commit(const CycleContext &context) override {
@@ -2938,6 +2986,7 @@ private:
     staged_read_issue_.reset();
     staged_write_issue_.reset();
     staged_output_stall_ = false;
+    set_latched_commit_ready(false);
   }
 
   [[nodiscard]] bool uses_page_rank() const noexcept {
@@ -3197,6 +3246,9 @@ public:
   [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
     return true;
   }
+  [[nodiscard]] bool has_latched_commit_guard() const noexcept override {
+    return true;
+  }
   [[nodiscard]] bool evaluate_ready() const noexcept override {
     return evaluate_ready_;
   }
@@ -3218,6 +3270,7 @@ public:
     }
     if (!running_) {
       refresh_evaluate_ready();
+      set_latched_commit_ready(false);
       return;
     }
     for (std::size_t port = 0; port < write_ports_.size(); ++port) {
@@ -3264,11 +3317,13 @@ public:
     if (input_bursts_this_round_ == total_bursts() ||
         input_.front() == nullptr) {
       refresh_evaluate_ready();
+      set_latched_commit_ready(commit_ready());
       return;
     }
     if (pipeline_.size() >= config_.hbm_wrapper_pipeline_capacity) {
       ++pipeline_capacity_stalls_;
       refresh_evaluate_ready();
+      set_latched_commit_ready(commit_ready());
       return;
     }
     ReGraphAppliedBurst burst;
@@ -3276,6 +3331,7 @@ public:
       staged_input_ = std::move(burst);
     }
     refresh_evaluate_ready();
+    set_latched_commit_ready(commit_ready());
   }
 
   void commit(const CycleContext &context) override {
@@ -3365,6 +3421,7 @@ private:
     for (auto &response : staged_write_responses_) {
       response.reset();
     }
+    set_latched_commit_ready(false);
   }
 
   [[nodiscard]] std::size_t total_bursts() const noexcept {
@@ -3536,6 +3593,9 @@ public:
   [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
     return true;
   }
+  [[nodiscard]] bool has_latched_commit_guard() const noexcept override {
+    return true;
+  }
   [[nodiscard]] bool evaluate_ready() const noexcept override {
     return evaluate_ready_;
   }
@@ -3548,6 +3608,7 @@ public:
     staged_ = Action::kNone;
     staged_completed_workers_.clear();
     if (failed() || done()) {
+      set_latched_commit_ready(false);
       return;
     }
     if (phase_ == Phase::kStart) {
@@ -3565,6 +3626,7 @@ public:
           busy_worker_count() - staged_completed_workers_.size();
       if (remaining_busy != 0 || next_partition_ < partitions_.size()) {
         refresh_evaluate_ready();
+        set_latched_commit_ready(commit_ready());
         return;
       }
       std::size_t prospective_active = iteration_active_vertices_;
@@ -3581,6 +3643,7 @@ public:
       }
     }
     refresh_evaluate_ready();
+    set_latched_commit_ready(commit_ready());
   }
 
   void commit(const CycleContext &context) override {
@@ -3604,6 +3667,9 @@ public:
         staged_ == Action::kNextSuperstep) {
       if (round_ == round_limit_) {
         failure_ = "ReGraph algorithm exceeded configured round limit";
+        staged_ = Action::kNone;
+        staged_completed_workers_.clear();
+        set_latched_commit_ready(false);
         return;
       }
       if (round_ != 0 && iteration_context_ != nullptr) {
@@ -3642,6 +3708,7 @@ public:
     committed_once_ = true;
     staged_ = Action::kNone;
     staged_completed_workers_.clear();
+    set_latched_commit_ready(false);
     refresh_evaluate_ready();
   }
 
