@@ -24,6 +24,7 @@ tests because the current Spine maintenance launch has
 | `formal_v3_superuser_spine_fullpr` | Missing SuperUser Spine Full PageRank row | 1 | repinned audit pool |
 | `formal_v3_au_grasu_nonmonotonic` | GraSU delete/weight-change, u1/u8/u64 | 12 | 16-27 |
 | `formal_v3_au_spine_weight_remaining` | Spine weight-change u8/u64 | 2 | 28-29 |
+| `formal_v3_au_spine_delete` | Spine delete u1/u8/u64 | 3 | 49-51 |
 | `formal_v3_au_insert_endpoints` | Insert u1/u64 across three systems | 6 | 30-35 |
 | `formal_v3_r19_spine` | R19-32 endpoint, four Spine algorithms | 4 | 36-39 |
 | `formal_v3_r19_grasu_fullpr` | R19-32 Full PageRank, GraSU+ReGraph K1/K4-shared | 2 | 40-41 |
