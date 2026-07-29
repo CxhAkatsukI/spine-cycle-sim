@@ -132,10 +132,13 @@ class LiveLargeGraphReportTests(unittest.TestCase):
                     "other_user_logic": "0.4",
                 }
             ],
+            component_activity_count=42,
         )
         self.assertIn("Spine SSSP & 10 & 20", tex)
         self.assertIn("Vivado vectorless hierarchy attribution", tex)
         self.assertIn("not an iso-functional area ratio", tex)
+        self.assertIn("exports 42 component", tex)
+        self.assertIn("not energy estimates", tex)
 
     def test_k4_update_sweep_is_sorted_and_correctness_gated_upstream(self) -> None:
         base = {

@@ -365,6 +365,7 @@ def render_tex(
     datasets: Sequence[Mapping[str, Any]] = (),
     ppa: Sequence[Mapping[str, Any]] = (),
     component_power: Sequence[Mapping[str, Any]] = (),
+    component_activity_count: int = 0,
 ) -> str:
     runtime_lines = []
     for row in runtime:
@@ -660,6 +661,14 @@ values identify implementation components; they are not workload energy or
 board power. Workload-specific HBM energy in Figures 3--4 comes independently
 from DRAMSim3 command and background activity.}
 \end{table}
+
+\paragraph{Workload-specific component activity.}
+The correctness-gated snapshot exports @@COMPONENT_ACTIVITY_COUNT@@ component
+rows covering maintenance/update, reader/source cache, compute/gather/apply,
+streams, selected on-chip arrays, and the HBM frontend. These are physical
+activity counters with explicit per-component contracts, not energy estimates;
+they are archived in \texttt{component\_activity.csv} for subsequent calibrated
+per-event energy analysis.
 \clearpage
 
 \section{Correctness coverage}
@@ -726,6 +735,7 @@ cycle-for-cycle FPGA calibration or ASIC total power.
         "@@RUNTIME_TABLE@@": runtime_table,
         "@@PPA_TABLE@@": ppa_table,
         "@@COMPONENT_POWER_TABLE@@": component_power_table,
+        "@@COMPONENT_ACTIVITY_COUNT@@": str(component_activity_count),
     }
     for marker, value in replacements.items():
         template = template.replace(marker, value)
@@ -789,6 +799,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             datasets=datasets,
             ppa=ppa,
             component_power=component_power,
+            component_activity_count=len(component_activity),
         ),
         encoding="ascii",
     )
