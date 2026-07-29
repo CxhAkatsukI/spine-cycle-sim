@@ -1,5 +1,5 @@
 algorithm,label,cross_system_groups,exact_groups,complete_triplets,failed_groups
 weighted_sssp,SSSP,12,12,0,0
-connected_components,CC,3,3,3,0
+connected_components,CC,4,4,3,0
 full_pagerank,FullPR,3,0,3,0
 thresholded_residual_pagerank,ResPR,3,3,3,0
