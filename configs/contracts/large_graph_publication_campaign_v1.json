@@ -1,0 +1,243 @@
+{
+  "schema_version": 1,
+  "contract_id": "large_graph_publication_campaign_v1_20260729",
+  "claim_boundary": {
+    "full_dataset_requires_unsliced_source": true,
+    "slices_must_report_extraction_policy": true,
+    "failed_correctness_rows_enter_performance_aggregates": false,
+    "stopped_rows_enter_performance_aggregates": false,
+    "parameters_frozen_before_formal_execution": true,
+    "full_pagerank_exception": "fixed_4m_edge_cap_with_explicit_slice_label"
+  },
+  "architecture_baselines": {
+    "spine": {
+      "role": "primary_projected_optimized",
+      "profile": "configs/architectures/spine_candidate10_opt_v2_reader_working_set.json",
+      "sha256": "27243e3458023f1e492efd46408fc58262f5852c41972398bd134e54ef57156a",
+      "partitions": 16,
+      "hbm_pseudo_channels": 23
+    },
+    "grasu_regraph_k1": {
+      "role": "single_pipeline_normalized_baseline",
+      "conversion_free": true,
+      "profiles": {
+        "weighted_sssp": ["configs/architectures/grasu_regraph_candidate10_k1_multipart_weighted_v4.json", "47adf5b1aa9c9dcc2357789f67a0eeb74b4cddd71cb67ed2ff3004eb5e0e3761"],
+        "full_pagerank": ["configs/architectures/grasu_regraph_candidate10_k1_multipart_pagerank_v4.json", "b5e30d7bb8106c103fbae947fc90ef13b1af7b7f07f8593a515ae2068813d824"],
+        "thresholded_residual_pagerank": ["configs/architectures/grasu_regraph_candidate10_k1_multipart_residual_v4.json", "a3ca6533e14fc0cb533a6e581275efce8b8a8dc192ea28cedc075a03933eddf9"]
+      }
+    },
+    "grasu_regraph_k4_shared": {
+      "role": "primary_multi_partition_competitor",
+      "conversion_free": true,
+      "compute_pipelines": 4,
+      "downstream_paths": 1,
+      "shared_hbm_arbitration": true,
+      "profiles": {
+        "weighted_sssp": ["configs/architectures/grasu_regraph_candidate10_k4_multipart_weighted_v4.json", "71ffad9e4c17d2d228cc1e7bbaa9a969d35b2026ab297d020722fae269bda769"],
+        "full_pagerank": ["configs/architectures/grasu_regraph_candidate10_k4_multipart_pagerank_v4.json", "44bed1ee766184a46cd3aac691b83823bac8a2a2a0c5e8beb6b192006287eacf"],
+        "thresholded_residual_pagerank": ["configs/architectures/grasu_regraph_candidate10_k4_multipart_residual_v4.json", "80d9f9087b63700da125028e87890f0b90abf49b4027245a443703d2d9cbe7c5"]
+      }
+    },
+    "grasu_regraph_k4_ideal": {
+      "role": "theoretical_no_contention_upper_bound_only",
+      "eligible_for_headline_aggregate": false
+    },
+    "common_memory": {
+      "backend": "direct_dramsim3_transport",
+      "config": "configs/memory/HBM2_1ch_x128.ini",
+      "sha256": "d1e865c6528acbc41f0768667063702bfb4033f24bcd46119ad25bfc5ad4fb5f",
+      "physical_channels": 32,
+      "line_bytes": 64
+    },
+    "simulator_baseline": {
+      "milestone": "candidate81_axi_response_fastpath",
+      "plugin_sha256": "d7e4972403deb744a4811d80f06d7cc5b216181e928c650d9ebbd98c461f491a"
+    }
+  },
+  "datasets": [
+    {
+      "dataset_id": "sx_askubuntu",
+      "abbreviation": "AU",
+      "papers": ["GraSU"],
+      "paper_vertices": 160000,
+      "paper_edges": 960000,
+      "paper_base_edges": 590000,
+      "source": {"relative_path": "sx-askubuntu/sx-askubuntu.txt.gz", "size_bytes": 7385842, "sha256": "54af4be03bf77030e8894e445679c4e20614f0b82d68fc8cb49431f70e07a0f6", "encoding": "gzip_temporal_src_dst_timestamp"}
+    },
+    {
+      "dataset_id": "sx_superuser",
+      "abbreviation": "SU",
+      "papers": ["GraSU"],
+      "paper_vertices": 190000,
+      "paper_edges": 1440000,
+      "paper_base_edges": 920000,
+      "source": {"relative_path": "sx-superuser/sx-superuser.txt.gz", "size_bytes": 11222114, "sha256": "35367fa1357d28ba92b06f75a2616cdf983e0c5b70b9560f36440e39648cc928", "encoding": "gzip_temporal_src_dst_timestamp"}
+    },
+    {
+      "dataset_id": "wiki_talk_temporal",
+      "abbreviation": "WK",
+      "papers": ["GraSU"],
+      "paper_vertices": 1140000,
+      "paper_edges": 7830000,
+      "paper_base_edges": 3310000,
+      "source": {"relative_path": "wiki-talk-temporal/wiki-talk-temporal.txt.gz", "size_bytes": 48120144, "sha256": "2053b1f5bb3c46320f8e4da91aa6d7d79ec8d78e2c8cc99cede609c0c375f33e", "encoding": "gzip_temporal_src_dst_timestamp"}
+    },
+    {
+      "dataset_id": "sx_stackoverflow",
+      "abbreviation": "SO",
+      "papers": ["GraSU", "Dynamic-ACTS"],
+      "paper_vertices": 2600000,
+      "paper_edges": 63500000,
+      "paper_base_edges": 36230000,
+      "source": {"relative_path": "sx-stackoverflow/snap_sx-stackoverflow.txt.gz", "size_bytes": 529869668, "sha256": "fc04264de1652bbf91c10eb8ec2465df082fc0aec2012e5f4a8edc6400f0d7a3", "encoding": "gzip_temporal_src_dst_timestamp"}
+    },
+    {
+      "dataset_id": "soc_bitcoin",
+      "abbreviation": "BC",
+      "papers": ["GraSU"],
+      "paper_vertices": 24580000,
+      "paper_edges": 122950000,
+      "paper_base_edges": 60490000,
+      "source": {"relative_path": "soc-bitcoin/soc-bitcoin.zip", "size_bytes": 620630578, "sha256": "c12caba90fb002e64bc25451d931a73832989c8564bf1f4ce6a890287094f0e8", "encoding": "zip_edge_list", "archive_member": "soc-bitcoin.edges"}
+    },
+    {
+      "dataset_id": "hollywood_2009",
+      "abbreviation": "HW",
+      "papers": ["Dynamic-ACTS"],
+      "paper_vertices": 1139000,
+      "paper_edges": 115000000,
+      "source": {"relative_path": "hollywood-2009/hollywood-2009.tar.gz", "size_bytes": 159474427, "sha256": "5b6e9cebbb17c702b596f68da23d50cbbbb0f9b6c977abffb018c91200944460", "encoding": "tar_matrix_market", "archive_member": "hollywood-2009/hollywood-2009.mtx", "semantic_projection": "matrix_market_symmetric"}
+    },
+    {
+      "dataset_id": "soc_pokec",
+      "abbreviation": "POK",
+      "papers": ["Dynamic-ACTS"],
+      "paper_vertices": 1632000,
+      "paper_edges": 61000000,
+      "source": {"relative_path": "soc-Pokec/soc-Pokec.tar.gz", "size_bytes": 430434848, "sha256": "3819af42461fd6816c2b84be120cbb509424996a987ba06ce9a318746667c2f9", "encoding": "tar_matrix_market", "archive_member": "soc-Pokec/soc-Pokec.mtx", "semantic_projection": "matrix_market_header"}
+    },
+    {
+      "dataset_id": "soc_orkut",
+      "abbreviation": "OR",
+      "papers": ["Dynamic-ACTS"],
+      "paper_vertices": 2997000,
+      "paper_edges": 234000000,
+      "source": {"relative_path": "soc-Orkut/com-Orkut.tar.gz", "size_bytes": 927824532, "sha256": "8b52b87048044eff76b5385b2ea2681674117ffd770695b19518e248629cc725", "encoding": "tar_matrix_market", "semantic_projection": "reciprocal_to_paper_edge_count"}
+    },
+    {
+      "dataset_id": "soc_livejournal1",
+      "abbreviation": "SOC",
+      "papers": ["Dynamic-ACTS"],
+      "paper_vertices": 4847000,
+      "paper_edges": 137000000,
+      "source": {"relative_path": "soc-LiveJournal1/soc-LiveJournal1.tar.gz", "size_bytes": 255621157, "sha256": "6518202e02a60f4db9828f3f6ce756191436e61c061c44b66e869b7ba28a647b", "encoding": "tar_edge_list", "archive_member": "soc-LiveJournal1/soc-LiveJournal1.txt", "semantic_projection": "reciprocal_to_paper_edge_count"}
+    },
+    {
+      "dataset_id": "ljournal_2008",
+      "abbreviation": "LJ",
+      "papers": ["Dynamic-ACTS"],
+      "paper_vertices": 5363000,
+      "paper_edges": 158000000,
+      "source": {"relative_path": "ljournal-2008/ljournal-2008.tar.gz", "size_bytes": 257721385, "sha256": "d16e5e3920a0a3a2e549168e994db14f09eb287dc6426098b62b30b7f70d65fd", "encoding": "tar_matrix_market", "archive_member": "ljournal-2008/ljournal-2008.mtx", "semantic_projection": "matrix_market_symmetric"}
+    },
+    {
+      "dataset_id": "uk_2002",
+      "abbreviation": "UK",
+      "papers": ["Dynamic-ACTS"],
+      "paper_vertices": 18000000,
+      "paper_edges": 298000000,
+      "source": {"relative_path": "uk-2002/uk-2002.tar.gz", "size_bytes": 761971654, "sha256": "04988f5a0cc2a9a2796db206f0a0508224c520344b50eae4e7414df4deed9001", "encoding": "tar_matrix_market", "archive_member": "uk-2002/uk-2002.mtx", "semantic_projection": "matrix_market_header"}
+    }
+  ],
+  "synthetic_endpoint": {
+    "dataset_id": "rmat_19_32",
+    "vertices": 524288,
+    "raw_edges": 16777216,
+    "expected_unique_directed_edges": 15481655,
+    "role": "scalability_endpoint_not_real_dataset"
+  },
+  "workload_semantics": {
+    "preserve_external_vertex_ids": true,
+    "weighted_sssp": {
+      "weight_policy": "edge_hash_positive_uint16_v1",
+      "weight_min": 1,
+      "weight_max": 64,
+      "seed": 20260729,
+      "all_dataset_source_policy": "deterministic_reachable",
+      "source_cohort_datasets": ["sx_askubuntu", "wiki_talk_temporal", "sx_stackoverflow", "soc_orkut", "uk_2002"],
+      "source_cohorts": ["high_degree", "median_degree", "random_reachable"]
+    },
+    "connected_components": {
+      "projection": "reciprocal_undirected_min_vertex_label",
+      "report_raw_and_effective_edges": true,
+      "deletion_policy": "full_recompute"
+    },
+    "full_pagerank": {
+      "iterations": 3,
+      "damping": 0.85,
+      "edge_cap": 4000000,
+      "scaling_edges": [64000, 256000, 1000000, 4000000],
+      "slice_policy": "fixed_hash_partition_preserving_original_vertex_ids_v1"
+    },
+    "thresholded_residual_pagerank": {
+      "damping": 0.85,
+      "per_vertex_threshold": 1e-6,
+      "maximum_iterations": 256,
+      "threshold_semantics": "abs_residual_per_vertex_gt_threshold"
+    },
+    "updates": {
+      "scenarios": ["insert", "delete", "weight_change"],
+      "supplemental_scenario": "mixed",
+      "temporal_insert_policy": "post_base_timestamp_events",
+      "delete_policy": "fixed_hash_live_edge",
+      "weight_change_policy": "delete_old_then_insert_new_one_user_mutation",
+      "derived_seed": 20260729
+    }
+  },
+  "experiment_matrix": {
+    "systems": ["spine", "grasu_regraph_k1", "grasu_regraph_k4_shared"],
+    "main_e2e": {"datasets": "all", "algorithms": ["weighted_sssp", "connected_components", "full_pagerank", "thresholded_residual_pagerank"], "scenario": "insert", "batch_sizes": [8]},
+    "update_performance": {"datasets": "all", "scenarios": ["insert", "delete", "weight_change"], "batch_sizes": [1, 8, 64]},
+    "update_triggered_compute": {"datasets": ["sx_askubuntu", "wiki_talk_temporal", "sx_stackoverflow", "soc_orkut", "uk_2002"], "algorithms": ["weighted_sssp", "connected_components", "full_pagerank", "thresholded_residual_pagerank"], "scenarios": ["insert", "delete", "weight_change"], "batch_sizes": [8]},
+    "dense": {"datasets": ["sx_askubuntu", "sx_stackoverflow", "soc_orkut"], "algorithms": ["weighted_sssp", "connected_components", "full_pagerank", "thresholded_residual_pagerank"], "scenario": "insert", "batch_sizes": [64, 512, 4096]},
+    "mixed_supplement": {"datasets": ["sx_askubuntu", "wiki_talk_temporal", "sx_stackoverflow", "soc_orkut", "uk_2002"], "algorithms": ["weighted_sssp", "connected_components", "full_pagerank", "thresholded_residual_pagerank"], "batch_sizes": [8]}
+  },
+  "correctness_admission": {
+    "architecture_precision_oracle": true,
+    "independent_mathematical_oracle": true,
+    "cross_system_final_state": true,
+    "updated_graph_degree_and_active_state": true,
+    "request_response_byte_and_dram_conservation": true,
+    "full_result_vector_required": true,
+    "failed_rows_retained_but_excluded": true
+  },
+  "measurement": {
+    "e2e_start": "first_update_accepted",
+    "e2e_end": "update_active_detection_compute_response_and_fifo_drain",
+    "bootstrap_reported_separately": true,
+    "update_throughput_units": ["successful_user_mutations_per_update_simulated_second", "successful_user_mutations_per_e2e_simulated_second"],
+    "weight_change_user_mutations_per_two_physical_records": 1,
+    "memory_locality_source": "executed_address_trace_burst_continuity_and_dram_row_behavior",
+    "host_runtime_repetitions": 3,
+    "host_runtime_statistics": ["median", "mad"]
+  },
+  "execution": {
+    "automatic_timeout_seconds": null,
+    "monitor_refresh_seconds": 2,
+    "status_sample_seconds": 5,
+    "no_progress_soft_stop_seconds": 1200,
+    "host_available_memory_reserve_gib": 32,
+    "per_run_rss_limit_gib": 48,
+    "initial_large_jobs": 4,
+    "maximum_large_jobs": 8,
+    "stopped_status": "incomplete_with_elapsed_progress_and_eta",
+    "formal_host_runtime_runs_are_contention_controlled": true
+  },
+  "reporting": {
+    "tex": "docs/paper/large_graph_publication_evaluation.tex",
+    "pdf_next_to_tex": true,
+    "figures": ["e2e", "small_batch", "update_throughput", "memory_and_locality", "dense_batch", "bottleneck_and_dynamic_energy", "simulator_runtime"],
+    "tables": ["dataset_scope", "correctness", "fpga_resources_timing", "stopped_or_failed_rows"],
+    "optional_after_primary": ["ablation", "kernel_and_memory_scalability"]
+  }
+}
