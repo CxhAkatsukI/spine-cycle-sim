@@ -50,8 +50,8 @@
       "line_bytes": 64
     },
     "simulator_baseline": {
-      "milestone": "candidate81_axi_response_fastpath",
-      "plugin_sha256": "d7e4972403deb744a4811d80f06d7cc5b216181e928c650d9ebbd98c461f491a"
+      "milestone": "candidate84_progress_native_pgo",
+      "plugin_sha256": "5d9d879e0c70c72bb8eae979ec11177c97ddd6373e838836e460f337a1461431"
     }
   },
   "datasets": [

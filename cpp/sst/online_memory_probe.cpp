@@ -3,6 +3,7 @@
 // clang-format on
 
 #include <algorithm>
+#include <chrono>
 #include <array>
 #include <cmath>
 #include <cstddef>
@@ -1985,6 +1986,9 @@ class OnlineMemoryProbe final : public SST::Component {
     output_.init("[spine_cycle.OnlineMemoryProbe] ",
                  params.find<int>("verbose", 0), 0, SST::Output::STDOUT);
     result_path_ = params.find<std::string>("output", "sst_memory_probe.json");
+    progress_path_ = params.find<std::string>("progress_path", "");
+    progress_interval_cycles_ =
+        params.find<std::uint64_t>("progress_interval_cycles", 50'000'000);
     mode_ = params.find<std::string>("mode", "probe");
     memory_backend_ = params.find<std::string>(
         "memory_backend", "sst_memHierarchy_dramsim3");
@@ -3339,6 +3343,7 @@ class OnlineMemoryProbe final : public SST::Component {
     if (!result_written_) {
       write_result(false);
     }
+    write_progress_snapshot(result_success_ ? "pass" : "fail", true);
     if (backend_ != nullptr) {
       backend_->print_direct_stats();
     }
@@ -3347,6 +3352,8 @@ class OnlineMemoryProbe final : public SST::Component {
   bool clock_tick(SST::Cycle_t) {
     backend_->advance_direct_to(getCurrentSimTime(picosecond_converter_));
     scheduler_.step();
+    last_observed_cycle_ = scheduler_.clock(0).completed_cycles;
+    write_progress_snapshot("running", false);
     if (mode_ == "grasu_regraph_native_sssp") {
       if (grasu_update_system_->failed()) {
         write_result(false);
@@ -3751,6 +3758,10 @@ class OnlineMemoryProbe final : public SST::Component {
 
   SST_ELI_DOCUMENT_PARAMS(
       {"output", "JSON result path", "sst_memory_probe.json"},
+      {"progress_path", "Optional atomic host-progress JSON path", ""},
+      {"progress_interval_cycles",
+       "Minimum simulated cycles between host-progress snapshots",
+       "50000000"},
       {"memory_backend",
        "sst_memHierarchy_dramsim3 or direct_dramsim3_transport",
        "sst_memHierarchy_dramsim3"},
@@ -4008,11 +4019,104 @@ class OnlineMemoryProbe final : public SST::Component {
     return true;
   }
 
+  void write_progress_snapshot(std::string_view status, bool force) {
+    if (progress_path_.empty()) {
+      return;
+    }
+    const std::uint64_t cycles = last_observed_cycle_;
+    if (!force && cycles < next_progress_cycle_) {
+      return;
+    }
+    next_progress_cycle_ =
+        cycles + std::max<std::uint64_t>(1, progress_interval_cycles_);
+
+    std::string phase = "simulate";
+    std::optional<std::size_t> iteration;
+    std::optional<std::size_t> completed;
+    std::optional<std::size_t> total;
+    const bool grasu_mode = mode_.starts_with("grasu_regraph_");
+    if (grasu_mode) {
+      const bool compute_started =
+          grasu_native_compute_system_ != nullptr ||
+          grasu_compute_system_ != nullptr ||
+          grasu_pagerank_compute_system_ != nullptr ||
+          grasu_residual_compute_system_ != nullptr ||
+          grasu_connected_components_system_ != nullptr;
+      phase = compute_started
+                  ? "compute"
+                  : (grasu_compactor_system_ != nullptr ? "compact" : "update");
+    } else if (mode_ == "spine_pagerank" ||
+               mode_ == "spine_residual_pagerank" ||
+               mode_ == "spine_connected_components") {
+      phase = pagerank_system_ != nullptr && pagerank_system_->maintenance_done()
+                  ? "compute"
+                  : "update";
+      iteration = pagerank_completed_iterations_ + 1;
+      if (mode_ == "spine_pagerank") {
+        completed = pagerank_completed_iterations_;
+        total = pagerank_iterations_;
+      }
+    } else if (mode_ == "spine_sssp") {
+      phase = dynamic_sssp_enabled_ && !dynamic_sssp_started_
+                  ? "bootstrap"
+                  : "compute";
+      iteration = sst_rounds_.size() + 1;
+    } else if (mode_ == "spine_maintenance") {
+      phase = "update";
+    }
+
+    const std::filesystem::path target(progress_path_);
+    if (!target.parent_path().empty()) {
+      std::filesystem::create_directories(target.parent_path());
+    }
+    const std::filesystem::path temporary =
+        target.parent_path() / ("." + target.filename().string() + ".tmp");
+    std::ofstream stream(temporary, std::ios::trunc);
+    if (!stream) {
+      return;
+    }
+    const auto epoch_seconds = std::chrono::duration<double>(
+                                   std::chrono::system_clock::now()
+                                       .time_since_epoch())
+                                   .count();
+    stream << "{\n"
+           << "  \"schema_version\": 1,\n"
+           << "  \"status\": \"" << status << "\",\n"
+           << "  \"phase\": \"" << phase << "\",\n"
+           << "  \"mode\": \"" << mode_ << "\",\n"
+           << "  \"simulated_cycles\": " << cycles << ",\n"
+           << "  \"backend_requests\": "
+           << (backend_ == nullptr ? 0 : backend_->accepted()) << ",\n"
+           << "  \"backend_outstanding\": "
+           << (backend_ == nullptr ? 0 : backend_->outstanding()) << ",\n"
+           << "  \"host_epoch_seconds\": " << std::setprecision(17)
+           << epoch_seconds;
+    if (iteration.has_value()) {
+      stream << ",\n  \"iteration\": " << *iteration;
+    }
+    if (completed.has_value() && total.has_value()) {
+      stream << ",\n  \"completed\": " << *completed
+             << ",\n  \"total\": " << *total;
+    }
+    stream << "\n}\n";
+    stream.close();
+    if (!stream) {
+      std::filesystem::remove(temporary);
+      return;
+    }
+    std::error_code error;
+    std::filesystem::rename(temporary, target, error);
+    if (error) {
+      std::filesystem::remove(temporary);
+    }
+  }
+
   void write_result(bool success) {
     if (result_written_) {
       return;
     }
     result_written_ = true;
+    result_success_ = success;
     std::ofstream result(result_path_);
     if (mode_ == "spine_connected_components") {
       const std::vector<std::uint32_t> labels =
@@ -9297,6 +9401,10 @@ class OnlineMemoryProbe final : public SST::Component {
 
   SST::Output output_;
   std::string result_path_;
+  std::string progress_path_;
+  std::uint64_t progress_interval_cycles_{};
+  std::uint64_t next_progress_cycle_{};
+  std::uint64_t last_observed_cycle_{};
   std::string mode_;
   std::string memory_backend_;
   std::string direct_dram_config_path_;
@@ -9488,6 +9596,7 @@ class OnlineMemoryProbe final : public SST::Component {
   bool dynamic_sssp_started_{};
   bool dynamic_full_rebuild_{};
   bool result_written_{};
+  bool result_success_{};
 };
 
 }  // namespace spine::sim::sst_adapter

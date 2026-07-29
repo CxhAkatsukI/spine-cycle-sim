@@ -677,6 +677,12 @@ def render_campaign_state(state: Mapping[str, Any], *, max_rows: int = 24) -> st
         eta = progress.get("eta_seconds")
         if isinstance(eta, (int, float)):
             progress_text += f" eta={format_duration(eta)}"
+        simulated_cycles = progress.get("simulated_cycles")
+        if isinstance(simulated_cycles, (int, float)):
+            progress_text += f" cyc={int(simulated_cycles):,}"
+        backend_requests = progress.get("backend_requests")
+        if isinstance(backend_requests, (int, float)):
+            progress_text += f" mem={int(backend_requests):,}"
         if job.get("no_progress_warning"):
             progress_text += (
                 " NO-PROGRESS=" + format_duration(job.get("no_progress_seconds"))

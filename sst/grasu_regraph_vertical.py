@@ -56,6 +56,10 @@ probe.addParams(
     {
         "mode": mode,
         "output": output,
+        "progress_path": os.environ.get("SPINE_CAMPAIGN_PROGRESS_PATH", ""),
+        "progress_interval_cycles": int(
+            os.environ.get("SPINE_CAMPAIGN_PROGRESS_INTERVAL_CYCLES", "50000000")
+        ),
         "memory_backend": memory_backend,
         "direct_dram_config": os.environ.get(
             "CANDIDATE10_SST_DRAM_CONFIG",

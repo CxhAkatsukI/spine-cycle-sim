@@ -36,7 +36,9 @@ class CampaignRuntimeTest(unittest.TestCase):
                 "import json,os,pathlib; "
                 "path=pathlib.Path(os.environ['SPINE_CAMPAIGN_PROGRESS_PATH']); "
                 "path.write_text(json.dumps({'phase':'simulate','completed':4,"
-                "'total':4,'iteration':2,'eta_seconds':0}), encoding='ascii')"
+                "'total':4,'iteration':2,'eta_seconds':0,"
+                "'simulated_cycles':123456,'backend_requests':789}), "
+                "encoding='ascii')"
             )
             manifest = {
                 "schema_version": 1,
@@ -83,7 +85,10 @@ class CampaignRuntimeTest(unittest.TestCase):
             self.assertEqual(state["status"], "pass")
             self.assertEqual(state["summary"]["by_status"], {"pass": 2})
             self.assertEqual(state["jobs"][1]["progress"]["completed"], 4)
-            self.assertIn("100.0%", render_campaign_state(state))
+            rendered = render_campaign_state(state)
+            self.assertIn("100.0%", rendered)
+            self.assertIn("cyc=123,456", rendered)
+            self.assertIn("mem=789", rendered)
             events = (run_dir / "events.jsonl").read_text()
             self.assertLess(events.index('"job_id": "prepare"'), events.index('"job_id": "simulate"'))
 
