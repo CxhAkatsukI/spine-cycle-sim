@@ -32,7 +32,8 @@ tests because the current Spine maintenance launch has
 | `formal_v3_remaining7_k4_weighted` | Weighted SSSP K4-shared on seven remaining real graphs; paused behind R19-CC | 7 stopped, rerun pending | 58 |
 | `formal_v3_r19_spine` | R19-32 endpoint, four Spine algorithms | 4 | 36-39 |
 | `formal_v3_r19_grasu_fullpr` | R19-32 Full PageRank, GraSU+ReGraph K1/K4-shared | 2 | 40-41 |
-| `formal_v3_r19_k4_priority` | R19-32 K4-shared weighted SSSP then CC | 2 (1 concurrent) | 47 |
+| `formal_v3_r19_k4_priority` | R19-32 K4-shared weighted SSSP PASS; original CC exact-boundary failure retained | 2 (1 concurrent) | 47 |
+| `formal_v3_r19_cc_guard` | Corrected R19-32 K4-shared CC formal rerun | 1 | 47 |
 | `formal_v3_stackoverflow_spine` | StackOverflow Spine weighted SSSP, CC, residual PageRank | 3 (1 concurrent) | 48 |
 | `formal_v3_small_cc_residual` | AU/SU/WikiTalk CC and residual PageRank, three systems | 18 (3 concurrent) | 42-44 |
 | `formal_v3_small_fullpr` | AU/SU/WikiTalk Full PageRank, three systems | 9 (2 concurrent) | 45-46 |
@@ -57,6 +58,15 @@ entire wave was then closed with an auditable `stop-all` request. R19-32 CC was
 resumed with an 88 GiB reserve, 72 GiB emergency threshold, and one-job limit.
 The seven real-data K4 rows remain expected-but-missing until a fresh post-R19
 wave completes them.
+
+The first R19-32 K4-shared CC run exposed an exact source-window boundary in
+ReGraph's one-window-ahead HLS prefetch. The packed address map now reserves the
+required 16 KiB source-state guard without suppressing any simulated request.
+The original failure remains in `formal_v3_r19_k4_priority`; the corrected run
+uses `formal_v3_r19_cc_guard`, an 88 GiB admission reserve, a 72 GiB emergency
+threshold, and the same CPU 47 high-memory slot. See
+`docs/grasu_regraph_source_prefetch_guard_20260730.md` for the HLS mapping and
+boundary validation.
 
 ## CPU-affinity correction
 
