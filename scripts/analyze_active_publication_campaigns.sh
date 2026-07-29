@@ -16,6 +16,8 @@ result_roots=(
   formal_v3_au_insert_endpoints
   formal_v3_r19_spine
   formal_v3_r19_grasu_fullpr
+  formal_v3_r19_k4_priority
+  formal_v3_stackoverflow_spine
   formal_v3_small_cc_residual
   formal_v3_small_fullpr
 )
@@ -31,6 +33,8 @@ manifest_roots=(
   formal_v3_au_insert_endpoints
   formal_v3_r19_spine
   formal_v3_r19_grasu_fullpr
+  formal_v3_r19_k4_priority
+  formal_v3_stackoverflow_spine
   formal_v3_small_cc_residual
   formal_v3_small_fullpr
 )
