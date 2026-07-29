@@ -170,6 +170,7 @@ class CampaignRuntimeTest(unittest.TestCase):
                 runner._poll_running()
                 time.sleep(0.01)
             self.assertEqual(state["status"], "stopped")
+            self.assertEqual(state["rss_bytes"], 0)
 
     def test_launch_reservation_counts_not_yet_resident_processes(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

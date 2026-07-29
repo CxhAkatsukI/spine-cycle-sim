@@ -503,6 +503,7 @@ class CampaignRunner:
             state.update(
                 status=status,
                 exit_code=return_code,
+                rss_bytes=0,
                 finished_at=now,
                 updated_at=now,
                 reason=state.get("reason") if was_stopping else (
@@ -755,7 +756,17 @@ def render_campaign_state(state: Mapping[str, Any], *, max_rows: int = 24) -> st
         "Memory   available="
         + format_bytes(state.get("host", {}).get("available_memory_bytes"))
         + " campaign_rss="
-        + format_bytes(state.get("host", {}).get("campaign_rss_bytes")),
+        + format_bytes(state.get("host", {}).get("campaign_rss_bytes"))
+        + " breaker="
+        + (
+            "ACTIVE"
+            if state.get("host", {}).get("memory_pressure_active")
+            else "clear"
+        )
+        + " emergency="
+        + format_bytes(state.get("host", {}).get("memory_emergency_bytes"))
+        + " recovery="
+        + format_bytes(state.get("host", {}).get("memory_recovery_bytes")),
         "",
         "STATUS    DATASET        ALGORITHM                    SYSTEM               ELAPSED     RSS  PROGRESS",
     ]
