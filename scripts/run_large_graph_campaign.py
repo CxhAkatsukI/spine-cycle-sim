@@ -21,6 +21,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--jobs", type=int, default=6)
     parser.add_argument("--large-jobs", type=int, default=2)
     parser.add_argument("--memory-reserve-gib", type=float, default=64.0)
+    parser.add_argument(
+        "--memory-emergency-gib",
+        type=float,
+        help="soft-stop running jobs below this MemAvailable threshold; defaults to reserve",
+    )
+    parser.add_argument(
+        "--memory-recovery-gib",
+        type=float,
+        help="resume launching above this threshold; defaults to max(reserve, emergency)",
+    )
+    parser.add_argument("--max-starts-per-sample", type=int, default=4)
     parser.add_argument("--sample-seconds", type=float, default=5.0)
     parser.add_argument("--no-progress-warn-minutes", type=float, default=20.0)
     parser.add_argument("--resume", action="store_true")
@@ -36,6 +47,17 @@ def main() -> int:
         jobs=args.jobs,
         large_jobs=args.large_jobs,
         memory_reserve_bytes=int(args.memory_reserve_gib * 2**30),
+        memory_emergency_bytes=(
+            None
+            if args.memory_emergency_gib is None
+            else int(args.memory_emergency_gib * 2**30)
+        ),
+        memory_recovery_bytes=(
+            None
+            if args.memory_recovery_gib is None
+            else int(args.memory_recovery_gib * 2**30)
+        ),
+        max_starts_per_sample=args.max_starts_per_sample,
         sample_seconds=args.sample_seconds,
         pin_cpus=not args.no_pin_cpus,
         resume=args.resume,

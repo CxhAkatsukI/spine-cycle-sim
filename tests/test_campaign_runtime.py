@@ -4,7 +4,9 @@ import json
 from pathlib import Path
 import sys
 import tempfile
+import time
 import unittest
+from unittest.mock import patch
 
 from spine_cycle_sim.experiments.campaign_runtime import (
     CampaignRunner,
@@ -119,6 +121,101 @@ class CampaignRuntimeTest(unittest.TestCase):
             self.assertEqual(payload["action"], "stop_job")
             self.assertEqual(payload["job_id"], "dataset.algorithm.system")
             self.assertEqual(payload["reason"], "manual progress review")
+
+    def test_memory_pressure_soft_stops_largest_process_and_is_resumable(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            manifest_path = root / "manifest.json"
+            manifest_path.write_text(
+                json.dumps(
+                    {
+                        "schema_version": 1,
+                        "campaign_id": "memory_pressure_test",
+                        "default_cwd": str(root),
+                        "jobs": [
+                            {
+                                "job_id": "sleeper",
+                                "command": [sys.executable, "-c", "import time; time.sleep(60)"],
+                                "estimated_rss_gib": 0.01,
+                            }
+                        ],
+                    }
+                ),
+                encoding="ascii",
+            )
+            runner = CampaignRunner(
+                manifest_path,
+                root / "run",
+                jobs=1,
+                large_jobs=1,
+                memory_reserve_bytes=100,
+                memory_emergency_bytes=100,
+                memory_recovery_bytes=100,
+                sample_seconds=0.01,
+                pin_cpus=False,
+                resume=False,
+            )
+            runner._start(runner.specs[0])
+            with patch(
+                "spine_cycle_sim.experiments.campaign_runtime.available_memory_bytes",
+                return_value=0,
+            ):
+                runner._poll_running()
+                runner._protect_memory()
+            state = runner._job_state("sleeper")
+            self.assertEqual(state["status"], "stopping")
+            self.assertTrue(runner.memory_pressure_active)
+            self.assertIn("automatic low-memory", state["reason"])
+            while runner.running:
+                runner._poll_running()
+                time.sleep(0.01)
+            self.assertEqual(state["status"], "stopped")
+
+    def test_launch_reservation_counts_not_yet_resident_processes(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            manifest_path = root / "manifest.json"
+            jobs = [
+                {
+                    "job_id": f"job{index}",
+                    "command": [sys.executable, "-c", "import time; time.sleep(60)"],
+                    "estimated_rss_gib": 1.0,
+                }
+                for index in range(3)
+            ]
+            manifest_path.write_text(
+                json.dumps(
+                    {
+                        "schema_version": 1,
+                        "campaign_id": "launch_reservation_test",
+                        "default_cwd": str(root),
+                        "jobs": jobs,
+                    }
+                ),
+                encoding="ascii",
+            )
+            runner = CampaignRunner(
+                manifest_path,
+                root / "run",
+                jobs=3,
+                large_jobs=1,
+                memory_reserve_bytes=1 << 30,
+                sample_seconds=0.01,
+                pin_cpus=False,
+                resume=False,
+                max_starts_per_sample=3,
+            )
+            with patch(
+                "spine_cycle_sim.experiments.campaign_runtime.available_memory_bytes",
+                return_value=3 << 30,
+            ):
+                runner._launch_ready()
+            self.assertEqual(len(runner.running), 2)
+            for job_id in list(runner.running):
+                runner._request_stop(job_id, "test cleanup")
+            while runner.running:
+                runner._poll_running()
+                time.sleep(0.01)
 
 
 if __name__ == "__main__":

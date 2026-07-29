@@ -230,13 +230,29 @@ class CampaignRunner:
         pin_cpus: bool,
         resume: bool,
         no_progress_warn_seconds: float = 1200.0,
+        memory_emergency_bytes: int | None = None,
+        memory_recovery_bytes: int | None = None,
+        max_starts_per_sample: int = 4,
     ) -> None:
         if jobs <= 0 or large_jobs <= 0 or large_jobs > jobs:
             raise ValueError("jobs and large_jobs must satisfy 0 < large_jobs <= jobs")
+        emergency = (
+            memory_reserve_bytes
+            if memory_emergency_bytes is None
+            else memory_emergency_bytes
+        )
+        recovery = (
+            max(memory_reserve_bytes, emergency)
+            if memory_recovery_bytes is None
+            else memory_recovery_bytes
+        )
         if (
             memory_reserve_bytes < 0
+            or emergency < 0
+            or recovery < emergency
             or sample_seconds <= 0
             or no_progress_warn_seconds <= 0
+            or max_starts_per_sample <= 0
         ):
             raise ValueError("memory reserve and sample interval are invalid")
         self.manifest_path = manifest_path.resolve()
@@ -248,6 +264,9 @@ class CampaignRunner:
         self.jobs_limit = jobs
         self.large_jobs_limit = large_jobs
         self.memory_reserve_bytes = memory_reserve_bytes
+        self.memory_emergency_bytes = emergency
+        self.memory_recovery_bytes = recovery
+        self.max_starts_per_sample = max_starts_per_sample
         self.sample_seconds = sample_seconds
         self.pin_cpus = pin_cpus
         self.resume = resume
@@ -256,6 +275,7 @@ class CampaignRunner:
         self.events_path = self.run_dir / "events.jsonl"
         self.running: dict[str, RunningProcess] = {}
         self.stop_requested = False
+        self.memory_pressure_active = False
         self.started_at = time.time()
         self.cpu_pool = physical_cpu_ids() if pin_cpus else []
         self.state = self._initial_state()
@@ -308,6 +328,9 @@ class CampaignRunner:
                 "jobs": self.jobs_limit,
                 "large_jobs": self.large_jobs_limit,
                 "memory_reserve_bytes": self.memory_reserve_bytes,
+                "memory_emergency_bytes": self.memory_emergency_bytes,
+                "memory_recovery_bytes": self.memory_recovery_bytes,
+                "max_starts_per_sample": self.max_starts_per_sample,
                 "sample_seconds": self.sample_seconds,
                 "pin_cpus": self.pin_cpus,
                 "automatic_timeout_seconds": None,
@@ -495,6 +518,59 @@ class CampaignRunner:
                 peak_rss_bytes=state["peak_rss_bytes"],
             )
 
+    def _protect_memory(self) -> None:
+        """Soft-stop the fewest useful victims before host OOM is possible."""
+
+        available = available_memory_bytes()
+        if self.memory_pressure_active:
+            if available >= self.memory_recovery_bytes:
+                self.memory_pressure_active = False
+                self._event(
+                    "memory_pressure_cleared",
+                    available_memory_bytes=available,
+                    recovery_bytes=self.memory_recovery_bytes,
+                )
+            elif available >= self.memory_emergency_bytes:
+                return
+        if available >= self.memory_emergency_bytes:
+            return
+
+        self.memory_pressure_active = True
+        candidates = [
+            self._job_state(job_id)
+            for job_id in self.running
+            if self._job_state(job_id)["status"] == "running"
+        ]
+        candidates.sort(
+            key=lambda state: (
+                int(state.get("rss_bytes", 0)),
+                float(state.get("started_at", 0.0)),
+            ),
+            reverse=True,
+        )
+        projected_available = available
+        victims: list[str] = []
+        for state in candidates:
+            job_id = str(state["job_id"])
+            victims.append(job_id)
+            projected_available += int(state.get("rss_bytes", 0))
+            self._request_stop(
+                job_id,
+                "automatic low-memory circuit breaker: "
+                f"MemAvailable={available} below emergency="
+                f"{self.memory_emergency_bytes}",
+            )
+            if projected_available >= self.memory_recovery_bytes:
+                break
+        self._event(
+            "memory_pressure_triggered",
+            available_memory_bytes=available,
+            emergency_bytes=self.memory_emergency_bytes,
+            recovery_bytes=self.memory_recovery_bytes,
+            projected_available_bytes=projected_available,
+            victims=victims,
+        )
+
     def _mark_blocked(self) -> None:
         by_id = {job["job_id"]: job for job in self.state["jobs"]}
         for state in self.state["jobs"]:
@@ -515,7 +591,7 @@ class CampaignRunner:
                 self._event("job_blocked", job_id=state["job_id"], dependencies=failed)
 
     def _launch_ready(self) -> None:
-        if self.stop_requested:
+        if self.stop_requested or self.memory_pressure_active:
             return
         by_id = {job["job_id"]: job for job in self.state["jobs"]}
         running_large = sum(
@@ -531,24 +607,43 @@ class CampaignRunner:
             ),
             key=lambda spec: (spec.priority, spec.estimated_rss_bytes, spec.job_id),
         )
+        startup_commitment = sum(
+            max(
+                0,
+                self.spec_by_id[job_id].estimated_rss_bytes
+                - int(self._job_state(job_id).get("rss_bytes", 0)),
+            )
+            for job_id in self.running
+        )
+        starts = 0
         for spec in candidates:
             if len(self.running) >= self.jobs_limit:
+                break
+            if starts >= self.max_starts_per_sample:
                 break
             if self.pin_cpus and self._free_cpu() is None:
                 break
             if spec.resource_class == "large" and running_large >= self.large_jobs_limit:
                 continue
             available = available_memory_bytes()
-            if available - spec.estimated_rss_bytes < self.memory_reserve_bytes:
+            if (
+                available
+                - startup_commitment
+                - spec.estimated_rss_bytes
+                < self.memory_reserve_bytes
+            ):
                 state = by_id[spec.job_id]
                 state["waiting_reason"] = (
                     "memory_reserve: available="
-                    f"{available} estimated={spec.estimated_rss_bytes} "
+                    f"{available} startup_commitment={startup_commitment} "
+                    f"estimated={spec.estimated_rss_bytes} "
                     f"reserve={self.memory_reserve_bytes}"
                 )
                 continue
             by_id[spec.job_id].pop("waiting_reason", None)
             self._start(spec)
+            startup_commitment += spec.estimated_rss_bytes
+            starts += 1
             if spec.resource_class == "large":
                 running_large += 1
 
@@ -564,6 +659,9 @@ class CampaignRunner:
             "available_memory_bytes": available_memory_bytes(),
             "campaign_rss_bytes": total_rss,
             "physical_cpus": len(physical_cpu_ids()),
+            "memory_pressure_active": self.memory_pressure_active,
+            "memory_emergency_bytes": self.memory_emergency_bytes,
+            "memory_recovery_bytes": self.memory_recovery_bytes,
         }
         self.state["summary"] = {
             "total": len(self.state["jobs"]),
@@ -588,6 +686,7 @@ class CampaignRunner:
             while True:
                 self._read_controls()
                 self._poll_running()
+                self._protect_memory()
                 self._mark_blocked()
                 self._launch_ready()
                 self._write_state()
