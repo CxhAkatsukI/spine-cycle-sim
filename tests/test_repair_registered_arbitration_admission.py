@@ -7,6 +7,7 @@ import unittest
 
 from scripts.repair_registered_arbitration_admission import (
     EXPECTED_ERROR,
+    EXPECTED_PROFILE_ERROR,
     find_repair_candidates,
 )
 
@@ -60,6 +61,13 @@ class RegisteredArbitrationAdmissionRepairTests(unittest.TestCase):
         candidates = find_repair_candidates(self._campaign())
         self.assertEqual(len(candidates), 1)
         self.assertEqual(candidates[0].execution_id, "deadbeef")
+
+    def test_evidence_repin_plus_obsolete_ledger_is_selected(self) -> None:
+        candidates = find_repair_candidates(
+            self._campaign(error=EXPECTED_PROFILE_ERROR)
+        )
+        self.assertEqual(len(candidates), 1)
+        self.assertEqual(candidates[0].original_error, EXPECTED_PROFILE_ERROR)
 
     def test_child_failure_or_different_parent_failure_is_not_selected(self) -> None:
         self.assertEqual(

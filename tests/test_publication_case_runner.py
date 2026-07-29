@@ -4,9 +4,11 @@ import unittest
 from pathlib import Path
 
 from scripts.run_publication_case import (
+    _canonical_profile_semantics,
     _final_state_identity,
     _publication_system_row,
     _replace_option,
+    _verify_profile_evidence_amendment,
 )
 from spine_cycle_sim.experiments.publication_cases import (
     PublicationCase,
@@ -16,6 +18,61 @@ from spine_cycle_sim.experiments.publication_cases import (
 
 
 class PublicationCaseRunnerTests(unittest.TestCase):
+    def test_profile_semantics_exclude_only_evidence(self) -> None:
+        first = {
+            "profile_id": "p",
+            "parameters": {"pipelines": 1},
+            "evidence": [{"sha256": "old"}],
+        }
+        second = {
+            "profile_id": "p",
+            "parameters": {"pipelines": 1},
+            "evidence": [{"sha256": "new"}],
+        }
+        self.assertEqual(
+            _canonical_profile_semantics(first, ("evidence",)),
+            _canonical_profile_semantics(second, ("evidence",)),
+        )
+        second["parameters"]["pipelines"] = 4
+        self.assertNotEqual(
+            _canonical_profile_semantics(first, ("evidence",)),
+            _canonical_profile_semantics(second, ("evidence",)),
+        )
+
+    def test_frozen_profile_evidence_amendment_is_proven_from_git(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        audit = _verify_profile_evidence_amendment(
+            root / "configs/contracts/profile_evidence_amendments_v1.json",
+            profile_path=(
+                root
+                / "configs/architectures/"
+                "grasu_regraph_candidate10_k1_multipart_weighted_fullgraph_v7.json"
+            ),
+            observed_sha256=(
+                "25d95cabe45d98809ac0a267f64f26150ca623fd22ff1eb80b0212a0b09dd861"
+            ),
+            expected_sha256=(
+                "8340355673f6d6be5153ba33616b7056c7dc497dafb3cb6f6176124720eee03c"
+            ),
+            repository_root=root,
+        )
+        self.assertEqual(
+            audit["classification"],
+            "evidence_only_no_architecture_semantic_change",
+        )
+        with self.assertRaises(ValueError):
+            _verify_profile_evidence_amendment(
+                root / "configs/contracts/profile_evidence_amendments_v1.json",
+                profile_path=(
+                    root
+                    / "configs/architectures/"
+                    "grasu_regraph_candidate10_k1_multipart_weighted_fullgraph_v7.json"
+                ),
+                observed_sha256="0" * 64,
+                expected_sha256=audit["amended_sha256"],
+                repository_root=root,
+            )
+
     def test_weighted_scenarios_map_to_dynamic_execution(self) -> None:
         case = PublicationCase(
             dataset_id="tiny",

@@ -26,10 +26,10 @@
 \maketitle
 \begin{abstract}
 This report is generated directly from correctness-gated campaign artifacts.
-The snapshot is \textbf{PARTIAL}: 57 of 93 runnable
+The snapshot is \textbf{PARTIAL}: 66 of 93 runnable
 physical executions are currently admitted, with 2 of
 95 contract cases excluded by proven physical capacity
-bounds and 9 complete three-system groups. Missing bars are
+bounds and 18 complete three-system groups. Missing bars are
 unexecuted comparisons, not zero-valued measurements. Every plotted row passes
 exact integer-state comparison or the declared $10^{-5}$ float32 PageRank
 output tolerance.
@@ -225,7 +225,7 @@ from DRAMSim3 command and background activity.}
 \end{table}
 
 \paragraph{Workload-specific component activity.}
-The correctness-gated snapshot exports 374 component
+The correctness-gated snapshot exports 437 component
 rows covering maintenance/update, reader/source cache, compute/gather/apply,
 streams, selected on-chip arrays, and the HBM frontend. These are physical
 activity counters with explicit per-component contracts, not energy estimates;
@@ -240,7 +240,7 @@ per-event energy analysis.
 \toprule
 Algorithm & Cross-system groups & Exact & K1/K4 triplets & Failed \\
 \midrule
-    SSSP & 12 & 12 & 0 & 0 \\
+    SSSP & 12 & 12 & 9 & 0 \\
     CC & 4 & 4 & 3 & 0 \\
     FullPR & 3 & 0 & 3 & 0 \\
     ResPR & 3 & 3 & 3 & 0 \\
@@ -287,7 +287,7 @@ System & Completed runs & Median host s & Maximum host s \\
 \midrule
     Spine & 15 & 591.5 & 13263.7 \\
     G+R K4-shared & 13 & 2172.4 & 10388.1 \\
-    G+R K1 & 9 & 5048.1 & 16004.6 \\
+    G+R K1 & 10 & 5457.8 & 20358.2 \\
 \bottomrule
 \end{tabular}
 \caption{Observed host wall time under concurrent campaign load. These values

@@ -17,6 +17,15 @@ EXPECTED_ERROR = (
     "RuntimeError: publication parent admission failed: "
     "registered_arbitration_requests"
 )
+EXPECTED_PROFILE_ERROR = (
+    "RuntimeError: publication parent admission failed: "
+    "profile_sha256, registered_arbitration_requests"
+)
+EXPECTED_ERRORS = (EXPECTED_ERROR, EXPECTED_PROFILE_ERROR)
+DEFAULT_PROFILE_AMENDMENT = (
+    Path(__file__).resolve().parents[1]
+    / "configs/contracts/profile_evidence_amendments_v1.json"
+)
 
 
 @dataclass(frozen=True)
@@ -28,6 +37,7 @@ class RepairCandidate:
     cwd: Path
     job_dir: Path
     result_path: Path
+    original_error: str
 
 
 def _load_json(path: Path) -> dict[str, Any]:
@@ -97,7 +107,7 @@ def find_repair_candidates(campaign_dir: Path) -> tuple[RepairCandidate, ...]:
             for line in log_path.read_text(encoding="utf-8").splitlines()
             if line.startswith("RuntimeError: publication parent admission failed:")
         ]
-        if error_lines != [EXPECTED_ERROR]:
+        if len(error_lines) != 1 or error_lines[0] not in EXPECTED_ERRORS:
             continue
         execution_id = job_id.rsplit(".", 1)[-1]
         result_path = campaign_dir / "runs" / execution_id / "case_result.json"
@@ -113,6 +123,7 @@ def find_repair_candidates(campaign_dir: Path) -> tuple[RepairCandidate, ...]:
                 cwd=Path(str(cwd_value)).resolve(),
                 job_dir=log_path.parent,
                 result_path=result_path,
+                original_error=error_lines[0],
             )
         )
     return tuple(candidates)
@@ -128,8 +139,14 @@ def _sha256(path: Path) -> str:
 
 def repair_candidate(candidate: RepairCandidate) -> dict[str, Any]:
     started = time.time()
+    repair_command = (
+        *candidate.command,
+        "--reuse-child",
+        "--profile-evidence-amendment",
+        str(DEFAULT_PROFILE_AMENDMENT),
+    )
     completed = subprocess.run(
-        (*candidate.command, "--reuse-child"),
+        repair_command,
         cwd=candidate.cwd,
         check=False,
         text=True,
@@ -151,8 +168,8 @@ def repair_candidate(candidate: RepairCandidate) -> dict[str, Any]:
             "job_dir": str(candidate.job_dir),
             "result_path": str(candidate.result_path),
         },
-        "original_error": EXPECTED_ERROR,
-        "repair_command": [*candidate.command, "--reuse-child"],
+        "original_error": candidate.original_error,
+        "repair_command": list(repair_command),
         "started_at": started,
         "finished_at": finished,
         "returncode": completed.returncode,
