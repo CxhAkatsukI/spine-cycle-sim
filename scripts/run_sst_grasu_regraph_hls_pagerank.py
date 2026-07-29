@@ -267,8 +267,20 @@ def main() -> int:
         action="store_true",
         help="Revalidate an existing result.json and DRAM directory without rerunning SST.",
     )
+    parser.add_argument(
+        "--reuse-host-wall-seconds",
+        type=float,
+        help="Original SST wall time to preserve when --reuse-result is used.",
+    )
     parser.add_argument("--instantiate-all-hbm-channels", action="store_true")
     args = parser.parse_args()
+    if args.reuse_result:
+        if args.reuse_host_wall_seconds is None or args.reuse_host_wall_seconds <= 0:
+            parser.error(
+                "--reuse-result requires a positive --reuse-host-wall-seconds"
+            )
+    elif args.reuse_host_wall_seconds is not None:
+        parser.error("--reuse-host-wall-seconds requires --reuse-result")
 
     profile_path = args.profile.resolve()
     profile = json.loads(profile_path.read_text(encoding="utf-8"))
@@ -475,7 +487,7 @@ def main() -> int:
         sst_library["command_option"],
         str(ROOT / "sst" / "grasu_regraph_vertical.py"),
     ]
-    wall_seconds = 0.0
+    wall_seconds = float(args.reuse_host_wall_seconds or 0.0)
     if not args.reuse_result:
         started = time.monotonic()
         completed = subprocess.run(

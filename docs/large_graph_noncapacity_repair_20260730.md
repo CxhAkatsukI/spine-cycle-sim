@@ -30,10 +30,10 @@ rerunning SST.
 
 Recovered evidence:
 
-| Dataset | System | Cycles | Source-cache requests | Backend requests | Result |
-|---|---|---:|---:|---:|---|
-| WikiTalk | GraSU+ReGraph K4 shared | 243,331,952 | 372 | 66,883,446 | PASS |
-| Hollywood-2009 | GraSU+ReGraph K4 shared | 229,260,619 | 3,588 | 69,089,482 | PASS |
+| Dataset | System | Cycles | Source-cache requests | Backend requests | Original wall time | Result |
+|---|---|---:|---:|---:|---:|---|
+| WikiTalk | GraSU+ReGraph K4 shared | 243,331,952 | 372 | 66,883,446 | 2,056.90 s | PASS |
+| Hollywood-2009 | GraSU+ReGraph K4 shared | 229,260,619 | 3,588 | 69,089,482 | 1,977.78 s | PASS |
 
 Both rows have zero architecture-oracle and mathematical-oracle mismatches.
 Their child manifests set `sst_result_reused=true`; this means only validation
@@ -60,12 +60,18 @@ runner rejects an impossible full rebuild before SST startup. Contract
 the 131,072-edge hardware limit so the scope cannot change after results are
 observed.
 
-Direct AU smoke evidence:
+Formal SX-AskUbuntu repair evidence:
 
-| Scenario | Graph edges | Cycles | Backend requests | Result |
-|---|---:|---:|---:|---|
-| delete u8 | 64,000 | 37,369,521 | 6,359,315 | PASS |
-| weight change u8 | 64,000 | 37,371,861 | 6,359,616 | PASS |
+| Scenario | Graph edges | Cycles | Backend requests | Oracle mismatches | Wall time | Result |
+|---|---:|---:|---:|---:|---:|---|
+| delete u1 | 64,000 | 37,371,473 | 6,359,597 | 0 / 0 | 639.26 s | PASS |
+| delete u8 | 64,000 | 37,369,521 | 6,359,315 | 0 / 0 | 648.60 s | PASS |
+| delete u64 | 64,000 | 37,353,019 | 6,358,104 | 0 / 0 | 634.91 s | PASS |
+| weight change u1 | 64,000 | 37,371,861 | 6,359,616 | 0 / 0 | 651.28 s | PASS |
+
+Here `0 / 0` means zero architecture-oracle mismatches and zero independent
+mathematical-oracle mismatches. The formal case results are under
+`/data/tmp/chuxiao/large_graph_campaign_v1/noncapacity_v3_repair/`.
 
 ## Reproduction
 
@@ -99,8 +105,11 @@ Run one bounded non-monotonic publication case:
 ```
 
 Revalidate an already-completed PageRank child result by adding
-`--reuse-result` to `scripts/run_sst_grasu_regraph_hls_pagerank.py`, then run
-the parent publication command with `--reuse-child`.
+`--reuse-result --reuse-host-wall-seconds <ORIGINAL_SECONDS>` to
+`scripts/run_sst_grasu_regraph_hls_pagerank.py`, then run the parent publication
+command with `--reuse-child`. The original duration must come from the failed
+campaign job's `elapsed_seconds`; the runner rejects a missing or non-positive
+value so recovered evidence cannot report a zero-second simulator run.
 
 ## Verification
 
