@@ -78,6 +78,44 @@ class ConnectedComponentsWorkloadTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "atomic reciprocal"):
             analyze_reciprocal_update(graph, update)
 
+    def test_reciprocal_weights_may_differ_because_cc_ignores_them(self) -> None:
+        graph = SliceGraph(
+            "base",
+            4,
+            (SliceRecord(0, 1, 3, 1), SliceRecord(1, 0, 7, 1)),
+        )
+        update = SliceGraph(
+            "insert",
+            4,
+            (SliceRecord(1, 2, 11, 1), SliceRecord(2, 1, 13, 1)),
+        )
+        analysis = analyze_reciprocal_update(graph, update)
+        final = materialize_reciprocal_update(graph, update)
+        self.assertEqual(analysis.effective_mutations, 1)
+        self.assertEqual(connected_components_labels(final), (0, 0, 0, 3))
+
+    def test_weight_change_is_topologically_zero_net_with_asymmetric_weights(self) -> None:
+        graph = SliceGraph(
+            "base",
+            3,
+            (SliceRecord(0, 1, 3, 1), SliceRecord(1, 0, 7, 1)),
+        )
+        update = SliceGraph(
+            "weight_change",
+            3,
+            (
+                SliceRecord(0, 1, 3, -1),
+                SliceRecord(0, 1, 5, 1),
+                SliceRecord(1, 0, 7, -1),
+                SliceRecord(1, 0, 9, 1),
+            ),
+        )
+        analysis = analyze_reciprocal_update(graph, update)
+        final = materialize_reciprocal_update(graph, update)
+        self.assertTrue(analysis.zero_net)
+        self.assertEqual(analysis.effective_mutations, 0)
+        self.assertEqual(connected_components_labels(final), (0, 0, 2))
+
     def test_scalability_fixture_is_legal_four_partition_input(self) -> None:
         manifest = json.loads(
             (ROOT / "configs/experiments/connected_components_formal_v1.json")

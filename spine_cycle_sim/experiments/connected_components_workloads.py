@@ -46,12 +46,17 @@ def _record_counts(
 
 
 def validate_reciprocal_snapshot(graph: SliceGraph) -> None:
-    counts = _record_counts(graph)
-    for (source, destination, weight, diff), count in counts.items():
-        if diff != 1 or count != 1:
+    records = _record_counts(graph)
+    counts: Counter[tuple[int, int]] = Counter()
+    for (source, destination, _weight, diff), count in records.items():
+        if diff != 1:
             raise ValueError("CC snapshot must be a simple positive graph")
-        if counts[(destination, source, weight, 1)] != 1:
-            raise ValueError("CC snapshot is missing a weighted reciprocal edge")
+        counts[(source, destination)] += count
+    for (source, destination), count in counts.items():
+        if count != 1:
+            raise ValueError("CC snapshot must be a simple positive graph")
+        if counts[(destination, source)] != 1:
+            raise ValueError("CC snapshot is missing a reciprocal edge")
 
 
 def analyze_reciprocal_update(
@@ -60,36 +65,40 @@ def analyze_reciprocal_update(
     if graph.vertices != update.vertices or not update.records:
         raise ValueError("CC update requires matching non-empty graphs")
     validate_reciprocal_snapshot(graph)
-    base = {(edge.src, edge.dst, edge.weight) for edge in graph.records}
+    base = {(edge.src, edge.dst) for edge in graph.records}
     counts = _record_counts(update)
+    paired: Counter[tuple[int, int, int]] = Counter()
     touched: set[int] = set()
     logical = 0
     insertions = 0
     deletions = 0
-    net: Counter[tuple[int, int, int]] = Counter()
-    for (source, destination, weight, diff), count in counts.items():
+    net: Counter[tuple[int, int]] = Counter()
+    for (source, destination, _weight, diff), count in counts.items():
         if source == destination:
             raise ValueError("formal CC updates exclude self loops")
-        if counts[(destination, source, weight, diff)] != count:
-            raise ValueError("CC update is not an atomic reciprocal pair")
+        paired[(source, destination, diff)] += count
         if source < destination:
             logical += count
             if diff > 0:
                 insertions += count
             else:
                 deletions += count
-        net[(source, destination, weight)] += diff * count
+        net[(source, destination)] += diff * count
         touched.update((source, destination))
 
+    for (source, destination, diff), count in paired.items():
+        if paired[(destination, source, diff)] != count:
+            raise ValueError("CC update is not an atomic reciprocal pair")
+
     effective = 0
-    for (source, destination, weight), delta in net.items():
-        reverse = net[(destination, source, weight)]
+    for (source, destination), delta in net.items():
+        reverse = net[(destination, source)]
         if reverse != delta:
             raise ValueError("CC update has asymmetric net multiplicity")
         if source > destination or delta == 0:
             continue
         effective += abs(delta)
-        exists = (source, destination, weight) in base
+        exists = (source, destination) in base
         if delta > 0 and exists:
             raise ValueError("CC insertion already exists in the base graph")
         if delta < 0 and not exists:

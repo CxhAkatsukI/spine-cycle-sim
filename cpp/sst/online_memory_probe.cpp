@@ -572,7 +572,7 @@ SpineEdgeSlice materialize_weighted_snapshot(const SpineEdgeSlice &initial,
 }
 
 using ConnectedComponentsEdgeKey =
-    std::tuple<std::uint32_t, std::uint32_t, std::uint16_t>;
+    std::pair<std::uint32_t, std::uint32_t>;
 
 std::map<ConnectedComponentsEdgeKey, std::int64_t>
 connected_components_edge_multiplicities(const SpineEdgeSlice &graph,
@@ -585,7 +585,7 @@ connected_components_edge_multiplicities(const SpineEdgeSlice &graph,
       throw std::invalid_argument(
           "connected-components graph contains an invalid edge record");
     }
-    edges[{edge.src, edge.dst, edge.weight}] += edge.diff;
+    edges[{edge.src, edge.dst}] += edge.diff;
   }
   return edges;
 }
@@ -593,10 +593,10 @@ connected_components_edge_multiplicities(const SpineEdgeSlice &graph,
 void validate_connected_components_snapshot(const SpineEdgeSlice &graph) {
   const auto edges = connected_components_edge_multiplicities(graph, false);
   for (const auto &[key, count] : edges) {
-    const auto &[source, destination, weight] = key;
+    const auto &[source, destination] = key;
     if (count != 1 ||
-        edges.find({destination, source, weight}) == edges.end() ||
-        edges.at({destination, source, weight}) != count) {
+        edges.find({destination, source}) == edges.end() ||
+        edges.at({destination, source}) != count) {
       throw std::invalid_argument(
           "connected-components snapshot is not a simple reciprocal graph");
     }
@@ -709,13 +709,28 @@ ConnectedComponentsSetup build_connected_components_setup(
   validate_connected_components_snapshot(old_graph);
   validate_connected_components_snapshot(new_graph);
   const auto deltas = connected_components_edge_multiplicities(update, true);
+  std::map<std::tuple<std::uint32_t, std::uint32_t, std::int16_t>,
+           std::size_t>
+      physical_pairs;
+  for (const SpineEdgeRecord &edge : update.edges) {
+    ++physical_pairs[{edge.src, edge.dst, edge.diff}];
+  }
+  for (const auto &[key, count] : physical_pairs) {
+    const auto &[source, destination, diff] = key;
+    const auto reverse = physical_pairs.find({destination, source, diff});
+    if (source == destination || reverse == physical_pairs.end() ||
+        reverse->second != count) {
+      throw std::invalid_argument(
+          "connected-components update is not an atomic reciprocal pair");
+    }
+  }
 
   ConnectedComponentsSetup setup;
   setup.physical_update_records = update.edges.size();
   std::vector<std::uint32_t> touched;
   for (const auto &[key, delta] : deltas) {
-    const auto &[source, destination, weight] = key;
-    const auto reverse = deltas.find({destination, source, weight});
+    const auto &[source, destination] = key;
+    const auto reverse = deltas.find({destination, source});
     if (source == destination || reverse == deltas.end() ||
         reverse->second != delta) {
       throw std::invalid_argument(
