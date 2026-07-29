@@ -9,6 +9,7 @@ import unittest
 
 from spine_cycle_sim.experiments.publication_analysis import (
     analyze_publication_case_results,
+    expected_execution_metadata,
     write_publication_analysis,
 )
 
@@ -204,6 +205,12 @@ class PublicationAnalysisTests(unittest.TestCase):
         )
         self.assertEqual(analysis["status"], "PARTIAL")
         self.assertEqual(analysis["missing_execution_ids"], ["missing"])
+        coverage = {
+            row["execution_id"]: row["coverage_status"]
+            for row in analysis["execution_coverage_rows"]
+        }
+        self.assertEqual(coverage["execution_spine"], "observed_pass")
+        self.assertEqual(coverage["missing"], "missing")
         with self.assertRaisesRegex(ValueError, "incomplete"):
             analyze_publication_case_results(
                 [result],
@@ -259,8 +266,54 @@ class PublicationAnalysisTests(unittest.TestCase):
             output = Path(temporary)
             write_publication_analysis(output, analysis)
             activity = (output / "component_activity_rows.csv").read_text()
+            coverage = (output / "execution_coverage_rows.csv").read_text()
         self.assertIn("component_cycles", activity)
         self.assertIn("hbm_frontend", activity)
+        self.assertIn("coverage_status", coverage)
+        self.assertIn("observed_pass", coverage)
+
+    def test_expected_execution_metadata_is_human_readable_and_merged(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            manifests = []
+            for campaign_id, view in (("campaign_a", "main_e2e"), ("campaign_b", "memory")):
+                path = root / f"{campaign_id}.json"
+                path.write_text(
+                    json.dumps(
+                        {
+                            "campaign_id": campaign_id,
+                            "execution_views": {"abc123": [view]},
+                            "jobs": [
+                                {
+                                    "job_id": "run.graph.weighted_sssp.insert.u8.spine.abc123",
+                                    "dataset_id": "graph",
+                                    "algorithm": "weighted_sssp",
+                                    "system": "spine",
+                                    "tier": view,
+                                    "estimated_rss_gib": 2.5,
+                                    "command": [
+                                        "python3",
+                                        "runner.py",
+                                        "--scenario",
+                                        "insert",
+                                        "--batch-size",
+                                        "8",
+                                    ],
+                                }
+                            ],
+                        }
+                    )
+                    + "\n",
+                    encoding="ascii",
+                )
+                manifests.append(path)
+            metadata = expected_execution_metadata(manifests)
+        self.assertEqual(metadata["abc123"]["dataset_id"], "graph")
+        self.assertEqual(metadata["abc123"]["batch_size"], 8)
+        self.assertEqual(metadata["abc123"]["logical_views"], "main_e2e+memory")
+        self.assertEqual(
+            metadata["abc123"]["campaign_ids"], "campaign_a+campaign_b"
+        )
 
 
 if __name__ == "__main__":

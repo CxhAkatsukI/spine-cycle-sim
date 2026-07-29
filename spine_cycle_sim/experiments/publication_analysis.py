@@ -607,6 +607,7 @@ def analyze_publication_case_results(
     results: Sequence[Mapping[str, Any]],
     *,
     expected_execution_ids: Iterable[str] = (),
+    expected_execution_records: Mapping[str, Mapping[str, Any]] | None = None,
     require_complete: bool = False,
 ) -> dict[str, Any]:
     """Validate, de-duplicate, pair, and summarize formal case results."""
@@ -725,10 +726,56 @@ def analyze_publication_case_results(
                 }
             )
 
+    expected_records = expected_execution_records or {}
     expected = set(expected_execution_ids)
+    if expected_records:
+        record_ids = set(expected_records)
+        if expected and expected != record_ids:
+            raise ValueError("expected execution IDs and records differ")
+        expected = record_ids
     observed = set(by_execution)
     missing = sorted(expected - observed)
     unexpected = sorted(observed - expected) if expected else []
+    execution_coverage_rows: list[dict[str, Any]] = []
+    coverage_ids = expected | observed
+    for execution_id in sorted(coverage_ids):
+        metadata = expected_records.get(execution_id, {})
+        result = by_execution.get(execution_id)
+        case = result["case"] if result is not None else {}
+        normalized = (
+            _normalized_system_row(result) if result is not None else {}
+        )
+        is_expected = execution_id in expected if expected else True
+        is_observed = result is not None
+        execution_coverage_rows.append(
+            {
+                "execution_id": execution_id,
+                "dataset_id": metadata.get("dataset_id", case.get("dataset_id", "")),
+                "algorithm": metadata.get("algorithm", case.get("algorithm", "")),
+                "scenario": metadata.get("scenario", case.get("scenario", "")),
+                "batch_size": metadata.get("batch_size", case.get("batch_size", "")),
+                "system": metadata.get("system", case.get("system", "")),
+                "tier": metadata.get("tier", ""),
+                "logical_views": metadata.get(
+                    "logical_views", normalized.get("logical_views", "")
+                ),
+                "campaign_ids": metadata.get("campaign_ids", ""),
+                "estimated_rss_gib": metadata.get("estimated_rss_gib", ""),
+                "expected": is_expected,
+                "observed": is_observed,
+                "coverage_status": (
+                    "observed_pass"
+                    if is_expected and is_observed
+                    else (
+                        "missing"
+                        if is_expected
+                        else "unexpected_observed_pass"
+                    )
+                ),
+                "cycles": normalized.get("cycles", ""),
+                "host_wall_seconds": normalized.get("host_wall_seconds", ""),
+            }
+        )
     incomplete_groups = sum(
         not row["complete_triplet"] for row in correctness_groups
     )
@@ -762,6 +809,7 @@ def analyze_publication_case_results(
         "failed_correctness_groups": failed_correctness_groups,
         "missing_execution_ids": missing,
         "unexpected_execution_ids": unexpected,
+        "execution_coverage_rows": execution_coverage_rows,
         "system_rows": system_rows,
         "component_activity_rows": activity_rows,
         "pair_rows": pair_rows,
@@ -777,13 +825,96 @@ def load_case_results(roots: Sequence[Path]) -> list[dict[str, Any]]:
 
 
 def expected_execution_ids(manifests: Sequence[Path]) -> set[str]:
-    expected: set[str] = set()
+    return set(expected_execution_metadata(manifests))
+
+
+def _command_option(command: Sequence[Any], option: str) -> str:
+    values = [str(value) for value in command]
+    try:
+        index = values.index(option)
+    except ValueError as error:
+        raise ValueError(f"campaign job lacks {option}") from error
+    if index + 1 >= len(values):
+        raise ValueError(f"campaign job lacks a value for {option}")
+    return values[index + 1]
+
+
+def expected_execution_metadata(
+    manifests: Sequence[Path],
+) -> dict[str, dict[str, Any]]:
+    """Load human-readable metadata for every frozen physical execution."""
+
+    expected: dict[str, dict[str, Any]] = {}
     for path in manifests:
         payload = json.loads(path.read_text(encoding="ascii"))
         views = payload.get("execution_views")
         if not isinstance(views, Mapping):
             raise ValueError(f"campaign manifest lacks execution_views: {path}")
-        expected.update(str(value) for value in views)
+        jobs = payload.get("jobs")
+        if not isinstance(jobs, list):
+            raise ValueError(f"campaign manifest lacks jobs: {path}")
+        by_execution: dict[str, Mapping[str, Any]] = {}
+        for job in jobs:
+            if not isinstance(job, Mapping):
+                raise ValueError(f"campaign manifest has invalid job: {path}")
+            execution_id = str(job.get("job_id", "")).rsplit(".", 1)[-1]
+            if execution_id in by_execution:
+                raise ValueError(f"campaign manifest repeats execution: {execution_id}")
+            by_execution[execution_id] = job
+        for raw_execution_id, raw_views in views.items():
+            execution_id = str(raw_execution_id)
+            job = by_execution.get(execution_id)
+            if job is None:
+                raise ValueError(
+                    f"campaign execution lacks a physical job: {execution_id}"
+                )
+            command = job.get("command")
+            if not isinstance(command, list):
+                raise ValueError(f"campaign job lacks command: {execution_id}")
+            logical_views = (
+                [str(value) for value in raw_views]
+                if isinstance(raw_views, list)
+                else [str(raw_views)]
+            )
+            row = {
+                "execution_id": execution_id,
+                "dataset_id": str(job.get("dataset_id", "")),
+                "algorithm": str(job.get("algorithm", "")),
+                "scenario": _command_option(command, "--scenario"),
+                "batch_size": int(_command_option(command, "--batch-size")),
+                "system": str(job.get("system", "")),
+                "tier": str(job.get("tier", "")),
+                "logical_views": "+".join(sorted(set(logical_views))),
+                "campaign_ids": str(payload.get("campaign_id", "")),
+                "estimated_rss_gib": float(job.get("estimated_rss_gib", 0.0)),
+            }
+            previous = expected.get(execution_id)
+            if previous is None:
+                expected[execution_id] = row
+                continue
+            identity_keys = (
+                "dataset_id",
+                "algorithm",
+                "scenario",
+                "batch_size",
+                "system",
+            )
+            if any(previous[key] != row[key] for key in identity_keys):
+                raise ValueError(
+                    f"campaign manifests disagree on execution: {execution_id}"
+                )
+            previous["logical_views"] = "+".join(
+                sorted(
+                    set(str(previous["logical_views"]).split("+"))
+                    | set(str(row["logical_views"]).split("+"))
+                )
+            )
+            previous["campaign_ids"] = "+".join(
+                sorted(
+                    set(str(previous["campaign_ids"]).split("+"))
+                    | set(str(row["campaign_ids"]).split("+"))
+                )
+            )
     return expected
 
 
@@ -794,6 +925,7 @@ def write_publication_analysis(output_dir: Path, analysis: Mapping[str, Any]) ->
         json.dumps(compact, indent=2, sort_keys=True) + "\n", encoding="ascii"
     )
     for name in (
+        "execution_coverage_rows",
         "system_rows",
         "component_activity_rows",
         "pair_rows",

@@ -131,6 +131,7 @@ from .publication_analysis import (
     PUBLICATION_RESULT_SYSTEMS,
     analyze_publication_case_results,
     expected_execution_ids,
+    expected_execution_metadata,
     load_case_results,
     write_publication_analysis,
 )
@@ -245,6 +246,7 @@ __all__ = [
     "PUBLICATION_RESULT_SYSTEMS",
     "analyze_publication_case_results",
     "expected_execution_ids",
+    "expected_execution_metadata",
     "load_case_results",
     "write_publication_analysis",
     "SliceMetadata",

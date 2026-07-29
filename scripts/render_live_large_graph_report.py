@@ -778,6 +778,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     component_activity = read_csv(
         args.analysis_dir / "component_activity_rows.csv"
     )
+    execution_coverage = read_csv(
+        args.analysis_dir / "execution_coverage_rows.csv"
+    )
     write_csv(args.data_dir / "headline_pairs.csv", pairs)
     write_csv(args.data_dir / "k4_update_sweep.csv", update_sweep)
     write_csv(args.data_dir / "dense_sweep.csv", dense_sweep)
@@ -787,6 +790,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     write_csv(args.data_dir / "routed_ppa.csv", ppa)
     write_csv(args.data_dir / "vectorless_component_power.csv", component_power)
     write_csv(args.data_dir / "component_activity.csv", component_activity)
+    write_csv(args.data_dir / "execution_coverage.csv", execution_coverage)
     args.tex.parent.mkdir(parents=True, exist_ok=True)
     args.tex.write_text(
         render_tex(

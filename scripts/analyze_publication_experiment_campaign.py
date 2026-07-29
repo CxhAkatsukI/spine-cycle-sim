@@ -15,6 +15,7 @@ if str(ROOT) not in sys.path:
 from spine_cycle_sim.experiments.publication_analysis import (  # noqa: E402
     analyze_publication_case_results,
     expected_execution_ids,
+    expected_execution_metadata,
     load_case_results,
     write_publication_analysis,
 )
@@ -28,9 +29,11 @@ def main() -> int:
     parser.add_argument("--require-complete", action="store_true")
     args = parser.parse_args()
     results = load_case_results(args.result_root)
+    execution_metadata = expected_execution_metadata(args.manifest)
     analysis = analyze_publication_case_results(
         results,
         expected_execution_ids=expected_execution_ids(args.manifest),
+        expected_execution_records=execution_metadata,
         require_complete=args.require_complete,
     )
     write_publication_analysis(args.out_dir, analysis)
