@@ -102,7 +102,7 @@ class PublicationAnalysisTests(unittest.TestCase):
         self.assertEqual(speedups["grasu_regraph_k1"], 4.0)
         self.assertEqual(speedups["grasu_regraph_k4_shared"], 2.5)
 
-    def test_cross_system_final_state_mismatch_is_rejected(self) -> None:
+    def test_cross_system_final_state_mismatch_is_recorded_and_excluded(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             spine = case_result("spine", 100)
             competitor = case_result("grasu_regraph_k1", 400)
@@ -117,8 +117,13 @@ class PublicationAnalysisTests(unittest.TestCase):
                 Path(temporary) / "competitor.json",
                 {"distances_external": [0, 1, 9, 3]},
             )
-            with self.assertRaisesRegex(ValueError, "final state mismatch"):
-                analyze_publication_case_results([spine, competitor])
+            analysis = analyze_publication_case_results([spine, competitor])
+            self.assertEqual(analysis["status"], "FAIL")
+            self.assertEqual(analysis["failed_correctness_groups"], 1)
+            self.assertFalse(
+                analysis["correctness_groups"][0]["final_state_match"]
+            )
+            self.assertEqual(analysis["pair_rows"], [])
 
     def test_float_external_vectors_use_explicit_tolerance(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -141,14 +146,41 @@ class PublicationAnalysisTests(unittest.TestCase):
                 Path(temporary) / "competitor.json",
                 {
                     "ranks": [0.4, 0.3, 0.2, 0.1],
-                    "ranks_external": [0.1, 0.2 + 1.0e-10, 0.3, 0.4],
+                    "ranks_external": [0.1, 0.2 + 1.2e-6, 0.3, 0.4],
                 },
             )
             analysis = analyze_publication_case_results([spine, competitor])
             group = analysis["correctness_groups"][0]
             self.assertTrue(group["final_state_match"])
             self.assertFalse(group["final_state_exact_match"])
-            self.assertLess(group["cross_system_max_abs_error"], 1.0e-6)
+            self.assertAlmostEqual(group["cross_system_max_abs_error"], 1.2e-6)
+            self.assertEqual(group["cross_system_tolerance"], 1.0e-5)
+
+    def test_float_external_vectors_over_tolerance_are_excluded(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            spine = case_result("spine", 100)
+            competitor = case_result("grasu_regraph_k4_shared", 250)
+            for result in (spine, competitor):
+                result["case"]["algorithm"] = "full_pagerank"
+                result["case"]["algorithm_parameters"] = {
+                    "iterations": 3,
+                    "damping": 0.85,
+                }
+            competitor["final_state"]["sha256"] = "4" * 64
+            attach_raw_result(
+                spine,
+                Path(temporary) / "spine.json",
+                {"ranks_external": [0.1, 0.2, 0.3, 0.4]},
+            )
+            attach_raw_result(
+                competitor,
+                Path(temporary) / "competitor.json",
+                {"ranks_external": [0.1, 0.2 + 1.1e-5, 0.3, 0.4]},
+            )
+            analysis = analyze_publication_case_results([spine, competitor])
+            self.assertEqual(analysis["status"], "FAIL")
+            self.assertEqual(analysis["failed_correctness_groups"], 1)
+            self.assertEqual(analysis["pair_rows"], [])
 
     def test_duplicate_execution_must_keep_scientific_result(self) -> None:
         first = case_result("spine", 100, execution_id="same")

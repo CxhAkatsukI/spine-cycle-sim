@@ -437,7 +437,8 @@ This report is generated directly from correctness-gated campaign artifacts.
 The snapshot is \textbf{@@STATUS@@}: @@OBSERVED@@ of @@EXPECTED@@ planned
 physical executions are currently admitted, with @@TRIPLETS@@ complete
 three-system groups. Missing bars are unexecuted comparisons, not zero-valued
-measurements. Every plotted row has exact cross-system final-state agreement.
+measurements. Every plotted row passes exact integer-state comparison or the
+declared $10^{-5}$ float32 PageRank output tolerance.
 Headline plots use insertion batch 8; the update sweep labels operation and
 batch size explicitly.
 \end{abstract}

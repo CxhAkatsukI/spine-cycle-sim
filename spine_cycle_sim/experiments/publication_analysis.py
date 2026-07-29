@@ -15,6 +15,7 @@ PUBLICATION_RESULT_SYSTEMS = (
     "grasu_regraph_k1",
     "grasu_regraph_k4_shared",
 )
+FLOAT_FINAL_STATE_TOLERANCE = 1.0e-5
 
 
 def _stable_digest(value: object) -> str:
@@ -246,7 +247,10 @@ def _cross_system_final_state(
             "l1_error": 0.0 if exact else math.inf,
             "tolerance": 0.0,
         }
-    tolerance = 1.0e-6
+    # The PageRank runners and their independent float64 oracles use this
+    # tolerance for float32 reduction-order differences. This is distinct from
+    # Residual PageRank's per-vertex 1e-6 activation threshold.
+    tolerance = FLOAT_FINAL_STATE_TOLERANCE
     max_abs = 0.0
     l1_error = 0.0
     exact = True
@@ -312,8 +316,6 @@ def analyze_publication_case_results(
             by_execution[row["execution_id"]] for row in systems.values()
         ]
         equivalence = _cross_system_final_state(group_results)
-        if not equivalence["passed"]:
-            raise ValueError(f"cross-system final state mismatch for {group_id}")
         correctness_groups.append(
             {
                 "group_id": group_id,
@@ -332,6 +334,8 @@ def analyze_publication_case_results(
                 "cross_system_tolerance": equivalence["tolerance"],
             }
         )
+        if not equivalence["passed"]:
+            continue
         spine = systems.get("spine")
         if spine is None:
             continue
@@ -380,16 +384,26 @@ def analyze_publication_case_results(
     incomplete_groups = sum(
         not row["complete_triplet"] for row in correctness_groups
     )
-    complete = not missing and incomplete_groups == 0
+    failed_correctness_groups = sum(
+        not row["final_state_match"] for row in correctness_groups
+    )
+    complete = (
+        not missing
+        and incomplete_groups == 0
+        and failed_correctness_groups == 0
+    )
     if require_complete and not complete:
         raise ValueError(
             "publication result set is incomplete: "
-            f"missing_executions={len(missing)} incomplete_groups={incomplete_groups}"
+            f"missing_executions={len(missing)} "
+            f"incomplete_groups={incomplete_groups} "
+            f"failed_correctness_groups={failed_correctness_groups}"
         )
+    status = "FAIL" if failed_correctness_groups else ("PASS" if complete else "PARTIAL")
     return {
         "schema_version": 1,
         "analysis_id": "large_graph_publication_results_v1",
-        "status": "PASS" if complete else "PARTIAL",
+        "status": status,
         "observed_executions": len(observed),
         "expected_executions": len(expected),
         "duplicate_executions": sum(count - 1 for count in duplicate_counts.values()),
@@ -397,6 +411,7 @@ def analyze_publication_case_results(
             bool(row["complete_triplet"]) for row in correctness_groups
         ),
         "incomplete_triplets": incomplete_groups,
+        "failed_correctness_groups": failed_correctness_groups,
         "missing_execution_ids": missing,
         "unexpected_execution_ids": unexpected,
         "system_rows": system_rows,
