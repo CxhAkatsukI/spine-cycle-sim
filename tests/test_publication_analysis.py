@@ -154,9 +154,11 @@ class PublicationAnalysisTests(unittest.TestCase):
         first = case_result("spine", 100, execution_id="same")
         duplicate = deepcopy(first)
         duplicate["row"]["host_wall_seconds"] = 2.0
+        duplicate["scalar_metrics"]["sst_host_wall_seconds"] = 3.0
         analysis = analyze_publication_case_results([first, duplicate])
         self.assertEqual(analysis["observed_executions"], 1)
         self.assertEqual(analysis["duplicate_executions"], 1)
+        self.assertEqual(analysis["system_rows"][0]["host_wall_seconds"], 1.0)
         changed = deepcopy(first)
         changed["row"]["cycles"] = 101
         with self.assertRaisesRegex(ValueError, "changed scientific result"):

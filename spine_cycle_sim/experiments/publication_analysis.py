@@ -47,12 +47,17 @@ def _case_group_identity(case: Mapping[str, Any]) -> dict[str, Any]:
 
 def _scientific_signature(result: Mapping[str, Any]) -> str:
     row = result["row"]
+    scalar_metrics = {
+        key: value
+        for key, value in result.get("scalar_metrics", {}).items()
+        if not str(key).endswith("wall_seconds")
+    }
     return _stable_digest(
         {
             "case": result["case"],
             "cycles": row["cycles"],
             "final_state": result["final_state"],
-            "scalar_metrics": result.get("scalar_metrics", {}),
+            "scalar_metrics": scalar_metrics,
             "backend_arbitration": result.get("backend_arbitration"),
             "backend_traffic": result.get("backend_traffic"),
             "dram": result.get("dram"),
@@ -281,7 +286,7 @@ def analyze_publication_case_results(
                 f"duplicate publication execution changed scientific result: {execution_id}"
             )
         signatures[execution_id] = signature
-        by_execution[execution_id] = result
+        by_execution.setdefault(execution_id, result)
         duplicate_counts[execution_id] = duplicate_counts.get(execution_id, 0) + 1
 
     system_rows = [_normalized_system_row(result) for result in by_execution.values()]
