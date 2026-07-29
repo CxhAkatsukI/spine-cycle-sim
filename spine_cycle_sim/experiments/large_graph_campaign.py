@@ -453,11 +453,16 @@ def build_materialization_campaign_manifest(
     }
 
 
-def _publication_rss_gib(vertices: int, records: int) -> float:
+def _publication_rss_gib(vertices: int, records: int, system: str) -> float:
     # The Python oracle, normalized graph, C++ resident image, and SST backend
-    # coexist during startup. Campaign-v1 observations reached 17-30 GiB per
-    # large process; 384 B/record is the conservative measured envelope.
-    estimated_bytes = 2.0 * 2**30 + vertices * 128 + records * 384
+    # coexist. GraSU's PMA/oracle representation reached 13.4 GiB for a 4M-edge
+    # Full PageRank case, so its admission estimate uses a measured 3 KiB/edge
+    # envelope. Spine's compact resident representation retains the earlier
+    # 384 B/edge envelope. Both are capped by the frozen per-run RSS limit.
+    if system.startswith("grasu_regraph"):
+        estimated_bytes = 2.0 * 2**30 + vertices * 512 + records * 3072
+    else:
+        estimated_bytes = 2.0 * 2**30 + vertices * 128 + records * 384
     return round(min(64.0, max(2.0, estimated_bytes / 2**30)), 2)
 
 
@@ -673,7 +678,7 @@ def build_publication_experiment_campaign_manifest(
             command.extend(("--logical-view", view))
         vertices = int(case.graph["vertices"])
         records = int(case.graph["records"])
-        rss_gib = _publication_rss_gib(vertices, records)
+        rss_gib = _publication_rss_gib(vertices, records, case.system)
         base_priority = min(tier_priority[view] for view in case_views)
         jobs.append(
             {

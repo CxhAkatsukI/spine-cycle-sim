@@ -20,6 +20,7 @@ from spine_cycle_sim.experiments import (
     verify_large_graph_sources,
 )
 from spine_cycle_sim.experiments.campaign_runtime import validate_campaign_manifest
+from spine_cycle_sim.experiments.large_graph_campaign import _publication_rss_gib
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -39,6 +40,20 @@ class LargeGraphCampaignTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.contract = load_large_graph_campaign_contract(CONTRACT)
+
+    def test_publication_rss_estimate_covers_observed_grasu_pma_overhead(self) -> None:
+        grasu_full_pr = _publication_rss_gib(
+            3_072_441, 4_000_000, "grasu_regraph_k4_shared"
+        )
+        spine_full_pr = _publication_rss_gib(3_072_441, 4_000_000, "spine")
+        self.assertGreaterEqual(grasu_full_pr, 13.4)
+        self.assertGreater(grasu_full_pr, spine_full_pr)
+        self.assertEqual(
+            _publication_rss_gib(
+                524_288, 29_732_038, "grasu_regraph_k1"
+            ),
+            64.0,
+        )
 
     def test_frozen_dataset_algorithm_and_system_sets(self) -> None:
         self.assertEqual(

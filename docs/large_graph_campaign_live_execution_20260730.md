@@ -25,6 +25,7 @@ tests because the current Spine maintenance launch has
 | `formal_v3_au_grasu_nonmonotonic` | GraSU delete/weight-change, u1/u8/u64 | 12 | 16-27 |
 | `formal_v3_au_spine_weight_remaining` | Spine weight-change u8/u64 | 2 | 28-29 |
 | `formal_v3_au_insert_endpoints` | Insert u1/u64 across three systems | 6 | 30-35 |
+| `formal_v3_r19_spine` | R19-32 endpoint, four Spine algorithms | 4 | 36-39 |
 
 The v3 launchers use a 112 GiB admission reserve, 96 GiB emergency threshold,
 112 GiB recovery threshold, one start per five-second sample, and no automatic
@@ -83,3 +84,15 @@ listed by the active manifests has a passing case result.
 At the first live snapshot, 38 passing executions and 14 complete
 Spine-versus-competitor pairs were observed. Missing or failed executions are
 never admitted to pair rows.
+
+R19-32 GraSU admission uses the corrected PMA/oracle RSS envelope. The frozen
+endpoint estimates are approximately 13.7 GiB for Full PageRank, 46-47 GiB for
+Weighted SSSP and Residual PageRank, and the 64 GiB per-run cap for CC. Those
+jobs must run in separate memory-controlled waves; the 12-job R19 endpoint must
+not be launched as one concurrent group.
+
+The first R19-32 Spine residual-PageRank insertion completed correctly but had
+an empty initial frontier (`initial_active_vertices=0`). It is retained as
+evidence for the no-propagation update path, not as the representative
+propagating residual-PageRank endpoint. A separately selected update that
+crosses the per-vertex activation threshold is required for that claim.
