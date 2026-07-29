@@ -97,6 +97,28 @@ class SstMemoryBindingTests(unittest.TestCase):
         self.assertIn(1, hot.reachable_channels)
         self.assertIn(5, hot.reachable_channels)
 
+    def test_spine_auto_hot_promotion_binds_hashed_graph_channels(self) -> None:
+        profile = json.loads(
+            (
+                ROOT / "configs" / "architectures" / "spine_latest_afb8199.json"
+            ).read_text(encoding="utf-8")
+        )
+        profile["parameters"]["max_sort_edges"] = 2
+        with tempfile.TemporaryDirectory(dir=ROOT) as tmp:
+            workload = Path(tmp) / "auto_hot.slice"
+            rows = ["# vertices=512"]
+            for destination in range(10):
+                rows.extend(
+                    f"{source} {destination} 1 1" for source in range(30)
+                )
+            workload.write_text("\n".join(rows) + "\n", encoding="ascii")
+            binding = spine_memory_binding(profile, [workload])
+        self.assertIn(0, binding.reachable_channels)
+        self.assertTrue(
+            any(channel in binding.reachable_channels for channel in range(1, 16))
+        )
+        self.assertTrue(set(range(16, 23)) <= set(binding.reachable_channels))
+
     def test_binding_rejects_omitted_reachable_channel(self) -> None:
         with self.assertRaisesRegex(ValueError, "omit a reachable"):
             SstMemoryBinding(32, (0, 30), (0,))

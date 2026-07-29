@@ -106,3 +106,14 @@ remain available as historical evidence, but are intentionally excluded from
 the current aggregate. The analyzer's duplicate-science guard caught this
 cohort boundary when current AU CC/residual runs reused the same execution IDs;
 the guard remains strict.
+
+The first R19-32 Spine CC attempt failed before useful simulation with
+`SST backend request targets an unbound memory channel`. Its 29.7M-record
+reciprocal snapshot exceeds one cold family's aggregate fixed-level capacity,
+so resident preload automatically promotes high-indegree destinations into
+hashed hot shards. The sparse Python binding had considered only cold
+destination partitions. The binding now mirrors the fixed-capacity promotion
+trigger and includes every promoted hot shard; ordinary slices below the
+trigger retain their smaller sparse binding. The failed CC row is not admitted,
+and the stopped R19 Full PageRank/SSSP runs are restarted under the corrected
+binding while preserving the passing residual fast-path evidence.

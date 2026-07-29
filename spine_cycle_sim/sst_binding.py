@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from collections import defaultdict
 from dataclasses import dataclass
+from math import ceil
 from pathlib import Path
 from typing import Iterable, Mapping
 
@@ -138,6 +140,64 @@ def _spine_hot_hash(destination: int) -> int:
     return value & 0xFFFF_FFFF
 
 
+def _spine_automatic_hot_vertices(
+    indegree: Mapping[int, int],
+    cold_partition_edges: list[int],
+    parameters: Mapping[str, object],
+) -> tuple[int, ...]:
+    """Mirror resident preload promotion far enough to derive HBM shards."""
+
+    partitions = int(parameters["partitions"])
+    levels = int(parameters.get("levels", 11))
+    level_ratio = int(parameters.get("level_ratio", 2))
+    batch_edges = int(
+        parameters.get("max_sort_edges", parameters.get("batch_size_edges", 131_072))
+    )
+    partition_vertices = int(parameters["vertex_partition_size"])
+    if (
+        partitions <= 0
+        or levels < 2
+        or level_ratio <= 1
+        or batch_edges <= 0
+        or partition_vertices <= 0
+        or len(cold_partition_edges) != partitions
+    ):
+        raise ValueError("invalid Spine automatic-hot profile")
+
+    capacities = [
+        batch_edges
+        if level == 0
+        else ceil(batch_edges * level_ratio**level / partitions)
+        for level in range(levels)
+    ]
+    family_capacity = sum(capacities)
+    if all(edges <= family_capacity for edges in cold_partition_edges):
+        return ()
+
+    cold_target = capacities[-2]
+    hot_shard_capacity = capacities[-1]
+    cold = list(cold_partition_edges)
+    hot = [0] * partitions
+    promoted: list[int] = []
+    for destination, degree in sorted(
+        indegree.items(), key=lambda item: (-item[1], item[0])
+    ):
+        if all(edges <= cold_target for edges in cold):
+            break
+        if degree > hot_shard_capacity:
+            raise ValueError("Spine automatic-hot classifier rejects a super-hub")
+        partition = min(destination // partition_vertices, partitions - 1)
+        shard = _spine_hot_hash(destination) % partitions
+        cold[partition] -= degree
+        hot[shard] += degree
+        promoted.append(destination)
+        if hot[shard] > hot_shard_capacity:
+            raise ValueError("Spine automatic-hot shard exceeds fixed capacity")
+    if any(edges > cold_target for edges in cold):
+        raise ValueError("Spine automatic-hot classifier cannot fit cold families")
+    return tuple(promoted)
+
+
 def spine_memory_binding(
     profile: Mapping[str, object],
     workload_paths: Iterable[Path],
@@ -177,17 +237,29 @@ def spine_memory_binding(
         )
     }
     hot = set(hot_vertices)
+    automatic_hot = not hot
+    cold_partition_edges = [0] * partitions
+    indegree: dict[int, int] = defaultdict(int)
     paths = tuple(path.resolve() for path in workload_paths)
     if not paths:
         raise ValueError("Spine memory binding requires at least one workload")
     for path in paths:
         graph = load_slice(path)
         for edge in graph.records:
+            partition = min(edge.dst // partition_vertices, partitions - 1)
+            cold_partition_edges[partition] += 1
+            if automatic_hot:
+                indegree[edge.dst] += 1
             if edge.dst in hot:
                 family = _spine_hot_hash(edge.dst) % hot_shards
             else:
-                family = min(edge.dst // partition_vertices, partitions - 1)
+                family = partition
             reachable.add(family)
+    if automatic_hot:
+        promoted = _spine_automatic_hot_vertices(
+            indegree, cold_partition_edges, parameters
+        )
+        reachable.update(_spine_hot_hash(dst) % hot_shards for dst in promoted)
     return make_sst_memory_binding(
         channels, reachable, instantiate_all=instantiate_all
     )
