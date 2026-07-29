@@ -15,6 +15,7 @@
   \newcommand{\datadir}{docs/paper/data/large_graph_campaign}
 }
 \pgfplotstableread[col sep=comma]{\datadir/headline_pairs.csv}\pairdata
+\pgfplotstableread[col sep=comma]{\datadir/k4_update_sweep.csv}\updatedata
 \hypersetup{pdftitle={Spine Large-Graph Campaign Results}}
 \title{\textbf{Spine Large-Graph Campaign Results}\\
 \large Correctness-Gated Spine vs. GraSU+ReGraph K1/K4-shared}
@@ -27,8 +28,9 @@ This report is generated directly from correctness-gated campaign artifacts.
 The snapshot is \textbf{PARTIAL}: 36 of 78 planned
 physical executions are currently admitted, with 4 complete
 three-system groups. Missing bars are unexecuted comparisons, not zero-valued
-measurements. All plotted rows use insertion batch 8 and exact cross-system
-final-state agreement.
+measurements. Every plotted row has exact cross-system final-state agreement.
+Headline plots use insertion batch 8; the update sweep labels operation and
+batch size explicitly.
 \end{abstract}
 
 \section{End-to-end performance}
@@ -112,6 +114,73 @@ accelerator or board energy.}
 \caption{Update-phase cycles only. Values below one expose Spine's current
 maintenance cost even when end-to-end execution favors Spine.}
 \end{figure}
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{semilogyaxis}[
+  ybar, bar width=7pt, width=0.98\linewidth, height=58mm,
+  ylabel={Spine speedup over G+R K4-shared},
+  xtick=data, xticklabels from table={\updatedata}{label},
+  x tick label style={rotate=28,anchor=east}, ymin=0.00001, ymax=20,
+  grid=major, legend style={at={(0.5,1.14)},anchor=south,legend columns=2}]
+\addplot[fill=kfour] table[x=index,y=e2e_speedup] {\updatedata};
+\addplot[fill=kone] table[x=index,y=update_speedup] {\updatedata};
+\addplot[black,dashed,sharp plot]
+  coordinates {(0,1) (4,1)};
+\legend{End-to-end,Update phase only}
+\end{semilogyaxis}
+\end{tikzpicture}
+\caption{AskUbuntu weighted-SSSP operation and batch sweep. Ins, Del, and Wgt
+denote insertion, deletion, and weight change. Update speedup uses semantic
+user mutations and the isolated update-phase cycle window.}
+\end{figure}
+\clearpage
+
+\section{Correctness coverage}
+\begin{table}[ht]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+Algorithm & Cross-system groups & Exact & K1/K4 triplets & Failed \\
+\midrule
+    SSSP & 5 & 5 & 0 & 0 \\
+    CC & 2 & 2 & 2 & 0 \\
+    FullPR & 1 & 1 & 0 & 0 \\
+    ResPR & 2 & 2 & 2 & 0 \\
+\bottomrule
+\end{tabular}
+\caption{Only groups containing at least two systems are counted. Exact means
+canonical final-state equality after both architecture and independent
+mathematical-oracle admission.}
+\end{table}
+
+\section{Frozen dataset catalog}
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{lrrrrc}
+\toprule
+Data & Vertices & Directed edges & CC edges & ResPR edges & Spine full \\
+\midrule
+    AU & 515281 & 390847 & 679246 & 826848 & yes \\
+    SU & 567316 & 616118 & 1061248 & 1075035 & yes \\
+    WK & 1140149 & 1142352 & 2032558 & 2190639 & yes \\
+    SO & 6024271 & 23724166 & 41008044 & 28299669 & yes \\
+    BC & 24575382 & 38968503 & 77937006 & 52778301 & no \\
+    HW & 1139905 & 112751422 & 112751422 & 112784084 & yes \\
+    PK & 1632803 & 44603928 & 44603928 & 44603928 & yes \\
+    OK & 3072441 & 234370166 & 234370166 & 234370166 & yes \\
+    LJ & 4847571 & 85702474 & 85702474 & 85703436 & yes \\
+    LJ08 & 5363260 & 99028542 & 99028542 & 99028616 & yes \\
+    UK & 18520486 & 292243663 & 523574516 & 295209230 & no \\
+    R19 & 524288 & 15483485 & 29732038 & 15672181 & yes \\
+\bottomrule
+\end{tabular}
+\caption{Immutable materialized graph views. Full PageRank uses the separately
+frozen 4M-edge cap. ``Spine full'' is the current $2^{24}$-vertex admission
+check, not a performance result.}
+\end{table}
 
 \section{Simulator engineering runtime}
 \begin{table}[ht]

@@ -15,6 +15,9 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_ANALYSIS = Path(
     "/data/tmp/chuxiao/large_graph_campaign_v1/live_publication_analysis"
 )
+DEFAULT_MATERIALIZATION_ROOT = Path(
+    "/data/tmp/chuxiao/large_graph_campaign_v1/workloads"
+)
 DEFAULT_DATA_DIR = ROOT / "docs/paper/data/large_graph_campaign"
 DEFAULT_TEX = ROOT / "docs/paper/large_graph_campaign_results.tex"
 
@@ -62,6 +65,12 @@ SYSTEM_LABEL = {
     "spine": "Spine",
     "grasu_regraph_k1": "G+R K1",
     "grasu_regraph_k4_shared": "G+R K4-shared",
+}
+SCENARIO_ORDER = ("insert", "delete", "weight_change")
+SCENARIO_LABEL = {
+    "insert": "Ins",
+    "delete": "Del",
+    "weight_change": "Wgt",
 }
 
 
@@ -163,6 +172,116 @@ def runtime_summary(rows: Iterable[Mapping[str, str]]) -> list[dict[str, Any]]:
     return output
 
 
+def k4_update_sweep_rows(
+    rows: Iterable[Mapping[str, str]],
+) -> list[dict[str, Any]]:
+    selected = []
+    for row in rows:
+        if (
+            row.get("dataset_id") != "sx_askubuntu"
+            or row.get("algorithm") != "weighted_sssp"
+            or row.get("competitor") != "grasu_regraph_k4_shared"
+            or row.get("scenario") not in SCENARIO_ORDER
+            or row.get("batch_size") not in {"1", "8", "64"}
+        ):
+            continue
+        selected.append(row)
+    scenario_rank = {value: index for index, value in enumerate(SCENARIO_ORDER)}
+    selected.sort(
+        key=lambda row: (
+            scenario_rank[str(row["scenario"])],
+            int(row["batch_size"]),
+        )
+    )
+    output = []
+    for index, row in enumerate(selected):
+        scenario = str(row["scenario"])
+        output.append(
+            {
+                "index": index,
+                "label": f"{SCENARIO_LABEL[scenario]}-{row['batch_size']}",
+                "scenario": scenario,
+                "batch_size": int(row["batch_size"]),
+                "e2e_speedup": _float(row, "spine_speedup"),
+                "update_speedup": _float(row, "spine_update_speedup"),
+                "memory_ratio": _ratio(
+                    _float(row, "competitor_memory_bytes"),
+                    _float(row, "spine_memory_bytes"),
+                ),
+                "energy_ratio": _float(row, "spine_energy_advantage"),
+            }
+        )
+    return output
+
+
+def _true(value: object) -> bool:
+    return str(value).lower() == "true"
+
+
+def correctness_summary_rows(
+    rows: Iterable[Mapping[str, str]],
+) -> list[dict[str, Any]]:
+    grouped: dict[str, dict[str, int]] = {}
+    for row in rows:
+        algorithm = str(row["algorithm"])
+        if algorithm not in ALGORITHM_LABEL:
+            continue
+        systems = str(row.get("systems_present", "")).split("+")
+        if len(systems) < 2:
+            continue
+        counters = grouped.setdefault(
+            algorithm,
+            {"cross_system_groups": 0, "exact_groups": 0,
+             "complete_triplets": 0, "failed_groups": 0},
+        )
+        counters["cross_system_groups"] += 1
+        exact = _true(row.get("final_state_exact_match", False))
+        if exact:
+            counters["exact_groups"] += 1
+        if _true(row.get("complete_triplet", False)):
+            counters["complete_triplets"] += 1
+        if not _true(row.get("final_state_match", False)):
+            counters["failed_groups"] += 1
+    output = []
+    for algorithm in ALGORITHM_ORDER:
+        counters = grouped.get(algorithm)
+        if counters is None:
+            continue
+        output.append(
+            {
+                "algorithm": algorithm,
+                "label": ALGORITHM_LABEL[algorithm],
+                **counters,
+            }
+        )
+    return output
+
+
+def dataset_catalog_rows(materialization_root: Path) -> list[dict[str, Any]]:
+    output = []
+    for dataset in DATASET_ORDER:
+        path = materialization_root / dataset / "materialization_manifest.json"
+        if not path.is_file():
+            continue
+        manifest = json.loads(path.read_text(encoding="utf-8"))
+        output.append(
+            {
+                "dataset_id": dataset,
+                "label": DATASET_LABEL[dataset],
+                "vertices": int(manifest["capacity"]["vertices"]),
+                "directed_edges": int(manifest["graphs"]["directed"]["records"]),
+                "cc_edges": int(manifest["graphs"]["reciprocal"]["records"]),
+                "residual_edges": int(
+                    manifest["graphs"]["residual_sink_free"]["records"]
+                ),
+                "spine_full_graph_admitted": bool(
+                    manifest["capacity"]["spine_full_graph_admitted"]
+                ),
+            }
+        )
+    return output
+
+
 def write_csv(path: Path, rows: Sequence[Mapping[str, Any]]) -> None:
     if not rows:
         raise ValueError(f"refusing to write empty report data: {path}")
@@ -195,6 +314,9 @@ def render_tex(
     summary: Mapping[str, Any],
     runtime: Sequence[Mapping[str, Any]],
     pair_count: int,
+    update_count: int = 0,
+    correctness: Sequence[Mapping[str, Any]] = (),
+    datasets: Sequence[Mapping[str, Any]] = (),
 ) -> str:
     runtime_lines = []
     for row in runtime:
@@ -211,6 +333,35 @@ def render_tex(
             + r" \\"
         )
     runtime_table = "\n".join(runtime_lines)
+    correctness_table = "\n".join(
+        "    "
+        + " & ".join(
+            (
+                _latex_escape(row["label"]),
+                str(row["cross_system_groups"]),
+                str(row["exact_groups"]),
+                str(row["complete_triplets"]),
+                str(row["failed_groups"]),
+            )
+        )
+        + r" \\"
+        for row in correctness
+    )
+    dataset_table = "\n".join(
+        "    "
+        + " & ".join(
+            (
+                _latex_escape(row["label"]),
+                str(row["vertices"]),
+                str(row["directed_edges"]),
+                str(row["cc_edges"]),
+                str(row["residual_edges"]),
+                "yes" if row["spine_full_graph_admitted"] else "no",
+            )
+        )
+        + r" \\"
+        for row in datasets
+    )
     template = r"""\documentclass[10pt]{article}
 \usepackage[margin=0.7in]{geometry}
 \usepackage{booktabs}
@@ -228,6 +379,7 @@ def render_tex(
   \newcommand{\datadir}{docs/paper/data/large_graph_campaign}
 }
 \pgfplotstableread[col sep=comma]{\datadir/headline_pairs.csv}\pairdata
+\pgfplotstableread[col sep=comma]{\datadir/k4_update_sweep.csv}\updatedata
 \hypersetup{pdftitle={Spine Large-Graph Campaign Results}}
 \title{\textbf{Spine Large-Graph Campaign Results}\\
 \large Correctness-Gated Spine vs. GraSU+ReGraph K1/K4-shared}
@@ -240,8 +392,9 @@ This report is generated directly from correctness-gated campaign artifacts.
 The snapshot is \textbf{@@STATUS@@}: @@OBSERVED@@ of @@EXPECTED@@ planned
 physical executions are currently admitted, with @@TRIPLETS@@ complete
 three-system groups. Missing bars are unexecuted comparisons, not zero-valued
-measurements. All plotted rows use insertion batch 8 and exact cross-system
-final-state agreement.
+measurements. Every plotted row has exact cross-system final-state agreement.
+Headline plots use insertion batch 8; the update sweep labels operation and
+batch size explicitly.
 \end{abstract}
 
 \section{End-to-end performance}
@@ -326,6 +479,59 @@ accelerator or board energy.}
 maintenance cost even when end-to-end execution favors Spine.}
 \end{figure}
 
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{semilogyaxis}[
+  ybar, bar width=7pt, width=0.98\linewidth, height=58mm,
+  ylabel={Spine speedup over G+R K4-shared},
+  xtick=data, xticklabels from table={\updatedata}{label},
+  x tick label style={rotate=28,anchor=east}, ymin=0.00001, ymax=20,
+  grid=major, legend style={at={(0.5,1.14)},anchor=south,legend columns=2}]
+\addplot[fill=kfour] table[x=index,y=e2e_speedup] {\updatedata};
+\addplot[fill=kone] table[x=index,y=update_speedup] {\updatedata};
+\addplot[black,dashed,sharp plot]
+  coordinates {(0,1) (@@UPDATE_MAX_INDEX@@,1)};
+\legend{End-to-end,Update phase only}
+\end{semilogyaxis}
+\end{tikzpicture}
+\caption{AskUbuntu weighted-SSSP operation and batch sweep. Ins, Del, and Wgt
+denote insertion, deletion, and weight change. Update speedup uses semantic
+user mutations and the isolated update-phase cycle window.}
+\end{figure}
+\clearpage
+
+\section{Correctness coverage}
+\begin{table}[ht]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+Algorithm & Cross-system groups & Exact & K1/K4 triplets & Failed \\
+\midrule
+@@CORRECTNESS_TABLE@@
+\bottomrule
+\end{tabular}
+\caption{Only groups containing at least two systems are counted. Exact means
+canonical final-state equality after both architecture and independent
+mathematical-oracle admission.}
+\end{table}
+
+\section{Frozen dataset catalog}
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{lrrrrc}
+\toprule
+Data & Vertices & Directed edges & CC edges & ResPR edges & Spine full \\
+\midrule
+@@DATASET_TABLE@@
+\bottomrule
+\end{tabular}
+\caption{Immutable materialized graph views. Full PageRank uses the separately
+frozen 4M-edge cap. ``Spine full'' is the current $2^{24}$-vertex admission
+check, not a performance result.}
+\end{table}
+
 \section{Simulator engineering runtime}
 \begin{table}[ht]
 \centering
@@ -352,6 +558,9 @@ cycle-for-cycle FPGA calibration or ASIC total power.
         "@@EXPECTED@@": str(summary["expected_executions"]),
         "@@TRIPLETS@@": str(summary["complete_triplets"]),
         "@@MAX_INDEX@@": str(max(0, pair_count - 1)),
+        "@@UPDATE_MAX_INDEX@@": str(max(0, update_count - 1)),
+        "@@CORRECTNESS_TABLE@@": correctness_table,
+        "@@DATASET_TABLE@@": dataset_table,
         "@@RUNTIME_TABLE@@": runtime_table,
     }
     for marker, value in replacements.items():
@@ -362,6 +571,11 @@ cycle-for-cycle FPGA calibration or ASIC total power.
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--analysis-dir", type=Path, default=DEFAULT_ANALYSIS)
+    parser.add_argument(
+        "--materialization-root",
+        type=Path,
+        default=DEFAULT_MATERIALIZATION_ROOT,
+    )
     parser.add_argument("--data-dir", type=Path, default=DEFAULT_DATA_DIR)
     parser.add_argument("--tex", type=Path, default=DEFAULT_TEX)
     return parser.parse_args(argv)
@@ -372,9 +586,18 @@ def main(argv: Sequence[str] | None = None) -> int:
     summary = json.loads(
         (args.analysis_dir / "summary.json").read_text(encoding="utf-8")
     )
-    pairs = headline_pair_rows(read_csv(args.analysis_dir / "pair_rows.csv"))
+    pair_rows = read_csv(args.analysis_dir / "pair_rows.csv")
+    pairs = headline_pair_rows(pair_rows)
+    update_sweep = k4_update_sweep_rows(pair_rows)
+    correctness = correctness_summary_rows(
+        read_csv(args.analysis_dir / "correctness_groups.csv")
+    )
+    datasets = dataset_catalog_rows(args.materialization_root)
     runtime = runtime_summary(read_csv(args.analysis_dir / "system_rows.csv"))
     write_csv(args.data_dir / "headline_pairs.csv", pairs)
+    write_csv(args.data_dir / "k4_update_sweep.csv", update_sweep)
+    write_csv(args.data_dir / "correctness_summary.csv", correctness)
+    write_csv(args.data_dir / "dataset_catalog.csv", datasets)
     write_csv(args.data_dir / "runtime_summary.csv", runtime)
     args.tex.parent.mkdir(parents=True, exist_ok=True)
     args.tex.write_text(
@@ -382,11 +605,15 @@ def main(argv: Sequence[str] | None = None) -> int:
             summary=summary,
             runtime=runtime,
             pair_count=len(pairs),
+            update_count=len(update_sweep),
+            correctness=correctness,
+            datasets=datasets,
         ),
         encoding="ascii",
     )
     print(
-        f"rendered {len(pairs)} headline groups and {len(runtime)} runtime rows "
+        f"rendered {len(pairs)} headline groups, {len(update_sweep)} update "
+        f"groups, and {len(runtime)} runtime rows "
         f"to {args.tex}"
     )
     return 0
