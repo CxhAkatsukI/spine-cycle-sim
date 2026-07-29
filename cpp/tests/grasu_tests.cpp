@@ -764,6 +764,35 @@ void test_weighted_full_word_hls_contract_matches_sw_emu_oracle() {
             << " mismatches=0\n";
 }
 
+void test_weighted_full_word_preprocessing_crosses_dst19_boundary() {
+  constexpr std::size_t kVertices =
+      spine::sim::kGraSuPmaLocalVertexCapacity + 1;
+  constexpr std::size_t kPartitionVertices = 65'536;
+  const std::vector<GraSuEdge> initial = {{
+      .source = 0,
+      .destination = static_cast<std::uint32_t>(kVertices - 1),
+      .weight = 7,
+  }};
+
+  const auto prepared =
+      prepare_grasu_weighted_full_word_graph(kVertices, initial, {});
+  require(prepared.external_to_internal.size() == kVertices &&
+              prepared.internal_to_external.size() == kVertices,
+          "weighted host preprocessing truncated the global vertex map");
+  require(prepared.initial_edges.size() == 1 &&
+              prepared.initial_edges.front().destination == kVertices - 1,
+          "weighted host preprocessing truncated a destination above dst19");
+
+  const GraSuPartitionedPmaLayout layout = GraSuPartitionedPmaLayout::build(
+      kVertices, kPartitionVertices, prepared.initial_edges, {},
+      GraSuPmaWordAbi::kWeightedFullWord);
+  require(layout.partitions.size() == 9,
+          "dst19 boundary graph did not create its ninth partition");
+  require(layout.partitions.back().local_destination(
+              prepared.initial_edges.front().destination) == 0,
+          "partitioned weighted PMA did not encode a local destination");
+}
+
 void test_partitioned_regraph_sssp_crosses_destination_windows() {
   constexpr std::size_t kVertices = 33;
   constexpr std::size_t kPartitionVertices = 16;
@@ -2433,6 +2462,8 @@ int main() {
        test_weighted_dynamic_pma_regraph_matches_dijkstra},
       {"weighted_full_word_hls",
        test_weighted_full_word_hls_contract_matches_sw_emu_oracle},
+      {"weighted_full_word_dst19_boundary",
+       test_weighted_full_word_preprocessing_crosses_dst19_boundary},
       {"partitioned_weighted_full_word",
        test_partitioned_weighted_full_word_update_preserves_variants},
       {"partitioned_sssp",

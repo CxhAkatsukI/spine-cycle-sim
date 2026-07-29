@@ -1378,9 +1378,9 @@ reorder_grasu_native_graph(std::size_t vertices,
 GraSuWeightedFullWordGraph prepare_grasu_weighted_full_word_graph(
     std::size_t vertices, const std::vector<GraSuEdge> &initial_edges,
     const std::vector<GraSuEdge> &logical_updates) {
-  if (vertices == 0 || vertices > kGraSuPmaLocalVertexCapacity) {
-    throw std::invalid_argument(
-        "weighted full-word GraSU graph exceeds one dst19 partition");
+  if (vertices == 0 ||
+      vertices > std::numeric_limits<std::uint32_t>::max()) {
+    throw std::invalid_argument("invalid weighted full-word GraSU vertex count");
   }
 
   using EdgeKey = std::pair<std::uint32_t, std::uint32_t>;

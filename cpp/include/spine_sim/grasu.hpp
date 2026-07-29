@@ -67,7 +67,9 @@ struct GraSuNativeReorderedGraph {
 
 // Exact host preprocessing used by the ff13a67 weighted-PMA HLS path.
 // Logical weight changes become two physical PMA operations before the
-// deterministic update-density vertex reorder is computed.
+// deterministic update-density vertex reorder is computed. Global reordered
+// IDs may exceed dst19; GraSuPartitionedPmaLayout encodes each destination
+// relative to its destination partition before writing the PMA word.
 struct GraSuWeightedFullWordGraph {
   std::vector<std::uint32_t> external_to_internal;
   std::vector<std::uint32_t> internal_to_external;
