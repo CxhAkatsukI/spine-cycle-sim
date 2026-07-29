@@ -48,6 +48,10 @@ def main() -> int:
     parser.add_argument("--dataset", action="append", dest="datasets")
     parser.add_argument("--algorithm", action="append", dest="algorithms")
     parser.add_argument("--system", action="append", dest="systems")
+    parser.add_argument("--scenario", action="append", dest="scenarios")
+    parser.add_argument(
+        "--batch-size", action="append", type=int, dest="batch_sizes"
+    )
     parser.add_argument("--max-cycles", type=int, default=10_000_000_000_000)
     args = parser.parse_args()
 
@@ -64,6 +68,10 @@ def main() -> int:
         selected_datasets=set(args.datasets) if args.datasets else None,
         selected_algorithms=set(args.algorithms) if args.algorithms else None,
         selected_systems=set(args.systems) if args.systems else None,
+        selected_scenarios=set(args.scenarios) if args.scenarios else None,
+        selected_batch_sizes=(
+            set(args.batch_sizes) if args.batch_sizes else None
+        ),
         max_cycles=args.max_cycles,
     )
     args.manifest.parent.mkdir(parents=True, exist_ok=True)

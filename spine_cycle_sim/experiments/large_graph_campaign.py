@@ -476,6 +476,8 @@ def build_publication_experiment_campaign_manifest(
     selected_datasets: set[str] | None = None,
     selected_algorithms: set[str] | None = None,
     selected_systems: set[str] | None = None,
+    selected_scenarios: set[str] | None = None,
+    selected_batch_sizes: set[int] | None = None,
     max_cycles: int = 10_000_000_000_000,
 ) -> dict[str, Any]:
     """Build the de-duplicated, correctness-gated publication run manifest."""
@@ -513,6 +515,24 @@ def build_publication_experiment_campaign_manifest(
             "unknown publication systems: "
             f"{sorted(selected_systems - known_systems)}"
         )
+    known_scenarios = {request.scenario for request in requests}
+    if (
+        selected_scenarios is not None
+        and not selected_scenarios <= known_scenarios
+    ):
+        raise ValueError(
+            "unknown publication scenarios: "
+            f"{sorted(selected_scenarios - known_scenarios)}"
+        )
+    known_batch_sizes = {request.batch_size for request in requests}
+    if (
+        selected_batch_sizes is not None
+        and not selected_batch_sizes <= known_batch_sizes
+    ):
+        raise ValueError(
+            "unknown publication batch sizes: "
+            f"{sorted(selected_batch_sizes - known_batch_sizes)}"
+        )
     requests = tuple(
         request
         for request in requests
@@ -526,6 +546,14 @@ def build_publication_experiment_campaign_manifest(
             or request.algorithm in selected_algorithms
         )
         and (selected_systems is None or request.system in selected_systems)
+        and (
+            selected_scenarios is None
+            or request.scenario in selected_scenarios
+        )
+        and (
+            selected_batch_sizes is None
+            or request.batch_size in selected_batch_sizes
+        )
     )
     if not requests:
         raise ValueError("publication campaign selection is empty")
@@ -686,6 +714,10 @@ def build_publication_experiment_campaign_manifest(
         "selected_datasets": sorted(selected_datasets or known_datasets),
         "selected_algorithms": sorted(selected_algorithms or known_algorithms),
         "selected_systems": sorted(selected_systems or known_systems),
+        "selected_scenarios": sorted(selected_scenarios or known_scenarios),
+        "selected_batch_sizes": sorted(
+            selected_batch_sizes or known_batch_sizes
+        ),
         "execution_views": views,
         "capacity_exclusions": capacity_exclusions,
         "materialization_manifests": {

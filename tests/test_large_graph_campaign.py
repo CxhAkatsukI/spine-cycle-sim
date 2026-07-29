@@ -253,7 +253,7 @@ class LargeGraphCampaignTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "spine_max_vertices"):
             spine_profile_vertex_admitted({}, system="spine", vertices=1)
 
-    def test_formal_campaign_rejects_unknown_algorithm_and_system_filters(self) -> None:
+    def test_formal_campaign_rejects_unknown_selection_filters(self) -> None:
         common = {
             "materialization_root": Path("/tmp/publication-workloads"),
             "output_root": Path("/tmp/publication-runs"),
@@ -272,6 +272,18 @@ class LargeGraphCampaignTests(unittest.TestCase):
             build_publication_experiment_campaign_manifest(
                 self.contract,
                 selected_systems={"not_a_system"},
+                **common,
+            )
+        with self.assertRaisesRegex(ValueError, "scenarios"):
+            build_publication_experiment_campaign_manifest(
+                self.contract,
+                selected_scenarios={"not_a_scenario"},
+                **common,
+            )
+        with self.assertRaisesRegex(ValueError, "batch sizes"):
+            build_publication_experiment_campaign_manifest(
+                self.contract,
+                selected_batch_sizes={999},
                 **common,
             )
 

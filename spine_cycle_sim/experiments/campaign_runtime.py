@@ -171,7 +171,11 @@ def available_memory_bytes() -> int:
 def physical_cpu_ids() -> list[int]:
     selected: dict[tuple[str, str], int] = {}
     cpu_root = Path("/sys/devices/system/cpu")
-    for entry in cpu_root.glob("cpu[0-9]*"):
+    entries = sorted(
+        cpu_root.glob("cpu[0-9]*"),
+        key=lambda entry: int(entry.name[3:]),
+    )
+    for entry in entries:
         cpu_text = entry.name[3:]
         if not cpu_text.isdigit():
             continue
@@ -233,6 +237,7 @@ class CampaignRunner:
         memory_emergency_bytes: int | None = None,
         memory_recovery_bytes: int | None = None,
         max_starts_per_sample: int = 4,
+        cpu_offset: int = 0,
     ) -> None:
         if jobs <= 0 or large_jobs <= 0 or large_jobs > jobs:
             raise ValueError("jobs and large_jobs must satisfy 0 < large_jobs <= jobs")
@@ -277,7 +282,11 @@ class CampaignRunner:
         self.stop_requested = False
         self.memory_pressure_active = False
         self.started_at = time.time()
-        self.cpu_pool = physical_cpu_ids() if pin_cpus else []
+        physical_cpus = physical_cpu_ids() if pin_cpus else []
+        if cpu_offset < 0 or (pin_cpus and cpu_offset >= len(physical_cpus)):
+            raise ValueError("cpu_offset is outside the physical CPU pool")
+        self.cpu_offset = cpu_offset
+        self.cpu_pool = physical_cpus[cpu_offset:]
         self.state = self._initial_state()
 
     def _initial_state(self) -> dict[str, Any]:
@@ -333,6 +342,7 @@ class CampaignRunner:
                 "max_starts_per_sample": self.max_starts_per_sample,
                 "sample_seconds": self.sample_seconds,
                 "pin_cpus": self.pin_cpus,
+                "cpu_offset": self.cpu_offset,
                 "automatic_timeout_seconds": None,
                 "no_progress_warn_seconds": self.no_progress_warn_seconds,
             },

@@ -10,6 +10,7 @@ from unittest.mock import patch
 
 from spine_cycle_sim.experiments.campaign_runtime import (
     CampaignRunner,
+    physical_cpu_ids,
     render_campaign_state,
     validate_campaign_manifest,
     write_control_request,
@@ -17,6 +18,40 @@ from spine_cycle_sim.experiments.campaign_runtime import (
 
 
 class CampaignRuntimeTest(unittest.TestCase):
+    def test_physical_cpu_ids_choose_the_lowest_sibling_per_core(self) -> None:
+        cpus = physical_cpu_ids()
+        self.assertEqual(cpus, sorted(cpus))
+        self.assertEqual(len(cpus), len(set(cpus)))
+        if Path("/sys/devices/system/cpu/cpu0").exists():
+            self.assertEqual(cpus[0], 0)
+
+    def test_runner_rejects_cpu_offset_outside_pool(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            manifest_path = root / "manifest.json"
+            manifest_path.write_text(
+                json.dumps(
+                    {
+                        "schema_version": 1,
+                        "campaign_id": "cpu_offset_test",
+                        "jobs": [{"job_id": "only", "command": ["true"]}],
+                    }
+                ),
+                encoding="ascii",
+            )
+            with self.assertRaisesRegex(ValueError, "cpu_offset"):
+                CampaignRunner(
+                    manifest_path,
+                    root / "run",
+                    jobs=1,
+                    large_jobs=1,
+                    memory_reserve_bytes=0,
+                    sample_seconds=1.0,
+                    pin_cpus=True,
+                    resume=False,
+                    cpu_offset=len(physical_cpu_ids()),
+                )
+
     def test_manifest_rejects_dependency_cycle(self) -> None:
         manifest = {
             "schema_version": 1,

@@ -18,6 +18,9 @@ campaigns=(
   formal_v3_wiki_cc_k1
   formal_v3_superuser_weighted
   formal_v3_superuser_spine_fullpr
+  formal_v3_au_grasu_nonmonotonic
+  formal_v3_au_spine_weight_remaining
+  formal_v3_au_insert_endpoints
 )
 
 while true; do

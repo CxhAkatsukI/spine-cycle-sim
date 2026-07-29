@@ -34,6 +34,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-starts-per-sample", type=int, default=4)
     parser.add_argument("--sample-seconds", type=float, default=5.0)
     parser.add_argument("--no-progress-warn-minutes", type=float, default=20.0)
+    parser.add_argument(
+        "--cpu-offset",
+        type=int,
+        default=0,
+        help="Start this launcher's deterministic physical-CPU pool at this offset.",
+    )
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--no-pin-cpus", action="store_true")
     return parser.parse_args()
@@ -62,6 +68,7 @@ def main() -> int:
         pin_cpus=not args.no_pin_cpus,
         resume=args.resume,
         no_progress_warn_seconds=args.no_progress_warn_minutes * 60.0,
+        cpu_offset=args.cpu_offset,
     )
     print(
         "Monitor with:\n"
