@@ -428,6 +428,8 @@ def build_publication_experiment_campaign_manifest(
     repository_root: Path = ROOT,
     selected_tiers: set[str] | None = None,
     selected_datasets: set[str] | None = None,
+    selected_algorithms: set[str] | None = None,
+    selected_systems: set[str] | None = None,
     max_cycles: int = 10_000_000_000_000,
 ) -> dict[str, Any]:
     """Build the de-duplicated, correctness-gated publication run manifest."""
@@ -450,6 +452,21 @@ def build_publication_experiment_campaign_manifest(
             "unknown publication datasets: "
             f"{sorted(selected_datasets - known_datasets)}"
         )
+    known_algorithms = {request.algorithm for request in requests}
+    if (
+        selected_algorithms is not None
+        and not selected_algorithms <= known_algorithms
+    ):
+        raise ValueError(
+            "unknown publication algorithms: "
+            f"{sorted(selected_algorithms - known_algorithms)}"
+        )
+    known_systems = {request.system for request in requests}
+    if selected_systems is not None and not selected_systems <= known_systems:
+        raise ValueError(
+            "unknown publication systems: "
+            f"{sorted(selected_systems - known_systems)}"
+        )
     requests = tuple(
         request
         for request in requests
@@ -458,6 +475,11 @@ def build_publication_experiment_campaign_manifest(
             selected_datasets is None
             or request.dataset_id in selected_datasets
         )
+        and (
+            selected_algorithms is None
+            or request.algorithm in selected_algorithms
+        )
+        and (selected_systems is None or request.system in selected_systems)
     )
     if not requests:
         raise ValueError("publication campaign selection is empty")
@@ -582,6 +604,8 @@ def build_publication_experiment_campaign_manifest(
         "physical_execution_count": len(cases),
         "selected_tiers": sorted(selected_tiers or known_tiers),
         "selected_datasets": sorted(selected_datasets or known_datasets),
+        "selected_algorithms": sorted(selected_algorithms or known_algorithms),
+        "selected_systems": sorted(selected_systems or known_systems),
         "execution_views": views,
         "materialization_manifests": {
             dataset_id: {

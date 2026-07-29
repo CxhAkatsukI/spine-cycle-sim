@@ -116,10 +116,10 @@ python3 scripts/generate_publication_experiment_campaign.py \
     /data/tmp/chuxiao/large_graph_campaign_v1/formal_candidate86_v1/campaign_manifest.json
 ```
 
-Use repeatable `--tier` and `--dataset` filters for reviewed pilot runs. For
-example, the 12-run AskUbuntu main-E2E pilot is generated with
-`--tier main_e2e --dataset sx_askubuntu`. R19-32 can be isolated with
-`--tier endpoint_scalability`.
+Use repeatable `--tier`, `--dataset`, `--algorithm`, and `--system` filters for
+reviewed pilot or repair runs. For example, the 12-run AskUbuntu main-E2E pilot
+is generated with `--tier main_e2e --dataset sx_askubuntu`. R19-32 can be
+isolated with `--tier endpoint_scalability`.
 
 ## Long-run process protocol
 

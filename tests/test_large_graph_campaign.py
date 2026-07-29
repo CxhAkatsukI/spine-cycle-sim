@@ -10,6 +10,7 @@ from spine_cycle_sim.experiments import (
     LARGE_GRAPH_REQUIRED_DATASET_IDS,
     LARGE_GRAPH_REQUIRED_SYSTEMS,
     build_materialization_campaign_manifest,
+    build_publication_experiment_campaign_manifest,
     load_large_graph_campaign_contract,
     planned_system_runs,
     publication_case_requests,
@@ -201,6 +202,28 @@ class LargeGraphCampaignTests(unittest.TestCase):
         ] = "full_pagerank"
         with self.assertRaisesRegex(ValueError, "update-throughput"):
             validate_large_graph_campaign_contract(changed_update)
+
+    def test_formal_campaign_rejects_unknown_algorithm_and_system_filters(self) -> None:
+        common = {
+            "materialization_root": Path("/tmp/publication-workloads"),
+            "output_root": Path("/tmp/publication-runs"),
+            "python": "python3",
+            "sst": Path("/tmp/sst"),
+            "lib_dir": Path("/tmp/plugin"),
+            "capability_catalog": Path("/tmp/catalog.json"),
+        }
+        with self.assertRaisesRegex(ValueError, "algorithms"):
+            build_publication_experiment_campaign_manifest(
+                self.contract,
+                selected_algorithms={"not_an_algorithm"},
+                **common,
+            )
+        with self.assertRaisesRegex(ValueError, "systems"):
+            build_publication_experiment_campaign_manifest(
+                self.contract,
+                selected_systems={"not_a_system"},
+                **common,
+            )
 
 
 if __name__ == "__main__":

@@ -46,6 +46,8 @@ def main() -> int:
     )
     parser.add_argument("--tier", action="append", dest="tiers")
     parser.add_argument("--dataset", action="append", dest="datasets")
+    parser.add_argument("--algorithm", action="append", dest="algorithms")
+    parser.add_argument("--system", action="append", dest="systems")
     parser.add_argument("--max-cycles", type=int, default=10_000_000_000_000)
     args = parser.parse_args()
 
@@ -60,6 +62,8 @@ def main() -> int:
         contract_path=args.contract,
         selected_tiers=set(args.tiers) if args.tiers else None,
         selected_datasets=set(args.datasets) if args.datasets else None,
+        selected_algorithms=set(args.algorithms) if args.algorithms else None,
+        selected_systems=set(args.systems) if args.systems else None,
         max_cycles=args.max_cycles,
     )
     args.manifest.parent.mkdir(parents=True, exist_ok=True)
