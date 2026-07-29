@@ -101,6 +101,17 @@ from .large_graph_campaign import (
     validate_large_graph_campaign_contract,
     verify_large_graph_sources,
 )
+from .publication_workloads import (
+    DEFAULT_BATCH_SIZES as PUBLICATION_BATCH_SIZES,
+    DEFAULT_PAGERANK_SCALES as PUBLICATION_PAGERANK_SCALES,
+    PublicationSourceSpec,
+    SliceMetadata,
+    canonical_edge_weight,
+    materialize_publication_workload,
+    publication_source_spec,
+    read_slice_metadata_streaming,
+    r19_source_spec,
+)
 from .campaign_runtime import (
     CampaignJob,
     CampaignRunner,
@@ -193,6 +204,15 @@ __all__ = [
     "planned_system_runs",
     "validate_large_graph_campaign_contract",
     "verify_large_graph_sources",
+    "PUBLICATION_BATCH_SIZES",
+    "PUBLICATION_PAGERANK_SCALES",
+    "PublicationSourceSpec",
+    "SliceMetadata",
+    "canonical_edge_weight",
+    "materialize_publication_workload",
+    "publication_source_spec",
+    "read_slice_metadata_streaming",
+    "r19_source_spec",
     "CampaignJob",
     "CampaignRunner",
     "atomic_write_json",

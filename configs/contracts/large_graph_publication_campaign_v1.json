@@ -153,7 +153,15 @@
     "dataset_id": "rmat_19_32",
     "vertices": 524288,
     "raw_edges": 16777216,
-    "expected_unique_directed_edges": 15481655,
+    "materialized_source_records": 15483988,
+    "self_loops_removed": 503,
+    "expected_unique_directed_edges": 15483485,
+    "source": {
+      "path": "/data/feiyang/AE/AE_Final/datasets/rmat-19-32.txt",
+      "size_bytes": 225511166,
+      "sha256": "00a8886a5d0836e2839d50401142056f76cccd854845701b7a6100ca6db31125",
+      "encoding": "one_based_dst_src_text"
+    },
     "role": "scalability_endpoint_not_real_dataset"
   },
   "workload_semantics": {

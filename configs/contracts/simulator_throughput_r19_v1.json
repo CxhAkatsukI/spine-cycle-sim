@@ -84,7 +84,10 @@
       "dataset_id": "rmat_19_32",
       "nominal_vertices": 524288,
       "raw_edges": 16777216,
-      "local_unique_directed_edges": 15481655
+      "materialized_source_records": 15483988,
+      "self_loops_removed": 503,
+      "local_unique_directed_edges": 15483485,
+      "source_sha256": "00a8886a5d0836e2839d50401142056f76cccd854845701b7a6100ca6db31125"
     },
     "reporting_policy": "report_every_selected_dataset_or_explicit_timeout_no_silent_omission"
   },

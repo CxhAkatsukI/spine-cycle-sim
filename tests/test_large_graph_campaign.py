@@ -56,6 +56,14 @@ class LargeGraphCampaignTests(unittest.TestCase):
             semantics["thresholded_residual_pagerank"]["threshold_semantics"],
             "abs_residual_per_vertex_gt_threshold",
         )
+        endpoint = self.contract["synthetic_endpoint"]
+        self.assertEqual(endpoint["materialized_source_records"], 15_483_988)
+        self.assertEqual(endpoint["self_loops_removed"], 503)
+        self.assertEqual(endpoint["expected_unique_directed_edges"], 15_483_485)
+        self.assertEqual(
+            endpoint["source"]["sha256"],
+            "00a8886a5d0836e2839d50401142056f76cccd854845701b7a6100ca6db31125",
+        )
 
     def test_matrix_counts_make_campaign_cost_explicit(self) -> None:
         counts = planned_system_runs(self.contract)

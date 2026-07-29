@@ -127,6 +127,20 @@ def validate_large_graph_campaign_contract(
     if semantics.get("preserve_external_vertex_ids") is not True:
         raise ValueError("large-graph campaign must preserve external vertex IDs")
 
+    endpoint = contract.get("synthetic_endpoint", {})
+    endpoint_source = endpoint.get("source", {})
+    if (
+        endpoint.get("dataset_id") != "rmat_19_32"
+        or endpoint.get("expected_unique_directed_edges") != 15_483_485
+        or endpoint.get("materialized_source_records") != 15_483_988
+        or endpoint.get("self_loops_removed") != 503
+        or endpoint_source.get("size_bytes") != 225_511_166
+        or endpoint_source.get("sha256")
+        != "00a8886a5d0836e2839d50401142056f76cccd854845701b7a6100ca6db31125"
+        or endpoint_source.get("encoding") != "one_based_dst_src_text"
+    ):
+        raise ValueError("R19 source identity or normalization counts changed")
+
     admission = contract.get("correctness_admission", {})
     required_gates = (
         "architecture_precision_oracle",

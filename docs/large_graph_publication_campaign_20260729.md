@@ -32,6 +32,27 @@ python3 scripts/audit_large_graph_campaign.py --rehash \
   --output /data/tmp/chuxiao/large_graph_campaign_v1/source_audit.json
 ```
 
+Materialize one real dataset with bounded Python memory and external GNU sort:
+
+```bash
+python3 scripts/materialize_publication_workload.py \
+  --dataset sx_askubuntu \
+  --out-dir \
+    /data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_askubuntu \
+  --sort-parallel 16 --sort-memory 8G \
+  --progress-path \
+    /data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_askubuntu.progress.json
+```
+
+The materializer preserves external vertex IDs, validates the frozen source
+SHA, removes self-loops, sorts and deduplicates edges, applies the contract's
+directed/reciprocal projection, and emits deterministic positive weights. It
+also emits insert, delete, weight-change, and mixed batches at 1/8/64/512/4096
+user mutations. Full PageRank's 64K/256K/1M/4M slices are exact nested samples
+under a deterministic edge-hash rank; they are not prefixes of source-sorted
+edges. Every generated artifact is represented by count, byte size, and SHA-256
+in `materialization_manifest.json`.
+
 The un-deduplicated contract contains 777 system runs. The campaign generator
 must remove overlap between tiers before launch and reuse one execution's E2E,
 update, memory, activity, and correctness outputs wherever their measurement
