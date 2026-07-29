@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "contract_id": "grasu_regraph_runtime_packed_addressing_v1_20260729",
+  "purpose": "Remove the normalized fixed-window four-partition artifact without changing GraSU or ReGraph compute resources.",
+  "grounding": {
+    "upstream_regraph_tree": "/home/chuxiao/ReGraph",
+    "partition_schedule_sha256": "3dad81d8ebf2709abc1a174611bce189fd298f227d7bf1e9ad6d695ab3260daf",
+    "host_sha256": "bbd503916824da7b7f294276be26511ec3c98b803082055ff75aada53a499ecf",
+    "graph_preprocess_sha256": "992a0227b4893eafb11eae95adcd51d8f033840112aea15c8eb7642a1aedb9cb",
+    "integrated_hls_repository": "/home/chuxiao/grasu-regraph-integration",
+    "integrated_hls_revision": "80c50937278a0835aee09b62cb1c61bdc4903d4f"
+  },
+  "observed_native_behavior": {
+    "edge_buffers": "one cl::Buffer per scheduled subpartition",
+    "hbm_assignment": "subpartitions assigned to fixed CU-connected HBM banks",
+    "execution": "partitions sharing one CU queue execute in queue order; distinct CUs may overlap",
+    "capacity": "sum of buffers assigned to a pseudo-channel must remain below physical bank capacity"
+  },
+  "normalized_runtime_layout": {
+    "mode": "runtime_packed_v1",
+    "arena_base_bytes": 16777216,
+    "alignment_bytes": 4096,
+    "field_order": ["binary_heads", "row_offsets", "pma_segments", "source_state_ping_pong"],
+    "partition_order": "ascending_destination_partition",
+    "footprints": {
+      "binary_heads": "8 * reserved_segments bytes per partition",
+      "row_offsets": "8 * graph_vertices bytes per partition",
+      "pma_segments": "64 * ceil(reserved_segments / 2) bytes per pseudo-channel per partition",
+      "source_state": "two 4KiB-aligned buffers over padded destination-partition capacity"
+    }
+  },
+  "unchanged_architecture": [
+    "GraSU search, dispatch, cache, and DDR CU counts",
+    "ReGraph compute-pipeline count and shared-downstream policy",
+    "FIFO depths",
+    "AXI widths, outstanding limits, and arbitration",
+    "HBM pseudo-channel count, capacity, timing, and bandwidth",
+    "Map/Reduce algorithm semantics"
+  ],
+  "admission": {
+    "all_regions_non_overlapping": true,
+    "all_regions_within_512_mib_pseudo_channel": true,
+    "request_response_and_byte_conservation_required": true,
+    "capacity_overflow_policy": "fail_closed_and_report_capacity_slice; never_alias_or_wrap"
+  },
+  "claim_boundary": {
+    "classification": "host_address_allocation_correction",
+    "performance_optimization": false,
+    "matching_routed_worker": "K1 compute kernels retain routed evidence; runtime multi-partition allocation is simulator structural evidence",
+    "larger_worker_pools": "K2/K4 remain simulation-only scalability points"
+  }
+}

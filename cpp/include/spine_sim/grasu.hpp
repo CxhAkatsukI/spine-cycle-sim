@@ -131,6 +131,23 @@ struct GraSuPartitionedPmaLayout {
   [[nodiscard]] std::vector<GraSuEdge> live_edges() const;
 };
 
+// Physical per-partition HBM bases. Fixed-stride mode preserves the historical
+// normalized profile; packed mode mirrors host-managed XRT buffers by placing
+// the measured row, binary-head, and PMA footprints consecutively.
+struct GraSuPartitionAddressPlan {
+  std::vector<std::uint64_t> row_bases;
+  std::vector<std::uint64_t> binary_bases;
+  std::vector<std::uint64_t> pma_bases;
+  std::uint64_t arena_begin{};
+  std::uint64_t arena_end{};
+};
+
+[[nodiscard]] GraSuPartitionAddressPlan make_grasu_partition_address_plan(
+    const GraSuPartitionedPmaLayout &layout, bool packed,
+    std::uint64_t row_base, std::uint64_t binary_base,
+    std::uint64_t pma_base, std::uint64_t fixed_stride,
+    std::uint64_t packed_arena_base, std::uint64_t alignment);
+
 struct GraSuNativeConfig {
   GraSuPmaWordAbi pma_word_abi{GraSuPmaWordAbi::kNormalizedWeighted};
   std::size_t memory_channels{32};
@@ -145,6 +162,9 @@ struct GraSuNativeConfig {
   std::uint64_t binary_base{0x2000'0000ULL};
   std::uint64_t pma_base{0x3000'0000ULL};
   std::uint64_t partition_address_stride{0x1'0000'0000ULL};
+  bool packed_partition_addresses{};
+  std::uint64_t partition_address_arena_base{0x0100'0000ULL};
+  std::uint64_t partition_address_alignment{4096};
   bool maintain_out_degree{};
   std::uint64_t degree_base{0x4100'0000ULL};
   std::size_t degree_channel{30};

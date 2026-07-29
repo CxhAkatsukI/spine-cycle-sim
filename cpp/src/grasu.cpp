@@ -190,11 +190,11 @@ public:
   GraSuDirectSearch(std::string name, ClockId clock_id, std::size_t cu,
                     std::size_t update_count, std::size_t partition_vertices,
                     bool partitioned_updates, const GraSuNativeConfig &config,
-                    Ports ports)
+                    const GraSuPartitionAddressPlan &address_plan, Ports ports)
       : Component(std::move(name), clock_id), cu_(cu),
         update_count_(update_count), partition_vertices_(partition_vertices),
         partitioned_updates_(partitioned_updates), config_(config),
-        ports_(ports) {
+        address_plan_(address_plan), ports_(ports) {
     if (cu_ >= 4 || ports_.updates == nullptr || ports_.rows == nullptr ||
         ports_.binary == nullptr || ports_.output == nullptr) {
       throw std::invalid_argument("invalid GraSU direct-search ports");
@@ -284,7 +284,7 @@ public:
       staged_request_ = ports_.rows->requests().try_push(AxiRequest{
           .transaction_id = transaction_id(1),
           .operation = MemoryOperation::kRead,
-          .address = partition_base(config_.row_offset_base) +
+          .address = address_plan_.row_bases.at(current_partition_) +
                      static_cast<std::uint64_t>(current_.source) * 8,
           .bytes = 8,
           .stream_read_beats = false,
@@ -295,7 +295,7 @@ public:
       staged_request_ = ports_.binary->requests().try_push(AxiRequest{
           .transaction_id = transaction_id(2),
           .operation = MemoryOperation::kRead,
-          .address = partition_base(config_.binary_base) +
+          .address = address_plan_.binary_bases.at(current_partition_) +
                      static_cast<std::uint64_t>(mid_segment_) * 8,
           .bytes = 8,
           .stream_read_beats = false,
@@ -375,10 +375,6 @@ private:
 
   [[nodiscard]] std::size_t update_record_bytes() const noexcept {
     return partitioned_updates_ ? 16 : 8;
-  }
-
-  [[nodiscard]] std::uint64_t partition_base(std::uint64_t base) const {
-    return base + current_partition_ * config_.partition_address_stride;
   }
 
   void fail(std::string message) {
@@ -462,6 +458,7 @@ private:
   std::size_t partition_vertices_{};
   bool partitioned_updates_{};
   GraSuNativeConfig config_;
+  const GraSuPartitionAddressPlan &address_plan_;
   Ports ports_;
   std::uint64_t local_index_{};
   Phase phase_{Phase::kNeedUpdate};
@@ -579,10 +576,12 @@ public:
   GraSuPmaProcessor(std::string name, ClockId clock_id, bool cache_direct,
                     std::size_t lane_fifo_depth, std::uint64_t pma_base,
                     std::uint64_t partition_address_stride,
+                    const std::vector<std::uint64_t> &partition_pma_bases,
                     GraSuPmaWordAbi pma_word_abi, Ports ports)
       : Component(std::move(name), clock_id), cache_direct_(cache_direct),
         lane_fifo_depth_(lane_fifo_depth), pma_base_(pma_base),
         partition_address_stride_(partition_address_stride),
+        partition_pma_bases_(partition_pma_bases),
         pma_word_abi_(pma_word_abi), ports_(ports),
         lanes_(cache_direct ? 1 : 32) {
     if (lane_fifo_depth_ == 0 || ports_.input == nullptr ||
@@ -744,7 +743,11 @@ private:
   [[nodiscard]] std::uint64_t address_for(const LocatedUpdate &item) const {
     const std::uint64_t local_segment =
         static_cast<std::uint64_t>(item.segment_head_slot) >> 5;
-    return pma_base_ + item.partition * partition_address_stride_ +
+    const std::uint64_t partition_base = partition_pma_bases_.empty()
+                                             ? pma_base_ + item.partition *
+                                                               partition_address_stride_
+                                             : partition_pma_bases_.at(item.partition);
+    return partition_base +
            local_segment * kGraSuSegmentBytes;
   }
 
@@ -974,6 +977,7 @@ private:
   std::size_t lane_fifo_depth_{};
   std::uint64_t pma_base_{};
   std::uint64_t partition_address_stride_{};
+  const std::vector<std::uint64_t> &partition_pma_bases_;
   GraSuPmaWordAbi pma_word_abi_{GraSuPmaWordAbi::kNormalizedWeighted};
   Ports ports_;
   std::vector<Lane> lanes_;
@@ -1751,6 +1755,77 @@ std::vector<GraSuEdge> GraSuPartitionedPmaLayout::live_edges() const {
   return result;
 }
 
+GraSuPartitionAddressPlan make_grasu_partition_address_plan(
+    const GraSuPartitionedPmaLayout &layout, bool packed,
+    std::uint64_t row_base, std::uint64_t binary_base,
+    std::uint64_t pma_base, std::uint64_t fixed_stride,
+    std::uint64_t packed_arena_base, std::uint64_t alignment) {
+  if (layout.partitions.empty() || fixed_stride == 0 || alignment == 0) {
+    throw std::invalid_argument("invalid GraSU partition address plan");
+  }
+  const auto checked_add = [](std::uint64_t left, std::uint64_t right) {
+    if (right > std::numeric_limits<std::uint64_t>::max() - left) {
+      throw std::overflow_error("GraSU partition address overflow");
+    }
+    return left + right;
+  };
+  const auto align_up = [&](std::uint64_t value) {
+    const std::uint64_t remainder = value % alignment;
+    return remainder == 0 ? value : checked_add(value, alignment - remainder);
+  };
+
+  GraSuPartitionAddressPlan result;
+  result.row_bases.reserve(layout.partitions.size());
+  result.binary_bases.reserve(layout.partitions.size());
+  result.pma_bases.reserve(layout.partitions.size());
+  if (!packed) {
+    std::uint64_t end = 0;
+    for (std::size_t partition = 0; partition < layout.partitions.size();
+         ++partition) {
+      if (partition > std::numeric_limits<std::uint64_t>::max() /
+                          fixed_stride) {
+        throw std::overflow_error("GraSU partition stride overflow");
+      }
+      const std::uint64_t offset = partition * fixed_stride;
+      result.row_bases.push_back(checked_add(row_base, offset));
+      result.binary_bases.push_back(checked_add(binary_base, offset));
+      result.pma_bases.push_back(checked_add(pma_base, offset));
+      end = std::max(
+          end, checked_add(std::max({row_base, binary_base, pma_base}),
+                           checked_add(offset, fixed_stride)));
+    }
+    result.arena_begin = std::min({row_base, binary_base, pma_base});
+    result.arena_end = end;
+    return result;
+  }
+
+  std::uint64_t cursor = align_up(packed_arena_base);
+  result.arena_begin = cursor;
+  auto pack = [&](auto size_for_partition,
+                  std::vector<std::uint64_t> &bases) {
+    for (const GraSuPmaLayout &partition : layout.partitions) {
+      cursor = align_up(cursor);
+      bases.push_back(cursor);
+      cursor = checked_add(cursor, align_up(size_for_partition(partition)));
+    }
+  };
+  pack([](const GraSuPmaLayout &partition) {
+         return static_cast<std::uint64_t>(partition.binary_heads.size()) * 8;
+       },
+       result.binary_bases);
+  pack([](const GraSuPmaLayout &partition) {
+         return static_cast<std::uint64_t>(partition.row_slot_bounds.size()) * 8;
+       },
+       result.row_bases);
+  pack([](const GraSuPmaLayout &partition) {
+         return static_cast<std::uint64_t>((partition.segments.size() + 1) / 2) *
+                kGraSuSegmentBytes;
+       },
+       result.pma_bases);
+  result.arena_end = align_up(cursor);
+  return result;
+}
+
 void initialize_grasu_pma_layout_payloads(MemoryBackend &backend,
                                           const GraSuPmaLayout &layout,
 
@@ -1813,6 +1888,12 @@ public:
         layout_(std::move(layout)), updates_(std::move(updates)),
         config_(config),
         start_cycle_(scheduler.clock(clock_id).completed_cycles) {
+    address_plan_ = make_grasu_partition_address_plan(
+        layout_, config_.packed_partition_addresses, config_.row_offset_base,
+        config_.binary_base, config_.pma_base,
+        config_.partition_address_stride,
+        config_.partition_address_arena_base,
+        config_.partition_address_alignment);
     validate_config();
     validate_updates();
     construct_links_and_ports();
@@ -2067,8 +2148,7 @@ public:
     const std::size_t channel = cache ? parity * 2 : parity * 2 + 1;
     return decode_segment(backend_.inspect_payload(
         channel,
-        config_.pma_base + partition * config_.partition_address_stride +
-            local * kGraSuSegmentBytes,
+        address_plan_.pma_bases.at(partition) + local * kGraSuSegmentBytes,
         kGraSuSegmentBytes));
   }
 
@@ -2132,6 +2212,7 @@ private:
         config_.max_outstanding_bursts == 0 ||
         config_.response_beats_per_cycle == 0 ||
         config_.partition_address_stride == 0 ||
+        config_.partition_address_alignment == 0 ||
         (config_.maintain_out_degree &&
          (config_.degree_channel >= config_.memory_channels ||
           config_.degree_fifo_depth == 0 ||
@@ -2299,10 +2380,9 @@ private:
     for (std::size_t partition = 0; partition < layout_.partitions.size();
          ++partition) {
       GraSuNativeConfig partition_config = config_;
-      const std::uint64_t offset = partition * config_.partition_address_stride;
-      partition_config.row_offset_base += offset;
-      partition_config.binary_base += offset;
-      partition_config.pma_base += offset;
+      partition_config.row_offset_base = address_plan_.row_bases.at(partition);
+      partition_config.binary_base = address_plan_.binary_bases.at(partition);
+      partition_config.pma_base = address_plan_.pma_bases.at(partition);
       initialize_grasu_pma_layout_payloads(
           backend_, layout_.partitions[partition], partition_config);
     }
@@ -2334,7 +2414,7 @@ private:
       searches_[index] = std::make_unique<GraSuDirectSearch>(
           "grasu-bin-search" + std::to_string(index), clock_id_, index,
           counts[index], layout_.partition_vertices, partitioned_updates(),
-          config_,
+          config_, address_plan_,
           GraSuDirectSearch::Ports{
               .updates = search_ports_[index].updates.get(),
               .rows = search_ports_[index].rows.get(),
@@ -2352,7 +2432,8 @@ private:
       processors_[index] = std::make_unique<GraSuPmaProcessor>(
           "grasu-processor" + std::to_string(index), clock_id_, cache,
           config_.lane_fifo_depth, config_.pma_base,
-          config_.partition_address_stride, config_.pma_word_abi,
+          config_.partition_address_stride, address_plan_.pma_bases,
+          config_.pma_word_abi,
           GraSuPmaProcessor::Ports{
               .input = process_inputs_[index].get(),
               .reads = {ports.reads[0].get(), ports.reads[1].get()},
@@ -2399,6 +2480,7 @@ private:
   GraSuPartitionedPmaLayout layout_;
   std::vector<GraSuEdge> updates_;
   GraSuNativeConfig config_;
+  GraSuPartitionAddressPlan address_plan_;
   std::array<std::unique_ptr<Fifo<LocatedUpdate>>, 4> search_outputs_;
   std::array<std::unique_ptr<Fifo<LocatedUpdate>>, 4> process_inputs_;
   std::array<std::unique_ptr<Fifo<DegreeDelta>>, 4> degree_outputs_;

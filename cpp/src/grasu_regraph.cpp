@@ -3981,6 +3981,31 @@ public:
         out_degrees_(std::move(out_degrees)),
         initial_state_(std::move(initial_state)), fixed_rounds_(fixed_rounds),
         start_cycle_(scheduler_.clock(clock_id_).completed_cycles) {
+    address_plan_ = make_grasu_partition_address_plan(
+        layout_, config_.packed_partition_addresses, config_.row_offset_base,
+        0, config_.pma_base, config_.partition_address_stride,
+        config_.partition_address_arena_base,
+        config_.partition_address_alignment);
+    if (config_.packed_partition_addresses) {
+      const std::uint64_t alignment = config_.partition_address_alignment;
+      const auto align_up = [alignment](std::uint64_t value) {
+        const std::uint64_t remainder = value % alignment;
+        if (remainder == 0) {
+          return value;
+        }
+        if (alignment - remainder >
+            std::numeric_limits<std::uint64_t>::max() - value) {
+          throw std::overflow_error("ReGraph packed source-state overflow");
+        }
+        return value + alignment - remainder;
+      };
+      config_.source_state_base = align_up(address_plan_.arena_end);
+      const std::uint64_t required_stride = align_up(
+          layout_.partitions.size() * config_.partition_vertices *
+          state_bytes_per_vertex(policy_));
+      config_.source_state_buffer_stride =
+          std::max(config_.source_state_buffer_stride, required_stride);
+    }
     validate_config();
     construct_partition_plans();
     construct_ports();
@@ -4367,6 +4392,8 @@ private:
     require(config_.max_supersteps != 0, "zero maximum supersteps");
     require(config_.partition_address_stride != 0,
             "zero partition address stride");
+    require(config_.partition_address_alignment != 0,
+            "zero partition address alignment");
     require(config_.row_channel < config_.memory_channels,
             "row channel outside HBM");
     require(config_.source_state_channel < config_.memory_channels,
@@ -4396,18 +4423,12 @@ private:
     partition_plans_.reserve(layout_.partitions.size());
     for (std::size_t partition = 0; partition < layout_.partitions.size();
          ++partition) {
-      const std::uint64_t offset =
-          partition * config_.partition_address_stride;
-      if (offset > std::numeric_limits<std::uint64_t>::max() -
-                       std::max(config_.row_offset_base, config_.pma_base)) {
-        throw std::overflow_error("GraSU-ReGraph partition address overflow");
-      }
       const GraSuPmaLayout &part = layout_.partitions[partition];
       partition_plans_.push_back(ReGraphPartitionPlan{
           .destination_base = part.destination_base,
           .destination_vertices = part.destination_vertices,
-          .row_base = config_.row_offset_base + offset,
-          .pma_base = config_.pma_base + offset,
+          .row_base = address_plan_.row_bases.at(partition),
+          .pma_base = address_plan_.pma_bases.at(partition),
       });
     }
   }
@@ -4692,6 +4713,7 @@ private:
   std::vector<std::uint32_t> out_degrees_;
   std::optional<AlgorithmInitialState> initial_state_;
   std::size_t fixed_rounds_{};
+  GraSuPartitionAddressPlan address_plan_;
   std::vector<ReGraphPartitionPlan> partition_plans_;
   std::unique_ptr<ReGraphIterationContext> iteration_context_;
   std::unique_ptr<FixedAxiPort> source_prepare_state_read_port_;

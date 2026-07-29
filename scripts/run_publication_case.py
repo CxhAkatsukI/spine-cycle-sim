@@ -42,7 +42,7 @@ DEFAULT_LIB_DIR = Path(
     "/data/tmp/chuxiao/candidate84-progress-native-pgo-build-20260729"
 )
 DEFAULT_CAPABILITY = (
-    ROOT / "configs/contracts/grasu_regraph_k1_multipart_capabilities_v4.json"
+    ROOT / "configs/contracts/grasu_regraph_runtime_packed_capabilities_v5.json"
 )
 
 

@@ -41,6 +41,7 @@ using spine::sim::GraSuReGraphResidualPageRankSystem;
 using spine::sim::GraSuReGraphSsspSystem;
 using spine::sim::initialize_grasu_pma_layout_payloads;
 using spine::sim::is_grasu_pma_empty;
+using spine::sim::make_grasu_partition_address_plan;
 using spine::sim::MockMemoryBackend;
 using spine::sim::MockMemoryConfig;
 using spine::sim::prepare_grasu_weighted_full_word_graph;
@@ -815,6 +816,38 @@ void test_partitioned_regraph_sssp_crosses_destination_windows() {
             << " supersteps=" << counters.supersteps
             << " partition_passes=" << counters.partition_passes
             << " row_reads=" << counters.row_reads << '\n';
+}
+
+void test_runtime_packed_partition_addresses_cover_eight_windows() {
+  constexpr std::size_t kVertices = 128;
+  constexpr std::size_t kPartitionVertices = 16;
+  std::vector<GraSuEdge> edges;
+  for (std::uint32_t partition = 0; partition < 8; ++partition) {
+    edges.push_back({.source = partition,
+                     .destination = static_cast<std::uint32_t>(
+                         partition * kPartitionVertices),
+                     .weight = 1});
+  }
+  const GraSuPartitionedPmaLayout layout = GraSuPartitionedPmaLayout::build(
+      kVertices, kPartitionVertices, edges, {});
+  const auto packed = make_grasu_partition_address_plan(
+      layout, true, 64 << 20, 128 << 20, 256 << 20, 16 << 20,
+      16 << 20, 4096);
+  require(packed.row_bases.size() == 8 && packed.binary_bases.size() == 8 &&
+              packed.pma_bases.size() == 8,
+          "packed address plan lost a destination partition");
+  require(packed.binary_bases.front() == 16 << 20 &&
+              packed.binary_bases.back() < packed.row_bases.front() &&
+              packed.row_bases.back() < packed.pma_bases.front() &&
+              packed.pma_bases.back() < packed.arena_end,
+          "packed address plan regions overlap or are unordered");
+  const auto fixed = make_grasu_partition_address_plan(
+      layout, false, 64 << 20, 128 << 20, 256 << 20, 16 << 20,
+      16 << 20, 4096);
+  require(fixed.row_bases.at(7) == (64 << 20) + 7 * (16 << 20) &&
+              fixed.binary_bases.at(7) == (128 << 20) + 7 * (16 << 20) &&
+              fixed.pma_bases.at(7) == (256 << 20) + 7 * (16 << 20),
+          "legacy fixed-stride partition addresses changed");
 }
 
 void test_partitioned_weighted_full_word_update_preserves_variants() {
@@ -2404,6 +2437,8 @@ int main() {
        test_partitioned_weighted_full_word_update_preserves_variants},
       {"partitioned_sssp",
        test_partitioned_regraph_sssp_crosses_destination_windows},
+      {"runtime_packed_partition_addresses",
+       test_runtime_packed_partition_addresses_cover_eight_windows},
       {"partitioned_sssp_k2",
        test_partitioned_regraph_sssp_uses_two_compute_pipelines},
       {"partitioned_sssp_shared_k2",

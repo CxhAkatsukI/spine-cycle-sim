@@ -83,3 +83,9 @@ conservation checks for batches 8, 64, and 4096. It is retained only as a
 functional regression. Its cycles, DRAM row statistics, and HBM energy must not
 enter publication figures. The paper-scale matrix is rerun from clean output
 directories with the corrected profile hashes.
+
+The v4 map remains the fixed-window compatibility profile. Publication-scale
+graphs use the follow-up capacity-checked runtime allocation documented in
+`docs/grasu_regraph_runtime_packed_addressing_20260729.md`; it removes the
+simulator-only four-partition limit without changing compute or memory
+resources.

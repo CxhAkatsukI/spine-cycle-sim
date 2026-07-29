@@ -240,6 +240,9 @@ def main() -> int:
         "grasu_regraph_candidate10_k1_multipart_pagerank_v4",
         "grasu_regraph_candidate10_k2_multipart_pagerank_v4",
         "grasu_regraph_candidate10_k4_multipart_pagerank_v4",
+        "grasu_regraph_candidate10_k1_multipart_pagerank_packed_v5",
+        "grasu_regraph_candidate10_k2_multipart_pagerank_packed_v5",
+        "grasu_regraph_candidate10_k4_multipart_pagerank_packed_v5",
     }
     if profile.get("profile_id") not in expected_profiles:
         raise ValueError("runner requires a pinned HLS-derived PageRank profile")
@@ -273,6 +276,7 @@ def main() -> int:
             destination_partitions,
             initial.vertices,
             oracle.physical_updates,
+            footprints,
         )
         address_environment = grasu_hbm_address_environment(params)
     damping = float(params["pagerank_damping"])

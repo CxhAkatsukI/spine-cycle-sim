@@ -58,6 +58,9 @@ struct GraSuReGraphConfig {
   // A partition keeps the first partition's historical addresses and moves
   // subsequent row/PMA windows by this stride.
   std::uint64_t partition_address_stride{0x1'0000'0000ULL};
+  bool packed_partition_addresses{};
+  std::uint64_t partition_address_arena_base{0x0100'0000ULL};
+  std::uint64_t partition_address_alignment{4096};
   std::size_t row_channel{0};
   std::size_t source_state_channel{1};
   std::size_t source_state_mirror_channel{3};

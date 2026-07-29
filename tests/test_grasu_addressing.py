@@ -76,6 +76,63 @@ class GraSuAddressingTests(unittest.TestCase):
             environment["GRASU_SST_PARTITION_ADDRESS_STRIDE"], str(16 << 20)
         )
 
+    def test_runtime_packed_map_supports_eight_partitions_without_aliasing(
+        self,
+    ) -> None:
+        packed = parameters()
+        packed.update(
+            {
+                "grasu_partition_address_layout": "runtime_packed_v1",
+                "grasu_partition_address_arena_base_bytes": 16 << 20,
+                "grasu_partition_address_alignment_bytes": 4096,
+            }
+        )
+        vertices = 8 * 65_536
+        footprints = [
+            {
+                "partition": partition,
+                "row_bytes": vertices * 8,
+                "binary_bytes": 1 << 20,
+                "pma_bytes_per_channel": 8 << 20,
+                "segments": 1,
+            }
+            for partition in range(8)
+        ]
+        windows = validate_grasu_hbm_address_map(
+            packed, 512 << 20, 8, vertices, 8_192, footprints
+        )
+        self.assertEqual(len(windows["row"]["partition_bases"]), 8)
+        self.assertLess(windows["source_state"]["end_bytes"], 512 << 20)
+        self.assertEqual(
+            windows["source_state"]["buffer_stride_bytes"], 2 << 20
+        )
+        environment = grasu_hbm_address_environment(packed)
+        self.assertEqual(environment["GRASU_SST_PACKED_PARTITION_ADDRESSES"], "1")
+
+    def test_runtime_packed_map_fails_closed_on_true_capacity_overflow(self) -> None:
+        packed = parameters()
+        packed.update(
+            {
+                "grasu_partition_address_layout": "runtime_packed_v1",
+                "grasu_partition_address_arena_base_bytes": 16 << 20,
+                "grasu_partition_address_alignment_bytes": 4096,
+            }
+        )
+        footprints = [
+            {
+                "partition": partition,
+                "row_bytes": 100 << 20,
+                "binary_bytes": 1 << 20,
+                "pma_bytes_per_channel": 1 << 20,
+                "segments": 1,
+            }
+            for partition in range(5)
+        ]
+        with self.assertRaisesRegex(ValueError, "exceeds one"):
+            validate_grasu_hbm_address_map(
+                packed, 512 << 20, 5, 5 * 65_536, 8, footprints
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

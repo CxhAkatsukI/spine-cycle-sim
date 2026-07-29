@@ -2224,6 +2224,12 @@ class OnlineMemoryProbe final : public SST::Component {
         params.find<std::size_t>("grasu_edge_array_channel", 0);
     grasu_config_.partition_address_stride = params.find<std::uint64_t>(
         "grasu_partition_address_stride", 0x1'0000'0000ULL);
+    grasu_config_.packed_partition_addresses =
+        params.find<bool>("grasu_packed_partition_addresses", false);
+    grasu_config_.partition_address_arena_base = params.find<std::uint64_t>(
+        "grasu_partition_address_arena_base", 0x0100'0000ULL);
+    grasu_config_.partition_address_alignment = params.find<std::uint64_t>(
+        "grasu_partition_address_alignment", 4096);
     grasu_config_.max_supersteps = max_rounds_;
     grasu_update_config_.memory_channels = channels_;
     grasu_update_config_.cache_segments_per_half =
@@ -2235,6 +2241,12 @@ class OnlineMemoryProbe final : public SST::Component {
         grasu_config_.max_outstanding_bursts;
     grasu_update_config_.partition_address_stride =
         grasu_config_.partition_address_stride;
+    grasu_update_config_.packed_partition_addresses =
+        grasu_config_.packed_partition_addresses;
+    grasu_update_config_.partition_address_arena_base =
+        grasu_config_.partition_address_arena_base;
+    grasu_update_config_.partition_address_alignment =
+        grasu_config_.partition_address_alignment;
     grasu_update_config_.update_base =
         params.find<std::uint64_t>("grasu_update_base", 0x0000'0000ULL);
     grasu_update_config_.row_offset_base = grasu_config_.row_offset_base;
@@ -3964,7 +3976,13 @@ class OnlineMemoryProbe final : public SST::Component {
       {"grasu_source_state_buffer_stride", "ReGraph ping-pong source-state stride", "1048576"},
       {"grasu_degree_base", "ReGraph out-degree base address", "1090519040"},
       {"grasu_partition_address_stride",
-       "Per-destination-partition row/PMA address-window stride", "4294967296"})
+       "Per-destination-partition row/PMA address-window stride", "4294967296"},
+      {"grasu_packed_partition_addresses",
+       "Use runtime footprint-packed destination-partition HBM addresses", "0"},
+      {"grasu_partition_address_arena_base",
+       "Start address of the runtime-packed partition arena", "16777216"},
+      {"grasu_partition_address_alignment",
+       "Alignment of runtime-packed partition buffers", "4096"})
 
   SST_ELI_DOCUMENT_SUBCOMPONENT_SLOTS(
       {"memory", "One StandardMem interface per HBM channel",

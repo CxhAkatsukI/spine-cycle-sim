@@ -21,10 +21,11 @@
       "role": "single_pipeline_normalized_baseline",
       "conversion_free": true,
       "profiles": {
-        "weighted_sssp": ["configs/architectures/grasu_regraph_candidate10_k1_multipart_weighted_v4.json", "47adf5b1aa9c9dcc2357789f67a0eeb74b4cddd71cb67ed2ff3004eb5e0e3761"],
-        "full_pagerank": ["configs/architectures/grasu_regraph_candidate10_k1_multipart_pagerank_v4.json", "b5e30d7bb8106c103fbae947fc90ef13b1af7b7f07f8593a515ae2068813d824"],
-        "thresholded_residual_pagerank": ["configs/architectures/grasu_regraph_candidate10_k1_multipart_residual_v4.json", "a3ca6533e14fc0cb533a6e581275efce8b8a8dc192ea28cedc075a03933eddf9"]
-      }
+        "weighted_sssp": ["configs/architectures/grasu_regraph_candidate10_k1_multipart_weighted_packed_v5.json", "01b246b3a359e03b8f6fe857eac28f38a3fb990b1aff2facaed7fe66e9dc3a32"],
+        "full_pagerank": ["configs/architectures/grasu_regraph_candidate10_k1_multipart_pagerank_packed_v5.json", "34de70f9a00e5e2e6f2ed541ba17767a666bfa5cd539e79a2954019d2d199833"],
+        "thresholded_residual_pagerank": ["configs/architectures/grasu_regraph_candidate10_k1_multipart_residual_packed_v5.json", "78b62e6b55adf52f782e5c8ecab4d3294eff70acb8ab487de90aadb41dc1a101"]
+      },
+      "addressing": "runtime_packed_v1_capacity_checked"
     },
     "grasu_regraph_k4_shared": {
       "role": "primary_multi_partition_competitor",
@@ -33,10 +34,11 @@
       "downstream_paths": 1,
       "shared_hbm_arbitration": true,
       "profiles": {
-        "weighted_sssp": ["configs/architectures/grasu_regraph_candidate10_k4_multipart_weighted_v4.json", "71ffad9e4c17d2d228cc1e7bbaa9a969d35b2026ab297d020722fae269bda769"],
-        "full_pagerank": ["configs/architectures/grasu_regraph_candidate10_k4_multipart_pagerank_v4.json", "44bed1ee766184a46cd3aac691b83823bac8a2a2a0c5e8beb6b192006287eacf"],
-        "thresholded_residual_pagerank": ["configs/architectures/grasu_regraph_candidate10_k4_multipart_residual_v4.json", "80d9f9087b63700da125028e87890f0b90abf49b4027245a443703d2d9cbe7c5"]
-      }
+        "weighted_sssp": ["configs/architectures/grasu_regraph_candidate10_k4_multipart_weighted_packed_v5.json", "af80c5962124df7340a4a8d85f748c4fae1f6b0e212894f53a35f7ca2947aa2c"],
+        "full_pagerank": ["configs/architectures/grasu_regraph_candidate10_k4_multipart_pagerank_packed_v5.json", "a9ec4047c0d8a0a28f1a0ca1416374fc94564d477ba67fe652ea44f8ee34c8ea"],
+        "thresholded_residual_pagerank": ["configs/architectures/grasu_regraph_candidate10_k4_multipart_residual_packed_v5.json", "3675286595fb317006589adeea7daa59f60ee6691e69e21f82c177ce06fd9878"]
+      },
+      "addressing": "runtime_packed_v1_capacity_checked"
     },
     "grasu_regraph_k4_ideal": {
       "role": "theoretical_no_contention_upper_bound_only",

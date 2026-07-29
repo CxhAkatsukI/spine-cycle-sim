@@ -37,6 +37,19 @@ _ADDRESS_ENVIRONMENT = {
 }
 
 
+def _align_up(value: int, alignment: int) -> int:
+    if value < 0 or alignment <= 0:
+        raise ValueError("invalid packed-address alignment")
+    return ((value + alignment - 1) // alignment) * alignment
+
+
+def uses_packed_partition_addresses(parameters: Mapping[str, Any]) -> bool:
+    return (
+        str(parameters.get("grasu_partition_address_layout", "fixed_stride_v1"))
+        == "runtime_packed_v1"
+    )
+
+
 def source_state_bytes_per_vertex(parameters: Mapping[str, Any]) -> int:
     """Return the external source-state width used by the algorithm policy."""
 
@@ -70,10 +83,23 @@ def grasu_hbm_address_environment(parameters: Mapping[str, Any]) -> dict[str, st
     missing = [key for key in _ADDRESS_ENVIRONMENT.values() if key not in parameters]
     if missing:
         raise ValueError(f"GraSU profile is missing physical HBM addresses: {missing}")
-    return {
+    environment = {
         environment: str(int(parameters[parameter]))
         for environment, parameter in _ADDRESS_ENVIRONMENT.items()
     }
+    if uses_packed_partition_addresses(parameters):
+        environment.update(
+            {
+                "GRASU_SST_PACKED_PARTITION_ADDRESSES": "1",
+                "GRASU_SST_PARTITION_ADDRESS_ARENA_BASE": str(
+                    int(parameters["grasu_partition_address_arena_base_bytes"])
+                ),
+                "GRASU_SST_PARTITION_ADDRESS_ALIGNMENT": str(
+                    int(parameters["grasu_partition_address_alignment_bytes"])
+                ),
+            }
+        )
+    return environment
 
 
 def partition_layout_footprints(
@@ -134,6 +160,12 @@ def partition_layout_footprints(
 def validate_partition_footprints(
     parameters: Mapping[str, Any], footprints: Iterable[Mapping[str, int]]
 ) -> None:
+    if uses_packed_partition_addresses(parameters):
+        for footprint in footprints:
+            for field in ("row_bytes", "binary_bytes", "pma_bytes_per_channel"):
+                if int(footprint[field]) < 0:
+                    raise ValueError("negative GraSU partition footprint")
+        return
     stride = int(parameters["grasu_partition_address_stride_bytes"])
     for footprint in footprints:
         for field in ("row_bytes", "binary_bytes", "pma_bytes_per_channel"):
@@ -151,19 +183,29 @@ def validate_grasu_hbm_address_map(
     destination_partitions: int,
     vertices: int,
     physical_updates: int,
+    footprints: Iterable[Mapping[str, int]] | None = None,
 ) -> dict[str, dict[str, object]]:
     """Validate physical windows after the backend's per-channel address mapping."""
 
     if min(channel_bytes, destination_partitions, vertices) <= 0 or physical_updates < 0:
         raise ValueError("invalid GraSU physical HBM address-map dimensions")
-    maximum_partitions = int(
-        parameters["max_destination_partitions_without_address_remap"]
-    )
-    if destination_partitions > maximum_partitions:
-        raise ValueError(
-            f"workload needs {destination_partitions} destination partitions; "
-            f"the frozen address map supports {maximum_partitions}"
+    packed = uses_packed_partition_addresses(parameters)
+    footprint_rows = list(footprints or ())
+    if packed:
+        if len(footprint_rows) != destination_partitions:
+            raise ValueError(
+                "runtime-packed address validation requires one footprint per "
+                "destination partition"
+            )
+    else:
+        maximum_partitions = int(
+            parameters["max_destination_partitions_without_address_remap"]
         )
+        if destination_partitions > maximum_partitions:
+            raise ValueError(
+                f"workload needs {destination_partitions} destination partitions; "
+                f"the frozen address map supports {maximum_partitions}"
+            )
 
     stride = int(parameters["grasu_partition_address_stride_bytes"])
     pma_first = int(parameters.get("grasu_pma_hbm_first_channel", 0))
@@ -179,11 +221,45 @@ def validate_grasu_hbm_address_map(
     required_source_state_bytes = required_source_state_stride_bytes(
         parameters, destination_partitions
     )
-    if source_stride < required_source_state_bytes:
+    if packed:
+        source_stride = max(source_stride, required_source_state_bytes)
+    elif source_stride < required_source_state_bytes:
         raise ValueError(
             "source-state double-buffer stride is too small: "
             f"{source_stride} < {required_source_state_bytes}"
         )
+    if packed:
+        alignment = int(parameters["grasu_partition_address_alignment_bytes"])
+        cursor = _align_up(
+            int(parameters["grasu_partition_address_arena_base_bytes"]), alignment
+        )
+
+        def pack(field: str) -> tuple[list[int], list[int], int, int]:
+            nonlocal cursor
+            begin = cursor
+            bases: list[int] = []
+            sizes: list[int] = []
+            for footprint in footprint_rows:
+                cursor = _align_up(cursor, alignment)
+                size = int(footprint[field])
+                bases.append(cursor)
+                sizes.append(size)
+                cursor += _align_up(size, alignment)
+            return bases, sizes, begin, cursor
+
+        binary_bases, binary_sizes, binary_base, binary_end = pack("binary_bytes")
+        row_bases, row_sizes, row_base, row_end = pack("row_bytes")
+        pma_bases, pma_sizes, pma_base, pma_end = pack("pma_bytes_per_channel")
+        source_base = _align_up(cursor, alignment)
+        packed_regions = {
+            "binary": (binary_base, binary_end, binary_bases, binary_sizes),
+            "row": (row_base, row_end, row_bases, row_sizes),
+            "pma": (pma_base, pma_end, pma_bases, pma_sizes),
+        }
+    else:
+        source_base = int(parameters["grasu_source_state_base_bytes"])
+        packed_regions = {}
+
     windows: dict[str, dict[str, object]] = {
         "update": {
             "base_bytes": int(parameters["grasu_update_base_bytes"]),
@@ -191,22 +267,46 @@ def validate_grasu_hbm_address_map(
             "channels": list(pma_channels),
         },
         "binary": {
-            "base_bytes": int(parameters["grasu_binary_base_bytes"]),
-            "size_bytes": destination_partitions * stride,
+            "base_bytes": (
+                packed_regions["binary"][0]
+                if packed
+                else int(parameters["grasu_binary_base_bytes"])
+            ),
+            "size_bytes": (
+                packed_regions["binary"][1] - packed_regions["binary"][0]
+                if packed
+                else destination_partitions * stride
+            ),
             "channels": list(pma_channels),
         },
         "row": {
-            "base_bytes": int(parameters["grasu_row_offset_base_bytes"]),
-            "size_bytes": destination_partitions * stride,
+            "base_bytes": (
+                packed_regions["row"][0]
+                if packed
+                else int(parameters["grasu_row_offset_base_bytes"])
+            ),
+            "size_bytes": (
+                packed_regions["row"][1] - packed_regions["row"][0]
+                if packed
+                else destination_partitions * stride
+            ),
             "channels": list(pma_channels),
         },
         "pma": {
-            "base_bytes": int(parameters["grasu_pma_base_bytes"]),
-            "size_bytes": destination_partitions * stride,
+            "base_bytes": (
+                packed_regions["pma"][0]
+                if packed
+                else int(parameters["grasu_pma_base_bytes"])
+            ),
+            "size_bytes": (
+                packed_regions["pma"][1] - packed_regions["pma"][0]
+                if packed
+                else destination_partitions * stride
+            ),
             "channels": list(pma_channels),
         },
         "source_state": {
-            "base_bytes": int(parameters["grasu_source_state_base_bytes"]),
+            "base_bytes": source_base,
             "size_bytes": source_stride + required_source_state_bytes,
             "channels": sorted(source_channels),
         },
@@ -221,6 +321,13 @@ def validate_grasu_hbm_address_map(
             "channels": [degree_channel],
         },
     }
+
+    if packed:
+        for name in ("binary", "row", "pma"):
+            region = packed_regions[name]
+            windows[name]["partition_bases"] = region[2]
+            windows[name]["partition_sizes"] = region[3]
+        windows["source_state"]["buffer_stride_bytes"] = source_stride
 
     for name, window in windows.items():
         base = int(window["base_bytes"])

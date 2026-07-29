@@ -226,6 +226,17 @@ probe.addParams(
         "grasu_partition_address_stride": int(
             os.environ.get("GRASU_SST_PARTITION_ADDRESS_STRIDE", str(1 << 32))
         ),
+        "grasu_packed_partition_addresses": int(
+            os.environ.get("GRASU_SST_PACKED_PARTITION_ADDRESSES", "0")
+        ),
+        "grasu_partition_address_arena_base": int(
+            os.environ.get(
+                "GRASU_SST_PARTITION_ADDRESS_ARENA_BASE", str(16 << 20)
+            )
+        ),
+        "grasu_partition_address_alignment": int(
+            os.environ.get("GRASU_SST_PARTITION_ADDRESS_ALIGNMENT", "4096")
+        ),
     }
 )
 

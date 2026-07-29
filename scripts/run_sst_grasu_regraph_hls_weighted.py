@@ -357,6 +357,9 @@ def main() -> int:
         "grasu_regraph_candidate10_k1_multipart_weighted_v4",
         "grasu_regraph_candidate10_k2_multipart_weighted_v4",
         "grasu_regraph_candidate10_k4_multipart_weighted_v4",
+        "grasu_regraph_candidate10_k1_multipart_weighted_packed_v5",
+        "grasu_regraph_candidate10_k2_multipart_weighted_packed_v5",
+        "grasu_regraph_candidate10_k4_multipart_weighted_packed_v5",
     }
     if profile.get("profile_id") not in expected_profile_ids:
         raise ValueError("runner requires a pinned HLS-derived weighted profile")
@@ -391,6 +394,7 @@ def main() -> int:
             destination_partitions,
             initial.vertices,
             oracle.physical_updates,
+            footprints,
         )
         address_environment = grasu_hbm_address_environment(params)
     capability_catalog, algorithm_capability = require_hls_weighted_capability(

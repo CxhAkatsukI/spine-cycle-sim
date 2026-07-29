@@ -12,6 +12,10 @@ The primary Spine point is the bounded opt-v2 reader working-set design. The
 primary multi-partition competitor is conversion-free GraSU+ReGraph K4 with
 shared downstream/HBM arbitration. K1 remains a reported implementation
 baseline; ideal K4 is an upper bound and cannot enter headline aggregates.
+All three use the capacity-checked packed-v5 address profiles described in
+`docs/grasu_regraph_runtime_packed_addressing_20260729.md`. Runtime packing
+matches host-managed partition-buffer allocation; it does not increase the
+frozen compute or HBM resources.
 
 Large generated workloads and raw simulation outputs belong under
 `/data/tmp/chuxiao`. The repository tracks only contracts, source hashes,
