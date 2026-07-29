@@ -1,0 +1,136 @@
+\documentclass[10pt]{article}
+\usepackage[margin=0.7in]{geometry}
+\usepackage{booktabs}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+\pgfplotsset{compat=1.18}
+\definecolor{spine}{HTML}{176B87}
+\definecolor{kfour}{HTML}{237A57}
+\definecolor{kone}{HTML}{B44C43}
+\IfFileExists{data/large_graph_campaign/headline_pairs.csv}{
+  \newcommand{\datadir}{data/large_graph_campaign}
+}{
+  \newcommand{\datadir}{docs/paper/data/large_graph_campaign}
+}
+\pgfplotstableread[col sep=comma]{\datadir/headline_pairs.csv}\pairdata
+\hypersetup{pdftitle={Spine Large-Graph Campaign Results}}
+\title{\textbf{Spine Large-Graph Campaign Results}\\
+\large Correctness-Gated Spine vs. GraSU+ReGraph K1/K4-shared}
+\author{Chuxiao Han}
+\date{Live campaign snapshot, July 2026}
+\begin{document}
+\maketitle
+\begin{abstract}
+This report is generated directly from correctness-gated campaign artifacts.
+The snapshot is \textbf{PARTIAL}: 35 of 75 planned
+physical executions are currently admitted, with 4 complete
+three-system groups. Missing bars are unexecuted comparisons, not zero-valued
+measurements. All plotted rows use insertion batch 8 and exact cross-system
+final-state agreement.
+\end{abstract}
+
+\section{End-to-end performance}
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{semilogyaxis}[
+  ybar, bar width=7pt, width=0.98\linewidth, height=64mm,
+  ylabel={Spine speedup (higher is better)},
+  xtick=data, xticklabels from table={\pairdata}{label},
+  x tick label style={rotate=28,anchor=east},
+  ymin=0.5, grid=major,
+  legend style={at={(0.5,1.14)},anchor=south,legend columns=2}]
+\addplot[fill=kfour] table[x=index,y=k4_speedup] {\pairdata};
+\addplot[fill=kone] table[x=index,y=k1_speedup] {\pairdata};
+\addplot[black,dashed,sharp plot] coordinates {(0,1) (4,1)};
+\legend{G+R K4-shared,G+R K1}
+\end{semilogyaxis}
+\end{tikzpicture}
+\caption{Device-cycle speedup after both architecture and independent
+mathematical correctness gates. K4-shared is the primary GraSU baseline.}
+\end{figure}
+\clearpage
+
+\section{Memory traffic and HBM energy}
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{semilogyaxis}[
+  ybar, bar width=7pt, width=0.98\linewidth, height=60mm,
+  ylabel={G+R / Spine ratio},
+  xtick=data, xticklabels from table={\pairdata}{label},
+  x tick label style={rotate=28,anchor=east}, ymin=0.5, grid=major,
+  legend style={at={(0.5,1.14)},anchor=south,legend columns=2}]
+\addplot[fill=kfour] table[x=index,y=k4_memory_ratio] {\pairdata};
+\addplot[fill=kone] table[x=index,y=k1_memory_ratio] {\pairdata};
+\addplot[black,dashed,sharp plot] coordinates {(0,1) (4,1)};
+\legend{K4-shared requested bytes,K1 requested bytes}
+\end{semilogyaxis}
+\end{tikzpicture}
+\caption{Accepted backend bytes. Ratios above one mean GraSU+ReGraph moves
+more data than Spine; request and DRAM completion ledgers close on every row.}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{semilogyaxis}[
+  ybar, bar width=7pt, width=0.98\linewidth, height=60mm,
+  ylabel={G+R / Spine HBM energy},
+  xtick=data, xticklabels from table={\pairdata}{label},
+  x tick label style={rotate=28,anchor=east}, ymin=0.5, grid=major,
+  legend style={at={(0.5,1.14)},anchor=south,legend columns=2}]
+\addplot[fill=kfour] table[x=index,y=k4_energy_ratio] {\pairdata};
+\addplot[fill=kone] table[x=index,y=k1_energy_ratio] {\pairdata};
+\addplot[black,dashed,sharp plot] coordinates {(0,1) (4,1)};
+\legend{G+R K4-shared,G+R K1}
+\end{semilogyaxis}
+\end{tikzpicture}
+\caption{All-controller DRAMSim3 energy ratio. This is HBM energy, not total
+accelerator or board energy.}
+\end{figure}
+\clearpage
+
+\section{Update-only tradeoff}
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{semilogyaxis}[
+  ybar, bar width=7pt, width=0.98\linewidth, height=58mm,
+  ylabel={Spine update-phase speedup},
+  xtick=data, xticklabels from table={\pairdata}{label},
+  x tick label style={rotate=28,anchor=east}, ymin=0.001, ymax=2,
+  grid=major, legend style={at={(0.5,1.14)},anchor=south,legend columns=2}]
+\addplot[fill=kfour] table[x=index,y=k4_update_speedup] {\pairdata};
+\addplot[fill=kone] table[x=index,y=k1_update_speedup] {\pairdata};
+\addplot[black,dashed,sharp plot] coordinates {(0,1) (4,1)};
+\legend{G+R K4-shared,G+R K1}
+\end{semilogyaxis}
+\end{tikzpicture}
+\caption{Update-phase cycles only. Values below one expose Spine's current
+maintenance cost even when end-to-end execution favors Spine.}
+\end{figure}
+
+\section{Simulator engineering runtime}
+\begin{table}[ht]
+\centering
+\begin{tabular}{lrrr}
+\toprule
+System & Completed runs & Median host s & Maximum host s \\
+\midrule
+    Spine & 13 & 174.4 & 5966.0 \\
+    G+R K4-shared & 6 & 835.5 & 6142.3 \\
+    G+R K1 & 4 & 2087.7 & 2452.3 \\
+\bottomrule
+\end{tabular}
+\caption{Observed host wall time under concurrent campaign load. These values
+measure simulator throughput and are not accelerator performance.}
+\end{table}
+
+\paragraph{Claim boundary.}
+Only complete correctness-gated pairs enter the figures. Current FPGA/RTL
+evidence supports feasibility and PPA separately; this report does not claim
+cycle-for-cycle FPGA calibration or ASIC total power.
+\end{document}
