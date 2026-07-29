@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import re
@@ -752,6 +753,28 @@ def progress_bar(completed: float, total: float, width: int = 18) -> str:
     return "[" + "#" * filled + "." * (width - filled) + f"] {fraction:6.1%}"
 
 
+def estimated_remaining_seconds(job: Mapping[str, Any]) -> float | None:
+    progress = job.get("progress") or {}
+    reported = progress.get("eta_seconds")
+    if isinstance(reported, (int, float)) and math.isfinite(float(reported)):
+        return max(0.0, float(reported))
+    completed = progress.get("completed")
+    total = progress.get("total")
+    elapsed = job.get("elapsed_seconds")
+    if not all(isinstance(value, (int, float)) for value in (completed, total, elapsed)):
+        return None
+    completed_value = float(completed)
+    total_value = float(total)
+    elapsed_value = float(elapsed)
+    if (
+        completed_value <= 0.0
+        or total_value < completed_value
+        or elapsed_value < 0.0
+    ):
+        return None
+    return elapsed_value * (total_value - completed_value) / completed_value
+
+
 def render_campaign_state(state: Mapping[str, Any], *, max_rows: int = 24) -> str:
     jobs = list(state.get("jobs", []))
     summary = state.get("summary", {})
@@ -779,7 +802,7 @@ def render_campaign_state(state: Mapping[str, Any], *, max_rows: int = 24) -> st
         + " recovery="
         + format_bytes(state.get("host", {}).get("memory_recovery_bytes")),
         "",
-        "STATUS    DATASET        ALGORITHM                    SYSTEM               ELAPSED     RSS  PROGRESS",
+        "STATUS    DATASET        ALGORITHM                    SYSTEM               ELAPSED      ETA     RSS  PROGRESS",
     ]
     order = {"running": 0, "stopping": 1, "fail": 2, "stopped": 3, "queued": 4, "blocked": 5, "pass": 6}
     jobs.sort(key=lambda job: (order.get(str(job.get("status")), 9), str(job.get("job_id"))))
@@ -795,9 +818,6 @@ def render_campaign_state(state: Mapping[str, Any], *, max_rows: int = 24) -> st
         iteration = progress.get("iteration")
         if iteration is not None:
             progress_text += f" it={iteration}"
-        eta = progress.get("eta_seconds")
-        if isinstance(eta, (int, float)):
-            progress_text += f" eta={format_duration(eta)}"
         simulated_cycles = progress.get("simulated_cycles")
         if isinstance(simulated_cycles, (int, float)):
             progress_text += f" cyc={int(simulated_cycles):,}"
@@ -816,6 +836,7 @@ def render_campaign_state(state: Mapping[str, Any], *, max_rows: int = 24) -> st
             f"{str(job.get('algorithm', '-'))[:28]:28} "
             f"{str(job.get('system', '-'))[:20]:20} "
             f"{format_duration(job.get('elapsed_seconds')):>8} "
+            f"{format_duration(estimated_remaining_seconds(job)):>8} "
             f"{format_bytes(job.get('rss_bytes')):>8}  {progress_text}"
         )
     if len(jobs) > len(visible):

@@ -92,6 +92,11 @@ Persistent one-minute log:
 tail -f /data/tmp/chuxiao/large_graph_campaign_v1/active_campaign_monitor.log
 ```
 
+The per-campaign monitor reports elapsed time, RSS, phase, cycles, memory
+requests, and ETA. ETA is derived only for bounded `completed/total` work (for
+example fixed-iteration Full PageRank); convergence-driven SSSP/CC reports `-`
+instead of extrapolating an unknown number of rounds.
+
 ## Live analysis
 
 Refresh all correctness-gated outputs:

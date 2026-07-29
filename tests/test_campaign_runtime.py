@@ -124,6 +124,8 @@ class CampaignRuntimeTest(unittest.TestCase):
             self.assertEqual(state["jobs"][1]["progress"]["completed"], 4)
             rendered = render_campaign_state(state)
             self.assertIn("100.0%", rendered)
+            self.assertIn("ETA", rendered)
+            self.assertIn("00:00", rendered)
             self.assertIn("cyc=123,456", rendered)
             self.assertIn("mem=789", rendered)
             events = (run_dir / "events.jsonl").read_text()
@@ -142,6 +144,28 @@ class CampaignRuntimeTest(unittest.TestCase):
             self.assertTrue(resumed.run())
             resumed_state = json.loads((run_dir / "campaign_state.json").read_text())
             self.assertEqual([job["attempt"] for job in resumed_state["jobs"]], [1, 1])
+
+    def test_monitor_derives_eta_only_for_bounded_progress(self) -> None:
+        state = {
+            "campaign_id": "eta",
+            "status": "running",
+            "summary": {"total": 1, "by_status": {"running": 1}},
+            "host": {},
+            "jobs": [
+                {
+                    "job_id": "bounded",
+                    "status": "running",
+                    "dataset_id": "tiny",
+                    "algorithm": "full_pagerank",
+                    "system": "spine",
+                    "elapsed_seconds": 90,
+                    "rss_bytes": 0,
+                    "progress": {"phase": "compute", "completed": 1, "total": 4},
+                }
+            ],
+        }
+        rendered = render_campaign_state(state)
+        self.assertIn("04:30", rendered)
 
     def test_control_request_is_atomic_and_auditable(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
