@@ -167,6 +167,37 @@ class CampaignRuntimeTest(unittest.TestCase):
         rendered = render_campaign_state(state)
         self.assertIn("04:30", rendered)
 
+    def test_monitor_distinguishes_stale_heartbeat_from_idle_process(self) -> None:
+        state = {
+            "campaign_id": "heartbeat",
+            "status": "running",
+            "summary": {"total": 1, "by_status": {"running": 1}},
+            "host": {},
+            "jobs": [
+                {
+                    "job_id": "long_round",
+                    "status": "running",
+                    "dataset_id": "large",
+                    "algorithm": "weighted_sssp",
+                    "system": "spine",
+                    "elapsed_seconds": 3600,
+                    "cpu_seconds": 3590,
+                    "rss_bytes": 1024,
+                    "no_progress_warning": True,
+                    "no_progress_seconds": 1800,
+                    "progress": {"phase": "compute", "simulated_cycles": 10},
+                }
+            ],
+        }
+        active = render_campaign_state(state)
+        self.assertIn("HEARTBEAT-STALE=30:00 CPU=100%", active)
+        self.assertNotIn("NO-PROGRESS", active)
+
+        state["jobs"][0]["cpu_seconds"] = 10
+        idle = render_campaign_state(state)
+        self.assertIn("NO-PROGRESS=30:00 CPU=0%", idle)
+        self.assertNotIn("HEARTBEAT-STALE", idle)
+
     def test_control_request_is_atomic_and_auditable(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             run_dir = Path(temporary)

@@ -775,6 +775,18 @@ def estimated_remaining_seconds(job: Mapping[str, Any]) -> float | None:
     return elapsed_value * (total_value - completed_value) / completed_value
 
 
+def average_process_group_cpu_percent(job: Mapping[str, Any]) -> float | None:
+    cpu_seconds = job.get("cpu_seconds")
+    elapsed_seconds = job.get("elapsed_seconds")
+    if not isinstance(cpu_seconds, (int, float)) or not isinstance(
+        elapsed_seconds, (int, float)
+    ):
+        return None
+    if cpu_seconds < 0 or elapsed_seconds <= 0:
+        return None
+    return 100.0 * float(cpu_seconds) / float(elapsed_seconds)
+
+
 def render_campaign_state(state: Mapping[str, Any], *, max_rows: int = 24) -> str:
     jobs = list(state.get("jobs", []))
     summary = state.get("summary", {})
@@ -825,9 +837,16 @@ def render_campaign_state(state: Mapping[str, Any], *, max_rows: int = 24) -> st
         if isinstance(backend_requests, (int, float)):
             progress_text += f" mem={int(backend_requests):,}"
         if job.get("no_progress_warning"):
-            progress_text += (
-                " NO-PROGRESS=" + format_duration(job.get("no_progress_seconds"))
-            )
+            stale_for = format_duration(job.get("no_progress_seconds"))
+            cpu_percent = average_process_group_cpu_percent(job)
+            if cpu_percent is not None and cpu_percent >= 50.0:
+                progress_text += (
+                    f" HEARTBEAT-STALE={stale_for} CPU={cpu_percent:.0f}%"
+                )
+            else:
+                progress_text += f" NO-PROGRESS={stale_for}"
+                if cpu_percent is not None:
+                    progress_text += f" CPU={cpu_percent:.0f}%"
         elif job.get("waiting_reason"):
             progress_text = "waiting for memory reserve"
         lines.append(

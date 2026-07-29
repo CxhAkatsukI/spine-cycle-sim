@@ -13,6 +13,13 @@ The feature is disabled when `SPINE_CAMPAIGN_PROGRESS_PATH` is empty. It does
 not skip cycles, change event order, resize queues, or alter any architectural
 parameter. The campaign runner sets a private path for each job.
 
+The campaign state also records process-group CPU time independently of the
+simulator heartbeat. Once a heartbeat is stale, the monitor reports
+`HEARTBEAT-STALE` when average process-group CPU utilization remains at least
+50%, distinguishing a long execution-driven iteration from an idle or wedged
+process. `NO-PROGRESS` is reserved for stale jobs below that threshold. This is
+a diagnostic label only; neither condition automatically terminates a job.
+
 ## Exactness evidence
 
 The frozen `syn_spread_e512__residual_pagerank` pair was run with the Candidate
