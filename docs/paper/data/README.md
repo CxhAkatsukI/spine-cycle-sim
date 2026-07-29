@@ -27,6 +27,8 @@ Expected CSV interfaces:
 - `dense_batch.csv`
 - `hbm_energy_by_algorithm.csv`
 - `component_power.csv`
+- `large_graph_campaign/component_activity.csv` (workload-specific counters,
+  explicitly not a total-energy estimate)
 - `area_footprint.csv`
 - `simulator_host_runtime.csv`
 - `spine_optimization_ablation.csv`

@@ -765,6 +765,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     runtime = runtime_summary(read_csv(args.analysis_dir / "system_rows.csv"))
     ppa = read_csv(args.ppa)
     component_power = read_csv(args.component_power)
+    component_activity = read_csv(
+        args.analysis_dir / "component_activity_rows.csv"
+    )
     write_csv(args.data_dir / "headline_pairs.csv", pairs)
     write_csv(args.data_dir / "k4_update_sweep.csv", update_sweep)
     write_csv(args.data_dir / "dense_sweep.csv", dense_sweep)
@@ -773,6 +776,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     write_csv(args.data_dir / "runtime_summary.csv", runtime)
     write_csv(args.data_dir / "routed_ppa.csv", ppa)
     write_csv(args.data_dir / "vectorless_component_power.csv", component_power)
+    write_csv(args.data_dir / "component_activity.csv", component_activity)
     args.tex.parent.mkdir(parents=True, exist_ok=True)
     args.tex.write_text(
         render_tex(
@@ -790,8 +794,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     print(
         f"rendered {len(pairs)} headline groups, {len(update_sweep)} update "
-        f"groups, {len(dense_sweep)} dense groups, and {len(runtime)} "
-        f"runtime rows "
+        f"groups, {len(dense_sweep)} dense groups, {len(runtime)} runtime rows, "
+        f"and {len(component_activity)} component-activity rows "
         f"to {args.tex}"
     )
     return 0

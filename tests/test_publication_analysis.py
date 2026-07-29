@@ -9,6 +9,7 @@ import unittest
 
 from spine_cycle_sim.experiments.publication_analysis import (
     analyze_publication_case_results,
+    write_publication_analysis,
 )
 
 
@@ -218,6 +219,48 @@ class PublicationAnalysisTests(unittest.TestCase):
         self.assertEqual(row["update_cycles"], 75)
         self.assertAlmostEqual(row["sequential_request_fraction"], 2.0 / 3.0)
         self.assertEqual(row["read_bytes"] + row["write_bytes"], 640)
+
+    def test_component_activity_preserves_lists_and_claim_boundary(self) -> None:
+        result = case_result("spine", 300)
+        result["scalar_metrics"] = {
+            "maintenance_cycles": 30,
+            "maintenance_edge_visits": 16,
+            "maintenance_backend_requests": 5,
+            "reader_active_cycles_per_round": [10, 20],
+            "reader_memory_requests_issued_per_round": [2, 3],
+            "reader_memory_window_stall_cycles_per_round": [4, 5],
+            "compute_active_cycles_per_round": [40, 50],
+            "compute_tiny_bram_read_requests_per_round": [7, 8],
+            "compute_tiny_bram_write_requests_per_round": [3, 4],
+            "backend_requests": 12,
+            "hbm_queue_stalls": 9,
+        }
+        result["dram"] = {"reads": 8, "writes": 4}
+        analysis = analyze_publication_case_results([result])
+        rows = {
+            row["component"]: row
+            for row in analysis["component_activity_rows"]
+        }
+        self.assertEqual(rows["reader"]["component_cycles"], 30)
+        self.assertEqual(rows["reader"]["backend_requests"], 5)
+        self.assertEqual(rows["reader"]["stall_cycles"], 9)
+        self.assertEqual(rows["onchip_state_arrays"]["read_events"], 15)
+        self.assertEqual(rows["onchip_state_arrays"]["write_events"], 7)
+        self.assertEqual(rows["hbm_frontend"]["read_events"], 8)
+        self.assertEqual(rows["hbm_frontend"]["write_events"], 4)
+        self.assertEqual(
+            rows["hbm_frontend"]["claim_scope"],
+            "workload_specific_activity_not_total_energy",
+        )
+
+    def test_writer_emits_component_activity_csv(self) -> None:
+        analysis = analyze_publication_case_results([case_result("spine", 100)])
+        with tempfile.TemporaryDirectory() as temporary:
+            output = Path(temporary)
+            write_publication_analysis(output, analysis)
+            activity = (output / "component_activity_rows.csv").read_text()
+        self.assertIn("component_cycles", activity)
+        self.assertIn("hbm_frontend", activity)
 
 
 if __name__ == "__main__":

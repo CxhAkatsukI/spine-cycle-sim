@@ -125,7 +125,10 @@ scripts/analyze_active_publication_campaigns.sh
 The output directory is
 `/data/tmp/chuxiao/large_graph_campaign_v1/live_publication_analysis/` and
 contains `summary.json`, `system_rows.csv`, `pair_rows.csv`, and
-`correctness_groups.csv`. A tmux worker named `spine-v3-live-analysis` refreshes
+`correctness_groups.csv`. It also emits `component_activity_rows.csv`, which
+normalizes workload-specific component cycles, work items, selected array
+accesses, backend requests, and stalls while explicitly excluding a total-energy
+claim. A tmux worker named `spine-v3-live-analysis` refreshes
 these files every five minutes. `PARTIAL` is expected until every execution ID
 listed by the active manifests has a passing case result.
 

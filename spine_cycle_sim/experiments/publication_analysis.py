@@ -188,6 +188,339 @@ def _normalized_system_row(result: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
+def _activity_value(value: Any) -> int:
+    if isinstance(value, bool) or value is None:
+        return 0
+    if isinstance(value, (int, float)):
+        if not math.isfinite(float(value)) or value < 0:
+            raise ValueError("publication activity counter must be nonnegative")
+        return int(value)
+    if isinstance(value, (list, tuple)):
+        return sum(_activity_value(item) for item in value)
+    if isinstance(value, Mapping):
+        return sum(_activity_value(item) for item in value.values())
+    return 0
+
+
+def _activity_sum(metrics: Mapping[str, Any], keys: Sequence[str]) -> int:
+    return sum(_activity_value(metrics.get(key)) for key in keys)
+
+
+def _activity_first(metrics: Mapping[str, Any], keys: Sequence[str]) -> int:
+    for key in keys:
+        if key in metrics and metrics[key] is not None:
+            return _activity_value(metrics[key])
+    return 0
+
+
+def _activity_alias_group_sum(
+    metrics: Mapping[str, Any], groups: Sequence[Sequence[str]]
+) -> int:
+    return sum(_activity_first(metrics, group) for group in groups)
+
+
+def _component_activity_rows(result: Mapping[str, Any]) -> list[dict[str, Any]]:
+    """Normalize architecture counters without claiming a total-energy model."""
+
+    case = result["case"]
+    metrics = result.get("scalar_metrics", {})
+    if not isinstance(metrics, Mapping):
+        raise ValueError("publication scalar_metrics must be an object")
+    total_cycles = int(result["row"]["cycles"])
+    group_id = _stable_digest(_case_group_identity(case))[:20]
+    system = str(case["system"])
+    common = {
+        "execution_id": case["execution_id"],
+        "group_id": group_id,
+        "dataset_id": case["dataset_id"],
+        "algorithm": case["algorithm"],
+        "scenario": case["scenario"],
+        "batch_size": int(case["batch_size"]),
+        "system": system,
+        "plugin_sha256": result["plugin_sha256"],
+        "claim_scope": "workload_specific_activity_not_total_energy",
+    }
+    rows: list[dict[str, Any]] = []
+
+    def add(
+        component: str,
+        *,
+        cycles: int = 0,
+        work_items: int = 0,
+        read_events: int = 0,
+        write_events: int = 0,
+        backend_requests: int = 0,
+        stall_cycles: int = 0,
+        counter_contract: str,
+    ) -> None:
+        rows.append(
+            {
+                **common,
+                "component": component,
+                "component_cycles": cycles,
+                "work_items": work_items,
+                "read_events": read_events,
+                "write_events": write_events,
+                "backend_requests": backend_requests,
+                "stall_cycles": stall_cycles,
+                "counter_contract": counter_contract,
+            }
+        )
+
+    if system == "spine":
+        maintenance_cycles = _activity_first(
+            metrics, ("maintenance_cycles", "update_cycles")
+        )
+        add(
+            "maintenance",
+            cycles=maintenance_cycles,
+            work_items=_activity_first(
+                metrics, ("maintenance_edge_visits", "update_edges")
+            ),
+            backend_requests=_activity_first(
+                metrics, ("maintenance_backend_requests", "update_backend_requests")
+            ),
+            stall_cycles=_activity_sum(
+                metrics,
+                (
+                    "maintenance_memory_dependency_stall_cycles",
+                    "maintenance_memory_request_fifo_stall_cycles",
+                    "maintenance_memory_window_stall_cycles",
+                    "maintenance_scan_ii_stall_cycles",
+                    "maintenance_scan_reorder_full_stall_cycles",
+                    "maintenance_scan_response_stall_cycles",
+                    "maintenance_l0_writer_backpressure_stall_cycles",
+                ),
+            ),
+            counter_contract="spine_maintenance_execution_and_memory_v1",
+        )
+        reader_cycles = _activity_first(
+            metrics, ("reader_cycles", "reader_active_cycles_per_round")
+        )
+        reader_requests = _activity_first(
+            metrics,
+            ("reader_memory_requests_issued", "reader_memory_requests_issued_per_round"),
+        )
+        add(
+            "reader",
+            cycles=reader_cycles,
+            work_items=_activity_first(
+                metrics,
+                ("reader_edges_total", "reader_edges", "edge_axis_transfers_per_round"),
+            ),
+            backend_requests=reader_requests,
+            stall_cycles=_activity_alias_group_sum(
+                metrics,
+                (
+                    (
+                        "reader_memory_dependency_stall_cycles",
+                        "reader_memory_dependency_stall_cycles_per_round",
+                    ),
+                    (
+                        "reader_memory_request_fifo_stall_cycles",
+                        "reader_memory_request_fifo_stall_cycles_per_round",
+                    ),
+                    (
+                        "reader_memory_window_stall_cycles",
+                        "reader_memory_window_stall_cycles_per_round",
+                    ),
+                    (
+                        "reader_edge_pipeline_axis_stall_cycles",
+                        "reader_edge_pipeline_axis_stall_cycles_per_round",
+                    ),
+                    (
+                        "reader_edge_pipeline_credit_stall_cycles",
+                        "reader_edge_pipeline_credit_stall_cycles_per_round",
+                    ),
+                ),
+            ),
+            counter_contract="spine_reader_execution_and_memory_v1",
+        )
+        compute_cycles = _activity_first(
+            metrics, ("compute_cycles", "compute_active_cycles_per_round")
+        )
+        if compute_cycles == 0:
+            compute_cycles = max(0, total_cycles - maintenance_cycles - reader_cycles)
+        add(
+            "compute",
+            cycles=compute_cycles,
+            work_items=_activity_first(
+                metrics,
+                (
+                    "compute_edges_total",
+                    "compute_edges",
+                    "edge_axis_transfers",
+                    "edge_axis_transfers_per_round",
+                    "apply_operations",
+                ),
+            ),
+            backend_requests=_activity_first(
+                metrics,
+                ("compute_backend_requests", "compute_memory_requests_issued_per_round"),
+            ),
+            stall_cycles=_activity_alias_group_sum(
+                metrics,
+                (
+                    (
+                        "compute_memory_request_fifo_stall_cycles",
+                        "compute_memory_request_fifo_stall_cycles_per_round",
+                    ),
+                    (
+                        "compute_memory_window_stall_cycles",
+                        "compute_memory_window_stall_cycles_per_round",
+                    ),
+                    ("compute_on_chip_pipeline_stall_cycles_per_round",),
+                ),
+            ),
+            counter_contract="spine_compute_execution_and_memory_v1",
+        )
+        add(
+            "onchip_state_arrays",
+            cycles=_activity_first(
+                metrics, ("compute_on_chip_controller_cycles_per_round",)
+            ),
+            read_events=_activity_sum(
+                metrics,
+                (
+                    "compute_tiny_bram_read_requests_per_round",
+                    "compute_vs_uram_read_requests_per_round",
+                    "compute_active_emit_lane_reads_per_round",
+                    "compute_sparse_store_lane_reads_per_round",
+                ),
+            ),
+            write_events=_activity_sum(
+                metrics,
+                (
+                    "compute_tiny_bram_write_requests_per_round",
+                    "compute_vs_uram_write_requests_per_round",
+                    "compute_active_emit_lane_writes_per_round",
+                    "compute_tile_active_clear_lane_writes_per_round",
+                    "compute_tile_active_mark_writes_per_round",
+                ),
+            ),
+            counter_contract="spine_selected_bram_uram_bitmap_accesses_v1",
+        )
+        add(
+            "axis_streams",
+            work_items=(
+                _activity_first(metrics, ("edge_axis_transfers", "edge_axis_transfers_per_round"))
+                + _activity_first(
+                    metrics, ("value_axis_transfers", "value_axis_transfers_per_round")
+                )
+            ),
+            stall_cycles=_activity_first(
+                metrics,
+                (
+                    "axis_push_stalls",
+                    "edge_axis_push_stalls",
+                    "edge_axis_push_stalls_per_round",
+                ),
+            ),
+            counter_contract="spine_axis_transfer_backpressure_v1",
+        )
+    else:
+        add(
+            "update_pma",
+            cycles=_activity_first(metrics, ("update_cycles",)),
+            work_items=_activity_first(metrics, ("update_edges", "logical_updates")),
+            read_events=_activity_sum(
+                metrics, ("update_pma_reads", "update_row_reads", "degree_update_reads")
+            ),
+            write_events=_activity_sum(
+                metrics, ("update_pma_writes", "degree_update_writes")
+            ),
+            backend_requests=_activity_first(metrics, ("update_backend_requests",)),
+            counter_contract="grasu_update_pma_execution_v1",
+        )
+        add(
+            "source_cache",
+            cycles=_activity_sum(metrics, ("source_prepare_cycles", "source_map_cycles")),
+            work_items=_activity_first(metrics, ("source_cache_requests",)),
+            read_events=_activity_first(metrics, ("compute_pma_slots",)),
+            write_events=_activity_first(metrics, ("source_cache_lane_writes",)),
+            stall_cycles=_activity_sum(
+                metrics, ("source_cache_wait_cycles", "source_cache_output_stall_cycles")
+            ),
+            counter_contract="grasu_regraph_source_cache_accesses_v1",
+        )
+        gather_updates = _activity_first(metrics, ("gather_bank_updates",))
+        gather_merge = _activity_first(metrics, ("gather_merge_cycles",))
+        gather_reset = _activity_first(metrics, ("gather_reset_cycles",))
+        gather_banks = _activity_first(metrics, ("gather_banks",)) or 8
+        add(
+            "gather",
+            cycles=gather_merge + gather_reset,
+            work_items=gather_updates,
+            read_events=gather_updates + gather_merge * gather_banks,
+            write_events=(
+                gather_updates + (gather_merge + gather_reset) * gather_banks
+            ),
+            stall_cycles=_activity_sum(
+                metrics, ("gather_bank_conflict_cycles", "gather_output_stall_cycles")
+            ),
+            counter_contract="regraph_gather_bank_accesses_v1",
+        )
+        add(
+            "merger",
+            work_items=_activity_first(metrics, ("merger_rows_consumed",)),
+            write_events=_activity_first(metrics, ("merger_bursts_emitted",)),
+            stall_cycles=_activity_first(metrics, ("merger_output_stall_cycles",)),
+            counter_contract="regraph_merger_stream_activity_v1",
+        )
+        add(
+            "apply",
+            work_items=_activity_first(
+                metrics, ("apply_input_bursts", "apply_operations")
+            ),
+            read_events=_activity_first(metrics, ("apply_state_reads",)),
+            write_events=_activity_first(metrics, ("apply_state_writes",)),
+            stall_cycles=_activity_sum(
+                metrics,
+                (
+                    "apply_output_stall_cycles",
+                    "apply_pipeline_capacity_stalls",
+                    "apply_read_window_stalls",
+                    "apply_write_window_stalls",
+                ),
+            ),
+            counter_contract="regraph_apply_pipeline_activity_v1",
+        )
+        update_cycles = _activity_first(metrics, ("update_cycles",))
+        add(
+            "compute_pipeline_aggregate",
+            cycles=_activity_first(metrics, ("compute_cycles",))
+            or max(0, total_cycles - update_cycles),
+            work_items=_activity_first(
+                metrics,
+                ("compute_active_edges", "compute_edges", "active_edges", "apply_operations"),
+            ),
+            backend_requests=_activity_first(metrics, ("compute_backend_requests",)),
+            stall_cycles=_activity_first(metrics, ("axis_push_stalls",)),
+            counter_contract="grasu_regraph_compute_aggregate_v1",
+        )
+
+    traffic = result.get("dram", {})
+    if not isinstance(traffic, Mapping):
+        traffic = {}
+    add(
+        "hbm_frontend",
+        cycles=total_cycles,
+        read_events=_activity_first(traffic, ("reads",)),
+        write_events=_activity_first(traffic, ("writes",)),
+        backend_requests=_activity_first(metrics, ("backend_requests",)),
+        stall_cycles=_activity_sum(
+            metrics,
+            (
+                "hbm_queue_stalls",
+                "hbm_response_queue_stalls",
+                "axi_issue_stalls",
+            ),
+        ),
+        counter_contract="shared_axi_hbm_request_and_stall_v1",
+    )
+    return rows
+
+
 def _external_final_vector(result: Mapping[str, Any]) -> list[int | float]:
     path = Path(str(result.get("raw_result_path", "")))
     expected_hash = result.get("raw_result_sha256")
@@ -294,6 +627,21 @@ def analyze_publication_case_results(
         duplicate_counts[execution_id] = duplicate_counts.get(execution_id, 0) + 1
 
     system_rows = [_normalized_system_row(result) for result in by_execution.values()]
+    activity_rows = [
+        row
+        for result in by_execution.values()
+        for row in _component_activity_rows(result)
+    ]
+    activity_rows.sort(
+        key=lambda row: (
+            row["dataset_id"],
+            row["algorithm"],
+            row["scenario"],
+            row["batch_size"],
+            row["system"],
+            row["component"],
+        )
+    )
     system_rows.sort(
         key=lambda row: (
             row["dataset_id"],
@@ -415,6 +763,7 @@ def analyze_publication_case_results(
         "missing_execution_ids": missing,
         "unexpected_execution_ids": unexpected,
         "system_rows": system_rows,
+        "component_activity_rows": activity_rows,
         "pair_rows": pair_rows,
         "correctness_groups": correctness_groups,
     }
@@ -444,7 +793,12 @@ def write_publication_analysis(output_dir: Path, analysis: Mapping[str, Any]) ->
     (output_dir / "summary.json").write_text(
         json.dumps(compact, indent=2, sort_keys=True) + "\n", encoding="ascii"
     )
-    for name in ("system_rows", "pair_rows", "correctness_groups"):
+    for name in (
+        "system_rows",
+        "component_activity_rows",
+        "pair_rows",
+        "correctness_groups",
+    ):
         rows = list(analysis[name])
         path = output_dir / f"{name}.csv"
         if not rows:
