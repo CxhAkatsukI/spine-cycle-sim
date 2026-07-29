@@ -38,14 +38,31 @@ while true; do
       printf '%-38s missing\n' "${campaign}"
       continue
     fi
-    jq -r --arg campaign "${campaign}" '
+    repaired=0
+    while IFS= read -r job_id; do
+      [[ -n "${job_id}" ]] || continue
+      execution_id="${job_id##*.}"
+      result="${campaign_root}/${campaign}/runs/${execution_id}/case_result.json"
+      if [[ -f "${result}" ]] && jq -e '
+        .status == "pass"
+        and (.admission.reused_child // false)
+      ' "${result}" >/dev/null 2>&1; then
+        ((repaired += 1))
+      fi
+    done < <(
+      jq -r '.jobs[] | select(.status == "fail") | .job_id' "${state}"
+    )
+    jq -r --arg campaign "${campaign}" --argjson repaired "${repaired}" '
+      (.summary.by_status.fail // 0) as $failed |
       [
         $campaign,
         .status,
         ("pass=" + ((.summary.by_status.pass // 0) | tostring)),
         ("run=" + ((.summary.by_status.running // 0) | tostring)),
         ("queue=" + ((.summary.by_status.queued // 0) | tostring)),
-        ("fail=" + ((.summary.by_status.fail // 0) | tostring)),
+        ("fail=" + ($failed | tostring)),
+        ("repair=" + ($repaired | tostring)),
+        ("unresolved_fail=" + (($failed - $repaired) | tostring)),
         ("stop=" + ((.summary.by_status.stopped // 0) | tostring)),
         ("rss_gib=" + (((.host.campaign_rss_bytes // 0) / 1073741824 * 10 | floor) / 10 | tostring)),
         ("available_gib=" + (((.host.available_memory_bytes // 0) / 1073741824) | floor | tostring)),
