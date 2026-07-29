@@ -207,6 +207,50 @@ class CampaignRuntimeTest(unittest.TestCase):
             self.assertEqual(state["status"], "stopped")
             self.assertEqual(state["rss_bytes"], 0)
 
+    def test_start_removes_stale_progress_from_prior_attempt(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            run_dir = root / "run"
+            manifest_path = root / "manifest.json"
+            manifest_path.write_text(
+                json.dumps(
+                    {
+                        "schema_version": 1,
+                        "campaign_id": "stale_progress_test",
+                        "jobs": [
+                            {
+                                "job_id": "sleeper",
+                                "command": [
+                                    sys.executable,
+                                    "-c",
+                                    "import time; time.sleep(60)",
+                                ],
+                            }
+                        ],
+                    }
+                ),
+                encoding="ascii",
+            )
+            stale = run_dir / "jobs" / "sleeper" / "progress.json"
+            stale.parent.mkdir(parents=True)
+            stale.write_text('{"simulated_cycles":999999}\n', encoding="ascii")
+            runner = CampaignRunner(
+                manifest_path,
+                run_dir,
+                jobs=1,
+                large_jobs=1,
+                memory_reserve_bytes=0,
+                sample_seconds=0.01,
+                pin_cpus=False,
+                resume=False,
+            )
+            runner._start(runner.specs[0])
+            self.assertFalse(stale.exists())
+            runner._request_stop("sleeper", "test cleanup")
+            while runner.running:
+                runner._poll_running()
+                time.sleep(0.01)
+
     def test_launch_reservation_counts_not_yet_resident_processes(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

@@ -372,6 +372,7 @@ class CampaignRunner:
         job_dir.mkdir(parents=True, exist_ok=True)
         log_path = job_dir / "stdout.log"
         progress_path = job_dir / "progress.json"
+        progress_path.unlink(missing_ok=True)
         environment = os.environ.copy()
         environment.update(spec.environment)
         environment["SPINE_CAMPAIGN_JOB_ID"] = spec.job_id
