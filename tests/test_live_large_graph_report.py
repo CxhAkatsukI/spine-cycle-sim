@@ -91,6 +91,8 @@ class LiveLargeGraphReportTests(unittest.TestCase):
                 "status": "PARTIAL",
                 "observed_executions": 3,
                 "expected_executions": 9,
+                "capacity_excluded_executions": 2,
+                "contract_executions": 11,
                 "complete_triplets": 1,
             },
             runtime=[],
@@ -98,6 +100,7 @@ class LiveLargeGraphReportTests(unittest.TestCase):
         )
         self.assertIn("coordinates {(0,1) (4,1)}", tex)
         self.assertNotIn("coordinates {(0,1) (20,1)}", tex)
+        self.assertIn("2 of\n11 contract cases excluded", tex)
 
     def test_report_labels_ppa_and_vectorless_power_claim_boundaries(self) -> None:
         tex = render_tex(

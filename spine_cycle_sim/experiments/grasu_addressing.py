@@ -106,6 +106,35 @@ def source_state_prefetch_guard_bytes(parameters: Mapping[str, Any]) -> int:
     return _align_up(vertices * SOURCE_STATE_STREAM_BYTES_PER_VERTEX, 64)
 
 
+def interleaved_row_storage_lower_bound_bytes(
+    parameters: Mapping[str, Any], vertices: int
+) -> int:
+    """Return a topology-independent lower bound for packed row storage."""
+
+    if vertices <= 0:
+        raise ValueError("graph vertices must be positive")
+    if not uses_interleaved_hbm_arena(parameters):
+        raise ValueError("row-storage lower bound requires interleaved HBM")
+    partition_vertices = int(parameters["regraph_partition_vertices"])
+    alignment = int(parameters["grasu_partition_address_alignment_bytes"])
+    if partition_vertices <= 0 or alignment <= 0:
+        raise ValueError("invalid packed row-storage geometry")
+    partitions = (vertices + partition_vertices - 1) // partition_vertices
+    return partitions * _align_up(vertices * 8, alignment)
+
+
+def interleaved_hbm_capacity_bytes(
+    parameters: Mapping[str, Any], channel_capacity_bytes: int
+) -> int:
+    if channel_capacity_bytes <= 0 or not uses_interleaved_hbm_arena(parameters):
+        raise ValueError("invalid interleaved HBM capacity geometry")
+    channels = int(parameters["grasu_interleaved_hbm_channels"])
+    budget = int(parameters.get("hbm_pseudo_channels_budget", channels))
+    if channels <= 0 or channels > budget:
+        raise ValueError("invalid interleaved HBM channel budget")
+    return channels * channel_capacity_bytes
+
+
 def grasu_hbm_address_environment(
     parameters: Mapping[str, Any],
     address_regions: Mapping[str, Mapping[str, object]] | None = None,

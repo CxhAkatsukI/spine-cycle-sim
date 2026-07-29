@@ -14,6 +14,7 @@ if str(ROOT) not in sys.path:
 
 from spine_cycle_sim.experiments.publication_analysis import (  # noqa: E402
     analyze_publication_case_results,
+    capacity_exclusion_metadata,
     expected_execution_ids,
     expected_execution_metadata,
     load_case_results,
@@ -34,6 +35,7 @@ def main() -> int:
         results,
         expected_execution_ids=expected_execution_ids(args.manifest),
         expected_execution_records=execution_metadata,
+        capacity_exclusion_records=capacity_exclusion_metadata(args.manifest),
         require_complete=args.require_complete,
     )
     write_publication_analysis(args.out_dir, analysis)

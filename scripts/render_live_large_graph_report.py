@@ -472,11 +472,13 @@ def render_tex(
 \maketitle
 \begin{abstract}
 This report is generated directly from correctness-gated campaign artifacts.
-The snapshot is \textbf{@@STATUS@@}: @@OBSERVED@@ of @@EXPECTED@@ planned
-physical executions are currently admitted, with @@TRIPLETS@@ complete
-three-system groups. Missing bars are unexecuted comparisons, not zero-valued
-measurements. Every plotted row passes exact integer-state comparison or the
-declared $10^{-5}$ float32 PageRank output tolerance.
+The snapshot is \textbf{@@STATUS@@}: @@OBSERVED@@ of @@EXPECTED@@ runnable
+physical executions are currently admitted, with @@CAPACITY_EXCLUDED@@ of
+@@CONTRACT_EXECUTIONS@@ contract cases excluded by proven physical capacity
+bounds and @@TRIPLETS@@ complete three-system groups. Missing bars are
+unexecuted comparisons, not zero-valued measurements. Every plotted row passes
+exact integer-state comparison or the declared $10^{-5}$ float32 PageRank
+output tolerance.
 Headline plots use insertion batch 8; the update sweep labels operation and
 batch size explicitly.
 \end{abstract}
@@ -726,6 +728,12 @@ cycle-for-cycle FPGA calibration or ASIC total power.
         "@@STATUS@@": _latex_escape(summary["status"]),
         "@@OBSERVED@@": str(summary["observed_executions"]),
         "@@EXPECTED@@": str(summary["expected_executions"]),
+        "@@CAPACITY_EXCLUDED@@": str(
+            summary.get("capacity_excluded_executions", 0)
+        ),
+        "@@CONTRACT_EXECUTIONS@@": str(
+            summary.get("contract_executions", summary["expected_executions"])
+        ),
         "@@TRIPLETS@@": str(summary["complete_triplets"]),
         "@@MAX_INDEX@@": str(max(0, pair_count - 1)),
         "@@UPDATE_MAX_INDEX@@": str(max(0, update_count - 1)),
@@ -781,6 +789,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     execution_coverage = read_csv(
         args.analysis_dir / "execution_coverage_rows.csv"
     )
+    capacity_exclusions = read_csv(
+        args.analysis_dir / "capacity_exclusion_rows.csv"
+    )
     write_csv(args.data_dir / "headline_pairs.csv", pairs)
     write_csv(args.data_dir / "k4_update_sweep.csv", update_sweep)
     write_csv(args.data_dir / "dense_sweep.csv", dense_sweep)
@@ -791,6 +802,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     write_csv(args.data_dir / "vectorless_component_power.csv", component_power)
     write_csv(args.data_dir / "component_activity.csv", component_activity)
     write_csv(args.data_dir / "execution_coverage.csv", execution_coverage)
+    write_csv(args.data_dir / "capacity_exclusions.csv", capacity_exclusions)
     args.tex.parent.mkdir(parents=True, exist_ok=True)
     args.tex.write_text(
         render_tex(

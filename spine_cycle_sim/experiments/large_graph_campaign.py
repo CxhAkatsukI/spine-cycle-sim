@@ -8,6 +8,10 @@ import json
 from pathlib import Path
 from typing import Any, Mapping
 
+from .grasu_addressing import (
+    interleaved_hbm_capacity_bytes,
+    interleaved_row_storage_lower_bound_bytes,
+)
 from .publication_cases import (
     deduplicate_publication_cases,
     load_materialization_manifest,
@@ -406,6 +410,46 @@ def spine_profile_vertex_admitted(
     return vertices <= maximum
 
 
+def grasu_profile_hbm_admission(
+    contract: Mapping[str, Any],
+    *,
+    repository_root: Path,
+    system: str,
+    algorithm: str,
+    vertices: int,
+) -> dict[str, Any]:
+    """Prove rejection when mandatory row storage alone exceeds HBM."""
+
+    if not system.startswith("grasu_regraph_"):
+        raise ValueError("GraSU HBM admission requires a GraSU+ReGraph system")
+    baseline = contract["architecture_baselines"].get(system)
+    if not isinstance(baseline, Mapping):
+        raise ValueError(f"campaign lacks architecture baseline for {system}")
+    profile_entry = baseline.get("profiles", {}).get(algorithm)
+    if not isinstance(profile_entry, list) or len(profile_entry) != 2:
+        raise ValueError(f"campaign lacks {system}/{algorithm} profile")
+    profile_path = repository_root / str(profile_entry[0])
+    expected_hash = str(profile_entry[1])
+    if not profile_path.is_file() or _sha256(profile_path) != expected_hash:
+        raise ValueError(f"campaign profile identity changed: {profile_path}")
+    profile = json.loads(profile_path.read_text(encoding="ascii"))
+    parameters = profile["parameters"]
+    channel_capacity = int(profile["memory"]["channel_capacity_bytes"])
+    row_lower_bound = interleaved_row_storage_lower_bound_bytes(
+        parameters, vertices
+    )
+    capacity = interleaved_hbm_capacity_bytes(parameters, channel_capacity)
+    return {
+        "row_lower_bound_fits": row_lower_bound <= capacity,
+        "row_storage_lower_bound_bytes": row_lower_bound,
+        "hbm_capacity_bytes": capacity,
+        "hbm_channels": int(parameters["grasu_interleaved_hbm_channels"]),
+        "channel_capacity_bytes": channel_capacity,
+        "profile_path": str(profile_entry[0]),
+        "profile_sha256": expected_hash,
+    }
+
+
 def build_materialization_campaign_manifest(
     contract: Mapping[str, Any],
     *,
@@ -622,6 +666,7 @@ def build_publication_experiment_campaign_manifest(
         ):
             capacity_exclusions.append(
                 {
+                    "execution_id": case.execution_id,
                     "tier": request.tier,
                     "dataset_id": request.dataset_id,
                     "algorithm": request.algorithm,
@@ -635,6 +680,31 @@ def build_publication_experiment_campaign_manifest(
                 }
             )
             continue
+        if case.system.startswith("grasu_regraph_"):
+            hbm_admission = grasu_profile_hbm_admission(
+                contract,
+                repository_root=root,
+                system=case.system,
+                algorithm=case.algorithm,
+                vertices=case_vertices,
+            )
+            if not hbm_admission["row_lower_bound_fits"]:
+                capacity_exclusions.append(
+                    {
+                        "execution_id": case.execution_id,
+                        "tier": request.tier,
+                        "dataset_id": request.dataset_id,
+                        "algorithm": request.algorithm,
+                        "system": request.system,
+                        "scenario": request.scenario,
+                        "batch_size": request.batch_size,
+                        "reason": "grasu_hbm_row_storage_lower_bound",
+                        "vertices": case_vertices,
+                        "performance_eligible": False,
+                        **hbm_admission,
+                    }
+                )
+                continue
         requested_cases.append((request.tier, case))
     if not requested_cases:
         raise ValueError("publication campaign selection has no admitted cases")

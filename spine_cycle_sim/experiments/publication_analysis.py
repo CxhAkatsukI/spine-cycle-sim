@@ -608,6 +608,7 @@ def analyze_publication_case_results(
     *,
     expected_execution_ids: Iterable[str] = (),
     expected_execution_records: Mapping[str, Mapping[str, Any]] | None = None,
+    capacity_exclusion_records: Sequence[Mapping[str, Any]] = (),
     require_complete: bool = False,
 ) -> dict[str, Any]:
     """Validate, de-duplicate, pair, and summarize formal case results."""
@@ -776,6 +777,34 @@ def analyze_publication_case_results(
                 "host_wall_seconds": normalized.get("host_wall_seconds", ""),
             }
         )
+    for exclusion in capacity_exclusion_records:
+        execution_id = str(exclusion.get("execution_id", ""))
+        if not execution_id:
+            raise ValueError("capacity exclusion lacks execution ID")
+        if execution_id in coverage_ids:
+            raise ValueError(
+                f"capacity-excluded execution is runnable or observed: {execution_id}"
+            )
+        execution_coverage_rows.append(
+            {
+                "execution_id": execution_id,
+                "dataset_id": exclusion.get("dataset_id", ""),
+                "algorithm": exclusion.get("algorithm", ""),
+                "scenario": exclusion.get("scenario", ""),
+                "batch_size": exclusion.get("batch_size", ""),
+                "system": exclusion.get("system", ""),
+                "tier": exclusion.get("tier", ""),
+                "logical_views": exclusion.get("tier", ""),
+                "campaign_ids": exclusion.get("campaign_ids", ""),
+                "estimated_rss_gib": "",
+                "expected": False,
+                "observed": False,
+                "coverage_status": "capacity_excluded",
+                "cycles": "",
+                "host_wall_seconds": "",
+            }
+        )
+    execution_coverage_rows.sort(key=lambda row: str(row["execution_id"]))
     incomplete_groups = sum(
         not row["complete_triplet"] for row in correctness_groups
     )
@@ -795,12 +824,16 @@ def analyze_publication_case_results(
             f"failed_correctness_groups={failed_correctness_groups}"
         )
     status = "FAIL" if failed_correctness_groups else ("PASS" if complete else "PARTIAL")
+    capacity_exclusion_rows = [dict(row) for row in capacity_exclusion_records]
+    capacity_exclusion_rows.sort(key=lambda row: str(row.get("execution_id", "")))
     return {
         "schema_version": 1,
         "analysis_id": "large_graph_publication_results_v1",
         "status": status,
         "observed_executions": len(observed),
         "expected_executions": len(expected),
+        "capacity_excluded_executions": len(capacity_exclusion_records),
+        "contract_executions": len(expected) + len(capacity_exclusion_records),
         "duplicate_executions": sum(count - 1 for count in duplicate_counts.values()),
         "complete_triplets": sum(
             bool(row["complete_triplet"]) for row in correctness_groups
@@ -810,6 +843,7 @@ def analyze_publication_case_results(
         "missing_execution_ids": missing,
         "unexpected_execution_ids": unexpected,
         "execution_coverage_rows": execution_coverage_rows,
+        "capacity_exclusion_rows": capacity_exclusion_rows,
         "system_rows": system_rows,
         "component_activity_rows": activity_rows,
         "pair_rows": pair_rows,
@@ -918,6 +952,53 @@ def expected_execution_metadata(
     return expected
 
 
+def capacity_exclusion_metadata(
+    manifests: Sequence[Path],
+) -> list[dict[str, Any]]:
+    exclusions: dict[str, dict[str, Any]] = {}
+    for path in manifests:
+        payload = json.loads(path.read_text(encoding="ascii"))
+        campaign_id = str(payload.get("campaign_id", ""))
+        rows = payload.get("capacity_exclusions", [])
+        if not isinstance(rows, list):
+            raise ValueError(f"campaign capacity exclusions are invalid: {path}")
+        for raw in rows:
+            if not isinstance(raw, Mapping):
+                raise ValueError(f"campaign capacity exclusion is invalid: {path}")
+            execution_id = str(raw.get("execution_id", ""))
+            if not execution_id:
+                # Legacy Spine exclusions predate execution IDs and cannot be
+                # joined to the physical execution coverage ledger.
+                continue
+            row = dict(raw)
+            row["campaign_ids"] = campaign_id
+            previous = exclusions.get(execution_id)
+            if previous is None:
+                exclusions[execution_id] = row
+                continue
+            comparable = {
+                key: value
+                for key, value in row.items()
+                if key != "campaign_ids"
+            }
+            old_comparable = {
+                key: value
+                for key, value in previous.items()
+                if key != "campaign_ids"
+            }
+            if comparable != old_comparable:
+                raise ValueError(
+                    f"campaigns disagree on capacity exclusion: {execution_id}"
+                )
+            previous["campaign_ids"] = "+".join(
+                sorted(
+                    set(str(previous["campaign_ids"]).split("+"))
+                    | {campaign_id}
+                )
+            )
+    return [exclusions[key] for key in sorted(exclusions)]
+
+
 def write_publication_analysis(output_dir: Path, analysis: Mapping[str, Any]) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     compact = {key: value for key, value in analysis.items() if not key.endswith("_rows")}
@@ -926,6 +1007,7 @@ def write_publication_analysis(output_dir: Path, analysis: Mapping[str, Any]) ->
     )
     for name in (
         "execution_coverage_rows",
+        "capacity_exclusion_rows",
         "system_rows",
         "component_activity_rows",
         "pair_rows",

@@ -9,6 +9,7 @@ import unittest
 
 from spine_cycle_sim.experiments.publication_analysis import (
     analyze_publication_case_results,
+    capacity_exclusion_metadata,
     expected_execution_metadata,
     write_publication_analysis,
 )
@@ -267,10 +268,12 @@ class PublicationAnalysisTests(unittest.TestCase):
             write_publication_analysis(output, analysis)
             activity = (output / "component_activity_rows.csv").read_text()
             coverage = (output / "execution_coverage_rows.csv").read_text()
+            exclusions = (output / "capacity_exclusion_rows.csv").read_text()
         self.assertIn("component_cycles", activity)
         self.assertIn("hbm_frontend", activity)
         self.assertIn("coverage_status", coverage)
         self.assertIn("observed_pass", coverage)
+        self.assertEqual(exclusions, "")
 
     def test_expected_execution_metadata_is_human_readable_and_merged(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -313,6 +316,67 @@ class PublicationAnalysisTests(unittest.TestCase):
         self.assertEqual(metadata["abc123"]["logical_views"], "main_e2e+memory")
         self.assertEqual(
             metadata["abc123"]["campaign_ids"], "campaign_a+campaign_b"
+        )
+
+    def test_capacity_exclusion_is_audited_but_not_expected_to_run(self) -> None:
+        result = case_result("spine", 100)
+        analysis = analyze_publication_case_results(
+            [result],
+            expected_execution_ids={"execution_spine"},
+            capacity_exclusion_records=[
+                {
+                    "execution_id": "capacity_case",
+                    "dataset_id": "large",
+                    "algorithm": "weighted_sssp",
+                    "scenario": "insert",
+                    "batch_size": 8,
+                    "system": "grasu_regraph_k4_shared",
+                    "tier": "main_e2e",
+                    "reason": "grasu_hbm_row_storage_lower_bound",
+                }
+            ],
+        )
+        self.assertEqual(analysis["expected_executions"], 1)
+        self.assertEqual(analysis["capacity_excluded_executions"], 1)
+        self.assertEqual(analysis["contract_executions"], 2)
+        coverage = {
+            row["execution_id"]: row["coverage_status"]
+            for row in analysis["execution_coverage_rows"]
+        }
+        self.assertEqual(coverage["capacity_case"], "capacity_excluded")
+
+    def test_capacity_exclusion_metadata_preserves_physical_bound(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "manifest.json"
+            path.write_text(
+                json.dumps(
+                    {
+                        "campaign_id": "campaign",
+                        "capacity_exclusions": [
+                            {
+                                "execution_id": "excluded",
+                                "dataset_id": "large",
+                                "algorithm": "weighted_sssp",
+                                "system": "grasu_regraph_k4_shared",
+                                "scenario": "insert",
+                                "batch_size": 8,
+                                "tier": "main_e2e",
+                                "reason": "grasu_hbm_row_storage_lower_bound",
+                                "row_storage_lower_bound_bytes": 20,
+                                "hbm_capacity_bytes": 10,
+                            }
+                        ],
+                    }
+                )
+                + "\n",
+                encoding="ascii",
+            )
+            rows = capacity_exclusion_metadata([path])
+        self.assertEqual(rows[0]["execution_id"], "excluded")
+        self.assertEqual(rows[0]["campaign_ids"], "campaign")
+        self.assertGreater(
+            rows[0]["row_storage_lower_bound_bytes"],
+            rows[0]["hbm_capacity_bytes"],
         )
 
 

@@ -43,12 +43,14 @@ The v3 launchers use a 112 GiB admission reserve, 96 GiB emergency threshold,
 wall-time timeout. The memory circuit breaker soft-stops the fewest high-RSS
 jobs needed to recover before host OOM.
 
-The remaining-real-data K4 wave is a deliberate exception: every job carries
+The remaining-real-data K4 wave is a deliberate exception: every runnable job carries
 a conservative 64 GiB estimate and only one may run. Its 96 GiB admission
 reserve means it waits until at least 160 GiB is available; the 80 GiB
 emergency threshold still leaves a large host safety margin. Bitcoin and
-UK-2002 exceed Spine's frozen $2^{24}$-vertex admission bound, so their K4 rows
-are capacity evidence and cannot form a Spine speedup pair.
+UK-2002 exceed Spine's frozen $2^{24}$-vertex admission bound. They also exceed
+the GraSU+ReGraph 23-PC HBM budget using mandatory row storage alone, so they
+are capacity evidence and cannot form a speedup pair. See
+`docs/grasu_regraph_hbm_capacity_preflight_20260730.md`.
 
 The first Bitcoin attempt allocated 31.7 GiB during bootstrap before producing
 simulated-cycle progress. It was soft-stopped after 203 seconds so R19-32 CC

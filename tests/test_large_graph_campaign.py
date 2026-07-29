@@ -12,6 +12,7 @@ from spine_cycle_sim.experiments import (
     LARGE_GRAPH_REQUIRED_SYSTEMS,
     build_materialization_campaign_manifest,
     build_publication_experiment_campaign_manifest,
+    grasu_profile_hbm_admission,
     load_large_graph_campaign_contract,
     planned_system_runs,
     publication_case_requests,
@@ -57,6 +58,29 @@ class LargeGraphCampaignTests(unittest.TestCase):
             ),
             64.0,
         )
+
+    def test_grasu_row_lower_bound_excludes_only_proven_hbm_overflow(self) -> None:
+        contract = load_large_graph_campaign_contract(FULLGRAPH_CONTRACT)
+        bitcoin = grasu_profile_hbm_admission(
+            contract,
+            repository_root=ROOT,
+            system="grasu_regraph_k4_shared",
+            algorithm="weighted_sssp",
+            vertices=24_575_382,
+        )
+        pokec = grasu_profile_hbm_admission(
+            contract,
+            repository_root=ROOT,
+            system="grasu_regraph_k4_shared",
+            algorithm="weighted_sssp",
+            vertices=1_632_803,
+        )
+        self.assertFalse(bitcoin["row_lower_bound_fits"])
+        self.assertGreater(
+            bitcoin["row_storage_lower_bound_bytes"],
+            bitcoin["hbm_capacity_bytes"],
+        )
+        self.assertTrue(pokec["row_lower_bound_fits"])
 
     def test_publication_launches_k4_before_k1_for_the_same_workload(self) -> None:
         priorities = {
