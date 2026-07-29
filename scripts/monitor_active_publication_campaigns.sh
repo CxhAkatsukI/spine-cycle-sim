@@ -31,6 +31,9 @@ campaigns=(
 
 while true; do
   date -Is
+  current_available_bytes="$(
+    awk '$1 == "MemAvailable:" { print $2 * 1024 }' /proc/meminfo
+  )"
   for campaign in "${campaigns[@]}"; do
     state="${campaign_root}/${campaign}/run/campaign_state.json"
     if [[ ! -f "${state}" ]]; then
@@ -54,7 +57,10 @@ while true; do
     done < <(
       jq -r '.jobs[] | select(.status == "fail") | .job_id' "${state}"
     )
-    jq -r --arg campaign "${campaign}" --argjson repaired "${repaired}" '
+    jq -r \
+      --arg campaign "${campaign}" \
+      --argjson repaired "${repaired}" \
+      --argjson current_available_bytes "${current_available_bytes}" '
       (.summary.by_status.fail // 0) as $failed |
       [
         $campaign,
@@ -66,8 +72,8 @@ while true; do
         ("repair=" + ($repaired | tostring)),
         ("unresolved_fail=" + (($failed - $repaired) | tostring)),
         ("stop=" + ((.summary.by_status.stopped // 0) | tostring)),
-        ("rss_gib=" + (((.host.campaign_rss_bytes // 0) / 1073741824 * 10 | floor) / 10 | tostring)),
-        ("available_gib=" + (((.host.available_memory_bytes // 0) / 1073741824) | floor | tostring)),
+        ("rss_gib=" + (((if .status == "running" then (.host.campaign_rss_bytes // 0) else 0 end) / 1073741824 * 10 | floor) / 10 | tostring)),
+        ("available_gib=" + (($current_available_bytes / 1073741824) | floor | tostring)),
         ("breaker=" + (if (.host.memory_pressure_active // false) then "active" else "clear" end))
       ] | @tsv
     ' "${state}"
