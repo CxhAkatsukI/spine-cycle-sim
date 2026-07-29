@@ -16,6 +16,7 @@ result_roots=(
   formal_v3_au_spine_weight_u1
   formal_v3_au_spine_delete
   formal_v3_au_insert_endpoints
+  formal_v3_au_dense_k4
   formal_v3_r19_spine
   formal_v3_r19_grasu_fullpr
   formal_v3_r19_k4_priority
@@ -35,6 +36,7 @@ manifest_roots=(
   formal_v3_au_spine_weight_u1
   formal_v3_au_spine_delete
   formal_v3_au_insert_endpoints
+  formal_v3_au_dense_k4
   formal_v3_r19_spine
   formal_v3_r19_grasu_fullpr
   formal_v3_r19_k4_priority

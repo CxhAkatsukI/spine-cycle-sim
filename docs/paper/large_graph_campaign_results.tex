@@ -25,7 +25,7 @@
 \maketitle
 \begin{abstract}
 This report is generated directly from correctness-gated campaign artifacts.
-The snapshot is \textbf{PARTIAL}: 36 of 79 planned
+The snapshot is \textbf{PARTIAL}: 40 of 83 planned
 physical executions are currently admitted, with 4 complete
 three-system groups. Missing bars are unexecuted comparisons, not zero-valued
 measurements. Every plotted row has exact cross-system final-state agreement.
@@ -127,7 +127,7 @@ maintenance cost even when end-to-end execution favors Spine.}
 \addplot[fill=kfour] table[x=index,y=e2e_speedup] {\updatedata};
 \addplot[fill=kone] table[x=index,y=update_speedup] {\updatedata};
 \addplot[black,dashed,sharp plot]
-  coordinates {(0,1) (4,1)};
+  coordinates {(0,1) (8,1)};
 \legend{End-to-end,Update phase only}
 \end{semilogyaxis}
 \end{tikzpicture}
@@ -144,7 +144,7 @@ user mutations and the isolated update-phase cycle window.}
 \toprule
 Algorithm & Cross-system groups & Exact & K1/K4 triplets & Failed \\
 \midrule
-    SSSP & 5 & 5 & 0 & 0 \\
+    SSSP & 9 & 9 & 0 & 0 \\
     CC & 2 & 2 & 2 & 0 \\
     FullPR & 1 & 1 & 0 & 0 \\
     ResPR & 2 & 2 & 2 & 0 \\

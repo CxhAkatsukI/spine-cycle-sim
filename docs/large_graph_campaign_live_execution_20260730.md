@@ -27,8 +27,11 @@ tests because the current Spine maintenance launch has
 | `formal_v3_au_spine_weight_u1` | Spine weight-change u1 | 1 | 52 |
 | `formal_v3_au_spine_delete` | Spine delete u1/u8/u64 | 3 | 49-51 |
 | `formal_v3_au_insert_endpoints` | Insert u1/u64 across three systems | 6 | 30-35 |
+| `formal_v3_au_dense_k4` | AU dense insert u512/u4096, Spine and K4-shared | 4 | 53-56 |
 | `formal_v3_r19_spine` | R19-32 endpoint, four Spine algorithms | 4 | 36-39 |
 | `formal_v3_r19_grasu_fullpr` | R19-32 Full PageRank, GraSU+ReGraph K1/K4-shared | 2 | 40-41 |
+| `formal_v3_r19_k4_priority` | R19-32 K4-shared weighted SSSP then CC | 2 (1 concurrent) | 47 |
+| `formal_v3_stackoverflow_spine` | StackOverflow Spine weighted SSSP, CC, residual PageRank | 3 (1 concurrent) | 48 |
 | `formal_v3_small_cc_residual` | AU/SU/WikiTalk CC and residual PageRank, three systems | 18 (3 concurrent) | 42-44 |
 | `formal_v3_small_fullpr` | AU/SU/WikiTalk Full PageRank, three systems | 9 (2 concurrent) | 45-46 |
 
