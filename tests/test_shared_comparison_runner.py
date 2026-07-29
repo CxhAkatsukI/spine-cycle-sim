@@ -197,6 +197,10 @@ class SharedComparisonRunnerTests(unittest.TestCase):
                 )
                 self.assertTrue(invocation.command[1].endswith(expected_script))
                 self.assertIn("--capability-catalog", invocation.command)
+                if algorithm == "full_pagerank":
+                    self.assertNotIn("--residual-contract", invocation.command)
+                elif algorithm == "thresholded_residual_pagerank":
+                    self.assertIn("--residual-contract", invocation.command)
 
     def test_implementation_fingerprint_changes_with_binary(self) -> None:
         with tempfile.TemporaryDirectory(dir=ROOT) as tmp:

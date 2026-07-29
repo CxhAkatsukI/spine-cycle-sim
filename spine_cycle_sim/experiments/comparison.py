@@ -698,12 +698,6 @@ def build_invocation(
                     str(update),
                     "--capability-catalog",
                     str(grasu_capability_catalog.resolve()),
-                    "--residual-contract",
-                    str(
-                        run.get(
-                            "residual_contract", "generic_dangling_l1_cold"
-                        )
-                    ),
                 )
             )
             if (
@@ -754,6 +748,12 @@ def build_invocation(
                     str(update),
                     "--capability-catalog",
                     str(grasu_capability_catalog.resolve()),
+                    "--residual-contract",
+                    str(
+                        run.get(
+                            "residual_contract", "generic_dangling_l1_cold"
+                        )
+                    ),
                 )
             )
             residual_parameters = (
