@@ -24,21 +24,129 @@ from spine_cycle_sim.experiments.connected_components_workloads import (  # noqa
     connected_components_labels,
     materialize_reciprocal_update,
 )
+from spine_cycle_sim.experiments.grasu_addressing import (  # noqa: E402
+    grasu_hbm_address_environment,
+    partition_layout_footprints,
+    validate_grasu_hbm_address_map,
+    validate_partition_footprints,
+)
+from spine_cycle_sim.experiments.profile_capabilities import (  # noqa: E402
+    load_capability_catalog,
+)
 from spine_cycle_sim.experiments.shared_workloads import (  # noqa: E402
     load_slice,
     sha256_file,
 )
+from spine_cycle_sim.sst_binding import (  # noqa: E402
+    grasu_normalized_memory_binding,
+    spine_memory_binding,
+)
+from spine_cycle_sim.sst_library import forced_sst_library_binding  # noqa: E402
+from scripts.run_sst_grasu_regraph import load_dram_stats  # noqa: E402
 
 
 DEFAULT_WORKLOAD = ROOT / "tests/data/connected_components_bridge_initial.slice"
 DEFAULT_UPDATE = ROOT / "tests/data/connected_components_bridge_insert.slice"
-DEFAULT_WRAPPER = ROOT / "scripts/run_sst_exact_idle_dramsim3.sh"
+DEFAULT_SST = Path("/data/feiyang/sst/bin/sst")
+DEFAULT_LIB_DIR = ROOT / "build/sst"
+DEFAULT_SPINE_PROFILE = (
+    ROOT / "configs/architectures/spine_candidate10_opt_v2_reader_working_set.json"
+)
+DEFAULT_CAPABILITY_CATALOG = (
+    ROOT / "configs/contracts/grasu_regraph_publication_capabilities_v6.json"
+)
 DEFAULT_SST_INSTALL_PREFIX = Path(
-    "/data/tmp/chuxiao/candidate10-idle-script-repro-v1-install"
+    "/data/tmp/chuxiao/candidate59-cleanpatch-reproduction-install-20260729"
 )
 DEFAULT_DRAMSIM3_SRC = Path(
-    "/data/tmp/chuxiao/candidate10-idle-script-repro-v1/dramsim3"
+    "/data/tmp/chuxiao/candidate73-dramsim3-pgo-src-20260729"
 )
+
+
+def _default_grasu_profile(compute_pipelines: int, sharing: str) -> Path:
+    if compute_pipelines == 1 and sharing == "direct":
+        name = "grasu_regraph_candidate10_k1_multipart_cc_packed_v6.json"
+    elif compute_pipelines == 4 and sharing == "direct":
+        name = "grasu_regraph_candidate10_k4_multipart_cc_packed_v6.json"
+    elif compute_pipelines == 4 and sharing == "shared":
+        name = "grasu_regraph_candidate10_k4_shared_multipart_cc_packed_v6.json"
+    else:
+        raise ValueError(
+            "CC publication profiles support K1-direct, K4-direct, and K4-shared"
+        )
+    return ROOT / "configs/architectures" / name
+
+
+def _profile_clock(profile: dict[str, Any], name: str) -> float:
+    matches = [clock for clock in profile["clocks"] if clock["name"] == name]
+    if len(matches) != 1:
+        raise ValueError(f"CC profile lacks one {name} clock")
+    return float(matches[0]["achieved_mhz"])
+
+
+def _spine_profile_environment(parameters: dict[str, Any]) -> dict[str, str]:
+    mapping = {
+        "range_task_active_gate": "SPINE_SST_RANGE_TASK_ACTIVE_GATE",
+        "axi_profile": "SPINE_SST_AXI_PROFILE",
+        "maintenance_architecture": "SPINE_SST_MAINTENANCE_ARCHITECTURE",
+        "l0_writer_base_residual_cycles": (
+            "SPINE_SST_CANDIDATE_L0_WRITER_BASE_RESIDUAL_CYCLES"
+        ),
+        "l0_writer_single_record_cycles": (
+            "SPINE_SST_CANDIDATE_L0_WRITER_SINGLE_RECORD_CYCLES"
+        ),
+        "l0_writer_late_source_cycles": (
+            "SPINE_SST_CANDIDATE_L0_WRITER_LATE_SOURCE_CYCLES"
+        ),
+        "l0_writer_packer_cycles": "SPINE_SST_CANDIDATE_L0_WRITER_PACKER_CYCLES",
+        "l0_writer_page_tail_cycles": (
+            "SPINE_SST_CANDIDATE_L0_WRITER_PAGE_TAIL_CYCLES"
+        ),
+        "publication_base_cycles": "SPINE_SST_CANDIDATE_PUBLICATION_BASE_CYCLES",
+        "publication_source_cycles": (
+            "SPINE_SST_CANDIDATE_PUBLICATION_SOURCE_CYCLES"
+        ),
+        "publication_group_cycles": (
+            "SPINE_SST_CANDIDATE_PUBLICATION_GROUP_CYCLES"
+        ),
+        "publication_new_bit_cycles": (
+            "SPINE_SST_CANDIDATE_PUBLICATION_NEW_BIT_CYCLES"
+        ),
+        "publication_prefetch_restart_cycles": (
+            "SPINE_SST_CANDIDATE_PUBLICATION_PREFETCH_RESTART_CYCLES"
+        ),
+        "publication_empty_base_cycles": (
+            "SPINE_SST_CANDIDATE_PUBLICATION_EMPTY_BASE_CYCLES"
+        ),
+        "publication_empty_group_cycles": (
+            "SPINE_SST_CANDIDATE_PUBLICATION_EMPTY_GROUP_CYCLES"
+        ),
+        "publication_full_window_rebate_cycles": (
+            "SPINE_SST_CANDIDATE_PUBLICATION_FULL_WINDOW_REBATE_CYCLES"
+        ),
+        "publication_next_window_overlap_cycles": (
+            "SPINE_SST_CANDIDATE_PUBLICATION_NEXT_WINDOW_OVERLAP_CYCLES"
+        ),
+    }
+    environment = {
+        environment_name: str(parameters[parameter])
+        for parameter, environment_name in mapping.items()
+        if parameter in parameters
+    }
+    environment.update(
+        {
+            "SPINE_SST_FALLBACK_LEVEL_CACHE_REUSE": str(
+                int(bool(parameters.get("fallback_level_cache_reuse", False)))
+            ),
+            "SPINE_SST_SOURCE_PAGE_INDEX_CACHE": str(
+                int(bool(parameters.get("source_page_index_cache", False)))
+            ),
+            "SPINE_SST_CANDIDATE_L0_WRITER_RTL_SCHEDULE": str(
+                int(bool(parameters.get("l0_writer_rtl_schedule", True)))
+            ),
+        }
+    )
+    return environment
 
 
 def expected_update_mode(analysis: ReciprocalUpdateAnalysis) -> str:
@@ -136,31 +244,87 @@ def main() -> int:
     parser.add_argument("--workload", type=Path, default=DEFAULT_WORKLOAD)
     parser.add_argument("--update-workload", type=Path, default=DEFAULT_UPDATE)
     parser.add_argument("--out-dir", type=Path, required=True)
-    parser.add_argument("--wrapper", type=Path, default=DEFAULT_WRAPPER)
+    parser.add_argument("--profile", type=Path)
+    parser.add_argument(
+        "--capability-catalog", type=Path, default=DEFAULT_CAPABILITY_CATALOG
+    )
+    parser.add_argument("--sst", type=Path, default=DEFAULT_SST)
+    parser.add_argument("--lib-dir", type=Path, default=DEFAULT_LIB_DIR)
+    parser.add_argument("--wrapper", type=Path)
     parser.add_argument(
         "--sst-install-prefix", type=Path, default=DEFAULT_SST_INSTALL_PREFIX
     )
     parser.add_argument("--dramsim3-src", type=Path, default=DEFAULT_DRAMSIM3_SRC)
-    parser.add_argument("--core-mhz", type=float, default=150.0)
+    parser.add_argument("--core-mhz", type=float)
     parser.add_argument("--max-cycles", type=int, default=1_000_000_000)
     parser.add_argument("--max-rounds", type=int, default=4096)
-    parser.add_argument("--partition-vertices", type=int, default=65_536)
-    parser.add_argument("--compute-pipelines", type=int, default=1)
+    parser.add_argument("--partition-vertices", type=int)
+    parser.add_argument("--compute-pipelines", type=int)
     parser.add_argument(
-        "--downstream-sharing", choices=("direct", "shared"), default="direct"
+        "--downstream-sharing", choices=("direct", "shared")
     )
-    parser.add_argument("--source-buffer-vertices", type=int, default=4096)
+    parser.add_argument("--source-buffer-vertices", type=int)
     parser.add_argument("--no-build", action="store_true")
     parser.add_argument("--reuse-result", action="store_true")
+    parser.add_argument("--instantiate-all-hbm-channels", action="store_true")
     args = parser.parse_args()
-    if (
-        args.core_mhz <= 0
-        or args.max_cycles <= 0
-        or args.max_rounds <= 0
-        or args.compute_pipelines <= 0
-        or args.partition_vertices <= 0
-    ):
+    if args.max_cycles <= 0 or args.max_rounds <= 0:
         raise ValueError("CC runner timing and architecture parameters must be positive")
+
+    requested_pipelines = args.compute_pipelines or 1
+    requested_sharing = args.downstream_sharing or "direct"
+    profile_path = (
+        args.profile.resolve()
+        if args.profile is not None
+        else DEFAULT_SPINE_PROFILE.resolve()
+        if args.architecture == "spine"
+        else _default_grasu_profile(
+            requested_pipelines, requested_sharing
+        ).resolve()
+    )
+    profile = json.loads(profile_path.read_text(encoding="ascii"))
+    expected_architecture = "spine" if args.architecture == "spine" else "grasu_regraph"
+    if profile.get("architecture") != expected_architecture:
+        raise ValueError("CC architecture and profile do not match")
+    parameters = profile["parameters"]
+    memory = profile["memory"]
+    if args.architecture == "spine":
+        compute_pipelines = 1
+        downstream_sharing = "native"
+        partition_vertices = None
+        source_buffer_vertices = None
+        core_mhz = args.core_mhz or _profile_clock(profile, "data")
+        capability_record = None
+    else:
+        compute_pipelines = int(parameters["regraph_compute_pipelines"])
+        downstream_sharing = str(
+            parameters.get("regraph_downstream_sharing", "direct")
+        )
+        partition_vertices = int(parameters["regraph_partition_vertices"])
+        source_buffer_vertices = int(parameters["regraph_source_buffer_vertices"])
+        core_mhz = args.core_mhz or _profile_clock(profile, "kernel")
+        requested = (
+            (args.compute_pipelines, compute_pipelines, "compute pipelines"),
+            (args.partition_vertices, partition_vertices, "partition vertices"),
+            (
+                args.source_buffer_vertices,
+                source_buffer_vertices,
+                "source-buffer vertices",
+            ),
+            (args.downstream_sharing, downstream_sharing, "downstream sharing"),
+        )
+        for explicit, frozen, label in requested:
+            if explicit is not None and explicit != frozen:
+                raise ValueError(f"CC {label} differs from the frozen profile")
+        catalog = load_capability_catalog(args.capability_catalog.resolve())
+        capability_profile = catalog.profile(str(profile["profile_id"]))
+        if capability_profile.profile_path != profile_path:
+            raise ValueError("CC capability profile path does not match")
+        capability_record = capability_profile.require(
+            "connected_components"
+        ).manifest_record()
+    if core_mhz <= 0:
+        raise ValueError("CC core clock must be positive")
 
     workload_path = args.workload.resolve()
     update_path = args.update_workload.resolve()
@@ -171,8 +335,18 @@ def main() -> int:
     oracle_labels = connected_components_labels(final_graph)
 
     if not args.no_build:
-        subprocess.run(["make", "-C", "cpp/sst", "-j2"], cwd=ROOT, check=True)
-    plugin = ROOT / "build/sst/libspine_cycle.so"
+        subprocess.run(
+            [
+                "make",
+                "-C",
+                "cpp/sst",
+                "-j2",
+                f"BUILD_DIR={args.lib_dir.resolve()}",
+            ],
+            cwd=ROOT,
+            check=True,
+        )
+    plugin = args.lib_dir.resolve() / "libspine_cycle.so"
     if not plugin.is_file():
         raise FileNotFoundError(f"missing SST plugin: {plugin}")
     args.out_dir.mkdir(parents=True, exist_ok=True)
@@ -184,13 +358,13 @@ def main() -> int:
         shutil.rmtree(dram_path, ignore_errors=True)
 
     env = os.environ.copy()
-    env.update(
-        {
-            "SPINE_IDLE_SST_INSTALL_PREFIX": str(args.sst_install_prefix.resolve()),
-            "SPINE_IDLE_DRAMSIM3_SRC": str(args.dramsim3_src.resolve()),
-        }
-    )
+    address_regions = None
     if args.architecture == "spine":
+        binding = spine_memory_binding(
+            profile,
+            (workload_path, update_path),
+            instantiate_all=args.instantiate_all_hbm_channels,
+        )
         env.update(
             {
                 "SPINE_SST_MODE": "spine_connected_components",
@@ -198,15 +372,44 @@ def main() -> int:
                 "SPINE_SST_UPDATE_WORKLOAD": str(update_path),
                 "SPINE_SST_OUTPUT": str(result_path),
                 "SPINE_SST_DRAM_OUTPUT": str(dram_path),
-                "SPINE_SST_CHANNELS": "32",
-                "SPINE_SST_ACTIVE_CHANNELS": ",".join(str(value) for value in range(23)),
-                "SPINE_SST_CORE_MHZ": str(args.core_mhz),
+                "SPINE_SST_CHANNELS": str(memory["channels"]),
+                "SPINE_SST_ACTIVE_CHANNELS": ",".join(
+                    str(value) for value in binding.instantiated_channels
+                ),
+                "SPINE_SST_CHANNEL_BYTES": str(memory["channel_capacity_bytes"]),
+                "SPINE_SST_CORE_MHZ": str(core_mhz),
                 "SPINE_SST_MAX_CYCLES": str(args.max_cycles),
                 "SPINE_SST_MAX_ROUNDS": str(args.max_rounds),
             }
         )
+        env.update(_spine_profile_environment(parameters))
         sst_config = ROOT / "sst/spine_vertical_slice.py"
     else:
+        assert partition_vertices is not None
+        assert source_buffer_vertices is not None
+        binding = grasu_normalized_memory_binding(
+            profile, instantiate_all=args.instantiate_all_hbm_channels
+        )
+        destination_partitions = (
+            graph.vertices + partition_vertices - 1
+        ) // partition_vertices
+        footprints = partition_layout_footprints(
+            graph.records,
+            update.records,
+            graph.vertices,
+            partition_vertices,
+            range(graph.vertices),
+            weighted_full_word=False,
+        )
+        validate_partition_footprints(parameters, footprints)
+        address_regions = validate_grasu_hbm_address_map(
+            parameters,
+            int(memory["channel_capacity_bytes"]),
+            destination_partitions,
+            graph.vertices,
+            len(update.records),
+            footprints,
+        )
         env.update(
             {
                 "GRASU_SST_MODE": "grasu_regraph_connected_components",
@@ -214,25 +417,115 @@ def main() -> int:
                 "GRASU_SST_UPDATE_WORKLOAD": str(update_path),
                 "GRASU_SST_OUTPUT": str(result_path),
                 "GRASU_SST_DRAM_OUTPUT": str(dram_path),
-                "GRASU_SST_CHANNELS": "32",
-                "GRASU_SST_ACTIVE_CHANNELS": "0,1,2,3,30",
-                "GRASU_SST_CORE_MHZ": str(args.core_mhz),
+                "GRASU_SST_CHANNELS": str(memory["channels"]),
+                "GRASU_SST_ACTIVE_CHANNELS": ",".join(
+                    str(value) for value in binding.instantiated_channels
+                ),
+                "GRASU_SST_CHANNEL_BYTES": str(memory["channel_capacity_bytes"]),
+                "GRASU_SST_CORE_MHZ": str(core_mhz),
                 "GRASU_SST_MAX_CYCLES": str(args.max_cycles),
                 "GRASU_SST_MAX_ROUNDS": str(args.max_rounds),
-                "GRASU_SST_PARTITION_VERTICES": str(args.partition_vertices),
-                "GRASU_SST_COMPUTE_PIPELINES": str(args.compute_pipelines),
-                "GRASU_SST_SHARED_DOWNSTREAM": (
-                    "1" if args.downstream_sharing == "shared" else "0"
+                "GRASU_SST_CACHE_SEGMENTS_PER_HALF": str(
+                    parameters["grasu_cache_segments_per_cu"]
                 ),
-                "GRASU_SST_SOURCE_BUFFER_VERTICES": str(args.source_buffer_vertices),
+                "GRASU_SST_PARTITION_VERTICES": str(partition_vertices),
+                "GRASU_SST_COMPUTE_PIPELINES": str(compute_pipelines),
+                "GRASU_SST_SHARED_DOWNSTREAM": (
+                    "1" if downstream_sharing == "shared" else "0"
+                ),
+                "GRASU_SST_SOURCE_BUFFER_VERTICES": str(source_buffer_vertices),
+                "GRASU_SST_SOURCE_CACHE_REQUEST_FIFO_DEPTH": str(
+                    parameters["regraph_source_cache_request_fifo_depth"]
+                ),
+                "GRASU_SST_SOURCE_CACHE_RESPONSE_FIFO_DEPTH": str(
+                    parameters["regraph_source_cache_response_fifo_depth"]
+                ),
+                "GRASU_SST_EDGE_LANES": str(
+                    parameters["regraph_map_reduce_lanes"]
+                ),
+                "GRASU_SST_GATHER_BANKS": str(
+                    parameters["regraph_map_reduce_lanes"]
+                ),
+                "GRASU_SST_AXIS_FIFO_DEPTH": str(
+                    parameters["regraph_pma_adapter_axis_fifo_depth"]
+                ),
+                "GRASU_SST_GATHER_BYPASS_DISTANCE": str(
+                    parameters["regraph_gather_bypass_distance"]
+                ),
+                "GRASU_SST_GATHER_PIPELINE_LATENCY": str(
+                    parameters["regraph_gather_pipeline_latency"]
+                ),
+                "GRASU_SST_SOURCE_STATE_CHANNEL": str(
+                    parameters["regraph_source_state_channel"]
+                ),
+                "GRASU_SST_SOURCE_STATE_MIRROR_CHANNEL": str(
+                    parameters["regraph_source_state_mirror_channel"]
+                ),
+                "GRASU_SST_APPLY_STATE_CHANNEL": str(
+                    parameters["regraph_apply_state_channel"]
+                ),
+                "GRASU_SST_GATHER_MERGER_FIFO_DEPTH": str(
+                    parameters["regraph_gather_merger_fifo_depth"]
+                ),
+                "GRASU_SST_MERGER_APPLY_FIFO_DEPTH": str(
+                    parameters["regraph_merger_apply_fifo_depth"]
+                ),
+                "GRASU_SST_APPLY_WRAPPER_FIFO_DEPTH": str(
+                    parameters["regraph_apply_wrapper_fifo_depth"]
+                ),
+                "GRASU_SST_MAX_PENDING_REQUESTS": str(
+                    memory["max_outstanding_per_port"]
+                ),
+                "GRASU_SST_MAX_OUTSTANDING_BURSTS": str(
+                    memory["max_outstanding_per_port"]
+                ),
+                "GRASU_SST_APPLY_REQUEST_WINDOW": str(
+                    parameters["regraph_apply_request_window"]
+                ),
+                "GRASU_SST_APPLY_PIPELINE_LATENCY": str(
+                    parameters["regraph_apply_pipeline_latency"]
+                ),
+                "GRASU_SST_APPLY_PIPELINE_CAPACITY": str(
+                    parameters["regraph_apply_pipeline_capacity"]
+                ),
+                "GRASU_SST_HBM_WRAPPER_PIPELINE_LATENCY": str(
+                    parameters["regraph_hbm_wrapper_pipeline_latency"]
+                ),
+                "GRASU_SST_HBM_WRAPPER_PIPELINE_CAPACITY": str(
+                    parameters["regraph_hbm_wrapper_pipeline_capacity"]
+                ),
             }
         )
+        env.update(grasu_hbm_address_environment(parameters))
         sst_config = ROOT / "sst/grasu_regraph_vertical.py"
 
+    if args.wrapper is None:
+        sst_library = forced_sst_library_binding(args.sst, args.lib_dir)
+        command = [
+            str(args.sst.resolve()),
+            sst_library["command_option"],
+            str(sst_config),
+        ]
+    else:
+        env.update(
+            {
+                "SPINE_IDLE_SST_INSTALL_PREFIX": str(
+                    args.sst_install_prefix.resolve()
+                ),
+                "SPINE_IDLE_DRAMSIM3_SRC": str(args.dramsim3_src.resolve()),
+                "SPINE_CYCLE_ELEMENT_DIR": str(args.lib_dir.resolve()),
+            }
+        )
+        command = [str(args.wrapper.resolve()), str(sst_config)]
+        sst_library = {
+            "command_option": "wrapper_managed",
+            "plugin_path": str(plugin),
+            "plugin_sha256": sha256_file(plugin),
+        }
     start = time.monotonic()
     if not args.reuse_result:
         completed = subprocess.run(
-            [str(args.wrapper.resolve()), str(sst_config)],
+            command,
             cwd=ROOT,
             env=env,
             check=False,
@@ -247,19 +540,30 @@ def main() -> int:
             )
     wall_seconds = time.monotonic() - start
     result = json.loads(result_path.read_text(encoding="utf-8"))
+    dram = load_dram_stats(dram_path)
     checks = validate_result(
         result,
         architecture=args.architecture,
         expected_labels=oracle_labels,
         analysis=analysis,
-        compute_pipelines=args.compute_pipelines,
-        downstream_sharing=args.downstream_sharing,
+        compute_pipelines=compute_pipelines,
+        downstream_sharing=(
+            downstream_sharing if args.architecture == "grasu" else "native"
+        ),
+    )
+    checks["dram_request_ledger"] = (
+        dram["channels"] == len(binding.instantiated_channels)
+        and dram["reads"] + dram["writes"] == result.get("backend_requests")
     )
     failed = [name for name, passed in checks.items() if not passed]
     manifest = {
         "schema_version": 1,
         "architecture": args.architecture,
         "source_revision": _git_revision(),
+        "profile": str(profile_path),
+        "profile_id": profile["profile_id"],
+        "profile_sha256": sha256_file(profile_path),
+        "algorithm_capability": capability_record,
         "algorithm_contract": "weakly_connected_min_vertex_reciprocal_v1",
         "workload": str(workload_path),
         "workload_sha256": sha256_file(workload_path),
@@ -267,19 +571,23 @@ def main() -> int:
         "update_sha256": sha256_file(update_path),
         "sst_plugin": str(plugin),
         "sst_plugin_sha256": sha256_file(plugin),
-        "sst_install_prefix": str(args.sst_install_prefix.resolve()),
-        "dramsim3_src": str(args.dramsim3_src.resolve()),
-        "core_mhz": args.core_mhz,
-        "compute_pipelines": args.compute_pipelines if args.architecture == "grasu" else 1,
+        "sst_library_binding": sst_library,
+        "sst_memory_binding": binding.as_manifest(),
+        "physical_hbm_address_regions": address_regions,
+        "core_mhz": core_mhz,
+        "compute_pipelines": compute_pipelines,
         "downstream_sharing": (
-            args.downstream_sharing if args.architecture == "grasu" else None
+            downstream_sharing if args.architecture == "grasu" else None
         ),
-        "partition_vertices": args.partition_vertices if args.architecture == "grasu" else None,
+        "partition_vertices": partition_vertices,
         "logical_user_mutations": analysis.logical_user_mutations,
         "effective_mutations": analysis.effective_mutations,
         "physical_records": analysis.physical_records,
         "update_mode": expected_update_mode(analysis),
         "sst_host_wall_seconds": wall_seconds,
+        "command": command,
+        "dram": dram,
+        "status": "PASS" if not failed else "FAIL",
         "checks": checks,
         "admitted": not failed,
     }

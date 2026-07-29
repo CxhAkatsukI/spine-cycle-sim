@@ -113,6 +113,7 @@ def validate_result(
     profile: dict[str, object],
     oracle: HlsWeightedOracle,
     ranks_external: tuple[float, ...],
+    downstream_sharing: str = "direct",
 ) -> None:
     params = profile["parameters"]
     memory = profile["memory"]
@@ -187,6 +188,19 @@ def validate_result(
         == destination_partitions,
         "pipelines": result.get("compute_pipelines")
         == int(params.get("regraph_compute_pipelines", 1)),
+        "downstream_sharing": result.get("downstream_sharing")
+        == downstream_sharing,
+        "downstream_parallelism": result.get(
+            "max_parallel_downstream_partitions"
+        )
+        == (
+            min(
+                int(params.get("regraph_compute_pipelines", 1)),
+                destination_partitions,
+            )
+            if downstream_sharing == "direct"
+            else 1
+        ),
         "degree_reads": result.get("source_prepare_degree_reads")
         == source_prepare_degree_reads
         and result.get("degree_reads") == source_prepare_degree_reads + bursts,
@@ -224,6 +238,9 @@ def main() -> int:
     )
     parser.add_argument("--workload", type=Path, default=DEFAULT_INITIAL)
     parser.add_argument("--update-workload", type=Path, default=DEFAULT_UPDATE)
+    parser.add_argument(
+        "--downstream-sharing", choices=("direct", "shared"), default=None
+    )
     parser.add_argument("--out-dir", type=Path, required=True)
     parser.add_argument("--sst", type=Path, default=DEFAULT_SST)
     parser.add_argument("--lib-dir", type=Path, default=ROOT / "build" / "sst")
@@ -243,6 +260,7 @@ def main() -> int:
         "grasu_regraph_candidate10_k1_multipart_pagerank_packed_v5",
         "grasu_regraph_candidate10_k2_multipart_pagerank_packed_v5",
         "grasu_regraph_candidate10_k4_multipart_pagerank_packed_v5",
+        "grasu_regraph_candidate10_k4_shared_multipart_pagerank_packed_v6",
     }
     if profile.get("profile_id") not in expected_profiles:
         raise ValueError("runner requires a pinned HLS-derived PageRank profile")
@@ -251,6 +269,10 @@ def main() -> int:
     )
     params = profile["parameters"]
     memory = profile["memory"]
+    profile_sharing = str(params.get("regraph_downstream_sharing", "direct"))
+    downstream_sharing = args.downstream_sharing or profile_sharing
+    if downstream_sharing != profile_sharing:
+        raise ValueError("PageRank runner downstream sharing differs from profile")
     initial = load_slice(args.workload.resolve())
     update = load_slice(args.update_workload.resolve())
     oracle = build_hls_weighted_oracle(initial, update, 0)
@@ -323,6 +345,9 @@ def main() -> int:
             ),
             "GRASU_SST_COMPUTE_PIPELINES": str(
                 params.get("regraph_compute_pipelines", 1)
+            ),
+            "GRASU_SST_SHARED_DOWNSTREAM": (
+                "1" if downstream_sharing == "shared" else "0"
             ),
             "GRASU_SST_SOURCE_BUFFER_VERTICES": str(
                 params["regraph_source_buffer_vertices"]
@@ -437,7 +462,9 @@ def main() -> int:
             f"see {args.out_dir / 'sst.log'}"
         )
     result = json.loads(result_path.read_text(encoding="utf-8"))
-    validate_result(result, profile, oracle, ranks_external)
+    validate_result(
+        result, profile, oracle, ranks_external, downstream_sharing
+    )
     dram = load_dram_stats(dram_dir)
     if (
         dram["channels"] != len(binding.instantiated_channels)
@@ -460,6 +487,7 @@ def main() -> int:
         "sst_library_binding": sst_library,
         "sst_plugin_sha256": sst_library["plugin_sha256"],
         "sst_host_wall_seconds": wall_seconds,
+        "downstream_sharing": downstream_sharing,
         "command": command,
         "result": result,
         "dram": dram,

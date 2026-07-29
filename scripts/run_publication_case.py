@@ -39,10 +39,10 @@ from spine_cycle_sim.experiments.publication_workloads import sha256_file  # noq
 
 DEFAULT_SST = Path("/data/feiyang/sst/bin/sst")
 DEFAULT_LIB_DIR = Path(
-    "/data/tmp/chuxiao/candidate85-packed-native-pgo-build-20260729"
+    "/data/tmp/chuxiao/candidate86-cc-unweighted-native-pgo-build-20260729"
 )
 DEFAULT_CAPABILITY = (
-    ROOT / "configs/contracts/grasu_regraph_runtime_packed_capabilities_v5.json"
+    ROOT / "configs/contracts/grasu_regraph_publication_capabilities_v6.json"
 )
 
 
@@ -97,6 +97,7 @@ def main() -> int:
     parser.add_argument("--lib-dir", type=Path, default=DEFAULT_LIB_DIR)
     parser.add_argument("--capability-catalog", type=Path, default=DEFAULT_CAPABILITY)
     parser.add_argument("--max-cycles", type=int, default=10_000_000_000_000)
+    parser.add_argument("--logical-view", action="append", default=[])
     args = parser.parse_args()
     if args.algorithm == "connected_components":
         raise ValueError("connected_components uses the dedicated publication CC runner")
@@ -129,6 +130,16 @@ def main() -> int:
     expected_plugin = contract["architecture_baselines"]["simulator_baseline"]
     if not plugin.is_file() or sha256_file(plugin) != expected_plugin["plugin_sha256"]:
         raise ValueError("formal SST plugin differs from the frozen simulator baseline")
+    capability_identity = contract["architecture_baselines"][
+        "grasu_regraph_capability_catalog"
+    ]
+    if args.system != "spine" and (
+        args.capability_catalog.resolve()
+        != (ROOT / str(capability_identity["path"])).resolve()
+        or sha256_file(args.capability_catalog.resolve())
+        != capability_identity["sha256"]
+    ):
+        raise ValueError("formal capability catalog differs from the contract")
     profiles = architecture_profile_paths(contract, args.system, ROOT)
     expected_profiles = contract["architecture_baselines"][args.system]
     if args.system == "spine":
@@ -211,7 +222,7 @@ def main() -> int:
         "schema_version": 1,
         "status": "pass",
         "case": asdict(case),
-        "logical_views": [],
+        "logical_views": sorted(set(args.logical_view)),
         "run_contract": run,
         "row": row,
         "final_state": _final_state_identity(result),

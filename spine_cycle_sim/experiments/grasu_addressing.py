@@ -53,7 +53,12 @@ def uses_packed_partition_addresses(parameters: Mapping[str, Any]) -> bool:
 def source_state_bytes_per_vertex(parameters: Mapping[str, Any]) -> int:
     """Return the external source-state width used by the algorithm policy."""
 
-    value = int(parameters.get("pagerank_state_bytes_per_vertex", 4))
+    value = int(
+        parameters.get(
+            "regraph_state_bytes_per_vertex",
+            parameters.get("pagerank_state_bytes_per_vertex", 4),
+        )
+    )
     if value <= 0:
         raise ValueError("source-state bytes per vertex must be positive")
     return value

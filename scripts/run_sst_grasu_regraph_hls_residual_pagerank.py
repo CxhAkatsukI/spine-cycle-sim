@@ -331,7 +331,7 @@ def main() -> int:
     parser.add_argument("--pagerank-epsilon", type=float)
     parser.add_argument("--residual-max-iterations", type=int)
     parser.add_argument(
-        "--downstream-sharing", choices=("direct", "shared"), default="direct"
+        "--downstream-sharing", choices=("direct", "shared"), default=None
     )
     parser.add_argument("--no-build", action="store_true")
     parser.add_argument(
@@ -353,6 +353,7 @@ def main() -> int:
         "grasu_regraph_candidate10_k1_multipart_residual_packed_v5",
         "grasu_regraph_candidate10_k2_multipart_residual_packed_v5",
         "grasu_regraph_candidate10_k4_multipart_residual_packed_v5",
+        "grasu_regraph_candidate10_k4_shared_multipart_residual_packed_v6",
     }
     if profile.get("profile_id") not in expected_profiles:
         raise ValueError("runner requires a pinned HLS-derived residual profile")
@@ -361,6 +362,10 @@ def main() -> int:
     )
     params = profile["parameters"]
     memory = profile["memory"]
+    profile_sharing = str(params.get("regraph_downstream_sharing", "direct"))
+    downstream_sharing = args.downstream_sharing or profile_sharing
+    if downstream_sharing != profile_sharing:
+        raise ValueError("residual runner downstream sharing differs from profile")
     initial = load_slice(args.workload.resolve())
     update = load_slice(args.update_workload.resolve())
     oracle = build_hls_weighted_oracle(initial, update, 0)
@@ -452,7 +457,7 @@ def main() -> int:
                 params.get("regraph_compute_pipelines", 1)
             ),
             "GRASU_SST_SHARED_DOWNSTREAM": (
-                "1" if args.downstream_sharing == "shared" else "0"
+                "1" if downstream_sharing == "shared" else "0"
             ),
             "GRASU_SST_SOURCE_BUFFER_VERTICES": str(
                 params["regraph_source_buffer_vertices"]
@@ -577,7 +582,7 @@ def main() -> int:
         residual_contract=args.residual_contract,
         epsilon=epsilon,
         max_iterations=max_iterations,
-        downstream_sharing=args.downstream_sharing,
+        downstream_sharing=downstream_sharing,
     )
     dram = load_dram_stats(dram_dir)
     if (
@@ -595,7 +600,7 @@ def main() -> int:
         "residual_contract": args.residual_contract,
         "pagerank_epsilon": epsilon,
         "residual_max_iterations": max_iterations,
-        "downstream_sharing": args.downstream_sharing,
+        "downstream_sharing": downstream_sharing,
         "workload": str(args.workload.resolve()),
         "workload_sha256": sha256(args.workload.resolve()),
         "update_workload": str(args.update_workload.resolve()),

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from collections import Counter
 from pathlib import Path
 import unittest
 
@@ -11,6 +12,7 @@ from spine_cycle_sim.experiments import (
     build_materialization_campaign_manifest,
     load_large_graph_campaign_contract,
     planned_system_runs,
+    publication_case_requests,
     validate_large_graph_campaign_contract,
     verify_large_graph_sources,
 )
@@ -82,10 +84,32 @@ class LargeGraphCampaignTests(unittest.TestCase):
     def test_matrix_counts_make_campaign_cost_explicit(self) -> None:
         counts = planned_system_runs(self.contract)
         self.assertEqual(counts["main_e2e"], 132)
+        self.assertEqual(counts["endpoint_scalability"], 12)
         self.assertEqual(counts["update_performance"], 297)
         self.assertEqual(counts["update_triggered_compute"], 180)
         self.assertEqual(counts["dense"], 108)
         self.assertEqual(counts["mixed_supplement"], 60)
+
+    def test_logical_case_requests_match_every_frozen_tier(self) -> None:
+        requests = publication_case_requests(self.contract)
+        by_tier = Counter(request.tier for request in requests)
+        self.assertEqual(len(requests), 789)
+        self.assertEqual(by_tier, planned_system_runs(self.contract))
+        update_algorithms = {
+            request.algorithm
+            for request in requests
+            if request.tier == "update_performance"
+        }
+        self.assertEqual(update_algorithms, {"weighted_sssp"})
+        endpoints = [
+            request
+            for request in requests
+            if request.tier == "endpoint_scalability"
+        ]
+        self.assertEqual(len(endpoints), 12)
+        self.assertEqual(
+            {request.dataset_id for request in endpoints}, {"rmat_19_32"}
+        )
 
     def test_materialization_manifest_covers_all_sources(self) -> None:
         manifest = build_materialization_campaign_manifest(
@@ -134,6 +158,34 @@ class LargeGraphCampaignTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "correctness admission"):
             validate_large_graph_campaign_contract(weakened)
 
+    def test_primary_k4_must_keep_one_shared_downstream(self) -> None:
+        direct = deepcopy(self.contract)
+        baseline = direct["architecture_baselines"]["grasu_regraph_k4_shared"]
+        baseline["downstream_paths"] = 4
+        baseline["shared_hbm_arbitration"] = False
+        with self.assertRaisesRegex(ValueError, "shared-downstream"):
+            validate_large_graph_campaign_contract(direct)
+
+    def test_direct_k4_cannot_enter_headline_aggregate(self) -> None:
+        promoted = deepcopy(self.contract)
+        promoted["architecture_baselines"]["grasu_regraph_k4_ideal"][
+            "eligible_for_headline_aggregate"
+        ] = True
+        with self.assertRaisesRegex(ValueError, "upper-bound"):
+            validate_large_graph_campaign_contract(promoted)
+
+    def test_capability_catalog_identity_is_frozen(self) -> None:
+        changed = deepcopy(self.contract)
+        changed["architecture_baselines"]["grasu_regraph_capability_catalog"][
+            "sha256"
+        ] = "0" * 64
+        self.assertRaisesRegex(
+            ValueError,
+            "common platform",
+            validate_large_graph_campaign_contract,
+            changed,
+        )
+
     def test_automatic_timeout_and_compact_ids_are_rejected(self) -> None:
         timed = deepcopy(self.contract)
         timed["execution"]["automatic_timeout_seconds"] = 3600
@@ -143,6 +195,12 @@ class LargeGraphCampaignTests(unittest.TestCase):
         compact["workload_semantics"]["preserve_external_vertex_ids"] = False
         with self.assertRaisesRegex(ValueError, "external vertex IDs"):
             validate_large_graph_campaign_contract(compact)
+        changed_update = deepcopy(self.contract)
+        changed_update["experiment_matrix"]["update_performance"][
+            "execution_algorithm"
+        ] = "full_pagerank"
+        with self.assertRaisesRegex(ValueError, "update-throughput"):
+            validate_large_graph_campaign_contract(changed_update)
 
 
 if __name__ == "__main__":

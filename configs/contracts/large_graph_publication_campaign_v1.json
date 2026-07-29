@@ -22,6 +22,7 @@
       "conversion_free": true,
       "profiles": {
         "weighted_sssp": ["configs/architectures/grasu_regraph_candidate10_k1_multipart_weighted_packed_v5.json", "01b246b3a359e03b8f6fe857eac28f38a3fb990b1aff2facaed7fe66e9dc3a32"],
+        "connected_components": ["configs/architectures/grasu_regraph_candidate10_k1_multipart_cc_packed_v6.json", "9865c6297b5fc3856546abb43f941b8e382d2d1059056db126e217ba8804fa1e"],
         "full_pagerank": ["configs/architectures/grasu_regraph_candidate10_k1_multipart_pagerank_packed_v5.json", "34de70f9a00e5e2e6f2ed541ba17767a666bfa5cd539e79a2954019d2d199833"],
         "thresholded_residual_pagerank": ["configs/architectures/grasu_regraph_candidate10_k1_multipart_residual_packed_v5.json", "78b62e6b55adf52f782e5c8ecab4d3294eff70acb8ab487de90aadb41dc1a101"]
       },
@@ -34,15 +35,22 @@
       "downstream_paths": 1,
       "shared_hbm_arbitration": true,
       "profiles": {
-        "weighted_sssp": ["configs/architectures/grasu_regraph_candidate10_k4_multipart_weighted_packed_v5.json", "af80c5962124df7340a4a8d85f748c4fae1f6b0e212894f53a35f7ca2947aa2c"],
-        "full_pagerank": ["configs/architectures/grasu_regraph_candidate10_k4_multipart_pagerank_packed_v5.json", "a9ec4047c0d8a0a28f1a0ca1416374fc94564d477ba67fe652ea44f8ee34c8ea"],
-        "thresholded_residual_pagerank": ["configs/architectures/grasu_regraph_candidate10_k4_multipart_residual_packed_v5.json", "3675286595fb317006589adeea7daa59f60ee6691e69e21f82c177ce06fd9878"]
+        "weighted_sssp": ["configs/architectures/grasu_regraph_candidate10_k4_shared_multipart_weighted_packed_v6.json", "d7ebc62674cf61e4bd92b42ae707c7cc28f12c53572cdedd2f66079de60f8dad"],
+        "connected_components": ["configs/architectures/grasu_regraph_candidate10_k4_shared_multipart_cc_packed_v6.json", "366cb785c9b6752783530fac7073fe3d31c1f34d1a8ceb8d8153541e78bdf48c"],
+        "full_pagerank": ["configs/architectures/grasu_regraph_candidate10_k4_shared_multipart_pagerank_packed_v6.json", "4e4235cc995ec925c21b7102f2c7c30032ef09712040e62575569200472bef72"],
+        "thresholded_residual_pagerank": ["configs/architectures/grasu_regraph_candidate10_k4_shared_multipart_residual_packed_v6.json", "fd3981efbe5713961da12f329749c50e9299bf0fc3beebf95795da1ea1b4bfd1"]
       },
       "addressing": "runtime_packed_v1_capacity_checked"
     },
     "grasu_regraph_k4_ideal": {
       "role": "theoretical_no_contention_upper_bound_only",
-      "eligible_for_headline_aggregate": false
+      "eligible_for_headline_aggregate": false,
+      "profiles": {
+        "weighted_sssp": ["configs/architectures/grasu_regraph_candidate10_k4_multipart_weighted_packed_v5.json", "af80c5962124df7340a4a8d85f748c4fae1f6b0e212894f53a35f7ca2947aa2c"],
+        "connected_components": ["configs/architectures/grasu_regraph_candidate10_k4_multipart_cc_packed_v6.json", "66ffdc8cb0420b7d7f564428f9127f837e58e457fa3c6b10bdb48f7ceb683d50"],
+        "full_pagerank": ["configs/architectures/grasu_regraph_candidate10_k4_multipart_pagerank_packed_v5.json", "a9ec4047c0d8a0a28f1a0ca1416374fc94564d477ba67fe652ea44f8ee34c8ea"],
+        "thresholded_residual_pagerank": ["configs/architectures/grasu_regraph_candidate10_k4_multipart_residual_packed_v5.json", "3675286595fb317006589adeea7daa59f60ee6691e69e21f82c177ce06fd9878"]
+      }
     },
     "common_memory": {
       "backend": "direct_dramsim3_transport",
@@ -51,9 +59,13 @@
       "physical_channels": 32,
       "line_bytes": 64
     },
+    "grasu_regraph_capability_catalog": {
+      "path": "configs/contracts/grasu_regraph_publication_capabilities_v6.json",
+      "sha256": "93b10252f3a2f998da9a851ebf2abeb588cb8edef4a8ac253d217553a793c346"
+    },
     "simulator_baseline": {
-      "milestone": "candidate85_runtime_packed_native_pgo",
-      "plugin_sha256": "c1ed6953ee16b89ff843557dc72eaf22c67f87a34142969c373a7ebd04b229dd"
+      "milestone": "candidate86_cc_unweighted_runtime_packed_native_pgo",
+      "plugin_sha256": "1cc810e3dbfcea9c55aff94cecfc601d762a732f8491d9f17caf8fcbb9e57527"
     }
   },
   "datasets": [
@@ -210,7 +222,8 @@
   "experiment_matrix": {
     "systems": ["spine", "grasu_regraph_k1", "grasu_regraph_k4_shared"],
     "main_e2e": {"datasets": "all", "algorithms": ["weighted_sssp", "connected_components", "full_pagerank", "thresholded_residual_pagerank"], "scenario": "insert", "batch_sizes": [8]},
-    "update_performance": {"datasets": "all", "scenarios": ["insert", "delete", "weight_change"], "batch_sizes": [1, 8, 64]},
+    "endpoint_scalability": {"datasets": ["rmat_19_32"], "algorithms": ["weighted_sssp", "connected_components", "full_pagerank", "thresholded_residual_pagerank"], "scenario": "insert", "batch_sizes": [8]},
+    "update_performance": {"datasets": "all", "execution_algorithm": "weighted_sssp", "scenarios": ["insert", "delete", "weight_change"], "batch_sizes": [1, 8, 64]},
     "update_triggered_compute": {"datasets": ["sx_askubuntu", "wiki_talk_temporal", "sx_stackoverflow", "soc_orkut", "uk_2002"], "algorithms": ["weighted_sssp", "connected_components", "full_pagerank", "thresholded_residual_pagerank"], "scenarios": ["insert", "delete", "weight_change"], "batch_sizes": [8]},
     "dense": {"datasets": ["sx_askubuntu", "sx_stackoverflow", "soc_orkut"], "algorithms": ["weighted_sssp", "connected_components", "full_pagerank", "thresholded_residual_pagerank"], "scenario": "insert", "batch_sizes": [64, 512, 4096]},
     "mixed_supplement": {"datasets": ["sx_askubuntu", "wiki_talk_temporal", "sx_stackoverflow", "soc_orkut", "uk_2002"], "algorithms": ["weighted_sssp", "connected_components", "full_pagerank", "thresholded_residual_pagerank"], "batch_sizes": [8]}

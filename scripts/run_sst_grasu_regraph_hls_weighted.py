@@ -229,6 +229,7 @@ def validate_result(
     profile: dict[str, object],
     oracle: HlsWeightedOracle,
     supersteps: int | None = None,
+    downstream_sharing: str = "direct",
 ) -> None:
     params = profile["parameters"]
     assert isinstance(params, dict)
@@ -302,6 +303,19 @@ def validate_result(
         == destination_partitions,
         "pipelines": result.get("compute_pipelines")
         == int(params.get("regraph_compute_pipelines", 1)),
+        "downstream_sharing": result.get("downstream_sharing")
+        == downstream_sharing,
+        "downstream_parallelism": result.get(
+            "max_parallel_downstream_partitions"
+        )
+        == (
+            min(
+                int(params.get("regraph_compute_pipelines", 1)),
+                destination_partitions,
+            )
+            if downstream_sharing == "direct"
+            else 1
+        ),
         "source_requests": result.get("source_cache_requests")
         == expected_source_requests,
         "source_lines": result.get("source_cache_lines") == expected_source_lines,
@@ -341,6 +355,9 @@ def main() -> int:
     )
     parser.add_argument("--source", type=int, default=0)
     parser.add_argument("--supersteps", type=int)
+    parser.add_argument(
+        "--downstream-sharing", choices=("direct", "shared"), default=None
+    )
     parser.add_argument("--out-dir", type=Path, required=True)
     parser.add_argument("--sst", type=Path, default=DEFAULT_SST)
     parser.add_argument("--lib-dir", type=Path, default=ROOT / "build" / "sst")
@@ -360,11 +377,16 @@ def main() -> int:
         "grasu_regraph_candidate10_k1_multipart_weighted_packed_v5",
         "grasu_regraph_candidate10_k2_multipart_weighted_packed_v5",
         "grasu_regraph_candidate10_k4_multipart_weighted_packed_v5",
+        "grasu_regraph_candidate10_k4_shared_multipart_weighted_packed_v6",
     }
     if profile.get("profile_id") not in expected_profile_ids:
         raise ValueError("runner requires a pinned HLS-derived weighted profile")
     params = profile["parameters"]
     memory = profile["memory"]
+    profile_sharing = str(params.get("regraph_downstream_sharing", "direct"))
+    downstream_sharing = args.downstream_sharing or profile_sharing
+    if downstream_sharing != profile_sharing:
+        raise ValueError("weighted runner downstream sharing differs from profile")
     for evidence in profile.get("evidence", []):
         path = Path(evidence["path"])
         if not path.is_file() or sha256(path) != evidence["sha256"]:
@@ -458,6 +480,9 @@ def main() -> int:
             "GRASU_SST_COMPUTE_PIPELINES": str(
                 params.get("regraph_compute_pipelines", 1)
             ),
+            "GRASU_SST_SHARED_DOWNSTREAM": (
+                "1" if downstream_sharing == "shared" else "0"
+            ),
             "GRASU_SST_SOURCE_BUFFER_VERTICES": str(
                 params["regraph_source_buffer_vertices"]
             ),
@@ -544,7 +569,9 @@ def main() -> int:
             f"see {args.out_dir / 'sst.log'}"
         )
     result = json.loads(result_path.read_text(encoding="utf-8"))
-    validate_result(result, profile, oracle, supersteps)
+    validate_result(
+        result, profile, oracle, supersteps, downstream_sharing
+    )
     dram = load_dram_stats(dram_dir)
     if (
         dram["channels"] != len(binding.instantiated_channels)
@@ -578,6 +605,7 @@ def main() -> int:
         },
         "supersteps": supersteps,
         "superstep_policy": superstep_policy,
+        "downstream_sharing": downstream_sharing,
         "command": command,
         "result": result,
         "dram": dram,

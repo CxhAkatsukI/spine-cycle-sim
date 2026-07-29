@@ -36,6 +36,17 @@ class PublicationCase:
     execution_id: str
 
 
+@dataclass(frozen=True)
+class PublicationCaseRequest:
+    tier: str
+    dataset_id: str
+    system: str
+    algorithm: str
+    scenario: str
+    batch_size: int
+    source_cohort: str = "default"
+
+
 def load_materialization_manifest(path: Path) -> dict[str, Any]:
     manifest = json.loads(path.read_text(encoding="ascii"))
     if manifest.get("schema_version") != 1 or manifest.get("status") != "pass":
@@ -204,6 +215,99 @@ def deduplicate_publication_cases(
     return ordered, {key: sorted(set(value)) for key, value in views.items()}
 
 
+def publication_dataset_labels(dataset_id: str) -> tuple[str, str]:
+    """Return reporting labels without mixing R19 into real-dataset aggregates."""
+
+    if dataset_id == "rmat_19_32":
+        return "synthetic", "publication_scalability_endpoint"
+    return "real", "publication_large_graph"
+
+
+def publication_case_requests(
+    contract: Mapping[str, Any],
+) -> tuple[PublicationCaseRequest, ...]:
+    """Expand every logical view in the frozen publication matrix."""
+
+    matrix = contract["experiment_matrix"]
+    all_datasets = tuple(str(row["dataset_id"]) for row in contract["datasets"])
+    systems = tuple(str(value) for value in matrix["systems"])
+    requests: list[PublicationCaseRequest] = []
+
+    def expand(
+        tier: str,
+        *,
+        datasets: Sequence[str],
+        algorithms: Sequence[str],
+        scenarios: Sequence[str],
+        batch_sizes: Sequence[int],
+    ) -> None:
+        for dataset_id in datasets:
+            for algorithm in algorithms:
+                for scenario in scenarios:
+                    for batch_size in batch_sizes:
+                        for system in systems:
+                            requests.append(
+                                PublicationCaseRequest(
+                                    tier=tier,
+                                    dataset_id=str(dataset_id),
+                                    system=system,
+                                    algorithm=str(algorithm),
+                                    scenario=str(scenario),
+                                    batch_size=int(batch_size),
+                                )
+                            )
+
+    main = matrix["main_e2e"]
+    expand(
+        "main_e2e",
+        datasets=all_datasets,
+        algorithms=main["algorithms"],
+        scenarios=(main["scenario"],),
+        batch_sizes=main["batch_sizes"],
+    )
+    endpoint = matrix["endpoint_scalability"]
+    expand(
+        "endpoint_scalability",
+        datasets=endpoint["datasets"],
+        algorithms=endpoint["algorithms"],
+        scenarios=(endpoint["scenario"],),
+        batch_sizes=endpoint["batch_sizes"],
+    )
+    update = matrix["update_performance"]
+    expand(
+        "update_performance",
+        datasets=all_datasets,
+        algorithms=(update["execution_algorithm"],),
+        scenarios=update["scenarios"],
+        batch_sizes=update["batch_sizes"],
+    )
+    triggered = matrix["update_triggered_compute"]
+    expand(
+        "update_triggered_compute",
+        datasets=triggered["datasets"],
+        algorithms=triggered["algorithms"],
+        scenarios=triggered["scenarios"],
+        batch_sizes=triggered["batch_sizes"],
+    )
+    dense = matrix["dense"]
+    expand(
+        "dense",
+        datasets=dense["datasets"],
+        algorithms=dense["algorithms"],
+        scenarios=(dense["scenario"],),
+        batch_sizes=dense["batch_sizes"],
+    )
+    mixed = matrix["mixed_supplement"]
+    expand(
+        "mixed_supplement",
+        datasets=mixed["datasets"],
+        algorithms=mixed["algorithms"],
+        scenarios=("mixed",),
+        batch_sizes=mixed["batch_sizes"],
+    )
+    return tuple(requests)
+
+
 def comparison_run(case: PublicationCase) -> dict[str, Any]:
     if case.algorithm == "weighted_sssp":
         algorithm = "weighted_dynamic_sssp"
@@ -216,11 +320,12 @@ def comparison_run(case: PublicationCase) -> dict[str, Any]:
     else:
         algorithm = case.algorithm
         scenario = case.scenario
+    dataset_kind, role = publication_dataset_labels(case.dataset_id)
     run: dict[str, Any] = {
         "run_id": case.execution_id,
         "fixture_id": case.dataset_id,
-        "dataset_kind": "real",
-        "role": "publication_large_graph",
+        "dataset_kind": dataset_kind,
+        "role": role,
         "algorithm": algorithm,
         "reporting_algorithm": case.algorithm,
         "scenario": scenario,
@@ -259,3 +364,22 @@ def architecture_profile_paths(
             "thresholded_residual_pagerank",
         )
     )
+
+
+def architecture_profile_path(
+    contract: Mapping[str, Any],
+    system: str,
+    algorithm: str,
+    repository_root: Path,
+) -> Path:
+    """Return the one frozen profile used by a publication system/algorithm pair."""
+
+    if algorithm not in PUBLICATION_ALGORITHMS:
+        raise ValueError(f"unknown publication algorithm: {algorithm}")
+    root = repository_root.resolve()
+    baselines = contract["architecture_baselines"]
+    if system == "spine":
+        return root / str(baselines["spine"]["profile"])
+    if system not in PUBLICATION_SYSTEMS:
+        raise ValueError(f"unknown publication system: {system}")
+    return root / str(baselines[system]["profiles"][algorithm][0])

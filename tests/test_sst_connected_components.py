@@ -2,7 +2,11 @@ from __future__ import annotations
 
 import unittest
 
-from scripts.run_sst_connected_components import validate_result
+from scripts.run_sst_connected_components import (
+    _default_grasu_profile,
+    _spine_profile_environment,
+    validate_result,
+)
 from spine_cycle_sim.experiments.connected_components_workloads import (
     ReciprocalUpdateAnalysis,
 )
@@ -139,6 +143,40 @@ class SstConnectedComponentsRunnerTests(unittest.TestCase):
             downstream_sharing="direct",
         )
         self.assertTrue(all(checks.values()))
+
+    def test_default_profiles_distinguish_shared_and_direct_k4(self) -> None:
+        self.assertEqual(
+            _default_grasu_profile(1, "direct").name,
+            "grasu_regraph_candidate10_k1_multipart_cc_packed_v6.json",
+        )
+        self.assertEqual(
+            _default_grasu_profile(4, "direct").name,
+            "grasu_regraph_candidate10_k4_multipart_cc_packed_v6.json",
+        )
+        self.assertEqual(
+            _default_grasu_profile(4, "shared").name,
+            "grasu_regraph_candidate10_k4_shared_multipart_cc_packed_v6.json",
+        )
+        with self.assertRaises(ValueError):
+            _default_grasu_profile(2, "direct")
+
+    def test_spine_profile_environment_exposes_optimized_controls(self) -> None:
+        environment = _spine_profile_environment(
+            {
+                "fallback_level_cache_reuse": True,
+                "source_page_index_cache": True,
+                "range_task_active_gate": 4096,
+                "axi_profile": "axi",
+                "maintenance_architecture": "maintenance",
+            }
+        )
+        self.assertEqual(environment["SPINE_SST_FALLBACK_LEVEL_CACHE_REUSE"], "1")
+        self.assertEqual(environment["SPINE_SST_SOURCE_PAGE_INDEX_CACHE"], "1")
+        self.assertEqual(environment["SPINE_SST_RANGE_TASK_ACTIVE_GATE"], "4096")
+        self.assertEqual(environment["SPINE_SST_AXI_PROFILE"], "axi")
+        self.assertEqual(
+            environment["SPINE_SST_MAINTENANCE_ARCHITECTURE"], "maintenance"
+        )
 
 
 if __name__ == "__main__":

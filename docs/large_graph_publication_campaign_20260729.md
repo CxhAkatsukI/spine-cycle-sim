@@ -1,9 +1,10 @@
-# Publication-scale real-graph campaign contract
+# Publication-scale graph evaluation campaign
 
 The frozen contract is
 `configs/contracts/large_graph_publication_campaign_v1.json`. It records the
-nine reviewed decisions before formal execution: full-dataset labeling, the
-11 real datasets plus R19-32, four algorithm semantics, Full PageRank's 4M-edge
+reviewed decisions before formal execution: full-dataset labeling, the 11 real
+datasets plus a separately labeled R19-32 synthetic endpoint, four algorithm
+semantics, Full PageRank's 4M-edge
 cap, auditable soft-stop behavior, the tiered update matrix, K1/K4-shared
 GraSU+ReGraph baselines, strict correctness admission, and final reporting
 boundaries.
@@ -12,12 +13,14 @@ The primary Spine point is the bounded opt-v2 reader working-set design. The
 primary multi-partition competitor is conversion-free GraSU+ReGraph K4 with
 shared downstream/HBM arbitration. K1 remains a reported implementation
 baseline; ideal K4 is an upper bound and cannot enter headline aggregates.
-All three use the capacity-checked packed-v5 address profiles described in
-`docs/grasu_regraph_runtime_packed_addressing_20260729.md`. Runtime packing
+All three use capacity-checked runtime-packed address profiles described in
+`docs/grasu_regraph_runtime_packed_addressing_20260729.md`. The K4-shared and
+Connected Components additions are frozen in packed-v6 profiles documented in
+`docs/grasu_regraph_publication_profiles_v6_20260729.md`. Runtime packing
 matches host-managed partition-buffer allocation; it does not increase the
 frozen compute or HBM resources.
-The formal plugin is Candidate85 native+PGO at
-`/data/tmp/chuxiao/candidate85-packed-native-pgo-build-20260729`; the contract
+The formal plugin is Candidate86 native+PGO at
+`/data/tmp/chuxiao/candidate86-cc-unweighted-native-pgo-build-20260729`; the contract
 pins its SHA-256 and every formal runner rejects a different binary.
 
 Large generated workloads and raw simulation outputs belong under
@@ -71,7 +74,8 @@ Generate and monitor all 11 real-dataset materialization jobs:
 python3 scripts/generate_publication_materialization_campaign.py \
   --output-root /data/tmp/chuxiao/large_graph_campaign_v1 \
   --manifest \
-    /data/tmp/chuxiao/large_graph_campaign_v1/materialization_campaign.json
+    /data/tmp/chuxiao/large_graph_campaign_v1/materialization_campaign.json \
+  --include-r19
 python3 scripts/run_large_graph_campaign.py \
   --manifest \
     /data/tmp/chuxiao/large_graph_campaign_v1/materialization_campaign.json \
@@ -95,10 +99,27 @@ The formal runner rechecks graph, update, profile, and simulator-plugin hashes;
 requires the child and parent correctness/memory gates; and stores a compact
 full-result-vector digest next to the raw evidence.
 
-The un-deduplicated contract contains 777 system runs. The campaign generator
-must remove overlap between tiers before launch and reuse one execution's E2E,
-update, memory, activity, and correctness outputs wherever their measurement
-boundaries are identical.
+The contract contains 777 logical views over the 11 real datasets plus 12
+separately reported R19-32 endpoint views. The campaign generator removes
+overlap between tiers before launch and reuses one execution's E2E, update,
+memory, activity, and correctness outputs wherever their measurement boundaries
+are identical. The frozen matrix currently reduces 789 logical views to 657
+physical executions.
+
+Generate the full de-duplicated execution manifest:
+
+```bash
+python3 scripts/generate_publication_experiment_campaign.py \
+  --materialization-root /data/tmp/chuxiao/large_graph_campaign_v1 \
+  --output-root /data/tmp/chuxiao/large_graph_campaign_v1/formal_candidate86_v1 \
+  --manifest \
+    /data/tmp/chuxiao/large_graph_campaign_v1/formal_candidate86_v1/campaign_manifest.json
+```
+
+Use repeatable `--tier` and `--dataset` filters for reviewed pilot runs. For
+example, the 12-run AskUbuntu main-E2E pilot is generated with
+`--tier main_e2e --dataset sx_askubuntu`. R19-32 can be isolated with
+`--tier endpoint_scalability`.
 
 ## Long-run process protocol
 
@@ -120,8 +141,10 @@ Launch a generated manifest:
 ```bash
 cd /home/chuxiao/spine-cycle-sim-publication
 python3 scripts/run_large_graph_campaign.py \
-  --manifest /data/tmp/chuxiao/large_graph_campaign_v1/campaign_manifest.json \
-  --run-dir /data/tmp/chuxiao/large_graph_campaign_v1/run \
+  --manifest \
+    /data/tmp/chuxiao/large_graph_campaign_v1/formal_candidate86_v1/campaign_manifest.json \
+  --run-dir \
+    /data/tmp/chuxiao/large_graph_campaign_v1/formal_candidate86_v1/run \
   --jobs 8 --large-jobs 4 --memory-reserve-gib 32
 ```
 
@@ -129,7 +152,8 @@ Watch one stable terminal snapshot every two seconds:
 
 ```bash
 watch -n 2 python3 scripts/monitor_large_graph_campaign.py \
-  --run-dir /data/tmp/chuxiao/large_graph_campaign_v1/run
+  --run-dir \
+    /data/tmp/chuxiao/large_graph_campaign_v1/formal_candidate86_v1/run
 ```
 
 Soft-stop a stalled job without losing its elapsed/progress evidence:

@@ -96,6 +96,8 @@ class GrasuHlsWeightedRunnerTests(unittest.TestCase):
         source_lines = source_requests * params["regraph_source_buffer_vertices"] // 16
         rows = destination_partitions * partition_vertices // 2 * supersteps
         bursts = destination_partitions * partition_vertices // 16 * supersteps
+        compute_pipelines = params.get("regraph_compute_pipelines", 1)
+        downstream_sharing = params.get("regraph_downstream_sharing", "direct")
         return {
             "success": True,
             "mode": "grasu_regraph_hls_weighted_sssp",
@@ -127,7 +129,13 @@ class GrasuHlsWeightedRunnerTests(unittest.TestCase):
             "edge_lanes": params["regraph_map_reduce_lanes"],
             "gather_banks": params["regraph_map_reduce_lanes"],
             "destination_partitions": destination_partitions,
-            "compute_pipelines": params.get("regraph_compute_pipelines", 1),
+            "compute_pipelines": compute_pipelines,
+            "downstream_sharing": downstream_sharing,
+            "max_parallel_downstream_partitions": (
+                min(compute_pipelines, destination_partitions)
+                if downstream_sharing == "direct"
+                else 1
+            ),
             "source_cache_requests": source_requests,
             "source_cache_lines": source_lines,
             "source_cache_lane_writes": source_lines

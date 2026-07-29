@@ -8,6 +8,13 @@ import json
 from pathlib import Path
 from typing import Any, Mapping
 
+from .publication_cases import (
+    deduplicate_publication_cases,
+    load_materialization_manifest,
+    publication_case_requests,
+    select_publication_case,
+)
+
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_LARGE_GRAPH_CAMPAIGN_CONTRACT = (
@@ -106,8 +113,18 @@ def validate_large_graph_campaign_contract(
         raise ValueError("large-graph campaign algorithm set changed")
     if matrix["main_e2e"].get("batch_sizes") != [8]:
         raise ValueError("large-graph campaign primary batch must remain 8")
+    endpoint_tier = matrix.get("endpoint_scalability", {})
+    if (
+        endpoint_tier.get("datasets") != ["rmat_19_32"]
+        or tuple(endpoint_tier.get("algorithms", ())) != REQUIRED_ALGORITHMS
+        or endpoint_tier.get("scenario") != "insert"
+        or endpoint_tier.get("batch_sizes") != [8]
+    ):
+        raise ValueError("R19 endpoint scalability tier changed")
     if matrix["update_performance"].get("batch_sizes") != [1, 8, 64]:
         raise ValueError("large-graph campaign small-batch set changed")
+    if matrix["update_performance"].get("execution_algorithm") != "weighted_sssp":
+        raise ValueError("update-throughput execution algorithm changed")
     if set(matrix["update_performance"].get("scenarios", ())) != {
         "insert",
         "delete",
@@ -116,6 +133,71 @@ def validate_large_graph_campaign_contract(
         raise ValueError("large-graph campaign update scenarios changed")
     if matrix["dense"].get("batch_sizes") != [64, 512, 4096]:
         raise ValueError("large-graph campaign dense batches changed")
+
+    baselines = contract.get("architecture_baselines", {})
+    spine = baselines.get("spine", {})
+    if (
+        spine.get("role") != "primary_projected_optimized"
+        or not _is_sha256(spine.get("sha256"))
+        or spine.get("partitions") != 16
+        or spine.get("hbm_pseudo_channels") != 23
+    ):
+        raise ValueError("large-graph campaign Spine baseline changed")
+    for system in ("grasu_regraph_k1", "grasu_regraph_k4_shared"):
+        baseline = baselines.get(system, {})
+        profiles = baseline.get("profiles", {})
+        if (
+            set(profiles) != set(REQUIRED_ALGORITHMS)
+            or baseline.get("conversion_free") is not True
+            or baseline.get("addressing")
+            != "runtime_packed_v1_capacity_checked"
+        ):
+            raise ValueError(f"large-graph campaign {system} baseline changed")
+        for algorithm in REQUIRED_ALGORITHMS:
+            profile = profiles.get(algorithm)
+            if (
+                not isinstance(profile, list)
+                or len(profile) != 2
+                or not isinstance(profile[0], str)
+                or Path(profile[0]).is_absolute()
+                or ".." in Path(profile[0]).parts
+                or not _is_sha256(profile[1])
+            ):
+                raise ValueError(f"invalid {system}/{algorithm} profile identity")
+    shared = baselines["grasu_regraph_k4_shared"]
+    if (
+        shared.get("role") != "primary_multi_partition_competitor"
+        or shared.get("compute_pipelines") != 4
+        or shared.get("downstream_paths") != 1
+        or shared.get("shared_hbm_arbitration") is not True
+        or any(
+            "_k4_shared_multipart_" not in profile[0]
+            for profile in shared["profiles"].values()
+        )
+    ):
+        raise ValueError("primary K4 baseline is not shared-downstream")
+    ideal = baselines.get("grasu_regraph_k4_ideal", {})
+    if (
+        ideal.get("role") != "theoretical_no_contention_upper_bound_only"
+        or ideal.get("eligible_for_headline_aggregate") is not False
+        or set(ideal.get("profiles", {})) != set(REQUIRED_ALGORITHMS)
+    ):
+        raise ValueError("direct K4 upper-bound labeling changed")
+    common_memory = baselines.get("common_memory", {})
+    capabilities = baselines.get("grasu_regraph_capability_catalog", {})
+    simulator = baselines.get("simulator_baseline", {})
+    if (
+        common_memory.get("backend") != "direct_dramsim3_transport"
+        or common_memory.get("physical_channels") != 32
+        or common_memory.get("line_bytes") != 64
+        or not _is_sha256(common_memory.get("sha256"))
+        or capabilities.get("path")
+        != "configs/contracts/grasu_regraph_publication_capabilities_v6.json"
+        or capabilities.get("sha256")
+        != "93b10252f3a2f998da9a851ebf2abeb588cb8edef4a8ac253d217553a793c346"
+        or not _is_sha256(simulator.get("plugin_sha256"))
+    ):
+        raise ValueError("large-graph campaign common platform changed")
 
     semantics = contract.get("workload_semantics", {})
     full_pr = semantics.get("full_pagerank", {})
@@ -238,6 +320,10 @@ def planned_system_runs(contract: Mapping[str, Any]) -> dict[str, int]:
         * len(matrix["main_e2e"]["algorithms"])
         * len(matrix["main_e2e"]["batch_sizes"])
         * system_count,
+        "endpoint_scalability": len(matrix["endpoint_scalability"]["datasets"])
+        * len(matrix["endpoint_scalability"]["algorithms"])
+        * len(matrix["endpoint_scalability"]["batch_sizes"])
+        * system_count,
         "update_performance": dataset_count
         * len(matrix["update_performance"]["scenarios"])
         * len(matrix["update_performance"]["batch_sizes"])
@@ -320,5 +406,189 @@ def build_materialization_campaign_manifest(
         "default_cwd": str(root),
         "contract_id": contract["contract_id"],
         "output_root": str(output),
+        "jobs": jobs,
+    }
+
+
+def _publication_rss_gib(vertices: int, records: int) -> float:
+    estimated_bytes = 1.0 * 2**30 + vertices * 64 + records * 96
+    return round(min(48.0, max(1.5, estimated_bytes / 2**30)), 2)
+
+
+def build_publication_experiment_campaign_manifest(
+    contract: Mapping[str, Any],
+    *,
+    materialization_root: Path,
+    output_root: Path,
+    python: str,
+    sst: Path,
+    lib_dir: Path,
+    capability_catalog: Path,
+    contract_path: Path = DEFAULT_LARGE_GRAPH_CAMPAIGN_CONTRACT,
+    repository_root: Path = ROOT,
+    selected_tiers: set[str] | None = None,
+    selected_datasets: set[str] | None = None,
+    max_cycles: int = 10_000_000_000_000,
+) -> dict[str, Any]:
+    """Build the de-duplicated, correctness-gated publication run manifest."""
+
+    validate_large_graph_campaign_contract(contract)
+    if max_cycles <= 0:
+        raise ValueError("publication max cycles must be positive")
+    root = repository_root.resolve()
+    materialized = materialization_root.resolve()
+    output = output_root.resolve()
+    requests = publication_case_requests(contract)
+    known_tiers = {request.tier for request in requests}
+    if selected_tiers is not None and not selected_tiers <= known_tiers:
+        raise ValueError(
+            f"unknown publication tiers: {sorted(selected_tiers - known_tiers)}"
+        )
+    known_datasets = {request.dataset_id for request in requests}
+    if selected_datasets is not None and not selected_datasets <= known_datasets:
+        raise ValueError(
+            "unknown publication datasets: "
+            f"{sorted(selected_datasets - known_datasets)}"
+        )
+    requests = tuple(
+        request
+        for request in requests
+        if (selected_tiers is None or request.tier in selected_tiers)
+        and (
+            selected_datasets is None
+            or request.dataset_id in selected_datasets
+        )
+    )
+    if not requests:
+        raise ValueError("publication campaign selection is empty")
+
+    manifests: dict[str, tuple[Path, dict[str, Any]]] = {}
+    requested_cases = []
+    edge_cap = int(contract["workload_semantics"]["full_pagerank"]["edge_cap"])
+    for request in requests:
+        if request.dataset_id not in manifests:
+            path = (
+                materialized
+                / "workloads"
+                / request.dataset_id
+                / "materialization_manifest.json"
+            )
+            manifests[request.dataset_id] = (
+                path,
+                load_materialization_manifest(path),
+            )
+        manifest = manifests[request.dataset_id][1]
+        case = select_publication_case(
+            manifest,
+            system=request.system,
+            algorithm=request.algorithm,
+            scenario=request.scenario,
+            batch_size=request.batch_size,
+            full_pagerank_edge_cap=edge_cap,
+            source_cohort=request.source_cohort,
+        )
+        requested_cases.append((request.tier, case))
+    cases, views = deduplicate_publication_cases(requested_cases)
+
+    tier_priority = {
+        "main_e2e": 0,
+        "endpoint_scalability": 50,
+        "update_performance": 100,
+        "update_triggered_compute": 200,
+        "dense": 300,
+        "mixed_supplement": 400,
+    }
+    jobs = []
+    for case in cases:
+        case_views = views[case.execution_id]
+        runner = (
+            "run_publication_cc_case.py"
+            if case.algorithm == "connected_components"
+            else "run_publication_case.py"
+        )
+        command = [
+            python,
+            str(root / "scripts" / runner),
+            "--materialization-manifest",
+            str(manifests[case.dataset_id][0]),
+            "--system",
+            case.system,
+            "--algorithm",
+            case.algorithm,
+            "--scenario",
+            case.scenario,
+            "--batch-size",
+            str(case.batch_size),
+            "--out-dir",
+            str(output / "runs" / case.execution_id),
+            "--contract",
+            str(contract_path.resolve()),
+            "--sst",
+            str(sst.resolve()),
+            "--lib-dir",
+            str(lib_dir.resolve()),
+            "--capability-catalog",
+            str(capability_catalog.resolve()),
+            "--max-cycles",
+            str(max_cycles),
+        ]
+        if case.algorithm != "connected_components":
+            command.extend(
+                (
+                    "--source-cohort",
+                    str(case.algorithm_parameters.get("source_cohort", "default")),
+                    "--full-pagerank-edge-cap",
+                    str(edge_cap),
+                )
+            )
+        for view in case_views:
+            command.extend(("--logical-view", view))
+        vertices = int(case.graph["vertices"])
+        records = int(case.graph["records"])
+        rss_gib = _publication_rss_gib(vertices, records)
+        base_priority = min(tier_priority[view] for view in case_views)
+        jobs.append(
+            {
+                "job_id": (
+                    f"run.{case.dataset_id}.{case.algorithm}.{case.scenario}."
+                    f"u{case.batch_size}.{case.system}.{case.execution_id}"
+                ),
+                "command": command,
+                "cwd": str(root),
+                "dataset_id": case.dataset_id,
+                "algorithm": case.algorithm,
+                "system": case.system,
+                "tier": "+".join(case_views),
+                "resource_class": "large" if rss_gib >= 4.0 else "small",
+                "estimated_rss_gib": rss_gib,
+                "priority": base_priority + min(90, records // 1_000_000),
+                "dependencies": [],
+                "environment": {
+                    "SPINE_CAMPAIGN_PROGRESS_INTERVAL_CYCLES": "1000000"
+                },
+            }
+        )
+    jobs.sort(key=lambda job: (job["priority"], job["job_id"]))
+    return {
+        "schema_version": 1,
+        "campaign_id": f"{contract['contract_id']}_formal_execution",
+        "default_cwd": str(root),
+        "contract_id": contract["contract_id"],
+        "contract_path": str(contract_path.resolve()),
+        "contract_sha256": _sha256(contract_path.resolve()),
+        "materialization_root": str(materialized),
+        "output_root": str(output),
+        "logical_view_count": len(requests),
+        "physical_execution_count": len(cases),
+        "selected_tiers": sorted(selected_tiers or known_tiers),
+        "selected_datasets": sorted(selected_datasets or known_datasets),
+        "execution_views": views,
+        "materialization_manifests": {
+            dataset_id: {
+                "path": str(path),
+                "sha256": _sha256(path),
+            }
+            for dataset_id, (path, _manifest) in sorted(manifests.items())
+        },
         "jobs": jobs,
     }
