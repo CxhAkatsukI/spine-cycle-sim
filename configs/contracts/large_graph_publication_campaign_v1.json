@@ -21,10 +21,10 @@
       "role": "single_pipeline_normalized_baseline",
       "conversion_free": true,
       "profiles": {
-        "weighted_sssp": ["configs/architectures/grasu_regraph_candidate10_k1_multipart_weighted_packed_v5.json", "01b246b3a359e03b8f6fe857eac28f38a3fb990b1aff2facaed7fe66e9dc3a32"],
-        "connected_components": ["configs/architectures/grasu_regraph_candidate10_k1_multipart_cc_packed_v6.json", "9865c6297b5fc3856546abb43f941b8e382d2d1059056db126e217ba8804fa1e"],
-        "full_pagerank": ["configs/architectures/grasu_regraph_candidate10_k1_multipart_pagerank_packed_v5.json", "34de70f9a00e5e2e6f2ed541ba17767a666bfa5cd539e79a2954019d2d199833"],
-        "thresholded_residual_pagerank": ["configs/architectures/grasu_regraph_candidate10_k1_multipart_residual_packed_v5.json", "78b62e6b55adf52f782e5c8ecab4d3294eff70acb8ab487de90aadb41dc1a101"]
+        "weighted_sssp": ["configs/architectures/grasu_regraph_candidate10_k1_multipart_weighted_packed_v5.json", "7091c4a3a0645fcffd417997e130add0a25ac74af433686190025d9442f9ed5a"],
+        "connected_components": ["configs/architectures/grasu_regraph_candidate10_k1_multipart_cc_packed_v6.json", "38f94cbcbd82f284ab45c61fff02b76e9f77f9e73b26c813532729bb58a4d797"],
+        "full_pagerank": ["configs/architectures/grasu_regraph_candidate10_k1_multipart_pagerank_packed_v5.json", "2e61838a92df0603b1bbe68ff5e2e68110f328a08cf43eb4abe9b03b5af5ef08"],
+        "thresholded_residual_pagerank": ["configs/architectures/grasu_regraph_candidate10_k1_multipart_residual_packed_v5.json", "c5baacb113b50f7e47cbce2d047965763d427b6d430a8f91147f32de6325e7e0"]
       },
       "addressing": "runtime_packed_v1_capacity_checked"
     },
@@ -35,10 +35,10 @@
       "downstream_paths": 1,
       "shared_hbm_arbitration": true,
       "profiles": {
-        "weighted_sssp": ["configs/architectures/grasu_regraph_candidate10_k4_shared_multipart_weighted_packed_v6.json", "d7ebc62674cf61e4bd92b42ae707c7cc28f12c53572cdedd2f66079de60f8dad"],
-        "connected_components": ["configs/architectures/grasu_regraph_candidate10_k4_shared_multipart_cc_packed_v6.json", "366cb785c9b6752783530fac7073fe3d31c1f34d1a8ceb8d8153541e78bdf48c"],
-        "full_pagerank": ["configs/architectures/grasu_regraph_candidate10_k4_shared_multipart_pagerank_packed_v6.json", "4e4235cc995ec925c21b7102f2c7c30032ef09712040e62575569200472bef72"],
-        "thresholded_residual_pagerank": ["configs/architectures/grasu_regraph_candidate10_k4_shared_multipart_residual_packed_v6.json", "fd3981efbe5713961da12f329749c50e9299bf0fc3beebf95795da1ea1b4bfd1"]
+        "weighted_sssp": ["configs/architectures/grasu_regraph_candidate10_k4_shared_multipart_weighted_packed_v6.json", "26c7ec71d1fd5701768533d71220a2421faacef5b3ae5e1dc790af9edc5450a2"],
+        "connected_components": ["configs/architectures/grasu_regraph_candidate10_k4_shared_multipart_cc_packed_v6.json", "23ef9ce8cab0deffa8bcc57d7ac8daea5cb15a0ca9b7a08498d6fdaaffe148dc"],
+        "full_pagerank": ["configs/architectures/grasu_regraph_candidate10_k4_shared_multipart_pagerank_packed_v6.json", "c4b046fcd672d93beed516c070a4f087ccd8a78d116e1e89c402642585c5f53f"],
+        "thresholded_residual_pagerank": ["configs/architectures/grasu_regraph_candidate10_k4_shared_multipart_residual_packed_v6.json", "47002ad754d3dbb671b084d1eb69171db25b9d6f5e8d40d43bb2f5d80d715f44"]
       },
       "addressing": "runtime_packed_v1_capacity_checked"
     },
@@ -46,10 +46,10 @@
       "role": "theoretical_no_contention_upper_bound_only",
       "eligible_for_headline_aggregate": false,
       "profiles": {
-        "weighted_sssp": ["configs/architectures/grasu_regraph_candidate10_k4_multipart_weighted_packed_v5.json", "af80c5962124df7340a4a8d85f748c4fae1f6b0e212894f53a35f7ca2947aa2c"],
-        "connected_components": ["configs/architectures/grasu_regraph_candidate10_k4_multipart_cc_packed_v6.json", "66ffdc8cb0420b7d7f564428f9127f837e58e457fa3c6b10bdb48f7ceb683d50"],
-        "full_pagerank": ["configs/architectures/grasu_regraph_candidate10_k4_multipart_pagerank_packed_v5.json", "a9ec4047c0d8a0a28f1a0ca1416374fc94564d477ba67fe652ea44f8ee34c8ea"],
-        "thresholded_residual_pagerank": ["configs/architectures/grasu_regraph_candidate10_k4_multipart_residual_packed_v5.json", "3675286595fb317006589adeea7daa59f60ee6691e69e21f82c177ce06fd9878"]
+        "weighted_sssp": ["configs/architectures/grasu_regraph_candidate10_k4_multipart_weighted_packed_v5.json", "8ebdb78f1f7e7707a9707e56e352519791eb345332c28cb4b87ec52a007aad05"],
+        "connected_components": ["configs/architectures/grasu_regraph_candidate10_k4_multipart_cc_packed_v6.json", "7507054673872aabcd246fbf7151b1a6e5c879ef6028a547e17d5cdcb7b92c2b"],
+        "full_pagerank": ["configs/architectures/grasu_regraph_candidate10_k4_multipart_pagerank_packed_v5.json", "4e8c29f0a52fbd3f46c74eed16463b832e311630e8065794f2550b5e2186a35c"],
+        "thresholded_residual_pagerank": ["configs/architectures/grasu_regraph_candidate10_k4_multipart_residual_packed_v5.json", "1890fe2e874577bb3aed25bed91a939536e681823e96b79719c77e327dd25591"]
       }
     },
     "common_memory": {
@@ -61,7 +61,7 @@
     },
     "grasu_regraph_capability_catalog": {
       "path": "configs/contracts/grasu_regraph_publication_capabilities_v6.json",
-      "sha256": "93b10252f3a2f998da9a851ebf2abeb588cb8edef4a8ac253d217553a793c346"
+      "sha256": "32d83538bc292017432987ffc5df30b8431351f982ca53dcd8b64c7ae76d1daa"
     },
     "simulator_baseline": {
       "milestone": "candidate92_capacity_safe_hot_classifier_ledger_native_pgo",

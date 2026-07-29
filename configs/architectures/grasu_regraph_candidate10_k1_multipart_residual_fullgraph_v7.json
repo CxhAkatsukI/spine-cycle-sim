@@ -26,7 +26,7 @@
     {
       "kind": "runtime_packed_address_contract",
       "path": "configs/contracts/grasu_regraph_runtime_packed_addressing_v1.json",
-      "sha256": "a11e409362c1184724d723cbaa98863663d899fd786927af3d4ff398a1a3ef05"
+      "sha256": "43f20562e5098e6de0d65b93abb306b594a215857aad3a6f926488d6fe3f0dcd"
     }
   ],
   "evidence_tier": "simulation_only",

@@ -210,10 +210,10 @@ def validate_large_graph_campaign_contract(
     simulator = baselines.get("simulator_baseline", {})
     capability_catalogs = {
         "configs/contracts/grasu_regraph_publication_capabilities_v6.json": (
-            "93b10252f3a2f998da9a851ebf2abeb588cb8edef4a8ac253d217553a793c346"
+            "32d83538bc292017432987ffc5df30b8431351f982ca53dcd8b64c7ae76d1daa"
         ),
         "configs/contracts/grasu_regraph_full_graph_capabilities_v7.json": (
-            "fab93b8032f45e0e45c149f7c08987a2243050c329f69cce094a6fcbd398637b"
+            "02425393253fe8e6ed3ac6aadfb53ef36823ae3d7858b17ba2d595c233f583d5"
         ),
     }
     if (

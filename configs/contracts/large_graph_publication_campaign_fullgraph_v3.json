@@ -9,7 +9,7 @@
     },
     "grasu_regraph_capability_catalog": {
       "path": "configs/contracts/grasu_regraph_full_graph_capabilities_v7.json",
-      "sha256": "fab93b8032f45e0e45c149f7c08987a2243050c329f69cce094a6fcbd398637b"
+      "sha256": "02425393253fe8e6ed3ac6aadfb53ef36823ae3d7858b17ba2d595c233f583d5"
     },
     "grasu_regraph_k1": {
       "addressing": "runtime_packed_interleaved_v2_23pc_capacity_checked",
@@ -18,19 +18,19 @@
       "profiles": {
         "connected_components": [
           "configs/architectures/grasu_regraph_candidate10_k1_multipart_cc_fullgraph_v7.json",
-          "b5f6165eae4662280cd86003bdc094949264705f8af5968c80471f61e474f659"
+          "3cdd3167edaa077527ff7c36e61e7d7f554c274397739231af5746a4dd344d6c"
         ],
         "full_pagerank": [
           "configs/architectures/grasu_regraph_candidate10_k1_multipart_pagerank_fullgraph_v7.json",
-          "33285a6a81c1e20f6737c51e9154f08ab9949001d3868027c0dc3c07eecc41f4"
+          "67edfcbfdcf3f355764d808a4a4704097d069fd49711132a83fe77b7991ce980"
         ],
         "thresholded_residual_pagerank": [
           "configs/architectures/grasu_regraph_candidate10_k1_multipart_residual_fullgraph_v7.json",
-          "480563fff3c80d10327a9b046e08ef4e42716e601fef9df7f4855bd98fbd3538"
+          "6988fe950592cc75beeb9dadb71ccc10cabb8d26e5ec4eb02556b2c5a98debcd"
         ],
         "weighted_sssp": [
           "configs/architectures/grasu_regraph_candidate10_k1_multipart_weighted_fullgraph_v7.json",
-          "25d95cabe45d98809ac0a267f64f26150ca623fd22ff1eb80b0212a0b09dd861"
+          "8340355673f6d6be5153ba33616b7056c7dc497dafb3cb6f6176124720eee03c"
         ]
       },
       "role": "single_pipeline_normalized_baseline"
@@ -40,19 +40,19 @@
       "profiles": {
         "connected_components": [
           "configs/architectures/grasu_regraph_candidate10_k4_multipart_cc_packed_v6.json",
-          "66ffdc8cb0420b7d7f564428f9127f837e58e457fa3c6b10bdb48f7ceb683d50"
+          "7507054673872aabcd246fbf7151b1a6e5c879ef6028a547e17d5cdcb7b92c2b"
         ],
         "full_pagerank": [
           "configs/architectures/grasu_regraph_candidate10_k4_multipart_pagerank_packed_v5.json",
-          "a9ec4047c0d8a0a28f1a0ca1416374fc94564d477ba67fe652ea44f8ee34c8ea"
+          "4e8c29f0a52fbd3f46c74eed16463b832e311630e8065794f2550b5e2186a35c"
         ],
         "thresholded_residual_pagerank": [
           "configs/architectures/grasu_regraph_candidate10_k4_multipart_residual_packed_v5.json",
-          "3675286595fb317006589adeea7daa59f60ee6691e69e21f82c177ce06fd9878"
+          "1890fe2e874577bb3aed25bed91a939536e681823e96b79719c77e327dd25591"
         ],
         "weighted_sssp": [
           "configs/architectures/grasu_regraph_candidate10_k4_multipart_weighted_packed_v5.json",
-          "af80c5962124df7340a4a8d85f748c4fae1f6b0e212894f53a35f7ca2947aa2c"
+          "8ebdb78f1f7e7707a9707e56e352519791eb345332c28cb4b87ec52a007aad05"
         ]
       },
       "role": "theoretical_no_contention_upper_bound_only"
@@ -66,19 +66,19 @@
       "profiles": {
         "connected_components": [
           "configs/architectures/grasu_regraph_candidate10_k4_shared_multipart_cc_fullgraph_v7.json",
-          "3223fbe2f814a33f0091eaf6e11a6956664e37c80a9ba2293794e57714995f99"
+          "5b14a12219144665ee4f57eaaa3de42bfe7ed8e230d103b084dbb136d49863fe"
         ],
         "full_pagerank": [
           "configs/architectures/grasu_regraph_candidate10_k4_shared_multipart_pagerank_fullgraph_v7.json",
-          "0d385f093736cf47398dacf60ba84b6dc200880d7fa5e01a64cb3cf8d01584a0"
+          "e288906b05d3fb189bfe09993397093edfe018c866b48b96c1d6a6fb9a1d290d"
         ],
         "thresholded_residual_pagerank": [
           "configs/architectures/grasu_regraph_candidate10_k4_shared_multipart_residual_fullgraph_v7.json",
-          "45927f1e9d3471ea9dcca1de47d3cec25af997513a314b9d75fd861cd2ad920c"
+          "5437aa7896ce51dc3c0d40790a431412b1fd40bcb7a9c5fe1800ee9c988f8f3f"
         ],
         "weighted_sssp": [
           "configs/architectures/grasu_regraph_candidate10_k4_shared_multipart_weighted_fullgraph_v7.json",
-          "d24a1fa8a79ce318c91ab65ef46ba00e52fd9074ad08d51a26fc3a7dab2738c1"
+          "d94f0a051053efb048b5dd56b78a29c4dd13bde3f64ad7eaafce866b843642d6"
         ]
       },
       "role": "primary_multi_partition_competitor",

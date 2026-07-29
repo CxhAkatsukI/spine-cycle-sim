@@ -93,6 +93,42 @@ python3 -m unittest tests.test_grasu_addressing
   --max-cycles 1000000000 --no-build
 ```
 
-The original failed R19 row remains failure evidence. Its corrected formal
-rerun must use a new output directory and pass both correctness oracles before
-entering publication aggregates.
+## Formal R19-32 result
+
+The corrected formal K4-shared run completed the full 29,732,038-edge
+reciprocal R19-32 graph. It crossed the original 31,000,001-cycle failure point
+and passed at 42,433,681 cycles after 2,172.45 host seconds.
+
+| Metric | Result |
+|---|---:|
+| Vertices | 524,288 |
+| Reciprocal graph records | 29,732,038 |
+| Iterations | 2 |
+| Backend requests | 15,670,847 |
+| Architecture mismatches | 0 |
+| Mathematical mismatches | 0 |
+| Arbitration ledger | PASS |
+| DRAM ledger | PASS |
+
+Evidence:
+
+```text
+/data/tmp/chuxiao/large_graph_campaign_v1/formal_v3_r19_cc_guard/
+/data/tmp/chuxiao/large_graph_campaign_v1/formal_v3_r19_cc_guard/runs/382bcecb6bbc531de1d8/case_result.json
+```
+
+The `case_result.json` SHA-256 is
+`38fca20c49dc8b03495e6fd3ba867d1ff340840928374f04d5d6e425258680a1`.
+The original failed R19 row remains failure evidence and is excluded from
+publication aggregates.
+
+## Evidence-pin amendment
+
+Adding the guard changed the packed-addressing contract SHA without changing
+any compute, memory-request, or timing parameter. All 23 profiles that cite
+that contract, their capability catalogs, and the campaign contracts now pin
+the amended dependency hashes. The first post-R19 seven-dataset K4 launch
+correctly failed closed before simulation because those transitive pins had
+not yet been refreshed. Those zero-cycle failures remain in the campaign event
+log; the controlled retry uses the same workload execution IDs after all
+path/hash pairs were verified.

@@ -29,11 +29,11 @@ tests because the current Spine maintenance launch has
 | `formal_v3_au_insert_endpoints` | Insert u1/u64 across three systems | 6 | 30-35 |
 | `formal_v3_au_dense_k4` | AU dense insert u512/u4096, Spine and K4-shared | 4 | 53-56 |
 | `formal_v3_remaining5_spine_weighted` | Weighted SSSP on five remaining Spine-admitted real graphs | 5 (1 concurrent) | 57 |
-| `formal_v3_remaining7_k4_weighted` | Weighted SSSP K4-shared on seven remaining real graphs; paused behind R19-CC | 7 stopped, rerun pending | 58 |
+| `formal_v3_remaining7_k4_weighted` | Weighted SSSP K4-shared on seven remaining real graphs | retry running, 1 active + 6 queued | 58 |
 | `formal_v3_r19_spine` | R19-32 endpoint, four Spine algorithms | 4 | 36-39 |
 | `formal_v3_r19_grasu_fullpr` | R19-32 Full PageRank, GraSU+ReGraph K1/K4-shared | 2 | 40-41 |
 | `formal_v3_r19_k4_priority` | R19-32 K4-shared weighted SSSP PASS; original CC exact-boundary failure retained | 2 (1 concurrent) | 47 |
-| `formal_v3_r19_cc_guard` | Corrected R19-32 K4-shared CC formal rerun | 1 | 47 |
+| `formal_v3_r19_cc_guard` | Corrected R19-32 K4-shared CC formal rerun | 1 PASS | 47 |
 | `formal_v3_stackoverflow_spine` | StackOverflow Spine weighted SSSP, CC, residual PageRank | 3 (1 concurrent) | 48 |
 | `formal_v3_small_cc_residual` | AU/SU/WikiTalk CC and residual PageRank, three systems | 18 (3 concurrent) | 42-44 |
 | `formal_v3_small_fullpr` | AU/SU/WikiTalk Full PageRank, three systems | 9 (2 concurrent) | 45-46 |
@@ -56,8 +56,9 @@ could take the single high-memory K4 slot. A five-second launcher race briefly
 started Pokec; its process group was terminated before cycle progress and the
 entire wave was then closed with an auditable `stop-all` request. R19-32 CC was
 resumed with an 88 GiB reserve, 72 GiB emergency threshold, and one-job limit.
-The seven real-data K4 rows remain expected-but-missing until a fresh post-R19
-wave completes them.
+It passed at 42,433,681 cycles with both correctness oracles and all memory
+ledgers closed. The seven real-data K4 rows remain expected-but-missing while
+the post-R19 wave runs.
 
 The first R19-32 K4-shared CC run exposed an exact source-window boundary in
 ReGraph's one-window-ahead HLS prefetch. The packed address map now reserves the
@@ -68,12 +69,16 @@ threshold, and the same CPU 47 high-memory slot. See
 `docs/grasu_regraph_source_prefetch_guard_20260730.md` for the HLS mapping and
 boundary validation.
 
-A dependency watcher named `spine-v3-remaining7-k4-after-r19` polls the
-corrected campaign state once per minute. It resumes
-`formal_v3_remaining7_k4_weighted` only after R19 CC reaches `pass`; a failed or
-incomplete dependency terminates the watcher without launching another
-high-memory process. The post-R19 wave remains single-job, uses CPU offset 58,
-and applies 96/80/96 GiB admission/emergency/recovery thresholds.
+A dependency watcher named `spine-v3-remaining7-k4-after-r19` polled the
+corrected campaign state once per minute and resumed
+`formal_v3_remaining7_k4_weighted` only after R19 CC reached `pass`. The first
+launch then failed closed before simulated-cycle progress because the amended
+packed-addressing contract had changed while transitive profile evidence pins
+still named its old SHA-256. All 23 affected profiles, capability catalogs, and
+campaign contracts were repinned and structurally verified. The retry remains
+single-job, uses CPU offset 58, and applies 96/80/96 GiB
+admission/emergency/recovery thresholds. The seven zero-cycle startup failures
+remain in `events.jsonl` and do not enter publication aggregates.
 
 ## CPU-affinity correction
 

@@ -14,7 +14,7 @@
       "handoff": "weighted_pma_to_axis_stream",
       "profile_id": "grasu_regraph_candidate10_k1_multipart_weighted_packed_v5",
       "profile_path": "configs/architectures/grasu_regraph_candidate10_k1_multipart_weighted_packed_v5.json",
-      "profile_sha256": "01b246b3a359e03b8f6fe857eac28f38a3fb990b1aff2facaed7fe66e9dc3a32",
+      "profile_sha256": "7091c4a3a0645fcffd417997e130add0a25ac74af433686190025d9442f9ed5a",
       "supported_algorithms": {
         "weighted_dynamic_sssp": {
           "claim_class": "routed_k1_runtime_packed_multi_partition_structural_simulation",
@@ -45,7 +45,7 @@
       "handoff": "weighted_pma_to_axis_stream",
       "profile_id": "grasu_regraph_candidate10_k2_multipart_weighted_packed_v5",
       "profile_path": "configs/architectures/grasu_regraph_candidate10_k2_multipart_weighted_packed_v5.json",
-      "profile_sha256": "45aabb6bc43b33d5a6537c6134fc64707d1ec52f4ffd95e926e1ba08e1af0591",
+      "profile_sha256": "235bac6eebefea72e69edf50c8caf963209c4cc651d7b78697923d1f66cee8b1",
       "supported_algorithms": {
         "weighted_dynamic_sssp": {
           "claim_class": "projected_k2_runtime_packed_multi_partition_scalability_only",
@@ -76,7 +76,7 @@
       "handoff": "weighted_pma_to_axis_stream",
       "profile_id": "grasu_regraph_candidate10_k4_multipart_weighted_packed_v5",
       "profile_path": "configs/architectures/grasu_regraph_candidate10_k4_multipart_weighted_packed_v5.json",
-      "profile_sha256": "af80c5962124df7340a4a8d85f748c4fae1f6b0e212894f53a35f7ca2947aa2c",
+      "profile_sha256": "8ebdb78f1f7e7707a9707e56e352519791eb345332c28cb4b87ec52a007aad05",
       "supported_algorithms": {
         "weighted_dynamic_sssp": {
           "claim_class": "projected_k4_runtime_packed_multi_partition_scalability_only",
@@ -107,7 +107,7 @@
       "handoff": "weighted_pma_to_axis_stream",
       "profile_id": "grasu_regraph_candidate10_k1_multipart_pagerank_packed_v5",
       "profile_path": "configs/architectures/grasu_regraph_candidate10_k1_multipart_pagerank_packed_v5.json",
-      "profile_sha256": "34de70f9a00e5e2e6f2ed541ba17767a666bfa5cd539e79a2954019d2d199833",
+      "profile_sha256": "2e61838a92df0603b1bbe68ff5e2e68110f328a08cf43eb4abe9b03b5af5ef08",
       "supported_algorithms": {
         "full_pagerank": {
           "claim_class": "routed_k1_runtime_packed_multi_partition_structural_simulation",
@@ -131,7 +131,7 @@
       "handoff": "weighted_pma_to_axis_stream",
       "profile_id": "grasu_regraph_candidate10_k2_multipart_pagerank_packed_v5",
       "profile_path": "configs/architectures/grasu_regraph_candidate10_k2_multipart_pagerank_packed_v5.json",
-      "profile_sha256": "71054f920d3ad2217f5c87300ae46d2bcb4175364027f328d570346138c85426",
+      "profile_sha256": "974a8e929f3583c619947b41f1ff31f0851a6f8ae6e3ae9f1b85dd8c1771f873",
       "supported_algorithms": {
         "full_pagerank": {
           "claim_class": "projected_k2_runtime_packed_multi_partition_scalability_only",
@@ -155,7 +155,7 @@
       "handoff": "weighted_pma_to_axis_stream",
       "profile_id": "grasu_regraph_candidate10_k4_multipart_pagerank_packed_v5",
       "profile_path": "configs/architectures/grasu_regraph_candidate10_k4_multipart_pagerank_packed_v5.json",
-      "profile_sha256": "a9ec4047c0d8a0a28f1a0ca1416374fc94564d477ba67fe652ea44f8ee34c8ea",
+      "profile_sha256": "4e8c29f0a52fbd3f46c74eed16463b832e311630e8065794f2550b5e2186a35c",
       "supported_algorithms": {
         "full_pagerank": {
           "claim_class": "projected_k4_runtime_packed_multi_partition_scalability_only",
@@ -179,7 +179,7 @@
       "handoff": "weighted_pma_to_axis_stream",
       "profile_id": "grasu_regraph_candidate10_k1_multipart_residual_packed_v5",
       "profile_path": "configs/architectures/grasu_regraph_candidate10_k1_multipart_residual_packed_v5.json",
-      "profile_sha256": "78b62e6b55adf52f782e5c8ecab4d3294eff70acb8ab487de90aadb41dc1a101",
+      "profile_sha256": "c5baacb113b50f7e47cbce2d047965763d427b6d430a8f91147f32de6325e7e0",
       "supported_algorithms": {
         "thresholded_residual_pagerank": {
           "claim_class": "routed_k1_runtime_packed_multi_partition_structural_simulation",
@@ -203,7 +203,7 @@
       "handoff": "weighted_pma_to_axis_stream",
       "profile_id": "grasu_regraph_candidate10_k2_multipart_residual_packed_v5",
       "profile_path": "configs/architectures/grasu_regraph_candidate10_k2_multipart_residual_packed_v5.json",
-      "profile_sha256": "fabcaf7402d316846b8d35f28480ba89162b983fb19b3826c02801826439b816",
+      "profile_sha256": "73987abcacd2f9c743e19f0e4f39be279d5f4fde159b50a2a6c7dc4ffc23e408",
       "supported_algorithms": {
         "thresholded_residual_pagerank": {
           "claim_class": "projected_k2_runtime_packed_multi_partition_scalability_only",
@@ -227,7 +227,7 @@
       "handoff": "weighted_pma_to_axis_stream",
       "profile_id": "grasu_regraph_candidate10_k4_multipart_residual_packed_v5",
       "profile_path": "configs/architectures/grasu_regraph_candidate10_k4_multipart_residual_packed_v5.json",
-      "profile_sha256": "3675286595fb317006589adeea7daa59f60ee6691e69e21f82c177ce06fd9878",
+      "profile_sha256": "1890fe2e874577bb3aed25bed91a939536e681823e96b79719c77e327dd25591",
       "supported_algorithms": {
         "thresholded_residual_pagerank": {
           "claim_class": "projected_k4_runtime_packed_multi_partition_scalability_only",
