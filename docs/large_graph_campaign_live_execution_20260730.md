@@ -68,6 +68,13 @@ threshold, and the same CPU 47 high-memory slot. See
 `docs/grasu_regraph_source_prefetch_guard_20260730.md` for the HLS mapping and
 boundary validation.
 
+A dependency watcher named `spine-v3-remaining7-k4-after-r19` polls the
+corrected campaign state once per minute. It resumes
+`formal_v3_remaining7_k4_weighted` only after R19 CC reaches `pass`; a failed or
+incomplete dependency terminates the watcher without launching another
+high-memory process. The post-R19 wave remains single-job, uses CPU offset 58,
+and applies 96/80/96 GiB admission/emergency/recovery thresholds.
+
 ## CPU-affinity correction
 
 Multiple independent launchers initially selected the same first physical CPU.
