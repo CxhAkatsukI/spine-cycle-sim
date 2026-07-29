@@ -9,7 +9,10 @@ import json
 from pathlib import Path
 from typing import Any
 
-from spine_cycle_sim.profiles import load_architecture_profile
+from spine_cycle_sim.profiles import (
+    load_architecture_profile,
+    verify_profile_artifacts,
+)
 
 
 class CapabilityError(ValueError):
@@ -163,6 +166,14 @@ def load_capability_catalog(
         if len(expected_hash) != 64 or _sha256(profile_path) != expected_hash:
             raise CapabilityError(f"profile hash mismatch: {profile_path}")
         profile = load_architecture_profile(profile_path)
+        evidence_problems = verify_profile_artifacts(
+            profile, repository_root=repo
+        )
+        if evidence_problems:
+            raise CapabilityError(
+                f"profile evidence mismatch: {profile_path}: "
+                + "; ".join(evidence_problems)
+            )
         if profile.profile_id != profile_id:
             raise CapabilityError(f"profile ID mismatch: {profile_path}")
         comparison_role = _string(raw["comparison_role"], "comparison_role")

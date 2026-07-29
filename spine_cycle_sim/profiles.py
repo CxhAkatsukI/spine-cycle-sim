@@ -282,12 +282,19 @@ def load_architecture_profile(path: str | Path) -> ArchitectureProfile:
     )
 
 
-def verify_profile_artifacts(profile: ArchitectureProfile) -> list[str]:
+def verify_profile_artifacts(
+    profile: ArchitectureProfile,
+    *,
+    repository_root: str | Path | None = None,
+) -> list[str]:
     """Return artifact problems without mutating or silently skipping evidence."""
 
+    root = Path(repository_root).resolve() if repository_root is not None else None
     problems: list[str] = []
     for artifact in profile.evidence:
         path = Path(artifact.path)
+        if root is not None and not path.is_absolute():
+            path = root / path
         if not path.exists():
             problems.append(f"missing: {path}")
             continue

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 import tempfile
@@ -233,6 +234,28 @@ class ProfileCapabilityTests(unittest.TestCase):
             path.write_text(json.dumps(payload), encoding="utf-8")
             with self.assertRaisesRegex(CapabilityError, "profile hash mismatch"):
                 load_capability_catalog(path, repository_root=ROOT)
+
+    def test_transitive_profile_evidence_mismatch_fails_closed(self) -> None:
+        catalog = json.loads(CATALOG_V7.read_text(encoding="utf-8"))
+        original_path = ROOT / catalog["profiles"][0]["profile_path"]
+        profile = json.loads(original_path.read_text(encoding="utf-8"))
+        profile["evidence"][0]["sha256"] = "0" * 64
+        with tempfile.TemporaryDirectory(dir=ROOT) as temporary:
+            root = Path(temporary)
+            profile_path = root / "profile.json"
+            profile_path.write_text(json.dumps(profile), encoding="utf-8")
+            catalog["profiles"][0]["profile_path"] = str(
+                profile_path.relative_to(ROOT)
+            )
+            catalog["profiles"][0]["profile_sha256"] = hashlib.sha256(
+                profile_path.read_bytes()
+            ).hexdigest()
+            catalog_path = root / "capabilities.json"
+            catalog_path.write_text(json.dumps(catalog), encoding="utf-8")
+            with self.assertRaisesRegex(
+                CapabilityError, "profile evidence mismatch"
+            ):
+                load_capability_catalog(catalog_path, repository_root=ROOT)
 
 
 if __name__ == "__main__":
