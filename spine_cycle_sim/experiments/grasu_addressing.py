@@ -8,6 +8,7 @@ from typing import Any
 
 MIB = 1 << 20
 INTERLEAVED_LAYOUT = "runtime_packed_interleaved_v2"
+SOURCE_STATE_STREAM_BYTES_PER_VERTEX = 4
 
 FROZEN_CANDIDATE10_ADDRESS_PARAMETERS = {
     "grasu_update_base_bytes": 0,
@@ -87,6 +88,22 @@ def required_source_state_stride_bytes(
         * source_state_bytes_per_vertex(parameters)
     )
     return ((required + 4095) // 4096) * 4096
+
+
+def source_state_prefetch_guard_bytes(parameters: Mapping[str, Any]) -> int:
+    """Return storage for ReGraph's one-window-ahead source prefetch.
+
+    The HLS little-GS scatter requests ``pp_read_round + 1`` while its current
+    source window is in flight.  A graph whose padded vertex count is exactly a
+    source-window multiple therefore issues one final speculative 32-bit
+    window after the second ping-pong buffer.  The request is part of measured
+    memory traffic even though its payload is not consumed.
+    """
+
+    vertices = int(parameters["regraph_source_buffer_vertices"])
+    if vertices <= 0:
+        raise ValueError("source-buffer vertices must be positive")
+    return _align_up(vertices * SOURCE_STATE_STREAM_BYTES_PER_VERTEX, 64)
 
 
 def grasu_hbm_address_environment(
@@ -376,6 +393,7 @@ def validate_grasu_hbm_address_map(
     required_source_state_bytes = required_source_state_stride_bytes(
         parameters, destination_partitions
     )
+    source_prefetch_guard_bytes = source_state_prefetch_guard_bytes(parameters)
     padded_vertices = (
         destination_partitions * int(parameters["regraph_partition_vertices"])
     )
@@ -465,8 +483,13 @@ def validate_grasu_hbm_address_map(
         },
         "source_state": {
             "base_bytes": source_base,
-            "size_bytes": source_stride + required_source_state_bytes,
+            "size_bytes": (
+                source_stride
+                + required_source_state_bytes
+                + source_prefetch_guard_bytes
+            ),
             "channels": sorted(source_channels),
+            "prefetch_guard_bytes": source_prefetch_guard_bytes,
         },
         "vertex_state": {
             "base_bytes": int(parameters["grasu_vertex_state_base_bytes"]),

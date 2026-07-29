@@ -34,14 +34,27 @@ reserved PMA layout. The simulator then computes:
 Starting at 16 MiB, binary-head regions, row-offset regions, and PMA regions
 are packed in ascending destination-partition order with 4 KiB alignment. Two
 source-state ping-pong buffers follow the partition arena; their stride expands
-to the padded destination capacity. The Python admission gate and C++ execution
-model independently derive the same bases from the same concrete PMA layout.
+to the padded destination capacity. One additional 16 KiB source window is
+reserved after the second buffer. This is not an extra compute buffer: it is the
+physical guard for the original ReGraph little-GS scatter's one-window-ahead
+`pp_read_round + 1` request. The request remains in the execution-driven memory
+traffic and can contend with useful requests, while its unconsumed payload is
+kept inside the allocated HBM arena. The Python admission gate and C++
+execution model independently derive the same bases from the same concrete PMA
+layout.
 
 Every region is checked against the 512 MiB pseudo-channel capacity and against
 all other regions on that channel. Overflow or overlap fails before simulation.
 The model never wraps or aliases an oversized graph. Such a graph must be
 reported as a capacity slice or evaluated with a separately frozen hardware
 design.
+
+The guard is required when the padded vertex count is exactly divisible by the
+4,096-vertex source window. R19-32 has 524,288 vertices and exposed the boundary:
+the final speculative request began exactly at the former source-state end
+address. Reserving the guard preserves the HLS request schedule and removes the
+out-of-allocation access; suppressing the request would make the simulator's
+traffic more optimistic than the HLS implementation.
 
 ## Frozen profiles and evidence classes
 

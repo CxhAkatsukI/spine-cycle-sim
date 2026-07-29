@@ -1,0 +1,6 @@
+# spine_real_slice_version=1
+# case=cc_exact_partition_guard_insert
+# vertices=65536
+# columns=src dst weight diff
+1 2 1 1
+2 1 1 1

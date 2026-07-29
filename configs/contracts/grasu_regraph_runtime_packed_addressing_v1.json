@@ -26,7 +26,7 @@
       "binary_heads": "8 * reserved_segments bytes per partition",
       "row_offsets": "8 * graph_vertices bytes per partition",
       "pma_segments": "64 * ceil(reserved_segments / 2) bytes per pseudo-channel per partition",
-      "source_state": "two 4KiB-aligned buffers over padded destination-partition capacity"
+      "source_state": "two 4KiB-aligned buffers over padded destination-partition capacity plus one 4096-vertex x 32-bit look-ahead guard matching the HLS pp_read_round+1 request"
     }
   },
   "unchanged_architecture": [

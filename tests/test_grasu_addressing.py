@@ -7,6 +7,7 @@ from spine_cycle_sim.experiments.grasu_addressing import (
     FROZEN_CANDIDATE10_ADDRESS_PARAMETERS,
     grasu_hbm_address_environment,
     partition_layout_footprints,
+    source_state_prefetch_guard_bytes,
     validate_grasu_hbm_address_map,
     validate_partition_footprints,
 )
@@ -29,6 +30,7 @@ def parameters() -> dict[str, object]:
         "regraph_source_state_channel": 1,
         "regraph_source_state_mirror_channel": 3,
         "regraph_partition_vertices": 65_536,
+        "regraph_source_buffer_vertices": 4_096,
         "regraph_apply_state_channel": 30,
         "regraph_degree_channel": 30,
     }
@@ -106,6 +108,12 @@ class GraSuAddressingTests(unittest.TestCase):
         self.assertEqual(
             windows["source_state"]["buffer_stride_bytes"], 2 << 20
         )
+        self.assertEqual(
+            windows["source_state"]["prefetch_guard_bytes"], 16 << 10
+        )
+        self.assertEqual(
+            windows["source_state"]["size_bytes"], (4 << 20) + (16 << 10)
+        )
         environment = grasu_hbm_address_environment(packed)
         self.assertEqual(environment["GRASU_SST_PACKED_PARTITION_ADDRESSES"], "1")
 
@@ -181,6 +189,55 @@ class GraSuAddressingTests(unittest.TestCase):
             "interleaved_arena_v1",
         )
         self.assertIn(";", environment["GRASU_SST_HBM_ADDRESS_MAPPING_TABLE"])
+
+    def test_exact_source_window_multiple_has_hls_lookahead_guard(self) -> None:
+        interleaved = parameters()
+        interleaved.update(
+            {
+                "grasu_partition_address_layout": "runtime_packed_interleaved_v2",
+                "grasu_partition_address_arena_base_bytes": 16 << 20,
+                "grasu_partition_address_alignment_bytes": 4096,
+                "grasu_interleaved_hbm_first_channel": 0,
+                "grasu_interleaved_hbm_channels": 23,
+                "grasu_interleaved_hbm_bytes": 64,
+                "grasu_physical_hbm_channels": 32,
+                "hbm_pseudo_channels_budget": 23,
+                "regraph_degree_channel": 31,
+            }
+        )
+        vertices = 8 * 65_536
+        footprints = [
+            {
+                "partition": partition,
+                "row_bytes": vertices * 8,
+                "binary_bytes": 4096,
+                "pma_bytes_per_channel": 4096,
+                "segments": 1,
+            }
+            for partition in range(8)
+        ]
+        windows = validate_grasu_hbm_address_map(
+            interleaved, 512 << 20, 8, vertices, 16, footprints
+        )
+        source = windows["source_state"]
+        guard = source_state_prefetch_guard_bytes(interleaved)
+        self.assertEqual(guard, 16 << 10)
+        self.assertEqual(
+            source["end_bytes"],
+            source["base_bytes"] + 2 * (2 << 20) + guard,
+        )
+        source_mappings = [
+            mapping
+            for mapping in windows["_interleaved_arena"]["mappings"]
+            if mapping["region"] == "source_state"
+        ]
+        self.assertEqual(len(source_mappings), 2)
+        self.assertTrue(
+            all(
+                mapping["logical_end_bytes"] == source["end_bytes"]
+                for mapping in source_mappings
+            )
+        )
 
     def test_interleaved_map_fails_closed_on_aggregate_capacity(self) -> None:
         interleaved = parameters()
