@@ -5,7 +5,6 @@ campaign_root="${SPINE_CAMPAIGN_ROOT:-/data/tmp/chuxiao/large_graph_campaign_v1}
 output_dir="${SPINE_LIVE_ANALYSIS_DIR:-${campaign_root}/live_publication_analysis}"
 
 result_roots=(
-  formal_candidate92_v1
   noncapacity_v3_repair
   fullgraph_v2_repair
   formal_v3_weighted_wave
@@ -17,6 +16,7 @@ result_roots=(
   formal_v3_au_insert_endpoints
   formal_v3_r19_spine
   formal_v3_r19_grasu_fullpr
+  formal_v3_small_cc_residual
 )
 
 manifest_roots=(
@@ -30,6 +30,7 @@ manifest_roots=(
   formal_v3_au_insert_endpoints
   formal_v3_r19_spine
   formal_v3_r19_grasu_fullpr
+  formal_v3_small_cc_residual
 )
 
 command=(

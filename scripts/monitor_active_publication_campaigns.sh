@@ -23,6 +23,7 @@ campaigns=(
   formal_v3_au_insert_endpoints
   formal_v3_r19_spine
   formal_v3_r19_grasu_fullpr
+  formal_v3_small_cc_residual
 )
 
 while true; do

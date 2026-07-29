@@ -27,6 +27,7 @@ tests because the current Spine maintenance launch has
 | `formal_v3_au_insert_endpoints` | Insert u1/u64 across three systems | 6 | 30-35 |
 | `formal_v3_r19_spine` | R19-32 endpoint, four Spine algorithms | 4 | 36-39 |
 | `formal_v3_r19_grasu_fullpr` | R19-32 Full PageRank, GraSU+ReGraph K1/K4-shared | 2 | 40-41 |
+| `formal_v3_small_cc_residual` | AU/SU/WikiTalk CC and residual PageRank, three systems | 18 (3 concurrent) | 42-44 |
 
 The v3 launchers use a 112 GiB admission reserve, 96 GiB emergency threshold,
 112 GiB recovery threshold, one start per five-second sample, and no automatic
@@ -97,3 +98,11 @@ an empty initial frontier (`initial_active_vertices=0`). It is retained as
 evidence for the no-propagation update path, not as the representative
 propagating residual-PageRank endpoint. A separately selected update that
 crosses the per-vertex activation threshold is required for that claim.
+
+Live publication aggregation is restricted to the current plugin cohort
+(`eee35f39c118538da5565e497d29b989e5bb492c1368839d424a984c32e2aae9`).
+The 36 `formal_candidate92_v1` rows use the superseded `88d446...` plugin and
+remain available as historical evidence, but are intentionally excluded from
+the current aggregate. The analyzer's duplicate-science guard caught this
+cohort boundary when current AU CC/residual runs reused the same execution IDs;
+the guard remains strict.
