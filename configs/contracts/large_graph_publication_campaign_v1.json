@@ -114,7 +114,7 @@
       "papers": ["Dynamic-ACTS"],
       "paper_vertices": 1632000,
       "paper_edges": 61000000,
-      "source": {"relative_path": "soc-Pokec/soc-Pokec.tar.gz", "size_bytes": 430434848, "sha256": "3819af42461fd6816c2b84be120cbb509424996a987ba06ce9a318746667c2f9", "encoding": "tar_matrix_market", "archive_member": "soc-Pokec/soc-Pokec.mtx", "semantic_projection": "matrix_market_header"}
+      "source": {"relative_path": "soc-Pokec/soc-Pokec.tar.gz", "size_bytes": 430434848, "sha256": "3819af42461fd6816c2b84be120cbb509424996a987ba06ce9a318746667c2f9", "encoding": "tar_matrix_market", "archive_member": "soc-Pokec/soc-Pokec.mtx", "semantic_projection": "reciprocal_to_paper_edge_count"}
     },
     {
       "dataset_id": "soc_orkut",
@@ -130,7 +130,7 @@
       "papers": ["Dynamic-ACTS"],
       "paper_vertices": 4847000,
       "paper_edges": 137000000,
-      "source": {"relative_path": "soc-LiveJournal1/soc-LiveJournal1.tar.gz", "size_bytes": 255621157, "sha256": "6518202e02a60f4db9828f3f6ce756191436e61c061c44b66e869b7ba28a647b", "encoding": "tar_edge_list", "archive_member": "soc-LiveJournal1/soc-LiveJournal1.txt", "semantic_projection": "reciprocal_to_paper_edge_count"}
+      "source": {"relative_path": "soc-LiveJournal1/soc-LiveJournal1.tar.gz", "size_bytes": 255621157, "sha256": "6518202e02a60f4db9828f3f6ce756191436e61c061c44b66e869b7ba28a647b", "encoding": "tar_matrix_market", "archive_member": "soc-LiveJournal1/soc-LiveJournal1.mtx", "semantic_projection": "reciprocal_to_paper_edge_count"}
     },
     {
       "dataset_id": "ljournal_2008",
@@ -138,7 +138,7 @@
       "papers": ["Dynamic-ACTS"],
       "paper_vertices": 5363000,
       "paper_edges": 158000000,
-      "source": {"relative_path": "ljournal-2008/ljournal-2008.tar.gz", "size_bytes": 257721385, "sha256": "d16e5e3920a0a3a2e549168e994db14f09eb287dc6426098b62b30b7f70d65fd", "encoding": "tar_matrix_market", "archive_member": "ljournal-2008/ljournal-2008.mtx", "semantic_projection": "matrix_market_symmetric"}
+      "source": {"relative_path": "ljournal-2008/ljournal-2008.tar.gz", "size_bytes": 257721385, "sha256": "d16e5e3920a0a3a2e549168e994db14f09eb287dc6426098b62b30b7f70d65fd", "encoding": "tar_matrix_market", "archive_member": "ljournal-2008/ljournal-2008.mtx", "semantic_projection": "reciprocal_to_paper_edge_count"}
     },
     {
       "dataset_id": "uk_2002",

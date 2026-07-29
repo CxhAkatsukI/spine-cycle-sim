@@ -70,6 +70,22 @@ class LargeGraphCampaignTests(unittest.TestCase):
         self.assertEqual(len(rows), 11)
         self.assertTrue(all(row.status == "ok" for row in rows), rows)
 
+    def test_reviewed_dynamic_acts_archive_members_and_projections(self) -> None:
+        datasets = {
+            dataset["dataset_id"]: dataset for dataset in self.contract["datasets"]
+        }
+        livejournal = datasets["soc_livejournal1"]["source"]
+        self.assertEqual(livejournal["encoding"], "tar_matrix_market")
+        self.assertEqual(
+            livejournal["archive_member"],
+            "soc-LiveJournal1/soc-LiveJournal1.mtx",
+        )
+        for dataset_id in ("soc_pokec", "soc_orkut", "soc_livejournal1", "ljournal_2008"):
+            self.assertEqual(
+                datasets[dataset_id]["source"]["semantic_projection"],
+                "reciprocal_to_paper_edge_count",
+            )
+
     def test_correctness_contract_cannot_be_weakened(self) -> None:
         weakened = deepcopy(self.contract)
         weakened["correctness_admission"]["independent_mathematical_oracle"] = False
