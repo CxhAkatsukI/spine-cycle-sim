@@ -150,7 +150,10 @@ def validate_large_graph_campaign_contract(
             set(profiles) != set(REQUIRED_ALGORITHMS)
             or baseline.get("conversion_free") is not True
             or baseline.get("addressing")
-            != "runtime_packed_v1_capacity_checked"
+            not in {
+                "runtime_packed_v1_capacity_checked",
+                "runtime_packed_interleaved_v2_23pc_capacity_checked",
+            }
         ):
             raise ValueError(f"large-graph campaign {system} baseline changed")
         for algorithm in REQUIRED_ALGORITHMS:
@@ -186,15 +189,21 @@ def validate_large_graph_campaign_contract(
     common_memory = baselines.get("common_memory", {})
     capabilities = baselines.get("grasu_regraph_capability_catalog", {})
     simulator = baselines.get("simulator_baseline", {})
+    capability_catalogs = {
+        "configs/contracts/grasu_regraph_publication_capabilities_v6.json": (
+            "93b10252f3a2f998da9a851ebf2abeb588cb8edef4a8ac253d217553a793c346"
+        ),
+        "configs/contracts/grasu_regraph_full_graph_capabilities_v7.json": (
+            "fab93b8032f45e0e45c149f7c08987a2243050c329f69cce094a6fcbd398637b"
+        ),
+    }
     if (
         common_memory.get("backend") != "direct_dramsim3_transport"
         or common_memory.get("physical_channels") != 32
         or common_memory.get("line_bytes") != 64
         or not _is_sha256(common_memory.get("sha256"))
-        or capabilities.get("path")
-        != "configs/contracts/grasu_regraph_publication_capabilities_v6.json"
-        or capabilities.get("sha256")
-        != "93b10252f3a2f998da9a851ebf2abeb588cb8edef4a8ac253d217553a793c346"
+        or capability_catalogs.get(capabilities.get("path"))
+        != capabilities.get("sha256")
         or not _is_sha256(simulator.get("plugin_sha256"))
     ):
         raise ValueError("large-graph campaign common platform changed")

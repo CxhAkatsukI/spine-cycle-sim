@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from collections import Counter
+import hashlib
 from pathlib import Path
 import unittest
 
@@ -25,6 +26,12 @@ ROOT = Path(__file__).resolve().parents[1]
 CONTRACT = (
     ROOT / "configs" / "contracts" / "large_graph_publication_campaign_v1.json"
 )
+FULLGRAPH_CONTRACT = (
+    ROOT
+    / "configs"
+    / "contracts"
+    / "large_graph_publication_campaign_fullgraph_v2.json"
+)
 DATASET_ROOT = Path("/data/feiyang/Graph_Datasets")
 
 
@@ -46,6 +53,26 @@ class LargeGraphCampaignTests(unittest.TestCase):
             tuple(self.contract["experiment_matrix"]["systems"]),
             LARGE_GRAPH_REQUIRED_SYSTEMS,
         )
+
+    def test_fullgraph_contract_freezes_v7_profiles_and_23pc_mapper(self) -> None:
+        contract = load_large_graph_campaign_contract(FULLGRAPH_CONTRACT)
+        baselines = contract["architecture_baselines"]
+        self.assertEqual(
+            baselines["grasu_regraph_capability_catalog"]["path"],
+            "configs/contracts/grasu_regraph_full_graph_capabilities_v7.json",
+        )
+        for system in ("grasu_regraph_k1", "grasu_regraph_k4_shared"):
+            baseline = baselines[system]
+            self.assertEqual(
+                baseline["addressing"],
+                "runtime_packed_interleaved_v2_23pc_capacity_checked",
+            )
+            for profile_path, expected_hash in baseline["profiles"].values():
+                path = ROOT / profile_path
+                self.assertTrue(path.is_file())
+                self.assertEqual(
+                    hashlib.sha256(path.read_bytes()).hexdigest(), expected_hash
+                )
 
     def test_full_pagerank_and_residual_semantics_are_frozen(self) -> None:
         semantics = self.contract["workload_semantics"]
