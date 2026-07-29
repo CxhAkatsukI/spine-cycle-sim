@@ -305,7 +305,9 @@ class AxiMaster final : public Component {
   void queue_parent_response_if_ready(std::uint64_t parent_id);
   static void notify_request_nonempty(void* owner) noexcept;
   static void notify_backend_response(void* owner) noexcept;
-  [[nodiscard]] std::size_t read_reorder_occupancy() const noexcept;
+  [[nodiscard]] std::size_t read_reorder_occupancy() const noexcept {
+    return read_reorder_occupancy_;
+  }
   [[nodiscard]] bool has_pending_work() const noexcept {
     return !requests_.empty() || internal_pending_work_;
   }
@@ -336,6 +338,7 @@ class AxiMaster final : public Component {
   std::size_t active_write_data_bursts_{};
   std::unordered_map<std::uint64_t, BackendMapping> backend_mappings_;
   std::deque<ReadyResponse> ready_responses_;
+  std::size_t read_reorder_occupancy_{};
   std::vector<AxiBurstTrace> burst_trace_;
   std::vector<AxiBeatTrace> beat_trace_;
   std::vector<AxiWriteIngressTrace> write_ingress_trace_;

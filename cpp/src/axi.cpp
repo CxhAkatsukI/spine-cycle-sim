@@ -229,15 +229,6 @@ void AxiMaster::evaluate_output() {
   }
 }
 
-std::size_t AxiMaster::read_reorder_occupancy() const noexcept {
-  std::size_t occupancy = 0;
-  for (const auto &[parent_id, parent] : parents_) {
-    (void)parent_id;
-    occupancy += parent.ready_stream_beats.size();
-  }
-  return occupancy;
-}
-
 void AxiMaster::evaluate_read_beat_output(const CycleContext &context) {
   if (read_beats_ == nullptr) {
     return;
@@ -673,6 +664,7 @@ void AxiMaster::commit_backend_responses(const CycleContext &context) {
                  .second) {
           throw std::logic_error("AXI received a duplicate streamed read beat");
         }
+        ++read_reorder_occupancy_;
       }
     } else if (!response.read_data.empty()) {
       throw std::logic_error("AXI write response unexpectedly carried data");
@@ -1009,6 +1001,10 @@ void AxiMaster::commit_read_beat_output() {
   }
   parent.next_stream_offset += beat->second.response.read_data.size();
   parent.ready_stream_beats.erase(beat);
+  if (read_reorder_occupancy_ == 0) {
+    throw std::logic_error("AXI read reorder occupancy underflow");
+  }
+  --read_reorder_occupancy_;
   ++parent.stream_beats_published;
   ++stats_.read_beats_streamed;
   queue_parent_response_if_ready(parent_id);
