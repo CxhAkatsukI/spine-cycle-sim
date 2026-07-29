@@ -26,6 +26,7 @@ tests because the current Spine maintenance launch has
 | `formal_v3_au_spine_weight_remaining` | Spine weight-change u8/u64 | 2 | 28-29 |
 | `formal_v3_au_insert_endpoints` | Insert u1/u64 across three systems | 6 | 30-35 |
 | `formal_v3_r19_spine` | R19-32 endpoint, four Spine algorithms | 4 | 36-39 |
+| `formal_v3_r19_grasu_fullpr` | R19-32 Full PageRank, GraSU+ReGraph K1/K4-shared | 2 | 40-41 |
 
 The v3 launchers use a 112 GiB admission reserve, 96 GiB emergency threshold,
 112 GiB recovery threshold, one start per five-second sample, and no automatic

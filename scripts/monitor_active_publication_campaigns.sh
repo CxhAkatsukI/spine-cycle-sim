@@ -22,12 +22,16 @@ campaigns=(
   formal_v3_au_spine_weight_remaining
   formal_v3_au_insert_endpoints
   formal_v3_r19_spine
+  formal_v3_r19_grasu_fullpr
 )
 
 while true; do
   date -Is
   for campaign in "${campaigns[@]}"; do
     state="${campaign_root}/${campaign}/run/campaign_state.json"
+    if [[ ! -f "${state}" ]]; then
+      state="${campaign_root}/${campaign}/campaign_state.json"
+    fi
     if [[ ! -f "${state}" ]]; then
       printf '%-38s missing\n' "${campaign}"
       continue
@@ -41,6 +45,7 @@ while true; do
         ("queue=" + ((.summary.by_status.queued // 0) | tostring)),
         ("fail=" + ((.summary.by_status.fail // 0) | tostring)),
         ("stop=" + ((.summary.by_status.stopped // 0) | tostring)),
+        ("rss_gib=" + (((.host.campaign_rss_bytes // 0) / 1073741824 * 10 | floor) / 10 | tostring)),
         ("available_gib=" + (((.host.available_memory_bytes // 0) / 1073741824) | floor | tostring)),
         ("breaker=" + (if (.host.memory_pressure_active // false) then "active" else "clear" end))
       ] | @tsv

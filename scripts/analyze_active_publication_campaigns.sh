@@ -16,6 +16,7 @@ result_roots=(
   formal_v3_au_spine_weight_remaining
   formal_v3_au_insert_endpoints
   formal_v3_r19_spine
+  formal_v3_r19_grasu_fullpr
 )
 
 manifest_roots=(
@@ -28,6 +29,7 @@ manifest_roots=(
   formal_v3_au_spine_weight_remaining
   formal_v3_au_insert_endpoints
   formal_v3_r19_spine
+  formal_v3_r19_grasu_fullpr
 )
 
 command=(
