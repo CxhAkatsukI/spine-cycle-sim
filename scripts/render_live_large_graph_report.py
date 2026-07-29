@@ -20,6 +20,8 @@ DEFAULT_MATERIALIZATION_ROOT = Path(
 )
 DEFAULT_DATA_DIR = ROOT / "docs/paper/data/large_graph_campaign"
 DEFAULT_TEX = ROOT / "docs/paper/large_graph_campaign_results.tex"
+DEFAULT_PPA = ROOT / "docs/paper/data/ppa_summary.csv"
+DEFAULT_COMPONENT_POWER = ROOT / "docs/paper/data/component_power.csv"
 
 DATASET_ORDER = (
     "sx_askubuntu",
@@ -361,6 +363,8 @@ def render_tex(
     dense_count: int = 0,
     correctness: Sequence[Mapping[str, Any]] = (),
     datasets: Sequence[Mapping[str, Any]] = (),
+    ppa: Sequence[Mapping[str, Any]] = (),
+    component_power: Sequence[Mapping[str, Any]] = (),
 ) -> str:
     runtime_lines = []
     for row in runtime:
@@ -405,6 +409,39 @@ def render_tex(
         )
         + r" \\"
         for row in datasets
+    )
+    ppa_table = "\n".join(
+        "    "
+        + " & ".join(
+            (
+                _latex_escape(row["label"]),
+                str(row["lut"]),
+                str(row["reg"]),
+                str(row["bram"]),
+                str(row["uram"]),
+                str(row["dsp"]),
+                f"{float(row['wns_ns']):.3f}",
+                _latex_escape(row["timing"]),
+            )
+        )
+        + r" \\"
+        for row in ppa
+    )
+    component_power_table = "\n".join(
+        "    "
+        + " & ".join(
+            (
+                _latex_escape(row["label"]),
+                f"{float(row['dynamic_w']):.3f}",
+                f"{float(row['hbm_subsystem']):.3f}",
+                f"{float(row['update_maintenance']):.3f}",
+                f"{float(row['graph_compute']):.3f}",
+                f"{float(row['stream_fifos']):.3f}",
+                f"{float(row['other_user_logic']):.3f}",
+            )
+        )
+        + r" \\"
+        for row in component_power
     )
     template = r"""\documentclass[10pt]{article}
 \usepackage[margin=0.7in]{geometry}
@@ -592,6 +629,39 @@ when its complete execution wins.}
 \end{figure}
 \clearpage
 
+\section{Implementation feasibility and component power}
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{lrrrrrrl}
+\toprule
+Build & LUT & FF & BRAM & URAM & DSP & WNS ns & Setup \\
+\midrule
+@@PPA_TABLE@@
+\bottomrule
+\end{tabular}
+\caption{Absolute U55C routed resources and timing. Spine is a native SSSP
+build; GraSU+ReGraph rows are algorithm-specific conversion-free whole systems.
+They establish feasibility but are not an iso-functional area ratio.}
+\end{table}
+
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{lrrrrrr}
+\toprule
+Build & Dynamic W & HBM sub. & Update & Compute & FIFO & Other \\
+\midrule
+@@COMPONENT_POWER_TABLE@@
+\bottomrule
+\end{tabular}
+\caption{Vivado vectorless hierarchy attribution with Low confidence. These
+values identify implementation components; they are not workload energy or
+board power. Workload-specific HBM energy in Figures 3--4 comes independently
+from DRAMSim3 command and background activity.}
+\end{table}
+\clearpage
+
 \section{Correctness coverage}
 \begin{table}[ht]
 \centering
@@ -654,6 +724,8 @@ cycle-for-cycle FPGA calibration or ASIC total power.
         "@@CORRECTNESS_TABLE@@": correctness_table,
         "@@DATASET_TABLE@@": dataset_table,
         "@@RUNTIME_TABLE@@": runtime_table,
+        "@@PPA_TABLE@@": ppa_table,
+        "@@COMPONENT_POWER_TABLE@@": component_power_table,
     }
     for marker, value in replacements.items():
         template = template.replace(marker, value)
@@ -670,6 +742,10 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument("--data-dir", type=Path, default=DEFAULT_DATA_DIR)
     parser.add_argument("--tex", type=Path, default=DEFAULT_TEX)
+    parser.add_argument("--ppa", type=Path, default=DEFAULT_PPA)
+    parser.add_argument(
+        "--component-power", type=Path, default=DEFAULT_COMPONENT_POWER
+    )
     return parser.parse_args(argv)
 
 
@@ -687,12 +763,16 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     datasets = dataset_catalog_rows(args.materialization_root)
     runtime = runtime_summary(read_csv(args.analysis_dir / "system_rows.csv"))
+    ppa = read_csv(args.ppa)
+    component_power = read_csv(args.component_power)
     write_csv(args.data_dir / "headline_pairs.csv", pairs)
     write_csv(args.data_dir / "k4_update_sweep.csv", update_sweep)
     write_csv(args.data_dir / "dense_sweep.csv", dense_sweep)
     write_csv(args.data_dir / "correctness_summary.csv", correctness)
     write_csv(args.data_dir / "dataset_catalog.csv", datasets)
     write_csv(args.data_dir / "runtime_summary.csv", runtime)
+    write_csv(args.data_dir / "routed_ppa.csv", ppa)
+    write_csv(args.data_dir / "vectorless_component_power.csv", component_power)
     args.tex.parent.mkdir(parents=True, exist_ok=True)
     args.tex.write_text(
         render_tex(
@@ -703,6 +783,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             dense_count=len(dense_sweep),
             correctness=correctness,
             datasets=datasets,
+            ppa=ppa,
+            component_power=component_power,
         ),
         encoding="ascii",
     )

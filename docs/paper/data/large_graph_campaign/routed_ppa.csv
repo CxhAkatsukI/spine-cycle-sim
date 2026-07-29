@@ -1,0 +1,5 @@
+label,target_mhz,lut,reg,bram,uram,dsp,wns_ns,timing
+Spine opt-v2 SSSP,150.0,136437,159403,95,115,18,0.003,closed
+G+R SSSP,150.0,96559,107380,233,64,0,-0.013,target missed
+G+R Full PR,150.0,178374,177836,278,64,304,-0.13,target missed
+G+R Residual PR,150.0,247692,301029,293,64,336,-0.087,target missed

@@ -184,6 +184,45 @@ when its complete execution wins.}
 \end{figure}
 \clearpage
 
+\section{Implementation feasibility and component power}
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{lrrrrrrl}
+\toprule
+Build & LUT & FF & BRAM & URAM & DSP & WNS ns & Setup \\
+\midrule
+    Spine opt-v2 SSSP & 136437 & 159403 & 95 & 115 & 18 & 0.003 & closed \\
+    G+R SSSP & 96559 & 107380 & 233 & 64 & 0 & -0.013 & target missed \\
+    G+R Full PR & 178374 & 177836 & 278 & 64 & 304 & -0.130 & target missed \\
+    G+R Residual PR & 247692 & 301029 & 293 & 64 & 336 & -0.087 & target missed \\
+\bottomrule
+\end{tabular}
+\caption{Absolute U55C routed resources and timing. Spine is a native SSSP
+build; GraSU+ReGraph rows are algorithm-specific conversion-free whole systems.
+They establish feasibility but are not an iso-functional area ratio.}
+\end{table}
+
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{lrrrrrr}
+\toprule
+Build & Dynamic W & HBM sub. & Update & Compute & FIFO & Other \\
+\midrule
+    Spine opt-v2 SSSP & 27.677 & 17.674 & 1.891 & 0.205 & 0.003 & 0.113 \\
+    G+R SSSP & 21.921 & 10.807 & 2.322 & 0.777 & 0.035 & 0.177 \\
+    G+R Full PR & 25.104 & 12.685 & 1.202 & 3.133 & 0.079 & 0.189 \\
+    G+R Residual PR & 26.014 & 12.372 & 1.957 & 3.589 & 0.068 & 0.186 \\
+\bottomrule
+\end{tabular}
+\caption{Vivado vectorless hierarchy attribution with Low confidence. These
+values identify implementation components; they are not workload energy or
+board power. Workload-specific HBM energy in Figures 3--4 comes independently
+from DRAMSim3 command and background activity.}
+\end{table}
+\clearpage
+
 \section{Correctness coverage}
 \begin{table}[ht]
 \centering

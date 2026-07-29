@@ -99,6 +99,44 @@ class LiveLargeGraphReportTests(unittest.TestCase):
         self.assertIn("coordinates {(0,1) (4,1)}", tex)
         self.assertNotIn("coordinates {(0,1) (20,1)}", tex)
 
+    def test_report_labels_ppa_and_vectorless_power_claim_boundaries(self) -> None:
+        tex = render_tex(
+            summary={
+                "status": "PARTIAL",
+                "observed_executions": 3,
+                "expected_executions": 9,
+                "complete_triplets": 1,
+            },
+            runtime=[],
+            pair_count=1,
+            ppa=[
+                {
+                    "label": "Spine SSSP",
+                    "lut": "10",
+                    "reg": "20",
+                    "bram": "3",
+                    "uram": "4",
+                    "dsp": "5",
+                    "wns_ns": "0.003",
+                    "timing": "closed",
+                }
+            ],
+            component_power=[
+                {
+                    "label": "Spine SSSP",
+                    "dynamic_w": "2",
+                    "hbm_subsystem": "1",
+                    "update_maintenance": "0.2",
+                    "graph_compute": "0.3",
+                    "stream_fifos": "0.1",
+                    "other_user_logic": "0.4",
+                }
+            ],
+        )
+        self.assertIn("Spine SSSP & 10 & 20", tex)
+        self.assertIn("Vivado vectorless hierarchy attribution", tex)
+        self.assertIn("not an iso-functional area ratio", tex)
+
     def test_k4_update_sweep_is_sorted_and_correctness_gated_upstream(self) -> None:
         base = {
             "dataset_id": "sx_askubuntu",
