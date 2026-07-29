@@ -29,7 +29,7 @@ tests because the current Spine maintenance launch has
 | `formal_v3_au_insert_endpoints` | Insert u1/u64 across three systems | 6 | 30-35 |
 | `formal_v3_au_dense_k4` | AU dense insert u512/u4096, Spine and K4-shared | 4 | 53-56 |
 | `formal_v3_remaining5_spine_weighted` | Weighted SSSP on five remaining Spine-admitted real graphs | 5 (1 concurrent) | 57 |
-| `formal_v3_remaining7_k4_weighted` | Weighted SSSP K4-shared on seven remaining real graphs | 7 (1 concurrent) | 58 |
+| `formal_v3_remaining7_k4_weighted` | Weighted SSSP K4-shared on seven remaining real graphs; paused behind R19-CC | 7 stopped, rerun pending | 58 |
 | `formal_v3_r19_spine` | R19-32 endpoint, four Spine algorithms | 4 | 36-39 |
 | `formal_v3_r19_grasu_fullpr` | R19-32 Full PageRank, GraSU+ReGraph K1/K4-shared | 2 | 40-41 |
 | `formal_v3_r19_k4_priority` | R19-32 K4-shared weighted SSSP then CC | 2 (1 concurrent) | 47 |
@@ -48,6 +48,15 @@ reserve means it waits until at least 160 GiB is available; the 80 GiB
 emergency threshold still leaves a large host safety margin. Bitcoin and
 UK-2002 exceed Spine's frozen $2^{24}$-vertex admission bound, so their K4 rows
 are capacity evidence and cannot form a Spine speedup pair.
+
+The first Bitcoin attempt allocated 31.7 GiB during bootstrap before producing
+simulated-cycle progress. It was soft-stopped after 203 seconds so R19-32 CC
+could take the single high-memory K4 slot. A five-second launcher race briefly
+started Pokec; its process group was terminated before cycle progress and the
+entire wave was then closed with an auditable `stop-all` request. R19-32 CC was
+resumed with an 88 GiB reserve, 72 GiB emergency threshold, and one-job limit.
+The seven real-data K4 rows remain expected-but-missing until a fresh post-R19
+wave completes them.
 
 ## CPU-affinity correction
 
