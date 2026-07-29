@@ -623,6 +623,9 @@ void AxiMaster::evaluate(const CycleContext &context) {
 }
 
 void AxiMaster::commit_backend_responses(const CycleContext &context) {
+  if (staged_backend_responses_.empty()) {
+    return;
+  }
   for (std::size_t index = 0; index < staged_backend_responses_.size();
        ++index) {
     const BackendResponse &response =
