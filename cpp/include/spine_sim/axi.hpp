@@ -277,6 +277,13 @@ class AxiMaster final : public Component {
     std::optional<std::size_t> trace_index;
   };
 
+  struct StagedBackendResponse {
+    std::uint64_t request_id{};
+    BackendMapping mapping;
+    Burst* burst{};
+    Parent* parent{};
+  };
+
   struct ReadyResponse {
     std::uint64_t parent_id{};
     AxiResponse response;
@@ -359,7 +366,7 @@ class AxiMaster final : public Component {
   std::vector<std::size_t> staged_additional_issued_;
   std::vector<std::size_t> staged_additional_issued_touched_;
   std::vector<StagedBeat> staged_beats_;
-  std::size_t staged_backend_response_count_{};
+  std::vector<StagedBackendResponse> staged_backend_responses_;
   std::optional<std::pair<std::uint64_t, std::uint64_t>>
       staged_read_beat_output_;
   bool staged_output_{};

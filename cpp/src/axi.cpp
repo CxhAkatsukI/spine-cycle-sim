@@ -99,6 +99,7 @@ AxiMaster::AxiMaster(std::string name, ClockId clock_id, AxiConfig config,
   backend_.bind_response_notifier(config_.initiator_id, this,
                                   &AxiMaster::notify_backend_response);
   requests_.bind_nonempty_notifier(this, &AxiMaster::notify_request_nonempty);
+  staged_backend_responses_.reserve(config_.response_beats_per_cycle);
   refresh_pending_work();
 }
 
@@ -214,7 +215,7 @@ void AxiMaster::reset_staging() {
   staged_bridge_to_throttle_.reset();
   staged_address_bursts_.clear();
   staged_beats_.clear();
-  staged_backend_response_count_ = 0;
+  staged_backend_responses_.clear();
   staged_read_beat_output_.reset();
   staged_output_ = false;
 }
@@ -294,7 +295,7 @@ void AxiMaster::evaluate_backend_responses(const CycleContext &context) {
       }
       break;
     }
-    const Parent &parent = parents_.at(burst->parent_id);
+    Parent &parent = parents_.at(burst->parent_id);
     if (burst->operation == MemoryOperation::kRead &&
         parent.request.stream_read_beats) {
       if (read_beats_ == nullptr) {
@@ -308,13 +309,18 @@ void AxiMaster::evaluate_backend_responses(const CycleContext &context) {
       }
       ++staged_stream_beats;
     }
-    ++staged_backend_response_count_;
+    staged_backend_responses_.push_back(StagedBackendResponse{
+        .request_id = response.request_id,
+        .mapping = mapping->second,
+        .burst = burst,
+        .parent = &parent,
+    });
   }
-  if (staged_backend_response_count_ == 0) {
+  if (staged_backend_responses_.empty()) {
     return;
   }
   if (!backend_.stage_pop_responses(config_.initiator_id,
-                                    staged_backend_response_count_)) {
+                                    staged_backend_responses_.size())) {
     throw std::logic_error("memory backend rejected a valid response pop");
   }
 }
@@ -617,45 +623,45 @@ void AxiMaster::evaluate(const CycleContext &context) {
 }
 
 void AxiMaster::commit_backend_responses(const CycleContext &context) {
-  for (std::size_t index = 0; index < staged_backend_response_count_; ++index) {
-    const BackendResponse& response =
+  for (std::size_t index = 0; index < staged_backend_responses_.size();
+       ++index) {
+    const BackendResponse &response =
         backend_.staged_response_at(config_.initiator_id, index);
     if (response.initiator_id != config_.initiator_id) {
       throw std::logic_error("AXI received a response for another initiator");
     }
-    const auto mapping = backend_mappings_.find(response.request_id);
-    if (mapping == backend_mappings_.end()) {
-      throw std::logic_error("AXI received a response for an unknown backend request");
-    }
-    Burst* burst = find_active(mapping->second.burst_id);
-    if (burst == nullptr) {
+    const StagedBackendResponse &staged = staged_backend_responses_[index];
+    if (response.request_id != staged.request_id || staged.burst == nullptr ||
+        staged.parent == nullptr ||
+        staged.burst->burst_id != staged.mapping.burst_id) {
       throw std::logic_error("AXI response references a non-active burst");
     }
+    Burst *burst = staged.burst;
     ++burst->beats_completed;
     ++stats_.beats_completed;
-    Parent& parent = parents_.at(burst->parent_id);
+    Parent &parent = *staged.parent;
     parent.success = parent.success && response.success;
     if (burst->operation == MemoryOperation::kRead) {
-      if (response.read_data.size() != mapping->second.bytes ||
-          mapping->second.parent_offset + response.read_data.size() >
+      if (response.read_data.size() != staged.mapping.bytes ||
+          staged.mapping.parent_offset + response.read_data.size() >
               parent.read_data.size()) {
         throw std::logic_error("AXI read response payload shape mismatch");
       }
       std::copy(response.read_data.begin(), response.read_data.end(),
                 parent.read_data.begin() +
-                    static_cast<std::ptrdiff_t>(mapping->second.parent_offset));
+                    static_cast<std::ptrdiff_t>(staged.mapping.parent_offset));
       if (parent.request.stream_read_beats) {
         AxiReadBeatResponse beat{
             .transaction_id = parent.request.transaction_id,
-            .address = parent.request.address + mapping->second.parent_offset,
-            .parent_offset = mapping->second.parent_offset,
+            .address = parent.request.address + staged.mapping.parent_offset,
+            .parent_offset = staged.mapping.parent_offset,
             .success = response.success,
-            .last = mapping->second.parent_offset + mapping->second.bytes ==
+            .last = staged.mapping.parent_offset + staged.mapping.bytes ==
                     parent.request.bytes,
             .read_data = response.read_data,
         };
         if (!parent.ready_stream_beats
-                 .emplace(mapping->second.parent_offset,
+                 .emplace(staged.mapping.parent_offset,
                           TimedReadBeat{
                               .response = std::move(beat),
                               .ready_cycle = context.domain_cycle + 1 +
@@ -669,14 +675,17 @@ void AxiMaster::commit_backend_responses(const CycleContext &context) {
     } else if (!response.read_data.empty()) {
       throw std::logic_error("AXI write response unexpectedly carried data");
     }
-    if (mapping->second.trace_index.has_value()) {
-      AxiBeatTrace &trace = beat_trace_.at(*mapping->second.trace_index);
+    if (staged.mapping.trace_index.has_value()) {
+      AxiBeatTrace &trace = beat_trace_.at(*staged.mapping.trace_index);
       if (trace.completion_cycle != 0) {
         throw std::logic_error("AXI beat trace completed more than once");
       }
       trace.completion_cycle = context.domain_cycle;
     }
-    backend_mappings_.erase(mapping);
+    if (backend_mappings_.erase(staged.request_id) != 1) {
+      throw std::logic_error(
+          "AXI staged response lost its backend request mapping");
+    }
   }
   for (auto iterator = active_bursts_.begin();
        iterator != active_bursts_.end();) {
@@ -1047,7 +1056,7 @@ void AxiMaster::account_suspended_cycles(std::uint64_t cycle) {
 
 void AxiMaster::commit(const CycleContext &context) {
   const bool staged_state_change =
-      staged_output_ || staged_backend_response_count_ != 0 ||
+      staged_output_ || !staged_backend_responses_.empty() ||
       staged_input_.has_value() || !staged_address_bursts_.empty() ||
       !staged_beats_.empty() || !staged_new_write_beats_.empty() ||
       staged_child_write_beat_.has_value() ||
