@@ -72,7 +72,36 @@ class PublicationWorkloadTests(unittest.TestCase):
             self.assertEqual(
                 graph.records[0].weight, canonical_edge_weight(0, 1)
             )
-            self.assertEqual(len(manifest["updates"]), 14)
+            self.assertGreater(len(manifest["updates"]), 14)
+            residual_graph = load_slice(
+                Path(manifest["graphs"]["residual_sink_free"]["path"])
+            )
+            residual_sources = {edge.src for edge in residual_graph.records}
+            self.assertEqual(residual_sources, set(range(6)))
+            self.assertEqual(
+                manifest["graphs"]["residual_sink_free"]["self_loops_added"],
+                4,
+            )
+            pagerank_graph = load_slice(
+                Path(manifest["full_pagerank_slices"][1]["path"])
+            )
+            pagerank_edges = {
+                (edge.src, edge.dst, edge.weight) for edge in pagerank_graph.records
+            }
+            pagerank_delete = next(
+                row
+                for row in manifest["updates"]
+                if row["projection"] == "full_pagerank_e2"
+                and row["scenario"] == "delete"
+                and row["user_mutations"] == 1
+            )
+            deleted = load_slice(Path(pagerank_delete["path"]))
+            self.assertTrue(
+                all(
+                    (edge.src, edge.dst, edge.weight) in pagerank_edges
+                    for edge in deleted.records
+                )
+            )
             self.assertFalse((output / ".work").exists())
             progress = json.loads((output / "progress.json").read_text())
             self.assertEqual(progress["status"], "pass")

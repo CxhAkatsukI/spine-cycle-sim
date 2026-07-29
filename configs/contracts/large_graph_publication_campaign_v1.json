@@ -122,7 +122,7 @@
       "papers": ["Dynamic-ACTS"],
       "paper_vertices": 2997000,
       "paper_edges": 234000000,
-      "source": {"relative_path": "soc-Orkut/com-Orkut.tar.gz", "size_bytes": 927824532, "sha256": "8b52b87048044eff76b5385b2ea2681674117ffd770695b19518e248629cc725", "encoding": "tar_matrix_market", "semantic_projection": "reciprocal_to_paper_edge_count"}
+      "source": {"relative_path": "soc-Orkut/com-Orkut.tar.gz", "size_bytes": 927824532, "sha256": "8b52b87048044eff76b5385b2ea2681674117ffd770695b19518e248629cc725", "encoding": "tar_matrix_market", "archive_member": "com-Orkut/com-Orkut.mtx", "semantic_projection": "reciprocal_to_paper_edge_count"}
     },
     {
       "dataset_id": "soc_livejournal1",
@@ -185,13 +185,16 @@
       "damping": 0.85,
       "edge_cap": 4000000,
       "scaling_edges": [64000, 256000, 1000000, 4000000],
-      "slice_policy": "fixed_hash_partition_preserving_original_vertex_ids_v1"
+      "slice_policy": "exact_min_edge_hash_preserving_original_vertex_ids_v2"
     },
     "thresholded_residual_pagerank": {
       "damping": 0.85,
       "per_vertex_threshold": 1e-6,
       "maximum_iterations": 256,
-      "threshold_semantics": "abs_residual_per_vertex_gt_threshold"
+      "threshold_semantics": "abs_residual_per_vertex_gt_threshold",
+      "execution_contract": "deltahls_sink_free_linf_warm",
+      "graph_projection": "add_self_loop_to_each_zero_outdegree_vertex_v1",
+      "delete_selection": "at_most_one_edge_from_each_source_with_degree_at_least_two"
     },
     "updates": {
       "scenarios": ["insert", "delete", "weight_change"],

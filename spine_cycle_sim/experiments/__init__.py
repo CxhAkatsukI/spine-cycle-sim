@@ -96,6 +96,7 @@ from .large_graph_campaign import (
     REQUIRED_DATASET_IDS as LARGE_GRAPH_REQUIRED_DATASET_IDS,
     REQUIRED_SYSTEMS as LARGE_GRAPH_REQUIRED_SYSTEMS,
     SourceVerification,
+    build_materialization_campaign_manifest,
     load_large_graph_campaign_contract,
     planned_system_runs,
     validate_large_graph_campaign_contract,
@@ -111,6 +112,14 @@ from .publication_workloads import (
     publication_source_spec,
     read_slice_metadata_streaming,
     r19_source_spec,
+)
+from .publication_cases import (
+    PUBLICATION_ALGORITHMS,
+    PUBLICATION_SYSTEMS,
+    PublicationCase,
+    deduplicate_publication_cases,
+    load_materialization_manifest,
+    select_publication_case,
 )
 from .campaign_runtime import (
     CampaignJob,
@@ -200,6 +209,7 @@ __all__ = [
     "LARGE_GRAPH_REQUIRED_DATASET_IDS",
     "LARGE_GRAPH_REQUIRED_SYSTEMS",
     "SourceVerification",
+    "build_materialization_campaign_manifest",
     "load_large_graph_campaign_contract",
     "planned_system_runs",
     "validate_large_graph_campaign_contract",
@@ -207,6 +217,12 @@ __all__ = [
     "PUBLICATION_BATCH_SIZES",
     "PUBLICATION_PAGERANK_SCALES",
     "PublicationSourceSpec",
+    "PUBLICATION_ALGORITHMS",
+    "PUBLICATION_SYSTEMS",
+    "PublicationCase",
+    "deduplicate_publication_cases",
+    "load_materialization_manifest",
+    "select_publication_case",
     "SliceMetadata",
     "canonical_edge_weight",
     "materialize_publication_workload",

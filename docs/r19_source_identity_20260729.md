@@ -30,3 +30,9 @@ The expected terminal summary is `status=pass`, `vertices=524288`,
 `directed_edges=15483485`, and `reciprocal_edges=29732038`. The generated
 `materialization_manifest.json` records every graph, update batch, count, byte
 size, and SHA-256 digest; generated graph files remain outside Git.
+
+The current manifest additionally records a 15,672,181-edge residual graph:
+188,696 zero-outdegree vertices receive explicit self-loops, leaving zero sinks
+without renumbering the 524,288 external IDs. The directed weighted graph's
+frozen source cohorts are high-degree/default `356832`, median-degree `113`,
+and deterministic random-reachable `23607`.

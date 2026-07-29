@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
+from collections import Counter
 from dataclasses import dataclass
 import gzip
 import hashlib
@@ -470,8 +471,13 @@ def _decorate_slice(
     )
 
 
-def _artifact(metadata: SliceMetadata, *, role: str) -> dict[str, Any]:
-    return {
+def _artifact(
+    metadata: SliceMetadata,
+    *,
+    role: str,
+    source_cohorts: Mapping[str, int] | None = None,
+) -> dict[str, Any]:
+    artifact = {
         "role": role,
         "path": str(metadata.path),
         "case_id": metadata.case_id,
@@ -482,6 +488,66 @@ def _artifact(metadata: SliceMetadata, *, role: str) -> dict[str, Any]:
         "size_bytes": metadata.size_bytes,
         "sha256": metadata.sha256,
     }
+    if source_cohorts is not None:
+        artifact["source_cohorts"] = dict(source_cohorts)
+    return artifact
+
+
+def _source_cohorts(key_path: Path, *, seed: int) -> dict[str, int]:
+    degree_histogram: Counter[int] = Counter()
+    representative: dict[int, int] = {}
+    high_source = -1
+    high_degree = -1
+    random_source = -1
+    random_rank = (1 << 64) - 1
+    sources = 0
+
+    def record(source: int, degree: int) -> None:
+        nonlocal high_source, high_degree, random_source, random_rank, sources
+        sources += 1
+        degree_histogram[degree] += 1
+        representative.setdefault(degree, source)
+        if degree > high_degree or (degree == high_degree and source < high_source):
+            high_source = source
+            high_degree = degree
+        rank = _splitmix64(seed + source)
+        if rank < random_rank or (rank == random_rank and source < random_source):
+            random_source = source
+            random_rank = rank
+
+    degrees = key_path.with_name(f".{key_path.name}.source_degrees")
+    program = (
+        'NR==1{source=$1;degree=1;next}'
+        '$1==source{degree++;next}'
+        '{print source,degree;source=$1;degree=1}'
+        'END{if(NR>0)print source,degree}'
+    )
+    try:
+        with degrees.open("wb") as output:
+            subprocess.run(["awk", program, str(key_path)], check=True, stdout=output)
+        with degrees.open("r", encoding="ascii") as stream:
+            for line in stream:
+                source_text, degree_text = line.split()
+                record(int(source_text), int(degree_text))
+    finally:
+        degrees.unlink(missing_ok=True)
+    if sources == 0:
+        raise ValueError("cannot choose a reachable source from an empty graph")
+
+    median_rank = (sources - 1) // 2
+    cumulative = 0
+    median_source = -1
+    for degree in sorted(degree_histogram):
+        cumulative += degree_histogram[degree]
+        if cumulative > median_rank:
+            median_source = representative[degree]
+            break
+    return {
+        "default": high_source,
+        "high_degree": high_source,
+        "median_degree": median_source,
+        "random_reachable": random_source,
+    }
 
 
 def _make_reciprocal_raw(input_keys: Path, output_raw: Path) -> None:
@@ -490,6 +556,41 @@ def _make_reciprocal_raw(input_keys: Path, output_raw: Path) -> None:
     )
     with output_raw.open("wb") as output:
         subprocess.run(["awk", program, str(input_keys)], check=True, stdout=output)
+
+
+def _make_sink_free_keys(input_keys: Path, output_path: Path, vertices: int) -> None:
+    temporary = output_path.with_name(f".{output_path.name}.partial")
+    program = (
+        'BEGIN{next_source=0}'
+        '{s=$1+0;while(next_source<s){printf "%010d %010d\\n",'
+        'next_source,next_source;next_source++}print $0;'
+        'if(next_source==s){next_source++}}'
+        'END{while(next_source<vertices){printf "%010d %010d\\n",'
+        'next_source,next_source;next_source++}}'
+    )
+    with temporary.open("wb") as output:
+        subprocess.run(
+            ["awk", "-v", f"vertices={vertices}", program, str(input_keys)],
+            check=True,
+            stdout=output,
+        )
+    temporary.replace(output_path)
+
+
+def _filter_deletable_sink_free_edges(
+    sink_free_keys: Path, output_path: Path
+) -> None:
+    """Keep edges whose source retains at least one edge after one deletion."""
+
+    temporary = output_path.with_name(f".{output_path.name}.partial")
+    program = (
+        'NR==1{source=$1;first=$0;count=1;next}'
+        '$1!=source{source=$1;first=$0;count=1;next}'
+        '{if(count==1){print first}count++}'
+    )
+    with temporary.open("wb") as output:
+        subprocess.run(["awk", program, str(sink_free_keys)], check=True, stdout=output)
+    temporary.replace(output_path)
 
 
 def _head_keys(input_path: Path, output_path: Path, count: int) -> int:
@@ -730,40 +831,43 @@ def _update_records(
     return records
 
 
-def _derive_updates(
+def _derive_projection_updates(
     *,
     output_dir: Path,
     vertices: int,
-    base_keys: Path,
-    reciprocal_keys: Path,
+    projection: str,
+    graph_keys: Path,
+    delete_keys: Path,
     post_base_keys: Path | None,
-    edge_count: int,
     batch_sizes: tuple[int, ...],
     seed: int,
+    reciprocal: bool,
 ) -> list[dict[str, Any]]:
     maximum = max(batch_sizes)
     work = output_dir / ".work"
-    delete_selected = work / "delete_selected.keys"
+    prefix = projection.replace("/", "_")
+    delete_population = _line_count(delete_keys)
+    delete_selected = work / f"{prefix}.delete_selected.keys"
     _select_hash_partition(
-        base_keys,
+        delete_keys,
         delete_selected,
-        population=edge_count,
-        target=min(edge_count, maximum * 16),
+        population=delete_population,
+        target=min(delete_population, maximum * 16),
         seed=seed + 101,
     )
     delete_edges = _load_user_edges(delete_selected, maximum)
 
-    candidate_keys = work / "insert_candidates.keys"
+    candidate_keys = work / f"{prefix}.insert_candidates.keys"
     if post_base_keys is not None and post_base_keys.is_file():
-        _set_difference(post_base_keys, reciprocal_keys, candidate_keys)
+        _set_difference(post_base_keys, graph_keys, candidate_keys)
     else:
-        generated = work / "generated_insert_candidates.keys"
+        generated = work / f"{prefix}.generated_insert_candidates.keys"
         _generate_static_insert_candidates(
             generated, vertices=vertices, seed=seed + 211, requested=maximum
         )
-        _set_difference(generated, reciprocal_keys, candidate_keys)
+        _set_difference(generated, graph_keys, candidate_keys)
     candidate_count = _line_count(candidate_keys)
-    insert_selected = work / "insert_selected.keys"
+    insert_selected = work / f"{prefix}.insert_selected.keys"
     _select_hash_partition(
         candidate_keys,
         insert_selected,
@@ -772,77 +876,113 @@ def _derive_updates(
         seed=seed + 307,
     )
     insert_edges = _load_user_edges(insert_selected, maximum)
-    available = min(len(delete_edges), len(insert_edges))
-    if available < min(batch_sizes):
+    if max(len(delete_edges), len(insert_edges)) < min(batch_sizes):
         raise ValueError(
-            f"only {available} valid update mutations are available; need {min(batch_sizes)}"
+            f"no valid update mutations are available for {projection}"
         )
 
     artifacts: list[dict[str, Any]] = []
-    for projection, reciprocal in (("directed", False), ("reciprocal", True)):
-        for batch_size in batch_sizes:
-            if batch_size > available:
+    for batch_size in batch_sizes:
+        for scenario, edges in (
+            ("insert", insert_edges[:batch_size]),
+            ("delete", delete_edges[:batch_size]),
+            ("weight_change", delete_edges[:batch_size]),
+        ):
+            if len(edges) < batch_size:
                 continue
-            for scenario, edges in (
-                ("insert", insert_edges[:batch_size]),
-                ("delete", delete_edges[:batch_size]),
-                ("weight_change", delete_edges[:batch_size]),
+            records = _update_records(
+                edges, scenario=scenario, reciprocal=reciprocal
+            )
+            case_id = f"{output_dir.name}_{projection}_{scenario}_u{batch_size}"
+            metadata = _write_update_slice(
+                output_dir
+                / "updates"
+                / projection
+                / f"{scenario}_u{batch_size}.slice",
+                case_id=case_id,
+                vertices=vertices,
+                records=records,
+            )
+            artifacts.append(
+                {
+                    **_artifact(metadata, role="dynamic_update"),
+                    "projection": projection,
+                    "scenario": scenario,
+                    "user_mutations": batch_size,
+                    "physical_records": len(records),
+                }
+            )
+        if batch_size >= 2:
+            delete_count = batch_size // 2
+            insert_count = batch_size - delete_count
+            if (
+                len(delete_edges) < delete_count
+                or len(insert_edges) < insert_count
             ):
-                records = _update_records(
-                    edges, scenario=scenario, reciprocal=reciprocal
-                )
-                case_id = (
-                    f"{output_dir.name}_{projection}_{scenario}_u{batch_size}"
-                )
-                metadata = _write_update_slice(
-                    output_dir
-                    / "updates"
-                    / projection
-                    / f"{scenario}_u{batch_size}.slice",
-                    case_id=case_id,
-                    vertices=vertices,
-                    records=records,
-                )
-                artifacts.append(
-                    {
-                        **_artifact(metadata, role="dynamic_update"),
-                        "projection": projection,
-                        "scenario": scenario,
-                        "user_mutations": batch_size,
-                        "physical_records": len(records),
-                    }
-                )
-            if batch_size >= 2:
-                delete_count = batch_size // 2
-                insert_count = batch_size - delete_count
-                records = _update_records(
-                    delete_edges[:delete_count],
-                    scenario="delete",
-                    reciprocal=reciprocal,
-                ) + _update_records(
-                    insert_edges[:insert_count],
-                    scenario="insert",
-                    reciprocal=reciprocal,
-                )
-                metadata = _write_update_slice(
-                    output_dir
-                    / "updates"
-                    / projection
-                    / f"mixed_u{batch_size}.slice",
-                    case_id=f"{output_dir.name}_{projection}_mixed_u{batch_size}",
-                    vertices=vertices,
-                    records=records,
-                )
-                artifacts.append(
-                    {
-                        **_artifact(metadata, role="dynamic_update"),
-                        "projection": projection,
-                        "scenario": "mixed",
-                        "user_mutations": batch_size,
-                        "physical_records": len(records),
-                    }
-                )
+                continue
+            records = _update_records(
+                delete_edges[:delete_count],
+                scenario="delete",
+                reciprocal=reciprocal,
+            ) + _update_records(
+                insert_edges[:insert_count],
+                scenario="insert",
+                reciprocal=reciprocal,
+            )
+            metadata = _write_update_slice(
+                output_dir
+                / "updates"
+                / projection
+                / f"mixed_u{batch_size}.slice",
+                case_id=f"{output_dir.name}_{projection}_mixed_u{batch_size}",
+                vertices=vertices,
+                records=records,
+            )
+            artifacts.append(
+                {
+                    **_artifact(metadata, role="dynamic_update"),
+                    "projection": projection,
+                    "scenario": "mixed",
+                    "user_mutations": batch_size,
+                    "physical_records": len(records),
+                }
+            )
     return artifacts
+
+
+def _derive_updates(
+    *,
+    output_dir: Path,
+    vertices: int,
+    base_keys: Path,
+    reciprocal_keys: Path,
+    post_base_keys: Path | None,
+    batch_sizes: tuple[int, ...],
+    seed: int,
+) -> list[dict[str, Any]]:
+    directed = _derive_projection_updates(
+        output_dir=output_dir,
+        vertices=vertices,
+        projection="directed",
+        graph_keys=base_keys,
+        delete_keys=base_keys,
+        post_base_keys=post_base_keys,
+        batch_sizes=batch_sizes,
+        seed=seed,
+        reciprocal=False,
+    )
+    reciprocal = _derive_projection_updates(
+        output_dir=output_dir,
+        vertices=vertices,
+        projection="reciprocal",
+        graph_keys=reciprocal_keys,
+        delete_keys=base_keys,
+        post_base_keys=post_base_keys,
+        batch_sizes=batch_sizes,
+        seed=seed,
+        reciprocal=True,
+    )
+    return directed + reciprocal
 
 
 def materialize_publication_workload(
@@ -871,6 +1011,8 @@ def materialize_publication_workload(
     post_keys = work / "post_base.keys"
     reciprocal_raw = work / "reciprocal.raw.keys"
     reciprocal_keys = work / "reciprocal.keys"
+    residual_keys = work / "residual_sink_free.keys"
+    residual_deletable_keys = work / "residual_sink_free_deletable.keys"
 
     source_size = spec.source_path.stat().st_size
     source_sha256 = sha256_file(spec.source_path)
@@ -925,6 +1067,7 @@ def materialize_publication_workload(
         effective_post_keys = None
 
     vertices = int(normalization["vertices"])
+    directed_source_cohorts = _source_cohorts(base_keys, seed=seed + 503)
     directed_metadata = _decorate_slice(
         base_keys,
         output_dir / "graphs" / "directed_weighted.slice",
@@ -959,11 +1102,29 @@ def materialize_publication_workload(
     _progress(
         progress_path,
         dataset_id=spec.dataset_id,
+        phase="derive_residual_sink_free_graph",
+    )
+    _make_sink_free_keys(base_keys, residual_keys, vertices)
+    _filter_deletable_sink_free_edges(residual_keys, residual_deletable_keys)
+    residual_metadata = _decorate_slice(
+        residual_keys,
+        output_dir / "graphs" / "residual_sink_free_weighted.slice",
+        case_id=f"{spec.dataset_id}_residual_sink_free_full",
+        vertices=vertices,
+        seed=seed,
+    )
+    if residual_metadata.unique_sources != vertices:
+        raise ValueError("residual sink completion failed to cover every vertex")
+
+    _progress(
+        progress_path,
+        dataset_id=spec.dataset_id,
         phase="derive_pagerank_slices",
         completed=0,
         total=len(pagerank_scales),
     )
     pagerank_artifacts: list[dict[str, Any]] = []
+    pagerank_update_artifacts: list[dict[str, Any]] = []
     for index, requested in enumerate(pagerank_scales, start=1):
         actual = min(requested, base_edges)
         selected = work / f"pagerank_{requested}.keys"
@@ -992,6 +1153,19 @@ def materialize_publication_workload(
                 "selection_policy": "exact_min_edge_hash_preserving_original_vertex_ids_v2",
             }
         )
+        pagerank_update_artifacts.extend(
+            _derive_projection_updates(
+                output_dir=output_dir,
+                vertices=vertices,
+                projection=f"full_pagerank_e{requested}",
+                graph_keys=selected,
+                delete_keys=selected,
+                post_base_keys=effective_post_keys,
+                batch_sizes=batch_sizes,
+                seed=seed,
+                reciprocal=False,
+            )
+        )
         _progress(
             progress_path,
             dataset_id=spec.dataset_id,
@@ -1011,9 +1185,19 @@ def materialize_publication_workload(
         base_keys=base_keys,
         reciprocal_keys=reciprocal_keys,
         post_base_keys=effective_post_keys,
-        edge_count=base_edges,
         batch_sizes=batch_sizes,
         seed=seed,
+    )
+    residual_update_artifacts = _derive_projection_updates(
+        output_dir=output_dir,
+        vertices=vertices,
+        projection="residual_sink_free",
+        graph_keys=residual_keys,
+        delete_keys=residual_deletable_keys,
+        post_base_keys=effective_post_keys,
+        batch_sizes=batch_sizes,
+        seed=seed,
+        reciprocal=False,
     )
     manifest = {
         "schema_version": 1,
@@ -1045,14 +1229,31 @@ def materialize_publication_workload(
             "spine_full_graph_admitted": vertices <= SPINE_MAX_VERTICES,
         },
         "graphs": {
-            "directed": _artifact(directed_metadata, role="directed_weighted_full"),
+            "directed": _artifact(
+                directed_metadata,
+                role="directed_weighted_full",
+                source_cohorts=directed_source_cohorts,
+            ),
             "reciprocal": _artifact(
                 reciprocal_metadata, role="reciprocal_weighted_full"
             ),
+            "residual_sink_free": {
+                **_artifact(
+                    residual_metadata,
+                    role="directed_weighted_sink_completed_for_residual_pagerank",
+                ),
+                "projection": "add_self_loop_to_each_zero_outdegree_vertex_v1",
+                "self_loops_added": residual_metadata.records - base_edges,
+                "sink_vertices_after_projection": 0,
+            },
             "same_artifact": source_is_reciprocal,
         },
         "full_pagerank_slices": pagerank_artifacts,
-        "updates": update_artifacts,
+        "updates": (
+            update_artifacts
+            + residual_update_artifacts
+            + pagerank_update_artifacts
+        ),
         "materializer": {
             "sort_parallel": sort_parallel,
             "sort_memory": sort_memory,

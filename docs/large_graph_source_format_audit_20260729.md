@@ -1,12 +1,14 @@
 # Large-graph source format audit
 
 Before materialization, the six Dynamic-ACTS archives were inspected directly.
-The frozen source hashes were unchanged, but the initial contract had one
-invalid archive member and two projection labels that did not reproduce the
+The frozen source hashes were unchanged, but the initial contract had two
+invalid or missing archive members and projection labels that did not reproduce the
 paper's edge-count convention.
 
 - `soc-LiveJournal1.tar.gz` contains
   `soc-LiveJournal1/soc-LiveJournal1.mtx`, not a `.txt` member.
+- `com-Orkut.tar.gz` uses `com-Orkut/com-Orkut.mtx`; this member is now
+  explicit rather than relying on an archive-name guess.
 - Pokec stores 30,622,564 entries while the paper reports about 61M edges.
 - LiveJournal1 stores 68,993,773 entries while the paper reports about 137M.
 - ljournal-2008 stores 79,023,142 entries while the paper reports about 158M.

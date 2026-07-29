@@ -2,10 +2,13 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import tempfile
 import unittest
 
 from scripts.run_sst_spine_vertical import (
+    load_slice_shape,
     maintenance_timing_profile_matches,
+    sha256_file,
     validate_carry_hot_result,
     validate_dynamic_sssp_result,
     validate_fallback_result,
@@ -24,6 +27,22 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class SstSpineVerticalValidationTests(unittest.TestCase):
+    def test_large_file_helpers_stream_slice_shape_and_sha(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "graph.slice"
+            path.write_text(
+                "# spine_real_slice_version=1\n"
+                "# vertices=9\n"
+                "0 1 2 1\n"
+                "7 8 3 -1\n",
+                encoding="ascii",
+            )
+            self.assertEqual(load_slice_shape(path), (9, 2))
+            self.assertEqual(
+                sha256_file(path),
+                "b41873890369e7f277fe83edbbe1a0e321044dec6be9abf5eb03a583a5247111",
+            )
+
     def test_generic_full_pagerank_accepts_dual_oracle_result(self) -> None:
         result = {
             "success": True,

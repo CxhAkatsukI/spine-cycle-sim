@@ -50,8 +50,43 @@ directed/reciprocal projection, and emits deterministic positive weights. It
 also emits insert, delete, weight-change, and mixed batches at 1/8/64/512/4096
 user mutations. Full PageRank's 64K/256K/1M/4M slices are exact nested samples
 under a deterministic edge-hash rank; they are not prefixes of source-sorted
-edges. Every generated artifact is represented by count, byte size, and SHA-256
-in `materialization_manifest.json`.
+edges, and their delete/weight-change batches are selected from that exact
+slice. Residual PageRank uses the frozen
+`deltahls_sink_free_linf_warm` contract: each original zero-outdegree vertex
+receives an explicit self-loop, and a delete batch takes at most one edge from
+each source whose original degree is at least two. Every generated artifact is
+represented by count, byte size, and SHA-256 in
+`materialization_manifest.json`.
+
+Generate and monitor all 11 real-dataset materialization jobs:
+
+```bash
+python3 scripts/generate_publication_materialization_campaign.py \
+  --output-root /data/tmp/chuxiao/large_graph_campaign_v1 \
+  --manifest \
+    /data/tmp/chuxiao/large_graph_campaign_v1/materialization_campaign.json
+python3 scripts/run_large_graph_campaign.py \
+  --manifest \
+    /data/tmp/chuxiao/large_graph_campaign_v1/materialization_campaign.json \
+  --run-dir \
+    /data/tmp/chuxiao/large_graph_campaign_v1/materialization_run \
+  --jobs 6 --large-jobs 4 --memory-reserve-gib 32
+```
+
+Run one correctness-gated formal non-CC execution:
+
+```bash
+python3 scripts/run_publication_case.py \
+  --materialization-manifest \
+    /data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_askubuntu/materialization_manifest.json \
+  --system spine --algorithm weighted_sssp \
+  --scenario insert --batch-size 8 \
+  --out-dir /data/tmp/chuxiao/large_graph_campaign_v1/smoke/ask_spine_sssp
+```
+
+The formal runner rechecks graph, update, profile, and simulator-plugin hashes;
+requires the child and parent correctness/memory gates; and stores a compact
+full-result-vector digest next to the raw evidence.
 
 The un-deduplicated contract contains 777 system runs. The campaign generator
 must remove overlap between tiers before launch and reuse one execution's E2E,

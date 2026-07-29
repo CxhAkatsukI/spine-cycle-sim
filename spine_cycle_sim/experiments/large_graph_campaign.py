@@ -122,8 +122,21 @@ def validate_large_graph_campaign_contract(
     if full_pr.get("edge_cap") != 4_000_000:
         raise ValueError("Full PageRank edge cap must remain 4M")
     residual = semantics.get("thresholded_residual_pagerank", {})
-    if residual.get("per_vertex_threshold") != 1.0e-6:
+    if (
+        residual.get("per_vertex_threshold") != 1.0e-6
+        or residual.get("threshold_semantics")
+        != "abs_residual_per_vertex_gt_threshold"
+        or residual.get("execution_contract")
+        != "deltahls_sink_free_linf_warm"
+        or residual.get("graph_projection")
+        != "add_self_loop_to_each_zero_outdegree_vertex_v1"
+    ):
         raise ValueError("Residual PageRank threshold must remain per-vertex 1e-6")
+    if (
+        semantics.get("full_pagerank", {}).get("slice_policy")
+        != "exact_min_edge_hash_preserving_original_vertex_ids_v2"
+    ):
+        raise ValueError("Full PageRank slice policy changed")
     if semantics.get("preserve_external_vertex_ids") is not True:
         raise ValueError("large-graph campaign must preserve external vertex IDs")
 
@@ -242,4 +255,70 @@ def planned_system_runs(contract: Mapping[str, Any]) -> dict[str, int]:
         * len(matrix["mixed_supplement"]["algorithms"])
         * len(matrix["mixed_supplement"]["batch_sizes"])
         * system_count,
+    }
+
+
+def build_materialization_campaign_manifest(
+    contract: Mapping[str, Any],
+    *,
+    output_root: Path,
+    python: str,
+    repository_root: Path = ROOT,
+    include_r19: bool = False,
+    sort_parallel: int = 8,
+    sort_memory: str = "4G",
+) -> dict[str, Any]:
+    validate_large_graph_campaign_contract(contract)
+    if sort_parallel <= 0:
+        raise ValueError("materialization sort parallelism must be positive")
+    root = repository_root.resolve()
+    output = output_root.resolve()
+    datasets = list(contract["datasets"])
+    if include_r19:
+        endpoint = contract["synthetic_endpoint"]
+        datasets.append(
+            {
+                "dataset_id": endpoint["dataset_id"],
+                "source": {"size_bytes": endpoint["source"]["size_bytes"]},
+            }
+        )
+    jobs = []
+    for priority, dataset in enumerate(datasets):
+        dataset_id = str(dataset["dataset_id"])
+        source_size = int(dataset["source"]["size_bytes"])
+        large = source_size >= 128 * 1024 * 1024
+        jobs.append(
+            {
+                "job_id": f"materialize.{dataset_id}",
+                "command": [
+                    python,
+                    str(root / "scripts/materialize_publication_workload.py"),
+                    "--dataset",
+                    dataset_id,
+                    "--out-dir",
+                    str(output / "workloads" / dataset_id),
+                    "--sort-parallel",
+                    str(sort_parallel),
+                    "--sort-memory",
+                    sort_memory,
+                ],
+                "cwd": str(root),
+                "dataset_id": dataset_id,
+                "algorithm": "materialization",
+                "system": "shared_workload",
+                "tier": "preprocess",
+                "resource_class": "large" if large else "small",
+                "estimated_rss_gib": 6.0 if large else 3.0,
+                "priority": priority,
+                "dependencies": [],
+                "environment": {},
+            }
+        )
+    return {
+        "schema_version": 1,
+        "campaign_id": f"{contract['contract_id']}_materialization",
+        "default_cwd": str(root),
+        "contract_id": contract["contract_id"],
+        "output_root": str(output),
+        "jobs": jobs,
     }

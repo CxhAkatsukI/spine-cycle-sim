@@ -60,6 +60,7 @@
   ],
   "notes": [
     "The previous LiveJournal member name pointed to a file absent from the archive.",
+    "The Orkut source member is explicitly frozen as com-Orkut/com-Orkut.mtx.",
     "Pokec, LiveJournal, and ljournal-2008 paper edge counts are approximately twice their stored Matrix Market entries, so the reciprocal projection is explicit.",
     "The correction was made before formal publication runs and does not depend on measured architecture performance."
   ]

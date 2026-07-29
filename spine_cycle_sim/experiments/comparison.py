@@ -629,6 +629,12 @@ def build_invocation(
                     str(run["epsilon"]),
                     "--residual-max-iterations",
                     str(run["max_iterations"]),
+                    "--residual-contract",
+                    str(
+                        run.get(
+                            "residual_contract", "generic_dangling_l1_cold"
+                        )
+                    ),
                 )
             )
     elif algorithm in {"weighted_sssp", "weighted_dynamic_sssp"}:
@@ -692,6 +698,12 @@ def build_invocation(
                     str(update),
                     "--capability-catalog",
                     str(grasu_capability_catalog.resolve()),
+                    "--residual-contract",
+                    str(
+                        run.get(
+                            "residual_contract", "generic_dangling_l1_cold"
+                        )
+                    ),
                 )
             )
             if (
@@ -790,12 +802,19 @@ def build_invocation(
     )
 
 
-def expected_oracles(algorithm: str) -> tuple[str, str]:
+def expected_oracles(
+    algorithm: str, residual_contract: str = "generic_dangling_l1_cold"
+) -> tuple[str, str]:
     if algorithm in {"weighted_sssp", "weighted_dynamic_sssp"}:
         return "synchronous_frontier_uint32", "uint64_dijkstra"
     if algorithm == "full_pagerank":
         return "iterative_float32", "iterative_float64"
     if algorithm == "thresholded_residual_pagerank":
+        if residual_contract == "deltahls_sink_free_linf_warm":
+            return (
+                "deltahls_sink_free_warm_residual_float32",
+                "sink_free_full_pagerank_float64_500_iterations",
+            )
         return (
             "thresholded_residual_float32",
             "full_pagerank_float64_200_iterations",
@@ -846,7 +865,8 @@ def validate_system_result(
     expected_clock_mhz: float = 150.0,
 ) -> list[str]:
     architecture_oracle, mathematical_oracle = expected_oracles(
-        str(run["algorithm"])
+        str(run["algorithm"]),
+        str(run.get("residual_contract", "generic_dangling_l1_cold")),
     )
     expected_vertices = int(run["graph"]["vertices"])  # type: ignore[index]
     expected_edges = int(run["graph"]["records"])  # type: ignore[index]
@@ -961,16 +981,18 @@ def validate_system_result(
         )
     if str(run["algorithm"]) == "weighted_dynamic_sssp":
         expected_updates = int(run["update"]["records"])  # type: ignore[index]
+        hls_multipart_weighted = bool(
+            invocation.profile_id
+            and "_multipart_weighted_v4" in invocation.profile_id
+        )
         checks["updates"] = (
             result.get("update_edges") == expected_updates
             if invocation.system == "spine"
             else result.get(
                 "logical_updates"
                 if invocation.profile_id
-                in {
-                    "grasu_regraph_candidate10_normalized_hls_weighted_v3",
-                    "grasu_regraph_candidate10_k1_multipart_weighted_v4",
-                }
+                == "grasu_regraph_candidate10_normalized_hls_weighted_v3"
+                or hls_multipart_weighted
                 else "updates"
             )
             == expected_updates

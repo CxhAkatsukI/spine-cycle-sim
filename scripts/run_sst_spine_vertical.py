@@ -60,23 +60,30 @@ PROFILE_PATH = ROOT / "configs" / "architectures" / "spine_shared_engine_9c08763
 def load_slice_shape(path: Path) -> tuple[int, int]:
     vertices: int | None = None
     records = 0
-    for line_number, raw_line in enumerate(
-        path.read_text(encoding="ascii").splitlines(), start=1
-    ):
-        line = raw_line.strip()
-        if not line:
-            continue
-        if line.startswith("#"):
-            metadata = line[1:].strip()
-            if metadata.startswith("vertices="):
-                vertices = int(metadata.split("=", 1)[1])
-            continue
-        if len(line.split()) != 4:
-            raise ValueError(f"{path}:{line_number}: expected four edge fields")
-        records += 1
+    with path.open("r", encoding="ascii") as stream:
+        for line_number, raw_line in enumerate(stream, start=1):
+            line = raw_line.strip()
+            if not line:
+                continue
+            if line.startswith("#"):
+                metadata = line[1:].strip()
+                if metadata.startswith("vertices="):
+                    vertices = int(metadata.split("=", 1)[1])
+                continue
+            if len(line.split()) != 4:
+                raise ValueError(f"{path}:{line_number}: expected four edge fields")
+            records += 1
     if vertices is None or vertices <= 0:
         raise ValueError(f"{path}: missing positive vertices metadata")
     return vertices, records
+
+
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for block in iter(lambda: stream.read(8 * 1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
 
 
 def validate_generic_result(
@@ -2135,9 +2142,9 @@ def main() -> int:
         "sst_memory_binding": binding.as_manifest(),
         "sst_library_binding": sst_library,
         "sst_plugin_sha256": sst_library["plugin_sha256"],
-        "workload_sha256": hashlib.sha256(args.workload.read_bytes()).hexdigest(),
+        "workload_sha256": sha256_file(args.workload),
         "update_workload_sha256": (
-            hashlib.sha256(args.update_workload.read_bytes()).hexdigest()
+            sha256_file(args.update_workload)
             if args.update_workload is not None
             else None
         ),

@@ -8,11 +8,13 @@ from spine_cycle_sim.experiments import (
     LARGE_GRAPH_REQUIRED_ALGORITHMS,
     LARGE_GRAPH_REQUIRED_DATASET_IDS,
     LARGE_GRAPH_REQUIRED_SYSTEMS,
+    build_materialization_campaign_manifest,
     load_large_graph_campaign_contract,
     planned_system_runs,
     validate_large_graph_campaign_contract,
     verify_large_graph_sources,
 )
+from spine_cycle_sim.experiments.campaign_runtime import validate_campaign_manifest
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -56,6 +58,18 @@ class LargeGraphCampaignTests(unittest.TestCase):
             semantics["thresholded_residual_pagerank"]["threshold_semantics"],
             "abs_residual_per_vertex_gt_threshold",
         )
+        self.assertEqual(
+            semantics["thresholded_residual_pagerank"]["execution_contract"],
+            "deltahls_sink_free_linf_warm",
+        )
+        self.assertEqual(
+            semantics["thresholded_residual_pagerank"]["graph_projection"],
+            "add_self_loop_to_each_zero_outdegree_vertex_v1",
+        )
+        self.assertEqual(
+            semantics["full_pagerank"]["slice_policy"],
+            "exact_min_edge_hash_preserving_original_vertex_ids_v2",
+        )
         endpoint = self.contract["synthetic_endpoint"]
         self.assertEqual(endpoint["materialized_source_records"], 15_483_988)
         self.assertEqual(endpoint["self_loops_removed"], 503)
@@ -73,6 +87,22 @@ class LargeGraphCampaignTests(unittest.TestCase):
         self.assertEqual(counts["dense"], 108)
         self.assertEqual(counts["mixed_supplement"], 60)
 
+    def test_materialization_manifest_covers_all_sources(self) -> None:
+        manifest = build_materialization_campaign_manifest(
+            self.contract,
+            output_root=Path("/tmp/publication-materialization-test"),
+            python="python3",
+        )
+        validate_campaign_manifest(manifest)
+        self.assertEqual(len(manifest["jobs"]), 11)
+        self.assertEqual(
+            [job["dataset_id"] for job in manifest["jobs"]],
+            list(LARGE_GRAPH_REQUIRED_DATASET_IDS),
+        )
+        self.assertTrue(
+            all("--out-dir" in job["command"] for job in manifest["jobs"])
+        )
+
     def test_every_source_is_present_with_expected_size(self) -> None:
         rows = verify_large_graph_sources(self.contract, DATASET_ROOT)
         self.assertEqual(len(rows), 11)
@@ -87,6 +117,10 @@ class LargeGraphCampaignTests(unittest.TestCase):
         self.assertEqual(
             livejournal["archive_member"],
             "soc-LiveJournal1/soc-LiveJournal1.mtx",
+        )
+        self.assertEqual(
+            datasets["soc_orkut"]["source"]["archive_member"],
+            "com-Orkut/com-Orkut.mtx",
         )
         for dataset_id in ("soc_pokec", "soc_orkut", "soc_livejournal1", "ljournal_2008"):
             self.assertEqual(
