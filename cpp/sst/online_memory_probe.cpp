@@ -1486,6 +1486,151 @@ class SpineWordSource final : public Component {
   bool accepted_{};
 };
 
+struct PhysicalHbmAddress {
+  std::size_t channel{};
+  std::uint64_t address{};
+};
+
+class PhysicalHbmAddressMapper {
+ public:
+  PhysicalHbmAddressMapper(std::size_t logical_channels,
+                           std::uint64_t channel_capacity_bytes,
+                           const std::string &mode,
+                           const std::string &mapping_table,
+                           std::size_t first_channel,
+                           std::size_t channel_count,
+                           std::uint64_t interleave_bytes)
+      : logical_channels_(logical_channels),
+        channel_capacity_bytes_(channel_capacity_bytes),
+        entries_by_channel_(logical_channels) {
+    if (mode.empty() || mode == "identity") {
+      if (!mapping_table.empty()) {
+        throw std::invalid_argument(
+            "identity HBM mapping unexpectedly has a mapping table");
+      }
+      return;
+    }
+    if (mode != "interleaved_arena_v1" || logical_channels == 0 ||
+        channel_capacity_bytes == 0 || channel_count == 0 ||
+        first_channel > logical_channels ||
+        channel_count > logical_channels - first_channel ||
+        interleave_bytes == 0 ||
+        (interleave_bytes & (interleave_bytes - 1)) != 0 ||
+        mapping_table.empty()) {
+      throw std::invalid_argument("invalid interleaved HBM address mapping");
+    }
+    enabled_ = true;
+    first_channel_ = first_channel;
+    channel_count_ = channel_count;
+    interleave_bytes_ = interleave_bytes;
+    std::stringstream table(mapping_table);
+    std::string encoded_entry;
+    while (std::getline(table, encoded_entry, ';')) {
+      std::stringstream fields(encoded_entry);
+      std::array<std::uint64_t, 4> values{};
+      std::string field;
+      for (std::size_t index = 0; index < values.size(); ++index) {
+        if (!std::getline(fields, field, ':') || field.empty()) {
+          throw std::invalid_argument("malformed HBM mapping-table entry");
+        }
+        std::size_t consumed{};
+        values[index] = std::stoull(field, &consumed, 10);
+        if (consumed != field.size()) {
+          throw std::invalid_argument("non-numeric HBM mapping-table field");
+        }
+      }
+      if (std::getline(fields, field, ':') ||
+          values[0] >= logical_channels || values[1] >= values[2] ||
+          values[3] > std::numeric_limits<std::uint64_t>::max() -
+                          (values[2] - values[1])) {
+        throw std::invalid_argument("invalid HBM mapping-table range");
+      }
+      entries_by_channel_[values[0]].push_back(Entry{
+          .logical_begin = values[1],
+          .logical_end = values[2],
+          .global_begin = values[3],
+      });
+    }
+    for (auto &entries : entries_by_channel_) {
+      std::sort(entries.begin(), entries.end(),
+                [](const Entry &left, const Entry &right) {
+                  return left.logical_begin < right.logical_begin;
+                });
+      for (std::size_t index = 1; index < entries.size(); ++index) {
+        if (entries[index - 1].logical_end > entries[index].logical_begin) {
+          throw std::invalid_argument(
+              "overlapping logical ranges in HBM mapping table");
+        }
+      }
+    }
+  }
+
+  [[nodiscard]] bool enabled() const noexcept { return enabled_; }
+
+  [[nodiscard]] PhysicalHbmAddress map(
+      std::size_t logical_channel, std::uint64_t logical_address,
+      std::uint32_t bytes) const {
+    if (logical_channel >= logical_channels_ || bytes == 0 ||
+        logical_address >
+            std::numeric_limits<std::uint64_t>::max() - bytes) {
+      throw std::invalid_argument("invalid logical HBM request");
+    }
+    if (!enabled_) {
+      return PhysicalHbmAddress{
+          .channel = logical_channel,
+          .address = logical_address % channel_capacity_bytes_,
+      };
+    }
+    const std::uint64_t logical_end = logical_address + bytes;
+    const auto &entries = entries_by_channel_[logical_channel];
+    const auto found = std::find_if(
+        entries.begin(), entries.end(), [&](const Entry &entry) {
+          return logical_address >= entry.logical_begin &&
+                 logical_end <= entry.logical_end;
+        });
+    if (found == entries.end()) {
+      throw std::invalid_argument(
+          "logical HBM request is outside the interleaved address map: "
+          "channel=" +
+          std::to_string(logical_channel) + " address=" +
+          std::to_string(logical_address) + " bytes=" +
+          std::to_string(bytes));
+    }
+    const std::uint64_t global_address =
+        found->global_begin + (logical_address - found->logical_begin);
+    const std::uint64_t byte_in_line = global_address % interleave_bytes_;
+    if (bytes > interleave_bytes_ - byte_in_line) {
+      throw std::invalid_argument(
+          "HBM request crosses an interleaved physical line");
+    }
+    const std::uint64_t global_line = global_address / interleave_bytes_;
+    const std::size_t channel =
+        first_channel_ + static_cast<std::size_t>(global_line % channel_count_);
+    const std::uint64_t address =
+        (global_line / channel_count_) * interleave_bytes_ + byte_in_line;
+    if (address > channel_capacity_bytes_ - bytes) {
+      throw std::invalid_argument(
+          "mapped HBM request exceeds physical pseudo-channel capacity");
+    }
+    return PhysicalHbmAddress{.channel = channel, .address = address};
+  }
+
+ private:
+  struct Entry {
+    std::uint64_t logical_begin{};
+    std::uint64_t logical_end{};
+    std::uint64_t global_begin{};
+  };
+
+  std::size_t logical_channels_{};
+  std::uint64_t channel_capacity_bytes_{};
+  bool enabled_{};
+  std::size_t first_channel_{};
+  std::size_t channel_count_{};
+  std::uint64_t interleave_bytes_{};
+  std::vector<std::vector<Entry>> entries_by_channel_;
+};
+
 class SstMemoryBackend final : public MemoryBackend {
   struct InitiatorState;
 
@@ -1496,6 +1641,11 @@ class SstMemoryBackend final : public MemoryBackend {
                    std::size_t accepts_per_channel_per_cycle,
                    std::size_t max_outstanding_per_channel,
                    std::size_t response_queue_depth,
+                   std::string address_mapping_mode = {},
+                   std::string address_mapping_table = {},
+                   std::size_t interleave_first_channel = 0,
+                   std::size_t interleave_channels = 0,
+                   std::uint64_t interleave_bytes = 64,
                    std::unique_ptr<DirectDramSim3Engine> direct_engine = nullptr)
       : MemoryBackend("sst-hbm-backend", clock_id),
         interfaces_(std::move(interfaces)),
@@ -1504,6 +1654,10 @@ class SstMemoryBackend final : public MemoryBackend {
         accepts_per_channel_per_cycle_(accepts_per_channel_per_cycle),
         max_outstanding_per_channel_(max_outstanding_per_channel),
         response_queue_depth_(response_queue_depth),
+        address_mapper_(interfaces_.size(), channel_capacity_bytes,
+                        address_mapping_mode, address_mapping_table,
+                        interleave_first_channel, interleave_channels,
+                        interleave_bytes),
         channel_outstanding_(interfaces_.size(), 0),
         staged_channel_submissions_(interfaces_.size(), 0),
         arbiter_(interfaces_.size(), accepts_per_channel_per_cycle) {
@@ -1525,24 +1679,29 @@ class SstMemoryBackend final : public MemoryBackend {
         request.channel >= interfaces_.size() || request.bytes == 0) {
       throw std::invalid_argument("invalid SST backend request");
     }
-    if (!channel_active(request.channel)) {
+    const PhysicalHbmAddress physical =
+        address_mapper_.map(request.channel, request.address, request.bytes);
+    BackendRequestHeader mapped_request = request;
+    mapped_request.channel = physical.channel;
+    mapped_request.address = physical.address;
+    if (!channel_active(mapped_request.channel)) {
       throw std::invalid_argument(
           "SST backend request targets an unbound memory channel");
     }
-    if (!arbiter_.try_acquire(request)) {
+    if (!arbiter_.try_acquire(mapped_request)) {
       ++submit_stalls_;
       return false;
     }
     InitiatorState &initiator = ensure_initiator_state(request.initiator_id);
     const std::size_t staged_for_channel =
-        staged_channel_submissions_[request.channel];
+        staged_channel_submissions_[mapped_request.channel];
     if (staged_for_channel >= accepts_per_channel_per_cycle_ ||
-        channel_outstanding_[request.channel] + staged_for_channel >=
+        channel_outstanding_[mapped_request.channel] + staged_for_channel >=
             max_outstanding_per_channel_) {
       ++submit_stalls_;
       return false;
     }
-    ++staged_channel_submissions_[request.channel];
+    ++staged_channel_submissions_[mapped_request.channel];
     if (initiator.staged_submissions == 0) {
       active_staged_initiators_.push_back(request.initiator_id);
     }
@@ -1563,6 +1722,9 @@ class SstMemoryBackend final : public MemoryBackend {
   [[nodiscard]] bool reservation_intent_pending(
       std::uint32_t initiator_id,
       std::size_t channel) const noexcept override {
+    if (address_mapper_.enabled()) {
+      return false;
+    }
     return arbiter_.intent_pending(initiator_id, channel);
   }
 
@@ -1675,40 +1837,43 @@ class SstMemoryBackend final : public MemoryBackend {
     active_response_pops_.clear();
 
     for (const BackendRequest &request : staged_submissions_) {
-      const std::uint64_t local_address =
-          request.address % channel_capacity_bytes_;
+      const PhysicalHbmAddress physical =
+          address_mapper_.map(request.channel, request.address, request.bytes);
       Inflight inflight{
           .backend_request_id = request.request_id,
           .initiator_id = request.initiator_id,
-          .channel = request.channel,
+          .channel = physical.channel,
           .operation = request.operation,
           .bytes = request.bytes,
           .request = request,
       };
-      ++channel_outstanding_[request.channel];
+      ++channel_outstanding_[physical.channel];
       ++ensure_initiator_state(request.initiator_id).outstanding;
-      record_accepted_request(request);
+      BackendRequest physical_request = request;
+      physical_request.channel = physical.channel;
+      physical_request.address = physical.address;
+      record_accepted_request(physical_request);
       ++accepted_;
       if (direct_engine_ != nullptr) {
         const std::uint64_t token =
             allocate_direct_inflight(std::move(inflight));
         direct_engine_->submit(
-            token, request.channel, local_address,
+            token, physical.channel, physical.address,
             request.operation == MemoryOperation::kWrite,
             direct_submit_time_ps_);
       } else {
         SST::Interfaces::StandardMem::Request *standard_request = nullptr;
         if (request.operation == MemoryOperation::kWrite) {
           standard_request = new SST::Interfaces::StandardMem::Write(
-              local_address, request.bytes, request.write_data);
+              physical.address, request.bytes, request.write_data);
         } else {
           standard_request = new SST::Interfaces::StandardMem::Read(
-              local_address, request.bytes);
+              physical.address, request.bytes);
         }
         standard_request->setNoncacheable();
         const auto standard_id = standard_request->getID();
         inflight_.emplace(standard_id, inflight);
-        interfaces_[request.channel]->send(standard_request);
+        interfaces_[physical.channel]->send(standard_request);
       }
     }
     staged_submissions_.clear();
@@ -1917,6 +2082,7 @@ class SstMemoryBackend final : public MemoryBackend {
   std::size_t accepts_per_channel_per_cycle_{};
   std::size_t max_outstanding_per_channel_{};
   std::size_t response_queue_depth_{};
+  PhysicalHbmAddressMapper address_mapper_;
   std::vector<std::size_t> channel_outstanding_;
   std::vector<std::size_t> staged_channel_submissions_;
   RegisteredChannelArbiter arbiter_;
@@ -1974,6 +2140,16 @@ class OnlineMemoryProbe final : public SST::Component {
         params.find<std::string>("active_memory_channels", "");
     channel_capacity_bytes_ =
         params.find<std::uint64_t>("channel_capacity_bytes", 1ULL << 30);
+    hbm_address_mapping_mode_ =
+        params.find<std::string>("hbm_address_mapping", "identity");
+    hbm_address_mapping_table_ =
+        params.find<std::string>("hbm_address_mapping_table", "");
+    hbm_interleave_first_channel_ =
+        params.find<std::size_t>("hbm_interleave_first_channel", 0);
+    hbm_interleave_channels_ =
+        params.find<std::size_t>("hbm_interleave_channels", 0);
+    hbm_interleave_bytes_ =
+        params.find<std::uint64_t>("hbm_interleave_bytes", 64);
     write_percent_ = params.find<std::uint32_t>("write_percent", 0);
     max_cycles_ = params.find<std::uint64_t>("max_cycles", 1'000'000);
     max_rounds_ = params.find<std::size_t>("max_rounds", 256);
@@ -2443,6 +2619,9 @@ class OnlineMemoryProbe final : public SST::Component {
     }
     backend_ = std::make_unique<SstMemoryBackend>(
         core, interfaces_, channel_capacity_bytes_, 1, 32, 128,
+        hbm_address_mapping_mode_, hbm_address_mapping_table_,
+        hbm_interleave_first_channel_, hbm_interleave_channels_,
+        hbm_interleave_bytes_,
         std::move(direct_engine));
     const bool partitioned_dynamic_pagerank =
         mode_ == "grasu_regraph_partitioned_dynamic_pagerank";
@@ -3769,6 +3948,16 @@ class OnlineMemoryProbe final : public SST::Component {
        "Comma-separated physical HBM channels instantiated in SST; empty is all",
        ""},
       {"channel_capacity_bytes", "Capacity of each HBM channel", "1073741824"},
+      {"hbm_address_mapping",
+       "Physical HBM address mapping: identity or interleaved_arena_v1",
+       "identity"},
+      {"hbm_address_mapping_table",
+       "Semicolon-separated logical-channel/range/global-base mappings", ""},
+      {"hbm_interleave_first_channel",
+       "First physical channel in the interleaved HBM arena", "0"},
+      {"hbm_interleave_channels",
+       "Physical channel count in the interleaved HBM arena", "0"},
+      {"hbm_interleave_bytes", "HBM arena interleave granularity", "64"},
       {"write_percent", "Deterministic write percentage", "0"},
       {"max_cycles", "Core-cycle timeout", "1000000"},
       {"max_rounds", "Maximum SSSP frontier rounds", "256"},
@@ -9461,6 +9650,11 @@ class OnlineMemoryProbe final : public SST::Component {
   std::string active_memory_channels_text_;
   std::vector<std::size_t> active_memory_channels_;
   std::uint64_t channel_capacity_bytes_{};
+  std::string hbm_address_mapping_mode_;
+  std::string hbm_address_mapping_table_;
+  std::size_t hbm_interleave_first_channel_{};
+  std::size_t hbm_interleave_channels_{};
+  std::uint64_t hbm_interleave_bytes_{};
   std::uint32_t write_percent_{};
   std::uint64_t max_cycles_{};
   std::size_t max_rounds_{};

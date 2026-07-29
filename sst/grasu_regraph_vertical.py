@@ -76,6 +76,21 @@ probe.addParams(
             str(channel) for channel in active_channels
         ),
         "channel_capacity_bytes": channel_bytes,
+        "hbm_address_mapping": os.environ.get(
+            "GRASU_SST_HBM_ADDRESS_MAPPING", "identity"
+        ),
+        "hbm_address_mapping_table": os.environ.get(
+            "GRASU_SST_HBM_ADDRESS_MAPPING_TABLE", ""
+        ),
+        "hbm_interleave_first_channel": int(
+            os.environ.get("GRASU_SST_HBM_INTERLEAVE_FIRST_CHANNEL", "0")
+        ),
+        "hbm_interleave_channels": int(
+            os.environ.get("GRASU_SST_HBM_INTERLEAVE_CHANNELS", "0")
+        ),
+        "hbm_interleave_bytes": int(
+            os.environ.get("GRASU_SST_HBM_INTERLEAVE_BYTES", "64")
+        ),
         "max_cycles": int(os.environ.get("GRASU_SST_MAX_CYCLES", "2000000")),
         "max_rounds": int(os.environ.get("GRASU_SST_MAX_ROUNDS", "256")),
         "grasu_native_supersteps": int(

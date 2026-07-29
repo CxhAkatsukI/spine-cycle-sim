@@ -133,6 +133,85 @@ class GraSuAddressingTests(unittest.TestCase):
                 packed, 512 << 20, 5, 5 * 65_536, 8, footprints
             )
 
+    def test_interleaved_map_supports_metadata_larger_than_one_channel(self) -> None:
+        interleaved = parameters()
+        interleaved.update(
+            {
+                "grasu_partition_address_layout": "runtime_packed_interleaved_v2",
+                "grasu_partition_address_arena_base_bytes": 16 << 20,
+                "grasu_partition_address_alignment_bytes": 4096,
+                "grasu_interleaved_hbm_first_channel": 0,
+                "grasu_interleaved_hbm_channels": 23,
+                "grasu_interleaved_hbm_bytes": 64,
+                "grasu_physical_hbm_channels": 32,
+                "hbm_pseudo_channels_budget": 23,
+                "regraph_degree_channel": 31,
+            }
+        )
+        vertices = 4_000_000
+        footprints = [
+            {
+                "partition": partition,
+                "row_bytes": vertices * 8,
+                "binary_bytes": 2 << 20,
+                "pma_bytes_per_channel": 4 << 20,
+                "segments": 1,
+            }
+            for partition in range(62)
+        ]
+        windows = validate_grasu_hbm_address_map(
+            interleaved, 512 << 20, 62, vertices, 8, footprints
+        )
+        self.assertGreater(windows["row"]["end_bytes"], 512 << 20)
+        arena = windows["_interleaved_arena"]
+        self.assertLessEqual(arena["arena_bytes"], 23 * (512 << 20))
+        self.assertEqual(arena["channel_count"], 23)
+        row_mappings = [
+            mapping
+            for mapping in arena["mappings"]
+            if mapping["region"] == "row"
+        ]
+        self.assertEqual(len(row_mappings), 4)
+        self.assertEqual(
+            len({mapping["global_begin_bytes"] for mapping in row_mappings}), 1
+        )
+        environment = grasu_hbm_address_environment(interleaved, windows)
+        self.assertEqual(
+            environment["GRASU_SST_HBM_ADDRESS_MAPPING"],
+            "interleaved_arena_v1",
+        )
+        self.assertIn(";", environment["GRASU_SST_HBM_ADDRESS_MAPPING_TABLE"])
+
+    def test_interleaved_map_fails_closed_on_aggregate_capacity(self) -> None:
+        interleaved = parameters()
+        interleaved.update(
+            {
+                "grasu_partition_address_layout": "runtime_packed_interleaved_v2",
+                "grasu_partition_address_arena_base_bytes": 16 << 20,
+                "grasu_partition_address_alignment_bytes": 4096,
+                "grasu_interleaved_hbm_first_channel": 0,
+                "grasu_interleaved_hbm_channels": 2,
+                "grasu_interleaved_hbm_bytes": 64,
+                "grasu_physical_hbm_channels": 32,
+                "hbm_pseudo_channels_budget": 2,
+                "regraph_degree_channel": 31,
+            }
+        )
+        footprints = [
+            {
+                "partition": partition,
+                "row_bytes": 300 << 20,
+                "binary_bytes": 1 << 20,
+                "pma_bytes_per_channel": 1 << 20,
+                "segments": 1,
+            }
+            for partition in range(4)
+        ]
+        with self.assertRaisesRegex(ValueError, "exceeds the frozen HBM budget"):
+            validate_grasu_hbm_address_map(
+                interleaved, 512 << 20, 4, 4 * 65_536, 8, footprints
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

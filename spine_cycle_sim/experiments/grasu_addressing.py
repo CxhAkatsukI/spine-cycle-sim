@@ -7,6 +7,7 @@ from typing import Any
 
 
 MIB = 1 << 20
+INTERLEAVED_LAYOUT = "runtime_packed_interleaved_v2"
 
 FROZEN_CANDIDATE10_ADDRESS_PARAMETERS = {
     "grasu_update_base_bytes": 0,
@@ -44,9 +45,15 @@ def _align_up(value: int, alignment: int) -> int:
 
 
 def uses_packed_partition_addresses(parameters: Mapping[str, Any]) -> bool:
+    return str(
+        parameters.get("grasu_partition_address_layout", "fixed_stride_v1")
+    ) in {"runtime_packed_v1", INTERLEAVED_LAYOUT}
+
+
+def uses_interleaved_hbm_arena(parameters: Mapping[str, Any]) -> bool:
     return (
         str(parameters.get("grasu_partition_address_layout", "fixed_stride_v1"))
-        == "runtime_packed_v1"
+        == INTERLEAVED_LAYOUT
     )
 
 
@@ -82,7 +89,10 @@ def required_source_state_stride_bytes(
     return ((required + 4095) // 4096) * 4096
 
 
-def grasu_hbm_address_environment(parameters: Mapping[str, Any]) -> dict[str, str]:
+def grasu_hbm_address_environment(
+    parameters: Mapping[str, Any],
+    address_regions: Mapping[str, Mapping[str, object]] | None = None,
+) -> dict[str, str]:
     """Return the fail-closed SST environment for every physical buffer base."""
 
     missing = [key for key in _ADDRESS_ENVIRONMENT.values() if key not in parameters]
@@ -104,7 +114,146 @@ def grasu_hbm_address_environment(parameters: Mapping[str, Any]) -> dict[str, st
                 ),
             }
         )
+    if uses_interleaved_hbm_arena(parameters):
+        if address_regions is None or "_interleaved_arena" not in address_regions:
+            raise ValueError(
+                "interleaved GraSU addresses require validated address regions"
+            )
+        arena = address_regions["_interleaved_arena"]
+        raw_mappings = arena.get("mappings")
+        if not isinstance(raw_mappings, list) or not raw_mappings:
+            raise ValueError("interleaved GraSU address map has no mappings")
+        mappings: list[str] = []
+        for raw in raw_mappings:
+            if not isinstance(raw, Mapping):
+                raise ValueError("invalid interleaved GraSU address mapping")
+            mappings.append(
+                ":".join(
+                    str(int(raw[field]))
+                    for field in (
+                        "logical_channel",
+                        "logical_begin_bytes",
+                        "logical_end_bytes",
+                        "global_begin_bytes",
+                    )
+                )
+            )
+        environment.update(
+            {
+                "GRASU_SST_HBM_ADDRESS_MAPPING": "interleaved_arena_v1",
+                "GRASU_SST_HBM_ADDRESS_MAPPING_TABLE": ";".join(mappings),
+                "GRASU_SST_HBM_INTERLEAVE_FIRST_CHANNEL": str(
+                    int(arena["first_channel"])
+                ),
+                "GRASU_SST_HBM_INTERLEAVE_CHANNELS": str(
+                    int(arena["channel_count"])
+                ),
+                "GRASU_SST_HBM_INTERLEAVE_BYTES": str(
+                    int(arena["interleave_bytes"])
+                ),
+            }
+        )
     return environment
+
+
+def _attach_interleaved_arena(
+    parameters: Mapping[str, Any],
+    windows: dict[str, dict[str, object]],
+    channel_bytes: int,
+) -> None:
+    first_channel = int(parameters["grasu_interleaved_hbm_first_channel"])
+    channel_count = int(parameters["grasu_interleaved_hbm_channels"])
+    interleave_bytes = int(parameters.get("grasu_interleaved_hbm_bytes", 64))
+    alignment = int(parameters["grasu_partition_address_alignment_bytes"])
+    physical_channels = int(parameters.get("grasu_physical_hbm_channels", 32))
+    budget = int(parameters.get("hbm_pseudo_channels_budget", channel_count))
+    if (
+        first_channel < 0
+        or channel_count <= 0
+        or channel_count > budget
+        or first_channel + channel_count > physical_channels
+        or interleave_bytes <= 0
+        or interleave_bytes & (interleave_bytes - 1)
+    ):
+        raise ValueError("invalid GraSU interleaved HBM geometry")
+
+    cursor = 0
+    mappings: list[dict[str, object]] = []
+
+    def allocate(name: str, channels: Sequence[int], *, shared: bool) -> None:
+        nonlocal cursor
+        window = windows[name]
+        logical_begin = int(window["base_bytes"])
+        size = int(window["size_bytes"])
+        if size == 0:
+            return
+        if shared:
+            cursor = _align_up(cursor, alignment)
+            global_begin = cursor
+            cursor += _align_up(size, alignment)
+            allocations = [(channel, global_begin) for channel in channels]
+        else:
+            allocations = []
+            for channel in channels:
+                cursor = _align_up(cursor, alignment)
+                allocations.append((channel, cursor))
+                cursor += _align_up(size, alignment)
+        for channel, global_begin in allocations:
+            mappings.append(
+                {
+                    "region": name,
+                    "logical_channel": channel,
+                    "logical_begin_bytes": logical_begin,
+                    "logical_end_bytes": logical_begin + size,
+                    "global_begin_bytes": global_begin,
+                    "shared_read_only_alias": shared,
+                }
+            )
+
+    # Row bounds and binary-search heads are initialized identically on the
+    # four logical GraSU ports and are read-only. The interleaved extension
+    # exposes one coherent physical copy through a contended read crossbar.
+    allocate("update", tuple(int(value) for value in windows["update"]["channels"]), shared=False)
+    allocate("binary", tuple(int(value) for value in windows["binary"]["channels"]), shared=True)
+    allocate("row", tuple(int(value) for value in windows["row"]["channels"]), shared=True)
+    allocate("pma", tuple(int(value) for value in windows["pma"]["channels"]), shared=False)
+    allocate(
+        "source_state",
+        tuple(int(value) for value in windows["source_state"]["channels"]),
+        shared=False,
+    )
+    allocate(
+        "vertex_state",
+        tuple(int(value) for value in windows["vertex_state"]["channels"]),
+        shared=False,
+    )
+    allocate("degree", tuple(int(value) for value in windows["degree"]["channels"]), shared=False)
+
+    arena_bytes = _align_up(cursor, interleave_bytes)
+    capacity_bytes = channel_count * channel_bytes
+    if arena_bytes > capacity_bytes:
+        raise ValueError(
+            "GraSU interleaved physical arena exceeds the frozen HBM budget: "
+            f"{arena_bytes} > {capacity_bytes} bytes "
+            f"({channel_count} x {channel_bytes})"
+        )
+    maximum_local_end = (
+        ((arena_bytes + interleave_bytes - 1) // interleave_bytes
+         + channel_count - 1)
+        // channel_count
+    ) * interleave_bytes
+    if maximum_local_end > channel_bytes:
+        raise ValueError("GraSU interleaved address map exceeds a physical channel")
+    windows["_interleaved_arena"] = {
+        "address_mapping": "interleaved_arena_v1",
+        "first_channel": first_channel,
+        "channel_count": channel_count,
+        "interleave_bytes": interleave_bytes,
+        "arena_bytes": arena_bytes,
+        "capacity_bytes": capacity_bytes,
+        "maximum_local_end_bytes": maximum_local_end,
+        "mappings": mappings,
+    }
 
 
 def partition_layout_footprints(
@@ -195,6 +344,7 @@ def validate_grasu_hbm_address_map(
     if min(channel_bytes, destination_partitions, vertices) <= 0 or physical_updates < 0:
         raise ValueError("invalid GraSU physical HBM address-map dimensions")
     packed = uses_packed_partition_addresses(parameters)
+    interleaved = uses_interleaved_hbm_arena(parameters)
     footprint_rows = list(footprints or ())
     if packed:
         if len(footprint_rows) != destination_partitions:
@@ -225,6 +375,9 @@ def validate_grasu_hbm_address_map(
     source_stride = int(parameters["grasu_source_state_buffer_stride_bytes"])
     required_source_state_bytes = required_source_state_stride_bytes(
         parameters, destination_partitions
+    )
+    padded_vertices = (
+        destination_partitions * int(parameters["regraph_partition_vertices"])
     )
     if packed:
         source_stride = max(source_stride, required_source_state_bytes)
@@ -317,12 +470,14 @@ def validate_grasu_hbm_address_map(
         },
         "vertex_state": {
             "base_bytes": int(parameters["grasu_vertex_state_base_bytes"]),
-            "size_bytes": vertices * 4,
+            "size_bytes": _align_up(
+                padded_vertices * source_state_bytes_per_vertex(parameters), 64
+            ),
             "channels": [apply_channel],
         },
         "degree": {
             "base_bytes": int(parameters["grasu_degree_base_bytes"]),
-            "size_bytes": vertices * 4,
+            "size_bytes": _align_up(padded_vertices * 4, 64),
             "channels": [degree_channel],
         },
     }
@@ -338,7 +493,7 @@ def validate_grasu_hbm_address_map(
         base = int(window["base_bytes"])
         size = int(window["size_bytes"])
         end = base + size
-        if base < 0 or size < 0 or end > channel_bytes:
+        if base < 0 or size < 0 or (not interleaved and end > channel_bytes):
             raise ValueError(
                 f"{name} physical window [{base}, {end}) exceeds one "
                 f"{channel_bytes}-byte HBM pseudo-channel"
@@ -361,4 +516,6 @@ def validate_grasu_hbm_address_map(
                     f"physical HBM windows overlap on a shared channel: "
                     f"{left_name}, {right_name}"
                 )
+    if interleaved:
+        _attach_interleaved_arena(parameters, windows, channel_bytes)
     return windows

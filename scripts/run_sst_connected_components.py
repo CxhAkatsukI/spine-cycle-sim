@@ -496,7 +496,7 @@ def main() -> int:
                 ),
             }
         )
-        env.update(grasu_hbm_address_environment(parameters))
+        env.update(grasu_hbm_address_environment(parameters, address_regions))
         sst_config = ROOT / "sst/grasu_regraph_vertical.py"
 
     if args.wrapper is None:

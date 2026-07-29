@@ -98,6 +98,17 @@ def grasu_normalized_memory_binding(
 
     memory, parameters = _profile_sections(profile)
     physical_channels = int(memory["channels"])
+    if (
+        parameters.get("grasu_partition_address_layout")
+        == "runtime_packed_interleaved_v2"
+    ):
+        first = int(parameters["grasu_interleaved_hbm_first_channel"])
+        count = int(parameters["grasu_interleaved_hbm_channels"])
+        return make_sst_memory_binding(
+            physical_channels,
+            range(first, first + count),
+            instantiate_all=instantiate_all,
+        )
     pma_channels = int(parameters["grasu_pma_hbm_channels"])
     if pma_channels <= 0:
         raise ValueError("GraSU PMA channel count must be positive")

@@ -48,6 +48,20 @@ class SstMemoryBindingTests(unittest.TestCase):
         self.assertEqual(binding.instantiated_channels, tuple(range(32)))
         self.assertFalse(binding.sparse)
 
+    def test_grasu_interleaved_binding_instantiates_frozen_23_channels(self) -> None:
+        profile = json.loads(
+            (
+                ROOT
+                / "configs"
+                / "architectures"
+                / "grasu_regraph_candidate10_k1_multipart_pagerank_fullgraph_v7.json"
+            ).read_text(encoding="utf-8")
+        )
+        binding = grasu_normalized_memory_binding(profile)
+        self.assertEqual(binding.physical_channels, 32)
+        self.assertEqual(binding.reachable_channels, tuple(range(23)))
+        self.assertEqual(binding.instantiated_channels, tuple(range(23)))
+
     def test_spine_single_partition_reachable_channels(self) -> None:
         profile = json.loads(
             (
