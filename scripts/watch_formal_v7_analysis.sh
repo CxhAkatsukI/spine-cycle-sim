@@ -54,12 +54,12 @@ while true; do
   fi
   printf '%s evidence_changed old=%s new=%s\n' \
     "$(date --iso-8601=seconds)" "${last}" "${current}" >> "${log_path}"
-  if bash scripts/analyze_formal_v7_primary.sh >> "${log_path}" 2>&1; then
+  if bash scripts/refresh_formal_v7_report.sh >> "${log_path}" 2>&1; then
     last="${current}"
-    printf '%s analysis_refresh_pass fingerprint=%s\n' \
+    printf '%s report_refresh_pass fingerprint=%s\n' \
       "$(date --iso-8601=seconds)" "${last}" >> "${log_path}"
   else
-    printf '%s analysis_refresh_fail fingerprint=%s\n' \
+    printf '%s report_refresh_fail fingerprint=%s\n' \
       "$(date --iso-8601=seconds)" "${current}" >> "${log_path}"
   fi
 done
