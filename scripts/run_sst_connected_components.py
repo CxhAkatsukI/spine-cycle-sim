@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import gc
 import json
 import os
 from pathlib import Path
@@ -533,6 +534,12 @@ def main() -> int:
             "plugin_path": str(plugin),
             "plugin_sha256": sha256_file(plugin),
         }
+
+    # The SST child reloads both slices from their file paths.  Keep only the
+    # compact oracle result and update analysis while it runs; retaining these
+    # three Python graph payloads duplicates the full graph in host memory.
+    del graph, update, final_graph
+    gc.collect()
     start = time.monotonic()
     if not args.reuse_result:
         completed = subprocess.run(
@@ -595,6 +602,7 @@ def main() -> int:
         "effective_mutations": analysis.effective_mutations,
         "physical_records": analysis.physical_records,
         "update_mode": expected_update_mode(analysis),
+        "host_oracle_storage": "graph_payload_released_before_sst_launch_v1",
         "sst_host_wall_seconds": wall_seconds,
         "command": command,
         "dram": dram,
