@@ -8,6 +8,7 @@
 #include <functional>
 #include <iostream>
 #include <memory>
+#include <numeric>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -89,6 +90,7 @@ using spine::sim::spine_level_layout;
 using spine::sim::spine_metadata_layout;
 using spine::sim::spine_candidate10_publication_window_min_cycles;
 using spine::sim::spine_candidate10_l0_writer_min_cycles;
+using spine::sim::build_spine_host_active_bins;
 using spine::sim::SpineActiveBins;
 using spine::sim::SpineActiveRecord;
 using spine::sim::SpineAxiInterfaceProfile;
@@ -3140,6 +3142,113 @@ void test_spine_reusable_system_matches_vertical_slice() {
           "reusable Spine system changed compute work");
   require(system.compute().next_active().size() == 10,
           "reusable Spine system changed the SSSP frontier");
+}
+
+SpineActiveBins build_spine_host_active_bins_reference(
+    const SpineL0State &state, const SpineL0Config &config,
+    const std::vector<std::uint32_t> &sources,
+    const std::vector<std::uint32_t> &values) {
+  SpineActiveBins result;
+  for (const std::uint32_t source : sources) {
+    if (source >= values.size()) {
+      throw std::logic_error("host active source has no vertex-state value");
+    }
+    SpineActiveRecord base{
+        .source = source,
+        .source_value = values[source],
+    };
+    std::array<std::uint16_t, 16> hot_by_partition{};
+    std::uint16_t any_partition = 0;
+    for (std::size_t level = 0; level < config.levels; ++level) {
+      std::uint16_t cold_mask = 0;
+      for (std::size_t family = 0; family < config.partitions; ++family) {
+        for (const SpineEdgeRecord &edge : state.cold_levels[family][level]) {
+          if (edge.src == source) {
+            const std::size_t partition = std::min<std::size_t>(
+                edge.dst / config.vertex_partition_size,
+                config.partitions - 1);
+            cold_mask |= static_cast<std::uint16_t>(1U << partition);
+          }
+        }
+        if (!state.hot_enabled) {
+          continue;
+        }
+        for (const SpineEdgeRecord &edge : state.hot_levels[family][level]) {
+          if (edge.src == source) {
+            const std::size_t partition = std::min<std::size_t>(
+                edge.dst / config.vertex_partition_size,
+                config.partitions - 1);
+            hot_by_partition[partition] |=
+                static_cast<std::uint16_t>(1U << family);
+          }
+        }
+      }
+      base.level_masks[level] = cold_mask;
+      any_partition |= cold_mask;
+    }
+    for (std::size_t partition = 0; partition < config.partitions;
+         ++partition) {
+      if (hot_by_partition[partition] != 0) {
+        any_partition |= static_cast<std::uint16_t>(1U << partition);
+      }
+      if (((any_partition >> partition) & 1U) == 0) {
+        continue;
+      }
+      SpineActiveRecord record = base;
+      record.hot_shard_mask = hot_by_partition[partition];
+      result.bins[partition].push_back(record);
+    }
+  }
+  return result;
+}
+
+void test_spine_host_active_bin_builder_matches_scan_reference() {
+  SpineL0Config config;
+  config.partitions = 4;
+  config.levels = 3;
+  config.vertex_partition_size = 10;
+  SpineL0State state;
+  state.hot_enabled = true;
+  state.cold_levels[0][0].push_back(
+      {.src = 2, .dst = 5, .weight = 1, .diff = 1});
+  state.cold_levels[1][1].push_back(
+      {.src = 2, .dst = 21, .weight = 2, .diff = 1});
+  state.cold_levels[2][2].push_back(
+      {.src = 7, .dst = 35, .weight = 3, .diff = 1});
+  state.cold_levels[3][0].push_back(
+      {.src = 7, .dst = 15, .weight = 4, .diff = 1});
+  state.cold_levels[0][2].push_back(
+      {.src = 99, .dst = 9, .weight = 5, .diff = 1});
+  state.hot_levels[3][2].push_back(
+      {.src = 2, .dst = 12, .weight = 6, .diff = 1});
+  state.hot_levels[1][0].push_back(
+      {.src = 7, .dst = 35, .weight = 7, .diff = 1});
+  state.hot_levels[0][1].push_back(
+      {.src = 99, .dst = 25, .weight = 8, .diff = 1});
+  std::vector<std::uint32_t> values(100);
+  std::iota(values.begin(), values.end(), 1U);
+  const std::vector<std::uint32_t> sources{7, 2, 7, 11, 2};
+
+  const SpineActiveBins expected = build_spine_host_active_bins_reference(
+      state, config, sources, values);
+  const SpineActiveBins actual =
+      build_spine_host_active_bins(state, config, sources, values);
+  require(actual.size() == 10 && actual.size() == expected.size(),
+          "optimized HOST_ACTIVE builder changed emitted record count");
+  for (std::size_t partition = 0; partition < actual.bins.size();
+       ++partition) {
+    require(actual.bins[partition] == expected.bins[partition],
+            "optimized HOST_ACTIVE builder changed record ordering or masks");
+  }
+
+  bool rejected = false;
+  try {
+    (void)build_spine_host_active_bins(state, config, {100}, values);
+  } catch (const std::logic_error &) {
+    rejected = true;
+  }
+  require(rejected,
+          "optimized HOST_ACTIVE builder accepted an out-of-range source");
 }
 
 void test_spine_host_active_requires_exact_dirty_coverage() {
@@ -8911,6 +9020,8 @@ int main(int argc, char **argv) {
        test_spine_dirty_mark_preserves_persistent_state},
       {"spine_reusable_system",
        test_spine_reusable_system_matches_vertical_slice},
+      {"spine_host_active_bin_builder",
+       test_spine_host_active_bin_builder_matches_scan_reference},
       {"spine_host_dirty_coverage",
        test_spine_host_active_requires_exact_dirty_coverage},
       {"spine_device_dirty_request_windows",

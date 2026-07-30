@@ -5,69 +5,94 @@
 #include <numeric>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
 
 namespace spine::sim {
 
-namespace {
-
-SpineActiveBins build_host_active_bins(
+SpineActiveBins build_spine_host_active_bins(
     const SpineL0State &state, const SpineL0Config &config,
     const std::vector<std::uint32_t> &sources,
     const std::vector<std::uint32_t> &values) {
-  SpineActiveBins result;
+  struct ActiveRoute {
+    std::array<std::uint16_t, kSpineLevelCount> level_masks{};
+    std::array<std::uint16_t, 16> hot_by_partition{};
+  };
+
+  std::unordered_map<std::uint32_t, std::size_t> route_indices;
+  route_indices.reserve(sources.size());
+  std::vector<ActiveRoute> routes;
+  routes.reserve(sources.size());
   for (const std::uint32_t source : sources) {
     if (source >= values.size()) {
       throw std::logic_error("host active source has no vertex-state value");
     }
+    if (route_indices.contains(source)) {
+      continue;
+    }
+    route_indices.emplace(source, routes.size());
+    routes.emplace_back();
+  }
+
+  for (std::size_t level = 0; level < config.levels; ++level) {
+    for (std::size_t family = 0; family < config.partitions; ++family) {
+      for (const SpineEdgeRecord &edge : state.cold_levels[family][level]) {
+        const auto route = route_indices.find(edge.src);
+        if (route == route_indices.end()) {
+          continue;
+        }
+        const std::size_t partition = std::min<std::size_t>(
+            edge.dst / config.vertex_partition_size, config.partitions - 1);
+        routes[route->second].level_masks[level] |=
+            static_cast<std::uint16_t>(1U << partition);
+      }
+      if (!state.hot_enabled) {
+        continue;
+      }
+      for (const SpineEdgeRecord &edge : state.hot_levels[family][level]) {
+        const auto route = route_indices.find(edge.src);
+        if (route == route_indices.end()) {
+          continue;
+        }
+        const std::size_t partition = std::min<std::size_t>(
+            edge.dst / config.vertex_partition_size, config.partitions - 1);
+        routes[route->second].hot_by_partition[partition] |=
+            static_cast<std::uint16_t>(1U << family);
+      }
+    }
+  }
+
+  SpineActiveBins result;
+  for (const std::uint32_t source : sources) {
+    const ActiveRoute &route = routes[route_indices.at(source)];
     SpineActiveRecord base{
         .source = source,
         .source_value = values[source],
+        .level_masks = route.level_masks,
     };
-    std::array<std::uint16_t, 16> hot_by_partition{};
     std::uint16_t any_partition = 0;
     for (std::size_t level = 0; level < config.levels; ++level) {
-      std::uint16_t cold_mask = 0;
-      for (std::size_t family = 0; family < config.partitions; ++family) {
-        for (const SpineEdgeRecord &edge : state.cold_levels[family][level]) {
-          if (edge.src == source) {
-            const std::size_t partition = std::min<std::size_t>(
-                edge.dst / config.vertex_partition_size, config.partitions - 1);
-            cold_mask |= static_cast<std::uint16_t>(1U << partition);
-          }
-        }
-        if (!state.hot_enabled) {
-          continue;
-        }
-        for (const SpineEdgeRecord &edge : state.hot_levels[family][level]) {
-          if (edge.src == source) {
-            const std::size_t partition = std::min<std::size_t>(
-                edge.dst / config.vertex_partition_size, config.partitions - 1);
-            hot_by_partition[partition] |=
-                static_cast<std::uint16_t>(1U << family);
-          }
-        }
-      }
-      base.level_masks[level] = cold_mask;
-      any_partition |= cold_mask;
+      any_partition |= route.level_masks[level];
     }
     for (std::size_t partition = 0; partition < config.partitions;
          ++partition) {
-      if (hot_by_partition[partition] != 0) {
+      if (route.hot_by_partition[partition] != 0) {
         any_partition |= static_cast<std::uint16_t>(1U << partition);
       }
       if (((any_partition >> partition) & 1U) == 0) {
         continue;
       }
       SpineActiveRecord record = base;
-      record.hot_shard_mask = hot_by_partition[partition];
+      record.hot_shard_mask = route.hot_by_partition[partition];
       result.bins[partition].push_back(record);
     }
   }
   return result;
 }
+
+namespace {
 
 struct PageRankHostInput {
   SpineActiveBins bins;
@@ -411,7 +436,7 @@ SpineVerticalSliceSystem::SpineVerticalSliceSystem(
       edge_stream_, value_stream_, compute_memory_request_window,
       compute_writeonly_request_window, on_chip_profile, algorithm_policy);
   if (initial_host_active) {
-    SpineActiveBins bins = build_host_active_bins(
+    SpineActiveBins bins = build_spine_host_active_bins(
         state_, maintenance_->config(), {source}, compute_->values());
     reader_->configure_initial_host_round(
         std::move(bins), std::nullopt, {source});
@@ -466,7 +491,7 @@ void SpineVerticalSliceSystem::restart_read_compute(
     throw std::logic_error(
         "Spine read/compute restart requires a successful drained round");
   }
-  const SpineActiveBins bins = build_host_active_bins(
+  const SpineActiveBins bins = build_spine_host_active_bins(
       state_, maintenance_->config(), active_sources, compute_->values());
   restart_read_compute_bins(bins, host_coverage);
   current_frontier_ = std::move(active_sources);
@@ -600,7 +625,7 @@ SpineVerticalSliceSystem::restart_device_dirty_host_fallback() {
     throw std::logic_error(
         "host handoff list does not match the captured dirty identity");
   }
-  const SpineActiveBins bins = build_host_active_bins(
+  const SpineActiveBins bins = build_spine_host_active_bins(
       state_, maintenance_->config(), sources, compute_->values());
   restart_read_compute_bins(bins, coverage);
   current_frontier_ = sources;
@@ -1039,7 +1064,7 @@ void SpinePageRankVerticalSliceSystem::restart_iteration() {
     if (source_refresh_.empty()) {
       throw std::logic_error("converged frontier algorithm cannot restart");
     }
-    active_bins_payload_ = build_host_active_bins(
+    active_bins_payload_ = build_spine_host_active_bins(
         state_, maintenance_config_, source_refresh_, compute_->rank_words());
   }
   reader_->reset_host_round(active_bins_payload_, host_coverage_,

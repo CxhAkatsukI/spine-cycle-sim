@@ -114,6 +114,13 @@ struct SpineSsspRunResult {
   std::uint64_t end_cycle{};
 };
 
+// Builds the untimed host-side HOST_ACTIVE payload consumed by the reader.
+// The emitted records preserve source order and duplicate-source semantics.
+[[nodiscard]] SpineActiveBins build_spine_host_active_bins(
+    const SpineL0State &state, const SpineL0Config &config,
+    const std::vector<std::uint32_t> &sources,
+    const std::vector<std::uint32_t> &values);
+
 class SpineVerticalSliceSystem {
  public:
   SpineVerticalSliceSystem(Scheduler &scheduler, ClockId clock_id,
