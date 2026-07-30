@@ -106,6 +106,17 @@ results, preloads an auditable Pokec stop control that is consumed before the
 first launch decision, preserves every passing row, and restores the remaining
 SSSP queue entries with the original manifest and memory policy.
 
+The two StackOverflow K4-shared jobs are owned by
+`formal_v6_stackoverflow_k4_three_algorithm_sidecar`, whose two job objects are
+byte-for-byte JSON-equivalent to their entries in the original CC/residual
+manifest. Its manifest SHA-256 is
+`6b64608ce4ce40efce0e9d84530218053be001b2a81bb6c6b97478769495f455`.
+The single large-job slot uses a 64 GiB launch reserve and 48/64 GiB
+emergency/recovery thresholds. It starts Residual PageRank first (the original
+priority 85), then CC (priority 124), and writes both results to the original
+canonical result root. At launch, 117.9 GiB was available, so it correctly
+remained queued until one of the two running K4 jobs released enough memory.
+
 The `formal_v6_r19_sssp_warm` campaign adds the separately reported R19-32
 synthetic scalability endpoint under the same v6 warm-start measurement
 contract and median-degree source policy. Its one-job scheduler uses a 108 GiB

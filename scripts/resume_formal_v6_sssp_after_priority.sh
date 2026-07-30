@@ -4,7 +4,7 @@ set -euo pipefail
 repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 campaign_root="${SPINE_CAMPAIGN_ROOT:-/data/tmp/chuxiao/large_graph_campaign_v1}"
 main="${campaign_root}/formal_v6_sssp_exact"
-priority="${campaign_root}/formal_v6_cc_residual_priority"
+priority="${campaign_root}/formal_v6_stackoverflow_k4_three_algorithm_sidecar"
 pokec_sidecar="${campaign_root}/formal_v6_pokec_sssp_k4_sidecar"
 pokec_job="run.soc_pokec.weighted_sssp.insert.u8.grasu_regraph_k4_shared.bb8611a68e5fdcd8b898"
 cc_job="run.sx_stackoverflow.connected_components.insert.u8.grasu_regraph_k4_shared.40d4283eb14d3fefe31f"
@@ -38,6 +38,11 @@ priority_passes="$(
 if [[ "${priority_passes}" != "2" ]]; then
   printf 'StackOverflow K4 CC/residual priority pair is not complete (%s/2)\n' \
     "${priority_passes}" >&2
+  exit 2
+fi
+if [[ ! -s "${campaign_root}/formal_v6_cc_residual_priority/runs/runs/40d4283eb14d3fefe31f/case_result.json" ]] ||
+   [[ ! -s "${campaign_root}/formal_v6_cc_residual_priority/runs/runs/b841b79faa2aace92be3/case_result.json" ]]; then
+  printf 'StackOverflow K4 CC/residual canonical results are missing\n' >&2
   exit 2
 fi
 
