@@ -39,6 +39,7 @@ DATASET_ORDER = {
             "ljournal_2008",
             "hollywood_2009",
             "soc_orkut",
+            "rmat_19_32",
         )
     )
 }
@@ -52,6 +53,7 @@ DATASET_LABEL = {
     "ljournal_2008": "LJ08",
     "hollywood_2009": "HW",
     "soc_orkut": "OK",
+    "rmat_19_32": "R19",
 }
 ALGORITHM_ORDER = {
     "weighted_sssp": 0,
@@ -276,6 +278,10 @@ def render_ratio_figure(rows: list[dict[str, Any]], output: Path) -> None:
     figure, axes = plt.subplots(3, 1, figsize=(7.4, 5.6), sharex=True)
     x_positions = list(range(len(rows)))
     labels = [str(row["label"]) for row in rows]
+    endpoint_index = next(
+        (index for index, row in enumerate(rows) if row["dataset_id"] == "rmat_19_32"),
+        None,
+    )
     for axis, (key, ylabel, color, hatch) in zip(axes, METRICS, strict=True):
         values = [float(row[key]) for row in rows]
         axis.bar(
@@ -298,6 +304,14 @@ def render_ratio_figure(rows: list[dict[str, Any]], output: Path) -> None:
             zorder=3,
         )
         axis.axhline(1.0, color="black", linestyle="--", linewidth=0.9, zorder=1)
+        if endpoint_index not in {None, 0}:
+            axis.axvline(
+                float(endpoint_index) - 0.5,
+                color="0.35",
+                linestyle=":",
+                linewidth=1.0,
+                zorder=1,
+            )
         positive = [value for value in values if value > 0.0]
         if positive and max(positive) / min(positive) >= 10.0:
             axis.set_yscale("log")
@@ -328,6 +342,10 @@ def render_memory_figure(rows: list[dict[str, Any]], output: Path) -> None:
     figure, axes = plt.subplots(2, 1, figsize=(7.4, 4.5), sharex=True)
     x_positions = list(range(len(rows)))
     labels = [str(row["label"]) for row in rows]
+    endpoint_index = next(
+        (index for index, row in enumerate(rows) if row["dataset_id"] == "rmat_19_32"),
+        None,
+    )
     width = 0.34
 
     spine_mib = [float(row["spine_memory_bytes"]) / (1024.0**2) for row in rows]
@@ -381,6 +399,14 @@ def render_memory_figure(rows: list[dict[str, Any]], output: Path) -> None:
     axes[1].set_xticks(x_positions, labels, rotation=30, ha="right")
     axes[1].set_xlabel("Dataset-algorithm pair")
     for axis in axes:
+        if endpoint_index not in {None, 0}:
+            axis.axvline(
+                float(endpoint_index) - 0.5,
+                color="0.35",
+                linestyle=":",
+                linewidth=1.0,
+                zorder=1,
+            )
         axis.grid(axis="y", linestyle="--", color="0.65", alpha=0.5, zorder=0)
         axis.tick_params(direction="in", top=True, right=True, length=4)
     figure.tight_layout()
@@ -485,7 +511,9 @@ def write_pair_table(path: Path, rows: list[dict[str, Any]]) -> None:
         r"Data & Algorithm & Spine cyc & G+R K4 cyc & Speedup \\",
         r"\midrule",
     ]
-    for row in rows:
+    for index, row in enumerate(rows):
+        if index and row["dataset_id"] == "rmat_19_32":
+            lines.append(r"\midrule")
         lines.append(
             f"{tex_escape(row['dataset'])} & {tex_escape(row['algorithm_label'])} & "
             f"{row['spine_cycles']:,} & {row['k4_cycles']:,} & "
@@ -585,6 +613,12 @@ remaining datasets, {excluded_text}, exceed the frozen Spine capacity of
 not failed or selectively removed performance rows, and no slices replace them
 in the full-graph aggregate.
 
+\paragraph{{Synthetic endpoint.}}
+R19-32 (524,288 vertices and 15,483,485 unique directed edges) is reported as
+a separate scalability endpoint. It is never included in a real-dataset
+aggregate; the figures and cycle table place it after a dotted or ruled
+separator.
+
 \paragraph{{SSSP interpretation.}}
 Spine starts from a verified persisted old-graph SSSP state and measures the
 accepted update, automatic active-source discovery, incremental propagation,
@@ -605,7 +639,8 @@ cycle-for-cycle FPGA calibration, on-chip dynamic energy, or total board power.
 \includegraphics[width=0.98\linewidth]{{\vfigdir/formal_v6_primary_ratios.pdf}}
 \caption{{Ratios for complete insertion-batch-8 pairs. Values above one favor
 Spine for E2E latency and indicate that GraSU+ReGraph uses more memory traffic
-or HBM energy in the other panels.}}
+or HBM energy in the other panels. R19, when complete, appears to the right of
+the dotted separator and is not part of the real-dataset population.}}
 \end{{figure}}
 
 \begin{{table}}[H]
@@ -613,7 +648,7 @@ or HBM energy in the other panels.}}
 \small
 \input{{\vdatadir/pair_table.tex}}
 \caption{{Absolute device cycles. Only cross-system final-state-matched pairs
-enter this table.}}
+enter this table. R19 is separated from the real datasets by a rule.}}
 \end{{table}}
 
 \clearpage
@@ -624,7 +659,8 @@ enter this table.}}
 \caption{{Absolute accepted-backend traffic and request-stream locality for
 the same complete pairs. A request is discontinuous when its accepted address
 does not continue the previous request from the same initiator, operation, and
-logical HBM channel. This is not a DRAM row-buffer-miss metric.}}
+logical HBM channel. This is not a DRAM row-buffer-miss metric. R19 is a
+separate synthetic endpoint.}}
 \end{{figure}}
 
 \clearpage

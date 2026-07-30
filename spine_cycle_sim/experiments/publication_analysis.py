@@ -684,11 +684,22 @@ def analyze_publication_case_results(
     expected_execution_records: Mapping[str, Mapping[str, Any]] | None = None,
     capacity_exclusion_records: Sequence[Mapping[str, Any]] = (),
     result_supersedence_policy: Mapping[str, Any] | None = None,
+    required_systems: Sequence[str] | None = None,
     require_complete: bool = False,
 ) -> dict[str, Any]:
     """Validate, de-duplicate, pair, and summarize formal case results."""
 
     _validate_result_supersedence_policy(result_supersedence_policy)
+    required = tuple(
+        PUBLICATION_RESULT_SYSTEMS if required_systems is None else required_systems
+    )
+    if (
+        not required
+        or len(required) != len(set(required))
+        or not set(required) <= set(PUBLICATION_RESULT_SYSTEMS)
+    ):
+        raise ValueError("required systems must be a unique publication-system subset")
+    required_system_set = set(required)
     grouped_results: dict[str, list[Mapping[str, Any]]] = {}
     for result in results:
         _validate_case_result(result)
@@ -795,7 +806,7 @@ def analyze_publication_case_results(
     pair_rows: list[dict[str, Any]] = []
     for group_id, systems in sorted(groups.items()):
         sample = next(iter(systems.values()))
-        missing_systems = sorted(set(PUBLICATION_RESULT_SYSTEMS) - set(systems))
+        missing_systems = sorted(required_system_set - set(systems))
         group_results = [
             by_execution[row["execution_id"]] for row in systems.values()
         ]
@@ -809,7 +820,10 @@ def analyze_publication_case_results(
                 "batch_size": sample["batch_size"],
                 "systems_present": "+".join(sorted(systems)),
                 "missing_systems": "+".join(missing_systems),
+                # Keep the legacy field for downstream readers; completeness is
+                # relative to the analysis contract's declared system set.
                 "complete_triplet": not missing_systems,
+                "complete_required_systems": not missing_systems,
                 "final_state_match": equivalence["passed"],
                 "final_state_method": equivalence["method"],
                 "final_state_exact_match": equivalence["exact_match"],
@@ -971,6 +985,7 @@ def analyze_publication_case_results(
         "schema_version": 1,
         "analysis_id": "large_graph_publication_results_v1",
         "status": status,
+        "required_systems": list(required),
         "observed_executions": len(observed),
         "expected_executions": len(expected),
         "capacity_excluded_executions": len(capacity_exclusion_records),

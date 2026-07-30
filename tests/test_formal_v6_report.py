@@ -5,10 +5,32 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from scripts.render_formal_v6_primary import publication_dataset_scope
+from scripts.render_formal_v6_primary import admitted_pairs, publication_dataset_scope
 
 
 class FormalV6ReportTests(unittest.TestCase):
+    def test_r19_pair_is_retained_as_separate_endpoint(self) -> None:
+        row = {
+            "competitor": "grasu_regraph_k4_shared",
+            "scenario": "insert",
+            "batch_size": "8",
+            "algorithm": "weighted_sssp",
+            "dataset_id": "rmat_19_32",
+            "spine_cycles": "100",
+            "competitor_cycles": "250",
+            "spine_speedup": "2.5",
+            "spine_memory_bytes": "64",
+            "competitor_memory_bytes": "128",
+            "spine_random_request_fraction": "0.5",
+            "competitor_random_request_fraction": "0.25",
+            "spine_dram_energy_pj": "10",
+            "competitor_dram_energy_pj": "20",
+        }
+        pairs = admitted_pairs([row])
+        self.assertEqual(len(pairs), 1)
+        self.assertEqual(pairs[0]["dataset"], "R19")
+        self.assertEqual(pairs[0]["label"], "R19-SSSP")
+
     def test_dataset_scope_is_derived_from_materialization_capacity(self) -> None:
         contract = {
             "datasets": [

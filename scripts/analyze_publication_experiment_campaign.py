@@ -40,6 +40,12 @@ def main() -> int:
     parser.add_argument("--manifest", type=Path, action="append", default=[])
     parser.add_argument("--out-dir", type=Path, required=True)
     parser.add_argument("--result-transition-contract", type=Path)
+    parser.add_argument(
+        "--required-system",
+        action="append",
+        choices=("spine", "grasu_regraph_k1", "grasu_regraph_k4_shared"),
+        help="system required for correctness-group completeness; repeat as needed",
+    )
     parser.add_argument("--require-complete", action="store_true")
     args = parser.parse_args()
     if not args.result_root and not args.system_result_root:
@@ -64,6 +70,7 @@ def main() -> int:
         expected_execution_records=execution_metadata,
         capacity_exclusion_records=capacity_exclusion_metadata(args.manifest),
         result_supersedence_policy=transition_policy,
+        required_systems=args.required_system,
         require_complete=args.require_complete,
     )
     analysis["input_selection"] = {

@@ -7,6 +7,7 @@ for campaign in \
   formal_v6_cc_residual_priority \
   formal_v6_wiki_residual_k4_sidecar \
   formal_v6_stackoverflow_spine_cc_sidecar \
+  formal_v6_r19_sssp_warm \
   formal_v6_au_spine_updates_default; do
   run_dir="${root}/${campaign}/run"
   if [[ -f "${run_dir}/campaign_state.json" ]]; then

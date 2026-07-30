@@ -123,6 +123,33 @@ class PublicationAnalysisTests(unittest.TestCase):
         self.assertEqual(speedups["grasu_regraph_k1"], 4.0)
         self.assertEqual(speedups["grasu_regraph_k4_shared"], 2.5)
 
+    def test_declared_pair_is_complete_without_diagnostic_k1(self) -> None:
+        results = [
+            case_result("spine", 100),
+            case_result("grasu_regraph_k4_shared", 250),
+        ]
+        analysis = analyze_publication_case_results(
+            results,
+            expected_execution_ids={row["case"]["execution_id"] for row in results},
+            required_systems=("spine", "grasu_regraph_k4_shared"),
+            require_complete=True,
+        )
+        self.assertEqual(analysis["status"], "PASS")
+        self.assertEqual(
+            analysis["required_systems"],
+            ["spine", "grasu_regraph_k4_shared"],
+        )
+        self.assertTrue(analysis["correctness_groups"][0]["complete_triplet"])
+        self.assertEqual(analysis["correctness_groups"][0]["missing_systems"], "")
+        self.assertEqual(len(analysis["pair_rows"]), 1)
+
+    def test_required_systems_reject_duplicates(self) -> None:
+        with self.assertRaisesRegex(ValueError, "required systems"):
+            analyze_publication_case_results(
+                [case_result("spine", 100)],
+                required_systems=("spine", "spine"),
+            )
+
     def test_cross_system_final_state_mismatch_is_recorded_and_excluded(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             spine = case_result("spine", 100)

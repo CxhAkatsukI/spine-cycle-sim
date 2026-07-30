@@ -81,6 +81,14 @@ dispatch ownership. The dataset, update, architecture profile, plugin,
 correctness gates, and result path are unchanged, and the unified monitor
 shows both schedulers.
 
+The `formal_v6_r19_sssp_warm` campaign adds the separately reported R19-32
+synthetic scalability endpoint under the same v6 warm-start measurement
+contract and median-degree source policy. Its one-job scheduler uses a 108 GiB
+launch reserve: the 7.60 GiB Spine row may fill a safe gap, while the 46.55 GiB
+K4-shared row remains queued until the larger real-graph jobs release enough
+memory. R19 is included in formal execution coverage but remains visually
+separated from the real-dataset results.
+
 The optional `formal_v6_au_spine_updates_default` scheduler fills otherwise idle CPU
 capacity with the nine AskUbuntu weighted-SSSP update cases: insertion,
 deletion, and weight change at batch sizes 1, 8, and 64. It uses a 112 GiB
