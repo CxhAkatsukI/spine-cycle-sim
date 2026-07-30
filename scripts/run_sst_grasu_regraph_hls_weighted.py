@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import argparse
 from dataclasses import dataclass
-import gc
 import heapq
 import json
 import os
@@ -31,6 +30,7 @@ from spine_cycle_sim.experiments.grasu_addressing import (  # noqa: E402
     validate_grasu_hbm_address_map,
     validate_partition_footprints,
 )
+from spine_cycle_sim.experiments.host_memory import release_process_heap  # noqa: E402
 from spine_cycle_sim.experiments.regraph_contracts import (  # noqa: E402
     expected_weighted_source_cache_requests,
 )
@@ -523,7 +523,7 @@ def main() -> int:
     del oracle
     del initial
     del update
-    gc.collect()
+    host_heap_trimmed = release_process_heap()
     kernel_clock = next(
         clock for clock in profile["clocks"] if clock["name"] == "kernel"
     )
@@ -693,6 +693,7 @@ def main() -> int:
             "minimum_supersteps": runtime_oracle.minimum_supersteps,
         },
         "host_oracle_storage": "compacted_before_sst_launch_v1",
+        "host_heap_trimmed": host_heap_trimmed,
         "supersteps": supersteps,
         "superstep_policy": superstep_policy,
         "downstream_sharing": downstream_sharing,

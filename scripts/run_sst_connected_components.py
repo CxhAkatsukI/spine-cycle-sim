@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import argparse
-import gc
 import json
 import os
 from pathlib import Path
@@ -31,6 +30,7 @@ from spine_cycle_sim.experiments.grasu_addressing import (  # noqa: E402
     validate_grasu_hbm_address_map,
     validate_partition_footprints,
 )
+from spine_cycle_sim.experiments.host_memory import release_process_heap  # noqa: E402
 from spine_cycle_sim.experiments.profile_capabilities import (  # noqa: E402
     load_capability_catalog,
 )
@@ -539,7 +539,7 @@ def main() -> int:
     # compact oracle result and update analysis while it runs; retaining these
     # three Python graph payloads duplicates the full graph in host memory.
     del graph, update, final_graph
-    gc.collect()
+    host_heap_trimmed = release_process_heap()
     start = time.monotonic()
     if not args.reuse_result:
         completed = subprocess.run(
@@ -603,6 +603,7 @@ def main() -> int:
         "physical_records": analysis.physical_records,
         "update_mode": expected_update_mode(analysis),
         "host_oracle_storage": "graph_payload_released_before_sst_launch_v1",
+        "host_heap_trimmed": host_heap_trimmed,
         "sst_host_wall_seconds": wall_seconds,
         "command": command,
         "dram": dram,

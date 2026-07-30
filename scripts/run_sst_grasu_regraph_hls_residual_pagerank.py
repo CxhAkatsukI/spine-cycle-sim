@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import argparse
-import gc
 from dataclasses import dataclass
 import json
 import math
@@ -33,6 +32,7 @@ from spine_cycle_sim.experiments.grasu_addressing import (  # noqa: E402
     validate_grasu_hbm_address_map,
     validate_partition_footprints,
 )
+from spine_cycle_sim.experiments.host_memory import release_process_heap  # noqa: E402
 from spine_cycle_sim.experiments.profile_capabilities import (  # noqa: E402
     AlgorithmCapability,
     CapabilityCatalog,
@@ -473,7 +473,7 @@ def main() -> int:
         int(params["regraph_source_buffer_vertices"]),
     )
     del oracle, initial, update
-    gc.collect()
+    host_heap_trimmed = release_process_heap()
     kernel_clock = next(
         clock for clock in profile["clocks"] if clock["name"] == "kernel"
     )
@@ -671,6 +671,7 @@ def main() -> int:
         "sst_library_binding": sst_library,
         "sst_plugin_sha256": sst_library["plugin_sha256"],
         "host_oracle_storage": "compacted_before_sst_launch_v1",
+        "host_heap_trimmed": host_heap_trimmed,
         "sst_host_wall_seconds": wall_seconds,
         "reused_existing_result": args.reuse_result,
         "command": command,
