@@ -118,6 +118,14 @@ class LargeGraphCampaignTests(unittest.TestCase):
             "918e08464f30cfd102e53f729d8559a9ea9923fc",
         )
         self.assertEqual(simulator["spine_host_runtime_equivalent_plugins"], [])
+        supersedence = simulator["result_supersedence"]
+        self.assertEqual(
+            supersedence["superseding_plugin_sha256"],
+            simulator["plugin_sha256"],
+        )
+        self.assertEqual(supersedence["affected_metric"], "resident_hot_edges")
+        self.assertEqual(supersedence["affected_when_greater_than"], 0)
+        self.assertEqual(len(supersedence["superseded_plugin_sha256"]), 2)
         self.assertEqual(
             simulator["hls_reference"]["revision"],
             "2655b24b3aed498467e07967e668a5ce4c63dea9",

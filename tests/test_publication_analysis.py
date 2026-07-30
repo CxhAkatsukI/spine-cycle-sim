@@ -199,6 +199,66 @@ class PublicationAnalysisTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "changed scientific result"):
             analyze_publication_case_results([first, changed])
 
+    def test_behavior_transition_invalidates_affected_old_spine_result(self) -> None:
+        old = case_result("spine", 100, execution_id="transition")
+        old["scalar_metrics"]["resident_hot_edges"] = 7
+        policy = {
+            "classification": "hls_behavior_correction",
+            "scope_system": "spine",
+            "affected_metric": "resident_hot_edges",
+            "affected_when_greater_than": 0,
+            "requires_identical_case": True,
+            "requires_identical_final_state": True,
+            "superseded_plugin_sha256": ["a" * 64],
+            "superseding_plugin_sha256": "b" * 64,
+        }
+        analysis = analyze_publication_case_results(
+            [old],
+            expected_execution_ids={"transition"},
+            result_supersedence_policy=policy,
+        )
+        self.assertEqual(analysis["observed_executions"], 0)
+        self.assertEqual(
+            analysis["transition_invalidated_execution_ids"], ["transition"]
+        )
+        self.assertEqual(
+            analysis["execution_coverage_rows"][0]["coverage_status"],
+            "invalidated_by_behavior_transition",
+        )
+
+    def test_behavior_transition_explicit_successor_replaces_old_result(self) -> None:
+        old = case_result("spine", 100, execution_id="transition")
+        old["scalar_metrics"]["resident_hot_edges"] = 7
+        new = deepcopy(old)
+        new["plugin_sha256"] = "b" * 64
+        new["row"]["cycles"] = 125
+        policy = {
+            "classification": "hls_behavior_correction",
+            "scope_system": "spine",
+            "affected_metric": "resident_hot_edges",
+            "affected_when_greater_than": 0,
+            "requires_identical_case": True,
+            "requires_identical_final_state": True,
+            "superseded_plugin_sha256": ["a" * 64],
+            "superseding_plugin_sha256": "b" * 64,
+        }
+        analysis = analyze_publication_case_results(
+            [old, new], result_supersedence_policy=policy
+        )
+        self.assertEqual(analysis["observed_executions"], 1)
+        self.assertEqual(analysis["system_rows"][0]["cycles"], 125)
+        self.assertEqual(len(analysis["superseded_result_rows"]), 1)
+        self.assertEqual(
+            analysis["superseded_result_rows"][0]["old_cycles"], 100
+        )
+
+        changed_state = deepcopy(new)
+        changed_state["final_state"]["sha256"] = "4" * 64
+        with self.assertRaisesRegex(ValueError, "changed final state"):
+            analyze_publication_case_results(
+                [old, changed_state], result_supersedence_policy=policy
+            )
+
     def test_incomplete_expected_set_is_partial_or_fail_closed(self) -> None:
         result = case_result("spine", 100)
         analysis = analyze_publication_case_results(

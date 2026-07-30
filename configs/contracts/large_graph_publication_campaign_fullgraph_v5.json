@@ -93,6 +93,19 @@
       },
       "milestone": "fullgraph_v9_hot_partition_clip_native_o3_lto",
       "plugin_sha256": "5c0211c60431bba211758dcb9031e906871eaae844172bfd6f3533a1c2a74f2d",
+      "result_supersedence": {
+        "affected_metric": "resident_hot_edges",
+        "affected_when_greater_than": 0,
+        "classification": "hls_behavior_correction",
+        "requires_identical_case": true,
+        "requires_identical_final_state": true,
+        "scope_system": "spine",
+        "superseded_plugin_sha256": [
+          "eee35f39c118538da5565e497d29b989e5bb492c1368839d424a984c32e2aae9",
+          "c2a60d5250f5594dae98114bd32a96910fe08d11a299eadc6d0b2d1fa56161c6"
+        ],
+        "superseding_plugin_sha256": "5c0211c60431bba211758dcb9031e906871eaae844172bfd6f3533a1c2a74f2d"
+      },
       "source_commit": "918e08464f30cfd102e53f729d8559a9ea9923fc",
       "spine_host_runtime_equivalent_plugins": []
     },

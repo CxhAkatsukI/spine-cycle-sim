@@ -29,6 +29,7 @@ result_roots=(
   formal_v3_small_fullpr
   formal_v4_missing_fullpr_competitors
   formal_v4_stackoverflow_cc_residual_competitors
+  formal_v5_stackoverflow_cc_hot_partition_clip
 )
 
 manifest_roots=(
@@ -60,6 +61,7 @@ manifest_roots=(
 command=(
   python3 scripts/analyze_publication_experiment_campaign.py
   --out-dir "${output_dir}"
+  --result-transition-contract configs/contracts/large_graph_publication_campaign_fullgraph_v5.json
 )
 for root in "${result_roots[@]}"; do
   command+=(--result-root "${campaign_root}/${root}")

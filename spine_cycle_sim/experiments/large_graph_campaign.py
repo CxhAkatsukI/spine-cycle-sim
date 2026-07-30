@@ -292,6 +292,31 @@ def validate_large_graph_campaign_contract(
                 raise ValueError("invalid plugin-equivalence report identity")
         equivalent_hashes.add(plugin_hash)
 
+    supersedence = simulator.get("result_supersedence")
+    if supersedence is not None:
+        old_hashes = (
+            supersedence.get("superseded_plugin_sha256", [])
+            if isinstance(supersedence, Mapping)
+            else []
+        )
+        if (
+            not isinstance(supersedence, Mapping)
+            or supersedence.get("classification") != "hls_behavior_correction"
+            or supersedence.get("scope_system") != "spine"
+            or supersedence.get("superseding_plugin_sha256")
+            != simulator.get("plugin_sha256")
+            or supersedence.get("affected_metric") != "resident_hot_edges"
+            or supersedence.get("affected_when_greater_than") != 0
+            or supersedence.get("requires_identical_case") is not True
+            or supersedence.get("requires_identical_final_state") is not True
+            or not isinstance(old_hashes, list)
+            or not old_hashes
+            or len(set(old_hashes)) != len(old_hashes)
+            or any(not _is_sha256(value) for value in old_hashes)
+            or simulator.get("plugin_sha256") in old_hashes
+        ):
+            raise ValueError("invalid Spine result supersedence policy")
+
     semantics = contract.get("workload_semantics", {})
     full_pr = semantics.get("full_pagerank", {})
     if full_pr.get("edge_cap") != 4_000_000:

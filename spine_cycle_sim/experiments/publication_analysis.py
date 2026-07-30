@@ -67,6 +67,51 @@ def _scientific_signature(result: Mapping[str, Any]) -> str:
     )
 
 
+def _validate_result_supersedence_policy(
+    policy: Mapping[str, Any] | None,
+) -> None:
+    if policy is None:
+        return
+    old_hashes = policy.get("superseded_plugin_sha256")
+    if (
+        policy.get("classification") != "hls_behavior_correction"
+        or policy.get("scope_system") != "spine"
+        or policy.get("affected_metric") != "resident_hot_edges"
+        or policy.get("affected_when_greater_than") != 0
+        or policy.get("requires_identical_case") is not True
+        or policy.get("requires_identical_final_state") is not True
+        or not isinstance(old_hashes, list)
+        or not old_hashes
+        or len(set(old_hashes)) != len(old_hashes)
+        or not isinstance(policy.get("superseding_plugin_sha256"), str)
+        or policy["superseding_plugin_sha256"] in old_hashes
+    ):
+        raise ValueError("invalid result supersedence policy")
+
+
+def _transition_classification(
+    result: Mapping[str, Any], policy: Mapping[str, Any] | None
+) -> str:
+    if policy is None or result["case"]["system"] != policy["scope_system"]:
+        return "eligible"
+    plugin = result["plugin_sha256"]
+    if plugin == policy["superseding_plugin_sha256"]:
+        return "successor"
+    if plugin not in policy["superseded_plugin_sha256"]:
+        return "eligible"
+    metric = policy["affected_metric"]
+    value = result.get("scalar_metrics", {}).get(metric)
+    if not isinstance(value, (int, float)) or isinstance(value, bool):
+        raise ValueError(
+            f"superseded Spine result lacks numeric transition metric: {metric}"
+        )
+    return (
+        "invalidated"
+        if value > policy["affected_when_greater_than"]
+        else "eligible"
+    )
+
+
 def _validate_case_result(result: Mapping[str, Any]) -> None:
     if result.get("schema_version") != 1 or result.get("status") != "pass":
         raise ValueError("publication case result is not passing schema v1")
@@ -609,24 +654,84 @@ def analyze_publication_case_results(
     expected_execution_ids: Iterable[str] = (),
     expected_execution_records: Mapping[str, Mapping[str, Any]] | None = None,
     capacity_exclusion_records: Sequence[Mapping[str, Any]] = (),
+    result_supersedence_policy: Mapping[str, Any] | None = None,
     require_complete: bool = False,
 ) -> dict[str, Any]:
     """Validate, de-duplicate, pair, and summarize formal case results."""
 
-    by_execution: dict[str, Mapping[str, Any]] = {}
-    signatures: dict[str, str] = {}
-    duplicate_counts: dict[str, int] = {}
+    _validate_result_supersedence_policy(result_supersedence_policy)
+    grouped_results: dict[str, list[Mapping[str, Any]]] = {}
     for result in results:
         _validate_case_result(result)
-        execution_id = str(result["case"]["execution_id"])
-        signature = _scientific_signature(result)
-        if execution_id in signatures and signatures[execution_id] != signature:
+        grouped_results.setdefault(str(result["case"]["execution_id"]), []).append(
+            result
+        )
+
+    by_execution: dict[str, Mapping[str, Any]] = {}
+    duplicate_counts: dict[str, int] = {}
+    invalidated_results: dict[str, list[Mapping[str, Any]]] = {}
+    superseded_result_rows: list[dict[str, Any]] = []
+    for execution_id, candidates in grouped_results.items():
+        duplicate_counts[execution_id] = len(candidates)
+        eligible: list[Mapping[str, Any]] = []
+        invalidated: list[Mapping[str, Any]] = []
+        successors: list[Mapping[str, Any]] = []
+        for result in candidates:
+            classification = _transition_classification(
+                result, result_supersedence_policy
+            )
+            if classification == "invalidated":
+                invalidated.append(result)
+            else:
+                eligible.append(result)
+                if classification == "successor":
+                    successors.append(result)
+        invalidated_results[execution_id] = invalidated
+
+        signatures = {_scientific_signature(result) for result in eligible}
+        if len(signatures) > 1:
             raise ValueError(
                 f"duplicate publication execution changed scientific result: {execution_id}"
             )
-        signatures[execution_id] = signature
-        by_execution.setdefault(execution_id, result)
-        duplicate_counts[execution_id] = duplicate_counts.get(execution_id, 0) + 1
+        if not eligible:
+            continue
+        selected = eligible[0]
+        if invalidated:
+            if not successors:
+                raise ValueError(
+                    "transition-invalidated result coexists with a non-successor: "
+                    f"{execution_id}"
+                )
+            selected = successors[0]
+            for old in invalidated:
+                if old["case"] != selected["case"]:
+                    raise ValueError(
+                        f"superseding result changed case identity: {execution_id}"
+                    )
+                if old["final_state"] != selected["final_state"]:
+                    raise ValueError(
+                        f"superseding result changed final state: {execution_id}"
+                    )
+                assert result_supersedence_policy is not None
+                metric = result_supersedence_policy["affected_metric"]
+                superseded_result_rows.append(
+                    {
+                        "execution_id": execution_id,
+                        "system": selected["case"]["system"],
+                        "affected_metric": metric,
+                        "affected_metric_value": old["scalar_metrics"][metric],
+                        "old_plugin_sha256": old["plugin_sha256"],
+                        "new_plugin_sha256": selected["plugin_sha256"],
+                        "old_cycles": old["row"]["cycles"],
+                        "new_cycles": selected["row"]["cycles"],
+                        "case_identity_match": True,
+                        "final_state_match": True,
+                    }
+                )
+        by_execution[execution_id] = selected
+    superseded_result_rows.sort(
+        key=lambda row: (str(row["execution_id"]), str(row["old_plugin_sha256"]))
+    )
 
     system_rows = [_normalized_system_row(result) for result in by_execution.values()]
     activity_rows = [
@@ -742,6 +847,9 @@ def analyze_publication_case_results(
     for execution_id in sorted(coverage_ids):
         metadata = expected_records.get(execution_id, {})
         result = by_execution.get(execution_id)
+        was_invalidated = (
+            bool(invalidated_results.get(execution_id)) and result is None
+        )
         case = result["case"] if result is not None else {}
         normalized = (
             _normalized_system_row(result) if result is not None else {}
@@ -768,7 +876,11 @@ def analyze_publication_case_results(
                     "observed_pass"
                     if is_expected and is_observed
                     else (
-                        "missing"
+                        (
+                            "invalidated_by_behavior_transition"
+                            if was_invalidated
+                            else "missing"
+                        )
                         if is_expected
                         else "unexpected_observed_pass"
                     )
@@ -835,6 +947,11 @@ def analyze_publication_case_results(
         "capacity_excluded_executions": len(capacity_exclusion_records),
         "contract_executions": len(expected) + len(capacity_exclusion_records),
         "duplicate_executions": sum(count - 1 for count in duplicate_counts.values()),
+        "transition_invalidated_execution_ids": sorted(
+            execution_id
+            for execution_id, rows in invalidated_results.items()
+            if rows and execution_id not in by_execution
+        ),
         "complete_triplets": sum(
             bool(row["complete_triplet"]) for row in correctness_groups
         ),
@@ -848,12 +965,16 @@ def analyze_publication_case_results(
         "component_activity_rows": activity_rows,
         "pair_rows": pair_rows,
         "correctness_groups": correctness_groups,
+        "superseded_result_rows": superseded_result_rows,
     }
 
 
 def load_case_results(roots: Sequence[Path]) -> list[dict[str, Any]]:
     paths: set[Path] = set()
     for root in roots:
+        direct = root.resolve() / "case_result.json"
+        if direct.is_file():
+            paths.add(direct)
         paths.update(root.resolve().glob("runs/*/case_result.json"))
     return [json.loads(path.read_text(encoding="ascii")) for path in sorted(paths)]
 
@@ -1012,6 +1133,7 @@ def write_publication_analysis(output_dir: Path, analysis: Mapping[str, Any]) ->
         "component_activity_rows",
         "pair_rows",
         "correctness_groups",
+        "superseded_result_rows",
     ):
         rows = list(analysis[name])
         path = output_dir / f"{name}.csv"
