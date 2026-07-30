@@ -108,3 +108,10 @@ identity and final state. Device time changes from 123,744 to 123,762 cycles
 (+18 cycles, +0.0145%). Both correctness oracles and all request/response/DRAM
 ledgers pass. The machine-readable transition record is
 `docs/evidence/spine_skip_fit_hot_v7_pokec_successor_20260730.json`.
+
+The full reciprocal StackOverflow connected-components successor
+`fe200a697fdba56a2251` provides a second affected algorithm and topology.
+Resident hot edges fall from 27,172,463 to 24,204,074, exact case identity and
+final state are preserved, and cycles fall from 25,547,188 to 25,478,996
+(-68,192 cycles, -0.267%). Its dual-oracle and conservation evidence is in
+`docs/evidence/spine_skip_fit_hot_v7_stack_cc_successor_20260730.json`.
