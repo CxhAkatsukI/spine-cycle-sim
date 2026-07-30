@@ -10,6 +10,7 @@ group_id,dataset_id,algorithm,scenario,batch_size,systems_present,missing_system
 c78a997ac5a1792c2731,rmat_19_32,weighted_sssp,insert,8,spine,grasu_regraph_k4_shared,False,False,True,canonical_exact_sha256,True,0.0,0.0,0.0
 d08a6fa0d85a760bd51d,sx_stackoverflow,connected_components,insert,8,spine,grasu_regraph_k4_shared,False,False,True,canonical_exact_sha256,True,0.0,0.0,0.0
 d3affb931842f363228f,sx_superuser,weighted_sssp,insert,8,grasu_regraph_k4_shared+spine,,True,True,True,canonical_exact_sha256,True,0.0,0.0,0.0
+e4a1843d1b9d1a5b3e76,soc_livejournal1,weighted_sssp,insert,8,spine,grasu_regraph_k4_shared,False,False,True,canonical_exact_sha256,True,0.0,0.0,0.0
 ecd674904ebc750b3ea3,sx_askubuntu,connected_components,insert,8,grasu_regraph_k4_shared+spine,,True,True,True,canonical_exact_sha256,True,0.0,0.0,0.0
 fe3cb2f0baf58d1fe298,wiki_talk_temporal,thresholded_residual_pagerank,insert,8,grasu_regraph_k4_shared+spine,,True,True,True,canonical_exact_sha256,True,0.0,0.0,0.0
 ffd1ef59366403da0be8,sx_askubuntu,weighted_sssp,insert,8,grasu_regraph_k4_shared+spine,,True,True,True,canonical_exact_sha256,True,0.0,0.0,0.0

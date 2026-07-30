@@ -115,3 +115,11 @@ Resident hot edges fall from 27,172,463 to 24,204,074, exact case identity and
 final state are preserved, and cycles fall from 25,547,188 to 25,478,996
 (-68,192 cycles, -0.267%). Its dual-oracle and conservation evidence is in
 `docs/evidence/spine_skip_fit_hot_v7_stack_cc_successor_20260730.json`.
+
+The full directed LiveJournal weighted-SSSP successor
+`e0e70d282abd77e5201f` extends the transition evidence to a third topology.
+Resident hot edges fall from 70,682,914 to 66,855,991 (3,826,923 fewer), while
+exact case identity, final state, and 294,699 device cycles are unchanged. Both
+correctness oracles and all request/response/DRAM ledgers pass. Its
+machine-readable transition record is
+`docs/evidence/spine_skip_fit_hot_v7_livejournal_successor_20260730.json`.
