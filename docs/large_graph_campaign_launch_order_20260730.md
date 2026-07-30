@@ -188,3 +188,61 @@ It additionally requires `unique_intents >= backend_requests`; a request that
 reached HBM without a corresponding arbitration intent remains fatal. The CSV
 row records both `backend_arbitration_unique_intents` and the derived retried
 intent count. This changes evidence admission only, not simulated timing.
+
+## Formal-v7 skip-fit transition
+
+The Orkut Spine SSSP attempt exposed a host-placement false rejection: the
+global automatic-hot candidate list could promote a destination from a cold
+partition that already met its target, consuming fixed hot-shard capacity
+without helping the overflowing partition. Formal-v7 freezes the corrected
+classifier, simulator plugin, and HLS host helper described in
+`docs/spine_skip_fit_hot_promotion_v7_20260730.md`.
+
+The formal-v7 plugin is
+`1c0b0a9adb245e919e77cedb39b731551befc1f0ca4101a519dce176d9edf057`.
+The analysis is fail-closed: a v6 Spine result with nonzero
+`resident_hot_edges` is invalidated until an identical-case v7 successor with
+identical final state completes. Zero-hot v6 rows and all GraSU+ReGraph rows
+remain eligible.
+
+Four memory-controlled services implement the transition:
+
+- `formal-v7-stack-spine-cc` runs the StackOverflow Spine CC successor;
+- `formal-v7-pokec-spine` fills the measured-safe memory gap with the Pokec
+  Spine SSSP successor;
+- `formal-v7-orkut-spine` waits for at least the 64 GiB admission reserve
+  before starting Orkut;
+- `formal-v7-successor-chain` waits for Orkut to pass, then runs the remaining
+  LiveJournal, Hollywood, and LJournal successors one at a time.
+
+The two active StackOverflow K4 jobs consume approximately 88 GiB together.
+Stack CC and Pokec have generated estimates of 17.38 and 18.15 GiB and are
+protected by a 48 GiB emergency threshold. Orkut is estimated at 64 GiB and is
+therefore queued until `MemAvailable >= 128 GiB`; it cannot race the two
+smaller gap-filling jobs into an OOM condition. The host has no swap, so the
+48 GiB emergency margin is not optional.
+
+Monitor the active waves with:
+
+```bash
+watch -n 5 '
+python3 scripts/monitor_large_graph_campaign.py \
+  --run-dir /data/tmp/chuxiao/large_graph_campaign_v1/formal_v6_stackoverflow_k4_three_algorithm_sidecar/run \
+  --max-rows 5
+python3 scripts/monitor_large_graph_campaign.py \
+  --run-dir /data/tmp/chuxiao/large_graph_campaign_v1/formal_v7_stack_spine_cc/run \
+  --max-rows 5
+python3 scripts/monitor_large_graph_campaign.py \
+  --run-dir /data/tmp/chuxiao/large_graph_campaign_v1/formal_v7_pokec_spine_sssp_sidecar/run \
+  --max-rows 5
+python3 scripts/monitor_large_graph_campaign.py \
+  --run-dir /data/tmp/chuxiao/large_graph_campaign_v1/formal_v7_orkut_spine_sssp/run \
+  --max-rows 5
+free -h'
+```
+
+`formal-v7-analysis-watcher` fingerprints every relevant v6/v7 case result.
+On a change it runs `scripts/refresh_formal_v7_report.sh`, rebuilding the
+correctness-gated CSVs, GraphyFlow-style SVG/PDF figures, TeX/PDF report, and
+minimum-package audit. Generated changes are never committed by the watcher;
+they remain subject to explicit review.
