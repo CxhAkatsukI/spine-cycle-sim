@@ -49,6 +49,12 @@ FULLGRAPH_V5_CONTRACT = (
     / "contracts"
     / "large_graph_publication_campaign_fullgraph_v5.json"
 )
+FULLGRAPH_V6_CONTRACT = (
+    ROOT
+    / "configs"
+    / "contracts"
+    / "large_graph_publication_campaign_fullgraph_v6.json"
+)
 DATASET_ROOT = Path("/data/feiyang/Graph_Datasets")
 
 
@@ -134,6 +140,35 @@ class LargeGraphCampaignTests(unittest.TestCase):
             contract["experiment_matrix"], previous["experiment_matrix"]
         )
         self.assertEqual(contract["datasets"], previous["datasets"])
+
+    def test_fullgraph_v6_freezes_warm_sssp_measurement(self) -> None:
+        contract = load_large_graph_campaign_contract(FULLGRAPH_V6_CONTRACT)
+        simulator = contract["architecture_baselines"]["simulator_baseline"]
+        self.assertEqual(
+            simulator["plugin_sha256"],
+            "96b4375f8549016ac8be36d85b04b4b5730df0af477dcc5909903845a8f56919",
+        )
+        self.assertEqual(
+            simulator["source_commit"],
+            "957f29420f4c4a513794d01c0a373dcb10c21a6f",
+        )
+        self.assertEqual(
+            simulator["measurement_window"]["positive_weighted_sssp"],
+            "untimed_verified_old_graph_state_then_timed_update",
+        )
+        weighted = contract["workload_semantics"]["weighted_sssp"]
+        self.assertEqual(weighted["primary_source_cohort"], "median_degree")
+        self.assertEqual(
+            weighted["source_cohort_roles"]["high_degree"], "stress_only"
+        )
+        self.assertEqual(
+            weighted["positive_insertion_measurement_window"],
+            "dynamic_update_only",
+        )
+        self.assertEqual(
+            contract["claim_boundary"]["weighted_sssp_bootstrap"],
+            "reported_separately_and_excluded_from_dynamic_e2e",
+        )
 
     def test_publication_launches_k4_before_k1_for_the_same_workload(self) -> None:
         priorities = {

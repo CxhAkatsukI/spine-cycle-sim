@@ -10,9 +10,11 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = ROOT / "configs/contracts/large_graph_publication_campaign_v1.json"
+SOURCE = (
+    ROOT / "configs/contracts/large_graph_publication_campaign_fullgraph_v5.json"
+)
 TARGET = (
-    ROOT / "configs/contracts/large_graph_publication_campaign_fullgraph_v2.json"
+    ROOT / "configs/contracts/large_graph_publication_campaign_fullgraph_v6.json"
 )
 CATALOG = ROOT / "configs/contracts/grasu_regraph_full_graph_capabilities_v7.json"
 
@@ -54,22 +56,25 @@ def sha256(path: Path) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--source-contract", type=Path, default=SOURCE)
     parser.add_argument("--plugin", type=Path, required=True)
     parser.add_argument("--output", type=Path, default=TARGET)
     parser.add_argument(
         "--contract-id",
-        default="large_graph_publication_campaign_fullgraph_v2_20260729",
+        default="large_graph_publication_campaign_fullgraph_v6_20260730",
     )
     parser.add_argument(
-        "--milestone", default="fullgraph_v7_interleaved_23pc_native_o3_lto"
+        "--milestone", default="fullgraph_v10_warm_sssp_native_o3_lto"
     )
+    parser.add_argument("--source-revision")
     parser.add_argument("--nonmonotonic-sssp-edge-cap", type=int)
     args = parser.parse_args()
     plugin = args.plugin.resolve()
     if not plugin.is_file():
         raise FileNotFoundError(f"missing SST plugin: {plugin}")
 
-    contract = json.loads(SOURCE.read_text(encoding="ascii"))
+    source_contract = args.source_contract.resolve()
+    contract = json.loads(source_contract.read_text(encoding="ascii"))
     contract["contract_id"] = args.contract_id
     baselines = contract["architecture_baselines"]
     for system, algorithms in PROFILE_NAMES.items():
@@ -90,10 +95,31 @@ def main() -> int:
         "path": str(CATALOG.relative_to(ROOT)),
         "sha256": sha256(CATALOG),
     }
-    baselines["simulator_baseline"] = {
-        "milestone": args.milestone,
-        "plugin_sha256": sha256(plugin),
-    }
+    simulator = dict(baselines.get("simulator_baseline", {}))
+    prior_plugin = simulator.get("plugin_sha256")
+    plugin_digest = sha256(plugin)
+    simulator.update(
+        {
+            "milestone": args.milestone,
+            "plugin_sha256": plugin_digest,
+            "measurement_window": {
+                "bootstrap": "reported_separately_not_in_dynamic_e2e",
+                "positive_weighted_sssp": (
+                    "untimed_verified_old_graph_state_then_timed_update"
+                ),
+            },
+        }
+    )
+    if args.source_revision:
+        simulator["source_commit"] = args.source_revision
+    supersedence = simulator.get("result_supersedence")
+    if isinstance(supersedence, dict):
+        old_hashes = list(supersedence.get("superseded_plugin_sha256", []))
+        if isinstance(prior_plugin, str) and prior_plugin not in old_hashes:
+            old_hashes.append(prior_plugin)
+        supersedence["superseded_plugin_sha256"] = old_hashes
+        supersedence["superseding_plugin_sha256"] = plugin_digest
+    baselines["simulator_baseline"] = simulator
     contract["claim_boundary"]["grasu_regraph_full_graph_addressing"] = (
         "simulator_only_capacity_checked_23pc_mapper_hls_integration_pending"
     )
@@ -112,6 +138,25 @@ def main() -> int:
                 ),
             }
         )
+    weighted = contract["workload_semantics"]["weighted_sssp"]
+    weighted.update(
+        {
+            "primary_source_cohort": "median_degree",
+            "source_cohort_roles": {
+                "high_degree": "stress_only",
+                "median_degree": "headline_primary",
+                "random_reachable": "sensitivity_holdout",
+            },
+            "positive_insertion_measurement_window": "dynamic_update_only",
+        }
+    )
+    contract["claim_boundary"]["weighted_sssp_bootstrap"] = (
+        "reported_separately_and_excluded_from_dynamic_e2e"
+    )
+    contract["provenance"] = {
+        "source_contract": str(source_contract.relative_to(ROOT)),
+        "source_contract_sha256": sha256(source_contract),
+    }
     args.output.write_text(
         json.dumps(contract, indent=2, sort_keys=True) + "\n", encoding="ascii"
     )
