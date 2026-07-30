@@ -19,6 +19,12 @@ DEFAULT_UPDATE_ANALYSIS = Path(
     "/data/tmp/chuxiao/large_graph_campaign_v1/formal_v6_au_update_analysis"
 )
 DEFAULT_COMPONENT_POWER = ROOT / "docs/paper/data/component_power.csv"
+DEFAULT_CONTRACT = (
+    ROOT / "configs/contracts/large_graph_publication_campaign_fullgraph_v6.json"
+)
+DEFAULT_MATERIALIZATION_ROOT = Path(
+    "/data/tmp/chuxiao/large_graph_campaign_v1/workloads"
+)
 DATASET_ORDER = {
     name: index
     for index, name in enumerate(
@@ -184,6 +190,44 @@ def admitted_update_pairs(rows: list[dict[str, str]]) -> list[dict[str, Any]]:
     for index, row in enumerate(selected):
         row["index"] = index
     return selected
+
+
+def publication_dataset_scope(
+    contract: dict[str, Any], materialization_root: Path
+) -> dict[str, Any]:
+    rows = []
+    for dataset in contract["datasets"]:
+        dataset_id = str(dataset["dataset_id"])
+        path = materialization_root / dataset_id / "materialization_manifest.json"
+        manifest = json.loads(path.read_text(encoding="ascii"))
+        if manifest.get("dataset_id") != dataset_id:
+            raise ValueError(f"materialization dataset mismatch: {path}")
+        capacity = manifest.get("capacity")
+        if not isinstance(capacity, dict):
+            raise ValueError(f"materialization lacks capacity evidence: {path}")
+        rows.append(
+            {
+                "dataset_id": dataset_id,
+                "abbreviation": str(dataset["abbreviation"]),
+                "vertices": int(capacity["vertices"]),
+                "spine_max_vertices": int(capacity["spine_max_vertices"]),
+                "spine_full_graph_admitted": bool(
+                    capacity["spine_full_graph_admitted"]
+                ),
+                "manifest": str(path.resolve()),
+            }
+        )
+    maximums = {row["spine_max_vertices"] for row in rows}
+    if len(maximums) != 1:
+        raise ValueError("materializations disagree on Spine vertex capacity")
+    return {
+        "catalog_datasets": len(rows),
+        "admitted_datasets": sum(
+            int(row["spine_full_graph_admitted"]) for row in rows
+        ),
+        "spine_max_vertices": maximums.pop(),
+        "rows": rows,
+    }
 
 
 def configure_matplotlib() -> Any:
@@ -482,7 +526,16 @@ def render_tex(
     summary: dict[str, Any],
     pairs: list[dict[str, Any]],
     update_pairs: list[dict[str, Any]],
+    dataset_scope: dict[str, Any],
 ) -> str:
+    excluded = [
+        row for row in dataset_scope["rows"]
+        if not row["spine_full_graph_admitted"]
+    ]
+    excluded_text = ", ".join(
+        f"{tex_escape(row['abbreviation'])} ({row['vertices']:,} vertices)"
+        for row in excluded
+    )
     return rf"""\documentclass[10pt]{{article}}
 \usepackage[margin=0.72in]{{geometry}}
 \usepackage{{booktabs}}
@@ -519,6 +572,14 @@ final-state comparison, and request, response, and DRAM conservation.
 \input{{\vdatadir/measurement_table.tex}}
 \caption{{Measurement windows observed in admitted formal-v6 rows.}}
 \end{{table}}
+
+\paragraph{{Dataset scope.}}
+The frozen corpus contains {dataset_scope['catalog_datasets']} real datasets;
+{dataset_scope['admitted_datasets']} enter the full-graph comparison. The
+remaining datasets, {excluded_text}, exceed the frozen Spine capacity of
+{dataset_scope['spine_max_vertices']:,} vertices. They are capacity exclusions,
+not failed or selectively removed performance rows, and no slices replace them
+in the full-graph aggregate.
 
 \paragraph{{SSSP interpretation.}}
 Spine starts from a verified persisted old-graph SSSP state and measures the
@@ -618,6 +679,12 @@ def main() -> int:
     parser.add_argument(
         "--component-power", type=Path, default=DEFAULT_COMPONENT_POWER
     )
+    parser.add_argument("--contract", type=Path, default=DEFAULT_CONTRACT)
+    parser.add_argument(
+        "--materialization-root",
+        type=Path,
+        default=DEFAULT_MATERIALIZATION_ROOT,
+    )
     args = parser.parse_args()
     summary = json.loads(
         (args.analysis_dir / "summary.json").read_text(encoding="ascii")
@@ -626,6 +693,8 @@ def main() -> int:
     update_pairs = admitted_update_pairs(
         read_csv(args.update_analysis_dir / "pair_rows.csv")
     )
+    contract = json.loads(args.contract.read_text(encoding="ascii"))
+    dataset_scope = publication_dataset_scope(contract, args.materialization_root)
     system_rows = read_csv(args.analysis_dir / "system_rows.csv")
     args.figure_dir.mkdir(parents=True, exist_ok=True)
     args.data_dir.mkdir(parents=True, exist_ok=True)
@@ -645,7 +714,13 @@ def main() -> int:
     (args.data_dir / "summary.json").write_text(
         json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="ascii"
     )
-    args.tex.write_text(render_tex(summary, pairs, update_pairs), encoding="ascii")
+    (args.data_dir / "dataset_scope.json").write_text(
+        json.dumps(dataset_scope, indent=2, sort_keys=True) + "\n",
+        encoding="ascii",
+    )
+    args.tex.write_text(
+        render_tex(summary, pairs, update_pairs, dataset_scope), encoding="ascii"
+    )
     print(
         f"PASS formal-v6 report inputs: observed={summary['observed_executions']} "
         f"pairs={len(pairs)} update_pairs={len(update_pairs)}"

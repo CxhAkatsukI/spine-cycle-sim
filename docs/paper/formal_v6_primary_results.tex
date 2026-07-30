@@ -35,6 +35,14 @@ final-state comparison, and request, response, and DRAM conservation.
 \caption{Measurement windows observed in admitted formal-v6 rows.}
 \end{table}
 
+\paragraph{Dataset scope.}
+The frozen corpus contains 11 real datasets;
+9 enter the full-graph comparison. The
+remaining datasets, BC (24,575,382 vertices), UK (18,520,486 vertices), exceed the frozen Spine capacity of
+16,777,216 vertices. They are capacity exclusions,
+not failed or selectively removed performance rows, and no slices replace them
+in the full-graph aggregate.
+
 \paragraph{SSSP interpretation.}
 Spine starts from a verified persisted old-graph SSSP state and measures the
 accepted update, automatic active-source discovery, incremental propagation,
