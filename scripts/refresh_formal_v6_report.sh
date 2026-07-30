@@ -19,6 +19,7 @@ SOURCE_DATE_EPOCH="${source_date_epoch}" FORCE_SOURCE_DATE=1 \
     docs/paper/formal_v6_primary_results.tex
 SOURCE_DATE_EPOCH="${source_date_epoch}" FORCE_SOURCE_DATE=1 \
   latexmk -c -cd docs/paper/formal_v6_primary_results.tex
+python3 scripts/audit_formal_v6_evidence_package.py
 
 printf 'PASS formal-v6 report: %s\n' \
   "${root}/docs/paper/formal_v6_primary_results.pdf"

@@ -115,9 +115,15 @@ def admitted_pairs(rows: list[dict[str, str]]) -> list[dict[str, Any]]:
         spine_energy = float(row["spine_dram_energy_pj"])
         selected.append(
             {
+                "group_id": row.get("group_id", ""),
                 "dataset_id": row["dataset_id"],
+                "dataset_kind": row.get(
+                    "dataset_kind",
+                    "synthetic" if row["dataset_id"] == "rmat_19_32" else "real",
+                ),
                 "dataset": DATASET_LABEL[row["dataset_id"]],
                 "algorithm": row["algorithm"],
+                "competitor": row["competitor"],
                 "algorithm_label": ALGORITHM_LABEL[row["algorithm"]],
                 "label": (
                     f"{DATASET_LABEL[row['dataset_id']]}-"
