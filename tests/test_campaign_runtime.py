@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import subprocess
 import sys
 import tempfile
 import time
@@ -452,6 +453,59 @@ class CampaignRuntimeTest(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "invalid host reservation ledger"):
                 runner._launch_ready()
             self.assertFalse(runner.running)
+
+    def test_host_reservation_lock_serializes_independent_processes(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            reservation_path = root / "host-reservations.json"
+            marker_path = root / "holder-ready"
+            observed_path = root / "observed"
+            holder_program = "\n".join(
+                (
+                    "import os, pathlib, time",
+                    "from spine_cycle_sim.experiments.campaign_runtime import "
+                    "locked_host_reservations, process_identity",
+                    f"path = pathlib.Path({str(reservation_path)!r})",
+                    f"marker = pathlib.Path({str(marker_path)!r})",
+                    "with locked_host_reservations(path) as reservations:",
+                    "    process_group, start_ticks = process_identity(os.getpid())",
+                    "    reservations.append({",
+                    "        'run_dir': 'holder', 'job_id': 'holder',",
+                    "        'process': os.getpid(), 'process_group': process_group,",
+                    "        'start_ticks': start_ticks, 'estimated_rss_bytes': 1,",
+                    "    })",
+                    "    marker.write_text('ready', encoding='ascii')",
+                    "    time.sleep(0.5)",
+                    "time.sleep(0.5)",
+                )
+            )
+            observer_program = "\n".join(
+                (
+                    "import pathlib",
+                    "from spine_cycle_sim.experiments.campaign_runtime import "
+                    "locked_host_reservations",
+                    f"path = pathlib.Path({str(reservation_path)!r})",
+                    f"observed = pathlib.Path({str(observed_path)!r})",
+                    "with locked_host_reservations(path) as reservations:",
+                    "    observed.write_text(str(len(reservations)), encoding='ascii')",
+                )
+            )
+            holder = subprocess.Popen([sys.executable, "-c", holder_program])
+            try:
+                deadline = time.monotonic() + 5.0
+                while not marker_path.exists() and time.monotonic() < deadline:
+                    time.sleep(0.01)
+                self.assertTrue(marker_path.exists())
+                observer = subprocess.run(
+                    [sys.executable, "-c", observer_program],
+                    check=False,
+                    timeout=5.0,
+                )
+                self.assertEqual(observer.returncode, 0)
+                self.assertEqual(observed_path.read_text(encoding="ascii"), "1")
+            finally:
+                holder.terminate()
+                holder.wait(timeout=5.0)
 
 
 if __name__ == "__main__":
