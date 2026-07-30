@@ -669,6 +669,34 @@ only as host-runtime evidence and never enter accelerator-performance
 aggregates.{preflight_text}"""
 
 
+def behavior_transition_tex(
+    coverage_rows: list[dict[str, str]],
+) -> str:
+    invalidated = [
+        row
+        for row in coverage_rows
+        if row.get("coverage_status")
+        == "invalidated_by_behavior_transition"
+    ]
+    if not invalidated:
+        return ""
+    invalidated.sort(
+        key=lambda row: (
+            DATASET_ORDER.get(row.get("dataset_id", ""), 10_000),
+            ALGORITHM_ORDER.get(row.get("algorithm", ""), 10_000),
+        )
+    )
+    labels = ", ".join(
+        f"{tex_escape(DATASET_LABEL.get(row['dataset_id'], row['dataset_id']))}-"
+        f"{tex_escape(ALGORITHM_LABEL.get(row['algorithm'], row['algorithm']))}"
+        for row in invalidated
+    )
+    return rf"""\paragraph{{Behavior-transition coverage.}}
+The following {len(invalidated)} prior Spine rows are deliberately absent
+until identical-case successors pass with identical final state: {labels}.
+They are not failures, zeros, or inputs to any aggregate."""
+
+
 def render_tex(
     summary: dict[str, Any],
     pairs: list[dict[str, Any]],
@@ -676,6 +704,7 @@ def render_tex(
     dataset_scope: dict[str, Any],
     rq3_summary: dict[str, Any],
     wall_time_projection: dict[str, Any],
+    transition_coverage_rows: list[dict[str, str]] | None = None,
     *,
     report_version: str = "v6",
     artifact_prefix: str = "formal_v6",
@@ -690,6 +719,7 @@ def render_tex(
         for row in excluded
     )
     wall_time_text = wall_time_feasibility_tex(wall_time_projection)
+    transition_text = behavior_transition_tex(transition_coverage_rows or [])
     return rf"""\documentclass[10pt]{{article}}
 \usepackage[margin=0.72in]{{geometry}}
 \usepackage{{booktabs}}
@@ -759,6 +789,8 @@ receive a declared scope exclusion before the matrix can be called complete.
 Device cycles, accepted memory bytes, and
 DRAMSim3 HBM energy are simulator outputs. They do not claim cycle-for-cycle
 FPGA calibration, on-chip dynamic energy, or total board power.
+
+{transition_text}
 
 {wall_time_text}
 
@@ -959,6 +991,7 @@ def main() -> int:
         if not path.is_file():
             raise FileNotFoundError(path)
     system_rows = read_csv(args.analysis_dir / "system_rows.csv")
+    coverage_rows = read_csv(args.analysis_dir / "execution_coverage_rows.csv")
     args.figure_dir.mkdir(parents=True, exist_ok=True)
     args.data_dir.mkdir(parents=True, exist_ok=True)
     if not args.report_version or not args.artifact_prefix:
@@ -989,6 +1022,7 @@ def main() -> int:
         ("execution_coverage_rows.csv", "execution_coverage.csv"),
         ("correctness_groups.csv", "correctness_groups.csv"),
         ("capacity_exclusion_rows.csv", "capacity_exclusions.csv"),
+        ("superseded_result_rows.csv", "superseded_results.csv"),
     ):
         write_csv(
             args.data_dir / output_name,
@@ -1013,6 +1047,7 @@ def main() -> int:
             dataset_scope,
             rq3_summary,
             wall_time_projection,
+            transition_coverage_rows=coverage_rows,
             report_version=args.report_version,
             artifact_prefix=args.artifact_prefix,
             data_subdir=args.data_dir.name,

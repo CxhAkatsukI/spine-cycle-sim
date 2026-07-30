@@ -47,7 +47,6 @@ if [[ ! -s "${manifest}" ]]; then
     --capability-catalog \
       configs/contracts/grasu_regraph_full_graph_capabilities_v7.json \
     --tier main_e2e \
-    --dataset soc_livejournal1 \
     --dataset hollywood_2009 \
     --dataset ljournal_2008 \
     --algorithm weighted_sssp \

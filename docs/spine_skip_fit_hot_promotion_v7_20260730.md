@@ -100,3 +100,11 @@ audit is `docs/evidence/spine_skip_fit_hot_v7_canary_20260730.json`.
 Orkut remains a required large affected case. It must be run with the v7
 contract and plugin under the campaign memory circuit breaker; a successful
 unit test or canary is not a substitute for that result.
+
+The first affected successor is the full directed Pokec weighted-SSSP case
+`a481b5d34abacf23343c`. Relative to v6, the corrected classifier reduces
+resident hot edges from 37,694,419 to 36,767,229 while preserving exact case
+identity and final state. Device time changes from 123,744 to 123,762 cycles
+(+18 cycles, +0.0145%). Both correctness oracles and all request/response/DRAM
+ledgers pass. The machine-readable transition record is
+`docs/evidence/spine_skip_fit_hot_v7_pokec_successor_20260730.json`.

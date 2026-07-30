@@ -7,12 +7,32 @@ import unittest
 
 from scripts.render_formal_v6_primary import (
     admitted_pairs,
+    behavior_transition_tex,
     publication_dataset_scope,
     wall_time_feasibility_tex,
 )
 
 
 class FormalV6ReportTests(unittest.TestCase):
+    def test_behavior_transition_lists_only_invalidated_rows(self) -> None:
+        text = behavior_transition_tex(
+            [
+                {
+                    "dataset_id": "soc_pokec",
+                    "algorithm": "weighted_sssp",
+                    "coverage_status": "invalidated_by_behavior_transition",
+                },
+                {
+                    "dataset_id": "sx_stackoverflow",
+                    "algorithm": "connected_components",
+                    "coverage_status": "observed_pass",
+                },
+            ]
+        )
+        self.assertIn("following 1 prior Spine rows", text)
+        self.assertIn("PK-SSSP", text)
+        self.assertNotIn("SO-CC", text)
+
     def test_wall_time_projection_is_explicitly_not_performance(self) -> None:
         text = wall_time_feasibility_tex(
             {

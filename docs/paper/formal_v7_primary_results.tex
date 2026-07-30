@@ -21,7 +21,7 @@
 \begin{document}
 \maketitle
 \begin{abstract}
-This live report contains 21 of
+This live report contains 23 of
 36 expected formal-v7 executions and
 9 complete Spine/K4-shared pairs. Missing bars are unfinished,
 policy-stopped, or behavior-transition-invalidated executions awaiting an
@@ -68,6 +68,11 @@ Device cycles, accepted memory bytes, and
 DRAMSim3 HBM energy are simulator outputs. They do not claim cycle-for-cycle
 FPGA calibration, on-chip dynamic energy, or total board power.
 
+\paragraph{Behavior-transition coverage.}
+The following 3 prior Spine rows are deliberately absent
+until identical-case successors pass with identical final state: LJ-SSSP, LJ08-SSSP, HW-SSSP.
+They are not failures, zeros, or inputs to any aggregate.
+
 \paragraph{Full-graph wall-time feasibility.}
 An execution-feasibility model fitted to 3 completed,
 correctness-admitted K4-shared SSSP rows projects total host times of SO 105.7 h, PK 342.2 h
@@ -79,11 +84,11 @@ only as host-runtime evidence and never enter accelerator-performance
 aggregates. The validated R19 preflight requires 10 supersteps over 15,483,485 directed records and projects 52.8 h at the median completed-run simulator rate; it was not launched.
 
 \paragraph{Machine-checked evidence audit.}
-All 21 observed executions pass
+All 23 observed executions pass
 their individual architecture and mathematical correctness gates, closed AXI/HBM
 arbitration and traffic ledgers, and DRAM request conservation. Component-level
 activity is present for all observed executions
-(135 normalized component rows).
+(147 normalized component rows).
 
 \clearpage
 \section{Current primary comparison}

@@ -23,6 +23,7 @@ result_roots = (
     root / "formal_v7_orkut_spine_sssp" / "runs",
     root / "formal_v7_stack_spine_cc" / "runs",
     root / "formal_v7_pokec_spine_sssp_sidecar" / "runs",
+    root / "formal_v7_livejournal_spine_sssp_sidecar" / "runs",
     root / "formal_v7_hot_transition_successors" / "runs",
 )
 digest = hashlib.sha256()
