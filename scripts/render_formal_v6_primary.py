@@ -126,6 +126,8 @@ def admitted_pairs(rows: list[dict[str, str]]) -> list[dict[str, Any]]:
                 "spine_cycles": int(float(row["spine_cycles"])),
                 "k4_cycles": int(float(row["competitor_cycles"])),
                 "spine_speedup": float(row["spine_speedup"]),
+                "spine_host_wall_seconds": float(row["spine_host_wall_seconds"]),
+                "k4_host_wall_seconds": float(row["competitor_host_wall_seconds"]),
                 "spine_memory_bytes": int(float(row["spine_memory_bytes"])),
                 "k4_memory_bytes": int(float(row["competitor_memory_bytes"])),
                 "spine_discontinuous_fraction": float(
@@ -461,6 +463,75 @@ def render_component_power_figure(
     plt.close(figure)
 
 
+def render_simulator_runtime_figure(
+    rows: list[dict[str, Any]], output: Path
+) -> None:
+    if not rows:
+        raise ValueError("formal v6 runtime report has no complete Spine/K4 pair")
+    plt = configure_matplotlib()
+    figure, axes = plt.subplots(2, 1, figsize=(7.4, 4.5), sharex=True)
+    x_positions = list(range(len(rows)))
+    labels = [str(row["label"]) for row in rows]
+    width = 0.34
+    endpoint_index = next(
+        (index for index, row in enumerate(rows) if row["dataset_id"] == "rmat_19_32"),
+        None,
+    )
+    spine_wall = [float(row["spine_host_wall_seconds"]) for row in rows]
+    k4_wall = [float(row["k4_host_wall_seconds"]) for row in rows]
+    spine_rate = [
+        float(row["spine_cycles"]) / wall / 1000.0 if wall > 0.0 else 0.0
+        for row, wall in zip(rows, spine_wall, strict=True)
+    ]
+    k4_rate = [
+        float(row["k4_cycles"]) / wall / 1000.0 if wall > 0.0 else 0.0
+        for row, wall in zip(rows, k4_wall, strict=True)
+    ]
+    for axis, spine_values, k4_values, ylabel in (
+        (axes[0], spine_wall, k4_wall, "Host wall time (s)"),
+        (axes[1], spine_rate, k4_rate, "Simulator throughput (kcycle/s)"),
+    ):
+        axis.bar(
+            [position - width / 2 for position in x_positions],
+            spine_values,
+            width,
+            facecolor="white",
+            edgecolor="#1f77b4",
+            hatch="///",
+            linewidth=1.0,
+            label="Spine",
+        )
+        axis.bar(
+            [position + width / 2 for position in x_positions],
+            k4_values,
+            width,
+            facecolor="white",
+            edgecolor="#d95f02",
+            hatch="\\\\\\",
+            linewidth=1.0,
+            label="G+R K4-shared",
+        )
+        positive = [value for value in spine_values + k4_values if value > 0.0]
+        if positive and max(positive) / min(positive) >= 10.0:
+            axis.set_yscale("log")
+        if endpoint_index not in {None, 0}:
+            axis.axvline(
+                float(endpoint_index) - 0.5,
+                color="0.35",
+                linestyle=":",
+                linewidth=1.0,
+            )
+        axis.set_ylabel(ylabel)
+        axis.grid(axis="y", linestyle="--", color="0.65", alpha=0.5, zorder=0)
+        axis.tick_params(direction="in", top=True, right=True, length=4)
+    axes[0].legend(frameon=False, ncols=2, loc="upper left")
+    axes[1].set_xticks(x_positions, labels, rotation=30, ha="right")
+    axes[1].set_xlabel("Dataset-algorithm pair")
+    figure.tight_layout()
+    save_vector_figure(figure, output)
+    plt.close(figure)
+
+
 def render_update_figure(rows: list[dict[str, Any]], output: Path) -> None:
     if not rows:
         raise ValueError("formal v6 update report has no complete Spine/K4 pair")
@@ -680,6 +751,22 @@ GraSU's PMA update advantage. It must not be read as end-to-end dynamic graph
 service latency, which also includes differential discovery and propagation.
 
 \clearpage
+\section{{Simulator execution cost}}
+\begin{{figure}}[H]
+\centering
+\includegraphics[width=0.98\linewidth]{{\vfigdir/formal_v6_simulator_runtime.pdf}}
+\caption{{Host wall time and simulated-device-cycle throughput for the
+correctness-matched pairs. These are simulator engineering diagnostics under
+the recorded campaign concurrency, not accelerator latency or a
+cross-architecture performance metric.}}
+\end{{figure}}
+
+\paragraph{{Use boundary.}}
+Wall time establishes experiment feasibility and identifies simulator
+optimization targets. Architecture claims use device cycles and the shared
+memory model; they never use host wall time.
+
+\clearpage
 \section{{RQ3: realized work and latency}}
 \begin{{figure}}[H]
 \centering
@@ -804,6 +891,9 @@ def main() -> int:
         read_csv(args.component_power),
         args.figure_dir / "formal_v6_component_power",
     )
+    render_simulator_runtime_figure(
+        pairs, args.figure_dir / "formal_v6_simulator_runtime"
+    )
     render_update_figure(
         update_pairs, args.figure_dir / "formal_v6_update_throughput"
     )
@@ -811,6 +901,17 @@ def main() -> int:
     write_csv(args.data_dir / "update_pairs.csv", update_pairs)
     write_pair_table(args.data_dir / "pair_table.tex", pairs)
     write_measurement_table(args.data_dir / "measurement_table.tex", system_rows)
+    for source_name, output_name in (
+        ("system_rows.csv", "system_rows.csv"),
+        ("component_activity_rows.csv", "component_activity.csv"),
+        ("execution_coverage_rows.csv", "execution_coverage.csv"),
+        ("correctness_groups.csv", "correctness_groups.csv"),
+        ("capacity_exclusion_rows.csv", "capacity_exclusions.csv"),
+    ):
+        write_csv(
+            args.data_dir / output_name,
+            read_csv(args.analysis_dir / source_name),
+        )
     (args.data_dir / "summary.json").write_text(
         json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="ascii"
     )

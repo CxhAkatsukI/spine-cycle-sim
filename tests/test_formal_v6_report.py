@@ -19,6 +19,8 @@ class FormalV6ReportTests(unittest.TestCase):
             "spine_cycles": "100",
             "competitor_cycles": "250",
             "spine_speedup": "2.5",
+            "spine_host_wall_seconds": "1.0",
+            "competitor_host_wall_seconds": "2.0",
             "spine_memory_bytes": "64",
             "competitor_memory_bytes": "128",
             "spine_random_request_fraction": "0.5",

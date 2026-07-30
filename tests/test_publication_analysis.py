@@ -122,6 +122,13 @@ class PublicationAnalysisTests(unittest.TestCase):
         }
         self.assertEqual(speedups["grasu_regraph_k1"], 4.0)
         self.assertEqual(speedups["grasu_regraph_k4_shared"], 2.5)
+        k4 = next(
+            row
+            for row in analysis["pair_rows"]
+            if row["competitor"] == "grasu_regraph_k4_shared"
+        )
+        self.assertEqual(k4["spine_host_wall_seconds"], 1.0)
+        self.assertEqual(k4["competitor_host_wall_seconds"], 1.0)
 
     def test_declared_pair_is_complete_without_diagnostic_k1(self) -> None:
         results = [

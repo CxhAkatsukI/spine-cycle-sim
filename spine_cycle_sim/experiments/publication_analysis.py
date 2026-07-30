@@ -853,6 +853,8 @@ def analyze_publication_case_results(
                     "spine_cycles": spine["cycles"],
                     "competitor_cycles": other["cycles"],
                     "spine_speedup": other["cycles"] / spine["cycles"],
+                    "spine_host_wall_seconds": spine["host_wall_seconds"],
+                    "competitor_host_wall_seconds": other["host_wall_seconds"],
                     "spine_update_cycles": spine["update_cycles"],
                     "competitor_update_cycles": other["update_cycles"],
                     "spine_update_speedup": (

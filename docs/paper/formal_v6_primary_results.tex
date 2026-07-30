@@ -112,6 +112,22 @@ GraSU's PMA update advantage. It must not be read as end-to-end dynamic graph
 service latency, which also includes differential discovery and propagation.
 
 \clearpage
+\section{Simulator execution cost}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.98\linewidth]{\vfigdir/formal_v6_simulator_runtime.pdf}
+\caption{Host wall time and simulated-device-cycle throughput for the
+correctness-matched pairs. These are simulator engineering diagnostics under
+the recorded campaign concurrency, not accelerator latency or a
+cross-architecture performance metric.}
+\end{figure}
+
+\paragraph{Use boundary.}
+Wall time establishes experiment feasibility and identifies simulator
+optimization targets. Architecture claims use device cycles and the shared
+memory model; they never use host wall time.
+
+\clearpage
 \section{RQ3: realized work and latency}
 \begin{figure}[H]
 \centering
