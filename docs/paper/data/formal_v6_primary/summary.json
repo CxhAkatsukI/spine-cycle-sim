@@ -139,6 +139,22 @@
       "cross_system_l1_error": 0.0,
       "cross_system_max_abs_error": 0.0,
       "cross_system_tolerance": 0.0,
+      "dataset_id": "hollywood_2009",
+      "final_state_exact_match": true,
+      "final_state_match": true,
+      "final_state_method": "canonical_exact_sha256",
+      "group_id": "984c8cd8d6fbd3225131",
+      "missing_systems": "grasu_regraph_k1+grasu_regraph_k4_shared",
+      "scenario": "insert",
+      "systems_present": "spine"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 8,
+      "complete_triplet": false,
+      "cross_system_l1_error": 0.0,
+      "cross_system_max_abs_error": 0.0,
+      "cross_system_tolerance": 0.0,
       "dataset_id": "sx_superuser",
       "final_state_exact_match": true,
       "final_state_match": true,
@@ -216,7 +232,7 @@
   "duplicate_executions": 0,
   "expected_executions": 34,
   "failed_correctness_groups": 0,
-  "incomplete_triplets": 13,
+  "incomplete_triplets": 14,
   "input_selection": {
     "system_filtered_roots": [],
     "unfiltered_roots": [
@@ -237,10 +253,9 @@
     "aacef30f761e5c4f58d4",
     "b841b79faa2aace92be3",
     "bb8611a68e5fdcd8b898",
-    "d4663f47718ae2510810",
     "fe200a697fdba56a2251"
   ],
-  "observed_executions": 20,
+  "observed_executions": 21,
   "schema_version": 1,
   "status": "PARTIAL",
   "transition_invalidated_execution_ids": [],
