@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 from dataclasses import dataclass
+import gc
 import heapq
 import json
 import os
@@ -65,6 +66,47 @@ class HlsWeightedOracle:
     external_distances: tuple[int, ...]
     source_internal: int
     minimum_supersteps: int
+
+
+@dataclass(frozen=True)
+class HlsWeightedRuntimeOracle:
+    logical_updates: int
+    physical_updates: int
+    external_to_internal: tuple[int, ...]
+    internal_to_external: tuple[int, ...]
+    external_distances: tuple[int, ...]
+    source_internal: int
+    minimum_supersteps: int
+    partition_vertices: int
+    partition_max_sources: tuple[int | None, ...]
+
+
+def compact_hls_weighted_oracle(
+    oracle: HlsWeightedOracle, partition_vertices: int
+) -> HlsWeightedRuntimeOracle:
+    if partition_vertices <= 0:
+        raise ValueError("partition_vertices must be positive")
+    destination_partitions = (
+        len(oracle.external_to_internal) + partition_vertices - 1
+    ) // partition_vertices
+    partition_max_sources: list[int | None] = [None] * destination_partitions
+    for source, destination, _ in oracle.final_internal_edges:
+        partition = destination // partition_vertices
+        previous = partition_max_sources[partition]
+        partition_max_sources[partition] = (
+            source if previous is None else max(previous, source)
+        )
+    return HlsWeightedRuntimeOracle(
+        logical_updates=oracle.logical_updates,
+        physical_updates=oracle.physical_updates,
+        external_to_internal=oracle.external_to_internal,
+        internal_to_external=oracle.internal_to_external,
+        external_distances=oracle.external_distances,
+        source_internal=oracle.source_internal,
+        minimum_supersteps=oracle.minimum_supersteps,
+        partition_vertices=partition_vertices,
+        partition_max_sources=tuple(partition_max_sources),
+    )
 
 
 def require_hls_weighted_capability(
@@ -227,7 +269,7 @@ def build_hls_weighted_oracle(
 def validate_result(
     result: dict[str, object],
     profile: dict[str, object],
-    oracle: HlsWeightedOracle,
+    oracle: HlsWeightedOracle | HlsWeightedRuntimeOracle,
     supersteps: int | None = None,
     downstream_sharing: str = "direct",
 ) -> None:
@@ -242,13 +284,24 @@ def validate_result(
     source_buffer_vertices = int(params["regraph_source_buffer_vertices"])
     vertices = len(oracle.external_to_internal)
     destination_partitions = (vertices + partition_vertices - 1) // partition_vertices
-    partition_max_sources: list[int | None] = [None] * destination_partitions
-    for source, destination, _ in oracle.final_internal_edges:
-        partition = destination // partition_vertices
-        previous = partition_max_sources[partition]
-        partition_max_sources[partition] = (
-            source if previous is None else max(previous, source)
-        )
+    if isinstance(oracle, HlsWeightedRuntimeOracle):
+        if (
+            oracle.partition_vertices != partition_vertices
+            or len(oracle.partition_max_sources) != destination_partitions
+        ):
+            raise ValueError(
+                "compacted oracle partition geometry differs from profile"
+            )
+        partition_max_sources = oracle.partition_max_sources
+    else:
+        expanded_max_sources: list[int | None] = [None] * destination_partitions
+        for source, destination, _ in oracle.final_internal_edges:
+            partition = destination // partition_vertices
+            previous = expanded_max_sources[partition]
+            expanded_max_sources[partition] = (
+                source if previous is None else max(previous, source)
+            )
+        partition_max_sources = tuple(expanded_max_sources)
     expected_source_requests = sum(
         expected_weighted_source_cache_requests(
             0 if max_source is None else max_source,
@@ -464,6 +517,13 @@ def main() -> int:
     binding = grasu_normalized_memory_binding(
         profile, instantiate_all=args.instantiate_all_hbm_channels
     )
+    runtime_oracle = compact_hls_weighted_oracle(
+        oracle, int(params["regraph_partition_vertices"])
+    )
+    del oracle
+    del initial
+    del update
+    gc.collect()
     kernel_clock = next(
         clock for clock in profile["clocks"] if clock["name"] == "kernel"
     )
@@ -599,7 +659,7 @@ def main() -> int:
         result_sha256_before_validation = None
     result = json.loads(result_path.read_text(encoding="utf-8"))
     validate_result(
-        result, profile, oracle, supersteps, downstream_sharing
+        result, profile, runtime_oracle, supersteps, downstream_sharing
     )
     dram = load_dram_stats(dram_dir)
     if (
@@ -626,12 +686,13 @@ def main() -> int:
         "sst_plugin_sha256": sst_library["plugin_sha256"],
         "sst_host_wall_seconds": wall_seconds,
         "oracle": {
-            "logical_updates": oracle.logical_updates,
-            "physical_updates": oracle.physical_updates,
-            "external_to_internal": list(oracle.external_to_internal),
-            "external_distances": list(oracle.external_distances),
-            "minimum_supersteps": oracle.minimum_supersteps,
+            "logical_updates": runtime_oracle.logical_updates,
+            "physical_updates": runtime_oracle.physical_updates,
+            "external_to_internal": list(runtime_oracle.external_to_internal),
+            "external_distances": list(runtime_oracle.external_distances),
+            "minimum_supersteps": runtime_oracle.minimum_supersteps,
         },
+        "host_oracle_storage": "compacted_before_sst_launch_v1",
         "supersteps": supersteps,
         "superstep_policy": superstep_policy,
         "downstream_sharing": downstream_sharing,
@@ -662,8 +723,9 @@ def main() -> int:
     print(
         "PASS grasu_regraph_hls_weighted_sst: "
         f"cycles={result['cycles']} update={result['update_cycles']} "
-        f"compute={result['compute_cycles']} logical={oracle.logical_updates} "
-        f"physical={oracle.physical_updates} wall_s={wall_seconds:.3f}"
+        f"compute={result['compute_cycles']} "
+        f"logical={runtime_oracle.logical_updates} "
+        f"physical={runtime_oracle.physical_updates} wall_s={wall_seconds:.3f}"
     )
     return 0
 

@@ -8,6 +8,7 @@ import unittest
 from scripts.run_sst_grasu_regraph_hls_weighted import (
     HLS_INFINITY,
     build_hls_weighted_oracle,
+    compact_hls_weighted_oracle,
     require_hls_weighted_capability,
     validate_result,
 )
@@ -56,6 +57,17 @@ class GrasuHlsWeightedRunnerTests(unittest.TestCase):
             self.oracle.external_distances,
             (0, 3, 10, 14, 12, HLS_INFINITY, HLS_INFINITY, HLS_INFINITY),
         )
+
+    def test_compacted_oracle_preserves_runtime_validation(self) -> None:
+        compacted = compact_hls_weighted_oracle(
+            self.oracle,
+            int(self.profile["parameters"]["regraph_partition_vertices"]),
+        )
+        self.assertEqual(
+            compacted.external_distances, self.oracle.external_distances
+        )
+        self.assertEqual(compacted.minimum_supersteps, self.oracle.minimum_supersteps)
+        validate_result(self._valid_result(), self.profile, compacted)
 
     def test_capability_is_executable_and_conversion_free(self) -> None:
         catalog, capability = require_hls_weighted_capability(PROFILE, CATALOG)

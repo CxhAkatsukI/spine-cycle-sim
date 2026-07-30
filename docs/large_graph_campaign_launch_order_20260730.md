@@ -87,6 +87,23 @@ duplicate-result error rather than being silently preferred or overwritten.
 The focused tests prove `Spine < K4-shared < K1` within a workload bucket and
 prove that the system offset cannot invert adjacent workload priorities.
 
+## Weighted-SSSP host oracle compaction
+
+The weighted GraSU+ReGraph runner compacts its correctness oracle immediately
+before launching SST. The compact form retains the external/internal vertex
+maps, final distances, minimum supersteps, and per-partition maximum source,
+then releases the parsed graph and duplicate external/internal edge tuples.
+This is a host-memory optimization only: it does not alter the SST component,
+architecture profile, cycle scheduler, memory requests, or DRAM backend.
+
+An exact smoke A/B used the same profile, workload, update, and immutable
+plugin (`96b4375...`). Original and compact runs both produced 168,009 cycles,
+67,664 backend requests, and byte-identical `result`, `oracle`, and `dram`
+objects. New manifests record
+`host_oracle_storage=compacted_before_sst_launch_v1`. Already-running jobs keep
+their original process image; only subsequently launched weighted-SSSP jobs
+use the compact host representation.
+
 ## Arbitration admission found during monitoring
 
 The first AU K4-shared residual run completed simulation but exposed an
