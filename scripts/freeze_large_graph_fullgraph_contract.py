@@ -67,6 +67,14 @@ def main() -> int:
         "--milestone", default="fullgraph_v10_warm_sssp_native_o3_lto"
     )
     parser.add_argument("--source-revision")
+    parser.add_argument("--behavior-transition")
+    parser.add_argument("--hls-reference-branch")
+    parser.add_argument("--hls-reference-revision")
+    parser.add_argument("--hls-reference-symbol")
+    parser.add_argument(
+        "--prior-contract-reuse",
+        help="explicit fail-closed reuse rule for rows from the source contract",
+    )
     parser.add_argument("--nonmonotonic-sssp-edge-cap", type=int)
     args = parser.parse_args()
     plugin = args.plugin.resolve()
@@ -112,6 +120,21 @@ def main() -> int:
     )
     if args.source_revision:
         simulator["source_commit"] = args.source_revision
+    if args.behavior_transition:
+        simulator["behavior_transition"] = args.behavior_transition
+    hls_reference_values = (
+        args.hls_reference_branch,
+        args.hls_reference_revision,
+        args.hls_reference_symbol,
+    )
+    if any(hls_reference_values):
+        if not all(hls_reference_values):
+            raise ValueError("all HLS reference fields must be supplied together")
+        simulator["hls_reference"] = {
+            "branch": args.hls_reference_branch,
+            "revision": args.hls_reference_revision,
+            "symbol": args.hls_reference_symbol,
+        }
     supersedence = simulator.get("result_supersedence")
     if isinstance(supersedence, dict):
         old_hashes = list(supersedence.get("superseded_plugin_sha256", []))
@@ -153,6 +176,10 @@ def main() -> int:
     contract["claim_boundary"]["weighted_sssp_bootstrap"] = (
         "reported_separately_and_excluded_from_dynamic_e2e"
     )
+    if args.prior_contract_reuse:
+        contract["claim_boundary"]["prior_contract_reuse"] = (
+            args.prior_contract_reuse
+        )
     contract["provenance"] = {
         "source_contract": str(source_contract.relative_to(ROOT)),
         "source_contract_sha256": sha256(source_contract),

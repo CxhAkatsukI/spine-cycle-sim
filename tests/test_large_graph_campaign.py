@@ -55,6 +55,12 @@ FULLGRAPH_V6_CONTRACT = (
     / "contracts"
     / "large_graph_publication_campaign_fullgraph_v6.json"
 )
+FULLGRAPH_V7_CONTRACT = (
+    ROOT
+    / "configs"
+    / "contracts"
+    / "large_graph_publication_campaign_fullgraph_v7.json"
+)
 DATASET_ROOT = Path("/data/feiyang/Graph_Datasets")
 
 
@@ -169,6 +175,44 @@ class LargeGraphCampaignTests(unittest.TestCase):
             contract["claim_boundary"]["weighted_sssp_bootstrap"],
             "reported_separately_and_excluded_from_dynamic_e2e",
         )
+
+    def test_fullgraph_v7_freezes_skip_fit_hot_promotion(self) -> None:
+        previous = load_large_graph_campaign_contract(FULLGRAPH_V6_CONTRACT)
+        contract = load_large_graph_campaign_contract(FULLGRAPH_V7_CONTRACT)
+        simulator = contract["architecture_baselines"]["simulator_baseline"]
+        self.assertEqual(
+            simulator["plugin_sha256"],
+            "1c0b0a9adb245e919e77cedb39b731551befc1f0ca4101a519dce176d9edf057",
+        )
+        self.assertEqual(
+            simulator["source_commit"],
+            "c22a59a3369a128faa116896d4d801f9698ffe52",
+        )
+        self.assertEqual(
+            simulator["behavior_transition"],
+            "automatic_hot_promotion_skips_already_fit_cold_partitions",
+        )
+        self.assertEqual(
+            simulator["hls_reference"],
+            {
+                "branch": "codex/skip-fit-hot-promotion",
+                "revision": "867bee49e483950a82d69d3f3d8b0661ccbef544",
+                "symbol": "partitioned_classify_hot_cold_from_indegree",
+            },
+        )
+        supersedence = simulator["result_supersedence"]
+        self.assertEqual(
+            supersedence["superseding_plugin_sha256"],
+            simulator["plugin_sha256"],
+        )
+        self.assertIn(
+            previous["architecture_baselines"]["simulator_baseline"][
+                "plugin_sha256"
+            ],
+            supersedence["superseded_plugin_sha256"],
+        )
+        self.assertEqual(contract["experiment_matrix"], previous["experiment_matrix"])
+        self.assertEqual(contract["datasets"], previous["datasets"])
 
     def test_publication_launches_k4_before_k1_for_the_same_workload(self) -> None:
         priorities = {
