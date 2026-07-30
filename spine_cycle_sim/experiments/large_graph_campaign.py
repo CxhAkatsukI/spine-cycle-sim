@@ -230,6 +230,67 @@ def validate_large_graph_campaign_contract(
         or not _is_sha256(simulator.get("plugin_sha256"))
     ):
         raise ValueError("large-graph campaign common platform changed")
+    equivalent_plugins = simulator.get(
+        "spine_host_runtime_equivalent_plugins", []
+    )
+    if not isinstance(equivalent_plugins, list):
+        raise ValueError("Spine host-runtime plugin equivalence must be a list")
+    equivalent_hashes = set()
+    for entry in equivalent_plugins:
+        reports = (
+            entry.get("evidence_reports")
+            if isinstance(entry, Mapping)
+            else None
+        )
+        labels = (
+            entry.get("required_report_labels")
+            if isinstance(entry, Mapping)
+            else None
+        )
+        source_commit = (
+            entry.get("source_commit")
+            if isinstance(entry, Mapping)
+            else None
+        )
+        plugin_hash = (
+            entry.get("plugin_sha256")
+            if isinstance(entry, Mapping)
+            else None
+        )
+        if (
+            not isinstance(entry, Mapping)
+            or entry.get("baseline_plugin_sha256")
+            != simulator.get("plugin_sha256")
+            or entry.get("classification")
+            != "spine_host_runtime_only_no_simulated_timing_change"
+            or not _is_sha256(plugin_hash)
+            or plugin_hash == simulator.get("plugin_sha256")
+            or plugin_hash in equivalent_hashes
+            or not isinstance(source_commit, str)
+            or len(source_commit) != 40
+            or any(
+                character not in "0123456789abcdef"
+                for character in source_commit
+            )
+            or not isinstance(reports, list)
+            or len(reports) < 2
+            or not isinstance(labels, list)
+            or len(labels) != len(reports)
+            or len(set(labels)) != len(labels)
+            or any(not isinstance(label, str) or not label for label in labels)
+        ):
+            raise ValueError("invalid Spine host-runtime plugin equivalence")
+        for identity in reports:
+            if (
+                not isinstance(identity, list)
+                or len(identity) != 2
+                or not isinstance(identity[0], str)
+                or Path(identity[0]).is_absolute()
+                or ".." in Path(identity[0]).parts
+                or not _is_sha256(identity[1])
+            ):
+                raise ValueError("invalid plugin-equivalence report identity")
+        equivalent_hashes.add(plugin_hash)
 
     semantics = contract.get("workload_semantics", {})
     full_pr = semantics.get("full_pagerank", {})

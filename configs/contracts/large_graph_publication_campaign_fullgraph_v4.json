@@ -1,0 +1,568 @@
+{
+  "architecture_baselines": {
+    "common_memory": {
+      "backend": "direct_dramsim3_transport",
+      "config": "configs/memory/HBM2_1ch_x128.ini",
+      "line_bytes": 64,
+      "physical_channels": 32,
+      "sha256": "d1e865c6528acbc41f0768667063702bfb4033f24bcd46119ad25bfc5ad4fb5f"
+    },
+    "grasu_regraph_capability_catalog": {
+      "path": "configs/contracts/grasu_regraph_full_graph_capabilities_v7.json",
+      "sha256": "02425393253fe8e6ed3ac6aadfb53ef36823ae3d7858b17ba2d595c233f583d5"
+    },
+    "grasu_regraph_k1": {
+      "addressing": "runtime_packed_interleaved_v2_23pc_capacity_checked",
+      "conversion_free": true,
+      "implementation_boundary": "routed_compute_foundation_plus_simulator_only_full_graph_mapper",
+      "profiles": {
+        "connected_components": [
+          "configs/architectures/grasu_regraph_candidate10_k1_multipart_cc_fullgraph_v7.json",
+          "3cdd3167edaa077527ff7c36e61e7d7f554c274397739231af5746a4dd344d6c"
+        ],
+        "full_pagerank": [
+          "configs/architectures/grasu_regraph_candidate10_k1_multipart_pagerank_fullgraph_v7.json",
+          "67edfcbfdcf3f355764d808a4a4704097d069fd49711132a83fe77b7991ce980"
+        ],
+        "thresholded_residual_pagerank": [
+          "configs/architectures/grasu_regraph_candidate10_k1_multipart_residual_fullgraph_v7.json",
+          "6988fe950592cc75beeb9dadb71ccc10cabb8d26e5ec4eb02556b2c5a98debcd"
+        ],
+        "weighted_sssp": [
+          "configs/architectures/grasu_regraph_candidate10_k1_multipart_weighted_fullgraph_v7.json",
+          "8340355673f6d6be5153ba33616b7056c7dc497dafb3cb6f6176124720eee03c"
+        ]
+      },
+      "role": "single_pipeline_normalized_baseline"
+    },
+    "grasu_regraph_k4_ideal": {
+      "eligible_for_headline_aggregate": false,
+      "profiles": {
+        "connected_components": [
+          "configs/architectures/grasu_regraph_candidate10_k4_multipart_cc_packed_v6.json",
+          "7507054673872aabcd246fbf7151b1a6e5c879ef6028a547e17d5cdcb7b92c2b"
+        ],
+        "full_pagerank": [
+          "configs/architectures/grasu_regraph_candidate10_k4_multipart_pagerank_packed_v5.json",
+          "4e8c29f0a52fbd3f46c74eed16463b832e311630e8065794f2550b5e2186a35c"
+        ],
+        "thresholded_residual_pagerank": [
+          "configs/architectures/grasu_regraph_candidate10_k4_multipart_residual_packed_v5.json",
+          "1890fe2e874577bb3aed25bed91a939536e681823e96b79719c77e327dd25591"
+        ],
+        "weighted_sssp": [
+          "configs/architectures/grasu_regraph_candidate10_k4_multipart_weighted_packed_v5.json",
+          "8ebdb78f1f7e7707a9707e56e352519791eb345332c28cb4b87ec52a007aad05"
+        ]
+      },
+      "role": "theoretical_no_contention_upper_bound_only"
+    },
+    "grasu_regraph_k4_shared": {
+      "addressing": "runtime_packed_interleaved_v2_23pc_capacity_checked",
+      "compute_pipelines": 4,
+      "conversion_free": true,
+      "downstream_paths": 1,
+      "implementation_boundary": "routed_compute_foundation_plus_simulator_only_full_graph_mapper",
+      "profiles": {
+        "connected_components": [
+          "configs/architectures/grasu_regraph_candidate10_k4_shared_multipart_cc_fullgraph_v7.json",
+          "5b14a12219144665ee4f57eaaa3de42bfe7ed8e230d103b084dbb136d49863fe"
+        ],
+        "full_pagerank": [
+          "configs/architectures/grasu_regraph_candidate10_k4_shared_multipart_pagerank_fullgraph_v7.json",
+          "e288906b05d3fb189bfe09993397093edfe018c866b48b96c1d6a6fb9a1d290d"
+        ],
+        "thresholded_residual_pagerank": [
+          "configs/architectures/grasu_regraph_candidate10_k4_shared_multipart_residual_fullgraph_v7.json",
+          "5437aa7896ce51dc3c0d40790a431412b1fd40bcb7a9c5fe1800ee9c988f8f3f"
+        ],
+        "weighted_sssp": [
+          "configs/architectures/grasu_regraph_candidate10_k4_shared_multipart_weighted_fullgraph_v7.json",
+          "d94f0a051053efb048b5dd56b78a29c4dd13bde3f64ad7eaafce866b843642d6"
+        ]
+      },
+      "role": "primary_multi_partition_competitor",
+      "shared_hbm_arbitration": true
+    },
+    "simulator_baseline": {
+      "milestone": "fullgraph_v8_sparse_cache_and_bounded_nonmonotonic_native_o3_lto",
+      "plugin_sha256": "eee35f39c118538da5565e497d29b989e5bb492c1368839d424a984c32e2aae9",
+      "spine_host_runtime_equivalent_plugins": [
+        {
+          "baseline_plugin_sha256": "eee35f39c118538da5565e497d29b989e5bb492c1368839d424a984c32e2aae9",
+          "classification": "spine_host_runtime_only_no_simulated_timing_change",
+          "evidence_reports": [
+            [
+              "docs/evidence/spine_host_active_linear_tiny_equivalence_20260730.json",
+              "5e68d9692b7f91fed6665152bcc831fe60dd05272d0ef1f77dc9e5d4b7c4eac5"
+            ],
+            [
+              "docs/evidence/spine_host_active_linear_askubuntu_equivalence_20260730.json",
+              "98a8e9119a7082d5d2b163273ced12986f11eccf06548bc275228e42fae3d229"
+            ]
+          ],
+          "milestone": "spine_host_active_linear_native_o3_lto",
+          "plugin_sha256": "c2a60d5250f5594dae98114bd32a96910fe08d11a299eadc6d0b2d1fa56161c6",
+          "required_report_labels": [
+            "tiny_multiround_weighted_sssp",
+            "askubuntu_fullgraph_incremental_weighted_sssp"
+          ],
+          "source_commit": "f0cb2c6bf547c3728afb4abcb6d17a4de489b1f5"
+        }
+      ]
+    },
+    "spine": {
+      "hbm_pseudo_channels": 23,
+      "partitions": 16,
+      "profile": "configs/architectures/spine_candidate10_opt_v2_reader_working_set.json",
+      "role": "primary_projected_optimized",
+      "sha256": "27243e3458023f1e492efd46408fc58262f5852c41972398bd134e54ef57156a"
+    }
+  },
+  "claim_boundary": {
+    "failed_correctness_rows_enter_performance_aggregates": false,
+    "full_dataset_requires_unsliced_source": true,
+    "full_pagerank_exception": "fixed_4m_edge_cap_with_explicit_slice_label",
+    "grasu_regraph_full_graph_addressing": "simulator_only_capacity_checked_23pc_mapper_hls_integration_pending",
+    "parameters_frozen_before_formal_execution": true,
+    "slices_must_report_extraction_policy": true,
+    "stopped_rows_enter_performance_aggregates": false
+  },
+  "contract_id": "large_graph_publication_campaign_fullgraph_v4_20260730",
+  "correctness_admission": {
+    "architecture_precision_oracle": true,
+    "cross_system_final_state": true,
+    "failed_rows_retained_but_excluded": true,
+    "full_result_vector_required": true,
+    "independent_mathematical_oracle": true,
+    "request_response_byte_and_dram_conservation": true,
+    "updated_graph_degree_and_active_state": true
+  },
+  "datasets": [
+    {
+      "abbreviation": "AU",
+      "dataset_id": "sx_askubuntu",
+      "paper_base_edges": 590000,
+      "paper_edges": 960000,
+      "paper_vertices": 160000,
+      "papers": [
+        "GraSU"
+      ],
+      "source": {
+        "encoding": "gzip_temporal_src_dst_timestamp",
+        "relative_path": "sx-askubuntu/sx-askubuntu.txt.gz",
+        "sha256": "54af4be03bf77030e8894e445679c4e20614f0b82d68fc8cb49431f70e07a0f6",
+        "size_bytes": 7385842
+      }
+    },
+    {
+      "abbreviation": "SU",
+      "dataset_id": "sx_superuser",
+      "paper_base_edges": 920000,
+      "paper_edges": 1440000,
+      "paper_vertices": 190000,
+      "papers": [
+        "GraSU"
+      ],
+      "source": {
+        "encoding": "gzip_temporal_src_dst_timestamp",
+        "relative_path": "sx-superuser/sx-superuser.txt.gz",
+        "sha256": "35367fa1357d28ba92b06f75a2616cdf983e0c5b70b9560f36440e39648cc928",
+        "size_bytes": 11222114
+      }
+    },
+    {
+      "abbreviation": "WK",
+      "dataset_id": "wiki_talk_temporal",
+      "paper_base_edges": 3310000,
+      "paper_edges": 7830000,
+      "paper_vertices": 1140000,
+      "papers": [
+        "GraSU"
+      ],
+      "source": {
+        "encoding": "gzip_temporal_src_dst_timestamp",
+        "relative_path": "wiki-talk-temporal/wiki-talk-temporal.txt.gz",
+        "sha256": "2053b1f5bb3c46320f8e4da91aa6d7d79ec8d78e2c8cc99cede609c0c375f33e",
+        "size_bytes": 48120144
+      }
+    },
+    {
+      "abbreviation": "SO",
+      "dataset_id": "sx_stackoverflow",
+      "paper_base_edges": 36230000,
+      "paper_edges": 63500000,
+      "paper_vertices": 2600000,
+      "papers": [
+        "GraSU",
+        "Dynamic-ACTS"
+      ],
+      "source": {
+        "encoding": "gzip_temporal_src_dst_timestamp",
+        "relative_path": "sx-stackoverflow/snap_sx-stackoverflow.txt.gz",
+        "sha256": "fc04264de1652bbf91c10eb8ec2465df082fc0aec2012e5f4a8edc6400f0d7a3",
+        "size_bytes": 529869668
+      }
+    },
+    {
+      "abbreviation": "BC",
+      "dataset_id": "soc_bitcoin",
+      "paper_base_edges": 60490000,
+      "paper_edges": 122950000,
+      "paper_vertices": 24580000,
+      "papers": [
+        "GraSU"
+      ],
+      "source": {
+        "archive_member": "soc-bitcoin.edges",
+        "encoding": "zip_edge_list",
+        "relative_path": "soc-bitcoin/soc-bitcoin.zip",
+        "sha256": "c12caba90fb002e64bc25451d931a73832989c8564bf1f4ce6a890287094f0e8",
+        "size_bytes": 620630578
+      }
+    },
+    {
+      "abbreviation": "HW",
+      "dataset_id": "hollywood_2009",
+      "paper_edges": 115000000,
+      "paper_vertices": 1139000,
+      "papers": [
+        "Dynamic-ACTS"
+      ],
+      "source": {
+        "archive_member": "hollywood-2009/hollywood-2009.mtx",
+        "encoding": "tar_matrix_market",
+        "relative_path": "hollywood-2009/hollywood-2009.tar.gz",
+        "semantic_projection": "matrix_market_symmetric",
+        "sha256": "5b6e9cebbb17c702b596f68da23d50cbbbb0f9b6c977abffb018c91200944460",
+        "size_bytes": 159474427
+      }
+    },
+    {
+      "abbreviation": "POK",
+      "dataset_id": "soc_pokec",
+      "paper_edges": 61000000,
+      "paper_vertices": 1632000,
+      "papers": [
+        "Dynamic-ACTS"
+      ],
+      "source": {
+        "archive_member": "soc-Pokec/soc-Pokec.mtx",
+        "encoding": "tar_matrix_market",
+        "relative_path": "soc-Pokec/soc-Pokec.tar.gz",
+        "semantic_projection": "reciprocal_to_paper_edge_count",
+        "sha256": "3819af42461fd6816c2b84be120cbb509424996a987ba06ce9a318746667c2f9",
+        "size_bytes": 430434848
+      }
+    },
+    {
+      "abbreviation": "OR",
+      "dataset_id": "soc_orkut",
+      "paper_edges": 234000000,
+      "paper_vertices": 2997000,
+      "papers": [
+        "Dynamic-ACTS"
+      ],
+      "source": {
+        "archive_member": "com-Orkut/com-Orkut.mtx",
+        "encoding": "tar_matrix_market",
+        "relative_path": "soc-Orkut/com-Orkut.tar.gz",
+        "semantic_projection": "reciprocal_to_paper_edge_count",
+        "sha256": "8b52b87048044eff76b5385b2ea2681674117ffd770695b19518e248629cc725",
+        "size_bytes": 927824532
+      }
+    },
+    {
+      "abbreviation": "SOC",
+      "dataset_id": "soc_livejournal1",
+      "paper_edges": 137000000,
+      "paper_vertices": 4847000,
+      "papers": [
+        "Dynamic-ACTS"
+      ],
+      "source": {
+        "archive_member": "soc-LiveJournal1/soc-LiveJournal1.mtx",
+        "encoding": "tar_matrix_market",
+        "relative_path": "soc-LiveJournal1/soc-LiveJournal1.tar.gz",
+        "semantic_projection": "reciprocal_to_paper_edge_count",
+        "sha256": "6518202e02a60f4db9828f3f6ce756191436e61c061c44b66e869b7ba28a647b",
+        "size_bytes": 255621157
+      }
+    },
+    {
+      "abbreviation": "LJ",
+      "dataset_id": "ljournal_2008",
+      "paper_edges": 158000000,
+      "paper_vertices": 5363000,
+      "papers": [
+        "Dynamic-ACTS"
+      ],
+      "source": {
+        "archive_member": "ljournal-2008/ljournal-2008.mtx",
+        "encoding": "tar_matrix_market",
+        "relative_path": "ljournal-2008/ljournal-2008.tar.gz",
+        "semantic_projection": "reciprocal_to_paper_edge_count",
+        "sha256": "d16e5e3920a0a3a2e549168e994db14f09eb287dc6426098b62b30b7f70d65fd",
+        "size_bytes": 257721385
+      }
+    },
+    {
+      "abbreviation": "UK",
+      "dataset_id": "uk_2002",
+      "paper_edges": 298000000,
+      "paper_vertices": 18000000,
+      "papers": [
+        "Dynamic-ACTS"
+      ],
+      "source": {
+        "archive_member": "uk-2002/uk-2002.mtx",
+        "encoding": "tar_matrix_market",
+        "relative_path": "uk-2002/uk-2002.tar.gz",
+        "semantic_projection": "matrix_market_header",
+        "sha256": "04988f5a0cc2a9a2796db206f0a0508224c520344b50eae4e7414df4deed9001",
+        "size_bytes": 761971654
+      }
+    }
+  ],
+  "execution": {
+    "automatic_timeout_seconds": null,
+    "formal_host_runtime_runs_are_contention_controlled": true,
+    "host_available_memory_reserve_gib": 64,
+    "initial_large_jobs": 2,
+    "maximum_large_jobs": 4,
+    "monitor_refresh_seconds": 2,
+    "no_progress_soft_stop_seconds": 1200,
+    "per_run_rss_limit_gib": 64,
+    "status_sample_seconds": 5,
+    "stopped_status": "incomplete_with_elapsed_progress_and_eta"
+  },
+  "experiment_matrix": {
+    "dense": {
+      "algorithms": [
+        "weighted_sssp",
+        "connected_components",
+        "full_pagerank",
+        "thresholded_residual_pagerank"
+      ],
+      "batch_sizes": [
+        64,
+        512,
+        4096
+      ],
+      "datasets": [
+        "sx_askubuntu",
+        "sx_stackoverflow",
+        "soc_orkut"
+      ],
+      "scenario": "insert"
+    },
+    "endpoint_scalability": {
+      "algorithms": [
+        "weighted_sssp",
+        "connected_components",
+        "full_pagerank",
+        "thresholded_residual_pagerank"
+      ],
+      "batch_sizes": [
+        8
+      ],
+      "datasets": [
+        "rmat_19_32"
+      ],
+      "scenario": "insert"
+    },
+    "main_e2e": {
+      "algorithms": [
+        "weighted_sssp",
+        "connected_components",
+        "full_pagerank",
+        "thresholded_residual_pagerank"
+      ],
+      "batch_sizes": [
+        8
+      ],
+      "datasets": "all",
+      "scenario": "insert"
+    },
+    "mixed_supplement": {
+      "algorithms": [
+        "weighted_sssp",
+        "connected_components",
+        "full_pagerank",
+        "thresholded_residual_pagerank"
+      ],
+      "batch_sizes": [
+        8
+      ],
+      "datasets": [
+        "sx_askubuntu",
+        "wiki_talk_temporal",
+        "sx_stackoverflow",
+        "soc_orkut",
+        "uk_2002"
+      ]
+    },
+    "systems": [
+      "spine",
+      "grasu_regraph_k1",
+      "grasu_regraph_k4_shared"
+    ],
+    "update_performance": {
+      "batch_sizes": [
+        1,
+        8,
+        64
+      ],
+      "datasets": "all",
+      "execution_algorithm": "weighted_sssp",
+      "scenarios": [
+        "insert",
+        "delete",
+        "weight_change"
+      ]
+    },
+    "update_triggered_compute": {
+      "algorithms": [
+        "weighted_sssp",
+        "connected_components",
+        "full_pagerank",
+        "thresholded_residual_pagerank"
+      ],
+      "batch_sizes": [
+        8
+      ],
+      "datasets": [
+        "sx_askubuntu",
+        "wiki_talk_temporal",
+        "sx_stackoverflow",
+        "soc_orkut",
+        "uk_2002"
+      ],
+      "scenarios": [
+        "insert",
+        "delete",
+        "weight_change"
+      ]
+    }
+  },
+  "measurement": {
+    "bootstrap_reported_separately": true,
+    "e2e_end": "update_active_detection_compute_response_and_fifo_drain",
+    "e2e_start": "first_update_accepted",
+    "host_runtime_repetitions": 3,
+    "host_runtime_statistics": [
+      "median",
+      "mad"
+    ],
+    "memory_locality_source": "executed_address_trace_burst_continuity_and_dram_row_behavior",
+    "update_throughput_units": [
+      "successful_user_mutations_per_update_simulated_second",
+      "successful_user_mutations_per_e2e_simulated_second"
+    ],
+    "weight_change_user_mutations_per_two_physical_records": 1
+  },
+  "reporting": {
+    "figures": [
+      "e2e",
+      "small_batch",
+      "update_throughput",
+      "memory_and_locality",
+      "dense_batch",
+      "bottleneck_and_dynamic_energy",
+      "simulator_runtime"
+    ],
+    "optional_after_primary": [
+      "ablation",
+      "kernel_and_memory_scalability"
+    ],
+    "pdf_next_to_tex": true,
+    "tables": [
+      "dataset_scope",
+      "correctness",
+      "fpga_resources_timing",
+      "stopped_or_failed_rows"
+    ],
+    "tex": "docs/paper/large_graph_publication_evaluation.tex"
+  },
+  "schema_version": 1,
+  "synthetic_endpoint": {
+    "dataset_id": "rmat_19_32",
+    "expected_unique_directed_edges": 15483485,
+    "materialized_source_records": 15483988,
+    "raw_edges": 16777216,
+    "role": "scalability_endpoint_not_real_dataset",
+    "self_loops_removed": 503,
+    "source": {
+      "encoding": "one_based_dst_src_text",
+      "path": "/data/feiyang/AE/AE_Final/datasets/rmat-19-32.txt",
+      "sha256": "00a8886a5d0836e2839d50401142056f76cccd854845701b7a6100ca6db31125",
+      "size_bytes": 225511166
+    },
+    "vertices": 524288
+  },
+  "workload_semantics": {
+    "connected_components": {
+      "deletion_policy": "full_recompute",
+      "projection": "reciprocal_undirected_min_vertex_label",
+      "report_raw_and_effective_edges": true
+    },
+    "full_pagerank": {
+      "damping": 0.85,
+      "edge_cap": 4000000,
+      "iterations": 3,
+      "scaling_edges": [
+        64000,
+        256000,
+        1000000,
+        4000000
+      ],
+      "slice_policy": "exact_min_edge_hash_preserving_original_vertex_ids_v2"
+    },
+    "preserve_external_vertex_ids": true,
+    "thresholded_residual_pagerank": {
+      "damping": 0.85,
+      "delete_selection": "at_most_one_edge_from_each_source_with_degree_at_least_two",
+      "execution_contract": "deltahls_sink_free_linf_warm",
+      "graph_projection": "add_self_loop_to_each_zero_outdegree_vertex_v1",
+      "maximum_iterations": 256,
+      "per_vertex_threshold": 1e-06,
+      "threshold_semantics": "abs_residual_per_vertex_gt_threshold"
+    },
+    "updates": {
+      "delete_policy": "fixed_hash_live_edge",
+      "derived_seed": 20260729,
+      "scenarios": [
+        "insert",
+        "delete",
+        "weight_change"
+      ],
+      "supplemental_scenario": "mixed",
+      "temporal_insert_policy": "post_base_timestamp_events",
+      "weight_change_policy": "delete_old_then_insert_new_one_user_mutation"
+    },
+    "weighted_sssp": {
+      "all_dataset_source_policy": "deterministic_reachable",
+      "fallback_reason": "delete_or_weight_increase_requires_exact_snapshot_rebuild",
+      "insertion_graph_scope": "full_directed_graph",
+      "nonmonotonic_edge_cap": 64000,
+      "nonmonotonic_graph_scope": "bounded_real_topology_hash_slice",
+      "seed": 20260729,
+      "source_cohort_datasets": [
+        "sx_askubuntu",
+        "wiki_talk_temporal",
+        "sx_stackoverflow",
+        "soc_orkut",
+        "uk_2002"
+      ],
+      "source_cohorts": [
+        "high_degree",
+        "median_degree",
+        "random_reachable"
+      ],
+      "spine_max_sort_edges": 131072,
+      "weight_max": 64,
+      "weight_min": 1,
+      "weight_policy": "edge_hash_positive_uint16_v1"
+    }
+  }
+}

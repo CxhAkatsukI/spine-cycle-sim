@@ -1,0 +1,28 @@
+{
+  "baseline": {
+    "plugin_sha256": "eee35f39c118538da5565e497d29b989e5bb492c1368839d424a984c32e2aae9",
+    "summary_path": "/data/tmp/chuxiao/host-active-linear-equivalence-20260730/tiny-old/summary.json",
+    "summary_sha256": "667b61cc7498228ca6b08113bf52625f0d136993d3a721f0adc31e66c39aab53"
+  },
+  "candidate": {
+    "plugin_sha256": "c2a60d5250f5594dae98114bd32a96910fe08d11a299eadc6d0b2d1fa56161c6",
+    "summary_path": "/data/tmp/chuxiao/host-active-linear-equivalence-20260730/tiny-new/summary.json",
+    "summary_sha256": "df9657013d3d9d544608bf35cc4465f60ad64e5d9cce219a0abbadba4127c83c"
+  },
+  "canonical_summary_sha256": "58c1807be7ea0add894c93caadff4a8861f10211a805a69340de07743ba9cc09",
+  "classification": "spine_host_runtime_only_no_simulated_timing_change",
+  "ignored_top_level_fields": [
+    "sst_host_wall_seconds",
+    "sst_library_binding",
+    "sst_plugin_sha256"
+  ],
+  "label": "tiny_multiround_weighted_sssp",
+  "schema_version": 1,
+  "simulated_metrics": {
+    "architecture_correctness_mismatches": 0,
+    "backend_requests": 3946,
+    "cycles": 61149,
+    "mathematical_correctness_mismatches": 0
+  },
+  "status": "pass"
+}

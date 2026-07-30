@@ -34,6 +34,9 @@ from spine_cycle_sim.experiments.publication_cases import (  # noqa: E402
     load_materialization_manifest,
     select_publication_case,
 )
+from spine_cycle_sim.experiments.plugin_equivalence import (  # noqa: E402
+    verify_spine_plugin_admission,
+)
 from spine_cycle_sim.experiments.publication_workloads import sha256_file  # noqa: E402
 
 
@@ -314,9 +317,12 @@ def main() -> int:
             raise ValueError(f"formal case artifact is missing or changed: {path}")
 
     plugin = args.lib_dir.resolve() / "libspine_cycle.so"
-    expected_plugin = contract["architecture_baselines"]["simulator_baseline"]
-    if not plugin.is_file() or sha256_file(plugin) != expected_plugin["plugin_sha256"]:
-        raise ValueError("formal SST plugin differs from the frozen simulator baseline")
+    plugin_admission = verify_spine_plugin_admission(
+        contract,
+        plugin,
+        system=args.system,
+        repository_root=ROOT,
+    )
     capability_identity = contract["architecture_baselines"][
         "grasu_regraph_capability_catalog"
     ]
@@ -488,6 +494,7 @@ def main() -> int:
                 "mathematical_correctness_mismatches"
             ),
             "profile_evidence_amendment": profile_amendment,
+            "plugin_admission": plugin_admission,
         },
     }
     result_path = args.out_dir / "case_result.json"

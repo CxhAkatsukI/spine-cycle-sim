@@ -1,0 +1,28 @@
+{
+  "baseline": {
+    "plugin_sha256": "eee35f39c118538da5565e497d29b989e5bb492c1368839d424a984c32e2aae9",
+    "summary_path": "/data/tmp/chuxiao/large_graph_campaign_v1/formal_v3_weighted_wave/runs/53d8ac095d6b4bb6739f/child/53d8ac095d6b4bb6739f/spine/summary.json",
+    "summary_sha256": "f76a576a78ec0c8027b4dea75f5f1555e956832521bc5a7641ba66360fb67a91"
+  },
+  "candidate": {
+    "plugin_sha256": "c2a60d5250f5594dae98114bd32a96910fe08d11a299eadc6d0b2d1fa56161c6",
+    "summary_path": "/data/tmp/chuxiao/host-active-linear-equivalence-20260730/askubuntu-new-dynamic/summary.json",
+    "summary_sha256": "08674a44b4efdf1afa3df7680aab0e34c6996b1cbcb89ef07c57d1a40fd99337"
+  },
+  "canonical_summary_sha256": "e435534d2c8d052f7e29e9c03897ccd6b2ee1ce1984df630e7fd01711ff78e87",
+  "classification": "spine_host_runtime_only_no_simulated_timing_change",
+  "ignored_top_level_fields": [
+    "sst_host_wall_seconds",
+    "sst_library_binding",
+    "sst_plugin_sha256"
+  ],
+  "label": "askubuntu_fullgraph_incremental_weighted_sssp",
+  "schema_version": 1,
+  "simulated_metrics": {
+    "architecture_correctness_mismatches": 0,
+    "backend_requests": 6011567,
+    "cycles": 24919004,
+    "mathematical_correctness_mismatches": 0
+  },
+  "status": "pass"
+}

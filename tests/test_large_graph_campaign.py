@@ -37,6 +37,12 @@ FULLGRAPH_CONTRACT = (
     / "contracts"
     / "large_graph_publication_campaign_fullgraph_v2.json"
 )
+FULLGRAPH_V4_CONTRACT = (
+    ROOT
+    / "configs"
+    / "contracts"
+    / "large_graph_publication_campaign_fullgraph_v4.json"
+)
 DATASET_ROOT = Path("/data/feiyang/Graph_Datasets")
 
 
@@ -81,6 +87,17 @@ class LargeGraphCampaignTests(unittest.TestCase):
             bitcoin["hbm_capacity_bytes"],
         )
         self.assertTrue(pokec["row_lower_bound_fits"])
+
+    def test_fullgraph_v4_freezes_spine_host_runtime_equivalence(self) -> None:
+        contract = load_large_graph_campaign_contract(FULLGRAPH_V4_CONTRACT)
+        simulator = contract["architecture_baselines"]["simulator_baseline"]
+        equivalents = simulator["spine_host_runtime_equivalent_plugins"]
+        self.assertEqual(len(equivalents), 1)
+        self.assertEqual(
+            equivalents[0]["baseline_plugin_sha256"],
+            simulator["plugin_sha256"],
+        )
+        self.assertEqual(len(equivalents[0]["evidence_reports"]), 2)
 
     def test_publication_launches_k4_before_k1_for_the_same_workload(self) -> None:
         priorities = {
