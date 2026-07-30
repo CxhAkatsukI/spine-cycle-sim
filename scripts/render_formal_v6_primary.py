@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+from datetime import datetime, timezone
 import json
 from pathlib import Path
 from typing import Any
@@ -57,6 +58,7 @@ METRICS = (
     ("memory_ratio", "G+R / Spine memory bytes", "#ff7f0e", "\\\\\\"),
     ("energy_ratio", "G+R / Spine HBM energy", "#2ca02c", "|||"),
 )
+FIGURE_TIMESTAMP = datetime(2026, 7, 30, tzinfo=timezone.utc)
 
 
 def read_csv(path: Path) -> list[dict[str, str]]:
@@ -159,9 +161,24 @@ def configure_matplotlib() -> Any:
             "hatch.linewidth": 0.9,
             "pdf.fonttype": 42,
             "ps.fonttype": 42,
+            "svg.hashsalt": "spine-formal-v6",
         }
     )
     return plt
+
+
+def save_vector_figure(figure: Any, output: Path) -> None:
+    figure.savefig(
+        output.with_suffix(".pdf"),
+        bbox_inches="tight",
+        metadata={"CreationDate": FIGURE_TIMESTAMP, "ModDate": FIGURE_TIMESTAMP},
+    )
+    figure.savefig(
+        output.with_suffix(".svg"),
+        bbox_inches="tight",
+        metadata={"Date": "2026-07-30"},
+    )
+    normalize_svg(output.with_suffix(".svg"))
 
 
 def render_ratio_figure(rows: list[dict[str, Any]], output: Path) -> None:
@@ -212,9 +229,7 @@ def render_ratio_figure(rows: list[dict[str, Any]], output: Path) -> None:
     axes[-1].set_xticks(x_positions, labels, rotation=30, ha="right")
     axes[-1].set_xlabel("Dataset-algorithm pair")
     figure.tight_layout()
-    figure.savefig(output.with_suffix(".pdf"), bbox_inches="tight")
-    figure.savefig(output.with_suffix(".svg"), bbox_inches="tight")
-    normalize_svg(output.with_suffix(".svg"))
+    save_vector_figure(figure, output)
     plt.close(figure)
 
 
@@ -281,9 +296,7 @@ def render_memory_figure(rows: list[dict[str, Any]], output: Path) -> None:
         axis.grid(axis="y", linestyle="--", color="0.65", alpha=0.5, zorder=0)
         axis.tick_params(direction="in", top=True, right=True, length=4)
     figure.tight_layout()
-    figure.savefig(output.with_suffix(".pdf"), bbox_inches="tight")
-    figure.savefig(output.with_suffix(".svg"), bbox_inches="tight")
-    normalize_svg(output.with_suffix(".svg"))
+    save_vector_figure(figure, output)
     plt.close(figure)
 
 
@@ -330,9 +343,7 @@ def render_component_power_figure(
         fontsize=8,
     )
     figure.tight_layout()
-    figure.savefig(output.with_suffix(".pdf"), bbox_inches="tight")
-    figure.savefig(output.with_suffix(".svg"), bbox_inches="tight")
-    normalize_svg(output.with_suffix(".svg"))
+    save_vector_figure(figure, output)
     plt.close(figure)
 
 
