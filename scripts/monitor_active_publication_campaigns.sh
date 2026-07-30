@@ -36,8 +36,39 @@ campaigns=(
   formal_v3_small_fullpr
 )
 
+declare -A globally_passed_execution_ids=()
+declare -A capacity_excluded_execution_ids=()
+
+refresh_global_resolutions() {
+  globally_passed_execution_ids=()
+  capacity_excluded_execution_ids=()
+
+  while IFS= read -r result; do
+    [[ -n "${result}" ]] || continue
+    if jq -e '.status == "pass"' "${result}" >/dev/null 2>&1; then
+      execution_id="$(basename "$(dirname "${result}")")"
+      globally_passed_execution_ids["${execution_id}"]=1
+    fi
+  done < <(
+    find "${campaign_root}" -type f -path '*/runs/*/case_result.json' \
+      -print 2>/dev/null
+  )
+
+  while IFS= read -r manifest; do
+    [[ -n "${manifest}" ]] || continue
+    while IFS= read -r execution_id; do
+      [[ -n "${execution_id}" ]] || continue
+      capacity_excluded_execution_ids["${execution_id}"]=1
+    done < <(jq -r '.capacity_exclusions[]?.execution_id // empty' "${manifest}")
+  done < <(
+    find "${campaign_root}" -mindepth 2 -maxdepth 2 -type f \
+      -name campaign_manifest.json -print 2>/dev/null
+  )
+}
+
 while true; do
   date -Is
+  refresh_global_resolutions
   current_available_bytes="$(
     awk '$1 == "MemAvailable:" { print $2 * 1024 }' /proc/meminfo
   )"
@@ -50,7 +81,9 @@ while true; do
       printf '%-38s missing\n' "${campaign}"
       continue
     fi
-    repaired=0
+    reused=0
+    recovered=0
+    capacity_excluded=0
     while IFS= read -r job_id; do
       [[ -n "${job_id}" ]] || continue
       execution_id="${job_id##*.}"
@@ -59,14 +92,20 @@ while true; do
         .status == "pass"
         and (.admission.reused_child // false)
       ' "${result}" >/dev/null 2>&1; then
-        ((repaired += 1))
+        ((reused += 1))
+      elif [[ -n "${globally_passed_execution_ids[${execution_id}]+x}" ]]; then
+        ((recovered += 1))
+      elif [[ -n "${capacity_excluded_execution_ids[${execution_id}]+x}" ]]; then
+        ((capacity_excluded += 1))
       fi
     done < <(
       jq -r '.jobs[] | select(.status == "fail") | .job_id' "${state}"
     )
     jq -r \
       --arg campaign "${campaign}" \
-      --argjson repaired "${repaired}" \
+      --argjson reused "${reused}" \
+      --argjson recovered "${recovered}" \
+      --argjson capacity_excluded "${capacity_excluded}" \
       --argjson current_available_bytes "${current_available_bytes}" '
       (.summary.by_status.fail // 0) as $failed |
       [
@@ -76,8 +115,10 @@ while true; do
         ("run=" + ((.summary.by_status.running // 0) | tostring)),
         ("queue=" + ((.summary.by_status.queued // 0) | tostring)),
         ("fail=" + ($failed | tostring)),
-        ("repair=" + ($repaired | tostring)),
-        ("unresolved_fail=" + (($failed - $repaired) | tostring)),
+        ("reused=" + ($reused | tostring)),
+        ("recovered=" + ($recovered | tostring)),
+        ("capacity=" + ($capacity_excluded | tostring)),
+        ("unresolved_fail=" + (($failed - $reused - $recovered - $capacity_excluded) | tostring)),
         ("stop=" + ((.summary.by_status.stopped // 0) | tostring)),
         ("rss_gib=" + (((if .status == "running" then (.host.campaign_rss_bytes // 0) else 0 end) / 1073741824 * 10 | floor) / 10 | tostring)),
         ("available_gib=" + (($current_available_bytes / 1073741824) | floor | tostring)),

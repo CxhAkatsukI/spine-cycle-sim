@@ -34,7 +34,8 @@ tests because the current Spine maintenance launch has
 | `formal_v3_r19_grasu_fullpr` | R19-32 Full PageRank, GraSU+ReGraph K1/K4-shared | 2 | 40-41 |
 | `formal_v3_r19_k4_priority` | R19-32 K4-shared weighted SSSP PASS; original CC exact-boundary failure retained | 2 (1 concurrent) | 47 |
 | `formal_v3_r19_cc_guard` | Corrected R19-32 K4-shared CC formal rerun | 1 PASS | 47 |
-| `formal_v3_stackoverflow_spine` | StackOverflow Spine weighted SSSP, CC, residual PageRank | 3 (1 concurrent) | 48 |
+| `formal_v3_stackoverflow_spine` | Superseded StackOverflow Spine runs with the quadratic host-active builder | 3 soft-stopped | 48 |
+| `formal_v4_stackoverflow_spine_linear` | Audited cycle-equivalent StackOverflow Spine reruns with the linear host-active builder | 3 (3 concurrent) | 60-62 |
 | `formal_v3_small_cc_residual` | AU/SU/WikiTalk CC and residual PageRank, three systems | 18 (3 concurrent) | 42-44 |
 | `formal_v3_small_fullpr` | AU/SU/WikiTalk Full PageRank, three systems | 9 (2 concurrent) | 45-46 |
 
@@ -120,6 +121,14 @@ The per-campaign monitor reports elapsed time, RSS, phase, cycles, memory
 requests, and ETA. ETA is derived only for bounded `completed/total` work (for
 example fixed-iteration Full PageRank); convergence-driven SSSP/CC reports `-`
 instead of extrapolating an unknown number of rounds.
+
+The aggregate monitor resolves historical failed state without erasing it. A
+failed parent whose admitted child result was reused is reported as `reused`,
+an execution that passed in a later repair campaign is `recovered`, and a row
+excluded by a frozen HBM-capacity manifest is `capacity`. Only failures outside
+all three sets contribute to `unresolved_fail`. The lookup is by frozen
+execution ID across the complete campaign root, so a repair campaign cannot be
+mistaken for a second logical experiment.
 
 ## StackOverflow host-runtime replacement
 
