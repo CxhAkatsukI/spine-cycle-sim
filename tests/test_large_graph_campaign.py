@@ -43,6 +43,12 @@ FULLGRAPH_V4_CONTRACT = (
     / "contracts"
     / "large_graph_publication_campaign_fullgraph_v4.json"
 )
+FULLGRAPH_V5_CONTRACT = (
+    ROOT
+    / "configs"
+    / "contracts"
+    / "large_graph_publication_campaign_fullgraph_v5.json"
+)
 DATASET_ROOT = Path("/data/feiyang/Graph_Datasets")
 
 
@@ -98,6 +104,28 @@ class LargeGraphCampaignTests(unittest.TestCase):
             simulator["plugin_sha256"],
         )
         self.assertEqual(len(equivalents[0]["evidence_reports"]), 2)
+
+    def test_fullgraph_v5_freezes_hot_partition_clip_transition(self) -> None:
+        previous = load_large_graph_campaign_contract(FULLGRAPH_V4_CONTRACT)
+        contract = load_large_graph_campaign_contract(FULLGRAPH_V5_CONTRACT)
+        simulator = contract["architecture_baselines"]["simulator_baseline"]
+        self.assertEqual(
+            simulator["plugin_sha256"],
+            "5c0211c60431bba211758dcb9031e906871eaae844172bfd6f3533a1c2a74f2d",
+        )
+        self.assertEqual(
+            simulator["source_commit"],
+            "918e08464f30cfd102e53f729d8559a9ea9923fc",
+        )
+        self.assertEqual(simulator["spine_host_runtime_equivalent_plugins"], [])
+        self.assertEqual(
+            simulator["hls_reference"]["revision"],
+            "2655b24b3aed498467e07967e668a5ce4c63dea9",
+        )
+        self.assertEqual(
+            contract["experiment_matrix"], previous["experiment_matrix"]
+        )
+        self.assertEqual(contract["datasets"], previous["datasets"])
 
     def test_publication_launches_k4_before_k1_for_the_same_workload(self) -> None:
         priorities = {
