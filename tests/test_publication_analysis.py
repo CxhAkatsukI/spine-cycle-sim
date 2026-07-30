@@ -11,6 +11,7 @@ from spine_cycle_sim.experiments.publication_analysis import (
     analyze_publication_case_results,
     capacity_exclusion_metadata,
     expected_execution_metadata,
+    load_case_results_by_system,
     write_publication_analysis,
 )
 
@@ -83,6 +84,23 @@ def attach_raw_result(result: dict, path: Path, payload: dict) -> None:
 
 
 class PublicationAnalysisTests(unittest.TestCase):
+    def test_result_roots_can_be_filtered_by_architecture(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            for system in ("spine", "grasu_regraph_k4_shared"):
+                result_dir = root / "runs" / system
+                result_dir.mkdir(parents=True)
+                (result_dir / "case_result.json").write_text(
+                    json.dumps(case_result(system, 100), sort_keys=True) + "\n",
+                    encoding="ascii",
+                )
+
+            selected = load_case_results_by_system([("spine", root)])
+            self.assertEqual(len(selected), 1)
+            self.assertEqual(selected[0]["case"]["system"], "spine")
+            with self.assertRaisesRegex(ValueError, "unknown publication result system"):
+                load_case_results_by_system([("unknown", root)])
+
     def test_complete_triplet_emits_two_correct_pairs(self) -> None:
         results = [
             case_result("spine", 100),

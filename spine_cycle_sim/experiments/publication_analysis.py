@@ -1008,6 +1008,23 @@ def load_case_results(roots: Sequence[Path]) -> list[dict[str, Any]]:
     return [json.loads(path.read_text(encoding="ascii")) for path in sorted(paths)]
 
 
+def load_case_results_by_system(
+    selections: Sequence[tuple[str, Path]],
+) -> list[dict[str, Any]]:
+    """Load only the named architecture from each evidence root."""
+
+    results: list[dict[str, Any]] = []
+    for system, root in selections:
+        if system not in PUBLICATION_RESULT_SYSTEMS:
+            raise ValueError(f"unknown publication result system: {system}")
+        results.extend(
+            result
+            for result in load_case_results([root])
+            if result.get("case", {}).get("system") == system
+        )
+    return results
+
+
 def expected_execution_ids(manifests: Sequence[Path]) -> set[str]:
     return set(expected_execution_metadata(manifests))
 

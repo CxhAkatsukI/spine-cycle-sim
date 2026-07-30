@@ -62,10 +62,11 @@ default and accepts `SPINE_PLOT_PYTHON` as an override. It freezes
 `SOURCE_DATE_EPOCH` so unchanged inputs reproduce identical vector figures
 and report PDF bytes.
 
-The CC/residual scheduler uses a 128 GiB memory reserve. This allows the
-AU/SU/WikiTalk jobs to run alongside SSSP while preventing its 64 GiB
-StackOverflow jobs from launching when the two independent schedulers could
-otherwise cross the host safety reserve together.
+The CC/residual scheduler uses a 112 GiB launch/recovery reserve and a 96 GiB
+emergency stop threshold. This allows the measured-small AU/SU/WikiTalk jobs
+to run alongside SSSP while the predictor continues to hold its large
+StackOverflow jobs when the two independent schedulers could otherwise cross
+the host safety reserve together.
 
 The optional `formal_v6_au_spine_updates_default` scheduler fills otherwise idle CPU
 capacity with the nine AskUbuntu weighted-SSSP update cases: insertion,
@@ -76,6 +77,12 @@ explicit 64K-edge cap; insertion rows use the full materialized graph. Its
 manifest records `source_cohort_override=default` so that the v6 Spine rows
 can be paired with the correctness-passing v3 K4-shared rows without changing
 the graph, source, update, or algorithm parameters.
+
+The update analyzer enforces that provenance with system-filtered roots: it
+loads Spine only from the v6 campaign and loads K1/K4-shared only from the
+listed v3 campaigns. The resulting `summary.json` records this selection. An
+unfiltered old Spine row with the same scientific execution ID remains a hard
+duplicate-result error rather than being silently preferred or overwritten.
 
 The focused tests prove `Spine < K4-shared < K1` within a workload bucket and
 prove that the system offset cannot invert adjacent workload priorities.

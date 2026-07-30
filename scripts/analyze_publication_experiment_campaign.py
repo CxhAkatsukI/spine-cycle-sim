@@ -18,6 +18,7 @@ from spine_cycle_sim.experiments.publication_analysis import (  # noqa: E402
     expected_execution_ids,
     expected_execution_metadata,
     load_case_results,
+    load_case_results_by_system,
     write_publication_analysis,
 )
 from spine_cycle_sim.experiments.large_graph_campaign import (  # noqa: E402
@@ -27,13 +28,27 @@ from spine_cycle_sim.experiments.large_graph_campaign import (  # noqa: E402
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--result-root", type=Path, action="append", required=True)
+    parser.add_argument("--result-root", type=Path, action="append", default=[])
+    parser.add_argument(
+        "--system-result-root",
+        action="append",
+        default=[],
+        nargs=2,
+        metavar=("SYSTEM", "PATH"),
+        help="load only SYSTEM case results from PATH",
+    )
     parser.add_argument("--manifest", type=Path, action="append", default=[])
     parser.add_argument("--out-dir", type=Path, required=True)
     parser.add_argument("--result-transition-contract", type=Path)
     parser.add_argument("--require-complete", action="store_true")
     args = parser.parse_args()
+    if not args.result_root and not args.system_result_root:
+        parser.error("at least one --result-root or --system-result-root is required")
+    system_selections = [
+        (system, Path(path)) for system, path in args.system_result_root
+    ]
     results = load_case_results(args.result_root)
+    results.extend(load_case_results_by_system(system_selections))
     execution_metadata = expected_execution_metadata(args.manifest)
     transition_policy = None
     if args.result_transition_contract is not None:
@@ -51,6 +66,13 @@ def main() -> int:
         result_supersedence_policy=transition_policy,
         require_complete=args.require_complete,
     )
+    analysis["input_selection"] = {
+        "unfiltered_roots": [str(path.resolve()) for path in args.result_root],
+        "system_filtered_roots": [
+            {"system": system, "path": str(path.resolve())}
+            for system, path in system_selections
+        ],
+    }
     write_publication_analysis(args.out_dir, analysis)
     print(
         f"{analysis['status']} publication campaign: "

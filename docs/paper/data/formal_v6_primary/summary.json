@@ -217,6 +217,13 @@
   "expected_executions": 34,
   "failed_correctness_groups": 0,
   "incomplete_triplets": 13,
+  "input_selection": {
+    "system_filtered_roots": [],
+    "unfiltered_roots": [
+      "/data/tmp/chuxiao/large_graph_campaign_v1/formal_v6_sssp_exact/runs",
+      "/data/tmp/chuxiao/large_graph_campaign_v1/formal_v6_cc_residual_priority/runs"
+    ]
+  },
   "missing_execution_ids": [
     "0b5795e3da24b96657e6",
     "40d4283eb14d3fefe31f",
