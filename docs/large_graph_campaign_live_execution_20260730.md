@@ -121,6 +121,24 @@ requests, and ETA. ETA is derived only for bounded `completed/total` work (for
 example fixed-iteration Full PageRank); convergence-driven SSSP/CC reports `-`
 instead of extrapolating an unknown number of rounds.
 
+## StackOverflow host-runtime replacement
+
+The original StackOverflow Spine Weighted SSSP reached 308M simulated cycles
+and then spent more than three hours at 100% host CPU in the untimed
+`HOST_ACTIVE` bin builder. The old builder rescanned every resident edge for
+each active source (`O(A * E)`). It was soft-stopped with an explicit reason;
+the queued CC and Residual PageRank jobs in the same campaign were also marked
+stopped before launch.
+
+`formal_v4_stackoverflow_spine_linear` restarts all three executions with the
+audited `O(A + E)` host builder. The new plugin is admitted only for Spine by
+the v4 contract and two exact old/new summary comparisons. It does not change
+simulated cycles or accelerator behavior. The three jobs are pinned to CPUs
+60-62 and launched together under 64/48/80 GiB
+reserve/emergency/recovery thresholds. See
+`docs/spine_host_active_linearization_20260730.md` for build, hashes,
+equivalence evidence, and reproduction commands.
+
 ## Live analysis
 
 Refresh all correctness-gated outputs:

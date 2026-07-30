@@ -31,6 +31,7 @@ campaigns=(
   formal_v3_r19_k4_priority
   formal_v3_r19_cc_guard
   formal_v3_stackoverflow_spine
+  formal_v4_stackoverflow_spine_linear
   formal_v3_small_cc_residual
   formal_v3_small_fullpr
 )
