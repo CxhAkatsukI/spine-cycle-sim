@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+campaign_root="${SPINE_CAMPAIGN_ROOT:-/data/tmp/chuxiao/large_graph_campaign_v1}"
+output_dir="${SPINE_RQ3_OUTPUT_DIR:-${campaign_root}/rq3_live}"
+
+result_roots=()
+while IFS= read -r root; do
+  result_roots+=("${root}")
+done < <(
+  find "${campaign_root}" -path '*/runs/*/case_result.json' -type f -printf '%h\n' \
+    | sed 's#/runs/[^/]*$##' \
+    | sort -u
+)
+
+command=(
+  python3 scripts/analyze_rq3_realized_work.py
+  --out-dir "${output_dir}"
+  --preferred-plugin-sha256 96b4375f8549016ac8be36d85b04b4b5730df0af477dcc5909903845a8f56919
+  --preferred-plugin-sha256 c2a60d5250f5594dae98114bd32a96910fe08d11a299eadc6d0b2d1fa56161c6
+  --preferred-plugin-sha256 eee35f39c118538da5565e497d29b989e5bb492c1368839d424a984c32e2aae9
+  --preferred-plugin-sha256 88d44610461b876ec6617b705e338ed866f4ca18c41e1925bee4f8a26fcc3854
+  --preferred-plugin-sha256 1cc810e3dbfcea9c55aff94cecfc601d762a732f8491d9f17caf8fcbb9e57527
+)
+for root in "${result_roots[@]}"; do
+  command+=(--result-root "${root}")
+done
+
+"${command[@]}"
