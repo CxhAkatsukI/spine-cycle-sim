@@ -68,12 +68,14 @@ to run alongside SSSP while the predictor continues to hold its large
 StackOverflow jobs when the two independent schedulers could otherwise cross
 the host safety reserve together.
 
-On July 30, the queued WikiTalk K4-shared residual-PageRank job was moved to
-the one-job `formal_v6_wiki_residual_k4_sidecar` scheduler after its 8.81 GiB
-RSS estimate fit safely beside the three active jobs. The original scheduler
-records an auditable `stopped` row with reason
+On July 30, two queued jobs were moved to one-job sidecar schedulers when their
+RSS estimates fit safely beside the active jobs: the 8.81 GiB WikiTalk
+K4-shared residual-PageRank job uses
+`formal_v6_wiki_residual_k4_sidecar`, and the 17.38 GiB StackOverflow Spine CC
+job uses `formal_v6_stackoverflow_spine_cc_sidecar`. The original scheduler
+records auditable `stopped` rows with reason
 `moved to memory-bounded sidecar for safe fourth-task concurrency`; the
-sidecar uses the exact original command and output directory, a 96 GiB launch
+sidecars use the exact original commands and output directories, a 96 GiB launch
 reserve, and a 64/80 GiB emergency/recovery circuit breaker. This changes only
 dispatch ownership. The dataset, update, architecture profile, plugin,
 correctness gates, and result path are unchanged, and the unified monitor
