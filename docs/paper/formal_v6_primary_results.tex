@@ -19,9 +19,9 @@
 \begin{document}
 \maketitle
 \begin{abstract}
-This live report contains 12 of
+This live report contains 15 of
 34 expected formal-v6 executions and
-1 complete Spine/K4-shared pairs. Missing bars are still-running
+2 complete Spine/K4-shared pairs. Missing bars are still-running
 or queued executions, never zero-valued measurements. Every admitted row
 passes architecture-precision and independent mathematical oracles, full
 final-state comparison, and request, response, and DRAM conservation.
@@ -65,4 +65,15 @@ or HBM energy in the other panels.}
 \caption{Absolute device cycles. Only cross-system final-state-matched pairs
 enter this table.}
 \end{table}
+
+\clearpage
+\section{Memory traffic and request locality}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.98\linewidth]{\vfigdir/formal_v6_memory_locality.pdf}
+\caption{Absolute accepted-backend traffic and request-stream locality for
+the same complete pairs. A request is discontinuous when its accepted address
+does not continue the previous request from the same initiator, operation, and
+logical HBM channel. This is not a DRAM row-buffer-miss metric.}
+\end{figure}
 \end{document}

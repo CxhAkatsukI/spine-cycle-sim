@@ -109,6 +109,14 @@ def admitted_pairs(rows: list[dict[str, str]]) -> list[dict[str, Any]]:
                 "spine_cycles": int(float(row["spine_cycles"])),
                 "k4_cycles": int(float(row["competitor_cycles"])),
                 "spine_speedup": float(row["spine_speedup"]),
+                "spine_memory_bytes": int(float(row["spine_memory_bytes"])),
+                "k4_memory_bytes": int(float(row["competitor_memory_bytes"])),
+                "spine_discontinuous_fraction": float(
+                    row["spine_random_request_fraction"]
+                ),
+                "k4_discontinuous_fraction": float(
+                    row["competitor_random_request_fraction"]
+                ),
                 "memory_ratio": (
                     float(row["competitor_memory_bytes"]) / spine_memory
                     if spine_memory > 0.0
@@ -202,6 +210,75 @@ def render_ratio_figure(rows: list[dict[str, Any]], output: Path) -> None:
             )
     axes[-1].set_xticks(x_positions, labels, rotation=30, ha="right")
     axes[-1].set_xlabel("Dataset-algorithm pair")
+    figure.tight_layout()
+    figure.savefig(output.with_suffix(".pdf"), bbox_inches="tight")
+    figure.savefig(output.with_suffix(".svg"), bbox_inches="tight")
+    normalize_svg(output.with_suffix(".svg"))
+    plt.close(figure)
+
+
+def render_memory_figure(rows: list[dict[str, Any]], output: Path) -> None:
+    if not rows:
+        raise ValueError("formal v6 memory report has no complete Spine/K4 pair")
+    plt = configure_matplotlib()
+    figure, axes = plt.subplots(2, 1, figsize=(7.4, 4.5), sharex=True)
+    x_positions = list(range(len(rows)))
+    labels = [str(row["label"]) for row in rows]
+    width = 0.34
+
+    spine_mib = [float(row["spine_memory_bytes"]) / (1024.0**2) for row in rows]
+    k4_mib = [float(row["k4_memory_bytes"]) / (1024.0**2) for row in rows]
+    axes[0].bar(
+        [position - width / 2 for position in x_positions],
+        spine_mib,
+        width,
+        facecolor="white",
+        edgecolor="#1f77b4",
+        hatch="///",
+        linewidth=1.0,
+        label="Spine",
+    )
+    axes[0].bar(
+        [position + width / 2 for position in x_positions],
+        k4_mib,
+        width,
+        facecolor="white",
+        edgecolor="#d95f02",
+        hatch="\\\\\\",
+        linewidth=1.0,
+        label="G+R K4-shared",
+    )
+    positive = [value for value in spine_mib + k4_mib if value > 0.0]
+    if positive and max(positive) / min(positive) >= 10.0:
+        axes[0].set_yscale("log")
+    axes[0].set_ylabel("Accepted backend traffic (MiB)")
+    axes[0].legend(frameon=False, ncols=2, loc="upper left")
+
+    axes[1].bar(
+        [position - width / 2 for position in x_positions],
+        [float(row["spine_discontinuous_fraction"]) for row in rows],
+        width,
+        facecolor="white",
+        edgecolor="#1f77b4",
+        hatch="///",
+        linewidth=1.0,
+    )
+    axes[1].bar(
+        [position + width / 2 for position in x_positions],
+        [float(row["k4_discontinuous_fraction"]) for row in rows],
+        width,
+        facecolor="white",
+        edgecolor="#d95f02",
+        hatch="\\\\\\",
+        linewidth=1.0,
+    )
+    axes[1].set_ylabel("Discontinuous request fraction")
+    axes[1].set_ylim(0.0, 1.05)
+    axes[1].set_xticks(x_positions, labels, rotation=30, ha="right")
+    axes[1].set_xlabel("Dataset-algorithm pair")
+    for axis in axes:
+        axis.grid(axis="y", linestyle="--", color="0.65", alpha=0.5, zorder=0)
+        axis.tick_params(direction="in", top=True, right=True, length=4)
     figure.tight_layout()
     figure.savefig(output.with_suffix(".pdf"), bbox_inches="tight")
     figure.savefig(output.with_suffix(".svg"), bbox_inches="tight")
@@ -326,6 +403,17 @@ or HBM energy in the other panels.}}
 \caption{{Absolute device cycles. Only cross-system final-state-matched pairs
 enter this table.}}
 \end{{table}}
+
+\clearpage
+\section{{Memory traffic and request locality}}
+\begin{{figure}}[H]
+\centering
+\includegraphics[width=0.98\linewidth]{{\vfigdir/formal_v6_memory_locality.pdf}}
+\caption{{Absolute accepted-backend traffic and request-stream locality for
+the same complete pairs. A request is discontinuous when its accepted address
+does not continue the previous request from the same initiator, operation, and
+logical HBM channel. This is not a DRAM row-buffer-miss metric.}}
+\end{{figure}}
 \end{{document}}
 """
 
@@ -351,6 +439,7 @@ def main() -> int:
     args.figure_dir.mkdir(parents=True, exist_ok=True)
     args.data_dir.mkdir(parents=True, exist_ok=True)
     render_ratio_figure(pairs, args.figure_dir / "formal_v6_primary_ratios")
+    render_memory_figure(pairs, args.figure_dir / "formal_v6_memory_locality")
     write_csv(args.data_dir / "pairs.csv", pairs)
     write_pair_table(args.data_dir / "pair_table.tex", pairs)
     write_measurement_table(args.data_dir / "measurement_table.tex", system_rows)
