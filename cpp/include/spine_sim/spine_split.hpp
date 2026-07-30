@@ -111,6 +111,7 @@ struct SpineReaderCounters {
   std::uint64_t range_task_family_skips{};
   std::uint64_t range_task_level_checks{};
   std::uint64_t range_task_row_lookups{};
+  std::uint64_t range_task_hot_lower_bound_reads{};
   std::uint64_t range_task_construction_payloads{};
   std::uint64_t range_task_count{};
   std::uint64_t range_task_replay_payloads{};
@@ -228,7 +229,9 @@ class SpineSplitReader final : public Component {
     std::uint32_t source_value{};
     std::size_t family{};
     std::size_t level{};
+    std::size_t destination_partition{};
     bool hot{};
+    bool clip_hot_to_partition{};
     SpineLevelLayout layout;
     std::uint32_t edge_count{};
     std::uint32_t slice_epoch{};
@@ -314,6 +317,7 @@ class SpineSplitReader final : public Component {
     kIndexPageBase,
     kIndexRow,
     kIndexNextRow,
+    kProbeBinaryEdge,
     kConstructionEdge,
     kReplayEdge,
     kFallbackActiveRecord,
@@ -389,6 +393,8 @@ class SpineSplitReader final : public Component {
     kProbeRankResolve,
     kProbePageResolve,
     kProbeRowResolve,
+    kProbeLowerBoundRead,
+    kProbeLowerBoundResolve,
     kConstructionRead,
     kConstructionConsume,
     kProbeAdvance,
@@ -462,6 +468,10 @@ class SpineSplitReader final : public Component {
   void resolve_probe_page();
   void enqueue_probe_row_reads();
   void resolve_probe_row();
+  void begin_probe_lower_bound(std::uint32_t low, std::uint32_t high,
+                               std::uint32_t limit, bool second);
+  void advance_probe_lower_bound();
+  void begin_probe_construction();
   void consume_construction_edge();
   void flush_construction_run();
   void start_host_fallback(std::uint32_t reason);
@@ -562,6 +572,7 @@ class SpineSplitReader final : public Component {
   SourceValueWord staged_value_;
   AxiResponse staged_response_;
   SpineEdgeRecord loaded_edge_;
+  SpineEdgeRecord probe_binary_edge_;
   SpineEdgeRecord construction_edge_;
   std::uint64_t metadata_control_{};
   std::uint64_t dirty_count_{};
@@ -584,6 +595,11 @@ class SpineSplitReader final : public Component {
   std::uint32_t construction_run_length_{};
   std::uint32_t construction_previous_dst_{};
   bool construction_have_previous_dst_{};
+  std::uint32_t probe_lower_low_{};
+  std::uint32_t probe_lower_high_{};
+  std::uint32_t probe_lower_limit_{};
+  std::uint32_t probe_clipped_start_{};
+  bool probe_lower_second_{};
   std::size_t bin_index_{};
   std::size_t scatter_index_{};
   std::size_t tile_index_{};

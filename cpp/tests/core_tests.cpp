@@ -3427,6 +3427,70 @@ void test_spine_host_source_refresh_includes_edgeless_vertices() {
           "Reader used stale host source_value instead of refreshed HBM payload");
 }
 
+void test_spine_hot_probe_clips_cross_partition_row() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("hot-partition-clip", 200.0);
+  MockMemoryBackend backend("hot-partition-clip-hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 3,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 64,
+                                .response_queue_depth = 128,
+                            });
+  SpineEdgeSlice workload{
+      .vertices = 32,
+      .edges = {
+          {.src = 1, .dst = 0, .weight = 1, .diff = 1},
+          {.src = 1, .dst = 21, .weight = 1, .diff = 1},
+      },
+      .case_name = "hot_probe_cross_partition_row",
+  };
+  require(spine_hot_shard(0) == spine_hot_shard(21),
+          "cross-partition hot fixture does not share one shard");
+
+  SpineL0Config config;
+  config.vertex_partition_size = 16;
+  config.hot_vertices = {0, 21};
+  spine::sim::AlgorithmInitialState initial;
+  initial.primary.resize(workload.vertices);
+  std::iota(initial.primary.begin(), initial.primary.end(), 0U);
+  initial.active_vertices = {1};
+  SpinePageRankVerticalSliceSystem system(
+      scheduler, core, backend, workload,
+      GraphAlgorithmPolicy(AlgorithmPolicyConfig{
+          .kind = GraphAlgorithmKind::kConnectedComponents,
+          .vertices = workload.vertices,
+          .source = 0,
+      }),
+      config, SpineAxiInterfaceProfile{}, AlgorithmPipelineConfig{},
+      SpineSplitPageRankCompute::kDefaultMemoryRequestWindow, {}, std::nullopt,
+      std::nullopt, initial);
+  system.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until(
+      [&] {
+        return (system.done() || system.failed()) && system.idle() &&
+               backend.outstanding() == 0;
+      },
+      500'000);
+
+  const auto &reader = system.reader_counters();
+  const auto &compute = system.compute_counters();
+  require(!system.failed() && reader.range_task_path == 1 &&
+              reader.range_task_row_lookups == 2 &&
+              reader.range_task_hot_lower_bound_reads == 7 &&
+              reader.range_task_construction_payloads == 2 &&
+              reader.range_task_replay_payloads == 2 &&
+              reader.hot_edges_emitted == 2 && reader.edges_emitted == 2 &&
+              compute.edges_received == 2,
+          "hot exact path replayed one shard row outside its destination "
+          "partition");
+  require(system.compute().rank_words()[0] == 0 &&
+              system.compute().rank_words()[21] == 1,
+          "cross-partition hot clipping changed CC reduction semantics");
+}
+
 void test_spine_host_active_gate_runs_tiled_fallback() {
   Scheduler scheduler;
   const auto core = scheduler.add_clock_mhz("data", 141.0);
@@ -9028,6 +9092,8 @@ int main(int argc, char **argv) {
        test_spine_device_dirty_source_request_windows},
       {"spine_host_source_refresh",
        test_spine_host_source_refresh_includes_edgeless_vertices},
+      {"spine_hot_probe_partition_clip",
+       test_spine_hot_probe_clips_cross_partition_row},
       {"spine_host_active_gate_fallback",
        test_spine_host_active_gate_runs_tiled_fallback},
       {"spine_device_dirty_host_handoff",

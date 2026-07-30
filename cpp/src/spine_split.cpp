@@ -279,6 +279,11 @@ void SpineSplitReader::reset_state() {
   construction_run_length_ = 0;
   construction_previous_dst_ = 0;
   construction_have_previous_dst_ = false;
+  probe_lower_low_ = 0;
+  probe_lower_high_ = 0;
+  probe_lower_limit_ = 0;
+  probe_clipped_start_ = 0;
+  probe_lower_second_ = false;
   bin_index_ = 0;
   scatter_index_ = 0;
   tile_index_ = 0;
@@ -1094,6 +1099,12 @@ void SpineSplitReader::consume_memory_response(const MemoryTask &task,
           decode_u64(response.read_data);
       counters_.graph_index_payload_read_bytes += response.read_data.size();
       return;
+    case MemoryPayloadKind::kProbeBinaryEdge:
+      probe_binary_edge_ =
+          decode_spine_level_edge(response.read_data, task.edge_source);
+      counters_.graph_edge_payload_read_bytes += response.read_data.size();
+      ++counters_.range_task_hot_lower_bound_reads;
+      return;
     case MemoryPayloadKind::kConstructionEdge: {
       const SpineEdgeRecord edge =
           decode_spine_level_edge(response.read_data, task.edge_source);
@@ -1460,7 +1471,9 @@ void SpineSplitReader::prepare_range_probes() {
           .source_value = record.source_value,
           .family = family,
           .level = level_index,
+          .destination_partition = destination_partition,
           .hot = hot,
+          .clip_hot_to_partition = hot && !all_families,
           .layout = level.layout,
           .edge_count = static_cast<std::uint32_t>(level.edge_count),
           .slice_epoch = level.slice_epoch,
@@ -2509,6 +2522,85 @@ void SpineSplitReader::resolve_probe_row() {
     phase_ = Phase::kProbeAdvance;
     return;
   }
+  if (probe.clip_hot_to_partition) {
+    const std::uint64_t partition_base =
+        static_cast<std::uint64_t>(probe.destination_partition) *
+        maintenance_.config().vertex_partition_size;
+    const std::uint64_t partition_end = std::min<std::uint64_t>(
+        maintenance_.vertices(),
+        partition_base + maintenance_.config().vertex_partition_size);
+    if (partition_base >= partition_end ||
+        partition_end > std::numeric_limits<std::uint32_t>::max()) {
+      counters_.range_task_path = kRangeTaskPathError;
+      counters_.range_task_error = kRangeTaskErrorDestination;
+      begin_terminal(true, "hot range probe has an invalid destination partition");
+      return;
+    }
+    begin_probe_lower_bound(
+        probe.start, probe.end, static_cast<std::uint32_t>(partition_base),
+        false);
+    return;
+  }
+  begin_probe_construction();
+}
+
+void SpineSplitReader::begin_probe_lower_bound(std::uint32_t low,
+                                                std::uint32_t high,
+                                                std::uint32_t limit,
+                                                bool second) {
+  probe_lower_low_ = low;
+  probe_lower_high_ = high;
+  probe_lower_limit_ = limit;
+  probe_lower_second_ = second;
+  phase_ = Phase::kProbeLowerBoundRead;
+}
+
+void SpineSplitReader::advance_probe_lower_bound() {
+  RangeProbe &probe = range_probes_.at(probe_index_);
+  if (phase_ == Phase::kProbeLowerBoundRead) {
+    if (probe_lower_low_ >= probe_lower_high_) {
+      if (!probe_lower_second_) {
+        probe_clipped_start_ = probe_lower_low_;
+        const std::uint64_t partition_end = std::min<std::uint64_t>(
+            maintenance_.vertices(),
+            (static_cast<std::uint64_t>(probe.destination_partition) + 1) *
+                maintenance_.config().vertex_partition_size);
+        begin_probe_lower_bound(
+            probe_clipped_start_, probe.end,
+            static_cast<std::uint32_t>(partition_end), true);
+      } else {
+        probe.start = probe_clipped_start_;
+        probe.end = probe_lower_low_;
+        begin_probe_construction();
+      }
+      return;
+    }
+    const std::uint32_t mid =
+        probe_lower_low_ + ((probe_lower_high_ - probe_lower_low_) >> 1);
+    enqueue_read(*ports_.graph[probe.family],
+                 (probe.layout.edge_offset_words + mid) *
+                     kSpineGraphWordBytes,
+                 kSpineGraphWordBytes, MemoryPayloadKind::kProbeBinaryEdge,
+                 probe_index_, probe.source);
+    phase_ = Phase::kProbeLowerBoundResolve;
+    return;
+  }
+  const std::uint32_t mid =
+      probe_lower_low_ + ((probe_lower_high_ - probe_lower_low_) >> 1);
+  if (probe_binary_edge_.dst < probe_lower_limit_) {
+    probe_lower_low_ = mid + 1;
+  } else {
+    probe_lower_high_ = mid;
+  }
+  phase_ = Phase::kProbeLowerBoundRead;
+}
+
+void SpineSplitReader::begin_probe_construction() {
+  RangeProbe &probe = range_probes_.at(probe_index_);
+  if (probe.end == probe.start) {
+    phase_ = Phase::kProbeAdvance;
+    return;
+  }
   const std::uint64_t row_length = probe.end - probe.start;
   const std::uint64_t payload_budget =
       maintenance_.config().range_task_payload_budget;
@@ -2580,13 +2672,17 @@ void SpineSplitReader::consume_construction_edge() {
   RangeProbe &probe = range_probes_.at(probe_index_);
   const std::uint64_t destination = construction_edge_.dst;
   const std::uint64_t partition_base =
-      static_cast<std::uint64_t>(probe.family) *
+      static_cast<std::uint64_t>(probe.hot && probe.clip_hot_to_partition
+                                     ? probe.destination_partition
+                                     : probe.family) *
       maintenance_.config().vertex_partition_size;
   const std::uint64_t partition_end = std::min<std::uint64_t>(
       maintenance_.vertices(),
       partition_base + maintenance_.config().vertex_partition_size);
-  const bool invalid_partition = !probe.hot && (destination < partition_base ||
-                                                destination >= partition_end);
+  const bool partition_scoped = !probe.hot || probe.clip_hot_to_partition;
+  const bool invalid_partition =
+      partition_scoped &&
+      (destination < partition_base || destination >= partition_end);
   if (destination >= maintenance_.vertices() || invalid_partition ||
       (construction_have_previous_dst_ &&
        construction_edge_.dst < construction_previous_dst_)) {
@@ -3228,6 +3324,10 @@ void SpineSplitReader::advance(const CycleContext &context) {
       return;
     case Phase::kProbeRowResolve:
       resolve_probe_row();
+      return;
+    case Phase::kProbeLowerBoundRead:
+    case Phase::kProbeLowerBoundResolve:
+      advance_probe_lower_bound();
       return;
     case Phase::kConstructionRead:
     case Phase::kConstructionConsume:
