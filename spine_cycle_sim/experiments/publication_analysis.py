@@ -1169,7 +1169,14 @@ def write_publication_analysis(output_dir: Path, analysis: Mapping[str, Any]) ->
         if not rows:
             path.write_text("", encoding="ascii")
             continue
+        fieldnames: list[str] = []
+        seen_fields: set[str] = set()
+        for row in rows:
+            for field in row:
+                if field not in seen_fields:
+                    seen_fields.add(field)
+                    fieldnames.append(field)
         with path.open("w", encoding="ascii", newline="") as stream:
-            writer = csv.DictWriter(stream, fieldnames=list(rows[0]))
+            writer = csv.DictWriter(stream, fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(rows)

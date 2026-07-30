@@ -34,6 +34,7 @@ Expected CSV interfaces:
 - `spine_optimization_ablation.csv`
 - `hbm_sensitivity.csv`
 - `ppa_summary.csv`
+- `rq3/` (correctness-gated realized-work rows plus generated TeX table fragments)
 
 `simulator_host_runtime.csv` is extracted from the archived single-run,
 batch-8 child-process observations for the five 8,192-edge temporal slices.
@@ -53,3 +54,11 @@ python3 scripts/analyze_candidate10_optimization_robustness.py
 
 Missing files intentionally render as explicit evidence-gate placeholders.
 Compact real slices and unsliced datasets must never be mixed in one aggregate.
+
+Regenerate the RQ3 figure inputs and GraphyFlow-style vector figures with:
+
+```bash
+/data/tmp/chuxiao/spine-paper-plot-venv/bin/python \
+  scripts/render_rq3_realized_work.py \
+  --analysis-dir /data/tmp/chuxiao/large_graph_campaign_v1/rq3_formal_analysis_v3
+```

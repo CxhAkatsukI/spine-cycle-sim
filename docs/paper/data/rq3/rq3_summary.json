@@ -1,0 +1,14 @@
+{
+  "analysis_id": "spine_rq3_realized_work_v1",
+  "latency_rows": 54,
+  "preferred_plugin_sha256": [
+    "65489ede127dc900e72603c3e6b0be89f1b362a6bf0ff6ef510b4de3f27b5254",
+    "96b4375f8549016ac8be36d85b04b4b5730df0af477dcc5909903845a8f56919",
+    "c2a60d5250f5594dae98114bd32a96910fe08d11a299eadc6d0b2d1fa56161c6",
+    "eee35f39c118538da5565e497d29b989e5bb492c1368839d424a984c32e2aae9",
+    "88d44610461b876ec6617b705e338ed866f4ca18c41e1925bee4f8a26fcc3854",
+    "1cc810e3dbfcea9c55aff94cecfc601d762a732f8491d9f17caf8fcbb9e57527"
+  ],
+  "schema_version": 1,
+  "work_rows": 54
+}

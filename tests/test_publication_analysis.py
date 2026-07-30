@@ -351,6 +351,29 @@ class PublicationAnalysisTests(unittest.TestCase):
         self.assertIn("observed_pass", coverage)
         self.assertEqual(exclusions, "")
 
+    def test_writer_accepts_heterogeneous_capacity_metadata(self) -> None:
+        analysis = analyze_publication_case_results(
+            [case_result("spine", 100)],
+            capacity_exclusion_records=[
+                {
+                    "execution_id": "row-bound",
+                    "reason": "row_storage_bound",
+                    "row_storage_lower_bound_bytes": 20,
+                },
+                {
+                    "execution_id": "vertex-bound",
+                    "reason": "vertex_capacity_bound",
+                    "spine_max_vertices": 1 << 24,
+                },
+            ],
+        )
+        with tempfile.TemporaryDirectory() as temporary:
+            output = Path(temporary)
+            write_publication_analysis(output, analysis)
+            exclusions = (output / "capacity_exclusion_rows.csv").read_text()
+        self.assertIn("row_storage_lower_bound_bytes", exclusions)
+        self.assertIn("spine_max_vertices", exclusions)
+
     def test_expected_execution_metadata_is_human_readable_and_merged(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
