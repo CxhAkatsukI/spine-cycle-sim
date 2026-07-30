@@ -68,11 +68,27 @@ def _verify_profile_evidence_amendment(
     """Prove that an old profile differs only in declared evidence metadata."""
 
     ledger = json.loads(ledger_path.resolve().read_text(encoding="utf-8"))
-    if ledger.get("schema_version") != 1:
+    schema_version = ledger.get("schema_version")
+    if schema_version not in {1, 2}:
         raise ValueError("unsupported profile evidence amendment ledger")
     relative_path = str(profile_path.resolve().relative_to(repository_root.resolve()))
-    if relative_path not in ledger.get("profile_paths", []):
-        raise ValueError(f"profile is not covered by amendment ledger: {relative_path}")
+    if schema_version == 1:
+        if relative_path not in ledger.get("profile_paths", []):
+            raise ValueError(
+                f"profile is not covered by amendment ledger: {relative_path}"
+            )
+        expected_semantic_sha256 = ledger.get("semantic_sha256")
+    else:
+        entries = {
+            str(entry["profile_path"]): entry
+            for entry in ledger.get("amendments", [])
+            if isinstance(entry, Mapping) and "profile_path" in entry
+        }
+        if relative_path not in entries:
+            raise ValueError(
+                f"profile is not covered by amendment ledger: {relative_path}"
+            )
+        expected_semantic_sha256 = entries[relative_path].get("semantic_sha256")
     ignored_keys = tuple(str(key) for key in ledger.get("ignored_top_level_keys", []))
     if ignored_keys != ("evidence",):
         raise ValueError("profile amendment may ignore only the evidence field")
@@ -113,7 +129,7 @@ def _verify_profile_evidence_amendment(
     if prior_semantics != current_semantics:
         raise ValueError("profile amendment changes architecture semantics")
     semantic_sha256 = hashlib.sha256(current_semantics).hexdigest()
-    if semantic_sha256 != ledger.get("semantic_sha256"):
+    if semantic_sha256 != expected_semantic_sha256:
         raise ValueError("profile semantic digest differs from amendment ledger")
     return {
         "ledger": str(ledger_path.resolve()),
@@ -237,11 +253,37 @@ def main() -> int:
     parser.add_argument("--max-cycles", type=int, default=10_000_000_000_000)
     parser.add_argument("--logical-view", action="append", default=[])
     parser.add_argument("--reuse-child", action="store_true")
+    parser.add_argument("--reuse-completed-weighted-child", action="store_true")
+    parser.add_argument("--reused-child-wall-seconds", type=float)
+    parser.add_argument("--reused-child-profile-sha256")
     parser.add_argument("--profile-evidence-amendment", type=Path)
     args = parser.parse_args()
-    if args.profile_evidence_amendment is not None and not args.reuse_child:
+    reusing_child = args.reuse_child or args.reuse_completed_weighted_child
+    if args.reuse_child and args.reuse_completed_weighted_child:
+        raise ValueError("completed child reuse modes are mutually exclusive")
+    if args.profile_evidence_amendment is not None and not reusing_child:
         raise ValueError(
             "profile evidence amendment is valid only when reusing a completed child"
+        )
+    if args.reuse_completed_weighted_child:
+        if (
+            args.system == "spine"
+            or args.algorithm != "weighted_sssp"
+            or args.reused_child_wall_seconds is None
+            or args.reused_child_wall_seconds < 0
+            or not args.reused_child_profile_sha256
+            or args.profile_evidence_amendment is None
+        ):
+            raise ValueError(
+                "weighted child recovery requires GraSU, wall time, original "
+                "profile SHA, and an amendment ledger"
+            )
+    elif (
+        args.reused_child_wall_seconds is not None
+        or args.reused_child_profile_sha256 is not None
+    ):
+        raise ValueError(
+            "completed weighted child metadata requires its recovery mode"
         )
     if args.algorithm == "connected_components":
         raise ValueError("connected_components uses the dedicated publication CC runner")
@@ -328,7 +370,35 @@ def main() -> int:
         }
     )
     args.out_dir.mkdir(parents=True, exist_ok=True)
-    if args.reuse_child:
+    if args.reuse_completed_weighted_child:
+        recovery_command = (
+            *invocation.command,
+            "--reuse-result",
+            "--reused-wall-seconds",
+            str(args.reused_child_wall_seconds),
+            "--reused-profile-sha256",
+            str(args.reused_child_profile_sha256),
+        )
+        completed = subprocess.run(
+            recovery_command,
+            cwd=ROOT,
+            env=os.environ.copy(),
+            check=False,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+        )
+        (args.out_dir / "child_recovery_runner.log").write_text(
+            completed.stdout, encoding="utf-8"
+        )
+        child_returncode = completed.returncode
+        wall_seconds = float(args.reused_child_wall_seconds)
+        if child_returncode != 0:
+            raise RuntimeError(
+                f"publication child recovery failed with rc={child_returncode}; "
+                f"see {args.out_dir / 'child_recovery_runner.log'}"
+            )
+    elif args.reuse_child:
         child_returncode = 0
         wall_seconds = _reused_wall_seconds(invocation)
     else:
@@ -356,7 +426,14 @@ def main() -> int:
     result, dram, binding = load_system_result(invocation)
     problems = validate_system_result(run, invocation, result, dram, binding)
     profile_amendment = None
-    if "profile_sha256" in problems and args.profile_evidence_amendment is not None:
+    if args.reused_child_profile_sha256 is not None:
+        profile_amendment = _verify_profile_evidence_amendment(
+            args.profile_evidence_amendment,
+            profile_path=invocation.profile_path,
+            observed_sha256=args.reused_child_profile_sha256,
+            expected_sha256=invocation.profile_sha256,
+        )
+    elif "profile_sha256" in problems and args.profile_evidence_amendment is not None:
         profile_amendment = _verify_profile_evidence_amendment(
             args.profile_evidence_amendment,
             profile_path=invocation.profile_path,
@@ -399,7 +476,10 @@ def main() -> int:
         "host_wall_seconds": wall_seconds,
         "admission": {
             "child_returncode": child_returncode,
-            "reused_child": args.reuse_child,
+            "reused_child": reusing_child,
+            "reused_completed_weighted_child_result": (
+                args.reuse_completed_weighted_child
+            ),
             "parent_problems": problems,
             "architecture_correctness_mismatches": result.get(
                 "architecture_correctness_mismatches"

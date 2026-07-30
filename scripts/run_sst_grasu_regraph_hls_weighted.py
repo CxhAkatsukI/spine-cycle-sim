@@ -251,10 +251,11 @@ def validate_result(
         )
     expected_source_requests = sum(
         expected_weighted_source_cache_requests(
-            max_source, source_buffer_vertices, supersteps
+            0 if max_source is None else max_source,
+            source_buffer_vertices,
+            supersteps,
         )
         for max_source in partition_max_sources
-        if max_source is not None
     )
     expected_source_lines = expected_source_requests * source_buffer_vertices // 16
     expected_rows = destination_partitions * partition_vertices // 2 * supersteps
@@ -364,7 +365,23 @@ def main() -> int:
     parser.add_argument("--max-cycles", type=int, default=30_000_000)
     parser.add_argument("--no-build", action="store_true")
     parser.add_argument("--instantiate-all-hbm-channels", action="store_true")
+    parser.add_argument("--reuse-result", action="store_true")
+    parser.add_argument("--reused-wall-seconds", type=float)
+    parser.add_argument("--reused-profile-sha256")
     args = parser.parse_args()
+    if args.reuse_result:
+        if (
+            args.reused_wall_seconds is None
+            or args.reused_wall_seconds < 0
+            or not args.reused_profile_sha256
+        ):
+            raise ValueError(
+                "reused result requires nonnegative wall time and original profile SHA"
+            )
+        if not args.no_build:
+            raise ValueError("reused result must not rebuild the SST plugin")
+    elif args.reused_wall_seconds is not None or args.reused_profile_sha256:
+        raise ValueError("reused result metadata requires --reuse-result")
 
     profile_path = args.profile.resolve()
     profile = json.loads(profile_path.read_text(encoding="utf-8"))
@@ -456,8 +473,11 @@ def main() -> int:
     args.out_dir.mkdir(parents=True, exist_ok=True)
     result_path = (args.out_dir / "result.json").resolve()
     dram_dir = (args.out_dir / "dram").resolve()
-    result_path.unlink(missing_ok=True)
-    shutil.rmtree(dram_dir, ignore_errors=True)
+    if not args.reuse_result:
+        result_path.unlink(missing_ok=True)
+        shutil.rmtree(dram_dir, ignore_errors=True)
+    elif not result_path.is_file() or not dram_dir.is_dir():
+        raise ValueError("completed result or DRAM evidence is missing")
     env = os.environ.copy()
     env.update(
         {
@@ -555,23 +575,28 @@ def main() -> int:
         sst_library["command_option"],
         str(ROOT / "sst" / "grasu_regraph_vertical.py"),
     ]
-    started = time.monotonic()
-    completed = subprocess.run(
-        command,
-        cwd=ROOT,
-        env=env,
-        check=False,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-    )
-    wall_seconds = time.monotonic() - started
-    (args.out_dir / "sst.log").write_text(completed.stdout, encoding="utf-8")
-    if completed.returncode != 0:
-        raise RuntimeError(
-            f"weighted-HLS SST failed with rc={completed.returncode}; "
-            f"see {args.out_dir / 'sst.log'}"
+    if args.reuse_result:
+        wall_seconds = float(args.reused_wall_seconds)
+        result_sha256_before_validation = sha256(result_path)
+    else:
+        started = time.monotonic()
+        completed = subprocess.run(
+            command,
+            cwd=ROOT,
+            env=env,
+            check=False,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
         )
+        wall_seconds = time.monotonic() - started
+        (args.out_dir / "sst.log").write_text(completed.stdout, encoding="utf-8")
+        if completed.returncode != 0:
+            raise RuntimeError(
+                f"weighted-HLS SST failed with rc={completed.returncode}; "
+                f"see {args.out_dir / 'sst.log'}"
+            )
+        result_sha256_before_validation = None
     result = json.loads(result_path.read_text(encoding="utf-8"))
     validate_result(
         result, profile, oracle, supersteps, downstream_sharing
@@ -614,6 +639,22 @@ def main() -> int:
         "result": result,
         "dram": dram,
         "status": "PASS",
+        "result_recovery": (
+            {
+                "classification": (
+                    "completed_sst_result_revalidated_after_empty_partition_"
+                    "source_prefetch_contract_fix"
+                ),
+                "original_profile_sha256": args.reused_profile_sha256,
+                "current_profile_sha256": sha256(profile_path),
+                "result_sha256_before_validation": (
+                    result_sha256_before_validation
+                ),
+                "sst_rerun": False,
+            }
+            if args.reuse_result
+            else None
+        ),
     }
     (args.out_dir / "manifest.json").write_text(
         json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"

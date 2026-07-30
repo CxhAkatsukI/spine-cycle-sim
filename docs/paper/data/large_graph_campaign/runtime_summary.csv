@@ -1,4 +1,4 @@
 system,label,runs,median_seconds,max_seconds
 spine,Spine,15,591.4542165649982,13263.712555906997
-grasu_regraph_k4_shared,G+R K4-shared,13,2172.4486391559985,10388.082413876
+grasu_regraph_k4_shared,G+R K4-shared,14,2226.378622844997,23318.065747499466
 grasu_regraph_k1,G+R K1,10,5457.829393979497,20358.226120014002

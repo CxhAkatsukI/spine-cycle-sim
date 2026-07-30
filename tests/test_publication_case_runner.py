@@ -73,6 +73,28 @@ class PublicationCaseRunnerTests(unittest.TestCase):
                 repository_root=root,
             )
 
+    def test_v2_amendment_selects_profile_specific_semantic_digest(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        audit = _verify_profile_evidence_amendment(
+            root / "configs/contracts/profile_evidence_amendments_v2.json",
+            profile_path=(
+                root
+                / "configs/architectures/"
+                "grasu_regraph_candidate10_k4_shared_multipart_weighted_fullgraph_v7.json"
+            ),
+            observed_sha256=(
+                "d24a1fa8a79ce318c91ab65ef46ba00e52fd9074ad08d51a26fc3a7dab2738c1"
+            ),
+            expected_sha256=(
+                "d94f0a051053efb048b5dd56b78a29c4dd13bde3f64ad7eaafce866b843642d6"
+            ),
+            repository_root=root,
+        )
+        self.assertEqual(
+            audit["semantic_sha256"],
+            "af447b6b74a00db8c01b708b8e5a8e21d3aba9a23b1a45fb99f479ca40bc38d9",
+        )
+
     def test_weighted_scenarios_map_to_dynamic_execution(self) -> None:
         case = PublicationCase(
             dataset_id="tiny",

@@ -122,6 +122,66 @@ The `case_result.json` SHA-256 is
 The original failed R19 row remains failure evidence and is excluded from
 publication aggregates.
 
+## Empty destination partitions
+
+The completed WikiTalk K4-shared Weighted SSSP child exposed a separate
+validator-only boundary. WikiTalk has 18 destination partitions after vertex
+reordering, but only five contain live PMA edges. Every dispatched ReGraph
+reader, including an empty destination partition, still initializes its two
+ping-pong source-cache windows. The execution-driven simulator therefore
+reported the following exact request ledger over ten supersteps:
+
+```text
+live-partition requests   980
+empty-partition requests  13 partitions * 2 requests * 10 steps = 260
+total                     1240
+```
+
+The old Python validator skipped `None` entries in `partition_max_sources` and
+incorrectly expected 980 requests. The child had already completed 649,767,704
+cycles with zero architecture and mathematical-oracle mismatches and a closed
+210,198,074-request DRAM ledger. Its failure was emitted only after simulation
+while checking `source_cache_requests`, `source_cache_lines`, and
+`source_cache_lane_writes`.
+
+The validator now charges two initial requests for every empty partition. A
+dedicated recovery mode validates an existing immutable `result.json` and DRAM
+directory, records their original wall time and SHA-256, and rebuilds only the
+child manifest and publication parent result. It cannot run without
+`--reuse-completed-weighted-child`, an original profile SHA, and a Git-backed
+evidence-only profile amendment. SST is not rerun.
+
+Recovered result:
+
+| Metric | Result |
+|---|---:|
+| Vertices | 1,140,149 |
+| Directed graph records | 1,142,352 |
+| Destination partitions | 18 |
+| Empty destination partitions | 13 |
+| Supersteps | 10 |
+| Cycles | 649,767,704 |
+| Backend requests | 210,198,074 |
+| Source-cache requests | 1,240 |
+| Source-cache lines | 317,440 |
+| Source-cache lane writes | 2,539,520 |
+| Architecture mismatches | 0 |
+| Mathematical mismatches | 0 |
+| DRAM ledger | PASS |
+
+Evidence:
+
+```text
+/data/tmp/chuxiao/large_graph_campaign_v1/formal_v3_weighted_wave/
+/data/tmp/chuxiao/large_graph_campaign_v1/formal_v3_weighted_wave/runs/96c048a25bdd97023d02/case_result.json
+```
+
+The immutable raw result SHA-256 is
+`15de4724a65813f811d63ad89e903cd18f3dca27acd67f3337451024a4768def`.
+The recovered parent records
+`admission.reused_completed_weighted_child_result=true`, while the child
+manifest records `result_recovery.sst_rerun=false`.
+
 ## Evidence-pin amendment
 
 Adding the guard changed the packed-addressing contract SHA without changing

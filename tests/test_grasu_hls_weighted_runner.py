@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from pathlib import Path
 import unittest
 
@@ -89,9 +90,13 @@ class GrasuHlsWeightedRunnerTests(unittest.TestCase):
                 source if previous is None else max(previous, source)
             )
         source_requests = sum(
-            (source // params["regraph_source_buffer_vertices"] + 2) * supersteps
+            (
+                (0 if source is None else source)
+                // params["regraph_source_buffer_vertices"]
+                + 2
+            )
+            * supersteps
             for source in partition_max_sources
-            if source is not None
         )
         source_lines = source_requests * params["regraph_source_buffer_vertices"] // 16
         rows = destination_partitions * partition_vertices // 2 * supersteps
@@ -167,6 +172,33 @@ class GrasuHlsWeightedRunnerTests(unittest.TestCase):
         validate_result(result, profile, oracle, supersteps=1)
         self.assertEqual(result["destination_partitions"], 2)
         self.assertEqual(result["compute_pipelines"], 2)
+
+    def test_empty_destination_partition_still_prefetches_two_windows(self) -> None:
+        profile = json.loads(MULTIPART_PROFILE.read_text(encoding="utf-8"))
+        oracle = build_hls_weighted_oracle(
+            load_slice(MULTIPART_INITIAL), load_slice(MULTIPART_UPDATE), 0
+        )
+        partition_vertices = profile["parameters"]["regraph_partition_vertices"]
+        first_partition_only = replace(
+            oracle,
+            final_internal_edges=tuple(
+                edge
+                for edge in oracle.final_internal_edges
+                if edge[1] < partition_vertices
+            ),
+        )
+        result = self._valid_result(profile, first_partition_only, supersteps=1)
+        result["update_inserts"] = 4
+        result["update_deletes"] = 2
+        max_source = max(edge[0] for edge in first_partition_only.final_internal_edges)
+        expected = (
+            max_source // profile["parameters"]["regraph_source_buffer_vertices"]
+            + 2
+            + 2
+        )
+        self.assertEqual(result["destination_partitions"], 2)
+        self.assertEqual(result["source_cache_requests"], expected)
+        validate_result(result, profile, first_partition_only, supersteps=1)
 
 
 if __name__ == "__main__":
