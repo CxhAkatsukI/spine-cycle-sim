@@ -26,10 +26,10 @@
 \maketitle
 \begin{abstract}
 This report is generated directly from correctness-gated campaign artifacts.
-The snapshot is \textbf{PARTIAL}: 67 of 93 runnable
+The snapshot is \textbf{PARTIAL}: 70 of 93 runnable
 physical executions are currently admitted, with 2 of
 95 contract cases excluded by proven physical capacity
-bounds and 18 complete three-system groups. Missing bars are
+bounds and 19 complete three-system groups. Missing bars are
 unexecuted comparisons, not zero-valued measurements. Every plotted row passes
 exact integer-state comparison or the declared $10^{-5}$ float32 PageRank
 output tolerance.
@@ -50,7 +50,7 @@ batch size explicitly.
   legend style={at={(0.5,1.14)},anchor=south,legend columns=2}]
 \addplot[fill=kfour] table[x=index,y=k4_speedup] {\pairdata};
 \addplot[fill=kone] table[x=index,y=k1_speedup] {\pairdata};
-\addplot[black,dashed,sharp plot] coordinates {(0,1) (12,1)};
+\addplot[black,dashed,sharp plot] coordinates {(0,1) (13,1)};
 \legend{G+R K4-shared,G+R K1}
 \end{semilogyaxis}
 \end{tikzpicture}
@@ -71,7 +71,7 @@ mathematical correctness gates. K4-shared is the primary GraSU baseline.}
   legend style={at={(0.5,1.14)},anchor=south,legend columns=2}]
 \addplot[fill=kfour] table[x=index,y=k4_memory_ratio] {\pairdata};
 \addplot[fill=kone] table[x=index,y=k1_memory_ratio] {\pairdata};
-\addplot[black,dashed,sharp plot] coordinates {(0,1) (12,1)};
+\addplot[black,dashed,sharp plot] coordinates {(0,1) (13,1)};
 \legend{K4-shared requested bytes,K1 requested bytes}
 \end{semilogyaxis}
 \end{tikzpicture}
@@ -90,7 +90,7 @@ more data than Spine; request and DRAM completion ledgers close on every row.}
   legend style={at={(0.5,1.14)},anchor=south,legend columns=2}]
 \addplot[fill=kfour] table[x=index,y=k4_energy_ratio] {\pairdata};
 \addplot[fill=kone] table[x=index,y=k1_energy_ratio] {\pairdata};
-\addplot[black,dashed,sharp plot] coordinates {(0,1) (12,1)};
+\addplot[black,dashed,sharp plot] coordinates {(0,1) (13,1)};
 \legend{G+R K4-shared,G+R K1}
 \end{semilogyaxis}
 \end{tikzpicture}
@@ -111,7 +111,7 @@ accelerator or board energy.}
   grid=major, legend style={at={(0.5,1.14)},anchor=south,legend columns=2}]
 \addplot[fill=kfour] table[x=index,y=k4_update_speedup] {\pairdata};
 \addplot[fill=kone] table[x=index,y=k1_update_speedup] {\pairdata};
-\addplot[black,dashed,sharp plot] coordinates {(0,1) (12,1)};
+\addplot[black,dashed,sharp plot] coordinates {(0,1) (13,1)};
 \legend{G+R K4-shared,G+R K1}
 \end{semilogyaxis}
 \end{tikzpicture}
@@ -225,7 +225,7 @@ from DRAMSim3 command and background activity.}
 \end{table}
 
 \paragraph{Workload-specific component activity.}
-The correctness-gated snapshot exports 444 component
+The correctness-gated snapshot exports 464 component
 rows covering maintenance/update, reader/source cache, compute/gather/apply,
 streams, selected on-chip arrays, and the HBM frontend. These are physical
 activity counters with explicit per-component contracts, not energy estimates;
@@ -240,9 +240,9 @@ per-event energy analysis.
 \toprule
 Algorithm & Cross-system groups & Exact & K1/K4 triplets & Failed \\
 \midrule
-    SSSP & 13 & 13 & 9 & 0 \\
+    SSSP & 13 & 13 & 10 & 0 \\
     CC & 4 & 4 & 3 & 0 \\
-    FullPR & 3 & 0 & 3 & 0 \\
+    FullPR & 4 & 0 & 3 & 0 \\
     ResPR & 3 & 3 & 3 & 0 \\
 \bottomrule
 \end{tabular}
@@ -285,9 +285,9 @@ check, not a performance result.}
 \toprule
 System & Completed runs & Median host s & Maximum host s \\
 \midrule
-    Spine & 15 & 591.5 & 13263.7 \\
-    G+R K4-shared & 14 & 2226.4 & 23318.1 \\
-    G+R K1 & 10 & 5457.8 & 20358.2 \\
+    Spine & 16 & 644.4 & 13263.7 \\
+    G+R K4-shared & 15 & 2280.3 & 23318.1 \\
+    G+R K1 & 11 & 5867.6 & 27529.1 \\
 \bottomrule
 \end{tabular}
 \caption{Observed host wall time under concurrent campaign load. These values
