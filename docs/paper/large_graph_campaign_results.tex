@@ -26,9 +26,9 @@
 \maketitle
 \begin{abstract}
 This report is generated directly from correctness-gated campaign artifacts.
-The snapshot is \textbf{PARTIAL}: 70 of 93 runnable
+The snapshot is \textbf{PARTIAL}: 70 of 97 runnable
 physical executions are currently admitted, with 2 of
-95 contract cases excluded by proven physical capacity
+99 contract cases excluded by proven physical capacity
 bounds and 19 complete three-system groups. Missing bars are
 unexecuted comparisons, not zero-valued measurements. Every plotted row passes
 exact integer-state comparison or the declared $10^{-5}$ float32 PageRank
@@ -240,8 +240,8 @@ per-event energy analysis.
 \toprule
 Algorithm & Cross-system groups & Exact & K1/K4 triplets & Failed \\
 \midrule
-    SSSP & 13 & 13 & 10 & 0 \\
-    CC & 4 & 4 & 3 & 0 \\
+    SSSP & 14 & 14 & 10 & 0 \\
+    CC & 3 & 3 & 3 & 0 \\
     FullPR & 4 & 0 & 3 & 0 \\
     ResPR & 3 & 3 & 3 & 0 \\
 \bottomrule
@@ -285,7 +285,7 @@ check, not a performance result.}
 \toprule
 System & Completed runs & Median host s & Maximum host s \\
 \midrule
-    Spine & 16 & 644.4 & 13263.7 \\
+    Spine & 16 & 644.4 & 27739.8 \\
     G+R K4-shared & 15 & 2280.3 & 23318.1 \\
     G+R K1 & 11 & 5867.6 & 27529.1 \\
 \bottomrule
