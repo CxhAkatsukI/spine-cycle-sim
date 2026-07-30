@@ -39,6 +39,13 @@ fine-grained `M_phys` timing regression unless direct component timing exists.
 The analyzer also exports a support flag for every regression. Missing timing
 counters are excluded instead of being treated as zero work.
 
+Representative stacked bars have a second admission gate. `zero_net` requires
+an explicit zero-net mode or persisted-edge counter; a missing counter is not
+interpreted as zero. `deep_carry` requires positive direct carry work, and a
+PageRank correction requires thresholded residual PageRank with positive
+physical edge work. Full PageRank is reported separately because it is a full
+iteration, not an incremental correction.
+
 ## Current Provisional Evidence
 
 The 2026-07-30 live snapshot contains 35 distinct Spine executions after
@@ -59,6 +66,12 @@ trace holdout are required before making the carry claim. These numbers are
 provisional until the v6 large-graph campaign and the five requested RQ3 case
 classes are complete.
 
+The analyzer writes a machine-readable coverage gate. At the current live
+snapshot, shallow insertion and deletion fallback are ready; explicit
+zero-net, deep carry, and nonzero residual correction remain missing. Missing
+classes are omitted from representative bars rather than replaced by a
+different mechanism.
+
 ## Reproduction
 
 ```bash
@@ -73,6 +86,8 @@ Generated files:
 /data/tmp/chuxiao/large_graph_campaign_v1/rq3_live/rq3_work_rows.csv
 /data/tmp/chuxiao/large_graph_campaign_v1/rq3_live/rq3_latency_rows.csv
 /data/tmp/chuxiao/large_graph_campaign_v1/rq3_live/rq3_regression_rows.csv
+/data/tmp/chuxiao/large_graph_campaign_v1/rq3_live/rq3_representative_rows.csv
+/data/tmp/chuxiao/large_graph_campaign_v1/rq3_live/rq3_coverage_rows.csv
 ```
 
 Verification:

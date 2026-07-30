@@ -179,9 +179,17 @@ def _critical_path_ledger(result: Mapping[str, Any]) -> dict[str, int]:
 
 def _case_class(case: Mapping[str, Any], metrics: Mapping[str, Any]) -> str:
     physical = int(case["update"].get("physical_records", 0))
-    persisted = _metric(metrics, "maintenance_persisted_edges")
     target = int(metrics.get("maintenance_target_level", -1))
-    if physical > 0 and persisted == 0:
+    explicit_zero_net = (
+        metrics.get("zero_net") is True
+        or metrics.get("update_mode") == "zero_net_no_repair"
+        or (
+            physical > 0
+            and "maintenance_persisted_edges" in metrics
+            and _metric(metrics, "maintenance_persisted_edges") == 0
+        )
+    )
+    if explicit_zero_net:
         return "zero_net"
     if case["scenario"] in {"delete", "weight_change"} and (
         _metric(metrics, "compute_full_recompute_reset_cycles") > 0
@@ -190,14 +198,80 @@ def _case_class(case: Mapping[str, Any], metrics: Mapping[str, Any]) -> str:
         return "deletion_fallback"
     if target > 0 or _metric(metrics, "maintenance_carry_cursor_bits_inspected") > 0:
         return "deep_carry"
-    if case["algorithm"] in {
-        "full_pagerank",
-        "thresholded_residual_pagerank",
-    }:
+    if case["algorithm"] == "thresholded_residual_pagerank":
         return "pagerank_correction"
+    if case["algorithm"] == "full_pagerank":
+        return "full_pagerank"
     if case["scenario"] == "insert":
         return "shallow_insertion"
     return "other"
+
+
+REQUIRED_CASE_CLASSES = (
+    "zero_net",
+    "shallow_insertion",
+    "deep_carry",
+    "pagerank_correction",
+    "deletion_fallback",
+)
+
+
+def _representative_case_rows(
+    work_rows: Sequence[Mapping[str, Any]],
+    latency_rows: Sequence[Mapping[str, Any]],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    latency_by_id = {row["execution_id"]: row for row in latency_rows}
+    representatives: list[dict[str, Any]] = []
+    coverage: list[dict[str, Any]] = []
+    requirements = {
+        "zero_net": "explicit zero-net execution semantics",
+        "shallow_insertion": "positive insertion with target level zero",
+        "deep_carry": "positive direct carry work counter",
+        "pagerank_correction": "residual PageRank with positive physical work",
+        "deletion_fallback": "delete or weight-change full-recompute fallback",
+    }
+    for case_class in REQUIRED_CASE_CLASSES:
+        eligible = [row for row in work_rows if row["case_class"] == case_class]
+        if case_class == "deep_carry":
+            eligible = [row for row in eligible if int(row["w_carry_records"]) > 0]
+        elif case_class == "pagerank_correction":
+            eligible = [
+                row
+                for row in eligible
+                if row["algorithm"] == "thresholded_residual_pagerank"
+                and int(row["m_phys_records"]) > 0
+            ]
+        eligible.sort(
+            key=lambda row: (
+                int(latency_by_id[row["execution_id"]]["total_cycles"]),
+                str(row["execution_id"]),
+            ),
+            reverse=True,
+        )
+        coverage.append(
+            {
+                "case_class": case_class,
+                "status": "ready" if eligible else "missing",
+                "eligible_executions": len(eligible),
+                "requirement": requirements[case_class],
+            }
+        )
+        if eligible:
+            selected = eligible[0]
+            representatives.append(
+                {
+                    **selected,
+                    **{
+                        key: value
+                        for key, value in latency_by_id[
+                            selected["execution_id"]
+                        ].items()
+                        if key not in selected
+                    },
+                    "selection_policy": "maximum_total_cycles_among_eligible",
+                }
+            )
+    return representatives, coverage
 
 
 def analyze_rq3_results(
@@ -468,6 +542,9 @@ def analyze_rq3_results(
                     **fit,
                 }
             )
+    representative_rows, coverage_rows = _representative_case_rows(
+        work_rows, latency_rows
+    )
     return {
         "schema_version": 1,
         "analysis_id": "spine_rq3_realized_work_v1",
@@ -475,6 +552,8 @@ def analyze_rq3_results(
         "work_rows": work_rows,
         "latency_rows": latency_rows,
         "regression_rows": fit_rows,
+        "representative_rows": representative_rows,
+        "coverage_rows": coverage_rows,
     }
 
 
@@ -508,7 +587,13 @@ def write_rq3_analysis(output_dir: Path, analysis: Mapping[str, Any]) -> None:
     (output_dir / "rq3_summary.json").write_text(
         json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="ascii"
     )
-    for key in ("work_rows", "latency_rows", "regression_rows"):
+    for key in (
+        "work_rows",
+        "latency_rows",
+        "regression_rows",
+        "representative_rows",
+        "coverage_rows",
+    ):
         rows = list(analysis[key])
         path = output_dir / f"rq3_{key}.csv"
         if not rows:
