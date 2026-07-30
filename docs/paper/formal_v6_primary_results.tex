@@ -76,4 +76,23 @@ the same complete pairs. A request is discontinuous when its accepted address
 does not continue the previous request from the same initiator, operation, and
 logical HBM channel. This is not a DRAM row-buffer-miss metric.}
 \end{figure}
+
+\clearpage
+\section{Implementation-level power attribution}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.98\linewidth]{\vfigdir/formal_v6_component_power.pdf}
+\caption{Vivado post-route vectorless hierarchy power at 150 MHz. The four
+bars are distinct routed builds; the Spine evidence covers SSSP only. Values
+use Vivado default activity with Low confidence and establish component
+attribution, not workload-calibrated energy or board power.}
+\end{figure}
+
+\paragraph{Energy boundary.}
+The workload-specific HBM energy ratios in Figure 1 come from DRAMSim3 and are
+paired with the exact executions plotted there. The vectorless powers above
+must not be multiplied by the v6 latency to claim total workload energy.
+Workload-calibrated on-chip dynamic energy remains open because equivalent
+per-event energy models and complete activity counters are not yet available
+for every routed algorithm build.
 \end{document}

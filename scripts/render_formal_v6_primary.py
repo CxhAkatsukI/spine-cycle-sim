@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_ANALYSIS = Path(
     "/data/tmp/chuxiao/large_graph_campaign_v1/formal_v6_primary_analysis"
 )
+DEFAULT_COMPONENT_POWER = ROOT / "docs/paper/data/component_power.csv"
 DATASET_ORDER = {
     name: index
     for index, name in enumerate(
@@ -286,6 +287,55 @@ def render_memory_figure(rows: list[dict[str, Any]], output: Path) -> None:
     plt.close(figure)
 
 
+def render_component_power_figure(
+    rows: list[dict[str, str]], output: Path
+) -> None:
+    if not rows:
+        raise ValueError("component-power evidence is empty")
+    plt = configure_matplotlib()
+    figure, axis = plt.subplots(figsize=(7.4, 3.5))
+    x_positions = list(range(len(rows)))
+    labels = [row["label"] for row in rows]
+    components = (
+        ("hbm_subsystem", "HBM subsystem", "#4c78a8", "///"),
+        ("update_maintenance", "Update / maintenance", "#f58518", "\\\\\\"),
+        ("graph_compute", "Graph compute", "#54a24b", "|||"),
+        ("stream_fifos", "Streams / FIFOs", "#b279a2", "..."),
+        ("other_user_logic", "Other user logic", "#9d9d9d", "xxx"),
+    )
+    bottoms = [0.0 for _ in rows]
+    for key, label, color, hatch in components:
+        values = [float(row[key]) for row in rows]
+        axis.bar(
+            x_positions,
+            values,
+            bottom=bottoms,
+            width=0.58,
+            facecolor="white",
+            edgecolor=color,
+            linewidth=1.0,
+            hatch=hatch,
+            label=label,
+        )
+        bottoms = [left + right for left, right in zip(bottoms, values, strict=True)]
+    axis.set_ylabel("User-level hierarchy power (W)")
+    axis.set_xticks(x_positions, labels, rotation=18, ha="right")
+    axis.grid(axis="y", linestyle="--", color="0.65", alpha=0.5, zorder=0)
+    axis.tick_params(direction="in", top=True, right=True, length=4)
+    axis.legend(
+        frameon=False,
+        ncols=3,
+        loc="upper center",
+        bbox_to_anchor=(0.5, 1.24),
+        fontsize=8,
+    )
+    figure.tight_layout()
+    figure.savefig(output.with_suffix(".pdf"), bbox_inches="tight")
+    figure.savefig(output.with_suffix(".svg"), bbox_inches="tight")
+    normalize_svg(output.with_suffix(".svg"))
+    plt.close(figure)
+
+
 def tex_escape(value: object) -> str:
     return str(value).replace("_", r"\_")
 
@@ -414,6 +464,25 @@ the same complete pairs. A request is discontinuous when its accepted address
 does not continue the previous request from the same initiator, operation, and
 logical HBM channel. This is not a DRAM row-buffer-miss metric.}}
 \end{{figure}}
+
+\clearpage
+\section{{Implementation-level power attribution}}
+\begin{{figure}}[H]
+\centering
+\includegraphics[width=0.98\linewidth]{{\vfigdir/formal_v6_component_power.pdf}}
+\caption{{Vivado post-route vectorless hierarchy power at 150 MHz. The four
+bars are distinct routed builds; the Spine evidence covers SSSP only. Values
+use Vivado default activity with Low confidence and establish component
+attribution, not workload-calibrated energy or board power.}}
+\end{{figure}}
+
+\paragraph{{Energy boundary.}}
+The workload-specific HBM energy ratios in Figure 1 come from DRAMSim3 and are
+paired with the exact executions plotted there. The vectorless powers above
+must not be multiplied by the v6 latency to claim total workload energy.
+Workload-calibrated on-chip dynamic energy remains open because equivalent
+per-event energy models and complete activity counters are not yet available
+for every routed algorithm build.
 \end{{document}}
 """
 
@@ -430,6 +499,9 @@ def main() -> int:
     parser.add_argument(
         "--tex", type=Path, default=ROOT / "docs/paper/formal_v6_primary_results.tex"
     )
+    parser.add_argument(
+        "--component-power", type=Path, default=DEFAULT_COMPONENT_POWER
+    )
     args = parser.parse_args()
     summary = json.loads(
         (args.analysis_dir / "summary.json").read_text(encoding="ascii")
@@ -440,6 +512,10 @@ def main() -> int:
     args.data_dir.mkdir(parents=True, exist_ok=True)
     render_ratio_figure(pairs, args.figure_dir / "formal_v6_primary_ratios")
     render_memory_figure(pairs, args.figure_dir / "formal_v6_memory_locality")
+    render_component_power_figure(
+        read_csv(args.component_power),
+        args.figure_dir / "formal_v6_component_power",
+    )
     write_csv(args.data_dir / "pairs.csv", pairs)
     write_pair_table(args.data_dir / "pair_table.tex", pairs)
     write_measurement_table(args.data_dir / "measurement_table.tex", system_rows)
