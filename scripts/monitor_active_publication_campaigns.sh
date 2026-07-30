@@ -38,6 +38,11 @@ campaigns=(
   formal_v4_stackoverflow_cc_residual_competitors
 )
 
+standalone_runs=(
+  formal_v5_stackoverflow_cc_hot_partition_clip
+  formal_v5_r19_cc_hot_partition_clip
+)
+
 declare -A globally_passed_execution_ids=()
 declare -A capacity_excluded_execution_ids=()
 
@@ -127,6 +132,43 @@ while true; do
         ("breaker=" + (if (.host.memory_pressure_active // false) then "active" else "clear" end))
       ] | @tsv
     ' "${state}"
+  done
+  for run in "${standalone_runs[@]}"; do
+    root="${campaign_root}/${run}"
+    result="${root}/case_result.json"
+    progress="${root}/child/progress.json"
+    rss_kib="$({
+      ps -eo rss=,args= | awk -v needle="${root}" '
+        index($0, needle) && !index($0, "awk -v needle=") &&
+          !index($0, "monitor_active_publication_campaigns.sh") { total += $1 }
+        END { print total + 0 }
+      '
+    })"
+    if [[ -f "${result}" ]] && jq -e '.status == "pass"' "${result}" >/dev/null; then
+      status=pass
+      phase=complete
+      cycles="$(jq -r '.row.cycles' "${result}")"
+    elif (( rss_kib > 0 )); then
+      status=running
+      if [[ -f "${progress}" ]]; then
+        phase="$(jq -r '.phase // "compute"' "${progress}")"
+        cycles="$(jq -r '.simulated_cycles // 0' "${progress}")"
+      else
+        phase=host_or_sst_setup
+        cycles=0
+      fi
+    elif [[ -d "${root}" ]]; then
+      status=incomplete
+      phase=not_running
+      cycles=0
+    else
+      status=missing
+      phase=not_started
+      cycles=0
+    fi
+    printf '%-38s %s\tphase=%s\tcycles=%s\trss_gib=%s\tavailable_gib=%s\n' \
+      "${run}" "${status}" "${phase}" "${cycles}" \
+      "$((rss_kib / 1024 / 1024))" "$((current_available_bytes / 1073741824))"
   done
   free -h | sed -n '1,2p'
   printf '\n'

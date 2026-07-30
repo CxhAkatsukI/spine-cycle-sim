@@ -30,6 +30,7 @@ result_roots=(
   formal_v4_missing_fullpr_competitors
   formal_v4_stackoverflow_cc_residual_competitors
   formal_v5_stackoverflow_cc_hot_partition_clip
+  formal_v5_r19_cc_hot_partition_clip
 )
 
 manifest_roots=(
