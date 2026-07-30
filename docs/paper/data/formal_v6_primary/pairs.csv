@@ -1,0 +1,2 @@
+dataset_id,dataset,algorithm,algorithm_label,label,spine_cycles,k4_cycles,spine_speedup,memory_ratio,energy_ratio,index
+wiki_talk_temporal,WK,weighted_sssp,SSSP,WK-SSSP,43227,64837217,1499.9240520970689,5875.254676258993,4837.969221665275,0

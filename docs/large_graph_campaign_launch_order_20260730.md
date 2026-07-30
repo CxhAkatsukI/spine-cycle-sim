@@ -33,6 +33,29 @@ python3 -m unittest tests.test_large_graph_campaign
 python3 -m unittest discover -s tests
 ```
 
+Monitor the current v6 SSSP and CC/residual campaigns together:
+
+```bash
+cd /home/chuxiao/spine-cycle-sim-publication
+bash scripts/monitor_formal_v6_campaigns.sh
+```
+
+Refresh their correctness-gated analyses independently so that the v6 warm
+SSSP measurement window is not mixed with v3/v4/v5 rows:
+
+```bash
+bash scripts/analyze_formal_v6_campaign.sh
+SPINE_V6_CAMPAIGN_DIR=/data/tmp/chuxiao/large_graph_campaign_v1/formal_v6_cc_residual_priority \
+SPINE_V6_ANALYSIS_DIR=/data/tmp/chuxiao/large_graph_campaign_v1/formal_v6_cc_residual_priority/analysis \
+  bash scripts/analyze_formal_v6_campaign.sh
+bash scripts/analyze_formal_v6_primary.sh
+```
+
+The CC/residual scheduler uses a 128 GiB memory reserve. This allows the
+AU/SU/WikiTalk jobs to run alongside SSSP while preventing its 64 GiB
+StackOverflow jobs from launching when the two independent schedulers could
+otherwise cross the host safety reserve together.
+
 The focused tests prove `Spine < K4-shared < K1` within a workload bucket and
 prove that the system offset cannot invert adjacent workload priorities.
 

@@ -1,0 +1,68 @@
+\documentclass[10pt]{article}
+\usepackage[margin=0.72in]{geometry}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage[hidelinks]{hyperref}
+\hypersetup{pdftitle={Spine Formal-v6 Primary Dynamic-Graph Results}}
+\title{\textbf{Spine Formal-v6 Primary Dynamic-Graph Results}\\
+\large Correctness-Gated Spine vs. GraSU+ReGraph K4-shared}
+\author{Chuxiao Han}
+\date{Live snapshot, July 2026}
+\IfFileExists{data/formal_v6_primary/pair_table.tex}{
+  \newcommand{\vdatadir}{data/formal_v6_primary}
+  \newcommand{\vfigdir}{../figures}
+}{
+  \newcommand{\vdatadir}{docs/paper/data/formal_v6_primary}
+  \newcommand{\vfigdir}{docs/figures}
+}
+\begin{document}
+\maketitle
+\begin{abstract}
+This live report contains 12 of
+34 expected formal-v6 executions and
+1 complete Spine/K4-shared pairs. Missing bars are still-running
+or queued executions, never zero-valued measurements. Every admitted row
+passes architecture-precision and independent mathematical oracles, full
+final-state comparison, and request, response, and DRAM conservation.
+\end{abstract}
+
+\section{Measurement contract}
+\begin{table}[H]
+\centering
+\small
+\input{\vdatadir/measurement_table.tex}
+\caption{Measurement windows observed in admitted formal-v6 rows.}
+\end{table}
+
+\paragraph{SSSP interpretation.}
+Spine starts from a verified persisted old-graph SSSP state and measures the
+accepted update, automatic active-source discovery, incremental propagation,
+and drain. The conversion-free GraSU+ReGraph baseline performs its declared
+complete ReGraph execution because it has no equivalent persisted incremental
+SSSP state. This is an architecture-level dynamic-service comparison, not an
+identical-kernel microbenchmark.
+
+\paragraph{Claim boundary.}
+The report is partial until all expected rows finish. Device cycles, accepted
+memory bytes, and DRAMSim3 HBM energy are simulator outputs. They do not claim
+cycle-for-cycle FPGA calibration, on-chip dynamic energy, or total board power.
+
+\clearpage
+\section{Current primary comparison}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.98\linewidth]{\vfigdir/formal_v6_primary_ratios.pdf}
+\caption{Ratios for complete insertion-batch-8 pairs. Values above one favor
+Spine for E2E latency and indicate that GraSU+ReGraph uses more memory traffic
+or HBM energy in the other panels.}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\small
+\input{\vdatadir/pair_table.tex}
+\caption{Absolute device cycles. Only cross-system final-state-matched pairs
+enter this table.}
+\end{table}
+\end{document}
