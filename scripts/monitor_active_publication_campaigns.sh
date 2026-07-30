@@ -35,6 +35,7 @@ campaigns=(
   formal_v3_small_cc_residual
   formal_v3_small_fullpr
   formal_v4_missing_fullpr_competitors
+  formal_v4_stackoverflow_cc_residual_competitors
 )
 
 declare -A globally_passed_execution_ids=()

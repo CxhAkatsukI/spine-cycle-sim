@@ -39,6 +39,7 @@ tests because the current Spine maintenance launch has
 | `formal_v3_small_cc_residual` | AU/SU/WikiTalk CC and residual PageRank, three systems | 18 (3 concurrent) | 42-44 |
 | `formal_v3_small_fullpr` | AU/SU/WikiTalk Full PageRank, three systems | 9 (2 concurrent) | 45-46 |
 | `formal_v4_missing_fullpr_competitors` | Missing 4M-edge Full PageRank K1/K4 rows on LJournal, LiveJournal, Orkut, and StackOverflow | 8 (2 concurrent, K4 first) | 52-53 |
+| `formal_v4_stackoverflow_cc_residual_competitors` | StackOverflow CC/Residual PageRank K1/K4 completion wave | 4 (1 concurrent, K4 first) | 54 |
 
 The v3 launchers use a 112 GiB admission reserve, 96 GiB emergency threshold,
 112 GiB recovery threshold, one start per five-second sample, and no automatic
@@ -59,6 +60,11 @@ v4 measurement contract. It starts at most two 14.9--16.3 GiB estimated jobs,
 orders K4-shared before K1, and uses 96/80/96 GiB
 reserve/emergency/recovery thresholds. Its manifest is
 `/data/tmp/chuxiao/large_graph_campaign_v1/formal_v4_missing_fullpr_competitors/campaign_manifest.json`.
+
+The StackOverflow competitor completion wave contains K1/K4-shared CC and
+per-vertex-$10^{-6}$ Residual PageRank. Every job carries the conservative
+64 GiB estimate and the launcher starts only one at a time after preserving a
+96 GiB host reserve. Residual K4 is first; K1 remains the scalability control.
 
 The first Bitcoin attempt allocated 31.7 GiB during bootstrap before producing
 simulated-cycle progress. It was soft-stopped after 203 seconds so R19-32 CC
