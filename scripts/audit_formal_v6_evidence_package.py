@@ -96,7 +96,10 @@ def audit_evidence_package(
     artifacts: Sequence[Path],
     minimum_real_datasets: int = 3,
     minimum_r2: float = 0.99,
+    audit_id: str = "formal_v6_first_evidence_package_v1",
 ) -> dict[str, Any]:
+    if not audit_id:
+        raise ValueError("audit_id must be nonempty")
     observed = int(primary_summary.get("observed_executions", 0))
     evidence = primary_summary.get("evidence_audit", {})
     if not isinstance(evidence, Mapping):
@@ -207,7 +210,7 @@ def audit_evidence_package(
     )
     return {
         "schema_version": 1,
-        "audit_id": "formal_v6_first_evidence_package_v1",
+        "audit_id": audit_id,
         "minimum_package_status": minimum_status,
         "full_matrix_status": full_matrix_status,
         "gates": gates,
@@ -258,6 +261,9 @@ def main() -> int:
         "--out", type=Path, default=PRIMARY / "evidence_package_audit.json"
     )
     parser.add_argument("--require-full", action="store_true")
+    parser.add_argument(
+        "--audit-id", default="formal_v6_first_evidence_package_v1"
+    )
     args = parser.parse_args()
 
     result = audit_evidence_package(
@@ -270,6 +276,7 @@ def main() -> int:
         rq3_coverage_rows=_read_csv(args.rq3_coverage),
         rq3_regression_rows=_read_csv(args.rq3_regressions),
         artifacts=tuple(args.artifact or DEFAULT_ARTIFACTS),
+        audit_id=args.audit_id,
     )
     rendered = json.dumps(result, indent=2, sort_keys=True) + "\n"
     args.out.parent.mkdir(parents=True, exist_ok=True)

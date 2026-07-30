@@ -676,6 +676,10 @@ def render_tex(
     dataset_scope: dict[str, Any],
     rq3_summary: dict[str, Any],
     wall_time_projection: dict[str, Any],
+    *,
+    report_version: str = "v6",
+    artifact_prefix: str = "formal_v6",
+    data_subdir: str = "formal_v6_primary",
 ) -> str:
     excluded = [
         row for row in dataset_scope["rows"]
@@ -692,17 +696,17 @@ def render_tex(
 \usepackage{{graphicx}}
 \usepackage{{float}}
 \usepackage[hidelinks]{{hyperref}}
-\hypersetup{{pdftitle={{Spine Formal-v6 Primary Dynamic-Graph Results}}}}
-\title{{\textbf{{Spine Formal-v6 Primary Dynamic-Graph Results}}\\
+\hypersetup{{pdftitle={{Spine Formal-{report_version} Primary Dynamic-Graph Results}}}}
+\title{{\textbf{{Spine Formal-{report_version} Primary Dynamic-Graph Results}}\\
 \large Correctness-Gated Spine vs. GraSU+ReGraph K4-shared}}
 \author{{Chuxiao Han}}
 \date{{Live snapshot, July 2026}}
-\IfFileExists{{data/formal_v6_primary/pair_table.tex}}{{
-  \newcommand{{\vdatadir}}{{data/formal_v6_primary}}
+\IfFileExists{{data/{data_subdir}/pair_table.tex}}{{
+  \newcommand{{\vdatadir}}{{data/{data_subdir}}}
   \newcommand{{\rqdatadir}}{{data/rq3}}
   \newcommand{{\vfigdir}}{{../figures}}
 }}{{
-  \newcommand{{\vdatadir}}{{docs/paper/data/formal_v6_primary}}
+  \newcommand{{\vdatadir}}{{docs/paper/data/{data_subdir}}}
   \newcommand{{\rqdatadir}}{{docs/paper/data/rq3}}
   \newcommand{{\vfigdir}}{{docs/figures}}
 }}
@@ -710,9 +714,10 @@ def render_tex(
 \maketitle
 \begin{{abstract}}
 This live report contains {summary['observed_executions']} of
-{summary['expected_executions']} expected formal-v6 executions and
-{len(pairs)} complete Spine/K4-shared pairs. Missing bars are unfinished or
-policy-stopped executions, never zero-valued measurements. Every admitted row
+{summary['expected_executions']} expected formal-{report_version} executions and
+{len(pairs)} complete Spine/K4-shared pairs. Missing bars are unfinished,
+policy-stopped, or behavior-transition-invalidated executions awaiting an
+identical-case successor, never zero-valued measurements. Every admitted row
 passes architecture-precision and independent mathematical oracles, full
 final-state comparison, and request, response, and DRAM conservation.
 \end{{abstract}}
@@ -722,7 +727,7 @@ final-state comparison, and request, response, and DRAM conservation.
 \centering
 \small
 \input{{\vdatadir/measurement_table.tex}}
-\caption{{Measurement windows observed in admitted formal-v6 rows.}}
+\caption{{Measurement windows observed in admitted formal-{report_version} rows.}}
 \end{{table}}
 
 \paragraph{{Dataset scope.}}
@@ -748,9 +753,10 @@ SSSP state. This is an architecture-level dynamic-service comparison, not an
 identical-kernel microbenchmark.
 
 \paragraph{{Claim boundary.}}
-The frozen full matrix remains partial while expected rows are unfinished or
-policy-stopped; a row must complete or receive a declared scope exclusion before
-the matrix can be called complete. Device cycles, accepted memory bytes, and
+The frozen full matrix remains partial while expected rows are unfinished,
+policy-stopped, or behavior-transition-invalidated; a row must complete or
+receive a declared scope exclusion before the matrix can be called complete.
+Device cycles, accepted memory bytes, and
 DRAMSim3 HBM energy are simulator outputs. They do not claim cycle-for-cycle
 FPGA calibration, on-chip dynamic energy, or total board power.
 
@@ -767,7 +773,7 @@ activity is present for all observed executions
 \section{{Current primary comparison}}
 \begin{{figure}}[H]
 \centering
-\includegraphics[width=0.98\linewidth]{{\vfigdir/formal_v6_primary_ratios.pdf}}
+\includegraphics[width=0.98\linewidth]{{\vfigdir/{artifact_prefix}_primary_ratios.pdf}}
 \caption{{Ratios for complete insertion-batch-8 pairs. Values above one favor
 Spine for E2E latency and indicate that GraSU+ReGraph uses more memory traffic
 or HBM energy in the other panels. R19, when complete, appears to the right of
@@ -786,7 +792,7 @@ enter this table. R19 is separated from the real datasets by a rule.}}
 \section{{Memory traffic and request locality}}
 \begin{{figure}}[H]
 \centering
-\includegraphics[width=0.98\linewidth]{{\vfigdir/formal_v6_memory_locality.pdf}}
+\includegraphics[width=0.98\linewidth]{{\vfigdir/{artifact_prefix}_memory_locality.pdf}}
 \caption{{Absolute accepted-backend traffic and request-stream locality for
 the same complete pairs. A request is discontinuous when its accepted address
 does not continue the previous request from the same initiator, operation, and
@@ -798,7 +804,7 @@ separate synthetic endpoint.}}
 \section{{Update-only throughput}}
 \begin{{figure}}[H]
 \centering
-\includegraphics[width=0.98\linewidth]{{\vfigdir/formal_v6_update_throughput.pdf}}
+\includegraphics[width=0.98\linewidth]{{\vfigdir/{artifact_prefix}_update_throughput.pdf}}
 \caption{{Correctness-gated AskUbuntu weighted-SSSP update-phase throughput.
 The current snapshot contains {len(update_pairs)} of 9 planned operation--batch
 pairs. Ins uses the full materialized graph; Del and Wgt use the declared
@@ -814,7 +820,7 @@ service latency, which also includes differential discovery and propagation.
 \section{{Simulator execution cost}}
 \begin{{figure}}[H]
 \centering
-\includegraphics[width=0.98\linewidth]{{\vfigdir/formal_v6_simulator_runtime.pdf}}
+\includegraphics[width=0.98\linewidth]{{\vfigdir/{artifact_prefix}_simulator_runtime.pdf}}
 \caption{{Host wall time and simulated-device-cycle throughput for the
 correctness-matched pairs. These are simulator engineering diagnostics under
 the recorded campaign concurrency, not accelerator latency or a
@@ -878,7 +884,7 @@ every topology.
 \section{{Implementation-level power attribution}}
 \begin{{figure}}[H]
 \centering
-\includegraphics[width=0.98\linewidth]{{\vfigdir/formal_v6_component_power.pdf}}
+\includegraphics[width=0.98\linewidth]{{\vfigdir/{artifact_prefix}_component_power.pdf}}
 \caption{{Vivado post-route vectorless hierarchy power at 150 MHz. The four
 bars are distinct routed builds; the Spine evidence covers SSSP only. Values
 use Vivado default activity with Low confidence and establish component
@@ -888,7 +894,7 @@ attribution, not workload-calibrated energy or board power.}}
 \paragraph{{Energy boundary.}}
 The workload-specific HBM energy ratios in Figure 1 come from DRAMSim3 and are
 paired with the exact executions plotted there. The vectorless powers above
-must not be multiplied by the v6 latency to claim total workload energy.
+must not be multiplied by the {report_version} latency to claim total workload energy.
 Workload-calibrated on-chip dynamic energy remains open because equivalent
 per-event energy models and complete activity counters are not yet available
 for every routed algorithm build.
@@ -926,6 +932,8 @@ def main() -> int:
         type=Path,
         default=DEFAULT_WALL_TIME_PROJECTION,
     )
+    parser.add_argument("--report-version", default="v6")
+    parser.add_argument("--artifact-prefix", default="formal_v6")
     args = parser.parse_args()
     summary = json.loads(
         (args.analysis_dir / "summary.json").read_text(encoding="ascii")
@@ -953,17 +961,23 @@ def main() -> int:
     system_rows = read_csv(args.analysis_dir / "system_rows.csv")
     args.figure_dir.mkdir(parents=True, exist_ok=True)
     args.data_dir.mkdir(parents=True, exist_ok=True)
-    render_ratio_figure(pairs, args.figure_dir / "formal_v6_primary_ratios")
-    render_memory_figure(pairs, args.figure_dir / "formal_v6_memory_locality")
+    if not args.report_version or not args.artifact_prefix:
+        raise ValueError("report version and artifact prefix must be nonempty")
+    render_ratio_figure(
+        pairs, args.figure_dir / f"{args.artifact_prefix}_primary_ratios"
+    )
+    render_memory_figure(
+        pairs, args.figure_dir / f"{args.artifact_prefix}_memory_locality"
+    )
     render_component_power_figure(
         read_csv(args.component_power),
-        args.figure_dir / "formal_v6_component_power",
+        args.figure_dir / f"{args.artifact_prefix}_component_power",
     )
     render_simulator_runtime_figure(
-        pairs, args.figure_dir / "formal_v6_simulator_runtime"
+        pairs, args.figure_dir / f"{args.artifact_prefix}_simulator_runtime"
     )
     render_update_figure(
-        update_pairs, args.figure_dir / "formal_v6_update_throughput"
+        update_pairs, args.figure_dir / f"{args.artifact_prefix}_update_throughput"
     )
     write_csv(args.data_dir / "pairs.csv", pairs)
     write_csv(args.data_dir / "update_pairs.csv", update_pairs)
@@ -999,11 +1013,15 @@ def main() -> int:
             dataset_scope,
             rq3_summary,
             wall_time_projection,
+            report_version=args.report_version,
+            artifact_prefix=args.artifact_prefix,
+            data_subdir=args.data_dir.name,
         ),
         encoding="ascii",
     )
     print(
-        f"PASS formal-v6 report inputs: observed={summary['observed_executions']} "
+        f"PASS formal-{args.report_version} report inputs: "
+        f"observed={summary['observed_executions']} "
         f"pairs={len(pairs)} update_pairs={len(update_pairs)}"
     )
     return 0
