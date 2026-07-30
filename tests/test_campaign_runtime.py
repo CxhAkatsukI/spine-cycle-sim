@@ -352,6 +352,107 @@ class CampaignRuntimeTest(unittest.TestCase):
                 runner._poll_running()
                 time.sleep(0.01)
 
+    def test_host_reservation_blocks_a_second_campaign_start(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            reservation_path = root / "host-reservations.json"
+
+            def make_runner(name: str) -> CampaignRunner:
+                manifest_path = root / f"{name}.json"
+                manifest_path.write_text(
+                    json.dumps(
+                        {
+                            "schema_version": 1,
+                            "campaign_id": name,
+                            "jobs": [
+                                {
+                                    "job_id": name,
+                                    "command": [
+                                        sys.executable,
+                                        "-c",
+                                        "import time; time.sleep(60)",
+                                    ],
+                                    "estimated_rss_gib": 1.0,
+                                }
+                            ],
+                        }
+                    ),
+                    encoding="ascii",
+                )
+                return CampaignRunner(
+                    manifest_path,
+                    root / f"run-{name}",
+                    jobs=1,
+                    large_jobs=1,
+                    memory_reserve_bytes=1 << 30,
+                    sample_seconds=0.01,
+                    pin_cpus=False,
+                    resume=False,
+                    host_reservation_path=reservation_path,
+                )
+
+            first = make_runner("first")
+            second = make_runner("second")
+            available = int(2.5 * 2**30)
+            with patch(
+                "spine_cycle_sim.experiments.campaign_runtime.available_memory_bytes",
+                return_value=available,
+            ):
+                first._launch_ready()
+                second._launch_ready()
+            self.assertEqual(set(first.running), {"first"})
+            self.assertFalse(second.running)
+            self.assertIn(
+                "host_startup_commitment",
+                second._job_state("second")["waiting_reason"],
+            )
+
+            first._request_stop("first", "test cleanup")
+            while first.running:
+                first._poll_running()
+                time.sleep(0.01)
+            with patch(
+                "spine_cycle_sim.experiments.campaign_runtime.available_memory_bytes",
+                return_value=available,
+            ):
+                second._launch_ready()
+            self.assertEqual(set(second.running), {"second"})
+            second._request_stop("second", "test cleanup")
+            while second.running:
+                second._poll_running()
+                time.sleep(0.01)
+
+    def test_host_reservation_ledger_corruption_fails_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            manifest_path = root / "manifest.json"
+            reservation_path = root / "host-reservations.json"
+            manifest_path.write_text(
+                json.dumps(
+                    {
+                        "schema_version": 1,
+                        "campaign_id": "corrupt_reservation_test",
+                        "jobs": [{"job_id": "only", "command": ["true"]}],
+                    }
+                ),
+                encoding="ascii",
+            )
+            reservation_path.write_text("{", encoding="ascii")
+            runner = CampaignRunner(
+                manifest_path,
+                root / "run",
+                jobs=1,
+                large_jobs=1,
+                memory_reserve_bytes=0,
+                sample_seconds=0.01,
+                pin_cpus=False,
+                resume=False,
+                host_reservation_path=reservation_path,
+            )
+            with self.assertRaisesRegex(RuntimeError, "invalid host reservation ledger"):
+                runner._launch_ready()
+            self.assertFalse(runner.running)
+
 
 if __name__ == "__main__":
     unittest.main()

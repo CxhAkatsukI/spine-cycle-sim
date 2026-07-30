@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 from pathlib import Path
 import sys
 
@@ -40,6 +41,17 @@ def parse_args() -> argparse.Namespace:
         default=0,
         help="Start this launcher's deterministic physical-CPU pool at this offset.",
     )
+    parser.add_argument(
+        "--host-reservation-path",
+        type=Path,
+        default=Path(
+            os.environ.get(
+                "SPINE_CAMPAIGN_HOST_RESERVATION_PATH",
+                f"/tmp/spine-cycle-sim-campaign-reservations-{os.getuid()}.json",
+            )
+        ),
+        help="Shared launch-reservation ledger for all campaign runners on this host.",
+    )
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--no-pin-cpus", action="store_true")
     return parser.parse_args()
@@ -69,6 +81,7 @@ def main() -> int:
         resume=args.resume,
         no_progress_warn_seconds=args.no_progress_warn_minutes * 60.0,
         cpu_offset=args.cpu_offset,
+        host_reservation_path=args.host_reservation_path,
     )
     print(
         "Monitor with:\n"

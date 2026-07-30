@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from contextlib import contextmanager
 from dataclasses import dataclass
+import fcntl
 import hashlib
 import json
 import math
@@ -214,6 +216,87 @@ def process_group_stats(process_group: int) -> tuple[int, float]:
     return rss_bytes, cpu_seconds
 
 
+def process_identity(process: int) -> tuple[int, int] | None:
+    """Return (process group, start ticks) without accepting a reused PID."""
+
+    try:
+        stat = (Path("/proc") / str(process) / "stat").read_text(encoding="ascii")
+        closing = stat.rfind(")")
+        fields = stat[closing + 2 :].split()
+        return int(fields[2]), int(fields[19])
+    except (OSError, ValueError, IndexError):
+        return None
+
+
+@contextmanager
+def locked_host_reservations(path: Path):
+    """Lock, prune, and atomically publish cross-campaign launch reservations."""
+
+    path = path.resolve()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    lock_path = path.with_name(f"{path.name}.lock")
+    with lock_path.open("a+", encoding="ascii") as lock_stream:
+        fcntl.flock(lock_stream.fileno(), fcntl.LOCK_EX)
+        reservations: list[dict[str, Any]] = []
+        if not path.exists():
+            payload = {}
+        else:
+            try:
+                payload = json.loads(path.read_text(encoding="ascii"))
+            except (OSError, json.JSONDecodeError) as error:
+                raise RuntimeError(
+                    f"invalid host reservation ledger: {path}"
+                ) from error
+            if (
+                not isinstance(payload, Mapping)
+                or payload.get("schema_version") != 1
+                or not isinstance(payload.get("reservations"), list)
+            ):
+                raise RuntimeError(f"invalid host reservation ledger: {path}")
+        for raw in payload.get("reservations", []):
+            if not isinstance(raw, Mapping):
+                raise RuntimeError(f"invalid host reservation entry: {path}")
+            try:
+                process = int(raw["process"])
+                process_group = int(raw["process_group"])
+                start_ticks = int(raw["start_ticks"])
+                estimated_rss_bytes = int(raw["estimated_rss_bytes"])
+            except (KeyError, TypeError, ValueError) as error:
+                raise RuntimeError(
+                    f"invalid host reservation entry: {path}"
+                ) from error
+            if estimated_rss_bytes <= 0:
+                raise RuntimeError(f"invalid host reservation entry: {path}")
+            if process_identity(process) != (process_group, start_ticks):
+                continue
+            reservations.append(dict(raw))
+        try:
+            yield reservations
+        except BaseException:
+            raise
+        else:
+            atomic_write_json(
+                path,
+                {
+                    "schema_version": 1,
+                    "updated_at": time.time(),
+                    "reservations": reservations,
+                },
+            )
+        finally:
+            fcntl.flock(lock_stream.fileno(), fcntl.LOCK_UN)
+
+
+def host_startup_commitment_bytes(reservations: Sequence[Mapping[str, Any]]) -> int:
+    commitment = 0
+    for reservation in reservations:
+        process_group = int(reservation["process_group"])
+        estimated = int(reservation["estimated_rss_bytes"])
+        resident, _ = process_group_stats(process_group)
+        commitment += max(0, estimated - resident)
+    return commitment
+
+
 def read_progress(path: Path) -> dict[str, Any] | None:
     try:
         payload = json.loads(path.read_text(encoding="ascii"))
@@ -239,6 +322,7 @@ class CampaignRunner:
         memory_recovery_bytes: int | None = None,
         max_starts_per_sample: int = 4,
         cpu_offset: int = 0,
+        host_reservation_path: Path | None = None,
     ) -> None:
         if jobs <= 0 or large_jobs <= 0 or large_jobs > jobs:
             raise ValueError("jobs and large_jobs must satisfy 0 < large_jobs <= jobs")
@@ -288,6 +372,9 @@ class CampaignRunner:
             raise ValueError("cpu_offset is outside the physical CPU pool")
         self.cpu_offset = cpu_offset
         self.cpu_pool = physical_cpus[cpu_offset:]
+        self.host_reservation_path = (
+            None if host_reservation_path is None else host_reservation_path.resolve()
+        )
         self.state = self._initial_state()
 
     def _initial_state(self) -> dict[str, Any]:
@@ -344,6 +431,11 @@ class CampaignRunner:
                 "sample_seconds": self.sample_seconds,
                 "pin_cpus": self.pin_cpus,
                 "cpu_offset": self.cpu_offset,
+                "host_reservation_path": (
+                    None
+                    if self.host_reservation_path is None
+                    else str(self.host_reservation_path)
+                ),
                 "automatic_timeout_seconds": None,
                 "no_progress_warn_seconds": self.no_progress_warn_seconds,
             },
@@ -510,6 +602,7 @@ class CampaignRunner:
                 continue
             running.log_stream.close()
             self.running.pop(job_id)
+            self._release_host_reservation(job_id, running.process.pid)
             was_stopping = state["status"] == "stopping"
             status = "stopped" if was_stopping else ("pass" if return_code == 0 else "fail")
             state.update(
@@ -530,6 +623,20 @@ class CampaignRunner:
                 elapsed_seconds=state["elapsed_seconds"],
                 peak_rss_bytes=state["peak_rss_bytes"],
             )
+
+    def _release_host_reservation(self, job_id: str, process: int) -> None:
+        if self.host_reservation_path is None:
+            return
+        with locked_host_reservations(self.host_reservation_path) as reservations:
+            reservations[:] = [
+                reservation
+                for reservation in reservations
+                if not (
+                    reservation.get("run_dir") == str(self.run_dir)
+                    and reservation.get("job_id") == job_id
+                    and int(reservation.get("process", -1)) == process
+                )
+            ]
 
     def _protect_memory(self) -> None:
         """Soft-stop the fewest useful victims before host OOM is possible."""
@@ -603,7 +710,9 @@ class CampaignRunner:
                 )
                 self._event("job_blocked", job_id=state["job_id"], dependencies=failed)
 
-    def _launch_ready(self) -> None:
+    def _launch_ready_with_reservations(
+        self, reservations: list[dict[str, Any]] | None
+    ) -> None:
         if self.stop_requested or self.memory_pressure_active:
             return
         by_id = {job["job_id"]: job for job in self.state["jobs"]}
@@ -620,13 +729,17 @@ class CampaignRunner:
             ),
             key=lambda spec: (spec.priority, spec.estimated_rss_bytes, spec.job_id),
         )
-        startup_commitment = sum(
-            max(
-                0,
-                self.spec_by_id[job_id].estimated_rss_bytes
-                - int(self._job_state(job_id).get("rss_bytes", 0)),
+        startup_commitment = (
+            host_startup_commitment_bytes(reservations)
+            if reservations is not None
+            else sum(
+                max(
+                    0,
+                    self.spec_by_id[job_id].estimated_rss_bytes
+                    - int(self._job_state(job_id).get("rss_bytes", 0)),
+                )
+                for job_id in self.running
             )
-            for job_id in self.running
         )
         starts = 0
         for spec in candidates:
@@ -648,17 +761,44 @@ class CampaignRunner:
                 state = by_id[spec.job_id]
                 state["waiting_reason"] = (
                     "memory_reserve: available="
-                    f"{available} startup_commitment={startup_commitment} "
+                    f"{available} host_startup_commitment={startup_commitment} "
                     f"estimated={spec.estimated_rss_bytes} "
                     f"reserve={self.memory_reserve_bytes}"
                 )
                 continue
             by_id[spec.job_id].pop("waiting_reason", None)
             self._start(spec)
+            if reservations is not None:
+                process = self.running[spec.job_id].process.pid
+                identity = process_identity(process)
+                if identity is None:
+                    self._request_stop(
+                        spec.job_id, "failed to identify process for host reservation"
+                    )
+                    raise RuntimeError("new campaign process lacks /proc identity")
+                process_group, start_ticks = identity
+                reservations.append(
+                    {
+                        "run_dir": str(self.run_dir),
+                        "job_id": spec.job_id,
+                        "process": process,
+                        "process_group": process_group,
+                        "start_ticks": start_ticks,
+                        "estimated_rss_bytes": spec.estimated_rss_bytes,
+                        "created_at": time.time(),
+                    }
+                )
             startup_commitment += spec.estimated_rss_bytes
             starts += 1
             if spec.resource_class == "large":
                 running_large += 1
+
+    def _launch_ready(self) -> None:
+        if self.host_reservation_path is None:
+            self._launch_ready_with_reservations(None)
+            return
+        with locked_host_reservations(self.host_reservation_path) as reservations:
+            self._launch_ready_with_reservations(reservations)
 
     def _write_state(self) -> None:
         now = time.time()

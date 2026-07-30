@@ -25,6 +25,27 @@ manifest hash. Their running K1 jobs are allowed to finish when memory remains
 safe; future generated manifests use the launch order above. This preserves the
 audit trail and avoids discarding already invested simulation time.
 
+## Cross-campaign memory admission
+
+Every `scripts/run_large_graph_campaign.py` launcher now uses the shared
+per-user ledger
+`/tmp/spine-cycle-sim-campaign-reservations-<uid>.json`. Admission holds an
+exclusive host lock while it subtracts every live launcher's unmaterialized
+memory commitment, defined as `max(estimated RSS - resident process-group RSS,
+0)`, from `MemAvailable`. A newly started process is recorded before the lock
+is released. This prevents two independent campaign launchers from both
+claiming the same newly freed memory window before either child has populated
+its RSS.
+
+Entries include PID, process group, and `/proc` start ticks. Dead processes and
+reused PIDs are pruned; normal completion removes the entry immediately. An
+existing malformed ledger fails closed instead of being interpreted as zero
+commitment. The path may be overridden for an isolated host or test with
+`SPINE_CAMPAIGN_HOST_RESERVATION_PATH`, but all concurrent publication
+launchers on one host must use the same path. This admission protection is in
+addition to, not a replacement for, each launcher's 48 GiB emergency circuit
+breaker.
+
 ## Reproduction
 
 ```bash
@@ -211,20 +232,20 @@ Five memory-controlled services implement the transition:
 - `formal-v7-pokec-spine` fills the measured-safe memory gap with the Pokec
   Spine SSSP successor; this row has passed;
 - `formal-v7-livejournal-spine` reuses the released Pokec memory slot for the
-  LiveJournal Spine SSSP successor;
+  LiveJournal Spine SSSP successor; this row has passed;
 - `formal-v7-orkut-spine` waits for at least the 64 GiB admission reserve
   before starting Orkut;
-- `formal-v7-successor-chain` waits for Orkut to pass, then runs the remaining
-  Hollywood and LJournal successors one at a time.
+- `formal-v7-successor-chain` waits for Orkut to pass, then runs the Hollywood
+  successor. The LJournal successor has already passed in the same resumable
+  campaign state.
 
 The two active StackOverflow K4 jobs consume approximately 88 GiB together.
-Stack CC, Pokec, and LiveJournal have generated estimates of 17.38, 18.15, and
-33.23 GiB and are protected by a 48 GiB emergency threshold. Stack CC and
-Pokec have passed; LiveJournal starts only after Pokec releases its slot.
-Orkut is estimated at 64 GiB and is therefore queued until
+Stack CC, Pokec, LiveJournal, and LJournal have passed. Orkut is estimated at
+64 GiB and is therefore queued until
 `MemAvailable >= 128 GiB`; it cannot race a gap-filling job into an OOM
-condition. The host has no swap, so the 48 GiB emergency margin is not
-optional.
+condition. Hollywood remains behind the Orkut prerequisite rather than racing
+for the same released K4 memory. The host has no swap, so the 48 GiB emergency
+margin is not optional.
 
 Monitor the active waves with:
 
