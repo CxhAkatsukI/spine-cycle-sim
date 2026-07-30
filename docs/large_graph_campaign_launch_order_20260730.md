@@ -51,6 +51,17 @@ SPINE_V6_ANALYSIS_DIR=/data/tmp/chuxiao/large_graph_campaign_v1/formal_v6_cc_res
 bash scripts/analyze_formal_v6_primary.sh
 ```
 
+Refresh the two analyses and the deterministic publication PDF in one step:
+
+```bash
+bash scripts/refresh_formal_v6_report.sh
+```
+
+The script uses `/data/tmp/chuxiao/spine-paper-plot-venv/bin/python` by
+default and accepts `SPINE_PLOT_PYTHON` as an override. It freezes
+`SOURCE_DATE_EPOCH` so unchanged inputs reproduce identical vector figures
+and report PDF bytes.
+
 The CC/residual scheduler uses a 128 GiB memory reserve. This allows the
 AU/SU/WikiTalk jobs to run alongside SSSP while preventing its 64 GiB
 StackOverflow jobs from launching when the two independent schedulers could
