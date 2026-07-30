@@ -1318,6 +1318,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--update-workload", type=Path)
     parser.add_argument("--hot-vertices", default="")
     parser.add_argument("--source", type=int)
+    parser.add_argument(
+        "--sssp-warm-start",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help=(
+            "preload the verified old-graph SSSP state and time only the "
+            "positive dynamic update window"
+        ),
+    )
     parser.add_argument("--pagerank-iterations", type=int, default=2)
     parser.add_argument("--pagerank-damping", type=float, default=0.8)
     parser.add_argument("--pagerank-epsilon", type=float, default=1.0e-5)
@@ -1663,6 +1672,10 @@ def main() -> int:
     )
     if args.scenario in {"dynamic_sssp_delete", "dynamic_sssp_increase"}:
         validate_full_rebuild_capacity(workload_edges, update_edges)
+    if args.sssp_warm_start and args.scenario != "dynamic_sssp":
+        raise SystemExit(
+            "--sssp-warm-start is supported only for positive dynamic SSSP"
+        )
     hot_vertices = tuple(
         int(item) for item in args.hot_vertices.split(",") if item
     )
@@ -1712,6 +1725,7 @@ def main() -> int:
             if args.update_workload is None
             else str(args.update_workload.resolve()),
             "SPINE_SST_SOURCE": str(args.source),
+            "SPINE_SST_SSSP_WARM_START": "1" if args.sssp_warm_start else "0",
             "SPINE_SST_PRELOAD": ""
             if args.preload is None
             else str(args.preload.resolve()),
@@ -2001,6 +2015,19 @@ def main() -> int:
             problems.append("mathematical_oracle")
         if abs(float(result.get("core_mhz", -1.0)) - core_mhz) > 1.0e-9:
             problems.append("core_mhz")
+    if args.sssp_warm_start:
+        warm_checks = {
+            "algorithm_warm_start": result.get("algorithm_warm_start") is True,
+            "bootstrap_accounting": result.get("bootstrap_accounting")
+            == "untimed_verified_old_graph_state",
+            "untimed_cold_cycles": result.get("cold_cycles") == 0,
+            "untimed_cold_memory": result.get("cold_backend_requests") == 0,
+            "dynamic_cycle_window": result.get("cycles")
+            == result.get("update_cycles"),
+        }
+        problems.extend(
+            name for name, passed in warm_checks.items() if not passed
+        )
     if result.get("spine_axi_profile") != args.axi_profile:
         problems.append("axi_profile")
     if (

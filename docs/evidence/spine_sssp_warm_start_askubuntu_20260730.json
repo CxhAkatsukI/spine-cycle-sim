@@ -1,0 +1,53 @@
+{
+  "baseline_revision": "f996316b9cf3535a29f413d80143508e78ed1601",
+  "cold": {
+    "bootstrap_accounting": "timed_cold_prefix",
+    "cold_backend_requests": 6008085,
+    "cold_cycles": 24856668,
+    "dynamic_backend_requests": 3482,
+    "dynamic_cycles": 62336,
+    "maintenance_cycles": 5685,
+    "round_cycles": [53529, 8187],
+    "total_backend_requests": 6011567,
+    "total_cycles": 24919004
+  },
+  "core_mhz": 150.0,
+  "dataset": "sx_askubuntu",
+  "final_state": {
+    "correctness_mismatches": 0,
+    "value_count": 515281,
+    "values_sha256": "9cf4053ea92c0b7bbc6c7c10ac8adaa7fa76ed8439e79603c0e07918303465a6"
+  },
+  "graph": {
+    "edges": 390847,
+    "sha256": "34a4d5a1942ccf7c2d54a326872760473a1aba88860ec8e66e9fd64fa697c7b2",
+    "vertices": 515281
+  },
+  "plugin_sha256": "96b4375f8549016ac8be36d85b04b4b5730df0af477dcc5909903845a8f56919",
+  "profile": {
+    "id": "spine_candidate10_opt_v2_reader_working_set",
+    "sha256": "27243e3458023f1e492efd46408fc58262f5852c41972398bd134e54ef57156a"
+  },
+  "source": 15811,
+  "update": {
+    "records": 8,
+    "sha256": "1ab71914689d9fc9f718563bb11f645a61c27c447e472e2b2de67c8d18f1a615"
+  },
+  "warm": {
+    "bootstrap_accounting": "untimed_verified_old_graph_state",
+    "cold_backend_requests": 0,
+    "cold_cycles": 0,
+    "dynamic_backend_requests": 3482,
+    "dynamic_cycles": 62331,
+    "maintenance_cycles": 5708,
+    "round_cycles": [53512, 8190],
+    "total_backend_requests": 3482,
+    "total_cycles": 62331
+  },
+  "warm_vs_cold_dynamic": {
+    "absolute_cycle_difference": -5,
+    "backend_request_difference": 0,
+    "relative_cycle_difference_percent": -0.008021047227284394,
+    "same_final_state": true
+  }
+}

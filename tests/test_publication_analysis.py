@@ -232,6 +232,7 @@ class PublicationAnalysisTests(unittest.TestCase):
         new = deepcopy(old)
         new["plugin_sha256"] = "b" * 64
         new["row"]["cycles"] = 125
+        new["scalar_metrics"]["update_cycles"] = 125
         policy = {
             "classification": "hls_behavior_correction",
             "scope_system": "spine",
@@ -287,6 +288,21 @@ class PublicationAnalysisTests(unittest.TestCase):
         self.assertEqual(row["update_cycles"], 75)
         self.assertAlmostEqual(row["sequential_request_fraction"], 2.0 / 3.0)
         self.assertEqual(row["read_bytes"] + row["write_bytes"], 640)
+
+    def test_spine_dynamic_sssp_excludes_legacy_cold_prefix(self) -> None:
+        result = case_result("spine", 1_000)
+        result["scalar_metrics"] = {
+            "cold_cycles": 900,
+            "update_cycles": 100,
+            "algorithm_warm_start": False,
+        }
+        analysis = analyze_publication_case_results([result])
+        row = analysis["system_rows"][0]
+        self.assertEqual(row["cycles"], 100)
+        self.assertEqual(row["raw_cycles"], 1_000)
+        self.assertEqual(row["bootstrap_cycles"], 900)
+        self.assertEqual(row["measurement_window"], "dynamic_update_only")
+        self.assertFalse(row["algorithm_warm_start"])
 
     def test_component_activity_preserves_lists_and_claim_boundary(self) -> None:
         result = case_result("spine", 300)

@@ -605,6 +605,8 @@ def build_invocation(
         if algorithm == "weighted_dynamic_sssp":
             update = artifact_path(root, run["update"])  # type: ignore[arg-type]
             command.extend(("--update-workload", str(update)))
+            if str(run.get("scenario")) == "incremental_insert":
+                command.append("--sssp-warm-start")
         elif algorithm == "full_pagerank":
             if update_records > 0:
                 update = artifact_path(root, run["update"])  # type: ignore[arg-type]
@@ -1003,6 +1005,19 @@ def validate_system_result(
             )
             == expected_updates
         )
+        if (
+            invocation.system == "spine"
+            and str(run.get("scenario")) == "incremental_insert"
+        ):
+            checks["spine_dynamic_warm_start"] = (
+                result.get("algorithm_warm_start") is True
+                and result.get("bootstrap_accounting")
+                == "untimed_verified_old_graph_state"
+                and result.get("cold_cycles") == 0
+                and result.get("cold_backend_requests") == 0
+                and int(result.get("cycles", -1))
+                == int(result.get("update_cycles", -2))
+            )
     for name, passed in checks.items():
         if not passed:
             problems.append(name)
@@ -1018,7 +1033,16 @@ def result_row(
     *,
     wall_seconds: float,
 ) -> dict[str, object]:
-    cycles = int(result["cycles"])
+    raw_cycles = int(result["cycles"])
+    dynamic_spine_sssp = (
+        invocation.system == "spine"
+        and str(run["algorithm"]) == "weighted_dynamic_sssp"
+    )
+    cycles = (
+        int(result.get("update_cycles", 0)) if dynamic_spine_sssp else raw_cycles
+    )
+    if cycles <= 0 or cycles > raw_cycles:
+        raise ValueError("invalid publication measurement cycle window")
     core_mhz = float(result["core_mhz"])
     arbitration = result["backend_arbitration"]
     if not isinstance(arbitration, Mapping):
@@ -1034,6 +1058,12 @@ def result_row(
         "architecture_profile_id": result["architecture_profile_id"],
         "architecture_profile_sha256": result["architecture_profile_sha256"],
         "cycles": cycles,
+        "raw_cycles": raw_cycles,
+        "bootstrap_cycles": int(result.get("cold_cycles", 0)),
+        "measurement_window": (
+            "dynamic_update_only" if dynamic_spine_sssp else "complete_execution"
+        ),
+        "algorithm_warm_start": bool(result.get("algorithm_warm_start", False)),
         "core_mhz": core_mhz,
         "simulated_ms": cycles / (core_mhz * 1000.0),
         "wall_seconds": wall_seconds,

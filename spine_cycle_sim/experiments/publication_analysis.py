@@ -169,6 +169,19 @@ def _metric(row: Mapping[str, Any], *keys: str, default: Any = 0) -> Any:
     return default
 
 
+def _measurement_window_cycles(result: Mapping[str, Any]) -> int:
+    case = result["case"]
+    raw = result["row"]
+    scalar = result.get("scalar_metrics", {})
+    if (
+        case["system"] == "spine"
+        and case["algorithm"] == "weighted_sssp"
+        and int(_metric(scalar, "update_cycles", default=0)) > 0
+    ):
+        return int(scalar["update_cycles"])
+    return int(raw["cycles"])
+
+
 def _normalized_system_row(result: Mapping[str, Any]) -> dict[str, Any]:
     case = result["case"]
     raw = result["row"]
@@ -177,7 +190,7 @@ def _normalized_system_row(result: Mapping[str, Any]) -> dict[str, Any]:
     combined = traffic.get("combined", {}) if isinstance(traffic, Mapping) else {}
     reads = traffic.get("reads", {}) if isinstance(traffic, Mapping) else {}
     writes = traffic.get("writes", {}) if isinstance(traffic, Mapping) else {}
-    cycles = int(raw["cycles"])
+    cycles = _measurement_window_cycles(result)
     clock_mhz = float(_metric(raw, "clock_mhz", "core_mhz"))
     update_cycles = int(
         _metric(scalar, "update_cycles", "maintenance_cycles", default=0)
@@ -203,6 +216,22 @@ def _normalized_system_row(result: Mapping[str, Any]) -> dict[str, Any]:
         "logical_user_mutations": logical_mutations,
         "physical_update_records": int(case["update"]["physical_records"]),
         "cycles": cycles,
+        "raw_cycles": int(raw.get("raw_cycles", raw["cycles"])),
+        "bootstrap_cycles": int(
+            raw.get("bootstrap_cycles", _metric(scalar, "cold_cycles", default=0))
+        ),
+        "measurement_window": raw.get(
+            "measurement_window",
+            "dynamic_update_only"
+            if case["system"] == "spine" and case["algorithm"] == "weighted_sssp"
+            else "complete_execution",
+        ),
+        "algorithm_warm_start": bool(
+            raw.get(
+                "algorithm_warm_start",
+                _metric(scalar, "algorithm_warm_start", default=False),
+            )
+        ),
         "clock_mhz": clock_mhz,
         "simulated_us": cycles / clock_mhz,
         "update_cycles": update_cycles,
@@ -271,7 +300,7 @@ def _component_activity_rows(result: Mapping[str, Any]) -> list[dict[str, Any]]:
     metrics = result.get("scalar_metrics", {})
     if not isinstance(metrics, Mapping):
         raise ValueError("publication scalar_metrics must be an object")
-    total_cycles = int(result["row"]["cycles"])
+    total_cycles = _measurement_window_cycles(result)
     group_id = _stable_digest(_case_group_identity(case))[:20]
     system = str(case["system"])
     common = {

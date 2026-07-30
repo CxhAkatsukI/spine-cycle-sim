@@ -362,13 +362,17 @@ SpineVerticalSliceSystem::SpineVerticalSliceSystem(
     SpineAxiInterfaceProfile axi_profile,
     std::size_t compute_memory_request_window,
     std::size_t compute_writeonly_request_window,
-    SpineOnChipMemoryProfile on_chip_profile, bool initial_host_active)
+    SpineOnChipMemoryProfile on_chip_profile, bool initial_host_active,
+    std::optional<AlgorithmInitialState> algorithm_initial_state)
     : scheduler_(scheduler), clock_id_(clock_id), backend_(backend),
       axi_profile_(std::move(axi_profile)),
       source_(source),
       edge_stream_("edge-axis", clock_id, 32),
       value_stream_("value-axis", clock_id, 32),
-      state_(std::move(initial_state)), current_frontier_{source},
+      state_(std::move(initial_state)),
+      current_frontier_(algorithm_initial_state.has_value()
+                            ? algorithm_initial_state->active_vertices
+                            : std::vector<std::uint32_t>{source}),
       resident_bootstrap_pending_(initial_host_active) {
   if (source >= workload.vertices) {
     throw std::invalid_argument("Spine vertical-slice source is out of range");
@@ -421,7 +425,7 @@ SpineVerticalSliceSystem::SpineVerticalSliceSystem(
       std::move(workload), maintenance_ports, state_);
   reader_ = std::make_unique<SpineSplitReader>(
       "spine-split-reader", clock_id_, *maintenance_, reader_ports,
-      std::vector<std::uint32_t>{source}, edge_stream_, value_stream_,
+      current_frontier_, edge_stream_, value_stream_,
       initial_host_active ? SpineReaderMode::kHostActive
                           : SpineReaderMode::kDeviceDirty,
       algorithm_policy);
@@ -434,12 +438,13 @@ SpineVerticalSliceSystem::SpineVerticalSliceSystem(
           .result = compute_result_.get(),
       },
       edge_stream_, value_stream_, compute_memory_request_window,
-      compute_writeonly_request_window, on_chip_profile, algorithm_policy);
+      compute_writeonly_request_window, on_chip_profile, algorithm_policy,
+      std::move(algorithm_initial_state));
   if (initial_host_active) {
     SpineActiveBins bins = build_spine_host_active_bins(
-        state_, maintenance_->config(), {source}, compute_->values());
+        state_, maintenance_->config(), current_frontier_, compute_->values());
     reader_->configure_initial_host_round(
-        std::move(bins), std::nullopt, {source});
+        std::move(bins), std::nullopt, current_frontier_);
   }
   dirty_ack_ = std::make_unique<SpineDirtyAck>(
       "spine-dirty-ack", clock_id_, maintenance_->config(),

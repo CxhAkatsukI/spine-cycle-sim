@@ -9,6 +9,7 @@ import unittest
 from spine_cycle_sim.experiments.publication_cases import (
     deduplicate_publication_cases,
     load_materialization_manifest,
+    publication_case_requests,
     select_publication_case,
 )
 
@@ -179,6 +180,51 @@ class PublicationCaseTests(unittest.TestCase):
             path.write_text(json.dumps(self.manifest), encoding="ascii")
             with self.assertRaisesRegex(ValueError, "not passing"):
                 load_materialization_manifest(path)
+
+    def test_campaign_uses_median_degree_for_primary_weighted_sssp(self) -> None:
+        contract = {
+            "datasets": [{"dataset_id": "tiny"}],
+            "experiment_matrix": {
+                "systems": ["spine"],
+                "main_e2e": {
+                    "algorithms": ["weighted_sssp", "connected_components"],
+                    "scenario": "insert",
+                    "batch_sizes": [8],
+                },
+                "endpoint_scalability": {
+                    "datasets": [],
+                    "algorithms": [],
+                    "scenario": "insert",
+                    "batch_sizes": [],
+                },
+                "update_performance": {
+                    "execution_algorithm": "weighted_sssp",
+                    "scenarios": [],
+                    "batch_sizes": [],
+                },
+                "update_triggered_compute": {
+                    "datasets": [],
+                    "algorithms": [],
+                    "scenarios": [],
+                    "batch_sizes": [],
+                },
+                "dense": {
+                    "datasets": [],
+                    "algorithms": [],
+                    "scenario": "insert",
+                    "batch_sizes": [],
+                },
+                "mixed_supplement": {
+                    "datasets": [],
+                    "algorithms": [],
+                    "batch_sizes": [],
+                },
+            },
+        }
+        requests = publication_case_requests(contract)
+        cohorts = {request.algorithm: request.source_cohort for request in requests}
+        self.assertEqual(cohorts["weighted_sssp"], "median_degree")
+        self.assertEqual(cohorts["connected_components"], "default")
 
 
 if __name__ == "__main__":

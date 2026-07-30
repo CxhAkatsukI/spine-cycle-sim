@@ -114,6 +114,27 @@ class SharedComparisonRunnerTests(unittest.TestCase):
         )
         self.assertIn("--profile", grasu.command)
 
+    def test_spine_incremental_sssp_times_only_the_warm_update_window(self) -> None:
+        run = next(
+            run
+            for run in self.manifest["runs"]
+            if run["algorithm"] == "weighted_dynamic_sssp"
+            and run["scenario"] == "incremental_insert"
+        )
+        with tempfile.TemporaryDirectory(dir=ROOT) as tmp:
+            invocation = build_invocation(
+                ROOT,
+                run,
+                system="spine",
+                output_root=Path(tmp),
+                python="python3",
+                sst=Path("/data/feiyang/sst/bin/sst"),
+                lib_dir=ROOT / "build" / "sst",
+                spine_profile=SPINE_PROFILE,
+            )
+        self.assertIn("--sssp-warm-start", invocation.command)
+
+
     def test_nonempty_pagerank_updates_are_passed_to_spine(self) -> None:
         update = {
             "case_id": "multipart_update",

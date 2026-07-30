@@ -315,6 +315,11 @@ def publication_case_requests(
                                     algorithm=str(algorithm),
                                     scenario=str(scenario),
                                     batch_size=int(batch_size),
+                                    source_cohort=(
+                                        "median_degree"
+                                        if str(algorithm) == "weighted_sssp"
+                                        else "default"
+                                    ),
                                 )
                             )
 

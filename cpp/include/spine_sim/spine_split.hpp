@@ -781,7 +781,9 @@ class SpineSplitSsspCompute final : public Component {
                             kDefaultWriteOnlyRequestWindow,
                         SpineOnChipMemoryProfile on_chip_profile = {},
                         std::shared_ptr<const GraphAlgorithmPolicy>
-                            algorithm_policy = nullptr);
+                            algorithm_policy = nullptr,
+                        std::optional<AlgorithmInitialState> initial_state =
+                            std::nullopt);
 
   [[nodiscard]] bool done() const noexcept { return done_; }
   [[nodiscard]] bool failed() const noexcept { return failed_; }

@@ -2130,6 +2130,8 @@ class OnlineMemoryProbe final : public SST::Component {
     preload_path_ = params.find<std::string>("preload_workload", "");
     hot_vertices_text_ = params.find<std::string>("hot_vertices", "");
     source_vertex_ = params.find<std::uint32_t>("source_vertex", 0);
+    sssp_algorithm_warm_start_ =
+        params.find<bool>("sssp_algorithm_warm_start", false);
     core_clock_ = params.find<std::string>("core_clock", "141MHz");
     core_mhz_ = params.find<double>("core_mhz", 141.0);
     request_count_ = params.find<std::uint64_t>("requests", 256);
@@ -3400,6 +3402,7 @@ class OnlineMemoryProbe final : public SST::Component {
       }
       SpineL0State initial_state;
       bool resident_snapshot = false;
+      std::optional<AlgorithmInitialState> algorithm_initial_state;
       initial_state.hot_vertices.insert(maintenance_config.hot_vertices.begin(),
                                         maintenance_config.hot_vertices.end());
       initial_state.hot_enabled = !initial_state.hot_vertices.empty();
@@ -3432,8 +3435,40 @@ class OnlineMemoryProbe final : public SST::Component {
       for (const SpineEdgeRecord &edge : workload.edges) {
         add_expected(edge);
       }
-      if (dynamic_sssp_enabled_ &&
-          workload.edges.size() > maintenance_config.max_sort_edges) {
+      if (sssp_algorithm_warm_start_) {
+        if (!dynamic_sssp_enabled_ || dynamic_full_rebuild_) {
+          output_.fatal(
+              CALL_INFO, -1,
+              "SSSP algorithm warm start requires a positive incremental "
+              "dynamic update\n");
+        }
+        resident_snapshot = true;
+        initial_state = preload_spine_resident_snapshot(
+            workload, maintenance_config, &spine_resident_classification_);
+        spine_resident_classification_valid_ = true;
+        spine_resident_snapshot_max_level_ =
+            spine_snapshot_max_level(initial_state);
+        spine_preload_edges_ = workload.edges.size();
+        algorithm_initial_state = AlgorithmInitialState{
+            .primary = cold_sssp_reference_.values,
+            .auxiliary = {},
+            .active_vertices = dynamic_update_sources_,
+        };
+        cold_final_values_ = cold_sssp_reference_.values;
+        cold_rounds_ = 0;
+        cold_cycles_ = 0;
+        cold_backend_requests_ = 0;
+        cold_maintenance_cycles_ = 0;
+        cold_maintenance_target_level_ = -1;
+        cold_dirty_generation_after_ack_ = 0;
+        dynamic_sssp_started_ = true;
+        dynamic_update_start_cycle_ = scheduler_.clock(0).completed_cycles;
+        sst_current_frontier_ = dynamic_update_sources_;
+        sst_round_start_cycle_ = dynamic_update_start_cycle_;
+        workload = dynamic_update_workload_;
+        workload.case_name += "_warm_update";
+      } else if (dynamic_sssp_enabled_ &&
+                 workload.edges.size() > maintenance_config.max_sort_edges) {
         resident_snapshot = true;
         initial_state = preload_spine_resident_snapshot(
             workload, maintenance_config, &spine_resident_classification_);
@@ -3449,7 +3484,8 @@ class OnlineMemoryProbe final : public SST::Component {
           4096, std::move(maintenance_config), std::move(initial_state),
           spine_axi_profile_, compute_memory_request_window_,
           compute_writeonly_request_window_, compute_on_chip_profile_,
-          resident_snapshot);
+          resident_snapshot && !sssp_algorithm_warm_start_,
+          std::move(algorithm_initial_state));
       spine_system_->register_components();
       scheduler_.add_component(*backend_);
       return;
@@ -3937,6 +3973,9 @@ class OnlineMemoryProbe final : public SST::Component {
       {"preload_workload", "Optional pre-existing Spine L0 .slice", ""},
       {"hot_vertices", "Comma-separated host hot-bitmap vertices", ""},
       {"source_vertex", "Spine SSSP source vertex", "0"},
+      {"sssp_algorithm_warm_start",
+       "Start positive dynamic SSSP from an untimed verified old-graph state",
+       "false"},
       {"verbose", "Output verbosity", "0"},
       {"core_clock", "SST core clock", "141MHz"},
       {"core_mhz", "Matching C++ scheduler core frequency", "141.0"},
@@ -8047,6 +8086,13 @@ class OnlineMemoryProbe final : public SST::Component {
             << "\",\n"
             << "  \"materialized_snapshot_edges\": "
             << dynamic_materialized_snapshot_.edges.size() << ",\n"
+            << "  \"algorithm_warm_start\": "
+            << (sssp_algorithm_warm_start_ ? "true" : "false") << ",\n"
+            << "  \"bootstrap_accounting\": \""
+            << (sssp_algorithm_warm_start_
+                    ? "untimed_verified_old_graph_state"
+                    : "timed_cold_prefix")
+            << "\",\n"
             << "  \"cold_cycles\": " << cold_cycles_ << ",\n"
             << "  \"update_cycles\": "
             << scheduler_.clock(0).completed_cycles -
@@ -9640,6 +9686,7 @@ class OnlineMemoryProbe final : public SST::Component {
   std::string preload_path_;
   std::string hot_vertices_text_;
   std::uint32_t source_vertex_{};
+  bool sssp_algorithm_warm_start_{};
   std::uint32_t grasu_source_external_{};
   std::string core_clock_;
   double core_mhz_{};

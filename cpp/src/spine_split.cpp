@@ -3507,7 +3507,8 @@ SpineSplitSsspCompute::SpineSplitSsspCompute(
     Fifo<PartConvWord> &edge_in, Fifo<SourceValueWord> &value_out,
     std::size_t memory_request_window, std::size_t writeonly_request_window,
     SpineOnChipMemoryProfile on_chip_profile,
-    std::shared_ptr<const GraphAlgorithmPolicy> algorithm_policy)
+    std::shared_ptr<const GraphAlgorithmPolicy> algorithm_policy,
+    std::optional<AlgorithmInitialState> initial_state)
     : Component(std::move(name), clock_id),
       vertices_(vertices),
       source_(source),
@@ -3548,16 +3549,34 @@ SpineSplitSsspCompute::SpineSplitSsspCompute(
         "timed Spine split compute currently requires matching weighted SSSP "
         "policy");
   }
-  for (std::size_t vertex = 0; vertex < vertices_; ++vertex) {
-    values_[vertex] =
-        algorithm_policy_->initial_state(static_cast<std::uint32_t>(vertex))
-            .primary;
+  if (initial_state.has_value()) {
+    std::unordered_set<std::uint32_t> active;
+    active.insert(initial_state->active_vertices.begin(),
+                  initial_state->active_vertices.end());
+    if (initial_state->primary.size() != vertices_ ||
+        !initial_state->auxiliary.empty() ||
+        active.size() != initial_state->active_vertices.size() ||
+        std::any_of(active.begin(), active.end(), [this](std::uint32_t vertex) {
+          return vertex >= vertices_;
+        })) {
+      throw std::invalid_argument("invalid Spine SSSP algorithm warm state");
+    }
+    values_ = std::move(initial_state->primary);
+  } else {
+    for (std::size_t vertex = 0; vertex < vertices_; ++vertex) {
+      values_[vertex] =
+          algorithm_policy_->initial_state(static_cast<std::uint32_t>(vertex))
+              .primary;
+    }
   }
-  ports_.vertex_state->fill_payload(
-      0, static_cast<std::uint64_t>(vertices_) * kVertexWordBytes, 0xffU);
-  ports_.vertex_state->initialize_payload(
-      static_cast<std::uint64_t>(source_) * kVertexWordBytes,
-      encode_u32(values_[source_]));
+  std::vector<std::uint8_t> vertex_payload(vertices_ * kVertexWordBytes);
+  for (std::size_t vertex = 0; vertex < vertices_; ++vertex) {
+    const std::vector<std::uint8_t> encoded = encode_u32(values_[vertex]);
+    std::copy(encoded.begin(), encoded.end(),
+              vertex_payload.begin() +
+                  static_cast<std::ptrdiff_t>(vertex * kVertexWordBytes));
+  }
+  ports_.vertex_state->initialize_payload(0, vertex_payload);
 }
 
 bool SpineSplitSsspCompute::recoverable_host_handoff() const noexcept {

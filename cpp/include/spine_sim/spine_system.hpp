@@ -136,7 +136,9 @@ class SpineVerticalSliceSystem {
                                SpineSplitSsspCompute::
                                    kDefaultWriteOnlyRequestWindow,
                            SpineOnChipMemoryProfile on_chip_profile = {},
-                           bool initial_host_active = false);
+                           bool initial_host_active = false,
+                           std::optional<AlgorithmInitialState>
+                               algorithm_initial_state = std::nullopt);
 
   void register_components();
   void restart_read_compute(

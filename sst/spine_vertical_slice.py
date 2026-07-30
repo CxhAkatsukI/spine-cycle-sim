@@ -68,6 +68,9 @@ probe.addParams(
         "preload_workload": preload_workload,
         "hot_vertices": hot_vertices,
         "source_vertex": int(os.environ.get("SPINE_SST_SOURCE", "2")),
+        "sssp_algorithm_warm_start": int(
+            os.environ.get("SPINE_SST_SSSP_WARM_START", "0")
+        ),
         "core_clock": f"{core_mhz}MHz",
         "core_mhz": core_mhz,
         "channels": channels,
