@@ -174,30 +174,42 @@ def _spine_automatic_hot_vertices(
     if all(edges <= family_capacity for edges in cold_partition_edges):
         return ()
 
-    cold_target = capacities[-2]
-    hot_shard_capacity = capacities[-1]
-    cold = list(cold_partition_edges)
-    hot = [0] * partitions
-    promoted: list[int] = []
-    for destination, degree in sorted(
-        indegree.items(), key=lambda item: (-item[1], item[0])
-    ):
-        if all(edges <= cold_target for edges in cold):
-            break
-        if degree > hot_shard_capacity:
-            raise ValueError("Spine automatic-hot classifier rejects a super-hub")
-        partition = min(destination // partition_vertices, partitions - 1)
-        if cold[partition] <= cold_target:
-            continue
-        shard = _spine_hot_hash(destination) % partitions
-        cold[partition] -= degree
-        hot[shard] += degree
-        promoted.append(destination)
-        if hot[shard] > hot_shard_capacity:
-            raise ValueError("Spine automatic-hot shard exceeds fixed capacity")
-    if any(edges > cold_target for edges in cold):
-        raise ValueError("Spine automatic-hot classifier cannot fit cold families")
-    return tuple(promoted)
+    candidates = sorted(indegree.items(), key=lambda item: (-item[1], item[0]))
+
+    def place(cold_target: int, hot_target: int) -> tuple[int, ...] | None:
+        cold = list(cold_partition_edges)
+        hot = [0] * partitions
+        promoted: list[int] = []
+        for destination, degree in candidates:
+            if all(edges <= cold_target for edges in cold):
+                break
+            if degree > hot_target:
+                continue
+            partition = min(destination // partition_vertices, partitions - 1)
+            if cold[partition] <= cold_target:
+                continue
+            shard = _spine_hot_hash(destination) % partitions
+            if hot[shard] + degree > hot_target:
+                continue
+            cold[partition] -= degree
+            hot[shard] += degree
+            promoted.append(destination)
+        if any(edges > cold_target for edges in cold):
+            return None
+        return tuple(promoted)
+
+    # Preserve the native host's single-top-level placement whenever it fits.
+    promoted = place(capacities[-2], capacities[-1])
+    if promoted is not None:
+        return promoted
+
+    # A resident snapshot may still fit the fixed hierarchy even when its
+    # single-home hot hash cannot fit L10. The C++ preload labels this bounded
+    # simulator bootstrap explicitly as a multilevel fallback.
+    promoted = place(family_capacity, family_capacity)
+    if promoted is None:
+        raise ValueError("Spine automatic-hot classifier cannot fit fixed families")
+    return promoted
 
 
 def spine_memory_binding(

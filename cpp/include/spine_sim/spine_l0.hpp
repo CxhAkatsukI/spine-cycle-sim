@@ -419,6 +419,13 @@ struct SpineL0Counters {
   std::uint64_t memory_active_span_cycles{};
   std::uint64_t post_memory_drain_cycles{};
   bool memory_ledger_closed{};
+  std::uint64_t stage_xfer_cycles{};
+  std::uint64_t stage_reduce_cycles{};
+  std::uint64_t stage_carry_cycles{};
+  std::uint64_t stage_directory_cycles{};
+  std::uint64_t stage_seed_cycles{};
+  std::uint64_t stage_switch_cycles{};
+  bool stage_ledger_closed{};
   std::uint64_t full_rebuild_clear_cycles{};
   std::uint64_t full_rebuild_clear_requests{};
   std::uint64_t full_rebuild_clear_bytes{};
@@ -798,6 +805,7 @@ class SpineL0Maintenance final : public Component {
   struct LevelPendingWord;
 
   void advance(const CycleContext &context);
+  void account_stage_cycle();
   void enqueue_task(FixedAxiPort &port, MemoryOperation operation,
                     std::uint64_t address, std::uint64_t bytes,
                     TaskClass task_class,

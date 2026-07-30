@@ -6250,13 +6250,14 @@ void test_spine_resident_snapshot_skips_fit_partition_candidates() {
 void test_spine_resident_snapshot_rejects_superhub() {
   SpineL0Config config;
   config.max_sort_edges = 8;
+  config.max_vertices = 2'048;
   SpineEdgeSlice snapshot{
-      .vertices = 1'024,
+      .vertices = 2'048,
       .edges = {},
       .case_name = "resident_superhub_overflow",
   };
-  snapshot.edges.reserve(513);
-  for (std::uint32_t source = 0; source < 513; ++source) {
+  snapshot.edges.reserve(1'032);
+  for (std::uint32_t source = 0; source < 1'032; ++source) {
     snapshot.edges.push_back(SpineEdgeRecord{
         .src = source,
         .dst = 700,
@@ -6272,6 +6273,49 @@ void test_spine_resident_snapshot_rejects_superhub() {
                "Spine resident hot/cold classifier rejects a super-hub";
   }
   require(rejected, "resident bootstrap accepted an unshardable super-hub");
+}
+
+void test_spine_resident_snapshot_hash_collision_uses_multilevel_fallback() {
+  SpineL0Config config;
+  config.max_sort_edges = 8;
+  config.max_vertices = 4'096;
+  config.vertex_partition_size = 4'096;
+  SpineEdgeSlice snapshot{
+      .vertices = 4'096,
+      .edges = {},
+      .case_name = "resident_hot_hash_collision_fallback",
+  };
+  std::array<std::vector<std::uint32_t>, 16> destinations;
+  for (std::uint32_t dst = 0; dst < snapshot.vertices; ++dst) {
+    destinations[spine::sim::spine_hot_shard(dst)].push_back(dst);
+  }
+  const std::array<std::uint64_t, 6> degrees{400, 390, 380, 370, 360, 350};
+  std::array<std::uint32_t, 6> selected{
+      destinations[0][0], destinations[0][1], destinations[0][2],
+      destinations[1][0], destinations[1][1], destinations[1][2]};
+  for (std::size_t index = 0; index < selected.size(); ++index) {
+    for (std::uint32_t source = 0; source < degrees[index]; ++source) {
+      snapshot.edges.push_back(SpineEdgeRecord{
+          .src = source,
+          .dst = selected[index],
+          .weight = 1,
+          .diff = 1,
+      });
+    }
+  }
+
+  SpineResidentClassification classification;
+  const SpineL0State state =
+      preload_spine_resident_snapshot(snapshot, config, &classification);
+  require(classification.automatic_hot_promotion &&
+              classification.multilevel_fallback &&
+              !classification.top_level_preload &&
+              classification.max_cold_partition_edges <=
+                  classification.family_edge_capacity &&
+              classification.max_hot_shard_edges <=
+                  classification.family_edge_capacity &&
+              !state.hot_vertices.empty(),
+          "resident hot hash collision did not use bounded multilevel fallback");
 }
 
 void test_spine_update_history_reconstructs_carry_target() {
@@ -7457,6 +7501,14 @@ void test_spine_candidate10_writer_propagates_finite_queue_backpressure() {
               maintenance_axi.max_outstanding_bursts <= 16,
           "Candidate10 bucket writer bypassed finite issue-queue backpressure");
   require(maintenance.memory_ledger_closed &&
+              maintenance.stage_ledger_closed &&
+              maintenance.stage_xfer_cycles +
+                      maintenance.stage_reduce_cycles +
+                      maintenance.stage_carry_cycles +
+                      maintenance.stage_directory_cycles +
+                      maintenance.stage_seed_cycles +
+                      maintenance.stage_switch_cycles ==
+                  maintenance.end_cycle - maintenance.start_cycle &&
               maintenance.first_memory_issue_cycle >= maintenance.start_cycle &&
               maintenance.last_memory_issue_cycle >=
                   maintenance.first_memory_issue_cycle &&
@@ -9240,6 +9292,8 @@ int main(int argc, char **argv) {
        test_spine_resident_snapshot_skips_fit_partition_candidates},
       {"spine_resident_superhub_capacity",
        test_spine_resident_snapshot_rejects_superhub},
+      {"spine_resident_hot_hash_collision_fallback",
+       test_spine_resident_snapshot_hash_collision_uses_multilevel_fallback},
       {"spine_update_history_carry_target",
        test_spine_update_history_reconstructs_carry_target},
       {"spine_carry_epoch_wrap",

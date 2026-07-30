@@ -852,7 +852,7 @@ SpineResidentClassification classify_spine_resident_snapshot(
       result.cold_partition_edges[partition] += degree;
       result.cold_edges += degree;
       if (!result.used_explicit_hot_set) {
-        if (degree > result.hot_shard_edge_capacity) {
+        if (degree > result.family_edge_capacity) {
           throw std::overflow_error(
               "Spine resident hot/cold classifier rejects a super-hub");
         }
@@ -879,37 +879,53 @@ SpineResidentClassification classify_spine_resident_snapshot(
                 }
                 return left.dst < right.dst;
               });
-    for (const Candidate &candidate : candidates) {
-      if (within(result.cold_partition_edges,
-                 result.cold_partition_target)) {
-        break;
+    const auto initial_cold = result.cold_partition_edges;
+    const auto try_place = [&](std::uint64_t cold_target,
+                               std::uint64_t hot_target) {
+      auto cold = initial_cold;
+      std::array<std::uint64_t, 16> hot{};
+      std::vector<std::uint32_t> promoted;
+      for (const Candidate &candidate : candidates) {
+        if (within(cold, cold_target)) {
+          break;
+        }
+        const std::size_t partition = std::min<std::size_t>(
+            candidate.dst / config.vertex_partition_size,
+            config.partitions - 1);
+        if (cold[partition] <= cold_target || candidate.degree > hot_target) {
+          continue;
+        }
+        const std::size_t shard = spine_hot_shard(candidate.dst);
+        if (hot[shard] > hot_target - candidate.degree) {
+          continue;
+        }
+        cold[partition] -= candidate.degree;
+        hot[shard] += candidate.degree;
+        promoted.push_back(candidate.dst);
       }
-      const std::size_t partition = std::min<std::size_t>(
-          candidate.dst / config.vertex_partition_size,
-          config.partitions - 1);
-      if (result.cold_partition_edges[partition] <=
-          result.cold_partition_target) {
-        continue;
-      }
-      const std::size_t shard = spine_hot_shard(candidate.dst);
-      result.cold_partition_edges[partition] -= candidate.degree;
-      result.hot_shard_edges[shard] += candidate.degree;
-      result.cold_edges -= candidate.degree;
-      result.hot_edges += candidate.degree;
-      result.hot_vertices.push_back(candidate.dst);
-      if (result.hot_shard_edges[shard] >
-          result.hot_shard_edge_capacity) {
-        throw std::overflow_error(
-            "Spine resident hot/cold classifier exceeds a hot shard");
-      }
+      return std::tuple(within(cold, cold_target), std::move(cold),
+                        std::move(hot), std::move(promoted));
+    };
+
+    auto [placed, cold, hot, promoted] =
+        try_place(result.cold_partition_target,
+                  result.hot_shard_edge_capacity);
+    if (!placed) {
+      std::tie(placed, cold, hot, promoted) =
+          try_place(result.family_edge_capacity, result.family_edge_capacity);
     }
-    if (!within(result.cold_partition_edges,
-                result.cold_partition_target) ||
-        !within(result.hot_shard_edges,
-                result.hot_shard_edge_capacity)) {
+    if (!placed) {
       throw std::overflow_error(
           "Spine resident hot/cold classifier cannot fit fixed families");
     }
+    result.cold_partition_edges = std::move(cold);
+    result.hot_shard_edges = std::move(hot);
+    result.hot_vertices = std::move(promoted);
+    result.hot_edges = 0;
+    for (const std::uint32_t dst : result.hot_vertices) {
+      result.hot_edges += indegree[dst];
+    }
+    result.cold_edges = result.total_edges - result.hot_edges;
     result.automatic_hot_promotion = !result.hot_vertices.empty();
   }
 
@@ -1701,6 +1717,7 @@ void SpineL0Maintenance::evaluate(const CycleContext &context) {
   if (done_ || failed_) {
     return;
   }
+  account_stage_cycle();
   if (phase_ == Phase::kFullRebuildClear) {
     if (counters_.full_rebuild_clear_cycles == 0) {
       counters_.start_cycle = context.domain_cycle;
@@ -1798,6 +1815,87 @@ void SpineL0Maintenance::evaluate(const CycleContext &context) {
     return;
   }
   staged_action_ = StagedAction::kAdvance;
+}
+
+void SpineL0Maintenance::account_stage_cycle() {
+  switch (phase_) {
+  case Phase::kInitialize:
+  case Phase::kDirtyMetadataLoad:
+  case Phase::kDirtyPreflightBegin:
+  case Phase::kDirtyPreflightProcess:
+  case Phase::kDirtyGenerationPrepare:
+  case Phase::kDirtyUpdateBegin:
+  case Phase::kDirtyUpdateProcess:
+  case Phase::kDirtyFinalize:
+    ++counters_.stage_xfer_cycles;
+    return;
+  case Phase::kCandidateClassifyBegin:
+  case Phase::kCandidateClassifyProcess:
+  case Phase::kCandidateClassifyReduce:
+  case Phase::kCandidateClassifyFlush:
+  case Phase::kCandidatePrefix:
+  case Phase::kCandidateDispatchBegin:
+  case Phase::kCandidateDispatchProcess:
+  case Phase::kCandidateDispatchValidate:
+    ++counters_.stage_reduce_cycles;
+    return;
+  case Phase::kCandidatePublicationBegin:
+  case Phase::kCandidatePublicationLoad:
+  case Phase::kCandidatePublicationRead:
+  case Phase::kCandidatePublicationWrite:
+  case Phase::kCandidatePublicationSchedule:
+  case Phase::kCandidatePublicationAdvance:
+    if (candidate_publication_kind_ == CandidatePublicationKind::kDirectory) {
+      ++counters_.stage_directory_cycles;
+    } else {
+      ++counters_.stage_seed_cycles;
+    }
+    return;
+  case Phase::kCandidateListBegin:
+  case Phase::kCandidateListSourceLoad:
+  case Phase::kCandidateListRead:
+  case Phase::kCandidateListWrite:
+  case Phase::kCandidateListSchedule:
+  case Phase::kCandidateFinalize:
+    ++counters_.stage_seed_cycles;
+    return;
+  case Phase::kHotColdCountBegin:
+  case Phase::kHotColdCountProcess:
+  case Phase::kTargetSelect:
+  case Phase::kTargetSelectLevelWait:
+  case Phase::kTargetSelectPadding:
+    ++counters_.stage_directory_cycles;
+    return;
+  case Phase::kPrecountBegin:
+  case Phase::kPrecountProcess:
+  case Phase::kBuildOutputs:
+  case Phase::kWriteSelect:
+  case Phase::kWriteEpochResolve:
+  case Phase::kWriteEpochClear:
+  case Phase::kWriteProcess:
+  case Phase::kWriteSchedule:
+  case Phase::kWriteAdvance:
+    if (counters_.target_level > 0) {
+      ++counters_.stage_carry_cycles;
+    } else {
+      ++counters_.stage_switch_cycles;
+    }
+    return;
+  case Phase::kCarryProcess:
+    ++counters_.stage_carry_cycles;
+    return;
+  case Phase::kFullRebuildClear:
+  case Phase::kCandidateL0PrecountBegin:
+  case Phase::kCandidateL0PrecountProcess:
+  case Phase::kCommitMetadata:
+  case Phase::kWriteResult:
+  case Phase::kRetireEpochs:
+  case Phase::kCollectResult:
+  case Phase::kFinish:
+    ++counters_.stage_switch_cycles;
+    return;
+  }
+  throw std::logic_error("unclassified Spine maintenance stage");
 }
 
 void SpineL0Maintenance::commit(const CycleContext &context) {
@@ -5876,6 +5974,20 @@ void SpineL0Maintenance::advance(const CycleContext &context) {
           elapsed - config_.candidate_zero_edge_control_min_cycles;
     }
     counters_.end_cycle = context.domain_cycle;
+    if (counters_.stage_switch_cycles == 0) {
+      throw std::logic_error("invalid Spine maintenance stage ledger");
+    }
+    // evaluate() accounts the terminal cycle, while the measured interval is
+    // [start_cycle, end_cycle). Remove that terminal bookkeeping cycle.
+    --counters_.stage_switch_cycles;
+    counters_.stage_ledger_closed =
+        counters_.stage_xfer_cycles + counters_.stage_reduce_cycles +
+            counters_.stage_carry_cycles + counters_.stage_directory_cycles +
+            counters_.stage_seed_cycles + counters_.stage_switch_cycles ==
+        counters_.end_cycle - counters_.start_cycle;
+    if (!counters_.stage_ledger_closed) {
+      throw std::logic_error("Spine maintenance stage ledger did not close");
+    }
     counters_.memory_ledger_closed =
         counters_.memory_requests_issued ==
             counters_.memory_requests_completed &&

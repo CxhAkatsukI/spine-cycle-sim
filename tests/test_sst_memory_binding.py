@@ -8,6 +8,7 @@ import unittest
 from spine_cycle_sim.sst_binding import (
     SstMemoryBinding,
     _spine_automatic_hot_vertices,
+    _spine_hot_hash,
     grasu_normalized_memory_binding,
     make_sst_memory_binding,
     spine_memory_binding,
@@ -35,6 +36,38 @@ class SstMemoryBindingTests(unittest.TestCase):
         )
         self.assertNotIn(64, promoted)
         self.assertTrue(set(promoted) <= set(range(8)))
+
+    def test_auto_hot_uses_multilevel_capacity_after_top_hash_collision(self) -> None:
+        same_shard: list[int] = []
+        other_shard: list[int] = []
+        for destination in range(256):
+            target = same_shard if _spine_hot_hash(destination) % 4 == 0 else other_shard
+            target.append(destination)
+            if len(same_shard) >= 3 and len(other_shard) >= 3:
+                break
+        ordered = same_shard[:3] + other_shard[:3]
+        indegree = {
+            destination: degree
+            for destination, degree in zip(
+                ordered, (30, 29, 28, 27, 26, 25), strict=True
+            )
+        }
+        promoted = _spine_automatic_hot_vertices(
+            indegree,
+            [sum(indegree.values()), 0, 0, 0],
+            {
+                "partitions": 4,
+                "levels": 5,
+                "level_ratio": 2,
+                "max_sort_edges": 8,
+                "vertex_partition_size": 256,
+            },
+        )
+        self.assertTrue(promoted)
+        hot = [0, 0, 0, 0]
+        for destination in promoted:
+            hot[_spine_hot_hash(destination) % 4] += indegree[destination]
+        self.assertLessEqual(max(hot), 68)
 
     def test_grasu_normalized_reachable_channels(self) -> None:
         profile = json.loads(
