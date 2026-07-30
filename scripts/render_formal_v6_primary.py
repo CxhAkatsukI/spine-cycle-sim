@@ -206,6 +206,112 @@ def admitted_update_pairs(rows: list[dict[str, str]]) -> list[dict[str, Any]]:
     return selected
 
 
+def all_spine_e2e_rows(
+    system_rows: list[dict[str, str]],
+    pairs: list[dict[str, Any]],
+    wall_time_projection: dict[str, Any],
+) -> list[dict[str, Any]]:
+    """Keep every admitted Spine row and classify any missing K4 evidence."""
+    pair_by_case = {
+        (row["dataset_id"], row["algorithm"]): row for row in pairs
+    }
+    execution_projections = {
+        row["dataset_id"]: row
+        for row in wall_time_projection.get("targets", [])
+    }
+    preflight_projections = {
+        row["dataset_id"]: row
+        for row in wall_time_projection.get("preflight_targets", [])
+    }
+    one_round_screens = {
+        row["dataset_id"]: row
+        for row in wall_time_projection.get("one_round_screen_targets", [])
+    }
+    selected: list[dict[str, Any]] = []
+    for row in system_rows:
+        if (
+            row.get("system") != "spine"
+            or row.get("scenario") != "insert"
+            or row.get("batch_size") != "8"
+            or row.get("algorithm") not in ALGORITHM_LABEL
+            or row.get("dataset_id") not in DATASET_LABEL
+        ):
+            continue
+        dataset_id = row["dataset_id"]
+        algorithm = row["algorithm"]
+        pair = pair_by_case.get((dataset_id, algorithm))
+        k4_cycles: int | None = None
+        k4_status = "pending"
+        evidence_kind = "none"
+        projection_host_hours: float | None = None
+        observed_partial_cycles: int | None = None
+        if pair is not None:
+            k4_cycles = int(pair["k4_cycles"])
+            k4_status = "measured"
+            evidence_kind = "completed_execution"
+        elif algorithm == "weighted_sssp" and dataset_id in execution_projections:
+            evidence = execution_projections[dataset_id]
+            k4_cycles = int(evidence["projected_cycles"])
+            k4_status = "timeout_projected"
+            evidence_kind = "execution_prefix_projection"
+            projection_host_hours = float(
+                evidence["projected_total_hours_at_observed_rate"]
+            )
+            observed_partial_cycles = int(evidence["current_cycles"])
+        elif algorithm == "weighted_sssp" and dataset_id in preflight_projections:
+            evidence = preflight_projections[dataset_id]
+            k4_cycles = int(evidence["projected_cycles"])
+            k4_status = "timeout_projected"
+            evidence_kind = "validated_preflight_projection"
+            projection_host_hours = float(
+                evidence["projected_total_hours_at_calibration_rate"]
+            )
+        elif algorithm == "weighted_sssp" and dataset_id in one_round_screens:
+            evidence = one_round_screens[dataset_id]
+            k4_cycles = int(evidence["projected_cycles"])
+            k4_status = "timeout_one_round_screen"
+            evidence_kind = "one_round_feasibility_screen"
+            projection_host_hours = float(
+                evidence["projected_total_hours_at_calibration_rate"]
+            )
+        elif algorithm == "weighted_sssp":
+            raise ValueError(
+                "missing K4 SSSP row lacks timeout/projection evidence: "
+                f"{dataset_id}"
+            )
+        spine_cycles = int(float(row["cycles"]))
+        selected.append(
+            {
+                "dataset_id": dataset_id,
+                "dataset_kind": row.get("dataset_kind", "real"),
+                "dataset": DATASET_LABEL[dataset_id],
+                "algorithm": algorithm,
+                "algorithm_label": ALGORITHM_LABEL[algorithm],
+                "label": f"{DATASET_LABEL[dataset_id]}-{ALGORITHM_LABEL[algorithm]}",
+                "spine_cycles": spine_cycles,
+                "k4_cycles": "" if k4_cycles is None else k4_cycles,
+                "k4_status": k4_status,
+                "evidence_kind": evidence_kind,
+                "implied_speedup": (
+                    "" if k4_cycles is None else k4_cycles / spine_cycles
+                ),
+                "projection_host_hours": (
+                    "" if projection_host_hours is None else projection_host_hours
+                ),
+                "observed_partial_cycles": (
+                    "" if observed_partial_cycles is None else observed_partial_cycles
+                ),
+            }
+        )
+    selected.sort(
+        key=lambda row: (
+            ALGORITHM_ORDER[row["algorithm"]],
+            DATASET_ORDER[row["dataset_id"]],
+        )
+    )
+    return selected
+
+
 def publication_dataset_scope(
     contract: dict[str, Any], materialization_root: Path
 ) -> dict[str, Any]:
@@ -342,6 +448,164 @@ def render_ratio_figure(rows: list[dict[str, Any]], output: Path) -> None:
     axes[-1].set_xticks(x_positions, labels, rotation=30, ha="right")
     axes[-1].set_xlabel("Dataset-algorithm pair")
     figure.tight_layout()
+    save_vector_figure(figure, output)
+    plt.close(figure)
+
+
+def render_all_spine_e2e_figure(
+    rows: list[dict[str, Any]], output: Path
+) -> None:
+    if not rows:
+        raise ValueError("formal report has no admitted Spine E2E row")
+    plt = configure_matplotlib()
+    figure, axes = plt.subplots(3, 1, figsize=(7.4, 7.0))
+    width = 0.34
+    legend_handles = None
+    for axis, algorithm in zip(axes, ALGORITHM_ORDER, strict=True):
+        algorithm_rows = [row for row in rows if row["algorithm"] == algorithm]
+        positions = list(range(len(algorithm_rows)))
+        spine_positions = [position - width / 2 for position in positions]
+        k4_positions = [position + width / 2 for position in positions]
+        spine_values = [float(row["spine_cycles"]) for row in algorithm_rows]
+        axis.bar(
+            spine_positions,
+            spine_values,
+            width,
+            facecolor="white",
+            edgecolor="#1f77b4",
+            hatch="///",
+            linewidth=1.0,
+            label="Spine measured",
+            zorder=3,
+        )
+        for position, row in zip(k4_positions, algorithm_rows, strict=True):
+            status = row["k4_status"]
+            if status == "pending":
+                axis.annotate(
+                    "pending",
+                    (position, float(row["spine_cycles"]) * 1.35),
+                    ha="center",
+                    va="bottom",
+                    fontsize=7,
+                    color="0.35",
+                    rotation=90,
+                )
+                continue
+            value = float(row["k4_cycles"])
+            if status == "measured":
+                axis.bar(
+                    position,
+                    value,
+                    width,
+                    facecolor="white",
+                    edgecolor="#d95f02",
+                    hatch="\\\\\\",
+                    linewidth=1.0,
+                    label="G+R measured",
+                    zorder=3,
+                )
+            elif status == "timeout_projected":
+                axis.bar(
+                    position,
+                    value,
+                    width,
+                    facecolor="white",
+                    edgecolor="#d95f02",
+                    hatch="xxx",
+                    linewidth=1.0,
+                    linestyle="--",
+                    label="G+R projected total (T/O)",
+                    zorder=3,
+                )
+                axis.annotate(
+                    "Proj.\nT/O",
+                    (position, value),
+                    xytext=(0, 3),
+                    textcoords="offset points",
+                    ha="center",
+                    va="bottom",
+                    fontsize=6.5,
+                    color="#9c3f00",
+                )
+            elif status == "timeout_one_round_screen":
+                axis.scatter(
+                    [position],
+                    [value],
+                    marker="^",
+                    s=38,
+                    facecolors="white",
+                    edgecolors="#d95f02",
+                    linewidths=1.1,
+                    label="G+R one-round screen (T/O)",
+                    zorder=4,
+                )
+                axis.annotate(
+                    "1-rnd screen\nT/O",
+                    (position, value),
+                    xytext=(0, 4),
+                    textcoords="offset points",
+                    ha="center",
+                    va="bottom",
+                    fontsize=6.5,
+                    color="#9c3f00",
+                )
+        endpoint_index = next(
+            (
+                index
+                for index, row in enumerate(algorithm_rows)
+                if row["dataset_id"] == "rmat_19_32"
+            ),
+            None,
+        )
+        if endpoint_index not in {None, 0}:
+            axis.axvline(
+                float(endpoint_index) - 0.5,
+                color="0.35",
+                linestyle=":",
+                linewidth=1.0,
+                zorder=1,
+            )
+        positive_values = spine_values + [
+            float(row["k4_cycles"])
+            for row in algorithm_rows
+            if row["k4_cycles"] != ""
+        ]
+        axis.set_yscale("log")
+        axis.set_ylim(min(positive_values) * 0.45, max(positive_values) * 4.0)
+        axis.set_ylabel("Device cycles")
+        axis.set_title(ALGORITHM_LABEL[algorithm], loc="left", fontsize=9)
+        axis.set_xticks(positions, [str(row["dataset"]) for row in algorithm_rows])
+        axis.grid(axis="y", linestyle="--", color="0.7", alpha=0.5, zorder=0)
+        axis.tick_params(direction="in", top=True, right=True, length=4)
+        if legend_handles is None:
+            handles, labels = axis.get_legend_handles_labels()
+            legend_handles = dict(zip(labels, handles, strict=True))
+        else:
+            handles, labels = axis.get_legend_handles_labels()
+            legend_handles.update(dict(zip(labels, handles, strict=True)))
+    from matplotlib.lines import Line2D
+
+    legend_handles["G+R pending"] = Line2D(
+        [], [], color="0.35", marker="|", linestyle="None", markersize=9
+    )
+    legend_order = (
+        "Spine measured",
+        "G+R measured",
+        "G+R projected total (T/O)",
+        "G+R one-round screen (T/O)",
+        "G+R pending",
+    )
+    figure.legend(
+        [legend_handles[label] for label in legend_order],
+        legend_order,
+        frameon=False,
+        ncols=3,
+        loc="upper center",
+        bbox_to_anchor=(0.5, 1.01),
+        fontsize=7.5,
+    )
+    axes[-1].set_xlabel("Dataset (R19 is the separate synthetic endpoint)")
+    figure.tight_layout(rect=(0.0, 0.0, 1.0, 0.955))
     save_vector_figure(figure, output)
     plt.close(figure)
 
@@ -715,6 +979,7 @@ They are not failures, zeros, or inputs to any aggregate."""
 def render_tex(
     summary: dict[str, Any],
     pairs: list[dict[str, Any]],
+    all_spine_rows: list[dict[str, Any]],
     update_pairs: list[dict[str, Any]],
     dataset_scope: dict[str, Any],
     rq3_summary: dict[str, Any],
@@ -818,6 +1083,21 @@ activity is present for all observed executions
 
 \clearpage
 \section{{Current primary comparison}}
+\begin{{figure}}[H]
+\centering
+\includegraphics[width=0.98\linewidth]{{\vfigdir/{artifact_prefix}_all_spine_e2e.pdf}}
+\caption{{Absolute insertion-batch-8 device cycles for all
+{len(all_spine_rows)} correctness-admitted current-version Spine rows. Blue
+bars and unmarked orange bars are completed executions. Cross-hatched G+R bars
+marked Proj./T/O are total-cycle feasibility projections for SO and PK from
+stopped execution prefixes and for R19 from its validated preflight; they are
+not measured performance. Triangles for LJ and LJ08 are conservative one-round
+feasibility screens, not total-cycle predictions. Pending SO CC and ResPR
+executions are shown without a G+R bar.
+The invalidated prior-version HW row and queued OK row have no admitted Spine
+result and are therefore absent.}}
+\end{{figure}}
+
 \begin{{figure}}[H]
 \centering
 \includegraphics[width=0.98\linewidth]{{\vfigdir/{artifact_prefix}_primary_ratios.pdf}}
@@ -1007,12 +1287,19 @@ def main() -> int:
             raise FileNotFoundError(path)
     system_rows = read_csv(args.analysis_dir / "system_rows.csv")
     coverage_rows = read_csv(args.analysis_dir / "execution_coverage_rows.csv")
+    all_spine_rows = all_spine_e2e_rows(
+        system_rows, pairs, wall_time_projection
+    )
     args.figure_dir.mkdir(parents=True, exist_ok=True)
     args.data_dir.mkdir(parents=True, exist_ok=True)
     if not args.report_version or not args.artifact_prefix:
         raise ValueError("report version and artifact prefix must be nonempty")
     render_ratio_figure(
         pairs, args.figure_dir / f"{args.artifact_prefix}_primary_ratios"
+    )
+    render_all_spine_e2e_figure(
+        all_spine_rows,
+        args.figure_dir / f"{args.artifact_prefix}_all_spine_e2e",
     )
     render_memory_figure(
         pairs, args.figure_dir / f"{args.artifact_prefix}_memory_locality"
@@ -1028,6 +1315,7 @@ def main() -> int:
         update_pairs, args.figure_dir / f"{args.artifact_prefix}_update_throughput"
     )
     write_csv(args.data_dir / "pairs.csv", pairs)
+    write_csv(args.data_dir / "all_spine_e2e.csv", all_spine_rows)
     write_csv(args.data_dir / "update_pairs.csv", update_pairs)
     write_pair_table(args.data_dir / "pair_table.tex", pairs)
     write_measurement_table(args.data_dir / "measurement_table.tex", system_rows)
@@ -1058,6 +1346,7 @@ def main() -> int:
         render_tex(
             summary,
             pairs,
+            all_spine_rows,
             update_pairs,
             dataset_scope,
             rq3_summary,

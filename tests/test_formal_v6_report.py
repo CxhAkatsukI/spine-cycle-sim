@@ -7,6 +7,7 @@ import unittest
 
 from scripts.render_formal_v6_primary import (
     admitted_pairs,
+    all_spine_e2e_rows,
     behavior_transition_tex,
     publication_dataset_scope,
     wall_time_feasibility_tex,
@@ -14,6 +15,94 @@ from scripts.render_formal_v6_primary import (
 
 
 class FormalV6ReportTests(unittest.TestCase):
+    def test_all_spine_rows_keep_unpaired_results_and_classify_evidence(self) -> None:
+        system_rows = [
+            {
+                "system": "spine",
+                "scenario": "insert",
+                "batch_size": "8",
+                "algorithm": "weighted_sssp",
+                "dataset_id": dataset_id,
+                "dataset_kind": "real",
+                "cycles": cycles,
+            }
+            for dataset_id, cycles in (
+                ("sx_askubuntu", "100"),
+                ("sx_stackoverflow", "200"),
+                ("soc_livejournal1", "300"),
+                ("rmat_19_32", "400"),
+            )
+        ]
+        pairs = [
+            {
+                "dataset_id": "sx_askubuntu",
+                "algorithm": "weighted_sssp",
+                "k4_cycles": 500,
+            }
+        ]
+        projection = {
+            "targets": [
+                {
+                    "dataset_id": "sx_stackoverflow",
+                    "projected_cycles": 2_000,
+                    "current_cycles": 250,
+                    "projected_total_hours_at_observed_rate": 100.0,
+                }
+            ],
+            "preflight_targets": [
+                {
+                    "dataset_id": "rmat_19_32",
+                    "projected_cycles": 4_000,
+                    "projected_total_hours_at_calibration_rate": 50.0,
+                }
+            ],
+            "one_round_screen_targets": [
+                {
+                    "dataset_id": "soc_livejournal1",
+                    "projected_cycles": 3_000,
+                    "projected_total_hours_at_calibration_rate": 25.0,
+                }
+            ],
+        }
+
+        rows = all_spine_e2e_rows(system_rows, pairs, projection)
+        by_dataset = {row["dataset_id"]: row for row in rows}
+
+        self.assertEqual(len(rows), 4)
+        self.assertEqual(by_dataset["sx_askubuntu"]["k4_status"], "measured")
+        self.assertEqual(
+            by_dataset["sx_stackoverflow"]["k4_status"],
+            "timeout_projected",
+        )
+        self.assertEqual(
+            by_dataset["soc_livejournal1"]["k4_status"],
+            "timeout_one_round_screen",
+        )
+        self.assertEqual(
+            by_dataset["rmat_19_32"]["evidence_kind"],
+            "validated_preflight_projection",
+        )
+        self.assertEqual(
+            by_dataset["sx_stackoverflow"]["observed_partial_cycles"], 250
+        )
+
+    def test_unpaired_sssp_requires_explicit_feasibility_evidence(self) -> None:
+        with self.assertRaises(ValueError):
+            all_spine_e2e_rows(
+                [
+                    {
+                        "system": "spine",
+                        "scenario": "insert",
+                        "batch_size": "8",
+                        "algorithm": "weighted_sssp",
+                        "dataset_id": "soc_pokec",
+                        "cycles": "100",
+                    }
+                ],
+                [],
+                {},
+            )
+
     def test_behavior_transition_lists_only_invalidated_rows(self) -> None:
         text = behavior_transition_tex(
             [

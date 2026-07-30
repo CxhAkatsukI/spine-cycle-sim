@@ -41,6 +41,8 @@ python3 scripts/audit_formal_v6_evidence_package.py \
   --artifact docs/evidence/formal_v6_large_sssp_runtime_projection_20260730.json \
   --artifact docs/paper/data/formal_v7_primary/wall_time_feasibility.json \
   --artifact docs/paper/data/formal_v7_primary/superseded_results.csv \
+  --artifact docs/paper/data/formal_v7_primary/all_spine_e2e.csv \
+  --artifact docs/figures/formal_v7_all_spine_e2e.svg \
   --artifact docs/figures/formal_v7_primary_ratios.svg \
   --artifact docs/figures/formal_v7_memory_locality.svg \
   --artifact docs/figures/formal_v7_update_throughput.svg \

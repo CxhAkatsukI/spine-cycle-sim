@@ -94,6 +94,21 @@ activity is present for all observed executions
 \section{Current primary comparison}
 \begin{figure}[H]
 \centering
+\includegraphics[width=0.98\linewidth]{\vfigdir/formal_v7_all_spine_e2e.pdf}
+\caption{Absolute insertion-batch-8 device cycles for all
+16 correctness-admitted current-version Spine rows. Blue
+bars and unmarked orange bars are completed executions. Cross-hatched G+R bars
+marked Proj./T/O are total-cycle feasibility projections for SO and PK from
+stopped execution prefixes and for R19 from its validated preflight; they are
+not measured performance. Triangles for LJ and LJ08 are conservative one-round
+feasibility screens, not total-cycle predictions. Pending SO CC and ResPR
+executions are shown without a G+R bar.
+The invalidated prior-version HW row and queued OK row have no admitted Spine
+result and are therefore absent.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
 \includegraphics[width=0.98\linewidth]{\vfigdir/formal_v7_primary_ratios.pdf}
 \caption{Ratios for complete insertion-batch-8 pairs. Values above one favor
 Spine for E2E latency and indicate that GraSU+ReGraph uses more memory traffic
