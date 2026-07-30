@@ -464,12 +464,15 @@ def main() -> int:
         "summary.json" if child_system == "spine" else "result.json"
     )
     backend_traffic = result.get("backend_traffic")
+    measurement_backend_traffic = backend_traffic
     if (
         args.system == "spine"
         and case.algorithm == "weighted_sssp"
         and result.get("dynamic_update") is True
     ):
-        backend_traffic = result.get("update_backend_traffic", backend_traffic)
+        measurement_backend_traffic = result.get(
+            "update_backend_traffic", backend_traffic
+        )
     output = {
         "schema_version": 1,
         "status": "pass",
@@ -481,6 +484,7 @@ def main() -> int:
         "scalar_metrics": _scalar_metrics(result),
         "backend_arbitration": result.get("backend_arbitration"),
         "backend_traffic": backend_traffic,
+        "measurement_backend_traffic": measurement_backend_traffic,
         "dram": dram,
         "sst_memory_binding": binding,
         "raw_result_path": str(raw_result_path),

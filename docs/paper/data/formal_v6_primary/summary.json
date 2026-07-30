@@ -1,7 +1,7 @@
 {
   "analysis_id": "large_graph_publication_results_v1",
   "capacity_excluded_executions": 4,
-  "complete_triplets": 8,
+  "complete_triplets": 9,
   "contract_executions": 40,
   "correctness_groups": [
     {
@@ -88,6 +88,23 @@
       "missing_systems": "",
       "scenario": "insert",
       "systems_present": "grasu_regraph_k4_shared+spine"
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "batch_size": 8,
+      "complete_required_systems": false,
+      "complete_triplet": false,
+      "cross_system_l1_error": 0.0,
+      "cross_system_max_abs_error": 0.0,
+      "cross_system_tolerance": 0.0,
+      "dataset_id": "sx_stackoverflow",
+      "final_state_exact_match": true,
+      "final_state_match": true,
+      "final_state_method": "canonical_exact_sha256",
+      "group_id": "587aa20d499b12dd46b7",
+      "missing_systems": "grasu_regraph_k4_shared",
+      "scenario": "insert",
+      "systems_present": "spine"
     },
     {
       "algorithm": "thresholded_residual_pagerank",
@@ -245,8 +262,8 @@
     {
       "algorithm": "thresholded_residual_pagerank",
       "batch_size": 8,
-      "complete_required_systems": false,
-      "complete_triplet": false,
+      "complete_required_systems": true,
+      "complete_triplet": true,
       "cross_system_l1_error": 0.0,
       "cross_system_max_abs_error": 0.0,
       "cross_system_tolerance": 0.0,
@@ -255,9 +272,9 @@
       "final_state_match": true,
       "final_state_method": "canonical_exact_sha256",
       "group_id": "fe3cb2f0baf58d1fe298",
-      "missing_systems": "grasu_regraph_k4_shared",
+      "missing_systems": "",
       "scenario": "insert",
-      "systems_present": "spine"
+      "systems_present": "grasu_regraph_k4_shared+spine"
     },
     {
       "algorithm": "weighted_sssp",
@@ -278,6 +295,16 @@
     }
   ],
   "duplicate_executions": 0,
+  "evidence_audit": {
+    "all_observed_executions_audited": true,
+    "backend_arbitration_ledgers_closed": 26,
+    "backend_traffic_ledgers_closed": 26,
+    "component_activity_executions": 26,
+    "component_activity_rows": 165,
+    "dram_request_ledgers_closed": 26,
+    "individual_correctness_gates_passed": 26,
+    "observed_executions": 26
+  },
   "expected_executions": 36,
   "failed_correctness_groups": 0,
   "incomplete_triplets": 8,
@@ -292,18 +319,16 @@
   "missing_execution_ids": [
     "0b5795e3da24b96657e6",
     "40d4283eb14d3fefe31f",
-    "44e4c6af81ccc9fdc2a7",
     "46d0c4f883375efb9ccd",
     "69248cd5746efe44a840",
     "714eba95b1bb53afc879",
     "7c53284784babc476b00",
     "9f7a9739bc109305a2e7",
-    "aacef30f761e5c4f58d4",
     "b841b79faa2aace92be3",
     "bb8611a68e5fdcd8b898",
     "cb698febad12b4a61671"
   ],
-  "observed_executions": 24,
+  "observed_executions": 26,
   "required_systems": [
     "spine",
     "grasu_regraph_k4_shared"

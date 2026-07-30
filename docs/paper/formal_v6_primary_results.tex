@@ -21,9 +21,9 @@
 \begin{document}
 \maketitle
 \begin{abstract}
-This live report contains 24 of
+This live report contains 26 of
 36 expected formal-v6 executions and
-8 complete Spine/K4-shared pairs. Missing bars are still-running
+9 complete Spine/K4-shared pairs. Missing bars are still-running
 or queued executions, never zero-valued measurements. Every admitted row
 passes architecture-precision and independent mathematical oracles, full
 final-state comparison, and request, response, and DRAM conservation.
@@ -63,6 +63,13 @@ identical-kernel microbenchmark.
 The report is partial until all expected rows finish. Device cycles, accepted
 memory bytes, and DRAMSim3 HBM energy are simulator outputs. They do not claim
 cycle-for-cycle FPGA calibration, on-chip dynamic energy, or total board power.
+
+\paragraph{Machine-checked evidence audit.}
+All 26 observed executions pass
+their individual architecture and mathematical correctness gates, closed AXI/HBM
+arbitration and traffic ledgers, and DRAM request conservation. Component-level
+activity is present for all observed executions
+(165 normalized component rows).
 
 \clearpage
 \section{Current primary comparison}

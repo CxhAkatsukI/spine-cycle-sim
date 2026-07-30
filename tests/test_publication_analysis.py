@@ -65,12 +65,20 @@ def case_result(system: str, cycles: int, *, execution_id: str | None = None) ->
         "backend_traffic": {
             "combined": {
                 "requests": 12,
+                "bytes": 640,
+                "first_requests": 0,
+                "first_bytes": 0,
+                "repeated_requests": 0,
+                "repeated_bytes": 0,
                 "contiguous_requests": 8,
+                "contiguous_bytes": 512,
                 "discontinuous_requests": 4,
+                "discontinuous_bytes": 128,
             },
             "reads": {"bytes": 512},
             "writes": {"bytes": 128},
         },
+        "measurement_backend_traffic": None,
         "dram": {"reads": 8, "writes": 4},
         "plugin_sha256": "a" * 64,
         "admission": {"child_returncode": 0, "parent_checks": {"all": True}},
@@ -116,6 +124,12 @@ class PublicationAnalysisTests(unittest.TestCase):
         self.assertEqual(analysis["status"], "PASS")
         self.assertEqual(analysis["complete_triplets"], 1)
         self.assertEqual(len(analysis["pair_rows"]), 2)
+        self.assertTrue(
+            analysis["evidence_audit"]["all_observed_executions_audited"]
+        )
+        self.assertEqual(
+            analysis["evidence_audit"]["dram_request_ledgers_closed"], 3
+        )
         speedups = {
             row["competitor"]: row["spine_speedup"]
             for row in analysis["pair_rows"]
@@ -340,6 +354,42 @@ class PublicationAnalysisTests(unittest.TestCase):
         self.assertEqual(row["update_cycles"], 75)
         self.assertAlmostEqual(row["sequential_request_fraction"], 2.0 / 3.0)
         self.assertEqual(row["read_bytes"] + row["write_bytes"], 640)
+
+    def test_normalization_separates_complete_and_measurement_traffic(self) -> None:
+        result = case_result("spine", 300)
+        result["measurement_backend_traffic"] = deepcopy(
+            result["backend_traffic"]
+        )
+        measured = result["measurement_backend_traffic"]
+        measured["combined"].update(
+            {
+                "requests": 3,
+                "bytes": 192,
+                "first_requests": 1,
+                "first_bytes": 64,
+                "contiguous_requests": 1,
+                "contiguous_bytes": 64,
+                "discontinuous_requests": 1,
+                "discontinuous_bytes": 64,
+            }
+        )
+        measured["reads"]["bytes"] = 128
+        measured["writes"]["bytes"] = 64
+        analysis = analyze_publication_case_results([result])
+        row = analysis["system_rows"][0]
+        self.assertEqual(row["backend_requests"], 3)
+        self.assertEqual(row["read_bytes"] + row["write_bytes"], 192)
+
+    def test_analysis_rejects_open_memory_ledgers(self) -> None:
+        result = case_result("spine", 300)
+        result["backend_traffic"]["combined"]["discontinuous_requests"] = 3
+        with self.assertRaisesRegex(ValueError, "traffic ledger does not close"):
+            analyze_publication_case_results([result])
+
+        result = case_result("spine", 300)
+        result["dram"]["writes"] = 3
+        with self.assertRaisesRegex(ValueError, "DRAM request ledger does not close"):
+            analyze_publication_case_results([result])
 
     def test_spine_dynamic_sssp_excludes_legacy_cold_prefix(self) -> None:
         result = case_result("spine", 1_000)

@@ -703,6 +703,13 @@ The report is partial until all expected rows finish. Device cycles, accepted
 memory bytes, and DRAMSim3 HBM energy are simulator outputs. They do not claim
 cycle-for-cycle FPGA calibration, on-chip dynamic energy, or total board power.
 
+\paragraph{{Machine-checked evidence audit.}}
+All {summary['evidence_audit']['observed_executions']} observed executions pass
+their individual architecture and mathematical correctness gates, closed AXI/HBM
+arbitration and traffic ledgers, and DRAM request conservation. Component-level
+activity is present for all observed executions
+({summary['evidence_audit']['component_activity_rows']} normalized component rows).
+
 \clearpage
 \section{{Current primary comparison}}
 \begin{{figure}}[H]

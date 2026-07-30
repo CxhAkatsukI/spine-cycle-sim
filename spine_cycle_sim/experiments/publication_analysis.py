@@ -61,6 +61,9 @@ def _scientific_signature(result: Mapping[str, Any]) -> str:
             "scalar_metrics": scalar_metrics,
             "backend_arbitration": result.get("backend_arbitration"),
             "backend_traffic": result.get("backend_traffic"),
+            "measurement_backend_traffic": result.get(
+                "measurement_backend_traffic"
+            ),
             "dram": result.get("dram"),
             "plugin_sha256": result["plugin_sha256"],
         }
@@ -158,8 +161,49 @@ def _validate_case_result(result: Mapping[str, Any]) -> None:
     if isinstance(parent_problems, list) and parent_problems:
         raise ValueError("publication parent admission has problems")
     arbitration = result.get("backend_arbitration")
-    if isinstance(arbitration, Mapping) and arbitration.get("ledger_closed") is not True:
+    if not isinstance(arbitration, Mapping) or arbitration.get("ledger_closed") is not True:
         raise ValueError("publication backend arbitration ledger is open")
+    traffic = result.get("backend_traffic")
+    if not isinstance(traffic, Mapping) or not isinstance(
+        traffic.get("combined"), Mapping
+    ):
+        raise ValueError("publication result lacks backend traffic ledger")
+    combined = traffic["combined"]
+    request_fields = (
+        "first_requests",
+        "repeated_requests",
+        "contiguous_requests",
+        "discontinuous_requests",
+    )
+    byte_fields = (
+        "first_bytes",
+        "repeated_bytes",
+        "contiguous_bytes",
+        "discontinuous_bytes",
+    )
+    try:
+        requests = int(combined["requests"])
+        traffic_bytes = int(combined["bytes"])
+        classified_requests = sum(int(combined[key]) for key in request_fields)
+        classified_bytes = sum(int(combined[key]) for key in byte_fields)
+    except (KeyError, TypeError, ValueError) as error:
+        raise ValueError("publication backend traffic ledger is incomplete") from error
+    if (
+        min(requests, traffic_bytes, classified_requests, classified_bytes) < 0
+        or classified_requests != requests
+        or classified_bytes != traffic_bytes
+        or int(row.get("backend_requests", -1)) != requests
+    ):
+        raise ValueError("publication backend traffic ledger does not close")
+    dram = result.get("dram")
+    if not isinstance(dram, Mapping):
+        raise ValueError("publication result lacks DRAM request ledger")
+    try:
+        dram_requests = int(dram["reads"]) + int(dram["writes"])
+    except (KeyError, TypeError, ValueError) as error:
+        raise ValueError("publication DRAM request ledger is incomplete") from error
+    if dram_requests != requests:
+        raise ValueError("publication DRAM request ledger does not close")
 
 
 def _metric(row: Mapping[str, Any], *keys: str, default: Any = 0) -> Any:
@@ -186,7 +230,11 @@ def _normalized_system_row(result: Mapping[str, Any]) -> dict[str, Any]:
     case = result["case"]
     raw = result["row"]
     scalar = result.get("scalar_metrics", {})
-    traffic = result.get("backend_traffic") or {}
+    traffic = (
+        result.get("measurement_backend_traffic")
+        or result.get("backend_traffic")
+        or {}
+    )
     combined = traffic.get("combined", {}) if isinstance(traffic, Mapping) else {}
     reads = traffic.get("reads", {}) if isinstance(traffic, Mapping) else {}
     writes = traffic.get("writes", {}) if isinstance(traffic, Mapping) else {}
@@ -981,6 +1029,21 @@ def analyze_publication_case_results(
             f"failed_correctness_groups={failed_correctness_groups}"
         )
     status = "FAIL" if failed_correctness_groups else ("PASS" if complete else "PARTIAL")
+    activity_execution_ids = {
+        str(row["execution_id"]) for row in activity_rows
+    }
+    evidence_audit = {
+        "observed_executions": len(observed),
+        "individual_correctness_gates_passed": len(observed),
+        "backend_arbitration_ledgers_closed": len(observed),
+        "backend_traffic_ledgers_closed": len(observed),
+        "dram_request_ledgers_closed": len(observed),
+        "component_activity_executions": len(activity_execution_ids),
+        "component_activity_rows": len(activity_rows),
+        "all_observed_executions_audited": (
+            activity_execution_ids == observed
+        ),
+    }
     capacity_exclusion_rows = [dict(row) for row in capacity_exclusion_records]
     capacity_exclusion_rows.sort(key=lambda row: str(row.get("execution_id", "")))
     return {
@@ -1003,6 +1066,7 @@ def analyze_publication_case_results(
         ),
         "incomplete_triplets": incomplete_groups,
         "failed_correctness_groups": failed_correctness_groups,
+        "evidence_audit": evidence_audit,
         "missing_execution_ids": missing,
         "unexpected_execution_ids": unexpected,
         "execution_coverage_rows": execution_coverage_rows,
