@@ -29,6 +29,9 @@ DEFAULT_RQ3_DATA = ROOT / "docs/paper/data/rq3"
 DEFAULT_WALL_TIME_PROJECTION = (
     ROOT / "docs/evidence/formal_v6_large_sssp_runtime_projection_20260730.json"
 )
+DEFAULT_STOPPED_PREFIX_LOWER_BOUNDS = (
+    ROOT / "docs/evidence/formal_v7_stopped_prefix_lower_bounds_20260731.json"
+)
 DATASET_ORDER = {
     name: index
     for index, name in enumerate(
@@ -210,6 +213,7 @@ def all_spine_e2e_rows(
     system_rows: list[dict[str, str]],
     pairs: list[dict[str, Any]],
     wall_time_projection: dict[str, Any],
+    stopped_prefix_evidence: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     """Keep every admitted Spine row and classify any missing K4 evidence."""
     pair_by_case = {
@@ -226,6 +230,10 @@ def all_spine_e2e_rows(
     one_round_screens = {
         row["dataset_id"]: row
         for row in wall_time_projection.get("one_round_screen_targets", [])
+    }
+    stopped_prefix_bounds = {
+        (row["dataset_id"], row["algorithm"]): row
+        for row in (stopped_prefix_evidence or {}).get("lower_bounds", [])
     }
     selected: list[dict[str, Any]] = []
     for row in system_rows:
@@ -249,6 +257,17 @@ def all_spine_e2e_rows(
             k4_cycles = int(pair["k4_cycles"])
             k4_status = "measured"
             evidence_kind = "completed_execution"
+        elif (dataset_id, algorithm) in stopped_prefix_bounds:
+            evidence = stopped_prefix_bounds[(dataset_id, algorithm)]
+            if int(evidence["spine_cycles"]) != int(float(row["cycles"])):
+                raise ValueError(
+                    "stopped-prefix evidence has a different Spine denominator: "
+                    f"{dataset_id}/{algorithm}"
+                )
+            k4_cycles = int(evidence["observed_partial_cycles"])
+            k4_status = "timeout_strict_lower_bound"
+            evidence_kind = str(evidence["claim_class"])
+            observed_partial_cycles = k4_cycles
         elif algorithm == "weighted_sssp" and dataset_id in execution_projections:
             evidence = execution_projections[dataset_id]
             k4_cycles = int(evidence["projected_cycles"])
@@ -549,6 +568,29 @@ def render_all_spine_e2e_figure(
                     fontsize=6.5,
                     color="#9c3f00",
                 )
+            elif status == "timeout_strict_lower_bound":
+                axis.scatter(
+                    [position],
+                    [value],
+                    marker="v",
+                    s=42,
+                    facecolors="white",
+                    edgecolors="#d95f02",
+                    linewidths=1.1,
+                    label="G+R strict lower bound (T/O)",
+                    zorder=4,
+                )
+                ratio = value / float(row["spine_cycles"])
+                axis.annotate(
+                    f">{ratio:.1f}x\nT/O",
+                    (position, value),
+                    xytext=(0, 4),
+                    textcoords="offset points",
+                    ha="center",
+                    va="bottom",
+                    fontsize=6.5,
+                    color="#9c3f00",
+                )
         endpoint_index = next(
             (
                 index
@@ -593,11 +635,15 @@ def render_all_spine_e2e_figure(
         "G+R measured",
         "G+R projected total (T/O)",
         "G+R one-round screen (T/O)",
+        "G+R strict lower bound (T/O)",
         "G+R pending",
     )
+    visible_legend_order = [
+        label for label in legend_order if label in legend_handles
+    ]
     figure.legend(
-        [legend_handles[label] for label in legend_order],
-        legend_order,
+        [legend_handles[label] for label in visible_legend_order],
+        visible_legend_order,
         frameon=False,
         ncols=3,
         loc="upper center",
@@ -1089,11 +1135,12 @@ activity is present for all observed executions
 \caption{{Absolute insertion-batch-8 device cycles for all
 {len(all_spine_rows)} correctness-admitted current-version Spine rows. Blue
 bars and unmarked orange bars are completed executions. Cross-hatched G+R bars
-marked Proj./T/O are total-cycle feasibility projections for SO and PK from
-stopped execution prefixes and for R19 from its validated preflight; they are
-not measured performance. Triangles for LJ and LJ08 are conservative one-round
-feasibility screens, not total-cycle predictions. Pending SO CC and ResPR
-executions are shown without a G+R bar.
+  marked Proj./T/O are total-cycle feasibility projections for SO and PK from
+  stopped execution prefixes and for R19 from its validated preflight; they are
+  not measured performance. Triangles for LJ and LJ08 are conservative one-round
+  feasibility screens, not total-cycle predictions. Downward triangles for
+  SO CC and ResPR are strict monotonic device-cycle lower bounds from stopped
+  incomplete executions; they are neither completed results nor projected totals.
 The invalidated prior-version HW row and queued OK row have no admitted Spine
 result and are therefore absent.}}
 \end{{figure}}
@@ -1259,6 +1306,11 @@ def main() -> int:
         type=Path,
         default=DEFAULT_WALL_TIME_PROJECTION,
     )
+    parser.add_argument(
+        "--stopped-prefix-lower-bounds",
+        type=Path,
+        default=DEFAULT_STOPPED_PREFIX_LOWER_BOUNDS,
+    )
     parser.add_argument("--report-version", default="v6")
     parser.add_argument("--artifact-prefix", default="formal_v6")
     args = parser.parse_args()
@@ -1277,6 +1329,11 @@ def main() -> int:
     wall_time_projection = json.loads(
         args.wall_time_projection.read_text(encoding="ascii")
     )
+    stopped_prefix_evidence = (
+        json.loads(args.stopped_prefix_lower_bounds.read_text(encoding="ascii"))
+        if args.stopped_prefix_lower_bounds.is_file()
+        else {"lower_bounds": []}
+    )
     for path in (
         args.rq3_data_dir / "representative_table.tex",
         args.rq3_data_dir / "regression_table.tex",
@@ -1288,7 +1345,7 @@ def main() -> int:
     system_rows = read_csv(args.analysis_dir / "system_rows.csv")
     coverage_rows = read_csv(args.analysis_dir / "execution_coverage_rows.csv")
     all_spine_rows = all_spine_e2e_rows(
-        system_rows, pairs, wall_time_projection
+        system_rows, pairs, wall_time_projection, stopped_prefix_evidence
     )
     args.figure_dir.mkdir(parents=True, exist_ok=True)
     args.data_dir.mkdir(parents=True, exist_ok=True)

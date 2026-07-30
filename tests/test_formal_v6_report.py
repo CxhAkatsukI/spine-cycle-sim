@@ -65,7 +65,22 @@ class FormalV6ReportTests(unittest.TestCase):
             ],
         }
 
-        rows = all_spine_e2e_rows(system_rows, pairs, projection)
+        rows = all_spine_e2e_rows(
+            system_rows,
+            pairs,
+            projection,
+            {
+                "lower_bounds": [
+                    {
+                        "dataset_id": "sx_stackoverflow",
+                        "algorithm": "connected_components",
+                        "spine_cycles": 250,
+                        "observed_partial_cycles": 1_500,
+                        "claim_class": "strict_lower_bound",
+                    }
+                ]
+            },
+        )
         by_dataset = {row["dataset_id"]: row for row in rows}
 
         self.assertEqual(len(rows), 4)
@@ -85,6 +100,38 @@ class FormalV6ReportTests(unittest.TestCase):
         self.assertEqual(
             by_dataset["sx_stackoverflow"]["observed_partial_cycles"], 250
         )
+
+    def test_stopped_prefix_is_not_promoted_to_measured_or_projected(self) -> None:
+        rows = all_spine_e2e_rows(
+            [
+                {
+                    "execution_id": "spine-cc",
+                    "system": "spine",
+                    "scenario": "insert",
+                    "batch_size": "8",
+                    "algorithm": "connected_components",
+                    "dataset_id": "sx_stackoverflow",
+                    "dataset_kind": "real",
+                    "cycles": "100",
+                }
+            ],
+            [],
+            {},
+            {
+                "lower_bounds": [
+                    {
+                        "dataset_id": "sx_stackoverflow",
+                        "algorithm": "connected_components",
+                        "spine_cycles": 100,
+                        "observed_partial_cycles": 550,
+                        "claim_class": "strict_lower_bound",
+                    }
+                ]
+            },
+        )
+        self.assertEqual(rows[0]["k4_status"], "timeout_strict_lower_bound")
+        self.assertEqual(rows[0]["k4_cycles"], 550)
+        self.assertEqual(rows[0]["implied_speedup"], 5.5)
 
     def test_unpaired_sssp_requires_explicit_feasibility_evidence(self) -> None:
         with self.assertRaises(ValueError):

@@ -10,8 +10,8 @@ rmat_19_32,synthetic,R19,weighted_sssp,SSSP,R19-SSSP,64058,5239915393,timeout_pr
 sx_askubuntu,real,AU,connected_components,CC,AU-CC,2183489,13462032,measured,completed_execution,6.165376605973284,,
 sx_superuser,real,SU,connected_components,CC,SU-CC,2397752,21367179,measured,completed_execution,8.911338203450565,,
 wiki_talk_temporal,real,WK,connected_components,CC,WK-CC,9587612,135366890,measured,completed_execution,14.118937019979532,,
-sx_stackoverflow,real,SO,connected_components,CC,SO-CC,25478996,,pending,none,,,
+sx_stackoverflow,real,SO,connected_components,CC,SO-CC,25478996,562000001,timeout_strict_lower_bound,strict_monotonic_device_cycle_lower_bound_from_stopped_incomplete_execution,22.057384090016733,,562000001
 sx_askubuntu,real,AU,thresholded_residual_pagerank,ResPR,AU-ResPR,2172364,14729898,measured,completed_execution,6.780584653400627,,
 sx_superuser,real,SU,thresholded_residual_pagerank,ResPR,SU-ResPR,2390535,23162486,measured,completed_execution,9.689247804361786,,
 wiki_talk_temporal,real,WK,thresholded_residual_pagerank,ResPR,WK-ResPR,4789895,70417726,measured,completed_execution,14.70130890134335,,
-sx_stackoverflow,real,SO,thresholded_residual_pagerank,ResPR,SO-ResPR,25254357,,pending,none,,,
+sx_stackoverflow,real,SO,thresholded_residual_pagerank,ResPR,SO-ResPR,25254357,523000001,timeout_strict_lower_bound,strict_monotonic_device_cycle_lower_bound_from_stopped_incomplete_execution,20.70929784512035,,523000001
