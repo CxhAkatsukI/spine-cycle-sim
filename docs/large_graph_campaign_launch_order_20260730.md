@@ -81,6 +81,16 @@ dispatch ownership. The dataset, update, architecture profile, plugin,
 correctness gates, and result path are unchanged, and the unified monitor
 shows both schedulers.
 
+After the CC and residual sidecars completed, the 64 GiB-estimated soc-Pokec
+K4-shared SSSP execution was transferred from `formal_v6_sssp_exact` to
+`formal_v6_pokec_sssp_k4_sidecar`. At transfer time the host had 136.8 GiB
+available, so a full 64 GiB estimate still left more than the sidecar's 48 GiB
+emergency threshold. The original queue entry records the ownership-transfer
+reason; the sidecar retains the original command and result path and uses a
+64 GiB launch reserve with a 48/64 GiB emergency/recovery circuit breaker.
+The separately queued R19 K4 dispatcher remains paused while this real-dataset
+execution owns the additional memory slot.
+
 The `formal_v6_r19_sssp_warm` campaign adds the separately reported R19-32
 synthetic scalability endpoint under the same v6 warm-start measurement
 contract and median-degree source policy. Its one-job scheduler uses a 108 GiB
