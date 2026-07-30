@@ -7,6 +7,7 @@ import unittest
 
 from spine_cycle_sim.sst_binding import (
     SstMemoryBinding,
+    _spine_automatic_hot_vertices,
     grasu_normalized_memory_binding,
     make_sst_memory_binding,
     spine_memory_binding,
@@ -18,6 +19,23 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class SstMemoryBindingTests(unittest.TestCase):
+    def test_auto_hot_skips_vertices_from_already_fit_partitions(self) -> None:
+        indegree = {destination: 10 for destination in range(8)}
+        indegree[64] = 15
+        promoted = _spine_automatic_hot_vertices(
+            indegree,
+            [80, 15, 0, 0],
+            {
+                "partitions": 4,
+                "levels": 5,
+                "level_ratio": 2,
+                "max_sort_edges": 8,
+                "vertex_partition_size": 64,
+            },
+        )
+        self.assertNotIn(64, promoted)
+        self.assertTrue(set(promoted) <= set(range(8)))
+
     def test_grasu_normalized_reachable_channels(self) -> None:
         profile = json.loads(
             (

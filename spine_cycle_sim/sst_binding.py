@@ -187,6 +187,8 @@ def _spine_automatic_hot_vertices(
         if degree > hot_shard_capacity:
             raise ValueError("Spine automatic-hot classifier rejects a super-hub")
         partition = min(destination // partition_vertices, partitions - 1)
+        if cold[partition] <= cold_target:
+            continue
         shard = _spine_hot_hash(destination) % partitions
         cold[partition] -= degree
         hot[shard] += degree

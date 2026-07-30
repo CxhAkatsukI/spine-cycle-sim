@@ -887,6 +887,10 @@ SpineResidentClassification classify_spine_resident_snapshot(
       const std::size_t partition = std::min<std::size_t>(
           candidate.dst / config.vertex_partition_size,
           config.partitions - 1);
+      if (result.cold_partition_edges[partition] <=
+          result.cold_partition_target) {
+        continue;
+      }
       const std::size_t shard = spine_hot_shard(candidate.dst);
       result.cold_partition_edges[partition] -= candidate.degree;
       result.hot_shard_edges[shard] += candidate.degree;

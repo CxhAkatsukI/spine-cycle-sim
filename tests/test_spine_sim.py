@@ -114,6 +114,28 @@ class SpineSimulatorTests(unittest.TestCase):
         self.assertLessEqual(max(classification.cold_partition_edges), config.family_total_capacity)
         self.assertLessEqual(max(classification.hot_shard_edges), config.family_total_capacity)
 
+    def test_hot_cold_classifier_does_not_overpromote_fit_partition(self) -> None:
+        config = SpineConfig(
+            max_vertices=128,
+            vs_partition_size=64,
+            num_partitions=2,
+            hot_shards=2,
+            batch_size_edges=8,
+            num_levels=4,
+            max_cycles=100000,
+        )
+        edges = [
+            Edge(src=source, dst=destination, weight=1)
+            for destination in range(8)
+            for source in range(10)
+        ]
+        edges.extend(
+            Edge(src=source, dst=64, weight=1) for source in range(15)
+        )
+        classification = classify_hot_cold(edges, config)
+        self.assertNotIn(64, classification.hot_dsts)
+        self.assertEqual(classification.cold_partition_edges[1], 15)
+
 
 if __name__ == "__main__":
     unittest.main()

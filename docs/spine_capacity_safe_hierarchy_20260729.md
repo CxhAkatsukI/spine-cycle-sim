@@ -48,6 +48,12 @@ The resident-graph policy mirrors the host implementation in
 5. require each hot shard to fit the L10 physical cap;
 6. preload all families into L10 when this contract fits.
 
+The promotion walk skips candidates whose own cold partition already meets the
+cold target. This preserves the global degree order among useful candidates but
+prevents unrelated, already-fit partitions from consuming hot-shard capacity.
+The change affects only host placement; the bitmap, stable hash, number of
+families, and every physical capacity remain unchanged.
+
 For a balanced graph that does not trigger hot promotion but has a family
 larger than L10 and no larger than the aggregate hierarchy, the simulator uses
 an explicitly reported multilevel bootstrap fallback. This is a conservative

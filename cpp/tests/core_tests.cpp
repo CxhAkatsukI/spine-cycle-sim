@@ -55,6 +55,7 @@ using spine::sim::BankedMemory;
 using spine::sim::BankedMemoryConfig;
 using spine::sim::BackendRequest;
 using spine::sim::ClockId;
+using spine::sim::classify_spine_resident_snapshot;
 using spine::sim::combine_memory_traffic;
 using spine::sim::Component;
 using spine::sim::CycleContext;
@@ -6212,6 +6213,40 @@ void test_spine_resident_snapshot_auto_promotes_hot_destinations() {
           "classified resident preload lost physical records");
 }
 
+void test_spine_resident_snapshot_skips_fit_partition_candidates() {
+  SpineL0Config config;
+  config.max_sort_edges = 8;
+  config.max_vertices = 256;
+  config.vertex_partition_size = 16;
+  SpineEdgeSlice snapshot{
+      .vertices = 256,
+      .edges = {},
+      .case_name = "resident_skip_fit_partition",
+  };
+  snapshot.edges.reserve(1'370);
+  for (std::uint32_t dst = 0; dst < 16; ++dst) {
+    for (std::uint32_t source = 0; source < 70; ++source) {
+      snapshot.edges.push_back(SpineEdgeRecord{
+          .src = source, .dst = dst, .weight = 1, .diff = 1});
+    }
+  }
+  for (std::uint32_t source = 0; source < 250; ++source) {
+    snapshot.edges.push_back(SpineEdgeRecord{
+        .src = source, .dst = 16, .weight = 1, .diff = 1});
+  }
+
+  const SpineResidentClassification classification =
+      classify_spine_resident_snapshot(snapshot, config);
+  require(classification.automatic_hot_promotion &&
+              std::find(classification.hot_vertices.begin(),
+                        classification.hot_vertices.end(), 16) ==
+                  classification.hot_vertices.end() &&
+              classification.cold_partition_edges[1] == 250 &&
+              classification.cold_partition_edges[0] <=
+                  classification.cold_partition_target,
+          "resident classifier overpromoted an already-fit cold partition");
+}
+
 void test_spine_resident_snapshot_rejects_superhub() {
   SpineL0Config config;
   config.max_sort_edges = 8;
@@ -9201,6 +9236,8 @@ int main(int argc, char **argv) {
        test_spine_resident_snapshot_spans_fixed_levels},
       {"spine_resident_hot_classification",
        test_spine_resident_snapshot_auto_promotes_hot_destinations},
+      {"spine_resident_skip_fit_partition",
+       test_spine_resident_snapshot_skips_fit_partition_candidates},
       {"spine_resident_superhub_capacity",
        test_spine_resident_snapshot_rejects_superhub},
       {"spine_update_history_carry_target",

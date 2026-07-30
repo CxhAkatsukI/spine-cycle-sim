@@ -208,6 +208,8 @@ def classify_hot_cold(edges: list[Edge], config: SpineConfig) -> HotColdClassifi
         if all(count <= config.family_total_capacity for count in cold_counts):
             break
         partition = config.partition_for_dst(dst)
+        if cold_counts[partition] <= config.family_total_capacity:
+            continue
         shard = config.hot_shard_for_dst(dst)
         hot_dsts.add(dst)
         hot_edges += degree
