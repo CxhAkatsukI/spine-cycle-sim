@@ -1,11 +1,11 @@
 \begin{tabular}{llrrrr}
 \toprule
-Case & Algorithm & E2E cyc & Maint. & Integrated R/A & Sync \\
+Case & Algorithm & E2E cyc & Maint. & Resolve+App & Drain+Sync \\
 \midrule
-Zero-net & CC & 12,671 & 4,720 & 7,951 & 0 \\
-Shallow insert & CC & 9,587,612 & 7,390 & 9,580,222 & 0 \\
-Deep carry & SSSP & 43,407 & 28,548 & 0 & 0 \\
-PR correction & Residual PR & 431,479 & 7,525 & 423,954 & 0 \\
-Deletion fallback & SSSP & 18,668,757 & 5,773,955 & 0 & 1,870,084 \\
+Zero-net & CC & 12,671 & 4,720 & 7,950 & 1 \\
+Shallow insert & SSSP & 3,898,885 & 288,722 & 3,530,065 & 80,098 \\
+Deep carry & SSSP & 31,249 & 19,316 & 11,932 & 1 \\
+PR correction & Residual PR & 431,479 & 7,525 & 423,942 & 12 \\
+Deletion fallback & SSSP & 18,668,757 & 5,773,955 & 11,024,338 & 1,870,464 \\
 \bottomrule
 \end{tabular}

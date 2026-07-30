@@ -31,7 +31,14 @@ E2E_MODEL_FEATURES = (
     "m_seed_records",
     "switch_work",
     "source_and_reactivation_work",
+    "algorithm_apply_operations",
 )
+
+E2E_MODEL_ALGORITHMS = {
+    "weighted_sssp",
+    "connected_components",
+    "thresholded_residual_pagerank",
+}
 
 
 def _count(value: Any) -> int:
@@ -283,7 +290,12 @@ def _ten_stage_ledger(result: Mapping[str, Any]) -> dict[str, Any]:
             if right > left:
                 sync.append((left, right))
 
-    component_supported = bool(reader or app)
+    # A correctness-admitted zero-net batch intentionally launches no graph
+    # reader or algorithm pipeline.  Its empty component interval set is
+    # direct evidence, not missing instrumentation.
+    component_supported = bool(reader or app) or (
+        _case_class(result["case"], metrics) == "zero_net"
+    )
     stages: dict[str, int] = {
         **direct,
         "t_resolve_cycles": 0,
@@ -369,6 +381,13 @@ def _case_class(case: Mapping[str, Any], metrics: Mapping[str, Any]) -> str:
     return "other"
 
 
+def _has_explicit_zero_net_semantics(metrics: Mapping[str, Any]) -> bool:
+    return (
+        metrics.get("zero_net") is True
+        or metrics.get("update_mode") == "zero_net_no_repair"
+    )
+
+
 REQUIRED_CASE_CLASSES = (
     "zero_net",
     "shallow_insertion",
@@ -394,7 +413,11 @@ def _representative_case_rows(
     }
     for case_class in REQUIRED_CASE_CLASSES:
         eligible = [row for row in work_rows if row["case_class"] == case_class]
-        if case_class == "deep_carry":
+        if case_class == "zero_net":
+            eligible = [
+                row for row in eligible if row["explicit_zero_net_semantics"]
+            ]
+        elif case_class == "deep_carry":
             eligible = [row for row in eligible if int(row["w_carry_records"]) > 0]
         elif case_class == "pagerank_correction":
             eligible = [
@@ -513,7 +536,11 @@ def analyze_rq3_results(
             "batch_size": int(case["batch_size"]),
             "case_class": _case_class(case, metrics),
             "plugin_sha256": str(result.get("plugin_sha256", "")),
+            "dataset_kind": str(result["row"].get("dataset_kind", "unknown")),
             "role": role,
+            "explicit_zero_net_semantics": _has_explicit_zero_net_semantics(
+                metrics
+            ),
         }
         construction = _metric(
             metrics, "reader_range_construction_payloads_per_round"
@@ -577,6 +604,22 @@ def analyze_rq3_results(
             "descriptor_operations": descriptor_ops,
             "source_services": source_services,
             "reactivations": reactivations,
+            "source_map_operations": _metric(
+                metrics,
+                "source_map_operations_per_iteration",
+                "source_map_operations",
+            ),
+            "reduce_operations": _metric(
+                metrics,
+                "reduce_operations_per_iteration",
+                "reduce_operations",
+            ),
+            "algorithm_apply_operations": _metric(
+                metrics,
+                "apply_operations_per_iteration",
+                "apply_operations",
+                "compute_vertices_applied",
+            ),
             "resolve_records": construction + fallback,
             "apply_records": replay + fallback,
             "carry_wait_cycles": _metric(
@@ -818,13 +861,25 @@ def linear_fit(points: Sequence[tuple[float, float]]) -> dict[str, Any]:
 def _prediction_metrics(
     rows: Sequence[Mapping[str, Any]], role: str
 ) -> dict[str, Any]:
-    selected = [row for row in rows if row["model_role"] == role]
+    selected = [
+        row
+        for row in rows
+        if (
+            row["model_role"] == role
+            or (
+                role == "real_trace_holdout"
+                and row["model_role"] == "trace_holdout"
+                and row["dataset_kind"] == "real"
+            )
+        )
+    ]
     if not selected:
         return {
             "role": role,
             "samples": 0,
             "r2": None,
             "mape_percent": None,
+            "median_ape_percent": None,
             "max_ape_percent": None,
         }
     observed = [float(row["observed_cycles"]) for row in selected]
@@ -837,11 +892,19 @@ def _prediction_metrics(
     total_ss = sum((actual - mean) ** 2 for actual in observed)
     r2 = 1.0 - residual_ss / total_ss if total_ss else None
     errors = [float(row["absolute_percent_error"]) for row in selected]
+    sorted_errors = sorted(errors)
+    middle = len(sorted_errors) // 2
+    median = (
+        sorted_errors[middle]
+        if len(sorted_errors) % 2
+        else (sorted_errors[middle - 1] + sorted_errors[middle]) / 2.0
+    )
     return {
         "role": role,
         "samples": len(selected),
         "r2": r2,
         "mape_percent": sum(errors) / len(errors),
+        "median_ape_percent": median,
         "max_ape_percent": max(errors),
     }
 
@@ -854,14 +917,22 @@ def fit_e2e_cost_model(
     import numpy as np
 
     calibration_roles = {"synthetic_calibration", "trace_calibration"}
-    calibration = [row for row in rows if row["role"] in calibration_roles]
+    model_rows = [
+        row for row in rows if row["algorithm"] in E2E_MODEL_ALGORITHMS
+    ]
+    calibration = [
+        row for row in model_rows if row["role"] in calibration_roles
+    ]
     columns = ("fixed_cycles", *E2E_MODEL_FEATURES)
     if len(calibration) < len(columns):
         return (
             {
                 "status": "insufficient_calibration_rows",
-                "fit_method": "nonnegative_coordinate_descent",
+                "fit_method": (
+                    "variance_stabilized_nonnegative_coordinate_descent"
+                ),
                 "features": list(E2E_MODEL_FEATURES),
+                "algorithms": sorted(E2E_MODEL_ALGORITHMS),
                 "calibration_samples": len(calibration),
                 "required_samples": len(columns),
             },
@@ -879,10 +950,16 @@ def fit_e2e_cost_model(
     target = np.asarray(
         [float(row["total_cycles"]) for row in calibration], dtype=float
     )
-    scales = np.maximum(np.max(np.abs(matrix), axis=0), 1.0)
-    normalized = matrix / scales
+    # Hardware traces are heteroscedastic across four orders of magnitude.
+    # Weighting by 1 / cycles balances absolute and relative residuals while
+    # keeping the model linear in the paper's realized-work quantities.
+    row_weights = 1.0 / np.maximum(target, 1.0)
+    weighted_matrix = matrix * np.sqrt(row_weights)[:, None]
+    weighted_target = target * np.sqrt(row_weights)
+    scales = np.maximum(np.max(np.abs(weighted_matrix), axis=0), 1.0)
+    normalized = weighted_matrix / scales
     coefficients = np.zeros(normalized.shape[1], dtype=float)
-    residual = target.copy()
+    residual = weighted_target.copy()
     iterations = 0
     for iterations in range(1, 50_001):
         max_change = 0.0
@@ -905,7 +982,7 @@ def fit_e2e_cost_model(
     unscaled = coefficients / scales
     rank = int(np.linalg.matrix_rank(matrix))
     prediction_rows: list[dict[str, Any]] = []
-    for row in rows:
+    for row in model_rows:
         vector = np.asarray(
             [1.0, *(float(row[key]) for key in E2E_MODEL_FEATURES)], dtype=float
         )
@@ -917,6 +994,7 @@ def fit_e2e_cost_model(
                 "dataset_id": row["dataset_id"],
                 "algorithm": row["algorithm"],
                 "case_class": row["case_class"],
+                "dataset_kind": row["dataset_kind"],
                 "role": row["role"],
                 "model_role": (
                     "calibration" if row["role"] in calibration_roles else row["role"]
@@ -933,13 +1011,18 @@ def fit_e2e_cost_model(
         )
     metric_rows = [
         _prediction_metrics(prediction_rows, role)
-        for role in ("calibration", "trace_holdout")
+        for role in ("calibration", "trace_holdout", "real_trace_holdout")
     ]
     return (
         {
             "status": "fit",
-            "fit_method": "nonnegative_coordinate_descent",
+            "fit_method": "variance_stabilized_nonnegative_coordinate_descent",
             "features": list(E2E_MODEL_FEATURES),
+            "algorithms": sorted(E2E_MODEL_ALGORITHMS),
+            "excluded_algorithms": sorted(
+                {str(row["algorithm"]) for row in rows}
+                - E2E_MODEL_ALGORITHMS
+            ),
             "columns": list(columns),
             "coefficients": {
                 name: float(value)
@@ -961,6 +1044,19 @@ def write_rq3_analysis(output_dir: Path, analysis: Mapping[str, Any]) -> None:
     summary = {key: value for key, value in analysis.items() if not key.endswith("_rows")}
     summary["work_rows"] = len(analysis["work_rows"])
     summary["latency_rows"] = len(analysis["latency_rows"])
+    direct_rows = [
+        row for row in analysis["latency_rows"] if row["ten_stage_supported"]
+    ]
+    summary["direct_ten_stage_rows"] = len(direct_rows)
+    summary["all_direct_ten_stage_ledgers_closed"] = bool(direct_rows) and all(
+        row["ten_stage_ledger_closed"] for row in direct_rows
+    )
+    summary["coverage"] = {
+        row["case_class"]: row["status"] for row in analysis["coverage_rows"]
+    }
+    summary["e2e_metrics"] = {
+        row["role"]: row for row in analysis["e2e_metric_rows"]
+    }
     (output_dir / "rq3_summary.json").write_text(
         json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="ascii"
     )

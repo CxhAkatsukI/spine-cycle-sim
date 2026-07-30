@@ -141,9 +141,27 @@ class Rq3RealizedWorkTests(unittest.TestCase):
     def test_zero_net_requires_explicit_execution_evidence(self) -> None:
         zero = result("zero")
         zero["scalar_metrics"]["maintenance_persisted_edges"] = 0
+        zero["scalar_metrics"]["update_mode"] = "zero_net_no_repair"
         analysis = analyze_rq3_results([zero])
         self.assertEqual(analysis["work_rows"][0]["case_class"], "zero_net")
         self.assertEqual(analysis["coverage_rows"][0]["status"], "ready")
+
+    def test_zero_net_ten_stage_ledger_accepts_no_component_launch(self) -> None:
+        zero = result("zero-no-launch")
+        zero["scalar_metrics"]["maintenance_persisted_edges"] = 0
+        for key in (
+            "reader_start_cycles_per_round",
+            "reader_end_cycles_per_round",
+            "compute_start_cycles_per_round",
+            "compute_end_cycles_per_round",
+            "round_start_cycles",
+            "round_end_cycles",
+        ):
+            zero["scalar_metrics"][key] = []
+        row = analyze_rq3_results([zero])["latency_rows"][0]
+        self.assertTrue(row["ten_stage_supported"])
+        self.assertTrue(row["ten_stage_ledger_closed"])
+        self.assertEqual(row["t_drain_cycles"], 80)
 
     def test_full_pagerank_is_not_residual_correction(self) -> None:
         full = result("full")
@@ -241,10 +259,11 @@ class Rq3RealizedWorkTests(unittest.TestCase):
             "m_seed_records",
             "switch_work",
             "source_and_reactivation_work",
+            "algorithm_apply_operations",
         )
-        coefficients = (2, 3, 5, 7, 11, 13, 17)
+        coefficients = (2, 3, 5, 7, 11, 13, 17, 23)
         rows = []
-        for index in range(8):
+        for index in range(len(features) + 1):
             values = [0] * len(features)
             if index:
                 values[index - 1] = 1
@@ -254,6 +273,7 @@ class Rq3RealizedWorkTests(unittest.TestCase):
                     "dataset_id": "synthetic",
                     "algorithm": "weighted_sssp",
                     "case_class": "deep_carry",
+                    "dataset_kind": "synthetic",
                     "role": "synthetic_calibration",
                     "total_cycles": 19 + sum(
                         value * coefficient
@@ -270,6 +290,7 @@ class Rq3RealizedWorkTests(unittest.TestCase):
                     "dataset_id": "trace",
                     "algorithm": "connected_components",
                     "case_class": "shallow_insertion",
+                    "dataset_kind": "real",
                     "role": "trace_holdout",
                     "total_cycles": 19 + sum(
                         value * coefficient
@@ -281,7 +302,7 @@ class Rq3RealizedWorkTests(unittest.TestCase):
         model, predictions, metrics = fit_e2e_cost_model(rows)
         self.assertEqual(model["status"], "fit")
         self.assertTrue(model["full_rank"])
-        self.assertEqual(model["calibration_samples"], 8)
+        self.assertEqual(model["calibration_samples"], len(features) + 1)
         self.assertTrue(model["holdout_rows_are_never_used_for_fit"])
         self.assertLess(max(row["absolute_percent_error"] for row in predictions), 1e-6)
         self.assertLess(metrics[1]["mape_percent"], 1e-6)

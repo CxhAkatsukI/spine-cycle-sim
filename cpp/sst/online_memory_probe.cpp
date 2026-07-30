@@ -3806,18 +3806,34 @@ class OnlineMemoryProbe final : public SST::Component {
       if (pagerank_system_->done() && pagerank_system_->idle() &&
           backend_->outstanding() == 0) {
         const std::uint64_t now = scheduler_.clock(0).completed_cycles;
+        const auto &reader = pagerank_system_->reader_counters();
+        const auto &compute = pagerank_system_->compute_counters();
+        const auto &pipeline = pagerank_system_->compute().pipeline_counters();
         pagerank_iteration_cycles_.push_back(now -
                                              pagerank_iteration_start_cycle_);
+        pagerank_iteration_start_cycles_.push_back(
+            pagerank_iteration_start_cycle_);
+        pagerank_iteration_end_cycles_.push_back(now);
+        pagerank_reader_start_cycles_.push_back(reader.start_cycle);
+        pagerank_reader_end_cycles_.push_back(reader.end_cycle);
+        pagerank_compute_start_cycles_.push_back(compute.start_cycle);
+        pagerank_compute_end_cycles_.push_back(compute.end_cycle);
         pagerank_frontier_in_sizes_.push_back(
-            pagerank_system_->reader_counters().source_requests);
+            reader.source_requests);
         pagerank_frontier_out_sizes_.push_back(
             pagerank_system_->compute().next_active().size());
         pagerank_compute_requests_per_iteration_.push_back(
-            pagerank_system_->compute_counters().memory_requests_issued);
+            compute.memory_requests_issued);
         pagerank_reader_edges_per_iteration_.push_back(
-            pagerank_system_->reader_counters().edges_emitted);
+            reader.edges_emitted);
         pagerank_compute_edges_per_iteration_.push_back(
-            pagerank_system_->compute_counters().edges_received);
+            compute.edges_received);
+        pagerank_source_map_operations_per_iteration_.push_back(
+            pipeline.source_map.completed);
+        pagerank_reduce_operations_per_iteration_.push_back(
+            pipeline.reduce.completed);
+        pagerank_apply_operations_per_iteration_.push_back(
+            pipeline.apply.completed);
         ++pagerank_completed_iterations_;
         const bool frontier_converged =
             (mode_ == "spine_residual_pagerank" ||
@@ -4516,8 +4532,9 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"maintenance_target_level\": "
              << maintenance.target_level << ",\n"
              << "  \"maintenance_target_selector_capacity_skips\": "
-             << maintenance.target_selector_capacity_skips << ",\n"
-             << "  \"maintenance_backend_requests\": "
+             << maintenance.target_selector_capacity_skips << ",\n";
+      write_candidate_maintenance_counters(result, maintenance);
+      result << "  \"maintenance_backend_requests\": "
              << pagerank_maintenance_backend_requests_ << ",\n"
              << "  \"compute_backend_requests\": "
              << backend_->accepted() - pagerank_maintenance_backend_requests_
@@ -4560,6 +4577,18 @@ class OnlineMemoryProbe final : public SST::Component {
       write_memory_traffic(result, compute_backend_traffic);
       result << ",\n  \"iteration_cycles\": ";
       write_json_array(result, pagerank_iteration_cycles_);
+      result << ",\n  \"round_start_cycles\": ";
+      write_json_array(result, pagerank_iteration_start_cycles_);
+      result << ",\n  \"round_end_cycles\": ";
+      write_json_array(result, pagerank_iteration_end_cycles_);
+      result << ",\n  \"reader_start_cycles_per_round\": ";
+      write_json_array(result, pagerank_reader_start_cycles_);
+      result << ",\n  \"reader_end_cycles_per_round\": ";
+      write_json_array(result, pagerank_reader_end_cycles_);
+      result << ",\n  \"compute_start_cycles_per_round\": ";
+      write_json_array(result, pagerank_compute_start_cycles_);
+      result << ",\n  \"compute_end_cycles_per_round\": ";
+      write_json_array(result, pagerank_compute_end_cycles_);
       result << ",\n  \"frontier_in_sizes\": ";
       write_json_array(result, pagerank_frontier_in_sizes_);
       result << ",\n  \"frontier_out_sizes\": ";
@@ -4568,6 +4597,12 @@ class OnlineMemoryProbe final : public SST::Component {
       write_json_array(result, pagerank_reader_edges_per_iteration_);
       result << ",\n  \"compute_edges_per_iteration\": ";
       write_json_array(result, pagerank_compute_edges_per_iteration_);
+      result << ",\n  \"source_map_operations_per_iteration\": ";
+      write_json_array(result, pagerank_source_map_operations_per_iteration_);
+      result << ",\n  \"reduce_operations_per_iteration\": ";
+      write_json_array(result, pagerank_reduce_operations_per_iteration_);
+      result << ",\n  \"apply_operations_per_iteration\": ";
+      write_json_array(result, pagerank_apply_operations_per_iteration_);
       result << ",\n  \"labels\": ";
       write_json_array(result, labels);
       result << "\n}\n";
@@ -6930,6 +6965,18 @@ class OnlineMemoryProbe final : public SST::Component {
       write_memory_traffic(result, compute_backend_traffic);
       result << ",\n  \"iteration_cycles\": ";
       write_json_array(result, pagerank_iteration_cycles_);
+      result << ",\n  \"round_start_cycles\": ";
+      write_json_array(result, pagerank_iteration_start_cycles_);
+      result << ",\n  \"round_end_cycles\": ";
+      write_json_array(result, pagerank_iteration_end_cycles_);
+      result << ",\n  \"reader_start_cycles_per_round\": ";
+      write_json_array(result, pagerank_reader_start_cycles_);
+      result << ",\n  \"reader_end_cycles_per_round\": ";
+      write_json_array(result, pagerank_reader_end_cycles_);
+      result << ",\n  \"compute_start_cycles_per_round\": ";
+      write_json_array(result, pagerank_compute_start_cycles_);
+      result << ",\n  \"compute_end_cycles_per_round\": ";
+      write_json_array(result, pagerank_compute_end_cycles_);
       result << ",\n  \"frontier_in_sizes\": ";
       write_json_array(result, pagerank_frontier_in_sizes_);
       result << ",\n  \"frontier_out_sizes\": ";
@@ -6940,6 +6987,12 @@ class OnlineMemoryProbe final : public SST::Component {
       write_json_array(result, pagerank_reader_edges_per_iteration_);
       result << ",\n  \"compute_edges_per_iteration\": ";
       write_json_array(result, pagerank_compute_edges_per_iteration_);
+      result << ",\n  \"source_map_operations_per_iteration\": ";
+      write_json_array(result, pagerank_source_map_operations_per_iteration_);
+      result << ",\n  \"reduce_operations_per_iteration\": ";
+      write_json_array(result, pagerank_reduce_operations_per_iteration_);
+      result << ",\n  \"apply_operations_per_iteration\": ";
+      write_json_array(result, pagerank_apply_operations_per_iteration_);
       result << ",\n  \"ranks\": ";
       write_json_array(result, actual_ranks);
       result << ",\n  \"residuals\": ";
@@ -7347,6 +7400,24 @@ class OnlineMemoryProbe final : public SST::Component {
       write_memory_traffic(result, compute_backend_traffic);
       result << ",\n  \"iteration_cycles\": ";
       write_json_array(result, pagerank_iteration_cycles_);
+      result << ",\n  \"round_start_cycles\": ";
+      write_json_array(result, pagerank_iteration_start_cycles_);
+      result << ",\n  \"round_end_cycles\": ";
+      write_json_array(result, pagerank_iteration_end_cycles_);
+      result << ",\n  \"reader_start_cycles_per_round\": ";
+      write_json_array(result, pagerank_reader_start_cycles_);
+      result << ",\n  \"reader_end_cycles_per_round\": ";
+      write_json_array(result, pagerank_reader_end_cycles_);
+      result << ",\n  \"compute_start_cycles_per_round\": ";
+      write_json_array(result, pagerank_compute_start_cycles_);
+      result << ",\n  \"compute_end_cycles_per_round\": ";
+      write_json_array(result, pagerank_compute_end_cycles_);
+      result << ",\n  \"source_map_operations_per_iteration\": ";
+      write_json_array(result, pagerank_source_map_operations_per_iteration_);
+      result << ",\n  \"reduce_operations_per_iteration\": ";
+      write_json_array(result, pagerank_reduce_operations_per_iteration_);
+      result << ",\n  \"apply_operations_per_iteration\": ";
+      write_json_array(result, pagerank_apply_operations_per_iteration_);
       result << ",\n  \"ranks\": ";
       write_json_array(result, actual);
       result << ",\n  \"reference_ranks\": ";
@@ -8992,6 +9063,17 @@ class OnlineMemoryProbe final : public SST::Component {
           << ",\n"
           << "  \"input_edges\": " << spine_expected_edges_ << ",\n"
           << "  \"preload_edges\": " << spine_preload_edges_ << ",\n";
+      result << "  \"round_start_cycles\": [0],\n"
+             << "  \"round_end_cycles\": ["
+             << scheduler_.clock(0).completed_cycles << "],\n"
+             << "  \"reader_start_cycles_per_round\": ["
+             << reader.start_cycle << "],\n"
+             << "  \"reader_end_cycles_per_round\": ["
+             << reader.end_cycle << "],\n"
+             << "  \"compute_start_cycles_per_round\": ["
+             << compute.start_cycle << "],\n"
+             << "  \"compute_end_cycles_per_round\": ["
+             << compute.end_cycle << "],\n";
       result << "  \"carry_history_edges\": " << spine_carry_history_edges_
              << ",\n"
              << "  \"carry_history_batch_edges\": "
@@ -9897,6 +9979,15 @@ class OnlineMemoryProbe final : public SST::Component {
   ResidualPageRankReference residual_pagerank_reference_;
   std::vector<double> residual_mathematical_reference_;
   std::vector<std::uint64_t> pagerank_iteration_cycles_;
+  std::vector<std::uint64_t> pagerank_iteration_start_cycles_;
+  std::vector<std::uint64_t> pagerank_iteration_end_cycles_;
+  std::vector<std::uint64_t> pagerank_reader_start_cycles_;
+  std::vector<std::uint64_t> pagerank_reader_end_cycles_;
+  std::vector<std::uint64_t> pagerank_compute_start_cycles_;
+  std::vector<std::uint64_t> pagerank_compute_end_cycles_;
+  std::vector<std::uint64_t> pagerank_source_map_operations_per_iteration_;
+  std::vector<std::uint64_t> pagerank_reduce_operations_per_iteration_;
+  std::vector<std::uint64_t> pagerank_apply_operations_per_iteration_;
   std::vector<std::size_t> pagerank_frontier_in_sizes_;
   std::vector<std::size_t> pagerank_frontier_out_sizes_;
   std::vector<std::uint64_t> pagerank_compute_requests_per_iteration_;

@@ -273,7 +273,7 @@ def render_correlations(
         "trace_holdout": ("#d62728", "o", "Holdout"),
     }
     for axis, (mechanism, x_key, y_key, x_label, y_label) in zip(
-        axes.flat, REGRESSIONS, strict=True
+        axes.flat, REGRESSIONS
     ):
         plotted: list[tuple[float, float]] = []
         for role, (color, marker, label) in role_style.items():
@@ -354,16 +354,26 @@ def render_e2e_model(
     output: Path,
 ) -> None:
     plt = configure_matplotlib()
-    if sum(row.get("model_role") == "trace_holdout" for row in prediction_rows) < 30:
-        raise ValueError("RQ3 E2E model requires at least 30 trace holdout rows")
+    real_holdout = [
+        row
+        for row in prediction_rows
+        if row.get("model_role") == "trace_holdout"
+        and row.get("dataset_kind") == "real"
+    ]
+    if len(real_holdout) < 30:
+        raise ValueError("RQ3 E2E model requires at least 30 real trace holdout rows")
     figure, axes = plt.subplots(1, 2, figsize=(7.2, 3.25))
-    styles = {
-        "calibration": ("#1f77b4", "s", "Calibration"),
-        "trace_holdout": ("#d62728", "o", "Trace holdout"),
-    }
+    styles = (
+        (
+            [row for row in prediction_rows if row["model_role"] == "calibration"],
+            "#1f77b4",
+            "s",
+            "Calibration",
+        ),
+        (real_holdout, "#d62728", "o", "Real trace holdout"),
+    )
     all_values: list[float] = []
-    for role, (color, marker, label) in styles.items():
-        rows = [row for row in prediction_rows if row["model_role"] == role]
+    for rows, color, marker, label in styles:
         if not rows:
             continue
         observed = [number(row, "observed_cycles") for row in rows]
@@ -405,7 +415,7 @@ def render_e2e_model(
     axes[1].set_xlabel("Measured E2E cycles")
     axes[1].set_ylabel("Absolute error (%)")
     by_role = {row["role"]: row for row in metric_rows}
-    holdout = by_role["trace_holdout"]
+    holdout = by_role["real_trace_holdout"]
     axes[0].text(
         0.04,
         0.95,
@@ -416,7 +426,8 @@ def render_e2e_model(
     axes[1].text(
         0.04,
         0.95,
-        f"MAPE={float(holdout['mape_percent']):.1f}%\n"
+        f"median={float(holdout['median_ape_percent']):.1f}%\n"
+        f"mean={float(holdout['mape_percent']):.1f}%\n"
         f"max={float(holdout['max_ape_percent']):.1f}%",
         transform=axes[1].transAxes,
         va="top",
@@ -449,8 +460,8 @@ def write_tex_tables(
                     ALGORITHM_LABELS.get(row["algorithm"], tex_escape(row["algorithm"])),
                     f"{int(number(row, 'total_cycles')):,}",
                     f"{int(number(row, 'maintenance_cycles')):,}",
-                    f"{int(number(row, 'integrated_resolve_app_cycles')):,}",
-                    f"{int(number(row, 'sync_cycles')):,}",
+                    f"{int(number(row, 't_resolve_cycles') + number(row, 't_app_cycles')):,}",
+                    f"{int(number(row, 't_drain_cycles') + number(row, 't_sync_cycles')):,}",
                 )
             )
             + r" \\"
@@ -458,7 +469,7 @@ def write_tex_tables(
     representative_table = [
         r"\begin{tabular}{llrrrr}",
         r"\toprule",
-        r"Case & Algorithm & E2E cyc & Maint. & Integrated R/A & Sync \\",
+        r"Case & Algorithm & E2E cyc & Maint. & Resolve+App & Drain+Sync \\",
         r"\midrule",
         *lines,
         r"\bottomrule",
