@@ -117,6 +117,13 @@ priority 85), then CC (priority 124), and writes both results to the original
 canonical result root. At launch, 117.9 GiB was available, so it correctly
 remained queued until one of the two running K4 jobs released enough memory.
 
+`scripts/watch_formal_v6_report.sh` fingerprints the canonical SSSP,
+CC/residual, and R19 `case_result.json` files once per minute. A changed result
+set runs the complete analysis, vector rendering, TeX/PDF build, and
+fail-closed evidence-package audit. The watcher never stages or commits files;
+the reviewed generated diff is still committed explicitly. Its default log is
+`/data/tmp/chuxiao/large_graph_campaign_v1/formal_v6_report_watcher.log`.
+
 The `formal_v6_r19_sssp_warm` campaign adds the separately reported R19-32
 synthetic scalability endpoint under the same v6 warm-start measurement
 contract and median-degree source policy. Its one-job scheduler uses a 108 GiB
