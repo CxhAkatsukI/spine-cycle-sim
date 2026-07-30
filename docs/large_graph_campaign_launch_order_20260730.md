@@ -68,6 +68,17 @@ to run alongside SSSP while the predictor continues to hold its large
 StackOverflow jobs when the two independent schedulers could otherwise cross
 the host safety reserve together.
 
+On July 30, the queued WikiTalk K4-shared residual-PageRank job was moved to
+the one-job `formal_v6_wiki_residual_k4_sidecar` scheduler after its 8.81 GiB
+RSS estimate fit safely beside the three active jobs. The original scheduler
+records an auditable `stopped` row with reason
+`moved to memory-bounded sidecar for safe fourth-task concurrency`; the
+sidecar uses the exact original command and output directory, a 96 GiB launch
+reserve, and a 64/80 GiB emergency/recovery circuit breaker. This changes only
+dispatch ownership. The dataset, update, architecture profile, plugin,
+correctness gates, and result path are unchanged, and the unified monitor
+shows both schedulers.
+
 The optional `formal_v6_au_spine_updates_default` scheduler fills otherwise idle CPU
 capacity with the nine AskUbuntu weighted-SSSP update cases: insertion,
 deletion, and weight change at batch sizes 1, 8, and 64. It uses a 112 GiB
