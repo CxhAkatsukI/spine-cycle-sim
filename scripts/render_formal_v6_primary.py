@@ -19,6 +19,7 @@ DEFAULT_UPDATE_ANALYSIS = Path(
     "/data/tmp/chuxiao/large_graph_campaign_v1/formal_v6_au_update_analysis"
 )
 DEFAULT_COMPONENT_POWER = ROOT / "docs/paper/data/component_power.csv"
+DEFAULT_WORKLOAD_ENERGY = ROOT / "docs/paper/data/workload_energy"
 DEFAULT_CONTRACT = (
     ROOT / "configs/contracts/large_graph_publication_campaign_fullgraph_v6.json"
 )
@@ -782,6 +783,130 @@ def render_component_power_figure(
     plt.close(figure)
 
 
+def render_workload_energy_figure(
+    system_rows: list[dict[str, str]],
+    component_rows: list[dict[str, str]],
+    output: Path,
+) -> None:
+    if not system_rows or not component_rows:
+        raise ValueError("workload component-energy evidence is empty")
+    plt = configure_matplotlib()
+    from matplotlib.patches import Patch
+
+    by_execution: dict[str, dict[str, float]] = {}
+    for row in component_rows:
+        by_execution.setdefault(row["execution_id"], {})[row["component"]] = float(
+            row["energy_uj"]
+        )
+    by_group: dict[str, dict[str, dict[str, str]]] = {}
+    for row in system_rows:
+        by_group.setdefault(row["group_id"], {})[row["system"]] = row
+    pairs = [
+        (systems["spine"], systems["grasu_regraph_k4_shared"])
+        for systems in by_group.values()
+        if "spine" in systems and "grasu_regraph_k4_shared" in systems
+    ]
+    pairs.sort(
+        key=lambda pair: (
+            DATASET_ORDER.get(pair[0]["dataset_id"], 10_000),
+            ALGORITHM_ORDER.get(pair[0]["algorithm"], 10_000),
+        )
+    )
+    components = (
+        ("hbm_subsystem", "HBM interface", "#4c78a8", "///"),
+        ("update_maintenance", "Update", "#f58518", "\\\\\\"),
+        ("graph_compute", "Compute", "#54a24b", "|||"),
+        ("stream_fifos", "Streams/FIFOs", "#b279a2", "..."),
+        ("other_user_logic", "Other logic", "#9d9d9d", "xxx"),
+        ("platform_dynamic_energy_uj", "Platform dynamic", "#eeca3b", "++"),
+        ("device_static_energy_uj", "Device static", "#72b7b2", "ooo"),
+        ("dram_energy_uj", "HBM DRAM", "#e45756", "***"),
+    )
+
+    def values(row: dict[str, str]) -> dict[str, float]:
+        result = dict(by_execution[row["execution_id"]])
+        for key in (
+            "platform_dynamic_energy_uj",
+            "device_static_energy_uj",
+            "dram_energy_uj",
+        ):
+            result[key] = float(row[key])
+        return result
+
+    figure, axes = plt.subplots(2, 1, figsize=(7.5, 6.2), sharex=True)
+    x_positions = list(range(len(pairs)))
+    width = 0.34
+    labels = [
+        f"{DATASET_LABEL.get(spine['dataset_id'], spine['dataset_id'])}\n"
+        f"{ALGORITHM_LABEL.get(spine['algorithm'], spine['algorithm'])}"
+        for spine, _ in pairs
+    ]
+    for offset, system_index, label, color, hatch in (
+        (-width / 2, 0, "Spine", "#1f77b4", "///"),
+        (width / 2, 1, "G+R K4", "#d95f02", "\\\\\\"),
+    ):
+        totals = [
+            float(pair[system_index]["total_estimated_energy_uj"]) / 1_000.0
+            for pair in pairs
+        ]
+        axes[0].bar(
+            [position + offset for position in x_positions],
+            totals,
+            width,
+            facecolor="white",
+            edgecolor=color,
+            linewidth=1.0,
+            hatch=hatch,
+            label=label,
+        )
+        bottoms = [0.0] * len(pairs)
+        for key, component_label, component_color, component_hatch in components:
+            shares = []
+            for pair in pairs:
+                row = pair[system_index]
+                total = float(row["total_estimated_energy_uj"])
+                shares.append(100.0 * values(row).get(key, 0.0) / total)
+            axes[1].bar(
+                [position + offset for position in x_positions],
+                shares,
+                width,
+                bottom=bottoms,
+                facecolor="white",
+                edgecolor=component_color,
+                linewidth=0.7,
+                hatch=component_hatch,
+            )
+            bottoms = [left + right for left, right in zip(bottoms, shares, strict=True)]
+    axes[0].set_yscale("log")
+    axes[0].set_ylabel("Estimated energy (mJ)")
+    axes[0].legend(frameon=False, ncols=2)
+    axes[1].set_ylabel("Component share (%)")
+    axes[1].set_ylim(0.0, 100.0)
+    axes[1].set_xticks(x_positions, labels)
+    axes[1].legend(
+        handles=[
+            Patch(
+                facecolor="white",
+                edgecolor=color,
+                hatch=hatch,
+                label=label,
+            )
+            for _, label, color, hatch in components
+        ],
+        frameon=False,
+        ncols=4,
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.22),
+        fontsize=7.5,
+    )
+    for axis in axes:
+        axis.grid(axis="y", linestyle="--", color="0.65", alpha=0.5, zorder=0)
+        axis.tick_params(direction="in", top=True, right=True, length=4)
+    figure.tight_layout(rect=(0, 0.08, 1, 1))
+    save_vector_figure(figure, output)
+    plt.close(figure)
+
+
 def render_simulator_runtime_figure(
     rows: list[dict[str, Any]], output: Path
 ) -> None:
@@ -1046,7 +1171,7 @@ def render_tex(
     )
     wall_time_text = wall_time_feasibility_tex(wall_time_projection)
     transition_text = behavior_transition_tex(transition_coverage_rows or [])
-    rq3_holdout = rq3_summary["e2e_metrics"]["trace_holdout"]
+    rq3_holdout = rq3_summary["e2e_metrics"]["real_trace_holdout"]
     return rf"""\documentclass[10pt]{{article}}
 \usepackage[margin=0.72in]{{geometry}}
 \usepackage{{booktabs}}
@@ -1247,7 +1372,7 @@ merge inputs, and output rewrites; cursor inspection is reported separately.}}
 
 \paragraph{{Interpretation.}}
 The seven panels report every requested realized-work relation, including weak
-directory and switch relations rather than hiding them. The slope and $R^2$
+sort-only and drain-only relations rather than hiding them. The slope and $R^2$
 table distinguishes mechanisms that transfer across mixed trace classes from
 those that need a richer topology- or contention-aware predictor.
 
@@ -1255,9 +1380,10 @@ those that need a richer topology- or contention-aware predictor.
 \centering
 \includegraphics[width=0.98\linewidth]{{\vfigdir/rq3_e2e_cost_model.pdf}}
 \caption{{Calibration-only nonnegative realized-work model versus measured E2E
-cycles, plus absolute residuals. The trace holdout contains
-{int(rq3_holdout['samples'])} executions that never participate in fitting;
-holdout $R^2={float(rq3_holdout['r2']):.3f}$, MAPE
+cycles, plus absolute residuals. The holdout contains
+{int(rq3_holdout['samples'])} real-trace executions that never participate in
+fitting; holdout $R^2={float(rq3_holdout['r2']):.3f}$, median absolute error
+${float(rq3_holdout['median_ape_percent']):.1f}\%$, mean absolute error
 ${float(rq3_holdout['mape_percent']):.1f}\%$, and maximum absolute error
 ${float(rq3_holdout['max_ape_percent']):.1f}\%$.}}
 \end{{figure}}
@@ -1283,11 +1409,29 @@ attribution, not workload-calibrated energy or board power.}}
 
 \paragraph{{Energy boundary.}}
 The workload-specific HBM energy ratios in Figure 1 come from DRAMSim3 and are
-paired with the exact executions plotted there. The vectorless powers above
-must not be multiplied by the {report_version} latency to claim total workload energy.
-Workload-calibrated on-chip dynamic energy remains open because equivalent
-per-event energy models and complete activity counters are not yet available
-for every routed algorithm build.
+paired with the exact executions plotted there. The routed bars above establish
+implementation-level component power but retain Vivado's Low-confidence
+vectorless activity assumption.
+
+\begin{{figure}}[H]
+\centering
+\includegraphics[width=0.98\linewidth]{{\vfigdir/{artifact_prefix}_workload_energy.pdf}}
+\caption{{Complete workload-duration energy ledger for the nine matched
+SSSP, CC, and residual-PageRank pairs. DRAM energy comes from each exact
+DRAMSim3 command stream. FPGA hierarchy components use execution-driven active
+cycles multiplied by routed vectorless power; platform dynamic and device
+static use the full measured interval. All ledgers close. This is a modeled
+energy estimate, not RTL-SAIF or board-power measurement. Spine CC/Residual and
+G+R CC use explicitly recorded routed-algorithm proxies.}}
+\end{{figure}}
+
+\paragraph{{Energy interpretation.}}
+This result has the same separation of concerns used throughout the report:
+the cycle simulator supplies workload activity and duration, DRAMSim3 supplies
+HBM-device energy, and implementation tools supply component power. CACTI
+selected-SRAM ASIC projections remain a separate ledger and are not summed
+with FPGA BRAM/URAM power. The largest remaining confidence upgrade is
+algorithm-matched routed builds with RTL-derived SAIF activity.
 \end{{document}}
 """
 
@@ -1309,6 +1453,9 @@ def main() -> int:
     )
     parser.add_argument(
         "--component-power", type=Path, default=DEFAULT_COMPONENT_POWER
+    )
+    parser.add_argument(
+        "--workload-energy-dir", type=Path, default=DEFAULT_WORKLOAD_ENERGY
     )
     parser.add_argument("--contract", type=Path, default=DEFAULT_CONTRACT)
     parser.add_argument(
@@ -1360,6 +1507,8 @@ def main() -> int:
         args.figure_dir / "rq3_latency_breakdown.pdf",
         args.figure_dir / "rq3_work_correlations.pdf",
         args.figure_dir / "rq3_e2e_cost_model.pdf",
+        args.workload_energy_dir / "system_energy.csv",
+        args.workload_energy_dir / "component_energy.csv",
     ):
         if not path.is_file():
             raise FileNotFoundError(path)
@@ -1385,6 +1534,11 @@ def main() -> int:
     render_component_power_figure(
         read_csv(args.component_power),
         args.figure_dir / f"{args.artifact_prefix}_component_power",
+    )
+    render_workload_energy_figure(
+        read_csv(args.workload_energy_dir / "system_energy.csv"),
+        read_csv(args.workload_energy_dir / "component_energy.csv"),
+        args.figure_dir / f"{args.artifact_prefix}_workload_energy",
     )
     render_simulator_runtime_figure(
         pairs, args.figure_dir / f"{args.artifact_prefix}_simulator_runtime"

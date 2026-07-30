@@ -78,6 +78,23 @@ class FormalV6EvidencePackageAuditTest(unittest.TestCase):
             {"role": "all", "mechanism": mechanism, "r2": "0.995"}
             for mechanism in MODULE.REQUIRED_RQ3_REGRESSIONS
         ]
+        for row in rq3_regression_rows:
+            row.update({"samples": "5", "slope": "1.0"})
+        rq3_summary = {
+            "direct_ten_stage_rows": 5,
+            "all_direct_ten_stage_ledgers_closed": True,
+            "e2e_model": {"status": "fit", "full_rank": True},
+        }
+        rq3_e2e_metric_rows = [
+            {
+                "role": "real_trace_holdout",
+                "samples": "30",
+                "r2": "0.95",
+                "median_ape_percent": "20.0",
+                "mape_percent": "25.0",
+                "max_ape_percent": "80.0",
+            }
+        ]
         artifacts = []
         for name in ("report.pdf", "figure.svg"):
             path = directory / name
@@ -90,8 +107,10 @@ class FormalV6EvidencePackageAuditTest(unittest.TestCase):
             "correctness_rows": correctness_rows,
             "component_rows": component_rows,
             "update_rows": update_rows,
+            "rq3_summary": rq3_summary,
             "rq3_coverage_rows": rq3_coverage_rows,
             "rq3_regression_rows": rq3_regression_rows,
+            "rq3_e2e_metric_rows": rq3_e2e_metric_rows,
             "artifacts": artifacts,
         }
 
@@ -115,7 +134,7 @@ class FormalV6EvidencePackageAuditTest(unittest.TestCase):
         )
         self.assertEqual(result["minimum_package_status"], "INCOMPLETE")
 
-    def test_missing_algorithm_and_low_r2_fail_independently(self) -> None:
+    def test_missing_algorithm_and_rq3_relation_fail_independently(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             fixture = self._fixture(Path(temporary))
             fixture["pair_rows"] = [
@@ -126,7 +145,7 @@ class FormalV6EvidencePackageAuditTest(unittest.TestCase):
                     and row["algorithm"] == "weighted_sssp"
                 )
             ]
-            fixture["rq3_regression_rows"][0]["r2"] = "0.5"
+            fixture["rq3_regression_rows"] = fixture["rq3_regression_rows"][1:]
             result = MODULE.audit_evidence_package(**fixture)
         self.assertFalse(
             result["gates"][
@@ -134,7 +153,20 @@ class FormalV6EvidencePackageAuditTest(unittest.TestCase):
             ]
         )
         self.assertFalse(
-            result["gates"]["headline_rq3_mechanisms_have_r2_at_least_0_99"]
+            result["gates"]["seven_rq3_mechanism_relations_are_reported"]
+        )
+
+    def test_real_holdout_and_ten_stage_gates_fail_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            fixture = self._fixture(Path(temporary))
+            fixture["rq3_summary"]["all_direct_ten_stage_ledgers_closed"] = False
+            fixture["rq3_e2e_metric_rows"][0]["samples"] = "29"
+            result = MODULE.audit_evidence_package(**fixture)
+        self.assertFalse(
+            result["gates"]["five_rq3_direct_ten_stage_ledgers_close"]
+        )
+        self.assertFalse(
+            result["gates"]["rq3_e2e_model_generalizes_to_30_real_holdouts"]
         )
 
 

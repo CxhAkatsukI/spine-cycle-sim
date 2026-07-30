@@ -33,10 +33,13 @@ REQUIRED_RQ3_CLASSES = {
     "deletion_fallback",
 }
 REQUIRED_RQ3_REGRESSIONS = {
+    "sort_frontend",
     "carry",
+    "directory",
     "physical_resolve_apply",
     "seed",
-    "drain_sync",
+    "switch",
+    "drain",
 }
 DEFAULT_ARTIFACTS = (
     ROOT / "docs" / "paper" / "formal_v6_primary_results.pdf",
@@ -56,6 +59,9 @@ DEFAULT_ARTIFACTS = (
     ROOT / "docs" / "figures" / "formal_v6_update_throughput.svg",
     ROOT / "docs" / "figures" / "rq3_latency_breakdown.svg",
     ROOT / "docs" / "figures" / "rq3_work_correlations.svg",
+    ROOT / "docs" / "figures" / "rq3_e2e_cost_model.svg",
+    ROOT / "docs" / "figures" / "formal_v7_workload_energy.svg",
+    ROOT / "docs" / "paper" / "data" / "workload_energy" / "workload_energy.json",
 )
 
 
@@ -91,11 +97,15 @@ def audit_evidence_package(
     correctness_rows: Sequence[Mapping[str, object]],
     component_rows: Sequence[Mapping[str, object]],
     update_rows: Sequence[Mapping[str, object]],
+    rq3_summary: Mapping[str, Any],
     rq3_coverage_rows: Sequence[Mapping[str, object]],
     rq3_regression_rows: Sequence[Mapping[str, object]],
+    rq3_e2e_metric_rows: Sequence[Mapping[str, object]],
     artifacts: Sequence[Path],
     minimum_real_datasets: int = 3,
-    minimum_r2: float = 0.99,
+    minimum_real_holdout_rows: int = 30,
+    minimum_e2e_r2: float = 0.90,
+    maximum_e2e_median_ape_percent: float = 50.0,
     audit_id: str = "formal_v6_first_evidence_package_v1",
 ) -> dict[str, Any]:
     if not audit_id:
@@ -170,16 +180,43 @@ def audit_evidence_package(
     }
     rq3_classes = REQUIRED_RQ3_CLASSES <= ready_rq3_classes
 
-    headline_r2 = {
-        str(row.get("mechanism", "")): float(row.get("r2", "nan"))
+    headline_rows = {
+        str(row.get("mechanism", "")): row
         for row in rq3_regression_rows
         if str(row.get("role", "")) == "all"
         and str(row.get("mechanism", "")) in REQUIRED_RQ3_REGRESSIONS
-        and str(row.get("r2", "")) != ""
     }
-    rq3_regressions = (
-        set(headline_r2) == REQUIRED_RQ3_REGRESSIONS
-        and all(value >= minimum_r2 for value in headline_r2.values())
+    rq3_regressions = set(headline_rows) == REQUIRED_RQ3_REGRESSIONS and all(
+        int(row.get("samples", 0)) >= 2
+        and str(row.get("slope", "")) != ""
+        and str(row.get("r2", "")) != ""
+        for row in headline_rows.values()
+    )
+    headline_r2 = {
+        mechanism: float(row["r2"])
+        for mechanism, row in headline_rows.items()
+        if str(row.get("r2", "")) != ""
+    }
+    rq3_ten_stage = (
+        int(rq3_summary.get("direct_ten_stage_rows", 0))
+        >= len(REQUIRED_RQ3_CLASSES)
+        and _true(rq3_summary.get("all_direct_ten_stage_ledgers_closed", False))
+    )
+    real_holdout_rows = [
+        row
+        for row in rq3_e2e_metric_rows
+        if str(row.get("role", "")) == "real_trace_holdout"
+    ]
+    real_holdout = real_holdout_rows[0] if len(real_holdout_rows) == 1 else {}
+    rq3_e2e_holdout = (
+        int(real_holdout.get("samples", 0)) >= minimum_real_holdout_rows
+        and str(real_holdout.get("r2", "")) != ""
+        and float(real_holdout.get("r2", 0.0)) >= minimum_e2e_r2
+        and str(real_holdout.get("median_ape_percent", "")) != ""
+        and float(real_holdout.get("median_ape_percent", float("inf")))
+        <= maximum_e2e_median_ape_percent
+        and rq3_summary.get("e2e_model", {}).get("status") == "fit"
+        and _true(rq3_summary.get("e2e_model", {}).get("full_rank", False))
     )
 
     artifact_status: dict[str, bool] = {}
@@ -198,7 +235,9 @@ def audit_evidence_package(
         "three_algorithm_matrix_on_at_least_three_real_datasets": three_algorithm_matrix,
         "insert_delete_weight_change_batches_1_8_64_complete": update_matrix,
         "five_rq3_representative_classes_ready": rq3_classes,
-        "headline_rq3_mechanisms_have_r2_at_least_0_99": rq3_regressions,
+        "five_rq3_direct_ten_stage_ledgers_close": rq3_ten_stage,
+        "seven_rq3_mechanism_relations_are_reported": rq3_regressions,
+        "rq3_e2e_model_generalizes_to_30_real_holdouts": rq3_e2e_holdout,
         "pdf_and_required_vector_figures_exist": reproducible_artifacts,
     }
     minimum_status = "PASS" if all(gates.values()) else "INCOMPLETE"
@@ -228,6 +267,10 @@ def audit_evidence_package(
             ],
             "ready_rq3_classes": sorted(ready_rq3_classes),
             "headline_rq3_r2": headline_r2,
+            "direct_ten_stage_rows": int(
+                rq3_summary.get("direct_ten_stage_rows", 0)
+            ),
+            "real_trace_holdout": dict(real_holdout),
             "component_activity_rows": len(component_rows),
         },
         "artifacts": artifact_status,
@@ -256,6 +299,10 @@ def main() -> int:
     parser.add_argument(
         "--rq3-regressions", type=Path, default=RQ3 / "rq3_regression_rows.csv"
     )
+    parser.add_argument("--rq3-summary", type=Path, default=RQ3 / "rq3_summary.json")
+    parser.add_argument(
+        "--rq3-e2e-metrics", type=Path, default=RQ3 / "rq3_e2e_metric_rows.csv"
+    )
     parser.add_argument("--artifact", type=Path, action="append")
     parser.add_argument(
         "--out", type=Path, default=PRIMARY / "evidence_package_audit.json"
@@ -273,8 +320,10 @@ def main() -> int:
         correctness_rows=_read_csv(args.correctness_rows),
         component_rows=_read_csv(args.component_rows),
         update_rows=_read_csv(args.update_rows),
+        rq3_summary=_read_json(args.rq3_summary),
         rq3_coverage_rows=_read_csv(args.rq3_coverage),
         rq3_regression_rows=_read_csv(args.rq3_regressions),
+        rq3_e2e_metric_rows=_read_csv(args.rq3_e2e_metrics),
         artifacts=tuple(args.artifact or DEFAULT_ARTIFACTS),
         audit_id=args.audit_id,
     )

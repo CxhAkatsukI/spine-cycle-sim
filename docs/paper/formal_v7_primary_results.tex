@@ -174,9 +174,11 @@ memory model; they never use host wall time.
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.98\linewidth]{\vfigdir/rq3_latency_breakdown.pdf}
-\caption{Exclusive, overlap-aware critical-path composition for zero-net,
+\caption{Direct ten-stage, exclusive critical-path composition for zero-net,
 shallow insertion, deep carry, residual PageRank correction, and SSSP/CC
-nonmonotonic fallback. Absolute device cycles are printed above each bar.}
+nonmonotonic fallback. The six maintenance stages are counted in the execution
+core; overlapping resolve/app intervals are assigned to the component gating
+their completion. Every bar closes exactly to E2E device cycles.}
 \end{figure}
 
 \begin{table}[H]
@@ -193,7 +195,7 @@ eligible realized-work class.}
 \centering
 \includegraphics[width=0.98\linewidth]{\vfigdir/rq3_work_correlations.pdf}
 \caption{Direct execution counters versus mechanism-local cycles across
-54 dual-oracle-admitted executions. Blue squares are
+91 dual-oracle-admitted executions. Blue squares are
 calibration cases and red circles are holdout traces.}
 \end{figure}
 
@@ -206,16 +208,30 @@ merge inputs, and output rewrites; cursor inspection is reported separately.}
 \end{table}
 
 \paragraph{Interpretation.}
-Carry, physical resolve/app, seed, and drain/synchronization work explain their
-mechanism-local cycle counters with $R^2>0.99$ in the covered population.
-Directory requests ($R^2=0.0011$) and aggregate switch work ($R^2=0.0181$)
-do not transfer across mixed classes, so the report makes no explanatory claim
-for those two counters.
+The seven panels report every requested realized-work relation, including weak
+sort-only and drain-only relations rather than hiding them. The slope and $R^2$
+table distinguishes mechanisms that transfer across mixed trace classes from
+those that need a richer topology- or contention-aware predictor.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.98\linewidth]{\vfigdir/rq3_e2e_cost_model.pdf}
+\caption{Calibration-only nonnegative realized-work model versus measured E2E
+cycles, plus absolute residuals. The holdout contains
+39 real-trace executions that never participate in
+fitting; holdout $R^2=0.941$, median absolute error
+$24.5\%$, mean absolute error
+$27.9\%$, and maximum absolute error
+$81.7\%$.}
+\end{figure}
 
 \paragraph{RQ3 boundary.}
 These correlations validate internal cost structure and bottleneck attribution;
 they are not cycle-for-cycle FPGA calibration or proof that one scalar predicts
-every topology.
+every topology. The timed device boundary starts with an already-resident sorted
+update buffer: host DMA and an external FLiMS sort are not included. Current
+$T_{seed}$ measures device dirty-source publication; residual PageRank's
+host-side old/new-rank correction remains explicitly untimed.
 
 \clearpage
 \section{Implementation-level power attribution}
@@ -230,9 +246,27 @@ attribution, not workload-calibrated energy or board power.}
 
 \paragraph{Energy boundary.}
 The workload-specific HBM energy ratios in Figure 1 come from DRAMSim3 and are
-paired with the exact executions plotted there. The vectorless powers above
-must not be multiplied by the v7 latency to claim total workload energy.
-Workload-calibrated on-chip dynamic energy remains open because equivalent
-per-event energy models and complete activity counters are not yet available
-for every routed algorithm build.
+paired with the exact executions plotted there. The routed bars above establish
+implementation-level component power but retain Vivado's Low-confidence
+vectorless activity assumption.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.98\linewidth]{\vfigdir/formal_v7_workload_energy.pdf}
+\caption{Complete workload-duration energy ledger for the nine matched
+SSSP, CC, and residual-PageRank pairs. DRAM energy comes from each exact
+DRAMSim3 command stream. FPGA hierarchy components use execution-driven active
+cycles multiplied by routed vectorless power; platform dynamic and device
+static use the full measured interval. All ledgers close. This is a modeled
+energy estimate, not RTL-SAIF or board-power measurement. Spine CC/Residual and
+G+R CC use explicitly recorded routed-algorithm proxies.}
+\end{figure}
+
+\paragraph{Energy interpretation.}
+This result has the same separation of concerns used throughout the report:
+the cycle simulator supplies workload activity and duration, DRAMSim3 supplies
+HBM-device energy, and implementation tools supply component power. CACTI
+selected-SRAM ASIC projections remain a separate ledger and are not summed
+with FPGA BRAM/URAM power. The largest remaining confidence upgrade is
+algorithm-matched routed builds with RTL-derived SAIF activity.
 \end{document}
