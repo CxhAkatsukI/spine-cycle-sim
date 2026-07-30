@@ -1046,6 +1046,7 @@ def render_tex(
     )
     wall_time_text = wall_time_feasibility_tex(wall_time_projection)
     transition_text = behavior_transition_tex(transition_coverage_rows or [])
+    rq3_holdout = rq3_summary["e2e_metrics"]["trace_holdout"]
     return rf"""\documentclass[10pt]{{article}}
 \usepackage[margin=0.72in]{{geometry}}
 \usepackage{{booktabs}}
@@ -1211,9 +1212,11 @@ memory model; they never use host wall time.
 \begin{{figure}}[H]
 \centering
 \includegraphics[width=0.98\linewidth]{{\vfigdir/rq3_latency_breakdown.pdf}}
-\caption{{Exclusive, overlap-aware critical-path composition for zero-net,
+\caption{{Direct ten-stage, exclusive critical-path composition for zero-net,
 shallow insertion, deep carry, residual PageRank correction, and SSSP/CC
-nonmonotonic fallback. Absolute device cycles are printed above each bar.}}
+nonmonotonic fallback. The six maintenance stages are counted in the execution
+core; overlapping resolve/app intervals are assigned to the component gating
+their completion. Every bar closes exactly to E2E device cycles.}}
 \end{{figure}}
 
 \begin{{table}}[H]
@@ -1243,16 +1246,29 @@ merge inputs, and output rewrites; cursor inspection is reported separately.}}
 \end{{table}}
 
 \paragraph{{Interpretation.}}
-Carry, physical resolve/app, seed, and drain/synchronization work explain their
-mechanism-local cycle counters with $R^2>0.99$ in the covered population.
-Directory requests ($R^2=0.0011$) and aggregate switch work ($R^2=0.0181$)
-do not transfer across mixed classes, so the report makes no explanatory claim
-for those two counters.
+The seven panels report every requested realized-work relation, including weak
+directory and switch relations rather than hiding them. The slope and $R^2$
+table distinguishes mechanisms that transfer across mixed trace classes from
+those that need a richer topology- or contention-aware predictor.
+
+\begin{{figure}}[H]
+\centering
+\includegraphics[width=0.98\linewidth]{{\vfigdir/rq3_e2e_cost_model.pdf}}
+\caption{{Calibration-only nonnegative realized-work model versus measured E2E
+cycles, plus absolute residuals. The trace holdout contains
+{int(rq3_holdout['samples'])} executions that never participate in fitting;
+holdout $R^2={float(rq3_holdout['r2']):.3f}$, MAPE
+${float(rq3_holdout['mape_percent']):.1f}\%$, and maximum absolute error
+${float(rq3_holdout['max_ape_percent']):.1f}\%$.}}
+\end{{figure}}
 
 \paragraph{{RQ3 boundary.}}
 These correlations validate internal cost structure and bottleneck attribution;
 they are not cycle-for-cycle FPGA calibration or proof that one scalar predicts
-every topology.
+every topology. The timed device boundary starts with an already-resident sorted
+update buffer: host DMA and an external FLiMS sort are not included. Current
+$T_{{seed}}$ measures device dirty-source publication; residual PageRank's
+host-side old/new-rank correction remains explicitly untimed.
 
 \clearpage
 \section{{Implementation-level power attribution}}
@@ -1326,6 +1342,10 @@ def main() -> int:
     rq3_summary = json.loads(
         (args.rq3_data_dir / "rq3_summary.json").read_text(encoding="ascii")
     )
+    rq3_summary["e2e_metrics"] = {
+        row["role"]: row
+        for row in read_csv(args.rq3_data_dir / "rq3_e2e_metric_rows.csv")
+    }
     wall_time_projection = json.loads(
         args.wall_time_projection.read_text(encoding="ascii")
     )
@@ -1339,6 +1359,7 @@ def main() -> int:
         args.rq3_data_dir / "regression_table.tex",
         args.figure_dir / "rq3_latency_breakdown.pdf",
         args.figure_dir / "rq3_work_correlations.pdf",
+        args.figure_dir / "rq3_e2e_cost_model.pdf",
     ):
         if not path.is_file():
             raise FileNotFoundError(path)

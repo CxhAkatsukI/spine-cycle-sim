@@ -61,6 +61,10 @@ from .area_projection import (
     AreaProjectionError,
     analyze_area_projection_manifest,
 )
+from .workload_energy import (
+    WorkloadEnergyError,
+    analyze_workload_energy,
+)
 
 __all__ = [
     "FpgaEvidenceError",
@@ -106,4 +110,6 @@ __all__ = [
     "analyze_component_power_manifest",
     "AreaProjectionError",
     "analyze_area_projection_manifest",
+    "WorkloadEnergyError",
+    "analyze_workload_energy",
 ]

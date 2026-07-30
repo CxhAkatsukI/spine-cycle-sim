@@ -16,6 +16,8 @@ done < <(
 command=(
   python3 scripts/analyze_rq3_realized_work.py
   --out-dir "${output_dir}"
+  --calibration-dataset-id sx_askubuntu
+  --preferred-plugin-sha256 76d9f30f5ee59bba8eee4d7fa7afd3697cc4cf96d266833653eef5955a32ac13
   --preferred-plugin-sha256 65489ede127dc900e72603c3e6b0be89f1b362a6bf0ff6ef510b4de3f27b5254
   --preferred-plugin-sha256 96b4375f8549016ac8be36d85b04b4b5730df0af477dcc5909903845a8f56919
   --preferred-plugin-sha256 c2a60d5250f5594dae98114bd32a96910fe08d11a299eadc6d0b2d1fa56161c6

@@ -31,42 +31,66 @@ ALGORITHM_LABELS = {
     "thresholded_residual_pagerank": "Residual PR",
 }
 COMPONENTS = (
-    ("maintenance_cycles", "Maintenance", "#1f77b4", "///"),
-    ("resolve_only_cycles", "Resolve", "#ff7f0e", "\\\\\\"),
-    ("app_only_cycles", "Apply", "#2ca02c", "|||"),
-    ("resolve_app_overlap_cycles", "Resolve/app overlap", "#d62728", "xxx"),
-    ("integrated_resolve_app_cycles", "Integrated resolve/app", "#9467bd", "..."),
-    ("sync_cycles", "Drain/sync", "#8c564b", "++"),
-    ("other_cycles", "Other", "#7f7f7f", "---"),
+    ("t_xfer_cycles", r"$T_{xfer}$", "#1f77b4", "///"),
+    ("t_reduce_cycles", r"$T_{reduce}$", "#17becf", "\\\\\\"),
+    ("t_carry_cycles", r"$T_{carry}$", "#ff7f0e", "|||"),
+    ("t_directory_cycles", r"$T_{dir}$", "#bcbd22", "xxx"),
+    ("t_seed_cycles", r"$T_{seed}$", "#2ca02c", "..."),
+    ("t_switch_cycles", r"$T_{switch}$", "#9467bd", "++"),
+    ("t_resolve_cycles", r"$T_{resolve}$", "#d62728", "ooo"),
+    ("t_app_cycles", r"$T_{app}$", "#e377c2", "***"),
+    ("t_drain_cycles", r"$T_{drain}$", "#8c564b", "---"),
+    ("t_sync_cycles", r"$T_{sync}$", "#7f7f7f", "OO"),
 )
 REGRESSIONS = (
     (
+        "sort_frontend",
+        "w_sort_records",
+        "t_xfer_reduce_cycles",
+        "Physical update records",
+        r"$T_{xfer}+T_{reduce}$ cycles",
+    ),
+    (
         "carry",
         "w_carry_records",
-        "carry_wait_cycles",
+        "t_carry_cycles",
         "Carry payload records",
-        "Carry wait cycles",
+        r"$T_{carry}$ cycles",
+    ),
+    (
+        "directory",
+        "directory_requests",
+        "t_directory_cycles",
+        "Directory requests",
+        r"$T_{dir}$ cycles",
     ),
     (
         "physical_resolve_apply",
         "m_phys_records",
-        "resolve_app_active_cycles",
+        "t_resolve_app_cycles",
         "Physical edge records",
-        "Resolve + apply active cycles",
+        r"$T_{resolve}+T_{app}$ cycles",
     ),
     (
         "seed",
         "m_seed_records",
-        "seed_schedule_cycles",
+        "t_seed_cycles",
         "Dirty-source seeds",
-        "Seed schedule cycles",
+        r"$T_{seed}$ cycles",
     ),
     (
-        "drain_sync",
+        "switch",
+        "switch_work",
+        "t_switch_cycles",
+        "Touched pages + descriptors",
+        r"$T_{switch}$ cycles",
+    ),
+    (
+        "drain",
         "source_and_reactivation_work",
-        "sync_cycles",
+        "t_drain_cycles",
         "Source services + reactivations",
-        "Drain/sync cycles",
+        r"$T_{drain}$ cycles",
     ),
 )
 
@@ -154,7 +178,7 @@ def render_breakdown(rows: list[dict[str, str]], output: Path) -> None:
         raise ValueError(f"RQ3 representative coverage is incomplete: {missing}")
     selected = [by_class[case] for case in CASE_ORDER]
 
-    figure, axis = plt.subplots(figsize=(7.2, 3.15))
+    figure, axis = plt.subplots(figsize=(7.2, 3.55))
     bottoms = [0.0] * len(selected)
     x_positions = list(range(len(selected)))
     legend: list[Any] = []
@@ -204,13 +228,13 @@ def render_breakdown(rows: list[dict[str, str]], output: Path) -> None:
     axis.legend(
         handles=legend,
         loc="upper center",
-        bbox_to_anchor=(0.5, 1.30),
-        ncol=4,
+        bbox_to_anchor=(0.5, 1.38),
+        ncol=5,
         frameon=False,
         handlelength=1.8,
         columnspacing=0.9,
     )
-    figure.tight_layout(rect=(0, 0, 1, 0.90))
+    figure.tight_layout(rect=(0, 0, 1, 0.86))
     figure.savefig(output.with_suffix(".pdf"), bbox_inches="tight")
     figure.savefig(output.with_suffix(".svg"), bbox_inches="tight")
     normalize_generated_svg(output.with_suffix(".svg"))
@@ -228,6 +252,10 @@ def fit_lookup(rows: list[dict[str, str]]) -> dict[str, dict[str, str]]:
 def work_value(row: dict[str, str], key: str) -> float:
     if key == "resolve_app_active_cycles":
         return number(row, "resolve_active_cycles") + number(row, "app_active_cycles")
+    if key == "t_xfer_reduce_cycles":
+        return number(row, "t_xfer_cycles") + number(row, "t_reduce_cycles")
+    if key == "t_resolve_app_cycles":
+        return number(row, "t_resolve_cycles") + number(row, "t_app_cycles")
     if key == "source_and_reactivation_work":
         return number(row, "source_services") + number(row, "reactivations")
     return number(row, key)
@@ -238,9 +266,10 @@ def render_correlations(
 ) -> None:
     plt = configure_matplotlib()
     fits = fit_lookup(fit_rows)
-    figure, axes = plt.subplots(2, 2, figsize=(7.2, 5.5))
+    figure, axes = plt.subplots(4, 2, figsize=(7.2, 9.0))
     role_style = {
         "synthetic_calibration": ("#1f77b4", "s", "Calibration"),
+        "trace_calibration": ("#1f77b4", "^", "Calibration trace"),
         "trace_holdout": ("#d62728", "o", "Holdout"),
     }
     for axis, (mechanism, x_key, y_key, x_label, y_label) in zip(
@@ -309,7 +338,92 @@ def render_correlations(
             fontsize=8,
         )
         style_axis(axis)
-    axes[0, 0].legend(loc="lower right", frameon=False)
+    for axis in axes.flat[len(REGRESSIONS) :]:
+        axis.axis("off")
+    axes[0, 0].legend(loc="best", frameon=False)
+    figure.tight_layout()
+    figure.savefig(output.with_suffix(".pdf"), bbox_inches="tight")
+    figure.savefig(output.with_suffix(".svg"), bbox_inches="tight")
+    normalize_generated_svg(output.with_suffix(".svg"))
+    plt.close(figure)
+
+
+def render_e2e_model(
+    prediction_rows: list[dict[str, str]],
+    metric_rows: list[dict[str, str]],
+    output: Path,
+) -> None:
+    plt = configure_matplotlib()
+    if sum(row.get("model_role") == "trace_holdout" for row in prediction_rows) < 30:
+        raise ValueError("RQ3 E2E model requires at least 30 trace holdout rows")
+    figure, axes = plt.subplots(1, 2, figsize=(7.2, 3.25))
+    styles = {
+        "calibration": ("#1f77b4", "s", "Calibration"),
+        "trace_holdout": ("#d62728", "o", "Trace holdout"),
+    }
+    all_values: list[float] = []
+    for role, (color, marker, label) in styles.items():
+        rows = [row for row in prediction_rows if row["model_role"] == role]
+        if not rows:
+            continue
+        observed = [number(row, "observed_cycles") for row in rows]
+        predicted = [number(row, "predicted_cycles") for row in rows]
+        errors = [number(row, "absolute_percent_error") for row in rows]
+        all_values.extend(observed + predicted)
+        axes[0].scatter(
+            observed,
+            predicted,
+            s=24,
+            marker=marker,
+            facecolors="white",
+            edgecolors=color,
+            linewidths=1.1,
+            label=label,
+            zorder=3,
+        )
+        axes[1].scatter(
+            observed,
+            errors,
+            s=24,
+            marker=marker,
+            facecolors="white",
+            edgecolors=color,
+            linewidths=1.1,
+            label=label,
+            zorder=3,
+        )
+    positive = [value for value in all_values if value > 0.0]
+    if not positive:
+        raise ValueError("RQ3 E2E model has no positive predictions")
+    lower, upper = min(positive), max(positive)
+    axes[0].plot((lower, upper), (lower, upper), color="black", linewidth=1.0)
+    axes[0].set_xscale("log")
+    axes[0].set_yscale("log")
+    axes[0].set_xlabel("Measured E2E cycles")
+    axes[0].set_ylabel("Predicted E2E cycles")
+    axes[1].set_xscale("log")
+    axes[1].set_xlabel("Measured E2E cycles")
+    axes[1].set_ylabel("Absolute error (%)")
+    by_role = {row["role"]: row for row in metric_rows}
+    holdout = by_role["trace_holdout"]
+    axes[0].text(
+        0.04,
+        0.95,
+        f"Holdout $R^2$={float(holdout['r2']):.3f}",
+        transform=axes[0].transAxes,
+        va="top",
+    )
+    axes[1].text(
+        0.04,
+        0.95,
+        f"MAPE={float(holdout['mape_percent']):.1f}%\n"
+        f"max={float(holdout['max_ape_percent']):.1f}%",
+        transform=axes[1].transAxes,
+        va="top",
+    )
+    for axis in axes:
+        style_axis(axis)
+    axes[0].legend(frameon=False)
     figure.tight_layout()
     figure.savefig(output.with_suffix(".pdf"), bbox_inches="tight")
     figure.savefig(output.with_suffix(".svg"), bbox_inches="tight")
@@ -390,6 +504,9 @@ def main() -> int:
         "rq3_work_rows.csv",
         "rq3_latency_rows.csv",
         "rq3_regression_rows.csv",
+        "rq3_e2e_prediction_rows.csv",
+        "rq3_e2e_metric_rows.csv",
+        "rq3_e2e_model.json",
         "rq3_coverage_rows.csv",
         "rq3_summary.json",
     )
@@ -419,8 +536,11 @@ def main() -> int:
     if len(joined_rows) != len(work_rows):
         raise ValueError("RQ3 work and latency execution IDs do not close")
     regressions = read_csv(args.analysis_dir / "rq3_regression_rows.csv")
+    predictions = read_csv(args.analysis_dir / "rq3_e2e_prediction_rows.csv")
+    model_metrics = read_csv(args.analysis_dir / "rq3_e2e_metric_rows.csv")
     render_breakdown(representatives, args.figure_dir / "rq3_latency_breakdown")
     render_correlations(joined_rows, regressions, args.figure_dir / "rq3_work_correlations")
+    render_e2e_model(predictions, model_metrics, args.figure_dir / "rq3_e2e_cost_model")
     write_tex_tables(representatives, regressions, args.data_dir)
     print(
         f"PASS RQ3 figures: representatives={len(representatives)} "

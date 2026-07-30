@@ -8,6 +8,7 @@ import unittest
 
 from spine_cycle_sim.experiments.rq3 import (
     analyze_rq3_results,
+    fit_e2e_cost_model,
     linear_fit,
     write_rq3_analysis,
 )
@@ -36,6 +37,13 @@ def result(execution_id: str = "rq3") -> dict:
             "maintenance_start_cycle": 0,
             "maintenance_end_cycle": 20,
             "maintenance_cycles": 20,
+            "maintenance_stage_xfer_cycles": 2,
+            "maintenance_stage_reduce_cycles": 3,
+            "maintenance_stage_carry_cycles": 0,
+            "maintenance_stage_directory_cycles": 5,
+            "maintenance_stage_seed_cycles": 4,
+            "maintenance_stage_switch_cycles": 6,
+            "maintenance_stage_ledger_closed": True,
             "maintenance_target_level": 0,
             "maintenance_persisted_edges": 8,
             "maintenance_dirty_unique_sources": 2,
@@ -81,6 +89,19 @@ class Rq3RealizedWorkTests(unittest.TestCase):
                     "other_cycles",
                 )
             ),
+        )
+
+    def test_direct_ten_stage_ledger_closes_exactly(self) -> None:
+        row = analyze_rq3_results([result()])["latency_rows"][0]
+        self.assertTrue(row["ten_stage_supported"])
+        self.assertTrue(row["ten_stage_ledger_closed"])
+        self.assertEqual(row["t_xfer_cycles"], 2)
+        self.assertEqual(row["t_reduce_cycles"], 3)
+        self.assertEqual(row["t_resolve_cycles"], 28)
+        self.assertEqual(row["t_app_cycles"], 42)
+        self.assertEqual(
+            row["total_cycles"],
+            sum(value for key, value in row.items() if key.startswith("t_") and key.endswith("_cycles")),
         )
 
     def test_realized_work_uses_direct_execution_counters(self) -> None:
@@ -211,6 +232,60 @@ class Rq3RealizedWorkTests(unittest.TestCase):
         self.assertAlmostEqual(fit["intercept"], 1.0)
         self.assertAlmostEqual(fit["r2"], 1.0)
 
+    def test_e2e_model_fits_only_calibration_and_scores_holdout(self) -> None:
+        features = (
+            "w_sort_records",
+            "w_carry_records",
+            "directory_requests",
+            "m_phys_records",
+            "m_seed_records",
+            "switch_work",
+            "source_and_reactivation_work",
+        )
+        coefficients = (2, 3, 5, 7, 11, 13, 17)
+        rows = []
+        for index in range(8):
+            values = [0] * len(features)
+            if index:
+                values[index - 1] = 1
+            rows.append(
+                {
+                    "execution_id": f"calib-{index}",
+                    "dataset_id": "synthetic",
+                    "algorithm": "weighted_sssp",
+                    "case_class": "deep_carry",
+                    "role": "synthetic_calibration",
+                    "total_cycles": 19 + sum(
+                        value * coefficient
+                        for value, coefficient in zip(values, coefficients, strict=True)
+                    ),
+                    **dict(zip(features, values, strict=True)),
+                }
+            )
+        for index, scale in enumerate((2, 3)):
+            values = [scale] * len(features)
+            rows.append(
+                {
+                    "execution_id": f"holdout-{index}",
+                    "dataset_id": "trace",
+                    "algorithm": "connected_components",
+                    "case_class": "shallow_insertion",
+                    "role": "trace_holdout",
+                    "total_cycles": 19 + sum(
+                        value * coefficient
+                        for value, coefficient in zip(values, coefficients, strict=True)
+                    ),
+                    **dict(zip(features, values, strict=True)),
+                }
+            )
+        model, predictions, metrics = fit_e2e_cost_model(rows)
+        self.assertEqual(model["status"], "fit")
+        self.assertTrue(model["full_rank"])
+        self.assertEqual(model["calibration_samples"], 8)
+        self.assertTrue(model["holdout_rows_are_never_used_for_fit"])
+        self.assertLess(max(row["absolute_percent_error"] for row in predictions), 1e-6)
+        self.assertLess(metrics[1]["mape_percent"], 1e-6)
+
     def test_writer_emits_machine_readable_tables(self) -> None:
         analysis = analyze_rq3_results([result()])
         with tempfile.TemporaryDirectory() as temporary:
@@ -220,6 +295,9 @@ class Rq3RealizedWorkTests(unittest.TestCase):
             self.assertTrue((output / "rq3_work_rows.csv").is_file())
             self.assertTrue((output / "rq3_latency_rows.csv").is_file())
             self.assertTrue((output / "rq3_regression_rows.csv").is_file())
+            self.assertTrue((output / "rq3_e2e_model.json").is_file())
+            self.assertTrue((output / "rq3_e2e_prediction_rows.csv").is_file())
+            self.assertTrue((output / "rq3_e2e_metric_rows.csv").is_file())
             self.assertTrue((output / "rq3_representative_rows.csv").is_file())
             self.assertTrue((output / "rq3_coverage_rows.csv").is_file())
 

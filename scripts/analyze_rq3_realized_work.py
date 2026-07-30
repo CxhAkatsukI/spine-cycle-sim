@@ -29,10 +29,17 @@ def main() -> int:
         default=[],
         help="repeat in newest-to-oldest admission order",
     )
+    parser.add_argument(
+        "--calibration-dataset-id",
+        action="append",
+        default=[],
+        help="freeze a real dataset as calibration rather than holdout",
+    )
     args = parser.parse_args()
     analysis = analyze_rq3_results(
         load_case_results(args.result_root),
         preferred_plugin_sha256=args.preferred_plugin_sha256,
+        calibration_dataset_ids=args.calibration_dataset_id,
     )
     write_rq3_analysis(args.out_dir, analysis)
     print(
