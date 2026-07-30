@@ -647,6 +647,17 @@ def wall_time_feasibility_tex(projection: dict[str, Any]) -> str:
         for row in targets
     )
     wall_budget = float(targets[0]["wall_budget_hours"])
+    preflight_targets = list(projection.get("preflight_targets", []))
+    preflight_text = ""
+    if preflight_targets:
+        preflight = preflight_targets[0]
+        preflight_text = (
+            " The validated R19 preflight requires "
+            f"{int(preflight['oracle_minimum_supersteps'])} supersteps over "
+            f"{int(preflight['directed_records']):,} directed records and projects "
+            f"{float(preflight['projected_total_hours_at_calibration_rate']):.1f} h "
+            "at the median completed-run simulator rate; it was not launched."
+        )
     return rf"""\paragraph{{Full-graph wall-time feasibility.}}
 An execution-feasibility model fitted to {calibration_count} completed,
 correctness-admitted K4-shared SSSP rows projects total host times of {observed}
@@ -655,7 +666,7 @@ twice the observed simulator rate leaves {optimistic}, compared with the
 {wall_budget:.0f} h campaign budget. Those full-graph executions were therefore
 soft-stopped by policy. Their partial cycles and memory requests are retained
 only as host-runtime evidence and never enter accelerator-performance
-aggregates."""
+aggregates.{preflight_text}"""
 
 
 def render_tex(

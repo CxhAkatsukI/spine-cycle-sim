@@ -40,6 +40,11 @@ REQUIRED_RQ3_REGRESSIONS = {
 }
 DEFAULT_ARTIFACTS = (
     ROOT / "docs" / "paper" / "formal_v6_primary_results.pdf",
+    ROOT / "docs" / "evidence" / "formal_v6_r19_k4_preflight_20260730.json",
+    ROOT
+    / "docs"
+    / "evidence"
+    / "formal_v6_large_sssp_runtime_projection_20260730.json",
     ROOT
     / "docs"
     / "paper"

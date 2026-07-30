@@ -12,6 +12,8 @@ cd /home/chuxiao/spine-cycle-sim-publication
 python3 scripts/project_formal_v6_sssp_runtime.py \
   --campaign-root /data/tmp/chuxiao/large_graph_campaign_v1 \
   --wall-budget-hours 3 \
+  --r19-preflight \
+    /data/tmp/chuxiao/large_graph_campaign_v1/formal_v6_r19_k4_preflight_20260730/preflight.json \
   --out docs/evidence/formal_v6_large_sssp_runtime_projection_20260730.json
 ```
 
@@ -27,6 +29,7 @@ completed, dual-oracle-admitted K4-shared runs:
 The median coefficient is 33.84 cycles per directed-edge round. The target
 superstep counts come from the validated host oracle captured in the frozen SST
 launch environment, not from a guessed graph-diameter constant.
+The median completed-run simulator rate is 27,564 device cycles per host second.
 
 ## Decision evidence
 
@@ -41,6 +44,14 @@ targets. The executions were therefore soft-stopped with their progress and
 peak RSS retained in the campaign event logs. StackOverflow reached 338.6 M
 cycles and 120.0 M backend requests with a 50.7 GB peak RSS; Pokec reached
 59.3 M cycles and 18.3 M requests with a 28.6 GB peak RSS.
+
+The separate R19 publication preflight validates source 113, 15,483,485
+directed records, 10 required supersteps, and all 8 nonempty destination
+partitions. It projects 5.24 billion cycles and 52.8 host hours at the median
+completed-run simulator rate, so the K4 cycle simulation was not launched.
+The raw preflight is copied to
+`docs/evidence/formal_v6_r19_k4_preflight_20260730.json`; it is explicitly not a
+performance result.
 
 ## Preflight boundary
 

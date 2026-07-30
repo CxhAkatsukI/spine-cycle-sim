@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import importlib.util
 from pathlib import Path
+import json
+import tempfile
 import unittest
 
 
@@ -47,6 +49,65 @@ class FormalV6SsspRuntimeProjectionTest(unittest.TestCase):
                 coefficient=1.0,
                 wall_budget_hours=1.0,
             )
+
+    def test_preflight_projection_uses_nominal_rate_for_admission(self) -> None:
+        projection = MODULE.project_preflight_target(
+            directed_records=100_000,
+            supersteps=10,
+            coefficient=30.0,
+            cycles_per_second=25_000.0,
+            wall_budget_hours=1.0,
+        )
+        self.assertAlmostEqual(
+            projection["projected_total_hours_at_calibration_rate"],
+            1.0 / 3.0,
+        )
+        self.assertTrue(projection["wall_budget_feasible"])
+        self.assertEqual(
+            projection["recommended_action"], "launch_cycle_simulation"
+        )
+
+    def test_nominally_infeasible_preflight_is_not_rescued_by_stress_case(self) -> None:
+        projection = MODULE.project_preflight_target(
+            directed_records=20_000_000,
+            supersteps=10,
+            coefficient=30.0,
+            cycles_per_second=25_000.0,
+            wall_budget_hours=3.0,
+        )
+        self.assertGreater(
+            projection["projected_total_hours_at_calibration_rate"], 3.0
+        )
+        self.assertFalse(projection["wall_budget_feasible"])
+        self.assertEqual(
+            projection["recommended_action"],
+            "do_not_launch_wall_time_infeasible",
+        )
+
+    def test_historical_observation_survives_resume_state_reset(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            run_dir = Path(temporary)
+            (run_dir / "events.jsonl").write_text(
+                json.dumps(
+                    {
+                        "event": "job_finished",
+                        "job_id": "job",
+                        "elapsed_seconds": 12.5,
+                        "peak_rss_bytes": 4096,
+                    }
+                )
+                + "\n",
+                encoding="ascii",
+            )
+            observation = MODULE.historical_job_observation(
+                run_dir,
+                {
+                    "job_id": "job",
+                    "elapsed_seconds": 0.0,
+                    "peak_rss_bytes": 0,
+                },
+            )
+        self.assertEqual(observation, (12.5, 4096))
 
 
 if __name__ == "__main__":

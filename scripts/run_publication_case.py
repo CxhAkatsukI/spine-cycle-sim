@@ -257,11 +257,18 @@ def main() -> int:
     parser.add_argument("--logical-view", action="append", default=[])
     parser.add_argument("--reuse-child", action="store_true")
     parser.add_argument("--reuse-completed-weighted-child", action="store_true")
+    parser.add_argument(
+        "--preflight-only",
+        action="store_true",
+        help="Validate the frozen weighted GraSU case and oracle without SST.",
+    )
     parser.add_argument("--reused-child-wall-seconds", type=float)
     parser.add_argument("--reused-child-profile-sha256")
     parser.add_argument("--profile-evidence-amendment", type=Path)
     args = parser.parse_args()
     reusing_child = args.reuse_child or args.reuse_completed_weighted_child
+    if args.preflight_only and reusing_child:
+        raise ValueError("preflight-only and child reuse are mutually exclusive")
     if args.reuse_child and args.reuse_completed_weighted_child:
         raise ValueError("completed child reuse modes are mutually exclusive")
     if args.profile_evidence_amendment is not None and not reusing_child:
@@ -290,6 +297,12 @@ def main() -> int:
         )
     if args.algorithm == "connected_components":
         raise ValueError("connected_components uses the dedicated publication CC runner")
+    if args.preflight_only and (
+        args.system == "spine" or args.algorithm != "weighted_sssp"
+    ):
+        raise ValueError(
+            "publication preflight currently supports weighted GraSU+ReGraph only"
+        )
     if args.max_cycles <= 0:
         raise ValueError("max cycles must be positive")
 
@@ -376,6 +389,59 @@ def main() -> int:
         }
     )
     args.out_dir.mkdir(parents=True, exist_ok=True)
+    if args.preflight_only:
+        preflight_command = (*invocation.command, "--preflight-only")
+        completed = subprocess.run(
+            preflight_command,
+            cwd=ROOT,
+            env=os.environ.copy(),
+            check=False,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+        )
+        (args.out_dir / "child_preflight_runner.log").write_text(
+            completed.stdout, encoding="utf-8"
+        )
+        if completed.returncode != 0:
+            raise RuntimeError(
+                f"publication child preflight failed with rc={completed.returncode}; "
+                f"see {args.out_dir / 'child_preflight_runner.log'}"
+            )
+        child_preflight_path = invocation.out_dir / "preflight.json"
+        child_preflight = json.loads(
+            child_preflight_path.read_text(encoding="utf-8")
+        )
+        if (
+            child_preflight.get("status") != "PASS"
+            or child_preflight.get("claim_class")
+            != "validated_host_oracle_preflight_not_simulated_performance"
+        ):
+            raise RuntimeError("weighted child produced an invalid preflight record")
+        output = {
+            "schema_version": 1,
+            "status": "PASS",
+            "claim_class": (
+                "validated_publication_case_preflight_not_simulated_performance"
+            ),
+            "case": asdict(case),
+            "logical_views": sorted(set(args.logical_view)),
+            "run_contract": run,
+            "child_preflight": child_preflight,
+            "child_preflight_path": str(child_preflight_path),
+            "child_preflight_sha256": sha256_file(child_preflight_path),
+            "plugin_admission": plugin_admission,
+        }
+        preflight_path = args.out_dir / "preflight.json"
+        preflight_path.write_text(
+            json.dumps(output, indent=2, sort_keys=True) + "\n",
+            encoding="ascii",
+        )
+        print(
+            f"PASS preflight {case.dataset_id}/{case.algorithm}/{case.system}: "
+            f"supersteps={child_preflight['selected_supersteps']}"
+        )
+        return 0
     if args.reuse_completed_weighted_child:
         recovery_command = (
             *invocation.command,

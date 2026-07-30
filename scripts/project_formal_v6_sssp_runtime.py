@@ -11,6 +11,9 @@ from typing import Any, Mapping, Sequence
 
 
 DEFAULT_ROOT = Path("/data/tmp/chuxiao/large_graph_campaign_v1")
+DEFAULT_R19_PREFLIGHT = (
+    DEFAULT_ROOT / "formal_v6_r19_k4_preflight_20260730" / "preflight.json"
+)
 COMPLETED = (
     ("sx_askubuntu", "7d85c85226dfafcf6942"),
     ("sx_superuser", "a4c67b976434b6a2ec1b"),
@@ -90,11 +93,71 @@ def project_target(
     }
 
 
+def project_preflight_target(
+    *,
+    directed_records: int,
+    supersteps: int,
+    coefficient: float,
+    cycles_per_second: float,
+    wall_budget_hours: float,
+) -> dict[str, Any]:
+    if directed_records <= 0 or supersteps <= 0:
+        raise ValueError("preflight target requires positive work")
+    if coefficient <= 0.0 or cycles_per_second <= 0.0 or wall_budget_hours <= 0.0:
+        raise ValueError("preflight projection rates and budget must be positive")
+    projected_cycles = coefficient * directed_records * supersteps
+    projected_hours = projected_cycles / cycles_per_second / 3600.0
+    optimistic_hours = projected_hours / 20.0
+    feasible = projected_hours <= wall_budget_hours
+    return {
+        "directed_records": directed_records,
+        "oracle_minimum_supersteps": supersteps,
+        "projected_cycles": round(projected_cycles),
+        "calibration_cycles_per_second": cycles_per_second,
+        "projected_total_hours_at_calibration_rate": projected_hours,
+        "optimistic_total_hours_10x_less_work_2x_rate": optimistic_hours,
+        "wall_budget_hours": wall_budget_hours,
+        "wall_budget_feasible": feasible,
+        "recommended_action": (
+            "launch_cycle_simulation" if feasible else "do_not_launch_wall_time_infeasible"
+        ),
+    }
+
+
 def _load_json(path: Path) -> dict[str, Any]:
     payload = json.loads(path.read_text(encoding="ascii"))
     if not isinstance(payload, dict):
         raise ValueError(f"expected JSON object: {path}")
     return payload
+
+
+def historical_job_observation(
+    run_dir: Path, job: Mapping[str, Any]
+) -> tuple[float, int]:
+    elapsed = float(job.get("elapsed_seconds", 0.0))
+    peak_rss = int(job.get("peak_rss_bytes", 0))
+    if elapsed > 0.0:
+        return elapsed, peak_rss
+    events_path = run_dir / "events.jsonl"
+    candidates = []
+    if events_path.is_file():
+        for line in events_path.read_text(encoding="ascii").splitlines():
+            event = json.loads(line)
+            if (
+                event.get("event") == "job_finished"
+                and event.get("job_id") == job.get("job_id")
+                and float(event.get("elapsed_seconds", 0.0)) > 0.0
+            ):
+                candidates.append(event)
+    if not candidates:
+        raise ValueError(
+            f"no positive runtime observation for {job.get('job_id', '<unknown>')}"
+        )
+    recovered = max(candidates, key=lambda event: float(event["elapsed_seconds"]))
+    return (
+        float(recovered["elapsed_seconds"]),
+        int(recovered.get("peak_rss_bytes", 0)),
+    )
 
 
 def _records(root: Path, dataset_id: str) -> int:
@@ -104,7 +167,12 @@ def _records(root: Path, dataset_id: str) -> int:
     return int(manifest["graphs"]["directed"]["records"])
 
 
-def build_projection(root: Path, wall_budget_hours: float) -> dict[str, Any]:
+def build_projection(
+    root: Path,
+    wall_budget_hours: float,
+    *,
+    r19_preflight_path: Path = DEFAULT_R19_PREFLIGHT,
+) -> dict[str, Any]:
     calibration_rows = []
     for dataset_id, execution_id in COMPLETED:
         result_path = (
@@ -129,24 +197,30 @@ def build_projection(root: Path, wall_budget_hours: float) -> dict[str, Any]:
             "directed_records": _records(root, dataset_id),
             "supersteps": int(result["scalar_metrics"]["supersteps"]),
             "cycles": int(result["row"]["cycles"]),
+            "host_wall_seconds": float(result["host_wall_seconds"]),
         }
         row["cycles_per_edge_round"] = (
             row["cycles"] / (row["directed_records"] * row["supersteps"])
         )
+        row["cycles_per_second"] = row["cycles"] / row["host_wall_seconds"]
         calibration_rows.append(row)
     coefficient = cycles_per_edge_round(calibration_rows)
+    calibration_rate = statistics.median(
+        float(row["cycles_per_second"]) for row in calibration_rows
+    )
 
     targets = []
     for dataset_id, supersteps, campaign, job_id in TARGETS:
         run_dir = root / campaign / "run"
         state = _load_json(run_dir / "campaign_state.json")
         job = next(row for row in state["jobs"] if row["job_id"] == job_id)
+        elapsed_seconds, peak_rss_bytes = historical_job_observation(run_dir, job)
         progress = _load_json(run_dir / "jobs" / job_id / "progress.json")
         projection = project_target(
             directed_records=_records(root, dataset_id),
             supersteps=supersteps,
             current_cycles=int(progress["simulated_cycles"]),
-            elapsed_seconds=float(job["elapsed_seconds"]),
+            elapsed_seconds=elapsed_seconds,
             coefficient=coefficient,
             wall_budget_hours=wall_budget_hours,
         )
@@ -157,21 +231,54 @@ def build_projection(root: Path, wall_budget_hours: float) -> dict[str, Any]:
                 "campaign": campaign,
                 "progress_host_epoch_seconds": progress["host_epoch_seconds"],
                 "backend_requests": int(progress["backend_requests"]),
+                "peak_rss_bytes": peak_rss_bytes,
                 "superstep_source": "GRASU_SST_NATIVE_SUPERSTEPS in frozen running SST environment",
             }
         )
         targets.append(projection)
+
+    r19_preflight = _load_json(r19_preflight_path.resolve())
+    if (
+        r19_preflight.get("status") != "PASS"
+        or r19_preflight.get("claim_class")
+        != "validated_publication_case_preflight_not_simulated_performance"
+        or r19_preflight.get("case", {}).get("dataset_id") != "rmat_19_32"
+    ):
+        raise ValueError("R19 publication preflight is not admitted")
+    r19_child = r19_preflight["child_preflight"]
+    r19_projection = project_preflight_target(
+        directed_records=int(r19_child["directed_records"]),
+        supersteps=int(r19_child["selected_supersteps"]),
+        coefficient=coefficient,
+        cycles_per_second=calibration_rate,
+        wall_budget_hours=wall_budget_hours,
+    )
+    r19_projection.update(
+        {
+            "dataset_id": "rmat_19_32",
+            "execution_id": str(r19_preflight["case"]["execution_id"]),
+            "preflight_path": str(r19_preflight_path.resolve()),
+            "preflight_claim_class": str(r19_preflight["claim_class"]),
+            "preflight_source_external": int(r19_child["source_external"]),
+            "destination_partitions": int(r19_child["destination_partitions"]),
+            "nonempty_destination_partitions": int(
+                r19_child["nonempty_destination_partitions"]
+            ),
+        }
+    )
 
     return {
         "schema_version": 1,
         "evidence_id": "formal_v6_large_sssp_runtime_projection_20260730",
         "model": "median admitted cycles / (directed records * oracle-minimum supersteps)",
         "cycles_per_edge_round": coefficient,
+        "calibration_cycles_per_second": calibration_rate,
         "calibration_rows": calibration_rows,
         "targets": targets,
+        "preflight_targets": [r19_projection],
         "all_targets_wall_time_infeasible": all(
             not row["wall_budget_feasible"] for row in targets
-        ),
+        ) and not r19_projection["wall_budget_feasible"],
         "claim_boundary": (
             "This is a host-runtime feasibility decision, not an accelerator-cycle result. "
             "Stopped rows do not enter architecture performance aggregates."
@@ -183,9 +290,14 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--campaign-root", type=Path, default=DEFAULT_ROOT)
     parser.add_argument("--wall-budget-hours", type=float, default=3.0)
+    parser.add_argument("--r19-preflight", type=Path, default=DEFAULT_R19_PREFLIGHT)
     parser.add_argument("--out", type=Path)
     args = parser.parse_args()
-    payload = build_projection(args.campaign_root.resolve(), args.wall_budget_hours)
+    payload = build_projection(
+        args.campaign_root.resolve(),
+        args.wall_budget_hours,
+        r19_preflight_path=args.r19_preflight,
+    )
     rendered = json.dumps(payload, indent=2, sort_keys=True) + "\n"
     if args.out is not None:
         args.out.parent.mkdir(parents=True, exist_ok=True)

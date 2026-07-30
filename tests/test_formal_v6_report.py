@@ -31,12 +31,22 @@ class FormalV6ReportTests(unittest.TestCase):
                         "wall_budget_hours": 3.0,
                     },
                 ],
+                "preflight_targets": [
+                    {
+                        "dataset_id": "rmat_19_32",
+                        "directed_records": 15_483_485,
+                        "oracle_minimum_supersteps": 10,
+                        "projected_total_hours_at_calibration_rate": 52.8,
+                    }
+                ],
             }
         )
         self.assertIn("SO 105.7 h", text)
         self.assertIn("PK 342.2 h", text)
         self.assertIn("soft-stopped by policy", text)
         self.assertIn("never enter accelerator-performance", text)
+        self.assertIn("R19 preflight requires 10 supersteps", text)
+        self.assertIn("52.8 h", text)
 
     def test_wall_time_projection_requires_targets(self) -> None:
         with self.assertRaises(ValueError):
