@@ -25,6 +25,7 @@ DEFAULT_CONTRACT = (
 DEFAULT_MATERIALIZATION_ROOT = Path(
     "/data/tmp/chuxiao/large_graph_campaign_v1/workloads"
 )
+DEFAULT_RQ3_DATA = ROOT / "docs/paper/data/rq3"
 DATASET_ORDER = {
     name: index
     for index, name in enumerate(
@@ -527,6 +528,7 @@ def render_tex(
     pairs: list[dict[str, Any]],
     update_pairs: list[dict[str, Any]],
     dataset_scope: dict[str, Any],
+    rq3_summary: dict[str, Any],
 ) -> str:
     excluded = [
         row for row in dataset_scope["rows"]
@@ -549,9 +551,11 @@ def render_tex(
 \date{{Live snapshot, July 2026}}
 \IfFileExists{{data/formal_v6_primary/pair_table.tex}}{{
   \newcommand{{\vdatadir}}{{data/formal_v6_primary}}
+  \newcommand{{\rqdatadir}}{{data/rq3}}
   \newcommand{{\vfigdir}}{{../figures}}
 }}{{
   \newcommand{{\vdatadir}}{{docs/paper/data/formal_v6_primary}}
+  \newcommand{{\rqdatadir}}{{docs/paper/data/rq3}}
   \newcommand{{\vfigdir}}{{docs/figures}}
 }}
 \begin{{document}}
@@ -640,6 +644,54 @@ GraSU's PMA update advantage. It must not be read as end-to-end dynamic graph
 service latency, which also includes differential discovery and propagation.
 
 \clearpage
+\section{{RQ3: realized work and latency}}
+\begin{{figure}}[H]
+\centering
+\includegraphics[width=0.98\linewidth]{{\vfigdir/rq3_latency_breakdown.pdf}}
+\caption{{Exclusive, overlap-aware critical-path composition for zero-net,
+shallow insertion, deep carry, residual PageRank correction, and SSSP/CC
+nonmonotonic fallback. Absolute device cycles are printed above each bar.}}
+\end{{figure}}
+
+\begin{{table}}[H]
+\centering
+\small
+\input{{\rqdatadir/representative_table.tex}}
+\caption{{Deterministically selected maximum-cycle representative of each
+eligible realized-work class.}}
+\end{{table}}
+
+\clearpage
+\section{{RQ3: cost-model validation}}
+\begin{{figure}}[H]
+\centering
+\includegraphics[width=0.98\linewidth]{{\vfigdir/rq3_work_correlations.pdf}}
+\caption{{Direct execution counters versus mechanism-local cycles across
+{rq3_summary['work_rows']} dual-oracle-admitted executions. Blue squares are
+calibration cases and red circles are holdout traces.}}
+\end{{figure}}
+
+\begin{{table}}[H]
+\centering
+\small
+\input{{\rqdatadir/regression_table.tex}}
+\caption{{Realized-work regressions. Carry work includes old payload reads,
+merge inputs, and output rewrites; cursor inspection is reported separately.}}
+\end{{table}}
+
+\paragraph{{Interpretation.}}
+Carry, physical resolve/app, seed, and drain/synchronization work explain their
+mechanism-local cycle counters with $R^2>0.99$ in the covered population.
+Directory requests ($R^2=0.0011$) and aggregate switch work ($R^2=0.0181$)
+do not transfer across mixed classes, so the report makes no explanatory claim
+for those two counters.
+
+\paragraph{{RQ3 boundary.}}
+These correlations validate internal cost structure and bottleneck attribution;
+they are not cycle-for-cycle FPGA calibration or proof that one scalar predicts
+every topology.
+
+\clearpage
 \section{{Implementation-level power attribution}}
 \begin{{figure}}[H]
 \centering
@@ -685,6 +737,7 @@ def main() -> int:
         type=Path,
         default=DEFAULT_MATERIALIZATION_ROOT,
     )
+    parser.add_argument("--rq3-data-dir", type=Path, default=DEFAULT_RQ3_DATA)
     args = parser.parse_args()
     summary = json.loads(
         (args.analysis_dir / "summary.json").read_text(encoding="ascii")
@@ -695,6 +748,17 @@ def main() -> int:
     )
     contract = json.loads(args.contract.read_text(encoding="ascii"))
     dataset_scope = publication_dataset_scope(contract, args.materialization_root)
+    rq3_summary = json.loads(
+        (args.rq3_data_dir / "rq3_summary.json").read_text(encoding="ascii")
+    )
+    for path in (
+        args.rq3_data_dir / "representative_table.tex",
+        args.rq3_data_dir / "regression_table.tex",
+        args.figure_dir / "rq3_latency_breakdown.pdf",
+        args.figure_dir / "rq3_work_correlations.pdf",
+    ):
+        if not path.is_file():
+            raise FileNotFoundError(path)
     system_rows = read_csv(args.analysis_dir / "system_rows.csv")
     args.figure_dir.mkdir(parents=True, exist_ok=True)
     args.data_dir.mkdir(parents=True, exist_ok=True)
@@ -719,7 +783,8 @@ def main() -> int:
         encoding="ascii",
     )
     args.tex.write_text(
-        render_tex(summary, pairs, update_pairs, dataset_scope), encoding="ascii"
+        render_tex(summary, pairs, update_pairs, dataset_scope, rq3_summary),
+        encoding="ascii",
     )
     print(
         f"PASS formal-v6 report inputs: observed={summary['observed_executions']} "

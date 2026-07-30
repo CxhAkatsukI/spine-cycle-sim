@@ -11,9 +11,11 @@
 \date{Live snapshot, July 2026}
 \IfFileExists{data/formal_v6_primary/pair_table.tex}{
   \newcommand{\vdatadir}{data/formal_v6_primary}
+  \newcommand{\rqdatadir}{data/rq3}
   \newcommand{\vfigdir}{../figures}
 }{
   \newcommand{\vdatadir}{docs/paper/data/formal_v6_primary}
+  \newcommand{\rqdatadir}{docs/paper/data/rq3}
   \newcommand{\vfigdir}{docs/figures}
 }
 \begin{document}
@@ -100,6 +102,54 @@ pairs. Ins uses the full materialized graph; Del and Wgt use the declared
 This figure isolates graph-structure maintenance cycles and therefore exposes
 GraSU's PMA update advantage. It must not be read as end-to-end dynamic graph
 service latency, which also includes differential discovery and propagation.
+
+\clearpage
+\section{RQ3: realized work and latency}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.98\linewidth]{\vfigdir/rq3_latency_breakdown.pdf}
+\caption{Exclusive, overlap-aware critical-path composition for zero-net,
+shallow insertion, deep carry, residual PageRank correction, and SSSP/CC
+nonmonotonic fallback. Absolute device cycles are printed above each bar.}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\small
+\input{\rqdatadir/representative_table.tex}
+\caption{Deterministically selected maximum-cycle representative of each
+eligible realized-work class.}
+\end{table}
+
+\clearpage
+\section{RQ3: cost-model validation}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.98\linewidth]{\vfigdir/rq3_work_correlations.pdf}
+\caption{Direct execution counters versus mechanism-local cycles across
+54 dual-oracle-admitted executions. Blue squares are
+calibration cases and red circles are holdout traces.}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\small
+\input{\rqdatadir/regression_table.tex}
+\caption{Realized-work regressions. Carry work includes old payload reads,
+merge inputs, and output rewrites; cursor inspection is reported separately.}
+\end{table}
+
+\paragraph{Interpretation.}
+Carry, physical resolve/app, seed, and drain/synchronization work explain their
+mechanism-local cycle counters with $R^2>0.99$ in the covered population.
+Directory requests ($R^2=0.0011$) and aggregate switch work ($R^2=0.0181$)
+do not transfer across mixed classes, so the report makes no explanatory claim
+for those two counters.
+
+\paragraph{RQ3 boundary.}
+These correlations validate internal cost structure and bottleneck attribution;
+they are not cycle-for-cycle FPGA calibration or proof that one scalar predicts
+every topology.
 
 \clearpage
 \section{Implementation-level power attribution}
