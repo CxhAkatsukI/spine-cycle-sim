@@ -5,7 +5,7 @@ root="${SPINE_CAMPAIGN_ROOT:-/data/tmp/chuxiao/large_graph_campaign_v1}"
 for campaign in \
   formal_v6_sssp_exact \
   formal_v6_cc_residual_priority \
-  formal_v6_au_spine_updates; do
+  formal_v6_au_spine_updates_default; do
   run_dir="${root}/${campaign}/run"
   if [[ -f "${run_dir}/campaign_state.json" ]]; then
     printf '\n=== %s ===\n' "${campaign}"

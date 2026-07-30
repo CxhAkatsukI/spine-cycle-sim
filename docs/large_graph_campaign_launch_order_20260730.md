@@ -56,12 +56,15 @@ AU/SU/WikiTalk jobs to run alongside SSSP while preventing its 64 GiB
 StackOverflow jobs from launching when the two independent schedulers could
 otherwise cross the host safety reserve together.
 
-The optional `formal_v6_au_spine_updates` scheduler fills otherwise idle CPU
+The optional `formal_v6_au_spine_updates_default` scheduler fills otherwise idle CPU
 capacity with the nine AskUbuntu weighted-SSSP update cases: insertion,
 deletion, and weight change at batch sizes 1, 8, and 64. It uses a 112 GiB
 reserve and therefore yields to the primary campaigns before host memory can
 enter the 96 GiB emergency region. Non-monotonic SSSP rows use the contract's
-explicit 64K-edge cap; insertion rows use the full materialized graph.
+explicit 64K-edge cap; insertion rows use the full materialized graph. Its
+manifest records `source_cohort_override=default` so that the v6 Spine rows
+can be paired with the correctness-passing v3 K4-shared rows without changing
+the graph, source, update, or algorithm parameters.
 
 The focused tests prove `Spine < K4-shared < K1` within a workload bucket and
 prove that the system offset cannot invert adjacent workload priorities.

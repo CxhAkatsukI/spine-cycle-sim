@@ -15,6 +15,9 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_ANALYSIS = Path(
     "/data/tmp/chuxiao/large_graph_campaign_v1/formal_v6_primary_analysis"
 )
+DEFAULT_UPDATE_ANALYSIS = Path(
+    "/data/tmp/chuxiao/large_graph_campaign_v1/formal_v6_au_update_analysis"
+)
 DEFAULT_COMPONENT_POWER = ROOT / "docs/paper/data/component_power.csv"
 DATASET_ORDER = {
     name: index
@@ -53,6 +56,8 @@ ALGORITHM_LABEL = {
     "connected_components": "CC",
     "thresholded_residual_pagerank": "ResPR",
 }
+SCENARIO_ORDER = {"insert": 0, "delete": 1, "weight_change": 2}
+SCENARIO_LABEL = {"insert": "Ins", "delete": "Del", "weight_change": "Wgt"}
 METRICS = (
     ("spine_speedup", "Spine E2E speedup", "#1f77b4", "///"),
     ("memory_ratio", "G+R / Spine memory bytes", "#ff7f0e", "\\\\\\"),
@@ -136,6 +141,44 @@ def admitted_pairs(rows: list[dict[str, str]]) -> list[dict[str, Any]]:
         key=lambda row: (
             DATASET_ORDER[row["dataset_id"]],
             ALGORITHM_ORDER[row["algorithm"]],
+        )
+    )
+    for index, row in enumerate(selected):
+        row["index"] = index
+    return selected
+
+
+def admitted_update_pairs(rows: list[dict[str, str]]) -> list[dict[str, Any]]:
+    selected = []
+    for row in rows:
+        if (
+            row.get("dataset_id") != "sx_askubuntu"
+            or row.get("algorithm") != "weighted_sssp"
+            or row.get("competitor") != "grasu_regraph_k4_shared"
+            or row.get("scenario") not in SCENARIO_ORDER
+            or row.get("batch_size") not in {"1", "8", "64"}
+        ):
+            continue
+        batch_size = int(row["batch_size"])
+        spine_cycles = int(float(row["spine_update_cycles"]))
+        k4_cycles = int(float(row["competitor_update_cycles"]))
+        if spine_cycles <= 0 or k4_cycles <= 0:
+            continue
+        selected.append(
+            {
+                "scenario": row["scenario"],
+                "batch_size": batch_size,
+                "label": f"{SCENARIO_LABEL[row['scenario']]}-{batch_size}",
+                "spine_update_cycles": spine_cycles,
+                "k4_update_cycles": k4_cycles,
+                "spine_update_mups": batch_size * 150.0 / spine_cycles,
+                "k4_update_mups": batch_size * 150.0 / k4_cycles,
+            }
+        )
+    selected.sort(
+        key=lambda row: (
+            SCENARIO_ORDER[row["scenario"]],
+            int(row["batch_size"]),
         )
     )
     for index, row in enumerate(selected):
@@ -347,6 +390,45 @@ def render_component_power_figure(
     plt.close(figure)
 
 
+def render_update_figure(rows: list[dict[str, Any]], output: Path) -> None:
+    if not rows:
+        raise ValueError("formal v6 update report has no complete Spine/K4 pair")
+    plt = configure_matplotlib()
+    figure, axis = plt.subplots(figsize=(7.4, 3.5))
+    x_positions = list(range(len(rows)))
+    width = 0.34
+    axis.bar(
+        [position - width / 2 for position in x_positions],
+        [float(row["spine_update_mups"]) for row in rows],
+        width,
+        facecolor="white",
+        edgecolor="#1f77b4",
+        linewidth=1.0,
+        hatch="///",
+        label="Spine",
+    )
+    axis.bar(
+        [position + width / 2 for position in x_positions],
+        [float(row["k4_update_mups"]) for row in rows],
+        width,
+        facecolor="white",
+        edgecolor="#d95f02",
+        linewidth=1.0,
+        hatch="\\\\\\",
+        label="G+R K4-shared",
+    )
+    axis.set_yscale("log")
+    axis.set_ylabel("Update-only throughput (M updates/s)")
+    axis.set_xticks(x_positions, [str(row["label"]) for row in rows])
+    axis.set_xlabel("Operation and user mutations per batch")
+    axis.grid(axis="y", linestyle="--", color="0.65", alpha=0.5, zorder=0)
+    axis.tick_params(direction="in", top=True, right=True, length=4)
+    axis.legend(frameon=False, ncols=2, loc="upper left")
+    figure.tight_layout()
+    save_vector_figure(figure, output)
+    plt.close(figure)
+
+
 def tex_escape(value: object) -> str:
     return str(value).replace("_", r"\_")
 
@@ -396,7 +478,11 @@ def write_measurement_table(path: Path, rows: list[dict[str, str]]) -> None:
     path.write_text("\n".join(lines) + "\n", encoding="ascii")
 
 
-def render_tex(summary: dict[str, Any], pairs: list[dict[str, Any]]) -> str:
+def render_tex(
+    summary: dict[str, Any],
+    pairs: list[dict[str, Any]],
+    update_pairs: list[dict[str, Any]],
+) -> str:
     return rf"""\documentclass[10pt]{{article}}
 \usepackage[margin=0.72in]{{geometry}}
 \usepackage{{booktabs}}
@@ -477,6 +563,22 @@ logical HBM channel. This is not a DRAM row-buffer-miss metric.}}
 \end{{figure}}
 
 \clearpage
+\section{{Update-only throughput}}
+\begin{{figure}}[H]
+\centering
+\includegraphics[width=0.98\linewidth]{{\vfigdir/formal_v6_update_throughput.pdf}}
+\caption{{Correctness-gated AskUbuntu weighted-SSSP update-phase throughput.
+The current snapshot contains {len(update_pairs)} of 9 planned operation--batch
+pairs. Ins uses the full materialized graph; Del and Wgt use the declared
+64K-edge non-monotonic fallback slice. Missing points are not zeros.}}
+\end{{figure}}
+
+\paragraph{{Window boundary.}}
+This figure isolates graph-structure maintenance cycles and therefore exposes
+GraSU's PMA update advantage. It must not be read as end-to-end dynamic graph
+service latency, which also includes differential discovery and propagation.
+
+\clearpage
 \section{{Implementation-level power attribution}}
 \begin{{figure}}[H]
 \centering
@@ -502,6 +604,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--analysis-dir", type=Path, default=DEFAULT_ANALYSIS)
     parser.add_argument(
+        "--update-analysis-dir", type=Path, default=DEFAULT_UPDATE_ANALYSIS
+    )
+    parser.add_argument(
         "--figure-dir", type=Path, default=ROOT / "docs/figures"
     )
     parser.add_argument(
@@ -518,6 +623,9 @@ def main() -> int:
         (args.analysis_dir / "summary.json").read_text(encoding="ascii")
     )
     pairs = admitted_pairs(read_csv(args.analysis_dir / "pair_rows.csv"))
+    update_pairs = admitted_update_pairs(
+        read_csv(args.update_analysis_dir / "pair_rows.csv")
+    )
     system_rows = read_csv(args.analysis_dir / "system_rows.csv")
     args.figure_dir.mkdir(parents=True, exist_ok=True)
     args.data_dir.mkdir(parents=True, exist_ok=True)
@@ -527,16 +635,20 @@ def main() -> int:
         read_csv(args.component_power),
         args.figure_dir / "formal_v6_component_power",
     )
+    render_update_figure(
+        update_pairs, args.figure_dir / "formal_v6_update_throughput"
+    )
     write_csv(args.data_dir / "pairs.csv", pairs)
+    write_csv(args.data_dir / "update_pairs.csv", update_pairs)
     write_pair_table(args.data_dir / "pair_table.tex", pairs)
     write_measurement_table(args.data_dir / "measurement_table.tex", system_rows)
     (args.data_dir / "summary.json").write_text(
         json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="ascii"
     )
-    args.tex.write_text(render_tex(summary, pairs), encoding="ascii")
+    args.tex.write_text(render_tex(summary, pairs, update_pairs), encoding="ascii")
     print(
         f"PASS formal-v6 report inputs: observed={summary['observed_executions']} "
-        f"pairs={len(pairs)}"
+        f"pairs={len(pairs)} update_pairs={len(update_pairs)}"
     )
     return 0
 

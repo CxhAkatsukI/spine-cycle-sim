@@ -52,6 +52,10 @@ def main() -> int:
     parser.add_argument(
         "--batch-size", action="append", type=int, dest="batch_sizes"
     )
+    parser.add_argument(
+        "--source-cohort",
+        help="override the contract source cohort for all selected non-CC cases",
+    )
     parser.add_argument("--max-cycles", type=int, default=10_000_000_000_000)
     args = parser.parse_args()
 
@@ -72,6 +76,7 @@ def main() -> int:
         selected_batch_sizes=(
             set(args.batch_sizes) if args.batch_sizes else None
         ),
+        source_cohort_override=args.source_cohort,
         max_cycles=args.max_cycles,
     )
     args.manifest.parent.mkdir(parents=True, exist_ok=True)

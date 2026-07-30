@@ -632,6 +632,7 @@ def build_publication_experiment_campaign_manifest(
     selected_systems: set[str] | None = None,
     selected_scenarios: set[str] | None = None,
     selected_batch_sizes: set[int] | None = None,
+    source_cohort_override: str | None = None,
     max_cycles: int = 10_000_000_000_000,
 ) -> dict[str, Any]:
     """Build the de-duplicated, correctness-gated publication run manifest."""
@@ -639,6 +640,8 @@ def build_publication_experiment_campaign_manifest(
     validate_large_graph_campaign_contract(contract)
     if max_cycles <= 0:
         raise ValueError("publication max cycles must be positive")
+    if source_cohort_override is not None and not source_cohort_override:
+        raise ValueError("publication source cohort override must be non-empty")
     root = repository_root.resolve()
     materialized = materialization_root.resolve()
     output = output_root.resolve()
@@ -742,7 +745,7 @@ def build_publication_experiment_campaign_manifest(
             batch_size=request.batch_size,
             full_pagerank_edge_cap=edge_cap,
             nonmonotonic_sssp_edge_cap=nonmonotonic_sssp_edge_cap,
-            source_cohort=request.source_cohort,
+            source_cohort=source_cohort_override or request.source_cohort,
         )
         capacity = manifest.get("capacity", {})
         spine_max_vertices = int(capacity.get("spine_max_vertices", 0))
@@ -902,6 +905,7 @@ def build_publication_experiment_campaign_manifest(
         "selected_batch_sizes": sorted(
             selected_batch_sizes or known_batch_sizes
         ),
+        "source_cohort_override": source_cohort_override,
         "execution_views": views,
         "capacity_exclusions": capacity_exclusions,
         "materialization_manifests": {

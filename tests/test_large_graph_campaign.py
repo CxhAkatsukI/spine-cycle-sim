@@ -452,6 +452,12 @@ class LargeGraphCampaignTests(unittest.TestCase):
                 selected_batch_sizes={999},
                 **common,
             )
+        with self.assertRaisesRegex(ValueError, "source cohort override"):
+            build_publication_experiment_campaign_manifest(
+                self.contract,
+                source_cohort_override="",
+                **common,
+            )
 
 
 if __name__ == "__main__":
