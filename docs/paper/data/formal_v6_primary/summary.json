@@ -32,9 +32,9 @@
       "final_state_match": true,
       "final_state_method": "canonical_exact_sha256",
       "group_id": "38f46d8917665d1b1c50",
-      "missing_systems": "grasu_regraph_k1+grasu_regraph_k4_shared",
+      "missing_systems": "grasu_regraph_k1",
       "scenario": "insert",
-      "systems_present": "spine"
+      "systems_present": "grasu_regraph_k4_shared+spine"
     },
     {
       "algorithm": "weighted_sssp",
@@ -234,11 +234,10 @@
     "aacef30f761e5c4f58d4",
     "b841b79faa2aace92be3",
     "bb8611a68e5fdcd8b898",
-    "c3fe1f45c53d21b9bd98",
     "d4663f47718ae2510810",
     "fe200a697fdba56a2251"
   ],
-  "observed_executions": 15,
+  "observed_executions": 16,
   "schema_version": 1,
   "status": "PARTIAL",
   "transition_invalidated_execution_ids": [],
