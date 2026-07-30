@@ -400,6 +400,15 @@ struct SpineResidentClassification {
     const SpineEdgeSlice &snapshot, SpineL0Config &config,
     SpineResidentClassification *classification = nullptr);
 
+// Reconstruct the LSM level occupancy produced by a chronological sequence of
+// equal-size insertion batches. The placement itself is untimed bootstrap;
+// the following batch still executes through the normal maintenance pipeline.
+void preload_spine_update_history(const SpineEdgeSlice &history,
+                                  std::size_t batch_edges,
+                                  std::size_t next_target_level,
+                                  const SpineL0Config &config,
+                                  SpineL0State &state);
+
 struct SpineL0Counters {
   std::uint64_t start_cycle{};
   std::uint64_t end_cycle{};

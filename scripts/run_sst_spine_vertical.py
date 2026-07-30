@@ -759,6 +759,51 @@ def validate_carry_hot_result(
     return [name for name, passed in checks.items() if not passed]
 
 
+def validate_rq3_trace_carry_result(
+    result: dict[str, Any],
+    dram: dict[str, int | float],
+    *,
+    channels: int,
+    input_edges: int,
+    history_edges: int,
+    history_batch_edges: int,
+    target_level: int,
+) -> list[str]:
+    checks = {
+        "success": result.get("success") is True,
+        "mode": result.get("mode") == "spine_vertical",
+        "correctness": result.get("correctness_mismatches") == 0,
+        "frontier_correctness": result.get("frontier_mismatches") == 0,
+        "input_edges": result.get("input_edges") == input_edges,
+        "history_edges": result.get("carry_history_edges") == history_edges,
+        "history_batch_edges": (
+            result.get("carry_history_batch_edges") == history_batch_edges
+        ),
+        "history_target": (
+            result.get("carry_history_target_level") == target_level
+            and result.get("maintenance_target_level") == target_level
+        ),
+        "carry_read_work": (
+            result.get("maintenance_carry_cursor_bits_inspected", 0) > 0
+            and result.get("maintenance_carry_new_batch_reads") == input_edges
+            and result.get("maintenance_carry_payload_reads", 0) > 0
+        ),
+        "carry_write_work": (
+            result.get("maintenance_carry_outputs", 0) > 0
+            and result.get("maintenance_carry_writer_memory_wait_cycles", 0) > 0
+        ),
+        "request_closure": (
+            result.get("maintenance_memory_requests_issued")
+            == result.get("maintenance_memory_requests_completed")
+        ),
+        "dram_matches_backend": int(dram.get("dram_reads", 0))
+        + int(dram.get("dram_writes", 0))
+        == result.get("backend_requests"),
+        "channel_count": dram.get("dram_channels") == channels,
+    }
+    return [name for name, passed in checks.items() if not passed]
+
+
 def validate_full_compute_result(
     result: dict[str, Any], dram: dict[str, int | float], *, channels: int
 ) -> list[str]:
@@ -1300,6 +1345,7 @@ def parse_args() -> argparse.Namespace:
         choices=(
             "amazon_l0",
             "carry_hot",
+            "rq3_trace_carry",
             "amazon_full_compute",
             "full_pagerank",
             "residual_pagerank",
@@ -1315,6 +1361,9 @@ def parse_args() -> argparse.Namespace:
         default="amazon_l0",
     )
     parser.add_argument("--preload", type=Path)
+    parser.add_argument("--carry-history", type=Path)
+    parser.add_argument("--carry-history-batch-edges", type=int, default=0)
+    parser.add_argument("--expected-carry-target-level", type=int, default=0)
     parser.add_argument("--update-workload", type=Path)
     parser.add_argument("--hot-vertices", default="")
     parser.add_argument("--source", type=int)
@@ -1650,6 +1699,14 @@ def main() -> int:
         raise SystemExit("maintenance scan IIs must be positive and tails non-negative")
     if args.preload is not None and not args.preload.is_file():
         raise SystemExit(f"preload workload is missing: {args.preload}")
+    if args.carry_history is not None and not args.carry_history.is_file():
+        raise SystemExit(f"carry history workload is missing: {args.carry_history}")
+    if args.scenario == "rq3_trace_carry" and (
+        args.carry_history is None
+        or args.carry_history_batch_edges <= 0
+        or args.expected_carry_target_level <= 0
+    ):
+        raise SystemExit("RQ3 trace carry requires history, batch size, and target")
     if args.update_workload is not None and not args.update_workload.is_file():
         raise SystemExit(f"update workload is missing: {args.update_workload}")
     generic_scenarios = {
@@ -1682,6 +1739,8 @@ def main() -> int:
     binding_paths = [args.workload]
     if args.preload is not None:
         binding_paths.append(args.preload)
+    if args.carry_history is not None:
+        binding_paths.append(args.carry_history)
     if args.update_workload is not None:
         binding_paths.append(args.update_workload)
     binding = spine_memory_binding(
@@ -1729,6 +1788,15 @@ def main() -> int:
             "SPINE_SST_PRELOAD": ""
             if args.preload is None
             else str(args.preload.resolve()),
+            "SPINE_SST_CARRY_HISTORY": ""
+            if args.carry_history is None
+            else str(args.carry_history.resolve()),
+            "SPINE_SST_CARRY_HISTORY_BATCH_EDGES": str(
+                args.carry_history_batch_edges
+            ),
+            "SPINE_SST_CARRY_HISTORY_TARGET_LEVEL": str(
+                args.expected_carry_target_level
+            ),
             "SPINE_SST_HOT_VERTICES": args.hot_vertices,
             "SPINE_SST_OUTPUT": str(result_path),
             "SPINE_SST_DRAM_OUTPUT": str(args.out_dir / "dram"),
@@ -1980,6 +2048,17 @@ def main() -> int:
             channels=len(binding.instantiated_channels),
             input_edges=workload_edges,
             core_mhz=core_mhz,
+        )
+    elif args.scenario == "rq3_trace_carry":
+        history_edges = load_slice_shape(args.carry_history)[1]
+        problems = validate_rq3_trace_carry_result(
+            result,
+            dram,
+            channels=len(binding.instantiated_channels),
+            input_edges=workload_edges,
+            history_edges=history_edges,
+            history_batch_edges=args.carry_history_batch_edges,
+            target_level=args.expected_carry_target_level,
         )
     elif args.validation_mode == "generic":
         problems = validate_generic_result(

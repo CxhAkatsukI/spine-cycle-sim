@@ -93,6 +93,23 @@ class Rq3RealizedWorkTests(unittest.TestCase):
         self.assertEqual(row["reactivations"], 1)
         self.assertEqual(row["case_class"], "shallow_insertion")
 
+    def test_carry_work_counts_payload_merge_and_rewrite(self) -> None:
+        carry = result("carry")
+        carry["scalar_metrics"].update(
+            {
+                "maintenance_target_level": 3,
+                "maintenance_carry_payload_reads": 28,
+                "maintenance_carry_new_batch_reads": 4,
+                "maintenance_carry_merge_inputs": 32,
+                "maintenance_carry_outputs": 32,
+                "maintenance_carry_cursor_bits_inspected": 768,
+            }
+        )
+        row = analyze_rq3_results([carry])["work_rows"][0]
+        self.assertEqual(row["w_carry_records"], 92)
+        self.assertEqual(row["w_carry_cursor_bits"], 768)
+        self.assertEqual(row["case_class"], "deep_carry")
+
     def test_missing_persisted_counter_is_not_zero_net(self) -> None:
         cc = result("cc")
         cc["case"]["algorithm"] = "connected_components"
@@ -179,6 +196,13 @@ class Rq3RealizedWorkTests(unittest.TestCase):
         self.assertEqual(len(analysis["work_rows"]), 1)
         self.assertEqual(analysis["work_rows"][0]["plugin_sha256"], "b" * 64)
         self.assertEqual(analysis["latency_rows"][0]["total_cycles"], 90)
+
+    def test_explicit_rq3_role_overrides_dataset_kind(self) -> None:
+        holdout = result("role")
+        holdout["row"]["dataset_kind"] = "synthetic"
+        holdout["rq3_role"] = "trace_holdout"
+        row = analyze_rq3_results([holdout])["work_rows"][0]
+        self.assertEqual(row["role"], "trace_holdout")
 
     def test_linear_fit_reports_slope_and_r2(self) -> None:
         fit = linear_fit([(1, 3), (2, 5), (3, 7)])

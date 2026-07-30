@@ -35,6 +35,7 @@ workload = Path(
     )
 ).resolve()
 preload_workload = os.environ.get("SPINE_SST_PRELOAD", "")
+carry_history_workload = os.environ.get("SPINE_SST_CARRY_HISTORY", "")
 update_workload = os.environ.get("SPINE_SST_UPDATE_WORKLOAD", "")
 hot_vertices = os.environ.get("SPINE_SST_HOT_VERTICES", "")
 mode = os.environ.get("SPINE_SST_MODE", "spine_vertical")
@@ -66,6 +67,13 @@ probe.addParams(
         "workload": str(workload),
         "update_workload": update_workload,
         "preload_workload": preload_workload,
+        "carry_history_workload": carry_history_workload,
+        "carry_history_batch_edges": int(
+            os.environ.get("SPINE_SST_CARRY_HISTORY_BATCH_EDGES", "0")
+        ),
+        "carry_history_target_level": int(
+            os.environ.get("SPINE_SST_CARRY_HISTORY_TARGET_LEVEL", "0")
+        ),
         "hot_vertices": hot_vertices,
         "source_vertex": int(os.environ.get("SPINE_SST_SOURCE", "2")),
         "sssp_algorithm_warm_start": int(

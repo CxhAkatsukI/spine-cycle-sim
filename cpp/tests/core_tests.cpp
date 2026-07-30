@@ -72,6 +72,7 @@ using spine::sim::GraphAlgorithmKind;
 using spine::sim::GraphAlgorithmPolicy;
 using spine::sim::load_spine_edge_slice;
 using spine::sim::preload_spine_resident_snapshot;
+using spine::sim::preload_spine_update_history;
 using spine::sim::MemoryOperation;
 using spine::sim::MockMemoryBackend;
 using spine::sim::MockMemoryConfig;
@@ -6238,6 +6239,52 @@ void test_spine_resident_snapshot_rejects_superhub() {
   require(rejected, "resident bootstrap accepted an unshardable super-hub");
 }
 
+void test_spine_update_history_reconstructs_carry_target() {
+  SpineL0Config config;
+  config.max_sort_edges = 128;
+  SpineL0State state;
+  SpineEdgeSlice history{
+      .vertices = 1'024,
+      .edges = {},
+      .case_name = "trace_history_l3",
+  };
+  for (std::uint32_t index = 0; index < 28; ++index) {
+    history.edges.push_back(SpineEdgeRecord{
+        .src = 0,
+        .dst = index + 1,
+        .weight = static_cast<std::uint16_t>(index + 1),
+        .diff = 1,
+    });
+  }
+  preload_spine_update_history(history, 4, 3, config, state);
+  require(state.cold_levels[0][0].size() == 4 &&
+              state.cold_levels[0][1].size() == 8 &&
+              state.cold_levels[0][2].size() == 16,
+          "trace history did not reconstruct binary level occupancy");
+
+  SpineEdgeSlice update{
+      .vertices = history.vertices,
+      .edges = {},
+      .case_name = "trace_update_l3",
+  };
+  for (std::uint32_t index = 0; index < 4; ++index) {
+    update.edges.push_back(SpineEdgeRecord{
+        .src = 0,
+        .dst = index + 100,
+        .weight = 1,
+        .diff = 1,
+    });
+  }
+  const MaintenanceOnlyRun run =
+      run_maintenance_only(config, std::move(state), std::move(update));
+  require(!run.failed && run.counters.target_level == 3 &&
+              run.state.cold_levels[0][0].empty() &&
+              run.state.cold_levels[0][1].empty() &&
+              run.state.cold_levels[0][2].empty() &&
+              run.state.cold_levels[0][3].size() == 32,
+          "trace history did not drive the next batch into its carry level");
+}
+
 void test_spine_capacity_selector_rejects_before_writer() {
   SpineL0Config config;
   config.max_sort_edges = 16;
@@ -9156,6 +9203,8 @@ int main(int argc, char **argv) {
        test_spine_resident_snapshot_auto_promotes_hot_destinations},
       {"spine_resident_superhub_capacity",
        test_spine_resident_snapshot_rejects_superhub},
+      {"spine_update_history_carry_target",
+       test_spine_update_history_reconstructs_carry_target},
       {"spine_carry_epoch_wrap",
        test_spine_carry_epoch_wrap_uses_fixed_target_clear},
       {"spine_capacity_safe_reject",

@@ -27,7 +27,7 @@ fine-grained `M_phys` timing regression unless direct component timing exists.
 | Paper quantity | Direct simulator evidence |
 |---|---|
 | `W_sort(B)` | physical records in the frozen update artifact |
-| `W_carry` | carry cursor edge bits inspected plus new-batch carry reads |
+| `W_carry` | old payload reads + merge inputs + output rewrites; cursor bitmap bits are exported separately |
 | directory requests | target-selector metadata reads plus family-directory reads |
 | `M_phys` | processed physical edge records; exact range/fallback payloads are the fallback alias |
 | `M_seed` | unique dirty sources emitted by maintenance |
@@ -46,48 +46,75 @@ PageRank correction requires thresholded residual PageRank with positive
 physical edge work. Full PageRank is reported separately because it is a full
 iteration, not an incremental correction.
 
-## Current Provisional Evidence
+## Formal Evidence
 
-The 2026-07-30 live snapshot contains 35 distinct Spine executions after
-explicit plugin precedence removes repeated v3/v4/v5/v6 runs. Twenty-two have
-complete split reader/compute timing. The current all-row OLS results are:
+The 2026-07-30 formal snapshot contains 54 distinct correctness-gated Spine
+executions after explicit plugin precedence removes repeated runs. It includes
+three independently generated trace-history carry matrices (batch sizes 4, 8,
+and 16), real-topology dynamic runs, and standalone zero-net and residual
+correction cases. Twenty-four executions expose split physical-work timing.
+The all-row OLS results are:
 
 | Relationship | Samples | R2 | Interpretation |
 |---|---:|---:|---|
-| resolve + app active cycles vs. `M_phys` | 22 | 0.993 | physical edge work explains the dominant split compute span |
-| seed schedule cycles vs. `M_seed` | 22 | approximately 1.000 | seed publication scales almost linearly in covered traces |
-| switch wait cycles vs. touched pages + descriptors | 22 | 0.992 | page/descriptor work explains switch wait in covered traces |
-| sync cycles vs. source services + reactivations | 22 | 0.991 | frontier service work explains inter-round synchronization |
-| directory cycles vs. directory requests | 22 | 0.163 | request count alone does not explain fixed/parallel directory timing |
+| carry wait cycles vs. `W_carry` | 15 | 0.9995 | direct payload movement explains carry wait across levels and batch sizes |
+| resolve + app active cycles vs. `M_phys` | 24 | 0.9933 | physical edge work explains the dominant split compute span |
+| seed schedule cycles vs. `M_seed` | 39 | approximately 1.0000 | seed publication scales almost linearly in covered traces |
+| sync cycles vs. source services + reactivations | 24 | 0.9915 | frontier service work explains inter-round synchronization |
+| directory cycles vs. directory requests | 39 | 0.0011 | request count alone does not explain fixed and parallel directory timing |
+| switch wait cycles vs. touched pages + descriptors | 39 | 0.0181 | this aggregate work count does not transfer across the mixed case classes |
 
-No covered formal trace performs deep carry, so `W_carry` has no variance and
-no slope or R2 is reported. A deep-carry calibration set and separate real
-trace holdout are required before making the carry claim. These numbers are
-provisional until the v6 large-graph campaign and the five requested RQ3 case
-classes are complete.
+The carry result is not an in-sample-only fit. Calibration uses eight cases
+and obtains `R2=0.9986`; the seven holdout cases obtain `R2=0.9998`. The
+trace-history setup reconstructs the exact level occupancy produced by
+`2^L-1` chronological equal-size insertion batches, then times only the next
+batch through the normal maintenance pipeline. It therefore exposes real
+payload reads, merge input work, output writes, AXI waits, and FIFO effects.
 
-The analyzer writes a machine-readable coverage gate. At the current live
-snapshot, shallow insertion and deletion fallback are ready; explicit
-zero-net, deep carry, and nonzero residual correction remain missing. Missing
-classes are omitted from representative bars rather than replaced by a
-different mechanism.
+All five requested representative classes pass the coverage gate: one
+explicit zero-net case, 22 shallow insertions, 15 deep-carry cases, one
+nonzero residual correction, and six deletion/weight-change fallbacks. Every
+selected row has zero architecture-oracle and mathematical-oracle mismatch.
+The representative ledger closes exactly to E2E cycles. The directory and
+switch regressions above are negative findings: they need a richer predictor
+before the paper may claim that those quantities explain timing.
 
 ## Reproduction
 
 ```bash
 cd /home/chuxiao/spine-cycle-sim-publication
-bash scripts/analyze_active_rq3.sh
+SPINE_RQ3_OUTPUT_DIR=/data/tmp/chuxiao/large_graph_campaign_v1/rq3_formal_analysis_v3 \
+  bash scripts/analyze_active_rq3.sh
+```
+
+Trace-history carry evidence was generated with the immutable plugin
+`/data/tmp/chuxiao/rq3-trace-carry-native-build-20260730/libspine_cycle.so`
+(`sha256=65489ede127dc900e72603c3e6b0be89f1b362a6bf0ff6ef510b4de3f27b5254`):
+
+```bash
+python3 scripts/run_rq3_carry_trace_matrix.py \
+  --out-dir /data/tmp/chuxiao/large_graph_campaign_v1/rq3_trace_carry_v1 \
+  --lib-dir /data/tmp/chuxiao/rq3-trace-carry-native-build-20260730 \
+  --batch-edges 8 --no-build
+python3 scripts/run_rq3_carry_trace_matrix.py \
+  --out-dir /data/tmp/chuxiao/large_graph_campaign_v1/rq3_trace_carry_calib_e4_v1 \
+  --lib-dir /data/tmp/chuxiao/rq3-trace-carry-native-build-20260730 \
+  --batch-edges 4 --role synthetic_calibration --no-build
+python3 scripts/run_rq3_carry_trace_matrix.py \
+  --out-dir /data/tmp/chuxiao/large_graph_campaign_v1/rq3_trace_carry_holdout_e16_v1 \
+  --lib-dir /data/tmp/chuxiao/rq3-trace-carry-native-build-20260730 \
+  --batch-edges 16 --role trace_holdout --no-build
 ```
 
 Generated files:
 
 ```text
-/data/tmp/chuxiao/large_graph_campaign_v1/rq3_live/rq3_summary.json
-/data/tmp/chuxiao/large_graph_campaign_v1/rq3_live/rq3_work_rows.csv
-/data/tmp/chuxiao/large_graph_campaign_v1/rq3_live/rq3_latency_rows.csv
-/data/tmp/chuxiao/large_graph_campaign_v1/rq3_live/rq3_regression_rows.csv
-/data/tmp/chuxiao/large_graph_campaign_v1/rq3_live/rq3_representative_rows.csv
-/data/tmp/chuxiao/large_graph_campaign_v1/rq3_live/rq3_coverage_rows.csv
+/data/tmp/chuxiao/large_graph_campaign_v1/rq3_formal_analysis_v3/rq3_summary.json
+/data/tmp/chuxiao/large_graph_campaign_v1/rq3_formal_analysis_v3/rq3_work_rows.csv
+/data/tmp/chuxiao/large_graph_campaign_v1/rq3_formal_analysis_v3/rq3_latency_rows.csv
+/data/tmp/chuxiao/large_graph_campaign_v1/rq3_formal_analysis_v3/rq3_regression_rows.csv
+/data/tmp/chuxiao/large_graph_campaign_v1/rq3_formal_analysis_v3/rq3_representative_rows.csv
+/data/tmp/chuxiao/large_graph_campaign_v1/rq3_formal_analysis_v3/rq3_coverage_rows.csv
 ```
 
 Verification:

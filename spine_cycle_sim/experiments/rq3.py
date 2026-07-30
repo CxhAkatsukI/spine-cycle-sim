@@ -329,6 +329,13 @@ def analyze_rq3_results(
         metrics = _execution_metrics(result)
         if not isinstance(metrics, Mapping):
             raise ValueError("RQ3 scalar_metrics must be an object")
+        role = result.get("rq3_role")
+        if role not in {"synthetic_calibration", "trace_holdout"}:
+            role = (
+                "synthetic_calibration"
+                if result["row"].get("dataset_kind") == "synthetic"
+                else "trace_holdout"
+            )
         common = {
             "execution_id": case["execution_id"],
             "dataset_id": case["dataset_id"],
@@ -337,11 +344,7 @@ def analyze_rq3_results(
             "batch_size": int(case["batch_size"]),
             "case_class": _case_class(case, metrics),
             "plugin_sha256": str(result.get("plugin_sha256", "")),
-            "role": (
-                "synthetic_calibration"
-                if result["row"].get("dataset_kind") == "synthetic"
-                else "trace_holdout"
-            ),
+            "role": role,
         }
         construction = _metric(
             metrics, "reader_range_construction_payloads_per_round"
@@ -380,9 +383,13 @@ def analyze_rq3_results(
             "delta_user_mutations": int(case["update"].get("user_mutations", 0)),
             "w_sort_records": int(case["update"].get("physical_records", 0)),
             "w_carry_records": _metric(
-                metrics, "maintenance_carry_cursor_bits_inspected"
+                metrics, "maintenance_carry_payload_reads"
             )
-            + _metric(metrics, "maintenance_carry_new_batch_reads"),
+            + _metric(metrics, "maintenance_carry_merge_inputs")
+            + _metric(metrics, "maintenance_carry_outputs"),
+            "w_carry_cursor_bits": _metric(
+                metrics, "maintenance_carry_cursor_bits_inspected"
+            ),
             "directory_requests": _metric(
                 metrics, "maintenance_target_selector_metadata_reads"
             )
@@ -431,6 +438,8 @@ def analyze_rq3_results(
                 for key in (
                     "maintenance_carry_cursor_bits_inspected",
                     "maintenance_carry_new_batch_reads",
+                    "maintenance_carry_merge_inputs",
+                    "maintenance_carry_outputs",
                 )
             ),
             "directory_counter_supported": (
@@ -530,6 +539,7 @@ def analyze_rq3_results(
                     (float(row[x_key]), float(row[y_key]))
                     for row in selected
                     if row[support_key]
+                    and (mechanism != "carry" or float(row[x_key]) > 0.0)
                 ]
             )
             fit_rows.append(

@@ -2128,6 +2128,12 @@ class OnlineMemoryProbe final : public SST::Component {
     update_workload_path_ =
         params.find<std::string>("update_workload", "");
     preload_path_ = params.find<std::string>("preload_workload", "");
+    carry_history_path_ =
+        params.find<std::string>("carry_history_workload", "");
+    carry_history_batch_edges_ =
+        params.find<std::size_t>("carry_history_batch_edges", 0);
+    carry_history_target_level_ =
+        params.find<std::size_t>("carry_history_target_level", 0);
     hot_vertices_text_ = params.find<std::string>("hot_vertices", "");
     source_vertex_ = params.find<std::uint32_t>("source_vertex", 0);
     sssp_algorithm_warm_start_ =
@@ -3432,6 +3438,23 @@ class OnlineMemoryProbe final : public SST::Component {
         spine_resident_snapshot_max_level_ =
             spine_snapshot_max_level(initial_state);
       }
+      if (!carry_history_path_.empty()) {
+        SpineEdgeSlice history = load_spine_edge_slice(carry_history_path_);
+        if (history.vertices != workload.vertices ||
+            carry_history_batch_edges_ == 0 ||
+            carry_history_target_level_ == 0) {
+          output_.fatal(
+              CALL_INFO, -1,
+              "carry history must match the workload and define batch/target\n");
+        }
+        spine_carry_history_edges_ = history.edges.size();
+        for (const SpineEdgeRecord &edge : history.edges) {
+          add_expected(edge);
+        }
+        preload_spine_update_history(
+            history, carry_history_batch_edges_, carry_history_target_level_,
+            maintenance_config, initial_state);
+      }
       for (const SpineEdgeRecord &edge : workload.edges) {
         add_expected(edge);
       }
@@ -3971,6 +3994,11 @@ class OnlineMemoryProbe final : public SST::Component {
       {"workload", "Spine .slice workload path", ""},
       {"update_workload", "Optional positive incremental Spine .slice", ""},
       {"preload_workload", "Optional pre-existing Spine L0 .slice", ""},
+      {"carry_history_workload",
+       "Untimed chronological insertion history for an RQ3 carry state", ""},
+      {"carry_history_batch_edges", "Equal edge count in each history batch", "0"},
+      {"carry_history_target_level",
+       "Expected target level for the next timed batch", "0"},
       {"hot_vertices", "Comma-separated host hot-bitmap vertices", ""},
       {"source_vertex", "Spine SSSP source vertex", "0"},
       {"sssp_algorithm_warm_start",
@@ -8950,6 +8978,12 @@ class OnlineMemoryProbe final : public SST::Component {
           << ",\n"
           << "  \"input_edges\": " << spine_expected_edges_ << ",\n"
           << "  \"preload_edges\": " << spine_preload_edges_ << ",\n";
+      result << "  \"carry_history_edges\": " << spine_carry_history_edges_
+             << ",\n"
+             << "  \"carry_history_batch_edges\": "
+             << carry_history_batch_edges_ << ",\n"
+             << "  \"carry_history_target_level\": "
+             << carry_history_target_level_ << ",\n";
       write_spine_resident_classification(result);
       result << "  \"memory_request_window\": " << memory_request_window_ << ",\n"
           << "  \"reader_edge_pipeline_depth\": " << reader_edge_pipeline_depth_
@@ -9684,6 +9718,7 @@ class OnlineMemoryProbe final : public SST::Component {
   std::string workload_path_;
   std::string update_workload_path_;
   std::string preload_path_;
+  std::string carry_history_path_;
   std::string hot_vertices_text_;
   std::uint32_t source_vertex_{};
   bool sssp_algorithm_warm_start_{};
@@ -9865,6 +9900,9 @@ class OnlineMemoryProbe final : public SST::Component {
   std::uint64_t sst_round_start_cycle_{};
   std::size_t spine_expected_edges_{};
   std::size_t spine_preload_edges_{};
+  std::size_t carry_history_batch_edges_{};
+  std::size_t carry_history_target_level_{};
+  std::size_t spine_carry_history_edges_{};
   std::size_t spine_resident_snapshot_max_level_{};
   SpineResidentClassification spine_resident_classification_{};
   bool spine_resident_classification_valid_{};

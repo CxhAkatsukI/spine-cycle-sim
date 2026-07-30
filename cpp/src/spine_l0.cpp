@@ -1040,6 +1040,86 @@ SpineL0State preload_spine_resident_snapshot(
   return state;
 }
 
+void preload_spine_update_history(const SpineEdgeSlice &history,
+                                  std::size_t batch_edges,
+                                  std::size_t next_target_level,
+                                  const SpineL0Config &config,
+                                  SpineL0State &state) {
+  if (history.vertices == 0 || history.vertices > config.max_vertices ||
+      batch_edges == 0 || next_target_level == 0 ||
+      next_target_level >= config.levels - 1 ||
+      next_target_level >= std::numeric_limits<std::size_t>::digits) {
+    throw std::invalid_argument("invalid Spine update-history placement");
+  }
+  const std::size_t history_batches =
+      (std::size_t{1} << next_target_level) - 1;
+  if (batch_edges >
+      std::numeric_limits<std::size_t>::max() / history_batches) {
+    throw std::overflow_error("Spine update-history size overflows size_t");
+  }
+  const std::size_t expected_edges = batch_edges * history_batches;
+  if (history.edges.size() != expected_edges) {
+    throw std::invalid_argument(
+        "Spine update history does not contain 2^L-1 equal batches");
+  }
+  state.hot_vertices.insert(config.hot_vertices.begin(),
+                            config.hot_vertices.end());
+  state.hot_enabled = !state.hot_vertices.empty();
+
+  const auto edge_less = [](const SpineEdgeRecord &left,
+                            const SpineEdgeRecord &right) {
+    return std::tuple(left.src, left.dst, left.weight, left.diff) <
+           std::tuple(right.src, right.dst, right.weight, right.diff);
+  };
+  std::size_t cursor = history.edges.size();
+  for (std::size_t level = 0; level < next_target_level; ++level) {
+    for (std::size_t family = 0; family < config.partitions; ++family) {
+      if (!state.cold_levels[family][level].empty() ||
+          !state.hot_levels[family][level].empty()) {
+        throw std::invalid_argument(
+            "Spine update history overlaps an occupied target level");
+      }
+    }
+    const std::size_t level_edges = batch_edges << level;
+    const std::size_t begin = cursor - level_edges;
+    for (std::size_t index = begin; index < cursor; ++index) {
+      const SpineEdgeRecord &edge = history.edges[index];
+      if (edge.src >= history.vertices || edge.dst >= history.vertices ||
+          edge.diff != 1) {
+        throw std::invalid_argument(
+            "Spine update history requires in-range insertion records");
+      }
+      const bool hot = state.hot_vertices.contains(edge.dst);
+      const std::size_t family =
+          hot ? spine_hot_shard(edge.dst)
+              : std::min<std::size_t>(
+                    edge.dst / config.vertex_partition_size,
+                    config.partitions - 1);
+      auto &run = hot ? state.hot_levels[family][level]
+                      : state.cold_levels[family][level];
+      run.push_back(edge);
+    }
+    cursor = begin;
+  }
+  if (cursor != 0) {
+    throw std::logic_error("Spine update-history placement lost a batch");
+  }
+
+  for (std::size_t family = 0; family < config.partitions; ++family) {
+    for (const bool hot : {false, true}) {
+      auto &levels = hot ? state.hot_levels[family] : state.cold_levels[family];
+      for (std::size_t level = 0; level < next_target_level; ++level) {
+        auto &run = levels[level];
+        if (run.size() > spine_level_layout(config, hot, level).edge_capacity) {
+          throw std::overflow_error(
+              "Spine update-history level exceeds fixed capacity");
+        }
+        std::sort(run.begin(), run.end(), edge_less);
+      }
+    }
+  }
+}
+
 std::vector<std::uint8_t> encode_spine_maintenance_result(
     const SpineMaintenanceResult &result) {
   std::vector<std::uint8_t> data;
