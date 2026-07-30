@@ -63,6 +63,17 @@ DEFAULT_DRAMSIM3_SRC = Path(
 )
 
 
+def _with_progress_defaults(
+    environment: dict[str, str], out_dir: Path
+) -> dict[str, str]:
+    environment.setdefault(
+        "SPINE_CAMPAIGN_PROGRESS_PATH",
+        str((out_dir / "progress.json").resolve()),
+    )
+    environment.setdefault("SPINE_CAMPAIGN_PROGRESS_INTERVAL_CYCLES", "1000000")
+    return environment
+
+
 def _default_grasu_profile(compute_pipelines: int, sharing: str) -> Path:
     if compute_pipelines == 1 and sharing == "direct":
         name = "grasu_regraph_candidate10_k1_multipart_cc_packed_v6.json"
@@ -357,7 +368,7 @@ def main() -> int:
         result_path.unlink(missing_ok=True)
         shutil.rmtree(dram_path, ignore_errors=True)
 
-    env = os.environ.copy()
+    env = _with_progress_defaults(os.environ.copy(), args.out_dir)
     address_regions = None
     if args.architecture == "spine":
         binding = spine_memory_binding(

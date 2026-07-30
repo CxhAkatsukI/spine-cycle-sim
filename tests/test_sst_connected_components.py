@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+from pathlib import Path
 import unittest
 
 from scripts.run_sst_connected_components import (
     _default_grasu_profile,
     _spine_profile_environment,
+    _with_progress_defaults,
     validate_result,
 )
 from spine_cycle_sim.experiments.connected_components_workloads import (
@@ -177,6 +179,28 @@ class SstConnectedComponentsRunnerTests(unittest.TestCase):
         self.assertEqual(
             environment["SPINE_SST_MAINTENANCE_ARCHITECTURE"], "maintenance"
         )
+
+    def test_runner_defines_standalone_progress_defaults(self) -> None:
+        defaults = _with_progress_defaults({}, Path("relative-output"))
+        self.assertEqual(
+            defaults["SPINE_CAMPAIGN_PROGRESS_INTERVAL_CYCLES"], "1000000"
+        )
+        self.assertTrue(
+            defaults["SPINE_CAMPAIGN_PROGRESS_PATH"].endswith(
+                "/relative-output/progress.json"
+            )
+        )
+        inherited = _with_progress_defaults(
+            {
+                "SPINE_CAMPAIGN_PROGRESS_PATH": "/external/progress.json",
+                "SPINE_CAMPAIGN_PROGRESS_INTERVAL_CYCLES": "7",
+            },
+            Path("ignored"),
+        )
+        self.assertEqual(
+            inherited["SPINE_CAMPAIGN_PROGRESS_PATH"], "/external/progress.json"
+        )
+        self.assertEqual(inherited["SPINE_CAMPAIGN_PROGRESS_INTERVAL_CYCLES"], "7")
 
 
 if __name__ == "__main__":
