@@ -19,7 +19,7 @@
       "sx_superuser",
       "wiki_talk_temporal"
     ],
-    "component_activity_rows": 153,
+    "component_activity_rows": 159,
     "expected_executions": 36,
     "headline_rq3_r2": {
       "carry": 0.999502764820866,
@@ -34,14 +34,13 @@
       "69248cd5746efe44a840",
       "714eba95b1bb53afc879",
       "7c53284784babc476b00",
-      "980c084e249992cc626c",
       "9f7a9739bc109305a2e7",
       "b841b79faa2aace92be3",
       "bb8611a68e5fdcd8b898",
       "cb698febad12b4a61671",
       "d4663f47718ae2510810"
     ],
-    "observed_executions": 24,
+    "observed_executions": 25,
     "observed_update_grid": [
       {
         "batch_size": 1,

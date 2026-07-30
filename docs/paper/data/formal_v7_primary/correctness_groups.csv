@@ -1,4 +1,5 @@
 group_id,dataset_id,algorithm,scenario,batch_size,systems_present,missing_systems,complete_triplet,complete_required_systems,final_state_match,final_state_method,final_state_exact_match,cross_system_max_abs_error,cross_system_l1_error,cross_system_tolerance
+1b46cb212c1892278285,ljournal_2008,weighted_sssp,insert,8,spine,grasu_regraph_k4_shared,False,False,True,canonical_exact_sha256,True,0.0,0.0,0.0
 38f46d8917665d1b1c50,sx_askubuntu,thresholded_residual_pagerank,insert,8,grasu_regraph_k4_shared+spine,,True,True,True,canonical_exact_sha256,True,0.0,0.0,0.0
 414e5a9290543c0257ab,sx_stackoverflow,weighted_sssp,insert,8,spine,grasu_regraph_k4_shared,False,False,True,canonical_exact_sha256,True,0.0,0.0,0.0
 4fd86d01e71d9a337752,wiki_talk_temporal,weighted_sssp,insert,8,grasu_regraph_k4_shared+spine,,True,True,True,canonical_exact_sha256,True,0.0,0.0,0.0

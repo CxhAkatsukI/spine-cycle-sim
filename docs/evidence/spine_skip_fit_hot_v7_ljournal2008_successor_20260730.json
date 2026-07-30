@@ -1,0 +1,29 @@
+{
+  "affected_metric": "resident_hot_edges",
+  "baseline": {
+    "case_result": "/data/tmp/chuxiao/large_graph_campaign_v1/formal_v6_sssp_exact/runs/runs/980c084e249992cc626c/case_result.json",
+    "cycles": 91549,
+    "plugin_sha256": "96b4375f8549016ac8be36d85b04b4b5730df0af477dcc5909903845a8f56919",
+    "resident_hot_edges": 78431993
+  },
+  "candidate": {
+    "case_result": "/data/tmp/chuxiao/large_graph_campaign_v1/formal_v7_hot_transition_successors/runs/runs/980c084e249992cc626c/case_result.json",
+    "cycles": 91575,
+    "plugin_sha256": "1c0b0a9adb245e919e77cedb39b731551befc1f0ca4101a519dce176d9edf057",
+    "resident_hot_edges": 75173628
+  },
+  "checks": {
+    "architecture_correctness_mismatches_zero": true,
+    "case_identity_exact": true,
+    "final_state_exact": true,
+    "mathematical_correctness_mismatches_zero": true,
+    "new_hot_edges_lower": true
+  },
+  "classification": "affected_identical_case_successor",
+  "cycle_delta": 26,
+  "cycle_ratio_new_over_old": 1.0002840009175413,
+  "execution_id": "980c084e249992cc626c",
+  "hot_edge_reduction": 3258365,
+  "schema_version": 1,
+  "status": "pass"
+}

@@ -123,3 +123,11 @@ exact case identity, final state, and 294,699 device cycles are unchanged. Both
 correctness oracles and all request/response/DRAM ledgers pass. Its
 machine-readable transition record is
 `docs/evidence/spine_skip_fit_hot_v7_livejournal_successor_20260730.json`.
+
+The full directed LJournal2008 weighted-SSSP successor
+`980c084e249992cc626c` covers 99,028,542 stored edges. Resident hot edges fall
+from 78,431,993 to 75,173,628 (3,258,365 fewer), while exact case identity and
+final state are preserved. Device cycles change from 91,549 to 91,575
+(+26 cycles, +0.0284%). Both correctness oracles and all
+request/response/DRAM ledgers pass. Its machine-readable transition record is
+`docs/evidence/spine_skip_fit_hot_v7_ljournal2008_successor_20260730.json`.

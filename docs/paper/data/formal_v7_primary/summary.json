@@ -5,6 +5,23 @@
   "contract_executions": 40,
   "correctness_groups": [
     {
+      "algorithm": "weighted_sssp",
+      "batch_size": 8,
+      "complete_required_systems": false,
+      "complete_triplet": false,
+      "cross_system_l1_error": 0.0,
+      "cross_system_max_abs_error": 0.0,
+      "cross_system_tolerance": 0.0,
+      "dataset_id": "ljournal_2008",
+      "final_state_exact_match": true,
+      "final_state_match": true,
+      "final_state_method": "canonical_exact_sha256",
+      "group_id": "1b46cb212c1892278285",
+      "missing_systems": "grasu_regraph_k4_shared",
+      "scenario": "insert",
+      "systems_present": "spine"
+    },
+    {
       "algorithm": "thresholded_residual_pagerank",
       "batch_size": 8,
       "complete_required_systems": true,
@@ -260,20 +277,20 @@
       "systems_present": "grasu_regraph_k4_shared+spine"
     }
   ],
-  "duplicate_executions": 3,
+  "duplicate_executions": 4,
   "evidence_audit": {
     "all_observed_executions_audited": true,
-    "backend_arbitration_ledgers_closed": 24,
-    "backend_traffic_ledgers_closed": 24,
-    "component_activity_executions": 24,
-    "component_activity_rows": 153,
-    "dram_request_ledgers_closed": 24,
-    "individual_correctness_gates_passed": 24,
-    "observed_executions": 24
+    "backend_arbitration_ledgers_closed": 25,
+    "backend_traffic_ledgers_closed": 25,
+    "component_activity_executions": 25,
+    "component_activity_rows": 159,
+    "dram_request_ledgers_closed": 25,
+    "individual_correctness_gates_passed": 25,
+    "observed_executions": 25
   },
   "expected_executions": 36,
   "failed_correctness_groups": 0,
-  "incomplete_triplets": 6,
+  "incomplete_triplets": 7,
   "input_selection": {
     "system_filtered_roots": [],
     "unfiltered_roots": [
@@ -294,14 +311,13 @@
     "69248cd5746efe44a840",
     "714eba95b1bb53afc879",
     "7c53284784babc476b00",
-    "980c084e249992cc626c",
     "9f7a9739bc109305a2e7",
     "b841b79faa2aace92be3",
     "bb8611a68e5fdcd8b898",
     "cb698febad12b4a61671",
     "d4663f47718ae2510810"
   ],
-  "observed_executions": 24,
+  "observed_executions": 25,
   "required_systems": [
     "spine",
     "grasu_regraph_k4_shared"
@@ -309,7 +325,6 @@
   "schema_version": 1,
   "status": "PARTIAL",
   "transition_invalidated_execution_ids": [
-    "980c084e249992cc626c",
     "d4663f47718ae2510810"
   ],
   "unexpected_execution_ids": []
