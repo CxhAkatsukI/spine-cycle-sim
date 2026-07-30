@@ -31,6 +31,12 @@ superstep counts come from the validated host oracle captured in the frozen SST
 launch environment, not from a guessed graph-diameter constant.
 The median completed-run simulator rate is 27,564 device cycles per host second.
 
+For graphs that were never launched, the admission screen deliberately uses
+more optimistic assumptions: the smallest completed coefficient (32.72
+cycles/edge-round), the largest completed simulator rate (28,726 cycles/s),
+and exactly one mandatory full-graph superstep. This is an empirical lower-work
+screen, not a cycle simulation or a host-oracle preflight.
+
 ## Decision evidence
 
 | Dataset | Directed records | Oracle steps | Observed partial cycles | Observed wall time | Projected total | Extreme optimistic remaining |
@@ -52,6 +58,23 @@ completed-run simulator rate, so the K4 cycle simulation was not launched.
 The raw preflight is copied to
 `docs/evidence/formal_v6_r19_k4_preflight_20260730.json`; it is explicitly not a
 performance result.
+
+The four remaining real-graph K4-shared rows are authenticated directly by
+their materialization-manifest and directed-graph SHA-256 values. Even under
+the optimistic one-round screen, their projected host times are:
+
+| Dataset | Directed records | Minimum rounds used | Projected host time |
+| --- | ---: | ---: | ---: |
+| LiveJournal | 85,702,474 | 1 | 27.1 h |
+| Hollywood | 112,751,422 | 1 | 35.7 h |
+| LJournal2008 | 99,028,542 | 1 | 31.3 h |
+| Orkut | 234,370,166 | 1 | 74.2 h |
+
+Each exceeds the frozen 3-hour budget before using its actual oracle-minimum
+superstep count. They are therefore screened as host-time infeasible and are
+not accelerator-performance rows. The generated JSON records each execution
+ID, campaign/materialization hashes, graph hash, and both conservative rate
+assumptions.
 
 ## Preflight boundary
 

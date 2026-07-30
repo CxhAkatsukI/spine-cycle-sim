@@ -59,6 +59,16 @@ class FormalV6ReportTests(unittest.TestCase):
                         "projected_total_hours_at_calibration_rate": 52.8,
                     }
                 ],
+                "one_round_screen_targets": [
+                    {
+                        "dataset_id": "soc_livejournal1",
+                        "projected_total_hours_at_calibration_rate": 27.1,
+                    },
+                    {
+                        "dataset_id": "soc_orkut",
+                        "projected_total_hours_at_calibration_rate": 74.2,
+                    },
+                ],
             }
         )
         self.assertIn("SO 105.7 h", text)
@@ -67,6 +77,10 @@ class FormalV6ReportTests(unittest.TestCase):
         self.assertIn("never enter accelerator-performance", text)
         self.assertIn("R19 preflight requires 10 supersteps", text)
         self.assertIn("52.8 h", text)
+        self.assertIn("remaining 2 unlaunched real graphs", text)
+        self.assertIn("LJ 27.1 h", text)
+        self.assertIn("OK 74.2 h", text)
+        self.assertIn("not performance data", text)
 
     def test_wall_time_projection_requires_targets(self) -> None:
         with self.assertRaises(ValueError):

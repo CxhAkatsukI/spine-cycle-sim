@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from pathlib import Path
 import statistics
@@ -124,11 +125,48 @@ def project_preflight_target(
     }
 
 
+def project_one_round_target(
+    *,
+    directed_records: int,
+    coefficient: float,
+    cycles_per_second: float,
+    wall_budget_hours: float,
+) -> dict[str, Any]:
+    """Screen an unlaunched graph using the cheapest possible full-graph round."""
+
+    projection = project_preflight_target(
+        directed_records=directed_records,
+        supersteps=1,
+        coefficient=coefficient,
+        cycles_per_second=cycles_per_second,
+        wall_budget_hours=wall_budget_hours,
+    )
+    projection.update(
+        {
+            "minimum_supersteps_used": 1,
+            "superstep_basis": "weighted_sssp_requires_at_least_one_full_graph_round",
+            "claim_class": (
+                "authenticated_materialization_one_round_host_time_projection_"
+                "not_simulated_performance"
+            ),
+        }
+    )
+    return projection
+
+
 def _load_json(path: Path) -> dict[str, Any]:
     payload = json.loads(path.read_text(encoding="ascii"))
     if not isinstance(payload, dict):
         raise ValueError(f"expected JSON object: {path}")
     return payload
+
+
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def historical_job_observation(
@@ -165,6 +203,22 @@ def _records(root: Path, dataset_id: str) -> int:
         root / "workloads" / dataset_id / "materialization_manifest.json"
     )
     return int(manifest["graphs"]["directed"]["records"])
+
+
+def _directed_graph_identity(root: Path, dataset_id: str) -> dict[str, Any]:
+    manifest_path = (
+        root / "workloads" / dataset_id / "materialization_manifest.json"
+    ).resolve()
+    manifest = _load_json(manifest_path)
+    graph = manifest["graphs"]["directed"]
+    return {
+        "materialization_manifest_path": str(manifest_path),
+        "materialization_manifest_sha256": _sha256(manifest_path),
+        "directed_graph_path": str(Path(graph["path"]).resolve()),
+        "directed_graph_sha256": str(graph["sha256"]),
+        "directed_records": int(graph["records"]),
+        "vertices": int(graph["vertices"]),
+    }
 
 
 def build_projection(
@@ -206,6 +260,12 @@ def build_projection(
         calibration_rows.append(row)
     coefficient = cycles_per_edge_round(calibration_rows)
     calibration_rate = statistics.median(
+        float(row["cycles_per_second"]) for row in calibration_rows
+    )
+    conservative_coefficient = min(
+        float(row["cycles_per_edge_round"]) for row in calibration_rows
+    )
+    conservative_rate = max(
         float(row["cycles_per_second"]) for row in calibration_rows
     )
 
@@ -267,21 +327,68 @@ def build_projection(
         }
     )
 
+    campaign_manifest_path = root / "formal_v6_sssp_exact" / "campaign_manifest.json"
+    campaign_manifest = _load_json(campaign_manifest_path)
+    completed_datasets = {row[0] for row in COMPLETED}
+    observed_target_datasets = {row[0] for row in TARGETS}
+    one_round_targets = []
+    for job in campaign_manifest["jobs"]:
+        if (
+            job.get("algorithm") != "weighted_sssp"
+            or job.get("system") != "grasu_regraph_k4_shared"
+            or job.get("dataset_id") in completed_datasets | observed_target_datasets
+        ):
+            continue
+        dataset_id = str(job["dataset_id"])
+        identity = _directed_graph_identity(root, dataset_id)
+        projection = project_one_round_target(
+            directed_records=int(identity["directed_records"]),
+            coefficient=conservative_coefficient,
+            cycles_per_second=conservative_rate,
+            wall_budget_hours=wall_budget_hours,
+        )
+        projection.update(identity)
+        projection.update(
+            {
+                "dataset_id": dataset_id,
+                "execution_id": str(job["job_id"]).rsplit(".", 1)[-1],
+                "job_id": str(job["job_id"]),
+                "campaign_manifest_path": str(campaign_manifest_path.resolve()),
+                "campaign_manifest_sha256": _sha256(campaign_manifest_path),
+                "coefficient_policy": "minimum_completed_cycles_per_edge_round",
+                "rate_policy": "maximum_completed_cycles_per_host_second",
+            }
+        )
+        one_round_targets.append(projection)
+    one_round_targets.sort(key=lambda row: str(row["dataset_id"]))
+
     return {
-        "schema_version": 1,
-        "evidence_id": "formal_v6_large_sssp_runtime_projection_20260730",
+        "schema_version": 2,
+        "evidence_id": "formal_v6_large_sssp_runtime_projection_v2_20260730",
         "model": "median admitted cycles / (directed records * oracle-minimum supersteps)",
         "cycles_per_edge_round": coefficient,
         "calibration_cycles_per_second": calibration_rate,
+        "one_round_screen_model": (
+            "minimum admitted cycles per edge-round / maximum admitted cycles per "
+            "host second, with one mandatory full-graph round"
+        ),
+        "one_round_screen_cycles_per_edge_round": conservative_coefficient,
+        "one_round_screen_cycles_per_second": conservative_rate,
         "calibration_rows": calibration_rows,
         "targets": targets,
         "preflight_targets": [r19_projection],
+        "one_round_screen_targets": one_round_targets,
         "all_targets_wall_time_infeasible": all(
             not row["wall_budget_feasible"] for row in targets
-        ) and not r19_projection["wall_budget_feasible"],
+        )
+        and not r19_projection["wall_budget_feasible"]
+        and bool(one_round_targets)
+        and all(not row["wall_budget_feasible"] for row in one_round_targets),
         "claim_boundary": (
             "This is a host-runtime feasibility decision, not an accelerator-cycle result. "
-            "Stopped rows do not enter architecture performance aggregates."
+            "The one-round screen is an empirical admission projection, not a completed "
+            "host oracle preflight. Stopped and screened rows do not enter architecture "
+            "performance aggregates."
         ),
     }
 

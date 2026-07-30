@@ -658,6 +658,21 @@ def wall_time_feasibility_tex(projection: dict[str, Any]) -> str:
             f"{float(preflight['projected_total_hours_at_calibration_rate']):.1f} h "
             "at the median completed-run simulator rate; it was not launched."
         )
+    one_round_targets = list(projection.get("one_round_screen_targets", []))
+    one_round_text = ""
+    if one_round_targets:
+        projected = ", ".join(
+            f"{tex_escape(DATASET_LABEL.get(row['dataset_id'], row['dataset_id']))} "
+            f"{float(row['projected_total_hours_at_calibration_rate']):.1f} h"
+            for row in one_round_targets
+        )
+        one_round_text = (
+            f" For the remaining {len(one_round_targets)} unlaunched real graphs, "
+            "a conservative one-round screen uses the smallest completed-run "
+            "cycles/edge-round and the largest completed-run simulator rate. "
+            f"Even the mandatory first full-graph round projects {projected}; "
+            "these screened rows were not launched and are not performance data."
+        )
     return rf"""\paragraph{{Full-graph wall-time feasibility.}}
 An execution-feasibility model fitted to {calibration_count} completed,
 correctness-admitted K4-shared SSSP rows projects total host times of {observed}
@@ -666,7 +681,7 @@ twice the observed simulator rate leaves {optimistic}, compared with the
 {wall_budget:.0f} h campaign budget. Those full-graph executions were therefore
 soft-stopped by policy. Their partial cycles and memory requests are retained
 only as host-runtime evidence and never enter accelerator-performance
-aggregates.{preflight_text}"""
+aggregates.{preflight_text}{one_round_text}"""
 
 
 def behavior_transition_tex(

@@ -84,6 +84,22 @@ class FormalV6SsspRuntimeProjectionTest(unittest.TestCase):
             "do_not_launch_wall_time_infeasible",
         )
 
+    def test_one_round_screen_uses_minimum_algorithmic_work(self) -> None:
+        projection = MODULE.project_one_round_target(
+            directed_records=100_000_000,
+            coefficient=30.0,
+            cycles_per_second=30_000.0,
+            wall_budget_hours=3.0,
+        )
+        self.assertEqual(projection["minimum_supersteps_used"], 1)
+        self.assertEqual(projection["oracle_minimum_supersteps"], 1)
+        self.assertAlmostEqual(
+            projection["projected_total_hours_at_calibration_rate"],
+            27.77777777777778,
+        )
+        self.assertFalse(projection["wall_budget_feasible"])
+        self.assertIn("not_simulated_performance", projection["claim_class"])
+
     def test_historical_observation_survives_resume_state_reset(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             run_dir = Path(temporary)
