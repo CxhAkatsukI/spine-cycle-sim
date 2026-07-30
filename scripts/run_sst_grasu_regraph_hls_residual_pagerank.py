@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import argparse
+import gc
+from dataclasses import dataclass
 import json
 import math
 import os
@@ -60,6 +62,47 @@ DEFAULT_INITIAL = (
 DEFAULT_UPDATE = (
     ROOT / "tests" / "data" / "grasu_regraph_weighted_dynamic_update.slice"
 )
+
+
+@dataclass(frozen=True)
+class HlsResidualRuntimeOracle:
+    logical_updates: int
+    physical_updates: int
+    external_to_internal: tuple[int, ...]
+    internal_to_external: tuple[int, ...]
+    partition_vertices: int
+    source_requests_per_iteration: int
+
+
+def compact_hls_residual_oracle(
+    oracle: HlsWeightedOracle,
+    partition_vertices: int,
+    source_buffer_vertices: int,
+) -> HlsResidualRuntimeOracle:
+    if partition_vertices <= 0 or source_buffer_vertices <= 0:
+        raise ValueError("residual oracle partition geometry must be positive")
+    destination_partitions = (
+        len(oracle.external_to_internal) + partition_vertices - 1
+    ) // partition_vertices
+    partition_sources: list[set[int]] = [
+        set() for _ in range(destination_partitions)
+    ]
+    for source, destination, _ in oracle.final_internal_edges:
+        partition_sources[destination // partition_vertices].add(source)
+    requests_per_iteration = sum(
+        expected_partitioned_source_cache_requests(
+            sources, source_buffer_vertices, 1
+        )
+        for sources in partition_sources
+    )
+    return HlsResidualRuntimeOracle(
+        logical_updates=oracle.logical_updates,
+        physical_updates=oracle.physical_updates,
+        external_to_internal=oracle.external_to_internal,
+        internal_to_external=oracle.internal_to_external,
+        partition_vertices=partition_vertices,
+        source_requests_per_iteration=requests_per_iteration,
+    )
 
 
 def residual_bound_matches(
@@ -131,7 +174,7 @@ def require_hls_residual_capability(
 def validate_result(
     result: dict[str, object],
     profile: dict[str, object],
-    oracle: HlsWeightedOracle,
+    oracle: HlsWeightedOracle | HlsResidualRuntimeOracle,
     full_solution_external: tuple[float, ...],
     *,
     residual_contract: str,
@@ -153,18 +196,25 @@ def validate_result(
         int(memory["data_width_bits"]) // 8 // prepared_source_bytes
     )
     destination_partitions = (vertices + partition_vertices - 1) // partition_vertices
-    partition_sources: list[set[int]] = [set() for _ in range(destination_partitions)]
-    for source, destination, _ in oracle.final_internal_edges:
-        partition = destination // partition_vertices
-        partition_sources[partition].add(source)
-    source_requests = sum(
-        expected_partitioned_source_cache_requests(
-            sources,
-            int(params["regraph_source_buffer_vertices"]),
-            iterations,
+    if isinstance(oracle, HlsResidualRuntimeOracle):
+        if oracle.partition_vertices != partition_vertices:
+            raise ValueError("compacted residual oracle geometry differs from profile")
+        source_requests = oracle.source_requests_per_iteration * iterations
+    else:
+        partition_sources: list[set[int]] = [
+            set() for _ in range(destination_partitions)
+        ]
+        for source, destination, _ in oracle.final_internal_edges:
+            partition = destination // partition_vertices
+            partition_sources[partition].add(source)
+        source_requests = sum(
+            expected_partitioned_source_cache_requests(
+                sources,
+                int(params["regraph_source_buffer_vertices"]),
+                iterations,
+            )
+            for sources in partition_sources
         )
-        for sources in partition_sources
-    )
     source_lines = (
         source_requests
         * int(params["regraph_source_buffer_vertices"])
@@ -417,6 +467,13 @@ def main() -> int:
     binding = grasu_normalized_memory_binding(
         profile, instantiate_all=args.instantiate_all_hbm_channels
     )
+    runtime_oracle = compact_hls_residual_oracle(
+        oracle,
+        int(params["regraph_partition_vertices"]),
+        int(params["regraph_source_buffer_vertices"]),
+    )
+    del oracle, initial, update
+    gc.collect()
     kernel_clock = next(
         clock for clock in profile["clocks"] if clock["name"] == "kernel"
     )
@@ -581,7 +638,7 @@ def main() -> int:
     validate_result(
         result,
         profile,
-        oracle,
+        runtime_oracle,
         full_solution,
         residual_contract=args.residual_contract,
         epsilon=epsilon,
@@ -613,6 +670,7 @@ def main() -> int:
         "physical_hbm_address_regions": address_regions,
         "sst_library_binding": sst_library,
         "sst_plugin_sha256": sst_library["plugin_sha256"],
+        "host_oracle_storage": "compacted_before_sst_launch_v1",
         "sst_host_wall_seconds": wall_seconds,
         "reused_existing_result": args.reuse_result,
         "command": command,

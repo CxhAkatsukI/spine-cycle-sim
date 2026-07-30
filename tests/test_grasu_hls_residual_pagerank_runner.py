@@ -6,12 +6,16 @@ import unittest
 from scripts.run_sst_grasu_regraph_hls_residual_pagerank import (
     DEFAULT_CAPABILITY_CATALOG,
     DEFAULT_PROFILE,
+    compact_hls_residual_oracle,
     external_rank_oracle_matches,
     require_hls_residual_capability,
     residual_bound_matches,
 )
 from scripts.run_sst_grasu_regraph_hls_pagerank import full_pagerank_oracle
 from scripts.run_sst_grasu_regraph_hls_weighted import build_hls_weighted_oracle
+from spine_cycle_sim.experiments.regraph_contracts import (
+    expected_partitioned_source_cache_requests,
+)
 from spine_cycle_sim.experiments.shared_workloads import load_slice
 
 
@@ -43,6 +47,34 @@ class GraSuHlsResidualPageRankRunnerTests(unittest.TestCase):
         self.assertEqual(len(ranks), initial.vertices)
         self.assertAlmostEqual(sum(ranks), 1.0, places=12)
         self.assertGreater(prepared.physical_updates, prepared.logical_updates)
+
+    def test_runtime_oracle_preserves_source_request_ledger_without_edges(self) -> None:
+        initial = load_slice(
+            ROOT / "tests" / "data" / "grasu_regraph_weighted_dynamic_initial.slice"
+        )
+        update = load_slice(
+            ROOT / "tests" / "data" / "grasu_regraph_weighted_dynamic_update.slice"
+        )
+        prepared = build_hls_weighted_oracle(initial, update, 0)
+        partition_vertices = 4
+        source_buffer_vertices = 4
+        compact = compact_hls_residual_oracle(
+            prepared, partition_vertices, source_buffer_vertices
+        )
+        partitions = (initial.vertices + partition_vertices - 1) // partition_vertices
+        sources: list[set[int]] = [set() for _ in range(partitions)]
+        for source, destination, _weight in prepared.final_internal_edges:
+            sources[destination // partition_vertices].add(source)
+        expected = sum(
+            expected_partitioned_source_cache_requests(
+                partition_sources, source_buffer_vertices, 1
+            )
+            for partition_sources in sources
+        )
+        self.assertEqual(compact.source_requests_per_iteration, expected)
+        self.assertEqual(compact.external_to_internal, prepared.external_to_internal)
+        self.assertEqual(compact.internal_to_external, prepared.internal_to_external)
+        self.assertFalse(hasattr(compact, "final_internal_edges"))
 
     def test_delta_validator_accepts_linf_when_l1_exceeds_epsilon(self) -> None:
         result = {"residual_l1": 3.6e-4, "residual_linf": 9.0e-5}
