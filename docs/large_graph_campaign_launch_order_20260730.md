@@ -91,6 +91,21 @@ reason; the sidecar retains the original command and result path and uses a
 The separately queued R19 K4 dispatcher remains paused while this real-dataset
 execution owns the additional memory slot.
 
+While StackOverflow K4-shared SSSP and the Pokec sidecar were both running, the
+five not-yet-started jobs in `formal_v6_sssp_exact` were given auditable
+soft-stop records. This launch pause prevents the independent SSSP and
+CC/residual schedulers from racing for the same recovered 64 GiB slot when
+StackOverflow SSSP finishes. It also prioritizes the two missing StackOverflow
+K4-shared CC/residual rows, which complete a fourth real three-algorithm
+dataset, over adding another SSSP-only dataset. Neither running process was
+signalled. Do not resume the original manifest with a bare `--resume`: that
+would requeue the sidecar-owned Pokec row. After the Pokec sidecar and both
+StackOverflow K4-shared CC/residual jobs pass, use
+`scripts/resume_formal_v6_sssp_after_priority.sh`. It verifies those three
+results, preloads an auditable Pokec stop control that is consumed before the
+first launch decision, preserves every passing row, and restores the remaining
+SSSP queue entries with the original manifest and memory policy.
+
 The `formal_v6_r19_sssp_warm` campaign adds the separately reported R19-32
 synthetic scalability endpoint under the same v6 warm-start measurement
 contract and median-degree source policy. Its one-job scheduler uses a 108 GiB
