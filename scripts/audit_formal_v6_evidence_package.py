@@ -40,6 +40,12 @@ REQUIRED_RQ3_REGRESSIONS = {
 }
 DEFAULT_ARTIFACTS = (
     ROOT / "docs" / "paper" / "formal_v6_primary_results.pdf",
+    ROOT
+    / "docs"
+    / "paper"
+    / "data"
+    / "formal_v6_primary"
+    / "wall_time_feasibility.json",
     ROOT / "docs" / "figures" / "formal_v6_primary_ratios.svg",
     ROOT / "docs" / "figures" / "formal_v6_memory_locality.svg",
     ROOT / "docs" / "figures" / "formal_v6_update_throughput.svg",

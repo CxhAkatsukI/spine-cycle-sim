@@ -5,10 +5,43 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from scripts.render_formal_v6_primary import admitted_pairs, publication_dataset_scope
+from scripts.render_formal_v6_primary import (
+    admitted_pairs,
+    publication_dataset_scope,
+    wall_time_feasibility_tex,
+)
 
 
 class FormalV6ReportTests(unittest.TestCase):
+    def test_wall_time_projection_is_explicitly_not_performance(self) -> None:
+        text = wall_time_feasibility_tex(
+            {
+                "calibration_rows": [{}, {}, {}],
+                "targets": [
+                    {
+                        "dataset_id": "sx_stackoverflow",
+                        "projected_total_hours_at_observed_rate": 105.7,
+                        "optimistic_remaining_hours_10x_less_work_2x_rate": 3.57,
+                        "wall_budget_hours": 3.0,
+                    },
+                    {
+                        "dataset_id": "soc_pokec",
+                        "projected_total_hours_at_observed_rate": 342.2,
+                        "optimistic_remaining_hours_10x_less_work_2x_rate": 16.76,
+                        "wall_budget_hours": 3.0,
+                    },
+                ],
+            }
+        )
+        self.assertIn("SO 105.7 h", text)
+        self.assertIn("PK 342.2 h", text)
+        self.assertIn("soft-stopped by policy", text)
+        self.assertIn("never enter accelerator-performance", text)
+
+    def test_wall_time_projection_requires_targets(self) -> None:
+        with self.assertRaises(ValueError):
+            wall_time_feasibility_tex({"calibration_rows": [], "targets": []})
+
     def test_r19_pair_is_retained_as_separate_endpoint(self) -> None:
         row = {
             "competitor": "grasu_regraph_k4_shared",

@@ -419,9 +419,16 @@ def main() -> int:
     parser.add_argument("--no-build", action="store_true")
     parser.add_argument("--instantiate-all-hbm-channels", action="store_true")
     parser.add_argument("--reuse-result", action="store_true")
+    parser.add_argument(
+        "--preflight-only",
+        action="store_true",
+        help="Persist the validated host oracle and exit before SST execution.",
+    )
     parser.add_argument("--reused-wall-seconds", type=float)
     parser.add_argument("--reused-profile-sha256")
     args = parser.parse_args()
+    if args.preflight_only and args.reuse_result:
+        raise ValueError("preflight-only and result reuse are mutually exclusive")
     if args.reuse_result:
         if (
             args.reused_wall_seconds is None
@@ -465,6 +472,9 @@ def main() -> int:
             raise RuntimeError(f"weighted-HLS profile evidence mismatch: {path}")
     initial = load_slice(args.workload.resolve())
     update = load_slice(args.update_workload.resolve())
+    input_vertices = initial.vertices
+    input_records = len(initial.records)
+    update_records = len(update.records)
     oracle = build_hls_weighted_oracle(initial, update, args.source)
     address_regions = None
     address_environment: dict[str, str] = {}
@@ -527,10 +537,55 @@ def main() -> int:
     kernel_clock = next(
         clock for clock in profile["clocks"] if clock["name"] == "kernel"
     )
+    args.out_dir.mkdir(parents=True, exist_ok=True)
+    preflight = {
+        "schema_version": 1,
+        "status": "PASS",
+        "claim_class": "validated_host_oracle_preflight_not_simulated_performance",
+        "profile": str(profile_path),
+        "profile_sha256": sha256(profile_path),
+        "capability_catalog": str(capability_catalog.manifest_path),
+        "capability_catalog_sha256": capability_catalog.manifest_sha256,
+        "algorithm_capability": algorithm_capability.manifest_record(),
+        "workload": str(args.workload.resolve()),
+        "workload_sha256": sha256(args.workload.resolve()),
+        "update_workload": str(args.update_workload.resolve()),
+        "update_workload_sha256": sha256(args.update_workload.resolve()),
+        "source_external": args.source,
+        "vertices": input_vertices,
+        "directed_records": input_records,
+        "logical_updates": runtime_oracle.logical_updates,
+        "input_update_records": update_records,
+        "physical_updates": runtime_oracle.physical_updates,
+        "minimum_supersteps": runtime_oracle.minimum_supersteps,
+        "selected_supersteps": supersteps,
+        "superstep_policy": superstep_policy,
+        "destination_partitions": len(runtime_oracle.partition_max_sources),
+        "nonempty_destination_partitions": sum(
+            value is not None for value in runtime_oracle.partition_max_sources
+        ),
+        "downstream_sharing": downstream_sharing,
+        "sst_memory_binding": binding.as_manifest(),
+        "physical_hbm_address_regions": address_regions,
+        "host_oracle_storage": "compacted_before_sst_launch_v1",
+        "host_heap_trimmed": host_heap_trimmed,
+        "sst_execution_state_at_write": "not_started",
+    }
+    (args.out_dir / "preflight.json").write_text(
+        json.dumps(preflight, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    if args.preflight_only:
+        print(
+            "PASS grasu_regraph_hls_weighted_preflight: "
+            f"vertices={input_vertices} records={input_records} "
+            f"supersteps={supersteps} partitions="
+            f"{len(runtime_oracle.partition_max_sources)}"
+        )
+        return 0
     if not args.no_build:
         subprocess.run(["make", "-C", "cpp/sst", "-j2"], cwd=ROOT, check=True)
 
-    args.out_dir.mkdir(parents=True, exist_ok=True)
     result_path = (args.out_dir / "result.json").resolve()
     dram_dir = (args.out_dir / "dram").resolve()
     if not args.reuse_result:
@@ -694,6 +749,7 @@ def main() -> int:
         },
         "host_oracle_storage": "compacted_before_sst_launch_v1",
         "host_heap_trimmed": host_heap_trimmed,
+        "preflight": preflight,
         "supersteps": supersteps,
         "superstep_policy": superstep_policy,
         "downstream_sharing": downstream_sharing,

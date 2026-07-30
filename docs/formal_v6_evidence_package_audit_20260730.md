@@ -46,8 +46,10 @@ all 9 update points, and all 5 RQ3 classes.
 `minimum_package_status=PASS` does not imply that the frozen formal matrix is
 complete. `full_matrix_status` is independently `PASS` only when the primary
 analysis reports no missing execution IDs. The current snapshot remains
-`PARTIAL` at 26 of 36 expected executions; the running large-graph campaigns
-will replace this generated snapshot as results arrive.
+`PARTIAL` at 26 of 36 expected executions. Missing rows are either active or
+policy-stopped after a recorded wall-time feasibility decision. A row must
+complete or receive a declared scope exclusion before the full matrix can be
+called complete; partial counters never enter performance aggregates.
 
 For a release that requires every runnable formal-v6 execution, use:
 
@@ -55,5 +57,5 @@ For a release that requires every runnable formal-v6 execution, use:
 python3 scripts/audit_formal_v6_evidence_package.py --require-full
 ```
 
-That command intentionally fails while any formal execution is still running
-or queued.
+That command intentionally fails while any formal execution is unfinished or
+policy-stopped without a declared scope exclusion.

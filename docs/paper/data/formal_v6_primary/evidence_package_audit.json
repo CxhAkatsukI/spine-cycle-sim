@@ -5,6 +5,7 @@
     "docs/figures/formal_v6_update_throughput.svg": true,
     "docs/figures/rq3_latency_breakdown.svg": true,
     "docs/figures/rq3_work_correlations.svg": true,
+    "docs/paper/data/formal_v6_primary/wall_time_feasibility.json": true,
     "docs/paper/formal_v6_primary_results.pdf": true
   },
   "audit_id": "formal_v6_first_evidence_package_v1",

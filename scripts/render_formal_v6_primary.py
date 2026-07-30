@@ -26,6 +26,9 @@ DEFAULT_MATERIALIZATION_ROOT = Path(
     "/data/tmp/chuxiao/large_graph_campaign_v1/workloads"
 )
 DEFAULT_RQ3_DATA = ROOT / "docs/paper/data/rq3"
+DEFAULT_WALL_TIME_PROJECTION = (
+    ROOT / "docs/evidence/formal_v6_large_sssp_runtime_projection_20260730.json"
+)
 DATASET_ORDER = {
     name: index
     for index, name in enumerate(
@@ -628,12 +631,40 @@ def write_measurement_table(path: Path, rows: list[dict[str, str]]) -> None:
     path.write_text("\n".join(lines) + "\n", encoding="ascii")
 
 
+def wall_time_feasibility_tex(projection: dict[str, Any]) -> str:
+    targets = list(projection.get("targets", []))
+    if not targets:
+        raise ValueError("wall-time projection requires at least one target")
+    calibration_count = len(projection.get("calibration_rows", []))
+    observed = ", ".join(
+        f"{tex_escape(DATASET_LABEL.get(row['dataset_id'], row['dataset_id']))} "
+        f"{float(row['projected_total_hours_at_observed_rate']):.1f} h"
+        for row in targets
+    )
+    optimistic = ", ".join(
+        f"{tex_escape(DATASET_LABEL.get(row['dataset_id'], row['dataset_id']))} "
+        f"{float(row['optimistic_remaining_hours_10x_less_work_2x_rate']):.1f} h"
+        for row in targets
+    )
+    wall_budget = float(targets[0]["wall_budget_hours"])
+    return rf"""\paragraph{{Full-graph wall-time feasibility.}}
+An execution-feasibility model fitted to {calibration_count} completed,
+correctness-admitted K4-shared SSSP rows projects total host times of {observed}
+at the observed cycle rates. Even a stress test with ten times less work and
+twice the observed simulator rate leaves {optimistic}, compared with the
+{wall_budget:.0f} h campaign budget. Those full-graph executions were therefore
+soft-stopped by policy. Their partial cycles and memory requests are retained
+only as host-runtime evidence and never enter accelerator-performance
+aggregates."""
+
+
 def render_tex(
     summary: dict[str, Any],
     pairs: list[dict[str, Any]],
     update_pairs: list[dict[str, Any]],
     dataset_scope: dict[str, Any],
     rq3_summary: dict[str, Any],
+    wall_time_projection: dict[str, Any],
 ) -> str:
     excluded = [
         row for row in dataset_scope["rows"]
@@ -643,6 +674,7 @@ def render_tex(
         f"{tex_escape(row['abbreviation'])} ({row['vertices']:,} vertices)"
         for row in excluded
     )
+    wall_time_text = wall_time_feasibility_tex(wall_time_projection)
     return rf"""\documentclass[10pt]{{article}}
 \usepackage[margin=0.72in]{{geometry}}
 \usepackage{{booktabs}}
@@ -668,8 +700,8 @@ def render_tex(
 \begin{{abstract}}
 This live report contains {summary['observed_executions']} of
 {summary['expected_executions']} expected formal-v6 executions and
-{len(pairs)} complete Spine/K4-shared pairs. Missing bars are still-running
-or queued executions, never zero-valued measurements. Every admitted row
+{len(pairs)} complete Spine/K4-shared pairs. Missing bars are unfinished or
+policy-stopped executions, never zero-valued measurements. Every admitted row
 passes architecture-precision and independent mathematical oracles, full
 final-state comparison, and request, response, and DRAM conservation.
 \end{{abstract}}
@@ -705,9 +737,13 @@ SSSP state. This is an architecture-level dynamic-service comparison, not an
 identical-kernel microbenchmark.
 
 \paragraph{{Claim boundary.}}
-The report is partial until all expected rows finish. Device cycles, accepted
-memory bytes, and DRAMSim3 HBM energy are simulator outputs. They do not claim
-cycle-for-cycle FPGA calibration, on-chip dynamic energy, or total board power.
+The frozen full matrix remains partial while expected rows are unfinished or
+policy-stopped; a row must complete or receive a declared scope exclusion before
+the matrix can be called complete. Device cycles, accepted memory bytes, and
+DRAMSim3 HBM energy are simulator outputs. They do not claim cycle-for-cycle
+FPGA calibration, on-chip dynamic energy, or total board power.
+
+{wall_time_text}
 
 \paragraph{{Machine-checked evidence audit.}}
 All {summary['evidence_audit']['observed_executions']} observed executions pass
@@ -874,6 +910,11 @@ def main() -> int:
         default=DEFAULT_MATERIALIZATION_ROOT,
     )
     parser.add_argument("--rq3-data-dir", type=Path, default=DEFAULT_RQ3_DATA)
+    parser.add_argument(
+        "--wall-time-projection",
+        type=Path,
+        default=DEFAULT_WALL_TIME_PROJECTION,
+    )
     args = parser.parse_args()
     summary = json.loads(
         (args.analysis_dir / "summary.json").read_text(encoding="ascii")
@@ -886,6 +927,9 @@ def main() -> int:
     dataset_scope = publication_dataset_scope(contract, args.materialization_root)
     rq3_summary = json.loads(
         (args.rq3_data_dir / "rq3_summary.json").read_text(encoding="ascii")
+    )
+    wall_time_projection = json.loads(
+        args.wall_time_projection.read_text(encoding="ascii")
     )
     for path in (
         args.rq3_data_dir / "representative_table.tex",
@@ -932,8 +976,19 @@ def main() -> int:
         json.dumps(dataset_scope, indent=2, sort_keys=True) + "\n",
         encoding="ascii",
     )
+    (args.data_dir / "wall_time_feasibility.json").write_text(
+        json.dumps(wall_time_projection, indent=2, sort_keys=True) + "\n",
+        encoding="ascii",
+    )
     args.tex.write_text(
-        render_tex(summary, pairs, update_pairs, dataset_scope, rq3_summary),
+        render_tex(
+            summary,
+            pairs,
+            update_pairs,
+            dataset_scope,
+            rq3_summary,
+            wall_time_projection,
+        ),
         encoding="ascii",
     )
     print(

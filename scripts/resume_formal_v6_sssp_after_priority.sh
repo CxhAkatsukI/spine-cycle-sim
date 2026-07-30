@@ -12,6 +12,18 @@ residual_job="run.sx_stackoverflow.thresholded_residual_pagerank.insert.u8.grasu
 
 cd "${repo}"
 
+projection="${repo}/docs/evidence/formal_v6_large_sssp_runtime_projection_20260730.json"
+if [[ -f "${projection}" ]] &&
+   jq -e '.all_targets_wall_time_infeasible == true' "${projection}" >/dev/null &&
+   [[ "${SPINE_ALLOW_WALL_TIME_INFEASIBLE:-0}" != "1" ]]; then
+  printf '%s\n' \
+    'Refusing to resume: the formal projection classifies the large K4 SSSP targets as wall-time infeasible.' \
+    "Evidence: ${projection}" \
+    'Run validated preflights and create an explicit feasible allowlist instead.' \
+    'Set SPINE_ALLOW_WALL_TIME_INFEASIBLE=1 only for an intentional override.' >&2
+  exit 2
+fi
+
 launcher_pid="$(jq -r '.launcher_pid // 0' "${main}/run/campaign_state.json")"
 if [[ "${launcher_pid}" != "0" ]] && kill -0 "${launcher_pid}" 2>/dev/null; then
   printf 'formal_v6_sssp_exact launcher is still active (pid=%s)\n' "${launcher_pid}" >&2

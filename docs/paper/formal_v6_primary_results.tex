@@ -23,8 +23,8 @@
 \begin{abstract}
 This live report contains 26 of
 36 expected formal-v6 executions and
-9 complete Spine/K4-shared pairs. Missing bars are still-running
-or queued executions, never zero-valued measurements. Every admitted row
+9 complete Spine/K4-shared pairs. Missing bars are unfinished or
+policy-stopped executions, never zero-valued measurements. Every admitted row
 passes architecture-precision and independent mathematical oracles, full
 final-state comparison, and request, response, and DRAM conservation.
 \end{abstract}
@@ -60,9 +60,21 @@ SSSP state. This is an architecture-level dynamic-service comparison, not an
 identical-kernel microbenchmark.
 
 \paragraph{Claim boundary.}
-The report is partial until all expected rows finish. Device cycles, accepted
-memory bytes, and DRAMSim3 HBM energy are simulator outputs. They do not claim
-cycle-for-cycle FPGA calibration, on-chip dynamic energy, or total board power.
+The frozen full matrix remains partial while expected rows are unfinished or
+policy-stopped; a row must complete or receive a declared scope exclusion before
+the matrix can be called complete. Device cycles, accepted memory bytes, and
+DRAMSim3 HBM energy are simulator outputs. They do not claim cycle-for-cycle
+FPGA calibration, on-chip dynamic energy, or total board power.
+
+\paragraph{Full-graph wall-time feasibility.}
+An execution-feasibility model fitted to 3 completed,
+correctness-admitted K4-shared SSSP rows projects total host times of SO 105.7 h, PK 342.2 h
+at the observed cycle rates. Even a stress test with ten times less work and
+twice the observed simulator rate leaves SO 3.6 h, PK 16.8 h, compared with the
+3 h campaign budget. Those full-graph executions were therefore
+soft-stopped by policy. Their partial cycles and memory requests are retained
+only as host-runtime evidence and never enter accelerator-performance
+aggregates.
 
 \paragraph{Machine-checked evidence audit.}
 All 26 observed executions pass
