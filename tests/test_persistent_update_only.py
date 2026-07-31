@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import unittest
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
+from scripts.run_persistent_update_only import SPINE_MAX_VERTICES, _slice_vertices
 from spine_cycle_sim.experiments.persistent_update_only import (
     HostRuntimeModel,
     analyze_persistent_update_pair,
@@ -91,6 +93,12 @@ class PersistentUpdateOnlyTest(unittest.TestCase):
             'os.environ.get("GRASU_SST_PARTITION_VERTICES", "65536")', source
         )
 
+    def test_campaign_runner_reads_and_enforces_frozen_vertex_bound(self) -> None:
+        self.assertEqual(SPINE_MAX_VERTICES, 1 << 24)
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "graph.slice"
+            path.write_text("# vertices=17\n0 1 1 1\n", encoding="ascii")
+            self.assertEqual(_slice_vertices(path), 17)
 
 if __name__ == "__main__":
     unittest.main()

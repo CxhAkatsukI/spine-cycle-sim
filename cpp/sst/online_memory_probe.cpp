@@ -2149,6 +2149,12 @@ std::vector<SpineEdgeSlice> split_update_trace(SpineEdgeSlice trace,
     slice.edges.insert(slice.edges.end(),
                        std::make_move_iterator(trace.edges.begin() + begin),
                        std::make_move_iterator(trace.edges.begin() + end));
+    std::stable_sort(
+        slice.edges.begin(), slice.edges.end(),
+        [](const SpineEdgeRecord &left, const SpineEdgeRecord &right) {
+          return std::pair(left.src, left.dst) <
+                 std::pair(right.src, right.dst);
+        });
     batches.push_back(std::move(slice));
   }
   return batches;
@@ -2760,8 +2766,8 @@ class OnlineMemoryProbe final : public SST::Component {
         append_initial(edge);
       }
       if (!update_workload_path_.empty()) {
-        SpineEdgeSlice update =
-            load_spine_edge_slice(update_workload_path_, true);
+        SpineEdgeSlice update = load_spine_edge_slice(
+            update_workload_path_, true, !grasu_update_trace);
         logical_update_snapshot = update;
         if (update.vertices != initial.vertices) {
           throw std::invalid_argument(
@@ -2994,7 +3000,7 @@ class OnlineMemoryProbe final : public SST::Component {
       if (mode_ == "spine_update_trace") {
         trace_initial = load_spine_edge_slice(workload_path_);
         SpineEdgeSlice trace =
-            load_spine_edge_slice(update_workload_path_, true);
+            load_spine_edge_slice(update_workload_path_, true, false);
         if (trace.vertices != trace_initial->vertices || trace.edges.empty()) {
           throw std::invalid_argument(
               "Spine persistent trace must be non-empty and match the graph");

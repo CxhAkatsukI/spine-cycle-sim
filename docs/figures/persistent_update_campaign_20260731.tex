@@ -1,0 +1,50 @@
+\documentclass[tikz,border=2pt]{standalone}
+\usepackage{pgfplots}
+\usepgfplotslibrary{groupplots}
+\pgfplotsset{compat=1.18}
+\definecolor{spineblue}{HTML}{1F77B4}
+\definecolor{grasuorange}{HTML}{D95F02}
+\definecolor{setupgreen}{HTML}{2E8B57}
+\begin{document}
+\begin{tikzpicture}
+\begin{groupplot}[
+  group style={group size=3 by 1,horizontal sep=1.35cm},
+  width=5.65cm,height=5.3cm,
+  grid=major,grid style={dashed,gray!35},
+  tick align=inside,
+  every axis plot/.append style={thick},
+]
+\nextgroupplot[
+  title={Device-only insertion throughput},
+  ymode=log,ybar=1pt,bar width=7pt,
+  symbolic x coords={AU,SU,WK,SO,PK},xtick=data,
+  ylabel={Successful updates/s (million)},
+  legend style={draw=none,at={(0.03,0.97)},anchor=north west},
+]
+\addplot[spineblue,fill=spineblue!22] table[x=dataset,y=spine_device_mups,col sep=comma] {/home/chuxiao/spine-cycle-sim-update-only/docs/paper/data/persistent_update_cross_dataset_20260731.csv};
+\addlegendentry{Spine}
+\addplot[grasuorange,fill=grasuorange!22] table[x=dataset,y=grasu_device_mups,col sep=comma] {/home/chuxiao/spine-cycle-sim-update-only/docs/paper/data/persistent_update_cross_dataset_20260731.csv};
+\addlegendentry{GraSU}
+\nextgroupplot[
+  title={Cross-dataset speedup},
+  ymode=log,ybar=1pt,bar width=7pt,
+  symbolic x coords={AU,SU,WK,SO,PK},xtick=data,
+  legend style={draw=none,at={(0.5,-0.15)},anchor=north,legend columns=2,font=\scriptsize},
+]
+\addplot[spineblue,fill=spineblue!22] table[x=dataset,y=device_spine_speedup,col sep=comma] {/home/chuxiao/spine-cycle-sim-update-only/docs/paper/data/persistent_update_cross_dataset_20260731.csv};
+\addlegendentry{Device-only}
+\addplot[setupgreen,fill=setupgreen!22] table[x=dataset,y=setup_spine_speedup,col sep=comma] {/home/chuxiao/spine-cycle-sim-update-only/docs/paper/data/persistent_update_cross_dataset_20260731.csv};
+\addlegendentry{Trace setup-inclusive}
+\addplot[black,dashed] coordinates {(AU,1) (PK,1)};
+\nextgroupplot[
+  title={Batch sensitivity (fixed 131K)},
+  xmode=log,log basis x=10,ymode=log,
+  xtick={10,100,1000},
+  xlabel={Persistent batches},
+]
+\addplot[spineblue,mark=square*] table[x=batch_count,y=device_spine_speedup,col sep=comma] {/home/chuxiao/spine-cycle-sim-update-only/docs/paper/data/persistent_update_batch_sensitivity_20260731.csv};
+\addplot[setupgreen,mark=*] table[x=batch_count,y=setup_spine_speedup,col sep=comma] {/home/chuxiao/spine-cycle-sim-update-only/docs/paper/data/persistent_update_batch_sensitivity_20260731.csv};
+\addplot[black,dashed,domain=10:1000,samples=2] {1};
+\end{groupplot}
+\end{tikzpicture}
+\end{document}

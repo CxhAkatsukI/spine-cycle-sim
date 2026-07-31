@@ -158,6 +158,24 @@ void test_spine_edge_slice_empty_update_contract() {
           "empty update slice without vertex metadata was accepted");
 }
 
+void test_spine_edge_slice_trace_sorting_contract() {
+  const std::filesystem::path fixture =
+      std::filesystem::path(SPINE_SOURCE_DIR) / "tests" / "data" /
+      "unsorted_update_trace.slice";
+  bool rejected_by_default = false;
+  try {
+    (void)load_spine_edge_slice(fixture, true);
+  } catch (const std::runtime_error &) {
+    rejected_by_default = true;
+  }
+  require(rejected_by_default,
+          "single-batch loader silently accepted an unsorted workload");
+  const SpineEdgeSlice trace = load_spine_edge_slice(fixture, true, false);
+  require(trace.edges.size() == 2 && trace.edges.front().src == 4 &&
+              trace.edges.back().src == 0,
+          "persistent trace loader reordered or rejected chronological input");
+}
+
 std::uint64_t maintenance_result_counter(const SpineMaintenanceResult &result,
                                          std::size_t base,
                                          std::size_t counter) {
@@ -9178,6 +9196,8 @@ int main(int argc, char **argv) {
       {"invalid_config", test_invalid_clock_and_capacity_are_rejected},
       {"spine_empty_update_slice",
        test_spine_edge_slice_empty_update_contract},
+      {"spine_update_trace_sorting_contract",
+       test_spine_edge_slice_trace_sorting_contract},
       {"axi_online_backend", test_axi_splits_bursts_and_uses_backend_online},
       {"axi_response_view_order_independent",
        test_axi_response_view_is_registration_order_independent},

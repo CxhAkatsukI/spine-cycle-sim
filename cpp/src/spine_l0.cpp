@@ -1174,7 +1174,7 @@ SpineMaintenanceResult decode_spine_maintenance_result(
 }
 
 SpineEdgeSlice load_spine_edge_slice(const std::filesystem::path &path,
-                                     bool allow_empty) {
+                                     bool allow_empty, bool require_sorted) {
   std::ifstream input(path);
   if (!input) {
     throw std::runtime_error("cannot open Spine edge slice: " + path.string());
@@ -1257,7 +1257,7 @@ SpineEdgeSlice load_spine_edge_slice(const std::filesystem::path &path,
     throw std::runtime_error(
         "Spine edge slice vertex count does not cover IDs");
   }
-  if (!std::is_sorted(
+  if (require_sorted && !std::is_sorted(
           slice.edges.begin(), slice.edges.end(),
           [](const SpineEdgeRecord &left, const SpineEdgeRecord &right) {
             return std::pair(left.src, left.dst) <
