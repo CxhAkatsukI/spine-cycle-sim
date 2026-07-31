@@ -64,6 +64,7 @@ class SpineSplitPageRankCompute final : public Component {
       std::optional<AlgorithmInitialState> initial_state = std::nullopt);
 
   void register_components(Scheduler &scheduler);
+  void configure_initial_start_gate(const bool *start_ready);
   [[nodiscard]] bool done() const noexcept { return done_; }
   [[nodiscard]] bool failed() const noexcept { return failed_; }
   [[nodiscard]] const std::vector<std::uint32_t> &rank_words() const noexcept {
@@ -261,6 +262,7 @@ class SpineSplitPageRankCompute final : public Component {
   bool tile_open_{};
   bool reader_done_seen_{};
   bool registered_{};
+  const bool *initial_start_gate_{};
   bool done_{};
   bool failed_{};
 };

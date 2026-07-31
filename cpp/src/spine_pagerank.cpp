@@ -123,6 +123,15 @@ void SpineSplitPageRankCompute::register_components(Scheduler &scheduler) {
   scheduler.add_component(pipeline_);
 }
 
+void SpineSplitPageRankCompute::configure_initial_start_gate(
+    const bool *start_ready) {
+  if (registered_ || start_ready == nullptr) {
+    throw std::invalid_argument(
+        "PageRank initial start gate must be configured before registration");
+  }
+  initial_start_gate_ = start_ready;
+}
+
 float SpineSplitPageRankCompute::dangling_mass() const noexcept {
   return GraphAlgorithmPolicy::word_to_float(dangling_mass_word_);
 }
@@ -481,6 +490,9 @@ void SpineSplitPageRankCompute::evaluate(const CycleContext &) {
   staged_apply_tile_complete_ = false;
   staged_done_ = false;
   if (done_ || failed_) {
+    return;
+  }
+  if (initial_start_gate_ != nullptr && !*initial_start_gate_) {
     return;
   }
 

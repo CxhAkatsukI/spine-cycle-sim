@@ -117,14 +117,39 @@ struct SpineSsspRunResult {
 
 struct SpineInitialActiveOutputCounters {
   bool enabled{};
+  bool residual_correction_timed{};
   std::uint64_t start_cycle{};
   std::uint64_t end_cycle{};
+  std::size_t touched_sources{};
+  std::size_t physical_edge_records{};
+  std::size_t seeded_vertices{};
   std::size_t active_vertices{};
+  std::uint64_t rank_read_bytes{};
+  std::uint64_t degree_read_bytes{};
+  std::uint64_t degree_write_bytes{};
+  std::uint64_t graph_read_bytes{};
+  std::uint64_t residual_read_bytes{};
+  std::uint64_t residual_write_bytes{};
   std::uint64_t write_bytes{};
+  std::uint64_t arithmetic_operations{};
   std::uint64_t memory_requests_issued{};
   std::uint64_t memory_requests_completed{};
   std::uint64_t memory_request_fifo_stall_cycles{};
   std::size_t max_memory_requests_inflight{};
+  bool request_ledger_closed{};
+};
+
+// The host prepares this immutable oracle/work trace from the accepted old and
+// new graph versions. The timed device component must still read resident
+// rank/degree/edge state and publish the residual seed and active list through
+// AXI before graph propagation can begin.
+struct SpineResidualCorrectionPlan {
+  std::vector<std::uint32_t> old_rank_words;
+  std::vector<std::uint32_t> old_out_degrees;
+  std::vector<std::uint32_t> new_out_degrees;
+  std::vector<std::uint32_t> seed_words;
+  std::vector<std::uint32_t> touched_sources;
+  std::vector<std::uint32_t> active_vertices;
 };
 
 // Builds the untimed host-side HOST_ACTIVE payload consumed by the reader.
@@ -241,6 +266,8 @@ class SpinePageRankVerticalSliceSystem {
       std::optional<SpineEdgeSlice> execution_graph = std::nullopt,
       std::optional<SpineDirtyIdentity> host_coverage = std::nullopt,
       std::optional<AlgorithmInitialState> algorithm_initial_state =
+          std::nullopt,
+      std::optional<SpineResidualCorrectionPlan> device_residual_correction =
           std::nullopt);
   SpinePageRankVerticalSliceSystem(
       Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
@@ -254,6 +281,8 @@ class SpinePageRankVerticalSliceSystem {
       std::optional<SpineEdgeSlice> execution_graph = std::nullopt,
       std::optional<SpineDirtyIdentity> host_coverage = std::nullopt,
       std::optional<AlgorithmInitialState> algorithm_initial_state =
+          std::nullopt,
+      std::optional<SpineResidualCorrectionPlan> device_residual_correction =
           std::nullopt);
 
   void register_components();

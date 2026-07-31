@@ -172,7 +172,12 @@ def validate_generic_result(
                 == result.get("materialized_snapshot_edges"),
                 "dynamic_pipeline_order": (not dynamic)
                 or result.get("pipeline_order")
-                == "zero_time_resident_level_preload_then_update_maintenance_then_compute",
+                == (
+                    "zero_time_resident_old_rank_then_update_maintenance_then_device_correction_seed_then_compute"
+                    if expected_mode == "spine_residual_pagerank"
+                    and residual_contract == "deltahls_sink_free_linf_warm"
+                    else "zero_time_resident_level_preload_then_update_maintenance_then_compute"
+                ),
                 "phase_backend_ledger": (not dynamic)
                 or (
                     int(result.get("maintenance_backend_requests", -1)) > 0
@@ -315,6 +320,19 @@ def validate_generic_result(
                 "reader_protocol": result.get("reader_protocol_status") == 0,
             }
         )
+        if delta_hls:
+            checks.update(
+                {
+                    "device_residual_correction": result.get(
+                        "residual_correction_device_timed"
+                    )
+                    is True,
+                    "device_residual_correction_ledger": result.get(
+                        "residual_correction_request_ledger_closed"
+                    )
+                    is True,
+                }
+            )
     return [name for name, passed in checks.items() if not passed]
 
 

@@ -9120,25 +9120,49 @@ void test_spine_delta_hls_residual_uses_warm_seed_frontier() {
       },
       .active_vertices = {1},
   };
+  const spine::sim::SpineResidualCorrectionPlan correction{
+      .old_rank_words = warm.primary,
+      .old_out_degrees = {1, 1, 1, 1},
+      .new_out_degrees = {1, 1, 1, 1},
+      .seed_words = warm.auxiliary,
+      .touched_sources = {1},
+      .active_vertices = warm.active_vertices,
+  };
   SpinePageRankVerticalSliceSystem system(
       scheduler, core, backend, graph, policy, SpineL0Config{},
       SpineAxiInterfaceProfile{}, AlgorithmPipelineConfig{},
       SpineSplitPageRankCompute::kDefaultMemoryRequestWindow, SpineL0State{},
-      std::nullopt, std::nullopt, warm);
+      std::nullopt, std::nullopt, warm, correction);
   system.register_components();
   scheduler.add_component(backend);
-  scheduler.run_until([&] { return system.done() && system.idle(); },
+  scheduler.run_until([&] { return system.failed() || (system.done() && system.idle()); },
                       1'000'000);
+
+  require(!system.failed(),
+          "Spine Delta.hls device correction failed: " + system.failure() +
+              " protocol=" +
+              std::to_string(system.compute_counters().source_protocol_status) +
+              " source_requests=" +
+              std::to_string(system.compute_counters().source_requests) +
+              " memory_issued=" +
+              std::to_string(system.compute_counters().memory_requests_issued) +
+              " memory_completed=" +
+              std::to_string(system.compute_counters().memory_requests_completed));
 
   const auto &rank = system.compute().rank_words();
   const auto &residual = system.compute().residual_words();
+  const auto &correction_counters = system.initial_active_counters();
   std::cout << "EVIDENCE spine_delta_hls_warm sources="
             << system.reader_counters().source_requests
             << " edges=" << system.reader_counters().edges_emitted
             << " next_active=" << system.compute().next_active().size()
             << " rank1=" << GraphAlgorithmPolicy::word_to_float(rank[1])
             << " residual2="
-            << GraphAlgorithmPolicy::word_to_float(residual[2]) << '\n';
+            << GraphAlgorithmPolicy::word_to_float(residual[2])
+            << " correction_cycles="
+            << correction_counters.end_cycle - correction_counters.start_cycle
+            << " correction_requests="
+            << correction_counters.memory_requests_issued << '\n';
   require(!system.failed() && system.done() &&
               system.reader_counters().source_requests == 1 &&
               system.reader_counters().edges_emitted == 1 &&
@@ -9148,6 +9172,25 @@ void test_spine_delta_hls_residual_uses_warm_seed_frontier() {
               std::fabs(GraphAlgorithmPolicy::word_to_float(residual[2]) -
                         0.03F) < 1.0e-6F,
           "Spine Delta.hls warm residual seed was not isolated or drained");
+  require(correction_counters.enabled &&
+              correction_counters.residual_correction_timed &&
+              correction_counters.end_cycle > correction_counters.start_cycle &&
+              correction_counters.touched_sources == 1 &&
+              correction_counters.physical_edge_records == 1 &&
+              correction_counters.seeded_vertices == 1 &&
+              correction_counters.active_vertices == 1 &&
+              correction_counters.rank_read_bytes == 4 &&
+              correction_counters.degree_read_bytes == 4 &&
+              correction_counters.degree_write_bytes == 4 &&
+              correction_counters.graph_read_bytes == 8 &&
+              correction_counters.residual_read_bytes == 4 &&
+              correction_counters.residual_write_bytes == 4 &&
+              correction_counters.write_bytes == 8 &&
+              correction_counters.arithmetic_operations == 1 &&
+              correction_counters.memory_requests_issued == 7 &&
+              correction_counters.memory_requests_completed == 7 &&
+              correction_counters.request_ledger_closed,
+          "Spine Delta.hls correction was not fully device-timed or conserved");
 }
 
 }  // namespace

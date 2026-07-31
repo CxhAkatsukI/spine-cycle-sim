@@ -1,6 +1,7 @@
 #include "spine_sim/spine_system.hpp"
 
 #include <algorithm>
+#include <deque>
 #include <limits>
 #include <numeric>
 #include <stdexcept>
@@ -26,6 +27,36 @@ std::vector<std::uint8_t> encode_active_output_record(std::uint32_t value,
       static_cast<std::uint8_t>((source >> 16) & 0xffU),
       static_cast<std::uint8_t>((source >> 24) & 0xffU),
   };
+}
+
+std::vector<std::uint8_t> encode_u32_word(std::uint32_t value) {
+  return {
+      static_cast<std::uint8_t>(value & 0xffU),
+      static_cast<std::uint8_t>((value >> 8) & 0xffU),
+      static_cast<std::uint8_t>((value >> 16) & 0xffU),
+      static_cast<std::uint8_t>((value >> 24) & 0xffU),
+  };
+}
+
+std::vector<std::uint8_t>
+encode_u32_words(const std::vector<std::uint32_t> &values) {
+  std::vector<std::uint8_t> payload;
+  payload.reserve(values.size() * sizeof(std::uint32_t));
+  for (const std::uint32_t value : values) {
+    const std::vector<std::uint8_t> encoded = encode_u32_word(value);
+    payload.insert(payload.end(), encoded.begin(), encoded.end());
+  }
+  return payload;
+}
+
+std::uint32_t decode_u32_word(const std::vector<std::uint8_t> &payload) {
+  if (payload.size() != sizeof(std::uint32_t)) {
+    throw std::logic_error("device seeder received a malformed word");
+  }
+  return static_cast<std::uint32_t>(payload[0]) |
+         (static_cast<std::uint32_t>(payload[1]) << 8) |
+         (static_cast<std::uint32_t>(payload[2]) << 16) |
+         (static_cast<std::uint32_t>(payload[3]) << 24);
 }
 
 class SpineInitialActiveOutputWriter final : public Component {
@@ -125,6 +156,9 @@ class SpineInitialActiveOutputWriter final : public Component {
     }
     if (staged_done_) {
       counters_.end_cycle = context.domain_cycle;
+      counters_.request_ledger_closed =
+          counters_.memory_requests_issued ==
+          counters_.memory_requests_completed;
       ready_ = true;
     }
   }
@@ -145,6 +179,409 @@ class SpineInitialActiveOutputWriter final : public Component {
   std::unordered_map<std::uint64_t, std::size_t> inflight_;
   bool staged_issue_{};
   bool staged_done_{};
+  std::optional<AxiResponse> staged_response_;
+};
+
+class SpineResidualCorrectionSeeder final : public Component {
+ public:
+  SpineResidualCorrectionSeeder(
+      std::string name, ClockId clock_id,
+      std::array<FixedAxiPort *, 16> graph_ports, FixedAxiPort &vertex_state,
+      FixedAxiPort &active_out, const SpineL0Maintenance &maintenance,
+      const SpineL0State &state, SpineL0Config config,
+      SpineResidualCorrectionPlan plan, std::uint64_t primary_base,
+      std::uint64_t auxiliary_base, std::uint64_t degree_base,
+      SpineInitialActiveOutputCounters &counters, bool &ready, bool &failed,
+      std::string &failure)
+      : Component(std::move(name), clock_id),
+        graph_ports_(graph_ports),
+        vertex_state_(vertex_state),
+        active_out_(active_out),
+        maintenance_(maintenance),
+        state_(state),
+        config_(std::move(config)),
+        plan_(std::move(plan)),
+        primary_base_(primary_base),
+        auxiliary_base_(auxiliary_base),
+        degree_base_(degree_base),
+        counters_(counters),
+        ready_(ready),
+        failed_(failed),
+        failure_(failure) {
+    counters_.enabled = true;
+    counters_.residual_correction_timed = true;
+    counters_.touched_sources = plan_.touched_sources.size();
+    counters_.active_vertices = plan_.active_vertices.size();
+    ready_ = false;
+    build_static_tasks();
+  }
+
+  void evaluate(const CycleContext &) override {
+    staged_initialize_ = false;
+    staged_issue_ = false;
+    staged_advance_ = false;
+    staged_response_.reset();
+    if (ready_ || failed_) {
+      return;
+    }
+    if (!maintenance_.done()) {
+      return;
+    }
+    if (maintenance_.failed()) {
+      failed_ = true;
+      failure_ = "residual correction blocked by failed maintenance";
+      return;
+    }
+    if (!initialized_) {
+      staged_initialize_ = true;
+      return;
+    }
+    if (stage_response(vertex_state_) || stage_response(active_out_)) {
+      return;
+    }
+    for (FixedAxiPort *port : graph_ports_) {
+      if (stage_response(*port)) {
+        return;
+      }
+    }
+    const std::vector<Task> &tasks = phase_tasks();
+    if (next_task_ < tasks.size()) {
+      if (inflight_.size() >= kMaxInflight) {
+        return;
+      }
+      const Task &task = tasks[next_task_];
+      if (task.port->requests().try_push(AxiRequest{
+              .transaction_id = next_transaction_,
+              .operation = task.operation,
+              .address = task.address,
+              .bytes = task.bytes,
+              .write_data = task.write_data,
+          })) {
+        staged_issue_ = true;
+      } else {
+        ++counters_.memory_request_fifo_stall_cycles;
+      }
+      return;
+    }
+    if (inflight_.empty()) {
+      staged_advance_ = true;
+    }
+  }
+
+  void commit(const CycleContext &context) override {
+    if (ready_ || failed_) {
+      return;
+    }
+    if (staged_initialize_) {
+      build_graph_tasks();
+      initialized_ = true;
+      phase_ = Phase::kSourceReads;
+      counters_.start_cycle = context.domain_cycle;
+      return;
+    }
+    if (staged_response_.has_value()) {
+      consume_response(*staged_response_);
+      if (failed_) {
+        return;
+      }
+    }
+    if (staged_issue_) {
+      const Task &task = phase_tasks().at(next_task_);
+      inflight_.emplace(next_transaction_, task);
+      ++next_transaction_;
+      ++next_task_;
+      ++counters_.memory_requests_issued;
+      counters_.max_memory_requests_inflight =
+          std::max(counters_.max_memory_requests_inflight, inflight_.size());
+    }
+    if (staged_advance_) {
+      next_task_ = 0;
+      if (phase_ == Phase::kActiveWrites) {
+        counters_.end_cycle = context.domain_cycle;
+        counters_.request_ledger_closed =
+            counters_.memory_requests_issued ==
+            counters_.memory_requests_completed;
+        if (!counters_.request_ledger_closed) {
+          failed_ = true;
+          failure_ = "residual correction request ledger did not close";
+          return;
+        }
+        phase_ = Phase::kDone;
+        ready_ = true;
+      } else {
+        phase_ = static_cast<Phase>(static_cast<int>(phase_) + 1);
+      }
+    }
+  }
+
+ private:
+  static constexpr std::size_t kMaxInflight = 16;
+  static constexpr std::uint64_t kGraphWordBytes = 8;
+  static constexpr std::uint64_t kStateWordBytes = 4;
+  static constexpr std::uint64_t kActiveOutputBytes = 8;
+
+  enum class Phase {
+    kWait,
+    kSourceReads,
+    kGraphReads,
+    kResidualReads,
+    kStateWrites,
+    kActiveWrites,
+    kDone,
+  };
+
+  enum class TaskKind {
+    kRankRead,
+    kDegreeRead,
+    kGraphRead,
+    kResidualRead,
+    kDegreeWrite,
+    kResidualWrite,
+    kActiveWrite,
+  };
+
+  struct Task {
+    FixedAxiPort *port{};
+    MemoryOperation operation{MemoryOperation::kRead};
+    std::uint64_t address{};
+    std::uint64_t bytes{};
+    std::vector<std::uint8_t> write_data;
+    TaskKind kind{TaskKind::kRankRead};
+    std::optional<std::uint32_t> expected_word;
+  };
+
+  bool stage_response(FixedAxiPort &port) {
+    const AxiResponse *response = port.responses().front();
+    if (response == nullptr) {
+      return false;
+    }
+    AxiResponse staged;
+    if (port.responses().try_pop(staged)) {
+      staged_response_ = std::move(staged);
+    }
+    return true;
+  }
+
+  static std::uint64_t row_count(const std::vector<SpineEdgeRecord> &edges) {
+    std::uint64_t rows = 0;
+    std::uint32_t previous = 0;
+    bool have_previous = false;
+    for (const SpineEdgeRecord &edge : edges) {
+      if (!have_previous || edge.src != previous) {
+        ++rows;
+        previous = edge.src;
+        have_previous = true;
+      }
+    }
+    return rows;
+  }
+
+  void build_static_tasks() {
+    std::unordered_set<std::uint32_t> touched;
+    for (const std::uint32_t source : plan_.touched_sources) {
+      if (!touched.insert(source).second) {
+        throw std::invalid_argument(
+            "residual correction touched-source list contains duplicates");
+      }
+      source_reads_.push_back(Task{
+          .port = &vertex_state_,
+          .operation = MemoryOperation::kRead,
+          .address = primary_base_ + source * kStateWordBytes,
+          .bytes = kStateWordBytes,
+          .write_data = {},
+          .kind = TaskKind::kRankRead,
+          .expected_word = plan_.old_rank_words.at(source),
+      });
+      source_reads_.push_back(Task{
+          .port = &vertex_state_,
+          .operation = MemoryOperation::kRead,
+          .address = degree_base_ + source * kStateWordBytes,
+          .bytes = kStateWordBytes,
+          .write_data = {},
+          .kind = TaskKind::kDegreeRead,
+          .expected_word = plan_.old_out_degrees.at(source),
+      });
+      state_writes_.push_back(Task{
+          .port = &vertex_state_,
+          .operation = MemoryOperation::kWrite,
+          .address = degree_base_ + source * kStateWordBytes,
+          .bytes = kStateWordBytes,
+          .write_data = encode_u32_word(plan_.new_out_degrees.at(source)),
+          .kind = TaskKind::kDegreeWrite,
+          .expected_word = std::nullopt,
+      });
+    }
+    for (std::size_t vertex = 0; vertex < plan_.seed_words.size(); ++vertex) {
+      const std::uint32_t seed = plan_.seed_words[vertex];
+      if ((seed & 0x7fffffffU) == 0) {
+        continue;
+      }
+      residual_reads_.push_back(Task{
+          .port = &vertex_state_,
+          .operation = MemoryOperation::kRead,
+          .address = auxiliary_base_ + vertex * kStateWordBytes,
+          .bytes = kStateWordBytes,
+          .write_data = {},
+          .kind = TaskKind::kResidualRead,
+          .expected_word = 0U,
+      });
+      state_writes_.push_back(Task{
+          .port = &vertex_state_,
+          .operation = MemoryOperation::kWrite,
+          .address = auxiliary_base_ + vertex * kStateWordBytes,
+          .bytes = kStateWordBytes,
+          .write_data = encode_u32_word(seed),
+          .kind = TaskKind::kResidualWrite,
+          .expected_word = std::nullopt,
+      });
+      ++counters_.seeded_vertices;
+    }
+    for (std::size_t index = 0; index < plan_.active_vertices.size(); ++index) {
+      const std::uint32_t vertex = plan_.active_vertices[index];
+      active_writes_.push_back(Task{
+          .port = &active_out_,
+          .operation = MemoryOperation::kWrite,
+          .address = index * kActiveOutputBytes,
+          .bytes = kActiveOutputBytes,
+          .write_data = encode_active_output_record(plan_.seed_words.at(vertex),
+                                                    vertex),
+          .kind = TaskKind::kActiveWrite,
+          .expected_word = std::nullopt,
+      });
+    }
+    counters_.rank_read_bytes =
+        plan_.touched_sources.size() * kStateWordBytes;
+    counters_.degree_read_bytes =
+        plan_.touched_sources.size() * kStateWordBytes;
+    counters_.degree_write_bytes =
+        plan_.touched_sources.size() * kStateWordBytes;
+    counters_.residual_read_bytes =
+        counters_.seeded_vertices * kStateWordBytes;
+    counters_.residual_write_bytes =
+        counters_.seeded_vertices * kStateWordBytes;
+    counters_.write_bytes = plan_.active_vertices.size() * kActiveOutputBytes;
+  }
+
+  void build_graph_tasks() {
+    const std::unordered_set<std::uint32_t> touched(
+        plan_.touched_sources.begin(), plan_.touched_sources.end());
+    const auto add_levels = [&](const auto &families, bool hot) {
+      for (std::size_t family = 0; family < config_.partitions; ++family) {
+        for (std::size_t level = 0; level < config_.levels; ++level) {
+          const auto &edges = families[family][level];
+          if (edges.empty()) {
+            continue;
+          }
+          const SpineLevelLayout layout =
+              spine_slice_layout(config_, hot, level, row_count(edges));
+          for (std::size_t index = 0; index < edges.size(); ++index) {
+            if (!touched.contains(edges[index].src)) {
+              continue;
+            }
+            graph_reads_.push_back(Task{
+                .port = graph_ports_.at(family),
+                .operation = MemoryOperation::kRead,
+                .address = (layout.edge_offset_words + index) * kGraphWordBytes,
+                .bytes = kGraphWordBytes,
+                .write_data = {},
+                .kind = TaskKind::kGraphRead,
+                .expected_word = std::nullopt,
+            });
+          }
+        }
+      }
+    };
+    add_levels(state_.cold_levels, false);
+    if (state_.hot_enabled) {
+      add_levels(state_.hot_levels, true);
+    }
+    counters_.physical_edge_records = graph_reads_.size();
+    counters_.graph_read_bytes = graph_reads_.size() * kGraphWordBytes;
+    counters_.arithmetic_operations = graph_reads_.size();
+  }
+
+  const std::vector<Task> &phase_tasks() const {
+    switch (phase_) {
+    case Phase::kSourceReads:
+      return source_reads_;
+    case Phase::kGraphReads:
+      return graph_reads_;
+    case Phase::kResidualReads:
+      return residual_reads_;
+    case Phase::kStateWrites:
+      return state_writes_;
+    case Phase::kActiveWrites:
+      return active_writes_;
+    case Phase::kWait:
+    case Phase::kDone:
+      break;
+    }
+    throw std::logic_error("residual correction has no tasks in this phase");
+  }
+
+  void consume_response(const AxiResponse &response) {
+    const auto found = inflight_.find(response.transaction_id);
+    if (found == inflight_.end() || !response.success ||
+        response.operation != found->second.operation) {
+      failed_ = true;
+      failure_ = "residual correction received an invalid AXI response";
+      return;
+    }
+    const Task task = found->second;
+    inflight_.erase(found);
+    if (task.operation == MemoryOperation::kRead) {
+      if (response.read_data.size() != task.bytes) {
+        failed_ = true;
+        failure_ = "residual correction read response has the wrong size";
+        return;
+      }
+      if (task.expected_word.has_value() &&
+          decode_u32_word(response.read_data) != *task.expected_word) {
+        const std::uint32_t actual = decode_u32_word(response.read_data);
+        failed_ = true;
+        failure_ =
+            "residual correction observed stale resident state kind=" +
+            std::to_string(static_cast<int>(task.kind)) +
+            " address=" + std::to_string(task.address) +
+            " expected=" + std::to_string(*task.expected_word) +
+            " actual=" + std::to_string(actual);
+        return;
+      }
+    } else if (!response.read_data.empty()) {
+      failed_ = true;
+      failure_ = "residual correction write returned read payload";
+      return;
+    }
+    ++counters_.memory_requests_completed;
+  }
+
+  std::array<FixedAxiPort *, 16> graph_ports_;
+  FixedAxiPort &vertex_state_;
+  FixedAxiPort &active_out_;
+  const SpineL0Maintenance &maintenance_;
+  const SpineL0State &state_;
+  SpineL0Config config_;
+  SpineResidualCorrectionPlan plan_;
+  std::uint64_t primary_base_{};
+  std::uint64_t auxiliary_base_{};
+  std::uint64_t degree_base_{};
+  SpineInitialActiveOutputCounters &counters_;
+  bool &ready_;
+  bool &failed_;
+  std::string &failure_;
+  std::vector<Task> source_reads_;
+  std::vector<Task> graph_reads_;
+  std::vector<Task> residual_reads_;
+  std::vector<Task> state_writes_;
+  std::vector<Task> active_writes_;
+  std::unordered_map<std::uint64_t, Task> inflight_;
+  Phase phase_{Phase::kWait};
+  std::size_t next_task_{};
+  std::uint64_t next_transaction_{};
+  bool initialized_{};
+  bool staged_initialize_{};
+  bool staged_issue_{};
+  bool staged_advance_{};
   std::optional<AxiResponse> staged_response_;
 };
 
@@ -1058,7 +1495,8 @@ SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
     std::size_t compute_memory_request_window, SpineL0State initial_state,
     std::optional<SpineEdgeSlice> execution_graph,
     std::optional<SpineDirtyIdentity> host_coverage,
-    std::optional<AlgorithmInitialState> algorithm_initial_state)
+    std::optional<AlgorithmInitialState> algorithm_initial_state,
+    std::optional<SpineResidualCorrectionPlan> device_residual_correction)
     : SpinePageRankVerticalSliceSystem(
           scheduler, clock_id, backend, workload,
           GraphAlgorithmPolicy(AlgorithmPolicyConfig{
@@ -1070,7 +1508,8 @@ SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
           std::move(maintenance_config), std::move(axi_profile),
           std::move(pipeline_config), compute_memory_request_window,
           std::move(initial_state), std::move(execution_graph),
-          host_coverage, std::move(algorithm_initial_state)) {}
+          host_coverage, std::move(algorithm_initial_state),
+          std::move(device_residual_correction)) {}
 
 SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
     Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
@@ -1080,7 +1519,8 @@ SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
     std::size_t compute_memory_request_window, SpineL0State initial_state,
     std::optional<SpineEdgeSlice> execution_graph,
     std::optional<SpineDirtyIdentity> host_coverage,
-    std::optional<AlgorithmInitialState> algorithm_initial_state)
+    std::optional<AlgorithmInitialState> algorithm_initial_state,
+    std::optional<SpineResidualCorrectionPlan> device_residual_correction)
     : scheduler_(scheduler),
       clock_id_(clock_id),
       backend_(backend),
@@ -1132,6 +1572,28 @@ SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
   }
   if (host_coverage.has_value()) {
     host.coverage = host_coverage;
+  }
+  if (device_residual_correction.has_value()) {
+    const SpineResidualCorrectionPlan &plan = *device_residual_correction;
+    const bool valid_sizes =
+        plan.old_rank_words.size() == logical_graph.vertices &&
+        plan.old_out_degrees.size() == logical_graph.vertices &&
+        plan.new_out_degrees.size() == logical_graph.vertices &&
+        plan.seed_words.size() == logical_graph.vertices;
+    const bool matches_initial_state =
+        algorithm_initial_state.has_value() &&
+        plan.old_rank_words == algorithm_initial_state->primary &&
+        plan.seed_words == algorithm_initial_state->auxiliary &&
+        plan.active_vertices == algorithm_initial_state->active_vertices;
+    if (policy.config().kind != GraphAlgorithmKind::kResidualPageRank ||
+        !valid_sizes || !matches_initial_state ||
+        plan.new_out_degrees != host.out_degrees ||
+        std::any_of(plan.touched_sources.begin(), plan.touched_sources.end(),
+                    [&logical_graph](std::uint32_t source) {
+                      return source >= logical_graph.vertices;
+                    })) {
+      throw std::invalid_argument("invalid Spine device residual correction plan");
+    }
   }
   active_bins_payload_ = host.bins;
   source_refresh_ = host.sources;
@@ -1197,10 +1659,12 @@ SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
               : algorithm_initial_state->primary.at(source);
       records.emplace_back(source, value);
     }
-    initial_active_ready_ = records.empty();
+    initial_active_ready_ = device_residual_correction.has_value()
+                                ? false
+                                : records.empty();
     reader_->configure_initial_active_list_round(records.size(),
                                                  &initial_active_ready_);
-    if (!records.empty()) {
+    if (!device_residual_correction.has_value() && !records.empty()) {
       initial_active_writer_ = std::make_unique<SpineInitialActiveOutputWriter>(
           "pagerank-initial-active-out", clock_id_, *active_seed_out_,
           *maintenance_, std::move(records), initial_active_counters_,
@@ -1220,6 +1684,31 @@ SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
       compute_memory_request_window,
       SpineSplitPageRankCompute::kDefaultTileVertices,
       std::move(algorithm_initial_state));
+  if (device_residual_correction.has_value()) {
+    const AlgorithmStateLayout &layout = compute_->state_layout();
+    if (!layout.auxiliary.has_value() || !layout.degree.has_value()) {
+      throw std::logic_error(
+          "device residual correction requires auxiliary and degree state");
+    }
+    vertex_state_->initialize_payload(
+        layout.auxiliary->base,
+        encode_u32_words(std::vector<std::uint32_t>(logical_graph.vertices, 0)));
+    vertex_state_->initialize_payload(
+        layout.degree->base,
+        encode_u32_words(device_residual_correction->old_out_degrees));
+    std::array<FixedAxiPort *, 16> correction_graph_ports{};
+    for (std::size_t family = 0; family < graph_ports_.size(); ++family) {
+      correction_graph_ports[family] = graph_ports_[family].get();
+    }
+    initial_active_writer_ = std::make_unique<SpineResidualCorrectionSeeder>(
+        "pagerank-device-residual-correction", clock_id_,
+        correction_graph_ports, *vertex_state_, *active_seed_out_,
+        *maintenance_, state_, maintenance_config_,
+        std::move(*device_residual_correction), compute_->primary_read_base(),
+        layout.auxiliary->base, layout.degree->base, initial_active_counters_,
+        initial_active_ready_, initial_active_failed_, initial_active_failure_);
+    compute_->configure_initial_start_gate(&initial_active_ready_);
+  }
 }
 
 std::unique_ptr<FixedAxiPort> SpinePageRankVerticalSliceSystem::make_port(

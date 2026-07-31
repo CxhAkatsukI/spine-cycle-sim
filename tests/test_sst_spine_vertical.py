@@ -217,8 +217,10 @@ class SstSpineVerticalValidationTests(unittest.TestCase):
             "backend_requests": 12,
             "dynamic_update": True,
             "pipeline_order": (
-                "zero_time_resident_level_preload_then_update_maintenance_then_compute"
+                "zero_time_resident_old_rank_then_update_maintenance_then_device_correction_seed_then_compute"
             ),
+            "residual_correction_device_timed": True,
+            "residual_correction_request_ledger_closed": True,
             "architecture_oracle": "deltahls_residual_float32",
             "mathematical_oracle": "full_pagerank_float64",
             "architecture_correctness_mismatches": 0,
@@ -263,6 +265,12 @@ class SstSpineVerticalValidationTests(unittest.TestCase):
             residual_contract="deltahls_sink_free_linf_warm",
         )
         self.assertEqual(validate_generic_result(result, dram, **arguments), [])
+        result["residual_correction_device_timed"] = False
+        self.assertIn(
+            "device_residual_correction",
+            validate_generic_result(result, dram, **arguments),
+        )
+        result["residual_correction_device_timed"] = True
         result["new_sink_vertices"] = 1
         self.assertIn("sink_free", validate_generic_result(result, dram, **arguments))
 

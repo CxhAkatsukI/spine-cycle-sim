@@ -68,6 +68,7 @@ struct ResidualPageRankReference {
 
 struct DeltaHlsResidualSetup {
   AlgorithmInitialState initial_state;
+  SpineResidualCorrectionPlan device_correction;
   ResidualPageRankReference reference;
   std::vector<double> mathematical_ranks;
   std::size_t old_sink_vertices{};
@@ -360,11 +361,23 @@ DeltaHlsResidualSetup build_delta_hls_residual_setup(
   setup.old_rank_l1 = old_rank.l1;
   setup.old_rank_linf = old_rank.linf;
   std::vector<float> seed(old_graph.vertices, 0.0F);
+  setup.device_correction.old_out_degrees.resize(old_graph.vertices);
+  setup.device_correction.new_out_degrees.resize(old_graph.vertices);
+  setup.device_correction.old_rank_words.resize(old_graph.vertices);
+  setup.device_correction.seed_words.resize(old_graph.vertices);
   for (std::size_t source = 0; source < old_graph.vertices; ++source) {
+    setup.device_correction.old_out_degrees[source] =
+        static_cast<std::uint32_t>(old_adjacency[source].size());
+    setup.device_correction.new_out_degrees[source] =
+        static_cast<std::uint32_t>(new_adjacency[source].size());
+    setup.device_correction.old_rank_words[source] =
+        GraphAlgorithmPolicy::float_to_word(old_rank.ranks[source]);
     if (old_adjacency[source] == new_adjacency[source]) {
       continue;
     }
     ++setup.touched_sources;
+    setup.device_correction.touched_sources.push_back(
+        static_cast<std::uint32_t>(source));
     const float old_contribution =
         damping * old_rank.ranks[source] /
         static_cast<float>(old_adjacency[source].size());
@@ -385,12 +398,16 @@ DeltaHlsResidualSetup build_delta_hls_residual_setup(
         GraphAlgorithmPolicy::float_to_word(old_rank.ranks[vertex]);
     setup.initial_state.auxiliary[vertex] =
         GraphAlgorithmPolicy::float_to_word(seed[vertex]);
+    setup.device_correction.seed_words[vertex] =
+        setup.initial_state.auxiliary[vertex];
     setup.seed_linf = std::max(setup.seed_linf, std::fabs(seed[vertex]));
     if (std::fabs(seed[vertex]) > epsilon) {
       setup.initial_state.active_vertices.push_back(
           static_cast<std::uint32_t>(vertex));
     }
   }
+  setup.device_correction.active_vertices =
+      setup.initial_state.active_vertices;
   setup.reference = run_delta_hls_residual_reference(
       new_adjacency, old_rank.ranks, seed,
       setup.initial_state.active_vertices, damping, epsilon, max_iterations);
@@ -3191,7 +3208,11 @@ class OnlineMemoryProbe final : public SST::Component {
               : (delta_hls_residual_
                      ? std::optional<AlgorithmInitialState>(
                            delta_hls_setup_->initial_state)
-                     : std::nullopt));
+                     : std::nullopt),
+          delta_hls_residual_
+              ? std::optional<SpineResidualCorrectionPlan>(
+                    delta_hls_setup_->device_correction)
+              : std::nullopt);
       pagerank_system_->register_components();
       pagerank_iteration_start_cycle_ = scheduler_.clock(core).completed_cycles;
       scheduler_.add_component(*backend_);
@@ -6691,10 +6712,50 @@ class OnlineMemoryProbe final : public SST::Component {
               compute_backend_traffic,
               backend_->accepted() - pagerank_maintenance_backend_requests_) &&
           memory_traffic_closes(total_backend_traffic, backend_->accepted());
+      const std::size_t expected_seeded_vertices =
+          delta_hls_residual_
+              ? static_cast<std::size_t>(std::count_if(
+                    delta_hls_setup_->device_correction.seed_words.begin(),
+                    delta_hls_setup_->device_correction.seed_words.end(),
+                    [](std::uint32_t seed) {
+                      return (seed & 0x7fffffffU) != 0;
+                    }))
+              : 0;
+      const std::uint64_t expected_correction_requests =
+          3 * initial_active.touched_sources +
+          initial_active.physical_edge_records +
+          2 * initial_active.seeded_vertices + initial_active.active_vertices;
+      const bool residual_correction_ledger_match =
+          !delta_hls_residual_ ||
+          (initial_active.residual_correction_timed &&
+           initial_active.request_ledger_closed &&
+           initial_active.memory_requests_issued ==
+               initial_active.memory_requests_completed &&
+           initial_active.memory_requests_issued ==
+               expected_correction_requests &&
+           initial_active.touched_sources ==
+               delta_hls_setup_->device_correction.touched_sources.size() &&
+           initial_active.seeded_vertices == expected_seeded_vertices &&
+           initial_active.active_vertices ==
+               delta_hls_setup_->device_correction.active_vertices.size() &&
+           initial_active.rank_read_bytes ==
+               4 * initial_active.touched_sources &&
+           initial_active.degree_read_bytes ==
+               4 * initial_active.touched_sources &&
+           initial_active.degree_write_bytes ==
+               4 * initial_active.touched_sources &&
+           initial_active.graph_read_bytes ==
+               8 * initial_active.physical_edge_records &&
+           initial_active.residual_read_bytes ==
+               4 * initial_active.seeded_vertices &&
+           initial_active.residual_write_bytes ==
+               4 * initial_active.seeded_vertices &&
+           initial_active.write_bytes == 8 * initial_active.active_vertices);
       const bool passed = success && residual_pagerank_reference_.converged &&
                           converged && frontier_match && memory_ledger_match &&
                           memory_locality_ledger_match &&
                           active_edge_execution_ledger_match &&
+                          residual_correction_ledger_match &&
                           mismatches == 0 && mathematical_mismatches == 0 &&
                           max_abs_error <= architecture_tolerance &&
                           residual_bound_passed;
@@ -6737,7 +6798,9 @@ class OnlineMemoryProbe final : public SST::Component {
       write_spine_resident_classification(result);
       result << "  \"pipeline_order\": \""
           << (dynamic_pagerank_enabled_
-                  ? "zero_time_resident_level_preload_then_update_maintenance_then_compute"
+                  ? (delta_hls_residual_
+                         ? "zero_time_resident_old_rank_then_update_maintenance_then_device_correction_seed_then_compute"
+                         : "zero_time_resident_level_preload_then_update_maintenance_then_compute")
                   : "maintenance_then_compute")
           << "\",\n"
           << "  \"vertices\": " << actual_ranks.size() << ",\n"
@@ -6761,6 +6824,40 @@ class OnlineMemoryProbe final : public SST::Component {
           << initial_active.write_bytes << ",\n"
           << "  \"initial_active_output_memory_requests\": "
           << initial_active.memory_requests_issued << ",\n"
+          << "  \"residual_correction_device_timed\": "
+          << (initial_active.residual_correction_timed ? "true" : "false")
+          << ",\n"
+          << "  \"residual_correction_cycles\": "
+          << (initial_active.end_cycle >= initial_active.start_cycle
+                  ? initial_active.end_cycle - initial_active.start_cycle
+                  : 0)
+          << ",\n"
+          << "  \"residual_correction_touched_sources\": "
+          << initial_active.touched_sources << ",\n"
+          << "  \"residual_correction_physical_edge_records\": "
+          << initial_active.physical_edge_records << ",\n"
+          << "  \"residual_correction_seeded_vertices\": "
+          << initial_active.seeded_vertices << ",\n"
+          << "  \"residual_correction_rank_read_bytes\": "
+          << initial_active.rank_read_bytes << ",\n"
+          << "  \"residual_correction_degree_read_bytes\": "
+          << initial_active.degree_read_bytes << ",\n"
+          << "  \"residual_correction_degree_write_bytes\": "
+          << initial_active.degree_write_bytes << ",\n"
+          << "  \"residual_correction_graph_read_bytes\": "
+          << initial_active.graph_read_bytes << ",\n"
+          << "  \"residual_correction_residual_read_bytes\": "
+          << initial_active.residual_read_bytes << ",\n"
+          << "  \"residual_correction_residual_write_bytes\": "
+          << initial_active.residual_write_bytes << ",\n"
+          << "  \"residual_correction_active_write_bytes\": "
+          << initial_active.write_bytes << ",\n"
+          << "  \"residual_correction_arithmetic_operations\": "
+          << initial_active.arithmetic_operations << ",\n"
+          << "  \"residual_correction_memory_requests\": "
+          << initial_active.memory_requests_issued << ",\n"
+          << "  \"residual_correction_request_ledger_closed\": "
+          << (residual_correction_ledger_match ? "true" : "false") << ",\n"
           << "  \"delta_touched_sources\": "
           << (delta_hls_residual_ ? delta_hls_setup_->touched_sources : 0)
           << ",\n"
