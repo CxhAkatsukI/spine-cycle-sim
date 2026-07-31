@@ -14,6 +14,7 @@ args=(
   --result-root "${root}/formal_v7_livejournal_spine_sssp_sidecar/runs"
   --result-root "${root}/formal_v7_hot_transition_successors/runs"
   --result-root "${root}/formal_v11_device_active_spine"
+  --result-root "${root}/formal_v14_device_residual_spine"
   --manifest "${root}/formal_v6_sssp_exact/campaign_manifest.json"
   --manifest "${root}/formal_v6_cc_residual_priority/campaign_manifest.json"
   --manifest "${root}/formal_v6_r19_sssp_warm/campaign_manifest.json"
@@ -23,10 +24,11 @@ args=(
   --manifest "${root}/formal_v7_livejournal_spine_sssp_sidecar/campaign_manifest.json"
   --manifest "${root}/formal_v7_hot_transition_successors/campaign_manifest.json"
   --manifest "${root}/formal_v11_device_active_spine/campaign_manifest.json"
+  --manifest "${root}/formal_v14_device_residual_spine/campaign_manifest.json"
   --required-system spine
   --required-system grasu_regraph_k4_shared
   --result-transition-contract \
-    configs/contracts/large_graph_publication_campaign_fullgraph_v7.json
+    configs/contracts/large_graph_publication_campaign_fullgraph_v8.json
   --out-dir "${output_dir}"
 )
 

@@ -372,6 +372,35 @@ class PublicationAnalysisTests(unittest.TestCase):
         self.assertEqual(analysis["observed_executions"], 1)
         self.assertEqual(analysis["system_rows"][0]["cycles"], 100)
 
+    def test_device_residual_transition_only_replaces_residual_result(self) -> None:
+        old = case_result("spine", 100, execution_id="device_residual")
+        old["row"]["algorithm"] = "thresholded_residual_pagerank"
+        new = deepcopy(old)
+        new["plugin_sha256"] = "b" * 64
+        new["row"]["cycles"] = 115
+        policy = {
+            "classification": "device_residual_correction_timing",
+            "scope_system": "spine",
+            "affected_algorithms": ["thresholded_residual_pagerank"],
+            "requires_identical_case": True,
+            "requires_identical_final_state": True,
+            "superseded_plugin_sha256": ["a" * 64],
+            "superseding_plugin_sha256": "b" * 64,
+        }
+        analysis = analyze_publication_case_results(
+            [old, new], result_supersedence_policy=policy
+        )
+        self.assertEqual(analysis["observed_executions"], 1)
+        self.assertEqual(analysis["system_rows"][0]["cycles"], 115)
+
+        unaffected = deepcopy(old)
+        unaffected["row"]["algorithm"] = "connected_components"
+        analysis = analyze_publication_case_results(
+            [unaffected], result_supersedence_policy=policy
+        )
+        self.assertEqual(analysis["observed_executions"], 1)
+        self.assertEqual(analysis["system_rows"][0]["cycles"], 100)
+
     def test_incomplete_expected_set_is_partial_or_fail_closed(self) -> None:
         result = case_result("spine", 100)
         analysis = analyze_publication_case_results(

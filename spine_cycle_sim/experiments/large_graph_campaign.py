@@ -327,14 +327,18 @@ def validate_large_graph_campaign_contract(
             if isinstance(supersedence, Mapping)
             else None
         )
-        device_active_policy = (
-            classification == "device_active_timing_correction"
+        algorithm_timing_policy = (
+            classification
+            in {
+                "device_active_timing_correction",
+                "device_residual_correction_timing",
+            }
             and isinstance(affected_algorithms, list)
             and bool(affected_algorithms)
             and len(set(affected_algorithms)) == len(affected_algorithms)
             and all(isinstance(value, str) and value for value in affected_algorithms)
         )
-        if base_invalid or not (old_hot_policy or device_active_policy):
+        if base_invalid or not (old_hot_policy or algorithm_timing_policy):
             raise ValueError("invalid Spine result supersedence policy")
 
     semantics = contract.get("workload_semantics", {})

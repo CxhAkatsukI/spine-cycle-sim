@@ -61,6 +61,12 @@ FULLGRAPH_V7_CONTRACT = (
     / "contracts"
     / "large_graph_publication_campaign_fullgraph_v7.json"
 )
+FULLGRAPH_V8_CONTRACT = (
+    ROOT
+    / "configs"
+    / "contracts"
+    / "large_graph_publication_campaign_fullgraph_v8.json"
+)
 DATASET_ROOT = Path("/data/feiyang/Graph_Datasets")
 
 
@@ -217,6 +223,48 @@ class LargeGraphCampaignTests(unittest.TestCase):
                 "weighted_sssp",
                 "weighted_dynamic_sssp",
             ],
+        )
+        self.assertEqual(
+            supersedence["superseding_plugin_sha256"],
+            simulator["plugin_sha256"],
+        )
+        self.assertIn(
+            previous["architecture_baselines"]["simulator_baseline"][
+                "plugin_sha256"
+            ],
+            supersedence["superseded_plugin_sha256"],
+        )
+        self.assertEqual(contract["experiment_matrix"], previous["experiment_matrix"])
+        self.assertEqual(contract["datasets"], previous["datasets"])
+
+    def test_fullgraph_v8_freezes_device_residual_correction_timing(self) -> None:
+        previous = load_large_graph_campaign_contract(FULLGRAPH_V7_CONTRACT)
+        contract = load_large_graph_campaign_contract(FULLGRAPH_V8_CONTRACT)
+        simulator = contract["architecture_baselines"]["simulator_baseline"]
+        self.assertEqual(
+            simulator["plugin_sha256"],
+            "7563b028e61e792e7043a582682dd26d0e3d8cc3e2407021f144519d0ef57bf6",
+        )
+        self.assertEqual(
+            simulator["source_commit"],
+            "6f251e7a44b10a504b95e64e43253a1673f06563",
+        )
+        self.assertEqual(
+            simulator["behavior_transition"],
+            "device_timed_residual_correction_seed_and_active_publication",
+        )
+        self.assertEqual(
+            simulator["measurement_window"]["thresholded_residual_pagerank"],
+            "untimed_verified_old_rank_then_timed_update_maintenance_device_correction_seed_active_publication_and_propagation_to_convergence",
+        )
+        supersedence = simulator["result_supersedence"]
+        self.assertEqual(
+            supersedence["classification"],
+            "device_residual_correction_timing",
+        )
+        self.assertEqual(
+            supersedence["affected_algorithms"],
+            ["thresholded_residual_pagerank"],
         )
         self.assertEqual(
             supersedence["superseding_plugin_sha256"],

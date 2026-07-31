@@ -95,7 +95,10 @@ def _validate_result_supersedence_policy(
         ):
             raise ValueError("invalid result supersedence policy")
         return
-    if policy.get("classification") == "device_active_timing_correction":
+    if policy.get("classification") in {
+        "device_active_timing_correction",
+        "device_residual_correction_timing",
+    }:
         algorithms = policy.get("affected_algorithms")
         if (
             not isinstance(algorithms, list)
