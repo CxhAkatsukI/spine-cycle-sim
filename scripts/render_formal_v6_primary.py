@@ -1287,6 +1287,16 @@ The invalidated prior-version HW row and queued OK row have no admitted Spine
 result and are therefore absent.}}
 \end{{figure}}
 
+\noindent\textit{{Projection method.}}
+For a source-matched preflight row, we compute
+$C_{{\mathrm{{proj}}}}=\mathrm{{median}}_i
+\{{C_i/(E_iS_i)\}}\,E_{{\mathrm{{target}}}}S_{{\mathrm{{target}}}}$.
+The unit cost is fitted from three completed, correctness-admitted K4-shared
+SSSP executions; the target edge count and minimum superstep count come from
+the complete-graph host oracle using the same source cohort as Spine. These
+values are feasibility projections, not completed simulations, and are
+excluded from measured cross-architecture aggregates.
+
 \begin{{figure}}[H]
 \centering
 \includegraphics[width=0.98\linewidth]{{\vfigdir/{artifact_prefix}_primary_ratios.pdf}}
