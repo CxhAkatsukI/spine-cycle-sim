@@ -16,6 +16,7 @@ args=(
   --result-root "${root}/formal_v11_device_active_spine"
   --result-root "${root}/formal_v12_device_active_r19"
   --result-root "${root}/formal_v14_device_residual_spine"
+  --result-root "${root}/formal_v15_device_active_sssp_completion"
   --manifest "${root}/formal_v6_sssp_exact/campaign_manifest.json"
   --manifest "${root}/formal_v6_cc_residual_priority/campaign_manifest.json"
   --manifest "${root}/formal_v6_r19_sssp_warm/campaign_manifest.json"
@@ -27,6 +28,7 @@ args=(
   --manifest "${root}/formal_v11_device_active_spine/campaign_manifest.json"
   --manifest "${root}/formal_v12_device_active_r19/campaign_manifest.json"
   --manifest "${root}/formal_v14_device_residual_spine/campaign_manifest.json"
+  --manifest "${root}/formal_v15_device_active_sssp_completion/campaign_manifest.json"
   --required-system spine
   --required-system grasu_regraph_k4_shared
   --result-transition-contract \
