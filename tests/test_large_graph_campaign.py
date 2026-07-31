@@ -176,21 +176,25 @@ class LargeGraphCampaignTests(unittest.TestCase):
             "reported_separately_and_excluded_from_dynamic_e2e",
         )
 
-    def test_fullgraph_v7_freezes_skip_fit_hot_promotion(self) -> None:
+    def test_fullgraph_v7_freezes_device_active_timing(self) -> None:
         previous = load_large_graph_campaign_contract(FULLGRAPH_V6_CONTRACT)
         contract = load_large_graph_campaign_contract(FULLGRAPH_V7_CONTRACT)
         simulator = contract["architecture_baselines"]["simulator_baseline"]
         self.assertEqual(
             simulator["plugin_sha256"],
-            "1c0b0a9adb245e919e77cedb39b731551befc1f0ca4101a519dce176d9edf057",
+            "84626d7f2de2904df2557c9e08299495b28e7cd5389e075dc094550f75965216",
         )
         self.assertEqual(
             simulator["source_commit"],
-            "c22a59a3369a128faa116896d4d801f9698ffe52",
+            "af32f08d733577ebc20939e4321389dbf6695191",
         )
         self.assertEqual(
             simulator["behavior_transition"],
-            "automatic_hot_promotion_skips_already_fit_cold_partitions",
+            "device_active_frontier_and_dynamic_sssp_e2e_window",
+        )
+        self.assertEqual(
+            simulator["measurement_window"]["positive_weighted_sssp"],
+            "untimed_verified_old_graph_state_then_timed_update_to_convergence",
         )
         self.assertEqual(
             simulator["hls_reference"],
