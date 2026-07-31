@@ -255,6 +255,7 @@ class GraSuPmaUpdateSystem {
   // trace-aware reservation map. Pass this to a later launch with
   // initialize_resident_state=false to model persistent multi-batch service.
   [[nodiscard]] GraSuPartitionedPmaLayout resident_partitioned_layout() const;
+  [[nodiscard]] GraSuPartitionedPmaLayout take_resident_partitioned_layout();
 
  private:
   class Impl;

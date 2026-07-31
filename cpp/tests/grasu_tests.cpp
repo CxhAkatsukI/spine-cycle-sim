@@ -583,7 +583,7 @@ void test_trace_aware_layout_persists_across_kernel_batches() {
     require(weighted_edge_map(first.live_edges()) ==
                 WeightedEdgeMap{{{0, 1}, 4}, {{0, 2}, 7}},
             "first persistent GraSU batch produced the wrong graph");
-    resident = first.resident_partitioned_layout();
+    resident = first.take_resident_partitioned_layout();
     first.unregister_components();
   }
 

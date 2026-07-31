@@ -68,6 +68,9 @@ probe.addParams(
         "direct_dram_output": str(dram_output),
         "workload": str(workload),
         "update_workload": str(update) if update is not None else "",
+        "update_batch_count": int(
+            os.environ.get("GRASU_SST_UPDATE_BATCH_COUNT", "1")
+        ),
         "source_vertex": int(os.environ.get("GRASU_SST_SOURCE", "0")),
         "core_clock": f"{core_mhz:g}MHz",
         "core_mhz": core_mhz,

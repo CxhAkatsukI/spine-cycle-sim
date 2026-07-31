@@ -11,12 +11,14 @@
 #include <deque>
 #include <fstream>
 #include <functional>
+#include <iterator>
 #include <limits>
 #include <map>
 #include <memory>
 #include <numeric>
 #include <optional>
 #include <queue>
+#include <set>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -2119,6 +2121,65 @@ class SstMemoryBackend final : public MemoryBackend {
   std::uint64_t direct_submit_time_ps_{};
 };
 
+struct PersistentUpdateBatchEvidence {
+  std::size_t updates{};
+  std::uint64_t start_cycle{};
+  std::uint64_t end_cycle{};
+  std::uint64_t correctness_mismatches{};
+  MemoryTrafficStats traffic;
+};
+
+std::vector<SpineEdgeSlice> split_update_trace(SpineEdgeSlice trace,
+                                               std::size_t batch_count) {
+  if (batch_count == 0 || trace.edges.empty() ||
+      batch_count > trace.edges.size()) {
+    throw std::invalid_argument(
+        "persistent update trace requires one or more edges per batch");
+  }
+  std::vector<SpineEdgeSlice> batches;
+  batches.reserve(batch_count);
+  for (std::size_t batch = 0; batch < batch_count; ++batch) {
+    const std::size_t begin = trace.edges.size() * batch / batch_count;
+    const std::size_t end = trace.edges.size() * (batch + 1) / batch_count;
+    SpineEdgeSlice slice{
+        .vertices = trace.vertices,
+        .edges = {},
+        .case_name = trace.case_name + "_batch_" + std::to_string(batch),
+    };
+    slice.edges.insert(slice.edges.end(),
+                       std::make_move_iterator(trace.edges.begin() + begin),
+                       std::make_move_iterator(trace.edges.begin() + end));
+    batches.push_back(std::move(slice));
+  }
+  return batches;
+}
+
+std::vector<std::vector<GraSuEdge>>
+split_grasu_update_trace(std::vector<GraSuEdge> trace,
+                         std::size_t batch_count) {
+  if (batch_count == 0 || trace.empty() || batch_count > trace.size()) {
+    throw std::invalid_argument(
+        "persistent GraSU trace requires one or more updates per batch");
+  }
+  std::vector<std::vector<GraSuEdge>> batches;
+  batches.reserve(batch_count);
+  for (std::size_t batch = 0; batch < batch_count; ++batch) {
+    const std::size_t begin = trace.size() * batch / batch_count;
+    const std::size_t end = trace.size() * (batch + 1) / batch_count;
+    std::vector<GraSuEdge> slice;
+    slice.reserve(end - begin);
+    slice.insert(slice.end(), std::make_move_iterator(trace.begin() + begin),
+                 std::make_move_iterator(trace.begin() + end));
+    batches.push_back(std::move(slice));
+  }
+  return batches;
+}
+
+std::uint64_t update_edge_key(std::uint32_t source,
+                              std::uint32_t destination) noexcept {
+  return (static_cast<std::uint64_t>(source) << 32) | destination;
+}
+
 }  // namespace
 
 class OnlineMemoryProbe final : public SST::Component {
@@ -2141,6 +2202,7 @@ class OnlineMemoryProbe final : public SST::Component {
     workload_path_ = params.find<std::string>("workload", "");
     update_workload_path_ =
         params.find<std::string>("update_workload", "");
+    update_batch_count_ = params.find<std::size_t>("update_batch_count", 1);
     preload_path_ = params.find<std::string>("preload_workload", "");
     carry_history_path_ =
         params.find<std::string>("carry_history_workload", "");
@@ -2428,6 +2490,7 @@ class OnlineMemoryProbe final : public SST::Component {
         mode_ == "grasu_regraph_hls_weighted_residual_pagerank";
     const bool grasu_connected_components =
         mode_ == "grasu_regraph_connected_components";
+    const bool grasu_update_trace = mode_ == "grasu_update_trace";
     const bool hls_weighted_grasu =
         hls_weighted_grasu_sssp || hls_weighted_grasu_pagerank ||
         hls_weighted_grasu_residual_pagerank;
@@ -2466,6 +2529,7 @@ class OnlineMemoryProbe final : public SST::Component {
     if ((mode_ != "probe" && mode_ != "payload_roundtrip" &&
          mode_ != "spine_vertical" && mode_ != "spine_maintenance" &&
          mode_ != "spine_compute" &&
+         mode_ != "spine_update_trace" &&
          mode_ != "spine_sssp" && mode_ != "spine_pagerank" &&
          mode_ != "spine_residual_pagerank" &&
          mode_ != "spine_connected_components" &&
@@ -2477,8 +2541,10 @@ class OnlineMemoryProbe final : public SST::Component {
          mode_ != "grasu_regraph_pagerank" &&
          mode_ != "grasu_regraph_residual_pagerank" &&
          mode_ != "grasu_regraph_connected_components" &&
+         mode_ != "grasu_update_trace" &&
          mode_ != "grasu_regraph_partitioned_dynamic_pagerank") ||
-        channels_ == 0 || channel_capacity_bytes_ == 0 || max_rounds_ == 0 ||
+        channels_ == 0 || channel_capacity_bytes_ == 0 ||
+        update_batch_count_ == 0 || max_rounds_ == 0 ||
         grasu_native_supersteps_ == 0 ||
         pagerank_iterations_ == 0 || !(pagerank_damping_ > 0.0F) ||
         !(pagerank_damping_ < 1.0F) || !(pagerank_epsilon_ > 0.0F) ||
@@ -2536,10 +2602,13 @@ class OnlineMemoryProbe final : public SST::Component {
          spine_axi_profile_id_ != "legacy_uniform64" &&
          spine_axi_profile_id_ != "candidate10_gmem_1e61fc0") ||
         write_percent_ > 100 ||
+        ((mode_ == "spine_update_trace" || grasu_update_trace) &&
+         update_workload_path_.empty()) ||
         (mode_ == "probe" &&
          (request_count_ == 0 || request_bytes_ == 0 || stride_bytes_ == 0)) ||
         ((mode_ == "spine_vertical" || mode_ == "spine_maintenance" ||
           mode_ == "spine_compute" ||
+          mode_ == "spine_update_trace" ||
           mode_ == "spine_sssp" || mode_ == "spine_pagerank" ||
           mode_ == "spine_residual_pagerank" ||
           mode_ == "spine_connected_components" ||
@@ -2551,6 +2620,7 @@ class OnlineMemoryProbe final : public SST::Component {
           mode_ == "grasu_regraph_pagerank" ||
           mode_ == "grasu_regraph_residual_pagerank" ||
           mode_ == "grasu_regraph_connected_components" ||
+          grasu_update_trace ||
           mode_ == "grasu_regraph_partitioned_dynamic_pagerank") &&
          (channels_ < 23 || workload_path_.empty())) ||
         ((mode_ == "grasu_regraph_sssp" ||
@@ -2561,6 +2631,7 @@ class OnlineMemoryProbe final : public SST::Component {
           mode_ == "grasu_regraph_pagerank" ||
           mode_ == "grasu_regraph_residual_pagerank" ||
           grasu_connected_components ||
+          grasu_update_trace ||
           mode_ == "grasu_regraph_partitioned_dynamic_pagerank") &&
          channels_ < 32)) {
       output_.fatal(
@@ -2656,6 +2727,7 @@ class OnlineMemoryProbe final : public SST::Component {
         mode_ == "grasu_regraph_hls_weighted_residual_pagerank";
     const bool grasu_connected_components =
         mode_ == "grasu_regraph_connected_components";
+    const bool grasu_update_trace = mode_ == "grasu_update_trace";
     const bool hls_weighted_grasu =
         hls_weighted_grasu_sssp || hls_weighted_grasu_pagerank ||
         hls_weighted_grasu_residual_pagerank;
@@ -2664,6 +2736,7 @@ class OnlineMemoryProbe final : public SST::Component {
         mode_ == "grasu_regraph_pagerank" ||
         mode_ == "grasu_regraph_residual_pagerank" ||
         grasu_connected_components ||
+        grasu_update_trace ||
         mode_ == "grasu_regraph_partitioned_dynamic_pagerank") {
       SpineEdgeSlice initial = load_spine_edge_slice(workload_path_);
       std::optional<SpineEdgeSlice> logical_update_snapshot;
@@ -2715,6 +2788,10 @@ class OnlineMemoryProbe final : public SST::Component {
         }
       }
       grasu_logical_update_edges_ = updates.size();
+      if (grasu_update_trace && updates.empty()) {
+        throw std::invalid_argument(
+            "GraSU persistent update trace requires non-empty updates");
+      }
       grasu_partitioned_execution_ =
           partitioned_dynamic_pagerank ||
           initial.vertices > grasu_config_.partition_vertices;
@@ -2801,7 +2878,15 @@ class OnlineMemoryProbe final : public SST::Component {
                                                   ? GraSuPmaWordAbi::kWeightedFullWord
                                                   : GraSuPmaWordAbi::kNormalizedWeighted);
       }
-      if (mode_ == "grasu_regraph_sssp" || native_grasu_sssp ||
+      if (grasu_update_trace) {
+        for (const GraSuEdge &edge : initial_edges) {
+          grasu_update_oracle_[update_edge_key(edge.source,
+                                               edge.destination)] =
+              edge.weight;
+        }
+        grasu_update_batches_ =
+            split_grasu_update_trace(std::move(updates), update_batch_count_);
+      } else if (mode_ == "grasu_regraph_sssp" || native_grasu_sssp ||
           hls_weighted_grasu_sssp) {
         grasu_sssp_reference_ =
             run_sssp_reference(final_snapshot, source_vertex_,
@@ -2872,22 +2957,44 @@ class OnlineMemoryProbe final : public SST::Component {
           ++grasu_pagerank_degrees_.at(edge.src);
         }
       }
+      const std::vector<GraSuEdge> &launch_updates =
+          grasu_update_trace ? grasu_update_batches_.front() : updates;
       if (grasu_partitioned_execution_) {
         grasu_update_system_ = std::make_unique<GraSuPmaUpdateSystem>(
             scheduler_, core, *backend_, grasu_partitioned_layout_,
-            std::move(updates), grasu_update_config_);
+            launch_updates, grasu_update_config_);
       } else {
         grasu_update_system_ = std::make_unique<GraSuPmaUpdateSystem>(
-            scheduler_, core, *backend_, grasu_layout_, std::move(updates),
+            scheduler_, core, *backend_, grasu_layout_, launch_updates,
             grasu_update_config_);
       }
       grasu_update_system_->register_components();
+      if (grasu_update_trace) {
+        update_trace_batch_start_cycle_ =
+            scheduler_.clock(core).completed_cycles;
+      }
       scheduler_.add_component(*backend_);
       return;
     }
-    if (mode_ == "spine_maintenance") {
-      SpineEdgeSlice workload = load_spine_edge_slice(workload_path_, true);
-      spine_expected_edges_ = workload.edges.size();
+    if (mode_ == "spine_maintenance" || mode_ == "spine_update_trace") {
+      std::optional<SpineEdgeSlice> trace_initial;
+      SpineEdgeSlice workload;
+      if (mode_ == "spine_update_trace") {
+        trace_initial = load_spine_edge_slice(workload_path_);
+        SpineEdgeSlice trace =
+            load_spine_edge_slice(update_workload_path_, true);
+        if (trace.vertices != trace_initial->vertices || trace.edges.empty()) {
+          throw std::invalid_argument(
+              "Spine persistent trace must be non-empty and match the graph");
+        }
+        spine_expected_edges_ = trace.edges.size();
+        spine_update_batches_ =
+            split_update_trace(std::move(trace), update_batch_count_);
+        workload = spine_update_batches_.front();
+      } else {
+        workload = load_spine_edge_slice(workload_path_, true);
+        spine_expected_edges_ = workload.edges.size();
+      }
       SpineL0Config config;
       config.device_dirty_source_limit = device_dirty_source_limit_;
       config.maintenance_architecture = spine_maintenance_architecture_;
@@ -2963,6 +3070,15 @@ class OnlineMemoryProbe final : public SST::Component {
           config.hot_vertices.begin(), config.hot_vertices.end());
       spine_maintenance_state_.hot_enabled =
           !spine_maintenance_state_.hot_vertices.empty();
+      if (trace_initial.has_value()) {
+        spine_maintenance_state_ = preload_spine_resident_snapshot(
+            *trace_initial, config, &spine_resident_classification_);
+        spine_resident_classification_valid_ = true;
+        for (const SpineEdgeRecord &edge : trace_initial->edges) {
+          spine_update_oracle_[update_edge_key(edge.src, edge.dst)] =
+              edge.weight;
+        }
+      }
       const auto make_port = [&](const std::string &name,
                                  std::uint32_t initiator,
                                  std::size_t channel,
@@ -2994,6 +3110,10 @@ class OnlineMemoryProbe final : public SST::Component {
       spine_maintenance_ = std::make_unique<SpineL0Maintenance>(
           "spine-maintenance-only", core, std::move(config),
           std::move(workload), ports, spine_maintenance_state_);
+      if (mode_ == "spine_update_trace") {
+        update_trace_batch_start_cycle_ =
+            scheduler_.clock(core).completed_cycles;
+      }
       scheduler_.add_component(*spine_maintenance_);
       for (auto &port : spine_maintenance_graph_) {
         port->register_components(scheduler_);
@@ -3578,7 +3698,18 @@ class OnlineMemoryProbe final : public SST::Component {
     scheduler_.step();
     last_observed_cycle_ = scheduler_.clock(0).completed_cycles;
     write_progress_snapshot("running", false);
-    if (mode_ == "grasu_regraph_native_sssp") {
+    if (mode_ == "grasu_update_trace") {
+      const bool finished = complete_grasu_update_trace_batch();
+      if (finished) {
+        const bool success = !grasu_update_system_ &&
+                             update_trace_batch_index_ ==
+                                 grasu_update_batches_.size() &&
+                             update_trace_correctness_mismatches_ == 0;
+        write_result(success);
+        primaryComponentOKToEndSim();
+        return true;
+      }
+    } else if (mode_ == "grasu_regraph_native_sssp") {
       if (grasu_update_system_->failed()) {
         write_result(false);
         primaryComponentOKToEndSim();
@@ -3771,6 +3902,30 @@ class OnlineMemoryProbe final : public SST::Component {
         write_result(!compute_failed);
         primaryComponentOKToEndSim();
         return true;
+      }
+    } else if (mode_ == "spine_update_trace") {
+      if (spine_maintenance_->failed()) {
+        write_result(false);
+        primaryComponentOKToEndSim();
+        return true;
+      }
+      const bool graph_ports_idle = std::all_of(
+          spine_maintenance_graph_.begin(), spine_maintenance_graph_.end(),
+          [](const auto &port) { return port->idle(); });
+      if (spine_maintenance_->done() && graph_ports_idle &&
+          spine_maintenance_sorted_->idle() &&
+          spine_maintenance_metadata_->idle() &&
+          spine_maintenance_result_->idle() && backend_->outstanding() == 0) {
+        const bool finished = complete_spine_update_trace_batch();
+        if (finished) {
+          const bool success = !spine_maintenance_->failed() &&
+                               update_trace_batch_index_ ==
+                                   spine_update_batches_.size() &&
+                               update_trace_correctness_mismatches_ == 0;
+          write_result(success);
+          primaryComponentOKToEndSim();
+          return true;
+        }
       }
     } else if (mode_ == "spine_maintenance") {
       const bool graph_ports_idle = std::all_of(
@@ -4010,7 +4165,7 @@ class OnlineMemoryProbe final : public SST::Component {
        ""},
       {"mode",
        "probe, payload_roundtrip, spine_vertical, spine_maintenance, "
-       "spine_compute, spine_sssp, "
+       "spine_compute, spine_sssp, spine_update_trace, "
        "or "
        "spine_pagerank/spine_residual_pagerank/"
        "spine_connected_components/grasu_regraph_sssp/"
@@ -4019,10 +4174,12 @@ class OnlineMemoryProbe final : public SST::Component {
        "grasu_regraph_hls_weighted_residual_pagerank/"
        "grasu_regraph_pagerank/grasu_regraph_residual_pagerank/"
        "grasu_regraph_connected_components/"
-       "grasu_regraph_partitioned_dynamic_pagerank",
+       "grasu_regraph_partitioned_dynamic_pagerank/grasu_update_trace",
        "probe"},
       {"workload", "Spine .slice workload path", ""},
       {"update_workload", "Optional positive incremental Spine .slice", ""},
+      {"update_batch_count",
+       "Number of persistent update-only kernel batches", "1"},
       {"preload_workload", "Optional pre-existing Spine L0 .slice", ""},
       {"carry_history_workload",
        "Untimed chronological insertion history for an RQ3 carry state", ""},
@@ -4235,6 +4392,271 @@ class OnlineMemoryProbe final : public SST::Component {
        "SST::Interfaces::StandardMem"})
 
  private:
+  void apply_spine_update_oracle(const SpineEdgeSlice &batch) {
+    for (const SpineEdgeRecord &edge : batch.edges) {
+      const std::uint64_t key = update_edge_key(edge.src, edge.dst);
+      if (edge.diff < 0) {
+        const auto found = spine_update_oracle_.find(key);
+        if (found == spine_update_oracle_.end() ||
+            found->second != edge.weight) {
+          ++update_trace_correctness_mismatches_;
+        } else {
+          spine_update_oracle_.erase(found);
+        }
+      } else {
+        spine_update_oracle_[key] = edge.weight;
+      }
+    }
+  }
+
+  std::map<std::uint16_t, std::int64_t> spine_state_weights_for_key(
+      std::uint32_t source, std::uint32_t destination) const {
+    const SpineL0Config &config = spine_maintenance_->config();
+    const bool hot = spine_maintenance_state_.hot_enabled &&
+                     spine_maintenance_state_.hot_vertices.contains(
+                         destination);
+    const std::size_t family =
+        hot ? spine_hot_shard(destination)
+            : std::min<std::size_t>(destination /
+                                        config.vertex_partition_size,
+                                    config.partitions - 1);
+    const auto &levels = hot ? spine_maintenance_state_.hot_levels[family]
+                             : spine_maintenance_state_.cold_levels[family];
+    std::map<std::uint16_t, std::int64_t> weights;
+    for (std::size_t level = 0; level < config.levels; ++level) {
+      const auto &edges = levels[level];
+      const auto begin = std::lower_bound(
+          edges.begin(), edges.end(), std::pair(source, destination),
+          [](const SpineEdgeRecord &edge,
+             const std::pair<std::uint32_t, std::uint32_t> &key) {
+            return std::pair(edge.src, edge.dst) < key;
+          });
+      for (auto edge = begin;
+           edge != edges.end() && edge->src == source &&
+           edge->dst == destination;
+           ++edge) {
+        weights[edge->weight] += edge->diff;
+      }
+    }
+    return weights;
+  }
+
+  std::uint64_t
+  validate_spine_changed_keys(const SpineEdgeSlice &batch) const {
+    std::set<std::uint64_t> changed;
+    for (const SpineEdgeRecord &edge : batch.edges) {
+      changed.insert(update_edge_key(edge.src, edge.dst));
+    }
+    std::uint64_t mismatches = 0;
+    for (const std::uint64_t key : changed) {
+      const std::uint32_t source = static_cast<std::uint32_t>(key >> 32);
+      const std::uint32_t destination = static_cast<std::uint32_t>(key);
+      const auto weights = spine_state_weights_for_key(source, destination);
+      std::optional<std::uint16_t> actual;
+      bool invalid_multiplicity = false;
+      for (const auto [weight, count] : weights) {
+        if (count > 0) {
+          if (count != 1 || actual.has_value()) {
+            invalid_multiplicity = true;
+          }
+          actual = weight;
+        } else if (count < 0) {
+          invalid_multiplicity = true;
+        }
+      }
+      const auto expected = spine_update_oracle_.find(key);
+      if (invalid_multiplicity ||
+          (expected == spine_update_oracle_.end()) != !actual.has_value() ||
+          (expected != spine_update_oracle_.end() &&
+           actual.value_or(0) != expected->second)) {
+        ++mismatches;
+      }
+    }
+    return mismatches;
+  }
+
+  std::uint64_t validate_spine_final_state() const {
+    std::map<std::tuple<std::uint32_t, std::uint32_t, std::uint16_t>,
+             std::int64_t>
+        counts;
+    for (const auto *families : {&spine_maintenance_state_.cold_levels,
+                                 &spine_maintenance_state_.hot_levels}) {
+      for (const auto &levels : *families) {
+        for (const auto &edges : levels) {
+          for (const SpineEdgeRecord &edge : edges) {
+            counts[{edge.src, edge.dst, edge.weight}] += edge.diff;
+          }
+        }
+      }
+    }
+    std::unordered_map<std::uint64_t, std::uint16_t> actual;
+    std::uint64_t mismatches = 0;
+    for (const auto &[edge, count] : counts) {
+      if (count == 0) {
+        continue;
+      }
+      if (count != 1) {
+        ++mismatches;
+        continue;
+      }
+      const auto [source, destination, weight] = edge;
+      const std::uint64_t key = update_edge_key(source, destination);
+      if (!actual.emplace(key, weight).second) {
+        ++mismatches;
+      }
+    }
+    if (actual.size() != spine_update_oracle_.size()) {
+      ++mismatches;
+    }
+    for (const auto &[key, weight] : actual) {
+      const auto expected = spine_update_oracle_.find(key);
+      if (expected == spine_update_oracle_.end() ||
+          expected->second != weight) {
+        ++mismatches;
+      }
+    }
+    return mismatches;
+  }
+
+  bool complete_spine_update_trace_batch() {
+    if (spine_maintenance_->failed()) {
+      return true;
+    }
+    const SpineEdgeSlice &batch =
+        spine_update_batches_.at(update_trace_batch_index_);
+    apply_spine_update_oracle(batch);
+    const std::uint64_t mismatches = validate_spine_changed_keys(batch);
+    update_trace_correctness_mismatches_ += mismatches;
+    const MemoryTrafficStats traffic_after = backend_->traffic_stats();
+    update_trace_evidence_.push_back(PersistentUpdateBatchEvidence{
+        .updates = batch.edges.size(),
+        .start_cycle = update_trace_batch_start_cycle_,
+        .end_cycle = scheduler_.clock(0).completed_cycles,
+        .correctness_mismatches = mismatches,
+        .traffic = subtract_memory_traffic(traffic_after,
+                                           update_trace_traffic_baseline_),
+    });
+    update_trace_traffic_baseline_ = traffic_after;
+    ++update_trace_batch_index_;
+    if (update_trace_batch_index_ == spine_update_batches_.size()) {
+      update_trace_correctness_mismatches_ += validate_spine_final_state();
+      return true;
+    }
+    backend_->begin_traffic_epoch();
+    spine_maintenance_->reset_batch(
+        spine_update_batches_.at(update_trace_batch_index_));
+    update_trace_batch_start_cycle_ = scheduler_.clock(0).completed_cycles;
+    return false;
+  }
+
+  void apply_grasu_update_oracle(const std::vector<GraSuEdge> &batch) {
+    for (const GraSuEdge &edge : batch) {
+      const std::uint64_t key = update_edge_key(edge.source, edge.destination);
+      if (edge.delete_op) {
+        const auto found = grasu_update_oracle_.find(key);
+        if (found == grasu_update_oracle_.end() ||
+            found->second != edge.weight) {
+          ++update_trace_correctness_mismatches_;
+        } else {
+          grasu_update_oracle_.erase(found);
+        }
+      } else {
+        grasu_update_oracle_[key] = edge.weight;
+      }
+    }
+  }
+
+  std::uint64_t validate_grasu_changed_keys(
+      const GraSuPartitionedPmaLayout &layout,
+      const std::vector<GraSuEdge> &batch) const {
+    std::map<std::uint64_t, GraSuEdge> changed;
+    for (const GraSuEdge &edge : batch) {
+      changed[update_edge_key(edge.source, edge.destination)] = edge;
+    }
+    std::uint64_t mismatches = 0;
+    for (const auto &[key, edge] : changed) {
+      const std::size_t partition =
+          layout.partition_for_destination(edge.destination);
+      const GraSuPmaLayout &part = layout.partitions.at(partition);
+      const std::size_t segment = part.segment_for(edge);
+      std::optional<std::uint16_t> actual;
+      for (const std::uint32_t encoded : part.segments.at(segment)) {
+        if (!is_grasu_pma_empty(encoded) &&
+            part.destination_base +
+                    decode_grasu_pma_destination(encoded) ==
+                edge.destination) {
+          actual = decode_grasu_pma_weight(encoded);
+          break;
+        }
+      }
+      const auto expected = grasu_update_oracle_.find(key);
+      if ((expected == grasu_update_oracle_.end()) != !actual.has_value() ||
+          (expected != grasu_update_oracle_.end() &&
+           actual.value_or(0) != expected->second)) {
+        ++mismatches;
+      }
+    }
+    return mismatches;
+  }
+
+  bool complete_grasu_update_trace_batch() {
+    if (grasu_update_system_->failed()) {
+      return true;
+    }
+    if (!grasu_update_system_->done() || backend_->outstanding() != 0) {
+      return false;
+    }
+    const std::vector<GraSuEdge> &batch =
+        grasu_update_batches_.at(update_trace_batch_index_);
+    apply_grasu_update_oracle(batch);
+    GraSuPartitionedPmaLayout resident =
+        grasu_update_system_->take_resident_partitioned_layout();
+    const std::uint64_t mismatches =
+        validate_grasu_changed_keys(resident, batch);
+    update_trace_correctness_mismatches_ += mismatches;
+    const MemoryTrafficStats traffic_after = backend_->traffic_stats();
+    update_trace_evidence_.push_back(PersistentUpdateBatchEvidence{
+        .updates = batch.size(),
+        .start_cycle = update_trace_batch_start_cycle_,
+        .end_cycle = scheduler_.clock(0).completed_cycles,
+        .correctness_mismatches = mismatches,
+        .traffic = subtract_memory_traffic(traffic_after,
+                                           update_trace_traffic_baseline_),
+    });
+    update_trace_traffic_baseline_ = traffic_after;
+    grasu_update_system_->unregister_components();
+    grasu_update_system_.reset();
+    ++update_trace_batch_index_;
+    grasu_partitioned_layout_ = std::move(resident);
+    if (update_trace_batch_index_ == grasu_update_batches_.size()) {
+      const auto actual = grasu_partitioned_layout_.live_edges();
+      if (actual.size() != grasu_update_oracle_.size()) {
+        ++update_trace_correctness_mismatches_;
+      } else {
+        for (const GraSuEdge &edge : actual) {
+          const auto expected = grasu_update_oracle_.find(
+              update_edge_key(edge.source, edge.destination));
+          if (expected == grasu_update_oracle_.end() ||
+              expected->second != edge.weight) {
+            ++update_trace_correctness_mismatches_;
+          }
+        }
+      }
+      return true;
+    }
+
+    backend_->begin_traffic_epoch();
+    grasu_update_config_.initiator_base = static_cast<std::uint32_t>(
+        3000 + update_trace_batch_index_ * 64);
+    grasu_update_system_ = std::make_unique<GraSuPmaUpdateSystem>(
+        scheduler_, 0, *backend_, std::move(grasu_partitioned_layout_),
+        grasu_update_batches_.at(update_trace_batch_index_),
+        grasu_update_config_, false);
+    grasu_update_system_->register_components();
+    update_trace_batch_start_cycle_ = scheduler_.clock(0).completed_cycles;
+    return false;
+  }
+
   void write_spine_resident_classification(std::ostream &result) const {
     const char *policy =
         !spine_resident_classification_valid_
@@ -4364,8 +4786,14 @@ class OnlineMemoryProbe final : public SST::Component {
                   ? "bootstrap"
                   : "compute";
       iteration = sst_rounds_.size() + 1;
-    } else if (mode_ == "spine_maintenance") {
+    } else if (mode_ == "spine_maintenance" ||
+               mode_ == "spine_update_trace") {
       phase = "update";
+      if (mode_ == "spine_update_trace") {
+        iteration = update_trace_batch_index_ + 1;
+        completed = update_trace_batch_index_;
+        total = spine_update_batches_.size();
+      }
     }
 
     const std::filesystem::path target(progress_path_);
@@ -4421,6 +4849,106 @@ class OnlineMemoryProbe final : public SST::Component {
     result_written_ = true;
     result_success_ = success;
     std::ofstream result(result_path_);
+    if (mode_ == "spine_update_trace") {
+      std::vector<std::size_t> batch_updates;
+      std::vector<std::uint64_t> batch_cycles;
+      std::vector<std::uint64_t> batch_mismatches;
+      std::uint64_t device_cycles = 0;
+      for (const PersistentUpdateBatchEvidence &batch :
+           update_trace_evidence_) {
+        batch_updates.push_back(batch.updates);
+        const std::uint64_t cycles = batch.end_cycle - batch.start_cycle;
+        batch_cycles.push_back(cycles);
+        batch_mismatches.push_back(batch.correctness_mismatches);
+        device_cycles += cycles;
+      }
+      const bool passed = success &&
+                          update_trace_evidence_.size() ==
+                              spine_update_batches_.size() &&
+                          update_trace_correctness_mismatches_ == 0;
+      result << "{\n"
+             << "  \"success\": " << (passed ? "true" : "false")
+             << ",\n"
+             << "  \"mode\": \"spine_update_trace\",\n"
+             << "  \"measurement_window\": \"pure_update_only\",\n"
+             << "  \"trace_aware_layout\": false,\n"
+             << "  \"resident_state_persistent\": true,\n"
+             << "  \"graph_compute_executed\": false,\n"
+             << "  \"backend\": \"" << backend_->backend_label()
+             << "\",\n"
+             << "  \"core_mhz\": " << core_mhz_ << ",\n"
+             << "  \"batch_count\": " << update_trace_evidence_.size()
+             << ",\n"
+             << "  \"logical_updates\": " << spine_expected_edges_
+             << ",\n"
+             << "  \"device_cycles\": " << device_cycles << ",\n"
+             << "  \"correctness_mismatches\": "
+             << update_trace_correctness_mismatches_ << ",\n"
+             << "  \"final_edges\": " << spine_update_oracle_.size()
+             << ",\n";
+      write_spine_resident_classification(result);
+      result << "  \"batch_updates\": ";
+      write_json_array(result, batch_updates);
+      result << ",\n  \"batch_cycles\": ";
+      write_json_array(result, batch_cycles);
+      result << ",\n  \"batch_correctness_mismatches\": ";
+      write_json_array(result, batch_mismatches);
+      result << ",\n  \"backend_traffic\": ";
+      write_memory_traffic(result, backend_->traffic_stats());
+      result << "\n}\n";
+      return;
+    }
+    if (mode_ == "grasu_update_trace") {
+      std::vector<std::size_t> batch_updates;
+      std::vector<std::uint64_t> batch_cycles;
+      std::vector<std::uint64_t> batch_mismatches;
+      batch_updates.reserve(update_trace_evidence_.size());
+      batch_cycles.reserve(update_trace_evidence_.size());
+      batch_mismatches.reserve(update_trace_evidence_.size());
+      std::uint64_t device_cycles = 0;
+      for (const PersistentUpdateBatchEvidence &batch :
+           update_trace_evidence_) {
+        batch_updates.push_back(batch.updates);
+        const std::uint64_t cycles = batch.end_cycle - batch.start_cycle;
+        batch_cycles.push_back(cycles);
+        batch_mismatches.push_back(batch.correctness_mismatches);
+        device_cycles += cycles;
+      }
+      const bool passed = success &&
+                          update_trace_evidence_.size() ==
+                              grasu_update_batches_.size() &&
+                          update_trace_correctness_mismatches_ == 0;
+      result << "{\n"
+             << "  \"success\": " << (passed ? "true" : "false")
+             << ",\n"
+             << "  \"mode\": \"grasu_update_trace\",\n"
+             << "  \"measurement_window\": \"pure_update_only\",\n"
+             << "  \"trace_aware_layout\": true,\n"
+             << "  \"resident_state_persistent\": true,\n"
+             << "  \"graph_compute_executed\": false,\n"
+             << "  \"backend\": \"" << backend_->backend_label()
+             << "\",\n"
+             << "  \"core_mhz\": " << core_mhz_ << ",\n"
+             << "  \"batch_count\": " << update_trace_evidence_.size()
+             << ",\n"
+             << "  \"logical_updates\": " << grasu_logical_update_edges_
+             << ",\n"
+             << "  \"device_cycles\": " << device_cycles << ",\n"
+             << "  \"correctness_mismatches\": "
+             << update_trace_correctness_mismatches_ << ",\n"
+             << "  \"final_edges\": " << grasu_update_oracle_.size()
+             << ",\n"
+             << "  \"batch_updates\": ";
+      write_json_array(result, batch_updates);
+      result << ",\n  \"batch_cycles\": ";
+      write_json_array(result, batch_cycles);
+      result << ",\n  \"batch_correctness_mismatches\": ";
+      write_json_array(result, batch_mismatches);
+      result << ",\n  \"backend_traffic\": ";
+      write_memory_traffic(result, backend_->traffic_stats());
+      result << "\n}\n";
+      return;
+    }
     if (mode_ == "spine_connected_components") {
       const std::vector<std::uint32_t> labels =
           pagerank_system_->compute().rank_words();
@@ -9813,6 +10341,7 @@ class OnlineMemoryProbe final : public SST::Component {
   std::string direct_dram_output_path_;
   std::string workload_path_;
   std::string update_workload_path_;
+  std::size_t update_batch_count_{};
   std::string preload_path_;
   std::string carry_history_path_;
   std::string hot_vertices_text_;
@@ -9904,6 +10433,8 @@ class OnlineMemoryProbe final : public SST::Component {
   std::unique_ptr<FixedAxiPort> spine_maintenance_metadata_;
   std::unique_ptr<FixedAxiPort> spine_maintenance_result_;
   SpineL0State spine_maintenance_state_;
+  std::vector<SpineEdgeSlice> spine_update_batches_;
+  std::unordered_map<std::uint64_t, std::uint16_t> spine_update_oracle_;
   std::unique_ptr<SpineL0Maintenance> spine_maintenance_;
   std::unique_ptr<SpineVerticalSliceSystem> spine_system_;
   std::unique_ptr<SpinePageRankVerticalSliceSystem> pagerank_system_;
@@ -9920,6 +10451,13 @@ class OnlineMemoryProbe final : public SST::Component {
   GraSuReGraphConfig grasu_config_;
   GraSuPmaLayout grasu_layout_;
   GraSuPartitionedPmaLayout grasu_partitioned_layout_;
+  std::vector<std::vector<GraSuEdge>> grasu_update_batches_;
+  std::unordered_map<std::uint64_t, std::uint16_t> grasu_update_oracle_;
+  std::vector<PersistentUpdateBatchEvidence> update_trace_evidence_;
+  std::size_t update_trace_batch_index_{};
+  std::uint64_t update_trace_batch_start_cycle_{};
+  std::uint64_t update_trace_correctness_mismatches_{};
+  MemoryTrafficStats update_trace_traffic_baseline_;
   bool grasu_partitioned_execution_{};
   std::unique_ptr<GraSuPmaUpdateSystem> grasu_update_system_;
   std::unique_ptr<GraSuNativeCompactorSystem> grasu_compactor_system_;

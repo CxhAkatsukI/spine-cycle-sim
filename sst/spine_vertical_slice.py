@@ -66,6 +66,9 @@ probe.addParams(
         "direct_dram_output": str(dram_output),
         "workload": str(workload),
         "update_workload": update_workload,
+        "update_batch_count": int(
+            os.environ.get("SPINE_SST_UPDATE_BATCH_COUNT", "1")
+        ),
         "preload_workload": preload_workload,
         "carry_history_workload": carry_history_workload,
         "carry_history_batch_edges": int(

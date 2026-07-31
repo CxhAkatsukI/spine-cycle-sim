@@ -1896,7 +1896,7 @@ public:
         config_.partition_address_arena_base,
         config_.partition_address_alignment);
     validate_config();
-    validate_updates();
+    validate_updates(initialize_resident_state);
     construct_links_and_ports();
     initialize_payloads(initialize_resident_state);
     construct_components();
@@ -2205,6 +2205,26 @@ public:
     return resident;
   }
 
+  [[nodiscard]] GraSuPartitionedPmaLayout take_resident_partitioned_layout() {
+    if (!done()) {
+      throw std::logic_error(
+          "GraSU resident layout can only be moved after completion");
+    }
+    std::set<std::pair<std::size_t, std::size_t>> touched;
+    for (const GraSuEdge &edge : updates_) {
+      const std::size_t partition =
+          layout_.partition_for_destination(edge.destination);
+      const std::size_t segment =
+          layout_.partitions[partition].segment_for(edge);
+      touched.emplace(partition, segment);
+    }
+    for (const auto [partition, segment] : touched) {
+      layout_.partitions[partition].segments[segment] =
+          inspect_segment(partition, segment);
+    }
+    return std::move(layout_);
+  }
+
 private:
   struct SearchPortSet {
     std::unique_ptr<FixedAxiPort> updates;
@@ -2259,7 +2279,20 @@ private:
     return layout_.partitions.size() > 1;
   }
 
-  void validate_updates() const {
+  void validate_updates(bool validate_resident_state) const {
+    if (!validate_resident_state) {
+      for (const GraSuEdge &edge : updates_) {
+        if (config_.pma_word_abi == GraSuPmaWordAbi::kNativeRawDestination &&
+            edge.weight != 1) {
+          throw std::invalid_argument(
+              "native GraSU PMA supports unit-weight updates only");
+        }
+        const GraSuPmaLayout &partition = layout_.partition_for(edge);
+        validate_layout_edge(partition, edge);
+        (void)partition.segment_for(edge);
+      }
+      return;
+    }
     std::map<std::pair<std::uint32_t, std::uint32_t>, std::uint16_t> live;
     for (const GraSuEdge &edge : layout_.live_edges()) {
       if (config_.pma_word_abi == GraSuPmaWordAbi::kNativeRawDestination &&
@@ -2588,6 +2621,11 @@ GraSuPmaUpdateSystem::initial_partitioned_layout() const noexcept {
 GraSuPartitionedPmaLayout
 GraSuPmaUpdateSystem::resident_partitioned_layout() const {
   return impl_->resident_partitioned_layout();
+}
+
+GraSuPartitionedPmaLayout
+GraSuPmaUpdateSystem::take_resident_partitioned_layout() {
+  return impl_->take_resident_partitioned_layout();
 }
 
 } // namespace spine::sim
