@@ -2795,7 +2795,19 @@ class OnlineMemoryProbe final : public SST::Component {
       grasu_partitioned_execution_ =
           partitioned_dynamic_pagerank ||
           initial.vertices > grasu_config_.partition_vertices;
-      if (native_grasu_sssp) {
+      if (grasu_update_trace) {
+        GraSuNativeReorderedGraph reordered = reorder_grasu_native_graph(
+            initial.vertices, initial_edges, updates);
+        initial_edges = std::move(reordered.initial_edges);
+        updates = std::move(reordered.updates);
+        reserved_updates.clear();
+        for (const GraSuEdge &edge : updates) {
+          if (!edge.delete_op) {
+            reserved_updates.push_back(edge);
+          }
+        }
+        grasu_native_host_reorder_applied_ = true;
+      } else if (native_grasu_sssp) {
         if (source_vertex_ >= initial.vertices) {
           throw std::invalid_argument(
               "native GraSU source vertex is outside the graph");

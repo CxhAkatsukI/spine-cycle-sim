@@ -118,7 +118,7 @@ probe.addParams(
             os.environ.get("GRASU_SST_CACHE_SEGMENTS_PER_HALF", "131072")
         ),
         "grasu_partition_vertices": int(
-            os.environ.get("GRASU_SST_PARTITION_VERTICES", "16")
+            os.environ.get("GRASU_SST_PARTITION_VERTICES", "65536")
         ),
         "grasu_compute_pipelines": int(
             os.environ.get("GRASU_SST_COMPUTE_PIPELINES", "1")

@@ -1,0 +1,34 @@
+\documentclass[tikz,border=2pt]{standalone}
+\usepackage{pgfplots}
+\usepgfplotslibrary{groupplots}
+\pgfplotsset{compat=1.18}
+\definecolor{spineblue}{HTML}{1F77B4}
+\definecolor{grasuorange}{HTML}{D95F02}
+\begin{document}
+\begin{tikzpicture}
+\begin{groupplot}[
+  group style={group size=2 by 1,horizontal sep=1.25cm},
+  width=7.2cm,height=5.3cm,
+  xmode=log,log basis x=2,ymode=log,
+  xtick={64,1024,16384,131072},
+  xticklabels={64,1K,16K,131K},
+  xlabel={Mutations in trace (10 batches)},
+  grid=major,grid style={dashed,gray!35},
+  tick align=inside,
+  legend style={draw=none,at={(0.02,0.98)},anchor=north west},
+  every axis plot/.append style={thick},
+]
+\nextgroupplot[
+  title={Device-only update path},
+  ylabel={Successful mutations/s (million)},
+]
+\addplot[spineblue,mark=square*] table[x=logical_updates,y=spine_device_mups,col sep=comma] {/home/chuxiao/spine-cycle-sim-update-only/docs/paper/data/persistent_update_only_20260731.csv};
+\addlegendentry{Spine}
+\addplot[grasuorange,mark=*] table[x=logical_updates,y=grasu_device_mups,col sep=comma] {/home/chuxiao/spine-cycle-sim-update-only/docs/paper/data/persistent_update_only_20260731.csv};
+\addlegendentry{GraSU}
+\nextgroupplot[title={Trace setup-inclusive}]
+\addplot[spineblue,mark=square*] table[x=logical_updates,y=spine_setup_inclusive_mups,col sep=comma] {/home/chuxiao/spine-cycle-sim-update-only/docs/paper/data/persistent_update_only_20260731.csv};
+\addplot[grasuorange,mark=*] table[x=logical_updates,y=grasu_setup_inclusive_mups,col sep=comma] {/home/chuxiao/spine-cycle-sim-update-only/docs/paper/data/persistent_update_only_20260731.csv};
+\end{groupplot}
+\end{tikzpicture}
+\end{document}
