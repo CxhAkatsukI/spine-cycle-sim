@@ -9,9 +9,10 @@ and independent mathematical correctness oracles. Calibration rows alone fit
 the E2E model; holdout rows never enter fitting.
 
 The timed device boundary begins with a resident, sorted update buffer. Host
-DMA, an external FLiMS sort, and residual PageRank's host-side old/new-rank
-correction are not timed. `T_seed` is the device dirty-source publication and
-scheduling stage. These exclusions are recorded in every direct ledger.
+DMA and an external FLiMS sort are not timed. Residual PageRank's old/new-rank
+correction and seed generation execute inside the simulated device boundary;
+their serial device interval is attributed to `T_seed`. Every direct ledger
+records these boundary choices explicitly.
 
 ## Direct ten-stage ledger
 
@@ -28,7 +29,7 @@ Per-round reader and compute start/end timestamps then produce
 `T_resolve`, `T_app`, `T_drain`, and `T_sync`. If reader and app overlap, the
 interval is assigned to the component that gates completion. Thus the ten
 stages are an exclusive critical path and must sum exactly to measured E2E
-cycles. The current analysis has 40 direct ten-stage rows, and all 40 ledgers
+cycles. The current analysis has 44 direct ten-stage rows, and all 44 ledgers
 close.
 
 The five requested representative cases are:
@@ -38,7 +39,7 @@ The five requested representative cases are:
 | explicit zero-net | `rq3_zero_net_cc_u2` | 12,671 |
 | shallow insertion | `956dc075c0655ff4a984` | 3,898,885 |
 | deep carry | `rq3_trace_carry_l5_e8` | 31,249 |
-| high-degree PageRank correction | `rq3_flickr_residual_correction_u8_eps1e6` | 431,479 |
+| high-degree PageRank correction | `rq3_flickr_residual_correction_u8_eps1e6` | 370,417 |
 | deletion fallback | `9a1d01bee8913cff1075` | 18,668,757 |
 
 The zero-net representative requires the explicit `zero_net_no_repair` mode.
@@ -51,12 +52,12 @@ The analysis preserves all seven requested relations, including weak results:
 
 | mechanism | samples | all-row R2 | result |
 | --- | ---: | ---: | --- |
-| `T_xfer+T_reduce` vs. `W_sort(B)` | 40 | approximately 0.02 | batch records alone omit fixed and contention effects |
+| `T_xfer+T_reduce` vs. `W_sort(B)` | 44 | 0.0149 | batch records alone omit fixed and contention effects |
 | `T_carry` vs. `W_carry` | 5 | 0.9962 | realized carry records strongly explain carry time |
-| `T_dir` vs. directory requests | 40 | approximately 0.998 | direct request count explains the covered directory path |
-| `T_resolve+T_app` vs. `M_phys` | 40 | approximately 0.964 | physical records explain most propagation variation |
-| `T_seed` vs. `M_seed` | 36 | approximately 1.000 | dirty-source publication is nearly linear |
-| `T_switch` vs. touched pages plus descriptors | 40 | approximately 0.86 | useful but incomplete across mixed classes |
+| `T_dir` vs. directory requests | 44 | 0.9984 | direct request count explains the covered directory path |
+| `T_resolve+T_app` vs. `M_phys` | 44 | 0.4735 | physical records alone omit vertex apply and algorithm-state work |
+| `T_seed` vs. `M_seed` | 41 | 0.9784 | seed work remains strongly predictive after device correction is included |
+| `T_switch` vs. touched pages plus descriptors | 44 | 0.8696 | useful but incomplete across mixed classes |
 | `T_drain` vs. source services plus reactivations | 37 | approximately 0.30 | one scalar does not explain topology and backpressure |
 
 Weak single-variable relations are reported rather than hidden. They mean the
@@ -71,13 +72,13 @@ operations. Full PageRank is excluded because it is a full iteration rather
 than a dynamic differential round. Variance-stabilized fitting prevents the
 largest traces from completely dominating relative error.
 
-Current evidence contains 91 correctness-admitted rows, 42 calibration rows,
+Current evidence contains 95 correctness-admitted rows, 46 calibration rows,
 and 39 real trace holdouts. On the real holdout:
 
-- R2: 0.941;
-- median absolute error: 24.45 percent;
-- mean absolute error: 27.89 percent;
-- maximum absolute error: 81.68 percent.
+- R2: 0.933;
+- median absolute error: 26.46 percent;
+- mean absolute error: 27.38 percent;
+- maximum absolute error: 71.66 percent.
 
 This supports bottleneck attribution and trend-level latency prediction. It
 does not support a claim of cycle-for-cycle FPGA calibration or uniformly low
