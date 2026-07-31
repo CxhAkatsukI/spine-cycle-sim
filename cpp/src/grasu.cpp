@@ -1883,11 +1883,12 @@ class GraSuPmaUpdateSystem::Impl {
 public:
   Impl(Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
        GraSuPartitionedPmaLayout layout, std::vector<GraSuEdge> updates,
-       GraSuNativeConfig config)
+       GraSuNativeConfig config, bool initialize_resident_state)
       : scheduler_(scheduler), clock_id_(clock_id), backend_(backend),
         layout_(std::move(layout)), updates_(std::move(updates)),
         config_(config),
         start_cycle_(scheduler.clock(clock_id).completed_cycles) {
+    next_initiator_ = config_.initiator_base;
     address_plan_ = make_grasu_partition_address_plan(
         layout_, config_.packed_partition_addresses, config_.row_offset_base,
         config_.binary_base, config_.pma_base,
@@ -1897,7 +1898,7 @@ public:
     validate_config();
     validate_updates();
     construct_links_and_ports();
-    initialize_payloads();
+    initialize_payloads(initialize_resident_state);
     construct_components();
   }
 
@@ -2192,6 +2193,18 @@ public:
     return layout_;
   }
 
+  [[nodiscard]] GraSuPartitionedPmaLayout resident_partitioned_layout() const {
+    GraSuPartitionedPmaLayout resident = layout_;
+    for (std::size_t partition = 0; partition < resident.partitions.size();
+         ++partition) {
+      GraSuPmaLayout &part = resident.partitions[partition];
+      for (std::size_t segment = 0; segment < part.segments.size(); ++segment) {
+        part.segments[segment] = inspect_segment(partition, segment);
+      }
+    }
+    return resident;
+  }
+
 private:
   struct SearchPortSet {
     std::unique_ptr<FixedAxiPort> updates;
@@ -2349,7 +2362,7 @@ private:
     }
   }
 
-  void initialize_payloads() {
+  void initialize_payloads(bool initialize_resident_state) {
     std::array<std::vector<GraSuEdge>, 4> striped;
     for (std::size_t index = 0; index < updates_.size(); ++index) {
       striped[index & 3U].push_back(updates_[index]);
@@ -2377,16 +2390,20 @@ private:
       }
       backend_.initialize_payload(channel, config_.update_base, update_bytes);
     }
-    for (std::size_t partition = 0; partition < layout_.partitions.size();
-         ++partition) {
-      GraSuNativeConfig partition_config = config_;
-      partition_config.row_offset_base = address_plan_.row_bases.at(partition);
-      partition_config.binary_base = address_plan_.binary_bases.at(partition);
-      partition_config.pma_base = address_plan_.pma_bases.at(partition);
-      initialize_grasu_pma_layout_payloads(
-          backend_, layout_.partitions[partition], partition_config);
+    if (initialize_resident_state) {
+      for (std::size_t partition = 0; partition < layout_.partitions.size();
+           ++partition) {
+        GraSuNativeConfig partition_config = config_;
+        partition_config.row_offset_base =
+            address_plan_.row_bases.at(partition);
+        partition_config.binary_base =
+            address_plan_.binary_bases.at(partition);
+        partition_config.pma_base = address_plan_.pma_bases.at(partition);
+        initialize_grasu_pma_layout_payloads(
+            backend_, layout_.partitions[partition], partition_config);
+      }
     }
-    if (config_.maintain_out_degree) {
+    if (config_.maintain_out_degree && initialize_resident_state) {
       std::vector<std::uint32_t> degrees(layout_.vertices);
       for (const GraSuEdge &edge : layout_.live_edges()) {
         ++degrees[edge.source];
@@ -2503,21 +2520,24 @@ GraSuPmaUpdateSystem::GraSuPmaUpdateSystem(Scheduler &scheduler,
                                            MemoryBackend &backend,
                                            GraSuPmaLayout layout,
                                            std::vector<GraSuEdge> updates,
-                                           GraSuNativeConfig config)
+                                           GraSuNativeConfig config,
+                                           bool initialize_resident_state)
     : impl_(
           std::make_unique<Impl>(scheduler, clock_id, backend,
                                  one_partition_update_layout(std::move(layout)),
-                                 std::move(updates), config)) {}
+                                 std::move(updates), config,
+                                 initialize_resident_state)) {}
 
 GraSuPmaUpdateSystem::GraSuPmaUpdateSystem(Scheduler &scheduler,
                                            ClockId clock_id,
                                            MemoryBackend &backend,
                                            GraSuPartitionedPmaLayout layout,
                                            std::vector<GraSuEdge> updates,
-                                           GraSuNativeConfig config)
+                                           GraSuNativeConfig config,
+                                           bool initialize_resident_state)
     : impl_(std::make_unique<Impl>(scheduler, clock_id, backend,
                                    std::move(layout), std::move(updates),
-                                   config)) {}
+                                   config, initialize_resident_state)) {}
 
 GraSuPmaUpdateSystem::~GraSuPmaUpdateSystem() = default;
 
@@ -2563,6 +2583,11 @@ const GraSuPmaLayout &GraSuPmaUpdateSystem::initial_layout() const noexcept {
 const GraSuPartitionedPmaLayout &
 GraSuPmaUpdateSystem::initial_partitioned_layout() const noexcept {
   return impl_->initial_partitioned_layout();
+}
+
+GraSuPartitionedPmaLayout
+GraSuPmaUpdateSystem::resident_partitioned_layout() const {
+  return impl_->resident_partitioned_layout();
 }
 
 } // namespace spine::sim

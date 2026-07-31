@@ -172,6 +172,9 @@ struct GraSuNativeConfig {
   std::size_t degree_channel{30};
   std::size_t degree_fifo_depth{16};
   std::size_t degree_reorder_entries{4096};
+  // Consecutive kernel launches sharing one backend need disjoint simulator
+  // initiator IDs because MemoryBackend retains traffic accounting by ID.
+  std::uint32_t initiator_base{3000};
 };
 
 struct GraSuUpdateCounters {
@@ -221,12 +224,14 @@ class GraSuPmaUpdateSystem {
   GraSuPmaUpdateSystem(Scheduler &scheduler, ClockId clock_id,
                        MemoryBackend &backend, GraSuPmaLayout layout,
                        std::vector<GraSuEdge> updates,
-                       GraSuNativeConfig config = {});
+                       GraSuNativeConfig config = {},
+                       bool initialize_resident_state = true);
   GraSuPmaUpdateSystem(Scheduler &scheduler, ClockId clock_id,
                        MemoryBackend &backend,
                        GraSuPartitionedPmaLayout layout,
                        std::vector<GraSuEdge> updates,
-                       GraSuNativeConfig config = {});
+                       GraSuNativeConfig config = {},
+                       bool initialize_resident_state = true);
   ~GraSuPmaUpdateSystem();
 
   GraSuPmaUpdateSystem(const GraSuPmaUpdateSystem &) = delete;
@@ -246,6 +251,10 @@ class GraSuPmaUpdateSystem {
   [[nodiscard]] const GraSuPmaLayout &initial_layout() const noexcept;
   [[nodiscard]] const GraSuPartitionedPmaLayout &
   initial_partitioned_layout() const noexcept;
+  // Captures the PMA payload currently resident in memory while preserving the
+  // trace-aware reservation map. Pass this to a later launch with
+  // initialize_resident_state=false to model persistent multi-batch service.
+  [[nodiscard]] GraSuPartitionedPmaLayout resident_partitioned_layout() const;
 
  private:
   class Impl;

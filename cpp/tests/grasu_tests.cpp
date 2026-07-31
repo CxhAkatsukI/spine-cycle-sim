@@ -542,6 +542,72 @@ void test_native_update_crosses_cache_ddr_and_parity() {
             << " hbm_stalls=" << backend.stats().submit_stalls << '\n';
 }
 
+void test_trace_aware_layout_persists_across_kernel_batches() {
+  const std::vector<GraSuEdge> initial = {
+      {.source = 0, .destination = 1, .weight = 4},
+  };
+  const std::vector<GraSuEdge> first_batch = {
+      {.source = 0, .destination = 2, .weight = 7},
+  };
+  const std::vector<GraSuEdge> second_batch = {
+      {.source = 0, .destination = 2, .weight = 7, .delete_op = true},
+      {.source = 1, .destination = 3, .weight = 5},
+  };
+  const std::vector<GraSuEdge> future_insertions = {
+      first_batch.front(), second_batch.back()};
+  GraSuPartitionedPmaLayout resident = GraSuPartitionedPmaLayout::build(
+      8, 4, initial, future_insertions);
+
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("grasu-persistent-batches", 200.0);
+  MockMemoryBackend backend(
+      "shared-hbm", core,
+      MockMemoryConfig{.channels = 32,
+                       .latency_cycles = 7,
+                       .accepts_per_channel_per_cycle = 1,
+                       .max_outstanding_per_channel = 32,
+                       .response_queue_depth = 128});
+  scheduler.add_component(backend);
+
+  GraSuNativeConfig first_config;
+  first_config.cache_segments_per_half = 1;
+  first_config.initiator_base = 3000;
+  {
+    GraSuPmaUpdateSystem first(scheduler, core, backend, resident, first_batch,
+                               first_config);
+    first.register_components();
+    scheduler.run_until([&] { return first.done() || first.failed(); },
+                        500'000);
+    require(first.done() && !first.failed(),
+            "first persistent GraSU batch did not complete");
+    require(weighted_edge_map(first.live_edges()) ==
+                WeightedEdgeMap{{{0, 1}, 4}, {{0, 2}, 7}},
+            "first persistent GraSU batch produced the wrong graph");
+    resident = first.resident_partitioned_layout();
+    first.unregister_components();
+  }
+
+  GraSuNativeConfig second_config = first_config;
+  second_config.initiator_base = 3100;
+  {
+    GraSuPmaUpdateSystem second(scheduler, core, backend, resident,
+                                second_batch, second_config, false);
+    second.register_components();
+    scheduler.run_until([&] { return second.done() || second.failed(); },
+                        500'000);
+    require(second.done() && !second.failed(),
+            "second persistent GraSU batch did not complete");
+    require(weighted_edge_map(second.live_edges()) ==
+                WeightedEdgeMap{{{0, 1}, 4}, {{1, 3}, 5}},
+            "second batch did not consume the first batch's resident state");
+    const auto counters = second.counters();
+    require(counters.updates == second_batch.size() && counters.deletes == 1 &&
+                counters.inserts == 1,
+            "second persistent batch operation ledger is incorrect");
+    second.unregister_components();
+  }
+}
+
 void test_weighted_dynamic_pma_regraph_matches_dijkstra() {
   const std::vector<GraSuEdge> initial = {
       {.source = 0, .destination = 1, .weight = 8},
@@ -2458,6 +2524,8 @@ int main() {
       {"partitioned_pma_layout",
        test_partitioned_pma_layout_preserves_global_destinations},
       {"native_update_routes", test_native_update_crosses_cache_ddr_and_parity},
+      {"persistent_trace_batches",
+       test_trace_aware_layout_persists_across_kernel_batches},
       {"weighted_dynamic_sssp",
        test_weighted_dynamic_pma_regraph_matches_dijkstra},
       {"weighted_full_word_hls",
