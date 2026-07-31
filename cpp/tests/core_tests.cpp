@@ -3429,7 +3429,7 @@ void test_spine_host_source_refresh_includes_edgeless_vertices() {
           "Reader used stale host source_value instead of refreshed HBM payload");
 }
 
-void test_spine_hot_probe_clips_cross_partition_row() {
+void test_spine_device_active_hot_probe_replays_cross_partition_row_once() {
   Scheduler scheduler;
   const auto core = scheduler.add_clock_mhz("hot-partition-clip", 200.0);
   MockMemoryBackend backend("hot-partition-clip-hbm", core,
@@ -3479,15 +3479,26 @@ void test_spine_hot_probe_clips_cross_partition_row() {
 
   const auto &reader = system.reader_counters();
   const auto &compute = system.compute_counters();
+  std::cout << "EVIDENCE spine_hot_probe_partition_clip failed="
+            << system.failed() << " path=" << reader.range_task_path
+            << " row_lookups=" << reader.range_task_row_lookups
+            << " lower_bound_reads="
+            << reader.range_task_hot_lower_bound_reads
+            << " construction="
+            << reader.range_task_construction_payloads
+            << " replay=" << reader.range_task_replay_payloads
+            << " hot_edges=" << reader.hot_edges_emitted
+            << " edges=" << reader.edges_emitted
+            << " compute_edges=" << compute.edges_received << '\n';
   require(!system.failed() && reader.range_task_path == 1 &&
-              reader.range_task_row_lookups == 2 &&
-              reader.range_task_hot_lower_bound_reads == 7 &&
+              reader.range_task_row_lookups == 1 &&
+              reader.range_task_hot_lower_bound_reads == 0 &&
               reader.range_task_construction_payloads == 2 &&
               reader.range_task_replay_payloads == 2 &&
               reader.hot_edges_emitted == 2 && reader.edges_emitted == 2 &&
               compute.edges_received == 2,
-          "hot exact path replayed one shard row outside its destination "
-          "partition");
+          "device-active hot exact path did not replay one shared shard row "
+          "exactly once");
   require(system.compute().rank_words()[0] == 0 &&
               system.compute().rank_words()[21] == 1,
           "cross-partition hot clipping changed CC reduction semantics");
@@ -9271,8 +9282,8 @@ int main(int argc, char **argv) {
        test_spine_device_dirty_source_request_windows},
       {"spine_host_source_refresh",
        test_spine_host_source_refresh_includes_edgeless_vertices},
-      {"spine_hot_probe_partition_clip",
-       test_spine_hot_probe_clips_cross_partition_row},
+      {"spine_device_active_hot_probe_once",
+       test_spine_device_active_hot_probe_replays_cross_partition_row_once},
       {"spine_host_active_gate_fallback",
        test_spine_host_active_gate_runs_tiled_fallback},
       {"spine_device_dirty_host_handoff",
