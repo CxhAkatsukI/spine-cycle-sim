@@ -16,6 +16,12 @@ fi
 cd "${root}"
 bash scripts/analyze_formal_v7_primary.sh
 bash scripts/analyze_formal_v6_update_sweep.sh
+bash scripts/analyze_formal_v8_update_scaling.sh
+python3 scripts/collect_stopped_prefix_lower_bounds.py \
+  --campaign-state \
+    /data/tmp/chuxiao/large_graph_campaign_v1/formal_v6_stackoverflow_k4_three_algorithm_sidecar/run/campaign_state.json \
+  --system-rows "${analysis}/system_rows.csv" \
+  --out docs/evidence/formal_v7_stopped_prefix_lower_bounds_20260731.json
 SPINE_RQ3_OUTPUT_DIR="${rq3_analysis}" bash scripts/analyze_active_rq3.sh
 "${plot_python}" scripts/render_rq3_realized_work.py \
   --analysis-dir "${rq3_analysis}" \
@@ -28,7 +34,7 @@ python3 scripts/analyze_workload_component_energy.py \
   --out-dir docs/paper/data/workload_energy
 "${plot_python}" scripts/render_formal_v6_primary.py \
   --analysis-dir "${analysis}" \
-  --contract configs/contracts/large_graph_publication_campaign_fullgraph_v7.json \
+  --contract configs/contracts/large_graph_publication_campaign_fullgraph_v8.json \
   --wall-time-projection \
     docs/evidence/formal_v7_large_sssp_runtime_projection_20260731.json \
   --data-dir "${data}" \
@@ -48,6 +54,7 @@ python3 scripts/audit_formal_v6_evidence_package.py \
   --correctness-rows "${data}/correctness_groups.csv" \
   --component-rows "${data}/component_activity.csv" \
   --update-rows "${data}/update_pairs.csv" \
+  --operation-update-rows "${data}/update_operation_pairs.csv" \
   --rq3-summary docs/paper/data/rq3/rq3_summary.json \
   --rq3-e2e-metrics docs/paper/data/rq3/rq3_e2e_metric_rows.csv \
   --out "${data}/evidence_package_audit.json" \

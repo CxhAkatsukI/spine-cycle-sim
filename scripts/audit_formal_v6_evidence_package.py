@@ -25,6 +25,9 @@ REQUIRED_UPDATE_GRID = {
     for scenario in ("insert", "delete", "weight_change")
     for batch in (1, 8, 64)
 }
+REQUIRED_UPDATE_SCALING_GRID = {
+    ("insert", batch) for batch in (64, 1_024, 16_384, 131_072)
+}
 REQUIRED_RQ3_CLASSES = {
     "zero_net",
     "shallow_insertion",
@@ -97,6 +100,7 @@ def audit_evidence_package(
     correctness_rows: Sequence[Mapping[str, object]],
     component_rows: Sequence[Mapping[str, object]],
     update_rows: Sequence[Mapping[str, object]],
+    operation_update_rows: Sequence[Mapping[str, object]],
     rq3_summary: Mapping[str, Any],
     rq3_coverage_rows: Sequence[Mapping[str, object]],
     rq3_regression_rows: Sequence[Mapping[str, object]],
@@ -166,9 +170,14 @@ def audit_evidence_package(
     )
     three_algorithm_matrix = len(complete_real_datasets) >= minimum_real_datasets
 
-    observed_update_grid = {
+    observed_update_scaling_grid = {
         (str(row.get("scenario", "")), int(row.get("batch_size", -1)))
         for row in update_rows
+    }
+    update_scaling = REQUIRED_UPDATE_SCALING_GRID <= observed_update_scaling_grid
+    observed_update_grid = {
+        (str(row.get("scenario", "")), int(row.get("batch_size", -1)))
+        for row in operation_update_rows
     }
     update_matrix = REQUIRED_UPDATE_GRID <= observed_update_grid
 
@@ -234,6 +243,7 @@ def audit_evidence_package(
         "cross_system_final_states_match_for_every_pair": correctness_closed,
         "three_algorithm_matrix_on_at_least_three_real_datasets": three_algorithm_matrix,
         "insert_delete_weight_change_batches_1_8_64_complete": update_matrix,
+        "insertion_batches_64_1024_16384_131072_complete": update_scaling,
         "five_rq3_representative_classes_ready": rq3_classes,
         "five_rq3_direct_ten_stage_ledgers_close": rq3_ten_stage,
         "seven_rq3_mechanism_relations_are_reported": rq3_regressions,
@@ -265,6 +275,10 @@ def audit_evidence_package(
                 {"scenario": scenario, "batch_size": batch}
                 for scenario, batch in sorted(observed_update_grid)
             ],
+            "observed_update_scaling_grid": [
+                {"scenario": scenario, "batch_size": batch}
+                for scenario, batch in sorted(observed_update_scaling_grid)
+            ],
             "ready_rq3_classes": sorted(ready_rq3_classes),
             "headline_rq3_r2": headline_r2,
             "direct_ten_stage_rows": int(
@@ -294,6 +308,11 @@ def main() -> int:
     )
     parser.add_argument("--update-rows", type=Path, default=PRIMARY / "update_pairs.csv")
     parser.add_argument(
+        "--operation-update-rows",
+        type=Path,
+        default=PRIMARY / "update_operation_pairs.csv",
+    )
+    parser.add_argument(
         "--rq3-coverage", type=Path, default=RQ3 / "rq3_coverage_rows.csv"
     )
     parser.add_argument(
@@ -320,6 +339,7 @@ def main() -> int:
         correctness_rows=_read_csv(args.correctness_rows),
         component_rows=_read_csv(args.component_rows),
         update_rows=_read_csv(args.update_rows),
+        operation_update_rows=_read_csv(args.operation_update_rows),
         rq3_summary=_read_json(args.rq3_summary),
         rq3_coverage_rows=_read_csv(args.rq3_coverage),
         rq3_regression_rows=_read_csv(args.rq3_regressions),

@@ -16,6 +16,9 @@ DEFAULT_ANALYSIS = Path(
     "/data/tmp/chuxiao/large_graph_campaign_v1/formal_v6_primary_analysis"
 )
 DEFAULT_UPDATE_ANALYSIS = Path(
+    "/data/tmp/chuxiao/large_graph_campaign_v1/formal_v8_au_update_scaling/analysis"
+)
+DEFAULT_OPERATION_UPDATE_ANALYSIS = Path(
     "/data/tmp/chuxiao/large_graph_campaign_v1/formal_v6_au_update_analysis"
 )
 DEFAULT_COMPONENT_POWER = ROOT / "docs/paper/data/component_power.csv"
@@ -74,6 +77,8 @@ ALGORITHM_LABEL = {
 }
 SCENARIO_ORDER = {"insert": 0, "delete": 1, "weight_change": 2}
 SCENARIO_LABEL = {"insert": "Ins", "delete": "Del", "weight_change": "Wgt"}
+UPDATE_SCALING_BATCHES = (64, 1_024, 16_384, 131_072)
+UPDATE_SCALING_LABEL = {64: "64", 1_024: "1K", 16_384: "16K", 131_072: "128K"}
 METRICS = (
     ("spine_speedup", "Spine E2E speedup", "#1f77b4", "///"),
     ("memory_ratio", "G+R / Spine memory bytes", "#ff7f0e", "\\\\\\"),
@@ -179,24 +184,59 @@ def admitted_update_pairs(rows: list[dict[str, str]]) -> list[dict[str, Any]]:
             row.get("dataset_id") != "sx_askubuntu"
             or row.get("algorithm") != "weighted_sssp"
             or row.get("competitor") != "grasu_regraph_k4_shared"
-            or row.get("scenario") not in SCENARIO_ORDER
-            or row.get("batch_size") not in {"1", "8", "64"}
+            or row.get("scenario") != "insert"
+            or int(row.get("batch_size", -1)) not in UPDATE_SCALING_BATCHES
         ):
             continue
         batch_size = int(row["batch_size"])
-        spine_cycles = int(float(row["spine_update_cycles"]))
-        k4_cycles = int(float(row["competitor_update_cycles"]))
+        spine_cycles = int(float(row["spine_structure_update_cycles"]))
+        k4_cycles = int(float(row["competitor_structure_update_cycles"]))
         if spine_cycles <= 0 or k4_cycles <= 0:
             continue
         selected.append(
             {
                 "scenario": row["scenario"],
                 "batch_size": batch_size,
-                "label": f"{SCENARIO_LABEL[row['scenario']]}-{batch_size}",
-                "spine_update_cycles": spine_cycles,
-                "k4_update_cycles": k4_cycles,
-                "spine_update_mups": batch_size * 150.0 / spine_cycles,
-                "k4_update_mups": batch_size * 150.0 / k4_cycles,
+                "label": UPDATE_SCALING_LABEL[batch_size],
+                "spine_structure_update_cycles": spine_cycles,
+                "k4_structure_update_cycles": k4_cycles,
+                "spine_structure_update_mups": batch_size * 150.0 / spine_cycles,
+                "k4_structure_update_mups": batch_size * 150.0 / k4_cycles,
+            }
+        )
+    selected.sort(
+        key=lambda row: (
+            int(row["batch_size"]),
+        )
+    )
+    for index, row in enumerate(selected):
+        row["index"] = index
+    return selected
+
+
+def admitted_operation_update_pairs(
+    rows: list[dict[str, str]],
+) -> list[dict[str, Any]]:
+    selected = []
+    for row in rows:
+        if (
+            row.get("dataset_id") != "sx_askubuntu"
+            or row.get("algorithm") != "weighted_sssp"
+            or row.get("competitor") != "grasu_regraph_k4_shared"
+            or row.get("scenario") not in SCENARIO_ORDER
+            or row.get("batch_size") not in {"1", "8", "64"}
+        ):
+            continue
+        selected.append(
+            {
+                "scenario": row["scenario"],
+                "batch_size": int(row["batch_size"]),
+                "spine_structure_update_cycles": int(
+                    float(row["spine_structure_update_cycles"])
+                ),
+                "k4_structure_update_cycles": int(
+                    float(row["competitor_structure_update_cycles"])
+                ),
             }
         )
     selected.sort(
@@ -205,8 +245,6 @@ def admitted_update_pairs(rows: list[dict[str, str]]) -> list[dict[str, Any]]:
             int(row["batch_size"]),
         )
     )
-    for index, row in enumerate(selected):
-        row["index"] = index
     return selected
 
 
@@ -996,7 +1034,7 @@ def render_update_figure(rows: list[dict[str, Any]], output: Path) -> None:
     width = 0.34
     axis.bar(
         [position - width / 2 for position in x_positions],
-        [float(row["spine_update_mups"]) for row in rows],
+        [float(row["spine_structure_update_mups"]) for row in rows],
         width,
         facecolor="white",
         edgecolor="#1f77b4",
@@ -1006,7 +1044,7 @@ def render_update_figure(rows: list[dict[str, Any]], output: Path) -> None:
     )
     axis.bar(
         [position + width / 2 for position in x_positions],
-        [float(row["k4_update_mups"]) for row in rows],
+        [float(row["k4_structure_update_mups"]) for row in rows],
         width,
         facecolor="white",
         edgecolor="#d95f02",
@@ -1015,9 +1053,9 @@ def render_update_figure(rows: list[dict[str, Any]], output: Path) -> None:
         label="G+R K4-shared",
     )
     axis.set_yscale("log")
-    axis.set_ylabel("Update-only throughput (M updates/s)")
+    axis.set_ylabel("Structure-update throughput (M updates/s)")
     axis.set_xticks(x_positions, [str(row["label"]) for row in rows])
-    axis.set_xlabel("Operation and user mutations per batch")
+    axis.set_xlabel("User mutations per insertion batch")
     axis.grid(axis="y", linestyle="--", color="0.65", alpha=0.5, zorder=0)
     axis.tick_params(direction="in", top=True, right=True, length=4)
     axis.legend(frameon=False, ncols=2, loc="upper left")
@@ -1327,20 +1365,34 @@ separate synthetic endpoint.}}
 \end{{figure}}
 
 \clearpage
-\section{{Update-only throughput}}
+\section{{Structure-update throughput}}
 \begin{{figure}}[H]
 \centering
 \includegraphics[width=0.98\linewidth]{{\vfigdir/{artifact_prefix}_update_throughput.pdf}}
-\caption{{Correctness-gated AskUbuntu weighted-SSSP update-phase throughput.
-The current snapshot contains {len(update_pairs)} of 9 planned operation--batch
-pairs. Ins uses the full materialized graph; Del and Wgt use the declared
-64K-edge non-monotonic fallback slice. Missing points are not zeros.}}
+\caption{{Correctness-gated AskUbuntu full-graph insertion throughput at
+batch sizes $2^6$, $2^{{10}}$, $2^{{14}}$, and $2^{{17}}$. The current snapshot
+contains {len(update_pairs)} of 4 planned batch points. Spine counts maintenance through its
+drained completion boundary; G+R counts GraSU PMA update completion. Both
+exclude graph-algorithm iterations, equivalent to setting max-iter to zero.}}
 \end{{figure}}
 
 \paragraph{{Window boundary.}}
-This figure isolates graph-structure maintenance cycles and therefore exposes
-GraSU's PMA update advantage. It must not be read as end-to-end dynamic graph
-service latency, which also includes differential discovery and propagation.
+This figure isolates graph-structure mutation. The counters come from dedicated
+correctness-gated executions and stop at each architecture's serial
+update-phase boundary. We use source vertex 0, which remains isolated after all
+four batches, solely to shorten the post-update SSSP correctness drain. Both
+architectures enforce an update--barrier--compute order, so this source choice
+cannot affect the recorded update phase. For Spine the phase includes required
+level selection, L0/carry work, metadata publication, and drain; it excludes
+reader, propagation, convergence, and algorithm drain. For G+R it includes the
+GraSU PMA update and excludes ReGraph execution. It must not be read as
+end-to-end dynamic graph service latency.
+
+\paragraph{{Operation coverage.}}
+The separate insertion, deletion, and weight-change grid at batches 1, 8, and
+64 remains in \texttt{{update\_operation\_pairs.csv}} and in the fallback/RQ3
+evidence. It is not mixed into this scaling plot because non-monotonic SSSP
+updates exercise a bounded full-rebuild policy rather than direct insertion.
 
 \clearpage
 \section{{Simulator execution cost}}
@@ -1367,7 +1419,8 @@ memory model; they never use host wall time.
 shallow insertion, deep carry, residual PageRank correction, and SSSP/CC
 nonmonotonic fallback. The six maintenance stages are counted in the execution
 core; overlapping resolve/app intervals are assigned to the component gating
-their completion. Every bar closes exactly to E2E device cycles.}}
+their completion. For residual PageRank, $T_{{seed}}$ also contains the serial
+device correction/seed interval. Every bar closes exactly to E2E device cycles.}}
 \end{{figure}}
 
 \begin{{table}}[H]
@@ -1419,8 +1472,10 @@ These correlations validate internal cost structure and bottleneck attribution;
 they are not cycle-for-cycle FPGA calibration or proof that one scalar predicts
 every topology. The timed device boundary starts with an already-resident sorted
 update buffer: host DMA and an external FLiMS sort are not included. Current
-$T_{{seed}}$ measures device dirty-source publication; residual PageRank's
-host-side old/new-rank correction remains explicitly untimed.
+$T_{{seed}}$ measures maintenance dirty-source publication and, for residual
+PageRank, the serial device correction interval covering resident rank/degree
+reads, physical-edge scans, seed writes, and active-list publication before
+propagation. The host supplies only the immutable oracle/work trace.
 
 \clearpage
 \section{{Implementation-level power attribution}}
@@ -1469,6 +1524,11 @@ def main() -> int:
         "--update-analysis-dir", type=Path, default=DEFAULT_UPDATE_ANALYSIS
     )
     parser.add_argument(
+        "--operation-update-analysis-dir",
+        type=Path,
+        default=DEFAULT_OPERATION_UPDATE_ANALYSIS,
+    )
+    parser.add_argument(
         "--figure-dir", type=Path, default=ROOT / "docs/figures"
     )
     parser.add_argument(
@@ -1509,6 +1569,9 @@ def main() -> int:
     pairs = admitted_pairs(read_csv(args.analysis_dir / "pair_rows.csv"))
     update_pairs = admitted_update_pairs(
         read_csv(args.update_analysis_dir / "pair_rows.csv")
+    )
+    operation_update_pairs = admitted_operation_update_pairs(
+        read_csv(args.operation_update_analysis_dir / "pair_rows.csv")
     )
     contract = json.loads(args.contract.read_text(encoding="ascii"))
     dataset_scope = publication_dataset_scope(contract, args.materialization_root)
@@ -1575,6 +1638,9 @@ def main() -> int:
     write_csv(args.data_dir / "pairs.csv", pairs)
     write_csv(args.data_dir / "all_spine_e2e.csv", all_spine_rows)
     write_csv(args.data_dir / "update_pairs.csv", update_pairs)
+    write_csv(
+        args.data_dir / "update_operation_pairs.csv", operation_update_pairs
+    )
     write_pair_table(args.data_dir / "pair_table.tex", pairs)
     write_measurement_table(args.data_dir / "measurement_table.tex", system_rows)
     for source_name, output_name in (

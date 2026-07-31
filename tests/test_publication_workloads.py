@@ -72,6 +72,19 @@ class PublicationWorkloadTests(unittest.TestCase):
             self.assertEqual(
                 graph.records[0].weight, canonical_edge_weight(0, 1)
             )
+            update_only_source = manifest["graphs"]["directed"][
+                "source_cohorts"
+            ]["update_only"]
+            self.assertNotIn(update_only_source, {edge.src for edge in graph.records})
+            for artifact in manifest["updates"]:
+                if (
+                    artifact["projection"] == "directed"
+                    and artifact["scenario"] == "insert"
+                ):
+                    update = load_slice(Path(artifact["path"]))
+                    self.assertNotIn(
+                        update_only_source, {edge.src for edge in update.records}
+                    )
             self.assertGreater(len(manifest["updates"]), 14)
             residual_graph = load_slice(
                 Path(manifest["graphs"]["residual_sink_free"]["path"])

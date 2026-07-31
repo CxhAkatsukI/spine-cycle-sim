@@ -6,7 +6,9 @@ import tempfile
 import unittest
 
 from scripts.render_formal_v6_primary import (
+    admitted_operation_update_pairs,
     admitted_pairs,
+    admitted_update_pairs,
     all_spine_e2e_rows,
     behavior_transition_tex,
     publication_dataset_scope,
@@ -15,6 +17,56 @@ from scripts.render_formal_v6_primary import (
 
 
 class FormalV6ReportTests(unittest.TestCase):
+    def test_update_scaling_selects_only_the_four_insertion_batches(self) -> None:
+        rows = [
+            {
+                "dataset_id": "sx_askubuntu",
+                "algorithm": "weighted_sssp",
+                "competitor": "grasu_regraph_k4_shared",
+                "scenario": scenario,
+                "batch_size": str(batch),
+                "spine_structure_update_cycles": "150",
+                "competitor_structure_update_cycles": "75",
+            }
+            for scenario, batch in (
+                ("insert", 64),
+                ("insert", 1_024),
+                ("insert", 16_384),
+                ("insert", 131_072),
+                ("insert", 8),
+                ("delete", 64),
+            )
+        ]
+
+        selected = admitted_update_pairs(rows)
+
+        self.assertEqual(
+            [row["batch_size"] for row in selected],
+            [64, 1_024, 16_384, 131_072],
+        )
+        self.assertTrue(all(row["scenario"] == "insert" for row in selected))
+
+    def test_operation_grid_remains_separate_from_scaling_points(self) -> None:
+        rows = [
+            {
+                "dataset_id": "sx_askubuntu",
+                "algorithm": "weighted_sssp",
+                "competitor": "grasu_regraph_k4_shared",
+                "scenario": scenario,
+                "batch_size": str(batch),
+                "spine_structure_update_cycles": "150",
+                "competitor_structure_update_cycles": "75",
+            }
+            for scenario in ("insert", "delete", "weight_change")
+            for batch in (1, 8, 64)
+        ]
+        rows.append({**rows[0], "scenario": "insert", "batch_size": "1024"})
+
+        selected = admitted_operation_update_pairs(rows)
+
+        self.assertEqual(len(selected), 9)
+        self.assertNotIn(1_024, {row["batch_size"] for row in selected})
+
     def test_all_spine_rows_keep_unpaired_results_and_classify_evidence(self) -> None:
         system_rows = [
             {

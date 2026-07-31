@@ -16,7 +16,7 @@ import shutil
 import subprocess
 import tarfile
 import time
-from typing import Any, Iterator, Mapping, TextIO
+from typing import Any, Iterator, Mapping, Sequence, TextIO
 import zipfile
 
 
@@ -548,6 +548,47 @@ def _source_cohorts(key_path: Path, *, seed: int) -> dict[str, int]:
         "median_degree": median_source,
         "random_reachable": random_source,
     }
+
+
+def _update_only_source(
+    base_keys: Path,
+    update_artifacts: Sequence[Mapping[str, Any]],
+    *,
+    vertices: int,
+) -> int:
+    """Choose the lowest vertex that stays sink-only across insertion batches."""
+
+    update_sources: set[int] = set()
+    for artifact in update_artifacts:
+        if artifact.get("projection") != "directed" or artifact.get(
+            "scenario"
+        ) != "insert":
+            continue
+        with Path(str(artifact["path"])).open("r", encoding="ascii") as stream:
+            for line in stream:
+                if line.startswith("#"):
+                    continue
+                update_sources.add(int(line.split(maxsplit=1)[0]))
+
+    candidate = 0
+    previous_source = -1
+    with base_keys.open("r", encoding="ascii") as stream:
+        for line in stream:
+            source = int(line.split(maxsplit=1)[0])
+            if source == previous_source:
+                continue
+            previous_source = source
+            while candidate < source:
+                if candidate not in update_sources:
+                    return candidate
+                candidate += 1
+            if candidate == source:
+                candidate += 1
+    while candidate < vertices:
+        if candidate not in update_sources:
+            return candidate
+        candidate += 1
+    raise ValueError("no update-only zero-outdegree source is available")
 
 
 def _make_reciprocal_raw(input_keys: Path, output_raw: Path) -> None:
@@ -1193,6 +1234,9 @@ def materialize_publication_workload(
         post_base_keys=effective_post_keys,
         batch_sizes=batch_sizes,
         seed=seed,
+    )
+    directed_source_cohorts["update_only"] = _update_only_source(
+        base_keys, update_artifacts, vertices=vertices
     )
     residual_update_artifacts = _derive_projection_updates(
         output_dir=output_dir,

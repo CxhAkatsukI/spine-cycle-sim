@@ -64,6 +64,10 @@ class FormalV6EvidencePackageAuditTest(unittest.TestCase):
         }
         update_rows = [
             {"scenario": scenario, "batch_size": str(batch)}
+            for scenario, batch in sorted(MODULE.REQUIRED_UPDATE_SCALING_GRID)
+        ]
+        operation_update_rows = [
+            {"scenario": scenario, "batch_size": str(batch)}
             for scenario, batch in sorted(MODULE.REQUIRED_UPDATE_GRID)
         ]
         rq3_coverage_rows = [
@@ -107,6 +111,7 @@ class FormalV6EvidencePackageAuditTest(unittest.TestCase):
             "correctness_rows": correctness_rows,
             "component_rows": component_rows,
             "update_rows": update_rows,
+            "operation_update_rows": operation_update_rows,
             "rq3_summary": rq3_summary,
             "rq3_coverage_rows": rq3_coverage_rows,
             "rq3_regression_rows": rq3_regression_rows,
