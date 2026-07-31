@@ -3917,7 +3917,7 @@ class OnlineMemoryProbe final : public SST::Component {
             primaryComponentOKToEndSim();
             return true;
           }
-          spine_system_->restart_read_compute(sst_pending_active_out_);
+          spine_system_->restart_device_active_compute(sst_pending_active_out_);
           sst_current_frontier_ = std::move(sst_pending_active_out_);
           sst_round_start_cycle_ = scheduler_.clock(0).completed_cycles;
           return false;
@@ -3953,7 +3953,7 @@ class OnlineMemoryProbe final : public SST::Component {
           primaryComponentOKToEndSim();
           return true;
         }
-        spine_system_->restart_read_compute(active_out);
+        spine_system_->restart_device_active_compute(active_out);
         sst_current_frontier_ = active_out;
         sst_round_start_cycle_ = scheduler_.clock(0).completed_cycles;
       }
@@ -4435,6 +4435,8 @@ class OnlineMemoryProbe final : public SST::Component {
           pagerank_frontier_out_sizes_ == reference.frontier_out_sizes;
       const auto &maintenance = pagerank_system_->maintenance_counters();
       const auto &compute = pagerank_system_->compute_counters();
+      const auto &initial_active =
+          pagerank_system_->initial_active_counters();
       const auto &pipeline = pagerank_system_->compute().pipeline_counters();
       const std::uint64_t reader_edges = std::accumulate(
           pagerank_reader_edges_per_iteration_.begin(),
@@ -4510,6 +4512,17 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"initial_active_vertices\": "
              << connected_components_setup_->initial_state.active_vertices.size()
              << ",\n"
+             << "  \"device_initial_active_output\": "
+             << (initial_active.enabled ? "true" : "false") << ",\n"
+             << "  \"initial_active_output_cycles\": "
+             << (initial_active.end_cycle >= initial_active.start_cycle
+                     ? initial_active.end_cycle - initial_active.start_cycle
+                     : 0)
+             << ",\n"
+             << "  \"initial_active_output_write_bytes\": "
+             << initial_active.write_bytes << ",\n"
+             << "  \"initial_active_output_memory_requests\": "
+             << initial_active.memory_requests_issued << ",\n"
              << "  \"correctness_mismatches\": "
              << architecture_mismatches + mathematical_mismatches << ",\n"
              << "  \"architecture_correctness_mismatches\": "
@@ -6633,6 +6646,8 @@ class OnlineMemoryProbe final : public SST::Component {
       const auto &maintenance = pagerank_system_->maintenance_counters();
       const auto &reader = pagerank_system_->reader_counters();
       const auto &compute = pagerank_system_->compute_counters();
+      const auto &initial_active =
+          pagerank_system_->initial_active_counters();
       const auto &pipeline = pagerank_system_->compute().pipeline_counters();
       const bool frontier_match =
           pagerank_frontier_in_sizes_ ==
@@ -6647,7 +6662,8 @@ class OnlineMemoryProbe final : public SST::Component {
            round < pagerank_compute_requests_per_iteration_.size(); ++round) {
         memory_ledger_match =
             pagerank_compute_requests_per_iteration_[round] ==
-            5 * pagerank_frontier_in_sizes_[round] + 2 * actual_ranks.size();
+            5 * pagerank_frontier_in_sizes_[round] + 2 * actual_ranks.size() +
+                pagerank_frontier_out_sizes_[round];
       }
       const std::uint64_t reader_edges_total = std::accumulate(
           pagerank_reader_edges_per_iteration_.begin(),
@@ -6734,6 +6750,17 @@ class OnlineMemoryProbe final : public SST::Component {
                   ? delta_hls_setup_->initial_state.active_vertices.size()
                   : actual_ranks.size())
           << ",\n"
+          << "  \"device_initial_active_output\": "
+          << (initial_active.enabled ? "true" : "false") << ",\n"
+          << "  \"initial_active_output_cycles\": "
+          << (initial_active.end_cycle >= initial_active.start_cycle
+                  ? initial_active.end_cycle - initial_active.start_cycle
+                  : 0)
+          << ",\n"
+          << "  \"initial_active_output_write_bytes\": "
+          << initial_active.write_bytes << ",\n"
+          << "  \"initial_active_output_memory_requests\": "
+          << initial_active.memory_requests_issued << ",\n"
           << "  \"delta_touched_sources\": "
           << (delta_hls_residual_ ? delta_hls_setup_->touched_sources : 0)
           << ",\n"
@@ -6981,6 +7008,10 @@ class OnlineMemoryProbe final : public SST::Component {
       write_json_array(result, pagerank_frontier_in_sizes_);
       result << ",\n  \"frontier_out_sizes\": ";
       write_json_array(result, pagerank_frontier_out_sizes_);
+      result << ",\n  \"reference_frontier_in_sizes\": ";
+      write_json_array(result, residual_pagerank_reference_.frontier_in_sizes);
+      result << ",\n  \"reference_frontier_out_sizes\": ";
+      write_json_array(result, residual_pagerank_reference_.frontier_out_sizes);
       result << ",\n  \"compute_requests_per_iteration\": ";
       write_json_array(result, pagerank_compute_requests_per_iteration_);
       result << ",\n  \"reader_edges_per_iteration\": ";

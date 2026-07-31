@@ -60,7 +60,10 @@ def case_result(system: str, cycles: int, *, execution_id: str | None = None) ->
             "count": 4,
             "sha256": "3" * 64,
         },
-        "scalar_metrics": {"update_cycles": 100},
+        "scalar_metrics": {
+            "update_cycles": 100,
+            "maintenance_cycles": 25 if system == "spine" else 0,
+        },
         "backend_arbitration": {"ledger_closed": True},
         "backend_traffic": {
             "combined": {
@@ -348,12 +351,31 @@ class PublicationAnalysisTests(unittest.TestCase):
 
     def test_normalization_uses_executed_traffic_and_update_cycles(self) -> None:
         result = case_result("spine", 300)
-        result["scalar_metrics"] = {"maintenance_cycles": 75}
+        result["scalar_metrics"] = {
+            "update_cycles": 250,
+            "maintenance_cycles": 75,
+        }
         analysis = analyze_publication_case_results([result])
         row = analysis["system_rows"][0]
-        self.assertEqual(row["update_cycles"], 75)
+        self.assertEqual(row["update_cycles"], 250)
+        self.assertEqual(row["structure_update_cycles"], 75)
+        self.assertEqual(row["structure_update_counter"], "maintenance_cycles")
         self.assertAlmostEqual(row["sequential_request_fraction"], 2.0 / 3.0)
         self.assertEqual(row["read_bytes"] + row["write_bytes"], 640)
+
+    def test_pair_separates_structure_update_from_dynamic_service(self) -> None:
+        spine = case_result("spine", 300)
+        spine["scalar_metrics"].update(
+            {"update_cycles": 250, "maintenance_cycles": 75}
+        )
+        competitor = case_result("grasu_regraph_k4_shared", 400)
+        competitor["scalar_metrics"]["update_cycles"] = 20
+        analysis = analyze_publication_case_results([spine, competitor])
+        pair = analysis["pair_rows"][0]
+        self.assertEqual(pair["spine_update_cycles"], 250)
+        self.assertEqual(pair["spine_structure_update_cycles"], 75)
+        self.assertEqual(pair["competitor_structure_update_cycles"], 20)
+        self.assertAlmostEqual(pair["spine_structure_update_speedup"], 20 / 75)
 
     def test_normalization_separates_complete_and_measurement_traffic(self) -> None:
         result = case_result("spine", 300)
@@ -391,7 +413,7 @@ class PublicationAnalysisTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "DRAM request ledger does not close"):
             analyze_publication_case_results([result])
 
-    def test_spine_dynamic_sssp_excludes_legacy_cold_prefix(self) -> None:
+    def test_spine_dynamic_sssp_uses_e2e_convergence_window(self) -> None:
         result = case_result("spine", 1_000)
         result["scalar_metrics"] = {
             "cold_cycles": 900,
@@ -400,10 +422,10 @@ class PublicationAnalysisTests(unittest.TestCase):
         }
         analysis = analyze_publication_case_results([result])
         row = analysis["system_rows"][0]
-        self.assertEqual(row["cycles"], 100)
+        self.assertEqual(row["cycles"], 1_000)
         self.assertEqual(row["raw_cycles"], 1_000)
         self.assertEqual(row["bootstrap_cycles"], 900)
-        self.assertEqual(row["measurement_window"], "dynamic_update_only")
+        self.assertEqual(row["measurement_window"], "dynamic_e2e_to_convergence")
         self.assertFalse(row["algorithm_warm_start"])
 
     def test_component_activity_preserves_lists_and_claim_boundary(self) -> None:

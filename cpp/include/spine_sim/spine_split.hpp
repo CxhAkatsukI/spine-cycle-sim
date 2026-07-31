@@ -166,11 +166,12 @@ struct SpineReaderPorts {
   std::array<FixedAxiPort *, 16> graph{};
   FixedAxiPort *task_scratch{};
   FixedAxiPort *active_bins{};
+  FixedAxiPort *active_out{};
   FixedAxiPort *metadata{};
   FixedAxiPort *result{};
 };
 
-enum class SpineReaderMode { kDeviceDirty, kHostActive };
+enum class SpineReaderMode { kDeviceDirty, kHostActive, kDeviceActiveList };
 
 class SpineSplitReader final : public Component {
  public:
@@ -196,10 +197,13 @@ class SpineSplitReader final : public Component {
     return *algorithm_policy_;
   }
   void reset_round(std::vector<std::uint32_t> active_sources);
+  void reset_active_list_round(std::size_t active_count);
   void reset_host_round(
       const SpineActiveBins &active_bins,
       std::optional<SpineDirtyIdentity> host_coverage = std::nullopt,
       std::vector<std::uint32_t> source_refresh = {});
+  void configure_initial_active_list_round(std::size_t active_count,
+                                           const bool *start_ready);
   void configure_initial_host_round(
       SpineActiveBins active_bins,
       std::optional<SpineDirtyIdentity> host_coverage,
@@ -305,6 +309,7 @@ class SpineSplitReader final : public Component {
     kDirtyHostValid,
     kDirtyList,
     kDirtyBitmap,
+    kDeviceActiveOutput,
     kActiveBinMetadata,
     kActiveRecords,
     kLevelOccupied,
@@ -376,6 +381,7 @@ class SpineSplitReader final : public Component {
     kSourceHeaderResolve,
     kDirtyListResolve,
     kDirtyBitmapResolve,
+    kDeviceActiveResolve,
     kHostActiveResolve,
     kRequestSourceWindow,
     kWaitSourceWindow,
@@ -541,6 +547,8 @@ class SpineSplitReader final : public Component {
   SpineActiveBins host_active_bins_;
   std::optional<SpineActiveBins> initial_host_bins_;
   std::optional<SpineDirtyIdentity> initial_host_coverage_;
+  const bool *initial_start_gate_{};
+  std::size_t device_active_count_{};
   std::vector<SpineActiveRecord> active_records_;
   Fifo<PartConvWord> &edge_out_;
   Fifo<SourceValueWord> &value_in_;

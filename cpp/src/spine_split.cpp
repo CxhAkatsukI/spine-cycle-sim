@@ -140,6 +140,21 @@ void SpineSplitReader::reset_round(std::vector<std::uint32_t> active_sources) {
   }
   mode_ = SpineReaderMode::kDeviceDirty;
   active_sources_ = std::move(active_sources);
+  device_active_count_ = 0;
+  reset_state();
+}
+
+void SpineSplitReader::reset_active_list_round(std::size_t active_count) {
+  if (!done_ || failed_ || !inflight_memory_tasks_.empty() ||
+      !memory_tasks_.empty() || ports_.active_out == nullptr ||
+      active_count == 0 ||
+      active_count > maintenance_.config().max_vertices) {
+    throw std::logic_error(
+        "reader active-list reset requires a successful drained list");
+  }
+  mode_ = SpineReaderMode::kDeviceActiveList;
+  active_sources_.assign(active_count, 0);
+  device_active_count_ = active_count;
   reset_state();
 }
 
@@ -153,10 +168,26 @@ void SpineSplitReader::reset_host_round(
         "reader host-active reset requires a successful drain");
   }
   mode_ = SpineReaderMode::kHostActive;
+  device_active_count_ = 0;
   initialize_host_payload(active_bins, host_coverage);
   validate_source_refresh(source_refresh);
   active_sources_ = std::move(source_refresh);
   reset_state();
+}
+
+void SpineSplitReader::configure_initial_active_list_round(
+    std::size_t active_count, const bool *start_ready) {
+  if (phase_ != Phase::kWaitMaintenance || done_ || failed_ ||
+      ports_.active_out == nullptr || start_ready == nullptr ||
+      initial_host_bins_.has_value() ||
+      active_count > maintenance_.config().max_vertices) {
+    throw std::logic_error(
+        "initial DEVICE_ACTIVE_LIST input must be configured before execution");
+  }
+  mode_ = SpineReaderMode::kDeviceActiveList;
+  active_sources_.assign(active_count, 0);
+  device_active_count_ = active_count;
+  initial_start_gate_ = start_ready;
 }
 
 void SpineSplitReader::configure_initial_host_round(
@@ -847,6 +878,8 @@ void SpineSplitReader::enqueue_read(FixedAxiPort &port, std::uint64_t address,
     } else if (payload_kind == MemoryPayloadKind::kDirtyBitmap) {
       counters_.dirty_bitmap_read_bytes += bytes;
     }
+  } else if (&port == ports_.active_out) {
+    counters_.active_bin_read_bytes += bytes;
   } else if (&port == ports_.active_bins) {
     counters_.active_bin_read_bytes += bytes;
   } else if (&port == ports_.metadata) {
@@ -881,7 +914,7 @@ void SpineSplitReader::enqueue_terminal_writes() {
   const SpineMetadataLayout metadata =
       spine_metadata_layout(maintenance_.config());
   const std::uint32_t mode =
-      mode_ == SpineReaderMode::kDeviceDirty ? 2U : 1U;
+      mode_ == SpineReaderMode::kHostActive ? 1U : 2U;
   enqueue_write(*ports_.metadata,
                 maintenance_.config().metadata_base +
                     metadata.dirty_last_mode_word * kMetadataWordBytes,
@@ -982,6 +1015,17 @@ void SpineSplitReader::consume_memory_response(const MemoryTask &task,
           (response.read_data[byte] & bit) == 0) {
         dirty_payload_valid_ = false;
       }
+      return;
+    }
+    case MemoryPayloadKind::kDeviceActiveOutput: {
+      if (task.item_index >= active_sources_.size() ||
+          response.read_data.size() != kActiveOutputBytes) {
+        throw std::logic_error("device active-list payload shape is invalid");
+      }
+      const std::uint32_t value = decode_u32(response.read_data, 0);
+      const std::uint32_t source = decode_u32(response.read_data, 4);
+      active_sources_[task.item_index] = source;
+      source_values_[source] = value;
       return;
     }
     case MemoryPayloadKind::kActiveBinMetadata: {
@@ -1365,7 +1409,8 @@ void SpineSplitReader::validate_control() {
 }
 
 void SpineSplitReader::prepare_range_probes() {
-  if (mode_ == SpineReaderMode::kDeviceDirty) {
+  if (mode_ == SpineReaderMode::kDeviceDirty ||
+      mode_ == SpineReaderMode::kDeviceActiveList) {
     active_records_.clear();
     active_records_.reserve(active_sources_.size());
     for (const std::uint32_t source : active_sources_) {
@@ -1397,8 +1442,8 @@ void SpineSplitReader::prepare_range_probes() {
     if (mode_ == SpineReaderMode::kHostActive) {
       start_host_fallback(kRangeTaskFallbackActiveGate);
     } else {
-    begin_terminal(true,
-                   "device-dirty exact path exceeded the active-record gate");
+      begin_terminal(true,
+                     "device active exact path exceeded the active-record gate");
     }
     return;
   }
@@ -1494,7 +1539,8 @@ void SpineSplitReader::prepare_range_probes() {
     }
   };
 
-  if (mode_ == SpineReaderMode::kDeviceDirty) {
+  if (mode_ == SpineReaderMode::kDeviceDirty ||
+      mode_ == SpineReaderMode::kDeviceActiveList) {
     for (std::size_t family = 0; family < kPartitionCount; ++family) {
       for (const SpineActiveRecord &record : active_records_) {
         visit_record(record, family, false, family, true);
@@ -3025,7 +3071,7 @@ PartConvWord SpineSplitReader::current_stream_word() const {
     case Phase::kSendSourceCount:
       return PartConvWord{.kind = PartConvWordKind::kSourceCount,
                           .first = static_cast<std::uint32_t>(
-                              mode_ == SpineReaderMode::kHostActive
+                              mode_ != SpineReaderMode::kDeviceDirty
                                   ? active_sources_.size()
                                   : dirty_count_)};
     case Phase::kSendSourceGeneration:
@@ -3093,6 +3139,9 @@ void SpineSplitReader::advance(const CycleContext &context) {
           failure_ = "reader cannot start after failed maintenance";
           return;
         }
+        if (initial_start_gate_ != nullptr && !*initial_start_gate_) {
+          return;
+        }
         if (mode_ == SpineReaderMode::kHostActive &&
             initial_host_bins_.has_value()) {
           initialize_host_payload(*initial_host_bins_, initial_host_coverage_);
@@ -3145,6 +3194,20 @@ void SpineSplitReader::advance(const CycleContext &context) {
                        index);
         }
         phase_ = Phase::kDirtyListResolve;
+      } else if (mode_ == SpineReaderMode::kDeviceActiveList) {
+        if (device_active_count_ > maintenance_.config().max_vertices) {
+          counters_.range_task_path = kRangeTaskPathError;
+          counters_.range_task_error = kRangeTaskErrorActiveBounds;
+          begin_terminal(true, "device active-list count exceeds MAX_ACTIVE");
+          return;
+        }
+        active_sources_.assign(device_active_count_, 0);
+        for (std::size_t index = 0; index < active_sources_.size(); ++index) {
+          enqueue_read(*ports_.active_out, index * kActiveOutputBytes,
+                       kActiveOutputBytes,
+                       MemoryPayloadKind::kDeviceActiveOutput, index);
+        }
+        phase_ = Phase::kDeviceActiveResolve;
       } else {
         counters_.host_coverage_match =
             dirty_host_valid_ &&
@@ -3203,6 +3266,34 @@ void SpineSplitReader::advance(const CycleContext &context) {
           }
         }
         phase_ = Phase::kHostActiveResolve;
+      }
+      return;
+    }
+    case Phase::kDeviceActiveResolve: {
+      std::unordered_set<std::uint32_t> unique_sources;
+      bool active_payload_valid = true;
+      for (const std::uint32_t source : active_sources_) {
+        active_payload_valid =
+            active_payload_valid && source < maintenance_.vertices() &&
+            source < maintenance_.config().max_vertices &&
+            unique_sources.insert(source).second;
+      }
+      if (!active_payload_valid ||
+          source_values_.size() != active_sources_.size()) {
+        counters_.range_task_path = kRangeTaskPathError;
+        counters_.range_task_error = kRangeTaskErrorActiveBounds;
+        begin_terminal(true, "device active-list payload is invalid");
+        return;
+      }
+      source_request_index_ = 0;
+      source_response_index_ = 0;
+      source_window_end_ = std::min<std::size_t>(
+          kSpineDirtyRequestWindow, active_sources_.size());
+      if (source_window_end_ == 0) {
+        phase_ = Phase::kSendSourceCount;
+      } else {
+        ++counters_.source_request_windows;
+        phase_ = Phase::kRequestSourceWindow;
       }
       return;
     }

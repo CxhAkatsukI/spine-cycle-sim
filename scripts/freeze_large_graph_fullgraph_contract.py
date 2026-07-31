@@ -113,7 +113,7 @@ def main() -> int:
             "measurement_window": {
                 "bootstrap": "reported_separately_not_in_dynamic_e2e",
                 "positive_weighted_sssp": (
-                    "untimed_verified_old_graph_state_then_timed_update"
+                    "untimed_verified_old_graph_state_then_timed_update_to_convergence"
                 ),
             },
         }
@@ -170,7 +170,7 @@ def main() -> int:
                 "median_degree": "headline_primary",
                 "random_reachable": "sensitivity_holdout",
             },
-            "positive_insertion_measurement_window": "dynamic_update_only",
+            "positive_insertion_measurement_window": "dynamic_e2e_to_convergence",
         }
     )
     contract["claim_boundary"]["weighted_sssp_bootstrap"] = (

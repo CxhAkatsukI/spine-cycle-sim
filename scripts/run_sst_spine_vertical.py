@@ -912,9 +912,10 @@ def validate_residual_pagerank_result(
     ledger_ok = (
         len(frontier_in) == len(frontier_out) == len(requests) == rounds
         and all(
-            request_count == 5 * active_sources + 2 * result.get("vertices", 0)
-            for active_sources, request_count in zip(
-                frontier_in, requests, strict=True
+            request_count
+            == 5 * active_sources + 2 * result.get("vertices", 0) + next_active
+            for active_sources, next_active, request_count in zip(
+                frontier_in, frontier_out, requests, strict=True
             )
         )
     )

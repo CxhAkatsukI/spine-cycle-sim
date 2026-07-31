@@ -160,7 +160,7 @@ class LargeGraphCampaignTests(unittest.TestCase):
         )
         self.assertEqual(
             simulator["measurement_window"]["positive_weighted_sssp"],
-            "untimed_verified_old_graph_state_then_timed_update",
+            "untimed_verified_old_graph_state_then_timed_update_to_convergence",
         )
         weighted = contract["workload_semantics"]["weighted_sssp"]
         self.assertEqual(weighted["primary_source_cohort"], "median_degree")
@@ -169,7 +169,7 @@ class LargeGraphCampaignTests(unittest.TestCase):
         )
         self.assertEqual(
             weighted["positive_insertion_measurement_window"],
-            "dynamic_update_only",
+            "dynamic_e2e_to_convergence",
         )
         self.assertEqual(
             contract["claim_boundary"]["weighted_sssp_bootstrap"],

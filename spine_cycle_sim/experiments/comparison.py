@@ -1038,10 +1038,8 @@ def result_row(
         invocation.system == "spine"
         and str(run["algorithm"]) == "weighted_dynamic_sssp"
     )
-    cycles = (
-        int(result.get("update_cycles", 0)) if dynamic_spine_sssp else raw_cycles
-    )
-    if cycles <= 0 or cycles > raw_cycles:
+    cycles = raw_cycles
+    if cycles <= 0:
         raise ValueError("invalid publication measurement cycle window")
     core_mhz = float(result["core_mhz"])
     arbitration = result["backend_arbitration"]
@@ -1061,7 +1059,9 @@ def result_row(
         "raw_cycles": raw_cycles,
         "bootstrap_cycles": int(result.get("cold_cycles", 0)),
         "measurement_window": (
-            "dynamic_update_only" if dynamic_spine_sssp else "complete_execution"
+            "dynamic_e2e_to_convergence"
+            if dynamic_spine_sssp
+            else "complete_execution"
         ),
         "algorithm_warm_start": bool(result.get("algorithm_warm_start", False)),
         "core_mhz": core_mhz,

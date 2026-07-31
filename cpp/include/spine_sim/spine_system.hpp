@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 
+#include "spine_sim/component.hpp"
 #include "spine_sim/fifo.hpp"
 #include "spine_sim/fixed_axi_port.hpp"
 #include "spine_sim/memory_backend.hpp"
@@ -114,6 +115,18 @@ struct SpineSsspRunResult {
   std::uint64_t end_cycle{};
 };
 
+struct SpineInitialActiveOutputCounters {
+  bool enabled{};
+  std::uint64_t start_cycle{};
+  std::uint64_t end_cycle{};
+  std::size_t active_vertices{};
+  std::uint64_t write_bytes{};
+  std::uint64_t memory_requests_issued{};
+  std::uint64_t memory_requests_completed{};
+  std::uint64_t memory_request_fifo_stall_cycles{};
+  std::size_t max_memory_requests_inflight{};
+};
+
 // Builds the untimed host-side HOST_ACTIVE payload consumed by the reader.
 // The emitted records preserve source order and duplicate-source semantics.
 [[nodiscard]] SpineActiveBins build_spine_host_active_bins(
@@ -141,6 +154,7 @@ class SpineVerticalSliceSystem {
                                algorithm_initial_state = std::nullopt);
 
   void register_components();
+  void restart_device_active_compute(std::vector<std::uint32_t> active_sources);
   void restart_read_compute(
       std::vector<std::uint32_t> active_sources,
       std::optional<SpineDirtyIdentity> host_coverage = std::nullopt);
@@ -199,6 +213,7 @@ class SpineVerticalSliceSystem {
   std::unique_ptr<FixedAxiPort> active_bins_;
   std::unique_ptr<FixedAxiPort> vertex_state_;
   std::unique_ptr<FixedAxiPort> active_out_;
+  std::unique_ptr<FixedAxiPort> active_out_reader_;
   std::unique_ptr<FixedAxiPort> active_bitmap_;
   std::unique_ptr<FixedAxiPort> compute_result_;
   SpineL0State state_;
@@ -251,6 +266,8 @@ class SpinePageRankVerticalSliceSystem {
   [[nodiscard]] const SpineL0Counters &maintenance_counters() const noexcept;
   [[nodiscard]] const SpineReaderCounters &reader_counters() const noexcept;
   [[nodiscard]] const SpinePageRankCounters &compute_counters() const noexcept;
+  [[nodiscard]] const SpineInitialActiveOutputCounters &
+  initial_active_counters() const noexcept;
   [[nodiscard]] const SpineSplitPageRankCompute &compute() const noexcept;
   [[nodiscard]] const SpineL0State &level_state() const noexcept;
   [[nodiscard]] const FifoStats &edge_stream_stats() const noexcept;
@@ -274,14 +291,22 @@ class SpinePageRankVerticalSliceSystem {
   std::unique_ptr<FixedAxiPort> maintenance_result_;
   std::unique_ptr<FixedAxiPort> active_bins_;
   std::unique_ptr<FixedAxiPort> vertex_state_;
+  std::unique_ptr<FixedAxiPort> active_seed_out_;
+  std::unique_ptr<FixedAxiPort> active_out_;
+  std::unique_ptr<FixedAxiPort> active_out_reader_;
   SpineL0State state_;
   std::shared_ptr<const GraphAlgorithmPolicy> algorithm_policy_;
   std::unique_ptr<SpineL0Maintenance> maintenance_;
   std::unique_ptr<SpineSplitReader> reader_;
   std::unique_ptr<SpineSplitPageRankCompute> compute_;
+  std::unique_ptr<Component> initial_active_writer_;
+  SpineInitialActiveOutputCounters initial_active_counters_;
   SpineActiveBins active_bins_payload_;
   std::vector<std::uint32_t> source_refresh_;
   std::optional<SpineDirtyIdentity> host_coverage_;
+  bool initial_active_ready_{true};
+  bool initial_active_failed_{};
+  std::string initial_active_failure_;
   bool registered_{};
 };
 

@@ -47,7 +47,8 @@ std::vector<std::uint8_t> encode_words(
 SpineSplitPageRankCompute::SpineSplitPageRankCompute(
     std::string name, ClockId clock_id, GraphAlgorithmPolicy policy,
     std::vector<std::uint32_t> out_degrees, FixedAxiPort &vertex_state,
-    Fifo<PartConvWord> &edge_in, Fifo<SourceValueWord> &value_out,
+    FixedAxiPort *active_out, Fifo<PartConvWord> &edge_in,
+    Fifo<SourceValueWord> &value_out,
     AlgorithmPipelineConfig pipeline_config,
     std::size_t memory_request_window, std::size_t tile_vertices,
     std::optional<AlgorithmInitialState> initial_state)
@@ -56,6 +57,7 @@ SpineSplitPageRankCompute::SpineSplitPageRankCompute(
       vertices_(policy_.config().vertices),
       tile_vertices_(tile_vertices),
       vertex_state_(vertex_state),
+      active_out_(active_out),
       edge_in_(edge_in),
       value_out_(value_out),
       state_layout_(policy_.state_layout()),
@@ -96,7 +98,9 @@ SpineSplitPageRankCompute::SpineSplitPageRankCompute(
                    : !out_degrees.empty()) ||
       tile_vertices_ == 0 || memory_request_window_ == 0 ||
       edge_in_.clock_id() != clock_id || value_out_.clock_id() != clock_id ||
-      vertex_state_.master().clock_id() != clock_id) {
+      vertex_state_.master().clock_id() != clock_id ||
+      (active_out_ != nullptr &&
+       active_out_->master().clock_id() != clock_id)) {
     throw std::invalid_argument("invalid Spine PageRank compute configuration");
   }
   initialize_state_payload(out_degrees, initial_state);
@@ -235,8 +239,10 @@ void SpineSplitPageRankCompute::enqueue_read(std::uint64_t address,
                                               MemoryPayloadKind kind,
                                               std::uint32_t vertex) {
   memory_tasks_.push_back(MemoryTask{
+      .port = &vertex_state_,
       .operation = MemoryOperation::kRead,
       .address = address,
+      .bytes = kWordBytes,
       .write_data = {},
       .kind = kind,
       .vertex = vertex,
@@ -256,8 +262,10 @@ void SpineSplitPageRankCompute::enqueue_write(std::uint64_t address,
                                                MemoryPayloadKind kind,
                                                std::uint32_t vertex) {
   memory_tasks_.push_back(MemoryTask{
+      .port = &vertex_state_,
       .operation = MemoryOperation::kWrite,
       .address = address,
+      .bytes = kWordBytes,
       .write_data = encode_u32(value),
       .kind = kind,
       .vertex = vertex,
@@ -265,9 +273,34 @@ void SpineSplitPageRankCompute::enqueue_write(std::uint64_t address,
   if (kind == MemoryPayloadKind::kSourceAuxiliaryWrite ||
       kind == MemoryPayloadKind::kApplyAuxiliaryWrite) {
     counters_.auxiliary_write_bytes += kWordBytes;
+  } else if (kind == MemoryPayloadKind::kActiveOutputWrite) {
+    counters_.active_out_write_bytes += 8;
   } else {
     counters_.primary_write_bytes += kWordBytes;
   }
+}
+
+void SpineSplitPageRankCompute::enqueue_active_output(
+    std::size_t index, std::uint32_t vertex, std::uint32_t value) {
+  if (active_out_ == nullptr) {
+    return;
+  }
+  std::vector<std::uint8_t> payload(8, 0);
+  const std::vector<std::uint8_t> encoded_value = encode_u32(value);
+  const std::vector<std::uint8_t> encoded_vertex = encode_u32(vertex);
+  std::copy(encoded_value.begin(), encoded_value.end(), payload.begin());
+  std::copy(encoded_vertex.begin(), encoded_vertex.end(),
+            payload.begin() + sizeof(std::uint32_t));
+  memory_tasks_.push_back(MemoryTask{
+      .port = active_out_,
+      .operation = MemoryOperation::kWrite,
+      .address = index * 8,
+      .bytes = 8,
+      .write_data = std::move(payload),
+      .kind = MemoryPayloadKind::kActiveOutputWrite,
+      .vertex = vertex,
+  });
+  counters_.active_out_write_bytes += 8;
 }
 
 bool SpineSplitPageRankCompute::memory_drained() const noexcept {
@@ -363,7 +396,8 @@ void SpineSplitPageRankCompute::consume_memory_response(
         (task.kind != MemoryPayloadKind::kSourcePrimaryWrite &&
          task.kind != MemoryPayloadKind::kSourceAuxiliaryWrite &&
          task.kind != MemoryPayloadKind::kApplyPrimaryWrite &&
-         task.kind != MemoryPayloadKind::kApplyAuxiliaryWrite)) {
+         task.kind != MemoryPayloadKind::kApplyAuxiliaryWrite &&
+         task.kind != MemoryPayloadKind::kActiveOutputWrite)) {
       failed_ = true;
       return;
     }
@@ -425,6 +459,7 @@ void SpineSplitPageRankCompute::consume_memory_response(
     case MemoryPayloadKind::kSourceAuxiliaryWrite:
     case MemoryPayloadKind::kApplyPrimaryWrite:
     case MemoryPayloadKind::kApplyAuxiliaryWrite:
+    case MemoryPayloadKind::kActiveOutputWrite:
       failed_ = true;
       return;
   }
@@ -449,17 +484,32 @@ void SpineSplitPageRankCompute::evaluate(const CycleContext &) {
     return;
   }
 
-  const AxiResponse *memory_response = vertex_state_.responses().front();
-  if (memory_response != nullptr) {
-    const auto found = inflight_memory_.find(memory_response->transaction_id);
+  const auto stage_memory_response = [this](FixedAxiPort &port) {
+    const AxiResponse *memory_response = port.responses().front();
+    if (memory_response == nullptr) {
+      return false;
+    }
+    const std::uint64_t transaction_id = memory_response->transaction_id;
+    const auto found = inflight_memory_.find(transaction_id);
     if (found == inflight_memory_.end()) {
       failed_ = true;
-      return;
+      return true;
     }
     AxiResponse staged;
-    if (vertex_state_.responses().try_pop(staged)) {
+    if (port.responses().try_pop(staged)) {
       staged_memory_response_ =
-          std::make_pair(memory_response->transaction_id, std::move(staged));
+          std::make_pair(transaction_id, std::move(staged));
+    }
+    return true;
+  };
+  if (stage_memory_response(vertex_state_)) {
+    if (failed_) {
+      return;
+    }
+  } else if (active_out_ != nullptr &&
+             stage_memory_response(*active_out_)) {
+    if (failed_) {
+      return;
     }
   }
 
@@ -468,11 +518,15 @@ void SpineSplitPageRankCompute::evaluate(const CycleContext &) {
       ++counters_.memory_window_stall_cycles;
     } else {
       const MemoryTask &task = memory_tasks_.front();
-      if (vertex_state_.requests().try_push(AxiRequest{
+      if (task.port == nullptr) {
+        failed_ = true;
+        return;
+      }
+      if (task.port->requests().try_push(AxiRequest{
               .transaction_id = next_memory_transaction_,
               .operation = task.operation,
               .address = task.address,
-              .bytes = kWordBytes,
+              .bytes = task.bytes,
               .write_data = task.write_data,
           })) {
         staged_memory_issue_ = true;
@@ -800,6 +854,8 @@ void SpineSplitPageRankCompute::commit(const CycleContext &context) {
                     applied.state_after.auxiliary,
                     MemoryPayloadKind::kApplyAuxiliaryWrite, vertex);
       if (applied.active) {
+        enqueue_active_output(next_active_.size(), vertex,
+                              applied.state_after.auxiliary);
         next_active_.push_back(vertex);
         ++counters_.vertices_activated;
       }
@@ -810,6 +866,8 @@ void SpineSplitPageRankCompute::commit(const CycleContext &context) {
       if (policy_.config().kind ==
               GraphAlgorithmKind::kConnectedComponents &&
           applied.active) {
+        enqueue_active_output(next_active_.size(), vertex,
+                              applied.state_after.primary);
         next_active_.push_back(vertex);
         ++counters_.vertices_activated;
       }

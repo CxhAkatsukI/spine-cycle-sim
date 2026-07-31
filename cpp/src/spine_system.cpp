@@ -12,6 +12,144 @@
 
 namespace spine::sim {
 
+namespace {
+
+std::vector<std::uint8_t> encode_active_output_record(std::uint32_t value,
+                                                      std::uint32_t source) {
+  return {
+      static_cast<std::uint8_t>(value & 0xffU),
+      static_cast<std::uint8_t>((value >> 8) & 0xffU),
+      static_cast<std::uint8_t>((value >> 16) & 0xffU),
+      static_cast<std::uint8_t>((value >> 24) & 0xffU),
+      static_cast<std::uint8_t>(source & 0xffU),
+      static_cast<std::uint8_t>((source >> 8) & 0xffU),
+      static_cast<std::uint8_t>((source >> 16) & 0xffU),
+      static_cast<std::uint8_t>((source >> 24) & 0xffU),
+  };
+}
+
+class SpineInitialActiveOutputWriter final : public Component {
+ public:
+  SpineInitialActiveOutputWriter(
+      std::string name, ClockId clock_id, FixedAxiPort &port,
+      const SpineL0Maintenance &maintenance,
+      std::vector<std::pair<std::uint32_t, std::uint32_t>> records,
+      SpineInitialActiveOutputCounters &counters, bool &ready, bool &failed,
+      std::string &failure)
+      : Component(std::move(name), clock_id),
+        port_(port),
+        maintenance_(maintenance),
+        records_(std::move(records)),
+        counters_(counters),
+        ready_(ready),
+        failed_(failed),
+        failure_(failure) {
+    counters_.enabled = true;
+    counters_.active_vertices = records_.size();
+    ready_ = false;
+  }
+
+  void evaluate(const CycleContext &) override {
+    staged_issue_ = false;
+    staged_done_ = false;
+    staged_response_.reset();
+    if (ready_ || failed_) {
+      return;
+    }
+    if (!maintenance_.done()) {
+      return;
+    }
+    if (maintenance_.failed()) {
+      failed_ = true;
+      failure_ = "initial active-output writer blocked by failed maintenance";
+      return;
+    }
+    const AxiResponse *response = port_.responses().front();
+    if (response != nullptr) {
+      AxiResponse staged;
+      if (port_.responses().try_pop(staged)) {
+        staged_response_ = std::move(staged);
+      }
+      return;
+    }
+    if (next_record_ < records_.size()) {
+      if (inflight_.size() >= kMaxInflight) {
+        return;
+      }
+      const auto [source, value] = records_[next_record_];
+      if (port_.requests().try_push(AxiRequest{
+              .transaction_id = next_transaction_,
+              .operation = MemoryOperation::kWrite,
+              .address = next_record_ * kActiveOutputBytes,
+              .bytes = kActiveOutputBytes,
+              .write_data = encode_active_output_record(value, source),
+          })) {
+        staged_issue_ = true;
+      } else {
+        ++counters_.memory_request_fifo_stall_cycles;
+      }
+      return;
+    }
+    if (inflight_.empty()) {
+      staged_done_ = true;
+    }
+  }
+
+  void commit(const CycleContext &context) override {
+    if (ready_ || failed_) {
+      return;
+    }
+    if (counters_.start_cycle == 0 && maintenance_.done()) {
+      counters_.start_cycle = context.domain_cycle;
+    }
+    if (staged_response_.has_value()) {
+      const auto found = inflight_.find(staged_response_->transaction_id);
+      if (found == inflight_.end() || !staged_response_->success ||
+          staged_response_->operation != MemoryOperation::kWrite ||
+          !staged_response_->read_data.empty()) {
+        failed_ = true;
+        failure_ = "initial active-output writer received an invalid response";
+        return;
+      }
+      inflight_.erase(found);
+      ++counters_.memory_requests_completed;
+    }
+    if (staged_issue_) {
+      inflight_.emplace(next_transaction_, next_record_);
+      ++next_transaction_;
+      ++next_record_;
+      ++counters_.memory_requests_issued;
+      counters_.write_bytes += kActiveOutputBytes;
+      counters_.max_memory_requests_inflight =
+          std::max(counters_.max_memory_requests_inflight, inflight_.size());
+    }
+    if (staged_done_) {
+      counters_.end_cycle = context.domain_cycle;
+      ready_ = true;
+    }
+  }
+
+ private:
+  static constexpr std::uint64_t kActiveOutputBytes = 8;
+  static constexpr std::size_t kMaxInflight = 16;
+
+  FixedAxiPort &port_;
+  const SpineL0Maintenance &maintenance_;
+  std::vector<std::pair<std::uint32_t, std::uint32_t>> records_;
+  SpineInitialActiveOutputCounters &counters_;
+  bool &ready_;
+  bool &failed_;
+  std::string &failure_;
+  std::size_t next_record_{};
+  std::uint64_t next_transaction_{};
+  std::unordered_map<std::uint64_t, std::size_t> inflight_;
+  bool staged_issue_{};
+  bool staged_done_{};
+  std::optional<AxiResponse> staged_response_;
+};
+
+}  // namespace
+
 SpineActiveBins build_spine_host_active_bins(
     const SpineL0State &state, const SpineL0Config &config,
     const std::vector<std::uint32_t> &sources,
@@ -394,6 +532,8 @@ SpineVerticalSliceSystem::SpineVerticalSliceSystem(
   vertex_state_ =
       make_port("vertex-state", 117, 17, SpineAxiPortKind::kVertexState);
   active_out_ = make_port("active-out", 119, 19, SpineAxiPortKind::kActiveOut);
+  active_out_reader_ =
+      make_port("active-out-reader", 118, 19, SpineAxiPortKind::kActiveOut);
   compute_result_ =
       make_port("compute-result", 121, 21, SpineAxiPortKind::kComputeResult);
   active_bitmap_ =
@@ -410,6 +550,7 @@ SpineVerticalSliceSystem::SpineVerticalSliceSystem(
   maintenance_ports.result = maintenance_result_.get();
   reader_ports.task_scratch = sorted_.get();
   reader_ports.active_bins = active_bins_.get();
+  reader_ports.active_out = active_out_reader_.get();
   reader_ports.metadata = metadata_.get();
   reader_ports.result = maintenance_result_.get();
 
@@ -484,8 +625,23 @@ void SpineVerticalSliceSystem::register_components() {
   maintenance_result_->register_components(scheduler_);
   vertex_state_->register_components(scheduler_);
   active_out_->register_components(scheduler_);
+  active_out_reader_->register_components(scheduler_);
   compute_result_->register_components(scheduler_);
   active_bitmap_->register_components(scheduler_);
+}
+
+void SpineVerticalSliceSystem::restart_device_active_compute(
+    std::vector<std::uint32_t> active_sources) {
+  if (!registered_ || !done() || !idle() || failed() ||
+      active_sources.empty()) {
+    throw std::logic_error(
+        "Spine device-active restart requires a successful drained round");
+  }
+  edge_stream_.reset_stats();
+  value_stream_.reset_stats();
+  reader_->reset_active_list_round(active_sources.size());
+  compute_->reset_round();
+  current_frontier_ = std::move(active_sources);
 }
 
 void SpineVerticalSliceSystem::restart_read_compute(
@@ -761,7 +917,7 @@ SpineSsspRunResult SpineVerticalSliceSystem::run_sssp_to_convergence(
       break;
     }
     if (round + 1 < max_rounds) {
-      restart_read_compute(active_out);
+      restart_device_active_compute(active_out);
     }
   }
   result.end_cycle = scheduler_.clock(clock_id_).completed_cycles;
@@ -786,7 +942,8 @@ bool SpineVerticalSliceSystem::idle() const noexcept {
   }
   return sorted_->idle() && active_bins_->idle() && metadata_->idle() &&
          maintenance_result_->idle() && vertex_state_->idle() &&
-         active_out_->idle() && compute_result_->idle() &&
+         active_out_->idle() && active_out_reader_->idle() &&
+         compute_result_->idle() &&
          active_bitmap_->idle() && edge_stream_.empty() &&
          value_stream_.empty();
 }
@@ -947,7 +1104,11 @@ SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
     const std::unordered_set<std::uint32_t> active(
         algorithm_initial_state->active_vertices.begin(),
         algorithm_initial_state->active_vertices.end());
+    const bool residual_warm_start =
+        policy.config().kind == GraphAlgorithmKind::kResidualPageRank;
     if (algorithm_initial_state->primary.size() != logical_graph.vertices ||
+        (residual_warm_start &&
+         algorithm_initial_state->auxiliary.size() != logical_graph.vertices) ||
         active.size() != algorithm_initial_state->active_vertices.size() ||
         std::any_of(active.begin(), active.end(),
                     [&logical_graph](std::uint32_t vertex) {
@@ -964,7 +1125,8 @@ SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
                 bin.end());
       for (SpineActiveRecord &record : bin) {
         record.source_value =
-            algorithm_initial_state->primary[record.source];
+            residual_warm_start ? algorithm_initial_state->auxiliary[record.source]
+                                : algorithm_initial_state->primary[record.source];
       }
     }
   }
@@ -990,6 +1152,12 @@ SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
                                   SpineAxiPortKind::kMaintenanceResult);
   vertex_state_ = make_port("pagerank-vertex-state", 117, 17,
                             SpineAxiPortKind::kVertexState);
+  active_seed_out_ = make_port("pagerank-active-seed-out", 120, 19,
+                               SpineAxiPortKind::kActiveOut);
+  active_out_ = make_port("pagerank-active-out", 119, 19,
+                          SpineAxiPortKind::kActiveOut);
+  active_out_reader_ = make_port("pagerank-active-out-reader", 118, 19,
+                                 SpineAxiPortKind::kActiveOut);
 
   SpineL0Ports maintenance_ports;
   SpineReaderPorts reader_ports;
@@ -1002,6 +1170,7 @@ SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
   maintenance_ports.result = maintenance_result_.get();
   reader_ports.task_scratch = sorted_.get();
   reader_ports.active_bins = active_bins_.get();
+  reader_ports.active_out = active_out_reader_.get();
   reader_ports.metadata = metadata_.get();
   reader_ports.result = maintenance_result_.get();
 
@@ -1014,13 +1183,40 @@ SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
       "pagerank-reader", clock_id_, *maintenance_, reader_ports, host.sources,
       edge_stream_, value_stream_, SpineReaderMode::kHostActive,
       algorithm_policy_);
-  reader_->configure_initial_host_round(host.bins, host.coverage, host.sources);
+  const bool initial_device_active =
+      algorithm_initial_state.has_value() &&
+      (algorithm_policy_->config().kind == GraphAlgorithmKind::kResidualPageRank ||
+       algorithm_policy_->config().kind == GraphAlgorithmKind::kConnectedComponents);
+  if (initial_device_active) {
+    std::vector<std::pair<std::uint32_t, std::uint32_t>> records;
+    records.reserve(algorithm_initial_state->active_vertices.size());
+    for (const std::uint32_t source : algorithm_initial_state->active_vertices) {
+      const std::uint32_t value =
+          algorithm_policy_->config().kind == GraphAlgorithmKind::kResidualPageRank
+              ? algorithm_initial_state->auxiliary.at(source)
+              : algorithm_initial_state->primary.at(source);
+      records.emplace_back(source, value);
+    }
+    initial_active_ready_ = records.empty();
+    reader_->configure_initial_active_list_round(records.size(),
+                                                 &initial_active_ready_);
+    if (!records.empty()) {
+      initial_active_writer_ = std::make_unique<SpineInitialActiveOutputWriter>(
+          "pagerank-initial-active-out", clock_id_, *active_seed_out_,
+          *maintenance_, std::move(records), initial_active_counters_,
+          initial_active_ready_, initial_active_failed_,
+          initial_active_failure_);
+    }
+  } else {
+    reader_->configure_initial_host_round(host.bins, host.coverage, host.sources);
+  }
   compute_ = std::make_unique<SpineSplitPageRankCompute>(
       "pagerank-compute", clock_id_, *algorithm_policy_,
       algorithm_policy_->storage_profile().degree_arrays != 0
           ? std::move(host.out_degrees)
           : std::vector<std::uint32_t>{},
-      *vertex_state_, edge_stream_, value_stream_, pipeline_config,
+      *vertex_state_, active_out_.get(), edge_stream_, value_stream_,
+      pipeline_config,
       compute_memory_request_window,
       SpineSplitPageRankCompute::kDefaultTileVertices,
       std::move(algorithm_initial_state));
@@ -1040,6 +1236,9 @@ void SpinePageRankVerticalSliceSystem::register_components() {
   }
   registered_ = true;
   scheduler_.add_component(*maintenance_);
+  if (initial_active_writer_ != nullptr) {
+    scheduler_.add_component(*initial_active_writer_);
+  }
   scheduler_.add_component(*reader_);
   compute_->register_components(scheduler_);
   scheduler_.add_component(edge_stream_);
@@ -1052,6 +1251,9 @@ void SpinePageRankVerticalSliceSystem::register_components() {
   metadata_->register_components(scheduler_);
   maintenance_result_->register_components(scheduler_);
   vertex_state_->register_components(scheduler_);
+  active_seed_out_->register_components(scheduler_);
+  active_out_->register_components(scheduler_);
+  active_out_reader_->register_components(scheduler_);
 }
 
 void SpinePageRankVerticalSliceSystem::restart_iteration() {
@@ -1069,11 +1271,11 @@ void SpinePageRankVerticalSliceSystem::restart_iteration() {
     if (source_refresh_.empty()) {
       throw std::logic_error("converged frontier algorithm cannot restart");
     }
-    active_bins_payload_ = build_spine_host_active_bins(
-        state_, maintenance_config_, source_refresh_, compute_->rank_words());
+    reader_->reset_active_list_round(source_refresh_.size());
+  } else {
+    reader_->reset_host_round(active_bins_payload_, host_coverage_,
+                              source_refresh_);
   }
-  reader_->reset_host_round(active_bins_payload_, host_coverage_,
-                            source_refresh_);
   compute_->reset_iteration();
 }
 
@@ -1086,12 +1288,16 @@ bool SpinePageRankVerticalSliceSystem::done() const noexcept {
 }
 
 bool SpinePageRankVerticalSliceSystem::failed() const noexcept {
-  return maintenance_->failed() || reader_->failed() || compute_->failed();
+  return maintenance_->failed() || initial_active_failed_ || reader_->failed() ||
+         compute_->failed();
 }
 
 std::string SpinePageRankVerticalSliceSystem::failure() const {
   if (maintenance_->failed()) {
     return "maintenance: " + maintenance_->failure();
+  }
+  if (initial_active_failed_) {
+    return "initial active output: " + initial_active_failure_;
   }
   if (reader_->failed()) {
     return "reader: " + reader_->failure();
@@ -1108,9 +1314,12 @@ bool SpinePageRankVerticalSliceSystem::idle() const noexcept {
       return false;
     }
   }
-  return sorted_->idle() && active_bins_->idle() && metadata_->idle() &&
-         maintenance_result_->idle() && vertex_state_->idle() &&
-         edge_stream_.empty() && value_stream_.empty();
+  return sorted_->idle() && active_bins_->idle() && active_seed_out_->idle() &&
+         active_out_->idle() && active_out_reader_->idle() && metadata_->idle() &&
+         maintenance_result_->idle() &&
+         vertex_state_->idle() &&
+         edge_stream_.empty() && value_stream_.empty() &&
+         (initial_active_writer_ == nullptr || initial_active_ready_);
 }
 
 const SpineL0Counters &
@@ -1126,6 +1335,11 @@ SpinePageRankVerticalSliceSystem::reader_counters() const noexcept {
 const SpinePageRankCounters &
 SpinePageRankVerticalSliceSystem::compute_counters() const noexcept {
   return compute_->counters();
+}
+
+const SpineInitialActiveOutputCounters &
+SpinePageRankVerticalSliceSystem::initial_active_counters() const noexcept {
+  return initial_active_counters_;
 }
 
 const SpineSplitPageRankCompute &

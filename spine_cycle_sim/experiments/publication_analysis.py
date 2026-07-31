@@ -214,16 +214,23 @@ def _metric(row: Mapping[str, Any], *keys: str, default: Any = 0) -> Any:
 
 
 def _measurement_window_cycles(result: Mapping[str, Any]) -> int:
-    case = result["case"]
     raw = result["row"]
-    scalar = result.get("scalar_metrics", {})
-    if (
-        case["system"] == "spine"
-        and case["algorithm"] == "weighted_sssp"
-        and int(_metric(scalar, "update_cycles", default=0)) > 0
-    ):
-        return int(scalar["update_cycles"])
     return int(raw["cycles"])
+
+
+def _structure_update_cycles(
+    case: Mapping[str, Any], scalar: Mapping[str, Any]
+) -> tuple[int, str]:
+    """Return the graph-structure phase only, excluding algorithm execution."""
+
+    system = str(case["system"])
+    if system == "spine":
+        cycles = int(_metric(scalar, "maintenance_cycles", default=0))
+        return cycles, "maintenance_cycles" if cycles > 0 else "missing"
+    if system.startswith("grasu_regraph"):
+        cycles = int(_metric(scalar, "update_cycles", default=0))
+        return cycles, "update_cycles" if cycles > 0 else "missing"
+    return 0, "unsupported_system"
 
 
 def _normalized_system_row(result: Mapping[str, Any]) -> dict[str, Any]:
@@ -242,6 +249,9 @@ def _normalized_system_row(result: Mapping[str, Any]) -> dict[str, Any]:
     clock_mhz = float(_metric(raw, "clock_mhz", "core_mhz"))
     update_cycles = int(
         _metric(scalar, "update_cycles", "maintenance_cycles", default=0)
+    )
+    structure_update_cycles, structure_update_counter = _structure_update_cycles(
+        case, scalar
     )
     logical_mutations = int(case["update"]["user_mutations"])
     requests = int(_metric(combined, "requests", default=raw.get("backend_requests", 0)))
@@ -274,7 +284,7 @@ def _normalized_system_row(result: Mapping[str, Any]) -> dict[str, Any]:
         ),
         "measurement_window": raw.get(
             "measurement_window",
-            "dynamic_update_only"
+            "dynamic_e2e_to_convergence"
             if case["system"] == "spine" and case["algorithm"] == "weighted_sssp"
             else "complete_execution",
         ),
@@ -290,6 +300,13 @@ def _normalized_system_row(result: Mapping[str, Any]) -> dict[str, Any]:
         "update_mups": (
             logical_mutations * clock_mhz / update_cycles
             if update_cycles > 0
+            else 0.0
+        ),
+        "structure_update_cycles": structure_update_cycles,
+        "structure_update_counter": structure_update_counter,
+        "structure_update_mups": (
+            logical_mutations * clock_mhz / structure_update_cycles
+            if structure_update_cycles > 0
             else 0.0
         ),
         "e2e_mups": logical_mutations * clock_mhz / cycles,
@@ -913,6 +930,19 @@ def analyze_publication_case_results(
                         other["update_cycles"] / spine["update_cycles"]
                         if spine["update_cycles"] > 0
                         and other["update_cycles"] > 0
+                        else 0.0
+                    ),
+                    "spine_structure_update_cycles": spine[
+                        "structure_update_cycles"
+                    ],
+                    "competitor_structure_update_cycles": other[
+                        "structure_update_cycles"
+                    ],
+                    "spine_structure_update_speedup": (
+                        other["structure_update_cycles"]
+                        / spine["structure_update_cycles"]
+                        if spine["structure_update_cycles"] > 0
+                        and other["structure_update_cycles"] > 0
                         else 0.0
                     ),
                     "spine_memory_bytes": spine["read_bytes"] + spine["write_bytes"],

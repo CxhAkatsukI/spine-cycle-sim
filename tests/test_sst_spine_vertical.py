@@ -378,7 +378,7 @@ class SstSpineVerticalValidationTests(unittest.TestCase):
             "iterations": 49,
             "frontier_in_sizes": [4, 3] + [2] * 46 + [1],
             "frontier_out_sizes": [3] + [2] * 46 + [1, 0],
-            "compute_requests_per_iteration": [28, 23] + [18] * 46 + [13],
+            "compute_requests_per_iteration": [31, 25] + [20] * 45 + [19, 13],
             "correctness_mismatches": 0,
             "frontier_match": True,
             "memory_ledger_match": True,

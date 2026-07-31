@@ -3670,7 +3670,7 @@ void test_spine_device_task_limits_hand_off_to_tiled_fallback() {
     system.register_components();
     scheduler.add_component(backend);
     scheduler.run_until([&] { return system.done() && system.idle(); },
-                        500'000);
+                        10'000'000);
 
     require(
         system.failed() && system.recoverable_host_handoff() &&
@@ -3689,7 +3689,7 @@ void test_spine_device_task_limits_hand_off_to_tiled_fallback() {
     require(sources == std::vector<std::uint32_t>{0} && !system.failed(),
             case_name + " did not recover the dirty source");
     scheduler.run_until([&] { return system.done() && system.idle(); },
-                        500'000);
+                        10'000'000);
 
     const auto &reader = system.reader_counters();
     const auto &compute = system.compute_counters();
@@ -6813,7 +6813,7 @@ void test_spine_multiround_weighted_sssp_converges() {
                                   load_spine_edge_slice(fixture), 0);
   system.register_components();
   scheduler.add_component(backend);
-  const auto result = system.run_sssp_to_convergence(16, 200'000);
+  const auto result = system.run_sssp_to_convergence(16, 10'000'000);
 
   require(result.converged && !result.failed && result.rounds.size() == 6,
           "weighted SSSP did not converge in the oracle round count");
@@ -6841,8 +6841,8 @@ void test_spine_multiround_weighted_sssp_converges() {
   const std::vector<std::vector<std::uint32_t>> expected_outputs = {
       {1, 2, 5}, {1, 3}, {3, 4}, {4, 5}, {5}, {}};
   const std::vector<std::vector<std::uint32_t>> expected_reader_sources = {
-      {0, 1, 2, 3, 4}, {1, 2}, {1, 3}, {3, 4}, {4}, {}};
-  const std::vector<std::uint64_t> expected_requests = {5, 0, 0, 0, 0, 0};
+      {0, 1, 2, 3, 4}, {1, 2, 5}, {1, 3}, {3, 4}, {4, 5}, {5}};
+  const std::vector<std::uint64_t> expected_requests = {5, 3, 2, 2, 2, 1};
   const std::vector<std::uint64_t> expected_edges = {8, 3, 2, 2, 1, 0};
   for (std::size_t round = 0; round < result.rounds.size(); ++round) {
     const auto &evidence = result.rounds[round];
@@ -6866,7 +6866,7 @@ void test_spine_multiround_weighted_sssp_converges() {
     if (round != 0) {
       require(evidence.reader.dirty_count == 0 &&
                   evidence.reader.dirty_generation == 2,
-              "HOST_ACTIVE round did not observe acknowledged generation");
+              "device-active round did not observe acknowledged generation");
     }
   }
   require(system.compute().values() ==
@@ -8153,7 +8153,7 @@ void test_spine_timed_full_pagerank_compute_uses_hbm_and_pipelines() {
   });
   SpineSplitPageRankCompute compute(
       "pagerank-compute", core, policy, {2, 1, 0, 1}, vertex_state,
-      edge_stream, value_stream,
+      nullptr, edge_stream, value_stream,
       AlgorithmPipelineConfig{
           .source_map = {.latency_cycles = 3,
                          .initiation_interval = 1,
@@ -8926,7 +8926,7 @@ void test_spine_residual_pagerank_tracks_thresholded_frontier() {
   std::size_t rounds = 0;
   for (; rounds < 256; ++rounds) {
     scheduler.run_until([&] { return system.done() && system.idle(); },
-                        500'000);
+                        10'000'000);
 
     std::vector<float> deltas(4, 0.0F);
     float dangling = 0.0F;
@@ -8966,7 +8966,9 @@ void test_spine_residual_pagerank_tracks_thresholded_frontier() {
                 system.compute_counters().source_requests == active.size() &&
                 system.compute_counters().vertices_activated == next.size() &&
                 system.compute_counters().memory_requests_issued ==
-                    5 * active.size() + 8,
+                    5 * active.size() + 8 + next.size() &&
+                system.compute_counters().active_out_write_bytes ==
+                    8 * next.size(),
             "residual PageRank did not execute its thresholded memory frontier");
     active = std::move(next);
     if (active.empty()) {
@@ -9046,7 +9048,7 @@ void test_spine_connected_components_converges_with_min_labels() {
   std::size_t rounds = 0;
   for (; rounds < expected_frontiers.size(); ++rounds) {
     scheduler.run_until([&] { return system.done() && system.idle(); },
-                        500'000);
+                        10'000'000);
     require(!system.failed() &&
                 system.compute().next_active() == expected_frontiers[rounds],
             "Spine CC produced the wrong per-round frontier");

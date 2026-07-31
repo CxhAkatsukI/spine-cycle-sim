@@ -37,6 +37,7 @@ struct SpinePageRankCounters {
   std::uint64_t auxiliary_read_bytes{};
   std::uint64_t auxiliary_write_bytes{};
   std::uint64_t degree_read_bytes{};
+  std::uint64_t active_out_write_bytes{};
   std::uint64_t memory_requests_issued{};
   std::uint64_t memory_requests_completed{};
   std::uint64_t memory_window_stall_cycles{};
@@ -55,6 +56,7 @@ class SpineSplitPageRankCompute final : public Component {
   SpineSplitPageRankCompute(
       std::string name, ClockId clock_id, GraphAlgorithmPolicy policy,
       std::vector<std::uint32_t> out_degrees, FixedAxiPort &vertex_state,
+      FixedAxiPort *active_out,
       Fifo<PartConvWord> &edge_in, Fifo<SourceValueWord> &value_out,
       AlgorithmPipelineConfig pipeline_config = {},
       std::size_t memory_request_window = kDefaultMemoryRequestWindow,
@@ -127,11 +129,14 @@ class SpineSplitPageRankCompute final : public Component {
     kSourceAuxiliaryWrite,
     kApplyPrimaryWrite,
     kApplyAuxiliaryWrite,
+    kActiveOutputWrite,
   };
 
   struct MemoryTask {
+    FixedAxiPort *port{};
     MemoryOperation operation{MemoryOperation::kRead};
     std::uint64_t address{};
+    std::uint64_t bytes{4};
     std::vector<std::uint8_t> write_data;
     MemoryPayloadKind kind{MemoryPayloadKind::kSourcePrimary};
     std::uint32_t vertex{};
@@ -167,6 +172,8 @@ class SpineSplitPageRankCompute final : public Component {
                     std::uint32_t vertex);
   void enqueue_write(std::uint64_t address, std::uint32_t value,
                      MemoryPayloadKind kind, std::uint32_t vertex);
+  void enqueue_active_output(std::size_t index, std::uint32_t vertex,
+                             std::uint32_t value);
   void consume_memory_response(const MemoryTask &task,
                                const AxiResponse &response);
   void begin_apply_tile(std::uint32_t tile_base, bool empty_tile);
@@ -181,6 +188,7 @@ class SpineSplitPageRankCompute final : public Component {
   std::size_t vertices_{};
   std::size_t tile_vertices_{};
   FixedAxiPort &vertex_state_;
+  FixedAxiPort *active_out_{};
   Fifo<PartConvWord> &edge_in_;
   Fifo<SourceValueWord> &value_out_;
   AlgorithmStateLayout state_layout_;
