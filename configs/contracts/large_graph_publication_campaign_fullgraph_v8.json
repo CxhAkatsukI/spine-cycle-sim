@@ -116,6 +116,46 @@
         ],
         "superseding_plugin_sha256": "7563b028e61e792e7043a582682dd26d0e3d8cc3e2407021f144519d0ef57bf6"
       },
+      "result_supersedence_chain": [
+        {
+          "affected_algorithms": [
+            "connected_components",
+            "thresholded_residual_pagerank",
+            "weighted_sssp",
+            "weighted_dynamic_sssp"
+          ],
+          "classification": "device_active_timing_correction",
+          "requires_identical_case": true,
+          "requires_identical_final_state": true,
+          "scope_system": "spine",
+          "superseded_plugin_sha256": [
+            "eee35f39c118538da5565e497d29b989e5bb492c1368839d424a984c32e2aae9",
+            "c2a60d5250f5594dae98114bd32a96910fe08d11a299eadc6d0b2d1fa56161c6",
+            "5c0211c60431bba211758dcb9031e906871eaae844172bfd6f3533a1c2a74f2d",
+            "96b4375f8549016ac8be36d85b04b4b5730df0af477dcc5909903845a8f56919",
+            "1c0b0a9adb245e919e77cedb39b731551befc1f0ca4101a519dce176d9edf057"
+          ],
+          "superseding_plugin_sha256": "84626d7f2de2904df2557c9e08299495b28e7cd5389e075dc094550f75965216"
+        },
+        {
+          "affected_algorithms": [
+            "thresholded_residual_pagerank"
+          ],
+          "classification": "device_residual_correction_timing",
+          "requires_identical_case": true,
+          "requires_identical_final_state": true,
+          "scope_system": "spine",
+          "superseded_plugin_sha256": [
+            "eee35f39c118538da5565e497d29b989e5bb492c1368839d424a984c32e2aae9",
+            "c2a60d5250f5594dae98114bd32a96910fe08d11a299eadc6d0b2d1fa56161c6",
+            "5c0211c60431bba211758dcb9031e906871eaae844172bfd6f3533a1c2a74f2d",
+            "96b4375f8549016ac8be36d85b04b4b5730df0af477dcc5909903845a8f56919",
+            "1c0b0a9adb245e919e77cedb39b731551befc1f0ca4101a519dce176d9edf057",
+            "84626d7f2de2904df2557c9e08299495b28e7cd5389e075dc094550f75965216"
+          ],
+          "superseding_plugin_sha256": "7563b028e61e792e7043a582682dd26d0e3d8cc3e2407021f144519d0ef57bf6"
+        }
+      ],
       "source_commit": "6f251e7a44b10a504b95e64e43253a1673f06563",
       "spine_host_runtime_equivalent_plugins": []
     },

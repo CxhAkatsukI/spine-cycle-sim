@@ -401,6 +401,73 @@ class PublicationAnalysisTests(unittest.TestCase):
         self.assertEqual(analysis["observed_executions"], 1)
         self.assertEqual(analysis["system_rows"][0]["cycles"], 100)
 
+    def test_ordered_transition_chain_selects_algorithm_specific_successors(self) -> None:
+        old_cc = case_result("spine", 100, execution_id="cc")
+        old_cc["row"]["algorithm"] = "connected_components"
+        device_cc = deepcopy(old_cc)
+        device_cc["plugin_sha256"] = "b" * 64
+        device_cc["row"]["cycles"] = 110
+
+        old_residual = case_result("spine", 200, execution_id="residual")
+        old_residual["row"]["algorithm"] = "thresholded_residual_pagerank"
+        device_residual = deepcopy(old_residual)
+        device_residual["plugin_sha256"] = "b" * 64
+        device_residual["row"]["cycles"] = 220
+        corrected_residual = deepcopy(old_residual)
+        corrected_residual["plugin_sha256"] = "c" * 64
+        corrected_residual["row"]["cycles"] = 240
+
+        device_active = {
+            "classification": "device_active_timing_correction",
+            "scope_system": "spine",
+            "affected_algorithms": [
+                "connected_components",
+                "thresholded_residual_pagerank",
+            ],
+            "requires_identical_case": True,
+            "requires_identical_final_state": True,
+            "superseded_plugin_sha256": ["a" * 64],
+            "superseding_plugin_sha256": "b" * 64,
+        }
+        device_correction = {
+            "classification": "device_residual_correction_timing",
+            "scope_system": "spine",
+            "affected_algorithms": ["thresholded_residual_pagerank"],
+            "requires_identical_case": True,
+            "requires_identical_final_state": True,
+            "superseded_plugin_sha256": ["a" * 64, "b" * 64],
+            "superseding_plugin_sha256": "c" * 64,
+        }
+        analysis = analyze_publication_case_results(
+            [
+                old_cc,
+                device_cc,
+                old_residual,
+                device_residual,
+                corrected_residual,
+            ],
+            result_supersedence_policy=[device_active, device_correction],
+        )
+        cycles = {
+            row["execution_id"]: row["cycles"]
+            for row in analysis["system_rows"]
+        }
+        self.assertEqual(cycles, {"cc": 110, "residual": 240})
+        transitions = {
+            (row["execution_id"], row["old_cycles"]): row[
+                "transition_classification"
+            ]
+            for row in analysis["superseded_result_rows"]
+        }
+        self.assertEqual(
+            transitions,
+            {
+                ("cc", 100): "device_active_timing_correction",
+                ("residual", 200): "device_residual_correction_timing",
+                ("residual", 220): "device_residual_correction_timing",
+            },
+        )
+
     def test_incomplete_expected_set_is_partial_or_fail_closed(self) -> None:
         result = case_result("spine", 100)
         analysis = analyze_publication_case_results(

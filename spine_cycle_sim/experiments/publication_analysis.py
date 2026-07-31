@@ -70,11 +70,32 @@ def _scientific_signature(result: Mapping[str, Any]) -> str:
     )
 
 
-def _validate_result_supersedence_policy(
-    policy: Mapping[str, Any] | None,
-) -> None:
+def _result_supersedence_policies(
+    policy: Mapping[str, Any] | Sequence[Mapping[str, Any]] | None,
+) -> tuple[Mapping[str, Any], ...]:
     if policy is None:
-        return
+        return ()
+    if isinstance(policy, Mapping):
+        return (policy,)
+    if not isinstance(policy, Sequence) or isinstance(policy, (str, bytes)):
+        raise ValueError("invalid result supersedence policy chain")
+    policies = tuple(policy)
+    if not policies or not all(isinstance(item, Mapping) for item in policies):
+        raise ValueError("invalid result supersedence policy chain")
+    return policies
+
+
+def _validate_result_supersedence_policy(
+    policy: Mapping[str, Any] | Sequence[Mapping[str, Any]] | None,
+) -> None:
+    policies = _result_supersedence_policies(policy)
+    for item in policies:
+        _validate_single_result_supersedence_policy(item)
+
+
+def _validate_single_result_supersedence_policy(
+    policy: Mapping[str, Any],
+) -> None:
     old_hashes = policy.get("superseded_plugin_sha256")
     base_valid = (
         policy.get("scope_system") == "spine"
@@ -143,9 +164,9 @@ def _is_result_affected_by_supersedence(
 
 
 def _transition_classification(
-    result: Mapping[str, Any], policy: Mapping[str, Any] | None
+    result: Mapping[str, Any], policy: Mapping[str, Any]
 ) -> str:
-    if policy is None or result["case"]["system"] != policy["scope_system"]:
+    if result["case"]["system"] != policy["scope_system"]:
         return "eligible"
     plugin = result["plugin_sha256"]
     if plugin == policy["superseding_plugin_sha256"]:
@@ -796,13 +817,18 @@ def analyze_publication_case_results(
     expected_execution_ids: Iterable[str] = (),
     expected_execution_records: Mapping[str, Mapping[str, Any]] | None = None,
     capacity_exclusion_records: Sequence[Mapping[str, Any]] = (),
-    result_supersedence_policy: Mapping[str, Any] | None = None,
+    result_supersedence_policy: (
+        Mapping[str, Any] | Sequence[Mapping[str, Any]] | None
+    ) = None,
     required_systems: Sequence[str] | None = None,
     require_complete: bool = False,
 ) -> dict[str, Any]:
     """Validate, de-duplicate, pair, and summarize formal case results."""
 
     _validate_result_supersedence_policy(result_supersedence_policy)
+    supersedence_policies = _result_supersedence_policies(
+        result_supersedence_policy
+    )
     required = tuple(
         PUBLICATION_RESULT_SYSTEMS if required_systems is None else required_systems
     )
@@ -829,15 +855,28 @@ def analyze_publication_case_results(
         eligible: list[Mapping[str, Any]] = []
         invalidated: list[Mapping[str, Any]] = []
         successors: list[Mapping[str, Any]] = []
+        invalidating_policy: dict[int, Mapping[str, Any]] = {}
         for result in candidates:
-            classification = _transition_classification(
-                result, result_supersedence_policy
-            )
-            if classification == "invalidated":
+            classifications = [
+                (policy, _transition_classification(result, policy))
+                for policy in supersedence_policies
+            ]
+            invalidators = [
+                policy
+                for policy, classification in classifications
+                if classification == "invalidated"
+            ]
+            if invalidators:
                 invalidated.append(result)
+                # A later transition is the direct replacement boundary when
+                # one historical result is invalidated by multiple upgrades.
+                invalidating_policy[id(result)] = invalidators[-1]
             else:
                 eligible.append(result)
-                if classification == "successor":
+                if any(
+                    classification == "successor"
+                    for _, classification in classifications
+                ):
                     successors.append(result)
         invalidated_results[execution_id] = invalidated
 
@@ -865,9 +904,9 @@ def analyze_publication_case_results(
                     raise ValueError(
                         f"superseding result changed final state: {execution_id}"
                     )
-                assert result_supersedence_policy is not None
+                policy = invalidating_policy[id(old)]
                 metric, metric_value = _supersedence_audit_metric(
-                    old, result_supersedence_policy
+                    old, policy
                 )
                 superseded_result_rows.append(
                     {
@@ -879,6 +918,7 @@ def analyze_publication_case_results(
                         "new_plugin_sha256": selected["plugin_sha256"],
                         "old_cycles": old["row"]["cycles"],
                         "new_cycles": selected["row"]["cycles"],
+                        "transition_classification": policy["classification"],
                         "case_identity_match": True,
                         "final_state_match": True,
                     }

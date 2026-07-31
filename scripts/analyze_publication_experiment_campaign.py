@@ -61,9 +61,13 @@ def main() -> int:
         transition_contract = load_large_graph_campaign_contract(
             args.result_transition_contract
         )
-        transition_policy = transition_contract["architecture_baselines"][
+        simulator_baseline = transition_contract["architecture_baselines"][
             "simulator_baseline"
-        ].get("result_supersedence")
+        ]
+        transition_policy = simulator_baseline.get(
+            "result_supersedence_chain",
+            simulator_baseline.get("result_supersedence"),
+        )
     analysis = analyze_publication_case_results(
         results,
         expected_execution_ids=expected_execution_ids(args.manifest),
