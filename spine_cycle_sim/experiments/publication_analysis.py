@@ -315,6 +315,9 @@ def _normalized_system_row(result: Mapping[str, Any]) -> dict[str, Any]:
     update_cycles = int(
         _metric(scalar, "update_cycles", "maintenance_cycles", default=0)
     )
+    residual_correction_cycles = int(
+        _metric(scalar, "residual_correction_cycles", default=0)
+    )
     structure_update_cycles, structure_update_counter = _structure_update_cycles(
         case, scalar
     )
@@ -362,6 +365,42 @@ def _normalized_system_row(result: Mapping[str, Any]) -> dict[str, Any]:
         "clock_mhz": clock_mhz,
         "simulated_us": cycles / clock_mhz,
         "update_cycles": update_cycles,
+        "residual_correction_cycles": residual_correction_cycles,
+        "residual_correction_memory_requests": int(
+            _metric(scalar, "residual_correction_memory_requests", default=0)
+        ),
+        "residual_correction_read_bytes": int(
+            _activity_sum(
+                scalar,
+                (
+                    "residual_correction_rank_read_bytes",
+                    "residual_correction_degree_read_bytes",
+                    "residual_correction_graph_read_bytes",
+                    "residual_correction_residual_read_bytes",
+                ),
+            )
+        ),
+        "residual_correction_write_bytes": int(
+            _activity_sum(
+                scalar,
+                (
+                    "residual_correction_degree_write_bytes",
+                    "residual_correction_residual_write_bytes",
+                    "residual_correction_active_write_bytes",
+                ),
+            )
+        ),
+        "residual_correction_touched_sources": int(
+            _metric(scalar, "residual_correction_touched_sources", default=0)
+        ),
+        "residual_correction_physical_edge_records": int(
+            _metric(
+                scalar, "residual_correction_physical_edge_records", default=0
+            )
+        ),
+        "residual_correction_seeded_vertices": int(
+            _metric(scalar, "residual_correction_seeded_vertices", default=0)
+        ),
         "update_mups": (
             logical_mutations * clock_mhz / update_cycles
             if update_cycles > 0
@@ -544,11 +583,65 @@ def _component_activity_rows(result: Mapping[str, Any]) -> list[dict[str, Any]]:
             ),
             counter_contract="spine_reader_execution_and_memory_v1",
         )
+        residual_correction_cycles = _activity_first(
+            metrics, ("residual_correction_cycles",)
+        )
+        if bool(metrics.get("residual_correction_device_timed")):
+            correction_read_events = (
+                _activity_first(metrics, ("residual_correction_rank_read_bytes",))
+                // 4
+                + _activity_first(
+                    metrics, ("residual_correction_degree_read_bytes",)
+                )
+                // 4
+                + _activity_first(metrics, ("residual_correction_graph_read_bytes",))
+                // 8
+                + _activity_first(
+                    metrics, ("residual_correction_residual_read_bytes",)
+                )
+                // 4
+            )
+            correction_write_events = (
+                _activity_first(
+                    metrics, ("residual_correction_degree_write_bytes",)
+                )
+                // 4
+                + _activity_first(
+                    metrics, ("residual_correction_residual_write_bytes",)
+                )
+                // 4
+                + _activity_first(
+                    metrics, ("residual_correction_active_write_bytes",)
+                )
+                // 4
+            )
+            correction_requests = _activity_first(
+                metrics, ("residual_correction_memory_requests",)
+            )
+            if correction_read_events + correction_write_events != correction_requests:
+                raise ValueError("Spine residual-correction request ledger is open")
+            add(
+                "residual_correction",
+                cycles=residual_correction_cycles,
+                work_items=_activity_first(
+                    metrics, ("residual_correction_physical_edge_records",)
+                ),
+                read_events=correction_read_events,
+                write_events=correction_write_events,
+                backend_requests=correction_requests,
+                counter_contract="spine_device_residual_correction_v1",
+            )
         compute_cycles = _activity_first(
             metrics, ("compute_cycles", "compute_active_cycles_per_round")
         )
         if compute_cycles == 0:
-            compute_cycles = max(0, total_cycles - maintenance_cycles - reader_cycles)
+            compute_cycles = max(
+                0,
+                total_cycles
+                - maintenance_cycles
+                - residual_correction_cycles
+                - reader_cycles,
+            )
         add(
             "compute",
             cycles=compute_cycles,

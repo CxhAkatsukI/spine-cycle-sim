@@ -600,6 +600,40 @@ class PublicationAnalysisTests(unittest.TestCase):
             "workload_specific_activity_not_total_energy",
         )
 
+    def test_device_residual_correction_is_a_disjoint_component(self) -> None:
+        result = case_result("spine", 300)
+        result["row"]["algorithm"] = "thresholded_residual_pagerank"
+        result["scalar_metrics"] = {
+            "maintenance_cycles": 30,
+            "reader_cycles": 20,
+            "residual_correction_device_timed": True,
+            "residual_correction_cycles": 40,
+            "residual_correction_memory_requests": 18,
+            "residual_correction_physical_edge_records": 5,
+            "residual_correction_rank_read_bytes": 8,
+            "residual_correction_degree_read_bytes": 8,
+            "residual_correction_graph_read_bytes": 40,
+            "residual_correction_residual_read_bytes": 12,
+            "residual_correction_degree_write_bytes": 8,
+            "residual_correction_residual_write_bytes": 12,
+            "residual_correction_active_write_bytes": 4,
+        }
+        analysis = analyze_publication_case_results([result])
+        system = analysis["system_rows"][0]
+        rows = {
+            row["component"]: row
+            for row in analysis["component_activity_rows"]
+        }
+        self.assertEqual(system["residual_correction_cycles"], 40)
+        self.assertEqual(system["residual_correction_read_bytes"], 68)
+        self.assertEqual(system["residual_correction_write_bytes"], 24)
+        self.assertEqual(rows["residual_correction"]["component_cycles"], 40)
+        self.assertEqual(rows["residual_correction"]["work_items"], 5)
+        self.assertEqual(rows["residual_correction"]["read_events"], 12)
+        self.assertEqual(rows["residual_correction"]["write_events"], 6)
+        self.assertEqual(rows["residual_correction"]["backend_requests"], 18)
+        self.assertEqual(rows["compute"]["component_cycles"], 210)
+
     def test_writer_emits_component_activity_csv(self) -> None:
         analysis = analyze_publication_case_results([case_result("spine", 100)])
         with tempfile.TemporaryDirectory() as temporary:
