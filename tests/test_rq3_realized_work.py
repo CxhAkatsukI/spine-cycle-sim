@@ -114,6 +114,53 @@ class Rq3RealizedWorkTests(unittest.TestCase):
         self.assertEqual(row["reactivations"], 1)
         self.assertEqual(row["case_class"], "shallow_insertion")
 
+    def test_current_sssp_window_uses_full_dynamic_e2e_cycles(self) -> None:
+        current = result("current-window")
+        current["row"]["cycles"] = 150
+        current["row"]["measurement_window"] = "dynamic_e2e_to_convergence"
+        current["scalar_metrics"]["update_cycles"] = 20
+        row = analyze_rq3_results([current])["latency_rows"][0]
+        self.assertEqual(row["total_cycles"], 150)
+        self.assertTrue(row["ledger_closed"])
+
+    def test_device_residual_correction_is_timed_inside_seed_stage(self) -> None:
+        residual = result("device-correction")
+        residual["case"]["algorithm"] = "thresholded_residual_pagerank"
+        residual["row"]["cycles"] = 110
+        metrics = residual["scalar_metrics"]
+        metrics.update(
+            {
+                "residual_correction_device_timed": True,
+                "residual_correction_cycles": 10,
+                "residual_correction_physical_edge_records": 12,
+                "residual_correction_seeded_vertices": 3,
+                "residual_correction_memory_requests": 24,
+                "reader_start_cycles_per_round": [30, 90],
+                "reader_end_cycles_per_round": [70, 100],
+                "compute_start_cycles_per_round": [50, 98],
+                "compute_end_cycles_per_round": [85, 105],
+                "round_start_cycles": [0, 90],
+                "round_end_cycles": [85, 110],
+            }
+        )
+        analysis = analyze_rq3_results([residual])
+        work = analysis["work_rows"][0]
+        latency = analysis["latency_rows"][0]
+        self.assertEqual(work["m_seed_records"], 15)
+        self.assertEqual(work["residual_correction_memory_requests"], 24)
+        self.assertEqual(latency["residual_correction_cycles"], 10)
+        self.assertEqual(latency["t_seed_cycles"], 14)
+        self.assertTrue(latency["residual_correction_seed_timed"])
+        self.assertTrue(latency["ten_stage_ledger_closed"])
+        self.assertEqual(
+            latency["total_cycles"],
+            sum(
+                value
+                for key, value in latency.items()
+                if key.startswith("t_") and key.endswith("_cycles")
+            ),
+        )
+
     def test_carry_work_counts_payload_merge_and_rewrite(self) -> None:
         carry = result("carry")
         carry["scalar_metrics"].update(

@@ -65,8 +65,12 @@ def _measurement_cycles(result: Mapping[str, Any]) -> int:
     if (
         case["system"] == "spine"
         and case["algorithm"] == "weighted_sssp"
+        and row.get("measurement_window") != "dynamic_e2e_to_convergence"
         and _metric(metrics, "update_cycles") > 0
     ):
+        # Historical rows used raw cold-start cycles in row.cycles and exposed
+        # the dynamic interval only through update_cycles. Current rows carry
+        # an explicit update-to-convergence measurement-window contract.
         return _metric(metrics, "update_cycles")
     return int(row["cycles"])
 
@@ -142,6 +146,13 @@ def _critical_path_ledger(result: Mapping[str, Any]) -> dict[str, int]:
         maintenance = [
             (max(0, maintenance_start), min(total, maintenance_end))
         ]
+    correction: list[tuple[int, int]] = []
+    correction_cycles = _metric(metrics, "residual_correction_cycles")
+    if metrics.get("residual_correction_device_timed") is True:
+        correction_start = max(0, maintenance_end)
+        correction_end = min(total, correction_start + correction_cycles)
+        if correction_end > correction_start:
+            correction = [(correction_start, correction_end)]
     reader = _intervals(
         metrics,
         "reader_start_cycles_per_round",
@@ -167,11 +178,12 @@ def _critical_path_ledger(result: Mapping[str, Any]) -> dict[str, int]:
                 sync.append((left, right))
 
     boundaries = {0, total}
-    for interval in maintenance + reader + app + sync:
+    for interval in maintenance + correction + reader + app + sync:
         boundaries.update(interval)
     ordered = sorted(boundaries)
     ledger = {
         "maintenance_cycles": 0,
+        "residual_correction_cycles": 0,
         "resolve_only_cycles": 0,
         "app_only_cycles": 0,
         "resolve_app_overlap_cycles": 0,
@@ -185,6 +197,8 @@ def _critical_path_ledger(result: Mapping[str, Any]) -> dict[str, int]:
             continue
         if _active(maintenance, start, end):
             key = "maintenance_cycles"
+        elif _active(correction, start, end):
+            key = "residual_correction_cycles"
         else:
             resolving = _active(reader, start, end)
             applying = _active(app, start, end)
@@ -240,6 +254,14 @@ def _ten_stage_ledger(result: Mapping[str, Any]) -> dict[str, Any]:
             (max(0, maintenance_start), min(total, maintenance_end))
         ]
     maintenance_cycles = sum(end - start for start, end in maintenance)
+    correction: list[tuple[int, int]] = []
+    correction_cycles = _metric(metrics, "residual_correction_cycles")
+    correction_supported = metrics.get("residual_correction_device_timed") is True
+    if correction_supported:
+        correction_start = max(0, maintenance_end)
+        correction_end = min(total, correction_start + correction_cycles)
+        if correction_end > correction_start:
+            correction = [(correction_start, correction_end)]
     direct = {
         "t_xfer_cycles": _metric(metrics, "maintenance_stage_xfer_cycles"),
         "t_reduce_cycles": _metric(metrics, "maintenance_stage_reduce_cycles"),
@@ -265,6 +287,8 @@ def _ten_stage_ledger(result: Mapping[str, Any]) -> dict[str, Any]:
         )
         and sum(direct.values()) == maintenance_cycles
     )
+    if correction_supported:
+        direct["t_seed_cycles"] += sum(end - start for start, end in correction)
 
     reader = _intervals(
         metrics,
@@ -304,12 +328,16 @@ def _ten_stage_ledger(result: Mapping[str, Any]) -> dict[str, Any]:
         "t_sync_cycles": 0,
     }
     boundaries = {0, total}
-    for interval in maintenance + reader + app + sync:
+    for interval in maintenance + correction + reader + app + sync:
         boundaries.update(interval)
     ordered = sorted(boundaries)
     for start, end in zip(ordered, ordered[1:]):
         width = end - start
-        if width <= 0 or _active(maintenance, start, end):
+        if (
+            width <= 0
+            or _active(maintenance, start, end)
+            or _active(correction, start, end)
+        ):
             continue
         resolving = _active(reader, start, end)
         applying = _active(app, start, end)
@@ -341,13 +369,18 @@ def _ten_stage_ledger(result: Mapping[str, Any]) -> dict[str, Any]:
         "ten_stage_supported": supported,
         "ten_stage_ledger_closed": closed,
         "ten_stage_scope": (
-            "exclusive_direct_maintenance_and_component_timestamp_critical_path"
+            "exclusive_direct_maintenance_correction_and_component_timestamp_critical_path"
             if supported
             else "unsupported_missing_direct_stage_or_component_timestamps"
         ),
         "frontend_dma_timed": False,
         "external_sort_timed": False,
-        "residual_correction_seed_timed": False,
+        "residual_correction_seed_timed": correction_supported,
+        "residual_correction_attribution": (
+            "aggregate_device_correction_interval_in_t_seed"
+            if correction_supported
+            else "not_present"
+        ),
     }
 
 
@@ -599,7 +632,21 @@ def analyze_rq3_results(
                 "compute_edges",
             )
             or max(construction, replay, fallback),
-            "m_seed_records": _metric(metrics, "maintenance_dirty_unique_sources"),
+            "m_seed_records": (
+                _metric(metrics, "residual_correction_physical_edge_records")
+                + _metric(metrics, "residual_correction_seeded_vertices")
+                if metrics.get("residual_correction_device_timed") is True
+                else _metric(metrics, "maintenance_dirty_unique_sources")
+            ),
+            "residual_correction_physical_records": _metric(
+                metrics, "residual_correction_physical_edge_records"
+            ),
+            "residual_correction_seed_records": _metric(
+                metrics, "residual_correction_seeded_vertices"
+            ),
+            "residual_correction_memory_requests": _metric(
+                metrics, "residual_correction_memory_requests"
+            ),
             "touched_pages": touched_pages,
             "descriptor_operations": descriptor_ops,
             "source_services": source_services,

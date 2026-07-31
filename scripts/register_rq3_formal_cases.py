@@ -88,21 +88,43 @@ def write_case_result(
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--formal-root", type=Path, required=True)
+    parser.add_argument(
+        "--residual-only",
+        action="store_true",
+        help="register only the residual-correction case from this evidence root",
+    )
     args = parser.parse_args()
 
-    cc_dir = args.formal_root / "zero_net_cc"
-    cc_path = cc_dir / "result.json"
-    cc_manifest_path = cc_dir / "run_manifest.json"
-    cc = json.loads(cc_path.read_text(encoding="utf-8"))
-    cc_manifest = json.loads(cc_manifest_path.read_text(encoding="utf-8"))
-    require_correct(cc, "CC zero-net")
-    if (
-        cc.get("update_mode") != "zero_net_no_repair"
-        or cc_manifest.get("admitted") is not True
-        or cc_manifest.get("checks", {}).get("dual_oracle") is not True
-    ):
-        raise ValueError("CC zero-net lacks admitted no-repair evidence")
-    cc_plugin = str(cc_manifest["sst_plugin_sha256"])
+    registrations: list[dict[str, Any]] = []
+    cc_manifest_path: Path | None = None
+    if not args.residual_only:
+        cc_dir = args.formal_root / "zero_net_cc"
+        cc_path = cc_dir / "result.json"
+        cc_manifest_path = cc_dir / "run_manifest.json"
+        cc = json.loads(cc_path.read_text(encoding="utf-8"))
+        cc_manifest = json.loads(cc_manifest_path.read_text(encoding="utf-8"))
+        require_correct(cc, "CC zero-net")
+        if (
+            cc.get("update_mode") != "zero_net_no_repair"
+            or cc_manifest.get("admitted") is not True
+            or cc_manifest.get("checks", {}).get("dual_oracle") is not True
+        ):
+            raise ValueError("CC zero-net lacks admitted no-repair evidence")
+        registrations.append(
+            write_case_result(
+                args.formal_root / "runs" / "zero_net",
+                execution_id="rq3_zero_net_cc_u2",
+                dataset_id="synthetic_cc_zero_net",
+                algorithm="connected_components",
+                scenario="weight_change",
+                batch_size=2,
+                physical_records=int(cc["physical_update_records"]),
+                raw_path=cc_path,
+                result=cc,
+                plugin_sha256=str(cc_manifest["sst_plugin_sha256"]),
+                role="synthetic_calibration",
+            )
+        )
 
     residual_matrix = args.formal_root / "residual_correction" / "summary.json"
     residual_summary = json.loads(residual_matrix.read_text(encoding="utf-8"))
@@ -128,20 +150,7 @@ def main() -> int:
         raise ValueError("residual correction lacks physical-work closure")
     residual_plugin = str(residual["sst_plugin_sha256"])
 
-    registrations = [
-        write_case_result(
-            args.formal_root / "runs" / "zero_net",
-            execution_id="rq3_zero_net_cc_u2",
-            dataset_id="synthetic_cc_zero_net",
-            algorithm="connected_components",
-            scenario="weight_change",
-            batch_size=2,
-            physical_records=int(cc["physical_update_records"]),
-            raw_path=cc_path,
-            result=cc,
-            plugin_sha256=cc_plugin,
-            role="synthetic_calibration",
-        ),
+    registrations.append(
         write_case_result(
             args.formal_root / "runs" / "residual_correction",
             execution_id="rq3_flickr_residual_correction_u8_eps1e6",
@@ -154,12 +163,14 @@ def main() -> int:
             result=residual,
             plugin_sha256=residual_plugin,
             role="trace_holdout",
-        ),
-    ]
+        )
+    )
     registry = {
         "schema_version": 1,
         "registry_id": "rq3_formal_standalone_cases_v1",
-        "cc_manifest_sha256": sha256_file(cc_manifest_path),
+        "cc_manifest_sha256": (
+            sha256_file(cc_manifest_path) if cc_manifest_path is not None else None
+        ),
         "residual_matrix_sha256": sha256_file(residual_matrix),
         "registrations": registrations,
     }
