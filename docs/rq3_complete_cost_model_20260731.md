@@ -29,7 +29,7 @@ Per-round reader and compute start/end timestamps then produce
 `T_resolve`, `T_app`, `T_drain`, and `T_sync`. If reader and app overlap, the
 interval is assigned to the component that gates completion. Thus the ten
 stages are an exclusive critical path and must sum exactly to measured E2E
-cycles. The current analysis has 44 direct ten-stage rows, and all 44 ledgers
+cycles. The current analysis has 47 direct ten-stage rows, and all 47 ledgers
 close.
 
 The five requested representative cases are:
@@ -52,13 +52,13 @@ The analysis preserves all seven requested relations, including weak results:
 
 | mechanism | samples | all-row R2 | result |
 | --- | ---: | ---: | --- |
-| `T_xfer+T_reduce` vs. `W_sort(B)` | 44 | 0.0149 | batch records alone omit fixed and contention effects |
+| `T_xfer+T_reduce` vs. `W_sort(B)` | 47 | 0.0116 | batch records alone omit fixed and contention effects |
 | `T_carry` vs. `W_carry` | 5 | 0.9962 | realized carry records strongly explain carry time |
-| `T_dir` vs. directory requests | 44 | 0.9984 | direct request count explains the covered directory path |
-| `T_resolve+T_app` vs. `M_phys` | 44 | 0.4735 | physical records alone omit vertex apply and algorithm-state work |
-| `T_seed` vs. `M_seed` | 41 | 0.9784 | seed work remains strongly predictive after device correction is included |
-| `T_switch` vs. touched pages plus descriptors | 44 | 0.8696 | useful but incomplete across mixed classes |
-| `T_drain` vs. source services plus reactivations | 37 | approximately 0.30 | one scalar does not explain topology and backpressure |
+| `T_dir` vs. directory requests | 47 | 0.9981 | direct request count explains the covered directory path |
+| `T_resolve+T_app` vs. `M_phys` | 47 | 0.4905 | physical records alone omit vertex apply and algorithm-state work |
+| `T_seed` vs. `M_seed` | 44 | 0.9794 | seed work remains strongly predictive after device correction is included |
+| `T_switch` vs. touched pages plus descriptors | 47 | 0.8753 | useful but incomplete across mixed classes |
+| `T_drain` vs. source services plus reactivations | 40 | 0.3290 | one scalar does not explain topology and backpressure |
 
 Weak single-variable relations are reported rather than hidden. They mean the
 paper quantity is real and measured, but it is not by itself a transferable
@@ -77,8 +77,8 @@ and 39 real trace holdouts. On the real holdout:
 
 - R2: 0.933;
 - median absolute error: 26.46 percent;
-- mean absolute error: 27.38 percent;
-- maximum absolute error: 71.66 percent.
+- mean absolute error: 27.41 percent;
+- maximum absolute error: 72.03 percent.
 
 This supports bottleneck attribution and trend-level latency prediction. It
 does not support a claim of cycle-for-cycle FPGA calibration or uniformly low

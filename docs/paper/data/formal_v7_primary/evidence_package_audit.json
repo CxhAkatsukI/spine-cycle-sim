@@ -27,30 +27,40 @@
       "sx_superuser",
       "wiki_talk_temporal"
     ],
-    "component_activity_rows": 159,
-    "direct_ten_stage_rows": 40,
-    "expected_executions": 36,
+    "component_activity_rows": 163,
+    "direct_ten_stage_rows": 47,
+    "expected_executions": 46,
     "headline_rq3_r2": {
       "carry": 0.9962147102944884,
-      "directory": 0.9983053506402799,
-      "drain": 0.29940807686421056,
-      "physical_resolve_apply": 0.9643113132923948,
-      "seed": 0.9999704861495818,
-      "sort_frontend": 0.02158004734709429,
-      "switch": 0.8594172400349379
+      "directory": 0.9981477462362909,
+      "drain": 0.32896322066107386,
+      "physical_resolve_apply": 0.4905163966160785,
+      "seed": 0.9794244610103588,
+      "sort_frontend": 0.011612853244797217,
+      "switch": 0.8752856289381862
     },
     "missing_execution_ids": [
+      "01f4180c4aa2125571fd",
       "0b5795e3da24b96657e6",
+      "21611da2a0606b697c0c",
+      "3a562b2f227668a74c07",
+      "3dcfce0740dcfdd238a8",
       "40d4283eb14d3fefe31f",
+      "4521f2e747b298dd7c08",
       "46d0c4f883375efb9ccd",
       "69248cd5746efe44a840",
       "714eba95b1bb53afc879",
       "7c53284784babc476b00",
+      "80271c1754de30dcf8a2",
+      "8d25c32647eba6aa7de1",
       "9f7a9739bc109305a2e7",
+      "a350c67ff798f8408a84",
+      "b655a13fe1ea2bde98b4",
       "b841b79faa2aace92be3",
       "bb8611a68e5fdcd8b898",
       "cb698febad12b4a61671",
-      "d4663f47718ae2510810"
+      "d4663f47718ae2510810",
+      "f3a6325cf1c9e209f094"
     ],
     "observed_executions": 25,
     "observed_update_grid": [
@@ -91,6 +101,24 @@
         "scenario": "weight_change"
       }
     ],
+    "observed_update_scaling_grid": [
+      {
+        "batch_size": 64,
+        "scenario": "insert"
+      },
+      {
+        "batch_size": 1024,
+        "scenario": "insert"
+      },
+      {
+        "batch_size": 16384,
+        "scenario": "insert"
+      },
+      {
+        "batch_size": 131072,
+        "scenario": "insert"
+      }
+    ],
     "ready_rq3_classes": [
       "deep_carry",
       "deletion_fallback",
@@ -99,10 +127,10 @@
       "zero_net"
     ],
     "real_trace_holdout": {
-      "mape_percent": "27.888978827064864",
-      "max_ape_percent": "81.68278365357621",
-      "median_ape_percent": "24.45117610688721",
-      "r2": "0.9407961744833533",
+      "mape_percent": "27.41175215539125",
+      "max_ape_percent": "72.02875274917045",
+      "median_ape_percent": "26.459846228225054",
+      "r2": "0.9325641829624227",
       "role": "real_trace_holdout",
       "samples": "39"
     },
@@ -118,6 +146,7 @@
     "five_rq3_direct_ten_stage_ledgers_close": true,
     "five_rq3_representative_classes_ready": true,
     "insert_delete_weight_change_batches_1_8_64_complete": true,
+    "insertion_batches_64_1024_16384_131072_complete": true,
     "observed_correctness_memory_and_activity_ledgers_closed": true,
     "pdf_and_required_vector_figures_exist": true,
     "rq3_e2e_model_generalizes_to_30_real_holdouts": true,

@@ -2,11 +2,11 @@
   "claim_class": "execution_driven_active_cycles_times_vivado_vectorless_power_plus_dramsim3_energy",
   "component_rows": [
     {
-      "active_cycles": 91575,
+      "active_cycles": 92507,
       "algorithm": "weighted_sssp",
       "component": "hbm_subsystem",
       "dataset_id": "ljournal_2008",
-      "energy_uj": 10789.977,
+      "energy_uj": 10899.791453333333,
       "execution_id": "980c084e249992cc626c",
       "group_id": "1b46cb212c1892278285",
       "power_profile_role": "exact_algorithm_routed_build",
@@ -26,11 +26,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 79576,
+      "active_cycles": 80508,
       "algorithm": "weighted_sssp",
       "component": "graph_compute",
       "dataset_id": "ljournal_2008",
-      "energy_uj": 108.75386666666667,
+      "energy_uj": 110.02759999999999,
       "execution_id": "980c084e249992cc626c",
       "group_id": "1b46cb212c1892278285",
       "power_profile_role": "exact_algorithm_routed_build",
@@ -38,11 +38,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 79576,
+      "active_cycles": 80508,
       "algorithm": "weighted_sssp",
       "component": "stream_fifos",
       "dataset_id": "ljournal_2008",
-      "energy_uj": 1.59152,
+      "energy_uj": 1.61016,
       "execution_id": "980c084e249992cc626c",
       "group_id": "1b46cb212c1892278285",
       "power_profile_role": "exact_algorithm_routed_build",
@@ -50,11 +50,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 91575,
+      "active_cycles": 92507,
       "algorithm": "weighted_sssp",
       "component": "other_user_logic",
       "dataset_id": "ljournal_2008",
-      "energy_uj": 68.98649999999999,
+      "energy_uj": 69.68860666666666,
       "execution_id": "980c084e249992cc626c",
       "group_id": "1b46cb212c1892278285",
       "power_profile_role": "exact_algorithm_routed_build",
@@ -62,11 +62,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 64058,
+      "active_cycles": 63722,
       "algorithm": "weighted_sssp",
       "component": "hbm_subsystem",
       "dataset_id": "rmat_19_32",
-      "energy_uj": 7547.740613333333,
+      "energy_uj": 7508.1508533333335,
       "execution_id": "fe9587b82163333e9f97",
       "group_id": "c78a997ac5a1792c2731",
       "power_profile_role": "exact_algorithm_routed_build",
@@ -86,11 +86,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 57541,
+      "active_cycles": 57205,
       "algorithm": "weighted_sssp",
       "component": "graph_compute",
       "dataset_id": "rmat_19_32",
-      "energy_uj": 78.63936666666666,
+      "energy_uj": 78.18016666666666,
       "execution_id": "fe9587b82163333e9f97",
       "group_id": "c78a997ac5a1792c2731",
       "power_profile_role": "exact_algorithm_routed_build",
@@ -98,11 +98,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 57541,
+      "active_cycles": 57205,
       "algorithm": "weighted_sssp",
       "component": "stream_fifos",
       "dataset_id": "rmat_19_32",
-      "energy_uj": 1.15082,
+      "energy_uj": 1.1441000000000001,
       "execution_id": "fe9587b82163333e9f97",
       "group_id": "c78a997ac5a1792c2731",
       "power_profile_role": "exact_algorithm_routed_build",
@@ -110,11 +110,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 64058,
+      "active_cycles": 63722,
       "algorithm": "weighted_sssp",
       "component": "other_user_logic",
       "dataset_id": "rmat_19_32",
-      "energy_uj": 48.25702666666666,
+      "energy_uj": 48.003906666666666,
       "execution_id": "fe9587b82163333e9f97",
       "group_id": "c78a997ac5a1792c2731",
       "power_profile_role": "exact_algorithm_routed_build",
@@ -122,11 +122,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 294699,
+      "active_cycles": 298578,
       "algorithm": "weighted_sssp",
       "component": "hbm_subsystem",
       "dataset_id": "soc_livejournal1",
-      "energy_uj": 34723.40084,
+      "energy_uj": 35180.45048,
       "execution_id": "e0e70d282abd77e5201f",
       "group_id": "e4a1843d1b9d1a5b3e76",
       "power_profile_role": "exact_algorithm_routed_build",
@@ -146,11 +146,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 279843,
+      "active_cycles": 283722,
       "algorithm": "weighted_sssp",
       "component": "graph_compute",
       "dataset_id": "soc_livejournal1",
-      "energy_uj": 382.4521,
+      "energy_uj": 387.75339999999994,
       "execution_id": "e0e70d282abd77e5201f",
       "group_id": "e4a1843d1b9d1a5b3e76",
       "power_profile_role": "exact_algorithm_routed_build",
@@ -158,11 +158,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 279843,
+      "active_cycles": 283722,
       "algorithm": "weighted_sssp",
       "component": "stream_fifos",
       "dataset_id": "soc_livejournal1",
-      "energy_uj": 5.59686,
+      "energy_uj": 5.674440000000001,
       "execution_id": "e0e70d282abd77e5201f",
       "group_id": "e4a1843d1b9d1a5b3e76",
       "power_profile_role": "exact_algorithm_routed_build",
@@ -170,11 +170,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 294699,
+      "active_cycles": 298578,
       "algorithm": "weighted_sssp",
       "component": "other_user_logic",
       "dataset_id": "soc_livejournal1",
-      "energy_uj": 222.00657999999996,
+      "energy_uj": 224.92875999999998,
       "execution_id": "e0e70d282abd77e5201f",
       "group_id": "e4a1843d1b9d1a5b3e76",
       "power_profile_role": "exact_algorithm_routed_build",
@@ -182,11 +182,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 123762,
+      "active_cycles": 124377,
       "algorithm": "weighted_sssp",
       "component": "hbm_subsystem",
       "dataset_id": "soc_pokec",
-      "energy_uj": 14582.46392,
+      "energy_uj": 14654.927319999999,
       "execution_id": "a481b5d34abacf23343c",
       "group_id": "97995d9c497a11b58c80",
       "power_profile_role": "exact_algorithm_routed_build",
@@ -206,11 +206,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 111353,
+      "active_cycles": 111968,
       "algorithm": "weighted_sssp",
       "component": "graph_compute",
       "dataset_id": "soc_pokec",
-      "energy_uj": 152.1824333333333,
+      "energy_uj": 153.02293333333333,
       "execution_id": "a481b5d34abacf23343c",
       "group_id": "97995d9c497a11b58c80",
       "power_profile_role": "exact_algorithm_routed_build",
@@ -218,11 +218,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 111353,
+      "active_cycles": 111968,
       "algorithm": "weighted_sssp",
       "component": "stream_fifos",
       "dataset_id": "soc_pokec",
-      "energy_uj": 2.2270600000000003,
+      "energy_uj": 2.23936,
       "execution_id": "a481b5d34abacf23343c",
       "group_id": "97995d9c497a11b58c80",
       "power_profile_role": "exact_algorithm_routed_build",
@@ -230,11 +230,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 123762,
+      "active_cycles": 124377,
       "algorithm": "weighted_sssp",
       "component": "other_user_logic",
       "dataset_id": "soc_pokec",
-      "energy_uj": 93.23404,
+      "energy_uj": 93.69734,
       "execution_id": "a481b5d34abacf23343c",
       "group_id": "97995d9c497a11b58c80",
       "power_profile_role": "exact_algorithm_routed_build",
@@ -302,11 +302,11 @@
       "system": "grasu_regraph_k4_shared"
     },
     {
-      "active_cycles": 2183489,
+      "active_cycles": 2183292,
       "algorithm": "connected_components",
       "component": "hbm_subsystem",
       "dataset_id": "sx_askubuntu",
-      "energy_uj": 257273.2305733333,
+      "energy_uj": 257250.01872,
       "execution_id": "5c08b545f30bcb906e10",
       "group_id": "ecd674904ebc750b3ea3",
       "power_profile_role": "algorithm_proxy_weighted_sssp",
@@ -326,11 +326,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 2176112,
+      "active_cycles": 2175915,
       "algorithm": "connected_components",
       "component": "graph_compute",
       "dataset_id": "sx_askubuntu",
-      "energy_uj": 2974.019733333333,
+      "energy_uj": 2973.7504999999996,
       "execution_id": "5c08b545f30bcb906e10",
       "group_id": "ecd674904ebc750b3ea3",
       "power_profile_role": "algorithm_proxy_weighted_sssp",
@@ -338,11 +338,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 2176112,
+      "active_cycles": 2175915,
       "algorithm": "connected_components",
       "component": "stream_fifos",
       "dataset_id": "sx_askubuntu",
-      "energy_uj": 43.522240000000004,
+      "energy_uj": 43.518299999999996,
       "execution_id": "5c08b545f30bcb906e10",
       "group_id": "ecd674904ebc750b3ea3",
       "power_profile_role": "algorithm_proxy_weighted_sssp",
@@ -350,11 +350,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 2183489,
+      "active_cycles": 2183292,
       "algorithm": "connected_components",
       "component": "other_user_logic",
       "dataset_id": "sx_askubuntu",
-      "energy_uj": 1644.8950466666665,
+      "energy_uj": 1644.7466399999998,
       "execution_id": "5c08b545f30bcb906e10",
       "group_id": "ecd674904ebc750b3ea3",
       "power_profile_role": "algorithm_proxy_weighted_sssp",
@@ -422,11 +422,11 @@
       "system": "grasu_regraph_k4_shared"
     },
     {
-      "active_cycles": 2172364,
+      "active_cycles": 2175289,
       "algorithm": "thresholded_residual_pagerank",
       "component": "hbm_subsystem",
       "dataset_id": "sx_askubuntu",
-      "energy_uj": 255962.40890666665,
+      "energy_uj": 256307.05190666666,
       "execution_id": "4b494c08568b5377a058",
       "group_id": "38f46d8917665d1b1c50",
       "power_profile_role": "algorithm_proxy_weighted_sssp",
@@ -446,11 +446,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 2166656,
+      "active_cycles": 2166125,
       "algorithm": "thresholded_residual_pagerank",
       "component": "graph_compute",
       "dataset_id": "sx_askubuntu",
-      "energy_uj": 2961.0965333333334,
+      "energy_uj": 2960.3708333333334,
       "execution_id": "4b494c08568b5377a058",
       "group_id": "38f46d8917665d1b1c50",
       "power_profile_role": "algorithm_proxy_weighted_sssp",
@@ -458,11 +458,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 2166656,
+      "active_cycles": 2166125,
       "algorithm": "thresholded_residual_pagerank",
       "component": "stream_fifos",
       "dataset_id": "sx_askubuntu",
-      "energy_uj": 43.33312,
+      "energy_uj": 43.3225,
       "execution_id": "4b494c08568b5377a058",
       "group_id": "38f46d8917665d1b1c50",
       "power_profile_role": "algorithm_proxy_weighted_sssp",
@@ -470,11 +470,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 2172364,
+      "active_cycles": 2175289,
       "algorithm": "thresholded_residual_pagerank",
       "component": "other_user_logic",
       "dataset_id": "sx_askubuntu",
-      "energy_uj": 1636.5142133333331,
+      "energy_uj": 1638.7177133333332,
       "execution_id": "4b494c08568b5377a058",
       "group_id": "38f46d8917665d1b1c50",
       "power_profile_role": "algorithm_proxy_weighted_sssp",
@@ -542,11 +542,11 @@
       "system": "grasu_regraph_k4_shared"
     },
     {
-      "active_cycles": 62331,
+      "active_cycles": 61817,
       "algorithm": "weighted_sssp",
       "component": "hbm_subsystem",
       "dataset_id": "sx_askubuntu",
-      "energy_uj": 7344.25396,
+      "energy_uj": 7283.691053333334,
       "execution_id": "cbd2b8928cb1c52432db",
       "group_id": "ffd1ef59366403da0be8",
       "power_profile_role": "exact_algorithm_routed_build",
@@ -566,11 +566,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 56623,
+      "active_cycles": 56109,
       "algorithm": "weighted_sssp",
       "component": "graph_compute",
       "dataset_id": "sx_askubuntu",
-      "energy_uj": 77.38476666666666,
+      "energy_uj": 76.6823,
       "execution_id": "cbd2b8928cb1c52432db",
       "group_id": "ffd1ef59366403da0be8",
       "power_profile_role": "exact_algorithm_routed_build",
@@ -578,11 +578,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 56623,
+      "active_cycles": 56109,
       "algorithm": "weighted_sssp",
       "component": "stream_fifos",
       "dataset_id": "sx_askubuntu",
-      "energy_uj": 1.13246,
+      "energy_uj": 1.12218,
       "execution_id": "cbd2b8928cb1c52432db",
       "group_id": "ffd1ef59366403da0be8",
       "power_profile_role": "exact_algorithm_routed_build",
@@ -590,11 +590,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 62331,
+      "active_cycles": 61817,
       "algorithm": "weighted_sssp",
       "component": "other_user_logic",
       "dataset_id": "sx_askubuntu",
-      "energy_uj": 46.956019999999995,
+      "energy_uj": 46.56880666666666,
       "execution_id": "cbd2b8928cb1c52432db",
       "group_id": "ffd1ef59366403da0be8",
       "power_profile_role": "exact_algorithm_routed_build",
@@ -602,11 +602,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 25478996,
+      "active_cycles": 25424995,
       "algorithm": "connected_components",
       "component": "hbm_subsystem",
       "dataset_id": "sx_stackoverflow",
-      "energy_uj": 3002105.168693333,
+      "energy_uj": 2995742.4108666666,
       "execution_id": "fe200a697fdba56a2251",
       "group_id": "d08a6fa0d85a760bd51d",
       "power_profile_role": "algorithm_proxy_weighted_sssp",
@@ -626,11 +626,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 25460436,
+      "active_cycles": 25406435,
       "algorithm": "connected_components",
       "component": "graph_compute",
       "dataset_id": "sx_stackoverflow",
-      "energy_uj": 34795.9292,
+      "energy_uj": 34722.12783333333,
       "execution_id": "fe200a697fdba56a2251",
       "group_id": "d08a6fa0d85a760bd51d",
       "power_profile_role": "algorithm_proxy_weighted_sssp",
@@ -638,11 +638,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 25460436,
+      "active_cycles": 25406435,
       "algorithm": "connected_components",
       "component": "stream_fifos",
       "dataset_id": "sx_stackoverflow",
-      "energy_uj": 509.20872,
+      "energy_uj": 508.12870000000004,
       "execution_id": "fe200a697fdba56a2251",
       "group_id": "d08a6fa0d85a760bd51d",
       "power_profile_role": "algorithm_proxy_weighted_sssp",
@@ -650,11 +650,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 25478996,
+      "active_cycles": 25424995,
       "algorithm": "connected_components",
       "component": "other_user_logic",
       "dataset_id": "sx_stackoverflow",
-      "energy_uj": 19194.176986666665,
+      "energy_uj": 19153.49623333333,
       "execution_id": "fe200a697fdba56a2251",
       "group_id": "d08a6fa0d85a760bd51d",
       "power_profile_role": "algorithm_proxy_weighted_sssp",
@@ -662,11 +662,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 25254357,
+      "active_cycles": 25281265,
       "algorithm": "thresholded_residual_pagerank",
       "component": "hbm_subsystem",
       "dataset_id": "sx_stackoverflow",
-      "energy_uj": 2975636.70412,
+      "energy_uj": 2978807.1840666668,
       "execution_id": "aacef30f761e5c4f58d4",
       "group_id": "587aa20d499b12dd46b7",
       "power_profile_role": "algorithm_proxy_weighted_sssp",
@@ -686,11 +686,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 25245665,
+      "active_cycles": 25245127,
       "algorithm": "thresholded_residual_pagerank",
       "component": "graph_compute",
       "dataset_id": "sx_stackoverflow",
-      "energy_uj": 34502.40883333333,
+      "energy_uj": 34501.673566666665,
       "execution_id": "aacef30f761e5c4f58d4",
       "group_id": "587aa20d499b12dd46b7",
       "power_profile_role": "algorithm_proxy_weighted_sssp",
@@ -698,11 +698,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 25245665,
+      "active_cycles": 25245127,
       "algorithm": "thresholded_residual_pagerank",
       "component": "stream_fifos",
       "dataset_id": "sx_stackoverflow",
-      "energy_uj": 504.9133,
+      "energy_uj": 504.90254000000004,
       "execution_id": "aacef30f761e5c4f58d4",
       "group_id": "587aa20d499b12dd46b7",
       "power_profile_role": "algorithm_proxy_weighted_sssp",
@@ -710,11 +710,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 25254357,
+      "active_cycles": 25281265,
       "algorithm": "thresholded_residual_pagerank",
       "component": "other_user_logic",
       "dataset_id": "sx_stackoverflow",
-      "energy_uj": 19024.94894,
+      "energy_uj": 19045.21963333333,
       "execution_id": "aacef30f761e5c4f58d4",
       "group_id": "587aa20d499b12dd46b7",
       "power_profile_role": "algorithm_proxy_weighted_sssp",
@@ -842,11 +842,11 @@
       "system": "grasu_regraph_k4_shared"
     },
     {
-      "active_cycles": 2397752,
+      "active_cycles": 2397167,
       "algorithm": "connected_components",
       "component": "hbm_subsystem",
       "dataset_id": "sx_superuser",
-      "energy_uj": 282519.1256533333,
+      "energy_uj": 282450.19705333334,
       "execution_id": "45072e1e0ffb084a0e34",
       "group_id": "555a0e5318b3f1c77b24",
       "power_profile_role": "algorithm_proxy_weighted_sssp",
@@ -866,11 +866,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 2390306,
+      "active_cycles": 2389721,
       "algorithm": "connected_components",
       "component": "graph_compute",
       "dataset_id": "sx_superuser",
-      "energy_uj": 3266.751533333333,
+      "energy_uj": 3265.9520333333335,
       "execution_id": "45072e1e0ffb084a0e34",
       "group_id": "555a0e5318b3f1c77b24",
       "power_profile_role": "algorithm_proxy_weighted_sssp",
@@ -878,11 +878,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 2390306,
+      "active_cycles": 2389721,
       "algorithm": "connected_components",
       "component": "stream_fifos",
       "dataset_id": "sx_superuser",
-      "energy_uj": 47.80612000000001,
+      "energy_uj": 47.79442,
       "execution_id": "45072e1e0ffb084a0e34",
       "group_id": "555a0e5318b3f1c77b24",
       "power_profile_role": "algorithm_proxy_weighted_sssp",
@@ -890,11 +890,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 2397752,
+      "active_cycles": 2397167,
       "algorithm": "connected_components",
       "component": "other_user_logic",
       "dataset_id": "sx_superuser",
-      "energy_uj": 1806.3065066666663,
+      "energy_uj": 1805.8658066666665,
       "execution_id": "45072e1e0ffb084a0e34",
       "group_id": "555a0e5318b3f1c77b24",
       "power_profile_role": "algorithm_proxy_weighted_sssp",
@@ -962,11 +962,11 @@
       "system": "grasu_regraph_k4_shared"
     },
     {
-      "active_cycles": 2390535,
+      "active_cycles": 2392695,
       "algorithm": "thresholded_residual_pagerank",
       "component": "hbm_subsystem",
       "dataset_id": "sx_superuser",
-      "energy_uj": 281668.7706,
+      "energy_uj": 281923.2762,
       "execution_id": "3f8e9fc7157d096b8488",
       "group_id": "85bf76442ece4620f39b",
       "power_profile_role": "algorithm_proxy_weighted_sssp",
@@ -986,11 +986,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 2384685,
+      "active_cycles": 2384011,
       "algorithm": "thresholded_residual_pagerank",
       "component": "graph_compute",
       "dataset_id": "sx_superuser",
-      "energy_uj": 3259.0695,
+      "energy_uj": 3258.1483666666663,
       "execution_id": "3f8e9fc7157d096b8488",
       "group_id": "85bf76442ece4620f39b",
       "power_profile_role": "algorithm_proxy_weighted_sssp",
@@ -998,11 +998,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 2384685,
+      "active_cycles": 2384011,
       "algorithm": "thresholded_residual_pagerank",
       "component": "stream_fifos",
       "dataset_id": "sx_superuser",
-      "energy_uj": 47.6937,
+      "energy_uj": 47.680220000000006,
       "execution_id": "3f8e9fc7157d096b8488",
       "group_id": "85bf76442ece4620f39b",
       "power_profile_role": "algorithm_proxy_weighted_sssp",
@@ -1010,11 +1010,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 2390535,
+      "active_cycles": 2392695,
       "algorithm": "thresholded_residual_pagerank",
       "component": "other_user_logic",
       "dataset_id": "sx_superuser",
-      "energy_uj": 1800.8696999999997,
+      "energy_uj": 1802.4968999999999,
       "execution_id": "3f8e9fc7157d096b8488",
       "group_id": "85bf76442ece4620f39b",
       "power_profile_role": "algorithm_proxy_weighted_sssp",
@@ -1082,11 +1082,11 @@
       "system": "grasu_regraph_k4_shared"
     },
     {
-      "active_cycles": 61256,
+      "active_cycles": 60699,
       "algorithm": "weighted_sssp",
       "component": "hbm_subsystem",
       "dataset_id": "sx_superuser",
-      "energy_uj": 7217.590293333334,
+      "energy_uj": 7151.96084,
       "execution_id": "d06e2c42e0ebb00e328d",
       "group_id": "d3affb931842f363228f",
       "power_profile_role": "exact_algorithm_routed_build",
@@ -1106,11 +1106,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 55406,
+      "active_cycles": 54849,
       "algorithm": "weighted_sssp",
       "component": "graph_compute",
       "dataset_id": "sx_superuser",
-      "energy_uj": 75.72153333333333,
+      "energy_uj": 74.9603,
       "execution_id": "d06e2c42e0ebb00e328d",
       "group_id": "d3affb931842f363228f",
       "power_profile_role": "exact_algorithm_routed_build",
@@ -1118,11 +1118,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 55406,
+      "active_cycles": 54849,
       "algorithm": "weighted_sssp",
       "component": "stream_fifos",
       "dataset_id": "sx_superuser",
-      "energy_uj": 1.10812,
+      "energy_uj": 1.09698,
       "execution_id": "d06e2c42e0ebb00e328d",
       "group_id": "d3affb931842f363228f",
       "power_profile_role": "exact_algorithm_routed_build",
@@ -1130,11 +1130,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 61256,
+      "active_cycles": 60699,
       "algorithm": "weighted_sssp",
       "component": "other_user_logic",
       "dataset_id": "sx_superuser",
-      "energy_uj": 46.14618666666666,
+      "energy_uj": 45.72657999999999,
       "execution_id": "d06e2c42e0ebb00e328d",
       "group_id": "d3affb931842f363228f",
       "power_profile_role": "exact_algorithm_routed_build",
@@ -1202,11 +1202,11 @@
       "system": "grasu_regraph_k4_shared"
     },
     {
-      "active_cycles": 9587612,
+      "active_cycles": 9587027,
       "algorithm": "connected_components",
       "component": "hbm_subsystem",
       "dataset_id": "wiki_talk_temporal",
-      "energy_uj": 1129676.3632533334,
+      "energy_uj": 1129607.4346533332,
       "execution_id": "c80d8cb28432e199caa1",
       "group_id": "86e79ec7bd7d888c4472",
       "power_profile_role": "algorithm_proxy_weighted_sssp",
@@ -1226,11 +1226,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 9580222,
+      "active_cycles": 9579637,
       "algorithm": "connected_components",
       "component": "graph_compute",
       "dataset_id": "wiki_talk_temporal",
-      "energy_uj": 13092.970066666665,
+      "energy_uj": 13092.170566666666,
       "execution_id": "c80d8cb28432e199caa1",
       "group_id": "86e79ec7bd7d888c4472",
       "power_profile_role": "algorithm_proxy_weighted_sssp",
@@ -1238,11 +1238,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 9580222,
+      "active_cycles": 9579637,
       "algorithm": "connected_components",
       "component": "stream_fifos",
       "dataset_id": "wiki_talk_temporal",
-      "energy_uj": 191.60444,
+      "energy_uj": 191.59274,
       "execution_id": "c80d8cb28432e199caa1",
       "group_id": "86e79ec7bd7d888c4472",
       "power_profile_role": "algorithm_proxy_weighted_sssp",
@@ -1250,11 +1250,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 9587612,
+      "active_cycles": 9587027,
       "algorithm": "connected_components",
       "component": "other_user_logic",
       "dataset_id": "wiki_talk_temporal",
-      "energy_uj": 7222.667706666666,
+      "energy_uj": 7222.227006666667,
       "execution_id": "c80d8cb28432e199caa1",
       "group_id": "86e79ec7bd7d888c4472",
       "power_profile_role": "algorithm_proxy_weighted_sssp",
@@ -1322,11 +1322,11 @@
       "system": "grasu_regraph_k4_shared"
     },
     {
-      "active_cycles": 4789895,
+      "active_cycles": 4796702,
       "algorithm": "thresholded_residual_pagerank",
       "component": "hbm_subsystem",
       "dataset_id": "wiki_talk_temporal",
-      "energy_uj": 564377.3615333333,
+      "energy_uj": 565179.4076533334,
       "execution_id": "d310ed825d5fef3de031",
       "group_id": "fe3cb2f0baf58d1fe298",
       "power_profile_role": "algorithm_proxy_weighted_sssp",
@@ -1346,11 +1346,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 4784394,
+      "active_cycles": 4783777,
       "algorithm": "thresholded_residual_pagerank",
       "component": "graph_compute",
       "dataset_id": "wiki_talk_temporal",
-      "energy_uj": 6538.671799999999,
+      "energy_uj": 6537.828566666666,
       "execution_id": "d310ed825d5fef3de031",
       "group_id": "fe3cb2f0baf58d1fe298",
       "power_profile_role": "algorithm_proxy_weighted_sssp",
@@ -1358,11 +1358,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 4784394,
+      "active_cycles": 4783777,
       "algorithm": "thresholded_residual_pagerank",
       "component": "stream_fifos",
       "dataset_id": "wiki_talk_temporal",
-      "energy_uj": 95.68788,
+      "energy_uj": 95.67554,
       "execution_id": "d310ed825d5fef3de031",
       "group_id": "fe3cb2f0baf58d1fe298",
       "power_profile_role": "algorithm_proxy_weighted_sssp",
@@ -1370,11 +1370,11 @@
       "system": "spine"
     },
     {
-      "active_cycles": 4789895,
+      "active_cycles": 4796702,
       "algorithm": "thresholded_residual_pagerank",
       "component": "other_user_logic",
       "dataset_id": "wiki_talk_temporal",
-      "energy_uj": 3608.387566666666,
+      "energy_uj": 3613.5155066666666,
       "execution_id": "d310ed825d5fef3de031",
       "group_id": "fe3cb2f0baf58d1fe298",
       "power_profile_role": "algorithm_proxy_weighted_sssp",
@@ -1514,11 +1514,11 @@
       "algorithm": "thresholded_residual_pagerank",
       "dataset_id": "sx_askubuntu",
       "grasu_power_profile_role": "exact_algorithm_routed_build",
-      "grasu_to_spine_energy_ratio": 6.5976725689166384,
+      "grasu_to_spine_energy_ratio": 6.588854874323436,
       "grasu_total_energy_uj": 3532389.242434667,
       "group_id": "38f46d8917665d1b1c50",
       "spine_power_profile_role": "algorithm_proxy_weighted_sssp",
-      "spine_total_energy_uj": 535399.2950599999
+      "spine_total_energy_uj": 536115.806132
     },
     {
       "algorithm": "weighted_sssp",
@@ -1534,71 +1534,71 @@
       "algorithm": "connected_components",
       "dataset_id": "sx_superuser",
       "grasu_power_profile_role": "algorithm_proxy_weighted_sssp",
-      "grasu_to_spine_energy_ratio": 7.352798552158924,
+      "grasu_to_spine_energy_ratio": 7.3545904776055755,
       "grasu_total_energy_uj": 4345212.9435146665,
       "group_id": "555a0e5318b3f1c77b24",
       "spine_power_profile_role": "algorithm_proxy_weighted_sssp",
-      "spine_total_energy_uj": 590960.423122
+      "spine_total_energy_uj": 590816.4372640001
     },
     {
       "algorithm": "thresholded_residual_pagerank",
       "dataset_id": "sx_superuser",
       "grasu_power_profile_role": "exact_algorithm_routed_build",
-      "grasu_to_spine_energy_ratio": 9.412530658159659,
+      "grasu_to_spine_energy_ratio": 9.404086951886287,
       "grasu_total_energy_uj": 5545536.111779334,
       "group_id": "85bf76442ece4620f39b",
       "spine_power_profile_role": "algorithm_proxy_weighted_sssp",
-      "spine_total_energy_uj": 589165.2641759999
+      "spine_total_energy_uj": 589694.2616706666
     },
     {
       "algorithm": "connected_components",
       "dataset_id": "wiki_talk_temporal",
       "grasu_power_profile_role": "algorithm_proxy_weighted_sssp",
-      "grasu_to_spine_energy_ratio": 11.644947168104954,
+      "grasu_to_spine_energy_ratio": 11.645656536684003,
       "grasu_total_energy_uj": 27514341.767077997,
       "group_id": "86e79ec7bd7d888c4472",
       "spine_power_profile_role": "algorithm_proxy_weighted_sssp",
-      "spine_total_energy_uj": 2362770.854164
+      "spine_total_energy_uj": 2362626.931372
     },
     {
       "algorithm": "weighted_sssp",
       "dataset_id": "sx_superuser",
       "grasu_power_profile_role": "exact_algorithm_routed_build",
-      "grasu_to_spine_energy_ratio": 3919.9943869202484,
+      "grasu_to_spine_energy_ratio": 3955.8135542669615,
       "grasu_total_energy_uj": 59319738.26266467,
       "group_id": "d3affb931842f363228f",
       "spine_power_profile_role": "exact_algorithm_routed_build",
-      "spine_total_energy_uj": 15132.60796
+      "spine_total_energy_uj": 14995.584965999999
     },
     {
       "algorithm": "connected_components",
       "dataset_id": "sx_askubuntu",
       "grasu_power_profile_role": "algorithm_proxy_weighted_sssp",
-      "grasu_to_spine_energy_ratio": 5.095575764288915,
+      "grasu_to_spine_energy_ratio": 5.096034470534874,
       "grasu_total_energy_uj": 2742225.984560667,
       "group_id": "ecd674904ebc750b3ea3",
       "spine_power_profile_role": "algorithm_proxy_weighted_sssp",
-      "spine_total_energy_uj": 538158.2202699999
+      "spine_total_energy_uj": 538109.779362
     },
     {
       "algorithm": "thresholded_residual_pagerank",
       "dataset_id": "wiki_talk_temporal",
       "grasu_power_profile_role": "exact_algorithm_routed_build",
-      "grasu_to_spine_energy_ratio": 14.269291720573813,
+      "grasu_to_spine_energy_ratio": 14.249163790522834,
       "grasu_total_energy_uj": 16873050.129928667,
       "group_id": "fe3cb2f0baf58d1fe298",
       "spine_power_profile_role": "algorithm_proxy_weighted_sssp",
-      "spine_total_energy_uj": 1182472.8557199999
+      "spine_total_energy_uj": 1184143.1804686664
     },
     {
       "algorithm": "weighted_sssp",
       "dataset_id": "sx_askubuntu",
       "grasu_power_profile_role": "exact_algorithm_routed_build",
-      "grasu_to_spine_energy_ratio": 2367.2077531235777,
+      "grasu_to_spine_energy_ratio": 2386.821334289395,
       "grasu_total_energy_uj": 36444759.217178665,
       "group_id": "ffd1ef59366403da0be8",
       "spine_power_profile_role": "exact_algorithm_routed_build",
-      "spine_total_energy_uj": 15395.674152
+      "spine_total_energy_uj": 15269.160994
     }
   ],
   "schema_version": 1,
@@ -1607,74 +1607,74 @@
     {
       "algorithm": "weighted_sssp",
       "clock_mhz": 150.0,
-      "cycles": 91575,
+      "cycles": 92507,
       "dataset_id": "ljournal_2008",
-      "device_static_energy_uj": 6463.973999999999,
-      "dram_energy_uj": 902.417136,
+      "device_static_energy_uj": 6529.760773333333,
+      "dram_energy_uj": 913.028154,
       "energy_ledger_closed": true,
       "execution_id": "980c084e249992cc626c",
       "group_id": "1b46cb212c1892278285",
-      "platform_dynamic_energy_uj": 4755.1844999999985,
+      "platform_dynamic_energy_uj": 4803.580153333332,
       "power_profile_role": "exact_algorithm_routed_build",
       "routed_power_build_id": "spine_candidate10_opt_v2_sssp_150mhz",
-      "runtime_us": 610.5,
+      "runtime_us": 616.7133333333334,
       "system": "spine",
-      "total_estimated_energy_uj": 23242.151916,
-      "user_logic_dynamic_energy_uj": 11120.576280000001
+      "total_estimated_energy_uj": 23478.754294,
+      "user_logic_dynamic_energy_uj": 11232.385213333333
     },
     {
       "algorithm": "weighted_sssp",
       "clock_mhz": 150.0,
-      "cycles": 64058,
+      "cycles": 63722,
       "dataset_id": "rmat_19_32",
-      "device_static_energy_uj": 4521.640693333333,
-      "dram_energy_uj": 222.00342,
+      "device_static_energy_uj": 4497.923573333333,
+      "dram_energy_uj": 220.620678,
       "energy_ledger_closed": true,
       "execution_id": "fe9587b82163333e9f97",
       "group_id": "c78a997ac5a1792c2731",
-      "platform_dynamic_energy_uj": 3326.3184133333325,
+      "platform_dynamic_energy_uj": 3308.8710533333324,
       "power_profile_role": "exact_algorithm_routed_build",
       "routed_power_build_id": "spine_candidate10_opt_v2_sssp_150mhz",
-      "runtime_us": 427.05333333333334,
+      "runtime_us": 424.81333333333333,
       "system": "spine",
-      "total_estimated_energy_uj": 15827.908,
-      "user_logic_dynamic_energy_uj": 7757.945473333333
+      "total_estimated_energy_uj": 15745.051978,
+      "user_logic_dynamic_energy_uj": 7717.636673333334
     },
     {
       "algorithm": "weighted_sssp",
       "clock_mhz": 150.0,
-      "cycles": 294699,
+      "cycles": 298578,
       "dataset_id": "soc_livejournal1",
-      "device_static_energy_uj": 20801.820079999998,
-      "dram_energy_uj": 2898.094536,
+      "device_static_energy_uj": 21075.62576,
+      "dram_energy_uj": 2938.672494,
       "energy_ledger_closed": true,
       "execution_id": "e0e70d282abd77e5201f",
       "group_id": "e4a1843d1b9d1a5b3e76",
-      "platform_dynamic_energy_uj": 15302.736739999997,
+      "platform_dynamic_energy_uj": 15504.160279999996,
       "power_profile_role": "exact_algorithm_routed_build",
       "routed_power_build_id": "spine_candidate10_opt_v2_sssp_150mhz",
-      "runtime_us": 1964.66,
+      "runtime_us": 1990.52,
       "system": "spine",
-      "total_estimated_energy_uj": 74523.39237599999,
-      "user_logic_dynamic_energy_uj": 35520.74102
+      "total_estimated_energy_uj": 75504.550254,
+      "user_logic_dynamic_energy_uj": 35986.091720000004
     },
     {
       "algorithm": "weighted_sssp",
       "clock_mhz": 150.0,
-      "cycles": 123762,
+      "cycles": 124377,
       "dataset_id": "soc_pokec",
-      "device_static_energy_uj": 8735.94704,
-      "dram_energy_uj": 1218.001278,
+      "device_static_energy_uj": 8779.357839999999,
+      "dram_energy_uj": 1224.643176,
       "energy_ledger_closed": true,
       "execution_id": "a481b5d34abacf23343c",
       "group_id": "97995d9c497a11b58c80",
-      "platform_dynamic_energy_uj": 6426.548119999999,
+      "platform_dynamic_energy_uj": 6458.483019999998,
       "power_profile_role": "exact_algorithm_routed_build",
       "routed_power_build_id": "spine_candidate10_opt_v2_sssp_150mhz",
-      "runtime_us": 825.08,
+      "runtime_us": 829.18,
       "system": "spine",
-      "total_estimated_energy_uj": 31367.040017999996,
-      "user_logic_dynamic_energy_uj": 14986.54358
+      "total_estimated_energy_uj": 31522.807116,
+      "user_logic_dynamic_energy_uj": 15060.32308
     },
     {
       "algorithm": "connected_components",
@@ -1697,20 +1697,20 @@
     {
       "algorithm": "connected_components",
       "clock_mhz": 150.0,
-      "cycles": 2183489,
+      "cycles": 2183292,
       "dataset_id": "sx_askubuntu",
-      "device_static_energy_uj": 154125.21021333334,
-      "dram_energy_uj": 8623.03761,
+      "device_static_energy_uj": 154111.30464,
+      "dram_energy_uj": 8622.365262,
       "energy_ledger_closed": true,
       "execution_id": "5c08b545f30bcb906e10",
       "group_id": "ecd674904ebc750b3ea3",
-      "platform_dynamic_energy_uj": 113381.30547333331,
+      "platform_dynamic_energy_uj": 113371.07591999997,
       "power_profile_role": "algorithm_proxy_weighted_sssp",
       "routed_power_build_id": "spine_candidate10_opt_v2_sssp_150mhz",
-      "runtime_us": 14556.593333333334,
+      "runtime_us": 14555.28,
       "system": "spine",
-      "total_estimated_energy_uj": 538158.2202699999,
-      "user_logic_dynamic_energy_uj": 262028.66697333328
+      "total_estimated_energy_uj": 538109.779362,
+      "user_logic_dynamic_energy_uj": 262005.03353999997
     },
     {
       "algorithm": "thresholded_residual_pagerank",
@@ -1733,20 +1733,20 @@
     {
       "algorithm": "thresholded_residual_pagerank",
       "clock_mhz": 150.0,
-      "cycles": 2172364,
+      "cycles": 2175289,
       "dataset_id": "sx_askubuntu",
-      "device_static_energy_uj": 153339.93354666664,
-      "dram_energy_uj": 8580.42858,
+      "device_static_energy_uj": 153546.39954666665,
+      "dram_energy_uj": 8592.477972,
       "energy_ledger_closed": true,
       "execution_id": "4b494c08568b5377a058",
       "group_id": "38f46d8917665d1b1c50",
-      "platform_dynamic_energy_uj": 112803.62130666664,
+      "platform_dynamic_energy_uj": 112955.50680666663,
       "power_profile_role": "algorithm_proxy_weighted_sssp",
       "routed_power_build_id": "spine_candidate10_opt_v2_sssp_150mhz",
-      "runtime_us": 14482.426666666666,
+      "runtime_us": 14501.926666666666,
       "system": "spine",
-      "total_estimated_energy_uj": 535399.2950599999,
-      "user_logic_dynamic_energy_uj": 260675.31162666666
+      "total_estimated_energy_uj": 536115.806132,
+      "user_logic_dynamic_energy_uj": 261021.42180666668
     },
     {
       "algorithm": "weighted_sssp",
@@ -1769,56 +1769,56 @@
     {
       "algorithm": "weighted_sssp",
       "clock_mhz": 150.0,
-      "cycles": 62331,
+      "cycles": 61817,
       "dataset_id": "sx_askubuntu",
-      "device_static_energy_uj": 4399.73752,
-      "dram_energy_uj": 217.609512,
+      "device_static_energy_uj": 4363.4559733333335,
+      "dram_energy_uj": 215.731074,
       "energy_ledger_closed": true,
       "execution_id": "cbd2b8928cb1c52432db",
       "group_id": "ffd1ef59366403da0be8",
-      "platform_dynamic_energy_uj": 3236.6410599999995,
+      "platform_dynamic_energy_uj": 3209.9507533333326,
       "power_profile_role": "exact_algorithm_routed_build",
       "routed_power_build_id": "spine_candidate10_opt_v2_sssp_150mhz",
-      "runtime_us": 415.54,
+      "runtime_us": 412.11333333333334,
       "system": "spine",
-      "total_estimated_energy_uj": 15395.674152,
-      "user_logic_dynamic_energy_uj": 7541.68606
+      "total_estimated_energy_uj": 15269.160994,
+      "user_logic_dynamic_energy_uj": 7480.023193333334
     },
     {
       "algorithm": "connected_components",
       "clock_mhz": 150.0,
-      "cycles": 25478996,
+      "cycles": 25424995,
       "dataset_id": "sx_stackoverflow",
-      "device_static_energy_uj": 1798477.3976533331,
-      "dram_energy_uj": 262767.191376,
+      "device_static_energy_uj": 1794665.6470666665,
+      "dram_energy_uj": 262178.5905,
       "energy_ledger_closed": true,
       "execution_id": "fe200a697fdba56a2251",
       "group_id": "d08a6fa0d85a760bd51d",
-      "platform_dynamic_energy_uj": 1323039.332293333,
+      "platform_dynamic_energy_uj": 1320235.2403666663,
       "power_profile_role": "algorithm_proxy_weighted_sssp",
       "routed_power_build_id": "spine_candidate10_opt_v2_sssp_150mhz",
-      "runtime_us": 169859.97333333333,
+      "runtime_us": 169499.96666666667,
       "system": "spine",
-      "total_estimated_energy_uj": 6441122.384655999,
-      "user_logic_dynamic_energy_uj": 3056838.4633333334
+      "total_estimated_energy_uj": 6427439.6213,
+      "user_logic_dynamic_energy_uj": 3050360.1433666665
     },
     {
       "algorithm": "thresholded_residual_pagerank",
       "clock_mhz": 150.0,
-      "cycles": 25254357,
+      "cycles": 25281265,
       "dataset_id": "sx_stackoverflow",
-      "device_static_energy_uj": 1782620.8794399998,
-      "dram_energy_uj": 153349.867062,
+      "device_static_energy_uj": 1784520.2254666665,
+      "dram_energy_uj": 153516.57729,
       "energy_ledger_closed": true,
       "execution_id": "aacef30f761e5c4f58d4",
       "group_id": "587aa20d499b12dd46b7",
-      "platform_dynamic_energy_uj": 1311374.5778199998,
+      "platform_dynamic_energy_uj": 1312771.8205666663,
       "power_profile_role": "algorithm_proxy_weighted_sssp",
       "routed_power_build_id": "spine_candidate10_opt_v2_sssp_150mhz",
-      "runtime_us": 168362.38,
+      "runtime_us": 168541.76666666666,
       "system": "spine",
-      "total_estimated_energy_uj": 6277123.876662,
-      "user_logic_dynamic_energy_uj": 3029778.55234
+      "total_estimated_energy_uj": 6283777.180276667,
+      "user_logic_dynamic_energy_uj": 3032968.5569533333
     },
     {
       "algorithm": "weighted_sssp",
@@ -1859,20 +1859,20 @@
     {
       "algorithm": "connected_components",
       "clock_mhz": 150.0,
-      "cycles": 2397752,
+      "cycles": 2397167,
       "dataset_id": "sx_superuser",
-      "device_static_energy_uj": 169249.32117333333,
-      "dram_energy_uj": 9469.974042,
+      "device_static_energy_uj": 169208.02797333332,
+      "dram_energy_uj": 9467.838984,
       "energy_ledger_closed": true,
       "execution_id": "45072e1e0ffb084a0e34",
       "group_id": "555a0e5318b3f1c77b24",
-      "platform_dynamic_energy_uj": 124507.26885333331,
+      "platform_dynamic_energy_uj": 124476.8917533333,
       "power_profile_role": "algorithm_proxy_weighted_sssp",
       "routed_power_build_id": "spine_candidate10_opt_v2_sssp_150mhz",
-      "runtime_us": 15985.013333333334,
+      "runtime_us": 15981.113333333333,
       "system": "spine",
-      "total_estimated_energy_uj": 590960.423122,
-      "user_logic_dynamic_energy_uj": 287733.85905333335
+      "total_estimated_energy_uj": 590816.4372640001,
+      "user_logic_dynamic_energy_uj": 287663.67855333333
     },
     {
       "algorithm": "thresholded_residual_pagerank",
@@ -1895,20 +1895,20 @@
     {
       "algorithm": "thresholded_residual_pagerank",
       "clock_mhz": 150.0,
-      "cycles": 2390535,
+      "cycles": 2392695,
       "dataset_id": "sx_superuser",
-      "device_static_energy_uj": 168739.89719999998,
-      "dram_energy_uj": 9442.700376,
+      "device_static_energy_uj": 168892.3644,
+      "dram_energy_uj": 9451.870884,
       "energy_ledger_closed": true,
       "execution_id": "3f8e9fc7157d096b8488",
       "group_id": "85bf76442ece4620f39b",
-      "platform_dynamic_energy_uj": 124132.51409999997,
+      "platform_dynamic_energy_uj": 124244.67569999996,
       "power_profile_role": "algorithm_proxy_weighted_sssp",
       "routed_power_build_id": "spine_candidate10_opt_v2_sssp_150mhz",
-      "runtime_us": 15936.9,
+      "runtime_us": 15951.3,
       "system": "spine",
-      "total_estimated_energy_uj": 589165.2641759999,
-      "user_logic_dynamic_energy_uj": 286850.15249999997
+      "total_estimated_energy_uj": 589694.2616706666,
+      "user_logic_dynamic_energy_uj": 287105.35068666673
     },
     {
       "algorithm": "weighted_sssp",
@@ -1931,20 +1931,20 @@
     {
       "algorithm": "weighted_sssp",
       "clock_mhz": 150.0,
-      "cycles": 61256,
+      "cycles": 60699,
       "dataset_id": "sx_superuser",
-      "device_static_energy_uj": 4323.856853333333,
-      "dram_energy_uj": 213.61608,
+      "device_static_energy_uj": 4284.54008,
+      "dram_energy_uj": 211.654446,
       "energy_ledger_closed": true,
       "execution_id": "d06e2c42e0ebb00e328d",
       "group_id": "d3affb931842f363228f",
-      "platform_dynamic_energy_uj": 3180.8198933333324,
+      "platform_dynamic_energy_uj": 3151.896739999999,
       "power_profile_role": "exact_algorithm_routed_build",
       "routed_power_build_id": "spine_candidate10_opt_v2_sssp_150mhz",
-      "runtime_us": 408.37333333333333,
+      "runtime_us": 404.66,
       "system": "spine",
-      "total_estimated_energy_uj": 15132.60796,
-      "user_logic_dynamic_energy_uj": 7414.3151333333335
+      "total_estimated_energy_uj": 14995.584965999999,
+      "user_logic_dynamic_energy_uj": 7347.493699999999
     },
     {
       "algorithm": "connected_components",
@@ -1967,20 +1967,20 @@
     {
       "algorithm": "connected_components",
       "clock_mhz": 150.0,
-      "cycles": 9587612,
+      "cycles": 9587027,
       "dataset_id": "wiki_talk_temporal",
-      "device_static_energy_uj": 676757.5723733333,
-      "dram_energy_uj": 37883.780604,
+      "device_static_energy_uj": 676716.2791733333,
+      "dram_energy_uj": 37881.708612,
       "energy_ledger_closed": true,
       "execution_id": "c80d8cb28432e199caa1",
       "group_id": "86e79ec7bd7d888c4472",
-      "platform_dynamic_energy_uj": 497852.73245333316,
+      "platform_dynamic_energy_uj": 497822.35535333323,
       "power_profile_role": "algorithm_proxy_weighted_sssp",
       "routed_power_build_id": "spine_candidate10_opt_v2_sssp_150mhz",
-      "runtime_us": 63917.41333333333,
+      "runtime_us": 63913.513333333336,
       "system": "spine",
-      "total_estimated_energy_uj": 2362770.854164,
-      "user_logic_dynamic_energy_uj": 1150276.7687333333
+      "total_estimated_energy_uj": 2362626.931372,
+      "user_logic_dynamic_energy_uj": 1150206.588233333
     },
     {
       "algorithm": "thresholded_residual_pagerank",
@@ -2003,20 +2003,20 @@
     {
       "algorithm": "thresholded_residual_pagerank",
       "clock_mhz": 150.0,
-      "cycles": 4789895,
+      "cycles": 4796702,
       "dataset_id": "wiki_talk_temporal",
-      "device_static_energy_uj": 338102.7217333333,
-      "dram_energy_uj": 20957.3949,
+      "device_static_energy_uj": 338583.2051733333,
+      "dram_energy_uj": 20987.452902,
       "energy_ledger_closed": true,
       "execution_id": "d310ed825d5fef3de031",
       "group_id": "fe3cb2f0baf58d1fe298",
-      "platform_dynamic_energy_uj": 248723.28103333327,
+      "platform_dynamic_energy_uj": 249076.74585333327,
       "power_profile_role": "algorithm_proxy_weighted_sssp",
       "routed_power_build_id": "spine_candidate10_opt_v2_sssp_150mhz",
-      "runtime_us": 31932.633333333335,
+      "runtime_us": 31978.013333333332,
       "system": "spine",
-      "total_estimated_energy_uj": 1182472.8557199999,
-      "user_logic_dynamic_energy_uj": 574689.4580533333
+      "total_estimated_energy_uj": 1184143.1804686664,
+      "user_logic_dynamic_energy_uj": 575495.77654
     },
     {
       "algorithm": "weighted_sssp",

@@ -22,7 +22,7 @@
 \maketitle
 \begin{abstract}
 This live report contains 25 of
-36 expected formal-v7 executions and
+46 expected formal-v7 executions and
 9 complete Spine/K4-shared pairs. Missing bars are unfinished,
 policy-stopped, or behavior-transition-invalidated executions awaiting an
 identical-case successor, never zero-valued measurements. Every admitted row
@@ -88,7 +88,7 @@ All 25 observed executions pass
 their individual architecture and mathematical correctness gates, closed AXI/HBM
 arbitration and traffic ledgers, and DRAM request conservation. Component-level
 activity is present for all observed executions
-(159 normalized component rows).
+(163 normalized component rows).
 
 \clearpage
 \section{Current primary comparison}
@@ -148,20 +148,34 @@ separate synthetic endpoint.}
 \end{figure}
 
 \clearpage
-\section{Update-only throughput}
+\section{Structure-update throughput}
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.98\linewidth]{\vfigdir/formal_v7_update_throughput.pdf}
-\caption{Correctness-gated AskUbuntu weighted-SSSP update-phase throughput.
-The current snapshot contains 9 of 9 planned operation--batch
-pairs. Ins uses the full materialized graph; Del and Wgt use the declared
-64K-edge non-monotonic fallback slice. Missing points are not zeros.}
+\caption{Correctness-gated AskUbuntu full-graph insertion throughput at
+batch sizes $2^6$, $2^{10}$, $2^{14}$, and $2^{17}$. The current snapshot
+contains 4 of 4 planned batch points. Spine counts maintenance through its
+drained completion boundary; G+R counts GraSU PMA update completion. Both
+exclude graph-algorithm iterations, equivalent to setting max-iter to zero.}
 \end{figure}
 
 \paragraph{Window boundary.}
-This figure isolates graph-structure maintenance cycles and therefore exposes
-GraSU's PMA update advantage. It must not be read as end-to-end dynamic graph
-service latency, which also includes differential discovery and propagation.
+This figure isolates graph-structure mutation. The counters come from dedicated
+correctness-gated executions and stop at each architecture's serial
+update-phase boundary. We use source vertex 0, which remains isolated after all
+four batches, solely to shorten the post-update SSSP correctness drain. Both
+architectures enforce an update--barrier--compute order, so this source choice
+cannot affect the recorded update phase. For Spine the phase includes required
+level selection, L0/carry work, metadata publication, and drain; it excludes
+reader, propagation, convergence, and algorithm drain. For G+R it includes the
+GraSU PMA update and excludes ReGraph execution. It must not be read as
+end-to-end dynamic graph service latency.
+
+\paragraph{Operation coverage.}
+The separate insertion, deletion, and weight-change grid at batches 1, 8, and
+64 remains in \texttt{update\_operation\_pairs.csv} and in the fallback/RQ3
+evidence. It is not mixed into this scaling plot because non-monotonic SSSP
+updates exercise a bounded full-rebuild policy rather than direct insertion.
 
 \clearpage
 \section{Simulator execution cost}
@@ -188,7 +202,8 @@ memory model; they never use host wall time.
 shallow insertion, deep carry, residual PageRank correction, and SSSP/CC
 nonmonotonic fallback. The six maintenance stages are counted in the execution
 core; overlapping resolve/app intervals are assigned to the component gating
-their completion. Every bar closes exactly to E2E device cycles.}
+their completion. For residual PageRank, $T_{seed}$ also contains the serial
+device correction/seed interval. Every bar closes exactly to E2E device cycles.}
 \end{figure}
 
 \begin{table}[H]
@@ -205,7 +220,7 @@ eligible realized-work class.}
 \centering
 \includegraphics[width=0.98\linewidth]{\vfigdir/rq3_work_correlations.pdf}
 \caption{Direct execution counters versus mechanism-local cycles across
-91 dual-oracle-admitted executions. Blue squares are
+95 dual-oracle-admitted executions. Blue squares are
 calibration cases and red circles are holdout traces.}
 \end{figure}
 
@@ -229,10 +244,10 @@ those that need a richer topology- or contention-aware predictor.
 \caption{Calibration-only nonnegative realized-work model versus measured E2E
 cycles, plus absolute residuals. The holdout contains
 39 real-trace executions that never participate in
-fitting; holdout $R^2=0.941$, median absolute error
-$24.5\%$, mean absolute error
-$27.9\%$, and maximum absolute error
-$81.7\%$.}
+fitting; holdout $R^2=0.933$, median absolute error
+$26.5\%$, mean absolute error
+$27.4\%$, and maximum absolute error
+$72.0\%$.}
 \end{figure}
 
 \paragraph{RQ3 boundary.}
@@ -240,8 +255,10 @@ These correlations validate internal cost structure and bottleneck attribution;
 they are not cycle-for-cycle FPGA calibration or proof that one scalar predicts
 every topology. The timed device boundary starts with an already-resident sorted
 update buffer: host DMA and an external FLiMS sort are not included. Current
-$T_{seed}$ measures device dirty-source publication; residual PageRank's
-host-side old/new-rank correction remains explicitly untimed.
+$T_{seed}$ measures maintenance dirty-source publication and, for residual
+PageRank, the serial device correction interval covering resident rank/degree
+reads, physical-edge scans, seed writes, and active-list publication before
+propagation. The host supplies only the immutable oracle/work trace.
 
 \clearpage
 \section{Implementation-level power attribution}

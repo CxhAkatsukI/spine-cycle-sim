@@ -23,10 +23,10 @@
       "observed_partial_cycles": 562000001,
       "peak_rss_bytes": 50487214080,
       "scenario": "insert",
-      "spine_cycles": 25478996,
+      "spine_cycles": 25424995,
       "spine_execution_id": "fe200a697fdba56a2251",
       "stop_reason": "strict device-cycle lower bound exceeds 20x versus measured Spine; release 92GiB for projection, RQ3, and energy work",
-      "strict_lower_bound_ratio": 22.057384090016733,
+      "strict_lower_bound_ratio": 22.104232508206984,
       "system": "grasu_regraph_k4_shared"
     },
     {
@@ -42,17 +42,17 @@
       "observed_partial_cycles": 523000001,
       "peak_rss_bytes": 48232665088,
       "scenario": "insert",
-      "spine_cycles": 25254357,
+      "spine_cycles": 25281265,
       "spine_execution_id": "aacef30f761e5c4f58d4",
       "stop_reason": "strict device-cycle lower bound exceeds 20x versus measured Spine; release 92GiB for projection, RQ3, and energy work",
-      "strict_lower_bound_ratio": 20.70929784512035,
+      "strict_lower_bound_ratio": 20.687255997672583,
       "system": "grasu_regraph_k4_shared"
     }
   ],
   "schema_version": 1,
   "system_rows": {
     "path": "/data/tmp/chuxiao/large_graph_campaign_v1/formal_v7_primary_analysis/system_rows.csv",
-    "sha256": "3dc849cab70b3cb8e10c14bb19779bed219d8ca94e6e2fbdd210fc86d513c30e"
+    "sha256": "74ddac0d191f3c9629086fd682a56cbb865548ec3694b1c05a1b09409e0ed013"
   },
   "thresholds": [
     5.0,

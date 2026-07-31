@@ -1,6 +1,6 @@
 case_class,status,eligible_executions,requirement
 zero_net,ready,1,explicit zero-net execution semantics
-shallow_insertion,ready,11,positive insertion with target level zero
+shallow_insertion,ready,14,positive insertion with target level zero
 deep_carry,ready,5,positive direct carry work counter
 pagerank_correction,ready,1,residual PageRank with positive physical work
 deletion_fallback,ready,18,delete or weight-change full-recompute fallback
