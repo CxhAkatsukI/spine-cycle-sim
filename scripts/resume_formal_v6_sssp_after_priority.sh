@@ -12,7 +12,7 @@ residual_job="run.sx_stackoverflow.thresholded_residual_pagerank.insert.u8.grasu
 
 cd "${repo}"
 
-projection="${repo}/docs/evidence/formal_v6_large_sssp_runtime_projection_20260730.json"
+projection="${repo}/docs/evidence/formal_v7_large_sssp_runtime_projection_20260731.json"
 if [[ -f "${projection}" ]] &&
    jq -e '.all_targets_wall_time_infeasible == true' "${projection}" >/dev/null &&
    [[ "${SPINE_ALLOW_WALL_TIME_INFEASIBLE:-0}" != "1" ]]; then

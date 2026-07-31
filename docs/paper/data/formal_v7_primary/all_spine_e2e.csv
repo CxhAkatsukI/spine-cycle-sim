@@ -4,8 +4,8 @@ sx_superuser,real,SU,weighted_sssp,SSSP,SU-SSSP,61256,291909003,measured,complet
 wiki_talk_temporal,real,WK,weighted_sssp,SSSP,WK-SSSP,43227,64837217,measured,completed_execution,1499.9240520970689,,
 sx_stackoverflow,real,SO,weighted_sssp,SSSP,SO-SSSP,428749,10437340780,timeout_projected,execution_prefix_projection,24343.708743344007,105.71020926806364,338550975
 soc_pokec,real,PK,weighted_sssp,SSSP,PK-SSSP,123762,28680205844,timeout_projected,execution_prefix_projection,231736.7676992938,342.2220271222845,59311794
-soc_livejournal1,real,LJ,weighted_sssp,SSSP,LJ-SSSP,294699,2804409709,timeout_one_round_screen,one_round_feasibility_screen,9516.183322644461,27.118147535200325,
-ljournal_2008,real,LJ08,weighted_sssp,SSSP,LJ08-SSSP,91575,3240473602,timeout_one_round_screen,one_round_feasibility_screen,35386.00711984712,31.334808516167012,
+soc_livejournal1,real,LJ,weighted_sssp,SSSP,LJ-SSSP,294699,78309180683,timeout_projected,validated_preflight_projection,265725.9803494413,789.1629917741892,
+ljournal_2008,real,LJ08,weighted_sssp,SSSP,LJ08-SSSP,91575,117296211780,timeout_projected,validated_preflight_projection,1280875.9135135135,1182.055904611756,
 rmat_19_32,synthetic,R19,weighted_sssp,SSSP,R19-SSSP,64058,5239915393,timeout_projected,validated_preflight_projection,81799.54717599675,52.80539615456825,
 sx_askubuntu,real,AU,connected_components,CC,AU-CC,2183489,13462032,measured,completed_execution,6.165376605973284,,
 sx_superuser,real,SU,connected_components,CC,SU-CC,2397752,21367179,measured,completed_execution,8.911338203450565,,

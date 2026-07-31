@@ -1,7 +1,9 @@
 {
   "artifacts": {
-    "docs/evidence/formal_v6_large_sssp_runtime_projection_20260730.json": true,
     "docs/evidence/formal_v6_r19_k4_preflight_20260730.json": true,
+    "docs/evidence/formal_v7_large_sssp_runtime_projection_20260731.json": true,
+    "docs/evidence/formal_v7_lj08_k4_preflight_20260731.json": true,
+    "docs/evidence/formal_v7_lj_k4_preflight_20260731.json": true,
     "docs/evidence/formal_v7_stopped_prefix_lower_bounds_20260731.json": true,
     "docs/figures/formal_v7_all_spine_e2e.svg": true,
     "docs/figures/formal_v7_memory_locality.svg": true,

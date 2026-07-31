@@ -259,6 +259,10 @@ def _normalized_system_row(result: Mapping[str, Any]) -> dict[str, Any]:
         "scenario": case["scenario"],
         "batch_size": int(case["batch_size"]),
         "system": case["system"],
+        "source_external": case.get("source", ""),
+        "source_cohort": case.get("algorithm_parameters", {}).get(
+            "source_cohort", ""
+        ),
         "vertices": int(case["graph"]["vertices"]),
         "initial_edges": int(case["graph"]["records"]),
         "logical_user_mutations": logical_mutations,

@@ -150,6 +150,36 @@ class FormalV6ReportTests(unittest.TestCase):
                 {},
             )
 
+    def test_v3_preflight_projection_requires_matching_spine_source(self) -> None:
+        with self.assertRaisesRegex(ValueError, "source differs"):
+            all_spine_e2e_rows(
+                [
+                    {
+                        "system": "spine",
+                        "scenario": "insert",
+                        "batch_size": "8",
+                        "algorithm": "weighted_sssp",
+                        "dataset_id": "soc_livejournal1",
+                        "cycles": "100",
+                        "source_external": "71",
+                        "source_cohort": "median_degree",
+                    }
+                ],
+                [],
+                {
+                    "schema_version": 3,
+                    "preflight_targets": [
+                        {
+                            "dataset_id": "soc_livejournal1",
+                            "preflight_source_external": 72,
+                            "preflight_source_cohort": "median_degree",
+                            "projected_cycles": 1_000,
+                            "projected_total_hours_at_calibration_rate": 1.0,
+                        }
+                    ],
+                },
+            )
+
     def test_behavior_transition_lists_only_invalidated_rows(self) -> None:
         text = behavior_transition_tex(
             [
@@ -192,6 +222,7 @@ class FormalV6ReportTests(unittest.TestCase):
                         "dataset_id": "rmat_19_32",
                         "directed_records": 15_483_485,
                         "oracle_minimum_supersteps": 10,
+                        "preflight_source_external": 113,
                         "projected_total_hours_at_calibration_rate": 52.8,
                     }
                 ],
@@ -211,7 +242,8 @@ class FormalV6ReportTests(unittest.TestCase):
         self.assertIn("PK 342.2 h", text)
         self.assertIn("soft-stopped by policy", text)
         self.assertIn("never enter accelerator-performance", text)
-        self.assertIn("R19 preflight requires 10 supersteps", text)
+        self.assertIn("R19 source", text)
+        self.assertIn("10 supersteps", text)
         self.assertIn("52.8 h", text)
         self.assertIn("remaining 2 unlaunched real graphs", text)
         self.assertIn("LJ 27.1 h", text)

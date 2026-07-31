@@ -135,28 +135,14 @@ def require_hls_weighted_capability(
 def _dijkstra(
     vertices: int, edges: tuple[tuple[int, int, int], ...], source: int
 ) -> tuple[int, ...]:
-    adjacency: list[list[tuple[int, int]]] = [[] for _ in range(vertices)]
-    for src, dst, weight in edges:
-        adjacency[src].append((dst, weight))
-    unreachable = 1 << 63
-    distances = [unreachable] * vertices
-    distances[source] = 0
-    pending: list[tuple[int, int]] = [(0, source)]
-    while pending:
-        distance, vertex = heapq.heappop(pending)
-        if distance != distances[vertex]:
-            continue
-        for destination, weight in adjacency[vertex]:
-            candidate = distance + weight
-            if candidate < distances[destination]:
-                distances[destination] = candidate
-                heapq.heappush(pending, (candidate, destination))
-    return tuple(HLS_INFINITY if value == unreachable else value for value in distances)
+    distances, _ = _dijkstra_with_minimum_supersteps(vertices, edges, source)
+    return distances
 
 
-def _minimum_synchronous_supersteps(
+def _dijkstra_with_minimum_supersteps(
     vertices: int, edges: tuple[tuple[int, int, int], ...], source: int
-) -> int:
+) -> tuple[tuple[int, ...], int]:
+    """Compute exact distances and shortest-path hop depth in one traversal."""
     adjacency: list[list[tuple[int, int]]] = [[] for _ in range(vertices)]
     for src, dst, weight in edges:
         adjacency[src].append((dst, weight))
@@ -182,7 +168,19 @@ def _minimum_synchronous_supersteps(
                 heapq.heappush(
                     pending, (candidate, candidate_hops, destination)
                 )
-    return max(1, max((value for value in hops if value != unreachable), default=0))
+    return (
+        tuple(HLS_INFINITY if value == unreachable else value for value in distances),
+        max(1, max((value for value in hops if value != unreachable), default=0)),
+    )
+
+
+def _minimum_synchronous_supersteps(
+    vertices: int, edges: tuple[tuple[int, int, int], ...], source: int
+) -> int:
+    _, minimum_supersteps = _dijkstra_with_minimum_supersteps(
+        vertices, edges, source
+    )
+    return minimum_supersteps
 
 
 def build_hls_weighted_oracle(
@@ -251,6 +249,9 @@ def build_hls_weighted_oracle(
             for src, dst, weight in external_edges
         )
     )
+    external_distances, minimum_supersteps = _dijkstra_with_minimum_supersteps(
+        vertices, external_edges, source_external
+    )
     return HlsWeightedOracle(
         logical_updates=len(update.records),
         physical_updates=sum(physical_counts),
@@ -258,11 +259,9 @@ def build_hls_weighted_oracle(
         internal_to_external=internal_to_external,
         final_external_edges=external_edges,
         final_internal_edges=internal_edges,
-        external_distances=_dijkstra(vertices, external_edges, source_external),
+        external_distances=external_distances,
         source_internal=external_to_internal[source_external],
-        minimum_supersteps=_minimum_synchronous_supersteps(
-            vertices, external_edges, source_external
-        ),
+        minimum_supersteps=minimum_supersteps,
     )
 
 

@@ -280,6 +280,17 @@ def all_spine_e2e_rows(
             observed_partial_cycles = int(evidence["current_cycles"])
         elif algorithm == "weighted_sssp" and dataset_id in preflight_projections:
             evidence = preflight_projections[dataset_id]
+            if int(wall_time_projection.get("schema_version", 0)) >= 3:
+                if (
+                    int(row.get("source_external", -1))
+                    != int(evidence["preflight_source_external"])
+                    or row.get("source_cohort")
+                    != evidence["preflight_source_cohort"]
+                ):
+                    raise ValueError(
+                        "preflight projection source differs from the Spine row: "
+                        f"{dataset_id}/{algorithm}"
+                    )
             k4_cycles = int(evidence["projected_cycles"])
             k4_status = "timeout_projected"
             evidence_kind = "validated_preflight_projection"
@@ -1085,13 +1096,18 @@ def wall_time_feasibility_tex(projection: dict[str, Any]) -> str:
     preflight_targets = list(projection.get("preflight_targets", []))
     preflight_text = ""
     if preflight_targets:
-        preflight = preflight_targets[0]
+        preflight_summary = ", ".join(
+            f"{tex_escape(DATASET_LABEL.get(row['dataset_id'], row['dataset_id']))} "
+            f"source {int(row['preflight_source_external'])}, "
+            f"{int(row['oracle_minimum_supersteps'])} supersteps, "
+            f"{float(row['projected_total_hours_at_calibration_rate']):.1f} h"
+            for row in preflight_targets
+        )
         preflight_text = (
-            " The validated R19 preflight requires "
-            f"{int(preflight['oracle_minimum_supersteps'])} supersteps over "
-            f"{int(preflight['directed_records']):,} directed records and projects "
-            f"{float(preflight['projected_total_hours_at_calibration_rate']):.1f} h "
-            "at the median completed-run simulator rate; it was not launched."
+            " The validated source-matched preflights report "
+            f"{preflight_summary}. Their total-cycle estimates multiply validated "
+            "oracle work by the median completed-run cycles/edge-round; they are "
+            "projections, not completed cycle simulations."
         )
     one_round_targets = list(projection.get("one_round_screen_targets", []))
     one_round_text = ""
@@ -1261,9 +1277,9 @@ activity is present for all observed executions
 \caption{{Absolute insertion-batch-8 device cycles for all
 {len(all_spine_rows)} correctness-admitted current-version Spine rows. Blue
 bars and unmarked orange bars are completed executions. Cross-hatched G+R bars
-  marked Proj./T/O are total-cycle feasibility projections for SO and PK from
-  stopped execution prefixes and for R19 from its validated preflight; they are
-  not measured performance. Triangles for LJ and LJ08 are conservative one-round
+  marked Proj./T/O are total-cycle feasibility projections derived either from
+  stopped execution prefixes or from validated source-matched host preflights;
+  they are not measured performance. Upward triangles are conservative one-round
   feasibility screens, not total-cycle predictions. Downward triangles for
   SO CC and ResPR are strict monotonic device-cycle lower bounds from stopped
   incomplete executions; they are neither completed results nor projected totals.

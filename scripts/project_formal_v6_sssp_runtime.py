@@ -226,6 +226,7 @@ def build_projection(
     wall_budget_hours: float,
     *,
     r19_preflight_path: Path = DEFAULT_R19_PREFLIGHT,
+    additional_preflight_paths: Sequence[Path] = (),
 ) -> dict[str, Any]:
     calibration_rows = []
     for dataset_id, execution_id in COMPLETED:
@@ -297,35 +298,71 @@ def build_projection(
         )
         targets.append(projection)
 
-    r19_preflight = _load_json(r19_preflight_path.resolve())
-    if (
-        r19_preflight.get("status") != "PASS"
-        or r19_preflight.get("claim_class")
-        != "validated_publication_case_preflight_not_simulated_performance"
-        or r19_preflight.get("case", {}).get("dataset_id") != "rmat_19_32"
-    ):
-        raise ValueError("R19 publication preflight is not admitted")
-    r19_child = r19_preflight["child_preflight"]
-    r19_projection = project_preflight_target(
-        directed_records=int(r19_child["directed_records"]),
-        supersteps=int(r19_child["selected_supersteps"]),
-        coefficient=coefficient,
-        cycles_per_second=calibration_rate,
-        wall_budget_hours=wall_budget_hours,
-    )
-    r19_projection.update(
-        {
-            "dataset_id": "rmat_19_32",
-            "execution_id": str(r19_preflight["case"]["execution_id"]),
-            "preflight_path": str(r19_preflight_path.resolve()),
-            "preflight_claim_class": str(r19_preflight["claim_class"]),
-            "preflight_source_external": int(r19_child["source_external"]),
-            "destination_partitions": int(r19_child["destination_partitions"]),
-            "nonempty_destination_partitions": int(
-                r19_child["nonempty_destination_partitions"]
-            ),
-        }
-    )
+    preflight_targets = []
+    preflight_datasets: set[str] = set()
+    for preflight_path in (r19_preflight_path, *additional_preflight_paths):
+        resolved_preflight_path = preflight_path.resolve()
+        preflight = _load_json(resolved_preflight_path)
+        case = preflight.get("case", {})
+        child = preflight.get("child_preflight", {})
+        dataset_id = str(case.get("dataset_id", ""))
+        if (
+            preflight.get("status") != "PASS"
+            or preflight.get("claim_class")
+            != "validated_publication_case_preflight_not_simulated_performance"
+            or not dataset_id
+            or case.get("system") != "grasu_regraph_k4_shared"
+            or case.get("algorithm") != "weighted_sssp"
+            or case.get("scenario") != "insert"
+            or int(case.get("batch_size", 0)) != 8
+            or int(case.get("source", -1)) != int(child.get("source_external", -2))
+            or int(case.get("graph", {}).get("records", -1))
+            != int(child.get("directed_records", -2))
+            or str(case.get("graph", {}).get("sha256", ""))
+            != str(child.get("workload_sha256", "missing"))
+            or str(case.get("update", {}).get("sha256", ""))
+            != str(child.get("update_workload_sha256", "missing"))
+            or int(child.get("selected_supersteps", 0))
+            < int(child.get("minimum_supersteps", 1))
+        ):
+            raise ValueError(
+                f"publication SSSP preflight is not admitted: {resolved_preflight_path}"
+            )
+        if dataset_id in preflight_datasets:
+            raise ValueError(f"duplicate publication preflight dataset: {dataset_id}")
+        projection = project_preflight_target(
+            directed_records=int(child["directed_records"]),
+            supersteps=int(child["selected_supersteps"]),
+            coefficient=coefficient,
+            cycles_per_second=calibration_rate,
+            wall_budget_hours=wall_budget_hours,
+        )
+        projection.update(
+            {
+                "dataset_id": dataset_id,
+                "execution_id": str(case["execution_id"]),
+                "preflight_path": str(resolved_preflight_path),
+                "preflight_sha256": _sha256(resolved_preflight_path),
+                "preflight_claim_class": str(preflight["claim_class"]),
+                "preflight_source_external": int(child["source_external"]),
+                "preflight_source_cohort": str(
+                    case.get("algorithm_parameters", {}).get(
+                        "source_cohort", "unspecified"
+                    )
+                ),
+                "destination_partitions": int(child["destination_partitions"]),
+                "nonempty_destination_partitions": int(
+                    child["nonempty_destination_partitions"]
+                ),
+                "projection_basis": (
+                    "validated_source_matched_oracle_supersteps_times_median_"
+                    "completed_cycles_per_edge_round"
+                ),
+            }
+        )
+        preflight_targets.append(projection)
+        preflight_datasets.add(dataset_id)
+    preflight_targets.sort(key=lambda row: str(row["dataset_id"]))
 
     campaign_manifest_path = root / "formal_v6_sssp_exact" / "campaign_manifest.json"
     campaign_manifest = _load_json(campaign_manifest_path)
@@ -336,7 +373,8 @@ def build_projection(
         if (
             job.get("algorithm") != "weighted_sssp"
             or job.get("system") != "grasu_regraph_k4_shared"
-            or job.get("dataset_id") in completed_datasets | observed_target_datasets
+            or job.get("dataset_id")
+            in completed_datasets | observed_target_datasets | preflight_datasets
         ):
             continue
         dataset_id = str(job["dataset_id"])
@@ -363,8 +401,8 @@ def build_projection(
     one_round_targets.sort(key=lambda row: str(row["dataset_id"]))
 
     return {
-        "schema_version": 2,
-        "evidence_id": "formal_v6_large_sssp_runtime_projection_v2_20260730",
+        "schema_version": 3,
+        "evidence_id": "formal_v7_large_sssp_runtime_projection_v3_20260731",
         "model": "median admitted cycles / (directed records * oracle-minimum supersteps)",
         "cycles_per_edge_round": coefficient,
         "calibration_cycles_per_second": calibration_rate,
@@ -376,19 +414,21 @@ def build_projection(
         "one_round_screen_cycles_per_second": conservative_rate,
         "calibration_rows": calibration_rows,
         "targets": targets,
-        "preflight_targets": [r19_projection],
+        "preflight_targets": preflight_targets,
         "one_round_screen_targets": one_round_targets,
         "all_targets_wall_time_infeasible": all(
             not row["wall_budget_feasible"] for row in targets
         )
-        and not r19_projection["wall_budget_feasible"]
-        and bool(one_round_targets)
+        and bool(preflight_targets)
+        and all(not row["wall_budget_feasible"] for row in preflight_targets)
         and all(not row["wall_budget_feasible"] for row in one_round_targets),
         "claim_boundary": (
             "This is a host-runtime feasibility decision, not an accelerator-cycle result. "
-            "The one-round screen is an empirical admission projection, not a completed "
-            "host oracle preflight. Stopped and screened rows do not enter architecture "
-            "performance aggregates."
+            "Source-matched preflight totals combine validated oracle supersteps with "
+            "a coefficient transferred from completed runs; they are projections, not "
+            "cycle-simulated performance. The one-round screen is an empirical admission "
+            "projection, not a completed host oracle preflight. Stopped, projected, and "
+            "screened rows do not enter architecture performance aggregates."
         ),
     }
 
@@ -398,12 +438,20 @@ def main() -> int:
     parser.add_argument("--campaign-root", type=Path, default=DEFAULT_ROOT)
     parser.add_argument("--wall-budget-hours", type=float, default=3.0)
     parser.add_argument("--r19-preflight", type=Path, default=DEFAULT_R19_PREFLIGHT)
+    parser.add_argument(
+        "--additional-preflight",
+        type=Path,
+        action="append",
+        default=[],
+        help="Additional admitted source-matched publication preflight (repeatable).",
+    )
     parser.add_argument("--out", type=Path)
     args = parser.parse_args()
     payload = build_projection(
         args.campaign_root.resolve(),
         args.wall_budget_hours,
         r19_preflight_path=args.r19_preflight,
+        additional_preflight_paths=args.additional_preflight,
     )
     rendered = json.dumps(payload, indent=2, sort_keys=True) + "\n"
     if args.out is not None:

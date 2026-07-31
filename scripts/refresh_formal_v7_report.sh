@@ -29,6 +29,8 @@ python3 scripts/analyze_workload_component_energy.py \
 "${plot_python}" scripts/render_formal_v6_primary.py \
   --analysis-dir "${analysis}" \
   --contract configs/contracts/large_graph_publication_campaign_fullgraph_v7.json \
+  --wall-time-projection \
+    docs/evidence/formal_v7_large_sssp_runtime_projection_20260731.json \
   --data-dir "${data}" \
   --tex docs/paper/formal_v7_primary_results.tex \
   --report-version v7 \
@@ -51,7 +53,9 @@ python3 scripts/audit_formal_v6_evidence_package.py \
   --out "${data}/evidence_package_audit.json" \
   --artifact docs/paper/formal_v7_primary_results.pdf \
   --artifact docs/evidence/formal_v6_r19_k4_preflight_20260730.json \
-  --artifact docs/evidence/formal_v6_large_sssp_runtime_projection_20260730.json \
+  --artifact docs/evidence/formal_v7_large_sssp_runtime_projection_20260731.json \
+  --artifact docs/evidence/formal_v7_lj_k4_preflight_20260731.json \
+  --artifact docs/evidence/formal_v7_lj08_k4_preflight_20260731.json \
   --artifact docs/evidence/formal_v7_stopped_prefix_lower_bounds_20260731.json \
   --artifact docs/paper/data/formal_v7_primary/wall_time_feasibility.json \
   --artifact docs/paper/data/formal_v7_primary/superseded_results.csv \
