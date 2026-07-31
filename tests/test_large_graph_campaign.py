@@ -135,6 +135,7 @@ class LargeGraphCampaignTests(unittest.TestCase):
             supersedence["superseding_plugin_sha256"],
             simulator["plugin_sha256"],
         )
+        self.assertEqual(supersedence["classification"], "hls_behavior_correction")
         self.assertEqual(supersedence["affected_metric"], "resident_hot_edges")
         self.assertEqual(supersedence["affected_when_greater_than"], 0)
         self.assertEqual(len(supersedence["superseded_plugin_sha256"]), 2)
@@ -205,6 +206,18 @@ class LargeGraphCampaignTests(unittest.TestCase):
             },
         )
         supersedence = simulator["result_supersedence"]
+        self.assertEqual(
+            supersedence["classification"], "device_active_timing_correction"
+        )
+        self.assertEqual(
+            supersedence["affected_algorithms"],
+            [
+                "connected_components",
+                "thresholded_residual_pagerank",
+                "weighted_sssp",
+                "weighted_dynamic_sssp",
+            ],
+        )
         self.assertEqual(
             supersedence["superseding_plugin_sha256"],
             simulator["plugin_sha256"],

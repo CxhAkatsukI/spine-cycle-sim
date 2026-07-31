@@ -329,6 +329,49 @@ class PublicationAnalysisTests(unittest.TestCase):
                 [old, changed_state], result_supersedence_policy=policy
             )
 
+    def test_device_active_transition_replaces_old_timing_result(self) -> None:
+        old = case_result("spine", 100, execution_id="device_active")
+        old["row"]["algorithm"] = "weighted_dynamic_sssp"
+        old["scalar_metrics"]["resident_hot_edges"] = 0
+        new = deepcopy(old)
+        new["plugin_sha256"] = "b" * 64
+        new["row"]["cycles"] = 140
+        policy = {
+            "classification": "device_active_timing_correction",
+            "scope_system": "spine",
+            "affected_algorithms": [
+                "connected_components",
+                "thresholded_residual_pagerank",
+                "weighted_sssp",
+                "weighted_dynamic_sssp",
+            ],
+            "requires_identical_case": True,
+            "requires_identical_final_state": True,
+            "superseded_plugin_sha256": ["a" * 64],
+            "superseding_plugin_sha256": "b" * 64,
+        }
+        analysis = analyze_publication_case_results(
+            [old, new], result_supersedence_policy=policy
+        )
+        self.assertEqual(analysis["observed_executions"], 1)
+        self.assertEqual(analysis["system_rows"][0]["cycles"], 140)
+        self.assertEqual(
+            analysis["superseded_result_rows"][0]["affected_metric"],
+            "algorithm_timing_semantics",
+        )
+        self.assertEqual(
+            analysis["superseded_result_rows"][0]["affected_metric_value"],
+            "weighted_dynamic_sssp",
+        )
+
+        unaffected = deepcopy(old)
+        unaffected["row"]["algorithm"] = "full_pagerank"
+        analysis = analyze_publication_case_results(
+            [unaffected], result_supersedence_policy=policy
+        )
+        self.assertEqual(analysis["observed_executions"], 1)
+        self.assertEqual(analysis["system_rows"][0]["cycles"], 100)
+
     def test_incomplete_expected_set_is_partial_or_fail_closed(self) -> None:
         result = case_result("spine", 100)
         analysis = analyze_publication_case_results(

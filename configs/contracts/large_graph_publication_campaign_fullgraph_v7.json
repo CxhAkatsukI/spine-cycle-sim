@@ -98,9 +98,13 @@
       "milestone": "fullgraph_v12_device_active_dynamic_e2e",
       "plugin_sha256": "84626d7f2de2904df2557c9e08299495b28e7cd5389e075dc094550f75965216",
       "result_supersedence": {
-        "affected_metric": "resident_hot_edges",
-        "affected_when_greater_than": 0,
-        "classification": "hls_behavior_correction",
+        "affected_algorithms": [
+          "connected_components",
+          "thresholded_residual_pagerank",
+          "weighted_sssp",
+          "weighted_dynamic_sssp"
+        ],
+        "classification": "device_active_timing_correction",
         "requires_identical_case": true,
         "requires_identical_final_state": true,
         "scope_system": "spine",

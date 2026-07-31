@@ -76,20 +76,67 @@ def _validate_result_supersedence_policy(
     if policy is None:
         return
     old_hashes = policy.get("superseded_plugin_sha256")
-    if (
-        policy.get("classification") != "hls_behavior_correction"
-        or policy.get("scope_system") != "spine"
-        or policy.get("affected_metric") != "resident_hot_edges"
-        or policy.get("affected_when_greater_than") != 0
-        or policy.get("requires_identical_case") is not True
-        or policy.get("requires_identical_final_state") is not True
-        or not isinstance(old_hashes, list)
-        or not old_hashes
-        or len(set(old_hashes)) != len(old_hashes)
-        or not isinstance(policy.get("superseding_plugin_sha256"), str)
-        or policy["superseding_plugin_sha256"] in old_hashes
-    ):
+    base_valid = (
+        policy.get("scope_system") == "spine"
+        and policy.get("requires_identical_case") is True
+        and policy.get("requires_identical_final_state") is True
+        and isinstance(old_hashes, list)
+        and bool(old_hashes)
+        and len(set(old_hashes)) == len(old_hashes)
+        and isinstance(policy.get("superseding_plugin_sha256"), str)
+        and policy["superseding_plugin_sha256"] not in old_hashes
+    )
+    if not base_valid:
         raise ValueError("invalid result supersedence policy")
+    if policy.get("classification") == "hls_behavior_correction":
+        if (
+            policy.get("affected_metric") != "resident_hot_edges"
+            or policy.get("affected_when_greater_than") != 0
+        ):
+            raise ValueError("invalid result supersedence policy")
+        return
+    if policy.get("classification") == "device_active_timing_correction":
+        algorithms = policy.get("affected_algorithms")
+        if (
+            not isinstance(algorithms, list)
+            or not algorithms
+            or len(set(algorithms)) != len(algorithms)
+            or not all(isinstance(item, str) and item for item in algorithms)
+        ):
+            raise ValueError("invalid result supersedence policy")
+        return
+    raise ValueError("invalid result supersedence policy")
+
+
+def _result_algorithm_id(result: Mapping[str, Any]) -> str:
+    row_algorithm = result.get("row", {}).get("algorithm")
+    if isinstance(row_algorithm, str) and row_algorithm:
+        return row_algorithm
+    return str(result["case"]["algorithm"])
+
+
+def _supersedence_audit_metric(
+    result: Mapping[str, Any], policy: Mapping[str, Any]
+) -> tuple[str, Any]:
+    if policy["classification"] == "hls_behavior_correction":
+        metric = str(policy["affected_metric"])
+        return metric, result["scalar_metrics"][metric]
+    return "algorithm_timing_semantics", _result_algorithm_id(result)
+
+
+def _is_result_affected_by_supersedence(
+    result: Mapping[str, Any], policy: Mapping[str, Any]
+) -> bool:
+    if policy["classification"] == "hls_behavior_correction":
+        metric = policy["affected_metric"]
+        value = result.get("scalar_metrics", {}).get(metric)
+        if not isinstance(value, (int, float)) or isinstance(value, bool):
+            raise ValueError(
+                f"superseded Spine result lacks numeric transition metric: {metric}"
+            )
+        return value > policy["affected_when_greater_than"]
+    affected = set(map(str, policy["affected_algorithms"]))
+    return _result_algorithm_id(result) in affected
 
 
 def _transition_classification(
@@ -102,15 +149,9 @@ def _transition_classification(
         return "successor"
     if plugin not in policy["superseded_plugin_sha256"]:
         return "eligible"
-    metric = policy["affected_metric"]
-    value = result.get("scalar_metrics", {}).get(metric)
-    if not isinstance(value, (int, float)) or isinstance(value, bool):
-        raise ValueError(
-            f"superseded Spine result lacks numeric transition metric: {metric}"
-        )
     return (
         "invalidated"
-        if value > policy["affected_when_greater_than"]
+        if _is_result_affected_by_supersedence(result, policy)
         else "eligible"
     )
 
@@ -822,13 +863,15 @@ def analyze_publication_case_results(
                         f"superseding result changed final state: {execution_id}"
                     )
                 assert result_supersedence_policy is not None
-                metric = result_supersedence_policy["affected_metric"]
+                metric, metric_value = _supersedence_audit_metric(
+                    old, result_supersedence_policy
+                )
                 superseded_result_rows.append(
                     {
                         "execution_id": execution_id,
                         "system": selected["case"]["system"],
                         "affected_metric": metric,
-                        "affected_metric_value": old["scalar_metrics"][metric],
+                        "affected_metric_value": metric_value,
                         "old_plugin_sha256": old["plugin_sha256"],
                         "new_plugin_sha256": selected["plugin_sha256"],
                         "old_cycles": old["row"]["cycles"],

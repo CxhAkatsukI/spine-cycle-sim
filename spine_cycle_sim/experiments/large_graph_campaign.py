@@ -299,14 +299,11 @@ def validate_large_graph_campaign_contract(
             if isinstance(supersedence, Mapping)
             else []
         )
-        if (
+        base_invalid = (
             not isinstance(supersedence, Mapping)
-            or supersedence.get("classification") != "hls_behavior_correction"
             or supersedence.get("scope_system") != "spine"
             or supersedence.get("superseding_plugin_sha256")
             != simulator.get("plugin_sha256")
-            or supersedence.get("affected_metric") != "resident_hot_edges"
-            or supersedence.get("affected_when_greater_than") != 0
             or supersedence.get("requires_identical_case") is not True
             or supersedence.get("requires_identical_final_state") is not True
             or not isinstance(old_hashes, list)
@@ -314,7 +311,30 @@ def validate_large_graph_campaign_contract(
             or len(set(old_hashes)) != len(old_hashes)
             or any(not _is_sha256(value) for value in old_hashes)
             or simulator.get("plugin_sha256") in old_hashes
-        ):
+        )
+        classification = (
+            supersedence.get("classification")
+            if isinstance(supersedence, Mapping)
+            else None
+        )
+        old_hot_policy = (
+            classification == "hls_behavior_correction"
+            and supersedence.get("affected_metric") == "resident_hot_edges"
+            and supersedence.get("affected_when_greater_than") == 0
+        )
+        affected_algorithms = (
+            supersedence.get("affected_algorithms")
+            if isinstance(supersedence, Mapping)
+            else None
+        )
+        device_active_policy = (
+            classification == "device_active_timing_correction"
+            and isinstance(affected_algorithms, list)
+            and bool(affected_algorithms)
+            and len(set(affected_algorithms)) == len(affected_algorithms)
+            and all(isinstance(value, str) and value for value in affected_algorithms)
+        )
+        if base_invalid or not (old_hot_policy or device_active_policy):
             raise ValueError("invalid Spine result supersedence policy")
 
     semantics = contract.get("workload_semantics", {})
