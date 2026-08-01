@@ -54,12 +54,12 @@ EXPANDED_COMPONENTS = (
         ("t_xfer_cycles", "t_reduce_cycles", "t_carry_cycles", "t_directory_cycles"),
         "Maint.",
         "#a8cf88",
-        "x" * 12,
+        "x" * 9,
     ),
-    (("t_seed_cycles", "t_switch_cycles"), "Seed/pub.", "#f1a55b", "|" * 12),
-    (("t_resolve_cycles",), "Resolve", "#2f86bd", "/" * 12),
-    (("t_app_cycles",), "App", "#b7d6e8", "\\" * 12),
-    (("t_drain_cycles", "t_sync_cycles"), "Drain", "#35a936", "x" * 12),
+    (("t_seed_cycles", "t_switch_cycles"), "Seed/pub.", "#f1a55b", "|" * 9),
+    (("t_resolve_cycles",), "Resolve", "#2f86bd", "/" * 9),
+    (("t_app_cycles",), "App", "#b7d6e8", "\\" * 9),
+    (("t_drain_cycles", "t_sync_cycles"), "Drain", "#35a936", "x" * 9),
 )
 EXPANDED_BREAKDOWN_GROUPS = (
     (
