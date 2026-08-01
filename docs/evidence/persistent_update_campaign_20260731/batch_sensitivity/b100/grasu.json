@@ -1,0 +1,19 @@
+{
+  "success": true,
+  "mode": "grasu_update_trace",
+  "measurement_window": "pure_update_only",
+  "trace_aware_layout": true,
+  "resident_state_persistent": true,
+  "graph_compute_executed": false,
+  "backend": "sst_memHierarchy_dramsim3",
+  "core_mhz": 150,
+  "batch_count": 100,
+  "logical_updates": 131072,
+  "device_cycles": 1813771,
+  "correctness_mismatches": 0,
+  "final_edges": 521919,
+  "batch_updates": [1310, 1311, 1311, 1310, 1311, 1311, 1311, 1310, 1311, 1311, 1310, 1311, 1311, 1311, 1310, 1311, 1311, 1310, 1311, 1311, 1311, 1310, 1311, 1311, 1311, 1310, 1311, 1311, 1310, 1311, 1311, 1311, 1310, 1311, 1311, 1310, 1311, 1311, 1311, 1310, 1311, 1311, 1310, 1311, 1311, 1311, 1310, 1311, 1311, 1311, 1310, 1311, 1311, 1310, 1311, 1311, 1311, 1310, 1311, 1311, 1310, 1311, 1311, 1311, 1310, 1311, 1311, 1310, 1311, 1311, 1311, 1310, 1311, 1311, 1311, 1310, 1311, 1311, 1310, 1311, 1311, 1311, 1310, 1311, 1311, 1310, 1311, 1311, 1311, 1310, 1311, 1311, 1310, 1311, 1311, 1311, 1310, 1311, 1311, 1311],
+  "batch_cycles": [18508, 15234, 19819, 17049, 18829, 21220, 16638, 17169, 30695, 24440, 15393, 21569, 17153, 22088, 17733, 15637, 14485, 22324, 26308, 14450, 16915, 23634, 16062, 15411, 16548, 19309, 16921, 18726, 18597, 19288, 16601, 16213, 20970, 16489, 19213, 13972, 13959, 17377, 15547, 22019, 15035, 14630, 15192, 17875, 15537, 27091, 28893, 19750, 15842, 22490, 28008, 25308, 16243, 20823, 27021, 19337, 25503, 18490, 15790, 21714, 16096, 15456, 20256, 15711, 16953, 16757, 19724, 13962, 15869, 14099, 16944, 14681, 14210, 14104, 14125, 14177, 15139, 14108, 20046, 15281, 16452, 17612, 14127, 14864, 22736, 15376, 14602, 14588, 14363, 14445, 14409, 15269, 29194, 22145, 13772, 14487, 14822, 25281, 21817, 14628],
+  "batch_correctness_mismatches": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  "backend_traffic": {"classification":"per_initiator_and_operation_accepted_backend_request","address_basis":"logical_channel_and_byte_address","reads":{"requests":681190,"bytes":13838128,"first_requests":1400,"first_bytes":25600,"contiguous_requests":192657,"contiguous_bytes":2777032,"repeated_requests":106543,"repeated_bytes":3605584,"discontinuous_requests":380590,"discontinuous_bytes":7429912},"writes":{"requests":131072,"bytes":8388608,"first_requests":200,"first_bytes":12800,"contiguous_requests":3400,"contiguous_bytes":217600,"repeated_requests":49165,"repeated_bytes":3146560,"discontinuous_requests":78307,"discontinuous_bytes":5011648},"combined":{"requests":812262,"bytes":22226736,"first_requests":1600,"first_bytes":38400,"contiguous_requests":196057,"contiguous_bytes":2994632,"repeated_requests":155708,"repeated_bytes":6752144,"discontinuous_requests":458897,"discontinuous_bytes":12441560}}
+}

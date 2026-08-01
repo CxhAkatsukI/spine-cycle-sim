@@ -1,0 +1,66 @@
+{
+  "batch_count": 10,
+  "correctness": "pass",
+  "dataset_id": "soc_pokec",
+  "experiment": "persistent_trace_aware_update_only",
+  "information_boundary": {
+    "grasu_regraph": "initial_graph_plus_complete_trace_once",
+    "note": "Matches the official trace-aware GraSU PMA reservation boundary.",
+    "spine": "initial_graph_once_then_each_arriving_batch"
+  },
+  "logical_updates": 4096,
+  "rows": [
+    {
+      "backend_bytes": 6100688,
+      "backend_requests": 529909,
+      "batch_count": 10,
+      "core_mhz": 141.0,
+      "correctness_mismatches": 0,
+      "device_cycles": 3352785,
+      "device_seconds": 0.023778617021276597,
+      "device_updates_per_second": 172255.60243200802,
+      "h2d_bytes": 356896960,
+      "host_preprocess_seconds": 86.91659313,
+      "logical_updates": 4096,
+      "modeled_h2d_seconds": 0.029741413333333334,
+      "modeled_host_inclusive_seconds": 86.9702131603546,
+      "modeled_host_inclusive_updates_per_second": 47.09658457945648,
+      "modeled_launch_sync_seconds": 0.0001,
+      "preprocess_plus_device_seconds": 86.94037174702127,
+      "preprocess_plus_device_updates_per_second": 47.112750011220605,
+      "system": "spine"
+    },
+    {
+      "backend_bytes": 624088,
+      "backend_requests": 16571,
+      "batch_count": 10,
+      "core_mhz": 150.0,
+      "correctness_mismatches": 0,
+      "device_cycles": 52003,
+      "device_seconds": 0.00034668666666666666,
+      "device_updates_per_second": 11814702.997903967,
+      "h2d_bytes": 1402894304,
+      "host_preprocess_seconds": 80.492899754,
+      "logical_updates": 4096,
+      "modeled_h2d_seconds": 0.11690785866666667,
+      "modeled_host_inclusive_seconds": 80.61025429933333,
+      "modeled_host_inclusive_updates_per_second": 50.81239397645561,
+      "modeled_launch_sync_seconds": 0.0001,
+      "preprocess_plus_device_seconds": 80.49324644066667,
+      "preprocess_plus_device_updates_per_second": 50.88625668762474,
+      "system": "grasu_regraph"
+    }
+  ],
+  "runtime_model": {
+    "claim": "parameterized_not_measured_xrt",
+    "h2d_gbytes_per_second": 12.0,
+    "launch_sync_microseconds_per_batch": 10.0
+  },
+  "scenario": "insert",
+  "schema_version": 1,
+  "spine_speedup": {
+    "device_only": 0.014579765776809427,
+    "modeled_host_inclusive": 0.9268719872021601,
+    "preprocess_plus_device": 0.9258442864137455
+  }
+}
