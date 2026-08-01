@@ -25,7 +25,13 @@ CASE_LABELS = {
     "pagerank_correction": "PR\ncorrection",
     "deletion_fallback": "Deletion\nfallback",
 }
-TT_FONTS = ["TeX Gyre Cursor", "Nimbus Mono PS", "DejaVu Sans Mono", "monospace"]
+TXTTPREAMBLE = (
+    r"\usepackage{txfonts}"
+    r"\renewcommand{\rmdefault}{txtt}"
+    r"\renewcommand{\sfdefault}{txtt}"
+    r"\renewcommand{\ttdefault}{txtt}"
+    r"\renewcommand{\familydefault}{\ttdefault}"
+)
 ALGORITHM_LABELS = {
     "weighted_sssp": "SSSP",
     "connected_components": "CC",
@@ -48,12 +54,12 @@ EXPANDED_COMPONENTS = (
         ("t_xfer_cycles", "t_reduce_cycles", "t_carry_cycles", "t_directory_cycles"),
         "Maint.",
         "#a8cf88",
-        "xxxxxx",
+        "x" * 12,
     ),
-    (("t_seed_cycles", "t_switch_cycles"), "Seed/pub.", "#f1a55b", "||||||"),
-    (("t_resolve_cycles",), "Resolve", "#2f86bd", "//////"),
-    (("t_app_cycles",), "App", "#b7d6e8", "\\\\\\\\\\\\"),
-    (("t_drain_cycles", "t_sync_cycles"), "Drain", "#35a936", "xxxxxx"),
+    (("t_seed_cycles", "t_switch_cycles"), "Seed/pub.", "#f1a55b", "|" * 12),
+    (("t_resolve_cycles",), "Resolve", "#2f86bd", "/" * 12),
+    (("t_app_cycles",), "App", "#b7d6e8", "\\" * 12),
+    (("t_drain_cycles", "t_sync_cycles"), "Drain", "#35a936", "x" * 12),
 )
 EXPANDED_BREAKDOWN_GROUPS = (
     (
@@ -180,6 +186,24 @@ def number(row: dict[str, str], key: str) -> float:
     return float(value) if value not in (None, "") else 0.0
 
 
+def tex_escape_text(value: str) -> str:
+    replacements = {
+        "\\": r"\textbackslash{}",
+        "_": r"\_",
+        "%": r"\%",
+        "&": r"\&",
+        "#": r"\#",
+        "{": r"\{",
+        "}": r"\}",
+        "$": r"\$",
+    }
+    return "".join(replacements.get(character, character) for character in value)
+
+
+def tt(value: str) -> str:
+    return rf"\texttt{{{tex_escape_text(value)}}}"
+
+
 def compact_cycles(value: float) -> str:
     if value >= 1_000_000:
         return f"{value / 1_000_000:.2f}M"
@@ -196,15 +220,16 @@ def configure_matplotlib() -> Any:
 
     plt.rcParams.update(
         {
-            "font.family": "sans-serif",
-            "font.sans-serif": ["Arial", "DejaVu Sans", "sans-serif"],
+            "text.usetex": True,
+            "text.latex.preamble": TXTTPREAMBLE,
+            "font.family": "monospace",
             "font.size": 9,
             "axes.labelsize": 10,
             "axes.linewidth": 1.1,
             "legend.fontsize": 8,
             "xtick.labelsize": 8,
             "ytick.labelsize": 8,
-            "hatch.linewidth": 0.9,
+            "hatch.linewidth": 0.48,
             "pdf.fonttype": 42,
             "ps.fonttype": 42,
         }
@@ -213,7 +238,7 @@ def configure_matplotlib() -> Any:
 
 
 def style_axis(axis: Any, *, grid: bool = True) -> None:
-    axis.tick_params(direction="in", top=True, right=True, length=4)
+    axis.tick_params(direction="in", top=False, right=True, length=4)
     if grid:
         axis.grid(axis="y", linestyle="--", color="0.65", alpha=0.5, zorder=0)
     for spine in axis.spines.values():
@@ -301,7 +326,6 @@ def render_expanded_breakdown(rows: list[dict[str, str]], output: Path) -> None:
     plt.rcParams.update(
         {
             "font.family": "monospace",
-            "font.monospace": TT_FONTS,
             "axes.linewidth": 0.8,
             "hatch.linewidth": 0.3,
             "legend.fontsize": 6.8,
@@ -353,7 +377,7 @@ def render_expanded_breakdown(rows: list[dict[str, str]], output: Path) -> None:
             zorder=2,
         )
         bottoms = [left + right for left, right in zip(bottoms, percentages, strict=True)]
-        legend.append(Patch(facecolor=color, edgecolor="black", hatch=hatch, label=label))
+        legend.append(Patch(facecolor=color, edgecolor="black", hatch=hatch, label=tt(label)))
 
     for separator in separators:
         axis.axvline(
@@ -370,7 +394,7 @@ def render_expanded_breakdown(rows: list[dict[str, str]], output: Path) -> None:
         axis.text(
             center,
             -0.24,
-            group_label,
+            tt(group_label),
             transform=axis.get_xaxis_transform(),
             ha="center",
             va="top",
@@ -379,10 +403,12 @@ def render_expanded_breakdown(rows: list[dict[str, str]], output: Path) -> None:
         )
 
     axis.set_xlim(min(x_positions) - 0.65, max(x_positions) + 0.65)
-    axis.set_xticks(x_positions, tick_labels)
-    axis.set_ylabel("E2E cycles (%)")
+    axis.set_xticks(x_positions)
+    axis.set_xticklabels([tt(label) for label in tick_labels])
+    axis.set_ylabel(tt("E2E cycles (%)"))
     axis.set_ylim(0.0, 108.0)
     axis.set_yticks((0, 25, 50, 75, 100))
+    axis.set_yticklabels([tt(label) for label in ("0", "25", "50", "75", "100")])
     axis.tick_params(direction="in", top=False, right=True, length=3, width=0.7)
     axis.grid(
         axis="y",
@@ -526,6 +552,8 @@ def render_e2e_model(
     output: Path,
 ) -> None:
     plt = configure_matplotlib()
+    from matplotlib.ticker import FixedLocator, NullLocator
+
     real_holdout = [
         row
         for row in prediction_rows
@@ -537,7 +565,6 @@ def render_e2e_model(
     with plt.rc_context(
         {
             "font.family": "monospace",
-            "font.monospace": TT_FONTS,
             "font.size": 8,
             "axes.labelsize": 8.5,
             "axes.linewidth": 0.75,
@@ -571,7 +598,7 @@ def render_e2e_model(
                 facecolors="white",
                 edgecolors=color,
                 linewidths=0.75,
-                label=label,
+                label=tt(label),
                 zorder=3,
             )
         positive = [value for value in all_values if value > 0.0]
@@ -593,15 +620,27 @@ def render_e2e_model(
         axis.set_yscale("log")
         axis.set_xlim(lower, upper)
         axis.set_ylim(lower, upper)
-        axis.set_xlabel("Measured cycles")
-        axis.set_ylabel("Predicted cycles")
+        exponent_start = math.floor(math.log10(lower))
+        exponent_end = math.ceil(math.log10(upper))
+        ticks = [10.0**exponent for exponent in range(exponent_start, exponent_end + 1)]
+        ticks = [tick for tick in ticks if lower <= tick <= upper]
+        tick_labels = [tt(f"1e{int(math.log10(tick))}") for tick in ticks]
+        axis.xaxis.set_major_locator(FixedLocator(ticks))
+        axis.yaxis.set_major_locator(FixedLocator(ticks))
+        axis.xaxis.set_minor_locator(NullLocator())
+        axis.yaxis.set_minor_locator(NullLocator())
+        axis.set_xticklabels(tick_labels)
+        axis.set_yticklabels(tick_labels)
+        axis.set_xlabel(tt("Measured cycles"))
+        axis.set_ylabel(tt("Predicted cycles"))
         by_role = {row["role"]: row for row in metric_rows}
         holdout = by_role["real_trace_holdout"]
+        r2_text = tt(f"holdout R2={float(holdout['r2']):.3f}")
+        err_text = tt(f"median err={float(holdout['median_ape_percent']):.1f}%")
         axis.text(
             0.05,
             0.95,
-            f"holdout $R^2$={float(holdout['r2']):.3f}\n"
-            f"median err={float(holdout['median_ape_percent']):.1f}%",
+            f"{r2_text}\n{err_text}",
             transform=axis.transAxes,
             ha="left",
             va="top",
