@@ -14,6 +14,7 @@ EVIDENCE = ROOT / "docs/evidence/persistent_update_campaign_20260731"
 DATA_DIR = ROOT / "docs/paper/data"
 FIGURE_DIR = ROOT / "docs/figures"
 FIGURE_BASE = FIGURE_DIR / "persistent_update_setup_inclusive"
+TT_FONTS = ["TeX Gyre Cursor", "Nimbus Mono PS", "DejaVu Sans Mono", "monospace"]
 
 CROSS_DATASETS = (
     ("au", "AU"),
@@ -104,7 +105,7 @@ def configure_matplotlib() -> Any:
     plt.rcParams.update(
         {
             "font.family": "monospace",
-            "font.monospace": ["DejaVu Sans Mono", "Liberation Mono", "monospace"],
+            "font.monospace": TT_FONTS,
             "font.size": 7.2,
             "axes.labelsize": 7.4,
             "axes.titlesize": 7.6,
@@ -112,7 +113,7 @@ def configure_matplotlib() -> Any:
             "legend.fontsize": 6.7,
             "xtick.labelsize": 6.8,
             "ytick.labelsize": 6.8,
-            "hatch.linewidth": 0.35,
+            "hatch.linewidth": 0.42,
             "pdf.fonttype": 42,
             "ps.fonttype": 42,
         }
@@ -139,41 +140,83 @@ def compact_number(value: float) -> str:
 def render(cross_rows: list[dict[str, Any]], batch_rows: list[dict[str, Any]]) -> None:
     plt = configure_matplotlib()
     import numpy as np
+    from matplotlib.legend_handler import HandlerBase
+    from matplotlib.patches import Rectangle
     from matplotlib.ticker import FuncFormatter
+
+    class HatchOutlineHandler(HandlerBase):
+        def create_artists(
+            self,
+            legend: Any,
+            orig_handle: tuple[str, str],
+            xdescent: float,
+            ydescent: float,
+            width: float,
+            height: float,
+            fontsize: float,
+            trans: Any,
+        ) -> list[Any]:
+            hatch_color, hatch = orig_handle
+            hatch_patch = Rectangle(
+                (xdescent, ydescent),
+                width,
+                height,
+                facecolor="white",
+                edgecolor=hatch_color,
+                linewidth=0.0,
+                hatch=hatch,
+                transform=trans,
+            )
+            outline_patch = Rectangle(
+                (xdescent, ydescent),
+                width,
+                height,
+                facecolor="none",
+                edgecolor=axis_ink,
+                linewidth=0.8,
+                transform=trans,
+            )
+            return [hatch_patch, outline_patch]
 
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
     figure, axes = plt.subplots(1, 2, figsize=(3.55, 1.95))
 
-    spine_color = "#2f86bd"
-    grasu_color = "#c5652d"
-    spine_fill = "#d7eaf4"
-    grasu_fill = "#f3d8c6"
+    axis_ink = "#20242A"
+    spine_color = "#176B87"
+    grasu_color = "#D95F02"
 
     labels = [row["dataset"] for row in cross_rows]
     x = np.arange(len(labels))
     width = 0.34
-    axes[0].bar(
-        x - width / 2,
-        [row["spine_kups"] for row in cross_rows],
-        width,
-        label="Spine",
-        color=spine_fill,
-        edgecolor=spine_color,
-        linewidth=0.75,
-        hatch="////",
-        zorder=3,
+    bar_specs = (
+        (x - width / 2, "Spine", spine_color, "////"),
+        (x + width / 2, "G+R", grasu_color, "\\\\\\\\"),
     )
-    axes[0].bar(
-        x + width / 2,
-        [row["grasu_kups"] for row in cross_rows],
-        width,
-        label="G+R",
-        color=grasu_fill,
-        edgecolor=grasu_color,
-        linewidth=0.75,
-        hatch="\\\\\\\\",
-        zorder=3,
-    )
+    values_by_label = {
+        "Spine": [row["spine_kups"] for row in cross_rows],
+        "G+R": [row["grasu_kups"] for row in cross_rows],
+    }
+    for positions, label, hatch_color, hatch in bar_specs:
+        axes[0].bar(
+            positions,
+            values_by_label[label],
+            width,
+            label=label,
+            color="white",
+            edgecolor=hatch_color,
+            linewidth=0.0,
+            hatch=hatch,
+            zorder=3,
+        )
+        axes[0].bar(
+            positions,
+            values_by_label[label],
+            width,
+            color="none",
+            edgecolor=axis_ink,
+            linewidth=0.8,
+            zorder=4,
+        )
     axes[0].set_yscale("log")
     axes[0].set_xticks(x)
     axes[0].set_xticklabels(labels)
@@ -192,7 +235,7 @@ def render(cross_rows: list[dict[str, Any]], batch_rows: list[dict[str, Any]]) -
         marker="s",
         markersize=3.2,
         markerfacecolor="white",
-        markeredgewidth=0.75,
+        markeredgewidth=0.8,
         linewidth=0.95,
         label="Spine",
         zorder=3,
@@ -204,7 +247,7 @@ def render(cross_rows: list[dict[str, Any]], batch_rows: list[dict[str, Any]]) -
         marker="o",
         markersize=3.2,
         markerfacecolor="white",
-        markeredgewidth=0.75,
+        markeredgewidth=0.8,
         linewidth=0.95,
         label="G+R",
         zorder=3,
@@ -217,16 +260,16 @@ def render(cross_rows: list[dict[str, Any]], batch_rows: list[dict[str, Any]]) -
     axes[1].set_title("(b) fixed 131K updates")
     style_axis(axes[1])
 
-    handles, labels = axes[0].get_legend_handles_labels()
     figure.legend(
-        handles,
-        labels,
+        [(spine_color, "////"), (grasu_color, "\\\\\\\\")],
+        ["Spine", "G+R"],
         loc="upper center",
         bbox_to_anchor=(0.55, 1.04),
         ncol=2,
         frameon=False,
         handlelength=1.5,
         columnspacing=1.0,
+        handler_map={tuple: HatchOutlineHandler()},
     )
     figure.subplots_adjust(left=0.14, right=0.995, bottom=0.22, top=0.80, wspace=0.36)
     figure.savefig(FIGURE_BASE.with_suffix(".pdf"), bbox_inches="tight")

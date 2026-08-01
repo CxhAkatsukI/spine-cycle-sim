@@ -25,6 +25,7 @@ CASE_LABELS = {
     "pagerank_correction": "PR\ncorrection",
     "deletion_fallback": "Deletion\nfallback",
 }
+TT_FONTS = ["TeX Gyre Cursor", "Nimbus Mono PS", "DejaVu Sans Mono", "monospace"]
 ALGORITHM_LABELS = {
     "weighted_sssp": "SSSP",
     "connected_components": "CC",
@@ -300,7 +301,7 @@ def render_expanded_breakdown(rows: list[dict[str, str]], output: Path) -> None:
     plt.rcParams.update(
         {
             "font.family": "monospace",
-            "font.monospace": ["DejaVu Sans Mono", "Consolas", "monospace"],
+            "font.monospace": TT_FONTS,
             "axes.linewidth": 0.8,
             "hatch.linewidth": 0.3,
             "legend.fontsize": 6.8,
@@ -536,7 +537,7 @@ def render_e2e_model(
     with plt.rc_context(
         {
             "font.family": "monospace",
-            "font.monospace": ["DejaVu Sans Mono", "Liberation Mono", "monospace"],
+            "font.monospace": TT_FONTS,
             "font.size": 8,
             "axes.labelsize": 8.5,
             "axes.linewidth": 0.75,
