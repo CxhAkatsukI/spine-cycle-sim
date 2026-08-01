@@ -533,84 +533,100 @@ def render_e2e_model(
     ]
     if len(real_holdout) < 30:
         raise ValueError("RQ3 E2E model requires at least 30 real trace holdout rows")
-    figure, axes = plt.subplots(1, 2, figsize=(7.2, 3.25))
-    styles = (
-        (
-            [row for row in prediction_rows if row["model_role"] == "calibration"],
-            "#1f77b4",
-            "s",
-            "Calibration",
-        ),
-        (real_holdout, "#d62728", "o", "Real trace holdout"),
-    )
-    all_values: list[float] = []
-    for rows, color, marker, label in styles:
-        if not rows:
-            continue
-        observed = [number(row, "observed_cycles") for row in rows]
-        predicted = [number(row, "predicted_cycles") for row in rows]
-        errors = [number(row, "absolute_percent_error") for row in rows]
-        all_values.extend(observed + predicted)
-        axes[0].scatter(
-            observed,
-            predicted,
-            s=24,
-            marker=marker,
-            facecolors="white",
-            edgecolors=color,
-            linewidths=1.1,
-            label=label,
-            zorder=3,
+    with plt.rc_context(
+        {
+            "font.family": "monospace",
+            "font.monospace": ["DejaVu Sans Mono", "Liberation Mono", "monospace"],
+            "font.size": 8,
+            "axes.labelsize": 8.5,
+            "axes.linewidth": 0.75,
+            "legend.fontsize": 6.8,
+            "xtick.labelsize": 7.0,
+            "ytick.labelsize": 7.0,
+        }
+    ):
+        figure, axis = plt.subplots(figsize=(3.55, 2.05))
+        styles = (
+            (
+                [row for row in prediction_rows if row["model_role"] == "calibration"],
+                "#2f86bd",
+                "s",
+                "Calib.",
+            ),
+            (real_holdout, "#c5652d", "o", "Holdout"),
         )
-        axes[1].scatter(
-            observed,
-            errors,
-            s=24,
-            marker=marker,
-            facecolors="white",
-            edgecolors=color,
-            linewidths=1.1,
-            label=label,
-            zorder=3,
+        all_values: list[float] = []
+        for rows, color, marker, label in styles:
+            if not rows:
+                continue
+            observed = [number(row, "observed_cycles") for row in rows]
+            predicted = [number(row, "predicted_cycles") for row in rows]
+            all_values.extend(observed + predicted)
+            axis.scatter(
+                observed,
+                predicted,
+                s=15,
+                marker=marker,
+                facecolors="white",
+                edgecolors=color,
+                linewidths=0.75,
+                label=label,
+                zorder=3,
+            )
+        positive = [value for value in all_values if value > 0.0]
+        if not positive:
+            raise ValueError("RQ3 E2E model has no positive predictions")
+        lower, upper = min(positive), max(positive)
+        margin = 1.25
+        lower /= margin
+        upper *= margin
+        axis.plot(
+            (lower, upper),
+            (lower, upper),
+            color="0.2",
+            linewidth=0.75,
+            linestyle="-",
+            zorder=2,
         )
-    positive = [value for value in all_values if value > 0.0]
-    if not positive:
-        raise ValueError("RQ3 E2E model has no positive predictions")
-    lower, upper = min(positive), max(positive)
-    axes[0].plot((lower, upper), (lower, upper), color="black", linewidth=1.0)
-    axes[0].set_xscale("log")
-    axes[0].set_yscale("log")
-    axes[0].set_xlabel("Measured E2E cycles")
-    axes[0].set_ylabel("Predicted E2E cycles")
-    axes[1].set_xscale("log")
-    axes[1].set_xlabel("Measured E2E cycles")
-    axes[1].set_ylabel("Absolute error (%)")
-    by_role = {row["role"]: row for row in metric_rows}
-    holdout = by_role["real_trace_holdout"]
-    axes[0].text(
-        0.04,
-        0.95,
-        f"Holdout $R^2$={float(holdout['r2']):.3f}",
-        transform=axes[0].transAxes,
-        va="top",
-    )
-    axes[1].text(
-        0.04,
-        0.95,
-        f"median={float(holdout['median_ape_percent']):.1f}%\n"
-        f"mean={float(holdout['mape_percent']):.1f}%\n"
-        f"max={float(holdout['max_ape_percent']):.1f}%",
-        transform=axes[1].transAxes,
-        va="top",
-    )
-    for axis in axes:
+        axis.set_xscale("log")
+        axis.set_yscale("log")
+        axis.set_xlim(lower, upper)
+        axis.set_ylim(lower, upper)
+        axis.set_xlabel("Measured cycles")
+        axis.set_ylabel("Predicted cycles")
+        by_role = {row["role"]: row for row in metric_rows}
+        holdout = by_role["real_trace_holdout"]
+        axis.text(
+            0.05,
+            0.95,
+            f"holdout $R^2$={float(holdout['r2']):.3f}\n"
+            f"median err={float(holdout['median_ape_percent']):.1f}%",
+            transform=axis.transAxes,
+            ha="left",
+            va="top",
+            fontsize=7.0,
+            bbox={
+                "facecolor": "white",
+                "edgecolor": "none",
+                "alpha": 0.85,
+                "pad": 0.5,
+            },
+        )
+        axis.legend(
+            loc="lower right",
+            frameon=False,
+            handletextpad=0.25,
+            borderpad=0.0,
+            labelspacing=0.25,
+        )
         style_axis(axis)
-    axes[0].legend(frameon=False)
-    figure.tight_layout()
-    figure.savefig(output.with_suffix(".pdf"), bbox_inches="tight")
-    figure.savefig(output.with_suffix(".svg"), bbox_inches="tight")
-    normalize_generated_svg(output.with_suffix(".svg"))
-    plt.close(figure)
+        axis.tick_params(top=False)
+        figure.subplots_adjust(left=0.18, right=0.995, bottom=0.22, top=0.97)
+        figure.savefig(output.with_suffix(".pdf"), bbox_inches="tight")
+        figure.savefig(output.with_suffix(".svg"), bbox_inches="tight")
+        normalize_generated_svg(output.with_suffix(".svg"))
+        plt.close(figure)
+        return
 
 
 def tex_escape(value: str) -> str:
