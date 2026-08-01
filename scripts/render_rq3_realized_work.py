@@ -42,6 +42,58 @@ COMPONENTS = (
     ("t_drain_cycles", r"$T_{drain}$", "#8c564b", "---"),
     ("t_sync_cycles", r"$T_{sync}$", "#7f7f7f", "OO"),
 )
+EXPANDED_COMPONENTS = (
+    (
+        ("t_xfer_cycles", "t_reduce_cycles", "t_carry_cycles", "t_directory_cycles"),
+        "Maint.",
+        "#a8cf88",
+        "xxxxxx",
+    ),
+    (("t_seed_cycles", "t_switch_cycles"), "Seed/pub.", "#f1a55b", "||||||"),
+    (("t_resolve_cycles",), "Resolve", "#2f86bd", "//////"),
+    (("t_app_cycles",), "App", "#b7d6e8", "\\\\\\\\\\\\"),
+    (("t_drain_cycles", "t_sync_cycles"), "Drain", "#35a936", "xxxxxx"),
+)
+EXPANDED_BREAKDOWN_GROUPS = (
+    (
+        "ZN",
+        (
+            ("Syn", "rq3_zero_net_cc_u2"),
+        ),
+    ),
+    (
+        "SI",
+        (
+            ("A-S", "53d8ac095d6b4bb6739f"),
+            ("L-S", "980c084e249992cc626c"),
+            ("S-S", "b76a15fdd98228a1da6e"),
+        ),
+    ),
+    (
+        "Carry",
+        (
+            ("L1", "rq3_trace_carry_l1_e8"),
+            ("L3", "rq3_trace_carry_l3_e8"),
+            ("L5", "rq3_trace_carry_l5_e8"),
+        ),
+    ),
+    (
+        "PR-corr",
+        (
+            ("FL", "rq3_flickr_residual_correction_u8_eps1e6"),
+            ("SU", "3f8e9fc7157d096b8488"),
+            ("WK", "d310ed825d5fef3de031"),
+        ),
+    ),
+    (
+        "Del",
+        (
+            ("AU", "087ea93d578261400aa6"),
+            ("SU", "12b7427a1e2f4185c8c9"),
+            ("WK", "383e63c5d7f96cdd4774"),
+        ),
+    ),
+)
 REGRESSIONS = (
     (
         "sort_frontend",
@@ -235,6 +287,125 @@ def render_breakdown(rows: list[dict[str, str]], output: Path) -> None:
         columnspacing=0.9,
     )
     figure.tight_layout(rect=(0, 0, 1, 0.86))
+    figure.savefig(output.with_suffix(".pdf"), bbox_inches="tight")
+    figure.savefig(output.with_suffix(".svg"), bbox_inches="tight")
+    normalize_generated_svg(output.with_suffix(".svg"))
+    plt.close(figure)
+
+
+def render_expanded_breakdown(rows: list[dict[str, str]], output: Path) -> None:
+    plt = configure_matplotlib()
+    from matplotlib.patches import Patch
+
+    plt.rcParams.update(
+        {
+            "font.family": "monospace",
+            "font.monospace": ["DejaVu Sans Mono", "Consolas", "monospace"],
+            "axes.linewidth": 0.8,
+            "hatch.linewidth": 0.3,
+            "legend.fontsize": 6.8,
+            "xtick.labelsize": 6.2,
+            "ytick.labelsize": 7.0,
+            "axes.labelsize": 8.0,
+        }
+    )
+    by_execution = {row["execution_id"]: row for row in rows}
+    selected: list[dict[str, str]] = []
+    tick_labels: list[str] = []
+    x_positions: list[float] = []
+    group_centers: list[tuple[str, float]] = []
+    separators: list[float] = []
+    cursor = 0.0
+    for group_label, entries in EXPANDED_BREAKDOWN_GROUPS:
+        start = cursor
+        for tick_label, execution_id in entries:
+            if execution_id not in by_execution:
+                raise ValueError(f"missing expanded RQ3 execution: {execution_id}")
+            selected.append(by_execution[execution_id])
+            tick_labels.append(tick_label)
+            x_positions.append(cursor)
+            cursor += 1.0
+        end = cursor - 1.0
+        group_centers.append((group_label, (start + end) / 2.0))
+        separators.append(end + 0.55)
+        cursor += 0.68
+    separators = separators[:-1]
+
+    figure, axis = plt.subplots(figsize=(3.55, 2.05))
+    bottoms = [0.0] * len(selected)
+    legend: list[Any] = []
+    for keys, label, color, hatch in EXPANDED_COMPONENTS:
+        percentages = []
+        for row in selected:
+            total = number(row, "total_cycles")
+            component_cycles = sum(number(row, key) for key in keys)
+            percentages.append(100.0 * component_cycles / total if total else 0.0)
+        axis.bar(
+            x_positions,
+            percentages,
+            bottom=bottoms,
+            width=0.58,
+            color=color,
+            edgecolor="black",
+            linewidth=0.22,
+            hatch=hatch,
+            zorder=2,
+        )
+        bottoms = [left + right for left, right in zip(bottoms, percentages, strict=True)]
+        legend.append(Patch(facecolor=color, edgecolor="black", hatch=hatch, label=label))
+
+    for separator in separators:
+        axis.axvline(
+            separator,
+            color="black",
+            linestyle=(0, (2.0, 1.1)),
+            linewidth=0.65,
+            ymin=-0.11,
+            ymax=1.0,
+            clip_on=False,
+            zorder=4,
+        )
+    for group_label, center in group_centers:
+        axis.text(
+            center,
+            -0.24,
+            group_label,
+            transform=axis.get_xaxis_transform(),
+            ha="center",
+            va="top",
+            fontsize=8.2,
+            clip_on=False,
+        )
+
+    axis.set_xlim(min(x_positions) - 0.65, max(x_positions) + 0.65)
+    axis.set_xticks(x_positions, tick_labels)
+    axis.set_ylabel("E2E cycles (%)")
+    axis.set_ylim(0.0, 108.0)
+    axis.set_yticks((0, 25, 50, 75, 100))
+    axis.tick_params(direction="in", top=False, right=True, length=3, width=0.7)
+    axis.grid(
+        axis="y",
+        linestyle=(0, (2.0, 1.1)),
+        color="0.72",
+        alpha=0.65,
+        linewidth=0.48,
+        zorder=0,
+    )
+    for spine in axis.spines.values():
+        spine.set_visible(True)
+        spine.set_linewidth(0.8)
+    axis.legend(
+        handles=legend,
+        loc="upper center",
+        bbox_to_anchor=(0.5, 1.24),
+        ncol=5,
+        frameon=False,
+        handlelength=1.5,
+        handletextpad=0.35,
+        columnspacing=0.58,
+        borderaxespad=0.0,
+    )
+    figure.subplots_adjust(left=0.15, right=0.995, bottom=0.27, top=0.76)
     figure.savefig(output.with_suffix(".pdf"), bbox_inches="tight")
     figure.savefig(output.with_suffix(".svg"), bbox_inches="tight")
     normalize_generated_svg(output.with_suffix(".svg"))
@@ -550,6 +721,7 @@ def main() -> int:
     predictions = read_csv(args.analysis_dir / "rq3_e2e_prediction_rows.csv")
     model_metrics = read_csv(args.analysis_dir / "rq3_e2e_metric_rows.csv")
     render_breakdown(representatives, args.figure_dir / "rq3_latency_breakdown")
+    render_expanded_breakdown(joined_rows, args.figure_dir / "rq3_latency_breakdown_expanded")
     render_correlations(joined_rows, regressions, args.figure_dir / "rq3_work_correlations")
     render_e2e_model(predictions, model_metrics, args.figure_dir / "rq3_e2e_cost_model")
     write_tex_tables(representatives, regressions, args.data_dir)
