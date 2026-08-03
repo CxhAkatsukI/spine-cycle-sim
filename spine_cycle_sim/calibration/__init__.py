@@ -102,6 +102,12 @@ from .refactor31 import (
     parse_refactor31_fpga_log,
     summarize_refactor31_fpga_runs,
 )
+from .refactor31_scale import (
+    Refactor31RmatRun,
+    load_refactor31_rmat_runs,
+    summarize_refactor31_rmat_runs,
+    validate_semantic_comparison,
+)
 
 __all__ = [
     "BridgeModels",
@@ -190,4 +196,8 @@ __all__ = [
     "load_refactor31_fpga_logs",
     "parse_refactor31_fpga_log",
     "summarize_refactor31_fpga_runs",
+    "Refactor31RmatRun",
+    "load_refactor31_rmat_runs",
+    "summarize_refactor31_rmat_runs",
+    "validate_semantic_comparison",
 ]

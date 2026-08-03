@@ -1,0 +1,45 @@
+{
+  "admitted_rows": 1656,
+  "all_groups_admitted": true,
+  "claim_boundary": {
+    "not_supported": [
+      "independent_cpu_dijkstra_correctness",
+      "real_graph_slice_transfer",
+      "simulator_cycle_error_on_rmat24",
+      "paper_owner_scheduler_fpga_calibration"
+    ],
+    "supported": [
+      "routed_refactor31_execution_at_150994944_graph_edges",
+      "device_status_and_request_ledger_closure",
+      "baseline_candidate_exact_semantic_hash_equivalence",
+      "repeat_stability_across_update_size_cohort_and_persistent_state"
+    ]
+  },
+  "cohorts": [
+    "edge_weighted",
+    "high_fanout",
+    "historical",
+    "seed1",
+    "seed2",
+    "seed3"
+  ],
+  "evidence_id": "spine_refactor31_rmat_scale_v1",
+  "graph": "RMat-24 edge-factor-9",
+  "graph_edges": 150994944,
+  "group_count": 48,
+  "hardware_rows": 1656,
+  "manifest_sha256": "77af3e226fe43ac05e4f6e2a07d331f948e63f53b1cb846f4102fac8c7c4c877",
+  "measured_rows": 1560,
+  "schema_version": 1,
+  "semantic_hash_rows": 1656,
+  "state_classes": [
+    "persistent",
+    "pristine"
+  ],
+  "update_sizes": [
+    1,
+    16,
+    256,
+    4096
+  ]
+}

@@ -140,6 +140,12 @@ For non-tiny workloads, acceptance requires:
    and run the one-tile calibration/tile-shape holdout. Exact-path transfer is
    accepted; multi-tile fallback remains an 18% launch-to-finish residual.
    Medium real-slice calibration and immutable real-slice holdout are pending.
+   Separately, the routed artifact has passed a hash-bound 150,994,944-edge
+   RMat-24 scale matrix: 1,656 hardware rows, 1,560 measured rows, 48 admitted
+   update-size/cohort/state groups, and 1,656 exact baseline/candidate semantic
+   hash matches. This closes scale feasibility, not real-slice cycle transfer
+   or independent Dijkstra correctness. Reproduce it with
+   `scripts/analyze_refactor31_rmat_scale.py`.
 7. Specialize the shared shell for SSSP, CC, Residual PageRank, and Full
    PageRank; route and validate each policy kernel.
 
