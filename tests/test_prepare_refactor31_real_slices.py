@@ -36,7 +36,7 @@ class PrepareRefactor31RealSlicesTests(unittest.TestCase):
             self.assertEqual([row["status"] for row in rows], ["generated"] * 2)
             self.assertEqual(rows[0]["source"], 0)
             text = Path(rows[0]["path"]).read_text(encoding="ascii")
-            self.assertIn("# vertices=0000000005", text)
+            self.assertIn("# vertices=5", text)
             self.assertIn(
                 f"0 1 {MODULE.endpoint_weight(0, 1)} 1", text
             )

@@ -12,7 +12,7 @@
     "algorithm": "weighted_sssp",
     "weight_rule": "1_plus_local_endpoint_hash_mod_255_v1",
     "source_rule": "lowest_local_vertex_id_with_outdegree_4_to_16",
-    "slice_rule": "encounter_order_canonical_remap_then_unique_directed_edge_prefix",
+    "slice_rule": "encounter_order_canonical_remap_then_unique_directed_edge_prefix_then_src_dst_weight_sort",
     "parallel_edge_rule": "minimum_positive_weight_per_endpoint",
     "resident_level_rule": "lowest_cold_level_at_or_above_L8_that_fits_each_family",
     "independent_oracle": "cpu_dijkstra_uint32_saturating",

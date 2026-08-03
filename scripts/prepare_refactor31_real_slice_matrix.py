@@ -7,6 +7,8 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import shutil
+import subprocess
 from typing import Any, Iterator
 
 
@@ -97,18 +99,14 @@ def prepare_dataset(
         target: out_dir / f"{dataset_id.lower()}_e{target}.slice"
         for target in unique_targets
     }
+    body_paths = {
+        target: path.with_suffix(path.suffix + ".body")
+        for target, path in output_paths.items()
+    }
     streams: dict[int, Any] = {}
-    vertex_offsets: dict[int, int] = {}
-    for target, path in output_paths.items():
+    for target, path in body_paths.items():
         path.parent.mkdir(parents=True, exist_ok=True)
-        stream = path.open("w+", encoding="ascii")
-        stream.write("# spine_real_slice_version=1\n")
-        stream.write(f"# case={dataset_id}_e{target}\n")
-        stream.write("# vertices=")
-        vertex_offsets[target] = stream.tell()
-        stream.write("0000000000\n")
-        stream.write("# columns=src dst weight diff\n")
-        streams[target] = stream
+        streams[target] = path.open("w", encoding="ascii")
 
     remap: dict[int, int] = {}
     endpoints: set[int] = set()
@@ -146,8 +144,10 @@ def prepare_dataset(
     rows: list[dict[str, Any]] = []
     for target in unique_targets:
         path = output_paths[target]
+        body = body_paths[target]
         if target not in completed:
             path.unlink(missing_ok=True)
+            body.unlink(missing_ok=True)
             status = "vertex_domain_exceeded" if overflow_at_edge else "source_exhausted"
             if target not in expected_reject_targets:
                 raise ValueError(
@@ -165,9 +165,31 @@ def prepare_dataset(
             )
             continue
         vertices = completed[target]
-        with path.open("r+", encoding="ascii") as stream:
-            stream.seek(vertex_offsets[target])
-            stream.write(f"{vertices:010d}")
+        sorted_body = body.with_suffix(body.suffix + ".sorted")
+        subprocess.run(
+            [
+                "sort",
+                "-n",
+                "-k1,1",
+                "-k2,2",
+                "-k3,3",
+                "--temporary-directory",
+                str(out_dir),
+                "-o",
+                str(sorted_body),
+                str(body),
+            ],
+            check=True,
+        )
+        with path.open("w", encoding="ascii") as stream:
+            stream.write("# spine_real_slice_version=1\n")
+            stream.write(f"# case={dataset_id}_e{target}\n")
+            stream.write(f"# vertices={vertices}\n")
+            stream.write("# columns=src dst weight diff\n")
+            with sorted_body.open("r", encoding="ascii") as sorted_stream:
+                shutil.copyfileobj(sorted_stream, stream, 1024 * 1024)
+        body.unlink()
+        sorted_body.unlink()
         source = _source_for_slice(path, vertices)
         rows.append(
             {
