@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import json
 from pathlib import Path
 import subprocess
@@ -53,6 +54,39 @@ def run_command(command: list[str], log: Path) -> None:
         raise RuntimeError(f"command failed with rc={completed.returncode}: {log}")
 
 
+def sim_command(
+    row: dict[str, Any],
+    *,
+    output: Path,
+    profile: Path,
+    max_cycles: int,
+    max_rounds: int,
+) -> list[str]:
+    name = case_id(row)
+    return [
+        sys.executable,
+        str(ROOT / "scripts/run_sst_spine_vertical.py"),
+        "--out-dir",
+        str(output / "sim" / name),
+        "--workload",
+        row["path"],
+        "--profile",
+        str(profile.resolve()),
+        "--scenario",
+        "weighted_sssp",
+        "--source",
+        str(row["source"]),
+        "--max-cycles",
+        str(max_cycles),
+        "--max-rounds",
+        str(max_rounds),
+        "--validation-mode",
+        "generic",
+        "--resident-static-sssp",
+        "--no-build",
+    ]
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--matrix", type=Path, default=DEFAULT_MATRIX)
@@ -64,10 +98,18 @@ def main() -> int:
     parser.add_argument("--repeats", type=int, default=5)
     parser.add_argument("--max-cycles", type=int, default=500_000_000)
     parser.add_argument("--max-rounds", type=int, default=4096)
+    parser.add_argument("--jobs", type=int, default=1)
     parser.add_argument("--no-resume", action="store_true")
     args = parser.parse_args()
-    if args.repeats <= 0 or args.max_cycles <= 0 or args.max_rounds <= 0:
-        raise SystemExit("repeats and cycle/round limits must be positive")
+    if (
+        args.repeats <= 0
+        or args.max_cycles <= 0
+        or args.max_rounds <= 0
+        or args.jobs <= 0
+    ):
+        raise SystemExit("repeats, jobs, and cycle/round limits must be positive")
+    if args.jobs > 1 and args.phase != "sim":
+        raise SystemExit("parallel jobs are supported only for --phase sim")
 
     matrix = json.loads(args.matrix.resolve().read_text(encoding="utf-8"))
     slices = json.loads(args.slice_manifest.resolve().read_text(encoding="utf-8"))
@@ -99,7 +141,60 @@ def main() -> int:
         previous = json.loads(progress_path.read_text(encoding="utf-8"))
         for key in ("completed_fpga", "completed_sim"):
             progress[key] = list(previous.get(key, []))
+    if not args.no_resume:
+        for row in rows:
+            name = case_id(row)
+            if (output / "sim" / name / "summary.json").is_file():
+                if name not in progress["completed_sim"]:
+                    progress["completed_sim"].append(name)
     write_json(progress_path, progress)
+
+    if args.jobs > 1:
+        pending = [row for row in rows if case_id(row) not in progress["completed_sim"]]
+        progress["current"] = {
+            "phase": "sim",
+            "cases": [case_id(row) for row in pending],
+        }
+        write_json(progress_path, progress)
+        failures: list[dict[str, Any]] = []
+        with ThreadPoolExecutor(max_workers=args.jobs) as executor:
+            futures = {
+                executor.submit(
+                    run_command,
+                    sim_command(
+                        row,
+                        output=output,
+                        profile=args.profile,
+                        max_cycles=args.max_cycles,
+                        max_rounds=args.max_rounds,
+                    ),
+                    output / "logs" / f"{case_id(row)}_sim.log",
+                ): row
+                for row in pending
+            }
+            for future in as_completed(futures):
+                row = futures[future]
+                name = case_id(row)
+                try:
+                    future.result()
+                    progress["completed_sim"].append(name)
+                    progress["completed_sim"].sort()
+                except Exception as error:
+                    failure = {"case": name, "phase": "sim", "error": str(error)}
+                    progress["failed"].append(failure)
+                    failures.append(failure)
+                write_json(progress_path, progress)
+        progress["current"] = None
+        progress["status"] = "failed" if failures else "complete"
+        progress["completed_at_unix"] = time.time()
+        write_json(progress_path, progress)
+        if failures:
+            raise RuntimeError(f"{len(failures)} parallel simulator case(s) failed")
+        print(
+            f"REFACTOR31_REAL_SLICE_CAMPAIGN_PASS cases={len(rows)} "
+            f"fpga=0 sim={len(progress['completed_sim'])}"
+        )
+        return 0
 
     for row in rows:
         name = case_id(row)
@@ -128,28 +223,13 @@ def main() -> int:
                 progress["current"]["phase"] = "sim"
                 write_json(progress_path, progress)
                 run_command(
-                    [
-                        sys.executable,
-                        str(ROOT / "scripts/run_sst_spine_vertical.py"),
-                        "--out-dir",
-                        str(output / "sim" / name),
-                        "--workload",
-                        row["path"],
-                        "--profile",
-                        str(args.profile.resolve()),
-                        "--scenario",
-                        "weighted_sssp",
-                        "--source",
-                        str(row["source"]),
-                        "--max-cycles",
-                        str(args.max_cycles),
-                        "--max-rounds",
-                        str(args.max_rounds),
-                        "--validation-mode",
-                        "generic",
-                        "--resident-static-sssp",
-                        "--no-build",
-                    ],
+                    sim_command(
+                        row,
+                        output=output,
+                        profile=args.profile,
+                        max_cycles=args.max_cycles,
+                        max_rounds=args.max_rounds,
+                    ),
                     output / "logs" / f"{name}_sim.log",
                 )
                 progress["completed_sim"].append(name)
