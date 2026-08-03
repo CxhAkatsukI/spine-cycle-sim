@@ -37,11 +37,15 @@ Progress since the original audit is explicit:
 - the exact refactor31 source was reconstructed on
   `codex/paper-architecture-alignment` from base revision `cc7e3f95` and the
   frozen source diff;
-- the complete per-key `queued/in_flight/dirty` owner scheduler, lossless
-  reactivation protocol, and work-credit quiescence remain the primary shared
-  simulator/HLS gap;
-- dormant-ID vertex activation and validity-bitmap deactivation are required by
-  the target contract but are not part of refactor31; and
+- the alignment branches now host-test the per-key `queued/in_flight/dirty`
+  owner scheduler, lossless reactivation protocol, and work-credit quiescence
+  in both simulator and HLS source; synthesis and route remain pending;
+- dormant-ID vertex activation and validity-bitmap deactivation are now
+  host-tested in both alignment branches but are not part of the routed
+  refactor31 artifact;
+- Full PageRank now generates its source domain on device, while all four
+  policies share the bounded HBM16 family-directory and HBM18 source-spool
+  reader protocol; all four reader variants compile as U55C `sw_emu` XOs; and
 - payload-distinct parallel weighted edges remain a separately versioned
   extension because refactor31 groups records by `(src,dst)`.
 

@@ -924,18 +924,23 @@ def validate_full_pagerank_result(
         "maintenance_once": result.get("maintenance_persisted_edges") == 4
         and result.get("maintenance_cycles", 0) > 0,
         "reader": result.get("reader_edges") == 4
-        and result.get("reader_graph_payload_bytes") == 64
+        and result.get("reader_graph_payload_bytes") == 96
         and result.get("reader_source_requests") == 4
         and result.get("reader_source_responses") == 4
         and result.get("reader_source_windows") == 1
-        and result.get("reader_protocol_status") == 0,
+        and result.get("reader_protocol_status") == 0
+        and result.get("reader_family_directory_bytes") == 64
+        and result.get("reader_family_directory_mask_reads") == 4
+        and result.get("reader_family_directory_empty_masks") == 1
+        and result.get("reader_source_spool_write_bytes") == 128
+        and result.get("reader_source_spool_read_bytes") == 256,
         "compute": result.get("compute_edges") == 4
         and result.get("compute_vertices_applied") == 4
         and result.get("compute_memory_requests") == 16
         and result.get("source_map_operations") == 4
         and result.get("reduce_operations") == 8
         and result.get("apply_operations") == 4,
-        "axis": result.get("edge_axis_transfers") == 24
+        "axis": result.get("edge_axis_transfers") == 25
         and result.get("value_axis_transfers") == 5,
         "dram_matches_backend": int(dram.get("dram_reads", 0))
         + int(dram.get("dram_writes", 0))
@@ -1453,7 +1458,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--pagerank-apply-ii", type=int, default=1)
     parser.add_argument("--pagerank-apply-capacity", type=int, default=8)
     parser.add_argument("--channels", type=int, default=32)
-    parser.add_argument("--device-dirty-source-limit", type=int, default=4_096)
+    parser.add_argument(
+        "--device-dirty-source-limit", type=int, default=16_777_216
+    )
     parser.add_argument("--range-task-active-gate", type=int)
     parser.add_argument("--range-task-capacity", type=int, default=65_536)
     parser.add_argument(

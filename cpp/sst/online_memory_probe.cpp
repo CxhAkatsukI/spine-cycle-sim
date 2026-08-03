@@ -2235,7 +2235,7 @@ class OnlineMemoryProbe final : public SST::Component {
         .capacity = params.find<std::size_t>("pagerank_apply_capacity", 8),
     };
     device_dirty_source_limit_ =
-        params.find<std::size_t>("device_dirty_source_limit", 4'096);
+        params.find<std::size_t>("device_dirty_source_limit", 16'777'216);
     range_task_active_gate_ =
         params.find<std::size_t>("range_task_active_gate", 16'384);
     range_task_capacity_ =
@@ -3919,6 +3919,16 @@ class OnlineMemoryProbe final : public SST::Component {
             compute.memory_requests_issued);
         pagerank_reader_edges_per_iteration_.push_back(
             reader.edges_emitted);
+        pagerank_reader_family_directory_bytes_per_iteration_.push_back(
+            reader.family_directory_read_bytes);
+        pagerank_reader_family_directory_masks_per_iteration_.push_back(
+            reader.family_directory_mask_reads);
+        pagerank_reader_family_directory_empty_masks_per_iteration_.push_back(
+            reader.family_directory_empty_masks);
+        pagerank_reader_source_spool_write_bytes_per_iteration_.push_back(
+            reader.device_source_spool_write_bytes);
+        pagerank_reader_source_spool_read_bytes_per_iteration_.push_back(
+            reader.device_source_spool_read_bytes);
         pagerank_compute_edges_per_iteration_.push_back(
             compute.edges_received);
         pagerank_source_map_operations_per_iteration_.push_back(
@@ -4172,7 +4182,7 @@ class OnlineMemoryProbe final : public SST::Component {
       {"pagerank_apply_latency", "PageRank apply latency", "3"},
       {"pagerank_apply_ii", "PageRank apply initiation interval", "1"},
       {"pagerank_apply_capacity", "PageRank apply capacity", "8"},
-      {"device_dirty_source_limit", "DEVICE_DIRTY source capacity", "4096"},
+      {"device_dirty_source_limit", "Device-owned source domain", "16777216"},
       {"range_task_active_gate", "Exact-reader active-record gate", "16384"},
       {"range_task_capacity", "Exact-reader descriptor capacity", "65536"},
       {"range_task_payload_budget", "Exact-reader construction budget",
@@ -4708,6 +4718,21 @@ class OnlineMemoryProbe final : public SST::Component {
       write_json_array(result, pagerank_frontier_out_sizes_);
       result << ",\n  \"reader_edges_per_iteration\": ";
       write_json_array(result, pagerank_reader_edges_per_iteration_);
+      result << ",\n  \"reader_family_directory_bytes_per_iteration\": ";
+      write_json_array(result,
+                       pagerank_reader_family_directory_bytes_per_iteration_);
+      result << ",\n  \"reader_family_directory_masks_per_iteration\": ";
+      write_json_array(result,
+                       pagerank_reader_family_directory_masks_per_iteration_);
+      result << ",\n  \"reader_family_directory_empty_masks_per_iteration\": ";
+      write_json_array(
+          result, pagerank_reader_family_directory_empty_masks_per_iteration_);
+      result << ",\n  \"reader_source_spool_write_bytes_per_iteration\": ";
+      write_json_array(
+          result, pagerank_reader_source_spool_write_bytes_per_iteration_);
+      result << ",\n  \"reader_source_spool_read_bytes_per_iteration\": ";
+      write_json_array(
+          result, pagerank_reader_source_spool_read_bytes_per_iteration_);
       result << ",\n  \"compute_edges_per_iteration\": ";
       write_json_array(result, pagerank_compute_edges_per_iteration_);
       result << ",\n  \"source_map_operations_per_iteration\": ";
@@ -7095,6 +7120,16 @@ class OnlineMemoryProbe final : public SST::Component {
           << maintenance.logical_overflow_events << ",\n"
           << "  \"reader_edges\": " << reader.edges_emitted << ",\n"
           << "  \"reader_edges_total\": " << reader_edges_total << ",\n"
+          << "  \"reader_family_directory_bytes\": "
+          << reader.family_directory_read_bytes << ",\n"
+          << "  \"reader_family_directory_mask_reads\": "
+          << reader.family_directory_mask_reads << ",\n"
+          << "  \"reader_family_directory_empty_masks\": "
+          << reader.family_directory_empty_masks << ",\n"
+          << "  \"reader_source_spool_write_bytes\": "
+          << reader.device_source_spool_write_bytes << ",\n"
+          << "  \"reader_source_spool_read_bytes\": "
+          << reader.device_source_spool_read_bytes << ",\n"
           << "  \"compute_edges_total\": " << compute_edges_total << ",\n"
           << "  \"expected_active_edges\": "
           << residual_pagerank_reference_.active_edges << ",\n"
@@ -7198,6 +7233,21 @@ class OnlineMemoryProbe final : public SST::Component {
       write_json_array(result, pagerank_compute_requests_per_iteration_);
       result << ",\n  \"reader_edges_per_iteration\": ";
       write_json_array(result, pagerank_reader_edges_per_iteration_);
+      result << ",\n  \"reader_family_directory_bytes_per_iteration\": ";
+      write_json_array(result,
+                       pagerank_reader_family_directory_bytes_per_iteration_);
+      result << ",\n  \"reader_family_directory_masks_per_iteration\": ";
+      write_json_array(result,
+                       pagerank_reader_family_directory_masks_per_iteration_);
+      result << ",\n  \"reader_family_directory_empty_masks_per_iteration\": ";
+      write_json_array(
+          result, pagerank_reader_family_directory_empty_masks_per_iteration_);
+      result << ",\n  \"reader_source_spool_write_bytes_per_iteration\": ";
+      write_json_array(
+          result, pagerank_reader_source_spool_write_bytes_per_iteration_);
+      result << ",\n  \"reader_source_spool_read_bytes_per_iteration\": ";
+      write_json_array(
+          result, pagerank_reader_source_spool_read_bytes_per_iteration_);
       result << ",\n  \"compute_edges_per_iteration\": ";
       write_json_array(result, pagerank_compute_edges_per_iteration_);
       result << ",\n  \"source_map_operations_per_iteration\": ";
@@ -7448,6 +7498,16 @@ class OnlineMemoryProbe final : public SST::Component {
           << ",\n"
           << "  \"reader_graph_bytes\": " << reader.graph_read_bytes
           << ",\n"
+          << "  \"reader_family_directory_bytes\": "
+          << reader.family_directory_read_bytes << ",\n"
+          << "  \"reader_family_directory_mask_reads\": "
+          << reader.family_directory_mask_reads << ",\n"
+          << "  \"reader_family_directory_empty_masks\": "
+          << reader.family_directory_empty_masks << ",\n"
+          << "  \"reader_source_spool_write_bytes\": "
+          << reader.device_source_spool_write_bytes << ",\n"
+          << "  \"reader_source_spool_read_bytes\": "
+          << reader.device_source_spool_read_bytes << ",\n"
           << "  \"reader_graph_index_payload_bytes\": "
           << reader.graph_index_payload_read_bytes << ",\n"
           << "  \"reader_graph_payload_bytes\": "
@@ -7625,6 +7685,21 @@ class OnlineMemoryProbe final : public SST::Component {
       write_json_array(result, pagerank_compute_start_cycles_);
       result << ",\n  \"compute_end_cycles_per_round\": ";
       write_json_array(result, pagerank_compute_end_cycles_);
+      result << ",\n  \"reader_family_directory_bytes_per_iteration\": ";
+      write_json_array(result,
+                       pagerank_reader_family_directory_bytes_per_iteration_);
+      result << ",\n  \"reader_family_directory_masks_per_iteration\": ";
+      write_json_array(result,
+                       pagerank_reader_family_directory_masks_per_iteration_);
+      result << ",\n  \"reader_family_directory_empty_masks_per_iteration\": ";
+      write_json_array(
+          result, pagerank_reader_family_directory_empty_masks_per_iteration_);
+      result << ",\n  \"reader_source_spool_write_bytes_per_iteration\": ";
+      write_json_array(
+          result, pagerank_reader_source_spool_write_bytes_per_iteration_);
+      result << ",\n  \"reader_source_spool_read_bytes_per_iteration\": ";
+      write_json_array(
+          result, pagerank_reader_source_spool_read_bytes_per_iteration_);
       result << ",\n  \"source_map_operations_per_iteration\": ";
       write_json_array(result, pagerank_source_map_operations_per_iteration_);
       result << ",\n  \"reduce_operations_per_iteration\": ";
@@ -8000,6 +8075,11 @@ class OnlineMemoryProbe final : public SST::Component {
       std::vector<std::uint64_t> reader_metadata_write_bytes;
       std::vector<std::uint64_t> reader_result_write_bytes;
       std::vector<std::uint64_t> reader_active_bin_bytes;
+      std::vector<std::uint64_t> reader_family_directory_bytes;
+      std::vector<std::uint64_t> reader_family_directory_mask_reads;
+      std::vector<std::uint64_t> reader_family_directory_empty_masks;
+      std::vector<std::uint64_t> reader_source_spool_write_bytes;
+      std::vector<std::uint64_t> reader_source_spool_read_bytes;
       std::vector<std::uint64_t> reader_dirty_list_bytes;
       std::vector<std::uint64_t> reader_dirty_bitmap_bytes;
       std::vector<std::uint64_t> reader_memory_requests_issued;
@@ -8183,6 +8263,16 @@ class OnlineMemoryProbe final : public SST::Component {
             round.reader.metadata_write_bytes);
         reader_result_write_bytes.push_back(round.reader.result_write_bytes);
         reader_active_bin_bytes.push_back(round.reader.active_bin_read_bytes);
+        reader_family_directory_bytes.push_back(
+            round.reader.family_directory_read_bytes);
+        reader_family_directory_mask_reads.push_back(
+            round.reader.family_directory_mask_reads);
+        reader_family_directory_empty_masks.push_back(
+            round.reader.family_directory_empty_masks);
+        reader_source_spool_write_bytes.push_back(
+            round.reader.device_source_spool_write_bytes);
+        reader_source_spool_read_bytes.push_back(
+            round.reader.device_source_spool_read_bytes);
         reader_dirty_list_bytes.push_back(round.reader.dirty_list_read_bytes);
         reader_dirty_bitmap_bytes.push_back(
             round.reader.dirty_bitmap_read_bytes);
@@ -8944,6 +9034,16 @@ class OnlineMemoryProbe final : public SST::Component {
       write_json_array(result, reader_result_write_bytes);
       result << ",\n  \"reader_active_bin_bytes_per_round\": ";
       write_json_array(result, reader_active_bin_bytes);
+      result << ",\n  \"reader_family_directory_bytes_per_round\": ";
+      write_json_array(result, reader_family_directory_bytes);
+      result << ",\n  \"reader_family_directory_mask_reads_per_round\": ";
+      write_json_array(result, reader_family_directory_mask_reads);
+      result << ",\n  \"reader_family_directory_empty_masks_per_round\": ";
+      write_json_array(result, reader_family_directory_empty_masks);
+      result << ",\n  \"reader_source_spool_write_bytes_per_round\": ";
+      write_json_array(result, reader_source_spool_write_bytes);
+      result << ",\n  \"reader_source_spool_read_bytes_per_round\": ";
+      write_json_array(result, reader_source_spool_read_bytes);
       result << ",\n  \"reader_dirty_list_bytes_per_round\": ";
       write_json_array(result, reader_dirty_list_bytes);
       result << ",\n  \"reader_dirty_bitmap_bytes_per_round\": ";
@@ -9672,6 +9772,16 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"reader_tiles\": " << reader.tiles_emitted << ",\n"
           << "  \"reader_edges\": " << reader.edges_emitted << ",\n"
           << "  \"reader_graph_bytes\": " << reader.graph_read_bytes << ",\n"
+          << "  \"reader_family_directory_bytes\": "
+          << reader.family_directory_read_bytes << ",\n"
+          << "  \"reader_family_directory_mask_reads\": "
+          << reader.family_directory_mask_reads << ",\n"
+          << "  \"reader_family_directory_empty_masks\": "
+          << reader.family_directory_empty_masks << ",\n"
+          << "  \"reader_source_spool_write_bytes\": "
+          << reader.device_source_spool_write_bytes << ",\n"
+          << "  \"reader_source_spool_read_bytes\": "
+          << reader.device_source_spool_read_bytes << ",\n"
           << "  \"reader_graph_index_payload_bytes\": "
           << reader.graph_index_payload_read_bytes << ",\n"
           << "  \"reader_graph_payload_bytes\": "
@@ -10272,6 +10382,16 @@ class OnlineMemoryProbe final : public SST::Component {
   std::vector<std::size_t> pagerank_frontier_out_sizes_;
   std::vector<std::uint64_t> pagerank_compute_requests_per_iteration_;
   std::vector<std::uint64_t> pagerank_reader_edges_per_iteration_;
+  std::vector<std::uint64_t>
+      pagerank_reader_family_directory_bytes_per_iteration_;
+  std::vector<std::uint64_t>
+      pagerank_reader_family_directory_masks_per_iteration_;
+  std::vector<std::uint64_t>
+      pagerank_reader_family_directory_empty_masks_per_iteration_;
+  std::vector<std::uint64_t>
+      pagerank_reader_source_spool_write_bytes_per_iteration_;
+  std::vector<std::uint64_t>
+      pagerank_reader_source_spool_read_bytes_per_iteration_;
   std::vector<std::uint64_t> pagerank_compute_edges_per_iteration_;
   std::uint64_t pagerank_iteration_start_cycle_{};
   std::uint64_t pagerank_maintenance_backend_requests_{};

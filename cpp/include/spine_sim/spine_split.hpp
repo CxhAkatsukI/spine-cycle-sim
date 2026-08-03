@@ -94,6 +94,11 @@ struct SpineReaderCounters {
   std::uint64_t done_words{};
   bool done_overflow{};
   std::uint64_t active_bin_read_bytes{};
+  std::uint64_t family_directory_read_bytes{};
+  std::uint64_t family_directory_mask_reads{};
+  std::uint64_t family_directory_empty_masks{};
+  std::uint64_t device_source_spool_write_bytes{};
+  std::uint64_t device_source_spool_read_bytes{};
   std::uint64_t dirty_list_read_bytes{};
   std::uint64_t dirty_bitmap_read_bytes{};
   std::uint64_t metadata_read_bytes{};
@@ -180,7 +185,12 @@ struct SpineReaderPorts {
   FixedAxiPort *result{};
 };
 
-enum class SpineReaderMode { kDeviceDirty, kHostActive, kDeviceActiveList };
+enum class SpineReaderMode {
+  kDeviceDirty,
+  kHostActive,
+  kDeviceActiveList,
+  kFullDomain,
+};
 
 class SpineSplitReader final : public Component {
  public:
@@ -207,6 +217,7 @@ class SpineSplitReader final : public Component {
   }
   void reset_round(std::vector<std::uint32_t> active_sources);
   void reset_active_list_round(std::size_t active_count);
+  void reset_full_domain_round();
   void reset_host_round(
       const SpineActiveBins &active_bins,
       std::optional<SpineDirtyIdentity> host_coverage = std::nullopt,
@@ -317,8 +328,11 @@ class SpineSplitReader final : public Component {
     kDirtyHostHashSum,
     kDirtyHostHashXor,
     kDirtyHostValid,
+    kFamilyDirectoryValid,
     kDirtyList,
     kDirtyBitmap,
+    kFamilyDirectory,
+    kDeviceSourceSpool,
     kDeviceActiveOutput,
     kActiveBinMetadata,
     kActiveRecords,
@@ -401,10 +415,14 @@ class SpineSplitReader final : public Component {
     kHostActiveResolve,
     kRequestSourceWindow,
     kWaitSourceWindow,
+    kSourceDirectoryBegin,
+    kSourceDirectoryResolve,
     kSendSourceCount,
     kSendSourceGeneration,
     kSendSourceDone,
     kWaitSourceAck,
+    kSourceSpoolValidationRead,
+    kSourceSpoolExecutionRead,
     kLevelOccupancyBegin,
     kLevelDetailsBegin,
     kSetupReads,
@@ -527,7 +545,13 @@ class SpineSplitReader final : public Component {
                     MemoryPayloadKind payload_kind = MemoryPayloadKind::kNone,
                     std::size_t probe_index = 0, std::uint32_t edge_source = 0);
   void enqueue_write(FixedAxiPort &port, std::uint64_t address,
-                     std::vector<std::uint8_t> write_data);
+                     std::vector<std::uint8_t> write_data,
+                     MemoryPayloadKind payload_kind = MemoryPayloadKind::kNone,
+                     std::size_t item_index = 0);
+  void begin_source_directory_window();
+  void store_device_source_record(std::size_t index, std::uint32_t mask);
+  void enqueue_device_source_spool_read();
+  [[nodiscard]] bool device_source_mode() const noexcept;
   void enqueue_terminal_writes();
   void consume_memory_response(const MemoryTask &task,
                                const AxiResponse &response);
@@ -613,6 +637,7 @@ class SpineSplitReader final : public Component {
   std::uint64_t dirty_host_hash_sum_{};
   std::uint64_t dirty_host_hash_xor_{};
   bool dirty_host_valid_{};
+  bool family_directory_valid_{};
   std::array<std::uint64_t, 16> active_bin_offsets_{};
   std::array<std::uint64_t, 16> active_bin_counts_{};
   bool dirty_payload_valid_{true};
@@ -636,6 +661,7 @@ class SpineSplitReader final : public Component {
   std::uint32_t range_edge_index_{};
   std::size_t source_request_index_{};
   std::size_t source_response_index_{};
+  std::size_t source_window_begin_{};
   std::size_t source_window_end_{};
   std::size_t diagnostic_index_{};
   std::size_t fallback_partition_{};
@@ -655,6 +681,7 @@ class SpineSplitReader final : public Component {
   bool fallback_active_record_valid_{};
   bool fallback_enabled_{};
   bool fallback_after_source_refresh_{};
+  bool device_spooled_{};
   SegmentedPass segmented_pass_{SegmentedPass::kNone};
   std::uint64_t refactor31_control_remaining_{};
   std::uint64_t refactor31_setup_remaining_{};

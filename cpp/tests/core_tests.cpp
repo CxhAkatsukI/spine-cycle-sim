@@ -2854,9 +2854,13 @@ void test_spine_l0_real_slice_vertical_path() {
   require(reader_counters.active_bin_read_bytes == 0 &&
               reader_counters.dirty_list_read_bytes == 16 &&
               reader_counters.dirty_bitmap_read_bytes == 16 &&
-              reader_counters.metadata_read_bytes == 2'928 &&
+              reader_counters.metadata_read_bytes == 2'936 &&
               reader_counters.metadata_write_bytes == 16 &&
               reader_counters.result_write_bytes == 64 &&
+              reader_counters.family_directory_read_bytes == 0 &&
+              reader_counters.family_directory_mask_reads == 0 &&
+              reader_counters.device_source_spool_write_bytes == 0 &&
+              reader_counters.device_source_spool_read_bytes == 0 &&
               reader_counters.level_cache_read_bytes == 2'880 &&
               reader_counters.row_lookup_metadata_bytes == 8 &&
               reader_counters.graph_read_bytes == 184,
@@ -2938,12 +2942,12 @@ void test_spine_l0_real_slice_vertical_path() {
   require(edge_stream.stats().max_occupancy <= 32 &&
               value_stream.stats().max_occupancy <= 32,
           "Spine AXIS occupancy exceeded the configured depth");
-  require(scheduler.clock(core).completed_cycles == 43'398 &&
+  require(scheduler.clock(core).completed_cycles == 43'409 &&
               counters.end_cycle - counters.start_cycle == 2'370 &&
               reader_counters.end_cycle - reader_counters.start_cycle ==
-                  4'478 &&
+                  4'489 &&
               compute_counters.end_cycle - compute_counters.start_cycle ==
-                  40'959,
+                  40'961,
           "algorithm policy injection changed the accepted SSSP cycle ledger");
   std::cout << "EVIDENCE spine_vertical_slice e2e_cycles="
             << scheduler.clock(core).completed_cycles << " maintenance_cycles="
@@ -3586,7 +3590,7 @@ void test_spine_host_active_gate_runs_tiled_fallback() {
           "force-dense fallback was not honored by split compute");
 }
 
-void test_spine_device_dirty_limit_hands_off_to_host() {
+void test_spine_device_dirty_4097_stays_on_device() {
   Scheduler scheduler;
   const auto core = scheduler.add_clock_mhz("data", 141.0);
   MockMemoryBackend backend("hbm", core,
@@ -3600,7 +3604,7 @@ void test_spine_device_dirty_limit_hands_off_to_host() {
   SpineEdgeSlice workload{
       .vertices = 8'192,
       .edges = {},
-      .case_name = "device_dirty_4097_host_handoff",
+      .case_name = "device_dirty_4097_device_owned",
   };
   for (std::uint32_t source = 0; source < 4'097; ++source) {
     workload.edges.push_back(SpineEdgeRecord{
@@ -3610,38 +3614,29 @@ void test_spine_device_dirty_limit_hands_off_to_host() {
         .diff = -1,
     });
   }
-  SpineVerticalSliceSystem system(scheduler, core, backend, workload, 0);
+  SpineL0Config config;
+  config.maintenance_architecture =
+      SpineMaintenanceArchitecture::kCandidate10OnePass;
+  SpineVerticalSliceSystem system(scheduler, core, backend, workload, 0, 4'096,
+                                  std::move(config));
   system.register_components();
   scheduler.add_component(backend);
   scheduler.run_until([&] { return system.done() && system.idle(); },
                       5'000'000);
 
-  require(system.failed() && system.recoverable_host_handoff() &&
+  require(!system.failed() && !system.recoverable_host_handoff() &&
               system.reader_counters().dirty_count == 4'097 &&
               system.reader_counters().dirty_status ==
-                  static_cast<std::uint32_t>(SpineDirtyStatus::kRequiresHost) &&
-              system.reader_counters().range_task_path == 2 &&
-              system.reader_counters().range_task_fallback_reason == 4 &&
+                  static_cast<std::uint32_t>(SpineDirtyStatus::kOk) &&
+              system.reader_counters().range_task_path == 1 &&
+              system.reader_counters().range_task_fallback_reason == 0 &&
               system.reader_counters().range_task_error == 0 &&
-              system.reader_counters().dirty_list_read_bytes == 0 &&
-              system.compute_counters().done_overflow,
-          "DEVICE_DIRTY did not expose a recoverable 4097-source handoff");
-
-  const std::vector<std::uint32_t> sources =
-      system.restart_device_dirty_host_fallback();
-  require(sources.size() == 4'097 && sources.front() == 0 &&
-              sources.back() == 4'096 && !system.failed(),
-          "host handoff did not recover the exact dirty-source list");
-  scheduler.run_until([&] { return system.done() && system.idle(); },
-                      5'000'000);
-  require(!system.failed() && system.reader_counters().dirty_count == 4'097 &&
-              system.reader_counters().dirty_generation == 1 &&
-              system.reader_counters().host_coverage_match &&
+              system.reader_counters().dirty_list_read_bytes != 0 &&
+              system.reader_counters().family_directory_mask_reads == 4'097 &&
               system.reader_counters().acknowledgement_eligible &&
               system.reader_counters().range_task_active_records == 4'097 &&
-              system.reader_counters().range_task_path == 1 &&
               !system.compute_counters().done_overflow,
-          "HOST_ACTIVE did not complete the DEVICE_DIRTY handoff");
+          "DEVICE_DIRTY did not retain the 4,097-source frontier on device");
 
   system.start_dirty_ack();
   scheduler.run_until([&] { return system.dirty_ack_done() && system.idle(); },
@@ -3651,7 +3646,7 @@ void test_spine_device_dirty_limit_hands_off_to_host() {
               system.dirty_ack_counters().result.count == 0 &&
               system.dirty_ack_counters().result.generation == 2 &&
               system.dirty_ack_counters().cleared_sources == 4'097,
-          "ACK_DIRTY did not close the recovered host handoff");
+          "ACK_DIRTY did not close the device-owned frontier");
 }
 
 void test_spine_device_task_limits_hand_off_to_tiled_fallback() {
@@ -3791,7 +3786,7 @@ void test_spine_convergence_runner_records_host_handoff() {
           "fallback convergence result diverged from weighted SSSP oracle");
 }
 
-void test_spine_convergence_runner_separates_host_replay_from_frontier() {
+void test_spine_convergence_runner_keeps_4097_sources_on_device() {
   Scheduler scheduler;
   const auto core = scheduler.add_clock_mhz("data", 141.0);
   MockMemoryBackend backend("hbm", core,
@@ -3815,37 +3810,38 @@ void test_spine_convergence_runner_separates_host_replay_from_frontier() {
         .diff = 1,
     });
   }
-  SpineVerticalSliceSystem system(scheduler, core, backend, workload, 0);
+  SpineL0Config config;
+  config.maintenance_architecture =
+      SpineMaintenanceArchitecture::kCandidate10OnePass;
+  SpineVerticalSliceSystem system(scheduler, core, backend, workload, 0, 4'096,
+                                  std::move(config));
   system.register_components();
   scheduler.add_component(backend);
 
   const auto result = system.run_sssp_to_convergence(4, 10'000'000);
   require(result.converged && !result.failed && result.rounds.size() == 2 &&
-              result.host_handoffs.size() == 1,
-          "4097-source convergence did not recover one logical round");
-  const auto &handoff = result.host_handoffs.front();
-  require(handoff.logical_round == 0 && handoff.fallback_reason == 4 &&
-              handoff.source_count == 4'097 &&
-              handoff.device_attempt.active_in ==
-                  std::vector<std::uint32_t>{0} &&
-              handoff.device_attempt.reader.done_overflow &&
-              handoff.device_attempt.compute.done_overflow,
-          "4097-source DEVICE attempt lost its logical-frontier evidence");
+              result.host_handoffs.empty(),
+          "4097-source convergence escaped the device-owned source protocol");
   require(result.rounds[0].active_in == std::vector<std::uint32_t>{0} &&
               result.rounds[0].reader_sources.size() == 4'097 &&
               result.rounds[0].reader_sources.front() == 0 &&
               result.rounds[0].reader_sources.back() == 4'096 &&
+              result.rounds[0].reader.range_task_path == 1 &&
+              result.rounds[0].reader.range_task_fallback_reason == 0 &&
+              result.rounds[0].reader.family_directory_mask_reads == 4'097 &&
+              !result.rounds[0].reader.done_overflow &&
+              !result.rounds[0].compute.done_overflow &&
               result.rounds[0].active_out ==
                   std::vector<std::uint32_t>{4'097} &&
               result.rounds[1].active_in ==
                   std::vector<std::uint32_t>{4'097} &&
               result.rounds[1].active_out.empty(),
-          "host replay sources were conflated with the logical SSSP frontier");
+          "device reader sources were conflated with the logical SSSP frontier");
   require(system.compute().values()[0] == 0 &&
               system.compute().values()[4'097] == 1 &&
               system.compute().values()[4'098] ==
                   SpineSplitSsspCompute::kInfinity,
-          "4097-source host replay diverged from weighted SSSP semantics");
+          "4097-source device execution diverged from weighted SSSP semantics");
 }
 
 void test_spine_dirty_ack_rejects_stale_and_malformed_candidates() {
@@ -8546,8 +8542,11 @@ void test_spine_full_pagerank_vertical_slice_reads_level_edges() {
       },
       .case_name = "pagerank_vertical_slice",
   };
+  SpineL0Config maintenance_config;
+  maintenance_config.maintenance_architecture =
+      SpineMaintenanceArchitecture::kCandidate10OnePass;
   SpinePageRankVerticalSliceSystem system(
-      scheduler, core, backend, workload, 0.8F, SpineL0Config{},
+      scheduler, core, backend, workload, 0.8F, maintenance_config,
       SpineAxiInterfaceProfile{},
       AlgorithmPipelineConfig{
           .source_map = {.latency_cycles = 3,
@@ -8576,19 +8575,27 @@ void test_spine_full_pagerank_vertical_slice_reads_level_edges() {
             "PageRank vertical slice produced the wrong rank");
   }
   require(!system.failed() &&
-              system.maintenance_counters().dirty_mark_edge_visits == 4 &&
+              system.maintenance_counters().candidate_classify_edge_visits ==
+                  4 &&
               system.maintenance_counters().persisted_edges == 4 &&
               system.reader_counters().source_requests == 4 &&
               system.reader_counters().source_responses == 4 &&
               system.reader_counters().source_request_windows == 1 &&
               system.reader_counters().source_protocol_status == 0 &&
-              system.reader_counters().host_coverage_match &&
+              !system.reader_counters().host_coverage_match &&
+              system.reader_counters().range_task_path == 2 &&
+              system.reader_counters().range_task_fallback_reason == 1 &&
+              system.reader_counters().family_directory_mask_reads == 4 &&
+              system.reader_counters().device_source_spool_write_bytes ==
+                  4 * spine::sim::kSpineActiveRecordBytes &&
+              system.reader_counters().device_source_spool_read_bytes ==
+                  8 * spine::sim::kSpineActiveRecordBytes &&
               system.reader_counters().edges_emitted == 4 &&
-              system.reader_counters().graph_edge_payload_read_bytes == 64 &&
+              system.reader_counters().graph_edge_payload_read_bytes == 96 &&
               system.compute_counters().edges_received == 4 &&
               system.compute_counters().vertices_applied == 4,
           "PageRank vertical slice bypassed maintenance, Reader, or compute");
-  require(system.edge_stream_stats().pushes == 24,
+  require(system.edge_stream_stats().pushes == 25,
           "PageRank vertical slice lost protocol, diagnostic, or edge words");
   std::cout << "EVIDENCE spine_pagerank_vertical cycles="
             << scheduler.clock(core).completed_cycles
@@ -8723,6 +8730,8 @@ void test_spine_pagerank_active_gate_fallback_preserves_tile_identity() {
       .case_name = "pagerank_active_gate_fallback",
   };
   SpineL0Config maintenance_config;
+  maintenance_config.maintenance_architecture =
+      SpineMaintenanceArchitecture::kCandidate10OnePass;
   maintenance_config.range_task_active_gate = 1;
   SpinePageRankVerticalSliceSystem system(
       scheduler, core, backend, workload, 0.8F, maintenance_config);
@@ -8748,7 +8757,14 @@ void test_spine_pagerank_active_gate_fallback_preserves_tile_identity() {
               reader.range_task_fallback_reason == 1 &&
               reader.range_task_active_records == 3 &&
               reader.source_requests == 3 && reader.source_responses == 3 &&
-              reader.fallback_replay_edges == 3 &&
+              reader.fallback_replay_edges == 0 &&
+              reader.segmented_replay_payloads == 3 &&
+              reader.segmented_segment_count == 1 &&
+              reader.family_directory_mask_reads == 3 &&
+              reader.device_source_spool_write_bytes ==
+                  3 * spine::sim::kSpineActiveRecordBytes &&
+              reader.device_source_spool_read_bytes ==
+                  6 * spine::sim::kSpineActiveRecordBytes &&
               compute.edges_received == 3 && compute.tiles_received == 1 &&
               compute.source_map_operations == 3 &&
               compute.vertices_applied == 3 && compute.done_words == 1 &&
@@ -8757,7 +8773,80 @@ void test_spine_pagerank_active_gate_fallback_preserves_tile_identity() {
           "or arithmetic correctness");
 }
 
-void test_spine_pagerank_fallback_reuses_launch_level_cache() {
+void test_spine_full_pagerank_8192_source_spool_is_device_owned() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("pagerank-8192-spool", 200.0);
+  MockMemoryBackend backend("pagerank-8192-spool-hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 2,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  SpineEdgeSlice workload{
+      .vertices = 8'192,
+      .edges = {{.src = 0, .dst = 1, .weight = 1, .diff = 1}},
+      .case_name = "pagerank_8192_device_source_spool",
+  };
+  SpineL0Config config;
+  config.maintenance_architecture =
+      SpineMaintenanceArchitecture::kCandidate10OnePass;
+  config.range_task_active_gate = 4'096;
+  SpinePageRankVerticalSliceSystem system(scheduler, core, backend, workload,
+                                          0.8F, config);
+  system.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until(
+      [&] {
+        return (system.done() || system.failed()) && system.idle() &&
+               backend.outstanding() == 0;
+      },
+      10'000'000);
+
+  const auto &reader = system.reader_counters();
+  const auto &compute = system.compute_counters();
+  double rank_sum = 0.0;
+  for (const std::uint32_t word : system.compute().rank_words()) {
+    rank_sum += GraphAlgorithmPolicy::word_to_float(word);
+  }
+  require(!system.failed() && system.done() &&
+              !reader.host_coverage_match &&
+              reader.range_task_path == 2 &&
+              reader.range_task_fallback_reason == 1 &&
+              reader.source_requests == workload.vertices &&
+              reader.source_responses == workload.vertices &&
+              reader.source_request_windows == 512 &&
+              reader.range_task_active_records == workload.vertices &&
+              reader.family_directory_mask_reads == workload.vertices &&
+              reader.family_directory_empty_masks == workload.vertices - 1 &&
+              reader.device_source_spool_write_bytes ==
+                  workload.vertices * spine::sim::kSpineActiveRecordBytes &&
+              reader.device_source_spool_read_bytes ==
+                  2 * workload.vertices *
+                      spine::sim::kSpineActiveRecordBytes &&
+              reader.segmented_validation_payloads == 1 &&
+              reader.segmented_replay_payloads == 1 &&
+              reader.segmented_segment_count == 1 &&
+              reader.edges_emitted == 1 && compute.edges_received == 1 &&
+              compute.vertices_applied == workload.vertices &&
+              reader.memory_requests_issued ==
+                  reader.memory_requests_completed &&
+              std::fabs(rank_sum - 1.0) < 1.0e-3,
+          "8192-source Full PageRank did not close the device source-spool "
+          "protocol");
+  std::cout << "EVIDENCE spine_full_pr_8192_device_spool cycles="
+            << scheduler.clock(core).completed_cycles
+            << " sources=" << reader.source_requests
+            << " directory_reads=" << reader.family_directory_mask_reads
+            << " empty_masks=" << reader.family_directory_empty_masks
+            << " spool_write_bytes=" << reader.device_source_spool_write_bytes
+            << " spool_read_bytes=" << reader.device_source_spool_read_bytes
+            << " edges=" << reader.edges_emitted
+            << " rank_sum=" << rank_sum << '\n';
+}
+
+void test_spine_full_domain_spool_bypasses_host_fallback_cache() {
   struct Run {
     bool failed{};
     std::uint64_t cycles{};
@@ -8791,6 +8880,8 @@ void test_spine_pagerank_fallback_reuses_launch_level_cache() {
            .diff = 1});
     }
     SpineL0Config config;
+    config.maintenance_architecture =
+        SpineMaintenanceArchitecture::kCandidate10OnePass;
     config.range_task_active_gate = 128;
     config.fallback_level_cache_reuse = reuse;
     SpinePageRankVerticalSliceSystem system(scheduler, core, backend, workload,
@@ -8815,7 +8906,7 @@ void test_spine_pagerank_fallback_reuses_launch_level_cache() {
 
   const Run baseline = run(false);
   const Run optimized = run(true);
-  std::cout << "EVIDENCE spine_pagerank_fallback_level_cache_reuse"
+  std::cout << "EVIDENCE spine_full_domain_spool_bypasses_host_fallback_cache"
             << " baseline_failed=" << baseline.failed
             << " optimized_failed=" << optimized.failed
             << " ranks_equal=" << (baseline.ranks == optimized.ranks)
@@ -8843,19 +8934,33 @@ void test_spine_pagerank_fallback_reuses_launch_level_cache() {
               baseline.ranks == optimized.ranks &&
               baseline.reader.edges_emitted == optimized.reader.edges_emitted &&
               baseline.compute.edges_received == optimized.compute.edges_received,
-          "fallback level-cache reuse changed PageRank semantics or work");
+          "Full PageRank source-spool mode changed semantics or graph work");
   require(baseline.reader.fallback_level_cache_reuses == 0 &&
-              optimized.reader.fallback_level_cache_reuses > 0 &&
+              optimized.reader.fallback_level_cache_reuses == 0 &&
+              baseline.reader.segmented_segment_count == 1 &&
+              optimized.reader.segmented_segment_count == 1 &&
+              baseline.reader.family_directory_mask_reads == 129 &&
+              optimized.reader.family_directory_mask_reads == 129 &&
+              baseline.reader.device_source_spool_write_bytes ==
+                  129 * spine::sim::kSpineActiveRecordBytes &&
+              optimized.reader.device_source_spool_write_bytes ==
+                  129 * spine::sim::kSpineActiveRecordBytes &&
+              baseline.reader.device_source_spool_read_bytes ==
+                  258 * spine::sim::kSpineActiveRecordBytes &&
+              optimized.reader.device_source_spool_read_bytes ==
+                  258 * spine::sim::kSpineActiveRecordBytes &&
+              baseline.reader.memory_requests_issued ==
+                  baseline.reader.memory_requests_completed &&
               optimized.reader.memory_requests_issued ==
                   optimized.reader.memory_requests_completed,
-          "fallback level-cache reuse was bypassed or left an open ledger");
-  require(optimized.reader.fallback_metadata_read_bytes <
+          "Full PageRank did not use a closed device source-spool ledger");
+  require(optimized.reader.fallback_metadata_read_bytes ==
                   baseline.reader.fallback_metadata_read_bytes &&
-              optimized.reader.row_lookup_metadata_bytes <
+              optimized.reader.row_lookup_metadata_bytes ==
                   baseline.reader.row_lookup_metadata_bytes &&
-              optimized.backend_requests < baseline.backend_requests &&
-              optimized.cycles < baseline.cycles,
-          "fallback level-cache reuse did not remove metadata traffic and cycles");
+              optimized.backend_requests == baseline.backend_requests &&
+              optimized.cycles == baseline.cycles,
+          "host fallback-cache tuning leaked into device Full PageRank mode");
 }
 
 void test_spine_pagerank_source_page_cache_is_finite_and_exact() {
@@ -9067,8 +9172,11 @@ void test_spine_dynamic_pagerank_times_only_update_then_final_graph() {
       .source = 0,
       .damping = 0.8F,
   });
+  SpineL0Config maintenance_config;
+  maintenance_config.maintenance_architecture =
+      SpineMaintenanceArchitecture::kCandidate10OnePass;
   SpinePageRankVerticalSliceSystem system(
-      scheduler, core, backend, std::move(update), policy, SpineL0Config{},
+      scheduler, core, backend, std::move(update), policy, maintenance_config,
       SpineAxiInterfaceProfile{}, AlgorithmPipelineConfig{},
       SpineSplitPageRankCompute::kDefaultMemoryRequestWindow,
       std::move(initial_state), final_graph,
@@ -9091,9 +9199,14 @@ void test_spine_dynamic_pagerank_times_only_update_then_final_graph() {
               system.maintenance_counters().persisted_edges == 4 &&
               system.level_state().cold_levels[0][0].empty() &&
               level == final_graph.edges &&
-              system.reader_counters().host_coverage_match &&
+              !system.reader_counters().host_coverage_match &&
+              system.reader_counters().family_directory_mask_reads == 4 &&
+              system.reader_counters().device_source_spool_write_bytes ==
+                  4 * spine::sim::kSpineActiveRecordBytes &&
+              system.reader_counters().device_source_spool_read_bytes ==
+                  8 * spine::sim::kSpineActiveRecordBytes &&
               system.reader_counters().edges_emitted == 4,
-          "dynamic PageRank did not preserve update, level, or host coverage");
+          "dynamic PageRank did not preserve update, level, or device coverage");
   std::cout << "EVIDENCE spine_dynamic_pagerank update_edges=2 final_edges=4"
             << " maintenance_cycles="
             << system.maintenance_counters().end_cycle -
@@ -9711,14 +9824,14 @@ int main(int argc, char **argv) {
        test_spine_device_active_hot_probe_replays_cross_partition_row_once},
       {"spine_host_active_gate_fallback",
        test_spine_host_active_gate_runs_tiled_fallback},
-      {"spine_device_dirty_host_handoff",
-       test_spine_device_dirty_limit_hands_off_to_host},
+      {"spine_device_dirty_4097_device_owned",
+       test_spine_device_dirty_4097_stays_on_device},
       {"spine_device_task_limit_handoffs",
        test_spine_device_task_limits_hand_off_to_tiled_fallback},
       {"spine_convergence_host_handoff",
        test_spine_convergence_runner_records_host_handoff},
-      {"spine_convergence_4097_host_handoff",
-       test_spine_convergence_runner_separates_host_replay_from_frontier},
+      {"spine_convergence_4097_device_owned",
+       test_spine_convergence_runner_keeps_4097_sources_on_device},
       {"spine_dirty_ack_rejections",
        test_spine_dirty_ack_rejects_stale_and_malformed_candidates},
       {"spine_source_protocol_error",
@@ -9839,8 +9952,10 @@ int main(int argc, char **argv) {
        test_spine_full_pagerank_vertical_slice_reads_level_edges},
       {"spine_pagerank_active_gate_fallback",
        test_spine_pagerank_active_gate_fallback_preserves_tile_identity},
-      {"spine_pagerank_fallback_level_cache_reuse",
-       test_spine_pagerank_fallback_reuses_launch_level_cache},
+      {"spine_full_pr_8192_device_spool",
+       test_spine_full_pagerank_8192_source_spool_is_device_owned},
+      {"spine_full_pr_spool_host_cache_isolation",
+       test_spine_full_domain_spool_bypasses_host_fallback_cache},
       {"spine_pagerank_source_page_cache",
        test_spine_pagerank_source_page_cache_is_finite_and_exact},
       {"spine_pagerank_maintenance_failure",

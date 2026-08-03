@@ -152,7 +152,7 @@ struct SpineL0Config {
   // Production defaults mirror the fixed capacities in
   // spine_partitioned.hpp. Smaller values exercise the otherwise very large
   // fallback boundaries in cycle-level tests.
-  std::size_t device_dirty_source_limit{4'096};
+  std::size_t device_dirty_source_limit{16'777'216};
   std::size_t range_task_active_gate{16'384};
   std::size_t range_task_capacity{65'536};
   std::uint64_t range_task_payload_budget{1'048'576};

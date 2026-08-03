@@ -1606,6 +1606,47 @@ void SpineL0Maintenance::initialize_metadata_payload() {
         config_.metadata_base +
             metadata.family_directory_valid_word * kMetadataWordBytes,
         encode_u64_words({1}));
+
+    // Resident levels are loaded before timed maintenance. Seed the persistent
+    // source-to-family directory as part of that bootstrap image so later
+    // device-owned frontiers cover both resident and newly inserted edges.
+    std::map<std::uint64_t, std::vector<std::uint8_t>> directory_words;
+    const auto set_directory_bit =
+        [&](const SpineEdgeRecord &edge, std::size_t bit) {
+          if (edge.src >= config_.max_vertices || bit >= 32) {
+            throw std::logic_error(
+                "resident family-directory endpoint is out of bounds");
+          }
+          const std::uint64_t word = edge.src >> 2;
+          auto [entry, inserted] = directory_words.try_emplace(
+              word, kPersistentRecordBytes, std::uint8_t{0});
+          (void)inserted;
+          const std::size_t lane_offset =
+              (edge.src & 3U) * sizeof(std::uint32_t);
+          const std::uint32_t prior =
+              static_cast<std::uint32_t>(entry->second[lane_offset]) |
+              (static_cast<std::uint32_t>(entry->second[lane_offset + 1]) << 8) |
+              (static_cast<std::uint32_t>(entry->second[lane_offset + 2]) << 16) |
+              (static_cast<std::uint32_t>(entry->second[lane_offset + 3]) << 24);
+          write_u32_le(entry->second, lane_offset,
+                       prior | (std::uint32_t{1} << bit));
+        };
+    for (std::size_t family = 0; family < 16; ++family) {
+      for (std::size_t level = 0; level < 11; ++level) {
+        for (const SpineEdgeRecord &edge : state_.cold_levels[family][level]) {
+          set_directory_bit(edge, family);
+        }
+        for (const SpineEdgeRecord &edge : state_.hot_levels[family][level]) {
+          set_directory_bit(edge, 16 + family);
+        }
+      }
+    }
+    for (const auto &[word, payload] : directory_words) {
+      ports_.sorted_edges->initialize_payload(
+          config_.persistent_family_directory_base +
+              word * kPersistentRecordBytes,
+          payload);
+    }
   }
   std::map<std::uint64_t, std::uint64_t> hot_bitmap_payload;
   for (const std::uint32_t vertex : state_.hot_vertices) {

@@ -1932,9 +1932,13 @@ SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
   maintenance_ = std::make_unique<SpineL0Maintenance>(
       "pagerank-maintenance", clock_id_, std::move(maintenance_config),
       std::move(workload), maintenance_ports, state_);
+  const bool full_domain =
+      algorithm_policy_->config().kind == GraphAlgorithmKind::kFullPageRank;
   reader_ = std::make_unique<SpineSplitReader>(
-      "pagerank-reader", clock_id_, *maintenance_, reader_ports, host.sources,
-      edge_stream_, value_stream_, SpineReaderMode::kHostActive,
+      "pagerank-reader", clock_id_, *maintenance_, reader_ports,
+      full_domain ? std::vector<std::uint32_t>{} : host.sources, edge_stream_,
+      value_stream_, full_domain ? SpineReaderMode::kFullDomain
+                                 : SpineReaderMode::kHostActive,
       algorithm_policy_);
   const bool initial_device_active =
       algorithm_initial_state.has_value() &&
@@ -1962,7 +1966,7 @@ SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
           initial_active_ready_, initial_active_failed_,
           initial_active_failure_);
     }
-  } else {
+  } else if (!full_domain) {
     // The current PageRank/CC policy shell still performs device-side source
     // preparation from rank/residual/degree state.  Unlike refactor31 SSSP,
     // its active-record payload is not yet authoritative for that operation.
@@ -2087,8 +2091,7 @@ void SpinePageRankVerticalSliceSystem::restart_iteration() {
     }
     reader_->reset_active_list_round(source_refresh_.size());
   } else {
-    reader_->reset_host_round(active_bins_payload_, host_coverage_,
-                              source_refresh_);
+    reader_->reset_full_domain_round();
   }
   if (owner_frontier_ != nullptr) {
     if (vertex_lifecycle_ != nullptr &&

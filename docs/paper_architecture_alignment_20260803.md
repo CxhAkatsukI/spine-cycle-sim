@@ -131,7 +131,8 @@ For non-tiny workloads, acceptance requires:
    `queued/in_flight/dirty` state machine. The HLS owner kernel is not yet
    synthesized or routed.
 4. [host-tested in simulator and HLS] Add lossless reactivation and work-credit
-   quiescence for SSSP. PageRank/CC policy-shell integration remains pending.
+   quiescence for all four algorithm policies. Host relaunch still separates
+   device rounds and remains outside the device-cycle interval.
 5. [host-tested in simulator and HLS] Add dormant-ID activation and
    validity-bitmap vertex deactivation. The HBM-backed simulator component is
    wired into persistent SSSP transactions; the HLS lifecycle kernel and
@@ -146,8 +147,10 @@ For non-tiny workloads, acceptance requires:
    hash matches. This closes scale feasibility, not real-slice cycle transfer
    or independent Dijkstra correctness. Reproduce it with
    `scripts/analyze_refactor31_rmat_scale.py`.
-7. Specialize the shared shell for SSSP, CC, Residual PageRank, and Full
-   PageRank; route and validate each policy kernel.
+7. [reader compile evidence complete] Specialize the shared source protocol for
+   SSSP, CC, Residual PageRank, and Full PageRank. All four reader variants
+   compile to U55C 150-MHz `sw_emu` XOs. Complete compute-kernel synthesis,
+   link, route, timing, and board validation remain pending.
 
 The integrated SSSP owner evidence and exact reproduction command are in
 `docs/spine_device_owner_scheduler_20260803.md`.
@@ -156,11 +159,13 @@ The corresponding vertex-lifecycle evidence is in
 The native micro-calibration and its explicit claim boundary are in
 `docs/refactor31_sim_fpga_mechanism_transfer_20260803.md`.
 
-The current Full/Residual PageRank and CC simulator shell still uses the
-legacy source-preparation protocol to read rank/residual/degree state before
-edge emission. It is correctness-tested but is not claimed to be a routed
-paper-policy kernel. Refactor31 SSSP host-active records are authoritative and
-do not use that source-refresh path.
+The simulator now generates Full PageRank's complete source domain on device
+and consumes device-owned dirty/active records for the differential policies.
+Source rank/residual/degree values are read from modeled HBM through the bounded
+reverse protocol. Domains exceeding the active-record gate use the HBM18
+source spool and a validation/execution pair of reads. The complete protocol
+and its claim boundary are documented in
+`docs/device_source_directory_spool_20260803.md`.
 
 Payload-distinct parallel edges are deliberately excluded from this version.
 They require a separately versioned record-identity change across sorting,
