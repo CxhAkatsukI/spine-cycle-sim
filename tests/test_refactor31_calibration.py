@@ -68,6 +68,9 @@ class Refactor31CalibrationTests(unittest.TestCase):
             "maintenance_stage_ledger_closed": True,
             "memory_locality_ledger_match": True,
             "backend_arbitration": {"ledger_closed": True},
+            "architecture_profile_sha256": "profile-hash",
+            "sst_plugin_sha256": "plugin-hash",
+            "workload_sha256": "workload-hash",
         }
         with TemporaryDirectory() as directory:
             path = Path(directory) / "summary.json"
@@ -78,6 +81,8 @@ class Refactor31CalibrationTests(unittest.TestCase):
         self.assertEqual(row["raw_paired_cycles"], 45)
         self.assertEqual(row["processed_edges"], 9)
         self.assertEqual(row["ledger_admitted"], 1)
+        self.assertEqual(row["architecture_profile_sha256"], "profile-hash")
+        self.assertEqual(row["sst_plugin_sha256"], "plugin-hash")
 
     def test_nonnegative_residual_fit_recovers_known_shell_cost(self) -> None:
         rows = [

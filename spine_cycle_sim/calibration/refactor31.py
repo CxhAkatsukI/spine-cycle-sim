@@ -519,6 +519,11 @@ def load_refactor31_resident_sim_summary(path_value: str | Path) -> dict[str, An
         "processed_edges": sum(
             int(value) for value in payload.get("processed_edges_per_round", [])
         ),
+        "architecture_profile_sha256": str(
+            payload.get("architecture_profile_sha256", "")
+        ),
+        "sst_plugin_sha256": str(payload.get("sst_plugin_sha256", "")),
+        "workload_sha256": str(payload.get("workload_sha256", "")),
         "correctness_admitted": int(correctness_admitted),
         "ledger_admitted": int(ledger_admitted),
     }

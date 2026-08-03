@@ -6,6 +6,7 @@ XRT_ROOT=${XILINX_XRT:-/opt/xilinx/xrt}
 HOST=${REFACTOR31_HOST:-/data/feiyang/codex_builds/spine_paper_alignment/refactor31_real_slice_host}
 XCLBIN=${REFACTOR31_XCLBIN:-/data/feiyang/spine-dynamic-graph-builds/segmented_exact_fallback_cc7e3f9_20260802/hw_refactor31_ii4_bitmap/xclbin/spine_partitioned_split_e2e.hw.xclbin}
 EXPECTED_XCLBIN_SHA256=16ca09f5597d974e6963ac19ada4f59a8e2b0d6b7ef5ea8f668e5ffb520a1629
+EXPECTED_HOST_SHA256=97b88b4108fa586b4bf68c81682d03a86623f5777edd4f8d28344b25a75ef0f8
 
 if (( $# < 2 )); then
     printf 'Usage: %s SLICE OUT_DIR [SOURCE] [REPEATS]\n' "$0" >&2
@@ -19,6 +20,11 @@ REPEATS=${4:-5}
 test -x "${HOST}"
 test -f "${SLICE}"
 test -f "${XCLBIN}"
+actual_host_hash=$(sha256sum "${HOST}" | cut -d' ' -f1)
+test "${actual_host_hash}" = "${EXPECTED_HOST_SHA256}" || {
+    printf 'host hash mismatch: %s\n' "${actual_host_hash}" >&2
+    exit 1
+}
 actual_hash=$(sha256sum "${XCLBIN}" | cut -d' ' -f1)
 test "${actual_hash}" = "${EXPECTED_XCLBIN_SHA256}" || {
     printf 'routed xclbin hash mismatch: %s\n' "${actual_hash}" >&2

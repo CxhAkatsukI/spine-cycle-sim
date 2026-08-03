@@ -95,8 +95,30 @@ def main() -> int:
         dataset["id"] for dataset in matrix["calibration"]["datasets"]
     }
     generated = [row for row in slices["rows"] if row["status"] == "generated"]
+    expected_cases = {case_id(row) for row in generated}
     rows: list[dict[str, Any]] = []
-    input_paths = [matrix_path, slice_manifest_path]
+    profile_path = (ROOT / matrix["architecture_profile"]).resolve()
+    plugin_path = (ROOT / matrix["simulator_plugin"]["path"]).resolve()
+    fpga_binding = matrix["native_fpga_artifact"]
+    host_path = Path(fpga_binding["host_path"]).resolve()
+    xclbin_path = Path(fpga_binding["xclbin_path"]).resolve()
+    bound_paths = (
+        (profile_path, matrix["architecture_profile_sha256"]),
+        (plugin_path, matrix["simulator_plugin"]["sha256"]),
+        (host_path, fpga_binding["host_sha256"]),
+        (xclbin_path, fpga_binding["xclbin_sha256"]),
+    )
+    for path, expected_sha256 in bound_paths:
+        if not path.is_file() or sha256(path) != expected_sha256:
+            raise ValueError(f"frozen artifact hash mismatch: {path}")
+    input_paths = [
+        matrix_path,
+        slice_manifest_path,
+        profile_path,
+        plugin_path,
+        host_path,
+        xclbin_path,
+    ]
 
     ordered_slices = sorted(
         generated, key=lambda row: (row["dataset"], row["target_edges"])
@@ -107,6 +129,10 @@ def main() -> int:
         sim_summary_path = args.sim_root / "sim" / name / "summary.json"
         if not fpga_logs or not sim_summary_path.is_file():
             raise ValueError(f"incomplete transfer evidence for {name}")
+        slice_path = Path(slice_row["path"]).resolve()
+        if not slice_path.is_file() or sha256(slice_path) != slice_row["sha256"]:
+            raise ValueError(f"slice hash mismatch for {name}")
+        input_paths.append(slice_path)
         input_paths.extend(fpga_logs)
         input_paths.append(sim_summary_path)
         fpga = summarize_refactor31_real_slice_fpga_runs(
@@ -123,6 +149,10 @@ def main() -> int:
             raise ValueError(f"FPGA repeat/correctness gate failed for {name}")
         if not sim["correctness_admitted"] or not sim["ledger_admitted"]:
             raise ValueError(f"simulator correctness/ledger gate failed for {name}")
+        if sim["architecture_profile_sha256"] != matrix["architecture_profile_sha256"]:
+            raise ValueError(f"simulator profile hash mismatch for {name}")
+        if sim["sst_plugin_sha256"] != matrix["simulator_plugin"]["sha256"]:
+            raise ValueError(f"simulator plugin hash mismatch for {name}")
         rows.append(
             {
                 "case": name,
@@ -221,6 +251,12 @@ def main() -> int:
         "matrix_id": matrix["matrix_id"],
         "matrix_sha256": sha256(matrix_path),
         "slice_manifest_sha256": sha256(slice_manifest_path),
+        "artifact_binding": {
+            "architecture_profile_sha256": matrix["architecture_profile_sha256"],
+            "simulator_plugin_sha256": matrix["simulator_plugin"]["sha256"],
+            "fpga_host_sha256": fpga_binding["host_sha256"],
+            "fpga_xclbin_sha256": fpga_binding["xclbin_sha256"],
+        },
         "execution_boundary": matrix["execution_boundary"],
         "calibration_case_count": len(calibration),
         "holdout_case_count": len(rows) - len(calibration),
