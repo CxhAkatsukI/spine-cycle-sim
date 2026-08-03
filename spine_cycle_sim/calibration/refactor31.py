@@ -22,6 +22,7 @@ REFACTOR31_CASES = (
 
 KEY_VALUE_RE = re.compile(r"([A-Za-z_][A-Za-z0-9_]*)=([^\s]+)")
 LINE_PREFIX = "SEGMENTED_FALLBACK_HW "
+REAL_SLICE_LINE_PREFIX = "REFACTOR31_REAL_SLICE_HW "
 TIMING_FIELDS = ("reader_ms", "compute_ms", "conv_ms", "wall_ms")
 
 
@@ -126,6 +127,40 @@ class Refactor31FPGARun:
         return row
 
 
+@dataclass(frozen=True)
+class Refactor31RealSliceFPGARun:
+    source_log: str
+    status: str
+    slice: str
+    source: int
+    vertices: int
+    graph_edges: int
+    rounds: int
+    processed_edges: int
+    reader_cycles: int
+    compute_cycles: int
+    paired_cycles: int
+    dijkstra_mismatches: int
+    reference_validated: bool
+    errors: int
+
+    @property
+    def correctness_admitted(self) -> bool:
+        return (
+            self.status == "PASS"
+            and self.rounds > 0
+            and self.errors == 0
+            and self.dijkstra_mismatches == 0
+            and self.reference_validated
+        )
+
+    def to_row(self) -> dict[str, Any]:
+        row = asdict(self)
+        row["reference_validated"] = int(self.reference_validated)
+        row["correctness_admitted"] = int(self.correctness_admitted)
+        return row
+
+
 def _required(fields: dict[str, str], field: str, source: str) -> str:
     if field not in fields:
         raise ValueError(f"{source}: refactor31 result is missing {field}")
@@ -199,6 +234,62 @@ def parse_refactor31_fpga_log(
         )
     if not records:
         raise ValueError(f"{source_log}: no {LINE_PREFIX.strip()} records")
+    return records
+
+
+def parse_refactor31_real_slice_fpga_log(
+    text: str, *, source_log: str = "<memory>"
+) -> Refactor31RealSliceFPGARun:
+    """Parse the one aggregate correctness/timing row from a real-slice run."""
+
+    matches: list[tuple[int, str]] = []
+    for line_number, raw_line in enumerate(text.splitlines(), start=1):
+        line = raw_line.strip()
+        if line.startswith(REAL_SLICE_LINE_PREFIX):
+            matches.append((line_number, line))
+    if len(matches) != 1:
+        raise ValueError(
+            f"{source_log}: expected one {REAL_SLICE_LINE_PREFIX.strip()} "
+            f"record, found {len(matches)}"
+        )
+    line_number, line = matches[0]
+    tokens = line.split(None, 2)
+    if len(tokens) < 3:
+        raise ValueError(f"{source_log}:{line_number}: malformed aggregate line")
+    fields = dict(KEY_VALUE_RE.findall(tokens[2]))
+    source_name = f"{source_log}:{line_number}"
+    return Refactor31RealSliceFPGARun(
+        source_log=source_log,
+        status=tokens[1],
+        slice=_required(fields, "slice", source_name),
+        source=_integer(fields, "source", source_name),
+        vertices=_integer(fields, "vertices", source_name),
+        graph_edges=_integer(fields, "graph_edges", source_name),
+        rounds=_integer(fields, "rounds", source_name),
+        processed_edges=_integer(fields, "processed_edges", source_name),
+        reader_cycles=_integer(fields, "reader_cycles", source_name),
+        compute_cycles=_integer(fields, "compute_cycles", source_name),
+        paired_cycles=_integer(fields, "paired_cycles", source_name),
+        dijkstra_mismatches=_integer(fields, "dijkstra_mismatches", source_name),
+        reference_validated=bool(
+            _integer(fields, "reference_validated", source_name)
+        ),
+        errors=_integer(fields, "errors", source_name),
+    )
+
+
+def load_refactor31_real_slice_fpga_logs(
+    paths: Iterable[str | Path],
+) -> list[Refactor31RealSliceFPGARun]:
+    records: list[Refactor31RealSliceFPGARun] = []
+    for path_value in paths:
+        path = Path(path_value).resolve()
+        records.append(
+            parse_refactor31_real_slice_fpga_log(
+                path.read_text(encoding="utf-8", errors="replace"),
+                source_log=str(path),
+            )
+        )
     return records
 
 

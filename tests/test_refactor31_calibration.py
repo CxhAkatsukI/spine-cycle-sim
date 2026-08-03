@@ -8,6 +8,7 @@ from spine_cycle_sim.calibration.refactor31 import (
     REFACTOR31_ACTIVE_GATE,
     REFACTOR31_VERTICES,
     parse_refactor31_fpga_log,
+    parse_refactor31_real_slice_fpga_log,
     refactor31_fixture_edges,
     summarize_refactor31_fpga_runs,
     write_refactor31_fixture,
@@ -28,6 +29,28 @@ def result_line(
 
 
 class Refactor31CalibrationTests(unittest.TestCase):
+    def test_real_slice_aggregate_is_correctness_admitted(self) -> None:
+        record = parse_refactor31_real_slice_fpga_log(
+            "REFACTOR31_REAL_SLICE_HW PASS slice=/tmp/real.slice source=9 "
+            "vertices=19399 graph_edges=50000 rounds=3 processed_edges=22 "
+            "reader_cycles=181597 compute_cycles=220162 "
+            "paired_cycles=220162 dijkstra_mismatches=0 "
+            "reference_validated=1 errors=0"
+        )
+        self.assertTrue(record.correctness_admitted)
+        self.assertEqual(record.paired_cycles, 220_162)
+        self.assertEqual(record.processed_edges, 22)
+
+    def test_real_slice_aggregate_rejects_duplicate_summary(self) -> None:
+        line = (
+            "REFACTOR31_REAL_SLICE_HW PASS slice=x source=0 vertices=2 "
+            "graph_edges=1 rounds=1 processed_edges=1 reader_cycles=1 "
+            "compute_cycles=1 paired_cycles=1 dijkstra_mismatches=0 "
+            "reference_validated=1 errors=0"
+        )
+        with self.assertRaisesRegex(ValueError, "expected one"):
+            parse_refactor31_real_slice_fpga_log(f"{line}\n{line}\n")
+
     def test_fixture_generator_matches_hardware_boundaries(self) -> None:
         exact = refactor31_fixture_edges("active_exact_one_tile")
         fallback = refactor31_fixture_edges("active_gate_many_tiles")

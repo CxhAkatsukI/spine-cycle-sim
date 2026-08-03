@@ -98,8 +98,11 @@ from .grasu_native import (
 )
 from .refactor31 import (
     Refactor31FPGARun,
+    Refactor31RealSliceFPGARun,
     load_refactor31_fpga_logs,
+    load_refactor31_real_slice_fpga_logs,
     parse_refactor31_fpga_log,
+    parse_refactor31_real_slice_fpga_log,
     summarize_refactor31_fpga_runs,
 )
 from .refactor31_scale import (
@@ -194,7 +197,10 @@ __all__ = [
     "parse_native_hardware_log",
     "Refactor31FPGARun",
     "load_refactor31_fpga_logs",
+    "load_refactor31_real_slice_fpga_logs",
     "parse_refactor31_fpga_log",
+    "parse_refactor31_real_slice_fpga_log",
+    "Refactor31RealSliceFPGARun",
     "summarize_refactor31_fpga_runs",
     "Refactor31RmatRun",
     "load_refactor31_rmat_runs",
