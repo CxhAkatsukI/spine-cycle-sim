@@ -123,6 +123,7 @@ using spine::sim::SpineSplitReader;
 using spine::sim::SpineSplitSsspCompute;
 using spine::sim::SpineSsspRunResult;
 using spine::sim::SpineVerticalSliceSystem;
+using spine::sim::SpineVertexLifecycleConfig;
 using spine::sim::subtract_memory_traffic;
 
 void require(bool condition, const std::string &message) {
@@ -6953,6 +6954,104 @@ void test_spine_device_owner_scheduler_closes_multiround_ledger() {
           "device owner scheduling lost work, credit, or SSSP correctness");
 }
 
+void test_spine_vertex_lifecycle_gates_persistent_sssp_transactions() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("lifecycle-system", 150.0);
+  MockMemoryBackend backend("lifecycle-system-hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 3,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  SpineEdgeSlice initial{
+      .vertices = 8,
+      .edges = {{.src = 0, .dst = 1, .weight = 5, .diff = 1}},
+      .case_name = "vertex_lifecycle_initial",
+  };
+  SpineVerticalSliceSystem system(
+      scheduler, core, backend, initial, 0, 4'096, SpineL0Config{},
+      SpineL0State{}, SpineAxiInterfaceProfile{},
+      SpineSplitSsspCompute::kDefaultMemoryRequestWindow,
+      SpineSplitSsspCompute::kDefaultWriteOnlyRequestWindow,
+      SpineOnChipMemoryProfile{}, false, std::nullopt,
+      SpineOwnerSchedulerConfig{
+          .max_vertices = 8,
+          .partitions = 1,
+          .vertices_per_partition = 8,
+          .owner_fifo_depth = 2,
+          .reactivation_fifo_depth = 2,
+      },
+      SpineVertexLifecycleConfig{
+          .max_vertices = 8,
+          .initial_valid_vertices = 4,
+          .bitmap_base = 8ULL << 20,
+      });
+  system.register_components();
+  scheduler.add_component(backend);
+  const SpineSsspRunResult cold =
+      system.run_sssp_to_convergence(8, 1'000'000);
+  require(cold.converged && !cold.failed &&
+              system.compute().values().at(1) == 5 &&
+              !system.vertex_lifecycle()->valid(6),
+          "lifecycle fixture did not establish its initial graph state");
+
+  require(system.try_activate_vertex(6),
+          "dormant vertex activation was rejected");
+  const auto activation = system.run_vertex_lifecycle_to_completion(1'000);
+  require(activation.vertex == 6 && activation.changed &&
+              activation.final_valid &&
+              system.vertex_lifecycle()->request_ledger_closed(),
+          "dormant vertex activation did not close its HBM transaction");
+
+  SpineEdgeSlice insert{
+      .vertices = 8,
+      .edges = {{.src = 0, .dst = 6, .weight = 2, .diff = 1}},
+      .case_name = "vertex_lifecycle_insert",
+  };
+  system.restart_incremental_update(std::move(insert));
+  const SpineSsspRunResult incremental =
+      system.run_sssp_to_convergence(8, 1'000'000);
+  require(incremental.converged && !incremental.failed &&
+              system.compute().values().at(6) == 2,
+          "activated vertex did not participate in persistent SSSP");
+
+  SpineEdgeSlice retired{
+      .vertices = 8,
+      .edges = {{.src = 0, .dst = 1, .weight = 5, .diff = 1}},
+      .case_name = "vertex_lifecycle_retired",
+  };
+  system.restart_full_rebuild(std::move(retired));
+  const SpineSsspRunResult rebuilt =
+      system.run_sssp_to_convergence(8, 1'000'000);
+  require(rebuilt.converged && !rebuilt.failed &&
+              system.compute().values().at(6) ==
+                  SpineSplitSsspCompute::kInfinity,
+          "incident-edge retirement did not remove the dormant vertex path");
+  require(!system.try_deactivate_vertex(2, false),
+          "unsafe vertex deactivation was accepted");
+  require(system.try_deactivate_vertex(6, true),
+          "safe vertex deactivation was rejected");
+  const auto deactivation = system.run_vertex_lifecycle_to_completion(1'000);
+  require(deactivation.vertex == 6 && deactivation.changed &&
+              !deactivation.final_valid,
+          "safe vertex deactivation did not clear the validity bit");
+
+  bool invalid_update_rejected = false;
+  try {
+    system.restart_incremental_update(SpineEdgeSlice{
+        .vertices = 8,
+        .edges = {{.src = 0, .dst = 6, .weight = 1, .diff = 1}},
+        .case_name = "invalid_vertex_update",
+    });
+  } catch (const std::logic_error &) {
+    invalid_update_rejected = true;
+  }
+  require(invalid_update_rejected,
+          "graph update accepted a deactivated endpoint");
+}
+
 void test_spine_incremental_update_reuses_persistent_system() {
   Scheduler scheduler;
   const auto core = scheduler.add_clock_mhz("data", 141.0);
@@ -9433,6 +9532,8 @@ int main(int argc, char **argv) {
        test_spine_multiround_weighted_sssp_converges},
       {"spine_device_owner_multiround",
        test_spine_device_owner_scheduler_closes_multiround_ledger},
+      {"spine_vertex_lifecycle_system",
+       test_spine_vertex_lifecycle_gates_persistent_sssp_transactions},
       {"spine_incremental_update",
        test_spine_incremental_update_reuses_persistent_system},
       {"spine_nonmonotonic_full_rebuild",

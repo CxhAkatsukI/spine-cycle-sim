@@ -939,7 +939,8 @@ SpineVerticalSliceSystem::SpineVerticalSliceSystem(
     std::size_t compute_writeonly_request_window,
     SpineOnChipMemoryProfile on_chip_profile, bool initial_host_active,
     std::optional<AlgorithmInitialState> algorithm_initial_state,
-    std::optional<SpineOwnerSchedulerConfig> owner_scheduler_config)
+    std::optional<SpineOwnerSchedulerConfig> owner_scheduler_config,
+    std::optional<SpineVertexLifecycleConfig> vertex_lifecycle_config)
     : scheduler_(scheduler), clock_id_(clock_id), backend_(backend),
       axi_profile_(std::move(axi_profile)),
       source_(source),
@@ -976,6 +977,29 @@ SpineVerticalSliceSystem::SpineVerticalSliceSystem(
       make_port("compute-result", 121, 21, SpineAxiPortKind::kComputeResult);
   active_bitmap_ =
       make_port("active-bitmap", 122, 22, SpineAxiPortKind::kActiveBitmap);
+  if (vertex_lifecycle_config.has_value()) {
+    if (vertex_lifecycle_config->max_vertices != workload.vertices ||
+        vertex_lifecycle_config->initial_valid_vertices > workload.vertices ||
+        vertex_lifecycle_config->bitmap_base < 8 ||
+        vertex_lifecycle_config->bitmap_base % sizeof(std::uint64_t) != 0) {
+      throw std::invalid_argument(
+          "Spine vertex lifecycle must cover the fixed graph domain in a "
+          "non-overlapping aligned bitmap region");
+    }
+    vertex_validity_ = make_port("vertex-validity", 123, 22,
+                                 SpineAxiPortKind::kActiveBitmap);
+    vertex_lifecycle_ = std::make_unique<SpineVertexLifecycle>(
+        "spine-vertex-lifecycle", clock_id_, *vertex_lifecycle_config,
+        *vertex_validity_);
+    if (std::any_of(workload.edges.begin(), workload.edges.end(),
+                    [this](const SpineEdgeRecord &edge) {
+                      return !vertex_lifecycle_->valid(edge.src) ||
+                             !vertex_lifecycle_->valid(edge.dst);
+                    })) {
+      throw std::invalid_argument(
+          "Spine initial graph references an invalid vertex");
+    }
+  }
 
   SpineL0Ports maintenance_ports;
   SpineReaderPorts reader_ports;
@@ -1062,6 +1086,9 @@ void SpineVerticalSliceSystem::register_components() {
   if (owner_scheduler_ != nullptr) {
     scheduler_.add_component(*owner_scheduler_);
   }
+  if (vertex_lifecycle_ != nullptr) {
+    scheduler_.add_component(*vertex_lifecycle_);
+  }
   scheduler_.add_component(*dirty_ack_);
   scheduler_.add_component(edge_stream_);
   scheduler_.add_component(value_stream_);
@@ -1077,6 +1104,9 @@ void SpineVerticalSliceSystem::register_components() {
   active_out_reader_->register_components(scheduler_);
   compute_result_->register_components(scheduler_);
   active_bitmap_->register_components(scheduler_);
+  if (vertex_validity_ != nullptr) {
+    vertex_validity_->register_components(scheduler_);
+  }
 }
 
 void SpineVerticalSliceSystem::advance_owner_control_cycle(
@@ -1096,6 +1126,13 @@ std::vector<std::uint32_t> SpineVerticalSliceSystem::owner_admit_and_dispatch(
     std::uint64_t max_events) {
   if (owner_scheduler_ == nullptr || frontier.empty()) {
     return frontier;
+  }
+  if (vertex_lifecycle_ != nullptr &&
+      std::any_of(frontier.begin(), frontier.end(), [this](std::uint32_t key) {
+        return !vertex_lifecycle_->valid(key);
+      })) {
+    throw std::logic_error(
+        "Spine owner cannot admit an invalid vertex into the frontier");
   }
   const std::uint64_t start_events = scheduler_.event_count();
   const auto check_budget = [this, start_events, max_events] {
@@ -1260,6 +1297,15 @@ void SpineVerticalSliceSystem::restart_incremental_update(
     throw std::logic_error(
         "Spine incremental update requires a positive drained batch");
   }
+  if (vertex_lifecycle_ != nullptr &&
+      std::any_of(workload.edges.begin(), workload.edges.end(),
+                  [this](const SpineEdgeRecord &edge) {
+                    return !vertex_lifecycle_->valid(edge.src) ||
+                           !vertex_lifecycle_->valid(edge.dst);
+                  })) {
+    throw std::logic_error(
+        "Spine incremental update references an invalid vertex");
+  }
   std::vector<std::uint32_t> changed_sources;
   changed_sources.reserve(workload.edges.size());
   for (const SpineEdgeRecord &edge : workload.edges) {
@@ -1293,6 +1339,15 @@ void SpineVerticalSliceSystem::restart_full_rebuild(SpineEdgeSlice snapshot) {
                   [](const SpineEdgeRecord &edge) { return edge.diff <= 0; })) {
     throw std::logic_error(
         "Spine full rebuild requires a positive drained graph snapshot");
+  }
+  if (vertex_lifecycle_ != nullptr &&
+      std::any_of(snapshot.edges.begin(), snapshot.edges.end(),
+                  [this](const SpineEdgeRecord &edge) {
+                    return !vertex_lifecycle_->valid(edge.src) ||
+                           !vertex_lifecycle_->valid(edge.dst);
+                  })) {
+    throw std::logic_error(
+        "Spine full rebuild references an invalid vertex");
   }
 
   edge_stream_.reset_stats();
@@ -1396,6 +1451,14 @@ SpineSsspRunResult SpineVerticalSliceSystem::run_sssp_to_convergence(
   if (!registered_ || convergence_run_started_ || done() || max_rounds == 0 ||
       max_events_per_round == 0) {
     throw std::logic_error("invalid Spine convergence-run state or limits");
+  }
+  if (vertex_lifecycle_ != nullptr &&
+      std::any_of(current_frontier_.begin(), current_frontier_.end(),
+                  [this](std::uint32_t vertex) {
+                    return !vertex_lifecycle_->valid(vertex);
+                  })) {
+    throw std::logic_error(
+        "Spine convergence frontier contains an invalid vertex");
   }
   convergence_run_started_ = true;
   SpineSsspRunResult result;
@@ -1505,14 +1568,61 @@ SpineSsspRunResult SpineVerticalSliceSystem::run_sssp_to_convergence(
   return result;
 }
 
+bool SpineVerticalSliceSystem::try_activate_vertex(std::uint32_t vertex) {
+  if (!registered_ || vertex_lifecycle_ == nullptr || !done() || !idle() ||
+      failed() ||
+      (owner_scheduler_ != nullptr && !owner_scheduler_->quiescent())) {
+    throw std::logic_error(
+        "Spine vertex activation requires a drained graph transaction");
+  }
+  return vertex_lifecycle_->try_activate(vertex);
+}
+
+bool SpineVerticalSliceSystem::try_deactivate_vertex(
+    std::uint32_t vertex, bool incident_edges_retired_or_masked) {
+  if (!registered_ || vertex_lifecycle_ == nullptr || !done() || !idle() ||
+      failed() ||
+      (owner_scheduler_ != nullptr && !owner_scheduler_->quiescent())) {
+    throw std::logic_error(
+        "Spine vertex deactivation requires a drained graph transaction");
+  }
+  return vertex_lifecycle_->try_deactivate(
+      vertex, incident_edges_retired_or_masked);
+}
+
+SpineVertexLifecycleResult
+SpineVerticalSliceSystem::run_vertex_lifecycle_to_completion(
+    std::uint64_t max_events) {
+  if (!registered_ || vertex_lifecycle_ == nullptr ||
+      !vertex_lifecycle_->busy() || max_events == 0) {
+    throw std::logic_error("invalid Spine vertex lifecycle run state");
+  }
+  scheduler_.run_until(
+      [this] {
+        return !vertex_lifecycle_->busy() && vertex_validity_->idle();
+      },
+      max_events);
+  if (vertex_lifecycle_->failed() ||
+      !vertex_lifecycle_->last_result().has_value() ||
+      !vertex_lifecycle_->request_ledger_closed()) {
+    throw std::logic_error(
+        vertex_lifecycle_->failed()
+            ? vertex_lifecycle_->failure()
+            : "Spine vertex lifecycle completed without closed evidence");
+  }
+  return *vertex_lifecycle_->last_result();
+}
+
 bool SpineVerticalSliceSystem::done() const noexcept {
   return maintenance_->done() && reader_->done() && compute_->done() &&
-         (!dirty_ack_->started() || dirty_ack_->done());
+         (!dirty_ack_->started() || dirty_ack_->done()) &&
+         (vertex_lifecycle_ == nullptr || !vertex_lifecycle_->busy());
 }
 
 bool SpineVerticalSliceSystem::failed() const noexcept {
   return maintenance_->failed() || reader_->failed() || compute_->failed() ||
-         (dirty_ack_->started() && dirty_ack_->failed());
+         (dirty_ack_->started() && dirty_ack_->failed()) ||
+         (vertex_lifecycle_ != nullptr && vertex_lifecycle_->failed());
 }
 
 bool SpineVerticalSliceSystem::idle() const noexcept {
@@ -1526,7 +1636,8 @@ bool SpineVerticalSliceSystem::idle() const noexcept {
          active_out_->idle() && active_out_reader_->idle() &&
          compute_result_->idle() &&
          active_bitmap_->idle() && edge_stream_.empty() &&
-         value_stream_.empty();
+         value_stream_.empty() &&
+         (vertex_validity_ == nullptr || vertex_validity_->idle());
 }
 
 const SpineL0Counters &SpineVerticalSliceSystem::maintenance_counters()

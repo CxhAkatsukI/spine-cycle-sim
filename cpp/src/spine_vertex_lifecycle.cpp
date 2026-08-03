@@ -199,8 +199,9 @@ void SpineVertexLifecycle::commit(const CycleContext &context) {
   if (failed_ || phase_ == Phase::kIdle) {
     return;
   }
-  if (operation_.has_value() && operation_->start_cycle == 0) {
+  if (operation_.has_value() && !operation_->started) {
     operation_->start_cycle = context.domain_cycle;
+    operation_->started = true;
     counters_.last_start_cycle = context.domain_cycle;
   }
   if (staged_response_.has_value()) {
@@ -217,7 +218,13 @@ void SpineVertexLifecycle::commit(const CycleContext &context) {
         fail("vertex lifecycle received an unexpected read response");
         return;
       }
-      const std::uint64_t word = decode_word(response.read_data);
+      std::uint64_t word = 0;
+      try {
+        word = decode_word(response.read_data);
+      } catch (const std::logic_error &) {
+        fail("vertex lifecycle received a malformed bitmap response");
+        return;
+      }
       const std::uint64_t index = word_index(operation_->vertex);
       if (word != validity_words_[index]) {
         fail("vertex lifecycle HBM bitmap diverged from committed state");

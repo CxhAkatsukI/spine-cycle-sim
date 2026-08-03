@@ -83,6 +83,7 @@ class SpineVertexLifecycle final : public Component {
     std::uint64_t start_cycle{};
     std::uint64_t bitmap_word{};
     std::uint64_t updated_word{};
+    bool started{};
   };
 
   [[nodiscard]] std::uint64_t word_index(std::uint32_t vertex) const noexcept;

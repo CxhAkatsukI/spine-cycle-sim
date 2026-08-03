@@ -18,6 +18,7 @@
 #include "spine_sim/spine_owner.hpp"
 #include "spine_sim/spine_pagerank.hpp"
 #include "spine_sim/spine_split.hpp"
+#include "spine_sim/spine_vertex_lifecycle.hpp"
 
 namespace spine::sim {
 
@@ -183,7 +184,9 @@ class SpineVerticalSliceSystem {
                            std::optional<AlgorithmInitialState>
                                algorithm_initial_state = std::nullopt,
                            std::optional<SpineOwnerSchedulerConfig>
-                               owner_scheduler_config = std::nullopt);
+                               owner_scheduler_config = std::nullopt,
+                           std::optional<SpineVertexLifecycleConfig>
+                               vertex_lifecycle_config = std::nullopt);
 
   void register_components();
   void restart_device_active_compute(std::vector<std::uint32_t> active_sources);
@@ -205,6 +208,11 @@ class SpineVerticalSliceSystem {
   [[nodiscard]] bool resident_bootstrap_pending() const noexcept;
   [[nodiscard]] SpineSsspRunResult run_sssp_to_convergence(
       std::size_t max_rounds, std::uint64_t max_events_per_round);
+  bool try_activate_vertex(std::uint32_t vertex);
+  bool try_deactivate_vertex(std::uint32_t vertex,
+                             bool incident_edges_retired_or_masked);
+  [[nodiscard]] SpineVertexLifecycleResult run_vertex_lifecycle_to_completion(
+      std::uint64_t max_events);
 
   [[nodiscard]] bool done() const noexcept;
   [[nodiscard]] bool failed() const noexcept;
@@ -218,6 +226,9 @@ class SpineVerticalSliceSystem {
   [[nodiscard]] const SpineSplitSsspCompute &compute() const noexcept;
   [[nodiscard]] const SpineOwnerScheduler *owner_scheduler() const noexcept {
     return owner_scheduler_.get();
+  }
+  [[nodiscard]] const SpineVertexLifecycle *vertex_lifecycle() const noexcept {
+    return vertex_lifecycle_.get();
   }
   [[nodiscard]] const SpineL0State &level_state() const noexcept;
   [[nodiscard]] const FifoStats &edge_stream_stats() const noexcept;
@@ -256,12 +267,14 @@ class SpineVerticalSliceSystem {
   std::unique_ptr<FixedAxiPort> active_out_;
   std::unique_ptr<FixedAxiPort> active_out_reader_;
   std::unique_ptr<FixedAxiPort> active_bitmap_;
+  std::unique_ptr<FixedAxiPort> vertex_validity_;
   std::unique_ptr<FixedAxiPort> compute_result_;
   SpineL0State state_;
   std::unique_ptr<SpineL0Maintenance> maintenance_;
   std::unique_ptr<SpineSplitReader> reader_;
   std::unique_ptr<SpineSplitSsspCompute> compute_;
   std::unique_ptr<SpineOwnerScheduler> owner_scheduler_;
+  std::unique_ptr<SpineVertexLifecycle> vertex_lifecycle_;
   std::unique_ptr<SpineDirtyAck> dirty_ack_;
   std::vector<std::uint32_t> current_frontier_;
   bool registered_{};

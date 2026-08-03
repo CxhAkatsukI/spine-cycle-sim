@@ -132,15 +132,17 @@ For non-tiny workloads, acceptance requires:
 4. [partial] Add lossless reactivation and work-credit quiescence. The SSSP
    simulator path is integrated and correctness-tested; HLS and the other
    algorithm policies remain pending.
-5. [component complete] Add dormant-ID activation and validity-bitmap vertex
-   deactivation. The HBM-backed simulator component is complete but is not yet
-   wired into every graph reader and update path.
+5. [done in simulator SSSP] Add dormant-ID activation and validity-bitmap
+   vertex deactivation. The HBM-backed component is wired into persistent SSSP
+   transactions; PageRank/CC and HLS remain pending.
 6. Run calibration, freeze parameters, and run the holdout.
 7. Specialize the shared shell for SSSP, CC, Residual PageRank, and Full
    PageRank; route and validate each policy kernel.
 
 The integrated SSSP owner evidence and exact reproduction command are in
 `docs/spine_device_owner_scheduler_20260803.md`.
+The corresponding vertex-lifecycle evidence is in
+`docs/spine_vertex_lifecycle_system_20260803.md`.
 
 Payload-distinct parallel edges are deliberately excluded from this version.
 They require a separately versioned record-identity change across sorting,
