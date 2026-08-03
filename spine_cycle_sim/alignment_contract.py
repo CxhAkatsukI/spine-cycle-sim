@@ -389,6 +389,8 @@ def render_hls_contract_header(contract: AlignmentContract) -> str:
         "#ifndef SPINE_PAPER_ARCHITECTURE_CONTRACT_HPP",
         "#define SPINE_PAPER_ARCHITECTURE_CONTRACT_HPP",
         "",
+        "// Generated from spine-cycle-sim/configs/contracts/",
+        "// spine_paper_architecture_alignment_v1.json. Do not edit by hand.",
         f'#define SPINE_ALIGNMENT_CONTRACT_ID "{contract.contract_id}"',
         f'#define SPINE_ALIGNMENT_CONTRACT_SHA256 "{contract.sha256}"',
         f"#define SPINE_ALIGNMENT_ACCELERATOR_MHZ {platform['accelerator_clock_mhz']}",
