@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+import json
 import math
 from pathlib import Path
 import re
@@ -388,3 +389,220 @@ def summarize_refactor31_fpga_runs(
         )
         rows.append(row)
     return rows
+
+
+@dataclass(frozen=True)
+class Refactor31ResidualModel:
+    """Non-negative shell residual added to an execution-driven cycle count."""
+
+    fixed_cycles: float
+    per_round_cycles: float
+
+    def predict(self, raw_cycles: float, rounds: int) -> float:
+        if raw_cycles < 0 or rounds <= 0:
+            raise ValueError("raw_cycles must be non-negative and rounds positive")
+        return raw_cycles + self.fixed_cycles + self.per_round_cycles * rounds
+
+    def to_dict(self) -> dict[str, float]:
+        return {
+            "fixed_cycles": self.fixed_cycles,
+            "per_round_cycles": self.per_round_cycles,
+        }
+
+
+def summarize_refactor31_real_slice_fpga_runs(
+    records: Iterable[Refactor31RealSliceFPGARun], *, required_repeats: int = 5
+) -> dict[str, Any]:
+    """Gate and aggregate repeated real-slice executions from one case."""
+
+    case_records = list(records)
+    if required_repeats <= 0:
+        raise ValueError("required_repeats must be positive")
+    if not case_records:
+        raise ValueError("real-slice FPGA summary requires at least one record")
+    shape_fields = (
+        "slice",
+        "source",
+        "vertices",
+        "graph_edges",
+        "resident_level",
+        "rounds",
+        "processed_edges",
+    )
+    shape_consistent = all(
+        getattr(record, field) == getattr(case_records[0], field)
+        for record in case_records[1:]
+        for field in shape_fields
+    )
+    admitted = [record for record in case_records if record.correctness_admitted]
+    row: dict[str, Any] = {
+        "case": Path(case_records[0].slice).stem,
+        "samples": len(case_records),
+        "correctness_admitted_samples": len(admitted),
+        "required_repeats": required_repeats,
+        "shape_consistent": int(shape_consistent),
+        "repeat_gate": int(len(case_records) >= required_repeats),
+        "correctness_gate": int(len(admitted) == len(case_records)),
+    }
+    for field in shape_fields:
+        row[field] = getattr(case_records[0], field)
+    for field in ("reader_cycles", "compute_cycles", "paired_cycles"):
+        values = [float(getattr(record, field)) for record in admitted]
+        row[f"median_{field}"] = round(statistics.median(values)) if values else ""
+        row[f"{field.removesuffix('_cycles')}_cv_pct"] = (
+            _cv_pct(values) if values else math.nan
+        )
+    row["calibration_admitted"] = int(
+        shape_consistent
+        and bool(row["repeat_gate"])
+        and bool(row["correctness_gate"])
+    )
+    return row
+
+
+def load_refactor31_resident_sim_summary(path_value: str | Path) -> dict[str, Any]:
+    """Recover the event-equivalent timing spans from one resident simulation."""
+
+    path = Path(path_value).resolve()
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    rounds = int(payload.get("rounds", 0))
+    starts = [int(value) for value in payload.get("reader_start_cycles_per_round", [])]
+    reader_ends = [
+        int(value) for value in payload.get("reader_end_cycles_per_round", [])
+    ]
+    compute_ends = [
+        int(value) for value in payload.get("compute_end_cycles_per_round", [])
+    ]
+    if not payload.get("resident_static_sssp", False):
+        raise ValueError(f"{path}: not a resident-static SSSP result")
+    if rounds <= 0 or not (
+        len(starts) == len(reader_ends) == len(compute_ends) == rounds
+    ):
+        raise ValueError(f"{path}: invalid per-round timing shape")
+    if any(
+        start < 0 or reader_end < start or compute_end < start
+        for start, reader_end, compute_end in zip(starts, reader_ends, compute_ends)
+    ):
+        raise ValueError(f"{path}: invalid per-round timing interval")
+    mismatch_fields = (
+        "correctness_mismatches",
+        "architecture_correctness_mismatches",
+        "mathematical_correctness_mismatches",
+    )
+    correctness_admitted = all(
+        int(payload.get(field, -1)) == 0 for field in mismatch_fields
+    )
+    ledger_admitted = all(
+        bool(payload.get(field, False))
+        for field in (
+            "maintenance_memory_ledger_closed",
+            "maintenance_stage_ledger_closed",
+            "memory_locality_ledger_match",
+        )
+    ) and bool(payload.get("backend_arbitration", {}).get("ledger_closed", False))
+    return {
+        "source_summary": str(path),
+        "rounds": rounds,
+        "resident_level": int(payload["resident_static_level"]),
+        "raw_reader_cycles": sum(
+            reader_end - start for start, reader_end in zip(starts, reader_ends)
+        ),
+        "raw_compute_cycles": sum(
+            compute_end - start for start, compute_end in zip(starts, compute_ends)
+        ),
+        "raw_paired_cycles": sum(
+            max(reader_end, compute_end) - start
+            for start, reader_end, compute_end in zip(
+                starts, reader_ends, compute_ends
+            )
+        ),
+        "processed_edges": sum(
+            int(value) for value in payload.get("processed_edges_per_round", [])
+        ),
+        "correctness_admitted": int(correctness_admitted),
+        "ledger_admitted": int(ledger_admitted),
+    }
+
+
+def fit_refactor31_residual_model(
+    rows: Iterable[dict[str, Any]], *, actual_field: str, raw_field: str
+) -> Refactor31ResidualModel:
+    """Fit ``actual - raw = fixed + rounds * per_round`` with NNLS."""
+
+    samples = list(rows)
+    if len(samples) < 2:
+        raise ValueError("residual model requires at least two calibration rows")
+    x = [float(row["rounds"]) for row in samples]
+    y = [float(row[actual_field]) - float(row[raw_field]) for row in samples]
+    if any(rounds <= 0 for rounds in x):
+        raise ValueError("residual model rounds must be positive")
+
+    mean_x = statistics.fmean(x)
+    mean_y = statistics.fmean(y)
+    centered = sum((value - mean_x) ** 2 for value in x)
+    if centered > 0:
+        per_round = sum(
+            (rounds - mean_x) * (residual - mean_y)
+            for rounds, residual in zip(x, y)
+        ) / centered
+        fixed = mean_y - per_round * mean_x
+    else:
+        fixed, per_round = mean_y, 0.0
+
+    candidates = [
+        (max(0.0, fixed), max(0.0, per_round)),
+        (max(0.0, mean_y), 0.0),
+        (0.0, max(0.0, sum(a * b for a, b in zip(x, y)) / sum(a * a for a in x))),
+        (0.0, 0.0),
+    ]
+    best_fixed, best_per_round = min(
+        candidates,
+        key=lambda pair: sum(
+            (residual - pair[0] - pair[1] * rounds) ** 2
+            for rounds, residual in zip(x, y)
+        ),
+    )
+    return Refactor31ResidualModel(best_fixed, best_per_round)
+
+
+def refactor31_absolute_error_percent(actual: float, predicted: float) -> float:
+    if actual <= 0:
+        raise ValueError("actual cycles must be positive")
+    return abs(predicted - actual) / actual * 100.0
+
+
+def refactor31_spearman(actual: Iterable[float], predicted: Iterable[float]) -> float:
+    """Spearman rho with average ranks for ties."""
+
+    left = list(actual)
+    right = list(predicted)
+    if len(left) != len(right) or len(left) < 2:
+        raise ValueError("Spearman inputs require equal lengths of at least two")
+
+    def ranks(values: list[float]) -> list[float]:
+        ordered = sorted(range(len(values)), key=lambda index: values[index])
+        output = [0.0] * len(values)
+        start = 0
+        while start < len(ordered):
+            end = start + 1
+            while end < len(ordered) and values[ordered[end]] == values[ordered[start]]:
+                end += 1
+            rank = (start + 1 + end) / 2.0
+            for position in range(start, end):
+                output[ordered[position]] = rank
+            start = end
+        return output
+
+    left_rank = ranks(left)
+    right_rank = ranks(right)
+    left_mean = statistics.fmean(left_rank)
+    right_mean = statistics.fmean(right_rank)
+    numerator = sum(
+        (a - left_mean) * (b - right_mean)
+        for a, b in zip(left_rank, right_rank)
+    )
+    denominator = math.sqrt(
+        sum((value - left_mean) ** 2 for value in left_rank)
+        * sum((value - right_mean) ** 2 for value in right_rank)
+    )
+    return 0.0 if denominator == 0 else numerator / denominator
