@@ -14,6 +14,7 @@ add_library(spine_cycle_core STATIC
   src/spine_pagerank.cpp
   src/spine_split.cpp
   src/spine_system.cpp
+  src/spine_vertex_lifecycle.cpp
 )
 
 target_include_directories(spine_cycle_core PUBLIC include)
@@ -33,6 +34,11 @@ if(BUILD_TESTING)
   target_link_libraries(spine_owner_tests PRIVATE spine_cycle_core)
   target_compile_options(spine_owner_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
   add_test(NAME spine_owner_tests COMMAND spine_owner_tests)
+
+  add_executable(spine_vertex_lifecycle_tests tests/spine_vertex_lifecycle_tests.cpp)
+  target_link_libraries(spine_vertex_lifecycle_tests PRIVATE spine_cycle_core)
+  target_compile_options(spine_vertex_lifecycle_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
+  add_test(NAME spine_vertex_lifecycle_tests COMMAND spine_vertex_lifecycle_tests)
 
   add_executable(grasu_cycle_tests tests/grasu_tests.cpp)
   target_link_libraries(grasu_cycle_tests PRIVATE spine_cycle_core)
