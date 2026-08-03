@@ -50,7 +50,7 @@ class ArchitectureProfileTests(unittest.TestCase):
 
     def test_repository_profiles_load_and_have_unique_ids(self) -> None:
         loaded = [load_architecture_profile(path) for path in sorted(PROFILES.glob("*.json"))]
-        self.assertEqual(len(loaded), 56)
+        self.assertEqual(len(loaded), 57)
         self.assertEqual(len({profile.profile_id for profile in loaded}), len(loaded))
         self.assertTrue(all(profile.manifest_sha256 for profile in loaded))
         packed_ids = {
@@ -95,6 +95,30 @@ class ArchitectureProfileTests(unittest.TestCase):
             "551ed1e89755a8b97725efa4003e28007eabd66abb73f480c6ee087a627b9666",
         )
         self.assertEqual(verify_profile_artifacts(profile), [])
+
+    def test_refactor31_profile_is_a_hash_pinned_calibration_baseline(self) -> None:
+        profile = load_architecture_profile(
+            PROFILES / "spine_refactor31_routed_native_v1.json"
+        )
+        self.assertEqual(profile.status, ProfileStatus.STABLE)
+        self.assertEqual(profile.evidence_tier, EvidenceTier.HARDWARE_VALIDATED)
+        self.assertTrue(profile.source.dirty)
+        self.assertEqual(profile.clock("data").achieved_mhz, 160.0)
+        self.assertEqual(
+            profile.parameters["comparison_role"], "fpga_calibration_baseline"
+        )
+        self.assertEqual(profile.parameters["families"], 32)
+        self.assertEqual(profile.parameters["levels"], 11)
+        self.assertEqual(profile.parameters["edge_stream_depth"], 32)
+        self.assertTrue(profile.parameters["device_active_membership"])
+        self.assertFalse(profile.parameters["complete_owner_scheduler"])
+        self.assertFalse(profile.parameters["work_credit_quiescence"])
+        evidence = {artifact.kind: artifact for artifact in profile.evidence}
+        self.assertEqual(
+            evidence["routed_xclbin"].sha256,
+            "16ca09f5597d974e6963ac19ada4f59a8e2b0d6b7ef5ea8f668e5ffb520a1629",
+        )
+        self.assertEqual(verify_profile_artifacts(profile, repository_root=ROOT), [])
 
     def test_candidate10_normalized_profile_preserves_native_lineage(self) -> None:
         parent = load_architecture_profile(

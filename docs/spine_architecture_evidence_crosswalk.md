@@ -1,7 +1,7 @@
 # Spine Architecture and Evidence Crosswalk
 
 **Owning repository:** `spine-cycle-sim`
-**Audit date:** 2026-07-31
+**Audit date:** 2026-07-31; superseding alignment update: 2026-08-03
 **Purpose:** provide a paper-editing authority for distinguishing the architecture
 described by the Delta.hls manuscript from the native Candidate10 HLS prototype,
 the opt-v2 HLS optimization, and the architecture actually used by the formal-v7
@@ -9,6 +9,45 @@ cycle-level performance experiments.
 
 The manuscript audited here is `/home/chuxiao/texpage-deltahls`; unqualified
 `sections/...` paths below are relative to that repository.
+
+## 0. Superseding 2026-08-03 alignment authority
+
+The detailed formal-v7 audit below remains useful historical evidence, but its
+paper paths and several active-set statements predate the device-timed
+correction. New alignment work is governed by the machine-readable contract:
+
+```text
+configs/contracts/spine_paper_architecture_alignment_v1.json
+contract SHA-256: 6358e13196d7c65007eb0c49b198ecae5e9935b7feacaa6d0faa78ed41ecc8b2
+paper revision: dc34c54574b645273106eb974a3fa5b78f380c03
+```
+
+That paper revision now describes the evaluated 16-cold plus 16-hot family
+organization, endpoint-keyed records, device-generated active membership, and
+host re-binning/relaunch outside the device-cycle interval. The contract is the
+fail-closed authority when the historical prose below disagrees with it.
+
+Progress since the original audit is explicit:
+
+- the simulator now times device-generated SSSP/CC active frontiers and
+  Residual PageRank correction, seed, and active publication;
+- the routed refactor31 HLS artifact implements a device dirty frontier, HBM
+  active bitmap, bounded split streams, and segmented exact fallback at
+  160 MHz;
+- the exact refactor31 source was reconstructed on
+  `codex/paper-architecture-alignment` from base revision `cc7e3f95` and the
+  frozen source diff;
+- the complete per-key `queued/in_flight/dirty` owner scheduler, lossless
+  reactivation protocol, and work-credit quiescence remain the primary shared
+  simulator/HLS gap;
+- dormant-ID vertex activation and validity-bitmap deactivation are required by
+  the target contract but are not part of refactor31; and
+- payload-distinct parallel weighted edges remain a separately versioned
+  extension because refactor31 groups records by `(src,dst)`.
+
+The refactor31 profile is a preliminary FPGA calibration baseline. It must not
+be used as the final paper-aligned architecture or silently mixed with the
+150-MHz target profile.
 
 This document is intentionally conservative. It does not say that the current
 results are invalid. It says exactly which artifact supports each claim, where

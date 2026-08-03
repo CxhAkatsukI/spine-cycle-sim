@@ -1,0 +1,171 @@
+{
+  "schema_version": 1,
+  "contract_id": "spine_paper_architecture_alignment_v1",
+  "status": "frozen",
+  "authority": {
+    "paper_repository": "https://git.texpage.com/ab7f60e6-eb88-40ac-a128-5113deeb827f.git",
+    "paper_revision": "dc34c54574b645273106eb974a3fa5b78f380c03",
+    "paper_dirty": false,
+    "paper_files": [
+      {
+        "path": "sections/01NN_introduction.tex",
+        "sha256": "0558183b3fa751423530a681d739ad79fabe9f04c4693b99323308ea7198699e"
+      },
+      {
+        "path": "sections/02NN_programming_contract.tex",
+        "sha256": "f0c15dfb7c7903fe8e977e2dcb3f20295ba7472f4ac46868e6c0a8c1b3b48040"
+      },
+      {
+        "path": "sections/03NN_compiler_lowering.tex",
+        "sha256": "b4cdda86b214728f7f0bc1185899720df0b51e10698512dd1a3b422e1042f468"
+      },
+      {
+        "path": "sections/04NN_latest_view_hierarchy.tex",
+        "sha256": "fa9f82332bc507dd93d72d09d9586d7868360cd3a6a57054dc5bbc60b3955591"
+      },
+      {
+        "path": "sections/05NN_transactional_execution.tex",
+        "sha256": "b160e8cc01ebc2bf020617a72c21dbc4a9889a3a88fd7b0641428aa1f42410d7"
+      },
+      {
+        "path": "sections/06NN_evaluation.tex",
+        "sha256": "dd260249d0daa13065d367cd17fa2e8a64a4b0359b590e6a1c13a73ffbadb883"
+      }
+    ]
+  },
+  "platform": {
+    "accelerator_clock_mhz": 150,
+    "hbm_clock_mhz": 450,
+    "hbm_pseudo_channels": 32,
+    "hbm_pseudo_channel_budget": 23,
+    "hbm_channel_capacity_bytes": 536870912,
+    "axi_data_width_bits": 512,
+    "axi_max_burst_bytes": 1024,
+    "axi_max_outstanding_per_port": 32
+  },
+  "organization": {
+    "vertex_partitions": 16,
+    "cold_families": 16,
+    "hot_families": 16,
+    "families": 32,
+    "levels": 11,
+    "level_ratio": 2,
+    "compute_lanes": 4,
+    "tile_vertices": 65536,
+    "max_vertices": 16777216,
+    "graph_hbm_channels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "control_hbm_channels": {
+      "sorted_edges": 16,
+      "vertex_state": 17,
+      "active_bins": 18,
+      "active_out": 19,
+      "metadata": 20,
+      "result": 21,
+      "active_bitmap": 22
+    },
+    "finite_queues": {
+      "edge_stream_depth": 32,
+      "value_stream_depth": 32,
+      "command_fifo_depth": 256,
+      "owner_fifo_depth_per_partition": 256,
+      "reactivation_fifo_depth_per_partition": 256
+    }
+  },
+  "scheduler": {
+    "owner_state_bits": [
+      "queued",
+      "in_flight",
+      "dirty"
+    ],
+    "device_determines_active_membership": true,
+    "host_may_rebin_device_ids": true,
+    "host_may_recompute_active_membership": false,
+    "no_lost_reactivation": true,
+    "finite_fifo_backpressure": true,
+    "work_credit_quiescence": true
+  },
+  "execution_boundary": {
+    "start": "accepted_sorted_update_batch_resident_in_device_memory",
+    "stop": "new_result_version_published_after_device_quiescence",
+    "included": [
+      "maintenance",
+      "device_active_generation",
+      "pagerank_correction_and_seed",
+      "reader",
+      "map_reduce_apply",
+      "reactivation",
+      "drain_and_sync"
+    ],
+    "excluded": [
+      "initial_graph_bootstrap",
+      "external_sort",
+      "host_to_device_dma",
+      "command_launch",
+      "event_wait",
+      "host_rebin_and_relaunch",
+      "optional_result_readback"
+    ]
+  },
+  "graph_semantics": {
+    "edge_identity": "endpoint_keyed_src_dst",
+    "payload_distinct_parallel_edges": "deferred_extension",
+    "fixed_vertex_capacity": true,
+    "vertex_lifecycle": "dormant_id_activation_and_validity_bitmap_deactivation",
+    "vertex_delete_incident_edges": "must_be_retired_or_masked_before_publication",
+    "pagerank_vertex_universe": "fixed_capacity_active_validity_domain"
+  },
+  "algorithms": {
+    "required": [
+      "weighted_sssp",
+      "connected_components",
+      "thresholded_residual_pagerank",
+      "full_pagerank"
+    ],
+    "shared_shell": true,
+    "specialized_policy_kernels": true,
+    "residual_pagerank_threshold": 1e-06,
+    "pagerank_damping": 0.85
+  },
+  "validation": {
+    "fpga_repeats_per_case": 5,
+    "non_tiny_total_cycle_median_error_percent_max": 15,
+    "non_tiny_total_cycle_error_percent_max": 30,
+    "component_cycle_median_error_percent_max": 20,
+    "workload_rank_spearman_min": 0.9,
+    "system_memory_reserve_gib": 32,
+    "calibration_edge_scales": [
+      100000,
+      500000,
+      1000000,
+      4000000
+    ],
+    "holdout_edge_scale_min": 2000000,
+    "holdout_edge_scale_max": 8000000,
+    "holdout_is_immutable": true
+  },
+  "provenance": {
+    "refactor31_base_revision": "cc7e3f95ee9209a8f3f0435493f34e214de50b3d",
+    "refactor31_source_diff_sha256": "82e31d80a91d733bc79aa21d2deb990bab31371403b1a0d34950639680840283",
+    "refactor31_xclbin_sha256": "16ca09f5597d974e6963ac19ada4f59a8e2b0d6b7ef5ea8f668e5ffb520a1629",
+    "refactor31_clock_mhz": 160,
+    "simulator_branch": "codex/paper-architecture-alignment",
+    "hls_branch": "codex/paper-architecture-alignment"
+  }
+}
