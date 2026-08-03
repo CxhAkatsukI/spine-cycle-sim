@@ -190,12 +190,12 @@ The classification column uses:
 | Cross-level latest view | Family-local signed `k`-way resolver emits each full record exactly once | Endpoint-keyed carry coalescing; complete generic resolver is not evidenced | Supported endpoint semantics are correctness-gated; complete generic full-record resolver is absent | D | Preserve an explicit limitation; do not attribute generic latest-view correctness to the current E2E figure |
 | Exact tile path | Bounded row-service datapath implied by target | Exact range-task path with active gate | Gate is 32,768 in opt-v2; finite FIFO/AXI/HBM path modeled | A/B | Describe as an evaluated microarchitecture detail and disclose gate capacity |
 | Fallback tile path | Target fallback semantics at policy level | Full-tile load/replay/store and host handoff at finite limits | Fallback metadata reuse and source-page cache modeled | A/B/C | Separate device fallback work from untimed host fallback preparation |
-| Active discovery | Device-resident policy/scheduler derives work | Persistent dirty frontier exists, but later rounds may use `HOST_ACTIVE` | Device-dirty first round plus host-built bins/relaunched rounds in relevant paths | C | Remove unqualified `all feedback rounds remain on device` from claims tied to these results |
-| Per-key scheduler | Owner FIFO, `queued/in_flight/dirty`, no lost reactivation | Dirty bitmap/list and bounded reader/compute paths, not the complete target owner state machine | Simulator tracks active work but host relaunch remains visible in system code | D/C | Label the complete scheduler and work-credit protocol as target-only unless separately implemented |
+| Active discovery | Device-resident policy/scheduler derives work | Persistent dirty frontier exists, but later rounds may use `HOST_ACTIVE` | Existing evaluated rows retain their documented boundaries; the alignment branch now has an opt-in SSSP owner path in which compute generates and handshakes every later active ID | C/B | Do not retroactively relabel old rows; use the new profile only after separate calibration |
+| Per-key scheduler | Owner FIFO, `queued/in_flight/dirty`, no lost reactivation | Dirty bitmap/list and bounded reader/compute paths, not the complete target owner state machine | Opt-in SSSP path now models finite per-partition ingress/reactivation FIFOs, HBM-backed ready/deferred lists, lossless dirty requeue, and credits; HLS is pending | B/D | Calibrate the new simulator profile and implement the same protocol in HLS before an implementation claim |
 | Atomic state transition | Destination-owned atomic update for generated map/reduce | Weighted-SSSP compute datapath and finite stream path | Algorithm policy models execute SSSP, CC, Full PR, and Residual PR | C | Claim simulator correctness for algorithms; claim HLS feasibility only for the available shells |
 | PageRank degree/correction | Old/new row replay, private degree image, bounded seed buffer | Not a complete routed target PageRank transaction | Simulator host preparation builds active bins/out-degrees; algorithm execution is modeled | C/D | Do not say target PageRank seed/publication pipeline is implemented by the current Spine xclbin |
 | Atomic topology bank switch | Shadow descriptor banks, precommit fence, one selector write | No complete matching transaction controller | Not represented as one matched complete HLS module graph | D | Keep as proposed target mechanism or implement and cost it; exclude it from supported measured claims |
-| Global quiescence | Device work credits, FIFO/dirty/in-flight drain | Kernel/round completion plus host control | Simulator drains modeled device queues but relaunches rounds from host | C/D | Define the actual completion boundary; do not claim the target credit protocol is evaluated |
+| Global quiescence | Device work credits, FIFO/dirty/in-flight drain | Kernel/round completion plus host control | Opt-in SSSP runs require the owner credit ledger plus all modeled AXI/FIFO paths to close; host re-bin/relaunch remains outside device cycles as the paper now states | B/D | Keep host-inclusive and device-cycle boundaries separate; HLS evidence remains required |
 | Algorithms | Generated SSSP, CC, residual PageRank policies | Routed Spine evidence is primarily weighted SSSP | Four algorithm policies are cycle-simulated and dual-oracle checked | C | Separate algorithm-level simulator support from algorithm-specific HLS generation support |
 | Timing identity | Complete generated accelerator | Routed native SSSP Candidate10 | Routed opt-v2 SSSP core exists, but formal-v7 also includes later behavior and simulator orchestration | C | Call route evidence an implementation/feasibility anchor, not cycle calibration of the complete plotted system |
 
@@ -349,11 +349,16 @@ However, the formal simulator system also:
   paths, even though HBM reads of the published active records are timed.
 
 The target paper instead specifies owner FIFOs, `queued/in_flight/dirty` state,
-fair arbitration, reactivation, work credits, and device global drain.
+fair arbitration, reactivation, work credits, and device global drain. The
+paper-alignment branch now implements these mechanisms as an opt-in SSSP
+simulator profile. It does not alter the historical result rows and has not yet
+been mirrored into HLS or the PageRank/CC systems.
 
-**Why it matters:** the simulator times the modeled accelerator work, but not a
-complete CPU-plus-device deployment. It also does not validate the target claim
-that every feedback round remains on device.
+**Why it matters:** the historical simulator rows time modeled accelerator
+work, not a complete CPU-plus-device deployment. The new profile closes the
+SSSP per-key credit ledger while retaining the paper's explicit host
+re-bin/relaunch boundary; it still needs calibration before replacing those
+rows.
 
 **Recommended edit:** replace unqualified claims such as `the target keeps all
 feedback rounds on device` with one of the following:

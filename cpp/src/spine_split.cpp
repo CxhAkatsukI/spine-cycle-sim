@@ -1,5 +1,7 @@
 #include "spine_sim/spine_split.hpp"
 
+#include "spine_sim/spine_owner.hpp"
+
 #include <algorithm>
 #include <bit>
 #include <limits>
@@ -3599,7 +3601,8 @@ SpineSplitSsspCompute::SpineSplitSsspCompute(
     std::size_t memory_request_window, std::size_t writeonly_request_window,
     SpineOnChipMemoryProfile on_chip_profile,
     std::shared_ptr<const GraphAlgorithmPolicy> algorithm_policy,
-    std::optional<AlgorithmInitialState> initial_state)
+    std::optional<AlgorithmInitialState> initial_state,
+    SpineOwnerScheduler *owner_scheduler)
     : Component(std::move(name), clock_id),
       vertices_(vertices),
       source_(source),
@@ -3619,6 +3622,7 @@ SpineSplitSsspCompute::SpineSplitSsspCompute(
       ports_(ports),
       edge_in_(edge_in),
       value_out_(value_out),
+      owner_scheduler_(owner_scheduler),
       values_(vertices) {
   if (vertices_ == 0 || source_ >= vertices_ || tiny_threshold_ == 0 ||
       memory_request_window_ == 0 || writeonly_request_window_ == 0 ||
@@ -3751,6 +3755,7 @@ void SpineSplitSsspCompute::evaluate(const CycleContext &context) {
   staged_action_ = Action::kNone;
   staged_memory_issue_ = false;
   staged_full_tile_read_beat_valid_ = false;
+  staged_owner_activation_ = false;
   staged_responses_.clear();
   if (done_ || failed_) {
     return;
@@ -3835,6 +3840,21 @@ void SpineSplitSsspCompute::evaluate(const CycleContext &context) {
     }
   } else if (memory_active) {
     return;
+  }
+  if (owner_scheduler_ != nullptr && !pending_vs_reads_.empty()) {
+    const PendingVsRead &request = pending_vs_reads_.front();
+    const bool memory_slot_available =
+        memory_tasks_.empty() ||
+        (memory_tasks_.size() == 1 && staged_memory_issue_);
+    if (request.purpose == VsReadPurpose::kActiveEmit &&
+        request.due_cycle <= context.domain_cycle && memory_slot_available) {
+      ++counters_.owner_activation_attempts;
+      staged_owner_activation_ = owner_scheduler_->try_activate(request.vertex);
+      if (!staged_owner_activation_) {
+        ++counters_.owner_activation_backpressure_cycles;
+        return;
+      }
+    }
   }
   if (source_reply_pending_) {
     staged_value_word_ = SourceValueWord{.kind = pending_value_kind_,
@@ -4537,7 +4557,14 @@ void SpineSplitSsspCompute::advance_on_chip_pipelines(
         ++counters_.scattered_vertex_words;
         ++counters_.sparse_store_writes_generated;
       } else {
+        if (owner_scheduler_ != nullptr && !staged_owner_activation_) {
+          count_on_chip_pipeline_stall(context.domain_cycle);
+          return;
+        }
         enqueue_active_output(request.vertex);
+        if (owner_scheduler_ != nullptr) {
+          ++counters_.owner_activations_accepted;
+        }
       }
       pending_vs_reads_.pop_front();
     } else {

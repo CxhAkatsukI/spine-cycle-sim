@@ -15,6 +15,7 @@
 #include "spine_sim/scheduler.hpp"
 #include "spine_sim/spine_dirty.hpp"
 #include "spine_sim/spine_l0.hpp"
+#include "spine_sim/spine_owner.hpp"
 #include "spine_sim/spine_pagerank.hpp"
 #include "spine_sim/spine_split.hpp"
 
@@ -111,6 +112,10 @@ struct SpineSsspRunResult {
   std::vector<SpineSsspRoundEvidence> rounds;
   std::vector<SpineHostHandoffEvidence> host_handoffs;
   std::optional<SpineDirtyAckCounters> dirty_ack;
+  std::optional<SpineOwnerSchedulerStats> owner_scheduler;
+  bool owner_ledger_closed{};
+  bool owner_quiescent{};
+  std::uint64_t owner_control_cycles{};
   std::uint64_t start_cycle{};
   std::uint64_t end_cycle{};
 };
@@ -176,7 +181,9 @@ class SpineVerticalSliceSystem {
                            SpineOnChipMemoryProfile on_chip_profile = {},
                            bool initial_host_active = false,
                            std::optional<AlgorithmInitialState>
-                               algorithm_initial_state = std::nullopt);
+                               algorithm_initial_state = std::nullopt,
+                           std::optional<SpineOwnerSchedulerConfig>
+                               owner_scheduler_config = std::nullopt);
 
   void register_components();
   void restart_device_active_compute(std::vector<std::uint32_t> active_sources);
@@ -209,6 +216,9 @@ class SpineVerticalSliceSystem {
   [[nodiscard]] const SpineDirtyAckCounters &dirty_ack_counters() const
       noexcept;
   [[nodiscard]] const SpineSplitSsspCompute &compute() const noexcept;
+  [[nodiscard]] const SpineOwnerScheduler *owner_scheduler() const noexcept {
+    return owner_scheduler_.get();
+  }
   [[nodiscard]] const SpineL0State &level_state() const noexcept;
   [[nodiscard]] const FifoStats &edge_stream_stats() const noexcept;
   [[nodiscard]] const FifoStats &value_stream_stats() const noexcept;
@@ -223,6 +233,12 @@ class SpineVerticalSliceSystem {
   [[nodiscard]] std::unique_ptr<FixedAxiPort> make_port(
       const std::string &name, std::uint32_t initiator_id, std::size_t channel,
       SpineAxiPortKind kind);
+  void advance_owner_control_cycle(std::uint64_t max_events);
+  [[nodiscard]] std::vector<std::uint32_t> owner_admit_and_dispatch(
+      const std::vector<std::uint32_t> &frontier, bool admit,
+      std::uint64_t max_events);
+  void owner_complete_frontier(const std::vector<std::uint32_t> &frontier,
+                               std::uint64_t max_events);
 
   Scheduler &scheduler_;
   ClockId clock_id_{};
@@ -245,11 +261,13 @@ class SpineVerticalSliceSystem {
   std::unique_ptr<SpineL0Maintenance> maintenance_;
   std::unique_ptr<SpineSplitReader> reader_;
   std::unique_ptr<SpineSplitSsspCompute> compute_;
+  std::unique_ptr<SpineOwnerScheduler> owner_scheduler_;
   std::unique_ptr<SpineDirtyAck> dirty_ack_;
   std::vector<std::uint32_t> current_frontier_;
   bool registered_{};
   bool convergence_run_started_{};
   bool resident_bootstrap_pending_{};
+  std::uint64_t owner_control_cycles_{};
 };
 
 class SpinePageRankVerticalSliceSystem {

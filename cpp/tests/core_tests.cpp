@@ -114,6 +114,7 @@ using spine::sim::SpineMaintenanceArchitecture;
 using spine::sim::SpineLevelLayout;
 using spine::sim::SpineMetadataLayout;
 using spine::sim::SpineOnChipMemoryProfile;
+using spine::sim::SpineOwnerSchedulerConfig;
 using spine::sim::SpinePageRankVerticalSliceSystem;
 using spine::sim::SpineSplitPageRankCompute;
 using spine::sim::SpineReaderCounters;
@@ -6888,6 +6889,70 @@ void test_spine_multiround_weighted_sssp_converges() {
           "multi-round SSSP repeated maintenance or mutated graph levels");
 }
 
+void test_spine_device_owner_scheduler_closes_multiround_ledger() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("owner-data", 150.0);
+  MockMemoryBackend backend("owner-hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 3,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  const std::filesystem::path fixture =
+      std::filesystem::path(SPINE_SOURCE_DIR) / "tests" / "data" /
+      "weighted_chain_shortcut.slice";
+  SpineVerticalSliceSystem system(
+      scheduler, core, backend, load_spine_edge_slice(fixture), 0, 4'096,
+      SpineL0Config{}, SpineL0State{}, SpineAxiInterfaceProfile{},
+      SpineSplitSsspCompute::kDefaultMemoryRequestWindow,
+      SpineSplitSsspCompute::kDefaultWriteOnlyRequestWindow,
+      SpineOnChipMemoryProfile{}, false, std::nullopt,
+      SpineOwnerSchedulerConfig{
+          .max_vertices = 64,
+          .partitions = 1,
+          .vertices_per_partition = 64,
+          .owner_fifo_depth = 1,
+          .reactivation_fifo_depth = 1,
+      });
+  system.register_components();
+  scheduler.add_component(backend);
+
+  const SpineSsspRunResult result =
+      system.run_sssp_to_convergence(16, 10'000'000);
+  std::uint64_t emitted = 0;
+  for (const auto &round : result.rounds) {
+    emitted += round.active_out.size();
+    std::cout << "EVIDENCE spine_owner_round round=" << round.round
+              << " active_out=" << round.active_out.size()
+              << " owner_attempts="
+              << round.compute.owner_activation_attempts
+              << " owner_accepted="
+              << round.compute.owner_activations_accepted
+              << " owner_stalls="
+              << round.compute.owner_activation_backpressure_cycles << '\n';
+    require(round.compute.owner_activation_attempts ==
+                    round.compute.owner_activations_accepted +
+                        round.compute.owner_activation_backpressure_cycles &&
+                round.compute.owner_activations_accepted ==
+                    round.active_out.size(),
+            "device-generated frontier bypassed the owner handshake");
+  }
+
+  require(result.converged && !result.failed && result.owner_scheduler.has_value() &&
+              result.owner_ledger_closed && result.owner_quiescent &&
+              result.owner_control_cycles > 0 &&
+              result.owner_scheduler->work_credits_created == emitted + 1 &&
+              result.owner_scheduler->work_credits_created ==
+                  result.owner_scheduler->work_credits_retired &&
+              result.owner_scheduler->dispatches ==
+                  result.owner_scheduler->completions &&
+              system.compute().values() ==
+                  std::vector<std::uint32_t>({0, 3, 2, 7, 8, 10}),
+          "device owner scheduling lost work, credit, or SSSP correctness");
+}
+
 void test_spine_incremental_update_reuses_persistent_system() {
   Scheduler scheduler;
   const auto core = scheduler.add_clock_mhz("data", 141.0);
@@ -9366,6 +9431,8 @@ int main(int argc, char **argv) {
        test_spine_hls_metadata_and_active_record_abi},
       {"spine_multiround_weighted_sssp",
        test_spine_multiround_weighted_sssp_converges},
+      {"spine_device_owner_multiround",
+       test_spine_device_owner_scheduler_closes_multiround_ledger},
       {"spine_incremental_update",
        test_spine_incremental_update_reuses_persistent_system},
       {"spine_nonmonotonic_full_rebuild",

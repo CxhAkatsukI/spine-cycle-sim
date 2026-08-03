@@ -938,7 +938,8 @@ SpineVerticalSliceSystem::SpineVerticalSliceSystem(
     std::size_t compute_memory_request_window,
     std::size_t compute_writeonly_request_window,
     SpineOnChipMemoryProfile on_chip_profile, bool initial_host_active,
-    std::optional<AlgorithmInitialState> algorithm_initial_state)
+    std::optional<AlgorithmInitialState> algorithm_initial_state,
+    std::optional<SpineOwnerSchedulerConfig> owner_scheduler_config)
     : scheduler_(scheduler), clock_id_(clock_id), backend_(backend),
       axi_profile_(std::move(axi_profile)),
       source_(source),
@@ -992,6 +993,14 @@ SpineVerticalSliceSystem::SpineVerticalSliceSystem(
   reader_ports.result = maintenance_result_.get();
 
   const std::size_t vertices = workload.vertices;
+  if (owner_scheduler_config.has_value()) {
+    if (owner_scheduler_config->max_vertices < vertices) {
+      throw std::invalid_argument(
+          "Spine owner scheduler does not cover the graph vertex domain");
+    }
+    owner_scheduler_ = std::make_unique<SpineOwnerScheduler>(
+        "spine-device-owner", clock_id_, *owner_scheduler_config);
+  }
   const auto algorithm_policy = std::make_shared<const GraphAlgorithmPolicy>(
       AlgorithmPolicyConfig{
           .kind = GraphAlgorithmKind::kWeightedSssp,
@@ -1017,7 +1026,7 @@ SpineVerticalSliceSystem::SpineVerticalSliceSystem(
       },
       edge_stream_, value_stream_, compute_memory_request_window,
       compute_writeonly_request_window, on_chip_profile, algorithm_policy,
-      std::move(algorithm_initial_state));
+      std::move(algorithm_initial_state), owner_scheduler_.get());
   if (initial_host_active) {
     SpineActiveBins bins = build_spine_host_active_bins(
         state_, maintenance_->config(), current_frontier_, compute_->values());
@@ -1050,6 +1059,9 @@ void SpineVerticalSliceSystem::register_components() {
   scheduler_.add_component(*maintenance_);
   scheduler_.add_component(*reader_);
   scheduler_.add_component(*compute_);
+  if (owner_scheduler_ != nullptr) {
+    scheduler_.add_component(*owner_scheduler_);
+  }
   scheduler_.add_component(*dirty_ack_);
   scheduler_.add_component(edge_stream_);
   scheduler_.add_component(value_stream_);
@@ -1065,6 +1077,113 @@ void SpineVerticalSliceSystem::register_components() {
   active_out_reader_->register_components(scheduler_);
   compute_result_->register_components(scheduler_);
   active_bitmap_->register_components(scheduler_);
+}
+
+void SpineVerticalSliceSystem::advance_owner_control_cycle(
+    std::uint64_t max_events) {
+  const std::uint64_t before = scheduler_.clock(clock_id_).completed_cycles;
+  scheduler_.run_until(
+      [this, before] {
+        return scheduler_.clock(clock_id_).completed_cycles > before;
+      },
+      max_events);
+  owner_control_cycles_ +=
+      scheduler_.clock(clock_id_).completed_cycles - before;
+}
+
+std::vector<std::uint32_t> SpineVerticalSliceSystem::owner_admit_and_dispatch(
+    const std::vector<std::uint32_t> &frontier, bool admit,
+    std::uint64_t max_events) {
+  if (owner_scheduler_ == nullptr || frontier.empty()) {
+    return frontier;
+  }
+  const std::uint64_t start_events = scheduler_.event_count();
+  const auto check_budget = [this, start_events, max_events] {
+    if (scheduler_.event_count() - start_events >= max_events) {
+      throw std::runtime_error(
+          "Spine owner dispatch exceeded the round event budget");
+    }
+  };
+  if (admit) {
+    for (const std::uint32_t key : frontier) {
+      while (!owner_scheduler_->try_activate(key)) {
+        check_budget();
+        advance_owner_control_cycle(max_events);
+      }
+      check_budget();
+      advance_owner_control_cycle(max_events);
+    }
+  }
+
+  std::vector<std::uint32_t> dispatched;
+  dispatched.reserve(frontier.size());
+  while (dispatched.size() < frontier.size()) {
+    check_budget();
+    bool staged = false;
+    for (std::size_t partition = 0;
+         partition < owner_scheduler_->config().partitions &&
+         dispatched.size() < frontier.size();
+         ++partition) {
+      std::uint32_t key = 0;
+      if (owner_scheduler_->try_dispatch(partition, key)) {
+        dispatched.push_back(key);
+        staged = true;
+      }
+    }
+    advance_owner_control_cycle(max_events);
+    if (!staged && owner_scheduler_->work_credits() == 0) {
+      throw std::logic_error(
+          "Spine owner lost frontier work before device dispatch");
+    }
+  }
+
+  std::vector<std::uint32_t> expected = frontier;
+  std::vector<std::uint32_t> actual = dispatched;
+  std::sort(expected.begin(), expected.end());
+  std::sort(actual.begin(), actual.end());
+  if (expected != actual) {
+    throw std::logic_error(
+        "Spine owner dispatch does not match device-generated frontier");
+  }
+  return dispatched;
+}
+
+void SpineVerticalSliceSystem::owner_complete_frontier(
+    const std::vector<std::uint32_t> &frontier,
+    std::uint64_t max_events) {
+  if (owner_scheduler_ == nullptr || frontier.empty()) {
+    return;
+  }
+  const std::uint64_t start_events = scheduler_.event_count();
+  std::vector<std::deque<std::uint32_t>> pending(
+      owner_scheduler_->config().partitions);
+  for (const std::uint32_t key : frontier) {
+    pending.at(owner_scheduler_->partition_for(key)).push_back(key);
+  }
+  std::size_t remaining = frontier.size();
+  while (remaining != 0) {
+    if (scheduler_.event_count() - start_events >= max_events) {
+      throw std::runtime_error(
+          "Spine owner completion exceeded the round event budget");
+    }
+    bool staged = false;
+    for (std::size_t partition = 0; partition < pending.size(); ++partition) {
+      if (pending[partition].empty()) {
+        continue;
+      }
+      const std::uint32_t key = pending[partition].front();
+      if (owner_scheduler_->try_complete(key)) {
+        pending[partition].pop_front();
+        --remaining;
+        staged = true;
+      }
+    }
+    if (!staged) {
+      throw std::logic_error(
+          "Spine owner could not retire an in-flight frontier");
+    }
+    advance_owner_control_cycle(max_events);
+  }
 }
 
 void SpineVerticalSliceSystem::restart_device_active_compute(
@@ -1281,6 +1400,15 @@ SpineSsspRunResult SpineVerticalSliceSystem::run_sssp_to_convergence(
   convergence_run_started_ = true;
   SpineSsspRunResult result;
   result.start_cycle = scheduler_.clock(clock_id_).completed_cycles;
+  owner_control_cycles_ = 0;
+  if (owner_scheduler_ != nullptr) {
+    if (!owner_scheduler_->quiescent() || !owner_scheduler_->ledger_closed()) {
+      throw std::logic_error(
+          "Spine convergence run started with an open owner ledger");
+    }
+    current_frontier_ = owner_admit_and_dispatch(
+        current_frontier_, true, max_events_per_round);
+  }
   for (std::size_t round = 0; round < max_rounds; ++round) {
     const std::uint64_t start_cycle =
         scheduler_.clock(clock_id_).completed_cycles;
@@ -1338,6 +1466,7 @@ SpineSsspRunResult SpineVerticalSliceSystem::run_sssp_to_convergence(
       result.failed = true;
       break;
     }
+    owner_complete_frontier(attempted_active_in, max_events_per_round);
     if (round == 0 && !resident_bootstrap_pending_) {
       start_dirty_ack();
       scheduler_.run_until(
@@ -1350,14 +1479,29 @@ SpineSsspRunResult SpineVerticalSliceSystem::run_sssp_to_convergence(
       }
     }
     if (active_out.empty()) {
-      result.converged = true;
+      result.converged = owner_scheduler_ == nullptr ||
+                         (owner_scheduler_->quiescent() &&
+                          owner_scheduler_->ledger_closed());
       break;
     }
     if (round + 1 < max_rounds) {
-      restart_device_active_compute(active_out);
+      const std::vector<std::uint32_t> dispatched =
+          owner_admit_and_dispatch(active_out, false, max_events_per_round);
+      restart_device_active_compute(dispatched);
     }
   }
   result.end_cycle = scheduler_.clock(clock_id_).completed_cycles;
+  if (owner_scheduler_ != nullptr) {
+    result.owner_scheduler = owner_scheduler_->stats();
+    result.owner_ledger_closed = owner_scheduler_->ledger_closed();
+    result.owner_quiescent = owner_scheduler_->quiescent();
+    result.owner_control_cycles = owner_control_cycles_;
+    if (result.converged &&
+        (!result.owner_ledger_closed || !result.owner_quiescent)) {
+      result.converged = false;
+      result.failed = true;
+    }
+  }
   return result;
 }
 

@@ -38,6 +38,8 @@ struct SpineOwnerSchedulerStats {
   std::uint64_t dispatches{};
   std::uint64_t completions{};
   std::uint64_t reactivation_requeues{};
+  std::uint64_t ready_publications{};
+  std::uint64_t deferred_reactivation_publications{};
   std::uint64_t owner_fifo_backpressure_cycles{};
   std::uint64_t reactivation_fifo_backpressure_cycles{};
   std::uint64_t work_credits_created{};
@@ -45,6 +47,8 @@ struct SpineOwnerSchedulerStats {
   std::uint64_t max_work_credits{};
   std::size_t max_owner_fifo_occupancy{};
   std::size_t max_reactivation_fifo_occupancy{};
+  std::size_t max_ready_list_occupancy{};
+  std::size_t max_deferred_reactivation_occupancy{};
 };
 
 // Device-owned per-key scheduling. External producers call try_activate during
@@ -67,6 +71,7 @@ class SpineOwnerScheduler final : public Component {
       std::size_t partition) const;
   [[nodiscard]] std::size_t owner_size(std::size_t partition) const;
   [[nodiscard]] std::size_t reactivation_size(std::size_t partition) const;
+  [[nodiscard]] std::size_t ready_size(std::size_t partition) const;
   [[nodiscard]] std::uint64_t work_credits() const noexcept {
     return work_credits_;
   }
@@ -82,11 +87,17 @@ class SpineOwnerScheduler final : public Component {
 
  private:
   enum class ActivationAction { kInitial, kReactivation, kCoalesced };
+  enum class DispatchSource { kOwnerFifo, kReadyList };
 
   struct StagedActivation {
     std::uint32_t key{};
     std::size_t partition{};
     ActivationAction action{ActivationAction::kInitial};
+  };
+
+  struct StagedDispatch {
+    std::uint32_t key{};
+    DispatchSource source{DispatchSource::kOwnerFifo};
   };
 
   [[nodiscard]] SpineOwnerKeyState &mutable_state(std::uint32_t key);
@@ -98,12 +109,20 @@ class SpineOwnerScheduler final : public Component {
   SpineOwnerSchedulerConfig config_;
   SpineOwnerSchedulerStats stats_;
   std::vector<std::deque<std::uint32_t>> owner_queues_;
+  // The active list is bounded by the physical vertex domain and represents
+  // device-published IDs resident in HBM between round relaunches. Keys remain
+  // logically queued until dispatch; this preserves activation coalescing.
+  std::vector<std::deque<std::uint32_t>> ready_queues_;
   std::vector<std::deque<std::uint32_t>> reactivation_queues_;
+  std::vector<std::deque<std::uint32_t>> deferred_reactivation_queues_;
   std::unordered_map<std::uint32_t, SpineOwnerKeyState> states_;
   std::optional<StagedActivation> staged_activation_;
-  std::vector<std::optional<std::uint32_t>> staged_dispatches_;
+  std::vector<std::optional<StagedDispatch>> staged_dispatches_;
   std::vector<std::optional<std::uint32_t>> staged_completions_;
   std::vector<std::optional<std::uint32_t>> staged_requeues_;
+  std::vector<std::optional<std::uint32_t>> staged_publications_;
+  std::vector<std::optional<std::uint32_t>>
+      staged_reactivation_publications_;
   std::uint64_t work_credits_{};
 };
 

@@ -11,10 +11,14 @@ SpineOwnerScheduler::SpineOwnerScheduler(
     std::string name, ClockId clock_id, SpineOwnerSchedulerConfig config)
     : Component(std::move(name), clock_id), config_(config),
       owner_queues_(config.partitions),
+      ready_queues_(config.partitions),
       reactivation_queues_(config.partitions),
+      deferred_reactivation_queues_(config.partitions),
       staged_dispatches_(config.partitions),
       staged_completions_(config.partitions),
-      staged_requeues_(config.partitions) {
+      staged_requeues_(config.partitions),
+      staged_publications_(config.partitions),
+      staged_reactivation_publications_(config.partitions) {
   if (config_.max_vertices == 0 || config_.partitions == 0 ||
       config_.vertices_per_partition == 0 ||
       config_.owner_fifo_depth == 0 ||
@@ -49,6 +53,9 @@ const std::uint32_t *SpineOwnerScheduler::owner_front(
   if (partition >= config_.partitions) {
     throw std::out_of_range("Spine owner partition is out of range");
   }
+  if (!ready_queues_[partition].empty()) {
+    return &ready_queues_[partition].front();
+  }
   return owner_queues_[partition].empty() ? nullptr
                                          : &owner_queues_[partition].front();
 }
@@ -57,7 +64,7 @@ std::size_t SpineOwnerScheduler::owner_size(std::size_t partition) const {
   if (partition >= config_.partitions) {
     throw std::out_of_range("Spine owner partition is out of range");
   }
-  return owner_queues_[partition].size();
+  return owner_queues_[partition].size() + ready_queues_[partition].size();
 }
 
 std::size_t SpineOwnerScheduler::reactivation_size(
@@ -65,7 +72,15 @@ std::size_t SpineOwnerScheduler::reactivation_size(
   if (partition >= config_.partitions) {
     throw std::out_of_range("Spine reactivation partition is out of range");
   }
-  return reactivation_queues_[partition].size();
+  return reactivation_queues_[partition].size() +
+         deferred_reactivation_queues_[partition].size();
+}
+
+std::size_t SpineOwnerScheduler::ready_size(std::size_t partition) const {
+  if (partition >= config_.partitions) {
+    throw std::out_of_range("Spine ready-list partition is out of range");
+  }
+  return ready_queues_[partition].size();
 }
 
 bool SpineOwnerScheduler::quiescent() const noexcept {
@@ -77,7 +92,8 @@ bool SpineOwnerScheduler::quiescent() const noexcept {
                        [](const auto &item) { return item.has_value(); });
   };
   return !staged(staged_dispatches_) && !staged(staged_completions_) &&
-         !staged(staged_requeues_);
+         !staged(staged_requeues_) && !staged(staged_publications_) &&
+         !staged(staged_reactivation_publications_);
 }
 
 std::uint64_t SpineOwnerScheduler::structural_credits() const noexcept {
@@ -85,7 +101,13 @@ std::uint64_t SpineOwnerScheduler::structural_credits() const noexcept {
   for (const auto &queue : owner_queues_) {
     credits += queue.size();
   }
+  for (const auto &queue : ready_queues_) {
+    credits += queue.size();
+  }
   for (const auto &queue : reactivation_queues_) {
+    credits += queue.size();
+  }
+  for (const auto &queue : deferred_reactivation_queues_) {
     credits += queue.size();
   }
   for (const auto &[key, key_state] : states_) {
@@ -158,16 +180,24 @@ bool SpineOwnerScheduler::try_dispatch(std::size_t partition,
   if (partition >= config_.partitions) {
     throw std::out_of_range("Spine owner partition is out of range");
   }
-  if (staged_dispatches_[partition].has_value() ||
-      owner_queues_[partition].empty()) {
+  if (staged_dispatches_[partition].has_value()) {
     return false;
   }
-  key = owner_queues_[partition].front();
+  DispatchSource source = DispatchSource::kReadyList;
+  if (!ready_queues_[partition].empty()) {
+    key = ready_queues_[partition].front();
+  } else if (!owner_queues_[partition].empty() &&
+             !staged_publications_[partition].has_value()) {
+    key = owner_queues_[partition].front();
+    source = DispatchSource::kOwnerFifo;
+  } else {
+    return false;
+  }
   const SpineOwnerKeyState current = state(key);
   if (!current.queued || current.in_flight) {
     throw std::logic_error("Spine owner FIFO and key state diverged");
   }
-  staged_dispatches_[partition] = key;
+  staged_dispatches_[partition] = StagedDispatch{key, source};
   return true;
 }
 
@@ -187,11 +217,26 @@ bool SpineOwnerScheduler::try_complete(std::uint32_t key) {
 void SpineOwnerScheduler::evaluate(const CycleContext &) {
   for (std::size_t partition = 0; partition < config_.partitions;
        ++partition) {
+    if (!staged_dispatches_[partition].has_value() &&
+        !staged_publications_[partition].has_value() &&
+        !owner_queues_[partition].empty() &&
+        ready_queues_[partition].size() <
+            config_.vertices_per_partition) {
+      staged_publications_[partition] = owner_queues_[partition].front();
+    }
+    if (!staged_reactivation_publications_[partition].has_value() &&
+        !reactivation_queues_[partition].empty() &&
+        deferred_reactivation_queues_[partition].size() <
+            config_.vertices_per_partition) {
+      staged_reactivation_publications_[partition] =
+          reactivation_queues_[partition].front();
+    }
     if (staged_requeues_[partition].has_value() ||
-        reactivation_queues_[partition].empty()) {
+        deferred_reactivation_queues_[partition].empty()) {
       continue;
     }
-    const std::uint32_t key = reactivation_queues_[partition].front();
+    const std::uint32_t key =
+        deferred_reactivation_queues_[partition].front();
     const SpineOwnerKeyState current = state(key);
     if (!current.dirty) {
       throw std::logic_error("Spine reactivation FIFO lost its dirty state");
@@ -214,6 +259,14 @@ void SpineOwnerScheduler::update_maxima() noexcept {
     stats_.max_owner_fifo_occupancy =
         std::max(stats_.max_owner_fifo_occupancy, queue.size());
   }
+  for (const auto &queue : ready_queues_) {
+    stats_.max_ready_list_occupancy =
+        std::max(stats_.max_ready_list_occupancy, queue.size());
+  }
+  for (const auto &queue : deferred_reactivation_queues_) {
+    stats_.max_deferred_reactivation_occupancy =
+        std::max(stats_.max_deferred_reactivation_occupancy, queue.size());
+  }
   for (const auto &queue : reactivation_queues_) {
     stats_.max_reactivation_fifo_occupancy =
         std::max(stats_.max_reactivation_fifo_occupancy, queue.size());
@@ -228,16 +281,56 @@ void SpineOwnerScheduler::commit(const CycleContext &) {
     if (!staged_dispatches_[partition].has_value()) {
       continue;
     }
-    const std::uint32_t key = *staged_dispatches_[partition];
-    if (owner_queues_[partition].empty() ||
-        owner_queues_[partition].front() != key) {
+    const StagedDispatch dispatch = *staged_dispatches_[partition];
+    const std::uint32_t key = dispatch.key;
+    std::deque<std::uint32_t> &source_queue =
+        dispatch.source == DispatchSource::kReadyList
+            ? ready_queues_[partition]
+            : owner_queues_[partition];
+    if (source_queue.empty() || source_queue.front() != key) {
       throw std::logic_error("Spine owner dispatch changed before commit");
     }
-    owner_queues_[partition].pop_front();
+    source_queue.pop_front();
     SpineOwnerKeyState &current = mutable_state(key);
     current.queued = false;
     current.in_flight = true;
     ++stats_.dispatches;
+  }
+
+  for (std::size_t partition = 0; partition < config_.partitions;
+       ++partition) {
+    if (!staged_publications_[partition].has_value()) {
+      continue;
+    }
+    const std::uint32_t key = *staged_publications_[partition];
+    if (owner_queues_[partition].empty() ||
+        owner_queues_[partition].front() != key ||
+        ready_queues_[partition].size() >=
+            config_.vertices_per_partition) {
+      throw std::logic_error("Spine owner publication changed before commit");
+    }
+    owner_queues_[partition].pop_front();
+    ready_queues_[partition].push_back(key);
+    ++stats_.ready_publications;
+  }
+
+  for (std::size_t partition = 0; partition < config_.partitions;
+       ++partition) {
+    if (!staged_reactivation_publications_[partition].has_value()) {
+      continue;
+    }
+    const std::uint32_t key =
+        *staged_reactivation_publications_[partition];
+    if (reactivation_queues_[partition].empty() ||
+        reactivation_queues_[partition].front() != key ||
+        deferred_reactivation_queues_[partition].size() >=
+            config_.vertices_per_partition) {
+      throw std::logic_error(
+          "Spine reactivation publication changed before commit");
+    }
+    reactivation_queues_[partition].pop_front();
+    deferred_reactivation_queues_[partition].push_back(key);
+    ++stats_.deferred_reactivation_publications;
   }
 
   for (std::size_t partition = 0; partition < config_.partitions;
@@ -286,11 +379,11 @@ void SpineOwnerScheduler::commit(const CycleContext &) {
       continue;
     }
     const std::uint32_t key = *staged_requeues_[partition];
-    if (reactivation_queues_[partition].empty() ||
-        reactivation_queues_[partition].front() != key) {
+    if (deferred_reactivation_queues_[partition].empty() ||
+        deferred_reactivation_queues_[partition].front() != key) {
       throw std::logic_error("Spine reactivation changed before commit");
     }
-    reactivation_queues_[partition].pop_front();
+    deferred_reactivation_queues_[partition].pop_front();
     owner_queues_[partition].push_back(key);
     SpineOwnerKeyState &current = mutable_state(key);
     current.dirty = false;
@@ -304,6 +397,8 @@ void SpineOwnerScheduler::commit(const CycleContext &) {
     staged_dispatches_[partition].reset();
     staged_completions_[partition].reset();
     staged_requeues_[partition].reset();
+    staged_publications_[partition].reset();
+    staged_reactivation_publications_[partition].reset();
   }
   update_maxima();
   if (!ledger_closed()) {

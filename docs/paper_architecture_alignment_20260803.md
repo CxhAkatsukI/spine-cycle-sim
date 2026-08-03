@@ -127,12 +127,20 @@ For non-tiny workloads, acceptance requires:
 2. [partial] Build the refactor31-native raw-log parser and freeze the transfer
    matrix. Existing timing evidence is parsed; the generic real-slice FPGA host
    remains pending.
-3. Add the per-partition owner FIFO and `queued/in_flight/dirty` state machine.
-4. Add lossless reactivation and work-credit quiescence in simulator and HLS.
-5. Add dormant-ID activation and validity-bitmap vertex deactivation.
+3. [done in simulator SSSP] Add the per-partition owner FIFO and
+   `queued/in_flight/dirty` state machine.
+4. [partial] Add lossless reactivation and work-credit quiescence. The SSSP
+   simulator path is integrated and correctness-tested; HLS and the other
+   algorithm policies remain pending.
+5. [component complete] Add dormant-ID activation and validity-bitmap vertex
+   deactivation. The HBM-backed simulator component is complete but is not yet
+   wired into every graph reader and update path.
 6. Run calibration, freeze parameters, and run the holdout.
 7. Specialize the shared shell for SSSP, CC, Residual PageRank, and Full
    PageRank; route and validate each policy kernel.
+
+The integrated SSSP owner evidence and exact reproduction command are in
+`docs/spine_device_owner_scheduler_20260803.md`.
 
 Payload-distinct parallel edges are deliberately excluded from this version.
 They require a separately versioned record-identity change across sorting,

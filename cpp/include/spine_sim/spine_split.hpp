@@ -19,6 +19,8 @@
 
 namespace spine::sim {
 
+class SpineOwnerScheduler;
+
 enum class PartConvWordKind {
   kSourceRequest,
   kSourceCount,
@@ -730,6 +732,9 @@ struct SpineComputeCounters {
   std::uint64_t controller_memory_stall_cycles{};
   std::uint64_t sparse_store_writes_generated{};
   std::uint64_t active_emit_writes_generated{};
+  std::uint64_t owner_activation_attempts{};
+  std::uint64_t owner_activations_accepted{};
+  std::uint64_t owner_activation_backpressure_cycles{};
   std::size_t max_memory_requests_inflight{};
   std::size_t max_vertex_requests_inflight{};
   std::size_t max_active_out_requests_inflight{};
@@ -791,7 +796,8 @@ class SpineSplitSsspCompute final : public Component {
                         std::shared_ptr<const GraphAlgorithmPolicy>
                             algorithm_policy = nullptr,
                         std::optional<AlgorithmInitialState> initial_state =
-                            std::nullopt);
+                            std::nullopt,
+                        SpineOwnerScheduler *owner_scheduler = nullptr);
 
   [[nodiscard]] bool done() const noexcept { return done_; }
   [[nodiscard]] bool failed() const noexcept { return failed_; }
@@ -946,6 +952,7 @@ class SpineSplitSsspCompute final : public Component {
   SpineComputePorts ports_;
   Fifo<PartConvWord> &edge_in_;
   Fifo<SourceValueWord> &value_out_;
+  SpineOwnerScheduler *owner_scheduler_{};
   SpineComputeCounters counters_;
   std::vector<std::uint32_t> values_;
   std::vector<std::uint32_t> next_active_;
@@ -984,6 +991,7 @@ class SpineSplitSsspCompute final : public Component {
   std::uint64_t next_transaction_id_{};
   bool staged_memory_issue_{};
   bool staged_full_tile_read_beat_valid_{};
+  bool staged_owner_activation_{};
   bool active_read_pending_{};
   bool active_read_ready_{};
   bool source_reply_pending_{};
