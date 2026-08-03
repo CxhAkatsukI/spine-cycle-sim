@@ -1054,8 +1054,7 @@ SpineVerticalSliceSystem::SpineVerticalSliceSystem(
   if (initial_host_active) {
     SpineActiveBins bins = build_spine_host_active_bins(
         state_, maintenance_->config(), current_frontier_, compute_->values());
-    reader_->configure_initial_host_round(
-        std::move(bins), std::nullopt, current_frontier_);
+    reader_->configure_initial_host_round(std::move(bins), std::nullopt, {});
   }
   dirty_ack_ = std::make_unique<SpineDirtyAck>(
       "spine-dirty-ack", clock_id_, maintenance_->config(),
@@ -1964,6 +1963,9 @@ SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
           initial_active_failure_);
     }
   } else {
+    // The current PageRank/CC policy shell still performs device-side source
+    // preparation from rank/residual/degree state.  Unlike refactor31 SSSP,
+    // its active-record payload is not yet authoritative for that operation.
     reader_->configure_initial_host_round(host.bins, host.coverage, host.sources);
   }
   compute_ = std::make_unique<SpineSplitPageRankCompute>(

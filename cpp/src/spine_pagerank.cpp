@@ -201,6 +201,7 @@ void SpineSplitPageRankCompute::reset_iteration() {
   iteration_error_ = 0.0F;
   source_count_seen_ = false;
   source_generation_seen_ = false;
+  deferred_active_seen_ = false;
   source_ack_pending_ = false;
   tile_open_ = false;
   reader_done_seen_ = false;
@@ -740,6 +741,9 @@ void SpineSplitPageRankCompute::evaluate(const CycleContext &) {
     case PartConvWordKind::kSourceRequestsDone:
       staged_input_action_ = InputAction::kSourceDone;
       break;
+    case PartConvWordKind::kDeferActiveBegin:
+      staged_input_action_ = InputAction::kDeferActiveBegin;
+      break;
     case PartConvWordKind::kTileBegin:
       staged_input_action_ = InputAction::kTileBegin;
       break;
@@ -1006,6 +1010,14 @@ void SpineSplitPageRankCompute::commit(const CycleContext &context) {
       phase_ = Phase::kSourceReply;
       break;
     }
+    case InputAction::kDeferActiveBegin:
+      if (deferred_active_seen_ || tile_open_ || staged_input_word_.first != 1U) {
+        set_protocol_status(SpineSourceProtocolStatus::kUnexpected);
+        failed_ = true;
+        return;
+      }
+      deferred_active_seen_ = true;
+      break;
     case InputAction::kTileBegin:
       if (tile_open_ || staged_input_word_.first >= vertices_ ||
           staged_input_word_.first % tile_vertices_ != 0 ||

@@ -2922,7 +2922,7 @@ void test_spine_l0_real_slice_vertical_path() {
   require(compute_counters.vertex_read_bytes == 44 &&
               compute_counters.vertex_write_bytes == 40 &&
               compute_counters.active_out_write_bytes == 80 &&
-              compute_counters.bitmap_bytes == 16 &&
+              compute_counters.bitmap_bytes == 0 &&
               compute_counters.result_write_bytes == 384,
           "Spine compute memory byte ledger mismatch");
   require(compute.next_active().size() == 10,
@@ -2938,12 +2938,12 @@ void test_spine_l0_real_slice_vertical_path() {
   require(edge_stream.stats().max_occupancy <= 32 &&
               value_stream.stats().max_occupancy <= 32,
           "Spine AXIS occupancy exceeded the configured depth");
-  require(scheduler.clock(core).completed_cycles == 43'407 &&
+  require(scheduler.clock(core).completed_cycles == 43'398 &&
               counters.end_cycle - counters.start_cycle == 2'370 &&
               reader_counters.end_cycle - reader_counters.start_cycle ==
                   4'478 &&
               compute_counters.end_cycle - compute_counters.start_cycle ==
-                  40'968,
+                  40'959,
           "algorithm policy injection changed the accepted SSSP cycle ledger");
   std::cout << "EVIDENCE spine_vertical_slice e2e_cycles="
             << scheduler.clock(core).completed_cycles << " maintenance_cycles="
@@ -4478,7 +4478,9 @@ ComputeTileObservation run_compute_tile(std::size_t edge_count,
                                         bool split_extreme_destinations = false,
                                         SpineOnChipMemoryProfile on_chip = {},
                                         std::size_t second_tile_edges = 0,
-                                        std::uint64_t memory_latency_cycles = 3) {
+                                        std::uint64_t memory_latency_cycles = 3,
+                                        bool deferred_active = false,
+                                        std::size_t vertex_override = 0) {
   Scheduler scheduler;
   const auto core = scheduler.add_clock_mhz("data", 141.0);
   MockMemoryBackend backend("hbm", core,
@@ -4508,9 +4510,16 @@ ComputeTileObservation run_compute_tile(std::size_t edge_count,
       backend);
   Fifo<PartConvWord> edge_stream("boundary-edge-axis", core, 32);
   Fifo<SourceValueWord> value_stream("boundary-value-axis", core, 32);
-  const std::size_t vertices = second_tile_edges == 0 ? 65'536 : 131'072;
+  const std::size_t vertices =
+      vertex_override != 0
+          ? vertex_override
+          : (second_tile_edges == 0 ? 65'536 : 131'072);
   std::vector<PartConvWord> words;
-  words.reserve(edge_count + second_tile_edges + 5);
+  words.reserve(edge_count + second_tile_edges + 6);
+  if (deferred_active) {
+    words.push_back(PartConvWord{.kind = PartConvWordKind::kDeferActiveBegin,
+                                 .first = 1});
+  }
   words.push_back(
       PartConvWord{.kind = PartConvWordKind::kTileBegin, .first = 0});
   const auto destination_for = [&](std::size_t index) {
@@ -4602,6 +4611,63 @@ ComputeTileObservation run_compute_tile(std::size_t edge_count,
       .distances_match = distances_match,
       .failed = compute.failed(),
   };
+}
+
+void test_spine_deferred_active_bitmap_publish_matches_hls() {
+  const ComputeTileObservation observation =
+      run_compute_tile(64, false, 7, false, {}, 0, 3, true);
+  const SpineComputeCounters &counters = observation.counters;
+  require(!observation.failed && observation.distances_match &&
+              observation.next_active == 64,
+          "deferred active publication changed the SSSP result");
+  require(counters.deferred_active_markers == 1 &&
+              counters.deferred_active_clear_words == 1024 &&
+              counters.deferred_active_merge_words == 1 &&
+              counters.deferred_active_sweep_read_words == 1024 &&
+              counters.deferred_active_sweep_nonzero_words == 1 &&
+              counters.deferred_active_sweep_bit_cycles >= 64 * 2 - 1 &&
+              counters.deferred_active_published_vertices == 64 &&
+              counters.deferred_active_final_clear_words == 1024,
+          "deferred active HBM work ledger diverged from the HLS loops");
+  require(counters.bitmap_bytes == 24'592 &&
+              counters.vertex_read_bytes == 512 &&
+              counters.vertex_write_bytes == 256 &&
+              counters.active_out_write_bytes == 512 &&
+              counters.memory_requests_issued == 3331 &&
+              counters.memory_requests_completed == 3331,
+          "deferred active request/byte ledger did not close");
+  require(observation.first_active_payload ==
+              std::vector<std::uint8_t>({1, 0, 0, 0, 0, 0, 0, 0}),
+          "deferred active output did not use the HLS value/id ABI");
+  std::cout << "EVIDENCE spine_deferred_active cycles=" << observation.cycles
+            << " clear_words=" << counters.deferred_active_clear_words
+            << " merge_words=" << counters.deferred_active_merge_words
+            << " sweep_words=" << counters.deferred_active_sweep_read_words
+            << " published=" << counters.deferred_active_published_vertices
+            << " final_clear="
+            << counters.deferred_active_final_clear_words << '\n';
+}
+
+void test_spine_deferred_active_partial_chunk_keeps_hls_schedule() {
+  const ComputeTileObservation aligned =
+      run_compute_tile(1, false, 7, false, {}, 0, 3, true, 65'536);
+  const ComputeTileObservation partial =
+      run_compute_tile(1, false, 7, false, {}, 0, 3, true, 65'537);
+  require(!aligned.failed && !partial.failed && aligned.distances_match &&
+              partial.distances_match &&
+              aligned.counters.deferred_active_sweep_read_words == 1024 &&
+              partial.counters.deferred_active_clear_words == 1025 &&
+              partial.counters.deferred_active_sweep_read_words == 1025 &&
+              partial.counters.deferred_active_final_clear_words == 1025 &&
+              partial.counters.deferred_active_sweep_read_cycles >=
+                  aligned.counters.deferred_active_sweep_read_cycles + 500,
+          "partial deferred bitmap chunk skipped the fixed HLS read loop");
+  std::cout << "EVIDENCE spine_deferred_partial_chunk aligned_read_cycles="
+            << aligned.counters.deferred_active_sweep_read_cycles
+            << " partial_read_cycles="
+            << partial.counters.deferred_active_sweep_read_cycles
+            << " valid_words="
+            << partial.counters.deferred_active_sweep_read_words << '\n';
 }
 
 void test_spine_cross_tile_write_response_overlap() {
@@ -4741,9 +4807,9 @@ void test_spine_full_tile_threshold_boundaries() {
       require(observation.counters.vertex_read_bytes == edge_count * 4 &&
                   observation.counters.vertex_write_bytes == edge_count * 4 &&
                   observation.counters.memory_requests_issued ==
-                      3 * edge_count + 3 &&
+                      3 * edge_count + 1 &&
                   observation.counters.memory_requests_completed ==
-                      3 * edge_count + 3,
+                      3 * edge_count + 1,
               "tiny boundary vertex-memory bytes mismatch");
       require(observation.counters.tiny_buffer_reads == edge_count * 2 &&
                   observation.counters.sparse_store_scan_words == 1024 &&
@@ -4768,9 +4834,9 @@ void test_spine_full_tile_threshold_boundaries() {
                   observation.counters.vertex_read_bytes == 65'536 * 4 &&
                   observation.counters.vertex_write_bytes == 65'536 * 4 &&
                   observation.counters.memory_requests_issued ==
-                      edge_count + 5 &&
+                      edge_count + 3 &&
                   observation.counters.memory_requests_completed ==
-                      edge_count + 5,
+                      edge_count + 3,
               "full boundary tile sweep ledger mismatch");
       require(observation.counters.tiny_buffer_reads == 4096 &&
                   observation.counters.sparse_store_scan_words == 0 &&
@@ -9667,6 +9733,10 @@ int main(int argc, char **argv) {
       {"spine_signed_diff_cancellation",
        test_spine_carry_drops_signed_diff_cancellation},
       {"spine_full_tile_boundaries", test_spine_full_tile_threshold_boundaries},
+      {"spine_deferred_active_publish",
+       test_spine_deferred_active_bitmap_publish_matches_hls},
+      {"spine_deferred_active_partial_chunk",
+       test_spine_deferred_active_partial_chunk_keeps_hls_schedule},
       {"spine_compute_gather_outstanding",
        test_spine_compute_gather_uses_bounded_outstanding_requests},
       {"spine_compute_store_bundle_overlap",

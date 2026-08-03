@@ -2244,6 +2244,11 @@ class OnlineMemoryProbe final : public SST::Component {
         params.find<std::uint64_t>("range_task_payload_budget", 1'048'576);
     fallback_replay_threshold_ =
         params.find<std::uint64_t>("fallback_replay_threshold", 65'536);
+    segmented_fallback_ = params.find<bool>("segmented_fallback", false);
+    reader_active_record_control_cycles_ = params.find<std::size_t>(
+        "reader_active_record_control_cycles", 0);
+    segmented_fallback_setup_cycles_ = params.find<std::size_t>(
+        "segmented_fallback_setup_cycles", 0);
     fallback_level_cache_reuse_ =
         params.find<bool>("fallback_level_cache_reuse", false);
     source_page_index_cache_ =
@@ -2919,6 +2924,11 @@ class OnlineMemoryProbe final : public SST::Component {
       config.range_task_capacity = range_task_capacity_;
       config.range_task_payload_budget = range_task_payload_budget_;
       config.fallback_replay_threshold = fallback_replay_threshold_;
+      config.segmented_fallback = segmented_fallback_;
+      config.reader_active_record_control_cycles =
+          reader_active_record_control_cycles_;
+      config.segmented_fallback_setup_cycles =
+          segmented_fallback_setup_cycles_;
       config.fallback_level_cache_reuse = fallback_level_cache_reuse_;
       config.source_page_index_cache = source_page_index_cache_;
       config.memory_request_window = memory_request_window_;
@@ -3096,6 +3106,11 @@ class OnlineMemoryProbe final : public SST::Component {
       maintenance_config.range_task_capacity = range_task_capacity_;
       maintenance_config.range_task_payload_budget = range_task_payload_budget_;
       maintenance_config.fallback_replay_threshold = fallback_replay_threshold_;
+      maintenance_config.segmented_fallback = segmented_fallback_;
+      maintenance_config.reader_active_record_control_cycles =
+          reader_active_record_control_cycles_;
+      maintenance_config.segmented_fallback_setup_cycles =
+          segmented_fallback_setup_cycles_;
       maintenance_config.fallback_level_cache_reuse =
           fallback_level_cache_reuse_;
       maintenance_config.source_page_index_cache = source_page_index_cache_;
@@ -3380,6 +3395,11 @@ class OnlineMemoryProbe final : public SST::Component {
       maintenance_config.range_task_capacity = range_task_capacity_;
       maintenance_config.range_task_payload_budget = range_task_payload_budget_;
       maintenance_config.fallback_replay_threshold = fallback_replay_threshold_;
+      maintenance_config.segmented_fallback = segmented_fallback_;
+      maintenance_config.reader_active_record_control_cycles =
+          reader_active_record_control_cycles_;
+      maintenance_config.segmented_fallback_setup_cycles =
+          segmented_fallback_setup_cycles_;
       maintenance_config.fallback_level_cache_reuse =
           fallback_level_cache_reuse_;
       maintenance_config.source_page_index_cache = source_page_index_cache_;
@@ -4158,6 +4178,12 @@ class OnlineMemoryProbe final : public SST::Component {
       {"range_task_payload_budget", "Exact-reader construction budget",
        "1048576"},
       {"fallback_replay_threshold", "HOST fallback replay threshold", "65536"},
+      {"segmented_fallback",
+       "Use refactor31 preflight plus segmented execution fallback", "false"},
+      {"reader_active_record_control_cycles",
+       "Serialized refactor31 control cycles per active record", "0"},
+      {"segmented_fallback_setup_cycles",
+       "Fixed control cycles between validation and segmented execution", "0"},
       {"fallback_level_cache_reuse",
        "Reuse launch-loaded level metadata in HOST fallback", "false"},
       {"source_page_index_cache",
@@ -6824,7 +6850,13 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"spine_maintenance_architecture\": \""
           << spine_maintenance_architecture_id_ << "\",\n"
           << "  \"fallback_level_cache_reuse\": "
-          << (fallback_level_cache_reuse_ ? "true" : "false") << ",\n";
+          << (fallback_level_cache_reuse_ ? "true" : "false") << ",\n"
+          << "  \"segmented_fallback\": "
+          << (segmented_fallback_ ? "true" : "false") << ",\n"
+          << "  \"reader_active_record_control_cycles\": "
+          << reader_active_record_control_cycles_ << ",\n"
+          << "  \"segmented_fallback_setup_cycles\": "
+          << segmented_fallback_setup_cycles_ << ",\n";
       result << "  \"source_page_index_cache\": "
              << (source_page_index_cache_ ? "true" : "false") << ",\n";
       write_candidate_maintenance_counters(result, maintenance);
@@ -7828,6 +7860,32 @@ class OnlineMemoryProbe final : public SST::Component {
              << compute.vertex_payload_write_bytes << ",\n"
              << "  \"compute_active_out_write_bytes\": "
              << compute.active_out_write_bytes << ",\n"
+             << "  \"compute_bitmap_bytes\": " << compute.bitmap_bytes
+             << ",\n"
+             << "  \"compute_deferred_active_markers\": "
+             << compute.deferred_active_markers << ",\n"
+             << "  \"compute_deferred_active_clear_words\": "
+             << compute.deferred_active_clear_words << ",\n"
+             << "  \"compute_deferred_active_clear_cycles\": "
+             << compute.deferred_active_clear_cycles << ",\n"
+             << "  \"compute_deferred_active_merge_words\": "
+             << compute.deferred_active_merge_words << ",\n"
+             << "  \"compute_deferred_active_merge_cycles\": "
+             << compute.deferred_active_merge_cycles << ",\n"
+             << "  \"compute_deferred_active_sweep_read_words\": "
+             << compute.deferred_active_sweep_read_words << ",\n"
+             << "  \"compute_deferred_active_sweep_read_cycles\": "
+             << compute.deferred_active_sweep_read_cycles << ",\n"
+             << "  \"compute_deferred_active_sweep_nonzero_words\": "
+             << compute.deferred_active_sweep_nonzero_words << ",\n"
+             << "  \"compute_deferred_active_sweep_bit_cycles\": "
+             << compute.deferred_active_sweep_bit_cycles << ",\n"
+             << "  \"compute_deferred_active_published_vertices\": "
+             << compute.deferred_active_published_vertices << ",\n"
+             << "  \"compute_deferred_active_final_clear_words\": "
+             << compute.deferred_active_final_clear_words << ",\n"
+             << "  \"compute_deferred_active_final_clear_cycles\": "
+             << compute.deferred_active_final_clear_cycles << ",\n"
              << "  \"edge_axis_transfers\": " << axis.pushes << ",\n"
              << "  \"edge_axis_max_occupancy\": " << axis.max_occupancy << ",\n"
              << "  \"edge_axis_push_stalls\": " << axis.push_stalls << ",\n"
@@ -9653,6 +9711,18 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"reader_range_tasks\": " << reader.range_task_count << ",\n"
           << "  \"reader_range_replay_payloads\": "
           << reader.range_task_replay_payloads << ",\n"
+          << "  \"reader_range_control_cycles\": "
+          << reader.range_task_control_cycles << ",\n"
+          << "  \"reader_segmented_validation_payloads\": "
+          << reader.segmented_validation_payloads << ",\n"
+          << "  \"reader_segmented_tasks\": "
+          << reader.segmented_task_count << ",\n"
+          << "  \"reader_segmented_replay_payloads\": "
+          << reader.segmented_replay_payloads << ",\n"
+          << "  \"reader_segmented_segments\": "
+          << reader.segmented_segment_count << ",\n"
+          << "  \"reader_segmented_setup_cycles\": "
+          << reader.segmented_setup_cycles << ",\n"
           << "  \"reader_range_clear_cycles\": "
           << reader.range_task_clear_cycles << ",\n"
           << "  \"reader_range_prefix_cycles\": "
@@ -9901,6 +9971,31 @@ class OnlineMemoryProbe final : public SST::Component {
           << compute.full_overflow_edges << ",\n"
           << "  \"compute_full_stream_edges\": " << compute.full_stream_edges
           << ",\n"
+          << "  \"compute_bitmap_bytes\": " << compute.bitmap_bytes << ",\n"
+          << "  \"compute_deferred_active_markers\": "
+          << compute.deferred_active_markers << ",\n"
+          << "  \"compute_deferred_active_clear_words\": "
+          << compute.deferred_active_clear_words << ",\n"
+          << "  \"compute_deferred_active_clear_cycles\": "
+          << compute.deferred_active_clear_cycles << ",\n"
+          << "  \"compute_deferred_active_merge_words\": "
+          << compute.deferred_active_merge_words << ",\n"
+          << "  \"compute_deferred_active_merge_cycles\": "
+          << compute.deferred_active_merge_cycles << ",\n"
+          << "  \"compute_deferred_active_sweep_read_words\": "
+          << compute.deferred_active_sweep_read_words << ",\n"
+          << "  \"compute_deferred_active_sweep_read_cycles\": "
+          << compute.deferred_active_sweep_read_cycles << ",\n"
+          << "  \"compute_deferred_active_sweep_nonzero_words\": "
+          << compute.deferred_active_sweep_nonzero_words << ",\n"
+          << "  \"compute_deferred_active_sweep_bit_cycles\": "
+          << compute.deferred_active_sweep_bit_cycles << ",\n"
+          << "  \"compute_deferred_active_published_vertices\": "
+          << compute.deferred_active_published_vertices << ",\n"
+          << "  \"compute_deferred_active_final_clear_words\": "
+          << compute.deferred_active_final_clear_words << ",\n"
+          << "  \"compute_deferred_active_final_clear_cycles\": "
+          << compute.deferred_active_final_clear_cycles << ",\n"
           << "  \"edge_axis_transfers\": "
           << spine_system_->edge_stream_stats().pushes << ",\n"
           << "  \"edge_axis_max_occupancy\": "
@@ -10031,6 +10126,9 @@ class OnlineMemoryProbe final : public SST::Component {
   std::size_t range_task_capacity_{};
   std::uint64_t range_task_payload_budget_{};
   std::uint64_t fallback_replay_threshold_{};
+  bool segmented_fallback_{};
+  std::size_t reader_active_record_control_cycles_{};
+  std::size_t segmented_fallback_setup_cycles_{};
   bool fallback_level_cache_reuse_{};
   bool source_page_index_cache_{};
   std::size_t memory_request_window_{};

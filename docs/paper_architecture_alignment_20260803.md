@@ -127,15 +127,19 @@ For non-tiny workloads, acceptance requires:
 2. [partial] Build the refactor31-native raw-log parser and freeze the transfer
    matrix. Existing timing evidence is parsed; the generic real-slice FPGA host
    remains pending.
-3. [done in simulator SSSP] Add the per-partition owner FIFO and
-   `queued/in_flight/dirty` state machine.
-4. [partial] Add lossless reactivation and work-credit quiescence. The SSSP
-   simulator path is integrated and correctness-tested; HLS and the other
-   algorithm policies remain pending.
-5. [done in simulator SSSP] Add dormant-ID activation and validity-bitmap
-   vertex deactivation. The HBM-backed component is wired into persistent SSSP
-   transactions; PageRank/CC and HLS remain pending.
-6. Run calibration, freeze parameters, and run the holdout.
+3. [host-tested in simulator and HLS] Add the per-partition owner FIFO and
+   `queued/in_flight/dirty` state machine. The HLS owner kernel is not yet
+   synthesized or routed.
+4. [host-tested in simulator and HLS] Add lossless reactivation and work-credit
+   quiescence for SSSP. PageRank/CC policy-shell integration remains pending.
+5. [host-tested in simulator and HLS] Add dormant-ID activation and
+   validity-bitmap vertex deactivation. The HBM-backed simulator component is
+   wired into persistent SSSP transactions; the HLS lifecycle kernel and
+   fixed-domain guards pass host tests but are not yet synthesized or routed.
+6. [native micro-calibration complete] Freeze the refactor31 SSSP micro-profile
+   and run the one-tile calibration/tile-shape holdout. Exact-path transfer is
+   accepted; multi-tile fallback remains an 18% launch-to-finish residual.
+   Medium real-slice calibration and immutable real-slice holdout are pending.
 7. Specialize the shared shell for SSSP, CC, Residual PageRank, and Full
    PageRank; route and validate each policy kernel.
 
@@ -143,6 +147,14 @@ The integrated SSSP owner evidence and exact reproduction command are in
 `docs/spine_device_owner_scheduler_20260803.md`.
 The corresponding vertex-lifecycle evidence is in
 `docs/spine_vertex_lifecycle_system_20260803.md`.
+The native micro-calibration and its explicit claim boundary are in
+`docs/refactor31_sim_fpga_mechanism_transfer_20260803.md`.
+
+The current Full/Residual PageRank and CC simulator shell still uses the
+legacy source-preparation protocol to read rank/residual/degree state before
+edge emission. It is correctness-tested but is not claimed to be a routed
+paper-policy kernel. Refactor31 SSSP host-active records are authoritative and
+do not use that source-refresh path.
 
 Payload-distinct parallel edges are deliberately excluded from this version.
 They require a separately versioned record-identity change across sorting,

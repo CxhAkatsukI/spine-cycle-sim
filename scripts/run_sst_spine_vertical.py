@@ -1461,6 +1461,14 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--fallback-replay-threshold", type=int, default=65_536)
     parser.add_argument(
+        "--segmented-fallback",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="use refactor31 preflight plus segmented execution fallback",
+    )
+    parser.add_argument("--reader-active-record-control-cycles", type=int)
+    parser.add_argument("--segmented-fallback-setup-cycles", type=int)
+    parser.add_argument(
         "--fallback-level-cache-reuse",
         action=argparse.BooleanOptionalAction,
         default=None,
@@ -1614,6 +1622,17 @@ def main() -> int:
     profile_source_page_index_cache = bool(
         profile.get("parameters", {}).get("source_page_index_cache", False)
     )
+    profile_segmented_fallback = bool(
+        profile.get("parameters", {}).get("segmented_fallback", False)
+    )
+    profile_reader_active_record_control_cycles = int(
+        profile.get("parameters", {}).get(
+            "reader_active_record_control_cycles", 0
+        )
+    )
+    profile_segmented_fallback_setup_cycles = int(
+        profile.get("parameters", {}).get("segmented_fallback_setup_cycles", 0)
+    )
     profile_range_task_active_gate = int(
         profile.get("parameters", {}).get(
             "range_task_active_gate", 16_384
@@ -1641,6 +1660,21 @@ def main() -> int:
         args.fallback_level_cache_reuse = profile_fallback_level_cache_reuse
     if args.source_page_index_cache is None:
         args.source_page_index_cache = profile_source_page_index_cache
+    if args.segmented_fallback is None:
+        args.segmented_fallback = profile_segmented_fallback
+    if args.reader_active_record_control_cycles is None:
+        args.reader_active_record_control_cycles = (
+            profile_reader_active_record_control_cycles
+        )
+    if args.segmented_fallback_setup_cycles is None:
+        args.segmented_fallback_setup_cycles = (
+            profile_segmented_fallback_setup_cycles
+        )
+    if (
+        args.reader_active_record_control_cycles < 0
+        or args.segmented_fallback_setup_cycles < 0
+    ):
+        raise SystemExit("refactor31 reader schedule cycles cannot be negative")
     if args.range_task_active_gate is None:
         args.range_task_active_gate = profile_range_task_active_gate
     try:
@@ -1908,6 +1942,15 @@ def main() -> int:
             ),
             "SPINE_SST_FALLBACK_REPLAY_THRESHOLD": str(
                 args.fallback_replay_threshold
+            ),
+            "SPINE_SST_SEGMENTED_FALLBACK": (
+                "1" if args.segmented_fallback else "0"
+            ),
+            "SPINE_SST_READER_ACTIVE_RECORD_CONTROL_CYCLES": str(
+                args.reader_active_record_control_cycles
+            ),
+            "SPINE_SST_SEGMENTED_FALLBACK_SETUP_CYCLES": str(
+                args.segmented_fallback_setup_cycles
             ),
             "SPINE_SST_FALLBACK_LEVEL_CACHE_REUSE": (
                 "1" if args.fallback_level_cache_reuse else "0"
@@ -2322,6 +2365,11 @@ def main() -> int:
         "range_task_active_gate": args.range_task_active_gate,
         "range_task_capacity": args.range_task_capacity,
         "range_task_payload_budget": args.range_task_payload_budget,
+        "segmented_fallback": args.segmented_fallback,
+        "reader_active_record_control_cycles": (
+            args.reader_active_record_control_cycles
+        ),
+        "segmented_fallback_setup_cycles": args.segmented_fallback_setup_cycles,
         "sst_memory_binding": binding.as_manifest(),
         "sst_library_binding": sst_library,
         "sst_plugin_sha256": sst_library["plugin_sha256"],

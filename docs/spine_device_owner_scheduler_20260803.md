@@ -61,11 +61,12 @@ without dropping an activation.
 
 ## Evidence Boundary
 
-This checkpoint proves integrated SSSP simulator behavior. It does not yet
-prove:
+This checkpoint proves integrated SSSP simulator behavior. The matching HLS
+owner protocol and host model are now implemented and host-tested on the
+paper-alignment branch. It does not yet prove:
 
 - cycle calibration of owner-control overhead against FPGA;
-- the owner state machine in HLS or a routed xclbin;
+- synthesis, timing closure, or a routed xclbin for the HLS owner state machine;
 - integration with CC, Residual PageRank, or Full PageRank; or
 - a fully asynchronous no-relaunch execution engine.
 

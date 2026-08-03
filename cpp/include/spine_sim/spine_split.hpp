@@ -26,6 +26,7 @@ enum class PartConvWordKind {
   kSourceCount,
   kSourceGeneration,
   kSourceRequestsDone,
+  kDeferActiveBegin,
   kTileBegin,
   kEdge,
   kTileEnd,
@@ -121,6 +122,12 @@ struct SpineReaderCounters {
   std::uint64_t range_task_prefix_cycles{};
   std::uint64_t range_task_scatter_cycles{};
   std::uint64_t range_task_verify_cycles{};
+  std::uint64_t range_task_control_cycles{};
+  std::uint64_t segmented_validation_payloads{};
+  std::uint64_t segmented_task_count{};
+  std::uint64_t segmented_replay_payloads{};
+  std::uint64_t segmented_segment_count{};
+  std::uint64_t segmented_setup_cycles{};
   std::uint64_t fallback_partitions{};
   std::uint64_t fallback_forced_dense_partitions{};
   std::uint64_t fallback_active_record_reads{};
@@ -379,6 +386,12 @@ class SpineSplitReader final : public Component {
     kFallbackReplay,
   };
 
+  enum class SegmentedPass {
+    kNone,
+    kValidation,
+    kExecution,
+  };
+
   enum class Phase {
     kWaitMaintenance,
     kSourceHeaderResolve,
@@ -395,6 +408,9 @@ class SpineSplitReader final : public Component {
     kLevelOccupancyBegin,
     kLevelDetailsBegin,
     kSetupReads,
+    kRefactor31Control,
+    kRefactor31SegmentSetup,
+    kSegmentedDeferActive,
     kBinClear,
     kProbeBegin,
     kProbeEpochResolve,
@@ -463,6 +479,8 @@ class SpineSplitReader final : public Component {
   void validate_control();
   void finalize_level_cache();
   void prepare_range_probes();
+  void begin_refactor31_control();
+  void finish_refactor31_validation_pass();
   void enqueue_probe_index_reads();
   [[nodiscard]] std::size_t source_page_cache_index(
       std::size_t family, std::size_t level, bool hot) const;
@@ -637,6 +655,10 @@ class SpineSplitReader final : public Component {
   bool fallback_active_record_valid_{};
   bool fallback_enabled_{};
   bool fallback_after_source_refresh_{};
+  SegmentedPass segmented_pass_{SegmentedPass::kNone};
+  std::uint64_t refactor31_control_remaining_{};
+  std::uint64_t refactor31_setup_remaining_{};
+  std::uint64_t refactor31_validation_payload_base_{};
   bool source_page_cache_current_hit_{};
   std::uint64_t next_transaction_id_{};
   bool staged_memory_issue_{};
@@ -723,6 +745,18 @@ struct SpineComputeCounters {
   std::uint64_t vertex_payload_write_bytes{};
   std::uint64_t active_out_write_bytes{};
   std::uint64_t bitmap_bytes{};
+  std::uint64_t deferred_active_markers{};
+  std::uint64_t deferred_active_clear_words{};
+  std::uint64_t deferred_active_clear_cycles{};
+  std::uint64_t deferred_active_merge_words{};
+  std::uint64_t deferred_active_merge_cycles{};
+  std::uint64_t deferred_active_sweep_read_words{};
+  std::uint64_t deferred_active_sweep_read_cycles{};
+  std::uint64_t deferred_active_sweep_nonzero_words{};
+  std::uint64_t deferred_active_sweep_bit_cycles{};
+  std::uint64_t deferred_active_published_vertices{};
+  std::uint64_t deferred_active_final_clear_words{};
+  std::uint64_t deferred_active_final_clear_cycles{};
   std::uint64_t result_write_bytes{};
   std::uint64_t memory_requests_issued{};
   std::uint64_t memory_requests_completed{};
@@ -828,6 +862,9 @@ class SpineSplitSsspCompute final : public Component {
     kSourceValue,
     kGatherVertex,
     kFullTile,
+    kDeferredMergeWord,
+    kDeferredSweepWord,
+    kDeferredPublishVertex,
   };
 
   struct MemoryTask {
@@ -838,6 +875,7 @@ class SpineSplitSsspCompute final : public Component {
     std::vector<std::uint8_t> write_data;
     MemoryPayloadKind payload_kind{MemoryPayloadKind::kNone};
     std::size_t item_index{};
+    std::uint64_t payload_value{};
     bool stream_read_beats{};
     std::size_t streamed_read_bytes{};
   };
@@ -870,6 +908,7 @@ class SpineSplitSsspCompute final : public Component {
     kInput,
     kSourceRead,
     kSourceReply,
+    kDeferredActiveClear,
     kGatherBegin,
     kGatherAdvance,
     kClearTileActive,
@@ -884,6 +923,14 @@ class SpineSplitSsspCompute final : public Component {
     kEmitActiveScan,
     kEmitActiveBits,
     kEmitStore,
+    kDeferredMergeScan,
+    kDeferredMergeWait,
+    kDeferredSweepRead,
+    kDeferredSweepScan,
+    kDeferredSweepBits,
+    kDeferredSweepDrain,
+    kDeferredFinalClear,
+    kDeferredFinalDrain,
     kFinish,
   };
 
@@ -902,6 +949,7 @@ class SpineSplitSsspCompute final : public Component {
                       std::vector<std::uint8_t> write_data = {},
                       MemoryPayloadKind payload_kind = MemoryPayloadKind::kNone,
                       std::size_t item_index = 0,
+                      std::uint64_t payload_value = 0,
                       bool stream_read_beats = false);
   void consume_memory_response(const MemoryTask &task,
                                const AxiResponse &response);
@@ -918,6 +966,8 @@ class SpineSplitSsspCompute final : public Component {
   void prepare_gather();
   void prepare_vertex_store();
   void enqueue_active_output(std::uint32_t vertex);
+  void enqueue_active_output(std::uint32_t vertex, std::uint32_t value,
+                             std::size_t output_index);
   void issue_tiny_read(std::size_t item_index, TinyReadPurpose purpose,
                        const CycleContext &context);
   void issue_vs_read(const PartConvWord &edge, VsReadPurpose purpose,
@@ -936,6 +986,8 @@ class SpineSplitSsspCompute final : public Component {
   void begin_tile_active_clear(Phase next_phase);
   void begin_sparse_store_scan();
   void begin_active_emit_scan();
+  void begin_deferred_merge_scan();
+  void begin_deferred_sweep();
   void finish_active_word_scan(Phase scan_phase);
   [[nodiscard]] std::optional<std::uint32_t> current_active_vertex() const;
   [[nodiscard]] bool controller_memory_overlap_phase() const noexcept;
@@ -968,6 +1020,7 @@ class SpineSplitSsspCompute final : public Component {
   std::deque<PendingVsRead> pending_vs_reads_;
   std::deque<VsBypassEntry> vs_bypass_;
   std::array<std::uint64_t, 1024> tile_active_words_{};
+  std::array<std::uint64_t, 128> deferred_bitmap_chunk_{};
   Phase phase_{Phase::kInput};
   Action staged_action_{Action::kNone};
   PartConvWord staged_edge_word_;
@@ -986,6 +1039,15 @@ class SpineSplitSsspCompute final : public Component {
   std::size_t active_output_index_{};
   std::uint64_t active_scan_bits_{};
   std::uint64_t active_read_due_cycle_{};
+  std::size_t deferred_active_word_index_{};
+  std::size_t deferred_sweep_base_word_{};
+  std::size_t deferred_sweep_chunk_words_{};
+  std::size_t deferred_sweep_word_index_{};
+  std::size_t deferred_sweep_bit_index_{};
+  std::size_t deferred_sweep_reads_pending_{};
+  std::uint64_t deferred_sweep_scan_bits_{};
+  std::uint64_t deferred_sweep_next_issue_cycle_{};
+  std::uint64_t deferred_sweep_next_bit_cycle_{};
   std::uint64_t last_on_chip_read_wait_cycle_{~std::uint64_t{0}};
   std::uint64_t last_on_chip_pipeline_stall_cycle_{~std::uint64_t{0}};
   Phase after_clear_phase_{Phase::kRelax};
@@ -999,6 +1061,7 @@ class SpineSplitSsspCompute final : public Component {
   bool source_count_seen_{};
   bool source_generation_seen_{};
   bool source_protocol_overflow_{};
+  bool deferred_active_{};
   bool tile_open_{};
   bool full_path_{};
   bool overflow_edge_pending_{};

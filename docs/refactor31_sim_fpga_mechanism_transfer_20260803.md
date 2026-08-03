@@ -2,7 +2,7 @@
 
 ## Scope
 
-This checkpoint compares the cycle simulator with the routed refactor31
+This checkpoint compares the cycle simulator with the routed refactor31 SSSP
 reader/compute artifact at 160 MHz. It uses the exact fixture definitions from
 the accepted hardware host and covers both sides of the 16,384-active-record
 fallback boundary:
@@ -12,10 +12,57 @@ fallback boundary:
 - active-gate fallback, one destination tile; and
 - active-gate fallback, sixteen destination tiles.
 
-The simulator checks final vertex state, emitted frontier, and request
-completion conservation. The original FPGA logs have
+Only the two one-tile rows are calibration inputs. The two sixteen-tile rows
+are immutable holdouts. The simulator checks final vertex state, emitted
+frontier, and request completion conservation. The original FPGA logs have
 `reference_validated=0`, so they are timing-stability evidence rather than
 independent hardware correctness evidence.
+
+## Modeled Native Mechanisms
+
+The refactor31 profile now includes the serialized per-active-record range-task
+control schedule and segmented fallback setup. The fitted one-tile constants
+are:
+
+```text
+reader active-record control: 520 cycles/record
+segmented fallback setup:      3,185,887 cycles
+```
+
+Fallback emits an explicit defer-active marker. Compute then executes the HLS
+bitmap protocol rather than publishing a Python frontier directly:
+
+1. clear the graph-domain active bitmap;
+2. read/modify/write changed tile words;
+3. sweep 128 words per chunk with read II=4;
+4. scan set bits with bit II=2;
+5. read each published vertex value and write the active-output record; and
+6. clear the bitmap again after publication.
+
+All accesses use the existing finite AXI/HBM ports and therefore remain
+subject to request windows, arbitration, response queues, and backpressure.
+
+## Result
+
+| Case | Role | Reader error | Paired launch-to-finish error |
+| --- | --- | ---: | ---: |
+| exact, one tile | calibration | +0.075% | -10.595% |
+| fallback, one tile | calibration | -0.001% | -5.981% |
+| exact, sixteen tiles | holdout | +0.283% | -0.042% |
+| fallback, sixteen tiles | holdout | -11.302% | -17.992% |
+
+All four simulator runs have zero state/frontier mismatches and closed reader
+and compute request ledgers. The exact-path transfer is accepted on both tile
+shapes. The fallback one-tile calibration is also within the gate. The
+multi-tile fallback is the remaining native timing gap: it is below the 20%
+component gate but exceeds the 15% total-cycle target. It must not be described
+as cycle-matched.
+
+`compute_active_cycles` remains an internal first-compute-word diagnostic. The
+FPGA `compute_ms`/`conv_ms` timer starts at the paired CU launch, so the
+comparison uses Reader launch to compute completion. Comparing FPGA launch
+time to the simulator's first compute word would incorrectly omit serialized
+Reader work.
 
 ## Reproduction
 
@@ -23,52 +70,23 @@ independent hardware correctness evidence.
 cd /home/chuxiao/spine-cycle-sim-architecture-alignment
 make -C cpp/sst -j4
 python3 scripts/run_refactor31_mechanism_calibration.py \
-  --out-dir docs/evidence/refactor31_sim_fpga_mechanism_transfer_v1 \
+  --out-dir docs/evidence/refactor31_sim_fpga_mechanism_transfer_v2 \
   --no-build
 ```
 
 The command generates `refactor31_sim_fpga_comparison.csv`, one simulator
-summary per case, and `evidence.json`.
+summary per case, and `evidence.json`. The manifest binds the architecture
+profile, relevant simulator sources, and the loaded SST shared library by
+SHA-256.
 
-## Uncalibrated Result
+## Evidence Boundary
 
-| Case | Role | Reader error | Compute error | Convergence-span error |
-| --- | --- | ---: | ---: | ---: |
-| exact, one tile | calibration | -79.74% | -81.05% | -80.77% |
-| fallback, one tile | calibration | -68.57% | -83.82% | -70.15% |
-| exact, sixteen tiles | holdout | -66.88% | -66.67% | -66.40% |
-| fallback, sixteen tiles | holdout | +114.76% | +71.95% | +82.59% |
+This evidence supports refactor31-native weighted SSSP mechanism transfer. It
+does not support hardware correctness admission for the original timing-only
+logs, real-slice transfer, owner-scheduler FPGA calibration, or hardware
+performance claims for CC/PageRank policy kernels. The paper-target owner
+scheduler is intentionally separate from this routed native baseline.
 
-All four simulator runs have zero state/frontier mismatches and closed reader
-and compute request ledgers. The cycle transfer is not accepted.
-
-The exact reader misses approximately 8.25 million cycles in both tile shapes.
-That stable absolute residual points to serialized per-active-record task
-construction in the HLS schedule that the simulator currently overlaps too
-aggressively. The fallback error changes sign: the old simulator fallback
-repeats lookup and tile work, while refactor31 uses validation preflight plus
-segmented payload execution. This is a structural model mismatch, not a fixed
-launch offset.
-
-## Back-to-Back Exact Probe
-
-The additional `active_exact_one_tile --repeat-launches 5` run on the second
-U55C is timing-stable, but all launches fail one host invariant. The harness
-poisons the active bitmap before repeated launches; refactor31 exact execution
-does not restore it to zero. Functional counters still report 16,384 processed
-edges and 16,384 next-active vertices. The raw log is
-`docs/evidence/refactor31_sim_fpga_mechanism_transfer_v1/fpga_active_exact_one_tile_repeat5.log`.
-
-This probe is retained as a native-artifact limitation. Its rows are not
-correctness-admitted and are not used to fit the simulator.
-
-## Next Fix
-
-1. Serialize the exact range-task control schedule per realized active record
-   before the first tile can reach compute.
-2. Replace the legacy fallback traversal with refactor31 preflight and bounded
-   segmented payload phases.
-3. Calibrate with one-tile rows and validate on sixteen-tile holdouts without
-   changing parameters after seeing holdout errors.
-4. Keep the paper target owner scheduler separate from this preliminary native
-   artifact calibration.
+The remaining timing work is to explain the multi-tile segmented-fallback
+residual with HLS schedule/RTL evidence and then freeze the native profile
+before running medium real-slice calibration and holdout workloads.

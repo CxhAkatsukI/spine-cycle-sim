@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 from pathlib import Path
 import subprocess
@@ -54,6 +55,10 @@ def write_csv(path: Path, rows: list[dict[str, Any]]) -> None:
         writer.writerows(rows)
 
 
+def sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out-dir", type=Path, required=True)
@@ -61,6 +66,11 @@ def main() -> int:
     parser.add_argument("--fpga-summary", type=Path, default=DEFAULT_FPGA_SUMMARY)
     parser.add_argument("--max-cycles", type=int, default=80_000_000)
     parser.add_argument("--no-build", action="store_true")
+    parser.add_argument(
+        "--reuse-runs",
+        action="store_true",
+        help="reuse an existing per-case summary instead of launching SST",
+    )
     parser.add_argument("--cases", nargs="+", choices=REFACTOR31_CASES)
     args = parser.parse_args()
 
@@ -68,6 +78,8 @@ def main() -> int:
     output.mkdir(parents=True, exist_ok=True)
     cases = tuple(args.cases or REFACTOR31_CASES)
     fpga = read_fpga_summary(args.fpga_summary.resolve())
+    profile_path = args.profile.resolve()
+    profile_sha256 = sha256(profile_path)
     rows: list[dict[str, Any]] = []
     for case in cases:
         workload = write_refactor31_fixture(
@@ -90,21 +102,29 @@ def main() -> int:
         ]
         if args.no_build:
             command.append("--no-build")
-        subprocess.run(command, cwd=ROOT, check=True)
-        summary = json.loads((run_dir / "summary.json").read_text(encoding="utf-8"))
-        reader_cycles = int(summary["reader_end_cycles_per_round"][0]) - int(
-            summary["reader_start_cycles_per_round"][0]
-        )
-        compute_cycles = int(summary["compute_end_cycles_per_round"][0]) - int(
-            summary["compute_start_cycles_per_round"][0]
-        )
+        summary_path = run_dir / "summary.json"
+        if not args.reuse_runs or not summary_path.is_file():
+            subprocess.run(command, cwd=ROOT, check=True)
+        summary = json.loads(summary_path.read_text(encoding="utf-8"))
+        if summary.get("architecture_profile_sha256") != profile_sha256:
+            raise RuntimeError(
+                f"{case}: summary was generated with a different architecture profile"
+            )
+        reader_start = int(summary["reader_start_cycles_per_round"][0])
+        reader_end = int(summary["reader_end_cycles_per_round"][0])
+        compute_start = int(summary["compute_start_cycles_per_round"][0])
+        compute_end = int(summary["compute_end_cycles_per_round"][0])
+        reader_cycles = reader_end - reader_start
+        compute_active_cycles = compute_end - compute_start
+        # The routed host records both paired CUs from launch to completion.
+        # The reader start is the simulator's shared post-maintenance launch
+        # boundary; compute_start is only the first input word and therefore an
+        # internal active-span diagnostic, not the FPGA measurement window.
+        compute_cycles = compute_end - reader_start
         conv_cycles = max(
-            int(summary["reader_end_cycles_per_round"][0]),
-            int(summary["compute_end_cycles_per_round"][0]),
-        ) - min(
-            int(summary["reader_start_cycles_per_round"][0]),
-            int(summary["compute_start_cycles_per_round"][0]),
-        )
+            reader_end,
+            compute_end,
+        ) - reader_start
         measured = fpga[case]
         measured_reader = int(measured["median_reader_cycles"])
         measured_compute = int(measured["median_compute_cycles"])
@@ -120,6 +140,7 @@ def main() -> int:
                 "fpga_reader_cycles": measured_reader,
                 "reader_error_pct": f"{relative_error(reader_cycles, measured_reader):.6f}",
                 "sim_compute_cycles": compute_cycles,
+                "sim_compute_active_cycles": compute_active_cycles,
                 "fpga_compute_cycles": measured_compute,
                 "compute_error_pct": f"{relative_error(compute_cycles, measured_compute):.6f}",
                 "sim_conv_cycles": conv_cycles,
@@ -141,9 +162,21 @@ def main() -> int:
 
     write_csv(output / "refactor31_sim_fpga_comparison.csv", rows)
     evidence = {
-        "schema_version": 1,
-        "evidence_id": "refactor31_sim_fpga_mechanism_transfer_v1",
+        "schema_version": 2,
+        "evidence_id": "refactor31_sim_fpga_mechanism_transfer_v2",
         "profile": str(args.profile.resolve()),
+        "profile_sha256": profile_sha256,
+        "model_source_sha256": {
+            str(path.relative_to(ROOT)): sha256(path)
+            for path in (
+                ROOT / "cpp" / "include" / "spine_sim" / "spine_split.hpp",
+                ROOT / "cpp" / "src" / "spine_split.cpp",
+                ROOT / "cpp" / "src" / "spine_system.cpp",
+            )
+        },
+        "simulator_library_sha256": sha256(
+            ROOT / "build" / "sst" / "libspine_cycle.so"
+        ),
         "cases": len(rows),
         "calibration_cases": sum(row["role"] == "calibration" for row in rows),
         "holdout_cases": sum(row["role"] == "holdout" for row in rows),

@@ -45,8 +45,10 @@ cmake --build /tmp/spine-cycle-sim-owner-build -j4
 
 ## Evidence Boundary
 
-This proves SSSP simulator semantics and shared-channel traffic. It does not
-yet prove a matching HLS controller, routed timing, or lifecycle integration in
-CC and PageRank. Per-edge validity lookups are not charged: safe deactivation
-requires incident edges to be absent or masked before publication, while the
-timed bitmap controls transaction admission.
+This proves SSSP simulator semantics and shared-channel traffic. A matching HLS
+lifecycle kernel and fixed-domain transaction guards are now implemented and
+host-tested, but synthesis and routed timing remain pending. Lifecycle
+integration in CC and PageRank also remains pending. Per-edge validity lookups
+are not charged: safe deactivation requires incident edges to be absent or
+masked before publication, while the timed bitmap controls transaction
+admission.

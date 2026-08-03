@@ -157,6 +157,14 @@ struct SpineL0Config {
   std::size_t range_task_capacity{65'536};
   std::uint64_t range_task_payload_budget{1'048'576};
   std::uint64_t fallback_replay_threshold{65'536};
+  // Refactor31 replaces the legacy per-tile fallback scan with a validation
+  // pass followed by bounded range construction and payload replay.
+  bool segmented_fallback{false};
+  // The accepted refactor31 HLS exact builder serializes active-record control
+  // work before payload replay. These schedule terms are profile parameters so
+  // legacy and projected architectures do not inherit routed-artifact timing.
+  std::size_t reader_active_record_control_cycles{0};
+  std::size_t segmented_fallback_setup_cycles{0};
   // Projected optimization: reuse the level metadata already loaded at reader
   // launch instead of rereading invariant slice fields for every fallback row.
   bool fallback_level_cache_reuse{false};

@@ -352,6 +352,10 @@ void SpineSplitReader::reset_state() {
   fallback_active_record_valid_ = false;
   fallback_enabled_ = false;
   fallback_after_source_refresh_ = false;
+  segmented_pass_ = SegmentedPass::kNone;
+  refactor31_control_remaining_ = 0;
+  refactor31_setup_remaining_ = 0;
+  refactor31_validation_payload_base_ = 0;
   source_page_cache_current_hit_ = false;
   metadata_control_ = 0;
   dirty_count_ = 0;
@@ -449,7 +453,9 @@ void SpineSplitReader::evaluate(const CycleContext &) {
   if (phase_ == Phase::kRequestSourceWindow ||
       phase_ == Phase::kSendSourceCount ||
       phase_ == Phase::kSendSourceGeneration ||
-      phase_ == Phase::kSendSourceDone || phase_ == Phase::kTileBegin ||
+      phase_ == Phase::kSendSourceDone ||
+      phase_ == Phase::kSegmentedDeferActive ||
+      phase_ == Phase::kTileBegin ||
       phase_ == Phase::kEdgeEmit || phase_ == Phase::kTileEnd ||
       phase_ == Phase::kFallbackTileBegin ||
       phase_ == Phase::kFallbackEdgeEmit || phase_ == Phase::kFallbackTileEnd ||
@@ -567,6 +573,15 @@ void SpineSplitReader::commit(const CycleContext &context) {
         case Phase::kSendSourceDone:
           ++counters_.source_protocol_markers;
           phase_ = Phase::kWaitSourceAck;
+          break;
+        case Phase::kSegmentedDeferActive:
+          refactor31_setup_remaining_ =
+              maintenance_.config().segmented_fallback_setup_cycles;
+          if (refactor31_setup_remaining_ == 0) {
+            begin_refactor31_control();
+          } else {
+            phase_ = Phase::kRefactor31SegmentSetup;
+          }
           break;
         case Phase::kTileBegin:
           ++counters_.tiles_emitted;
@@ -1192,6 +1207,9 @@ void SpineSplitReader::consume_memory_response(const MemoryTask &task,
       counters_.graph_edge_payload_read_bytes += response.read_data.size();
       counters_.graph_replay_payload_read_bytes += response.read_data.size();
       ++counters_.range_task_replay_payloads;
+      if (segmented_pass_ == SegmentedPass::kExecution) {
+        ++counters_.segmented_replay_payloads;
+      }
       if (!edge_pipeline_abort_) {
         const auto [iterator, inserted] = edge_response_buffer_.emplace(
             task.stream_sequence, BufferedPipelineEdge{
@@ -1450,13 +1468,19 @@ void SpineSplitReader::prepare_range_probes() {
   if (active_records_.size() > maintenance_.config().range_task_active_gate) {
     counters_.range_task_path = kRangeTaskPathFallback;
     counters_.range_task_fallback_reason = kRangeTaskFallbackActiveGate;
-    if (mode_ == SpineReaderMode::kHostActive) {
+    if (mode_ == SpineReaderMode::kHostActive &&
+        maintenance_.config().segmented_fallback) {
+      if (segmented_pass_ == SegmentedPass::kNone) {
+        segmented_pass_ = SegmentedPass::kValidation;
+      }
+    } else if (mode_ == SpineReaderMode::kHostActive) {
       start_host_fallback(kRangeTaskFallbackActiveGate);
+      return;
     } else {
       begin_terminal(true,
                      "device active exact path exceeded the active-record gate");
+      return;
     }
-    return;
   }
   for (const SpineActiveRecord &record : active_records_) {
     if (record.source >= maintenance_.vertices() ||
@@ -1577,6 +1601,41 @@ void SpineSplitReader::prepare_range_probes() {
       }
     }
   }
+}
+
+void SpineSplitReader::begin_refactor31_control() {
+  const std::uint64_t active = active_records_.size();
+  refactor31_control_remaining_ =
+      active * maintenance_.config().reader_active_record_control_cycles;
+  if (refactor31_control_remaining_ == 0) {
+    bin_index_ = 0;
+    phase_ = Phase::kBinClear;
+  } else {
+    phase_ = Phase::kRefactor31Control;
+  }
+}
+
+void SpineSplitReader::finish_refactor31_validation_pass() {
+  if (segmented_pass_ != SegmentedPass::kValidation) {
+    throw std::logic_error("segmented validation completed from wrong pass");
+  }
+  counters_.segmented_validation_payloads +=
+      counters_.range_task_construction_payloads -
+      refactor31_validation_payload_base_;
+  counters_.range_task_construction_payloads = 0;
+  counters_.range_task_count = 0;
+  range_tasks_.clear();
+  range_probes_.clear();
+  clear_source_page_cache();
+  for (TileTask &tile : tiles_) {
+    tile.ranges.clear();
+  }
+  segmented_pass_ = SegmentedPass::kExecution;
+  prepare_range_probes();
+  if (terminal_pending_ || fallback_enabled_) {
+    return;
+  }
+  phase_ = Phase::kSegmentedDeferActive;
 }
 
 void SpineSplitReader::start_host_fallback(std::uint32_t reason) {
@@ -3090,6 +3149,9 @@ PartConvWord SpineSplitReader::current_stream_word() const {
                           .first = dirty_generation_};
     case Phase::kSendSourceDone:
       return PartConvWord{.kind = PartConvWordKind::kSourceRequestsDone};
+    case Phase::kSegmentedDeferActive:
+      return PartConvWord{.kind = PartConvWordKind::kDeferActiveBegin,
+                          .first = 1U};
     case Phase::kTileBegin:
       return PartConvWord{.kind = PartConvWordKind::kTileBegin,
                           .first = tiles_.at(tile_index_).tile_base};
@@ -3247,7 +3309,8 @@ void SpineSplitReader::advance(const CycleContext &context) {
           total += count;
       }
       counters_.range_task_active_records = total;
-      if (total > maintenance_.config().range_task_active_gate) {
+      if (total > maintenance_.config().range_task_active_gate &&
+          !maintenance_.config().segmented_fallback) {
         const GraphAlgorithmKind kind = algorithm_policy_->config().kind;
         const bool needs_source_refresh =
             kind == GraphAlgorithmKind::kFullPageRank ||
@@ -3387,8 +3450,28 @@ void SpineSplitReader::advance(const CycleContext &context) {
       if (terminal_pending_) {
         return;
       }
-      bin_index_ = 0;
-      phase_ = Phase::kBinClear;
+      refactor31_validation_payload_base_ =
+          counters_.range_task_construction_payloads;
+      begin_refactor31_control();
+      return;
+    case Phase::kRefactor31Control:
+      if (refactor31_control_remaining_ != 0) {
+        --refactor31_control_remaining_;
+        ++counters_.range_task_control_cycles;
+      } else {
+        bin_index_ = 0;
+        phase_ = Phase::kBinClear;
+      }
+      return;
+    case Phase::kRefactor31SegmentSetup:
+      if (refactor31_setup_remaining_ != 0) {
+        --refactor31_setup_remaining_;
+        ++counters_.segmented_setup_cycles;
+      } else {
+        begin_refactor31_control();
+      }
+      return;
+    case Phase::kSegmentedDeferActive:
       return;
     case Phase::kBinClear:
       tile_counts_[bin_index_] = 0;
@@ -3406,6 +3489,10 @@ void SpineSplitReader::advance(const CycleContext &context) {
       return;
     case Phase::kProbeBegin:
       if (probe_index_ == range_probes_.size()) {
+        if (segmented_pass_ == SegmentedPass::kValidation) {
+          finish_refactor31_validation_pass();
+          return;
+        }
         bin_index_ = 0;
         phase_ = Phase::kBinPrefix;
         return;
@@ -3513,7 +3600,13 @@ void SpineSplitReader::advance(const CycleContext &context) {
       ++bin_index_;
       if (bin_index_ == kRangeTaskMaxTiles) {
         tile_index_ = 0;
-        counters_.range_task_path = kRangeTaskPathExact;
+        if (segmented_pass_ == SegmentedPass::kExecution) {
+          counters_.range_task_path = kRangeTaskPathFallback;
+          counters_.segmented_task_count = range_tasks_.size();
+          ++counters_.segmented_segment_count;
+        } else {
+          counters_.range_task_path = kRangeTaskPathExact;
+        }
         phase_ = Phase::kTileScan;
       }
       return;
@@ -3721,6 +3814,17 @@ void SpineSplitSsspCompute::reset_round() {
   source_count_seen_ = false;
   source_generation_seen_ = false;
   source_protocol_overflow_ = false;
+  deferred_active_ = false;
+  deferred_active_word_index_ = 0;
+  deferred_bitmap_chunk_.fill(0);
+  deferred_sweep_base_word_ = 0;
+  deferred_sweep_chunk_words_ = 0;
+  deferred_sweep_word_index_ = 0;
+  deferred_sweep_bit_index_ = 0;
+  deferred_sweep_reads_pending_ = 0;
+  deferred_sweep_scan_bits_ = 0;
+  deferred_sweep_next_issue_cycle_ = 0;
+  deferred_sweep_next_bit_cycle_ = 0;
   active_word_index_ = 0;
   active_bit_index_ = 0;
   active_output_base_ = 0;
@@ -3774,6 +3878,22 @@ void SpineSplitSsspCompute::evaluate(const CycleContext &context) {
       counters_.start_cycle = context.domain_cycle;
     }
     ++counters_.full_recompute_reset_cycles;
+  }
+  if (phase_ == Phase::kDeferredActiveClear) {
+    ++counters_.deferred_active_clear_cycles;
+  }
+  if (phase_ == Phase::kDeferredMergeScan ||
+      phase_ == Phase::kDeferredMergeWait) {
+    ++counters_.deferred_active_merge_cycles;
+  }
+  if (phase_ == Phase::kDeferredSweepRead) {
+    ++counters_.deferred_active_sweep_read_cycles;
+  }
+  if (phase_ == Phase::kDeferredSweepBits) {
+    ++counters_.deferred_active_sweep_bit_cycles;
+  }
+  if (phase_ == Phase::kDeferredFinalClear) {
+    ++counters_.deferred_active_final_clear_cycles;
   }
   staged_full_tile_read_beat_valid_ = stage_full_tile_read_beat();
   const bool staged_memory_completion = stage_memory_completions();
@@ -3960,6 +4080,7 @@ void SpineSplitSsspCompute::enqueue_memory(
     FixedAxiPort &port, MemoryOperation operation, std::uint64_t address,
     std::uint64_t bytes, std::vector<std::uint8_t> write_data,
     MemoryPayloadKind payload_kind, std::size_t item_index,
+    std::uint64_t payload_value,
     bool stream_read_beats) {
   if ((operation == MemoryOperation::kRead && !write_data.empty()) ||
       (operation == MemoryOperation::kWrite && write_data.size() != bytes)) {
@@ -3974,6 +4095,7 @@ void SpineSplitSsspCompute::enqueue_memory(
       .write_data = std::move(write_data),
       .payload_kind = payload_kind,
       .item_index = item_index,
+      .payload_value = payload_value,
       .stream_read_beats = stream_read_beats,
       .streamed_read_bytes = 0,
   });
@@ -4165,11 +4287,12 @@ void SpineSplitSsspCompute::consume_memory_response(
   if (response.read_data.size() != task.bytes) {
     throw std::logic_error("Spine compute read response payload size mismatch");
   }
-  if (task.port != ports_.vertex_state ||
-      task.payload_kind == MemoryPayloadKind::kNone) {
+  if (task.payload_kind == MemoryPayloadKind::kNone) {
     return;
   }
-  counters_.vertex_payload_read_bytes += response.read_data.size();
+  if (task.port == ports_.vertex_state) {
+    counters_.vertex_payload_read_bytes += response.read_data.size();
+  }
   if (task.payload_kind == MemoryPayloadKind::kSourceValue) {
     const AlgorithmSourceResult prepared = algorithm_policy_->prepare_source(
         {.primary = decode_u32(response.read_data)}, 0);
@@ -4206,6 +4329,40 @@ void SpineSplitSsspCompute::consume_memory_response(
     }
     counters_.vs_tile_writes += kTileVertices;
     counters_.vs_uram_write_requests += kTileVertices;
+    return;
+  }
+  if (task.payload_kind == MemoryPayloadKind::kDeferredMergeWord) {
+    if (task.port != ports_.active_bitmap || task.bytes != sizeof(std::uint64_t)) {
+      throw std::logic_error("invalid deferred bitmap merge response");
+    }
+    const std::uint64_t merged = decode_u64(response.read_data) |
+                                 task.payload_value;
+    enqueue_memory(*ports_.active_bitmap, MemoryOperation::kWrite,
+                   task.address, sizeof(std::uint64_t), encode_u64(merged));
+    ++counters_.deferred_active_merge_words;
+    return;
+  }
+  if (task.payload_kind == MemoryPayloadKind::kDeferredSweepWord) {
+    if (task.port != ports_.active_bitmap ||
+        task.item_index >= deferred_bitmap_chunk_.size() ||
+        task.bytes != sizeof(std::uint64_t) ||
+        deferred_sweep_reads_pending_ == 0) {
+      throw std::logic_error("invalid deferred bitmap sweep response");
+    }
+    deferred_bitmap_chunk_[task.item_index] = decode_u64(response.read_data);
+    --deferred_sweep_reads_pending_;
+    return;
+  }
+  if (task.payload_kind == MemoryPayloadKind::kDeferredPublishVertex) {
+    if (task.port != ports_.vertex_state || task.item_index >= vertices_ ||
+        task.bytes != kVertexWordBytes) {
+      throw std::logic_error("invalid deferred active vertex response");
+    }
+    const std::uint32_t vertex = static_cast<std::uint32_t>(task.item_index);
+    const std::uint32_t value = decode_u32(response.read_data);
+    values_.at(vertex) = value;
+    enqueue_active_output(vertex, value,
+                          static_cast<std::size_t>(task.payload_value));
     return;
   }
   throw std::logic_error("unknown Spine compute memory payload kind");
@@ -4268,6 +4425,19 @@ void SpineSplitSsspCompute::handle_edge_word(const PartConvWord &word,
           counters_.source_protocol_status !=
           static_cast<std::uint32_t>(SpineSourceProtocolStatus::kOk);
       phase_ = Phase::kSourceReply;
+      return;
+    case PartConvWordKind::kDeferActiveBegin:
+      if (deferred_active_ || source_count_seen_ || tile_open_ ||
+          word.first != 1U) {
+        source_protocol_overflow_ = true;
+        failed_ = true;
+        done_ = true;
+        return;
+      }
+      deferred_active_ = true;
+      deferred_active_word_index_ = 0;
+      ++counters_.deferred_active_markers;
+      phase_ = Phase::kDeferredActiveClear;
       return;
     case PartConvWordKind::kDiagnostic:
       ++counters_.diagnostic_words;
@@ -4332,7 +4502,7 @@ void SpineSplitSsspCompute::handle_edge_word(const PartConvWord &word,
       enqueue_memory(*ports_.vertex_state, MemoryOperation::kRead,
                      tile_base_ * kVertexWordBytes,
                      tile_size_ * kVertexWordBytes, {},
-                     MemoryPayloadKind::kFullTile, 0,
+                     MemoryPayloadKind::kFullTile, 0, 0,
                      ports_.vertex_state->read_beat_stream_enabled());
       phase_ = Phase::kFullLoad;
     } else {
@@ -4385,16 +4555,22 @@ void SpineSplitSsspCompute::handle_edge_word(const PartConvWord &word,
         done_ = true;
         return;
       }
-      enqueue_memory(*ports_.active_bitmap, MemoryOperation::kRead, 0, 8);
-      enqueue_memory(*ports_.active_bitmap, MemoryOperation::kWrite, 0, 8,
-                     std::vector<std::uint8_t>(8, 0));
-      enqueue_memory(*ports_.result, MemoryOperation::kWrite, 0, kResultBytes,
-                     std::vector<std::uint8_t>(kResultBytes, 0));
       ++counters_.done_words;
       counters_.done_overflow = (word.second & 1U) != 0;
       source_protocol_overflow_ =
           source_protocol_overflow_ || counters_.done_overflow;
-      phase_ = Phase::kFinish;
+      if (deferred_active_) {
+        if (source_protocol_overflow_) {
+          deferred_active_word_index_ = 0;
+          phase_ = Phase::kDeferredFinalClear;
+        } else {
+          begin_deferred_sweep();
+        }
+      } else {
+        enqueue_memory(*ports_.result, MemoryOperation::kWrite, 0, kResultBytes,
+                       std::vector<std::uint8_t>(kResultBytes, 0));
+        phase_ = Phase::kFinish;
+      }
       return;
   }
 }
@@ -4533,7 +4709,9 @@ void SpineSplitSsspCompute::complete_relax(const PendingVsRead &request) {
     if (std::find(changed_vertices_.begin(), changed_vertices_.end(),
                   request.vertex) == changed_vertices_.end()) {
       changed_vertices_.push_back(request.vertex);
-      next_active_.push_back(request.vertex);
+      if (!deferred_active_) {
+        next_active_.push_back(request.vertex);
+      }
     }
   }
   ++counters_.processed_edges;
@@ -4621,11 +4799,13 @@ void SpineSplitSsspCompute::sort_changed_vertices_for_emit() {
   if (changed_vertices_.empty()) {
     return;
   }
-  const std::size_t active_base =
-      next_active_.size() - changed_vertices_.size();
   std::sort(changed_vertices_.begin(), changed_vertices_.end());
-  std::copy(changed_vertices_.begin(), changed_vertices_.end(),
-            next_active_.begin() + static_cast<std::ptrdiff_t>(active_base));
+  if (!deferred_active_) {
+    const std::size_t active_base =
+        next_active_.size() - changed_vertices_.size();
+    std::copy(changed_vertices_.begin(), changed_vertices_.end(),
+              next_active_.begin() + static_cast<std::ptrdiff_t>(active_base));
+  }
 }
 
 void SpineSplitSsspCompute::prepare_vertex_store() {
@@ -4641,17 +4821,23 @@ void SpineSplitSsspCompute::prepare_vertex_store() {
 }
 
 void SpineSplitSsspCompute::enqueue_active_output(std::uint32_t vertex) {
+  enqueue_active_output(vertex, values_.at(vertex),
+                        active_output_base_ + active_output_index_);
+  ++active_output_index_;
+}
+
+void SpineSplitSsspCompute::enqueue_active_output(std::uint32_t vertex,
+                                                  std::uint32_t value,
+                                                  std::size_t output_index) {
   std::vector<std::uint8_t> payload(kActiveOutputBytes, 0);
-  const std::vector<std::uint8_t> value = encode_u32(values_.at(vertex));
+  const std::vector<std::uint8_t> encoded_value = encode_u32(value);
   const std::vector<std::uint8_t> encoded_vertex = encode_u32(vertex);
-  std::copy(value.begin(), value.end(), payload.begin());
+  std::copy(encoded_value.begin(), encoded_value.end(), payload.begin());
   std::copy(encoded_vertex.begin(), encoded_vertex.end(),
             payload.begin() + sizeof(std::uint32_t));
   enqueue_memory(*ports_.active_out, MemoryOperation::kWrite,
-                 (active_output_base_ + active_output_index_) *
-                     kActiveOutputBytes,
+                 output_index * kActiveOutputBytes,
                  kActiveOutputBytes, std::move(payload));
-  ++active_output_index_;
   ++counters_.active_emit_writes_generated;
 }
 
@@ -4686,7 +4872,12 @@ bool SpineSplitSsspCompute::controller_memory_overlap_phase() const noexcept {
          phase_ == Phase::kSparseStoreBits ||
          (!full_path_ && phase_ == Phase::kStore) ||
          phase_ == Phase::kEmitActiveScan ||
-         phase_ == Phase::kEmitActiveBits || phase_ == Phase::kEmitStore;
+         phase_ == Phase::kEmitActiveBits || phase_ == Phase::kEmitStore ||
+         phase_ == Phase::kDeferredMergeScan ||
+         phase_ == Phase::kDeferredSweepRead ||
+         phase_ == Phase::kDeferredSweepScan ||
+         phase_ == Phase::kDeferredSweepBits ||
+         phase_ == Phase::kDeferredFinalClear;
 }
 
 void SpineSplitSsspCompute::begin_sparse_store_scan() {
@@ -4710,6 +4901,32 @@ void SpineSplitSsspCompute::begin_active_emit_scan() {
   phase_ = Phase::kEmitActiveScan;
 }
 
+void SpineSplitSsspCompute::begin_deferred_merge_scan() {
+  sort_changed_vertices_for_emit();
+  active_word_index_ = 0;
+  active_bit_index_ = 0;
+  active_scan_bits_ = 0;
+  active_read_pending_ = false;
+  active_read_ready_ = false;
+  phase_ = Phase::kDeferredMergeScan;
+}
+
+void SpineSplitSsspCompute::begin_deferred_sweep() {
+  deferred_bitmap_chunk_.fill(0);
+  deferred_sweep_base_word_ = 0;
+  deferred_sweep_chunk_words_ = 0;
+  deferred_sweep_word_index_ = 0;
+  deferred_sweep_bit_index_ = 0;
+  deferred_sweep_reads_pending_ = 0;
+  deferred_sweep_scan_bits_ = 0;
+  deferred_sweep_next_issue_cycle_ = 0;
+  deferred_sweep_next_bit_cycle_ = 0;
+  active_output_base_ = 0;
+  active_output_index_ = 0;
+  next_active_.clear();
+  phase_ = Phase::kDeferredSweepRead;
+}
+
 void SpineSplitSsspCompute::finish_active_word_scan(Phase scan_phase) {
   active_bit_index_ = 0;
   ++active_word_index_;
@@ -4728,7 +4945,7 @@ void SpineSplitSsspCompute::begin_full_path(const PartConvWord &overflow_edge) {
   tile_values_.assign(tile_size_, kInfinity);
   enqueue_memory(*ports_.vertex_state, MemoryOperation::kRead,
                  tile_base_ * kVertexWordBytes, tile_size_ * kVertexWordBytes,
-                 {}, MemoryPayloadKind::kFullTile, 0,
+                 {}, MemoryPayloadKind::kFullTile, 0, 0,
                  ports_.vertex_state->read_beat_stream_enabled());
 }
 
@@ -4764,6 +4981,21 @@ void SpineSplitSsspCompute::advance(const CycleContext &context) {
       return;
     case Phase::kSourceReply:
       return;
+    case Phase::kDeferredActiveClear: {
+      const std::size_t active_words =
+          (vertices_ + kActiveWordBits - 1) / kActiveWordBits;
+      if (deferred_active_word_index_ == active_words) {
+        phase_ = Phase::kInput;
+        return;
+      }
+      enqueue_memory(*ports_.active_bitmap, MemoryOperation::kWrite,
+                     deferred_active_word_index_ * sizeof(std::uint64_t),
+                     sizeof(std::uint64_t),
+                     std::vector<std::uint8_t>(sizeof(std::uint64_t), 0));
+      ++deferred_active_word_index_;
+      ++counters_.deferred_active_clear_words;
+      return;
+    }
     case Phase::kGatherBegin:
       if (relax_index_ < tile_edges_.size()) {
         if (pending_tiny_reads_.size() >=
@@ -4816,7 +5048,11 @@ void SpineSplitSsspCompute::advance(const CycleContext &context) {
       }
       if (pending_tiny_reads_.empty() && pending_vs_reads_.empty()) {
         if (changed_vertices_.empty()) {
-          begin_active_emit_scan();
+          if (deferred_active_) {
+            begin_deferred_merge_scan();
+          } else {
+            begin_active_emit_scan();
+          }
         } else {
           begin_sparse_store_scan();
         }
@@ -4918,7 +5154,11 @@ void SpineSplitSsspCompute::advance(const CycleContext &context) {
       if (!pending_vs_reads_.empty()) {
         return;
       }
-      begin_active_emit_scan();
+      if (deferred_active_) {
+        begin_deferred_merge_scan();
+      } else {
+        begin_active_emit_scan();
+      }
       return;
     case Phase::kEmitActiveScan: {
       const std::size_t tile_words =
@@ -4982,6 +5222,169 @@ void SpineSplitSsspCompute::advance(const CycleContext &context) {
       }
       reset_tile();
       phase_ = Phase::kInput;
+      return;
+    case Phase::kDeferredMergeScan: {
+      const std::size_t tile_words =
+          (tile_size_ + kActiveWordBits - 1) / kActiveWordBits;
+      if (active_word_index_ >= tile_words) {
+        phase_ = Phase::kDeferredMergeWait;
+        return;
+      }
+      if (!active_read_ready_) {
+        if (!active_read_pending_) {
+          active_read_pending_ = true;
+          active_read_due_cycle_ =
+              context.domain_cycle + on_chip_profile_.active_bram_read_latency;
+          ++counters_.active_bram_read_requests;
+          ++counters_.on_chip_controller_cycles;
+        } else {
+          count_on_chip_pipeline_stall(context.domain_cycle);
+        }
+        return;
+      }
+      active_read_ready_ = false;
+      tile_active_words_.at(active_word_index_) = 0;
+      ++counters_.active_bram_write_requests;
+      if (active_scan_bits_ != 0) {
+        const std::size_t global_word =
+            tile_base_ / kActiveWordBits + active_word_index_;
+        enqueue_memory(*ports_.active_bitmap, MemoryOperation::kRead,
+                       global_word * sizeof(std::uint64_t),
+                       sizeof(std::uint64_t), {},
+                       MemoryPayloadKind::kDeferredMergeWord, global_word,
+                       active_scan_bits_);
+      }
+      ++active_word_index_;
+      active_scan_bits_ = 0;
+      return;
+    }
+    case Phase::kDeferredMergeWait:
+      if (!memory_tasks_.empty() || !inflight_memory_tasks_.empty() ||
+          !on_chip_pipelines_drained()) {
+        return;
+      }
+      reset_tile();
+      phase_ = Phase::kInput;
+      return;
+    case Phase::kDeferredSweepRead: {
+      const std::size_t active_words =
+          (vertices_ + kActiveWordBits - 1) / kActiveWordBits;
+      if (deferred_sweep_base_word_ >= active_words) {
+        phase_ = Phase::kDeferredSweepDrain;
+        return;
+      }
+      if (deferred_sweep_chunk_words_ == 0) {
+        deferred_sweep_chunk_words_ =
+            std::min<std::size_t>(deferred_bitmap_chunk_.size(),
+                                  active_words - deferred_sweep_base_word_);
+        deferred_sweep_word_index_ = 0;
+        deferred_sweep_reads_pending_ = 0;
+        deferred_bitmap_chunk_.fill(0);
+      }
+      // The HLS read loop always executes the full 128-entry LUTRAM chunk.
+      // Entries beyond the final valid HBM word are zero-filled without an
+      // AXI request, but they still consume the loop's II=4 control schedule.
+      if (deferred_sweep_word_index_ < deferred_bitmap_chunk_.size()) {
+        if (context.domain_cycle < deferred_sweep_next_issue_cycle_) {
+          return;
+        }
+        const std::size_t local_word = deferred_sweep_word_index_;
+        if (local_word < deferred_sweep_chunk_words_) {
+          const std::size_t global_word =
+              deferred_sweep_base_word_ + local_word;
+          enqueue_memory(*ports_.active_bitmap, MemoryOperation::kRead,
+                         global_word * sizeof(std::uint64_t),
+                         sizeof(std::uint64_t), {},
+                         MemoryPayloadKind::kDeferredSweepWord, local_word);
+          ++deferred_sweep_reads_pending_;
+          ++counters_.deferred_active_sweep_read_words;
+        }
+        ++deferred_sweep_word_index_;
+        deferred_sweep_next_issue_cycle_ = context.domain_cycle + 4;
+        return;
+      }
+      if (deferred_sweep_reads_pending_ == 0) {
+        deferred_sweep_word_index_ = 0;
+        phase_ = Phase::kDeferredSweepScan;
+      }
+      return;
+    }
+    case Phase::kDeferredSweepScan:
+      if (deferred_sweep_word_index_ >= deferred_sweep_chunk_words_) {
+        deferred_sweep_base_word_ += deferred_sweep_chunk_words_;
+        deferred_sweep_chunk_words_ = 0;
+        deferred_sweep_word_index_ = 0;
+        phase_ = Phase::kDeferredSweepRead;
+        return;
+      }
+      deferred_sweep_scan_bits_ =
+          deferred_bitmap_chunk_.at(deferred_sweep_word_index_);
+      if (deferred_sweep_scan_bits_ == 0) {
+        ++deferred_sweep_word_index_;
+        return;
+      }
+      ++counters_.deferred_active_sweep_nonzero_words;
+      deferred_sweep_bit_index_ = 0;
+      deferred_sweep_next_bit_cycle_ = context.domain_cycle;
+      phase_ = Phase::kDeferredSweepBits;
+      return;
+    case Phase::kDeferredSweepBits: {
+      if (context.domain_cycle < deferred_sweep_next_bit_cycle_) {
+        return;
+      }
+      const std::size_t global_word =
+          deferred_sweep_base_word_ + deferred_sweep_word_index_;
+      if (((deferred_sweep_scan_bits_ >> deferred_sweep_bit_index_) & 1U) != 0) {
+        const std::size_t vertex =
+            global_word * kActiveWordBits + deferred_sweep_bit_index_;
+        if (vertex < vertices_) {
+          const std::size_t output_index = active_output_index_++;
+          next_active_.push_back(static_cast<std::uint32_t>(vertex));
+          enqueue_memory(*ports_.vertex_state, MemoryOperation::kRead,
+                         vertex * kVertexWordBytes, kVertexWordBytes, {},
+                         MemoryPayloadKind::kDeferredPublishVertex, vertex,
+                         output_index);
+          ++counters_.deferred_active_published_vertices;
+        }
+      }
+      ++deferred_sweep_bit_index_;
+      deferred_sweep_next_bit_cycle_ = context.domain_cycle + 2;
+      if (deferred_sweep_bit_index_ == kActiveWordBits) {
+        ++deferred_sweep_word_index_;
+        deferred_sweep_scan_bits_ = 0;
+        phase_ = Phase::kDeferredSweepScan;
+      }
+      return;
+    }
+    case Phase::kDeferredSweepDrain:
+      if (!memory_tasks_.empty() || !inflight_memory_tasks_.empty()) {
+        return;
+      }
+      deferred_active_word_index_ = 0;
+      phase_ = Phase::kDeferredFinalClear;
+      return;
+    case Phase::kDeferredFinalClear: {
+      const std::size_t active_words =
+          (vertices_ + kActiveWordBits - 1) / kActiveWordBits;
+      if (deferred_active_word_index_ == active_words) {
+        phase_ = Phase::kDeferredFinalDrain;
+        return;
+      }
+      enqueue_memory(*ports_.active_bitmap, MemoryOperation::kWrite,
+                     deferred_active_word_index_ * sizeof(std::uint64_t),
+                     sizeof(std::uint64_t),
+                     std::vector<std::uint8_t>(sizeof(std::uint64_t), 0));
+      ++deferred_active_word_index_;
+      ++counters_.deferred_active_final_clear_words;
+      return;
+    }
+    case Phase::kDeferredFinalDrain:
+      if (!memory_tasks_.empty() || !inflight_memory_tasks_.empty()) {
+        return;
+      }
+      enqueue_memory(*ports_.result, MemoryOperation::kWrite, 0, kResultBytes,
+                     std::vector<std::uint8_t>(kResultBytes, 0));
+      phase_ = Phase::kFinish;
       return;
     case Phase::kFinish:
       counters_.end_cycle = context.domain_cycle;

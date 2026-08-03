@@ -165,6 +165,7 @@ class SpineSplitPageRankCompute final : public Component {
     kSourceCount,
     kSourceGeneration,
     kSourceDone,
+    kDeferActiveBegin,
     kTileBegin,
     kEdge,
     kTileEnd,
@@ -266,6 +267,7 @@ class SpineSplitPageRankCompute final : public Component {
   float iteration_error_{};
   bool source_count_seen_{};
   bool source_generation_seen_{};
+  bool deferred_active_seen_{};
   bool source_ack_pending_{};
   bool tile_open_{};
   bool reader_done_seen_{};

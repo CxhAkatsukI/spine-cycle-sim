@@ -154,6 +154,15 @@ probe.addParams(
         "fallback_replay_threshold": int(
             os.environ.get("SPINE_SST_FALLBACK_REPLAY_THRESHOLD", "65536")
         ),
+        "segmented_fallback": int(
+            os.environ.get("SPINE_SST_SEGMENTED_FALLBACK", "0")
+        ),
+        "reader_active_record_control_cycles": int(
+            os.environ.get("SPINE_SST_READER_ACTIVE_RECORD_CONTROL_CYCLES", "0")
+        ),
+        "segmented_fallback_setup_cycles": int(
+            os.environ.get("SPINE_SST_SEGMENTED_FALLBACK_SETUP_CYCLES", "0")
+        ),
         "fallback_level_cache_reuse": int(
             os.environ.get("SPINE_SST_FALLBACK_LEVEL_CACHE_REUSE", "0")
         ),
