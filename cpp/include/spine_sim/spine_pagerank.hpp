@@ -15,6 +15,8 @@
 
 namespace spine::sim {
 
+class SpineOwnerScheduler;
+
 struct SpinePageRankCounters {
   std::uint64_t start_cycle{};
   std::uint64_t end_cycle{};
@@ -32,6 +34,9 @@ struct SpinePageRankCounters {
   std::uint64_t edge_reduce_operations{};
   std::uint64_t vertices_applied{};
   std::uint64_t vertices_activated{};
+  std::uint64_t owner_activation_attempts{};
+  std::uint64_t owner_activations_accepted{};
+  std::uint64_t owner_activation_backpressure_cycles{};
   std::uint64_t primary_read_bytes{};
   std::uint64_t primary_write_bytes{};
   std::uint64_t auxiliary_read_bytes{};
@@ -61,7 +66,8 @@ class SpineSplitPageRankCompute final : public Component {
       AlgorithmPipelineConfig pipeline_config = {},
       std::size_t memory_request_window = kDefaultMemoryRequestWindow,
       std::size_t tile_vertices = kDefaultTileVertices,
-      std::optional<AlgorithmInitialState> initial_state = std::nullopt);
+      std::optional<AlgorithmInitialState> initial_state = std::nullopt,
+      SpineOwnerScheduler *owner_scheduler = nullptr);
 
   void register_components(Scheduler &scheduler);
   void configure_initial_start_gate(const bool *start_ready);
@@ -192,6 +198,7 @@ class SpineSplitPageRankCompute final : public Component {
   FixedAxiPort *active_out_{};
   Fifo<PartConvWord> &edge_in_;
   Fifo<SourceValueWord> &value_out_;
+  SpineOwnerScheduler *owner_scheduler_{};
   AlgorithmStateLayout state_layout_;
   std::uint64_t primary_read_base_{};
   std::uint64_t primary_write_base_{};
@@ -235,6 +242,7 @@ class SpineSplitPageRankCompute final : public Component {
   bool staged_memory_issue_{};
   bool staged_value_push_{};
   bool staged_apply_tile_complete_{};
+  bool staged_owner_activation_{};
   bool staged_done_{};
   SourceValueWord staged_value_word_;
 

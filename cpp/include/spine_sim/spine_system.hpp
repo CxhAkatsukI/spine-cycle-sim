@@ -121,6 +121,29 @@ struct SpineSsspRunResult {
   std::uint64_t end_cycle{};
 };
 
+struct SpineFrontierRoundEvidence {
+  std::size_t round{};
+  std::vector<std::uint32_t> active_in;
+  std::vector<std::uint32_t> active_out;
+  SpineReaderCounters reader;
+  SpinePageRankCounters compute;
+  std::uint64_t start_cycle{};
+  std::uint64_t end_cycle{};
+};
+
+struct SpineFrontierRunResult {
+  GraphAlgorithmKind algorithm{GraphAlgorithmKind::kWeightedSssp};
+  bool converged{};
+  bool failed{};
+  std::vector<SpineFrontierRoundEvidence> rounds;
+  std::optional<SpineOwnerSchedulerStats> owner_scheduler;
+  std::optional<SpineOwnerFrontierStats> owner_frontier;
+  bool owner_ledger_closed{};
+  bool owner_quiescent{};
+  std::uint64_t start_cycle{};
+  std::uint64_t end_cycle{};
+};
+
 struct SpineInitialActiveOutputCounters {
   bool enabled{};
   bool residual_correction_timed{};
@@ -299,6 +322,10 @@ class SpinePageRankVerticalSliceSystem {
       std::optional<AlgorithmInitialState> algorithm_initial_state =
           std::nullopt,
       std::optional<SpineResidualCorrectionPlan> device_residual_correction =
+          std::nullopt,
+      std::optional<SpineOwnerSchedulerConfig> owner_scheduler_config =
+          std::nullopt,
+      std::optional<SpineVertexLifecycleConfig> vertex_lifecycle_config =
           std::nullopt);
   SpinePageRankVerticalSliceSystem(
       Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
@@ -314,10 +341,21 @@ class SpinePageRankVerticalSliceSystem {
       std::optional<AlgorithmInitialState> algorithm_initial_state =
           std::nullopt,
       std::optional<SpineResidualCorrectionPlan> device_residual_correction =
+          std::nullopt,
+      std::optional<SpineOwnerSchedulerConfig> owner_scheduler_config =
+          std::nullopt,
+      std::optional<SpineVertexLifecycleConfig> vertex_lifecycle_config =
           std::nullopt);
 
   void register_components();
   void restart_iteration();
+  [[nodiscard]] SpineFrontierRunResult run_frontier_to_convergence(
+      std::size_t max_rounds, std::uint64_t max_events_per_round);
+  bool try_activate_vertex(std::uint32_t vertex);
+  bool try_deactivate_vertex(std::uint32_t vertex,
+                             bool incident_edges_retired_or_masked);
+  [[nodiscard]] SpineVertexLifecycleResult run_vertex_lifecycle_to_completion(
+      std::uint64_t max_events);
   [[nodiscard]] bool maintenance_done() const noexcept;
   [[nodiscard]] bool done() const noexcept;
   [[nodiscard]] bool failed() const noexcept;
@@ -329,6 +367,16 @@ class SpinePageRankVerticalSliceSystem {
   [[nodiscard]] const SpineInitialActiveOutputCounters &
   initial_active_counters() const noexcept;
   [[nodiscard]] const SpineSplitPageRankCompute &compute() const noexcept;
+  [[nodiscard]] const SpineOwnerScheduler *owner_scheduler() const noexcept {
+    return owner_scheduler_.get();
+  }
+  [[nodiscard]] const SpineOwnerFrontierController *owner_frontier() const
+      noexcept {
+    return owner_frontier_.get();
+  }
+  [[nodiscard]] const SpineVertexLifecycle *vertex_lifecycle() const noexcept {
+    return vertex_lifecycle_.get();
+  }
   [[nodiscard]] const SpineL0State &level_state() const noexcept;
   [[nodiscard]] const FifoStats &edge_stream_stats() const noexcept;
   [[nodiscard]] const FifoStats &value_stream_stats() const noexcept;
@@ -354,11 +402,16 @@ class SpinePageRankVerticalSliceSystem {
   std::unique_ptr<FixedAxiPort> active_seed_out_;
   std::unique_ptr<FixedAxiPort> active_out_;
   std::unique_ptr<FixedAxiPort> active_out_reader_;
+  std::unique_ptr<FixedAxiPort> owner_state_;
+  std::unique_ptr<FixedAxiPort> vertex_validity_;
   SpineL0State state_;
   std::shared_ptr<const GraphAlgorithmPolicy> algorithm_policy_;
   std::unique_ptr<SpineL0Maintenance> maintenance_;
   std::unique_ptr<SpineSplitReader> reader_;
   std::unique_ptr<SpineSplitPageRankCompute> compute_;
+  std::unique_ptr<SpineOwnerScheduler> owner_scheduler_;
+  std::unique_ptr<SpineOwnerFrontierController> owner_frontier_;
+  std::unique_ptr<SpineVertexLifecycle> vertex_lifecycle_;
   std::unique_ptr<Component> initial_active_writer_;
   SpineInitialActiveOutputCounters initial_active_counters_;
   SpineActiveBins active_bins_payload_;
@@ -368,6 +421,7 @@ class SpinePageRankVerticalSliceSystem {
   bool initial_active_failed_{};
   std::string initial_active_failure_;
   bool registered_{};
+  bool convergence_run_started_{};
 };
 
 }  // namespace spine::sim

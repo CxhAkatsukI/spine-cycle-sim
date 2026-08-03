@@ -1,5 +1,7 @@
 #include "spine_sim/spine_pagerank.hpp"
 
+#include "spine_sim/spine_owner.hpp"
+
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -51,7 +53,8 @@ SpineSplitPageRankCompute::SpineSplitPageRankCompute(
     Fifo<SourceValueWord> &value_out,
     AlgorithmPipelineConfig pipeline_config,
     std::size_t memory_request_window, std::size_t tile_vertices,
-    std::optional<AlgorithmInitialState> initial_state)
+    std::optional<AlgorithmInitialState> initial_state,
+    SpineOwnerScheduler *owner_scheduler)
     : Component(std::move(name), clock_id),
       policy_(std::move(policy)),
       vertices_(policy_.config().vertices),
@@ -60,6 +63,7 @@ SpineSplitPageRankCompute::SpineSplitPageRankCompute(
       active_out_(active_out),
       edge_in_(edge_in),
       value_out_(value_out),
+      owner_scheduler_(owner_scheduler),
       state_layout_(policy_.state_layout()),
       primary_read_base_(state_layout_.primary_read.base),
       primary_write_base_(state_layout_.primary_write.base),
@@ -177,6 +181,7 @@ void SpineSplitPageRankCompute::reset_iteration() {
   staged_memory_issue_ = false;
   staged_value_push_ = false;
   staged_apply_tile_complete_ = false;
+  staged_owner_activation_ = false;
   staged_done_ = false;
   pending_source_ = 0;
   pending_source_rank_.reset();
@@ -488,6 +493,7 @@ void SpineSplitPageRankCompute::evaluate(const CycleContext &) {
   staged_memory_issue_ = false;
   staged_value_push_ = false;
   staged_apply_tile_complete_ = false;
+  staged_owner_activation_ = false;
   staged_done_ = false;
   if (done_ || failed_) {
     return;
@@ -561,9 +567,31 @@ void SpineSplitPageRankCompute::evaluate(const CycleContext &) {
     }
   }
   if (phase_ == Phase::kApplyTile) {
-    AlgorithmPipelineResponse response;
-    if (apply_responses_.try_pop(response)) {
-      staged_apply_response_ = response;
+    const AlgorithmPipelineResponse *front = apply_responses_.front();
+    if (front != nullptr) {
+      const auto transaction = apply_transactions_.find(front->transaction_id);
+      if (transaction == apply_transactions_.end() ||
+          front->stage != AlgorithmPipelineStage::kApply) {
+        failed_ = true;
+        return;
+      }
+      const bool publishes_frontier =
+          front->applied.active &&
+          (policy_.config().kind == GraphAlgorithmKind::kResidualPageRank ||
+           policy_.config().kind == GraphAlgorithmKind::kConnectedComponents);
+      if (publishes_frontier && owner_scheduler_ != nullptr) {
+        ++counters_.owner_activation_attempts;
+        staged_owner_activation_ =
+            owner_scheduler_->try_activate(transaction->second);
+        if (!staged_owner_activation_) {
+          ++counters_.owner_activation_backpressure_cycles;
+          return;
+        }
+      }
+      AlgorithmPipelineResponse response;
+      if (apply_responses_.try_pop(response)) {
+        staged_apply_response_ = response;
+      }
     }
   }
 
@@ -866,10 +894,16 @@ void SpineSplitPageRankCompute::commit(const CycleContext &context) {
                     applied.state_after.auxiliary,
                     MemoryPayloadKind::kApplyAuxiliaryWrite, vertex);
       if (applied.active) {
+        if (owner_scheduler_ != nullptr && !staged_owner_activation_) {
+          failed_ = true;
+          return;
+        }
         enqueue_active_output(next_active_.size(), vertex,
                               applied.state_after.auxiliary);
         next_active_.push_back(vertex);
         ++counters_.vertices_activated;
+        counters_.owner_activations_accepted +=
+            owner_scheduler_ != nullptr ? 1U : 0U;
       }
     } else {
       enqueue_write(primary_write_base_ + vertex * kWordBytes,
@@ -878,10 +912,16 @@ void SpineSplitPageRankCompute::commit(const CycleContext &context) {
       if (policy_.config().kind ==
               GraphAlgorithmKind::kConnectedComponents &&
           applied.active) {
+        if (owner_scheduler_ != nullptr && !staged_owner_activation_) {
+          failed_ = true;
+          return;
+        }
         enqueue_active_output(next_active_.size(), vertex,
                               applied.state_after.primary);
         next_active_.push_back(vertex);
         ++counters_.vertices_activated;
+        counters_.owner_activations_accepted +=
+            owner_scheduler_ != nullptr ? 1U : 0U;
       }
     }
     apply_transactions_.erase(found);

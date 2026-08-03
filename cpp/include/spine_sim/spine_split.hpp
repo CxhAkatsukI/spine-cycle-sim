@@ -206,6 +206,7 @@ class SpineSplitReader final : public Component {
       std::vector<std::uint32_t> source_refresh = {});
   void configure_initial_active_list_round(std::size_t active_count,
                                            const bool *start_ready);
+  void configure_start_gate(const bool *start_ready);
   void configure_initial_host_round(
       SpineActiveBins active_bins,
       std::optional<SpineDirtyIdentity> host_coverage,

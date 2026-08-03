@@ -192,6 +192,15 @@ void SpineSplitReader::configure_initial_active_list_round(
   initial_start_gate_ = start_ready;
 }
 
+void SpineSplitReader::configure_start_gate(const bool *start_ready) {
+  if (phase_ != Phase::kWaitMaintenance || done_ || failed_ ||
+      start_ready == nullptr) {
+    throw std::logic_error(
+        "reader start gate must be configured before execution");
+  }
+  initial_start_gate_ = start_ready;
+}
+
 void SpineSplitReader::configure_initial_host_round(
     SpineActiveBins active_bins,
     std::optional<SpineDirtyIdentity> host_coverage,

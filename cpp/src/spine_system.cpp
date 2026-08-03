@@ -1751,7 +1751,9 @@ SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
     std::optional<SpineEdgeSlice> execution_graph,
     std::optional<SpineDirtyIdentity> host_coverage,
     std::optional<AlgorithmInitialState> algorithm_initial_state,
-    std::optional<SpineResidualCorrectionPlan> device_residual_correction)
+    std::optional<SpineResidualCorrectionPlan> device_residual_correction,
+    std::optional<SpineOwnerSchedulerConfig> owner_scheduler_config,
+    std::optional<SpineVertexLifecycleConfig> vertex_lifecycle_config)
     : SpinePageRankVerticalSliceSystem(
           scheduler, clock_id, backend, workload,
           GraphAlgorithmPolicy(AlgorithmPolicyConfig{
@@ -1764,7 +1766,9 @@ SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
           std::move(pipeline_config), compute_memory_request_window,
           std::move(initial_state), std::move(execution_graph),
           host_coverage, std::move(algorithm_initial_state),
-          std::move(device_residual_correction)) {}
+          std::move(device_residual_correction),
+          std::move(owner_scheduler_config),
+          std::move(vertex_lifecycle_config)) {}
 
 SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
     Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
@@ -1775,7 +1779,9 @@ SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
     std::optional<SpineEdgeSlice> execution_graph,
     std::optional<SpineDirtyIdentity> host_coverage,
     std::optional<AlgorithmInitialState> algorithm_initial_state,
-    std::optional<SpineResidualCorrectionPlan> device_residual_correction)
+    std::optional<SpineResidualCorrectionPlan> device_residual_correction,
+    std::optional<SpineOwnerSchedulerConfig> owner_scheduler_config,
+    std::optional<SpineVertexLifecycleConfig> vertex_lifecycle_config)
     : scheduler_(scheduler),
       clock_id_(clock_id),
       backend_(backend),
@@ -1875,6 +1881,37 @@ SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
                           SpineAxiPortKind::kActiveOut);
   active_out_reader_ = make_port("pagerank-active-out-reader", 118, 19,
                                  SpineAxiPortKind::kActiveOut);
+  if (owner_scheduler_config.has_value()) {
+    if (owner_scheduler_config->max_vertices < logical_graph.vertices) {
+      throw std::invalid_argument(
+          "PageRank owner domain is smaller than the graph domain");
+    }
+    owner_state_ = make_port("pagerank-owner-state", 122, 22,
+                             SpineAxiPortKind::kActiveBitmap);
+    owner_scheduler_ = std::make_unique<SpineOwnerScheduler>(
+        "pagerank-owner", clock_id_, *owner_scheduler_config);
+  }
+  if (vertex_lifecycle_config.has_value()) {
+    if (vertex_lifecycle_config->max_vertices != logical_graph.vertices) {
+      throw std::invalid_argument(
+          "PageRank lifecycle domain must match the graph domain");
+    }
+    vertex_validity_ = make_port("pagerank-vertex-validity", 123, 22,
+                                 SpineAxiPortKind::kActiveBitmap);
+    vertex_lifecycle_ = std::make_unique<SpineVertexLifecycle>(
+        "pagerank-vertex-lifecycle", clock_id_, *vertex_lifecycle_config,
+        *vertex_validity_);
+    const auto invalid_edge = std::find_if(
+        logical_graph.edges.begin(), logical_graph.edges.end(),
+        [this](const SpineEdgeRecord &edge) {
+          return !vertex_lifecycle_->valid(edge.src) ||
+                 !vertex_lifecycle_->valid(edge.dst);
+        });
+    if (invalid_edge != logical_graph.edges.end()) {
+      throw std::invalid_argument(
+          "PageRank graph contains an invalid lifecycle endpoint");
+    }
+  }
 
   SpineL0Ports maintenance_ports;
   SpineReaderPorts reader_ports;
@@ -1938,7 +1975,7 @@ SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
       pipeline_config,
       compute_memory_request_window,
       SpineSplitPageRankCompute::kDefaultTileVertices,
-      std::move(algorithm_initial_state));
+      std::move(algorithm_initial_state), owner_scheduler_.get());
   if (device_residual_correction.has_value()) {
     const AlgorithmStateLayout &layout = compute_->state_layout();
     if (!layout.auxiliary.has_value() || !layout.degree.has_value()) {
@@ -1964,6 +2001,21 @@ SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
         initial_active_ready_, initial_active_failed_, initial_active_failure_);
     compute_->configure_initial_start_gate(&initial_active_ready_);
   }
+  if (owner_scheduler_ != nullptr) {
+    if (vertex_lifecycle_ != nullptr &&
+        std::any_of(source_refresh_.begin(), source_refresh_.end(),
+                    [this](std::uint32_t vertex) {
+                      return !vertex_lifecycle_->valid(vertex);
+                    })) {
+      throw std::invalid_argument(
+          "PageRank initial frontier contains an invalid vertex");
+    }
+    owner_frontier_ = std::make_unique<SpineOwnerFrontierController>(
+        "pagerank-owner-frontier", clock_id_, *owner_scheduler_,
+        source_refresh_, &initial_active_ready_);
+    reader_->configure_start_gate(owner_frontier_->ready_gate());
+    compute_->configure_initial_start_gate(owner_frontier_->ready_gate());
+  }
 }
 
 std::unique_ptr<FixedAxiPort> SpinePageRankVerticalSliceSystem::make_port(
@@ -1983,6 +2035,13 @@ void SpinePageRankVerticalSliceSystem::register_components() {
   if (initial_active_writer_ != nullptr) {
     scheduler_.add_component(*initial_active_writer_);
   }
+  if (owner_scheduler_ != nullptr) {
+    scheduler_.add_component(*owner_scheduler_);
+    scheduler_.add_component(*owner_frontier_);
+  }
+  if (vertex_lifecycle_ != nullptr) {
+    scheduler_.add_component(*vertex_lifecycle_);
+  }
   scheduler_.add_component(*reader_);
   compute_->register_components(scheduler_);
   scheduler_.add_component(edge_stream_);
@@ -1998,6 +2057,12 @@ void SpinePageRankVerticalSliceSystem::register_components() {
   active_seed_out_->register_components(scheduler_);
   active_out_->register_components(scheduler_);
   active_out_reader_->register_components(scheduler_);
+  if (owner_state_ != nullptr) {
+    owner_state_->register_components(scheduler_);
+  }
+  if (vertex_validity_ != nullptr) {
+    vertex_validity_->register_components(scheduler_);
+  }
 }
 
 void SpinePageRankVerticalSliceSystem::restart_iteration() {
@@ -2007,6 +2072,9 @@ void SpinePageRankVerticalSliceSystem::restart_iteration() {
   }
   edge_stream_.reset_stats();
   value_stream_.reset_stats();
+  const std::vector<std::uint32_t> completed_frontier = source_refresh_;
+  const bool dense_frontier =
+      algorithm_policy_->config().kind == GraphAlgorithmKind::kFullPageRank;
   if (algorithm_policy_->config().kind ==
           GraphAlgorithmKind::kResidualPageRank ||
       algorithm_policy_->config().kind ==
@@ -2020,7 +2088,135 @@ void SpinePageRankVerticalSliceSystem::restart_iteration() {
     reader_->reset_host_round(active_bins_payload_, host_coverage_,
                               source_refresh_);
   }
+  if (owner_frontier_ != nullptr) {
+    if (vertex_lifecycle_ != nullptr &&
+        std::any_of(source_refresh_.begin(), source_refresh_.end(),
+                    [this](std::uint32_t vertex) {
+                      return !vertex_lifecycle_->valid(vertex);
+                    })) {
+      throw std::logic_error(
+          "PageRank next frontier contains an invalid vertex");
+    }
+    owner_frontier_->restart(completed_frontier, source_refresh_,
+                             dense_frontier);
+  }
   compute_->reset_iteration();
+}
+
+SpineFrontierRunResult
+SpinePageRankVerticalSliceSystem::run_frontier_to_convergence(
+    std::size_t max_rounds, std::uint64_t max_events_per_round) {
+  if (!registered_ || convergence_run_started_ || max_rounds == 0 ||
+      max_events_per_round == 0 || owner_scheduler_ == nullptr ||
+      owner_frontier_ == nullptr) {
+    throw std::logic_error(
+        "invalid Spine frontier convergence-run state or limits");
+  }
+  convergence_run_started_ = true;
+  SpineFrontierRunResult result;
+  result.algorithm = algorithm_policy_->config().kind;
+  result.start_cycle = scheduler_.clock(clock_id_).completed_cycles;
+  for (std::size_t round = 0; round < max_rounds; ++round) {
+    const std::vector<std::uint32_t> active_in = source_refresh_;
+    const std::uint64_t start_cycle =
+        scheduler_.clock(clock_id_).completed_cycles;
+    scheduler_.run_until(
+        [this] { return failed() || (done() && idle()); },
+        max_events_per_round);
+    const std::uint64_t end_cycle =
+        scheduler_.clock(clock_id_).completed_cycles;
+    const std::vector<std::uint32_t> active_out = compute_->next_active();
+    result.rounds.push_back(SpineFrontierRoundEvidence{
+        .round = round,
+        .active_in = active_in,
+        .active_out = active_out,
+        .reader = reader_->counters(),
+        .compute = compute_->counters(),
+        .start_cycle = start_cycle,
+        .end_cycle = end_cycle,
+    });
+    if (failed()) {
+      result.failed = true;
+      break;
+    }
+    const bool dense =
+        result.algorithm == GraphAlgorithmKind::kFullPageRank;
+    const bool converged = dense
+                               ? compute_->iteration_error() <=
+                                     algorithm_policy_->config().epsilon
+                               : active_out.empty();
+    if (converged) {
+      owner_frontier_->restart(active_in, {}, false);
+      scheduler_.run_until(
+          [this] {
+            return owner_frontier_->failed() ||
+                   (owner_frontier_->ready() && owner_scheduler_->quiescent() &&
+                    owner_scheduler_->ledger_closed() && idle());
+          },
+          max_events_per_round);
+      result.converged = !failed() && owner_scheduler_->quiescent() &&
+                         owner_scheduler_->ledger_closed();
+      result.failed = !result.converged;
+      break;
+    }
+    if (round + 1 >= max_rounds) {
+      result.failed = true;
+      break;
+    }
+    restart_iteration();
+  }
+  result.end_cycle = scheduler_.clock(clock_id_).completed_cycles;
+  result.owner_scheduler = owner_scheduler_->stats();
+  result.owner_frontier = owner_frontier_->stats();
+  result.owner_ledger_closed = owner_scheduler_->ledger_closed();
+  result.owner_quiescent = owner_scheduler_->quiescent();
+  return result;
+}
+
+bool SpinePageRankVerticalSliceSystem::try_activate_vertex(
+    std::uint32_t vertex) {
+  if (!registered_ || vertex_lifecycle_ == nullptr || !done() || !idle() ||
+      failed() ||
+      (owner_scheduler_ != nullptr && !owner_scheduler_->quiescent())) {
+    throw std::logic_error(
+        "PageRank vertex activation requires a drained graph transaction");
+  }
+  return vertex_lifecycle_->try_activate(vertex);
+}
+
+bool SpinePageRankVerticalSliceSystem::try_deactivate_vertex(
+    std::uint32_t vertex, bool incident_edges_retired_or_masked) {
+  if (!registered_ || vertex_lifecycle_ == nullptr || !done() || !idle() ||
+      failed() ||
+      (owner_scheduler_ != nullptr && !owner_scheduler_->quiescent())) {
+    throw std::logic_error(
+        "PageRank vertex deactivation requires a drained graph transaction");
+  }
+  return vertex_lifecycle_->try_deactivate(
+      vertex, incident_edges_retired_or_masked);
+}
+
+SpineVertexLifecycleResult
+SpinePageRankVerticalSliceSystem::run_vertex_lifecycle_to_completion(
+    std::uint64_t max_events) {
+  if (!registered_ || vertex_lifecycle_ == nullptr ||
+      !vertex_lifecycle_->busy() || max_events == 0) {
+    throw std::logic_error("invalid PageRank vertex lifecycle run state");
+  }
+  scheduler_.run_until(
+      [this] {
+        return !vertex_lifecycle_->busy() && vertex_validity_->idle();
+      },
+      max_events);
+  if (vertex_lifecycle_->failed() ||
+      !vertex_lifecycle_->last_result().has_value() ||
+      !vertex_lifecycle_->request_ledger_closed()) {
+    throw std::logic_error(
+        vertex_lifecycle_->failed()
+            ? vertex_lifecycle_->failure()
+            : "PageRank vertex lifecycle completed without closed evidence");
+  }
+  return *vertex_lifecycle_->last_result();
 }
 
 bool SpinePageRankVerticalSliceSystem::maintenance_done() const noexcept {
@@ -2028,12 +2224,16 @@ bool SpinePageRankVerticalSliceSystem::maintenance_done() const noexcept {
 }
 
 bool SpinePageRankVerticalSliceSystem::done() const noexcept {
-  return maintenance_->done() && reader_->done() && compute_->done();
+  return maintenance_->done() && reader_->done() && compute_->done() &&
+         (owner_frontier_ == nullptr || owner_frontier_->ready()) &&
+         (vertex_lifecycle_ == nullptr || !vertex_lifecycle_->busy());
 }
 
 bool SpinePageRankVerticalSliceSystem::failed() const noexcept {
   return maintenance_->failed() || initial_active_failed_ || reader_->failed() ||
-         compute_->failed();
+         compute_->failed() ||
+         (owner_frontier_ != nullptr && owner_frontier_->failed()) ||
+         (vertex_lifecycle_ != nullptr && vertex_lifecycle_->failed());
 }
 
 std::string SpinePageRankVerticalSliceSystem::failure() const {
@@ -2049,6 +2249,12 @@ std::string SpinePageRankVerticalSliceSystem::failure() const {
   if (compute_->failed()) {
     return "compute: protocol or memory failure";
   }
+  if (owner_frontier_ != nullptr && owner_frontier_->failed()) {
+    return "owner frontier: " + owner_frontier_->failure();
+  }
+  if (vertex_lifecycle_ != nullptr && vertex_lifecycle_->failed()) {
+    return "vertex lifecycle: " + vertex_lifecycle_->failure();
+  }
   return {};
 }
 
@@ -2062,6 +2268,8 @@ bool SpinePageRankVerticalSliceSystem::idle() const noexcept {
          active_out_->idle() && active_out_reader_->idle() && metadata_->idle() &&
          maintenance_result_->idle() &&
          vertex_state_->idle() &&
+         (owner_state_ == nullptr || owner_state_->idle()) &&
+         (vertex_validity_ == nullptr || vertex_validity_->idle()) &&
          edge_stream_.empty() && value_stream_.empty() &&
          (initial_active_writer_ == nullptr || initial_active_ready_);
 }

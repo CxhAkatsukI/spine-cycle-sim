@@ -9307,11 +9307,18 @@ void test_spine_delta_hls_residual_uses_warm_seed_frontier() {
       scheduler, core, backend, graph, policy, SpineL0Config{},
       SpineAxiInterfaceProfile{}, AlgorithmPipelineConfig{},
       SpineSplitPageRankCompute::kDefaultMemoryRequestWindow, SpineL0State{},
-      std::nullopt, std::nullopt, warm, correction);
+      std::nullopt, std::nullopt, warm, correction,
+      SpineOwnerSchedulerConfig{
+          .max_vertices = graph.vertices,
+          .partitions = 1,
+          .vertices_per_partition = graph.vertices,
+          .owner_fifo_depth = 1,
+          .reactivation_fifo_depth = 1,
+      });
   system.register_components();
   scheduler.add_component(backend);
-  scheduler.run_until([&] { return system.failed() || (system.done() && system.idle()); },
-                      1'000'000);
+  const auto owner_result =
+      system.run_frontier_to_convergence(8, 1'000'000);
 
   require(!system.failed(),
           "Spine Delta.hls device correction failed: " + system.failure() +
@@ -9338,7 +9345,8 @@ void test_spine_delta_hls_residual_uses_warm_seed_frontier() {
             << correction_counters.end_cycle - correction_counters.start_cycle
             << " correction_requests="
             << correction_counters.memory_requests_issued << '\n';
-  require(!system.failed() && system.done() &&
+  require(!system.failed() && system.done() && owner_result.converged &&
+              owner_result.owner_ledger_closed && owner_result.owner_quiescent &&
               system.reader_counters().source_requests == 1 &&
               system.reader_counters().edges_emitted == 1 &&
               system.compute().next_active().empty() &&
@@ -9366,6 +9374,193 @@ void test_spine_delta_hls_residual_uses_warm_seed_frontier() {
               correction_counters.memory_requests_completed == 7 &&
               correction_counters.request_ledger_closed,
           "Spine Delta.hls correction was not fully device-timed or conserved");
+}
+
+SpineOwnerSchedulerConfig one_entry_owner(std::size_t vertices) {
+  return SpineOwnerSchedulerConfig{
+      .max_vertices = vertices,
+      .partitions = 1,
+      .vertices_per_partition = vertices,
+      .owner_fifo_depth = 1,
+      .reactivation_fifo_depth = 1,
+  };
+}
+
+void test_spine_cc_device_owner_closes_frontier_ledger() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("cc-owner-system", 150.0);
+  MockMemoryBackend backend("cc-owner-hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 4,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  const SpineEdgeSlice graph{
+      .vertices = 6,
+      .edges = {
+          {.src = 0, .dst = 1, .weight = 1, .diff = 1},
+          {.src = 1, .dst = 0, .weight = 1, .diff = 1},
+          {.src = 1, .dst = 2, .weight = 1, .diff = 1},
+          {.src = 2, .dst = 1, .weight = 1, .diff = 1},
+          {.src = 3, .dst = 4, .weight = 1, .diff = 1},
+          {.src = 4, .dst = 3, .weight = 1, .diff = 1},
+      },
+      .case_name = "cc_owner_vertical_slice",
+  };
+  SpinePageRankVerticalSliceSystem system(
+      scheduler, core, backend, graph,
+      GraphAlgorithmPolicy(AlgorithmPolicyConfig{
+          .kind = GraphAlgorithmKind::kConnectedComponents,
+          .vertices = graph.vertices,
+          .source = 0,
+      }),
+      SpineL0Config{}, SpineAxiInterfaceProfile{}, AlgorithmPipelineConfig{},
+      SpineSplitPageRankCompute::kDefaultMemoryRequestWindow, SpineL0State{},
+      std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+      one_entry_owner(graph.vertices),
+      spine::sim::SpineVertexLifecycleConfig{
+          .max_vertices = graph.vertices,
+          .initial_valid_vertices = graph.vertices,
+          .bitmap_base = 8ULL << 20,
+      });
+  system.register_components();
+  scheduler.add_component(backend);
+  const auto result = system.run_frontier_to_convergence(16, 10'000'000);
+
+  std::uint64_t emitted = 0;
+  for (const auto &round : result.rounds) {
+    emitted += round.active_out.size();
+    require(round.compute.owner_activation_attempts ==
+                    round.compute.owner_activations_accepted +
+                        round.compute.owner_activation_backpressure_cycles &&
+                round.compute.owner_activations_accepted ==
+                    round.active_out.size(),
+            "CC device frontier bypassed owner backpressure");
+  }
+  require(result.converged && !result.failed && result.owner_scheduler.has_value() &&
+              result.owner_frontier.has_value() && result.owner_ledger_closed &&
+              result.owner_quiescent &&
+              result.owner_scheduler->work_credits_created == emitted + 6 &&
+              result.owner_scheduler->work_credits_created ==
+                  result.owner_scheduler->work_credits_retired &&
+              result.owner_frontier->frontiers_completed == result.rounds.size() &&
+              system.compute().rank_words() ==
+                  std::vector<std::uint32_t>({0, 0, 0, 3, 3, 5}),
+          "CC owner ledger or min-label oracle did not close");
+
+  require(system.try_deactivate_vertex(5, true),
+          "quiescent isolated CC vertex could not be deactivated");
+  const auto deactivation =
+      system.run_vertex_lifecycle_to_completion(1'000);
+  require(deactivation.changed && !deactivation.final_valid,
+          "CC lifecycle did not publish a safe deactivation");
+}
+
+void test_spine_residual_pagerank_device_owner_closes_frontier_ledger() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("residual-owner-system", 150.0);
+  MockMemoryBackend backend("residual-owner-hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 4,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  const SpineEdgeSlice graph{
+      .vertices = 4,
+      .edges = {
+          {.src = 0, .dst = 1, .weight = 1, .diff = 1},
+          {.src = 0, .dst = 2, .weight = 1, .diff = 1},
+          {.src = 1, .dst = 2, .weight = 1, .diff = 1},
+          {.src = 3, .dst = 2, .weight = 1, .diff = 1},
+      },
+      .case_name = "residual_owner_vertical_slice",
+  };
+  SpinePageRankVerticalSliceSystem system(
+      scheduler, core, backend, graph,
+      GraphAlgorithmPolicy(AlgorithmPolicyConfig{
+          .kind = GraphAlgorithmKind::kResidualPageRank,
+          .vertices = graph.vertices,
+          .source = 0,
+          .damping = 0.8F,
+          .epsilon = 1.0e-5F,
+      }),
+      SpineL0Config{}, SpineAxiInterfaceProfile{}, AlgorithmPipelineConfig{},
+      SpineSplitPageRankCompute::kDefaultMemoryRequestWindow, SpineL0State{},
+      std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+      one_entry_owner(graph.vertices));
+  system.register_components();
+  scheduler.add_component(backend);
+  const auto result = system.run_frontier_to_convergence(256, 10'000'000);
+
+  std::uint64_t emitted = 0;
+  for (const auto &round : result.rounds) {
+    emitted += round.active_out.size();
+    require(round.compute.owner_activations_accepted == round.active_out.size(),
+            "Residual PageRank output bypassed the owner handshake");
+  }
+  float residual_l1 = 0.0F;
+  for (const std::uint32_t word : system.compute().residual_words()) {
+    residual_l1 += std::fabs(GraphAlgorithmPolicy::word_to_float(word));
+  }
+  require(result.converged && !result.failed && result.owner_ledger_closed &&
+              result.owner_quiescent && result.owner_scheduler.has_value() &&
+              result.owner_scheduler->work_credits_created == emitted + 4 &&
+              result.owner_scheduler->work_credits_created ==
+                  result.owner_scheduler->work_credits_retired &&
+              residual_l1 <= 1.01e-5F,
+          "Residual PageRank owner ledger or threshold oracle did not close");
+}
+
+void test_spine_full_pagerank_dense_owner_reissues_frontier() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("full-pr-owner-system", 150.0);
+  MockMemoryBackend backend("full-pr-owner-hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 4,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  const SpineEdgeSlice graph{
+      .vertices = 4,
+      .edges = {
+          {.src = 0, .dst = 1, .weight = 1, .diff = 1},
+          {.src = 0, .dst = 2, .weight = 1, .diff = 1},
+          {.src = 1, .dst = 2, .weight = 1, .diff = 1},
+          {.src = 3, .dst = 2, .weight = 1, .diff = 1},
+      },
+      .case_name = "full_pr_dense_owner_vertical_slice",
+  };
+  SpinePageRankVerticalSliceSystem system(
+      scheduler, core, backend, graph,
+      GraphAlgorithmPolicy(AlgorithmPolicyConfig{
+          .kind = GraphAlgorithmKind::kFullPageRank,
+          .vertices = graph.vertices,
+          .source = 0,
+          .damping = 0.8F,
+          .epsilon = 1.0e-5F,
+      }),
+      SpineL0Config{}, SpineAxiInterfaceProfile{}, AlgorithmPipelineConfig{},
+      SpineSplitPageRankCompute::kDefaultMemoryRequestWindow, SpineL0State{},
+      std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+      one_entry_owner(graph.vertices));
+  system.register_components();
+  scheduler.add_component(backend);
+  const auto result = system.run_frontier_to_convergence(64, 10'000'000);
+
+  require(result.converged && !result.failed && result.rounds.size() > 1 &&
+              result.owner_ledger_closed && result.owner_quiescent &&
+              result.owner_scheduler.has_value() &&
+              result.owner_scheduler->initial_activations ==
+                  graph.vertices * result.rounds.size() &&
+              result.owner_scheduler->work_credits_created ==
+                  result.owner_scheduler->work_credits_retired,
+          "Full PageRank dense frontier was not reissued through the owner");
 }
 
 }  // namespace
@@ -9588,6 +9783,12 @@ int main(int argc, char **argv) {
        test_spine_connected_components_converges_with_min_labels},
       {"spine_delta_hls_warm_residual",
        test_spine_delta_hls_residual_uses_warm_seed_frontier},
+      {"spine_cc_device_owner",
+       test_spine_cc_device_owner_closes_frontier_ledger},
+      {"spine_residual_device_owner",
+       test_spine_residual_pagerank_device_owner_closes_frontier_ledger},
+      {"spine_full_pr_dense_owner",
+       test_spine_full_pagerank_dense_owner_reissues_frontier},
   };
   const std::string filter = argc > 1 ? argv[1] : "";
   std::size_t failures = 0;

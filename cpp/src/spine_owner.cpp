@@ -413,4 +413,189 @@ void SpineOwnerScheduler::commit(const CycleContext &) {
   }
 }
 
+SpineOwnerFrontierController::SpineOwnerFrontierController(
+    std::string name, ClockId clock_id, SpineOwnerScheduler &owner,
+    std::vector<std::uint32_t> initial_frontier, const bool *payload_ready)
+    : Component(std::move(name), clock_id), owner_(owner),
+      payload_ready_(payload_ready), next_frontier_(std::move(initial_frontier)),
+      pending_completions_(owner.config().partitions),
+      staged_completions_(owner.config().partitions),
+      staged_dispatches_(owner.config().partitions) {
+  validate_frontier();
+  if (next_frontier_.empty()) {
+    phase_ = Phase::kPayloadWait;
+  }
+}
+
+void SpineOwnerFrontierController::validate_frontier() const {
+  std::vector<std::uint32_t> sorted = next_frontier_;
+  std::sort(sorted.begin(), sorted.end());
+  if (std::adjacent_find(sorted.begin(), sorted.end()) != sorted.end() ||
+      std::any_of(sorted.begin(), sorted.end(), [this](std::uint32_t key) {
+        return key >= owner_.config().max_vertices;
+      })) {
+    throw std::invalid_argument(
+        "Spine owner frontier must contain unique in-domain keys");
+  }
+}
+
+void SpineOwnerFrontierController::prepare_partitioned_completion() {
+  for (auto &queue : pending_completions_) {
+    queue.clear();
+  }
+  for (const std::uint32_t key : completed_frontier_) {
+    pending_completions_.at(owner_.partition_for(key)).push_back(key);
+  }
+  remaining_completions_ = completed_frontier_.size();
+}
+
+void SpineOwnerFrontierController::restart(
+    std::vector<std::uint32_t> completed_frontier,
+    std::vector<std::uint32_t> next_frontier, bool admit_next) {
+  if (!ready_ || failed_) {
+    throw std::logic_error(
+        "Spine owner frontier restart requires a ready controller");
+  }
+  completed_frontier_ = std::move(completed_frontier);
+  next_frontier_ = std::move(next_frontier);
+  validate_frontier();
+  dispatched_.clear();
+  next_activation_ = admit_next ? 0 : next_frontier_.size();
+  dispatch_partition_ = 0;
+  ready_ = false;
+  prepare_partitioned_completion();
+  phase_ = remaining_completions_ == 0
+               ? (next_activation_ < next_frontier_.size() ? Phase::kAdmit
+                                                            : Phase::kDispatch)
+               : Phase::kComplete;
+}
+
+void SpineOwnerFrontierController::evaluate(const CycleContext &) {
+  staged_activation_ = false;
+  std::fill(staged_completions_.begin(), staged_completions_.end(), false);
+  for (auto &dispatch : staged_dispatches_) {
+    dispatch.reset();
+  }
+  staged_phase_advance_ = false;
+  if (failed_ || ready_) {
+    return;
+  }
+  ++stats_.control_cycles;
+  switch (phase_) {
+    case Phase::kComplete:
+      for (std::size_t partition = 0; partition < pending_completions_.size();
+           ++partition) {
+        if (pending_completions_[partition].empty()) {
+          continue;
+        }
+        ++stats_.completion_attempts;
+        if (owner_.try_complete(pending_completions_[partition].front())) {
+          staged_completions_[partition] = true;
+        } else {
+          ++stats_.completion_backpressure_cycles;
+        }
+      }
+      if (remaining_completions_ == 0) {
+        staged_phase_advance_ = true;
+      }
+      return;
+    case Phase::kAdmit:
+      if (next_activation_ >= next_frontier_.size()) {
+        staged_phase_advance_ = true;
+        return;
+      }
+      ++stats_.activation_attempts;
+      if (owner_.try_activate(next_frontier_[next_activation_])) {
+        staged_activation_ = true;
+      } else {
+        ++stats_.activation_backpressure_cycles;
+      }
+      return;
+    case Phase::kDispatch:
+      if (dispatched_.size() >= next_frontier_.size()) {
+        staged_phase_advance_ = true;
+        return;
+      }
+      for (std::size_t offset = 0; offset < owner_.config().partitions;
+           ++offset) {
+        const std::size_t partition =
+            (dispatch_partition_ + offset) % owner_.config().partitions;
+        std::uint32_t key = 0;
+        ++stats_.dispatch_attempts;
+        if (owner_.try_dispatch(partition, key)) {
+          staged_dispatches_[partition] = key;
+        } else {
+          ++stats_.dispatch_backpressure_cycles;
+        }
+      }
+      return;
+    case Phase::kPayloadWait:
+      if (payload_ready_ == nullptr || *payload_ready_) {
+        staged_phase_advance_ = true;
+      }
+      return;
+    case Phase::kReady:
+      return;
+  }
+}
+
+void SpineOwnerFrontierController::commit(const CycleContext &) {
+  if (failed_ || ready_) {
+    return;
+  }
+  if (staged_activation_) {
+    ++next_activation_;
+  }
+  for (std::size_t partition = 0; partition < staged_completions_.size();
+       ++partition) {
+    if (!staged_completions_[partition]) {
+      continue;
+    }
+    pending_completions_[partition].pop_front();
+    --remaining_completions_;
+  }
+  for (std::size_t partition = 0; partition < staged_dispatches_.size();
+       ++partition) {
+    if (staged_dispatches_[partition].has_value()) {
+      dispatched_.push_back(*staged_dispatches_[partition]);
+    }
+  }
+  if (!staged_phase_advance_) {
+    return;
+  }
+  switch (phase_) {
+    case Phase::kComplete:
+      if (remaining_completions_ != 0) {
+        return;
+      }
+      ++stats_.frontiers_completed;
+      phase_ = next_activation_ < next_frontier_.size() ? Phase::kAdmit
+                                                        : Phase::kDispatch;
+      break;
+    case Phase::kAdmit:
+      phase_ = Phase::kDispatch;
+      break;
+    case Phase::kDispatch: {
+      std::vector<std::uint32_t> expected = next_frontier_;
+      std::vector<std::uint32_t> actual = dispatched_;
+      std::sort(expected.begin(), expected.end());
+      std::sort(actual.begin(), actual.end());
+      if (expected != actual) {
+        failed_ = true;
+        failure_ = "Spine owner dispatched a frontier different from device output";
+        return;
+      }
+      ++stats_.frontiers_dispatched;
+      phase_ = Phase::kPayloadWait;
+      break;
+    }
+    case Phase::kPayloadWait:
+      phase_ = Phase::kReady;
+      ready_ = true;
+      break;
+    case Phase::kReady:
+      break;
+  }
+}
+
 }  // namespace spine::sim

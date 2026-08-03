@@ -51,6 +51,18 @@ struct SpineOwnerSchedulerStats {
   std::size_t max_deferred_reactivation_occupancy{};
 };
 
+struct SpineOwnerFrontierStats {
+  std::uint64_t control_cycles{};
+  std::uint64_t activation_attempts{};
+  std::uint64_t activation_backpressure_cycles{};
+  std::uint64_t completion_attempts{};
+  std::uint64_t completion_backpressure_cycles{};
+  std::uint64_t dispatch_attempts{};
+  std::uint64_t dispatch_backpressure_cycles{};
+  std::uint64_t frontiers_completed{};
+  std::uint64_t frontiers_dispatched{};
+};
+
 // Device-owned per-key scheduling. External producers call try_activate during
 // evaluate; consumers call try_dispatch/try_complete during evaluate. All state
 // changes become visible only in commit.
@@ -124,6 +136,59 @@ class SpineOwnerScheduler final : public Component {
   std::vector<std::optional<std::uint32_t>>
       staged_reactivation_publications_;
   std::uint64_t work_credits_{};
+};
+
+// Drives the round boundary around the per-key owner. It models device-owned
+// frontier admission, completion, and dispatch while allowing the host to
+// relaunch/re-bin an already selected frontier without recomputing membership.
+class SpineOwnerFrontierController final : public Component {
+ public:
+  SpineOwnerFrontierController(std::string name, ClockId clock_id,
+                               SpineOwnerScheduler &owner,
+                               std::vector<std::uint32_t> initial_frontier,
+                               const bool *payload_ready = nullptr);
+
+  void restart(std::vector<std::uint32_t> completed_frontier,
+               std::vector<std::uint32_t> next_frontier,
+               bool admit_next);
+  [[nodiscard]] bool ready() const noexcept { return ready_; }
+  [[nodiscard]] const bool *ready_gate() const noexcept { return &ready_; }
+  [[nodiscard]] bool failed() const noexcept { return failed_; }
+  [[nodiscard]] const std::string &failure() const noexcept { return failure_; }
+  [[nodiscard]] const SpineOwnerFrontierStats &stats() const noexcept {
+    return stats_;
+  }
+  [[nodiscard]] const std::vector<std::uint32_t> &dispatched() const noexcept {
+    return dispatched_;
+  }
+
+  void evaluate(const CycleContext &) override;
+  void commit(const CycleContext &) override;
+
+ private:
+  enum class Phase { kComplete, kAdmit, kDispatch, kPayloadWait, kReady };
+
+  void prepare_partitioned_completion();
+  void validate_frontier() const;
+
+  SpineOwnerScheduler &owner_;
+  const bool *payload_ready_{};
+  SpineOwnerFrontierStats stats_;
+  std::vector<std::uint32_t> completed_frontier_;
+  std::vector<std::uint32_t> next_frontier_;
+  std::vector<std::uint32_t> dispatched_;
+  std::vector<std::deque<std::uint32_t>> pending_completions_;
+  std::size_t next_activation_{};
+  std::size_t remaining_completions_{};
+  std::size_t dispatch_partition_{};
+  Phase phase_{Phase::kAdmit};
+  bool staged_activation_{};
+  std::vector<bool> staged_completions_;
+  std::vector<std::optional<std::uint32_t>> staged_dispatches_;
+  bool staged_phase_advance_{};
+  bool ready_{};
+  bool failed_{};
+  std::string failure_;
 };
 
 }  // namespace spine::sim
