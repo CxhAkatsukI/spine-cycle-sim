@@ -10,9 +10,51 @@ import statistics
 from typing import Any, Iterable
 
 
+REFACTOR31_VERTICES = 1_048_576
+REFACTOR31_ACTIVE_GATE = 16_384
+REFACTOR31_CASES = (
+    "active_exact_one_tile",
+    "active_gate_one_tile",
+    "active_exact_many_tiles",
+    "active_gate_many_tiles",
+)
+
+
 KEY_VALUE_RE = re.compile(r"([A-Za-z_][A-Za-z0-9_]*)=([^\s]+)")
 LINE_PREFIX = "SEGMENTED_FALLBACK_HW "
 TIMING_FIELDS = ("reader_ms", "compute_ms", "conv_ms", "wall_ms")
+
+
+def refactor31_fixture_edges(case: str) -> list[tuple[int, int, int, int]]:
+    """Reproduce the four accepted direct-FPGA host fixtures."""
+
+    if case not in REFACTOR31_CASES:
+        raise ValueError(f"unknown refactor31 fixture: {case}")
+    count = REFACTOR31_ACTIVE_GATE + ("_gate_" in case)
+    many_tiles = case.endswith("many_tiles")
+    edges: list[tuple[int, int, int, int]] = []
+    for index in range(count):
+        if many_tiles:
+            source = REFACTOR31_VERTICES - 1 - index
+            destination = index * REFACTOR31_VERTICES // count
+        else:
+            source = 65_536 + index
+            destination = index % 65_536
+        edges.append((source, destination, 1, 1))
+    return sorted(edges, key=lambda edge: (edge[0], edge[1]))
+
+
+def write_refactor31_fixture(path: str | Path, case: str) -> Path:
+    output = Path(path)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with output.open("w", encoding="ascii") as stream:
+        stream.write("# spine_real_slice_version=1\n")
+        stream.write(f"# case={case}\n")
+        stream.write(f"# vertices={REFACTOR31_VERTICES}\n")
+        stream.write("# columns=src dst weight diff\n")
+        for edge in refactor31_fixture_edges(case):
+            stream.write("{} {} {} {}\n".format(*edge))
+    return output
 
 
 @dataclass(frozen=True)

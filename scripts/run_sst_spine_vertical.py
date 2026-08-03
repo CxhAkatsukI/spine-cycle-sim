@@ -857,6 +857,38 @@ def validate_full_compute_result(
     return [name for name, passed in checks.items() if not passed]
 
 
+def validate_refactor31_probe_result(
+    result: dict[str, Any],
+    dram: dict[str, int | float],
+    *,
+    channels: int,
+) -> list[str]:
+    edges = int(result.get("input_edges", -1))
+    expected_path = 1 if edges == 16_384 else 2 if edges == 16_385 else -1
+    checks = {
+        "success": result.get("success") is True,
+        "mode": result.get("mode") == "spine_refactor31_probe",
+        "fixture_shape": edges in {16_384, 16_385}
+        and result.get("preload_edges") == edges,
+        "correctness": result.get("correctness_mismatches") == 0,
+        "frontier_correctness": result.get("frontier_mismatches") == 0,
+        "processed_edges": result.get("reader_edges") == edges
+        and result.get("compute_processed_edges") == edges,
+        "active_gate_path": result.get("reader_range_active_records") == edges
+        and result.get("reader_range_path") == expected_path
+        and result.get("compute_range_path") == expected_path,
+        "reader_request_closure": result.get("reader_memory_requests_issued")
+        == result.get("reader_memory_requests_completed"),
+        "compute_request_closure": result.get("compute_memory_requests_issued")
+        == result.get("compute_memory_requests_completed"),
+        "dram_matches_backend": int(dram.get("dram_reads", 0))
+        + int(dram.get("dram_writes", 0))
+        == result.get("backend_requests"),
+        "channel_count": dram.get("dram_channels") == channels,
+    }
+    return [name for name, passed in checks.items() if not passed]
+
+
 def validate_full_pagerank_result(
     result: dict[str, Any], dram: dict[str, int | float], *, channels: int
 ) -> list[str]:
@@ -1375,6 +1407,7 @@ def parse_args() -> argparse.Namespace:
             "protocol_window",
             "fallback_capacity",
             "fallback_payload",
+            "refactor31_probe",
             "candidate10_maintenance",
         ),
         default="amazon_l0",
@@ -1546,7 +1579,11 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--maintenance-architecture",
-        choices=("shared_engine_serial", "candidate10_one_pass"),
+        choices=(
+            "shared_engine_serial",
+            "candidate10_one_pass",
+            "candidate10_refactor31_segmented_exact",
+        ),
         help="override the maintenance architecture selected by the profile",
     )
     parser.add_argument("--no-build", action="store_true")
@@ -1595,6 +1632,7 @@ def main() -> int:
     if profile_maintenance_architecture not in {
         "shared_engine_serial",
         "candidate10_one_pass",
+        "candidate10_refactor31_segmented_exact",
     }:
         raise SystemExit("profile has an unknown maintenance_architecture")
     if args.maintenance_architecture is None:
@@ -1796,6 +1834,7 @@ def main() -> int:
                 "dynamic_sssp_increase": "spine_sssp",
                 "fallback_capacity": "spine_sssp",
                 "fallback_payload": "spine_sssp",
+                "refactor31_probe": "spine_refactor31_probe",
                 "candidate10_maintenance": "spine_maintenance",
             }.get(args.scenario, "spine_vertical"),
             "SPINE_SST_WORKLOAD": str(args.workload.resolve()),
@@ -2016,6 +2055,7 @@ def main() -> int:
         "amazon_l0": validate_result,
         "carry_hot": validate_carry_hot_result,
         "amazon_full_compute": validate_full_compute_result,
+        "refactor31_probe": validate_refactor31_probe_result,
         "full_pagerank": validate_full_pagerank_result,
         "residual_pagerank": validate_residual_pagerank_result,
         "weighted_sssp": validate_multiround_sssp_result,

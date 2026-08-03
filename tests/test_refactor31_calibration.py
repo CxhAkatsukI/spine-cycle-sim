@@ -1,10 +1,16 @@
 from __future__ import annotations
 
 import unittest
+from tempfile import TemporaryDirectory
+from pathlib import Path
 
 from spine_cycle_sim.calibration.refactor31 import (
+    REFACTOR31_ACTIVE_GATE,
+    REFACTOR31_VERTICES,
     parse_refactor31_fpga_log,
+    refactor31_fixture_edges,
     summarize_refactor31_fpga_runs,
+    write_refactor31_fixture,
 )
 
 
@@ -22,6 +28,30 @@ def result_line(
 
 
 class Refactor31CalibrationTests(unittest.TestCase):
+    def test_fixture_generator_matches_hardware_boundaries(self) -> None:
+        exact = refactor31_fixture_edges("active_exact_one_tile")
+        fallback = refactor31_fixture_edges("active_gate_many_tiles")
+        self.assertEqual(len(exact), REFACTOR31_ACTIVE_GATE)
+        self.assertEqual(len(fallback), REFACTOR31_ACTIVE_GATE + 1)
+        self.assertEqual(exact[0], (65_536, 0, 1, 1))
+        self.assertEqual(fallback[-1][0], REFACTOR31_VERTICES - 1)
+        self.assertEqual(
+            {destination // 65_536 for _, destination, _, _ in fallback},
+            set(range(16)),
+        )
+
+    def test_fixture_writer_emits_sorted_loadable_slice(self) -> None:
+        with TemporaryDirectory() as directory:
+            path = write_refactor31_fixture(
+                Path(directory) / "probe.slice", "active_exact_many_tiles"
+            )
+            lines = path.read_text(encoding="ascii").splitlines()
+        self.assertIn(f"# vertices={REFACTOR31_VERTICES}", lines)
+        records = [
+            tuple(map(int, line.split())) for line in lines if not line.startswith("#")
+        ]
+        self.assertEqual(records, sorted(records, key=lambda edge: edge[:2]))
+
     def test_parser_converts_milliseconds_at_the_routed_clock(self) -> None:
         record = parse_refactor31_fpga_log(result_line(launch=1))[0]
         self.assertEqual(record.compute_cycles, 320_000)

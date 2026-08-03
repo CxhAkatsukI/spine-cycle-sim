@@ -505,6 +505,9 @@ SpineMaintenanceArchitecture spine_maintenance_architecture_from_id(
   if (id == "candidate10_one_pass") {
     return SpineMaintenanceArchitecture::kCandidate10OnePass;
   }
+  if (id == "candidate10_refactor31_segmented_exact") {
+    return SpineMaintenanceArchitecture::kCandidate10OnePass;
+  }
   throw std::invalid_argument("unknown Spine maintenance architecture: " + id);
 }
 
@@ -2481,7 +2484,9 @@ class OnlineMemoryProbe final : public SST::Component {
     grasu_update_config_.maintain_out_degree = timed_degree_pagerank;
     grasu_config_.initialize_degree_payload = !timed_degree_pagerank;
     if ((mode_ != "probe" && mode_ != "payload_roundtrip" &&
-         mode_ != "spine_vertical" && mode_ != "spine_maintenance" &&
+         mode_ != "spine_vertical" &&
+         mode_ != "spine_refactor31_probe" &&
+         mode_ != "spine_maintenance" &&
          mode_ != "spine_compute" &&
          mode_ != "spine_sssp" && mode_ != "spine_pagerank" &&
          mode_ != "spine_residual_pagerank" &&
@@ -2555,7 +2560,9 @@ class OnlineMemoryProbe final : public SST::Component {
         write_percent_ > 100 ||
         (mode_ == "probe" &&
          (request_count_ == 0 || request_bytes_ == 0 || stride_bytes_ == 0)) ||
-        ((mode_ == "spine_vertical" || mode_ == "spine_maintenance" ||
+        ((mode_ == "spine_vertical" ||
+          mode_ == "spine_refactor31_probe" ||
+          mode_ == "spine_maintenance" ||
           mode_ == "spine_compute" ||
           mode_ == "spine_sssp" || mode_ == "spine_pagerank" ||
           mode_ == "spine_residual_pagerank" ||
@@ -3301,7 +3308,8 @@ class OnlineMemoryProbe final : public SST::Component {
       scheduler_.add_component(*backend_);
       return;
     }
-    if (mode_ == "spine_vertical" || mode_ == "spine_sssp") {
+    if (mode_ == "spine_vertical" || mode_ == "spine_sssp" ||
+        mode_ == "spine_refactor31_probe") {
       SpineEdgeSlice workload = load_spine_edge_slice(
           workload_path_, mode_ == "spine_vertical");
       spine_expected_edges_ = workload.edges.size();
@@ -3492,6 +3500,50 @@ class OnlineMemoryProbe final : public SST::Component {
       }
       for (const SpineEdgeRecord &edge : workload.edges) {
         add_expected(edge);
+      }
+      if (mode_ == "spine_refactor31_probe") {
+        const SpineEdgeSlice resident = workload;
+        std::vector<std::uint32_t> active_sources;
+        active_sources.reserve(resident.edges.size());
+        std::vector<std::uint32_t> initial_values(
+            resident.vertices, SpineSplitSsspCompute::kInfinity);
+        for (const SpineEdgeRecord &edge : resident.edges) {
+          active_sources.push_back(edge.src);
+          initial_values.at(edge.src) = 0;
+        }
+        std::sort(active_sources.begin(), active_sources.end());
+        active_sources.erase(
+            std::unique(active_sources.begin(), active_sources.end()),
+            active_sources.end());
+        if (resident.case_name.ends_with("many_tiles")) {
+          std::reverse(active_sources.begin(), active_sources.end());
+        }
+
+        expected_distances_.clear();
+        for (const SpineEdgeRecord &edge : resident.edges) {
+          const std::uint32_t candidate =
+              initial_values.at(edge.src) + edge.weight;
+          const auto expected = expected_distances_.find(edge.dst);
+          if (candidate < initial_values.at(edge.dst) &&
+              (expected == expected_distances_.end() ||
+               candidate < expected->second)) {
+            expected_distances_[edge.dst] = candidate;
+          }
+        }
+        initial_state = preload_spine_resident_snapshot(
+            resident, maintenance_config, &spine_resident_classification_);
+        spine_resident_classification_valid_ = true;
+        spine_resident_snapshot_max_level_ =
+            spine_snapshot_max_level(initial_state);
+        spine_preload_edges_ = resident.edges.size();
+        algorithm_initial_state = AlgorithmInitialState{
+            .primary = std::move(initial_values),
+            .auxiliary = {},
+            .active_vertices = std::move(active_sources),
+        };
+        resident_snapshot = true;
+        workload.edges.clear();
+        workload.case_name += "_resident_refactor31_probe";
       }
       if (sssp_algorithm_warm_start_) {
         if (!dynamic_sssp_enabled_ || dynamic_full_rebuild_) {
@@ -3978,7 +4030,8 @@ class OnlineMemoryProbe final : public SST::Component {
         sst_current_frontier_ = active_out;
         sst_round_start_cycle_ = scheduler_.clock(0).completed_cycles;
       }
-    } else if (mode_ == "spine_vertical") {
+    } else if (mode_ == "spine_vertical" ||
+               mode_ == "spine_refactor31_probe") {
       if (spine_system_->done() && spine_system_->idle() &&
           backend_->outstanding() == 0) {
         write_result(!spine_system_->failed());
@@ -4031,7 +4084,7 @@ class OnlineMemoryProbe final : public SST::Component {
        ""},
       {"mode",
        "probe, payload_roundtrip, spine_vertical, spine_maintenance, "
-       "spine_compute, spine_sssp, "
+       "spine_compute, spine_sssp, spine_refactor31_probe, "
        "or "
        "spine_pagerank/spine_residual_pagerank/"
        "spine_connected_components/grasu_regraph_sssp/"
@@ -4181,8 +4234,8 @@ class OnlineMemoryProbe final : public SST::Component {
        "Spine AXI profile: hls_split_9c08763 or legacy_uniform64",
        "hls_split_9c08763"},
       {"spine_maintenance_architecture",
-       "Spine maintenance architecture: shared_engine_serial or "
-       "candidate10_one_pass",
+       "Spine maintenance architecture: shared_engine_serial, "
+       "candidate10_one_pass, or candidate10_refactor31_segmented_exact",
        "shared_engine_serial"},
       {"grasu_cache_segments_per_half", "GraSU cache segments per PMA half",
        "131072"},
@@ -9126,7 +9179,8 @@ class OnlineMemoryProbe final : public SST::Component {
           result_path_.c_str());
       return;
     }
-    if (mode_ == "spine_vertical") {
+    if (mode_ == "spine_vertical" ||
+        mode_ == "spine_refactor31_probe") {
       std::uint64_t mismatches = 0;
       for (const auto &[vertex, expected] : expected_distances_) {
         if (spine_system_->compute().values().at(vertex) != expected) {
@@ -9160,7 +9214,7 @@ class OnlineMemoryProbe final : public SST::Component {
       result
           << "{\n"
           << "  \"success\": " << (passed ? "true" : "false") << ",\n"
-          << "  \"mode\": \"spine_vertical\",\n"
+          << "  \"mode\": \"" << mode_ << "\",\n"
           << "  \"backend\": \"" << backend_->backend_label()
           << "\",\n"
           << "  \"spine_axi_profile\": \"" << spine_axi_profile_id_ << "\",\n"

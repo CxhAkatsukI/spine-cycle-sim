@@ -1,0 +1,21 @@
+{
+  "all_simulator_correct": true,
+  "calibration_cases": 2,
+  "cases": 4,
+  "claim_boundary": {
+    "not_supported": [
+      "hardware_correctness_admission_for_original_logs",
+      "medium_real_slice_cycle_transfer",
+      "paper_owner_scheduler_fpga_calibration"
+    ],
+    "supported": [
+      "matching_refactor31_exact_and_active_gate_fixture_execution",
+      "simulator_internal_state_and_frontier_correctness",
+      "reader_compute_mechanism_cycle_transfer_error_characterization"
+    ]
+  },
+  "evidence_id": "refactor31_sim_fpga_mechanism_transfer_v1",
+  "holdout_cases": 2,
+  "profile": "/home/chuxiao/spine-cycle-sim-architecture-alignment/configs/architectures/spine_refactor31_routed_native_v1.json",
+  "schema_version": 1
+}
