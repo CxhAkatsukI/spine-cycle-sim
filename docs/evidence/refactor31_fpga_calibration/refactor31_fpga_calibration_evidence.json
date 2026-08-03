@@ -1,0 +1,90 @@
+{
+  "architecture_contract_id": "spine_paper_architecture_alignment_v1",
+  "architecture_contract_sha256": "6358e13196d7c65007eb0c49b198ecae5e9935b7feacaa6d0faa78ed41ecc8b2",
+  "calibration_admitted_cases": 0,
+  "case_count": 4,
+  "claim_boundary": {
+    "not_yet_supported": [
+      "algorithm_correctness_gated_cycle_calibration",
+      "five_repeat_calibration_gate",
+      "medium_real_slice_transfer",
+      "paper_aligned_scheduler_calibration"
+    ],
+    "supported": [
+      "routed_refactor31_execution_timing",
+      "exact_and_fallback_path_timing_separation",
+      "repeat_stability_for_two_fallback_cases"
+    ]
+  },
+  "correctness_admitted_runs": 0,
+  "evidence_id": "refactor31_fpga_calibration_analysis_v1",
+  "kernel_clock_mhz": 160.0,
+  "manifest_sha256": "20abba269f265fda62183dc239120a623d77ed9d7cf9f1fda78fbd341baef49a",
+  "profile_id": "spine_refactor31_routed_native_v1",
+  "profile_sha256": "04683ce5c95355c44741ef9dd78dd84ba00531c4e7e0f6ee5e4dffe767b42218",
+  "run_count": 8,
+  "schema_version": 1,
+  "timing_admitted_runs": 8,
+  "verified_artifacts": [
+    {
+      "kind": "source_diff",
+      "path": "/data/feiyang/spine-dynamic-graph-builds/segmented_exact_fallback_cc7e3f9_20260802/hw_refactor31_ii4_bitmap/source_snapshot/source.diff",
+      "sha256": "82e31d80a91d733bc79aa21d2deb990bab31371403b1a0d34950639680840283"
+    },
+    {
+      "kind": "build_command",
+      "path": "/data/feiyang/spine-dynamic-graph-builds/segmented_exact_fallback_cc7e3f9_20260802/hw_refactor31_ii4_bitmap/build.command.txt",
+      "sha256": "18c9c29035325c88110b1948c5da3ce947f13310af54d4a800b9e5779c5007ef"
+    },
+    {
+      "kind": "link_config",
+      "path": "/data/feiyang/spine-dynamic-graph-builds/segmented_exact_fallback_cc7e3f9_20260802/hw_refactor31_ii4_bitmap/config/system_partitioned_split_e2e.cfg",
+      "sha256": "ce7fa60b33eb4ac61d6c865bebcf82931bcf0e73f9d730d443c4e5780162fea7"
+    },
+    {
+      "kind": "readmaint_hw_xo",
+      "path": "/data/feiyang/spine-dynamic-graph-builds/segmented_exact_fallback_cc7e3f9_20260802/hw_refactor31_ii4_bitmap/input/spine_partconv_rdmaint_kernel.hw.xo",
+      "sha256": "349177742d2a7179d223d8b65f1c3405c3109a63658e02335e01b637c01a63bc"
+    },
+    {
+      "kind": "compute_hw_xo",
+      "path": "/data/feiyang/spine-dynamic-graph-builds/segmented_exact_fallback_cc7e3f9_20260802/hw_refactor31_ii4_bitmap/input/spine_partconv_compute_kernel.hw.xo",
+      "sha256": "8cb4878c7969a9a39428445d4c327bd3484f3b4442b142cee42524313ac060b5"
+    },
+    {
+      "kind": "routed_xclbin",
+      "path": "/data/feiyang/spine-dynamic-graph-builds/segmented_exact_fallback_cc7e3f9_20260802/hw_refactor31_ii4_bitmap/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+      "sha256": "16ca09f5597d974e6963ac19ada4f59a8e2b0d6b7ef5ea8f668e5ffb520a1629"
+    },
+    {
+      "kind": "postroute_timing",
+      "path": "/data/feiyang/spine-dynamic-graph-builds/segmented_exact_fallback_cc7e3f9_20260802/hw_refactor31_ii4_bitmap/final_checkpoint_audit/timing_summary_postroute_physopt.rpt",
+      "sha256": "66804025dfc7142a7f93a3a08c1701453b87b09d002862cea8e0778d3e1a96a0"
+    },
+    {
+      "kind": "postroute_slr_utilization",
+      "path": "/data/feiyang/spine-dynamic-graph-builds/segmented_exact_fallback_cc7e3f9_20260802/hw_refactor31_ii4_bitmap/final_checkpoint_audit/slr_util_postroute_physopt.rpt",
+      "sha256": "3fec5f74f3f2723b37e09a884455a6294dbded383ee4474a99cbf6a5124b270c"
+    },
+    {
+      "kind": "fpga_exact_one_tile_log",
+      "path": "/data/feiyang/spine-dynamic-graph-builds/segmented_exact_fallback_cc7e3f9_20260802/direct_hw_refactor31/runs/active_exact_one_tile_final.log",
+      "sha256": "335c2fbeffe06bcf8802bd63305756545d5c8aa8851ffc3b33efc60c8d2db1c5"
+    },
+    {
+      "kind": "fpga_exact_many_tiles_log",
+      "path": "/data/feiyang/spine-dynamic-graph-builds/segmented_exact_fallback_cc7e3f9_20260802/direct_hw_refactor31/runs/active_exact_many_tiles_final.log",
+      "sha256": "7b06591cf10a18a15e1b9c5f6f10f9e4fa62c2b6fd8785cf1cbadd38dc7ddd33"
+    },
+    {
+      "kind": "fpga_fallback_one_tile_repeats_log",
+      "path": "/data/feiyang/spine-dynamic-graph-builds/segmented_exact_fallback_cc7e3f9_20260802/direct_hw_refactor31/runs/active_gate_one_tile_repeat3_final.log",
+      "sha256": "6b4ac5178979185f85ea9a56912a0c008af55130f4b2deff5a906bc97245b383"
+    },
+    {
+      "kind": "fpga_fallback_many_tiles_repeats_log",
+      "path": "/data/feiyang/spine-dynamic-graph-builds/segmented_exact_fallback_cc7e3f9_20260802/direct_hw_refactor31/runs/active_gate_many_tiles_repeat3_final.log",
+      "sha256": "f1930f612ff0024ada25bc3bd2448d7334155cfcb7c286172e40393342c914ec"
+    }
+  ]
+}

@@ -89,6 +89,8 @@ cd /home/chuxiao/spine-cycle-sim-architecture-alignment
 python3 -m unittest tests.test_alignment_contract tests.test_architecture_profiles -v
 python3 scripts/export_hls_architecture_contract.py \
   --output /tmp/spine_paper_architecture_contract.hpp
+python3 scripts/analyze_refactor31_fpga_calibration.py \
+  --out-dir docs/evidence/refactor31_fpga_calibration
 ```
 
 Reproduce the available HLS host tests with:
@@ -120,8 +122,11 @@ For non-tiny workloads, acceptance requires:
 
 ## Remaining Implementation Order
 
-1. Export the frozen contract into the HLS branch and add compile-time guards.
-2. Build the refactor31-native simulator calibration matrix and raw-log parser.
+1. [done] Export the frozen contract into the HLS branch and add compile-time
+   guards.
+2. [partial] Build the refactor31-native raw-log parser and freeze the transfer
+   matrix. Existing timing evidence is parsed; the generic real-slice FPGA host
+   remains pending.
 3. Add the per-partition owner FIFO and `queued/in_flight/dirty` state machine.
 4. Add lossless reactivation and work-credit quiescence in simulator and HLS.
 5. Add dormant-ID activation and validity-bitmap vertex deactivation.
