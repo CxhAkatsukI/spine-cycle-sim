@@ -4047,7 +4047,12 @@ class OnlineMemoryProbe final : public SST::Component {
             primaryComponentOKToEndSim();
             return true;
           }
-          spine_system_->restart_device_active_compute(sst_pending_active_out_);
+          if (resident_static_sssp_) {
+            spine_system_->restart_read_compute(sst_pending_active_out_);
+          } else {
+            spine_system_->restart_device_active_compute(
+                sst_pending_active_out_);
+          }
           sst_current_frontier_ = std::move(sst_pending_active_out_);
           sst_round_start_cycle_ = scheduler_.clock(0).completed_cycles;
           return false;
@@ -4083,7 +4088,14 @@ class OnlineMemoryProbe final : public SST::Component {
           primaryComponentOKToEndSim();
           return true;
         }
-        spine_system_->restart_device_active_compute(active_out);
+        if (resident_static_sssp_) {
+          // The frozen refactor31 calibration host launches every resident
+          // SSSP round as HOST_ACTIVE.  Keep that native timing boundary here;
+          // larger frontiers then select the kernel's segmented tiled path.
+          spine_system_->restart_read_compute(active_out);
+        } else {
+          spine_system_->restart_device_active_compute(active_out);
+        }
         sst_current_frontier_ = active_out;
         sst_round_start_cycle_ = scheduler_.clock(0).completed_cycles;
       }

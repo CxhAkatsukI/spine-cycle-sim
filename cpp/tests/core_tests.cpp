@@ -3845,6 +3845,94 @@ void test_spine_convergence_runner_keeps_4097_sources_on_device() {
           "4097-source device execution diverged from weighted SSSP semantics");
 }
 
+void test_spine_resident_host_round_crosses_active_gate() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("data", 141.0);
+  MockMemoryBackend backend("hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 2,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  SpineEdgeSlice workload{
+      .vertices = 16,
+      .edges = {},
+      .case_name = "resident_host_round_crosses_active_gate",
+  };
+  for (std::uint32_t destination = 1; destination <= 5; ++destination) {
+    workload.edges.push_back(SpineEdgeRecord{
+        .src = 0,
+        .dst = destination,
+        .weight = 1,
+        .diff = 1,
+    });
+  }
+  for (std::uint32_t destination = 1; destination <= 5; ++destination) {
+    workload.edges.push_back(SpineEdgeRecord{
+        .src = destination,
+        .dst = 10 + destination,
+        .weight = 1,
+        .diff = 1,
+    });
+  }
+  SpineL0Config config;
+  config.maintenance_architecture =
+      SpineMaintenanceArchitecture::kCandidate10OnePass;
+  config.range_task_active_gate = 4;
+  config.segmented_fallback = true;
+  SpineL0State state = preload_spine_resident_snapshot(workload, config);
+  std::vector<std::uint32_t> initial_values(
+      workload.vertices, SpineSplitSsspCompute::kInfinity);
+  initial_values[0] = 0;
+  spine::sim::AlgorithmInitialState initial_algorithm{
+      .primary = std::move(initial_values),
+      .auxiliary = {},
+      .active_vertices = {0},
+  };
+  workload.edges.clear();
+  SpineVerticalSliceSystem system(
+      scheduler, core, backend, std::move(workload), 0, 4, std::move(config),
+      std::move(state), {}, 7, 4, {}, true,
+      std::move(initial_algorithm));
+  system.register_components();
+  scheduler.add_component(backend);
+
+  scheduler.run_until([&] { return system.done() && system.idle(); },
+                      1'000'000);
+  const std::vector<std::uint32_t> first_active =
+      system.compute().next_active();
+  require(!system.failed() && first_active.size() == 5 &&
+              system.reader_counters().range_task_path == 1,
+          "resident HOST_ACTIVE exact round did not produce gate+1 work");
+
+  system.restart_read_compute(first_active);
+  scheduler.run_until([&] { return system.done() && system.idle(); },
+                      1'000'000);
+  require(!system.failed() &&
+              system.reader_counters().range_task_path == 2 &&
+              system.reader_counters().range_task_fallback_reason == 1 &&
+              system.reader_counters().range_task_replay_payloads == 5 &&
+              system.compute_counters().processed_edges == 5 &&
+              system.compute().next_active().size() == 5,
+          "resident HOST_ACTIVE gate+1 round did not use tiled fallback: " +
+              std::to_string(system.reader_counters().range_task_path) + "/" +
+              std::to_string(
+                  system.reader_counters().range_task_fallback_reason) +
+              " replay=" +
+              std::to_string(
+                  system.reader_counters().range_task_replay_payloads) +
+              " processed=" +
+              std::to_string(system.compute_counters().processed_edges) +
+              " active=" +
+              std::to_string(system.compute().next_active().size()));
+  for (std::uint32_t destination = 11; destination <= 15; ++destination) {
+    require(system.compute().values()[destination] == 2,
+            "resident HOST_ACTIVE fallback changed SSSP semantics");
+  }
+}
+
 void test_spine_dirty_ack_rejects_stale_and_malformed_candidates() {
   const auto run_case = [](std::uint32_t expected_generation,
                            SpineDirtyIdentity candidate,
@@ -9857,6 +9945,8 @@ int main(int argc, char **argv) {
        test_spine_convergence_runner_records_host_handoff},
       {"spine_convergence_4097_device_owned",
        test_spine_convergence_runner_keeps_4097_sources_on_device},
+      {"spine_resident_host_gate_fallback",
+       test_spine_resident_host_round_crosses_active_gate},
       {"spine_dirty_ack_rejections",
        test_spine_dirty_ack_rejects_stale_and_malformed_candidates},
       {"spine_source_protocol_error",

@@ -96,7 +96,7 @@ def main() -> int:
     parser.add_argument("--phase", choices=("fpga", "sim", "both"), default="both")
     parser.add_argument("--cases", nargs="*")
     parser.add_argument("--repeats", type=int, default=5)
-    parser.add_argument("--max-cycles", type=int, default=500_000_000)
+    parser.add_argument("--max-cycles", type=int, default=20_000_000_000)
     parser.add_argument("--max-rounds", type=int, default=4096)
     parser.add_argument("--jobs", type=int, default=1)
     parser.add_argument("--no-resume", action="store_true")

@@ -7,7 +7,7 @@
   "architecture_profile_sha256": "4182ff4e280191dc6d57fa07ea400d3c8bda507dc54699b260aa3b5175dbe8b8",
   "simulator_plugin": {
     "path": "build/sst/libspine_cycle.so",
-    "sha256": "35a5aa4cd59317219b5bb0f4a377c79cd3459968c5cab858dbb33af82a00e820"
+    "sha256": "b4d997283623ec72fc6b41c0a2dfe78b8587c2df0b717e23246f5dc4c20a0481"
   },
   "native_fpga_artifact": {
     "host_path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_real_slice_host",
