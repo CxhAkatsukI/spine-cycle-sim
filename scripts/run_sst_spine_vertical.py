@@ -1418,6 +1418,14 @@ def parse_args() -> argparse.Namespace:
         default="amazon_l0",
     )
     parser.add_argument("--preload", type=Path)
+    parser.add_argument(
+        "--resident-static-sssp",
+        action="store_true",
+        help=(
+            "preload the static graph into the frozen refactor31 resident "
+            "level and time only multi-round reader/compute execution"
+        ),
+    )
     parser.add_argument("--carry-history", type=Path)
     parser.add_argument("--carry-history-batch-edges", type=int, default=0)
     parser.add_argument("--expected-carry-target-level", type=int, default=0)
@@ -1831,6 +1839,12 @@ def main() -> int:
         raise SystemExit(
             "--sssp-warm-start is supported only for positive dynamic SSSP"
         )
+    if args.resident_static_sssp and args.scenario != "weighted_sssp":
+        raise SystemExit(
+            "--resident-static-sssp is supported only for weighted_sssp"
+        )
+    if args.resident_static_sssp and args.preload is not None:
+        raise SystemExit("resident static SSSP does not accept --preload")
     hot_vertices = tuple(
         int(item) for item in args.hot_vertices.split(",") if item
     )
@@ -1884,6 +1898,9 @@ def main() -> int:
             else str(args.update_workload.resolve()),
             "SPINE_SST_SOURCE": str(args.source),
             "SPINE_SST_SSSP_WARM_START": "1" if args.sssp_warm_start else "0",
+            "SPINE_SST_RESIDENT_STATIC_SSSP": (
+                "1" if args.resident_static_sssp else "0"
+            ),
             "SPINE_SST_PRELOAD": ""
             if args.preload is None
             else str(args.preload.resolve()),
@@ -2215,6 +2232,17 @@ def main() -> int:
         }
         problems.extend(
             name for name, passed in warm_checks.items() if not passed
+        )
+    if args.resident_static_sssp:
+        resident_checks = {
+            "resident_static_sssp": result.get("resident_static_sssp") is True,
+            "resident_preload": result.get("preload_edges") == workload_edges,
+            "untimed_maintenance": result.get("maintenance_persisted_edges") == 0,
+            "resident_level": isinstance(result.get("resident_static_level"), int)
+            and result["resident_static_level"] >= 8,
+        }
+        problems.extend(
+            name for name, passed in resident_checks.items() if not passed
         )
     if result.get("spine_axi_profile") != args.axi_profile:
         problems.append("axi_profile")

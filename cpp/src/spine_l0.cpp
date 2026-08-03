@@ -1060,6 +1060,85 @@ SpineL0State preload_spine_resident_snapshot(
   return state;
 }
 
+SpineL0State preload_spine_cold_resident_snapshot(
+    const SpineEdgeSlice &snapshot, const SpineL0Config &config,
+    std::size_t min_level, std::size_t *selected_level,
+    SpineResidentClassification *classification) {
+  if (snapshot.vertices == 0 || snapshot.vertices > config.max_vertices ||
+      config.partitions != 16 || config.levels != 11 ||
+      config.vertex_partition_size == 0 || min_level >= config.levels ||
+      !config.hot_vertices.empty()) {
+    throw std::invalid_argument("invalid Spine cold resident preload request");
+  }
+
+  SpineResidentClassification resident;
+  resident.used_explicit_hot_set = true;
+  resident.total_edges = snapshot.edges.size();
+  resident.cold_edges = resident.total_edges;
+  for (std::size_t level = 0; level < config.levels; ++level) {
+    resident.family_edge_capacity +=
+        spine_level_layout(config, false, level).edge_capacity;
+  }
+  resident.cold_partition_target =
+      spine_level_layout(config, false, config.levels - 2).edge_capacity;
+  resident.hot_shard_edge_capacity =
+      spine_level_layout(config, true, config.levels - 1).edge_capacity;
+
+  SpineL0State state;
+  for (const SpineEdgeRecord &edge : snapshot.edges) {
+    if (edge.src >= snapshot.vertices || edge.dst >= snapshot.vertices ||
+        edge.diff != 1) {
+      throw std::invalid_argument(
+          "Spine cold resident preload requires in-range interval-zero edges");
+    }
+    const std::size_t family = std::min<std::size_t>(
+        edge.dst / config.vertex_partition_size, config.partitions - 1);
+    resident.cold_partition_edges[family]++;
+  }
+  resident.max_cold_partition_edges = *std::max_element(
+      resident.cold_partition_edges.begin(),
+      resident.cold_partition_edges.end());
+
+  std::size_t level = config.levels;
+  for (std::size_t candidate = min_level; candidate < config.levels;
+       ++candidate) {
+    const std::uint64_t capacity =
+        spine_level_layout(config, false, candidate).edge_capacity;
+    if (std::all_of(resident.cold_partition_edges.begin(),
+                    resident.cold_partition_edges.end(),
+                    [capacity](std::uint64_t count) {
+                      return count <= capacity;
+                    })) {
+      level = candidate;
+      break;
+    }
+  }
+  if (level == config.levels) {
+    throw std::overflow_error(
+        "Spine cold resident snapshot exceeds the selected level range");
+  }
+
+  for (const SpineEdgeRecord &edge : snapshot.edges) {
+    const std::size_t family = std::min<std::size_t>(
+        edge.dst / config.vertex_partition_size, config.partitions - 1);
+    state.cold_levels[family][level].push_back(edge);
+  }
+  const auto edge_less = [](const SpineEdgeRecord &left,
+                            const SpineEdgeRecord &right) {
+    return std::tuple(left.src, left.dst, left.weight, left.diff) <
+           std::tuple(right.src, right.dst, right.weight, right.diff);
+  };
+  for (std::size_t family = 0; family < config.partitions; ++family) {
+    auto &edges = state.cold_levels[family][level];
+    std::sort(edges.begin(), edges.end(), edge_less);
+  }
+  resident.top_level_preload = level == config.levels - 1;
+  resident.multilevel_fallback = false;
+  if (selected_level != nullptr) *selected_level = level;
+  if (classification != nullptr) *classification = std::move(resident);
+  return state;
+}
+
 void preload_spine_update_history(const SpineEdgeSlice &history,
                                   std::size_t batch_edges,
                                   std::size_t next_target_level,

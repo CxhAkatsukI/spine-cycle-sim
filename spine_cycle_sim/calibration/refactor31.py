@@ -135,6 +135,7 @@ class Refactor31RealSliceFPGARun:
     source: int
     vertices: int
     graph_edges: int
+    resident_level: int
     rounds: int
     processed_edges: int
     reader_cycles: int
@@ -265,6 +266,7 @@ def parse_refactor31_real_slice_fpga_log(
         source=_integer(fields, "source", source_name),
         vertices=_integer(fields, "vertices", source_name),
         graph_edges=_integer(fields, "graph_edges", source_name),
+        resident_level=_integer(fields, "resident_level", source_name),
         rounds=_integer(fields, "rounds", source_name),
         processed_edges=_integer(fields, "processed_edges", source_name),
         reader_cycles=_integer(fields, "reader_cycles", source_name),

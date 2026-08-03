@@ -73,6 +73,7 @@ using spine::sim::GraphAlgorithmKind;
 using spine::sim::GraphAlgorithmPolicy;
 using spine::sim::load_spine_edge_slice;
 using spine::sim::preload_spine_resident_snapshot;
+using spine::sim::preload_spine_cold_resident_snapshot;
 using spine::sim::preload_spine_update_history;
 using spine::sim::MemoryOperation;
 using spine::sim::MockMemoryBackend;
@@ -6240,6 +6241,30 @@ void test_spine_resident_snapshot_spans_fixed_levels() {
           "resident bootstrap did not preserve L0 for the next micro-batch");
 }
 
+void test_spine_cold_resident_snapshot_selects_refactor31_level() {
+  SpineL0Config config;
+  config.max_sort_edges = 8;
+  SpineEdgeSlice snapshot{
+      .vertices = 64,
+      .edges = {},
+      .case_name = "refactor31_forced_resident_level",
+  };
+  for (std::uint32_t source = 0; source < 20; ++source) {
+    snapshot.edges.push_back(SpineEdgeRecord{
+        .src = source, .dst = source + 1, .weight = 1, .diff = 1});
+  }
+  std::size_t selected = 0;
+  SpineResidentClassification classification;
+  const SpineL0State state = preload_spine_cold_resident_snapshot(
+      snapshot, config, 5, &selected, &classification);
+  require(selected == 6 && state.cold_levels[0][5].empty() &&
+              state.cold_levels[0][6].size() == 20 &&
+              classification.cold_edges == 20 &&
+              classification.hot_edges == 0 &&
+              !classification.multilevel_fallback,
+          "cold resident preload did not select the lowest fitting level");
+}
+
 void test_spine_resident_snapshot_auto_promotes_hot_destinations() {
   SpineL0Config config;
   config.max_sort_edges = 8;
@@ -9884,6 +9909,8 @@ int main(int argc, char **argv) {
        test_spine_capacity_selector_uses_raw_family_input_bound},
       {"spine_resident_multilevel",
        test_spine_resident_snapshot_spans_fixed_levels},
+      {"spine_refactor31_resident_level",
+       test_spine_cold_resident_snapshot_selects_refactor31_level},
       {"spine_resident_hot_classification",
        test_spine_resident_snapshot_auto_promotes_hot_destinations},
       {"spine_resident_skip_fit_partition",

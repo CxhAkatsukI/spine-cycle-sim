@@ -108,6 +108,29 @@ static FallbackFixture load_real_slice(const std::string &path,
                          std::tie(right.src, right.dst, right.weight);
               });
 
+    std::array<uint64_t, HOST_PARTITIONED_CSR_DST_PARTITIONS> family_edges{};
+    for (const auto &edge : fixture.edges) {
+        size_t partition = std::min<size_t>(
+            edge.dst / (uint32_t)HOST_VS_PART_MAX,
+            HOST_PARTITIONED_CSR_DST_PARTITIONS - 1);
+        family_edges[partition]++;
+    }
+    bool level_selected = false;
+    for (int level = 8; level < HOST_PARTITIONED_RATIO2_LEVELS; level++) {
+        uint64_t capacity = partitioned_ratio2_level_partition_capacity(level);
+        if (std::all_of(family_edges.begin(), family_edges.end(),
+                        [capacity](uint64_t count) {
+                            return count <= capacity;
+                        })) {
+            fixture.level = level;
+            level_selected = true;
+            break;
+        }
+    }
+    if (!level_selected) {
+        throw std::runtime_error("slice exceeds refactor31 L8-L10 capacity");
+    }
+
     if (requested_source != UINT32_MAX) {
         if (requested_source >= (uint32_t)fixture.num_vertices) {
             throw std::runtime_error("requested source exceeds slice domain");
@@ -1109,6 +1132,7 @@ int main(int argc, char **argv) {
                       << " source=" << fixture.source
                       << " vertices=" << fixture.num_vertices
                       << " graph_edges=" << fixture.edges.size()
+                      << " resident_level=" << fixture.level
                       << " rounds=" << completed_rounds
                       << " processed_edges=" << total_processed_edges
                       << " reader_cycles=" << total_reader_cycles

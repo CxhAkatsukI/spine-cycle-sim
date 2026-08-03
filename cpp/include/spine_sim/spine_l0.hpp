@@ -408,6 +408,14 @@ struct SpineResidentClassification {
     const SpineEdgeSlice &snapshot, SpineL0Config &config,
     SpineResidentClassification *classification = nullptr);
 
+// Reproduce the frozen refactor31 host's cold-only resident placement. The
+// lowest level at or above min_level that fits every destination family is
+// selected; no automatic hot promotion or multilevel split is performed.
+[[nodiscard]] SpineL0State preload_spine_cold_resident_snapshot(
+    const SpineEdgeSlice &snapshot, const SpineL0Config &config,
+    std::size_t min_level, std::size_t *selected_level = nullptr,
+    SpineResidentClassification *classification = nullptr);
+
 // Reconstruct the LSM level occupancy produced by a chronological sequence of
 // equal-size insertion batches. The placement itself is untimed bootstrap;
 // the following batch still executes through the normal maintenance pipeline.

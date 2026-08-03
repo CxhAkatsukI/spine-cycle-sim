@@ -2172,6 +2172,8 @@ class OnlineMemoryProbe final : public SST::Component {
     source_vertex_ = params.find<std::uint32_t>("source_vertex", 0);
     sssp_algorithm_warm_start_ =
         params.find<bool>("sssp_algorithm_warm_start", false);
+    resident_static_sssp_ =
+        params.find<bool>("resident_static_sssp", false);
     core_clock_ = params.find<std::string>("core_clock", "141MHz");
     core_mhz_ = params.find<double>("core_mhz", 141.0);
     request_count_ = params.find<std::uint64_t>("requests", 256);
@@ -3564,6 +3566,31 @@ class OnlineMemoryProbe final : public SST::Component {
         resident_snapshot = true;
         workload.edges.clear();
         workload.case_name += "_resident_refactor31_probe";
+      }
+      if (resident_static_sssp_) {
+        if (mode_ != "spine_sssp" || dynamic_sssp_enabled_ ||
+            !preload_path_.empty() || sssp_algorithm_warm_start_) {
+          output_.fatal(
+              CALL_INFO, -1,
+              "resident static SSSP requires one static spine_sssp workload\n");
+        }
+        initial_state = preload_spine_cold_resident_snapshot(
+            workload, maintenance_config, 8, &resident_static_level_,
+            &spine_resident_classification_);
+        spine_resident_classification_valid_ = true;
+        spine_resident_snapshot_max_level_ = resident_static_level_;
+        spine_preload_edges_ = workload.edges.size();
+        std::vector<std::uint32_t> initial_values(
+            workload.vertices, SpineSplitSsspCompute::kInfinity);
+        initial_values.at(source_vertex_) = 0;
+        algorithm_initial_state = AlgorithmInitialState{
+            .primary = std::move(initial_values),
+            .auxiliary = {},
+            .active_vertices = {source_vertex_},
+        };
+        resident_snapshot = true;
+        workload.edges.clear();
+        workload.case_name += "_resident_static_refactor31";
       }
       if (sssp_algorithm_warm_start_) {
         if (!dynamic_sssp_enabled_ || dynamic_full_rebuild_) {
@@ -8514,6 +8541,13 @@ class OnlineMemoryProbe final : public SST::Component {
       write_spine_resident_classification(result);
       result << "  \"vertices\": " << actual_values.size() << ",\n"
           << "  \"source\": " << source_vertex_ << ",\n"
+          << "  \"resident_static_sssp\": "
+          << (resident_static_sssp_ ? "true" : "false") << ",\n"
+          << "  \"resident_static_level\": "
+          << (resident_static_sssp_
+                  ? static_cast<std::int64_t>(resident_static_level_)
+                  : -1)
+          << ",\n"
           << "  \"rounds\": " << sst_rounds_.size() << ",\n"
           << "  \"host_handoffs\": " << sst_host_handoffs_.size() << ",\n"
           << "  \"dynamic_update\": "
@@ -10205,6 +10239,8 @@ class OnlineMemoryProbe final : public SST::Component {
   std::string hot_vertices_text_;
   std::uint32_t source_vertex_{};
   bool sssp_algorithm_warm_start_{};
+  bool resident_static_sssp_{};
+  std::size_t resident_static_level_{};
   std::uint32_t grasu_source_external_{};
   std::string core_clock_;
   double core_mhz_{};

@@ -79,6 +79,9 @@ probe.addParams(
         "sssp_algorithm_warm_start": int(
             os.environ.get("SPINE_SST_SSSP_WARM_START", "0")
         ),
+        "resident_static_sssp": int(
+            os.environ.get("SPINE_SST_RESIDENT_STATIC_SSSP", "0")
+        ),
         "core_clock": f"{core_mhz}MHz",
         "core_mhz": core_mhz,
         "channels": channels,

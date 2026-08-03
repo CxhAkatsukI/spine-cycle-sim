@@ -32,7 +32,8 @@ class Refactor31CalibrationTests(unittest.TestCase):
     def test_real_slice_aggregate_is_correctness_admitted(self) -> None:
         record = parse_refactor31_real_slice_fpga_log(
             "REFACTOR31_REAL_SLICE_HW PASS slice=/tmp/real.slice source=9 "
-            "vertices=19399 graph_edges=50000 rounds=3 processed_edges=22 "
+            "vertices=19399 graph_edges=50000 resident_level=8 rounds=3 "
+            "processed_edges=22 "
             "reader_cycles=181597 compute_cycles=220162 "
             "paired_cycles=220162 dijkstra_mismatches=0 "
             "reference_validated=1 errors=0"
@@ -44,7 +45,7 @@ class Refactor31CalibrationTests(unittest.TestCase):
     def test_real_slice_aggregate_rejects_duplicate_summary(self) -> None:
         line = (
             "REFACTOR31_REAL_SLICE_HW PASS slice=x source=0 vertices=2 "
-            "graph_edges=1 rounds=1 processed_edges=1 reader_cycles=1 "
+            "graph_edges=1 resident_level=8 rounds=1 processed_edges=1 "
             "compute_cycles=1 paired_cycles=1 dijkstra_mismatches=0 "
             "reference_validated=1 errors=0"
         )
