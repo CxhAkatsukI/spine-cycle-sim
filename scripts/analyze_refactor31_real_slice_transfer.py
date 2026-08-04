@@ -81,6 +81,37 @@ def summarize_group(rows: list[dict[str, Any]], role: str) -> dict[str, Any]:
     return output
 
 
+def evaluate_holdout_admission(
+    holdout_summary: dict[str, Any], admission_cfg: dict[str, Any]
+) -> dict[str, Any]:
+    """Apply the frozen transfer thresholds only to unseen holdout cases."""
+    admission = {
+        "scope": "frozen_holdout",
+        "correctness_and_ledger": True,
+        "paired_median_error": (
+            holdout_summary["paired_median_abs_error_pct"]
+            <= float(admission_cfg["median_total_cycle_error_percent_max"])
+        ),
+        "paired_max_error": (
+            holdout_summary["paired_max_abs_error_pct"]
+            <= float(admission_cfg["max_total_cycle_error_percent_max"])
+        ),
+        "component_median_error": max(
+            holdout_summary["reader_median_abs_error_pct"],
+            holdout_summary["compute_median_abs_error_pct"],
+        )
+        <= float(admission_cfg["component_median_cycle_error_percent_max"]),
+        "workload_rank": (
+            holdout_summary["paired_spearman"]
+            >= float(admission_cfg["workload_rank_spearman_min"])
+        ),
+    }
+    admission["all"] = all(
+        value for key, value in admission.items() if key != "scope"
+    )
+    return admission
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--matrix", type=Path, default=DEFAULT_MATRIX)
@@ -223,31 +254,14 @@ def main() -> int:
     group_summary = [
         summarize_group(rows, role) for role in ("calibration", "holdout")
     ]
+    holdout_summary = next(
+        summary for summary in group_summary if summary["role"] == "holdout"
+    )
     all_summary = summarize_group(
         [dict(row, role="all") for row in rows], "all"
     )
     admission_cfg = matrix["admission"]
-    admission = {
-        "correctness_and_ledger": True,
-        "paired_median_error": (
-            all_summary["paired_median_abs_error_pct"]
-            <= float(admission_cfg["median_total_cycle_error_percent_max"])
-        ),
-        "paired_max_error": (
-            all_summary["paired_max_abs_error_pct"]
-            <= float(admission_cfg["max_total_cycle_error_percent_max"])
-        ),
-        "component_median_error": max(
-            all_summary["reader_median_abs_error_pct"],
-            all_summary["compute_median_abs_error_pct"],
-        )
-        <= float(admission_cfg["component_median_cycle_error_percent_max"]),
-        "workload_rank": (
-            all_summary["paired_spearman"]
-            >= float(admission_cfg["workload_rank_spearman_min"])
-        ),
-    }
-    admission["all"] = all(admission.values())
+    admission = evaluate_holdout_admission(holdout_summary, admission_cfg)
 
     output = args.out_dir.resolve()
     output.mkdir(parents=True, exist_ok=True)
@@ -261,8 +275,8 @@ def main() -> int:
         json.dumps(input_hashes, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
     report = {
-        "schema_version": 1,
-        "evidence_id": "spine_refactor31_real_slice_transfer_v2",
+        "schema_version": 2,
+        "evidence_id": "spine_refactor31_real_slice_transfer_v3",
         "matrix_id": matrix["matrix_id"],
         "matrix_sha256": sha256(matrix_path),
         "slice_manifest_sha256": sha256(slice_manifest_path),
@@ -284,6 +298,7 @@ def main() -> int:
         "models": {target: model.to_dict() for target, model in models.items()},
         "all_case_summary": all_summary,
         "group_summary": group_summary,
+        "admission_summary": holdout_summary,
         "admission_thresholds": admission_cfg,
         "admission": admission,
         "claim_boundary": {
