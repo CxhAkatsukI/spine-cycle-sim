@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import importlib.util
+import os
 import unittest
 from tempfile import TemporaryDirectory
 from pathlib import Path
 import json
+from unittest.mock import patch
 
 from spine_cycle_sim.calibration.refactor31 import (
     REFACTOR31_ACTIVE_GATE,
@@ -20,6 +23,13 @@ from spine_cycle_sim.calibration.refactor31 import (
 )
 
 
+MATRIX_SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "run_refactor31_real_slice_matrix.py"
+MATRIX_SPEC = importlib.util.spec_from_file_location("refactor31_matrix", MATRIX_SCRIPT)
+assert MATRIX_SPEC is not None and MATRIX_SPEC.loader is not None
+MATRIX_MODULE = importlib.util.module_from_spec(MATRIX_SPEC)
+MATRIX_SPEC.loader.exec_module(MATRIX_MODULE)
+
+
 def result_line(
     *, launch: int, reference_validated: int = 0, compute_ms: float = 2.0
 ) -> str:
@@ -34,6 +44,26 @@ def result_line(
 
 
 class Refactor31CalibrationTests(unittest.TestCase):
+    def test_matrix_sim_environment_enables_atomic_progress(self) -> None:
+        row = {"dataset": "AU", "target_edges": 4_000_000}
+        with TemporaryDirectory() as directory, patch.dict(
+            os.environ,
+            {"SPINE_CAMPAIGN_PROGRESS_INTERVAL_CYCLES": "12345"},
+        ):
+            environment = MATRIX_MODULE.sim_environment(Path(directory), row)
+        expected = (
+            Path(directory)
+            / "sim"
+            / "AU_e4000000"
+            / "progress.json"
+        ).resolve()
+        self.assertEqual(
+            environment["SPINE_CAMPAIGN_PROGRESS_PATH"], str(expected)
+        )
+        self.assertEqual(
+            environment["SPINE_CAMPAIGN_PROGRESS_INTERVAL_CYCLES"], "12345"
+        )
+
     def test_real_slice_repeat_summary_gates_and_aggregates(self) -> None:
         line = (
             "REFACTOR31_REAL_SLICE_HW PASS slice=/tmp/au_e100.slice source=9 "

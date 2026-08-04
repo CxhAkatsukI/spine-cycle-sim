@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -38,7 +39,11 @@ def case_id(row: dict[str, Any]) -> str:
     return f"{row['dataset']}_e{row['target_edges']}"
 
 
-def run_command(command: list[str], log: Path) -> None:
+def run_command(
+    command: list[str],
+    log: Path,
+    environment: dict[str, str] | None = None,
+) -> None:
     log.parent.mkdir(parents=True, exist_ok=True)
     with log.open("a", encoding="utf-8") as stream:
         stream.write("COMMAND " + " ".join(command) + "\n")
@@ -46,6 +51,7 @@ def run_command(command: list[str], log: Path) -> None:
         completed = subprocess.run(
             command,
             cwd=ROOT,
+            env=environment,
             stdout=stream,
             stderr=subprocess.STDOUT,
             check=False,
@@ -85,6 +91,16 @@ def sim_command(
         "--resident-static-sssp",
         "--no-build",
     ]
+
+
+def sim_environment(output: Path, row: dict[str, Any]) -> dict[str, str]:
+    name = case_id(row)
+    environment = os.environ.copy()
+    environment["SPINE_CAMPAIGN_PROGRESS_PATH"] = str(
+        (output / "sim" / name / "progress.json").resolve()
+    )
+    environment.setdefault("SPINE_CAMPAIGN_PROGRESS_INTERVAL_CYCLES", "50000000")
+    return environment
 
 
 def main() -> int:
@@ -169,6 +185,7 @@ def main() -> int:
                         max_rounds=args.max_rounds,
                     ),
                     output / "logs" / f"{case_id(row)}_sim.log",
+                    sim_environment(output, row),
                 ): row
                 for row in pending
             }
@@ -231,6 +248,7 @@ def main() -> int:
                         max_rounds=args.max_rounds,
                     ),
                     output / "logs" / f"{name}_sim.log",
+                    sim_environment(output, row),
                 )
                 progress["completed_sim"].append(name)
                 write_json(progress_path, progress)
