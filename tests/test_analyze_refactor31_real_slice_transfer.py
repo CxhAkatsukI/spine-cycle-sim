@@ -68,6 +68,11 @@ class AnalyzeRefactor31RealSliceTransferTests(unittest.TestCase):
         self.assertFalse(admission["workload_rank"])
         self.assertFalse(admission["all"])
 
+    def test_command_line_gate_fails_closed(self) -> None:
+        self.assertEqual(MODULE.admission_exit_code({"all": True}), 0)
+        self.assertEqual(MODULE.admission_exit_code({"all": False}), 1)
+        self.assertEqual(MODULE.admission_exit_code({}), 1)
+
 
 if __name__ == "__main__":
     unittest.main()

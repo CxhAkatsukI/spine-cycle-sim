@@ -112,6 +112,11 @@ def evaluate_holdout_admission(
     return admission
 
 
+def admission_exit_code(admission: dict[str, Any]) -> int:
+    """Make the command-line gate fail closed after writing its evidence."""
+    return 0 if admission.get("all") is True else 1
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--matrix", type=Path, default=DEFAULT_MATRIX)
@@ -324,7 +329,7 @@ def main() -> int:
         f"cases={len(rows)} calibration={len(calibration)} "
         f"holdout={len(rows) - len(calibration)} admitted={int(admission['all'])}"
     )
-    return 0
+    return admission_exit_code(admission)
 
 
 if __name__ == "__main__":
