@@ -1,0 +1,19 @@
+{
+  "schema_version": 2,
+  "model_id": "spine_refactor31_transfer_residual_model_v2",
+  "status": "frozen_before_holdout_timing_inspection",
+  "parent_protocol": "configs/experiments/spine_refactor31_transfer_residual_model_v1.json",
+  "parent_protocol_sha256": "35db6df40b64fd549332e82f7f1f88804a196a636288442f1743c856d9890843",
+  "parent_matrix": "configs/experiments/spine_refactor31_fpga_calibration_matrix_v2.json",
+  "parent_matrix_sha256": "4aec6f7af87cf4b81f9709e6dc5b4427de214363ea802f0ec791029240f4f076",
+  "decision_boundary": "Selected after inspecting six of twelve AU/GG/WK calibration rows and before inspecting any LJ/OR holdout timing. The v1 unweighted loss was rejected because one 5.1e8-cycle calibration row dominated the cycle-SSE and produced 38 percent error on a small calibration row.",
+  "target": "actual_cycles_minus_execution_driven_raw_cycles",
+  "features": [
+    "fixed_cycles",
+    "rounds",
+    "processed_edges"
+  ],
+  "constraint": "nonnegative_least_squares",
+  "loss": "sum_of_squared_relative_cycle_residuals",
+  "interpretation": "The processed-edge term represents host/OpenCL shell work repeated for each realized edge and does not replace execution-driven FIFO, AXI, HBM, or backpressure timing. Relative weighting prevents the largest graph from deciding every coefficient."
+}

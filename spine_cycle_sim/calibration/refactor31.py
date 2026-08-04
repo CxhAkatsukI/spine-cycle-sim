@@ -546,6 +546,7 @@ def fit_refactor31_residual_model(
     actual_field: str,
     raw_field: str,
     include_processed_edges: bool = False,
+    relative_error_weighted: bool = False,
 ) -> Refactor31ResidualModel:
     """Fit a non-negative shell residual over realized execution work."""
 
@@ -565,6 +566,17 @@ def fit_refactor31_residual_model(
     columns = [[1.0] * len(samples), rounds]
     if include_processed_edges:
         columns.append(processed_edges)
+    if relative_error_weighted:
+        actual = [float(row[actual_field]) for row in samples]
+        if any(value <= 0 for value in actual):
+            raise ValueError("relative residual fit requires positive actual cycles")
+        columns = [
+            [value / actual[row] for row, value in enumerate(column)]
+            for column in columns
+        ]
+        residuals = [
+            value / actual[row] for row, value in enumerate(residuals)
+        ]
     coefficients = _small_nonnegative_least_squares(columns, residuals)
     return Refactor31ResidualModel(
         fixed_cycles=coefficients[0],

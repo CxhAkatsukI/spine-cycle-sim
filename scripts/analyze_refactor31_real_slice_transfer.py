@@ -36,7 +36,7 @@ DEFAULT_SLICES = Path(
     "refactor31_real_slices_v2/manifest.json"
 )
 DEFAULT_MODEL_PROTOCOL = (
-    ROOT / "configs/experiments/spine_refactor31_transfer_residual_model_v1.json"
+    ROOT / "configs/experiments/spine_refactor31_transfer_residual_model_v2.json"
 )
 
 
@@ -201,6 +201,7 @@ def main() -> int:
             actual_field=f"actual_{target}_cycles",
             raw_field=f"raw_{target}_cycles",
             include_processed_edges=True,
+            relative_error_weighted=True,
         )
         for target in ("paired", "reader", "compute")
     }

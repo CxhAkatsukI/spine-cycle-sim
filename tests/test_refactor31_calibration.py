@@ -137,6 +137,37 @@ class Refactor31CalibrationTests(unittest.TestCase):
         self.assertEqual(model.per_round_cycles, 0.0)
         self.assertEqual(model.per_processed_edge_cycles, 0.0)
 
+    def test_relative_weighting_does_not_let_large_rows_dominate(self) -> None:
+        rows = [
+            {
+                "rounds": 1,
+                "processed_edges": 0,
+                "raw": 100,
+                "actual": 200,
+            },
+            {
+                "rounds": 1,
+                "processed_edges": 0,
+                "raw": 1_000_000,
+                "actual": 2_000_000,
+            },
+        ]
+        unweighted = fit_refactor31_residual_model(
+            rows,
+            actual_field="actual",
+            raw_field="raw",
+        )
+        weighted = fit_refactor31_residual_model(
+            rows,
+            actual_field="actual",
+            raw_field="raw",
+            relative_error_weighted=True,
+        )
+        unweighted_small_error = abs(unweighted.predict(100, 1) - 200) / 200
+        weighted_small_error = abs(weighted.predict(100, 1) - 200) / 200
+        self.assertLess(weighted_small_error, 0.1)
+        self.assertLess(weighted_small_error, unweighted_small_error)
+
     def test_spearman_handles_ties(self) -> None:
         self.assertAlmostEqual(refactor31_spearman([1, 2, 2, 4], [10, 20, 20, 40]), 1.0)
 
