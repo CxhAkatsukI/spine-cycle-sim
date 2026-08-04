@@ -28,7 +28,14 @@ No pre-existing dirty worktree was modified.
 
 /home/chuxiao/spine-dynamic-graph-paper-alignment
   branch: codex/paper-architecture-alignment
+
+/home/chuxiao/spine-dynamic-graph-paper-owner-fifos
+  branch: codex/paper-owner-fifos
 ```
+
+The owner-FIFO worktree is a fast-forward descendant of the HLS alignment
+branch. It is kept separate while long-running implementation jobs are active
+and is merged back only after the final evidence gate passes.
 
 ## Refactor31 Reconstruction
 
@@ -78,9 +85,11 @@ windowed exact task-feed reference tests (52 ordered-equivalence cases)
 partitioned CSR model test
 ```
 
-The split-equivalence binary could not be rebuilt from the current account
-because Feiyang's Vitis `settings64.sh` and `ap_int.h` include tree are not
-readable. This is an environment limitation, not a source mismatch.
+Vitis 2024.1 is available through
+`/data/yxx/tools/xilinx/Vitis/2024.1/settings64.sh`. The alignment worktree now
+builds the HLS-dependent semantic tests, all four production algorithm XOs,
+complete `sw_emu` and `hw_emu` xclbins, and routed U55C systems from that
+toolchain. The earlier environment limitation is superseded.
 
 Reproduce the simulator-side checks with:
 
@@ -124,33 +133,38 @@ For non-tiny workloads, acceptance requires:
 
 1. [done] Export the frozen contract into the HLS branch and add compile-time
    guards.
-2. [partial] Build the refactor31-native raw-log parser and freeze the transfer
-   matrix. Existing timing evidence is parsed; the generic real-slice FPGA host
-   remains pending.
-3. [host-tested in simulator and HLS] Add the per-partition owner FIFO and
-   `queued/in_flight/dirty` state machine. The HLS owner kernel is not yet
-   synthesized or routed.
-4. [host-tested in simulator and HLS] Add lossless reactivation and work-credit
-   quiescence for all four algorithm policies. Host relaunch still separates
-   device rounds and remains outside the device-cycle interval.
-5. [host-tested in simulator and HLS] Add dormant-ID activation and
-   validity-bitmap vertex deactivation. The HBM-backed simulator component is
-   wired into persistent SSSP transactions; the HLS lifecycle kernel and
-   fixed-domain guards pass host tests but are not yet synthesized or routed.
-6. [native micro-calibration complete] Freeze the refactor31 SSSP micro-profile
+2. [done] Build the refactor31-native raw-log parser, generic real-slice FPGA
+   host, workload generator, five-repeat runner, and frozen transfer matrix.
+   All 70 FPGA rows pass their independent correctness and ledger gates.
+3. [implemented and hardware-validated] Add the per-partition owner FIFO and
+   `queued/in_flight/dirty` state machine. The 256-entry owner and reactivation
+   FIFOs are synthesized in every algorithm system; SSSP and CC have routed
+   U55C execution evidence, including full-pressure tests.
+4. [implemented and hardware-validated] Add lossless reactivation and
+   work-credit quiescence for all four algorithm policies. Host relaunch still
+   separates device rounds and remains outside the device-cycle interval.
+5. [implemented and hardware-validated] Add dormant-ID activation and
+   validity-bitmap vertex deactivation. The HLS lifecycle CU is linked and
+   executed in all four `sw_emu` and `hw_emu` systems and in the routed SSSP
+   and CC systems.
+6. [native micro-calibration complete; real-slice gate running] Freeze the
+   refactor31 SSSP micro-profile
    and run the one-tile calibration/tile-shape holdout. Exact-path transfer is
    accepted; multi-tile fallback remains an 18% launch-to-finish residual.
-   Medium real-slice calibration and immutable real-slice holdout are pending.
+   The same-slice real workload matrix has completed 11 of 14 simulator rows;
+   its immutable holdout is evaluated only after all rows finish.
    Separately, the routed artifact has passed a hash-bound 150,994,944-edge
    RMat-24 scale matrix: 1,656 hardware rows, 1,560 measured rows, 48 admitted
    update-size/cohort/state groups, and 1,656 exact baseline/candidate semantic
    hash matches. This closes scale feasibility, not real-slice cycle transfer
    or independent Dijkstra correctness. Reproduce it with
    `scripts/analyze_refactor31_rmat_scale.py`.
-7. [reader compile evidence complete] Specialize the shared source protocol for
-   SSSP, CC, Residual PageRank, and Full PageRank. All four reader variants
-   compile to U55C 150-MHz `sw_emu` XOs. Complete compute-kernel synthesis,
-   link, route, timing, and board validation remain pending.
+7. [four-algorithm RTL evidence complete; routing in progress] Specialize the
+   shared source protocol for SSSP, CC, Residual PageRank, and Full PageRank.
+   All four complete three-CU systems pass production-geometry `sw_emu` and
+   `hw_emu`. SSSP and CC close routed setup/hold at 150 MHz and pass direct
+   U55C tiny plus 50K-edge real-slice execution. Residual and Full PageRank
+   routed implementation and board checks are the remaining physical gates.
 
 The integrated SSSP owner evidence and exact reproduction command are in
 `docs/spine_device_owner_scheduler_20260803.md`.
