@@ -100,6 +100,43 @@ class Refactor31CalibrationTests(unittest.TestCase):
         self.assertAlmostEqual(model.per_round_cycles, 100.0)
         self.assertEqual(model.predict(1050, 5), 2050)
 
+    def test_realized_work_residual_recovers_processed_edge_cost(self) -> None:
+        rows = [
+            {
+                "rounds": rounds,
+                "processed_edges": edges,
+                "raw": 10_000 + edges * 7,
+                "actual": 10_400 + rounds * 80 + edges * 12,
+            }
+            for rounds, edges in ((1, 10), (2, 100), (5, 1_000), (9, 8_000))
+        ]
+        model = fit_refactor31_residual_model(
+            rows,
+            actual_field="actual",
+            raw_field="raw",
+            include_processed_edges=True,
+        )
+        self.assertAlmostEqual(model.fixed_cycles, 400.0, places=5)
+        self.assertAlmostEqual(model.per_round_cycles, 80.0, places=5)
+        self.assertAlmostEqual(model.per_processed_edge_cycles, 5.0, places=5)
+        self.assertAlmostEqual(model.predict(17_000, 3, 1_000), 22_640.0, places=5)
+
+    def test_realized_work_residual_remains_nonnegative(self) -> None:
+        rows = [
+            {"rounds": 1, "processed_edges": 1, "raw": 100, "actual": 90},
+            {"rounds": 2, "processed_edges": 10, "raw": 200, "actual": 180},
+            {"rounds": 3, "processed_edges": 100, "raw": 300, "actual": 250},
+        ]
+        model = fit_refactor31_residual_model(
+            rows,
+            actual_field="actual",
+            raw_field="raw",
+            include_processed_edges=True,
+        )
+        self.assertEqual(model.fixed_cycles, 0.0)
+        self.assertEqual(model.per_round_cycles, 0.0)
+        self.assertEqual(model.per_processed_edge_cycles, 0.0)
+
     def test_spearman_handles_ties(self) -> None:
         self.assertAlmostEqual(refactor31_spearman([1, 2, 2, 4], [10, 20, 20, 40]), 1.0)
 

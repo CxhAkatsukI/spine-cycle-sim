@@ -397,16 +397,27 @@ class Refactor31ResidualModel:
 
     fixed_cycles: float
     per_round_cycles: float
+    per_processed_edge_cycles: float = 0.0
 
-    def predict(self, raw_cycles: float, rounds: int) -> float:
-        if raw_cycles < 0 or rounds <= 0:
-            raise ValueError("raw_cycles must be non-negative and rounds positive")
-        return raw_cycles + self.fixed_cycles + self.per_round_cycles * rounds
+    def predict(
+        self, raw_cycles: float, rounds: int, processed_edges: int = 0
+    ) -> float:
+        if raw_cycles < 0 or rounds <= 0 or processed_edges < 0:
+            raise ValueError(
+                "raw_cycles and processed_edges must be non-negative and rounds positive"
+            )
+        return (
+            raw_cycles
+            + self.fixed_cycles
+            + self.per_round_cycles * rounds
+            + self.per_processed_edge_cycles * processed_edges
+        )
 
     def to_dict(self) -> dict[str, float]:
         return {
             "fixed_cycles": self.fixed_cycles,
             "per_round_cycles": self.per_round_cycles,
+            "per_processed_edge_cycles": self.per_processed_edge_cycles,
         }
 
 
@@ -530,44 +541,113 @@ def load_refactor31_resident_sim_summary(path_value: str | Path) -> dict[str, An
 
 
 def fit_refactor31_residual_model(
-    rows: Iterable[dict[str, Any]], *, actual_field: str, raw_field: str
+    rows: Iterable[dict[str, Any]],
+    *,
+    actual_field: str,
+    raw_field: str,
+    include_processed_edges: bool = False,
 ) -> Refactor31ResidualModel:
-    """Fit ``actual - raw = fixed + rounds * per_round`` with NNLS."""
+    """Fit a non-negative shell residual over realized execution work."""
 
     samples = list(rows)
     if len(samples) < 2:
         raise ValueError("residual model requires at least two calibration rows")
-    x = [float(row["rounds"]) for row in samples]
-    y = [float(row[actual_field]) - float(row[raw_field]) for row in samples]
-    if any(rounds <= 0 for rounds in x):
-        raise ValueError("residual model rounds must be positive")
-
-    mean_x = statistics.fmean(x)
-    mean_y = statistics.fmean(y)
-    centered = sum((value - mean_x) ** 2 for value in x)
-    if centered > 0:
-        per_round = sum(
-            (rounds - mean_x) * (residual - mean_y)
-            for rounds, residual in zip(x, y)
-        ) / centered
-        fixed = mean_y - per_round * mean_x
-    else:
-        fixed, per_round = mean_y, 0.0
-
-    candidates = [
-        (max(0.0, fixed), max(0.0, per_round)),
-        (max(0.0, mean_y), 0.0),
-        (0.0, max(0.0, sum(a * b for a, b in zip(x, y)) / sum(a * a for a in x))),
-        (0.0, 0.0),
+    rounds = [float(row["rounds"]) for row in samples]
+    processed_edges = [float(row.get("processed_edges", 0)) for row in samples]
+    residuals = [
+        float(row[actual_field]) - float(row[raw_field]) for row in samples
     ]
-    best_fixed, best_per_round = min(
+    if any(value <= 0 for value in rounds):
+        raise ValueError("residual model rounds must be positive")
+    if any(value < 0 for value in processed_edges):
+        raise ValueError("residual model processed_edges must be non-negative")
+
+    columns = [[1.0] * len(samples), rounds]
+    if include_processed_edges:
+        columns.append(processed_edges)
+    coefficients = _small_nonnegative_least_squares(columns, residuals)
+    return Refactor31ResidualModel(
+        fixed_cycles=coefficients[0],
+        per_round_cycles=coefficients[1],
+        per_processed_edge_cycles=(coefficients[2] if include_processed_edges else 0.0),
+    )
+
+
+def _small_nonnegative_least_squares(
+    columns: list[list[float]], values: list[float]
+) -> list[float]:
+    """Solve NNLS for the two- or three-column calibration models."""
+
+    width = len(columns)
+    if width not in (2, 3) or any(len(column) != len(values) for column in columns):
+        raise ValueError("residual NNLS expects two or three aligned columns")
+
+    def solve(matrix: list[list[float]], vector: list[float]) -> list[float] | None:
+        size = len(vector)
+        augmented = [matrix[row][:] + [vector[row]] for row in range(size)]
+        for pivot in range(size):
+            selected = max(range(pivot, size), key=lambda row: abs(augmented[row][pivot]))
+            if abs(augmented[selected][pivot]) < 1e-12:
+                return None
+            augmented[pivot], augmented[selected] = augmented[selected], augmented[pivot]
+            scale = augmented[pivot][pivot]
+            augmented[pivot] = [value / scale for value in augmented[pivot]]
+            for row in range(size):
+                if row == pivot:
+                    continue
+                factor = augmented[row][pivot]
+                augmented[row] = [
+                    left - factor * right
+                    for left, right in zip(augmented[row], augmented[pivot])
+                ]
+        return [augmented[row][-1] for row in range(size)]
+
+    norms = [math.sqrt(sum(value * value for value in column)) for column in columns]
+    normalized = [
+        [value / norm for value in column] if norm > 0 else [0.0] * len(values)
+        for column, norm in zip(columns, norms)
+    ]
+    candidates = [[0.0] * width]
+    for mask in range(1, 1 << width):
+        active = [index for index in range(width) if mask & (1 << index)]
+        if any(norms[index] == 0 for index in active):
+            continue
+        gram = [
+            [
+                sum(
+                    normalized[left][row] * normalized[right][row]
+                    for row in range(len(values))
+                )
+                for right in active
+            ]
+            for left in active
+        ]
+        rhs = [
+            sum(normalized[index][row] * values[row] for row in range(len(values)))
+            for index in active
+        ]
+        scaled = solve(gram, rhs)
+        if scaled is None or any(value < -1e-9 for value in scaled):
+            continue
+        candidate = [0.0] * width
+        for index, value in zip(active, scaled):
+            candidate[index] = max(0.0, value / norms[index])
+        candidates.append(candidate)
+
+    return min(
         candidates,
-        key=lambda pair: sum(
-            (residual - pair[0] - pair[1] * rounds) ** 2
-            for rounds, residual in zip(x, y)
+        key=lambda candidate: sum(
+            (
+                target
+                - sum(
+                    coefficient * columns[index][row]
+                    for index, coefficient in enumerate(candidate)
+                )
+            )
+            ** 2
+            for row, target in enumerate(values)
         ),
     )
-    return Refactor31ResidualModel(best_fixed, best_per_round)
 
 
 def refactor31_absolute_error_percent(actual: float, predicted: float) -> float:

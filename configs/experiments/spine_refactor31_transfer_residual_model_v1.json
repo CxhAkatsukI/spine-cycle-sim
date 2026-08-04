@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "model_id": "spine_refactor31_transfer_residual_model_v1",
+  "status": "frozen_before_holdout_timing_inspection",
+  "parent_matrix": "configs/experiments/spine_refactor31_fpga_calibration_matrix_v2.json",
+  "parent_matrix_sha256": "4aec6f7af87cf4b81f9709e6dc5b4427de214363ea802f0ec791029240f4f076",
+  "decision_boundary": "Selected after inspecting five of twelve AU/GG/WK calibration rows and before inspecting any LJ/OR holdout timing.",
+  "target": "actual_cycles_minus_execution_driven_raw_cycles",
+  "features": [
+    "fixed_cycles",
+    "rounds",
+    "processed_edges"
+  ],
+  "constraint": "nonnegative_least_squares",
+  "interpretation": "The processed-edge term represents host/OpenCL shell work repeated for each realized edge and does not replace execution-driven FIFO, AXI, HBM, or backpressure timing."
+}

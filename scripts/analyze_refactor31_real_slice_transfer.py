@@ -35,6 +35,9 @@ DEFAULT_SLICES = Path(
     "/data/feiyang/codex_builds/spine_paper_alignment/"
     "refactor31_real_slices_v2/manifest.json"
 )
+DEFAULT_MODEL_PROTOCOL = (
+    ROOT / "configs/experiments/spine_refactor31_transfer_residual_model_v1.json"
+)
 
 
 def sha256(path: Path) -> str:
@@ -82,6 +85,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--matrix", type=Path, default=DEFAULT_MATRIX)
     parser.add_argument("--slice-manifest", type=Path, default=DEFAULT_SLICES)
+    parser.add_argument(
+        "--model-protocol", type=Path, default=DEFAULT_MODEL_PROTOCOL
+    )
     parser.add_argument("--fpga-root", type=Path, required=True)
     parser.add_argument("--sim-root", type=Path, required=True)
     parser.add_argument("--out-dir", type=Path, required=True)
@@ -89,8 +95,12 @@ def main() -> int:
 
     matrix_path = args.matrix.resolve()
     slice_manifest_path = args.slice_manifest.resolve()
+    model_protocol_path = args.model_protocol.resolve()
     matrix = json.loads(matrix_path.read_text(encoding="utf-8"))
+    model_protocol = json.loads(model_protocol_path.read_text(encoding="utf-8"))
     slices = json.loads(slice_manifest_path.read_text(encoding="utf-8"))
+    if model_protocol["parent_matrix_sha256"] != sha256(matrix_path):
+        raise ValueError("residual-model protocol parent matrix hash mismatch")
     calibration_ids = {
         dataset["id"] for dataset in matrix["calibration"]["datasets"]
     }
@@ -113,6 +123,7 @@ def main() -> int:
             raise ValueError(f"frozen artifact hash mismatch: {path}")
     input_paths = [
         matrix_path,
+        model_protocol_path,
         slice_manifest_path,
         profile_path,
         plugin_path,
@@ -189,6 +200,7 @@ def main() -> int:
             calibration,
             actual_field=f"actual_{target}_cycles",
             raw_field=f"raw_{target}_cycles",
+            include_processed_edges=True,
         )
         for target in ("paired", "reader", "compute")
     }
@@ -196,7 +208,9 @@ def main() -> int:
         for target, model in models.items():
             actual = float(row[f"actual_{target}_cycles"])
             raw = float(row[f"raw_{target}_cycles"])
-            calibrated = model.predict(raw, int(row["rounds"]))
+            calibrated = model.predict(
+                raw, int(row["rounds"]), int(row["processed_edges"])
+            )
             row[f"raw_{target}_error_pct"] = refactor31_absolute_error_percent(
                 actual, raw
             )
@@ -258,6 +272,12 @@ def main() -> int:
             "fpga_xclbin_sha256": fpga_binding["xclbin_sha256"],
         },
         "execution_boundary": matrix["execution_boundary"],
+        "residual_model_protocol": {
+            "id": model_protocol["model_id"],
+            "sha256": sha256(model_protocol_path),
+            "features": model_protocol["features"],
+            "constraint": model_protocol["constraint"],
+        },
         "calibration_case_count": len(calibration),
         "holdout_case_count": len(rows) - len(calibration),
         "models": {target: model.to_dict() for target, model in models.items()},
