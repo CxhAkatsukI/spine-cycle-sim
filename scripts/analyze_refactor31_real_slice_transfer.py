@@ -124,6 +124,7 @@ def main() -> int:
     parser.add_argument("--out-dir", type=Path, required=True)
     args = parser.parse_args()
 
+    analyzer_path = Path(__file__).resolve()
     matrix_path = args.matrix.resolve()
     slice_manifest_path = args.slice_manifest.resolve()
     model_protocol_path = args.model_protocol.resolve()
@@ -153,6 +154,7 @@ def main() -> int:
         if not path.is_file() or sha256(path) != expected_sha256:
             raise ValueError(f"frozen artifact hash mismatch: {path}")
     input_paths = [
+        analyzer_path,
         matrix_path,
         model_protocol_path,
         slice_manifest_path,
@@ -281,6 +283,7 @@ def main() -> int:
         "matrix_sha256": sha256(matrix_path),
         "slice_manifest_sha256": sha256(slice_manifest_path),
         "artifact_binding": {
+            "analyzer_sha256": sha256(analyzer_path),
             "architecture_profile_sha256": matrix["architecture_profile_sha256"],
             "simulator_plugin_sha256": matrix["simulator_plugin"]["sha256"],
             "fpga_host_sha256": fpga_binding["host_sha256"],

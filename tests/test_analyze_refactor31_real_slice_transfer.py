@@ -17,6 +17,11 @@ SPEC.loader.exec_module(MODULE)
 
 
 class AnalyzeRefactor31RealSliceTransferTests(unittest.TestCase):
+    def test_analyzer_is_part_of_its_own_hash_bound_input_set(self) -> None:
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertIn("analyzer_path = Path(__file__).resolve()", source)
+        self.assertIn('"analyzer_sha256": sha256(analyzer_path)', source)
+
     def setUp(self) -> None:
         self.thresholds = {
             "median_total_cycle_error_percent_max": 15,
