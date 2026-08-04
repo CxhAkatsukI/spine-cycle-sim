@@ -37,15 +37,19 @@ Progress since the original audit is explicit:
 - the exact refactor31 source was reconstructed on
   `codex/paper-architecture-alignment` from base revision `cc7e3f95` and the
   frozen source diff;
-- the alignment branches now host-test the per-key `queued/in_flight/dirty`
-  owner scheduler, lossless reactivation protocol, and work-credit quiescence
-  in both simulator and HLS source; synthesis and route remain pending;
+- the alignment branches implement and host-test the per-key
+  `queued/in_flight/dirty` owner scheduler, lossless reactivation protocol, and
+  work-credit quiescence in both simulator and HLS source; all four HLS policy
+  systems have synthesis and RTL-emulation evidence, while final routed
+  evidence remains algorithm-specific;
 - dormant-ID vertex activation and validity-bitmap deactivation are now
-  host-tested in both alignment branches but are not part of the routed
-  refactor31 artifact;
+  host-tested in both alignment branches and execute in all four aligned
+  `hw_emu` systems, but are not part of the routed refactor31 calibration
+  artifact;
 - Full PageRank now generates its source domain on device, while all four
   policies share the bounded HBM16 family-directory and HBM18 source-spool
-  reader protocol; all four reader variants compile as U55C `sw_emu` XOs; and
+  reader protocol; all four production-geometry systems pass `sw_emu` and
+  `hw_emu` correctness gates; and
 - payload-distinct parallel weighted edges remain a separately versioned
   extension because refactor31 groups records by `(src,dst)`.
 
@@ -184,7 +188,7 @@ The classification column uses:
 |---|---|---|---|---|---|
 | Destination organization | `P=16`, `h(v)=v mod P`, one destination-owned family per record | 16 range-based cold partitions plus 16 hash-based hot shards | Same 32-family hot/cold organization, including skip-fit promotion correction | C | Rewrite the evaluated-architecture description or label modulo-16 ownership as target-only |
 | Record identity | Generic `(src,dst,payload,delta)` full-record multigraph | Primary key `(src,dst)` with weight and signed diff fields | Coalesces endpoint groups, sums diff, and retains minimum weight | D | Do not claim generic parallel full-record support from current E2E data |
-| Vertex lifecycle | Fixed `MAX_N`, dormant-ID activation, validity-gated deletion after incident-edge retirement | Fixed vertex arrays; no matched routed lifecycle controller | Opt-in SSSP path times validity-bitmap RMW on shared PC22, rejects invalid endpoints, and correctness-tests activate/use/retire/deactivate | B/D | Extend the same gate to all policies and HLS before claiming complete generated support |
+| Vertex lifecycle | Fixed `MAX_N`, dormant-ID activation, validity-gated deletion after incident-edge retirement | Fixed vertex arrays; no matched routed lifecycle controller | The aligned simulator and four HLS policy systems use the shared PC22 validity/owner layout; every `hw_emu` run executes a drained-boundary deactivate/reactivate check | B/C | Keep historical rows separate; use aligned lifecycle claims only with the new artifact manifest |
 | Batch sorting/reduction | Four-wide full-record bitonic/FLiMS sorter up to `Q=2^17` | Endpoint-keyed sorter and differential coalescing | Execution-driven Candidate10 update path; tested batches use supported HLS record format | C | Separate generic target sorter from evaluated endpoint sorter |
 | Ratio-2 levels/carry | 11 levels, ratio 2, realized carry work | 11 levels, ratio 2, fixed family capacities and carry | Same level/carry organization and capacity rules | A | Safe as shared architectural lineage; state exact evaluated capacities |
 | Hot/cold classification | Not present in the current target text | Hot bitmap plus cold partition and hot-shard capacities | Same, with formal-v7 skip-fit correction | C | Add hot/cold layout to evaluated architecture or remove claims that results use only modulo families |
@@ -195,13 +199,13 @@ The classification column uses:
 | Cross-level latest view | Family-local signed `k`-way resolver emits each full record exactly once | Endpoint-keyed carry coalescing; complete generic resolver is not evidenced | Supported endpoint semantics are correctness-gated; complete generic full-record resolver is absent | D | Preserve an explicit limitation; do not attribute generic latest-view correctness to the current E2E figure |
 | Exact tile path | Bounded row-service datapath implied by target | Exact range-task path with active gate | Gate is 32,768 in opt-v2; finite FIFO/AXI/HBM path modeled | A/B | Describe as an evaluated microarchitecture detail and disclose gate capacity |
 | Fallback tile path | Target fallback semantics at policy level | Full-tile load/replay/store and host handoff at finite limits | Fallback metadata reuse and source-page cache modeled | A/B/C | Separate device fallback work from untimed host fallback preparation |
-| Active discovery | Device-resident policy/scheduler derives work | Persistent dirty frontier exists, but later rounds may use `HOST_ACTIVE` | Existing evaluated rows retain their documented boundaries; the alignment branch now has an opt-in SSSP owner path in which compute generates and handshakes every later active ID | C/B | Do not retroactively relabel old rows; use the new profile only after separate calibration |
-| Per-key scheduler | Owner FIFO, `queued/in_flight/dirty`, no lost reactivation | Dirty bitmap/list and bounded reader/compute paths, not the complete target owner state machine | Opt-in SSSP path now models finite per-partition ingress/reactivation FIFOs, HBM-backed ready/deferred lists, lossless dirty requeue, and credits; HLS is pending | B/D | Calibrate the new simulator profile and implement the same protocol in HLS before an implementation claim |
-| Atomic state transition | Destination-owned atomic update for generated map/reduce | Weighted-SSSP compute datapath and finite stream path | Algorithm policy models execute SSSP, CC, Full PR, and Residual PR | C | Claim simulator correctness for algorithms; claim HLS feasibility only for the available shells |
-| PageRank degree/correction | Old/new row replay, private degree image, bounded seed buffer | Not a complete routed target PageRank transaction | Simulator host preparation builds active bins/out-degrees; algorithm execution is modeled | C/D | Do not say target PageRank seed/publication pipeline is implemented by the current Spine xclbin |
+| Active discovery | Device-resident policy/scheduler derives work | Persistent dirty frontier exists, but later rounds may use `HOST_ACTIVE` | Existing evaluated rows retain their documented boundaries; the aligned simulator and HLS compute paths generate later SSSP/CC/ResPR membership on device, while FullPR generates the full source domain | C/B | Do not retroactively relabel old rows; use the new artifact only after separate calibration |
+| Per-key scheduler | Owner FIFO, `queued/in_flight/dirty`, no lost reactivation | Dirty bitmap/list and bounded reader/compute paths, not the complete target owner state machine | The aligned simulator and HLS use finite per-partition owner/reactivation FIFOs, lossless dirty requeue, source completions, and credits; four policy-specialized systems pass RTL emulation | B/C | Treat this as aligned functional evidence; performance transfer still requires a separately admitted calibrated profile |
+| Atomic state transition | Destination-owned atomic update for generated map/reduce | Weighted-SSSP compute datapath and finite stream path | Simulator and HLS policy models execute SSSP, CC, Full PR, and Residual PR through the shared bounded shell | B/C | Separate four-policy functional feasibility from algorithm-specific routed timing and performance claims |
+| PageRank degree/correction | Old/new row replay, private degree image, bounded seed buffer | Not a complete routed target PageRank transaction | The aligned HLS compute paths consume device source state and execute Full/Residual PageRank update and publication; complete transactional old/new topology preparation remains outside this evidence | C | Claim the implemented compute/publication protocol, not the complete target transaction controller |
 | Atomic topology bank switch | Shadow descriptor banks, precommit fence, one selector write | No complete matching transaction controller | Not represented as one matched complete HLS module graph | D | Keep as proposed target mechanism or implement and cost it; exclude it from supported measured claims |
-| Global quiescence | Device work credits, FIFO/dirty/in-flight drain | Kernel/round completion plus host control | Opt-in SSSP runs require the owner credit ledger plus all modeled AXI/FIFO paths to close; host re-bin/relaunch remains outside device cycles as the paper now states | B/D | Keep host-inclusive and device-cycle boundaries separate; HLS evidence remains required |
-| Algorithms | Generated SSSP, CC, residual PageRank policies | Routed Spine evidence is primarily weighted SSSP | Four algorithm policies are cycle-simulated and dual-oracle checked | C | Separate algorithm-level simulator support from algorithm-specific HLS generation support |
+| Global quiescence | Device work credits, FIFO/dirty/in-flight drain | Kernel/round completion plus host control | Aligned simulator and HLS runs require source completions, owner credits, and bounded-path drain; host re-bin/relaunch remains outside device cycles as the paper states | B/C | Keep host-inclusive and device-cycle boundaries separate and bind claims to the aligned manifest |
+| Algorithms | Generated SSSP, CC, residual PageRank policies | Routed Spine evidence is primarily weighted SSSP | Four policies are cycle-simulated, dual-oracle checked, synthesized, and executed in RTL emulation; FullPR is included as an additional policy | B/C | Separate shared-shell feasibility from algorithm-specific routed timing and calibrated performance |
 | Timing identity | Complete generated accelerator | Routed native SSSP Candidate10 | Routed opt-v2 SSSP core exists, but formal-v7 also includes later behavior and simulator orchestration | C | Call route evidence an implementation/feasibility anchor, not cycle calibration of the complete plotted system |
 
 ## 5. Detailed differences and their consequences
@@ -355,15 +359,17 @@ However, the formal simulator system also:
 
 The target paper instead specifies owner FIFOs, `queued/in_flight/dirty` state,
 fair arbitration, reactivation, work credits, and device global drain. The
-paper-alignment branch now implements these mechanisms as an opt-in SSSP
-simulator profile. It does not alter the historical result rows and has not yet
-been mirrored into HLS or the PageRank/CC systems.
+paper-alignment branches now implement the bounded owner, reactivation, source
+completion, and credit protocol in both simulator and HLS. SSSP, CC, Residual
+PageRank, and Full PageRank systems pass policy-specific synthesis and RTL
+emulation. This does not alter or retroactively relabel the historical result
+rows.
 
 **Why it matters:** the historical simulator rows time modeled accelerator
 work, not a complete CPU-plus-device deployment. The new profile closes the
-SSSP per-key credit ledger while retaining the paper's explicit host
-re-bin/relaunch boundary; it still needs calibration before replacing those
-rows.
+per-key credit ledger while retaining the paper's explicit host re-bin/relaunch
+boundary; the aligned HLS evidence closes function, not cycle transfer, so the
+new profile still needs calibration before replacing those rows.
 
 **Recommended edit:** replace unqualified claims such as `the target keeps all
 feedback rounds on device` with one of the following:
