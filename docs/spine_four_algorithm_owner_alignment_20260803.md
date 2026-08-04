@@ -83,9 +83,28 @@ fixture additionally exercises a timed safe vertex deactivation.
 ## Evidence boundary
 
 This checkpoint establishes execution-driven owner/lifecycle behavior for all
-four simulator algorithms. It is not yet routed-hardware evidence for CC or
-PageRank. The current HLS alignment branch contains the owner/lifecycle ABI and
-SSSP compute shell, but the three additional algorithm datapaths still need to
-be emitted as synthesizable HLS kernels and compiled. No performance result
-from this checkpoint should be described as calibrated CC/PageRank FPGA
-performance until those artifacts exist.
+four simulator algorithms. The scheduler state transitions, finite owner and
+reactivation FIFOs, apply-response backpressure, and credit-based quiescence
+are explicit cycle-level components. They are not, however, an admitted
+absolute-cycle model of the aligned HLS owner implementation.
+
+The distinction is the owner-state storage path. The HLS implementation stores
+the `queued`, `in_flight`, `dirty`, and validity bitmaps in HBM pseudo-channel
+22. It performs first-use bitmap initialization and bitmap-word
+read-modify-write operations through the corresponding AXI master. The current
+C++ owner scheduler keeps those logical bits in simulator-owned state and does
+not emit the matching owner-state AXI transactions. Its FIFO stalls and
+evaluate/commit ordering are real, but its control-cycle total omits that HBM
+traffic and contention.
+
+Consequently:
+
+- the aligned simulator is valid for owner-protocol correctness, boundedness,
+  backpressure, and work-conservation evidence;
+- routed and direct-FPGA HLS runs establish implementation feasibility and
+  hardware correctness independently;
+- CC/PageRank owner-path absolute cycles must not be called FPGA-calibrated
+  until a memory-backed owner model is admitted against matching hardware; and
+- the native refactor31 transfer calibration is unaffected because its frozen
+  profile explicitly disables the complete owner scheduler and remains a
+  separate calibration baseline.
