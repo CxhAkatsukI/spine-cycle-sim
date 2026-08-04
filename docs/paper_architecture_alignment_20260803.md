@@ -138,15 +138,14 @@ For non-tiny workloads, acceptance requires:
    All 70 FPGA rows pass their independent correctness and ledger gates.
 3. [implemented and hardware-validated] Add the per-partition owner FIFO and
    `queued/in_flight/dirty` state machine. The 256-entry owner and reactivation
-   FIFOs are synthesized in every algorithm system; SSSP and CC have routed
-   U55C execution evidence, including full-pressure tests.
+   FIFOs are synthesized, routed, and directly exercised on U55C in every
+   algorithm system, including full-pressure tests.
 4. [implemented and hardware-validated] Add lossless reactivation and
    work-credit quiescence for all four algorithm policies. Host relaunch still
    separates device rounds and remains outside the device-cycle interval.
 5. [implemented and hardware-validated] Add dormant-ID activation and
    validity-bitmap vertex deactivation. The HLS lifecycle CU is linked and
-   executed in all four `sw_emu` and `hw_emu` systems and in the routed SSSP
-   and CC systems.
+   executed in all four `sw_emu`, `hw_emu`, and routed U55C systems.
 6. [native micro-calibration complete; real-slice gate running] Freeze the
    refactor31 SSSP micro-profile
    and run the one-tile calibration/tile-shape holdout. Exact-path transfer is
@@ -159,12 +158,13 @@ For non-tiny workloads, acceptance requires:
    hash matches. This closes scale feasibility, not real-slice cycle transfer
    or independent Dijkstra correctness. Reproduce it with
    `scripts/analyze_refactor31_rmat_scale.py`.
-7. [four-algorithm RTL evidence complete; routing in progress] Specialize the
+7. [four-algorithm physical evidence complete] Specialize the
    shared source protocol for SSSP, CC, Residual PageRank, and Full PageRank.
    All four complete three-CU systems pass production-geometry `sw_emu` and
-   `hw_emu`. SSSP and CC close routed setup/hold at 150 MHz and pass direct
-   U55C tiny plus 50K-edge real-slice execution. Residual and Full PageRank
-   routed implementation and board checks are the remaining physical gates.
+   `hw_emu`, close routed setup/hold at 150 MHz, and pass direct U55C tiny plus
+   50K-edge real-slice execution. The three newer routes also pass independent
+   final-checkpoint bus-skew checks; the older SSSP route retains its documented
+   bus-skew evidence limitation.
 
 The integrated SSSP owner evidence and exact reproduction command are in
 `docs/spine_device_owner_scheduler_20260803.md`.

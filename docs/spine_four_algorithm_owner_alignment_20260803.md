@@ -108,3 +108,28 @@ Consequently:
 - the native refactor31 transfer calibration is unaffected because its frozen
   profile explicitly disables the complete owner scheduler and remains a
   separate calibration baseline.
+
+## Physical implementation evidence
+
+The matching HLS branch `codex/paper-owner-fifos` now has four independently
+routed, policy-specialized three-CU systems at the common 150 MHz target. SSSP,
+CC, thresholded Residual PageRank, and Full PageRank each pass direct U55C tiny
+and 19,399-vertex/50,000-edge Amazon-slice checks against an independent CPU
+oracle. The Full PageRank run is a useful boundedness witness: its 256-entry
+reactivation FIFO reaches full occupancy and backpressures the compute path
+without losing work.
+
+The fail-closed routed manifests are:
+
+```text
+paper_owner_fifo_sssp_routed_v1.json
+paper_owner_fifo_cc_routed_v1.json
+paper_owner_fifo_respr_routed_v1.json
+paper_owner_fifo_fullpr_routed_v1.json
+```
+
+They live in the HLS repository under `docs/evidence/`. This closes
+algorithm-specific functional feasibility, finite-FIFO backpressure, routed
+setup/hold, resource, lifecycle, and direct-board evidence. It does not convert
+the aligned simulator's owner-path cycles into FPGA-calibrated performance;
+that still requires a matching memory-backed timing transfer experiment.
