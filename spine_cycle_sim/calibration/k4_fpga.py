@@ -90,6 +90,8 @@ def _read_hardware_protocol(summary: Path, case: str) -> dict[str, str]:
     if (
         fields.get("status") != "PASS"
         or fields.get("mismatches", fields.get("rank_mismatches")) != "0"
+        or fields.get("degree_mismatches", "0") != "0"
+        or fields.get("shared_regraph_pipelines") != "1"
         or fields.get("conversion_cost") != "absent"
     ):
         raise ValueError(f"hardware protocol gate failed: {log}")
@@ -98,9 +100,17 @@ def _read_hardware_protocol(summary: Path, case: str) -> dict[str, str]:
 
 def _read_simulation(path: Path, clock_mhz: float) -> dict[str, Any]:
     payload = json.loads(path.read_text(encoding="utf-8"))
-    result = payload.get("result", {})
+    result = payload.get("result")
+    if not isinstance(result, dict) or not result:
+        result_path = path.parent / "result.json"
+        if not result_path.is_file():
+            raise FileNotFoundError(
+                f"simulation manifest has no embedded or sibling result: {path}"
+            )
+        result = json.loads(result_path.read_text(encoding="utf-8"))
     if (
         payload.get("status") != "PASS"
+        or payload.get("admitted", True) is not True
         or result.get("success") is not True
         or result.get("correctness_mismatches") != 0
         or result.get("architecture_correctness_mismatches") != 0
@@ -111,6 +121,39 @@ def _read_simulation(path: Path, clock_mhz: float) -> dict[str, Any]:
     if not math.isclose(float(result.get("core_mhz", 0.0)), clock_mhz):
         raise ValueError(f"simulation clock mismatch: {path}")
     return result
+
+
+def _hardware_execution_rounds(
+    algorithm: str, protocol: dict[str, str]
+) -> int:
+    if algorithm in {"weighted_sssp", "connected_components"}:
+        key = "executed_supersteps"
+    elif algorithm in {"full_pagerank", "residual_pagerank"}:
+        key = "pipeline_executions"
+    else:
+        raise ValueError(f"unsupported K4 FPGA calibration algorithm: {algorithm}")
+    rounds = int(protocol.get(key, 0))
+    if rounds <= 0:
+        raise ValueError(f"missing positive {key} in hardware protocol")
+    if algorithm == "full_pagerank" and int(protocol.get("rounds", 0)) != rounds:
+        raise ValueError("Full PageRank hardware rounds differ from pipeline executions")
+    if algorithm == "residual_pagerank":
+        propagation = int(protocol.get("propagation_rounds", -1))
+        if propagation < 0 or rounds != propagation + 1:
+            raise ValueError(
+                "Residual PageRank hardware must contain one correction execution"
+            )
+    return rounds
+
+
+def _simulation_execution_rounds(
+    algorithm: str, simulation: dict[str, Any]
+) -> int:
+    key = "supersteps" if algorithm == "weighted_sssp" else "iterations"
+    rounds = int(simulation.get(key, 0))
+    if rounds <= 0:
+        raise ValueError(f"missing positive simulator {key} for {algorithm}")
+    return rounds
 
 
 def load_k4_timing_records(
@@ -149,9 +192,13 @@ def load_k4_timing_records(
         if any(not math.isfinite(value) or value <= 0 for value in event_samples):
             raise ValueError(f"invalid hardware event sample: {spec.case}")
 
+        algorithm = next(iter(algorithms))
         simulation = _read_simulation(spec.simulation_manifest.resolve(), clock_mhz)
-        sim_steps = int(simulation.get("supersteps", 0))
-        hw_steps = {int(protocol["executed_supersteps"]) for protocol in protocols}
+        sim_steps = _simulation_execution_rounds(algorithm, simulation)
+        hw_steps = {
+            _hardware_execution_rounds(algorithm, protocol)
+            for protocol in protocols
+        }
         partitions = {
             int(protocol["destination_partitions"]) for protocol in protocols
         }
@@ -171,7 +218,7 @@ def load_k4_timing_records(
             K4TimingRecord(
                 case=spec.case,
                 role=spec.role,
-                algorithm=algorithms.pop(),
+                algorithm=algorithm,
                 graph=graphs.pop(),
                 simulation_manifest=str(spec.simulation_manifest.resolve()),
                 simulation_cycles=float(simulation["cycles"]),

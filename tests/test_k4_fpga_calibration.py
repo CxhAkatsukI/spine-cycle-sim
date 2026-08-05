@@ -58,7 +58,7 @@ class K4FpgaCalibrationTests(unittest.TestCase):
                 log.write_text(
                     "WEIGHTED_PMA_NATIVE_RESULT status=PASS mismatches=0 "
                     f"executed_supersteps={supersteps} destination_partitions=1 "
-                    "conversion_cost=absent\n",
+                    "shared_regraph_pipelines=1 conversion_cost=absent\n",
                     encoding="utf-8",
                 )
         return path
@@ -127,6 +127,64 @@ class K4FpgaCalibrationTests(unittest.TestCase):
         self.summaries[0].write_text(text.replace("ADMITTED", "REJECTED", 1), encoding="utf-8")
         with self.assertRaises(ValueError):
             load_k4_timing_records(self.summaries, self.specs)
+
+    def test_reads_cc_sibling_result_and_superstep_protocol(self) -> None:
+        for summary in self.summaries:
+            with summary.open(encoding="utf-8") as source:
+                rows = list(csv.DictReader(source, delimiter="\t"))
+            for row in rows:
+                row["algorithm"] = "connected_components"
+            with summary.open("w", encoding="utf-8", newline="") as sink:
+                writer = csv.DictWriter(sink, fieldnames=list(rows[0]), delimiter="\t")
+                writer.writeheader()
+                writer.writerows(rows)
+
+        cc_specs = []
+        for spec, rounds in zip(self.specs, (2, 3, 4)):
+            manifest = self.root / f"cc_{spec.case}" / "run_manifest.json"
+            manifest.parent.mkdir()
+            manifest.write_text(
+                json.dumps({"status": "PASS", "admitted": True}),
+                encoding="utf-8",
+            )
+            result = json.loads(spec.simulation_manifest.read_text(encoding="utf-8"))["result"]
+            result.pop("supersteps")
+            result["iterations"] = rounds
+            (manifest.parent / "result.json").write_text(
+                json.dumps(result), encoding="utf-8"
+            )
+            cc_specs.append(dataclasses.replace(spec, simulation_manifest=manifest))
+        records = load_k4_timing_records(self.summaries, cc_specs)
+        self.assertEqual([record.supersteps for record in records], [2, 3, 4])
+
+    def test_full_pagerank_uses_pipeline_executions(self) -> None:
+        for summary in self.summaries:
+            with summary.open(encoding="utf-8") as source:
+                rows = list(csv.DictReader(source, delimiter="\t"))
+            for row in rows:
+                row["algorithm"] = "full_pagerank"
+                log = summary.parent / row["case"] / "grasu_regraph" / "run.log"
+                rounds = {"cal_a": 2, "cal_b": 3, "hold": 4}[row["case"]]
+                log.write_text(
+                    "FULL_PR_PMA_NATIVE_RESULT status=PASS rank_mismatches=0 "
+                    "degree_mismatches=0 conversion_cost=absent "
+                    f"pipeline_executions={rounds} rounds={rounds} "
+                    "destination_partitions=1 shared_regraph_pipelines=1\n",
+                    encoding="utf-8",
+                )
+            with summary.open("w", encoding="utf-8", newline="") as sink:
+                writer = csv.DictWriter(sink, fieldnames=list(rows[0]), delimiter="\t")
+                writer.writeheader()
+                writer.writerows(rows)
+        pr_specs = []
+        for spec, rounds in zip(self.specs, (2, 3, 4)):
+            payload = json.loads(spec.simulation_manifest.read_text(encoding="utf-8"))
+            payload["result"].pop("supersteps")
+            payload["result"]["iterations"] = rounds
+            spec.simulation_manifest.write_text(json.dumps(payload), encoding="utf-8")
+            pr_specs.append(spec)
+        records = load_k4_timing_records(self.summaries, pr_specs)
+        self.assertEqual([record.supersteps for record in records], [2, 3, 4])
 
 
 if __name__ == "__main__":
