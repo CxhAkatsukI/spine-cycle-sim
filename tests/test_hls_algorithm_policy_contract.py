@@ -1,6 +1,7 @@
 import hashlib
 import json
 from pathlib import Path
+import subprocess
 import unittest
 
 
@@ -24,10 +25,14 @@ class HlsAlgorithmPolicyContractTests(unittest.TestCase):
         self.assertFalse(repository["tracked_dirty"])
 
     def test_policy_and_adapter_sources_match_pinned_hashes(self) -> None:
+        revision = self.contract["integration_repository"]["commit"]
         for section in ("policy_core", "pma_adapter"):
             record = self.contract[section]
-            source = INTEGRATION / record["source"]
-            digest = hashlib.sha256(source.read_bytes()).hexdigest()
+            source = subprocess.check_output(
+                ["git", "show", f"{revision}:{record['source']}"],
+                cwd=INTEGRATION,
+            )
+            digest = hashlib.sha256(source).hexdigest()
             self.assertEqual(digest, record["source_sha256"])
 
     def test_all_required_algorithms_have_policy_compile_evidence(self) -> None:

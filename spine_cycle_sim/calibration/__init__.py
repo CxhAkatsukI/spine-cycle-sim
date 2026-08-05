@@ -96,6 +96,15 @@ from .grasu_native import (
     native_timing_model_to_dict,
     parse_native_hardware_log,
 )
+from .k4_fpga import (
+    K4CaseSpec,
+    K4EventScaleModel,
+    K4TimingRecord,
+    fit_k4_event_scale,
+    k4_group_summary,
+    k4_prediction_rows,
+    load_k4_timing_records,
+)
 
 __all__ = [
     "BridgeModels",
@@ -180,4 +189,11 @@ __all__ = [
     "native_prediction_rows",
     "native_timing_model_to_dict",
     "parse_native_hardware_log",
+    "K4CaseSpec",
+    "K4EventScaleModel",
+    "K4TimingRecord",
+    "fit_k4_event_scale",
+    "k4_group_summary",
+    "k4_prediction_rows",
+    "load_k4_timing_records",
 ]

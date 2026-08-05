@@ -116,7 +116,11 @@ class Candidate10NormalizedFreezeV3Tests(unittest.TestCase):
             + revision_is_ancestor.stdout,
         )
         for relative, expected in prototype["source_sha256"].items():
-            actual = hashlib.sha256((repository / relative).read_bytes()).hexdigest()
+            source = subprocess.check_output(
+                ["git", "show", f"{prototype['revision']}:{relative}"],
+                cwd=repository,
+            )
+            actual = hashlib.sha256(source).hexdigest()
             self.assertEqual(actual, expected, relative)
 
 
