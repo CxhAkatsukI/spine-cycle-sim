@@ -1,0 +1,45 @@
+{
+  "calibration_cases": [
+    "amazon_insert",
+    "web_google_insert"
+  ],
+  "claim_class": "k4_fpga_event_envelope_calibrated",
+  "hardware_summaries": [
+    {
+      "path": "/data/tmp/chuxiao/matched_fpga_sssp_k4_real_20260805/summary.tsv",
+      "sha256": "3e671c96e04537777ce111e6201b4bf881839e7509766e4b093c234a63f31359"
+    },
+    {
+      "path": "/data/tmp/chuxiao/matched_fpga_sssp_k4_real_20260805_repeat2/summary.tsv",
+      "sha256": "e874cca139af697c7174d0c71073b81c711a0b2c2f5dc83626fa9ea75473f5ae"
+    },
+    {
+      "path": "/data/tmp/chuxiao/matched_fpga_sssp_k4_real_20260805_repeat3/summary.tsv",
+      "sha256": "ebc43095e583f84208c355b98d2741da9ef9f19c5f26c96be9d7c446d630384e"
+    }
+  ],
+  "holdout_gate_pct": 20.0,
+  "holdout_max_absolute_error_pct": 18.021606268939493,
+  "holdout_used_for_fit": false,
+  "simulation_manifests": [
+    {
+      "case": "amazon_insert",
+      "path": "/data/tmp/chuxiao/k4_hw_calibration_sim_sssp_aligned_rounds_20260805/amazon/manifest.json",
+      "role": "calibration",
+      "sha256": "35442853e5dcd9591b39ec5b33efe57cf7139b597cd6fee2aefc5786fab3f5a4"
+    },
+    {
+      "case": "web_google_insert",
+      "path": "/data/tmp/chuxiao/k4_hw_calibration_sim_sssp_aligned_rounds_20260805/web_google/manifest.json",
+      "role": "calibration",
+      "sha256": "bf6ce01994c98accae76c5777ad8b1be959a175cafe842f587684afaefd6dcfe"
+    },
+    {
+      "case": "flickr_insert",
+      "path": "/data/tmp/chuxiao/k4_hw_calibration_sim_sssp_aligned_rounds_20260805/flickr/manifest.json",
+      "role": "holdout",
+      "sha256": "fd0a7daab8982330f71aca7b02ec9ceb3b23fb5728d60e567f54873d4e962c9a"
+    }
+  ],
+  "status": "PASS"
+}

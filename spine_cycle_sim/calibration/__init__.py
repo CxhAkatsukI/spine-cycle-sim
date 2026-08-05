@@ -117,6 +117,15 @@ from .refactor31_scale import (
     summarize_refactor31_rmat_runs,
     validate_semantic_comparison,
 )
+from .k4_fpga import (
+    K4CaseSpec,
+    K4EventScaleModel,
+    K4TimingRecord,
+    fit_k4_event_scale,
+    k4_group_summary,
+    k4_prediction_rows,
+    load_k4_timing_records,
+)
 
 __all__ = [
     "BridgeModels",
@@ -218,4 +227,11 @@ __all__ = [
     "load_refactor31_rmat_runs",
     "summarize_refactor31_rmat_runs",
     "validate_semantic_comparison",
+    "K4CaseSpec",
+    "K4EventScaleModel",
+    "K4TimingRecord",
+    "fit_k4_event_scale",
+    "k4_group_summary",
+    "k4_prediction_rows",
+    "load_k4_timing_records",
 ]
