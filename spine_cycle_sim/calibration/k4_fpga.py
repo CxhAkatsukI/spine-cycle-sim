@@ -248,9 +248,11 @@ def load_k4_timing_records(
 
         vertices = int(simulation.get("vertices", 0))
         executed_pma_slots = int(simulation.get("compute_pma_slots", 0))
-        if algorithm == "full_pagerank":
+        if algorithm == "residual_pagerank":
+            executed_pma_slots += int(simulation.get("correction_pma_slots", 0))
+        if algorithm in {"full_pagerank", "residual_pagerank"}:
             if vertices <= 0 or executed_pma_slots <= 0:
-                raise ValueError(f"missing FullPR realized work: {spec.case}")
+                raise ValueError(f"missing PageRank realized work: {spec.case}")
             protocol_vertices = {int(protocol.get("vertices", 0)) for protocol in protocols}
             protocol_slots = {
                 int(protocol.get("pma_slots_per_partition_pass", 0))
@@ -259,7 +261,7 @@ def load_k4_timing_records(
             }
             if protocol_vertices != {vertices} or protocol_slots != {executed_pma_slots}:
                 raise ValueError(
-                    f"FullPR realized work mismatch for {spec.case}: "
+                    f"PageRank realized work mismatch for {spec.case}: "
                     f"vertices={protocol_vertices} slots={protocol_slots}"
                 )
 
@@ -431,6 +433,74 @@ def fit_k4_fullpr_component_model(
         pma_slot_cycles=coefficients[2],
         calibration_cases=tuple(sorted(row.case for row in calibration)),
         clock_mhz=clocks[0],
+    )
+
+
+def fit_k4_respr_component_model(
+    records: Iterable[K4TimingRecord],
+) -> K4EventComponentModel:
+    """Fit vertex and PMA-slot costs without using the holdout.
+
+    Residual PageRank's routed event window is dominated by state-vector
+    services and PMA scans.  A zero intercept keeps the two-parameter model
+    identifiable from two disjoint calibration topologies and avoids fitting a
+    third launch-overhead parameter to the untouched holdout.
+    """
+
+    rows = tuple(records)
+    calibration = [row for row in rows if row.role == "calibration"]
+    holdout = [row for row in rows if row.role == "holdout"]
+    if len(calibration) < 2 or not holdout:
+        raise ValueError("ResPR component fit requires two calibration rows and a holdout")
+    if {row.case for row in calibration} & {row.case for row in holdout}:
+        raise ValueError("K4 calibration and holdout cases overlap")
+    if any(
+        row.algorithm != "residual_pagerank"
+        or row.vertices <= 0
+        or row.executed_pma_slots <= 0
+        or row.hardware_cycles <= 0
+        for row in rows
+    ):
+        raise ValueError("component fit requires positive ResPR realized work")
+
+    vertex_scale = max(row.vertices for row in calibration)
+    slot_scale = max(row.executed_pma_slots for row in calibration)
+    features = [
+        [row.vertices / vertex_scale, row.executed_pma_slots / slot_scale]
+        for row in calibration
+    ]
+    matrix = [
+        [sum(feature[i] * feature[j] for feature in features) for j in range(2)]
+        for i in range(2)
+    ]
+    vector = [
+        sum(feature[i] * row.hardware_cycles for feature, row in zip(features, calibration))
+        for i in range(2)
+    ]
+    determinant = matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0]
+    if abs(determinant) < 1.0e-12:
+        raise ValueError("ResPR component calibration features are rank deficient")
+    scaled_vertex = (
+        vector[0] * matrix[1][1] - matrix[0][1] * vector[1]
+    ) / determinant
+    scaled_slot = (
+        matrix[0][0] * vector[1] - vector[0] * matrix[1][0]
+    ) / determinant
+    coefficients = (scaled_vertex / vertex_scale, scaled_slot / slot_scale)
+    if any(not math.isfinite(value) or value < 0 for value in coefficients):
+        raise ValueError("ResPR component fit produced an invalid coefficient")
+    clocks = [
+        row.hardware_cycles / (row.hardware_event_ms * 1000.0) for row in rows
+    ]
+    if any(not math.isclose(clock, clocks[0], rel_tol=1.0e-12) for clock in clocks):
+        raise ValueError("K4 records use different hardware clocks")
+    return K4EventComponentModel(
+        fixed_cycles=0.0,
+        vertex_cycles=coefficients[0],
+        pma_slot_cycles=coefficients[1],
+        calibration_cases=tuple(sorted(row.case for row in calibration)),
+        clock_mhz=clocks[0],
+        claim_class="k4_fpga_respr_component_envelope_calibrated",
     )
 
 

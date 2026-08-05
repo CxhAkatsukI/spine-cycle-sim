@@ -13,6 +13,7 @@ from spine_cycle_sim.calibration.k4_fpga import (
     K4TimingRecord,
     fit_k4_event_scale,
     fit_k4_fullpr_component_model,
+    fit_k4_respr_component_model,
     k4_component_prediction_rows,
     k4_group_summary,
     k4_prediction_rows,
@@ -207,6 +208,7 @@ class K4FpgaCalibrationTests(unittest.TestCase):
                     "degree_mismatches=0 conversion_cost=absent "
                     f"pipeline_executions={propagation + 1} "
                     f"propagation_rounds={propagation} "
+                    "vertices=10 pma_slots_per_partition_pass=32 "
                     "destination_partitions=1 shared_regraph_pipelines=1\n",
                     encoding="utf-8",
                 )
@@ -220,10 +222,60 @@ class K4FpgaCalibrationTests(unittest.TestCase):
             payload["result"].pop("supersteps")
             payload["result"]["iterations"] = propagation
             payload["result"]["pipeline_executions"] = propagation + 1
+            payload["result"]["compute_pma_slots"] = 32 * propagation
+            payload["result"]["correction_pma_slots"] = 32
             spec.simulation_manifest.write_text(json.dumps(payload), encoding="utf-8")
             residual_specs.append(spec)
         records = load_k4_timing_records(self.summaries, residual_specs)
         self.assertEqual([record.supersteps for record in records], [3, 4, 5])
+        self.assertEqual(
+            [record.executed_pma_slots for record in records],
+            [96, 128, 160],
+        )
+
+    def test_respr_component_fit_preserves_holdout(self) -> None:
+        def record(case: str, role: str, vertices: int, slots: int) -> K4TimingRecord:
+            hardware_cycles = 2.0 * vertices + 3.0 * slots
+            return K4TimingRecord(
+                case=case,
+                role=role,
+                algorithm="residual_pagerank",
+                graph=f"{case}.graph",
+                simulation_manifest=f"{case}.json",
+                simulation_cycles=hardware_cycles / 2.0,
+                hardware_event_ms=hardware_cycles / 150_000.0,
+                hardware_cycles=hardware_cycles,
+                hardware_samples=3,
+                hardware_cv_pct=0.0,
+                supersteps=2,
+                destination_partitions=1,
+                vertices=vertices,
+                executed_pma_slots=slots,
+            )
+
+        records = [
+            record("cal_a", "calibration", 10, 100),
+            record("cal_b", "calibration", 20, 100),
+            record("hold", "holdout", 15, 150),
+        ]
+        model = fit_k4_respr_component_model(records)
+        self.assertEqual(model.fixed_cycles, 0.0)
+        self.assertAlmostEqual(model.vertex_cycles, 2.0)
+        self.assertAlmostEqual(model.pma_slot_cycles, 3.0)
+        rows = k4_component_prediction_rows(records, model)
+        self.assertAlmostEqual(rows[-1]["calibrated_absolute_error_pct"], 0.0)
+
+        poisoned = [
+            dataclasses.replace(
+                row,
+                hardware_cycles=row.hardware_cycles * 1000.0,
+                hardware_event_ms=row.hardware_event_ms * 1000.0,
+            )
+            if row.role == "holdout"
+            else row
+            for row in records
+        ]
+        self.assertEqual(fit_k4_respr_component_model(poisoned), model)
 
     def test_fullpr_component_fit_preserves_holdout(self) -> None:
         def record(case: str, role: str, vertices: int, slots: int) -> K4TimingRecord:

@@ -1,0 +1,19 @@
+{
+  "calibration_cases": [
+    "amazon_insert",
+    "web_google_insert"
+  ],
+  "claim_class": "k4_fpga_respr_component_envelope_calibrated",
+  "clock_mhz": 150.0,
+  "fit_role": "calibration_only",
+  "fixed_cycles": 0.0,
+  "holdout_used_for_fit": false,
+  "limitations": [
+    "The target is a routed OpenCL event envelope, not an on-kernel counter.",
+    "The two coefficients are identified from two calibration topologies.",
+    "Transfer beyond one-partition insertion workloads requires new holdout evidence."
+  ],
+  "pma_slot_cycles": 85.43711933290503,
+  "semantic": "vertices + total correction/propagation PMA slots; zero intercept",
+  "vertex_cycles": 153.32549445195085
+}
