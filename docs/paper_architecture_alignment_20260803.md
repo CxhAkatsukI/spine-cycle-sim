@@ -33,9 +33,9 @@ No pre-existing dirty worktree was modified.
   branch: codex/paper-owner-fifos
 ```
 
-The owner-FIFO worktree is a fast-forward descendant of the HLS alignment
-branch. It is kept separate while long-running implementation jobs are active
-and is merged back only after the final evidence gate passes.
+The owner-FIFO worktree was developed as a fast-forward descendant of the HLS
+alignment branch. The completed implementation and evidence are now merged by
+fast-forward: both HLS branches resolve to commit `84b5b55`.
 
 ## Refactor31 Reconstruction
 
@@ -146,12 +146,15 @@ For non-tiny workloads, acceptance requires:
 5. [implemented and hardware-validated] Add dormant-ID activation and
    validity-bitmap vertex deactivation. The HLS lifecycle CU is linked and
    executed in all four `sw_emu`, `hw_emu`, and routed U55C systems.
-6. [native micro-calibration complete; real-slice gate running] Freeze the
-   refactor31 SSSP micro-profile
+6. [native transfer gate complete] Freeze the refactor31 SSSP micro-profile
    and run the one-tile calibration/tile-shape holdout. Exact-path transfer is
    accepted; multi-tile fallback remains an 18% launch-to-finish residual.
-   The same-slice real workload matrix has completed 11 of 14 simulator rows;
-   its immutable holdout is evaluated only after all rows finish.
+   The same-slice real workload matrix completed all 14 simulator rows before
+   revealing its immutable holdout. The holdout gate passes with 10.85% paired
+   median error, 12.04% paired maximum error, 10.85% worst component median,
+   and Spearman 1.0. The 12 calibration rows remain non-uniform (19.93% median,
+   57.41% maximum), so this is frozen-holdout transfer evidence rather than a
+   claim of pointwise cycle identity at every scale.
    Separately, the routed artifact has passed a hash-bound 150,994,944-edge
    RMat-24 scale matrix: 1,656 hardware rows, 1,560 measured rows, 48 admitted
    update-size/cohort/state groups, and 1,656 exact baseline/candidate semantic
@@ -172,6 +175,8 @@ The corresponding vertex-lifecycle evidence is in
 `docs/spine_vertex_lifecycle_system_20260803.md`.
 The native micro-calibration and its explicit claim boundary are in
 `docs/refactor31_sim_fpga_mechanism_transfer_20260803.md`.
+The final cross-repository, hash-bound index is
+`docs/evidence/paper_architecture_alignment_final_v1.json`.
 
 The simulator now generates Full PageRank's complete source domain on device
 and consumes device-owned dirty/active records for the differential policies.

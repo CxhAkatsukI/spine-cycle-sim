@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "evidence_id": "spine_paper_architecture_alignment_final_v1",
+  "generated_on": "2026-08-05",
+  "frozen_architecture_contract": {
+    "path": "configs/contracts/spine_paper_architecture_alignment_v1.json",
+    "sha256": "6358e13196d7c65007eb0c49b198ecae5e9935b7feacaa6d0faa78ed41ecc8b2"
+  },
+  "native_refactor31_transfer": {
+    "repository": "/home/chuxiao/spine-cycle-sim-architecture-alignment",
+    "branch": "codex/paper-architecture-alignment",
+    "source_commit": "c07bd927ec60424bede8fbebf6b1590d7afa82f0",
+    "execution_boundary": "sum_of_per_round_paired_reader_compute_opencl_event_spans",
+    "case_count": 14,
+    "calibration_case_count": 12,
+    "holdout_case_count": 2,
+    "holdout_admitted": true,
+    "holdout_metrics": {
+      "paired_median_abs_error_pct": 10.848935023948512,
+      "paired_max_abs_error_pct": 12.039871328765974,
+      "reader_median_abs_error_pct": 9.515896356104243,
+      "compute_median_abs_error_pct": 10.848935023948512,
+      "paired_spearman": 1.0
+    },
+    "calibration_qualification": {
+      "paired_median_abs_error_pct": 19.930925091435615,
+      "paired_max_abs_error_pct": 57.408890435674294,
+      "statement": "The frozen holdout gate passes, but the residual model is not a uniform pointwise cycle match across all calibration scales."
+    },
+    "files": [
+      {
+        "path": "docs/evidence/refactor31_real_slice_transfer_v3/refactor31_real_slice_group_summary.csv",
+        "sha256": "ad4350a148479a10be0885624f74334dc2af1e8a1544cf285472b679ba88f414"
+      },
+      {
+        "path": "docs/evidence/refactor31_real_slice_transfer_v3/refactor31_real_slice_input_hashes.json",
+        "sha256": "92993e93294afe572d5334467684d309d59e1475e3878d61de2a966794a9f6a6"
+      },
+      {
+        "path": "docs/evidence/refactor31_real_slice_transfer_v3/refactor31_real_slice_predictions.csv",
+        "sha256": "c2121ab23ce1a625566b60cce26456be9981d10a0ed1797c3e212047d361b5ab"
+      },
+      {
+        "path": "docs/evidence/refactor31_real_slice_transfer_v3/refactor31_real_slice_transfer_evidence.json",
+        "sha256": "05507734b70c412b44aa3a0eb36bce74cb144444466ceb0c5754a33869ed17a4"
+      }
+    ]
+  },
+  "paper_owner_hardware_feasibility": {
+    "repository": "/home/chuxiao/spine-dynamic-graph-paper-alignment",
+    "branch": "codex/paper-architecture-alignment",
+    "equivalent_branch": "codex/paper-owner-fifos",
+    "commit": "84b5b5546f026651c7c6fc7fdf6968802b392c0b",
+    "target": "xilinx_u55c_gen3x16_xdma_3_202210_1_hw_150mhz",
+    "combined_manifest": {
+      "path": "docs/evidence/paper_owner_fifo_all_routed_v1.json",
+      "sha256": "13a4a6cd65a6985b1d89d513f438e528d081343797987444172f7f9b2fb35af6",
+      "complete": true
+    },
+    "algorithm_manifests": {
+      "weighted_sssp": {
+        "path": "docs/evidence/paper_owner_fifo_sssp_routed_v1.json",
+        "sha256": "5e03b280f146e2ec1beb9f06eec22499fbc292fd1e3bf86c3703d80a1445c878"
+      },
+      "connected_components": {
+        "path": "docs/evidence/paper_owner_fifo_cc_routed_v1.json",
+        "sha256": "fc79f8df7f4e7c072e5cb453c93d57188c23c848f066ac692496484075fdb0c1"
+      },
+      "thresholded_residual_pagerank": {
+        "path": "docs/evidence/paper_owner_fifo_respr_routed_v1.json",
+        "sha256": "6f5650ba314b68226cdbe2d202277cdad43f6a029772ac35ee937931146c0458"
+      },
+      "full_pagerank": {
+        "path": "docs/evidence/paper_owner_fifo_fullpr_routed_v1.json",
+        "sha256": "17c8e4d6fee18540bc07581d457642aba532555c64f3ae57225a40be8f8e4972"
+      }
+    }
+  },
+  "claim_boundary": {
+    "supported": [
+      "correctness-gated refactor31-native resident SSSP real-slice timing transfer on the frozen two-case holdout",
+      "finite AXI/HBM/FIFO request execution and ledger closure for the transferred native SSSP event window",
+      "synthesis, RTL emulation, routed timing closure, and direct-U55C functional feasibility for four paper-owner policy systems",
+      "bounded owner/reactivation FIFOs, work-credit quiescence, and dormant-ID lifecycle in the routed policy systems"
+    ],
+    "not_supported": [
+      "cycle calibration of the paper-owner scheduler or its four policy systems",
+      "graph load, maintenance, or host orchestration timing transfer in the refactor31 real-slice gate",
+      "performance transfer for CC, Residual PageRank, or Full PageRank",
+      "uniform pointwise cycle matching over every calibration scale",
+      "graphs exceeding the routed refactor31 vertex domain",
+      "payload-distinct parallel-edge identity",
+      "an independent final-checkpoint bus-skew audit for the older SSSP route"
+    ]
+  }
+}

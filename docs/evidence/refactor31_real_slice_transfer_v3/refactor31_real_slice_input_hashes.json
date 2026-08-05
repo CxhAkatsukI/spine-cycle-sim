@@ -1,0 +1,426 @@
+[
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_real_slice_host",
+    "sha256": "97b88b4108fa586b4bf68c81682d03a86623f5777edd4f8d28344b25a75ef0f8"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_real_slices_v2/au_e100000.slice",
+    "sha256": "a7e1779f6520ec72a68ab19bd5128dea7e71699044eeb37a90b9d9f88047bc2a"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_real_slices_v2/au_e1000000.slice",
+    "sha256": "3405684e5384970f74d859e9194fb4aa8e1bb61c1b713f2ca9ff8b5b89a29b64"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_real_slices_v2/au_e4000000.slice",
+    "sha256": "df6a0d9f2821fddfe60572f12f3c9d440b110309636635e50f3b9204460bb617"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_real_slices_v2/au_e500000.slice",
+    "sha256": "e3c87378198f0c6657de37e239641bd9da17b5cd0662f46e9cdf5e18fa73977a"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_real_slices_v2/gg_e100000.slice",
+    "sha256": "3ae7d573e8d1e4e98574eb043486817586068fa8c8282c659f65a7d2e40ac05a"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_real_slices_v2/gg_e1000000.slice",
+    "sha256": "76227c90bcca46b30385ed0f303c133ba933b62db6bac42d9dcba303fad1af4e"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_real_slices_v2/gg_e4000000.slice",
+    "sha256": "b47718d9c718165d258430be90db5282f2af24a61931de3a0104dc287bcf6f34"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_real_slices_v2/gg_e500000.slice",
+    "sha256": "3aa31f03a8090f231624e26ea59c65330388693aa3c0bf745470d149b350be2c"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_real_slices_v2/lj_e2000000.slice",
+    "sha256": "7d5448dee902f3e6e1038826bfcc68961e76b47cc59fcf280528f203ce61367c"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_real_slices_v2/manifest.json",
+    "sha256": "50f649f56fd38c32052621af0bfc930e0fa462dd3ebda081d00ca5ebbc4dc130"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_real_slices_v2/or_e4000000.slice",
+    "sha256": "1d2651ddb7a173e7c1487624e4c6a860be32db4518fb69ebdb03ebdb5ecfe097"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_real_slices_v2/wk_e100000.slice",
+    "sha256": "632f7265ce11a5f3fa533b535db3843999b60e8c57830bf7ba0badf25dd3d09d"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_real_slices_v2/wk_e1000000.slice",
+    "sha256": "0cbec20be43255dfe67a5625735898cc5bcb3d4e276c5641670eccea44f81bba"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_real_slices_v2/wk_e4000000.slice",
+    "sha256": "bcfb94bb66c428508e0b674e4f09bd865abcdda33f11675549aef552f41b8b1f"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_real_slices_v2/wk_e500000.slice",
+    "sha256": "212b86b62c63bcc49deae3ea04449165cd0b654068ad82750c5a111fe93aee2a"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_sim_v3/sim/AU_e100000/summary.json",
+    "sha256": "cbe7cfff0ccac75cd03debf94d811149e742c01b765b947d53a6ea616bbf74b3"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_sim_v3/sim/AU_e1000000/summary.json",
+    "sha256": "3cf0979763594f709fc72900a388719467ec2531ecf4980bce4299b8c78d9e08"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_gatefix_au4m/sim/AU_e4000000/summary.json",
+    "sha256": "8acd3547ab8358111afa8e9238c24362bc773accc68d3a898cae6ec35d5b57a4"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_sim_v3/sim/AU_e500000/summary.json",
+    "sha256": "f27538c5fb74e14412535700cf907049218ceec235cd0c76d51e9601e9e490f7"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_sim_v3/sim/GG_e100000/summary.json",
+    "sha256": "ba55c1272d8dcf2c2203dd2c28a5f4a107db31b3d4eed0be7dfa7dc36a9be918"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_sim_v3/sim/GG_e1000000/summary.json",
+    "sha256": "26160701cb61ed4895ecb3191b706b5517e0c4d5b10dc03114dfacd3c23a09e0"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_sim_v3/sim/GG_e4000000/summary.json",
+    "sha256": "e3833907d515fe96865b4f6611c50f51c555d830aca6cbfe8d0615431d8f0dff"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_sim_v3/sim/GG_e500000/summary.json",
+    "sha256": "26140e6c7b45865cfdca36072a7307f804b1cd303f2727c37035ec8ca0e30eb7"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_sim_v3/sim/LJ_e2000000/summary.json",
+    "sha256": "3609bfc1942c1ebb944bff776759cdbbd0b5eeca4d47dae25d28ee03eb4437f4"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_sim_v3/sim/OR_e4000000/summary.json",
+    "sha256": "f0c8b38810bc1bdac336cb9bd4bc7c58a48a4c8c4a9ee177e0d0ba0dbfefe43c"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_sim_v3/sim/WK_e100000/summary.json",
+    "sha256": "c3a01af41e79f94eeda0e191817c96b2b7527830b4a0ffc0bfc982b2ea8a1f10"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_sim_v3/sim/WK_e1000000/summary.json",
+    "sha256": "00ed93235343bafc14a97bac9fd03b6c56494fe23a648ff2863bc4f6d761a748"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_sim_v3/sim/WK_e4000000/summary.json",
+    "sha256": "9ab4a92aee9ed001feae2ca04dc057b8b38bb865ccbf3ce30da12a173073e356"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_sim_v3/sim/WK_e500000/summary.json",
+    "sha256": "57c304d21bd3ed6f5b6f9c09b66e5e8223ccb44cfd59d87785b11ded4f12ea48"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/AU_e100000/repeat_1.log",
+    "sha256": "223c2cf12195059d0d6c9453d7dba0983787b8f05de066abe2d2efe3ae1c283a"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/AU_e100000/repeat_2.log",
+    "sha256": "4da5bae2cb8661d072409565534c97cf888b822a88a2b9018f9c35c54b2254ff"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/AU_e100000/repeat_3.log",
+    "sha256": "3ec53c2874de8946063c62d335b7ce6a2c8cb02f59e48c2acc7aa4621f0367fa"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/AU_e100000/repeat_4.log",
+    "sha256": "349b64c7dbe718f9126539a74fa6865295131369556ce0fd1ba1b2a146123776"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/AU_e100000/repeat_5.log",
+    "sha256": "3a31d1534b78ecc79da04810091f6ffa4a64681587baf04b0e8c8e3a07ca6072"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/AU_e1000000/repeat_1.log",
+    "sha256": "254f1f8dbc93db810f32e096528f45e97fc93dad19ae782dae161eb3008cb538"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/AU_e1000000/repeat_2.log",
+    "sha256": "4d308de69a7bd2c9509493a3de913d57a7fcac7a6f6daaa2d4bd6aa58be64257"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/AU_e1000000/repeat_3.log",
+    "sha256": "bf610412cf5bd4840053457502638da3207bdc3cf685dab0b183e0b16123e70e"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/AU_e1000000/repeat_4.log",
+    "sha256": "1374ae7f6eb47df7b57b661b7c1f650c6bac755d3492ee6f547b4e50b58bce01"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/AU_e1000000/repeat_5.log",
+    "sha256": "d84ec4af164569ac0e33f60dc172c7b2f6884daae0df806d2a575e25613ff705"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/AU_e4000000/repeat_1.log",
+    "sha256": "43b35e6e6e3c723cabb8fdaa844693e2d871c6f0b45e1bd0147f7ccf45bc3a01"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/AU_e4000000/repeat_2.log",
+    "sha256": "2524f8d361e3bf9edd57160c8025a2a737de1dd6e25ac5a276ea9cdb39fe9d03"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/AU_e4000000/repeat_3.log",
+    "sha256": "3c4a03da93ae09cc7a2d7792cf5e62104bd3a08af6dc3a4d11594be0eb3a515a"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/AU_e4000000/repeat_4.log",
+    "sha256": "e81e187777e7d0ab77ff705ee0263158d75f50bb3dd6927d2a44d40e4769fb1f"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/AU_e4000000/repeat_5.log",
+    "sha256": "254193bc546b06777b98450a3825ad2f2781c451316c60b43154809a9b31241b"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/AU_e500000/repeat_1.log",
+    "sha256": "859f747ea00f33737306fee43564d37a4ee66ffb8525337140e5c40d6caba9e6"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/AU_e500000/repeat_2.log",
+    "sha256": "b8f0aaa3ee3bfda050dc4daeb5ceabba2c6d45394c81c9390c379d06bd9ed9fd"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/AU_e500000/repeat_3.log",
+    "sha256": "4896caffd3db95f80524592c1848b5c82f4c8c8d51a3cb0e5fec790fb72b7cc6"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/AU_e500000/repeat_4.log",
+    "sha256": "4d1348ec6162b1481643e87de4b7c4c73bebd1497f5047d0f3e856277e633bb8"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/AU_e500000/repeat_5.log",
+    "sha256": "6bc66966e06f3d94f0e2c1854a58749ca0bdf24cb7b8f7c813123ae1f5fc7ef3"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/GG_e100000/repeat_1.log",
+    "sha256": "182a3266f49fd0e4175a4012ba8d54706b01f3ee0b2f6a5c9b7616851561c8e2"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/GG_e100000/repeat_2.log",
+    "sha256": "dd135c506f055ec89c26d21bdacde94c6bce972dd932f78ed49d3207b627bc4c"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/GG_e100000/repeat_3.log",
+    "sha256": "ea436370e56cc5fff86029fe8d0b6776c5b4c7a3d259e60544b06bbf955989ac"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/GG_e100000/repeat_4.log",
+    "sha256": "b3393fa4cde0f42c294ffb1c76a202f98606d6fa78c061e448e65595273b53c2"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/GG_e100000/repeat_5.log",
+    "sha256": "73931eb5052be45521972dd25da13591cdcf2fbf5d75b44e046ee9f1b1f2bf29"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/GG_e1000000/repeat_1.log",
+    "sha256": "5217b1f1bb0f9a9360ee5b2bd2cfb7d0389b0d0d5cbb3218598ce6c911266c9d"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/GG_e1000000/repeat_2.log",
+    "sha256": "faf63a23e6975b908e7bc6545167f416b8f4ec40fecda8cc2062ed151008c71e"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/GG_e1000000/repeat_3.log",
+    "sha256": "476918f63e49c27558fb9b0f0523cf8bb20ebdd82afd6268c651458d7693eb3a"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/GG_e1000000/repeat_4.log",
+    "sha256": "d8a5968005e5086004aaa507142a15f5d09575aa2d4fe112ec1ae37d629ecab7"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/GG_e1000000/repeat_5.log",
+    "sha256": "e89b67c4bbf47a0dc0903e0a64eef7047d76fd37fdc549b807a45f426d2f8583"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/GG_e4000000/repeat_1.log",
+    "sha256": "616afbe75bc7300014d01ec6a44658ed7a433b0e81e1f1504d8d88a8996719fb"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/GG_e4000000/repeat_2.log",
+    "sha256": "21df09f75af8f5fdaff2bb0de4c6fb6192b8ef3f8584cbca9125b83f85f0bad9"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/GG_e4000000/repeat_3.log",
+    "sha256": "99a17a9ec58d50f556c71754a7ee43f97cbd4419941d2e38f79ff3ecfc347f03"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/GG_e4000000/repeat_4.log",
+    "sha256": "ee3eafa821619566f85a8f1fc3df955fc01ae29438ff9138972106cbd7b2c55c"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/GG_e4000000/repeat_5.log",
+    "sha256": "27689d356a9476d602a5cc2b7d4c562b943b6ae7d38ba226527d4ebc0ea4fef0"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/GG_e500000/repeat_1.log",
+    "sha256": "677ecb7ef86a4d69cf583e0597ce13e1215e74a9d964e348679460bafbbfde7a"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/GG_e500000/repeat_2.log",
+    "sha256": "288a4200bba7a8bef31850adf3149920e70ab2b2addbc4f4a330ac3a70171c83"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/GG_e500000/repeat_3.log",
+    "sha256": "c90a8bd88f180f19986b1bb8c441cc32a3c13a0199220f5fac9fbd21d43bb84b"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/GG_e500000/repeat_4.log",
+    "sha256": "efe50d54cdafddb82615a30cc91ad603a7d8c34e2fc5979cd5051b32cd0102df"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/GG_e500000/repeat_5.log",
+    "sha256": "9f21e71cf090edef7d689441a7ba7e0c8ca85acf2a9621424258e52994f28815"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/LJ_e2000000/repeat_1.log",
+    "sha256": "a0217afd5f16829074ccddf071763144c56c87b7a36983d0d5567c6287351dc5"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/LJ_e2000000/repeat_2.log",
+    "sha256": "883870d1bc7facd08c82cd09b60e35cfe2d55ecf38016086e6220559c07e6fcb"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/LJ_e2000000/repeat_3.log",
+    "sha256": "e4a8ce62081f07b2cfaba856fb26ea9d2c662d1c819df0c82ce3ee9b4ee83051"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/LJ_e2000000/repeat_4.log",
+    "sha256": "231467df0cc0293b265807af0b6d39472915992bcc13a8c88c373571b3805edd"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/LJ_e2000000/repeat_5.log",
+    "sha256": "90cf3ad7b60a468cfbe301e0328b8fbb3d3c5a54dba97e7d684de8b516780d08"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/OR_e4000000/repeat_1.log",
+    "sha256": "f859d910206dad8a73434edef1d49e4a45f558cb607f48bb69db5a2f529257bf"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/OR_e4000000/repeat_2.log",
+    "sha256": "43e8ebd105ca54d0c9fb46210df70a89aed46e64e537672386ee9e004259aeeb"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/OR_e4000000/repeat_3.log",
+    "sha256": "102fb4c36297e672d5917c34fcb8280eecd4c63781ed8c43fc466468f972f72d"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/OR_e4000000/repeat_4.log",
+    "sha256": "6845f31584470fc850d678bec17529716754165eddfbb8d8b06ac94402c8cbd5"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/OR_e4000000/repeat_5.log",
+    "sha256": "6003027d75f5fb417030af0dd8c0c740ec224a7243cae4e30e8340f85fa918a0"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/WK_e100000/repeat_1.log",
+    "sha256": "60ce13107a06725991df9a2bf29967cfac021e8571278bd6ed431c81e2d90c4f"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/WK_e100000/repeat_2.log",
+    "sha256": "ef9752d4c95f35ca32cc78c345e39dbee89c34db98b04a5f6142a412af2d3544"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/WK_e100000/repeat_3.log",
+    "sha256": "f822b5f739feac93499ec009d7a20b55b862e059689c14b3334930df2279a1dc"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/WK_e100000/repeat_4.log",
+    "sha256": "18635eb481ad85efe70b5e16d3d606659ab84409bba09a5941cf609838023d59"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/WK_e100000/repeat_5.log",
+    "sha256": "2291ed6047f20028b45a658d83f09a649e800d79656220052711191c34ddfe00"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/WK_e1000000/repeat_1.log",
+    "sha256": "15d0226a6921d13452fd407ad75d90c66e44942591b289cc1f987f14f8d6c39b"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/WK_e1000000/repeat_2.log",
+    "sha256": "27151ef5228c81baf51470a703b751232179a897efa0fa93ed601316de17d005"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/WK_e1000000/repeat_3.log",
+    "sha256": "dba863fff721e0914c94336512785eebb5e329e318fa7a512c6399986ca5aa55"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/WK_e1000000/repeat_4.log",
+    "sha256": "dd20ab5c63732854fe737bdd2c4fd7ea84b31cd33df11160fc169f81191d08a4"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/WK_e1000000/repeat_5.log",
+    "sha256": "496e839f056632778c8751f9227f06e1b9b9e99fd260d28e3be3480bc2fa67b2"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/WK_e4000000/repeat_1.log",
+    "sha256": "b56439a02f9c8311e8a182986670bec68a6159a6f049c6fea697a7ed6a376035"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/WK_e4000000/repeat_2.log",
+    "sha256": "5391ae7cd559b001336092e0925451e12b4469c431b0a5374a6770fbb730d0d1"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/WK_e4000000/repeat_3.log",
+    "sha256": "35d299f1fc8a487adf9df7a8491c8fdaab357d0dc3d8b3957b54643cc8922c02"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/WK_e4000000/repeat_4.log",
+    "sha256": "f46174a373f573e561cc0c4deb294d02c5429c1658df88e64f85f00547b140ed"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/WK_e4000000/repeat_5.log",
+    "sha256": "fd969252d9840d9046dce5fb65307319f2722d60c91c18fc0e00fcb6bc7ae097"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/WK_e500000/repeat_1.log",
+    "sha256": "0b03149c4e7cb122a1c161a87b38ab75ea9c1a584808b5b60e6b70648f721cb8"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/WK_e500000/repeat_2.log",
+    "sha256": "15b01188aaa5845bafc8be877ab0ace5d9e7cd893be2aaf0dfe3a22ec7931445"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/WK_e500000/repeat_3.log",
+    "sha256": "91d72566d9f7574efdd671b62a67cb468a6c4a058db41c7cfa79f6a0b124da7c"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/WK_e500000/repeat_4.log",
+    "sha256": "9889eb2489c5b58eec8ef0f6f6658bb08a961284b583f15777478b7f3ffd59ae"
+  },
+  {
+    "path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_transfer_matrix_fpga_v2/fpga/WK_e500000/repeat_5.log",
+    "sha256": "f21203df4a040c3149a0a8f8cd1e4a0a0e9c3a980411cfea9975f4c101f2d838"
+  },
+  {
+    "path": "/data/feiyang/spine-dynamic-graph-builds/segmented_exact_fallback_cc7e3f9_20260802/hw_refactor31_ii4_bitmap/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+    "sha256": "16ca09f5597d974e6963ac19ada4f59a8e2b0d6b7ef5ea8f668e5ffb520a1629"
+  },
+  {
+    "path": "/home/chuxiao/spine-cycle-sim-architecture-alignment/build/sst/libspine_cycle.so",
+    "sha256": "b4d997283623ec72fc6b41c0a2dfe78b8587c2df0b717e23246f5dc4c20a0481"
+  },
+  {
+    "path": "/home/chuxiao/spine-cycle-sim-architecture-alignment/configs/architectures/spine_refactor31_routed_native_v1.json",
+    "sha256": "4182ff4e280191dc6d57fa07ea400d3c8bda507dc54699b260aa3b5175dbe8b8"
+  },
+  {
+    "path": "/home/chuxiao/spine-cycle-sim-architecture-alignment/configs/experiments/spine_refactor31_fpga_calibration_matrix_v2.json",
+    "sha256": "af76c295453846c070f3d3b171f13c476fb72214346b6e7e3d781fe5605a0db4"
+  },
+  {
+    "path": "/home/chuxiao/spine-cycle-sim-architecture-alignment/configs/experiments/spine_refactor31_transfer_residual_model_v2.json",
+    "sha256": "583528207b7b76e9e82bfa9080ffad80faee0cb505f9112a01ac3818def0535c"
+  },
+  {
+    "path": "/home/chuxiao/spine-cycle-sim-architecture-alignment/scripts/analyze_refactor31_real_slice_transfer.py",
+    "sha256": "75a63bc740d18facd8b6e5985bc55a63b72322c51a09b994ce20380be594225f"
+  }
+]

@@ -1,0 +1,128 @@
+{
+  "admission": {
+    "all": true,
+    "component_median_error": true,
+    "correctness_and_ledger": true,
+    "paired_max_error": true,
+    "paired_median_error": true,
+    "scope": "frozen_holdout",
+    "workload_rank": true
+  },
+  "admission_summary": {
+    "cases": 2,
+    "compute_max_abs_error_pct": 12.039871328765974,
+    "compute_median_abs_error_pct": 10.848935023948512,
+    "compute_spearman": 1.0,
+    "paired_max_abs_error_pct": 12.039871328765974,
+    "paired_median_abs_error_pct": 10.848935023948512,
+    "paired_spearman": 1.0,
+    "reader_max_abs_error_pct": 11.355315780052926,
+    "reader_median_abs_error_pct": 9.515896356104243,
+    "reader_spearman": 1.0,
+    "role": "holdout"
+  },
+  "admission_thresholds": {
+    "component_median_cycle_error_percent_max": 20,
+    "correctness_required": true,
+    "max_total_cycle_error_percent_max": 30,
+    "median_total_cycle_error_percent_max": 15,
+    "request_conservation_required": true,
+    "work_ledger_closure_required": true,
+    "workload_rank_spearman_min": 0.9
+  },
+  "all_case_summary": {
+    "cases": 14,
+    "compute_max_abs_error_pct": 57.408890435674294,
+    "compute_median_abs_error_pct": 15.230464716408145,
+    "compute_spearman": 0.9956043956043956,
+    "paired_max_abs_error_pct": 57.408890435674294,
+    "paired_median_abs_error_pct": 15.230464716408145,
+    "paired_spearman": 0.9956043956043956,
+    "reader_max_abs_error_pct": 58.16820792068308,
+    "reader_median_abs_error_pct": 15.078893314254694,
+    "reader_spearman": 0.9868131868131869,
+    "role": "all"
+  },
+  "artifact_binding": {
+    "analyzer_sha256": "75a63bc740d18facd8b6e5985bc55a63b72322c51a09b994ce20380be594225f",
+    "architecture_profile_sha256": "4182ff4e280191dc6d57fa07ea400d3c8bda507dc54699b260aa3b5175dbe8b8",
+    "fpga_host_sha256": "97b88b4108fa586b4bf68c81682d03a86623f5777edd4f8d28344b25a75ef0f8",
+    "fpga_xclbin_sha256": "16ca09f5597d974e6963ac19ada4f59a8e2b0d6b7ef5ea8f668e5ffb520a1629",
+    "simulator_plugin_sha256": "b4d997283623ec72fc6b41c0a2dfe78b8587c2df0b717e23246f5dc4c20a0481"
+  },
+  "calibration_case_count": 12,
+  "claim_boundary": {
+    "not_supported": [
+      "paper_owner_fifo_cycle_calibration",
+      "maintenance_or_graph_load_timing",
+      "graphs_exceeding_the_refactor31_vertex_domain"
+    ],
+    "supported": [
+      "correctness_gated_refactor31_real_slice_timing",
+      "resident_reader_compute_event_window_transfer",
+      "calibration_holdout_separation"
+    ]
+  },
+  "evidence_id": "spine_refactor31_real_slice_transfer_v3",
+  "execution_boundary": "sum_of_per_round_paired_reader_compute_opencl_event_spans",
+  "group_summary": [
+    {
+      "cases": 12,
+      "compute_max_abs_error_pct": 57.408890435674294,
+      "compute_median_abs_error_pct": 19.930925091435615,
+      "compute_spearman": 0.993006993006993,
+      "paired_max_abs_error_pct": 57.408890435674294,
+      "paired_median_abs_error_pct": 19.930925091435615,
+      "paired_spearman": 0.993006993006993,
+      "reader_max_abs_error_pct": 58.16820792068308,
+      "reader_median_abs_error_pct": 18.03994330462367,
+      "reader_spearman": 0.9790209790209791,
+      "role": "calibration"
+    },
+    {
+      "cases": 2,
+      "compute_max_abs_error_pct": 12.039871328765974,
+      "compute_median_abs_error_pct": 10.848935023948512,
+      "compute_spearman": 1.0,
+      "paired_max_abs_error_pct": 12.039871328765974,
+      "paired_median_abs_error_pct": 10.848935023948512,
+      "paired_spearman": 1.0,
+      "reader_max_abs_error_pct": 11.355315780052926,
+      "reader_median_abs_error_pct": 9.515896356104243,
+      "reader_spearman": 1.0,
+      "role": "holdout"
+    }
+  ],
+  "holdout_case_count": 2,
+  "matrix_id": "spine_refactor31_fpga_calibration_matrix_v2",
+  "matrix_sha256": "af76c295453846c070f3d3b171f13c476fb72214346b6e7e3d781fe5605a0db4",
+  "models": {
+    "compute": {
+      "fixed_cycles": 74092.32213851334,
+      "per_processed_edge_cycles": 40.64509177241464,
+      "per_round_cycles": 31193.30211134522
+    },
+    "paired": {
+      "fixed_cycles": 74092.32213851334,
+      "per_processed_edge_cycles": 40.64509177241464,
+      "per_round_cycles": 31193.30211134522
+    },
+    "reader": {
+      "fixed_cycles": 29343.293184130267,
+      "per_processed_edge_cycles": 37.89216897948997,
+      "per_round_cycles": 40224.06239644769
+    }
+  },
+  "residual_model_protocol": {
+    "constraint": "nonnegative_least_squares",
+    "features": [
+      "fixed_cycles",
+      "rounds",
+      "processed_edges"
+    ],
+    "id": "spine_refactor31_transfer_residual_model_v2",
+    "sha256": "583528207b7b76e9e82bfa9080ffad80faee0cb505f9112a01ac3818def0535c"
+  },
+  "schema_version": 2,
+  "slice_manifest_sha256": "50f649f56fd38c32052621af0bfc930e0fa462dd3ebda081d00ca5ebbc4dc130"
+}

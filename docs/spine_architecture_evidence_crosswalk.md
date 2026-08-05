@@ -1,7 +1,7 @@
 # Spine Architecture and Evidence Crosswalk
 
 **Owning repository:** `spine-cycle-sim`
-**Audit date:** 2026-07-31; superseding alignment update: 2026-08-03
+**Audit date:** 2026-07-31; superseding alignment updates: 2026-08-03 and 2026-08-05
 **Purpose:** provide a paper-editing authority for distinguishing the architecture
 described by the Delta.hls manuscript from the native Candidate10 HLS prototype,
 the opt-v2 HLS optimization, and the architecture actually used by the formal-v7
@@ -34,6 +34,11 @@ Progress since the original audit is explicit:
 - the routed refactor31 HLS artifact implements a device dirty frontier, HBM
   active bitmap, bounded split streams, and segmented exact fallback at
   160 MHz;
+- the refactor31-native SSSP profile now passes a pre-registered real-slice
+  transfer gate on two immutable holdouts: 10.85% paired median error, 12.04%
+  paired maximum error, 10.85% worst component median, and Spearman 1.0; its
+  12 calibration rows are not uniformly cycle-matched and retain a 57.41%
+  worst-row error;
 - the exact refactor31 source was reconstructed on
   `codex/paper-architecture-alignment` from base revision `cc7e3f95` and the
   frozen source diff;
@@ -54,9 +59,10 @@ Progress since the original audit is explicit:
 - payload-distinct parallel weighted edges remain a separately versioned
   extension because refactor31 groups records by `(src,dst)`.
 
-The refactor31 profile is a preliminary FPGA calibration baseline. It must not
-be used as the final paper-aligned architecture or silently mixed with the
-150-MHz target profile.
+The refactor31 profile is an admitted native FPGA calibration baseline for the
+resident weighted-SSSP Reader/Compute event window. It must not be used as the
+final paper-aligned architecture, extended to maintenance/host timing, or
+silently mixed with the 150-MHz target profile.
 
 This document is intentionally conservative. It does not say that the current
 results are invalid. It says exactly which artifact supports each claim, where
