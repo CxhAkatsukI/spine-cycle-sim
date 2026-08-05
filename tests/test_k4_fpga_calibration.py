@@ -194,6 +194,37 @@ class K4FpgaCalibrationTests(unittest.TestCase):
         records = load_k4_timing_records(self.summaries, pr_specs)
         self.assertEqual([record.supersteps for record in records], [2, 3, 4])
 
+    def test_residual_pagerank_uses_correction_plus_propagation(self) -> None:
+        for summary in self.summaries:
+            with summary.open(encoding="utf-8") as source:
+                rows = list(csv.DictReader(source, delimiter="\t"))
+            for row in rows:
+                row["algorithm"] = "residual_pagerank"
+                log = summary.parent / row["case"] / "grasu_regraph" / "run.log"
+                propagation = {"cal_a": 2, "cal_b": 3, "hold": 4}[row["case"]]
+                log.write_text(
+                    "RESIDUAL_PR_PMA_NATIVE_RESULT status=PASS rank_mismatches=0 "
+                    "degree_mismatches=0 conversion_cost=absent "
+                    f"pipeline_executions={propagation + 1} "
+                    f"propagation_rounds={propagation} "
+                    "destination_partitions=1 shared_regraph_pipelines=1\n",
+                    encoding="utf-8",
+                )
+            with summary.open("w", encoding="utf-8", newline="") as sink:
+                writer = csv.DictWriter(sink, fieldnames=list(rows[0]), delimiter="\t")
+                writer.writeheader()
+                writer.writerows(rows)
+        residual_specs = []
+        for spec, propagation in zip(self.specs, (2, 3, 4)):
+            payload = json.loads(spec.simulation_manifest.read_text(encoding="utf-8"))
+            payload["result"].pop("supersteps")
+            payload["result"]["iterations"] = propagation
+            payload["result"]["pipeline_executions"] = propagation + 1
+            spec.simulation_manifest.write_text(json.dumps(payload), encoding="utf-8")
+            residual_specs.append(spec)
+        records = load_k4_timing_records(self.summaries, residual_specs)
+        self.assertEqual([record.supersteps for record in records], [3, 4, 5])
+
     def test_fullpr_component_fit_preserves_holdout(self) -> None:
         def record(case: str, role: str, vertices: int, slots: int) -> K4TimingRecord:
             hardware_cycles = 1000.0 + 2.0 * vertices + 3.0 * slots

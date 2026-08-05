@@ -38,7 +38,7 @@
         "weighted_sssp": ["configs/architectures/grasu_regraph_candidate10_k4_shared_multipart_weighted_packed_v6.json", "26c7ec71d1fd5701768533d71220a2421faacef5b3ae5e1dc790af9edc5450a2"],
         "connected_components": ["configs/architectures/grasu_regraph_candidate10_k4_shared_multipart_cc_packed_v6.json", "23ef9ce8cab0deffa8bcc57d7ac8daea5cb15a0ca9b7a08498d6fdaaffe148dc"],
         "full_pagerank": ["configs/architectures/grasu_regraph_candidate10_k4_shared_multipart_pagerank_packed_v6.json", "c4b046fcd672d93beed516c070a4f087ccd8a78d116e1e89c402642585c5f53f"],
-        "thresholded_residual_pagerank": ["configs/architectures/grasu_regraph_candidate10_k4_shared_multipart_residual_packed_v6.json", "47002ad754d3dbb671b084d1eb69171db25b9d6f5e8d40d43bb2f5d80d715f44"]
+        "thresholded_residual_pagerank": ["configs/architectures/grasu_regraph_candidate10_k4_shared_multipart_residual_packed_v6.json", "f021202abd11ea0a1083a295dee84beeb9fde7a3ce6480a05712bd294dd86703"]
       },
       "addressing": "runtime_packed_v1_capacity_checked"
     },

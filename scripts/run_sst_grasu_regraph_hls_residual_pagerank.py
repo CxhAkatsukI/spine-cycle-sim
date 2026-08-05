@@ -110,7 +110,11 @@ def residual_bound_matches(
 ) -> bool:
     field = (
         "residual_linf"
-        if residual_contract == "deltahls_sink_free_linf_warm"
+        if residual_contract
+        in {
+            "deltahls_sink_free_linf_warm",
+            "grasu_hardware_warm_dangling_linf",
+        }
         else "residual_l1"
     )
     try:
@@ -126,7 +130,10 @@ def external_rank_oracle_matches(
     epsilon: float,
     damping: float,
 ) -> bool:
-    if residual_contract != "deltahls_sink_free_linf_warm":
+    if residual_contract not in {
+        "deltahls_sink_free_linf_warm",
+        "grasu_hardware_warm_dangling_linf",
+    }:
         return mathematical_error <= 5.0 * epsilon
     try:
         old_rank_l1 = float(result["old_rank_l1"])
@@ -135,7 +142,9 @@ def external_rank_oracle_matches(
         reported_tolerance = float(result["mathematical_error_tolerance"])
     except (KeyError, TypeError, ValueError):
         return False
-    expected_tolerance = 1.1 * (old_rank_l1 + residual_l1) / (1.0 - damping)
+    expected_tolerance = max(
+        5.0e-7, 1.1 * (old_rank_l1 + residual_l1) / (1.0 - damping)
+    )
     return (
         result.get("mathematical_error_bound")
         == "l1_fixed_point_defect_plus_final_residual_over_one_minus_d"
@@ -186,6 +195,7 @@ def validate_result(
     memory = profile["memory"]
     assert isinstance(params, dict) and isinstance(memory, dict)
     delta_hls = residual_contract == "deltahls_sink_free_linf_warm"
+    hardware_warm = residual_contract == "grasu_hardware_warm_dangling_linf"
     iterations = int(result.get("iterations", -1))
     vertices = len(oracle.external_to_internal)
     partition_vertices = int(params["regraph_partition_vertices"])
@@ -255,6 +265,14 @@ def validate_result(
         == "execution_driven_sst_hbm_not_cycle_calibrated",
         "residual_contract": result.get("residual_contract")
         == residual_contract,
+        "hardware_correction": (not hardware_warm)
+        or (
+            result.get("correction_executions") == 1
+            and result.get("pipeline_executions") == iterations + 1
+            and result.get("correction_execution_timing")
+            == "realized_work_component_envelope"
+            and int(result.get("correction_pma_slots", 0)) > 0
+        ),
         "sink_free": (not delta_hls)
         or (
             result.get("old_sink_vertices") == 0
@@ -375,8 +393,9 @@ def main() -> int:
         choices=(
             "generic_dangling_l1_cold",
             "deltahls_sink_free_linf_warm",
+            "grasu_hardware_warm_dangling_linf",
         ),
-        default="generic_dangling_l1_cold",
+        default=None,
     )
     parser.add_argument("--pagerank-epsilon", type=float)
     parser.add_argument("--residual-max-iterations", type=int)
@@ -415,6 +434,9 @@ def main() -> int:
     params = profile["parameters"]
     memory = profile["memory"]
     profile_sharing = str(params.get("regraph_downstream_sharing", "direct"))
+    residual_contract = args.residual_contract or str(
+        params.get("pagerank_residual_contract", "generic_dangling_l1_cold")
+    )
     downstream_sharing = args.downstream_sharing or profile_sharing
     if downstream_sharing != profile_sharing:
         raise ValueError("residual runner downstream sharing differs from profile")
@@ -507,7 +529,7 @@ def main() -> int:
             "GRASU_SST_RESIDUAL_MAX_ITERATIONS": str(max_iterations),
             "GRASU_SST_PAGERANK_DAMPING": str(damping),
             "GRASU_SST_PAGERANK_EPSILON": str(epsilon),
-            "GRASU_SST_RESIDUAL_CONTRACT": args.residual_contract,
+            "GRASU_SST_RESIDUAL_CONTRACT": residual_contract,
             "GRASU_SST_CACHE_SEGMENTS_PER_HALF": str(
                 params["grasu_cache_segments_per_cu"]
             ),
@@ -640,7 +662,7 @@ def main() -> int:
         profile,
         runtime_oracle,
         full_solution,
-        residual_contract=args.residual_contract,
+        residual_contract=residual_contract,
         epsilon=epsilon,
         max_iterations=max_iterations,
         downstream_sharing=downstream_sharing,
@@ -658,7 +680,7 @@ def main() -> int:
         "capability_catalog": str(catalog.manifest_path),
         "capability_catalog_sha256": catalog.manifest_sha256,
         "algorithm_capability": capability.manifest_record(),
-        "residual_contract": args.residual_contract,
+        "residual_contract": residual_contract,
         "pagerank_epsilon": epsilon,
         "residual_max_iterations": max_iterations,
         "downstream_sharing": downstream_sharing,

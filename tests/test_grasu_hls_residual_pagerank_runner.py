@@ -87,6 +87,14 @@ class GraSuHlsResidualPageRankRunnerTests(unittest.TestCase):
             residual_bound_matches(result, "generic_dangling_l1_cold", 1.0e-4)
         )
 
+    def test_hardware_warm_validator_uses_direct_linf_threshold(self) -> None:
+        result = {"residual_l1": 3.6e-4, "residual_linf": 9.0e-5}
+        self.assertTrue(
+            residual_bound_matches(
+                result, "grasu_hardware_warm_dangling_linf", 1.0e-4
+            )
+        )
+
     def test_delta_rank_oracle_uses_fixed_point_defect_bound(self) -> None:
         result = {
             "old_rank_l1": 3.0e-5,
@@ -120,6 +128,26 @@ class GraSuHlsResidualPageRankRunnerTests(unittest.TestCase):
                 result,
                 2.0e-5,
                 "deltahls_sink_free_linf_warm",
+                1.0e-6,
+                0.85,
+            )
+        )
+
+    def test_hardware_warm_rank_oracle_has_float32_rounding_floor(self) -> None:
+        result = {
+            "old_rank_l1": 0.0,
+            "residual_l1": 0.0,
+            "mathematical_max_abs_error": 2.0e-8,
+            "mathematical_error_tolerance": 5.0e-7,
+            "mathematical_error_bound": (
+                "l1_fixed_point_defect_plus_final_residual_over_one_minus_d"
+            ),
+        }
+        self.assertTrue(
+            external_rank_oracle_matches(
+                result,
+                2.0e-8,
+                "grasu_hardware_warm_dangling_linf",
                 1.0e-6,
                 0.85,
             )

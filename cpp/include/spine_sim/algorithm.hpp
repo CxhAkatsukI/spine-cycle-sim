@@ -25,6 +25,7 @@ enum class AlgorithmUpdateMode {
 enum class ResidualPageRankContract {
   kGenericDanglingL1Cold,
   kDeltaHlsSinkFreeLinfWarm,
+  kHardwareWarmDanglingLinf,
 };
 
 struct AlgorithmPolicyConfig {

@@ -318,7 +318,7 @@
       "handoff": "weighted_pma_to_axis_stream",
       "profile_id": "grasu_regraph_candidate10_k4_shared_multipart_residual_packed_v6",
       "profile_path": "configs/architectures/grasu_regraph_candidate10_k4_shared_multipart_residual_packed_v6.json",
-      "profile_sha256": "47002ad754d3dbb671b084d1eb69171db25b9d6f5e8d40d43bb2f5d80d715f44",
+      "profile_sha256": "f021202abd11ea0a1083a295dee84beeb9fde7a3ce6480a05712bd294dd86703",
       "supported_algorithms": {
         "thresholded_residual_pagerank": {
           "claim_class": "projected_k4_shared_downstream_runtime_packed_multi_partition_scalability_only",

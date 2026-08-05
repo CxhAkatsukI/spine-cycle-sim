@@ -206,8 +206,8 @@ AlgorithmSourceResult GraphAlgorithmPolicy::prepare_source(
     case GraphAlgorithmKind::kResidualPageRank: {
       const float delta = word_to_float(state.auxiliary);
       const bool redistribute_dangling =
-          config_.residual_contract ==
-          ResidualPageRankContract::kGenericDanglingL1Cold;
+          config_.residual_contract !=
+          ResidualPageRankContract::kDeltaHlsSinkFreeLinfWarm;
       AlgorithmVertexState after{
           .primary = float_to_word(word_to_float(state.primary) + delta),
           .auxiliary = float_to_word(0.0F),
@@ -285,8 +285,8 @@ AlgorithmApplyResult GraphAlgorithmPolicy::apply(
     }
     case GraphAlgorithmKind::kResidualPageRank: {
       const bool redistribute_dangling =
-          config_.residual_contract ==
-          ResidualPageRankContract::kGenericDanglingL1Cold;
+          config_.residual_contract !=
+          ResidualPageRankContract::kDeltaHlsSinkFreeLinfWarm;
       const float incoming =
           word_to_float(reduced.value_or(float_to_word(0.0F))) +
           (redistribute_dangling ? word_to_float(context.dangling_share)
@@ -327,9 +327,9 @@ std::uint32_t
 GraphAlgorithmPolicy::activation_threshold_word() const noexcept {
   const float threshold =
       config_.residual_contract ==
-              ResidualPageRankContract::kDeltaHlsSinkFreeLinfWarm
-          ? config_.epsilon
-          : config_.epsilon / config_.vertices;
+              ResidualPageRankContract::kGenericDanglingL1Cold
+          ? config_.epsilon / config_.vertices
+          : config_.epsilon;
   return float_to_word(threshold);
 }
 

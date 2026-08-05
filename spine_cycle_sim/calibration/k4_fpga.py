@@ -183,7 +183,12 @@ def _hardware_execution_rounds(
 def _simulation_execution_rounds(
     algorithm: str, simulation: dict[str, Any]
 ) -> int:
-    key = "supersteps" if algorithm == "weighted_sssp" else "iterations"
+    if algorithm == "weighted_sssp":
+        key = "supersteps"
+    elif algorithm == "residual_pagerank" and "pipeline_executions" in simulation:
+        key = "pipeline_executions"
+    else:
+        key = "iterations"
     rounds = int(simulation.get(key, 0))
     if rounds <= 0:
         raise ValueError(f"missing positive simulator {key} for {algorithm}")
