@@ -161,7 +161,13 @@ def _spine_profile_environment(parameters: dict[str, Any]) -> dict[str, str]:
     return environment
 
 
-def expected_update_mode(analysis: ReciprocalUpdateAnalysis) -> str:
+def expected_update_mode(
+    analysis: ReciprocalUpdateAnalysis,
+    *,
+    hardware_full_recompute: bool = False,
+) -> str:
+    if hardware_full_recompute:
+        return "hardware_full_recompute"
     if analysis.zero_net:
         return "zero_net_no_repair"
     if analysis.deletions:
@@ -177,6 +183,7 @@ def validate_result(
     analysis: ReciprocalUpdateAnalysis,
     compute_pipelines: int,
     downstream_sharing: str,
+    hardware_full_recompute: bool = False,
 ) -> dict[str, bool]:
     expected_mode = (
         "spine_connected_components"
@@ -196,7 +203,11 @@ def validate_result(
         "converged": result.get("converged") is True
         and bool(result.get("frontier_out_sizes"))
         and result["frontier_out_sizes"][-1] == 0,
-        "update_mode": result.get("update_mode") == expected_update_mode(analysis),
+        "update_mode": result.get("update_mode")
+        == expected_update_mode(
+            analysis,
+            hardware_full_recompute=hardware_full_recompute,
+        ),
         "effective_mutations": result.get("logical_mutations")
         == analysis.effective_mutations,
         "physical_records": result.get("physical_update_records")
@@ -204,7 +215,8 @@ def validate_result(
         "active_edge_ledger": result.get("active_edge_execution_ledger_match")
         is True,
         "memory_ledger": result.get("memory_locality_ledger_match") is True,
-        "zero_net_no_analytic_work": (not analysis.zero_net)
+        "zero_net_no_analytic_work": hardware_full_recompute
+        or (not analysis.zero_net)
         or (
             result.get("initial_active_vertices") == 0
             and result.get("active_edges") == 0
@@ -278,10 +290,17 @@ def main() -> int:
     parser.add_argument("--source-buffer-vertices", type=int)
     parser.add_argument("--no-build", action="store_true")
     parser.add_argument("--reuse-result", action="store_true")
+    parser.add_argument(
+        "--hardware-full-recompute",
+        action="store_true",
+        help="Match the current FPGA CC host by starting all vertices active.",
+    )
     parser.add_argument("--instantiate-all-hbm-channels", action="store_true")
     args = parser.parse_args()
     if args.max_cycles <= 0 or args.max_rounds <= 0:
         raise ValueError("CC runner timing and architecture parameters must be positive")
+    if args.hardware_full_recompute and args.architecture != "grasu":
+        raise ValueError("hardware full recompute is a G+R FPGA calibration mode")
 
     requested_pipelines = args.compute_pipelines or 1
     requested_sharing = args.downstream_sharing or "direct"
@@ -437,6 +456,9 @@ def main() -> int:
                 "GRASU_SST_CORE_MHZ": str(core_mhz),
                 "GRASU_SST_MAX_CYCLES": str(args.max_cycles),
                 "GRASU_SST_MAX_ROUNDS": str(args.max_rounds),
+                "GRASU_SST_CC_HARDWARE_FULL_RECOMPUTE": (
+                    "1" if args.hardware_full_recompute else "0"
+                ),
                 "GRASU_SST_CACHE_SEGMENTS_PER_HALF": str(
                     parameters["grasu_cache_segments_per_cu"]
                 ),
@@ -568,6 +590,7 @@ def main() -> int:
         downstream_sharing=(
             downstream_sharing if args.architecture == "grasu" else "native"
         ),
+        hardware_full_recompute=args.hardware_full_recompute,
     )
     checks["dram_request_ledger"] = (
         dram["channels"] == len(binding.instantiated_channels)
@@ -601,7 +624,11 @@ def main() -> int:
         "logical_user_mutations": analysis.logical_user_mutations,
         "effective_mutations": analysis.effective_mutations,
         "physical_records": analysis.physical_records,
-        "update_mode": expected_update_mode(analysis),
+        "update_mode": expected_update_mode(
+            analysis,
+            hardware_full_recompute=args.hardware_full_recompute,
+        ),
+        "hardware_full_recompute": args.hardware_full_recompute,
         "host_oracle_storage": "graph_payload_released_before_sst_launch_v1",
         "host_heap_trimmed": host_heap_trimmed,
         "sst_host_wall_seconds": wall_seconds,

@@ -93,6 +93,9 @@ probe.addParams(
         ),
         "max_cycles": int(os.environ.get("GRASU_SST_MAX_CYCLES", "2000000")),
         "max_rounds": int(os.environ.get("GRASU_SST_MAX_ROUNDS", "256")),
+        "cc_hardware_full_recompute": int(
+            os.environ.get("GRASU_SST_CC_HARDWARE_FULL_RECOMPUTE", "0")
+        ),
         "grasu_native_supersteps": int(
             os.environ.get("GRASU_SST_NATIVE_SUPERSTEPS", "2")
         ),

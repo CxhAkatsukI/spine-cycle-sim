@@ -95,6 +95,7 @@ struct ConnectedComponentsSetup {
   std::size_t logical_mutations{};
   std::size_t physical_update_records{};
   bool full_recompute{};
+  bool hardware_full_recompute{};
   bool zero_net{};
 };
 
@@ -720,7 +721,8 @@ ConnectedComponentsReference run_connected_components_architecture_reference(
 
 ConnectedComponentsSetup build_connected_components_setup(
     const SpineEdgeSlice &old_graph, const SpineEdgeSlice &new_graph,
-    const SpineEdgeSlice &update, std::size_t max_iterations) {
+    const SpineEdgeSlice &update, std::size_t max_iterations,
+    bool hardware_full_recompute = false) {
   if (old_graph.vertices == 0 || old_graph.vertices != new_graph.vertices ||
       old_graph.vertices != update.vertices || update.edges.empty()) {
     throw std::invalid_argument(
@@ -746,6 +748,7 @@ ConnectedComponentsSetup build_connected_components_setup(
   }
 
   ConnectedComponentsSetup setup;
+  setup.hardware_full_recompute = hardware_full_recompute;
   setup.physical_update_records = update.edges.size();
   std::vector<std::uint32_t> touched;
   for (const auto &[key, delta] : deltas) {
@@ -767,6 +770,8 @@ ConnectedComponentsSetup build_connected_components_setup(
   setup.zero_net = setup.logical_mutations == 0;
   setup.mathematical_labels =
       run_connected_components_mathematical_reference(new_graph);
+
+  setup.full_recompute = setup.full_recompute || hardware_full_recompute;
 
   if (setup.full_recompute) {
     setup.initial_state.primary.resize(old_graph.vertices);
@@ -2197,6 +2202,8 @@ class OnlineMemoryProbe final : public SST::Component {
     write_percent_ = params.find<std::uint32_t>("write_percent", 0);
     max_cycles_ = params.find<std::uint64_t>("max_cycles", 1'000'000);
     max_rounds_ = params.find<std::size_t>("max_rounds", 256);
+    cc_hardware_full_recompute_ =
+        params.find<bool>("cc_hardware_full_recompute", false);
     grasu_native_supersteps_ =
         params.find<std::size_t>("grasu_native_supersteps", 2);
     pagerank_iterations_ = params.find<std::size_t>("pagerank_iterations", 1);
@@ -2873,7 +2880,7 @@ class OnlineMemoryProbe final : public SST::Component {
         }
         connected_components_setup_ = build_connected_components_setup(
             initial_snapshot, final_snapshot, *logical_update_snapshot,
-            max_rounds_);
+            max_rounds_, cc_hardware_full_recompute_);
       } else {
         if (delta_hls_residual_) {
           if (update_workload_path_.empty()) {
@@ -4201,6 +4208,9 @@ class OnlineMemoryProbe final : public SST::Component {
       {"write_percent", "Deterministic write percentage", "0"},
       {"max_cycles", "Core-cycle timeout", "1000000"},
       {"max_rounds", "Maximum SSSP frontier rounds", "256"},
+      {"cc_hardware_full_recompute",
+       "Run CC from all-vertex active identity labels like the FPGA host",
+       "false"},
       {"grasu_native_supersteps", "Fixed native ReGraph supersteps", "2"},
       {"pagerank_iterations", "Full PageRank iteration count", "1"},
       {"pagerank_damping", "Full PageRank damping factor", "0.85"},
@@ -4643,11 +4653,13 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"physical_update_records\": "
              << connected_components_setup_->physical_update_records << ",\n"
              << "  \"update_mode\": \""
-             << (connected_components_setup_->full_recompute
-                     ? "deletion_full_recompute"
-                     : (connected_components_setup_->zero_net
-                            ? "zero_net_no_repair"
-                            : "insertion_incremental_repair"))
+             << (connected_components_setup_->hardware_full_recompute
+                     ? "hardware_full_recompute"
+                     : (connected_components_setup_->full_recompute
+                            ? "deletion_full_recompute"
+                            : (connected_components_setup_->zero_net
+                                   ? "zero_net_no_repair"
+                                   : "insertion_incremental_repair")))
              << "\",\n"
              << "  \"materialized_snapshot_edges\": "
              << dynamic_materialized_snapshot_.edges.size() << ",\n";
@@ -4883,11 +4895,13 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"physical_update_records\": "
              << connected_components_setup_->physical_update_records << ",\n"
              << "  \"update_mode\": \""
-             << (connected_components_setup_->full_recompute
-                     ? "deletion_full_recompute"
-                     : (connected_components_setup_->zero_net
-                            ? "zero_net_no_repair"
-                            : "insertion_incremental_repair"))
+             << (connected_components_setup_->hardware_full_recompute
+                     ? "hardware_full_recompute"
+                     : (connected_components_setup_->full_recompute
+                            ? "deletion_full_recompute"
+                            : (connected_components_setup_->zero_net
+                                   ? "zero_net_no_repair"
+                                   : "insertion_incremental_repair")))
              << "\",\n"
              << "  \"pipeline_order\": "
                 "\"update_then_pma_native_compute\",\n"
@@ -10271,6 +10285,7 @@ class OnlineMemoryProbe final : public SST::Component {
   std::uint32_t write_percent_{};
   std::uint64_t max_cycles_{};
   std::size_t max_rounds_{};
+  bool cc_hardware_full_recompute_{};
   std::size_t grasu_native_supersteps_{};
   std::size_t pagerank_iterations_{};
   float pagerank_damping_{};

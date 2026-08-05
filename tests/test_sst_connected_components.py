@@ -7,6 +7,7 @@ from scripts.run_sst_connected_components import (
     _default_grasu_profile,
     _spine_profile_environment,
     _with_progress_defaults,
+    expected_update_mode,
     validate_result,
 )
 from spine_cycle_sim.experiments.connected_components_workloads import (
@@ -122,6 +123,50 @@ class SstConnectedComponentsRunnerTests(unittest.TestCase):
             downstream_sharing="shared",
         )
         self.assertTrue(all(checks.values()))
+
+    def test_hardware_full_recompute_is_an_explicit_protocol(self) -> None:
+        result = dict(
+            self.base,
+            mode="grasu_regraph_connected_components",
+            update_mode="hardware_full_recompute",
+            initial_active_vertices=4,
+            conversion_cost_included=False,
+            update_state_mismatches=0,
+            compute_pipelines=4,
+            downstream_sharing="shared",
+            max_parallel_downstream_partitions=1,
+            partition_passes=8,
+            destination_partitions=4,
+            iterations=2,
+        )
+        checks = validate_result(
+            result,
+            architecture="grasu",
+            expected_labels=(0, 0, 0, 3),
+            analysis=self.analysis,
+            compute_pipelines=4,
+            downstream_sharing="shared",
+            hardware_full_recompute=True,
+        )
+        self.assertTrue(all(checks.values()))
+        self.assertEqual(
+            expected_update_mode(
+                self.analysis,
+                hardware_full_recompute=True,
+            ),
+            "hardware_full_recompute",
+        )
+        self.assertFalse(
+            validate_result(
+                dict(result, update_mode="insertion_incremental_repair"),
+                architecture="grasu",
+                expected_labels=(0, 0, 0, 3),
+                analysis=self.analysis,
+                compute_pipelines=4,
+                downstream_sharing="shared",
+                hardware_full_recompute=True,
+            )["update_mode"]
+        )
 
     def test_legacy_k1_without_downstream_fields_is_direct(self) -> None:
         result = dict(
