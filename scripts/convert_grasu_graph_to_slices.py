@@ -7,6 +7,18 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import sys
+
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from spine_cycle_sim.experiments.connected_components_workloads import (  # noqa: E402
+    analyze_reciprocal_update,
+    validate_reciprocal_snapshot,
+)
+from spine_cycle_sim.experiments.shared_workloads import load_slice  # noqa: E402
 
 
 def sha256(path: Path) -> str:
@@ -14,7 +26,13 @@ def sha256(path: Path) -> str:
 
 
 def convert_graph(
-    graph: Path, initial_output: Path, update_output: Path, metadata_output: Path
+    graph: Path,
+    initial_output: Path,
+    update_output: Path,
+    metadata_output: Path,
+    *,
+    require_reciprocal: bool = False,
+    sort_records: bool = False,
 ) -> dict[str, object]:
     lines = [line.strip() for line in graph.read_text(encoding="ascii").splitlines()]
     lines = [line for line in lines if line and not line.startswith("#")]
@@ -32,24 +50,39 @@ def convert_graph(
     initial_rows: list[tuple[int, int, int, int]] = []
     for line in lines[1 : 1 + static_count]:
         fields = line.split()
-        if len(fields) != 2:
-            raise ValueError("GraSU static edge must contain src dst")
-        source, destination = map(int, fields)
+        if len(fields) not in {2, 3}:
+            raise ValueError("GraSU static edge must contain src dst [weight]")
+        source, destination = map(int, fields[:2])
+        weight = int(fields[2]) if len(fields) == 3 else 1
         if not (0 <= source < vertices and 0 <= destination < vertices):
             raise ValueError("GraSU static edge is out of range")
-        initial_rows.append((source, destination, 1, 1))
+        if not 1 <= weight <= 4095:
+            raise ValueError("GraSU static edge exceeds the weight12 ABI")
+        initial_rows.append((source, destination, weight, 1))
 
     update_rows: list[tuple[int, int, int, int]] = []
     for line in lines[1 + static_count :]:
         fields = line.split()
-        if len(fields) != 3:
-            raise ValueError("GraSU update edge must contain src dst operation")
-        source, destination, operation = map(int, fields)
+        if len(fields) not in {3, 4}:
+            raise ValueError(
+                "GraSU update edge must contain src dst [weight] operation"
+            )
+        source, destination = map(int, fields[:2])
+        weight = int(fields[2]) if len(fields) == 4 else 1
+        operation = int(fields[-1])
         if not (0 <= source < vertices and 0 <= destination < vertices):
             raise ValueError("GraSU update edge is out of range")
+        if not 1 <= weight <= 4095:
+            raise ValueError("GraSU update edge exceeds the weight12 ABI")
         if operation not in (0, 1):
             raise ValueError("GraSU update operation must be 0 (delete) or 1 (insert)")
-        update_rows.append((source, destination, 1, 1 if operation == 1 else -1))
+        update_rows.append(
+            (source, destination, weight, 1 if operation == 1 else -1)
+        )
+
+    if sort_records:
+        initial_rows.sort()
+        update_rows.sort()
 
     def write_slice(path: Path, case: str, rows: list[tuple[int, int, int, int]]) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -64,6 +97,11 @@ def convert_graph(
 
     write_slice(initial_output, f"{graph.stem}_initial", initial_rows)
     write_slice(update_output, f"{graph.stem}_update", update_rows)
+    if require_reciprocal:
+        initial_graph = load_slice(initial_output)
+        update_graph = load_slice(update_output)
+        validate_reciprocal_snapshot(initial_graph)
+        analyze_reciprocal_update(initial_graph, update_graph)
     metadata = {
         "schema_version": 1,
         "source_graph": str(graph.resolve()),
@@ -75,7 +113,14 @@ def convert_graph(
         "initial_slice_sha256": sha256(initial_output),
         "update_slice": str(update_output.resolve()),
         "update_slice_sha256": sha256(update_output),
-        "unit_weight": 1,
+        "weights_preserved": True,
+        "unit_weight": (
+            1 if all(row[2] == 1 for row in initial_rows + update_rows) else None
+        ),
+        "reciprocal_validated": require_reciprocal,
+        "record_order": (
+            "deterministic_src_dst_weight_diff" if sort_records else "source_graph"
+        ),
         "operation_mapping": {"0": -1, "1": 1},
     }
     metadata_output.parent.mkdir(parents=True, exist_ok=True)
@@ -91,9 +136,16 @@ def main() -> int:
     parser.add_argument("--initial-out", type=Path, required=True)
     parser.add_argument("--update-out", type=Path, required=True)
     parser.add_argument("--metadata-out", type=Path, required=True)
+    parser.add_argument("--require-reciprocal", action="store_true")
+    parser.add_argument("--sort-records", action="store_true")
     args = parser.parse_args()
     metadata = convert_graph(
-        args.graph.resolve(), args.initial_out, args.update_out, args.metadata_out
+        args.graph.resolve(),
+        args.initial_out,
+        args.update_out,
+        args.metadata_out,
+        require_reciprocal=args.require_reciprocal,
+        sort_records=args.sort_records,
     )
     print(
         "PASS convert_grasu_graph_to_slices: "
