@@ -1,0 +1,21 @@
+{
+  "calibration_cases": [
+    "amazon_insert",
+    "chain_v64",
+    "star_v4096",
+    "web_google_insert"
+  ],
+  "claim_class": "k4_fpga_fullpr_component_envelope_calibrated",
+  "clock_mhz": 150.0,
+  "fit_role": "calibration_only",
+  "fixed_cycles": 385422.22703296255,
+  "holdout_used_for_fit": false,
+  "limitations": [
+    "The target is a routed OpenCL event envelope, not an on-kernel cycle counter.",
+    "The component envelope preserves the execution-driven simulator's raw counters.",
+    "Transfer beyond the measured FullPR topology and scale domain requires new holdout evidence."
+  ],
+  "pma_slot_cycles": 1.9598556313801623,
+  "semantic": "fixed + vertices + executed PMA slots across all FullPR rounds",
+  "vertex_cycles": 416.0570733070215
+}

@@ -9,9 +9,14 @@ import unittest
 
 from spine_cycle_sim.calibration.k4_fpga import (
     K4CaseSpec,
+    K4MicrobenchSpec,
+    K4TimingRecord,
     fit_k4_event_scale,
+    fit_k4_fullpr_component_model,
+    k4_component_prediction_rows,
     k4_group_summary,
     k4_prediction_rows,
+    load_k4_microbench_records,
     load_k4_timing_records,
 )
 
@@ -76,6 +81,8 @@ class K4FpgaCalibrationTests(unittest.TestCase):
                         "core_mhz": 150.0,
                         "cycles": simulation_cycles,
                         "supersteps": supersteps,
+                        "vertices": 10,
+                        "compute_pma_slots": 32 * supersteps,
                         "correctness_mismatches": 0,
                         "architecture_correctness_mismatches": 0,
                         "mathematical_correctness_mismatches": 0,
@@ -169,6 +176,7 @@ class K4FpgaCalibrationTests(unittest.TestCase):
                     "FULL_PR_PMA_NATIVE_RESULT status=PASS rank_mismatches=0 "
                     "degree_mismatches=0 conversion_cost=absent "
                     f"pipeline_executions={rounds} rounds={rounds} "
+                    "vertices=10 pma_slots_per_partition_pass=32 "
                     "destination_partitions=1 shared_regraph_pipelines=1\n",
                     encoding="utf-8",
                 )
@@ -185,6 +193,110 @@ class K4FpgaCalibrationTests(unittest.TestCase):
             pr_specs.append(spec)
         records = load_k4_timing_records(self.summaries, pr_specs)
         self.assertEqual([record.supersteps for record in records], [2, 3, 4])
+
+    def test_fullpr_component_fit_preserves_holdout(self) -> None:
+        def record(case: str, role: str, vertices: int, slots: int) -> K4TimingRecord:
+            hardware_cycles = 1000.0 + 2.0 * vertices + 3.0 * slots
+            return K4TimingRecord(
+                case=case,
+                role=role,
+                algorithm="full_pagerank",
+                graph=f"{case}.graph",
+                simulation_manifest=f"{case}.json",
+                simulation_cycles=hardware_cycles / 2.0,
+                hardware_event_ms=hardware_cycles / 150_000.0,
+                hardware_cycles=hardware_cycles,
+                hardware_samples=3,
+                hardware_cv_pct=0.0,
+                supersteps=3,
+                destination_partitions=1,
+                vertices=vertices,
+                executed_pma_slots=slots,
+            )
+
+        records = [
+            record("cal_a", "calibration", 10, 100),
+            record("cal_b", "calibration", 20, 100),
+            record("cal_c", "calibration", 10, 200),
+            record("hold", "holdout", 15, 150),
+        ]
+        model = fit_k4_fullpr_component_model(records)
+        self.assertAlmostEqual(model.fixed_cycles, 1000.0)
+        self.assertAlmostEqual(model.vertex_cycles, 2.0)
+        self.assertAlmostEqual(model.pma_slot_cycles, 3.0)
+        rows = k4_component_prediction_rows(records, model)
+        self.assertAlmostEqual(rows[-1]["calibrated_absolute_error_pct"], 0.0)
+
+        poisoned = [
+            dataclasses.replace(
+                row,
+                hardware_cycles=row.hardware_cycles * 1000.0,
+                hardware_event_ms=row.hardware_event_ms * 1000.0,
+            )
+            if row.role == "holdout"
+            else row
+            for row in records
+        ]
+        self.assertEqual(fit_k4_fullpr_component_model(poisoned), model)
+
+    def test_loads_fullpr_microbenchmark_realized_work(self) -> None:
+        manifest = self.root / "micro" / "manifest.json"
+        manifest.parent.mkdir()
+        manifest.write_text(
+            json.dumps(
+                {
+                    "status": "PASS",
+                    "result": {
+                        "success": True,
+                        "core_mhz": 150.0,
+                        "cycles": 100.0,
+                        "iterations": 3,
+                        "vertices": 64,
+                        "destination_partitions": 1,
+                        "compute_pma_slots": 3024,
+                        "correctness_mismatches": 0,
+                        "architecture_correctness_mismatches": 0,
+                        "mathematical_correctness_mismatches": 0,
+                        "conversion_cost_included": False,
+                    },
+                }
+            ),
+            encoding="utf-8",
+        )
+        run_dir = self.root / "micro_hw"
+        run_dir.mkdir()
+        with (run_dir / "summary.tsv").open(
+            "w", encoding="utf-8", newline=""
+        ) as sink:
+            writer = csv.DictWriter(
+                sink,
+                fieldnames=(
+                    "algorithm",
+                    "status",
+                    "result_line",
+                    "timing_line",
+                ),
+                delimiter="\t",
+            )
+            writer.writeheader()
+            writer.writerow(
+                {
+                    "algorithm": "full_pagerank",
+                    "status": "PASS",
+                    "result_line": (
+                        "RESULT status=PASS rank_mismatches=0 degree_mismatches=0 "
+                        "pipeline_executions=3 rounds=3 vertices=64 "
+                        "destination_partitions=1 shared_regraph_pipelines=1 "
+                        "pma_slots_per_partition_pass=1008 conversion_cost=absent"
+                    ),
+                    "timing_line": "TIMING device_e2e_ms=2.0",
+                }
+            )
+        records = load_k4_microbench_records(
+            [K4MicrobenchSpec("micro", "calibration", manifest, run_dir)]
+        )
+        self.assertEqual(records[0].vertices, 64)
+        self.assertEqual(records[0].executed_pma_slots, 3024)
 
 
 if __name__ == "__main__":

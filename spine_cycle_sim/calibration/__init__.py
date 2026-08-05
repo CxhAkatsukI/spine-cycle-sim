@@ -119,11 +119,16 @@ from .refactor31_scale import (
 )
 from .k4_fpga import (
     K4CaseSpec,
+    K4EventComponentModel,
     K4EventScaleModel,
+    K4MicrobenchSpec,
     K4TimingRecord,
     fit_k4_event_scale,
+    fit_k4_fullpr_component_model,
+    k4_component_prediction_rows,
     k4_group_summary,
     k4_prediction_rows,
+    load_k4_microbench_records,
     load_k4_timing_records,
 )
 
@@ -228,10 +233,15 @@ __all__ = [
     "summarize_refactor31_rmat_runs",
     "validate_semantic_comparison",
     "K4CaseSpec",
+    "K4EventComponentModel",
     "K4EventScaleModel",
+    "K4MicrobenchSpec",
     "K4TimingRecord",
     "fit_k4_event_scale",
+    "fit_k4_fullpr_component_model",
+    "k4_component_prediction_rows",
     "k4_group_summary",
     "k4_prediction_rows",
+    "load_k4_microbench_records",
     "load_k4_timing_records",
 ]

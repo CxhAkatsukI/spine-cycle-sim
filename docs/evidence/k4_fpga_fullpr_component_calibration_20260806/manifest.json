@@ -1,0 +1,73 @@
+{
+  "calibration_cases": [
+    "amazon_insert",
+    "chain_v64",
+    "star_v4096",
+    "web_google_insert"
+  ],
+  "claim_class": "k4_fpga_fullpr_component_envelope_calibrated",
+  "hardware_summaries": [
+    {
+      "path": "/data/tmp/chuxiao/matched_fpga_fullpr_k4_real_20260805/summary.tsv",
+      "sha256": "a10550cc25dad48d265858d4893addd4093b74b4b2424a6eae3d66afcc78f345"
+    },
+    {
+      "path": "/data/tmp/chuxiao/matched_fpga_fullpr_k4_real_20260805_repeat2/summary.tsv",
+      "sha256": "78d03d7c96acc5ab53d075b111274937daabf96d7f3d92dd6592a1479d12b720"
+    },
+    {
+      "path": "/data/tmp/chuxiao/matched_fpga_fullpr_k4_real_20260805_repeat3/summary.tsv",
+      "sha256": "1edf30a54ef88563f262617f4f1ed876f6a9b295b5c69bdd8458e7bcf23d070f"
+    }
+  ],
+  "holdout_gate_pct": 20.0,
+  "holdout_max_absolute_error_pct": 2.594726871233944,
+  "holdout_used_for_fit": false,
+  "microbenchmarks": [
+    {
+      "case": "chain_v64",
+      "hardware_summary": "/data/tmp/chuxiao/k4_fullpr_fpga_microbench_20260806/runs/small_chain_v64/summary.tsv",
+      "hardware_summary_sha256": "81fe6ab2c829de00630fa046c51a6e216d662c36ccc2a9825c200e64b578ac74",
+      "role": "calibration",
+      "simulation_manifest": "/data/tmp/chuxiao/k4_fullpr_fpga_microbench_sim_20260806/small_chain_v64/manifest.json",
+      "simulation_manifest_sha256": "f6deff532b64ed6454d3997181cc78875f4f2422506ec44843e5327091a1d3fe"
+    },
+    {
+      "case": "star_v4096",
+      "hardware_summary": "/data/tmp/chuxiao/k4_fullpr_fpga_microbench_20260806/runs/small_star_v4096/summary.tsv",
+      "hardware_summary_sha256": "db8c5ab85a3e08facbbd5ee4c2bad73b3a2df30e153cf59d5b51bc7b337dc82b",
+      "role": "calibration",
+      "simulation_manifest": "/data/tmp/chuxiao/k4_fullpr_fpga_microbench_sim_20260806/small_star_v4096/manifest.json",
+      "simulation_manifest_sha256": "b7e98c6f43fcbc168cb03471e5f8a95f42071bf7532894ce9bb5fdbc4b87a2a4"
+    },
+    {
+      "case": "spread_v16384",
+      "hardware_summary": "/data/tmp/chuxiao/k4_fullpr_fpga_microbench_20260806/runs/medium_spread_v16384/summary.tsv",
+      "hardware_summary_sha256": "58cb1120a9b4d5d1e85fe477cfe1d95316cc464dd805c96febf42d7ba0c25c07",
+      "role": "holdout",
+      "simulation_manifest": "/data/tmp/chuxiao/k4_fullpr_fpga_microbench_sim_20260806/medium_spread_v16384/manifest.json",
+      "simulation_manifest_sha256": "f1e8e081862c005d762cc77e0ed3d445833052f9868b9cccb0e2eb2e18c0ba9c"
+    }
+  ],
+  "simulation_manifests": [
+    {
+      "case": "amazon_insert",
+      "path": "/data/tmp/chuxiao/k4_hw_calibration_sim_fullpr_20260806/amazon/manifest.json",
+      "role": "calibration",
+      "sha256": "90823a3a505a64b9a0f9525fed03059d39ded3ca1eb794f309be9bc07e337eca"
+    },
+    {
+      "case": "web_google_insert",
+      "path": "/data/tmp/chuxiao/k4_hw_calibration_sim_fullpr_20260806/web_google/manifest.json",
+      "role": "calibration",
+      "sha256": "deb07b686a9d21464112cf6c25ed7bcd6897079617b11385f1f23a9cc27e9361"
+    },
+    {
+      "case": "flickr_insert",
+      "path": "/data/tmp/chuxiao/k4_hw_calibration_sim_fullpr_20260806/flickr/manifest.json",
+      "role": "holdout",
+      "sha256": "fa60e8559ed5d9bfdf6ea4c079f9270ad36c64b162a14374ad5577aba4c097f4"
+    }
+  ],
+  "status": "PASS"
+}
