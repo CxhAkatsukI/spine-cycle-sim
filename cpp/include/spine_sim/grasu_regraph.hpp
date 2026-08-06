@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <memory>
@@ -14,6 +15,57 @@
 #include "spine_sim/scheduler.hpp"
 
 namespace spine::sim {
+
+constexpr std::size_t kGraSuReGraphU55cGraphChannels = 23;
+constexpr std::size_t kGraSuReGraphU55cChannelCapacityBytes = 512ULL << 20;
+constexpr std::size_t kGraSuReGraphRuntimeAlignmentBytes = 4096;
+
+struct GraSuReGraphBufferRegion {
+  std::size_t shard{};
+  std::string name;
+  std::size_t logical_bytes{};
+  std::size_t allocated_bytes{};
+  std::size_t channel{};
+  std::size_t channel_first{};
+  std::size_t channel_last{};
+};
+
+struct GraSuReGraphShardRuntimePlan {
+  std::uint32_t destination_base{};
+  std::size_t destination_vertices{};
+  std::size_t pma_slot_count{};
+  std::array<std::size_t, 4> pma_words{};
+  std::array<std::size_t, 4> update_counts{};
+  std::array<std::size_t, 4> update_alloc_counts{};
+  std::size_t row_words{};
+  std::size_t binary_words{};
+};
+
+struct GraSuReGraphRuntimePlan {
+  std::size_t max_cache_segments{};
+  std::size_t channel_capacity_bytes{};
+  std::vector<GraSuReGraphShardRuntimePlan> shards;
+  std::vector<GraSuReGraphBufferRegion> regions;
+  std::vector<std::size_t> channel_load_bytes;
+  std::size_t total_allocated_bytes{};
+};
+
+// Exact lane-aware U55C placement contract used by the sharded-K4 HLS host.
+// PMA/update lane N is restricted to its routed pseudo-channel range, while
+// row and binary metadata use the least-loaded graph pseudo-channel. Placement
+// is deterministic largest-first and rejects any per-channel overflow.
+[[nodiscard]] GraSuReGraphRuntimePlan build_grasu_regraph_runtime_plan(
+    const GraSuPartitionedPmaLayout &layout,
+    const std::vector<std::size_t> &physical_updates_per_shard,
+    std::size_t max_cache_segments,
+    std::size_t channels = kGraSuReGraphU55cGraphChannels,
+    std::size_t channel_capacity_bytes =
+        kGraSuReGraphU55cChannelCapacityBytes);
+
+[[nodiscard]] const GraSuReGraphBufferRegion &
+find_grasu_regraph_runtime_region(const GraSuReGraphRuntimePlan &plan,
+                                  std::size_t shard,
+                                  const std::string &name);
 
 struct GraSuReGraphConfig {
   std::size_t memory_channels{32};
