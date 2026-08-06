@@ -132,7 +132,16 @@ bool AxiMaster::idle() const noexcept {
       backend_.outstanding_for(config_.initiator_id) == 0;
 }
 
-std::size_t AxiMaster::channel_for(std::uint64_t address) const {
+std::size_t AxiMaster::channel_for(
+    std::uint64_t address,
+    std::optional<std::size_t> target_channel) const {
+  if (target_channel.has_value()) {
+    if (*target_channel >= config_.channels) {
+      throw std::invalid_argument(
+          "AXI request target channel is outside memory geometry");
+    }
+    return *target_channel;
+  }
   if (config_.fixed_channel.has_value()) {
     return *config_.fixed_channel;
   }
@@ -184,6 +193,7 @@ std::vector<AxiMaster::Burst> AxiMaster::split_request(
         .beats_completed = 0,
         .parent_accept_cycle = accepted_cycle,
         .address_ready_cycle = address_ready_cycle,
+        .target_channel = request.target_channel,
     });
     if (bytes == boundary_remaining && remaining > bytes) {
       ++stats_.four_kib_splits;
@@ -502,7 +512,7 @@ void AxiMaster::evaluate_data_channel(const CycleContext &context) {
       const BackendRequestHeader header{
           .initiator_id = config_.initiator_id,
           .request_id = next_backend_id_ + staged_beats_.size(),
-          .channel = channel_for(beat_address),
+          .channel = channel_for(beat_address, burst.target_channel),
           .operation = burst.operation,
           .address = beat_address,
           .bytes = beat_bytes,
