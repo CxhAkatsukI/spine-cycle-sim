@@ -2029,6 +2029,83 @@ void test_native_edge_array_flags_cross_source_window_hls_contract() {
             << " oracle_match=false\n";
 }
 
+void test_sharded_k4_runtime_plan_matches_u55c_contract() {
+  constexpr std::size_t kVertices = 6 * 64;
+  std::vector<GraSuEdge> initial;
+  std::vector<GraSuEdge> updates;
+  for (std::uint32_t destination = 0; destination < kVertices; ++destination) {
+    initial.push_back({.source = destination % 17,
+                       .destination = destination,
+                       .weight = static_cast<std::uint16_t>(destination % 7 + 1)});
+    if (destination % 3 == 0) {
+      updates.push_back({.source = static_cast<std::uint32_t>(
+                             (destination + 1) % kVertices),
+                         .destination = destination,
+                         .weight = 2});
+    }
+  }
+  const GraSuPartitionedPmaLayout layout =
+      GraSuPartitionedPmaLayout::build(
+          kVertices, 64, initial, updates,
+          spine::sim::GraSuPmaWordAbi::kWeightedFullWord);
+  const std::vector<std::size_t> update_counts(layout.partitions.size(), 21);
+  const auto plan = spine::sim::build_grasu_regraph_runtime_plan(
+      layout, update_counts, 8);
+  require(plan.shards.size() == 6 && plan.channel_load_bytes.size() == 23,
+          "sharded-K4 runtime plan has the wrong U55C geometry");
+  require(plan.regions.size() == 6 * 10,
+          "sharded-K4 runtime plan omitted a shard buffer role");
+  std::size_t allocated_sum = 0;
+  for (const auto &region : plan.regions) {
+    require(region.channel >= region.channel_first &&
+                region.channel < region.channel_last,
+            "sharded-K4 runtime region escaped its routed channel range");
+    require(region.allocated_bytes %
+                    spine::sim::kGraSuReGraphRuntimeAlignmentBytes ==
+                0,
+            "sharded-K4 runtime region is not page aligned");
+    allocated_sum += region.allocated_bytes;
+  }
+  require(allocated_sum == plan.total_allocated_bytes,
+          "sharded-K4 runtime allocated-byte ledger is not conserved");
+  for (std::size_t shard = 0; shard < layout.partitions.size(); ++shard) {
+    for (std::size_t lane = 0; lane < 4; ++lane) {
+      const std::string region_name = "pma" + std::to_string(lane);
+      const auto &pma = spine::sim::find_grasu_regraph_runtime_region(
+          plan, shard, region_name);
+      const std::array<std::pair<std::size_t, std::size_t>, 4> ranges{{
+          {0, 6}, {6, 12}, {12, 18}, {18, 23}}};
+      require(pma.channel >= ranges[lane].first &&
+                  pma.channel < ranges[lane].second,
+              "sharded-K4 PMA lane placement differs from routed HLS");
+    }
+  }
+  require(spine::sim::find_grasu_regraph_runtime_region(plan, 0, "row")
+                  .logical_bytes ==
+              (kVertices + 1) * sizeof(std::uint64_t),
+          "sharded-K4 row buffer omitted the HLS sentinel word");
+}
+
+void test_sharded_k4_runtime_plan_rejects_channel_overflow() {
+  constexpr std::size_t kVertices = 128;
+  const std::vector<GraSuEdge> initial = {
+      {.source = 0, .destination = 1},
+      {.source = 0, .destination = 65},
+  };
+  const GraSuPartitionedPmaLayout layout =
+      GraSuPartitionedPmaLayout::build(kVertices, 64, initial, {});
+  bool rejected = false;
+  try {
+    (void)spine::sim::build_grasu_regraph_runtime_plan(
+        layout, std::vector<std::size_t>(layout.partitions.size(), 1), 8, 23,
+        4095);
+  } catch (const std::overflow_error &) {
+    rejected = true;
+  }
+  require(rejected,
+          "sharded-K4 runtime plan silently exceeded pseudo-channel capacity");
+}
+
 } // namespace
 
 int main() {
@@ -2072,6 +2149,10 @@ int main() {
        test_native_compactor_rejects_normalized_pma_payload},
       {"native_cross_source_window_guard",
        test_native_edge_array_flags_cross_source_window_hls_contract},
+      {"sharded_k4_runtime_plan",
+       test_sharded_k4_runtime_plan_matches_u55c_contract},
+      {"sharded_k4_runtime_capacity_guard",
+       test_sharded_k4_runtime_plan_rejects_channel_overflow},
   };
   std::size_t failures = 0;
   for (const auto &[name, test] : tests) {
