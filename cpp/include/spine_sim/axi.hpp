@@ -21,6 +21,10 @@ struct AxiRequest {
   std::uint64_t address{};
   std::uint64_t bytes{};
   bool stream_read_beats{};
+  // A routed master may select a pseudo-channel per parent request. When this
+  // is absent, AxiConfig::fixed_channel or address interleaving remains the
+  // source of truth, preserving all existing fixed-port behavior.
+  std::optional<std::size_t> target_channel{std::nullopt};
   std::vector<std::uint8_t> write_data;
 };
 
@@ -230,6 +234,7 @@ class AxiMaster final : public Component {
     std::size_t beats_completed{};
     std::uint64_t parent_accept_cycle{};
     std::uint64_t address_ready_cycle{};
+    std::optional<std::size_t> target_channel;
   };
 
   struct StagedBeat {
@@ -260,7 +265,9 @@ class AxiMaster final : public Component {
   [[nodiscard]] std::vector<Burst> split_request(
       std::uint64_t parent_id, const AxiRequest &request,
       std::uint64_t accepted_cycle);
-  [[nodiscard]] std::size_t channel_for(std::uint64_t address) const;
+  [[nodiscard]] std::size_t
+  channel_for(std::uint64_t address,
+              std::optional<std::size_t> target_channel) const;
   [[nodiscard]] Burst* find_active(std::uint64_t burst_id);
   void reset_staging();
   void evaluate_output();

@@ -943,6 +943,54 @@ void test_fixed_axi_port_rejects_busy_unregister() {
           "busy fixed AXI port was partially or fully unregistered");
 }
 
+void test_axi_parent_request_routes_one_master_to_selected_channel() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("core", 100.0);
+  MockMemoryBackend backend("backend", core,
+                            MockMemoryConfig{
+                                .channels = 4,
+                                .latency_cycles = 3,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 8,
+                                .response_queue_depth = 16,
+                            });
+  FixedAxiPort port(
+      "routed-port", core,
+      FixedAxiPortConfig{
+          .memory_channels = 4, .channel = 0, .initiator_id = 109},
+      backend);
+  std::vector<std::uint8_t> expected(64);
+  for (std::size_t index = 0; index < expected.size(); ++index) {
+    expected[index] = static_cast<std::uint8_t>(index + 1);
+  }
+  backend.initialize_payload(2, 0x4000, expected);
+
+  SequenceProducer<AxiRequest> producer(
+      "routed-requester", core, port.requests(),
+      {{.transaction_id = 17,
+        .operation = MemoryOperation::kRead,
+        .address = 0x4000,
+        .bytes = expected.size(),
+        .stream_read_beats = false,
+        .target_channel = 2,
+        .write_data = {}}});
+  SequenceConsumer<AxiResponse> consumer("routed-response", core,
+                                         port.responses());
+  scheduler.add_component(producer);
+  port.register_components(scheduler);
+  scheduler.add_component(backend);
+  scheduler.add_component(consumer);
+  scheduler.run_until([&consumer] { return consumer.values.size() == 1; }, 64);
+
+  require(consumer.values[0].transaction_id == 17 &&
+              consumer.values[0].read_data == expected,
+          "routed AXI request did not read from its selected channel");
+  require(port.master().stats().requests_accepted == 1 &&
+              port.master().stats().requests_completed == 1 &&
+              port.master().stats().beats_issued == 1,
+          "routed AXI request accounting is not conserved");
+}
+
 void test_fifo_has_no_same_cycle_fallthrough() {
   Scheduler scheduler;
   const auto core = scheduler.add_clock_mhz("core", 100.0);
@@ -7609,6 +7657,8 @@ int main(int argc, char **argv) {
        test_scheduler_component_removal_is_exact},
       {"fixed_axi_busy_unregister",
        test_fixed_axi_port_rejects_busy_unregister},
+      {"axi_routed_parent_channel",
+       test_axi_parent_request_routes_one_master_to_selected_channel},
       {"fifo_no_fallthrough", test_fifo_has_no_same_cycle_fallthrough},
       {"fifo_order_independent", test_fifo_is_registration_order_independent},
       {"fifo_backpressure", test_fifo_backpressure_is_counted},
