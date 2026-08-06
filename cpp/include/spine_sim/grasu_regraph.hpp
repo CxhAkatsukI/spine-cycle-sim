@@ -100,6 +100,9 @@ struct GraSuReGraphConfig {
   std::size_t pagerank_source_map_latency{1};
   bool pagerank_prepared_source{true};
   bool initialize_degree_payload{true};
+  bool sharded_runtime_placement{false};
+  std::size_t runtime_channel_capacity_bytes{
+      kGraSuReGraphU55cChannelCapacityBytes};
   std::size_t max_supersteps{1024};
   std::uint64_t row_offset_base{0x1000'0000ULL};
   std::uint64_t pma_base{0x3000'0000ULL};

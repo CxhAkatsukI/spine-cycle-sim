@@ -1036,6 +1036,50 @@ void test_partitioned_regraph_shared_downstream_serializes_apply() {
           "shared-downstream ReGraph work/parallelism ledger mismatch");
 }
 
+void test_sharded_runtime_regraph_sssp_reads_routed_pma_payloads() {
+  constexpr std::size_t kVertices = 33;
+  constexpr std::size_t kPartitionVertices = 16;
+  const std::vector<GraSuEdge> edges = {
+      {.source = 0, .destination = 16, .weight = 1},
+      {.source = 16, .destination = 1, .weight = 1},
+      {.source = 1, .destination = 32, .weight = 1},
+      {.source = 32, .destination = 17, .weight = 1},
+  };
+  const GraSuPartitionedPmaLayout layout = GraSuPartitionedPmaLayout::build(
+      kVertices, kPartitionVertices, edges, {});
+
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("sharded-runtime-sssp", 200.0);
+  MockMemoryBackend backend("shared-hbm", core,
+                            MockMemoryConfig{.channels = 32,
+                                             .latency_cycles = 7,
+                                             .accepts_per_channel_per_cycle = 1,
+                                             .max_outstanding_per_channel = 32,
+                                             .response_queue_depth = 128});
+  GraSuReGraphConfig config;
+  config.partition_vertices = kPartitionVertices;
+  config.source_buffer_vertices = 16;
+  config.edge_lanes = 4;
+  config.gather_banks = 4;
+  config.cache_segments_per_half = 8;
+  config.sharded_runtime_placement = true;
+  config.source_state_channel = 23;
+  config.source_state_mirror_channel = 24;
+  GraSuReGraphSsspSystem system(scheduler, core, backend, layout, 0, config);
+  system.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until([&] { return system.done() || system.failed(); },
+                      5'000'000);
+
+  require(!system.failed() && system.done() &&
+              system.distances() == weighted_sssp_oracle(kVertices, edges, 0),
+          "sharded runtime PMA placement differs from weighted SSSP oracle");
+  const auto counters = system.counters();
+  require(counters.destination_partitions == 3 &&
+              counters.live_edges_scanned == edges.size() * counters.supersteps,
+          "sharded runtime PMA request ledger is not conserved");
+}
+
 void test_partitioned_update_times_degree_rmw_and_feeds_pagerank() {
   constexpr std::size_t kVertices = 33;
   constexpr std::size_t kPartitionVertices = 16;
@@ -2571,6 +2615,8 @@ int main() {
        test_partitioned_regraph_sssp_uses_two_compute_pipelines},
       {"partitioned_sssp_shared_k2",
        test_partitioned_regraph_shared_downstream_serializes_apply},
+      {"sharded_runtime_sssp",
+       test_sharded_runtime_regraph_sssp_reads_routed_pma_payloads},
       {"partitioned_update_degree",
        test_partitioned_update_times_degree_rmw_and_feeds_pagerank},
       {"full_pagerank", test_pma_native_regraph_full_pagerank_matches_oracle},

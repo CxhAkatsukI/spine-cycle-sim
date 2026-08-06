@@ -443,7 +443,9 @@ struct ReGraphPartitionPlan {
   std::size_t destination_base{};
   std::size_t destination_vertices{};
   std::uint64_t row_base{};
-  std::uint64_t pma_base{};
+  std::size_t row_channel{};
+  std::array<std::uint64_t, 4> pma_base{};
+  std::array<std::size_t, 4> pma_channel{};
 };
 
 class ReGraphIterationContext final : public ReGraphReaderContext {
@@ -1095,7 +1097,9 @@ public:
     }
     round_ = round;
     row_base_ = plan.row_base;
+    row_channel_ = plan.row_channel;
     pma_base_ = plan.pma_base;
+    pma_channel_ = plan.pma_channel;
     accumulate_dangling_ = accumulate_dangling;
     source_ = 0;
     begin_segment_ = 0;
@@ -1261,6 +1265,7 @@ public:
               .address = row_base_ + source_ * 8,
               .bytes = 8,
               .stream_read_beats = false,
+              .target_channel = row_channel_,
               .write_data = {},
           })) {
         staged_request_ = RequestKind::kRow;
@@ -1376,7 +1381,7 @@ private:
     std::vector<std::uint32_t> auxiliary_words;
   };
 
-  [[nodiscard]] std::size_t pma_channel(std::size_t segment) const {
+  [[nodiscard]] std::size_t pma_port(std::size_t segment) const {
     const std::size_t local = segment >> 1;
     const std::size_t parity = segment & 1U;
     return local < config_.cache_segments_per_half ? parity * 2
@@ -1384,7 +1389,8 @@ private:
   }
 
   [[nodiscard]] std::uint64_t pma_address(std::size_t segment) const {
-    return pma_base_ + (segment >> 1) * kGraSuSegmentBytes;
+    const std::size_t port = pma_port(segment);
+    return pma_base_[port] + (segment >> 1) * kGraSuSegmentBytes;
   }
 
   void stage_scalar_response(FixedAxiPort &port) {
@@ -1561,13 +1567,15 @@ private:
             config_.reader_buffer_batches) {
       return;
     }
-    FixedAxiPort &port = *ports_.pma[pma_channel(next_segment_)];
+    const std::size_t logical_port = pma_port(next_segment_);
+    FixedAxiPort &port = *ports_.pma[logical_port];
     if (port.requests().try_push(AxiRequest{
             .transaction_id = next_transaction_id_,
             .operation = MemoryOperation::kRead,
             .address = pma_address(next_segment_),
             .bytes = kGraSuSegmentBytes,
             .stream_read_beats = false,
+            .target_channel = pma_channel_[logical_port],
             .write_data = {},
         })) {
       staged_request_ = RequestKind::kPma;
@@ -1663,7 +1671,9 @@ private:
   Phase phase_{Phase::kIdle};
   std::uint64_t round_{};
   std::uint64_t row_base_{};
-  std::uint64_t pma_base_{};
+  std::size_t row_channel_{};
+  std::array<std::uint64_t, 4> pma_base_{};
+  std::array<std::size_t, 4> pma_channel_{};
   bool accumulate_dangling_{};
   std::uint64_t next_transaction_id_{0x7100'0000'0000'0000ULL};
   std::size_t source_{};
@@ -4171,6 +4181,7 @@ public:
       iteration_context_ =
           std::make_unique<ReGraphIterationContext>(policy_);
     }
+    initialize_sharded_graph_payloads();
     initialize_state();
     construct_components();
   }
@@ -4578,6 +4589,32 @@ private:
 
   void construct_partition_plans() {
     partition_plans_.reserve(layout_.partitions.size());
+    if (config_.sharded_runtime_placement) {
+      runtime_plan_ = build_grasu_regraph_runtime_plan(
+          layout_, std::vector<std::size_t>(layout_.partitions.size(), 0),
+          config_.cache_segments_per_half, kGraSuReGraphU55cGraphChannels,
+          config_.runtime_channel_capacity_bytes);
+      for (std::size_t partition = 0; partition < layout_.partitions.size();
+           ++partition) {
+        const GraSuPmaLayout &part = layout_.partitions[partition];
+        const auto row = find_grasu_regraph_runtime_region(
+            *runtime_plan_, partition, "row");
+        ReGraphPartitionPlan plan{
+            .destination_base = part.destination_base,
+            .destination_vertices = part.destination_vertices,
+            .row_base = row.channel_offset_bytes,
+            .row_channel = row.channel,
+        };
+        for (std::size_t lane = 0; lane < 4; ++lane) {
+          const auto pma = find_grasu_regraph_runtime_region(
+              *runtime_plan_, partition, "pma" + std::to_string(lane));
+          plan.pma_base[lane] = pma.channel_offset_bytes;
+          plan.pma_channel[lane] = pma.channel;
+        }
+        partition_plans_.push_back(plan);
+      }
+      return;
+    }
     for (std::size_t partition = 0; partition < layout_.partitions.size();
          ++partition) {
       const GraSuPmaLayout &part = layout_.partitions[partition];
@@ -4585,8 +4622,52 @@ private:
           .destination_base = part.destination_base,
           .destination_vertices = part.destination_vertices,
           .row_base = address_plan_.row_bases.at(partition),
-          .pma_base = address_plan_.pma_bases.at(partition),
+          .row_channel = config_.row_channel,
+          .pma_base = {address_plan_.pma_bases.at(partition),
+                       address_plan_.pma_bases.at(partition),
+                       address_plan_.pma_bases.at(partition),
+                       address_plan_.pma_bases.at(partition)},
+          .pma_channel = {0, 1, 2, 3},
       });
+    }
+  }
+
+  void initialize_sharded_graph_payloads() {
+    if (!runtime_plan_.has_value()) {
+      return;
+    }
+    for (std::size_t partition = 0; partition < layout_.partitions.size();
+         ++partition) {
+      const GraSuPmaLayout &part = layout_.partitions[partition];
+      const ReGraphPartitionPlan &plan = partition_plans_[partition];
+      std::vector<std::uint8_t> rows;
+      rows.reserve(part.row_slot_bounds.size() * sizeof(std::uint64_t));
+      for (const auto &[begin, end] : part.row_slot_bounds) {
+        const std::uint64_t packed =
+            (static_cast<std::uint64_t>(begin) << 32) | end;
+        for (std::size_t byte = 0; byte < sizeof(packed); ++byte) {
+          rows.push_back(static_cast<std::uint8_t>(packed >> (byte * 8)));
+        }
+      }
+      backend_.initialize_payload(plan.row_channel, plan.row_base, rows);
+
+      for (std::size_t segment = 0; segment < part.segments.size(); ++segment) {
+        const std::size_t local = segment >> 1;
+        const std::size_t parity = segment & 1U;
+        const std::size_t lane =
+            local < config_.cache_segments_per_half ? parity * 2
+                                                    : parity * 2 + 1;
+        std::vector<std::uint8_t> bytes;
+        bytes.reserve(kGraSuSegmentBytes);
+        for (const std::uint32_t word : part.segments[segment]) {
+          for (std::size_t byte = 0; byte < sizeof(word); ++byte) {
+            bytes.push_back(static_cast<std::uint8_t>(word >> (byte * 8)));
+          }
+        }
+        backend_.initialize_payload(
+            plan.pma_channel[lane],
+            plan.pma_base[lane] + local * kGraSuSegmentBytes, bytes);
+      }
     }
   }
 
@@ -4872,6 +4953,7 @@ private:
   std::size_t fixed_rounds_{};
   GraSuPartitionAddressPlan address_plan_;
   std::vector<ReGraphPartitionPlan> partition_plans_;
+  std::optional<GraSuReGraphRuntimePlan> runtime_plan_;
   std::unique_ptr<ReGraphIterationContext> iteration_context_;
   std::unique_ptr<FixedAxiPort> source_prepare_state_read_port_;
   std::unique_ptr<FixedAxiPort> source_prepare_degree_read_port_;
