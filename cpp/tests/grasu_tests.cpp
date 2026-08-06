@@ -2056,6 +2056,8 @@ void test_sharded_k4_runtime_plan_matches_u55c_contract() {
   require(plan.regions.size() == 6 * 10,
           "sharded-K4 runtime plan omitted a shard buffer role");
   std::size_t allocated_sum = 0;
+  std::array<std::vector<std::pair<std::size_t, std::size_t>>, 23>
+      channel_intervals;
   for (const auto &region : plan.regions) {
     require(region.channel >= region.channel_first &&
                 region.channel < region.channel_last,
@@ -2064,10 +2066,28 @@ void test_sharded_k4_runtime_plan_matches_u55c_contract() {
                     spine::sim::kGraSuReGraphRuntimeAlignmentBytes ==
                 0,
             "sharded-K4 runtime region is not page aligned");
+    require(region.channel_offset_bytes + region.allocated_bytes <=
+                plan.channel_capacity_bytes,
+            "sharded-K4 runtime region exceeds its channel");
+    channel_intervals[region.channel].push_back(
+        {region.channel_offset_bytes,
+         region.channel_offset_bytes + region.allocated_bytes});
     allocated_sum += region.allocated_bytes;
   }
   require(allocated_sum == plan.total_allocated_bytes,
           "sharded-K4 runtime allocated-byte ledger is not conserved");
+  for (std::size_t channel = 0; channel < channel_intervals.size(); ++channel) {
+    auto &intervals = channel_intervals[channel];
+    std::sort(intervals.begin(), intervals.end());
+    std::size_t cursor = 0;
+    for (const auto &[begin, end] : intervals) {
+      require(begin == cursor && end > begin,
+              "sharded-K4 runtime regions overlap or leave an offset hole");
+      cursor = end;
+    }
+    require(cursor == plan.channel_load_bytes[channel],
+            "sharded-K4 runtime channel-offset ledger is not conserved");
+  }
   for (std::size_t shard = 0; shard < layout.partitions.size(); ++shard) {
     for (std::size_t lane = 0; lane < 4; ++lane) {
       const std::string region_name = "pma" + std::to_string(lane);
