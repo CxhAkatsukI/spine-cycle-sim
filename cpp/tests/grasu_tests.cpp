@@ -829,6 +829,109 @@ void test_sharded_runtime_regraph_sssp_reads_routed_pma_payloads() {
           "sharded runtime PMA request ledger is not conserved");
 }
 
+void test_sharded_k4_regraph_sssp_reuses_frontends_in_partition_order() {
+  constexpr std::size_t kVertices = 96;
+  constexpr std::size_t kPartitionVertices = 16;
+  const std::vector<GraSuEdge> edges = {
+      {.source = 0, .destination = 1, .weight = 2},
+      {.source = 0, .destination = 17, .weight = 1},
+      {.source = 17, .destination = 34, .weight = 1},
+      {.source = 34, .destination = 51, .weight = 1},
+      {.source = 51, .destination = 68, .weight = 1},
+      {.source = 68, .destination = 85, .weight = 1},
+      {.source = 1, .destination = 85, .weight = 20},
+  };
+  const GraSuPartitionedPmaLayout layout = GraSuPartitionedPmaLayout::build(
+      kVertices, kPartitionVertices, edges, {});
+
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("sharded-k4-sssp", 200.0);
+  MockMemoryBackend backend(
+      "shared-hbm", core,
+      MockMemoryConfig{.channels = 32,
+                       .latency_cycles = 7,
+                       .accepts_per_channel_per_cycle = 1,
+                       .max_outstanding_per_channel = 32,
+                       .response_queue_depth = 128,
+                       .registered_round_robin_arbitration = true});
+  GraSuReGraphConfig config;
+  config.partition_vertices = kPartitionVertices;
+  config.source_buffer_vertices = 16;
+  config.edge_lanes = 4;
+  config.gather_banks = 4;
+  config.cache_segments_per_half = 8;
+  config.frontend_count = 4;
+  config.frontend_mux_fifo_depth = 4;
+  config.sharded_runtime_placement = true;
+  config.source_state_channel = 23;
+  config.source_state_mirror_channel = 24;
+  GraSuReGraphSsspSystem system(scheduler, core, backend, layout, 0, config);
+  system.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until([&] { return system.done() || system.failed(); },
+                      10'000'000);
+
+  require(!system.failed() && system.done(),
+          "sharded-K4 PMA-native ReGraph SSSP did not complete");
+  require(system.distances() == weighted_sssp_oracle(kVertices, edges, 0),
+          "sharded-K4 PMA-native ReGraph SSSP differs from Dijkstra");
+  const auto counters = system.counters();
+  require(counters.destination_partitions == 6 &&
+              counters.frontend_count == 4 &&
+              counters.partition_passes ==
+                  counters.destination_partitions * counters.supersteps &&
+              counters.frontend_launches == counters.partition_passes &&
+              counters.frontend_mux_rows ==
+                  counters.partition_passes *
+                      (kPartitionVertices /
+                       config.gather_vertices_per_merge_cycle) &&
+              counters.live_edges_scanned == edges.size() * counters.supersteps,
+          "sharded-K4 frontend/mux work ledger is not conserved");
+  std::cout << "EVIDENCE grasu_regraph_sharded_k4_sssp cycles="
+            << counters.end_cycle - counters.start_cycle
+            << " partitions=" << counters.destination_partitions
+            << " supersteps=" << counters.supersteps
+            << " launches=" << counters.frontend_launches
+            << " mux_rows=" << counters.frontend_mux_rows
+            << " mux_wait=" << counters.frontend_mux_input_wait_cycles << '\n';
+}
+
+void test_sharded_k4_pagerank_fails_closed_without_source_prepare() {
+  constexpr std::size_t kVertices = 32;
+  const std::vector<GraSuEdge> edges = {
+      {.source = 0, .destination = 1},
+      {.source = 1, .destination = 17},
+  };
+  const GraSuPartitionedPmaLayout layout =
+      GraSuPartitionedPmaLayout::build(kVertices, 16, edges, {});
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("sharded-k4-pr-guard", 200.0);
+  MockMemoryBackend backend("shared-hbm", core,
+                            MockMemoryConfig{.channels = 32,
+                                             .latency_cycles = 2,
+                                             .accepts_per_channel_per_cycle = 1,
+                                             .max_outstanding_per_channel = 8,
+                                             .response_queue_depth = 32});
+  GraSuReGraphConfig config;
+  config.partition_vertices = 16;
+  config.source_buffer_vertices = 16;
+  config.edge_lanes = 4;
+  config.gather_banks = 4;
+  config.cache_segments_per_half = 8;
+  config.frontend_count = 4;
+  config.sharded_runtime_placement = true;
+  bool rejected = false;
+  try {
+    GraSuReGraphPageRankSystem system(scheduler, core, backend, layout,
+                                      std::vector<std::uint32_t>(kVertices, 1),
+                                      2, 0.85F, config);
+  } catch (const std::invalid_argument &) {
+    rejected = true;
+  }
+  require(rejected,
+          "sharded-K4 PageRank ran without the global source-prepare phase");
+}
+
 void test_partitioned_update_times_degree_rmw_and_feeds_pagerank() {
   constexpr std::size_t kVertices = 33;
   constexpr std::size_t kPartitionVertices = 16;
@@ -2078,23 +2181,23 @@ void test_sharded_k4_runtime_plan_matches_u55c_contract() {
   std::vector<GraSuEdge> initial;
   std::vector<GraSuEdge> updates;
   for (std::uint32_t destination = 0; destination < kVertices; ++destination) {
-    initial.push_back({.source = destination % 17,
-                       .destination = destination,
-                       .weight = static_cast<std::uint16_t>(destination % 7 + 1)});
+    initial.push_back(
+        {.source = destination % 17,
+         .destination = destination,
+         .weight = static_cast<std::uint16_t>(destination % 7 + 1)});
     if (destination % 3 == 0) {
-      updates.push_back({.source = static_cast<std::uint32_t>(
-                             (destination + 1) % kVertices),
-                         .destination = destination,
-                         .weight = 2});
+      updates.push_back(
+          {.source = static_cast<std::uint32_t>((destination + 1) % kVertices),
+           .destination = destination,
+           .weight = 2});
     }
   }
-  const GraSuPartitionedPmaLayout layout =
-      GraSuPartitionedPmaLayout::build(
-          kVertices, 64, initial, updates,
-          spine::sim::GraSuPmaWordAbi::kWeightedFullWord);
+  const GraSuPartitionedPmaLayout layout = GraSuPartitionedPmaLayout::build(
+      kVertices, 64, initial, updates,
+      spine::sim::GraSuPmaWordAbi::kWeightedFullWord);
   const std::vector<std::size_t> update_counts(layout.partitions.size(), 21);
-  const auto plan = spine::sim::build_grasu_regraph_runtime_plan(
-      layout, update_counts, 8);
+  const auto plan =
+      spine::sim::build_grasu_regraph_runtime_plan(layout, update_counts, 8);
   require(plan.shards.size() == 6 && plan.channel_load_bytes.size() == 23,
           "sharded-K4 runtime plan has the wrong U55C geometry");
   require(plan.regions.size() == 6 * 10,
@@ -2137,16 +2240,15 @@ void test_sharded_k4_runtime_plan_matches_u55c_contract() {
       const std::string region_name = "pma" + std::to_string(lane);
       const auto &pma = spine::sim::find_grasu_regraph_runtime_region(
           plan, shard, region_name);
-      const std::array<std::pair<std::size_t, std::size_t>, 4> ranges{{
-          {0, 6}, {6, 12}, {12, 18}, {18, 23}}};
+      const std::array<std::pair<std::size_t, std::size_t>, 4> ranges{
+          {{0, 6}, {6, 12}, {12, 18}, {18, 23}}};
       require(pma.channel >= ranges[lane].first &&
                   pma.channel < ranges[lane].second,
               "sharded-K4 PMA lane placement differs from routed HLS");
     }
   }
   require(spine::sim::find_grasu_regraph_runtime_region(plan, 0, "row")
-                  .logical_bytes ==
-              (kVertices + 1) * sizeof(std::uint64_t),
+                  .logical_bytes == (kVertices + 1) * sizeof(std::uint64_t),
           "sharded-K4 row buffer omitted the HLS sentinel word");
 }
 
@@ -2190,6 +2292,10 @@ int main() {
        test_partitioned_regraph_sssp_crosses_destination_windows},
       {"sharded_runtime_sssp",
        test_sharded_runtime_regraph_sssp_reads_routed_pma_payloads},
+      {"sharded_k4_sssp",
+       test_sharded_k4_regraph_sssp_reuses_frontends_in_partition_order},
+      {"sharded_k4_pagerank_guard",
+       test_sharded_k4_pagerank_fails_closed_without_source_prepare},
       {"partitioned_update_degree",
        test_partitioned_update_times_degree_rmw_and_feeds_pagerank},
       {"full_pagerank", test_pma_native_regraph_full_pagerank_matches_oracle},
