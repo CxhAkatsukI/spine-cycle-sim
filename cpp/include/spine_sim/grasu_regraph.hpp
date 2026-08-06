@@ -26,6 +26,7 @@ struct GraSuReGraphBufferRegion {
   std::size_t logical_bytes{};
   std::size_t allocated_bytes{};
   std::size_t channel{};
+  std::size_t channel_offset_bytes{};
   std::size_t channel_first{};
   std::size_t channel_last{};
 };

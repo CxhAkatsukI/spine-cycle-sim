@@ -154,6 +154,7 @@ GraSuReGraphRuntimePlan build_grasu_regraph_runtime_plan(
           "GraSU-ReGraph runtime buffers exceed HBM pseudo-channel capacity");
     }
     region.channel = selected;
+    region.channel_offset_bytes = result.channel_load_bytes[selected];
     result.channel_load_bytes[selected] += region.allocated_bytes;
     result.total_allocated_bytes += region.allocated_bytes;
   }
