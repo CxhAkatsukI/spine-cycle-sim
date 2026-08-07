@@ -580,6 +580,12 @@ def main() -> int:
             "GRASU_SST_APPLY_STATE_CHANNEL": str(
                 params["regraph_apply_state_channel"]
             ),
+            "GRASU_SST_SPLIT_PAGERANK_STATE": (
+                "1" if params.get("regraph_split_pagerank_state", False) else "0"
+            ),
+            "GRASU_SST_RESIDUAL_STATE_CHANNEL": str(
+                params.get("regraph_residual_state_channel", 26)
+            ),
             "GRASU_SST_DEGREE_CHANNEL": str(params["regraph_degree_channel"]),
             "GRASU_SST_DEGREE_FIFO_DEPTH": str(params["grasu_degree_fifo_depth"]),
             "GRASU_SST_DEGREE_REORDER_ENTRIES": str(
@@ -626,6 +632,9 @@ def main() -> int:
             "GRASU_SST_PMA_BASE": str(params["grasu_pma_base_bytes"]),
             "GRASU_SST_VERTEX_STATE_BASE": str(
                 params["grasu_vertex_state_base_bytes"]
+            ),
+            "GRASU_SST_RESIDUAL_STATE_BASE": str(
+                params.get("grasu_residual_state_base_bytes", 0x42000000)
             ),
             "GRASU_SST_SOURCE_STATE_BASE": str(
                 params["grasu_source_state_base_bytes"]

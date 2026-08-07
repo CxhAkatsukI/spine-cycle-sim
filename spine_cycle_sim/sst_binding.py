@@ -119,6 +119,7 @@ def grasu_normalized_memory_binding(
         "regraph_source_state_channel",
         "regraph_source_state_mirror_channel",
         "regraph_apply_state_channel",
+        "regraph_residual_state_channel",
         "regraph_degree_channel",
     ):
         if key in parameters:

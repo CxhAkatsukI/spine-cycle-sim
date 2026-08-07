@@ -165,6 +165,12 @@ probe.addParams(
         "grasu_apply_state_channel": int(
             os.environ.get("GRASU_SST_APPLY_STATE_CHANNEL", "30")
         ),
+        "grasu_split_pagerank_state": int(
+            os.environ.get("GRASU_SST_SPLIT_PAGERANK_STATE", "0")
+        ),
+        "grasu_residual_state_channel": int(
+            os.environ.get("GRASU_SST_RESIDUAL_STATE_CHANNEL", "26")
+        ),
         "grasu_gather_merger_fifo_depth": int(
             os.environ.get("GRASU_SST_GATHER_MERGER_FIFO_DEPTH", "16")
         ),
@@ -227,6 +233,9 @@ probe.addParams(
         ),
         "grasu_vertex_state_base": int(
             os.environ.get("GRASU_SST_VERTEX_STATE_BASE", str(0x40000000))
+        ),
+        "grasu_residual_state_base": int(
+            os.environ.get("GRASU_SST_RESIDUAL_STATE_BASE", str(0x42000000))
         ),
         "grasu_source_state_base": int(
             os.environ.get("GRASU_SST_SOURCE_STATE_BASE", str(0x50000000))

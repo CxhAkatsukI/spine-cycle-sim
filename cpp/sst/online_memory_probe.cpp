@@ -2496,6 +2496,10 @@ class OnlineMemoryProbe final : public SST::Component {
         params.find<std::size_t>("grasu_source_state_mirror_channel", 3);
     grasu_config_.vertex_state_channel =
         params.find<std::size_t>("grasu_apply_state_channel", 30);
+    grasu_config_.split_pagerank_state =
+        params.find<bool>("grasu_split_pagerank_state", false);
+    grasu_config_.residual_state_channel =
+        params.find<std::size_t>("grasu_residual_state_channel", 26);
     grasu_config_.axis_fifo_depth =
         params.find<std::size_t>("grasu_axis_fifo_depth", 16);
     grasu_config_.gather_merger_fifo_depth =
@@ -2530,6 +2534,8 @@ class OnlineMemoryProbe final : public SST::Component {
         params.find<std::uint64_t>("grasu_pma_base", 0x3000'0000ULL);
     grasu_config_.vertex_state_base =
         params.find<std::uint64_t>("grasu_vertex_state_base", 0x4000'0000ULL);
+    grasu_config_.residual_state_base = params.find<std::uint64_t>(
+        "grasu_residual_state_base", 0x4200'0000ULL);
     grasu_config_.source_state_base =
         params.find<std::uint64_t>("grasu_source_state_base", 0x5000'0000ULL);
     grasu_config_.source_state_buffer_stride = params.find<std::uint64_t>(
@@ -4487,6 +4493,11 @@ class OnlineMemoryProbe final : public SST::Component {
       {"grasu_source_state_mirror_channel",
        "ReGraph mirrored source-state HBM channel", "3"},
       {"grasu_apply_state_channel", "ReGraph apply-state HBM channel", "30"},
+      {"grasu_split_pagerank_state",
+       "Store residual PageRank rank and residual in separate HBM arrays",
+       "false"},
+      {"grasu_residual_state_channel",
+       "ReGraph residual PageRank residual-state HBM channel", "26"},
       {"grasu_axis_fifo_depth", "GraSU/ReGraph AXIS FIFO depth", "16"},
       {"grasu_gather_merger_fifo_depth", "Gather-to-merger AXIS FIFO depth",
        "16"},
@@ -4518,6 +4529,8 @@ class OnlineMemoryProbe final : public SST::Component {
       {"grasu_row_offset_base", "GraSU/ReGraph row-offset base address", "268435456"},
       {"grasu_pma_base", "GraSU/ReGraph PMA base address", "805306368"},
       {"grasu_vertex_state_base", "ReGraph apply-state base address", "1073741824"},
+      {"grasu_residual_state_base",
+       "ReGraph residual-state base address", "1107296256"},
       {"grasu_source_state_base", "ReGraph source-state base address", "1342177280"},
       {"grasu_source_state_buffer_stride", "ReGraph ping-pong source-state stride", "1048576"},
       {"grasu_degree_base", "ReGraph out-degree base address", "1090519040"},
