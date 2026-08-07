@@ -133,6 +133,7 @@ struct GraSuReGraphCounters {
   std::size_t max_parallel_downstream_partitions{};
   std::uint64_t supersteps{};
   std::uint64_t partition_passes{};
+  std::array<std::uint64_t, 4> frontend_partition_passes{};
   std::uint64_t pipeline_busy_cycles{};
   std::uint64_t downstream_busy_cycles{};
   std::uint64_t source_prepare_cycles{};

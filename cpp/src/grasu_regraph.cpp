@@ -3675,12 +3675,16 @@ public:
                          std::vector<GraSuReGraphWorker> workers,
                          ReGraphIterationContext *iteration_context,
                          ReGraphPageRankSourcePrepare *source_prepare,
-                         bool shared_downstream)
+                         bool shared_downstream,
+                         bool fixed_shard_lane_assignment)
       : Component(std::move(name), clock_id), algorithm_(algorithm),
         round_limit_(round_limit), fixed_round_limit_(fixed_round_limit),
         partitions_(std::move(partitions)), workers_(std::move(workers)),
         iteration_context_(iteration_context), source_prepare_(source_prepare),
-        shared_downstream_(shared_downstream) {
+        shared_downstream_(shared_downstream),
+        fixed_shard_lane_assignment_(fixed_shard_lane_assignment),
+        next_partition_per_worker_(workers_.size()),
+        worker_partition_passes_(workers_.size()) {
     if (partitions_.empty() || workers_.empty()) {
       throw std::invalid_argument(
           "ReGraph controller requires partitions and compute workers");
@@ -3729,6 +3733,10 @@ public:
   [[nodiscard]] std::uint64_t supersteps() const noexcept { return round_; }
   [[nodiscard]] std::uint64_t partition_passes() const noexcept {
     return partition_passes_;
+  }
+  [[nodiscard]] const std::vector<std::uint64_t> &worker_partition_passes()
+      const noexcept {
+    return worker_partition_passes_;
   }
   [[nodiscard]] std::uint64_t pipeline_busy_cycles() const noexcept {
     return pipeline_busy_cycles_;
@@ -3791,7 +3799,7 @@ public:
       }
       const std::size_t remaining_busy =
           busy_worker_count() - staged_completed_workers_.size();
-      if (remaining_busy != 0 || next_partition_ < partitions_.size()) {
+      if (remaining_busy != 0 || has_pending_partition()) {
         refresh_evaluate_ready();
         set_latched_commit_ready(commit_ready());
         return;
@@ -3844,6 +3852,9 @@ public:
       }
       ++round_;
       next_partition_ = 0;
+      for (std::size_t worker = 0; worker < workers_.size(); ++worker) {
+        next_partition_per_worker_[worker] = worker;
+      }
       completed_partitions_ = 0;
       iteration_active_vertices_ = 0;
       iteration_error_ = 0.0F;
@@ -3968,7 +3979,8 @@ private:
     }
   }
 
-  void start_partition(GraSuReGraphWorker &worker, std::size_t partition) {
+  void start_partition(std::size_t worker_index, std::size_t partition) {
+    GraSuReGraphWorker &worker = workers_.at(worker_index);
     const ReGraphPartitionPlan &plan = partitions_.at(partition);
     worker.partition = partition;
     worker.downstream_started = false;
@@ -3981,15 +3993,36 @@ private:
       start_downstream(worker);
     }
     ++partition_passes_;
+    ++worker_partition_passes_.at(worker_index);
   }
 
   void dispatch_available_workers() {
-    for (GraSuReGraphWorker &worker : workers_) {
-      if (worker.partition.has_value() || next_partition_ == partitions_.size()) {
+    for (std::size_t worker = 0; worker < workers_.size(); ++worker) {
+      if (workers_[worker].partition.has_value()) {
         continue;
       }
-      start_partition(worker, next_partition_++);
+      if (fixed_shard_lane_assignment_) {
+        const std::size_t partition = next_partition_per_worker_[worker];
+        if (partition >= partitions_.size()) {
+          continue;
+        }
+        start_partition(worker, partition);
+        next_partition_per_worker_[worker] += workers_.size();
+      } else if (next_partition_ < partitions_.size()) {
+        start_partition(worker, next_partition_++);
+      }
     }
+  }
+
+  [[nodiscard]] bool has_pending_partition() const noexcept {
+    if (!fixed_shard_lane_assignment_) {
+      return next_partition_ < partitions_.size();
+    }
+    return std::any_of(next_partition_per_worker_.begin(),
+                       next_partition_per_worker_.end(),
+                       [&](std::size_t partition) {
+                         return partition < partitions_.size();
+                       });
   }
 
   [[nodiscard]] bool uses_prepared_page_rank_source() const noexcept {
@@ -4004,17 +4037,20 @@ private:
   ReGraphIterationContext *iteration_context_{};
   ReGraphPageRankSourcePrepare *source_prepare_{};
   bool shared_downstream_{};
+  bool fixed_shard_lane_assignment_{};
   Phase phase_{Phase::kStart};
   Action staged_{Action::kNone};
   std::vector<std::size_t> staged_completed_workers_;
   std::uint64_t round_{};
   std::size_t next_partition_{};
+  std::vector<std::size_t> next_partition_per_worker_;
   std::size_t completed_partitions_{};
   std::size_t iteration_active_vertices_{};
   float iteration_error_{};
   float iteration_dangling_{};
   float last_iteration_error_{};
   std::uint64_t partition_passes_{};
+  std::vector<std::uint64_t> worker_partition_passes_;
   std::uint64_t pipeline_busy_cycles_{};
   std::size_t max_parallel_partitions_{};
   std::uint64_t downstream_busy_cycles_{};
@@ -4270,6 +4306,13 @@ public:
         controller_->max_parallel_downstream_partitions();
     result.supersteps = controller_->supersteps();
     result.partition_passes = controller_->partition_passes();
+    const auto &frontend_passes = controller_->worker_partition_passes();
+    for (std::size_t frontend = 0;
+         frontend < result.frontend_partition_passes.size() &&
+         frontend < frontend_passes.size();
+         ++frontend) {
+      result.frontend_partition_passes[frontend] = frontend_passes[frontend];
+    }
     result.pipeline_busy_cycles = controller_->pipeline_busy_cycles();
     result.downstream_busy_cycles = controller_->downstream_busy_cycles();
     if (source_prepare_ != nullptr) {
@@ -4908,7 +4951,9 @@ private:
         policy_.config().kind == GraphAlgorithmKind::kWeightedSssp &&
             fixed_rounds_ != 0,
         partition_plans_, std::move(workers), iteration_context_.get(),
-        source_prepare_.get(), config_.shared_downstream);
+        source_prepare_.get(), config_.shared_downstream,
+        config_.sharded_runtime_placement && config_.compute_pipelines == 4 &&
+            config_.shared_downstream);
   }
 
   [[nodiscard]] bool all_ports_idle() const noexcept {

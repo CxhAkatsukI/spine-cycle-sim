@@ -1080,6 +1080,75 @@ void test_sharded_runtime_regraph_sssp_reads_routed_pma_payloads() {
           "sharded runtime PMA request ledger is not conserved");
 }
 
+void test_sharded_k4_shared_sssp_uses_fixed_frontend_lanes() {
+  constexpr std::size_t kPartitionVertices = 16;
+  constexpr std::size_t kPartitions = 9;
+  constexpr std::size_t kVertices = kPartitionVertices * kPartitions;
+  std::vector<GraSuEdge> edges;
+  for (std::uint32_t partition = 0; partition < kPartitions; ++partition) {
+    const auto vertex =
+        static_cast<std::uint32_t>(partition * kPartitionVertices);
+    edges.push_back({.source = vertex, .destination = vertex, .weight = 1});
+  }
+  for (std::uint32_t partition = 0; partition + 1 < kPartitions;
+       ++partition) {
+    edges.push_back({
+        .source = static_cast<std::uint32_t>(partition * kPartitionVertices),
+        .destination = static_cast<std::uint32_t>(
+            (partition + 1) * kPartitionVertices),
+        .weight = static_cast<std::uint16_t>(partition + 1),
+    });
+  }
+  const GraSuPartitionedPmaLayout layout = GraSuPartitionedPmaLayout::build(
+      kVertices, kPartitionVertices, edges, {});
+
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("sharded-k4-shared-sssp", 200.0);
+  MockMemoryBackend backend("shared-hbm", core,
+                            MockMemoryConfig{.channels = 32,
+                                             .latency_cycles = 7,
+                                             .accepts_per_channel_per_cycle = 1,
+                                             .max_outstanding_per_channel = 32,
+                                             .response_queue_depth = 128});
+  GraSuReGraphConfig config;
+  config.compute_pipelines = 4;
+  config.shared_downstream = true;
+  config.sharded_runtime_placement = true;
+  config.partition_vertices = kPartitionVertices;
+  config.source_buffer_vertices = 16;
+  config.edge_lanes = 4;
+  config.gather_banks = 4;
+  config.cache_segments_per_half = 8;
+  config.source_state_channel = 23;
+  config.source_state_mirror_channel = 24;
+  GraSuReGraphSsspSystem system(scheduler, core, backend, layout, 0, config);
+  system.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until([&] { return system.done() || system.failed(); },
+                      10'000'000);
+
+  require(!system.failed() && system.done() &&
+              system.distances() == weighted_sssp_oracle(kVertices, edges, 0),
+          "sharded-K4 shared SSSP differs from Dijkstra");
+  const auto counters = system.counters();
+  const std::array<std::uint64_t, 4> partitions_per_round{3, 2, 2, 2};
+  std::uint64_t frontend_pass_sum = 0;
+  for (std::size_t frontend = 0; frontend < partitions_per_round.size();
+       ++frontend) {
+    require(counters.frontend_partition_passes[frontend] ==
+                partitions_per_round[frontend] * counters.supersteps,
+            "sharded-K4 partition escaped its fixed modulo-four frontend");
+    frontend_pass_sum += counters.frontend_partition_passes[frontend];
+  }
+  require(counters.compute_pipelines == 4 &&
+              counters.max_parallel_partitions == 4 &&
+              counters.max_parallel_downstream_partitions == 1 &&
+              frontend_pass_sum == counters.partition_passes &&
+              counters.partition_passes == kPartitions * counters.supersteps &&
+              counters.live_edges_scanned == edges.size() * counters.supersteps,
+          "sharded-K4 shared work/parallelism ledger is not conserved");
+}
+
 void test_partitioned_update_times_degree_rmw_and_feeds_pagerank() {
   constexpr std::size_t kVertices = 33;
   constexpr std::size_t kPartitionVertices = 16;
@@ -2617,6 +2686,8 @@ int main() {
        test_partitioned_regraph_shared_downstream_serializes_apply},
       {"sharded_runtime_sssp",
        test_sharded_runtime_regraph_sssp_reads_routed_pma_payloads},
+      {"sharded_k4_shared_sssp",
+       test_sharded_k4_shared_sssp_uses_fixed_frontend_lanes},
       {"partitioned_update_degree",
        test_partitioned_update_times_degree_rmw_and_feeds_pagerank},
       {"full_pagerank", test_pma_native_regraph_full_pagerank_matches_oracle},
