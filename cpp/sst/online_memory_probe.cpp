@@ -2465,6 +2465,11 @@ class OnlineMemoryProbe final : public SST::Component {
         params.find<std::size_t>("grasu_compute_pipelines", 1);
     grasu_config_.shared_downstream =
         params.find<bool>("grasu_shared_downstream", false);
+    grasu_config_.sharded_runtime_placement =
+        params.find<bool>("grasu_sharded_runtime_placement", false);
+    grasu_config_.runtime_channel_capacity_bytes = params.find<std::size_t>(
+        "grasu_runtime_channel_capacity_bytes",
+        kGraSuReGraphU55cChannelCapacityBytes);
     grasu_config_.cache_segments_per_half =
         params.find<std::size_t>("grasu_cache_segments_per_half", 131072);
     grasu_config_.partition_vertices =
@@ -4461,6 +4466,11 @@ class OnlineMemoryProbe final : public SST::Component {
       {"grasu_shared_downstream",
        "Share one partition-granular merger/apply/HBM-wrapper across workers",
        "false"},
+      {"grasu_sharded_runtime_placement",
+       "Place destination-sharded PMA and row regions across graph HBM PCs",
+       "false"},
+      {"grasu_runtime_channel_capacity_bytes",
+       "Per-PC capacity used by fail-closed sharded placement", "536870912"},
       {"grasu_source_buffer_vertices", "ReGraph source-cache words", "4096"},
       {"grasu_source_cache_request_fifo_depth",
        "ReGraph source-cache request stream depth", "8"},

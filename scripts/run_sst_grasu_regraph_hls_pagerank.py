@@ -392,6 +392,15 @@ def main() -> int:
             "GRASU_SST_SHARED_DOWNSTREAM": (
                 "1" if downstream_sharing == "shared" else "0"
             ),
+            "GRASU_SST_SHARDED_RUNTIME_PLACEMENT": (
+                "1" if params.get("grasu_sharded_runtime_placement", False) else "0"
+            ),
+            "GRASU_SST_RUNTIME_CHANNEL_CAPACITY_BYTES": str(
+                params.get(
+                    "grasu_runtime_channel_capacity_bytes",
+                    memory["channel_capacity_bytes"],
+                )
+            ),
             "GRASU_SST_SOURCE_BUFFER_VERTICES": str(
                 params["regraph_source_buffer_vertices"]
             ),

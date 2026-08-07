@@ -126,6 +126,14 @@ probe.addParams(
         "grasu_shared_downstream": int(
             os.environ.get("GRASU_SST_SHARED_DOWNSTREAM", "0")
         ),
+        "grasu_sharded_runtime_placement": int(
+            os.environ.get("GRASU_SST_SHARDED_RUNTIME_PLACEMENT", "0")
+        ),
+        "grasu_runtime_channel_capacity_bytes": int(
+            os.environ.get(
+                "GRASU_SST_RUNTIME_CHANNEL_CAPACITY_BYTES", "536870912"
+            )
+        ),
         "grasu_source_buffer_vertices": int(
             os.environ.get("GRASU_SST_SOURCE_BUFFER_VERTICES", "4096")
         ),
