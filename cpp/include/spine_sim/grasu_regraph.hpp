@@ -93,6 +93,8 @@ struct GraSuReGraphConfig {
   std::size_t hbm_wrapper_pipeline_latency{71};
   std::size_t hbm_wrapper_pipeline_capacity{71};
   std::size_t pagerank_source_map_latency{1};
+  std::size_t pagerank_source_prepare_pipeline_latency{32};
+  std::size_t pagerank_source_prepare_request_window{32};
   bool initialize_degree_payload{true};
   std::size_t frontend_count{1};
   std::size_t frontend_mux_fifo_depth{32};
@@ -140,6 +142,11 @@ struct GraSuReGraphCounters {
   std::size_t source_cache_request_fifo_max_occupancy{};
   std::size_t source_cache_response_fifo_max_occupancy{};
   std::uint64_t source_state_writes{};
+  std::uint64_t source_prepare_state_reads{};
+  std::uint64_t source_prepare_degree_reads{};
+  std::uint64_t source_prepare_writes{};
+  std::uint64_t source_prepare_read_window_stalls{};
+  std::uint64_t source_prepare_write_window_stalls{};
   std::uint64_t degree_reads{};
   std::uint64_t source_map_cycles{};
   std::uint64_t pma_segment_reads{};
@@ -182,6 +189,8 @@ struct GraSuReGraphCounters {
   std::uint64_t row_read_bytes{};
   std::uint64_t source_state_read_bytes{};
   std::uint64_t source_state_write_bytes{};
+  std::uint64_t source_prepare_read_bytes{};
+  std::uint64_t source_prepare_write_bytes{};
   std::uint64_t degree_read_bytes{};
   std::uint64_t pma_read_bytes{};
   std::uint64_t apply_read_bytes{};
