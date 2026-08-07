@@ -178,6 +178,7 @@ struct GraSuReGraphCounters {
   std::uint64_t merger_output_stall_cycles{};
   std::uint64_t apply_state_reads{};
   std::uint64_t apply_state_writes{};
+  std::uint64_t apply_launches{};
   std::uint64_t apply_input_bursts{};
   std::uint64_t apply_output_stall_cycles{};
   std::uint64_t apply_read_window_stalls{};
@@ -187,6 +188,7 @@ struct GraSuReGraphCounters {
   std::size_t apply_max_pipeline_occupancy{};
   std::size_t apply_max_writes_inflight{};
   std::uint64_t hbm_wrapper_input_bursts{};
+  std::uint64_t hbm_wrapper_launches{};
   std::uint64_t hbm_wrapper_pipeline_capacity_stalls{};
   std::uint64_t hbm_wrapper_write_window_stalls{};
   std::size_t hbm_wrapper_max_pipeline_occupancy{};
