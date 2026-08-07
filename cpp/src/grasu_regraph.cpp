@@ -2241,11 +2241,12 @@ public:
       : Component(std::move(name), clock_id), config_(config), input_(input),
         output_(output) {}
 
-  void start_round() {
+  void start_round(std::size_t output_base = 0) {
     if (running_ || pending_output_.has_value() || packed_rows_ != 0) {
       throw std::logic_error("ReGraph merger round started while busy");
     }
     consumed_rows_this_round_ = 0;
+    output_base_ = output_base;
     done_ = false;
     running_ = true;
   }
@@ -2308,7 +2309,8 @@ public:
       ++rows_consumed_;
       if (packed_rows_ == kRowsPerBurst) {
         pending_output_ = ReGraphMergedBurst{
-            .offset = (consumed_rows_this_round_ - kRowsPerBurst) * 2,
+            .offset =
+                output_base_ + (consumed_rows_this_round_ - kRowsPerBurst) * 2,
             .candidates = packed_candidates_,
         };
         packed_candidates_.fill(std::nullopt);
@@ -2337,6 +2339,7 @@ private:
   std::optional<ReGraphGatherRow> staged_input_;
   std::optional<ReGraphMergedBurst> pending_output_;
   std::size_t consumed_rows_this_round_{};
+  std::size_t output_base_{};
   std::size_t packed_rows_{};
   bool staged_output_{};
   bool staged_output_stall_{};
@@ -2370,6 +2373,24 @@ public:
   void start_partition(std::uint64_t round, std::size_t destination_base,
                        std::size_t destination_vertices,
                        bool reset_iteration_totals) {
+    start(round, destination_base, destination_vertices,
+          config_.partition_vertices, reset_iteration_totals);
+  }
+
+  void start_global(std::uint64_t round, std::size_t vertices,
+                    std::size_t capacity_vertices) {
+    start(round, 0, vertices, capacity_vertices, true);
+  }
+
+private:
+  void start(std::uint64_t round, std::size_t destination_base,
+             std::size_t destination_vertices, std::size_t capacity_vertices,
+             bool reset_iteration_totals) {
+    if (capacity_vertices == 0 ||
+        capacity_vertices % kStateWordsPerBurst != 0) {
+      throw std::invalid_argument(
+          "ReGraph apply capacity is not burst aligned");
+    }
     if (round == 0 || running_ || !read_inflight_.empty() ||
         !write_inflight_.empty() || !ready_writes_.empty()) {
       throw std::logic_error("ReGraph apply round started while busy");
@@ -2379,6 +2400,7 @@ public:
     next_write_offset_ = 0;
     destination_base_ = destination_base;
     destination_vertices_ = destination_vertices;
+    bursts_this_launch_ = capacity_vertices / kStateWordsPerBurst;
     if (reset_iteration_totals) {
       active_vertices_ = 0;
       iteration_error_ = 0.0F;
@@ -2387,8 +2409,10 @@ public:
     correction_mode_ = prepared_source_payload_ && round == 1;
     done_ = false;
     running_ = true;
+    ++launches_;
   }
 
+public:
   [[nodiscard]] bool done() const noexcept { return done_; }
   [[nodiscard]] std::size_t active_vertices() const noexcept {
     return active_vertices_;
@@ -2398,6 +2422,7 @@ public:
     return degree_reads_;
   }
   [[nodiscard]] std::uint64_t writes() const noexcept { return writes_; }
+  [[nodiscard]] std::uint64_t launches() const noexcept { return launches_; }
   [[nodiscard]] std::uint64_t input_bursts() const noexcept {
     return input_bursts_;
   }
@@ -2630,7 +2655,7 @@ private:
   }
 
   [[nodiscard]] std::size_t total_bursts() const noexcept {
-    return config_.partition_vertices / kStateWordsPerBurst;
+    return bursts_this_launch_;
   }
 
   [[nodiscard]] std::size_t pipeline_occupancy() const noexcept {
@@ -2794,6 +2819,7 @@ private:
   std::size_t vertices_{};
   std::size_t destination_base_{};
   std::size_t destination_vertices_{};
+  std::size_t bursts_this_launch_{};
   GraphAlgorithmPolicy policy_;
   GraSuReGraphConfig config_;
   Fifo<ReGraphMergedBurst> &input_;
@@ -2824,6 +2850,7 @@ private:
   std::uint64_t reads_{};
   std::uint64_t degree_reads_{};
   std::uint64_t writes_{};
+  std::uint64_t launches_{};
   std::uint64_t input_bursts_{};
   std::uint64_t output_stall_cycles_{};
   std::uint64_t total_activated_{};
@@ -2849,6 +2876,21 @@ public:
         policy_(std::move(policy)), prepared_payload_(prepared_payload) {}
 
   void start_partition(std::uint64_t round, std::size_t destination_base) {
+    start(round, destination_base, config_.partition_vertices);
+  }
+
+  void start_global(std::uint64_t round, std::size_t capacity_vertices) {
+    start(round, 0, capacity_vertices);
+  }
+
+private:
+  void start(std::uint64_t round, std::size_t destination_base,
+             std::size_t capacity_vertices) {
+    if (capacity_vertices == 0 ||
+        capacity_vertices % kStateWordsPerBurst != 0) {
+      throw std::invalid_argument(
+          "ReGraph HBM wrapper capacity is not burst aligned");
+    }
     const bool writes_pending =
         std::any_of(write_inflight_.begin(), write_inflight_.end(),
                     [](const auto &entries) { return !entries.empty(); });
@@ -2859,12 +2901,15 @@ public:
                           (round & 1U) * config_.source_state_buffer_stride +
                           destination_base * source_bytes_per_vertex();
     destination_base_ = destination_base;
+    bursts_this_launch_ = capacity_vertices / kStateWordsPerBurst;
     input_bursts_this_round_ = 0;
     completed_writes_ = 0;
     done_ = false;
     running_ = true;
+    ++launches_;
   }
 
+public:
   [[nodiscard]] bool done() const noexcept { return done_; }
   [[nodiscard]] std::uint64_t input_bursts() const noexcept {
     return input_bursts_;
@@ -2872,6 +2917,7 @@ public:
   [[nodiscard]] std::uint64_t source_writes() const noexcept {
     return source_writes_;
   }
+  [[nodiscard]] std::uint64_t launches() const noexcept { return launches_; }
   [[nodiscard]] std::uint64_t pipeline_capacity_stalls() const noexcept {
     return pipeline_capacity_stalls_;
   }
@@ -3004,7 +3050,7 @@ private:
   };
 
   [[nodiscard]] std::size_t total_bursts() const noexcept {
-    return config_.partition_vertices / kStateWordsPerBurst;
+    return bursts_this_launch_;
   }
 
   [[nodiscard]] std::size_t source_bytes_per_vertex() const noexcept {
@@ -3067,10 +3113,12 @@ private:
   std::size_t completed_writes_{};
   std::uint64_t target_source_base_{};
   std::size_t destination_base_{};
+  std::size_t bursts_this_launch_{};
   bool running_{};
   bool done_{};
   std::uint64_t input_bursts_{};
   std::uint64_t source_writes_{};
+  std::uint64_t launches_{};
   std::uint64_t pipeline_capacity_stalls_{};
   std::uint64_t write_window_stalls_{};
   std::size_t max_pipeline_occupancy_{};
@@ -3301,14 +3349,17 @@ public:
       std::array<PmaNativeReader *, 4> readers,
       std::array<ReGraphGather *, 4> gathers, ReGraphFrontendMux &mux,
       ReGraphMerger &merger, ReGraphApply &apply, ReGraphHbmWrapper &wrapper,
+      std::size_t total_capacity_vertices,
       ReGraphPageRankSourcePrepare *source_prepare = nullptr,
       ReGraphPageRankContext *pagerank_context = nullptr)
       : Component(std::move(name), clock_id), algorithm_(algorithm),
         round_limit_(round_limit), fixed_round_limit_(fixed_round_limit),
         partitions_(std::move(partitions)), source_hbm_(source_hbm),
         readers_(readers), gathers_(gathers), mux_(mux), merger_(merger),
-        apply_(apply), wrapper_(wrapper), source_prepare_(source_prepare),
-        pagerank_context_(pagerank_context), launched_(partitions_.size()) {
+        apply_(apply), wrapper_(wrapper),
+        total_capacity_vertices_(total_capacity_vertices),
+        source_prepare_(source_prepare), pagerank_context_(pagerank_context),
+        launched_(partitions_.size()) {
     if (partitions_.empty() ||
         std::any_of(source_hbm_.begin(), source_hbm_.end(),
                     [](const auto *value) { return value == nullptr; }) ||
@@ -3316,6 +3367,7 @@ public:
                     [](const auto *value) { return value == nullptr; }) ||
         std::any_of(gathers_.begin(), gathers_.end(),
                     [](const auto *value) { return value == nullptr; }) ||
+        total_capacity_vertices_ == 0 ||
         ((source_prepare_ == nullptr) != (pagerank_context_ == nullptr))) {
       throw std::invalid_argument("invalid sharded-K4 ReGraph controller");
     }
@@ -3356,13 +3408,19 @@ public:
         staged_worker_launches_[worker] = true;
       }
     }
-    if (!mux_.done() || !merger_.done() || !apply_.done() || !wrapper_.done()) {
+    if (!mux_.done() || !merger_.done()) {
+      return;
+    }
+    if (!global_downstream() && (!apply_.done() || !wrapper_.done())) {
       return;
     }
     if (output_partition_ + 1 < partitions_.size()) {
       if (launched_[output_partition_ + 1]) {
         staged_round_action_ = RoundAction::kNextPartition;
       }
+      return;
+    }
+    if (!apply_.done() || !wrapper_.done()) {
       return;
     }
     if (fixed_round_limit_ || algorithm_ == GraphAlgorithmKind::kFullPageRank) {
@@ -3437,6 +3495,13 @@ private:
       }
     }
     output_partition_ = 0;
+    if (global_downstream()) {
+      const ReGraphPartitionPlan &last = partitions_.back();
+      apply_.start_global(round_,
+                          last.destination_base + last.destination_vertices,
+                          total_capacity_vertices_);
+      wrapper_.start_global(round_, total_capacity_vertices_);
+    }
     start_downstream(output_partition_);
   }
 
@@ -3462,10 +3527,16 @@ private:
     }
     const ReGraphPartitionPlan &plan = partitions_[partition];
     mux_.start_partition(partition);
-    merger_.start_round();
-    apply_.start_partition(round_, plan.destination_base,
-                           plan.destination_vertices, partition == 0);
-    wrapper_.start_partition(round_, plan.destination_base);
+    merger_.start_round(global_downstream() ? plan.destination_base : 0);
+    if (!global_downstream()) {
+      apply_.start_partition(round_, plan.destination_base,
+                             plan.destination_vertices, partition == 0);
+      wrapper_.start_partition(round_, plan.destination_base);
+    }
+  }
+
+  [[nodiscard]] bool global_downstream() const noexcept {
+    return source_prepare_ != nullptr;
   }
 
   GraphAlgorithmKind algorithm_{GraphAlgorithmKind::kWeightedSssp};
@@ -3479,6 +3550,7 @@ private:
   ReGraphMerger &merger_;
   ReGraphApply &apply_;
   ReGraphHbmWrapper &wrapper_;
+  std::size_t total_capacity_vertices_{};
   ReGraphPageRankSourcePrepare *source_prepare_{};
   ReGraphPageRankContext *pagerank_context_{};
   std::array<std::optional<std::size_t>, 4> active_partition_;
@@ -3768,6 +3840,7 @@ public:
     result.degree_read_bytes +=
         apply_->degree_reads() * kStateWordsPerBurst * sizeof(std::uint32_t);
     result.apply_state_writes = apply_->writes();
+    result.apply_launches = apply_->launches();
     result.apply_input_bursts = apply_->input_bursts();
     result.apply_output_stall_cycles = apply_->output_stall_cycles();
     result.apply_read_window_stalls = apply_->read_window_stalls();
@@ -3777,6 +3850,7 @@ public:
     result.apply_max_pipeline_occupancy = apply_->max_pipeline_occupancy();
     result.apply_max_writes_inflight = apply_->max_writes_inflight();
     result.hbm_wrapper_input_bursts = wrapper_->input_bursts();
+    result.hbm_wrapper_launches = wrapper_->launches();
     result.hbm_wrapper_pipeline_capacity_stalls =
         wrapper_->pipeline_capacity_stalls();
     result.hbm_wrapper_write_window_stalls = wrapper_->write_window_stalls();
@@ -4352,7 +4426,8 @@ private:
           round_limit, fixed_round_limit, partition_plans_,
           k4_controller_inputs_.source_hbm, k4_controller_inputs_.readers,
           k4_controller_inputs_.gathers, *frontend_mux_, *merger_, *apply_,
-          *wrapper_, source_prepare_.get(), pagerank_context_.get());
+          *wrapper_, layout_.partitions.size() * config_.partition_vertices,
+          source_prepare_.get(), pagerank_context_.get());
     }
   }
 
