@@ -1,0 +1,75 @@
+{
+  "algorithms": [
+    "weighted_sssp",
+    "full_pagerank",
+    "thresholded_residual_pagerank"
+  ],
+  "all_backend_dram_ledgers_closed": true,
+  "all_backpressure_contracts_complete": true,
+  "all_correct": true,
+  "batch_size": 8,
+  "claim_class": "controller_physical_memory_phase_aligned_three_algorithm",
+  "evidence_id": "candidate10_physical_memory_insert_u8_v2_20260727",
+  "excluded_from_phase_aligned_plot": [],
+  "input_manifest_sha256": "d6d45a212f569a4ea919e2ac13fad0ce7455584cfc0105086b46098363f78629",
+  "input_matrices": {
+    "full_pagerank": {
+      "directory": "/data/tmp/chuxiao/candidate10_physical_memory_full_pr_u8_v3_20260727",
+      "manifest_sha256": "6b8338595e88b5e361a00a7cc28472aa887c8e331973c6b3c6944efc0d5b3390",
+      "system_rows_sha256": "d5a2256adef15deb61e76a302ec585aab9a49c7ff9d3a7ec123e3932796e80e5"
+    },
+    "thresholded_residual_pagerank": {
+      "directory": "/data/tmp/chuxiao/candidate10_physical_memory_residual_u8_v3_20260727",
+      "manifest_sha256": "b3a32f1c5d61e2be7caaf534356d2aea305808bf73920a665ca22437e5c4f621",
+      "system_rows_sha256": "e9e949816aebe33d573f895b2d176e2a07d1c2741b964c790d2207743fd4cf06"
+    },
+    "weighted_sssp": {
+      "directory": "/data/tmp/chuxiao/candidate10_physical_memory_weighted_u8_v3_20260727",
+      "manifest_sha256": "d737c79e6c8252d15e13c5a9c6b3b036e91520af5068de440415b700b0ec49ad",
+      "system_rows_sha256": "9d1a463d81472a24f09d4e7590f19b760c7bd0b0840edfb8b87f4883a8119a24"
+    }
+  },
+  "limitations": [
+    "Inputs are 8192-edge compact real-topology slices, not full datasets.",
+    "Only active HBM channels are instantiated; energy is not total-board energy.",
+    "Spine weighted SSSP controller counters are derived by subtracting an independently rerun, exact, quiescent cold prefix.",
+    "Stalls are port/request events and multiple events may occur in one simulated cycle."
+  ],
+  "outputs": {
+    "physical_memory_by_algorithm.csv": "aacb59b7532a2f49061718fe4bd8f25ce072e671c50bffe10cad1efd2b6d0667",
+    "physical_memory_pairs.csv": "2ac7f235225b0b2705444a40c085ef911211792f1530200ca1288d0a91b6b3cf",
+    "physical_memory_system_rows.csv": "4641d61f80b293e0daddd3abd277b5a3a0aa8a22296de1ce183883a0e54cf1e1",
+    "raw_results.tar.gz": "a2f68600ddee332ddb50aed004c4d78208862e43d9187a0e209abaf8c516bc44"
+  },
+  "pairs": 15,
+  "phase_aligned_algorithms": [
+    "weighted_sssp",
+    "full_pagerank",
+    "thresholded_residual_pagerank"
+  ],
+  "scenario": "insert",
+  "schema_version": 1,
+  "selected_run_ids": [
+    "grasu_au_insert_u8",
+    "grasu_bc_insert_u8",
+    "grasu_so_insert_u8",
+    "grasu_su_insert_u8",
+    "grasu_wk_insert_u8"
+  ],
+  "sst_plugin_fingerprint": {
+    "command_option": "--lib-path=/home/chuxiao/spine-cycle-sim-publication/build/sst-stalls:/data/feiyang/sst/lib/sst-elements-library",
+    "plugin_path_at_execution": "/home/chuxiao/spine-cycle-sim-publication/build/sst-stalls/libspine_cycle.so",
+    "plugin_sha256": "9094f527995f9ea0a10d686ee7f90236400eca0619b634f039e98061bac328b8",
+    "search_path": "/home/chuxiao/spine-cycle-sim-publication/build/sst-stalls:/data/feiyang/sst/lib/sst-elements-library",
+    "validated_child_results": 35
+  },
+  "status": "PASS",
+  "system_rows": 30,
+  "three_algorithm_windows_aligned": true,
+  "weighted_cold_baseline": {
+    "directory": "/data/tmp/chuxiao/candidate10_weighted_cold_baselines_u8_20260727",
+    "manifest_sha256": "9289fb48bfbeeabb1e908f288164a80bfef16239f1127276ced20a10c3f2c589",
+    "quiescent_boundary_contract": "spine_idle_and_backend_outstanding_zero",
+    "rows_sha256": "e58aa87fdc8cf68137145d8511e1a4ec23301f13d0da887325dbafd1e0e25423"
+  }
+}

@@ -1,19 +1,128 @@
 from __future__ import annotations
 
 from pathlib import Path
+import json
 import tempfile
 import unittest
 
 from spine_cycle_sim.experiments.large_real_pagerank import (
+    build_large_real_runtime_acceptance,
     build_large_real_update,
     classify_hot_destinations,
+    evaluate_large_real_runtime_gate,
     extract_large_real_slice,
     spine_hot_hash,
+    validate_large_real_pagerank_manifest,
 )
 from spine_cycle_sim.experiments.shared_workloads import SliceGraph, SliceRecord
 
 
 class LargeRealPageRankTests(unittest.TestCase):
+    def test_posthoc_runtime_acceptance_is_fail_closed(self) -> None:
+        manifest = {
+            "matrix_id": "large-v1",
+            "required_profile_set": "candidate10_hls_v3",
+            "runtime_contract": {"host_runtime_limit_seconds_per_system": 30},
+            "runs": [{"run_id": "large"}],
+        }
+        matrix = {
+            "input_scope": "real_large_slice",
+            "input_matrix_id": "large-v1",
+            "profile_set": "candidate10_hls_v3",
+            "complete_matrix": True,
+            "all_correct": True,
+            "selected_run_ids": ["large"],
+            "system_rows": 2,
+            "pairs": 1,
+        }
+        rows = [
+            {
+                "run_id": "large",
+                "system": "spine",
+                "host_wall_seconds": "31.0",
+                "correctness_mismatches": "0",
+            },
+            {
+                "run_id": "large",
+                "system": "grasu_regraph",
+                "host_wall_seconds": "20.0",
+                "correctness_mismatches": "0",
+            },
+        ]
+        result = build_large_real_runtime_acceptance(
+            manifest,
+            matrix,
+            rows,
+            [{"run_id": "large", "cross_system_ranks_match": "True"}],
+        )
+        self.assertEqual(result["status"], "COMPLETE_RUNTIME_GATE_FAILED")
+        self.assertTrue(result["simulation_complete"])
+        self.assertFalse(result["performance_results_modified"])
+
+        rows[0]["correctness_mismatches"] = "1"
+        with self.assertRaisesRegex(ValueError, "correctness mismatch"):
+            build_large_real_runtime_acceptance(
+                manifest,
+                matrix,
+                rows,
+                [{"run_id": "large", "cross_system_ranks_match": "True"}],
+            )
+
+    def test_runtime_gate_preserves_complete_over_limit_observations(self) -> None:
+        manifest = {
+            "runtime_contract": {"host_runtime_limit_seconds_per_system": 30},
+            "runs": [{"run_id": "large"}],
+        }
+        gate = evaluate_large_real_runtime_gate(
+            manifest,
+            [
+                {"run_id": "large", "system": "spine", "host_wall_seconds": 31.0},
+                {
+                    "run_id": "large",
+                    "system": "grasu_regraph",
+                    "host_wall_seconds": 20.0,
+                },
+            ],
+        )
+        self.assertEqual(gate["status"], "FAIL")
+        self.assertFalse(gate["pass"])
+        self.assertEqual(gate["failed_systems"], [{"run_id": "large", "system": "spine"}])
+
+    def test_runtime_gate_rejects_incomplete_rows(self) -> None:
+        manifest = {
+            "runtime_contract": {"host_runtime_limit_seconds_per_system": 30},
+            "runs": [{"run_id": "large"}],
+        }
+        with self.assertRaisesRegex(ValueError, "incomplete"):
+            evaluate_large_real_runtime_gate(
+                manifest,
+                [
+                    {
+                        "run_id": "large",
+                        "system": "spine",
+                        "host_wall_seconds": 20.0,
+                    }
+                ],
+            )
+
+    def test_frozen_manifest_requires_candidate10_hls_v3(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        source = (
+            root
+            / "configs/experiments/hls_full_pagerank_real_large_runtime_20260726.json"
+        )
+        manifest = validate_large_real_pagerank_manifest(root, source)
+        self.assertEqual(manifest["required_profile_set"], "candidate10_hls_v3")
+        with tempfile.TemporaryDirectory() as temporary:
+            invalid = json.loads(source.read_text(encoding="ascii"))
+            invalid["required_profile_set"] = "legacy"
+            invalid_path = Path(temporary) / "invalid.json"
+            invalid_path.write_text(
+                json.dumps(invalid, sort_keys=True), encoding="ascii"
+            )
+            with self.assertRaisesRegex(ValueError, "profile-set identity"):
+                validate_large_real_pagerank_manifest(root, invalid_path)
+
     def test_extraction_is_deterministic_and_uses_real_vertex_domain(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             source = Path(temporary) / "graph.mtx"

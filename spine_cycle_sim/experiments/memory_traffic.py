@@ -38,6 +38,53 @@ ADDITIVE_TRAFFIC_FIELDS = (
 )
 
 
+def backpressure_metrics(
+    result: Mapping[str, object], *, axis_push_stalls: int
+) -> dict[str, int | str | bool]:
+    """Normalize FIFO, AXI-request, and HBM-backend stall observations.
+
+    Legacy results intentionally leave the new AXI metric blank. This keeps
+    old evidence useful without allowing it to satisfy the complete physical
+    memory gate retroactively.
+    """
+
+    if axis_push_stalls < 0:
+        raise ValueError("axis_push_stalls must be non-negative")
+    required = (
+        "axis_push_stalls",
+        "axi_issue_stalls",
+        "hbm_queue_stalls",
+        "hbm_response_queue_stalls",
+    )
+    complete = all(
+        isinstance(result.get(field), int)
+        and not isinstance(result.get(field), bool)
+        and int(result[field]) >= 0
+        for field in required
+    )
+    if not complete:
+        return {
+            "axis_push_stalls": axis_push_stalls,
+            "axi_issue_stalls": "",
+            "hbm_queue_stalls": int(result.get("backend_submit_stalls", 0)),
+            "hbm_response_queue_stalls": int(
+                result.get("backend_response_queue_stalls", 0)
+            ),
+            "stall_metrics_complete": False,
+            "stall_metric_contract": "legacy_missing_unified_stalls",
+        }
+    if int(result["axis_push_stalls"]) != axis_push_stalls:
+        raise ValueError("normalized axis_push_stalls disagrees with raw result")
+    return {
+        "axis_push_stalls": axis_push_stalls,
+        "axi_issue_stalls": int(result["axi_issue_stalls"]),
+        "hbm_queue_stalls": int(result["hbm_queue_stalls"]),
+        "hbm_response_queue_stalls": int(result["hbm_response_queue_stalls"]),
+        "stall_metrics_complete": True,
+        "stall_metric_contract": "axis_axi_request_fifo_hbm_backend_v1",
+    }
+
+
 def memory_traffic_metrics(
     value: object, *, expected_requests: int, prefix: str
 ) -> dict[str, int | float]:

@@ -15,8 +15,10 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from spine_cycle_sim.experiments.real_memory_analysis import (  # noqa: E402
-    load_matrix,
+    ALGORITHMS,
+    load_selected_matrix,
     pair_memory_rows,
+    paper_memory_rows,
     sha256_file,
     summarize_pairs,
 )
@@ -51,8 +53,23 @@ def main() -> int:
     parser.add_argument("--weighted-dir", type=Path, required=True)
     parser.add_argument("--full-pagerank-dir", type=Path, required=True)
     parser.add_argument("--residual-pagerank-dir", type=Path, required=True)
+    parser.add_argument("--input-manifest", type=Path, required=True)
+    parser.add_argument("--scenario", default="insert")
+    parser.add_argument("--batch-size", type=int, default=8)
+    parser.add_argument("--source-archive", type=Path)
+    parser.add_argument("--paper-data-dir", type=Path)
     parser.add_argument("--out-dir", type=Path, required=True)
     args = parser.parse_args()
+
+    input_manifest = json.loads(args.input_manifest.read_text(encoding="utf-8"))
+    expected_run_ids = {
+        str(run["run_id"])
+        for run in input_manifest["runs"]
+        if run["scenario"] == args.scenario
+        and int(run["batch_size"]) == args.batch_size
+    }
+    if not expected_run_ids:
+        raise ValueError("input manifest selected no runs")
 
     inputs = (
         ("weighted_sssp", args.weighted_dir),
@@ -62,29 +79,40 @@ def main() -> int:
     manifests: dict[str, dict[str, object]] = {}
     rows: list[dict[str, object]] = []
     for algorithm, directory in inputs:
-        manifest, matrix_rows = load_matrix(algorithm, directory)
+        manifest, matrix_rows = load_selected_matrix(
+            algorithm, directory, expected_run_ids
+        )
         manifests[algorithm] = manifest
         rows.extend(matrix_rows)
     pairs = pair_memory_rows(rows)
     summaries = summarize_pairs(pairs)
+    paper_rows = paper_memory_rows(summaries)
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
     system_path = args.out_dir / "memory_system_rows.csv"
     pair_path = args.out_dir / "memory_pairs.csv"
     summary_path = args.out_dir / "memory_group_summary.csv"
+    paper_path = args.out_dir / "memory_by_algorithm.csv"
     _write_csv(system_path, rows)
     _write_csv(pair_path, pairs)
     _write_csv(summary_path, summaries)
+    _write_csv(paper_path, paper_rows)
+    if args.paper_data_dir is not None:
+        args.paper_data_dir.mkdir(parents=True, exist_ok=True)
+        _write_csv(args.paper_data_dir / "memory_by_algorithm.csv", paper_rows)
     evidence = {
         "schema_version": 1,
-        "evidence_id": "real_compact_memory_traffic_locality_20260726",
+        "evidence_id": "candidate10_temporal_memory_insert_u8_20260727",
         "status": "PASS",
         "claim_class": "accepted_backend_request_trace_locality",
         "classification": (
             "per_initiator_and_operation_accepted_backend_request"
         ),
         "address_basis": "logical_channel_and_byte_address",
-        "algorithms": list(manifests),
+        "algorithms": list(ALGORITHMS),
+        "scenario": args.scenario,
+        "batch_size": args.batch_size,
+        "selected_run_ids": sorted(expected_run_ids),
         "system_rows": len(rows),
         "pairs": len(pairs),
         "all_input_matrices_correct": all(
@@ -113,10 +141,15 @@ def main() -> int:
             }
             for algorithm, directory in inputs
         },
+        "input_manifest": {
+            "path": _evidence_path(args.input_manifest),
+            "sha256": sha256_file(args.input_manifest),
+        },
         "outputs": {
             "memory_system_rows_sha256": sha256_file(system_path),
             "memory_pairs_sha256": sha256_file(pair_path),
             "memory_group_summary_sha256": sha256_file(summary_path),
+            "memory_by_algorithm_sha256": sha256_file(paper_path),
         },
         "summaries": summaries,
         "limitations": [
@@ -135,6 +168,11 @@ def main() -> int:
             "Inputs are compact real-edge slices, not full datasets.",
         ],
     }
+    if args.source_archive is not None:
+        evidence["source_archive"] = {
+            "path": _evidence_path(args.source_archive),
+            "sha256": sha256_file(args.source_archive),
+        }
     evidence_path = args.out_dir / "memory_evidence.json"
     evidence_path.write_text(
         json.dumps(evidence, indent=2, sort_keys=True) + "\n", encoding="utf-8"

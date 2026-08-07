@@ -1,0 +1,22 @@
+{
+  "added_observability_fields": 1104,
+  "algorithms": [
+    "full_pagerank",
+    "thresholded_residual_pagerank",
+    "weighted_dynamic_sssp",
+    "weighted_sssp"
+  ],
+  "all_dram_json_byte_identical": true,
+  "all_preexisting_result_fields_identical": true,
+  "baseline_manifest_sha256": "77309d11eb6f27888a9134e76e49caac84e89c0a434d5c7d7cb79b0dece93c3e",
+  "byte_identical_result_files": 123,
+  "candidate_manifest_sha256": "4be3701f3a04db1c9cdffcdefa6fe390bc0737daaf4a1950eb5c7e3d425b5bfc",
+  "claim": "exact_idle_backend_observable_equivalence",
+  "dram_json_files_compared": 1578,
+  "host_speedup_geomean": 3.871067202360436,
+  "preexisting_result_fields_compared": 27629,
+  "run_cases": 73,
+  "schema_version": 1,
+  "status": "PASS",
+  "system_results": 146
+}

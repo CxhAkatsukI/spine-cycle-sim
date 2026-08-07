@@ -1,0 +1,78 @@
+{
+  "algorithm": "full_pagerank",
+  "all_correct": true,
+  "capability_catalog": "/home/chuxiao/spine-cycle-sim-publication/configs/contracts/grasu_regraph_candidate10_hls_capabilities_v3.json",
+  "capability_catalog_sha256": "25794099eaba54d5b693afd626c563afba19d687b71609c7cd46bf4c0cc13f1c",
+  "capacity_cliff_evidence_required": false,
+  "capacity_cliff_run_ids": [],
+  "claim_class": "profile_clock_adjusted_real_large_slice_execution_driven",
+  "complete_matrix": true,
+  "dram_config": {
+    "epoch_period": 1000000,
+    "output_level": 1,
+    "output_level_effect": "statistics_serialization_only",
+    "path": "/home/chuxiao/spine-cycle-sim-publication/configs/memory/HBM2_1ch_x128.ini",
+    "sha256": "d1e865c6528acbc41f0768667063702bfb4033f24bcd46119ad25bfc5ad4fb5f"
+  },
+  "execution_sha256": "5f1b97e52494df703e5a597b66c00920a312620b67a28e31ece4cebb81ad41a3",
+  "grasu_profile_id": "grasu_regraph_candidate10_normalized_hls_pagerank_v3",
+  "grasu_profile_sha256": "7155f87efa086a6563e80296f8460db14716e2f60f277ea5997f1d976897877e",
+  "hbm_controller_instances": null,
+  "input_manifest": "/home/chuxiao/spine-cycle-sim-publication/configs/experiments/hls_full_pagerank_real_large_runtime_20260726.json",
+  "input_manifest_sha256": "f292ea8c40182917b98f3b4611975f20804e8688d21bace12d003cca4c437f65",
+  "input_matrix_id": "hls_full_pagerank_real_large_runtime_20260726",
+  "input_scope": "real_large_slice",
+  "instantiate_all_hbm_channels": false,
+  "limitations": [
+    "Input is a 50000-edge real slice within the normalized 65536-vertex cap, not the complete source dataset.",
+    "GraSU/ReGraph PageRank uses the frozen Candidate10 HLS-derived conversion-free profile; whole-system implementation evidence is reported separately.",
+    "Simulator cycles are not calibrated cycle-for-cycle against hw.",
+    "DRAM energy covers active channels only and excludes idle-channel energy.",
+    "DRAM energy excludes on-chip energy.",
+    "Contiguous/repeated/discontinuous classes describe accepted backend requests per initiator and operation; they are not DRAM row-hit classifications.",
+    "Actual requested bytes exclude DRAM burst amplification and controller-internal transfer granularity."
+  ],
+  "matrix_id": "hls_full_pagerank_real_large_runtime_20260726",
+  "matrix_wall_seconds": 389.11848202720284,
+  "pagerank_damping": 0.85,
+  "pagerank_iterations": 3,
+  "pairs": 1,
+  "pairs_sha256": "45d4bb152c7a66a158d79e59cc703bb9637ad2bb785229443e28b172e8f8556a",
+  "profile_set": "candidate10_hls_v3",
+  "runtime_gate": {
+    "failed_systems": [],
+    "limit_seconds_per_system": 1800.0,
+    "observations": [
+      {
+        "host_wall_seconds": 7.87275259103626,
+        "limit_seconds": 1800.0,
+        "pass": true,
+        "run_id": "real_amazon_2008_large_e50000_insert_u8",
+        "system": "grasu_regraph"
+      },
+      {
+        "host_wall_seconds": 389.08807652350515,
+        "limit_seconds": 1800.0,
+        "pass": true,
+        "run_id": "real_amazon_2008_large_e50000_insert_u8",
+        "system": "spine"
+      }
+    ],
+    "pass": true,
+    "status": "PASS"
+  },
+  "schema_version": 1,
+  "selected_run_ids": [
+    "real_amazon_2008_large_e50000_insert_u8"
+  ],
+  "spine_profile_id": "spine_candidate10_normalized_v1",
+  "spine_profile_sha256": "4e31633c55abfdc57fd4537119d6abb6d7a4f0313dcfc81332fa0ed0a6320c0a",
+  "status": "PASS",
+  "system_rows": 2,
+  "system_rows_sha256": "48aa3c6fdb136e0b07047d3f43aa56dd8dcb1b71c51814606865ee0e9e57cf18",
+  "timing_window": {
+    "clock_rule": "convert cycles using each profile clock",
+    "grasu_regraph": "zero-time PMA build; timed PMA and degree update plus compute",
+    "spine": "zero-time compact L0 preload; timed update maintenance plus compute"
+  }
+}

@@ -1,0 +1,77 @@
+digraph candidate10_publication_evidence_layers {
+  graph [
+    rankdir=TB,
+    bgcolor="white",
+    pad=0.25,
+    nodesep=0.35,
+    ranksep=0.45,
+    fontname="DejaVu Sans"
+  ];
+  node [
+    shape=box,
+    style="rounded,filled",
+    color="#27323A",
+    penwidth=1.2,
+    fontname="DejaVu Sans",
+    fontsize=11,
+    margin="0.15,0.10"
+  ];
+  edge [color="#58656D", penwidth=1.1, arrowsize=0.7];
+
+  workloads [
+    label="Hash-pinned graph and update files\nSSSP | Full PageRank | Residual PageRank",
+    fillcolor="#E8F1F5"
+  ];
+
+  subgraph cluster_systems {
+    label="Frozen Candidate10 normalized systems";
+    color="#8A979E";
+    style="rounded";
+    spine [
+      label="Spine\nL0/carry/tile + Map/Reduce policy",
+      fillcolor="#DDEEDB"
+    ];
+    grasu [
+      label="GraSU + ReGraph\nPMA update + conversion-free Map/Reduce",
+      fillcolor="#F4E4C1"
+    ];
+  }
+
+  shared [
+    label="Shared cycle core\nfinite FIFO | evaluate/commit | AXI burst/outstanding\npseudo-channel arbitration | SST/DRAMSim3 HBM",
+    fillcolor="#E7E1F0"
+  ];
+  oracles [
+    label="Correctness gate\narchitecture oracle + independent mathematical oracle\n+ cross-system final-state check",
+    fillcolor="#DCEAF8"
+  ];
+  metrics [
+    label="Execution evidence\ncycles | phase windows | stalls | requests/bytes/locality\ncomponent activity | 32-controller HBM energy",
+    fillcolor="#F0E8DD"
+  ];
+
+  performance [
+    label="Eligible claim\nnormalized simulator performance and bottlenecks",
+    fillcolor="#D8EBD8"
+  ];
+  ppa [
+    label="Separate implementation layer\nHLS resources + routed timing\nnot native FPGA runtime",
+    fillcolor="#F6E6B8"
+  ];
+  blocked [
+    label="Blocked stronger claims\niso-functional three-algorithm PPA | total accelerator energy",
+    fillcolor="#F3D6D3",
+    color="#9A3E37"
+  ];
+
+  workloads -> spine;
+  workloads -> grasu;
+  spine -> shared;
+  grasu -> shared;
+  shared -> oracles;
+  shared -> metrics;
+  oracles -> performance;
+  metrics -> performance;
+  metrics -> ppa [style=dashed];
+  ppa -> blocked [style=dashed];
+}

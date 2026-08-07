@@ -39,6 +39,15 @@ from .candidate10 import (
     parse_metric_line,
     verify_sha256_manifest,
 )
+from .publication_ppa import (
+    PublicationPpaError,
+    analyze_publication_ppa_manifest,
+)
+from .exact_idle import (
+    ExactIdleEquivalenceError,
+    analyze_exact_idle_equivalence,
+    analyze_exact_idle_sensitivity_equivalence,
+)
 
 __all__ = [
     "FpgaEvidenceError",
@@ -72,4 +81,9 @@ __all__ = [
     "load_focused_trials",
     "parse_metric_line",
     "verify_sha256_manifest",
+    "PublicationPpaError",
+    "analyze_publication_ppa_manifest",
+    "ExactIdleEquivalenceError",
+    "analyze_exact_idle_equivalence",
+    "analyze_exact_idle_sensitivity_equivalence",
 ]

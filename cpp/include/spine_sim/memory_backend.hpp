@@ -62,6 +62,13 @@ class MemoryBackend : public Component {
  public:
   using Component::Component;
 
+  [[nodiscard]] bool has_prepare_phase() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_evaluate_phase() const noexcept override {
+    return false;
+  }
+
   void register_initiator(std::uint32_t initiator_id);
   void initialize_payload(std::size_t channel, std::uint64_t address,
                           const std::vector<std::uint8_t>& data);
@@ -94,9 +101,24 @@ class MemoryBackend : public Component {
   void commit_write_payload(const BackendRequest& request);
   [[nodiscard]] std::vector<std::uint8_t> complete_read_payload(
       const BackendRequest& request) const;
-  void record_accepted_request(const BackendRequest& request);
+ void record_accepted_request(const BackendRequest& request);
 
  private:
+  static constexpr std::size_t kPayloadPageBytes = 4096;
+  static constexpr std::size_t kPayloadValidityWords = kPayloadPageBytes / 64;
+
+  struct PayloadPage {
+    std::array<std::uint8_t, kPayloadPageBytes> bytes{};
+    std::array<std::uint64_t, kPayloadValidityWords> validity{};
+
+    [[nodiscard]] bool contains(std::size_t offset) const noexcept {
+      return (validity[offset / 64] & (std::uint64_t{1} << (offset % 64))) != 0;
+    }
+    void mark(std::size_t offset) noexcept {
+      validity[offset / 64] |= std::uint64_t{1} << (offset % 64);
+    }
+  };
+
   struct AccessCursor {
     bool valid{};
     std::size_t channel{};
@@ -115,8 +137,8 @@ class MemoryBackend : public Component {
   };
 
   std::unordered_set<std::uint32_t> initiators_;
-  std::unordered_map<
-      std::size_t, std::unordered_map<std::uint64_t, std::uint8_t>>
+  std::unordered_map<std::size_t,
+                     std::unordered_map<std::uint64_t, PayloadPage>>
       payload_storage_;
   std::unordered_map<std::size_t, std::vector<FillRegion>> payload_fills_;
   MemoryTrafficStats traffic_stats_;

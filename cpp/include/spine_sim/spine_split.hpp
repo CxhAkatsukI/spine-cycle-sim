@@ -578,6 +578,7 @@ class SpineSplitReader final : public Component {
   bool fallback_lower_second_{};
   bool fallback_active_record_valid_{};
   bool fallback_enabled_{};
+  bool fallback_after_source_refresh_{};
   std::uint64_t next_transaction_id_{};
   bool staged_memory_issue_{};
   bool staged_memory_completion_{};

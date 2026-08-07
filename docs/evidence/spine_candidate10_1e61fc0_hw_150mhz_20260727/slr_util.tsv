@@ -1,0 +1,9 @@
+source	stage	design_state	site_type	slr0	slr1	slr2	slr0_pct	slr1_pct	slr2_pct
+/data/feiyang/spine-dynamic-graph-builds/pipeline_dirty_frontier_publication_1e61fc0_20260725/production/hw_v5_candidate10_150/reports/link/link/imp/impl_1_slr_util_routed.rpt	routed	Routed	CLB	42084	15403	6652	76.57	28.52	12.32
+/data/feiyang/spine-dynamic-graph-builds/pipeline_dirty_frontier_publication_1e61fc0_20260725/production/hw_v5_candidate10_150/reports/link/link/imp/impl_1_slr_util_routed.rpt	routed	Routed	CLB LUTs	183344	77666	25944	41.70	17.98	6.01
+/data/feiyang/spine-dynamic-graph-builds/pipeline_dirty_frontier_publication_1e61fc0_20260725/production/hw_v5_candidate10_150/reports/link/link/imp/impl_1_slr_util_routed.rpt	routed	Routed	LUT as Logic	160155	70687	24423	36.43	16.36	5.65
+/data/feiyang/spine-dynamic-graph-builds/pipeline_dirty_frontier_publication_1e61fc0_20260725/production/hw_v5_candidate10_150/reports/link/link/imp/impl_1_slr_util_routed.rpt	routed	Routed	LUT as Memory	23189	6979	1521	11.29	3.53	0.77
+/data/feiyang/spine-dynamic-graph-builds/pipeline_dirty_frontier_publication_1e61fc0_20260725/production/hw_v5_candidate10_150/reports/link/link/imp/impl_1_slr_util_routed.rpt	routed	Routed	CLB Registers	257444	103845	35919	29.28	12.02	4.16
+/data/feiyang/spine-dynamic-graph-builds/pipeline_dirty_frontier_publication_1e61fc0_20260725/production/hw_v5_candidate10_150/reports/link/link/imp/impl_1_slr_util_routed.rpt	routed	Routed	Block RAM Tile	115.5	134	50	17.19	19.94	7.44
+/data/feiyang/spine-dynamic-graph-builds/pipeline_dirty_frontier_publication_1e61fc0_20260725/production/hw_v5_candidate10_150/reports/link/link/imp/impl_1_slr_util_routed.rpt	routed	Routed	URAM	83	16	0	25.94	5.00	0.00
+/data/feiyang/spine-dynamic-graph-builds/pipeline_dirty_frontier_publication_1e61fc0_20260725/production/hw_v5_candidate10_150/reports/link/link/imp/impl_1_slr_util_routed.rpt	routed	Routed	DSPs	22	0	4	0.76	0.00	0.13

@@ -63,6 +63,22 @@ all favor Spine by 1.32--1.64x. The strongest Spine cases are tiny or dynamic
 PageRank workloads where GraSU+ReGraph pays its partition gather/apply sweep;
 the maximum is 4.26x.
 
+That E2E result must not be confused with pure structure-update throughput.
+Only four of the 73 pairs contain a nonempty update, all under dynamic weighted
+SSSP. Across their eight input differential records, Spine sustains a 25.2K
+records/s geometric mean in its timed maintenance window, while GraSU+ReGraph
+sustains 3.81M records/s in its timed PMA-update window. Equivalently, Spine's
+pure-update speedup is 0.00661x, so GraSU+ReGraph is about 151x faster for this
+narrow structure-only operation. GraSU emits 1.189 physical PMA updates per
+input record on geometric average.
+
+There is no contradiction: the post-update computation dominates these tiny
+E2E cases and reverses the final ranking. The update-only result covers four
+tiny synthetic batches, not all 73 pairs or real-dataset updates. It is an
+optimization signal for Spine's repeated maintenance scan, not yet a general
+update-throughput claim. The analyzer records no-update rows explicitly and
+will not turn their nonzero setup phase into fictitious records/s.
+
 The strongest GraSU+ReGraph cases are the 4,095/4,096/4,097 source-window
 stress graphs. Weighted SSSP reaches 0.109--0.119x Spine speedup, so Spine is
 about 8.4--9.2x slower there. Full and residual PageRank on the same topology
@@ -126,7 +142,7 @@ python3 scripts/run_shared_comparison_matrix.py \
   --resume --claim-scope structural_exploratory --no-build
 python3 scripts/analyze_shared_comparison_matrix.py \
   --matrix-dir /data/tmp/chuxiao/candidate10_hls_v3_formal_matrix_20260727 \
-  --out-dir /data/tmp/chuxiao/candidate10_hls_v3_formal_analysis_20260727
+  --out-dir /data/tmp/chuxiao/candidate10_hls_v3_formal_analysis_update_20260727
 ```
 
 The compact evidence bundle is

@@ -62,11 +62,29 @@ from .memory_traffic import (
     split_memory_metrics,
 )
 from .real_memory_analysis import (
+    load_physical_selected_matrix,
     load_matrix as load_real_memory_matrix,
     normalize_system_row as normalize_real_memory_system_row,
     pair_memory_rows,
+    physical_pair_rows,
+    physical_paper_rows,
     summarize_pairs as summarize_real_memory_pairs,
 )
+from .temporal_real_batches import (
+    GRASU_TEMPORAL_SOURCES,
+    TEMPORAL_BATCH_SIZES,
+    TEMPORAL_SCENARIOS,
+    build_temporal_real_manifest,
+    build_temporal_update,
+    extract_temporal_compact_slice,
+    validate_temporal_real_manifest,
+)
+from .temporal_real_analysis import (
+    analyze_temporal_full_pagerank,
+    analyze_temporal_small_batch_pagerank,
+)
+from .temporal_three_algorithm_analysis import analyze_temporal_three_algorithms
+from .temporal_dense_analysis import analyze_temporal_dense_pagerank
 
 __all__ = [
     "DEFAULT_REAL_SOURCES",
@@ -116,7 +134,21 @@ __all__ = [
     "phase_memory_metrics",
     "split_memory_metrics",
     "load_real_memory_matrix",
+    "load_physical_selected_matrix",
     "normalize_real_memory_system_row",
     "pair_memory_rows",
+    "physical_pair_rows",
+    "physical_paper_rows",
     "summarize_real_memory_pairs",
+    "GRASU_TEMPORAL_SOURCES",
+    "TEMPORAL_BATCH_SIZES",
+    "TEMPORAL_SCENARIOS",
+    "build_temporal_real_manifest",
+    "build_temporal_update",
+    "extract_temporal_compact_slice",
+    "validate_temporal_real_manifest",
+    "analyze_temporal_full_pagerank",
+    "analyze_temporal_small_batch_pagerank",
+    "analyze_temporal_three_algorithms",
+    "analyze_temporal_dense_pagerank",
 ]

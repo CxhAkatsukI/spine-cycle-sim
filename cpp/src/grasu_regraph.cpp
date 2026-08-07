@@ -3880,6 +3880,12 @@ public:
 
   [[nodiscard]] GraSuReGraphCounters counters() const noexcept {
     GraSuReGraphCounters result;
+    const auto account_axi_port = [&result](const FixedAxiPort &port) {
+      result.axi_request_fifo_stalls +=
+          port.requests().stats().push_stalls;
+      result.axi_backend_submit_stalls +=
+          port.master().stats().backend_submit_stalls;
+    };
     result.state_bytes_per_vertex = state_bytes_per_vertex(policy_);
     result.destination_partitions = layout_.partitions.size();
     result.frontend_count = config_.frontend_count;
@@ -4019,60 +4025,39 @@ public:
                                (apply_auxiliary_write_port_ == nullptr
                                     ? state_bytes_per_vertex(policy_)
                                     : sizeof(std::uint32_t));
-    result.axi_backend_submit_stalls =
-        apply_state_read_port_->master().stats().backend_submit_stalls +
-        apply_state_write_port_->master().stats().backend_submit_stalls +
-        source_state_primary_write_port_->master()
-            .stats()
-            .backend_submit_stalls +
-        source_state_mirror_write_port_->master().stats().backend_submit_stalls;
+    account_axi_port(*apply_state_read_port_);
+    account_axi_port(*apply_state_write_port_);
+    account_axi_port(*source_state_primary_write_port_);
+    account_axi_port(*source_state_mirror_write_port_);
     if (apply_degree_port_ != nullptr) {
-      result.axi_backend_submit_stalls +=
-          apply_degree_port_->master().stats().backend_submit_stalls +
-          source_prepare_state_read_port_->master()
-              .stats()
-              .backend_submit_stalls +
-          source_prepare_degree_read_port_->master()
-              .stats()
-              .backend_submit_stalls +
-          source_prepare_primary_write_port_->master()
-              .stats()
-              .backend_submit_stalls +
-          source_prepare_mirror_write_port_->master()
-              .stats()
-              .backend_submit_stalls;
+      account_axi_port(*apply_degree_port_);
+      account_axi_port(*source_prepare_state_read_port_);
+      account_axi_port(*source_prepare_degree_read_port_);
+      account_axi_port(*source_prepare_primary_write_port_);
+      account_axi_port(*source_prepare_mirror_write_port_);
     }
     if (apply_auxiliary_read_port_ != nullptr) {
-      result.axi_backend_submit_stalls +=
-          apply_auxiliary_read_port_->master().stats().backend_submit_stalls +
-          apply_auxiliary_write_port_->master().stats().backend_submit_stalls;
+      account_axi_port(*apply_auxiliary_read_port_);
+      account_axi_port(*apply_auxiliary_write_port_);
     }
     if (config_.frontend_count == 1) {
-      result.axi_backend_submit_stalls +=
-          row_port_->master().stats().backend_submit_stalls +
-          source_state_port_->master().stats().backend_submit_stalls;
+      account_axi_port(*row_port_);
+      account_axi_port(*source_state_port_);
       if (degree_port_ != nullptr) {
-        result.axi_backend_submit_stalls +=
-            degree_port_->master().stats().backend_submit_stalls;
+        account_axi_port(*degree_port_);
       }
       for (const auto &port : pma_ports_) {
-        result.axi_backend_submit_stalls +=
-            port->master().stats().backend_submit_stalls;
+        account_axi_port(*port);
       }
       result.axis_push_stalls = source_request_axis_.stats().push_stalls +
                                 source_response_axis_.stats().push_stalls +
                                 edge_axis_.stats().push_stalls;
     } else {
       for (std::size_t worker = 0; worker < config_.frontend_count; ++worker) {
-        result.axi_backend_submit_stalls +=
-            k4_row_ports_[worker]->master().stats().backend_submit_stalls +
-            k4_source_state_ports_[worker]
-                ->master()
-                .stats()
-                .backend_submit_stalls;
+        account_axi_port(*k4_row_ports_[worker]);
+        account_axi_port(*k4_source_state_ports_[worker]);
         for (const auto &port : k4_pma_ports_[worker]) {
-          result.axi_backend_submit_stalls +=
-              port->master().stats().backend_submit_stalls;
+          account_axi_port(*port);
         }
         result.axis_push_stalls +=
             k4_source_request_axes_[worker]->stats().push_stalls +
@@ -4788,6 +4773,12 @@ public:
   [[nodiscard]] GraSuNativeReGraphCounters counters() const noexcept {
     GraSuNativeReGraphCounters result;
     GraSuReGraphCounters &pipeline = result.pipeline;
+    const auto account_axi_port = [&pipeline](const FixedAxiPort &port) {
+      pipeline.axi_request_fifo_stalls +=
+          port.requests().stats().push_stalls;
+      pipeline.axi_backend_submit_stalls +=
+          port.master().stats().backend_submit_stalls;
+    };
     pipeline.state_bytes_per_vertex = state_bytes_per_vertex(policy_);
     pipeline.destination_partitions = 1;
     pipeline.supersteps = controller_->rounds();
@@ -4858,22 +4849,19 @@ public:
     pipeline.apply_write_bytes = pipeline.apply_state_writes *
                                  kStateWordsPerBurst *
                                  state_bytes_per_vertex(policy_);
-    pipeline.axi_backend_submit_stalls =
-        edge_array_port_->master().stats().backend_submit_stalls +
-        source_state_port_->master().stats().backend_submit_stalls +
-        apply_state_read_port_->master().stats().backend_submit_stalls +
-        apply_state_write_port_->master().stats().backend_submit_stalls +
-        source_state_primary_write_port_->master()
-            .stats()
-            .backend_submit_stalls +
-        source_state_mirror_write_port_->master().stats().backend_submit_stalls;
-    pipeline.axis_push_stalls = edge_burst_axis_.stats().push_stalls +
-                                scatter_axis_.stats().push_stalls +
-                                source_request_axis_.stats().push_stalls +
-                                source_response_axis_.stats().push_stalls +
-                                gather_axis_.stats().push_stalls +
-                                merger_axis_.stats().push_stalls +
-                                wrapper_axis_.stats().push_stalls;
+    account_axi_port(*edge_array_port_);
+    account_axi_port(*source_state_port_);
+    account_axi_port(*apply_state_read_port_);
+    account_axi_port(*apply_state_write_port_);
+    account_axi_port(*source_state_primary_write_port_);
+    account_axi_port(*source_state_mirror_write_port_);
+    pipeline.axis_push_stalls =
+        edge_burst_axis_.stats().push_stalls +
+        scatter_axis_.stats().push_stalls +
+        source_request_axis_.stats().push_stalls +
+        source_response_axis_.stats().push_stalls +
+        gather_axis_.stats().push_stalls + merger_axis_.stats().push_stalls +
+        wrapper_axis_.stats().push_stalls;
     pipeline.start_cycle = start_cycle_;
     pipeline.end_cycle = scheduler_.clock(clock_id_).completed_cycles;
     pipeline.last_iteration_error = apply_->iteration_error();

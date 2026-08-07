@@ -472,6 +472,39 @@ void test_spine_candidate10_one_pass_publication_payloads() {
             << " cycles=" << counters.end_cycle - counters.start_cycle << '\n';
 }
 
+void test_spine_candidate10_hot_metadata_carry_retires_new_batch_request() {
+  SpineL0Config config;
+  config.maintenance_architecture =
+      SpineMaintenanceArchitecture::kCandidate10OnePass;
+  config.hot_vertices = {7};
+
+  SpineL0State state;
+  state.hot_enabled = true;
+  state.hot_vertices.insert(7);
+  state.cold_levels[0][0] = {
+      SpineEdgeRecord{.src = 0, .dst = 1, .weight = 5, .diff = 1},
+  };
+  SpineEdgeSlice workload{
+      .vertices = 16,
+      .edges = {
+          SpineEdgeRecord{.src = 0, .dst = 2, .weight = 3, .diff = 1},
+      },
+      .case_name = "candidate10_hot_metadata_carry",
+  };
+
+  const MaintenanceOnlyRun run =
+      run_maintenance_only(config, std::move(state), std::move(workload));
+  require(!run.failed, "candidate-10 hot-metadata carry failed: " + run.failure);
+  require(run.counters.target_level == 1 &&
+              run.counters.carry_new_batch_reads == 1 &&
+              run.counters.carry_level_payload_reads == 1 &&
+              run.counters.hot_bitmap_carry_reads == 0 &&
+              run.counters.carry_merge_inputs == 2 &&
+              run.state.cold_levels[0][0].empty() &&
+              run.state.cold_levels[0][1].size() == 2,
+          "candidate-10 carry did not retire its preclassified new-batch stream");
+}
+
 std::vector<std::uint8_t> u64_payload(std::uint64_t value) {
   std::vector<std::uint8_t> data(sizeof(value));
   for (std::size_t byte = 0; byte < sizeof(value); ++byte) {
@@ -755,6 +788,96 @@ class EdgeCounter final : public Component {
   std::uint64_t commits{};
 };
 
+class PhaseCounter final : public Component {
+ public:
+  PhaseCounter(std::string name, ClockId clock, bool prepare_phase,
+               bool evaluate_phase, bool commit_phase)
+      : Component(std::move(name), clock),
+        prepare_phase_(prepare_phase),
+        evaluate_phase_(evaluate_phase),
+        commit_phase_(commit_phase) {}
+
+  [[nodiscard]] bool has_prepare_phase() const noexcept override {
+    return prepare_phase_;
+  }
+  [[nodiscard]] bool has_evaluate_phase() const noexcept override {
+    return evaluate_phase_;
+  }
+  [[nodiscard]] bool has_commit_phase() const noexcept override {
+    return commit_phase_;
+  }
+  void prepare(const CycleContext&) override { ++prepares; }
+  void evaluate(const CycleContext&) override { ++evaluations; }
+  void commit(const CycleContext&) override { ++commits; }
+
+  std::uint64_t prepares{};
+  std::uint64_t evaluations{};
+  std::uint64_t commits{};
+
+ private:
+  bool prepare_phase_{};
+  bool evaluate_phase_{};
+  bool commit_phase_{};
+};
+
+class ReadyPhaseCounter final : public Component {
+ public:
+  ReadyPhaseCounter(std::string name, ClockId clock)
+      : Component(std::move(name), clock) {}
+
+  [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool evaluate_ready() const noexcept override {
+    return evaluate_is_ready;
+  }
+  [[nodiscard]] bool commit_ready() const noexcept override {
+    return commit_is_ready;
+  }
+  void evaluate(const CycleContext&) override { ++evaluations; }
+  void commit(const CycleContext&) override { ++commits; }
+
+  bool evaluate_is_ready{};
+  bool commit_is_ready{};
+  std::uint64_t evaluations{};
+  std::uint64_t commits{};
+};
+
+class LatchedCommitCounter final : public Component {
+ public:
+  LatchedCommitCounter(std::string name, ClockId clock, std::size_t identity,
+                       std::vector<std::size_t> &order)
+      : Component(std::move(name), clock),
+        identity_(identity),
+        order_(order) {}
+
+  [[nodiscard]] bool has_evaluate_phase() const noexcept override {
+    return false;
+  }
+  [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_latched_commit_guard() const noexcept override {
+    return true;
+  }
+  void arm() { set_latched_commit_ready(true); }
+  void evaluate(const CycleContext &) override {}
+  void commit(const CycleContext &context) override {
+    order_.push_back(identity_);
+    commit_cycles.push_back(context.domain_cycle);
+    set_latched_commit_ready(false);
+  }
+
+  std::vector<std::uint64_t> commit_cycles;
+
+ private:
+  std::size_t identity_{};
+  std::vector<std::size_t> &order_;
+};
+
 template <typename T>
 class SequenceProducer final : public Component {
  public:
@@ -902,6 +1025,149 @@ void test_scheduler_component_removal_is_exact() {
   }
   require(duplicate_removal_rejected,
           "scheduler silently accepted duplicate component removal");
+}
+
+void test_scheduler_dispatches_only_declared_phases() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("core", 100.0);
+  const auto hbm = scheduler.add_clock_mhz("hbm", 250.0);
+  PhaseCounter prepare_only("prepare-only", core, true, false, false);
+  PhaseCounter evaluate_only("evaluate-only", core, false, true, false);
+  PhaseCounter commit_only("commit-only", hbm, false, false, true);
+  PhaseCounter all_phases("all-phases", core, true, true, true);
+  PhaseCounter no_phases("no-phases", core, false, false, false);
+  scheduler.add_component(prepare_only);
+  scheduler.add_component(evaluate_only);
+  scheduler.add_component(commit_only);
+  scheduler.add_component(all_phases);
+  scheduler.add_component(no_phases);
+
+  scheduler.run_events(6);
+
+  require(prepare_only.prepares == 2 && prepare_only.evaluations == 0 &&
+              prepare_only.commits == 0,
+          "scheduler called an undeclared prepare-only component phase");
+  require(evaluate_only.prepares == 0 && evaluate_only.evaluations == 2 &&
+              evaluate_only.commits == 0,
+          "scheduler called an undeclared evaluate-only component phase");
+  require(commit_only.prepares == 0 && commit_only.evaluations == 0 &&
+              commit_only.commits == 5,
+          "scheduler called an undeclared commit-only component phase");
+  require(all_phases.prepares == 2 && all_phases.evaluations == 2 &&
+              all_phases.commits == 2,
+          "scheduler skipped a declared component phase");
+  require(no_phases.prepares == 0 && no_phases.evaluations == 0 &&
+              no_phases.commits == 0,
+          "scheduler called a phase-free component");
+
+  scheduler.remove_component(all_phases);
+  scheduler.run_events(5);
+  require(all_phases.prepares == 2 && all_phases.evaluations == 2 &&
+              all_phases.commits == 2,
+          "component removal left a stale phase registration");
+  require(prepare_only.prepares == 4 && evaluate_only.evaluations == 4 &&
+              commit_only.commits == 9,
+          "phase dispatch changed surviving multi-clock components");
+}
+
+void test_scheduler_component_sampling_profile() {
+  require(setenv("SPINE_SIM_PROFILE_COMPONENT_PERIOD", "2", 1) == 0,
+          "failed to configure scheduler sampling profile");
+  Scheduler scheduler;
+  require(unsetenv("SPINE_SIM_PROFILE_COMPONENT_PERIOD") == 0,
+          "failed to clear scheduler sampling profile");
+  const auto core = scheduler.add_clock_mhz("core", 100.0);
+  PhaseCounter all_phases("profiled", core, true, true, true);
+  scheduler.add_component(all_phases);
+  scheduler.run_events(5);
+
+  const auto rows = scheduler.component_profile();
+  require(scheduler.profiling_period() == 2 && rows.size() == 1,
+          "scheduler sampling profile configuration was not retained");
+  require(rows[0].name == "profiled" && rows[0].prepare_samples == 3 &&
+              rows[0].evaluate_samples == 3 && rows[0].commit_samples == 3,
+          "scheduler sampled the wrong component cycles or phases");
+}
+
+void test_scheduler_dynamic_phase_readiness() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("core", 100.0);
+  ReadyPhaseCounter component("dynamic-ready", core);
+  scheduler.add_component(component);
+
+  scheduler.run_events(3);
+  require(component.evaluations == 0 && component.commits == 0,
+          "scheduler invoked a dynamically sleeping phase");
+  component.evaluate_is_ready = true;
+  scheduler.run_events(2);
+  require(component.evaluations == 2 && component.commits == 0,
+          "scheduler did not wake only the ready evaluate phase");
+  component.evaluate_is_ready = false;
+  component.commit_is_ready = true;
+  scheduler.run_events(4);
+  require(component.evaluations == 2 && component.commits == 4,
+          "scheduler did not wake only the ready commit phase");
+}
+
+void test_fifo_latched_commit_readiness() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("fifo-latched-ready", 100.0);
+  Fifo<std::uint32_t> fifo("fifo-latched-ready", core, 2);
+  scheduler.add_component(fifo);
+
+  require(!fifo.latched_commit_ready(),
+          "new FIFO unexpectedly requested a commit");
+  require(fifo.try_push(17), "FIFO rejected its first staged push");
+  require(fifo.latched_commit_ready(),
+          "staged FIFO push did not request a commit");
+  scheduler.run_events(1);
+  require(fifo.size() == 1 && !fifo.latched_commit_ready(),
+          "FIFO push commit did not clear its readiness latch");
+
+  std::uint32_t value = 0;
+  require(fifo.try_pop(value) && value == 17,
+          "FIFO rejected or corrupted its staged pop");
+  require(fifo.latched_commit_ready(),
+          "staged FIFO pop did not request a commit");
+  scheduler.run_events(1);
+  require(fifo.empty() && !fifo.latched_commit_ready(),
+          "FIFO pop commit did not clear its readiness latch");
+}
+
+void test_scheduler_latched_commit_bitmap_ordering() {
+  Scheduler scheduler;
+  const auto fast = scheduler.add_clock_mhz("fast", 100.0);
+  const auto slow = scheduler.add_clock_mhz("slow", 50.0, 5'000'000);
+  std::vector<std::size_t> order;
+  std::vector<std::unique_ptr<LatchedCommitCounter>> counters;
+  counters.reserve(131);
+  for (std::size_t identity = 0; identity < 130; ++identity) {
+    counters.push_back(std::make_unique<LatchedCommitCounter>(
+        "latched-" + std::to_string(identity), fast, identity, order));
+    scheduler.add_component(*counters.back());
+  }
+  counters.push_back(std::make_unique<LatchedCommitCounter>(
+      "latched-slow", slow, 130, order));
+  scheduler.add_component(*counters.back());
+
+  counters[129]->arm();
+  counters[1]->arm();
+  counters[64]->arm();
+  counters[130]->arm();
+  scheduler.run_events(1);
+  require(order == std::vector<std::size_t>({1, 64, 129}),
+          "latched commit bitmap changed registration order or clock phase");
+
+  scheduler.run_events(1);
+  require(order == std::vector<std::size_t>({1, 64, 129, 130}) &&
+              counters[130]->commit_cycles == std::vector<std::uint64_t>({0}),
+          "latched multi-clock component committed before its own edge");
+
+  counters[129]->arm();
+  scheduler.remove_component(*counters[0]);
+  scheduler.run_events(1);
+  require(order == std::vector<std::size_t>({1, 64, 129, 130, 129}),
+          "component removal lost a rebased latched commit notification");
 }
 
 void test_fixed_axi_port_rejects_busy_unregister() {
@@ -2033,6 +2299,53 @@ void test_axi_payload_round_trip_across_beats_and_bursts() {
       "AXI write payload did not reach backend storage");
   require(axi.stats().zero_filled_write_bytes == 0,
           "explicit AXI write payload was reported as zero-filled");
+}
+
+void test_memory_backend_payload_pages_preserve_sparse_fill_semantics() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("core", 141.0);
+  MockMemoryBackend backend("mock-hbm", core, mock_memory_config(2));
+
+  constexpr std::uint64_t kCrossPageBase = 4090;
+  backend.fill_payload(0, 4088, 32, 0xaa);
+  backend.fill_payload(1, 4088, 32, 0x5c);
+
+  std::vector<std::uint8_t> explicit_payload(20);
+  for (std::size_t index = 0; index < explicit_payload.size(); ++index) {
+    explicit_payload[index] =
+        static_cast<std::uint8_t>((index * 19 + 7) & 0xffU);
+  }
+  backend.initialize_payload(0, kCrossPageBase, explicit_payload);
+
+  std::vector<std::uint8_t> expected(32, 0xaa);
+  std::copy(explicit_payload.begin(), explicit_payload.end(),
+            expected.begin() + 2);
+  require(backend.inspect_payload(0, 4088, expected.size()) == expected,
+          "paged payload storage changed cross-page sparse/fill resolution");
+  require(backend.inspect_payload(1, 4088, expected.size()) ==
+              std::vector<std::uint8_t>(expected.size(), 0x5c),
+          "paged payload storage leaked explicit bytes across channels");
+
+  backend.fill_payload(0, kCrossPageBase, explicit_payload.size(), 0x33);
+  require(backend.inspect_payload(0, kCrossPageBase, explicit_payload.size()) ==
+              explicit_payload,
+          "a later fill incorrectly overrode explicit payload bytes");
+
+  backend.initialize_payload(0, 4095, {0x11});
+  backend.initialize_payload(0, 4097, {0x22});
+  require(backend.inspect_payload(0, 4095, 3) ==
+              std::vector<std::uint8_t>({0x11, explicit_payload[6], 0x22}),
+          "paged payload validity lost a byte around the page boundary");
+
+  bool inspect_overflow_rejected = false;
+  try {
+    (void)backend.inspect_payload(
+        0, std::numeric_limits<std::uint64_t>::max() - 1, 2);
+  } catch (const std::invalid_argument&) {
+    inspect_overflow_rejected = true;
+  }
+  require(inspect_overflow_rejected,
+          "paged payload inspection accepted an overflowing address range");
 }
 
 void test_axi_read_beat_stream_is_bounded_and_request_scoped() {
@@ -7384,6 +7697,61 @@ void test_spine_full_pagerank_vertical_slice_reads_level_edges() {
             << " maintenance_reruns=0\n";
 }
 
+void test_spine_pagerank_active_gate_fallback_preserves_tile_identity() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("pagerank-fallback", 200.0);
+  MockMemoryBackend backend("pagerank-fallback-hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 2,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  SpineEdgeSlice workload{
+      .vertices = 3,
+      .edges = {
+          {.src = 0, .dst = 1, .weight = 1, .diff = 1},
+          {.src = 1, .dst = 2, .weight = 1, .diff = 1},
+          {.src = 2, .dst = 0, .weight = 1, .diff = 1},
+      },
+      .case_name = "pagerank_active_gate_fallback",
+  };
+  SpineL0Config maintenance_config;
+  maintenance_config.range_task_active_gate = 1;
+  SpinePageRankVerticalSliceSystem system(
+      scheduler, core, backend, workload, 0.8F, maintenance_config);
+  system.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until(
+      [&] {
+        return (system.done() || system.failed()) && system.idle() &&
+               backend.outstanding() == 0;
+      },
+      500'000);
+
+  const auto &reader = system.reader_counters();
+  const auto &compute = system.compute_counters();
+  bool ranks_match = true;
+  for (const std::uint32_t rank_word : system.compute().rank_words()) {
+    ranks_match =
+        ranks_match &&
+        std::fabs(GraphAlgorithmPolicy::word_to_float(rank_word) - 1.0F / 3.0F) <
+            1.0e-5F;
+  }
+  require(!system.failed() && system.done() && reader.range_task_path == 2 &&
+              reader.range_task_fallback_reason == 1 &&
+              reader.range_task_active_records == 3 &&
+              reader.source_requests == 3 && reader.source_responses == 3 &&
+              reader.fallback_replay_edges == 3 &&
+              compute.edges_received == 3 && compute.tiles_received == 1 &&
+              compute.source_map_operations == 3 &&
+              compute.vertices_applied == 3 && compute.done_words == 1 &&
+              ranks_match,
+          "PageRank active-gate fallback lost source refresh, tile identity, "
+          "or arithmetic correctness");
+}
+
 void test_spine_pagerank_reports_maintenance_failure_without_compute_done() {
   Scheduler scheduler;
   const auto core = scheduler.add_clock_mhz("pagerank-failure", 200.0);
@@ -7655,6 +8023,15 @@ int main(int argc, char **argv) {
       {"multiclock_scheduler", test_multiclock_scheduler},
       {"scheduler_component_removal",
        test_scheduler_component_removal_is_exact},
+      {"scheduler_phase_dispatch",
+       test_scheduler_dispatches_only_declared_phases},
+      {"scheduler_component_profile",
+       test_scheduler_component_sampling_profile},
+      {"scheduler_dynamic_readiness",
+       test_scheduler_dynamic_phase_readiness},
+      {"fifo_latched_commit_readiness", test_fifo_latched_commit_readiness},
+      {"scheduler_latched_commit_bitmap",
+       test_scheduler_latched_commit_bitmap_ordering},
       {"fixed_axi_busy_unregister",
        test_fixed_axi_port_rejects_busy_unregister},
       {"axi_routed_parent_channel",
@@ -7681,6 +8058,8 @@ int main(int argc, char **argv) {
       {"axi_response_backpressure", test_axi_response_backpressure_is_lossless},
       {"axi_payload_round_trip",
        test_axi_payload_round_trip_across_beats_and_bursts},
+      {"memory_backend_payload_pages",
+       test_memory_backend_payload_pages_preserve_sparse_fill_semantics},
       {"axi_read_beat_stream",
        test_axi_read_beat_stream_is_bounded_and_request_scoped},
       {"axi_multi_initiator", test_axi_multi_initiator_fixed_channel_isolation},
@@ -7688,6 +8067,8 @@ int main(int argc, char **argv) {
       {"spine_l0_real_slice", test_spine_l0_real_slice_vertical_path},
       {"spine_candidate10_one_pass",
        test_spine_candidate10_one_pass_publication_payloads},
+      {"spine_candidate10_hot_metadata_carry",
+       test_spine_candidate10_hot_metadata_carry_retires_new_batch_request},
       {"spine_candidate10_publication_formula",
        test_spine_candidate10_publication_rtl_window_formula},
       {"spine_candidate10_l0_writer_formula",
@@ -7807,6 +8188,8 @@ int main(int argc, char **argv) {
        test_spine_timed_full_pagerank_compute_uses_hbm_and_pipelines},
       {"spine_pagerank_vertical_slice",
        test_spine_full_pagerank_vertical_slice_reads_level_edges},
+      {"spine_pagerank_active_gate_fallback",
+       test_spine_pagerank_active_gate_fallback_preserves_tile_identity},
       {"spine_pagerank_maintenance_failure",
        test_spine_pagerank_reports_maintenance_failure_without_compute_done},
       {"spine_dynamic_pagerank",

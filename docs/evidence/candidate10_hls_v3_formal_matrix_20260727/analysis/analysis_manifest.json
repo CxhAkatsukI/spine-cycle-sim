@@ -1,6 +1,6 @@
 {
-  "analysis_module": "/home/chuxiao/spine-cycle-sim/spine_cycle_sim/experiments/comparison_analysis.py",
-  "analysis_module_sha256": "e19262a7ac02097c757183a2fadce211e3a3c7d347ea0363eec6a87500f89444",
+  "analysis_module": "/home/chuxiao/spine-cycle-sim-publication/spine_cycle_sim/experiments/comparison_analysis.py",
+  "analysis_module_sha256": "ab9f1e438d8e2365b3ef72cad9e72e9692872155bf77d834a0b0ba94145ebfc9",
   "bottleneck_summary": [
     {
       "phase_bottleneck": "structure_update_dominant",
@@ -330,8 +330,9 @@
   "outputs": {
     "bottleneck_summary.csv": "0d84b84ede2fbb56330f15af0484a5da1c5c81803f31d3a273b0d89a0729020a",
     "group_summary.csv": "23af9cd78ff01eaeb7e60fb162b0fb3c65f6932ecfeee7edc27e0d54c4079be7",
-    "pair_details.csv": "e1397f88a584d0230fb577dce1a0dbf9d87d4f822f6f55598cc6c245a5fbb865",
-    "system_details.csv": "b0d366ad1146aa75bd9333e6807a860576dc1787fc2e7520033358f67aff93dc"
+    "pair_details.csv": "b6af2a328f94f4fe242c170a24b8a50cfff3938f8b210f43b5146f510c7d5de7",
+    "system_details.csv": "0d0097d43fba27f01beebf0a5eb590a83bec68d3c266bca28b282a50985260c7",
+    "update_summary.csv": "385481386e7126ceecafe150575aea84b38cf2592828d03c4e0fa5b9af1132be"
   },
   "pairs": 73,
   "runs": 73,
@@ -340,5 +341,44 @@
   "source_manifest_sha256": "68e36a835f35c277ddff0571d9baae46385674239085c12197ab5b91bdc9bbc7",
   "status": "PASS",
   "system_rows": 146,
-  "timing_claim": "normalized_conversion_free_structural_execution_driven"
+  "timing_claim": "normalized_conversion_free_structural_execution_driven",
+  "update_summary": [
+    {
+      "grasu_regraph_input_update_records_per_second_geomean": 3805916.3660722408,
+      "grasu_regraph_physical_update_amplification_geomean": 1.189207115002721,
+      "group_type": "overall",
+      "group_value": "all",
+      "input_update_records": 8,
+      "pairs": 4,
+      "spine_input_update_records_per_second_geomean": 25160.81097686548,
+      "spine_update_speedup_geomean": 0.0066109731682916185,
+      "spine_update_speedup_median": 0.005965178224753528,
+      "throughput_scope": "input_differential_records_per_timed_update_phase"
+    },
+    {
+      "grasu_regraph_input_update_records_per_second_geomean": 3166149.766506928,
+      "grasu_regraph_physical_update_amplification_geomean": 1.414213562373095,
+      "group_type": "role",
+      "group_value": "calibration",
+      "input_update_records": 3,
+      "pairs": 2,
+      "spine_input_update_records_per_second_geomean": 26999.39445357204,
+      "spine_update_speedup_geomean": 0.008527516524702902,
+      "spine_update_speedup_median": 0.009519073704814637,
+      "throughput_scope": "input_differential_records_per_timed_update_phase"
+    },
+    {
+      "grasu_regraph_input_update_records_per_second_geomean": 4574957.109978141,
+      "grasu_regraph_physical_update_amplification_geomean": 1.0,
+      "group_type": "role",
+      "group_value": "holdout",
+      "input_update_records": 5,
+      "pairs": 2,
+      "spine_input_update_records_per_second_geomean": 23447.429908184447,
+      "spine_update_speedup_geomean": 0.005125169339193319,
+      "spine_update_speedup_median": 0.005298254946825148,
+      "throughput_scope": "input_differential_records_per_timed_update_phase"
+    }
+  ],
+  "update_throughput_claim": "input_differential_records_per_timed_update_phase"
 }

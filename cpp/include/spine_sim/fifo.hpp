@@ -57,6 +57,7 @@ class Fifo final : public Component {
       return false;
     }
     staged_push_ = value;
+    set_latched_commit_ready(true);
     return true;
   }
 
@@ -66,6 +67,7 @@ class Fifo final : public Component {
       return false;
     }
     staged_push_ = std::move(value);
+    set_latched_commit_ready(true);
     return true;
   }
 
@@ -76,9 +78,19 @@ class Fifo final : public Component {
     }
     value = queue_.front();
     staged_pop_ = true;
+    set_latched_commit_ready(true);
     return true;
   }
 
+  [[nodiscard]] bool has_evaluate_phase() const noexcept override {
+    return false;
+  }
+  [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_latched_commit_guard() const noexcept override {
+    return true;
+  }
   void evaluate(const CycleContext&) override {}
 
   void commit(const CycleContext&) override {
@@ -93,6 +105,7 @@ class Fifo final : public Component {
       ++stats_.pushes;
     }
     stats_.max_occupancy = std::max(stats_.max_occupancy, queue_.size());
+    set_latched_commit_ready(false);
   }
 
  private:

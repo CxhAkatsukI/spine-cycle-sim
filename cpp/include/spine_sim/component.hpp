@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <limits>
 #include <string>
 #include <utility>
 
@@ -30,13 +31,69 @@ class Component {
   [[nodiscard]] const std::string& name() const noexcept { return name_; }
   [[nodiscard]] ClockId clock_id() const noexcept { return clock_id_; }
 
+  // Phase participation is fixed for a component's lifetime. The scheduler
+  // uses these declarations only to omit virtual calls to known no-op phases;
+  // every simulated clock edge and the prepare/evaluate/commit ordering remain
+  // unchanged.
+  [[nodiscard]] virtual bool has_prepare_phase() const noexcept {
+    return false;
+  }
+  [[nodiscard]] virtual bool has_evaluate_phase() const noexcept {
+    return true;
+  }
+  [[nodiscard]] virtual bool has_commit_phase() const noexcept { return true; }
+  [[nodiscard]] virtual bool has_dynamic_evaluate_guard() const noexcept {
+    return false;
+  }
+  [[nodiscard]] virtual bool has_dynamic_commit_guard() const noexcept {
+    return false;
+  }
+  [[nodiscard]] virtual bool has_latched_commit_guard() const noexcept {
+    return false;
+  }
+  [[nodiscard]] virtual bool evaluate_ready() const noexcept { return true; }
+  [[nodiscard]] virtual bool commit_ready() const noexcept { return true; }
+  [[nodiscard]] bool latched_commit_ready() const noexcept {
+    return latched_commit_ready_;
+  }
+
   virtual void prepare(const CycleContext&) {}
   virtual void evaluate(const CycleContext& context) = 0;
   virtual void commit(const CycleContext& context) = 0;
 
+ protected:
+  void set_latched_commit_ready(bool ready) noexcept {
+    const bool notify = ready && !latched_commit_ready_ &&
+                        latched_commit_notifier_ != nullptr;
+    latched_commit_ready_ = ready;
+    if (notify) {
+      latched_commit_notifier_(latched_commit_notifier_owner_,
+                               latched_commit_slot_);
+    }
+  }
+
  private:
+  friend class Scheduler;
+  using LatchedCommitNotifier = void (*)(void *, std::size_t) noexcept;
+
+  void bind_latched_commit_notifier(void *owner, std::size_t slot,
+                                    LatchedCommitNotifier notifier) noexcept {
+    latched_commit_notifier_owner_ = owner;
+    latched_commit_slot_ = slot;
+    latched_commit_notifier_ = notifier;
+  }
+  void unbind_latched_commit_notifier() noexcept {
+    latched_commit_notifier_owner_ = nullptr;
+    latched_commit_slot_ = std::numeric_limits<std::size_t>::max();
+    latched_commit_notifier_ = nullptr;
+  }
+
   std::string name_;
   ClockId clock_id_;
+  bool latched_commit_ready_{};
+  void *latched_commit_notifier_owner_{};
+  std::size_t latched_commit_slot_{std::numeric_limits<std::size_t>::max()};
+  LatchedCommitNotifier latched_commit_notifier_{};
 };
 
 }  // namespace spine::sim

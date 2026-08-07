@@ -152,9 +152,26 @@ void MemoryBackend::record_accepted_request(const BackendRequest& request) {
 void MemoryBackend::initialize_payload(
     std::size_t channel, std::uint64_t address,
     const std::vector<std::uint8_t>& data) {
+  if (data.size() > std::numeric_limits<std::uint64_t>::max() - address) {
+    throw std::invalid_argument("memory payload initialization overflows address");
+  }
   auto& storage = payload_storage_[channel];
-  for (std::size_t index = 0; index < data.size(); ++index) {
-    storage[address + index] = data[index];
+  std::size_t index = 0;
+  while (index < data.size()) {
+    const std::uint64_t byte_address = address + index;
+    const std::uint64_t page_number = byte_address / kPayloadPageBytes;
+    const std::size_t page_offset =
+        static_cast<std::size_t>(byte_address % kPayloadPageBytes);
+    const std::size_t chunk =
+        std::min(data.size() - index, kPayloadPageBytes - page_offset);
+    PayloadPage& page = storage[page_number];
+    std::copy_n(data.begin() + static_cast<std::ptrdiff_t>(index), chunk,
+                page.bytes.begin() + static_cast<std::ptrdiff_t>(page_offset));
+    for (std::size_t offset = page_offset; offset < page_offset + chunk;
+         ++offset) {
+      page.mark(offset);
+    }
+    index += chunk;
   }
 }
 
@@ -169,29 +186,47 @@ void MemoryBackend::fill_payload(std::size_t channel, std::uint64_t address,
 
 std::vector<std::uint8_t> MemoryBackend::inspect_payload(
     std::size_t channel, std::uint64_t address, std::size_t bytes) const {
+  if (bytes > std::numeric_limits<std::uint64_t>::max() - address) {
+    throw std::invalid_argument("memory payload inspection overflows address");
+  }
   std::vector<std::uint8_t> result(bytes, 0);
   const auto channel_storage = payload_storage_.find(channel);
-  for (std::size_t index = 0; index < bytes; ++index) {
+  const auto channel_fills = payload_fills_.find(channel);
+  std::size_t index = 0;
+  while (index < bytes) {
+    const std::uint64_t byte_address = address + index;
+    const std::uint64_t page_number = byte_address / kPayloadPageBytes;
+    const std::size_t page_offset =
+        static_cast<std::size_t>(byte_address % kPayloadPageBytes);
+    const std::size_t chunk =
+        std::min(bytes - index, kPayloadPageBytes - page_offset);
+    const PayloadPage* page = nullptr;
     if (channel_storage != payload_storage_.end()) {
-      const auto found = channel_storage->second.find(address + index);
+      const auto found = channel_storage->second.find(page_number);
       if (found != channel_storage->second.end()) {
-        result[index] = found->second;
+        page = &found->second;
+      }
+    }
+    for (std::size_t within = 0; within < chunk; ++within) {
+      const std::size_t offset = page_offset + within;
+      if (page != nullptr && page->contains(offset)) {
+        result[index + within] = page->bytes[offset];
         continue;
       }
-    }
-    const auto fills = payload_fills_.find(channel);
-    if (fills == payload_fills_.end()) {
-      continue;
-    }
-    for (auto fill = fills->second.rbegin(); fill != fills->second.rend();
-         ++fill) {
-      const std::uint64_t byte_address = address + index;
-      if (byte_address >= fill->address &&
-          byte_address - fill->address < fill->bytes) {
-        result[index] = fill->value;
-        break;
+      if (channel_fills == payload_fills_.end()) {
+        continue;
+      }
+      const std::uint64_t current_address = byte_address + within;
+      for (auto fill = channel_fills->second.rbegin();
+           fill != channel_fills->second.rend(); ++fill) {
+        if (current_address >= fill->address &&
+            current_address - fill->address < fill->bytes) {
+          result[index + within] = fill->value;
+          break;
+        }
       }
     }
+    index += chunk;
   }
   return result;
 }

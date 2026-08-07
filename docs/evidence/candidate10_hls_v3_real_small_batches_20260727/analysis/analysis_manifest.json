@@ -1,0 +1,150 @@
+{
+  "algorithms": [
+    "weighted_sssp",
+    "full_pagerank",
+    "thresholded_residual_pagerank"
+  ],
+  "all_correct": true,
+  "correctness": "dual_oracle_and_cross_system_pass_for_every_pair",
+  "group_summary": [
+    {
+      "grasu_to_spine_backend_request_ratio_geomean": 1.5108083598407318,
+      "group_type": "overall",
+      "group_value": "all",
+      "pairs": 27,
+      "spine_e2e_wins": 5,
+      "spine_speedup_over_grasu_compute_geomean": 1.2463234072898492,
+      "spine_speedup_over_grasu_e2e_geomean": 0.7263509545648681,
+      "spine_speedup_over_grasu_e2e_median": 0.6916640642142083,
+      "spine_speedup_over_grasu_update_geomean": 0.00197824352299067
+    },
+    {
+      "grasu_to_spine_backend_request_ratio_geomean": 1.3142261277512437,
+      "group_type": "algorithm",
+      "group_value": "full_pagerank",
+      "pairs": 9,
+      "spine_e2e_wins": 0,
+      "spine_speedup_over_grasu_compute_geomean": 0.9775081738569168,
+      "spine_speedup_over_grasu_e2e_geomean": 0.7141954015228303,
+      "spine_speedup_over_grasu_e2e_median": 0.6433828606845352,
+      "spine_speedup_over_grasu_update_geomean": 0.0022831795375336745
+    },
+    {
+      "grasu_to_spine_backend_request_ratio_geomean": 2.2806652363445497,
+      "group_type": "algorithm",
+      "group_value": "thresholded_residual_pagerank",
+      "pairs": 9,
+      "spine_e2e_wins": 3,
+      "spine_speedup_over_grasu_compute_geomean": 0.8771931296432669,
+      "spine_speedup_over_grasu_e2e_geomean": 0.8662916303495254,
+      "spine_speedup_over_grasu_e2e_median": 0.7980006764123257,
+      "spine_speedup_over_grasu_update_geomean": 0.0022831795375336745
+    },
+    {
+      "grasu_to_spine_backend_request_ratio_geomean": 1.1505261604377992,
+      "group_type": "algorithm",
+      "group_value": "weighted_sssp",
+      "pairs": 9,
+      "spine_e2e_wins": 2,
+      "spine_speedup_over_grasu_compute_geomean": 2.2577540795685254,
+      "spine_speedup_over_grasu_e2e_geomean": 0.619381695777374,
+      "spine_speedup_over_grasu_e2e_median": 0.5379491407741711,
+      "spine_speedup_over_grasu_update_geomean": 0.0014851117369299375
+    },
+    {
+      "grasu_to_spine_backend_request_ratio_geomean": 2.642225641783014,
+      "group_type": "dataset_id",
+      "group_value": "amazon_2008",
+      "pairs": 9,
+      "spine_e2e_wins": 4,
+      "spine_speedup_over_grasu_compute_geomean": 1.3757923888142907,
+      "spine_speedup_over_grasu_e2e_geomean": 0.892708705403846,
+      "spine_speedup_over_grasu_e2e_median": 0.9041473158670988,
+      "spine_speedup_over_grasu_update_geomean": 0.004073496986020655
+    },
+    {
+      "grasu_to_spine_backend_request_ratio_geomean": 1.3824587516132556,
+      "group_type": "dataset_id",
+      "group_value": "soc_flickr_und",
+      "pairs": 9,
+      "spine_e2e_wins": 1,
+      "spine_speedup_over_grasu_compute_geomean": 1.3398169724966644,
+      "spine_speedup_over_grasu_e2e_geomean": 0.7430284725362709,
+      "spine_speedup_over_grasu_e2e_median": 0.7787074265188635,
+      "spine_speedup_over_grasu_update_geomean": 0.001383194313297538
+    },
+    {
+      "grasu_to_spine_backend_request_ratio_geomean": 0.9440740337526833,
+      "group_type": "dataset_id",
+      "group_value": "web_google",
+      "pairs": 9,
+      "spine_e2e_wins": 0,
+      "spine_speedup_over_grasu_compute_geomean": 1.0502528707347807,
+      "spine_speedup_over_grasu_e2e_geomean": 0.5777291871894713,
+      "spine_speedup_over_grasu_e2e_median": 0.6433828606845352,
+      "spine_speedup_over_grasu_update_geomean": 0.001374006107981266
+    },
+    {
+      "grasu_to_spine_backend_request_ratio_geomean": 1.1449433688946016,
+      "group_type": "scenario",
+      "group_value": "delete",
+      "pairs": 9,
+      "spine_e2e_wins": 1,
+      "spine_speedup_over_grasu_compute_geomean": 0.9802494309682076,
+      "spine_speedup_over_grasu_e2e_geomean": 0.6344564627301036,
+      "spine_speedup_over_grasu_e2e_median": 0.6437341386062532,
+      "spine_speedup_over_grasu_update_geomean": 0.0016084487230460071
+    },
+    {
+      "grasu_to_spine_backend_request_ratio_geomean": 2.2605667102930287,
+      "group_type": "scenario",
+      "group_value": "insert",
+      "pairs": 9,
+      "spine_e2e_wins": 3,
+      "spine_speedup_over_grasu_compute_geomean": 1.8443335642566652,
+      "spine_speedup_over_grasu_e2e_geomean": 0.8514453328260633,
+      "spine_speedup_over_grasu_e2e_median": 0.813670465052093,
+      "spine_speedup_over_grasu_update_geomean": 0.0017489824704009756
+    },
+    {
+      "grasu_to_spine_backend_request_ratio_geomean": 1.3323760082572678,
+      "group_type": "scenario",
+      "group_value": "weight_change",
+      "pairs": 9,
+      "spine_e2e_wins": 1,
+      "spine_speedup_over_grasu_compute_geomean": 1.0708192900829785,
+      "spine_speedup_over_grasu_e2e_geomean": 0.7093832668983776,
+      "spine_speedup_over_grasu_e2e_median": 0.6911237438211377,
+      "spine_speedup_over_grasu_update_geomean": 0.0027519882828587862
+    }
+  ],
+  "outputs": {
+    "group_summary.csv": "54f62e8d46ff46885ff70fbfec1b84fae58850b73151f9c1720f6c79dd4977a0",
+    "pair_rows.csv": "94be930c444930b70874ec57698e63e85f3a980eeba45a82f553202728e73c24",
+    "system_rows.csv": "eb52afb4889394fcec7499aa120bbfde5137beba0cf041605019e5e1b0366bfc"
+  },
+  "pairs": 27,
+  "profile_set": "candidate10_hls_v3",
+  "schema_version": 1,
+  "source_evidence": {
+    "full_pagerank": {
+      "matrix_manifest": "/data/tmp/chuxiao/candidate10_hls_v3_real_small_full_pagerank_20260727/matrix_manifest.json",
+      "matrix_manifest_sha256": "69814fecb7308f89dcbd0ed19d0734977744a9db04c4a3745eb80a50ebbd3f15",
+      "matrix_wall_seconds": 42.7293355865404
+    },
+    "thresholded_residual_pagerank": {
+      "matrix_manifest": "/data/tmp/chuxiao/candidate10_hls_v3_real_small_residual_pagerank_20260727/matrix_manifest.json",
+      "matrix_manifest_sha256": "d6638e6208f683d7b300fe77397c868afc581847dc64bd2c8b9ae8c50af2961f",
+      "matrix_wall_seconds": 995.5386939411983
+    },
+    "weighted_sssp": {
+      "matrix_manifest": "/data/tmp/chuxiao/candidate10_hls_v3_real_small_weighted_20260727/matrix_manifest.json",
+      "matrix_manifest_sha256": "904786624907f0ea85fae6124880598ebb8d503e983cad016d3d9bf4b7633251",
+      "matrix_wall_seconds": 37.186176038347185
+    }
+  },
+  "status": "PASS",
+  "system_rows": 54,
+  "throughput_scope": "eight_user_mutation_small_batches",
+  "timing_claim": "normalized_execution_driven_simulator_cycles"
+}

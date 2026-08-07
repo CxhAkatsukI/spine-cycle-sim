@@ -1,0 +1,266 @@
+from __future__ import annotations
+
+import copy
+import csv
+import hashlib
+import json
+from pathlib import Path
+import tempfile
+import unittest
+
+from spine_cycle_sim.evidence.publication_ppa import (
+    PublicationPpaError,
+    analyze_publication_ppa_manifest,
+)
+
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def _write_tsv(path: Path, rows: list[dict[str, object]]) -> str:
+    with path.open("w", encoding="utf-8", newline="") as stream:
+        writer = csv.DictWriter(stream, fieldnames=list(rows[0]), delimiter="\t")
+        writer.writeheader()
+        writer.writerows(rows)
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+class PublicationPpaTests(unittest.TestCase):
+    def _fixture(self, root: Path) -> Path:
+        builds = []
+        specs = (
+            ("spine", "weighted_sssp", "spine_core_sssp_baseline", 1.0),
+            (
+                "grasu_regraph",
+                "weighted_sssp",
+                "algorithm_specific_conversion_free_whole_system",
+                -0.01,
+            ),
+            (
+                "grasu_regraph",
+                "full_pagerank",
+                "algorithm_specific_conversion_free_whole_system",
+                -0.02,
+            ),
+            (
+                "grasu_regraph",
+                "thresholded_residual_pagerank",
+                "algorithm_specific_conversion_free_whole_system",
+                -0.03,
+            ),
+        )
+        for index, (system, algorithm, scope, wns) in enumerate(specs):
+            build_id = f"build_{index}"
+            directory = root / build_id
+            directory.mkdir()
+            resources = {
+                "lut": 100 + index,
+                "reg": 200,
+                "bram": 3,
+                "uram": 4,
+                "dsp": 5,
+            }
+            util = directory / "accelerator_util.tsv"
+            timing = directory / "timing.tsv"
+            artifacts = directory / "artifacts.tsv"
+            kernels = directory / "link_kernels.tsv"
+            connectivity = directory / "connectivity.tsv"
+            topology = {
+                "kernels": {f"kernel_{index}": 1},
+                "hbm_channels": [index],
+                "hbm_port_bindings": 1,
+                "stream_connections": 1,
+                "slr_assignments": 1,
+            }
+            evidence = {
+                "accelerator_util": {
+                    "path": str(util.relative_to(root)),
+                    "sha256": _write_tsv(
+                        util,
+                        [{"name": "Used Resources", "stage": "routed", **resources}],
+                    ),
+                },
+                "timing": {
+                    "path": str(timing.relative_to(root)),
+                    "sha256": _write_tsv(
+                        timing,
+                        [
+                            {
+                                "wns_ns": wns,
+                                "tns_ns": 0 if wns >= 0 else -1,
+                                "tns_failing_endpoints": 0 if wns >= 0 else 1,
+                            }
+                        ],
+                    ),
+                },
+                "artifacts": {
+                    "path": str(artifacts.relative_to(root)),
+                    "sha256": _write_tsv(
+                        artifacts,
+                        [
+                            {
+                                "path_from_build_root": f"build/{build_id}.xclbin",
+                                "size_bytes": 1234,
+                                "sha256": str(index) * 64,
+                            }
+                        ],
+                    ),
+                },
+                "link_kernels": {
+                    "path": str(kernels.relative_to(root)),
+                    "sha256": _write_tsv(
+                        kernels,
+                        [
+                            {
+                                "target": "TT_HW",
+                                "kernel": f"kernel_{index}",
+                                "cu_count": 1,
+                            }
+                        ],
+                    ),
+                },
+                "connectivity": {
+                    "path": str(connectivity.relative_to(root)),
+                    "sha256": _write_tsv(
+                        connectivity,
+                        [
+                            {
+                                "kind": "sp",
+                                "cu": f"kernel_{index}_1",
+                                "port": "memory",
+                                "target": f"HBM[{index}]",
+                                "connections": "",
+                                "raw": "",
+                            },
+                            {
+                                "kind": "stream_connect",
+                                "cu": "",
+                                "port": "",
+                                "target": "",
+                                "connections": "source:destination:4",
+                                "raw": "",
+                            },
+                            {
+                                "kind": "slr",
+                                "cu": f"kernel_{index}_1",
+                                "port": "",
+                                "target": "SLR0",
+                                "connections": "",
+                                "raw": "",
+                            },
+                        ],
+                    ),
+                },
+            }
+            builds.append(
+                {
+                    "build_id": build_id,
+                    "system": system,
+                    "algorithm": algorithm,
+                    "claim_scope": scope,
+                    "source": {"revision": f"revision-{index}"},
+                    "target_mhz": 150,
+                    "artifact_sha256": str(index) * 64,
+                    "evidence": evidence,
+                    "expected": {
+                        "resources": resources,
+                        "topology": topology,
+                        "wns_ns": wns,
+                        "timing_disposition": (
+                            "target_closed" if wns >= 0 else "routed_target_missed"
+                        ),
+                    },
+                }
+            )
+        manifest = {
+            "schema_version": 1,
+            "claim_class": "candidate10_routed_hls_feasibility_non_iso_functional",
+            "repository_root": ".",
+            "builds": builds,
+            "limitations": ["not iso-functional"],
+        }
+        path = root / "manifest.json"
+        path.write_text(json.dumps(manifest), encoding="utf-8")
+        return path
+
+    def test_accepts_three_grasu_algorithms_and_one_spine_baseline(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            result = analyze_publication_ppa_manifest(self._fixture(Path(temporary)))
+        self.assertEqual(result["status"], "PASS")
+        self.assertTrue(result["coverage"]["grasu_regraph_three_algorithm_routed"])
+        self.assertFalse(result["coverage"]["spine_three_algorithm_iso_functional"])
+        self.assertFalse(result["resource_ratio_eligible"])
+        self.assertEqual(
+            result["builds"][0]["timing"]["disposition"], "target_closed"
+        )
+
+    def test_rejects_missing_algorithm(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            path = self._fixture(Path(temporary))
+            manifest = json.loads(path.read_text(encoding="utf-8"))
+            manifest["builds"].pop()
+            path.write_text(json.dumps(manifest), encoding="utf-8")
+            with self.assertRaisesRegex(PublicationPpaError, "all three"):
+                analyze_publication_ppa_manifest(path)
+
+    def test_rejects_tampered_table(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            path = self._fixture(Path(temporary))
+            manifest = json.loads(path.read_text(encoding="utf-8"))
+            util = Path(temporary) / manifest["builds"][0]["evidence"][
+                "accelerator_util"
+            ]["path"]
+            util.write_text(
+                util.read_text(encoding="utf-8") + "tampered\n", encoding="utf-8"
+            )
+            with self.assertRaisesRegex(PublicationPpaError, "SHA256 mismatch"):
+                analyze_publication_ppa_manifest(path)
+
+    def test_rejects_changed_frozen_resource(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            path = self._fixture(Path(temporary))
+            manifest = json.loads(path.read_text(encoding="utf-8"))
+            broken = copy.deepcopy(manifest)
+            broken["builds"][0]["expected"]["resources"]["lut"] += 1
+            path.write_text(json.dumps(broken), encoding="utf-8")
+            with self.assertRaisesRegex(PublicationPpaError, "frozen expectation"):
+                analyze_publication_ppa_manifest(path)
+
+    def test_accepts_faster_native_spine_anchor(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            path = self._fixture(Path(temporary))
+            manifest = json.loads(path.read_text(encoding="utf-8"))
+            manifest["builds"][0]["target_mhz"] = 152
+            path.write_text(json.dumps(manifest), encoding="utf-8")
+            result = analyze_publication_ppa_manifest(path)
+        self.assertEqual(result["builds"][0]["target_mhz"], 152.0)
+
+    def test_rejects_non_normalized_grasu_target(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            path = self._fixture(Path(temporary))
+            manifest = json.loads(path.read_text(encoding="utf-8"))
+            manifest["builds"][1]["target_mhz"] = 152
+            path.write_text(json.dumps(manifest), encoding="utf-8")
+            with self.assertRaisesRegex(PublicationPpaError, "must target 150"):
+                analyze_publication_ppa_manifest(path)
+
+    def test_rejects_slow_native_spine_anchor(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            path = self._fixture(Path(temporary))
+            manifest = json.loads(path.read_text(encoding="utf-8"))
+            manifest["builds"][0]["target_mhz"] = 149
+            path.write_text(json.dumps(manifest), encoding="utf-8")
+            with self.assertRaisesRegex(PublicationPpaError, "at least 150"):
+                analyze_publication_ppa_manifest(path)
+
+    def test_repository_manifest_closes_four_routed_builds(self) -> None:
+        manifest = ROOT / "configs/evidence/candidate10_publication_ppa_v3.json"
+        result = analyze_publication_ppa_manifest(manifest)
+        self.assertEqual(result["status"], "PASS")
+        self.assertEqual(len(result["builds"]), 4)
+        self.assertTrue(result["coverage"]["grasu_regraph_three_algorithm_routed"])
+        self.assertFalse(result["resource_ratio_eligible"])
+
+
+if __name__ == "__main__":
+    unittest.main()

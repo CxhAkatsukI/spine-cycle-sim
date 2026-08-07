@@ -1,0 +1,35 @@
+{
+  "algorithm": "full_pagerank",
+  "all_correct": true,
+  "analysis_id": "candidate10_grasu_temporal_real_dense_full_pr_v1_20260727",
+  "base_edges": 8192,
+  "batch_sizes": [
+    64,
+    512,
+    4096
+  ],
+  "datasets": [
+    "AU",
+    "BC",
+    "WK"
+  ],
+  "dram_request_ledgers_closed": true,
+  "input_manifest_sha256": "d6d45a212f569a4ea919e2ac13fad0ce7455584cfc0105086b46098363f78629",
+  "limitations": [
+    "Inputs are compact real-topology slices, not full datasets.",
+    "The sweep uses Full PageRank and insertion batches only.",
+    "The largest batch updates 50 percent as many edges as the base graph.",
+    "All inputs fit one normalized destination partition."
+  ],
+  "outputs": {
+    "dense_batch.csv": "ae8d25efcf45cbae4983232b97159639ade5442451169632819ffb42d3a7ca4d",
+    "pairs_enriched.csv": "bd2956bff2015d09d1bf319d7b0bae2f283b69f7c1bed6f26e685059c501ea16",
+    "raw_results.tar.gz": "4236c13583a0bc2117e713e6f4c6f2314066fa7be6c8251b14d272954ae29a6e",
+    "system_rows_enriched.csv": "52aecf85404ef2426f96dcef5fefce5b13f6c46e1c7b4b3b0b00877b33fdd6da"
+  },
+  "pairs": 9,
+  "schema_version": 1,
+  "source_matrix_manifest_sha256": "1589f7516a2fc93a2d59d4deb5d41370ef479046dd3eca68930c710ba197835d",
+  "status": "PASS",
+  "system_rows": 18
+}

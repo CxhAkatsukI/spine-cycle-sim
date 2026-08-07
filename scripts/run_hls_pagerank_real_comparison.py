@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import configparser
 import csv
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import hashlib
@@ -34,7 +35,11 @@ from spine_cycle_sim.experiments.dense_batch_sweep import (  # noqa: E402
     validate_dense_batch_manifest,
 )
 from spine_cycle_sim.experiments.large_real_pagerank import (  # noqa: E402
+    evaluate_large_real_runtime_gate,
     validate_large_real_pagerank_manifest,
+)
+from spine_cycle_sim.experiments.temporal_real_batches import (  # noqa: E402
+    validate_temporal_real_manifest,
 )
 from spine_cycle_sim.experiments.shared_workloads import sha256_file  # noqa: E402
 
@@ -54,7 +59,32 @@ DEFAULT_GRASU_PROFILE = (
 DEFAULT_CAPABILITIES = (
     ROOT / "configs" / "contracts" / "grasu_regraph_capabilities_v1.json"
 )
+PROFILE_SETS = {
+    "legacy": {
+        "spine_profile": DEFAULT_SPINE_PROFILE,
+        "spine_profile_id": "spine_shared_engine_9c08763",
+        "grasu_profile": DEFAULT_GRASU_PROFILE,
+        "grasu_profile_id": (
+            "grasu_regraph_weighted_pma_hls_proposed_pagerank_ff13a67"
+        ),
+        "capability_catalog": DEFAULT_CAPABILITIES,
+    },
+    "candidate10_hls_v3": {
+        "spine_profile": ROOT
+        / "configs/architectures/spine_candidate10_normalized_v1.json",
+        "spine_profile_id": "spine_candidate10_normalized_v1",
+        "grasu_profile": ROOT
+        / "configs/architectures/grasu_regraph_candidate10_normalized_hls_pagerank_v3.json",
+        "grasu_profile_id": (
+            "grasu_regraph_candidate10_normalized_hls_pagerank_v3"
+        ),
+        "capability_catalog": ROOT
+        / "configs/contracts/grasu_regraph_candidate10_hls_capabilities_v3.json",
+    },
+}
 DEFAULT_SST = Path("/data/feiyang/sst/bin/sst")
+DEFAULT_DRAM_CONFIG = ROOT / "configs" / "memory" / "HBM2_1ch_x128.ini"
+DRAM_CONFIG_ENV = "CANDIDATE10_SST_DRAM_CONFIG"
 PAGERANK_ITERATIONS = 3
 PAGERANK_DAMPING = 0.85
 
@@ -68,6 +98,8 @@ def _validate_input_manifest(path: Path) -> dict[str, object]:
         return validate_dense_batch_manifest(ROOT, path)
     if matrix_id == "hls_full_pagerank_real_large_runtime_20260726":
         return validate_large_real_pagerank_manifest(ROOT, path)
+    if matrix_id == "candidate10_grasu_temporal_compact_batches_v1_20260727":
+        return validate_temporal_real_manifest(ROOT, path)
     raise ValueError(f"unsupported Full PageRank input matrix: {matrix_id}")
 
 
@@ -102,6 +134,28 @@ def _display_path(path: Path) -> str:
         return str(resolved.relative_to(ROOT))
     except ValueError:
         return str(resolved)
+
+
+def _dram_config_contract(path: Path) -> dict[str, object]:
+    resolved = path.resolve()
+    if not resolved.is_file():
+        raise ValueError(f"DRAMSim3 config is missing: {resolved}")
+    parser = configparser.ConfigParser()
+    parser.read(resolved)
+    try:
+        output_level = parser.getint("other", "output_level")
+        epoch_period = parser.getint("other", "epoch_period")
+    except (configparser.Error, ValueError) as error:
+        raise ValueError(f"invalid DRAMSim3 output contract: {resolved}") from error
+    if output_level not in {0, 1, 2} or epoch_period <= 0:
+        raise ValueError(f"invalid DRAMSim3 output contract: {resolved}")
+    return {
+        "path": str(resolved),
+        "sha256": sha256_file(resolved),
+        "output_level": output_level,
+        "epoch_period": epoch_period,
+        "output_level_effect": "statistics_serialization_only",
+    }
 
 
 def _select_runs(
@@ -194,7 +248,12 @@ def _command(
     raise ValueError(f"unsupported system: {system}")
 
 
-def _run_process(command: list[str], log_path: Path, timeout: float) -> float:
+def _run_process(
+    command: list[str],
+    log_path: Path,
+    timeout: float,
+    environment: Mapping[str, str] | None = None,
+) -> float:
     started = time.monotonic()
     process = subprocess.Popen(
         command,
@@ -203,6 +262,7 @@ def _run_process(command: list[str], log_path: Path, timeout: float) -> float:
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         start_new_session=True,
+        env=environment,
     )
     try:
         stdout, _ = process.communicate(timeout=timeout)
@@ -254,7 +314,10 @@ def _run_system(
             wall_seconds = float(cache["wall_seconds"])
     if not reusable:
         wall_seconds = _run_process(
-            command, out_dir / "parent_driver.log", args.timeout_seconds
+            command,
+            out_dir / "parent_driver.log",
+            args.timeout_seconds,
+            args.child_environment,
         )
 
     if system == "spine":
@@ -325,12 +388,16 @@ def _run_system(
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input-manifest", type=Path, default=DEFAULT_INPUT_MANIFEST)
-    parser.add_argument("--spine-profile", type=Path, default=DEFAULT_SPINE_PROFILE)
-    parser.add_argument("--grasu-profile", type=Path, default=DEFAULT_GRASU_PROFILE)
-    parser.add_argument("--capability-catalog", type=Path, default=DEFAULT_CAPABILITIES)
+    parser.add_argument(
+        "--profile-set", choices=tuple(PROFILE_SETS), default="legacy"
+    )
+    parser.add_argument("--spine-profile", type=Path)
+    parser.add_argument("--grasu-profile", type=Path)
+    parser.add_argument("--capability-catalog", type=Path)
     parser.add_argument("--out-dir", type=Path, required=True)
     parser.add_argument("--sst", type=Path, default=DEFAULT_SST)
     parser.add_argument("--lib-dir", type=Path, default=ROOT / "build" / "sst")
+    parser.add_argument("--dram-config", type=Path, default=DEFAULT_DRAM_CONFIG)
     parser.add_argument("--python", default=sys.executable)
     parser.add_argument("--run-id", action="append", default=[])
     parser.add_argument("--limit", type=int)
@@ -347,8 +414,23 @@ def main() -> int:
     args = parser.parse_args()
     if args.jobs <= 0 or args.timeout_seconds <= 0.0 or args.max_cycles <= 0:
         raise ValueError("jobs, timeout, and max cycles must be positive")
+    profile_set = PROFILE_SETS[args.profile_set]
+    args.spine_profile = args.spine_profile or profile_set["spine_profile"]
+    args.grasu_profile = args.grasu_profile or profile_set["grasu_profile"]
+    args.capability_catalog = (
+        args.capability_catalog or profile_set["capability_catalog"]
+    )
+    dram_contract = _dram_config_contract(args.dram_config)
+    args.child_environment = os.environ.copy()
+    args.child_environment[DRAM_CONFIG_ENV] = str(dram_contract["path"])
 
     manifest = _validate_input_manifest(args.input_manifest)
+    required_profile_set = manifest.get("required_profile_set")
+    if required_profile_set is not None and args.profile_set != required_profile_set:
+        raise ValueError(
+            f"input manifest requires profile set {required_profile_set}, "
+            f"not {args.profile_set}"
+        )
     selected = _select_runs(list(manifest["runs"]), args.run_id, args.limit)
     capacity_limited = [
         run
@@ -366,11 +448,11 @@ def main() -> int:
     if not selected:
         raise ValueError("PageRank timing selection contains only capacity-cliff runs")
     spine_profile, spine_mhz = _profile(
-        args.spine_profile, "spine_shared_engine_9c08763"
+        args.spine_profile, str(profile_set["spine_profile_id"])
     )
     grasu_profile, grasu_mhz = _profile(
         args.grasu_profile,
-        "grasu_regraph_weighted_pma_hls_proposed_pagerank_ff13a67",
+        str(profile_set["grasu_profile_id"]),
     )
     parameters = grasu_profile["parameters"]
     if (
@@ -399,12 +481,14 @@ def main() -> int:
         ROOT / "spine_cycle_sim" / "experiments" / "memory_traffic.py",
         ROOT / "spine_cycle_sim" / "experiments" / "dense_batch_sweep.py",
         ROOT / "spine_cycle_sim" / "experiments" / "large_real_pagerank.py",
+        ROOT / "spine_cycle_sim" / "experiments" / "temporal_real_batches.py",
         ROOT / "scripts" / "run_sst_spine_vertical.py",
         ROOT / "scripts" / "run_sst_grasu_regraph_hls_pagerank.py",
         args.input_manifest,
         args.spine_profile,
         args.grasu_profile,
         args.capability_catalog,
+        args.dram_config,
         args.lib_dir / "libspine_cycle.so",
         args.sst,
     ]
@@ -461,6 +545,9 @@ def main() -> int:
     input_scope = str(manifest.get("input_scope", "real_compact_slice"))
     dense_sweep = input_scope == "synthetic_dense_batch_sweep"
     large_real = input_scope == "real_large_slice"
+    runtime_gate = (
+        evaluate_large_real_runtime_gate(manifest, rows) if large_real else None
+    )
     matrix_manifest = {
         "schema_version": 1,
         "matrix_id": (
@@ -470,7 +557,11 @@ def main() -> int:
             if large_real
             else "hls_full_pagerank_real_compact_comparison_20260726"
         ),
-        "status": "PASS",
+        "status": (
+            "COMPLETE_RUNTIME_GATE_FAILED"
+            if runtime_gate is not None and not runtime_gate["pass"]
+            else "PASS"
+        ),
         "complete_matrix": complete,
         "claim_class": (
             "profile_clock_adjusted_synthetic_dense_batch_execution_driven"
@@ -482,6 +573,7 @@ def main() -> int:
         "input_scope": input_scope,
         "input_matrix_id": manifest["matrix_id"],
         "algorithm": "full_pagerank",
+        "profile_set": args.profile_set,
         "pagerank_iterations": PAGERANK_ITERATIONS,
         "pagerank_damping": PAGERANK_DAMPING,
         "input_manifest": str(args.input_manifest.resolve()),
@@ -492,7 +584,14 @@ def main() -> int:
         "grasu_profile_sha256": sha256_file(args.grasu_profile),
         "capability_catalog": str(args.capability_catalog.resolve()),
         "capability_catalog_sha256": sha256_file(args.capability_catalog),
+        "sst_plugin_path": str(
+            (args.lib_dir / "libspine_cycle.so").resolve()
+        ),
+        "sst_plugin_sha256": sha256_file(
+            args.lib_dir / "libspine_cycle.so"
+        ),
         "execution_sha256": execution_sha256,
+        "dram_config": dram_contract,
         "selected_run_ids": [run["run_id"] for run in selected],
         "capacity_cliff_run_ids": [
             run["run_id"]
@@ -510,6 +609,7 @@ def main() -> int:
         "all_correct": all(int(row["correctness_mismatches"]) == 0 for row in rows)
         and all(bool(pair["cross_system_ranks_match"]) for pair in pairs),
         "matrix_wall_seconds": time.monotonic() - started,
+        "runtime_gate": runtime_gate,
         "system_rows_sha256": sha256_file(args.out_dir / "system_rows.csv"),
         "pairs_sha256": sha256_file(args.out_dir / "pairs.csv"),
         "timing_window": {
@@ -529,7 +629,14 @@ def main() -> int:
                     else "Inputs are compact real-edge slices, not full datasets."
                 )
             ),
-            "GraSU/ReGraph PageRank is HLS-equivalent proposed, not a compiled xclbin.",
+            (
+                "GraSU/ReGraph PageRank uses the frozen Candidate10 HLS-derived "
+                "conversion-free profile; whole-system implementation evidence "
+                "is reported separately."
+                if args.profile_set == "candidate10_hls_v3"
+                else "GraSU/ReGraph PageRank is HLS-equivalent proposed, not a "
+                "compiled xclbin."
+            ),
             "Simulator cycles are not calibrated cycle-for-cycle against hw.",
             (
                 "DRAM energy includes all 32 HBM controller instances."
@@ -553,7 +660,7 @@ def main() -> int:
         encoding="utf-8",
     )
     print(
-        f"PASS Full PageRank comparison: pairs={len(pairs)} "
+        f"{matrix_manifest['status']} Full PageRank comparison: pairs={len(pairs)} "
         f"complete={complete} wall_s={matrix_manifest['matrix_wall_seconds']:.3f}"
     )
     return 0

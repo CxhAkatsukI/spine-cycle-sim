@@ -1,0 +1,3235 @@
+{
+  "all_correct": true,
+  "cacti_manifest": "/home/chuxiao/spine-cycle-sim-publication/docs/evidence/matched_partial_energy_20260726/raw/cacti/cacti_manifest.json",
+  "cacti_manifest_sha256": "6e288f45ae0bd7d8e0c6c8f1e1ed1512ad531c8e9b3df4678f42d9a5f2979eb3",
+  "claim_class": "matched_partial_energy_not_total_accelerator_energy",
+  "limitations": [
+    "DRAMSim3 is the complete 32-controller simulated HBM energy for each run, not FPGA board power.",
+    "CACTI-P is projected 32 nm ASIC SRAM characterization, not U55C BRAM/URAM power.",
+    "Spine PageRank on-chip FIFO and pipeline state is not yet characterized.",
+    "Logic, FIFO, interconnect, clock tree, host, PCIe, shell, and board energy are omitted.",
+    "Only the HBM energy ratio is a matched cross-system energy comparison in this ledger."
+  ],
+  "matrices": {
+    "full_pagerank": {
+      "execution_sha256": "8f1d846de21ca361edc5d058bf0f350459b836925d2a99e2a2b869c95975a00c",
+      "path": "/data/tmp/chuxiao/candidate10_hls_v3_energy_full_pagerank_insert_20260727/matrix_manifest.json",
+      "sha256": "da19b64cb6c9f33b91777043734e5c8eacbc4b13f4f8de2c4674196419fcc57d"
+    },
+    "thresholded_residual_pagerank": {
+      "execution_sha256": "1b1714e9416c5b474e6aaf583388b294b0d039c2a5a0b0537fca5879267fd182",
+      "path": "/data/tmp/chuxiao/candidate10_hls_v3_energy_residual_pagerank_insert_20260727/matrix_manifest.json",
+      "sha256": "0b935721890bf998ad3795c7d914575665315b8af77c23dfb4dd2138f9de9732"
+    }
+  },
+  "pairs": [
+    {
+      "algorithm": "full_pagerank",
+      "dataset_id": "amazon_2008",
+      "dram_energy_ratio_valid": true,
+      "dram_energy_scope": "all_32_hbm_controller_instances",
+      "grasu_dram_background_refresh_energy_pj": 2617222086.0,
+      "grasu_dram_command_dynamic_energy_pj": 55650072.0,
+      "grasu_dram_energy_pj": 2672872158.0,
+      "grasu_partial_energy_pj": 3843972949.9888,
+      "grasu_to_spine_dram_command_dynamic_energy_ratio": 2.755694550000862,
+      "grasu_to_spine_dram_energy_ratio": 0.9219479623874095,
+      "partial_energy_ratio_reason": "selected on-chip coverage is asymmetric and omits logic, FIFOs, interconnect, and clock energy",
+      "partial_energy_ratio_valid_as_total": false,
+      "run_id": "real_amazon_2008_insert_u8",
+      "spine_dram_background_refresh_energy_pj": 2878962720.0,
+      "spine_dram_command_dynamic_energy_pj": 20194572.0,
+      "spine_dram_energy_pj": 2899157292.0,
+      "spine_partial_energy_pj": 2899157292.0
+    },
+    {
+      "algorithm": "full_pagerank",
+      "dataset_id": "web_google",
+      "dram_energy_ratio_valid": true,
+      "dram_energy_scope": "all_32_hbm_controller_instances",
+      "grasu_dram_background_refresh_energy_pj": 5273687316.0,
+      "grasu_dram_command_dynamic_energy_pj": 68109324.0,
+      "grasu_dram_energy_pj": 5341796640.0,
+      "grasu_partial_energy_pj": 7636221525.645333,
+      "grasu_to_spine_dram_command_dynamic_energy_ratio": 1.040940499916828,
+      "grasu_to_spine_dram_energy_ratio": 0.6517775747412934,
+      "partial_energy_ratio_reason": "selected on-chip coverage is asymmetric and omits logic, FIFOs, interconnect, and clock energy",
+      "partial_energy_ratio_valid_as_total": false,
+      "run_id": "real_web_google_insert_u8",
+      "spine_dram_background_refresh_energy_pj": 8130304986.0,
+      "spine_dram_command_dynamic_energy_pj": 65430564.0,
+      "spine_dram_energy_pj": 8195735550.0,
+      "spine_partial_energy_pj": 8195735550.0
+    },
+    {
+      "algorithm": "full_pagerank",
+      "dataset_id": "soc_flickr_und",
+      "dram_energy_ratio_valid": true,
+      "dram_energy_scope": "all_32_hbm_controller_instances",
+      "grasu_dram_background_refresh_energy_pj": 4729837230.0,
+      "grasu_dram_command_dynamic_energy_pj": 65622672.0,
+      "grasu_dram_energy_pj": 4795459902.0,
+      "grasu_partial_energy_pj": 6860765232.258667,
+      "grasu_to_spine_dram_command_dynamic_energy_ratio": 1.0909576229596498,
+      "grasu_to_spine_dram_energy_ratio": 0.6356016221054844,
+      "partial_energy_ratio_reason": "selected on-chip coverage is asymmetric and omits logic, FIFOs, interconnect, and clock energy",
+      "partial_energy_ratio_valid_as_total": false,
+      "run_id": "real_soc_flickr_und_insert_u8",
+      "spine_dram_background_refresh_energy_pj": 7484605740.0,
+      "spine_dram_command_dynamic_energy_pj": 60151440.0,
+      "spine_dram_energy_pj": 7544757180.0,
+      "spine_partial_energy_pj": 7544757180.0
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "dataset_id": "amazon_2008",
+      "dram_energy_ratio_valid": true,
+      "dram_energy_scope": "all_32_hbm_controller_instances",
+      "grasu_dram_background_refresh_energy_pj": 74055162282.0,
+      "grasu_dram_command_dynamic_energy_pj": 3573041388.0,
+      "grasu_dram_energy_pj": 77628203670.0,
+      "grasu_partial_energy_pj": 110737962833.58987,
+      "grasu_to_spine_dram_command_dynamic_energy_ratio": 6.096689342539204,
+      "grasu_to_spine_dram_energy_ratio": 1.2468532951390412,
+      "partial_energy_ratio_reason": "selected on-chip coverage is asymmetric and omits logic, FIFOs, interconnect, and clock energy",
+      "partial_energy_ratio_valid_as_total": false,
+      "run_id": "real_amazon_2008_insert_u8",
+      "spine_dram_background_refresh_energy_pj": 61673229666.0,
+      "spine_dram_command_dynamic_energy_pj": 586062564.0,
+      "spine_dram_energy_pj": 62259292230.0,
+      "spine_partial_energy_pj": 62259292230.0
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "dataset_id": "web_google",
+      "dram_energy_ratio_valid": true,
+      "dram_energy_scope": "all_32_hbm_controller_instances",
+      "grasu_dram_background_refresh_energy_pj": 123558228642.0,
+      "grasu_dram_command_dynamic_energy_pj": 3030885948.0,
+      "grasu_dram_energy_pj": 126589114590.0,
+      "grasu_partial_energy_pj": 180221720253.3664,
+      "grasu_to_spine_dram_command_dynamic_energy_ratio": 1.456478563748109,
+      "grasu_to_spine_dram_energy_ratio": 0.7071174380769573,
+      "partial_energy_ratio_reason": "selected on-chip coverage is asymmetric and omits logic, FIFOs, interconnect, and clock energy",
+      "partial_energy_ratio_valid_as_total": false,
+      "run_id": "real_web_google_insert_u8",
+      "spine_dram_background_refresh_energy_pj": 176940376194.0,
+      "spine_dram_command_dynamic_energy_pj": 2080968456.0,
+      "spine_dram_energy_pj": 179021344650.0,
+      "spine_partial_energy_pj": 179021344650.0
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "dataset_id": "soc_flickr_und",
+      "dram_energy_ratio_valid": true,
+      "dram_energy_scope": "all_32_hbm_controller_instances",
+      "grasu_dram_background_refresh_energy_pj": 134227396212.0,
+      "grasu_dram_command_dynamic_energy_pj": 3631301712.0,
+      "grasu_dram_energy_pj": 137858697924.0,
+      "grasu_partial_energy_pj": 196310614864.01706,
+      "grasu_to_spine_dram_command_dynamic_energy_ratio": 1.8585491705547652,
+      "grasu_to_spine_dram_energy_ratio": 0.8339144879916908,
+      "partial_energy_ratio_reason": "selected on-chip coverage is asymmetric and omits logic, FIFOs, interconnect, and clock energy",
+      "partial_energy_ratio_valid_as_total": false,
+      "run_id": "real_soc_flickr_und_insert_u8",
+      "spine_dram_background_refresh_energy_pj": 163361312334.0,
+      "spine_dram_command_dynamic_energy_pj": 1953836772.0,
+      "spine_dram_energy_pj": 165315149106.0,
+      "spine_partial_energy_pj": 165315149106.0
+    }
+  ],
+  "schema_version": 1,
+  "status": "PASS",
+  "system_rows": [
+    {
+      "activity_path": "/data/tmp/chuxiao/candidate10_hls_v3_energy_full_pagerank_insert_20260727/real_amazon_2008_insert_u8/spine/summary.json",
+      "activity_sha256": "065c0a7be0b73f25349b0bdcfafc3118bf0e39cf4fb6be171277862f838d327a",
+      "algorithm": "full_pagerank",
+      "backend_requests": 22609,
+      "claim_label": "full_32_controller_hbm_plus_selected_projected_asic_sram",
+      "core_mhz": 150.0,
+      "cycles": 210025,
+      "dataset_id": "amazon_2008",
+      "dram": {
+        "activate_energy_pj": 1553328.0,
+        "activates": 1876,
+        "active_standby_energy_pj": 107324448.0,
+        "background_and_refresh_energy_pj": 2878962720.0,
+        "claim_label": "dramsim3_full_32_controller_hbm_energy",
+        "command_dynamic_energy_pj": 20194572.0,
+        "component_closure_error_pj": 0.0,
+        "component_sum_pj": 2899157292.0,
+        "controller_cycles_max": 1400236,
+        "controller_cycles_min": 1400236,
+        "controller_instances": 32,
+        "files": [
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel0/dramsim3.json",
+            "physical_channel": 0,
+            "sha256": "008d9917e6f96641c43910a6720c80f41443b5727cc2df7286ebd1198fd3c734"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel1/dramsim3.json",
+            "physical_channel": 1,
+            "sha256": "edbe5d7c5e8fea607079e0e0030072d157b4d68eda4d1cda029c586f25775abd"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel10/dramsim3.json",
+            "physical_channel": 10,
+            "sha256": "edbe5d7c5e8fea607079e0e0030072d157b4d68eda4d1cda029c586f25775abd"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel11/dramsim3.json",
+            "physical_channel": 11,
+            "sha256": "edbe5d7c5e8fea607079e0e0030072d157b4d68eda4d1cda029c586f25775abd"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel12/dramsim3.json",
+            "physical_channel": 12,
+            "sha256": "edbe5d7c5e8fea607079e0e0030072d157b4d68eda4d1cda029c586f25775abd"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel13/dramsim3.json",
+            "physical_channel": 13,
+            "sha256": "edbe5d7c5e8fea607079e0e0030072d157b4d68eda4d1cda029c586f25775abd"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel14/dramsim3.json",
+            "physical_channel": 14,
+            "sha256": "edbe5d7c5e8fea607079e0e0030072d157b4d68eda4d1cda029c586f25775abd"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel15/dramsim3.json",
+            "physical_channel": 15,
+            "sha256": "edbe5d7c5e8fea607079e0e0030072d157b4d68eda4d1cda029c586f25775abd"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel16/dramsim3.json",
+            "physical_channel": 16,
+            "sha256": "a9712f9352cd12bd5db14bb3f38ee050cd1268a8b499cdb397e6c93052fc9aeb"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel17/dramsim3.json",
+            "physical_channel": 17,
+            "sha256": "5b7f0e47f8411ad10e35219790d6d483e33ef24532a03a1f3f3bbca2d7468f45"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel18/dramsim3.json",
+            "physical_channel": 18,
+            "sha256": "fbba15547bf2ae59c8b6b23f7ee826ec3c6c6c24103d69dbadad23cd4f49c44b"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel19/dramsim3.json",
+            "physical_channel": 19,
+            "sha256": "edbe5d7c5e8fea607079e0e0030072d157b4d68eda4d1cda029c586f25775abd"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel2/dramsim3.json",
+            "physical_channel": 2,
+            "sha256": "edbe5d7c5e8fea607079e0e0030072d157b4d68eda4d1cda029c586f25775abd"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel20/dramsim3.json",
+            "physical_channel": 20,
+            "sha256": "3424c375c72f3eea1395220ee4e765c396f8c39c44b22c382e237ce7af67ec64"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel21/dramsim3.json",
+            "physical_channel": 21,
+            "sha256": "78286b5935308b60fdf016d6de820b20a65e591ef4ffec467ab2cfef09f384be"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel22/dramsim3.json",
+            "physical_channel": 22,
+            "sha256": "edbe5d7c5e8fea607079e0e0030072d157b4d68eda4d1cda029c586f25775abd"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel23/dramsim3.json",
+            "physical_channel": 23,
+            "sha256": "edbe5d7c5e8fea607079e0e0030072d157b4d68eda4d1cda029c586f25775abd"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel24/dramsim3.json",
+            "physical_channel": 24,
+            "sha256": "edbe5d7c5e8fea607079e0e0030072d157b4d68eda4d1cda029c586f25775abd"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel25/dramsim3.json",
+            "physical_channel": 25,
+            "sha256": "edbe5d7c5e8fea607079e0e0030072d157b4d68eda4d1cda029c586f25775abd"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel26/dramsim3.json",
+            "physical_channel": 26,
+            "sha256": "edbe5d7c5e8fea607079e0e0030072d157b4d68eda4d1cda029c586f25775abd"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel27/dramsim3.json",
+            "physical_channel": 27,
+            "sha256": "edbe5d7c5e8fea607079e0e0030072d157b4d68eda4d1cda029c586f25775abd"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel28/dramsim3.json",
+            "physical_channel": 28,
+            "sha256": "edbe5d7c5e8fea607079e0e0030072d157b4d68eda4d1cda029c586f25775abd"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel29/dramsim3.json",
+            "physical_channel": 29,
+            "sha256": "edbe5d7c5e8fea607079e0e0030072d157b4d68eda4d1cda029c586f25775abd"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel3/dramsim3.json",
+            "physical_channel": 3,
+            "sha256": "edbe5d7c5e8fea607079e0e0030072d157b4d68eda4d1cda029c586f25775abd"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel30/dramsim3.json",
+            "physical_channel": 30,
+            "sha256": "edbe5d7c5e8fea607079e0e0030072d157b4d68eda4d1cda029c586f25775abd"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel31/dramsim3.json",
+            "physical_channel": 31,
+            "sha256": "edbe5d7c5e8fea607079e0e0030072d157b4d68eda4d1cda029c586f25775abd"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel4/dramsim3.json",
+            "physical_channel": 4,
+            "sha256": "edbe5d7c5e8fea607079e0e0030072d157b4d68eda4d1cda029c586f25775abd"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel5/dramsim3.json",
+            "physical_channel": 5,
+            "sha256": "edbe5d7c5e8fea607079e0e0030072d157b4d68eda4d1cda029c586f25775abd"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel6/dramsim3.json",
+            "physical_channel": 6,
+            "sha256": "edbe5d7c5e8fea607079e0e0030072d157b4d68eda4d1cda029c586f25775abd"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel7/dramsim3.json",
+            "physical_channel": 7,
+            "sha256": "edbe5d7c5e8fea607079e0e0030072d157b4d68eda4d1cda029c586f25775abd"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel8/dramsim3.json",
+            "physical_channel": 8,
+            "sha256": "edbe5d7c5e8fea607079e0e0030072d157b4d68eda4d1cda029c586f25775abd"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel9/dramsim3.json",
+            "physical_channel": 9,
+            "sha256": "edbe5d7c5e8fea607079e0e0030072d157b4d68eda4d1cda029c586f25775abd"
+          }
+        ],
+        "idle_controller_instances": 26,
+        "precharge_standby_energy_pj": 2072708352.0,
+        "precharges": 1876,
+        "read_energy_pj": 14697120.0,
+        "read_row_hit_ratio": 0.8842177808407995,
+        "read_row_hits": 16679,
+        "reads": 18863,
+        "refresh_energy_pj": 698929920.0,
+        "self_refresh_energy_pj": 0.0,
+        "total_energy_pj": 2899157292.0,
+        "write_energy_pj": 3944124.0,
+        "write_row_hit_ratio": 0.912706887346503,
+        "write_row_hits": 3419,
+        "writes": 3746
+      },
+      "partial_energy_pj": 2899157292.0,
+      "profile_id": "spine_candidate10_normalized_v1",
+      "run_id": "real_amazon_2008_insert_u8",
+      "runtime_ns": 1400166.6666666667,
+      "scenario": "insert",
+      "selected_onchip": {
+        "arrays": [],
+        "claim_label": "no_spine_pagerank_array_characterized",
+        "dynamic_energy_pj": 0.0,
+        "leakage_energy_pj": 0.0,
+        "projected_asic_sram_area_mm2": 0.0,
+        "total_energy_pj": 0.0
+      },
+      "system": "spine"
+    },
+    {
+      "activity_path": "/data/tmp/chuxiao/candidate10_hls_v3_energy_full_pagerank_insert_20260727/real_amazon_2008_insert_u8/grasu_regraph/manifest.json",
+      "activity_sha256": "9a5a2515358b50dcbb9de56a1eda8fa362b3766222d6218c791c66c22815f28d",
+      "algorithm": "full_pagerank",
+      "backend_requests": 55031,
+      "claim_label": "full_32_controller_hbm_plus_selected_projected_asic_sram",
+      "core_mhz": 150.0,
+      "cycles": 189477,
+      "dataset_id": "amazon_2008",
+      "dram": {
+        "activate_energy_pj": 1715616.0,
+        "activates": 2072,
+        "active_standby_energy_pj": 176141526.0,
+        "background_and_refresh_energy_pj": 2617222086.0,
+        "claim_label": "dramsim3_full_32_controller_hbm_energy",
+        "command_dynamic_energy_pj": 55650072.0,
+        "component_closure_error_pj": 0.0,
+        "component_sum_pj": 2672872158.0,
+        "controller_cycles_max": 1263243,
+        "controller_cycles_min": 1263243,
+        "controller_instances": 32,
+        "files": [
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel0/dramsim3.json",
+            "physical_channel": 0,
+            "sha256": "0af49010006380e8c3ecabf2b2271af350a095a11ae4c0cb5e1cf40231eed43e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel1/dramsim3.json",
+            "physical_channel": 1,
+            "sha256": "9a99760244f2525847f17681e99b08373173508bbcd27e74a7c155c38d947398"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel10/dramsim3.json",
+            "physical_channel": 10,
+            "sha256": "2414fd99b87d1b04ebdec68d05d3d99d2facabfc209b7e39fad96bf7951f944e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel11/dramsim3.json",
+            "physical_channel": 11,
+            "sha256": "2414fd99b87d1b04ebdec68d05d3d99d2facabfc209b7e39fad96bf7951f944e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel12/dramsim3.json",
+            "physical_channel": 12,
+            "sha256": "2414fd99b87d1b04ebdec68d05d3d99d2facabfc209b7e39fad96bf7951f944e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel13/dramsim3.json",
+            "physical_channel": 13,
+            "sha256": "2414fd99b87d1b04ebdec68d05d3d99d2facabfc209b7e39fad96bf7951f944e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel14/dramsim3.json",
+            "physical_channel": 14,
+            "sha256": "2414fd99b87d1b04ebdec68d05d3d99d2facabfc209b7e39fad96bf7951f944e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel15/dramsim3.json",
+            "physical_channel": 15,
+            "sha256": "2414fd99b87d1b04ebdec68d05d3d99d2facabfc209b7e39fad96bf7951f944e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel16/dramsim3.json",
+            "physical_channel": 16,
+            "sha256": "2414fd99b87d1b04ebdec68d05d3d99d2facabfc209b7e39fad96bf7951f944e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel17/dramsim3.json",
+            "physical_channel": 17,
+            "sha256": "2414fd99b87d1b04ebdec68d05d3d99d2facabfc209b7e39fad96bf7951f944e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel18/dramsim3.json",
+            "physical_channel": 18,
+            "sha256": "2414fd99b87d1b04ebdec68d05d3d99d2facabfc209b7e39fad96bf7951f944e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel19/dramsim3.json",
+            "physical_channel": 19,
+            "sha256": "2414fd99b87d1b04ebdec68d05d3d99d2facabfc209b7e39fad96bf7951f944e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel2/dramsim3.json",
+            "physical_channel": 2,
+            "sha256": "815fd888f53f1387700fcf5b57774bf5754cb3fda30da004778431c0ba6f902c"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel20/dramsim3.json",
+            "physical_channel": 20,
+            "sha256": "2414fd99b87d1b04ebdec68d05d3d99d2facabfc209b7e39fad96bf7951f944e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel21/dramsim3.json",
+            "physical_channel": 21,
+            "sha256": "2414fd99b87d1b04ebdec68d05d3d99d2facabfc209b7e39fad96bf7951f944e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel22/dramsim3.json",
+            "physical_channel": 22,
+            "sha256": "2414fd99b87d1b04ebdec68d05d3d99d2facabfc209b7e39fad96bf7951f944e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel23/dramsim3.json",
+            "physical_channel": 23,
+            "sha256": "2414fd99b87d1b04ebdec68d05d3d99d2facabfc209b7e39fad96bf7951f944e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel24/dramsim3.json",
+            "physical_channel": 24,
+            "sha256": "2414fd99b87d1b04ebdec68d05d3d99d2facabfc209b7e39fad96bf7951f944e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel25/dramsim3.json",
+            "physical_channel": 25,
+            "sha256": "2414fd99b87d1b04ebdec68d05d3d99d2facabfc209b7e39fad96bf7951f944e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel26/dramsim3.json",
+            "physical_channel": 26,
+            "sha256": "2414fd99b87d1b04ebdec68d05d3d99d2facabfc209b7e39fad96bf7951f944e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel27/dramsim3.json",
+            "physical_channel": 27,
+            "sha256": "2414fd99b87d1b04ebdec68d05d3d99d2facabfc209b7e39fad96bf7951f944e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel28/dramsim3.json",
+            "physical_channel": 28,
+            "sha256": "2414fd99b87d1b04ebdec68d05d3d99d2facabfc209b7e39fad96bf7951f944e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel29/dramsim3.json",
+            "physical_channel": 29,
+            "sha256": "2414fd99b87d1b04ebdec68d05d3d99d2facabfc209b7e39fad96bf7951f944e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel3/dramsim3.json",
+            "physical_channel": 3,
+            "sha256": "332de9c7b6bdba2afd9e508a7ef98ad0ce5ed26bc2d334b33cfe5ee3f32a7abd"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel30/dramsim3.json",
+            "physical_channel": 30,
+            "sha256": "efed67ed380b628b033f4c3a1f6cf30fbbe55e454aa8e01aa289a9baa4525990"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel31/dramsim3.json",
+            "physical_channel": 31,
+            "sha256": "2414fd99b87d1b04ebdec68d05d3d99d2facabfc209b7e39fad96bf7951f944e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel4/dramsim3.json",
+            "physical_channel": 4,
+            "sha256": "2414fd99b87d1b04ebdec68d05d3d99d2facabfc209b7e39fad96bf7951f944e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel5/dramsim3.json",
+            "physical_channel": 5,
+            "sha256": "2414fd99b87d1b04ebdec68d05d3d99d2facabfc209b7e39fad96bf7951f944e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel6/dramsim3.json",
+            "physical_channel": 6,
+            "sha256": "2414fd99b87d1b04ebdec68d05d3d99d2facabfc209b7e39fad96bf7951f944e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel7/dramsim3.json",
+            "physical_channel": 7,
+            "sha256": "2414fd99b87d1b04ebdec68d05d3d99d2facabfc209b7e39fad96bf7951f944e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel8/dramsim3.json",
+            "physical_channel": 8,
+            "sha256": "2414fd99b87d1b04ebdec68d05d3d99d2facabfc209b7e39fad96bf7951f944e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel9/dramsim3.json",
+            "physical_channel": 9,
+            "sha256": "2414fd99b87d1b04ebdec68d05d3d99d2facabfc209b7e39fad96bf7951f944e"
+          }
+        ],
+        "idle_controller_instances": 27,
+        "precharge_standby_energy_pj": 1812238320.0,
+        "precharges": 2064,
+        "read_energy_pj": 14576520.0,
+        "read_row_hit_ratio": 0.9506363285769379,
+        "read_row_hits": 17255,
+        "reads": 18151,
+        "refresh_energy_pj": 628842240.0,
+        "self_refresh_energy_pj": 0.0,
+        "total_energy_pj": 2672872158.0,
+        "write_energy_pj": 39357936.0,
+        "write_row_hit_ratio": 0.9668383947939262,
+        "write_row_hits": 35657,
+        "writes": 36880
+      },
+      "partial_energy_pj": 3843972949.9888,
+      "profile_id": "grasu_regraph_candidate10_normalized_hls_pagerank_v3",
+      "run_id": "real_amazon_2008_insert_u8",
+      "runtime_ns": 1263180.0,
+      "scenario": "insert",
+      "selected_onchip": {
+        "arrays": [
+          {
+            "array_id": "source_property_pingpong_banks",
+            "claim_label": "selected_projected_asic_sram",
+            "dynamic_energy_pj": 2798907.456,
+            "hardware_mapping": "8 source-map lane copies x 2 ping-pong slots; each bank is 4096 float32 values packed as 256 x 512-bit",
+            "instances": 16,
+            "leakage_energy_pj": 667371341.952,
+            "projected_asic_sram_area_mm2": 4.5918382936,
+            "reads": 6192,
+            "total_energy_pj": 670170249.408,
+            "writes": 12288
+          },
+          {
+            "array_id": "gather_temporary_property_banks",
+            "claim_label": "selected_projected_asic_sram",
+            "dynamic_energy_pj": 64125930.21280001,
+            "hardware_mapping": "8 gather banks; each bank stores 8192 rows x 64-bit for a 65536-vertex destination partition",
+            "instances": 8,
+            "leakage_energy_pj": 436804612.368,
+            "projected_asic_sram_area_mm2": 2.9175443955839997,
+            "reads": 790296,
+            "total_energy_pj": 500930542.5808,
+            "writes": 1052440
+          }
+        ],
+        "claim_label": "selected_projected_asic_sram_energy_not_fpga_power",
+        "dynamic_energy_pj": 66924837.66880001,
+        "leakage_energy_pj": 1104175954.32,
+        "projected_asic_sram_area_mm2": 7.509382689184,
+        "total_energy_pj": 1171100791.9888
+      },
+      "system": "grasu_regraph"
+    },
+    {
+      "activity_path": "/data/tmp/chuxiao/candidate10_hls_v3_energy_full_pagerank_insert_20260727/real_web_google_insert_u8/spine/summary.json",
+      "activity_sha256": "65724328182069f007415d018e68bbf15da5cce54ea7f804a3fd458d16555879",
+      "algorithm": "full_pagerank",
+      "backend_requests": 73877,
+      "claim_label": "full_32_controller_hbm_plus_selected_projected_asic_sram",
+      "core_mhz": 150.0,
+      "cycles": 593746,
+      "dataset_id": "web_google",
+      "dram": {
+        "activate_energy_pj": 2925324.0,
+        "activates": 3533,
+        "active_standby_energy_pj": 271408434.0,
+        "background_and_refresh_energy_pj": 8130304986.0,
+        "claim_label": "dramsim3_full_32_controller_hbm_energy",
+        "command_dynamic_energy_pj": 65430564.0,
+        "component_closure_error_pj": 0.0,
+        "component_sum_pj": 8195735550.0,
+        "controller_cycles_max": 3958504,
+        "controller_cycles_min": 3958504,
+        "controller_instances": 32,
+        "files": [
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel0/dramsim3.json",
+            "physical_channel": 0,
+            "sha256": "0af4758db2b1546152c28914ffa3f35dc18e4bbe58faf3a19e034e955c0354b4"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel1/dramsim3.json",
+            "physical_channel": 1,
+            "sha256": "c85373bd7232f12a4f676f2c3097db481095947c1631dd43829911b9053f2cf3"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel10/dramsim3.json",
+            "physical_channel": 10,
+            "sha256": "c85373bd7232f12a4f676f2c3097db481095947c1631dd43829911b9053f2cf3"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel11/dramsim3.json",
+            "physical_channel": 11,
+            "sha256": "c85373bd7232f12a4f676f2c3097db481095947c1631dd43829911b9053f2cf3"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel12/dramsim3.json",
+            "physical_channel": 12,
+            "sha256": "c85373bd7232f12a4f676f2c3097db481095947c1631dd43829911b9053f2cf3"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel13/dramsim3.json",
+            "physical_channel": 13,
+            "sha256": "c85373bd7232f12a4f676f2c3097db481095947c1631dd43829911b9053f2cf3"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel14/dramsim3.json",
+            "physical_channel": 14,
+            "sha256": "c85373bd7232f12a4f676f2c3097db481095947c1631dd43829911b9053f2cf3"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel15/dramsim3.json",
+            "physical_channel": 15,
+            "sha256": "c85373bd7232f12a4f676f2c3097db481095947c1631dd43829911b9053f2cf3"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel16/dramsim3.json",
+            "physical_channel": 16,
+            "sha256": "48898c49fd8e36bc9604c1a3c6f5eb535124773e8a7aec7e66c6f450fd392f84"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel17/dramsim3.json",
+            "physical_channel": 17,
+            "sha256": "b6e72b7708b6d6066213ff6c9c8cacf95bd403a43d631a318a79ee5754977b60"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel18/dramsim3.json",
+            "physical_channel": 18,
+            "sha256": "a5411ba5b73c64d9ca69491fcc51ae3b7ebd97d19a4b5e8c2a03dee4abe7a7b3"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel19/dramsim3.json",
+            "physical_channel": 19,
+            "sha256": "c85373bd7232f12a4f676f2c3097db481095947c1631dd43829911b9053f2cf3"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel2/dramsim3.json",
+            "physical_channel": 2,
+            "sha256": "c85373bd7232f12a4f676f2c3097db481095947c1631dd43829911b9053f2cf3"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel20/dramsim3.json",
+            "physical_channel": 20,
+            "sha256": "071ac80cacf0752ea6725147a498564ba0d83da18975ff6bba316d8003cde480"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel21/dramsim3.json",
+            "physical_channel": 21,
+            "sha256": "6374781da87c1a6cdf840d5ff87227d7370fd9ddda2501d645de1961452f06e0"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel22/dramsim3.json",
+            "physical_channel": 22,
+            "sha256": "c85373bd7232f12a4f676f2c3097db481095947c1631dd43829911b9053f2cf3"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel23/dramsim3.json",
+            "physical_channel": 23,
+            "sha256": "c85373bd7232f12a4f676f2c3097db481095947c1631dd43829911b9053f2cf3"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel24/dramsim3.json",
+            "physical_channel": 24,
+            "sha256": "c85373bd7232f12a4f676f2c3097db481095947c1631dd43829911b9053f2cf3"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel25/dramsim3.json",
+            "physical_channel": 25,
+            "sha256": "c85373bd7232f12a4f676f2c3097db481095947c1631dd43829911b9053f2cf3"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel26/dramsim3.json",
+            "physical_channel": 26,
+            "sha256": "c85373bd7232f12a4f676f2c3097db481095947c1631dd43829911b9053f2cf3"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel27/dramsim3.json",
+            "physical_channel": 27,
+            "sha256": "c85373bd7232f12a4f676f2c3097db481095947c1631dd43829911b9053f2cf3"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel28/dramsim3.json",
+            "physical_channel": 28,
+            "sha256": "c85373bd7232f12a4f676f2c3097db481095947c1631dd43829911b9053f2cf3"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel29/dramsim3.json",
+            "physical_channel": 29,
+            "sha256": "c85373bd7232f12a4f676f2c3097db481095947c1631dd43829911b9053f2cf3"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel3/dramsim3.json",
+            "physical_channel": 3,
+            "sha256": "c85373bd7232f12a4f676f2c3097db481095947c1631dd43829911b9053f2cf3"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel30/dramsim3.json",
+            "physical_channel": 30,
+            "sha256": "c85373bd7232f12a4f676f2c3097db481095947c1631dd43829911b9053f2cf3"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel31/dramsim3.json",
+            "physical_channel": 31,
+            "sha256": "c85373bd7232f12a4f676f2c3097db481095947c1631dd43829911b9053f2cf3"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel4/dramsim3.json",
+            "physical_channel": 4,
+            "sha256": "c85373bd7232f12a4f676f2c3097db481095947c1631dd43829911b9053f2cf3"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel5/dramsim3.json",
+            "physical_channel": 5,
+            "sha256": "c85373bd7232f12a4f676f2c3097db481095947c1631dd43829911b9053f2cf3"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel6/dramsim3.json",
+            "physical_channel": 6,
+            "sha256": "c85373bd7232f12a4f676f2c3097db481095947c1631dd43829911b9053f2cf3"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel7/dramsim3.json",
+            "physical_channel": 7,
+            "sha256": "c85373bd7232f12a4f676f2c3097db481095947c1631dd43829911b9053f2cf3"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel8/dramsim3.json",
+            "physical_channel": 8,
+            "sha256": "c85373bd7232f12a4f676f2c3097db481095947c1631dd43829911b9053f2cf3"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel9/dramsim3.json",
+            "physical_channel": 9,
+            "sha256": "c85373bd7232f12a4f676f2c3097db481095947c1631dd43829911b9053f2cf3"
+          }
+        ],
+        "idle_controller_instances": 26,
+        "precharge_standby_energy_pj": 5882874192.0,
+        "precharges": 3533,
+        "read_energy_pj": 47872572.0,
+        "read_row_hit_ratio": 0.9417761516713786,
+        "read_row_hits": 56629,
+        "reads": 60130,
+        "refresh_energy_pj": 1976022360.0,
+        "self_refresh_energy_pj": 0.0,
+        "total_energy_pj": 8195735550.0,
+        "write_energy_pj": 14632668.0,
+        "write_row_hit_ratio": 0.9518440386993526,
+        "write_row_hits": 13085,
+        "writes": 13747
+      },
+      "partial_energy_pj": 8195735550.0,
+      "profile_id": "spine_candidate10_normalized_v1",
+      "run_id": "real_web_google_insert_u8",
+      "runtime_ns": 3958306.6666666665,
+      "scenario": "insert",
+      "selected_onchip": {
+        "arrays": [],
+        "claim_label": "no_spine_pagerank_array_characterized",
+        "dynamic_energy_pj": 0.0,
+        "leakage_energy_pj": 0.0,
+        "projected_asic_sram_area_mm2": 0.0,
+        "total_energy_pj": 0.0
+      },
+      "system": "spine"
+    },
+    {
+      "activity_path": "/data/tmp/chuxiao/candidate10_hls_v3_energy_full_pagerank_insert_20260727/real_web_google_insert_u8/grasu_regraph/manifest.json",
+      "activity_sha256": "40cc4db34e79490f5a86d5204810f317ccda394dfd081f2b2403278b5e912670",
+      "algorithm": "full_pagerank",
+      "backend_requests": 69790,
+      "claim_label": "full_32_controller_hbm_plus_selected_projected_asic_sram",
+      "core_mhz": 150.0,
+      "cycles": 382006,
+      "dataset_id": "web_google",
+      "dram": {
+        "activate_energy_pj": 2314260.0,
+        "activates": 2795,
+        "active_standby_energy_pj": 331604724.0,
+        "background_and_refresh_energy_pj": 5273687316.0,
+        "claim_label": "dramsim3_full_32_controller_hbm_energy",
+        "command_dynamic_energy_pj": 68109324.0,
+        "component_closure_error_pj": 0.0,
+        "component_sum_pj": 5341796640.0,
+        "controller_cycles_max": 2546834,
+        "controller_cycles_min": 2546834,
+        "controller_instances": 32,
+        "files": [
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel0/dramsim3.json",
+            "physical_channel": 0,
+            "sha256": "c2a02aafd7f3e12c5b147983339a368f8cd84882c61fc7bcb9808699e67373f3"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel1/dramsim3.json",
+            "physical_channel": 1,
+            "sha256": "1c1557fd016c85abca830a49930780b23ec52c197100a80617c24a5e4f440f1d"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel10/dramsim3.json",
+            "physical_channel": 10,
+            "sha256": "669e3504a338712a18b44fcd6f643c335bbcfba7de5338cb58320a357812fccc"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel11/dramsim3.json",
+            "physical_channel": 11,
+            "sha256": "669e3504a338712a18b44fcd6f643c335bbcfba7de5338cb58320a357812fccc"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel12/dramsim3.json",
+            "physical_channel": 12,
+            "sha256": "669e3504a338712a18b44fcd6f643c335bbcfba7de5338cb58320a357812fccc"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel13/dramsim3.json",
+            "physical_channel": 13,
+            "sha256": "669e3504a338712a18b44fcd6f643c335bbcfba7de5338cb58320a357812fccc"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel14/dramsim3.json",
+            "physical_channel": 14,
+            "sha256": "669e3504a338712a18b44fcd6f643c335bbcfba7de5338cb58320a357812fccc"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel15/dramsim3.json",
+            "physical_channel": 15,
+            "sha256": "669e3504a338712a18b44fcd6f643c335bbcfba7de5338cb58320a357812fccc"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel16/dramsim3.json",
+            "physical_channel": 16,
+            "sha256": "669e3504a338712a18b44fcd6f643c335bbcfba7de5338cb58320a357812fccc"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel17/dramsim3.json",
+            "physical_channel": 17,
+            "sha256": "669e3504a338712a18b44fcd6f643c335bbcfba7de5338cb58320a357812fccc"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel18/dramsim3.json",
+            "physical_channel": 18,
+            "sha256": "669e3504a338712a18b44fcd6f643c335bbcfba7de5338cb58320a357812fccc"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel19/dramsim3.json",
+            "physical_channel": 19,
+            "sha256": "669e3504a338712a18b44fcd6f643c335bbcfba7de5338cb58320a357812fccc"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel2/dramsim3.json",
+            "physical_channel": 2,
+            "sha256": "ae62e72e0438c9c782c3114db3a0c07d5d9a902f585d20cfcbd8c27f6eead998"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel20/dramsim3.json",
+            "physical_channel": 20,
+            "sha256": "669e3504a338712a18b44fcd6f643c335bbcfba7de5338cb58320a357812fccc"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel21/dramsim3.json",
+            "physical_channel": 21,
+            "sha256": "669e3504a338712a18b44fcd6f643c335bbcfba7de5338cb58320a357812fccc"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel22/dramsim3.json",
+            "physical_channel": 22,
+            "sha256": "669e3504a338712a18b44fcd6f643c335bbcfba7de5338cb58320a357812fccc"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel23/dramsim3.json",
+            "physical_channel": 23,
+            "sha256": "669e3504a338712a18b44fcd6f643c335bbcfba7de5338cb58320a357812fccc"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel24/dramsim3.json",
+            "physical_channel": 24,
+            "sha256": "669e3504a338712a18b44fcd6f643c335bbcfba7de5338cb58320a357812fccc"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel25/dramsim3.json",
+            "physical_channel": 25,
+            "sha256": "669e3504a338712a18b44fcd6f643c335bbcfba7de5338cb58320a357812fccc"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel26/dramsim3.json",
+            "physical_channel": 26,
+            "sha256": "669e3504a338712a18b44fcd6f643c335bbcfba7de5338cb58320a357812fccc"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel27/dramsim3.json",
+            "physical_channel": 27,
+            "sha256": "669e3504a338712a18b44fcd6f643c335bbcfba7de5338cb58320a357812fccc"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel28/dramsim3.json",
+            "physical_channel": 28,
+            "sha256": "669e3504a338712a18b44fcd6f643c335bbcfba7de5338cb58320a357812fccc"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel29/dramsim3.json",
+            "physical_channel": 29,
+            "sha256": "669e3504a338712a18b44fcd6f643c335bbcfba7de5338cb58320a357812fccc"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel3/dramsim3.json",
+            "physical_channel": 3,
+            "sha256": "a275abd4cbcb435eb83ca83f611e57001713f3342506b21663175f4676f0aa34"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel30/dramsim3.json",
+            "physical_channel": 30,
+            "sha256": "4b190a40b64cec850d51c7e108a6d90befded74c4afb7221f3d7eca8925b9c18"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel31/dramsim3.json",
+            "physical_channel": 31,
+            "sha256": "669e3504a338712a18b44fcd6f643c335bbcfba7de5338cb58320a357812fccc"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel4/dramsim3.json",
+            "physical_channel": 4,
+            "sha256": "669e3504a338712a18b44fcd6f643c335bbcfba7de5338cb58320a357812fccc"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel5/dramsim3.json",
+            "physical_channel": 5,
+            "sha256": "669e3504a338712a18b44fcd6f643c335bbcfba7de5338cb58320a357812fccc"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel6/dramsim3.json",
+            "physical_channel": 6,
+            "sha256": "669e3504a338712a18b44fcd6f643c335bbcfba7de5338cb58320a357812fccc"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel7/dramsim3.json",
+            "physical_channel": 7,
+            "sha256": "669e3504a338712a18b44fcd6f643c335bbcfba7de5338cb58320a357812fccc"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel8/dramsim3.json",
+            "physical_channel": 8,
+            "sha256": "669e3504a338712a18b44fcd6f643c335bbcfba7de5338cb58320a357812fccc"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel9/dramsim3.json",
+            "physical_channel": 9,
+            "sha256": "669e3504a338712a18b44fcd6f643c335bbcfba7de5338cb58320a357812fccc"
+          }
+        ],
+        "idle_controller_instances": 27,
+        "precharge_standby_energy_pj": 3670769952.0,
+        "precharges": 2795,
+        "read_energy_pj": 26437128.0,
+        "read_row_hit_ratio": 0.9505621391674263,
+        "read_row_hits": 31283,
+        "reads": 32910,
+        "refresh_energy_pj": 1271312640.0,
+        "self_refresh_energy_pj": 0.0,
+        "total_energy_pj": 5341796640.0,
+        "write_energy_pj": 39357936.0,
+        "write_row_hit_ratio": 0.9668112798264642,
+        "write_row_hits": 35656,
+        "writes": 36880
+      },
+      "partial_energy_pj": 7636221525.645333,
+      "profile_id": "grasu_regraph_candidate10_normalized_hls_pagerank_v3",
+      "run_id": "real_web_google_insert_u8",
+      "runtime_ns": 2546706.6666666665,
+      "scenario": "insert",
+      "selected_onchip": {
+        "arrays": [
+          {
+            "array_id": "source_property_pingpong_banks",
+            "claim_label": "selected_projected_asic_sram",
+            "dynamic_energy_pj": 3575386.176,
+            "hardware_mapping": "8 source-map lane copies x 2 ping-pong slots; each bank is 4096 float32 values packed as 256 x 512-bit",
+            "instances": 16,
+            "leakage_energy_pj": 1345492365.056,
+            "projected_asic_sram_area_mm2": 4.5918382936,
+            "reads": 12336,
+            "total_energy_pj": 1349067751.232,
+            "writes": 12288
+          },
+          {
+            "array_id": "gather_temporary_property_banks",
+            "claim_label": "selected_projected_asic_sram",
+            "dynamic_energy_pj": 64712081.17600001,
+            "hardware_mapping": "8 gather banks; each bank stores 8192 rows x 64-bit for a 65536-vertex destination partition",
+            "instances": 8,
+            "leakage_energy_pj": 880645053.2373333,
+            "projected_asic_sram_area_mm2": 2.9175443955839997,
+            "reads": 798744,
+            "total_energy_pj": 945357134.4133333,
+            "writes": 1060888
+          }
+        ],
+        "claim_label": "selected_projected_asic_sram_energy_not_fpga_power",
+        "dynamic_energy_pj": 68287467.35200001,
+        "leakage_energy_pj": 2226137418.293333,
+        "projected_asic_sram_area_mm2": 7.509382689184,
+        "total_energy_pj": 2294424885.6453333
+      },
+      "system": "grasu_regraph"
+    },
+    {
+      "activity_path": "/data/tmp/chuxiao/candidate10_hls_v3_energy_full_pagerank_insert_20260727/real_soc_flickr_und_insert_u8/spine/summary.json",
+      "activity_sha256": "1e543b14168d7531fa30ed10bb29a006344b630aa5014b52b2799c75c4869b9e",
+      "algorithm": "full_pagerank",
+      "backend_requests": 67961,
+      "claim_label": "full_32_controller_hbm_plus_selected_projected_asic_sram",
+      "core_mhz": 150.0,
+      "cycles": 546604,
+      "dataset_id": "soc_flickr_und",
+      "dram": {
+        "activate_energy_pj": 2784564.0,
+        "activates": 3363,
+        "active_standby_energy_pj": 251959884.0,
+        "background_and_refresh_energy_pj": 7484605740.0,
+        "claim_label": "dramsim3_full_32_controller_hbm_energy",
+        "command_dynamic_energy_pj": 60151440.0,
+        "component_closure_error_pj": 0.0,
+        "component_sum_pj": 7544757180.0,
+        "controller_cycles_max": 3644208,
+        "controller_cycles_min": 3644208,
+        "controller_instances": 32,
+        "files": [
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel0/dramsim3.json",
+            "physical_channel": 0,
+            "sha256": "b0bc12c7e3ef233728c97aec89e89ac2fd6fc52f6e13c9d5cf04f2745f61a4a6"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel1/dramsim3.json",
+            "physical_channel": 1,
+            "sha256": "38bf39710980afe090b02709371e11ccc7f62f6c476198c0cbffa0f61821883e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel10/dramsim3.json",
+            "physical_channel": 10,
+            "sha256": "38bf39710980afe090b02709371e11ccc7f62f6c476198c0cbffa0f61821883e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel11/dramsim3.json",
+            "physical_channel": 11,
+            "sha256": "38bf39710980afe090b02709371e11ccc7f62f6c476198c0cbffa0f61821883e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel12/dramsim3.json",
+            "physical_channel": 12,
+            "sha256": "38bf39710980afe090b02709371e11ccc7f62f6c476198c0cbffa0f61821883e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel13/dramsim3.json",
+            "physical_channel": 13,
+            "sha256": "38bf39710980afe090b02709371e11ccc7f62f6c476198c0cbffa0f61821883e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel14/dramsim3.json",
+            "physical_channel": 14,
+            "sha256": "38bf39710980afe090b02709371e11ccc7f62f6c476198c0cbffa0f61821883e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel15/dramsim3.json",
+            "physical_channel": 15,
+            "sha256": "38bf39710980afe090b02709371e11ccc7f62f6c476198c0cbffa0f61821883e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel16/dramsim3.json",
+            "physical_channel": 16,
+            "sha256": "37a984f05bef2eff514e210391672cd09694f54462ebe28c378fff4cb60f0ecf"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel17/dramsim3.json",
+            "physical_channel": 17,
+            "sha256": "1be6293af2bc1019da180ab13d868ce1ae0f62b723c35c034de57397a54bc6a1"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel18/dramsim3.json",
+            "physical_channel": 18,
+            "sha256": "d4dd90acf1dae6f5726d8ffc6833bffddae78d4831e0b58ac82500ebc5f6fdc7"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel19/dramsim3.json",
+            "physical_channel": 19,
+            "sha256": "38bf39710980afe090b02709371e11ccc7f62f6c476198c0cbffa0f61821883e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel2/dramsim3.json",
+            "physical_channel": 2,
+            "sha256": "38bf39710980afe090b02709371e11ccc7f62f6c476198c0cbffa0f61821883e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel20/dramsim3.json",
+            "physical_channel": 20,
+            "sha256": "ef3fd5c583671b12c8a6edf38b5cae21e64479f1dbceb15ddcf666c9ad22057f"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel21/dramsim3.json",
+            "physical_channel": 21,
+            "sha256": "48f8be765b3b01cc07d98ba49d2eaa4486b50ebfb027bf17e16f2e47a36b1437"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel22/dramsim3.json",
+            "physical_channel": 22,
+            "sha256": "38bf39710980afe090b02709371e11ccc7f62f6c476198c0cbffa0f61821883e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel23/dramsim3.json",
+            "physical_channel": 23,
+            "sha256": "38bf39710980afe090b02709371e11ccc7f62f6c476198c0cbffa0f61821883e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel24/dramsim3.json",
+            "physical_channel": 24,
+            "sha256": "38bf39710980afe090b02709371e11ccc7f62f6c476198c0cbffa0f61821883e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel25/dramsim3.json",
+            "physical_channel": 25,
+            "sha256": "38bf39710980afe090b02709371e11ccc7f62f6c476198c0cbffa0f61821883e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel26/dramsim3.json",
+            "physical_channel": 26,
+            "sha256": "38bf39710980afe090b02709371e11ccc7f62f6c476198c0cbffa0f61821883e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel27/dramsim3.json",
+            "physical_channel": 27,
+            "sha256": "38bf39710980afe090b02709371e11ccc7f62f6c476198c0cbffa0f61821883e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel28/dramsim3.json",
+            "physical_channel": 28,
+            "sha256": "38bf39710980afe090b02709371e11ccc7f62f6c476198c0cbffa0f61821883e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel29/dramsim3.json",
+            "physical_channel": 29,
+            "sha256": "38bf39710980afe090b02709371e11ccc7f62f6c476198c0cbffa0f61821883e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel3/dramsim3.json",
+            "physical_channel": 3,
+            "sha256": "38bf39710980afe090b02709371e11ccc7f62f6c476198c0cbffa0f61821883e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel30/dramsim3.json",
+            "physical_channel": 30,
+            "sha256": "38bf39710980afe090b02709371e11ccc7f62f6c476198c0cbffa0f61821883e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel31/dramsim3.json",
+            "physical_channel": 31,
+            "sha256": "38bf39710980afe090b02709371e11ccc7f62f6c476198c0cbffa0f61821883e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel4/dramsim3.json",
+            "physical_channel": 4,
+            "sha256": "38bf39710980afe090b02709371e11ccc7f62f6c476198c0cbffa0f61821883e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel5/dramsim3.json",
+            "physical_channel": 5,
+            "sha256": "38bf39710980afe090b02709371e11ccc7f62f6c476198c0cbffa0f61821883e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel6/dramsim3.json",
+            "physical_channel": 6,
+            "sha256": "38bf39710980afe090b02709371e11ccc7f62f6c476198c0cbffa0f61821883e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel7/dramsim3.json",
+            "physical_channel": 7,
+            "sha256": "38bf39710980afe090b02709371e11ccc7f62f6c476198c0cbffa0f61821883e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel8/dramsim3.json",
+            "physical_channel": 8,
+            "sha256": "38bf39710980afe090b02709371e11ccc7f62f6c476198c0cbffa0f61821883e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel9/dramsim3.json",
+            "physical_channel": 9,
+            "sha256": "38bf39710980afe090b02709371e11ccc7f62f6c476198c0cbffa0f61821883e"
+          }
+        ],
+        "idle_controller_instances": 26,
+        "precharge_standby_energy_pj": 5414259936.0,
+        "precharges": 3361,
+        "read_energy_pj": 44308440.0,
+        "read_row_hit_ratio": 0.9400104142351822,
+        "read_row_hits": 52352,
+        "reads": 55693,
+        "refresh_energy_pj": 1818385920.0,
+        "self_refresh_energy_pj": 0.0,
+        "total_energy_pj": 7544757180.0,
+        "write_energy_pj": 13058436.0,
+        "write_row_hit_ratio": 0.9475057059015325,
+        "write_row_hits": 11624,
+        "writes": 12268
+      },
+      "partial_energy_pj": 7544757180.0,
+      "profile_id": "spine_candidate10_normalized_v1",
+      "run_id": "real_soc_flickr_und_insert_u8",
+      "runtime_ns": 3644026.6666666665,
+      "scenario": "insert",
+      "selected_onchip": {
+        "arrays": [],
+        "claim_label": "no_spine_pagerank_array_characterized",
+        "dynamic_energy_pj": 0.0,
+        "leakage_energy_pj": 0.0,
+        "projected_asic_sram_area_mm2": 0.0,
+        "total_energy_pj": 0.0
+      },
+      "system": "spine"
+    },
+    {
+      "activity_path": "/data/tmp/chuxiao/candidate10_hls_v3_energy_full_pagerank_insert_20260727/real_soc_flickr_und_insert_u8/grasu_regraph/manifest.json",
+      "activity_sha256": "35c48b13d7df4fbed423ed574cfc4c8a85e5e3ffd77d8390ecfb826f9fcd8155",
+      "algorithm": "full_pagerank",
+      "backend_requests": 66831,
+      "claim_label": "full_32_controller_hbm_plus_selected_projected_asic_sram",
+      "core_mhz": 150.0,
+      "cycles": 342689,
+      "dataset_id": "soc_flickr_und",
+      "dram": {
+        "activate_energy_pj": 2199168.0,
+        "activates": 2656,
+        "active_standby_energy_pj": 299209086.0,
+        "background_and_refresh_energy_pj": 4729837230.0,
+        "claim_label": "dramsim3_full_32_controller_hbm_energy",
+        "command_dynamic_energy_pj": 65622672.0,
+        "component_closure_error_pj": 0.0,
+        "component_sum_pj": 4795459902.0,
+        "controller_cycles_max": 2284707,
+        "controller_cycles_min": 2284707,
+        "controller_instances": 32,
+        "files": [
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel0/dramsim3.json",
+            "physical_channel": 0,
+            "sha256": "a3dcc087ec0947a01792c7a7757622e69eac1f2fb063097bfd1dd9cf6cbccee8"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel1/dramsim3.json",
+            "physical_channel": 1,
+            "sha256": "f2d417052e5f255d031e3f11d82828ab37089bf54097dd08a5d8744135ec776a"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel10/dramsim3.json",
+            "physical_channel": 10,
+            "sha256": "a1d54d892a956bff0a0763cc36ad48c4346edddb37b5142dbcc43dc804ea2dab"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel11/dramsim3.json",
+            "physical_channel": 11,
+            "sha256": "a1d54d892a956bff0a0763cc36ad48c4346edddb37b5142dbcc43dc804ea2dab"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel12/dramsim3.json",
+            "physical_channel": 12,
+            "sha256": "a1d54d892a956bff0a0763cc36ad48c4346edddb37b5142dbcc43dc804ea2dab"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel13/dramsim3.json",
+            "physical_channel": 13,
+            "sha256": "a1d54d892a956bff0a0763cc36ad48c4346edddb37b5142dbcc43dc804ea2dab"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel14/dramsim3.json",
+            "physical_channel": 14,
+            "sha256": "a1d54d892a956bff0a0763cc36ad48c4346edddb37b5142dbcc43dc804ea2dab"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel15/dramsim3.json",
+            "physical_channel": 15,
+            "sha256": "a1d54d892a956bff0a0763cc36ad48c4346edddb37b5142dbcc43dc804ea2dab"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel16/dramsim3.json",
+            "physical_channel": 16,
+            "sha256": "a1d54d892a956bff0a0763cc36ad48c4346edddb37b5142dbcc43dc804ea2dab"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel17/dramsim3.json",
+            "physical_channel": 17,
+            "sha256": "a1d54d892a956bff0a0763cc36ad48c4346edddb37b5142dbcc43dc804ea2dab"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel18/dramsim3.json",
+            "physical_channel": 18,
+            "sha256": "a1d54d892a956bff0a0763cc36ad48c4346edddb37b5142dbcc43dc804ea2dab"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel19/dramsim3.json",
+            "physical_channel": 19,
+            "sha256": "a1d54d892a956bff0a0763cc36ad48c4346edddb37b5142dbcc43dc804ea2dab"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel2/dramsim3.json",
+            "physical_channel": 2,
+            "sha256": "8138edef7771421ed7a3b8779df51b6061690413c96bf3c4b69c6348a5420ef8"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel20/dramsim3.json",
+            "physical_channel": 20,
+            "sha256": "a1d54d892a956bff0a0763cc36ad48c4346edddb37b5142dbcc43dc804ea2dab"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel21/dramsim3.json",
+            "physical_channel": 21,
+            "sha256": "a1d54d892a956bff0a0763cc36ad48c4346edddb37b5142dbcc43dc804ea2dab"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel22/dramsim3.json",
+            "physical_channel": 22,
+            "sha256": "a1d54d892a956bff0a0763cc36ad48c4346edddb37b5142dbcc43dc804ea2dab"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel23/dramsim3.json",
+            "physical_channel": 23,
+            "sha256": "a1d54d892a956bff0a0763cc36ad48c4346edddb37b5142dbcc43dc804ea2dab"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel24/dramsim3.json",
+            "physical_channel": 24,
+            "sha256": "a1d54d892a956bff0a0763cc36ad48c4346edddb37b5142dbcc43dc804ea2dab"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel25/dramsim3.json",
+            "physical_channel": 25,
+            "sha256": "a1d54d892a956bff0a0763cc36ad48c4346edddb37b5142dbcc43dc804ea2dab"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel26/dramsim3.json",
+            "physical_channel": 26,
+            "sha256": "a1d54d892a956bff0a0763cc36ad48c4346edddb37b5142dbcc43dc804ea2dab"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel27/dramsim3.json",
+            "physical_channel": 27,
+            "sha256": "a1d54d892a956bff0a0763cc36ad48c4346edddb37b5142dbcc43dc804ea2dab"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel28/dramsim3.json",
+            "physical_channel": 28,
+            "sha256": "a1d54d892a956bff0a0763cc36ad48c4346edddb37b5142dbcc43dc804ea2dab"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel29/dramsim3.json",
+            "physical_channel": 29,
+            "sha256": "a1d54d892a956bff0a0763cc36ad48c4346edddb37b5142dbcc43dc804ea2dab"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel3/dramsim3.json",
+            "physical_channel": 3,
+            "sha256": "b11495d3d89b6409660b55dca128911c17fe8b7dd1bab87f9ba73fb8333d657e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel30/dramsim3.json",
+            "physical_channel": 30,
+            "sha256": "204b14d6fcb22e0ad337257402781df3cbd8ea1b1684d0a37fdbbbf15366b9f9"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel31/dramsim3.json",
+            "physical_channel": 31,
+            "sha256": "a1d54d892a956bff0a0763cc36ad48c4346edddb37b5142dbcc43dc804ea2dab"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel4/dramsim3.json",
+            "physical_channel": 4,
+            "sha256": "a1d54d892a956bff0a0763cc36ad48c4346edddb37b5142dbcc43dc804ea2dab"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel5/dramsim3.json",
+            "physical_channel": 5,
+            "sha256": "a1d54d892a956bff0a0763cc36ad48c4346edddb37b5142dbcc43dc804ea2dab"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel6/dramsim3.json",
+            "physical_channel": 6,
+            "sha256": "a1d54d892a956bff0a0763cc36ad48c4346edddb37b5142dbcc43dc804ea2dab"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel7/dramsim3.json",
+            "physical_channel": 7,
+            "sha256": "a1d54d892a956bff0a0763cc36ad48c4346edddb37b5142dbcc43dc804ea2dab"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel8/dramsim3.json",
+            "physical_channel": 8,
+            "sha256": "a1d54d892a956bff0a0763cc36ad48c4346edddb37b5142dbcc43dc804ea2dab"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel9/dramsim3.json",
+            "physical_channel": 9,
+            "sha256": "a1d54d892a956bff0a0763cc36ad48c4346edddb37b5142dbcc43dc804ea2dab"
+          }
+        ],
+        "idle_controller_instances": 27,
+        "precharge_standby_energy_pj": 3291703344.0,
+        "precharges": 2648,
+        "read_energy_pj": 24058092.0,
+        "read_row_hit_ratio": 0.9504524055958065,
+        "read_row_hits": 28467,
+        "reads": 29951,
+        "refresh_energy_pj": 1138924800.0,
+        "self_refresh_energy_pj": 0.0,
+        "total_energy_pj": 4795459902.0,
+        "write_energy_pj": 39365412.0,
+        "write_row_hit_ratio": 0.9669197396963124,
+        "write_row_hits": 35660,
+        "writes": 36880
+      },
+      "partial_energy_pj": 6860765232.258667,
+      "profile_id": "grasu_regraph_candidate10_normalized_hls_pagerank_v3",
+      "run_id": "real_soc_flickr_und_insert_u8",
+      "runtime_ns": 2284593.3333333335,
+      "scenario": "insert",
+      "selected_onchip": {
+        "arrays": [
+          {
+            "array_id": "source_property_pingpong_banks",
+            "claim_label": "selected_projected_asic_sram",
+            "dynamic_energy_pj": 3575386.176,
+            "hardware_mapping": "8 source-map lane copies x 2 ping-pong slots; each bank is 4096 float32 values packed as 256 x 512-bit",
+            "instances": 16,
+            "leakage_energy_pj": 1207010971.2640002,
+            "projected_asic_sram_area_mm2": 4.5918382936,
+            "reads": 12336,
+            "total_energy_pj": 1210586357.4400003,
+            "writes": 12288
+          },
+          {
+            "array_id": "gather_temporary_property_banks",
+            "claim_label": "selected_projected_asic_sram",
+            "dynamic_energy_pj": 64712081.17600001,
+            "hardware_mapping": "8 gather banks; each bank stores 8192 rows x 64-bit for a 65536-vertex destination partition",
+            "instances": 8,
+            "leakage_energy_pj": 790006891.6426667,
+            "projected_asic_sram_area_mm2": 2.9175443955839997,
+            "reads": 798744,
+            "total_energy_pj": 854718972.8186667,
+            "writes": 1060888
+          }
+        ],
+        "claim_label": "selected_projected_asic_sram_energy_not_fpga_power",
+        "dynamic_energy_pj": 68287467.35200001,
+        "leakage_energy_pj": 1997017862.9066668,
+        "projected_asic_sram_area_mm2": 7.509382689184,
+        "total_energy_pj": 2065305330.258667
+      },
+      "system": "grasu_regraph"
+    },
+    {
+      "activity_path": "/data/tmp/chuxiao/candidate10_hls_v3_energy_residual_pagerank_insert_20260727/real_amazon_2008_insert_u8/spine/summary.json",
+      "activity_sha256": "0e9b87430b45fe64dec3abff8ea1416e1cd31b60b199fb022278ec7f99016e5a",
+      "algorithm": "thresholded_residual_pagerank",
+      "backend_requests": 650302,
+      "claim_label": "full_32_controller_hbm_plus_selected_projected_asic_sram",
+      "core_mhz": 150.0,
+      "cycles": 4498003,
+      "dataset_id": "amazon_2008",
+      "dram": {
+        "activate_energy_pj": 33478524.0,
+        "activates": 40433,
+        "active_standby_energy_pj": 2353324050.0,
+        "background_and_refresh_energy_pj": 61673229666.0,
+        "claim_label": "dramsim3_full_32_controller_hbm_energy",
+        "command_dynamic_energy_pj": 586062564.0,
+        "component_closure_error_pj": 0.0,
+        "component_sum_pj": 62259292230.0,
+        "controller_cycles_max": 29988186,
+        "controller_cycles_min": 29988186,
+        "controller_instances": 32,
+        "files": [
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel0/dramsim3.json",
+            "physical_channel": 0,
+            "sha256": "088e56286c4ec715c13d68aed3a0ed5e104a6eec9c12a8ba1066770b5970840f"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel1/dramsim3.json",
+            "physical_channel": 1,
+            "sha256": "02236e33072ac448fc2149adbc785da9d87b5ef66b5696d5b3d4f08c99f49733"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel10/dramsim3.json",
+            "physical_channel": 10,
+            "sha256": "02236e33072ac448fc2149adbc785da9d87b5ef66b5696d5b3d4f08c99f49733"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel11/dramsim3.json",
+            "physical_channel": 11,
+            "sha256": "02236e33072ac448fc2149adbc785da9d87b5ef66b5696d5b3d4f08c99f49733"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel12/dramsim3.json",
+            "physical_channel": 12,
+            "sha256": "02236e33072ac448fc2149adbc785da9d87b5ef66b5696d5b3d4f08c99f49733"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel13/dramsim3.json",
+            "physical_channel": 13,
+            "sha256": "02236e33072ac448fc2149adbc785da9d87b5ef66b5696d5b3d4f08c99f49733"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel14/dramsim3.json",
+            "physical_channel": 14,
+            "sha256": "02236e33072ac448fc2149adbc785da9d87b5ef66b5696d5b3d4f08c99f49733"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel15/dramsim3.json",
+            "physical_channel": 15,
+            "sha256": "02236e33072ac448fc2149adbc785da9d87b5ef66b5696d5b3d4f08c99f49733"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel16/dramsim3.json",
+            "physical_channel": 16,
+            "sha256": "4a248768a27625747b81057dd2e8a28a80fa297cfc307609ab45ae17ef219212"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel17/dramsim3.json",
+            "physical_channel": 17,
+            "sha256": "18b46b11b06c4af620ca6d9630564c977dbb1a1c0d7b36a407ba9f1540234466"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel18/dramsim3.json",
+            "physical_channel": 18,
+            "sha256": "9f26c42a869bdf35664486c59fa7febb1c13a26c52892051df03af2d782b25f1"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel19/dramsim3.json",
+            "physical_channel": 19,
+            "sha256": "02236e33072ac448fc2149adbc785da9d87b5ef66b5696d5b3d4f08c99f49733"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel2/dramsim3.json",
+            "physical_channel": 2,
+            "sha256": "02236e33072ac448fc2149adbc785da9d87b5ef66b5696d5b3d4f08c99f49733"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel20/dramsim3.json",
+            "physical_channel": 20,
+            "sha256": "62ff95d8040a271fae2f0ebe8fe1f2e0efc7d0e3a9346357a30592a4b67cd6ef"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel21/dramsim3.json",
+            "physical_channel": 21,
+            "sha256": "3bed2df82814183a8a9a9603ec09df83e69d70fb1331380bdf4374f91a4bdd3b"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel22/dramsim3.json",
+            "physical_channel": 22,
+            "sha256": "02236e33072ac448fc2149adbc785da9d87b5ef66b5696d5b3d4f08c99f49733"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel23/dramsim3.json",
+            "physical_channel": 23,
+            "sha256": "02236e33072ac448fc2149adbc785da9d87b5ef66b5696d5b3d4f08c99f49733"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel24/dramsim3.json",
+            "physical_channel": 24,
+            "sha256": "02236e33072ac448fc2149adbc785da9d87b5ef66b5696d5b3d4f08c99f49733"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel25/dramsim3.json",
+            "physical_channel": 25,
+            "sha256": "02236e33072ac448fc2149adbc785da9d87b5ef66b5696d5b3d4f08c99f49733"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel26/dramsim3.json",
+            "physical_channel": 26,
+            "sha256": "02236e33072ac448fc2149adbc785da9d87b5ef66b5696d5b3d4f08c99f49733"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel27/dramsim3.json",
+            "physical_channel": 27,
+            "sha256": "02236e33072ac448fc2149adbc785da9d87b5ef66b5696d5b3d4f08c99f49733"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel28/dramsim3.json",
+            "physical_channel": 28,
+            "sha256": "02236e33072ac448fc2149adbc785da9d87b5ef66b5696d5b3d4f08c99f49733"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel29/dramsim3.json",
+            "physical_channel": 29,
+            "sha256": "02236e33072ac448fc2149adbc785da9d87b5ef66b5696d5b3d4f08c99f49733"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel3/dramsim3.json",
+            "physical_channel": 3,
+            "sha256": "02236e33072ac448fc2149adbc785da9d87b5ef66b5696d5b3d4f08c99f49733"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel30/dramsim3.json",
+            "physical_channel": 30,
+            "sha256": "02236e33072ac448fc2149adbc785da9d87b5ef66b5696d5b3d4f08c99f49733"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel31/dramsim3.json",
+            "physical_channel": 31,
+            "sha256": "02236e33072ac448fc2149adbc785da9d87b5ef66b5696d5b3d4f08c99f49733"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel4/dramsim3.json",
+            "physical_channel": 4,
+            "sha256": "02236e33072ac448fc2149adbc785da9d87b5ef66b5696d5b3d4f08c99f49733"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel5/dramsim3.json",
+            "physical_channel": 5,
+            "sha256": "02236e33072ac448fc2149adbc785da9d87b5ef66b5696d5b3d4f08c99f49733"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel6/dramsim3.json",
+            "physical_channel": 6,
+            "sha256": "02236e33072ac448fc2149adbc785da9d87b5ef66b5696d5b3d4f08c99f49733"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel7/dramsim3.json",
+            "physical_channel": 7,
+            "sha256": "02236e33072ac448fc2149adbc785da9d87b5ef66b5696d5b3d4f08c99f49733"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel8/dramsim3.json",
+            "physical_channel": 8,
+            "sha256": "02236e33072ac448fc2149adbc785da9d87b5ef66b5696d5b3d4f08c99f49733"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel9/dramsim3.json",
+            "physical_channel": 9,
+            "sha256": "02236e33072ac448fc2149adbc785da9d87b5ef66b5696d5b3d4f08c99f49733"
+          }
+        ],
+        "idle_controller_instances": 26,
+        "precharge_standby_energy_pj": 44350345296.0,
+        "precharges": 40432,
+        "read_energy_pj": 383407500.0,
+        "read_row_hit_ratio": 0.8903984289375364,
+        "read_row_hits": 437077,
+        "reads": 490878,
+        "refresh_energy_pj": 14969560320.0,
+        "self_refresh_energy_pj": 0.0,
+        "total_energy_pj": 62259292230.0,
+        "write_energy_pj": 169176540.0,
+        "write_row_hit_ratio": 0.9899638699317543,
+        "write_row_hits": 157824,
+        "writes": 159424
+      },
+      "partial_energy_pj": 62259292230.0,
+      "profile_id": "spine_candidate10_normalized_v1",
+      "run_id": "real_amazon_2008_insert_u8",
+      "runtime_ns": 29986686.666666668,
+      "scenario": "insert",
+      "selected_onchip": {
+        "arrays": [],
+        "claim_label": "no_spine_pagerank_array_characterized",
+        "dynamic_energy_pj": 0.0,
+        "leakage_energy_pj": 0.0,
+        "projected_asic_sram_area_mm2": 0.0,
+        "total_energy_pj": 0.0
+      },
+      "system": "spine"
+    },
+    {
+      "activity_path": "/data/tmp/chuxiao/candidate10_hls_v3_energy_residual_pagerank_insert_20260727/real_amazon_2008_insert_u8/grasu_regraph/manifest.json",
+      "activity_sha256": "46085236dafffa4f257ec37047a7b43f676e1c49bf6f5438782c7837c69b0f0e",
+      "algorithm": "thresholded_residual_pagerank",
+      "backend_requests": 3522156,
+      "claim_label": "full_32_controller_hbm_plus_selected_projected_asic_sram",
+      "core_mhz": 150.0,
+      "cycles": 5339264,
+      "dataset_id": "amazon_2008",
+      "dram": {
+        "activate_energy_pj": 92612628.0,
+        "activates": 111851,
+        "active_standby_energy_pj": 5900369178.0,
+        "background_and_refresh_energy_pj": 74055162282.0,
+        "claim_label": "dramsim3_full_32_controller_hbm_energy",
+        "command_dynamic_energy_pj": 3573041388.0,
+        "component_closure_error_pj": 0.0,
+        "component_sum_pj": 77628203670.0,
+        "controller_cycles_max": 35596873,
+        "controller_cycles_min": 35596873,
+        "controller_instances": 32,
+        "files": [
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel0/dramsim3.json",
+            "physical_channel": 0,
+            "sha256": "de06aae3899f4c4fe10af47bff2280f1212a4643111bf4a5b3481b5958f4b228"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel1/dramsim3.json",
+            "physical_channel": 1,
+            "sha256": "40099f4e17cddb8c7f12fc5996b25a35ed989c8533852859e4a2185ee29bdbc1"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel10/dramsim3.json",
+            "physical_channel": 10,
+            "sha256": "42bbb20a06b677332985a919390ed2058fee35db31063338a05f7703c897896e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel11/dramsim3.json",
+            "physical_channel": 11,
+            "sha256": "42bbb20a06b677332985a919390ed2058fee35db31063338a05f7703c897896e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel12/dramsim3.json",
+            "physical_channel": 12,
+            "sha256": "42bbb20a06b677332985a919390ed2058fee35db31063338a05f7703c897896e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel13/dramsim3.json",
+            "physical_channel": 13,
+            "sha256": "42bbb20a06b677332985a919390ed2058fee35db31063338a05f7703c897896e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel14/dramsim3.json",
+            "physical_channel": 14,
+            "sha256": "42bbb20a06b677332985a919390ed2058fee35db31063338a05f7703c897896e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel15/dramsim3.json",
+            "physical_channel": 15,
+            "sha256": "42bbb20a06b677332985a919390ed2058fee35db31063338a05f7703c897896e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel16/dramsim3.json",
+            "physical_channel": 16,
+            "sha256": "42bbb20a06b677332985a919390ed2058fee35db31063338a05f7703c897896e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel17/dramsim3.json",
+            "physical_channel": 17,
+            "sha256": "42bbb20a06b677332985a919390ed2058fee35db31063338a05f7703c897896e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel18/dramsim3.json",
+            "physical_channel": 18,
+            "sha256": "42bbb20a06b677332985a919390ed2058fee35db31063338a05f7703c897896e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel19/dramsim3.json",
+            "physical_channel": 19,
+            "sha256": "42bbb20a06b677332985a919390ed2058fee35db31063338a05f7703c897896e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel2/dramsim3.json",
+            "physical_channel": 2,
+            "sha256": "f4720476de40911ea01bf21b17e3e0e4f65cb159c2959759660e549b913c9730"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel20/dramsim3.json",
+            "physical_channel": 20,
+            "sha256": "42bbb20a06b677332985a919390ed2058fee35db31063338a05f7703c897896e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel21/dramsim3.json",
+            "physical_channel": 21,
+            "sha256": "42bbb20a06b677332985a919390ed2058fee35db31063338a05f7703c897896e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel22/dramsim3.json",
+            "physical_channel": 22,
+            "sha256": "42bbb20a06b677332985a919390ed2058fee35db31063338a05f7703c897896e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel23/dramsim3.json",
+            "physical_channel": 23,
+            "sha256": "42bbb20a06b677332985a919390ed2058fee35db31063338a05f7703c897896e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel24/dramsim3.json",
+            "physical_channel": 24,
+            "sha256": "42bbb20a06b677332985a919390ed2058fee35db31063338a05f7703c897896e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel25/dramsim3.json",
+            "physical_channel": 25,
+            "sha256": "42bbb20a06b677332985a919390ed2058fee35db31063338a05f7703c897896e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel26/dramsim3.json",
+            "physical_channel": 26,
+            "sha256": "42bbb20a06b677332985a919390ed2058fee35db31063338a05f7703c897896e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel27/dramsim3.json",
+            "physical_channel": 27,
+            "sha256": "42bbb20a06b677332985a919390ed2058fee35db31063338a05f7703c897896e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel28/dramsim3.json",
+            "physical_channel": 28,
+            "sha256": "42bbb20a06b677332985a919390ed2058fee35db31063338a05f7703c897896e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel29/dramsim3.json",
+            "physical_channel": 29,
+            "sha256": "42bbb20a06b677332985a919390ed2058fee35db31063338a05f7703c897896e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel3/dramsim3.json",
+            "physical_channel": 3,
+            "sha256": "799be56def619cdb3ad067b6a205ee535f4891633062a3a74154a633720ec0fd"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel30/dramsim3.json",
+            "physical_channel": 30,
+            "sha256": "028149574f99d843bf346febba1ddf3d8a3e18b0fa72c2fa3274325ffd6f33a2"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel31/dramsim3.json",
+            "physical_channel": 31,
+            "sha256": "42bbb20a06b677332985a919390ed2058fee35db31063338a05f7703c897896e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel4/dramsim3.json",
+            "physical_channel": 4,
+            "sha256": "42bbb20a06b677332985a919390ed2058fee35db31063338a05f7703c897896e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel5/dramsim3.json",
+            "physical_channel": 5,
+            "sha256": "42bbb20a06b677332985a919390ed2058fee35db31063338a05f7703c897896e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel6/dramsim3.json",
+            "physical_channel": 6,
+            "sha256": "42bbb20a06b677332985a919390ed2058fee35db31063338a05f7703c897896e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel7/dramsim3.json",
+            "physical_channel": 7,
+            "sha256": "42bbb20a06b677332985a919390ed2058fee35db31063338a05f7703c897896e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel8/dramsim3.json",
+            "physical_channel": 8,
+            "sha256": "42bbb20a06b677332985a919390ed2058fee35db31063338a05f7703c897896e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel9/dramsim3.json",
+            "physical_channel": 9,
+            "sha256": "42bbb20a06b677332985a919390ed2058fee35db31063338a05f7703c897896e"
+          }
+        ],
+        "idle_controller_instances": 27,
+        "precharge_standby_energy_pj": 50385619344.0,
+        "precharges": 111845,
+        "read_energy_pj": 855717300.0,
+        "read_row_hit_ratio": 0.9593796381535686,
+        "read_row_hits": 1021298,
+        "reads": 1064540,
+        "refresh_energy_pj": 17769173760.0,
+        "self_refresh_energy_pj": 0.0,
+        "total_energy_pj": 77628203670.0,
+        "write_energy_pj": 2624711460.0,
+        "write_row_hit_ratio": 0.9721994811231698,
+        "write_row_hits": 2389293,
+        "writes": 2457616
+      },
+      "partial_energy_pj": 110737962833.58987,
+      "profile_id": "grasu_regraph_candidate10_normalized_hls_residual_pagerank_v3",
+      "run_id": "real_amazon_2008_insert_u8",
+      "runtime_ns": 35595093.333333336,
+      "scenario": "insert",
+      "selected_onchip": {
+        "arrays": [
+          {
+            "array_id": "source_property_pingpong_banks",
+            "claim_label": "selected_projected_asic_sram",
+            "dynamic_energy_pj": 160508998.39999998,
+            "hardware_mapping": "8 source-map lane copies x 2 ping-pong slots; each bank is 4096 float32 values packed as 256 x 512-bit",
+            "instances": 16,
+            "leakage_energy_pj": 18805827518.464,
+            "projected_asic_sram_area_mm2": 4.5918382936,
+            "reads": 206400,
+            "total_energy_pj": 18966336516.864002,
+            "writes": 819200
+          },
+          {
+            "array_id": "gather_temporary_property_banks",
+            "claim_label": "selected_projected_asic_sram",
+            "dynamic_energy_pj": 1834724800.2832,
+            "hardware_mapping": "8 gather banks; each bank stores 8192 rows x 64-bit for a 65536-vertex destination partition",
+            "instances": 8,
+            "leakage_energy_pj": 12308697846.442667,
+            "projected_asic_sram_area_mm2": 2.9175443955839997,
+            "reads": 26309352,
+            "total_energy_pj": 14143422646.725866,
+            "writes": 26571496
+          }
+        ],
+        "claim_label": "selected_projected_asic_sram_energy_not_fpga_power",
+        "dynamic_energy_pj": 1995233798.6832,
+        "leakage_energy_pj": 31114525364.90667,
+        "projected_asic_sram_area_mm2": 7.509382689184,
+        "total_energy_pj": 33109759163.589867
+      },
+      "system": "grasu_regraph"
+    },
+    {
+      "activity_path": "/data/tmp/chuxiao/candidate10_hls_v3_energy_residual_pagerank_insert_20260727/real_web_google_insert_u8/spine/summary.json",
+      "activity_sha256": "2204b871a21c5df85dcb473242f33af5c8ec3969597b557f4d33a7c710e3380c",
+      "algorithm": "thresholded_residual_pagerank",
+      "backend_requests": 2294389,
+      "claim_label": "full_32_controller_hbm_plus_selected_projected_asic_sram",
+      "core_mhz": 150.0,
+      "cycles": 12920505,
+      "dataset_id": "web_google",
+      "dram": {
+        "activate_energy_pj": 67035708.0,
+        "activates": 80961,
+        "active_standby_energy_pj": 5965858866.0,
+        "background_and_refresh_energy_pj": 176940376194.0,
+        "claim_label": "dramsim3_full_32_controller_hbm_energy",
+        "command_dynamic_energy_pj": 2080968456.0,
+        "component_closure_error_pj": 0.0,
+        "component_sum_pj": 179021344650.0,
+        "controller_cycles_max": 86141006,
+        "controller_cycles_min": 86141006,
+        "controller_instances": 32,
+        "files": [
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel0/dramsim3.json",
+            "physical_channel": 0,
+            "sha256": "1e33401391109c8d377b92c0a9d374be0241e7a78079955af2be59f48a3c1141"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel1/dramsim3.json",
+            "physical_channel": 1,
+            "sha256": "561bcf300919e06409a9061272ad2ef05cefc0fbc717a540039153c777313c1e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel10/dramsim3.json",
+            "physical_channel": 10,
+            "sha256": "561bcf300919e06409a9061272ad2ef05cefc0fbc717a540039153c777313c1e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel11/dramsim3.json",
+            "physical_channel": 11,
+            "sha256": "561bcf300919e06409a9061272ad2ef05cefc0fbc717a540039153c777313c1e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel12/dramsim3.json",
+            "physical_channel": 12,
+            "sha256": "561bcf300919e06409a9061272ad2ef05cefc0fbc717a540039153c777313c1e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel13/dramsim3.json",
+            "physical_channel": 13,
+            "sha256": "561bcf300919e06409a9061272ad2ef05cefc0fbc717a540039153c777313c1e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel14/dramsim3.json",
+            "physical_channel": 14,
+            "sha256": "561bcf300919e06409a9061272ad2ef05cefc0fbc717a540039153c777313c1e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel15/dramsim3.json",
+            "physical_channel": 15,
+            "sha256": "561bcf300919e06409a9061272ad2ef05cefc0fbc717a540039153c777313c1e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel16/dramsim3.json",
+            "physical_channel": 16,
+            "sha256": "41fd182f662857acbb19191d58c6e1707314cbf2ac57ee3d12599c6b76839f60"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel17/dramsim3.json",
+            "physical_channel": 17,
+            "sha256": "237b773c95cc5835dec2dc0974771b4f3f8b1fd3628536c7488e292339eef8ca"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel18/dramsim3.json",
+            "physical_channel": 18,
+            "sha256": "30910d04866935e998fae76b7ee28ad1cffc7cf5e7c0e9988d4f78a691448e02"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel19/dramsim3.json",
+            "physical_channel": 19,
+            "sha256": "561bcf300919e06409a9061272ad2ef05cefc0fbc717a540039153c777313c1e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel2/dramsim3.json",
+            "physical_channel": 2,
+            "sha256": "561bcf300919e06409a9061272ad2ef05cefc0fbc717a540039153c777313c1e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel20/dramsim3.json",
+            "physical_channel": 20,
+            "sha256": "1b72cfb3348e1af3cc4f6384328480bbbc835b6104f397d51f3993378689bece"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel21/dramsim3.json",
+            "physical_channel": 21,
+            "sha256": "cc7953c2940f08415de96425bd46f432c9a892ef0c5dfd57c185393940261d29"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel22/dramsim3.json",
+            "physical_channel": 22,
+            "sha256": "561bcf300919e06409a9061272ad2ef05cefc0fbc717a540039153c777313c1e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel23/dramsim3.json",
+            "physical_channel": 23,
+            "sha256": "561bcf300919e06409a9061272ad2ef05cefc0fbc717a540039153c777313c1e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel24/dramsim3.json",
+            "physical_channel": 24,
+            "sha256": "561bcf300919e06409a9061272ad2ef05cefc0fbc717a540039153c777313c1e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel25/dramsim3.json",
+            "physical_channel": 25,
+            "sha256": "561bcf300919e06409a9061272ad2ef05cefc0fbc717a540039153c777313c1e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel26/dramsim3.json",
+            "physical_channel": 26,
+            "sha256": "561bcf300919e06409a9061272ad2ef05cefc0fbc717a540039153c777313c1e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel27/dramsim3.json",
+            "physical_channel": 27,
+            "sha256": "561bcf300919e06409a9061272ad2ef05cefc0fbc717a540039153c777313c1e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel28/dramsim3.json",
+            "physical_channel": 28,
+            "sha256": "561bcf300919e06409a9061272ad2ef05cefc0fbc717a540039153c777313c1e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel29/dramsim3.json",
+            "physical_channel": 29,
+            "sha256": "561bcf300919e06409a9061272ad2ef05cefc0fbc717a540039153c777313c1e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel3/dramsim3.json",
+            "physical_channel": 3,
+            "sha256": "561bcf300919e06409a9061272ad2ef05cefc0fbc717a540039153c777313c1e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel30/dramsim3.json",
+            "physical_channel": 30,
+            "sha256": "561bcf300919e06409a9061272ad2ef05cefc0fbc717a540039153c777313c1e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel31/dramsim3.json",
+            "physical_channel": 31,
+            "sha256": "561bcf300919e06409a9061272ad2ef05cefc0fbc717a540039153c777313c1e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel4/dramsim3.json",
+            "physical_channel": 4,
+            "sha256": "561bcf300919e06409a9061272ad2ef05cefc0fbc717a540039153c777313c1e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel5/dramsim3.json",
+            "physical_channel": 5,
+            "sha256": "561bcf300919e06409a9061272ad2ef05cefc0fbc717a540039153c777313c1e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel6/dramsim3.json",
+            "physical_channel": 6,
+            "sha256": "561bcf300919e06409a9061272ad2ef05cefc0fbc717a540039153c777313c1e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel7/dramsim3.json",
+            "physical_channel": 7,
+            "sha256": "561bcf300919e06409a9061272ad2ef05cefc0fbc717a540039153c777313c1e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel8/dramsim3.json",
+            "physical_channel": 8,
+            "sha256": "561bcf300919e06409a9061272ad2ef05cefc0fbc717a540039153c777313c1e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel9/dramsim3.json",
+            "physical_channel": 9,
+            "sha256": "561bcf300919e06409a9061272ad2ef05cefc0fbc717a540039153c777313c1e"
+          }
+        ],
+        "idle_controller_instances": 26,
+        "precharge_standby_energy_pj": 127973778768.0,
+        "precharges": 80960,
+        "read_energy_pj": 1280514720.0,
+        "read_row_hit_ratio": 0.9414751840666231,
+        "read_row_hits": 1512848,
+        "reads": 1606891,
+        "refresh_energy_pj": 43000738560.0,
+        "self_refresh_energy_pj": 0.0,
+        "total_energy_pj": 179021344650.0,
+        "write_energy_pj": 733418028.0,
+        "write_row_hit_ratio": 0.9973294467765724,
+        "write_row_hits": 685662,
+        "writes": 687498
+      },
+      "partial_energy_pj": 179021344650.0,
+      "profile_id": "spine_candidate10_normalized_v1",
+      "run_id": "real_web_google_insert_u8",
+      "runtime_ns": 86136700.0,
+      "scenario": "insert",
+      "selected_onchip": {
+        "arrays": [],
+        "claim_label": "no_spine_pagerank_array_characterized",
+        "dynamic_energy_pj": 0.0,
+        "leakage_energy_pj": 0.0,
+        "projected_asic_sram_area_mm2": 0.0,
+        "total_energy_pj": 0.0
+      },
+      "system": "spine"
+    },
+    {
+      "activity_path": "/data/tmp/chuxiao/candidate10_hls_v3_energy_residual_pagerank_insert_20260727/real_web_google_insert_u8/grasu_regraph/manifest.json",
+      "activity_sha256": "59c4fb521503d8bc405caafffcb588abd67009ec25dce21a2f61a29e0d27087f",
+      "algorithm": "thresholded_residual_pagerank",
+      "backend_requests": 3050625,
+      "claim_label": "full_32_controller_hbm_plus_selected_projected_asic_sram",
+      "core_mhz": 150.0,
+      "cycles": 8936649,
+      "dataset_id": "web_google",
+      "dram": {
+        "activate_energy_pj": 85424760.0,
+        "activates": 103170,
+        "active_standby_energy_pj": 8432904018.0,
+        "background_and_refresh_energy_pj": 123558228642.0,
+        "claim_label": "dramsim3_full_32_controller_hbm_energy",
+        "command_dynamic_energy_pj": 3030885948.0,
+        "component_closure_error_pj": 0.0,
+        "component_sum_pj": 126589114590.0,
+        "controller_cycles_max": 59580638,
+        "controller_cycles_min": 59580638,
+        "controller_instances": 32,
+        "files": [
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel0/dramsim3.json",
+            "physical_channel": 0,
+            "sha256": "cd007a88aa07ddbd6151524833efd355825058f0878562cea2948349fb536722"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel1/dramsim3.json",
+            "physical_channel": 1,
+            "sha256": "f410380edafb7cc823aedc34f5289721356e1e92c4ce3ed7cd08196f70889c26"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel10/dramsim3.json",
+            "physical_channel": 10,
+            "sha256": "d217f719c8cbaac6b3041ccb09b684913c3938f3419a6eff5570d6c38a16137d"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel11/dramsim3.json",
+            "physical_channel": 11,
+            "sha256": "d217f719c8cbaac6b3041ccb09b684913c3938f3419a6eff5570d6c38a16137d"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel12/dramsim3.json",
+            "physical_channel": 12,
+            "sha256": "d217f719c8cbaac6b3041ccb09b684913c3938f3419a6eff5570d6c38a16137d"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel13/dramsim3.json",
+            "physical_channel": 13,
+            "sha256": "d217f719c8cbaac6b3041ccb09b684913c3938f3419a6eff5570d6c38a16137d"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel14/dramsim3.json",
+            "physical_channel": 14,
+            "sha256": "d217f719c8cbaac6b3041ccb09b684913c3938f3419a6eff5570d6c38a16137d"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel15/dramsim3.json",
+            "physical_channel": 15,
+            "sha256": "d217f719c8cbaac6b3041ccb09b684913c3938f3419a6eff5570d6c38a16137d"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel16/dramsim3.json",
+            "physical_channel": 16,
+            "sha256": "d217f719c8cbaac6b3041ccb09b684913c3938f3419a6eff5570d6c38a16137d"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel17/dramsim3.json",
+            "physical_channel": 17,
+            "sha256": "d217f719c8cbaac6b3041ccb09b684913c3938f3419a6eff5570d6c38a16137d"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel18/dramsim3.json",
+            "physical_channel": 18,
+            "sha256": "d217f719c8cbaac6b3041ccb09b684913c3938f3419a6eff5570d6c38a16137d"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel19/dramsim3.json",
+            "physical_channel": 19,
+            "sha256": "d217f719c8cbaac6b3041ccb09b684913c3938f3419a6eff5570d6c38a16137d"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel2/dramsim3.json",
+            "physical_channel": 2,
+            "sha256": "90208cc959f5ebf02fd3ef462e710bf25c60d73ddb0935405664e404fe58016d"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel20/dramsim3.json",
+            "physical_channel": 20,
+            "sha256": "d217f719c8cbaac6b3041ccb09b684913c3938f3419a6eff5570d6c38a16137d"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel21/dramsim3.json",
+            "physical_channel": 21,
+            "sha256": "d217f719c8cbaac6b3041ccb09b684913c3938f3419a6eff5570d6c38a16137d"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel22/dramsim3.json",
+            "physical_channel": 22,
+            "sha256": "d217f719c8cbaac6b3041ccb09b684913c3938f3419a6eff5570d6c38a16137d"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel23/dramsim3.json",
+            "physical_channel": 23,
+            "sha256": "d217f719c8cbaac6b3041ccb09b684913c3938f3419a6eff5570d6c38a16137d"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel24/dramsim3.json",
+            "physical_channel": 24,
+            "sha256": "d217f719c8cbaac6b3041ccb09b684913c3938f3419a6eff5570d6c38a16137d"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel25/dramsim3.json",
+            "physical_channel": 25,
+            "sha256": "d217f719c8cbaac6b3041ccb09b684913c3938f3419a6eff5570d6c38a16137d"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel26/dramsim3.json",
+            "physical_channel": 26,
+            "sha256": "d217f719c8cbaac6b3041ccb09b684913c3938f3419a6eff5570d6c38a16137d"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel27/dramsim3.json",
+            "physical_channel": 27,
+            "sha256": "d217f719c8cbaac6b3041ccb09b684913c3938f3419a6eff5570d6c38a16137d"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel28/dramsim3.json",
+            "physical_channel": 28,
+            "sha256": "d217f719c8cbaac6b3041ccb09b684913c3938f3419a6eff5570d6c38a16137d"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel29/dramsim3.json",
+            "physical_channel": 29,
+            "sha256": "d217f719c8cbaac6b3041ccb09b684913c3938f3419a6eff5570d6c38a16137d"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel3/dramsim3.json",
+            "physical_channel": 3,
+            "sha256": "c381bf279ddd94b288298a74f9d4be6999f14615b748bef86515ae5f39e25f04"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel30/dramsim3.json",
+            "physical_channel": 30,
+            "sha256": "4b3f2bc79194ba6e9989d5a5637dc1b7d8a3d6fbc87d66c9b49e7c0bee14b902"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel31/dramsim3.json",
+            "physical_channel": 31,
+            "sha256": "d217f719c8cbaac6b3041ccb09b684913c3938f3419a6eff5570d6c38a16137d"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel4/dramsim3.json",
+            "physical_channel": 4,
+            "sha256": "d217f719c8cbaac6b3041ccb09b684913c3938f3419a6eff5570d6c38a16137d"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel5/dramsim3.json",
+            "physical_channel": 5,
+            "sha256": "d217f719c8cbaac6b3041ccb09b684913c3938f3419a6eff5570d6c38a16137d"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel6/dramsim3.json",
+            "physical_channel": 6,
+            "sha256": "d217f719c8cbaac6b3041ccb09b684913c3938f3419a6eff5570d6c38a16137d"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel7/dramsim3.json",
+            "physical_channel": 7,
+            "sha256": "d217f719c8cbaac6b3041ccb09b684913c3938f3419a6eff5570d6c38a16137d"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel8/dramsim3.json",
+            "physical_channel": 8,
+            "sha256": "d217f719c8cbaac6b3041ccb09b684913c3938f3419a6eff5570d6c38a16137d"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel9/dramsim3.json",
+            "physical_channel": 9,
+            "sha256": "d217f719c8cbaac6b3041ccb09b684913c3938f3419a6eff5570d6c38a16137d"
+          }
+        ],
+        "idle_controller_instances": 27,
+        "precharge_standby_energy_pj": 85382838864.0,
+        "precharges": 103168,
+        "read_energy_pj": 950681760.0,
+        "read_row_hit_ratio": 0.9567343826220608,
+        "read_row_hits": 1131657,
+        "reads": 1182833,
+        "refresh_energy_pj": 29742485760.0,
+        "self_refresh_energy_pj": 0.0,
+        "total_energy_pj": 126589114590.0,
+        "write_energy_pj": 1994779428.0,
+        "write_row_hit_ratio": 0.9721441145480867,
+        "write_row_hits": 1815763,
+        "writes": 1867792
+      },
+      "partial_energy_pj": 180221720253.3664,
+      "profile_id": "grasu_regraph_candidate10_normalized_hls_residual_pagerank_v3",
+      "run_id": "real_web_google_insert_u8",
+      "runtime_ns": 59577660.0,
+      "scenario": "insert",
+      "selected_onchip": {
+        "arrays": [
+          {
+            "array_id": "source_property_pingpong_banks",
+            "claim_label": "selected_projected_asic_sram",
+            "dynamic_energy_pj": 141657633.024,
+            "hardware_mapping": "8 source-map lane copies x 2 ping-pong slots; each bank is 4096 float32 values packed as 256 x 512-bit",
+            "instances": 16,
+            "leakage_energy_pj": 31476450628.224003,
+            "projected_asic_sram_area_mm2": 4.5918382936,
+            "reads": 312512,
+            "total_energy_pj": 31618108261.248,
+            "writes": 622592
+          },
+          {
+            "array_id": "gather_temporary_property_banks",
+            "claim_label": "selected_projected_asic_sram",
+            "dynamic_energy_pj": 1412685560.5024002,
+            "hardware_mapping": "8 gather banks; each bank stores 8192 rows x 64-bit for a 65536-vertex destination partition",
+            "instances": 8,
+            "leakage_energy_pj": 20601811841.616,
+            "projected_asic_sram_area_mm2": 2.9175443955839997,
+            "reads": 20226640,
+            "total_energy_pj": 22014497402.1184,
+            "writes": 20488784
+          }
+        ],
+        "claim_label": "selected_projected_asic_sram_energy_not_fpga_power",
+        "dynamic_energy_pj": 1554343193.5264,
+        "leakage_energy_pj": 52078262469.840004,
+        "projected_asic_sram_area_mm2": 7.509382689184,
+        "total_energy_pj": 53632605663.3664
+      },
+      "system": "grasu_regraph"
+    },
+    {
+      "activity_path": "/data/tmp/chuxiao/candidate10_hls_v3_energy_residual_pagerank_insert_20260727/real_soc_flickr_und_insert_u8/spine/summary.json",
+      "activity_sha256": "9e80f1442911720975bc316d2228b336d1f0391804539c84333047947566691e",
+      "algorithm": "thresholded_residual_pagerank",
+      "backend_requests": 2161576,
+      "claim_label": "full_32_controller_hbm_plus_selected_projected_asic_sram",
+      "core_mhz": 150.0,
+      "cycles": 11927524,
+      "dataset_id": "soc_flickr_und",
+      "dram": {
+        "activate_energy_pj": 62932140.0,
+        "activates": 76005,
+        "active_standby_energy_pj": 5582221854.0,
+        "background_and_refresh_energy_pj": 163361312334.0,
+        "claim_label": "dramsim3_full_32_controller_hbm_energy",
+        "command_dynamic_energy_pj": 1953836772.0,
+        "component_closure_error_pj": 0.0,
+        "component_sum_pj": 165315149106.0,
+        "controller_cycles_max": 79520802,
+        "controller_cycles_min": 79520802,
+        "controller_instances": 32,
+        "files": [
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel0/dramsim3.json",
+            "physical_channel": 0,
+            "sha256": "87b6b0b8f10e51cdf8c407ce88ebde2645a3fd1ddc522bf828a733dcd5f6cda0"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel1/dramsim3.json",
+            "physical_channel": 1,
+            "sha256": "715c989b42b1dc5810430f71f2392309ce0ac8ce46b768a7a869ef82d198e688"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel10/dramsim3.json",
+            "physical_channel": 10,
+            "sha256": "715c989b42b1dc5810430f71f2392309ce0ac8ce46b768a7a869ef82d198e688"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel11/dramsim3.json",
+            "physical_channel": 11,
+            "sha256": "715c989b42b1dc5810430f71f2392309ce0ac8ce46b768a7a869ef82d198e688"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel12/dramsim3.json",
+            "physical_channel": 12,
+            "sha256": "715c989b42b1dc5810430f71f2392309ce0ac8ce46b768a7a869ef82d198e688"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel13/dramsim3.json",
+            "physical_channel": 13,
+            "sha256": "715c989b42b1dc5810430f71f2392309ce0ac8ce46b768a7a869ef82d198e688"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel14/dramsim3.json",
+            "physical_channel": 14,
+            "sha256": "715c989b42b1dc5810430f71f2392309ce0ac8ce46b768a7a869ef82d198e688"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel15/dramsim3.json",
+            "physical_channel": 15,
+            "sha256": "715c989b42b1dc5810430f71f2392309ce0ac8ce46b768a7a869ef82d198e688"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel16/dramsim3.json",
+            "physical_channel": 16,
+            "sha256": "ce4147b9326ab8ad23a58be76b7558456a00cec51ce15b2bd10bb755132b17cc"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel17/dramsim3.json",
+            "physical_channel": 17,
+            "sha256": "9e04e95a188e7b71ec995329c635ebe6e2f0cbeca40227936c22a2d172d6f856"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel18/dramsim3.json",
+            "physical_channel": 18,
+            "sha256": "09537e12fb70ea1a6b4e24e2c41ab58cffa732fff694f64f85b9bc3b51b5c6c0"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel19/dramsim3.json",
+            "physical_channel": 19,
+            "sha256": "715c989b42b1dc5810430f71f2392309ce0ac8ce46b768a7a869ef82d198e688"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel2/dramsim3.json",
+            "physical_channel": 2,
+            "sha256": "715c989b42b1dc5810430f71f2392309ce0ac8ce46b768a7a869ef82d198e688"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel20/dramsim3.json",
+            "physical_channel": 20,
+            "sha256": "c21b3b4df604e18bc282d08e2a90f4da409f574f7205e47a2430765e0e910bc1"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel21/dramsim3.json",
+            "physical_channel": 21,
+            "sha256": "fe046bfa7dec4b0996c7abb809ab2a1050562476a247e4fb7fda1fcc5a046715"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel22/dramsim3.json",
+            "physical_channel": 22,
+            "sha256": "715c989b42b1dc5810430f71f2392309ce0ac8ce46b768a7a869ef82d198e688"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel23/dramsim3.json",
+            "physical_channel": 23,
+            "sha256": "715c989b42b1dc5810430f71f2392309ce0ac8ce46b768a7a869ef82d198e688"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel24/dramsim3.json",
+            "physical_channel": 24,
+            "sha256": "715c989b42b1dc5810430f71f2392309ce0ac8ce46b768a7a869ef82d198e688"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel25/dramsim3.json",
+            "physical_channel": 25,
+            "sha256": "715c989b42b1dc5810430f71f2392309ce0ac8ce46b768a7a869ef82d198e688"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel26/dramsim3.json",
+            "physical_channel": 26,
+            "sha256": "715c989b42b1dc5810430f71f2392309ce0ac8ce46b768a7a869ef82d198e688"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel27/dramsim3.json",
+            "physical_channel": 27,
+            "sha256": "715c989b42b1dc5810430f71f2392309ce0ac8ce46b768a7a869ef82d198e688"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel28/dramsim3.json",
+            "physical_channel": 28,
+            "sha256": "715c989b42b1dc5810430f71f2392309ce0ac8ce46b768a7a869ef82d198e688"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel29/dramsim3.json",
+            "physical_channel": 29,
+            "sha256": "715c989b42b1dc5810430f71f2392309ce0ac8ce46b768a7a869ef82d198e688"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel3/dramsim3.json",
+            "physical_channel": 3,
+            "sha256": "715c989b42b1dc5810430f71f2392309ce0ac8ce46b768a7a869ef82d198e688"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel30/dramsim3.json",
+            "physical_channel": 30,
+            "sha256": "715c989b42b1dc5810430f71f2392309ce0ac8ce46b768a7a869ef82d198e688"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel31/dramsim3.json",
+            "physical_channel": 31,
+            "sha256": "715c989b42b1dc5810430f71f2392309ce0ac8ce46b768a7a869ef82d198e688"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel4/dramsim3.json",
+            "physical_channel": 4,
+            "sha256": "715c989b42b1dc5810430f71f2392309ce0ac8ce46b768a7a869ef82d198e688"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel5/dramsim3.json",
+            "physical_channel": 5,
+            "sha256": "715c989b42b1dc5810430f71f2392309ce0ac8ce46b768a7a869ef82d198e688"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel6/dramsim3.json",
+            "physical_channel": 6,
+            "sha256": "715c989b42b1dc5810430f71f2392309ce0ac8ce46b768a7a869ef82d198e688"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel7/dramsim3.json",
+            "physical_channel": 7,
+            "sha256": "715c989b42b1dc5810430f71f2392309ce0ac8ce46b768a7a869ef82d198e688"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel8/dramsim3.json",
+            "physical_channel": 8,
+            "sha256": "715c989b42b1dc5810430f71f2392309ce0ac8ce46b768a7a869ef82d198e688"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel9/dramsim3.json",
+            "physical_channel": 9,
+            "sha256": "715c989b42b1dc5810430f71f2392309ce0ac8ce46b768a7a869ef82d198e688"
+          }
+        ],
+        "idle_controller_instances": 26,
+        "precharge_standby_energy_pj": 118084154160.0,
+        "precharges": 76004,
+        "read_energy_pj": 1221734280.0,
+        "read_row_hit_ratio": 0.9418095440483004,
+        "read_row_hits": 1444798,
+        "reads": 1534066,
+        "refresh_energy_pj": 39694936320.0,
+        "self_refresh_energy_pj": 0.0,
+        "total_energy_pj": 165315149106.0,
+        "write_energy_pj": 669170352.0,
+        "write_row_hit_ratio": 0.9966295357842903,
+        "write_row_hits": 625395,
+        "writes": 627510
+      },
+      "partial_energy_pj": 165315149106.0,
+      "profile_id": "spine_candidate10_normalized_v1",
+      "run_id": "real_soc_flickr_und_insert_u8",
+      "runtime_ns": 79516826.66666667,
+      "scenario": "insert",
+      "selected_onchip": {
+        "arrays": [],
+        "claim_label": "no_spine_pagerank_array_characterized",
+        "dynamic_energy_pj": 0.0,
+        "leakage_energy_pj": 0.0,
+        "projected_asic_sram_area_mm2": 0.0,
+        "total_energy_pj": 0.0
+      },
+      "system": "spine"
+    },
+    {
+      "activity_path": "/data/tmp/chuxiao/candidate10_hls_v3_energy_residual_pagerank_insert_20260727/real_soc_flickr_und_insert_u8/grasu_regraph/manifest.json",
+      "activity_sha256": "ea3bb401587155111ac83bc820f097eca6ba0670305f1d52a73471725c1d564e",
+      "algorithm": "thresholded_residual_pagerank",
+      "backend_requests": 3641289,
+      "claim_label": "full_32_controller_hbm_plus_selected_projected_asic_sram",
+      "core_mhz": 150.0,
+      "cycles": 9705074,
+      "dataset_id": "soc_flickr_und",
+      "dram": {
+        "activate_energy_pj": 100717920.0,
+        "activates": 121640,
+        "active_standby_energy_pj": 9327012948.0,
+        "background_and_refresh_energy_pj": 134227396212.0,
+        "claim_label": "dramsim3_full_32_controller_hbm_energy",
+        "command_dynamic_energy_pj": 3631301712.0,
+        "component_closure_error_pj": 0.0,
+        "component_sum_pj": 137858697924.0,
+        "controller_cycles_max": 64703728,
+        "controller_cycles_min": 64703728,
+        "controller_instances": 32,
+        "files": [
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel0/dramsim3.json",
+            "physical_channel": 0,
+            "sha256": "0197fb9205571d806d393ca3aafe39bb483de63a283533b07e6d3fd6c02a1743"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel1/dramsim3.json",
+            "physical_channel": 1,
+            "sha256": "47df806a2ecfa8f703479089231b2b97bf2ef236f6a37b62fd97b6f49425b972"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel10/dramsim3.json",
+            "physical_channel": 10,
+            "sha256": "5ac28eb8d78a35e042dfdedf48be6881d01eaeaf879a2bd724181fff3338d819"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel11/dramsim3.json",
+            "physical_channel": 11,
+            "sha256": "5ac28eb8d78a35e042dfdedf48be6881d01eaeaf879a2bd724181fff3338d819"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel12/dramsim3.json",
+            "physical_channel": 12,
+            "sha256": "5ac28eb8d78a35e042dfdedf48be6881d01eaeaf879a2bd724181fff3338d819"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel13/dramsim3.json",
+            "physical_channel": 13,
+            "sha256": "5ac28eb8d78a35e042dfdedf48be6881d01eaeaf879a2bd724181fff3338d819"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel14/dramsim3.json",
+            "physical_channel": 14,
+            "sha256": "5ac28eb8d78a35e042dfdedf48be6881d01eaeaf879a2bd724181fff3338d819"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel15/dramsim3.json",
+            "physical_channel": 15,
+            "sha256": "5ac28eb8d78a35e042dfdedf48be6881d01eaeaf879a2bd724181fff3338d819"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel16/dramsim3.json",
+            "physical_channel": 16,
+            "sha256": "5ac28eb8d78a35e042dfdedf48be6881d01eaeaf879a2bd724181fff3338d819"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel17/dramsim3.json",
+            "physical_channel": 17,
+            "sha256": "5ac28eb8d78a35e042dfdedf48be6881d01eaeaf879a2bd724181fff3338d819"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel18/dramsim3.json",
+            "physical_channel": 18,
+            "sha256": "5ac28eb8d78a35e042dfdedf48be6881d01eaeaf879a2bd724181fff3338d819"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel19/dramsim3.json",
+            "physical_channel": 19,
+            "sha256": "5ac28eb8d78a35e042dfdedf48be6881d01eaeaf879a2bd724181fff3338d819"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel2/dramsim3.json",
+            "physical_channel": 2,
+            "sha256": "e892953ac119bc2c6107178ba85a3d26af4bae116768373e837e7f8e52bcb97d"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel20/dramsim3.json",
+            "physical_channel": 20,
+            "sha256": "5ac28eb8d78a35e042dfdedf48be6881d01eaeaf879a2bd724181fff3338d819"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel21/dramsim3.json",
+            "physical_channel": 21,
+            "sha256": "5ac28eb8d78a35e042dfdedf48be6881d01eaeaf879a2bd724181fff3338d819"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel22/dramsim3.json",
+            "physical_channel": 22,
+            "sha256": "5ac28eb8d78a35e042dfdedf48be6881d01eaeaf879a2bd724181fff3338d819"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel23/dramsim3.json",
+            "physical_channel": 23,
+            "sha256": "5ac28eb8d78a35e042dfdedf48be6881d01eaeaf879a2bd724181fff3338d819"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel24/dramsim3.json",
+            "physical_channel": 24,
+            "sha256": "5ac28eb8d78a35e042dfdedf48be6881d01eaeaf879a2bd724181fff3338d819"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel25/dramsim3.json",
+            "physical_channel": 25,
+            "sha256": "5ac28eb8d78a35e042dfdedf48be6881d01eaeaf879a2bd724181fff3338d819"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel26/dramsim3.json",
+            "physical_channel": 26,
+            "sha256": "5ac28eb8d78a35e042dfdedf48be6881d01eaeaf879a2bd724181fff3338d819"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel27/dramsim3.json",
+            "physical_channel": 27,
+            "sha256": "5ac28eb8d78a35e042dfdedf48be6881d01eaeaf879a2bd724181fff3338d819"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel28/dramsim3.json",
+            "physical_channel": 28,
+            "sha256": "5ac28eb8d78a35e042dfdedf48be6881d01eaeaf879a2bd724181fff3338d819"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel29/dramsim3.json",
+            "physical_channel": 29,
+            "sha256": "5ac28eb8d78a35e042dfdedf48be6881d01eaeaf879a2bd724181fff3338d819"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel3/dramsim3.json",
+            "physical_channel": 3,
+            "sha256": "ad478d5ba47c471b6b49ea0d420b5f46cb99e85eaf67ec277ea551e36c44e1fa"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel30/dramsim3.json",
+            "physical_channel": 30,
+            "sha256": "1d7cde5c1f7ee18da735c408089609695d607c07a5f11ce3a87619b014851174"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel31/dramsim3.json",
+            "physical_channel": 31,
+            "sha256": "5ac28eb8d78a35e042dfdedf48be6881d01eaeaf879a2bd724181fff3338d819"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel4/dramsim3.json",
+            "physical_channel": 4,
+            "sha256": "5ac28eb8d78a35e042dfdedf48be6881d01eaeaf879a2bd724181fff3338d819"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel5/dramsim3.json",
+            "physical_channel": 5,
+            "sha256": "5ac28eb8d78a35e042dfdedf48be6881d01eaeaf879a2bd724181fff3338d819"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel6/dramsim3.json",
+            "physical_channel": 6,
+            "sha256": "5ac28eb8d78a35e042dfdedf48be6881d01eaeaf879a2bd724181fff3338d819"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel7/dramsim3.json",
+            "physical_channel": 7,
+            "sha256": "5ac28eb8d78a35e042dfdedf48be6881d01eaeaf879a2bd724181fff3338d819"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel8/dramsim3.json",
+            "physical_channel": 8,
+            "sha256": "5ac28eb8d78a35e042dfdedf48be6881d01eaeaf879a2bd724181fff3338d819"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel9/dramsim3.json",
+            "physical_channel": 9,
+            "sha256": "5ac28eb8d78a35e042dfdedf48be6881d01eaeaf879a2bd724181fff3338d819"
+          }
+        ],
+        "idle_controller_instances": 27,
+        "precharge_standby_energy_pj": 92601644064.0,
+        "precharges": 121629,
+        "read_energy_pj": 1089602508.0,
+        "read_row_hit_ratio": 0.9571064501495532,
+        "read_row_hits": 1297554,
+        "reads": 1355705,
+        "refresh_energy_pj": 32298739200.0,
+        "self_refresh_energy_pj": 0.0,
+        "total_energy_pj": 137858697924.0,
+        "write_energy_pj": 2440981284.0,
+        "write_row_hit_ratio": 0.9721839144831256,
+        "write_row_hits": 2222008,
+        "writes": 2285584
+      },
+      "partial_energy_pj": 196310614864.01706,
+      "profile_id": "grasu_regraph_candidate10_normalized_hls_residual_pagerank_v3",
+      "run_id": "real_soc_flickr_und_insert_u8",
+      "runtime_ns": 64700493.333333336,
+      "scenario": "insert",
+      "selected_onchip": {
+        "arrays": [
+          {
+            "array_id": "source_property_pingpong_banks",
+            "claim_label": "selected_projected_asic_sram",
+            "dynamic_energy_pj": 173344208.832,
+            "hardware_mapping": "8 source-map lane copies x 2 ping-pong slots; each bank is 4096 float32 values packed as 256 x 512-bit",
+            "instances": 16,
+            "leakage_energy_pj": 34182978721.024002,
+            "projected_asic_sram_area_mm2": 4.5918382936,
+            "reads": 382416,
+            "total_energy_pj": 34356322929.856003,
+            "writes": 761856
+          },
+          {
+            "array_id": "gather_temporary_property_banks",
+            "claim_label": "selected_projected_asic_sram",
+            "dynamic_energy_pj": 1722318696.6784,
+            "hardware_mapping": "8 gather banks; each bank stores 8192 rows x 64-bit for a 65536-vertex destination partition",
+            "instances": 8,
+            "leakage_energy_pj": 22373275313.482666,
+            "projected_asic_sram_area_mm2": 2.9175443955839997,
+            "reads": 24689280,
+            "total_energy_pj": 24095594010.161064,
+            "writes": 24951424
+          }
+        ],
+        "claim_label": "selected_projected_asic_sram_energy_not_fpga_power",
+        "dynamic_energy_pj": 1895662905.5104,
+        "leakage_energy_pj": 56556254034.50667,
+        "projected_asic_sram_area_mm2": 7.509382689184,
+        "total_energy_pj": 58451916940.01707
+      },
+      "system": "grasu_regraph"
+    }
+  ]
+}

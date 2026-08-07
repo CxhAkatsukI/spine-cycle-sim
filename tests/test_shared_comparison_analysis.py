@@ -9,12 +9,14 @@ import unittest
 
 from spine_cycle_sim.experiments.comparison_analysis import (
     aggregate_dram_stats,
+    aggregate_dram_stats_delta,
     analyze_completed_matrix,
     build_pair_details,
     classify_phase_bottleneck,
     geometric_mean,
     group_summaries,
     sha256_file,
+    update_summaries,
 )
 
 
@@ -121,6 +123,56 @@ class SharedComparisonAnalysisTests(unittest.TestCase):
         self.assertEqual(result["average_write_latency"], 0.0)
         self.assertEqual(result["write_latency_coverage"], 0.0)
 
+    def test_dramsim_delta_subtracts_quiescent_prefix(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            final = root / "final" / "channel0" / "dramsim3.json"
+            cold = root / "cold" / "channel0" / "dramsim3.json"
+            final.parent.mkdir(parents=True)
+            cold.parent.mkdir(parents=True)
+            final.write_text(
+                json.dumps(
+                    {
+                        "channel_0": {
+                            "num_reads_done": 7,
+                            "num_writes_done": 3,
+                            "num_read_row_hits": 5,
+                            "num_write_row_hits": 2,
+                            "num_act_cmds": 4,
+                            "num_pre_cmds": 3,
+                            "total_energy": 25.0,
+                            "average_read_latency": 20.0,
+                            "write_latency": {"10": 1, "30": 2},
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+            cold.write_text(
+                json.dumps(
+                    {
+                        "channel_0": {
+                            "num_reads_done": 3,
+                            "num_writes_done": 1,
+                            "num_read_row_hits": 2,
+                            "num_write_row_hits": 1,
+                            "num_act_cmds": 1,
+                            "num_pre_cmds": 1,
+                            "total_energy": 9.0,
+                            "average_read_latency": 10.0,
+                            "write_latency": {"10": 1},
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+            result = aggregate_dram_stats_delta(root / "final", root / "cold")
+        self.assertEqual(result["requests"], 6)
+        self.assertEqual(result["row_hit_rate"], 4 / 6)
+        self.assertEqual(result["average_read_latency"], 27.5)
+        self.assertEqual(result["average_write_latency"], 30.0)
+        self.assertEqual(result["total_energy_pj"], 16.0)
+
     def test_pair_and_group_summary_preserve_claim_boundaries(self) -> None:
         common = {
             "run_id": "case",
@@ -157,6 +209,49 @@ class SharedComparisonAnalysisTests(unittest.TestCase):
         self.assertEqual(
             summary["energy_claim"], "sparse_active_channel_dramsim3_only"
         )
+
+    def test_dynamic_update_summary_separates_logical_and_physical_records(
+        self,
+    ) -> None:
+        common = {
+            "run_id": "dynamic",
+            "fixture_id": "fixture",
+            "dataset_kind": "synthetic",
+            "role": "holdout",
+            "algorithm": "weighted_dynamic_sssp",
+            "dram_row_hit_rate": 0.5,
+            "phase_bottleneck": "compute_dominant",
+            "cycles": 1_000,
+            "backend_requests": 10,
+            "active_channel_dram_energy_pj": 5.0,
+            "input_update_records": 2,
+        }
+        pairs = build_pair_details(
+            [
+                {
+                    **common,
+                    "system": "spine",
+                    "phase_cycles": 100,
+                    "physical_update_records": 2,
+                    "input_update_records_per_second": 3_000_000.0,
+                },
+                {
+                    **common,
+                    "system": "grasu_regraph",
+                    "phase_cycles": 50,
+                    "physical_update_records": 4,
+                    "input_update_records_per_second": 6_000_000.0,
+                },
+            ]
+        )
+        self.assertEqual(pairs[0]["spine_speedup_over_grasu_update"], 0.5)
+        self.assertEqual(
+            pairs[0]["grasu_regraph_physical_update_amplification"], 2.0
+        )
+        summary = update_summaries(pairs)[0]
+        self.assertEqual(summary["pairs"], 1)
+        self.assertEqual(summary["input_update_records"], 2)
+        self.assertEqual(summary["spine_update_speedup_geomean"], 0.5)
 
     def test_complete_matrix_analysis_checks_raw_evidence_and_writes_outputs(
         self,

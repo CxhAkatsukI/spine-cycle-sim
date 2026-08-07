@@ -1824,6 +1824,12 @@ public:
 
   [[nodiscard]] GraSuUpdateCounters counters() const {
     GraSuUpdateCounters result;
+    const auto account_axi_port = [&result](const FixedAxiPort &port) {
+      result.axi_request_fifo_stalls +=
+          port.requests().stats().push_stalls;
+      result.axi_backend_submit_stalls +=
+          port.master().stats().backend_submit_stalls;
+    };
     result.updates = updates_.size();
     result.update_record_bytes = partitioned_updates() ? 16 : 8;
     std::set<std::size_t> touched_partitions;
@@ -1880,8 +1886,7 @@ public:
       result.degree_write_bytes = result.degree_writes * 4;
       result.degree_reorder_max_occupancy =
           degree_updater_->reorder_max_occupancy();
-      result.axi_backend_submit_stalls +=
-          degree_port_->master().stats().backend_submit_stalls;
+      account_axi_port(*degree_port_);
       for (const auto &fifo : degree_outputs_) {
         result.degree_fifo_stalls += fifo->stats().push_stalls;
         result.degree_fifo_max_occupancy = std::max(
@@ -1889,15 +1894,13 @@ public:
       }
     }
     for (const auto &ports : search_ports_) {
-      result.axi_backend_submit_stalls +=
-          ports.updates->master().stats().backend_submit_stalls +
-          ports.rows->master().stats().backend_submit_stalls +
-          ports.binary->master().stats().backend_submit_stalls;
+      account_axi_port(*ports.updates);
+      account_axi_port(*ports.rows);
+      account_axi_port(*ports.binary);
     }
     for (const auto &ports : processor_ports_) {
       for (const FixedAxiPort *port : ports.owned_registration_order) {
-        result.axi_backend_submit_stalls +=
-            port->master().stats().backend_submit_stalls;
+        account_axi_port(*port);
       }
     }
     for (const auto &fifo : search_outputs_) {

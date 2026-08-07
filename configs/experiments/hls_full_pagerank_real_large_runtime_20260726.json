@@ -1,10 +1,11 @@
 {
   "claim_class": "real_large_slice_runtime_input_contract",
   "input_scope": "real_large_slice",
+  "required_profile_set": "candidate10_hls_v3",
   "limitations": [
     "This is a 50000-edge, 19399-vertex real slice within the normalized 65536-vertex single-partition cap, not the complete Amazon-2008 graph.",
     "Hot destinations use the current HLS host classifier with a strict L1 family target so an occupied L0 can accept the timed batch.",
-    "GraSU/ReGraph PageRank is an HLS-equivalent proposed profile, not a compiled whole-system xclbin."
+    "The Candidate10 normalized v3 profiles are required; routed HLS PPA/timing evidence is tracked separately from simulator timing."
   ],
   "matrix_id": "hls_full_pagerank_real_large_runtime_20260726",
   "runs": [

@@ -32,6 +32,7 @@ from spine_cycle_sim.experiments.regraph_contracts import (  # noqa: E402
 )
 from spine_cycle_sim.experiments.shared_workloads import load_slice  # noqa: E402
 from spine_cycle_sim.sst_binding import grasu_normalized_memory_binding  # noqa: E402
+from spine_cycle_sim.sst_library import forced_sst_library_binding  # noqa: E402
 
 
 DEFAULT_SST = Path("/data/feiyang/sst/bin/sst")
@@ -347,9 +348,10 @@ def main() -> int:
             ),
         }
     )
+    sst_library = forced_sst_library_binding(args.sst, args.lib_dir)
     command = [
         str(args.sst.resolve()),
-        f"--add-lib-path={args.lib_dir.resolve()}",
+        sst_library["command_option"],
         str(ROOT / "sst" / "grasu_regraph_vertical.py"),
     ]
     started = time.monotonic()
@@ -389,6 +391,8 @@ def main() -> int:
         "update_workload": str(args.update_workload.resolve()),
         "update_workload_sha256": sha256(args.update_workload.resolve()),
         "sst_memory_binding": binding.as_manifest(),
+        "sst_library_binding": sst_library,
+        "sst_plugin_sha256": sst_library["plugin_sha256"],
         "sst_host_wall_seconds": wall_seconds,
         "command": command,
         "result": result,

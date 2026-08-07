@@ -1,0 +1,62 @@
+{
+  "all_correct": true,
+  "claim_class": "candidate10_large_real_host_runtime_observation",
+  "evidence": {
+    "matrix_manifest": {
+      "path": "/data/tmp/chuxiao/candidate10_hls_v3_large_runtime_idle_optimized_v7_20260727/matrix_manifest.json",
+      "sha256": "2456082a01154d0263f92aef86855faf35057f38b33931f98ac5ae276a3a48a8"
+    },
+    "pairs": {
+      "path": "/data/tmp/chuxiao/candidate10_hls_v3_large_runtime_idle_optimized_v7_20260727/pairs.csv",
+      "sha256": "45d4bb152c7a66a158d79e59cc703bb9637ad2bb785229443e28b172e8f8556a"
+    },
+    "raw_results": [
+      {
+        "path": "/data/tmp/chuxiao/candidate10_hls_v3_large_runtime_idle_optimized_v7_20260727/real_amazon_2008_large_e50000_insert_u8/grasu_regraph/manifest.json",
+        "run_id": "real_amazon_2008_large_e50000_insert_u8",
+        "sha256": "2519c841e8eb5a281ad6100384bc8df2b812490d1f5b7c563b8141b925061bc3",
+        "system": "grasu_regraph"
+      },
+      {
+        "path": "/data/tmp/chuxiao/candidate10_hls_v3_large_runtime_idle_optimized_v7_20260727/real_amazon_2008_large_e50000_insert_u8/spine/summary.json",
+        "run_id": "real_amazon_2008_large_e50000_insert_u8",
+        "sha256": "b82d7c0f97d4a4e5d0f43c14de1163a97f0b539b5b64e53d3990f87d3d4606bc",
+        "system": "spine"
+      }
+    ],
+    "system_rows": {
+      "path": "/data/tmp/chuxiao/candidate10_hls_v3_large_runtime_idle_optimized_v7_20260727/system_rows.csv",
+      "sha256": "48aa3c6fdb136e0b07047d3f43aa56dd8dcb1b71c51814606865ee0e9e57cf18"
+    }
+  },
+  "input_matrix_id": "hls_full_pagerank_real_large_runtime_20260726",
+  "pairs": 1,
+  "performance_results_modified": false,
+  "profile_set": "candidate10_hls_v3",
+  "runtime_gate": {
+    "failed_systems": [],
+    "limit_seconds_per_system": 1800.0,
+    "observations": [
+      {
+        "host_wall_seconds": 7.87275259103626,
+        "limit_seconds": 1800.0,
+        "pass": true,
+        "run_id": "real_amazon_2008_large_e50000_insert_u8",
+        "system": "grasu_regraph"
+      },
+      {
+        "host_wall_seconds": 389.08807652350515,
+        "limit_seconds": 1800.0,
+        "pass": true,
+        "run_id": "real_amazon_2008_large_e50000_insert_u8",
+        "system": "spine"
+      }
+    ],
+    "pass": true,
+    "status": "PASS"
+  },
+  "schema_version": 1,
+  "simulation_complete": true,
+  "status": "PASS",
+  "system_rows": 2
+}

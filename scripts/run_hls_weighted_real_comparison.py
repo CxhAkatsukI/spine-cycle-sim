@@ -30,6 +30,9 @@ from spine_cycle_sim.experiments.hls_real_comparison import (  # noqa: E402
 from spine_cycle_sim.experiments.real_small_batches import (  # noqa: E402
     validate_real_small_batch_manifest,
 )
+from spine_cycle_sim.experiments.temporal_real_batches import (  # noqa: E402
+    validate_temporal_real_manifest,
+)
 from spine_cycle_sim.experiments.shared_workloads import sha256_file  # noqa: E402
 
 
@@ -48,7 +51,55 @@ DEFAULT_GRASU_PROFILE = (
 DEFAULT_CAPABILITIES = (
     ROOT / "configs" / "contracts" / "grasu_regraph_capabilities_v1.json"
 )
+PROFILE_SETS = {
+    "legacy": {
+        "spine_profile": DEFAULT_SPINE_PROFILE,
+        "spine_profile_id": "spine_shared_engine_9c08763",
+        "grasu_profile": DEFAULT_GRASU_PROFILE,
+        "grasu_profile_id": "grasu_regraph_weighted_pma_hls_sw_emu_ff13a67",
+        "capability_catalog": DEFAULT_CAPABILITIES,
+    },
+    "candidate10_hls_v3": {
+        "spine_profile": ROOT
+        / "configs/architectures/spine_candidate10_normalized_v1.json",
+        "spine_profile_id": "spine_candidate10_normalized_v1",
+        "grasu_profile": ROOT
+        / "configs/architectures/grasu_regraph_candidate10_normalized_hls_weighted_v3.json",
+        "grasu_profile_id": "grasu_regraph_candidate10_normalized_hls_weighted_v3",
+        "capability_catalog": ROOT
+        / "configs/contracts/grasu_regraph_candidate10_hls_capabilities_v3.json",
+    },
+}
 DEFAULT_SST = Path("/data/feiyang/sst/bin/sst")
+
+
+def _validate_input_manifest(path: Path) -> dict[str, object]:
+    payload = json.loads(path.resolve().read_text(encoding="utf-8"))
+    matrix_id = payload.get("matrix_id")
+    if matrix_id == "hls_weighted_real_small_batches_20260726":
+        return validate_real_small_batch_manifest(ROOT, path)
+    if matrix_id == "candidate10_grasu_temporal_compact_batches_v1_20260727":
+        return validate_temporal_real_manifest(ROOT, path)
+    raise ValueError(f"unsupported weighted SSSP input matrix: {matrix_id}")
+
+
+def _restore_spine_final_values(
+    out_dir: Path, summary: dict[str, object]
+) -> dict[str, object]:
+    if isinstance(summary.get("final_values"), list):
+        return summary
+    expected_count = int(summary.get("final_values_count", -1))
+    expected_sha256 = summary.get("final_values_sha256")
+    if expected_count <= 0 or not isinstance(expected_sha256, str):
+        return summary
+    raw = json.loads((out_dir / "result.json").read_text(encoding="utf-8"))
+    final_values = raw.get("final_values")
+    if not isinstance(final_values, list) or len(final_values) != expected_count:
+        raise RuntimeError("Spine raw final-value count does not match summary")
+    encoded = json.dumps(final_values, separators=(",", ":")).encode("ascii")
+    if hashlib.sha256(encoded).hexdigest() != expected_sha256:
+        raise RuntimeError("Spine raw final-value hash does not match summary")
+    return {**summary, "final_values": final_values}
 
 
 def _write_csv(path: Path, rows: list[dict[str, object]]) -> None:
@@ -74,6 +125,14 @@ def _write_csv(path: Path, rows: list[dict[str, object]]) -> None:
         writer = csv.DictWriter(stream, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(serialized)
+
+
+def _display_path(path: Path) -> str:
+    resolved = path.resolve()
+    try:
+        return str(resolved.relative_to(ROOT))
+    except ValueError:
+        return str(resolved)
 
 
 def _profile(path: Path, expected_id: str) -> tuple[dict[str, object], float]:
@@ -114,7 +173,7 @@ def _command(
     common = [args.python]
     if system == "spine":
         scenario = "dynamic_sssp" if run["scenario"] == "insert" else "dynamic_sssp_delete"
-        return common + [
+        command = common + [
             str(ROOT / "scripts" / "run_sst_spine_vertical.py"),
             "--no-build",
             "--scenario",
@@ -140,8 +199,11 @@ def _command(
             "--out-dir",
             str(out_dir.resolve()),
         ]
+        if args.instantiate_all_hbm_channels:
+            command.append("--instantiate-all-hbm-channels")
+        return command
     if system == "grasu_regraph":
-        return common + [
+        command = common + [
             str(ROOT / "scripts" / "run_sst_grasu_regraph_hls_weighted.py"),
             "--no-build",
             "--profile",
@@ -163,6 +225,9 @@ def _command(
             "--out-dir",
             str(out_dir.resolve()),
         ]
+        if args.instantiate_all_hbm_channels:
+            command.append("--instantiate-all-hbm-channels")
+        return command
     raise ValueError(f"unsupported system: {system}")
 
 
@@ -233,6 +298,7 @@ def _run_system(
     if system == "spine":
         raw_result_path = out_dir / "summary.json"
         result = json.loads(raw_result_path.read_text(encoding="utf-8"))
+        result = _restore_spine_final_values(out_dir, result)
         problems = validate_spine_dynamic_result(
             run,
             result,
@@ -254,6 +320,12 @@ def _run_system(
             child,
             expected_profile_sha256=sha256_file(args.grasu_profile),
             expected_core_mhz=grasu_mhz,
+            expected_supersteps=(
+                int(run["required_sssp_rounds"])
+                if args.profile_set == "candidate10_hls_v3"
+                and "required_sssp_rounds" in run
+                else None
+            ),
         )
         result = child["result"]
         dram = child["dram"]
@@ -267,7 +339,7 @@ def _run_system(
         wall_seconds=wall_seconds,
         profile_id=grasu_profile_id if system == "grasu_regraph" else None,
     )
-    row["raw_result_path"] = str(raw_result_path.resolve().relative_to(ROOT))
+    row["raw_result_path"] = _display_path(raw_result_path)
     row["raw_result_sha256"] = sha256_file(raw_result_path)
     if not reusable:
         cache_path.write_text(
@@ -292,9 +364,12 @@ def _run_system(
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input-manifest", type=Path, default=DEFAULT_INPUT_MANIFEST)
-    parser.add_argument("--spine-profile", type=Path, default=DEFAULT_SPINE_PROFILE)
-    parser.add_argument("--grasu-profile", type=Path, default=DEFAULT_GRASU_PROFILE)
-    parser.add_argument("--capability-catalog", type=Path, default=DEFAULT_CAPABILITIES)
+    parser.add_argument(
+        "--profile-set", choices=tuple(PROFILE_SETS), default="legacy"
+    )
+    parser.add_argument("--spine-profile", type=Path)
+    parser.add_argument("--grasu-profile", type=Path)
+    parser.add_argument("--capability-catalog", type=Path)
     parser.add_argument("--out-dir", type=Path, required=True)
     parser.add_argument("--sst", type=Path, default=DEFAULT_SST)
     parser.add_argument("--lib-dir", type=Path, default=ROOT / "build" / "sst")
@@ -306,17 +381,28 @@ def main() -> int:
     parser.add_argument("--max-cycles", type=int, default=100_000_000)
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--no-build", action="store_true")
+    parser.add_argument(
+        "--instantiate-all-hbm-channels",
+        action="store_true",
+        help="instantiate idle SST HBM controllers for matched energy runs",
+    )
     args = parser.parse_args()
     if args.jobs <= 0 or args.timeout_seconds <= 0.0 or args.max_cycles <= 0:
         raise ValueError("jobs, timeout, and max cycles must be positive")
+    profile_set = PROFILE_SETS[args.profile_set]
+    args.spine_profile = args.spine_profile or profile_set["spine_profile"]
+    args.grasu_profile = args.grasu_profile or profile_set["grasu_profile"]
+    args.capability_catalog = (
+        args.capability_catalog or profile_set["capability_catalog"]
+    )
 
-    manifest = validate_real_small_batch_manifest(ROOT, args.input_manifest)
+    manifest = _validate_input_manifest(args.input_manifest)
     selected = _select_runs(list(manifest["runs"]), args.run_id, args.limit)
     spine_profile, spine_mhz = _profile(
-        args.spine_profile, "spine_shared_engine_9c08763"
+        args.spine_profile, str(profile_set["spine_profile_id"])
     )
     grasu_profile, grasu_mhz = _profile(
-        args.grasu_profile, "grasu_regraph_weighted_pma_hls_sw_emu_ff13a67"
+        args.grasu_profile, str(profile_set["grasu_profile_id"])
     )
     capabilities = json.loads(args.capability_catalog.read_text(encoding="utf-8"))
     grasu_capability = next(
@@ -334,6 +420,7 @@ def main() -> int:
         Path(__file__),
         ROOT / "spine_cycle_sim" / "experiments" / "hls_real_comparison.py",
         ROOT / "spine_cycle_sim" / "experiments" / "memory_traffic.py",
+        ROOT / "spine_cycle_sim" / "experiments" / "temporal_real_batches.py",
         ROOT / "scripts" / "run_sst_spine_vertical.py",
         ROOT / "scripts" / "run_sst_grasu_regraph_hls_weighted.py",
         args.input_manifest,
@@ -397,6 +484,7 @@ def main() -> int:
         "status": "PASS",
         "complete_matrix": complete,
         "claim_class": "profile_clock_adjusted_real_compact_execution_driven",
+        "profile_set": args.profile_set,
         "input_manifest": str(args.input_manifest.resolve()),
         "input_manifest_sha256": sha256_file(args.input_manifest),
         "spine_profile_id": spine_profile["profile_id"],
@@ -405,8 +493,18 @@ def main() -> int:
         "grasu_profile_sha256": sha256_file(args.grasu_profile),
         "capability_catalog": str(args.capability_catalog.resolve()),
         "capability_catalog_sha256": sha256_file(args.capability_catalog),
+        "sst_plugin_path": str(
+            (args.lib_dir / "libspine_cycle.so").resolve()
+        ),
+        "sst_plugin_sha256": sha256_file(
+            args.lib_dir / "libspine_cycle.so"
+        ),
         "execution_sha256": execution_sha256,
         "selected_run_ids": [run["run_id"] for run in selected],
+        "instantiate_all_hbm_channels": args.instantiate_all_hbm_channels,
+        "hbm_controller_instances": (
+            32 if args.instantiate_all_hbm_channels else None
+        ),
         "system_rows": len(rows),
         "pairs": len(pairs),
         "all_correct": all(
@@ -425,9 +523,18 @@ def main() -> int:
             ),
         },
         "limitations": [
-            "The three inputs are compact real-edge slices, not full datasets.",
             (
-                "Spine is the routed 141 MHz reference profile; GraSU/ReGraph "
+                "The inputs are compact file-order slices from five GraSU "
+                "temporal datasets, not full datasets."
+                if manifest["matrix_id"]
+                == "candidate10_grasu_temporal_compact_batches_v1_20260727"
+                else "The three inputs are compact real-edge slices, not full datasets."
+            ),
+            (
+                "The Candidate10 comparison uses frozen HLS-derived normalized "
+                "profiles; whole-system implementation evidence is reported separately."
+                if args.profile_set == "candidate10_hls_v3"
+                else "Spine is the routed 141 MHz reference profile; GraSU/ReGraph "
                 "is the requested 200 MHz sw_emu-aligned profile."
             ),
             "Simulator cycles are not calibrated cycle-for-cycle against hw.",

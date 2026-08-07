@@ -1,0 +1,6 @@
+# spine_real_slice_version=1
+# case=grasu_sx_stackoverflow_file_order_e8192_weight_change_u1
+# vertices=2004
+# columns=src dst weight diff
+0 1 27 -1
+0 1 28 1

@@ -43,6 +43,7 @@ struct GraSuNativeCompactorCounters {
   std::uint64_t row_read_bytes{};
   std::uint64_t pma_read_bytes{};
   std::uint64_t edge_array_write_bytes{};
+  std::uint64_t axi_request_fifo_stalls{};
   std::uint64_t axi_backend_submit_stalls{};
   std::uint64_t output_issue_stall_cycles{};
   std::uint64_t start_cycle{};

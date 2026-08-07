@@ -1,0 +1,840 @@
+{
+  "all_correct": true,
+  "claim_class": "matched_weighted_sssp_32_controller_hbm_energy",
+  "cold_manifest": "/data/tmp/chuxiao/candidate10_hls_v3_energy_weighted_sssp_cold_20260727/matrix_manifest.json",
+  "cold_manifest_sha256": "c12f0497b2e0458033b520d5b738a4f5df2b6fb138b285c334fd9a6c30ac516b",
+  "cold_prefix_subtraction": "exact_quiescent_per_controller_component_subtraction",
+  "dynamic_manifest": "/data/tmp/chuxiao/candidate10_hls_v3_energy_weighted_sssp_insert_20260727/matrix_manifest.json",
+  "dynamic_manifest_sha256": "18d5ec41d53300b9fd1487b1da9fcc9f6d9438e7a92396a72e842f7c1845574c",
+  "pairs": [
+    {
+      "algorithm": "weighted_sssp",
+      "dataset_id": "amazon_2008",
+      "dram_energy_ratio_valid": true,
+      "dram_energy_scope": "all_32_hbm_controller_instances",
+      "grasu_dram_background_refresh_energy_pj": 1021979562.0,
+      "grasu_dram_command_dynamic_energy_pj": 18008220.0,
+      "grasu_dram_energy_pj": 1039987782.0,
+      "grasu_to_spine_dram_command_dynamic_energy_ratio": 3.820841067004784,
+      "grasu_to_spine_dram_energy_ratio": 1.0550107510713425,
+      "partial_energy_ratio_valid_as_total": false,
+      "run_id": "real_amazon_2008_insert_u8",
+      "spine_dram_background_refresh_energy_pj": 981047208.0,
+      "spine_dram_command_dynamic_energy_pj": 4713156.0,
+      "spine_dram_energy_pj": 985760364.0
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "dataset_id": "web_google",
+      "dram_energy_ratio_valid": true,
+      "dram_energy_scope": "all_32_hbm_controller_instances",
+      "grasu_dram_background_refresh_energy_pj": 1376376372.0,
+      "grasu_dram_command_dynamic_energy_pj": 20087364.0,
+      "grasu_dram_energy_pj": 1396463736.0,
+      "grasu_to_spine_dram_command_dynamic_energy_ratio": 1.8992837181754954,
+      "grasu_to_spine_dram_energy_ratio": 0.5808614907481647,
+      "partial_energy_ratio_valid_as_total": false,
+      "run_id": "real_web_google_insert_u8",
+      "spine_dram_background_refresh_energy_pj": 2393548896.0,
+      "spine_dram_command_dynamic_energy_pj": 10576284.0,
+      "spine_dram_energy_pj": 2404125180.0
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "dataset_id": "soc_flickr_und",
+      "dram_energy_ratio_valid": true,
+      "dram_energy_scope": "all_32_hbm_controller_instances",
+      "grasu_dram_background_refresh_energy_pj": 3912549588.0,
+      "grasu_dram_command_dynamic_energy_pj": 78606228.0,
+      "grasu_dram_energy_pj": 3991155816.0,
+      "grasu_to_spine_dram_command_dynamic_energy_ratio": 7.434495368279125,
+      "grasu_to_spine_dram_energy_ratio": 1.6604142616197193,
+      "partial_energy_ratio_valid_as_total": false,
+      "run_id": "real_soc_flickr_und_insert_u8",
+      "spine_dram_background_refresh_energy_pj": 2393137698.0,
+      "spine_dram_command_dynamic_energy_pj": 10573176.0,
+      "spine_dram_energy_pj": 2403710874.0
+    }
+  ],
+  "schema_version": 1,
+  "status": "PASS",
+  "system_rows": [
+    {
+      "algorithm": "weighted_sssp",
+      "dataset_id": "amazon_2008",
+      "dram": {
+        "activate_energy_pj": 452088.0,
+        "activates": 546,
+        "active_standby_energy_pj": 29495400.0,
+        "background_and_refresh_energy_pj": 981047208.0,
+        "claim_label": "dramsim3_full_32_controller_hbm_energy_after_exact_cold_prefix",
+        "command_dynamic_energy_pj": 4713156.0,
+        "component_closure_error_pj": 0.0,
+        "component_sum_pj": 985760364.0,
+        "controller_cycles_max": 477563,
+        "controller_cycles_min": 477563,
+        "controller_instances": 32,
+        "precharge_standby_energy_pj": 712085568.0,
+        "precharges": 546,
+        "read_energy_pj": 2079144.0,
+        "read_row_hit_ratio": 0.8812070282658518,
+        "read_row_hits": 2307,
+        "reads": 2618,
+        "refresh_energy_pj": 239466240.0,
+        "self_refresh_energy_pj": 0.0,
+        "total_energy_pj": 985760364.0,
+        "write_energy_pj": 2181924.0,
+        "write_row_hit_ratio": 0.8629737609329446,
+        "write_row_hits": 1776,
+        "writes": 2058
+      },
+      "run_id": "real_amazon_2008_insert_u8",
+      "system": "spine"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "dataset_id": "amazon_2008",
+      "dram": {
+        "activate_energy_pj": 538200.0,
+        "activates": 650,
+        "active_standby_energy_pj": 46716186.0,
+        "background_and_refresh_energy_pj": 1021979562.0,
+        "claim_label": "dramsim3_full_32_controller_hbm_energy",
+        "command_dynamic_energy_pj": 18008220.0,
+        "component_closure_error_pj": 0.0,
+        "component_sum_pj": 1039987782.0,
+        "controller_cycles_max": 496084,
+        "controller_cycles_min": 496084,
+        "controller_instances": 32,
+        "files": [
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel0/dramsim3.json",
+            "physical_channel": 0,
+            "sha256": "39966f96907eaf50583d874cc7838712a7bc94f46dcf72fb9130c2aed946ec19"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel1/dramsim3.json",
+            "physical_channel": 1,
+            "sha256": "de80e72895ce4899b62699886a6e34363182570b807f50bbc61e053f1583f887"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel10/dramsim3.json",
+            "physical_channel": 10,
+            "sha256": "d0e5a05604f35f60d4cdd84fddb0b552607b60745ff678388dd6e821a22bcde0"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel11/dramsim3.json",
+            "physical_channel": 11,
+            "sha256": "d0e5a05604f35f60d4cdd84fddb0b552607b60745ff678388dd6e821a22bcde0"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel12/dramsim3.json",
+            "physical_channel": 12,
+            "sha256": "d0e5a05604f35f60d4cdd84fddb0b552607b60745ff678388dd6e821a22bcde0"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel13/dramsim3.json",
+            "physical_channel": 13,
+            "sha256": "d0e5a05604f35f60d4cdd84fddb0b552607b60745ff678388dd6e821a22bcde0"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel14/dramsim3.json",
+            "physical_channel": 14,
+            "sha256": "d0e5a05604f35f60d4cdd84fddb0b552607b60745ff678388dd6e821a22bcde0"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel15/dramsim3.json",
+            "physical_channel": 15,
+            "sha256": "d0e5a05604f35f60d4cdd84fddb0b552607b60745ff678388dd6e821a22bcde0"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel16/dramsim3.json",
+            "physical_channel": 16,
+            "sha256": "d0e5a05604f35f60d4cdd84fddb0b552607b60745ff678388dd6e821a22bcde0"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel17/dramsim3.json",
+            "physical_channel": 17,
+            "sha256": "d0e5a05604f35f60d4cdd84fddb0b552607b60745ff678388dd6e821a22bcde0"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel18/dramsim3.json",
+            "physical_channel": 18,
+            "sha256": "d0e5a05604f35f60d4cdd84fddb0b552607b60745ff678388dd6e821a22bcde0"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel19/dramsim3.json",
+            "physical_channel": 19,
+            "sha256": "d0e5a05604f35f60d4cdd84fddb0b552607b60745ff678388dd6e821a22bcde0"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel2/dramsim3.json",
+            "physical_channel": 2,
+            "sha256": "e977a2de3a3228d87f3dbf813ddb63ba3084cfd019d2e093296203ddd536bd9f"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel20/dramsim3.json",
+            "physical_channel": 20,
+            "sha256": "d0e5a05604f35f60d4cdd84fddb0b552607b60745ff678388dd6e821a22bcde0"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel21/dramsim3.json",
+            "physical_channel": 21,
+            "sha256": "d0e5a05604f35f60d4cdd84fddb0b552607b60745ff678388dd6e821a22bcde0"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel22/dramsim3.json",
+            "physical_channel": 22,
+            "sha256": "d0e5a05604f35f60d4cdd84fddb0b552607b60745ff678388dd6e821a22bcde0"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel23/dramsim3.json",
+            "physical_channel": 23,
+            "sha256": "d0e5a05604f35f60d4cdd84fddb0b552607b60745ff678388dd6e821a22bcde0"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel24/dramsim3.json",
+            "physical_channel": 24,
+            "sha256": "d0e5a05604f35f60d4cdd84fddb0b552607b60745ff678388dd6e821a22bcde0"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel25/dramsim3.json",
+            "physical_channel": 25,
+            "sha256": "d0e5a05604f35f60d4cdd84fddb0b552607b60745ff678388dd6e821a22bcde0"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel26/dramsim3.json",
+            "physical_channel": 26,
+            "sha256": "d0e5a05604f35f60d4cdd84fddb0b552607b60745ff678388dd6e821a22bcde0"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel27/dramsim3.json",
+            "physical_channel": 27,
+            "sha256": "d0e5a05604f35f60d4cdd84fddb0b552607b60745ff678388dd6e821a22bcde0"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel28/dramsim3.json",
+            "physical_channel": 28,
+            "sha256": "d0e5a05604f35f60d4cdd84fddb0b552607b60745ff678388dd6e821a22bcde0"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel29/dramsim3.json",
+            "physical_channel": 29,
+            "sha256": "d0e5a05604f35f60d4cdd84fddb0b552607b60745ff678388dd6e821a22bcde0"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel3/dramsim3.json",
+            "physical_channel": 3,
+            "sha256": "00a0e72ac1f010895a0d27dafc319c77bf88b0d9f1dc4e8c411d89a79bd3f2d4"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel30/dramsim3.json",
+            "physical_channel": 30,
+            "sha256": "32278b7f2873dd59f6d32b9c62d25f7e1c8d8c41e87a8fd4cf4c26ca1d33f9e1"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel31/dramsim3.json",
+            "physical_channel": 31,
+            "sha256": "d0e5a05604f35f60d4cdd84fddb0b552607b60745ff678388dd6e821a22bcde0"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel4/dramsim3.json",
+            "physical_channel": 4,
+            "sha256": "d0e5a05604f35f60d4cdd84fddb0b552607b60745ff678388dd6e821a22bcde0"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel5/dramsim3.json",
+            "physical_channel": 5,
+            "sha256": "d0e5a05604f35f60d4cdd84fddb0b552607b60745ff678388dd6e821a22bcde0"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel6/dramsim3.json",
+            "physical_channel": 6,
+            "sha256": "d0e5a05604f35f60d4cdd84fddb0b552607b60745ff678388dd6e821a22bcde0"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel7/dramsim3.json",
+            "physical_channel": 7,
+            "sha256": "d0e5a05604f35f60d4cdd84fddb0b552607b60745ff678388dd6e821a22bcde0"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel8/dramsim3.json",
+            "physical_channel": 8,
+            "sha256": "d0e5a05604f35f60d4cdd84fddb0b552607b60745ff678388dd6e821a22bcde0"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel9/dramsim3.json",
+            "physical_channel": 9,
+            "sha256": "d0e5a05604f35f60d4cdd84fddb0b552607b60745ff678388dd6e821a22bcde0"
+          }
+        ],
+        "idle_controller_instances": 27,
+        "precharge_standby_energy_pj": 728009616.0,
+        "precharges": 647,
+        "read_energy_pj": 4349640.0,
+        "read_row_hit_ratio": 0.9522052039121609,
+        "read_row_hits": 5160,
+        "reads": 5419,
+        "refresh_energy_pj": 247253760.0,
+        "self_refresh_energy_pj": 0.0,
+        "total_energy_pj": 1039987782.0,
+        "write_energy_pj": 13120380.0,
+        "write_row_hit_ratio": 0.9667371502927782,
+        "write_row_hits": 11887,
+        "writes": 12296
+      },
+      "run_id": "real_amazon_2008_insert_u8",
+      "system": "grasu_regraph"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "dataset_id": "web_google",
+      "dram": {
+        "activate_energy_pj": 991944.0,
+        "activates": 1198,
+        "active_standby_energy_pj": 72047712.0,
+        "background_and_refresh_energy_pj": 2393548896.0,
+        "claim_label": "dramsim3_full_32_controller_hbm_energy_after_exact_cold_prefix",
+        "command_dynamic_energy_pj": 10576284.0,
+        "component_closure_error_pj": 0.0,
+        "component_sum_pj": 2404125180.0,
+        "controller_cycles_max": 1166525,
+        "controller_cycles_min": 1166525,
+        "controller_instances": 32,
+        "precharge_standby_energy_pj": 1739384064.0,
+        "precharges": 1198,
+        "read_energy_pj": 4393860.0,
+        "read_row_hit_ratio": 0.8741818181818182,
+        "read_row_hits": 4808,
+        "reads": 5500,
+        "refresh_energy_pj": 582117120.0,
+        "self_refresh_energy_pj": 0.0,
+        "total_energy_pj": 2404125180.0,
+        "write_energy_pj": 5190480.0,
+        "write_row_hit_ratio": 0.8861304883052934,
+        "write_row_hits": 4319,
+        "writes": 4874
+      },
+      "run_id": "real_web_google_insert_u8",
+      "system": "spine"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "dataset_id": "web_google",
+      "dram": {
+        "activate_energy_pj": 584568.0,
+        "activates": 706,
+        "active_standby_energy_pj": 57535764.0,
+        "background_and_refresh_energy_pj": 1376376372.0,
+        "claim_label": "dramsim3_full_32_controller_hbm_energy",
+        "command_dynamic_energy_pj": 20087364.0,
+        "component_closure_error_pj": 0.0,
+        "component_sum_pj": 1396463736.0,
+        "controller_cycles_max": 669120,
+        "controller_cycles_min": 669120,
+        "controller_instances": 32,
+        "files": [
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel0/dramsim3.json",
+            "physical_channel": 0,
+            "sha256": "210d4f151999c9acfd741cddf35fb022f8eef0df54364daf8599e050dada7cb1"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel1/dramsim3.json",
+            "physical_channel": 1,
+            "sha256": "017fda4d4e1a49e28b093f76043b28c98c7b6da81c6046445bcad6be2bcaa01b"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel10/dramsim3.json",
+            "physical_channel": 10,
+            "sha256": "4e7117417e146bea1f142cda0ba34d69e677ca382c4190781de8b5f3273c9571"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel11/dramsim3.json",
+            "physical_channel": 11,
+            "sha256": "4e7117417e146bea1f142cda0ba34d69e677ca382c4190781de8b5f3273c9571"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel12/dramsim3.json",
+            "physical_channel": 12,
+            "sha256": "4e7117417e146bea1f142cda0ba34d69e677ca382c4190781de8b5f3273c9571"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel13/dramsim3.json",
+            "physical_channel": 13,
+            "sha256": "4e7117417e146bea1f142cda0ba34d69e677ca382c4190781de8b5f3273c9571"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel14/dramsim3.json",
+            "physical_channel": 14,
+            "sha256": "4e7117417e146bea1f142cda0ba34d69e677ca382c4190781de8b5f3273c9571"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel15/dramsim3.json",
+            "physical_channel": 15,
+            "sha256": "4e7117417e146bea1f142cda0ba34d69e677ca382c4190781de8b5f3273c9571"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel16/dramsim3.json",
+            "physical_channel": 16,
+            "sha256": "4e7117417e146bea1f142cda0ba34d69e677ca382c4190781de8b5f3273c9571"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel17/dramsim3.json",
+            "physical_channel": 17,
+            "sha256": "4e7117417e146bea1f142cda0ba34d69e677ca382c4190781de8b5f3273c9571"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel18/dramsim3.json",
+            "physical_channel": 18,
+            "sha256": "4e7117417e146bea1f142cda0ba34d69e677ca382c4190781de8b5f3273c9571"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel19/dramsim3.json",
+            "physical_channel": 19,
+            "sha256": "4e7117417e146bea1f142cda0ba34d69e677ca382c4190781de8b5f3273c9571"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel2/dramsim3.json",
+            "physical_channel": 2,
+            "sha256": "511ce38f961cb997b844146412d420f23a54095040c93cc163061c2da0146e1a"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel20/dramsim3.json",
+            "physical_channel": 20,
+            "sha256": "4e7117417e146bea1f142cda0ba34d69e677ca382c4190781de8b5f3273c9571"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel21/dramsim3.json",
+            "physical_channel": 21,
+            "sha256": "4e7117417e146bea1f142cda0ba34d69e677ca382c4190781de8b5f3273c9571"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel22/dramsim3.json",
+            "physical_channel": 22,
+            "sha256": "4e7117417e146bea1f142cda0ba34d69e677ca382c4190781de8b5f3273c9571"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel23/dramsim3.json",
+            "physical_channel": 23,
+            "sha256": "4e7117417e146bea1f142cda0ba34d69e677ca382c4190781de8b5f3273c9571"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel24/dramsim3.json",
+            "physical_channel": 24,
+            "sha256": "4e7117417e146bea1f142cda0ba34d69e677ca382c4190781de8b5f3273c9571"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel25/dramsim3.json",
+            "physical_channel": 25,
+            "sha256": "4e7117417e146bea1f142cda0ba34d69e677ca382c4190781de8b5f3273c9571"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel26/dramsim3.json",
+            "physical_channel": 26,
+            "sha256": "4e7117417e146bea1f142cda0ba34d69e677ca382c4190781de8b5f3273c9571"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel27/dramsim3.json",
+            "physical_channel": 27,
+            "sha256": "4e7117417e146bea1f142cda0ba34d69e677ca382c4190781de8b5f3273c9571"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel28/dramsim3.json",
+            "physical_channel": 28,
+            "sha256": "4e7117417e146bea1f142cda0ba34d69e677ca382c4190781de8b5f3273c9571"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel29/dramsim3.json",
+            "physical_channel": 29,
+            "sha256": "4e7117417e146bea1f142cda0ba34d69e677ca382c4190781de8b5f3273c9571"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel3/dramsim3.json",
+            "physical_channel": 3,
+            "sha256": "22a6445aff00f4ce86846515717490f0bbcb6c0dc6f6132d38839f638b0230be"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel30/dramsim3.json",
+            "physical_channel": 30,
+            "sha256": "3f89340dc606d3913eb54e6ce65fcd5ea6d7cd7182fea96f7369f05320f6312b"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel31/dramsim3.json",
+            "physical_channel": 31,
+            "sha256": "4e7117417e146bea1f142cda0ba34d69e677ca382c4190781de8b5f3273c9571"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel4/dramsim3.json",
+            "physical_channel": 4,
+            "sha256": "4e7117417e146bea1f142cda0ba34d69e677ca382c4190781de8b5f3273c9571"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel5/dramsim3.json",
+            "physical_channel": 5,
+            "sha256": "4e7117417e146bea1f142cda0ba34d69e677ca382c4190781de8b5f3273c9571"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel6/dramsim3.json",
+            "physical_channel": 6,
+            "sha256": "4e7117417e146bea1f142cda0ba34d69e677ca382c4190781de8b5f3273c9571"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel7/dramsim3.json",
+            "physical_channel": 7,
+            "sha256": "4e7117417e146bea1f142cda0ba34d69e677ca382c4190781de8b5f3273c9571"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel8/dramsim3.json",
+            "physical_channel": 8,
+            "sha256": "4e7117417e146bea1f142cda0ba34d69e677ca382c4190781de8b5f3273c9571"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel9/dramsim3.json",
+            "physical_channel": 9,
+            "sha256": "4e7117417e146bea1f142cda0ba34d69e677ca382c4190781de8b5f3273c9571"
+          }
+        ],
+        "idle_controller_instances": 27,
+        "precharge_standby_energy_pj": 985924128.0,
+        "precharges": 700,
+        "read_energy_pj": 6381348.0,
+        "read_row_hit_ratio": 0.9602365672580848,
+        "read_row_hits": 7631,
+        "reads": 7947,
+        "refresh_energy_pj": 332916480.0,
+        "self_refresh_energy_pj": 0.0,
+        "total_energy_pj": 1396463736.0,
+        "write_energy_pj": 13121448.0,
+        "write_row_hit_ratio": 0.966818477553676,
+        "write_row_hits": 11888,
+        "writes": 12296
+      },
+      "run_id": "real_web_google_insert_u8",
+      "system": "grasu_regraph"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "dataset_id": "soc_flickr_und",
+      "dram": {
+        "activate_energy_pj": 994428.0,
+        "activates": 1201,
+        "active_standby_energy_pj": 71779026.0,
+        "background_and_refresh_energy_pj": 2393137698.0,
+        "claim_label": "dramsim3_full_32_controller_hbm_energy_after_exact_cold_prefix",
+        "command_dynamic_energy_pj": 10573176.0,
+        "component_closure_error_pj": 0.0,
+        "component_sum_pj": 2403710874.0,
+        "controller_cycles_max": 1166305,
+        "controller_cycles_min": 1166305,
+        "controller_instances": 32,
+        "precharge_standby_energy_pj": 1739241552.0,
+        "precharges": 1200,
+        "read_energy_pj": 4397880.0,
+        "read_row_hit_ratio": 0.8747272727272727,
+        "read_row_hits": 4811,
+        "reads": 5500,
+        "refresh_energy_pj": 582117120.0,
+        "self_refresh_energy_pj": 0.0,
+        "total_energy_pj": 2403710874.0,
+        "write_energy_pj": 5180868.0,
+        "write_row_hit_ratio": 0.8840787853918752,
+        "write_row_hits": 4309,
+        "writes": 4874
+      },
+      "run_id": "real_soc_flickr_und_insert_u8",
+      "system": "spine"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "dataset_id": "soc_flickr_und",
+      "dram": {
+        "activate_energy_pj": 2267064.0,
+        "activates": 2738,
+        "active_standby_energy_pj": 218754228.0,
+        "background_and_refresh_energy_pj": 3912549588.0,
+        "claim_label": "dramsim3_full_32_controller_hbm_energy",
+        "command_dynamic_energy_pj": 78606228.0,
+        "component_closure_error_pj": 0.0,
+        "component_sum_pj": 3991155816.0,
+        "controller_cycles_max": 1893654,
+        "controller_cycles_min": 1893654,
+        "controller_instances": 32,
+        "files": [
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel0/dramsim3.json",
+            "physical_channel": 0,
+            "sha256": "21f026302603803fc6700564ad5e91c14835c64caba17f6eb06f42463274391e"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel1/dramsim3.json",
+            "physical_channel": 1,
+            "sha256": "54989ad89674eb890839f895421ce27bc2289bbccf1b98b8497f8fce5e470153"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel10/dramsim3.json",
+            "physical_channel": 10,
+            "sha256": "fa47b28cf849c0c774086ced03383be68c69f98f8a83d807b8795acc8645baf8"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel11/dramsim3.json",
+            "physical_channel": 11,
+            "sha256": "fa47b28cf849c0c774086ced03383be68c69f98f8a83d807b8795acc8645baf8"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel12/dramsim3.json",
+            "physical_channel": 12,
+            "sha256": "fa47b28cf849c0c774086ced03383be68c69f98f8a83d807b8795acc8645baf8"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel13/dramsim3.json",
+            "physical_channel": 13,
+            "sha256": "fa47b28cf849c0c774086ced03383be68c69f98f8a83d807b8795acc8645baf8"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel14/dramsim3.json",
+            "physical_channel": 14,
+            "sha256": "fa47b28cf849c0c774086ced03383be68c69f98f8a83d807b8795acc8645baf8"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel15/dramsim3.json",
+            "physical_channel": 15,
+            "sha256": "fa47b28cf849c0c774086ced03383be68c69f98f8a83d807b8795acc8645baf8"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel16/dramsim3.json",
+            "physical_channel": 16,
+            "sha256": "fa47b28cf849c0c774086ced03383be68c69f98f8a83d807b8795acc8645baf8"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel17/dramsim3.json",
+            "physical_channel": 17,
+            "sha256": "fa47b28cf849c0c774086ced03383be68c69f98f8a83d807b8795acc8645baf8"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel18/dramsim3.json",
+            "physical_channel": 18,
+            "sha256": "fa47b28cf849c0c774086ced03383be68c69f98f8a83d807b8795acc8645baf8"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel19/dramsim3.json",
+            "physical_channel": 19,
+            "sha256": "fa47b28cf849c0c774086ced03383be68c69f98f8a83d807b8795acc8645baf8"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel2/dramsim3.json",
+            "physical_channel": 2,
+            "sha256": "ac343486fae82377766a3404d0a8ef45557727d163de9862da72b17ce0f57317"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel20/dramsim3.json",
+            "physical_channel": 20,
+            "sha256": "fa47b28cf849c0c774086ced03383be68c69f98f8a83d807b8795acc8645baf8"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel21/dramsim3.json",
+            "physical_channel": 21,
+            "sha256": "fa47b28cf849c0c774086ced03383be68c69f98f8a83d807b8795acc8645baf8"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel22/dramsim3.json",
+            "physical_channel": 22,
+            "sha256": "fa47b28cf849c0c774086ced03383be68c69f98f8a83d807b8795acc8645baf8"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel23/dramsim3.json",
+            "physical_channel": 23,
+            "sha256": "fa47b28cf849c0c774086ced03383be68c69f98f8a83d807b8795acc8645baf8"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel24/dramsim3.json",
+            "physical_channel": 24,
+            "sha256": "fa47b28cf849c0c774086ced03383be68c69f98f8a83d807b8795acc8645baf8"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel25/dramsim3.json",
+            "physical_channel": 25,
+            "sha256": "fa47b28cf849c0c774086ced03383be68c69f98f8a83d807b8795acc8645baf8"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel26/dramsim3.json",
+            "physical_channel": 26,
+            "sha256": "fa47b28cf849c0c774086ced03383be68c69f98f8a83d807b8795acc8645baf8"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel27/dramsim3.json",
+            "physical_channel": 27,
+            "sha256": "fa47b28cf849c0c774086ced03383be68c69f98f8a83d807b8795acc8645baf8"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel28/dramsim3.json",
+            "physical_channel": 28,
+            "sha256": "fa47b28cf849c0c774086ced03383be68c69f98f8a83d807b8795acc8645baf8"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel29/dramsim3.json",
+            "physical_channel": 29,
+            "sha256": "fa47b28cf849c0c774086ced03383be68c69f98f8a83d807b8795acc8645baf8"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel3/dramsim3.json",
+            "physical_channel": 3,
+            "sha256": "08f0d5200d0e3339582bedcb680926e8d5e713fba9fbb9a8e7926ff669127284"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel30/dramsim3.json",
+            "physical_channel": 30,
+            "sha256": "b501c89f441ff96a8967efca58c35420cbb9947bc067511d042170fd779df430"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel31/dramsim3.json",
+            "physical_channel": 31,
+            "sha256": "fa47b28cf849c0c774086ced03383be68c69f98f8a83d807b8795acc8645baf8"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel4/dramsim3.json",
+            "physical_channel": 4,
+            "sha256": "fa47b28cf849c0c774086ced03383be68c69f98f8a83d807b8795acc8645baf8"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel5/dramsim3.json",
+            "physical_channel": 5,
+            "sha256": "fa47b28cf849c0c774086ced03383be68c69f98f8a83d807b8795acc8645baf8"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel6/dramsim3.json",
+            "physical_channel": 6,
+            "sha256": "fa47b28cf849c0c774086ced03383be68c69f98f8a83d807b8795acc8645baf8"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel7/dramsim3.json",
+            "physical_channel": 7,
+            "sha256": "fa47b28cf849c0c774086ced03383be68c69f98f8a83d807b8795acc8645baf8"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel8/dramsim3.json",
+            "physical_channel": 8,
+            "sha256": "fa47b28cf849c0c774086ced03383be68c69f98f8a83d807b8795acc8645baf8"
+          },
+          {
+            "dramsim_local_channel": 0,
+            "path": "channel9/dramsim3.json",
+            "physical_channel": 9,
+            "sha256": "fa47b28cf849c0c774086ced03383be68c69f98f8a83d807b8795acc8645baf8"
+          }
+        ],
+        "idle_controller_instances": 27,
+        "precharge_standby_energy_pj": 2749558560.0,
+        "precharges": 2732,
+        "read_energy_pj": 23861916.0,
+        "read_row_hit_ratio": 0.9609143549690278,
+        "read_row_hits": 28543,
+        "reads": 29704,
+        "refresh_energy_pj": 944236800.0,
+        "self_refresh_energy_pj": 0.0,
+        "total_energy_pj": 3991155816.0,
+        "write_energy_pj": 52477248.0,
+        "write_row_hit_ratio": 0.9670056956875509,
+        "write_row_hits": 47538,
+        "writes": 49160
+      },
+      "run_id": "real_soc_flickr_und_insert_u8",
+      "system": "grasu_regraph"
+    }
+  ]
+}

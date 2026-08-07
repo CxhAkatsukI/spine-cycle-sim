@@ -1,0 +1,25 @@
+{
+  "added_observability_fields": 720,
+  "all_dram_json_byte_identical": true,
+  "all_preexisting_result_fields_identical": true,
+  "baseline_sensitivity_manifest_sha256": "036f8f7b866c5e8d828aeb245ed9256e9a1ff14318e33def3f056431250fbff1",
+  "byte_identical_result_files": 105,
+  "candidate_sensitivity_manifest_sha256": "543a12e9a10f0536162c770089b720e287887b0b8482e009fe2d10eb990a9789",
+  "claim": "exact_idle_hbm_sensitivity_observable_equivalence",
+  "derived_sensitivity_tables_byte_identical": true,
+  "dram_json_files_compared": 1300,
+  "host_speedup_geomean": 3.86097361106456,
+  "preexisting_result_fields_compared": 23530,
+  "profiles": [
+    "baseline",
+    "latency_low",
+    "latency_high",
+    "bandwidth_high",
+    "bandwidth_low"
+  ],
+  "run_cases_per_profile": 12,
+  "schema_version": 1,
+  "status": "PASS",
+  "strict_rank_inversions": 0,
+  "system_results": 120
+}

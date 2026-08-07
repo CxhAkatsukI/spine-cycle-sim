@@ -15,11 +15,12 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_ORACLE = (
     ROOT / "docs/evidence/candidate10_m_axi_adapter_rtl_oracle_20260726"
 )
+DEFAULT_INPUTS = ROOT / "docs/evidence/candidate10_alignment_inputs_20260727"
 DEFAULT_BEFORE = (
-    ROOT / "results/candidate10_l0_writer_rtl_schedule_hw_matrix_20260726"
+    DEFAULT_INPUTS / "axi_before"
 )
 DEFAULT_AFTER = (
-    ROOT / "results/candidate10_m_axi_adapter_hw_matrix_stats_20260726"
+    DEFAULT_INPUTS / "axi_after"
 )
 DEFAULT_CORE_LOG = (
     ROOT / "docs/evidence/candidate10_m_axi_adapter_backpressure_20260726/"

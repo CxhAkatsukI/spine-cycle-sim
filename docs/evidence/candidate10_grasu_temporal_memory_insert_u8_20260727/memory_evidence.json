@@ -1,0 +1,122 @@
+{
+  "address_basis": "logical_channel_and_byte_address",
+  "algorithms": [
+    "weighted_sssp",
+    "full_pagerank",
+    "thresholded_residual_pagerank"
+  ],
+  "all_input_matrices_correct": true,
+  "analysis_sources": {
+    "model": {
+      "path": "spine_cycle_sim/experiments/real_memory_analysis.py",
+      "sha256": "81dbc4aeb99763baca45b7b00965639b630943e9f94fe8bf101f2600275b142c"
+    },
+    "runner": {
+      "path": "scripts/analyze_real_memory_traffic.py",
+      "sha256": "8ff54ad4e723bf4fb0f50074aef7adc1536e82e3b10f847cb77049d808ce56e0"
+    }
+  },
+  "batch_size": 8,
+  "claim_class": "accepted_backend_request_trace_locality",
+  "classification": "per_initiator_and_operation_accepted_backend_request",
+  "evidence_id": "candidate10_temporal_memory_insert_u8_20260727",
+  "input_manifest": {
+    "path": "configs/experiments/candidate10_grasu_temporal_compact_batches_v1_20260727.json",
+    "sha256": "d6d45a212f569a4ea919e2ac13fad0ce7455584cfc0105086b46098363f78629"
+  },
+  "input_matrices": {
+    "full_pagerank": {
+      "directory": "/data/tmp/chuxiao/candidate10_three_algorithm_raw_extracted_20260727/raw/full_pagerank",
+      "execution_sha256": "4f83bff497a7401cf3ba343b1b692e56f7755300cf7ed54345f3655446fd84af",
+      "manifest_sha256": "9922aac0357dff5022c94fd3847866e243273048a36acec26cc9089554a4df3e"
+    },
+    "thresholded_residual_pagerank": {
+      "directory": "/data/tmp/chuxiao/candidate10_three_algorithm_raw_extracted_20260727/raw/thresholded_residual_pagerank",
+      "execution_sha256": "274b7357f3a96a2109460bcafab97f50cac3ec6c6f6a88a328596318696760c7",
+      "manifest_sha256": "857ab40d87a587bdbc43e61a0bea8b74976decf6648491856474e939fcb69503"
+    },
+    "weighted_sssp": {
+      "directory": "/data/tmp/chuxiao/candidate10_three_algorithm_raw_extracted_20260727/raw/weighted_sssp",
+      "execution_sha256": "ddcaa06054da590a9566d4cb9794b57e0e89967efb24f0b20ff74966d0a250de",
+      "manifest_sha256": "6fada07d256489d88574c5e08dad01bde50ade6e5e6b10c02d10858787bdfa88"
+    }
+  },
+  "limitations": [
+    "Contiguous, repeated, and discontinuous classify accepted logical backend requests; they do not identify DRAM row hits.",
+    "Requested bytes exclude controller burst amplification and are distinct from physical HBM transfer bytes.",
+    "Weighted Spine currently exposes cold versus aligned E2E traffic, not an internal maintenance-versus-compute split.",
+    "Inputs are compact real-edge slices, not full datasets."
+  ],
+  "outputs": {
+    "memory_by_algorithm_sha256": "c8e54804cade0deb114b397363e43919ede8740e6bf01b50cf8a8666d780d5e5",
+    "memory_group_summary_sha256": "08961e5b595580456f77ce9ff3a7056a01c767844dfb772d9f4f78c469db1811",
+    "memory_pairs_sha256": "2a4128683a1f08b06f45da4ad64246346ad3e64d1061b6e6d01d3a7768167142",
+    "memory_system_rows_sha256": "5aff9ceef3eb1608c2d78bc566c9a40dcddf5eab7e9337f5a0daf3d6cea8882e"
+  },
+  "pairs": 15,
+  "scenario": "insert",
+  "schema_version": 1,
+  "selected_run_ids": [
+    "grasu_au_insert_u8",
+    "grasu_bc_insert_u8",
+    "grasu_so_insert_u8",
+    "grasu_su_insert_u8",
+    "grasu_wk_insert_u8"
+  ],
+  "source_archive": {
+    "path": "docs/evidence/candidate10_grasu_temporal_three_algorithms_insert_u8_20260727/raw_results.tar.gz",
+    "sha256": "f590b44a3c32933340f8ca507c5821792b3948d355679c936afa6d53804aa046"
+  },
+  "status": "PASS",
+  "summaries": [
+    {
+      "algorithm": "weighted_sssp",
+      "grasu_contiguous_byte_ratio_aggregate": 0.9415334087857034,
+      "grasu_discontinuous_byte_ratio_aggregate": 0.05846659121429666,
+      "grasu_repeated_byte_ratio_aggregate": 0.0,
+      "grasu_requested_bytes": 43581120,
+      "grasu_to_spine_byte_ratio_geomean": 39.60563672222205,
+      "grasu_to_spine_request_ratio_geomean": 6.005957375935491,
+      "pairs": 5,
+      "spine_contiguous_byte_ratio_aggregate": 0.7705053024389316,
+      "spine_discontinuous_byte_ratio_aggregate": 0.22815718827942044,
+      "spine_e2e_wins": 4,
+      "spine_repeated_byte_ratio_aggregate": 0.00133750928164804,
+      "spine_requested_bytes": 840916,
+      "spine_speedup_geomean": 1.752807074317822
+    },
+    {
+      "algorithm": "full_pagerank",
+      "grasu_contiguous_byte_ratio_aggregate": 0.9441494220316797,
+      "grasu_discontinuous_byte_ratio_aggregate": 0.05585057796832026,
+      "grasu_repeated_byte_ratio_aggregate": 0.0,
+      "grasu_requested_bytes": 19097108,
+      "grasu_to_spine_byte_ratio_geomean": 3.2671142755631606,
+      "grasu_to_spine_request_ratio_geomean": 0.5310943141029494,
+      "pairs": 5,
+      "spine_contiguous_byte_ratio_aggregate": 0.1990055648940166,
+      "spine_discontinuous_byte_ratio_aggregate": 0.7674785355990719,
+      "spine_e2e_wins": 0,
+      "spine_repeated_byte_ratio_aggregate": 0.033515899506911494,
+      "spine_requested_bytes": 6006944,
+      "spine_speedup_geomean": 0.3366623078570699
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "grasu_contiguous_byte_ratio_aggregate": 0.8648368941305543,
+      "grasu_discontinuous_byte_ratio_aggregate": 0.13516310586944572,
+      "grasu_repeated_byte_ratio_aggregate": 0.0,
+      "grasu_requested_bytes": 1100316232,
+      "grasu_to_spine_byte_ratio_geomean": 7.4213093446622445,
+      "grasu_to_spine_request_ratio_geomean": 0.926135351626973,
+      "pairs": 5,
+      "spine_contiguous_byte_ratio_aggregate": 0.09244920563128597,
+      "spine_discontinuous_byte_ratio_aggregate": 0.8764561769491879,
+      "spine_e2e_wins": 0,
+      "spine_repeated_byte_ratio_aggregate": 0.031094617419526165,
+      "spine_requested_bytes": 152089036,
+      "spine_speedup_geomean": 0.45698364533901104
+    }
+  ],
+  "system_rows": 30
+}

@@ -5,7 +5,7 @@ from __future__ import annotations
 import csv
 import json
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, Mapping
 
 from .real_small_batches import apply_explicit_weighted_updates
 from .shared_workloads import (
@@ -22,6 +22,7 @@ LARGE_REAL_VERTEX_CAP = 65_536
 LARGE_REAL_EXPECTED_VERTICES = 19_399
 LARGE_REAL_EDGES = 50_000
 LARGE_REAL_BATCH = 8
+LARGE_REAL_PROFILE_SET = "candidate10_hls_v3"
 SPINE_STRICT_FAMILY_CAPACITY = 16_384
 SPINE_PARTITION_VERTICES = 1_048_576
 SPINE_FAMILIES = 16
@@ -257,6 +258,7 @@ def build_large_real_pagerank_manifest(
         "matrix_id": "hls_full_pagerank_real_large_runtime_20260726",
         "claim_class": "real_large_slice_runtime_input_contract",
         "input_scope": "real_large_slice",
+        "required_profile_set": LARGE_REAL_PROFILE_SET,
         "source": {
             "dataset_id": "amazon_2008",
             "raw_path_hint": str(source_path),
@@ -284,8 +286,8 @@ def build_large_real_pagerank_manifest(
             "Amazon-2008 graph.",
             "Hot destinations use the current HLS host classifier with a strict "
             "L1 family target so an occupied L0 can accept the timed batch.",
-            "GraSU/ReGraph PageRank is an HLS-equivalent proposed profile, not a "
-            "compiled whole-system xclbin.",
+            "The Candidate10 normalized v3 profiles are required; routed HLS "
+            "PPA/timing evidence is tracked separately from simulator timing.",
         ],
     }
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
@@ -303,6 +305,8 @@ def validate_large_real_pagerank_manifest(
     manifest = json.loads(manifest_path.resolve().read_text(encoding="ascii"))
     if manifest.get("matrix_id") != "hls_full_pagerank_real_large_runtime_20260726":
         raise ValueError("large real PageRank matrix identity mismatch")
+    if manifest.get("required_profile_set") != LARGE_REAL_PROFILE_SET:
+        raise ValueError("large real PageRank profile-set identity mismatch")
     runs = manifest.get("runs", [])
     if len(runs) != 1:
         raise ValueError("large real PageRank manifest requires exactly one run")
@@ -350,3 +354,151 @@ def validate_large_real_pagerank_manifest(
     ) > SPINE_STRICT_FAMILY_CAPACITY:
         raise ValueError("large real final graph exceeds strict family capacity")
     return manifest
+
+
+def evaluate_large_real_runtime_gate(
+    manifest: Mapping[str, object], system_rows: Iterable[Mapping[str, object]]
+) -> dict[str, object]:
+    """Evaluate the per-system host-runtime contract without discarding data."""
+
+    contract = manifest.get("runtime_contract")
+    if not isinstance(contract, Mapping):
+        raise ValueError("large real manifest lacks a runtime contract")
+    limit = contract.get("host_runtime_limit_seconds_per_system")
+    if isinstance(limit, bool) or not isinstance(limit, (int, float)) or limit <= 0:
+        raise ValueError("large real runtime limit must be positive")
+    observations = []
+    seen: set[tuple[str, str]] = set()
+    for row in system_rows:
+        run_id = str(row.get("run_id", ""))
+        system = str(row.get("system", ""))
+        wall = row.get("host_wall_seconds")
+        if (
+            not run_id
+            or system not in {"spine", "grasu_regraph"}
+            or isinstance(wall, bool)
+            or not isinstance(wall, (int, float))
+            or wall <= 0
+        ):
+            raise ValueError("invalid large real runtime observation")
+        identity = (run_id, system)
+        if identity in seen:
+            raise ValueError("duplicate large real runtime observation")
+        seen.add(identity)
+        observations.append(
+            {
+                "run_id": run_id,
+                "system": system,
+                "host_wall_seconds": float(wall),
+                "limit_seconds": float(limit),
+                "pass": float(wall) <= float(limit),
+            }
+        )
+    expected = {
+        (str(run["run_id"]), system)
+        for run in manifest.get("runs", [])  # type: ignore[union-attr]
+        for system in ("spine", "grasu_regraph")
+    }
+    if seen != expected:
+        raise ValueError("large real runtime observations are incomplete")
+    observations.sort(key=lambda row: (row["run_id"], row["system"]))
+    failed = [
+        {"run_id": row["run_id"], "system": row["system"]}
+        for row in observations
+        if not row["pass"]
+    ]
+    return {
+        "status": "PASS" if not failed else "FAIL",
+        "pass": not failed,
+        "limit_seconds_per_system": float(limit),
+        "observations": observations,
+        "failed_systems": failed,
+    }
+
+
+def build_large_real_runtime_acceptance(
+    manifest: Mapping[str, object],
+    matrix_manifest: Mapping[str, object],
+    system_rows: Iterable[Mapping[str, object]],
+    pair_rows: Iterable[Mapping[str, object]],
+) -> dict[str, object]:
+    """Validate a completed large-real matrix and evaluate its runtime gate."""
+
+    if matrix_manifest.get("input_scope") != "real_large_slice":
+        raise ValueError("runtime acceptance requires a real_large_slice matrix")
+    if matrix_manifest.get("input_matrix_id") != manifest.get("matrix_id"):
+        raise ValueError("runtime acceptance input matrix identity mismatch")
+    if matrix_manifest.get("profile_set") != manifest.get("required_profile_set"):
+        raise ValueError("runtime acceptance profile-set identity mismatch")
+    if matrix_manifest.get("complete_matrix") is not True:
+        raise ValueError("runtime acceptance requires a complete matrix")
+    if matrix_manifest.get("all_correct") is not True:
+        raise ValueError("runtime acceptance requires matrix correctness")
+
+    expected_runs = {str(run["run_id"]) for run in manifest.get("runs", [])}
+    selected_runs = {str(run_id) for run_id in matrix_manifest.get("selected_run_ids", [])}
+    if not expected_runs or selected_runs != expected_runs:
+        raise ValueError("runtime acceptance selected-run coverage mismatch")
+
+    rows = [dict(row) for row in system_rows]
+    expected_systems = {
+        (run_id, system)
+        for run_id in expected_runs
+        for system in ("spine", "grasu_regraph")
+    }
+    observed_systems: set[tuple[str, str]] = set()
+    normalized_rows: list[dict[str, object]] = []
+    for row in rows:
+        identity = (str(row.get("run_id", "")), str(row.get("system", "")))
+        if identity in observed_systems:
+            raise ValueError("duplicate large-real system row")
+        observed_systems.add(identity)
+        try:
+            mismatches = int(str(row.get("correctness_mismatches", "")))
+            wall_seconds = float(str(row.get("host_wall_seconds", "")))
+        except ValueError as error:
+            raise ValueError("invalid large-real system observation") from error
+        if mismatches != 0:
+            raise ValueError("runtime acceptance rejects correctness mismatch")
+        normalized_rows.append(
+            {
+                "run_id": identity[0],
+                "system": identity[1],
+                "host_wall_seconds": wall_seconds,
+            }
+        )
+    if observed_systems != expected_systems:
+        raise ValueError("runtime acceptance system-row coverage mismatch")
+
+    pairs = [dict(row) for row in pair_rows]
+    observed_pairs: set[str] = set()
+    for pair in pairs:
+        run_id = str(pair.get("run_id", ""))
+        if run_id in observed_pairs:
+            raise ValueError("duplicate large-real pair row")
+        observed_pairs.add(run_id)
+        rank_match = pair.get("cross_system_ranks_match")
+        if rank_match is not True and str(rank_match).lower() != "true":
+            raise ValueError("runtime acceptance rejects cross-system rank mismatch")
+    if observed_pairs != expected_runs:
+        raise ValueError("runtime acceptance pair coverage mismatch")
+
+    if int(matrix_manifest.get("system_rows", -1)) != len(rows):
+        raise ValueError("runtime acceptance system-row count mismatch")
+    if int(matrix_manifest.get("pairs", -1)) != len(pairs):
+        raise ValueError("runtime acceptance pair count mismatch")
+
+    gate = evaluate_large_real_runtime_gate(manifest, normalized_rows)
+    return {
+        "schema_version": 1,
+        "claim_class": "candidate10_large_real_host_runtime_observation",
+        "status": "PASS" if gate["pass"] else "COMPLETE_RUNTIME_GATE_FAILED",
+        "simulation_complete": True,
+        "all_correct": True,
+        "performance_results_modified": False,
+        "input_matrix_id": manifest["matrix_id"],
+        "profile_set": matrix_manifest["profile_set"],
+        "system_rows": len(rows),
+        "pairs": len(pairs),
+        "runtime_gate": gate,
+    }

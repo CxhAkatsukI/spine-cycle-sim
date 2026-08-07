@@ -1,0 +1,2757 @@
+{
+  "claim_class": "paper_source_real_topology_compact_file_order_slice",
+  "contract": {
+    "base_edges_per_dataset": 8192,
+    "batch_sizes": [
+      1,
+      8,
+      64,
+      512,
+      4096
+    ],
+    "datasets": 5,
+    "graph_and_update_bytes_identical_across_architectures": true,
+    "insert_pool_edges_per_dataset": 4096,
+    "mixed_batch_one_omitted": true,
+    "performance_parameters_frozen_before_execution": true,
+    "scenarios": [
+      "insert",
+      "delete",
+      "mixed",
+      "weight_change"
+    ]
+  },
+  "datasets": [
+    {
+      "abbreviation": "AU",
+      "archive_member": null,
+      "dataset_id": "sx_askubuntu",
+      "graph": {
+        "case_id": "grasu_sx_askubuntu_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_base_e8192.slice",
+        "records": 8192,
+        "sha256": "57ba2e57631d3d128bb6e85dc7fed9c8398a07651ea3e02028db0c095762c271",
+        "vertices": 3409
+      },
+      "mapping_path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_mapping.csv",
+      "mapping_sha256": "1b93701f25ce5177dcab68baa908aa0c5f01b094120de3f3eb9d3430a25e4148",
+      "paper_base_edges": 590000,
+      "paper_edges": 960000,
+      "paper_vertices": 160000,
+      "provenance": {
+        "base_edges": 8192,
+        "compact_vertices": 3409,
+        "extraction_policy": "unique_nonself_edges_in_source_file_order_compact_ids_v1",
+        "insert_pool_edges": 4096,
+        "scanned_events": 14393,
+        "selected_timestamp_max": 1298800224,
+        "selected_timestamp_min": 1280369730,
+        "selected_unique_edges": 12288,
+        "timestamp_order_reconstructed": false
+      },
+      "source_encoding": "gzip",
+      "source_path_hint": "/data/feiyang/Graph_Datasets/sx-askubuntu/sx-askubuntu.txt.gz",
+      "source_sha256": "54af4be03bf77030e8894e445679c4e20614f0b82d68fc8cb49431f70e07a0f6"
+    },
+    {
+      "abbreviation": "SU",
+      "archive_member": null,
+      "dataset_id": "sx_superuser",
+      "graph": {
+        "case_id": "grasu_sx_superuser_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_superuser_base_e8192.slice",
+        "records": 8192,
+        "sha256": "c73d90b1996480b1cc437debaeb211cbedc77510c74282ac541249a92b58484c",
+        "vertices": 3224
+      },
+      "mapping_path": "tests/data/candidate10_grasu_temporal/sx_superuser_mapping.csv",
+      "mapping_sha256": "944b4c476c31420def0dab313cea40a0626fd61fc1fb9e7b1d2491a5b61f5c22",
+      "paper_base_edges": 920000,
+      "paper_edges": 1440000,
+      "paper_vertices": 190000,
+      "provenance": {
+        "base_edges": 8192,
+        "compact_vertices": 3224,
+        "extraction_policy": "unique_nonself_edges_in_source_file_order_compact_ids_v1",
+        "insert_pool_edges": 4096,
+        "scanned_events": 13387,
+        "selected_timestamp_max": 1251835033,
+        "selected_timestamp_min": 1220267828,
+        "selected_unique_edges": 12288,
+        "timestamp_order_reconstructed": false
+      },
+      "source_encoding": "gzip",
+      "source_path_hint": "/data/feiyang/Graph_Datasets/sx-superuser/sx-superuser.txt.gz",
+      "source_sha256": "35367fa1357d28ba92b06f75a2616cdf983e0c5b70b9560f36440e39648cc928"
+    },
+    {
+      "abbreviation": "WK",
+      "archive_member": null,
+      "dataset_id": "wiki_talk_temporal",
+      "graph": {
+        "case_id": "grasu_wiki_talk_temporal_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_base_e8192.slice",
+        "records": 8192,
+        "sha256": "cb2c0d9dd371197b91563560c74545a9b7de3e6f8245eae7cef192db1c298268",
+        "vertices": 5930
+      },
+      "mapping_path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_mapping.csv",
+      "mapping_sha256": "f53ab789c8f79f105cf64bcabe23d1c3a0f3ac577a798a5842c7acea04df673f",
+      "paper_base_edges": 3310000,
+      "paper_edges": 7830000,
+      "paper_vertices": 1140000,
+      "provenance": {
+        "base_edges": 8192,
+        "compact_vertices": 5930,
+        "extraction_policy": "unique_nonself_edges_in_source_file_order_compact_ids_v1",
+        "insert_pool_edges": 4096,
+        "scanned_events": 41858,
+        "selected_timestamp_max": 1199590636,
+        "selected_timestamp_min": 1002859878,
+        "selected_unique_edges": 12288,
+        "timestamp_order_reconstructed": false
+      },
+      "source_encoding": "gzip",
+      "source_path_hint": "/data/feiyang/Graph_Datasets/wiki-talk-temporal/wiki-talk-temporal.txt.gz",
+      "source_sha256": "2053b1f5bb3c46320f8e4da91aa6d7d79ec8d78e2c8cc99cede609c0c375f33e"
+    },
+    {
+      "abbreviation": "SO",
+      "archive_member": null,
+      "dataset_id": "sx_stackoverflow",
+      "graph": {
+        "case_id": "grasu_sx_stackoverflow_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_base_e8192.slice",
+        "records": 8192,
+        "sha256": "340b2e693560fb0c07e03dd0fbb728e6a1318e0bf545bdc9e1e9a5fc3f0ea807",
+        "vertices": 2004
+      },
+      "mapping_path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_mapping.csv",
+      "mapping_sha256": "9b07e138d863823ad33e5838d0a202a319683038dad83344be79425056f96f1b",
+      "paper_base_edges": 36230000,
+      "paper_edges": 63500000,
+      "paper_vertices": 2600000,
+      "provenance": {
+        "base_edges": 8192,
+        "compact_vertices": 2004,
+        "extraction_policy": "unique_nonself_edges_in_source_file_order_compact_ids_v1",
+        "insert_pool_edges": 4096,
+        "scanned_events": 14235,
+        "selected_timestamp_max": 1220052604,
+        "selected_timestamp_min": 1217567877,
+        "selected_unique_edges": 12288,
+        "timestamp_order_reconstructed": false
+      },
+      "source_encoding": "gzip",
+      "source_path_hint": "/data/feiyang/Graph_Datasets/sx-stackoverflow/snap_sx-stackoverflow.txt.gz",
+      "source_sha256": "fc04264de1652bbf91c10eb8ec2465df082fc0aec2012e5f4a8edc6400f0d7a3"
+    },
+    {
+      "abbreviation": "BC",
+      "archive_member": "soc-bitcoin.edges",
+      "dataset_id": "soc_bitcoin",
+      "graph": {
+        "case_id": "grasu_soc_bitcoin_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_base_e8192.slice",
+        "records": 8192,
+        "sha256": "e45dac169bf4b1f652244e1ae9c0253bf161edf93a0b608ce27c97cb52f57951",
+        "vertices": 10326
+      },
+      "mapping_path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_mapping.csv",
+      "mapping_sha256": "68c998abdeba08f0c2fec312559fb350a7210fb9545e3234d2655720b113d2a4",
+      "paper_base_edges": 60490000,
+      "paper_edges": 122950000,
+      "paper_vertices": 24580000,
+      "provenance": {
+        "base_edges": 8192,
+        "compact_vertices": 10326,
+        "extraction_policy": "unique_nonself_edges_in_source_file_order_compact_ids_v1",
+        "insert_pool_edges": 4096,
+        "scanned_events": 12359,
+        "selected_timestamp_max": 1271354187,
+        "selected_timestamp_min": 1231731025,
+        "selected_unique_edges": 12288,
+        "timestamp_order_reconstructed": false
+      },
+      "source_encoding": "zip",
+      "source_path_hint": "/data/feiyang/Graph_Datasets/soc-bitcoin/soc-bitcoin.zip",
+      "source_sha256": "c12caba90fb002e64bc25451d931a73832989c8564bf1f4ce6a890287094f0e8"
+    }
+  ],
+  "input_scope": "real_compact_slice",
+  "limitations": [
+    "Inputs are compact slices, not complete GraSU datasets.",
+    "Edges preserve source-file order; global timestamp order is not reconstructed.",
+    "Compact vertex IDs alter original partition occupancy.",
+    "Delete, mixed, and weight-change batches are derived from real topology; only insert candidates come directly from later source-file events."
+  ],
+  "matrix_id": "candidate10_grasu_temporal_compact_batches_v1_20260727",
+  "runs": [
+    {
+      "batch_size": 1,
+      "dataset_abbreviation": "AU",
+      "dataset_id": "sx_askubuntu",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8193,
+      "graph": {
+        "case_id": "grasu_sx_askubuntu_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_base_e8192.slice",
+        "records": 8192,
+        "sha256": "57ba2e57631d3d128bb6e85dc7fed9c8398a07651ea3e02028db0c095762c271",
+        "vertices": 3409
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 1,
+      "run_id": "grasu_au_insert_u1",
+      "scenario": "insert",
+      "update": {
+        "case_id": "grasu_sx_askubuntu_file_order_e8192_insert_u1",
+        "path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_insert_u1.slice",
+        "records": 1,
+        "sha256": "d286c766bc9eed2943b7ed92439af117922ba92c2e6a6c4095e87e8a099144f6",
+        "vertices": 3409
+      },
+      "update_pattern": "insert",
+      "user_mutations": 1
+    },
+    {
+      "batch_size": 1,
+      "dataset_abbreviation": "AU",
+      "dataset_id": "sx_askubuntu",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8191,
+      "graph": {
+        "case_id": "grasu_sx_askubuntu_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_base_e8192.slice",
+        "records": 8192,
+        "sha256": "57ba2e57631d3d128bb6e85dc7fed9c8398a07651ea3e02028db0c095762c271",
+        "vertices": 3409
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 1,
+      "run_id": "grasu_au_delete_u1",
+      "scenario": "delete",
+      "update": {
+        "case_id": "grasu_sx_askubuntu_file_order_e8192_delete_u1",
+        "path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_delete_u1.slice",
+        "records": 1,
+        "sha256": "6dde6cc32c70dfc6109aa58707334fc2296f85f274398c2d586022457fe640ee",
+        "vertices": 3409
+      },
+      "update_pattern": "delete",
+      "user_mutations": 1
+    },
+    {
+      "batch_size": 1,
+      "dataset_abbreviation": "AU",
+      "dataset_id": "sx_askubuntu",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_sx_askubuntu_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_base_e8192.slice",
+        "records": 8192,
+        "sha256": "57ba2e57631d3d128bb6e85dc7fed9c8398a07651ea3e02028db0c095762c271",
+        "vertices": 3409
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 2,
+      "run_id": "grasu_au_weight_change_u1",
+      "scenario": "weight_change",
+      "update": {
+        "case_id": "grasu_sx_askubuntu_file_order_e8192_weight_change_u1",
+        "path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_weight_change_u1.slice",
+        "records": 2,
+        "sha256": "db9eae2b0b994b384f323ee95346a9a7dfafbbe2aa46349f5b9bb172d10ee1da",
+        "vertices": 3409
+      },
+      "update_pattern": "weight_change",
+      "user_mutations": 1
+    },
+    {
+      "batch_size": 8,
+      "dataset_abbreviation": "AU",
+      "dataset_id": "sx_askubuntu",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8200,
+      "graph": {
+        "case_id": "grasu_sx_askubuntu_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_base_e8192.slice",
+        "records": 8192,
+        "sha256": "57ba2e57631d3d128bb6e85dc7fed9c8398a07651ea3e02028db0c095762c271",
+        "vertices": 3409
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 8,
+      "run_id": "grasu_au_insert_u8",
+      "scenario": "insert",
+      "update": {
+        "case_id": "grasu_sx_askubuntu_file_order_e8192_insert_u8",
+        "path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_insert_u8.slice",
+        "records": 8,
+        "sha256": "e9602a507b09554611ecaafb2a1a8108882d6248d5d4b7fac86fbe1647f8371b",
+        "vertices": 3409
+      },
+      "update_pattern": "insert",
+      "user_mutations": 8
+    },
+    {
+      "batch_size": 8,
+      "dataset_abbreviation": "AU",
+      "dataset_id": "sx_askubuntu",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8184,
+      "graph": {
+        "case_id": "grasu_sx_askubuntu_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_base_e8192.slice",
+        "records": 8192,
+        "sha256": "57ba2e57631d3d128bb6e85dc7fed9c8398a07651ea3e02028db0c095762c271",
+        "vertices": 3409
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 8,
+      "run_id": "grasu_au_delete_u8",
+      "scenario": "delete",
+      "update": {
+        "case_id": "grasu_sx_askubuntu_file_order_e8192_delete_u8",
+        "path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_delete_u8.slice",
+        "records": 8,
+        "sha256": "7e11a0abc564670b970ec8b05df9efea837679f0bda083d7efbcfabebbe573a7",
+        "vertices": 3409
+      },
+      "update_pattern": "delete",
+      "user_mutations": 8
+    },
+    {
+      "batch_size": 8,
+      "dataset_abbreviation": "AU",
+      "dataset_id": "sx_askubuntu",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_sx_askubuntu_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_base_e8192.slice",
+        "records": 8192,
+        "sha256": "57ba2e57631d3d128bb6e85dc7fed9c8398a07651ea3e02028db0c095762c271",
+        "vertices": 3409
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 8,
+      "run_id": "grasu_au_mixed_u8",
+      "scenario": "mixed",
+      "update": {
+        "case_id": "grasu_sx_askubuntu_file_order_e8192_mixed_u8",
+        "path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_mixed_u8.slice",
+        "records": 8,
+        "sha256": "1522e9b4c4eb898188d2b71fb89c0be5b9fe20a31a2617f1e0b10fa63510fd52",
+        "vertices": 3409
+      },
+      "update_pattern": "mixed",
+      "user_mutations": 8
+    },
+    {
+      "batch_size": 8,
+      "dataset_abbreviation": "AU",
+      "dataset_id": "sx_askubuntu",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_sx_askubuntu_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_base_e8192.slice",
+        "records": 8192,
+        "sha256": "57ba2e57631d3d128bb6e85dc7fed9c8398a07651ea3e02028db0c095762c271",
+        "vertices": 3409
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 16,
+      "run_id": "grasu_au_weight_change_u8",
+      "scenario": "weight_change",
+      "update": {
+        "case_id": "grasu_sx_askubuntu_file_order_e8192_weight_change_u8",
+        "path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_weight_change_u8.slice",
+        "records": 16,
+        "sha256": "cdbc59ef937b8b2ac7dfef4464967ab0368ff8e90a0d099007a0c7918f5abd60",
+        "vertices": 3409
+      },
+      "update_pattern": "weight_change",
+      "user_mutations": 8
+    },
+    {
+      "batch_size": 64,
+      "dataset_abbreviation": "AU",
+      "dataset_id": "sx_askubuntu",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8256,
+      "graph": {
+        "case_id": "grasu_sx_askubuntu_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_base_e8192.slice",
+        "records": 8192,
+        "sha256": "57ba2e57631d3d128bb6e85dc7fed9c8398a07651ea3e02028db0c095762c271",
+        "vertices": 3409
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 64,
+      "run_id": "grasu_au_insert_u64",
+      "scenario": "insert",
+      "update": {
+        "case_id": "grasu_sx_askubuntu_file_order_e8192_insert_u64",
+        "path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_insert_u64.slice",
+        "records": 64,
+        "sha256": "f975ea909e92b14e18f36315056335decb8ad2c1aa7bdb77f929e5e5c4210180",
+        "vertices": 3409
+      },
+      "update_pattern": "insert",
+      "user_mutations": 64
+    },
+    {
+      "batch_size": 64,
+      "dataset_abbreviation": "AU",
+      "dataset_id": "sx_askubuntu",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8128,
+      "graph": {
+        "case_id": "grasu_sx_askubuntu_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_base_e8192.slice",
+        "records": 8192,
+        "sha256": "57ba2e57631d3d128bb6e85dc7fed9c8398a07651ea3e02028db0c095762c271",
+        "vertices": 3409
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 64,
+      "run_id": "grasu_au_delete_u64",
+      "scenario": "delete",
+      "update": {
+        "case_id": "grasu_sx_askubuntu_file_order_e8192_delete_u64",
+        "path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_delete_u64.slice",
+        "records": 64,
+        "sha256": "1bd8585e73ed24b6ad43f722b5397b66e392ce8760bba28472981cf6df44c448",
+        "vertices": 3409
+      },
+      "update_pattern": "delete",
+      "user_mutations": 64
+    },
+    {
+      "batch_size": 64,
+      "dataset_abbreviation": "AU",
+      "dataset_id": "sx_askubuntu",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_sx_askubuntu_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_base_e8192.slice",
+        "records": 8192,
+        "sha256": "57ba2e57631d3d128bb6e85dc7fed9c8398a07651ea3e02028db0c095762c271",
+        "vertices": 3409
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 64,
+      "run_id": "grasu_au_mixed_u64",
+      "scenario": "mixed",
+      "update": {
+        "case_id": "grasu_sx_askubuntu_file_order_e8192_mixed_u64",
+        "path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_mixed_u64.slice",
+        "records": 64,
+        "sha256": "1c25df07bd4c92835ed697d2ef600a19793049c735cf25f9a9ab5577d90a92e2",
+        "vertices": 3409
+      },
+      "update_pattern": "mixed",
+      "user_mutations": 64
+    },
+    {
+      "batch_size": 64,
+      "dataset_abbreviation": "AU",
+      "dataset_id": "sx_askubuntu",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_sx_askubuntu_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_base_e8192.slice",
+        "records": 8192,
+        "sha256": "57ba2e57631d3d128bb6e85dc7fed9c8398a07651ea3e02028db0c095762c271",
+        "vertices": 3409
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 128,
+      "run_id": "grasu_au_weight_change_u64",
+      "scenario": "weight_change",
+      "update": {
+        "case_id": "grasu_sx_askubuntu_file_order_e8192_weight_change_u64",
+        "path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_weight_change_u64.slice",
+        "records": 128,
+        "sha256": "70efd341a7577aec3041cc52b46de2e78703924c8db78317533fba8623812e01",
+        "vertices": 3409
+      },
+      "update_pattern": "weight_change",
+      "user_mutations": 64
+    },
+    {
+      "batch_size": 512,
+      "dataset_abbreviation": "AU",
+      "dataset_id": "sx_askubuntu",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8704,
+      "graph": {
+        "case_id": "grasu_sx_askubuntu_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_base_e8192.slice",
+        "records": 8192,
+        "sha256": "57ba2e57631d3d128bb6e85dc7fed9c8398a07651ea3e02028db0c095762c271",
+        "vertices": 3409
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 512,
+      "run_id": "grasu_au_insert_u512",
+      "scenario": "insert",
+      "update": {
+        "case_id": "grasu_sx_askubuntu_file_order_e8192_insert_u512",
+        "path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_insert_u512.slice",
+        "records": 512,
+        "sha256": "078e9431baf9c132913dedf4787253a505223d7ecf8d99dc64cb19b9ace3af44",
+        "vertices": 3409
+      },
+      "update_pattern": "insert",
+      "user_mutations": 512
+    },
+    {
+      "batch_size": 512,
+      "dataset_abbreviation": "AU",
+      "dataset_id": "sx_askubuntu",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 7680,
+      "graph": {
+        "case_id": "grasu_sx_askubuntu_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_base_e8192.slice",
+        "records": 8192,
+        "sha256": "57ba2e57631d3d128bb6e85dc7fed9c8398a07651ea3e02028db0c095762c271",
+        "vertices": 3409
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 512,
+      "run_id": "grasu_au_delete_u512",
+      "scenario": "delete",
+      "update": {
+        "case_id": "grasu_sx_askubuntu_file_order_e8192_delete_u512",
+        "path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_delete_u512.slice",
+        "records": 512,
+        "sha256": "c72fac717dab7958ad99681c8dc79cc15351ef7be42562affa003e87a90bed75",
+        "vertices": 3409
+      },
+      "update_pattern": "delete",
+      "user_mutations": 512
+    },
+    {
+      "batch_size": 512,
+      "dataset_abbreviation": "AU",
+      "dataset_id": "sx_askubuntu",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_sx_askubuntu_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_base_e8192.slice",
+        "records": 8192,
+        "sha256": "57ba2e57631d3d128bb6e85dc7fed9c8398a07651ea3e02028db0c095762c271",
+        "vertices": 3409
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 512,
+      "run_id": "grasu_au_mixed_u512",
+      "scenario": "mixed",
+      "update": {
+        "case_id": "grasu_sx_askubuntu_file_order_e8192_mixed_u512",
+        "path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_mixed_u512.slice",
+        "records": 512,
+        "sha256": "0469635c2e5cc3edb5483c7b66cad0fee2fcb46ab812c418cf1c40059f66caa1",
+        "vertices": 3409
+      },
+      "update_pattern": "mixed",
+      "user_mutations": 512
+    },
+    {
+      "batch_size": 512,
+      "dataset_abbreviation": "AU",
+      "dataset_id": "sx_askubuntu",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_sx_askubuntu_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_base_e8192.slice",
+        "records": 8192,
+        "sha256": "57ba2e57631d3d128bb6e85dc7fed9c8398a07651ea3e02028db0c095762c271",
+        "vertices": 3409
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 1024,
+      "run_id": "grasu_au_weight_change_u512",
+      "scenario": "weight_change",
+      "update": {
+        "case_id": "grasu_sx_askubuntu_file_order_e8192_weight_change_u512",
+        "path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_weight_change_u512.slice",
+        "records": 1024,
+        "sha256": "3d8e407fc72a0b9a74568deb0f5c2c86e4b0a41705958d9816ca4c33026b1d5e",
+        "vertices": 3409
+      },
+      "update_pattern": "weight_change",
+      "user_mutations": 512
+    },
+    {
+      "batch_size": 4096,
+      "dataset_abbreviation": "AU",
+      "dataset_id": "sx_askubuntu",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 12288,
+      "graph": {
+        "case_id": "grasu_sx_askubuntu_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_base_e8192.slice",
+        "records": 8192,
+        "sha256": "57ba2e57631d3d128bb6e85dc7fed9c8398a07651ea3e02028db0c095762c271",
+        "vertices": 3409
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 4096,
+      "run_id": "grasu_au_insert_u4096",
+      "scenario": "insert",
+      "update": {
+        "case_id": "grasu_sx_askubuntu_file_order_e8192_insert_u4096",
+        "path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_insert_u4096.slice",
+        "records": 4096,
+        "sha256": "b088f6ec5614eb805fde44329d36136cb740fd046ec0af5d2f6bb5d164cdf327",
+        "vertices": 3409
+      },
+      "update_pattern": "insert",
+      "user_mutations": 4096
+    },
+    {
+      "batch_size": 4096,
+      "dataset_abbreviation": "AU",
+      "dataset_id": "sx_askubuntu",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 4096,
+      "graph": {
+        "case_id": "grasu_sx_askubuntu_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_base_e8192.slice",
+        "records": 8192,
+        "sha256": "57ba2e57631d3d128bb6e85dc7fed9c8398a07651ea3e02028db0c095762c271",
+        "vertices": 3409
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 4096,
+      "run_id": "grasu_au_delete_u4096",
+      "scenario": "delete",
+      "update": {
+        "case_id": "grasu_sx_askubuntu_file_order_e8192_delete_u4096",
+        "path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_delete_u4096.slice",
+        "records": 4096,
+        "sha256": "42f3d647bf5011fe8c9e56cf9414a471e52c027cc9d0b24e9104711717dbc421",
+        "vertices": 3409
+      },
+      "update_pattern": "delete",
+      "user_mutations": 4096
+    },
+    {
+      "batch_size": 4096,
+      "dataset_abbreviation": "AU",
+      "dataset_id": "sx_askubuntu",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_sx_askubuntu_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_base_e8192.slice",
+        "records": 8192,
+        "sha256": "57ba2e57631d3d128bb6e85dc7fed9c8398a07651ea3e02028db0c095762c271",
+        "vertices": 3409
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 4096,
+      "run_id": "grasu_au_mixed_u4096",
+      "scenario": "mixed",
+      "update": {
+        "case_id": "grasu_sx_askubuntu_file_order_e8192_mixed_u4096",
+        "path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_mixed_u4096.slice",
+        "records": 4096,
+        "sha256": "3fb3d4b37e637944ff4397e51221aeed23e0a8271d71227ec453aa166e9c038a",
+        "vertices": 3409
+      },
+      "update_pattern": "mixed",
+      "user_mutations": 4096
+    },
+    {
+      "batch_size": 4096,
+      "dataset_abbreviation": "AU",
+      "dataset_id": "sx_askubuntu",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_sx_askubuntu_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_base_e8192.slice",
+        "records": 8192,
+        "sha256": "57ba2e57631d3d128bb6e85dc7fed9c8398a07651ea3e02028db0c095762c271",
+        "vertices": 3409
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 8192,
+      "run_id": "grasu_au_weight_change_u4096",
+      "scenario": "weight_change",
+      "update": {
+        "case_id": "grasu_sx_askubuntu_file_order_e8192_weight_change_u4096",
+        "path": "tests/data/candidate10_grasu_temporal/sx_askubuntu_weight_change_u4096.slice",
+        "records": 8192,
+        "sha256": "75ac74d330655d327820633e5ba82a55e5bf47f94cc8f687eb57f4e6812a32e0",
+        "vertices": 3409
+      },
+      "update_pattern": "weight_change",
+      "user_mutations": 4096
+    },
+    {
+      "batch_size": 1,
+      "dataset_abbreviation": "SU",
+      "dataset_id": "sx_superuser",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8193,
+      "graph": {
+        "case_id": "grasu_sx_superuser_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_superuser_base_e8192.slice",
+        "records": 8192,
+        "sha256": "c73d90b1996480b1cc437debaeb211cbedc77510c74282ac541249a92b58484c",
+        "vertices": 3224
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 1,
+      "run_id": "grasu_su_insert_u1",
+      "scenario": "insert",
+      "update": {
+        "case_id": "grasu_sx_superuser_file_order_e8192_insert_u1",
+        "path": "tests/data/candidate10_grasu_temporal/sx_superuser_insert_u1.slice",
+        "records": 1,
+        "sha256": "d6e757ac57d883aaaa4e82462a3a947f24032dd031a5b3604950a2c2754a075f",
+        "vertices": 3224
+      },
+      "update_pattern": "insert",
+      "user_mutations": 1
+    },
+    {
+      "batch_size": 1,
+      "dataset_abbreviation": "SU",
+      "dataset_id": "sx_superuser",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8191,
+      "graph": {
+        "case_id": "grasu_sx_superuser_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_superuser_base_e8192.slice",
+        "records": 8192,
+        "sha256": "c73d90b1996480b1cc437debaeb211cbedc77510c74282ac541249a92b58484c",
+        "vertices": 3224
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 1,
+      "run_id": "grasu_su_delete_u1",
+      "scenario": "delete",
+      "update": {
+        "case_id": "grasu_sx_superuser_file_order_e8192_delete_u1",
+        "path": "tests/data/candidate10_grasu_temporal/sx_superuser_delete_u1.slice",
+        "records": 1,
+        "sha256": "d988110d33af1861b6ae2ad5c35a574d7f8db6f93f74fa724e60da0e709f380a",
+        "vertices": 3224
+      },
+      "update_pattern": "delete",
+      "user_mutations": 1
+    },
+    {
+      "batch_size": 1,
+      "dataset_abbreviation": "SU",
+      "dataset_id": "sx_superuser",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_sx_superuser_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_superuser_base_e8192.slice",
+        "records": 8192,
+        "sha256": "c73d90b1996480b1cc437debaeb211cbedc77510c74282ac541249a92b58484c",
+        "vertices": 3224
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 2,
+      "run_id": "grasu_su_weight_change_u1",
+      "scenario": "weight_change",
+      "update": {
+        "case_id": "grasu_sx_superuser_file_order_e8192_weight_change_u1",
+        "path": "tests/data/candidate10_grasu_temporal/sx_superuser_weight_change_u1.slice",
+        "records": 2,
+        "sha256": "c945ce5d055f2fc601952757da64241202469eefeab6091337c0ff9df1cf72f5",
+        "vertices": 3224
+      },
+      "update_pattern": "weight_change",
+      "user_mutations": 1
+    },
+    {
+      "batch_size": 8,
+      "dataset_abbreviation": "SU",
+      "dataset_id": "sx_superuser",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8200,
+      "graph": {
+        "case_id": "grasu_sx_superuser_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_superuser_base_e8192.slice",
+        "records": 8192,
+        "sha256": "c73d90b1996480b1cc437debaeb211cbedc77510c74282ac541249a92b58484c",
+        "vertices": 3224
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 8,
+      "run_id": "grasu_su_insert_u8",
+      "scenario": "insert",
+      "update": {
+        "case_id": "grasu_sx_superuser_file_order_e8192_insert_u8",
+        "path": "tests/data/candidate10_grasu_temporal/sx_superuser_insert_u8.slice",
+        "records": 8,
+        "sha256": "afb2aacdbb6be943846f75fdcc54bb3f868f9cca39e8ddf67577afaaff8d4831",
+        "vertices": 3224
+      },
+      "update_pattern": "insert",
+      "user_mutations": 8
+    },
+    {
+      "batch_size": 8,
+      "dataset_abbreviation": "SU",
+      "dataset_id": "sx_superuser",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8184,
+      "graph": {
+        "case_id": "grasu_sx_superuser_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_superuser_base_e8192.slice",
+        "records": 8192,
+        "sha256": "c73d90b1996480b1cc437debaeb211cbedc77510c74282ac541249a92b58484c",
+        "vertices": 3224
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 8,
+      "run_id": "grasu_su_delete_u8",
+      "scenario": "delete",
+      "update": {
+        "case_id": "grasu_sx_superuser_file_order_e8192_delete_u8",
+        "path": "tests/data/candidate10_grasu_temporal/sx_superuser_delete_u8.slice",
+        "records": 8,
+        "sha256": "226c2c04e2ea5344c325b784dbdee8174f5e61fb3fd6f090f19f6d4aab28fc23",
+        "vertices": 3224
+      },
+      "update_pattern": "delete",
+      "user_mutations": 8
+    },
+    {
+      "batch_size": 8,
+      "dataset_abbreviation": "SU",
+      "dataset_id": "sx_superuser",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_sx_superuser_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_superuser_base_e8192.slice",
+        "records": 8192,
+        "sha256": "c73d90b1996480b1cc437debaeb211cbedc77510c74282ac541249a92b58484c",
+        "vertices": 3224
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 8,
+      "run_id": "grasu_su_mixed_u8",
+      "scenario": "mixed",
+      "update": {
+        "case_id": "grasu_sx_superuser_file_order_e8192_mixed_u8",
+        "path": "tests/data/candidate10_grasu_temporal/sx_superuser_mixed_u8.slice",
+        "records": 8,
+        "sha256": "b474aa6e1055d5c608b9df6ca0829034996bbaf0c01f0cd5e413021de1750528",
+        "vertices": 3224
+      },
+      "update_pattern": "mixed",
+      "user_mutations": 8
+    },
+    {
+      "batch_size": 8,
+      "dataset_abbreviation": "SU",
+      "dataset_id": "sx_superuser",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_sx_superuser_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_superuser_base_e8192.slice",
+        "records": 8192,
+        "sha256": "c73d90b1996480b1cc437debaeb211cbedc77510c74282ac541249a92b58484c",
+        "vertices": 3224
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 16,
+      "run_id": "grasu_su_weight_change_u8",
+      "scenario": "weight_change",
+      "update": {
+        "case_id": "grasu_sx_superuser_file_order_e8192_weight_change_u8",
+        "path": "tests/data/candidate10_grasu_temporal/sx_superuser_weight_change_u8.slice",
+        "records": 16,
+        "sha256": "d0332ebe1a7e7ce296920e771a278841fa45ed2f82b3c8389c24da623e2ce9ca",
+        "vertices": 3224
+      },
+      "update_pattern": "weight_change",
+      "user_mutations": 8
+    },
+    {
+      "batch_size": 64,
+      "dataset_abbreviation": "SU",
+      "dataset_id": "sx_superuser",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8256,
+      "graph": {
+        "case_id": "grasu_sx_superuser_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_superuser_base_e8192.slice",
+        "records": 8192,
+        "sha256": "c73d90b1996480b1cc437debaeb211cbedc77510c74282ac541249a92b58484c",
+        "vertices": 3224
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 64,
+      "run_id": "grasu_su_insert_u64",
+      "scenario": "insert",
+      "update": {
+        "case_id": "grasu_sx_superuser_file_order_e8192_insert_u64",
+        "path": "tests/data/candidate10_grasu_temporal/sx_superuser_insert_u64.slice",
+        "records": 64,
+        "sha256": "6227a4ef657bf4fa1e278512ba4e589a5f9b026b5c93731edec35f85877cde0b",
+        "vertices": 3224
+      },
+      "update_pattern": "insert",
+      "user_mutations": 64
+    },
+    {
+      "batch_size": 64,
+      "dataset_abbreviation": "SU",
+      "dataset_id": "sx_superuser",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8128,
+      "graph": {
+        "case_id": "grasu_sx_superuser_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_superuser_base_e8192.slice",
+        "records": 8192,
+        "sha256": "c73d90b1996480b1cc437debaeb211cbedc77510c74282ac541249a92b58484c",
+        "vertices": 3224
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 64,
+      "run_id": "grasu_su_delete_u64",
+      "scenario": "delete",
+      "update": {
+        "case_id": "grasu_sx_superuser_file_order_e8192_delete_u64",
+        "path": "tests/data/candidate10_grasu_temporal/sx_superuser_delete_u64.slice",
+        "records": 64,
+        "sha256": "557ed74a56b30d7c9e5b972cf78cfc8f22f59e8b170b487ae2b01baf15ce52e4",
+        "vertices": 3224
+      },
+      "update_pattern": "delete",
+      "user_mutations": 64
+    },
+    {
+      "batch_size": 64,
+      "dataset_abbreviation": "SU",
+      "dataset_id": "sx_superuser",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_sx_superuser_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_superuser_base_e8192.slice",
+        "records": 8192,
+        "sha256": "c73d90b1996480b1cc437debaeb211cbedc77510c74282ac541249a92b58484c",
+        "vertices": 3224
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 64,
+      "run_id": "grasu_su_mixed_u64",
+      "scenario": "mixed",
+      "update": {
+        "case_id": "grasu_sx_superuser_file_order_e8192_mixed_u64",
+        "path": "tests/data/candidate10_grasu_temporal/sx_superuser_mixed_u64.slice",
+        "records": 64,
+        "sha256": "3e94e9fe55f3013281c71b1e1018b444eed6c04c4a811230ef97692a3071d4ed",
+        "vertices": 3224
+      },
+      "update_pattern": "mixed",
+      "user_mutations": 64
+    },
+    {
+      "batch_size": 64,
+      "dataset_abbreviation": "SU",
+      "dataset_id": "sx_superuser",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_sx_superuser_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_superuser_base_e8192.slice",
+        "records": 8192,
+        "sha256": "c73d90b1996480b1cc437debaeb211cbedc77510c74282ac541249a92b58484c",
+        "vertices": 3224
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 128,
+      "run_id": "grasu_su_weight_change_u64",
+      "scenario": "weight_change",
+      "update": {
+        "case_id": "grasu_sx_superuser_file_order_e8192_weight_change_u64",
+        "path": "tests/data/candidate10_grasu_temporal/sx_superuser_weight_change_u64.slice",
+        "records": 128,
+        "sha256": "f97fa1b828179323ca602ca52a7a652a8a791d80144328beb717986bf27770c3",
+        "vertices": 3224
+      },
+      "update_pattern": "weight_change",
+      "user_mutations": 64
+    },
+    {
+      "batch_size": 512,
+      "dataset_abbreviation": "SU",
+      "dataset_id": "sx_superuser",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8704,
+      "graph": {
+        "case_id": "grasu_sx_superuser_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_superuser_base_e8192.slice",
+        "records": 8192,
+        "sha256": "c73d90b1996480b1cc437debaeb211cbedc77510c74282ac541249a92b58484c",
+        "vertices": 3224
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 512,
+      "run_id": "grasu_su_insert_u512",
+      "scenario": "insert",
+      "update": {
+        "case_id": "grasu_sx_superuser_file_order_e8192_insert_u512",
+        "path": "tests/data/candidate10_grasu_temporal/sx_superuser_insert_u512.slice",
+        "records": 512,
+        "sha256": "884722701ab41b4c1b3070d504a332232993c2e32b0f1a6d526fac319a356348",
+        "vertices": 3224
+      },
+      "update_pattern": "insert",
+      "user_mutations": 512
+    },
+    {
+      "batch_size": 512,
+      "dataset_abbreviation": "SU",
+      "dataset_id": "sx_superuser",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 7680,
+      "graph": {
+        "case_id": "grasu_sx_superuser_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_superuser_base_e8192.slice",
+        "records": 8192,
+        "sha256": "c73d90b1996480b1cc437debaeb211cbedc77510c74282ac541249a92b58484c",
+        "vertices": 3224
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 512,
+      "run_id": "grasu_su_delete_u512",
+      "scenario": "delete",
+      "update": {
+        "case_id": "grasu_sx_superuser_file_order_e8192_delete_u512",
+        "path": "tests/data/candidate10_grasu_temporal/sx_superuser_delete_u512.slice",
+        "records": 512,
+        "sha256": "e3e8135879a0ee92adc7a684e508679f3c935f340080c5c08c4323d5c36e795c",
+        "vertices": 3224
+      },
+      "update_pattern": "delete",
+      "user_mutations": 512
+    },
+    {
+      "batch_size": 512,
+      "dataset_abbreviation": "SU",
+      "dataset_id": "sx_superuser",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_sx_superuser_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_superuser_base_e8192.slice",
+        "records": 8192,
+        "sha256": "c73d90b1996480b1cc437debaeb211cbedc77510c74282ac541249a92b58484c",
+        "vertices": 3224
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 512,
+      "run_id": "grasu_su_mixed_u512",
+      "scenario": "mixed",
+      "update": {
+        "case_id": "grasu_sx_superuser_file_order_e8192_mixed_u512",
+        "path": "tests/data/candidate10_grasu_temporal/sx_superuser_mixed_u512.slice",
+        "records": 512,
+        "sha256": "85e3e87ae70ffb96b0ac85a777d1350d0b50b287cc282f72d70ae0506c006cc1",
+        "vertices": 3224
+      },
+      "update_pattern": "mixed",
+      "user_mutations": 512
+    },
+    {
+      "batch_size": 512,
+      "dataset_abbreviation": "SU",
+      "dataset_id": "sx_superuser",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_sx_superuser_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_superuser_base_e8192.slice",
+        "records": 8192,
+        "sha256": "c73d90b1996480b1cc437debaeb211cbedc77510c74282ac541249a92b58484c",
+        "vertices": 3224
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 1024,
+      "run_id": "grasu_su_weight_change_u512",
+      "scenario": "weight_change",
+      "update": {
+        "case_id": "grasu_sx_superuser_file_order_e8192_weight_change_u512",
+        "path": "tests/data/candidate10_grasu_temporal/sx_superuser_weight_change_u512.slice",
+        "records": 1024,
+        "sha256": "93d21eb83ddf0b083b3b4f39744a3c01e69aae40fd823469cdd9f3e7127a821a",
+        "vertices": 3224
+      },
+      "update_pattern": "weight_change",
+      "user_mutations": 512
+    },
+    {
+      "batch_size": 4096,
+      "dataset_abbreviation": "SU",
+      "dataset_id": "sx_superuser",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 12288,
+      "graph": {
+        "case_id": "grasu_sx_superuser_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_superuser_base_e8192.slice",
+        "records": 8192,
+        "sha256": "c73d90b1996480b1cc437debaeb211cbedc77510c74282ac541249a92b58484c",
+        "vertices": 3224
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 4096,
+      "run_id": "grasu_su_insert_u4096",
+      "scenario": "insert",
+      "update": {
+        "case_id": "grasu_sx_superuser_file_order_e8192_insert_u4096",
+        "path": "tests/data/candidate10_grasu_temporal/sx_superuser_insert_u4096.slice",
+        "records": 4096,
+        "sha256": "86f97d17153bbe97bc24e873aa717fcb6204152a2f060faf1169c90763724367",
+        "vertices": 3224
+      },
+      "update_pattern": "insert",
+      "user_mutations": 4096
+    },
+    {
+      "batch_size": 4096,
+      "dataset_abbreviation": "SU",
+      "dataset_id": "sx_superuser",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 4096,
+      "graph": {
+        "case_id": "grasu_sx_superuser_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_superuser_base_e8192.slice",
+        "records": 8192,
+        "sha256": "c73d90b1996480b1cc437debaeb211cbedc77510c74282ac541249a92b58484c",
+        "vertices": 3224
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 4096,
+      "run_id": "grasu_su_delete_u4096",
+      "scenario": "delete",
+      "update": {
+        "case_id": "grasu_sx_superuser_file_order_e8192_delete_u4096",
+        "path": "tests/data/candidate10_grasu_temporal/sx_superuser_delete_u4096.slice",
+        "records": 4096,
+        "sha256": "21d601a4188aa7bb611d059bbd9429e12a960e59c91242e8236293ea68ec3c4c",
+        "vertices": 3224
+      },
+      "update_pattern": "delete",
+      "user_mutations": 4096
+    },
+    {
+      "batch_size": 4096,
+      "dataset_abbreviation": "SU",
+      "dataset_id": "sx_superuser",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_sx_superuser_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_superuser_base_e8192.slice",
+        "records": 8192,
+        "sha256": "c73d90b1996480b1cc437debaeb211cbedc77510c74282ac541249a92b58484c",
+        "vertices": 3224
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 4096,
+      "run_id": "grasu_su_mixed_u4096",
+      "scenario": "mixed",
+      "update": {
+        "case_id": "grasu_sx_superuser_file_order_e8192_mixed_u4096",
+        "path": "tests/data/candidate10_grasu_temporal/sx_superuser_mixed_u4096.slice",
+        "records": 4096,
+        "sha256": "d8511de6c19089d1d6a44ee2341da5d2735092682faa85057100e8d5a5d4c4e6",
+        "vertices": 3224
+      },
+      "update_pattern": "mixed",
+      "user_mutations": 4096
+    },
+    {
+      "batch_size": 4096,
+      "dataset_abbreviation": "SU",
+      "dataset_id": "sx_superuser",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_sx_superuser_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_superuser_base_e8192.slice",
+        "records": 8192,
+        "sha256": "c73d90b1996480b1cc437debaeb211cbedc77510c74282ac541249a92b58484c",
+        "vertices": 3224
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 8192,
+      "run_id": "grasu_su_weight_change_u4096",
+      "scenario": "weight_change",
+      "update": {
+        "case_id": "grasu_sx_superuser_file_order_e8192_weight_change_u4096",
+        "path": "tests/data/candidate10_grasu_temporal/sx_superuser_weight_change_u4096.slice",
+        "records": 8192,
+        "sha256": "b7d3dab1aaa5e87cf74494a3d8132490d03b507baa94adbff08f6a2f924dab92",
+        "vertices": 3224
+      },
+      "update_pattern": "weight_change",
+      "user_mutations": 4096
+    },
+    {
+      "batch_size": 1,
+      "dataset_abbreviation": "WK",
+      "dataset_id": "wiki_talk_temporal",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8193,
+      "graph": {
+        "case_id": "grasu_wiki_talk_temporal_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_base_e8192.slice",
+        "records": 8192,
+        "sha256": "cb2c0d9dd371197b91563560c74545a9b7de3e6f8245eae7cef192db1c298268",
+        "vertices": 5930
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 1,
+      "run_id": "grasu_wk_insert_u1",
+      "scenario": "insert",
+      "update": {
+        "case_id": "grasu_wiki_talk_temporal_file_order_e8192_insert_u1",
+        "path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_insert_u1.slice",
+        "records": 1,
+        "sha256": "4e55af31ad368e1d76b6ccf77a8353119619bb0c145b56ead8858e042f15a5dd",
+        "vertices": 5930
+      },
+      "update_pattern": "insert",
+      "user_mutations": 1
+    },
+    {
+      "batch_size": 1,
+      "dataset_abbreviation": "WK",
+      "dataset_id": "wiki_talk_temporal",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8191,
+      "graph": {
+        "case_id": "grasu_wiki_talk_temporal_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_base_e8192.slice",
+        "records": 8192,
+        "sha256": "cb2c0d9dd371197b91563560c74545a9b7de3e6f8245eae7cef192db1c298268",
+        "vertices": 5930
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 1,
+      "run_id": "grasu_wk_delete_u1",
+      "scenario": "delete",
+      "update": {
+        "case_id": "grasu_wiki_talk_temporal_file_order_e8192_delete_u1",
+        "path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_delete_u1.slice",
+        "records": 1,
+        "sha256": "1f487a456a7d53bfccaff12a0cca84784b628def02744f9cb29f6c924a84bf34",
+        "vertices": 5930
+      },
+      "update_pattern": "delete",
+      "user_mutations": 1
+    },
+    {
+      "batch_size": 1,
+      "dataset_abbreviation": "WK",
+      "dataset_id": "wiki_talk_temporal",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_wiki_talk_temporal_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_base_e8192.slice",
+        "records": 8192,
+        "sha256": "cb2c0d9dd371197b91563560c74545a9b7de3e6f8245eae7cef192db1c298268",
+        "vertices": 5930
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 2,
+      "run_id": "grasu_wk_weight_change_u1",
+      "scenario": "weight_change",
+      "update": {
+        "case_id": "grasu_wiki_talk_temporal_file_order_e8192_weight_change_u1",
+        "path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_weight_change_u1.slice",
+        "records": 2,
+        "sha256": "2a07b440926247109b626096be5718181df89627f6e75b13b215ff93410d1843",
+        "vertices": 5930
+      },
+      "update_pattern": "weight_change",
+      "user_mutations": 1
+    },
+    {
+      "batch_size": 8,
+      "dataset_abbreviation": "WK",
+      "dataset_id": "wiki_talk_temporal",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8200,
+      "graph": {
+        "case_id": "grasu_wiki_talk_temporal_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_base_e8192.slice",
+        "records": 8192,
+        "sha256": "cb2c0d9dd371197b91563560c74545a9b7de3e6f8245eae7cef192db1c298268",
+        "vertices": 5930
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 8,
+      "run_id": "grasu_wk_insert_u8",
+      "scenario": "insert",
+      "update": {
+        "case_id": "grasu_wiki_talk_temporal_file_order_e8192_insert_u8",
+        "path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_insert_u8.slice",
+        "records": 8,
+        "sha256": "92fcc01de64447ee7e7589187176f909b821f93fab865ba17e17aad24027df72",
+        "vertices": 5930
+      },
+      "update_pattern": "insert",
+      "user_mutations": 8
+    },
+    {
+      "batch_size": 8,
+      "dataset_abbreviation": "WK",
+      "dataset_id": "wiki_talk_temporal",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8184,
+      "graph": {
+        "case_id": "grasu_wiki_talk_temporal_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_base_e8192.slice",
+        "records": 8192,
+        "sha256": "cb2c0d9dd371197b91563560c74545a9b7de3e6f8245eae7cef192db1c298268",
+        "vertices": 5930
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 8,
+      "run_id": "grasu_wk_delete_u8",
+      "scenario": "delete",
+      "update": {
+        "case_id": "grasu_wiki_talk_temporal_file_order_e8192_delete_u8",
+        "path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_delete_u8.slice",
+        "records": 8,
+        "sha256": "fe789021f25d61b3c4367b15237c3d951f10f899bf5882e0c645487fd62acb51",
+        "vertices": 5930
+      },
+      "update_pattern": "delete",
+      "user_mutations": 8
+    },
+    {
+      "batch_size": 8,
+      "dataset_abbreviation": "WK",
+      "dataset_id": "wiki_talk_temporal",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_wiki_talk_temporal_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_base_e8192.slice",
+        "records": 8192,
+        "sha256": "cb2c0d9dd371197b91563560c74545a9b7de3e6f8245eae7cef192db1c298268",
+        "vertices": 5930
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 8,
+      "run_id": "grasu_wk_mixed_u8",
+      "scenario": "mixed",
+      "update": {
+        "case_id": "grasu_wiki_talk_temporal_file_order_e8192_mixed_u8",
+        "path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_mixed_u8.slice",
+        "records": 8,
+        "sha256": "9d24a9855c2555f1d34788f2b26d197083a0a144980a34d003b6c1623e8f4727",
+        "vertices": 5930
+      },
+      "update_pattern": "mixed",
+      "user_mutations": 8
+    },
+    {
+      "batch_size": 8,
+      "dataset_abbreviation": "WK",
+      "dataset_id": "wiki_talk_temporal",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_wiki_talk_temporal_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_base_e8192.slice",
+        "records": 8192,
+        "sha256": "cb2c0d9dd371197b91563560c74545a9b7de3e6f8245eae7cef192db1c298268",
+        "vertices": 5930
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 16,
+      "run_id": "grasu_wk_weight_change_u8",
+      "scenario": "weight_change",
+      "update": {
+        "case_id": "grasu_wiki_talk_temporal_file_order_e8192_weight_change_u8",
+        "path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_weight_change_u8.slice",
+        "records": 16,
+        "sha256": "34e89d500dc81679d1ccc6384fb25d1a34e2549c74ce30385309325b6dcea8c6",
+        "vertices": 5930
+      },
+      "update_pattern": "weight_change",
+      "user_mutations": 8
+    },
+    {
+      "batch_size": 64,
+      "dataset_abbreviation": "WK",
+      "dataset_id": "wiki_talk_temporal",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8256,
+      "graph": {
+        "case_id": "grasu_wiki_talk_temporal_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_base_e8192.slice",
+        "records": 8192,
+        "sha256": "cb2c0d9dd371197b91563560c74545a9b7de3e6f8245eae7cef192db1c298268",
+        "vertices": 5930
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 64,
+      "run_id": "grasu_wk_insert_u64",
+      "scenario": "insert",
+      "update": {
+        "case_id": "grasu_wiki_talk_temporal_file_order_e8192_insert_u64",
+        "path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_insert_u64.slice",
+        "records": 64,
+        "sha256": "c82cf474ddfb63b978ec64a9211dfa5aa3ef6160290036fec1a1a668eaa31caa",
+        "vertices": 5930
+      },
+      "update_pattern": "insert",
+      "user_mutations": 64
+    },
+    {
+      "batch_size": 64,
+      "dataset_abbreviation": "WK",
+      "dataset_id": "wiki_talk_temporal",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8128,
+      "graph": {
+        "case_id": "grasu_wiki_talk_temporal_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_base_e8192.slice",
+        "records": 8192,
+        "sha256": "cb2c0d9dd371197b91563560c74545a9b7de3e6f8245eae7cef192db1c298268",
+        "vertices": 5930
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 64,
+      "run_id": "grasu_wk_delete_u64",
+      "scenario": "delete",
+      "update": {
+        "case_id": "grasu_wiki_talk_temporal_file_order_e8192_delete_u64",
+        "path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_delete_u64.slice",
+        "records": 64,
+        "sha256": "6944a7566c208c9a0821543023e2a61cdfff8f5ad6383072ea4ec54fb162e5be",
+        "vertices": 5930
+      },
+      "update_pattern": "delete",
+      "user_mutations": 64
+    },
+    {
+      "batch_size": 64,
+      "dataset_abbreviation": "WK",
+      "dataset_id": "wiki_talk_temporal",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_wiki_talk_temporal_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_base_e8192.slice",
+        "records": 8192,
+        "sha256": "cb2c0d9dd371197b91563560c74545a9b7de3e6f8245eae7cef192db1c298268",
+        "vertices": 5930
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 64,
+      "run_id": "grasu_wk_mixed_u64",
+      "scenario": "mixed",
+      "update": {
+        "case_id": "grasu_wiki_talk_temporal_file_order_e8192_mixed_u64",
+        "path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_mixed_u64.slice",
+        "records": 64,
+        "sha256": "a30817713031e63ab2034a1ac04e391eed36cf58ddac72a361b135442ecb605c",
+        "vertices": 5930
+      },
+      "update_pattern": "mixed",
+      "user_mutations": 64
+    },
+    {
+      "batch_size": 64,
+      "dataset_abbreviation": "WK",
+      "dataset_id": "wiki_talk_temporal",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_wiki_talk_temporal_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_base_e8192.slice",
+        "records": 8192,
+        "sha256": "cb2c0d9dd371197b91563560c74545a9b7de3e6f8245eae7cef192db1c298268",
+        "vertices": 5930
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 128,
+      "run_id": "grasu_wk_weight_change_u64",
+      "scenario": "weight_change",
+      "update": {
+        "case_id": "grasu_wiki_talk_temporal_file_order_e8192_weight_change_u64",
+        "path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_weight_change_u64.slice",
+        "records": 128,
+        "sha256": "7f6c1cf0e5d59ec3bac6959b9e71796402e02e5c5ce723736850f322a3a40bb1",
+        "vertices": 5930
+      },
+      "update_pattern": "weight_change",
+      "user_mutations": 64
+    },
+    {
+      "batch_size": 512,
+      "dataset_abbreviation": "WK",
+      "dataset_id": "wiki_talk_temporal",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8704,
+      "graph": {
+        "case_id": "grasu_wiki_talk_temporal_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_base_e8192.slice",
+        "records": 8192,
+        "sha256": "cb2c0d9dd371197b91563560c74545a9b7de3e6f8245eae7cef192db1c298268",
+        "vertices": 5930
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 512,
+      "run_id": "grasu_wk_insert_u512",
+      "scenario": "insert",
+      "update": {
+        "case_id": "grasu_wiki_talk_temporal_file_order_e8192_insert_u512",
+        "path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_insert_u512.slice",
+        "records": 512,
+        "sha256": "cdb6fdf1aef55f6364db6d419a7ccd49763a2625a8a397d36fab78fd03435744",
+        "vertices": 5930
+      },
+      "update_pattern": "insert",
+      "user_mutations": 512
+    },
+    {
+      "batch_size": 512,
+      "dataset_abbreviation": "WK",
+      "dataset_id": "wiki_talk_temporal",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 7680,
+      "graph": {
+        "case_id": "grasu_wiki_talk_temporal_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_base_e8192.slice",
+        "records": 8192,
+        "sha256": "cb2c0d9dd371197b91563560c74545a9b7de3e6f8245eae7cef192db1c298268",
+        "vertices": 5930
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 512,
+      "run_id": "grasu_wk_delete_u512",
+      "scenario": "delete",
+      "update": {
+        "case_id": "grasu_wiki_talk_temporal_file_order_e8192_delete_u512",
+        "path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_delete_u512.slice",
+        "records": 512,
+        "sha256": "a653f26e2328e15168235244a52c8b3f71cf7dc50aedfe94a9000c9767fd7771",
+        "vertices": 5930
+      },
+      "update_pattern": "delete",
+      "user_mutations": 512
+    },
+    {
+      "batch_size": 512,
+      "dataset_abbreviation": "WK",
+      "dataset_id": "wiki_talk_temporal",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_wiki_talk_temporal_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_base_e8192.slice",
+        "records": 8192,
+        "sha256": "cb2c0d9dd371197b91563560c74545a9b7de3e6f8245eae7cef192db1c298268",
+        "vertices": 5930
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 512,
+      "run_id": "grasu_wk_mixed_u512",
+      "scenario": "mixed",
+      "update": {
+        "case_id": "grasu_wiki_talk_temporal_file_order_e8192_mixed_u512",
+        "path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_mixed_u512.slice",
+        "records": 512,
+        "sha256": "f46059e558e71e30dbd539db3283eccf96cea3b87f7ed9b2285db3e3add219e9",
+        "vertices": 5930
+      },
+      "update_pattern": "mixed",
+      "user_mutations": 512
+    },
+    {
+      "batch_size": 512,
+      "dataset_abbreviation": "WK",
+      "dataset_id": "wiki_talk_temporal",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_wiki_talk_temporal_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_base_e8192.slice",
+        "records": 8192,
+        "sha256": "cb2c0d9dd371197b91563560c74545a9b7de3e6f8245eae7cef192db1c298268",
+        "vertices": 5930
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 1024,
+      "run_id": "grasu_wk_weight_change_u512",
+      "scenario": "weight_change",
+      "update": {
+        "case_id": "grasu_wiki_talk_temporal_file_order_e8192_weight_change_u512",
+        "path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_weight_change_u512.slice",
+        "records": 1024,
+        "sha256": "5b99e521edfd1274d6c45ff2abc3df48e8ed1dc9607500bf41044af11d3460fd",
+        "vertices": 5930
+      },
+      "update_pattern": "weight_change",
+      "user_mutations": 512
+    },
+    {
+      "batch_size": 4096,
+      "dataset_abbreviation": "WK",
+      "dataset_id": "wiki_talk_temporal",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 12288,
+      "graph": {
+        "case_id": "grasu_wiki_talk_temporal_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_base_e8192.slice",
+        "records": 8192,
+        "sha256": "cb2c0d9dd371197b91563560c74545a9b7de3e6f8245eae7cef192db1c298268",
+        "vertices": 5930
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 4096,
+      "run_id": "grasu_wk_insert_u4096",
+      "scenario": "insert",
+      "update": {
+        "case_id": "grasu_wiki_talk_temporal_file_order_e8192_insert_u4096",
+        "path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_insert_u4096.slice",
+        "records": 4096,
+        "sha256": "451ca02450e994a50ebf02e98facd0a76f14a44a76e5f9b01dc84bf137852321",
+        "vertices": 5930
+      },
+      "update_pattern": "insert",
+      "user_mutations": 4096
+    },
+    {
+      "batch_size": 4096,
+      "dataset_abbreviation": "WK",
+      "dataset_id": "wiki_talk_temporal",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 4096,
+      "graph": {
+        "case_id": "grasu_wiki_talk_temporal_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_base_e8192.slice",
+        "records": 8192,
+        "sha256": "cb2c0d9dd371197b91563560c74545a9b7de3e6f8245eae7cef192db1c298268",
+        "vertices": 5930
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 4096,
+      "run_id": "grasu_wk_delete_u4096",
+      "scenario": "delete",
+      "update": {
+        "case_id": "grasu_wiki_talk_temporal_file_order_e8192_delete_u4096",
+        "path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_delete_u4096.slice",
+        "records": 4096,
+        "sha256": "1745c7f62fea23dc5ab4add8244b7930d5d5c3fb1878caf9816f7253dc17ac81",
+        "vertices": 5930
+      },
+      "update_pattern": "delete",
+      "user_mutations": 4096
+    },
+    {
+      "batch_size": 4096,
+      "dataset_abbreviation": "WK",
+      "dataset_id": "wiki_talk_temporal",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_wiki_talk_temporal_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_base_e8192.slice",
+        "records": 8192,
+        "sha256": "cb2c0d9dd371197b91563560c74545a9b7de3e6f8245eae7cef192db1c298268",
+        "vertices": 5930
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 4096,
+      "run_id": "grasu_wk_mixed_u4096",
+      "scenario": "mixed",
+      "update": {
+        "case_id": "grasu_wiki_talk_temporal_file_order_e8192_mixed_u4096",
+        "path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_mixed_u4096.slice",
+        "records": 4096,
+        "sha256": "f6df5c4246f11b3a4617a2d45e82fd247f8fa6ddf84d69db2f1b6ec3e5158e0c",
+        "vertices": 5930
+      },
+      "update_pattern": "mixed",
+      "user_mutations": 4096
+    },
+    {
+      "batch_size": 4096,
+      "dataset_abbreviation": "WK",
+      "dataset_id": "wiki_talk_temporal",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_wiki_talk_temporal_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_base_e8192.slice",
+        "records": 8192,
+        "sha256": "cb2c0d9dd371197b91563560c74545a9b7de3e6f8245eae7cef192db1c298268",
+        "vertices": 5930
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 8192,
+      "run_id": "grasu_wk_weight_change_u4096",
+      "scenario": "weight_change",
+      "update": {
+        "case_id": "grasu_wiki_talk_temporal_file_order_e8192_weight_change_u4096",
+        "path": "tests/data/candidate10_grasu_temporal/wiki_talk_temporal_weight_change_u4096.slice",
+        "records": 8192,
+        "sha256": "a5324ca6e3567948ce4d5a0b70bf1a7bd85ad04ab847777daa0b49c15adda528",
+        "vertices": 5930
+      },
+      "update_pattern": "weight_change",
+      "user_mutations": 4096
+    },
+    {
+      "batch_size": 1,
+      "dataset_abbreviation": "SO",
+      "dataset_id": "sx_stackoverflow",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8193,
+      "graph": {
+        "case_id": "grasu_sx_stackoverflow_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_base_e8192.slice",
+        "records": 8192,
+        "sha256": "340b2e693560fb0c07e03dd0fbb728e6a1318e0bf545bdc9e1e9a5fc3f0ea807",
+        "vertices": 2004
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 1,
+      "run_id": "grasu_so_insert_u1",
+      "scenario": "insert",
+      "update": {
+        "case_id": "grasu_sx_stackoverflow_file_order_e8192_insert_u1",
+        "path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_insert_u1.slice",
+        "records": 1,
+        "sha256": "831a48b5a631369c09e9d82ecdc427e113862b9f376ceaacc58085c3f575e209",
+        "vertices": 2004
+      },
+      "update_pattern": "insert",
+      "user_mutations": 1
+    },
+    {
+      "batch_size": 1,
+      "dataset_abbreviation": "SO",
+      "dataset_id": "sx_stackoverflow",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8191,
+      "graph": {
+        "case_id": "grasu_sx_stackoverflow_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_base_e8192.slice",
+        "records": 8192,
+        "sha256": "340b2e693560fb0c07e03dd0fbb728e6a1318e0bf545bdc9e1e9a5fc3f0ea807",
+        "vertices": 2004
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 1,
+      "run_id": "grasu_so_delete_u1",
+      "scenario": "delete",
+      "update": {
+        "case_id": "grasu_sx_stackoverflow_file_order_e8192_delete_u1",
+        "path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_delete_u1.slice",
+        "records": 1,
+        "sha256": "e6e166f542b1b63292f7c30d7dc35246439a496dc1cbf4ca5605759c7befb5e0",
+        "vertices": 2004
+      },
+      "update_pattern": "delete",
+      "user_mutations": 1
+    },
+    {
+      "batch_size": 1,
+      "dataset_abbreviation": "SO",
+      "dataset_id": "sx_stackoverflow",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_sx_stackoverflow_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_base_e8192.slice",
+        "records": 8192,
+        "sha256": "340b2e693560fb0c07e03dd0fbb728e6a1318e0bf545bdc9e1e9a5fc3f0ea807",
+        "vertices": 2004
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 2,
+      "run_id": "grasu_so_weight_change_u1",
+      "scenario": "weight_change",
+      "update": {
+        "case_id": "grasu_sx_stackoverflow_file_order_e8192_weight_change_u1",
+        "path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_weight_change_u1.slice",
+        "records": 2,
+        "sha256": "a2e98d25956271cec4ebfe3272b229ecd2b50721ac29a99f154b0beb23570c62",
+        "vertices": 2004
+      },
+      "update_pattern": "weight_change",
+      "user_mutations": 1
+    },
+    {
+      "batch_size": 8,
+      "dataset_abbreviation": "SO",
+      "dataset_id": "sx_stackoverflow",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8200,
+      "graph": {
+        "case_id": "grasu_sx_stackoverflow_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_base_e8192.slice",
+        "records": 8192,
+        "sha256": "340b2e693560fb0c07e03dd0fbb728e6a1318e0bf545bdc9e1e9a5fc3f0ea807",
+        "vertices": 2004
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 8,
+      "run_id": "grasu_so_insert_u8",
+      "scenario": "insert",
+      "update": {
+        "case_id": "grasu_sx_stackoverflow_file_order_e8192_insert_u8",
+        "path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_insert_u8.slice",
+        "records": 8,
+        "sha256": "c9c5f13b7ec277c78a9c0e38d056dd08a5738dd5d0712153e6250963fafb27f8",
+        "vertices": 2004
+      },
+      "update_pattern": "insert",
+      "user_mutations": 8
+    },
+    {
+      "batch_size": 8,
+      "dataset_abbreviation": "SO",
+      "dataset_id": "sx_stackoverflow",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8184,
+      "graph": {
+        "case_id": "grasu_sx_stackoverflow_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_base_e8192.slice",
+        "records": 8192,
+        "sha256": "340b2e693560fb0c07e03dd0fbb728e6a1318e0bf545bdc9e1e9a5fc3f0ea807",
+        "vertices": 2004
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 8,
+      "run_id": "grasu_so_delete_u8",
+      "scenario": "delete",
+      "update": {
+        "case_id": "grasu_sx_stackoverflow_file_order_e8192_delete_u8",
+        "path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_delete_u8.slice",
+        "records": 8,
+        "sha256": "9f5340745dd52ee16b2975e1a4c245d9b89a31f31496aac1873c9456eea4776c",
+        "vertices": 2004
+      },
+      "update_pattern": "delete",
+      "user_mutations": 8
+    },
+    {
+      "batch_size": 8,
+      "dataset_abbreviation": "SO",
+      "dataset_id": "sx_stackoverflow",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_sx_stackoverflow_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_base_e8192.slice",
+        "records": 8192,
+        "sha256": "340b2e693560fb0c07e03dd0fbb728e6a1318e0bf545bdc9e1e9a5fc3f0ea807",
+        "vertices": 2004
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 8,
+      "run_id": "grasu_so_mixed_u8",
+      "scenario": "mixed",
+      "update": {
+        "case_id": "grasu_sx_stackoverflow_file_order_e8192_mixed_u8",
+        "path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_mixed_u8.slice",
+        "records": 8,
+        "sha256": "34a552dfeada690dbd3cd09fc9d795f10da702e8bf0e694a63af4a3800fb19ad",
+        "vertices": 2004
+      },
+      "update_pattern": "mixed",
+      "user_mutations": 8
+    },
+    {
+      "batch_size": 8,
+      "dataset_abbreviation": "SO",
+      "dataset_id": "sx_stackoverflow",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_sx_stackoverflow_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_base_e8192.slice",
+        "records": 8192,
+        "sha256": "340b2e693560fb0c07e03dd0fbb728e6a1318e0bf545bdc9e1e9a5fc3f0ea807",
+        "vertices": 2004
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 16,
+      "run_id": "grasu_so_weight_change_u8",
+      "scenario": "weight_change",
+      "update": {
+        "case_id": "grasu_sx_stackoverflow_file_order_e8192_weight_change_u8",
+        "path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_weight_change_u8.slice",
+        "records": 16,
+        "sha256": "7f39ae2887c0681345b95671930074ed26c719d46f07d01783cef37e91409bb6",
+        "vertices": 2004
+      },
+      "update_pattern": "weight_change",
+      "user_mutations": 8
+    },
+    {
+      "batch_size": 64,
+      "dataset_abbreviation": "SO",
+      "dataset_id": "sx_stackoverflow",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8256,
+      "graph": {
+        "case_id": "grasu_sx_stackoverflow_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_base_e8192.slice",
+        "records": 8192,
+        "sha256": "340b2e693560fb0c07e03dd0fbb728e6a1318e0bf545bdc9e1e9a5fc3f0ea807",
+        "vertices": 2004
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 64,
+      "run_id": "grasu_so_insert_u64",
+      "scenario": "insert",
+      "update": {
+        "case_id": "grasu_sx_stackoverflow_file_order_e8192_insert_u64",
+        "path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_insert_u64.slice",
+        "records": 64,
+        "sha256": "4da17fbad4353a3a05a2bba478b2ee3a93675b4bc1ef9b2b9eee13093db38938",
+        "vertices": 2004
+      },
+      "update_pattern": "insert",
+      "user_mutations": 64
+    },
+    {
+      "batch_size": 64,
+      "dataset_abbreviation": "SO",
+      "dataset_id": "sx_stackoverflow",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8128,
+      "graph": {
+        "case_id": "grasu_sx_stackoverflow_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_base_e8192.slice",
+        "records": 8192,
+        "sha256": "340b2e693560fb0c07e03dd0fbb728e6a1318e0bf545bdc9e1e9a5fc3f0ea807",
+        "vertices": 2004
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 64,
+      "run_id": "grasu_so_delete_u64",
+      "scenario": "delete",
+      "update": {
+        "case_id": "grasu_sx_stackoverflow_file_order_e8192_delete_u64",
+        "path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_delete_u64.slice",
+        "records": 64,
+        "sha256": "2bf2c69b5f441dcb2446e4073c649dd024d8c9dc003f1335d14f1cbe7a0a18df",
+        "vertices": 2004
+      },
+      "update_pattern": "delete",
+      "user_mutations": 64
+    },
+    {
+      "batch_size": 64,
+      "dataset_abbreviation": "SO",
+      "dataset_id": "sx_stackoverflow",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_sx_stackoverflow_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_base_e8192.slice",
+        "records": 8192,
+        "sha256": "340b2e693560fb0c07e03dd0fbb728e6a1318e0bf545bdc9e1e9a5fc3f0ea807",
+        "vertices": 2004
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 64,
+      "run_id": "grasu_so_mixed_u64",
+      "scenario": "mixed",
+      "update": {
+        "case_id": "grasu_sx_stackoverflow_file_order_e8192_mixed_u64",
+        "path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_mixed_u64.slice",
+        "records": 64,
+        "sha256": "2a4657c6bf0e60555cbdec311b574d591c157f4a6e22258dfe5365addd7c32c7",
+        "vertices": 2004
+      },
+      "update_pattern": "mixed",
+      "user_mutations": 64
+    },
+    {
+      "batch_size": 64,
+      "dataset_abbreviation": "SO",
+      "dataset_id": "sx_stackoverflow",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_sx_stackoverflow_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_base_e8192.slice",
+        "records": 8192,
+        "sha256": "340b2e693560fb0c07e03dd0fbb728e6a1318e0bf545bdc9e1e9a5fc3f0ea807",
+        "vertices": 2004
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 128,
+      "run_id": "grasu_so_weight_change_u64",
+      "scenario": "weight_change",
+      "update": {
+        "case_id": "grasu_sx_stackoverflow_file_order_e8192_weight_change_u64",
+        "path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_weight_change_u64.slice",
+        "records": 128,
+        "sha256": "8b81a43bf4f51f2fe47953180a7d35e9ad527ce4c3237ad45b081cbf9f6c0f3d",
+        "vertices": 2004
+      },
+      "update_pattern": "weight_change",
+      "user_mutations": 64
+    },
+    {
+      "batch_size": 512,
+      "dataset_abbreviation": "SO",
+      "dataset_id": "sx_stackoverflow",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8704,
+      "graph": {
+        "case_id": "grasu_sx_stackoverflow_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_base_e8192.slice",
+        "records": 8192,
+        "sha256": "340b2e693560fb0c07e03dd0fbb728e6a1318e0bf545bdc9e1e9a5fc3f0ea807",
+        "vertices": 2004
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 512,
+      "run_id": "grasu_so_insert_u512",
+      "scenario": "insert",
+      "update": {
+        "case_id": "grasu_sx_stackoverflow_file_order_e8192_insert_u512",
+        "path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_insert_u512.slice",
+        "records": 512,
+        "sha256": "e47406dca4f3959726535257e0c159107afb92e344b1d0152a97566db13e336e",
+        "vertices": 2004
+      },
+      "update_pattern": "insert",
+      "user_mutations": 512
+    },
+    {
+      "batch_size": 512,
+      "dataset_abbreviation": "SO",
+      "dataset_id": "sx_stackoverflow",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 7680,
+      "graph": {
+        "case_id": "grasu_sx_stackoverflow_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_base_e8192.slice",
+        "records": 8192,
+        "sha256": "340b2e693560fb0c07e03dd0fbb728e6a1318e0bf545bdc9e1e9a5fc3f0ea807",
+        "vertices": 2004
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 512,
+      "run_id": "grasu_so_delete_u512",
+      "scenario": "delete",
+      "update": {
+        "case_id": "grasu_sx_stackoverflow_file_order_e8192_delete_u512",
+        "path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_delete_u512.slice",
+        "records": 512,
+        "sha256": "464a946a70061a6a67e2f55e843ebf6c0b277706e9766b384529174d425909c5",
+        "vertices": 2004
+      },
+      "update_pattern": "delete",
+      "user_mutations": 512
+    },
+    {
+      "batch_size": 512,
+      "dataset_abbreviation": "SO",
+      "dataset_id": "sx_stackoverflow",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_sx_stackoverflow_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_base_e8192.slice",
+        "records": 8192,
+        "sha256": "340b2e693560fb0c07e03dd0fbb728e6a1318e0bf545bdc9e1e9a5fc3f0ea807",
+        "vertices": 2004
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 512,
+      "run_id": "grasu_so_mixed_u512",
+      "scenario": "mixed",
+      "update": {
+        "case_id": "grasu_sx_stackoverflow_file_order_e8192_mixed_u512",
+        "path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_mixed_u512.slice",
+        "records": 512,
+        "sha256": "70c2c11a7ba2362e1524afb17405cb23665689e18b9a43bdf63db17c5fd1d50e",
+        "vertices": 2004
+      },
+      "update_pattern": "mixed",
+      "user_mutations": 512
+    },
+    {
+      "batch_size": 512,
+      "dataset_abbreviation": "SO",
+      "dataset_id": "sx_stackoverflow",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_sx_stackoverflow_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_base_e8192.slice",
+        "records": 8192,
+        "sha256": "340b2e693560fb0c07e03dd0fbb728e6a1318e0bf545bdc9e1e9a5fc3f0ea807",
+        "vertices": 2004
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 1024,
+      "run_id": "grasu_so_weight_change_u512",
+      "scenario": "weight_change",
+      "update": {
+        "case_id": "grasu_sx_stackoverflow_file_order_e8192_weight_change_u512",
+        "path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_weight_change_u512.slice",
+        "records": 1024,
+        "sha256": "d12ab9bccfae2c8aaf14f24769ac64b8497edd413fa5fdbdab20c8a27e8c37db",
+        "vertices": 2004
+      },
+      "update_pattern": "weight_change",
+      "user_mutations": 512
+    },
+    {
+      "batch_size": 4096,
+      "dataset_abbreviation": "SO",
+      "dataset_id": "sx_stackoverflow",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 12288,
+      "graph": {
+        "case_id": "grasu_sx_stackoverflow_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_base_e8192.slice",
+        "records": 8192,
+        "sha256": "340b2e693560fb0c07e03dd0fbb728e6a1318e0bf545bdc9e1e9a5fc3f0ea807",
+        "vertices": 2004
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 4096,
+      "run_id": "grasu_so_insert_u4096",
+      "scenario": "insert",
+      "update": {
+        "case_id": "grasu_sx_stackoverflow_file_order_e8192_insert_u4096",
+        "path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_insert_u4096.slice",
+        "records": 4096,
+        "sha256": "617e193161b38eef526d3b30dbad3308e1cd68bc236e0620fba5aae026f646c8",
+        "vertices": 2004
+      },
+      "update_pattern": "insert",
+      "user_mutations": 4096
+    },
+    {
+      "batch_size": 4096,
+      "dataset_abbreviation": "SO",
+      "dataset_id": "sx_stackoverflow",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 4096,
+      "graph": {
+        "case_id": "grasu_sx_stackoverflow_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_base_e8192.slice",
+        "records": 8192,
+        "sha256": "340b2e693560fb0c07e03dd0fbb728e6a1318e0bf545bdc9e1e9a5fc3f0ea807",
+        "vertices": 2004
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 4096,
+      "run_id": "grasu_so_delete_u4096",
+      "scenario": "delete",
+      "update": {
+        "case_id": "grasu_sx_stackoverflow_file_order_e8192_delete_u4096",
+        "path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_delete_u4096.slice",
+        "records": 4096,
+        "sha256": "8ae3f4cf4243ce50b1bd7b01e10565cdf3bec7f23a345c010d02f90ebcbe733e",
+        "vertices": 2004
+      },
+      "update_pattern": "delete",
+      "user_mutations": 4096
+    },
+    {
+      "batch_size": 4096,
+      "dataset_abbreviation": "SO",
+      "dataset_id": "sx_stackoverflow",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_sx_stackoverflow_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_base_e8192.slice",
+        "records": 8192,
+        "sha256": "340b2e693560fb0c07e03dd0fbb728e6a1318e0bf545bdc9e1e9a5fc3f0ea807",
+        "vertices": 2004
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 4096,
+      "run_id": "grasu_so_mixed_u4096",
+      "scenario": "mixed",
+      "update": {
+        "case_id": "grasu_sx_stackoverflow_file_order_e8192_mixed_u4096",
+        "path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_mixed_u4096.slice",
+        "records": 4096,
+        "sha256": "0f780c566a75cd5d815c7dadd0b7a78fd8c32721573841649a7cb6c376f539ab",
+        "vertices": 2004
+      },
+      "update_pattern": "mixed",
+      "user_mutations": 4096
+    },
+    {
+      "batch_size": 4096,
+      "dataset_abbreviation": "SO",
+      "dataset_id": "sx_stackoverflow",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_sx_stackoverflow_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_base_e8192.slice",
+        "records": 8192,
+        "sha256": "340b2e693560fb0c07e03dd0fbb728e6a1318e0bf545bdc9e1e9a5fc3f0ea807",
+        "vertices": 2004
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 8192,
+      "run_id": "grasu_so_weight_change_u4096",
+      "scenario": "weight_change",
+      "update": {
+        "case_id": "grasu_sx_stackoverflow_file_order_e8192_weight_change_u4096",
+        "path": "tests/data/candidate10_grasu_temporal/sx_stackoverflow_weight_change_u4096.slice",
+        "records": 8192,
+        "sha256": "43754a93d441501ff5e1a42b3382d4aa9947ff3842005dc908208dffb9a12297",
+        "vertices": 2004
+      },
+      "update_pattern": "weight_change",
+      "user_mutations": 4096
+    },
+    {
+      "batch_size": 1,
+      "dataset_abbreviation": "BC",
+      "dataset_id": "soc_bitcoin",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8193,
+      "graph": {
+        "case_id": "grasu_soc_bitcoin_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_base_e8192.slice",
+        "records": 8192,
+        "sha256": "e45dac169bf4b1f652244e1ae9c0253bf161edf93a0b608ce27c97cb52f57951",
+        "vertices": 10326
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 1,
+      "run_id": "grasu_bc_insert_u1",
+      "scenario": "insert",
+      "update": {
+        "case_id": "grasu_soc_bitcoin_file_order_e8192_insert_u1",
+        "path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_insert_u1.slice",
+        "records": 1,
+        "sha256": "e82e611546650b95238a1dcb06eeef95aaa335874d45c907af98b1d2db8482c5",
+        "vertices": 10326
+      },
+      "update_pattern": "insert",
+      "user_mutations": 1
+    },
+    {
+      "batch_size": 1,
+      "dataset_abbreviation": "BC",
+      "dataset_id": "soc_bitcoin",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8191,
+      "graph": {
+        "case_id": "grasu_soc_bitcoin_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_base_e8192.slice",
+        "records": 8192,
+        "sha256": "e45dac169bf4b1f652244e1ae9c0253bf161edf93a0b608ce27c97cb52f57951",
+        "vertices": 10326
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 1,
+      "run_id": "grasu_bc_delete_u1",
+      "scenario": "delete",
+      "update": {
+        "case_id": "grasu_soc_bitcoin_file_order_e8192_delete_u1",
+        "path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_delete_u1.slice",
+        "records": 1,
+        "sha256": "a4f06534ee10ad55299301a3828389fe7a8893a2c1f5d909d21906cfcb7bdd40",
+        "vertices": 10326
+      },
+      "update_pattern": "delete",
+      "user_mutations": 1
+    },
+    {
+      "batch_size": 1,
+      "dataset_abbreviation": "BC",
+      "dataset_id": "soc_bitcoin",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_soc_bitcoin_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_base_e8192.slice",
+        "records": 8192,
+        "sha256": "e45dac169bf4b1f652244e1ae9c0253bf161edf93a0b608ce27c97cb52f57951",
+        "vertices": 10326
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 2,
+      "run_id": "grasu_bc_weight_change_u1",
+      "scenario": "weight_change",
+      "update": {
+        "case_id": "grasu_soc_bitcoin_file_order_e8192_weight_change_u1",
+        "path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_weight_change_u1.slice",
+        "records": 2,
+        "sha256": "3e1dd1bf055b0b2aa81a550f211404d9f740ed68130122532fafed3b9e9a3848",
+        "vertices": 10326
+      },
+      "update_pattern": "weight_change",
+      "user_mutations": 1
+    },
+    {
+      "batch_size": 8,
+      "dataset_abbreviation": "BC",
+      "dataset_id": "soc_bitcoin",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8200,
+      "graph": {
+        "case_id": "grasu_soc_bitcoin_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_base_e8192.slice",
+        "records": 8192,
+        "sha256": "e45dac169bf4b1f652244e1ae9c0253bf161edf93a0b608ce27c97cb52f57951",
+        "vertices": 10326
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 8,
+      "run_id": "grasu_bc_insert_u8",
+      "scenario": "insert",
+      "update": {
+        "case_id": "grasu_soc_bitcoin_file_order_e8192_insert_u8",
+        "path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_insert_u8.slice",
+        "records": 8,
+        "sha256": "5ea0df5aad878b420f3484916f3cc94947e796caa1e5c40bbe732f54a0a8bee4",
+        "vertices": 10326
+      },
+      "update_pattern": "insert",
+      "user_mutations": 8
+    },
+    {
+      "batch_size": 8,
+      "dataset_abbreviation": "BC",
+      "dataset_id": "soc_bitcoin",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8184,
+      "graph": {
+        "case_id": "grasu_soc_bitcoin_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_base_e8192.slice",
+        "records": 8192,
+        "sha256": "e45dac169bf4b1f652244e1ae9c0253bf161edf93a0b608ce27c97cb52f57951",
+        "vertices": 10326
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 8,
+      "run_id": "grasu_bc_delete_u8",
+      "scenario": "delete",
+      "update": {
+        "case_id": "grasu_soc_bitcoin_file_order_e8192_delete_u8",
+        "path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_delete_u8.slice",
+        "records": 8,
+        "sha256": "4f9351b33bad53ebd619fcfddbabc59273a7582687d8e0d64a9122e0bd60449f",
+        "vertices": 10326
+      },
+      "update_pattern": "delete",
+      "user_mutations": 8
+    },
+    {
+      "batch_size": 8,
+      "dataset_abbreviation": "BC",
+      "dataset_id": "soc_bitcoin",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_soc_bitcoin_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_base_e8192.slice",
+        "records": 8192,
+        "sha256": "e45dac169bf4b1f652244e1ae9c0253bf161edf93a0b608ce27c97cb52f57951",
+        "vertices": 10326
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 8,
+      "run_id": "grasu_bc_mixed_u8",
+      "scenario": "mixed",
+      "update": {
+        "case_id": "grasu_soc_bitcoin_file_order_e8192_mixed_u8",
+        "path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_mixed_u8.slice",
+        "records": 8,
+        "sha256": "2070766a2554bec9948d22a0a4b2ff9605334133ccdc98593d924f65612871b5",
+        "vertices": 10326
+      },
+      "update_pattern": "mixed",
+      "user_mutations": 8
+    },
+    {
+      "batch_size": 8,
+      "dataset_abbreviation": "BC",
+      "dataset_id": "soc_bitcoin",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_soc_bitcoin_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_base_e8192.slice",
+        "records": 8192,
+        "sha256": "e45dac169bf4b1f652244e1ae9c0253bf161edf93a0b608ce27c97cb52f57951",
+        "vertices": 10326
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 16,
+      "run_id": "grasu_bc_weight_change_u8",
+      "scenario": "weight_change",
+      "update": {
+        "case_id": "grasu_soc_bitcoin_file_order_e8192_weight_change_u8",
+        "path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_weight_change_u8.slice",
+        "records": 16,
+        "sha256": "c493d1847bf15ecc358cd6b4a71a9108f7faa7fe93e8dc58f06c2e92f427e8a8",
+        "vertices": 10326
+      },
+      "update_pattern": "weight_change",
+      "user_mutations": 8
+    },
+    {
+      "batch_size": 64,
+      "dataset_abbreviation": "BC",
+      "dataset_id": "soc_bitcoin",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8256,
+      "graph": {
+        "case_id": "grasu_soc_bitcoin_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_base_e8192.slice",
+        "records": 8192,
+        "sha256": "e45dac169bf4b1f652244e1ae9c0253bf161edf93a0b608ce27c97cb52f57951",
+        "vertices": 10326
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 64,
+      "run_id": "grasu_bc_insert_u64",
+      "scenario": "insert",
+      "update": {
+        "case_id": "grasu_soc_bitcoin_file_order_e8192_insert_u64",
+        "path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_insert_u64.slice",
+        "records": 64,
+        "sha256": "ff6a4f5fad26f08cc218f0d0ec7b151e67a44e68fc3d33361ed2a919519ca4dc",
+        "vertices": 10326
+      },
+      "update_pattern": "insert",
+      "user_mutations": 64
+    },
+    {
+      "batch_size": 64,
+      "dataset_abbreviation": "BC",
+      "dataset_id": "soc_bitcoin",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8128,
+      "graph": {
+        "case_id": "grasu_soc_bitcoin_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_base_e8192.slice",
+        "records": 8192,
+        "sha256": "e45dac169bf4b1f652244e1ae9c0253bf161edf93a0b608ce27c97cb52f57951",
+        "vertices": 10326
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 64,
+      "run_id": "grasu_bc_delete_u64",
+      "scenario": "delete",
+      "update": {
+        "case_id": "grasu_soc_bitcoin_file_order_e8192_delete_u64",
+        "path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_delete_u64.slice",
+        "records": 64,
+        "sha256": "412741cc97fa638bd6131d08e0b6a9f4508663cc8a045a5ae45ed8667fbc91b6",
+        "vertices": 10326
+      },
+      "update_pattern": "delete",
+      "user_mutations": 64
+    },
+    {
+      "batch_size": 64,
+      "dataset_abbreviation": "BC",
+      "dataset_id": "soc_bitcoin",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_soc_bitcoin_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_base_e8192.slice",
+        "records": 8192,
+        "sha256": "e45dac169bf4b1f652244e1ae9c0253bf161edf93a0b608ce27c97cb52f57951",
+        "vertices": 10326
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 64,
+      "run_id": "grasu_bc_mixed_u64",
+      "scenario": "mixed",
+      "update": {
+        "case_id": "grasu_soc_bitcoin_file_order_e8192_mixed_u64",
+        "path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_mixed_u64.slice",
+        "records": 64,
+        "sha256": "4c74727c8c8dce8a590befa7af311610a2e767026ca42efb99bb720c40e63801",
+        "vertices": 10326
+      },
+      "update_pattern": "mixed",
+      "user_mutations": 64
+    },
+    {
+      "batch_size": 64,
+      "dataset_abbreviation": "BC",
+      "dataset_id": "soc_bitcoin",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_soc_bitcoin_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_base_e8192.slice",
+        "records": 8192,
+        "sha256": "e45dac169bf4b1f652244e1ae9c0253bf161edf93a0b608ce27c97cb52f57951",
+        "vertices": 10326
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 128,
+      "run_id": "grasu_bc_weight_change_u64",
+      "scenario": "weight_change",
+      "update": {
+        "case_id": "grasu_soc_bitcoin_file_order_e8192_weight_change_u64",
+        "path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_weight_change_u64.slice",
+        "records": 128,
+        "sha256": "58e7232a7f86f043617e3f09cca9cd6c7fb92adf0337a6cb5c891261d30bedbf",
+        "vertices": 10326
+      },
+      "update_pattern": "weight_change",
+      "user_mutations": 64
+    },
+    {
+      "batch_size": 512,
+      "dataset_abbreviation": "BC",
+      "dataset_id": "soc_bitcoin",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8704,
+      "graph": {
+        "case_id": "grasu_soc_bitcoin_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_base_e8192.slice",
+        "records": 8192,
+        "sha256": "e45dac169bf4b1f652244e1ae9c0253bf161edf93a0b608ce27c97cb52f57951",
+        "vertices": 10326
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 512,
+      "run_id": "grasu_bc_insert_u512",
+      "scenario": "insert",
+      "update": {
+        "case_id": "grasu_soc_bitcoin_file_order_e8192_insert_u512",
+        "path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_insert_u512.slice",
+        "records": 512,
+        "sha256": "8b4f0bcb3add73c2d654fff60f6c68a53d0bb993161d4b629f5db5b30150a14d",
+        "vertices": 10326
+      },
+      "update_pattern": "insert",
+      "user_mutations": 512
+    },
+    {
+      "batch_size": 512,
+      "dataset_abbreviation": "BC",
+      "dataset_id": "soc_bitcoin",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 7680,
+      "graph": {
+        "case_id": "grasu_soc_bitcoin_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_base_e8192.slice",
+        "records": 8192,
+        "sha256": "e45dac169bf4b1f652244e1ae9c0253bf161edf93a0b608ce27c97cb52f57951",
+        "vertices": 10326
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 512,
+      "run_id": "grasu_bc_delete_u512",
+      "scenario": "delete",
+      "update": {
+        "case_id": "grasu_soc_bitcoin_file_order_e8192_delete_u512",
+        "path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_delete_u512.slice",
+        "records": 512,
+        "sha256": "25d7eb97dad2d4fc5715e2fad79227a9dfa2fbaa2b647f3474e175273b3782dc",
+        "vertices": 10326
+      },
+      "update_pattern": "delete",
+      "user_mutations": 512
+    },
+    {
+      "batch_size": 512,
+      "dataset_abbreviation": "BC",
+      "dataset_id": "soc_bitcoin",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_soc_bitcoin_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_base_e8192.slice",
+        "records": 8192,
+        "sha256": "e45dac169bf4b1f652244e1ae9c0253bf161edf93a0b608ce27c97cb52f57951",
+        "vertices": 10326
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 512,
+      "run_id": "grasu_bc_mixed_u512",
+      "scenario": "mixed",
+      "update": {
+        "case_id": "grasu_soc_bitcoin_file_order_e8192_mixed_u512",
+        "path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_mixed_u512.slice",
+        "records": 512,
+        "sha256": "d3c6979b2d97045e7588f3d13a23f33ddc2d27c14ff969cc1d3dbb19dde6a848",
+        "vertices": 10326
+      },
+      "update_pattern": "mixed",
+      "user_mutations": 512
+    },
+    {
+      "batch_size": 512,
+      "dataset_abbreviation": "BC",
+      "dataset_id": "soc_bitcoin",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_soc_bitcoin_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_base_e8192.slice",
+        "records": 8192,
+        "sha256": "e45dac169bf4b1f652244e1ae9c0253bf161edf93a0b608ce27c97cb52f57951",
+        "vertices": 10326
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 1024,
+      "run_id": "grasu_bc_weight_change_u512",
+      "scenario": "weight_change",
+      "update": {
+        "case_id": "grasu_soc_bitcoin_file_order_e8192_weight_change_u512",
+        "path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_weight_change_u512.slice",
+        "records": 1024,
+        "sha256": "634bfae9ac8c079368bd8af0d10556bb6e0ac0e0bb59bf6ca623d194204432af",
+        "vertices": 10326
+      },
+      "update_pattern": "weight_change",
+      "user_mutations": 512
+    },
+    {
+      "batch_size": 4096,
+      "dataset_abbreviation": "BC",
+      "dataset_id": "soc_bitcoin",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 12288,
+      "graph": {
+        "case_id": "grasu_soc_bitcoin_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_base_e8192.slice",
+        "records": 8192,
+        "sha256": "e45dac169bf4b1f652244e1ae9c0253bf161edf93a0b608ce27c97cb52f57951",
+        "vertices": 10326
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 4096,
+      "run_id": "grasu_bc_insert_u4096",
+      "scenario": "insert",
+      "update": {
+        "case_id": "grasu_soc_bitcoin_file_order_e8192_insert_u4096",
+        "path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_insert_u4096.slice",
+        "records": 4096,
+        "sha256": "e6694ed014541135bda34cd453b644757806eff13ee6a8466903813864674da9",
+        "vertices": 10326
+      },
+      "update_pattern": "insert",
+      "user_mutations": 4096
+    },
+    {
+      "batch_size": 4096,
+      "dataset_abbreviation": "BC",
+      "dataset_id": "soc_bitcoin",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 4096,
+      "graph": {
+        "case_id": "grasu_soc_bitcoin_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_base_e8192.slice",
+        "records": 8192,
+        "sha256": "e45dac169bf4b1f652244e1ae9c0253bf161edf93a0b608ce27c97cb52f57951",
+        "vertices": 10326
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 4096,
+      "run_id": "grasu_bc_delete_u4096",
+      "scenario": "delete",
+      "update": {
+        "case_id": "grasu_soc_bitcoin_file_order_e8192_delete_u4096",
+        "path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_delete_u4096.slice",
+        "records": 4096,
+        "sha256": "9f3891f1189d91f397bcaceca186f9ab34ac2a63ec5fb12de83cf3af4ea3c00f",
+        "vertices": 10326
+      },
+      "update_pattern": "delete",
+      "user_mutations": 4096
+    },
+    {
+      "batch_size": 4096,
+      "dataset_abbreviation": "BC",
+      "dataset_id": "soc_bitcoin",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_soc_bitcoin_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_base_e8192.slice",
+        "records": 8192,
+        "sha256": "e45dac169bf4b1f652244e1ae9c0253bf161edf93a0b608ce27c97cb52f57951",
+        "vertices": 10326
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 4096,
+      "run_id": "grasu_bc_mixed_u4096",
+      "scenario": "mixed",
+      "update": {
+        "case_id": "grasu_soc_bitcoin_file_order_e8192_mixed_u4096",
+        "path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_mixed_u4096.slice",
+        "records": 4096,
+        "sha256": "357678d03abbb3fd921b3a01e521d5a37e82d81277a42b7c2c4e7b4ccd40d7b1",
+        "vertices": 10326
+      },
+      "update_pattern": "mixed",
+      "user_mutations": 4096
+    },
+    {
+      "batch_size": 4096,
+      "dataset_abbreviation": "BC",
+      "dataset_id": "soc_bitcoin",
+      "dataset_kind": "grasu_temporal_real_compact_file_order_slice",
+      "final_edges": 8192,
+      "graph": {
+        "case_id": "grasu_soc_bitcoin_file_order_e8192",
+        "path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_base_e8192.slice",
+        "records": 8192,
+        "sha256": "e45dac169bf4b1f652244e1ae9c0253bf161edf93a0b608ce27c97cb52f57951",
+        "vertices": 10326
+      },
+      "input_scope": "real_compact_slice",
+      "physical_records": 8192,
+      "run_id": "grasu_bc_weight_change_u4096",
+      "scenario": "weight_change",
+      "update": {
+        "case_id": "grasu_soc_bitcoin_file_order_e8192_weight_change_u4096",
+        "path": "tests/data/candidate10_grasu_temporal/soc_bitcoin_weight_change_u4096.slice",
+        "records": 8192,
+        "sha256": "882d339dde0eaa748e7eceb4dcc7fb54a96389fffa9c06f309bbafcb1c4f690f",
+        "vertices": 10326
+      },
+      "update_pattern": "weight_change",
+      "user_mutations": 4096
+    }
+  ],
+  "schema_version": 1
+}

@@ -1,0 +1,551 @@
+\documentclass[10pt]{article}
+\usepackage[margin=0.65in]{geometry}
+\usepackage{booktabs}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\usepackage{subcaption}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{tabularx}
+\usepackage[hidelinks]{hyperref}
+\pgfplotsset{compat=1.18}
+\hypersetup{
+  pdftitle={Spine vs. GraSU+ReGraph: Correctness-Gated Simulator Evaluation and FPGA Feasibility},
+  pdfauthor={Chuxiao Han},
+  pdfsubject={Three-algorithm simulator evaluation and routed FPGA feasibility}
+}
+
+\definecolor{spine}{HTML}{176B87}
+\definecolor{grasu}{HTML}{B44C43}
+\definecolor{muted}{HTML}{697077}
+\definecolor{complete}{HTML}{237A57}
+\definecolor{partial}{HTML}{A65F00}
+\definecolor{openitem}{HTML}{8A3F3F}
+
+\IfFileExists{data/correctness_coverage.csv}{%
+  \newcommand{\datadir}{data}%
+}{%
+  \newcommand{\datadir}{docs/paper/data}%
+}
+
+\newcommand{\missingplot}[1]{%
+  \fbox{\parbox[c][42mm][c]{0.94\linewidth}{\centering
+  \textbf{Evidence gate not complete}\\[3pt]#1}}}
+
+\newcommand{\statuscomplete}{\textcolor{complete}{\textbf{Complete}}}
+\newcommand{\statuspartial}{\textcolor{partial}{\textbf{Partial}}}
+\newcommand{\statusopen}{\textcolor{openitem}{\textbf{Open}}}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+
+\title{\textbf{Spine vs. GraSU+ReGraph}\\
+  \large Correctness-Gated Simulator Evaluation and FPGA Feasibility\\[4pt]
+  \normalsize Three Graph Algorithms $\mid$ E2E and Update Performance
+  $\mid$ Memory Behavior $\mid$ HBM Energy $\mid$ Routed Resource and Timing}
+\author{Chuxiao Han}
+\date{July 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This evidence pack evaluates normalized Spine and GraSU+ReGraph architectures
+with an execution-driven simulator and routed FPGA feasibility artifacts.  The
+reported compact-slice comparison covers weighted SSSP, full PageRank, and
+thresholded residual PageRank; every performance row is admitted only after
+architecture-precision, independent mathematical, and cross-system final-state
+checks pass.  Claims are scoped explicitly below so that compact-slice
+simulation, dense-update evidence, HBM-only energy, and non-iso-functional FPGA
+builds are not conflated.
+\end{abstract}
+
+\section*{Acceptance coverage}
+\small
+\begin{tabularx}{\linewidth}{@{}L{0.18\linewidth}L{0.13\linewidth}Y L{0.17\linewidth}@{}}
+  \toprule
+  Requirement & Status & Delivered evidence & Direct reference \\
+  \midrule
+  Correctness & \statuscomplete &
+  All reported rows pass two numerical oracles plus graph-state and
+  cross-system result checks. &
+  Figs.~\ref{fig:cross-algorithm-e2e}--\ref{fig:simulator-host-runtime} \\
+  Three algorithms and E2E & \statuscomplete &
+  Three algorithms, five real-topology 8,192-edge slices, and insertion
+  batches 1/8/64; 45 correctness-gated architecture pairs. &
+  Figs.~\ref{fig:cross-algorithm-e2e}, \ref{fig:small-batch-scaling};
+  Table~\ref{tab:compact-slices} \\
+  Update performance & \statuscomplete &
+  Full PageRank exercises the common structural path across insert, delete,
+  mixed, and weight-change scenarios; throughput counts semantic mutations. &
+  Figs.~\ref{fig:differential-scenarios}, \ref{fig:update-throughput} \\
+  Memory behavior & \statuscomplete &
+  Three-algorithm logical traffic, locality, DRAM row behavior, burst
+  amplification, and finite-queue pressure with request conservation. &
+  Figs.~\ref{fig:memory-logical}, \ref{fig:memory-physical} \\
+  Dense batches & \statuspartial &
+  Full PageRank on three real topologies at batches 64/512/4,096; broader
+  algorithm and multi-partition coverage remains open. &
+  Fig.~\ref{fig:dense-batch} \\
+  Energy & \statuspartial &
+  Matched all-controller HBM energy for all three algorithms; calibrated
+  on-chip component energy remains open. & Fig.~\ref{fig:hbm-energy} \\
+  Area and timing & \statuspartial &
+  Routed U55C resources and setup timing are available, but the Spine and
+  GraSU+ReGraph rows are not yet iso-functional. &
+  Table~\ref{tab:routed-ppa}; Fig.~\ref{fig:routed-timing} \\
+  Simulator runtime & \statuspartial &
+  All compact runs complete; a correctness-gated 50,000-edge full-PageRank
+  slice completes below the 1,800-second per-system gate. &
+  Fig.~\ref{fig:simulator-host-runtime} \\
+  Ablation and scalability & \statusopen &
+  Multi-partition comparison, replicated kernels/resources, structural
+  ablations, and full-dataset scaling are future experiments. & --- \\
+  \bottomrule
+\end{tabularx}
+\normalsize
+
+\vspace{0.6em}
+\noindent\textbf{Claim rule.}
+Every plotted performance row must pass the architecture-precision oracle,
+the independent mathematical oracle, and the cross-system final-state check.
+Compact slices and larger validation slices are reported as separate
+populations; no full-dataset or multi-partition comparison is claimed.
+
+\section{Cross-algorithm E2E ranking}
+\IfFileExists{\datadir/e2e_speedup_by_dataset_algorithm.csv}{%
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}
+    \begin{semilogyaxis}[
+      ybar, bar width=4pt, width=0.98\linewidth, height=62mm,
+      ylabel={Spine speedup over GraSU+ReGraph}, xlabel={Dataset},
+      symbolic x coords={AU,SU,WK,SO,BC}, xtick=data,
+      ymin=0.1, ymax=10, grid=major,
+      legend style={at={(0.5,1.14)},anchor=south,legend columns=3}]
+      \addplot[fill=spine] table[x=dataset,y=weighted_sssp_speedup,col sep=comma]
+        {\datadir/e2e_speedup_by_dataset_algorithm.csv};
+      \addplot[fill=grasu] table[x=dataset,y=full_pagerank_speedup,col sep=comma]
+        {\datadir/e2e_speedup_by_dataset_algorithm.csv};
+      \addplot[fill=muted] table[x=dataset,y=thresholded_residual_pagerank_speedup,col sep=comma]
+        {\datadir/e2e_speedup_by_dataset_algorithm.csv};
+      \addplot[black,dashed,sharp plot] coordinates {(AU,1) (BC,1)};
+      \legend{Weighted SSSP,Full PageRank,Residual PageRank}
+    \end{semilogyaxis}
+  \end{tikzpicture}
+  \caption{Insert-batch-8 E2E comparison on five compact temporal slices.
+  Values above one favor Spine; values below one favor GraSU+ReGraph.}
+  \label{fig:cross-algorithm-e2e}
+\end{figure}
+}{\missingplot{Waiting for five correct pairs for each of the three algorithms.}}
+
+\begin{table}[H]
+  \centering
+  \small
+  \begin{tabular}{llrrr}
+    \toprule
+    Dataset & Abbrev. & Slice vertices & Base edges & Insert pool \\
+    \midrule
+    AskUbuntu & AU & 3,409 & 8,192 & 4,096 \\
+    Super User & SU & 3,224 & 8,192 & 4,096 \\
+    WikiTalk & WK & 5,930 & 8,192 & 4,096 \\
+    Stack Overflow & SO & 2,004 & 8,192 & 4,096 \\
+    Soc-Bitcoin & BC & 10,326 & 8,192 & 4,096 \\
+    \bottomrule
+  \end{tabular}
+  \caption{Compact real-topology slices used by Fig.~\ref{fig:cross-algorithm-e2e}.
+  Each slice contains 8,192 unique non-self base edges plus a separate 4,096-edge
+  later-event insertion pool; the figure uses an eight-edge insertion batch.}
+  \label{tab:compact-slices}
+\end{table}
+
+\section{Update throughput}
+\IfFileExists{\datadir/differential_by_scenario.csv}{%
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}{0.49\linewidth}
+    \centering
+    \begin{tikzpicture}
+      \begin{axis}[ybar, width=0.92\linewidth, height=50mm, ymode=log,
+        ylabel={User updates/s (million)},
+        symbolic x coords={Insert,Delete,Mixed,Weight-chg}, xtick=data,
+        x tick label style={rotate=20,anchor=east}, ymin=0.0001,
+        legend style={at={(0.5,1.22)},anchor=south,legend columns=2,
+          font=\small,/tikz/every even column/.append style={column sep=4pt}}]
+        \addplot[fill=spine] table[x=scenario,y=spine_mups,col sep=comma]
+          {\datadir/differential_by_scenario.csv};
+        \addplot[fill=grasu] table[x=scenario,y=grasu_mups,col sep=comma]
+          {\datadir/differential_by_scenario.csv};
+        \legend{Spine, GraSU+ReGraph}
+      \end{axis}
+    \end{tikzpicture}
+    \caption{Semantic update throughput.}
+  \end{subfigure}
+  \begin{subfigure}{0.49\linewidth}
+    \centering
+    \begin{tikzpicture}
+      \begin{axis}[ybar, width=0.92\linewidth, height=50mm,
+        ylabel={Normalized E2E time},
+        symbolic x coords={Insert,Delete,Mixed,Weight-chg}, xtick=data,
+        x tick label style={rotate=20,anchor=east}, ymin=0]
+        \addplot[fill=spine] table[x=scenario,y=spine_e2e_norm,col sep=comma]
+          {\datadir/differential_by_scenario.csv};
+        \addplot[fill=grasu] table[x=scenario,y=grasu_e2e_norm,col sep=comma]
+          {\datadir/differential_by_scenario.csv};
+      \end{axis}
+    \end{tikzpicture}
+    \caption{E2E time; lower is better.}
+  \end{subfigure}
+  \caption{Full PageRank over four batch-8 differential scenarios and five
+  compact real-topology slices. Every one of the 20 architecture pairs passes
+  both numerical oracles, final graph-state checks, and cross-system rank
+  comparison. Weight change counts eight semantic updates but lowers them to
+  16 delete-old/insert-new physical records.}
+  \label{fig:differential-scenarios}
+\end{figure}
+}{\missingplot{Waiting for insert/delete/mixed/weight-change differential evidence.}}
+
+\IfFileExists{\datadir/update_throughput.csv}{%
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}
+    \begin{loglogaxis}[
+      width=0.96\linewidth, height=60mm,
+      xlabel={User mutations per batch},
+      ylabel={Successful user mutations/s ($10^6$)},
+      xtick={1,8,64}, xticklabels={1,8,64},
+      grid=major, legend style={at={(0.5,1.14)},anchor=south,legend columns=2}]
+      \addplot[spine,mark=square*] table[x=batch,y=spine_mups,col sep=comma]
+        {\datadir/update_throughput.csv};
+      \addplot[grasu,mark=triangle*] table[x=batch,y=grasu_mups,col sep=comma]
+        {\datadir/update_throughput.csv};
+      \legend{Spine, GraSU+ReGraph}
+    \end{loglogaxis}
+  \end{tikzpicture}
+  \caption{Update throughput versus batch size. The denominator is the number
+  of successful user mutations, not internal physical records.}
+  \label{fig:update-throughput}
+\end{figure}
+}{\missingplot{Waiting for batch 1/8/64 insert, delete, and mixed updates.}}
+
+\section{Small-batch scaling}
+\IfFileExists{\datadir/small_batch_by_algorithm.csv}{%
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}
+    \begin{semilogxaxis}[
+      width=0.96\linewidth, height=58mm,
+      xlabel={User mutations per batch},
+      ylabel={Spine speedup over GraSU+ReGraph},
+      xtick={1,8,64}, xticklabels={1,8,64}, ymin=0.1, ymode=log,
+      legend style={at={(0.5,1.16)},anchor=south,legend columns=3},
+      extra y ticks={1}, extra y tick labels={},
+      extra y tick style={grid=major,grid style={black,dashed}}]
+      \addplot[spine,mark=square*,
+        restrict expr to domain={\thisrow{algorithm_index}}{0:0}] table[
+        x=batch,y=spine_speedup,col sep=comma]
+        {\datadir/small_batch_by_algorithm.csv};
+      \addplot[grasu,mark=triangle*,
+        restrict expr to domain={\thisrow{algorithm_index}}{1:1}] table[
+        x=batch,y=spine_speedup,col sep=comma]
+        {\datadir/small_batch_by_algorithm.csv};
+      \addplot[muted,mark=diamond*,
+        restrict expr to domain={\thisrow{algorithm_index}}{2:2}] table[
+        x=batch,y=spine_speedup,col sep=comma]
+        {\datadir/small_batch_by_algorithm.csv};
+      \legend{Weighted SSSP,Full PageRank,Residual PageRank}
+    \end{semilogxaxis}
+  \end{tikzpicture}
+  \caption{Insertion E2E scaling over five compact real-topology slices.
+  Values above one favor Spine. Each point is the geometric mean of five
+  correctness-gated architecture pairs.}
+  \label{fig:small-batch-scaling}
+\end{figure}
+}{\missingplot{Waiting for the three-algorithm batch 1/8/64 matrix.}}
+
+\section{Memory traffic and locality}
+\IfFileExists{\datadir/memory_by_algorithm.csv}{%
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}{0.49\linewidth}
+    \centering
+    \begin{tikzpicture}
+      \begin{axis}[ybar, width=0.9\linewidth, height=50mm, ymode=log,
+        ylabel={Requested bytes / batch}, symbolic x coords={SSSP,Full PR,Residual PR},
+        xtick=data, ymin=1,
+        legend style={at={(0.5,1.22)},anchor=south,legend columns=2,
+          font=\small,/tikz/every even column/.append style={column sep=4pt}}]
+        \addplot[fill=spine] table[x=algorithm,y=spine_bytes,col sep=comma]
+          {\datadir/memory_by_algorithm.csv};
+        \addplot[fill=grasu] table[x=algorithm,y=grasu_bytes,col sep=comma]
+          {\datadir/memory_by_algorithm.csv};
+        \legend{Spine, GraSU+ReGraph}
+      \end{axis}
+    \end{tikzpicture}
+    \caption{Logical requested bytes.}
+  \end{subfigure}
+  \begin{subfigure}{0.49\linewidth}
+    \centering
+    \begin{tikzpicture}
+      \begin{axis}[ybar, width=0.9\linewidth, height=50mm,
+        ylabel={Discontinuous-byte fraction}, symbolic x coords={SSSP,Full PR,Residual PR},
+        xtick=data, ymin=0, ymax=1]
+        \addplot[fill=spine] table[x=algorithm,y=spine_discontinuous,col sep=comma]
+          {\datadir/memory_by_algorithm.csv};
+        \addplot[fill=grasu] table[x=algorithm,y=grasu_discontinuous,col sep=comma]
+          {\datadir/memory_by_algorithm.csv};
+      \end{axis}
+    \end{tikzpicture}
+    \caption{Logical request-stream locality.}
+  \end{subfigure}
+  \caption{Phase-aligned accepted backend traffic for insert batches of eight
+  over five compact real-topology slices (mean bytes per pair).  Locality is
+  classified per initiator and operation after excluding each stream's first
+  request.  It is not a DRAM row-hit metric and excludes burst amplification.}
+  \label{fig:memory-logical}
+\end{figure}
+}{\missingplot{Waiting for phase-aligned accepted-request traffic evidence.}}
+
+\IfFileExists{\datadir/physical_memory_by_algorithm.csv}{%
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}{0.49\linewidth}
+    \centering
+    \begin{tikzpicture}
+      \begin{axis}[ybar, width=0.9\linewidth, height=48mm,
+        ylabel={DRAM row-hit rate}, ymin=0, ymax=1,
+        symbolic x coords={SSSP,Full PR,Residual PR}, xtick=data,
+        legend style={at={(0.5,1.22)},anchor=south,legend columns=2,
+          font=\small,/tikz/every even column/.append style={column sep=4pt}}]
+        \addplot[fill=spine] table[x=algorithm,y=spine_row_hit_rate,col sep=comma]
+          {\datadir/physical_memory_by_algorithm.csv};
+        \addplot[fill=grasu] table[x=algorithm,y=grasu_row_hit_rate,col sep=comma]
+          {\datadir/physical_memory_by_algorithm.csv};
+        \legend{Spine, GraSU+ReGraph}
+      \end{axis}
+    \end{tikzpicture}
+    \caption{Controller row locality.}
+  \end{subfigure}
+  \begin{subfigure}{0.49\linewidth}
+    \centering
+    \begin{tikzpicture}
+      \begin{axis}[ybar, width=0.9\linewidth, height=48mm, ymode=log,
+        ylabel={64B transfer / requested byte}, ymin=1,
+        symbolic x coords={SSSP,Full PR,Residual PR}, xtick=data]
+        \addplot[fill=spine] table[x=algorithm,y=spine_burst_amplification,col sep=comma]
+          {\datadir/physical_memory_by_algorithm.csv};
+        \addplot[fill=grasu] table[x=algorithm,y=grasu_burst_amplification,col sep=comma]
+          {\datadir/physical_memory_by_algorithm.csv};
+      \end{axis}
+    \end{tikzpicture}
+    \caption{Burst amplification.}
+  \end{subfigure}
+
+  \begin{subfigure}{0.72\linewidth}
+    \centering
+    \begin{tikzpicture}
+      \begin{axis}[ybar, width=0.94\linewidth, height=48mm, ymode=log,
+        ylabel={HBM-queue stall events / request}, ymin=0.01,
+        symbolic x coords={SSSP,Full PR,Residual PR}, xtick=data]
+        \addplot[fill=spine] table[x=algorithm,y=spine_hbm_stalls_per_request,col sep=comma]
+          {\datadir/physical_memory_by_algorithm.csv};
+        \addplot[fill=grasu] table[x=algorithm,y=grasu_hbm_stalls_per_request,col sep=comma]
+          {\datadir/physical_memory_by_algorithm.csv};
+      \end{axis}
+    \end{tikzpicture}
+    \caption{Shared-backend pressure.}
+  \end{subfigure}
+  \caption{Phase-aligned physical HBM behavior for batch-8 insertion on five
+  compact real-topology slices.  The DRAMSim3 command ledger equals accepted
+  AXI requests on every row. Stall values count rejected port attempts, so
+  multiple events may occur in one cycle. Spine weighted SSSP uses an exact
+  quiescent cold-prefix subtraction to align its controller window.}
+  \label{fig:memory-physical}
+\end{figure}
+}{\missingplot{Waiting for complete FIFO/AXI/HBM backpressure evidence.}}
+
+\section{Dense-batch behavior}
+\IfFileExists{\datadir/dense_batch.csv}{%
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}
+    \begin{semilogxaxis}[
+      width=0.96\linewidth, height=60mm,
+      xlabel={Updated edges / base edges}, ylabel={Spine speedup},
+      xmin=0.005, xmax=0.7,
+      grid=major,
+      legend style={at={(0.5,1.14)},anchor=south,legend columns=4}]
+      \addplot[spine,mark=square*] table[x=update_ratio,y=AU_speedup,col sep=comma]
+        {\datadir/dense_batch.csv};
+      \addplot[grasu,mark=triangle*] table[x=update_ratio,y=WK_speedup,col sep=comma]
+        {\datadir/dense_batch.csv};
+      \addplot[muted,mark=diamond*] table[x=update_ratio,y=BC_speedup,col sep=comma]
+        {\datadir/dense_batch.csv};
+      \addplot[black,very thick,mark=*] table[x=update_ratio,y=geomean_speedup,col sep=comma]
+        {\datadir/dense_batch.csv};
+      \addplot[muted,dashed] coordinates {(0.005,1) (0.7,1)};
+      \legend{AU,WK,BC,Geomean}
+    \end{semilogxaxis}
+  \end{tikzpicture}
+  \caption{Dense-update crossover on three compact real topologies. Absolute
+  batch size is retained in the companion data table.}
+  \label{fig:dense-batch}
+\end{figure}
+}{\missingplot{Waiting for real-topology batch 64/512/4096 sweeps.}}
+
+\section{Matched HBM energy}
+\IfFileExists{\datadir/hbm_energy_by_algorithm.csv}{%
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}
+    \begin{semilogyaxis}[
+      ybar, bar width=8pt, width=0.9\linewidth, height=58mm,
+      ylabel={GraSU+ReGraph / Spine HBM energy},
+      symbolic x coords={Weighted SSSP,Full PR,Residual PR}, xtick=data,
+      ymin=0.5, ymax=4, grid=major,
+      legend style={at={(0.5,1.15)},anchor=south,legend columns=3}]
+      \addplot[fill=spine] table[x=algorithm,y=grasu_to_spine_total_hbm,col sep=comma]
+        {\datadir/hbm_energy_by_algorithm.csv};
+      \addplot[fill=grasu] table[x=algorithm,y=grasu_to_spine_command_dynamic,col sep=comma]
+        {\datadir/hbm_energy_by_algorithm.csv};
+      \addplot[fill=muted] table[x=algorithm,y=grasu_to_spine_background_refresh,col sep=comma]
+        {\datadir/hbm_energy_by_algorithm.csv};
+      \addplot[black,dashed,sharp plot] coordinates {(Weighted SSSP,1) (Residual PR,1)};
+      \legend{Total HBM,Command dynamic,Background + refresh}
+    \end{semilogyaxis}
+  \end{tikzpicture}
+  \caption{Matched all-32-controller DRAMSim3 energy on three compact holdout
+  slices. The Spine SSSP values use exact per-controller subtraction of a
+  reproduced quiescent cold prefix. Values above one mean GraSU+ReGraph uses
+  more energy. This is HBM energy only, not total accelerator or board energy;
+  asymmetric projected on-chip energy is intentionally excluded.}
+  \label{fig:hbm-energy}
+\end{figure}
+}{\missingplot{Waiting for matched all-controller HBM energy evidence.}}
+
+\section{Simulator host runtime}
+\IfFileExists{\datadir/simulator_host_runtime.csv}{%
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}{0.325\linewidth}
+    \centering
+    \begin{tikzpicture}
+      \begin{semilogyaxis}[
+        ybar, bar width=3pt, width=0.98\linewidth, height=54mm,
+        title={Weighted SSSP}, ylabel={Host wall time (s)},
+        symbolic x coords={AU,SU,WK,SO,BC}, xtick=data,
+        ymin=1, ymax=1000, ytick={1,10,100,1000}, grid=major,
+        x tick label style={font=\scriptsize}]
+        \addplot[fill=spine] table[x=dataset,y=sssp_spine_seconds,col sep=comma]
+          {\datadir/simulator_host_runtime.csv};
+        \addplot[fill=grasu] table[x=dataset,y=sssp_grasu_seconds,col sep=comma]
+          {\datadir/simulator_host_runtime.csv};
+      \end{semilogyaxis}
+    \end{tikzpicture}
+  \end{subfigure}%
+  \begin{subfigure}{0.325\linewidth}
+    \centering
+    \begin{tikzpicture}
+      \begin{semilogyaxis}[
+        ybar, bar width=3pt, width=0.98\linewidth, height=54mm,
+        title={Full PageRank},
+        symbolic x coords={AU,SU,WK,SO,BC}, xtick=data,
+        ymin=1, ymax=1000, ytick={1,10,100,1000}, grid=major,
+        yticklabels={}, x tick label style={font=\scriptsize},
+        legend style={at={(0.5,1.30)},anchor=south,legend columns=2,
+          font=\small,/tikz/every even column/.append style={column sep=5pt}}]
+        \addplot[fill=spine] table[x=dataset,y=full_pr_spine_seconds,col sep=comma]
+          {\datadir/simulator_host_runtime.csv};
+        \addplot[fill=grasu] table[x=dataset,y=full_pr_grasu_seconds,col sep=comma]
+          {\datadir/simulator_host_runtime.csv};
+        \legend{Spine, GraSU+ReGraph}
+      \end{semilogyaxis}
+    \end{tikzpicture}
+  \end{subfigure}%
+  \begin{subfigure}{0.325\linewidth}
+    \centering
+    \begin{tikzpicture}
+      \begin{semilogyaxis}[
+        ybar, bar width=3pt, width=0.98\linewidth, height=54mm,
+        title={Residual PageRank},
+        symbolic x coords={AU,SU,WK,SO,BC}, xtick=data,
+        ymin=1, ymax=1000, ytick={1,10,100,1000}, grid=major,
+        yticklabels={}, x tick label style={font=\scriptsize}]
+        \addplot[fill=spine] table[x=dataset,y=residual_pr_spine_seconds,col sep=comma]
+          {\datadir/simulator_host_runtime.csv};
+        \addplot[fill=grasu] table[x=dataset,y=residual_pr_grasu_seconds,col sep=comma]
+          {\datadir/simulator_host_runtime.csv};
+      \end{semilogyaxis}
+    \end{tikzpicture}
+  \end{subfigure}
+  \caption{Observed simulator host runtime for the archived insertion-batch-8
+  runs. Every dataset has 8,192 base edges, while vertex counts vary from
+  2,004 to 10,326 as listed in Table~\ref{tab:compact-slices}. Each bar is one
+  previously executed child-process observation from a parallel experiment
+  matrix, not a repeated controlled benchmark. These values are engineering
+  evidence for simulator-throughput planning and are not accelerator latency.}
+  \label{fig:simulator-host-runtime}
+\end{figure}
+\noindent A separate correctness-gated full-PageRank run on a
+19,399-vertex/50,000-edge Amazon-2008 slice completed in 389.088 seconds for
+Spine and 7.873 seconds for GraSU+ReGraph.  This establishes the current
+large-slice runtime gate for full PageRank only; it is not a full-dataset or
+three-algorithm scaling claim.
+}{\missingplot{Waiting for archived host-runtime observations.}}
+
+\section{Routed HLS feasibility}
+\IfFileExists{\datadir/ppa_summary.csv}{%
+\begin{table}[H]
+  \centering
+  \small
+  \resizebox{\linewidth}{!}{%
+  \pgfplotstabletypeset[
+    col sep=comma,
+    columns={label,target_mhz,lut,reg,bram,uram,dsp,wns_ns,timing},
+    columns/label/.style={string type,column name={Build}},
+    columns/target_mhz/.style={column name={Target (MHz)},fixed,precision=0},
+    columns/lut/.style={column name={LUT},fixed,precision=0},
+    columns/reg/.style={column name={REG},fixed,precision=0},
+    columns/bram/.style={column name={BRAM},fixed,precision=0},
+    columns/uram/.style={column name={URAM},fixed,precision=0},
+    columns/dsp/.style={column name={DSP},fixed,precision=0},
+    columns/wns_ns/.style={column name={WNS (ns)},fixed,precision=3},
+    columns/timing/.style={string type,column name={Setup}},
+    every head row/.style={before row=\toprule,after row=\midrule},
+    every last row/.style={after row=\bottomrule}
+  ]{\datadir/ppa_summary.csv}}
+  \caption{Routed U55C HLS feasibility at each row's stated data-clock target.
+  Spine is the latest source-identical 152 MHz implementation; the
+  GraSU+ReGraph implementations target 150 MHz. These
+  builds are not iso-functional: Spine is the native SSSP core baseline,
+  whereas the GraSU+ReGraph rows are algorithm-specific normalized whole
+  systems. Absolute resource ratios are therefore not used as a comparative
+  performance claim.}
+  \label{tab:routed-ppa}
+\end{table}
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      ybar, bar width=14pt, width=0.92\linewidth, height=56mm,
+      ylabel={Worst negative slack (ns)},
+      symbolic x coords={Spine SSSP,G+R SSSP,G+R Full PR,G+R Residual PR},
+      xtick=data, x tick label style={rotate=12,anchor=north east},
+      ymin=-0.15, ymax=0.025, grid=major,
+      scaled y ticks=false,
+      yticklabel style={/pgf/number format/fixed,/pgf/number format/precision=3},
+      nodes near coords={\pgfmathprintnumber[fixed,precision=3]{\pgfplotspointmeta}},
+      nodes near coords style={font=\small}]
+      \addplot[fill=spine] table[x=label,y=wns_ns,col sep=comma]
+        {\datadir/ppa_summary.csv};
+      \addplot[muted,dashed,sharp plot,nodes near coords={}] coordinates
+        {(Spine SSSP,0) (G+R Residual PR,0)};
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Post-route setup margin at each row's stated target (152 MHz for
+  Spine and 150 MHz for GraSU+ReGraph). Non-negative WNS closes timing;
+  negative WNS identifies the remaining target miss.}
+  \label{fig:routed-timing}
+\end{figure}
+}{\missingplot{Waiting for routed artifacts for Spine and all three GraSU+ReGraph algorithms.}}
+
+\end{document}

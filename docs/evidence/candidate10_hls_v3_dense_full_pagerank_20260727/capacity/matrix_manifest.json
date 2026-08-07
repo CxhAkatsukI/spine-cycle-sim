@@ -1,0 +1,34 @@
+{
+  "algorithm": "full_pagerank",
+  "all_expected_capacity_outcomes_reproduced": true,
+  "all_successful_runs_correct": true,
+  "capability_catalog": "/home/chuxiao/spine-cycle-sim-runtime-audit/configs/contracts/grasu_regraph_candidate10_hls_capabilities_v3.json",
+  "capability_catalog_sha256": "25794099eaba54d5b693afd626c563afba19d687b71609c7cd46bf4c0cc13f1c",
+  "capacity_rows_sha256": "1593bcff3a73ed4014d05a744bcaa88ff67dd97406e9ee0662adbf24215fa018",
+  "claim_class": "architecture_capacity_support_boundary",
+  "execution_sha256": "08feec2f1f8ab3049ecba14d443c8cc0f2b8c116a47cbace7105d16cffdef9d3",
+  "grasu_profile": "/home/chuxiao/spine-cycle-sim-runtime-audit/configs/architectures/grasu_regraph_candidate10_normalized_hls_pagerank_v3.json",
+  "grasu_profile_sha256": "7155f87efa086a6563e80296f8460db14716e2f60f277ea5997f1d976897877e",
+  "input_manifest": "/home/chuxiao/spine-cycle-sim-runtime-audit/configs/experiments/hls_full_pagerank_dense_batch_sweep_20260726.json",
+  "input_manifest_sha256": "4f6aa83ecdc1aa048865dcc4f22d8d2a754fe5dfab7b9814688abb9c957077c6",
+  "limitations": [
+    "GraSU failures above 4096 updates are static checks against the pinned PageRank profile; no latency ratio is inferred from a capacity rejection.",
+    "Spine capacity is the current cold-family L1 layout boundary for this intentionally single-family workload.",
+    "Capacity evidence is not a performance comparison."
+  ],
+  "matrix_id": "spine_full_pagerank_dense_capacity_cliff_20260726",
+  "matrix_wall_seconds": 223.65870712790638,
+  "performance_ratio_reason": "Capacity support is compared, but latency ratios are undefined when either architecture cannot enter the common successful timing window.",
+  "performance_ratio_valid": false,
+  "profile_set": "candidate10_hls_v3",
+  "schema_version": 1,
+  "selected_run_ids": [
+    "dense_source_concentrated_u8192_v8192",
+    "dense_source_concentrated_u16384_v8192",
+    "dense_source_scattered_u8192_v8192",
+    "dense_source_scattered_u16384_v8192"
+  ],
+  "spine_profile": "/home/chuxiao/spine-cycle-sim-runtime-audit/configs/architectures/spine_candidate10_normalized_v1.json",
+  "spine_profile_sha256": "4e31633c55abfdc57fd4537119d6abb6d7a4f0313dcfc81332fa0ed0a6320c0a",
+  "status": "PASS"
+}

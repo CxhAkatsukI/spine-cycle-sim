@@ -1,0 +1,325 @@
+diff --git a/src/command_queue.h b/src/command_queue.h
+index 5bc8d3f..b2f6349 100644
+--- a/src/command_queue.h
++++ b/src/command_queue.h
+@@ -21,6 +21,7 @@ class CommandQueue {
+     Command GetCommandToIssue();
+     Command FinishRefresh();
+     void ClockTick() { clk_ += 1; };
++    void AdvanceIdle(uint64_t cycles) { clk_ += cycles; }
+     bool WillAcceptCommand(int rank, int bankgroup, int bank) const;
+     bool AddCommand(Command cmd);
+     bool QueueEmpty() const;
+diff --git a/src/controller.cc b/src/controller.cc
+index a582dcc..0e4af21 100644
+--- a/src/controller.cc
++++ b/src/controller.cc
+@@ -1,4 +1,5 @@
+ #include "controller.h"
++#include <cassert>
+ #include <iomanip>
+ #include <iostream>
+ #include <limits>
+@@ -148,6 +149,50 @@ void Controller::ClockTick() {
+     return;
+ }
+ 
++bool Controller::CanAdvanceIdle() const {
++    const bool deferred_writes_stable =
++        !is_unified_queue_ && write_draining_ == 0 &&
++        write_buffer_.size() <= 8 &&
++        pending_wr_q_.size() == write_buffer_.size();
++    if (config_.enable_self_refresh || !unified_queue_.empty() ||
++        !read_queue_.empty() ||
++        (!write_buffer_.empty() && !deferred_writes_stable) ||
++        !pending_rd_q_.empty() ||
++        (!pending_wr_q_.empty() && !deferred_writes_stable) ||
++        !return_queue_.empty() || !cmd_queue_.QueueEmpty() ||
++        channel_state_.IsRefreshWaiting()) {
++        return false;
++    }
++    for (int rank = 0; rank < config_.ranks; ++rank) {
++        if (channel_state_.IsRankSelfRefreshing(rank)) {
++            return false;
++        }
++    }
++    return true;
++}
++
++uint64_t Controller::ClocksUntilRefresh() const {
++    return refresh_.ClocksUntilRefresh();
++}
++
++void Controller::AdvanceIdle(uint64_t cycles) {
++    assert(CanAdvanceIdle());
++    assert(cycles > 0 && cycles <= ClocksUntilRefresh());
++    for (int rank = 0; rank < config_.ranks; ++rank) {
++        if (channel_state_.IsAllBankIdleInRank(rank)) {
++            simple_stats_.IncrementVecBy("all_bank_idle_cycles", rank, cycles);
++            channel_state_.rank_idle_cycles[rank] += static_cast<int>(cycles);
++        } else {
++            simple_stats_.IncrementVecBy("rank_active_cycles", rank, cycles);
++            channel_state_.rank_idle_cycles[rank] = 0;
++        }
++    }
++    clk_ += cycles;
++    cmd_queue_.AdvanceIdle(cycles);
++    refresh_.AdvanceIdle(cycles);
++    simple_stats_.IncrementBy("num_cycles", cycles);
++}
++
+ bool Controller::WillAcceptTransaction(uint64_t hex_addr, bool is_write) const {
+     if (is_unified_queue_) {
+         return unified_queue_.size() < unified_queue_.capacity();
+diff --git a/src/controller.h b/src/controller.h
+index 77bd6af..d46bcae 100644
+--- a/src/controller.h
++++ b/src/controller.h
+@@ -28,6 +28,9 @@ class Controller {
+     Controller(int channel, const Config &config, const Timing &timing);
+ #endif  // THERMAL
+     void ClockTick();
++    [[nodiscard]] bool CanAdvanceIdle() const;
++    [[nodiscard]] uint64_t ClocksUntilRefresh() const;
++    void AdvanceIdle(uint64_t cycles);
+     bool WillAcceptTransaction(uint64_t hex_addr, bool is_write) const;
+     bool AddTransaction(Transaction trans);
+     int QueueUsage() const;
+diff --git a/src/dram_system.cc b/src/dram_system.cc
+index 86f35f8..da48b73 100644
+--- a/src/dram_system.cc
++++ b/src/dram_system.cc
+@@ -1,5 +1,6 @@
+ #include "dram_system.h"
+ 
++#include <algorithm>
+ #include <assert.h>
+ 
+ namespace dramsim3 {
+@@ -169,6 +170,45 @@ void JedecDRAMSystem::ClockTick() {
+     return;
+ }
+ 
++bool JedecDRAMSystem::IsIdle() const {
++    return std::all_of(ctrls_.begin(), ctrls_.end(),
++                       [](const Controller* controller) {
++                           return controller->CanAdvanceIdle();
++                       });
++}
++
++void JedecDRAMSystem::AdvanceIdle(uint64_t cycles) {
++    while (cycles > 0) {
++        if (!IsIdle()) {
++            ClockTick();
++            --cycles;
++            continue;
++        }
++        uint64_t step = cycles;
++        for (const Controller* controller : ctrls_) {
++            step = std::min(step, controller->ClocksUntilRefresh());
++        }
++        const uint64_t epoch_remainder = clk_ % config_.epoch_period;
++        const uint64_t until_epoch =
++            epoch_remainder == 0 ? config_.epoch_period
++                                 : config_.epoch_period - epoch_remainder;
++        step = std::min(step, until_epoch);
++        if (step == 0) {
++            ClockTick();
++            --cycles;
++            continue;
++        }
++        for (Controller* controller : ctrls_) {
++            controller->AdvanceIdle(step);
++        }
++        clk_ += step;
++        cycles -= step;
++        if (clk_ % config_.epoch_period == 0) {
++            PrintEpochStats();
++        }
++    }
++}
++
+ IdealDRAMSystem::IdealDRAMSystem(Config &config, const std::string &output_dir,
+                                  std::function<void(uint64_t)> read_callback,
+                                  std::function<void(uint64_t)> write_callback)
+diff --git a/src/dram_system.h b/src/dram_system.h
+index 7864b2c..0351c6e 100644
+--- a/src/dram_system.h
++++ b/src/dram_system.h
+@@ -32,6 +32,8 @@ class BaseDRAMSystem {
+                                        bool is_write) const = 0;
+     virtual bool AddTransaction(uint64_t hex_addr, bool is_write) = 0;
+     virtual void ClockTick() = 0;
++    virtual bool IsIdle() const = 0;
++    virtual void AdvanceIdle(uint64_t cycles) = 0;
+     int GetChannel(uint64_t hex_addr) const;
+ 
+     std::function<void(uint64_t req_id)> read_callback_, write_callback_;
+@@ -67,6 +69,8 @@ class JedecDRAMSystem : public BaseDRAMSystem {
+     bool WillAcceptTransaction(uint64_t hex_addr, bool is_write) const override;
+     bool AddTransaction(uint64_t hex_addr, bool is_write) override;
+     void ClockTick() override;
++    bool IsIdle() const override;
++    void AdvanceIdle(uint64_t cycles) override;
+ };
+ 
+ // Model a memorysystem with an infinite bandwidth and a fixed latency (possibly
+@@ -84,6 +88,8 @@ class IdealDRAMSystem : public BaseDRAMSystem {
+     };
+     bool AddTransaction(uint64_t hex_addr, bool is_write) override;
+     void ClockTick() override;
++    bool IsIdle() const override { return infinite_buffer_q_.empty(); }
++    void AdvanceIdle(uint64_t cycles) override { clk_ += cycles; }
+ 
+    private:
+     int latency_;
+diff --git a/src/dramsim3.h b/src/dramsim3.h
+index 31a3c8a..d28463f 100644
+--- a/src/dramsim3.h
++++ b/src/dramsim3.h
+@@ -14,6 +14,8 @@ class MemorySystem {
+                  std::function<void(uint64_t)> write_callback);
+     ~MemorySystem();
+     void ClockTick();
++    bool IsIdle() const;
++    void AdvanceIdle(uint64_t cycles);
+     void RegisterCallbacks(std::function<void(uint64_t)> read_callback,
+                            std::function<void(uint64_t)> write_callback);
+     double GetTCK() const;
+diff --git a/src/hmc.h b/src/hmc.h
+index f9900c6..24d77e2 100644
+--- a/src/hmc.h
++++ b/src/hmc.h
+@@ -112,6 +112,12 @@ class HMCMemorySystem : public BaseDRAMSystem {
+     // we can unify them as one but then we'll have to convert all the
+     // slow dram time units to faster logic units...
+     void ClockTick() override;
++    bool IsIdle() const override { return false; }
++    void AdvanceIdle(uint64_t cycles) override {
++        while (cycles-- > 0) {
++            ClockTick();
++        }
++    }
+ 
+     // had to have 3 insert interfaces cuz HMC is so different...
+     bool WillAcceptTransaction(uint64_t hex_addr, bool is_write) const override;
+diff --git a/src/memory_system.cc b/src/memory_system.cc
+index 739ea1a..80e1296 100644
+--- a/src/memory_system.cc
++++ b/src/memory_system.cc
+@@ -23,6 +23,12 @@ MemorySystem::~MemorySystem() {
+ 
+ void MemorySystem::ClockTick() { dram_system_->ClockTick(); }
+ 
++bool MemorySystem::IsIdle() const { return dram_system_->IsIdle(); }
++
++void MemorySystem::AdvanceIdle(uint64_t cycles) {
++    dram_system_->AdvanceIdle(cycles);
++}
++
+ double MemorySystem::GetTCK() const { return config_->tCK; }
+ 
+ int MemorySystem::GetBusBits() const { return config_->bus_width; }
+diff --git a/src/memory_system.h b/src/memory_system.h
+index 57eeca1..8c54cfe 100644
+--- a/src/memory_system.h
++++ b/src/memory_system.h
+@@ -18,6 +18,8 @@ class MemorySystem {
+                  std::function<void(uint64_t)> write_callback);
+     ~MemorySystem();
+     void ClockTick();
++    bool IsIdle() const;
++    void AdvanceIdle(uint64_t cycles);
+     void RegisterCallbacks(std::function<void(uint64_t)> read_callback,
+                            std::function<void(uint64_t)> write_callback);
+     double GetTCK() const;
+diff --git a/src/refresh.cc b/src/refresh.cc
+index 31cbc9f..291a88e 100644
+--- a/src/refresh.cc
++++ b/src/refresh.cc
+@@ -1,5 +1,7 @@
+ #include "refresh.h"
+ 
++#include <cassert>
++
+ namespace dramsim3 {
+ Refresh::Refresh(const Config &config, ChannelState &channel_state)
+     : clk_(0),
+@@ -26,6 +28,19 @@ void Refresh::ClockTick() {
+     return;
+ }
+ 
++uint64_t Refresh::ClocksUntilRefresh() const {
++    if (clk_ == 0) {
++        return static_cast<uint64_t>(refresh_interval_);
++    }
++    const uint64_t remainder = clk_ % refresh_interval_;
++    return remainder == 0 ? 0 : refresh_interval_ - remainder;
++}
++
++void Refresh::AdvanceIdle(uint64_t cycles) {
++    assert(cycles > 0 && cycles <= ClocksUntilRefresh());
++    clk_ += cycles;
++}
++
+ void Refresh::InsertRefresh() {
+     switch (refresh_policy_) {
+         // Simultaneous all rank refresh
+diff --git a/src/refresh.h b/src/refresh.h
+index 257c941..2a3375f 100644
+--- a/src/refresh.h
++++ b/src/refresh.h
+@@ -1,6 +1,7 @@
+ #ifndef __REFRESH_H
+ #define __REFRESH_H
+ 
++#include <cstdint>
+ #include <vector>
+ #include "channel_state.h"
+ #include "common.h"
+@@ -12,6 +13,8 @@ class Refresh {
+    public:
+     Refresh(const Config& config, ChannelState& channel_state);
+     void ClockTick();
++    [[nodiscard]] uint64_t ClocksUntilRefresh() const;
++    void AdvanceIdle(uint64_t cycles);
+ 
+    private:
+     uint64_t clk_;
+@@ -29,4 +32,4 @@ class Refresh {
+ 
+ }  // namespace dramsim3
+ 
+-#endif
+\ No newline at end of file
++#endif
+diff --git a/src/simple_stats.h b/src/simple_stats.h
+index 2e03892..89cb517 100644
+--- a/src/simple_stats.h
++++ b/src/simple_stats.h
+@@ -17,13 +17,17 @@ class SimpleStats {
+     // incrementing counter
+     void Increment(const std::string name) { epoch_counters_[name] += 1; }
+ 
++    void IncrementBy(const std::string name, uint64_t count) {
++        epoch_counters_[name] += count;
++    }
++
+     // incrementing for vec counter
+     void IncrementVec(const std::string name, int pos) {
+         epoch_vec_counters_[name][pos] += 1;
+     }
+ 
+     // increment vec counter by number
+-    void IncrementVecBy(const std::string name, int pos, int num) {
++    void IncrementVecBy(const std::string name, int pos, uint64_t num) {
+         epoch_vec_counters_[name][pos] += num;
+     }
+ 
+@@ -102,4 +106,4 @@ class SimpleStats {
+ };
+ 
+ }  // namespace dramsim3
+-#endif
+\ No newline at end of file
++#endif

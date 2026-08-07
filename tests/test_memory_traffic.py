@@ -4,6 +4,7 @@ import copy
 import unittest
 
 from spine_cycle_sim.experiments.memory_traffic import (
+    backpressure_metrics,
     memory_traffic_metrics,
     phase_memory_is_valid,
     phase_memory_metrics,
@@ -141,6 +142,30 @@ class MemoryTrafficTests(unittest.TestCase):
                 compute_requests=4,
             )
         )
+
+    def test_reports_complete_three_layer_backpressure_contract(self) -> None:
+        metrics = backpressure_metrics(
+            {
+                "axis_push_stalls": 2,
+                "axi_issue_stalls": 3,
+                "hbm_queue_stalls": 5,
+                "hbm_response_queue_stalls": 7,
+            },
+            axis_push_stalls=2,
+        )
+        self.assertTrue(metrics["stall_metrics_complete"])
+        self.assertEqual(metrics["axis_push_stalls"], 2)
+        self.assertEqual(metrics["axi_issue_stalls"], 3)
+        self.assertEqual(metrics["hbm_queue_stalls"], 5)
+
+    def test_legacy_backpressure_cannot_close_complete_gate(self) -> None:
+        metrics = backpressure_metrics(
+            {"backend_submit_stalls": 5, "backend_response_queue_stalls": 7},
+            axis_push_stalls=2,
+        )
+        self.assertFalse(metrics["stall_metrics_complete"])
+        self.assertEqual(metrics["axi_issue_stalls"], "")
+        self.assertEqual(metrics["hbm_queue_stalls"], 5)
 
 
 if __name__ == "__main__":

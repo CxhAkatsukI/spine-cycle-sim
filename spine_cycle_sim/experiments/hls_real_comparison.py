@@ -6,7 +6,7 @@ import hashlib
 import json
 from typing import Mapping
 
-from .memory_traffic import split_memory_metrics
+from .memory_traffic import backpressure_metrics, split_memory_metrics
 
 SPINE_INFINITY = 0xFFFFFFFF
 GRASU_HLS_INFINITY = 0x7FFFFFFE
@@ -161,6 +161,7 @@ def validate_grasu_hls_result(
     *,
     expected_profile_sha256: str,
     expected_core_mhz: float,
+    expected_supersteps: int | None = None,
 ) -> list[str]:
     result = child.get("result", {})
     dram = child.get("dram", {})
@@ -172,6 +173,15 @@ def validate_grasu_hls_result(
     backend_requests = int(result.get("backend_requests", -1))
     update_backend_requests = int(result.get("update_backend_requests", -1))
     compute_backend_requests = int(result.get("compute_backend_requests", -1))
+    oracle = child.get("oracle", {})
+    if expected_supersteps is not None:
+        required_supersteps = expected_supersteps
+    elif "hls_host_supersteps" in run:
+        required_supersteps = int(run["hls_host_supersteps"])
+    elif isinstance(oracle, Mapping):
+        required_supersteps = int(oracle.get("minimum_supersteps", -1))
+    else:
+        required_supersteps = -1
     checks = {
         "child_status": child.get("status") == "PASS",
         "success": result.get("success") is True,
@@ -197,7 +207,9 @@ def validate_grasu_hls_result(
         == 0,
         "combined_correctness": result.get("correctness_mismatches") == 0,
         "fixed_rounds": result.get("fixed_host_supersteps") is True
-        and result.get("supersteps") == run["hls_host_supersteps"],
+        and required_supersteps > 0
+        and result.get("supersteps") == required_supersteps
+        and child.get("supersteps", required_supersteps) == required_supersteps,
         "cycle_window": cycles > 0
         and update_cycles > 0
         and compute_cycles > 0
@@ -237,8 +249,14 @@ def system_row(
         cold_cycles = int(result["cold_cycles"])
         cold_backend_requests = int(result["cold_backend_requests"])
         final_values = result["final_values"]
-        axis_push_stalls = sum(
-            int(value) for value in result.get("edge_axis_push_stalls_per_round", [])
+        axis_push_stalls = int(
+            result.get(
+                "axis_push_stalls",
+                sum(
+                    int(value)
+                    for value in result.get("edge_axis_push_stalls_per_round", [])
+                ),
+            )
         )
         dram_scope = "cold_plus_update_not_aligned"
         claim_class = "routed_reference_profile_execution_driven_simulation"
@@ -268,6 +286,9 @@ def system_row(
     user_mutations = int(run["user_mutations"])
     physical_records = int(run["physical_records"])
     normalized = normalized_distances(final_values)
+    stall_metrics = backpressure_metrics(
+        result, axis_push_stalls=axis_push_stalls
+    )
     return {
         "run_id": run["run_id"],
         "dataset_id": run["dataset_id"],
@@ -295,7 +316,7 @@ def system_row(
         "aligned_backend_requests": aligned_backend_requests,
         "total_backend_requests": total_backend_requests,
         **memory_metrics,
-        "axis_push_stalls": axis_push_stalls,
+        **stall_metrics,
         "dram_reads": int(dram["reads"]),
         "dram_writes": int(dram["writes"]),
         "dram_activates": int(dram["activates"]),

@@ -1,0 +1,49 @@
+{
+  "algorithm": "full_pagerank",
+  "all_correct": true,
+  "all_update_shapes_valid": true,
+  "analysis_id": "candidate10_temporal_full_pr_differential_u8_v1_20260727",
+  "baseline_analysis_manifest_sha256": "b79b18d83ec7575f0709ea4f5039d163fc4cc37f10d0e20c8ef9b070e7736e38",
+  "baseline_outputs": {
+    "e2e_by_dataset.csv": "fe3b3b159e0bbe624d9aa7e69b72e7e8a058b6c444a201da86f4a9fe604f9109",
+    "group_summary.csv": "5de0f41a875ba273d536bb603726e5d6eb07fa832cb1621bbc338dfff308616b",
+    "pairs_enriched.csv": "cc91298e5c74b102bcc59c47d1b67f13b56ff668dcc5187e330a168fe826db9f",
+    "raw_results.tar.gz": "b19bc60b96e2dd77867ac2d7b474bc7e2f7a7845f137ec02453578bafbada355",
+    "system_rows_enriched.csv": "32b1eed2671da22de086ad16ec21e1d7c6d0a081119a8f84cbeee78d3f4c39cf"
+  },
+  "batch_size": 8,
+  "datasets": [
+    "soc_bitcoin",
+    "sx_askubuntu",
+    "sx_stackoverflow",
+    "sx_superuser",
+    "wiki_talk_temporal"
+  ],
+  "dram_request_ledgers_closed": true,
+  "input_manifest_sha256": "d6d45a212f569a4ea919e2ac13fad0ce7455584cfc0105086b46098363f78629",
+  "limitations": [
+    "Inputs are compact slices, not complete GraSU datasets.",
+    "Delete, mixed, and weight-change batches are derived from real topology.",
+    "Weight changes are lowered into exact delete-old then insert-new records.",
+    "Reported update throughput counts successful user mutations, not lowered physical records."
+  ],
+  "outputs": {
+    "differential_by_scenario.csv": "5898e204adb142101528df55f45eb8c640b8ae59f9be510bcfe3faa7cd3cf8bd",
+    "differential_pairs.csv": "a48fb53d96aff3d4dd20ea39dee4507fab621fa031f42fa80d9b2fca69a41493",
+    "differential_system_rows.csv": "bfd54fe7dc73ffc4e91e5b4bf0d5bf30dd01fafc890e5d7cd191cec42d717f7b",
+    "weight_change_pairs.csv": "fee5daaab8ca90667f6f40844d8213701d3e7d2fda05f3d4bafede353bd17e8b",
+    "weight_change_raw_results.tar.gz": "1a0a2f900f7a01865674cfd3864e0e6ecb584d19078791f94db84816613c52cc",
+    "weight_change_system_rows.csv": "51f135818e98ee20d0c0b3e9cb09d699249977f4288145d2e49819ab170ee72e"
+  },
+  "pairs": 20,
+  "scenarios": [
+    "delete",
+    "insert",
+    "mixed",
+    "weight_change"
+  ],
+  "schema_version": 1,
+  "status": "PASS",
+  "system_rows": 40,
+  "weight_change_matrix_manifest_sha256": "6b6bbc9a9d94c7c8ea9674e77fd547ea9ccfadbe59e4a61de0d564cd930729ca"
+}

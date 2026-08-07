@@ -1,0 +1,123 @@
+--- a/src/sst/elements/memHierarchy/membackend/memBackend.h
++++ b/src/sst/elements/memHierarchy/membackend/memBackend.h
+@@ -113,6 +113,8 @@
+         SST_SER(m_reqWidth);
+         // m_getRequestor is re-initialized during UNPACK by MemBackendConvertor
+     }
++    virtual void finishAtCycle(Cycle_t UNUSED(cycle)) { finish(); }
++    virtual void turnClockOn(Cycle_t UNUSED(cycle)) {}
+     ImplementVirtualSerializable(SST::MemHierarchy::MemBackend);
+ 
+ protected:
+@@ -206,4 +208,3 @@
+ }}
+ 
+ #endif
+-
+--- a/src/sst/elements/memHierarchy/membackend/memBackendConvertor.cc
++++ b/src/sst/elements/memHierarchy/membackend/memBackendConvertor.cc
+@@ -147,6 +147,7 @@
+  * cycle = current cycle
+  */
+ void MemBackendConvertor::turnClockOn(Cycle_t cycle) {
++    m_backend->turnClockOn(cycle);
+     Cycle_t cyclesOff = cycle - m_cycleCount;
+     stat_outstandingReqs->addDataNTimes( cyclesOff, m_pendingRequests.size() );
+     m_cycleCount = cycle;
+@@ -236,7 +237,7 @@
+         m_cycleCount = endCycle;
+     }
+     stat_totalCycles->addData(m_cycleCount);
+-    m_backend->finish();
++    m_backend->finishAtCycle(endCycle);
+ }
+ 
+ size_t MemBackendConvertor::getMemSize() {
+--- a/src/sst/elements/memHierarchy/membackend/dramSim3Backend.h
++++ b/src/sst/elements/memHierarchy/membackend/dramSim3Backend.h
+@@ -17,7 +17,7 @@
+ #ifndef _H_SST_MEMH_DRAMSIM3_BACKEND
+ #define _H_SST_MEMH_DRAMSIM3_BACKEND
+ 
+-#include "sst/elements/memHierarchy/membackend/memBackend.h"
++#include "memBackend.h"
+ 
+ #ifdef DEBUG
+ #define OLD_DEBUG DEBUG
+@@ -54,6 +54,8 @@
+     virtual bool issueRequest(ReqId, Addr, bool, unsigned );
+     virtual bool clock(Cycle_t cycle);
+     virtual void finish();
++    virtual void finishAtCycle(Cycle_t cycle);
++    virtual void turnClockOn(Cycle_t cycle);
+ 
+ protected:
+     void dramSimDone(unsigned int id, uint64_t addr, uint64_t clockcycle);
+@@ -62,8 +64,12 @@
+     std::map<uint64_t, std::deque<ReqId> > dramReqs;
+ 
+ private:
++    void advanceIdleTo(Cycle_t cycle);
++
+     std::function<void(uint64_t)> readCB;
+     std::function<void(uint64_t)> writeCB;
++    Cycle_t lastClockCycle;
++    bool clockSeen;
+ };
+ 
+ }
+--- a/src/sst/elements/memHierarchy/membackend/dramSim3Backend.cc
++++ b/src/sst/elements/memHierarchy/membackend/dramSim3Backend.cc
+@@ -20,7 +20,8 @@
+ using namespace SST;
+ using namespace SST::MemHierarchy;
+ 
+-DRAMSim3Memory::DRAMSim3Memory(ComponentId_t id, Params &params) : SimpleMemBackend(id, params){
++DRAMSim3Memory::DRAMSim3Memory(ComponentId_t id, Params &params) :
++    SimpleMemBackend(id, params), lastClockCycle(0), clockSeen(false) {
+     std::string configIniFilename = params.find<std::string>("config_ini", NO_STRING_DEFINED);
+     if(NO_STRING_DEFINED == configIniFilename)
+         output->fatal(CALL_INFO, -1, "Model must define a 'config_ini' file parameter\n");
+@@ -55,7 +56,9 @@
+ 
+ bool DRAMSim3Memory::clock(Cycle_t cycle){
+     memSystem->ClockTick();
+-    return false;
++    lastClockCycle = cycle;
++    clockSeen = true;
++    return dramReqs.empty() && memSystem->IsIdle();
+ }
+ 
+ 
+@@ -65,6 +68,31 @@
+ }
+ 
+ 
++
++void DRAMSim3Memory::advanceIdleTo(Cycle_t cycle) {
++    if (!clockSeen || cycle <= lastClockCycle) return;
++    if (!dramReqs.empty() || !memSystem->IsIdle()) {
++        output->fatal(CALL_INFO, -1,
++                "DRAMSim3 idle clock was disabled with pending work\n");
++    }
++    memSystem->AdvanceIdle(cycle - lastClockCycle);
++    lastClockCycle = cycle;
++}
++
++
++
++void DRAMSim3Memory::turnClockOn(Cycle_t cycle) {
++    advanceIdleTo(cycle);
++}
++
++
++
++void DRAMSim3Memory::finishAtCycle(Cycle_t cycle) {
++    advanceIdleTo(cycle);
++    finish();
++}
++
++
+ 
+ void DRAMSim3Memory::dramSimDone(unsigned int id, uint64_t addr, uint64_t clockcycle){
+     std::deque<ReqId> &reqs = dramReqs[addr];

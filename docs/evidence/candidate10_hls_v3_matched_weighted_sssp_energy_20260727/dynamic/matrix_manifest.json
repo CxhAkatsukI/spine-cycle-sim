@@ -1,0 +1,45 @@
+{
+  "all_correct": true,
+  "capability_catalog": "/home/chuxiao/spine-cycle-sim-publication/configs/contracts/grasu_regraph_candidate10_hls_capabilities_v3.json",
+  "capability_catalog_sha256": "25794099eaba54d5b693afd626c563afba19d687b71609c7cd46bf4c0cc13f1c",
+  "claim_class": "profile_clock_adjusted_real_compact_execution_driven",
+  "complete_matrix": false,
+  "execution_sha256": "2c85038ca02185a04c6ac8765d782049afffeeba6c3b412b113ff573d8df0635",
+  "grasu_profile_id": "grasu_regraph_candidate10_normalized_hls_weighted_v3",
+  "grasu_profile_sha256": "51d1edd1bc9eca864d5c57858d80ef3890152f4a6062bc1259833d38c2be4823",
+  "hbm_controller_instances": 32,
+  "input_manifest": "/home/chuxiao/spine-cycle-sim-publication/configs/experiments/hls_weighted_real_small_batches_20260726.json",
+  "input_manifest_sha256": "1c0a362a82b34eb235153b815dbfbeb9121932cd4d2b40e87b8d8e5370a40bd9",
+  "instantiate_all_hbm_channels": true,
+  "limitations": [
+    "The three inputs are compact real-edge slices, not full datasets.",
+    "The Candidate10 comparison uses frozen HLS-derived normalized profiles; whole-system implementation evidence is reported separately.",
+    "Simulator cycles are not calibrated cycle-for-cycle against hw.",
+    "Spine DRAM read/write/energy counters include cold plus update, so cross-system DRAM energy ratios are invalid here.",
+    "Contiguous/repeated/discontinuous classes describe accepted backend requests per initiator and operation; they are not DRAM row-hit classifications.",
+    "Actual requested bytes do not include DRAM burst amplification or controller-internal transfer granularity."
+  ],
+  "matrix_id": "hls_weighted_real_compact_comparison_20260726",
+  "matrix_wall_seconds": 27.80670130625367,
+  "pairs": 3,
+  "pairs_sha256": "bd678008f28d821f2549fe52ae93302132b76bbc61f522a9a844efc47a671318",
+  "profile_set": "candidate10_hls_v3",
+  "schema_version": 1,
+  "selected_run_ids": [
+    "real_amazon_2008_insert_u8",
+    "real_web_google_insert_u8",
+    "real_soc_flickr_und_insert_u8"
+  ],
+  "spine_profile_id": "spine_candidate10_normalized_v1",
+  "spine_profile_sha256": "4e31633c55abfdc57fd4537119d6abb6d7a4f0313dcfc81332fa0ed0a6320c0a",
+  "sst_plugin_path": "/home/chuxiao/spine-cycle-sim-publication/build/sst-stalls/libspine_cycle.so",
+  "sst_plugin_sha256": "9094f527995f9ea0a10d686ee7f90236400eca0619b634f039e98061bac328b8",
+  "status": "PASS",
+  "system_rows": 6,
+  "system_rows_sha256": "d56c31abbfd7c04f13c151ae992f3ccc9124b8a42bdc066f47837f6c691847ac",
+  "timing_window": {
+    "clock_rule": "convert each profile's cycles using its own achieved/requested profile clock",
+    "grasu_regraph": "PMA update_cycles plus fixed-four-round compute_cycles",
+    "spine": "update_cycles only; cold_cycles reported separately"
+  }
+}

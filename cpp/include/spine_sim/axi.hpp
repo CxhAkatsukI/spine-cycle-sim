@@ -188,6 +188,18 @@ class AxiMaster final : public Component {
     return active_bursts_.size();
   }
   [[nodiscard]] bool idle() const noexcept;
+  [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool evaluate_ready() const noexcept override {
+    return has_pending_work();
+  }
+  [[nodiscard]] bool commit_ready() const noexcept override {
+    return has_pending_work();
+  }
   [[nodiscard]] const std::vector<AxiBurstTrace> &burst_trace() const noexcept {
     return burst_trace_;
   }
@@ -286,6 +298,13 @@ class AxiMaster final : public Component {
   void commit_read_beat_output();
   void queue_parent_response_if_ready(std::uint64_t parent_id);
   [[nodiscard]] std::size_t read_reorder_occupancy() const noexcept;
+  [[nodiscard]] bool has_pending_work() const noexcept {
+    return !requests_.empty() || !parents_.empty() ||
+           !pending_address_.empty() || !active_bursts_.empty() ||
+           !backend_mappings_.empty() || !ready_responses_.empty() ||
+           !pending_write_input_.empty() || !write_store_fifo_.empty() ||
+           write_bridge_.has_value() || !write_throttle_fifo_.empty();
+  }
   [[nodiscard]] bool write_ingress_enabled() const noexcept {
     return config_.write_ingress_fifo_depth != 0;
   }
