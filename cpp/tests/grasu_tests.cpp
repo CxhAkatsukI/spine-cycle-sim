@@ -1541,6 +1541,90 @@ void test_partitioned_residual_pagerank_unions_active_frontiers() {
             << " active_edges=" << counters.active_edges_mapped << '\n';
 }
 
+void test_sharded_k4_residual_pagerank_matches_split_state_hls() {
+  constexpr std::size_t kVertices = 33;
+  constexpr std::size_t kPartitionVertices = 16;
+  constexpr std::size_t kMaxIterations = 256;
+  constexpr float kDamping = 0.85F;
+  constexpr float kEpsilon = 1.0e-6F;
+  std::vector<GraSuEdge> edges;
+  for (std::uint32_t source = 0; source < kVertices; ++source) {
+    edges.push_back({.source = source,
+                     .destination = static_cast<std::uint32_t>(
+                         (source + 1) % kVertices)});
+  }
+  edges.push_back({.source = 0, .destination = 17});
+  const GraSuPartitionedPmaLayout layout = GraSuPartitionedPmaLayout::build(
+      kVertices, kPartitionVertices, edges, {});
+  std::vector<std::uint32_t> degrees(kVertices);
+  for (const GraSuEdge &edge : edges) {
+    ++degrees[edge.source];
+  }
+
+  spine::sim::AlgorithmInitialState warm;
+  warm.primary.assign(
+      kVertices,
+      spine::sim::GraphAlgorithmPolicy::float_to_word(1.0F / kVertices));
+  warm.auxiliary.assign(kVertices,
+                        spine::sim::GraphAlgorithmPolicy::float_to_word(0.0F));
+
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("sharded-k4-residual-pr", 150.0);
+  MockMemoryBackend backend("shared-hbm", core,
+                            MockMemoryConfig{.channels = 32,
+                                             .latency_cycles = 7,
+                                             .accepts_per_channel_per_cycle = 1,
+                                             .max_outstanding_per_channel = 32,
+                                             .response_queue_depth = 128});
+  GraSuReGraphConfig config;
+  config.compute_pipelines = 4;
+  config.shared_downstream = true;
+  config.sharded_runtime_placement = true;
+  config.split_pagerank_state = true;
+  config.partition_vertices = kPartitionVertices;
+  config.source_buffer_vertices = 16;
+  config.edge_lanes = 4;
+  config.gather_banks = 4;
+  config.cache_segments_per_half = 8;
+  config.source_state_channel = 23;
+  config.source_state_mirror_channel = 24;
+  config.vertex_state_channel = 25;
+  config.residual_state_channel = 26;
+  config.degree_channel = 27;
+  GraSuReGraphResidualPageRankSystem system(
+      scheduler, core, backend, layout, degrees, kMaxIterations, kDamping,
+      kEpsilon, config,
+      spine::sim::ResidualPageRankContract::kDeltaHlsSinkFreeLinfWarm, warm);
+  system.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until([&] { return system.done() || system.failed(); },
+                      50'000'000);
+
+  require(!system.failed() && system.done(),
+          "sharded-K4 split-state residual PageRank did not complete");
+  const auto expected =
+      full_pagerank_oracle<double>(kVertices, edges, 500, kDamping);
+  const auto ranks = system.ranks();
+  const auto residuals = system.residuals();
+  for (std::size_t vertex = 0; vertex < kVertices; ++vertex) {
+    require(std::fabs(static_cast<double>(ranks[vertex]) - expected[vertex]) <
+                    5.0e-5 &&
+                std::fabs(residuals[vertex]) <= kEpsilon + 1.0e-7F,
+            "sharded-K4 split-state residual PageRank differs from oracle");
+  }
+  const auto counters = system.counters();
+  require(counters.destination_partitions == 3 &&
+              counters.compute_pipelines == 4 &&
+              counters.max_parallel_downstream_partitions == 1 &&
+              counters.source_prepare_state_reads == 3 &&
+              counters.source_prepare_state_read_bytes == 3 * 64 &&
+              counters.apply_state_reads == counters.partition_passes * 2 &&
+              counters.apply_state_writes == counters.partition_passes * 2 &&
+              counters.apply_read_bytes == counters.apply_state_reads * 64 &&
+              counters.apply_write_bytes == counters.apply_state_writes * 64,
+          "sharded-K4 split-state PageRank transaction ledger mismatch");
+}
+
 void test_pma_native_regraph_residual_pagerank_matches_oracles() {
   constexpr std::size_t kVertices = 4;
   constexpr std::size_t kMaxIterations = 256;
@@ -2695,6 +2779,8 @@ int main() {
        test_partitioned_regraph_pagerank_counts_dangling_once},
       {"partitioned_residual_pagerank",
        test_partitioned_residual_pagerank_unions_active_frontiers},
+      {"sharded_k4_split_residual_pagerank",
+       test_sharded_k4_residual_pagerank_matches_split_state_hls},
       {"residual_pagerank",
        test_pma_native_regraph_residual_pagerank_matches_oracles},
       {"delta_hls_warm_residual",
