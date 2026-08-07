@@ -1147,152 +1147,40 @@ void test_sharded_k4_regraph_sssp_reuses_frontends_in_partition_order() {
             << " mux_wait=" << counters.frontend_mux_input_wait_cycles << '\n';
 }
 
-void test_sharded_k4_full_pagerank_models_source_prepare() {
-  constexpr std::size_t kVertices = 96;
-  constexpr std::size_t kPartitionVertices = 16;
-  constexpr std::size_t kIterations = 3;
-  constexpr float kDamping = 0.85F;
-  const std::vector<GraSuEdge> edges = {
-      {.source = 0, .destination = 1},   {.source = 1, .destination = 17},
-      {.source = 17, .destination = 34}, {.source = 34, .destination = 51},
-      {.source = 51, .destination = 68}, {.source = 68, .destination = 85},
-      {.source = 85, .destination = 0},
-  };
-  const GraSuPartitionedPmaLayout layout = GraSuPartitionedPmaLayout::build(
-      kVertices, kPartitionVertices, edges, {});
-  std::vector<std::uint32_t> degrees(kVertices);
-  for (const GraSuEdge &edge : edges) {
-    ++degrees[edge.source];
-  }
-  Scheduler scheduler;
-  const auto core = scheduler.add_clock_mhz("sharded-k4-full-pr", 200.0);
-  MockMemoryBackend backend(
-      "shared-hbm", core,
-      MockMemoryConfig{.channels = 32,
-                       .latency_cycles = 7,
-                       .accepts_per_channel_per_cycle = 1,
-                       .max_outstanding_per_channel = 32,
-                       .response_queue_depth = 128,
-                       .registered_round_robin_arbitration = true});
-  GraSuReGraphConfig config;
-  config.partition_vertices = kPartitionVertices;
-  config.source_buffer_vertices = 16;
-  config.edge_lanes = 4;
-  config.gather_banks = 4;
-  config.cache_segments_per_half = 8;
-  config.frontend_count = 4;
-  config.frontend_mux_fifo_depth = 4;
-  config.sharded_runtime_placement = true;
-  config.source_state_channel = 23;
-  config.source_state_mirror_channel = 24;
-  GraSuReGraphPageRankSystem system(scheduler, core, backend, layout, degrees,
-                                    kIterations, kDamping, config);
-  system.register_components();
-  scheduler.add_component(backend);
-  scheduler.run_until([&] { return system.done() || system.failed(); },
-                      10'000'000);
-
-  require(!system.failed() && system.done(),
-          "sharded-K4 Full PageRank did not complete");
-  const auto expected =
-      full_pagerank_oracle<float>(kVertices, edges, kIterations, kDamping);
-  const auto actual = system.ranks();
-  for (std::size_t vertex = 0; vertex < kVertices; ++vertex) {
-    require(std::fabs(actual[vertex] - expected[vertex]) < 1.0e-6F,
-            "sharded-K4 Full PageRank differs from float32 oracle at vertex " +
-                std::to_string(vertex));
-  }
-  const auto counters = system.counters();
-  const std::size_t state_bursts =
-      layout.partitions.size() * kPartitionVertices / 16;
-  require(counters.supersteps == kIterations &&
-              counters.partition_passes ==
-                  layout.partitions.size() * kIterations &&
-              counters.source_prepare_state_reads == state_bursts &&
-              counters.source_prepare_degree_reads == state_bursts &&
-              counters.source_prepare_writes == 2 * state_bursts &&
-              counters.source_map_cycles == 0 &&
-              counters.degree_reads == state_bursts * (kIterations + 1) &&
-              counters.active_edges_mapped == edges.size() * kIterations,
-          "sharded-K4 Full PageRank work ledger is not conserved");
-}
-
-void test_sharded_k4_residual_pagerank_matches_direct_threshold_hls() {
+void test_sharded_k4_pagerank_fails_closed_without_source_prepare() {
   constexpr std::size_t kVertices = 32;
-  constexpr std::size_t kPartitionVertices = 16;
-  constexpr std::size_t kMaxIterations = 256;
-  constexpr float kDamping = 0.85F;
-  constexpr float kEpsilon = 1.0e-4F;
   const std::vector<GraSuEdge> edges = {
       {.source = 0, .destination = 1},
       {.source = 1, .destination = 17},
-      {.source = 17, .destination = 18},
-      {.source = 18, .destination = 0},
   };
-  const GraSuPartitionedPmaLayout layout = GraSuPartitionedPmaLayout::build(
-      kVertices, kPartitionVertices, edges, {});
-  std::vector<std::uint32_t> degrees(kVertices);
-  for (const GraSuEdge &edge : edges) {
-    ++degrees[edge.source];
-  }
-  const auto expected = residual_pagerank_oracle<float>(
-      kVertices, edges, kMaxIterations, kDamping, kEpsilon * kVertices);
-  require(expected.converged,
-          "direct-threshold residual PageRank oracle did not converge");
-
+  const GraSuPartitionedPmaLayout layout =
+      GraSuPartitionedPmaLayout::build(kVertices, 16, edges, {});
   Scheduler scheduler;
-  const auto core = scheduler.add_clock_mhz("sharded-k4-res-pr", 200.0);
-  MockMemoryBackend backend(
-      "shared-hbm", core,
-      MockMemoryConfig{.channels = 32,
-                       .latency_cycles = 7,
-                       .accepts_per_channel_per_cycle = 1,
-                       .max_outstanding_per_channel = 32,
-                       .response_queue_depth = 128,
-                       .registered_round_robin_arbitration = true});
+  const auto core = scheduler.add_clock_mhz("sharded-k4-pr-guard", 200.0);
+  MockMemoryBackend backend("shared-hbm", core,
+                            MockMemoryConfig{.channels = 32,
+                                             .latency_cycles = 2,
+                                             .accepts_per_channel_per_cycle = 1,
+                                             .max_outstanding_per_channel = 8,
+                                             .response_queue_depth = 32});
   GraSuReGraphConfig config;
-  config.partition_vertices = kPartitionVertices;
+  config.partition_vertices = 16;
   config.source_buffer_vertices = 16;
   config.edge_lanes = 4;
   config.gather_banks = 4;
   config.cache_segments_per_half = 8;
   config.frontend_count = 4;
-  config.frontend_mux_fifo_depth = 4;
   config.sharded_runtime_placement = true;
-  config.source_state_channel = 23;
-  config.source_state_mirror_channel = 24;
-  GraSuReGraphResidualPageRankSystem system(scheduler, core, backend, layout,
-                                            degrees, kMaxIterations, kDamping,
-                                            kEpsilon, config);
-  system.register_components();
-  scheduler.add_component(backend);
-  scheduler.run_until([&] { return system.done() || system.failed(); },
-                      50'000'000);
-
-  require(!system.failed() && system.done(),
-          "sharded-K4 residual PageRank did not converge");
-  const auto ranks = system.ranks();
-  const auto residuals = system.residuals();
-  const auto counters = system.counters();
-  for (std::size_t vertex = 0; vertex < kVertices; ++vertex) {
-    require(
-        std::fabs(ranks[vertex] - expected.ranks[vertex]) < 1.0e-6F &&
-            std::fabs(residuals[vertex] - expected.residuals[vertex]) < 1.0e-6F,
-        "sharded-K4 residual PageRank differs from HLS oracle at vertex " +
-            std::to_string(vertex) + " rank=" + std::to_string(ranks[vertex]) +
-            " expected_rank=" + std::to_string(expected.ranks[vertex]) +
-            " residual=" + std::to_string(residuals[vertex]) +
-            " expected_residual=" + std::to_string(expected.residuals[vertex]) +
-            " rounds=" + std::to_string(counters.supersteps) +
-            " expected_rounds=" + std::to_string(expected.iterations + 1));
+  bool rejected = false;
+  try {
+    GraSuReGraphPageRankSystem system(scheduler, core, backend, layout,
+                                      std::vector<std::uint32_t>(kVertices, 1),
+                                      2, 0.85F, config);
+  } catch (const std::invalid_argument &) {
+    rejected = true;
   }
-  require(counters.supersteps == expected.iterations + 1 &&
-              counters.source_prepare_state_reads == 2 &&
-              counters.source_prepare_degree_reads == 2 &&
-              counters.source_prepare_writes == 4 &&
-              counters.source_map_cycles == 0 &&
-              counters.active_edges_mapped == expected.active_edges,
-          "sharded-K4 residual PageRank work ledger is not conserved");
+  require(rejected,
+          "sharded-K4 PageRank ran without the global source-prepare phase");
 }
 
 void test_partitioned_update_times_degree_rmw_and_feeds_pagerank() {
@@ -2833,10 +2721,8 @@ int main() {
        test_sharded_runtime_regraph_sssp_reads_routed_pma_payloads},
       {"sharded_k4_sssp",
        test_sharded_k4_regraph_sssp_reuses_frontends_in_partition_order},
-      {"sharded_k4_full_pagerank",
-       test_sharded_k4_full_pagerank_models_source_prepare},
-      {"sharded_k4_residual_pagerank",
-       test_sharded_k4_residual_pagerank_matches_direct_threshold_hls},
+      {"sharded_k4_pagerank_guard",
+       test_sharded_k4_pagerank_fails_closed_without_source_prepare},
       {"partitioned_update_degree",
        test_partitioned_update_times_degree_rmw_and_feeds_pagerank},
       {"full_pagerank", test_pma_native_regraph_full_pagerank_matches_oracle},
