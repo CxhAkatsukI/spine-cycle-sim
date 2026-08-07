@@ -60,11 +60,13 @@ struct GraSuReGraphRuntimePlan {
     const std::vector<std::size_t> &physical_updates_per_shard,
     std::size_t max_cache_segments,
     std::size_t channels = kGraSuReGraphU55cGraphChannels,
-    std::size_t channel_capacity_bytes = kGraSuReGraphU55cChannelCapacityBytes);
+    std::size_t channel_capacity_bytes =
+        kGraSuReGraphU55cChannelCapacityBytes);
 
 [[nodiscard]] const GraSuReGraphBufferRegion &
 find_grasu_regraph_runtime_region(const GraSuReGraphRuntimePlan &plan,
-                                  std::size_t shard, const std::string &name);
+                                  std::size_t shard,
+                                  const std::string &name);
 
 struct GraSuReGraphConfig {
   std::size_t memory_channels{32};
@@ -98,8 +100,6 @@ struct GraSuReGraphConfig {
   std::size_t pagerank_source_map_latency{1};
   bool pagerank_prepared_source{true};
   bool initialize_degree_payload{true};
-  std::size_t frontend_count{1};
-  std::size_t frontend_mux_fifo_depth{32};
   bool sharded_runtime_placement{false};
   std::size_t runtime_channel_capacity_bytes{
       kGraSuReGraphU55cChannelCapacityBytes};
@@ -133,11 +133,13 @@ struct GraSuReGraphCounters {
   std::size_t max_parallel_downstream_partitions{};
   std::uint64_t supersteps{};
   std::uint64_t partition_passes{};
-  std::size_t frontend_count{1};
-  std::uint64_t frontend_launches{};
-  std::uint64_t frontend_mux_rows{};
-  std::uint64_t frontend_mux_input_wait_cycles{};
-  std::uint64_t frontend_mux_output_stall_cycles{};
+  std::uint64_t pipeline_busy_cycles{};
+  std::uint64_t downstream_busy_cycles{};
+  std::uint64_t source_prepare_cycles{};
+  std::uint64_t source_prepare_state_reads{};
+  std::uint64_t source_prepare_state_read_bytes{};
+  std::uint64_t source_prepare_degree_reads{};
+  std::uint64_t source_prepare_writes{};
   std::uint64_t row_reads{};
   std::uint64_t source_state_reads{};
   std::uint64_t source_cache_requests{};
@@ -226,7 +228,8 @@ public:
                              std::nullopt);
   GraSuReGraphSsspSystem(Scheduler &scheduler, ClockId clock_id,
                          MemoryBackend &backend,
-                         GraSuPartitionedPmaLayout layout, std::uint32_t source,
+                         GraSuPartitionedPmaLayout layout,
+                         std::uint32_t source,
                          GraSuReGraphConfig config = {});
   GraSuReGraphSsspSystem(Scheduler &scheduler, ClockId clock_id,
                          MemoryBackend &backend,
@@ -264,12 +267,11 @@ public:
                              std::vector<std::uint32_t> out_degrees,
                              std::size_t iterations, float damping = 0.85F,
                              GraSuReGraphConfig config = {});
-  GraSuReGraphPageRankSystem(Scheduler &scheduler, ClockId clock_id,
-                             MemoryBackend &backend,
-                             GraSuPartitionedPmaLayout layout,
-                             std::vector<std::uint32_t> out_degrees,
-                             std::size_t iterations, float damping = 0.85F,
-                             GraSuReGraphConfig config = {});
+  GraSuReGraphPageRankSystem(
+      Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
+      GraSuPartitionedPmaLayout layout,
+      std::vector<std::uint32_t> out_degrees, std::size_t iterations,
+      float damping = 0.85F, GraSuReGraphConfig config = {});
   ~GraSuReGraphPageRankSystem();
 
   GraSuReGraphPageRankSystem(const GraSuReGraphPageRankSystem &) = delete;
@@ -299,7 +301,8 @@ public:
       std::optional<AlgorithmInitialState> initial_state = std::nullopt);
   GraSuReGraphResidualPageRankSystem(
       Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
-      GraSuPartitionedPmaLayout layout, std::vector<std::uint32_t> out_degrees,
+      GraSuPartitionedPmaLayout layout,
+      std::vector<std::uint32_t> out_degrees,
       std::size_t max_iterations, float damping = 0.85F,
       float epsilon = 1.0e-6F, GraSuReGraphConfig config = {},
       ResidualPageRankContract residual_contract =
