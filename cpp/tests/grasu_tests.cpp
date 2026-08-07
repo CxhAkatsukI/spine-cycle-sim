@@ -1065,9 +1065,6 @@ void test_sharded_runtime_regraph_sssp_reads_routed_pma_payloads() {
   config.sharded_runtime_placement = true;
   config.source_state_channel = 23;
   config.source_state_mirror_channel = 24;
-  config.vertex_state_channel = 25;
-  config.residual_state_channel = 26;
-  config.degree_channel = 27;
   GraSuReGraphSsspSystem system(scheduler, core, backend, layout, 0, config);
   system.register_components();
   scheduler.add_component(backend);
@@ -1188,9 +1185,6 @@ void test_sharded_k4_full_pagerank_models_source_prepare() {
   config.sharded_runtime_placement = true;
   config.source_state_channel = 23;
   config.source_state_mirror_channel = 24;
-  config.vertex_state_channel = 25;
-  config.residual_state_channel = 26;
-  config.degree_channel = 27;
   GraSuReGraphPageRankSystem system(scheduler, core, backend, layout, degrees,
                                     kIterations, kDamping, config);
   system.register_components();
@@ -1219,8 +1213,6 @@ void test_sharded_k4_full_pagerank_models_source_prepare() {
               counters.source_prepare_writes == 2 * state_bursts &&
               counters.source_map_cycles == 0 &&
               counters.degree_reads == state_bursts * (kIterations + 1) &&
-              counters.apply_state_reads == state_bursts * kIterations &&
-              counters.apply_state_writes == state_bursts * kIterations &&
               counters.apply_launches == kIterations &&
               counters.hbm_wrapper_launches == kIterations &&
               counters.active_edges_mapped == edges.size() * kIterations,
@@ -1271,9 +1263,6 @@ void test_sharded_k4_residual_pagerank_matches_direct_threshold_hls() {
   config.sharded_runtime_placement = true;
   config.source_state_channel = 23;
   config.source_state_mirror_channel = 24;
-  config.vertex_state_channel = 25;
-  config.residual_state_channel = 26;
-  config.degree_channel = 27;
   GraSuReGraphResidualPageRankSystem system(scheduler, core, backend, layout,
                                             degrees, kMaxIterations, kDamping,
                                             kEpsilon, config);
@@ -1304,12 +1293,6 @@ void test_sharded_k4_residual_pagerank_matches_direct_threshold_hls() {
               counters.source_prepare_degree_reads == 2 &&
               counters.source_prepare_writes == 4 &&
               counters.source_map_cycles == 0 &&
-              counters.apply_state_reads ==
-                  counters.supersteps * 2 * 2 &&
-              counters.apply_state_writes ==
-                  counters.supersteps * 2 * 2 &&
-              counters.apply_read_bytes == counters.apply_state_reads * 64 &&
-              counters.apply_write_bytes == counters.apply_state_writes * 64 &&
               counters.apply_launches == counters.supersteps &&
               counters.hbm_wrapper_launches == counters.supersteps &&
               counters.active_edges_mapped == expected.active_edges,

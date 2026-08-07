@@ -108,7 +108,6 @@ struct GraSuReGraphConfig {
   std::uint64_t row_offset_base{0x1000'0000ULL};
   std::uint64_t pma_base{0x3000'0000ULL};
   std::uint64_t vertex_state_base{0x4000'0000ULL};
-  std::uint64_t residual_state_base{0x4200'0000ULL};
   std::uint64_t source_state_base{0x5000'0000ULL};
   std::uint64_t source_state_buffer_stride{0x0010'0000ULL};
   std::uint64_t degree_base{0x4100'0000ULL};
@@ -123,7 +122,6 @@ struct GraSuReGraphConfig {
   std::size_t source_state_channel{1};
   std::size_t source_state_mirror_channel{3};
   std::size_t vertex_state_channel{30};
-  std::size_t residual_state_channel{26};
   std::size_t degree_channel{30};
   std::size_t edge_array_channel{0};
 };

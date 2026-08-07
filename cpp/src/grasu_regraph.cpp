@@ -572,11 +572,8 @@ public:
       ++read_window_stalls_;
       return;
     }
-    // The sharded HLS source-preparation CU runs only for the initial
-    // correction launch. It reads one float32 rank beat, not the legacy
-    // packed rank/residual record.
     const std::size_t state_bytes =
-        kStateWordsPerBurst * sizeof(std::uint32_t);
+        kStateWordsPerBurst * state_bytes_per_vertex(policy_);
     if (!state_read_port_.requests().try_push(AxiRequest{
             .transaction_id = next_read_burst_,
             .operation = MemoryOperation::kRead,
@@ -676,7 +673,8 @@ private:
       throw std::runtime_error(
           "PageRank source prepare received malformed read response");
     }
-    const std::size_t expected = 64;
+    const std::size_t expected =
+        state ? kStateWordsPerBurst * state_bytes_per_vertex(policy_) : 64;
     if (response.read_data.size() != expected) {
       throw std::runtime_error(
           "PageRank source prepare read response has wrong size");
@@ -696,8 +694,8 @@ private:
       if (vertex >= vertices_) {
         continue;
       }
-      const std::uint32_t rank_word =
-          decode_u32(*found->second.state, lane * sizeof(std::uint32_t));
+      const std::uint32_t rank_word = decode_u32(
+          *found->second.state, lane * state_bytes_per_vertex(policy_));
       const float value = GraphAlgorithmPolicy::word_to_float(
           decode_policy_value(policy_, rank_word));
       const std::uint32_t degree = decode_u32(*found->second.degree, lane * 4);
@@ -2725,27 +2723,15 @@ public:
                Fifo<ReGraphAppliedBurst> &output, FixedAxiPort &read_port,
                FixedAxiPort &write_port, const ReGraphReaderContext &reader,
                FixedAxiPort *degree_port = nullptr,
-               bool prepared_source_payload = false,
-               FixedAxiPort *auxiliary_read_port = nullptr,
-               FixedAxiPort *auxiliary_write_port = nullptr)
+               bool prepared_source_payload = false)
       : Component(std::move(name), clock_id), vertices_(vertices),
         policy_(std::move(policy)), config_(config), input_(input),
         output_(output), read_port_(read_port), write_port_(write_port),
         reader_(reader), degree_port_(degree_port),
-        auxiliary_read_port_(auxiliary_read_port),
-        auxiliary_write_port_(auxiliary_write_port),
         prepared_source_payload_(prepared_source_payload) {
     if (prepared_source_payload_ && degree_port_ == nullptr) {
       throw std::invalid_argument(
           "prepared PageRank apply requires a degree AXI port");
-    }
-    if ((auxiliary_read_port_ == nullptr) !=
-            (auxiliary_write_port_ == nullptr) ||
-        (auxiliary_read_port_ != nullptr &&
-         (!prepared_source_payload_ ||
-          policy_.config().kind != GraphAlgorithmKind::kResidualPageRank))) {
-      throw std::invalid_argument(
-          "separate auxiliary state requires sharded residual PageRank");
     }
   }
 
@@ -2771,12 +2757,10 @@ private:
           "ReGraph apply capacity is not burst aligned");
     }
     if (round == 0 || running_ || !read_inflight_.empty() ||
-        !write_inflight_.empty() || !auxiliary_write_inflight_.empty() ||
-        !ready_writes_.empty()) {
+        !write_inflight_.empty() || !ready_writes_.empty()) {
       throw std::logic_error("ReGraph apply round started while busy");
     }
     completed_writes_ = 0;
-    completed_auxiliary_writes_ = 0;
     input_bursts_this_round_ = 0;
     next_write_offset_ = 0;
     destination_base_ = destination_base;
@@ -2848,10 +2832,8 @@ public:
     staged_read_issue_.reset();
     staged_write_issue_.reset();
     staged_read_response_.reset();
-    staged_auxiliary_read_response_.reset();
     staged_degree_response_.reset();
     staged_write_response_.reset();
-    staged_auxiliary_write_response_.reset();
     staged_output_stall_ = false;
     if (!running_) {
       refresh_evaluate_ready();
@@ -2871,13 +2853,6 @@ public:
         staged_degree_response_ = std::move(response);
       }
     }
-    if (auxiliary_read_port_ != nullptr &&
-        auxiliary_read_port_->responses().front() != nullptr) {
-      AxiResponse response;
-      if (auxiliary_read_port_->responses().try_pop(response)) {
-        staged_auxiliary_read_response_ = std::move(response);
-      }
-    }
     if (write_port_.responses().front() != nullptr) {
       AxiResponse response;
       if (write_port_.responses().try_pop(response)) {
@@ -2888,13 +2863,6 @@ public:
       AxiResponse response;
       if (degree_port_->responses().try_pop(response)) {
         staged_degree_response_ = std::move(response);
-      }
-    }
-    if (auxiliary_write_port_ != nullptr &&
-        auxiliary_write_port_->responses().front() != nullptr) {
-      AxiResponse response;
-      if (auxiliary_write_port_->responses().try_pop(response)) {
-        staged_auxiliary_write_response_ = std::move(response);
       }
     }
 
@@ -2911,34 +2879,17 @@ public:
         const std::size_t index =
             static_cast<std::size_t>(ready - ready_writes_.begin());
         const ReadyWrite &item = ready_writes_[index];
-        if (!write_port_.requests().full() &&
-            (auxiliary_write_port_ == nullptr ||
-             !auxiliary_write_port_->requests().full()) &&
-            !output_.full()) {
+        if (!write_port_.requests().full() && !output_.full()) {
           if (!write_port_.requests().try_push(AxiRequest{
                   .transaction_id = transaction_id(item.offset),
                   .operation = MemoryOperation::kWrite,
                   .address = config_.vertex_state_base +
                              global_offset(item.offset) *
-                                 (auxiliary_write_port_ == nullptr
-                                      ? state_bytes_per_vertex(policy_)
-                                      : sizeof(std::uint32_t)),
+                                 state_bytes_per_vertex(policy_),
                   .bytes = static_cast<std::uint32_t>(item.data.size()),
                   .stream_read_beats = false,
                   .write_data = item.data,
               }) ||
-              (auxiliary_write_port_ != nullptr &&
-               !auxiliary_write_port_->requests().try_push(AxiRequest{
-                   .transaction_id = transaction_id(item.offset),
-                   .operation = MemoryOperation::kWrite,
-                   .address = config_.residual_state_base +
-                              global_offset(item.offset) *
-                                  sizeof(std::uint32_t),
-                   .bytes = static_cast<std::uint32_t>(
-                       item.auxiliary_data.size()),
-                   .stream_read_beats = false,
-                   .write_data = item.auxiliary_data,
-               })) ||
               !output_.try_push(ReGraphAppliedBurst{
                   .offset = item.offset,
                   .data = item.data,
@@ -2974,43 +2925,22 @@ public:
     }
     const ReGraphMergedBurst &next = *input_.front();
     if (read_port_.requests().full() ||
-        (auxiliary_read_port_ != nullptr &&
-         auxiliary_read_port_->requests().full()) ||
         (degree_port_ != nullptr && degree_port_->requests().full())) {
       ++read_window_stalls_;
       return;
     }
-    const std::size_t primary_state_bytes =
-        auxiliary_read_port_ == nullptr
-            ? kStateWordsPerBurst * state_bytes_per_vertex(policy_)
-            : kStateWordsPerBurst * sizeof(std::uint32_t);
     if (!read_port_.requests().try_push(AxiRequest{
             .transaction_id = transaction_id(next.offset),
             .operation = MemoryOperation::kRead,
             .address =
                 config_.vertex_state_base +
-                global_offset(next.offset) *
-                    (auxiliary_read_port_ == nullptr
-                         ? state_bytes_per_vertex(policy_)
-                         : sizeof(std::uint32_t)),
-            .bytes = static_cast<std::uint32_t>(primary_state_bytes),
+                global_offset(next.offset) * state_bytes_per_vertex(policy_),
+            .bytes = static_cast<std::uint32_t>(
+                kStateWordsPerBurst * state_bytes_per_vertex(policy_)),
             .stream_read_beats = false,
             .write_data = {},
         })) {
       throw std::logic_error("ReGraph apply state read staging failed");
-    }
-    if (auxiliary_read_port_ != nullptr &&
-        !auxiliary_read_port_->requests().try_push(AxiRequest{
-            .transaction_id = transaction_id(next.offset),
-            .operation = MemoryOperation::kRead,
-            .address = config_.residual_state_base +
-                       global_offset(next.offset) * sizeof(std::uint32_t),
-            .bytes = kStateWordsPerBurst * sizeof(std::uint32_t),
-            .stream_read_beats = false,
-            .write_data = {},
-        })) {
-      throw std::logic_error(
-          "ReGraph apply auxiliary-state read staging failed");
     }
     if (degree_port_ != nullptr &&
         !degree_port_->requests().try_push(AxiRequest{
@@ -3041,27 +2971,17 @@ public:
       return;
     }
     if (staged_read_response_.has_value()) {
-      consume_read_response(*staged_read_response_, ReadKind::kPrimary,
-                            context.domain_cycle);
+      consume_read_response(*staged_read_response_, true, context.domain_cycle);
       staged_read_response_.reset();
     }
-    if (staged_auxiliary_read_response_.has_value()) {
-      consume_read_response(*staged_auxiliary_read_response_,
-                            ReadKind::kAuxiliary, context.domain_cycle);
-      staged_auxiliary_read_response_.reset();
-    }
     if (staged_degree_response_.has_value()) {
-      consume_read_response(*staged_degree_response_, ReadKind::kDegree,
+      consume_read_response(*staged_degree_response_, false,
                             context.domain_cycle);
       staged_degree_response_.reset();
     }
     if (staged_write_response_.has_value()) {
-      consume_write_response(*staged_write_response_, false);
+      consume_write_response(*staged_write_response_);
       staged_write_response_.reset();
-    }
-    if (staged_auxiliary_write_response_.has_value()) {
-      consume_write_response(*staged_auxiliary_write_response_, true);
-      staged_auxiliary_write_response_.reset();
     }
     if (staged_output_stall_) {
       ++output_stall_cycles_;
@@ -3071,14 +2991,13 @@ public:
       if (!read_inflight_
                .emplace(id, PendingRead{.burst = std::move(*staged_read_issue_),
                                         .state = std::nullopt,
-                                        .auxiliary = std::nullopt,
                                         .degree = std::nullopt})
                .second) {
         throw std::logic_error("duplicate ReGraph apply read transaction");
       }
       ++input_bursts_this_round_;
       ++input_bursts_;
-      reads_ += 1 + (auxiliary_read_port_ != nullptr ? 1 : 0);
+      ++reads_;
       if (degree_port_ != nullptr) {
         ++degree_reads_;
       }
@@ -3090,12 +3009,7 @@ public:
       if (!write_inflight_.emplace(id, item.offset).second) {
         throw std::logic_error("duplicate ReGraph apply write transaction");
       }
-      if (auxiliary_write_port_ != nullptr &&
-          !auxiliary_write_inflight_.emplace(id, item.offset).second) {
-        throw std::logic_error(
-            "duplicate ReGraph apply auxiliary write transaction");
-      }
-      writes_ += 1 + (auxiliary_write_port_ != nullptr ? 1 : 0);
+      ++writes_;
       next_write_offset_ += kStateWordsPerBurst;
     }
     max_reads_inflight_ = std::max(max_reads_inflight_, read_inflight_.size());
@@ -3103,9 +3017,7 @@ public:
         std::max(max_writes_inflight_, write_inflight_.size());
     max_pipeline_occupancy_ =
         std::max(max_pipeline_occupancy_, pipeline_occupancy());
-    if (completed_writes_ == total_bursts() &&
-        (auxiliary_write_port_ == nullptr ||
-         completed_auxiliary_writes_ == total_bursts())) {
+    if (completed_writes_ == total_bursts()) {
       running_ = false;
       done_ = true;
       done_signal_.notify();
@@ -3125,14 +3037,12 @@ private:
     std::size_t offset{};
     std::uint64_t due_cycle{};
     std::vector<std::uint8_t> data;
-    std::vector<std::uint8_t> auxiliary_data;
     std::vector<std::uint8_t> source_data;
   };
 
   struct PendingRead {
     ReGraphMergedBurst burst;
     std::optional<std::vector<std::uint8_t>> state;
-    std::optional<std::vector<std::uint8_t>> auxiliary;
     std::optional<std::vector<std::uint8_t>> degree;
   };
 
@@ -3194,8 +3104,6 @@ private:
            policy_.config().kind == GraphAlgorithmKind::kResidualPageRank;
   }
 
-  enum class ReadKind { kPrimary, kAuxiliary, kDegree };
-
   [[nodiscard]] std::uint64_t transaction_id(std::size_t offset) const {
     return global_offset(offset) / kStateWordsPerBurst;
   }
@@ -3212,28 +3120,23 @@ private:
     return read_inflight_.size() + ready_writes_.size();
   }
 
-  void consume_read_response(const AxiResponse &response, ReadKind kind,
+  void consume_read_response(const AxiResponse &response, bool state,
                              std::uint64_t cycle) {
     const auto found = read_inflight_.find(response.transaction_id);
     const std::size_t expected =
-        kind == ReadKind::kPrimary && auxiliary_read_port_ == nullptr
-            ? kStateWordsPerBurst * state_bytes_per_vertex(policy_)
-            : kStateWordsPerBurst * sizeof(std::uint32_t);
+        state ? kStateWordsPerBurst * state_bytes_per_vertex(policy_)
+              : kStateWordsPerBurst * sizeof(std::uint32_t);
     if (!response.success || found == read_inflight_.end() ||
         response.read_data.size() != expected) {
       throw std::runtime_error(
           "ReGraph apply received malformed read response");
     }
-    if (kind == ReadKind::kPrimary) {
+    if (state) {
       found->second.state = response.read_data;
-    } else if (kind == ReadKind::kAuxiliary) {
-      found->second.auxiliary = response.read_data;
     } else {
       found->second.degree = response.read_data;
     }
     if (!found->second.state.has_value() ||
-        (auxiliary_read_port_ != nullptr &&
-         !found->second.auxiliary.has_value()) ||
         (degree_port_ != nullptr && !found->second.degree.has_value())) {
       return;
     }
@@ -3247,10 +3150,7 @@ private:
     for (std::size_t lane = 0; lane < result.size(); ++lane) {
       const std::size_t local_vertex = burst.offset + lane;
       const std::size_t vertex = destination_base_ + local_vertex;
-      const std::size_t byte_offset =
-          lane * (auxiliary_read_port_ == nullptr
-                      ? state_bytes_per_vertex(policy_)
-                      : sizeof(std::uint32_t));
+      const std::size_t byte_offset = lane * state_bytes_per_vertex(policy_);
       const std::uint32_t encoded = decode_u32(state_data, byte_offset);
       if (local_vertex >= destination_vertices_ || vertex >= vertices_) {
         result[lane] =
@@ -3263,13 +3163,9 @@ private:
       }
       AlgorithmVertexState old_state{
           .primary = decode_policy_value(policy_, encoded),
-          .auxiliary =
-              uses_auxiliary_state(policy_)
-                  ? (auxiliary_read_port_ == nullptr
-                         ? decode_u32(state_data, byte_offset + 4)
-                         : decode_u32(*pending.auxiliary,
-                                      lane * sizeof(std::uint32_t)))
-                  : 0,
+          .auxiliary = uses_auxiliary_state(policy_)
+                           ? decode_u32(state_data, byte_offset + 4)
+                           : 0,
       };
       AlgorithmApplyResult applied;
       if (prepared_source_payload_) {
@@ -3381,33 +3277,22 @@ private:
     ready_writes_.push_back(ReadyWrite{
         .offset = burst.offset,
         .due_cycle = cycle + config_.apply_pipeline_latency,
-        .data = auxiliary_write_port_ == nullptr
-                    ? encode_state_words(policy_, result, auxiliary)
-                    : encode_words(result),
-        .auxiliary_data = auxiliary_write_port_ == nullptr
-                              ? std::vector<std::uint8_t>{}
-                              : encode_words(auxiliary),
+        .data = encode_state_words(policy_, result, auxiliary),
         .source_data = prepared_source_payload_
                            ? encode_words(source_payload)
                            : encode_state_words(policy_, result, auxiliary),
     });
   }
 
-  void consume_write_response(const AxiResponse &response, bool auxiliary) {
-    auto &inflight =
-        auxiliary ? auxiliary_write_inflight_ : write_inflight_;
-    const auto found = inflight.find(response.transaction_id);
-    if (!response.success || found == inflight.end() ||
+  void consume_write_response(const AxiResponse &response) {
+    const auto found = write_inflight_.find(response.transaction_id);
+    if (!response.success || found == write_inflight_.end() ||
         !response.read_data.empty()) {
       throw std::runtime_error(
           "ReGraph apply received malformed write response");
     }
-    inflight.erase(found);
-    if (auxiliary) {
-      ++completed_auxiliary_writes_;
-    } else {
-      ++completed_writes_;
-    }
+    write_inflight_.erase(found);
+    ++completed_writes_;
   }
 
   std::size_t vertices_{};
@@ -3422,22 +3307,15 @@ private:
   FixedAxiPort &write_port_;
   const ReGraphReaderContext &reader_;
   FixedAxiPort *degree_port_{};
-  FixedAxiPort *auxiliary_read_port_{};
-  FixedAxiPort *auxiliary_write_port_{};
   std::unordered_map<std::uint64_t, PendingRead> read_inflight_;
   std::unordered_map<std::uint64_t, std::size_t> write_inflight_;
-  std::unordered_map<std::uint64_t, std::size_t>
-      auxiliary_write_inflight_;
   std::deque<ReadyWrite> ready_writes_;
   std::optional<AxiResponse> staged_read_response_;
-  std::optional<AxiResponse> staged_auxiliary_read_response_;
   std::optional<AxiResponse> staged_degree_response_;
   std::optional<AxiResponse> staged_write_response_;
-  std::optional<AxiResponse> staged_auxiliary_write_response_;
   std::optional<ReGraphMergedBurst> staged_read_issue_;
   std::optional<std::size_t> staged_write_issue_;
   std::size_t completed_writes_{};
-  std::size_t completed_auxiliary_writes_{};
   std::size_t input_bursts_this_round_{};
   std::size_t next_write_offset_{};
   std::size_t active_vertices_{};
@@ -4656,10 +4534,6 @@ public:
     }
     apply_state_read_port_->register_components(scheduler_);
     apply_state_write_port_->register_components(scheduler_);
-    if (apply_auxiliary_read_port_ != nullptr) {
-      apply_auxiliary_read_port_->register_components(scheduler_);
-      apply_auxiliary_write_port_->register_components(scheduler_);
-    }
     if (apply_degree_port_ != nullptr) {
       apply_degree_port_->register_components(scheduler_);
       source_prepare_state_read_port_->register_components(scheduler_);
@@ -4843,8 +4717,7 @@ public:
                                 : state_bytes_per_vertex(policy_));
     result.source_prepare_read_bytes =
         result.source_prepare_state_reads * kStateWordsPerBurst *
-            (hls_sharded_pagerank() ? sizeof(std::uint32_t)
-                                    : state_bytes_per_vertex(policy_)) +
+            state_bytes_per_vertex(policy_) +
         result.source_prepare_degree_reads * kStateWordsPerBurst *
             sizeof(std::uint32_t);
     result.source_prepare_write_bytes = result.source_prepare_writes *
@@ -4855,13 +4728,9 @@ public:
                                 kStateWordsPerBurst * sizeof(std::uint32_t);
     result.pma_read_bytes = result.pma_segment_reads * kGraSuSegmentBytes;
     result.apply_read_bytes = result.apply_state_reads * kStateWordsPerBurst *
-                              (apply_auxiliary_read_port_ == nullptr
-                                   ? state_bytes_per_vertex(policy_)
-                                   : sizeof(std::uint32_t));
+                              state_bytes_per_vertex(policy_);
     result.apply_write_bytes = result.apply_state_writes * kStateWordsPerBurst *
-                               (apply_auxiliary_write_port_ == nullptr
-                                    ? state_bytes_per_vertex(policy_)
-                                    : sizeof(std::uint32_t));
+                               state_bytes_per_vertex(policy_);
     result.axi_backend_submit_stalls =
         apply_state_read_port_->master().stats().backend_submit_stalls +
         apply_state_write_port_->master().stats().backend_submit_stalls +
@@ -4884,11 +4753,6 @@ public:
           source_prepare_mirror_write_port_->master()
               .stats()
               .backend_submit_stalls;
-    }
-    if (apply_auxiliary_read_port_ != nullptr) {
-      result.axi_backend_submit_stalls +=
-          apply_auxiliary_read_port_->master().stats().backend_submit_stalls +
-          apply_auxiliary_write_port_->master().stats().backend_submit_stalls;
     }
     if (config_.frontend_count == 1) {
       result.axi_backend_submit_stalls +=
@@ -4941,16 +4805,13 @@ public:
   }
 
   [[nodiscard]] std::vector<std::uint32_t> state_words() const {
-    const std::size_t bytes_per_vertex =
-        hls_sharded_pagerank() ? sizeof(std::uint32_t)
-                               : state_bytes_per_vertex(policy_);
     const auto bytes = backend_.inspect_payload(
         config_.vertex_state_channel, config_.vertex_state_base,
-        layout_.vertices * bytes_per_vertex);
+        layout_.vertices * state_bytes_per_vertex(policy_));
     std::vector<std::uint32_t> result(layout_.vertices);
     for (std::size_t vertex = 0; vertex < result.size(); ++vertex) {
       result[vertex] = decode_policy_value(
-          policy_, decode_u32(bytes, vertex * bytes_per_vertex));
+          policy_, decode_u32(bytes, vertex * state_bytes_per_vertex(policy_)));
     }
     return result;
   }
@@ -4960,18 +4821,13 @@ public:
       throw std::logic_error(
           "auxiliary state view requires residual PageRank policy");
     }
-    const bool separate = hls_sharded_pagerank();
     const auto bytes = backend_.inspect_payload(
-        separate ? config_.residual_state_channel : config_.vertex_state_channel,
-        separate ? config_.residual_state_base : config_.vertex_state_base,
-        layout_.vertices *
-            (separate ? sizeof(std::uint32_t)
-                      : state_bytes_per_vertex(policy_)));
+        config_.vertex_state_channel, config_.vertex_state_base,
+        layout_.vertices * state_bytes_per_vertex(policy_));
     std::vector<std::uint32_t> result(layout_.vertices);
     for (std::size_t vertex = 0; vertex < result.size(); ++vertex) {
-      result[vertex] = decode_u32(
-          bytes, separate ? vertex * sizeof(std::uint32_t)
-                          : vertex * state_bytes_per_vertex(policy_) + 4);
+      result[vertex] =
+          decode_u32(bytes, vertex * state_bytes_per_vertex(policy_) + 4);
     }
     return result;
   }
@@ -5043,8 +4899,6 @@ private:
         config_.source_state_channel >= config_.memory_channels ||
         config_.source_state_mirror_channel >= config_.memory_channels ||
         config_.vertex_state_channel >= config_.memory_channels ||
-        (residual_pagerank && hls_sharded_pagerank() &&
-         config_.residual_state_channel >= config_.memory_channels) ||
         (pagerank && config_.degree_channel >= config_.memory_channels)) {
       throw std::invalid_argument("invalid GraSU-ReGraph configuration");
     }
@@ -5282,14 +5136,6 @@ private:
     apply_state_write_port_ = make_port("grasu-regraph-apply-state-write",
                                         config_.vertex_state_channel, 64);
     if (hls_sharded_pagerank()) {
-      if (policy_.config().kind == GraphAlgorithmKind::kResidualPageRank) {
-        apply_auxiliary_read_port_ = make_port(
-            "grasu-regraph-apply-residual-read",
-            config_.residual_state_channel, 64);
-        apply_auxiliary_write_port_ = make_port(
-            "grasu-regraph-apply-residual-write",
-            config_.residual_state_channel, 64);
-      }
       apply_degree_port_ =
           make_port("grasu-regraph-apply-degree", config_.degree_channel, 64);
       source_prepare_state_read_port_ =
@@ -5316,14 +5162,7 @@ private:
     const std::size_t bytes_per_vertex = state_bytes_per_vertex(policy_);
     const std::size_t padded_vertices =
         layout_.partitions.size() * config_.partition_vertices;
-    const bool separate_state = hls_sharded_pagerank();
-    std::vector<std::uint8_t> bytes(
-        padded_vertices *
-        (separate_state ? sizeof(std::uint32_t) : bytes_per_vertex));
-    std::vector<std::uint8_t> auxiliary_bytes(
-        separate_state && uses_auxiliary_state(policy_)
-            ? padded_vertices * sizeof(std::uint32_t)
-            : 0);
+    std::vector<std::uint8_t> bytes(padded_vertices * bytes_per_vertex);
     for (std::size_t vertex = 0; vertex < padded_vertices; ++vertex) {
       std::uint32_t encoded =
           policy_.config().kind == GraphAlgorithmKind::kWeightedSssp ||
@@ -5351,29 +5190,18 @@ private:
         encoded = encode_policy_value(policy_, state.primary, active);
         if (uses_auxiliary_state(policy_)) {
           for (std::size_t byte = 0; byte < 4; ++byte) {
-            auto &target = separate_state ? auxiliary_bytes : bytes;
-            const std::size_t offset =
-                separate_state ? vertex * sizeof(std::uint32_t) + byte
-                               : vertex * bytes_per_vertex + 4 + byte;
-            target[offset] =
+            bytes[vertex * bytes_per_vertex + 4 + byte] =
                 static_cast<std::uint8_t>(state.auxiliary >> (byte * 8));
           }
         }
       }
       for (std::size_t byte = 0; byte < 4; ++byte) {
-        bytes[vertex *
-                  (separate_state ? sizeof(std::uint32_t) : bytes_per_vertex) +
-              byte] =
+        bytes[vertex * bytes_per_vertex + byte] =
             static_cast<std::uint8_t>(encoded >> (byte * 8));
       }
     }
     backend_.initialize_payload(config_.vertex_state_channel,
                                 config_.vertex_state_base, bytes);
-    if (!auxiliary_bytes.empty()) {
-      backend_.initialize_payload(config_.residual_state_channel,
-                                  config_.residual_state_base,
-                                  auxiliary_bytes);
-    }
     if (hls_sharded_pagerank()) {
       const std::size_t source_vertices =
           layout_.partitions.size() * config_.partition_vertices;
@@ -5499,8 +5327,7 @@ private:
         "grasu-regraph-apply", clock_id_, layout_.vertices, policy_, config_,
         merger_axis_, wrapper_axis_, *apply_state_read_port_,
         *apply_state_write_port_, *apply_context, apply_degree_port_.get(),
-        hls_sharded_pagerank(), apply_auxiliary_read_port_.get(),
-        apply_auxiliary_write_port_.get());
+        hls_sharded_pagerank());
     wrapper_ = std::make_unique<ReGraphHbmWrapper>(
         "grasu-regraph-hbm-wrapper", clock_id_, config_, policy_, wrapper_axis_,
         *source_state_primary_write_port_, *source_state_mirror_write_port_,
@@ -5544,9 +5371,6 @@ private:
     if (!gather_axis_.empty() || !merger_axis_.empty() ||
         !wrapper_axis_.empty() || !apply_state_read_port_->idle() ||
         !apply_state_write_port_->idle() ||
-        (apply_auxiliary_read_port_ != nullptr &&
-         (!apply_auxiliary_read_port_->idle() ||
-          !apply_auxiliary_write_port_->idle())) ||
         !source_state_primary_write_port_->idle() ||
         !source_state_mirror_write_port_->idle()) {
       return false;
@@ -5618,8 +5442,6 @@ private:
   std::array<std::array<std::unique_ptr<FixedAxiPort>, 4>, 4> k4_pma_ports_;
   std::unique_ptr<FixedAxiPort> apply_state_read_port_;
   std::unique_ptr<FixedAxiPort> apply_state_write_port_;
-  std::unique_ptr<FixedAxiPort> apply_auxiliary_read_port_;
-  std::unique_ptr<FixedAxiPort> apply_auxiliary_write_port_;
   std::unique_ptr<FixedAxiPort> apply_degree_port_;
   std::unique_ptr<FixedAxiPort> source_prepare_state_read_port_;
   std::unique_ptr<FixedAxiPort> source_prepare_degree_read_port_;
