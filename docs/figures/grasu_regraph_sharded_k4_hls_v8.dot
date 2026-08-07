@@ -1,0 +1,58 @@
+digraph ShardedK4 {
+  graph [rankdir=LR, bgcolor="white", pad="0.2", nodesep="0.35", ranksep="0.6"];
+  node [shape=box, style="rounded,filled", fontname="Courier", fontsize=10,
+        color="#263238", fillcolor="#f7f9fa", margin="0.10,0.06"];
+  edge [fontname="Courier", fontsize=9, color="#455a64", arrowsize=0.7];
+
+  host [label="Host resident graph\n+ batch updates"];
+  planner [label="Capacity-checked planner\n23 graph HBM PCs", fillcolor="#e8f1f5"];
+  split [label="Destination sharding\nlocal dst19"];
+
+  subgraph cluster_update {
+    label="Maintenance: shards launched serially";
+    fontname="Courier";
+    fontsize=10;
+    color="#8aa4b0";
+    style="rounded";
+    update [label="Current shard\n4 GraSU update/search lanes", fillcolor="#eef6e9"];
+    pma [label="Shard PMA + row + binary\nHBM PC 0..22", fillcolor="#eef6e9"];
+    degree [label="Degree RMW\nHBM PC 27 (ResPR)", fillcolor="#eef6e9"];
+    update -> pma [label="read/modify/write"];
+    update -> degree [label="ordered delta"];
+  }
+
+  barrier [label="Update/degree barrier", fillcolor="#fff4dc"];
+
+  subgraph cluster_compute {
+    label="Compute: one propagation round";
+    fontname="Courier";
+    fontsize=10;
+    color="#8aa4b0";
+    style="rounded";
+    f0 [label="Frontend 0\nshards 0,4,..."];
+    f1 [label="Frontend 1\nshards 1,5,..."];
+    f2 [label="Frontend 2\nshards 2,6,..."];
+    f3 [label="Frontend 3\nshards 3,7,..."];
+    mux [label="Finite AXIS mux", fillcolor="#e8f1f5"];
+    shared [label="1 shared merger\n+ apply + HBM wrapper", fillcolor="#fdecec"];
+    state [label="Resident state\nHBM PC 23..30", fillcolor="#fdecec"];
+    f0 -> mux;
+    f1 -> mux;
+    f2 -> mux;
+    f3 -> mux;
+    mux -> shared [label="backpressure"];
+    shared -> state [label="state R/W"];
+  }
+
+  relaunch [label="Host convergence check\n+ relaunch if active", fillcolor="#fff4dc"];
+
+  host -> split -> planner -> update;
+  pma -> barrier;
+  degree -> barrier;
+  barrier -> f0;
+  barrier -> f1;
+  barrier -> f2;
+  barrier -> f3;
+  state -> relaunch;
+  relaunch -> f0 [style=dashed, label="next round"];
+}

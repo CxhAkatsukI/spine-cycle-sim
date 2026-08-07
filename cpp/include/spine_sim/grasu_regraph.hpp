@@ -60,13 +60,11 @@ struct GraSuReGraphRuntimePlan {
     const std::vector<std::size_t> &physical_updates_per_shard,
     std::size_t max_cache_segments,
     std::size_t channels = kGraSuReGraphU55cGraphChannels,
-    std::size_t channel_capacity_bytes =
-        kGraSuReGraphU55cChannelCapacityBytes);
+    std::size_t channel_capacity_bytes = kGraSuReGraphU55cChannelCapacityBytes);
 
 [[nodiscard]] const GraSuReGraphBufferRegion &
 find_grasu_regraph_runtime_region(const GraSuReGraphRuntimePlan &plan,
-                                  std::size_t shard,
-                                  const std::string &name);
+                                  std::size_t shard, const std::string &name);
 
 struct GraSuReGraphConfig {
   std::size_t memory_channels{32};
@@ -102,6 +100,7 @@ struct GraSuReGraphConfig {
   bool split_pagerank_state{};
   bool initialize_degree_payload{true};
   bool sharded_runtime_placement{false};
+  std::vector<std::size_t> runtime_physical_updates_per_shard;
   std::size_t runtime_channel_capacity_bytes{
       kGraSuReGraphU55cChannelCapacityBytes};
   std::size_t max_supersteps{1024};
@@ -126,6 +125,41 @@ struct GraSuReGraphConfig {
   std::size_t residual_state_channel{26};
   std::size_t degree_channel{30};
   std::size_t edge_array_channel{0};
+};
+
+// The routed host executes GraSU maintenance one destination shard at a time,
+// rebinding the same four update CUs to each shard's runtime-selected HBM
+// regions. This engine preserves that launch order and then exposes the
+// resulting PMA state to the shared ReGraph compute model.
+class GraSuShardedPmaUpdateSystem final : public GraSuPmaUpdateEngine {
+public:
+  GraSuShardedPmaUpdateSystem(Scheduler &scheduler, ClockId clock_id,
+                              MemoryBackend &backend,
+                              GraSuPartitionedPmaLayout layout,
+                              std::vector<GraSuEdge> updates,
+                              GraSuNativeConfig config,
+                              std::size_t runtime_channel_capacity_bytes);
+  ~GraSuShardedPmaUpdateSystem() override;
+
+  GraSuShardedPmaUpdateSystem(const GraSuShardedPmaUpdateSystem &) = delete;
+  GraSuShardedPmaUpdateSystem &
+  operator=(const GraSuShardedPmaUpdateSystem &) = delete;
+
+  void register_components() override;
+  void unregister_components() override;
+  bool advance_if_complete() override;
+  [[nodiscard]] bool done() const noexcept override;
+  [[nodiscard]] bool failed() const noexcept override;
+  [[nodiscard]] const std::string &failure() const noexcept override;
+  [[nodiscard]] GraSuUpdateCounters counters() const override;
+  [[nodiscard]] std::vector<GraSuEdge> live_edges() const override;
+  [[nodiscard]] GraSuPartitionedPmaLayout
+  materialized_partitioned_layout() const override;
+  [[nodiscard]] const GraSuReGraphRuntimePlan &runtime_plan() const noexcept;
+
+private:
+  class Impl;
+  std::unique_ptr<Impl> impl_;
 };
 
 struct GraSuReGraphCounters {
@@ -222,28 +256,22 @@ public:
   GraSuReGraphSsspSystem(Scheduler &scheduler, ClockId clock_id,
                          MemoryBackend &backend, GraSuPmaLayout layout,
                          std::uint32_t source, GraSuReGraphConfig config = {});
-  GraSuReGraphSsspSystem(Scheduler &scheduler, ClockId clock_id,
-                         MemoryBackend &backend, GraSuPmaLayout layout,
-                         GraphAlgorithmPolicy policy,
-                         std::vector<std::uint32_t> out_degrees,
-                         std::size_t fixed_rounds,
-                         GraSuReGraphConfig config = {},
-                         std::optional<AlgorithmInitialState> initial_state =
-                             std::nullopt);
+  GraSuReGraphSsspSystem(
+      Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
+      GraSuPmaLayout layout, GraphAlgorithmPolicy policy,
+      std::vector<std::uint32_t> out_degrees, std::size_t fixed_rounds,
+      GraSuReGraphConfig config = {},
+      std::optional<AlgorithmInitialState> initial_state = std::nullopt);
   GraSuReGraphSsspSystem(Scheduler &scheduler, ClockId clock_id,
                          MemoryBackend &backend,
-                         GraSuPartitionedPmaLayout layout,
-                         std::uint32_t source,
+                         GraSuPartitionedPmaLayout layout, std::uint32_t source,
                          GraSuReGraphConfig config = {});
-  GraSuReGraphSsspSystem(Scheduler &scheduler, ClockId clock_id,
-                         MemoryBackend &backend,
-                         GraSuPartitionedPmaLayout layout,
-                         GraphAlgorithmPolicy policy,
-                         std::vector<std::uint32_t> out_degrees,
-                         std::size_t fixed_rounds,
-                         GraSuReGraphConfig config = {},
-                         std::optional<AlgorithmInitialState> initial_state =
-                             std::nullopt);
+  GraSuReGraphSsspSystem(
+      Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
+      GraSuPartitionedPmaLayout layout, GraphAlgorithmPolicy policy,
+      std::vector<std::uint32_t> out_degrees, std::size_t fixed_rounds,
+      GraSuReGraphConfig config = {},
+      std::optional<AlgorithmInitialState> initial_state = std::nullopt);
   ~GraSuReGraphSsspSystem();
 
   GraSuReGraphSsspSystem(const GraSuReGraphSsspSystem &) = delete;
@@ -271,11 +299,12 @@ public:
                              std::vector<std::uint32_t> out_degrees,
                              std::size_t iterations, float damping = 0.85F,
                              GraSuReGraphConfig config = {});
-  GraSuReGraphPageRankSystem(
-      Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
-      GraSuPartitionedPmaLayout layout,
-      std::vector<std::uint32_t> out_degrees, std::size_t iterations,
-      float damping = 0.85F, GraSuReGraphConfig config = {});
+  GraSuReGraphPageRankSystem(Scheduler &scheduler, ClockId clock_id,
+                             MemoryBackend &backend,
+                             GraSuPartitionedPmaLayout layout,
+                             std::vector<std::uint32_t> out_degrees,
+                             std::size_t iterations, float damping = 0.85F,
+                             GraSuReGraphConfig config = {});
   ~GraSuReGraphPageRankSystem();
 
   GraSuReGraphPageRankSystem(const GraSuReGraphPageRankSystem &) = delete;
@@ -305,8 +334,7 @@ public:
       std::optional<AlgorithmInitialState> initial_state = std::nullopt);
   GraSuReGraphResidualPageRankSystem(
       Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
-      GraSuPartitionedPmaLayout layout,
-      std::vector<std::uint32_t> out_degrees,
+      GraSuPartitionedPmaLayout layout, std::vector<std::uint32_t> out_degrees,
       std::size_t max_iterations, float damping = 0.85F,
       float epsilon = 1.0e-6F, GraSuReGraphConfig config = {},
       ResidualPageRankContract residual_contract =

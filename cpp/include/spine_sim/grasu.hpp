@@ -38,8 +38,7 @@ enum class GraSuPmaWordAbi {
 
 [[nodiscard]] std::uint32_t encode_grasu_pma_edge(std::uint32_t destination,
                                                   std::uint16_t weight);
-[[nodiscard]] std::uint32_t
-decode_grasu_pma_destination(std::uint32_t encoded);
+[[nodiscard]] std::uint32_t decode_grasu_pma_destination(std::uint32_t encoded);
 [[nodiscard]] std::uint16_t decode_grasu_pma_weight(std::uint32_t encoded);
 [[nodiscard]] bool is_grasu_pma_empty(std::uint32_t encoded) noexcept;
 
@@ -61,9 +60,10 @@ struct GraSuNativeReorderedGraph {
   std::vector<GraSuEdge> updates;
 };
 
-[[nodiscard]] GraSuNativeReorderedGraph reorder_grasu_native_graph(
-    std::size_t vertices, const std::vector<GraSuEdge> &initial_edges,
-    const std::vector<GraSuEdge> &updates);
+[[nodiscard]] GraSuNativeReorderedGraph
+reorder_grasu_native_graph(std::size_t vertices,
+                           const std::vector<GraSuEdge> &initial_edges,
+                           const std::vector<GraSuEdge> &updates);
 
 // Exact host preprocessing used by the ff13a67 weighted-PMA HLS path.
 // Logical weight changes become two physical PMA operations before the
@@ -94,8 +94,7 @@ struct GraSuPmaLayout {
   std::vector<std::pair<std::uint32_t, std::uint32_t>> row_slot_bounds;
   std::vector<std::uint64_t> binary_heads;
   std::vector<std::array<std::uint32_t, kGraSuSegmentSlots>> segments;
-  std::vector<std::array<std::uint32_t, kGraSuSegmentSlots>>
-      reserved_segments;
+  std::vector<std::array<std::uint32_t, kGraSuSegmentSlots>> reserved_segments;
 
   [[nodiscard]] static GraSuPmaLayout
   build(std::size_t vertices, const std::vector<GraSuEdge> &initial_edges,
@@ -109,8 +108,8 @@ struct GraSuPmaLayout {
       GraSuPmaWordAbi pma_word_abi = GraSuPmaWordAbi::kNormalizedWeighted);
   [[nodiscard]] std::vector<GraSuEdge> live_edges() const;
   [[nodiscard]] std::size_t segment_for(const GraSuEdge &edge) const;
-  [[nodiscard]] bool contains_destination(
-      std::uint32_t destination) const noexcept;
+  [[nodiscard]] bool
+  contains_destination(std::uint32_t destination) const noexcept;
   [[nodiscard]] std::uint32_t
   local_destination(std::uint32_t destination) const;
 };
@@ -129,7 +128,8 @@ struct GraSuPartitionedPmaLayout {
         GraSuPmaWordAbi pma_word_abi = GraSuPmaWordAbi::kNormalizedWeighted);
   [[nodiscard]] std::size_t
   partition_for_destination(std::uint32_t destination) const;
-  [[nodiscard]] const GraSuPmaLayout &partition_for(const GraSuEdge &edge) const;
+  [[nodiscard]] const GraSuPmaLayout &
+  partition_for(const GraSuEdge &edge) const;
   [[nodiscard]] std::vector<GraSuEdge> live_edges() const;
 };
 
@@ -146,9 +146,9 @@ struct GraSuPartitionAddressPlan {
 
 [[nodiscard]] GraSuPartitionAddressPlan make_grasu_partition_address_plan(
     const GraSuPartitionedPmaLayout &layout, bool packed,
-    std::uint64_t row_base, std::uint64_t binary_base,
-    std::uint64_t pma_base, std::uint64_t fixed_stride,
-    std::uint64_t packed_arena_base, std::uint64_t alignment);
+    std::uint64_t row_base, std::uint64_t binary_base, std::uint64_t pma_base,
+    std::uint64_t fixed_stride, std::uint64_t packed_arena_base,
+    std::uint64_t alignment);
 
 struct GraSuNativeConfig {
   GraSuPmaWordAbi pma_word_abi{GraSuPmaWordAbi::kNormalizedWeighted};
@@ -159,6 +159,7 @@ struct GraSuNativeConfig {
   std::size_t max_pending_requests{16};
   std::size_t max_outstanding_bursts{16};
   std::size_t response_beats_per_cycle{1};
+  std::uint32_t initiator_base{3000};
   std::uint64_t update_base{0x0000'0000ULL};
   std::uint64_t row_offset_base{0x1000'0000ULL};
   std::uint64_t binary_base{0x2000'0000ULL};
@@ -167,7 +168,18 @@ struct GraSuNativeConfig {
   bool packed_partition_addresses{};
   std::uint64_t partition_address_arena_base{0x0100'0000ULL};
   std::uint64_t partition_address_alignment{4096};
+  // The routed sharded HLS host binds each per-shard XRT buffer to a runtime
+  // selected pseudo-channel. Legacy profiles retain the historical fixed
+  // channel mapping when this flag is false.
+  bool explicit_runtime_regions{};
+  std::array<std::size_t, 4> update_channels{{0, 1, 2, 3}};
+  std::array<std::uint64_t, 4> update_bases{};
+  std::array<std::size_t, 4> row_channels{{0, 1, 2, 3}};
+  std::array<std::size_t, 4> binary_channels{{0, 1, 2, 3}};
+  std::array<std::size_t, 4> pma_channels{{0, 1, 2, 3}};
+  std::array<std::uint64_t, 4> pma_bases{};
   bool maintain_out_degree{};
+  bool initialize_degree_payload{true};
   std::uint64_t degree_base{0x4100'0000ULL};
   std::size_t degree_channel{30};
   std::size_t degree_fifo_depth{16};
@@ -209,6 +221,24 @@ struct GraSuUpdateCounters {
   std::uint64_t end_cycle{};
 };
 
+class GraSuPmaUpdateEngine {
+public:
+  virtual ~GraSuPmaUpdateEngine() = default;
+
+  virtual void register_components() = 0;
+  virtual void unregister_components() = 0;
+  // Returns true when a completed shard was retired or the next shard was
+  // launched. Non-sharded engines never need an intermediate advance.
+  virtual bool advance_if_complete() { return false; }
+  [[nodiscard]] virtual bool done() const noexcept = 0;
+  [[nodiscard]] virtual bool failed() const noexcept = 0;
+  [[nodiscard]] virtual const std::string &failure() const noexcept = 0;
+  [[nodiscard]] virtual GraSuUpdateCounters counters() const = 0;
+  [[nodiscard]] virtual std::vector<GraSuEdge> live_edges() const = 0;
+  [[nodiscard]] virtual GraSuPartitionedPmaLayout
+  materialized_partitioned_layout() const = 0;
+};
+
 // Host-side initialization is outside the measured update kernel window. It
 // writes one destination partition's row, binary-head, and PMA payloads without
 // registering AXI initiators.
@@ -216,15 +246,14 @@ void initialize_grasu_pma_layout_payloads(MemoryBackend &backend,
                                           const GraSuPmaLayout &layout,
                                           const GraSuNativeConfig &config);
 
-class GraSuPmaUpdateSystem {
- public:
+class GraSuPmaUpdateSystem final : public GraSuPmaUpdateEngine {
+public:
   GraSuPmaUpdateSystem(Scheduler &scheduler, ClockId clock_id,
                        MemoryBackend &backend, GraSuPmaLayout layout,
                        std::vector<GraSuEdge> updates,
                        GraSuNativeConfig config = {});
   GraSuPmaUpdateSystem(Scheduler &scheduler, ClockId clock_id,
-                       MemoryBackend &backend,
-                       GraSuPartitionedPmaLayout layout,
+                       MemoryBackend &backend, GraSuPartitionedPmaLayout layout,
                        std::vector<GraSuEdge> updates,
                        GraSuNativeConfig config = {});
   ~GraSuPmaUpdateSystem();
@@ -232,13 +261,15 @@ class GraSuPmaUpdateSystem {
   GraSuPmaUpdateSystem(const GraSuPmaUpdateSystem &) = delete;
   GraSuPmaUpdateSystem &operator=(const GraSuPmaUpdateSystem &) = delete;
 
-  void register_components();
-  void unregister_components();
-  [[nodiscard]] bool done() const noexcept;
-  [[nodiscard]] bool failed() const noexcept;
-  [[nodiscard]] const std::string &failure() const noexcept;
-  [[nodiscard]] GraSuUpdateCounters counters() const;
-  [[nodiscard]] std::vector<GraSuEdge> live_edges() const;
+  void register_components() override;
+  void unregister_components() override;
+  [[nodiscard]] bool done() const noexcept override;
+  [[nodiscard]] bool failed() const noexcept override;
+  [[nodiscard]] const std::string &failure() const noexcept override;
+  [[nodiscard]] GraSuUpdateCounters counters() const override;
+  [[nodiscard]] std::vector<GraSuEdge> live_edges() const override;
+  [[nodiscard]] GraSuPartitionedPmaLayout
+  materialized_partitioned_layout() const override;
   [[nodiscard]] std::array<std::uint32_t, kGraSuSegmentSlots>
   inspect_segment(std::size_t global_segment) const;
   [[nodiscard]] std::array<std::uint32_t, kGraSuSegmentSlots>
@@ -247,9 +278,9 @@ class GraSuPmaUpdateSystem {
   [[nodiscard]] const GraSuPartitionedPmaLayout &
   initial_partitioned_layout() const noexcept;
 
- private:
+private:
   class Impl;
   std::unique_ptr<Impl> impl_;
 };
 
-}  // namespace spine::sim
+} // namespace spine::sim

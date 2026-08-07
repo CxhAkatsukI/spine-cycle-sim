@@ -124,7 +124,8 @@ def require_hls_weighted_capability(
         raise ValueError(f"unsupported weighted HLS capability: {algorithm}")
     capability = profile_capability.require(algorithm)
     if (
-        profile_capability.comparison_role not in {"hls_sw_emu", "normalized"}
+        profile_capability.comparison_role
+        not in {"hls_sw_emu", "normalized", "hardware_native"}
         or profile_capability.handoff != "weighted_pma_to_axis_stream"
         or profile_capability.conversion_cost != "absent"
     ):
@@ -456,6 +457,7 @@ def main() -> int:
         "grasu_regraph_candidate10_k4_shared_multipart_weighted_packed_v6",
         "grasu_regraph_candidate10_k1_multipart_weighted_fullgraph_v7",
         "grasu_regraph_candidate10_k4_shared_multipart_weighted_fullgraph_v7",
+        "grasu_regraph_sharded_k4_weighted_hls_v8",
     }
     if profile.get("profile_id") not in expected_profile_ids:
         raise ValueError("runner requires a pinned HLS-derived weighted profile")

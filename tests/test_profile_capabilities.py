@@ -53,6 +53,12 @@ CATALOG_V7 = (
     / "contracts"
     / "grasu_regraph_full_graph_capabilities_v7.json"
 )
+CATALOG_V8 = (
+    ROOT
+    / "configs"
+    / "contracts"
+    / "grasu_regraph_sharded_k4_hls_capabilities_v8.json"
+)
 
 
 class ProfileCapabilityTests(unittest.TestCase):
@@ -65,6 +71,7 @@ class ProfileCapabilityTests(unittest.TestCase):
             load_capability_catalog(CATALOG_V5),
             load_capability_catalog(CATALOG_V6),
             load_capability_catalog(CATALOG_V7),
+            load_capability_catalog(CATALOG_V8),
         )
         profile_ids = {
             json.loads(path.read_text(encoding="utf-8"))["profile_id"]

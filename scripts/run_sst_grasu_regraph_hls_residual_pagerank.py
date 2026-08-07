@@ -172,7 +172,7 @@ def require_hls_residual_capability(
     capability = profile_capability.require("thresholded_residual_pagerank")
     if (
         profile_capability.comparison_role
-        not in {"hls_equivalent_proposed", "normalized"}
+        not in {"hls_equivalent_proposed", "normalized", "hardware_native"}
         or profile_capability.handoff != "weighted_pma_to_axis_stream"
         or profile_capability.conversion_cost != "absent"
     ):
@@ -197,6 +197,7 @@ def validate_result(
     delta_hls = residual_contract == "deltahls_sink_free_linf_warm"
     hardware_warm = residual_contract == "grasu_hardware_warm_dangling_linf"
     iterations = int(result.get("iterations", -1))
+    expected_pipeline_executions = iterations + (1 if hardware_warm else 0)
     vertices = len(oracle.external_to_internal)
     partition_vertices = int(params["regraph_partition_vertices"])
     state_bytes = int(params["pagerank_state_bytes_per_vertex"])
@@ -209,7 +210,9 @@ def validate_result(
     if isinstance(oracle, HlsResidualRuntimeOracle):
         if oracle.partition_vertices != partition_vertices:
             raise ValueError("compacted residual oracle geometry differs from profile")
-        source_requests = oracle.source_requests_per_iteration * iterations
+        source_requests = (
+            oracle.source_requests_per_iteration * expected_pipeline_executions
+        )
     else:
         partition_sources: list[set[int]] = [
             set() for _ in range(destination_partitions)
@@ -221,7 +224,7 @@ def validate_result(
             expected_partitioned_source_cache_requests(
                 sources,
                 int(params["regraph_source_buffer_vertices"]),
-                iterations,
+                expected_pipeline_executions,
             )
             for sources in partition_sources
         )
@@ -230,8 +233,18 @@ def validate_result(
         * int(params["regraph_source_buffer_vertices"])
         // vertices_per_beat
     )
-    rows = destination_partitions * partition_vertices // 2 * iterations
-    bursts = destination_partitions * partition_vertices // 16 * iterations
+    rows = (
+        destination_partitions
+        * partition_vertices
+        // 2
+        * expected_pipeline_executions
+    )
+    bursts = (
+        destination_partitions
+        * partition_vertices
+        // 16
+        * expected_pipeline_executions
+    )
     source_prepare_degree_reads = (vertices + 15) // 16
     ranks = tuple(float(value) for value in result.get("ranks_external", []))
     residuals = tuple(
@@ -268,7 +281,7 @@ def validate_result(
         "hardware_correction": (not hardware_warm)
         or (
             result.get("correction_executions") == 1
-            and result.get("pipeline_executions") == iterations + 1
+            and result.get("pipeline_executions") == expected_pipeline_executions
             and result.get("correction_execution_timing")
             == "realized_work_component_envelope"
             and int(result.get("correction_pma_slots", 0)) > 0
@@ -425,6 +438,7 @@ def main() -> int:
         "grasu_regraph_candidate10_k4_shared_multipart_residual_packed_v6",
         "grasu_regraph_candidate10_k1_multipart_residual_fullgraph_v7",
         "grasu_regraph_candidate10_k4_shared_multipart_residual_fullgraph_v7",
+        "grasu_regraph_sharded_k4_residual_hls_v8",
     }
     if profile.get("profile_id") not in expected_profiles:
         raise ValueError("runner requires a pinned HLS-derived residual profile")

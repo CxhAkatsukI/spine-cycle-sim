@@ -432,15 +432,16 @@ def main() -> int:
             range(graph.vertices),
             weighted_full_word=False,
         )
-        validate_partition_footprints(parameters, footprints)
-        address_regions = validate_grasu_hbm_address_map(
-            parameters,
-            int(memory["channel_capacity_bytes"]),
-            destination_partitions,
-            graph.vertices,
-            len(update.records),
-            footprints,
-        )
+        if parameters.get("physical_address_map_id"):
+            validate_partition_footprints(parameters, footprints)
+            address_regions = validate_grasu_hbm_address_map(
+                parameters,
+                int(memory["channel_capacity_bytes"]),
+                destination_partitions,
+                graph.vertices,
+                len(update.records),
+                footprints,
+            )
         env.update(
             {
                 "GRASU_SST_MODE": "grasu_regraph_connected_components",
@@ -541,7 +542,8 @@ def main() -> int:
                 ),
             }
         )
-        env.update(grasu_hbm_address_environment(parameters, address_regions))
+        if address_regions is not None:
+            env.update(grasu_hbm_address_environment(parameters, address_regions))
         sst_config = ROOT / "sst/grasu_regraph_vertical.py"
 
     if args.wrapper is None:

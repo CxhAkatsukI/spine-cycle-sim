@@ -11,6 +11,7 @@
 #include <deque>
 #include <fstream>
 #include <functional>
+#include <iomanip>
 #include <limits>
 #include <map>
 #include <memory>
@@ -2888,6 +2889,7 @@ class OnlineMemoryProbe final : public SST::Component {
       grasu_logical_update_edges_ = updates.size();
       grasu_partitioned_execution_ =
           partitioned_dynamic_pagerank ||
+          grasu_config_.sharded_runtime_placement ||
           initial.vertices > grasu_config_.partition_vertices;
       if (native_grasu_sssp) {
         if (source_vertex_ >= initial.vertices) {
@@ -3049,9 +3051,23 @@ class OnlineMemoryProbe final : public SST::Component {
         }
       }
       if (grasu_partitioned_execution_) {
-        grasu_update_system_ = std::make_unique<GraSuPmaUpdateSystem>(
-            scheduler_, core, *backend_, grasu_partitioned_layout_,
-            std::move(updates), grasu_update_config_);
+        if (grasu_config_.sharded_runtime_placement) {
+          grasu_config_.runtime_physical_updates_per_shard.assign(
+              grasu_partitioned_layout_.partitions.size(), 0);
+          for (const GraSuEdge &edge : updates) {
+            ++grasu_config_.runtime_physical_updates_per_shard.at(
+                grasu_partitioned_layout_.partition_for_destination(
+                    edge.destination));
+          }
+          grasu_update_system_ = std::make_unique<GraSuShardedPmaUpdateSystem>(
+              scheduler_, core, *backend_, grasu_partitioned_layout_,
+              std::move(updates), grasu_update_config_,
+              grasu_config_.runtime_channel_capacity_bytes);
+        } else {
+          grasu_update_system_ = std::make_unique<GraSuPmaUpdateSystem>(
+              scheduler_, core, *backend_, grasu_partitioned_layout_,
+              std::move(updates), grasu_update_config_);
+        }
       } else {
         grasu_update_system_ = std::make_unique<GraSuPmaUpdateSystem>(
             scheduler_, core, *backend_, grasu_layout_, std::move(updates),
@@ -3903,6 +3919,9 @@ class OnlineMemoryProbe final : public SST::Component {
         primaryComponentOKToEndSim();
         return true;
       }
+      if (grasu_update_system_->advance_if_complete()) {
+        return false;
+      }
       if (grasu_compute_system_ == nullptr &&
           grasu_pagerank_compute_system_ == nullptr &&
           grasu_residual_compute_system_ == nullptr &&
@@ -3912,6 +3931,10 @@ class OnlineMemoryProbe final : public SST::Component {
         grasu_update_counters_captured_ = true;
         grasu_update_backend_traffic_ = backend_->traffic_stats();
         backend_->begin_traffic_epoch();
+        if (grasu_partitioned_execution_) {
+          grasu_partitioned_layout_ =
+              grasu_update_system_->materialized_partitioned_layout();
+        }
         if (mode_ == "grasu_regraph_sssp" ||
             mode_ == "grasu_regraph_hls_weighted_sssp") {
           if (mode_ == "grasu_regraph_hls_weighted_sssp") {
@@ -4734,6 +4757,7 @@ class OnlineMemoryProbe final : public SST::Component {
     result_written_ = true;
     result_success_ = success;
     std::ofstream result(result_path_);
+    result << std::setprecision(9);
     if (mode_ == "spine_connected_components") {
       const std::vector<std::uint32_t> labels =
           pagerank_system_->compute().rank_words();
@@ -5627,9 +5651,21 @@ class OnlineMemoryProbe final : public SST::Component {
       const GraSuReGraphCounters compute =
           compute_available ? grasu_residual_compute_system_->counters()
                             : GraSuReGraphCounters{};
-      const std::vector<std::size_t> execution_frontier_out =
+      const std::vector<std::size_t> pipeline_frontier_out =
           compute_available
               ? grasu_residual_compute_system_->frontier_out_sizes()
+              : std::vector<std::size_t>{};
+      const std::size_t correction_executions =
+          hardware_warm_residual_ ? 1 : 0;
+      const std::size_t repair_iterations =
+          compute.supersteps >= correction_executions
+              ? compute.supersteps - correction_executions
+              : 0;
+      const std::vector<std::size_t> execution_frontier_out =
+          pipeline_frontier_out.size() >= correction_executions
+              ? std::vector<std::size_t>(
+                    pipeline_frontier_out.begin() + correction_executions,
+                    pipeline_frontier_out.end())
               : std::vector<std::size_t>{};
       std::vector<std::size_t> execution_frontier_in;
       if (!execution_frontier_out.empty()) {
@@ -5708,24 +5744,26 @@ class OnlineMemoryProbe final : public SST::Component {
               grasu_residual_pagerank_reference_.frontier_out_sizes;
       const bool execution_converged =
           compute_available && !grasu_residual_compute_system_->failed() &&
-          execution_frontier_out.size() == compute.supersteps &&
-          !execution_frontier_out.empty() &&
-          execution_frontier_out.back() == 0;
+          pipeline_frontier_out.size() == compute.supersteps &&
+          !pipeline_frontier_out.empty() &&
+          pipeline_frontier_out.back() == 0;
       const bool active_edge_execution_ledger_match =
           compute.active_edges_mapped == compute.gather_bank_updates &&
           compute.active_edges_mapped <= compute.live_edges_scanned;
+      const std::uint64_t correction_active_edges =
+          correction_executions * grasu_final_edges_.size();
+      const std::uint64_t expected_active_edges =
+          grasu_residual_pagerank_reference_.active_edges +
+          correction_active_edges;
       const bool active_edge_reference_exact =
-          compute.active_edges_mapped ==
-          grasu_residual_pagerank_reference_.active_edges;
+          compute.active_edges_mapped == expected_active_edges;
       const double active_edge_reference_relative_error =
-          grasu_residual_pagerank_reference_.active_edges == 0
+          expected_active_edges == 0
               ? (compute.active_edges_mapped == 0 ? 0.0 : 1.0)
               : std::fabs(
                     static_cast<double>(compute.active_edges_mapped) -
-                    static_cast<double>(
-                        grasu_residual_pagerank_reference_.active_edges)) /
-                    static_cast<double>(
-                        grasu_residual_pagerank_reference_.active_edges);
+                    static_cast<double>(expected_active_edges)) /
+                    static_cast<double>(expected_active_edges);
       const bool passed =
           success && compute_available &&
           !grasu_residual_compute_system_->failed() &&
@@ -5810,12 +5848,11 @@ class OnlineMemoryProbe final : public SST::Component {
              << update.weight_decreases << ",\n"
              << "  \"update_weight_increases\": "
              << update.weight_increases << ",\n"
-             << "  \"iterations\": " << compute.supersteps << ",\n"
-             << "  \"pipeline_executions\": "
-             << compute.supersteps + (hardware_warm_residual_ ? 1 : 0)
+             << "  \"iterations\": " << repair_iterations << ",\n"
+             << "  \"pipeline_executions\": " << compute.supersteps
              << ",\n"
-             << "  \"correction_executions\": "
-             << (hardware_warm_residual_ ? 1 : 0) << ",\n"
+             << "  \"correction_executions\": " << correction_executions
+             << ",\n"
              << "  \"correction_execution_timing\": \""
              << (hardware_warm_residual_
                      ? "realized_work_component_envelope"
@@ -5975,8 +6012,12 @@ class OnlineMemoryProbe final : public SST::Component {
              << ",\n"
              << "  \"compute_active_edges\": "
              << compute.active_edges_mapped << ",\n"
-             << "  \"expected_active_edges\": "
+             << "  \"expected_active_edges\": " << expected_active_edges
+             << ",\n"
+             << "  \"expected_repair_active_edges\": "
              << grasu_residual_pagerank_reference_.active_edges << ",\n"
+             << "  \"correction_active_edges\": "
+             << correction_active_edges << ",\n"
              << "  \"active_edge_execution_ledger_match\": "
              << (active_edge_execution_ledger_match ? "true" : "false")
              << ",\n  \"active_edge_reference_exact\": "
@@ -10550,7 +10591,7 @@ class OnlineMemoryProbe final : public SST::Component {
   GraSuPmaLayout grasu_layout_;
   GraSuPartitionedPmaLayout grasu_partitioned_layout_;
   bool grasu_partitioned_execution_{};
-  std::unique_ptr<GraSuPmaUpdateSystem> grasu_update_system_;
+  std::unique_ptr<GraSuPmaUpdateEngine> grasu_update_system_;
   std::unique_ptr<GraSuNativeCompactorSystem> grasu_compactor_system_;
   std::unique_ptr<GraSuNativeReGraphSsspSystem>
       grasu_native_compute_system_;
