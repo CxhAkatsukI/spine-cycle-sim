@@ -392,7 +392,7 @@ def render_fig8(
     plt.close(figure)
 
 
-def collect_fig9_rows() -> list[dict[str, object]]:
+def collect_fig9_rows() -> tuple[list[dict[str, object]], Path, str]:
     rows = []
     for row in read_csv(FIG9_PAIR_DATA):
         if row["algorithm"] not in FIG9_ALGORITHM_ORDER:
@@ -416,7 +416,57 @@ def collect_fig9_rows() -> list[dict[str, object]]:
             FIG9_DATASET_ORDER.index(str(row["dataset"])),
         )
     )
-    return rows
+    return rows, FIG9_PAIR_DATA, "INTERIM_ARCHIVED_SIMULATOR_DATA"
+
+
+def collect_fig9_rows_from_campaign(
+    analysis_dir: Path,
+) -> tuple[list[dict[str, object]], Path, str]:
+    path = analysis_dir / "pair_rows.csv"
+    if not path.is_file():
+        raise FileNotFoundError(path)
+    rows = []
+    dataset_label = {
+        "sx_askubuntu": "AU",
+        "sx_superuser": "SU",
+        "wiki_talk_temporal": "WK",
+    }
+    for row in read_csv(path):
+        if row.get("competitor") != "grasu_regraph_k4_shared":
+            continue
+        if row["algorithm"] not in FIG9_ALGORITHM_ORDER:
+            continue
+        dataset = dataset_label.get(row["dataset_id"])
+        if dataset not in FIG9_DATASET_ORDER:
+            continue
+        spine_memory = float(row["spine_memory_bytes"])
+        competitor_memory = float(row["competitor_memory_bytes"])
+        rows.append(
+            {
+                "dataset": dataset,
+                "algorithm": row["algorithm"],
+                "algorithm_label": FIG9_ALGORITHM_LABEL[row["algorithm"]],
+                "memory_ratio_gr_over_spine": (
+                    competitor_memory / spine_memory if spine_memory else 0.0
+                ),
+                "hbm_energy_ratio_gr_over_spine": float(row["spine_energy_advantage"]),
+                "spine_memory_bytes": int(spine_memory),
+                "gr_memory_bytes": int(competitor_memory),
+            }
+        )
+    rows.sort(
+        key=lambda row: (
+            FIG9_ALGORITHM_ORDER.index(str(row["algorithm"])),
+            FIG9_DATASET_ORDER.index(str(row["dataset"])),
+        )
+    )
+    expected = len(FIG9_ALGORITHM_ORDER) * len(FIG9_DATASET_ORDER)
+    status = (
+        "PASS_CAMPAIGN_ANALYSIS"
+        if len(rows) == expected
+        else "PARTIAL_CAMPAIGN_ANALYSIS"
+    )
+    return rows, path, status
 
 
 def render_fig9(rows: list[dict[str, object]], output_base: Path) -> None:
@@ -622,6 +672,11 @@ def main() -> int:
         default=[],
         help="repeatable compact FullPR FPGA summary.tsv",
     )
+    parser.add_argument(
+        "--campaign-analysis-dir",
+        type=Path,
+        help="optional publication campaign analysis directory used to refresh Fig. 9",
+    )
     args = parser.parse_args()
     fullpr_summaries = args.fullpr_summary or [
         Path("/data/tmp/chuxiao/matched_fpga_fullpr_k4_real_20260805/summary.tsv"),
@@ -681,17 +736,30 @@ def main() -> int:
         },
     )
 
-    fig9_rows = collect_fig9_rows()
+    fig9_rows: list[dict[str, object]]
+    fig9_source: Path
+    fig9_status: str
+    if args.campaign_analysis_dir is not None:
+        candidate_rows, fig9_source, fig9_status = collect_fig9_rows_from_campaign(
+            args.campaign_analysis_dir.resolve()
+        )
+        if candidate_rows:
+            fig9_rows = candidate_rows
+        else:
+            fig9_rows, fig9_source, fig9_status = collect_fig9_rows()
+            fig9_status = "INTERIM_ARCHIVED_SIMULATOR_DATA_EMPTY_CAMPAIGN_FALLBACK"
+    else:
+        fig9_rows, fig9_source, fig9_status = collect_fig9_rows()
     fig9_data = args.out_dir / "data" / "fig9_memory_energy_rows.csv"
     write_csv(fig9_data, fig9_rows)
     render_fig9(fig9_rows, args.out_dir / "figures" / "fig9_memory_energy_candidate")
     write_json(
         args.out_dir / "provenance" / "fig9.json",
         {
-            "status": "INTERIM_ARCHIVED_SIMULATOR_DATA",
+            "status": fig9_status,
             "figure": "fig9_memory_energy_candidate",
             "source_files": [
-                {"path": str(FIG9_PAIR_DATA.resolve()), "sha256": sha256(FIG9_PAIR_DATA)}
+                {"path": str(fig9_source.resolve()), "sha256": sha256(fig9_source)}
             ],
             "data_csv": str(fig9_data.resolve()),
             "data_csv_sha256": sha256(fig9_data),
