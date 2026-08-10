@@ -85,6 +85,47 @@ watch -n 5 python3 scripts/monitor_large_graph_campaign.py \
   --max-rows 24
 ```
 
+Estimate the remaining cycle budget with:
+
+```bash
+/data/tmp/chuxiao/spine-cycle-sim-eval-venv/bin/python \
+  scripts/estimate_evaluation_campaign_eta.py
+```
+
+If the main runner leaves G+R long-tail jobs queued and memory has recovered
+well above the campaign recovery threshold, a sidecar campaign may be launched
+from:
+
+```bash
+/data/tmp/chuxiao/evaluation_refresh_20260810_calibration_sidecar_queued/campaign_manifest.json
+```
+
+Use:
+
+```bash
+/data/tmp/chuxiao/spine-cycle-sim-eval-venv/bin/python \
+  scripts/run_large_graph_campaign.py \
+  --manifest /data/tmp/chuxiao/evaluation_refresh_20260810_calibration_sidecar_queued/campaign_manifest.json \
+  --run-dir /data/tmp/chuxiao/evaluation_refresh_20260810_calibration_sidecar_queued/run \
+  --jobs 3 \
+  --large-jobs 2 \
+  --memory-reserve-gib 72 \
+  --memory-emergency-gib 64 \
+  --memory-recovery-gib 96 \
+  --sample-seconds 10 \
+  --no-progress-warn-minutes 20
+```
+
+Do not launch the sidecar while the machine is below the main recovery threshold
+or while the FullPR route is consuming placement memory. If it is used, include
+the sidecar root in finalization:
+
+```bash
+/data/tmp/chuxiao/spine-cycle-sim-eval-venv/bin/python \
+  scripts/finalize_evaluation_refresh.py \
+  --extra-result-root /data/tmp/chuxiao/evaluation_refresh_20260810_calibration_sidecar_queued
+```
+
 Analyze partial or complete results with:
 
 ```bash
