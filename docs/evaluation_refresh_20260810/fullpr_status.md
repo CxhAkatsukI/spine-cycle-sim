@@ -20,8 +20,6 @@ replaced without changing the other panels' layout.
 ## Latest Route Log Tail
 
 ```text
-[20:32:19] Phase 2.1.1.4 PBP: UpdateTiming
-[20:32:50] Phase 2.1.1.5 PBP: Add part constraints
 [20:32:50] Phase 2.2 Physical Synthesis After Floorplan
 [20:33:51] Phase 2.3 Update Timing before SLR Path Opt
 [20:33:51] Phase 2.4 Post-Processing in Floorplanning
@@ -44,4 +42,6 @@ replaced without changing the other panels' layout.
 [21:17:15] Phase 4.1.1 Post Placement Optimization
 [21:17:46] Phase 4.1.1.1 BUFG Insertion
 [21:17:46] Phase 1 Physical Synthesis Initialization
+[21:20:21] Phase 4.1.1.2 BUFG Replication
+[21:20:21] Phase 4.1.1.3 Post Placement Timing Optimization
 ```
