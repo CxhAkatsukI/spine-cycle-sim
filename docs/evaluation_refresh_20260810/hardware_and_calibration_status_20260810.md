@@ -166,8 +166,8 @@ It covers AU/SU/WK, insert batch-8, three differential algorithms, and both
 /home/chuxiao/spine-cycle-sim-publication/build/sst
 ```
 
-Latest partial checkpoint: partial analysis reports `observed=13`, `pairs=4`,
-`missing=5`. The completed pairs are:
+Latest partial checkpoint: partial analysis reports `observed=14`, `pairs=5`,
+`missing=4`. The completed pairs are:
 
 - `sx_askubuntu / weighted_sssp / insert-8`: Spine `61,817` cycles versus
   G+R `179,053,544` cycles, or `2,896.5x` speedup.
@@ -175,12 +175,14 @@ Latest partial checkpoint: partial analysis reports `observed=13`, `pairs=4`,
   G+R `291,909,003` cycles, or `4,809.1x` speedup.
 - `sx_askubuntu / connected_components / insert-8`: Spine `2,183,292` cycles
   versus G+R `13,462,032` cycles, or `6.17x` speedup.
+- `sx_superuser / connected_components / insert-8`: Spine `2,397,167` cycles
+  versus G+R `21,367,179` cycles, or `8.91x` speedup.
 - `sx_askubuntu / thresholded_residual_pagerank / insert-8`: Spine
   `2,175,289` cycles versus G+R `14,729,898` cycles, or `6.77x` speedup.
 
-The remaining jobs are the G+R side of SU/WK CC, SU/WK residual PR, and WK
-SSSP. At the latest checkpoint one G+R job was running and four were queued
-behind the campaign scheduler's memory reserve.
+The remaining jobs are the G+R side of SU residual PR and WK SSSP/CC/residual
+PR. At the latest checkpoint SU residual PR was running and three WK jobs were
+queued behind the campaign scheduler's memory reserve.
 
 Monitor it with:
 
