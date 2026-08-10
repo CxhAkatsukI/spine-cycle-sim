@@ -69,8 +69,13 @@ class EvaluationRefreshAlignmentAuditTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             provenance = root / "provenance"
-            for figure in ("fig7", "fig8", "fig9", "fig10"):
-                status = "PASS" if figure == "fig7" else "PASS_CAMPAIGN_ANALYSIS"
+            statuses = {
+                "fig7": "PASS",
+                "fig8": "PASS_CURRENT_MODEL_DATA",
+                "fig9": "PASS_CAMPAIGN_ANALYSIS",
+                "fig10": "PASS_CURRENT_MODEL_DATA",
+            }
+            for figure, status in statuses.items():
                 write_json(provenance / f"{figure}.json", {"status": status})
             analysis = root / "analysis"
             write_json(

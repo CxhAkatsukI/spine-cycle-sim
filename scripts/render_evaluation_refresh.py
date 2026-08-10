@@ -57,6 +57,10 @@ FIG9_ALGORITHM_LABEL = {
     "thresholded_residual_pagerank": "ResPR",
 }
 FIG9_DATASET_ORDER = ("AU", "SU", "WK")
+FIG8_CROSS_FILENAME = "persistent_update_setup_cross_dataset.csv"
+FIG8_BATCH_FILENAME = "persistent_update_setup_batch_sensitivity.csv"
+FIG10_LATENCY_FILENAME = "rq3_latency_rows.csv"
+FIG10_SUMMARY_FILENAME = "rq3_summary.json"
 FIG10_COMPONENTS = (
     (
         ("t_xfer_cycles", "t_reduce_cycles", "t_carry_cycles", "t_directory_cycles"),
@@ -419,6 +423,20 @@ def collect_fig9_rows() -> tuple[list[dict[str, object]], Path, str]:
     return rows, FIG9_PAIR_DATA, "INTERIM_ARCHIVED_SIMULATOR_DATA"
 
 
+def collect_fig8_rows(
+    data_dir: Path | None,
+) -> tuple[list[dict[str, str]], list[dict[str, str]], list[Path], str]:
+    if data_dir is None:
+        cross_path = FIG8_CROSS_DATA
+        batch_path = FIG8_BATCH_DATA
+        status = "INTERIM_ARCHIVED_SIMULATOR_DATA"
+    else:
+        cross_path = data_dir / FIG8_CROSS_FILENAME
+        batch_path = data_dir / FIG8_BATCH_FILENAME
+        status = "PASS_CURRENT_MODEL_DATA"
+    return read_csv(cross_path), read_csv(batch_path), [cross_path, batch_path], status
+
+
 def collect_fig9_rows_from_campaign(
     analysis_dir: Path,
 ) -> tuple[list[dict[str, object]], Path, str]:
@@ -541,12 +559,18 @@ def render_fig9(rows: list[dict[str, object]], output_base: Path) -> None:
 
 
 def collect_fig10_rows() -> list[dict[str, object]]:
+    return collect_fig10_rows_from_path(FIG10_LATENCY_DATA)
+
+
+def collect_fig10_rows_from_path(latency_path: Path) -> list[dict[str, object]]:
     selected_ids = {
         execution_id
         for _, entries in FIG10_GROUPS
         for _, execution_id in entries
     }
-    rows = [row for row in read_csv(FIG10_LATENCY_DATA) if row["execution_id"] in selected_ids]
+    rows = [
+        row for row in read_csv(latency_path) if row["execution_id"] in selected_ids
+    ]
     by_id = {row["execution_id"]: row for row in rows}
     missing = sorted(selected_ids - set(by_id))
     if missing:
@@ -559,6 +583,18 @@ def collect_fig10_rows() -> list[dict[str, object]]:
             row["figure_tick"] = tick
             ordered.append(row)
     return ordered
+
+
+def collect_fig10_inputs(data_dir: Path | None) -> tuple[list[dict[str, object]], list[Path], str]:
+    if data_dir is None:
+        latency_path = FIG10_LATENCY_DATA
+        summary_path = FIG10_SUMMARY_DATA
+        status = "INTERIM_ARCHIVED_SIMULATOR_DATA"
+    else:
+        latency_path = data_dir / FIG10_LATENCY_FILENAME
+        summary_path = data_dir / FIG10_SUMMARY_FILENAME
+        status = "PASS_CURRENT_MODEL_DATA"
+    return collect_fig10_rows_from_path(latency_path), [latency_path, summary_path], status
 
 
 def render_fig10(rows: list[dict[str, object]], output_base: Path) -> None:
@@ -678,6 +714,22 @@ def main() -> int:
         help="optional publication campaign analysis directory used to refresh Fig. 9",
     )
     parser.add_argument(
+        "--fig8-data-dir",
+        type=Path,
+        help=(
+            "optional current-model directory containing "
+            f"{FIG8_CROSS_FILENAME} and {FIG8_BATCH_FILENAME}"
+        ),
+    )
+    parser.add_argument(
+        "--fig10-data-dir",
+        type=Path,
+        help=(
+            "optional current-model RQ3 directory containing "
+            f"{FIG10_LATENCY_FILENAME} and {FIG10_SUMMARY_FILENAME}"
+        ),
+    )
+    parser.add_argument(
         "--allow-partial-campaign-fig9",
         action="store_true",
         help="render Fig. 9 from partial campaign pair rows instead of falling back",
@@ -715,8 +767,9 @@ def main() -> int:
     }
     write_json(args.out_dir / "provenance" / "fig7.json", provenance)
 
-    fig8_cross_rows = read_csv(FIG8_CROSS_DATA)
-    fig8_batch_rows = read_csv(FIG8_BATCH_DATA)
+    fig8_cross_rows, fig8_batch_rows, fig8_sources, fig8_status = collect_fig8_rows(
+        args.fig8_data_dir.resolve() if args.fig8_data_dir is not None else None
+    )
     write_csv(args.out_dir / "data" / "fig8_update_cross_dataset.csv", fig8_cross_rows)
     write_csv(args.out_dir / "data" / "fig8_update_batch_sensitivity.csv", fig8_batch_rows)
     render_fig8(
@@ -727,16 +780,24 @@ def main() -> int:
     write_json(
         args.out_dir / "provenance" / "fig8.json",
         {
-            "status": "INTERIM_ARCHIVED_SIMULATOR_DATA",
+            "status": fig8_status,
             "figure": "fig8_update_throughput_candidate",
             "timing_window": "setup_inclusive_update_throughput",
             "source_files": [
-                {"path": str(FIG8_CROSS_DATA.resolve()), "sha256": sha256(FIG8_CROSS_DATA)},
-                {"path": str(FIG8_BATCH_DATA.resolve()), "sha256": sha256(FIG8_BATCH_DATA)},
+                {"path": str(path.resolve()), "sha256": sha256(path.resolve())}
+                for path in fig8_sources
             ],
             "limitations": [
-                "Uses archived update-only setup-inclusive simulator evidence.",
-                "Should be regenerated after the sharded-K4 calibration refresh is complete.",
+                (
+                    "Uses archived update-only setup-inclusive simulator evidence."
+                    if fig8_status.startswith("INTERIM")
+                    else "Uses current-model setup-inclusive simulator evidence."
+                ),
+                (
+                    "Should be regenerated after the sharded-K4 calibration refresh is complete."
+                    if fig8_status.startswith("INTERIM")
+                    else "Admitted as current-model refresh input."
+                ),
             ],
         },
     )
@@ -781,18 +842,20 @@ def main() -> int:
         },
     )
 
-    fig10_rows = collect_fig10_rows()
+    fig10_rows, fig10_sources, fig10_status = collect_fig10_inputs(
+        args.fig10_data_dir.resolve() if args.fig10_data_dir is not None else None
+    )
     fig10_data = args.out_dir / "data" / "fig10_rq3_breakdown_rows.csv"
     write_csv(fig10_data, fig10_rows)
     render_fig10(fig10_rows, args.out_dir / "figures" / "fig10_rq3_breakdown_candidate")
     write_json(
         args.out_dir / "provenance" / "fig10.json",
         {
-            "status": "INTERIM_ARCHIVED_SIMULATOR_DATA",
+            "status": fig10_status,
             "figure": "fig10_rq3_breakdown_candidate",
             "source_files": [
-                {"path": str(FIG10_LATENCY_DATA.resolve()), "sha256": sha256(FIG10_LATENCY_DATA)},
-                {"path": str(FIG10_SUMMARY_DATA.resolve()), "sha256": sha256(FIG10_SUMMARY_DATA)},
+                {"path": str(path.resolve()), "sha256": sha256(path.resolve())}
+                for path in fig10_sources
             ],
             "data_csv": str(fig10_data.resolve()),
             "data_csv_sha256": sha256(fig10_data),

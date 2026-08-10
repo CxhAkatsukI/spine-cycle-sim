@@ -17,6 +17,10 @@ DEFAULT_CAMPAIGN_ANALYSIS = (
     / "analysis_partial"
 )
 REQUIRED_FIG9_ROWS = 9
+ALIGNED_CURRENT_MODEL_STATUSES = {
+    "PASS_CAMPAIGN_ANALYSIS",
+    "PASS_CURRENT_MODEL_DATA",
+}
 
 
 def read_json(path: Path) -> dict[str, Any]:
@@ -89,7 +93,7 @@ def figure_alignment(
             "evidence": "routed FPGA data",
         },
         "fig8": {
-            "aligned": fig8_status == "PASS_CAMPAIGN_ANALYSIS",
+            "aligned": fig8_status in ALIGNED_CURRENT_MODEL_STATUSES,
             "status": fig8_status,
             "evidence": "setup-inclusive update-throughput simulator rows",
             "gap": (
@@ -106,7 +110,7 @@ def figure_alignment(
             "required_pairs": REQUIRED_FIG9_ROWS,
         },
         "fig10": {
-            "aligned": fig10_status == "PASS_CAMPAIGN_ANALYSIS",
+            "aligned": fig10_status in ALIGNED_CURRENT_MODEL_STATUSES,
             "status": fig10_status,
             "evidence": "RQ3 component ledger",
             "gap": (

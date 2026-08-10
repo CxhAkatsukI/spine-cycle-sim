@@ -39,6 +39,16 @@ def main() -> int:
     parser.add_argument("--python", default=sys.executable)
     parser.add_argument("--analysis-name", default="analysis_final")
     parser.add_argument("--allow-partial", action="store_true")
+    parser.add_argument(
+        "--fig8-data-dir",
+        type=Path,
+        help="current-model setup-inclusive update-throughput data directory",
+    )
+    parser.add_argument(
+        "--fig10-data-dir",
+        type=Path,
+        help="current-model RQ3 data directory",
+    )
     args = parser.parse_args()
 
     campaign_root = args.campaign_root.resolve()
@@ -88,6 +98,10 @@ def main() -> int:
     ]
     if args.allow_partial:
         render_command.append("--allow-partial-campaign-fig9")
+    if args.fig8_data_dir is not None:
+        render_command.extend(("--fig8-data-dir", str(args.fig8_data_dir.resolve())))
+    if args.fig10_data_dir is not None:
+        render_command.extend(("--fig10-data-dir", str(args.fig10_data_dir.resolve())))
     run(render_command, cwd=ROOT)
 
     run(

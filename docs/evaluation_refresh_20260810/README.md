@@ -83,6 +83,16 @@ evidence, and writes the alignment audit. For debugging only, pass
 `--allow-partial`; otherwise incomplete pair rows are rejected before final
 figures are regenerated.
 
+When current-model Fig. 8 or Fig. 10 evidence has been regenerated, pass it
+through the finalizer rather than editing the renderer constants:
+
+```bash
+/data/tmp/chuxiao/spine-cycle-sim-eval-venv/bin/python \
+  scripts/finalize_evaluation_refresh.py \
+  --fig8-data-dir <DIR_WITH_PERSISTENT_UPDATE_SETUP_CSVS> \
+  --fig10-data-dir <DIR_WITH_RQ3_CSVS_AND_SUMMARY>
+```
+
 If a sidecar campaign is used to finish queued long-tail cases, merge it during
 finalization with repeated `--extra-result-root <DIR>` arguments.
 
