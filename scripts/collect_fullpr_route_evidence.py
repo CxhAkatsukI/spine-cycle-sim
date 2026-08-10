@@ -53,13 +53,58 @@ def log_tail(path: Path, lines: int = 24) -> list[str]:
     return content[-lines:]
 
 
-def classify_status(log_text: str, xclbin: Path, running: bool) -> str:
+def timing_summary(path: Path) -> dict[str, object]:
+    if not path.is_file():
+        return {"present": False}
+    text = path.read_text(encoding="utf-8", errors="replace")
+    row = re.search(
+        r"\n\s*(?P<wns>-?\d+\.\d+)\s+"
+        r"(?P<tns>-?\d+\.\d+)\s+"
+        r"(?P<tns_failing>\d+)\s+"
+        r"(?P<tns_total>\d+)\s+"
+        r"(?P<whs>-?\d+\.\d+)\s+"
+        r"(?P<ths>-?\d+\.\d+)\s+"
+        r"(?P<ths_failing>\d+)\s+"
+        r"(?P<ths_total>\d+)\s+"
+        r"(?P<wpws>-?\d+\.\d+)\s+"
+        r"(?P<tpws>-?\d+\.\d+)\s+"
+        r"(?P<tpws_failing>\d+)\s+"
+        r"(?P<tpws_total>\d+)\s*\n",
+        text,
+    )
+    if row is None:
+        return {"present": True, "parsed": False}
+    return {
+        "present": True,
+        "parsed": True,
+        "wns_ns": float(row.group("wns")),
+        "tns_ns": float(row.group("tns")),
+        "tns_failing_endpoints": int(row.group("tns_failing")),
+        "tns_total_endpoints": int(row.group("tns_total")),
+        "whs_ns": float(row.group("whs")),
+        "ths_ns": float(row.group("ths")),
+        "ths_failing_endpoints": int(row.group("ths_failing")),
+        "ths_total_endpoints": int(row.group("ths_total")),
+        "wpws_ns": float(row.group("wpws")),
+        "tpws_ns": float(row.group("tpws")),
+        "tpws_failing_endpoints": int(row.group("tpws_failing")),
+        "tpws_total_endpoints": int(row.group("tpws_total")),
+        "constraints_met": "Timing constraints are met." in text,
+    }
+
+
+def classify_status(
+    log_text: str, xclbin: Path, running: bool, timing: dict[str, object]
+) -> str:
     lowered = log_text.lower()
     if xclbin.is_file() and (
         "build completed successfully" in lowered
         or "v++ completed successfully" in lowered
+        or "run completed" in lowered
         or re.search(r"finished .*step impl", lowered)
     ):
+        if timing.get("parsed") and not timing.get("constraints_met"):
+            return "PASS_TIMING_MISS"
         return "PASS"
     if "error:" in lowered or "failed" in lowered or "command failed" in lowered:
         return "FAIL"
@@ -79,14 +124,31 @@ def main() -> int:
     log_path = route_dir / "logs" / "fullpr_route_bg_20260810_182948.log"
     xclbin = route_dir / "build" / "grasu_regraph_full_pagerank.hw.xclbin"
     link_summary = route_dir / "build" / "grasu_regraph_full_pagerank.hw.xclbin.link_summary"
+    timing_report = (
+        route_dir
+        / "reports"
+        / "link"
+        / "link"
+        / "imp"
+        / "impl_1_hw_bb_locked_timing_summary_routed.rpt"
+    )
+    util_report = (
+        route_dir
+        / "reports"
+        / "link"
+        / "link"
+        / "imp"
+        / "impl_1_kernel_util_routed.rpt"
+    )
     manifest = route_dir / "manifest.json"
     pid = read_pid(route_dir / "route.pid")
     running = bool(pid is not None and process_alive(pid))
     tail = log_tail(log_path, args.tail_lines)
     log_text = "\n".join(tail)
-    status = classify_status(log_text, xclbin, running)
+    timing = timing_summary(timing_report)
+    status = classify_status(log_text, xclbin, running, timing)
     artifacts = []
-    for path in (xclbin, link_summary, manifest, log_path):
+    for path in (xclbin, link_summary, timing_report, util_report, manifest, log_path):
         if path.is_file():
             artifacts.append(
                 {
@@ -102,6 +164,9 @@ def main() -> int:
         "pid_running": running,
         "xclbin_present": xclbin.is_file(),
         "link_summary_present": link_summary.is_file(),
+        "timing_report_present": timing_report.is_file(),
+        "util_report_present": util_report.is_file(),
+        "timing": timing,
         "artifacts": artifacts,
         "log_tail": tail,
     }
@@ -109,6 +174,15 @@ def main() -> int:
     provenance_dir.mkdir(parents=True, exist_ok=True)
     json_path = provenance_dir / "fullpr_route.json"
     json_path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+    if timing.get("parsed"):
+        timing_note = (
+            f"WNS={timing['wns_ns']} ns, TNS={timing['tns_ns']} ns, "
+            f"setup failing endpoints={timing['tns_failing_endpoints']}; "
+            f"constraints_met={timing['constraints_met']}"
+        )
+    else:
+        timing_note = "not parsed"
 
     md_path = args.out_dir / "fullpr_status.md"
     md_path.write_text(
@@ -122,6 +196,8 @@ def main() -> int:
         f"- PID: `{pid}`; running: `{running}`\n"
         f"- XCLBIN present: `{xclbin.is_file()}`\n"
         f"- Link summary present: `{link_summary.is_file()}`\n\n"
+        f"- Timing report present: `{timing_report.is_file()}`\n"
+        f"- Timing summary: `{timing_note}`\n\n"
         "This evidence is intentionally labeled `compact_one_partition` until the\n"
         "destination-sharded K4 Full PageRank xclbin routes successfully and its\n"
         "correctness/performance matrix passes. If that happens, panel (d) can be\n"
