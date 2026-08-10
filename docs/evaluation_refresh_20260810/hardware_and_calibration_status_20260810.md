@@ -85,6 +85,21 @@ watch -n 5 python3 scripts/monitor_large_graph_campaign.py \
   --max-rows 24
 ```
 
+Analyze partial or complete results with:
+
+```bash
+python3 scripts/analyze_publication_experiment_campaign.py \
+  --result-root /data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen \
+  --manifest /data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen/campaign_manifest.json \
+  --result-transition-contract configs/contracts/large_graph_publication_campaign_fullgraph_v8.json \
+  --required-system spine \
+  --required-system grasu_regraph_k4_shared \
+  --out-dir /data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen/analysis_partial
+```
+
+Do not pass the nested `runs/` directory as `--result-root`; the analysis
+loader expects `runs/*/case_result.json` under the supplied root.
+
 A first dry run with the current branch-local `build/sst` was rejected by the
 contract's plugin-admission gate. That was expected after inspection: the
 contract freezes plugin SHA
