@@ -100,13 +100,13 @@ class HlsPageRankRealComparisonTests(unittest.TestCase):
             "core_mhz": 141.0,
             "dynamic_update": True,
             "pipeline_order": (
-                "zero_time_l0_preload_then_update_maintenance_then_compute"
+                "zero_time_resident_level_preload_then_update_maintenance_then_compute"
             ),
             "vertices": 4,
             "initial_edges": 4,
             "update_edges": 16,
             "materialized_snapshot_edges": 4,
-            "maintenance_persisted_edges": 4,
+            "maintenance_persisted_edges": 2,
             "pagerank_iterations": 3,
             "pagerank_completed_iterations": 3,
             "iteration_cycles": [100, 100, 100],
@@ -343,9 +343,9 @@ class HlsPageRankRealComparisonTests(unittest.TestCase):
             "architecture_profile_id": "spine",
             "dynamic_update": True,
             "pipeline_order": (
-                "zero_time_l0_preload_then_update_maintenance_then_compute"
+                "zero_time_resident_level_preload_then_update_maintenance_then_compute"
             ),
-            "maintenance_persisted_edges": 4,
+            "maintenance_persisted_edges": 2,
             "residual_max_iterations": 256,
             "final_active": 0,
             "frontier_match": True,
@@ -381,8 +381,11 @@ class HlsPageRankRealComparisonTests(unittest.TestCase):
             "core_mhz": 200.0,
             "ranks_external": [0.25] * 4,
             "residuals_external": [1.0e-7] * 4,
-            "compute_active_edges": 4,
+            "compute_active_edges": 5,
             "expected_active_edges": 4,
+            "active_edge_execution_ledger_match": True,
+            "active_edge_reference_exact": False,
+            "active_edge_reference_relative_error": 0.25,
             "gather_reset_cycles": 8,
             "gather_merge_cycles": 16,
             "gather_rows_emitted": 16,

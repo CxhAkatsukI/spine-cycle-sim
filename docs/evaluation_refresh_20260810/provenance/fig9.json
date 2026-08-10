@@ -1,0 +1,16 @@
+{
+  "status": "PASS_CAMPAIGN_ANALYSIS",
+  "figure": "fig9_memory_energy_candidate",
+  "source_files": [
+    {
+      "path": "/data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen/analysis_complete_live/pair_rows.csv",
+      "sha256": "f60d9784196f31990bd2062a1aea71a06b0a4c666c0ecfd82b9268963bac8870"
+    }
+  ],
+  "data_csv": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/data/fig9_memory_energy_rows.csv",
+  "data_csv_sha256": "8ec2f2a13eb2ed1e9c4a467c6684159dc06a884c8ab651e7fbda670734e3021a",
+  "limitations": [
+    "Memory and HBM-energy ratios come from the shared simulator ledger, not routed FPGA power.",
+    "Rows are limited to AU/SU/WK and differential algorithms to keep the panel readable."
+  ]
+}

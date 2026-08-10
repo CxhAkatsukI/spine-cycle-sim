@@ -1,0 +1,6 @@
+# spine_real_slice_version=1
+# case=connected_components_bridge_insert
+# vertices=8
+# columns=src dst weight diff
+2 4 1 1
+4 2 1 1

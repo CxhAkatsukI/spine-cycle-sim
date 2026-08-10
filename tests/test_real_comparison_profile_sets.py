@@ -7,6 +7,8 @@ import unittest
 from scripts.run_hls_pagerank_real_comparison import PROFILE_SETS as PAGERANK_SETS
 from scripts.run_hls_residual_pagerank_real_comparison import (
     PROFILE_SETS as RESIDUAL_SETS,
+    _adopted_wall_seconds,
+    _system_fingerprint_paths,
 )
 from scripts.run_hls_weighted_real_comparison import PROFILE_SETS as WEIGHTED_SETS
 from scripts.run_hls_weighted_real_comparison import _display_path
@@ -17,6 +19,55 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class RealComparisonProfileSetTests(unittest.TestCase):
+    def test_residual_fingerprints_are_system_specific(self) -> None:
+        class Args:
+            input_manifest = ROOT / "input.json"
+            lib_dir = ROOT / "build/sst"
+            sst = ROOT / "sst-wrapper.sh"
+            spine_profile = ROOT / "spine.json"
+            grasu_profile = ROOT / "grasu.json"
+            capability_catalog = ROOT / "capability.json"
+
+        spine = _system_fingerprint_paths(Args(), "spine")
+        grasu = _system_fingerprint_paths(Args(), "grasu_regraph")
+        self.assertIn(Args.spine_profile, spine)
+        self.assertNotIn(Args.grasu_profile, spine)
+        self.assertIn(Args.grasu_profile, grasu)
+        self.assertIn(Args.capability_catalog, grasu)
+        self.assertNotIn(Args.spine_profile, grasu)
+
+    def test_residual_spine_fingerprint_can_pin_rebuilt_plugin(self) -> None:
+        class Args:
+            input_manifest = ROOT / "input.json"
+            lib_dir = ROOT / "build/sst"
+            sst = ROOT / "sst-wrapper.sh"
+            spine_profile = ROOT / "spine.json"
+            grasu_profile = ROOT / "grasu.json"
+            capability_catalog = ROOT / "capability.json"
+            adopt_spine_plugin = ROOT / "historical/libspine_cycle.so"
+
+        spine = _system_fingerprint_paths(Args(), "spine")
+        grasu = _system_fingerprint_paths(Args(), "grasu_regraph")
+        self.assertIn(Args.adopt_spine_plugin, spine)
+        self.assertNotIn(Args.lib_dir / "libspine_cycle.so", spine)
+        self.assertIn(Args.lib_dir / "libspine_cycle.so", grasu)
+        self.assertNotIn(Args.adopt_spine_plugin, grasu)
+
+    def test_adopted_wall_seconds_must_be_positive(self) -> None:
+        self.assertEqual(
+            _adopted_wall_seconds("spine", {"sst_host_wall_seconds": 7.25}),
+            7.25,
+        )
+        with self.assertRaisesRegex(RuntimeError, "positive"):
+            _adopted_wall_seconds("grasu_regraph", {"sst_host_wall_seconds": 0})
+
+    def test_spine_runner_embeds_workload_hashes(self) -> None:
+        source = (ROOT / "scripts/run_sst_spine_vertical.py").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn('"workload_sha256"', source)
+        self.assertIn('"update_workload_sha256"', source)
+
     def test_weighted_evidence_path_supports_external_output_roots(self) -> None:
         self.assertEqual(_display_path(ROOT / "results"), "results")
         self.assertEqual(_display_path(Path("/data/tmp/evidence")), "/data/tmp/evidence")

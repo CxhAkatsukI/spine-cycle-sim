@@ -1,0 +1,138 @@
+{
+  "claim_class": "vivado_automatic_vectorless_low_confidence_fpga_power",
+  "hierarchy": [
+    {
+      "indent": 1,
+      "name": "level0_wrapper",
+      "power_w": 27.622
+    },
+    {
+      "indent": 3,
+      "name": "level0_i",
+      "power_w": 27.621
+    },
+    {
+      "indent": 5,
+      "name": "blp",
+      "power_w": 7.664
+    },
+    {
+      "indent": 7,
+      "name": "blp_i",
+      "power_w": 7.664
+    },
+    {
+      "indent": 5,
+      "name": "ii_level0_pipe",
+      "power_w": 0.069
+    },
+    {
+      "indent": 7,
+      "name": "inst",
+      "power_w": 0.069
+    },
+    {
+      "indent": 5,
+      "name": "ulp",
+      "power_w": 19.888
+    },
+    {
+      "indent": 7,
+      "name": "SLR0",
+      "power_w": 0.023
+    },
+    {
+      "indent": 7,
+      "name": "SLR1",
+      "power_w": 0.012
+    },
+    {
+      "indent": 7,
+      "name": "SLR2",
+      "power_w": 0.005
+    },
+    {
+      "indent": 7,
+      "name": "buffer_spine_partconv_compute_kernel_1_value_out",
+      "power_w": 0.001
+    },
+    {
+      "indent": 7,
+      "name": "buffer_spine_partconv_rdmaint_kernel_1_edge_out",
+      "power_w": 0.002
+    },
+    {
+      "indent": 7,
+      "name": "hmss_0",
+      "power_w": 17.674
+    },
+    {
+      "indent": 7,
+      "name": "spine_partconv_compute_kernel_1",
+      "power_w": 0.205
+    },
+    {
+      "indent": 7,
+      "name": "spine_partconv_rdmaint_kernel_1",
+      "power_w": 1.891
+    },
+    {
+      "indent": 7,
+      "name": "ulp_cmp",
+      "power_w": 0.002
+    },
+    {
+      "indent": 7,
+      "name": "ulp_ucs",
+      "power_w": 0.071
+    }
+  ],
+  "limitations": [
+    "Vivado used default vectorless activity; this is not workload-calibrated energy.",
+    "Hierarchy values support implementation feasibility and component attribution only.",
+    "Simulator activity and DRAM command accounting remain the workload-energy source."
+  ],
+  "publication_components": [
+    {
+      "component": "hbm_subsystem",
+      "power_w": 17.674,
+      "vivado_hierarchy_name": "hmss_0"
+    },
+    {
+      "component": "compute_kernel",
+      "power_w": 0.205,
+      "vivado_hierarchy_name": "spine_partconv_compute_kernel_1"
+    },
+    {
+      "component": "reader_maintenance_kernel",
+      "power_w": 1.891,
+      "vivado_hierarchy_name": "spine_partconv_rdmaint_kernel_1"
+    },
+    {
+      "component": "value_stream_buffer",
+      "power_w": 0.001,
+      "vivado_hierarchy_name": "buffer_spine_partconv_compute_kernel_1_value_out"
+    },
+    {
+      "component": "edge_stream_buffer",
+      "power_w": 0.002,
+      "vivado_hierarchy_name": "buffer_spine_partconv_rdmaint_kernel_1_edge_out"
+    }
+  ],
+  "schema_version": 1,
+  "source": {
+    "path": "/home/chuxiao/spine-cycle-sim-publication/docs/evidence/candidate10_spine_opt_v2_vivado_power_20260728/impl_1_runme.log",
+    "sha256": "cc4a25a3b16923734bfac7d6090c358815e12eb8bf7247a2376187f4bfaff4fc"
+  },
+  "status": "PASS",
+  "summary": {
+    "confidence_level": "Low",
+    "design_budget_w": 123.0,
+    "device_static_w": 10.588,
+    "dynamic_w": 27.677,
+    "fpga_w": 29.49,
+    "hbm_w": 8.775,
+    "simulation_activity_file": "---",
+    "total_on_chip_w": 38.265
+  }
+}

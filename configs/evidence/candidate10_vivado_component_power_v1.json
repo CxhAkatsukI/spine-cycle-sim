@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "claim_class": "vivado_vectorless_hierarchy_component_attribution_not_workload_energy",
+  "repository_root": "../..",
+  "builds": [
+    {
+      "build_id": "spine_candidate10_opt_v2_sssp_150mhz",
+      "label": "Spine opt-v2 SSSP",
+      "system": "spine",
+      "algorithm": "weighted_sssp",
+      "path": "docs/evidence/candidate10_spine_opt_v2_vivado_power_20260728/power_summary.json",
+      "sha256": "a8d9b138c08a7cb6c8dcc3f31d49df3e6b1450c5431b532a3a030745d202a260",
+      "expected": {
+        "dynamic_w": 27.677,
+        "device_static_w": 10.588,
+        "ulp_power_w": 19.888,
+        "components_w": {
+          "hbm_subsystem": 17.674,
+          "update_maintenance": 1.891,
+          "graph_compute": 0.205,
+          "stream_fifos": 0.003,
+          "other_user_logic": 0.11299999999999999
+        }
+      }
+    },
+    {
+      "build_id": "grasu_regraph_weighted_sssp_150mhz",
+      "label": "G+R SSSP",
+      "system": "grasu_regraph",
+      "algorithm": "weighted_sssp",
+      "path": "docs/evidence/candidate10_grasu_regraph_vivado_power_20260728/weighted_sssp/power_summary.json",
+      "sha256": "d7fe07a99c16615e3b92ec340ff714837ec979bd56b1a2ce8a19e1fe5716caa9",
+      "expected": {
+        "dynamic_w": 21.921,
+        "device_static_w": 9.215,
+        "ulp_power_w": 14.12,
+        "components_w": {
+          "hbm_subsystem": 10.807,
+          "update_maintenance": 2.322,
+          "graph_compute": 0.7770000000000001,
+          "stream_fifos": 0.035,
+          "other_user_logic": 0.177
+        }
+      }
+    },
+    {
+      "build_id": "grasu_regraph_full_pagerank_150mhz",
+      "label": "G+R Full PR",
+      "system": "grasu_regraph",
+      "algorithm": "full_pagerank",
+      "path": "docs/evidence/candidate10_grasu_regraph_vivado_power_20260728/full_pagerank/power_summary.json",
+      "sha256": "69bf727b21ff04bf7112af8fe02d8d47ccb5f2dc8c7028a770d4d8c3a6730531",
+      "expected": {
+        "dynamic_w": 25.104,
+        "device_static_w": 9.926,
+        "ulp_power_w": 17.288,
+        "components_w": {
+          "hbm_subsystem": 12.685,
+          "update_maintenance": 1.202,
+          "graph_compute": 3.133,
+          "stream_fifos": 0.079,
+          "other_user_logic": 0.189
+        }
+      }
+    },
+    {
+      "build_id": "grasu_regraph_thresholded_residual_pagerank_150mhz",
+      "label": "G+R Residual PR",
+      "system": "grasu_regraph",
+      "algorithm": "thresholded_residual_pagerank",
+      "path": "docs/evidence/candidate10_grasu_regraph_vivado_power_20260728/thresholded_residual_pagerank/power_summary.json",
+      "sha256": "647f1f7c26709256b6610b16b39107dac745eff3d103f167766a64685bd46b14",
+      "expected": {
+        "dynamic_w": 26.014,
+        "device_static_w": 10.146,
+        "ulp_power_w": 18.174,
+        "components_w": {
+          "hbm_subsystem": 12.372,
+          "update_maintenance": 1.9569999999999999,
+          "graph_compute": 3.589,
+          "stream_fifos": 0.068,
+          "other_user_logic": 0.186
+        }
+      }
+    }
+  ],
+  "limitations": [
+    "All hierarchy values use Vivado default vectorless activity and have Low confidence.",
+    "The values establish implementation component attribution, not workload-calibrated energy or board power.",
+    "Spine is one native weighted-SSSP core build; GraSU+ReGraph uses three algorithm-specific whole-system builds, so cross-row power ratios are not iso-functional.",
+    "Workload energy must use simulator activity and separately validated memory energy models."
+  ]
+}

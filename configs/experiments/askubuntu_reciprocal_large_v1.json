@@ -1,0 +1,167 @@
+{
+  "claim_class": "derived_real_topology_large_reciprocal_gate",
+  "invariants": {
+    "dual_oracle_required": true,
+    "minimum_external_vertex_label": true,
+    "new_snapshot_sinks": 0,
+    "old_snapshot_sinks": 0,
+    "one_sided_updates_rejected": true,
+    "weighted_reciprocal_edges": true
+  },
+  "limitations": [
+    "The graph is a deterministic reciprocal projection of real AskUbuntu topology, not the original directed graph.",
+    "The 540000 reciprocal records represent 270000 unique undirected pairs.",
+    "Component-bridge insertions are deterministic derived updates, not original temporal events.",
+    "Compact remapping changes original destination-partition occupancy."
+  ],
+  "matrix_id": "askubuntu_reciprocal_large_v1",
+  "runs": [
+    {
+      "algorithm_contract": "weakly_connected_min_vertex_reciprocal_v1",
+      "dataset_id": "sx_askubuntu_reciprocal_gate",
+      "dataset_kind": "derived_real_ordered_undirected_projection",
+      "effective_mutations": 1,
+      "final_components": 646,
+      "final_edges": 540002,
+      "final_labels_sha256": "3b0e15142e56645a4378cc1fbbda610f9a0191a63e8c174c2b8ad84402837030",
+      "graph": {
+        "case_id": "askubuntu_reciprocal_gate_e540000",
+        "path": "tests/data/askubuntu_reciprocal_large/askubuntu_reciprocal_gate_e540000.slice",
+        "records": 540000,
+        "sha256": "6ae95bd0a001142a212e44f01c022df43a95dab0cc11e70935d361467472a957",
+        "vertices": 94931
+      },
+      "initial_components": 647,
+      "logical_user_mutations": 1,
+      "physical_records": 2,
+      "role": "large_real_pilot",
+      "run_id": "askubuntu_reciprocal_large_bridge_u1",
+      "scenario": "insert",
+      "touched_vertices": 2,
+      "update": {
+        "case_id": "askubuntu_reciprocal_gate_e540000_insert_bridge_u1",
+        "path": "tests/data/askubuntu_reciprocal_large/askubuntu_reciprocal_gate_e540000_insert_bridge_u1.slice",
+        "records": 2,
+        "sha256": "16090e330613401bdccdf419bf57d4438fa2e1d989ee41f6f04f2af2b47698b6",
+        "vertices": 94931
+      },
+      "update_mode": "insertion_incremental_repair",
+      "user_mutations": 1,
+      "workload_class": "large_real_component_bridge"
+    },
+    {
+      "algorithm_contract": "weakly_connected_min_vertex_reciprocal_v1",
+      "dataset_id": "sx_askubuntu_reciprocal_gate",
+      "dataset_kind": "derived_real_ordered_undirected_projection",
+      "effective_mutations": 8,
+      "final_components": 639,
+      "final_edges": 540016,
+      "final_labels_sha256": "92f003a404d99fc7658d2cf561cd397ce788536572968c23b12eb72c4ac53a5b",
+      "graph": {
+        "case_id": "askubuntu_reciprocal_gate_e540000",
+        "path": "tests/data/askubuntu_reciprocal_large/askubuntu_reciprocal_gate_e540000.slice",
+        "records": 540000,
+        "sha256": "6ae95bd0a001142a212e44f01c022df43a95dab0cc11e70935d361467472a957",
+        "vertices": 94931
+      },
+      "initial_components": 647,
+      "logical_user_mutations": 8,
+      "physical_records": 16,
+      "role": "large_real_pilot",
+      "run_id": "askubuntu_reciprocal_large_bridge_u8",
+      "scenario": "insert",
+      "touched_vertices": 9,
+      "update": {
+        "case_id": "askubuntu_reciprocal_gate_e540000_insert_bridge_u8",
+        "path": "tests/data/askubuntu_reciprocal_large/askubuntu_reciprocal_gate_e540000_insert_bridge_u8.slice",
+        "records": 16,
+        "sha256": "10faa97f24e14dedbfdde9a229a9a4cfe34ad10336ea404a546c2c263594a33a",
+        "vertices": 94931
+      },
+      "update_mode": "insertion_incremental_repair",
+      "user_mutations": 8,
+      "workload_class": "large_real_component_bridge"
+    },
+    {
+      "algorithm_contract": "weakly_connected_min_vertex_reciprocal_v1",
+      "dataset_id": "sx_askubuntu_reciprocal_gate",
+      "dataset_kind": "derived_real_ordered_undirected_projection",
+      "effective_mutations": 64,
+      "final_components": 583,
+      "final_edges": 540128,
+      "final_labels_sha256": "1e38a7728eee284dc161bef36af971f23dbc65902c63b7a94f5ab826c7eb51a9",
+      "graph": {
+        "case_id": "askubuntu_reciprocal_gate_e540000",
+        "path": "tests/data/askubuntu_reciprocal_large/askubuntu_reciprocal_gate_e540000.slice",
+        "records": 540000,
+        "sha256": "6ae95bd0a001142a212e44f01c022df43a95dab0cc11e70935d361467472a957",
+        "vertices": 94931
+      },
+      "initial_components": 647,
+      "logical_user_mutations": 64,
+      "physical_records": 128,
+      "role": "large_real_pilot",
+      "run_id": "askubuntu_reciprocal_large_bridge_u64",
+      "scenario": "insert",
+      "touched_vertices": 65,
+      "update": {
+        "case_id": "askubuntu_reciprocal_gate_e540000_insert_bridge_u64",
+        "path": "tests/data/askubuntu_reciprocal_large/askubuntu_reciprocal_gate_e540000_insert_bridge_u64.slice",
+        "records": 128,
+        "sha256": "7cc333eaeaf4135f9fd6537bc31cfdedbba1d52034a997c34143ef0a80408d0f",
+        "vertices": 94931
+      },
+      "update_mode": "insertion_incremental_repair",
+      "user_mutations": 64,
+      "workload_class": "large_real_component_bridge"
+    },
+    {
+      "algorithm_contract": "weakly_connected_min_vertex_reciprocal_v1",
+      "dataset_id": "sx_askubuntu_reciprocal_gate",
+      "dataset_kind": "derived_real_ordered_undirected_projection",
+      "effective_mutations": 512,
+      "final_components": 135,
+      "final_edges": 541024,
+      "final_labels_sha256": "2d922c3ca56e74735b7e2fe73f6c4018713ccf54c155b61c30f20892f1c33b6a",
+      "graph": {
+        "case_id": "askubuntu_reciprocal_gate_e540000",
+        "path": "tests/data/askubuntu_reciprocal_large/askubuntu_reciprocal_gate_e540000.slice",
+        "records": 540000,
+        "sha256": "6ae95bd0a001142a212e44f01c022df43a95dab0cc11e70935d361467472a957",
+        "vertices": 94931
+      },
+      "initial_components": 647,
+      "logical_user_mutations": 512,
+      "physical_records": 1024,
+      "role": "large_real_dense",
+      "run_id": "askubuntu_reciprocal_large_bridge_u512",
+      "scenario": "insert",
+      "touched_vertices": 513,
+      "update": {
+        "case_id": "askubuntu_reciprocal_gate_e540000_insert_bridge_u512",
+        "path": "tests/data/askubuntu_reciprocal_large/askubuntu_reciprocal_gate_e540000_insert_bridge_u512.slice",
+        "records": 1024,
+        "sha256": "71d0d42841660f2f76ce5c40ddd19d0dbdcae25f55594be3a6c9844b3c3fd702",
+        "vertices": 94931
+      },
+      "update_mode": "insertion_incremental_repair",
+      "user_mutations": 512,
+      "workload_class": "large_real_component_bridge"
+    }
+  ],
+  "schema_version": 1,
+  "source": {
+    "case_id": "grasu_sx_askubuntu_file_order_e540000",
+    "path": "tests/data/candidate10_askubuntu_paper_scale/sx_askubuntu_base_e540000.slice",
+    "records": 540000,
+    "sha256": "4d47dad68581004dff4194c2e0e5b2b842821ed9bc63a599991fa384c9de678c",
+    "vertices": 157107
+  },
+  "transformation": {
+    "id": "ordered_unique_undirected_prefix_compact_reciprocal_v1",
+    "nested_component_bridge_updates": true,
+    "output_reciprocal_records": 540000,
+    "selected_undirected_pairs": 270000,
+    "source_records_scanned": 310773
+  }
+}

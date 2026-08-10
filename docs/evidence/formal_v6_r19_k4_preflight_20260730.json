@@ -1,0 +1,475 @@
+{
+  "case": {
+    "algorithm": "weighted_sssp",
+    "algorithm_parameters": {
+      "graph_scope": "full_directed_graph",
+      "nonmonotonic_edge_cap": null,
+      "source_cohort": "median_degree"
+    },
+    "batch_size": 8,
+    "dataset_id": "rmat_19_32",
+    "execution_id": "cb698febad12b4a61671",
+    "graph": {
+      "case_id": "rmat_19_32_directed_full",
+      "path": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/rmat_19_32/graphs/directed_weighted.slice",
+      "records": 15483485,
+      "sha256": "83262984e5e22577620be2c6c39bb182e2a0dd98a89cc37e7b4c7ff33f5392a0",
+      "vertices": 524288
+    },
+    "scenario": "insert",
+    "source": 113,
+    "system": "grasu_regraph_k4_shared",
+    "update": {
+      "case_id": "rmat_19_32_directed_insert_u8",
+      "path": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/rmat_19_32/updates/directed/insert_u8.slice",
+      "physical_records": 8,
+      "projection": "directed",
+      "records": 8,
+      "sha256": "a7111470781f3887b76d31cbc3d2b626236a279658f225b5dd6d6036417093e5",
+      "user_mutations": 8,
+      "vertices": 524288
+    }
+  },
+  "child_preflight": {
+    "algorithm_capability": {
+      "algorithm": "weighted_dynamic_sssp",
+      "claim_class": "simulation_only_full_graph_interleaved_23pc_projected_k4_shared_downstream_runtime_packed_multi_partition_scalability_only",
+      "convergence": "host_workload_pinned_minimum_supersteps",
+      "edge_semantics": "weighted32_full_word_compare_dst19_weight12",
+      "evidence_tier": "simulation_only",
+      "implementation_status": "executable",
+      "update_semantics": "weight_change_delete_insert_then_fixed_round_recompute"
+    },
+    "capability_catalog": "/home/chuxiao/spine-cycle-sim-publication/configs/contracts/grasu_regraph_full_graph_capabilities_v7.json",
+    "capability_catalog_sha256": "02425393253fe8e6ed3ac6aadfb53ef36823ae3d7858b17ba2d595c233f583d5",
+    "claim_class": "validated_host_oracle_preflight_not_simulated_performance",
+    "destination_partitions": 8,
+    "directed_records": 15483485,
+    "downstream_sharing": "shared",
+    "host_heap_trimmed": true,
+    "host_oracle_storage": "compacted_before_sst_launch_v1",
+    "input_update_records": 8,
+    "logical_updates": 8,
+    "minimum_supersteps": 10,
+    "nonempty_destination_partitions": 8,
+    "physical_hbm_address_regions": {
+      "_interleaved_arena": {
+        "address_mapping": "interleaved_arena_v1",
+        "arena_bytes": 302084096,
+        "capacity_bytes": 12348030976,
+        "channel_count": 23,
+        "first_channel": 0,
+        "interleave_bytes": 64,
+        "mappings": [
+          {
+            "global_begin_bytes": 0,
+            "logical_begin_bytes": 0,
+            "logical_channel": 0,
+            "logical_end_bytes": 32,
+            "region": "update",
+            "shared_read_only_alias": false
+          },
+          {
+            "global_begin_bytes": 4096,
+            "logical_begin_bytes": 0,
+            "logical_channel": 1,
+            "logical_end_bytes": 32,
+            "region": "update",
+            "shared_read_only_alias": false
+          },
+          {
+            "global_begin_bytes": 8192,
+            "logical_begin_bytes": 0,
+            "logical_channel": 2,
+            "logical_end_bytes": 32,
+            "region": "update",
+            "shared_read_only_alias": false
+          },
+          {
+            "global_begin_bytes": 12288,
+            "logical_begin_bytes": 0,
+            "logical_channel": 3,
+            "logical_end_bytes": 32,
+            "region": "update",
+            "shared_read_only_alias": false
+          },
+          {
+            "global_begin_bytes": 16384,
+            "logical_begin_bytes": 16777216,
+            "logical_channel": 0,
+            "logical_end_bytes": 31846400,
+            "region": "binary",
+            "shared_read_only_alias": true
+          },
+          {
+            "global_begin_bytes": 16384,
+            "logical_begin_bytes": 16777216,
+            "logical_channel": 1,
+            "logical_end_bytes": 31846400,
+            "region": "binary",
+            "shared_read_only_alias": true
+          },
+          {
+            "global_begin_bytes": 16384,
+            "logical_begin_bytes": 16777216,
+            "logical_channel": 2,
+            "logical_end_bytes": 31846400,
+            "region": "binary",
+            "shared_read_only_alias": true
+          },
+          {
+            "global_begin_bytes": 16384,
+            "logical_begin_bytes": 16777216,
+            "logical_channel": 3,
+            "logical_end_bytes": 31846400,
+            "region": "binary",
+            "shared_read_only_alias": true
+          },
+          {
+            "global_begin_bytes": 15085568,
+            "logical_begin_bytes": 31846400,
+            "logical_channel": 0,
+            "logical_end_bytes": 65400832,
+            "region": "row",
+            "shared_read_only_alias": true
+          },
+          {
+            "global_begin_bytes": 15085568,
+            "logical_begin_bytes": 31846400,
+            "logical_channel": 1,
+            "logical_end_bytes": 65400832,
+            "region": "row",
+            "shared_read_only_alias": true
+          },
+          {
+            "global_begin_bytes": 15085568,
+            "logical_begin_bytes": 31846400,
+            "logical_channel": 2,
+            "logical_end_bytes": 65400832,
+            "region": "row",
+            "shared_read_only_alias": true
+          },
+          {
+            "global_begin_bytes": 15085568,
+            "logical_begin_bytes": 31846400,
+            "logical_channel": 3,
+            "logical_end_bytes": 65400832,
+            "region": "row",
+            "shared_read_only_alias": true
+          },
+          {
+            "global_begin_bytes": 48640000,
+            "logical_begin_bytes": 65400832,
+            "logical_channel": 0,
+            "logical_end_bytes": 125607936,
+            "region": "pma",
+            "shared_read_only_alias": false
+          },
+          {
+            "global_begin_bytes": 108847104,
+            "logical_begin_bytes": 65400832,
+            "logical_channel": 1,
+            "logical_end_bytes": 125607936,
+            "region": "pma",
+            "shared_read_only_alias": false
+          },
+          {
+            "global_begin_bytes": 169054208,
+            "logical_begin_bytes": 65400832,
+            "logical_channel": 2,
+            "logical_end_bytes": 125607936,
+            "region": "pma",
+            "shared_read_only_alias": false
+          },
+          {
+            "global_begin_bytes": 229261312,
+            "logical_begin_bytes": 65400832,
+            "logical_channel": 3,
+            "logical_end_bytes": 125607936,
+            "region": "pma",
+            "shared_read_only_alias": false
+          },
+          {
+            "global_begin_bytes": 289468416,
+            "logical_begin_bytes": 125607936,
+            "logical_channel": 1,
+            "logical_end_bytes": 129818624,
+            "region": "source_state",
+            "shared_read_only_alias": false
+          },
+          {
+            "global_begin_bytes": 293679104,
+            "logical_begin_bytes": 125607936,
+            "logical_channel": 3,
+            "logical_end_bytes": 129818624,
+            "region": "source_state",
+            "shared_read_only_alias": false
+          },
+          {
+            "global_begin_bytes": 297889792,
+            "logical_begin_bytes": 0,
+            "logical_channel": 30,
+            "logical_end_bytes": 2097152,
+            "region": "vertex_state",
+            "shared_read_only_alias": false
+          },
+          {
+            "global_begin_bytes": 299986944,
+            "logical_begin_bytes": 16777216,
+            "logical_channel": 31,
+            "logical_end_bytes": 18874368,
+            "region": "degree",
+            "shared_read_only_alias": false
+          }
+        ],
+        "maximum_local_end_bytes": 13134144
+      },
+      "binary": {
+        "base_bytes": 16777216,
+        "channels": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "end_bytes": 31846400,
+        "partition_bases": [
+          16777216,
+          19628032,
+          22421504,
+          25174016,
+          28037120,
+          30842880,
+          31617024,
+          31731712
+        ],
+        "partition_sizes": [
+          2847192,
+          2789448,
+          2748584,
+          2859024,
+          2802816,
+          773464,
+          112272,
+          112680
+        ],
+        "size_bytes": 15069184
+      },
+      "degree": {
+        "base_bytes": 16777216,
+        "channels": [
+          31
+        ],
+        "end_bytes": 18874368,
+        "size_bytes": 2097152
+      },
+      "pma": {
+        "base_bytes": 65400832,
+        "channels": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "end_bytes": 125607936,
+        "partition_bases": [
+          65400832,
+          76791808,
+          87953408,
+          98951168,
+          110391296,
+          121606144,
+          124702720,
+          125153280
+        ],
+        "partition_sizes": [
+          11388800,
+          11157824,
+          10994368,
+          11436096,
+          11211264,
+          3093888,
+          449088,
+          450752
+        ],
+        "size_bytes": 60207104
+      },
+      "row": {
+        "base_bytes": 31846400,
+        "channels": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "end_bytes": 65400832,
+        "partition_bases": [
+          31846400,
+          36040704,
+          40235008,
+          44429312,
+          48623616,
+          52817920,
+          57012224,
+          61206528
+        ],
+        "partition_sizes": [
+          4194304,
+          4194304,
+          4194304,
+          4194304,
+          4194304,
+          4194304,
+          4194304,
+          4194304
+        ],
+        "size_bytes": 33554432
+      },
+      "source_state": {
+        "base_bytes": 125607936,
+        "buffer_stride_bytes": 2097152,
+        "channels": [
+          1,
+          3
+        ],
+        "end_bytes": 129818624,
+        "prefetch_guard_bytes": 16384,
+        "size_bytes": 4210688
+      },
+      "update": {
+        "base_bytes": 0,
+        "channels": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "end_bytes": 32,
+        "size_bytes": 32
+      },
+      "vertex_state": {
+        "base_bytes": 0,
+        "channels": [
+          30
+        ],
+        "end_bytes": 2097152,
+        "size_bytes": 2097152
+      }
+    },
+    "physical_updates": 8,
+    "profile": "/home/chuxiao/spine-cycle-sim-publication/configs/architectures/grasu_regraph_candidate10_k4_shared_multipart_weighted_fullgraph_v7.json",
+    "profile_sha256": "d94f0a051053efb048b5dd56b78a29c4dd13bde3f64ad7eaafce866b843642d6",
+    "schema_version": 1,
+    "selected_supersteps": 10,
+    "source_external": 113,
+    "sst_execution_state_at_write": "not_started",
+    "sst_memory_binding": {
+      "channel_numbers_preserved": true,
+      "dram_energy_claim": "bound_channel_dramsim3_only_excludes_unbound_idle_background",
+      "instantiated_channels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22
+      ],
+      "physical_channels": 32,
+      "reachable_channels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22
+      ],
+      "timing_claim": "host_runtime_optimization_only_physical_architecture_unchanged",
+      "unbound_request_policy": "fatal"
+    },
+    "status": "PASS",
+    "superstep_policy": "oracle_minimum",
+    "update_workload": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/rmat_19_32/updates/directed/insert_u8.slice",
+    "update_workload_sha256": "a7111470781f3887b76d31cbc3d2b626236a279658f225b5dd6d6036417093e5",
+    "vertices": 524288,
+    "workload": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/rmat_19_32/graphs/directed_weighted.slice",
+    "workload_sha256": "83262984e5e22577620be2c6c39bb182e2a0dd98a89cc37e7b4c7ff33f5392a0"
+  },
+  "child_preflight_path": "/data/tmp/chuxiao/large_graph_campaign_v1/formal_v6_r19_k4_preflight_20260730/child/cb698febad12b4a61671/grasu_regraph/preflight.json",
+  "child_preflight_sha256": "5eca04a63375af462ee01266a4607949891d0cf716a1a2ca2bfc1cdf4dce083a",
+  "claim_class": "validated_publication_case_preflight_not_simulated_performance",
+  "logical_views": [
+    "endpoint_scalability"
+  ],
+  "plugin_admission": {
+    "baseline_plugin_sha256": "96b4375f8549016ac8be36d85b04b4b5730df0af477dcc5909903845a8f56919",
+    "classification": "frozen_simulator_baseline",
+    "observed_plugin_sha256": "96b4375f8549016ac8be36d85b04b4b5730df0af477dcc5909903845a8f56919"
+  },
+  "run_contract": {
+    "algorithm": "weighted_dynamic_sssp",
+    "dataset_kind": "synthetic",
+    "fixture_id": "rmat_19_32",
+    "graph": {
+      "case_id": "rmat_19_32_directed_full",
+      "path": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/rmat_19_32/graphs/directed_weighted.slice",
+      "records": 15483485,
+      "sha256": "83262984e5e22577620be2c6c39bb182e2a0dd98a89cc37e7b4c7ff33f5392a0",
+      "vertices": 524288
+    },
+    "graph_scope": "full_directed_graph",
+    "max_rounds": 4096,
+    "nonmonotonic_edge_cap": null,
+    "reporting_algorithm": "weighted_sssp",
+    "role": "publication_scalability_endpoint",
+    "run_id": "cb698febad12b4a61671",
+    "scenario": "incremental_insert",
+    "source": 113,
+    "source_cohort": "median_degree",
+    "update": {
+      "case_id": "rmat_19_32_directed_insert_u8",
+      "path": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/rmat_19_32/updates/directed/insert_u8.slice",
+      "physical_records": 8,
+      "projection": "directed",
+      "records": 8,
+      "sha256": "a7111470781f3887b76d31cbc3d2b626236a279658f225b5dd6d6036417093e5",
+      "user_mutations": 8,
+      "vertices": 524288
+    }
+  },
+  "schema_version": 1,
+  "status": "PASS"
+}

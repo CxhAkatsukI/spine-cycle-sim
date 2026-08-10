@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "matrix_id": "spine_refactor31_fpga_calibration_matrix_v1",
+  "status": "mechanism_evidence_complete_real_transfer_pending",
+  "architecture_profile": "configs/architectures/spine_refactor31_routed_native_v1.json",
+  "evidence_manifest": "configs/evidence/spine_refactor31_routed_baseline_v1.json",
+  "kernel_clock_mhz": 160,
+  "execution_boundary": "reader_compute_opencl_event_span",
+  "required_repeats": 5,
+  "existing_mechanism_cases": [
+    {
+      "case": "active_exact_one_tile",
+      "mechanism": "exact_one_tile",
+      "role": "timing_stability_only",
+      "samples": 1
+    },
+    {
+      "case": "active_exact_many_tiles",
+      "mechanism": "exact_many_tiles",
+      "role": "timing_stability_only",
+      "samples": 1
+    },
+    {
+      "case": "active_gate_one_tile",
+      "mechanism": "fallback_one_tile",
+      "role": "timing_stability_only",
+      "samples": 3
+    },
+    {
+      "case": "active_gate_many_tiles",
+      "mechanism": "fallback_many_tiles",
+      "role": "timing_stability_only",
+      "samples": 3
+    }
+  ],
+  "real_slice_protocol": {
+    "algorithm": "weighted_sssp",
+    "update_kind": "insertion",
+    "updates_per_batch": 8,
+    "weight_rule": "1_plus_endpoint_hash_mod_255",
+    "source_rule": "lowest_vertex_id_with_outdegree_4_to_16",
+    "slice_rule": "canonical_remap_then_deterministic_edge_prefix",
+    "independent_oracle": "cpu_dijkstra_uint64",
+    "hardware_harness": "pending_correctness_gated_generic_slice_host"
+  },
+  "calibration": {
+    "immutable": false,
+    "edge_scales": [100000, 500000, 1000000, 4000000],
+    "datasets": [
+      {
+        "id": "AU",
+        "path": "/data/feiyang/AE/AE_Final/datasets/amazon-2008.mtx"
+      },
+      {
+        "id": "GG",
+        "path": "/data/feiyang/AE/AE_Final/datasets/web-Google.mtx"
+      },
+      {
+        "id": "WK",
+        "path": "/data/feiyang/AE/AE_Final/datasets/wiki-topcats.txt"
+      }
+    ]
+  },
+  "holdout": {
+    "immutable": true,
+    "edge_scale_min": 2000000,
+    "edge_scale_max": 8000000,
+    "datasets": [
+      {
+        "id": "LJ",
+        "path": "/data/feiyang/AE/AE_Final/datasets/soc-LiveJournal1.txt",
+        "edge_scale": 2000000
+      },
+      {
+        "id": "OR",
+        "path": "/data/feiyang/AE/AE_Final/datasets/soc-orkut-dir.mtx",
+        "edge_scale": 8000000
+      }
+    ]
+  },
+  "admission": {
+    "correctness_required": true,
+    "request_conservation_required": true,
+    "work_ledger_closure_required": true,
+    "median_total_cycle_error_percent_max": 15,
+    "max_total_cycle_error_percent_max": 30,
+    "component_median_cycle_error_percent_max": 20,
+    "workload_rank_spearman_min": 0.9
+  }
+}

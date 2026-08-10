@@ -67,6 +67,7 @@ def _summary_rows(ledger: dict[str, object]) -> list[dict[str, object]]:
 def _paper_rows(ledger: dict[str, object]) -> list[dict[str, object]]:
     labels = {
         "spine_candidate10_sssp_152mhz": "Spine SSSP",
+        "spine_candidate10_opt_v2_sssp_150mhz": "Spine opt-v2 SSSP",
         "grasu_regraph_weighted_sssp_150mhz": "G+R SSSP",
         "grasu_regraph_full_pagerank_150mhz": "G+R Full PR",
         "grasu_regraph_thresholded_residual_pagerank_150mhz": "G+R Residual PR",

@@ -50,6 +50,41 @@ class ConvertGraSuGraphTests(unittest.TestCase):
                     root / "meta.json",
                 )
 
+    def test_preserves_weighted_reciprocal_pma_rows(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            graph = root / "weighted.graph"
+            graph.write_text(
+                "4 4 2\n"
+                "0 1 7\n"
+                "1 0 7\n"
+                "2 3 11\n"
+                "3 2 11\n"
+                "1 2 13 1\n"
+                "2 1 13 1\n",
+                encoding="ascii",
+            )
+            initial = root / "initial.slice"
+            update = root / "update.slice"
+            metadata = convert_graph(
+                graph,
+                initial,
+                update,
+                root / "meta.json",
+                require_reciprocal=True,
+                sort_records=True,
+            )
+            _vertices, initial_edges = load_slice(initial)
+            _vertices, update_edges = load_slice(update)
+            self.assertEqual([edge[2] for edge in initial_edges], [7, 7, 11, 11])
+            self.assertEqual([edge[2] for edge in update_edges], [13, 13])
+            self.assertTrue(metadata["weights_preserved"])
+            self.assertTrue(metadata["reciprocal_validated"])
+            self.assertIsNone(metadata["unit_weight"])
+            self.assertEqual(
+                metadata["record_order"], "deterministic_src_dst_weight_diff"
+            )
+
     def test_converts_committed_hardware_alignment_workload(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

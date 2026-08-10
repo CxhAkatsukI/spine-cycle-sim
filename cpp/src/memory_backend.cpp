@@ -1,6 +1,7 @@
 #include "spine_sim/memory_backend.hpp"
 
 #include <algorithm>
+#include <bit>
 #include <limits>
 #include <stdexcept>
 #include <utility>
@@ -99,18 +100,86 @@ MemoryTrafficStats subtract_memory_traffic(const MemoryTrafficStats& after,
 }
 
 void MemoryBackend::register_initiator(std::uint32_t initiator_id) {
-  if (!initiators_.insert(initiator_id).second) {
+  if (initiator_id >= initiators_.size()) {
+    const std::size_t size = static_cast<std::size_t>(initiator_id) + 1;
+    initiators_.resize(size, 0);
+    response_notifications_.resize(size);
+    traffic_stats_by_initiator_dense_.resize(size, nullptr);
+    traffic_cursors_.resize(size);
+  }
+  if (initiators_[initiator_id] != 0) {
     throw std::invalid_argument("memory initiator ID is already registered");
   }
+  initiators_[initiator_id] = 1;
+  auto [stats, inserted] =
+      traffic_stats_by_initiator_.try_emplace(initiator_id);
+  if (!inserted || traffic_stats_by_initiator_dense_[initiator_id] != nullptr) {
+    throw std::logic_error("memory initiator traffic state is duplicated");
+  }
+  traffic_stats_by_initiator_dense_[initiator_id] = &stats->second;
+}
+
+void MemoryBackend::bind_response_notifier(std::uint32_t initiator_id,
+                                           void* owner,
+                                           ResponseNotifier notifier) {
+  if (!initiator_registered(initiator_id) || notifier == nullptr) {
+    throw std::invalid_argument("invalid memory response notifier");
+  }
+  ResponseNotification& registration = response_notifications_[initiator_id];
+  if (registration.notifier != nullptr &&
+      (registration.owner != owner || registration.notifier != notifier)) {
+    throw std::logic_error("memory response notifier is already bound");
+  }
+  registration = ResponseNotification{.owner = owner, .notifier = notifier};
+}
+
+void MemoryBackend::unbind_response_notifier(std::uint32_t initiator_id,
+                                             void* owner) noexcept {
+  if (initiator_id >= response_notifications_.size()) {
+    return;
+  }
+  ResponseNotification& registration = response_notifications_[initiator_id];
+  if (registration.owner == owner) {
+    registration = {};
+  }
+}
+
+void MemoryBackend::notify_response_available(
+    std::uint32_t initiator_id) noexcept {
+  if (initiator_id >= response_notifications_.size()) {
+    return;
+  }
+  const ResponseNotification& registration =
+      response_notifications_[initiator_id];
+  if (registration.notifier != nullptr) {
+    registration.notifier(registration.owner);
+  }
+}
+
+bool MemoryBackend::try_submit(const BackendRequest& request) {
+  const BackendRequestHeader header{
+      .initiator_id = request.initiator_id,
+      .request_id = request.request_id,
+      .channel = request.channel,
+      .operation = request.operation,
+      .address = request.address,
+      .bytes = request.bytes,
+  };
+  if (!try_reserve(header)) {
+    return false;
+  }
+  submit_reserved(request);
+  return true;
 }
 
 bool MemoryBackend::initiator_registered(
     std::uint32_t initiator_id) const noexcept {
-  return initiators_.contains(initiator_id);
+  return initiator_id < initiators_.size() && initiators_[initiator_id] != 0;
 }
 
 void MemoryBackend::begin_traffic_epoch() noexcept {
-  traffic_cursors_.clear();
+  std::fill(traffic_cursors_.begin(), traffic_cursors_.end(),
+            InitiatorCursors{});
 }
 
 void MemoryBackend::record_accepted_request(const BackendRequest& request) {
@@ -135,7 +204,7 @@ void MemoryBackend::record_accepted_request(const BackendRequest& request) {
                                    ? traffic_stats_.reads
                                    : traffic_stats_.writes;
   MemoryTrafficStats& initiator =
-      traffic_stats_by_initiator_[request.initiator_id];
+      *traffic_stats_by_initiator_dense_[request.initiator_id];
   MemoryLocalityStats& per_initiator =
       request.operation == MemoryOperation::kRead ? initiator.reads
                                                   : initiator.writes;
@@ -167,10 +236,7 @@ void MemoryBackend::initialize_payload(
     PayloadPage& page = storage[page_number];
     std::copy_n(data.begin() + static_cast<std::ptrdiff_t>(index), chunk,
                 page.bytes.begin() + static_cast<std::ptrdiff_t>(page_offset));
-    for (std::size_t offset = page_offset; offset < page_offset + chunk;
-         ++offset) {
-      page.mark(offset);
-    }
+    page.mark_range(page_offset, chunk);
     index += chunk;
   }
 }
@@ -206,6 +272,14 @@ std::vector<std::uint8_t> MemoryBackend::inspect_payload(
       if (found != channel_storage->second.end()) {
         page = &found->second;
       }
+    }
+    if (page != nullptr && page->contains_range(page_offset, chunk)) {
+      std::copy_n(page->bytes.begin() +
+                      static_cast<std::ptrdiff_t>(page_offset),
+                  chunk,
+                  result.begin() + static_cast<std::ptrdiff_t>(index));
+      index += chunk;
+      continue;
     }
     for (std::size_t within = 0; within < chunk; ++within) {
       const std::size_t offset = page_offset + within;
@@ -253,30 +327,63 @@ RegisteredChannelArbiter::RegisteredChannelArbiter(
     : channels_(channels),
       grants_per_channel_per_cycle_(grants_per_channel_per_cycle),
       intents_(channels),
-      grants_(channels),
+      grants_by_channel_(channels, 0),
       next_initiator_(channels, 0) {
-  if (channels_ == 0 || grants_per_channel_per_cycle_ == 0) {
+  if (channels_ == 0 || channels_ > 64 ||
+      grants_per_channel_per_cycle_ == 0) {
     throw std::invalid_argument(
-        "registered channel arbiter configuration must be positive");
+        "registered channel arbiter requires 1..64 channels and a positive "
+        "grant rate");
+  }
+  for (auto &channel_intents : intents_) {
+    channel_intents.reserve(8);
   }
 }
 
 bool RegisteredChannelArbiter::try_acquire(const BackendRequest& request) {
+  return try_acquire(BackendRequestHeader{
+      .initiator_id = request.initiator_id,
+      .request_id = request.request_id,
+      .channel = request.channel,
+      .operation = request.operation,
+      .address = request.address,
+      .bytes = request.bytes,
+  });
+}
+
+bool RegisteredChannelArbiter::try_acquire(
+    const BackendRequestHeader& request) {
   if (request.channel >= channels_) {
     throw std::invalid_argument("arbiter request targets an invalid channel");
   }
-  auto& channel_grants = grants_[request.channel];
-  const auto granted = channel_grants.find(request.initiator_id);
-  if (granted != channel_grants.end()) {
-    channel_grants.erase(granted);
+  const std::uint64_t channel_bit =
+      std::uint64_t{1} << request.channel;
+  if (request.initiator_id >= intent_masks_.size()) {
+    const std::size_t size = static_cast<std::size_t>(request.initiator_id) + 1;
+    intent_masks_.resize(size, 0);
+    grant_masks_.resize(size, 0);
+  }
+  std::uint64_t &grant_mask = grant_masks_[request.initiator_id];
+  if ((grant_mask & channel_bit) != 0) {
+    grant_mask &= ~channel_bit;
+    if (pending_grant_count_ == 0 ||
+        grants_by_channel_[request.channel] == 0) {
+      throw std::logic_error("registered arbiter grant count underflow");
+    }
+    --pending_grant_count_;
+    --grants_by_channel_[request.channel];
     ++stats_.consumed_grants;
     return true;
   }
 
-  auto& channel_intents = intents_[request.channel];
-  const auto [pending, inserted] =
-      channel_intents.emplace(request.initiator_id, request);
-  (void)pending;
+  std::uint64_t &intent_mask = intent_masks_[request.initiator_id];
+  const bool inserted = (intent_mask & channel_bit) == 0;
+  if (inserted) {
+    intent_mask |= channel_bit;
+    intents_[request.channel].push_back(request.initiator_id);
+    ++pending_intent_count_;
+    active_intent_channels_ |= channel_bit;
+  }
   stats_.unique_intents += inserted ? 1 : 0;
   ++stats_.request_waits;
   return false;
@@ -289,14 +396,17 @@ void RegisteredChannelArbiter::arbitrate(
       max_outstanding_per_channel == 0) {
     throw std::invalid_argument("invalid arbiter outstanding snapshot");
   }
-  for (std::size_t channel = 0; channel < channels_; ++channel) {
+  std::uint64_t active = active_intent_channels_;
+  while (active != 0) {
+    const std::size_t channel = std::countr_zero(active);
+    const std::uint64_t channel_bit = std::uint64_t{1} << channel;
     auto& intents = intents_[channel];
-    auto& grants = grants_[channel];
     stats_.max_contenders = std::max(stats_.max_contenders, intents.size());
     if (intents.empty()) {
-      continue;
+      throw std::logic_error("registered arbiter active channel is empty");
     }
-    const std::size_t occupied = channel_outstanding[channel] + grants.size();
+    const std::size_t occupied =
+        channel_outstanding[channel] + grants_by_channel_[channel];
     const std::size_t capacity =
         occupied < max_outstanding_per_channel
             ? max_outstanding_per_channel - occupied
@@ -306,6 +416,7 @@ void RegisteredChannelArbiter::arbitrate(
     if (slots == 0) {
       ++stats_.capacity_blocked_cycles;
       stats_.contention_losers += intents.size();
+      active &= active - 1;
       continue;
     }
     if (intents.size() > slots) {
@@ -314,46 +425,88 @@ void RegisteredChannelArbiter::arbitrate(
     }
 
     for (std::size_t slot = 0; slot < slots && !intents.empty(); ++slot) {
-      auto selected = intents.lower_bound(next_initiator_[channel]);
-      if (selected == intents.end()) {
-        selected = intents.begin();
+      std::size_t selected = intents.size();
+      std::uint32_t selected_id = std::numeric_limits<std::uint32_t>::max();
+      std::size_t wrapped = 0;
+      std::uint32_t wrapped_id = std::numeric_limits<std::uint32_t>::max();
+      for (std::size_t index = 0; index < intents.size(); ++index) {
+        const std::uint32_t candidate = intents[index];
+        if (candidate >= next_initiator_[channel] &&
+            candidate < selected_id) {
+          selected = index;
+          selected_id = candidate;
+        }
+        if (candidate < wrapped_id) {
+          wrapped = index;
+          wrapped_id = candidate;
+        }
       }
-      const std::uint32_t initiator = selected->first;
-      if (!grants.emplace(initiator, std::move(selected->second)).second) {
+      if (selected == intents.size()) {
+        selected = wrapped;
+        selected_id = wrapped_id;
+      }
+      const std::uint32_t initiator = selected_id;
+      std::uint64_t &grant_mask = grant_masks_[initiator];
+      if ((grant_mask & channel_bit) != 0) {
         throw std::logic_error("arbiter issued a duplicate initiator grant");
       }
-      intents.erase(selected);
+      grant_mask |= channel_bit;
+      ++grants_by_channel_[channel];
+      std::uint64_t &intent_mask = intent_masks_[initiator];
+      if ((intent_mask & channel_bit) == 0) {
+        throw std::logic_error("arbiter selected an unregistered intent");
+      }
+      intent_mask &= ~channel_bit;
+      intents[selected] = intents.back();
+      intents.pop_back();
+      --pending_intent_count_;
+      ++pending_grant_count_;
       next_initiator_[channel] = initiator + 1;
       ++stats_.grants;
     }
+    if (intents.empty()) {
+      active_intent_channels_ &= ~channel_bit;
+    }
+    active &= active - 1;
   }
   stats_.max_pending_grants =
       std::max(stats_.max_pending_grants, pending_grants());
 }
 
 std::size_t RegisteredChannelArbiter::pending_grants() const noexcept {
-  std::size_t count = 0;
-  for (const auto& grants : grants_) {
-    count += grants.size();
-  }
-  return count;
+  return pending_grant_count_;
 }
 
 std::size_t RegisteredChannelArbiter::pending_intents() const noexcept {
-  std::size_t count = 0;
-  for (const auto& intents : intents_) {
-    count += intents.size();
-  }
-  return count;
+  return pending_intent_count_;
 }
 
 std::size_t RegisteredChannelArbiter::pending_grants_for(
     std::uint32_t initiator_id) const noexcept {
-  std::size_t count = 0;
-  for (const auto& grants : grants_) {
-    count += grants.contains(initiator_id) ? 1 : 0;
+  return initiator_id >= grant_masks_.size()
+             ? 0
+             : std::popcount(grant_masks_[initiator_id]);
+}
+
+bool RegisteredChannelArbiter::intent_pending(
+    std::uint32_t initiator_id, std::size_t channel) const noexcept {
+  if (channel >= channels_) {
+    return false;
   }
-  return count;
+  return initiator_id < intent_masks_.size() &&
+         (intent_masks_[initiator_id] & (std::uint64_t{1} << channel)) != 0;
+}
+
+void RegisteredChannelArbiter::account_duplicate_waits(
+    std::uint32_t initiator_id, std::size_t channel, std::uint64_t count) {
+  if (count == 0) {
+    return;
+  }
+  if (!intent_pending(initiator_id, channel)) {
+    throw std::logic_error(
+        "cannot account duplicate waits without a pending intent");
+  }
+  stats_.request_waits += count;
 }
 
 MockMemoryBackend::MockMemoryBackend(std::string name, ClockId clock_id,
@@ -379,16 +532,10 @@ std::size_t MockMemoryBackend::channel_outstanding(std::size_t channel) const {
       }));
 }
 
-bool MockMemoryBackend::try_submit(const BackendRequest& request) {
+bool MockMemoryBackend::try_reserve(const BackendRequestHeader& request) {
   if (!initiator_registered(request.initiator_id) ||
       request.channel >= config_.channels || request.bytes == 0) {
     throw std::invalid_argument("invalid mock memory request");
-  }
-  if ((request.operation == MemoryOperation::kRead &&
-       !request.write_data.empty()) ||
-      (request.operation == MemoryOperation::kWrite &&
-       request.write_data.size() != request.bytes)) {
-    throw std::invalid_argument("invalid mock memory request payload");
   }
   if (arbiter_ != nullptr && !arbiter_->try_acquire(request)) {
     ++stats_.submit_stalls;
@@ -405,8 +552,33 @@ bool MockMemoryBackend::try_submit(const BackendRequest& request) {
     ++stats_.submit_stalls;
     return false;
   }
-  staged_submissions_.push_back(request);
   return true;
+}
+
+bool MockMemoryBackend::reservation_intent_pending(
+    std::uint32_t initiator_id, std::size_t channel) const noexcept {
+  return arbiter_ != nullptr && arbiter_->intent_pending(initiator_id, channel);
+}
+
+void MockMemoryBackend::account_same_cycle_reservation_stalls(
+    std::uint32_t initiator_id, std::size_t channel, std::uint64_t count) {
+  if (arbiter_ == nullptr || count == 0) {
+    MemoryBackend::account_same_cycle_reservation_stalls(
+        initiator_id, channel, count);
+    return;
+  }
+  arbiter_->account_duplicate_waits(initiator_id, channel, count);
+  stats_.submit_stalls += count;
+}
+
+void MockMemoryBackend::submit_reserved(BackendRequest request) {
+  if ((request.operation == MemoryOperation::kRead &&
+       !request.write_data.empty()) ||
+      (request.operation == MemoryOperation::kWrite &&
+       request.write_data.size() != request.bytes)) {
+    throw std::invalid_argument("invalid mock memory request payload");
+  }
+  staged_submissions_.push_back(std::move(request));
 }
 
 std::size_t MockMemoryBackend::response_count(
@@ -422,6 +594,15 @@ const BackendResponse& MockMemoryBackend::response_at(
     throw std::out_of_range("mock memory response index out of range");
   }
   return found->second[index];
+}
+
+const BackendResponse& MockMemoryBackend::staged_response_at(
+    std::uint32_t initiator_id, std::size_t index) const {
+  const auto retired = retired_responses_.find(initiator_id);
+  if (retired != retired_responses_.end() && index < retired->second.size()) {
+    return retired->second[index];
+  }
+  return response_at(initiator_id, index);
 }
 
 bool MockMemoryBackend::stage_pop_responses(std::uint32_t initiator_id,
@@ -457,6 +638,10 @@ std::size_t MockMemoryBackend::outstanding_for(
 }
 
 void MockMemoryBackend::prepare(const CycleContext& context) {
+  for (auto& [initiator_id, responses] : retired_responses_) {
+    (void)initiator_id;
+    responses.clear();
+  }
   for (auto iterator = pending_.begin(); iterator != pending_.end();) {
     if (iterator->due_cycle > context.domain_cycle) {
       ++iterator;
@@ -482,6 +667,7 @@ void MockMemoryBackend::prepare(const CycleContext& context) {
                          ? complete_read_payload(iterator->request)
                          : std::vector<std::uint8_t>{},
     });
+    notify_response_available(iterator->request.initiator_id);
     iterator = pending_.erase(iterator);
   }
 }
@@ -489,7 +675,11 @@ void MockMemoryBackend::prepare(const CycleContext& context) {
 void MockMemoryBackend::commit(const CycleContext& context) {
   for (const auto& [initiator_id, count] : staged_response_pops_) {
     auto& queue = responses_[initiator_id];
+    auto& retired = retired_responses_[initiator_id];
+    retired.clear();
+    retired.reserve(count);
     for (std::size_t index = 0; index < count; ++index) {
+      retired.push_back(std::move(queue.front()));
       queue.pop_front();
     }
   }

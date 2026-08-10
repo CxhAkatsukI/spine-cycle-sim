@@ -87,18 +87,12 @@ class SpineSimulatorTests(unittest.TestCase):
         self.assertEqual(result["maintenance_events"][1]["path"], "cascade")
         self.assertLessEqual(max(result["level1_occupancy"]), config.level_family_capacity(1))
 
-    def test_one_partition_full_plus_one_fails_l1_partition_capacity(self) -> None:
+    def test_one_partition_full_plus_one_skips_to_capacity_safe_level(self) -> None:
         config = self.small_capacity_config()
         result = self.run_case("hotdst", config.max_vertices, 20, config)
-        self.assertEqual(result["capacity_status"], "FAIL")
-        self.assertEqual(result["capacity_failure"]["reason"], "level_family_capacity")
-        self.assertEqual(result["capacity_failure"]["failure_level"], 1)
-        self.assertEqual(result["capacity_failure"]["failure_partition"], 0)
-        self.assertEqual(result["capacity_failure"]["maintenance_path"], "cascade")
-        self.assertGreater(
-            result["capacity_failure"]["failure_partition_edges"],
-            result["capacity_failure"]["failure_partition_capacity"],
-        )
+        self.assertEqual(result["capacity_status"], "PASS")
+        self.assertEqual(result["maintenance_max_target_level"], 3)
+        self.assertEqual(result["target_selector_capacity_skips"], 2)
 
     def test_hot_cold_classifier_promotes_skewed_destinations(self) -> None:
         config = SpineConfig(
@@ -119,6 +113,28 @@ class SpineSimulatorTests(unittest.TestCase):
         self.assertGreater(classification.hot_edges, 0)
         self.assertLessEqual(max(classification.cold_partition_edges), config.family_total_capacity)
         self.assertLessEqual(max(classification.hot_shard_edges), config.family_total_capacity)
+
+    def test_hot_cold_classifier_does_not_overpromote_fit_partition(self) -> None:
+        config = SpineConfig(
+            max_vertices=128,
+            vs_partition_size=64,
+            num_partitions=2,
+            hot_shards=2,
+            batch_size_edges=8,
+            num_levels=4,
+            max_cycles=100000,
+        )
+        edges = [
+            Edge(src=source, dst=destination, weight=1)
+            for destination in range(8)
+            for source in range(10)
+        ]
+        edges.extend(
+            Edge(src=source, dst=64, weight=1) for source in range(15)
+        )
+        classification = classify_hot_cold(edges, config)
+        self.assertNotIn(64, classification.hot_dsts)
+        self.assertEqual(classification.cold_partition_edges[1], 15)
 
 
 if __name__ == "__main__":

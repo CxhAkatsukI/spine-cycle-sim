@@ -7,6 +7,8 @@ import unittest
 
 from spine_cycle_sim.sst_binding import (
     SstMemoryBinding,
+    _spine_automatic_hot_vertices,
+    _spine_hot_hash,
     grasu_normalized_memory_binding,
     make_sst_memory_binding,
     spine_memory_binding,
@@ -18,6 +20,55 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class SstMemoryBindingTests(unittest.TestCase):
+    def test_auto_hot_skips_vertices_from_already_fit_partitions(self) -> None:
+        indegree = {destination: 10 for destination in range(8)}
+        indegree[64] = 15
+        promoted = _spine_automatic_hot_vertices(
+            indegree,
+            [80, 15, 0, 0],
+            {
+                "partitions": 4,
+                "levels": 5,
+                "level_ratio": 2,
+                "max_sort_edges": 8,
+                "vertex_partition_size": 64,
+            },
+        )
+        self.assertNotIn(64, promoted)
+        self.assertTrue(set(promoted) <= set(range(8)))
+
+    def test_auto_hot_uses_multilevel_capacity_after_top_hash_collision(self) -> None:
+        same_shard: list[int] = []
+        other_shard: list[int] = []
+        for destination in range(256):
+            target = same_shard if _spine_hot_hash(destination) % 4 == 0 else other_shard
+            target.append(destination)
+            if len(same_shard) >= 3 and len(other_shard) >= 3:
+                break
+        ordered = same_shard[:3] + other_shard[:3]
+        indegree = {
+            destination: degree
+            for destination, degree in zip(
+                ordered, (30, 29, 28, 27, 26, 25), strict=True
+            )
+        }
+        promoted = _spine_automatic_hot_vertices(
+            indegree,
+            [sum(indegree.values()), 0, 0, 0],
+            {
+                "partitions": 4,
+                "levels": 5,
+                "level_ratio": 2,
+                "max_sort_edges": 8,
+                "vertex_partition_size": 256,
+            },
+        )
+        self.assertTrue(promoted)
+        hot = [0, 0, 0, 0]
+        for destination in promoted:
+            hot[_spine_hot_hash(destination) % 4] += indegree[destination]
+        self.assertLessEqual(max(hot), 68)
+
     def test_grasu_normalized_reachable_channels(self) -> None:
         profile = json.loads(
             (
@@ -47,6 +98,20 @@ class SstMemoryBindingTests(unittest.TestCase):
         self.assertEqual(binding.reachable_channels, (0, 1, 2, 3, 30))
         self.assertEqual(binding.instantiated_channels, tuple(range(32)))
         self.assertFalse(binding.sparse)
+
+    def test_grasu_interleaved_binding_instantiates_frozen_23_channels(self) -> None:
+        profile = json.loads(
+            (
+                ROOT
+                / "configs"
+                / "architectures"
+                / "grasu_regraph_candidate10_k1_multipart_pagerank_fullgraph_v7.json"
+            ).read_text(encoding="utf-8")
+        )
+        binding = grasu_normalized_memory_binding(profile)
+        self.assertEqual(binding.physical_channels, 32)
+        self.assertEqual(binding.reachable_channels, tuple(range(23)))
+        self.assertEqual(binding.instantiated_channels, tuple(range(23)))
 
     def test_spine_single_partition_reachable_channels(self) -> None:
         profile = json.loads(
@@ -82,6 +147,28 @@ class SstMemoryBindingTests(unittest.TestCase):
         self.assertIn(1, cold.reachable_channels)
         self.assertIn(1, hot.reachable_channels)
         self.assertIn(5, hot.reachable_channels)
+
+    def test_spine_auto_hot_promotion_binds_hashed_graph_channels(self) -> None:
+        profile = json.loads(
+            (
+                ROOT / "configs" / "architectures" / "spine_latest_afb8199.json"
+            ).read_text(encoding="utf-8")
+        )
+        profile["parameters"]["max_sort_edges"] = 2
+        with tempfile.TemporaryDirectory(dir=ROOT) as tmp:
+            workload = Path(tmp) / "auto_hot.slice"
+            rows = ["# vertices=512"]
+            for destination in range(10):
+                rows.extend(
+                    f"{source} {destination} 1 1" for source in range(30)
+                )
+            workload.write_text("\n".join(rows) + "\n", encoding="ascii")
+            binding = spine_memory_binding(profile, [workload])
+        self.assertIn(0, binding.reachable_channels)
+        self.assertTrue(
+            any(channel in binding.reachable_channels for channel in range(1, 16))
+        )
+        self.assertTrue(set(range(16, 23)) <= set(binding.reachable_channels))
 
     def test_binding_rejects_omitted_reachable_channel(self) -> None:
         with self.assertRaisesRegex(ValueError, "omit a reachable"):

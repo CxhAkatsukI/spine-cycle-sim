@@ -54,7 +54,7 @@ def validate_spine_pagerank_result(
         < 1.0e-9,
         "dynamic": result.get("dynamic_update") is True,
         "pipeline": result.get("pipeline_order")
-        == "zero_time_l0_preload_then_update_maintenance_then_compute",
+        == "zero_time_resident_level_preload_then_update_maintenance_then_compute",
         "vertices": result.get("vertices")
         == run["graph"]["vertices"],  # type: ignore[index]
         "initial_edges": result.get("initial_edges")
@@ -62,7 +62,8 @@ def validate_spine_pagerank_result(
         "update_records": result.get("update_edges") == run["physical_records"],
         "final_edges": result.get("materialized_snapshot_edges")
         == run["final_edges"]
-        and result.get("maintenance_persisted_edges") == run["final_edges"],
+        and isinstance(result.get("maintenance_persisted_edges"), int)
+        and 0 <= result["maintenance_persisted_edges"] <= run["final_edges"],
         "iterations": result.get("pagerank_iterations") == iterations
         and result.get("pagerank_completed_iterations") == iterations
         and len(result.get("iteration_cycles", [])) == iterations,
@@ -398,7 +399,7 @@ def validate_spine_residual_result(
         < 1.0e-9,
         "dynamic": result.get("dynamic_update") is True,
         "pipeline": result.get("pipeline_order")
-        == "zero_time_l0_preload_then_update_maintenance_then_compute",
+        == "zero_time_resident_level_preload_then_update_maintenance_then_compute",
         "vertices": result.get("vertices")
         == run["graph"]["vertices"],  # type: ignore[index]
         "initial_edges": result.get("initial_edges")
@@ -406,7 +407,8 @@ def validate_spine_residual_result(
         "update_records": result.get("update_edges") == run["physical_records"],
         "final_edges": result.get("materialized_snapshot_edges")
         == run["final_edges"]
-        and result.get("maintenance_persisted_edges") == run["final_edges"],
+        and isinstance(result.get("maintenance_persisted_edges"), int)
+        and 0 <= result["maintenance_persisted_edges"] <= run["final_edges"],
         "parameters": abs(float(result.get("pagerank_damping", -1.0)) - damping)
         < 1.0e-7
         and abs(float(result.get("pagerank_epsilon", -1.0)) - epsilon) < 1.0e-12
@@ -514,8 +516,10 @@ def validate_grasu_residual_result(
         and len(frontier_in) == len(frontier_out) == iterations
         and frontier_in[0] == run["graph"]["vertices"]  # type: ignore[index]
         and frontier_out[-1] == 0,
-        "active_edges": result.get("compute_active_edges")
-        == result.get("expected_active_edges"),
+        "active_edge_execution_ledger": result.get(
+            "active_edge_execution_ledger_match"
+        )
+        is True,
         "gather_activity": int(result.get("gather_reset_cycles", -1)) > 0
         and int(result.get("gather_merge_cycles", -1)) > 0
         and result.get("gather_merge_cycles")

@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "evidence_id": "spine_refactor31_rmat_scale_v1",
+  "claim_class": "fpga_scale_and_regression_evidence",
+  "architecture_baseline": "spine_refactor31_routed_native_v1",
+  "graph": {
+    "generator": "Graph500-style unscrumbled RMat",
+    "scale": 24,
+    "edge_factor": 9,
+    "edges": 150994944
+  },
+  "protocol": {
+    "update_sizes": [1, 16, 256, 4096],
+    "cohorts": ["historical", "seed1", "seed2", "seed3", "edge_weighted", "high_fanout"],
+    "state_classes": ["pristine", "persistent"],
+    "orders": ["baseline_first", "candidate_first"],
+    "small_measured_repeats_per_order": 20,
+    "large_measured_repeats_per_order": 5,
+    "warmup_repeats_per_order": 1
+  },
+  "artifacts": [
+    {
+      "kind": "routed_xclbin",
+      "path": "/data/feiyang/spine-dynamic-graph-builds/segmented_exact_fallback_cc7e3f9_20260802/hw_refactor31_ii4_bitmap_extratiming/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+      "sha256": "a4d11162a543a539c90af3a1ede5840c410aa61db1486dc9895a8c318b591bac"
+    },
+    {
+      "kind": "host_binary",
+      "path": "/data/feiyang/spine-dynamic-graph-builds/segmented_exact_fallback_cc7e3f9_20260802/direct_hw_refactor31/host/host_partitioned_rmat24_benchmark",
+      "sha256": "151d8f5ce46d6a722e58068c5328d3139997aff481951e275eac0f40e25a4921"
+    },
+    {
+      "kind": "candidate_trials",
+      "path": "/data/feiyang/spine-dynamic-graph-builds/segmented_exact_fallback_cc7e3f9_20260802/direct_hw_refactor31/rmat24_order_balanced/order_balanced/candidate_order_balanced.csv",
+      "sha256": "5af47cc9cc04570ee4c7544b6c5e9b723fba2a70a941f4bb33c6a40837f700b5"
+    },
+    {
+      "kind": "semantic_hashes",
+      "path": "/data/feiyang/spine-dynamic-graph-builds/segmented_exact_fallback_cc7e3f9_20260802/direct_hw_refactor31/rmat24_order_balanced/current_guardrails/semantic-hashes.csv",
+      "sha256": "8be5bf2c1eca4ce1a4debbe5da01782d0877b6483376110f77c411715d402364"
+    },
+    {
+      "kind": "semantic_mismatches",
+      "path": "/data/feiyang/spine-dynamic-graph-builds/segmented_exact_fallback_cc7e3f9_20260802/direct_hw_refactor31/rmat24_order_balanced/current_guardrails/semantic-mismatches.csv",
+      "sha256": "d9dbfb38d0979fee94d56a1c90a06641ee269ec24f6e98f288b6d088690dd906"
+    },
+    {
+      "kind": "run_protocol",
+      "path": "/data/feiyang/spine-dynamic-graph-builds/segmented_exact_fallback_cc7e3f9_20260802/direct_hw_refactor31/rmat24_order_balanced/protocol.txt",
+      "sha256": "881f9230f6b777359dc735ee218eecbd788ecffddfe921851bad2a537bef5ab9"
+    }
+  ]
+}

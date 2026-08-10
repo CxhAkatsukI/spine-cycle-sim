@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "dataset_id": "rmat_19_32",
+  "source": {
+    "path": "/data/feiyang/AE/AE_Final/datasets/rmat-19-32.txt",
+    "size_bytes": 225511166,
+    "sha256": "00a8886a5d0836e2839d50401142056f76cccd854845701b7a6100ca6db31125",
+    "records": 15483988,
+    "minimum_first_endpoint": 1,
+    "maximum_first_endpoint": 524288,
+    "minimum_second_endpoint": 1,
+    "maximum_second_endpoint": 524288
+  },
+  "normalization": {
+    "endpoint_order": "input_dst_src_to_output_src_dst",
+    "indexing": "one_based_to_zero_based",
+    "self_loops_removed": 503,
+    "duplicate_nonself_edges_removed": 0,
+    "unique_directed_edges": 15483485
+  },
+  "correction": {
+    "previous_unsubstantiated_count": 15481655,
+    "difference": 1830,
+    "reason": "The old value had no source-identity or counting evidence. Independent awk self-loop accounting and GNU sort -u agree on the corrected count."
+  }
+}

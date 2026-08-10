@@ -1,0 +1,77 @@
+\documentclass[10pt]{article}
+\usepackage[margin=0.72in]{geometry}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage[hidelinks]{hyperref}
+\hypersetup{pdftitle={Spine RQ3: Realized Work Explains Dynamic-Update Latency}}
+\title{\textbf{Spine RQ3: Realized Work and Dynamic-Update Latency}\\
+\large Correctness-Gated Cycle-Level Evidence}
+\author{Chuxiao Han}
+\date{July 2026}
+\IfFileExists{data/rq3/representative_table.tex}{
+  \newcommand{\rqdatadir}{data/rq3}
+  \newcommand{\rqfigdir}{../figures}
+}{
+  \newcommand{\rqdatadir}{docs/paper/data/rq3}
+  \newcommand{\rqfigdir}{docs/figures}
+}
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This report tests whether Spine latency follows work realized by the actual
+execution rather than graph capacity or a fitted edge-count proxy. It covers
+54 dual-oracle-admitted executions and all five requested mechanisms:
+zero-net, shallow insertion, deep carry, residual PageRank correction, and
+SSSP/CC nonmonotonic fallback. Every plotted latency ledger closes exactly to
+end-to-end cycles.
+\end{abstract}
+
+\section{Representative end-to-end breakdown}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.98\linewidth]{\rqfigdir/rq3_latency_breakdown.pdf}
+  \caption{Exclusive, overlap-aware critical-path composition. Absolute
+  device cycles are printed above each normalized bar. Integrated
+  resolve/app is used only when the runner does not expose split timestamps.}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\small
+\input{\rqdatadir/representative_table.tex}
+\caption{Absolute timing for the selected representative of each class.
+Selection is deterministic: the maximum-cycle eligible execution.}
+\end{table}
+
+\clearpage
+\section{Realized-work validation}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.98\linewidth]{\rqfigdir/rq3_work_correlations.pdf}
+  \caption{Direct execution counters versus mechanism-local cycles. Blue
+  squares are calibration cases and red circles are holdout traces. Fits use
+  all admitted rows with positive supported work.}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\small
+\input{\rqdatadir/regression_table.tex}
+\caption{The carry predictor counts old payload reads, merge inputs, and
+output rewrites. Cursor bitmap inspection is exported separately.}
+\end{table}
+
+\paragraph{Interpretation.}
+Carry work, physical resolve/app work, seed work, and drain/synchronization
+work explain their corresponding cycle counters with $R^2$ above 0.99 in the
+covered population. Directory request count ($R^2=0.0011$) and the current
+aggregate switch-work count ($R^2=0.0181$) do not transfer across mixed case
+classes, so no explanatory claim is made for those two mechanisms yet.
+
+\paragraph{Claim boundary.}
+These correlations validate the simulator's internal cost model and expose
+bottlenecks. They do not constitute cycle-for-cycle FPGA calibration, total
+board energy, or proof that one scalar predictor explains every topology.
+\end{document}

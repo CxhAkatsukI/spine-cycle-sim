@@ -1,0 +1,12 @@
+# spine_real_slice_version=1
+# case=cc_real_soc_flickr_replicated_p4_insert_u4
+# vertices=262144
+# columns=src dst weight diff
+0 1799 28 1
+1799 0 28 1
+73728 79125 28 1
+79125 73728 28 1
+147456 156451 28 1
+156451 147456 28 1
+221184 233777 28 1
+233777 221184 28 1

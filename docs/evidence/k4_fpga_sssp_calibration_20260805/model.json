@@ -1,0 +1,17 @@
+{
+  "calibration_cases": [
+    "amazon_insert",
+    "web_google_insert"
+  ],
+  "claim_class": "k4_fpga_event_envelope_calibrated",
+  "clock_mhz": 150.0,
+  "fit_role": "calibration_only",
+  "holdout_used_for_fit": false,
+  "limitations": [
+    "The target is a routed OpenCL event envelope, not an on-kernel cycle counter.",
+    "The one-parameter fit does not identify per-component residuals.",
+    "Transfer beyond the measured graph and algorithm domain requires new holdout evidence."
+  ],
+  "scale": 3.327117572485744,
+  "semantic": "geometric-mean event scale fitted in log space; preserve raw counters"
+}

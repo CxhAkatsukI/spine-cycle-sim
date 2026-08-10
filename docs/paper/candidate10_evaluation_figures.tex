@@ -1,6 +1,7 @@
 \documentclass[10pt]{article}
 \usepackage[margin=0.65in]{geometry}
 \usepackage{booktabs}
+\usepackage{graphicx}
 \usepackage{pgfplots}
 \usepackage{pgfplotstable}
 \usepackage{subcaption}
@@ -50,13 +51,14 @@
 
 \begin{abstract}
 This evidence pack evaluates normalized Spine and GraSU+ReGraph architectures
-with an execution-driven simulator and routed FPGA feasibility artifacts.  The
-reported compact-slice comparison covers weighted SSSP, full PageRank, and
-thresholded residual PageRank; every performance row is admitted only after
-architecture-precision, independent mathematical, and cross-system final-state
-checks pass.  Claims are scoped explicitly below so that compact-slice
-simulation, dense-update evidence, HBM-only energy, and non-iso-functional FPGA
-builds are not conflated.
+with an execution-driven simulator and routed FPGA feasibility artifacts.  It
+combines compact breadth tests with correctness-gated large-real tests for
+weighted SSSP, connected components, and thresholded residual PageRank.  Full
+PageRank remains in the compact and dense-update matrices.  Every performance
+row is admitted only after architecture-precision, independent mathematical,
+and cross-system final-state checks pass.  Claims are scoped explicitly below
+so that directed inputs, reciprocal projections, compact slices, HBM-only
+energy, and non-iso-functional FPGA builds are not conflated.
 \end{abstract}
 
 \section*{Acceptance coverage}
@@ -70,9 +72,10 @@ builds are not conflated.
   cross-system result checks. &
   Figs.~\ref{fig:cross-algorithm-e2e}--\ref{fig:simulator-host-runtime} \\
   Three algorithms and E2E & \statuscomplete &
-  Three algorithms, five real-topology 8,192-edge slices, and insertion
-  batches 1/8/64; 45 correctness-gated architecture pairs. &
-  Figs.~\ref{fig:cross-algorithm-e2e}, \ref{fig:small-batch-scaling};
+  Weighted SSSP uses a directed 540K-edge AskUbuntu graph. CC and residual
+  PageRank additionally use 540K- and 903,774-edge reciprocal projections;
+  full PageRank remains covered by five real-topology breadth slices. &
+  Figs.~\ref{fig:large-real-three}, \ref{fig:cross-algorithm-e2e};
   Table~\ref{tab:compact-slices} \\
   Update performance & \statuscomplete &
   Full PageRank exercises the common structural path across insert, delete,
@@ -87,19 +90,24 @@ builds are not conflated.
   algorithm and multi-partition coverage remains open. &
   Fig.~\ref{fig:dense-batch} \\
   Energy & \statuspartial &
-  Matched all-controller HBM energy for all three algorithms; calibrated
-  on-chip component energy remains open. & Fig.~\ref{fig:hbm-energy} \\
+  Matched all-controller HBM energy for all three algorithms plus routed,
+  vectorless component power attribution. Workload-calibrated on-chip energy
+  remains open. & Figs.~\ref{fig:hbm-energy}, \ref{fig:component-power} \\
   Area and timing & \statuspartial &
-  Routed U55C resources and setup timing are available, but the Spine and
-  GraSU+ReGraph rows are not yet iso-functional. &
-  Table~\ref{tab:routed-ppa}; Fig.~\ref{fig:routed-timing} \\
+  Routed U55C resources/setup timing and a 32nm SRAM-capacity area projection
+  are available. A full standard-cell ASIC area is not claimed. &
+  Table~\ref{tab:routed-ppa}; Figs.~\ref{fig:routed-timing},
+  \ref{fig:sram-area} \\
   Simulator runtime & \statuspartial &
-  All compact runs complete; a correctness-gated 50,000-edge full-PageRank
-  slice completes below the 1,800-second per-system gate. &
+  All compact runs complete. Every large-real CC/residual execution completes
+  below five host minutes; the six-run 540K weighted-SSSP matrix takes 13.0
+  minutes. &
   Fig.~\ref{fig:simulator-host-runtime} \\
-  Ablation and scalability & \statusopen &
-  Multi-partition comparison, replicated kernels/resources, structural
-  ablations, and full-dataset scaling are future experiments. & --- \\
+  Ablation and scalability & \statuspartial &
+  Two bounded Spine optimizations have controlled cycle/request ablations;
+  shared-HBM $\pm20\%$ sensitivity has no strict ranking inversion.
+  Replicated-kernel and full-dataset scaling remain open. &
+  Fig.~\ref{fig:optimization-robustness} \\
   \bottomrule
 \end{tabularx}
 \normalsize
@@ -108,10 +116,36 @@ builds are not conflated.
 \noindent\textbf{Claim rule.}
 Every plotted performance row must pass the architecture-precision oracle,
 the independent mathematical oracle, and the cross-system final-state check.
-Compact slices and larger validation slices are reported as separate
-populations; no full-dataset or multi-partition comparison is claimed.
+Compact slices and larger validation inputs are reported as separate
+populations.  Weighted SSSP uses the directed frozen graph; CC and residual
+PageRank use declared reciprocal projections and deterministic component-bridge
+updates.  None is described as an unsliced raw temporal full-dataset claim.
 
-\section{Cross-algorithm E2E ranking}
+\section{Large-real sparse-update comparison}
+\begin{figure}[H]
+  \centering
+  \IfFileExists{../figures/large_real_three_algorithm.png}{%
+    \includegraphics[width=\linewidth]{../figures/large_real_three_algorithm.png}%
+  }{%
+    \includegraphics[width=\linewidth]{docs/figures/large_real_three_algorithm.png}%
+  }
+  \caption{Correctness-gated Spine speedup over K=1 GraSU+ReGraph. Weighted
+  SSSP uses the directed 157,107-vertex, 540,000-edge near-full AskUbuntu
+  graph. CC and per-vertex-threshold residual PageRank use deterministic
+  reciprocal projections at 540,000 and 903,774 edge records. CC and residual
+  updates are nested component bridges rather than original temporal events.
+  All rows pass independent algorithm oracles and cross-system work checks.}
+  \label{fig:large-real-three}
+\end{figure}
+
+The large-real ordering is stable across the tested sparse batches. CC obtains
+$8.07\times$--$13.65\times$ speedup and residual PageRank obtains
+$6.68\times$--$13.37\times$. Weighted SSSP obtains
+$34.35\times$--$364.96\times$ under its resident-state small-update timing
+contract. These values are K=1 baseline results; large-real direct/shared-K4
+scaling remains separate evidence.
+
+\section{Compact breadth validation}
 \IfFileExists{\datadir/e2e_speedup_by_dataset_algorithm.csv}{%
 \begin{figure}[H]
   \centering
@@ -422,6 +456,70 @@ populations; no full-dataset or multi-partition comparison is claimed.
 \end{figure}
 }{\missingplot{Waiting for matched all-controller HBM energy evidence.}}
 
+\section{Implementation power and area attribution}
+\IfFileExists{\datadir/component_power.csv}{%
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      ybar stacked, bar width=16pt, width=0.95\linewidth, height=62mm,
+      ylabel={User-level hierarchy power (W)},
+      xtick={0,1,2,3},
+      xticklabels={Spine opt-v2,G+R SSSP,G+R Full PR,G+R Residual PR},
+      x tick label style={rotate=12,anchor=north east},
+      ymin=0, ymax=22, grid=major,
+      legend style={at={(0.5,1.17)},anchor=south,legend columns=5,
+        font=\small,/tikz/every even column/.append style={column sep=4pt}}]
+      \addplot[fill=spine] table[x expr=\coordindex,y=hbm_subsystem,col sep=comma]
+        {\datadir/component_power.csv};
+      \addplot[fill=grasu] table[x expr=\coordindex,y=update_maintenance,col sep=comma]
+        {\datadir/component_power.csv};
+      \addplot[fill=complete] table[x expr=\coordindex,y=graph_compute,col sep=comma]
+        {\datadir/component_power.csv};
+      \addplot[fill=partial] table[x expr=\coordindex,y=stream_fifos,col sep=comma]
+        {\datadir/component_power.csv};
+      \addplot[fill=muted] table[x expr=\coordindex,y=other_user_logic,col sep=comma]
+        {\datadir/component_power.csv};
+      \legend{HBM subsystem,Update/maintenance,Graph compute,Streams/FIFOs,Other}
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Vivado post-route vectorless power attribution at 150 MHz.  Values
+  are implementation-level component envelopes with Low confidence, not
+  workload-calibrated energy. Platform residual and device static power are
+  retained in the CSV ledger but excluded from the stacked user-logic bars.}
+  \label{fig:component-power}
+\end{figure}
+}{\missingplot{Waiting for routed hierarchy power reports.}}
+
+\IfFileExists{\datadir/area_footprint.csv}{%
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      ybar stacked, bar width=16pt, width=0.9\linewidth, height=58mm,
+      ylabel={Projected 32nm SRAM capacity area (mm$^2$)},
+      xtick={0,1,2,3},
+      xticklabels={Spine opt-v2,G+R SSSP,G+R Full PR,G+R Residual PR},
+      x tick label style={rotate=12,anchor=north east},
+      ymin=0, ymax=32, grid=major,
+      legend style={at={(0.5,1.15)},anchor=south,legend columns=2}]
+      \addplot[fill=spine]
+        table[x expr=\coordindex,y=projected_32nm_bram_capacity_area_mm2,col sep=comma]
+        {\datadir/area_footprint.csv};
+      \addplot[fill=muted]
+        table[x expr=\coordindex,y=projected_32nm_uram_capacity_area_mm2,col sep=comma]
+        {\datadir/area_footprint.csv};
+      \legend{BRAM-capacity equivalent,URAM-capacity equivalent}
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Conservative 32nm CACTI SRAM-capacity projection from routed BRAM
+  and URAM allocations. It excludes logic, DSP, interconnect, clock, and I/O,
+  so it is not a complete ASIC area estimate. Routed FPGA resources remain the
+  primary implementation footprint in Table~\ref{tab:routed-ppa}.}
+  \label{fig:sram-area}
+\end{figure}
+}{\missingplot{Waiting for the pinned CACTI SRAM-capacity ledger.}}
+
 \section{Simulator host runtime}
 \IfFileExists{\datadir/simulator_host_runtime.csv}{%
 \begin{figure}[H]
@@ -490,7 +588,67 @@ populations; no full-dataset or multi-partition comparison is claimed.
 Spine and 7.873 seconds for GraSU+ReGraph.  This establishes the current
 large-slice runtime gate for full PageRank only; it is not a full-dataset or
 three-algorithm scaling claim.
+
+\medskip
+\noindent\textbf{Exact-idle simulator optimization.}
+Across 73 architecture pairs (146 runs), exact idle advance preserves all
+cycle, FIFO, AXI, DRAM, and energy observables and improves host runtime by
+$3.871\times$ geometric mean. A representative residual-PageRank case falls
+from 68.02 seconds to 7.82 seconds ($8.70\times$). These are simulator
+throughput gains only; modeled accelerator cycles are unchanged.
 }{\missingplot{Waiting for archived host-runtime observations.}}
+
+\section{Optimization ablation and robustness}
+\IfFileExists{\datadir/spine_optimization_ablation.csv}{%
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}{0.55\linewidth}
+    \centering
+    \begin{tikzpicture}
+      \begin{axis}[
+        ybar, bar width=13pt, width=0.98\linewidth, height=57mm,
+        ylabel={Cycle speedup over parent},
+        xtick={0,1,2,3,4},
+        xticklabels={Opt-v1 fallback,Exact cache,Fallback cache,Gate only,Combined},
+        x tick label style={rotate=24,anchor=north east,font=\scriptsize},
+        ymin=1, ymax=7.4, grid=major,
+        nodes near coords={\pgfmathprintnumber[fixed,precision=2]{\pgfplotspointmeta}$\times$},
+        nodes near coords style={font=\scriptsize}]
+        \addplot[fill=spine]
+          table[x=index,y=speedup,col sep=comma]
+          {\datadir/spine_optimization_ablation.csv};
+      \end{axis}
+    \end{tikzpicture}
+    \caption{Correctness-gated controlled Spine ablations.}
+  \end{subfigure}%
+  \begin{subfigure}{0.44\linewidth}
+    \centering
+    \begin{tikzpicture}
+      \begin{axis}[
+        ybar, bar width=12pt, width=0.98\linewidth, height=57mm,
+        ylabel={Spine speedup geometric mean},
+        xtick={0,1,2,3,4},
+        xticklabels={Base,$L-20\%$,$L+20\%$,$B+20\%$,$B-20\%$},
+        x tick label style={rotate=24,anchor=north east,font=\scriptsize},
+        ymin=1.32, ymax=1.48, grid=major,
+        scaled y ticks=false,
+        yticklabel style={/pgf/number format/fixed,/pgf/number format/precision=2}]
+        \addplot[fill=grasu]
+          table[x=index,y=spine_speedup_geomean,col sep=comma]
+          {\datadir/hbm_sensitivity.csv};
+      \end{axis}
+    \end{tikzpicture}
+    \caption{Shared-HBM latency ($L$) and bandwidth ($B$) sensitivity.}
+  \end{subfigure}
+  \caption{Optimization scope and robustness.  Opt-v1 reuses the launch-level
+  cache only in active-capacity fallback. Opt-v2 adds a finite source-page
+  working set and expands the exact-path active-record gate; the 50K ``gate
+  only'' and ``combined'' bars are mechanism ablations, not the paper-scale
+  three-algorithm mean. The HBM panel covers 12 correctness-gated pairs per
+  profile and has zero strict architecture-ranking inversions.}
+  \label{fig:optimization-robustness}
+\end{figure}
+}{\missingplot{Waiting for controlled optimization and HBM-sensitivity evidence.}}
 
 \section{Routed HLS feasibility}
 \IfFileExists{\datadir/ppa_summary.csv}{%
@@ -514,8 +672,7 @@ three-algorithm scaling claim.
     every last row/.style={after row=\bottomrule}
   ]{\datadir/ppa_summary.csv}}
   \caption{Routed U55C HLS feasibility at each row's stated data-clock target.
-  Spine is the latest source-identical 152 MHz implementation; the
-  GraSU+ReGraph implementations target 150 MHz. These
+  Spine opt-v2 and all GraSU+ReGraph implementations target 150 MHz. These
   builds are not iso-functional: Spine is the native SSSP core baseline,
   whereas the GraSU+ReGraph rows are algorithm-specific normalized whole
   systems. Absolute resource ratios are therefore not used as a comparative
@@ -528,7 +685,7 @@ three-algorithm scaling claim.
     \begin{axis}[
       ybar, bar width=14pt, width=0.92\linewidth, height=56mm,
       ylabel={Worst negative slack (ns)},
-      symbolic x coords={Spine SSSP,G+R SSSP,G+R Full PR,G+R Residual PR},
+      symbolic x coords={Spine opt-v2 SSSP,G+R SSSP,G+R Full PR,G+R Residual PR},
       xtick=data, x tick label style={rotate=12,anchor=north east},
       ymin=-0.15, ymax=0.025, grid=major,
       scaled y ticks=false,
@@ -538,11 +695,11 @@ three-algorithm scaling claim.
       \addplot[fill=spine] table[x=label,y=wns_ns,col sep=comma]
         {\datadir/ppa_summary.csv};
       \addplot[muted,dashed,sharp plot,nodes near coords={}] coordinates
-        {(Spine SSSP,0) (G+R Residual PR,0)};
+        {(Spine opt-v2 SSSP,0) (G+R Residual PR,0)};
     \end{axis}
   \end{tikzpicture}
-  \caption{Post-route setup margin at each row's stated target (152 MHz for
-  Spine and 150 MHz for GraSU+ReGraph). Non-negative WNS closes timing;
+  \caption{Post-route setup margin at the common 150 MHz target. Non-negative
+  WNS closes timing;
   negative WNS identifies the remaining target miss.}
   \label{fig:routed-timing}
 \end{figure}

@@ -1,0 +1,10 @@
+candidate,run,spine_wall_seconds,grasu_regraph_wall_seconds
+candidate46,1,2.743135,27.311998
+candidate52,1,2.665454,25.283014
+candidate46,2,2.715749,26.994425
+candidate52,2,2.646549,25.603128
+candidate46,3,2.661768,27.308058
+candidate52,3,2.653633,25.425293
+candidate46_median,,2.715749,27.308058
+candidate52_median,,2.653633,25.425293
+speedup,,1.023408,1.074051

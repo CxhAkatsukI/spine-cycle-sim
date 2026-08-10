@@ -42,6 +42,7 @@ class ExactIdleEquivalenceTests(unittest.TestCase):
                 dram.mkdir(parents=True)
                 result = {
                     "algorithm": "full_pagerank",
+                    "backend": "sst_memHierarchy_dramsim3",
                     "cycles": 123,
                     "correctness_mismatches": 0,
                 }
@@ -117,6 +118,23 @@ class ExactIdleEquivalenceTests(unittest.TestCase):
             path.write_text(json.dumps(result), encoding="utf-8")
             with self.assertRaisesRegex(ExactIdleEquivalenceError, "changed"):
                 analyze_exact_idle_equivalence(baseline, candidate)
+
+    def test_allows_only_explicit_direct_transport_provenance(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            baseline, candidate = self._fixture(Path(temporary))
+            for system in ("spine", "grasu_regraph"):
+                path = candidate / f"case__full_pagerank/{system}/result.json"
+                result = json.loads(path.read_text(encoding="utf-8"))
+                result["backend"] = "direct_dramsim3_transport"
+                path.write_text(json.dumps(result, sort_keys=True), encoding="utf-8")
+            with self.assertRaisesRegex(ExactIdleEquivalenceError, "changed"):
+                analyze_exact_idle_equivalence(baseline, candidate)
+            result = analyze_exact_idle_equivalence(
+                baseline, candidate, allow_direct_transport=True
+            )
+        self.assertTrue(result["all_architectural_result_fields_identical"])
+        self.assertFalse(result["all_preexisting_result_fields_identical"])
+        self.assertEqual(result["approved_provenance_changes"], 2)
 
     def test_rejects_unexpected_or_missing_addition(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

@@ -1,0 +1,13 @@
+{
+  "amended_revision": "236db1000014e94f0df50fe44e21c70d6fea30a3",
+  "description": "Auditable evidence-only repin applied while long-running publication children were in flight.",
+  "ignored_top_level_keys": [
+    "evidence"
+  ],
+  "prior_revision": "32ec0194dded16526868cce36fb76fe289ad0017",
+  "profile_paths": [
+    "configs/architectures/grasu_regraph_candidate10_k1_multipart_weighted_fullgraph_v7.json"
+  ],
+  "schema_version": 1,
+  "semantic_sha256": "f1793d744f215e6b65c48bcee2454bdd6d9082330b4fdebe79d7c629d08592b2"
+}

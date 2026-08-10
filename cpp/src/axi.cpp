@@ -96,6 +96,28 @@ AxiMaster::AxiMaster(std::string name, ClockId clock_id, AxiConfig config,
         "AXI master, links, and backend must share a clock");
   }
   backend_.register_initiator(config_.initiator_id);
+  backend_.bind_response_notifier(config_.initiator_id, this,
+                                  &AxiMaster::notify_backend_response);
+  requests_.bind_nonempty_notifier(this, &AxiMaster::notify_request_nonempty);
+  staged_backend_responses_.reserve(config_.response_beats_per_cycle);
+  refresh_pending_work();
+}
+
+AxiMaster::~AxiMaster() {
+  requests_.unbind_nonempty_notifier(this);
+  backend_.unbind_response_notifier(config_.initiator_id, this);
+}
+
+void AxiMaster::notify_request_nonempty(void* owner) noexcept {
+  AxiMaster *master = static_cast<AxiMaster*>(owner);
+  master->scheduler_ready_ = true;
+  master->set_latched_evaluate_ready(true);
+}
+
+void AxiMaster::notify_backend_response(void* owner) noexcept {
+  AxiMaster *master = static_cast<AxiMaster*>(owner);
+  master->scheduler_ready_ = true;
+  master->set_latched_evaluate_ready(true);
 }
 
 std::size_t AxiMaster::pending_requests() const noexcept {
@@ -110,7 +132,16 @@ bool AxiMaster::idle() const noexcept {
       backend_.outstanding_for(config_.initiator_id) == 0;
 }
 
-std::size_t AxiMaster::channel_for(std::uint64_t address) const {
+std::size_t AxiMaster::channel_for(
+    std::uint64_t address,
+    std::optional<std::size_t> target_channel) const {
+  if (target_channel.has_value()) {
+    if (*target_channel >= config_.channels) {
+      throw std::invalid_argument(
+          "AXI request target channel is outside memory geometry");
+    }
+    return *target_channel;
+  }
   if (config_.fixed_channel.has_value()) {
     return *config_.fixed_channel;
   }
@@ -162,6 +193,7 @@ std::vector<AxiMaster::Burst> AxiMaster::split_request(
         .beats_completed = 0,
         .parent_accept_cycle = accepted_cycle,
         .address_ready_cycle = address_ready_cycle,
+        .target_channel = request.target_channel,
     });
     if (bytes == boundary_remaining && remaining > bytes) {
       ++stats_.four_kib_splits;
@@ -181,6 +213,10 @@ AxiMaster::Burst* AxiMaster::find_active(std::uint64_t burst_id) {
 }
 
 void AxiMaster::reset_staging() {
+  for (const std::size_t index : staged_additional_issued_touched_) {
+    staged_additional_issued_[index] = 0;
+  }
+  staged_additional_issued_touched_.clear();
   staged_input_.reset();
   staged_new_bursts_.clear();
   staged_new_write_beats_.clear();
@@ -202,15 +238,6 @@ void AxiMaster::evaluate_output() {
       ++stats_.response_queue_stalls;
     }
   }
-}
-
-std::size_t AxiMaster::read_reorder_occupancy() const noexcept {
-  std::size_t occupancy = 0;
-  for (const auto &[parent_id, parent] : parents_) {
-    (void)parent_id;
-    occupancy += parent.ready_stream_beats.size();
-  }
-  return occupancy;
 }
 
 void AxiMaster::evaluate_read_beat_output(const CycleContext &context) {
@@ -252,7 +279,6 @@ void AxiMaster::evaluate_backend_responses(const CycleContext &context) {
   if (available == 0) {
     return;
   }
-  staged_backend_responses_.reserve(available);
   std::size_t staged_stream_beats = 0;
   for (std::size_t index = 0; index < available; ++index) {
     const BackendResponse &response =
@@ -279,7 +305,7 @@ void AxiMaster::evaluate_backend_responses(const CycleContext &context) {
       }
       break;
     }
-    const Parent &parent = parents_.at(burst->parent_id);
+    Parent &parent = parents_.at(burst->parent_id);
     if (burst->operation == MemoryOperation::kRead &&
         parent.request.stream_read_beats) {
       if (read_beats_ == nullptr) {
@@ -293,7 +319,12 @@ void AxiMaster::evaluate_backend_responses(const CycleContext &context) {
       }
       ++staged_stream_beats;
     }
-    staged_backend_responses_.push_back(response);
+    staged_backend_responses_.push_back(StagedBackendResponse{
+        .request_id = response.request_id,
+        .mapping = mapping->second,
+        .burst = burst,
+        .parent = &parent,
+    });
   }
   if (staged_backend_responses_.empty()) {
     return;
@@ -387,13 +418,7 @@ void AxiMaster::evaluate_address_channel(const CycleContext &context) {
     }
     if (config_.serialize_write_bursts &&
         candidate.operation == MemoryOperation::kWrite) {
-      const bool write_data_active = std::any_of(
-          active_bursts_.begin(), active_bursts_.end(),
-          [](const Burst &burst) {
-            return burst.operation == MemoryOperation::kWrite &&
-                   burst.beats_issued < burst.beats_total;
-          });
-      if (write_data_active || serialized_write_staged) {
+      if (active_write_data_bursts_ != 0 || serialized_write_staged) {
         ++stats_.write_burst_serialization_stalls;
         break;
       }
@@ -419,15 +444,15 @@ void AxiMaster::evaluate_address_channel(const CycleContext &context) {
 }
 
 void AxiMaster::evaluate_data_channel(const CycleContext &context) {
-  if (active_bursts_.empty()) {
+  if (active_issueable_bursts_ == 0) {
     return;
   }
-  std::unordered_map<std::uint64_t, std::size_t> additional_issued;
+  if (staged_additional_issued_.size() < active_bursts_.size()) {
+    staged_additional_issued_.resize(active_bursts_.size(), 0);
+  }
+  std::size_t staged_fully_issued = 0;
   std::size_t inspected_without_issue = 0;
-  const bool ordered_stream = std::any_of(
-      active_bursts_.begin(), active_bursts_.end(), [this](const Burst &burst) {
-        return parents_.at(burst.parent_id).request.stream_read_beats;
-      });
+  const bool ordered_stream = active_stream_bursts_ != 0;
   std::size_t cursor = issue_round_robin_ % active_bursts_.size();
   while (staged_beats_.size() < config_.beat_issues_per_cycle &&
          inspected_without_issue < active_bursts_.size()) {
@@ -439,7 +464,7 @@ void AxiMaster::evaluate_data_channel(const CycleContext &context) {
       for (std::size_t index = 0; index < active_bursts_.size(); ++index) {
         const Burst &candidate = active_bursts_[index];
         const Parent &candidate_parent = parents_.at(candidate.parent_id);
-        const std::size_t extra = additional_issued[candidate.burst_id];
+        const std::size_t extra = staged_additional_issued_[index];
         if (!candidate_parent.request.stream_read_beats ||
             candidate.beats_issued + extra >= candidate.beats_total) {
           continue;
@@ -460,7 +485,7 @@ void AxiMaster::evaluate_data_channel(const CycleContext &context) {
       cursor = selected;
     }
     const Burst &burst = active_bursts_[cursor];
-    const std::size_t extra = additional_issued[burst.burst_id];
+    const std::size_t extra = staged_additional_issued_[cursor];
     if (burst.beats_issued + extra < burst.beats_total) {
       if (burst.operation == MemoryOperation::kWrite &&
           write_ingress_enabled() &&
@@ -484,37 +509,54 @@ void AxiMaster::evaluate_data_channel(const CycleContext &context) {
           config_.data_width_bytes;
       const auto beat_bytes = static_cast<std::uint32_t>(
           std::min<std::uint64_t>(config_.data_width_bytes, burst.bytes - consumed));
-      BackendRequest request{
+      const BackendRequestHeader header{
           .initiator_id = config_.initiator_id,
           .request_id = next_backend_id_ + staged_beats_.size(),
-          .channel = channel_for(beat_address),
+          .channel = channel_for(beat_address, burst.target_channel),
           .operation = burst.operation,
           .address = beat_address,
           .bytes = beat_bytes,
-          .write_data = {},
       };
       const Parent& parent = parents_.at(burst.parent_id);
       const std::uint64_t parent_offset =
           burst.parent_offset +
           static_cast<std::uint64_t>(burst.beats_issued + extra) *
               config_.data_width_bytes;
-      if (burst.operation == MemoryOperation::kWrite) {
-        if (parent.request.write_data.empty()) {
-          request.write_data.assign(beat_bytes, 0);
-        } else {
-          const auto begin = parent.request.write_data.begin() +
-                             static_cast<std::ptrdiff_t>(parent_offset);
-          request.write_data.assign(begin, begin + beat_bytes);
+      if (backend_.try_reserve(header)) {
+        BackendRequest request{
+            .initiator_id = header.initiator_id,
+            .request_id = header.request_id,
+            .channel = header.channel,
+            .operation = header.operation,
+            .address = header.address,
+            .bytes = header.bytes,
+            .write_data = {},
+        };
+        if (burst.operation == MemoryOperation::kWrite) {
+          if (parent.request.write_data.empty()) {
+            request.write_data.assign(beat_bytes, 0);
+          } else {
+            const auto begin = parent.request.write_data.begin() +
+                               static_cast<std::ptrdiff_t>(parent_offset);
+            request.write_data.assign(begin, begin + beat_bytes);
+          }
         }
-      }
-      if (backend_.try_submit(request)) {
+        backend_.submit_reserved(std::move(request));
         staged_beats_.push_back(StagedBeat{
             .burst_id = burst.burst_id,
             .parent_offset = parent_offset,
             .issue_cycle = context.domain_cycle,
-            .request = request,
+            .request = header,
         });
-        ++additional_issued[burst.burst_id];
+        if (staged_additional_issued_[cursor] == 0) {
+          staged_additional_issued_touched_.push_back(cursor);
+        }
+        ++staged_additional_issued_[cursor];
+        staged_fully_issued +=
+            burst.beats_issued + staged_additional_issued_[cursor] ==
+                    burst.beats_total
+                ? 1
+                : 0;
         inspected_without_issue = 0;
       } else {
         ++stats_.backend_submit_stalls;
@@ -522,6 +564,49 @@ void AxiMaster::evaluate_data_channel(const CycleContext &context) {
           break;
         }
         ++inspected_without_issue;
+        if (config_.fixed_channel.has_value() &&
+            backend_.reservation_intent_pending(config_.initiator_id,
+                                                header.channel)) {
+          if (active_write_data_bursts_ == 0) {
+            if (active_issueable_bursts_ <= staged_fully_issued) {
+              throw std::logic_error(
+                  "AXI issueable read burst count underflow");
+            }
+            const std::uint64_t coalesced_stalls =
+                active_issueable_bursts_ - staged_fully_issued - 1;
+            stats_.backend_submit_stalls += coalesced_stalls;
+            backend_.account_same_cycle_reservation_stalls(
+                config_.initiator_id, header.channel, coalesced_stalls);
+            break;
+          }
+          std::uint64_t coalesced_stalls = 0;
+          cursor = (cursor + 1) % active_bursts_.size();
+          while (inspected_without_issue < active_bursts_.size()) {
+            const Burst &retry = active_bursts_[cursor];
+            const std::size_t retry_extra = staged_additional_issued_[cursor];
+            if (retry.beats_issued + retry_extra < retry.beats_total) {
+              if (retry.operation == MemoryOperation::kWrite &&
+                  write_ingress_enabled() &&
+                  (write_throttle_fifo_.empty() ||
+                   write_throttle_fifo_.front().burst_id != retry.burst_id)) {
+                ++stats_.write_throttle_data_stalls;
+              } else if (retry.operation == MemoryOperation::kWrite &&
+                         config_.write_data_stall.stalled(
+                             context.domain_cycle)) {
+                ++stats_.write_data_channel_stalls;
+                break;
+              } else {
+                ++stats_.backend_submit_stalls;
+                ++coalesced_stalls;
+              }
+            }
+            ++inspected_without_issue;
+            cursor = (cursor + 1) % active_bursts_.size();
+          }
+          backend_.account_same_cycle_reservation_stalls(
+              config_.initiator_id, header.channel, coalesced_stalls);
+          break;
+        }
       }
     } else {
       ++inspected_without_issue;
@@ -533,6 +618,9 @@ void AxiMaster::evaluate_data_channel(const CycleContext &context) {
 }
 
 void AxiMaster::evaluate(const CycleContext &context) {
+  account_suspended_cycles(context.domain_cycle);
+  evaluated_once_ = true;
+  last_evaluate_cycle_ = context.domain_cycle;
   reset_staging();
   evaluate_output();
   evaluate_read_beat_output(context);
@@ -541,46 +629,52 @@ void AxiMaster::evaluate(const CycleContext &context) {
   evaluate_write_ingress(context);
   evaluate_address_channel(context);
   evaluate_data_channel(context);
+  set_latched_commit_ready(true);
 }
 
 void AxiMaster::commit_backend_responses(const CycleContext &context) {
-  for (const BackendResponse& response : staged_backend_responses_) {
+  if (staged_backend_responses_.empty()) {
+    return;
+  }
+  for (std::size_t index = 0; index < staged_backend_responses_.size();
+       ++index) {
+    const BackendResponse &response =
+        backend_.staged_response_at(config_.initiator_id, index);
     if (response.initiator_id != config_.initiator_id) {
       throw std::logic_error("AXI received a response for another initiator");
     }
-    const auto mapping = backend_mappings_.find(response.request_id);
-    if (mapping == backend_mappings_.end()) {
-      throw std::logic_error("AXI received a response for an unknown backend request");
-    }
-    Burst* burst = find_active(mapping->second.burst_id);
-    if (burst == nullptr) {
+    const StagedBackendResponse &staged = staged_backend_responses_[index];
+    if (response.request_id != staged.request_id || staged.burst == nullptr ||
+        staged.parent == nullptr ||
+        staged.burst->burst_id != staged.mapping.burst_id) {
       throw std::logic_error("AXI response references a non-active burst");
     }
+    Burst *burst = staged.burst;
     ++burst->beats_completed;
     ++stats_.beats_completed;
-    Parent& parent = parents_.at(burst->parent_id);
+    Parent &parent = *staged.parent;
     parent.success = parent.success && response.success;
     if (burst->operation == MemoryOperation::kRead) {
-      if (response.read_data.size() != mapping->second.bytes ||
-          mapping->second.parent_offset + response.read_data.size() >
+      if (response.read_data.size() != staged.mapping.bytes ||
+          staged.mapping.parent_offset + response.read_data.size() >
               parent.read_data.size()) {
         throw std::logic_error("AXI read response payload shape mismatch");
       }
       std::copy(response.read_data.begin(), response.read_data.end(),
                 parent.read_data.begin() +
-                    static_cast<std::ptrdiff_t>(mapping->second.parent_offset));
+                    static_cast<std::ptrdiff_t>(staged.mapping.parent_offset));
       if (parent.request.stream_read_beats) {
         AxiReadBeatResponse beat{
             .transaction_id = parent.request.transaction_id,
-            .address = parent.request.address + mapping->second.parent_offset,
-            .parent_offset = mapping->second.parent_offset,
+            .address = parent.request.address + staged.mapping.parent_offset,
+            .parent_offset = staged.mapping.parent_offset,
             .success = response.success,
-            .last = mapping->second.parent_offset + mapping->second.bytes ==
+            .last = staged.mapping.parent_offset + staged.mapping.bytes ==
                     parent.request.bytes,
             .read_data = response.read_data,
         };
         if (!parent.ready_stream_beats
-                 .emplace(mapping->second.parent_offset,
+                 .emplace(staged.mapping.parent_offset,
                           TimedReadBeat{
                               .response = std::move(beat),
                               .ready_cycle = context.domain_cycle + 1 +
@@ -589,18 +683,22 @@ void AxiMaster::commit_backend_responses(const CycleContext &context) {
                  .second) {
           throw std::logic_error("AXI received a duplicate streamed read beat");
         }
+        ++read_reorder_occupancy_;
       }
     } else if (!response.read_data.empty()) {
       throw std::logic_error("AXI write response unexpectedly carried data");
     }
-    if (mapping->second.trace_index.has_value()) {
-      AxiBeatTrace &trace = beat_trace_.at(*mapping->second.trace_index);
+    if (staged.mapping.trace_index.has_value()) {
+      AxiBeatTrace &trace = beat_trace_.at(*staged.mapping.trace_index);
       if (trace.completion_cycle != 0) {
         throw std::logic_error("AXI beat trace completed more than once");
       }
       trace.completion_cycle = context.domain_cycle;
     }
-    backend_mappings_.erase(mapping);
+    if (backend_mappings_.erase(staged.request_id) != 1) {
+      throw std::logic_error(
+          "AXI staged response lost its backend request mapping");
+    }
   }
   for (auto iterator = active_bursts_.begin();
        iterator != active_bursts_.end();) {
@@ -609,6 +707,12 @@ void AxiMaster::commit_backend_responses(const CycleContext &context) {
       continue;
     }
     Parent& parent = parents_.at(iterator->parent_id);
+    if (parent.request.stream_read_beats) {
+      if (active_stream_bursts_ == 0) {
+        throw std::logic_error("AXI active stream burst count underflow");
+      }
+      --active_stream_bursts_;
+    }
     ++parent.completed_bursts;
     if (parent.completed_bursts == parent.total_bursts) {
       parent.memory_complete = true;
@@ -785,6 +889,13 @@ void AxiMaster::commit_address_channel(const CycleContext &context) {
       }
     }
     active_bursts_.push_back(burst);
+    ++active_issueable_bursts_;
+    if (parents_.at(burst.parent_id).request.stream_read_beats) {
+      ++active_stream_bursts_;
+    }
+    if (burst.operation == MemoryOperation::kWrite) {
+      ++active_write_data_bursts_;
+    }
     pending_address_.pop_front();
     ++stats_.bursts_accepted;
   }
@@ -808,6 +919,18 @@ void AxiMaster::commit_data_channel() {
       write_throttle_fifo_.pop_front();
     }
     ++burst->beats_issued;
+    if (burst->beats_issued == burst->beats_total) {
+      if (active_issueable_bursts_ == 0) {
+        throw std::logic_error("AXI issueable burst count underflow");
+      }
+      --active_issueable_bursts_;
+      if (burst->operation == MemoryOperation::kWrite) {
+        if (active_write_data_bursts_ == 0) {
+          throw std::logic_error("AXI write-data burst count underflow");
+        }
+        --active_write_data_bursts_;
+      }
+    }
     std::optional<std::size_t> trace_index;
     if (config_.beat_trace_limit != 0) {
       if (beat_trace_.size() < config_.beat_trace_limit) {
@@ -900,12 +1023,71 @@ void AxiMaster::commit_read_beat_output() {
   }
   parent.next_stream_offset += beat->second.response.read_data.size();
   parent.ready_stream_beats.erase(beat);
+  if (read_reorder_occupancy_ == 0) {
+    throw std::logic_error("AXI read reorder occupancy underflow");
+  }
+  --read_reorder_occupancy_;
   ++parent.stream_beats_published;
   ++stats_.read_beats_streamed;
   queue_parent_response_if_ready(parent_id);
 }
 
+void AxiMaster::refresh_pending_work() noexcept {
+  internal_pending_work_ =
+      !pending_address_.empty() || active_issueable_bursts_ != 0 ||
+      backend_.response_count(config_.initiator_id) != 0 ||
+      !ready_responses_.empty() || read_reorder_occupancy() != 0 ||
+      !pending_write_input_.empty() || !write_store_fifo_.empty() ||
+      write_bridge_.has_value() || !write_throttle_fifo_.empty();
+  scheduler_ready_ = !requests_.empty() || internal_pending_work_;
+  set_latched_evaluate_ready(scheduler_ready_);
+}
+
+bool AxiMaster::waiting_only_for_backend() const noexcept {
+  return !scheduler_ready_ &&
+         (!parents_.empty() || !active_bursts_.empty() ||
+          !backend_mappings_.empty() ||
+          backend_.outstanding_for(config_.initiator_id) != 0);
+}
+
+void AxiMaster::account_suspended_cycles(std::uint64_t cycle) {
+  if (!suspended_wait_) {
+    return;
+  }
+  if (!evaluated_once_ || cycle <= last_evaluate_cycle_) {
+    throw std::logic_error("AXI suspended-cycle accounting moved backwards");
+  }
+  const std::uint64_t skipped = cycle - last_evaluate_cycle_ - 1;
+  requests_.account_pop_stalls(skipped);
+  if (!active_bursts_.empty()) {
+    issue_round_robin_ =
+        (issue_round_robin_ + skipped % active_bursts_.size()) %
+        active_bursts_.size();
+  }
+  suspended_wait_ = false;
+}
+
 void AxiMaster::commit(const CycleContext &context) {
+  const bool staged_state_change =
+      staged_output_ || !staged_backend_responses_.empty() ||
+      staged_input_.has_value() || !staged_address_bursts_.empty() ||
+      !staged_beats_.empty() || !staged_new_write_beats_.empty() ||
+      staged_child_write_beat_.has_value() ||
+      staged_store_to_bridge_.has_value() ||
+      staged_bridge_to_throttle_.has_value() ||
+      staged_read_beat_output_.has_value();
+  if (!staged_state_change) {
+    if (!active_bursts_.empty()) {
+      issue_round_robin_ =
+          (issue_round_robin_ + 1) % active_bursts_.size();
+    } else {
+      issue_round_robin_ = 0;
+    }
+    refresh_pending_work();
+    suspended_wait_ = waiting_only_for_backend();
+    set_latched_commit_ready(false);
+    return;
+  }
   commit_output();
   commit_backend_responses(context);
   commit_request_input();
@@ -913,6 +1095,9 @@ void AxiMaster::commit(const CycleContext &context) {
   commit_data_channel();
   commit_write_ingress(context);
   commit_read_beat_output();
+  refresh_pending_work();
+  suspended_wait_ = waiting_only_for_backend();
+  set_latched_commit_ready(false);
 }
 
 }  // namespace spine::sim

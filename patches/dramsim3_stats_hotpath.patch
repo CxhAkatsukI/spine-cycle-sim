@@ -1,0 +1,436 @@
+diff --git a/src/channel_state.cc b/src/channel_state.cc
+index 765a18a..c707046 100644
+--- a/src/channel_state.cc
++++ b/src/channel_state.cc
+@@ -6,6 +6,7 @@ ChannelState::ChannelState(const Config& config, const Timing& timing)
+       config_(config),
+       timing_(timing),
+       rank_is_sref_(config.ranks, false),
++      open_banks_by_rank_(config.ranks, 0),
+       four_aw_(config_.ranks, std::vector<uint64_t>()),
+       thirty_two_aw_(config_.ranks, std::vector<uint64_t>()) {
+     bank_states_.reserve(config_.ranks);
+@@ -22,14 +23,7 @@ ChannelState::ChannelState(const Config& config, const Timing& timing)
+ }
+
+ bool ChannelState::IsAllBankIdleInRank(int rank) const {
+-    for (int j = 0; j < config_.bankgroups; j++) {
+-        for (int k = 0; k < config_.banks_per_group; k++) {
+-            if (bank_states_[rank][j][k].IsRowOpen()) {
+-                return false;
+-            }
+-        }
+-    }
+-    return true;
++    return open_banks_by_rank_[rank] == 0;
+ }
+
+ bool ChannelState::IsRWPendingOnRef(const Command& cmd) const {
+@@ -118,7 +112,12 @@ void ChannelState::UpdateState(const Command& cmd) {
+     if (cmd.IsRankCMD()) {
+         for (auto j = 0; j < config_.bankgroups; j++) {
+             for (auto k = 0; k < config_.banks_per_group; k++) {
+-                bank_states_[cmd.Rank()][j][k].UpdateState(cmd);
++                BankState& bank = bank_states_[cmd.Rank()][j][k];
++                const bool was_open = bank.IsRowOpen();
++                bank.UpdateState(cmd);
++                const bool is_open = bank.IsRowOpen();
++                open_banks_by_rank_[cmd.Rank()] +=
++                    static_cast<int>(is_open) - static_cast<int>(was_open);
+             }
+         }
+         if (cmd.IsRefresh()) {
+@@ -129,7 +128,13 @@ void ChannelState::UpdateState(const Command& cmd) {
+             rank_is_sref_[cmd.Rank()] = false;
+         }
+     } else {
+-        bank_states_[cmd.Rank()][cmd.Bankgroup()][cmd.Bank()].UpdateState(cmd);
++        BankState& bank =
++            bank_states_[cmd.Rank()][cmd.Bankgroup()][cmd.Bank()];
++        const bool was_open = bank.IsRowOpen();
++        bank.UpdateState(cmd);
++        const bool is_open = bank.IsRowOpen();
++        open_banks_by_rank_[cmd.Rank()] +=
++            static_cast<int>(is_open) - static_cast<int>(was_open);
+         if (cmd.IsRefresh()) {
+             BankNeedRefresh(cmd.Rank(), cmd.Bankgroup(), cmd.Bank(), false);
+         }
+@@ -200,6 +205,9 @@ void ChannelState::UpdateOtherBanksSameBankgroupTiming(
+     const Address& addr,
+     const std::vector<std::pair<CommandType, int>>& cmd_timing_list,
+     uint64_t clk) {
++    if (cmd_timing_list.empty()) {
++        return;
++    }
+     for (auto k = 0; k < config_.banks_per_group; k++) {
+         if (k != addr.bank) {
+             for (auto cmd_timing : cmd_timing_list) {
+@@ -215,6 +223,9 @@ void ChannelState::UpdateOtherBankgroupsSameRankTiming(
+     const Address& addr,
+     const std::vector<std::pair<CommandType, int>>& cmd_timing_list,
+     uint64_t clk) {
++    if (cmd_timing_list.empty()) {
++        return;
++    }
+     for (auto j = 0; j < config_.bankgroups; j++) {
+         if (j != addr.bankgroup) {
+             for (auto k = 0; k < config_.banks_per_group; k++) {
+@@ -232,6 +243,9 @@ void ChannelState::UpdateOtherRanksTiming(
+     const Address& addr,
+     const std::vector<std::pair<CommandType, int>>& cmd_timing_list,
+     uint64_t clk) {
++    if (cmd_timing_list.empty()) {
++        return;
++    }
+     for (auto i = 0; i < config_.ranks; i++) {
+         if (i != addr.rank) {
+             for (auto j = 0; j < config_.bankgroups; j++) {
+@@ -251,6 +265,9 @@ void ChannelState::UpdateSameRankTiming(
+     const Address& addr,
+     const std::vector<std::pair<CommandType, int>>& cmd_timing_list,
+     uint64_t clk) {
++    if (cmd_timing_list.empty()) {
++        return;
++    }
+     for (auto j = 0; j < config_.bankgroups; j++) {
+         for (auto k = 0; k < config_.banks_per_group; k++) {
+             for (auto cmd_timing : cmd_timing_list) {
+diff --git a/src/channel_state.h b/src/channel_state.h
+index 539a24c..f0fe447 100644
+--- a/src/channel_state.h
++++ b/src/channel_state.h
+@@ -42,6 +42,7 @@ class ChannelState {
+     const Timing& timing_;
+
+     std::vector<bool> rank_is_sref_;
++    std::vector<int> open_banks_by_rank_;
+     std::vector<std::vector<std::vector<BankState> > > bank_states_;
+     std::vector<Command> refresh_q_;
+
+diff --git a/src/command_queue.cc b/src/command_queue.cc
+index 03ce1e4..15a7687 100644
+--- a/src/command_queue.cc
++++ b/src/command_queue.cc
+@@ -118,7 +118,7 @@ bool CommandQueue::ArbitratePrecharge(const CMDIterator& cmd_it,
+         channel_state_.RowHitCount(cmd.Rank(), cmd.Bankgroup(), cmd.Bank()) >=
+         4;
+     if (!pending_row_hits_exist || rowhit_limit_reached) {
+-        simple_stats_.Increment("num_ondemand_pres");
++        simple_stats_.Increment(SimpleStats::CounterStat::ONDEMAND_PRES);
+         return true;
+     }
+     return false;
+diff --git a/src/controller.cc b/src/controller.cc
+index 0e4af21..5f1fcba 100644
+--- a/src/controller.cc
++++ b/src/controller.cc
+@@ -48,10 +48,11 @@ std::pair<uint64_t, int> Controller::ReturnDoneTrans(uint64_t clk) {
+     while (it != return_queue_.end()) {
+         if (clk >= it->complete_cycle) {
+             if (it->is_write) {
+-                simple_stats_.Increment("num_writes_done");
++                simple_stats_.Increment(SimpleStats::CounterStat::WRITES_DONE);
+             } else {
+-                simple_stats_.Increment("num_reads_done");
+-                simple_stats_.AddValue("read_latency", clk_ - it->added_cycle);
++                simple_stats_.Increment(SimpleStats::CounterStat::READS_DONE);
++                simple_stats_.AddValue(SimpleStats::HistogramStat::READ_LATENCY,
++                                       clk_ - it->added_cycle);
+             }
+             auto pair = std::make_pair(it->addr, it->is_write);
+             it = return_queue_.erase(it);
+@@ -87,7 +88,8 @@ void Controller::ClockTick() {
+             if (second_cmd.IsValid()) {
+                 if (second_cmd.IsReadWrite() != cmd.IsReadWrite()) {
+                     IssueCommand(second_cmd);
+-                    simple_stats_.Increment("hbm_dual_cmds");
++                    simple_stats_.Increment(
++                        SimpleStats::CounterStat::HBM_DUAL_CMDS);
+                 }
+             }
+         }
+@@ -96,14 +98,16 @@ void Controller::ClockTick() {
+     // power updates pt 1
+     for (int i = 0; i < config_.ranks; i++) {
+         if (channel_state_.IsRankSelfRefreshing(i)) {
+-            simple_stats_.IncrementVec("sref_cycles", i);
++            simple_stats_.IncrementVec(SimpleStats::VectorStat::SREF_CYCLES, i);
+         } else {
+             bool all_idle = channel_state_.IsAllBankIdleInRank(i);
+             if (all_idle) {
+-                simple_stats_.IncrementVec("all_bank_idle_cycles", i);
++                simple_stats_.IncrementVec(
++                    SimpleStats::VectorStat::ALL_BANK_IDLE_CYCLES, i);
+                 channel_state_.rank_idle_cycles[i] += 1;
+             } else {
+-                simple_stats_.IncrementVec("rank_active_cycles", i);
++                simple_stats_.IncrementVec(
++                    SimpleStats::VectorStat::RANK_ACTIVE_CYCLES, i);
+                 // reset
+                 channel_state_.rank_idle_cycles[i] = 0;
+             }
+@@ -145,7 +149,7 @@ void Controller::ClockTick() {
+     ScheduleTransaction();
+     clk_++;
+     cmd_queue_.ClockTick();
+-    simple_stats_.Increment("num_cycles");
++    simple_stats_.Increment(SimpleStats::CounterStat::NUM_CYCLES);
+     return;
+ }
+
+@@ -180,17 +184,19 @@ void Controller::AdvanceIdle(uint64_t cycles) {
+     assert(cycles > 0 && cycles <= ClocksUntilRefresh());
+     for (int rank = 0; rank < config_.ranks; ++rank) {
+         if (channel_state_.IsAllBankIdleInRank(rank)) {
+-            simple_stats_.IncrementVecBy("all_bank_idle_cycles", rank, cycles);
++            simple_stats_.IncrementVecBy(
++                SimpleStats::VectorStat::ALL_BANK_IDLE_CYCLES, rank, cycles);
+             channel_state_.rank_idle_cycles[rank] += static_cast<int>(cycles);
+         } else {
+-            simple_stats_.IncrementVecBy("rank_active_cycles", rank, cycles);
++            simple_stats_.IncrementVecBy(
++                SimpleStats::VectorStat::RANK_ACTIVE_CYCLES, rank, cycles);
+             channel_state_.rank_idle_cycles[rank] = 0;
+         }
+     }
+     clk_ += cycles;
+     cmd_queue_.AdvanceIdle(cycles);
+     refresh_.AdvanceIdle(cycles);
+-    simple_stats_.IncrementBy("num_cycles", cycles);
++    simple_stats_.IncrementBy(SimpleStats::CounterStat::NUM_CYCLES, cycles);
+ }
+
+ bool Controller::WillAcceptTransaction(uint64_t hex_addr, bool is_write) const {
+@@ -205,7 +211,8 @@ bool Controller::WillAcceptTransaction(uint64_t hex_addr, bool is_write) const {
+
+ bool Controller::AddTransaction(Transaction trans) {
+     trans.added_cycle = clk_;
+-    simple_stats_.AddValue("interarrival_latency", clk_ - last_trans_clk_);
++    simple_stats_.AddValue(SimpleStats::HistogramStat::INTERARRIVAL_LATENCY,
++                           clk_ - last_trans_clk_);
+     last_trans_clk_ = clk_;
+
+     if (trans.is_write) {
+@@ -302,7 +309,8 @@ void Controller::IssueCommand(const Command &cmd) {
+             exit(1);
+         }
+         auto wr_lat = clk_ - it->second.added_cycle + config_.write_delay;
+-        simple_stats_.AddValue("write_latency", wr_lat);
++        simple_stats_.AddValue(SimpleStats::HistogramStat::WRITE_LATENCY,
++                               wr_lat);
+         pending_wr_q_.erase(it);
+     }
+     // must update stats before states (for row hits)
+@@ -325,7 +333,7 @@ Command Controller::TransToCommand(const Transaction &trans) {
+ int Controller::QueueUsage() const { return cmd_queue_.QueueUsage(); }
+
+ void Controller::PrintEpochStats() {
+-    simple_stats_.Increment("epoch_num");
++    simple_stats_.Increment(SimpleStats::CounterStat::EPOCH_NUM);
+     simple_stats_.PrintEpochStats();
+ #ifdef THERMAL
+     for (int r = 0; r < config_.ranks; r++) {
+@@ -352,37 +360,39 @@ void Controller::UpdateCommandStats(const Command &cmd) {
+     switch (cmd.cmd_type) {
+         case CommandType::READ:
+         case CommandType::READ_PRECHARGE:
+-            simple_stats_.Increment("num_read_cmds");
++            simple_stats_.Increment(SimpleStats::CounterStat::READ_CMDS);
+             if (channel_state_.RowHitCount(cmd.Rank(), cmd.Bankgroup(),
+                                            cmd.Bank()) != 0) {
+-                simple_stats_.Increment("num_read_row_hits");
++                simple_stats_.Increment(
++                    SimpleStats::CounterStat::READ_ROW_HITS);
+             }
+             break;
+         case CommandType::WRITE:
+         case CommandType::WRITE_PRECHARGE:
+-            simple_stats_.Increment("num_write_cmds");
++            simple_stats_.Increment(SimpleStats::CounterStat::WRITE_CMDS);
+             if (channel_state_.RowHitCount(cmd.Rank(), cmd.Bankgroup(),
+                                            cmd.Bank()) != 0) {
+-                simple_stats_.Increment("num_write_row_hits");
++                simple_stats_.Increment(
++                    SimpleStats::CounterStat::WRITE_ROW_HITS);
+             }
+             break;
+         case CommandType::ACTIVATE:
+-            simple_stats_.Increment("num_act_cmds");
++            simple_stats_.Increment(SimpleStats::CounterStat::ACT_CMDS);
+             break;
+         case CommandType::PRECHARGE:
+-            simple_stats_.Increment("num_pre_cmds");
++            simple_stats_.Increment(SimpleStats::CounterStat::PRE_CMDS);
+             break;
+         case CommandType::REFRESH:
+-            simple_stats_.Increment("num_ref_cmds");
++            simple_stats_.Increment(SimpleStats::CounterStat::REF_CMDS);
+             break;
+         case CommandType::REFRESH_BANK:
+-            simple_stats_.Increment("num_refb_cmds");
++            simple_stats_.Increment(SimpleStats::CounterStat::REFB_CMDS);
+             break;
+         case CommandType::SREF_ENTER:
+-            simple_stats_.Increment("num_srefe_cmds");
++            simple_stats_.Increment(SimpleStats::CounterStat::SREFE_CMDS);
+             break;
+         case CommandType::SREF_EXIT:
+-            simple_stats_.Increment("num_srefx_cmds");
++            simple_stats_.Increment(SimpleStats::CounterStat::SREFX_CMDS);
+             break;
+         default:
+             AbruptExit(__FILE__, __LINE__);
+diff --git a/src/simple_stats.cc b/src/simple_stats.cc
+index 4c2c6f1..374801c 100644
+--- a/src/simple_stats.cc
++++ b/src/simple_stats.cc
+@@ -75,6 +75,51 @@ SimpleStats::SimpleStats(const Config& config, int channel_id)
+              "Average read request latency (cycles)");
+     InitStat("average_interarrival", "calculated",
+              "Average request interarrival latency (cycles)");
++
++    hot_counters_ = {
++        &epoch_counters_.at("num_cycles"),
++        &epoch_counters_.at("epoch_num"),
++        &epoch_counters_.at("num_reads_done"),
++        &epoch_counters_.at("num_writes_done"),
++        &epoch_counters_.at("hbm_dual_cmds"),
++        &epoch_counters_.at("num_ondemand_pres"),
++        &epoch_counters_.at("num_read_cmds"),
++        &epoch_counters_.at("num_read_row_hits"),
++        &epoch_counters_.at("num_write_cmds"),
++        &epoch_counters_.at("num_write_row_hits"),
++        &epoch_counters_.at("num_act_cmds"),
++        &epoch_counters_.at("num_pre_cmds"),
++        &epoch_counters_.at("num_ref_cmds"),
++        &epoch_counters_.at("num_refb_cmds"),
++        &epoch_counters_.at("num_srefe_cmds"),
++        &epoch_counters_.at("num_srefx_cmds"),
++    };
++    hot_vec_counters_ = {
++        &epoch_vec_counters_.at("all_bank_idle_cycles"),
++        &epoch_vec_counters_.at("rank_active_cycles"),
++        &epoch_vec_counters_.at("sref_cycles"),
++    };
++    hot_histo_counts_ = {
++        &epoch_histo_counts_.at("read_latency"),
++        &epoch_histo_counts_.at("write_latency"),
++        &epoch_histo_counts_.at("interarrival_latency"),
++    };
++}
++
++void SimpleStats::Increment(CounterStat stat) {
++    ++*hot_counters_[static_cast<size_t>(stat)];
++}
++
++void SimpleStats::IncrementBy(CounterStat stat, uint64_t count) {
++    *hot_counters_[static_cast<size_t>(stat)] += count;
++}
++
++void SimpleStats::IncrementVec(VectorStat stat, int pos) {
++    ++hot_vec_counters_[static_cast<size_t>(stat)]->at(pos);
++}
++
++void SimpleStats::IncrementVecBy(VectorStat stat, int pos, uint64_t count) {
++    hot_vec_counters_[static_cast<size_t>(stat)]->at(pos) += count;
+ }
+
+ void SimpleStats::AddValue(const std::string name, const int value) {
+@@ -86,6 +131,11 @@ void SimpleStats::AddValue(const std::string name, const int value) {
+     }
+ }
+
++void SimpleStats::AddValue(HistogramStat stat, int value) {
++    auto& epoch_counts = *hot_histo_counts_[static_cast<size_t>(stat)];
++    ++epoch_counts[value];
++}
++
+ std::string SimpleStats::GetTextHeader(bool is_final) const {
+     std::string header =
+         "###########################################\n## Statistics of "
+@@ -476,4 +526,4 @@ void SimpleStats::UpdateFinalStats() {
+     return;
+ }
+
+-}  // namespace dramsim3
+\ No newline at end of file
++}  // namespace dramsim3
+diff --git a/src/simple_stats.h b/src/simple_stats.h
+index 89cb517..1f2462b 100644
+--- a/src/simple_stats.h
++++ b/src/simple_stats.h
+@@ -1,6 +1,8 @@
+ #ifndef __SIMPLE_STATS_
+ #define __SIMPLE_STATS_
+
++#include <array>
++#include <cstdint>
+ #include <fstream>
+ #include <string>
+ #include <unordered_map>
+@@ -13,6 +15,38 @@ namespace dramsim3 {
+
+ class SimpleStats {
+    public:
++    enum class CounterStat {
++        NUM_CYCLES,
++        EPOCH_NUM,
++        READS_DONE,
++        WRITES_DONE,
++        HBM_DUAL_CMDS,
++        ONDEMAND_PRES,
++        READ_CMDS,
++        READ_ROW_HITS,
++        WRITE_CMDS,
++        WRITE_ROW_HITS,
++        ACT_CMDS,
++        PRE_CMDS,
++        REF_CMDS,
++        REFB_CMDS,
++        SREFE_CMDS,
++        SREFX_CMDS,
++        SIZE
++    };
++    enum class VectorStat {
++        ALL_BANK_IDLE_CYCLES,
++        RANK_ACTIVE_CYCLES,
++        SREF_CYCLES,
++        SIZE
++    };
++    enum class HistogramStat {
++        READ_LATENCY,
++        WRITE_LATENCY,
++        INTERARRIVAL_LATENCY,
++        SIZE
++    };
++
+     SimpleStats(const Config& config, int channel_id);
+     // incrementing counter
+     void Increment(const std::string name) { epoch_counters_[name] += 1; }
+@@ -31,8 +65,14 @@ class SimpleStats {
+         epoch_vec_counters_[name][pos] += num;
+     }
+
++    void Increment(CounterStat stat);
++    void IncrementBy(CounterStat stat, uint64_t count);
++    void IncrementVec(VectorStat stat, int pos);
++    void IncrementVecBy(VectorStat stat, int pos, uint64_t count);
++
+     // add historgram value
+     void AddValue(const std::string name, const int value);
++    void AddValue(HistogramStat stat, int value);
+
+     // return per rank background energy
+     double RankBackgroundEnergy(const int r) const;
+@@ -97,5 +137,11 @@ class SimpleStats {
+     std::unordered_map<std::string, int> bin_widths_;
+     std::unordered_map<std::string, HistoCount> histo_counts_;
+     std::unordered_map<std::string, HistoCount> epoch_histo_counts_;
++    std::array<uint64_t*, static_cast<size_t>(CounterStat::SIZE)>
++        hot_counters_{};
++    std::array<std::vector<uint64_t>*, static_cast<size_t>(VectorStat::SIZE)>
++        hot_vec_counters_{};
++    std::array<HistoCount*, static_cast<size_t>(HistogramStat::SIZE)>
++        hot_histo_counts_{};
+     VecStat histo_bins_;
+     VecStat epoch_histo_bins_;

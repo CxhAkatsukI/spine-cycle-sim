@@ -35,6 +35,7 @@ workload = Path(
     )
 ).resolve()
 preload_workload = os.environ.get("SPINE_SST_PRELOAD", "")
+carry_history_workload = os.environ.get("SPINE_SST_CARRY_HISTORY", "")
 update_workload = os.environ.get("SPINE_SST_UPDATE_WORKLOAD", "")
 hot_vertices = os.environ.get("SPINE_SST_HOT_VERTICES", "")
 mode = os.environ.get("SPINE_SST_MODE", "spine_vertical")
@@ -44,17 +45,43 @@ dram_output = Path(
     os.environ.get("SPINE_SST_DRAM_OUTPUT", "/tmp/spine_vertical_dramsim3")
 )
 dram_output.mkdir(parents=True, exist_ok=True)
+memory_backend = os.environ.get(
+    "SPINE_SST_MEMORY_BACKEND", "sst_memHierarchy_dramsim3"
+)
 
 probe = sst.Component("spine", "spine_cycle.OnlineMemoryProbe")
 probe.addParams(
     {
         "mode": mode,
         "output": output,
+        "progress_path": os.environ.get("SPINE_CAMPAIGN_PROGRESS_PATH", ""),
+        "progress_interval_cycles": int(
+            os.environ.get("SPINE_CAMPAIGN_PROGRESS_INTERVAL_CYCLES", "50000000")
+        ),
+        "memory_backend": memory_backend,
+        "direct_dram_config": os.environ.get(
+            "CANDIDATE10_SST_DRAM_CONFIG",
+            str(ROOT / "configs" / "memory" / "HBM2_1ch_x128.ini"),
+        ),
+        "direct_dram_output": str(dram_output),
         "workload": str(workload),
         "update_workload": update_workload,
         "preload_workload": preload_workload,
+        "carry_history_workload": carry_history_workload,
+        "carry_history_batch_edges": int(
+            os.environ.get("SPINE_SST_CARRY_HISTORY_BATCH_EDGES", "0")
+        ),
+        "carry_history_target_level": int(
+            os.environ.get("SPINE_SST_CARRY_HISTORY_TARGET_LEVEL", "0")
+        ),
         "hot_vertices": hot_vertices,
         "source_vertex": int(os.environ.get("SPINE_SST_SOURCE", "2")),
+        "sssp_algorithm_warm_start": int(
+            os.environ.get("SPINE_SST_SSSP_WARM_START", "0")
+        ),
+        "resident_static_sssp": int(
+            os.environ.get("SPINE_SST_RESIDENT_STATIC_SSSP", "0")
+        ),
         "core_clock": f"{core_mhz}MHz",
         "core_mhz": core_mhz,
         "channels": channels,
@@ -72,6 +99,9 @@ probe.addParams(
         ),
         "pagerank_epsilon": float(
             os.environ.get("SPINE_SST_PAGERANK_EPSILON", "0.000001")
+        ),
+        "residual_contract": os.environ.get(
+            "SPINE_SST_RESIDUAL_CONTRACT", "generic_dangling_l1_cold"
         ),
         "residual_max_iterations": int(
             os.environ.get("SPINE_SST_RESIDUAL_MAX_ITERATIONS", "256")
@@ -126,6 +156,21 @@ probe.addParams(
         ),
         "fallback_replay_threshold": int(
             os.environ.get("SPINE_SST_FALLBACK_REPLAY_THRESHOLD", "65536")
+        ),
+        "segmented_fallback": int(
+            os.environ.get("SPINE_SST_SEGMENTED_FALLBACK", "0")
+        ),
+        "reader_active_record_control_cycles": int(
+            os.environ.get("SPINE_SST_READER_ACTIVE_RECORD_CONTROL_CYCLES", "0")
+        ),
+        "segmented_fallback_setup_cycles": int(
+            os.environ.get("SPINE_SST_SEGMENTED_FALLBACK_SETUP_CYCLES", "0")
+        ),
+        "fallback_level_cache_reuse": int(
+            os.environ.get("SPINE_SST_FALLBACK_LEVEL_CACHE_REUSE", "0")
+        ),
+        "source_page_index_cache": int(
+            os.environ.get("SPINE_SST_SOURCE_PAGE_INDEX_CACHE", "0")
         ),
         "memory_request_window": int(
             os.environ.get("SPINE_SST_MEMORY_REQUEST_WINDOW", "1")
@@ -284,7 +329,7 @@ dram_config = Path(
 ).resolve()
 if not dram_config.is_file():
     raise ValueError(f"CANDIDATE10_SST_DRAM_CONFIG is not a file: {dram_config}")
-for channel in active_channels:
+for channel in active_channels if memory_backend == "sst_memHierarchy_dramsim3" else ():
     interface = probe.setSubComponent(
         "memory", "memHierarchy.standardInterface", channel
     )

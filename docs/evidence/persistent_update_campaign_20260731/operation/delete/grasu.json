@@ -1,0 +1,19 @@
+{
+  "success": true,
+  "mode": "grasu_update_trace",
+  "measurement_window": "pure_update_only",
+  "trace_aware_layout": true,
+  "resident_state_persistent": true,
+  "graph_compute_executed": false,
+  "backend": "sst_memHierarchy_dramsim3",
+  "core_mhz": 150,
+  "batch_count": 10,
+  "logical_updates": 16384,
+  "device_cycles": 248167,
+  "correctness_mismatches": 0,
+  "final_edges": 374463,
+  "batch_updates": [1638, 1638, 1639, 1638, 1639, 1638, 1638, 1639, 1638, 1639],
+  "batch_cycles": [24648, 20187, 19875, 32338, 30572, 17504, 36762, 24700, 19759, 21822],
+  "batch_correctness_mismatches": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  "backend_traffic": {"classification":"per_initiator_and_operation_accepted_backend_request","address_basis":"logical_channel_and_byte_address","reads":{"requests":99559,"bytes":1845048,"first_requests":140,"first_bytes":2560,"contiguous_requests":28154,"contiguous_bytes":379672,"repeated_requests":23085,"repeated_bytes":818768,"discontinuous_requests":48180,"discontinuous_bytes":644048},"writes":{"requests":16384,"bytes":1048576,"first_requests":20,"first_bytes":1280,"contiguous_requests":423,"contiguous_bytes":27072,"repeated_requests":11323,"repeated_bytes":724672,"discontinuous_requests":4618,"discontinuous_bytes":295552},"combined":{"requests":115943,"bytes":2893624,"first_requests":160,"first_bytes":3840,"contiguous_requests":28577,"contiguous_bytes":406744,"repeated_requests":34408,"repeated_bytes":1543440,"discontinuous_requests":52798,"discontinuous_bytes":939600}}
+}

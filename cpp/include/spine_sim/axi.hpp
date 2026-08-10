@@ -21,6 +21,10 @@ struct AxiRequest {
   std::uint64_t address{};
   std::uint64_t bytes{};
   bool stream_read_beats{};
+  // A routed master may select a pseudo-channel per parent request. When this
+  // is absent, AxiConfig::fixed_channel or address interleaving remains the
+  // source of truth, preserving all existing fixed-port behavior.
+  std::optional<std::size_t> target_channel{std::nullopt};
   std::vector<std::uint8_t> write_data;
 };
 
@@ -176,6 +180,7 @@ class AxiMaster final : public Component {
             Fifo<AxiRequest> &requests, Fifo<AxiResponse> &responses,
             MemoryBackend &backend,
             Fifo<AxiReadBeatResponse> *read_beats = nullptr);
+  ~AxiMaster() override;
 
   [[nodiscard]] const AxiStats& stats() const noexcept { return stats_; }
   [[nodiscard]] const AxiConfig &config() const noexcept { return config_; }
@@ -187,7 +192,13 @@ class AxiMaster final : public Component {
   [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
     return true;
   }
+  [[nodiscard]] bool has_latched_evaluate_guard() const noexcept override {
+    return true;
+  }
   [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_latched_commit_guard() const noexcept override {
     return true;
   }
   [[nodiscard]] bool evaluate_ready() const noexcept override {
@@ -195,6 +206,12 @@ class AxiMaster final : public Component {
   }
   [[nodiscard]] bool commit_ready() const noexcept override {
     return has_pending_work();
+  }
+  [[nodiscard]] const bool* evaluate_ready_token() const noexcept override {
+    return &scheduler_ready_;
+  }
+  [[nodiscard]] const bool* commit_ready_token() const noexcept override {
+    return &scheduler_ready_;
   }
   [[nodiscard]] const std::vector<AxiBurstTrace> &burst_trace() const noexcept {
     return burst_trace_;
@@ -242,13 +259,14 @@ class AxiMaster final : public Component {
     std::size_t beats_completed{};
     std::uint64_t parent_accept_cycle{};
     std::uint64_t address_ready_cycle{};
+    std::optional<std::size_t> target_channel;
   };
 
   struct StagedBeat {
     std::uint64_t burst_id{};
     std::uint64_t parent_offset{};
     std::uint64_t issue_cycle{};
-    BackendRequest request;
+    BackendRequestHeader request;
   };
 
   struct WriteIngressBeat {
@@ -264,6 +282,13 @@ class AxiMaster final : public Component {
     std::optional<std::size_t> trace_index;
   };
 
+  struct StagedBackendResponse {
+    std::uint64_t request_id{};
+    BackendMapping mapping;
+    Burst* burst{};
+    Parent* parent{};
+  };
+
   struct ReadyResponse {
     std::uint64_t parent_id{};
     AxiResponse response;
@@ -272,7 +297,9 @@ class AxiMaster final : public Component {
   [[nodiscard]] std::vector<Burst> split_request(
       std::uint64_t parent_id, const AxiRequest &request,
       std::uint64_t accepted_cycle);
-  [[nodiscard]] std::size_t channel_for(std::uint64_t address) const;
+  [[nodiscard]] std::size_t
+  channel_for(std::uint64_t address,
+              std::optional<std::size_t> target_channel) const;
   [[nodiscard]] Burst* find_active(std::uint64_t burst_id);
   void reset_staging();
   void evaluate_output();
@@ -290,14 +317,17 @@ class AxiMaster final : public Component {
   void commit_output();
   void commit_read_beat_output();
   void queue_parent_response_if_ready(std::uint64_t parent_id);
-  [[nodiscard]] std::size_t read_reorder_occupancy() const noexcept;
-  [[nodiscard]] bool has_pending_work() const noexcept {
-    return !requests_.empty() || !parents_.empty() ||
-           !pending_address_.empty() || !active_bursts_.empty() ||
-           !backend_mappings_.empty() || !ready_responses_.empty() ||
-           !pending_write_input_.empty() || !write_store_fifo_.empty() ||
-           write_bridge_.has_value() || !write_throttle_fifo_.empty();
+  static void notify_request_nonempty(void* owner) noexcept;
+  static void notify_backend_response(void* owner) noexcept;
+  [[nodiscard]] std::size_t read_reorder_occupancy() const noexcept {
+    return read_reorder_occupancy_;
   }
+  [[nodiscard]] bool has_pending_work() const noexcept {
+    return !requests_.empty() || internal_pending_work_;
+  }
+  void refresh_pending_work() noexcept;
+  [[nodiscard]] bool waiting_only_for_backend() const noexcept;
+  void account_suspended_cycles(std::uint64_t cycle);
   [[nodiscard]] bool write_ingress_enabled() const noexcept {
     return config_.write_ingress_fifo_depth != 0;
   }
@@ -317,8 +347,12 @@ class AxiMaster final : public Component {
   std::unordered_map<std::uint64_t, Parent> parents_;
   std::deque<Burst> pending_address_;
   std::vector<Burst> active_bursts_;
+  std::size_t active_issueable_bursts_{};
+  std::size_t active_stream_bursts_{};
+  std::size_t active_write_data_bursts_{};
   std::unordered_map<std::uint64_t, BackendMapping> backend_mappings_;
   std::deque<ReadyResponse> ready_responses_;
+  std::size_t read_reorder_occupancy_{};
   std::vector<AxiBurstTrace> burst_trace_;
   std::vector<AxiBeatTrace> beat_trace_;
   std::vector<AxiWriteIngressTrace> write_ingress_trace_;
@@ -336,11 +370,18 @@ class AxiMaster final : public Component {
   std::optional<WriteIngressBeat> staged_store_to_bridge_;
   std::optional<WriteIngressBeat> staged_bridge_to_throttle_;
   std::vector<std::uint64_t> staged_address_bursts_;
+  std::vector<std::size_t> staged_additional_issued_;
+  std::vector<std::size_t> staged_additional_issued_touched_;
   std::vector<StagedBeat> staged_beats_;
-  std::vector<BackendResponse> staged_backend_responses_;
+  std::vector<StagedBackendResponse> staged_backend_responses_;
   std::optional<std::pair<std::uint64_t, std::uint64_t>>
       staged_read_beat_output_;
   bool staged_output_{};
+  bool internal_pending_work_{};
+  bool scheduler_ready_{};
+  bool suspended_wait_{};
+  bool evaluated_once_{};
+  std::uint64_t last_evaluate_cycle_{};
   AxiStats stats_;
 };
 

@@ -1,0 +1,95 @@
+{
+  "admitted_datasets": 9,
+  "catalog_datasets": 11,
+  "rows": [
+    {
+      "abbreviation": "AU",
+      "dataset_id": "sx_askubuntu",
+      "manifest": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_askubuntu/materialization_manifest.json",
+      "spine_full_graph_admitted": true,
+      "spine_max_vertices": 16777216,
+      "vertices": 515281
+    },
+    {
+      "abbreviation": "SU",
+      "dataset_id": "sx_superuser",
+      "manifest": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_superuser/materialization_manifest.json",
+      "spine_full_graph_admitted": true,
+      "spine_max_vertices": 16777216,
+      "vertices": 567316
+    },
+    {
+      "abbreviation": "WK",
+      "dataset_id": "wiki_talk_temporal",
+      "manifest": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/wiki_talk_temporal/materialization_manifest.json",
+      "spine_full_graph_admitted": true,
+      "spine_max_vertices": 16777216,
+      "vertices": 1140149
+    },
+    {
+      "abbreviation": "SO",
+      "dataset_id": "sx_stackoverflow",
+      "manifest": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_stackoverflow/materialization_manifest.json",
+      "spine_full_graph_admitted": true,
+      "spine_max_vertices": 16777216,
+      "vertices": 6024271
+    },
+    {
+      "abbreviation": "BC",
+      "dataset_id": "soc_bitcoin",
+      "manifest": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/soc_bitcoin/materialization_manifest.json",
+      "spine_full_graph_admitted": false,
+      "spine_max_vertices": 16777216,
+      "vertices": 24575382
+    },
+    {
+      "abbreviation": "HW",
+      "dataset_id": "hollywood_2009",
+      "manifest": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/hollywood_2009/materialization_manifest.json",
+      "spine_full_graph_admitted": true,
+      "spine_max_vertices": 16777216,
+      "vertices": 1139905
+    },
+    {
+      "abbreviation": "POK",
+      "dataset_id": "soc_pokec",
+      "manifest": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/soc_pokec/materialization_manifest.json",
+      "spine_full_graph_admitted": true,
+      "spine_max_vertices": 16777216,
+      "vertices": 1632803
+    },
+    {
+      "abbreviation": "OR",
+      "dataset_id": "soc_orkut",
+      "manifest": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/soc_orkut/materialization_manifest.json",
+      "spine_full_graph_admitted": true,
+      "spine_max_vertices": 16777216,
+      "vertices": 3072441
+    },
+    {
+      "abbreviation": "SOC",
+      "dataset_id": "soc_livejournal1",
+      "manifest": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/soc_livejournal1/materialization_manifest.json",
+      "spine_full_graph_admitted": true,
+      "spine_max_vertices": 16777216,
+      "vertices": 4847571
+    },
+    {
+      "abbreviation": "LJ",
+      "dataset_id": "ljournal_2008",
+      "manifest": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/ljournal_2008/materialization_manifest.json",
+      "spine_full_graph_admitted": true,
+      "spine_max_vertices": 16777216,
+      "vertices": 5363260
+    },
+    {
+      "abbreviation": "UK",
+      "dataset_id": "uk_2002",
+      "manifest": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/uk_2002/materialization_manifest.json",
+      "spine_full_graph_admitted": false,
+      "spine_max_vertices": 16777216,
+      "vertices": 18520486
+    }
+  ],
+  "spine_max_vertices": 16777216
+}

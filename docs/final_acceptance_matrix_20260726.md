@@ -87,11 +87,12 @@ faster by geometric mean. See
 
 ## Closed Full PageRank Dense Gate
 
-The 12-case dense contract provides eight comparable timing points and four
-capacity endpoints. All 16 timed system executions pass correctness and all
-eight rank vectors match across systems. Spine accepts 8,192 updates exactly
-at its final 16,384-edge capacity and fails closed at 16,384 updates; the GraSU
-profile fails closed above its 4,096-degree scoreboard. See
+The original 12-case dense run provides eight comparable timing points. Its
+claimed 16,384-update Spine capacity failure exposed the old first-empty target
+selector and is not an architectural capacity boundary. The corrected
+capacity-safe contract admits every tested Spine batch through 16,384 updates;
+fresh timing rows must be generated with Candidate92. The GraSU profile still
+fails closed above its frozen 4,096-degree scoreboard. See
 `docs/dense_full_pagerank_20260726.md`.
 
 ## Failed Large-Runtime Gate

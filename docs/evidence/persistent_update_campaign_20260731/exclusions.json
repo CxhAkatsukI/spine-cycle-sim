@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "excluded_cases": [
+    {
+      "case": "bitcoin-alpha full graph",
+      "reason": "architecture_capacity",
+      "detail": "24575382 vertices exceeds the frozen Spine MAX_N=16777216",
+      "admitted_to_performance": false
+    },
+    {
+      "case": "weight-increase update-only",
+      "reason": "unsupported_update_semantics",
+      "detail": "the frozen Spine differential merge retains min(weight), so delete-old plus insert-new cannot represent an increased weight; this path requires the separately measured full-rebuild fallback",
+      "admitted_to_performance": false
+    }
+  ]
+}

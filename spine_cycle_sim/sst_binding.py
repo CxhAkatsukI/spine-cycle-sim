@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from collections import defaultdict
 from dataclasses import dataclass
+from math import ceil
 from pathlib import Path
 from typing import Iterable, Mapping
 
@@ -98,6 +100,17 @@ def grasu_normalized_memory_binding(
 
     memory, parameters = _profile_sections(profile)
     physical_channels = int(memory["channels"])
+    if (
+        parameters.get("grasu_partition_address_layout")
+        == "runtime_packed_interleaved_v2"
+    ):
+        first = int(parameters["grasu_interleaved_hbm_first_channel"])
+        count = int(parameters["grasu_interleaved_hbm_channels"])
+        return make_sst_memory_binding(
+            physical_channels,
+            range(first, first + count),
+            instantiate_all=instantiate_all,
+        )
     pma_channels = int(parameters["grasu_pma_hbm_channels"])
     if pma_channels <= 0:
         raise ValueError("GraSU PMA channel count must be positive")
@@ -106,6 +119,7 @@ def grasu_normalized_memory_binding(
         "regraph_source_state_channel",
         "regraph_source_state_mirror_channel",
         "regraph_apply_state_channel",
+        "regraph_residual_state_channel",
         "regraph_degree_channel",
     ):
         if key in parameters:
@@ -125,6 +139,78 @@ def _spine_hot_hash(destination: int) -> int:
     value = (value * 0x846C_A68B) & 0xFFFF_FFFF
     value ^= value >> 16
     return value & 0xFFFF_FFFF
+
+
+def _spine_automatic_hot_vertices(
+    indegree: Mapping[int, int],
+    cold_partition_edges: list[int],
+    parameters: Mapping[str, object],
+) -> tuple[int, ...]:
+    """Mirror resident preload promotion far enough to derive HBM shards."""
+
+    partitions = int(parameters["partitions"])
+    levels = int(parameters.get("levels", 11))
+    level_ratio = int(parameters.get("level_ratio", 2))
+    batch_edges = int(
+        parameters.get("max_sort_edges", parameters.get("batch_size_edges", 131_072))
+    )
+    partition_vertices = int(parameters["vertex_partition_size"])
+    if (
+        partitions <= 0
+        or levels < 2
+        or level_ratio <= 1
+        or batch_edges <= 0
+        or partition_vertices <= 0
+        or len(cold_partition_edges) != partitions
+    ):
+        raise ValueError("invalid Spine automatic-hot profile")
+
+    capacities = [
+        batch_edges
+        if level == 0
+        else ceil(batch_edges * level_ratio**level / partitions)
+        for level in range(levels)
+    ]
+    family_capacity = sum(capacities)
+    if all(edges <= family_capacity for edges in cold_partition_edges):
+        return ()
+
+    candidates = sorted(indegree.items(), key=lambda item: (-item[1], item[0]))
+
+    def place(cold_target: int, hot_target: int) -> tuple[int, ...] | None:
+        cold = list(cold_partition_edges)
+        hot = [0] * partitions
+        promoted: list[int] = []
+        for destination, degree in candidates:
+            if all(edges <= cold_target for edges in cold):
+                break
+            if degree > hot_target:
+                continue
+            partition = min(destination // partition_vertices, partitions - 1)
+            if cold[partition] <= cold_target:
+                continue
+            shard = _spine_hot_hash(destination) % partitions
+            if hot[shard] + degree > hot_target:
+                continue
+            cold[partition] -= degree
+            hot[shard] += degree
+            promoted.append(destination)
+        if any(edges > cold_target for edges in cold):
+            return None
+        return tuple(promoted)
+
+    # Preserve the native host's single-top-level placement whenever it fits.
+    promoted = place(capacities[-2], capacities[-1])
+    if promoted is not None:
+        return promoted
+
+    # A resident snapshot may still fit the fixed hierarchy even when its
+    # single-home hot hash cannot fit L10. The C++ preload labels this bounded
+    # simulator bootstrap explicitly as a multilevel fallback.
+    promoted = place(family_capacity, family_capacity)
+    if promoted is None:
+        raise ValueError("Spine automatic-hot classifier cannot fit fixed families")
+    return promoted
 
 
 def spine_memory_binding(
@@ -166,17 +252,29 @@ def spine_memory_binding(
         )
     }
     hot = set(hot_vertices)
+    automatic_hot = not hot
+    cold_partition_edges = [0] * partitions
+    indegree: dict[int, int] = defaultdict(int)
     paths = tuple(path.resolve() for path in workload_paths)
     if not paths:
         raise ValueError("Spine memory binding requires at least one workload")
     for path in paths:
         graph = load_slice(path)
         for edge in graph.records:
+            partition = min(edge.dst // partition_vertices, partitions - 1)
+            cold_partition_edges[partition] += 1
+            if automatic_hot:
+                indegree[edge.dst] += 1
             if edge.dst in hot:
                 family = _spine_hot_hash(edge.dst) % hot_shards
             else:
-                family = min(edge.dst // partition_vertices, partitions - 1)
+                family = partition
             reachable.add(family)
+    if automatic_hot:
+        promoted = _spine_automatic_hot_vertices(
+            indegree, cold_partition_edges, parameters
+        )
+        reachable.update(_spine_hot_hash(dst) % hot_shards for dst in promoted)
     return make_sst_memory_binding(
         channels, reachable, instantiate_all=instantiate_all
     )

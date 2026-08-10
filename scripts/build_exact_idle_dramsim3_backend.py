@@ -48,6 +48,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--work-root", type=Path, required=True)
     parser.add_argument("--install-prefix", type=Path, required=True)
     parser.add_argument("--jobs", type=int, default=8)
+    parser.add_argument(
+        "--portable-host",
+        action="store_true",
+        help="omit -march=native while retaining exact LTO host optimization",
+    )
     return parser.parse_args()
 
 
@@ -72,6 +77,26 @@ def main() -> int:
         ["git", "apply", str(ROOT / "patches/dramsim3_exact_idle_advance.patch")],
         cwd=dramsim3,
     )
+    run(
+        ["git", "apply", str(ROOT / "patches/dramsim3_active_queue_hotpath.patch")],
+        cwd=dramsim3,
+    )
+    run(
+        ["git", "apply", str(ROOT / "patches/dramsim3_stats_hotpath.patch")],
+        cwd=dramsim3,
+    )
+    run(
+        [
+            "git",
+            "apply",
+            str(ROOT / "patches/dramsim3_command_timing_hotpath.patch"),
+        ],
+        cwd=dramsim3,
+    )
+    run(
+        ["git", "apply", str(ROOT / "patches/dramsim3_deadline_hotpath.patch")],
+        cwd=dramsim3,
+    )
 
     sst_extract = work_root / "sst-elements-source"
     sst_extract.mkdir()
@@ -89,6 +114,9 @@ def main() -> int:
     )
 
     dramsim_build = work_root / "dramsim3-build"
+    host_cxx_flags = "-O3 -DNDEBUG -flto -fno-semantic-interposition"
+    if not args.portable_host:
+        host_cxx_flags += " -march=native"
     run(
         [
             "cmake",
@@ -98,7 +126,8 @@ def main() -> int:
             str(dramsim_build),
             "-DCMAKE_POLICY_VERSION_MINIMUM=3.5",
             "-DCMAKE_BUILD_TYPE=Release",
-            "-DCMAKE_SHARED_LINKER_FLAGS=-static-libstdc++ -static-libgcc -Wl,--exclude-libs,ALL",
+            f"-DCMAKE_CXX_FLAGS_RELEASE={host_cxx_flags}",
+            "-DCMAKE_SHARED_LINKER_FLAGS=-flto -static-libstdc++ -static-libgcc -Wl,--exclude-libs,ALL",
         ],
         cwd=work_root,
     )
@@ -175,6 +204,21 @@ def main() -> int:
         "dramsim3_revision": DRAMSIM3_REVISION,
         "dramsim3_patch_sha256": sha256(
             ROOT / "patches/dramsim3_exact_idle_advance.patch"
+        ),
+        "dramsim3_active_queue_patch_sha256": sha256(
+            ROOT / "patches/dramsim3_active_queue_hotpath.patch"
+        ),
+        "dramsim3_stats_hotpath_patch_sha256": sha256(
+            ROOT / "patches/dramsim3_stats_hotpath.patch"
+        ),
+        "dramsim3_command_timing_patch_sha256": sha256(
+            ROOT / "patches/dramsim3_command_timing_hotpath.patch"
+        ),
+        "dramsim3_deadline_hotpath_patch_sha256": sha256(
+            ROOT / "patches/dramsim3_deadline_hotpath.patch"
+        ),
+        "dramsim3_host_optimization": (
+            "portable_lto" if args.portable_host else "native_lto"
         ),
         "sst_elements_version": "16.0.0",
         "sst_patch_sha256": sha256(

@@ -1,0 +1,85 @@
+{
+  "artifacts": [
+    {
+      "path": "/data/tmp/chuxiao/grasu_regraph_sharded_k4_fullpr_hw_646c8a8_20260810_route/build/grasu_regraph_full_pagerank.hw.xclbin",
+      "sha256": "19d952b3c1d2a6c8f1a459b9702d6a5c18e61234cfabb50bc21520634b5e4a72",
+      "size_bytes": 73818304
+    },
+    {
+      "path": "/data/tmp/chuxiao/grasu_regraph_sharded_k4_fullpr_hw_646c8a8_20260810_route/build/grasu_regraph_full_pagerank.hw.xclbin.link_summary",
+      "sha256": "9f5cce786d92898851b712f89e39c7bb9c798c98cce0b349e10c299aaf5fbc4b",
+      "size_bytes": 133622
+    },
+    {
+      "path": "/data/tmp/chuxiao/grasu_regraph_sharded_k4_fullpr_hw_646c8a8_20260810_route/reports/link/link/imp/impl_1_hw_bb_locked_timing_summary_routed.rpt",
+      "sha256": "c3d648b6b72c7a5be7d7689a0c68b5913d0e3c41e1eab8d6116aa7512f07ce1b",
+      "size_bytes": 16859471
+    },
+    {
+      "path": "/data/tmp/chuxiao/grasu_regraph_sharded_k4_fullpr_hw_646c8a8_20260810_route/reports/link/link/imp/impl_1_kernel_util_routed.rpt",
+      "sha256": "5a156f2a771d814efc782327cb182a685b2ab243e1d8cf14ba70551a6ff3a012",
+      "size_bytes": 12015
+    },
+    {
+      "path": "/data/tmp/chuxiao/grasu_regraph_sharded_k4_fullpr_hw_646c8a8_20260810_route/manifest.json",
+      "sha256": "09a9bab3fefe923f115dd25bb09f5ec9ee286c2a3aa1c2b11df182438e23f1c5",
+      "size_bytes": 4386
+    },
+    {
+      "path": "/data/tmp/chuxiao/grasu_regraph_sharded_k4_fullpr_hw_646c8a8_20260810_route/logs/fullpr_route_bg_20260810_182948.log",
+      "sha256": "9ecc82ef380d2e90ea9a00509e373de51f1ae31e79336f9c670cc2f8546747b4",
+      "size_bytes": 64050
+    }
+  ],
+  "link_summary_present": true,
+  "log_tail": [
+    "INFO: [v++ 60-2331] SLR2 was specfied for compute unit pma_to_regraph_adapter_3, and verified as such in implementation.",
+    "INFO: [v++ 60-2331] SLR0 was specfied for compute unit pma_to_regraph_adapter_4, and verified as such in implementation.",
+    "INFO: [v++ 60-2331] SLR2 was specfied for compute unit pr_source_1, and verified as such in implementation.",
+    "INFO: [v++ 60-2331] SLR0 was specfied for compute unit process_cache_1, and verified as such in implementation.",
+    "INFO: [v++ 60-2331] SLR2 was specfied for compute unit process_cache_2, and verified as such in implementation.",
+    "INFO: [v++ 60-2331] SLR1 was specfied for compute unit process_ddr_1, and verified as such in implementation.",
+    "INFO: [v++ 60-2331] SLR2 was specfied for compute unit process_ddr_2, and verified as such in implementation.",
+    "INFO: [v++ 60-2331] SLR1 was specfied for compute unit regraph_frontend_mux_1, and verified as such in implementation.",
+    "INFO: [v++ 60-2331] SLR1 was specfied for compute unit regraph_pagerank_apply_1, and verified as such in implementation.",
+    "Check POST-VPL, containing 1 checks, has run: 0 errors",
+    "INFO: [v++ 60-244] Generating system estimate report...",
+    "INFO: [v++ 60-1092] Generated system estimate report: /data/tmp/chuxiao/grasu_regraph_sharded_k4_fullpr_hw_646c8a8_20260810_route/reports/link/link/system_estimate_grasu_regraph_full_pagerank.hw.xtxt",
+    "INFO: [v++ 60-586] Created /data/tmp/chuxiao/grasu_regraph_sharded_k4_fullpr_hw_646c8a8_20260810_route/build/grasu_regraph_full_pagerank.hw.ltx",
+    "INFO: [v++ 60-586] Created /data/tmp/chuxiao/grasu_regraph_sharded_k4_fullpr_hw_646c8a8_20260810_route/build/grasu_regraph_full_pagerank.hw.xclbin",
+    "INFO: [v++ 60-1307] Run completed. Additional information can be found in:",
+    "\tGuidance: /data/tmp/chuxiao/grasu_regraph_sharded_k4_fullpr_hw_646c8a8_20260810_route/reports/link/link/link_guidance.html",
+    "\tTiming Report: /data/tmp/chuxiao/grasu_regraph_sharded_k4_fullpr_hw_646c8a8_20260810_route/reports/link/link/imp/impl_1_hw_bb_locked_timing_summary_routed.rpt",
+    "\tVivado Log: /data/tmp/chuxiao/grasu_regraph_sharded_k4_fullpr_hw_646c8a8_20260810_route/logs/link/link/vivado.log",
+    "\tSteps Log File: /data/tmp/chuxiao/grasu_regraph_sharded_k4_fullpr_hw_646c8a8_20260810_route/logs/link/link/link.steps.log",
+    "",
+    "INFO: [v++ 60-2343] Use the Vitis Unified IDE to visualize and navigate the reports. Run the following command.",
+    "    vitis -a/ --analyze /data/tmp/chuxiao/grasu_regraph_sharded_k4_fullpr_hw_646c8a8_20260810_route/build/grasu_regraph_full_pagerank.hw.xclbin.link_summary",
+    "INFO: [v++ 60-791] Total elapsed time: 5h 13m 5s",
+    "INFO: [v++ 60-1653] Closing dispatch client."
+  ],
+  "pid": 619749,
+  "pid_running": false,
+  "route_dir": "/data/tmp/chuxiao/grasu_regraph_sharded_k4_fullpr_hw_646c8a8_20260810_route",
+  "status": "PASS_TIMING_MISS",
+  "timing": {
+    "constraints_met": false,
+    "parsed": true,
+    "present": true,
+    "ths_failing_endpoints": 0,
+    "ths_ns": 0.0,
+    "ths_total_endpoints": 1702688,
+    "tns_failing_endpoints": 84,
+    "tns_ns": -2.591,
+    "tns_total_endpoints": 1707207,
+    "tpws_failing_endpoints": 0,
+    "tpws_ns": 0.0,
+    "tpws_total_endpoints": 718633,
+    "whs_ns": 0.009,
+    "wns_ns": -0.069,
+    "wpws_ns": 0.0
+  },
+  "timing_report_present": true,
+  "util_report_present": true,
+  "xclbin_present": true
+}

@@ -1,0 +1,12 @@
+{
+  "allow_partial": false,
+  "analysis_dir": "/data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen/analysis_complete_live",
+  "analysis_summary": "/data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen/analysis_complete_live/summary.json",
+  "analysis_summary_sha256": "d30ad01f26360d4942d400f6eecd14f51dcbe7a80ef08eaff753ad4dab8e9a4e",
+  "campaign_manifest": "/data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen/campaign_manifest.json",
+  "campaign_manifest_sha256": "8c1f0aaa704bd303f752d310378e7b78a496d925800e65c7c66d269b6ea4e1b3",
+  "campaign_root": "/data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen",
+  "extra_result_roots": [],
+  "out_dir": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810",
+  "status": "PASS"
+}

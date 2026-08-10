@@ -1,0 +1,6 @@
+# spine_real_slice_version=1
+# case=cc_large_component_merge_insert_u1
+# vertices=128
+# columns=src dst weight diff
+47 64 15 1
+64 47 15 1

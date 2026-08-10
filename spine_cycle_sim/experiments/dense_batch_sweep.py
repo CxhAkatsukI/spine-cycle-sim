@@ -18,8 +18,10 @@ from .shared_workloads import (
 DENSE_SWEEP_VERTICES = 8192
 DENSE_SWEEP_BATCH_SIZES = (8, 64, 512, 4096, 8192, 16384)
 DENSE_SWEEP_PATTERNS = ("source_concentrated", "source_scattered")
-SPINE_COLD_FAMILY_L1_CAPACITY = 16_384
-SPINE_CAPACITY_FAILURE = "maintenance: Spine level writer exceeds target edge capacity"
+SPINE_MAX_SORT_EDGES = 131_072
+SPINE_CAPACITY_FAILURE = (
+    "maintenance: Spine cold level hierarchy has no capacity-safe free target"
+)
 GRASU_DEGREE_REORDER_ENTRIES = 4_096
 
 
@@ -119,7 +121,7 @@ def build_dense_batch_manifest(
             final_graph = apply_explicit_weighted_updates(graph, update)
             expected_spine_capacity_status = (
                 "PASS"
-                if len(final_graph.records) <= SPINE_COLD_FAMILY_L1_CAPACITY
+                if batch_size <= SPINE_MAX_SORT_EDGES
                 else "FAIL"
             )
             expected_grasu_capacity_status = (
@@ -145,9 +147,9 @@ def build_dense_batch_manifest(
                     "expected_spine_capacity_status":
                         expected_spine_capacity_status,
                     "expected_spine_capacity_reason": (
-                        "within_cold_family_l1_capacity"
+                        "within_max_sort_batch_capacity"
                         if expected_spine_capacity_status == "PASS"
-                        else "cold_family_l1_capacity"
+                        else "max_sort_batch_capacity"
                     ),
                     "expected_grasu_capacity_status":
                         expected_grasu_capacity_status,
@@ -172,7 +174,7 @@ def build_dense_batch_manifest(
             "batch_sizes": list(DENSE_SWEEP_BATCH_SIZES),
             "vertices": graph.vertices,
             "initial_edges": len(graph.records),
-            "cold_family_l1_capacity": SPINE_COLD_FAMILY_L1_CAPACITY,
+            "spine_max_sort_edges": SPINE_MAX_SORT_EDGES,
             "grasu_degree_reorder_entries": GRASU_DEGREE_REORDER_ENTRIES,
             "updates_are_insertions": True,
             "graph_and_update_bytes_identical_across_architectures": True,
@@ -185,9 +187,9 @@ def build_dense_batch_manifest(
         "limitations": [
             "The sweep is synthetic and isolates batch size and source concentration.",
             "It is not a full real-dataset performance result.",
-            "All vertex IDs are below 2^20, so the cold path maps to one family; "
-            "the 16384-update endpoint intentionally crosses that family's L1 "
-            "capacity and is a capacity-cliff result, not a successful timing row.",
+            "All current endpoints are within Spine MAX_SORT_N=131072. The "
+            "capacity-safe selector may skip undersized L1-L3 targets, so 16384 "
+            "concentrated updates are a timing row rather than a capacity failure.",
             "The proposed GraSU PageRank degree-maintenance scoreboard has 4096 "
             "entries; larger batches are profile-capacity results until a windowed "
             "degree HLS implementation is supplied.",
@@ -240,8 +242,7 @@ def validate_dense_batch_manifest(
             raise ValueError(f"dense final edge count mismatch for {run['run_id']}")
         expected_capacity_status = (
             "PASS"
-            if len(final_graph.records)
-            <= int(contract["cold_family_l1_capacity"])
+            if key[1] <= int(contract["spine_max_sort_edges"])
             else "FAIL"
         )
         if run.get("expected_spine_capacity_status") != expected_capacity_status:
@@ -288,7 +289,7 @@ def validate_spine_dense_capacity_failure(
         "update_edges": result.get("update_edges") == run["physical_records"],
         "final_edges": result.get("materialized_snapshot_edges")
         == run["final_edges"],
-        "target_level": result.get("maintenance_target_level") == 1,
+        "target_level": result.get("maintenance_target_level") == -1,
         "overflow": result.get("maintenance_logical_overflow_events") == 1,
         "maintenance_only": int(result.get("maintenance_cycles", 0)) > 0
         and result.get("maintenance_persisted_edges") == 0

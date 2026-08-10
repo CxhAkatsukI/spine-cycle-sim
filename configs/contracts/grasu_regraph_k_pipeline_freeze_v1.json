@@ -1,0 +1,235 @@
+{
+  "claim_boundary": {
+    "k2_k4": "scalability_only_requires_shared_port_hls_before_primary_use",
+    "primary": "routed_k1_multi_partition_execution_driven",
+    "resource_projection_is_not_routed_evidence": true
+  },
+  "contract_id": "grasu_regraph_k_pipeline_freeze_v1_20260728",
+  "hls_pipeline_build_revision": "80c50937278a0835aee09b62cb1c61bdc4903d4f",
+  "platform": {
+    "axi_master_instance_budget": 33,
+    "device": "xilinx_u55c_gen3x16_xdma_3_202210_1",
+    "device_user_budget": {
+      "bram": 1816,
+      "dsp": 9020,
+      "lut": 1122597,
+      "reg": 2252805,
+      "uram": 960
+    },
+    "hbm_pseudo_channel_budget": 23,
+    "kernel_clock_mhz": 150,
+    "maximum_device_resource_fraction": 0.8
+  },
+  "projection_method": "routed K=1 total plus (K-1) times routed complete compute-worker CUs; AXI masters counted from compiled XO interface metadata",
+  "projections": {
+    "full_pagerank": {
+      "candidates": [
+        {
+          "axi_master_instances": 27,
+          "compute_pipelines": 1,
+          "hls_evidence": "routed",
+          "master_budget_passed": true,
+          "maximum_resource_fraction": 0.15889406438819986,
+          "resource_ceiling_passed": true,
+          "resource_projection": {
+            "bram": 278,
+            "dsp": 304,
+            "lut": 178374,
+            "reg": 177836,
+            "uram": 64
+          }
+        },
+        {
+          "axi_master_instances": 35,
+          "compute_pipelines": 2,
+          "hls_evidence": "not_synthesized",
+          "master_budget_passed": false,
+          "maximum_resource_fraction": 0.23202805637285687,
+          "resource_ceiling_passed": true,
+          "resource_projection": {
+            "bram": 419,
+            "dsp": 528,
+            "lut": 260474,
+            "reg": 267859,
+            "uram": 128
+          }
+        },
+        {
+          "axi_master_instances": 51,
+          "compute_pipelines": 4,
+          "hls_evidence": "not_synthesized",
+          "master_budget_passed": false,
+          "maximum_resource_fraction": 0.3860132158590308,
+          "resource_ceiling_passed": true,
+          "resource_projection": {
+            "bram": 701,
+            "dsp": 976,
+            "lut": 424674,
+            "reg": 447905,
+            "uram": 256
+          }
+        }
+      ],
+      "replicated_worker_resources": {
+        "bram": 141,
+        "dsp": 224,
+        "lut": 82100,
+        "reg": 90023,
+        "uram": 64
+      },
+      "routed_k1_build_id": "grasu_regraph_full_pagerank_150mhz",
+      "routed_k1_resources": {
+        "bram": 278,
+        "dsp": 304,
+        "lut": 178374,
+        "reg": 177836,
+        "uram": 64
+      },
+      "routed_k1_wns_ns": -0.13
+    },
+    "thresholded_residual_pagerank": {
+      "candidates": [
+        {
+          "axi_master_instances": 29,
+          "compute_pipelines": 1,
+          "hls_evidence": "routed",
+          "master_budget_passed": true,
+          "maximum_resource_fraction": 0.22064195788871696,
+          "resource_ceiling_passed": true,
+          "resource_projection": {
+            "bram": 293,
+            "dsp": 336,
+            "lut": 247692,
+            "reg": 301029,
+            "uram": 64
+          }
+        },
+        {
+          "axi_master_instances": 38,
+          "compute_pipelines": 2,
+          "hls_evidence": "not_synthesized",
+          "master_budget_passed": false,
+          "maximum_resource_fraction": 0.3524532846604792,
+          "resource_ceiling_passed": true,
+          "resource_projection": {
+            "bram": 449,
+            "dsp": 592,
+            "lut": 395663,
+            "reg": 512014,
+            "uram": 128
+          }
+        },
+        {
+          "axi_master_instances": 56,
+          "compute_pipelines": 4,
+          "hls_evidence": "not_synthesized",
+          "master_budget_passed": false,
+          "maximum_resource_fraction": 0.6160759382040037,
+          "resource_ceiling_passed": true,
+          "resource_projection": {
+            "bram": 761,
+            "dsp": 1104,
+            "lut": 691605,
+            "reg": 933984,
+            "uram": 256
+          }
+        }
+      ],
+      "replicated_worker_resources": {
+        "bram": 156,
+        "dsp": 256,
+        "lut": 147971,
+        "reg": 210985,
+        "uram": 64
+      },
+      "routed_k1_build_id": "grasu_regraph_thresholded_residual_pagerank_150mhz",
+      "routed_k1_resources": {
+        "bram": 293,
+        "dsp": 336,
+        "lut": 247692,
+        "reg": 301029,
+        "uram": 64
+      },
+      "routed_k1_wns_ns": -0.087
+    },
+    "weighted_sssp": {
+      "candidates": [
+        {
+          "axi_master_instances": 30,
+          "compute_pipelines": 1,
+          "hls_evidence": "routed",
+          "master_budget_passed": true,
+          "maximum_resource_fraction": 0.12830396475770925,
+          "resource_ceiling_passed": true,
+          "resource_projection": {
+            "bram": 233,
+            "dsp": 0,
+            "lut": 96559,
+            "reg": 107380,
+            "uram": 64
+          }
+        },
+        {
+          "axi_master_instances": 38,
+          "compute_pipelines": 2,
+          "hls_evidence": "not_synthesized",
+          "master_budget_passed": false,
+          "maximum_resource_fraction": 0.19933920704845814,
+          "resource_ceiling_passed": true,
+          "resource_projection": {
+            "bram": 362,
+            "dsp": 0,
+            "lut": 131551,
+            "reg": 153948,
+            "uram": 128
+          }
+        },
+        {
+          "axi_master_instances": 54,
+          "compute_pipelines": 4,
+          "hls_evidence": "not_synthesized",
+          "master_budget_passed": false,
+          "maximum_resource_fraction": 0.34140969162995594,
+          "resource_ceiling_passed": true,
+          "resource_projection": {
+            "bram": 620,
+            "dsp": 0,
+            "lut": 201535,
+            "reg": 247084,
+            "uram": 256
+          }
+        }
+      ],
+      "replicated_worker_resources": {
+        "bram": 129,
+        "dsp": 0,
+        "lut": 34992,
+        "reg": 46568,
+        "uram": 64
+      },
+      "routed_k1_build_id": "grasu_regraph_weighted_sssp_150mhz",
+      "routed_k1_resources": {
+        "bram": 233,
+        "dsp": 0,
+        "lut": 96559,
+        "reg": 107380,
+        "uram": 64
+      },
+      "routed_k1_wns_ns": -0.013
+    }
+  },
+  "routed_ppa_manifest": {
+    "path": "configs/evidence/candidate10_publication_ppa_v3.json",
+    "sha256": "4048752a6bab08eb7982a1124bd805e6244fc4ffbfa94cbff45f76a435a83e73"
+  },
+  "schema_version": 1,
+  "selection": {
+    "address_validated_partitions": 4,
+    "compute_pipelines": 1,
+    "destination_partition_capacity": 16,
+    "dispatch": "finite_work_conserving",
+    "frozen_before_holdout": true,
+    "partition_execution": "serial_at_k1",
+    "reason": "K=1 is the largest routed configuration. Direct complete-worker replication exceeds the 33-master HMSS budget at K=2 for every algorithm; K>1 requires a separately synthesized shared-port top."
+  }
+}

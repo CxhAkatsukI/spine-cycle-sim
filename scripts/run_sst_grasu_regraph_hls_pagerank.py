@@ -22,13 +22,19 @@ from scripts.run_sst_grasu_regraph_hls_weighted import (  # noqa: E402
     HlsWeightedOracle,
     build_hls_weighted_oracle,
 )
+from spine_cycle_sim.experiments.grasu_addressing import (  # noqa: E402
+    grasu_hbm_address_environment,
+    partition_layout_footprints,
+    validate_grasu_hbm_address_map,
+    validate_partition_footprints,
+)
 from spine_cycle_sim.experiments.profile_capabilities import (  # noqa: E402
     AlgorithmCapability,
     CapabilityCatalog,
     load_capability_catalog,
 )
 from spine_cycle_sim.experiments.regraph_contracts import (  # noqa: E402
-    expected_pagerank_source_cache_requests,
+    expected_partitioned_source_cache_requests,
 )
 from spine_cycle_sim.experiments.shared_workloads import load_slice  # noqa: E402
 from spine_cycle_sim.sst_binding import grasu_normalized_memory_binding  # noqa: E402
@@ -102,11 +108,48 @@ def full_pagerank_oracle(
     return tuple(ranks)
 
 
+def expected_source_cache_ledger(
+    profile: dict[str, object], oracle: HlsWeightedOracle
+) -> tuple[int, int, int]:
+    """Return requests, response lines, and lane writes for sparse partitions."""
+
+    params = profile["parameters"]
+    memory = profile["memory"]
+    assert isinstance(params, dict) and isinstance(memory, dict)
+    iterations = int(params["pagerank_iterations"])
+    partition_vertices = int(params["regraph_partition_vertices"])
+    destination_partitions = (
+        len(oracle.external_to_internal) + partition_vertices - 1
+    ) // partition_vertices
+    partition_sources: list[set[int]] = [
+        set() for _ in range(destination_partitions)
+    ]
+    for source, destination, _ in oracle.final_internal_edges:
+        partition_sources[destination // partition_vertices].add(source)
+    requests = sum(
+        expected_partitioned_source_cache_requests(
+            sources,
+            int(params["regraph_source_buffer_vertices"]),
+            iterations,
+        )
+        for sources in partition_sources
+    )
+    state_bytes = int(params["pagerank_state_bytes_per_vertex"])
+    vertices_per_beat = int(memory["data_width_bits"]) // 8 // state_bytes
+    lines = (
+        requests
+        * int(params["regraph_source_buffer_vertices"])
+        // vertices_per_beat
+    )
+    return requests, lines, lines * int(params["regraph_map_reduce_lanes"])
+
+
 def validate_result(
     result: dict[str, object],
     profile: dict[str, object],
     oracle: HlsWeightedOracle,
     ranks_external: tuple[float, ...],
+    downstream_sharing: str = "direct",
 ) -> None:
     params = profile["parameters"]
     memory = profile["memory"]
@@ -114,18 +157,13 @@ def validate_result(
     iterations = int(params["pagerank_iterations"])
     vertices = len(oracle.external_to_internal)
     partition_vertices = int(params["regraph_partition_vertices"])
-    state_bytes = int(params["pagerank_state_bytes_per_vertex"])
-    vertices_per_beat = int(memory["data_width_bits"]) // 8 // state_bytes
-    source_requests = expected_pagerank_source_cache_requests(
-        vertices, int(params["regraph_source_buffer_vertices"]), iterations
+    destination_partitions = (vertices + partition_vertices - 1) // partition_vertices
+    source_requests, source_lines, source_lane_writes = (
+        expected_source_cache_ledger(profile, oracle)
     )
-    source_lines = (
-        source_requests
-        * int(params["regraph_source_buffer_vertices"])
-        // vertices_per_beat
-    )
-    rows = partition_vertices // 2 * iterations
-    bursts = partition_vertices // 16 * iterations
+    rows = destination_partitions * partition_vertices // 2 * iterations
+    bursts = destination_partitions * partition_vertices // 16 * iterations
+    source_prepare_degree_reads = (vertices + 15) // 16
     reported_ranks = tuple(float(value) for value in result.get("ranks_external", []))
     external_max_abs_error = (
         max(abs(actual - expected) for actual, expected in zip(reported_ranks, ranks_external))
@@ -162,7 +200,26 @@ def validate_result(
         and result.get("degree_update_reads") == oracle.physical_updates
         and result.get("degree_update_writes") == oracle.physical_updates,
         "fixed_iterations": result.get("iterations") == iterations,
-        "degree_reads": result.get("degree_reads") == vertices * iterations,
+        "partitions": result.get("destination_partitions")
+        == destination_partitions,
+        "pipelines": result.get("compute_pipelines")
+        == int(params.get("regraph_compute_pipelines", 1)),
+        "downstream_sharing": result.get("downstream_sharing")
+        == downstream_sharing,
+        "downstream_parallelism": result.get(
+            "max_parallel_downstream_partitions"
+        )
+        == (
+            min(
+                int(params.get("regraph_compute_pipelines", 1)),
+                destination_partitions,
+            )
+            if downstream_sharing == "direct"
+            else 1
+        ),
+        "degree_reads": result.get("source_prepare_degree_reads")
+        == source_prepare_degree_reads
+        and result.get("degree_reads") == source_prepare_degree_reads + bursts,
         "live_edges": result.get("compute_live_edges")
         == len(oracle.final_external_edges) * iterations,
         "lanes": result.get("edge_lanes") == params["regraph_map_reduce_lanes"]
@@ -170,7 +227,7 @@ def validate_result(
         "source_requests": result.get("source_cache_requests") == source_requests,
         "source_lines": result.get("source_cache_lines") == source_lines,
         "source_lane_writes": result.get("source_cache_lane_writes")
-        == source_lines * int(params["regraph_map_reduce_lanes"]),
+        == source_lane_writes,
         "rows": result.get("gather_rows_emitted") == rows
         and result.get("merger_rows_consumed") == rows,
         "bursts": result.get("merger_bursts_emitted") == bursts
@@ -182,7 +239,10 @@ def validate_result(
     failed = [name for name, passed in checks.items() if not passed]
     if failed:
         raise RuntimeError(
-            f"HLS-equivalent PageRank validation failed ({failed}): {result}"
+            "HLS-equivalent PageRank validation failed "
+            f"({failed}); cycles={result.get('cycles')} "
+            f"partitions={result.get('destination_partitions')} "
+            f"pipelines={result.get('compute_pipelines')}"
         )
 
 
@@ -194,19 +254,48 @@ def main() -> int:
     )
     parser.add_argument("--workload", type=Path, default=DEFAULT_INITIAL)
     parser.add_argument("--update-workload", type=Path, default=DEFAULT_UPDATE)
+    parser.add_argument(
+        "--downstream-sharing", choices=("direct", "shared"), default=None
+    )
     parser.add_argument("--out-dir", type=Path, required=True)
     parser.add_argument("--sst", type=Path, default=DEFAULT_SST)
     parser.add_argument("--lib-dir", type=Path, default=ROOT / "build" / "sst")
     parser.add_argument("--max-cycles", type=int, default=30_000_000)
     parser.add_argument("--no-build", action="store_true")
+    parser.add_argument(
+        "--reuse-result",
+        action="store_true",
+        help="Revalidate an existing result.json and DRAM directory without rerunning SST.",
+    )
+    parser.add_argument(
+        "--reuse-host-wall-seconds",
+        type=float,
+        help="Original SST wall time to preserve when --reuse-result is used.",
+    )
     parser.add_argument("--instantiate-all-hbm-channels", action="store_true")
     args = parser.parse_args()
+    if args.reuse_result:
+        if args.reuse_host_wall_seconds is None or args.reuse_host_wall_seconds <= 0:
+            parser.error(
+                "--reuse-result requires a positive --reuse-host-wall-seconds"
+            )
+    elif args.reuse_host_wall_seconds is not None:
+        parser.error("--reuse-host-wall-seconds requires --reuse-result")
 
     profile_path = args.profile.resolve()
     profile = json.loads(profile_path.read_text(encoding="utf-8"))
     expected_profiles = {
         "grasu_regraph_weighted_pma_hls_proposed_pagerank_ff13a67",
         "grasu_regraph_candidate10_normalized_hls_pagerank_v3",
+        "grasu_regraph_candidate10_k1_multipart_pagerank_v4",
+        "grasu_regraph_candidate10_k2_multipart_pagerank_v4",
+        "grasu_regraph_candidate10_k4_multipart_pagerank_v4",
+        "grasu_regraph_candidate10_k1_multipart_pagerank_packed_v5",
+        "grasu_regraph_candidate10_k2_multipart_pagerank_packed_v5",
+        "grasu_regraph_candidate10_k4_multipart_pagerank_packed_v5",
+        "grasu_regraph_candidate10_k4_shared_multipart_pagerank_packed_v6",
+        "grasu_regraph_candidate10_k1_multipart_pagerank_fullgraph_v7",
+        "grasu_regraph_candidate10_k4_shared_multipart_pagerank_fullgraph_v7",
     }
     if profile.get("profile_id") not in expected_profiles:
         raise ValueError("runner requires a pinned HLS-derived PageRank profile")
@@ -215,9 +304,40 @@ def main() -> int:
     )
     params = profile["parameters"]
     memory = profile["memory"]
+    profile_sharing = str(params.get("regraph_downstream_sharing", "direct"))
+    downstream_sharing = args.downstream_sharing or profile_sharing
+    if downstream_sharing != profile_sharing:
+        raise ValueError("PageRank runner downstream sharing differs from profile")
     initial = load_slice(args.workload.resolve())
     update = load_slice(args.update_workload.resolve())
     oracle = build_hls_weighted_oracle(initial, update, 0)
+    address_regions = None
+    address_environment: dict[str, str] = {}
+    if params.get("physical_address_map_id"):
+        partition_vertices = int(params["regraph_partition_vertices"])
+        destination_partitions = (
+            initial.vertices + partition_vertices - 1
+        ) // partition_vertices
+        footprints = partition_layout_footprints(
+            initial.records,
+            update.records,
+            initial.vertices,
+            partition_vertices,
+            oracle.external_to_internal,
+            weighted_full_word=True,
+        )
+        validate_partition_footprints(params, footprints)
+        address_regions = validate_grasu_hbm_address_map(
+            params,
+            int(memory["channel_capacity_bytes"]),
+            destination_partitions,
+            initial.vertices,
+            oracle.physical_updates,
+            footprints,
+        )
+        address_environment = grasu_hbm_address_environment(
+            params, address_regions
+        )
     damping = float(params["pagerank_damping"])
     iterations = int(params["pagerank_iterations"])
     ranks_external = full_pagerank_oracle(
@@ -229,14 +349,20 @@ def main() -> int:
     kernel_clock = next(
         clock for clock in profile["clocks"] if clock["name"] == "kernel"
     )
-    if not args.no_build:
+    if not args.no_build and not args.reuse_result:
         subprocess.run(["make", "-C", "cpp/sst", "-j2"], cwd=ROOT, check=True)
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
     result_path = (args.out_dir / "result.json").resolve()
     dram_dir = (args.out_dir / "dram").resolve()
-    result_path.unlink(missing_ok=True)
-    shutil.rmtree(dram_dir, ignore_errors=True)
+    if args.reuse_result:
+        if not result_path.is_file() or not dram_dir.is_dir():
+            raise FileNotFoundError(
+                "--reuse-result requires an existing result.json and DRAM directory"
+            )
+    else:
+        result_path.unlink(missing_ok=True)
+        shutil.rmtree(dram_dir, ignore_errors=True)
     env = os.environ.copy()
     env.update(
         {
@@ -259,6 +385,21 @@ def main() -> int:
             ),
             "GRASU_SST_PARTITION_VERTICES": str(
                 params["regraph_partition_vertices"]
+            ),
+            "GRASU_SST_COMPUTE_PIPELINES": str(
+                params.get("regraph_compute_pipelines", 1)
+            ),
+            "GRASU_SST_SHARED_DOWNSTREAM": (
+                "1" if downstream_sharing == "shared" else "0"
+            ),
+            "GRASU_SST_SHARDED_RUNTIME_PLACEMENT": (
+                "1" if params.get("grasu_sharded_runtime_placement", False) else "0"
+            ),
+            "GRASU_SST_RUNTIME_CHANNEL_CAPACITY_BYTES": str(
+                params.get(
+                    "grasu_runtime_channel_capacity_bytes",
+                    memory["channel_capacity_bytes"],
+                )
             ),
             "GRASU_SST_SOURCE_BUFFER_VERTICES": str(
                 params["regraph_source_buffer_vertices"]
@@ -348,31 +489,36 @@ def main() -> int:
             ),
         }
     )
+    env.update(address_environment)
     sst_library = forced_sst_library_binding(args.sst, args.lib_dir)
     command = [
         str(args.sst.resolve()),
         sst_library["command_option"],
         str(ROOT / "sst" / "grasu_regraph_vertical.py"),
     ]
-    started = time.monotonic()
-    completed = subprocess.run(
-        command,
-        cwd=ROOT,
-        env=env,
-        check=False,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-    )
-    wall_seconds = time.monotonic() - started
-    (args.out_dir / "sst.log").write_text(completed.stdout, encoding="utf-8")
-    if completed.returncode != 0:
-        raise RuntimeError(
-            f"HLS-equivalent PageRank SST failed with rc={completed.returncode}; "
-            f"see {args.out_dir / 'sst.log'}"
+    wall_seconds = float(args.reuse_host_wall_seconds or 0.0)
+    if not args.reuse_result:
+        started = time.monotonic()
+        completed = subprocess.run(
+            command,
+            cwd=ROOT,
+            env=env,
+            check=False,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
         )
+        wall_seconds = time.monotonic() - started
+        (args.out_dir / "sst.log").write_text(completed.stdout, encoding="utf-8")
+        if completed.returncode != 0:
+            raise RuntimeError(
+                f"HLS-equivalent PageRank SST failed with rc={completed.returncode}; "
+                f"see {args.out_dir / 'sst.log'}"
+            )
     result = json.loads(result_path.read_text(encoding="utf-8"))
-    validate_result(result, profile, oracle, ranks_external)
+    validate_result(
+        result, profile, oracle, ranks_external, downstream_sharing
+    )
     dram = load_dram_stats(dram_dir)
     if (
         dram["channels"] != len(binding.instantiated_channels)
@@ -391,9 +537,12 @@ def main() -> int:
         "update_workload": str(args.update_workload.resolve()),
         "update_workload_sha256": sha256(args.update_workload.resolve()),
         "sst_memory_binding": binding.as_manifest(),
+        "physical_hbm_address_regions": address_regions,
         "sst_library_binding": sst_library,
         "sst_plugin_sha256": sst_library["plugin_sha256"],
         "sst_host_wall_seconds": wall_seconds,
+        "sst_result_reused": args.reuse_result,
+        "downstream_sharing": downstream_sharing,
         "command": command,
         "result": result,
         "dram": dram,

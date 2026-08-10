@@ -1,0 +1,6 @@
+# spine_real_slice_version=1
+# case=connected_components_multipart_insert
+# vertices=33
+# columns=src dst weight diff
+1 32 1 1
+32 1 1 1

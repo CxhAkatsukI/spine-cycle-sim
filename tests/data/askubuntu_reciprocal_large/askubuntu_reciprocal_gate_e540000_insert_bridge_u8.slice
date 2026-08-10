@@ -1,0 +1,20 @@
+# spine_real_slice_version=1
+# case=askubuntu_reciprocal_gate_e540000_insert_bridge_u8
+# vertices=94931
+# columns=src dst weight diff
+0 8996 21 1
+0 12657 10 1
+0 12950 31 1
+0 13197 14 1
+0 17129 22 1
+0 17311 16 1
+0 18876 23 1
+0 23052 25 1
+8996 0 21 1
+12657 0 10 1
+12950 0 31 1
+13197 0 14 1
+17129 0 22 1
+17311 0 16 1
+18876 0 23 1
+23052 0 25 1

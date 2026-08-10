@@ -147,6 +147,25 @@ void Scheduler::notify_latched_commit(void *owner,
   static_cast<Scheduler *>(owner)->mark_latched_commit_ready(slot);
 }
 
+void Scheduler::notify_latched_evaluate(void *owner, std::size_t slot,
+                                        bool ready) noexcept {
+  static_cast<Scheduler *>(owner)->mark_latched_evaluate_ready(slot, ready);
+}
+
+void Scheduler::mark_latched_evaluate_ready(std::size_t slot,
+                                             bool ready) noexcept {
+  const std::size_t word = slot / 64;
+  if (word >= latched_evaluate_words_.size()) {
+    return;
+  }
+  const std::uint64_t bit = std::uint64_t{1} << (slot % 64);
+  if (ready) {
+    latched_evaluate_words_[word] |= bit;
+  } else {
+    latched_evaluate_words_[word] &= ~bit;
+  }
+}
+
 void Scheduler::mark_latched_commit_ready(std::size_t slot) noexcept {
   const std::size_t word = slot / 64;
   if (word >= latched_commit_words_.size()) {
@@ -156,16 +175,27 @@ void Scheduler::mark_latched_commit_ready(std::size_t slot) noexcept {
 }
 
 void Scheduler::rebuild_phase_registrations() {
+  for (std::size_t slot = 0; slot < evaluate_components_.size(); ++slot) {
+    if (evaluate_latched_guards_[slot]) {
+      evaluate_components_[slot]->unbind_latched_evaluate_notifier();
+    }
+  }
   for (std::size_t slot = 0; slot < commit_components_.size(); ++slot) {
     if (commit_latched_guards_[slot]) {
       commit_components_[slot]->unbind_latched_commit_notifier();
     }
   }
   prepare_components_.clear();
+  prepare_dynamic_guards_.clear();
   evaluate_components_.clear();
   evaluate_dynamic_guards_.clear();
+  evaluate_latched_guards_.clear();
+  evaluate_ready_tokens_.clear();
+  unconditional_evaluate_slots_.clear();
+  dynamic_evaluate_slots_.clear();
   commit_components_.clear();
   commit_dynamic_guards_.clear();
+  commit_ready_tokens_.clear();
   commit_latched_guards_.clear();
   unconditional_commit_slots_.clear();
   dynamic_commit_slots_.clear();
@@ -173,18 +203,43 @@ void Scheduler::rebuild_phase_registrations() {
   for (Component *component : components_) {
     if (component->has_prepare_phase()) {
       prepare_components_.push_back(component);
+      prepare_dynamic_guards_.push_back(
+          component->has_dynamic_prepare_guard());
     }
     if (component->has_evaluate_phase()) {
       evaluate_components_.push_back(component);
       evaluate_dynamic_guards_.push_back(
           component->has_dynamic_evaluate_guard());
+      evaluate_latched_guards_.push_back(
+          component->has_latched_evaluate_guard());
+      evaluate_ready_tokens_.push_back(component->evaluate_ready_token());
     }
     if (component->has_commit_phase()) {
       commit_components_.push_back(component);
       commit_dynamic_guards_.push_back(
           component->has_dynamic_commit_guard());
+      commit_ready_tokens_.push_back(component->commit_ready_token());
       commit_latched_guards_.push_back(
           component->has_latched_commit_guard());
+    }
+  }
+
+  const std::size_t evaluate_word_count =
+      (evaluate_components_.size() + 63) / 64;
+  latched_evaluate_words_.assign(evaluate_word_count, 0);
+  selected_evaluate_words_.assign(evaluate_word_count, 0);
+  for (std::size_t slot = 0; slot < evaluate_components_.size(); ++slot) {
+    Component *component = evaluate_components_[slot];
+    if (evaluate_latched_guards_[slot]) {
+      component->bind_latched_evaluate_notifier(
+          this, slot, &Scheduler::notify_latched_evaluate);
+      if (component->latched_evaluate_ready()) {
+        mark_latched_evaluate_ready(slot, true);
+      }
+    } else if (evaluate_dynamic_guards_[slot]) {
+      dynamic_evaluate_slots_.push_back(slot);
+    } else {
+      unconditional_evaluate_slots_.push_back(slot);
     }
   }
 
@@ -243,6 +298,26 @@ void Scheduler::step() {
     selected_commit_words_[slot / 64] |=
         std::uint64_t{1} << (slot % 64);
   };
+  const auto select_evaluate = [this](std::size_t slot) {
+    selected_evaluate_words_[slot / 64] |=
+        std::uint64_t{1} << (slot % 64);
+  };
+  const auto invoke_selected_evaluates =
+      [this, &invoke](const auto &context_for_slot) {
+        for (std::size_t word_index = 0;
+             word_index < selected_evaluate_words_.size(); ++word_index) {
+          std::uint64_t word = selected_evaluate_words_[word_index];
+          while (word != 0) {
+            const unsigned bit = std::countr_zero(word);
+            const std::size_t slot = word_index * 64 + bit;
+            Component *component = evaluate_components_[slot];
+            const CycleContext context = context_for_slot(slot);
+            invoke(*component, ProfilePhase::kEvaluate,
+                   [&] { component->evaluate(context); });
+            word &= word - 1;
+          }
+        }
+      };
   const auto invoke_selected_commits =
       [this, &invoke](const auto &context_for_slot) {
         for (std::size_t word_index = 0;
@@ -266,33 +341,43 @@ void Scheduler::step() {
         .domain_cycle = clocks_.front().completed_cycles,
         .clock_id = 0,
     };
-    for (Component* component : prepare_components_) {
+    for (std::size_t index = 0; index < prepare_components_.size(); ++index) {
+      Component *component = prepare_components_[index];
+      if (prepare_dynamic_guards_[index] && !component->prepare_ready()) {
+        continue;
+      }
       invoke(*component, ProfilePhase::kPrepare,
              [&] { component->prepare(context); });
     }
-    for (std::size_t index = 0; index < evaluate_components_.size(); ++index) {
-      Component* component = evaluate_components_[index];
-      if (evaluate_dynamic_guards_[index] && !component->evaluate_ready()) {
-        continue;
-      }
-      invoke(*component, ProfilePhase::kEvaluate,
-             [&] { component->evaluate(context); });
+    selected_evaluate_words_ = latched_evaluate_words_;
+    for (const std::size_t slot : unconditional_evaluate_slots_) {
+      select_evaluate(slot);
     }
+    for (const std::size_t slot : dynamic_evaluate_slots_) {
+      const bool* token = evaluate_ready_tokens_[slot];
+      if (token != nullptr ? *token : evaluate_components_[slot]->evaluate_ready()) {
+        select_evaluate(slot);
+      }
+    }
+    invoke_selected_evaluates([&context](std::size_t) { return context; });
     selected_commit_words_ = latched_commit_words_;
     std::fill(latched_commit_words_.begin(), latched_commit_words_.end(), 0);
     for (const std::size_t slot : unconditional_commit_slots_) {
       select_commit(slot);
     }
     for (const std::size_t slot : dynamic_commit_slots_) {
-      if (commit_components_[slot]->commit_ready()) {
+      const bool* token = commit_ready_tokens_[slot];
+      if (token != nullptr ? *token : commit_components_[slot]->commit_ready()) {
         select_commit(slot);
       }
     }
     invoke_selected_commits([&context](std::size_t) { return context; });
   } else {
-    for (Component* component : prepare_components_) {
+    for (std::size_t index = 0; index < prepare_components_.size(); ++index) {
+      Component *component = prepare_components_[index];
       const ClockId id = component->clock_id();
-      if (clocks_[id].next_edge_fs == now_fs_) {
+      if (clocks_[id].next_edge_fs == now_fs_ &&
+          (!prepare_dynamic_guards_[index] || component->prepare_ready())) {
         const CycleContext context{
             .now_fs = now_fs_,
             .domain_cycle = clocks_[id].completed_cycles,
@@ -302,20 +387,43 @@ void Scheduler::step() {
                [&] { component->prepare(context); });
       }
     }
-    for (std::size_t index = 0; index < evaluate_components_.size(); ++index) {
-      Component* component = evaluate_components_[index];
-      const ClockId id = component->clock_id();
-      if (clocks_[id].next_edge_fs == now_fs_ &&
-          (!evaluate_dynamic_guards_[index] || component->evaluate_ready())) {
-        const CycleContext context{
-            .now_fs = now_fs_,
-            .domain_cycle = clocks_[id].completed_cycles,
-            .clock_id = id,
-        };
-        invoke(*component, ProfilePhase::kEvaluate,
-               [&] { component->evaluate(context); });
+    std::fill(selected_evaluate_words_.begin(),
+              selected_evaluate_words_.end(), 0);
+    for (std::size_t word_index = 0;
+         word_index < latched_evaluate_words_.size(); ++word_index) {
+      std::uint64_t pending = latched_evaluate_words_[word_index];
+      while (pending != 0) {
+        const unsigned bit = std::countr_zero(pending);
+        const std::size_t slot = word_index * 64 + bit;
+        Component *component = evaluate_components_[slot];
+        if (clocks_[component->clock_id()].next_edge_fs == now_fs_) {
+          select_evaluate(slot);
+        }
+        pending &= pending - 1;
       }
     }
+    for (const std::size_t slot : unconditional_evaluate_slots_) {
+      Component *component = evaluate_components_[slot];
+      if (clocks_[component->clock_id()].next_edge_fs == now_fs_) {
+        select_evaluate(slot);
+      }
+    }
+    for (const std::size_t slot : dynamic_evaluate_slots_) {
+      Component *component = evaluate_components_[slot];
+      const bool* token = evaluate_ready_tokens_[slot];
+      if (clocks_[component->clock_id()].next_edge_fs == now_fs_ &&
+          (token != nullptr ? *token : component->evaluate_ready())) {
+        select_evaluate(slot);
+      }
+    }
+    invoke_selected_evaluates([this](std::size_t slot) {
+      const ClockId id = evaluate_components_[slot]->clock_id();
+      return CycleContext{
+          .now_fs = now_fs_,
+          .domain_cycle = clocks_[id].completed_cycles,
+          .clock_id = id,
+      };
+    });
     std::fill(selected_commit_words_.begin(), selected_commit_words_.end(), 0);
     for (std::size_t word_index = 0;
          word_index < latched_commit_words_.size(); ++word_index) {
@@ -341,7 +449,9 @@ void Scheduler::step() {
     for (const std::size_t slot : dynamic_commit_slots_) {
       Component *component = commit_components_[slot];
       if (clocks_[component->clock_id()].next_edge_fs == now_fs_ &&
-          component->commit_ready()) {
+          (commit_ready_tokens_[slot] != nullptr
+               ? *commit_ready_tokens_[slot]
+               : component->commit_ready())) {
         select_commit(slot);
       }
     }

@@ -50,9 +50,23 @@ class ArchitectureProfileTests(unittest.TestCase):
 
     def test_repository_profiles_load_and_have_unique_ids(self) -> None:
         loaded = [load_architecture_profile(path) for path in sorted(PROFILES.glob("*.json"))]
-        self.assertEqual(len(loaded), 22)
+        self.assertEqual(len(loaded), 60)
         self.assertEqual(len({profile.profile_id for profile in loaded}), len(loaded))
         self.assertTrue(all(profile.manifest_sha256 for profile in loaded))
+        packed_ids = {
+            profile.profile_id
+            for profile in loaded
+            if profile.parameters.get("grasu_partition_address_layout")
+            == "runtime_packed_v1"
+        }
+        self.assertEqual(len(packed_ids), 15)
+        interleaved_ids = {
+            profile.profile_id
+            for profile in loaded
+            if profile.parameters.get("grasu_partition_address_layout")
+            == "runtime_packed_interleaved_v2"
+        }
+        self.assertEqual(len(interleaved_ids), 8)
 
     def test_candidate10_profile_pins_frozen_dirty_source_and_routed_xclbin(
         self,
@@ -82,6 +96,30 @@ class ArchitectureProfileTests(unittest.TestCase):
         )
         self.assertEqual(verify_profile_artifacts(profile), [])
 
+    def test_refactor31_profile_is_a_hash_pinned_calibration_baseline(self) -> None:
+        profile = load_architecture_profile(
+            PROFILES / "spine_refactor31_routed_native_v1.json"
+        )
+        self.assertEqual(profile.status, ProfileStatus.STABLE)
+        self.assertEqual(profile.evidence_tier, EvidenceTier.HARDWARE_VALIDATED)
+        self.assertTrue(profile.source.dirty)
+        self.assertEqual(profile.clock("data").achieved_mhz, 160.0)
+        self.assertEqual(
+            profile.parameters["comparison_role"], "fpga_calibration_baseline"
+        )
+        self.assertEqual(profile.parameters["families"], 32)
+        self.assertEqual(profile.parameters["levels"], 11)
+        self.assertEqual(profile.parameters["edge_stream_depth"], 32)
+        self.assertTrue(profile.parameters["device_active_membership"])
+        self.assertFalse(profile.parameters["complete_owner_scheduler"])
+        self.assertFalse(profile.parameters["work_credit_quiescence"])
+        evidence = {artifact.kind: artifact for artifact in profile.evidence}
+        self.assertEqual(
+            evidence["routed_xclbin"].sha256,
+            "16ca09f5597d974e6963ac19ada4f59a8e2b0d6b7ef5ea8f668e5ffb520a1629",
+        )
+        self.assertEqual(verify_profile_artifacts(profile, repository_root=ROOT), [])
+
     def test_candidate10_normalized_profile_preserves_native_lineage(self) -> None:
         parent = load_architecture_profile(
             PROFILES / "spine_candidate10_one_pass_1e61fc0.json"
@@ -104,6 +142,69 @@ class ArchitectureProfileTests(unittest.TestCase):
         self.assertEqual(
             normalized.parameters["axi_profile"], "candidate10_gmem_1e61fc0"
         )
+
+    def test_candidate10_opt_v1_is_an_explicit_projected_delta(self) -> None:
+        normalized = load_architecture_profile(
+            PROFILES / "spine_candidate10_normalized_v1.json"
+        )
+        optimized = load_architecture_profile(
+            PROFILES / "spine_candidate10_opt_v1_fallback_level_cache.json"
+        )
+        self.assertEqual(optimized.status, ProfileStatus.PROJECTED)
+        self.assertEqual(optimized.evidence_tier, EvidenceTier.SYNTHESIS_ONLY)
+        self.assertEqual(
+            optimized.parameters["simulation_parent_profile"],
+            normalized.profile_id,
+        )
+        self.assertEqual(
+            optimized.parameters["simulation_parent_profile_sha256"],
+            normalized.manifest_sha256,
+        )
+        self.assertTrue(optimized.parameters["fallback_level_cache_reuse"])
+        self.assertEqual(
+            optimized.parameters["optimization_id"],
+            "fallback_launch_level_cache_reuse",
+        )
+        self.assertEqual(
+            optimized.parameters["resource_feasibility_gate"],
+            "candidate10_opt_v1_readmaint_csynth_resource_pass_timing_open",
+        )
+        self.assertEqual(verify_profile_artifacts(optimized), [])
+
+    def test_candidate10_opt_v2_freezes_finite_reader_working_set(self) -> None:
+        parent = load_architecture_profile(
+            PROFILES / "spine_candidate10_opt_v1_fallback_level_cache.json"
+        )
+        optimized = load_architecture_profile(
+            PROFILES / "spine_candidate10_opt_v2_reader_working_set.json"
+        )
+        self.assertEqual(optimized.status, ProfileStatus.PROJECTED)
+        self.assertEqual(optimized.evidence_tier, EvidenceTier.SYNTHESIS_ONLY)
+        self.assertEqual(
+            optimized.parameters["simulation_parent_profile"],
+            parent.profile_id,
+        )
+        self.assertEqual(
+            optimized.parameters["simulation_parent_profile_sha256"],
+            parent.manifest_sha256,
+        )
+        self.assertTrue(optimized.parameters["fallback_level_cache_reuse"])
+        self.assertTrue(optimized.parameters["source_page_index_cache"])
+        self.assertEqual(optimized.parameters["range_task_active_gate"], 32_768)
+        self.assertEqual(
+            optimized.parameters["source_page_cache_entries_per_fixed_family"],
+            11,
+        )
+        self.assertEqual(
+            optimized.parameters["range_task_active_cache_added_bytes"],
+            393_216,
+        )
+        self.assertEqual(
+            optimized.parameters["resource_feasibility_gate"],
+            "focused_hls_csynth_complete_timing_target_missed",
+        )
+        self.assertEqual(optimized.parameters["optimized_readmaint_uram"], 100)
+        self.assertEqual(verify_profile_artifacts(optimized), [])
 
     def test_stable_profile_pins_accepted_clocks_and_hash(self) -> None:
         profile = load_architecture_profile(PROFILES / "spine_shared_engine_9c08763.json")

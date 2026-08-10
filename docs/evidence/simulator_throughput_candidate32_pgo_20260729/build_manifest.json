@@ -1,0 +1,17 @@
+{
+  "baseline_commit": "bffb69f5a67108b1d0c8e8b829c015513e0c49be",
+  "claim": "host_runtime_only_exact_architectural_equivalence",
+  "compiler": "g++ (Debian 15.2.0-14) 15.2.0",
+  "dram_config_sha256": "d1e865c6528acbc41f0768667063702bfb4033f24bcd46119ad25bfc5ad4fb5f",
+  "dramsim3_sha256": "3831d532874c688dadca64f8fed988295943fff500ff7ec6c48fb00f0d3adb94",
+  "pgo_profile_bytes": 942016,
+  "pgo_profile_files": 15,
+  "plugin_sha256": "a69465bfbe45f213a1599f137e5d342302147a807d4c8b47f272f727eb614ec4",
+  "schema_version": 1,
+  "status": "PASS",
+  "training_architectures": [
+    "spine_candidate10_normalized_v1",
+    "grasu_regraph_candidate10_k1_multipart_residual_v4"
+  ],
+  "training_run_id": "syn_spread_e512__residual_pagerank"
+}

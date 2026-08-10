@@ -152,11 +152,23 @@ struct SpineL0Config {
   // Production defaults mirror the fixed capacities in
   // spine_partitioned.hpp. Smaller values exercise the otherwise very large
   // fallback boundaries in cycle-level tests.
-  std::size_t device_dirty_source_limit{4'096};
+  std::size_t device_dirty_source_limit{16'777'216};
   std::size_t range_task_active_gate{16'384};
   std::size_t range_task_capacity{65'536};
   std::uint64_t range_task_payload_budget{1'048'576};
   std::uint64_t fallback_replay_threshold{65'536};
+  // Refactor31 replaces the legacy per-tile fallback scan with a validation
+  // pass followed by bounded range construction and payload replay.
+  bool segmented_fallback{false};
+  // The accepted refactor31 HLS exact builder serializes active-record control
+  // work before payload replay. These schedule terms are profile parameters so
+  // legacy and projected architectures do not inherit routed-artifact timing.
+  std::size_t reader_active_record_control_cycles{0};
+  std::size_t segmented_fallback_setup_cycles{0};
+  // Projected optimization: reuse the level metadata already loaded at reader
+  // launch instead of rereading invariant slice fields for every fallback row.
+  bool fallback_level_cache_reuse{false};
+  bool source_page_index_cache{false};
   // Logical parent-request window per independent m_axi initiator. A value of
   // one keeps each bundle ordered while allowing different HLS bundles to
   // overlap. Values above one remain an explicit same-bundle overlap what-if
@@ -368,6 +380,51 @@ struct SpineL0State {
   bool hot_enabled{};
 };
 
+struct SpineResidentClassification {
+  std::vector<std::uint32_t> hot_vertices;
+  std::array<std::uint64_t, 16> cold_partition_edges{};
+  std::array<std::uint64_t, 16> hot_shard_edges{};
+  std::uint64_t total_edges{};
+  std::uint64_t hot_edges{};
+  std::uint64_t cold_edges{};
+  std::uint64_t family_edge_capacity{};
+  std::uint64_t cold_partition_target{};
+  std::uint64_t hot_shard_edge_capacity{};
+  std::uint64_t max_cold_partition_edges{};
+  std::uint64_t max_hot_shard_edges{};
+  bool used_explicit_hot_set{};
+  bool automatic_hot_promotion{};
+  bool top_level_preload{};
+  bool multilevel_fallback{};
+};
+
+[[nodiscard]] SpineResidentClassification classify_spine_resident_snapshot(
+    const SpineEdgeSlice &snapshot, const SpineL0Config &config);
+
+// Offline/bootstrap placement for an interval-zero resident graph. This
+// applies the HLS host's degree-based hot/cold policy when no explicit bitmap
+// is supplied and updates config.hot_vertices to match the returned state.
+[[nodiscard]] SpineL0State preload_spine_resident_snapshot(
+    const SpineEdgeSlice &snapshot, SpineL0Config &config,
+    SpineResidentClassification *classification = nullptr);
+
+// Reproduce the frozen refactor31 host's cold-only resident placement. The
+// lowest level at or above min_level that fits every destination family is
+// selected; no automatic hot promotion or multilevel split is performed.
+[[nodiscard]] SpineL0State preload_spine_cold_resident_snapshot(
+    const SpineEdgeSlice &snapshot, const SpineL0Config &config,
+    std::size_t min_level, std::size_t *selected_level = nullptr,
+    SpineResidentClassification *classification = nullptr);
+
+// Reconstruct the LSM level occupancy produced by a chronological sequence of
+// equal-size insertion batches. The placement itself is untimed bootstrap;
+// the following batch still executes through the normal maintenance pipeline.
+void preload_spine_update_history(const SpineEdgeSlice &history,
+                                  std::size_t batch_edges,
+                                  std::size_t next_target_level,
+                                  const SpineL0Config &config,
+                                  SpineL0State &state);
+
 struct SpineL0Counters {
   std::uint64_t start_cycle{};
   std::uint64_t end_cycle{};
@@ -378,6 +435,13 @@ struct SpineL0Counters {
   std::uint64_t memory_active_span_cycles{};
   std::uint64_t post_memory_drain_cycles{};
   bool memory_ledger_closed{};
+  std::uint64_t stage_xfer_cycles{};
+  std::uint64_t stage_reduce_cycles{};
+  std::uint64_t stage_carry_cycles{};
+  std::uint64_t stage_directory_cycles{};
+  std::uint64_t stage_seed_cycles{};
+  std::uint64_t stage_switch_cycles{};
+  bool stage_ledger_closed{};
   std::uint64_t full_rebuild_clear_cycles{};
   std::uint64_t full_rebuild_clear_requests{};
   std::uint64_t full_rebuild_clear_bytes{};
@@ -502,6 +566,7 @@ struct SpineL0Counters {
   std::uint64_t target_selector_responses{};
   std::uint64_t target_selector_cycles{};
   std::uint64_t target_selector_min_padding_cycles{};
+  std::uint64_t target_selector_capacity_skips{};
   std::uint64_t target_selector_validation_failures{};
   std::size_t target_selector_max_inflight{};
   std::uint64_t metadata_control_reads{};
@@ -756,6 +821,7 @@ class SpineL0Maintenance final : public Component {
   struct LevelPendingWord;
 
   void advance(const CycleContext &context);
+  void account_stage_cycle();
   void enqueue_task(FixedAxiPort &port, MemoryOperation operation,
                     std::uint64_t address, std::uint64_t bytes,
                     TaskClass task_class,
@@ -873,6 +939,8 @@ class SpineL0Maintenance final : public Component {
   void finish_carry_merge(const FamilyWriteTask &task);
   void commit_level_state(bool hot, std::size_t target);
   [[nodiscard]] std::vector<SpineEdgeRecord> coalesce_family(
+      bool hot, std::size_t family) const;
+  [[nodiscard]] std::uint64_t raw_family_input_count(
       bool hot, std::size_t family) const;
   [[nodiscard]] std::vector<SpineEdgeRecord> merge_family(
       bool hot, std::size_t family, std::size_t target) const;
@@ -1035,6 +1103,10 @@ class SpineL0Maintenance final : public Component {
       target_occupied_{};
   std::array<std::array<std::uint8_t, kSpineLevelCount>, kSpineFamilyCount>
       target_metadata_ready_{};
+  std::array<std::uint64_t, kSpineFamilyCount>
+      target_input_edge_counts_{};
+  std::array<std::uint64_t, kSpineFamilyCount>
+      target_cumulative_edge_counts_{};
   std::array<std::uint64_t, 16> result_cold_edge_counts_{};
   std::array<std::uint64_t, 16> result_hot_edge_counts_{};
   std::array<bool, 16> result_cold_edge_counts_ready_{};

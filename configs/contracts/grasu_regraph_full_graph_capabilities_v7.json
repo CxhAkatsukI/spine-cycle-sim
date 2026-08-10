@@ -1,0 +1,228 @@
+{
+  "algorithms": [
+    "unit_weight_sssp",
+    "weighted_sssp",
+    "weighted_dynamic_sssp",
+    "full_pagerank",
+    "thresholded_residual_pagerank",
+    "connected_components"
+  ],
+  "catalog_id": "grasu_regraph_full_graph_capabilities_v7_20260729",
+  "profiles": [
+    {
+      "comparison_role": "normalized",
+      "conversion_cost": "absent",
+      "handoff": "weighted_pma_to_axis_stream",
+      "profile_id": "grasu_regraph_candidate10_k1_multipart_weighted_fullgraph_v7",
+      "profile_path": "configs/architectures/grasu_regraph_candidate10_k1_multipart_weighted_fullgraph_v7.json",
+      "profile_sha256": "8340355673f6d6be5153ba33616b7056c7dc497dafb3cb6f6176124720eee03c",
+      "supported_algorithms": {
+        "weighted_dynamic_sssp": {
+          "claim_class": "simulation_only_full_graph_interleaved_23pc_routed_k1_runtime_packed_multi_partition_structural_simulation",
+          "convergence": "host_workload_pinned_minimum_supersteps",
+          "edge_semantics": "weighted32_full_word_compare_dst19_weight12",
+          "evidence_tier": "simulation_only",
+          "implementation_status": "executable",
+          "update_semantics": "weight_change_delete_insert_then_fixed_round_recompute"
+        },
+        "weighted_sssp": {
+          "claim_class": "simulation_only_full_graph_interleaved_23pc_routed_k1_runtime_packed_multi_partition_structural_simulation",
+          "convergence": "host_workload_pinned_minimum_supersteps",
+          "edge_semantics": "weighted32_full_word_compare_dst19_weight12",
+          "evidence_tier": "simulation_only",
+          "implementation_status": "executable",
+          "update_semantics": "full_word_delete_insert_then_fixed_round_recompute"
+        }
+      },
+      "unsupported_algorithms": [
+        "unit_weight_sssp",
+        "full_pagerank",
+        "thresholded_residual_pagerank",
+        "connected_components"
+      ]
+    },
+    {
+      "comparison_role": "normalized",
+      "conversion_cost": "absent",
+      "handoff": "weighted_pma_to_axis_stream",
+      "profile_id": "grasu_regraph_candidate10_k1_multipart_pagerank_fullgraph_v7",
+      "profile_path": "configs/architectures/grasu_regraph_candidate10_k1_multipart_pagerank_fullgraph_v7.json",
+      "profile_sha256": "67edfcbfdcf3f355764d808a4a4704097d069fd49711132a83fe77b7991ce980",
+      "supported_algorithms": {
+        "full_pagerank": {
+          "claim_class": "simulation_only_full_graph_interleaved_23pc_routed_k1_runtime_packed_multi_partition_structural_simulation",
+          "convergence": "host_fixed_iterations",
+          "edge_semantics": "full_word_pma_destination_projection",
+          "evidence_tier": "simulation_only",
+          "implementation_status": "executable",
+          "update_semantics": "timed_degree_rmw_then_full_recompute"
+        }
+      },
+      "unsupported_algorithms": [
+        "unit_weight_sssp",
+        "weighted_sssp",
+        "weighted_dynamic_sssp",
+        "thresholded_residual_pagerank",
+        "connected_components"
+      ]
+    },
+    {
+      "comparison_role": "normalized",
+      "conversion_cost": "absent",
+      "handoff": "weighted_pma_to_axis_stream",
+      "profile_id": "grasu_regraph_candidate10_k1_multipart_residual_fullgraph_v7",
+      "profile_path": "configs/architectures/grasu_regraph_candidate10_k1_multipart_residual_fullgraph_v7.json",
+      "profile_sha256": "6988fe950592cc75beeb9dadb71ccc10cabb8d26e5ec4eb02556b2c5a98debcd",
+      "supported_algorithms": {
+        "thresholded_residual_pagerank": {
+          "claim_class": "simulation_only_full_graph_interleaved_23pc_routed_k1_runtime_packed_multi_partition_structural_simulation",
+          "convergence": "signed_residual_threshold_or_iteration_limit",
+          "edge_semantics": "full_word_pma_destination_projection",
+          "evidence_tier": "simulation_only",
+          "implementation_status": "executable",
+          "update_semantics": "timed_degree_rmw_then_signed_residual_push"
+        }
+      },
+      "unsupported_algorithms": [
+        "unit_weight_sssp",
+        "weighted_sssp",
+        "weighted_dynamic_sssp",
+        "full_pagerank",
+        "connected_components"
+      ]
+    },
+    {
+      "comparison_role": "normalized",
+      "conversion_cost": "absent",
+      "handoff": "normalized_pma_to_axis_stream",
+      "profile_id": "grasu_regraph_candidate10_k1_multipart_cc_fullgraph_v7",
+      "profile_path": "configs/architectures/grasu_regraph_candidate10_k1_multipart_cc_fullgraph_v7.json",
+      "profile_sha256": "3cdd3167edaa077527ff7c36e61e7d7f554c274397739231af5746a4dd344d6c",
+      "supported_algorithms": {
+        "connected_components": {
+          "claim_class": "simulation_only_full_graph_interleaved_23pc_simulation_only_k1_direct_runtime_packed_cc",
+          "convergence": "empty_active_frontier_or_round_limit",
+          "edge_semantics": "reciprocal_unweighted_destination",
+          "evidence_tier": "simulation_only",
+          "implementation_status": "executable",
+          "update_semantics": "insertion_warm_start_delete_full_recompute"
+        }
+      },
+      "unsupported_algorithms": [
+        "unit_weight_sssp",
+        "weighted_sssp",
+        "weighted_dynamic_sssp",
+        "full_pagerank",
+        "thresholded_residual_pagerank"
+      ]
+    },
+    {
+      "comparison_role": "normalized",
+      "conversion_cost": "absent",
+      "handoff": "weighted_pma_to_axis_stream",
+      "profile_id": "grasu_regraph_candidate10_k4_shared_multipart_weighted_fullgraph_v7",
+      "profile_path": "configs/architectures/grasu_regraph_candidate10_k4_shared_multipart_weighted_fullgraph_v7.json",
+      "profile_sha256": "d94f0a051053efb048b5dd56b78a29c4dd13bde3f64ad7eaafce866b843642d6",
+      "supported_algorithms": {
+        "weighted_dynamic_sssp": {
+          "claim_class": "simulation_only_full_graph_interleaved_23pc_projected_k4_shared_downstream_runtime_packed_multi_partition_scalability_only",
+          "convergence": "host_workload_pinned_minimum_supersteps",
+          "edge_semantics": "weighted32_full_word_compare_dst19_weight12",
+          "evidence_tier": "simulation_only",
+          "implementation_status": "executable",
+          "update_semantics": "weight_change_delete_insert_then_fixed_round_recompute"
+        },
+        "weighted_sssp": {
+          "claim_class": "simulation_only_full_graph_interleaved_23pc_projected_k4_shared_downstream_runtime_packed_multi_partition_scalability_only",
+          "convergence": "host_workload_pinned_minimum_supersteps",
+          "edge_semantics": "weighted32_full_word_compare_dst19_weight12",
+          "evidence_tier": "simulation_only",
+          "implementation_status": "executable",
+          "update_semantics": "full_word_delete_insert_then_fixed_round_recompute"
+        }
+      },
+      "unsupported_algorithms": [
+        "unit_weight_sssp",
+        "full_pagerank",
+        "thresholded_residual_pagerank",
+        "connected_components"
+      ]
+    },
+    {
+      "comparison_role": "normalized",
+      "conversion_cost": "absent",
+      "handoff": "weighted_pma_to_axis_stream",
+      "profile_id": "grasu_regraph_candidate10_k4_shared_multipart_pagerank_fullgraph_v7",
+      "profile_path": "configs/architectures/grasu_regraph_candidate10_k4_shared_multipart_pagerank_fullgraph_v7.json",
+      "profile_sha256": "e288906b05d3fb189bfe09993397093edfe018c866b48b96c1d6a6fb9a1d290d",
+      "supported_algorithms": {
+        "full_pagerank": {
+          "claim_class": "simulation_only_full_graph_interleaved_23pc_projected_k4_shared_downstream_runtime_packed_multi_partition_scalability_only",
+          "convergence": "host_fixed_iterations",
+          "edge_semantics": "full_word_pma_destination_projection",
+          "evidence_tier": "simulation_only",
+          "implementation_status": "executable",
+          "update_semantics": "timed_degree_rmw_then_full_recompute"
+        }
+      },
+      "unsupported_algorithms": [
+        "unit_weight_sssp",
+        "weighted_sssp",
+        "weighted_dynamic_sssp",
+        "thresholded_residual_pagerank",
+        "connected_components"
+      ]
+    },
+    {
+      "comparison_role": "normalized",
+      "conversion_cost": "absent",
+      "handoff": "weighted_pma_to_axis_stream",
+      "profile_id": "grasu_regraph_candidate10_k4_shared_multipart_residual_fullgraph_v7",
+      "profile_path": "configs/architectures/grasu_regraph_candidate10_k4_shared_multipart_residual_fullgraph_v7.json",
+      "profile_sha256": "5437aa7896ce51dc3c0d40790a431412b1fd40bcb7a9c5fe1800ee9c988f8f3f",
+      "supported_algorithms": {
+        "thresholded_residual_pagerank": {
+          "claim_class": "simulation_only_full_graph_interleaved_23pc_projected_k4_shared_downstream_runtime_packed_multi_partition_scalability_only",
+          "convergence": "signed_residual_threshold_or_iteration_limit",
+          "edge_semantics": "full_word_pma_destination_projection",
+          "evidence_tier": "simulation_only",
+          "implementation_status": "executable",
+          "update_semantics": "timed_degree_rmw_then_signed_residual_push"
+        }
+      },
+      "unsupported_algorithms": [
+        "unit_weight_sssp",
+        "weighted_sssp",
+        "weighted_dynamic_sssp",
+        "full_pagerank",
+        "connected_components"
+      ]
+    },
+    {
+      "comparison_role": "normalized",
+      "conversion_cost": "absent",
+      "handoff": "normalized_pma_to_axis_stream",
+      "profile_id": "grasu_regraph_candidate10_k4_shared_multipart_cc_fullgraph_v7",
+      "profile_path": "configs/architectures/grasu_regraph_candidate10_k4_shared_multipart_cc_fullgraph_v7.json",
+      "profile_sha256": "5b14a12219144665ee4f57eaaa3de42bfe7ed8e230d103b084dbb136d49863fe",
+      "supported_algorithms": {
+        "connected_components": {
+          "claim_class": "simulation_only_full_graph_interleaved_23pc_simulation_only_k4_shared_runtime_packed_cc",
+          "convergence": "empty_active_frontier_or_round_limit",
+          "edge_semantics": "reciprocal_unweighted_destination",
+          "evidence_tier": "simulation_only",
+          "implementation_status": "executable",
+          "update_semantics": "insertion_warm_start_delete_full_recompute"
+        }
+      },
+      "unsupported_algorithms": [
+        "unit_weight_sssp",
+        "weighted_sssp",
+        "weighted_dynamic_sssp",
+        "full_pagerank",
+        "thresholded_residual_pagerank"
+      ]
+    }
+  ],
+  "schema_version": 1
+}

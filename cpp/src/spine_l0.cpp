@@ -775,6 +775,450 @@ SpineLevelLayout spine_slice_layout(const SpineL0Config &config, bool hot,
   return layout;
 }
 
+SpineResidentClassification classify_spine_resident_snapshot(
+    const SpineEdgeSlice &snapshot, const SpineL0Config &config) {
+  if (snapshot.vertices == 0 || snapshot.vertices > config.max_vertices ||
+      config.partitions != 16 || config.levels != 11 ||
+      config.vertex_partition_size == 0) {
+    throw std::invalid_argument(
+        "invalid Spine resident hot/cold classification request");
+  }
+
+  SpineResidentClassification result;
+  for (std::size_t level = 0; level < config.levels; ++level) {
+    const std::uint64_t capacity =
+        spine_level_layout(config, false, level).edge_capacity;
+    if (result.family_edge_capacity >
+        std::numeric_limits<std::uint64_t>::max() - capacity) {
+      throw std::overflow_error("Spine resident family-capacity sum overflow");
+    }
+    result.family_edge_capacity += capacity;
+  }
+  result.cold_partition_target =
+      spine_level_layout(config, false, config.levels - 2).edge_capacity;
+  result.hot_shard_edge_capacity =
+      spine_level_layout(config, true, config.levels - 1).edge_capacity;
+
+  std::vector<std::uint64_t> indegree(snapshot.vertices, 0);
+  for (const SpineEdgeRecord &edge : snapshot.edges) {
+    if (edge.src >= snapshot.vertices || edge.dst >= snapshot.vertices ||
+        edge.diff != 1) {
+      throw std::invalid_argument(
+          "Spine resident classification requires in-range interval-zero edges");
+    }
+    if (indegree[edge.dst] == std::numeric_limits<std::uint64_t>::max()) {
+      throw std::overflow_error("Spine resident in-degree overflow");
+    }
+    ++indegree[edge.dst];
+    ++result.total_edges;
+  }
+
+  std::unordered_set<std::uint32_t> explicit_hot;
+  result.used_explicit_hot_set = !config.hot_vertices.empty();
+  if (result.used_explicit_hot_set) {
+    for (const std::uint32_t vertex : config.hot_vertices) {
+      if (vertex >= config.max_vertices) {
+        throw std::invalid_argument("Spine explicit hot vertex exceeds MAX_N");
+      }
+      explicit_hot.insert(vertex);
+    }
+    result.hot_vertices.assign(explicit_hot.begin(), explicit_hot.end());
+    std::sort(result.hot_vertices.begin(), result.hot_vertices.end());
+  }
+
+  struct Candidate {
+    std::uint64_t degree{};
+    std::uint32_t dst{};
+  };
+  std::vector<Candidate> candidates;
+  if (!result.used_explicit_hot_set) {
+    candidates.reserve(snapshot.vertices / 16 + 1);
+  }
+
+  for (std::size_t dst = 0; dst < indegree.size(); ++dst) {
+    const std::uint64_t degree = indegree[dst];
+    if (degree == 0) {
+      continue;
+    }
+    const bool hot = explicit_hot.contains(static_cast<std::uint32_t>(dst));
+    if (hot) {
+      const std::size_t shard =
+          spine_hot_shard(static_cast<std::uint32_t>(dst));
+      result.hot_shard_edges[shard] += degree;
+      result.hot_edges += degree;
+    } else {
+      const std::size_t partition = std::min<std::size_t>(
+          dst / config.vertex_partition_size, config.partitions - 1);
+      result.cold_partition_edges[partition] += degree;
+      result.cold_edges += degree;
+      if (!result.used_explicit_hot_set) {
+        if (degree > result.family_edge_capacity) {
+          throw std::overflow_error(
+              "Spine resident hot/cold classifier rejects a super-hub");
+        }
+        candidates.push_back(Candidate{
+            .degree = degree,
+            .dst = static_cast<std::uint32_t>(dst),
+        });
+      }
+    }
+  }
+
+  const auto within = [](const auto &counts, std::uint64_t capacity) {
+    return std::all_of(counts.begin(), counts.end(),
+                       [capacity](std::uint64_t count) {
+                         return count <= capacity;
+                       });
+  };
+  if (!result.used_explicit_hot_set &&
+      !within(result.cold_partition_edges, result.family_edge_capacity)) {
+    std::sort(candidates.begin(), candidates.end(),
+              [](const Candidate &left, const Candidate &right) {
+                if (left.degree != right.degree) {
+                  return left.degree > right.degree;
+                }
+                return left.dst < right.dst;
+              });
+    const auto initial_cold = result.cold_partition_edges;
+    const auto try_place = [&](std::uint64_t cold_target,
+                               std::uint64_t hot_target) {
+      auto cold = initial_cold;
+      std::array<std::uint64_t, 16> hot{};
+      std::vector<std::uint32_t> promoted;
+      for (const Candidate &candidate : candidates) {
+        if (within(cold, cold_target)) {
+          break;
+        }
+        const std::size_t partition = std::min<std::size_t>(
+            candidate.dst / config.vertex_partition_size,
+            config.partitions - 1);
+        if (cold[partition] <= cold_target || candidate.degree > hot_target) {
+          continue;
+        }
+        const std::size_t shard = spine_hot_shard(candidate.dst);
+        if (hot[shard] > hot_target - candidate.degree) {
+          continue;
+        }
+        cold[partition] -= candidate.degree;
+        hot[shard] += candidate.degree;
+        promoted.push_back(candidate.dst);
+      }
+      return std::tuple(within(cold, cold_target), std::move(cold),
+                        std::move(hot), std::move(promoted));
+    };
+
+    auto [placed, cold, hot, promoted] =
+        try_place(result.cold_partition_target,
+                  result.hot_shard_edge_capacity);
+    if (!placed) {
+      std::tie(placed, cold, hot, promoted) =
+          try_place(result.family_edge_capacity, result.family_edge_capacity);
+    }
+    if (!placed) {
+      throw std::overflow_error(
+          "Spine resident hot/cold classifier cannot fit fixed families");
+    }
+    result.cold_partition_edges = std::move(cold);
+    result.hot_shard_edges = std::move(hot);
+    result.hot_vertices = std::move(promoted);
+    result.hot_edges = 0;
+    for (const std::uint32_t dst : result.hot_vertices) {
+      result.hot_edges += indegree[dst];
+    }
+    result.cold_edges = result.total_edges - result.hot_edges;
+    result.automatic_hot_promotion = !result.hot_vertices.empty();
+  }
+
+  if (!within(result.cold_partition_edges, result.family_edge_capacity) ||
+      !within(result.hot_shard_edges, result.family_edge_capacity)) {
+    throw std::overflow_error(
+        "Spine resident snapshot exceeds total fixed-family capacity");
+  }
+  result.max_cold_partition_edges = *std::max_element(
+      result.cold_partition_edges.begin(),
+      result.cold_partition_edges.end());
+  result.max_hot_shard_edges = *std::max_element(
+      result.hot_shard_edges.begin(), result.hot_shard_edges.end());
+  const std::uint64_t top_capacity =
+      spine_level_layout(config, false, config.levels - 1).edge_capacity;
+  result.top_level_preload =
+      result.max_cold_partition_edges <= top_capacity &&
+      result.max_hot_shard_edges <= top_capacity;
+  result.multilevel_fallback = !result.top_level_preload;
+  return result;
+}
+
+SpineL0State preload_spine_resident_snapshot(
+    const SpineEdgeSlice &snapshot, SpineL0Config &config,
+    SpineResidentClassification *classification) {
+  SpineResidentClassification resident =
+      classify_spine_resident_snapshot(snapshot, config);
+  config.hot_vertices = resident.hot_vertices;
+  SpineL0State state;
+  state.hot_vertices.insert(config.hot_vertices.begin(),
+                            config.hot_vertices.end());
+  state.hot_enabled = !state.hot_vertices.empty();
+
+  for (const SpineEdgeRecord &edge : snapshot.edges) {
+    if (edge.src >= snapshot.vertices || edge.dst >= snapshot.vertices ||
+        edge.diff != 1) {
+      throw std::invalid_argument(
+          "Spine resident preload requires in-range interval-zero edges");
+    }
+    const bool hot = state.hot_vertices.contains(edge.dst);
+    const std::size_t family =
+        hot ? spine_hot_shard(edge.dst)
+            : std::min<std::size_t>(
+                  edge.dst / config.vertex_partition_size,
+                  config.partitions - 1);
+    auto &staging =
+        hot ? state.hot_levels[family][0] : state.cold_levels[family][0];
+    staging.push_back(edge);
+  }
+
+  const auto edge_less = [](const SpineEdgeRecord &left,
+                            const SpineEdgeRecord &right) {
+    return std::tuple(left.src, left.dst, left.weight, left.diff) <
+           std::tuple(right.src, right.dst, right.weight, right.diff);
+  };
+  for (std::size_t family = 0; family < config.partitions; ++family) {
+    for (const bool hot : {false, true}) {
+      auto &levels = hot ? state.hot_levels[family] : state.cold_levels[family];
+      std::vector<SpineEdgeRecord> edges = std::move(levels[0]);
+      if (edges.empty()) {
+        continue;
+      }
+      std::sort(edges.begin(), edges.end(), edge_less);
+
+      if (resident.top_level_preload) {
+        const std::size_t target = config.levels - 1;
+        if (edges.size() >
+            spine_level_layout(config, hot, target).edge_capacity) {
+          throw std::logic_error(
+              "Spine classified resident family exceeds its top level");
+        }
+        levels[target] = std::move(edges);
+        continue;
+      }
+
+      std::uint64_t total_capacity = 0;
+      for (std::size_t level = 0; level < config.levels; ++level) {
+        const std::uint64_t capacity =
+            spine_level_layout(config, hot, level).edge_capacity;
+        if (total_capacity >
+            std::numeric_limits<std::uint64_t>::max() - capacity) {
+          throw std::overflow_error(
+              "Spine resident level-capacity sum overflow");
+        }
+        total_capacity += capacity;
+      }
+      if (edges.size() > total_capacity) {
+        throw std::overflow_error(
+            "Spine resident snapshot exceeds total fixed-level capacity");
+      }
+
+      std::size_t cursor = 0;
+      std::size_t remaining = edges.size();
+      std::size_t highest = config.levels - 1;
+      while (remaining != 0) {
+        std::size_t target = config.levels;
+        if (highest >= 1) {
+          for (std::size_t level = 1; level <= highest; ++level) {
+            if (remaining <=
+                spine_level_layout(config, hot, level).edge_capacity) {
+              target = level;
+              break;
+            }
+          }
+        }
+        if (target == config.levels) {
+          target = highest;
+        }
+        const std::size_t count = static_cast<std::size_t>(
+            std::min<std::uint64_t>(
+                remaining,
+                spine_level_layout(config, hot, target).edge_capacity));
+        levels[target].assign(
+            edges.begin() + static_cast<std::ptrdiff_t>(cursor),
+            edges.begin() + static_cast<std::ptrdiff_t>(cursor + count));
+        cursor += count;
+        remaining -= count;
+        if (remaining == 0) {
+          break;
+        }
+        if (target == 0) {
+          throw std::logic_error(
+              "Spine resident packing exhausted a validated hierarchy");
+        }
+        highest = target - 1;
+      }
+    }
+  }
+  if (classification != nullptr) {
+    *classification = std::move(resident);
+  }
+  return state;
+}
+
+SpineL0State preload_spine_cold_resident_snapshot(
+    const SpineEdgeSlice &snapshot, const SpineL0Config &config,
+    std::size_t min_level, std::size_t *selected_level,
+    SpineResidentClassification *classification) {
+  if (snapshot.vertices == 0 || snapshot.vertices > config.max_vertices ||
+      config.partitions != 16 || config.levels != 11 ||
+      config.vertex_partition_size == 0 || min_level >= config.levels ||
+      !config.hot_vertices.empty()) {
+    throw std::invalid_argument("invalid Spine cold resident preload request");
+  }
+
+  SpineResidentClassification resident;
+  resident.used_explicit_hot_set = true;
+  resident.total_edges = snapshot.edges.size();
+  resident.cold_edges = resident.total_edges;
+  for (std::size_t level = 0; level < config.levels; ++level) {
+    resident.family_edge_capacity +=
+        spine_level_layout(config, false, level).edge_capacity;
+  }
+  resident.cold_partition_target =
+      spine_level_layout(config, false, config.levels - 2).edge_capacity;
+  resident.hot_shard_edge_capacity =
+      spine_level_layout(config, true, config.levels - 1).edge_capacity;
+
+  SpineL0State state;
+  for (const SpineEdgeRecord &edge : snapshot.edges) {
+    if (edge.src >= snapshot.vertices || edge.dst >= snapshot.vertices ||
+        edge.diff != 1) {
+      throw std::invalid_argument(
+          "Spine cold resident preload requires in-range interval-zero edges");
+    }
+    const std::size_t family = std::min<std::size_t>(
+        edge.dst / config.vertex_partition_size, config.partitions - 1);
+    resident.cold_partition_edges[family]++;
+  }
+  resident.max_cold_partition_edges = *std::max_element(
+      resident.cold_partition_edges.begin(),
+      resident.cold_partition_edges.end());
+
+  std::size_t level = config.levels;
+  for (std::size_t candidate = min_level; candidate < config.levels;
+       ++candidate) {
+    const std::uint64_t capacity =
+        spine_level_layout(config, false, candidate).edge_capacity;
+    if (std::all_of(resident.cold_partition_edges.begin(),
+                    resident.cold_partition_edges.end(),
+                    [capacity](std::uint64_t count) {
+                      return count <= capacity;
+                    })) {
+      level = candidate;
+      break;
+    }
+  }
+  if (level == config.levels) {
+    throw std::overflow_error(
+        "Spine cold resident snapshot exceeds the selected level range");
+  }
+
+  for (const SpineEdgeRecord &edge : snapshot.edges) {
+    const std::size_t family = std::min<std::size_t>(
+        edge.dst / config.vertex_partition_size, config.partitions - 1);
+    state.cold_levels[family][level].push_back(edge);
+  }
+  const auto edge_less = [](const SpineEdgeRecord &left,
+                            const SpineEdgeRecord &right) {
+    return std::tuple(left.src, left.dst, left.weight, left.diff) <
+           std::tuple(right.src, right.dst, right.weight, right.diff);
+  };
+  for (std::size_t family = 0; family < config.partitions; ++family) {
+    auto &edges = state.cold_levels[family][level];
+    std::sort(edges.begin(), edges.end(), edge_less);
+  }
+  resident.top_level_preload = level == config.levels - 1;
+  resident.multilevel_fallback = false;
+  if (selected_level != nullptr) *selected_level = level;
+  if (classification != nullptr) *classification = std::move(resident);
+  return state;
+}
+
+void preload_spine_update_history(const SpineEdgeSlice &history,
+                                  std::size_t batch_edges,
+                                  std::size_t next_target_level,
+                                  const SpineL0Config &config,
+                                  SpineL0State &state) {
+  if (history.vertices == 0 || history.vertices > config.max_vertices ||
+      batch_edges == 0 || next_target_level == 0 ||
+      next_target_level >= config.levels - 1 ||
+      next_target_level >= std::numeric_limits<std::size_t>::digits) {
+    throw std::invalid_argument("invalid Spine update-history placement");
+  }
+  const std::size_t history_batches =
+      (std::size_t{1} << next_target_level) - 1;
+  if (batch_edges >
+      std::numeric_limits<std::size_t>::max() / history_batches) {
+    throw std::overflow_error("Spine update-history size overflows size_t");
+  }
+  const std::size_t expected_edges = batch_edges * history_batches;
+  if (history.edges.size() != expected_edges) {
+    throw std::invalid_argument(
+        "Spine update history does not contain 2^L-1 equal batches");
+  }
+  state.hot_vertices.insert(config.hot_vertices.begin(),
+                            config.hot_vertices.end());
+  state.hot_enabled = !state.hot_vertices.empty();
+
+  const auto edge_less = [](const SpineEdgeRecord &left,
+                            const SpineEdgeRecord &right) {
+    return std::tuple(left.src, left.dst, left.weight, left.diff) <
+           std::tuple(right.src, right.dst, right.weight, right.diff);
+  };
+  std::size_t cursor = history.edges.size();
+  for (std::size_t level = 0; level < next_target_level; ++level) {
+    for (std::size_t family = 0; family < config.partitions; ++family) {
+      if (!state.cold_levels[family][level].empty() ||
+          !state.hot_levels[family][level].empty()) {
+        throw std::invalid_argument(
+            "Spine update history overlaps an occupied target level");
+      }
+    }
+    const std::size_t level_edges = batch_edges << level;
+    const std::size_t begin = cursor - level_edges;
+    for (std::size_t index = begin; index < cursor; ++index) {
+      const SpineEdgeRecord &edge = history.edges[index];
+      if (edge.src >= history.vertices || edge.dst >= history.vertices ||
+          edge.diff != 1) {
+        throw std::invalid_argument(
+            "Spine update history requires in-range insertion records");
+      }
+      const bool hot = state.hot_vertices.contains(edge.dst);
+      const std::size_t family =
+          hot ? spine_hot_shard(edge.dst)
+              : std::min<std::size_t>(
+                    edge.dst / config.vertex_partition_size,
+                    config.partitions - 1);
+      auto &run = hot ? state.hot_levels[family][level]
+                      : state.cold_levels[family][level];
+      run.push_back(edge);
+    }
+    cursor = begin;
+  }
+  if (cursor != 0) {
+    throw std::logic_error("Spine update-history placement lost a batch");
+  }
+
+  for (std::size_t family = 0; family < config.partitions; ++family) {
+    for (const bool hot : {false, true}) {
+      auto &levels = hot ? state.hot_levels[family] : state.cold_levels[family];
+      for (std::size_t level = 0; level < next_target_level; ++level) {
+        auto &run = levels[level];
+        if (run.size() > spine_level_layout(config, hot, level).edge_capacity) {
+          throw std::overflow_error(
+              "Spine update-history level exceeds fixed capacity");
+        }
+        std::sort(run.begin(), run.end(), edge_less);
+      }
+    }
+  }
+}
+
 std::vector<std::uint8_t> encode_spine_maintenance_result(
     const SpineMaintenanceResult &result) {
   std::vector<std::uint8_t> data;
@@ -1040,6 +1484,13 @@ SpineL0Maintenance::SpineL0Maintenance(std::string name, ClockId clock_id,
 }
 
 void SpineL0Maintenance::reset_batch(SpineEdgeSlice workload) {
+  if (workload.edges.size() > config_.max_sort_edges) {
+    throw std::length_error(
+        "Spine maintenance input has " +
+        std::to_string(workload.edges.size()) +
+        " edges but MAX_SORT_EDGES is " +
+        std::to_string(config_.max_sort_edges));
+  }
   const bool ports_idle =
       std::all_of(ports_.graph.begin(), ports_.graph.end(),
                   [](const FixedAxiPort *port) { return port->idle(); }) &&
@@ -1048,7 +1499,6 @@ void SpineL0Maintenance::reset_batch(SpineEdgeSlice workload) {
   if (!done_ || failed_ || !ports_idle || !tasks_.empty() ||
       !inflight_tasks_.empty() || !staged_memory_issues_.empty() ||
       workload.vertices != workload_.vertices || workload.edges.empty() ||
-      workload.edges.size() > config_.max_sort_edges ||
       !std::is_sorted(
           workload.edges.begin(), workload.edges.end(),
           [](const SpineEdgeRecord &left, const SpineEdgeRecord &right) {
@@ -1235,6 +1685,47 @@ void SpineL0Maintenance::initialize_metadata_payload() {
         config_.metadata_base +
             metadata.family_directory_valid_word * kMetadataWordBytes,
         encode_u64_words({1}));
+
+    // Resident levels are loaded before timed maintenance. Seed the persistent
+    // source-to-family directory as part of that bootstrap image so later
+    // device-owned frontiers cover both resident and newly inserted edges.
+    std::map<std::uint64_t, std::vector<std::uint8_t>> directory_words;
+    const auto set_directory_bit =
+        [&](const SpineEdgeRecord &edge, std::size_t bit) {
+          if (edge.src >= config_.max_vertices || bit >= 32) {
+            throw std::logic_error(
+                "resident family-directory endpoint is out of bounds");
+          }
+          const std::uint64_t word = edge.src >> 2;
+          auto [entry, inserted] = directory_words.try_emplace(
+              word, kPersistentRecordBytes, std::uint8_t{0});
+          (void)inserted;
+          const std::size_t lane_offset =
+              (edge.src & 3U) * sizeof(std::uint32_t);
+          const std::uint32_t prior =
+              static_cast<std::uint32_t>(entry->second[lane_offset]) |
+              (static_cast<std::uint32_t>(entry->second[lane_offset + 1]) << 8) |
+              (static_cast<std::uint32_t>(entry->second[lane_offset + 2]) << 16) |
+              (static_cast<std::uint32_t>(entry->second[lane_offset + 3]) << 24);
+          write_u32_le(entry->second, lane_offset,
+                       prior | (std::uint32_t{1} << bit));
+        };
+    for (std::size_t family = 0; family < 16; ++family) {
+      for (std::size_t level = 0; level < 11; ++level) {
+        for (const SpineEdgeRecord &edge : state_.cold_levels[family][level]) {
+          set_directory_bit(edge, family);
+        }
+        for (const SpineEdgeRecord &edge : state_.hot_levels[family][level]) {
+          set_directory_bit(edge, 16 + family);
+        }
+      }
+    }
+    for (const auto &[word, payload] : directory_words) {
+      ports_.sorted_edges->initialize_payload(
+          config_.persistent_family_directory_base +
+              word * kPersistentRecordBytes,
+          payload);
+    }
   }
   std::map<std::uint64_t, std::uint64_t> hot_bitmap_payload;
   for (const std::uint32_t vertex : state_.hot_vertices) {
@@ -1346,6 +1837,7 @@ void SpineL0Maintenance::evaluate(const CycleContext &context) {
   if (done_ || failed_) {
     return;
   }
+  account_stage_cycle();
   if (phase_ == Phase::kFullRebuildClear) {
     if (counters_.full_rebuild_clear_cycles == 0) {
       counters_.start_cycle = context.domain_cycle;
@@ -1443,6 +1935,87 @@ void SpineL0Maintenance::evaluate(const CycleContext &context) {
     return;
   }
   staged_action_ = StagedAction::kAdvance;
+}
+
+void SpineL0Maintenance::account_stage_cycle() {
+  switch (phase_) {
+  case Phase::kInitialize:
+  case Phase::kDirtyMetadataLoad:
+  case Phase::kDirtyPreflightBegin:
+  case Phase::kDirtyPreflightProcess:
+  case Phase::kDirtyGenerationPrepare:
+  case Phase::kDirtyUpdateBegin:
+  case Phase::kDirtyUpdateProcess:
+  case Phase::kDirtyFinalize:
+    ++counters_.stage_xfer_cycles;
+    return;
+  case Phase::kCandidateClassifyBegin:
+  case Phase::kCandidateClassifyProcess:
+  case Phase::kCandidateClassifyReduce:
+  case Phase::kCandidateClassifyFlush:
+  case Phase::kCandidatePrefix:
+  case Phase::kCandidateDispatchBegin:
+  case Phase::kCandidateDispatchProcess:
+  case Phase::kCandidateDispatchValidate:
+    ++counters_.stage_reduce_cycles;
+    return;
+  case Phase::kCandidatePublicationBegin:
+  case Phase::kCandidatePublicationLoad:
+  case Phase::kCandidatePublicationRead:
+  case Phase::kCandidatePublicationWrite:
+  case Phase::kCandidatePublicationSchedule:
+  case Phase::kCandidatePublicationAdvance:
+    if (candidate_publication_kind_ == CandidatePublicationKind::kDirectory) {
+      ++counters_.stage_directory_cycles;
+    } else {
+      ++counters_.stage_seed_cycles;
+    }
+    return;
+  case Phase::kCandidateListBegin:
+  case Phase::kCandidateListSourceLoad:
+  case Phase::kCandidateListRead:
+  case Phase::kCandidateListWrite:
+  case Phase::kCandidateListSchedule:
+  case Phase::kCandidateFinalize:
+    ++counters_.stage_seed_cycles;
+    return;
+  case Phase::kHotColdCountBegin:
+  case Phase::kHotColdCountProcess:
+  case Phase::kTargetSelect:
+  case Phase::kTargetSelectLevelWait:
+  case Phase::kTargetSelectPadding:
+    ++counters_.stage_directory_cycles;
+    return;
+  case Phase::kPrecountBegin:
+  case Phase::kPrecountProcess:
+  case Phase::kBuildOutputs:
+  case Phase::kWriteSelect:
+  case Phase::kWriteEpochResolve:
+  case Phase::kWriteEpochClear:
+  case Phase::kWriteProcess:
+  case Phase::kWriteSchedule:
+  case Phase::kWriteAdvance:
+    if (counters_.target_level > 0) {
+      ++counters_.stage_carry_cycles;
+    } else {
+      ++counters_.stage_switch_cycles;
+    }
+    return;
+  case Phase::kCarryProcess:
+    ++counters_.stage_carry_cycles;
+    return;
+  case Phase::kFullRebuildClear:
+  case Phase::kCandidateL0PrecountBegin:
+  case Phase::kCandidateL0PrecountProcess:
+  case Phase::kCommitMetadata:
+  case Phase::kWriteResult:
+  case Phase::kRetireEpochs:
+  case Phase::kCollectResult:
+  case Phase::kFinish:
+    ++counters_.stage_switch_cycles;
+    return;
+  }
+  throw std::logic_error("unclassified Spine maintenance stage");
 }
 
 void SpineL0Maintenance::commit(const CycleContext &context) {
@@ -2405,8 +2978,29 @@ std::vector<SpineEdgeRecord> SpineL0Maintenance::coalesce_family(
   return coalesce_records(std::move(selected));
 }
 
+std::uint64_t SpineL0Maintenance::raw_family_input_count(
+    bool hot, std::size_t family) const {
+  if (config_.maintenance_architecture ==
+      SpineMaintenanceArchitecture::kCandidate10OnePass) {
+    const std::size_t logical_family = hot ? config_.partitions + family : family;
+    return candidate_family_buckets_.at(logical_family).size();
+  }
+  std::uint64_t count = 0;
+  for (const SpineEdgeRecord &edge : sorted_scan_edges_) {
+    const bool is_hot = edge_is_hot(edge.dst);
+    const std::size_t owner =
+        is_hot ? spine_hot_shard(edge.dst) : family_for(edge.dst);
+    if (is_hot == hot && owner == family) {
+      ++count;
+    }
+  }
+  return count;
+}
+
 std::size_t SpineL0Maintenance::target_for(bool hot) const {
   const std::size_t family_base = hot ? config_.partitions : 0;
+  std::array<std::uint64_t, kSpineFamilyCount> cumulative =
+      target_input_edge_counts_;
   for (std::size_t level = 0; level < config_.levels; ++level) {
     bool occupied = false;
     for (std::size_t family = 0; family < config_.partitions; ++family) {
@@ -2415,7 +3009,26 @@ std::size_t SpineL0Maintenance::target_for(bool hot) const {
                  target_edge_counts_[logical_family][level] != 0;
     }
     if (!occupied) {
-      return level;
+      const std::uint64_t capacity =
+          spine_level_layout(config_, hot, level).edge_capacity;
+      bool fits = true;
+      for (std::size_t family = 0; family < config_.partitions; ++family) {
+        fits = fits && cumulative[family_base + family] <= capacity;
+      }
+      if (fits) {
+        return level;
+      }
+      continue;
+    }
+    for (std::size_t family = 0; family < config_.partitions; ++family) {
+      const std::size_t logical_family = family_base + family;
+      if (cumulative[logical_family] >
+          std::numeric_limits<std::uint64_t>::max() -
+              target_edge_counts_[logical_family][level]) {
+        return config_.levels;
+      }
+      cumulative[logical_family] +=
+          target_edge_counts_[logical_family][level];
     }
   }
   return config_.levels;
@@ -2433,9 +3046,14 @@ void SpineL0Maintenance::initialize_target_selector(
   target_scan_min_finish_cycle_ = target_scan_start_cycle_ + minimum - 1;
   const std::size_t family_base = hot ? config_.partitions : 0;
   for (std::size_t family = 0; family < config_.partitions; ++family) {
-    target_edge_counts_[family_base + family].fill(0);
-    target_occupied_[family_base + family].fill(0);
-    target_metadata_ready_[family_base + family].fill(0);
+    const std::size_t logical_family = family_base + family;
+    target_edge_counts_[logical_family].fill(0);
+    target_occupied_[logical_family].fill(0);
+    target_metadata_ready_[logical_family].fill(0);
+    target_input_edge_counts_[logical_family] =
+        raw_family_input_count(hot, family);
+    target_cumulative_edge_counts_[logical_family] =
+        target_input_edge_counts_[logical_family];
   }
   ++counters_.target_selector_invocations;
 }
@@ -3031,7 +3649,36 @@ void SpineL0Maintenance::resolve_target_selector_level(
                target_edge_counts_[logical_family][target_scan_level_] != 0;
   }
   if (!occupied && target_scan_candidate_ < 0) {
-    target_scan_candidate_ = static_cast<std::int32_t>(target_scan_level_);
+    const std::uint64_t capacity =
+        spine_level_layout(config_, target_scan_hot_, target_scan_level_)
+            .edge_capacity;
+    bool fits = true;
+    for (std::size_t family = 0; family < config_.partitions; ++family) {
+      fits = fits &&
+             target_cumulative_edge_counts_[family_base + family] <= capacity;
+    }
+    if (fits) {
+      target_scan_candidate_ = static_cast<std::int32_t>(target_scan_level_);
+    } else {
+      ++counters_.target_selector_capacity_skips;
+    }
+  }
+  if (occupied) {
+    for (std::size_t family = 0; family < config_.partitions; ++family) {
+      const std::size_t logical_family = family_base + family;
+      const std::uint64_t count =
+          target_edge_counts_[logical_family][target_scan_level_];
+      if (target_cumulative_edge_counts_[logical_family] >
+          std::numeric_limits<std::uint64_t>::max() - count) {
+        begin_logical_overflow(
+            target_scan_hot_
+                ? "Spine hot target edge-count accumulation overflow"
+                : "Spine cold target edge-count accumulation overflow",
+            SpineDirtyStatus::kOk);
+        return;
+      }
+      target_cumulative_edge_counts_[logical_family] += count;
+    }
   }
   ++counters_.target_selector_levels_scanned;
   ++target_scan_level_;
@@ -3064,8 +3711,9 @@ void SpineL0Maintenance::finish_target_selector(
   }
   if (target_scan_candidate_ < 0) {
     begin_logical_overflow(
-        target_scan_hot_ ? "Spine hot level hierarchy has no free target"
-                         : "Spine cold level hierarchy has no free target",
+        target_scan_hot_
+            ? "Spine hot level hierarchy has no capacity-safe free target"
+            : "Spine cold level hierarchy has no capacity-safe free target",
         SpineDirtyStatus::kOk);
     return;
   }
@@ -5446,6 +6094,20 @@ void SpineL0Maintenance::advance(const CycleContext &context) {
           elapsed - config_.candidate_zero_edge_control_min_cycles;
     }
     counters_.end_cycle = context.domain_cycle;
+    if (counters_.stage_switch_cycles == 0) {
+      throw std::logic_error("invalid Spine maintenance stage ledger");
+    }
+    // evaluate() accounts the terminal cycle, while the measured interval is
+    // [start_cycle, end_cycle). Remove that terminal bookkeeping cycle.
+    --counters_.stage_switch_cycles;
+    counters_.stage_ledger_closed =
+        counters_.stage_xfer_cycles + counters_.stage_reduce_cycles +
+            counters_.stage_carry_cycles + counters_.stage_directory_cycles +
+            counters_.stage_seed_cycles + counters_.stage_switch_cycles ==
+        counters_.end_cycle - counters_.start_cycle;
+    if (!counters_.stage_ledger_closed) {
+      throw std::logic_error("Spine maintenance stage ledger did not close");
+    }
     counters_.memory_ledger_closed =
         counters_.memory_requests_issued ==
             counters_.memory_requests_completed &&

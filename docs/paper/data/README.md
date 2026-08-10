@@ -3,7 +3,7 @@
 This directory is populated only from correctness-gated experiment evidence.
 The TeX entry point is `../candidate10_evaluation_figures.tex`.
 
-From the repository root, build the six-page figure pack with:
+From the repository root, build the figure pack with:
 
 ```bash
 latexmk -pdf -interaction=nonstopmode -halt-on-error \
@@ -14,6 +14,7 @@ latexmk -pdf -interaction=nonstopmode -halt-on-error \
 Expected CSV interfaces:
 
 - `correctness_coverage.csv`
+- `paper_scale_by_algorithm_batch.csv`
 - `e2e_by_dataset.csv`
 - `e2e_by_algorithm.csv`
 - `e2e_speedup_by_dataset_algorithm.csv`
@@ -25,8 +26,15 @@ Expected CSV interfaces:
 - `physical_memory_by_algorithm.csv`
 - `dense_batch.csv`
 - `hbm_energy_by_algorithm.csv`
+- `component_power.csv`
+- `large_graph_campaign/component_activity.csv` (workload-specific counters,
+  explicitly not a total-energy estimate)
+- `area_footprint.csv`
 - `simulator_host_runtime.csv`
+- `spine_optimization_ablation.csv`
+- `hbm_sensitivity.csv`
 - `ppa_summary.csv`
+- `rq3/` (correctness-gated realized-work rows plus generated TeX table fragments)
 
 `simulator_host_runtime.csv` is extracted from the archived single-run,
 batch-8 child-process observations for the five 8,192-edge temporal slices.
@@ -38,5 +46,19 @@ Regenerate it from the pinned raw-results archive with:
 python3 scripts/analyze_candidate10_simulator_runtime.py
 ```
 
+Regenerate the optimization and robustness rows from their pinned evidence:
+
+```bash
+python3 scripts/analyze_candidate10_optimization_robustness.py
+```
+
 Missing files intentionally render as explicit evidence-gate placeholders.
 Compact real slices and unsliced datasets must never be mixed in one aggregate.
+
+Regenerate the RQ3 figure inputs and GraphyFlow-style vector figures with:
+
+```bash
+/data/tmp/chuxiao/spine-paper-plot-venv/bin/python \
+  scripts/render_rq3_realized_work.py \
+  --analysis-dir /data/tmp/chuxiao/large_graph_campaign_v1/rq3_formal_analysis_v3
+```

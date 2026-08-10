@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "milestone": "candidate84_progress_native_pgo",
+  "baseline": {
+    "milestone": "candidate81_axi_response_fastpath",
+    "plugin_sha256": "d7e4972403deb744a4811d80f06d7cc5b216181e928c650d9ebbd98c461f491a",
+    "raw_run": "/data/tmp/chuxiao/candidate81-axi-no-response-fastpath-exact-20260729"
+  },
+  "candidate": {
+    "plugin_sha256": "5d9d879e0c70c72bb8eae979ec11177c97ddd6373e838836e460f337a1461431",
+    "build": "/data/tmp/chuxiao/candidate84-progress-native-pgo-build-20260729/libspine_cycle.so",
+    "pgo_profile_files": 15,
+    "raw_run": "/data/tmp/chuxiao/candidate84-progress-observability-exact-20260729"
+  },
+  "workload": "syn_spread_e512__residual_pagerank",
+  "systems": {
+    "spine": {
+      "cycles": 4778979,
+      "result_sha256": "68d8c74600aa8e773e62f8ae7c0c3ea0d7934601c34851b438610501e91152f0",
+      "byte_identical_to_baseline": true
+    },
+    "grasu_regraph": {
+      "cycles": 15310428,
+      "backend_requests": 9751632,
+      "result_sha256": "4d1736c2bde981e8b4dd8b48488d2ef266a3287912760c65e17bda294d2d0a38",
+      "byte_identical_to_baseline": true
+    }
+  },
+  "dramsim3": {
+    "compared_json_files": 26,
+    "relative_path_and_content_digest": "0f1436b96fad70a1262defcb366c985aec23e166af16dac73c479fb22a1174f9",
+    "byte_identical_to_baseline": true
+  },
+  "final_progress_snapshot": {
+    "status": "pass",
+    "phase": "compute",
+    "simulated_cycles": 15310428,
+    "backend_requests": 9751632,
+    "backend_outstanding": 0
+  }
+}

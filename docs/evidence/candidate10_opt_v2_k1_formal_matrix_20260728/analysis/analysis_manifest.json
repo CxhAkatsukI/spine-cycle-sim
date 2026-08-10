@@ -1,0 +1,384 @@
+{
+  "analysis_module": "/home/chuxiao/spine-cycle-sim-multipart-fix/spine_cycle_sim/experiments/comparison_analysis.py",
+  "analysis_module_sha256": "ffd2e1a22e0b93c0f218b1cb89c4d1c61e56a1d0ea4ea70fecc116a71ff16738",
+  "bottleneck_summary": [
+    {
+      "phase_bottleneck": "structure_update_dominant",
+      "runs": 6,
+      "system": "spine",
+      "total_runs": 73
+    },
+    {
+      "phase_bottleneck": "balanced",
+      "runs": 3,
+      "system": "spine",
+      "total_runs": 73
+    },
+    {
+      "phase_bottleneck": "compute_dominant",
+      "runs": 64,
+      "system": "spine",
+      "total_runs": 73
+    },
+    {
+      "phase_bottleneck": "structure_update_dominant",
+      "runs": 0,
+      "system": "grasu_regraph",
+      "total_runs": 73
+    },
+    {
+      "phase_bottleneck": "balanced",
+      "runs": 0,
+      "system": "grasu_regraph",
+      "total_runs": 73
+    },
+    {
+      "phase_bottleneck": "compute_dominant",
+      "runs": 73,
+      "system": "grasu_regraph",
+      "total_runs": 73
+    }
+  ],
+  "claim_class": "complete_routed_k1_multi_partition_structural_analysis",
+  "correctness": "all_rows_dual_oracle_zero_mismatch",
+  "energy_claim": "sparse_active_channel_dramsim3_only",
+  "energy_not_claimed": "full_32_channel_idle_background_or_total_system_energy",
+  "group_summary": [
+    {
+      "active_dram_energy_advantage_geomean": 1.6284290076063033,
+      "active_dram_energy_advantage_median": 1.8501525451384881,
+      "energy_claim": "sparse_active_channel_dramsim3_only",
+      "grasu_regraph_wins": 25,
+      "group_type": "overall",
+      "group_value": "all",
+      "pairs": 73,
+      "request_advantage_geomean": 9.03182705948774,
+      "request_advantage_median": 10.967529320538917,
+      "speedup_geomean": 2.1173720834371674,
+      "speedup_max": 15.929046142633547,
+      "speedup_median": 2.3437520533336027,
+      "speedup_min": 0.1301702753634336,
+      "spine_wins": 48,
+      "ties": 0
+    },
+    {
+      "active_dram_energy_advantage_geomean": 2.1478157381097103,
+      "active_dram_energy_advantage_median": 2.200943383689897,
+      "energy_claim": "sparse_active_channel_dramsim3_only",
+      "grasu_regraph_wins": 9,
+      "group_type": "algorithm",
+      "group_value": "full_pagerank",
+      "pairs": 23,
+      "request_advantage_geomean": 13.772026194846454,
+      "request_advantage_median": 16.618548440942778,
+      "speedup_geomean": 2.745592905986433,
+      "speedup_max": 14.150314769975786,
+      "speedup_median": 2.7294311643774236,
+      "speedup_min": 0.32384267202640654,
+      "spine_wins": 14,
+      "ties": 0
+    },
+    {
+      "active_dram_energy_advantage_geomean": 2.6339685632859346,
+      "active_dram_energy_advantage_median": 3.9314433954501062,
+      "energy_claim": "sparse_active_channel_dramsim3_only",
+      "grasu_regraph_wins": 7,
+      "group_type": "algorithm",
+      "group_value": "thresholded_residual_pagerank",
+      "pairs": 23,
+      "request_advantage_geomean": 17.555799038708873,
+      "request_advantage_median": 30.003359813918,
+      "speedup_geomean": 3.3150975555730975,
+      "speedup_max": 15.929046142633547,
+      "speedup_median": 4.79644937976861,
+      "speedup_min": 0.35982428201294153,
+      "spine_wins": 16,
+      "ties": 0
+    },
+    {
+      "active_dram_energy_advantage_geomean": 1.1647435956197922,
+      "active_dram_energy_advantage_median": 1.1964886603607217,
+      "energy_claim": "sparse_active_channel_dramsim3_only",
+      "grasu_regraph_wins": 0,
+      "group_type": "algorithm",
+      "group_value": "weighted_dynamic_sssp",
+      "pairs": 4,
+      "request_advantage_geomean": 6.359818159083295,
+      "request_advantage_median": 6.124976784640614,
+      "speedup_geomean": 1.5140086067590934,
+      "speedup_max": 1.6488634263537238,
+      "speedup_median": 1.553005686278369,
+      "speedup_min": 1.3259771390083004,
+      "spine_wins": 4,
+      "ties": 0
+    },
+    {
+      "active_dram_energy_advantage_geomean": 0.809114390788866,
+      "active_dram_energy_advantage_median": 1.3378749533819085,
+      "energy_claim": "sparse_active_channel_dramsim3_only",
+      "grasu_regraph_wins": 9,
+      "group_type": "algorithm",
+      "group_value": "weighted_sssp",
+      "pairs": 23,
+      "request_advantage_geomean": 3.2389238061907486,
+      "request_advantage_median": 4.034120734908137,
+      "speedup_geomean": 1.1055866915941959,
+      "speedup_max": 3.652224736783919,
+      "speedup_median": 1.8944897312555808,
+      "speedup_min": 0.1301702753634336,
+      "spine_wins": 14,
+      "ties": 0
+    },
+    {
+      "active_dram_energy_advantage_geomean": 0.8387420752386403,
+      "active_dram_energy_advantage_median": 0.7536967061088725,
+      "energy_claim": "sparse_active_channel_dramsim3_only",
+      "grasu_regraph_wins": 4,
+      "group_type": "dataset_kind",
+      "group_value": "real_compact_slice",
+      "pairs": 9,
+      "request_advantage_geomean": 2.788842799422238,
+      "request_advantage_median": 2.916363305424099,
+      "speedup_geomean": 1.1191307586397146,
+      "speedup_max": 3.7575068273325436,
+      "speedup_median": 1.0066830550500696,
+      "speedup_min": 0.39936999082898045,
+      "spine_wins": 5,
+      "ties": 0
+    },
+    {
+      "active_dram_energy_advantage_geomean": 1.7876750288549463,
+      "active_dram_energy_advantage_median": 2.2609948216266442,
+      "energy_claim": "sparse_active_channel_dramsim3_only",
+      "grasu_regraph_wins": 21,
+      "group_type": "dataset_kind",
+      "group_value": "synthetic",
+      "pairs": 64,
+      "request_advantage_geomean": 10.654763244921604,
+      "request_advantage_median": 15.65300114589935,
+      "speedup_geomean": 2.3159999443077965,
+      "speedup_max": 15.929046142633547,
+      "speedup_median": 2.879308154373954,
+      "speedup_min": 0.1301702753634336,
+      "spine_wins": 43,
+      "ties": 0
+    },
+    {
+      "active_dram_energy_advantage_geomean": 2.0904981736411594,
+      "active_dram_energy_advantage_median": 2.384689022617847,
+      "energy_claim": "sparse_active_channel_dramsim3_only",
+      "grasu_regraph_wins": 8,
+      "group_type": "role",
+      "group_value": "calibration",
+      "pairs": 32,
+      "request_advantage_geomean": 12.828415860609473,
+      "request_advantage_median": 18.367572852238194,
+      "speedup_geomean": 2.699726396918798,
+      "speedup_max": 15.929046142633547,
+      "speedup_median": 3.0480519352738935,
+      "speedup_min": 0.13018489477989761,
+      "spine_wins": 24,
+      "ties": 0
+    },
+    {
+      "active_dram_energy_advantage_geomean": 1.528717914747195,
+      "active_dram_energy_advantage_median": 1.723983623007924,
+      "energy_claim": "sparse_active_channel_dramsim3_only",
+      "grasu_regraph_wins": 13,
+      "group_type": "role",
+      "group_value": "holdout",
+      "pairs": 32,
+      "request_advantage_geomean": 8.849415316657725,
+      "request_advantage_median": 10.435791538761558,
+      "speedup_geomean": 1.9868145706007452,
+      "speedup_max": 15.929046142633547,
+      "speedup_median": 2.177558599427794,
+      "speedup_min": 0.1301702753634336,
+      "spine_wins": 19,
+      "ties": 0
+    },
+    {
+      "active_dram_energy_advantage_geomean": 0.8387420752386403,
+      "active_dram_energy_advantage_median": 0.7536967061088725,
+      "energy_claim": "sparse_active_channel_dramsim3_only",
+      "grasu_regraph_wins": 4,
+      "group_type": "role",
+      "group_value": "validation",
+      "pairs": 9,
+      "request_advantage_geomean": 2.788842799422238,
+      "request_advantage_median": 2.916363305424099,
+      "speedup_geomean": 1.1191307586397146,
+      "speedup_max": 3.7575068273325436,
+      "speedup_median": 1.0066830550500696,
+      "speedup_min": 0.39936999082898045,
+      "spine_wins": 5,
+      "ties": 0
+    }
+  ],
+  "matrix_manifest": "/data/tmp/chuxiao/candidate10_opt_v2_k1_formal_matrix_exact_idle_20260728/comparison_manifest.json",
+  "matrix_manifest_sha256": "f8d6131ba996055bd6e9649ee241a428b7703a4e345c7c05fbc723df68a58159",
+  "matrix_orchestration_implementation": {
+    "files": [
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/configs/contracts/candidate10_normalized_hls_feasibility_v1.json",
+        "sha256": "9eb6af510d5c40d910d418141470e8a12040c1513113ef336dafa21a5f54d024"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/docs/evidence/grasu_regraph_matching_hls_status_20260726.json",
+        "sha256": "9bdf345bf0de580ef6cd8cd5bff2c5c8a49d9351ff84802bd72f9c7dd3a47731"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/scripts/run_shared_comparison_matrix.py",
+        "sha256": "5a4873d28a97937f87bcebf000491a1b38d56af0aede4ba05afb0ab8a1203aba"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/spine_cycle_sim/experiments/comparison.py",
+        "sha256": "892fe0e8727b1f538b080e64770672467a01816726061668ffcff6bc9490d93c"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/spine_cycle_sim/experiments/feasibility.py",
+        "sha256": "c0a0e6c835577558b51e9a1cedf4003540150a9d41479432c0bf89c6fc84a771"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/spine_cycle_sim/experiments/regraph_contracts.py",
+        "sha256": "096e250a1883aec16a17d2a340291bb4d02d7e28ff7cc5c4514771f3cabff7a1"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/spine_cycle_sim/experiments/shared_workloads.py",
+        "sha256": "f4be035e49d6823b65114ddadc3e2be81e7cd62d8ab8bead0797a391f6bc6b1e"
+      }
+    ],
+    "sha256": "d46d0655f8735474ec28825753c7b4e04b1705467ac338df7b80862b84307460"
+  },
+  "matrix_simulation_implementation": {
+    "files": [
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/configs/architectures/grasu_regraph_candidate10_k1_multipart_pagerank_v4.json",
+        "sha256": "cb33252599584880ffb2281d161178f543db68e3dfb855df0f4b3fef4fa733ab"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/configs/architectures/grasu_regraph_candidate10_k1_multipart_residual_v4.json",
+        "sha256": "0d035f8c036c3632a6d99770abd91b7144b8ceb19b9777a4fd5e1d59b367a049"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/configs/architectures/grasu_regraph_candidate10_k1_multipart_weighted_v4.json",
+        "sha256": "a6a2cca9dff4f55b3f096868c2e24b453c3a249cfcff443c50f5e7a61f5ca71e"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/configs/architectures/spine_candidate10_opt_v2_reader_working_set.json",
+        "sha256": "928a86a461d10cb3ea9bdd2b84d30b567b0200afdc5ca1742a36ef2301d5ab36"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/configs/contracts/grasu_regraph_k1_multipart_capabilities_v4.json",
+        "sha256": "d8280936ff59c180df0de567444c1f43eb89deab9123eca7cf227a635e24f146"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/configs/memory/HBM2_1ch_x128.ini",
+        "sha256": "d1e865c6528acbc41f0768667063702bfb4033f24bcd46119ad25bfc5ad4fb5f"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/scripts/run_sst_exact_idle_dramsim3.sh",
+        "sha256": "f1466b19e95a7a973ea03e8cd8f09c024227fe6d420cf018430fa76441626b9d"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/scripts/run_sst_grasu_regraph.py",
+        "sha256": "39e1e0521109151ea1920ef987543eb4d630c26716347982f663c1b335ab6719"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/scripts/run_sst_grasu_regraph_hls_pagerank.py",
+        "sha256": "8cd2c9fcf1201f191fd89df0519793ecf2ee09db67f43177183c8135a527b88b"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/scripts/run_sst_grasu_regraph_hls_residual_pagerank.py",
+        "sha256": "9ed30c0f9d4728d7811274aa4f1e49ed15ddba5b9a1dc468bf3cc6cc685e3378"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/scripts/run_sst_grasu_regraph_hls_weighted.py",
+        "sha256": "dcda53b4ed562b7638a0dd1068ad9ce2010ea092c6204983abc95283f5b54718"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/scripts/run_sst_grasu_regraph_pagerank.py",
+        "sha256": "e02ad205b9e129a4320d46467c883141d2baf7f1491c72c805c46cc4bd0a1ef2"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/scripts/run_sst_grasu_regraph_residual_pagerank.py",
+        "sha256": "5027f6ed41d889444acfccd37f39ed3fdbe26158ef5cbad7d7a11d5867d85b9a"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/scripts/run_sst_spine_vertical.py",
+        "sha256": "367a3055a3ba4f049d245cb6043be171d439e88272c8094514e69a04ac4aaa50"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/spine_cycle_sim/sst_binding.py",
+        "sha256": "c4c8dd67a685aa52b07b1bff0875744c55c9655addb6549e0bac9fade5af0bcb"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/sst/grasu_regraph_vertical.py",
+        "sha256": "f9ea6529179792c1d89e3468779bc5927e43df78d71f3f9466001304e17f65b1"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-multipart-fix/sst/spine_vertical_slice.py",
+        "sha256": "9678ef01dfb9ecee3dea28e826a82adc3a50a65cb8f985f2240776a636a21e58"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim-publication/build/sst/libspine_cycle.so",
+        "sha256": "b011c9d5fea17200690288f81c0e22aa98abd11084db2c3b5c9dcb7d8484e070"
+      }
+    ],
+    "sha256": "0ae444cac2809e457347bac12ff878e4a44fb09365215a2df413041899db7da0"
+  },
+  "outputs": {
+    "bottleneck_summary.csv": "747a88a88c225f6c6eeb6b03e665b6bdbf3cb43fd1188076e10685a0f91cde3c",
+    "group_summary.csv": "9464ebf5d0965518cbf0ed362bd976602cd470e8b3027f177a791abdb43cd803",
+    "pair_details.csv": "60f768b33364a04b36b9c48dd81e2101fe4d3309c959d0f58e693b8a719eccd2",
+    "system_details.csv": "817ee17e96f1594c56652feaa02bb6e85a8d5ae52ffa64de4559a52182d29dbf",
+    "update_summary.csv": "e21818e4e45aeae6d82a30917aefea2a4fdcff11765b2645edaeb77f8284bd66"
+  },
+  "pairs": 73,
+  "runs": 73,
+  "schema_version": 1,
+  "source_manifest": "/home/chuxiao/spine-cycle-sim-multipart-fix/configs/experiments/shared_comparison_candidate10_k1_multipart_v4_20260728.json",
+  "source_manifest_sha256": "ce4cc91dc06ee3e7d9643ddeadf4ef03c866b64bb419767b8164c568c8225974",
+  "status": "PASS",
+  "system_rows": 146,
+  "timing_claim": "normalized_conversion_free_structural_execution_driven",
+  "update_summary": [
+    {
+      "grasu_regraph_input_update_records_per_second_geomean": 3805916.3660722408,
+      "grasu_regraph_physical_update_amplification_geomean": 1.189207115002721,
+      "group_type": "overall",
+      "group_value": "all",
+      "input_update_records": 8,
+      "pairs": 4,
+      "spine_input_update_records_per_second_geomean": 25084.845272519808,
+      "spine_update_speedup_geomean": 0.006591013269797036,
+      "spine_update_speedup_median": 0.0059620339709886335,
+      "throughput_scope": "input_differential_records_per_timed_update_phase"
+    },
+    {
+      "grasu_regraph_input_update_records_per_second_geomean": 3166149.766506928,
+      "grasu_regraph_physical_update_amplification_geomean": 1.414213562373095,
+      "group_type": "role",
+      "group_value": "calibration",
+      "input_update_records": 3,
+      "pairs": 2,
+      "spine_input_update_records_per_second_geomean": 26881.640138590206,
+      "spine_update_speedup_geomean": 0.008490324880698086,
+      "spine_update_speedup_median": 0.00947441700898101,
+      "throughput_scope": "input_differential_records_per_timed_update_phase"
+    },
+    {
+      "grasu_regraph_input_update_records_per_second_geomean": 4574957.109978141,
+      "grasu_regraph_physical_update_amplification_geomean": 1.0,
+      "group_type": "role",
+      "group_value": "holdout",
+      "input_update_records": 5,
+      "pairs": 2,
+      "spine_input_update_records_per_second_geomean": 23408.14991578338,
+      "spine_update_speedup_geomean": 0.005116583468013154,
+      "spine_update_speedup_median": 0.005294253221390592,
+      "throughput_scope": "input_differential_records_per_timed_update_phase"
+    }
+  ],
+  "update_throughput_claim": "input_differential_records_per_timed_update_phase"
+}

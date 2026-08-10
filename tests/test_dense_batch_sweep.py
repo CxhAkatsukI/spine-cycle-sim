@@ -77,7 +77,7 @@ class DenseBatchSweepTests(unittest.TestCase):
             }
             for pattern in DENSE_SWEEP_PATTERNS:
                 self.assertEqual(statuses[(pattern, 8192)], "PASS")
-                self.assertEqual(statuses[(pattern, 16384)], "FAIL")
+                self.assertEqual(statuses[(pattern, 16384)], "PASS")
             grasu_statuses = {
                 (run["pattern"], run["batch_size"]): run[
                     "expected_grasu_capacity_status"
@@ -100,13 +100,13 @@ class DenseBatchSweepTests(unittest.TestCase):
             "mode": "spine_pagerank",
             "dynamic_update": True,
             "failure": (
-                "maintenance: Spine level writer exceeds target edge capacity"
+                "maintenance: Spine cold level hierarchy has no capacity-safe free target"
             ),
             "vertices": 8192,
             "initial_edges": 8192,
             "update_edges": 16384,
             "materialized_snapshot_edges": 24576,
-            "maintenance_target_level": 1,
+            "maintenance_target_level": -1,
             "maintenance_logical_overflow_events": 1,
             "maintenance_cycles": 100,
             "maintenance_persisted_edges": 0,

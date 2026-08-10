@@ -6,10 +6,16 @@ import unittest
 from scripts.run_sst_grasu_regraph_hls_residual_pagerank import (
     DEFAULT_CAPABILITY_CATALOG,
     DEFAULT_PROFILE,
+    compact_hls_residual_oracle,
+    external_rank_oracle_matches,
     require_hls_residual_capability,
+    residual_bound_matches,
 )
 from scripts.run_sst_grasu_regraph_hls_pagerank import full_pagerank_oracle
 from scripts.run_sst_grasu_regraph_hls_weighted import build_hls_weighted_oracle
+from spine_cycle_sim.experiments.regraph_contracts import (
+    expected_partitioned_source_cache_requests,
+)
 from spine_cycle_sim.experiments.shared_workloads import load_slice
 
 
@@ -41,6 +47,123 @@ class GraSuHlsResidualPageRankRunnerTests(unittest.TestCase):
         self.assertEqual(len(ranks), initial.vertices)
         self.assertAlmostEqual(sum(ranks), 1.0, places=12)
         self.assertGreater(prepared.physical_updates, prepared.logical_updates)
+
+    def test_runtime_oracle_preserves_source_request_ledger_without_edges(self) -> None:
+        initial = load_slice(
+            ROOT / "tests" / "data" / "grasu_regraph_weighted_dynamic_initial.slice"
+        )
+        update = load_slice(
+            ROOT / "tests" / "data" / "grasu_regraph_weighted_dynamic_update.slice"
+        )
+        prepared = build_hls_weighted_oracle(initial, update, 0)
+        partition_vertices = 4
+        source_buffer_vertices = 4
+        compact = compact_hls_residual_oracle(
+            prepared, partition_vertices, source_buffer_vertices
+        )
+        partitions = (initial.vertices + partition_vertices - 1) // partition_vertices
+        sources: list[set[int]] = [set() for _ in range(partitions)]
+        for source, destination, _weight in prepared.final_internal_edges:
+            sources[destination // partition_vertices].add(source)
+        expected = sum(
+            expected_partitioned_source_cache_requests(
+                partition_sources, source_buffer_vertices, 1
+            )
+            for partition_sources in sources
+        )
+        self.assertEqual(compact.source_requests_per_iteration, expected)
+        self.assertEqual(compact.external_to_internal, prepared.external_to_internal)
+        self.assertEqual(compact.internal_to_external, prepared.internal_to_external)
+        self.assertFalse(hasattr(compact, "final_internal_edges"))
+
+    def test_delta_validator_accepts_linf_when_l1_exceeds_epsilon(self) -> None:
+        result = {"residual_l1": 3.6e-4, "residual_linf": 9.0e-5}
+        self.assertTrue(
+            residual_bound_matches(
+                result, "deltahls_sink_free_linf_warm", 1.0e-4
+            )
+        )
+        self.assertFalse(
+            residual_bound_matches(result, "generic_dangling_l1_cold", 1.0e-4)
+        )
+
+    def test_hardware_warm_validator_uses_direct_linf_threshold(self) -> None:
+        result = {"residual_l1": 3.6e-4, "residual_linf": 9.0e-5}
+        self.assertTrue(
+            residual_bound_matches(
+                result, "grasu_hardware_warm_dangling_linf", 1.0e-4
+            )
+        )
+
+    def test_delta_rank_oracle_uses_fixed_point_defect_bound(self) -> None:
+        result = {
+            "old_rank_l1": 3.0e-5,
+            "residual_l1": 4.0e-5,
+            "mathematical_max_abs_error": 2.0e-5,
+            "mathematical_error_tolerance": 1.1 * 7.0e-5 / 0.15,
+            "mathematical_error_bound": (
+                "l1_fixed_point_defect_plus_final_residual_over_one_minus_d"
+            ),
+        }
+        self.assertTrue(
+            external_rank_oracle_matches(
+                result,
+                2.0e-5,
+                "deltahls_sink_free_linf_warm",
+                1.0e-6,
+                0.85,
+            )
+        )
+
+    def test_delta_rank_oracle_rejects_wrong_bound_label(self) -> None:
+        result = {
+            "old_rank_l1": 3.0e-5,
+            "residual_l1": 4.0e-5,
+            "mathematical_max_abs_error": 2.0e-5,
+            "mathematical_error_tolerance": 1.1 * 7.0e-5 / 0.15,
+            "mathematical_error_bound": "epsilon_over_vertices",
+        }
+        self.assertFalse(
+            external_rank_oracle_matches(
+                result,
+                2.0e-5,
+                "deltahls_sink_free_linf_warm",
+                1.0e-6,
+                0.85,
+            )
+        )
+
+    def test_hardware_warm_rank_oracle_has_float32_rounding_floor(self) -> None:
+        result = {
+            "old_rank_l1": 0.0,
+            "residual_l1": 0.0,
+            "mathematical_max_abs_error": 2.0e-8,
+            "mathematical_error_tolerance": 5.0e-7,
+            "mathematical_error_bound": (
+                "l1_fixed_point_defect_plus_final_residual_over_one_minus_d"
+            ),
+        }
+        self.assertTrue(
+            external_rank_oracle_matches(
+                result,
+                2.0e-8,
+                "grasu_hardware_warm_dangling_linf",
+                1.0e-6,
+                0.85,
+            )
+        )
+
+    def test_generic_rank_oracle_keeps_five_epsilon_gate(self) -> None:
+        self.assertTrue(
+            external_rank_oracle_matches(
+                {}, 4.9e-4, "generic_dangling_l1_cold", 1.0e-4, 0.85
+            )
+        )
+        self.assertFalse(
+            external_rank_oracle_matches(
+                {}, 5.1e-4, "generic_dangling_l1_cold", 1.0e-4, 0.85
+            )
+        )
 
 
 if __name__ == "__main__":

@@ -169,6 +169,7 @@ struct LocatedUpdate {
   std::uint32_t destination{};
   std::uint16_t weight{1};
   bool delete_op{};
+  std::uint64_t last_binary_head{};
 };
 
 struct DegreeDelta {
@@ -189,11 +190,11 @@ public:
   GraSuDirectSearch(std::string name, ClockId clock_id, std::size_t cu,
                     std::size_t update_count, std::size_t partition_vertices,
                     bool partitioned_updates, const GraSuNativeConfig &config,
-                    Ports ports)
+                    const GraSuPartitionAddressPlan &address_plan, Ports ports)
       : Component(std::move(name), clock_id), cu_(cu),
         update_count_(update_count), partition_vertices_(partition_vertices),
         partitioned_updates_(partitioned_updates), config_(config),
-        ports_(ports) {
+        address_plan_(address_plan), ports_(ports) {
     if (cu_ >= 4 || ports_.updates == nullptr || ports_.rows == nullptr ||
         ports_.binary == nullptr || ports_.output == nullptr) {
       throw std::invalid_argument("invalid GraSU direct-search ports");
@@ -208,6 +209,31 @@ public:
   [[nodiscard]] std::uint64_t row_reads() const noexcept { return row_reads_; }
   [[nodiscard]] std::uint64_t binary_probes() const noexcept {
     return binary_probes_;
+  }
+
+  [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool evaluate_ready() const noexcept override {
+    if (failed() || done()) {
+      return false;
+    }
+    switch (phase_) {
+    case Phase::kWaitUpdate:
+      return ports_.updates->responses().front() != nullptr;
+    case Phase::kWaitRow:
+      return ports_.rows->responses().front() != nullptr;
+    case Phase::kWaitBinary:
+      return ports_.binary->responses().front() != nullptr;
+    default:
+      return true;
+    }
+  }
+  [[nodiscard]] bool commit_ready() const noexcept override {
+    return staged_response_.has_value() || staged_request_ || staged_emit_;
   }
 
   void evaluate(const CycleContext &) override {
@@ -247,7 +273,9 @@ public:
             .transaction_id = transaction_id(0),
             .operation = MemoryOperation::kRead,
             .address =
-                config_.update_base + local_index_ * update_record_bytes(),
+                (config_.explicit_runtime_regions ? config_.update_bases[cu_]
+                                                  : config_.update_base) +
+                local_index_ * update_record_bytes(),
             .bytes = static_cast<std::uint32_t>(update_record_bytes()),
             .stream_read_beats = false,
             .write_data = {},
@@ -258,7 +286,7 @@ public:
       staged_request_ = ports_.rows->requests().try_push(AxiRequest{
           .transaction_id = transaction_id(1),
           .operation = MemoryOperation::kRead,
-          .address = partition_base(config_.row_offset_base) +
+          .address = address_plan_.row_bases.at(current_partition_) +
                      static_cast<std::uint64_t>(current_.source) * 8,
           .bytes = 8,
           .stream_read_beats = false,
@@ -269,7 +297,7 @@ public:
       staged_request_ = ports_.binary->requests().try_push(AxiRequest{
           .transaction_id = transaction_id(2),
           .operation = MemoryOperation::kRead,
-          .address = partition_base(config_.binary_base) +
+          .address = address_plan_.binary_bases.at(current_partition_) +
                      static_cast<std::uint64_t>(mid_segment_) * 8,
           .bytes = 8,
           .stream_read_beats = false,
@@ -286,6 +314,7 @@ public:
           .destination = current_.destination,
           .weight = current_.weight,
           .delete_op = current_.delete_op,
+          .last_binary_head = last_binary_head_,
       });
       break;
     default:
@@ -305,6 +334,7 @@ public:
     if (staged_emit_) {
       ++local_index_;
       phase_ = Phase::kNeedUpdate;
+      staged_emit_ = false;
       return;
     }
     if (!staged_request_) {
@@ -326,6 +356,7 @@ public:
       fail("GraSU direct-search issued from invalid phase");
       break;
     }
+    staged_request_ = false;
   }
 
 private:
@@ -348,10 +379,6 @@ private:
     return partitioned_updates_ ? 16 : 8;
   }
 
-  [[nodiscard]] std::uint64_t partition_base(std::uint64_t base) const {
-    return base + current_partition_ * config_.partition_address_stride;
-  }
-
   void fail(std::string message) {
     if (failure_.empty()) {
       failure_ = std::move(message);
@@ -367,6 +394,7 @@ private:
     }
     switch (phase_) {
     case Phase::kWaitUpdate: {
+      last_binary_head_ = 0;
       if (partitioned_updates_) {
         current_.source = decode_u32(response.read_data, 0);
         const std::uint32_t destination = decode_u32(response.read_data, 4);
@@ -406,6 +434,7 @@ private:
     }
     case Phase::kWaitBinary: {
       const std::uint64_t value = decode_u64(response.read_data);
+      last_binary_head_ = value;
       const std::uint64_t edge =
           (static_cast<std::uint64_t>(current_.source) << 32) |
           pma_search_key(current_.destination, current_.weight,
@@ -431,6 +460,7 @@ private:
   std::size_t partition_vertices_{};
   bool partitioned_updates_{};
   GraSuNativeConfig config_;
+  const GraSuPartitionAddressPlan &address_plan_;
   Ports ports_;
   std::uint64_t local_index_{};
   Phase phase_{Phase::kNeedUpdate};
@@ -445,6 +475,7 @@ private:
   std::string failure_;
   std::uint64_t row_reads_{};
   std::uint64_t binary_probes_{};
+  std::uint64_t last_binary_head_{};
 };
 
 class GraSuDispatch final : public Component {
@@ -466,6 +497,17 @@ public:
   [[nodiscard]] std::uint64_t ddr_updates() const noexcept {
     return ddr_updates_;
   }
+
+  [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool evaluate_ready() const noexcept override {
+    return !done() && !failed() && inputs_[next_ & 3U]->front() != nullptr;
+  }
+  [[nodiscard]] bool commit_ready() const noexcept override { return staged_; }
 
   void evaluate(const CycleContext &) override {
     staged_ = false;
@@ -504,6 +546,7 @@ public:
     } else {
       ++ddr_updates_;
     }
+    staged_ = false;
   }
 
 private:
@@ -532,12 +575,13 @@ public:
   GraSuPmaProcessor(std::string name, ClockId clock_id, bool cache_direct,
                     std::size_t lane_fifo_depth, std::uint64_t pma_base,
                     std::uint64_t partition_address_stride,
+                    const std::vector<std::uint64_t> &partition_pma_bases,
                     GraSuPmaWordAbi pma_word_abi, Ports ports)
       : Component(std::move(name), clock_id), cache_direct_(cache_direct),
         lane_fifo_depth_(lane_fifo_depth), pma_base_(pma_base),
         partition_address_stride_(partition_address_stride),
-        pma_word_abi_(pma_word_abi), ports_(ports),
-        lanes_(cache_direct ? 1 : 32) {
+        partition_pma_bases_(partition_pma_bases), pma_word_abi_(pma_word_abi),
+        ports_(ports), lanes_(cache_direct ? 1 : 32) {
     if (lane_fifo_depth_ == 0 || ports_.input == nullptr ||
         ports_.reads[0] == nullptr || ports_.writes[0] == nullptr ||
         (!cache_direct_ &&
@@ -547,16 +591,49 @@ public:
   }
 
   [[nodiscard]] bool idle() const noexcept {
-    return ports_.input->empty() &&
-           std::all_of(lanes_.begin(), lanes_.end(), [](const Lane &lane) {
-             return lane.phase == LanePhase::kIdle && lane.queue.empty();
-           });
+    return ports_.input->empty() && work_items_ == 0;
   }
   [[nodiscard]] bool failed() const noexcept { return !failure_.empty(); }
   [[nodiscard]] const std::string &failure() const noexcept { return failure_; }
   [[nodiscard]] std::uint64_t completed() const noexcept { return completed_; }
   [[nodiscard]] std::uint64_t lane_queue_stalls() const noexcept {
     return lane_queue_stalls_;
+  }
+
+  [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool evaluate_ready() const noexcept override {
+    if (failed()) {
+      return false;
+    }
+    if (!ports_.input->empty()) {
+      return true;
+    }
+    if (work_items_ == 0) {
+      return false;
+    }
+    const std::size_t port_count = cache_direct_ ? 1 : 2;
+    for (std::size_t port = 0; port < port_count; ++port) {
+      if (ports_.reads[port]->responses().front() != nullptr ||
+          (ports_.writes[port] != ports_.reads[port] &&
+           ports_.writes[port]->responses().front() != nullptr)) {
+        return true;
+      }
+    }
+    return std::any_of(lanes_.begin(), lanes_.end(), [](const Lane &lane) {
+      return !lane.queue.empty() || lane.phase == LanePhase::kNeedRead ||
+             lane.phase == LanePhase::kNeedWrite ||
+             lane.phase == LanePhase::kNeedDegreeEmit;
+    });
+  }
+  [[nodiscard]] bool commit_ready() const noexcept override {
+    return staged_route_.has_value() || !staged_starts_.empty() ||
+           !staged_responses_.empty() || !staged_issues_.empty() ||
+           staged_degree_lane_.has_value();
   }
 
   void evaluate(const CycleContext &) override {
@@ -582,6 +659,7 @@ public:
     if (staged_route_.has_value()) {
       lanes_[staged_route_->first].queue.push_back(staged_route_->second);
       staged_route_.reset();
+      ++work_items_;
     }
     for (std::size_t lane_index : staged_starts_) {
       Lane &lane = lanes_[lane_index];
@@ -604,8 +682,17 @@ public:
     if (staged_degree_lane_.has_value()) {
       Lane &lane = lanes_[*staged_degree_lane_];
       lane.phase = LanePhase::kIdle;
+      if (work_items_ == 0) {
+        throw std::logic_error("GraSU PMA processor work count underflow");
+      }
+      --work_items_;
       ++completed_;
     }
+    staged_route_.reset();
+    staged_starts_.clear();
+    staged_responses_.clear();
+    staged_issues_.clear();
+    staged_degree_lane_.reset();
   }
 
 private:
@@ -654,8 +741,11 @@ private:
   [[nodiscard]] std::uint64_t address_for(const LocatedUpdate &item) const {
     const std::uint64_t local_segment =
         static_cast<std::uint64_t>(item.segment_head_slot) >> 5;
-    return pma_base_ + item.partition * partition_address_stride_ +
-           local_segment * kGraSuSegmentBytes;
+    const std::uint64_t partition_base =
+        partition_pma_bases_.empty()
+            ? pma_base_ + item.partition * partition_address_stride_
+            : partition_pma_bases_.at(item.partition);
+    return partition_base + local_segment * kGraSuSegmentBytes;
   }
 
   void stage_degree_output() {
@@ -805,6 +895,10 @@ private:
       }
       if (ports_.degree_output == nullptr) {
         lane.phase = LanePhase::kIdle;
+        if (work_items_ == 0) {
+          throw std::logic_error("GraSU PMA processor work count underflow");
+        }
+        --work_items_;
         ++completed_;
       } else {
         lane.phase = LanePhase::kNeedDegreeEmit;
@@ -863,7 +957,13 @@ private:
     }
     if (!is_grasu_pma_empty(segment.back())) {
       throw std::runtime_error(
-          "GraSU PMA segment has no reserved insertion slot");
+          "GraSU PMA segment has no reserved insertion slot (source=" +
+          std::to_string(item.source) +
+          ", destination=" + std::to_string(item.destination) +
+          ", partition=" + std::to_string(item.partition) +
+          ", segment_head_slot=" + std::to_string(item.segment_head_slot) +
+          ", weight=" + std::to_string(item.weight) +
+          ", last_binary_head=" + std::to_string(item.last_binary_head) + ")");
     }
     std::move_backward(position, segment.end() - 1, segment.end());
     *position = encoded;
@@ -874,6 +974,7 @@ private:
   std::size_t lane_fifo_depth_{};
   std::uint64_t pma_base_{};
   std::uint64_t partition_address_stride_{};
+  const std::vector<std::uint64_t> &partition_pma_bases_;
   GraSuPmaWordAbi pma_word_abi_{GraSuPmaWordAbi::kNormalizedWeighted};
   Ports ports_;
   std::vector<Lane> lanes_;
@@ -887,6 +988,7 @@ private:
   std::array<std::size_t, 2> read_rr_{};
   std::array<std::size_t, 2> write_rr_{};
   std::uint64_t next_transaction_{};
+  std::size_t work_items_{};
   std::uint64_t completed_{};
   std::uint64_t lane_queue_stalls_{};
   std::string failure_;
@@ -917,6 +1019,35 @@ public:
   [[nodiscard]] std::uint64_t writes() const noexcept { return writes_; }
   [[nodiscard]] std::size_t reorder_max_occupancy() const noexcept {
     return reorder_max_occupancy_;
+  }
+
+  [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool evaluate_ready() const noexcept override {
+    if (failed() || done()) {
+      return false;
+    }
+    if (std::any_of(inputs_.begin(), inputs_.end(), [](const auto *input) {
+          return input->front() != nullptr;
+        })) {
+      return true;
+    }
+    if (phase_ == Phase::kWaitRead || phase_ == Phase::kWaitWrite) {
+      return port_.responses().front() != nullptr;
+    }
+    if (phase_ == Phase::kIdle) {
+      return next_ < updates_ && ready_[next_].has_value();
+    }
+    return true;
+  }
+  [[nodiscard]] bool commit_ready() const noexcept override {
+    return !staged_inputs_.empty() || staged_input_port_.has_value() ||
+           staged_ready_.has_value() || staged_response_.has_value() ||
+           staged_request_;
   }
 
   void evaluate(const CycleContext &) override {
@@ -1028,6 +1159,11 @@ public:
         phase_ = Phase::kWaitWrite;
       }
     }
+    staged_inputs_.clear();
+    staged_input_port_.reset();
+    staged_ready_.reset();
+    staged_response_.reset();
+    staged_request_ = false;
   }
 
 private:
@@ -1239,9 +1375,9 @@ reorder_grasu_native_graph(std::size_t vertices,
 GraSuWeightedFullWordGraph prepare_grasu_weighted_full_word_graph(
     std::size_t vertices, const std::vector<GraSuEdge> &initial_edges,
     const std::vector<GraSuEdge> &logical_updates) {
-  if (vertices == 0 || vertices > kGraSuPmaLocalVertexCapacity) {
+  if (vertices == 0 || vertices > std::numeric_limits<std::uint32_t>::max()) {
     throw std::invalid_argument(
-        "weighted full-word GraSU graph exceeds one dst19 partition");
+        "invalid weighted full-word GraSU vertex count");
   }
 
   using EdgeKey = std::pair<std::uint32_t, std::uint32_t>;
@@ -1616,6 +1752,79 @@ std::vector<GraSuEdge> GraSuPartitionedPmaLayout::live_edges() const {
   return result;
 }
 
+GraSuPartitionAddressPlan make_grasu_partition_address_plan(
+    const GraSuPartitionedPmaLayout &layout, bool packed,
+    std::uint64_t row_base, std::uint64_t binary_base, std::uint64_t pma_base,
+    std::uint64_t fixed_stride, std::uint64_t packed_arena_base,
+    std::uint64_t alignment) {
+  if (layout.partitions.empty() || fixed_stride == 0 || alignment == 0) {
+    throw std::invalid_argument("invalid GraSU partition address plan");
+  }
+  const auto checked_add = [](std::uint64_t left, std::uint64_t right) {
+    if (right > std::numeric_limits<std::uint64_t>::max() - left) {
+      throw std::overflow_error("GraSU partition address overflow");
+    }
+    return left + right;
+  };
+  const auto align_up = [&](std::uint64_t value) {
+    const std::uint64_t remainder = value % alignment;
+    return remainder == 0 ? value : checked_add(value, alignment - remainder);
+  };
+
+  GraSuPartitionAddressPlan result;
+  result.row_bases.reserve(layout.partitions.size());
+  result.binary_bases.reserve(layout.partitions.size());
+  result.pma_bases.reserve(layout.partitions.size());
+  if (!packed) {
+    std::uint64_t end = 0;
+    for (std::size_t partition = 0; partition < layout.partitions.size();
+         ++partition) {
+      if (partition >
+          std::numeric_limits<std::uint64_t>::max() / fixed_stride) {
+        throw std::overflow_error("GraSU partition stride overflow");
+      }
+      const std::uint64_t offset = partition * fixed_stride;
+      result.row_bases.push_back(checked_add(row_base, offset));
+      result.binary_bases.push_back(checked_add(binary_base, offset));
+      result.pma_bases.push_back(checked_add(pma_base, offset));
+      end =
+          std::max(end, checked_add(std::max({row_base, binary_base, pma_base}),
+                                    checked_add(offset, fixed_stride)));
+    }
+    result.arena_begin = std::min({row_base, binary_base, pma_base});
+    result.arena_end = end;
+    return result;
+  }
+
+  std::uint64_t cursor = align_up(packed_arena_base);
+  result.arena_begin = cursor;
+  auto pack = [&](auto size_for_partition, std::vector<std::uint64_t> &bases) {
+    for (const GraSuPmaLayout &partition : layout.partitions) {
+      cursor = align_up(cursor);
+      bases.push_back(cursor);
+      cursor = checked_add(cursor, align_up(size_for_partition(partition)));
+    }
+  };
+  pack(
+      [](const GraSuPmaLayout &partition) {
+        return static_cast<std::uint64_t>(partition.binary_heads.size()) * 8;
+      },
+      result.binary_bases);
+  pack(
+      [](const GraSuPmaLayout &partition) {
+        return static_cast<std::uint64_t>(partition.row_slot_bounds.size()) * 8;
+      },
+      result.row_bases);
+  pack(
+      [](const GraSuPmaLayout &partition) {
+        return static_cast<std::uint64_t>((partition.segments.size() + 1) / 2) *
+               kGraSuSegmentBytes;
+      },
+      result.pma_bases);
+  result.arena_end = align_up(cursor);
+  return result;
+}
+
 void initialize_grasu_pma_layout_payloads(MemoryBackend &backend,
                                           const GraSuPmaLayout &layout,
 
@@ -1627,14 +1836,27 @@ void initialize_grasu_pma_layout_payloads(MemoryBackend &backend,
           encode_u64((static_cast<std::uint64_t>(begin) << 32) | end);
       row_bytes.insert(row_bytes.end(), encoded.begin(), encoded.end());
     }
-    backend.initialize_payload(channel, config.row_offset_base, row_bytes);
+    if (config.explicit_runtime_regions) {
+      const std::uint32_t total_slots =
+          layout.row_slot_bounds.empty() ? 0 : layout.row_slot_bounds.back().second;
+      const auto sentinel = encode_u64(
+          (static_cast<std::uint64_t>(total_slots) << 32) | total_slots);
+      row_bytes.insert(row_bytes.end(), sentinel.begin(), sentinel.end());
+    }
+    backend.initialize_payload(config.explicit_runtime_regions
+                                   ? config.row_channels[channel]
+                                   : channel,
+                               config.row_offset_base, row_bytes);
 
     std::vector<std::uint8_t> binary_bytes;
     for (std::uint64_t head : layout.binary_heads) {
       const auto encoded = encode_u64(head);
       binary_bytes.insert(binary_bytes.end(), encoded.begin(), encoded.end());
     }
-    backend.initialize_payload(channel, config.binary_base, binary_bytes);
+    backend.initialize_payload(config.explicit_runtime_regions
+                                   ? config.binary_channels[channel]
+                                   : channel,
+                               config.binary_base, binary_bytes);
   }
 
   for (std::size_t segment = 0; segment < layout.segments.size(); ++segment) {
@@ -1650,10 +1872,18 @@ void initialize_grasu_pma_layout_payloads(MemoryBackend &backend,
       }
     }
     const auto bytes = encode_segment(words);
-    backend.initialize_payload(
-        parity * 2, config.pma_base + local * kGraSuSegmentBytes, bytes);
-    backend.initialize_payload(
-        parity * 2 + 1, config.pma_base + local * kGraSuSegmentBytes, bytes);
+    if (config.explicit_runtime_regions) {
+      const bool cache = local < config.cache_segments_per_half;
+      const std::size_t lane = cache ? parity * 2 : parity * 2 + 1;
+      backend.initialize_payload(
+          config.pma_channels[lane],
+          config.pma_bases[lane] + local * kGraSuSegmentBytes, bytes);
+    } else {
+      backend.initialize_payload(
+          parity * 2, config.pma_base + local * kGraSuSegmentBytes, bytes);
+      backend.initialize_payload(
+          parity * 2 + 1, config.pma_base + local * kGraSuSegmentBytes, bytes);
+    }
   }
 }
 
@@ -1662,7 +1892,9 @@ namespace {
 GraSuPartitionedPmaLayout one_partition_update_layout(GraSuPmaLayout layout) {
   GraSuPartitionedPmaLayout result;
   result.vertices = layout.vertices;
-  result.partition_vertices = layout.destination_vertices;
+  // A routed shard retains global source/destination IDs even though this
+  // child engine owns only one local-destination PMA window.
+  result.partition_vertices = layout.vertices;
   result.partitions.push_back(std::move(layout));
   return result;
 }
@@ -1676,8 +1908,13 @@ public:
        GraSuNativeConfig config)
       : scheduler_(scheduler), clock_id_(clock_id), backend_(backend),
         layout_(std::move(layout)), updates_(std::move(updates)),
-        config_(config),
+        config_(config), next_initiator_(config.initiator_base),
         start_cycle_(scheduler.clock(clock_id).completed_cycles) {
+    address_plan_ = make_grasu_partition_address_plan(
+        layout_, config_.packed_partition_addresses, config_.row_offset_base,
+        config_.binary_base, config_.pma_base, config_.partition_address_stride,
+        config_.partition_address_arena_base,
+        config_.partition_address_alignment);
     validate_config();
     validate_updates();
     construct_links_and_ports();
@@ -1825,8 +2062,7 @@ public:
   [[nodiscard]] GraSuUpdateCounters counters() const {
     GraSuUpdateCounters result;
     const auto account_axi_port = [&result](const FixedAxiPort &port) {
-      result.axi_request_fifo_stalls +=
-          port.requests().stats().push_stalls;
+      result.axi_request_fifo_stalls += port.requests().stats().push_stalls;
       result.axi_backend_submit_stalls +=
           port.master().stats().backend_submit_stalls;
     };
@@ -1929,12 +2165,14 @@ public:
     const std::size_t local = local_segment >> 1;
     const bool cache = local < config_.cache_segments_per_half;
     const std::size_t parity = local_segment & 1U;
-    const std::size_t channel = cache ? parity * 2 : parity * 2 + 1;
+    const std::size_t lane = cache ? parity * 2 : parity * 2 + 1;
+    const std::size_t channel =
+        config_.explicit_runtime_regions ? config_.pma_channels[lane] : lane;
+    const std::uint64_t base = config_.explicit_runtime_regions
+                                   ? config_.pma_bases[lane]
+                                   : address_plan_.pma_bases.at(partition);
     return decode_segment(backend_.inspect_payload(
-        channel,
-        config_.pma_base + partition * config_.partition_address_stride +
-            local * kGraSuSegmentBytes,
-        kGraSuSegmentBytes));
+        channel, base + local * kGraSuSegmentBytes, kGraSuSegmentBytes));
   }
 
   [[nodiscard]] std::vector<GraSuEdge> live_edges() const {
@@ -1968,6 +2206,19 @@ public:
     return edges;
   }
 
+  [[nodiscard]] GraSuPartitionedPmaLayout
+  materialized_partitioned_layout() const {
+    GraSuPartitionedPmaLayout result = layout_;
+    for (std::size_t partition = 0; partition < result.partitions.size();
+         ++partition) {
+      GraSuPmaLayout &part = result.partitions[partition];
+      for (std::size_t segment = 0; segment < part.segments.size(); ++segment) {
+        part.segments[segment] = inspect_segment(partition, segment);
+      }
+    }
+    return result;
+  }
+
   [[nodiscard]] const GraSuPmaLayout &initial_layout() const noexcept {
     return layout_.partitions.front();
   }
@@ -1997,6 +2248,28 @@ private:
         config_.max_outstanding_bursts == 0 ||
         config_.response_beats_per_cycle == 0 ||
         config_.partition_address_stride == 0 ||
+        config_.partition_address_alignment == 0 ||
+        (config_.explicit_runtime_regions &&
+         (std::any_of(
+              config_.update_channels.begin(), config_.update_channels.end(),
+              [&](std::size_t channel) {
+                return channel >= config_.memory_channels;
+              }) ||
+          std::any_of(
+              config_.row_channels.begin(), config_.row_channels.end(),
+              [&](std::size_t channel) {
+                return channel >= config_.memory_channels;
+              }) ||
+          std::any_of(
+              config_.binary_channels.begin(), config_.binary_channels.end(),
+              [&](std::size_t channel) {
+                return channel >= config_.memory_channels;
+              }) ||
+          std::any_of(
+              config_.pma_channels.begin(), config_.pma_channels.end(),
+              [&](std::size_t channel) {
+                return channel >= config_.memory_channels;
+              }))) ||
         (config_.maintain_out_degree &&
          (config_.degree_channel >= config_.memory_channels ||
           config_.degree_fifo_depth == 0 ||
@@ -2015,9 +2288,15 @@ private:
     for (std::size_t partition = 0; partition < layout_.partitions.size();
          ++partition) {
       const GraSuPmaLayout &part = layout_.partitions[partition];
-      const std::size_t expected_base = partition * layout_.partition_vertices;
-      const std::size_t expected_vertices = std::min(
-          layout_.partition_vertices, layout_.vertices - expected_base);
+      const bool routed_single_window =
+          config_.explicit_runtime_regions && layout_.partitions.size() == 1;
+      const std::size_t expected_base =
+          routed_single_window ? part.destination_base
+                               : partition * layout_.partition_vertices;
+      const std::size_t expected_vertices =
+          routed_single_window ? part.destination_vertices
+                               : std::min(layout_.partition_vertices,
+                                          layout_.vertices - expected_base);
       if (part.vertices != layout_.vertices ||
           part.destination_base != expected_base ||
           part.destination_vertices != expected_vertices) {
@@ -2046,7 +2325,9 @@ private:
         throw std::invalid_argument(
             "native GraSU PMA supports unit-weight updates only");
       }
-      const GraSuPmaLayout &partition = layout_.partition_for(edge);
+      const GraSuPmaLayout &partition = layout_.partitions.size() == 1
+                                            ? layout_.partitions.front()
+                                            : layout_.partition_for(edge);
       validate_layout_edge(partition, edge);
       (void)partition.segment_for(edge);
       const auto key = std::pair(edge.source, edge.destination);
@@ -2093,17 +2374,28 @@ private:
             "grasu-degree-axis" + std::to_string(index), clock_id_,
             config_.degree_fifo_depth);
       }
-      search_ports_[index].updates =
-          make_port("grasu-update" + std::to_string(index), index,
-                    partitioned_updates() ? 16 : 8);
-      search_ports_[index].rows =
-          make_port("grasu-row" + std::to_string(index), index, 8);
-      search_ports_[index].binary =
-          make_port("grasu-binary" + std::to_string(index), index, 8);
+      search_ports_[index].updates = make_port(
+          "grasu-update" + std::to_string(index),
+          config_.explicit_runtime_regions ? config_.update_channels[index]
+                                           : index,
+          partitioned_updates() ? 16 : 8);
+      search_ports_[index].rows = make_port("grasu-row" + std::to_string(index),
+                                            config_.explicit_runtime_regions
+                                                ? config_.row_channels[index]
+                                                : index,
+                                            8);
+      search_ports_[index].binary = make_port(
+          "grasu-binary" + std::to_string(index),
+          config_.explicit_runtime_regions ? config_.binary_channels[index]
+                                           : index,
+          8);
     }
 
     for (std::size_t index = 0; index < 2; ++index) {
-      const std::size_t channel = index * 2;
+      const std::size_t pma_lane = index * 2;
+      const std::size_t channel = config_.explicit_runtime_regions
+                                      ? config_.pma_channels[pma_lane]
+                                      : pma_lane;
       processor_ports_[index].reads[0] =
           make_port("grasu-cache" + std::to_string(index), channel, 64);
       processor_ports_[index].writes[0].reset();
@@ -2112,7 +2404,10 @@ private:
     }
     for (std::size_t index = 0; index < 2; ++index) {
       const std::size_t processor_index = index + 2;
-      const std::size_t channel = index * 2 + 1;
+      const std::size_t pma_lane = index * 2 + 1;
+      const std::size_t channel = config_.explicit_runtime_regions
+                                      ? config_.pma_channels[pma_lane]
+                                      : pma_lane;
       for (std::size_t half = 0; half < 2; ++half) {
         processor_ports_[processor_index].reads[half] =
             make_port("grasu-ddr" + std::to_string(index) + "-read" +
@@ -2159,19 +2454,23 @@ private:
                               encoded.end());
         }
       }
-      backend_.initialize_payload(channel, config_.update_base, update_bytes);
+      backend_.initialize_payload(
+          config_.explicit_runtime_regions ? config_.update_channels[channel]
+                                           : channel,
+          config_.explicit_runtime_regions ? config_.update_bases[channel]
+                                           : config_.update_base,
+          update_bytes);
     }
     for (std::size_t partition = 0; partition < layout_.partitions.size();
          ++partition) {
       GraSuNativeConfig partition_config = config_;
-      const std::uint64_t offset = partition * config_.partition_address_stride;
-      partition_config.row_offset_base += offset;
-      partition_config.binary_base += offset;
-      partition_config.pma_base += offset;
+      partition_config.row_offset_base = address_plan_.row_bases.at(partition);
+      partition_config.binary_base = address_plan_.binary_bases.at(partition);
+      partition_config.pma_base = address_plan_.pma_bases.at(partition);
       initialize_grasu_pma_layout_payloads(
           backend_, layout_.partitions[partition], partition_config);
     }
-    if (config_.maintain_out_degree) {
+    if (config_.maintain_out_degree && config_.initialize_degree_payload) {
       std::vector<std::uint32_t> degrees(layout_.vertices);
       for (const GraSuEdge &edge : layout_.live_edges()) {
         ++degrees[edge.source];
@@ -2199,7 +2498,7 @@ private:
       searches_[index] = std::make_unique<GraSuDirectSearch>(
           "grasu-bin-search" + std::to_string(index), clock_id_, index,
           counts[index], layout_.partition_vertices, partitioned_updates(),
-          config_,
+          config_, address_plan_,
           GraSuDirectSearch::Ports{
               .updates = search_ports_[index].updates.get(),
               .rows = search_ports_[index].rows.get(),
@@ -2213,11 +2512,18 @@ private:
 
     for (std::size_t index = 0; index < 4; ++index) {
       const bool cache = index < 2;
+      const std::size_t pma_lane = index == 0   ? 0
+                                   : index == 1 ? 2
+                                   : index == 2 ? 1
+                                                : 3;
       auto &ports = processor_ports_[index];
       processors_[index] = std::make_unique<GraSuPmaProcessor>(
           "grasu-processor" + std::to_string(index), clock_id_, cache,
-          config_.lane_fifo_depth, config_.pma_base,
-          config_.partition_address_stride, config_.pma_word_abi,
+          config_.lane_fifo_depth,
+          config_.explicit_runtime_regions ? config_.pma_bases[pma_lane]
+                                           : config_.pma_base,
+          config_.partition_address_stride, address_plan_.pma_bases,
+          config_.pma_word_abi,
           GraSuPmaProcessor::Ports{
               .input = process_inputs_[index].get(),
               .reads = {ports.reads[0].get(), ports.reads[1].get()},
@@ -2264,6 +2570,7 @@ private:
   GraSuPartitionedPmaLayout layout_;
   std::vector<GraSuEdge> updates_;
   GraSuNativeConfig config_;
+  GraSuPartitionAddressPlan address_plan_;
   std::array<std::unique_ptr<Fifo<LocatedUpdate>>, 4> search_outputs_;
   std::array<std::unique_ptr<Fifo<LocatedUpdate>>, 4> process_inputs_;
   std::array<std::unique_ptr<Fifo<DegreeDelta>>, 4> degree_outputs_;
@@ -2274,7 +2581,7 @@ private:
   std::array<std::unique_ptr<GraSuPmaProcessor>, 4> processors_;
   std::unique_ptr<FixedAxiPort> degree_port_;
   std::unique_ptr<GraSuDegreeUpdater> degree_updater_;
-  std::uint32_t next_initiator_{3000};
+  std::uint32_t next_initiator_{};
   std::uint64_t start_cycle_{};
   std::uint64_t end_cycle_{};
   bool registered_{};
@@ -2326,6 +2633,11 @@ GraSuUpdateCounters GraSuPmaUpdateSystem::counters() const {
 
 std::vector<GraSuEdge> GraSuPmaUpdateSystem::live_edges() const {
   return impl_->live_edges();
+}
+
+GraSuPartitionedPmaLayout
+GraSuPmaUpdateSystem::materialized_partitioned_layout() const {
+  return impl_->materialized_partitioned_layout();
 }
 
 std::array<std::uint32_t, kGraSuSegmentSlots>

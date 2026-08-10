@@ -71,6 +71,9 @@ class SharedComparisonAnalysisTests(unittest.TestCase):
                     "num_act_cmds": 2,
                     "num_pre_cmds": 1,
                     "total_energy": 8.0,
+                    "act_energy": 1.0,
+                    "read_energy": 2.0,
+                    "write_energy": 1.0,
                     "average_read_latency": 10.0,
                     "write_latency": {"20": 1},
                 },
@@ -82,6 +85,9 @@ class SharedComparisonAnalysisTests(unittest.TestCase):
                     "num_act_cmds": 4,
                     "num_pre_cmds": 3,
                     "total_energy": 12.0,
+                    "act_energy": 2.0,
+                    "read_energy": 3.0,
+                    "write_energy": 1.0,
                     "average_read_latency": 30.0,
                     "write_latency": {"40": 3},
                 },
@@ -100,6 +106,8 @@ class SharedComparisonAnalysisTests(unittest.TestCase):
         self.assertEqual(result["average_write_latency"], 35.0)
         self.assertEqual(result["write_latency_coverage"], 1.0)
         self.assertEqual(result["total_energy_pj"], 20.0)
+        self.assertEqual(result["command_dynamic_energy_pj"], 10.0)
+        self.assertEqual(result["background_refresh_energy_pj"], 10.0)
 
     def test_missing_write_histogram_is_reported_as_zero_coverage(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

@@ -1,0 +1,26 @@
+{
+  "status": "PASS_CURRENT_MODEL_DATA",
+  "figure": "fig10_rq3_breakdown_candidate",
+  "source_files": [
+    {
+      "path": "/data/tmp/chuxiao/evaluation_refresh_20260810_rq3_current_analysis/rq3_latency_rows.csv",
+      "sha256": "24bfb5925b746a50ca274aee9d4f0fc65932ab70080a800d10bb1a50b422121d"
+    },
+    {
+      "path": "/data/tmp/chuxiao/evaluation_refresh_20260810_rq3_current_analysis/rq3_summary.json",
+      "sha256": "1bcf55fdb0224674e85058b906c03c076ac1866c29361c914739118ddae4d345"
+    }
+  ],
+  "data_csv": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/data/fig10_rq3_breakdown_rows.csv",
+  "data_csv_sha256": "b917e02f45ebfb9950c63dd25569504b7f60ffb7f25fc94f82aeb00c0a3ce035",
+  "normalization": "Each stacked bar is normalized to 100% of its own end-to-end device-cycle interval.",
+  "label_key": {
+    "ZN": "zero-net update",
+    "SI": "shallow insertion",
+    "AU/SU/WK": "AskUbuntu/Superuser/WikiTalk current-model rows",
+    "L1/L3/L5": "synthetic deep-carry traces that force carry through level 1, 3, or 5",
+    "PR-corr": "PageRank residual correction",
+    "FL/SU/WK": "Flickr/Superuser/WikiTalk PageRank correction rows",
+    "Del": "synthetic SSSP deletion-fallback row"
+  }
+}

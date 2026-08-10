@@ -19,11 +19,14 @@
 
 namespace spine::sim {
 
+class SpineOwnerScheduler;
+
 enum class PartConvWordKind {
   kSourceRequest,
   kSourceCount,
   kSourceGeneration,
   kSourceRequestsDone,
+  kDeferActiveBegin,
   kTileBegin,
   kEdge,
   kTileEnd,
@@ -91,6 +94,11 @@ struct SpineReaderCounters {
   std::uint64_t done_words{};
   bool done_overflow{};
   std::uint64_t active_bin_read_bytes{};
+  std::uint64_t family_directory_read_bytes{};
+  std::uint64_t family_directory_mask_reads{};
+  std::uint64_t family_directory_empty_masks{};
+  std::uint64_t device_source_spool_write_bytes{};
+  std::uint64_t device_source_spool_read_bytes{};
   std::uint64_t dirty_list_read_bytes{};
   std::uint64_t dirty_bitmap_read_bytes{};
   std::uint64_t metadata_read_bytes{};
@@ -111,6 +119,7 @@ struct SpineReaderCounters {
   std::uint64_t range_task_family_skips{};
   std::uint64_t range_task_level_checks{};
   std::uint64_t range_task_row_lookups{};
+  std::uint64_t range_task_hot_lower_bound_reads{};
   std::uint64_t range_task_construction_payloads{};
   std::uint64_t range_task_count{};
   std::uint64_t range_task_replay_payloads{};
@@ -118,11 +127,23 @@ struct SpineReaderCounters {
   std::uint64_t range_task_prefix_cycles{};
   std::uint64_t range_task_scatter_cycles{};
   std::uint64_t range_task_verify_cycles{};
+  std::uint64_t range_task_control_cycles{};
+  std::uint64_t segmented_validation_payloads{};
+  std::uint64_t segmented_task_count{};
+  std::uint64_t segmented_replay_payloads{};
+  std::uint64_t segmented_segment_count{};
+  std::uint64_t segmented_setup_cycles{};
   std::uint64_t fallback_partitions{};
   std::uint64_t fallback_forced_dense_partitions{};
   std::uint64_t fallback_active_record_reads{};
   std::uint64_t fallback_active_record_read_bytes{};
   std::uint64_t fallback_metadata_read_bytes{};
+  std::uint64_t fallback_level_cache_reuses{};
+  std::uint64_t fallback_level_cache_empty_skips{};
+  std::uint64_t source_page_cache_hits{};
+  std::uint64_t source_page_cache_misses{};
+  std::uint64_t source_page_cache_negative_hits{};
+  std::uint64_t source_page_cache_fills{};
   std::uint64_t fallback_row_lookups{};
   std::uint64_t fallback_lower_bound_reads{};
   std::uint64_t fallback_endpoint_reads{};
@@ -159,11 +180,17 @@ struct SpineReaderPorts {
   std::array<FixedAxiPort *, 16> graph{};
   FixedAxiPort *task_scratch{};
   FixedAxiPort *active_bins{};
+  FixedAxiPort *active_out{};
   FixedAxiPort *metadata{};
   FixedAxiPort *result{};
 };
 
-enum class SpineReaderMode { kDeviceDirty, kHostActive };
+enum class SpineReaderMode {
+  kDeviceDirty,
+  kHostActive,
+  kDeviceActiveList,
+  kFullDomain,
+};
 
 class SpineSplitReader final : public Component {
  public:
@@ -189,10 +216,15 @@ class SpineSplitReader final : public Component {
     return *algorithm_policy_;
   }
   void reset_round(std::vector<std::uint32_t> active_sources);
+  void reset_active_list_round(std::size_t active_count);
+  void reset_full_domain_round();
   void reset_host_round(
       const SpineActiveBins &active_bins,
       std::optional<SpineDirtyIdentity> host_coverage = std::nullopt,
       std::vector<std::uint32_t> source_refresh = {});
+  void configure_initial_active_list_round(std::size_t active_count,
+                                           const bool *start_ready);
+  void configure_start_gate(const bool *start_ready);
   void configure_initial_host_round(
       SpineActiveBins active_bins,
       std::optional<SpineDirtyIdentity> host_coverage,
@@ -222,7 +254,9 @@ class SpineSplitReader final : public Component {
     std::uint32_t source_value{};
     std::size_t family{};
     std::size_t level{};
+    std::size_t destination_partition{};
     bool hot{};
+    bool clip_hot_to_partition{};
     SpineLevelLayout layout;
     std::uint32_t edge_count{};
     std::uint32_t slice_epoch{};
@@ -247,6 +281,16 @@ class SpineSplitReader final : public Component {
     std::uint64_t row_count{};
     SpineLevelLayout layout;
     std::uint32_t slice_epoch{};
+  };
+
+  struct SourcePageCacheEntry {
+    bool valid{};
+    bool epoch_matches{};
+    std::uint32_t page{};
+    std::uint32_t slice_epoch{};
+    std::uint32_t page_epoch{};
+    std::array<std::uint64_t, 4> bitmap_words{};
+    std::uint64_t page_base_word{};
   };
 
   struct FallbackLookup {
@@ -284,25 +328,32 @@ class SpineSplitReader final : public Component {
     kDirtyHostHashSum,
     kDirtyHostHashXor,
     kDirtyHostValid,
+    kFamilyDirectoryValid,
     kDirtyList,
     kDirtyBitmap,
+    kFamilyDirectory,
+    kDeviceSourceSpool,
+    kDeviceActiveOutput,
     kActiveBinMetadata,
     kActiveRecords,
     kLevelOccupied,
     kLevelFields,
     kSliceEpoch,
     kPageEpoch,
+    kIndexBitmapPage,
     kIndexBitmapSelected,
     kIndexBitmapPrefix,
     kIndexPageBase,
     kIndexRow,
     kIndexNextRow,
+    kProbeBinaryEdge,
     kConstructionEdge,
     kReplayEdge,
     kFallbackActiveRecord,
     kFallbackOccupied,
     kFallbackSliceEpoch,
     kFallbackPageEpoch,
+    kFallbackBitmapPage,
     kFallbackBitmapOffset,
     kFallbackPageBaseOffset,
     kFallbackRowOffset,
@@ -349,21 +400,35 @@ class SpineSplitReader final : public Component {
     kFallbackReplay,
   };
 
+  enum class SegmentedPass {
+    kNone,
+    kValidation,
+    kExecution,
+  };
+
   enum class Phase {
     kWaitMaintenance,
     kSourceHeaderResolve,
     kDirtyListResolve,
     kDirtyBitmapResolve,
+    kDeviceActiveResolve,
     kHostActiveResolve,
     kRequestSourceWindow,
     kWaitSourceWindow,
+    kSourceDirectoryBegin,
+    kSourceDirectoryResolve,
     kSendSourceCount,
     kSendSourceGeneration,
     kSendSourceDone,
     kWaitSourceAck,
+    kSourceSpoolValidationRead,
+    kSourceSpoolExecutionRead,
     kLevelOccupancyBegin,
     kLevelDetailsBegin,
     kSetupReads,
+    kRefactor31Control,
+    kRefactor31SegmentSetup,
+    kSegmentedDeferActive,
     kBinClear,
     kProbeBegin,
     kProbeEpochResolve,
@@ -371,6 +436,8 @@ class SpineSplitReader final : public Component {
     kProbeRankResolve,
     kProbePageResolve,
     kProbeRowResolve,
+    kProbeLowerBoundRead,
+    kProbeLowerBoundResolve,
     kConstructionRead,
     kConstructionConsume,
     kProbeAdvance,
@@ -382,6 +449,9 @@ class SpineSplitReader final : public Component {
     kEdgeRead,
     kEdgeEmit,
     kTileEnd,
+    kFallbackLevelCacheBegin,
+    kFallbackLevelCacheDetails,
+    kFallbackLevelCacheResolve,
     kFallbackPartitionBegin,
     kFallbackPassBegin,
     kFallbackRecordRead,
@@ -427,13 +497,26 @@ class SpineSplitReader final : public Component {
   void validate_control();
   void finalize_level_cache();
   void prepare_range_probes();
+  void begin_refactor31_control();
+  void finish_refactor31_validation_pass();
   void enqueue_probe_index_reads();
+  [[nodiscard]] std::size_t source_page_cache_index(
+      std::size_t family, std::size_t level, bool hot) const;
+  [[nodiscard]] bool use_cached_probe_page(RangeProbe &probe);
+  [[nodiscard]] bool use_cached_fallback_page();
+  void fill_probe_page_cache(const RangeProbe &probe, bool epoch_matches);
+  void fill_fallback_page_cache(bool epoch_matches);
+  void clear_source_page_cache();
   void resolve_probe_epoch();
   void resolve_probe_index();
   void resolve_probe_rank();
   void resolve_probe_page();
   void enqueue_probe_row_reads();
   void resolve_probe_row();
+  void begin_probe_lower_bound(std::uint32_t low, std::uint32_t high,
+                               std::uint32_t limit, bool second);
+  void advance_probe_lower_bound();
+  void begin_probe_construction();
   void consume_construction_edge();
   void flush_construction_run();
   void start_host_fallback(std::uint32_t reason);
@@ -462,7 +545,13 @@ class SpineSplitReader final : public Component {
                     MemoryPayloadKind payload_kind = MemoryPayloadKind::kNone,
                     std::size_t probe_index = 0, std::uint32_t edge_source = 0);
   void enqueue_write(FixedAxiPort &port, std::uint64_t address,
-                     std::vector<std::uint8_t> write_data);
+                     std::vector<std::uint8_t> write_data,
+                     MemoryPayloadKind payload_kind = MemoryPayloadKind::kNone,
+                     std::size_t item_index = 0);
+  void begin_source_directory_window();
+  void store_device_source_record(std::size_t index, std::uint32_t mask);
+  void enqueue_device_source_spool_read();
+  [[nodiscard]] bool device_source_mode() const noexcept;
   void enqueue_terminal_writes();
   void consume_memory_response(const MemoryTask &task,
                                const AxiResponse &response);
@@ -503,6 +592,8 @@ class SpineSplitReader final : public Component {
   SpineActiveBins host_active_bins_;
   std::optional<SpineActiveBins> initial_host_bins_;
   std::optional<SpineDirtyIdentity> initial_host_coverage_;
+  const bool *initial_start_gate_{};
+  std::size_t device_active_count_{};
   std::vector<SpineActiveRecord> active_records_;
   Fifo<PartConvWord> &edge_out_;
   Fifo<SourceValueWord> &value_in_;
@@ -515,6 +606,9 @@ class SpineSplitReader final : public Component {
   std::vector<RangeTask> range_tasks_;
   std::array<LevelCacheEntry, kSpineFamilyCount * kSpineLevelCount>
       level_cache_{};
+  std::array<SourcePageCacheEntry, kSpineFamilyCount * kSpineLevelCount>
+      source_page_cache_{};
+  bool level_cache_ready_{};
   std::unordered_map<std::uint32_t, std::uint32_t> source_values_;
   FallbackLookup fallback_lookup_;
   SpineEdgeRecord fallback_binary_edge_;
@@ -531,6 +625,7 @@ class SpineSplitReader final : public Component {
   SourceValueWord staged_value_;
   AxiResponse staged_response_;
   SpineEdgeRecord loaded_edge_;
+  SpineEdgeRecord probe_binary_edge_;
   SpineEdgeRecord construction_edge_;
   std::uint64_t metadata_control_{};
   std::uint64_t dirty_count_{};
@@ -542,6 +637,7 @@ class SpineSplitReader final : public Component {
   std::uint64_t dirty_host_hash_sum_{};
   std::uint64_t dirty_host_hash_xor_{};
   bool dirty_host_valid_{};
+  bool family_directory_valid_{};
   std::array<std::uint64_t, 16> active_bin_offsets_{};
   std::array<std::uint64_t, 16> active_bin_counts_{};
   bool dirty_payload_valid_{true};
@@ -553,6 +649,11 @@ class SpineSplitReader final : public Component {
   std::uint32_t construction_run_length_{};
   std::uint32_t construction_previous_dst_{};
   bool construction_have_previous_dst_{};
+  std::uint32_t probe_lower_low_{};
+  std::uint32_t probe_lower_high_{};
+  std::uint32_t probe_lower_limit_{};
+  std::uint32_t probe_clipped_start_{};
+  bool probe_lower_second_{};
   std::size_t bin_index_{};
   std::size_t scatter_index_{};
   std::size_t tile_index_{};
@@ -560,6 +661,7 @@ class SpineSplitReader final : public Component {
   std::uint32_t range_edge_index_{};
   std::size_t source_request_index_{};
   std::size_t source_response_index_{};
+  std::size_t source_window_begin_{};
   std::size_t source_window_end_{};
   std::size_t diagnostic_index_{};
   std::size_t fallback_partition_{};
@@ -579,6 +681,12 @@ class SpineSplitReader final : public Component {
   bool fallback_active_record_valid_{};
   bool fallback_enabled_{};
   bool fallback_after_source_refresh_{};
+  bool device_spooled_{};
+  SegmentedPass segmented_pass_{SegmentedPass::kNone};
+  std::uint64_t refactor31_control_remaining_{};
+  std::uint64_t refactor31_setup_remaining_{};
+  std::uint64_t refactor31_validation_payload_base_{};
+  bool source_page_cache_current_hit_{};
   std::uint64_t next_transaction_id_{};
   bool staged_memory_issue_{};
   bool staged_memory_completion_{};
@@ -664,6 +772,18 @@ struct SpineComputeCounters {
   std::uint64_t vertex_payload_write_bytes{};
   std::uint64_t active_out_write_bytes{};
   std::uint64_t bitmap_bytes{};
+  std::uint64_t deferred_active_markers{};
+  std::uint64_t deferred_active_clear_words{};
+  std::uint64_t deferred_active_clear_cycles{};
+  std::uint64_t deferred_active_merge_words{};
+  std::uint64_t deferred_active_merge_cycles{};
+  std::uint64_t deferred_active_sweep_read_words{};
+  std::uint64_t deferred_active_sweep_read_cycles{};
+  std::uint64_t deferred_active_sweep_nonzero_words{};
+  std::uint64_t deferred_active_sweep_bit_cycles{};
+  std::uint64_t deferred_active_published_vertices{};
+  std::uint64_t deferred_active_final_clear_words{};
+  std::uint64_t deferred_active_final_clear_cycles{};
   std::uint64_t result_write_bytes{};
   std::uint64_t memory_requests_issued{};
   std::uint64_t memory_requests_completed{};
@@ -674,6 +794,9 @@ struct SpineComputeCounters {
   std::uint64_t controller_memory_stall_cycles{};
   std::uint64_t sparse_store_writes_generated{};
   std::uint64_t active_emit_writes_generated{};
+  std::uint64_t owner_activation_attempts{};
+  std::uint64_t owner_activations_accepted{};
+  std::uint64_t owner_activation_backpressure_cycles{};
   std::size_t max_memory_requests_inflight{};
   std::size_t max_vertex_requests_inflight{};
   std::size_t max_active_out_requests_inflight{};
@@ -733,7 +856,10 @@ class SpineSplitSsspCompute final : public Component {
                             kDefaultWriteOnlyRequestWindow,
                         SpineOnChipMemoryProfile on_chip_profile = {},
                         std::shared_ptr<const GraphAlgorithmPolicy>
-                            algorithm_policy = nullptr);
+                            algorithm_policy = nullptr,
+                        std::optional<AlgorithmInitialState> initial_state =
+                            std::nullopt,
+                        SpineOwnerScheduler *owner_scheduler = nullptr);
 
   [[nodiscard]] bool done() const noexcept { return done_; }
   [[nodiscard]] bool failed() const noexcept { return failed_; }
@@ -763,6 +889,9 @@ class SpineSplitSsspCompute final : public Component {
     kSourceValue,
     kGatherVertex,
     kFullTile,
+    kDeferredMergeWord,
+    kDeferredSweepWord,
+    kDeferredPublishVertex,
   };
 
   struct MemoryTask {
@@ -773,6 +902,7 @@ class SpineSplitSsspCompute final : public Component {
     std::vector<std::uint8_t> write_data;
     MemoryPayloadKind payload_kind{MemoryPayloadKind::kNone};
     std::size_t item_index{};
+    std::uint64_t payload_value{};
     bool stream_read_beats{};
     std::size_t streamed_read_bytes{};
   };
@@ -805,6 +935,7 @@ class SpineSplitSsspCompute final : public Component {
     kInput,
     kSourceRead,
     kSourceReply,
+    kDeferredActiveClear,
     kGatherBegin,
     kGatherAdvance,
     kClearTileActive,
@@ -819,6 +950,14 @@ class SpineSplitSsspCompute final : public Component {
     kEmitActiveScan,
     kEmitActiveBits,
     kEmitStore,
+    kDeferredMergeScan,
+    kDeferredMergeWait,
+    kDeferredSweepRead,
+    kDeferredSweepScan,
+    kDeferredSweepBits,
+    kDeferredSweepDrain,
+    kDeferredFinalClear,
+    kDeferredFinalDrain,
     kFinish,
   };
 
@@ -837,6 +976,7 @@ class SpineSplitSsspCompute final : public Component {
                       std::vector<std::uint8_t> write_data = {},
                       MemoryPayloadKind payload_kind = MemoryPayloadKind::kNone,
                       std::size_t item_index = 0,
+                      std::uint64_t payload_value = 0,
                       bool stream_read_beats = false);
   void consume_memory_response(const MemoryTask &task,
                                const AxiResponse &response);
@@ -853,6 +993,8 @@ class SpineSplitSsspCompute final : public Component {
   void prepare_gather();
   void prepare_vertex_store();
   void enqueue_active_output(std::uint32_t vertex);
+  void enqueue_active_output(std::uint32_t vertex, std::uint32_t value,
+                             std::size_t output_index);
   void issue_tiny_read(std::size_t item_index, TinyReadPurpose purpose,
                        const CycleContext &context);
   void issue_vs_read(const PartConvWord &edge, VsReadPurpose purpose,
@@ -871,6 +1013,8 @@ class SpineSplitSsspCompute final : public Component {
   void begin_tile_active_clear(Phase next_phase);
   void begin_sparse_store_scan();
   void begin_active_emit_scan();
+  void begin_deferred_merge_scan();
+  void begin_deferred_sweep();
   void finish_active_word_scan(Phase scan_phase);
   [[nodiscard]] std::optional<std::uint32_t> current_active_vertex() const;
   [[nodiscard]] bool controller_memory_overlap_phase() const noexcept;
@@ -888,6 +1032,7 @@ class SpineSplitSsspCompute final : public Component {
   SpineComputePorts ports_;
   Fifo<PartConvWord> &edge_in_;
   Fifo<SourceValueWord> &value_out_;
+  SpineOwnerScheduler *owner_scheduler_{};
   SpineComputeCounters counters_;
   std::vector<std::uint32_t> values_;
   std::vector<std::uint32_t> next_active_;
@@ -902,6 +1047,7 @@ class SpineSplitSsspCompute final : public Component {
   std::deque<PendingVsRead> pending_vs_reads_;
   std::deque<VsBypassEntry> vs_bypass_;
   std::array<std::uint64_t, 1024> tile_active_words_{};
+  std::array<std::uint64_t, 128> deferred_bitmap_chunk_{};
   Phase phase_{Phase::kInput};
   Action staged_action_{Action::kNone};
   PartConvWord staged_edge_word_;
@@ -920,18 +1066,29 @@ class SpineSplitSsspCompute final : public Component {
   std::size_t active_output_index_{};
   std::uint64_t active_scan_bits_{};
   std::uint64_t active_read_due_cycle_{};
+  std::size_t deferred_active_word_index_{};
+  std::size_t deferred_sweep_base_word_{};
+  std::size_t deferred_sweep_chunk_words_{};
+  std::size_t deferred_sweep_word_index_{};
+  std::size_t deferred_sweep_bit_index_{};
+  std::size_t deferred_sweep_reads_pending_{};
+  std::uint64_t deferred_sweep_scan_bits_{};
+  std::uint64_t deferred_sweep_next_issue_cycle_{};
+  std::uint64_t deferred_sweep_next_bit_cycle_{};
   std::uint64_t last_on_chip_read_wait_cycle_{~std::uint64_t{0}};
   std::uint64_t last_on_chip_pipeline_stall_cycle_{~std::uint64_t{0}};
   Phase after_clear_phase_{Phase::kRelax};
   std::uint64_t next_transaction_id_{};
   bool staged_memory_issue_{};
   bool staged_full_tile_read_beat_valid_{};
+  bool staged_owner_activation_{};
   bool active_read_pending_{};
   bool active_read_ready_{};
   bool source_reply_pending_{};
   bool source_count_seen_{};
   bool source_generation_seen_{};
   bool source_protocol_overflow_{};
+  bool deferred_active_{};
   bool tile_open_{};
   bool full_path_{};
   bool overflow_edge_pending_{};

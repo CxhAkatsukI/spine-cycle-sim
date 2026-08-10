@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "claim_class": "component_validation_simulation",
+  "phase": "grasu_regraph_k_pipeline_phase2b",
+  "parent_commit": "01a5109",
+  "sst_plugin": {
+    "path": "/home/chuxiao/spine-cycle-sim-publication/build/sst/libspine_cycle.so",
+    "sha256": "9ae4b003a49aa37ed6b241fe3d2af87a65b274d2822deec535f42dc31ba57724",
+    "binding": "forced_current_repository_before_sst_elements"
+  },
+  "source_prepare_contract": {
+    "vertices_per_burst": 16,
+    "state_reads_per_burst": 1,
+    "degree_reads_per_burst": 1,
+    "mirrored_source_writes_per_burst": 2,
+    "reduction_tail_cycles": 128,
+    "ordering": "global_prepare_then_partition_workers",
+    "later_round_source_generation": "apply_emits_next_prepared_payload"
+  },
+  "cpp_mock_memory": {
+    "weighted_sssp_k1": {
+      "cycles": 10576,
+      "partitions": 3,
+      "supersteps": 5,
+      "partition_passes": 15
+    },
+    "weighted_sssp_k2": {
+      "cycles": 6891,
+      "partitions": 3,
+      "pipelines": 2,
+      "max_parallel_partitions": 2
+    },
+    "full_pagerank_one_partition": {
+      "cycles": 1251,
+      "iterations": 3,
+      "source_prepare_cycles": 157,
+      "source_prepare_state_reads": 1,
+      "source_prepare_writes": 2,
+      "correctness": "PASS"
+    },
+    "full_pagerank_three_partitions_k2": {
+      "cycles": 4334,
+      "iterations": 3,
+      "source_prepare_cycles": 159,
+      "rank_sum": 1.0,
+      "correctness": "PASS"
+    },
+    "residual_pagerank_one_partition": {
+      "cycles": 28995,
+      "iterations": 79,
+      "source_prepare_cycles": 158,
+      "maximum_mathematical_error": 1.63528e-06,
+      "correctness": "PASS"
+    },
+    "residual_pagerank_three_partitions_k2": {
+      "cycles": 80648,
+      "iterations": 57,
+      "partition_passes": 171,
+      "correctness": "PASS"
+    }
+  },
+  "sst_dramsim3_smoke": {
+    "full_pagerank": {
+      "cycles": 4056,
+      "compute_cycles": 4055,
+      "source_prepare_cycles": 158,
+      "physical_hbm_requests": 1621,
+      "axi_beats_issued": 1621,
+      "axi_beats_completed": 1621,
+      "memory_locality_ledger_match": true,
+      "correctness_mismatches": 0
+    },
+    "residual_pagerank": {
+      "cycles": 102494,
+      "compute_cycles": 102493,
+      "iterations": 79,
+      "source_prepare_cycles": 158,
+      "physical_hbm_requests": 42744,
+      "axi_beats_issued": 42744,
+      "axi_beats_completed": 42744,
+      "memory_locality_ledger_match": true,
+      "correctness_mismatches": 0
+    },
+    "dynamic_full_pagerank_three_partitions": {
+      "cycles": 8082,
+      "compute_cycles": 7915,
+      "partitions": 3,
+      "partition_passes": 6,
+      "source_prepare_cycles": 162,
+      "update_hbm_requests": 32,
+      "compute_hbm_requests": 3414,
+      "physical_hbm_requests": 3446,
+      "axi_beats_issued": 3414,
+      "axi_beats_completed": 3414,
+      "memory_locality_ledger_match": true,
+      "correctness_mismatches": 0
+    }
+  },
+  "validation": {
+    "cpp_ctest": "2_of_2_pass",
+    "python_unittest": "485_pass_5_skipped",
+    "sst_smokes": "3_of_3_pass",
+    "git_diff_check": "PASS"
+  }
+}

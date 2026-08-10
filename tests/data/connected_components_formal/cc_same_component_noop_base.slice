@@ -1,0 +1,10 @@
+# spine_real_slice_version=1
+# case=cc_same_component_noop_base
+# vertices=8
+# columns=src dst weight diff
+0 1 16 1
+1 0 16 1
+1 2 9 1
+2 1 9 1
+4 5 19 1
+5 4 19 1

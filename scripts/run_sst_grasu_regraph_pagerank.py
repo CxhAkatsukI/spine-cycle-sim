@@ -19,6 +19,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from spine_cycle_sim.sst_binding import grasu_normalized_memory_binding  # noqa: E402
+from spine_cycle_sim.sst_library import forced_sst_library_binding  # noqa: E402
 from spine_cycle_sim.experiments.regraph_contracts import (  # noqa: E402
     expected_pagerank_source_cache_requests,
     float32_sequential_rank_sum_tolerance,
@@ -103,6 +104,9 @@ def main() -> int:
     allowed_profiles = {
         "grasu_regraph_normalized_pagerank_spine23",
         "grasu_regraph_candidate10_normalized_pagerank_v2",
+        "grasu_regraph_candidate10_k1_multipart_pagerank_v4",
+        "grasu_regraph_candidate10_k2_multipart_pagerank_v4",
+        "grasu_regraph_candidate10_k4_multipart_pagerank_v4",
     }
     if profile.get("profile_id") not in allowed_profiles:
         raise ValueError("runner requires the pinned normalized PageRank profile")
@@ -151,6 +155,9 @@ def main() -> int:
                 params["grasu_cache_segments_per_cu"]
             ),
             "GRASU_SST_PARTITION_VERTICES": str(partition_vertices),
+            "GRASU_SST_COMPUTE_PIPELINES": str(
+                params.get("regraph_compute_pipelines", 1)
+            ),
             "GRASU_SST_SOURCE_BUFFER_VERTICES": str(
                 params["regraph_source_buffer_vertices"]
             ),
@@ -209,9 +216,10 @@ def main() -> int:
             ),
         }
     )
+    library_binding = forced_sst_library_binding(args.sst, args.lib_dir)
     command = [
         str(args.sst.resolve()),
-        f"--add-lib-path={args.lib_dir.resolve()}",
+        library_binding["command_option"],
         str(ROOT / "sst" / "grasu_regraph_vertical.py"),
     ]
     sst_start = time.monotonic()
@@ -237,11 +245,14 @@ def main() -> int:
     expected_claim = (
         "component_validation_simulation" if args.smoke else "normalized_simulation"
     )
-    expected_degree_reads = result.get("vertices", -1) * args.iterations
     expected_rows = partition_vertices // 2 * args.iterations
     expected_bursts = partition_vertices // 16 * args.iterations
     expected_active_edges = result.get("initial_edges", -1) * args.iterations
     vertices = result.get("vertices", -1)
+    expected_row_reads = vertices * args.iterations
+    expected_prepare_bursts = (vertices + 15) // 16
+    expected_degree_reads = expected_bursts + expected_prepare_bursts
+    expected_source_writes = 2 * (expected_bursts + expected_prepare_bursts)
     expected_source_requests = expected_pagerank_source_cache_requests(
         vertices,
         params["regraph_source_buffer_vertices"],
@@ -250,6 +261,32 @@ def main() -> int:
     expected_source_lines = (
         expected_source_requests * params["regraph_source_buffer_vertices"] // 16
     )
+    expected_compute_read_bytes = sum(
+        result.get(field, -1)
+        for field in (
+            "source_prepare_state_read_bytes",
+            "row_read_bytes",
+            "source_state_read_bytes",
+            "degree_read_bytes",
+            "pma_read_bytes",
+            "apply_read_bytes",
+        )
+    )
+    expected_compute_write_bytes = (
+        expected_bursts + expected_source_writes
+    ) * 64
+    expected_compute_backend_requests = (
+        expected_prepare_bursts
+        + expected_prepare_bursts
+        + expected_row_reads
+        + expected_source_lines
+        + result.get("compute_pma_segment_reads", -1)
+        + 16 * expected_bursts
+        + expected_bursts
+        + expected_bursts
+        + expected_source_writes
+    )
+    expected_backend_writes = expected_bursts + expected_source_writes
     ranks = result.get("ranks", [])
     rank_values = [float(rank) for rank in ranks] if isinstance(ranks, list) else []
     accurate_rank_sum = math.fsum(rank_values)
@@ -291,11 +328,17 @@ def main() -> int:
         or result.get("pagerank_source_map_latency")
         != params["regraph_pagerank_source_map_latency"]
         or result.get("degree_reads") != expected_degree_reads
-        or result.get("degree_read_bytes") != 4 * expected_degree_reads
-        or result.get("source_map_cycles")
-        != expected_degree_reads * params["regraph_pagerank_source_map_latency"]
+        or result.get("degree_read_bytes") != 64 * expected_degree_reads
+        or result.get("source_prepare_state_reads") != expected_prepare_bursts
+        or result.get("source_prepare_degree_reads") != expected_prepare_bursts
+        or result.get("source_prepare_writes") != 2 * expected_prepare_bursts
+        or result.get("source_prepare_state_read_bytes")
+        != 64 * expected_prepare_bursts
+        or result.get("source_prepare_cycles", 0) <= 128
+        or result.get("source_map_cycles") != 0
         or result.get("compute_live_edges") != expected_active_edges
         or result.get("compute_active_edges") != expected_active_edges
+        or result.get("compute_row_reads") != expected_row_reads
         or result.get("gather_bank_updates") != expected_active_edges
         or result.get("gather_rows_emitted") != expected_rows
         or result.get("merger_rows_consumed") != expected_rows
@@ -304,7 +347,7 @@ def main() -> int:
         or result.get("hbm_wrapper_input_bursts") != expected_bursts
         or result.get("apply_state_reads") != expected_bursts
         or result.get("apply_state_writes") != expected_bursts
-        or result.get("compute_source_state_writes") != 2 * expected_bursts
+        or result.get("compute_source_state_writes") != expected_source_writes
         or result.get("source_cache_requests") != expected_source_requests
         or result.get("source_cache_lines") != expected_source_lines
         or result.get("source_cache_lane_writes")
@@ -315,9 +358,21 @@ def main() -> int:
         <= params["regraph_merger_apply_fifo_depth"]
         or not 0 < result.get("apply_wrapper_fifo_max_occupancy", 0)
         <= params["regraph_apply_wrapper_fifo_depth"]
-        or result.get("compute_write_bytes") != 3 * expected_bursts * 64
+        or result.get("compute_read_bytes") != expected_compute_read_bytes
+        or result.get("compute_write_bytes") != expected_compute_write_bytes
+        or result.get("compute_axi_beats_issued")
+        != expected_compute_backend_requests
+        or result.get("compute_axi_beats_completed")
+        != expected_compute_backend_requests
+        or result.get("compute_backend_requests")
+        != expected_compute_backend_requests
+        or result.get("expected_backend_requests")
+        != expected_compute_backend_requests
+        or result.get("backend_requests") != expected_compute_backend_requests
+        or result.get("memory_locality_ledger_match") is not True
         or dram["channels"] != len(binding.instantiated_channels)
-        or dram["reads"] + dram["writes"] != result.get("backend_requests")
+        or dram["writes"] != expected_backend_writes
+        or dram["reads"] != expected_compute_backend_requests - expected_backend_writes
     ):
         raise RuntimeError(f"SST GraSU/ReGraph PageRank validation failed: {result}")
 
@@ -331,6 +386,7 @@ def main() -> int:
         "damping": damping,
         "smoke": args.smoke,
         "sst_memory_binding": binding.as_manifest(),
+        "sst_library_binding": library_binding,
         "sst_host_wall_seconds": sst_host_wall_seconds,
         "validation": {
             "accurate_rank_sum": accurate_rank_sum,

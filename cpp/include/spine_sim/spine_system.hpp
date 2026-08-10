@@ -8,14 +8,17 @@
 #include <string>
 #include <vector>
 
+#include "spine_sim/component.hpp"
 #include "spine_sim/fifo.hpp"
 #include "spine_sim/fixed_axi_port.hpp"
 #include "spine_sim/memory_backend.hpp"
 #include "spine_sim/scheduler.hpp"
 #include "spine_sim/spine_dirty.hpp"
 #include "spine_sim/spine_l0.hpp"
+#include "spine_sim/spine_owner.hpp"
 #include "spine_sim/spine_pagerank.hpp"
 #include "spine_sim/spine_split.hpp"
+#include "spine_sim/spine_vertex_lifecycle.hpp"
 
 namespace spine::sim {
 
@@ -110,9 +113,80 @@ struct SpineSsspRunResult {
   std::vector<SpineSsspRoundEvidence> rounds;
   std::vector<SpineHostHandoffEvidence> host_handoffs;
   std::optional<SpineDirtyAckCounters> dirty_ack;
+  std::optional<SpineOwnerSchedulerStats> owner_scheduler;
+  bool owner_ledger_closed{};
+  bool owner_quiescent{};
+  std::uint64_t owner_control_cycles{};
   std::uint64_t start_cycle{};
   std::uint64_t end_cycle{};
 };
+
+struct SpineFrontierRoundEvidence {
+  std::size_t round{};
+  std::vector<std::uint32_t> active_in;
+  std::vector<std::uint32_t> active_out;
+  SpineReaderCounters reader;
+  SpinePageRankCounters compute;
+  std::uint64_t start_cycle{};
+  std::uint64_t end_cycle{};
+};
+
+struct SpineFrontierRunResult {
+  GraphAlgorithmKind algorithm{GraphAlgorithmKind::kWeightedSssp};
+  bool converged{};
+  bool failed{};
+  std::vector<SpineFrontierRoundEvidence> rounds;
+  std::optional<SpineOwnerSchedulerStats> owner_scheduler;
+  std::optional<SpineOwnerFrontierStats> owner_frontier;
+  bool owner_ledger_closed{};
+  bool owner_quiescent{};
+  std::uint64_t start_cycle{};
+  std::uint64_t end_cycle{};
+};
+
+struct SpineInitialActiveOutputCounters {
+  bool enabled{};
+  bool residual_correction_timed{};
+  std::uint64_t start_cycle{};
+  std::uint64_t end_cycle{};
+  std::size_t touched_sources{};
+  std::size_t physical_edge_records{};
+  std::size_t seeded_vertices{};
+  std::size_t active_vertices{};
+  std::uint64_t rank_read_bytes{};
+  std::uint64_t degree_read_bytes{};
+  std::uint64_t degree_write_bytes{};
+  std::uint64_t graph_read_bytes{};
+  std::uint64_t residual_read_bytes{};
+  std::uint64_t residual_write_bytes{};
+  std::uint64_t write_bytes{};
+  std::uint64_t arithmetic_operations{};
+  std::uint64_t memory_requests_issued{};
+  std::uint64_t memory_requests_completed{};
+  std::uint64_t memory_request_fifo_stall_cycles{};
+  std::size_t max_memory_requests_inflight{};
+  bool request_ledger_closed{};
+};
+
+// The host prepares this immutable oracle/work trace from the accepted old and
+// new graph versions. The timed device component must still read resident
+// rank/degree/edge state and publish the residual seed and active list through
+// AXI before graph propagation can begin.
+struct SpineResidualCorrectionPlan {
+  std::vector<std::uint32_t> old_rank_words;
+  std::vector<std::uint32_t> old_out_degrees;
+  std::vector<std::uint32_t> new_out_degrees;
+  std::vector<std::uint32_t> seed_words;
+  std::vector<std::uint32_t> touched_sources;
+  std::vector<std::uint32_t> active_vertices;
+};
+
+// Builds the untimed host-side HOST_ACTIVE payload consumed by the reader.
+// The emitted records preserve source order and duplicate-source semantics.
+[[nodiscard]] SpineActiveBins build_spine_host_active_bins(
+    const SpineL0State &state, const SpineL0Config &config,
+    const std::vector<std::uint32_t> &sources,
+    const std::vector<std::uint32_t> &values);
 
 class SpineVerticalSliceSystem {
  public:
@@ -128,9 +202,17 @@ class SpineVerticalSliceSystem {
                            std::size_t compute_writeonly_request_window =
                                SpineSplitSsspCompute::
                                    kDefaultWriteOnlyRequestWindow,
-                           SpineOnChipMemoryProfile on_chip_profile = {});
+                           SpineOnChipMemoryProfile on_chip_profile = {},
+                           bool initial_host_active = false,
+                           std::optional<AlgorithmInitialState>
+                               algorithm_initial_state = std::nullopt,
+                           std::optional<SpineOwnerSchedulerConfig>
+                               owner_scheduler_config = std::nullopt,
+                           std::optional<SpineVertexLifecycleConfig>
+                               vertex_lifecycle_config = std::nullopt);
 
   void register_components();
+  void restart_device_active_compute(std::vector<std::uint32_t> active_sources);
   void restart_read_compute(
       std::vector<std::uint32_t> active_sources,
       std::optional<SpineDirtyIdentity> host_coverage = std::nullopt);
@@ -146,8 +228,14 @@ class SpineVerticalSliceSystem {
   void start_dirty_ack();
   [[nodiscard]] bool dirty_ack_started() const noexcept;
   [[nodiscard]] bool dirty_ack_done() const noexcept;
+  [[nodiscard]] bool resident_bootstrap_pending() const noexcept;
   [[nodiscard]] SpineSsspRunResult run_sssp_to_convergence(
       std::size_t max_rounds, std::uint64_t max_events_per_round);
+  bool try_activate_vertex(std::uint32_t vertex);
+  bool try_deactivate_vertex(std::uint32_t vertex,
+                             bool incident_edges_retired_or_masked);
+  [[nodiscard]] SpineVertexLifecycleResult run_vertex_lifecycle_to_completion(
+      std::uint64_t max_events);
 
   [[nodiscard]] bool done() const noexcept;
   [[nodiscard]] bool failed() const noexcept;
@@ -159,6 +247,12 @@ class SpineVerticalSliceSystem {
   [[nodiscard]] const SpineDirtyAckCounters &dirty_ack_counters() const
       noexcept;
   [[nodiscard]] const SpineSplitSsspCompute &compute() const noexcept;
+  [[nodiscard]] const SpineOwnerScheduler *owner_scheduler() const noexcept {
+    return owner_scheduler_.get();
+  }
+  [[nodiscard]] const SpineVertexLifecycle *vertex_lifecycle() const noexcept {
+    return vertex_lifecycle_.get();
+  }
   [[nodiscard]] const SpineL0State &level_state() const noexcept;
   [[nodiscard]] const FifoStats &edge_stream_stats() const noexcept;
   [[nodiscard]] const FifoStats &value_stream_stats() const noexcept;
@@ -173,6 +267,12 @@ class SpineVerticalSliceSystem {
   [[nodiscard]] std::unique_ptr<FixedAxiPort> make_port(
       const std::string &name, std::uint32_t initiator_id, std::size_t channel,
       SpineAxiPortKind kind);
+  void advance_owner_control_cycle(std::uint64_t max_events);
+  [[nodiscard]] std::vector<std::uint32_t> owner_admit_and_dispatch(
+      const std::vector<std::uint32_t> &frontier, bool admit,
+      std::uint64_t max_events);
+  void owner_complete_frontier(const std::vector<std::uint32_t> &frontier,
+                               std::uint64_t max_events);
 
   Scheduler &scheduler_;
   ClockId clock_id_{};
@@ -188,16 +288,22 @@ class SpineVerticalSliceSystem {
   std::unique_ptr<FixedAxiPort> active_bins_;
   std::unique_ptr<FixedAxiPort> vertex_state_;
   std::unique_ptr<FixedAxiPort> active_out_;
+  std::unique_ptr<FixedAxiPort> active_out_reader_;
   std::unique_ptr<FixedAxiPort> active_bitmap_;
+  std::unique_ptr<FixedAxiPort> vertex_validity_;
   std::unique_ptr<FixedAxiPort> compute_result_;
   SpineL0State state_;
   std::unique_ptr<SpineL0Maintenance> maintenance_;
   std::unique_ptr<SpineSplitReader> reader_;
   std::unique_ptr<SpineSplitSsspCompute> compute_;
+  std::unique_ptr<SpineOwnerScheduler> owner_scheduler_;
+  std::unique_ptr<SpineVertexLifecycle> vertex_lifecycle_;
   std::unique_ptr<SpineDirtyAck> dirty_ack_;
   std::vector<std::uint32_t> current_frontier_;
   bool registered_{};
   bool convergence_run_started_{};
+  bool resident_bootstrap_pending_{};
+  std::uint64_t owner_control_cycles_{};
 };
 
 class SpinePageRankVerticalSliceSystem {
@@ -212,7 +318,15 @@ class SpinePageRankVerticalSliceSystem {
           SpineSplitPageRankCompute::kDefaultMemoryRequestWindow,
       SpineL0State initial_state = {},
       std::optional<SpineEdgeSlice> execution_graph = std::nullopt,
-      std::optional<SpineDirtyIdentity> host_coverage = std::nullopt);
+      std::optional<SpineDirtyIdentity> host_coverage = std::nullopt,
+      std::optional<AlgorithmInitialState> algorithm_initial_state =
+          std::nullopt,
+      std::optional<SpineResidualCorrectionPlan> device_residual_correction =
+          std::nullopt,
+      std::optional<SpineOwnerSchedulerConfig> owner_scheduler_config =
+          std::nullopt,
+      std::optional<SpineVertexLifecycleConfig> vertex_lifecycle_config =
+          std::nullopt);
   SpinePageRankVerticalSliceSystem(
       Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
       SpineEdgeSlice workload, GraphAlgorithmPolicy policy,
@@ -223,10 +337,25 @@ class SpinePageRankVerticalSliceSystem {
           SpineSplitPageRankCompute::kDefaultMemoryRequestWindow,
       SpineL0State initial_state = {},
       std::optional<SpineEdgeSlice> execution_graph = std::nullopt,
-      std::optional<SpineDirtyIdentity> host_coverage = std::nullopt);
+      std::optional<SpineDirtyIdentity> host_coverage = std::nullopt,
+      std::optional<AlgorithmInitialState> algorithm_initial_state =
+          std::nullopt,
+      std::optional<SpineResidualCorrectionPlan> device_residual_correction =
+          std::nullopt,
+      std::optional<SpineOwnerSchedulerConfig> owner_scheduler_config =
+          std::nullopt,
+      std::optional<SpineVertexLifecycleConfig> vertex_lifecycle_config =
+          std::nullopt);
 
   void register_components();
   void restart_iteration();
+  [[nodiscard]] SpineFrontierRunResult run_frontier_to_convergence(
+      std::size_t max_rounds, std::uint64_t max_events_per_round);
+  bool try_activate_vertex(std::uint32_t vertex);
+  bool try_deactivate_vertex(std::uint32_t vertex,
+                             bool incident_edges_retired_or_masked);
+  [[nodiscard]] SpineVertexLifecycleResult run_vertex_lifecycle_to_completion(
+      std::uint64_t max_events);
   [[nodiscard]] bool maintenance_done() const noexcept;
   [[nodiscard]] bool done() const noexcept;
   [[nodiscard]] bool failed() const noexcept;
@@ -235,7 +364,19 @@ class SpinePageRankVerticalSliceSystem {
   [[nodiscard]] const SpineL0Counters &maintenance_counters() const noexcept;
   [[nodiscard]] const SpineReaderCounters &reader_counters() const noexcept;
   [[nodiscard]] const SpinePageRankCounters &compute_counters() const noexcept;
+  [[nodiscard]] const SpineInitialActiveOutputCounters &
+  initial_active_counters() const noexcept;
   [[nodiscard]] const SpineSplitPageRankCompute &compute() const noexcept;
+  [[nodiscard]] const SpineOwnerScheduler *owner_scheduler() const noexcept {
+    return owner_scheduler_.get();
+  }
+  [[nodiscard]] const SpineOwnerFrontierController *owner_frontier() const
+      noexcept {
+    return owner_frontier_.get();
+  }
+  [[nodiscard]] const SpineVertexLifecycle *vertex_lifecycle() const noexcept {
+    return vertex_lifecycle_.get();
+  }
   [[nodiscard]] const SpineL0State &level_state() const noexcept;
   [[nodiscard]] const FifoStats &edge_stream_stats() const noexcept;
   [[nodiscard]] const FifoStats &value_stream_stats() const noexcept;
@@ -258,15 +399,29 @@ class SpinePageRankVerticalSliceSystem {
   std::unique_ptr<FixedAxiPort> maintenance_result_;
   std::unique_ptr<FixedAxiPort> active_bins_;
   std::unique_ptr<FixedAxiPort> vertex_state_;
+  std::unique_ptr<FixedAxiPort> active_seed_out_;
+  std::unique_ptr<FixedAxiPort> active_out_;
+  std::unique_ptr<FixedAxiPort> active_out_reader_;
+  std::unique_ptr<FixedAxiPort> owner_state_;
+  std::unique_ptr<FixedAxiPort> vertex_validity_;
   SpineL0State state_;
   std::shared_ptr<const GraphAlgorithmPolicy> algorithm_policy_;
   std::unique_ptr<SpineL0Maintenance> maintenance_;
   std::unique_ptr<SpineSplitReader> reader_;
   std::unique_ptr<SpineSplitPageRankCompute> compute_;
+  std::unique_ptr<SpineOwnerScheduler> owner_scheduler_;
+  std::unique_ptr<SpineOwnerFrontierController> owner_frontier_;
+  std::unique_ptr<SpineVertexLifecycle> vertex_lifecycle_;
+  std::unique_ptr<Component> initial_active_writer_;
+  SpineInitialActiveOutputCounters initial_active_counters_;
   SpineActiveBins active_bins_payload_;
   std::vector<std::uint32_t> source_refresh_;
   std::optional<SpineDirtyIdentity> host_coverage_;
+  bool initial_active_ready_{true};
+  bool initial_active_failed_{};
+  std::string initial_active_failure_;
   bool registered_{};
+  bool convergence_run_started_{};
 };
 
 }  // namespace spine::sim

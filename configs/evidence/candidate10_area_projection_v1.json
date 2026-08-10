@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "claim_class": "routed_fpga_footprint_plus_32nm_sram_capacity_equivalent_not_full_asic_area",
+  "repository_root": "../..",
+  "ppa_manifest": {
+    "path": "configs/evidence/candidate10_publication_ppa_v4.json",
+    "sha256": "165e0c3988b5209d80b6ff3253d93408d9ef499893876257f80b50c461863047"
+  },
+  "cacti_ledger": {
+    "path": "docs/evidence/onchip_energy_20260725/energy_evidence.json",
+    "sha256": "c21b392189c69ea4ac9141ac156981a471f3fd8db8facbf47d6f23dbd17e1751"
+  },
+  "memory_block_projections": {
+    "bram": {
+      "capacity_bytes_per_block": 4608,
+      "characterization_id": "spine_tiny_edge_bram_32k_x64"
+    },
+    "uram": {
+      "capacity_bytes_per_block": 36864,
+      "characterization_id": "spine_vertex_tile_uram_256k_x32"
+    }
+  },
+  "limitations": [
+    "FPGA LUT, REG, BRAM, URAM, and DSP counts are complete post-route accelerator footprints on U55C.",
+    "The mm2 projection covers allocated BRAM/URAM bit capacity only and scales two CACTI-P 32 nm SRAM characterizations linearly by byte capacity.",
+    "The projection excludes logic, DSP, interconnect, clock tree, I/O, shell, and physical macro overhead differences; it is not full accelerator-core ASIC area.",
+    "Spine and GraSU+ReGraph builds are not iso-functional, so area ratios are descriptive rather than a normalized efficiency claim."
+  ]
+}

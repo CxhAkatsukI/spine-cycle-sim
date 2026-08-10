@@ -1,5 +1,11 @@
 # Architecture figures
 
+- `grasu_regraph_k_pipeline_freeze.svg`: frozen K=1 primary and K=2/K=4
+  projected GraSU + ReGraph multi-partition worker-pool contract. It shows the
+  finite partition scheduler, conversion-free PMA handoff, complete ReGraph
+  workers, shared execution-driven memory substrate, and the AXI-master reason
+  that K>1 is not yet primary-eligible. Its editable source is the adjacent
+  `.dot` file.
 - `candidate10_normalized_freeze_v3.svg`: machine-frozen Candidate10 Spine
   versus conversion-free GraSU/ReGraph architecture, shared execution-driven
   AXI/HBM substrate, and the explicitly non-equivalent parts of the latest

@@ -1,0 +1,301 @@
+\documentclass[10pt]{article}
+\usepackage[margin=0.7in]{geometry}
+\usepackage{booktabs}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+\pgfplotsset{compat=1.18}
+\definecolor{spine}{HTML}{176B87}
+\definecolor{kfour}{HTML}{237A57}
+\definecolor{kone}{HTML}{B44C43}
+\IfFileExists{data/large_graph_campaign/headline_pairs.csv}{
+  \newcommand{\datadir}{data/large_graph_campaign}
+}{
+  \newcommand{\datadir}{docs/paper/data/large_graph_campaign}
+}
+\pgfplotstableread[col sep=comma]{\datadir/headline_pairs.csv}\pairdata
+\pgfplotstableread[col sep=comma]{\datadir/k4_update_sweep.csv}\updatedata
+\pgfplotstableread[col sep=comma]{\datadir/dense_sweep.csv}\densedata
+\hypersetup{pdftitle={Spine Large-Graph Campaign Results}}
+\title{\textbf{Spine Large-Graph Campaign Results}\\
+\large Correctness-Gated Spine vs. GraSU+ReGraph K1/K4-shared}
+\author{Chuxiao Han}
+\date{Live campaign snapshot, July 2026}
+\begin{document}
+\maketitle
+\begin{abstract}
+This report is generated directly from correctness-gated campaign artifacts.
+The snapshot is \textbf{PARTIAL}: 70 of 97 runnable
+physical executions are currently admitted, with 2 of
+99 contract cases excluded by proven physical capacity
+bounds and 19 complete three-system groups. Missing bars are
+unexecuted comparisons, not zero-valued measurements. Every plotted row passes
+exact integer-state comparison or the declared $10^{-5}$ float32 PageRank
+output tolerance.
+Headline plots use insertion batch 8; the update sweep labels operation and
+batch size explicitly.
+\end{abstract}
+
+\section{End-to-end performance}
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{semilogyaxis}[
+  ybar, bar width=7pt, width=0.98\linewidth, height=64mm,
+  ylabel={Spine speedup (higher is better)},
+  xtick=data, xticklabels from table={\pairdata}{label},
+  x tick label style={rotate=28,anchor=east},
+  ymin=0.5, grid=major,
+  legend style={at={(0.5,1.14)},anchor=south,legend columns=2}]
+\addplot[fill=kfour] table[x=index,y=k4_speedup] {\pairdata};
+\addplot[fill=kone] table[x=index,y=k1_speedup] {\pairdata};
+\addplot[black,dashed,sharp plot] coordinates {(0,1) (13,1)};
+\legend{G+R K4-shared,G+R K1}
+\end{semilogyaxis}
+\end{tikzpicture}
+\caption{Device-cycle speedup after both architecture and independent
+mathematical correctness gates. K4-shared is the primary GraSU baseline.}
+\end{figure}
+\clearpage
+
+\section{Memory traffic and HBM energy}
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{semilogyaxis}[
+  ybar, bar width=7pt, width=0.98\linewidth, height=60mm,
+  ylabel={G+R / Spine ratio},
+  xtick=data, xticklabels from table={\pairdata}{label},
+  x tick label style={rotate=28,anchor=east}, ymin=0.5, grid=major,
+  legend style={at={(0.5,1.14)},anchor=south,legend columns=2}]
+\addplot[fill=kfour] table[x=index,y=k4_memory_ratio] {\pairdata};
+\addplot[fill=kone] table[x=index,y=k1_memory_ratio] {\pairdata};
+\addplot[black,dashed,sharp plot] coordinates {(0,1) (13,1)};
+\legend{K4-shared requested bytes,K1 requested bytes}
+\end{semilogyaxis}
+\end{tikzpicture}
+\caption{Accepted backend bytes. Ratios above one mean GraSU+ReGraph moves
+more data than Spine; request and DRAM completion ledgers close on every row.}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{semilogyaxis}[
+  ybar, bar width=7pt, width=0.98\linewidth, height=60mm,
+  ylabel={G+R / Spine HBM energy},
+  xtick=data, xticklabels from table={\pairdata}{label},
+  x tick label style={rotate=28,anchor=east}, ymin=0.5, grid=major,
+  legend style={at={(0.5,1.14)},anchor=south,legend columns=2}]
+\addplot[fill=kfour] table[x=index,y=k4_energy_ratio] {\pairdata};
+\addplot[fill=kone] table[x=index,y=k1_energy_ratio] {\pairdata};
+\addplot[black,dashed,sharp plot] coordinates {(0,1) (13,1)};
+\legend{G+R K4-shared,G+R K1}
+\end{semilogyaxis}
+\end{tikzpicture}
+\caption{All-controller DRAMSim3 energy ratio. This is HBM energy, not total
+accelerator or board energy.}
+\end{figure}
+\clearpage
+
+\section{Update-only tradeoff}
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{semilogyaxis}[
+  ybar, bar width=7pt, width=0.98\linewidth, height=58mm,
+  ylabel={Spine update-phase speedup},
+  xtick=data, xticklabels from table={\pairdata}{label},
+  x tick label style={rotate=28,anchor=east}, ymin=0.001, ymax=2,
+  grid=major, legend style={at={(0.5,1.14)},anchor=south,legend columns=2}]
+\addplot[fill=kfour] table[x=index,y=k4_update_speedup] {\pairdata};
+\addplot[fill=kone] table[x=index,y=k1_update_speedup] {\pairdata};
+\addplot[black,dashed,sharp plot] coordinates {(0,1) (13,1)};
+\legend{G+R K4-shared,G+R K1}
+\end{semilogyaxis}
+\end{tikzpicture}
+\caption{Update-phase cycles only. Values below one expose Spine's current
+maintenance cost even when end-to-end execution favors Spine.}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{semilogyaxis}[
+  ybar, bar width=7pt, width=0.98\linewidth, height=58mm,
+  ylabel={Spine speedup over G+R K4-shared},
+  xtick=data, xticklabels from table={\updatedata}{label},
+  x tick label style={rotate=28,anchor=east}, ymin=0.00001, ymax=20,
+  grid=major, legend style={at={(0.5,1.14)},anchor=south,legend columns=2}]
+\addplot[fill=kfour] table[x=index,y=e2e_speedup] {\updatedata};
+\addplot[fill=kone] table[x=index,y=update_speedup] {\updatedata};
+\addplot[black,dashed,sharp plot]
+  coordinates {(0,1) (8,1)};
+\legend{End-to-end,Update phase only}
+\end{semilogyaxis}
+\end{tikzpicture}
+\caption{AskUbuntu weighted-SSSP operation and batch sweep. Ins, Del, and Wgt
+denote insertion, deletion, and weight change. Update speedup uses semantic
+user mutations and the isolated update-phase cycle window.}
+\end{figure}
+\clearpage
+
+\section{Dense-batch behavior}
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{loglogaxis}[
+  width=0.92\linewidth, height=58mm,
+  xlabel={User mutations per batch}, ylabel={End-to-end device cycles},
+  xmin=32, xmax=8192, xtick=data,
+  xticklabels from table={\densedata}{label}, grid=major,
+  legend style={at={(0.5,1.14)},anchor=south,legend columns=2}]
+\addplot[spine,very thick,mark=square*]
+  table[x=batch_size,y=spine_cycles] {\densedata};
+\addplot[kfour,very thick,mark=triangle*]
+  table[x=batch_size,y=k4_cycles] {\densedata};
+\legend{Spine,G+R K4-shared}
+\end{loglogaxis}
+\end{tikzpicture}
+\caption{Correctness-gated AskUbuntu weighted-SSSP insertion latency as the
+batch grows from 64 toward 4096 mutations. Missing points are still running,
+not zero-valued measurements.}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{semilogyaxis}[
+  ybar, bar width=12pt, width=0.92\linewidth, height=54mm,
+  ylabel={Spine speedup over G+R K4-shared},
+  xtick=data, xticklabels from table={\densedata}{label},
+  xlabel={User mutations per batch}, xmin=-0.5, xmax=2.5,
+  ymin=0.00001, grid=major,
+  legend style={at={(0.5,1.14)},anchor=south,legend columns=2}]
+\addplot[fill=kfour] table[x=index,y=e2e_speedup] {\densedata};
+\addplot[fill=kone] table[x=index,y=update_speedup] {\densedata};
+\addplot[black,dashed,sharp plot]
+  coordinates {(0,1) (2,1)};
+\legend{End-to-end,Update phase only}
+\end{semilogyaxis}
+\end{tikzpicture}
+\caption{Dense-batch tradeoff. End-to-end and isolated update-phase windows
+are kept separate because the current Spine maintenance path can lose even
+when its complete execution wins.}
+\end{figure}
+\clearpage
+
+\section{Implementation feasibility and component power}
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{lrrrrrrl}
+\toprule
+Build & LUT & FF & BRAM & URAM & DSP & WNS ns & Setup \\
+\midrule
+    Spine opt-v2 SSSP & 136437 & 159403 & 95 & 115 & 18 & 0.003 & closed \\
+    G+R SSSP & 96559 & 107380 & 233 & 64 & 0 & -0.013 & target missed \\
+    G+R Full PR & 178374 & 177836 & 278 & 64 & 304 & -0.130 & target missed \\
+    G+R Residual PR & 247692 & 301029 & 293 & 64 & 336 & -0.087 & target missed \\
+\bottomrule
+\end{tabular}
+\caption{Absolute U55C routed resources and timing. Spine is a native SSSP
+build; GraSU+ReGraph rows are algorithm-specific conversion-free whole systems.
+They establish feasibility but are not an iso-functional area ratio.}
+\end{table}
+
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{lrrrrrr}
+\toprule
+Build & Dynamic W & HBM sub. & Update & Compute & FIFO & Other \\
+\midrule
+    Spine opt-v2 SSSP & 27.677 & 17.674 & 1.891 & 0.205 & 0.003 & 0.113 \\
+    G+R SSSP & 21.921 & 10.807 & 2.322 & 0.777 & 0.035 & 0.177 \\
+    G+R Full PR & 25.104 & 12.685 & 1.202 & 3.133 & 0.079 & 0.189 \\
+    G+R Residual PR & 26.014 & 12.372 & 1.957 & 3.589 & 0.068 & 0.186 \\
+\bottomrule
+\end{tabular}
+\caption{Vivado vectorless hierarchy attribution with Low confidence. These
+values identify implementation components; they are not workload energy or
+board power. Workload-specific HBM energy in Figures 3--4 comes independently
+from DRAMSim3 command and background activity.}
+\end{table}
+
+\paragraph{Workload-specific component activity.}
+The correctness-gated snapshot exports 464 component
+rows covering maintenance/update, reader/source cache, compute/gather/apply,
+streams, selected on-chip arrays, and the HBM frontend. These are physical
+activity counters with explicit per-component contracts, not energy estimates;
+they are archived in \texttt{component\_activity.csv} for subsequent calibrated
+per-event energy analysis.
+\clearpage
+
+\section{Correctness coverage}
+\begin{table}[ht]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+Algorithm & Cross-system groups & Exact & K1/K4 triplets & Failed \\
+\midrule
+    SSSP & 14 & 14 & 10 & 0 \\
+    CC & 3 & 3 & 3 & 0 \\
+    FullPR & 4 & 0 & 3 & 0 \\
+    ResPR & 3 & 3 & 3 & 0 \\
+\bottomrule
+\end{tabular}
+\caption{Only groups containing at least two systems are counted. Exact means
+canonical final-state equality after both architecture and independent
+mathematical-oracle admission.}
+\end{table}
+
+\section{Frozen dataset catalog}
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{lrrrrc}
+\toprule
+Data & Vertices & Directed edges & CC edges & ResPR edges & Spine full \\
+\midrule
+    AU & 515281 & 390847 & 679246 & 826848 & yes \\
+    SU & 567316 & 616118 & 1061248 & 1075035 & yes \\
+    WK & 1140149 & 1142352 & 2032558 & 2190639 & yes \\
+    SO & 6024271 & 23724166 & 41008044 & 28299669 & yes \\
+    BC & 24575382 & 38968503 & 77937006 & 52778301 & no \\
+    HW & 1139905 & 112751422 & 112751422 & 112784084 & yes \\
+    PK & 1632803 & 44603928 & 44603928 & 44603928 & yes \\
+    OK & 3072441 & 234370166 & 234370166 & 234370166 & yes \\
+    LJ & 4847571 & 85702474 & 85702474 & 85703436 & yes \\
+    LJ08 & 5363260 & 99028542 & 99028542 & 99028616 & yes \\
+    UK & 18520486 & 292243663 & 523574516 & 295209230 & no \\
+    R19 & 524288 & 15483485 & 29732038 & 15672181 & yes \\
+\bottomrule
+\end{tabular}
+\caption{Immutable materialized graph views. Full PageRank uses the separately
+frozen 4M-edge cap. ``Spine full'' is the current $2^{24}$-vertex admission
+check, not a performance result.}
+\end{table}
+
+\section{Simulator engineering runtime}
+\begin{table}[ht]
+\centering
+\begin{tabular}{lrrr}
+\toprule
+System & Completed runs & Median host s & Maximum host s \\
+\midrule
+    Spine & 16 & 644.4 & 27739.8 \\
+    G+R K4-shared & 15 & 2280.3 & 23318.1 \\
+    G+R K1 & 11 & 5867.6 & 27529.1 \\
+\bottomrule
+\end{tabular}
+\caption{Observed host wall time under concurrent campaign load. These values
+measure simulator throughput and are not accelerator performance.}
+\end{table}
+
+\paragraph{Claim boundary.}
+Only complete correctness-gated pairs enter the figures. Current FPGA/RTL
+evidence supports feasibility and PPA separately; this report does not claim
+cycle-for-cycle FPGA calibration or ASIC total power.
+\end{document}

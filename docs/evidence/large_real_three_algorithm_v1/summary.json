@@ -1,0 +1,335 @@
+{
+  "analysis_id": "large_real_three_algorithm_v1",
+  "checks": {
+    "cc_full_correctness": true,
+    "cc_gate_correctness": true,
+    "full_projection_larger_than_gate": true,
+    "minimum_edge_gate": true,
+    "residual_full_correctness": true,
+    "residual_gate_correctness": true,
+    "weighted_correctness": true,
+    "weighted_minimum_edge_gate": true
+  },
+  "connected_components": {
+    "full_graph": {
+      "records": 903774,
+      "sha256": "0bb895d75f5cd2a6244d472659c6d337fb1a8fffd37862ce5d0701042f93627c",
+      "vertices": 156289
+    },
+    "full_pairs": [
+      {
+        "active_edges": 290,
+        "grasu_backend_bytes": 144066920,
+        "grasu_cycles": 54122677,
+        "grasu_host_wall_seconds": 7.003545761108398e-07,
+        "initial_edges": 903774,
+        "iterations": 6,
+        "run_id": "askubuntu_reciprocal_full_bridge_u1",
+        "spine_backend_bytes": 7533152,
+        "spine_cycles": 3965472,
+        "spine_host_wall_seconds": 6.593763828277588e-07,
+        "spine_speedup_over_grasu": 13.648482954866406,
+        "user_mutations": 1,
+        "vertices": 156289
+      },
+      {
+        "active_edges": 379,
+        "grasu_backend_bytes": 144070016,
+        "grasu_cycles": 54123007,
+        "grasu_host_wall_seconds": 6.398186087608337e-07,
+        "initial_edges": 903774,
+        "iterations": 6,
+        "run_id": "askubuntu_reciprocal_full_bridge_u8",
+        "spine_backend_bytes": 7544412,
+        "spine_cycles": 3973933,
+        "spine_host_wall_seconds": 8.204951882362366e-07,
+        "spine_speedup_over_grasu": 13.619506670092324,
+        "user_mutations": 8,
+        "vertices": 156289
+      },
+      {
+        "active_edges": 940,
+        "grasu_backend_bytes": 144097976,
+        "grasu_cycles": 54128744,
+        "grasu_host_wall_seconds": 4.581175744533539e-06,
+        "initial_edges": 903774,
+        "iterations": 6,
+        "run_id": "askubuntu_reciprocal_full_bridge_u64",
+        "spine_backend_bytes": 7624612,
+        "spine_cycles": 4033790,
+        "spine_host_wall_seconds": 4.220753908157349e-06,
+        "spine_speedup_over_grasu": 13.418830429943055,
+        "user_mutations": 64,
+        "vertices": 156289
+      },
+      {
+        "active_edges": 4073,
+        "grasu_backend_bytes": 144305304,
+        "grasu_cycles": 54148843,
+        "grasu_host_wall_seconds": 3.851018846035004e-06,
+        "initial_edges": 903774,
+        "iterations": 6,
+        "run_id": "askubuntu_reciprocal_full_bridge_u512",
+        "spine_backend_bytes": 8181696,
+        "spine_cycles": 4426116,
+        "spine_host_wall_seconds": 4.479661583900452e-06,
+        "spine_speedup_over_grasu": 12.233941225218679,
+        "user_mutations": 512,
+        "vertices": 156289
+      }
+    ],
+    "gate_graph": {
+      "records": 540000,
+      "sha256": "6ae95bd0a001142a212e44f01c022df43a95dab0cc11e70935d361467472a957",
+      "vertices": 94931
+    },
+    "gate_pairs": [
+      {
+        "active_edges": 275,
+        "grasu_backend_bytes": 46855960,
+        "grasu_cycles": 15781604,
+        "grasu_host_wall_seconds": 6.295740604400635e-07,
+        "initial_edges": 540000,
+        "iterations": 4,
+        "run_id": "askubuntu_reciprocal_large_bridge_u1",
+        "spine_backend_bytes": 3061924,
+        "spine_cycles": 1617036,
+        "spine_host_wall_seconds": 7.301568984985352e-07,
+        "spine_speedup_over_grasu": 9.75958729428411,
+        "user_mutations": 1,
+        "vertices": 94931
+      },
+      {
+        "active_edges": 345,
+        "grasu_backend_bytes": 58572240,
+        "grasu_cycles": 19711487,
+        "grasu_host_wall_seconds": 4.498288035392761e-07,
+        "initial_edges": 540000,
+        "iterations": 5,
+        "run_id": "askubuntu_reciprocal_large_bridge_u8",
+        "spine_backend_bytes": 3834944,
+        "spine_cycles": 2027626,
+        "spine_host_wall_seconds": 7.702037692070007e-07,
+        "spine_speedup_over_grasu": 9.721460959762796,
+        "user_mutations": 8,
+        "vertices": 94931
+      },
+      {
+        "active_edges": 815,
+        "grasu_backend_bytes": 58592656,
+        "grasu_cycles": 19712032,
+        "grasu_host_wall_seconds": 5.0496309995651245e-06,
+        "initial_edges": 540000,
+        "iterations": 5,
+        "run_id": "askubuntu_reciprocal_large_bridge_u64",
+        "spine_backend_bytes": 3909872,
+        "spine_cycles": 2082804,
+        "spine_host_wall_seconds": 5.04031777381897e-06,
+        "spine_speedup_over_grasu": 9.464180018859192,
+        "user_mutations": 64,
+        "vertices": 94931
+      },
+      {
+        "active_edges": 3541,
+        "grasu_backend_bytes": 58758792,
+        "grasu_cycles": 19730207,
+        "grasu_host_wall_seconds": 5.0300732254981995e-06,
+        "initial_edges": 540000,
+        "iterations": 5,
+        "run_id": "askubuntu_reciprocal_large_bridge_u512",
+        "spine_backend_bytes": 4439596,
+        "spine_cycles": 2446066,
+        "spine_host_wall_seconds": 4.9602240324020386e-06,
+        "spine_speedup_over_grasu": 8.06609756237158,
+        "user_mutations": 512,
+        "vertices": 94931
+      }
+    ],
+    "input_scope": "derived_real_reciprocal_projection"
+  },
+  "limitations": [
+    "Weighted SSSP uses the directed AskUbuntu simple graph; CC and residual PageRank use declared reciprocal projections.",
+    "The reciprocal updates are deterministic component bridges, not original temporal events.",
+    "Results compare K1 GraSU+ReGraph against Spine; K4 large-real rows are a separate follow-up."
+  ],
+  "residual_pagerank": {
+    "contract": "per_vertex_abs_residual_gt_1e-6",
+    "full_graph": {
+      "records": 903774,
+      "sha256": "0bb895d75f5cd2a6244d472659c6d337fb1a8fffd37862ce5d0701042f93627c",
+      "vertices": 156289
+    },
+    "full_pairs": [
+      {
+        "active_edges": 280,
+        "grasu_backend_bytes": 29496824,
+        "grasu_cycles": 8955983,
+        "grasu_host_wall_seconds": 89.5513427015394,
+        "initial_edges": 903774,
+        "iterations": 1,
+        "residual_linf": 4.88011e-07,
+        "run_id": "askubuntu_reciprocal_full_bridge_u1",
+        "spine_backend_bytes": 1263672,
+        "spine_cycles": 670030,
+        "spine_host_wall_seconds": 11.993387276306748,
+        "spine_speedup_over_grasu": 13.366540304165486,
+        "user_mutations": 1,
+        "vertices": 156289
+      },
+      {
+        "active_edges": 314,
+        "grasu_backend_bytes": 29499760,
+        "grasu_cycles": 8956370,
+        "grasu_host_wall_seconds": 89.48140633199364,
+        "initial_edges": 903774,
+        "iterations": 1,
+        "residual_linf": 6.07229e-07,
+        "run_id": "askubuntu_reciprocal_full_bridge_u8",
+        "spine_backend_bytes": 1267792,
+        "spine_cycles": 674314,
+        "spine_host_wall_seconds": 11.988626906648278,
+        "spine_speedup_over_grasu": 13.282194941822356,
+        "user_mutations": 8,
+        "vertices": 156289
+      },
+      {
+        "active_edges": 503,
+        "grasu_backend_bytes": 55896792,
+        "grasu_cycles": 17778287,
+        "grasu_host_wall_seconds": 172.4164640326053,
+        "initial_edges": 903774,
+        "iterations": 2,
+        "residual_linf": 8.8389e-07,
+        "run_id": "askubuntu_reciprocal_full_bridge_u64",
+        "spine_backend_bytes": 2550676,
+        "spine_cycles": 1368327,
+        "spine_host_wall_seconds": 22.36728452332318,
+        "spine_speedup_over_grasu": 12.99271811489505,
+        "user_mutations": 64,
+        "vertices": 156289
+      },
+      {
+        "active_edges": 2466,
+        "grasu_backend_bytes": 82477896,
+        "grasu_cycles": 26625416,
+        "grasu_host_wall_seconds": 260.4772126516327,
+        "initial_edges": 903774,
+        "iterations": 3,
+        "residual_linf": 9.64841e-07,
+        "run_id": "askubuntu_reciprocal_full_bridge_u512",
+        "spine_backend_bytes": 4039776,
+        "spine_cycles": 2293695,
+        "spine_host_wall_seconds": 35.835398712195456,
+        "spine_speedup_over_grasu": 11.608089131292523,
+        "user_mutations": 512,
+        "vertices": 156289
+      }
+    ],
+    "gate_graph": {
+      "records": 540000,
+      "sha256": "6ae95bd0a001142a212e44f01c022df43a95dab0cc11e70935d361467472a957",
+      "vertices": 94931
+    },
+    "gate_pairs": [
+      {
+        "active_edges": 270,
+        "grasu_backend_bytes": 15186000,
+        "grasu_cycles": 3985774,
+        "grasu_host_wall_seconds": 40.37713631242514,
+        "initial_edges": 540000,
+        "iterations": 1,
+        "residual_linf": 6.20576e-07,
+        "run_id": "askubuntu_reciprocal_large_bridge_u1",
+        "spine_backend_bytes": 772756,
+        "spine_cycles": 413177,
+        "spine_host_wall_seconds": 7.351591815240681,
+        "spine_speedup_over_grasu": 9.64665022496412,
+        "user_mutations": 1,
+        "vertices": 94931
+      },
+      {
+        "active_edges": 586,
+        "grasu_backend_bytes": 28475240,
+        "grasu_cycles": 7881915,
+        "grasu_host_wall_seconds": 77.17863612249494,
+        "initial_edges": 540000,
+        "iterations": 2,
+        "residual_linf": 8.76438e-07,
+        "run_id": "askubuntu_reciprocal_large_bridge_u8",
+        "spine_backend_bytes": 1545304,
+        "spine_cycles": 826751,
+        "spine_host_wall_seconds": 13.664415450766683,
+        "spine_speedup_over_grasu": 9.533602015600827,
+        "user_mutations": 8,
+        "vertices": 94931
+      },
+      {
+        "active_edges": 948,
+        "grasu_backend_bytes": 41782720,
+        "grasu_cycles": 11782647,
+        "grasu_host_wall_seconds": 114.99818074051291,
+        "initial_edges": 540000,
+        "iterations": 3,
+        "residual_linf": 8.76438e-07,
+        "run_id": "askubuntu_reciprocal_large_bridge_u64",
+        "spine_backend_bytes": 2348064,
+        "spine_cycles": 1280480,
+        "spine_host_wall_seconds": 20.33029946871102,
+        "spine_speedup_over_grasu": 9.201742315381733,
+        "user_mutations": 64,
+        "vertices": 94931
+      },
+      {
+        "active_edges": 82845,
+        "grasu_backend_bytes": 68530016,
+        "grasu_cycles": 19579227,
+        "grasu_host_wall_seconds": 193.4747415650636,
+        "initial_edges": 540000,
+        "iterations": 5,
+        "residual_linf": 9.91238e-07,
+        "run_id": "askubuntu_reciprocal_large_bridge_u512",
+        "spine_backend_bytes": 5471644,
+        "spine_cycles": 2933022,
+        "spine_host_wall_seconds": 44.63729989528656,
+        "spine_speedup_over_grasu": 6.675444984729061,
+        "user_mutations": 512,
+        "vertices": 94931
+      }
+    ],
+    "input_scope": "derived_real_reciprocal_sinkfree_projection"
+  },
+  "schema_version": 1,
+  "status": "PASS",
+  "weighted_sssp": {
+    "graph": {
+      "records": 540000,
+      "sha256": "4d47dad68581004dff4194c2e0e5b2b842821ed9bc63a599991fa384c9de678c",
+      "vertices": 157107
+    },
+    "input_scope": "near_full_directed_unique_real_topology",
+    "matrix_host_wall_seconds": 782.1653994508088,
+    "pairs": [
+      {
+        "grasu_time_ms": 572.06602,
+        "run_id": "grasu_au_paper_scale_insert_u8",
+        "spine_speedup_over_grasu": 364.96060751698064,
+        "spine_time_ms": 1.5674733333333333,
+        "user_mutations": 8
+      },
+      {
+        "grasu_time_ms": 572.03112,
+        "run_id": "grasu_au_paper_scale_insert_u64",
+        "spine_speedup_over_grasu": 87.54077668318084,
+        "spine_time_ms": 6.5344533333333334,
+        "user_mutations": 64
+      },
+      {
+        "grasu_time_ms": 573.3260533333333,
+        "run_id": "grasu_au_paper_scale_insert_u4096",
+        "spine_speedup_over_grasu": 34.35041462675204,
+        "spine_time_ms": 16.690513333333335,
+        "user_mutations": 4096
+      }
+    ]
+  }
+}

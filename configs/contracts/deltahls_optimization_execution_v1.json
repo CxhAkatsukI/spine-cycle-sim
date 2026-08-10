@@ -1,0 +1,179 @@
+{
+  "claim": {
+    "engineering_target": "all_three_algorithms_geomean_speedup_at_least_1.05",
+    "paper_scope": "mechanism_conditional_not_universal",
+    "primary_conditions": [
+      "small_batch",
+      "sparse_touched_sources",
+      "localized_propagation",
+      "resource_normalized_multi_partition"
+    ],
+    "required_negative_boundaries": [
+      "broad_propagation",
+      "deep_carry",
+      "high_degree_source",
+      "full_recomputation_or_fallback"
+    ]
+  },
+  "contract_id": "deltahls_optimization_execution_v1_20260727",
+  "correctness_gate": {
+    "architecture_precision_oracle": "required",
+    "cross_system_state_match": "required",
+    "fail_closed_performance_aggregation": true,
+    "final_queue_drain": "required",
+    "graph_degree_active_and_algorithm_state_match": "required",
+    "independent_mathematical_oracle": "required",
+    "request_and_dram_command_conservation": "required"
+  },
+  "experiment_policy": {
+    "batch_sizes": {
+      "primary": 8,
+      "sensitivity": [
+        1,
+        64
+      ]
+    },
+    "calibration": "synthetic_microbenchmarks_plus_three_real_slices",
+    "holdout": "two_unseen_real_slices_plus_multi_partition_large_slices",
+    "maximum_optimized_profiles": 2,
+    "primary_success": {
+      "minimum_pair_win_fraction_per_algorithm": 0.6,
+      "minimum_speedup_geomean_per_algorithm": 1.05,
+      "sensitivity_rank_inversion": "forbidden"
+    },
+    "update_strata": [
+      "localized_sparse",
+      "cancellation_heavy",
+      "high_degree_or_deep_carry",
+      "broad_propagation_or_fallback"
+    ],
+    "window_selection": "pre_registered_from_graph_and_update_statistics_without_timing_results"
+  },
+  "grasu_regraph_primary": {
+    "comparison_role": "resource_normalized_multi_partition",
+    "conversion": "pma_native_conversion_free",
+    "native_hls_multi_cu_role": "secondary_feasibility_and_sanity_baseline",
+    "partition_dispatch": "finite_work_conserving_dispatcher",
+    "partition_pipelines": {
+      "freeze_before_holdout": true,
+      "scalability_values": [
+        1,
+        2,
+        4
+      ],
+      "selection": "maximum_synthesizable_k_under_shared_device_channel_and_routing_headroom"
+    },
+    "shared_platform": {
+      "device": "xilinx_u55c_gen3x16_xdma_3_202210_1",
+      "hbm_pseudo_channel_budget": 23,
+      "kernel_clock_mhz": 150,
+      "maximum_device_resource_fraction": 0.8
+    }
+  },
+  "hls_and_ppa": {
+    "asic_projection": {
+      "classification": "projected_accelerator_core_area",
+      "exclude": [
+        "hbm_stack_and_phy",
+        "pcie_and_fpga_shell",
+        "host"
+      ],
+      "logic": "same_standard_cell_library_and_constraints_for_both_systems",
+      "memory": "same_cacti_or_sram_macro_method_for_both_systems",
+      "required_breakdown": [
+        "logic_control_interconnect",
+        "state_memory",
+        "metadata_memory",
+        "fifo_and_cache"
+      ]
+    },
+    "fpga_required": [
+      "csim_correctness",
+      "csynth_lut_ff_bram_uram_dsp",
+      "pipeline_ii_and_latency",
+      "target_and_estimated_frequency"
+    ],
+    "implementation_attempt": "one_final_primary_configuration",
+    "routed_required_if_completed": [
+      "utilization",
+      "wns",
+      "tns",
+      "achieved_frequency"
+    ]
+  },
+  "large_graph_gate": {
+    "complete_dataset_policy": "run_when_measured_host_runtime_projection_is_practical",
+    "four_partition_target": {
+      "minimum_edges": 1000000,
+      "minimum_vertices": 200000
+    },
+    "mandatory_partition_counts": [
+      2,
+      4
+    ],
+    "naming_rule": "sliced_inputs_must_not_be_called_full_dataset_results",
+    "per_architecture_host_runtime_target_minutes": 30,
+    "required_propagation_classes": [
+      "localized",
+      "broad"
+    ]
+  },
+  "schema_version": 1,
+  "sensitivity_gate": {
+    "fifo_and_outstanding_multipliers": [
+      0.5,
+      2.0
+    ],
+    "hbm_bandwidth_delta_fraction": 0.2,
+    "hbm_latency_delta_fraction": 0.2,
+    "required_optimization_evidence": [
+      "single_component_ablation",
+      "combined_ablation",
+      "occupancy_hit_and_stall_counters",
+      "logical_and_physical_memory_traffic",
+      "row_locality",
+      "end_to_end_cycles"
+    ]
+  },
+  "simulator_policy": {
+    "common_fifo_axi_hbm_model": "frozen_unless_a_correctness_or_mechanism_bug_is_proven",
+    "host_runtime_optimization_gate": "cycle_request_order_counter_and_dram_ledger_identity",
+    "performance_model": "execution_driven_finite_resources"
+  },
+  "spine_optimization_boundary": {
+    "allowed": [
+      "finite_64_byte_request_coalescer_or_burst_packer",
+      "finite_rank_residual_degree_or_metadata_cache",
+      "finite_axi_outstanding_and_reorder_changes",
+      "bounded_source_row_or_tile_prefetch_and_double_buffering",
+      "duplicate_replay_suppression",
+      "bounded_streaming_or_chunked_fallback",
+      "family_level_request_parallelism_and_overlap",
+      "device_side_active_source_discovery"
+    ],
+    "forbidden": [
+      "unbounded_or_ideal_storage",
+      "future_access_oracle",
+      "unmeasured_host_precomputation",
+      "workload_specific_fast_path",
+      "algorithm_iteration_threshold_or_semantic_change",
+      "formula_based_removal_of_required_hardware_work",
+      "flat_snapshot_or_pma_replacement"
+    ],
+    "frozen_macroarchitecture": {
+      "destination_partitions": 16,
+      "levels": 11,
+      "publication": "epoch_tagged_atomic_generation",
+      "resolver": "signed_cross_level_latest_view",
+      "run_order": "source_ordered",
+      "storage": "ratio_2_leveled_hierarchy"
+    }
+  },
+  "stop_rule": {
+    "deadline_hours": 72,
+    "full_pagerank_role": "required_full_recomputation_boundary_not_primary_incremental_claim",
+    "no_post_holdout_retuning": true,
+    "report_failed_or_losing_boundaries": true,
+    "successful_rows_must_preserve_algorithm_iterations_and_thresholds": true
+  }
+}

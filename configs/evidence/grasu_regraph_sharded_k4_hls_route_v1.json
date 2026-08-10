@@ -1,0 +1,73 @@
+{
+  "evidence_id": "grasu_regraph_sharded_k4_hls_route_v1_20260807",
+  "hardware": {
+    "graph_pseudo_channels": [
+      0,
+      22
+    ],
+    "platform": "xilinx_u55c_gen3x16_xdma_3_202210_1",
+    "source_mirror_channels": [
+      23,
+      24
+    ]
+  },
+  "implementations": {
+    "connected_components": {
+      "achieved_hbm_mhz": 438.2,
+      "achieved_kernel_mhz": 150.0,
+      "route_tns_ns": -0.439,
+      "route_wns_ns": -0.06,
+      "source_revision": "d886f42a730c5b75666fc51d8c1c246023b0f5cb",
+      "state_channels": [
+        30
+      ],
+      "xclbin_bytes": 67233485,
+      "xclbin_sha256": "f871add9ba8333432373df24bac0272b46e7224c592d69bc594e503be51da7e4"
+    },
+    "thresholded_residual_pagerank": {
+      "achieved_hbm_mhz": 429.3,
+      "achieved_kernel_mhz": 150.0,
+      "au_correctness_gate": {
+        "active_vertices": 0,
+        "degree_mismatches": 0,
+        "rank_mismatches": 0,
+        "residual_l1": 2.37041e-06
+      },
+      "route_tns_ns": -28.768,
+      "route_wns_ns": -0.107,
+      "source_revision": "bfe20249764284f2f16cd77dc2756a2c7a64f1f9",
+      "state_channels": [
+        25,
+        26,
+        27
+      ],
+      "xclbin_bytes": 75047601,
+      "xclbin_sha256": "8d47aef98bcaa4cd338bbe5bd32d649db12b6dc15afb0a1d272bb2e47b7b5653"
+    },
+    "weighted_sssp": {
+      "achieved_hbm_mhz": 450.0,
+      "achieved_kernel_mhz": 150.0,
+      "route_tns_ns": 0.0,
+      "route_wns_ns": 0.003,
+      "source_revision": "b8d2ba357c667424aa39a837e514530697f3f636",
+      "state_channels": [
+        30
+      ],
+      "xclbin_bytes": 66885880,
+      "xclbin_sha256": "292ae9e468dda3d9d1941d1ab46e1696643956122d134ec366711e4acda2ceaf"
+    }
+  },
+  "schema_version": 1,
+  "topology": {
+    "destination_partition_vertices": 65536,
+    "frontend_assignment": "destination_partition_modulo_4",
+    "frontend_channel_ranges": "[0,6),[6,12),[12,18),[18,23)",
+    "frontends": 4,
+    "maximum_destination_partitions": 255,
+    "pma_destination_abi": "local_dst19",
+    "runtime_placement": "largest_first_capacity_checked",
+    "shared_apply_units": 1,
+    "shared_hbm_wrappers": 1,
+    "shared_mergers": 1
+  }
+}

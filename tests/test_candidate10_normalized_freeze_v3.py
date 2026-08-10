@@ -116,7 +116,20 @@ class Candidate10NormalizedFreezeV3Tests(unittest.TestCase):
             + revision_is_ancestor.stdout,
         )
         for relative, expected in prototype["source_sha256"].items():
-            actual = hashlib.sha256((repository / relative).read_bytes()).hexdigest()
+            source = subprocess.run(
+                ["git", "show", f"{prototype['revision']}:{relative}"],
+                cwd=repository,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=False,
+            )
+            self.assertEqual(
+                source.returncode,
+                0,
+                f"cannot read pinned HLS source {relative}: "
+                + source.stderr.decode(errors="replace"),
+            )
+            actual = hashlib.sha256(source.stdout).hexdigest()
             self.assertEqual(actual, expected, relative)
 
 

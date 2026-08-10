@@ -2,13 +2,17 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import tempfile
 import unittest
 
 from scripts.run_sst_spine_vertical import (
+    load_slice_shape,
     maintenance_timing_profile_matches,
+    sha256_file,
     validate_carry_hot_result,
     validate_dynamic_sssp_result,
     validate_fallback_result,
+    validate_full_rebuild_capacity,
     validate_full_compute_result,
     validate_full_pagerank_result,
     validate_generic_result,
@@ -24,6 +28,27 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class SstSpineVerticalValidationTests(unittest.TestCase):
+    def test_large_file_helpers_stream_slice_shape_and_sha(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "graph.slice"
+            path.write_text(
+                "# spine_real_slice_version=1\n"
+                "# vertices=9\n"
+                "0 1 2 1\n"
+                "7 8 3 -1\n",
+                encoding="ascii",
+            )
+            self.assertEqual(load_slice_shape(path), (9, 2))
+            self.assertEqual(
+                sha256_file(path),
+                "b41873890369e7f277fe83edbbe1a0e321044dec6be9abf5eb03a583a5247111",
+            )
+
+    def test_nonmonotonic_full_rebuild_capacity_fails_before_bootstrap(self) -> None:
+        validate_full_rebuild_capacity(64_000, 8)
+        with self.assertRaisesRegex(ValueError, "MAX_SORT_EDGES=131072"):
+            validate_full_rebuild_capacity(390_847, 8)
+
     def test_generic_full_pagerank_accepts_dual_oracle_result(self) -> None:
         result = {
             "success": True,
@@ -78,11 +103,12 @@ class SstSpineVerticalValidationTests(unittest.TestCase):
             "update_edges": 2,
             "materialized_snapshot_edges": 4,
             "maintenance_persisted_edges": 4,
+            "reader_edges": 4,
             "maintenance_backend_requests": 5,
             "compute_backend_requests": 7,
             "dynamic_update": True,
             "pipeline_order": (
-                "zero_time_l0_preload_then_update_maintenance_then_compute"
+                "zero_time_resident_level_preload_then_update_maintenance_then_compute"
             ),
             "architecture_oracle": "iterative_float32",
             "mathematical_oracle": "iterative_float64",
@@ -115,11 +141,138 @@ class SstSpineVerticalValidationTests(unittest.TestCase):
             residual_max_iterations=256,
         )
         self.assertEqual(validate_generic_result(result, dram, **arguments), [])
-        result["maintenance_persisted_edges"] = 3
+        result["maintenance_persisted_edges"] = 5
         self.assertIn(
             "materialized_snapshot",
             validate_generic_result(result, dram, **arguments),
         )
+        result["maintenance_persisted_edges"] = 0
+        self.assertNotIn(
+            "materialized_snapshot",
+            validate_generic_result(result, dram, **arguments),
+        )
+        result["maintenance_persisted_edges"] = 4
+        result["reader_edges"] = 3
+        self.assertIn(
+            "materialized_reader",
+            validate_generic_result(result, dram, **arguments),
+        )
+
+    def test_generic_dynamic_residual_may_scan_only_active_edges(self) -> None:
+        result = {
+            "success": True,
+            "mode": "spine_residual_pagerank",
+            "core_mhz": 141.0,
+            "input_edges": 4,
+            "initial_edges": 4,
+            "update_edges": 2,
+            "materialized_snapshot_edges": 4,
+            "maintenance_persisted_edges": 4,
+            "reader_edges": 0,
+            "maintenance_backend_requests": 5,
+            "compute_backend_requests": 7,
+            "backend_requests": 12,
+            "dynamic_update": True,
+            "pipeline_order": (
+                "zero_time_resident_level_preload_then_update_maintenance_then_compute"
+            ),
+            "architecture_oracle": "residual_float32",
+            "mathematical_oracle": "residual_float64",
+            "architecture_correctness_mismatches": 0,
+            "mathematical_correctness_mismatches": 0,
+            "correctness_mismatches": 0,
+        }
+        dram = {"dram_reads": 8, "dram_writes": 4, "dram_channels": 32}
+        problems = validate_generic_result(
+            result,
+            dram,
+            channels=32,
+            scenario="residual_pagerank",
+            vertices=4,
+            input_edges=4,
+            update_edges=2,
+            source=0,
+            core_mhz=141.0,
+            max_rounds=256,
+            pagerank_iterations=3,
+            pagerank_damping=0.85,
+            pagerank_epsilon=1.0e-6,
+            residual_max_iterations=256,
+        )
+        self.assertNotIn("materialized_reader", problems)
+
+    def test_delta_hls_residual_uses_linf_and_requires_sink_free_snapshots(self) -> None:
+        result = {
+            "success": True,
+            "mode": "spine_residual_pagerank",
+            "core_mhz": 141.0,
+            "vertices": 4,
+            "input_edges": 4,
+            "initial_edges": 4,
+            "update_edges": 2,
+            "materialized_snapshot_edges": 6,
+            "maintenance_persisted_edges": 2,
+            "maintenance_backend_requests": 5,
+            "compute_backend_requests": 7,
+            "backend_requests": 12,
+            "dynamic_update": True,
+            "pipeline_order": (
+                "zero_time_resident_old_rank_then_update_maintenance_then_device_correction_seed_then_compute"
+            ),
+            "residual_correction_device_timed": True,
+            "residual_correction_request_ledger_closed": True,
+            "architecture_oracle": "deltahls_residual_float32",
+            "mathematical_oracle": "full_pagerank_float64",
+            "architecture_correctness_mismatches": 0,
+            "mathematical_correctness_mismatches": 0,
+            "correctness_mismatches": 0,
+            "converged": True,
+            "final_active": 0,
+            "iterations": 2,
+            "pagerank_damping": 0.85,
+            "pagerank_epsilon": 1.0e-4,
+            "residual_contract": "deltahls_sink_free_linf_warm",
+            "old_sink_vertices": 0,
+            "new_sink_vertices": 0,
+            "ranks": [0.25] * 4,
+            "residuals": [9.0e-5] * 4,
+            "residual_l1": 3.6e-4,
+            "residual_linf": 9.0e-5,
+            "residual_bound_passed": True,
+            "frontier_in_sizes": [2, 1],
+            "frontier_out_sizes": [1, 0],
+            "frontier_match": True,
+            "memory_ledger_match": True,
+            "max_abs_error": 1.0e-7,
+            "mathematical_max_abs_error": 1.0e-5,
+            "mathematical_error_tolerance": 5.0e-4,
+            "reader_protocol_status": 0,
+        }
+        dram = {"dram_reads": 8, "dram_writes": 4, "dram_channels": 32}
+        arguments = dict(
+            channels=32,
+            scenario="residual_pagerank",
+            vertices=4,
+            input_edges=4,
+            update_edges=2,
+            source=0,
+            core_mhz=141.0,
+            max_rounds=256,
+            pagerank_iterations=3,
+            pagerank_damping=0.85,
+            pagerank_epsilon=1.0e-4,
+            residual_max_iterations=256,
+            residual_contract="deltahls_sink_free_linf_warm",
+        )
+        self.assertEqual(validate_generic_result(result, dram, **arguments), [])
+        result["residual_correction_device_timed"] = False
+        self.assertIn(
+            "device_residual_correction",
+            validate_generic_result(result, dram, **arguments),
+        )
+        result["residual_correction_device_timed"] = True
+        result["new_sink_vertices"] = 1
+        self.assertIn("sink_free", validate_generic_result(result, dram, **arguments))
 
     def test_dynamic_sssp_closes_cold_update_and_memory_ledgers(self) -> None:
         result = {
@@ -233,7 +386,7 @@ class SstSpineVerticalValidationTests(unittest.TestCase):
             "iterations": 49,
             "frontier_in_sizes": [4, 3] + [2] * 46 + [1],
             "frontier_out_sizes": [3] + [2] * 46 + [1, 0],
-            "compute_requests_per_iteration": [28, 23] + [18] * 46 + [13],
+            "compute_requests_per_iteration": [31, 25] + [20] * 45 + [19, 13],
             "correctness_mismatches": 0,
             "frontier_match": True,
             "memory_ledger_match": True,
@@ -296,18 +449,23 @@ class SstSpineVerticalValidationTests(unittest.TestCase):
             "maintenance_persisted_edges": 4,
             "maintenance_cycles": 50,
             "reader_edges": 4,
-            "reader_graph_payload_bytes": 64,
+            "reader_graph_payload_bytes": 96,
             "reader_source_requests": 4,
             "reader_source_responses": 4,
             "reader_source_windows": 1,
             "reader_protocol_status": 0,
+            "reader_family_directory_bytes": 64,
+            "reader_family_directory_mask_reads": 4,
+            "reader_family_directory_empty_masks": 1,
+            "reader_source_spool_write_bytes": 128,
+            "reader_source_spool_read_bytes": 256,
             "compute_edges": 4,
             "compute_vertices_applied": 4,
             "compute_memory_requests": 16,
             "source_map_operations": 4,
             "reduce_operations": 8,
             "apply_operations": 4,
-            "edge_axis_transfers": 24,
+            "edge_axis_transfers": 25,
             "value_axis_transfers": 5,
             "backend_requests": 90,
         }
@@ -334,18 +492,23 @@ class SstSpineVerticalValidationTests(unittest.TestCase):
             "maintenance_persisted_edges": 4,
             "maintenance_cycles": 50,
             "reader_edges": 4,
-            "reader_graph_payload_bytes": 64,
+            "reader_graph_payload_bytes": 96,
             "reader_source_requests": 4,
             "reader_source_responses": 4,
             "reader_source_windows": 1,
             "reader_protocol_status": 0,
+            "reader_family_directory_bytes": 64,
+            "reader_family_directory_mask_reads": 4,
+            "reader_family_directory_empty_masks": 1,
+            "reader_source_spool_write_bytes": 128,
+            "reader_source_spool_read_bytes": 256,
             "compute_edges": 4,
             "compute_vertices_applied": 4,
             "compute_memory_requests": 16,
             "source_map_operations": 4,
             "reduce_operations": 8,
             "apply_operations": 4,
-            "edge_axis_transfers": 24,
+            "edge_axis_transfers": 25,
             "value_axis_transfers": 5,
             "backend_requests": 90,
         }

@@ -55,28 +55,51 @@ DEFAULT_FALLBACK_WORKLOAD = (
     ROOT / "tests" / "data" / "fallback_three_tiles.slice"
 )
 PROFILE_PATH = ROOT / "configs" / "architectures" / "spine_shared_engine_9c08763.json"
+SPINE_MAX_SORT_EDGES = 131_072
 
 
 def load_slice_shape(path: Path) -> tuple[int, int]:
     vertices: int | None = None
     records = 0
-    for line_number, raw_line in enumerate(
-        path.read_text(encoding="ascii").splitlines(), start=1
-    ):
-        line = raw_line.strip()
-        if not line:
-            continue
-        if line.startswith("#"):
-            metadata = line[1:].strip()
-            if metadata.startswith("vertices="):
-                vertices = int(metadata.split("=", 1)[1])
-            continue
-        if len(line.split()) != 4:
-            raise ValueError(f"{path}:{line_number}: expected four edge fields")
-        records += 1
+    with path.open("r", encoding="ascii") as stream:
+        for line_number, raw_line in enumerate(stream, start=1):
+            line = raw_line.strip()
+            if not line:
+                continue
+            if line.startswith("#"):
+                metadata = line[1:].strip()
+                if metadata.startswith("vertices="):
+                    vertices = int(metadata.split("=", 1)[1])
+                continue
+            if len(line.split()) != 4:
+                raise ValueError(f"{path}:{line_number}: expected four edge fields")
+            records += 1
     if vertices is None or vertices <= 0:
         raise ValueError(f"{path}: missing positive vertices metadata")
     return vertices, records
+
+
+def validate_full_rebuild_capacity(input_edges: int, update_edges: int) -> None:
+    """Fail before bootstrap when a materialized snapshot cannot enter B-stage."""
+
+    if input_edges < 0 or update_edges < 0:
+        raise ValueError("full-rebuild edge counts cannot be negative")
+    conservative_snapshot_edges = input_edges + update_edges
+    if conservative_snapshot_edges > SPINE_MAX_SORT_EDGES:
+        raise ValueError(
+            "Spine non-monotonic SSSP full-rebuild snapshot may contain "
+            f"{conservative_snapshot_edges} edges, exceeding the frozen "
+            f"MAX_SORT_EDGES={SPINE_MAX_SORT_EDGES}; use the bounded real-topology "
+            "non-monotonic workload"
+        )
+
+
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for block in iter(lambda: stream.read(8 * 1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
 
 
 def validate_generic_result(
@@ -95,6 +118,7 @@ def validate_generic_result(
     pagerank_damping: float,
     pagerank_epsilon: float,
     residual_max_iterations: int,
+    residual_contract: str = "generic_dangling_l1_cold",
 ) -> list[str]:
     expected_mode = {
         "weighted_sssp": "spine_sssp",
@@ -137,12 +161,23 @@ def validate_generic_result(
                 or (
                     isinstance(result.get("materialized_snapshot_edges"), int)
                     and result["materialized_snapshot_edges"] > 0
-                    and result.get("maintenance_persisted_edges")
-                    == result["materialized_snapshot_edges"]
+                    and isinstance(result.get("maintenance_persisted_edges"), int)
+                    and 0
+                    <= result["maintenance_persisted_edges"]
+                    <= result["materialized_snapshot_edges"]
                 ),
+                "materialized_reader": (not dynamic)
+                or expected_mode != "spine_pagerank"
+                or result.get("reader_edges")
+                == result.get("materialized_snapshot_edges"),
                 "dynamic_pipeline_order": (not dynamic)
                 or result.get("pipeline_order")
-                == "zero_time_l0_preload_then_update_maintenance_then_compute",
+                == (
+                    "zero_time_resident_old_rank_then_update_maintenance_then_device_correction_seed_then_compute"
+                    if expected_mode == "spine_residual_pagerank"
+                    and residual_contract == "deltahls_sink_free_linf_warm"
+                    else "zero_time_resident_level_preload_then_update_maintenance_then_compute"
+                ),
                 "phase_backend_ledger": (not dynamic)
                 or (
                     int(result.get("maintenance_backend_requests", -1)) > 0
@@ -237,6 +272,12 @@ def validate_generic_result(
         )
     else:
         rounds = result.get("iterations", -1)
+        delta_hls = residual_contract == "deltahls_sink_free_linf_warm"
+        residual_measure = (
+            result.get("residual_linf", float("inf"))
+            if delta_hls
+            else result.get("residual_l1", float("inf"))
+        )
         checks.update(
             {
                 "vertices": result.get("vertices") == vertices,
@@ -254,6 +295,13 @@ def validate_generic_result(
                     - pagerank_epsilon
                 )
                 < 1.0e-12,
+                "residual_contract": result.get("residual_contract")
+                == residual_contract,
+                "sink_free": (not delta_hls)
+                or (
+                    result.get("old_sink_vertices") == 0
+                    and result.get("new_sink_vertices") == 0
+                ),
                 "state_vectors": len(result.get("ranks", [])) == vertices
                 and len(result.get("residuals", [])) == vertices,
                 "frontier_ledgers": len(result.get("frontier_in_sizes", []))
@@ -261,7 +309,8 @@ def validate_generic_result(
                 and len(result.get("frontier_out_sizes", [])) == rounds,
                 "frontier_match": result.get("frontier_match") is True,
                 "memory_ledger": result.get("memory_ledger_match") is True,
-                "residual_bound": result.get("residual_bound_passed") is True,
+                "residual_bound": result.get("residual_bound_passed") is True
+                and float(residual_measure) <= pagerank_epsilon * 1.01,
                 "architecture_error": result.get("max_abs_error", 1.0)
                 <= 1.0e-5,
                 "mathematical_error": result.get(
@@ -271,6 +320,19 @@ def validate_generic_result(
                 "reader_protocol": result.get("reader_protocol_status") == 0,
             }
         )
+        if delta_hls:
+            checks.update(
+                {
+                    "device_residual_correction": result.get(
+                        "residual_correction_device_timed"
+                    )
+                    is True,
+                    "device_residual_correction_ledger": result.get(
+                        "residual_correction_request_ledger_closed"
+                    )
+                    is True,
+                }
+            )
     return [name for name, passed in checks.items() if not passed]
 
 
@@ -715,6 +777,51 @@ def validate_carry_hot_result(
     return [name for name, passed in checks.items() if not passed]
 
 
+def validate_rq3_trace_carry_result(
+    result: dict[str, Any],
+    dram: dict[str, int | float],
+    *,
+    channels: int,
+    input_edges: int,
+    history_edges: int,
+    history_batch_edges: int,
+    target_level: int,
+) -> list[str]:
+    checks = {
+        "success": result.get("success") is True,
+        "mode": result.get("mode") == "spine_vertical",
+        "correctness": result.get("correctness_mismatches") == 0,
+        "frontier_correctness": result.get("frontier_mismatches") == 0,
+        "input_edges": result.get("input_edges") == input_edges,
+        "history_edges": result.get("carry_history_edges") == history_edges,
+        "history_batch_edges": (
+            result.get("carry_history_batch_edges") == history_batch_edges
+        ),
+        "history_target": (
+            result.get("carry_history_target_level") == target_level
+            and result.get("maintenance_target_level") == target_level
+        ),
+        "carry_read_work": (
+            result.get("maintenance_carry_cursor_bits_inspected", 0) > 0
+            and result.get("maintenance_carry_new_batch_reads") == input_edges
+            and result.get("maintenance_carry_payload_reads", 0) > 0
+        ),
+        "carry_write_work": (
+            result.get("maintenance_carry_outputs", 0) > 0
+            and result.get("maintenance_carry_writer_memory_wait_cycles", 0) > 0
+        ),
+        "request_closure": (
+            result.get("maintenance_memory_requests_issued")
+            == result.get("maintenance_memory_requests_completed")
+        ),
+        "dram_matches_backend": int(dram.get("dram_reads", 0))
+        + int(dram.get("dram_writes", 0))
+        == result.get("backend_requests"),
+        "channel_count": dram.get("dram_channels") == channels,
+    }
+    return [name for name, passed in checks.items() if not passed]
+
+
 def validate_full_compute_result(
     result: dict[str, Any], dram: dict[str, int | float], *, channels: int
 ) -> list[str]:
@@ -742,6 +849,38 @@ def validate_full_compute_result(
         "axis_transfers": result.get("edge_axis_transfers") == 64_683,
         "axis_capacity": result.get("edge_axis_max_occupancy") == 32,
         "axis_backpressure": result.get("edge_axis_push_stalls", 0) > 0,
+        "dram_matches_backend": int(dram.get("dram_reads", 0))
+        + int(dram.get("dram_writes", 0))
+        == result.get("backend_requests"),
+        "channel_count": dram.get("dram_channels") == channels,
+    }
+    return [name for name, passed in checks.items() if not passed]
+
+
+def validate_refactor31_probe_result(
+    result: dict[str, Any],
+    dram: dict[str, int | float],
+    *,
+    channels: int,
+) -> list[str]:
+    edges = int(result.get("input_edges", -1))
+    expected_path = 1 if edges == 16_384 else 2 if edges == 16_385 else -1
+    checks = {
+        "success": result.get("success") is True,
+        "mode": result.get("mode") == "spine_refactor31_probe",
+        "fixture_shape": edges in {16_384, 16_385}
+        and result.get("preload_edges") == edges,
+        "correctness": result.get("correctness_mismatches") == 0,
+        "frontier_correctness": result.get("frontier_mismatches") == 0,
+        "processed_edges": result.get("reader_edges") == edges
+        and result.get("compute_processed_edges") == edges,
+        "active_gate_path": result.get("reader_range_active_records") == edges
+        and result.get("reader_range_path") == expected_path
+        and result.get("compute_range_path") == expected_path,
+        "reader_request_closure": result.get("reader_memory_requests_issued")
+        == result.get("reader_memory_requests_completed"),
+        "compute_request_closure": result.get("compute_memory_requests_issued")
+        == result.get("compute_memory_requests_completed"),
         "dram_matches_backend": int(dram.get("dram_reads", 0))
         + int(dram.get("dram_writes", 0))
         == result.get("backend_requests"),
@@ -785,18 +924,23 @@ def validate_full_pagerank_result(
         "maintenance_once": result.get("maintenance_persisted_edges") == 4
         and result.get("maintenance_cycles", 0) > 0,
         "reader": result.get("reader_edges") == 4
-        and result.get("reader_graph_payload_bytes") == 64
+        and result.get("reader_graph_payload_bytes") == 96
         and result.get("reader_source_requests") == 4
         and result.get("reader_source_responses") == 4
         and result.get("reader_source_windows") == 1
-        and result.get("reader_protocol_status") == 0,
+        and result.get("reader_protocol_status") == 0
+        and result.get("reader_family_directory_bytes") == 64
+        and result.get("reader_family_directory_mask_reads") == 4
+        and result.get("reader_family_directory_empty_masks") == 1
+        and result.get("reader_source_spool_write_bytes") == 128
+        and result.get("reader_source_spool_read_bytes") == 256,
         "compute": result.get("compute_edges") == 4
         and result.get("compute_vertices_applied") == 4
         and result.get("compute_memory_requests") == 16
         and result.get("source_map_operations") == 4
         and result.get("reduce_operations") == 8
         and result.get("apply_operations") == 4,
-        "axis": result.get("edge_axis_transfers") == 24
+        "axis": result.get("edge_axis_transfers") == 25
         and result.get("value_axis_transfers") == 5,
         "dram_matches_backend": int(dram.get("dram_reads", 0))
         + int(dram.get("dram_writes", 0))
@@ -823,9 +967,10 @@ def validate_residual_pagerank_result(
     ledger_ok = (
         len(frontier_in) == len(frontier_out) == len(requests) == rounds
         and all(
-            request_count == 5 * active_sources + 2 * result.get("vertices", 0)
-            for active_sources, request_count in zip(
-                frontier_in, requests, strict=True
+            request_count
+            == 5 * active_sources + 2 * result.get("vertices", 0) + next_active
+            for active_sources, next_active, request_count in zip(
+                frontier_in, frontier_out, requests, strict=True
             )
         )
     )
@@ -1256,6 +1401,7 @@ def parse_args() -> argparse.Namespace:
         choices=(
             "amazon_l0",
             "carry_hot",
+            "rq3_trace_carry",
             "amazon_full_compute",
             "full_pagerank",
             "residual_pagerank",
@@ -1266,17 +1412,46 @@ def parse_args() -> argparse.Namespace:
             "protocol_window",
             "fallback_capacity",
             "fallback_payload",
+            "refactor31_probe",
             "candidate10_maintenance",
         ),
         default="amazon_l0",
     )
     parser.add_argument("--preload", type=Path)
+    parser.add_argument(
+        "--resident-static-sssp",
+        action="store_true",
+        help=(
+            "preload the static graph into the frozen refactor31 resident "
+            "level and time only multi-round reader/compute execution"
+        ),
+    )
+    parser.add_argument("--carry-history", type=Path)
+    parser.add_argument("--carry-history-batch-edges", type=int, default=0)
+    parser.add_argument("--expected-carry-target-level", type=int, default=0)
     parser.add_argument("--update-workload", type=Path)
     parser.add_argument("--hot-vertices", default="")
     parser.add_argument("--source", type=int)
+    parser.add_argument(
+        "--sssp-warm-start",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help=(
+            "preload the verified old-graph SSSP state and time only the "
+            "positive dynamic update window"
+        ),
+    )
     parser.add_argument("--pagerank-iterations", type=int, default=2)
     parser.add_argument("--pagerank-damping", type=float, default=0.8)
     parser.add_argument("--pagerank-epsilon", type=float, default=1.0e-5)
+    parser.add_argument(
+        "--residual-contract",
+        choices=(
+            "generic_dangling_l1_cold",
+            "deltahls_sink_free_linf_warm",
+        ),
+        default="generic_dangling_l1_cold",
+    )
     parser.add_argument("--residual-max-iterations", type=int, default=256)
     parser.add_argument("--pagerank-source-latency", type=int, default=3)
     parser.add_argument("--pagerank-source-ii", type=int, default=1)
@@ -1291,13 +1466,35 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--pagerank-apply-ii", type=int, default=1)
     parser.add_argument("--pagerank-apply-capacity", type=int, default=8)
     parser.add_argument("--channels", type=int, default=32)
-    parser.add_argument("--device-dirty-source-limit", type=int, default=4_096)
-    parser.add_argument("--range-task-active-gate", type=int, default=16_384)
+    parser.add_argument(
+        "--device-dirty-source-limit", type=int, default=16_777_216
+    )
+    parser.add_argument("--range-task-active-gate", type=int)
     parser.add_argument("--range-task-capacity", type=int, default=65_536)
     parser.add_argument(
         "--range-task-payload-budget", type=int, default=1_048_576
     )
     parser.add_argument("--fallback-replay-threshold", type=int, default=65_536)
+    parser.add_argument(
+        "--segmented-fallback",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="use refactor31 preflight plus segmented execution fallback",
+    )
+    parser.add_argument("--reader-active-record-control-cycles", type=int)
+    parser.add_argument("--segmented-fallback-setup-cycles", type=int)
+    parser.add_argument(
+        "--fallback-level-cache-reuse",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="reuse launch-loaded level metadata during HOST fallback",
+    )
+    parser.add_argument(
+        "--source-page-index-cache",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="enable the finite per-family/level source-page index cache",
+    )
     parser.add_argument(
         "--memory-request-window",
         type=int,
@@ -1405,7 +1602,11 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--maintenance-architecture",
-        choices=("shared_engine_serial", "candidate10_one_pass"),
+        choices=(
+            "shared_engine_serial",
+            "candidate10_one_pass",
+            "candidate10_refactor31_segmented_exact",
+        ),
         help="override the maintenance architecture selected by the profile",
     )
     parser.add_argument("--no-build", action="store_true")
@@ -1430,6 +1631,30 @@ def main() -> int:
     profile_axi = profile.get("parameters", {}).get(
         "axi_profile", "hls_split_9c08763"
     )
+    profile_fallback_level_cache_reuse = bool(
+        profile.get("parameters", {}).get("fallback_level_cache_reuse", False)
+    )
+    profile_source_page_index_cache = bool(
+        profile.get("parameters", {}).get("source_page_index_cache", False)
+    )
+    profile_segmented_fallback = bool(
+        profile.get("parameters", {}).get("segmented_fallback", False)
+    )
+    profile_reader_active_record_control_cycles = int(
+        profile.get("parameters", {}).get(
+            "reader_active_record_control_cycles", 0
+        )
+    )
+    profile_segmented_fallback_setup_cycles = int(
+        profile.get("parameters", {}).get("segmented_fallback_setup_cycles", 0)
+    )
+    profile_range_task_active_gate = int(
+        profile.get("parameters", {}).get(
+            "range_task_active_gate", 16_384
+        )
+    )
+    if profile_range_task_active_gate <= 0:
+        raise SystemExit("profile range_task_active_gate must be positive")
     if profile_axi not in {
         "hls_split_9c08763",
         "candidate10_gmem_1e61fc0",
@@ -1441,10 +1666,32 @@ def main() -> int:
     if profile_maintenance_architecture not in {
         "shared_engine_serial",
         "candidate10_one_pass",
+        "candidate10_refactor31_segmented_exact",
     }:
         raise SystemExit("profile has an unknown maintenance_architecture")
     if args.maintenance_architecture is None:
         args.maintenance_architecture = profile_maintenance_architecture
+    if args.fallback_level_cache_reuse is None:
+        args.fallback_level_cache_reuse = profile_fallback_level_cache_reuse
+    if args.source_page_index_cache is None:
+        args.source_page_index_cache = profile_source_page_index_cache
+    if args.segmented_fallback is None:
+        args.segmented_fallback = profile_segmented_fallback
+    if args.reader_active_record_control_cycles is None:
+        args.reader_active_record_control_cycles = (
+            profile_reader_active_record_control_cycles
+        )
+    if args.segmented_fallback_setup_cycles is None:
+        args.segmented_fallback_setup_cycles = (
+            profile_segmented_fallback_setup_cycles
+        )
+    if (
+        args.reader_active_record_control_cycles < 0
+        or args.segmented_fallback_setup_cycles < 0
+    ):
+        raise SystemExit("refactor31 reader schedule cycles cannot be negative")
+    if args.range_task_active_gate is None:
+        args.range_task_active_gate = profile_range_task_active_gate
     try:
         data_clock = next(
             clock for clock in profile["clocks"] if clock["name"] == "data"
@@ -1558,6 +1805,14 @@ def main() -> int:
         raise SystemExit("maintenance scan IIs must be positive and tails non-negative")
     if args.preload is not None and not args.preload.is_file():
         raise SystemExit(f"preload workload is missing: {args.preload}")
+    if args.carry_history is not None and not args.carry_history.is_file():
+        raise SystemExit(f"carry history workload is missing: {args.carry_history}")
+    if args.scenario == "rq3_trace_carry" and (
+        args.carry_history is None
+        or args.carry_history_batch_edges <= 0
+        or args.expected_carry_target_level <= 0
+    ):
+        raise SystemExit("RQ3 trace carry requires history, batch size, and target")
     if args.update_workload is not None and not args.update_workload.is_file():
         raise SystemExit(f"update workload is missing: {args.update_workload}")
     generic_scenarios = {
@@ -1578,12 +1833,26 @@ def main() -> int:
         if args.update_workload is None
         else load_slice_shape(args.update_workload)[1]
     )
+    if args.scenario in {"dynamic_sssp_delete", "dynamic_sssp_increase"}:
+        validate_full_rebuild_capacity(workload_edges, update_edges)
+    if args.sssp_warm_start and args.scenario != "dynamic_sssp":
+        raise SystemExit(
+            "--sssp-warm-start is supported only for positive dynamic SSSP"
+        )
+    if args.resident_static_sssp and args.scenario != "weighted_sssp":
+        raise SystemExit(
+            "--resident-static-sssp is supported only for weighted_sssp"
+        )
+    if args.resident_static_sssp and args.preload is not None:
+        raise SystemExit("resident static SSSP does not accept --preload")
     hot_vertices = tuple(
         int(item) for item in args.hot_vertices.split(",") if item
     )
     binding_paths = [args.workload]
     if args.preload is not None:
         binding_paths.append(args.preload)
+    if args.carry_history is not None:
+        binding_paths.append(args.carry_history)
     if args.update_workload is not None:
         binding_paths.append(args.update_workload)
     binding = spine_memory_binding(
@@ -1620,6 +1889,7 @@ def main() -> int:
                 "dynamic_sssp_increase": "spine_sssp",
                 "fallback_capacity": "spine_sssp",
                 "fallback_payload": "spine_sssp",
+                "refactor31_probe": "spine_refactor31_probe",
                 "candidate10_maintenance": "spine_maintenance",
             }.get(args.scenario, "spine_vertical"),
             "SPINE_SST_WORKLOAD": str(args.workload.resolve()),
@@ -1627,9 +1897,22 @@ def main() -> int:
             if args.update_workload is None
             else str(args.update_workload.resolve()),
             "SPINE_SST_SOURCE": str(args.source),
+            "SPINE_SST_SSSP_WARM_START": "1" if args.sssp_warm_start else "0",
+            "SPINE_SST_RESIDENT_STATIC_SSSP": (
+                "1" if args.resident_static_sssp else "0"
+            ),
             "SPINE_SST_PRELOAD": ""
             if args.preload is None
             else str(args.preload.resolve()),
+            "SPINE_SST_CARRY_HISTORY": ""
+            if args.carry_history is None
+            else str(args.carry_history.resolve()),
+            "SPINE_SST_CARRY_HISTORY_BATCH_EDGES": str(
+                args.carry_history_batch_edges
+            ),
+            "SPINE_SST_CARRY_HISTORY_TARGET_LEVEL": str(
+                args.expected_carry_target_level
+            ),
             "SPINE_SST_HOT_VERTICES": args.hot_vertices,
             "SPINE_SST_OUTPUT": str(result_path),
             "SPINE_SST_DRAM_OUTPUT": str(args.out_dir / "dram"),
@@ -1645,6 +1928,7 @@ def main() -> int:
             "SPINE_SST_PAGERANK_ITERATIONS": str(args.pagerank_iterations),
             "SPINE_SST_PAGERANK_DAMPING": str(args.pagerank_damping),
             "SPINE_SST_PAGERANK_EPSILON": str(args.pagerank_epsilon),
+            "SPINE_SST_RESIDUAL_CONTRACT": args.residual_contract,
             "SPINE_SST_RESIDUAL_MAX_ITERATIONS": str(
                 args.residual_max_iterations
             ),
@@ -1682,6 +1966,21 @@ def main() -> int:
             ),
             "SPINE_SST_FALLBACK_REPLAY_THRESHOLD": str(
                 args.fallback_replay_threshold
+            ),
+            "SPINE_SST_SEGMENTED_FALLBACK": (
+                "1" if args.segmented_fallback else "0"
+            ),
+            "SPINE_SST_READER_ACTIVE_RECORD_CONTROL_CYCLES": str(
+                args.reader_active_record_control_cycles
+            ),
+            "SPINE_SST_SEGMENTED_FALLBACK_SETUP_CYCLES": str(
+                args.segmented_fallback_setup_cycles
+            ),
+            "SPINE_SST_FALLBACK_LEVEL_CACHE_REUSE": (
+                "1" if args.fallback_level_cache_reuse else "0"
+            ),
+            "SPINE_SST_SOURCE_PAGE_INDEX_CACHE": (
+                "1" if args.source_page_index_cache else "0"
             ),
             "SPINE_SST_MEMORY_REQUEST_WINDOW": str(args.memory_request_window),
             "SPINE_SST_COMPUTE_MEMORY_REQUEST_WINDOW": str(
@@ -1823,6 +2122,7 @@ def main() -> int:
         "amazon_l0": validate_result,
         "carry_hot": validate_carry_hot_result,
         "amazon_full_compute": validate_full_compute_result,
+        "refactor31_probe": validate_refactor31_probe_result,
         "full_pagerank": validate_full_pagerank_result,
         "residual_pagerank": validate_residual_pagerank_result,
         "weighted_sssp": validate_multiround_sssp_result,
@@ -1875,6 +2175,17 @@ def main() -> int:
             input_edges=workload_edges,
             core_mhz=core_mhz,
         )
+    elif args.scenario == "rq3_trace_carry":
+        history_edges = load_slice_shape(args.carry_history)[1]
+        problems = validate_rq3_trace_carry_result(
+            result,
+            dram,
+            channels=len(binding.instantiated_channels),
+            input_edges=workload_edges,
+            history_edges=history_edges,
+            history_batch_edges=args.carry_history_batch_edges,
+            target_level=args.expected_carry_target_level,
+        )
     elif args.validation_mode == "generic":
         problems = validate_generic_result(
             result,
@@ -1891,6 +2202,7 @@ def main() -> int:
             pagerank_damping=args.pagerank_damping,
             pagerank_epsilon=args.pagerank_epsilon,
             residual_max_iterations=args.residual_max_iterations,
+            residual_contract=args.residual_contract,
         )
     else:
         validator = validators[args.scenario]
@@ -1908,6 +2220,30 @@ def main() -> int:
             problems.append("mathematical_oracle")
         if abs(float(result.get("core_mhz", -1.0)) - core_mhz) > 1.0e-9:
             problems.append("core_mhz")
+    if args.sssp_warm_start:
+        warm_checks = {
+            "algorithm_warm_start": result.get("algorithm_warm_start") is True,
+            "bootstrap_accounting": result.get("bootstrap_accounting")
+            == "untimed_verified_old_graph_state",
+            "untimed_cold_cycles": result.get("cold_cycles") == 0,
+            "untimed_cold_memory": result.get("cold_backend_requests") == 0,
+            "dynamic_cycle_window": result.get("cycles")
+            == result.get("update_cycles"),
+        }
+        problems.extend(
+            name for name, passed in warm_checks.items() if not passed
+        )
+    if args.resident_static_sssp:
+        resident_checks = {
+            "resident_static_sssp": result.get("resident_static_sssp") is True,
+            "resident_preload": result.get("preload_edges") == workload_edges,
+            "untimed_maintenance": result.get("maintenance_persisted_edges") == 0,
+            "resident_level": isinstance(result.get("resident_static_level"), int)
+            and result["resident_static_level"] >= 8,
+        }
+        problems.extend(
+            name for name, passed in resident_checks.items() if not passed
+        )
     if result.get("spine_axi_profile") != args.axi_profile:
         problems.append("axi_profile")
     if (
@@ -1915,6 +2251,13 @@ def main() -> int:
         != args.maintenance_architecture
     ):
         problems.append("maintenance_architecture")
+    if (
+        result.get("fallback_level_cache_reuse")
+        is not args.fallback_level_cache_reuse
+    ):
+        problems.append("fallback_level_cache_reuse")
+    if result.get("source_page_index_cache") is not args.source_page_index_cache:
+        problems.append("source_page_index_cache")
     if args.scenario != "candidate10_maintenance" and (
         result.get("compute_memory_request_window")
         != args.compute_memory_request_window
@@ -2054,9 +2397,23 @@ def main() -> int:
         "source_revision": profile["source"]["revision"],
         "architecture_profile_evidence_tier": profile["evidence_tier"],
         "simulation_evidence_tier": "structural_execution_driven",
+        "range_task_active_gate": args.range_task_active_gate,
+        "range_task_capacity": args.range_task_capacity,
+        "range_task_payload_budget": args.range_task_payload_budget,
+        "segmented_fallback": args.segmented_fallback,
+        "reader_active_record_control_cycles": (
+            args.reader_active_record_control_cycles
+        ),
+        "segmented_fallback_setup_cycles": args.segmented_fallback_setup_cycles,
         "sst_memory_binding": binding.as_manifest(),
         "sst_library_binding": sst_library,
         "sst_plugin_sha256": sst_library["plugin_sha256"],
+        "workload_sha256": sha256_file(args.workload),
+        "update_workload_sha256": (
+            sha256_file(args.update_workload)
+            if args.update_workload is not None
+            else None
+        ),
         "dram_energy_claim": binding.energy_claim,
         "sst_host_wall_seconds": sst_host_wall_seconds,
         "status": "PASS",

@@ -1,0 +1,9 @@
+source	stage	design_state	site_type	slr0	slr1	slr2	slr0_pct	slr1_pct	slr2_pct
+/data/tmp/chuxiao/spine_opt_v2_hw_150_20260728/reports/link/imp/impl_1_slr_util_routed.rpt	routed	Routed	CLB	42992	15754	6496	78.22	29.17	12.03
+/data/tmp/chuxiao/spine_opt_v2_hw_150_20260728/reports/link/imp/impl_1_slr_util_routed.rpt	routed	Routed	CLB LUTs	191967	77987	25955	43.66	18.05	6.01
+/data/tmp/chuxiao/spine_opt_v2_hw_150_20260728/reports/link/imp/impl_1_slr_util_routed.rpt	routed	Routed	LUT as Logic	165745	71008	24434	37.70	16.44	5.66
+/data/tmp/chuxiao/spine_opt_v2_hw_150_20260728/reports/link/imp/impl_1_slr_util_routed.rpt	routed	Routed	LUT as Memory	26222	6979	1521	12.76	3.53	0.77
+/data/tmp/chuxiao/spine_opt_v2_hw_150_20260728/reports/link/imp/impl_1_slr_util_routed.rpt	routed	Routed	CLB Registers	266791	104196	35921	30.34	12.06	4.16
+/data/tmp/chuxiao/spine_opt_v2_hw_150_20260728/reports/link/imp/impl_1_slr_util_routed.rpt	routed	Routed	Block RAM Tile	111.5	134	50	16.59	19.94	7.44
+/data/tmp/chuxiao/spine_opt_v2_hw_150_20260728/reports/link/imp/impl_1_slr_util_routed.rpt	routed	Routed	URAM	99	16	0	30.94	5.00	0.00
+/data/tmp/chuxiao/spine_opt_v2_hw_150_20260728/reports/link/imp/impl_1_slr_util_routed.rpt	routed	Routed	DSPs	18	0	4	0.63	0.00	0.13

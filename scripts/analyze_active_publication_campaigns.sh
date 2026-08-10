@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+campaign_root="${SPINE_CAMPAIGN_ROOT:-/data/tmp/chuxiao/large_graph_campaign_v1}"
+output_dir="${SPINE_LIVE_ANALYSIS_DIR:-${campaign_root}/live_publication_analysis}"
+
+result_roots=(
+  noncapacity_v3_repair
+  fullgraph_v2_repair
+  formal_v3_weighted_wave
+  formal_v3_wiki_cc_k1
+  formal_v3_superuser_weighted
+  formal_v3_superuser_spine_fullpr
+  formal_v3_au_grasu_nonmonotonic
+  formal_v3_au_spine_weight_remaining
+  formal_v3_au_spine_weight_u1
+  formal_v3_au_spine_delete
+  formal_v3_au_insert_endpoints
+  formal_v3_au_dense_k4
+  formal_v3_remaining5_spine_weighted
+  formal_v3_remaining7_k4_weighted
+  formal_v3_r19_spine
+  formal_v3_r19_grasu_fullpr
+  formal_v3_r19_k4_priority
+  formal_v3_r19_cc_guard
+  formal_v3_stackoverflow_spine
+  formal_v4_stackoverflow_spine_linear
+  formal_v3_small_cc_residual
+  formal_v3_small_fullpr
+  formal_v4_missing_fullpr_competitors
+  formal_v4_stackoverflow_cc_residual_competitors
+  formal_v5_stackoverflow_cc_hot_partition_clip
+  formal_v5_r19_cc_hot_partition_clip
+)
+
+manifest_roots=(
+  fullgraph_v2_repair
+  formal_v3_weighted_wave
+  formal_v3_wiki_cc_k1
+  formal_v3_superuser_weighted
+  formal_v3_superuser_spine_fullpr
+  formal_v3_au_grasu_nonmonotonic
+  formal_v3_au_spine_weight_remaining
+  formal_v3_au_spine_weight_u1
+  formal_v3_au_spine_delete
+  formal_v3_au_insert_endpoints
+  formal_v3_au_dense_k4
+  formal_v3_remaining5_spine_weighted
+  formal_v3_remaining7_k4_weighted_admission_v2
+  formal_v3_r19_spine
+  formal_v3_r19_grasu_fullpr
+  formal_v3_r19_k4_priority
+  formal_v3_r19_cc_guard
+  formal_v3_stackoverflow_spine
+  formal_v4_stackoverflow_spine_linear
+  formal_v3_small_cc_residual
+  formal_v3_small_fullpr
+  formal_v4_missing_fullpr_competitors
+  formal_v4_stackoverflow_cc_residual_competitors
+)
+
+command=(
+  python3 scripts/analyze_publication_experiment_campaign.py
+  --out-dir "${output_dir}"
+  --result-transition-contract configs/contracts/large_graph_publication_campaign_fullgraph_v5.json
+)
+for root in "${result_roots[@]}"; do
+  command+=(--result-root "${campaign_root}/${root}")
+done
+for root in "${manifest_roots[@]}"; do
+  command+=(--manifest "${campaign_root}/${root}/campaign_manifest.json")
+done
+
+"${command[@]}"

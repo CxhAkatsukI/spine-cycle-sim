@@ -1,0 +1,29 @@
+{
+  "affected_metric": "resident_hot_edges",
+  "baseline": {
+    "case_result": "/data/tmp/chuxiao/large_graph_campaign_v1/formal_v6_sssp_exact/runs/runs/a481b5d34abacf23343c/case_result.json",
+    "cycles": 123744,
+    "plugin_sha256": "96b4375f8549016ac8be36d85b04b4b5730df0af477dcc5909903845a8f56919",
+    "resident_hot_edges": 37694419
+  },
+  "candidate": {
+    "case_result": "/data/tmp/chuxiao/large_graph_campaign_v1/formal_v7_pokec_spine_sssp_sidecar/runs/runs/a481b5d34abacf23343c/case_result.json",
+    "cycles": 123762,
+    "plugin_sha256": "1c0b0a9adb245e919e77cedb39b731551befc1f0ca4101a519dce176d9edf057",
+    "resident_hot_edges": 36767229
+  },
+  "checks": {
+    "architecture_correctness_mismatches_zero": true,
+    "case_identity_exact": true,
+    "final_state_exact": true,
+    "mathematical_correctness_mismatches_zero": true,
+    "new_hot_edges_lower": true
+  },
+  "classification": "affected_identical_case_successor",
+  "cycle_delta": 18,
+  "cycle_ratio_new_over_old": 1.000145461598138,
+  "execution_id": "a481b5d34abacf23343c",
+  "hot_edge_reduction": 927190,
+  "schema_version": 1,
+  "status": "pass"
+}

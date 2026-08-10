@@ -10,12 +10,442 @@
 #include <optional>
 #include <stdexcept>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 
 #include "spine_sim/fifo.hpp"
 #include "spine_sim/fixed_axi_port.hpp"
 
 namespace spine::sim {
+
+namespace {
+
+constexpr std::array<std::pair<std::size_t, std::size_t>, 4>
+    kU55cLaneChannelRanges{{{0, 6}, {6, 12}, {12, 18}, {18, 23}}};
+
+std::size_t align_runtime_bytes(std::size_t value) {
+  constexpr std::size_t alignment = kGraSuReGraphRuntimeAlignmentBytes;
+  if (value > std::numeric_limits<std::size_t>::max() - (alignment - 1)) {
+    throw std::overflow_error("GraSU-ReGraph runtime region size overflow");
+  }
+  return (value + alignment - 1) & ~(alignment - 1);
+}
+
+} // namespace
+
+GraSuReGraphRuntimePlan build_grasu_regraph_runtime_plan(
+    const GraSuPartitionedPmaLayout &layout,
+    const std::vector<std::size_t> &physical_updates_per_shard,
+    std::size_t max_cache_segments, std::size_t channels,
+    std::size_t channel_capacity_bytes) {
+  if (layout.vertices == 0 || layout.partitions.empty() ||
+      physical_updates_per_shard.size() != layout.partitions.size() ||
+      max_cache_segments == 0 || channels != kGraSuReGraphU55cGraphChannels ||
+      channel_capacity_bytes == 0) {
+    throw std::invalid_argument("invalid GraSU-ReGraph runtime geometry");
+  }
+
+  GraSuReGraphRuntimePlan result;
+  result.max_cache_segments = max_cache_segments;
+  result.channel_capacity_bytes = channel_capacity_bytes;
+  result.channel_load_bytes.assign(channels, 0);
+  result.shards.reserve(layout.partitions.size());
+
+  const auto add_region = [&](std::size_t shard, std::string name,
+                              std::size_t logical_bytes) {
+    std::size_t channel_first = 0;
+    std::size_t channel_last = channels;
+    if (name.rfind("update", 0) == 0 || name.rfind("pma", 0) == 0) {
+      const char lane_character = name.back();
+      if (lane_character < '0' || lane_character > '3') {
+        throw std::logic_error("GraSU-ReGraph lane role is malformed");
+      }
+      const std::size_t lane = static_cast<std::size_t>(lane_character - '0');
+      channel_first = kU55cLaneChannelRanges[lane].first;
+      channel_last = kU55cLaneChannelRanges[lane].second;
+    }
+    result.regions.push_back({
+        .shard = shard,
+        .name = std::move(name),
+        .logical_bytes = logical_bytes,
+        .allocated_bytes =
+            align_runtime_bytes(std::max<std::size_t>(logical_bytes, 1)),
+        .channel_first = channel_first,
+        .channel_last = channel_last,
+    });
+  };
+
+  for (std::size_t shard = 0; shard < layout.partitions.size(); ++shard) {
+    const GraSuPmaLayout &partition = layout.partitions[shard];
+    const std::size_t segments = partition.segments.size();
+    if (segments == 0 || partition.row_slot_bounds.size() != layout.vertices ||
+        partition.binary_heads.size() != segments) {
+      throw std::invalid_argument("invalid GraSU-ReGraph PMA shard buffers");
+    }
+    const std::size_t even_segments = (segments + 1) / 2;
+    const std::size_t odd_segments = segments / 2;
+    GraSuReGraphShardRuntimePlan shard_plan;
+    shard_plan.destination_base = partition.destination_base;
+    shard_plan.destination_vertices = partition.destination_vertices;
+    shard_plan.pma_slot_count = segments * kGraSuSegmentSlots;
+    shard_plan.pma_words = {
+        max_cache_segments * kGraSuSegmentSlots,
+        std::max<std::size_t>(
+            even_segments > max_cache_segments ? even_segments : 1, 1) *
+            kGraSuSegmentSlots,
+        max_cache_segments * kGraSuSegmentSlots,
+        std::max<std::size_t>(
+            odd_segments > max_cache_segments ? odd_segments : 1, 1) *
+            kGraSuSegmentSlots,
+    };
+    for (std::size_t lane = 0; lane < 4; ++lane) {
+      shard_plan.update_counts[lane] =
+          physical_updates_per_shard[shard] / 4 +
+          (lane < physical_updates_per_shard[shard] % 4 ? 1 : 0);
+      shard_plan.update_alloc_counts[lane] =
+          std::max<std::size_t>(shard_plan.update_counts[lane], 1);
+      add_region(shard, "update" + std::to_string(lane),
+                 shard_plan.update_alloc_counts[lane] * sizeof(std::uint64_t));
+      add_region(shard, "pma" + std::to_string(lane),
+                 shard_plan.pma_words[lane] * sizeof(std::uint32_t));
+    }
+    // The routed HLS ABI stores a sentinel row at index |V|.
+    shard_plan.row_words = layout.vertices + 1;
+    shard_plan.binary_words = std::max<std::size_t>(segments, 1);
+    add_region(shard, "row", shard_plan.row_words * sizeof(std::uint64_t));
+    add_region(shard, "binary",
+               shard_plan.binary_words * sizeof(std::uint64_t));
+    result.shards.push_back(shard_plan);
+  }
+
+  std::vector<std::size_t> order(result.regions.size());
+  for (std::size_t index = 0; index < order.size(); ++index) {
+    order[index] = index;
+  }
+  std::sort(order.begin(), order.end(),
+            [&](std::size_t left, std::size_t right) {
+              const auto &a = result.regions[left];
+              const auto &b = result.regions[right];
+              if (a.allocated_bytes != b.allocated_bytes) {
+                return a.allocated_bytes > b.allocated_bytes;
+              }
+              return std::pair(a.shard, a.name) < std::pair(b.shard, b.name);
+            });
+
+  for (const std::size_t region_index : order) {
+    GraSuReGraphBufferRegion &region = result.regions[region_index];
+    std::size_t selected = channels;
+    for (std::size_t channel = region.channel_first;
+         channel < region.channel_last; ++channel) {
+      if (region.allocated_bytes > channel_capacity_bytes ||
+          result.channel_load_bytes[channel] >
+              channel_capacity_bytes - region.allocated_bytes) {
+        continue;
+      }
+      if (selected == channels || result.channel_load_bytes[channel] <
+                                      result.channel_load_bytes[selected]) {
+        selected = channel;
+      }
+    }
+    if (selected == channels) {
+      throw std::overflow_error(
+          "GraSU-ReGraph runtime buffers exceed HBM pseudo-channel capacity");
+    }
+    region.channel = selected;
+    region.channel_offset_bytes = result.channel_load_bytes[selected];
+    result.channel_load_bytes[selected] += region.allocated_bytes;
+    result.total_allocated_bytes += region.allocated_bytes;
+  }
+  return result;
+}
+
+const GraSuReGraphBufferRegion &
+find_grasu_regraph_runtime_region(const GraSuReGraphRuntimePlan &plan,
+                                  std::size_t shard, const std::string &name) {
+  const auto found =
+      std::find_if(plan.regions.begin(), plan.regions.end(),
+                   [&](const GraSuReGraphBufferRegion &region) {
+                     return region.shard == shard && region.name == name;
+                   });
+  if (found == plan.regions.end()) {
+    throw std::out_of_range("GraSU-ReGraph runtime region is missing");
+  }
+  return *found;
+}
+
+class GraSuShardedPmaUpdateSystem::Impl {
+public:
+  Impl(Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
+       GraSuPartitionedPmaLayout layout, std::vector<GraSuEdge> updates,
+       GraSuNativeConfig config, std::size_t runtime_channel_capacity_bytes)
+      : scheduler_(scheduler), clock_id_(clock_id), backend_(backend),
+        layout_(std::move(layout)), config_(config),
+        start_cycle_(scheduler.clock(clock_id).completed_cycles) {
+    updates_by_shard_.resize(layout_.partitions.size());
+    for (const GraSuEdge &edge : updates) {
+      updates_by_shard_.at(layout_.partition_for_destination(edge.destination))
+          .push_back(edge);
+    }
+    std::vector<std::size_t> counts;
+    counts.reserve(updates_by_shard_.size());
+    for (const auto &shard_updates : updates_by_shard_) {
+      counts.push_back(shard_updates.size());
+    }
+    runtime_plan_ = build_grasu_regraph_runtime_plan(
+        layout_, counts, config_.cache_segments_per_half,
+        kGraSuReGraphU55cGraphChannels, runtime_channel_capacity_bytes);
+    if (config_.maintain_out_degree && config_.initialize_degree_payload) {
+      initialize_degree_payload();
+    }
+  }
+
+  void register_components() {
+    if (registered_) {
+      throw std::logic_error(
+          "sharded GraSU update engine registered more than once");
+    }
+    registered_ = true;
+    launch_next_shard();
+  }
+
+  void unregister_components() {
+    if (!registered_ || !done()) {
+      throw std::logic_error(
+          "sharded GraSU update engine can only unregister after completion");
+    }
+    registered_ = false;
+  }
+
+  bool advance_if_complete() {
+    if (!registered_ || current_ == nullptr || current_->failed() ||
+        !current_->done() || backend_.outstanding() != 0) {
+      return false;
+    }
+    merge_counters(current_->counters());
+    const GraSuPartitionedPmaLayout materialized =
+        current_->materialized_partitioned_layout();
+    layout_.partitions.at(current_shard_) = materialized.partitions.front();
+    current_->unregister_components();
+    current_.reset();
+    ++current_shard_;
+    launch_next_shard();
+    return true;
+  }
+
+  [[nodiscard]] bool done() const noexcept {
+    return registered_ && current_ == nullptr &&
+           current_shard_ >= updates_by_shard_.size();
+  }
+
+  [[nodiscard]] bool failed() const noexcept {
+    return current_ != nullptr && current_->failed();
+  }
+
+  [[nodiscard]] const std::string &failure() const noexcept {
+    if (current_ != nullptr) {
+      return current_->failure();
+    }
+    static const std::string empty;
+    return empty;
+  }
+
+  [[nodiscard]] GraSuUpdateCounters counters() const {
+    GraSuUpdateCounters result = completed_counters_;
+    if (current_ != nullptr) {
+      merge_counters_into(result, current_->counters());
+    }
+    result.start_cycle = start_cycle_;
+    result.end_cycle =
+        done() ? end_cycle_ : scheduler_.clock(clock_id_).completed_cycles;
+    return result;
+  }
+
+  [[nodiscard]] std::vector<GraSuEdge> live_edges() const {
+    return layout_.live_edges();
+  }
+
+  [[nodiscard]] GraSuPartitionedPmaLayout
+  materialized_partitioned_layout() const {
+    return layout_;
+  }
+
+  [[nodiscard]] const GraSuReGraphRuntimePlan &runtime_plan() const noexcept {
+    return runtime_plan_;
+  }
+
+private:
+  void initialize_degree_payload() {
+    std::vector<std::uint32_t> degrees(layout_.vertices);
+    for (const GraSuEdge &edge : layout_.live_edges()) {
+      ++degrees.at(edge.source);
+    }
+    std::vector<std::uint8_t> bytes;
+    bytes.reserve(degrees.size() * sizeof(std::uint32_t));
+    for (const std::uint32_t degree : degrees) {
+      for (std::size_t byte = 0; byte < sizeof(degree); ++byte) {
+        bytes.push_back(static_cast<std::uint8_t>(degree >> (byte * 8)));
+      }
+    }
+    backend_.initialize_payload(config_.degree_channel, config_.degree_base,
+                                bytes);
+  }
+
+  void launch_next_shard() {
+    while (current_shard_ < updates_by_shard_.size() &&
+           updates_by_shard_[current_shard_].empty()) {
+      ++current_shard_;
+    }
+    if (current_shard_ >= updates_by_shard_.size()) {
+      end_cycle_ = scheduler_.clock(clock_id_).completed_cycles;
+      return;
+    }
+
+    GraSuNativeConfig shard_config = config_;
+    shard_config.explicit_runtime_regions = true;
+    shard_config.packed_partition_addresses = false;
+    shard_config.initialize_degree_payload = false;
+    shard_config.initiator_base =
+        static_cast<std::uint32_t>(10'000 + current_shard_ * 32);
+    const std::string row_name = "row";
+    const std::string binary_name = "binary";
+    const GraSuReGraphBufferRegion &row = find_grasu_regraph_runtime_region(
+        runtime_plan_, current_shard_, row_name);
+    const GraSuReGraphBufferRegion &binary = find_grasu_regraph_runtime_region(
+        runtime_plan_, current_shard_, binary_name);
+    shard_config.row_offset_base = row.channel_offset_bytes;
+    shard_config.binary_base = binary.channel_offset_bytes;
+    shard_config.row_channels.fill(row.channel);
+    shard_config.binary_channels.fill(binary.channel);
+    for (std::size_t lane = 0; lane < 4; ++lane) {
+      const std::string update_name = "update" + std::to_string(lane);
+      const std::string pma_name = "pma" + std::to_string(lane);
+      const GraSuReGraphBufferRegion &update =
+          find_grasu_regraph_runtime_region(runtime_plan_, current_shard_,
+                                            update_name);
+      const GraSuReGraphBufferRegion &pma = find_grasu_regraph_runtime_region(
+          runtime_plan_, current_shard_, pma_name);
+      shard_config.update_channels[lane] = update.channel;
+      shard_config.update_bases[lane] = update.channel_offset_bytes;
+      shard_config.pma_channels[lane] = pma.channel;
+      shard_config.pma_bases[lane] = pma.channel_offset_bytes;
+    }
+    shard_config.pma_base = shard_config.pma_bases[0];
+    current_ = std::make_unique<GraSuPmaUpdateSystem>(
+        scheduler_, clock_id_, backend_, layout_.partitions[current_shard_],
+        updates_by_shard_[current_shard_], shard_config);
+    current_->register_components();
+  }
+
+  static void merge_counters_into(GraSuUpdateCounters &target,
+                                  const GraSuUpdateCounters &source) {
+#define SUM_COUNTER(field) target.field += source.field
+    SUM_COUNTER(updates);
+    target.update_record_bytes =
+        std::max(target.update_record_bytes, source.update_record_bytes);
+    SUM_COUNTER(destination_partitions_touched);
+    SUM_COUNTER(partition_routes);
+    SUM_COUNTER(inserts);
+    SUM_COUNTER(deletes);
+    SUM_COUNTER(weight_decreases);
+    SUM_COUNTER(weight_increases);
+    SUM_COUNTER(row_reads);
+    SUM_COUNTER(binary_probes);
+    SUM_COUNTER(cache_updates);
+    SUM_COUNTER(ddr_updates);
+    SUM_COUNTER(pma_reads);
+    SUM_COUNTER(pma_writes);
+    SUM_COUNTER(degree_reads);
+    SUM_COUNTER(degree_writes);
+    SUM_COUNTER(update_read_bytes);
+    SUM_COUNTER(row_read_bytes);
+    SUM_COUNTER(binary_read_bytes);
+    SUM_COUNTER(pma_read_bytes);
+    SUM_COUNTER(pma_write_bytes);
+    SUM_COUNTER(degree_read_bytes);
+    SUM_COUNTER(degree_write_bytes);
+    SUM_COUNTER(degree_fifo_stalls);
+    target.degree_fifo_max_occupancy = std::max(
+        target.degree_fifo_max_occupancy, source.degree_fifo_max_occupancy);
+    target.degree_reorder_max_occupancy =
+        std::max(target.degree_reorder_max_occupancy,
+                 source.degree_reorder_max_occupancy);
+    SUM_COUNTER(axi_request_fifo_stalls);
+    SUM_COUNTER(axi_backend_submit_stalls);
+    SUM_COUNTER(axis_push_stalls);
+    SUM_COUNTER(lane_queue_stalls);
+#undef SUM_COUNTER
+  }
+
+  void merge_counters(const GraSuUpdateCounters &source) {
+    merge_counters_into(completed_counters_, source);
+  }
+
+  Scheduler &scheduler_;
+  ClockId clock_id_{};
+  MemoryBackend &backend_;
+  GraSuPartitionedPmaLayout layout_;
+  GraSuNativeConfig config_;
+  std::vector<std::vector<GraSuEdge>> updates_by_shard_;
+  GraSuReGraphRuntimePlan runtime_plan_;
+  std::unique_ptr<GraSuPmaUpdateSystem> current_;
+  std::size_t current_shard_{};
+  GraSuUpdateCounters completed_counters_;
+  std::uint64_t start_cycle_{};
+  std::uint64_t end_cycle_{};
+  bool registered_{};
+};
+
+GraSuShardedPmaUpdateSystem::GraSuShardedPmaUpdateSystem(
+    Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
+    GraSuPartitionedPmaLayout layout, std::vector<GraSuEdge> updates,
+    GraSuNativeConfig config, std::size_t runtime_channel_capacity_bytes)
+    : impl_(std::make_unique<Impl>(scheduler, clock_id, backend,
+                                   std::move(layout), std::move(updates),
+                                   config, runtime_channel_capacity_bytes)) {}
+
+GraSuShardedPmaUpdateSystem::~GraSuShardedPmaUpdateSystem() = default;
+
+void GraSuShardedPmaUpdateSystem::register_components() {
+  impl_->register_components();
+}
+
+void GraSuShardedPmaUpdateSystem::unregister_components() {
+  impl_->unregister_components();
+}
+
+bool GraSuShardedPmaUpdateSystem::advance_if_complete() {
+  return impl_->advance_if_complete();
+}
+
+bool GraSuShardedPmaUpdateSystem::done() const noexcept {
+  return impl_->done();
+}
+
+bool GraSuShardedPmaUpdateSystem::failed() const noexcept {
+  return impl_->failed();
+}
+
+const std::string &GraSuShardedPmaUpdateSystem::failure() const noexcept {
+  return impl_->failure();
+}
+
+GraSuUpdateCounters GraSuShardedPmaUpdateSystem::counters() const {
+  return impl_->counters();
+}
+
+std::vector<GraSuEdge> GraSuShardedPmaUpdateSystem::live_edges() const {
+  return impl_->live_edges();
+}
+
+GraSuPartitionedPmaLayout
+GraSuShardedPmaUpdateSystem::materialized_partitioned_layout() const {
+  return impl_->materialized_partitioned_layout();
+}
+
+const GraSuReGraphRuntimePlan &
+GraSuShardedPmaUpdateSystem::runtime_plan() const noexcept {
+  return impl_->runtime_plan();
+}
 
 namespace {
 
@@ -77,9 +507,11 @@ std::uint32_t decode_policy_value(const GraphAlgorithmPolicy &policy,
   if (policy.config().kind == GraphAlgorithmKind::kWeightedSssp) {
     return policy_distance(encoded);
   }
-  return policy.config().kind == GraphAlgorithmKind::kFullPageRank
-             ? encoded & kReGraphValueMask
-             : encoded;
+  if (policy.config().kind == GraphAlgorithmKind::kFullPageRank ||
+      policy.config().kind == GraphAlgorithmKind::kConnectedComponents) {
+    return encoded & kReGraphValueMask;
+  }
+  return encoded;
 }
 
 std::uint32_t encode_policy_value(const GraphAlgorithmPolicy &policy,
@@ -87,14 +519,14 @@ std::uint32_t encode_policy_value(const GraphAlgorithmPolicy &policy,
   if (policy.config().kind == GraphAlgorithmKind::kWeightedSssp) {
     return encode_distance(value, active);
   }
+  if (policy.config().kind == GraphAlgorithmKind::kConnectedComponents) {
+    return (value & kReGraphValueMask) | (active ? kReGraphActive : 0U);
+  }
   if (policy.config().kind == GraphAlgorithmKind::kResidualPageRank) {
     return value;
   }
-  if ((value & kReGraphActive) != 0) {
-    throw std::runtime_error(
-        "ReGraph active-bit state encoding cannot represent signed values");
-  }
-  return value | (active ? kReGraphActive : 0U);
+  (void)active;
+  return value;
 }
 
 bool uses_auxiliary_state(const GraphAlgorithmPolicy &policy) {
@@ -163,12 +595,90 @@ struct PmaEdgeBatch {
   std::array<bool, 8> valid{};
 };
 
+class ReGraphDoneSignal {
+public:
+  using Notifier = void (*)(void *) noexcept;
+
+  void bind(void *owner, Notifier notifier) {
+    if (notifier == nullptr) {
+      throw std::invalid_argument("ReGraph done notifier is null");
+    }
+    if (notifier_ != nullptr && (owner_ != owner || notifier_ != notifier)) {
+      throw std::logic_error("ReGraph done notifier is already bound");
+    }
+    owner_ = owner;
+    notifier_ = notifier;
+  }
+
+  void unbind(void *owner) noexcept {
+    if (owner_ == owner) {
+      owner_ = nullptr;
+      notifier_ = nullptr;
+    }
+  }
+
+  void notify() const noexcept {
+    if (notifier_ != nullptr) {
+      notifier_(owner_);
+    }
+  }
+
+private:
+  void *owner_{};
+  Notifier notifier_{};
+};
+
 class ReGraphReaderContext {
 public:
+  using DoneNotifier = void (*)(void *) noexcept;
+
   virtual ~ReGraphReaderContext() = default;
   [[nodiscard]] virtual bool done() const noexcept = 0;
   [[nodiscard]] virtual AlgorithmIterationContext
   iteration_context() const noexcept = 0;
+
+  void bind_done_notifier(void *owner, DoneNotifier notifier) {
+    if (notifier == nullptr) {
+      throw std::invalid_argument("ReGraph reader done notifier is null");
+    }
+    const auto duplicate =
+        std::find_if(done_notifiers_.begin(), done_notifiers_.end(),
+                     [owner](const DoneNotifierBinding &binding) {
+                       return binding.owner == owner;
+                     });
+    if (duplicate != done_notifiers_.end()) {
+      if (duplicate->notifier != notifier) {
+        throw std::logic_error(
+            "ReGraph reader done notifier owner is already bound");
+      }
+      return;
+    }
+    done_notifiers_.push_back({.owner = owner, .notifier = notifier});
+    if (done()) {
+      notifier(owner);
+    }
+  }
+
+  void unbind_done_notifier(void *owner) noexcept {
+    std::erase_if(done_notifiers_, [owner](const DoneNotifierBinding &binding) {
+      return binding.owner == owner;
+    });
+  }
+
+protected:
+  void notify_done() noexcept {
+    for (const DoneNotifierBinding &binding : done_notifiers_) {
+      binding.notifier(binding.owner);
+    }
+  }
+
+private:
+  struct DoneNotifierBinding {
+    void *owner{};
+    DoneNotifier notifier{};
+  };
+
+  std::vector<DoneNotifierBinding> done_notifiers_;
 };
 
 struct ReGraphSourceCacheRequest {
@@ -198,17 +708,383 @@ struct ReGraphMergedBurst {
 struct ReGraphAppliedBurst {
   std::size_t offset{};
   std::vector<std::uint8_t> data;
+  std::vector<std::uint8_t> source_data;
 };
 
 struct ReGraphPartitionPlan {
   std::size_t destination_base{};
   std::size_t destination_vertices{};
   std::uint64_t row_base{};
-  std::uint64_t pma_base{};
+  std::size_t row_channel{};
+  std::array<std::uint64_t, 4> pma_base{};
+  std::array<std::size_t, 4> pma_channel{};
+};
+
+class ReGraphIterationContext final : public ReGraphReaderContext {
+public:
+  explicit ReGraphIterationContext(GraphAlgorithmPolicy policy)
+      : policy_(std::move(policy)) {}
+
+  [[nodiscard]] bool done() const noexcept override { return true; }
+  [[nodiscard]] AlgorithmIterationContext
+  iteration_context() const noexcept override {
+    return context_;
+  }
+
+  void set_dangling(float dangling) noexcept {
+    context_.base = policy_.config().kind == GraphAlgorithmKind::kFullPageRank
+                        ? policy_.initial_base_word()
+                        : GraphAlgorithmPolicy::float_to_word(0.0F);
+    context_.dangling_share = GraphAlgorithmPolicy::float_to_word(
+        policy_.config().damping * dangling /
+        static_cast<float>(policy_.config().vertices));
+  }
+
+private:
+  GraphAlgorithmPolicy policy_;
+  AlgorithmIterationContext context_{};
+};
+
+class ReGraphPageRankSourcePrepare final : public Component {
+public:
+  ReGraphPageRankSourcePrepare(
+      std::string name, ClockId clock_id, std::size_t vertices,
+      GraphAlgorithmPolicy policy, const GraSuReGraphConfig &config,
+      FixedAxiPort &state_read, FixedAxiPort &degree_read,
+      FixedAxiPort &primary_write, FixedAxiPort &mirror_write,
+      ReGraphIterationContext &iteration_context)
+      : Component(std::move(name), clock_id), vertices_(vertices),
+        policy_(std::move(policy)), config_(config), state_read_(state_read),
+        degree_read_(degree_read), writes_{&primary_write, &mirror_write},
+        iteration_context_(iteration_context) {}
+
+  void start() {
+    if (running_ || done_) {
+      throw std::logic_error("PageRank source prepare started twice");
+    }
+    running_ = true;
+    set_latched_evaluate_ready(true);
+  }
+
+  [[nodiscard]] bool done() const noexcept { return done_; }
+  [[nodiscard]] std::uint64_t cycles() const noexcept { return cycles_; }
+  [[nodiscard]] std::uint64_t state_reads() const noexcept {
+    return state_reads_;
+  }
+  [[nodiscard]] std::uint64_t degree_reads() const noexcept {
+    return degree_reads_;
+  }
+  void bind_done_notifier(void *owner, ReGraphDoneSignal::Notifier notifier) {
+    done_signal_.bind(owner, notifier);
+  }
+  void unbind_done_notifier(void *owner) noexcept {
+    done_signal_.unbind(owner);
+  }
+  [[nodiscard]] std::uint64_t writes() const noexcept { return writes_issued_; }
+
+  [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_latched_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_latched_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool evaluate_ready() const noexcept override {
+    return running_;
+  }
+  [[nodiscard]] bool commit_ready() const noexcept override { return running_; }
+
+  void evaluate(const CycleContext &context) override {
+    staged_read_issue_.reset();
+    staged_write_issue_.reset();
+    staged_state_response_.reset();
+    staged_degree_response_.reset();
+    for (auto &response : staged_write_responses_) {
+      response.reset();
+    }
+    if (!running_) {
+      set_latched_commit_ready(false);
+      return;
+    }
+    if (state_read_.responses().front() != nullptr) {
+      AxiResponse response;
+      if (state_read_.responses().try_pop(response)) {
+        staged_state_response_ = std::move(response);
+      }
+    }
+    if (degree_read_.responses().front() != nullptr) {
+      AxiResponse response;
+      if (degree_read_.responses().try_pop(response)) {
+        staged_degree_response_ = std::move(response);
+      }
+    }
+    for (std::size_t port = 0; port < writes_.size(); ++port) {
+      if (writes_[port]->responses().front() != nullptr) {
+        AxiResponse response;
+        if (writes_[port]->responses().try_pop(response)) {
+          staged_write_responses_[port] = std::move(response);
+        }
+      }
+    }
+    const auto ready =
+        std::find_if(ready_writes_.begin(), ready_writes_.end(),
+                     [&](const ReadyWrite &write) {
+                       return write.due_cycle <= context.domain_cycle;
+                     });
+    if (ready != ready_writes_.end() && write_window_available() &&
+        write_fifos_available()) {
+      const std::size_t index =
+          static_cast<std::size_t>(ready - ready_writes_.begin());
+      const ReadyWrite &write = ready_writes_[index];
+      for (FixedAxiPort *port : writes_) {
+        if (!port->requests().try_push(AxiRequest{
+                .transaction_id = transaction_id(write.burst),
+                .operation = MemoryOperation::kWrite,
+                .address = config_.source_state_base + write.burst * 64,
+                .bytes = 64,
+                .stream_read_beats = false,
+                .write_data = write.data,
+            })) {
+          throw std::logic_error(
+              "PageRank source prepare write pair was not atomic");
+        }
+      }
+      staged_write_issue_ = index;
+    }
+    if (next_read_burst_ < total_bursts() &&
+        reads_inflight_.size() < config_.apply_request_window &&
+        !state_read_.requests().full() && !degree_read_.requests().full()) {
+      const std::size_t burst = next_read_burst_;
+      const std::size_t state_bytes =
+          kStateWordsPerBurst * (config_.split_pagerank_state
+                                     ? sizeof(std::uint32_t)
+                                     : state_bytes_per_vertex(policy_));
+      if (!state_read_.requests().try_push(AxiRequest{
+              .transaction_id = transaction_id(burst),
+              .operation = MemoryOperation::kRead,
+              .address = config_.vertex_state_base + burst * state_bytes,
+              .bytes = static_cast<std::uint32_t>(state_bytes),
+              .stream_read_beats = false,
+              .write_data = {},
+          }) ||
+          !degree_read_.requests().try_push(AxiRequest{
+              .transaction_id = transaction_id(burst),
+              .operation = MemoryOperation::kRead,
+              .address = config_.degree_base + burst * 64,
+              .bytes = 64,
+              .stream_read_beats = false,
+              .write_data = {},
+          })) {
+        throw std::logic_error(
+            "PageRank source prepare read pair was not atomic");
+      }
+      staged_read_issue_ = burst;
+    }
+    set_latched_commit_ready(commit_ready());
+  }
+
+  void commit(const CycleContext &context) override {
+    if (!running_) {
+      return;
+    }
+    ++cycles_;
+    if (staged_state_response_.has_value()) {
+      consume_read_response(*staged_state_response_, false,
+                            context.domain_cycle);
+    }
+    if (staged_degree_response_.has_value()) {
+      consume_read_response(*staged_degree_response_, true,
+                            context.domain_cycle);
+    }
+    for (std::size_t port = 0; port < staged_write_responses_.size(); ++port) {
+      if (staged_write_responses_[port].has_value()) {
+        consume_write_response(*staged_write_responses_[port], port);
+      }
+    }
+    if (staged_read_issue_.has_value()) {
+      const std::size_t burst = *staged_read_issue_;
+      if (!reads_inflight_
+               .emplace(transaction_id(burst),
+                        PendingRead{.burst = burst,
+                                    .state_data = std::nullopt,
+                                    .degree_data = std::nullopt})
+               .second) {
+        throw std::logic_error("duplicate PageRank source prepare read");
+      }
+      ++next_read_burst_;
+      ++state_reads_;
+      ++degree_reads_;
+    }
+    if (staged_write_issue_.has_value()) {
+      ReadyWrite write = std::move(ready_writes_[*staged_write_issue_]);
+      ready_writes_.erase(ready_writes_.begin() + *staged_write_issue_);
+      const std::uint64_t id = transaction_id(write.burst);
+      for (auto &inflight : writes_inflight_) {
+        if (!inflight.emplace(id, write.burst).second) {
+          throw std::logic_error("duplicate PageRank source prepare write");
+        }
+      }
+      writes_issued_ += 2;
+    }
+    if (completed_writes_ == total_bursts() * 2 &&
+        reduction_cycles_remaining_ == 0) {
+      reduction_cycles_remaining_ = kStateWordsPerBurst * 8;
+    } else if (reduction_cycles_remaining_ != 0) {
+      --reduction_cycles_remaining_;
+      if (reduction_cycles_remaining_ == 0) {
+        iteration_context_.set_dangling(dangling_);
+        running_ = false;
+        done_ = true;
+        done_signal_.notify();
+      }
+    }
+    set_latched_commit_ready(false);
+    set_latched_evaluate_ready(running_);
+  }
+
+private:
+  struct PendingRead {
+    std::size_t burst{};
+    std::optional<std::vector<std::uint8_t>> state_data;
+    std::optional<std::vector<std::uint8_t>> degree_data;
+  };
+  struct ReadyWrite {
+    std::size_t burst{};
+    std::uint64_t due_cycle{};
+    std::vector<std::uint8_t> data;
+  };
+
+  [[nodiscard]] std::size_t total_bursts() const noexcept {
+    return (vertices_ + kStateWordsPerBurst - 1) / kStateWordsPerBurst;
+  }
+  [[nodiscard]] std::uint64_t transaction_id(std::size_t burst) const {
+    return 0x7400'0000'0000'0000ULL | burst;
+  }
+  [[nodiscard]] bool write_window_available() const noexcept {
+    return std::all_of(writes_inflight_.begin(), writes_inflight_.end(),
+                       [&](const auto &inflight) {
+                         return inflight.size() < config_.apply_request_window;
+                       });
+  }
+  [[nodiscard]] bool write_fifos_available() const noexcept {
+    return std::all_of(writes_.begin(), writes_.end(), [](const auto *port) {
+      return !port->requests().full();
+    });
+  }
+
+  void consume_read_response(const AxiResponse &response, bool degree,
+                             std::uint64_t cycle) {
+    const auto found = reads_inflight_.find(response.transaction_id);
+    const std::size_t expected =
+        degree ? 64
+               : kStateWordsPerBurst * (config_.split_pagerank_state
+                                            ? sizeof(std::uint32_t)
+                                            : state_bytes_per_vertex(policy_));
+    if (!response.success || found == reads_inflight_.end() ||
+        response.read_data.size() != expected) {
+      throw std::runtime_error("malformed PageRank source prepare response");
+    }
+    if (degree) {
+      found->second.degree_data = response.read_data;
+    } else {
+      found->second.state_data = response.read_data;
+    }
+    if (!found->second.state_data.has_value() ||
+        !found->second.degree_data.has_value()) {
+      return;
+    }
+    PendingRead pending = std::move(found->second);
+    reads_inflight_.erase(found);
+    std::array<std::uint32_t, kStateWordsPerBurst> payload{};
+    for (std::size_t lane = 0; lane < payload.size(); ++lane) {
+      const std::size_t vertex = pending.burst * kStateWordsPerBurst + lane;
+      if (vertex >= vertices_) {
+        continue;
+      }
+      const std::size_t state_offset =
+          lane * (config_.split_pagerank_state
+                      ? sizeof(std::uint32_t)
+                      : state_bytes_per_vertex(policy_));
+      const std::uint32_t value_word =
+          policy_.config().kind == GraphAlgorithmKind::kFullPageRank ||
+                  config_.split_pagerank_state
+              ? decode_u32(*pending.state_data, state_offset)
+              : decode_u32(*pending.state_data, state_offset + 4);
+      const float value = GraphAlgorithmPolicy::word_to_float(value_word);
+      const std::uint32_t out_degree =
+          decode_u32(*pending.degree_data, lane * 4);
+      const bool active =
+          policy_.config().kind == GraphAlgorithmKind::kFullPageRank ||
+          config_.split_pagerank_state ||
+          std::fabs(value) > GraphAlgorithmPolicy::word_to_float(
+                                 policy_.activation_threshold_word());
+      payload[lane] = GraphAlgorithmPolicy::float_to_word(
+          active && out_degree != 0 ? policy_.config().damping * value /
+                                          static_cast<float>(out_degree)
+                                    : 0.0F);
+      if (active) {
+        ++active_vertices_;
+        if (out_degree == 0) {
+          dangling_ += value;
+        }
+      }
+    }
+    ready_writes_.push_back(ReadyWrite{
+        .burst = pending.burst,
+        .due_cycle = cycle + config_.pagerank_source_map_latency,
+        .data = encode_words(payload),
+    });
+  }
+
+  void consume_write_response(const AxiResponse &response, std::size_t port) {
+    auto &inflight = writes_inflight_.at(port);
+    const auto found = inflight.find(response.transaction_id);
+    if (!response.success || found == inflight.end() ||
+        !response.read_data.empty()) {
+      throw std::runtime_error(
+          "malformed PageRank source prepare write response");
+    }
+    inflight.erase(found);
+    ++completed_writes_;
+  }
+
+  std::size_t vertices_{};
+  GraphAlgorithmPolicy policy_;
+  GraSuReGraphConfig config_;
+  FixedAxiPort &state_read_;
+  FixedAxiPort &degree_read_;
+  std::array<FixedAxiPort *, 2> writes_;
+  ReGraphIterationContext &iteration_context_;
+  std::unordered_map<std::uint64_t, PendingRead> reads_inflight_;
+  std::array<std::unordered_map<std::uint64_t, std::size_t>, 2>
+      writes_inflight_;
+  std::deque<ReadyWrite> ready_writes_;
+  std::optional<std::size_t> staged_read_issue_;
+  std::optional<std::size_t> staged_write_issue_;
+  std::optional<AxiResponse> staged_state_response_;
+  std::optional<AxiResponse> staged_degree_response_;
+  std::array<std::optional<AxiResponse>, 2> staged_write_responses_;
+  std::size_t next_read_burst_{};
+  std::size_t completed_writes_{};
+  std::size_t reduction_cycles_remaining_{};
+  float dangling_{};
+  std::size_t active_vertices_{};
+  bool running_{};
+  bool done_{};
+  std::uint64_t cycles_{};
+  std::uint64_t state_reads_{};
+  std::uint64_t degree_reads_{};
+  std::uint64_t writes_issued_{};
+  ReGraphDoneSignal done_signal_;
 };
 
 GraSuPartitionedPmaLayout one_partition_layout(GraSuPmaLayout layout,
-                                                std::size_t partition_vertices) {
+                                               std::size_t partition_vertices) {
   GraSuPartitionedPmaLayout result;
   result.vertices = layout.vertices;
   result.partition_vertices = partition_vertices;
@@ -239,6 +1115,7 @@ public:
     active_source_round_ = 0;
     lines_emitted_this_request_ = 0;
     phase_ = Phase::kIdle;
+    set_latched_evaluate_ready(true);
   }
 
   [[nodiscard]] bool done() const noexcept { return phase_ == Phase::kDone; }
@@ -255,6 +1132,28 @@ public:
   }
   [[nodiscard]] std::uint64_t read_bytes() const noexcept {
     return requests_ * source_round_bytes();
+  }
+
+  [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_latched_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_latched_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool evaluate_ready() const noexcept override {
+    return phase_ != Phase::kDone;
+  }
+  [[nodiscard]] bool commit_ready() const noexcept override {
+    return phase_ != Phase::kDone &&
+           (staged_input_.has_value() || staged_axi_issue_ ||
+            staged_line_.has_value() || staged_parent_.has_value() ||
+            staged_end_response_);
   }
 
   void evaluate(const CycleContext &) override {
@@ -295,13 +1194,13 @@ public:
       ReGraphSourceCacheResponse response{
           .source_round = active_source_round_,
           .line = static_cast<std::size_t>(beat->parent_offset / 64),
-          .vertices = state_vertices_per_beat(policy_),
+          .vertices = source_vertices_per_beat(),
       };
       for (std::size_t word = 0; word < response.vertices; ++word) {
-        const std::size_t offset =
-            word * state_bytes_per_vertex(policy_);
+        const std::size_t offset = word * source_bytes_per_vertex();
         response.words[word] = decode_u32(beat->read_data, offset);
-        if (uses_auxiliary_state(policy_)) {
+        if (uses_auxiliary_state(policy_) &&
+            !config_.pagerank_prepared_source) {
           response.auxiliary_words[word] =
               decode_u32(beat->read_data, offset + 4);
         }
@@ -333,6 +1232,7 @@ public:
     case Phase::kDone:
       break;
     }
+    set_latched_commit_ready(commit_ready());
   }
 
   void commit(const CycleContext &) override {
@@ -375,17 +1275,25 @@ public:
       ++response_markers_;
       phase_ = Phase::kDone;
     }
+    set_latched_commit_ready(false);
+    set_latched_evaluate_ready(evaluate_ready());
   }
 
 private:
   enum class Phase { kIdle, kNeedIssue, kStream, kWaitParent, kEmitEnd, kDone };
 
   [[nodiscard]] std::size_t lines_per_round() const noexcept {
-    return config_.source_buffer_vertices /
-           state_vertices_per_beat(policy_);
+    return config_.source_buffer_vertices / source_vertices_per_beat();
   }
   [[nodiscard]] std::uint64_t source_round_bytes() const noexcept {
-    return config_.source_buffer_vertices * state_bytes_per_vertex(policy_);
+    return config_.source_buffer_vertices * source_bytes_per_vertex();
+  }
+  [[nodiscard]] std::size_t source_bytes_per_vertex() const noexcept {
+    return config_.pagerank_prepared_source ? 4
+                                            : state_bytes_per_vertex(policy_);
+  }
+  [[nodiscard]] std::size_t source_vertices_per_beat() const noexcept {
+    return 64 / source_bytes_per_vertex();
   }
   [[nodiscard]] std::uint64_t transaction_id(std::size_t source_round) const {
     return (algorithm_round_ << 52) |
@@ -465,7 +1373,9 @@ public:
     }
     round_ = round;
     row_base_ = plan.row_base;
+    row_channel_ = plan.row_channel;
     pma_base_ = plan.pma_base;
+    pma_channel_ = plan.pma_channel;
     accumulate_dangling_ = accumulate_dangling;
     source_ = 0;
     begin_segment_ = 0;
@@ -479,7 +1389,9 @@ public:
     source_end_sent_ = false;
     source_degree_ = 0;
     source_map_cycles_remaining_ = 0;
-    if (accumulate_dangling_) {
+    if (config_.pagerank_prepared_source && uses_page_rank()) {
+      dangling_mass_.reset();
+    } else if (accumulate_dangling_) {
       dangling_mass_.reset();
     } else if (uses_degree() && !dangling_mass_.has_value()) {
       throw std::logic_error(
@@ -492,6 +1404,7 @@ public:
       slot.auxiliary_words.assign(config_.source_buffer_vertices, 0);
     }
     phase_ = Phase::kNeedRow;
+    set_latched_evaluate_ready(true);
   }
 
   [[nodiscard]] bool done() const noexcept override {
@@ -542,6 +1455,35 @@ public:
     };
   }
 
+  [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_latched_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_latched_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool evaluate_ready() const noexcept override {
+    return phase_ != Phase::kIdle && phase_ != Phase::kDone;
+  }
+  [[nodiscard]] bool commit_ready() const noexcept override {
+    if (phase_ == Phase::kIdle || phase_ == Phase::kDone) {
+      return false;
+    }
+    return staged_tick_ || staged_request_ != RequestKind::kNone ||
+           staged_response_.has_value() ||
+           staged_degree_response_.has_value() ||
+           !staged_pma_responses_.empty() ||
+           staged_source_response_.has_value() ||
+           staged_source_request_.has_value() || staged_output_ ||
+           staged_advance_ || staged_cache_ready_ || staged_source_end_ ||
+           phase_ == Phase::kNeedSourceCache;
+  }
+
   void evaluate(const CycleContext &) override {
     staged_tick_ = false;
     staged_request_ = RequestKind::kNone;
@@ -555,6 +1497,7 @@ public:
     staged_cache_ready_ = false;
     staged_source_end_ = false;
     if (phase_ == Phase::kIdle || phase_ == Phase::kDone) {
+      set_latched_commit_ready(false);
       return;
     }
     stage_source_response();
@@ -598,6 +1541,7 @@ public:
               .address = row_base_ + source_ * 8,
               .bytes = 8,
               .stream_read_beats = false,
+              .target_channel = row_channel_,
               .write_data = {},
           })) {
         staged_request_ = RequestKind::kRow;
@@ -624,6 +1568,7 @@ public:
     case Phase::kDone:
       break;
     }
+    set_latched_commit_ready(commit_ready());
   }
 
   void commit(const CycleContext &) override {
@@ -685,6 +1630,8 @@ public:
         phase_ = Phase::kScan;
       }
     }
+    set_latched_commit_ready(false);
+    set_latched_evaluate_ready(evaluate_ready());
   }
 
 private:
@@ -710,7 +1657,7 @@ private:
     std::vector<std::uint32_t> auxiliary_words;
   };
 
-  [[nodiscard]] std::size_t pma_channel(std::size_t segment) const {
+  [[nodiscard]] std::size_t pma_port(std::size_t segment) const {
     const std::size_t local = segment >> 1;
     const std::size_t parity = segment & 1U;
     return local < config_.cache_segments_per_half ? parity * 2
@@ -718,7 +1665,8 @@ private:
   }
 
   [[nodiscard]] std::uint64_t pma_address(std::size_t segment) const {
-    return pma_base_ + (segment >> 1) * kGraSuSegmentBytes;
+    const std::size_t port = pma_port(segment);
+    return pma_base_[port] + (segment >> 1) * kGraSuSegmentBytes;
   }
 
   void stage_scalar_response(FixedAxiPort &port) {
@@ -758,8 +1706,11 @@ private:
   }
 
   [[nodiscard]] std::size_t source_lines_per_round() const noexcept {
-    return config_.source_buffer_vertices /
-           state_vertices_per_beat(policy_);
+    const std::size_t vertices_per_beat =
+        config_.pagerank_prepared_source && uses_page_rank()
+            ? kStateWordsPerBurst
+            : state_vertices_per_beat(policy_);
+    return config_.source_buffer_vertices / vertices_per_beat;
   }
 
   [[nodiscard]] bool source_cache_ready(std::size_t source_round) const {
@@ -776,6 +1727,7 @@ private:
       }
       ++source_response_markers_;
       phase_ = Phase::kDone;
+      notify_done();
       return;
     }
     if (response.line >= source_lines_per_round()) {
@@ -791,17 +1743,21 @@ private:
       throw std::runtime_error(
           "ReGraph source-cache response order does not match HLS stream");
     }
-    if (response.vertices != state_vertices_per_beat(policy_)) {
+    const std::size_t expected_vertices =
+        config_.pagerank_prepared_source && uses_page_rank()
+            ? kStateWordsPerBurst
+            : state_vertices_per_beat(policy_);
+    if (response.vertices != expected_vertices) {
       throw std::runtime_error(
           "ReGraph source-cache response has the wrong vertex count");
     }
     const std::size_t offset = response.line * response.vertices;
     std::copy_n(response.words.begin(), response.vertices,
                 slot.words.begin() + static_cast<std::ptrdiff_t>(offset));
-    if (uses_auxiliary_state(policy_)) {
-      std::copy_n(
-          response.auxiliary_words.begin(), response.vertices,
-          slot.auxiliary_words.begin() + static_cast<std::ptrdiff_t>(offset));
+    if (uses_auxiliary_state(policy_) && !config_.pagerank_prepared_source) {
+      std::copy_n(response.auxiliary_words.begin(), response.vertices,
+                  slot.auxiliary_words.begin() +
+                      static_cast<std::ptrdiff_t>(offset));
     }
     ++slot.lines_received;
     pp_write_round_ = response.source_round;
@@ -810,6 +1766,10 @@ private:
   }
 
   [[nodiscard]] bool uses_degree() const noexcept {
+    return uses_page_rank() && !config_.pagerank_prepared_source;
+  }
+
+  [[nodiscard]] bool uses_page_rank() const noexcept {
     return policy_.config().kind == GraphAlgorithmKind::kFullPageRank ||
            policy_.config().kind == GraphAlgorithmKind::kResidualPageRank;
   }
@@ -818,14 +1778,21 @@ private:
     const SourceCacheSlot &slot = source_cache_[pp_read_round_ & 1U];
     const std::size_t offset = source_ % config_.source_buffer_vertices;
     const std::uint32_t encoded = slot.words.at(offset);
+    if (config_.pagerank_prepared_source && uses_page_rank()) {
+      source_state_ = encoded;
+      source_auxiliary_ = 0;
+      source_payload_ = encoded;
+      source_active_ = encoded != GraphAlgorithmPolicy::float_to_word(0.0F);
+      phase_ = Phase::kScan;
+      return;
+    }
     source_state_ = decode_policy_value(policy_, encoded);
-    source_auxiliary_ = uses_auxiliary_state(policy_)
-                            ? slot.auxiliary_words.at(offset)
-                            : 0;
+    source_auxiliary_ =
+        uses_auxiliary_state(policy_) ? slot.auxiliary_words.at(offset) : 0;
     source_active_ =
         policy_.config().kind == GraphAlgorithmKind::kResidualPageRank
-            ? std::fabs(GraphAlgorithmPolicy::word_to_float(
-                  source_auxiliary_)) >
+            ? std::fabs(
+                  GraphAlgorithmPolicy::word_to_float(source_auxiliary_)) >
                   GraphAlgorithmPolicy::word_to_float(
                       policy_.activation_threshold_word())
             : (encoded & kReGraphActive) != 0;
@@ -845,9 +1812,9 @@ private:
     if (uses_degree()) {
       if (accumulate_dangling_) {
         dangling_mass_ = policy_.reduce(
-            dangling_mass_,
-            source_active_ ? prepared.dangling_payload
-                           : GraphAlgorithmPolicy::float_to_word(0.0F));
+            dangling_mass_, source_active_
+                                ? prepared.dangling_payload
+                                : GraphAlgorithmPolicy::float_to_word(0.0F));
       }
       source_map_cycles_remaining_ = config_.pagerank_source_map_latency;
       phase_ = source_map_cycles_remaining_ == 0 ? Phase::kScan
@@ -874,13 +1841,15 @@ private:
             config_.reader_buffer_batches) {
       return;
     }
-    FixedAxiPort &port = *ports_.pma[pma_channel(next_segment_)];
+    const std::size_t logical_port = pma_port(next_segment_);
+    FixedAxiPort &port = *ports_.pma[logical_port];
     if (port.requests().try_push(AxiRequest{
             .transaction_id = next_transaction_id_,
             .operation = MemoryOperation::kRead,
             .address = pma_address(next_segment_),
             .bytes = kGraSuSegmentBytes,
             .stream_read_beats = false,
+            .target_channel = pma_channel_[logical_port],
             .write_data = {},
         })) {
       staged_request_ = RequestKind::kPma;
@@ -976,7 +1945,9 @@ private:
   Phase phase_{Phase::kIdle};
   std::uint64_t round_{};
   std::uint64_t row_base_{};
-  std::uint64_t pma_base_{};
+  std::size_t row_channel_{};
+  std::array<std::uint64_t, 4> pma_base_{};
+  std::array<std::size_t, 4> pma_channel_{};
   bool accumulate_dangling_{};
   std::uint64_t next_transaction_id_{0x7100'0000'0000'0000ULL};
   std::size_t source_{};
@@ -1085,7 +2056,8 @@ public:
       AxiReadBeatResponse consumed;
       if (!port_.read_beats().try_pop(consumed) ||
           !output_.try_push(std::move(burst))) {
-        throw std::logic_error("native edge-array beat transfer was not atomic");
+        throw std::logic_error(
+            "native edge-array beat transfer was not atomic");
       }
       staged_beat_ = std::move(consumed);
     } else if (phase_ == Phase::kWaitParent &&
@@ -1157,8 +2129,7 @@ class NativeEdgeArrayScatter final : public Component,
                                      public ReGraphReaderContext {
 public:
   NativeEdgeArrayScatter(std::string name, ClockId clock_id,
-                         std::size_t vertices,
-                         const GraSuReGraphConfig &config,
+                         std::size_t vertices, const GraSuReGraphConfig &config,
                          Fifo<NativeEdgeArrayBurst> &input,
                          Fifo<PmaEdgeBatch> &output,
                          Fifo<ReGraphSourceCacheRequest> &source_requests,
@@ -1248,12 +2219,13 @@ public:
         ++source_wait_cycles_;
         return;
       }
-      staged_output_ = output_.try_push(build_batch(*pending_burst_, source_round));
+      staged_output_ =
+          output_.try_push(build_batch(*pending_burst_, source_round));
       return;
     }
     if (edge_reader_.done() && input_.empty() && !source_end_sent_) {
-      staged_end_ = source_requests_.try_push(
-          ReGraphSourceCacheRequest{.end = true});
+      staged_end_ =
+          source_requests_.try_push(ReGraphSourceCacheRequest{.end = true});
     }
   }
 
@@ -1271,7 +2243,8 @@ public:
     if (staged_output_) {
       const std::size_t first = first_source_round(*pending_burst_);
       bool crosses_source_round = false;
-      for (std::size_t lane = 0; lane < pending_burst_->sources.size(); ++lane) {
+      for (std::size_t lane = 0; lane < pending_burst_->sources.size();
+           ++lane) {
         const std::uint32_t source = pending_burst_->sources[lane];
         const std::uint32_t destination = pending_burst_->destinations[lane];
         if ((source & kReGraphActive) == 0 &&
@@ -1351,6 +2324,7 @@ private:
       }
       ++source_response_markers_;
       phase_ = Phase::kDone;
+      notify_done();
       return;
     }
     if (response.line >= source_lines_per_round() ||
@@ -1375,9 +2349,8 @@ private:
     source_lane_writes_ += 8;
   }
 
-  [[nodiscard]] PmaEdgeBatch
-  build_batch(const NativeEdgeArrayBurst &burst,
-              std::size_t source_round) const {
+  [[nodiscard]] PmaEdgeBatch build_batch(const NativeEdgeArrayBurst &burst,
+                                         std::size_t source_round) const {
     PmaEdgeBatch batch{.per_lane_source = true, .lanes = 8};
     const SourceCacheSlot &slot = source_cache_[source_round & 1U];
     for (std::size_t lane = 0; lane < 8; ++lane) {
@@ -1391,8 +2364,7 @@ private:
                           source < vertices_;
       batch.source_payloads[lane] = policy_distance(source_state);
       batch.source_actives[lane] = (source_state & kReGraphActive) != 0;
-      batch.destinations[lane] =
-          encoded_destination & kGraSuPmaDestinationMask;
+      batch.destinations[lane] = encoded_destination & kGraSuPmaDestinationMask;
       batch.weights[lane] = static_cast<std::uint16_t>(
           (encoded_destination >> kGraSuPmaWeightShift) & kGraSuPmaWeightMask);
     }
@@ -1433,15 +2405,25 @@ public:
   ReGraphGather(std::string name, ClockId clock_id, std::size_t vertices,
                 GraphAlgorithmPolicy policy, const GraSuReGraphConfig &config,
                 Fifo<PmaEdgeBatch> &input, Fifo<ReGraphGatherRow> &output,
-                const ReGraphReaderContext &reader)
+                ReGraphReaderContext &reader)
       : Component(std::move(name), clock_id), vertices_(vertices),
         policy_(std::move(policy)), config_(config), input_(input),
         output_(output), reader_(reader), bank_rows_(config.gather_banks),
         bypass_(config.gather_banks,
-                std::vector<BypassEntry>(config.gather_bypass_distance + 1)) {}
+                std::vector<BypassEntry>(config.gather_bypass_distance + 1)) {
+    input_.bind_nonempty_notifier(this, &ReGraphGather::notify_input_nonempty);
+    output_.bind_nonfull_notifier(this, &ReGraphGather::notify_output_nonfull);
+    reader_.bind_done_notifier(this, &ReGraphGather::notify_reader_done);
+    refresh_evaluate_ready();
+  }
 
-  void start_partition(std::size_t destination_vertices,
-                       bool reset_tmp_prop) {
+  ~ReGraphGather() override {
+    input_.unbind_nonempty_notifier(this);
+    output_.unbind_nonfull_notifier(this);
+    reader_.unbind_done_notifier(this);
+  }
+
+  void start_partition(std::size_t destination_vertices, bool reset_tmp_prop) {
     if (phase_ != Phase::kIdle && phase_ != Phase::kDone) {
       throw std::logic_error("ReGraph gather round started while busy");
     }
@@ -1463,6 +2445,7 @@ public:
     }
     drain_cycles_remaining_ = 0;
     next_output_row_ = 0;
+    refresh_evaluate_ready();
   }
 
   [[nodiscard]] bool done() const noexcept { return phase_ == Phase::kDone; }
@@ -1507,7 +2490,30 @@ public:
     return cross_bank_reductions_;
   }
 
-  void evaluate(const CycleContext &) override {
+  [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_latched_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_latched_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool evaluate_ready() const noexcept override {
+    return evaluate_ready_;
+  }
+  [[nodiscard]] bool commit_ready() const noexcept override {
+    return staged_tick_ || staged_start_drain_ || staged_output_stall_ ||
+           staged_row_output_ || staged_batch_.has_value();
+  }
+
+  void evaluate(const CycleContext &context) override {
+    account_suspended_output_stalls(context.domain_cycle);
+    last_evaluate_cycle_ = context.domain_cycle;
+    evaluated_once_ = true;
     staged_tick_ = false;
     staged_start_drain_ = false;
     staged_output_stall_ = false;
@@ -1558,6 +2564,8 @@ public:
     case Phase::kDone:
       break;
     }
+    set_latched_commit_ready(commit_ready());
+    refresh_evaluate_ready();
   }
 
   void commit(const CycleContext &context) override {
@@ -1568,13 +2576,18 @@ public:
       if (remaining_ == 0) {
         phase_ = Phase::kScan;
       }
+      clear_staged();
+      refresh_evaluate_ready();
       return;
     }
     if (phase_ == Phase::kMerge) {
       if (staged_output_stall_) {
         ++output_stall_cycles_;
+        suspended_output_stall_ = true;
       }
       if (!staged_row_output_) {
+        clear_staged();
+        refresh_evaluate_ready();
         return;
       }
       cross_bank_reductions_ += staged_cross_bank_reductions_;
@@ -1589,6 +2602,8 @@ public:
                       config_.gather_vertices_per_merge_cycle)) {
         phase_ = Phase::kDone;
       }
+      clear_staged();
+      refresh_evaluate_ready();
       return;
     }
     if (phase_ == Phase::kDrain && staged_tick_) {
@@ -1604,9 +2619,13 @@ public:
         next_output_row_ = 0;
         phase_ = Phase::kMerge;
       }
+      clear_staged();
+      refresh_evaluate_ready();
       return;
     }
     if (phase_ != Phase::kScan) {
+      clear_staged();
+      refresh_evaluate_ready();
       return;
     }
     if (staged_batch_.has_value()) {
@@ -1622,6 +2641,8 @@ public:
         phase_ = Phase::kDrain;
       }
     }
+    clear_staged();
+    refresh_evaluate_ready();
   }
 
 private:
@@ -1644,6 +2665,74 @@ private:
 
   static std::size_t divide_ceil(std::size_t value, std::size_t divisor) {
     return (value + divisor - 1) / divisor;
+  }
+
+  static void notify_input_nonempty(void *owner) noexcept {
+    auto *gather = static_cast<ReGraphGather *>(owner);
+    if (gather->phase_ == Phase::kScan) {
+      gather->evaluate_ready_ = true;
+      gather->set_latched_evaluate_ready(true);
+    }
+  }
+
+  static void notify_reader_done(void *owner) noexcept {
+    auto *gather = static_cast<ReGraphGather *>(owner);
+    if (gather->phase_ == Phase::kScan) {
+      gather->evaluate_ready_ = true;
+      gather->set_latched_evaluate_ready(true);
+    }
+  }
+
+  static void notify_output_nonfull(void *owner) noexcept {
+    auto *gather = static_cast<ReGraphGather *>(owner);
+    if (gather->phase_ == Phase::kMerge) {
+      gather->evaluate_ready_ = true;
+      gather->set_latched_evaluate_ready(true);
+    }
+  }
+
+  void account_suspended_output_stalls(std::uint64_t cycle) {
+    if (!suspended_output_stall_) {
+      return;
+    }
+    if (!evaluated_once_ || cycle <= last_evaluate_cycle_) {
+      throw std::logic_error(
+          "ReGraph gather suspended-cycle accounting moved backwards");
+    }
+    const std::uint64_t skipped = cycle - last_evaluate_cycle_ - 1;
+    output_stall_cycles_ += skipped;
+    output_.account_push_stalls(skipped);
+    suspended_output_stall_ = false;
+  }
+
+  void refresh_evaluate_ready() noexcept {
+    switch (phase_) {
+    case Phase::kReset:
+    case Phase::kDrain:
+      evaluate_ready_ = true;
+      break;
+    case Phase::kMerge:
+      evaluate_ready_ = !suspended_output_stall_ || !output_.full();
+      break;
+    case Phase::kScan:
+      evaluate_ready_ = input_.front() != nullptr || reader_.done();
+      break;
+    case Phase::kIdle:
+    case Phase::kDone:
+      evaluate_ready_ = false;
+      break;
+    }
+    set_latched_evaluate_ready(evaluate_ready_);
+  }
+
+  void clear_staged() noexcept {
+    staged_tick_ = false;
+    staged_start_drain_ = false;
+    staged_output_stall_ = false;
+    staged_row_output_ = false;
+    staged_batch_.reset();
+    staged_cross_bank_reductions_ = 0;
+    set_latched_commit_ready(false);
   }
 
   void commit_physical_writes(std::uint64_t cycle) {
@@ -1719,7 +2808,7 @@ private:
   GraSuReGraphConfig config_;
   Fifo<PmaEdgeBatch> &input_;
   Fifo<ReGraphGatherRow> &output_;
-  const ReGraphReaderContext &reader_;
+  ReGraphReaderContext &reader_;
   std::vector<std::unordered_map<std::size_t, GatherRow>> bank_rows_;
   std::vector<std::vector<BypassEntry>> bypass_;
   std::deque<PendingPhysicalWrite> pending_physical_writes_;
@@ -1746,6 +2835,10 @@ private:
   std::uint64_t bypass_hits_{};
   std::uint64_t bypass_misses_{};
   std::uint64_t cross_bank_reductions_{};
+  bool evaluate_ready_{};
+  bool evaluated_once_{};
+  bool suspended_output_stall_{};
+  std::uint64_t last_evaluate_cycle_{};
 };
 
 class ReGraphMerger final : public Component {
@@ -1754,7 +2847,16 @@ public:
                 const GraSuReGraphConfig &config, Fifo<ReGraphGatherRow> &input,
                 Fifo<ReGraphMergedBurst> &output)
       : Component(std::move(name), clock_id), config_(config), input_(input),
-        output_(output) {}
+        output_(output) {
+    input_.bind_nonempty_notifier(this, &ReGraphMerger::notify_input_nonempty);
+    output_.bind_nonfull_notifier(this, &ReGraphMerger::notify_output_nonfull);
+    refresh_evaluate_ready();
+  }
+
+  ~ReGraphMerger() override {
+    input_.unbind_nonempty_notifier(this);
+    output_.unbind_nonfull_notifier(this);
+  }
 
   void start_round() {
     if (running_ || pending_output_.has_value() || packed_rows_ != 0) {
@@ -1763,6 +2865,7 @@ public:
     consumed_rows_this_round_ = 0;
     done_ = false;
     running_ = true;
+    refresh_evaluate_ready();
   }
 
   [[nodiscard]] bool done() const noexcept { return done_; }
@@ -1776,36 +2879,68 @@ public:
     return output_stall_cycles_;
   }
 
-  void evaluate(const CycleContext &) override {
+  [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_latched_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_latched_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool evaluate_ready() const noexcept override {
+    return evaluate_ready_;
+  }
+  [[nodiscard]] bool commit_ready() const noexcept override {
+    return running_ && (staged_input_.has_value() || staged_output_ ||
+                        staged_output_stall_);
+  }
+
+  void evaluate(const CycleContext &context) override {
+    account_suspended_output_stalls(context.domain_cycle);
+    last_evaluate_cycle_ = context.domain_cycle;
+    evaluated_once_ = true;
     staged_input_.reset();
     staged_output_ = false;
     staged_output_stall_ = false;
     if (!running_) {
+      refresh_evaluate_ready();
+      set_latched_commit_ready(false);
       return;
     }
     if (pending_output_.has_value()) {
       staged_output_ = output_.try_push(*pending_output_);
       if (!staged_output_) {
         staged_output_stall_ = true;
+        set_latched_commit_ready(true);
         return;
       }
     }
     if (consumed_rows_this_round_ == rows_per_round() ||
         input_.front() == nullptr) {
+      refresh_evaluate_ready();
+      set_latched_commit_ready(commit_ready());
       return;
     }
     ReGraphGatherRow row;
     if (input_.try_pop(row)) {
       staged_input_ = std::move(row);
     }
+    set_latched_commit_ready(commit_ready());
   }
 
   void commit(const CycleContext &) override {
     if (!running_) {
+      clear_staged();
+      refresh_evaluate_ready();
       return;
     }
     if (staged_output_stall_) {
       ++output_stall_cycles_;
+      suspended_output_stall_ = true;
     }
     if (staged_output_) {
       pending_output_.reset();
@@ -1835,10 +2970,55 @@ public:
       running_ = false;
       done_ = true;
     }
+    clear_staged();
+    refresh_evaluate_ready();
   }
 
 private:
   static constexpr std::size_t kRowsPerBurst = kStateWordsPerBurst / 2;
+
+  static void notify_input_nonempty(void *owner) noexcept {
+    auto *merger = static_cast<ReGraphMerger *>(owner);
+    merger->refresh_evaluate_ready();
+  }
+
+  static void notify_output_nonfull(void *owner) noexcept {
+    auto *merger = static_cast<ReGraphMerger *>(owner);
+    merger->refresh_evaluate_ready();
+  }
+
+  void account_suspended_output_stalls(std::uint64_t cycle) {
+    if (!suspended_output_stall_) {
+      return;
+    }
+    if (!evaluated_once_ || cycle <= last_evaluate_cycle_) {
+      throw std::logic_error(
+          "ReGraph merger suspended-cycle accounting moved backwards");
+    }
+    const std::uint64_t skipped = cycle - last_evaluate_cycle_ - 1;
+    output_stall_cycles_ += skipped;
+    output_.account_push_stalls(skipped);
+    suspended_output_stall_ = false;
+  }
+
+  void refresh_evaluate_ready() noexcept {
+    if (!running_) {
+      evaluate_ready_ = false;
+    } else if (pending_output_.has_value()) {
+      evaluate_ready_ = !suspended_output_stall_ || !output_.full();
+    } else {
+      evaluate_ready_ = consumed_rows_this_round_ != rows_per_round() &&
+                        input_.front() != nullptr;
+    }
+    set_latched_evaluate_ready(evaluate_ready_);
+  }
+
+  void clear_staged() noexcept {
+    staged_input_.reset();
+    staged_output_ = false;
+    staged_output_stall_ = false;
+    set_latched_commit_ready(false);
+  }
 
   [[nodiscard]] std::size_t rows_per_round() const noexcept {
     return config_.partition_vertices / 2;
@@ -1857,6 +3037,10 @@ private:
   bool staged_output_stall_{};
   bool running_{};
   bool done_{};
+  bool evaluate_ready_{};
+  bool evaluated_once_{};
+  bool suspended_output_stall_{};
+  std::uint64_t last_evaluate_cycle_{};
   std::uint64_t rows_consumed_{};
   std::uint64_t bursts_emitted_{};
   std::uint64_t output_stall_cycles_{};
@@ -1868,30 +3052,80 @@ public:
                GraphAlgorithmPolicy policy, const GraSuReGraphConfig &config,
                Fifo<ReGraphMergedBurst> &input,
                Fifo<ReGraphAppliedBurst> &output, FixedAxiPort &read_port,
-               FixedAxiPort &write_port, const ReGraphReaderContext &reader)
+               FixedAxiPort &write_port, FixedAxiPort *degree_port,
+               const ReGraphReaderContext &iteration_context,
+               FixedAxiPort *auxiliary_read_port = nullptr,
+               FixedAxiPort *auxiliary_write_port = nullptr)
       : Component(std::move(name), clock_id), vertices_(vertices),
         policy_(std::move(policy)), config_(config), input_(input),
         output_(output), read_port_(read_port), write_port_(write_port),
-        reader_(reader) {}
+        degree_port_(degree_port), iteration_context_(iteration_context),
+        auxiliary_read_port_(auxiliary_read_port),
+        auxiliary_write_port_(auxiliary_write_port) {
+    if (uses_page_rank() && degree_port_ == nullptr) {
+      throw std::invalid_argument("PageRank apply requires a degree AXI port");
+    }
+    if ((auxiliary_read_port_ == nullptr) !=
+            (auxiliary_write_port_ == nullptr) ||
+        (auxiliary_read_port_ != nullptr &&
+         policy_.config().kind != GraphAlgorithmKind::kResidualPageRank)) {
+      throw std::invalid_argument(
+          "separate auxiliary state requires residual PageRank");
+    }
+    input_.bind_nonempty_notifier(this, &ReGraphApply::notify_work_available);
+    read_port_.responses().bind_nonempty_notifier(
+        this, &ReGraphApply::notify_work_available);
+    write_port_.responses().bind_nonempty_notifier(
+        this, &ReGraphApply::notify_work_available);
+    if (auxiliary_read_port_ != nullptr) {
+      auxiliary_read_port_->responses().bind_nonempty_notifier(
+          this, &ReGraphApply::notify_work_available);
+      auxiliary_write_port_->responses().bind_nonempty_notifier(
+          this, &ReGraphApply::notify_work_available);
+    }
+    if (degree_port_ != nullptr) {
+      degree_port_->responses().bind_nonempty_notifier(
+          this, &ReGraphApply::notify_work_available);
+    }
+    refresh_evaluate_ready();
+  }
+
+  ~ReGraphApply() override {
+    input_.unbind_nonempty_notifier(this);
+    read_port_.responses().unbind_nonempty_notifier(this);
+    write_port_.responses().unbind_nonempty_notifier(this);
+    if (auxiliary_read_port_ != nullptr) {
+      auxiliary_read_port_->responses().unbind_nonempty_notifier(this);
+      auxiliary_write_port_->responses().unbind_nonempty_notifier(this);
+    }
+    if (degree_port_ != nullptr) {
+      degree_port_->responses().unbind_nonempty_notifier(this);
+    }
+  }
 
   void start_partition(std::uint64_t round, std::size_t destination_base,
                        std::size_t destination_vertices,
                        bool reset_iteration_totals) {
     if (round == 0 || running_ || !read_inflight_.empty() ||
-        !write_inflight_.empty() || !ready_writes_.empty()) {
+        !write_inflight_.empty() || !auxiliary_write_inflight_.empty() ||
+        !ready_writes_.empty()) {
       throw std::logic_error("ReGraph apply round started while busy");
     }
     completed_writes_ = 0;
+    completed_auxiliary_writes_ = 0;
     input_bursts_this_round_ = 0;
     next_write_offset_ = 0;
+    round_ = round;
     destination_base_ = destination_base;
     destination_vertices_ = destination_vertices;
     if (reset_iteration_totals) {
       active_vertices_ = 0;
       iteration_error_ = 0.0F;
+      next_dangling_ = 0.0F;
     }
     done_ = false;
     running_ = true;
+    refresh_evaluate_ready();
   }
 
   [[nodiscard]] bool done() const noexcept { return done_; }
@@ -1927,17 +3161,61 @@ public:
   [[nodiscard]] std::size_t max_writes_inflight() const noexcept {
     return max_writes_inflight_;
   }
+  void bind_done_notifier(void *owner, ReGraphDoneSignal::Notifier notifier) {
+    done_signal_.bind(owner, notifier);
+  }
+  void unbind_done_notifier(void *owner) noexcept {
+    done_signal_.unbind(owner);
+  }
   [[nodiscard]] float iteration_error() const noexcept {
     return iteration_error_;
   }
+  [[nodiscard]] float next_dangling() const noexcept { return next_dangling_; }
+  [[nodiscard]] std::uint64_t degree_reads() const noexcept {
+    return degree_reads_;
+  }
+
+  [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_latched_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_latched_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool evaluate_ready() const noexcept override {
+    return evaluate_ready_;
+  }
+  [[nodiscard]] bool commit_ready() const noexcept override {
+    return running_ &&
+           (staged_read_issue_.has_value() || staged_write_issue_.has_value() ||
+            staged_read_response_.has_value() ||
+            staged_auxiliary_read_response_.has_value() ||
+            staged_degree_response_.has_value() ||
+            staged_write_response_.has_value() ||
+            staged_auxiliary_write_response_.has_value() ||
+            staged_output_stall_);
+  }
 
   void evaluate(const CycleContext &context) override {
+    account_suspended_read_window(context.domain_cycle);
+    last_evaluate_cycle_ = context.domain_cycle;
+    evaluated_once_ = true;
     staged_read_issue_.reset();
     staged_write_issue_.reset();
     staged_read_response_.reset();
+    staged_auxiliary_read_response_.reset();
+    staged_degree_response_.reset();
     staged_write_response_.reset();
+    staged_auxiliary_write_response_.reset();
     staged_output_stall_ = false;
     if (!running_) {
+      refresh_evaluate_ready();
+      set_latched_commit_ready(false);
       return;
     }
     if (read_port_.responses().front() != nullptr) {
@@ -1950,6 +3228,27 @@ public:
       AxiResponse response;
       if (write_port_.responses().try_pop(response)) {
         staged_write_response_ = std::move(response);
+      }
+    }
+    if (auxiliary_read_port_ != nullptr &&
+        auxiliary_read_port_->responses().front() != nullptr) {
+      AxiResponse response;
+      if (auxiliary_read_port_->responses().try_pop(response)) {
+        staged_auxiliary_read_response_ = std::move(response);
+      }
+    }
+    if (auxiliary_write_port_ != nullptr &&
+        auxiliary_write_port_->responses().front() != nullptr) {
+      AxiResponse response;
+      if (auxiliary_write_port_->responses().try_pop(response)) {
+        staged_auxiliary_write_response_ = std::move(response);
+      }
+    }
+    if (degree_port_ != nullptr &&
+        degree_port_->responses().front() != nullptr) {
+      AxiResponse response;
+      if (degree_port_->responses().try_pop(response)) {
+        staged_degree_response_ = std::move(response);
       }
     }
 
@@ -1966,20 +3265,38 @@ public:
         const std::size_t index =
             static_cast<std::size_t>(ready - ready_writes_.begin());
         const ReadyWrite &item = ready_writes_[index];
-        if (!write_port_.requests().full() && !output_.full()) {
+        if (!write_port_.requests().full() &&
+            (auxiliary_write_port_ == nullptr ||
+             !auxiliary_write_port_->requests().full()) &&
+            !output_.full()) {
           if (!write_port_.requests().try_push(AxiRequest{
                   .transaction_id = transaction_id(item.offset),
                   .operation = MemoryOperation::kWrite,
                   .address = config_.vertex_state_base +
                              global_offset(item.offset) *
-                                 state_bytes_per_vertex(policy_),
+                                 (auxiliary_write_port_ == nullptr
+                                      ? state_bytes_per_vertex(policy_)
+                                      : sizeof(std::uint32_t)),
                   .bytes = static_cast<std::uint32_t>(item.data.size()),
                   .stream_read_beats = false,
                   .write_data = item.data,
               }) ||
+              (auxiliary_write_port_ != nullptr &&
+               !auxiliary_write_port_->requests().try_push(AxiRequest{
+                   .transaction_id = transaction_id(item.offset),
+                   .operation = MemoryOperation::kWrite,
+                   .address =
+                       config_.residual_state_base +
+                       global_offset(item.offset) * sizeof(std::uint32_t),
+                   .bytes =
+                       static_cast<std::uint32_t>(item.auxiliary_data.size()),
+                   .stream_read_beats = false,
+                   .write_data = item.auxiliary_data,
+               })) ||
               !output_.try_push(ReGraphAppliedBurst{
                   .offset = item.offset,
                   .data = item.data,
+                  .source_data = item.source_data,
               })) {
             throw std::logic_error(
                 "ReGraph apply atomic output staging failed");
@@ -1993,59 +3310,125 @@ public:
 
     if (input_bursts_this_round_ >= total_bursts() ||
         input_.front() == nullptr) {
+      refresh_evaluate_ready();
+      set_latched_commit_ready(commit_ready());
       return;
     }
     if (read_inflight_.size() >= config_.apply_request_window) {
       ++read_window_stalls_;
+      refresh_evaluate_ready();
+      set_latched_commit_ready(commit_ready());
       return;
     }
     if (pipeline_occupancy() >= config_.apply_pipeline_capacity) {
       ++pipeline_capacity_stalls_;
+      refresh_evaluate_ready();
+      set_latched_commit_ready(commit_ready());
       return;
     }
     const ReGraphMergedBurst &next = *input_.front();
-    if (read_port_.requests().try_push(AxiRequest{
+    const bool degree_ready =
+        degree_port_ == nullptr || !degree_port_->requests().full();
+    const bool auxiliary_ready = auxiliary_read_port_ == nullptr ||
+                                 !auxiliary_read_port_->requests().full();
+    const std::size_t primary_state_bytes =
+        kStateWordsPerBurst * (auxiliary_read_port_ == nullptr
+                                   ? state_bytes_per_vertex(policy_)
+                                   : sizeof(std::uint32_t));
+    if (degree_ready && auxiliary_ready && !read_port_.requests().full() &&
+        read_port_.requests().try_push(AxiRequest{
             .transaction_id = transaction_id(next.offset),
             .operation = MemoryOperation::kRead,
             .address = config_.vertex_state_base +
                        global_offset(next.offset) *
-                           state_bytes_per_vertex(policy_),
-            .bytes = static_cast<std::uint32_t>(
-                kStateWordsPerBurst * state_bytes_per_vertex(policy_)),
+                           (auxiliary_read_port_ == nullptr
+                                ? state_bytes_per_vertex(policy_)
+                                : sizeof(std::uint32_t)),
+            .bytes = static_cast<std::uint32_t>(primary_state_bytes),
             .stream_read_beats = false,
             .write_data = {},
         })) {
+      if (auxiliary_read_port_ != nullptr &&
+          !auxiliary_read_port_->requests().try_push(AxiRequest{
+              .transaction_id = transaction_id(next.offset),
+              .operation = MemoryOperation::kRead,
+              .address = config_.residual_state_base +
+                         global_offset(next.offset) * sizeof(std::uint32_t),
+              .bytes = static_cast<std::uint32_t>(kStateWordsPerBurst *
+                                                  sizeof(std::uint32_t)),
+              .stream_read_beats = false,
+              .write_data = {},
+          })) {
+        throw std::logic_error(
+            "ReGraph apply auxiliary request was not atomic");
+      }
+      if (degree_port_ != nullptr &&
+          !degree_port_->requests().try_push(AxiRequest{
+              .transaction_id = transaction_id(next.offset),
+              .operation = MemoryOperation::kRead,
+              .address = config_.degree_base + global_offset(next.offset) * 4,
+              .bytes = static_cast<std::uint32_t>(kStateWordsPerBurst * 4),
+              .stream_read_beats = false,
+              .write_data = {},
+          })) {
+        throw std::logic_error("ReGraph apply degree request was not atomic");
+      }
       ReGraphMergedBurst consumed;
       if (!input_.try_pop(consumed)) {
         throw std::logic_error("ReGraph apply input staging failed");
       }
       staged_read_issue_ = std::move(consumed);
     }
+    refresh_evaluate_ready();
+    set_latched_commit_ready(commit_ready());
   }
 
   void commit(const CycleContext &context) override {
     if (!running_) {
+      clear_staged();
+      refresh_evaluate_ready();
       return;
     }
     if (staged_read_response_.has_value()) {
-      consume_read_response(*staged_read_response_, context.domain_cycle);
+      consume_read_response(*staged_read_response_, context.domain_cycle,
+                            ReadKind::kPrimary);
       staged_read_response_.reset();
     }
+    if (staged_auxiliary_read_response_.has_value()) {
+      consume_read_response(*staged_auxiliary_read_response_,
+                            context.domain_cycle, ReadKind::kAuxiliary);
+      staged_auxiliary_read_response_.reset();
+    }
+    if (staged_degree_response_.has_value()) {
+      consume_read_response(*staged_degree_response_, context.domain_cycle,
+                            ReadKind::kDegree);
+      staged_degree_response_.reset();
+    }
     if (staged_write_response_.has_value()) {
-      consume_write_response(*staged_write_response_);
+      consume_write_response(*staged_write_response_, false);
       staged_write_response_.reset();
+    }
+    if (staged_auxiliary_write_response_.has_value()) {
+      consume_write_response(*staged_auxiliary_write_response_, true);
+      staged_auxiliary_write_response_.reset();
     }
     if (staged_output_stall_) {
       ++output_stall_cycles_;
     }
     if (staged_read_issue_.has_value()) {
       const std::uint64_t id = transaction_id(staged_read_issue_->offset);
-      if (!read_inflight_.emplace(id, std::move(*staged_read_issue_)).second) {
+      if (!read_inflight_
+               .emplace(id, PendingRead{.burst = std::move(*staged_read_issue_),
+                                        .state_data = std::nullopt,
+                                        .auxiliary_data = std::nullopt,
+                                        .degree_data = std::nullopt})
+               .second) {
         throw std::logic_error("duplicate ReGraph apply read transaction");
       }
       ++input_bursts_this_round_;
       ++input_bursts_;
-      ++reads_;
+      reads_ += 1 + (auxiliary_read_port_ != nullptr ? 1 : 0);
+      degree_reads_ += degree_port_ == nullptr ? 0 : 1;
     }
     if (staged_write_issue_.has_value()) {
       ReadyWrite item = std::move(ready_writes_[*staged_write_issue_]);
@@ -2054,7 +3437,12 @@ public:
       if (!write_inflight_.emplace(id, item.offset).second) {
         throw std::logic_error("duplicate ReGraph apply write transaction");
       }
-      ++writes_;
+      if (auxiliary_write_port_ != nullptr &&
+          !auxiliary_write_inflight_.emplace(id, item.offset).second) {
+        throw std::logic_error(
+            "duplicate ReGraph apply auxiliary write transaction");
+      }
+      writes_ += 1 + (auxiliary_write_port_ != nullptr ? 1 : 0);
       next_write_offset_ += kStateWordsPerBurst;
     }
     max_reads_inflight_ = std::max(max_reads_inflight_, read_inflight_.size());
@@ -2062,18 +3450,98 @@ public:
         std::max(max_writes_inflight_, write_inflight_.size());
     max_pipeline_occupancy_ =
         std::max(max_pipeline_occupancy_, pipeline_occupancy());
-    if (completed_writes_ == total_bursts()) {
+    if (completed_writes_ == total_bursts() &&
+        (auxiliary_write_port_ == nullptr ||
+         completed_auxiliary_writes_ == total_bursts())) {
       running_ = false;
       done_ = true;
+      done_signal_.notify();
     }
+    clear_staged();
+    refresh_evaluate_ready();
   }
 
 private:
+  enum class ReadKind { kPrimary, kAuxiliary, kDegree };
+
+  struct PendingRead {
+    ReGraphMergedBurst burst;
+    std::optional<std::vector<std::uint8_t>> state_data;
+    std::optional<std::vector<std::uint8_t>> auxiliary_data;
+    std::optional<std::vector<std::uint8_t>> degree_data;
+  };
+
   struct ReadyWrite {
     std::size_t offset{};
     std::uint64_t due_cycle{};
     std::vector<std::uint8_t> data;
+    std::vector<std::uint8_t> auxiliary_data;
+    std::vector<std::uint8_t> source_data;
   };
+
+  static void notify_work_available(void *owner) noexcept {
+    auto *apply = static_cast<ReGraphApply *>(owner);
+    apply->evaluate_ready_ = apply->running_;
+    apply->set_latched_evaluate_ready(apply->evaluate_ready_);
+  }
+
+  void account_suspended_read_window(std::uint64_t cycle) {
+    if (!suspended_read_window_) {
+      return;
+    }
+    if (!evaluated_once_ || cycle <= last_evaluate_cycle_) {
+      throw std::logic_error(
+          "ReGraph apply suspended-cycle accounting moved backwards");
+    }
+    read_window_stalls_ += cycle - last_evaluate_cycle_ - 1;
+    suspended_read_window_ = false;
+  }
+
+  [[nodiscard]] bool response_available() const noexcept {
+    return read_port_.responses().front() != nullptr ||
+           write_port_.responses().front() != nullptr ||
+           (auxiliary_read_port_ != nullptr &&
+            (auxiliary_read_port_->responses().front() != nullptr ||
+             auxiliary_write_port_->responses().front() != nullptr)) ||
+           (degree_port_ != nullptr &&
+            degree_port_->responses().front() != nullptr);
+  }
+
+  void refresh_evaluate_ready() noexcept {
+    const bool input_available =
+        input_bursts_this_round_ < total_bursts() && input_.front() != nullptr;
+    const bool staged_response = staged_read_response_.has_value() ||
+                                 staged_auxiliary_read_response_.has_value() ||
+                                 staged_degree_response_.has_value() ||
+                                 staged_write_response_.has_value() ||
+                                 staged_auxiliary_write_response_.has_value();
+    const bool pure_read_window_wait =
+        running_ && input_available && ready_writes_.empty() &&
+        read_inflight_.size() >= config_.apply_request_window &&
+        !response_available() && !staged_response;
+    suspended_read_window_ = pure_read_window_wait;
+    evaluate_ready_ = running_ && !pure_read_window_wait &&
+                      (response_available() || staged_response ||
+                       !ready_writes_.empty() || input_available);
+    set_latched_evaluate_ready(evaluate_ready_);
+  }
+
+  void clear_staged() noexcept {
+    staged_read_response_.reset();
+    staged_auxiliary_read_response_.reset();
+    staged_degree_response_.reset();
+    staged_write_response_.reset();
+    staged_auxiliary_write_response_.reset();
+    staged_read_issue_.reset();
+    staged_write_issue_.reset();
+    staged_output_stall_ = false;
+    set_latched_commit_ready(false);
+  }
+
+  [[nodiscard]] bool uses_page_rank() const noexcept {
+    return policy_.config().kind == GraphAlgorithmKind::kFullPageRank ||
+           policy_.config().kind == GraphAlgorithmKind::kResidualPageRank;
+  }
 
   [[nodiscard]] std::uint64_t transaction_id(std::size_t offset) const {
     return global_offset(offset) / kStateWordsPerBurst;
@@ -2091,49 +3559,130 @@ private:
     return read_inflight_.size() + ready_writes_.size();
   }
 
-  void consume_read_response(const AxiResponse &response, std::uint64_t cycle) {
+  void consume_read_response(const AxiResponse &response, std::uint64_t cycle,
+                             ReadKind kind) {
     const auto found = read_inflight_.find(response.transaction_id);
+    const std::size_t expected_bytes =
+        kind == ReadKind::kPrimary && auxiliary_read_port_ == nullptr
+            ? kStateWordsPerBurst * state_bytes_per_vertex(policy_)
+            : kStateWordsPerBurst * sizeof(std::uint32_t);
     if (!response.success || found == read_inflight_.end() ||
-        response.read_data.size() !=
-            kStateWordsPerBurst * state_bytes_per_vertex(policy_)) {
+        response.read_data.size() != expected_bytes) {
       throw std::runtime_error(
           "ReGraph apply received malformed read response");
     }
-    ReGraphMergedBurst burst = std::move(found->second);
+    if (kind == ReadKind::kDegree) {
+      found->second.degree_data = response.read_data;
+    } else if (kind == ReadKind::kAuxiliary) {
+      found->second.auxiliary_data = response.read_data;
+    } else {
+      found->second.state_data = response.read_data;
+    }
+    if (!found->second.state_data.has_value() ||
+        (auxiliary_read_port_ != nullptr &&
+         !found->second.auxiliary_data.has_value()) ||
+        (degree_port_ != nullptr && !found->second.degree_data.has_value())) {
+      return;
+    }
+    PendingRead pending = std::move(found->second);
     read_inflight_.erase(found);
+    complete_read(std::move(pending), cycle);
+  }
+
+  void complete_read(PendingRead pending, std::uint64_t cycle) {
+    ReGraphMergedBurst &burst = pending.burst;
+    const std::vector<std::uint8_t> &state_data = *pending.state_data;
     std::array<std::uint32_t, kStateWordsPerBurst> result{};
     std::array<std::uint32_t, kStateWordsPerBurst> auxiliary{};
+    std::array<std::uint32_t, kStateWordsPerBurst> source_payload{};
     for (std::size_t lane = 0; lane < result.size(); ++lane) {
       const std::size_t local_vertex = burst.offset + lane;
       const std::size_t vertex = destination_base_ + local_vertex;
       const std::size_t byte_offset =
-          lane * state_bytes_per_vertex(policy_);
-      const std::uint32_t encoded =
-          decode_u32(response.read_data, byte_offset);
+          lane * (auxiliary_read_port_ == nullptr
+                      ? state_bytes_per_vertex(policy_)
+                      : sizeof(std::uint32_t));
+      const std::uint32_t encoded = decode_u32(state_data, byte_offset);
       if (local_vertex >= destination_vertices_ || vertex >= vertices_) {
-        result[lane] = policy_.config().kind == GraphAlgorithmKind::kWeightedSssp
-                           ? kReGraphInfinity
-                           : GraphAlgorithmPolicy::float_to_word(0.0F);
+        result[lane] =
+            policy_.config().kind == GraphAlgorithmKind::kWeightedSssp ||
+                    policy_.config().kind ==
+                        GraphAlgorithmKind::kConnectedComponents
+                ? kReGraphInfinity
+                : GraphAlgorithmPolicy::float_to_word(0.0F);
         auxiliary[lane] = GraphAlgorithmPolicy::float_to_word(0.0F);
+        source_payload[lane] = GraphAlgorithmPolicy::float_to_word(0.0F);
         continue;
       }
       AlgorithmVertexState old_state{
           .primary = decode_policy_value(policy_, encoded),
           .auxiliary = uses_auxiliary_state(policy_)
-                           ? decode_u32(response.read_data, byte_offset + 4)
+                           ? (auxiliary_read_port_ == nullptr
+                                  ? decode_u32(state_data, byte_offset + 4)
+                                  : decode_u32(*pending.auxiliary_data,
+                                               lane * sizeof(std::uint32_t)))
                            : 0,
       };
-      if (policy_.config().kind == GraphAlgorithmKind::kResidualPageRank &&
+      const bool correction_mode =
+          config_.split_pagerank_state &&
+          policy_.config().kind == GraphAlgorithmKind::kResidualPageRank &&
+          round_ == 1;
+      if (!correction_mode &&
+          policy_.config().kind == GraphAlgorithmKind::kResidualPageRank &&
           std::fabs(GraphAlgorithmPolicy::word_to_float(old_state.auxiliary)) >
               GraphAlgorithmPolicy::word_to_float(
                   policy_.activation_threshold_word())) {
         old_state = policy_.prepare_source(old_state, 0).state_after;
       }
-      const AlgorithmApplyResult applied = policy_.apply(
-          old_state, burst.candidates[lane], reader_.iteration_context());
+      AlgorithmApplyResult applied;
+      if (correction_mode) {
+        const AlgorithmIterationContext context =
+            iteration_context_.iteration_context();
+        const float incoming =
+            GraphAlgorithmPolicy::word_to_float(burst.candidates[lane].value_or(
+                GraphAlgorithmPolicy::float_to_word(0.0F)));
+        const float correction =
+            GraphAlgorithmPolicy::word_to_float(policy_.initial_base_word()) +
+            GraphAlgorithmPolicy::word_to_float(context.dangling_share) +
+            incoming - GraphAlgorithmPolicy::word_to_float(old_state.primary);
+        applied = {
+            .state_after =
+                {
+                    .primary = old_state.primary,
+                    .auxiliary =
+                        GraphAlgorithmPolicy::float_to_word(correction),
+                },
+            .active = std::fabs(correction) >
+                      GraphAlgorithmPolicy::word_to_float(
+                          policy_.activation_threshold_word()),
+            .error = std::fabs(correction),
+        };
+      } else {
+        applied = policy_.apply(old_state, burst.candidates[lane],
+                                iteration_context_.iteration_context());
+      }
       result[lane] = encode_policy_value(policy_, applied.state_after.primary,
                                          applied.active);
       auxiliary[lane] = applied.state_after.auxiliary;
+      if (uses_page_rank()) {
+        const std::uint32_t degree = decode_u32(*pending.degree_data, lane * 4);
+        const float value = GraphAlgorithmPolicy::word_to_float(
+            policy_.config().kind == GraphAlgorithmKind::kFullPageRank
+                ? applied.state_after.primary
+                : applied.state_after.auxiliary);
+        const bool source_active =
+            policy_.config().kind == GraphAlgorithmKind::kFullPageRank ||
+            applied.active;
+        source_payload[lane] = GraphAlgorithmPolicy::float_to_word(
+            source_active && degree != 0
+                ? policy_.config().damping * value / static_cast<float>(degree)
+                : 0.0F);
+        if (source_active && degree == 0) {
+          next_dangling_ += value;
+        }
+      } else {
+        source_payload[lane] = result[lane];
+      }
       iteration_error_ += applied.error;
       if (applied.active) {
         ++active_vertices_;
@@ -2143,22 +3692,34 @@ private:
     ready_writes_.push_back(ReadyWrite{
         .offset = burst.offset,
         .due_cycle = cycle + config_.apply_pipeline_latency,
-        .data = encode_state_words(policy_, result, auxiliary),
+        .data = auxiliary_write_port_ == nullptr
+                    ? encode_state_words(policy_, result, auxiliary)
+                    : encode_words(result),
+        .auxiliary_data = auxiliary_write_port_ == nullptr
+                              ? std::vector<std::uint8_t>{}
+                              : encode_words(auxiliary),
+        .source_data = encode_words(source_payload),
     });
   }
 
-  void consume_write_response(const AxiResponse &response) {
-    const auto found = write_inflight_.find(response.transaction_id);
-    if (!response.success || found == write_inflight_.end() ||
+  void consume_write_response(const AxiResponse &response, bool auxiliary) {
+    auto &inflight = auxiliary ? auxiliary_write_inflight_ : write_inflight_;
+    const auto found = inflight.find(response.transaction_id);
+    if (!response.success || found == inflight.end() ||
         !response.read_data.empty()) {
       throw std::runtime_error(
           "ReGraph apply received malformed write response");
     }
-    write_inflight_.erase(found);
-    ++completed_writes_;
+    inflight.erase(found);
+    if (auxiliary) {
+      ++completed_auxiliary_writes_;
+    } else {
+      ++completed_writes_;
+    }
   }
 
   std::size_t vertices_{};
+  std::uint64_t round_{};
   std::size_t destination_base_{};
   std::size_t destination_vertices_{};
   GraphAlgorithmPolicy policy_;
@@ -2167,23 +3728,37 @@ private:
   Fifo<ReGraphAppliedBurst> &output_;
   FixedAxiPort &read_port_;
   FixedAxiPort &write_port_;
-  const ReGraphReaderContext &reader_;
-  std::unordered_map<std::uint64_t, ReGraphMergedBurst> read_inflight_;
+  FixedAxiPort *degree_port_{};
+  const ReGraphReaderContext &iteration_context_;
+  FixedAxiPort *auxiliary_read_port_{};
+  FixedAxiPort *auxiliary_write_port_{};
+  std::unordered_map<std::uint64_t, PendingRead> read_inflight_;
   std::unordered_map<std::uint64_t, std::size_t> write_inflight_;
+  std::unordered_map<std::uint64_t, std::size_t> auxiliary_write_inflight_;
   std::deque<ReadyWrite> ready_writes_;
   std::optional<AxiResponse> staged_read_response_;
+  std::optional<AxiResponse> staged_auxiliary_read_response_;
+  std::optional<AxiResponse> staged_degree_response_;
   std::optional<AxiResponse> staged_write_response_;
+  std::optional<AxiResponse> staged_auxiliary_write_response_;
   std::optional<ReGraphMergedBurst> staged_read_issue_;
   std::optional<std::size_t> staged_write_issue_;
   std::size_t completed_writes_{};
+  std::size_t completed_auxiliary_writes_{};
   std::size_t input_bursts_this_round_{};
   std::size_t next_write_offset_{};
   std::size_t active_vertices_{};
   float iteration_error_{};
+  float next_dangling_{};
   bool staged_output_stall_{};
   bool running_{};
   bool done_{};
+  bool evaluate_ready_{};
+  bool evaluated_once_{};
+  bool suspended_read_window_{};
+  std::uint64_t last_evaluate_cycle_{};
   std::uint64_t reads_{};
+  std::uint64_t degree_reads_{};
   std::uint64_t writes_{};
   std::uint64_t input_bursts_{};
   std::uint64_t output_stall_cycles_{};
@@ -2194,6 +3769,7 @@ private:
   std::size_t max_reads_inflight_{};
   std::size_t max_pipeline_occupancy_{};
   std::size_t max_writes_inflight_{};
+  ReGraphDoneSignal done_signal_;
 };
 
 class ReGraphHbmWrapper final : public Component {
@@ -2206,7 +3782,22 @@ public:
                     FixedAxiPort &mirror_write_port)
       : Component(std::move(name), clock_id), config_(config), input_(input),
         write_ports_{&primary_write_port, &mirror_write_port},
-        policy_(std::move(policy)) {}
+        policy_(std::move(policy)) {
+    input_.bind_nonempty_notifier(this,
+                                  &ReGraphHbmWrapper::notify_work_available);
+    for (FixedAxiPort *port : write_ports_) {
+      port->responses().bind_nonempty_notifier(
+          this, &ReGraphHbmWrapper::notify_work_available);
+    }
+    refresh_evaluate_ready();
+  }
+
+  ~ReGraphHbmWrapper() override {
+    input_.unbind_nonempty_notifier(this);
+    for (FixedAxiPort *port : write_ports_) {
+      port->responses().unbind_nonempty_notifier(this);
+    }
+  }
 
   void start_partition(std::uint64_t round, std::size_t destination_base) {
     const bool writes_pending =
@@ -2217,12 +3808,13 @@ public:
     }
     target_source_base_ = config_.source_state_base +
                           (round & 1U) * config_.source_state_buffer_stride +
-                          destination_base * state_bytes_per_vertex(policy_);
+                          destination_base * 4;
     destination_base_ = destination_base;
     input_bursts_this_round_ = 0;
     completed_writes_ = 0;
     done_ = false;
     running_ = true;
+    refresh_evaluate_ready();
   }
 
   [[nodiscard]] bool done() const noexcept { return done_; }
@@ -2244,6 +3836,35 @@ public:
   [[nodiscard]] std::size_t max_writes_inflight() const noexcept {
     return max_writes_inflight_;
   }
+  void bind_done_notifier(void *owner, ReGraphDoneSignal::Notifier notifier) {
+    done_signal_.bind(owner, notifier);
+  }
+  void unbind_done_notifier(void *owner) noexcept {
+    done_signal_.unbind(owner);
+  }
+
+  [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_latched_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_latched_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool evaluate_ready() const noexcept override {
+    return evaluate_ready_;
+  }
+  [[nodiscard]] bool commit_ready() const noexcept override {
+    return running_ &&
+           (staged_input_.has_value() || staged_write_issue_.has_value() ||
+            std::any_of(
+                staged_write_responses_.begin(), staged_write_responses_.end(),
+                [](const auto &response) { return response.has_value(); }));
+  }
 
   void evaluate(const CycleContext &context) override {
     staged_input_.reset();
@@ -2252,6 +3873,8 @@ public:
       response.reset();
     }
     if (!running_) {
+      refresh_evaluate_ready();
+      set_latched_commit_ready(false);
       return;
     }
     for (std::size_t port = 0; port < write_ports_.size(); ++port) {
@@ -2278,11 +3901,11 @@ public:
           if (!port->requests().try_push(AxiRequest{
                   .transaction_id = transaction_id(item.burst.offset),
                   .operation = MemoryOperation::kWrite,
-                  .address = target_source_base_ +
-                             item.burst.offset * state_bytes_per_vertex(policy_),
-                  .bytes = static_cast<std::uint32_t>(item.burst.data.size()),
+                  .address = target_source_base_ + item.burst.offset * 4,
+                  .bytes =
+                      static_cast<std::uint32_t>(item.burst.source_data.size()),
                   .stream_read_beats = false,
-                  .write_data = item.burst.data,
+                  .write_data = item.burst.source_data,
               })) {
             throw std::logic_error(
                 "ReGraph HBM wrapper atomic write staging failed");
@@ -2296,20 +3919,28 @@ public:
 
     if (input_bursts_this_round_ == total_bursts() ||
         input_.front() == nullptr) {
+      refresh_evaluate_ready();
+      set_latched_commit_ready(commit_ready());
       return;
     }
     if (pipeline_.size() >= config_.hbm_wrapper_pipeline_capacity) {
       ++pipeline_capacity_stalls_;
+      refresh_evaluate_ready();
+      set_latched_commit_ready(commit_ready());
       return;
     }
     ReGraphAppliedBurst burst;
     if (input_.try_pop(burst)) {
       staged_input_ = std::move(burst);
     }
+    refresh_evaluate_ready();
+    set_latched_commit_ready(commit_ready());
   }
 
   void commit(const CycleContext &context) override {
     if (!running_) {
+      clear_staged();
+      refresh_evaluate_ready();
       return;
     }
     for (std::size_t port = 0; port < staged_write_responses_.size(); ++port) {
@@ -2353,7 +3984,10 @@ public:
         completed_writes_ == total_bursts() * write_ports_.size()) {
       running_ = false;
       done_ = true;
+      done_signal_.notify();
     }
+    clear_staged();
+    refresh_evaluate_ready();
   }
 
 private:
@@ -2361,6 +3995,35 @@ private:
     ReGraphAppliedBurst burst;
     std::uint64_t due_cycle{};
   };
+
+  static void notify_work_available(void *owner) noexcept {
+    auto *wrapper = static_cast<ReGraphHbmWrapper *>(owner);
+    wrapper->evaluate_ready_ = wrapper->running_;
+    wrapper->set_latched_evaluate_ready(wrapper->evaluate_ready_);
+  }
+
+  [[nodiscard]] bool response_available() const noexcept {
+    return std::any_of(write_ports_.begin(), write_ports_.end(),
+                       [](FixedAxiPort *port) {
+                         return port->responses().front() != nullptr;
+                       });
+  }
+
+  void refresh_evaluate_ready() noexcept {
+    evaluate_ready_ = running_ && (response_available() || !pipeline_.empty() ||
+                                   (input_bursts_this_round_ < total_bursts() &&
+                                    input_.front() != nullptr));
+    set_latched_evaluate_ready(evaluate_ready_);
+  }
+
+  void clear_staged() noexcept {
+    staged_input_.reset();
+    staged_write_issue_.reset();
+    for (auto &response : staged_write_responses_) {
+      response.reset();
+    }
+    set_latched_commit_ready(false);
+  }
 
   [[nodiscard]] std::size_t total_bursts() const noexcept {
     return config_.partition_vertices / kStateWordsPerBurst;
@@ -2410,12 +4073,31 @@ private:
   std::size_t destination_base_{};
   bool running_{};
   bool done_{};
+  bool evaluate_ready_{};
   std::uint64_t input_bursts_{};
   std::uint64_t source_writes_{};
   std::uint64_t pipeline_capacity_stalls_{};
   std::uint64_t write_window_stalls_{};
   std::size_t max_pipeline_occupancy_{};
   std::size_t max_writes_inflight_{};
+  ReGraphDoneSignal done_signal_;
+};
+
+struct GraSuReGraphWorker {
+  ReGraphSourceHbmReader *source_hbm{};
+  PmaNativeReader *reader{};
+  ReGraphGather *gather{};
+  ReGraphMerger *merger{};
+  ReGraphApply *apply{};
+  ReGraphHbmWrapper *wrapper{};
+  std::optional<std::size_t> partition;
+  bool downstream_started{};
+
+  [[nodiscard]] bool done() const noexcept {
+    return partition.has_value() && downstream_started && source_hbm->done() &&
+           reader->done() && gather->done() && merger->done() &&
+           apply->done() && wrapper->done();
+  }
 };
 
 class GraSuReGraphController final : public Component {
@@ -2424,16 +4106,58 @@ public:
                          GraphAlgorithmKind algorithm, std::size_t round_limit,
                          bool fixed_round_limit,
                          std::vector<ReGraphPartitionPlan> partitions,
-                         ReGraphSourceHbmReader &source_hbm,
-                         PmaNativeReader &reader, ReGraphGather &gather,
-                         ReGraphMerger &merger, ReGraphApply &apply,
-                         ReGraphHbmWrapper &wrapper)
+                         std::vector<GraSuReGraphWorker> workers,
+                         ReGraphIterationContext *iteration_context,
+                         ReGraphPageRankSourcePrepare *source_prepare,
+                         bool shared_downstream,
+                         bool fixed_shard_lane_assignment)
       : Component(std::move(name), clock_id), algorithm_(algorithm),
         round_limit_(round_limit), fixed_round_limit_(fixed_round_limit),
-        partitions_(std::move(partitions)), source_hbm_(source_hbm),         reader_(reader), gather_(gather), merger_(merger), apply_(apply),
-        wrapper_(wrapper) {
-    if (partitions_.empty()) {
-      throw std::invalid_argument("ReGraph controller requires a partition");
+        partitions_(std::move(partitions)), workers_(std::move(workers)),
+        iteration_context_(iteration_context), source_prepare_(source_prepare),
+        shared_downstream_(shared_downstream),
+        fixed_shard_lane_assignment_(fixed_shard_lane_assignment),
+        next_partition_per_worker_(workers_.size()),
+        worker_partition_passes_(workers_.size()) {
+    if (partitions_.empty() || workers_.empty()) {
+      throw std::invalid_argument(
+          "ReGraph controller requires partitions and compute workers");
+    }
+    const bool malformed = std::any_of(
+        workers_.begin(), workers_.end(), [](const GraSuReGraphWorker &worker) {
+          return worker.source_hbm == nullptr || worker.reader == nullptr ||
+                 worker.gather == nullptr || worker.merger == nullptr ||
+                 worker.apply == nullptr || worker.wrapper == nullptr;
+        });
+    if (malformed) {
+      throw std::invalid_argument("ReGraph controller received a null worker");
+    }
+    if ((algorithm_ == GraphAlgorithmKind::kFullPageRank ||
+         algorithm_ == GraphAlgorithmKind::kResidualPageRank) &&
+        iteration_context_ == nullptr) {
+      throw std::invalid_argument(
+          "PageRank controller requires a shared iteration context");
+    }
+    for (GraSuReGraphWorker &worker : workers_) {
+      worker.apply->bind_done_notifier(
+          this, &GraSuReGraphController::notify_worker_done);
+      worker.wrapper->bind_done_notifier(
+          this, &GraSuReGraphController::notify_worker_done);
+    }
+    if (source_prepare_ != nullptr) {
+      source_prepare_->bind_done_notifier(
+          this, &GraSuReGraphController::notify_worker_done);
+    }
+    refresh_evaluate_ready();
+  }
+
+  ~GraSuReGraphController() override {
+    for (GraSuReGraphWorker &worker : workers_) {
+      worker.apply->unbind_done_notifier(this);
+      worker.wrapper->unbind_done_notifier(this);
+    }
+    if (source_prepare_ != nullptr) {
+      source_prepare_->unbind_done_notifier(this);
     }
   }
 
@@ -2444,97 +4168,342 @@ public:
   [[nodiscard]] std::uint64_t partition_passes() const noexcept {
     return partition_passes_;
   }
+  [[nodiscard]] const std::vector<std::uint64_t> &
+  worker_partition_passes() const noexcept {
+    return worker_partition_passes_;
+  }
+  [[nodiscard]] std::uint64_t pipeline_busy_cycles() const noexcept {
+    return pipeline_busy_cycles_;
+  }
+  [[nodiscard]] std::size_t max_parallel_partitions() const noexcept {
+    return max_parallel_partitions_;
+  }
+  [[nodiscard]] std::size_t
+  max_parallel_downstream_partitions() const noexcept {
+    return max_parallel_downstream_partitions_;
+  }
+  [[nodiscard]] std::uint64_t downstream_busy_cycles() const noexcept {
+    return downstream_busy_cycles_;
+  }
+  [[nodiscard]] float iteration_error() const noexcept {
+    return last_iteration_error_;
+  }
+  [[nodiscard]] const std::vector<std::size_t> &
+  frontier_out_sizes() const noexcept {
+    return frontier_out_sizes_;
+  }
+
+  [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_latched_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_latched_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool evaluate_ready() const noexcept override {
+    return evaluate_ready_;
+  }
+  [[nodiscard]] bool commit_ready() const noexcept override {
+    return !failed() && !done() &&
+           (staged_ != Action::kNone || !staged_completed_workers_.empty());
+  }
 
   void evaluate(const CycleContext &) override {
     staged_ = Action::kNone;
+    staged_completed_workers_.clear();
     if (failed() || done()) {
+      set_latched_commit_ready(false);
       return;
     }
     if (phase_ == Phase::kStart) {
+      staged_ = source_prepare_ == nullptr ? Action::kStartSuperstep
+                                           : Action::kStartPrepare;
+    } else if (phase_ == Phase::kPrepare && source_prepare_->done()) {
       staged_ = Action::kStartSuperstep;
-    } else if (phase_ == Phase::kRound && source_hbm_.done() &&
-               reader_.done() && gather_.done() && merger_.done() &&
-               apply_.done() && wrapper_.done()) {
-      if (partition_ + 1 < partitions_.size()) {
-        staged_ = Action::kNextPartition;
-      } else if (fixed_round_limit_ ||
-                 algorithm_ == GraphAlgorithmKind::kFullPageRank) {
-        staged_ = round_ == round_limit_ ? Action::kFinish
-                                        : Action::kNextSuperstep;
-      } else {
-        staged_ = apply_.active_vertices() == 0 ? Action::kFinish
-                                                : Action::kNextSuperstep;
+    } else if (phase_ == Phase::kRound) {
+      for (std::size_t worker = 0; worker < workers_.size(); ++worker) {
+        if (workers_[worker].done()) {
+          staged_completed_workers_.push_back(worker);
+        }
       }
-    }
-  }
-
-  void commit(const CycleContext &) override {
-    if (staged_ == Action::kStartSuperstep ||
-        staged_ == Action::kNextSuperstep) {
-      if (round_ == round_limit_) {
-        failure_ = "ReGraph algorithm exceeded configured round limit";
+      const std::size_t remaining_busy =
+          busy_worker_count() - staged_completed_workers_.size();
+      if (remaining_busy != 0 || has_pending_partition()) {
+        refresh_evaluate_ready();
+        set_latched_commit_ready(commit_ready());
         return;
       }
+      std::size_t prospective_active = iteration_active_vertices_;
+      for (const std::size_t worker : staged_completed_workers_) {
+        prospective_active += workers_[worker].apply->active_vertices();
+      }
+      if (fixed_round_limit_ ||
+          algorithm_ == GraphAlgorithmKind::kFullPageRank) {
+        staged_ =
+            round_ == round_limit_ ? Action::kFinish : Action::kNextSuperstep;
+      } else {
+        staged_ =
+            prospective_active == 0 ? Action::kFinish : Action::kNextSuperstep;
+      }
+    }
+    refresh_evaluate_ready();
+    set_latched_commit_ready(commit_ready());
+  }
+
+  void commit(const CycleContext &context) override {
+    account_suspended_busy_cycles(context.domain_cycle);
+    for (const std::size_t worker_index : staged_completed_workers_) {
+      GraSuReGraphWorker &worker = workers_.at(worker_index);
+      iteration_active_vertices_ += worker.apply->active_vertices();
+      iteration_error_ += worker.apply->iteration_error();
+      iteration_dangling_ += worker.apply->next_dangling();
+      ++completed_partitions_;
+      worker.partition.reset();
+      worker.downstream_started = false;
+    }
+    if (staged_ == Action::kNextSuperstep || staged_ == Action::kFinish) {
+      frontier_out_sizes_.push_back(iteration_active_vertices_);
+    }
+    if (staged_ == Action::kStartPrepare) {
+      source_prepare_->start();
+      phase_ = Phase::kPrepare;
+    } else if (staged_ == Action::kStartSuperstep ||
+               staged_ == Action::kNextSuperstep) {
+      if (round_ == round_limit_) {
+        failure_ = "ReGraph algorithm exceeded configured round limit";
+        staged_ = Action::kNone;
+        staged_completed_workers_.clear();
+        set_latched_commit_ready(false);
+        return;
+      }
+      if (round_ != 0 && iteration_context_ != nullptr) {
+        iteration_context_->set_dangling(iteration_dangling_);
+      }
       ++round_;
-      partition_ = 0;
-      start_partition();
+      next_partition_ = 0;
+      for (std::size_t worker = 0; worker < workers_.size(); ++worker) {
+        next_partition_per_worker_[worker] = worker;
+      }
+      completed_partitions_ = 0;
+      iteration_active_vertices_ = 0;
+      iteration_error_ = 0.0F;
+      iteration_dangling_ = 0.0F;
+      dispatch_available_workers();
+      start_waiting_downstream();
       phase_ = Phase::kRound;
-    } else if (staged_ == Action::kNextPartition) {
-      ++partition_;
-      start_partition();
     } else if (staged_ == Action::kFinish) {
+      last_iteration_error_ = iteration_error_;
       phase_ = Phase::kDone;
     }
+    if (!staged_completed_workers_.empty() && staged_ == Action::kNone) {
+      dispatch_available_workers();
+      start_waiting_downstream();
+      if (completed_partitions_ == partitions_.size()) {
+        last_iteration_error_ = iteration_error_;
+      }
+    }
+    const std::size_t busy = busy_worker_count();
+    pipeline_busy_cycles_ += busy;
+    max_parallel_partitions_ = std::max(max_parallel_partitions_, busy);
+    const std::size_t downstream_busy = downstream_busy_worker_count();
+    downstream_busy_cycles_ += downstream_busy;
+    max_parallel_downstream_partitions_ =
+        std::max(max_parallel_downstream_partitions_, downstream_busy);
+    last_busy_workers_ = busy;
+    last_downstream_busy_workers_ = downstream_busy;
+    last_commit_cycle_ = context.domain_cycle;
+    committed_once_ = true;
+    staged_ = Action::kNone;
+    staged_completed_workers_.clear();
+    set_latched_commit_ready(false);
+    refresh_evaluate_ready();
   }
 
 private:
-  enum class Phase { kStart, kRound, kDone };
+  enum class Phase { kStart, kPrepare, kRound, kDone };
   enum class Action {
     kNone,
+    kStartPrepare,
     kStartSuperstep,
-    kNextPartition,
     kNextSuperstep,
     kFinish
   };
 
-  void start_partition() {
-    const ReGraphPartitionPlan &plan = partitions_.at(partition_);
-    source_hbm_.start_partition(round_, partition_);
-    reader_.start_partition(round_, plan, partition_ == 0);
-    gather_.start_partition(plan.destination_vertices, round_ == 1);
-    merger_.start_round();
-    apply_.start_partition(round_, plan.destination_base,
-                           plan.destination_vertices, partition_ == 0);
-    wrapper_.start_partition(round_, plan.destination_base);
+  static void notify_worker_done(void *owner) noexcept {
+    static_cast<GraSuReGraphController *>(owner)->refresh_evaluate_ready();
+  }
+
+  void account_suspended_busy_cycles(std::uint64_t cycle) {
+    if (!committed_once_) {
+      return;
+    }
+    if (cycle <= last_commit_cycle_) {
+      throw std::logic_error(
+          "ReGraph controller suspended-cycle accounting moved backwards");
+    }
+    const std::uint64_t skipped = cycle - last_commit_cycle_ - 1;
+    pipeline_busy_cycles_ += skipped * last_busy_workers_;
+    downstream_busy_cycles_ += skipped * last_downstream_busy_workers_;
+  }
+
+  void refresh_evaluate_ready() noexcept {
+    evaluate_ready_ = false;
+    if (failed() || done()) {
+      set_latched_evaluate_ready(false);
+      return;
+    }
+    if (phase_ == Phase::kStart) {
+      evaluate_ready_ = true;
+    } else if (phase_ == Phase::kPrepare) {
+      evaluate_ready_ = source_prepare_->done();
+    } else if (phase_ == Phase::kRound) {
+      evaluate_ready_ = std::any_of(
+          workers_.begin(), workers_.end(),
+          [](const GraSuReGraphWorker &worker) { return worker.done(); });
+    }
+    set_latched_evaluate_ready(evaluate_ready_);
+  }
+
+  [[nodiscard]] std::size_t busy_worker_count() const noexcept {
+    return static_cast<std::size_t>(std::count_if(
+        workers_.begin(), workers_.end(), [](const GraSuReGraphWorker &worker) {
+          return worker.partition.has_value();
+        }));
+  }
+
+  [[nodiscard]] std::size_t downstream_busy_worker_count() const noexcept {
+    return static_cast<std::size_t>(std::count_if(
+        workers_.begin(), workers_.end(), [](const GraSuReGraphWorker &worker) {
+          return worker.partition.has_value() && worker.downstream_started;
+        }));
+  }
+
+  void start_downstream(GraSuReGraphWorker &worker) {
+    if (!worker.partition.has_value() || worker.downstream_started) {
+      throw std::logic_error("invalid ReGraph shared-downstream dispatch");
+    }
+    const ReGraphPartitionPlan &plan = partitions_.at(*worker.partition);
+    worker.merger->start_round();
+    worker.apply->start_partition(round_, plan.destination_base,
+                                  plan.destination_vertices, true);
+    worker.wrapper->start_partition(round_, plan.destination_base);
+    worker.downstream_started = true;
+  }
+
+  void start_waiting_downstream() {
+    if (!shared_downstream_ || downstream_busy_worker_count() != 0) {
+      return;
+    }
+    GraSuReGraphWorker *selected = nullptr;
+    for (GraSuReGraphWorker &worker : workers_) {
+      if (!worker.partition.has_value() || worker.downstream_started) {
+        continue;
+      }
+      if (selected == nullptr || *worker.partition < *selected->partition) {
+        selected = &worker;
+      }
+    }
+    if (selected != nullptr) {
+      start_downstream(*selected);
+    }
+  }
+
+  void start_partition(std::size_t worker_index, std::size_t partition) {
+    GraSuReGraphWorker &worker = workers_.at(worker_index);
+    const ReGraphPartitionPlan &plan = partitions_.at(partition);
+    worker.partition = partition;
+    worker.downstream_started = false;
+    worker.source_hbm->start_partition(round_, partition);
+    worker.reader->start_partition(
+        round_, plan, partition == 0 && !uses_prepared_page_rank_source());
+    worker.gather->start_partition(plan.destination_vertices, round_ == 1);
+    if (!shared_downstream_) {
+      start_downstream(worker);
+    }
     ++partition_passes_;
+    ++worker_partition_passes_.at(worker_index);
+  }
+
+  void dispatch_available_workers() {
+    for (std::size_t worker = 0; worker < workers_.size(); ++worker) {
+      if (workers_[worker].partition.has_value()) {
+        continue;
+      }
+      if (fixed_shard_lane_assignment_) {
+        const std::size_t partition = next_partition_per_worker_[worker];
+        if (partition >= partitions_.size()) {
+          continue;
+        }
+        start_partition(worker, partition);
+        next_partition_per_worker_[worker] += workers_.size();
+      } else if (next_partition_ < partitions_.size()) {
+        start_partition(worker, next_partition_++);
+      }
+    }
+  }
+
+  [[nodiscard]] bool has_pending_partition() const noexcept {
+    if (!fixed_shard_lane_assignment_) {
+      return next_partition_ < partitions_.size();
+    }
+    return std::any_of(
+        next_partition_per_worker_.begin(), next_partition_per_worker_.end(),
+        [&](std::size_t partition) { return partition < partitions_.size(); });
+  }
+
+  [[nodiscard]] bool uses_prepared_page_rank_source() const noexcept {
+    return iteration_context_ != nullptr;
   }
 
   GraphAlgorithmKind algorithm_{GraphAlgorithmKind::kWeightedSssp};
   std::size_t round_limit_{};
   bool fixed_round_limit_{};
   std::vector<ReGraphPartitionPlan> partitions_;
-  ReGraphSourceHbmReader &source_hbm_;
-  PmaNativeReader &reader_;
-  ReGraphGather &gather_;
-  ReGraphMerger &merger_;
-  ReGraphApply &apply_;
-  ReGraphHbmWrapper &wrapper_;
+  std::vector<GraSuReGraphWorker> workers_;
+  ReGraphIterationContext *iteration_context_{};
+  ReGraphPageRankSourcePrepare *source_prepare_{};
+  bool shared_downstream_{};
+  bool fixed_shard_lane_assignment_{};
   Phase phase_{Phase::kStart};
   Action staged_{Action::kNone};
+  std::vector<std::size_t> staged_completed_workers_;
   std::uint64_t round_{};
-  std::size_t partition_{};
+  std::size_t next_partition_{};
+  std::vector<std::size_t> next_partition_per_worker_;
+  std::size_t completed_partitions_{};
+  std::size_t iteration_active_vertices_{};
+  float iteration_error_{};
+  float iteration_dangling_{};
+  float last_iteration_error_{};
   std::uint64_t partition_passes_{};
+  std::vector<std::uint64_t> worker_partition_passes_;
+  std::uint64_t pipeline_busy_cycles_{};
+  std::size_t max_parallel_partitions_{};
+  std::uint64_t downstream_busy_cycles_{};
+  std::size_t max_parallel_downstream_partitions_{};
+  std::size_t last_busy_workers_{};
+  std::size_t last_downstream_busy_workers_{};
+  std::uint64_t last_commit_cycle_{};
+  bool committed_once_{};
+  bool evaluate_ready_{};
+  std::vector<std::size_t> frontier_out_sizes_;
   std::string failure_;
 };
 
 class GraSuNativeReGraphController final : public Component {
 public:
-  GraSuNativeReGraphController(
-      std::string name, ClockId clock_id, std::size_t supersteps,
-      std::size_t vertices, ReGraphSourceHbmReader &source_hbm,
-      NativeEdgeArrayHbmReader &edge_reader,
-      NativeEdgeArrayScatter &scatter, ReGraphGather &gather,
-      ReGraphMerger &merger, ReGraphApply &apply, ReGraphHbmWrapper &wrapper)
+  GraSuNativeReGraphController(std::string name, ClockId clock_id,
+                               std::size_t supersteps, std::size_t vertices,
+                               ReGraphSourceHbmReader &source_hbm,
+                               NativeEdgeArrayHbmReader &edge_reader,
+                               NativeEdgeArrayScatter &scatter,
+                               ReGraphGather &gather, ReGraphMerger &merger,
+                               ReGraphApply &apply, ReGraphHbmWrapper &wrapper)
       : Component(std::move(name), clock_id), supersteps_(supersteps),
         vertices_(vertices), source_hbm_(source_hbm), edge_reader_(edge_reader),
         scatter_(scatter), gather_(gather), merger_(merger), apply_(apply),
@@ -2542,6 +4511,19 @@ public:
 
   [[nodiscard]] bool done() const noexcept { return phase_ == Phase::kDone; }
   [[nodiscard]] std::uint64_t rounds() const noexcept { return round_; }
+
+  [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {
+    return true;
+  }
+  [[nodiscard]] bool evaluate_ready() const noexcept override {
+    return !done();
+  }
+  [[nodiscard]] bool commit_ready() const noexcept override {
+    return !done() && (staged_start_ || staged_finish_);
+  }
 
   void evaluate(const CycleContext &) override {
     staged_start_ = false;
@@ -2599,31 +4581,76 @@ private:
 } // namespace
 
 class GraSuReGraphSsspSystem::Impl {
+  struct Pipeline {
+    std::unique_ptr<Fifo<PmaEdgeBatch>> edge_axis;
+    std::unique_ptr<Fifo<ReGraphSourceCacheRequest>> source_request_axis;
+    std::unique_ptr<Fifo<ReGraphSourceCacheResponse>> source_response_axis;
+    std::unique_ptr<Fifo<ReGraphGatherRow>> gather_axis;
+    std::unique_ptr<Fifo<ReGraphMergedBurst>> merger_axis;
+    std::unique_ptr<Fifo<ReGraphAppliedBurst>> wrapper_axis;
+    std::unique_ptr<FixedAxiPort> row_port;
+    std::unique_ptr<FixedAxiPort> source_state_port;
+    std::unique_ptr<FixedAxiPort> degree_port;
+    std::array<std::unique_ptr<FixedAxiPort>, 4> pma_ports;
+    std::unique_ptr<FixedAxiPort> apply_state_read_port;
+    std::unique_ptr<FixedAxiPort> apply_state_write_port;
+    std::unique_ptr<FixedAxiPort> apply_auxiliary_read_port;
+    std::unique_ptr<FixedAxiPort> apply_auxiliary_write_port;
+    std::unique_ptr<FixedAxiPort> source_state_primary_write_port;
+    std::unique_ptr<FixedAxiPort> source_state_mirror_write_port;
+    std::unique_ptr<ReGraphSourceHbmReader> source_hbm_reader;
+    std::unique_ptr<PmaNativeReader> reader;
+    std::unique_ptr<ReGraphGather> gather;
+    std::unique_ptr<ReGraphMerger> merger;
+    std::unique_ptr<ReGraphApply> apply;
+    std::unique_ptr<ReGraphHbmWrapper> wrapper;
+  };
+
 public:
   Impl(Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
        GraSuPartitionedPmaLayout layout, GraphAlgorithmPolicy policy,
        std::vector<std::uint32_t> out_degrees, std::size_t fixed_rounds,
-       GraSuReGraphConfig config)
+       GraSuReGraphConfig config,
+       std::optional<AlgorithmInitialState> initial_state = std::nullopt)
       : scheduler_(scheduler), clock_id_(clock_id), backend_(backend),
         layout_(std::move(layout)), source_(policy.config().source),
         config_(config), policy_(std::move(policy)),
-        out_degrees_(std::move(out_degrees)), fixed_rounds_(fixed_rounds),
-        edge_axis_("grasu-regraph-pma-axis", clock_id_,
-                   config_.axis_fifo_depth),
-        source_request_axis_("regraph-source-cache-request-axis", clock_id_,
-                             config_.source_cache_request_fifo_depth),
-        source_response_axis_("regraph-source-cache-response-axis", clock_id_,
-                              config_.source_cache_response_fifo_depth),
-        gather_axis_("regraph-gather-merger-axis", clock_id_,
-                     config_.gather_merger_fifo_depth),
-        merger_axis_("regraph-merger-apply-axis", clock_id_,
-                     config_.merger_apply_fifo_depth),
-        wrapper_axis_("regraph-apply-wrapper-axis", clock_id_,
-                      config_.apply_wrapper_fifo_depth),
+        out_degrees_(std::move(out_degrees)),
+        initial_state_(std::move(initial_state)), fixed_rounds_(fixed_rounds),
         start_cycle_(scheduler_.clock(clock_id_).completed_cycles) {
+    address_plan_ = make_grasu_partition_address_plan(
+        layout_, config_.packed_partition_addresses, config_.row_offset_base, 0,
+        config_.pma_base, config_.partition_address_stride,
+        config_.partition_address_arena_base,
+        config_.partition_address_alignment);
+    if (config_.packed_partition_addresses) {
+      const std::uint64_t alignment = config_.partition_address_alignment;
+      const auto align_up = [alignment](std::uint64_t value) {
+        const std::uint64_t remainder = value % alignment;
+        if (remainder == 0) {
+          return value;
+        }
+        if (alignment - remainder >
+            std::numeric_limits<std::uint64_t>::max() - value) {
+          throw std::overflow_error("ReGraph packed source-state overflow");
+        }
+        return value + alignment - remainder;
+      };
+      config_.source_state_base = align_up(address_plan_.arena_end);
+      const std::uint64_t required_stride =
+          align_up(layout_.partitions.size() * config_.partition_vertices *
+                   state_bytes_per_vertex(policy_));
+      config_.source_state_buffer_stride =
+          std::max(config_.source_state_buffer_stride, required_stride);
+    }
     validate_config();
     construct_partition_plans();
     construct_ports();
+    if (policy_.config().kind == GraphAlgorithmKind::kFullPageRank ||
+        policy_.config().kind == GraphAlgorithmKind::kResidualPageRank) {
+      iteration_context_ = std::make_unique<ReGraphIterationContext>(policy_);
+    }
+    initialize_sharded_graph_payloads();
     initialize_state();
     construct_components();
   }
@@ -2632,30 +4659,43 @@ public:
     if (registered_) {
       throw std::logic_error("GraSU-ReGraph system registered more than once");
     }
-    scheduler_.add_component(edge_axis_);
-    scheduler_.add_component(source_request_axis_);
-    scheduler_.add_component(source_response_axis_);
-    scheduler_.add_component(gather_axis_);
-    scheduler_.add_component(merger_axis_);
-    scheduler_.add_component(wrapper_axis_);
-    row_port_->register_components(scheduler_);
-    source_state_port_->register_components(scheduler_);
-    if (degree_port_ != nullptr) {
-      degree_port_->register_components(scheduler_);
+    if (source_prepare_ != nullptr) {
+      source_prepare_state_read_port_->register_components(scheduler_);
+      source_prepare_degree_read_port_->register_components(scheduler_);
+      source_prepare_primary_write_port_->register_components(scheduler_);
+      source_prepare_mirror_write_port_->register_components(scheduler_);
+      scheduler_.add_component(*source_prepare_);
     }
-    for (auto &port : pma_ports_) {
-      port->register_components(scheduler_);
+    for (Pipeline &pipeline : pipelines_) {
+      scheduler_.add_component(*pipeline.edge_axis);
+      scheduler_.add_component(*pipeline.source_request_axis);
+      scheduler_.add_component(*pipeline.source_response_axis);
+      scheduler_.add_component(*pipeline.gather_axis);
+      scheduler_.add_component(*pipeline.merger_axis);
+      scheduler_.add_component(*pipeline.wrapper_axis);
+      pipeline.row_port->register_components(scheduler_);
+      pipeline.source_state_port->register_components(scheduler_);
+      if (pipeline.degree_port != nullptr) {
+        pipeline.degree_port->register_components(scheduler_);
+      }
+      for (auto &port : pipeline.pma_ports) {
+        port->register_components(scheduler_);
+      }
+      pipeline.apply_state_read_port->register_components(scheduler_);
+      pipeline.apply_state_write_port->register_components(scheduler_);
+      if (pipeline.apply_auxiliary_read_port != nullptr) {
+        pipeline.apply_auxiliary_read_port->register_components(scheduler_);
+        pipeline.apply_auxiliary_write_port->register_components(scheduler_);
+      }
+      pipeline.source_state_primary_write_port->register_components(scheduler_);
+      pipeline.source_state_mirror_write_port->register_components(scheduler_);
+      scheduler_.add_component(*pipeline.source_hbm_reader);
+      scheduler_.add_component(*pipeline.reader);
+      scheduler_.add_component(*pipeline.gather);
+      scheduler_.add_component(*pipeline.merger);
+      scheduler_.add_component(*pipeline.apply);
+      scheduler_.add_component(*pipeline.wrapper);
     }
-    apply_state_read_port_->register_components(scheduler_);
-    apply_state_write_port_->register_components(scheduler_);
-    source_state_primary_write_port_->register_components(scheduler_);
-    source_state_mirror_write_port_->register_components(scheduler_);
-    scheduler_.add_component(*source_hbm_reader_);
-    scheduler_.add_component(*reader_);
-    scheduler_.add_component(*gather_);
-    scheduler_.add_component(*merger_);
-    scheduler_.add_component(*apply_);
-    scheduler_.add_component(*wrapper_);
     scheduler_.add_component(*controller_);
     registered_ = true;
   }
@@ -2667,109 +4707,190 @@ public:
   [[nodiscard]] const std::string &failure() const noexcept {
     return controller_->failure();
   }
+  [[nodiscard]] std::vector<std::size_t> frontier_out_sizes() const {
+    return controller_->frontier_out_sizes();
+  }
 
   [[nodiscard]] GraSuReGraphCounters counters() const noexcept {
     GraSuReGraphCounters result;
     const auto account_axi_port = [&result](const FixedAxiPort &port) {
-      result.axi_request_fifo_stalls +=
-          port.requests().stats().push_stalls;
+      result.axi_request_fifo_stalls += port.requests().stats().push_stalls;
       result.axi_backend_submit_stalls +=
           port.master().stats().backend_submit_stalls;
+      result.axi_beats_issued += port.master().stats().beats_issued;
+      result.axi_beats_completed += port.master().stats().beats_completed;
+    };
+    const auto sum = [this](auto value) {
+      std::uint64_t total = 0;
+      for (const Pipeline &pipeline : pipelines_) {
+        total += value(pipeline);
+      }
+      return total;
+    };
+    const auto maximum = [this](auto value) {
+      std::size_t result = 0;
+      for (const Pipeline &pipeline : pipelines_) {
+        result = std::max(result, value(pipeline));
+      }
+      return result;
     };
     result.state_bytes_per_vertex = state_bytes_per_vertex(policy_);
     result.destination_partitions = layout_.partitions.size();
+    result.compute_pipelines = pipelines_.size();
+    result.max_parallel_partitions = controller_->max_parallel_partitions();
+    result.max_parallel_downstream_partitions =
+        controller_->max_parallel_downstream_partitions();
     result.supersteps = controller_->supersteps();
     result.partition_passes = controller_->partition_passes();
-    result.row_reads = reader_->row_reads();
-    result.source_state_reads = source_hbm_reader_->requests();
-    result.source_cache_requests = reader_->source_requests();
-    result.source_cache_request_markers = reader_->source_request_markers();
-    result.source_cache_lines = reader_->source_lines();
-    result.source_cache_lane_writes = reader_->source_lane_writes();
-    result.source_cache_response_markers = reader_->source_response_markers();
-    result.source_cache_wait_cycles = reader_->source_wait_cycles();
-    result.source_cache_output_stall_cycles =
-        source_hbm_reader_->output_stall_cycles();
-    result.source_cache_request_fifo_max_occupancy =
-        source_request_axis_.stats().max_occupancy;
-    result.source_cache_response_fifo_max_occupancy =
-        source_response_axis_.stats().max_occupancy;
-    result.source_state_writes = wrapper_->source_writes();
-    result.degree_reads = reader_->degree_reads();
-    result.source_map_cycles = reader_->source_map_cycles();
-    result.pma_segment_reads = reader_->segment_reads();
-    result.edge_batches_scanned = gather_->batches_scanned();
-    result.pma_slots_scanned = gather_->slots_scanned();
-    result.live_edges_scanned = gather_->live_edges();
-    result.active_edges_mapped = gather_->active_edges();
-    result.gather_reset_cycles = gather_->reset_cycles();
-    result.gather_merge_cycles = gather_->merge_cycles();
-    result.gather_pipeline_drain_cycles = gather_->pipeline_drain_cycles();
-    result.gather_output_stall_cycles = gather_->output_stall_cycles();
-    result.gather_bank_conflict_cycles = gather_->conflict_cycles();
-    result.gather_bank_updates = gather_->bank_updates();
-    result.gather_bypass_hits = gather_->bypass_hits();
-    result.gather_bypass_misses = gather_->bypass_misses();
-    result.gather_cross_bank_reductions = gather_->cross_bank_reductions();
-    result.gather_rows_emitted = gather_->rows_emitted();
-    result.merger_rows_consumed = merger_->rows_consumed();
-    result.merger_bursts_emitted = merger_->bursts_emitted();
-    result.merger_output_stall_cycles = merger_->output_stall_cycles();
-    result.apply_state_reads = apply_->reads();
-    result.apply_state_writes = apply_->writes();
-    result.apply_input_bursts = apply_->input_bursts();
-    result.apply_output_stall_cycles = apply_->output_stall_cycles();
-    result.apply_read_window_stalls = apply_->read_window_stalls();
-    result.apply_pipeline_capacity_stalls = apply_->pipeline_capacity_stalls();
-    result.apply_write_window_stalls = apply_->write_window_stalls();
-    result.apply_max_reads_inflight = apply_->max_reads_inflight();
-    result.apply_max_pipeline_occupancy = apply_->max_pipeline_occupancy();
-    result.apply_max_writes_inflight = apply_->max_writes_inflight();
-    result.hbm_wrapper_input_bursts = wrapper_->input_bursts();
-    result.hbm_wrapper_pipeline_capacity_stalls =
-        wrapper_->pipeline_capacity_stalls();
-    result.hbm_wrapper_write_window_stalls = wrapper_->write_window_stalls();
-    result.hbm_wrapper_max_pipeline_occupancy =
-        wrapper_->max_pipeline_occupancy();
-    result.hbm_wrapper_max_writes_inflight = wrapper_->max_writes_inflight();
-    result.gather_merger_fifo_max_occupancy =
-        gather_axis_.stats().max_occupancy;
-    result.merger_apply_fifo_max_occupancy = merger_axis_.stats().max_occupancy;
-    result.apply_wrapper_fifo_max_occupancy =
-        wrapper_axis_.stats().max_occupancy;
-    result.activated_vertices = apply_->total_activated();
+    const auto &frontend_passes = controller_->worker_partition_passes();
+    for (std::size_t frontend = 0;
+         frontend < result.frontend_partition_passes.size() &&
+         frontend < frontend_passes.size();
+         ++frontend) {
+      result.frontend_partition_passes[frontend] = frontend_passes[frontend];
+    }
+    result.pipeline_busy_cycles = controller_->pipeline_busy_cycles();
+    result.downstream_busy_cycles = controller_->downstream_busy_cycles();
+    if (source_prepare_ != nullptr) {
+      result.source_prepare_cycles = source_prepare_->cycles();
+      result.source_prepare_state_reads = source_prepare_->state_reads();
+      result.source_prepare_state_read_bytes =
+          result.source_prepare_state_reads * kStateWordsPerBurst *
+          (config_.split_pagerank_state ? sizeof(std::uint32_t)
+                                        : state_bytes_per_vertex(policy_));
+      result.source_prepare_degree_reads = source_prepare_->degree_reads();
+      result.source_prepare_writes = source_prepare_->writes();
+    }
+#define SUM_PIPELINE(field, expression)                                        \
+  result.field = sum([](const Pipeline &p) { return (expression); })
+#define MAX_PIPELINE(field, expression)                                        \
+  result.field = maximum([](const Pipeline &p) { return (expression); })
+    SUM_PIPELINE(row_reads, p.reader->row_reads());
+    SUM_PIPELINE(source_state_reads, p.source_hbm_reader->requests());
+    SUM_PIPELINE(source_cache_requests, p.reader->source_requests());
+    SUM_PIPELINE(source_cache_request_markers,
+                 p.reader->source_request_markers());
+    SUM_PIPELINE(source_cache_lines, p.reader->source_lines());
+    SUM_PIPELINE(source_cache_lane_writes, p.reader->source_lane_writes());
+    SUM_PIPELINE(source_cache_response_markers,
+                 p.reader->source_response_markers());
+    SUM_PIPELINE(source_cache_wait_cycles, p.reader->source_wait_cycles());
+    SUM_PIPELINE(source_cache_output_stall_cycles,
+                 p.source_hbm_reader->output_stall_cycles());
+    MAX_PIPELINE(source_cache_request_fifo_max_occupancy,
+                 p.source_request_axis->stats().max_occupancy);
+    MAX_PIPELINE(source_cache_response_fifo_max_occupancy,
+                 p.source_response_axis->stats().max_occupancy);
+    SUM_PIPELINE(source_state_writes, p.wrapper->source_writes());
+    SUM_PIPELINE(degree_reads,
+                 p.reader->degree_reads() + p.apply->degree_reads());
+    SUM_PIPELINE(source_map_cycles, p.reader->source_map_cycles());
+    SUM_PIPELINE(pma_segment_reads, p.reader->segment_reads());
+    SUM_PIPELINE(edge_batches_scanned, p.gather->batches_scanned());
+    SUM_PIPELINE(pma_slots_scanned, p.gather->slots_scanned());
+    SUM_PIPELINE(live_edges_scanned, p.gather->live_edges());
+    SUM_PIPELINE(active_edges_mapped, p.gather->active_edges());
+    SUM_PIPELINE(gather_reset_cycles, p.gather->reset_cycles());
+    SUM_PIPELINE(gather_merge_cycles, p.gather->merge_cycles());
+    SUM_PIPELINE(gather_pipeline_drain_cycles,
+                 p.gather->pipeline_drain_cycles());
+    SUM_PIPELINE(gather_output_stall_cycles, p.gather->output_stall_cycles());
+    SUM_PIPELINE(gather_bank_conflict_cycles, p.gather->conflict_cycles());
+    SUM_PIPELINE(gather_bank_updates, p.gather->bank_updates());
+    SUM_PIPELINE(gather_bypass_hits, p.gather->bypass_hits());
+    SUM_PIPELINE(gather_bypass_misses, p.gather->bypass_misses());
+    SUM_PIPELINE(gather_cross_bank_reductions,
+                 p.gather->cross_bank_reductions());
+    SUM_PIPELINE(gather_rows_emitted, p.gather->rows_emitted());
+    SUM_PIPELINE(merger_rows_consumed, p.merger->rows_consumed());
+    SUM_PIPELINE(merger_bursts_emitted, p.merger->bursts_emitted());
+    SUM_PIPELINE(merger_output_stall_cycles, p.merger->output_stall_cycles());
+    SUM_PIPELINE(apply_state_reads, p.apply->reads());
+    SUM_PIPELINE(apply_state_writes, p.apply->writes());
+    SUM_PIPELINE(apply_input_bursts, p.apply->input_bursts());
+    SUM_PIPELINE(apply_output_stall_cycles, p.apply->output_stall_cycles());
+    SUM_PIPELINE(apply_read_window_stalls, p.apply->read_window_stalls());
+    SUM_PIPELINE(apply_pipeline_capacity_stalls,
+                 p.apply->pipeline_capacity_stalls());
+    SUM_PIPELINE(apply_write_window_stalls, p.apply->write_window_stalls());
+    MAX_PIPELINE(apply_max_reads_inflight, p.apply->max_reads_inflight());
+    MAX_PIPELINE(apply_max_pipeline_occupancy,
+                 p.apply->max_pipeline_occupancy());
+    MAX_PIPELINE(apply_max_writes_inflight, p.apply->max_writes_inflight());
+    SUM_PIPELINE(hbm_wrapper_input_bursts, p.wrapper->input_bursts());
+    SUM_PIPELINE(hbm_wrapper_pipeline_capacity_stalls,
+                 p.wrapper->pipeline_capacity_stalls());
+    SUM_PIPELINE(hbm_wrapper_write_window_stalls,
+                 p.wrapper->write_window_stalls());
+    MAX_PIPELINE(hbm_wrapper_max_pipeline_occupancy,
+                 p.wrapper->max_pipeline_occupancy());
+    MAX_PIPELINE(hbm_wrapper_max_writes_inflight,
+                 p.wrapper->max_writes_inflight());
+    MAX_PIPELINE(gather_merger_fifo_max_occupancy,
+                 p.gather_axis->stats().max_occupancy);
+    MAX_PIPELINE(merger_apply_fifo_max_occupancy,
+                 p.merger_axis->stats().max_occupancy);
+    MAX_PIPELINE(apply_wrapper_fifo_max_occupancy,
+                 p.wrapper_axis->stats().max_occupancy);
+    SUM_PIPELINE(activated_vertices, p.apply->total_activated());
+#undef MAX_PIPELINE
+#undef SUM_PIPELINE
+    result.source_state_writes += result.source_prepare_writes;
+    result.degree_reads += result.source_prepare_degree_reads;
     result.row_read_bytes = result.row_reads * 8;
-    result.source_state_read_bytes = source_hbm_reader_->read_bytes();
+    result.source_state_read_bytes =
+        result.source_state_reads * config_.source_buffer_vertices * 4;
     result.source_state_write_bytes =
-        result.source_state_writes * kStateWordsPerBurst *
-        state_bytes_per_vertex(policy_);
-    result.degree_read_bytes = result.degree_reads * 4;
+        result.source_state_writes * kStateWordsPerBurst * 4;
+    result.degree_read_bytes =
+        sum([](const Pipeline &p) {
+          return p.reader->degree_reads() * 4 +
+                 p.apply->degree_reads() * kStateWordsPerBurst * 4;
+        }) +
+        result.source_prepare_degree_reads * kStateWordsPerBurst * 4;
     result.pma_read_bytes = result.pma_segment_reads * kGraSuSegmentBytes;
-    result.apply_read_bytes = result.apply_state_reads * kStateWordsPerBurst *
-                              state_bytes_per_vertex(policy_);
-    result.apply_write_bytes = result.apply_state_writes *
-                               kStateWordsPerBurst *
-                               state_bytes_per_vertex(policy_);
-    account_axi_port(*row_port_);
-    account_axi_port(*source_state_port_);
-    account_axi_port(*apply_state_read_port_);
-    account_axi_port(*apply_state_write_port_);
-    account_axi_port(*source_state_primary_write_port_);
-    account_axi_port(*source_state_mirror_write_port_);
-    if (degree_port_ != nullptr) {
-      account_axi_port(*degree_port_);
+    result.apply_read_bytes =
+        result.apply_state_reads * kStateWordsPerBurst *
+        (config_.split_pagerank_state ? sizeof(std::uint32_t)
+                                      : state_bytes_per_vertex(policy_));
+    result.apply_write_bytes =
+        result.apply_state_writes * kStateWordsPerBurst *
+        (config_.split_pagerank_state ? sizeof(std::uint32_t)
+                                      : state_bytes_per_vertex(policy_));
+    for (const Pipeline &pipeline : pipelines_) {
+      account_axi_port(*pipeline.row_port);
+      account_axi_port(*pipeline.source_state_port);
+      account_axi_port(*pipeline.apply_state_read_port);
+      account_axi_port(*pipeline.apply_state_write_port);
+      if (pipeline.apply_auxiliary_read_port != nullptr) {
+        account_axi_port(*pipeline.apply_auxiliary_read_port);
+        account_axi_port(*pipeline.apply_auxiliary_write_port);
+      }
+      account_axi_port(*pipeline.source_state_primary_write_port);
+      account_axi_port(*pipeline.source_state_mirror_write_port);
+      if (pipeline.degree_port != nullptr) {
+        account_axi_port(*pipeline.degree_port);
+      }
+      for (const auto &port : pipeline.pma_ports) {
+        account_axi_port(*port);
+      }
+      result.axis_push_stalls +=
+          pipeline.source_request_axis->stats().push_stalls +
+          pipeline.source_response_axis->stats().push_stalls +
+          pipeline.edge_axis->stats().push_stalls +
+          pipeline.gather_axis->stats().push_stalls +
+          pipeline.merger_axis->stats().push_stalls +
+          pipeline.wrapper_axis->stats().push_stalls;
     }
-    for (const auto &port : pma_ports_) {
-      account_axi_port(*port);
+    if (source_prepare_ != nullptr) {
+      account_axi_port(*source_prepare_state_read_port_);
+      account_axi_port(*source_prepare_degree_read_port_);
+      account_axi_port(*source_prepare_primary_write_port_);
+      account_axi_port(*source_prepare_mirror_write_port_);
     }
-    result.axis_push_stalls =
-        source_request_axis_.stats().push_stalls +
-        source_response_axis_.stats().push_stalls +
-        edge_axis_.stats().push_stalls + gather_axis_.stats().push_stalls +
-        merger_axis_.stats().push_stalls + wrapper_axis_.stats().push_stalls;
     result.start_cycle = start_cycle_;
     result.end_cycle = scheduler_.clock(clock_id_).completed_cycles;
-    result.last_iteration_error = apply_->iteration_error();
+    result.last_iteration_error = controller_->iteration_error();
     return result;
   }
 
@@ -2781,15 +4902,16 @@ public:
   }
 
   [[nodiscard]] std::vector<std::uint32_t> state_words() const {
-    const auto bytes = backend_.inspect_payload(config_.vertex_state_channel,
-                                                config_.vertex_state_base,
-                                                layout_.vertices *
-                                                    state_bytes_per_vertex(
-                                                        policy_));
+    const std::size_t bytes_per_vertex = config_.split_pagerank_state
+                                             ? sizeof(std::uint32_t)
+                                             : state_bytes_per_vertex(policy_);
+    const auto bytes = backend_.inspect_payload(
+        config_.vertex_state_channel, config_.vertex_state_base,
+        layout_.vertices * bytes_per_vertex);
     std::vector<std::uint32_t> result(layout_.vertices);
     for (std::size_t vertex = 0; vertex < result.size(); ++vertex) {
       result[vertex] = decode_policy_value(
-          policy_, decode_u32(bytes, vertex * state_bytes_per_vertex(policy_)));
+          policy_, decode_u32(bytes, vertex * bytes_per_vertex));
     }
     return result;
   }
@@ -2799,13 +4921,20 @@ public:
       throw std::logic_error(
           "auxiliary state view requires residual PageRank policy");
     }
+    const std::size_t bytes_per_vertex = config_.split_pagerank_state
+                                             ? sizeof(std::uint32_t)
+                                             : state_bytes_per_vertex(policy_);
     const auto bytes = backend_.inspect_payload(
-        config_.vertex_state_channel, config_.vertex_state_base,
-        layout_.vertices * state_bytes_per_vertex(policy_));
+        config_.split_pagerank_state ? config_.residual_state_channel
+                                     : config_.vertex_state_channel,
+        config_.split_pagerank_state ? config_.residual_state_base
+                                     : config_.vertex_state_base,
+        layout_.vertices * bytes_per_vertex);
     std::vector<std::uint32_t> result(layout_.vertices);
     for (std::size_t vertex = 0; vertex < result.size(); ++vertex) {
-      result[vertex] = decode_u32(
-          bytes, vertex * state_bytes_per_vertex(policy_) + 4);
+      result[vertex] =
+          decode_u32(bytes, vertex * bytes_per_vertex +
+                                (config_.split_pagerank_state ? 0 : 4));
     }
     return result;
   }
@@ -2817,55 +4946,129 @@ private:
     const bool residual_pagerank =
         policy_.config().kind == GraphAlgorithmKind::kResidualPageRank;
     const bool pagerank = full_pagerank || residual_pagerank;
-    if (layout_.vertices == 0 || source_ >= layout_.vertices ||
-        policy_.config().vertices != layout_.vertices ||
-        (policy_.config().kind != GraphAlgorithmKind::kWeightedSssp &&
-         !pagerank) ||
-        (pagerank &&
-         (out_degrees_.size() != layout_.vertices || fixed_rounds_ == 0)) ||
-        (!pagerank && !out_degrees_.empty()) ||
-        config_.memory_channels < 4 || layout_.partitions.empty() ||
-        layout_.partitions.size() !=
-            (layout_.vertices + config_.partition_vertices - 1) /
-                config_.partition_vertices ||
-        layout_.partition_vertices != config_.partition_vertices ||
-        config_.partition_vertices % kStateWordsPerBurst != 0 ||
-        config_.source_state_buffer_stride <
-            layout_.partitions.size() * config_.partition_vertices *
-                state_bytes_per_vertex(policy_) ||
-        config_.source_state_buffer_stride % 4096 != 0 ||
-        config_.source_buffer_vertices == 0 ||
-        config_.source_buffer_vertices % kStateWordsPerBurst != 0 ||
-        config_.source_cache_request_fifo_depth == 0 ||
-        config_.source_cache_response_fifo_depth == 0 ||
-        config_.edge_lanes == 0 || config_.edge_lanes > 8 ||
-        kGraSuSegmentSlots % config_.edge_lanes != 0 ||
-        config_.gather_banks != config_.edge_lanes ||
-        config_.gather_bypass_distance == 0 ||
-        config_.gather_pipeline_latency <= config_.gather_bypass_distance ||
-        config_.gather_vertices_per_reset_cycle == 0 ||
-        config_.gather_vertices_per_merge_cycle != 2 ||
-        config_.axis_fifo_depth == 0 || config_.gather_merger_fifo_depth == 0 ||
-        config_.merger_apply_fifo_depth == 0 ||
-        config_.apply_wrapper_fifo_depth == 0 ||
-        config_.reader_buffer_batches <
-            kGraSuSegmentSlots / config_.edge_lanes ||
-        config_.max_pending_requests == 0 ||
-        config_.max_outstanding_bursts == 0 ||
-        config_.response_beats_per_cycle == 0 ||
-        config_.apply_request_window == 0 ||
-        config_.apply_pipeline_latency == 0 ||
-        config_.apply_pipeline_capacity == 0 ||
-        config_.hbm_wrapper_pipeline_latency == 0 ||
-        config_.hbm_wrapper_pipeline_capacity == 0 ||
-        config_.max_supersteps == 0 || config_.partition_address_stride == 0 ||
-        config_.row_channel >= config_.memory_channels ||
-        config_.source_state_channel >= config_.memory_channels ||
-        config_.source_state_mirror_channel >= config_.memory_channels ||
-        config_.vertex_state_channel >= config_.memory_channels ||
-        (pagerank && config_.degree_channel >= config_.memory_channels)) {
-      throw std::invalid_argument("invalid GraSU-ReGraph configuration");
+    const bool connected_components =
+        policy_.config().kind == GraphAlgorithmKind::kConnectedComponents;
+    const auto require = [](bool condition, const char *message) {
+      if (!condition) {
+        throw std::invalid_argument(
+            std::string("invalid GraSU-ReGraph configuration - ") + message);
+      }
+    };
+    require(layout_.vertices != 0, "empty graph");
+    require(source_ < layout_.vertices, "source outside graph");
+    require(policy_.config().vertices == layout_.vertices,
+            "policy vertex count mismatch");
+    require(policy_.config().kind == GraphAlgorithmKind::kWeightedSssp ||
+                pagerank || connected_components,
+            "unsupported algorithm policy");
+    require(!pagerank || out_degrees_.size() == layout_.vertices,
+            "PageRank degree vector mismatch");
+    require(!pagerank || fixed_rounds_ != 0, "PageRank has zero rounds");
+    require(!connected_components || fixed_rounds_ != 0,
+            "connected components has zero round limit");
+    require(pagerank || out_degrees_.empty(),
+            "non-PageRank algorithm unexpectedly has degrees");
+    require(!config_.split_pagerank_state ||
+                (residual_pagerank && config_.sharded_runtime_placement),
+            "split PageRank state requires sharded residual PageRank");
+    require(!connected_components || layout_.vertices <= kReGraphValueMask,
+            "connected-components label exceeds ReGraph value field");
+    if (initial_state_.has_value()) {
+      const std::unordered_set<std::uint32_t> active(
+          initial_state_->active_vertices.begin(),
+          initial_state_->active_vertices.end());
+      require(initial_state_->primary.size() == layout_.vertices,
+              "warm-start primary-state size mismatch");
+      require(uses_auxiliary_state(policy_)
+                  ? initial_state_->auxiliary.size() == layout_.vertices
+                  : initial_state_->auxiliary.empty(),
+              "warm-start auxiliary-state size mismatch");
+      require(active.size() == initial_state_->active_vertices.size(),
+              "warm-start frontier contains duplicates");
+      require(std::all_of(active.begin(), active.end(),
+                          [this](std::uint32_t vertex) {
+                            return vertex < layout_.vertices;
+                          }),
+              "warm-start frontier vertex outside graph");
     }
+    require(config_.memory_channels >= 4, "fewer than four HBM channels");
+    require(config_.compute_pipelines != 0, "zero compute pipelines");
+    require(!layout_.partitions.empty(), "empty PMA partition list");
+    require(config_.partition_vertices != 0, "zero partition vertices");
+    require(layout_.partitions.size() ==
+                (layout_.vertices + config_.partition_vertices - 1) /
+                    config_.partition_vertices,
+            "PMA partition count mismatch");
+    require(layout_.partition_vertices == config_.partition_vertices,
+            "PMA partition span mismatch");
+    require(config_.partition_vertices % kStateWordsPerBurst == 0,
+            "partition span is not burst aligned");
+    require(config_.source_state_buffer_stride >=
+                layout_.partitions.size() * config_.partition_vertices *
+                    state_bytes_per_vertex(policy_),
+            "source-state double-buffer stride is too small");
+    require(config_.source_state_buffer_stride % 4096 == 0,
+            "source-state stride is not 4 KiB aligned");
+    require(config_.source_buffer_vertices != 0, "zero source-cache capacity");
+    require(config_.source_buffer_vertices % kStateWordsPerBurst == 0,
+            "source-cache capacity is not burst aligned");
+    require(config_.source_cache_request_fifo_depth != 0,
+            "zero source request FIFO depth");
+    require(config_.source_cache_response_fifo_depth != 0,
+            "zero source response FIFO depth");
+    require(config_.edge_lanes != 0 && config_.edge_lanes <= 8,
+            "invalid edge lane count");
+    require(kGraSuSegmentSlots % config_.edge_lanes == 0,
+            "edge lanes do not divide PMA segment slots");
+    require(config_.gather_banks == config_.edge_lanes,
+            "gather banks differ from edge lanes");
+    require(config_.gather_bypass_distance != 0, "zero gather bypass distance");
+    require(config_.gather_pipeline_latency > config_.gather_bypass_distance,
+            "gather latency does not exceed bypass distance");
+    require(config_.gather_vertices_per_reset_cycle != 0,
+            "zero gather reset width");
+    require(config_.gather_vertices_per_merge_cycle == 2,
+            "unsupported gather merge width");
+    require(config_.axis_fifo_depth != 0, "zero AXIS FIFO depth");
+    require(config_.gather_merger_fifo_depth != 0,
+            "zero gather-merger FIFO depth");
+    require(config_.merger_apply_fifo_depth != 0,
+            "zero merger-apply FIFO depth");
+    require(config_.apply_wrapper_fifo_depth != 0,
+            "zero apply-wrapper FIFO depth");
+    require(config_.reader_buffer_batches >=
+                kGraSuSegmentSlots / config_.edge_lanes,
+            "reader buffer cannot hold one PMA segment");
+    require(config_.max_pending_requests != 0, "zero pending-request capacity");
+    require(config_.max_outstanding_bursts != 0,
+            "zero outstanding-burst capacity");
+    require(config_.response_beats_per_cycle != 0, "zero response bandwidth");
+    require(config_.apply_request_window != 0, "zero apply request window");
+    require(config_.apply_pipeline_latency != 0, "zero apply pipeline latency");
+    require(config_.apply_pipeline_capacity != 0,
+            "zero apply pipeline capacity");
+    require(config_.hbm_wrapper_pipeline_latency != 0,
+            "zero HBM-wrapper latency");
+    require(config_.hbm_wrapper_pipeline_capacity != 0,
+            "zero HBM-wrapper capacity");
+    require(config_.max_supersteps != 0, "zero maximum supersteps");
+    require(config_.partition_address_stride != 0,
+            "zero partition address stride");
+    require(config_.partition_address_alignment != 0,
+            "zero partition address alignment");
+    require(config_.row_channel < config_.memory_channels,
+            "row channel outside HBM");
+    require(config_.source_state_channel < config_.memory_channels,
+            "source-state channel outside HBM");
+    require(config_.source_state_mirror_channel < config_.memory_channels,
+            "source-state mirror channel outside HBM");
+    require(config_.vertex_state_channel < config_.memory_channels,
+            "vertex-state channel outside HBM");
+    require(!config_.split_pagerank_state ||
+                config_.residual_state_channel < config_.memory_channels,
+            "residual-state channel outside HBM");
+    require(!pagerank || config_.degree_channel < config_.memory_channels,
+            "degree channel outside HBM");
     for (std::size_t partition = 0; partition < layout_.partitions.size();
          ++partition) {
       const GraSuPmaLayout &part = layout_.partitions[partition];
@@ -2883,21 +5086,97 @@ private:
 
   void construct_partition_plans() {
     partition_plans_.reserve(layout_.partitions.size());
+    if (config_.sharded_runtime_placement) {
+      const std::vector<std::size_t> update_counts =
+          config_.runtime_physical_updates_per_shard.empty()
+              ? std::vector<std::size_t>(layout_.partitions.size(), 0)
+              : config_.runtime_physical_updates_per_shard;
+      runtime_plan_ = build_grasu_regraph_runtime_plan(
+          layout_, update_counts, config_.cache_segments_per_half,
+          kGraSuReGraphU55cGraphChannels,
+          config_.runtime_channel_capacity_bytes);
+      for (std::size_t partition = 0; partition < layout_.partitions.size();
+           ++partition) {
+        const GraSuPmaLayout &part = layout_.partitions[partition];
+        const auto row =
+            find_grasu_regraph_runtime_region(*runtime_plan_, partition, "row");
+        ReGraphPartitionPlan plan{
+            .destination_base = part.destination_base,
+            .destination_vertices = part.destination_vertices,
+            .row_base = row.channel_offset_bytes,
+            .row_channel = row.channel,
+        };
+        for (std::size_t lane = 0; lane < 4; ++lane) {
+          const auto pma = find_grasu_regraph_runtime_region(
+              *runtime_plan_, partition, "pma" + std::to_string(lane));
+          plan.pma_base[lane] = pma.channel_offset_bytes;
+          plan.pma_channel[lane] = pma.channel;
+        }
+        partition_plans_.push_back(plan);
+      }
+      return;
+    }
     for (std::size_t partition = 0; partition < layout_.partitions.size();
          ++partition) {
-      const std::uint64_t offset =
-          partition * config_.partition_address_stride;
-      if (offset > std::numeric_limits<std::uint64_t>::max() -
-                       std::max(config_.row_offset_base, config_.pma_base)) {
-        throw std::overflow_error("GraSU-ReGraph partition address overflow");
-      }
       const GraSuPmaLayout &part = layout_.partitions[partition];
       partition_plans_.push_back(ReGraphPartitionPlan{
           .destination_base = part.destination_base,
           .destination_vertices = part.destination_vertices,
-          .row_base = config_.row_offset_base + offset,
-          .pma_base = config_.pma_base + offset,
+          .row_base = address_plan_.row_bases.at(partition),
+          .row_channel = config_.row_channel,
+          .pma_base = {address_plan_.pma_bases.at(partition),
+                       address_plan_.pma_bases.at(partition),
+                       address_plan_.pma_bases.at(partition),
+                       address_plan_.pma_bases.at(partition)},
+          .pma_channel = {0, 1, 2, 3},
       });
+    }
+  }
+
+  void initialize_sharded_graph_payloads() {
+    if (!runtime_plan_.has_value()) {
+      return;
+    }
+    for (std::size_t partition = 0; partition < layout_.partitions.size();
+         ++partition) {
+      const GraSuPmaLayout &part = layout_.partitions[partition];
+      const ReGraphPartitionPlan &plan = partition_plans_[partition];
+      std::vector<std::uint8_t> rows;
+      rows.reserve(part.row_slot_bounds.size() * sizeof(std::uint64_t));
+      for (const auto &[begin, end] : part.row_slot_bounds) {
+        const std::uint64_t packed =
+            (static_cast<std::uint64_t>(begin) << 32) | end;
+        for (std::size_t byte = 0; byte < sizeof(packed); ++byte) {
+          rows.push_back(static_cast<std::uint8_t>(packed >> (byte * 8)));
+        }
+      }
+      const std::uint32_t total_slots = part.row_slot_bounds.empty()
+                                            ? 0
+                                            : part.row_slot_bounds.back().second;
+      const std::uint64_t sentinel =
+          (static_cast<std::uint64_t>(total_slots) << 32) | total_slots;
+      for (std::size_t byte = 0; byte < sizeof(sentinel); ++byte) {
+        rows.push_back(static_cast<std::uint8_t>(sentinel >> (byte * 8)));
+      }
+      backend_.initialize_payload(plan.row_channel, plan.row_base, rows);
+
+      for (std::size_t segment = 0; segment < part.segments.size(); ++segment) {
+        const std::size_t local = segment >> 1;
+        const std::size_t parity = segment & 1U;
+        const std::size_t lane = local < config_.cache_segments_per_half
+                                     ? parity * 2
+                                     : parity * 2 + 1;
+        std::vector<std::uint8_t> bytes;
+        bytes.reserve(kGraSuSegmentBytes);
+        for (const std::uint32_t word : part.segments[segment]) {
+          for (std::size_t byte = 0; byte < sizeof(word); ++byte) {
+            bytes.push_back(static_cast<std::uint8_t>(word >> (byte * 8)));
+          }
+        }
+        backend_.initialize_payload(
+            plan.pma_channel[lane],
+            plan.pma_base[lane] + local * kGraSuSegmentBytes, bytes);
+      }
     }
   }
 
@@ -2908,37 +5187,88 @@ private:
         port_config(config_, channel, next_initiator_++, width), backend_);
   }
 
-  std::unique_ptr<FixedAxiPort> make_source_stream_port() {
+  std::unique_ptr<FixedAxiPort>
+  make_source_stream_port(const std::string &name) {
     FixedAxiPortConfig source = port_config(
         config_, config_.source_state_channel, next_initiator_++, 64);
     source.stream_read_beats = true;
     source.read_beat_fifo_depth = config_.source_cache_response_fifo_depth;
     source.read_reorder_capacity = config_.max_outstanding_bursts * 16;
-    return std::make_unique<FixedAxiPort>("grasu-regraph-source-state",
-                                          clock_id_, source, backend_);
+    return std::make_unique<FixedAxiPort>(name, clock_id_, source, backend_);
   }
 
   void construct_ports() {
-    row_port_ = make_port("grasu-regraph-row", config_.row_channel, 8);
-    source_state_port_ = make_source_stream_port();
-    if (policy_.config().kind != GraphAlgorithmKind::kWeightedSssp) {
-      degree_port_ =
-          make_port("grasu-regraph-degree", config_.degree_channel, 4);
+    const bool pagerank =
+        policy_.config().kind == GraphAlgorithmKind::kFullPageRank ||
+        policy_.config().kind == GraphAlgorithmKind::kResidualPageRank;
+    if (pagerank) {
+      source_prepare_state_read_port_ =
+          make_port("grasu-regraph-source-prepare-state-read",
+                    config_.vertex_state_channel, 64);
+      source_prepare_degree_read_port_ =
+          make_port("grasu-regraph-source-prepare-degree-read",
+                    config_.degree_channel, 64);
+      source_prepare_primary_write_port_ =
+          make_port("grasu-regraph-source-prepare-primary-write",
+                    config_.source_state_channel, 64);
+      source_prepare_mirror_write_port_ =
+          make_port("grasu-regraph-source-prepare-mirror-write",
+                    config_.source_state_mirror_channel, 64);
     }
-    for (std::size_t channel = 0; channel < pma_ports_.size(); ++channel) {
-      pma_ports_[channel] =
-          make_port("grasu-regraph-pma" + std::to_string(channel), channel, 64);
+    pipelines_.resize(config_.compute_pipelines);
+    for (std::size_t index = 0; index < pipelines_.size(); ++index) {
+      Pipeline &pipeline = pipelines_[index];
+      const std::string prefix =
+          "grasu-regraph-p" + std::to_string(index) + "-";
+      pipeline.edge_axis = std::make_unique<Fifo<PmaEdgeBatch>>(
+          prefix + "pma-axis", clock_id_, config_.axis_fifo_depth);
+      pipeline.source_request_axis =
+          std::make_unique<Fifo<ReGraphSourceCacheRequest>>(
+              prefix + "source-cache-request-axis", clock_id_,
+              config_.source_cache_request_fifo_depth);
+      pipeline.source_response_axis =
+          std::make_unique<Fifo<ReGraphSourceCacheResponse>>(
+              prefix + "source-cache-response-axis", clock_id_,
+              config_.source_cache_response_fifo_depth);
+      pipeline.gather_axis = std::make_unique<Fifo<ReGraphGatherRow>>(
+          prefix + "gather-merger-axis", clock_id_,
+          config_.gather_merger_fifo_depth);
+      pipeline.merger_axis = std::make_unique<Fifo<ReGraphMergedBurst>>(
+          prefix + "merger-apply-axis", clock_id_,
+          config_.merger_apply_fifo_depth);
+      pipeline.wrapper_axis = std::make_unique<Fifo<ReGraphAppliedBurst>>(
+          prefix + "apply-wrapper-axis", clock_id_,
+          config_.apply_wrapper_fifo_depth);
+      pipeline.row_port = make_port(prefix + "row", config_.row_channel, 8);
+      pipeline.source_state_port =
+          make_source_stream_port(prefix + "source-state");
+      if (pagerank) {
+        pipeline.degree_port =
+            make_port(prefix + "degree", config_.degree_channel, 4);
+      }
+      for (std::size_t channel = 0; channel < pipeline.pma_ports.size();
+           ++channel) {
+        pipeline.pma_ports[channel] =
+            make_port(prefix + "pma" + std::to_string(channel), channel, 64);
+      }
+      pipeline.apply_state_read_port = make_port(
+          prefix + "apply-state-read", config_.vertex_state_channel, 64);
+      pipeline.apply_state_write_port = make_port(
+          prefix + "apply-state-write", config_.vertex_state_channel, 64);
+      if (config_.split_pagerank_state) {
+        pipeline.apply_auxiliary_read_port = make_port(
+            prefix + "apply-residual-read", config_.residual_state_channel, 64);
+        pipeline.apply_auxiliary_write_port =
+            make_port(prefix + "apply-residual-write",
+                      config_.residual_state_channel, 64);
+      }
+      pipeline.source_state_primary_write_port =
+          make_port(prefix + "source-state-primary-write",
+                    config_.source_state_channel, 64);
+      pipeline.source_state_mirror_write_port =
+          make_port(prefix + "source-state-mirror-write",
+                    config_.source_state_mirror_channel, 64);
     }
-    apply_state_read_port_ = make_port("grasu-regraph-apply-state-read",
-                                       config_.vertex_state_channel, 64);
-    apply_state_write_port_ = make_port("grasu-regraph-apply-state-write",
-                                        config_.vertex_state_channel, 64);
-    source_state_primary_write_port_ =
-        make_port("grasu-regraph-source-state-primary-write",
-                  config_.source_state_channel, 64);
-    source_state_mirror_write_port_ =
-        make_port("grasu-regraph-source-state-mirror-write",
-                  config_.source_state_mirror_channel, 64);
   }
 
   void initialize_state() {
@@ -2946,18 +5276,36 @@ private:
     const std::size_t padded_vertices =
         layout_.partitions.size() * config_.partition_vertices;
     std::vector<std::uint8_t> bytes(padded_vertices * bytes_per_vertex);
-    for (std::size_t vertex = 0; vertex < padded_vertices;
-         ++vertex) {
+    const std::unordered_set<std::uint32_t> initial_active =
+        initial_state_.has_value()
+            ? std::unordered_set<std::uint32_t>(
+                  initial_state_->active_vertices.begin(),
+                  initial_state_->active_vertices.end())
+            : std::unordered_set<std::uint32_t>{};
+    for (std::size_t vertex = 0; vertex < padded_vertices; ++vertex) {
       std::uint32_t encoded =
-          policy_.config().kind == GraphAlgorithmKind::kWeightedSssp
+          policy_.config().kind == GraphAlgorithmKind::kWeightedSssp ||
+                  policy_.config().kind ==
+                      GraphAlgorithmKind::kConnectedComponents
               ? kReGraphInfinity
               : GraphAlgorithmPolicy::float_to_word(0.0F);
       if (vertex < layout_.vertices) {
         const AlgorithmVertexState state =
-            policy_.initial_state(static_cast<std::uint32_t>(vertex));
+            initial_state_.has_value()
+                ? AlgorithmVertexState{
+                      .primary = initial_state_->primary[vertex],
+                      .auxiliary = uses_auxiliary_state(policy_)
+                                       ? initial_state_->auxiliary[vertex]
+                                       : 0U,
+                  }
+                : policy_.initial_state(static_cast<std::uint32_t>(vertex));
         const bool active =
-            policy_.config().kind == GraphAlgorithmKind::kFullPageRank ||
-            vertex == source_;
+            initial_state_.has_value()
+                ? initial_active.contains(static_cast<std::uint32_t>(vertex))
+                : policy_.config().kind == GraphAlgorithmKind::kFullPageRank ||
+                      policy_.config().kind ==
+                          GraphAlgorithmKind::kConnectedComponents ||
+                      vertex == source_;
         encoded = encode_policy_value(policy_, state.primary, active);
         if (uses_auxiliary_state(policy_)) {
           for (std::size_t byte = 0; byte < 4; ++byte) {
@@ -2971,13 +5319,40 @@ private:
             static_cast<std::uint8_t>(encoded >> (byte * 8));
       }
     }
-    backend_.initialize_payload(config_.vertex_state_channel,
-                                config_.vertex_state_base, bytes);
+    if (config_.split_pagerank_state) {
+      std::vector<std::uint8_t> primary_bytes(padded_vertices * 4);
+      std::vector<std::uint8_t> auxiliary_bytes(padded_vertices * 4);
+      for (std::size_t vertex = 0; vertex < padded_vertices; ++vertex) {
+        std::copy_n(bytes.begin() + static_cast<std::ptrdiff_t>(vertex * 8), 4,
+                    primary_bytes.begin() +
+                        static_cast<std::ptrdiff_t>(vertex * 4));
+        std::copy_n(
+            bytes.begin() + static_cast<std::ptrdiff_t>(vertex * 8 + 4), 4,
+            auxiliary_bytes.begin() + static_cast<std::ptrdiff_t>(vertex * 4));
+      }
+      backend_.initialize_payload(config_.vertex_state_channel,
+                                  config_.vertex_state_base, primary_bytes);
+      backend_.initialize_payload(config_.residual_state_channel,
+                                  config_.residual_state_base, auxiliary_bytes);
+    } else {
+      backend_.initialize_payload(config_.vertex_state_channel,
+                                  config_.vertex_state_base, bytes);
+    }
+    std::vector<std::uint8_t> source_bytes(padded_vertices * 4);
+    if (iteration_context_ == nullptr) {
+      for (std::size_t vertex = 0; vertex < padded_vertices; ++vertex) {
+        std::copy_n(
+            bytes.begin() +
+                static_cast<std::ptrdiff_t>(vertex * bytes_per_vertex),
+            4, source_bytes.begin() + static_cast<std::ptrdiff_t>(vertex * 4));
+      }
+    }
     backend_.initialize_payload(config_.source_state_channel,
-                                config_.source_state_base, bytes);
+                                config_.source_state_base, source_bytes);
     backend_.initialize_payload(config_.source_state_mirror_channel,
-                                config_.source_state_base, bytes);
-    if (policy_.config().kind != GraphAlgorithmKind::kWeightedSssp &&
+                                config_.source_state_base, source_bytes);
+    if ((policy_.config().kind == GraphAlgorithmKind::kFullPageRank ||
+         policy_.config().kind == GraphAlgorithmKind::kResidualPageRank) &&
         config_.initialize_degree_payload) {
       std::vector<std::uint8_t> degree_bytes(layout_.vertices * 4);
       for (std::size_t vertex = 0; vertex < out_degrees_.size(); ++vertex) {
@@ -2992,35 +5367,68 @@ private:
   }
 
   void construct_components() {
-    std::array<FixedAxiPort *, 4> pma{};
-    for (std::size_t index = 0; index < pma.size(); ++index) {
-      pma[index] = pma_ports_[index].get();
+    if (iteration_context_ != nullptr) {
+      source_prepare_ = std::make_unique<ReGraphPageRankSourcePrepare>(
+          "grasu-regraph-pagerank-source-prepare", clock_id_, layout_.vertices,
+          policy_, config_, *source_prepare_state_read_port_,
+          *source_prepare_degree_read_port_,
+          *source_prepare_primary_write_port_,
+          *source_prepare_mirror_write_port_, *iteration_context_);
     }
-    source_hbm_reader_ = std::make_unique<ReGraphSourceHbmReader>(
-        "grasu-regraph-source-hbm-reader", clock_id_, config_, policy_,
-        source_request_axis_, source_response_axis_, *source_state_port_);
-    reader_ = std::make_unique<PmaNativeReader>(
-        "grasu-regraph-reader", clock_id_, layout_.vertices, policy_, config_,
-        PmaNativeReader::Ports{
-            .rows = row_port_.get(),
-            .degree = degree_port_.get(),
-            .pma = pma,
-            .output = &edge_axis_,
-            .source_requests = &source_request_axis_,
-            .source_responses = &source_response_axis_,
-        });
-    gather_ = std::make_unique<ReGraphGather>(
-        "grasu-regraph-gather", clock_id_, layout_.vertices, policy_, config_,
-        edge_axis_, gather_axis_, *reader_);
-    merger_ = std::make_unique<ReGraphMerger>(
-        "grasu-regraph-merger", clock_id_, config_, gather_axis_, merger_axis_);
-    apply_ = std::make_unique<ReGraphApply>(
-        "grasu-regraph-apply", clock_id_, layout_.vertices, policy_, config_,
-        merger_axis_, wrapper_axis_, *apply_state_read_port_,
-        *apply_state_write_port_, *reader_);
-    wrapper_ = std::make_unique<ReGraphHbmWrapper>(
-        "grasu-regraph-hbm-wrapper", clock_id_, config_, policy_, wrapper_axis_,
-        *source_state_primary_write_port_, *source_state_mirror_write_port_);
+    std::vector<GraSuReGraphWorker> workers;
+    workers.reserve(pipelines_.size());
+    for (std::size_t index = 0; index < pipelines_.size(); ++index) {
+      Pipeline &pipeline = pipelines_[index];
+      const std::string prefix =
+          "grasu-regraph-p" + std::to_string(index) + "-";
+      std::array<FixedAxiPort *, 4> pma{};
+      for (std::size_t channel = 0; channel < pma.size(); ++channel) {
+        pma[channel] = pipeline.pma_ports[channel].get();
+      }
+      pipeline.source_hbm_reader = std::make_unique<ReGraphSourceHbmReader>(
+          prefix + "source-hbm-reader", clock_id_, config_, policy_,
+          *pipeline.source_request_axis, *pipeline.source_response_axis,
+          *pipeline.source_state_port);
+      pipeline.reader = std::make_unique<PmaNativeReader>(
+          prefix + "reader", clock_id_, layout_.vertices, policy_, config_,
+          PmaNativeReader::Ports{
+              .rows = pipeline.row_port.get(),
+              .degree = pipeline.degree_port.get(),
+              .pma = pma,
+              .output = pipeline.edge_axis.get(),
+              .source_requests = pipeline.source_request_axis.get(),
+              .source_responses = pipeline.source_response_axis.get(),
+          });
+      pipeline.gather = std::make_unique<ReGraphGather>(
+          prefix + "gather", clock_id_, layout_.vertices, policy_, config_,
+          *pipeline.edge_axis, *pipeline.gather_axis, *pipeline.reader);
+      pipeline.merger = std::make_unique<ReGraphMerger>(
+          prefix + "merger", clock_id_, config_, *pipeline.gather_axis,
+          *pipeline.merger_axis);
+      pipeline.apply = std::make_unique<ReGraphApply>(
+          prefix + "apply", clock_id_, layout_.vertices, policy_, config_,
+          *pipeline.merger_axis, *pipeline.wrapper_axis,
+          *pipeline.apply_state_read_port, *pipeline.apply_state_write_port,
+          pipeline.degree_port.get(),
+          iteration_context_ != nullptr
+              ? static_cast<const ReGraphReaderContext &>(*iteration_context_)
+              : static_cast<const ReGraphReaderContext &>(*pipeline.reader),
+          pipeline.apply_auxiliary_read_port.get(),
+          pipeline.apply_auxiliary_write_port.get());
+      pipeline.wrapper = std::make_unique<ReGraphHbmWrapper>(
+          prefix + "hbm-wrapper", clock_id_, config_, policy_,
+          *pipeline.wrapper_axis, *pipeline.source_state_primary_write_port,
+          *pipeline.source_state_mirror_write_port);
+      workers.push_back(GraSuReGraphWorker{
+          .source_hbm = pipeline.source_hbm_reader.get(),
+          .reader = pipeline.reader.get(),
+          .gather = pipeline.gather.get(),
+          .merger = pipeline.merger.get(),
+          .apply = pipeline.apply.get(),
+          .wrapper = pipeline.wrapper.get(),
+          .partition = std::nullopt,
+      });
+    }
     controller_ = std::make_unique<GraSuReGraphController>(
         "grasu-regraph-controller", clock_id_, policy_.config().kind,
         policy_.config().kind == GraphAlgorithmKind::kWeightedSssp &&
@@ -3029,25 +5437,45 @@ private:
             : fixed_rounds_,
         policy_.config().kind == GraphAlgorithmKind::kWeightedSssp &&
             fixed_rounds_ != 0,
-        partition_plans_, *source_hbm_reader_, *reader_, *gather_, *merger_,
-        *apply_, *wrapper_);
+        partition_plans_, std::move(workers), iteration_context_.get(),
+        source_prepare_.get(), config_.shared_downstream,
+        config_.sharded_runtime_placement && config_.compute_pipelines == 4 &&
+            config_.shared_downstream);
   }
 
   [[nodiscard]] bool all_ports_idle() const noexcept {
-    if (!source_request_axis_.empty() || !source_response_axis_.empty() ||
-        !edge_axis_.empty() || !gather_axis_.empty() || !merger_axis_.empty() ||
-        !wrapper_axis_.empty() || !row_port_->idle() ||
-        !source_state_port_->idle() || !apply_state_read_port_->idle() ||
-        !apply_state_write_port_->idle() ||
-        !source_state_primary_write_port_->idle() ||
-        !source_state_mirror_write_port_->idle()) {
+    if (source_prepare_ != nullptr &&
+        (!source_prepare_state_read_port_->idle() ||
+         !source_prepare_degree_read_port_->idle() ||
+         !source_prepare_primary_write_port_->idle() ||
+         !source_prepare_mirror_write_port_->idle())) {
       return false;
     }
-    if (degree_port_ != nullptr && !degree_port_->idle()) {
-      return false;
-    }
-    return std::all_of(pma_ports_.begin(), pma_ports_.end(),
-                       [](const auto &port) { return port->idle(); });
+    return std::all_of(
+        pipelines_.begin(), pipelines_.end(), [](const Pipeline &pipeline) {
+          if (!pipeline.source_request_axis->empty() ||
+              !pipeline.source_response_axis->empty() ||
+              !pipeline.edge_axis->empty() || !pipeline.gather_axis->empty() ||
+              !pipeline.merger_axis->empty() ||
+              !pipeline.wrapper_axis->empty() || !pipeline.row_port->idle() ||
+              !pipeline.source_state_port->idle() ||
+              !pipeline.apply_state_read_port->idle() ||
+              !pipeline.apply_state_write_port->idle() ||
+              (pipeline.apply_auxiliary_read_port != nullptr &&
+               (!pipeline.apply_auxiliary_read_port->idle() ||
+                !pipeline.apply_auxiliary_write_port->idle())) ||
+              !pipeline.source_state_primary_write_port->idle() ||
+              !pipeline.source_state_mirror_write_port->idle()) {
+            return false;
+          }
+          if (pipeline.degree_port != nullptr &&
+              !pipeline.degree_port->idle()) {
+            return false;
+          }
+          return std::all_of(pipeline.pma_ports.begin(),
+                             pipeline.pma_ports.end(),
+                             [](const auto &port) { return port->idle(); });
+        });
   }
 
   Scheduler &scheduler_;
@@ -3058,28 +5486,18 @@ private:
   GraSuReGraphConfig config_;
   GraphAlgorithmPolicy policy_;
   std::vector<std::uint32_t> out_degrees_;
+  std::optional<AlgorithmInitialState> initial_state_;
   std::size_t fixed_rounds_{};
+  GraSuPartitionAddressPlan address_plan_;
   std::vector<ReGraphPartitionPlan> partition_plans_;
-  Fifo<PmaEdgeBatch> edge_axis_;
-  Fifo<ReGraphSourceCacheRequest> source_request_axis_;
-  Fifo<ReGraphSourceCacheResponse> source_response_axis_;
-  Fifo<ReGraphGatherRow> gather_axis_;
-  Fifo<ReGraphMergedBurst> merger_axis_;
-  Fifo<ReGraphAppliedBurst> wrapper_axis_;
-  std::unique_ptr<FixedAxiPort> row_port_;
-  std::unique_ptr<FixedAxiPort> source_state_port_;
-  std::unique_ptr<FixedAxiPort> degree_port_;
-  std::array<std::unique_ptr<FixedAxiPort>, 4> pma_ports_;
-  std::unique_ptr<FixedAxiPort> apply_state_read_port_;
-  std::unique_ptr<FixedAxiPort> apply_state_write_port_;
-  std::unique_ptr<FixedAxiPort> source_state_primary_write_port_;
-  std::unique_ptr<FixedAxiPort> source_state_mirror_write_port_;
-  std::unique_ptr<ReGraphSourceHbmReader> source_hbm_reader_;
-  std::unique_ptr<PmaNativeReader> reader_;
-  std::unique_ptr<ReGraphGather> gather_;
-  std::unique_ptr<ReGraphMerger> merger_;
-  std::unique_ptr<ReGraphApply> apply_;
-  std::unique_ptr<ReGraphHbmWrapper> wrapper_;
+  std::optional<GraSuReGraphRuntimePlan> runtime_plan_;
+  std::unique_ptr<ReGraphIterationContext> iteration_context_;
+  std::unique_ptr<FixedAxiPort> source_prepare_state_read_port_;
+  std::unique_ptr<FixedAxiPort> source_prepare_degree_read_port_;
+  std::unique_ptr<FixedAxiPort> source_prepare_primary_write_port_;
+  std::unique_ptr<FixedAxiPort> source_prepare_mirror_write_port_;
+  std::unique_ptr<ReGraphPageRankSourcePrepare> source_prepare_;
+  std::vector<Pipeline> pipelines_;
   std::unique_ptr<GraSuReGraphController> controller_;
   std::uint32_t next_initiator_{3100};
   std::uint64_t start_cycle_{};
@@ -3090,8 +5508,7 @@ class GraSuNativeReGraphSsspSystem::Impl {
 public:
   Impl(Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
        std::size_t vertices, std::size_t compact_edge_slots,
-       std::uint32_t source, std::size_t supersteps,
-       GraSuReGraphConfig config)
+       std::uint32_t source, std::size_t supersteps, GraSuReGraphConfig config)
       : scheduler_(scheduler), clock_id_(clock_id), backend_(backend),
         vertices_(vertices), compact_edge_slots_(compact_edge_slots),
         source_(source), supersteps_(supersteps), config_(config),
@@ -3167,8 +5584,7 @@ public:
     GraSuNativeReGraphCounters result;
     GraSuReGraphCounters &pipeline = result.pipeline;
     const auto account_axi_port = [&pipeline](const FixedAxiPort &port) {
-      pipeline.axi_request_fifo_stalls +=
-          port.requests().stats().push_stalls;
+      pipeline.axi_request_fifo_stalls += port.requests().stats().push_stalls;
       pipeline.axi_backend_submit_stalls +=
           port.master().stats().backend_submit_stalls;
     };
@@ -3178,8 +5594,7 @@ public:
     pipeline.partition_passes = controller_->rounds();
     pipeline.source_state_reads = source_hbm_reader_->requests();
     pipeline.source_cache_requests = scatter_->source_requests();
-    pipeline.source_cache_request_markers =
-        scatter_->source_request_markers();
+    pipeline.source_cache_request_markers = scatter_->source_request_markers();
     pipeline.source_cache_lines = scatter_->source_lines();
     pipeline.source_cache_lane_writes = scatter_->source_lane_writes();
     pipeline.source_cache_response_markers =
@@ -3217,18 +5632,15 @@ public:
         apply_->pipeline_capacity_stalls();
     pipeline.apply_write_window_stalls = apply_->write_window_stalls();
     pipeline.apply_max_reads_inflight = apply_->max_reads_inflight();
-    pipeline.apply_max_pipeline_occupancy =
-        apply_->max_pipeline_occupancy();
+    pipeline.apply_max_pipeline_occupancy = apply_->max_pipeline_occupancy();
     pipeline.apply_max_writes_inflight = apply_->max_writes_inflight();
     pipeline.hbm_wrapper_input_bursts = wrapper_->input_bursts();
     pipeline.hbm_wrapper_pipeline_capacity_stalls =
         wrapper_->pipeline_capacity_stalls();
-    pipeline.hbm_wrapper_write_window_stalls =
-        wrapper_->write_window_stalls();
+    pipeline.hbm_wrapper_write_window_stalls = wrapper_->write_window_stalls();
     pipeline.hbm_wrapper_max_pipeline_occupancy =
         wrapper_->max_pipeline_occupancy();
-    pipeline.hbm_wrapper_max_writes_inflight =
-        wrapper_->max_writes_inflight();
+    pipeline.hbm_wrapper_max_writes_inflight = wrapper_->max_writes_inflight();
     pipeline.gather_merger_fifo_max_occupancy =
         gather_axis_.stats().max_occupancy;
     pipeline.merger_apply_fifo_max_occupancy =
@@ -3237,9 +5649,9 @@ public:
         wrapper_axis_.stats().max_occupancy;
     pipeline.activated_vertices = apply_->total_activated();
     pipeline.source_state_read_bytes = source_hbm_reader_->read_bytes();
-    pipeline.source_state_write_bytes =
-        pipeline.source_state_writes * kStateWordsPerBurst *
-        state_bytes_per_vertex(policy_);
+    pipeline.source_state_write_bytes = pipeline.source_state_writes *
+                                        kStateWordsPerBurst *
+                                        state_bytes_per_vertex(policy_);
     pipeline.apply_read_bytes = pipeline.apply_state_reads *
                                 kStateWordsPerBurst *
                                 state_bytes_per_vertex(policy_);
@@ -3252,13 +5664,13 @@ public:
     account_axi_port(*apply_state_write_port_);
     account_axi_port(*source_state_primary_write_port_);
     account_axi_port(*source_state_mirror_write_port_);
-    pipeline.axis_push_stalls =
-        edge_burst_axis_.stats().push_stalls +
-        scatter_axis_.stats().push_stalls +
-        source_request_axis_.stats().push_stalls +
-        source_response_axis_.stats().push_stalls +
-        gather_axis_.stats().push_stalls + merger_axis_.stats().push_stalls +
-        wrapper_axis_.stats().push_stalls;
+    pipeline.axis_push_stalls = edge_burst_axis_.stats().push_stalls +
+                                scatter_axis_.stats().push_stalls +
+                                source_request_axis_.stats().push_stalls +
+                                source_response_axis_.stats().push_stalls +
+                                gather_axis_.stats().push_stalls +
+                                merger_axis_.stats().push_stalls +
+                                wrapper_axis_.stats().push_stalls;
     pipeline.start_cycle = start_cycle_;
     pipeline.end_cycle = scheduler_.clock(clock_id_).completed_cycles;
     pipeline.last_iteration_error = apply_->iteration_error();
@@ -3267,10 +5679,8 @@ public:
     result.edge_array_slots_scanned = gather_->slots_scanned();
     result.edge_array_read_bytes =
         result.edge_array_requests * compact_edge_slots_ * 8;
-    result.edge_array_output_stall_cycles =
-        edge_reader_->output_stall_cycles();
-    result.cross_source_round_bursts =
-        scatter_->cross_source_round_bursts();
+    result.edge_array_output_stall_cycles = edge_reader_->output_stall_cycles();
+    result.cross_source_round_bursts = scatter_->cross_source_round_bursts();
     return result;
   }
 
@@ -3287,16 +5697,14 @@ public:
 
 private:
   void validate_config() const {
-    const std::size_t highest_channel =
-        std::max({config_.edge_array_channel, config_.source_state_channel,
-                  config_.source_state_mirror_channel,
-                  config_.vertex_state_channel});
+    const std::size_t highest_channel = std::max(
+        {config_.edge_array_channel, config_.source_state_channel,
+         config_.source_state_mirror_channel, config_.vertex_state_channel});
     if (vertices_ == 0 || vertices_ > config_.partition_vertices ||
         vertices_ > 65536 || source_ >= vertices_ || supersteps_ == 0 ||
         supersteps_ > config_.max_supersteps || compact_edge_slots_ < 8 ||
         compact_edge_slots_ % 8 != 0 ||
-        compact_edge_slots_ >
-            std::numeric_limits<std::uint32_t>::max() / 8U ||
+        compact_edge_slots_ > std::numeric_limits<std::uint32_t>::max() / 8U ||
         config_.memory_channels <= highest_channel ||
         config_.partition_vertices != 65536 ||
         config_.partition_vertices % kStateWordsPerBurst != 0 ||
@@ -3323,22 +5731,20 @@ private:
         config_.apply_pipeline_capacity == 0 ||
         config_.hbm_wrapper_pipeline_latency == 0 ||
         config_.hbm_wrapper_pipeline_capacity == 0) {
-      throw std::invalid_argument(
-          "invalid native GraSU-ReGraph configuration");
+      throw std::invalid_argument("invalid native GraSU-ReGraph configuration");
     }
   }
 
   std::unique_ptr<FixedAxiPort>
-  make_port(const std::string &name, std::size_t channel,
-            std::uint32_t width) {
+  make_port(const std::string &name, std::size_t channel, std::uint32_t width) {
     return std::make_unique<FixedAxiPort>(
         name, clock_id_,
         port_config(config_, channel, next_initiator_++, width), backend_);
   }
 
-  std::unique_ptr<FixedAxiPort> make_stream_port(
-      const std::string &name, std::size_t channel,
-      std::size_t read_fifo_depth) {
+  std::unique_ptr<FixedAxiPort> make_stream_port(const std::string &name,
+                                                 std::size_t channel,
+                                                 std::size_t read_fifo_depth) {
     FixedAxiPortConfig port =
         port_config(config_, channel, next_initiator_++, 64);
     port.stream_read_beats = true;
@@ -3348,9 +5754,9 @@ private:
   }
 
   void construct_ports() {
-    edge_array_port_ = make_stream_port("grasu-native-edge-array",
-                                        config_.edge_array_channel,
-                                        config_.edge_array_fifo_depth);
+    edge_array_port_ =
+        make_stream_port("grasu-native-edge-array", config_.edge_array_channel,
+                         config_.edge_array_fifo_depth);
     source_state_port_ = make_stream_port(
         "grasu-native-source-state", config_.source_state_channel,
         config_.source_cache_response_fifo_depth);
@@ -3371,9 +5777,9 @@ private:
     for (std::size_t vertex = 0; vertex < config_.partition_vertices;
          ++vertex) {
       const std::uint32_t encoded =
-          vertex == source_ ? encode_distance(0, true)
-                            : encode_distance(
-                                  GraphAlgorithmPolicy::kSsspInfinity, false);
+          vertex == source_
+              ? encode_distance(0, true)
+              : encode_distance(GraphAlgorithmPolicy::kSsspInfinity, false);
       for (std::size_t byte = 0; byte < 4; ++byte) {
         bytes[vertex * 4 + byte] =
             static_cast<std::uint8_t>(encoded >> (byte * 8));
@@ -3401,13 +5807,13 @@ private:
     gather_ = std::make_unique<ReGraphGather>(
         "grasu-native-regraph-gather", clock_id_, vertices_, policy_, config_,
         scatter_axis_, gather_axis_, *scatter_);
-    merger_ = std::make_unique<ReGraphMerger>(
-        "grasu-native-regraph-merger", clock_id_, config_, gather_axis_,
-        merger_axis_);
+    merger_ = std::make_unique<ReGraphMerger>("grasu-native-regraph-merger",
+                                              clock_id_, config_, gather_axis_,
+                                              merger_axis_);
     apply_ = std::make_unique<ReGraphApply>(
         "grasu-native-regraph-apply", clock_id_, vertices_, policy_, config_,
         merger_axis_, wrapper_axis_, *apply_state_read_port_,
-        *apply_state_write_port_, *scatter_);
+        *apply_state_write_port_, nullptr, *scatter_);
     wrapper_ = std::make_unique<ReGraphHbmWrapper>(
         "grasu-native-regraph-hbm-wrapper", clock_id_, config_, policy_,
         wrapper_axis_, *source_state_primary_write_port_,
@@ -3467,33 +5873,9 @@ private:
 GraSuReGraphSsspSystem::GraSuReGraphSsspSystem(
     Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
     GraSuPmaLayout layout, std::uint32_t source, GraSuReGraphConfig config)
-    : impl_(
-          std::make_unique<Impl>(scheduler, clock_id, backend,
-                                 one_partition_layout(
-                                     layout, config.partition_vertices),
-                                 GraphAlgorithmPolicy(AlgorithmPolicyConfig{
-                                     .kind = GraphAlgorithmKind::kWeightedSssp,
-                                     .vertices = layout.vertices,
-                                     .source = source,
-                                 }),
-                                 std::vector<std::uint32_t>{}, 0, config)) {}
-
-GraSuReGraphSsspSystem::GraSuReGraphSsspSystem(
-    Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
-    GraSuPmaLayout layout, GraphAlgorithmPolicy policy,
-    std::vector<std::uint32_t> out_degrees, std::size_t fixed_rounds,
-    GraSuReGraphConfig config)
     : impl_(std::make_unique<Impl>(
           scheduler, clock_id, backend,
-          one_partition_layout(std::move(layout), config.partition_vertices),
-          std::move(policy), std::move(out_degrees), fixed_rounds, config)) {}
-
-GraSuReGraphSsspSystem::GraSuReGraphSsspSystem(
-    Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
-    GraSuPartitionedPmaLayout layout, std::uint32_t source,
-    GraSuReGraphConfig config)
-    : impl_(std::make_unique<Impl>(
-          scheduler, clock_id, backend, layout,
+          one_partition_layout(layout, config.partition_vertices),
           GraphAlgorithmPolicy(AlgorithmPolicyConfig{
               .kind = GraphAlgorithmKind::kWeightedSssp,
               .vertices = layout.vertices,
@@ -3503,12 +5885,41 @@ GraSuReGraphSsspSystem::GraSuReGraphSsspSystem(
 
 GraSuReGraphSsspSystem::GraSuReGraphSsspSystem(
     Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
+    GraSuPmaLayout layout, GraphAlgorithmPolicy policy,
+    std::vector<std::uint32_t> out_degrees, std::size_t fixed_rounds,
+    GraSuReGraphConfig config,
+    std::optional<AlgorithmInitialState> initial_state)
+    : impl_(std::make_unique<Impl>(
+          scheduler, clock_id, backend,
+          one_partition_layout(std::move(layout), config.partition_vertices),
+          std::move(policy), std::move(out_degrees), fixed_rounds, config,
+          std::move(initial_state))) {}
+
+GraSuReGraphSsspSystem::GraSuReGraphSsspSystem(Scheduler &scheduler,
+                                               ClockId clock_id,
+                                               MemoryBackend &backend,
+                                               GraSuPartitionedPmaLayout layout,
+                                               std::uint32_t source,
+                                               GraSuReGraphConfig config)
+    : impl_(
+          std::make_unique<Impl>(scheduler, clock_id, backend, layout,
+                                 GraphAlgorithmPolicy(AlgorithmPolicyConfig{
+                                     .kind = GraphAlgorithmKind::kWeightedSssp,
+                                     .vertices = layout.vertices,
+                                     .source = source,
+                                 }),
+                                 std::vector<std::uint32_t>{}, 0, config)) {}
+
+GraSuReGraphSsspSystem::GraSuReGraphSsspSystem(
+    Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
     GraSuPartitionedPmaLayout layout, GraphAlgorithmPolicy policy,
     std::vector<std::uint32_t> out_degrees, std::size_t fixed_rounds,
-    GraSuReGraphConfig config)
-    : impl_(std::make_unique<Impl>(
-          scheduler, clock_id, backend, std::move(layout), std::move(policy),
-          std::move(out_degrees), fixed_rounds, config)) {}
+    GraSuReGraphConfig config,
+    std::optional<AlgorithmInitialState> initial_state)
+    : impl_(std::make_unique<Impl>(scheduler, clock_id, backend,
+                                   std::move(layout), std::move(policy),
+                                   std::move(out_degrees), fixed_rounds, config,
+                                   std::move(initial_state))) {}
 
 GraSuReGraphSsspSystem::~GraSuReGraphSsspSystem() = default;
 
@@ -3528,6 +5939,10 @@ GraSuReGraphCounters GraSuReGraphSsspSystem::counters() const noexcept {
   return impl_->counters();
 }
 
+std::vector<std::size_t> GraSuReGraphSsspSystem::frontier_out_sizes() const {
+  return impl_->frontier_out_sizes();
+}
+
 std::vector<std::uint32_t> GraSuReGraphSsspSystem::distances() const {
   return impl_->distances();
 }
@@ -3543,8 +5958,8 @@ GraSuReGraphSsspSystem::auxiliary_state_words() const {
 
 GraSuNativeReGraphSsspSystem::GraSuNativeReGraphSsspSystem(
     Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
-    std::size_t vertices, std::size_t compact_edge_slots,
-    std::uint32_t source, std::size_t supersteps, GraSuReGraphConfig config)
+    std::size_t vertices, std::size_t compact_edge_slots, std::uint32_t source,
+    std::size_t supersteps, GraSuReGraphConfig config)
     : impl_(std::make_unique<Impl>(scheduler, clock_id, backend, vertices,
                                    compact_edge_slots, source, supersteps,
                                    config)) {}
@@ -3592,9 +6007,8 @@ GraSuReGraphPageRankSystem::GraSuReGraphPageRankSystem(
 
 GraSuReGraphPageRankSystem::GraSuReGraphPageRankSystem(
     Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
-    GraSuPartitionedPmaLayout layout,
-    std::vector<std::uint32_t> out_degrees, std::size_t iterations,
-    float damping, GraSuReGraphConfig config)
+    GraSuPartitionedPmaLayout layout, std::vector<std::uint32_t> out_degrees,
+    std::size_t iterations, float damping, GraSuReGraphConfig config)
     : engine_(std::make_unique<GraSuReGraphSsspSystem>(
           scheduler, clock_id, backend, layout,
           GraphAlgorithmPolicy(AlgorithmPolicyConfig{
@@ -3639,7 +6053,8 @@ GraSuReGraphResidualPageRankSystem::GraSuReGraphResidualPageRankSystem(
     Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
     GraSuPmaLayout layout, std::vector<std::uint32_t> out_degrees,
     std::size_t max_iterations, float damping, float epsilon,
-    GraSuReGraphConfig config)
+    GraSuReGraphConfig config, ResidualPageRankContract residual_contract,
+    std::optional<AlgorithmInitialState> initial_state)
     : engine_(std::make_unique<GraSuReGraphSsspSystem>(
           scheduler, clock_id, backend, layout,
           GraphAlgorithmPolicy(AlgorithmPolicyConfig{
@@ -3648,14 +6063,17 @@ GraSuReGraphResidualPageRankSystem::GraSuReGraphResidualPageRankSystem(
               .source = 0,
               .damping = damping,
               .epsilon = epsilon,
+              .residual_contract = residual_contract,
           }),
-          std::move(out_degrees), max_iterations, config)) {}
+          std::move(out_degrees), max_iterations, config,
+          std::move(initial_state))) {}
 
 GraSuReGraphResidualPageRankSystem::GraSuReGraphResidualPageRankSystem(
     Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
-    GraSuPartitionedPmaLayout layout,
-    std::vector<std::uint32_t> out_degrees, std::size_t max_iterations,
-    float damping, float epsilon, GraSuReGraphConfig config)
+    GraSuPartitionedPmaLayout layout, std::vector<std::uint32_t> out_degrees,
+    std::size_t max_iterations, float damping, float epsilon,
+    GraSuReGraphConfig config, ResidualPageRankContract residual_contract,
+    std::optional<AlgorithmInitialState> initial_state)
     : engine_(std::make_unique<GraSuReGraphSsspSystem>(
           scheduler, clock_id, backend, layout,
           GraphAlgorithmPolicy(AlgorithmPolicyConfig{
@@ -3664,8 +6082,10 @@ GraSuReGraphResidualPageRankSystem::GraSuReGraphResidualPageRankSystem(
               .source = 0,
               .damping = damping,
               .epsilon = epsilon,
+              .residual_contract = residual_contract,
           }),
-          std::move(out_degrees), max_iterations, config)) {}
+          std::move(out_degrees), max_iterations, config,
+          std::move(initial_state))) {}
 
 GraSuReGraphResidualPageRankSystem::~GraSuReGraphResidualPageRankSystem() =
     default;
@@ -3682,7 +6102,8 @@ bool GraSuReGraphResidualPageRankSystem::failed() const noexcept {
   return engine_->failed();
 }
 
-const std::string &GraSuReGraphResidualPageRankSystem::failure() const noexcept {
+const std::string &
+GraSuReGraphResidualPageRankSystem::failure() const noexcept {
   return engine_->failure();
 }
 
@@ -3705,6 +6126,76 @@ std::vector<float> GraSuReGraphResidualPageRankSystem::residuals() const {
   std::transform(words.begin(), words.end(), values.begin(),
                  GraphAlgorithmPolicy::word_to_float);
   return values;
+}
+
+std::vector<std::size_t>
+GraSuReGraphResidualPageRankSystem::frontier_out_sizes() const {
+  return engine_->frontier_out_sizes();
+}
+
+GraSuReGraphConnectedComponentsSystem::GraSuReGraphConnectedComponentsSystem(
+    Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
+    GraSuPmaLayout layout, std::size_t max_iterations,
+    GraSuReGraphConfig config,
+    std::optional<AlgorithmInitialState> initial_state)
+    : engine_(std::make_unique<GraSuReGraphSsspSystem>(
+          scheduler, clock_id, backend, layout,
+          GraphAlgorithmPolicy(AlgorithmPolicyConfig{
+              .kind = GraphAlgorithmKind::kConnectedComponents,
+              .vertices = layout.vertices,
+              .source = 0,
+          }),
+          std::vector<std::uint32_t>{}, max_iterations, config,
+          std::move(initial_state))) {}
+
+GraSuReGraphConnectedComponentsSystem::GraSuReGraphConnectedComponentsSystem(
+    Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
+    GraSuPartitionedPmaLayout layout, std::size_t max_iterations,
+    GraSuReGraphConfig config,
+    std::optional<AlgorithmInitialState> initial_state)
+    : engine_(std::make_unique<GraSuReGraphSsspSystem>(
+          scheduler, clock_id, backend, layout,
+          GraphAlgorithmPolicy(AlgorithmPolicyConfig{
+              .kind = GraphAlgorithmKind::kConnectedComponents,
+              .vertices = layout.vertices,
+              .source = 0,
+          }),
+          std::vector<std::uint32_t>{}, max_iterations, config,
+          std::move(initial_state))) {}
+
+GraSuReGraphConnectedComponentsSystem::
+    ~GraSuReGraphConnectedComponentsSystem() = default;
+
+void GraSuReGraphConnectedComponentsSystem::register_components() {
+  engine_->register_components();
+}
+
+bool GraSuReGraphConnectedComponentsSystem::done() const noexcept {
+  return engine_->done();
+}
+
+bool GraSuReGraphConnectedComponentsSystem::failed() const noexcept {
+  return engine_->failed();
+}
+
+const std::string &
+GraSuReGraphConnectedComponentsSystem::failure() const noexcept {
+  return engine_->failure();
+}
+
+GraSuReGraphCounters
+GraSuReGraphConnectedComponentsSystem::counters() const noexcept {
+  return engine_->counters();
+}
+
+std::vector<std::uint32_t>
+GraSuReGraphConnectedComponentsSystem::labels() const {
+  return engine_->state_words();
+}
+
+std::vector<std::size_t>
+GraSuReGraphConnectedComponentsSystem::frontier_out_sizes() const {
+  return engine_->frontier_out_sizes();
 }
 
 } // namespace spine::sim

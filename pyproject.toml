@@ -9,6 +9,9 @@ description = "SST-style cycle-level simulator for the Spine dynamic graph accel
 requires-python = ">=3.10"
 dependencies = []
 
+[project.optional-dependencies]
+plots = ["matplotlib>=3.8,<4"]
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["spine_cycle_sim*"]

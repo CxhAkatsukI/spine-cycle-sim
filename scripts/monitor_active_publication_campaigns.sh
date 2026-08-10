@@ -1,0 +1,179 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+campaign_root="${SPINE_CAMPAIGN_ROOT:-/data/tmp/chuxiao/large_graph_campaign_v1}"
+interval_seconds="${SPINE_MONITOR_INTERVAL_SECONDS:-60}"
+once=0
+
+if [[ "${1:-}" == "--once" ]]; then
+  once=1
+elif [[ $# -ne 0 ]]; then
+  echo "usage: $0 [--once]" >&2
+  exit 2
+fi
+
+campaigns=(
+  fullgraph_v2_repair
+  formal_v3_weighted_wave
+  formal_v3_wiki_cc_k1
+  formal_v3_superuser_weighted
+  formal_v3_superuser_spine_fullpr
+  formal_v3_au_grasu_nonmonotonic
+  formal_v3_au_spine_weight_remaining
+  formal_v3_au_spine_weight_u1
+  formal_v3_au_spine_delete
+  formal_v3_au_insert_endpoints
+  formal_v3_au_dense_k4
+  formal_v3_remaining5_spine_weighted
+  formal_v3_remaining7_k4_weighted
+  formal_v3_r19_spine
+  formal_v3_r19_grasu_fullpr
+  formal_v3_r19_k4_priority
+  formal_v3_r19_cc_guard
+  formal_v3_stackoverflow_spine
+  formal_v4_stackoverflow_spine_linear
+  formal_v3_small_cc_residual
+  formal_v3_small_fullpr
+  formal_v4_missing_fullpr_competitors
+  formal_v4_stackoverflow_cc_residual_competitors
+)
+
+standalone_runs=(
+  formal_v5_stackoverflow_cc_hot_partition_clip
+  formal_v5_r19_cc_hot_partition_clip
+)
+
+declare -A globally_passed_execution_ids=()
+declare -A capacity_excluded_execution_ids=()
+
+refresh_global_resolutions() {
+  globally_passed_execution_ids=()
+  capacity_excluded_execution_ids=()
+
+  while IFS= read -r result; do
+    [[ -n "${result}" ]] || continue
+    if jq -e '.status == "pass"' "${result}" >/dev/null 2>&1; then
+      execution_id="$(basename "$(dirname "${result}")")"
+      globally_passed_execution_ids["${execution_id}"]=1
+    fi
+  done < <(
+    find "${campaign_root}" -type f -path '*/runs/*/case_result.json' \
+      -print 2>/dev/null
+  )
+
+  while IFS= read -r manifest; do
+    [[ -n "${manifest}" ]] || continue
+    while IFS= read -r execution_id; do
+      [[ -n "${execution_id}" ]] || continue
+      capacity_excluded_execution_ids["${execution_id}"]=1
+    done < <(jq -r '.capacity_exclusions[]?.execution_id // empty' "${manifest}")
+  done < <(
+    find "${campaign_root}" -mindepth 2 -maxdepth 2 -type f \
+      -name campaign_manifest.json -print 2>/dev/null
+  )
+}
+
+while true; do
+  date -Is
+  refresh_global_resolutions
+  current_available_bytes="$(
+    awk '$1 == "MemAvailable:" { print $2 * 1024 }' /proc/meminfo
+  )"
+  for campaign in "${campaigns[@]}"; do
+    state="${campaign_root}/${campaign}/run/campaign_state.json"
+    if [[ ! -f "${state}" ]]; then
+      state="${campaign_root}/${campaign}/campaign_state.json"
+    fi
+    if [[ ! -f "${state}" ]]; then
+      printf '%-38s missing\n' "${campaign}"
+      continue
+    fi
+    reused=0
+    recovered=0
+    capacity_excluded=0
+    while IFS= read -r job_id; do
+      [[ -n "${job_id}" ]] || continue
+      execution_id="${job_id##*.}"
+      result="${campaign_root}/${campaign}/runs/${execution_id}/case_result.json"
+      if [[ -f "${result}" ]] && jq -e '
+        .status == "pass"
+        and (.admission.reused_child // false)
+      ' "${result}" >/dev/null 2>&1; then
+        ((reused += 1))
+      elif [[ -n "${globally_passed_execution_ids[${execution_id}]+x}" ]]; then
+        ((recovered += 1))
+      elif [[ -n "${capacity_excluded_execution_ids[${execution_id}]+x}" ]]; then
+        ((capacity_excluded += 1))
+      fi
+    done < <(
+      jq -r '.jobs[] | select(.status == "fail") | .job_id' "${state}"
+    )
+    jq -r \
+      --arg campaign "${campaign}" \
+      --argjson reused "${reused}" \
+      --argjson recovered "${recovered}" \
+      --argjson capacity_excluded "${capacity_excluded}" \
+      --argjson current_available_bytes "${current_available_bytes}" '
+      (.summary.by_status.fail // 0) as $failed |
+      [
+        $campaign,
+        .status,
+        ("pass=" + ((.summary.by_status.pass // 0) | tostring)),
+        ("run=" + ((.summary.by_status.running // 0) | tostring)),
+        ("queue=" + ((.summary.by_status.queued // 0) | tostring)),
+        ("fail=" + ($failed | tostring)),
+        ("reused=" + ($reused | tostring)),
+        ("recovered=" + ($recovered | tostring)),
+        ("capacity=" + ($capacity_excluded | tostring)),
+        ("unresolved_fail=" + (($failed - $reused - $recovered - $capacity_excluded) | tostring)),
+        ("stop=" + ((.summary.by_status.stopped // 0) | tostring)),
+        ("rss_gib=" + (((if .status == "running" then (.host.campaign_rss_bytes // 0) else 0 end) / 1073741824 * 10 | floor) / 10 | tostring)),
+        ("available_gib=" + (($current_available_bytes / 1073741824) | floor | tostring)),
+        ("breaker=" + (if (.host.memory_pressure_active // false) then "active" else "clear" end))
+      ] | @tsv
+    ' "${state}"
+  done
+  for run in "${standalone_runs[@]}"; do
+    root="${campaign_root}/${run}"
+    result="${root}/case_result.json"
+    progress="${root}/child/progress.json"
+    rss_kib="$({
+      ps -eo rss=,args= | awk -v needle="${root}" '
+        index($0, needle) && !index($0, "awk -v needle=") &&
+          !index($0, "monitor_active_publication_campaigns.sh") { total += $1 }
+        END { print total + 0 }
+      '
+    })"
+    if [[ -f "${result}" ]] && jq -e '.status == "pass"' "${result}" >/dev/null; then
+      status=pass
+      phase=complete
+      cycles="$(jq -r '.row.cycles' "${result}")"
+    elif (( rss_kib > 0 )); then
+      status=running
+      if [[ -f "${progress}" ]]; then
+        phase="$(jq -r '.phase // "compute"' "${progress}")"
+        cycles="$(jq -r '.simulated_cycles // 0' "${progress}")"
+      else
+        phase=host_or_sst_setup
+        cycles=0
+      fi
+    elif [[ -d "${root}" ]]; then
+      status=incomplete
+      phase=not_running
+      cycles=0
+    else
+      status=missing
+      phase=not_started
+      cycles=0
+    fi
+    printf '%-38s %s\tphase=%s\tcycles=%s\trss_gib=%s\tavailable_gib=%s\n' \
+      "${run}" "${status}" "${phase}" "${cycles}" \
+      "$((rss_kib / 1024 / 1024))" "$((current_available_bytes / 1073741824))"
+  done
+  free -h | sed -n '1,2p'
+  printf '\n'
+  if (( once )); then
+    break
+  fi
+  sleep "${interval_seconds}"
+done

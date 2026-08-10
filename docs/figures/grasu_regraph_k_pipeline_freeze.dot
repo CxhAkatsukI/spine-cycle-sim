@@ -1,0 +1,56 @@
+digraph GraSUReGraphKPipelineFreeze {
+  graph [rankdir=LR, bgcolor="white", pad="0.2", nodesep="0.32", ranksep="0.55",
+         fontname="DejaVu Sans", label="GraSU + ReGraph multi-partition K-pipeline contract", labelloc=t];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=9,
+        color="#475569", fillcolor="#f8fafc", margin="0.10,0.07"];
+  edge [fontname="DejaVu Sans", fontsize=8, color="#64748b", arrowsize=0.65];
+
+  subgraph cluster_update {
+    label="GraSU update path (shared)";
+    color="#86efac"; style="rounded";
+    input [label="Logical updates\ninsert / delete / weight change", fillcolor="#dcfce7"];
+    search [label="4 bin-search CUs", fillcolor="#dcfce7"];
+    dispatch [label="Dispatch\n2 cache + 2 DDR paths", fillcolor="#dcfce7"];
+    pma [label="PMA HBM read-modify-write\nfull-word weighted edge ABI", fillcolor="#dcfce7"];
+    barrier [label="Completion barrier", fillcolor="#dcfce7"];
+    input -> search -> dispatch -> pma -> barrier;
+  }
+
+  subgraph cluster_controller {
+    label="Runtime destination-partition controller";
+    color="#93c5fd"; style="rounded";
+    queue [label="Finite work queue\nup to 16 logical partitions", fillcolor="#dbeafe"];
+    scheduler [label="Work-conserving dispatch\nmax active = min(K, partitions)", fillcolor="#dbeafe"];
+    queue -> scheduler;
+  }
+
+  subgraph cluster_workers {
+    label="ReGraph complete worker pool";
+    color="#c4b5fd"; style="rounded";
+    w0 [label="Worker 0\nPMA adapter -> gather -> merger -> apply", fillcolor="#ede9fe"];
+    w1 [label="Worker 1\nK >= 2", fillcolor="#f5f3ff", style="rounded,filled,dashed"];
+    wk [label="Workers 2..3\nK = 4", fillcolor="#f5f3ff", style="rounded,filled,dashed"];
+  }
+
+  subgraph cluster_memory {
+    label="Shared execution-driven memory substrate";
+    color="#cbd5e1"; style="rounded";
+    axi [label="Finite AXI ports\nburst / outstanding / response FIFO", fillcolor="#f1f5f9"];
+    arb [label="Per-channel arbitration\ncontention + backpressure", fillcolor="#f1f5f9"];
+    hbm [shape=cylinder, label="SST / DRAMSim3 U55C HBM\n32 x 512-bit | 450 MHz", fillcolor="#e2e8f0"];
+    axi -> arb -> hbm;
+  }
+
+  barrier -> queue [label="conversion-free PMA state"];
+  scheduler -> w0;
+  scheduler -> w1 [style=dashed];
+  scheduler -> wk [style=dashed];
+  w0 -> axi;
+  w1 -> axi [style=dashed];
+  wk -> axi [style=dashed];
+
+  primary [shape=note, label="Primary baseline: K=1\nrouted complete worker\nserial partition execution", fillcolor="#fef9c3"];
+  projected [shape=note, label="K=2/4: simulator sensitivity only\nneeds a shared-port HLS top\ndirect replication exceeds 33 AXI masters", fillcolor="#fee2e2"];
+  primary -> w0 [style=dotted];
+  projected -> w1 [style=dotted, color="#dc2626"];
+}

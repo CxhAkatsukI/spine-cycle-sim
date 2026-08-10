@@ -1,0 +1,4 @@
+run_id,role,epsilon,user_mutations,iterations,spine_cycles,grasu_cycles,spine_speedup_over_grasu,spine_backend_bytes,grasu_backend_bytes,grasu_to_spine_backend_byte_ratio,cross_system_max_abs_rank_difference,cross_system_max_abs_residual_difference,cross_system_frontiers_match,correctness_admitted
+deltahls_soc_flickr_insert_u1,screening,1e-06,1,4,448163,847205,1.8903947893958224,292528,8313920,28.42093748290762,1.0000000000157452e-09,1.0000000000276037e-12,True,True
+deltahls_soc_flickr_insert_u64,screening,1e-06,64,26,2482106,5329115,2.147013463566826,2332472,53778720,23.056534011983853,9.999999999940612e-09,2.0000000000552074e-12,True,True
+deltahls_soc_flickr_insert_u8,screening,1e-06,8,12,759284,2475379,3.2601490351436357,674596,24840944,36.823438028093854,1.0000000000157452e-09,1.0000000000276037e-12,True,True

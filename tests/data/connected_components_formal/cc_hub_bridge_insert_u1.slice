@@ -1,0 +1,6 @@
+# spine_real_slice_version=1
+# case=cc_hub_bridge_insert_u1
+# vertices=258
+# columns=src dst weight diff
+0 128 28 1
+128 0 28 1

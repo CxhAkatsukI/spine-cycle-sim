@@ -1,0 +1,6 @@
+# spine_real_slice_version=1
+# case=real_soc_flickr_und_reciprocal_sinkfree_insert_u1
+# vertices=2552
+# columns=src dst weight diff
+0 1799 28 1
+1799 0 28 1

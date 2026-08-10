@@ -15,6 +15,8 @@
 
 namespace spine::sim {
 
+class SpineOwnerScheduler;
+
 struct SpinePageRankCounters {
   std::uint64_t start_cycle{};
   std::uint64_t end_cycle{};
@@ -32,11 +34,15 @@ struct SpinePageRankCounters {
   std::uint64_t edge_reduce_operations{};
   std::uint64_t vertices_applied{};
   std::uint64_t vertices_activated{};
+  std::uint64_t owner_activation_attempts{};
+  std::uint64_t owner_activations_accepted{};
+  std::uint64_t owner_activation_backpressure_cycles{};
   std::uint64_t primary_read_bytes{};
   std::uint64_t primary_write_bytes{};
   std::uint64_t auxiliary_read_bytes{};
   std::uint64_t auxiliary_write_bytes{};
   std::uint64_t degree_read_bytes{};
+  std::uint64_t active_out_write_bytes{};
   std::uint64_t memory_requests_issued{};
   std::uint64_t memory_requests_completed{};
   std::uint64_t memory_window_stall_cycles{};
@@ -55,12 +61,16 @@ class SpineSplitPageRankCompute final : public Component {
   SpineSplitPageRankCompute(
       std::string name, ClockId clock_id, GraphAlgorithmPolicy policy,
       std::vector<std::uint32_t> out_degrees, FixedAxiPort &vertex_state,
+      FixedAxiPort *active_out,
       Fifo<PartConvWord> &edge_in, Fifo<SourceValueWord> &value_out,
       AlgorithmPipelineConfig pipeline_config = {},
       std::size_t memory_request_window = kDefaultMemoryRequestWindow,
-      std::size_t tile_vertices = kDefaultTileVertices);
+      std::size_t tile_vertices = kDefaultTileVertices,
+      std::optional<AlgorithmInitialState> initial_state = std::nullopt,
+      SpineOwnerScheduler *owner_scheduler = nullptr);
 
   void register_components(Scheduler &scheduler);
+  void configure_initial_start_gate(const bool *start_ready);
   [[nodiscard]] bool done() const noexcept { return done_; }
   [[nodiscard]] bool failed() const noexcept { return failed_; }
   [[nodiscard]] const std::vector<std::uint32_t> &rank_words() const noexcept {
@@ -126,11 +136,14 @@ class SpineSplitPageRankCompute final : public Component {
     kSourceAuxiliaryWrite,
     kApplyPrimaryWrite,
     kApplyAuxiliaryWrite,
+    kActiveOutputWrite,
   };
 
   struct MemoryTask {
+    FixedAxiPort *port{};
     MemoryOperation operation{MemoryOperation::kRead};
     std::uint64_t address{};
+    std::uint64_t bytes{4};
     std::vector<std::uint8_t> write_data;
     MemoryPayloadKind kind{MemoryPayloadKind::kSourcePrimary};
     std::uint32_t vertex{};
@@ -152,6 +165,7 @@ class SpineSplitPageRankCompute final : public Component {
     kSourceCount,
     kSourceGeneration,
     kSourceDone,
+    kDeferActiveBegin,
     kTileBegin,
     kEdge,
     kTileEnd,
@@ -159,11 +173,15 @@ class SpineSplitPageRankCompute final : public Component {
     kDoneAll,
   };
 
-  void initialize_state_payload(const std::vector<std::uint32_t> &out_degrees);
+  void initialize_state_payload(
+      const std::vector<std::uint32_t> &out_degrees,
+      const std::optional<AlgorithmInitialState> &initial_state);
   void enqueue_read(std::uint64_t address, MemoryPayloadKind kind,
                     std::uint32_t vertex);
   void enqueue_write(std::uint64_t address, std::uint32_t value,
                      MemoryPayloadKind kind, std::uint32_t vertex);
+  void enqueue_active_output(std::size_t index, std::uint32_t vertex,
+                             std::uint32_t value);
   void consume_memory_response(const MemoryTask &task,
                                const AxiResponse &response);
   void begin_apply_tile(std::uint32_t tile_base, bool empty_tile);
@@ -178,8 +196,10 @@ class SpineSplitPageRankCompute final : public Component {
   std::size_t vertices_{};
   std::size_t tile_vertices_{};
   FixedAxiPort &vertex_state_;
+  FixedAxiPort *active_out_{};
   Fifo<PartConvWord> &edge_in_;
   Fifo<SourceValueWord> &value_out_;
+  SpineOwnerScheduler *owner_scheduler_{};
   AlgorithmStateLayout state_layout_;
   std::uint64_t primary_read_base_{};
   std::uint64_t primary_write_base_{};
@@ -223,6 +243,7 @@ class SpineSplitPageRankCompute final : public Component {
   bool staged_memory_issue_{};
   bool staged_value_push_{};
   bool staged_apply_tile_complete_{};
+  bool staged_owner_activation_{};
   bool staged_done_{};
   SourceValueWord staged_value_word_;
 
@@ -246,10 +267,12 @@ class SpineSplitPageRankCompute final : public Component {
   float iteration_error_{};
   bool source_count_seen_{};
   bool source_generation_seen_{};
+  bool deferred_active_seen_{};
   bool source_ack_pending_{};
   bool tile_open_{};
   bool reader_done_seen_{};
   bool registered_{};
+  const bool *initial_start_gate_{};
   bool done_{};
   bool failed_{};
 };

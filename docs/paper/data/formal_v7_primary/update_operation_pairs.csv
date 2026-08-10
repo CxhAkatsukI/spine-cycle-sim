@@ -1,0 +1,10 @@
+scenario,batch_size,spine_structure_update_cycles,k4_structure_update_cycles
+insert,1,5357,87
+insert,8,5708,217
+insert,64,10944,888
+delete,1,5773860,51
+delete,8,5773430,127
+delete,64,5769216,712
+weight_change,1,5773955,68
+weight_change,8,5773955,234
+weight_change,64,5773955,1483

@@ -1,0 +1,109 @@
+diff --git a/src/command_queue.cc b/src/command_queue.cc
+index f121d28..03ce1e4 100644
+--- a/src/command_queue.cc
++++ b/src/command_queue.cc
+@@ -12,6 +12,7 @@ CommandQueue::CommandQueue(int channel_id, const Config& config,
+       is_in_ref_(false),
+       queue_size_(static_cast<size_t>(config_.cmd_queue_size)),
+       queue_idx_(0),
++      nonempty_queue_mask_(0),
+       clk_(0) {
+     if (config_.queue_structure == "PER_BANK") {
+         queue_structure_ = QueueStructure::PER_BANK;
+@@ -25,6 +26,12 @@ CommandQueue::CommandQueue(int channel_id, const Config& config,
+         AbruptExit(__FILE__, __LINE__);
+     }
+
++    if (num_queues_ > 64) {
++        std::cerr << "Active command-queue mask supports at most 64 queues"
++                  << std::endl;
++        AbruptExit(__FILE__, __LINE__);
++    }
++
+     queues_.reserve(num_queues_);
+     for (int i = 0; i < num_queues_; i++) {
+         auto cmd_queue = std::vector<Command>();
+@@ -34,11 +41,18 @@ CommandQueue::CommandQueue(int channel_id, const Config& config,
+ }
+
+ Command CommandQueue::GetCommandToIssue() {
+-    for (int i = 0; i < num_queues_; i++) {
+-        auto& queue = GetNextQueue();
++    const int initial_queue = queue_idx_;
++    for (int offset = 1; offset <= num_queues_; offset++) {
++        const int candidate = (initial_queue + offset) % num_queues_;
++        const uint64_t candidate_bit = uint64_t{1} << candidate;
++        if ((nonempty_queue_mask_ & candidate_bit) == 0) {
++            continue;
++        }
++        queue_idx_ = candidate;
++        auto& queue = queues_[candidate];
+         // if we're refresing, skip the command queues that are involved
+         if (is_in_ref_) {
+-            if (ref_q_indices_.find(queue_idx_) != ref_q_indices_.end()) {
++            if (ref_q_indices_.find(candidate) != ref_q_indices_.end()) {
+                 continue;
+             }
+         }
+@@ -50,6 +64,7 @@ Command CommandQueue::GetCommandToIssue() {
+             return cmd;
+         }
+     }
++    queue_idx_ = initial_queue;
+     return Command();
+ }
+
+@@ -115,12 +130,7 @@ bool CommandQueue::WillAcceptCommand(int rank, int bankgroup, int bank) const {
+ }
+
+ bool CommandQueue::QueueEmpty() const {
+-    for (const auto q : queues_) {
+-        if (!q.empty()) {
+-            return false;
+-        }
+-    }
+-    return true;
++    return nonempty_queue_mask_ == 0;
+ }
+
+
+@@ -128,6 +138,8 @@ bool CommandQueue::AddCommand(Command cmd) {
+     auto& queue = GetQueue(cmd.Rank(), cmd.Bankgroup(), cmd.Bank());
+     if (queue.size() < queue_size_) {
+         queue.push_back(cmd);
++        nonempty_queue_mask_ |=
++            uint64_t{1} << GetQueueIndex(cmd.Rank(), cmd.Bankgroup(), cmd.Bank());
+         rank_q_empty[cmd.Rank()] = false;
+         return true;
+     } else {
+@@ -200,6 +212,11 @@ void CommandQueue::EraseRWCommand(const Command& cmd) {
+     for (auto cmd_it = queue.begin(); cmd_it != queue.end(); cmd_it++) {
+         if (cmd.hex_addr == cmd_it->hex_addr && cmd.cmd_type == cmd_it->cmd_type) {
+             queue.erase(cmd_it);
++            if (queue.empty()) {
++                nonempty_queue_mask_ &=
++                    ~(uint64_t{1} << GetQueueIndex(
++                          cmd.Rank(), cmd.Bankgroup(), cmd.Bank()));
++            }
+             return;
+         }
+     }
+diff --git a/src/command_queue.h b/src/command_queue.h
+index b2f6349..65b878c 100644
+--- a/src/command_queue.h
++++ b/src/command_queue.h
+@@ -1,6 +1,7 @@
+ #ifndef __COMMAND_QUEUE_H
+ #define __COMMAND_QUEUE_H
+
++#include <cstdint>
+ #include <unordered_set>
+ #include <vector>
+ #include "channel_state.h"
+@@ -55,5 +56,6 @@ class CommandQueue {
+     int num_queues_;
+     size_t queue_size_;
+     int queue_idx_;
++    uint64_t nonempty_queue_mask_;
+     uint64_t clk_;
+ };

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+from dataclasses import dataclass
 import json
 import math
 import os
@@ -25,13 +26,20 @@ from scripts.run_sst_grasu_regraph_hls_weighted import (  # noqa: E402
     HlsWeightedOracle,
     build_hls_weighted_oracle,
 )
+from spine_cycle_sim.experiments.grasu_addressing import (  # noqa: E402
+    grasu_hbm_address_environment,
+    partition_layout_footprints,
+    validate_grasu_hbm_address_map,
+    validate_partition_footprints,
+)
+from spine_cycle_sim.experiments.host_memory import release_process_heap  # noqa: E402
 from spine_cycle_sim.experiments.profile_capabilities import (  # noqa: E402
     AlgorithmCapability,
     CapabilityCatalog,
     load_capability_catalog,
 )
 from spine_cycle_sim.experiments.regraph_contracts import (  # noqa: E402
-    expected_pagerank_source_cache_requests,
+    expected_partitioned_source_cache_requests,
 )
 from spine_cycle_sim.experiments.shared_workloads import load_slice  # noqa: E402
 from spine_cycle_sim.sst_binding import grasu_normalized_memory_binding  # noqa: E402
@@ -56,6 +64,103 @@ DEFAULT_UPDATE = (
 )
 
 
+@dataclass(frozen=True)
+class HlsResidualRuntimeOracle:
+    logical_updates: int
+    physical_updates: int
+    external_to_internal: tuple[int, ...]
+    internal_to_external: tuple[int, ...]
+    partition_vertices: int
+    source_requests_per_iteration: int
+
+
+def compact_hls_residual_oracle(
+    oracle: HlsWeightedOracle,
+    partition_vertices: int,
+    source_buffer_vertices: int,
+) -> HlsResidualRuntimeOracle:
+    if partition_vertices <= 0 or source_buffer_vertices <= 0:
+        raise ValueError("residual oracle partition geometry must be positive")
+    destination_partitions = (
+        len(oracle.external_to_internal) + partition_vertices - 1
+    ) // partition_vertices
+    partition_sources: list[set[int]] = [
+        set() for _ in range(destination_partitions)
+    ]
+    for source, destination, _ in oracle.final_internal_edges:
+        partition_sources[destination // partition_vertices].add(source)
+    requests_per_iteration = sum(
+        expected_partitioned_source_cache_requests(
+            sources, source_buffer_vertices, 1
+        )
+        for sources in partition_sources
+    )
+    return HlsResidualRuntimeOracle(
+        logical_updates=oracle.logical_updates,
+        physical_updates=oracle.physical_updates,
+        external_to_internal=oracle.external_to_internal,
+        internal_to_external=oracle.internal_to_external,
+        partition_vertices=partition_vertices,
+        source_requests_per_iteration=requests_per_iteration,
+    )
+
+
+def residual_bound_matches(
+    result: dict[str, object], residual_contract: str, epsilon: float
+) -> bool:
+    field = (
+        "residual_linf"
+        if residual_contract
+        in {
+            "deltahls_sink_free_linf_warm",
+            "grasu_hardware_warm_dangling_linf",
+        }
+        else "residual_l1"
+    )
+    try:
+        return float(result[field]) <= epsilon * 1.01
+    except (KeyError, TypeError, ValueError):
+        return False
+
+
+def external_rank_oracle_matches(
+    result: dict[str, object],
+    mathematical_error: float,
+    residual_contract: str,
+    epsilon: float,
+    damping: float,
+) -> bool:
+    if residual_contract not in {
+        "deltahls_sink_free_linf_warm",
+        "grasu_hardware_warm_dangling_linf",
+    }:
+        return mathematical_error <= 5.0 * epsilon
+    try:
+        old_rank_l1 = float(result["old_rank_l1"])
+        residual_l1 = float(result["residual_l1"])
+        reported_error = float(result["mathematical_max_abs_error"])
+        reported_tolerance = float(result["mathematical_error_tolerance"])
+    except (KeyError, TypeError, ValueError):
+        return False
+    expected_tolerance = max(
+        5.0e-7, 1.1 * (old_rank_l1 + residual_l1) / (1.0 - damping)
+    )
+    return (
+        result.get("mathematical_error_bound")
+        == "l1_fixed_point_defect_plus_final_residual_over_one_minus_d"
+        and old_rank_l1 >= 0.0
+        and residual_l1 >= 0.0
+        and math.isfinite(reported_tolerance)
+        and math.isclose(
+            reported_tolerance, expected_tolerance, rel_tol=1.0e-4, abs_tol=1.0e-9
+        )
+        and math.isclose(
+            reported_error, mathematical_error, rel_tol=1.0e-4, abs_tol=1.0e-7
+        )
+        and mathematical_error <= reported_tolerance
+    )
+
+
 def require_hls_residual_capability(
     profile_path: Path, capability_catalog_path: Path
 ) -> tuple[CapabilityCatalog, AlgorithmCapability]:
@@ -67,7 +172,7 @@ def require_hls_residual_capability(
     capability = profile_capability.require("thresholded_residual_pagerank")
     if (
         profile_capability.comparison_role
-        not in {"hls_equivalent_proposed", "normalized"}
+        not in {"hls_equivalent_proposed", "normalized", "hardware_native"}
         or profile_capability.handoff != "weighted_pma_to_axis_stream"
         or profile_capability.conversion_cost != "absent"
     ):
@@ -78,29 +183,69 @@ def require_hls_residual_capability(
 def validate_result(
     result: dict[str, object],
     profile: dict[str, object],
-    oracle: HlsWeightedOracle,
+    oracle: HlsWeightedOracle | HlsResidualRuntimeOracle,
     full_solution_external: tuple[float, ...],
+    *,
+    residual_contract: str,
+    epsilon: float,
+    max_iterations: int,
+    downstream_sharing: str,
 ) -> None:
     params = profile["parameters"]
     memory = profile["memory"]
     assert isinstance(params, dict) and isinstance(memory, dict)
-    epsilon = float(params["pagerank_epsilon"])
-    max_iterations = int(params["pagerank_residual_max_iterations"])
+    delta_hls = residual_contract == "deltahls_sink_free_linf_warm"
+    hardware_warm = residual_contract == "grasu_hardware_warm_dangling_linf"
     iterations = int(result.get("iterations", -1))
+    expected_pipeline_executions = iterations + (1 if hardware_warm else 0)
     vertices = len(oracle.external_to_internal)
     partition_vertices = int(params["regraph_partition_vertices"])
     state_bytes = int(params["pagerank_state_bytes_per_vertex"])
-    vertices_per_beat = int(memory["data_width_bits"]) // 8 // state_bytes
-    source_requests = expected_pagerank_source_cache_requests(
-        vertices, int(params["regraph_source_buffer_vertices"]), iterations
+    damping = float(params["pagerank_damping"])
+    prepared_source_bytes = 4
+    vertices_per_beat = (
+        int(memory["data_width_bits"]) // 8 // prepared_source_bytes
     )
+    destination_partitions = (vertices + partition_vertices - 1) // partition_vertices
+    if isinstance(oracle, HlsResidualRuntimeOracle):
+        if oracle.partition_vertices != partition_vertices:
+            raise ValueError("compacted residual oracle geometry differs from profile")
+        source_requests = (
+            oracle.source_requests_per_iteration * expected_pipeline_executions
+        )
+    else:
+        partition_sources: list[set[int]] = [
+            set() for _ in range(destination_partitions)
+        ]
+        for source, destination, _ in oracle.final_internal_edges:
+            partition = destination // partition_vertices
+            partition_sources[partition].add(source)
+        source_requests = sum(
+            expected_partitioned_source_cache_requests(
+                sources,
+                int(params["regraph_source_buffer_vertices"]),
+                expected_pipeline_executions,
+            )
+            for sources in partition_sources
+        )
     source_lines = (
         source_requests
         * int(params["regraph_source_buffer_vertices"])
         // vertices_per_beat
     )
-    rows = partition_vertices // 2 * iterations
-    bursts = partition_vertices // 16 * iterations
+    rows = (
+        destination_partitions
+        * partition_vertices
+        // 2
+        * expected_pipeline_executions
+    )
+    bursts = (
+        destination_partitions
+        * partition_vertices
+        // 16
+        * expected_pipeline_executions
+    )
+    source_prepare_degree_reads = (vertices + 15) // 16
     ranks = tuple(float(value) for value in result.get("ranks_external", []))
     residuals = tuple(
         float(value) for value in result.get("residuals_external", [])
@@ -118,6 +263,11 @@ def validate_result(
         if len(residuals) == vertices
         else math.inf
     )
+    external_residual_linf = (
+        max((abs(value) for value in residuals), default=0.0)
+        if len(residuals) == vertices
+        else math.inf
+    )
     checks = {
         "success": result.get("success") is True,
         "mode": result.get("mode")
@@ -126,6 +276,21 @@ def validate_result(
         == "hls_equivalent_proposed_execution_driven_simulation",
         "timing": result.get("timing_evidence")
         == "execution_driven_sst_hbm_not_cycle_calibrated",
+        "residual_contract": result.get("residual_contract")
+        == residual_contract,
+        "hardware_correction": (not hardware_warm)
+        or (
+            result.get("correction_executions") == 1
+            and result.get("pipeline_executions") == expected_pipeline_executions
+            and result.get("correction_execution_timing")
+            == "realized_work_component_envelope"
+            and int(result.get("correction_pma_slots", 0)) > 0
+        ),
+        "sink_free": (not delta_hls)
+        or (
+            result.get("old_sink_vertices") == 0
+            and result.get("new_sink_vertices") == 0
+        ),
         "serial_order": result.get("pipeline_order")
         == "update_then_degree_barrier_then_pma_native_compute",
         "conversion_absent": result.get("conversion_cost_included") is False,
@@ -140,16 +305,31 @@ def validate_result(
         "dual_oracle": result.get("correctness_mismatches") == 0
         and result.get("architecture_correctness_mismatches") == 0
         and result.get("mathematical_correctness_mismatches") == 0,
-        "external_rank_oracle": mathematical_error <= 5.0 * epsilon,
-        "external_residual": external_residual_l1 <= epsilon * 1.01,
+        "external_rank_oracle": external_rank_oracle_matches(
+            result,
+            mathematical_error,
+            residual_contract,
+            epsilon,
+            damping,
+        ),
+        "external_residual": residual_bound_matches(
+            {
+                "residual_l1": external_residual_l1,
+                "residual_linf": external_residual_linf,
+            },
+            residual_contract,
+            epsilon,
+        ),
         "converged": result.get("converged") is True
         and result.get("residual_bound_passed") is True
         and 0 < iterations <= max_iterations,
         "frontiers": len(result.get("frontier_in_sizes", [])) == iterations
         and len(result.get("frontier_out_sizes", [])) == iterations
         and result.get("frontier_out_sizes", [None])[-1] == 0,
-        "active_edges": result.get("compute_active_edges")
-        == result.get("expected_active_edges"),
+        "active_edge_execution_ledger": result.get(
+            "active_edge_execution_ledger_match"
+        )
+        is True,
         "update_state": result.get("update_state_mismatches") == 0,
         "degree_state": result.get("degree_state_mismatches") == 0,
         "degree_timed": result.get("degree_update_timing_included") is True,
@@ -157,7 +337,26 @@ def validate_result(
         == oracle.physical_updates
         and result.get("degree_update_reads") == oracle.physical_updates
         and result.get("degree_update_writes") == oracle.physical_updates,
-        "degree_reads": result.get("degree_reads") == vertices * iterations,
+        "partitions": result.get("destination_partitions")
+        == destination_partitions,
+        "pipelines": result.get("compute_pipelines")
+        == int(params.get("regraph_compute_pipelines", 1)),
+        "downstream_sharing": result.get("downstream_sharing")
+        == downstream_sharing,
+        "downstream_parallelism": result.get(
+            "max_parallel_downstream_partitions"
+        )
+        == (
+            min(
+                int(params.get("regraph_compute_pipelines", 1)),
+                destination_partitions,
+            )
+            if downstream_sharing == "direct"
+            else 1
+        ),
+        "degree_reads": result.get("source_prepare_degree_reads")
+        == source_prepare_degree_reads
+        and result.get("degree_reads") == source_prepare_degree_reads + bursts,
         "state_width": result.get("state_bytes_per_vertex") == state_bytes,
         "lanes": result.get("edge_lanes") == params["regraph_map_reduce_lanes"]
         and result.get("gather_banks") == params["regraph_map_reduce_lanes"],
@@ -175,9 +374,18 @@ def validate_result(
     }
     failed = [name for name, passed in checks.items() if not passed]
     if failed:
+        source_detail = (
+            f"source_expected={source_requests}/{source_lines}/"
+            f"{source_lines * int(params['regraph_map_reduce_lanes'])} "
+            f"source_actual={result.get('source_cache_requests')}/"
+            f"{result.get('source_cache_lines')}/"
+            f"{result.get('source_cache_lane_writes')}"
+        )
         raise RuntimeError(
-            f"HLS-equivalent residual PageRank validation failed ({failed}): "
-            f"{result}"
+            f"HLS-equivalent residual PageRank validation failed ({failed}); "
+            f"cycles={result.get('cycles')} "
+            f"partitions={result.get('destination_partitions')} "
+            f"pipelines={result.get('compute_pipelines')} {source_detail}"
         )
 
 
@@ -193,7 +401,26 @@ def main() -> int:
     parser.add_argument("--sst", type=Path, default=DEFAULT_SST)
     parser.add_argument("--lib-dir", type=Path, default=ROOT / "build" / "sst")
     parser.add_argument("--max-cycles", type=int, default=100_000_000)
+    parser.add_argument(
+        "--residual-contract",
+        choices=(
+            "generic_dangling_l1_cold",
+            "deltahls_sink_free_linf_warm",
+            "grasu_hardware_warm_dangling_linf",
+        ),
+        default=None,
+    )
+    parser.add_argument("--pagerank-epsilon", type=float)
+    parser.add_argument("--residual-max-iterations", type=int)
+    parser.add_argument(
+        "--downstream-sharing", choices=("direct", "shared"), default=None
+    )
     parser.add_argument("--no-build", action="store_true")
+    parser.add_argument(
+        "--reuse-result",
+        action="store_true",
+        help="validate an existing result.json and DRAM directory without rerunning SST",
+    )
     parser.add_argument("--instantiate-all-hbm-channels", action="store_true")
     args = parser.parse_args()
 
@@ -202,6 +429,16 @@ def main() -> int:
     expected_profiles = {
         "grasu_regraph_weighted_pma_hls_proposed_residual_pagerank_ff13a67",
         "grasu_regraph_candidate10_normalized_hls_residual_pagerank_v3",
+        "grasu_regraph_candidate10_k1_multipart_residual_v4",
+        "grasu_regraph_candidate10_k2_multipart_residual_v4",
+        "grasu_regraph_candidate10_k4_multipart_residual_v4",
+        "grasu_regraph_candidate10_k1_multipart_residual_packed_v5",
+        "grasu_regraph_candidate10_k2_multipart_residual_packed_v5",
+        "grasu_regraph_candidate10_k4_multipart_residual_packed_v5",
+        "grasu_regraph_candidate10_k4_shared_multipart_residual_packed_v6",
+        "grasu_regraph_candidate10_k1_multipart_residual_fullgraph_v7",
+        "grasu_regraph_candidate10_k4_shared_multipart_residual_fullgraph_v7",
+        "grasu_regraph_sharded_k4_residual_hls_v8",
     }
     if profile.get("profile_id") not in expected_profiles:
         raise ValueError("runner requires a pinned HLS-derived residual profile")
@@ -210,18 +447,69 @@ def main() -> int:
     )
     params = profile["parameters"]
     memory = profile["memory"]
+    profile_sharing = str(params.get("regraph_downstream_sharing", "direct"))
+    residual_contract = args.residual_contract or str(
+        params.get("pagerank_residual_contract", "generic_dangling_l1_cold")
+    )
+    downstream_sharing = args.downstream_sharing or profile_sharing
+    if downstream_sharing != profile_sharing:
+        raise ValueError("residual runner downstream sharing differs from profile")
     initial = load_slice(args.workload.resolve())
     update = load_slice(args.update_workload.resolve())
     oracle = build_hls_weighted_oracle(initial, update, 0)
+    address_regions = None
+    address_environment: dict[str, str] = {}
+    if params.get("physical_address_map_id"):
+        partition_vertices = int(params["regraph_partition_vertices"])
+        destination_partitions = (
+            initial.vertices + partition_vertices - 1
+        ) // partition_vertices
+        footprints = partition_layout_footprints(
+            initial.records,
+            update.records,
+            initial.vertices,
+            partition_vertices,
+            oracle.external_to_internal,
+            weighted_full_word=True,
+        )
+        validate_partition_footprints(params, footprints)
+        address_regions = validate_grasu_hbm_address_map(
+            params,
+            int(memory["channel_capacity_bytes"]),
+            destination_partitions,
+            initial.vertices,
+            oracle.physical_updates,
+            footprints,
+        )
+        address_environment = grasu_hbm_address_environment(
+            params, address_regions
+        )
     damping = float(params["pagerank_damping"])
-    epsilon = float(params["pagerank_epsilon"])
-    max_iterations = int(params["pagerank_residual_max_iterations"])
+    epsilon = (
+        float(args.pagerank_epsilon)
+        if args.pagerank_epsilon is not None
+        else float(params["pagerank_epsilon"])
+    )
+    max_iterations = (
+        int(args.residual_max_iterations)
+        if args.residual_max_iterations is not None
+        else int(params["pagerank_residual_max_iterations"])
+    )
+    if epsilon <= 0.0 or max_iterations <= 0:
+        raise ValueError("epsilon and residual iteration limit must be positive")
     full_solution = full_pagerank_oracle(
         initial.vertices, oracle.final_external_edges, damping, 200
     )
     binding = grasu_normalized_memory_binding(
         profile, instantiate_all=args.instantiate_all_hbm_channels
     )
+    runtime_oracle = compact_hls_residual_oracle(
+        oracle,
+        int(params["regraph_partition_vertices"]),
+        int(params["regraph_source_buffer_vertices"]),
+    )
+    del oracle, initial, update
+    host_heap_trimmed = release_process_heap()
     kernel_clock = next(
         clock for clock in profile["clocks"] if clock["name"] == "kernel"
     )
@@ -231,8 +519,11 @@ def main() -> int:
     args.out_dir.mkdir(parents=True, exist_ok=True)
     result_path = (args.out_dir / "result.json").resolve()
     dram_dir = (args.out_dir / "dram").resolve()
-    result_path.unlink(missing_ok=True)
-    shutil.rmtree(dram_dir, ignore_errors=True)
+    if not args.reuse_result:
+        result_path.unlink(missing_ok=True)
+        shutil.rmtree(dram_dir, ignore_errors=True)
+    elif not result_path.is_file() or not dram_dir.is_dir():
+        raise FileNotFoundError("--reuse-result requires result.json and dram/")
     env = os.environ.copy()
     env.update(
         {
@@ -252,11 +543,27 @@ def main() -> int:
             "GRASU_SST_RESIDUAL_MAX_ITERATIONS": str(max_iterations),
             "GRASU_SST_PAGERANK_DAMPING": str(damping),
             "GRASU_SST_PAGERANK_EPSILON": str(epsilon),
+            "GRASU_SST_RESIDUAL_CONTRACT": residual_contract,
             "GRASU_SST_CACHE_SEGMENTS_PER_HALF": str(
                 params["grasu_cache_segments_per_cu"]
             ),
             "GRASU_SST_PARTITION_VERTICES": str(
                 params["regraph_partition_vertices"]
+            ),
+            "GRASU_SST_COMPUTE_PIPELINES": str(
+                params.get("regraph_compute_pipelines", 1)
+            ),
+            "GRASU_SST_SHARED_DOWNSTREAM": (
+                "1" if downstream_sharing == "shared" else "0"
+            ),
+            "GRASU_SST_SHARDED_RUNTIME_PLACEMENT": (
+                "1" if params.get("grasu_sharded_runtime_placement", False) else "0"
+            ),
+            "GRASU_SST_RUNTIME_CHANNEL_CAPACITY_BYTES": str(
+                params.get(
+                    "grasu_runtime_channel_capacity_bytes",
+                    memory["channel_capacity_bytes"],
+                )
             ),
             "GRASU_SST_SOURCE_BUFFER_VERTICES": str(
                 params["regraph_source_buffer_vertices"]
@@ -286,6 +593,12 @@ def main() -> int:
             ),
             "GRASU_SST_APPLY_STATE_CHANNEL": str(
                 params["regraph_apply_state_channel"]
+            ),
+            "GRASU_SST_SPLIT_PAGERANK_STATE": (
+                "1" if params.get("regraph_split_pagerank_state", False) else "0"
+            ),
+            "GRASU_SST_RESIDUAL_STATE_CHANNEL": str(
+                params.get("regraph_residual_state_channel", 26)
             ),
             "GRASU_SST_DEGREE_CHANNEL": str(params["regraph_degree_channel"]),
             "GRASU_SST_DEGREE_FIFO_DEPTH": str(params["grasu_degree_fifo_depth"]),
@@ -334,6 +647,9 @@ def main() -> int:
             "GRASU_SST_VERTEX_STATE_BASE": str(
                 params["grasu_vertex_state_base_bytes"]
             ),
+            "GRASU_SST_RESIDUAL_STATE_BASE": str(
+                params.get("grasu_residual_state_base_bytes", 0x42000000)
+            ),
             "GRASU_SST_SOURCE_STATE_BASE": str(
                 params["grasu_source_state_base_bytes"]
             ),
@@ -346,31 +662,43 @@ def main() -> int:
             ),
         }
     )
+    env.update(address_environment)
     sst_library = forced_sst_library_binding(args.sst, args.lib_dir)
     command = [
         str(args.sst.resolve()),
         sst_library["command_option"],
         str(ROOT / "sst" / "grasu_regraph_vertical.py"),
     ]
-    started = time.monotonic()
-    completed = subprocess.run(
-        command,
-        cwd=ROOT,
-        env=env,
-        check=False,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-    )
-    wall_seconds = time.monotonic() - started
-    (args.out_dir / "sst.log").write_text(completed.stdout, encoding="utf-8")
-    if completed.returncode != 0:
-        raise RuntimeError(
-            f"HLS-equivalent residual PageRank SST failed with "
-            f"rc={completed.returncode}; see {args.out_dir / 'sst.log'}"
+    wall_seconds: float | None = None
+    if not args.reuse_result:
+        started = time.monotonic()
+        completed = subprocess.run(
+            command,
+            cwd=ROOT,
+            env=env,
+            check=False,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
         )
+        wall_seconds = time.monotonic() - started
+        (args.out_dir / "sst.log").write_text(completed.stdout, encoding="utf-8")
+        if completed.returncode != 0:
+            raise RuntimeError(
+                f"HLS-equivalent residual PageRank SST failed with "
+                f"rc={completed.returncode}; see {args.out_dir / 'sst.log'}"
+            )
     result = json.loads(result_path.read_text(encoding="utf-8"))
-    validate_result(result, profile, oracle, full_solution)
+    validate_result(
+        result,
+        profile,
+        runtime_oracle,
+        full_solution,
+        residual_contract=residual_contract,
+        epsilon=epsilon,
+        max_iterations=max_iterations,
+        downstream_sharing=downstream_sharing,
+    )
     dram = load_dram_stats(dram_dir)
     if (
         dram["channels"] != len(binding.instantiated_channels)
@@ -384,14 +712,22 @@ def main() -> int:
         "capability_catalog": str(catalog.manifest_path),
         "capability_catalog_sha256": catalog.manifest_sha256,
         "algorithm_capability": capability.manifest_record(),
+        "residual_contract": residual_contract,
+        "pagerank_epsilon": epsilon,
+        "residual_max_iterations": max_iterations,
+        "downstream_sharing": downstream_sharing,
         "workload": str(args.workload.resolve()),
         "workload_sha256": sha256(args.workload.resolve()),
         "update_workload": str(args.update_workload.resolve()),
         "update_workload_sha256": sha256(args.update_workload.resolve()),
         "sst_memory_binding": binding.as_manifest(),
+        "physical_hbm_address_regions": address_regions,
         "sst_library_binding": sst_library,
         "sst_plugin_sha256": sst_library["plugin_sha256"],
+        "host_oracle_storage": "compacted_before_sst_launch_v1",
+        "host_heap_trimmed": host_heap_trimmed,
         "sst_host_wall_seconds": wall_seconds,
+        "reused_existing_result": args.reuse_result,
         "command": command,
         "result": result,
         "dram": dram,

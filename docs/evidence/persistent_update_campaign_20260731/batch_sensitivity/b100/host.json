@@ -1,0 +1,11 @@
+{
+  "batch_count": 100,
+  "graph_edges": 390847,
+  "grasu_host_preprocess_ns": 1536694528,
+  "grasu_initial_h2d_bytes": 43616632,
+  "grasu_update_h2d_bytes": 2097152,
+  "spine_host_preprocess_ns": 747944643,
+  "spine_initial_h2d_bytes": 3126776,
+  "spine_update_h2d_bytes": 2097152,
+  "updates": 131072
+}

@@ -1,0 +1,15 @@
+{
+  "amended_revision": "236db1000014e94f0df50fe44e21c70d6fea30a3",
+  "amendments": [
+    {
+      "profile_path": "configs/architectures/grasu_regraph_candidate10_k4_shared_multipart_weighted_fullgraph_v7.json",
+      "semantic_sha256": "af447b6b74a00db8c01b708b8e5a8e21d3aba9a23b1a45fb99f479ca40bc38d9"
+    }
+  ],
+  "description": "Evidence-only profile repins for completed children that require post-run validator recovery.",
+  "ignored_top_level_keys": [
+    "evidence"
+  ],
+  "prior_revision": "32ec0194dded16526868cce36fb76fe289ad0017",
+  "schema_version": 2
+}

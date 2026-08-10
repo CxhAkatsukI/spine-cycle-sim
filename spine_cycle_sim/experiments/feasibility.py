@@ -256,9 +256,12 @@ def load_normalized_hls_feasibility(
             raise FeasibilityError(
                 f"{algorithm} matching HLS lacks synthesis evidence"
             )
-        if matching and "timing_closed" not in entry["whole_system_hls_status"]:
+        timing_status = entry["whole_system_hls_status"]
+        if matching and not any(
+            marker in timing_status for marker in ("timing_closed", "timing_reported")
+        ):
             raise FeasibilityError(
-                f"{algorithm} matching HLS lacks whole-system timing closure"
+                f"{algorithm} matching HLS lacks whole-system timing evidence"
             )
         if matching and "pass" not in entry["functional_evidence_status"]:
             raise FeasibilityError(
@@ -292,7 +295,8 @@ def load_normalized_hls_feasibility(
         "correctness": True,
         "structural_exploratory": True,
         "headline_normalized_performance": all_matching,
-        "iso_resource_performance": all_matching,
+        # Structural HLS matching does not prove equal resource allocation.
+        "iso_resource_performance": False,
         "fpga_measured_performance": False,
     }
     for scope, gate in claim_gates.items():

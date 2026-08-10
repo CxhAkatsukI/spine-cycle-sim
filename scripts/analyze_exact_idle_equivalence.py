@@ -24,9 +24,16 @@ def main() -> int:
     parser.add_argument("--baseline-dir", type=Path, required=True)
     parser.add_argument("--candidate-dir", type=Path, required=True)
     parser.add_argument("--out-dir", type=Path, required=True)
+    parser.add_argument(
+        "--allow-direct-transport",
+        action="store_true",
+        help="allow only the explicit SST-memHierarchy to direct-DRAMSim3 provenance change",
+    )
     args = parser.parse_args()
     result = analyze_exact_idle_equivalence(
-        args.baseline_dir, args.candidate_dir
+        args.baseline_dir,
+        args.candidate_dir,
+        allow_direct_transport=args.allow_direct_transport,
     )
     args.out_dir.mkdir(parents=True, exist_ok=True)
     rows = result.pop("rows")
@@ -40,7 +47,7 @@ def main() -> int:
         writer.writeheader()
         writer.writerows(rows)
     print(
-        "PASS exact-idle equivalence: "
+        "PASS architectural equivalence: "
         f"results={result['system_results']} "
         f"dram_json={result['dram_json_files_compared']} "
         f"host_geomean={result['host_speedup_geomean']:.3f}x"

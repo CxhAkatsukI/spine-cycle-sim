@@ -108,6 +108,15 @@ def normalized_grasu_profile_paths(
             profile_dir
             / "grasu_regraph_candidate10_normalized_hls_residual_pagerank_v3.json",
         )
+    if profile_set == "k1_v4":
+        return (
+            profile_dir
+            / "grasu_regraph_candidate10_k1_multipart_weighted_v4.json",
+            profile_dir
+            / "grasu_regraph_candidate10_k1_multipart_pagerank_v4.json",
+            profile_dir
+            / "grasu_regraph_candidate10_k1_multipart_residual_v4.json",
+        )
     if profile_set != "v2":
         raise ValueError(f"unknown normalized GraSU profile set: {profile_set}")
     return (
@@ -122,7 +131,9 @@ def normalized_grasu_capability_catalog_path(
     root: Path, profile_set: str = "v2"
 ) -> Path:
     filename = (
-        "grasu_regraph_candidate10_hls_capabilities_v3.json"
+        "grasu_regraph_k1_multipart_capabilities_v4.json"
+        if profile_set == "k1_v4"
+        else "grasu_regraph_candidate10_hls_capabilities_v3.json"
         if profile_set == "hls_v3"
         else "grasu_regraph_candidate10_capabilities_v2.json"
         if profile_set == "v2"
@@ -138,7 +149,7 @@ def normalized_profile_set(manifest: Mapping[str, object]) -> str:
     if not isinstance(contract, Mapping):
         raise ValueError("comparison manifest lacks its platform contract")
     profile_set = str(contract.get("grasu_profile_set", "v2"))
-    if profile_set not in {"v2", "hls_v3"}:
+    if profile_set not in {"v2", "hls_v3", "k1_v4"}:
         raise ValueError(f"unsupported manifest GraSU profile set: {profile_set}")
     return profile_set
 
@@ -161,10 +172,73 @@ def validate_normalized_profile_contract(
     spine_path = spine_profile_path.resolve()
     repository_root = spine_path.parents[2]
     spine = load_architecture_profile(spine_path)
-    if spine.profile_id != NORMALIZED_SPINE_PROFILE_ID:
+    reference_spine = spine
+    optimization_chain: list[dict[str, object]] = []
+    seen_profiles: set[str] = set()
+    while reference_spine.profile_id != NORMALIZED_SPINE_PROFILE_ID:
+        if reference_spine.profile_id in seen_profiles:
+            raise ValueError("projected Spine profile lineage contains a cycle")
+        seen_profiles.add(reference_spine.profile_id)
+        if (
+            reference_spine.architecture != "spine"
+            or reference_spine.status.value != "projected"
+            or reference_spine.parameters.get("comparison_role")
+            != "projected_optimized"
+            or reference_spine.parameters.get("normalization_policy")
+            != (
+                "shared_platform_with_explicit_bounded_"
+                "microarchitecture_optimization"
+            )
+        ):
+            raise ValueError(
+                "normalized comparison requires explicit Candidate10-derived Spine "
+                f"profile {NORMALIZED_SPINE_PROFILE_ID} or a validated projected "
+                f"descendant, got {reference_spine.profile_id}"
+            )
+        parent_id = reference_spine.parameters.get("simulation_parent_profile")
+        parent_sha256 = reference_spine.parameters.get(
+            "simulation_parent_profile_sha256"
+        )
+        if not isinstance(parent_id, str) or not isinstance(parent_sha256, str):
+            raise ValueError(
+                f"projected Spine profile {reference_spine.profile_id} lacks "
+                "its simulation-parent identity"
+            )
+        parent_path = spine_path.with_name(f"{parent_id}.json")
+        if not parent_path.is_file():
+            raise ValueError(f"projected Spine parent is missing: {parent_path}")
+        actual_parent_sha256 = sha256_file(parent_path)
+        if actual_parent_sha256 != parent_sha256:
+            raise ValueError(
+                f"projected Spine parent hash is stale for {reference_spine.profile_id}"
+            )
+        parent_profile = load_architecture_profile(parent_path)
+        if parent_profile.profile_id != parent_id:
+            raise ValueError(
+                f"projected Spine parent ID mismatch for {reference_spine.profile_id}"
+            )
+        optimization_chain.append(
+            {
+                "profile_id": reference_spine.profile_id,
+                "profile_sha256": reference_spine.manifest_sha256,
+                "optimization_id": reference_spine.parameters.get(
+                    "optimization_id"
+                ),
+                "optimization_round": reference_spine.parameters.get(
+                    "optimization_round"
+                ),
+                "parent_profile_id": parent_id,
+                "parent_profile_sha256": parent_sha256,
+            }
+        )
+        reference_spine = parent_profile
+        if len(optimization_chain) > 2:
+            raise ValueError("at most two projected Spine optimization rounds are allowed")
+
+    rounds = [item["optimization_round"] for item in optimization_chain]
+    if rounds and rounds != list(range(len(rounds), 0, -1)):
         raise ValueError(
-            "normalized comparison requires explicit Candidate10-derived Spine "
-            f"profile {NORMALIZED_SPINE_PROFILE_ID}, got {spine.profile_id}"
+            f"projected Spine optimization rounds are not contiguous: {rounds}"
         )
     required_spine = {
         "comparison_role": "normalized",
@@ -177,25 +251,37 @@ def validate_normalized_profile_contract(
         "hbm_pseudo_channels_budget": NORMALIZED_HBM_BUDGET,
     }
     for key, expected in required_spine.items():
-        if spine.parameters.get(key) != expected:
+        if reference_spine.parameters.get(key) != expected:
             raise ValueError(
-                f"normalized Spine profile has {key}={spine.parameters.get(key)!r}; "
+                "normalized Spine reference profile has "
+                f"{key}={reference_spine.parameters.get(key)!r}; "
                 f"expected {expected!r}"
             )
 
     parent_path = spine_path.with_name(f"{NORMALIZED_SPINE_PARENT_ID}.json")
     parent = load_architecture_profile(parent_path)
     parent_digest = sha256_file(parent_path)
-    if spine.parameters.get("native_parent_profile_sha256") != parent_digest:
+    if reference_spine.parameters.get("native_parent_profile_sha256") != parent_digest:
         raise ValueError("normalized Spine native-parent SHA-256 is stale")
-    if spine.source != parent.source:
+    if reference_spine.source != parent.source:
         raise ValueError("normalized Spine source identity differs from its native parent")
     for key in _CANDIDATE10_PROTECTED_PARAMETERS:
-        if key not in parent.parameters or spine.parameters.get(key) != parent.parameters[key]:
+        if (
+            key not in parent.parameters
+            or reference_spine.parameters.get(key) != parent.parameters[key]
+        ):
             raise ValueError(
                 f"normalized Spine silently changes protected Candidate10 parameter {key}"
             )
+        if spine.parameters.get(key) != reference_spine.parameters[key]:
+            raise ValueError(
+                f"projected Spine silently changes protected Candidate10 parameter {key}"
+            )
 
+    if spine.memory != reference_spine.memory:
+        raise ValueError("projected Spine changes the shared HBM platform")
+    if spine.parameters.get("hbm_pseudo_channels_budget") != NORMALIZED_HBM_BUDGET:
+        raise ValueError("projected Spine changes the HBM pseudo-channel budget")
     if _clock(spine, "data") != NORMALIZED_CLOCK_MHZ:
         raise ValueError("normalized Spine data clock is not 150 MHz")
     if _clock(spine, "hbm") != NORMALIZED_HBM_CLOCK_MHZ:
@@ -216,6 +302,10 @@ def validate_normalized_profile_contract(
         path.stem
         for path in normalized_grasu_profile_paths(repository_root, "hls_v3")
     )
+    v4_ids = tuple(
+        path.stem
+        for path in normalized_grasu_profile_paths(repository_root, "k1_v4")
+    )
     if profile_ids == v2_ids:
         profile_set = "v2"
         feasibility_path = (
@@ -232,6 +322,14 @@ def validate_normalized_profile_contract(
             / "contracts"
             / "candidate10_normalized_hls_feasibility_v2.json"
         )
+    elif profile_ids == v4_ids:
+        profile_set = "k1_v4"
+        feasibility_path = (
+            repository_root
+            / "configs"
+            / "contracts"
+            / "candidate10_k1_multipart_hls_feasibility_v3.json"
+        )
     else:
         raise ValueError("normalized comparison uses an unknown GraSU profile set")
 
@@ -243,7 +341,7 @@ def validate_normalized_profile_contract(
             "resource_reference_profile": profile.parameters.get(
                 "resource_reference_profile"
             )
-            == spine.profile_id,
+            == reference_spine.profile_id,
             "hbm_budget": profile.parameters.get("hbm_pseudo_channels_budget")
             == NORMALIZED_HBM_BUDGET,
             "conversion_free": profile.parameters.get("conversion_cost_included")
@@ -267,7 +365,7 @@ def validate_normalized_profile_contract(
                 + ", ".join(failed)
             )
 
-    if profile_set == "hls_v3":
+    if profile_set in {"hls_v3", "k1_v4"}:
         for profile in grasu_profiles:
             hls_checks = {
                 "outstanding_16": profile.memory.max_outstanding_per_port == 16,
@@ -290,6 +388,30 @@ def validate_normalized_profile_contract(
                 raise ValueError(
                     f"HLS-derived PageRank profile omits degree RMW: {profile.profile_id}"
                 )
+        if profile_set == "k1_v4":
+            for profile in grasu_profiles:
+                k_checks = {
+                    "compute_pipelines": profile.parameters.get(
+                        "regraph_compute_pipelines"
+                    )
+                    == 1,
+                    "partition_capacity": profile.parameters.get(
+                        "regraph_destination_partitions"
+                    )
+                    == 16,
+                    "finite_dispatch": profile.parameters.get(
+                        "regraph_partition_execution"
+                    )
+                    == "finite_work_conserving_serial_k1",
+                }
+                failed = sorted(
+                    name for name, passed in k_checks.items() if not passed
+                )
+                if failed:
+                    raise ValueError(
+                        f"K1 multi-partition profile {profile.profile_id} violates: "
+                        + ", ".join(failed)
+                    )
 
     catalog_path = normalized_grasu_capability_catalog_path(
         repository_root, profile_set
@@ -307,9 +429,12 @@ def validate_normalized_profile_contract(
         capability_profile = catalog.profile(profile_id)
         for algorithm in algorithms:
             capability = capability_profile.require(algorithm)
+            expected_evidence_tier = (
+                "synthesis_only" if profile_set == "k1_v4" else "simulation_only"
+            )
             if (
                 capability.implementation_status.value != "executable"
-                or capability.evidence_tier != "simulation_only"
+                or capability.evidence_tier != expected_evidence_tier
             ):
                 raise ValueError(
                     f"normalized capability is not executable: {profile_id}/{algorithm}"
@@ -326,6 +451,9 @@ def validate_normalized_profile_contract(
         "grasu_profile_set": profile_set,
         "spine_profile_id": spine.profile_id,
         "spine_profile_sha256": spine.manifest_sha256,
+        "spine_reference_profile_id": reference_spine.profile_id,
+        "spine_reference_profile_sha256": reference_spine.manifest_sha256,
+        "spine_optimization_chain": optimization_chain,
         "native_parent_profile_id": parent.profile_id,
         "native_parent_profile_sha256": parent_digest,
         "grasu_profile_ids": [profile.profile_id for profile in grasu_profiles],
@@ -468,10 +596,21 @@ def build_invocation(
             "--max-rounds",
             str(run.get("max_rounds", 256)),
         ]
+        update_artifact = run.get("update")
+        update_records = (
+            int(update_artifact.get("records", 0))
+            if isinstance(update_artifact, Mapping)
+            else 0
+        )
         if algorithm == "weighted_dynamic_sssp":
             update = artifact_path(root, run["update"])  # type: ignore[arg-type]
             command.extend(("--update-workload", str(update)))
+            if str(run.get("scenario")) == "incremental_insert":
+                command.append("--sssp-warm-start")
         elif algorithm == "full_pagerank":
+            if update_records > 0:
+                update = artifact_path(root, run["update"])  # type: ignore[arg-type]
+                command.extend(("--update-workload", str(update)))
             command.extend(
                 (
                     "--pagerank-iterations",
@@ -481,6 +620,9 @@ def build_invocation(
                 )
             )
         elif algorithm == "thresholded_residual_pagerank":
+            if update_records > 0:
+                update = artifact_path(root, run["update"])  # type: ignore[arg-type]
+                command.extend(("--update-workload", str(update)))
             command.extend(
                 (
                     "--pagerank-damping",
@@ -489,11 +631,17 @@ def build_invocation(
                     str(run["epsilon"]),
                     "--residual-max-iterations",
                     str(run["max_iterations"]),
+                    "--residual-contract",
+                    str(
+                        run.get(
+                            "residual_contract", "generic_dangling_l1_cold"
+                        )
+                    ),
                 )
             )
     elif algorithm in {"weighted_sssp", "weighted_dynamic_sssp"}:
         update = artifact_path(root, run["update"])  # type: ignore[arg-type]
-        hls_derived = profile.profile_id.endswith("_hls_weighted_v3")
+        hls_derived = bool(profile.parameters.get("hls_foundation_profile"))
         common[1] = str(
             root
             / "scripts"
@@ -524,7 +672,7 @@ def build_invocation(
         else:
             command.extend(("--max-rounds", str(run.get("max_rounds", 256))))
     elif algorithm == "full_pagerank":
-        hls_derived = profile.profile_id.endswith("_hls_pagerank_v3")
+        hls_derived = bool(profile.parameters.get("hls_foundation_profile"))
         common[1] = str(
             root
             / "scripts"
@@ -574,7 +722,7 @@ def build_invocation(
                 )
             )
     else:
-        hls_derived = profile.profile_id.endswith("_hls_residual_pagerank_v3")
+        hls_derived = bool(profile.parameters.get("hls_foundation_profile"))
         common[1] = str(
             root
             / "scripts"
@@ -602,6 +750,12 @@ def build_invocation(
                     str(update),
                     "--capability-catalog",
                     str(grasu_capability_catalog.resolve()),
+                    "--residual-contract",
+                    str(
+                        run.get(
+                            "residual_contract", "generic_dangling_l1_cold"
+                        )
+                    ),
                 )
             )
             residual_parameters = (
@@ -650,12 +804,19 @@ def build_invocation(
     )
 
 
-def expected_oracles(algorithm: str) -> tuple[str, str]:
+def expected_oracles(
+    algorithm: str, residual_contract: str = "generic_dangling_l1_cold"
+) -> tuple[str, str]:
     if algorithm in {"weighted_sssp", "weighted_dynamic_sssp"}:
         return "synchronous_frontier_uint32", "uint64_dijkstra"
     if algorithm == "full_pagerank":
         return "iterative_float32", "iterative_float64"
     if algorithm == "thresholded_residual_pagerank":
+        if residual_contract == "deltahls_sink_free_linf_warm":
+            return (
+                "deltahls_sink_free_warm_residual_float32",
+                "sink_free_full_pagerank_float64_500_iterations",
+            )
         return (
             "thresholded_residual_float32",
             "full_pagerank_float64_200_iterations",
@@ -706,7 +867,8 @@ def validate_system_result(
     expected_clock_mhz: float = 150.0,
 ) -> list[str]:
     architecture_oracle, mathematical_oracle = expected_oracles(
-        str(run["algorithm"])
+        str(run["algorithm"]),
+        str(run.get("residual_contract", "generic_dangling_l1_cold")),
     )
     expected_vertices = int(run["graph"]["vertices"])  # type: ignore[index]
     expected_edges = int(run["graph"]["records"])  # type: ignore[index]
@@ -777,10 +939,16 @@ def validate_system_result(
         == "registered_round_robin_per_pseudo_channel",
         "registered_arbitration_ledger": arbitration.get("ledger_closed")
         is True,
-        "registered_arbitration_requests": arbitration.get("unique_intents")
-        == backend_requests
-        and arbitration.get("grants") == backend_requests
-        and arbitration.get("consumed_grants") == backend_requests,
+        # An arbitration intent is a reservation attempt, not necessarily an
+        # accepted HBM request. Mapped pseudo-channels may retry after a grant
+        # when the physical channel's same-cycle capacity is already reserved.
+        "registered_arbitration_requests": isinstance(
+            arbitration.get("unique_intents"), int
+        )
+        and arbitration.get("unique_intents") >= backend_requests
+        and arbitration.get("grants") == arbitration.get("unique_intents")
+        and arbitration.get("consumed_grants")
+        == arbitration.get("unique_intents"),
         "registered_arbitration_drained": arbitration.get("pending_intents")
         == 0
         and arbitration.get("pending_grants") == 0,
@@ -821,6 +989,10 @@ def validate_system_result(
         )
     if str(run["algorithm"]) == "weighted_dynamic_sssp":
         expected_updates = int(run["update"]["records"])  # type: ignore[index]
+        hls_multipart_weighted = bool(
+            invocation.profile_id
+            and "_multipart_weighted_v4" in invocation.profile_id
+        )
         checks["updates"] = (
             result.get("update_edges") == expected_updates
             if invocation.system == "spine"
@@ -828,10 +1000,24 @@ def validate_system_result(
                 "logical_updates"
                 if invocation.profile_id
                 == "grasu_regraph_candidate10_normalized_hls_weighted_v3"
+                or hls_multipart_weighted
                 else "updates"
             )
             == expected_updates
         )
+        if (
+            invocation.system == "spine"
+            and str(run.get("scenario")) == "incremental_insert"
+        ):
+            checks["spine_dynamic_warm_start"] = (
+                result.get("algorithm_warm_start") is True
+                and result.get("bootstrap_accounting")
+                == "untimed_verified_old_graph_state"
+                and result.get("cold_cycles") == 0
+                and result.get("cold_backend_requests") == 0
+                and int(result.get("cycles", -1))
+                == int(result.get("update_cycles", -2))
+            )
     for name, passed in checks.items():
         if not passed:
             problems.append(name)
@@ -847,7 +1033,14 @@ def result_row(
     *,
     wall_seconds: float,
 ) -> dict[str, object]:
-    cycles = int(result["cycles"])
+    raw_cycles = int(result["cycles"])
+    dynamic_spine_sssp = (
+        invocation.system == "spine"
+        and str(run["algorithm"]) == "weighted_dynamic_sssp"
+    )
+    cycles = raw_cycles
+    if cycles <= 0:
+        raise ValueError("invalid publication measurement cycle window")
     core_mhz = float(result["core_mhz"])
     arbitration = result["backend_arbitration"]
     if not isinstance(arbitration, Mapping):
@@ -863,6 +1056,14 @@ def result_row(
         "architecture_profile_id": result["architecture_profile_id"],
         "architecture_profile_sha256": result["architecture_profile_sha256"],
         "cycles": cycles,
+        "raw_cycles": raw_cycles,
+        "bootstrap_cycles": int(result.get("cold_cycles", 0)),
+        "measurement_window": (
+            "dynamic_e2e_to_convergence"
+            if dynamic_spine_sssp
+            else "complete_execution"
+        ),
+        "algorithm_warm_start": bool(result.get("algorithm_warm_start", False)),
         "core_mhz": core_mhz,
         "simulated_ms": cycles / (core_mhz * 1000.0),
         "wall_seconds": wall_seconds,
@@ -870,6 +1071,11 @@ def result_row(
         "input_edges": run["graph"]["records"],  # type: ignore[index]
         "updates": run.get("update", {}).get("records", 0),  # type: ignore[union-attr]
         "backend_requests": result["backend_requests"],
+        "backend_arbitration_unique_intents": arbitration["unique_intents"],
+        "backend_arbitration_retried_intents": int(
+            arbitration["unique_intents"]
+        )
+        - int(result["backend_requests"]),
         "maintenance_launch_to_first_memory_issue_cycles": result.get(
             "maintenance_launch_to_first_memory_issue_cycles", ""
         ),

@@ -1,0 +1,61 @@
+{
+  "campaign_states": [
+    {
+      "campaign_id": "large_graph_publication_campaign_fullgraph_v6_20260730_stackoverflow_k4_three_algorithm_sidecar",
+      "manifest_sha256": "6b64608ce4ce40efce0e9d84530218053be001b2a81bb6c6b97478769495f455",
+      "path": "/data/tmp/chuxiao/large_graph_campaign_v1/formal_v6_stackoverflow_k4_three_algorithm_sidecar/run/campaign_state.json",
+      "sha256": "036dad9008174494e9a86e34593d6fef5d3b0db5fc9d13a82b8b326d50bb388f"
+    }
+  ],
+  "claim_boundary": "Each row is a strict lower bound from monotonically increasing device cycles in an incomplete execution. It is neither a completed result nor a projected total and is excluded from matched-pair aggregates.",
+  "evidence_id": "formal_v7_stopped_prefix_lower_bounds_v1_20260731",
+  "lower_bounds": [
+    {
+      "admitted_as_completed_performance": false,
+      "algorithm": "connected_components",
+      "backend_requests": 206608421,
+      "batch_size": 8,
+      "certified_threshold": 5.0,
+      "claim_class": "strict_monotonic_device_cycle_lower_bound_from_stopped_incomplete_execution",
+      "dataset_id": "sx_stackoverflow",
+      "elapsed_seconds": 20596.12850546837,
+      "job_id": "run.sx_stackoverflow.connected_components.insert.u8.grasu_regraph_k4_shared.40d4283eb14d3fefe31f",
+      "observed_partial_cycles": 562000001,
+      "peak_rss_bytes": 50487214080,
+      "scenario": "insert",
+      "spine_cycles": 25424995,
+      "spine_execution_id": "fe200a697fdba56a2251",
+      "stop_reason": "strict device-cycle lower bound exceeds 20x versus measured Spine; release 92GiB for projection, RQ3, and energy work",
+      "strict_lower_bound_ratio": 22.104232508206984,
+      "system": "grasu_regraph_k4_shared"
+    },
+    {
+      "admitted_as_completed_performance": false,
+      "algorithm": "thresholded_residual_pagerank",
+      "backend_requests": 198990675,
+      "batch_size": 8,
+      "certified_threshold": 5.0,
+      "claim_class": "strict_monotonic_device_cycle_lower_bound_from_stopped_incomplete_execution",
+      "dataset_id": "sx_stackoverflow",
+      "elapsed_seconds": 20601.225714206696,
+      "job_id": "run.sx_stackoverflow.thresholded_residual_pagerank.insert.u8.grasu_regraph_k4_shared.b841b79faa2aace92be3",
+      "observed_partial_cycles": 523000001,
+      "peak_rss_bytes": 48232665088,
+      "scenario": "insert",
+      "spine_cycles": 25281265,
+      "spine_execution_id": "aacef30f761e5c4f58d4",
+      "stop_reason": "strict device-cycle lower bound exceeds 20x versus measured Spine; release 92GiB for projection, RQ3, and energy work",
+      "strict_lower_bound_ratio": 20.687255997672583,
+      "system": "grasu_regraph_k4_shared"
+    }
+  ],
+  "schema_version": 1,
+  "system_rows": {
+    "path": "/data/tmp/chuxiao/large_graph_campaign_v1/formal_v7_primary_analysis/system_rows.csv",
+    "sha256": "74ddac0d191f3c9629086fd682a56cbb865548ec3694b1c05a1b09409e0ed013"
+  },
+  "thresholds": [
+    5.0,
+    100.0
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "added_observability_fields": 0,
+  "algorithms": [
+    "thresholded_residual_pagerank"
+  ],
+  "all_architectural_result_fields_identical": true,
+  "all_dram_json_byte_identical": true,
+  "all_preexisting_result_fields_identical": true,
+  "approved_provenance_changes": 0,
+  "baseline_manifest_sha256": "a039a48197985b032eaedfd7793934c054c8d8c7788126c5ca31d885dc24526b",
+  "byte_identical_result_files": 2,
+  "candidate_manifest_sha256": "6ed4d3e7da2aa7c32305fc860412f819e0f2acc261b1c9e39e0e3a7ad5403675",
+  "claim": "direct_dramsim3_transport_architectural_equivalence",
+  "dram_json_files_compared": 26,
+  "host_speedup_geomean": 1.2161773584090512,
+  "preexisting_result_fields_compared": 356,
+  "run_cases": 1,
+  "schema_version": 1,
+  "status": "PASS",
+  "system_results": 2
+}

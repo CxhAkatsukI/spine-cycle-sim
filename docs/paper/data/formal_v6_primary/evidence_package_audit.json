@@ -1,0 +1,105 @@
+{
+  "artifacts": {
+    "docs/evidence/formal_v6_large_sssp_runtime_projection_20260730.json": true,
+    "docs/evidence/formal_v6_r19_k4_preflight_20260730.json": true,
+    "docs/figures/formal_v6_memory_locality.svg": true,
+    "docs/figures/formal_v6_primary_ratios.svg": true,
+    "docs/figures/formal_v6_update_throughput.svg": true,
+    "docs/figures/rq3_latency_breakdown.svg": true,
+    "docs/figures/rq3_work_correlations.svg": true,
+    "docs/paper/data/formal_v6_primary/wall_time_feasibility.json": true,
+    "docs/paper/formal_v6_primary_results.pdf": true
+  },
+  "audit_id": "formal_v6_first_evidence_package_v1",
+  "claim_boundary": "PASS means the frozen first evidence package is internally complete; it does not turn a PARTIAL 36-execution matrix into a complete matrix.",
+  "coverage": {
+    "complete_real_three_algorithm_datasets": [
+      "sx_askubuntu",
+      "sx_superuser",
+      "wiki_talk_temporal"
+    ],
+    "component_activity_rows": 165,
+    "expected_executions": 36,
+    "headline_rq3_r2": {
+      "carry": 0.999502764820866,
+      "drain_sync": 0.9915338115732362,
+      "physical_resolve_apply": 0.9933434178288484,
+      "seed": 0.9999999194595791
+    },
+    "missing_execution_ids": [
+      "0b5795e3da24b96657e6",
+      "40d4283eb14d3fefe31f",
+      "46d0c4f883375efb9ccd",
+      "69248cd5746efe44a840",
+      "714eba95b1bb53afc879",
+      "7c53284784babc476b00",
+      "9f7a9739bc109305a2e7",
+      "b841b79faa2aace92be3",
+      "bb8611a68e5fdcd8b898",
+      "cb698febad12b4a61671"
+    ],
+    "observed_executions": 26,
+    "observed_update_grid": [
+      {
+        "batch_size": 1,
+        "scenario": "delete"
+      },
+      {
+        "batch_size": 8,
+        "scenario": "delete"
+      },
+      {
+        "batch_size": 64,
+        "scenario": "delete"
+      },
+      {
+        "batch_size": 1,
+        "scenario": "insert"
+      },
+      {
+        "batch_size": 8,
+        "scenario": "insert"
+      },
+      {
+        "batch_size": 64,
+        "scenario": "insert"
+      },
+      {
+        "batch_size": 1,
+        "scenario": "weight_change"
+      },
+      {
+        "batch_size": 8,
+        "scenario": "weight_change"
+      },
+      {
+        "batch_size": 64,
+        "scenario": "weight_change"
+      }
+    ],
+    "ready_rq3_classes": [
+      "deep_carry",
+      "deletion_fallback",
+      "pagerank_correction",
+      "shallow_insertion",
+      "zero_net"
+    ],
+    "required_algorithms": [
+      "connected_components",
+      "thresholded_residual_pagerank",
+      "weighted_sssp"
+    ]
+  },
+  "full_matrix_status": "PARTIAL",
+  "gates": {
+    "cross_system_final_states_match_for_every_pair": true,
+    "five_rq3_representative_classes_ready": true,
+    "headline_rq3_mechanisms_have_r2_at_least_0_99": true,
+    "insert_delete_weight_change_batches_1_8_64_complete": true,
+    "observed_correctness_memory_and_activity_ledgers_closed": true,
+    "pdf_and_required_vector_figures_exist": true,
+    "three_algorithm_matrix_on_at_least_three_real_datasets": true
+  },
+  "minimum_package_status": "PASS",
+  "schema_version": 1
+}

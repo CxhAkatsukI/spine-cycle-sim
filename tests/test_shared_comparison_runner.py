@@ -55,6 +55,20 @@ class SharedComparisonRunnerTests(unittest.TestCase):
         self.assertEqual(len(runs), 10)
         self.assertTrue(all(run["role"] == "holdout" for run in runs))
 
+    def test_k1_manifest_pins_only_k1_profiles(self) -> None:
+        manifest = validate_shared_comparison_manifest(
+            ROOT,
+            ROOT
+            / "configs"
+            / "experiments"
+            / "shared_comparison_candidate10_k1_multipart_v4_20260728.json",
+        )
+        profile_paths = [item["path"] for item in manifest["profiles"]]
+        self.assertEqual(manifest["comparison_contract"]["grasu_profile_set"], "k1_v4")
+        self.assertTrue(
+            all("_k1_multipart_" in path for path in profile_paths[2:])
+        )
+
     def test_dynamic_commands_preserve_identical_graph_and_update(self) -> None:
         run = next(
             run
@@ -100,6 +114,115 @@ class SharedComparisonRunnerTests(unittest.TestCase):
         )
         self.assertIn("--profile", grasu.command)
 
+    def test_spine_incremental_sssp_times_only_the_warm_update_window(self) -> None:
+        run = next(
+            run
+            for run in self.manifest["runs"]
+            if run["algorithm"] == "weighted_dynamic_sssp"
+            and run["scenario"] == "incremental_insert"
+        )
+        with tempfile.TemporaryDirectory(dir=ROOT) as tmp:
+            invocation = build_invocation(
+                ROOT,
+                run,
+                system="spine",
+                output_root=Path(tmp),
+                python="python3",
+                sst=Path("/data/feiyang/sst/bin/sst"),
+                lib_dir=ROOT / "build" / "sst",
+                spine_profile=SPINE_PROFILE,
+            )
+        self.assertIn("--sssp-warm-start", invocation.command)
+
+
+    def test_nonempty_pagerank_updates_are_passed_to_spine(self) -> None:
+        update = {
+            "case_id": "multipart_update",
+            "path": "tests/data/grasu_regraph_partitioned_normalized_update.slice",
+            "records": 6,
+            "sha256": "0703f584058eeb36004cd9ca734ac0cf0329ac58fd0905d365d7837a6bf55e1c",
+            "vertices": 65537,
+        }
+        for algorithm in ("full_pagerank", "thresholded_residual_pagerank"):
+            run = dict(
+                next(
+                    item
+                    for item in self.manifest["runs"]
+                    if item["algorithm"] == algorithm
+                )
+            )
+            run["update"] = update
+            with self.subTest(algorithm=algorithm), tempfile.TemporaryDirectory(
+                dir=ROOT
+            ) as tmp:
+                invocation = build_invocation(
+                    ROOT,
+                    run,
+                    system="spine",
+                    output_root=Path(tmp),
+                    python="python3",
+                    sst=Path("/data/feiyang/sst/bin/sst"),
+                    lib_dir=ROOT / "build" / "sst",
+                    spine_profile=SPINE_PROFILE,
+                )
+                self.assertIn("--update-workload", invocation.command)
+                self.assertEqual(
+                    invocation.command[
+                        invocation.command.index("--update-workload") + 1
+                    ],
+                    str((ROOT / update["path"]).resolve()),
+                )
+
+    def test_k1_profiles_select_hls_derived_runners_for_all_algorithms(self) -> None:
+        profile_paths = normalized_grasu_profile_paths(ROOT, "k1_v4")
+        k1_manifest = validate_shared_comparison_manifest(
+            ROOT,
+            ROOT
+            / "configs"
+            / "experiments"
+            / "shared_comparison_candidate10_k1_multipart_v4_20260728.json",
+        )
+        catalog = (
+            ROOT
+            / "configs"
+            / "contracts"
+            / "grasu_regraph_k1_multipart_capabilities_v4.json"
+        )
+        expected_scripts = {
+            "weighted_sssp": "run_sst_grasu_regraph_hls_weighted.py",
+            "full_pagerank": "run_sst_grasu_regraph_hls_pagerank.py",
+            "thresholded_residual_pagerank": (
+                "run_sst_grasu_regraph_hls_residual_pagerank.py"
+            ),
+        }
+        for algorithm, expected_script in expected_scripts.items():
+            run = next(
+                item
+                for item in k1_manifest["runs"]
+                if item["algorithm"] == algorithm
+            )
+            with self.subTest(algorithm=algorithm), tempfile.TemporaryDirectory(
+                dir=ROOT
+            ) as tmp:
+                invocation = build_invocation(
+                    ROOT,
+                    run,
+                    system="grasu_regraph",
+                    output_root=Path(tmp),
+                    python="python3",
+                    sst=Path("/data/feiyang/sst/bin/sst"),
+                    lib_dir=ROOT / "build" / "sst",
+                    spine_profile=SPINE_PROFILE,
+                    grasu_profile_paths=profile_paths,
+                    grasu_capability_catalog=catalog,
+                )
+                self.assertTrue(invocation.command[1].endswith(expected_script))
+                self.assertIn("--capability-catalog", invocation.command)
+                if algorithm == "full_pagerank":
+                    self.assertNotIn("--residual-contract", invocation.command)
+                elif algorithm == "thresholded_residual_pagerank":
+                    self.assertIn("--residual-contract", invocation.command)
+
     def test_implementation_fingerprint_changes_with_binary(self) -> None:
         with tempfile.TemporaryDirectory(dir=ROOT) as tmp:
             first = Path(tmp) / "first"
@@ -136,6 +259,26 @@ class SharedComparisonRunnerTests(unittest.TestCase):
         )
         self.assertEqual(
             contract["spine_profile_id"], "spine_candidate10_normalized_v1"
+        )
+        self.assertEqual(contract["spine_optimization_chain"], [])
+        projected = validate_normalized_profile_contract(
+            ROOT
+            / "configs"
+            / "architectures"
+            / "spine_candidate10_opt_v2_reader_working_set.json",
+            normalized_grasu_profile_paths(ROOT),
+        )
+        self.assertEqual(
+            projected["spine_profile_id"],
+            "spine_candidate10_opt_v2_reader_working_set",
+        )
+        self.assertEqual(
+            projected["spine_reference_profile_id"],
+            "spine_candidate10_normalized_v1",
+        )
+        self.assertEqual(
+            [item["optimization_round"] for item in projected["spine_optimization_chain"]],
+            [2, 1],
         )
         with self.assertRaisesRegex(ValueError, "Candidate10-derived"):
             validate_normalized_profile_contract(
@@ -330,6 +473,23 @@ class SharedComparisonRunnerTests(unittest.TestCase):
             validate_system_result(run, invocation, result, dram, binding),
         )
         result["backend_arbitration"]["ledger_closed"] = True
+        result["backend_arbitration"].update(
+            {"unique_intents": 8, "grants": 8, "consumed_grants": 8}
+        )
+        self.assertNotIn(
+            "registered_arbitration_requests",
+            validate_system_result(run, invocation, result, dram, binding),
+        )
+        result["backend_arbitration"].update(
+            {"unique_intents": 6, "grants": 6, "consumed_grants": 6}
+        )
+        self.assertIn(
+            "registered_arbitration_requests",
+            validate_system_result(run, invocation, result, dram, binding),
+        )
+        result["backend_arbitration"].update(
+            {"unique_intents": 7, "grants": 7, "consumed_grants": 7}
+        )
         result["maintenance_memory_active_span_cycles"] = 12
         self.assertIn(
             "spine_maintenance_timing_ledger",

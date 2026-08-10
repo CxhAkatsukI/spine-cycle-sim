@@ -1,0 +1,182 @@
+{
+  "claim_class": "vivado_automatic_vectorless_low_confidence_fpga_power",
+  "hierarchy": [
+    {
+      "indent": 1,
+      "name": "level0_wrapper",
+      "power_w": 21.872
+    },
+    {
+      "indent": 3,
+      "name": "level0_i",
+      "power_w": 21.87
+    },
+    {
+      "indent": 5,
+      "name": "blp",
+      "power_w": 7.683
+    },
+    {
+      "indent": 7,
+      "name": "blp_i",
+      "power_w": 7.683
+    },
+    {
+      "indent": 5,
+      "name": "ii_level0_pipe",
+      "power_w": 0.067
+    },
+    {
+      "indent": 7,
+      "name": "inst",
+      "power_w": 0.067
+    },
+    {
+      "indent": 5,
+      "name": "ulp",
+      "power_w": 14.12
+    },
+    {
+      "indent": 7,
+      "name": "SLR0",
+      "power_w": 0.031
+    },
+    {
+      "indent": 7,
+      "name": "SLR1",
+      "power_w": 0.035
+    },
+    {
+      "indent": 7,
+      "name": "SLR2",
+      "power_w": 0.03
+    },
+    {
+      "indent": 7,
+      "name": "bin_search_1",
+      "power_w": 0.053
+    },
+    {
+      "indent": 7,
+      "name": "bin_search_2",
+      "power_w": 0.058
+    },
+    {
+      "indent": 7,
+      "name": "bin_search_3",
+      "power_w": 0.055
+    },
+    {
+      "indent": 7,
+      "name": "bin_search_4",
+      "power_w": 0.057
+    },
+    {
+      "indent": 7,
+      "name": "buffer_kernelApply_1_prop_write_burst_stm",
+      "power_w": 0.011
+    },
+    {
+      "indent": 7,
+      "name": "buffer_kernelLittleGSMerger_1_l_write_burst_stm",
+      "power_w": 0.011
+    },
+    {
+      "indent": 7,
+      "name": "buffer_lksg_stream_1_l_tmp_prop_stm",
+      "power_w": 0.002
+    },
+    {
+      "indent": 7,
+      "name": "buffer_pma_to_regraph_adapter_1_edge_burst_out",
+      "power_w": 0.011
+    },
+    {
+      "indent": 7,
+      "name": "dispatch_1",
+      "power_w": 0.013
+    },
+    {
+      "indent": 7,
+      "name": "hmss_0",
+      "power_w": 10.807
+    },
+    {
+      "indent": 7,
+      "name": "kernelApply_1",
+      "power_w": 0.163
+    },
+    {
+      "indent": 7,
+      "name": "kernelHBMWrapper_1",
+      "power_w": 0.266
+    },
+    {
+      "indent": 7,
+      "name": "kernelLittleGSMerger_1",
+      "power_w": 0.011
+    },
+    {
+      "indent": 7,
+      "name": "lksg_stream_1",
+      "power_w": 0.337
+    },
+    {
+      "indent": 7,
+      "name": "pma_to_regraph_adapter_1",
+      "power_w": 0.195
+    },
+    {
+      "indent": 7,
+      "name": "process_cache_1",
+      "power_w": 0.112
+    },
+    {
+      "indent": 7,
+      "name": "process_cache_2",
+      "power_w": 0.115
+    },
+    {
+      "indent": 7,
+      "name": "process_ddr_1",
+      "power_w": 0.825
+    },
+    {
+      "indent": 7,
+      "name": "process_ddr_2",
+      "power_w": 0.839
+    },
+    {
+      "indent": 7,
+      "name": "ulp_cmp",
+      "power_w": 0.002
+    },
+    {
+      "indent": 7,
+      "name": "ulp_ucs",
+      "power_w": 0.079
+    }
+  ],
+  "limitations": [
+    "Vivado used default vectorless activity; this is not workload-calibrated energy.",
+    "Hierarchy values support implementation feasibility and component attribution only.",
+    "Simulator activity and DRAM command accounting remain the workload-energy source."
+  ],
+  "publication_components": [],
+  "schema_version": 1,
+  "source": {
+    "path": "/home/chuxiao/spine-cycle-sim-publication/docs/evidence/candidate10_grasu_regraph_vivado_power_20260728/weighted_sssp/impl_1_runme.log",
+    "sha256": "a385a12e927ee64211acaa6e0c6f3232682849d6845c8aceb87c120719aec9ca"
+  },
+  "status": "PASS",
+  "summary": {
+    "confidence_level": "Low",
+    "design_budget_w": 123.0,
+    "device_static_w": 9.215,
+    "dynamic_w": 21.921,
+    "fpga_w": 28.409,
+    "hbm_w": 2.726,
+    "simulation_activity_file": "---",
+    "total_on_chip_w": 31.135
+  }
+}

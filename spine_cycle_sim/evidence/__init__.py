@@ -48,6 +48,23 @@ from .exact_idle import (
     analyze_exact_idle_equivalence,
     analyze_exact_idle_sensitivity_equivalence,
 )
+from .vivado_power import (
+    VivadoPowerError,
+    parse_vivado_power_log,
+)
+from .component_power import (
+    ComponentPowerError,
+    aggregate_vivado_component_power,
+    analyze_component_power_manifest,
+)
+from .area_projection import (
+    AreaProjectionError,
+    analyze_area_projection_manifest,
+)
+from .workload_energy import (
+    WorkloadEnergyError,
+    analyze_workload_energy,
+)
 
 __all__ = [
     "FpgaEvidenceError",
@@ -86,4 +103,13 @@ __all__ = [
     "ExactIdleEquivalenceError",
     "analyze_exact_idle_equivalence",
     "analyze_exact_idle_sensitivity_equivalence",
+    "VivadoPowerError",
+    "parse_vivado_power_log",
+    "ComponentPowerError",
+    "aggregate_vivado_component_power",
+    "analyze_component_power_manifest",
+    "AreaProjectionError",
+    "analyze_area_projection_manifest",
+    "WorkloadEnergyError",
+    "analyze_workload_energy",
 ]

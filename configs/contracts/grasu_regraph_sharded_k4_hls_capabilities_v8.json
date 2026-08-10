@@ -1,0 +1,96 @@
+{
+  "algorithms": [
+    "unit_weight_sssp",
+    "weighted_sssp",
+    "weighted_dynamic_sssp",
+    "full_pagerank",
+    "thresholded_residual_pagerank",
+    "connected_components"
+  ],
+  "catalog_id": "grasu_regraph_sharded_k4_hls_capabilities_v8_20260807",
+  "profiles": [
+    {
+      "comparison_role": "hardware_native",
+      "conversion_cost": "absent",
+      "handoff": "weighted_pma_to_axis_stream",
+      "profile_id": "grasu_regraph_sharded_k4_weighted_hls_v8",
+      "profile_path": "configs/architectures/grasu_regraph_sharded_k4_weighted_hls_v8.json",
+      "profile_sha256": "004bfe755983ff12742f45ac6f130f3a76c21abdaf35be73fb28d9f818bc04d7",
+      "supported_algorithms": {
+        "weighted_dynamic_sssp": {
+          "claim_class": "routed_hls_aligned_simulation_pending_cycle_reconciliation",
+          "convergence": "host_relaunch_until_active_frontier_empty",
+          "edge_semantics": "weighted32_local_dst19_weight12",
+          "evidence_tier": "hardware_validated",
+          "implementation_status": "executable",
+          "update_semantics": "resident_full_word_delete_insert_and_weight_change"
+        },
+        "weighted_sssp": {
+          "claim_class": "routed_hls_aligned_simulation_pending_cycle_reconciliation",
+          "convergence": "host_relaunch_until_active_frontier_empty",
+          "edge_semantics": "weighted32_local_dst19_weight12",
+          "evidence_tier": "hardware_validated",
+          "implementation_status": "executable",
+          "update_semantics": "resident_full_word_delete_insert_and_weight_change"
+        }
+      },
+      "unsupported_algorithms": [
+        "unit_weight_sssp",
+        "full_pagerank",
+        "thresholded_residual_pagerank",
+        "connected_components"
+      ]
+    },
+    {
+      "comparison_role": "hardware_native",
+      "conversion_cost": "absent",
+      "handoff": "weighted_pma_to_axis_stream",
+      "profile_id": "grasu_regraph_sharded_k4_cc_hls_v8",
+      "profile_path": "configs/architectures/grasu_regraph_sharded_k4_cc_hls_v8.json",
+      "profile_sha256": "81cf01d6202f1993e51d6a68b719150404e5fe140e3887d310e43cd506a3e6e6",
+      "supported_algorithms": {
+        "connected_components": {
+          "claim_class": "routed_hls_aligned_simulation_pending_cycle_reconciliation",
+          "convergence": "host_relaunch_until_active_frontier_empty",
+          "edge_semantics": "reciprocal_unweighted_local_dst19",
+          "evidence_tier": "hardware_validated",
+          "implementation_status": "executable",
+          "update_semantics": "resident_insertion_repair_and_deletion_full_recompute"
+        }
+      },
+      "unsupported_algorithms": [
+        "unit_weight_sssp",
+        "weighted_sssp",
+        "weighted_dynamic_sssp",
+        "full_pagerank",
+        "thresholded_residual_pagerank"
+      ]
+    },
+    {
+      "comparison_role": "hardware_native",
+      "conversion_cost": "absent",
+      "handoff": "weighted_pma_to_axis_stream",
+      "profile_id": "grasu_regraph_sharded_k4_residual_hls_v8",
+      "profile_path": "configs/architectures/grasu_regraph_sharded_k4_residual_hls_v8.json",
+      "profile_sha256": "ead5f2e182cd5be0764105001f0f8cb094e52fc50f072c3ab1db48747db4159b",
+      "supported_algorithms": {
+        "thresholded_residual_pagerank": {
+          "claim_class": "routed_hls_aligned_simulation_pending_cycle_reconciliation",
+          "convergence": "direct_per_vertex_residual_threshold_or_iteration_limit",
+          "edge_semantics": "weighted32_local_dst19_destination_projection",
+          "evidence_tier": "hardware_validated",
+          "implementation_status": "executable",
+          "update_semantics": "resident_degree_correction_then_signed_residual_push"
+        }
+      },
+      "unsupported_algorithms": [
+        "unit_weight_sssp",
+        "weighted_sssp",
+        "weighted_dynamic_sssp",
+        "full_pagerank",
+        "connected_components"
+      ]
+    }
+  ],
+  "schema_version": 1
+}

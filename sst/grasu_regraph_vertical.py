@@ -46,6 +46,9 @@ dram_output = Path(
     os.environ.get("GRASU_SST_DRAM_OUTPUT", "/tmp/grasu_regraph_dramsim3")
 )
 dram_output.mkdir(parents=True, exist_ok=True)
+memory_backend = os.environ.get(
+    "GRASU_SST_MEMORY_BACKEND", "sst_memHierarchy_dramsim3"
+)
 core_mhz = float(os.environ.get("GRASU_SST_CORE_MHZ", "150"))
 
 probe = sst.Component("grasu_regraph", "spine_cycle.OnlineMemoryProbe")
@@ -53,6 +56,16 @@ probe.addParams(
     {
         "mode": mode,
         "output": output,
+        "progress_path": os.environ.get("SPINE_CAMPAIGN_PROGRESS_PATH", ""),
+        "progress_interval_cycles": int(
+            os.environ.get("SPINE_CAMPAIGN_PROGRESS_INTERVAL_CYCLES", "50000000")
+        ),
+        "memory_backend": memory_backend,
+        "direct_dram_config": os.environ.get(
+            "CANDIDATE10_SST_DRAM_CONFIG",
+            str(ROOT / "configs" / "memory" / "HBM2_1ch_x128.ini"),
+        ),
+        "direct_dram_output": str(dram_output),
         "workload": str(workload),
         "update_workload": str(update) if update is not None else "",
         "source_vertex": int(os.environ.get("GRASU_SST_SOURCE", "0")),
@@ -63,8 +76,29 @@ probe.addParams(
             str(channel) for channel in active_channels
         ),
         "channel_capacity_bytes": channel_bytes,
+        "hbm_address_mapping": os.environ.get(
+            "GRASU_SST_HBM_ADDRESS_MAPPING", "identity"
+        ),
+        "hbm_address_mapping_table": os.environ.get(
+            "GRASU_SST_HBM_ADDRESS_MAPPING_TABLE", ""
+        ),
+        "hbm_interleave_first_channel": int(
+            os.environ.get("GRASU_SST_HBM_INTERLEAVE_FIRST_CHANNEL", "0")
+        ),
+        "hbm_interleave_channels": int(
+            os.environ.get("GRASU_SST_HBM_INTERLEAVE_CHANNELS", "0")
+        ),
+        "hbm_interleave_bytes": int(
+            os.environ.get("GRASU_SST_HBM_INTERLEAVE_BYTES", "64")
+        ),
         "max_cycles": int(os.environ.get("GRASU_SST_MAX_CYCLES", "2000000")),
+        "grasu_update_only": int(
+            os.environ.get("GRASU_SST_UPDATE_ONLY", "0")
+        ),
         "max_rounds": int(os.environ.get("GRASU_SST_MAX_ROUNDS", "256")),
+        "cc_hardware_full_recompute": int(
+            os.environ.get("GRASU_SST_CC_HARDWARE_FULL_RECOMPUTE", "0")
+        ),
         "grasu_native_supersteps": int(
             os.environ.get("GRASU_SST_NATIVE_SUPERSTEPS", "2")
         ),
@@ -77,6 +111,9 @@ probe.addParams(
         "pagerank_epsilon": float(
             os.environ.get("GRASU_SST_PAGERANK_EPSILON", "0.000001")
         ),
+        "residual_contract": os.environ.get(
+            "GRASU_SST_RESIDUAL_CONTRACT", "generic_dangling_l1_cold"
+        ),
         "residual_max_iterations": int(
             os.environ.get("GRASU_SST_RESIDUAL_MAX_ITERATIONS", "256")
         ),
@@ -85,6 +122,20 @@ probe.addParams(
         ),
         "grasu_partition_vertices": int(
             os.environ.get("GRASU_SST_PARTITION_VERTICES", "16")
+        ),
+        "grasu_compute_pipelines": int(
+            os.environ.get("GRASU_SST_COMPUTE_PIPELINES", "1")
+        ),
+        "grasu_shared_downstream": int(
+            os.environ.get("GRASU_SST_SHARED_DOWNSTREAM", "0")
+        ),
+        "grasu_sharded_runtime_placement": int(
+            os.environ.get("GRASU_SST_SHARDED_RUNTIME_PLACEMENT", "0")
+        ),
+        "grasu_runtime_channel_capacity_bytes": int(
+            os.environ.get(
+                "GRASU_SST_RUNTIME_CHANNEL_CAPACITY_BYTES", "536870912"
+            )
         ),
         "grasu_source_buffer_vertices": int(
             os.environ.get("GRASU_SST_SOURCE_BUFFER_VERTICES", "4096")
@@ -116,6 +167,12 @@ probe.addParams(
         ),
         "grasu_apply_state_channel": int(
             os.environ.get("GRASU_SST_APPLY_STATE_CHANNEL", "30")
+        ),
+        "grasu_split_pagerank_state": int(
+            os.environ.get("GRASU_SST_SPLIT_PAGERANK_STATE", "0")
+        ),
+        "grasu_residual_state_channel": int(
+            os.environ.get("GRASU_SST_RESIDUAL_STATE_CHANNEL", "26")
         ),
         "grasu_gather_merger_fifo_depth": int(
             os.environ.get("GRASU_SST_GATHER_MERGER_FIFO_DEPTH", "16")
@@ -180,6 +237,9 @@ probe.addParams(
         "grasu_vertex_state_base": int(
             os.environ.get("GRASU_SST_VERTEX_STATE_BASE", str(0x40000000))
         ),
+        "grasu_residual_state_base": int(
+            os.environ.get("GRASU_SST_RESIDUAL_STATE_BASE", str(0x42000000))
+        ),
         "grasu_source_state_base": int(
             os.environ.get("GRASU_SST_SOURCE_STATE_BASE", str(0x50000000))
         ),
@@ -204,6 +264,17 @@ probe.addParams(
         "grasu_partition_address_stride": int(
             os.environ.get("GRASU_SST_PARTITION_ADDRESS_STRIDE", str(1 << 32))
         ),
+        "grasu_packed_partition_addresses": int(
+            os.environ.get("GRASU_SST_PACKED_PARTITION_ADDRESSES", "0")
+        ),
+        "grasu_partition_address_arena_base": int(
+            os.environ.get(
+                "GRASU_SST_PARTITION_ADDRESS_ARENA_BASE", str(16 << 20)
+            )
+        ),
+        "grasu_partition_address_alignment": int(
+            os.environ.get("GRASU_SST_PARTITION_ADDRESS_ALIGNMENT", "4096")
+        ),
     }
 )
 
@@ -215,7 +286,7 @@ dram_config = Path(
 ).resolve()
 if not dram_config.is_file():
     raise ValueError(f"CANDIDATE10_SST_DRAM_CONFIG is not a file: {dram_config}")
-for channel in active_channels:
+for channel in active_channels if memory_backend == "sst_memHierarchy_dramsim3" else ():
     interface = probe.setSubComponent(
         "memory", "memHierarchy.standardInterface", channel
     )

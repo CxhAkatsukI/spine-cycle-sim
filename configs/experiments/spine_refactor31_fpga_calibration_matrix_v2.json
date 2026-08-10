@@ -1,0 +1,66 @@
+{
+  "schema_version": 2,
+  "matrix_id": "spine_refactor31_fpga_calibration_matrix_v2",
+  "status": "frozen_before_real_slice_timing_fit",
+  "parent_matrix": "configs/experiments/spine_refactor31_fpga_calibration_matrix_v1.json",
+  "architecture_profile": "configs/architectures/spine_refactor31_routed_native_v1.json",
+  "architecture_profile_sha256": "4182ff4e280191dc6d57fa07ea400d3c8bda507dc54699b260aa3b5175dbe8b8",
+  "simulator_plugin": {
+    "path": "build/sst/libspine_cycle.so",
+    "sha256": "b4d997283623ec72fc6b41c0a2dfe78b8587c2df0b717e23246f5dc4c20a0481"
+  },
+  "native_fpga_artifact": {
+    "host_path": "/data/feiyang/codex_builds/spine_paper_alignment/refactor31_real_slice_host",
+    "host_sha256": "97b88b4108fa586b4bf68c81682d03a86623f5777edd4f8d28344b25a75ef0f8",
+    "xclbin_path": "/data/feiyang/spine-dynamic-graph-builds/segmented_exact_fallback_cc7e3f9_20260802/hw_refactor31_ii4_bitmap/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+    "xclbin_sha256": "16ca09f5597d974e6963ac19ada4f59a8e2b0d6b7ef5ea8f668e5ffb520a1629"
+  },
+  "kernel_clock_mhz": 160,
+  "vertex_domain_limit": 1048576,
+  "execution_boundary": "sum_of_per_round_paired_reader_compute_opencl_event_spans",
+  "required_repeats": 5,
+  "real_slice_protocol": {
+    "algorithm": "weighted_sssp",
+    "weight_rule": "1_plus_local_endpoint_hash_mod_255_v1",
+    "source_rule": "lowest_local_vertex_id_with_outdegree_4_to_16",
+    "slice_rule": "encounter_order_canonical_remap_then_unique_directed_edge_prefix_then_src_dst_weight_sort",
+    "parallel_edge_rule": "minimum_positive_weight_per_endpoint",
+    "resident_level_rule": "lowest_cold_level_at_or_above_L8_that_fits_each_family",
+    "independent_oracle": "cpu_dijkstra_uint32_saturating",
+    "hardware_harness": "tools/refactor31/refactor31_real_slice_host.cpp"
+  },
+  "calibration": {
+    "immutable": true,
+    "edge_scales": [100000, 500000, 1000000, 4000000],
+    "datasets": [
+      {"id": "AU", "path": "/data/feiyang/AE/AE_Final/datasets/amazon-2008.mtx"},
+      {"id": "GG", "path": "/data/feiyang/AE/AE_Final/datasets/web-Google.mtx"},
+      {"id": "WK", "path": "/data/feiyang/AE/AE_Final/datasets/wiki-topcats.txt"}
+    ]
+  },
+  "holdout": {
+    "immutable": true,
+    "datasets": [
+      {"id": "LJ", "path": "/data/feiyang/AE/AE_Final/datasets/soc-LiveJournal1.txt", "edge_scale": 2000000},
+      {"id": "OR", "path": "/data/feiyang/AE/AE_Final/datasets/soc-orkut-dir.mtx", "edge_scale": 4000000}
+    ]
+  },
+  "capacity_probes": [
+    {
+      "id": "OR8M",
+      "path": "/data/feiyang/AE/AE_Final/datasets/soc-orkut-dir.mtx",
+      "edge_scale": 8000000,
+      "expected_status": "vertex_domain_exceeded",
+      "reason": "The v1 holdout reaches about 2.05M vertices and cannot be represented by the routed 2^20-vertex artifact."
+    }
+  ],
+  "admission": {
+    "correctness_required": true,
+    "request_conservation_required": true,
+    "work_ledger_closure_required": true,
+    "median_total_cycle_error_percent_max": 15,
+    "max_total_cycle_error_percent_max": 30,
+    "component_median_cycle_error_percent_max": 20,
+    "workload_rank_spearman_min": 0.9
+  }
+}

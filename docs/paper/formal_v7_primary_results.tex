@@ -1,0 +1,299 @@
+\documentclass[10pt]{article}
+\usepackage[margin=0.72in]{geometry}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage[hidelinks]{hyperref}
+\hypersetup{pdftitle={Spine Formal-v7 Primary Dynamic-Graph Results}}
+\title{\textbf{Spine Formal-v7 Primary Dynamic-Graph Results}\\
+\large Correctness-Gated Spine vs. GraSU+ReGraph K4-shared}
+\author{Chuxiao Han}
+\date{Live snapshot, July 2026}
+\IfFileExists{data/formal_v7_primary/pair_table.tex}{
+  \newcommand{\vdatadir}{data/formal_v7_primary}
+  \newcommand{\rqdatadir}{data/rq3}
+  \newcommand{\vfigdir}{../figures}
+}{
+  \newcommand{\vdatadir}{docs/paper/data/formal_v7_primary}
+  \newcommand{\rqdatadir}{docs/paper/data/rq3}
+  \newcommand{\vfigdir}{docs/figures}
+}
+\begin{document}
+\maketitle
+\begin{abstract}
+This live report contains 25 of
+46 expected formal-v7 executions and
+9 complete Spine/K4-shared pairs. Missing bars are unfinished,
+policy-stopped, or behavior-transition-invalidated executions awaiting an
+identical-case successor, never zero-valued measurements. Every admitted row
+passes architecture-precision and independent mathematical oracles, full
+final-state comparison, and request, response, and DRAM conservation.
+\end{abstract}
+
+\section{Measurement contract}
+\begin{table}[H]
+\centering
+\small
+\input{\vdatadir/measurement_table.tex}
+\caption{Measurement windows observed in admitted formal-v7 rows.}
+\end{table}
+
+\paragraph{Dataset scope.}
+The frozen corpus contains 11 real datasets;
+9 enter the full-graph comparison. The
+remaining datasets, BC (24,575,382 vertices), UK (18,520,486 vertices), exceed the frozen Spine capacity of
+16,777,216 vertices. They are capacity exclusions,
+not failed or selectively removed performance rows, and no slices replace them
+in the full-graph aggregate.
+
+\paragraph{Synthetic endpoint.}
+R19-32 (524,288 vertices and 15,483,485 unique directed edges) is reported as
+a separate scalability endpoint. It is never included in a real-dataset
+aggregate; the figures and cycle table place it after a dotted or ruled
+separator.
+
+\paragraph{SSSP interpretation.}
+Spine starts from a verified persisted old-graph SSSP state and measures the
+accepted update, automatic active-source discovery, incremental propagation,
+and drain. The conversion-free GraSU+ReGraph baseline performs its declared
+complete ReGraph execution because it has no equivalent persisted incremental
+SSSP state. This is an architecture-level dynamic-service comparison, not an
+identical-kernel microbenchmark.
+
+\paragraph{Claim boundary.}
+The frozen full matrix remains partial while expected rows are unfinished,
+policy-stopped, or behavior-transition-invalidated; a row must complete or
+receive a declared scope exclusion before the matrix can be called complete.
+Device cycles, accepted memory bytes, and
+DRAMSim3 HBM energy are simulator outputs. They do not claim cycle-for-cycle
+FPGA calibration, on-chip dynamic energy, or total board power.
+
+\paragraph{Behavior-transition coverage.}
+The following 1 prior Spine rows are deliberately absent
+until identical-case successors pass with identical final state: HW-SSSP.
+They are not failures, zeros, or inputs to any aggregate.
+
+\paragraph{Full-graph wall-time feasibility.}
+An execution-feasibility model fitted to 3 completed,
+correctness-admitted K4-shared SSSP rows projects total host times of SO 105.7 h, PK 342.2 h
+at the observed cycle rates. Even a stress test with ten times less work and
+twice the observed simulator rate leaves SO 3.6 h, PK 16.8 h, compared with the
+3 h campaign budget. Those full-graph executions were therefore
+soft-stopped by policy. Their partial cycles and memory requests are retained
+only as host-runtime evidence and never enter accelerator-performance
+aggregates. The validated source-matched preflights report LJ08 source 26, 35 supersteps, 1182.1 h, R19 source 113, 10 supersteps, 52.8 h, LJ source 71, 27 supersteps, 789.2 h. Their total-cycle estimates multiply validated oracle work by the median completed-run cycles/edge-round; they are projections, not completed cycle simulations. For the remaining 2 unlaunched real graphs, a conservative one-round screen uses the smallest completed-run cycles/edge-round and the largest completed-run simulator rate. Even the mandatory first full-graph round projects HW 35.7 h, OK 74.2 h; these screened rows were not launched and are not performance data.
+
+\paragraph{Machine-checked evidence audit.}
+All 25 observed executions pass
+their individual architecture and mathematical correctness gates, closed AXI/HBM
+arbitration and traffic ledgers, and DRAM request conservation. Component-level
+activity is present for all observed executions
+(163 normalized component rows).
+
+\clearpage
+\section{Current primary comparison}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.98\linewidth]{\vfigdir/formal_v7_all_spine_e2e.pdf}
+\caption{Absolute insertion-batch-8 device cycles for all
+16 correctness-admitted current-version Spine rows. Blue
+bars and unmarked orange bars are completed executions. Cross-hatched G+R bars
+  marked Proj./T/O are total-cycle feasibility projections derived either from
+  stopped execution prefixes or from validated source-matched host preflights;
+  they are not measured performance. Upward triangles are conservative one-round
+  feasibility screens, not total-cycle predictions. Downward triangles for
+  SO CC and ResPR are strict monotonic device-cycle lower bounds from stopped
+  incomplete executions; they are neither completed results nor projected totals.
+The invalidated prior-version HW row and queued OK row have no admitted Spine
+result and are therefore absent.}
+\end{figure}
+
+\noindent\textit{Projection method.}
+For a source-matched preflight row, we compute
+$C_{\mathrm{proj}}=\mathrm{median}_i
+\{C_i/(E_iS_i)\}\,E_{\mathrm{target}}S_{\mathrm{target}}$.
+The unit cost is fitted from three completed, correctness-admitted K4-shared
+SSSP executions; the target edge count and minimum superstep count come from
+the complete-graph host oracle using the same source cohort as Spine. These
+values are feasibility projections, not completed simulations, and are
+excluded from measured cross-architecture aggregates.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.98\linewidth]{\vfigdir/formal_v7_primary_ratios.pdf}
+\caption{Ratios for complete insertion-batch-8 pairs. Values above one favor
+Spine for E2E latency and indicate that GraSU+ReGraph uses more memory traffic
+or HBM energy in the other panels. R19, when complete, appears to the right of
+the dotted separator and is not part of the real-dataset population.}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\small
+\input{\vdatadir/pair_table.tex}
+\caption{Absolute device cycles. Only cross-system final-state-matched pairs
+enter this table. R19 is separated from the real datasets by a rule.}
+\end{table}
+
+\clearpage
+\section{Memory traffic and request locality}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.98\linewidth]{\vfigdir/formal_v7_memory_locality.pdf}
+\caption{Absolute accepted-backend traffic and request-stream locality for
+the same complete pairs. A request is discontinuous when its accepted address
+does not continue the previous request from the same initiator, operation, and
+logical HBM channel. This is not a DRAM row-buffer-miss metric. R19 is a
+separate synthetic endpoint.}
+\end{figure}
+
+\clearpage
+\section{Structure-update throughput}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.98\linewidth]{\vfigdir/formal_v7_update_throughput.pdf}
+\caption{Correctness-gated AskUbuntu full-graph insertion throughput at
+batch sizes $2^6$, $2^{10}$, $2^{14}$, and $2^{17}$. The current snapshot
+contains 4 of 4 planned batch points. Spine counts maintenance through its
+drained completion boundary; G+R counts GraSU PMA update completion. Both
+exclude graph-algorithm iterations, equivalent to setting max-iter to zero.}
+\end{figure}
+
+\paragraph{Window boundary.}
+This figure isolates graph-structure mutation. The counters come from dedicated
+correctness-gated executions and stop at each architecture's serial
+update-phase boundary. We use source vertex 0, which remains isolated after all
+four batches, solely to shorten the post-update SSSP correctness drain. Both
+architectures enforce an update--barrier--compute order, so this source choice
+cannot affect the recorded update phase. For Spine the phase includes required
+level selection, L0/carry work, metadata publication, and drain; it excludes
+reader, propagation, convergence, and algorithm drain. For G+R it includes the
+GraSU PMA update and excludes ReGraph execution. It must not be read as
+end-to-end dynamic graph service latency.
+
+\paragraph{Operation coverage.}
+The separate insertion, deletion, and weight-change grid at batches 1, 8, and
+64 remains in \texttt{update\_operation\_pairs.csv} and in the fallback/RQ3
+evidence. It is not mixed into this scaling plot because non-monotonic SSSP
+updates exercise a bounded full-rebuild policy rather than direct insertion.
+
+\clearpage
+\section{Simulator execution cost}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.98\linewidth]{\vfigdir/formal_v7_simulator_runtime.pdf}
+\caption{Host wall time and simulated-device-cycle throughput for the
+correctness-matched pairs. These are simulator engineering diagnostics under
+the recorded campaign concurrency, not accelerator latency or a
+cross-architecture performance metric.}
+\end{figure}
+
+\paragraph{Use boundary.}
+Wall time establishes experiment feasibility and identifies simulator
+optimization targets. Architecture claims use device cycles and the shared
+memory model; they never use host wall time.
+
+\clearpage
+\section{RQ3: realized work and latency}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.98\linewidth]{\vfigdir/rq3_latency_breakdown.pdf}
+\caption{Direct ten-stage, exclusive critical-path composition for zero-net,
+shallow insertion, deep carry, residual PageRank correction, and SSSP/CC
+nonmonotonic fallback. The six maintenance stages are counted in the execution
+core; overlapping resolve/app intervals are assigned to the component gating
+their completion. For residual PageRank, $T_{seed}$ also contains the serial
+device correction/seed interval. Every bar closes exactly to E2E device cycles.}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\small
+\input{\rqdatadir/representative_table.tex}
+\caption{Deterministically selected maximum-cycle representative of each
+eligible realized-work class.}
+\end{table}
+
+\clearpage
+\section{RQ3: cost-model validation}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.98\linewidth]{\vfigdir/rq3_work_correlations.pdf}
+\caption{Direct execution counters versus mechanism-local cycles across
+95 dual-oracle-admitted executions. Blue squares are
+calibration cases and red circles are holdout traces.}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\small
+\input{\rqdatadir/regression_table.tex}
+\caption{Realized-work regressions. Carry work includes old payload reads,
+merge inputs, and output rewrites; cursor inspection is reported separately.}
+\end{table}
+
+\paragraph{Interpretation.}
+The seven panels report every requested realized-work relation, including weak
+sort-only and drain-only relations rather than hiding them. The slope and $R^2$
+table distinguishes mechanisms that transfer across mixed trace classes from
+those that need a richer topology- or contention-aware predictor.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.98\linewidth]{\vfigdir/rq3_e2e_cost_model.pdf}
+\caption{Calibration-only nonnegative realized-work model versus measured E2E
+cycles, plus absolute residuals. The holdout contains
+39 real-trace executions that never participate in
+fitting; holdout $R^2=0.933$, median absolute error
+$26.5\%$, mean absolute error
+$27.4\%$, and maximum absolute error
+$72.0\%$.}
+\end{figure}
+
+\paragraph{RQ3 boundary.}
+These correlations validate internal cost structure and bottleneck attribution;
+they are not cycle-for-cycle FPGA calibration or proof that one scalar predicts
+every topology. The timed device boundary starts with an already-resident sorted
+update buffer: host DMA and an external FLiMS sort are not included. Current
+$T_{seed}$ measures maintenance dirty-source publication and, for residual
+PageRank, the serial device correction interval covering resident rank/degree
+reads, physical-edge scans, seed writes, and active-list publication before
+propagation. The host supplies only the immutable oracle/work trace.
+
+\clearpage
+\section{Implementation-level power attribution}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.98\linewidth]{\vfigdir/formal_v7_component_power.pdf}
+\caption{Vivado post-route vectorless hierarchy power at 150 MHz. The four
+bars are distinct routed builds; the Spine evidence covers SSSP only. Values
+use Vivado default activity with Low confidence and establish component
+attribution, not workload-calibrated energy or board power.}
+\end{figure}
+
+\paragraph{Energy boundary.}
+The workload-specific HBM energy ratios in Figure 1 come from DRAMSim3 and are
+paired with the exact executions plotted there. The routed bars above establish
+implementation-level component power but retain Vivado's Low-confidence
+vectorless activity assumption.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.98\linewidth]{\vfigdir/formal_v7_workload_energy.pdf}
+\caption{Complete workload-duration energy ledger for the nine matched
+SSSP, CC, and residual-PageRank pairs. DRAM energy comes from each exact
+DRAMSim3 command stream. FPGA hierarchy components use execution-driven active
+cycles multiplied by routed vectorless power; platform dynamic and device
+static use the full measured interval. All ledgers close. This is a modeled
+energy estimate, not RTL-SAIF or board-power measurement. Spine CC/Residual and
+G+R CC use explicitly recorded routed-algorithm proxies.}
+\end{figure}
+
+\paragraph{Energy interpretation.}
+This result has the same separation of concerns used throughout the report:
+the cycle simulator supplies workload activity and duration, DRAMSim3 supplies
+HBM-device energy, and implementation tools supply component power. CACTI
+selected-SRAM ASIC projections remain a separate ledger and are not summed
+with FPGA BRAM/URAM power. The largest remaining confidence upgrade is
+algorithm-matched routed builds with RTL-derived SAIF activity.
+\end{document}

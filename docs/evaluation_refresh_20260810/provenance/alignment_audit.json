@@ -1,0 +1,52 @@
+{
+  "campaign": {
+    "analysis_dir": "/data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen/analysis_complete_live",
+    "complete_for_fig9": true,
+    "expected_executions": 18,
+    "missing_executions": 0,
+    "observed_executions": 18,
+    "pair_rows": 9,
+    "paired_algorithms": [
+      "connected_components",
+      "thresholded_residual_pagerank",
+      "weighted_sssp"
+    ],
+    "paired_datasets": [
+      "sx_askubuntu",
+      "sx_superuser",
+      "wiki_talk_temporal"
+    ],
+    "present": true,
+    "required_pair_rows": 9,
+    "summary_status": "PASS"
+  },
+  "figures": {
+    "fig10": {
+      "aligned": true,
+      "evidence": "RQ3 component ledger",
+      "gap": "",
+      "status": "PASS_CURRENT_MODEL_DATA"
+    },
+    "fig7": {
+      "aligned": true,
+      "evidence": "routed FPGA data",
+      "status": "PASS"
+    },
+    "fig8": {
+      "aligned": true,
+      "evidence": "setup-inclusive update-throughput simulator rows",
+      "gap": "",
+      "status": "PASS_CURRENT_MODEL_DATA"
+    },
+    "fig9": {
+      "aligned": true,
+      "campaign_pairs": 9,
+      "evidence": "campaign pair_rows memory and HBM-energy ledger",
+      "required_pairs": 9,
+      "status": "PASS_CAMPAIGN_ANALYSIS"
+    }
+  },
+  "next_actions": [],
+  "out_dir": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810",
+  "status": "READY"
+}

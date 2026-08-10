@@ -1,0 +1,242 @@
+{
+  "claim_class": "vivado_automatic_vectorless_low_confidence_fpga_power",
+  "hierarchy": [
+    {
+      "indent": 1,
+      "name": "level0_wrapper",
+      "power_w": 25.952
+    },
+    {
+      "indent": 3,
+      "name": "level0_i",
+      "power_w": 25.951
+    },
+    {
+      "indent": 5,
+      "name": "blp",
+      "power_w": 7.708
+    },
+    {
+      "indent": 7,
+      "name": "blp_i",
+      "power_w": 7.708
+    },
+    {
+      "indent": 5,
+      "name": "ii_level0_pipe",
+      "power_w": 0.069
+    },
+    {
+      "indent": 7,
+      "name": "inst",
+      "power_w": 0.069
+    },
+    {
+      "indent": 5,
+      "name": "ulp",
+      "power_w": 18.174
+    },
+    {
+      "indent": 7,
+      "name": "SLR0",
+      "power_w": 0.032
+    },
+    {
+      "indent": 7,
+      "name": "SLR1",
+      "power_w": 0.048
+    },
+    {
+      "indent": 7,
+      "name": "SLR2",
+      "power_w": 0.028
+    },
+    {
+      "indent": 7,
+      "name": "bin_search_1",
+      "power_w": 0.042
+    },
+    {
+      "indent": 7,
+      "name": "bin_search_2",
+      "power_w": 0.043
+    },
+    {
+      "indent": 7,
+      "name": "bin_search_3",
+      "power_w": 0.041
+    },
+    {
+      "indent": 7,
+      "name": "bin_search_4",
+      "power_w": 0.041
+    },
+    {
+      "indent": 7,
+      "name": "buffer_bin_search_1_segment_head_stream_out",
+      "power_w": 0.002
+    },
+    {
+      "indent": 7,
+      "name": "buffer_bin_search_2_segment_head_stream_out",
+      "power_w": 0.002
+    },
+    {
+      "indent": 7,
+      "name": "buffer_bin_search_3_segment_head_stream_out",
+      "power_w": 0.002
+    },
+    {
+      "indent": 7,
+      "name": "buffer_bin_search_4_segment_head_stream_out",
+      "power_w": 0.002
+    },
+    {
+      "indent": 7,
+      "name": "buffer_dispatch_degree_1_degree_delta",
+      "power_w": 0.002
+    },
+    {
+      "indent": 7,
+      "name": "buffer_dispatch_degree_1_dispatch_to_process_cache_1",
+      "power_w": 0.003
+    },
+    {
+      "indent": 7,
+      "name": "buffer_dispatch_degree_1_dispatch_to_process_cache_2",
+      "power_w": 0.003
+    },
+    {
+      "indent": 7,
+      "name": "buffer_dispatch_degree_1_dispatch_to_process_ddr_1",
+      "power_w": 0.002
+    },
+    {
+      "indent": 7,
+      "name": "buffer_dispatch_degree_1_dispatch_to_process_ddr_2",
+      "power_w": 0.003
+    },
+    {
+      "indent": 7,
+      "name": "buffer_kernelHBMWrapper_1_l_ppb_response_stm_1",
+      "power_w": 0.014
+    },
+    {
+      "indent": 7,
+      "name": "buffer_kernelLittleGSMerger_1_l_write_burst_stm",
+      "power_w": 0.01
+    },
+    {
+      "indent": 7,
+      "name": "buffer_lksg_stream_1_l_tmp_prop_stm",
+      "power_w": 0.001
+    },
+    {
+      "indent": 7,
+      "name": "buffer_pma_to_regraph_adapter_1_edge_burst_out",
+      "power_w": 0.008
+    },
+    {
+      "indent": 7,
+      "name": "buffer_regraph_pagerank_apply_1_source_prop_write",
+      "power_w": 0.014
+    },
+    {
+      "indent": 7,
+      "name": "dispatch_degree_1",
+      "power_w": 0.012
+    },
+    {
+      "indent": 7,
+      "name": "grasu_degree_update_1",
+      "power_w": 0.037
+    },
+    {
+      "indent": 7,
+      "name": "hmss_0",
+      "power_w": 12.372
+    },
+    {
+      "indent": 7,
+      "name": "kernelHBMWrapper_1",
+      "power_w": 0.249
+    },
+    {
+      "indent": 7,
+      "name": "kernelLittleGSMerger_1",
+      "power_w": 0.01
+    },
+    {
+      "indent": 7,
+      "name": "lksg_stream_1",
+      "power_w": 0.357
+    },
+    {
+      "indent": 7,
+      "name": "pma_to_regraph_adapter_1",
+      "power_w": 0.18
+    },
+    {
+      "indent": 7,
+      "name": "pr_source_1",
+      "power_w": 1.143
+    },
+    {
+      "indent": 7,
+      "name": "process_cache_1",
+      "power_w": 0.107
+    },
+    {
+      "indent": 7,
+      "name": "process_cache_2",
+      "power_w": 0.108
+    },
+    {
+      "indent": 7,
+      "name": "process_ddr_1",
+      "power_w": 0.688
+    },
+    {
+      "indent": 7,
+      "name": "process_ddr_2",
+      "power_w": 0.658
+    },
+    {
+      "indent": 7,
+      "name": "regraph_pagerank_apply_1",
+      "power_w": 1.83
+    },
+    {
+      "indent": 7,
+      "name": "ulp_cmp",
+      "power_w": 0.002
+    },
+    {
+      "indent": 7,
+      "name": "ulp_ucs",
+      "power_w": 0.076
+    }
+  ],
+  "limitations": [
+    "Vivado used default vectorless activity; this is not workload-calibrated energy.",
+    "Hierarchy values support implementation feasibility and component attribution only.",
+    "Simulator activity and DRAM command accounting remain the workload-energy source."
+  ],
+  "publication_components": [],
+  "schema_version": 1,
+  "source": {
+    "path": "/home/chuxiao/spine-cycle-sim-publication/docs/evidence/candidate10_grasu_regraph_vivado_power_20260728/thresholded_residual_pagerank/impl_1_runme.log",
+    "sha256": "721f3f07666ad48af828fca281c30b28f9fb13acf8af19caf2ec47fa09f3e14a"
+  },
+  "status": "PASS",
+  "summary": {
+    "confidence_level": "Low",
+    "design_budget_w": 123.0,
+    "device_static_w": 10.146,
+    "dynamic_w": 26.014,
+    "fpga_w": 32.726,
+    "hbm_w": 3.433,
+    "simulation_activity_file": "---",
+    "total_on_chip_w": 36.16
+  }
+}

@@ -1,0 +1,215 @@
+# Large-graph publication campaign live execution (2026-07-30)
+
+## Frozen inputs
+
+- Contract: `configs/contracts/large_graph_publication_campaign_fullgraph_v3.json`
+- Native plugin: `/data/tmp/chuxiao/fullgraph-v8-repair-native-build-20260730/libspine_cycle.so`
+- Plugin SHA-256: `eee35f39c118538da5565e497d29b989e5bb492c1368839d424a984c32e2aae9`
+- Materialized workloads: `/data/tmp/chuxiao/large_graph_campaign_v1/workloads/`
+- Runtime root: `/data/tmp/chuxiao/large_graph_campaign_v1/`
+
+The v3 contract keeps full-graph insertion, freezes Full PageRank at a 4M-edge
+cap, and labels weighted-SSSP delete/weight-change as bounded 64K real-topology
+tests because the current Spine maintenance launch has
+`MAX_SORT_EDGES=131072`.
+
+## Active waves
+
+| Wave | Purpose | Jobs | CPU pool |
+|---|---|---:|---|
+| `fullgraph_v2_repair` | Full-graph-addressing repair evidence | 2 running, 6 queued | legacy launcher |
+| `formal_v3_weighted_wave` | AU and WikiTalk weighted-SSSP E2E | 6 | repinned audit pool |
+| `formal_v3_wiki_cc_k1` | Missing WikiTalk CC K1 row | 1 | repinned audit pool |
+| `formal_v3_superuser_weighted` | SuperUser weighted-SSSP E2E | 3 | repinned audit pool |
+| `formal_v3_superuser_spine_fullpr` | Missing SuperUser Spine Full PageRank row | 1 | repinned audit pool |
+| `formal_v3_au_grasu_nonmonotonic` | GraSU delete/weight-change, u1/u8/u64 | 12 | 16-27 |
+| `formal_v3_au_spine_weight_remaining` | Spine weight-change u8/u64 | 2 | 28-29 |
+| `formal_v3_au_spine_weight_u1` | Spine weight-change u1 | 1 | 52 |
+| `formal_v3_au_spine_delete` | Spine delete u1/u8/u64 | 3 | 49-51 |
+| `formal_v3_au_insert_endpoints` | Insert u1/u64 across three systems | 6 | 30-35 |
+| `formal_v3_au_dense_k4` | AU dense insert u512/u4096, Spine and K4-shared | 4 | 53-56 |
+| `formal_v3_remaining5_spine_weighted` | Weighted SSSP on five remaining Spine-admitted real graphs | 5 (1 concurrent) | 57 |
+| `formal_v3_remaining7_k4_weighted` | Weighted SSSP K4-shared on seven remaining real graphs | retry running, 1 active + 6 queued | 58 |
+| `formal_v3_r19_spine` | R19-32 endpoint, four Spine algorithms | 4 | 36-39 |
+| `formal_v3_r19_grasu_fullpr` | R19-32 Full PageRank, GraSU+ReGraph K1/K4-shared | 2 | 40-41 |
+| `formal_v3_r19_k4_priority` | R19-32 K4-shared weighted SSSP PASS; original CC exact-boundary failure retained | 2 (1 concurrent) | 47 |
+| `formal_v3_r19_cc_guard` | Corrected R19-32 K4-shared CC formal rerun | 1 PASS | 47 |
+| `formal_v3_stackoverflow_spine` | Superseded StackOverflow Spine runs with the quadratic host-active builder | 3 soft-stopped | 48 |
+| `formal_v4_stackoverflow_spine_linear` | Audited cycle-equivalent StackOverflow Spine reruns with the linear host-active builder | 3 (3 concurrent) | 60-62 |
+| `formal_v3_small_cc_residual` | AU/SU/WikiTalk CC and residual PageRank, three systems | 18 (3 concurrent) | 42-44 |
+| `formal_v3_small_fullpr` | AU/SU/WikiTalk Full PageRank, three systems | 9 (2 concurrent) | 45-46 |
+| `formal_v4_missing_fullpr_competitors` | Missing 4M-edge Full PageRank K1/K4 rows on LJournal, LiveJournal, Orkut, and StackOverflow | 8 (2 concurrent, K4 first) | 52-53 |
+| `formal_v4_stackoverflow_cc_residual_competitors` | StackOverflow CC/Residual PageRank K1/K4 completion wave | 4 (1 concurrent, K4 first) | 54 |
+
+The v3 launchers use a 112 GiB admission reserve, 96 GiB emergency threshold,
+112 GiB recovery threshold, one start per five-second sample, and no automatic
+wall-time timeout. The memory circuit breaker soft-stops the fewest high-RSS
+jobs needed to recover before host OOM.
+
+The remaining-real-data K4 wave is a deliberate exception: every runnable job carries
+a conservative 64 GiB estimate and only one may run. Its 96 GiB admission
+reserve means it waits until at least 160 GiB is available; the 80 GiB
+emergency threshold still leaves a large host safety margin. Bitcoin and
+UK-2002 exceed Spine's frozen $2^{24}$-vertex admission bound. They also exceed
+the GraSU+ReGraph 23-PC HBM budget using mandatory row storage alone, so they
+are capacity evidence and cannot form a speedup pair. See
+`docs/grasu_regraph_hbm_capacity_preflight_20260730.md`.
+
+The missing Full PageRank competitor wave uses the frozen 4M-edge cap and the
+v4 measurement contract. It starts at most two 14.9--16.3 GiB estimated jobs,
+orders K4-shared before K1, and uses 96/80/96 GiB
+reserve/emergency/recovery thresholds. Its manifest is
+`/data/tmp/chuxiao/large_graph_campaign_v1/formal_v4_missing_fullpr_competitors/campaign_manifest.json`.
+
+The StackOverflow competitor completion wave contains K1/K4-shared CC and
+per-vertex-$10^{-6}$ Residual PageRank. Every job carries the conservative
+64 GiB estimate and the launcher starts only one at a time after preserving a
+96 GiB host reserve. Residual K4 is first; K1 remains the scalability control.
+
+The first Bitcoin attempt allocated 31.7 GiB during bootstrap before producing
+simulated-cycle progress. It was soft-stopped after 203 seconds so R19-32 CC
+could take the single high-memory K4 slot. A five-second launcher race briefly
+started Pokec; its process group was terminated before cycle progress and the
+entire wave was then closed with an auditable `stop-all` request. R19-32 CC was
+resumed with an 88 GiB reserve, 72 GiB emergency threshold, and one-job limit.
+It passed at 42,433,681 cycles with both correctness oracles and all memory
+ledgers closed. The seven real-data K4 rows remain expected-but-missing while
+the post-R19 wave runs.
+
+The first R19-32 K4-shared CC run exposed an exact source-window boundary in
+ReGraph's one-window-ahead HLS prefetch. The packed address map now reserves the
+required 16 KiB source-state guard without suppressing any simulated request.
+The original failure remains in `formal_v3_r19_k4_priority`; the corrected run
+uses `formal_v3_r19_cc_guard`, an 88 GiB admission reserve, a 72 GiB emergency
+threshold, and the same CPU 47 high-memory slot. See
+`docs/grasu_regraph_source_prefetch_guard_20260730.md` for the HLS mapping and
+boundary validation.
+
+A dependency watcher named `spine-v3-remaining7-k4-after-r19` polled the
+corrected campaign state once per minute and resumed
+`formal_v3_remaining7_k4_weighted` only after R19 CC reached `pass`. The first
+launch then failed closed before simulated-cycle progress because the amended
+packed-addressing contract had changed while transitive profile evidence pins
+still named its old SHA-256. All 23 affected profiles, capability catalogs, and
+campaign contracts were repinned and structurally verified. The retry remains
+single-job, uses CPU offset 58, and applies 96/80/96 GiB
+admission/emergency/recovery thresholds. The seven zero-cycle startup failures
+remain in `events.jsonl` and do not enter publication aggregates.
+
+## CPU-affinity correction
+
+Multiple independent launchers initially selected the same first physical CPU.
+At 2026-07-30 01:30 Asia/Shanghai, the remaining jobs were repinned to distinct
+physical CPUs. The machine-readable before/after evidence is:
+
+`/data/tmp/chuxiao/large_graph_campaign_v1/host_affinity_repair_20260730T0125.json`
+
+Simulated cycles, correctness, memory traffic, and energy activity are not
+affected by host CPU contention. Host wall time before the correction is
+contaminated and must not be used as simulator-throughput evidence. A later
+contention-controlled rerun is required for host-runtime claims.
+
+## Monitoring
+
+One-shot summary:
+
+```bash
+cd /home/chuxiao/spine-cycle-sim-publication
+scripts/monitor_active_publication_campaigns.sh --once
+```
+
+Interactive refresh:
+
+```bash
+watch -n 2 scripts/monitor_active_publication_campaigns.sh --once
+```
+
+Persistent one-minute log:
+
+```bash
+tail -f /data/tmp/chuxiao/large_graph_campaign_v1/active_campaign_monitor.log
+```
+
+The per-campaign monitor reports elapsed time, RSS, phase, cycles, memory
+requests, and ETA. ETA is derived only for bounded `completed/total` work (for
+example fixed-iteration Full PageRank); convergence-driven SSSP/CC reports `-`
+instead of extrapolating an unknown number of rounds.
+
+The aggregate monitor resolves historical failed state without erasing it. A
+failed parent whose admitted child result was reused is reported as `reused`,
+an execution that passed in a later repair campaign is `recovered`, and a row
+excluded by a frozen HBM-capacity manifest is `capacity`. Only failures outside
+all three sets contribute to `unresolved_fail`. The lookup is by frozen
+execution ID across the complete campaign root, so a repair campaign cannot be
+mistaken for a second logical experiment.
+
+## StackOverflow host-runtime replacement
+
+The original StackOverflow Spine Weighted SSSP reached 308M simulated cycles
+and then spent more than three hours at 100% host CPU in the untimed
+`HOST_ACTIVE` bin builder. The old builder rescanned every resident edge for
+each active source (`O(A * E)`). It was soft-stopped with an explicit reason;
+the queued CC and Residual PageRank jobs in the same campaign were also marked
+stopped before launch.
+
+`formal_v4_stackoverflow_spine_linear` restarts all three executions with the
+audited `O(A + E)` host builder. The new plugin is admitted only for Spine by
+the v4 contract and two exact old/new summary comparisons. It does not change
+simulated cycles or accelerator behavior. The three jobs are pinned to CPUs
+60-62 and launched together under 64/48/80 GiB
+reserve/emergency/recovery thresholds. See
+`docs/spine_host_active_linearization_20260730.md` for build, hashes,
+equivalence evidence, and reproduction commands.
+
+## Live analysis
+
+Refresh all correctness-gated outputs:
+
+```bash
+scripts/analyze_active_publication_campaigns.sh
+```
+
+The output directory is
+`/data/tmp/chuxiao/large_graph_campaign_v1/live_publication_analysis/` and
+contains `summary.json`, `system_rows.csv`, `pair_rows.csv`, and
+`correctness_groups.csv`. It also emits `component_activity_rows.csv`, which
+normalizes workload-specific component cycles, work items, selected array
+accesses, backend requests, and stalls while explicitly excluding a total-energy
+claim. A tmux worker named `spine-v3-live-analysis` refreshes
+these files every five minutes. `PARTIAL` is expected until every execution ID
+listed by the active manifests has a passing case result.
+
+At the first live snapshot, 38 passing executions and 14 complete
+Spine-versus-competitor pairs were observed. Missing or failed executions are
+never admitted to pair rows.
+
+R19-32 GraSU admission uses the corrected PMA/oracle RSS envelope. The frozen
+endpoint estimates are approximately 13.7 GiB for Full PageRank, 46-47 GiB for
+Weighted SSSP and Residual PageRank, and the 64 GiB per-run cap for CC. Those
+jobs must run in separate memory-controlled waves; the 12-job R19 endpoint must
+not be launched as one concurrent group.
+
+The first R19-32 Spine residual-PageRank insertion completed correctly but had
+an empty initial frontier (`initial_active_vertices=0`). It is retained as
+evidence for the no-propagation update path, not as the representative
+propagating residual-PageRank endpoint. A separately selected update that
+crosses the per-vertex activation threshold is required for that claim.
+
+Live publication aggregation is restricted to the current plugin cohort
+(`eee35f39c118538da5565e497d29b989e5bb492c1368839d424a984c32e2aae9`).
+The 36 `formal_candidate92_v1` rows use the superseded `88d446...` plugin and
+remain available as historical evidence, but are intentionally excluded from
+the current aggregate. The analyzer's duplicate-science guard caught this
+cohort boundary when current AU CC/residual runs reused the same execution IDs;
+the guard remains strict.
+
+The first R19-32 Spine CC attempt failed before useful simulation with
+`SST backend request targets an unbound memory channel`. Its 29.7M-record
+reciprocal snapshot exceeds one cold family's aggregate fixed-level capacity,
+so resident preload automatically promotes high-indegree destinations into
+hashed hot shards. The sparse Python binding had considered only cold
+destination partitions. The binding now mirrors the fixed-capacity promotion
+trigger and includes every promoted hot shard; ordinary slices below the
+trigger retain their smaller sparse binding. The failed CC row is not admitted,
+and the stopped R19 Full PageRank/SSSP runs are restarted under the corrected
+binding while preserving the passing residual fast-path evidence.

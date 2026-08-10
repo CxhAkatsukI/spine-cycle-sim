@@ -1,15 +1,16 @@
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <cstddef>
 #include <cstdint>
 #include <deque>
-#include <map>
+#include <limits>
 #include <memory>
 #include <span>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
 #include "spine_sim/component.hpp"
@@ -26,6 +27,15 @@ struct BackendRequest {
   std::uint64_t address{};
   std::uint32_t bytes{};
   std::vector<std::uint8_t> write_data;
+};
+
+struct BackendRequestHeader {
+  std::uint32_t initiator_id{};
+  std::uint64_t request_id{};
+  std::size_t channel{};
+  MemoryOperation operation{MemoryOperation::kRead};
+  std::uint64_t address{};
+  std::uint32_t bytes{};
 };
 
 struct BackendResponse {
@@ -60,6 +70,8 @@ struct MemoryTrafficStats {
 
 class MemoryBackend : public Component {
  public:
+  using ResponseNotifier = void (*)(void*) noexcept;
+
   using Component::Component;
 
   [[nodiscard]] bool has_prepare_phase() const noexcept override {
@@ -70,16 +82,46 @@ class MemoryBackend : public Component {
   }
 
   void register_initiator(std::uint32_t initiator_id);
+  void bind_response_notifier(std::uint32_t initiator_id, void* owner,
+                              ResponseNotifier notifier);
+  void unbind_response_notifier(std::uint32_t initiator_id,
+                                void* owner) noexcept;
   void initialize_payload(std::size_t channel, std::uint64_t address,
                           const std::vector<std::uint8_t>& data);
   void fill_payload(std::size_t channel, std::uint64_t address,
                     std::uint64_t bytes, std::uint8_t value);
   [[nodiscard]] std::vector<std::uint8_t> inspect_payload(
       std::size_t channel, std::uint64_t address, std::size_t bytes) const;
-  virtual bool try_submit(const BackendRequest& request) = 0;
+  bool try_submit(const BackendRequest& request);
+  // A caller that owns an expensive write payload may reserve admission from
+  // the header first, then move the complete request immediately. This is one
+  // evaluate-phase operation; reservations must not be retained by callers.
+  virtual bool try_reserve(const BackendRequestHeader& request) = 0;
+  virtual void submit_reserved(BackendRequest request) = 0;
+  // Registered arbitration state cannot change until the global commit
+  // phase. Fixed-channel AXI masters can collapse additional same-cycle
+  // retries while retaining every observable stall counter.
+  [[nodiscard]] virtual bool reservation_intent_pending(
+      std::uint32_t initiator_id, std::size_t channel) const noexcept {
+    (void)initiator_id;
+    (void)channel;
+    return false;
+  }
+  virtual void account_same_cycle_reservation_stalls(
+      std::uint32_t initiator_id, std::size_t channel,
+      std::uint64_t count) {
+    (void)initiator_id;
+    (void)channel;
+    if (count != 0) {
+      throw std::logic_error(
+          "backend cannot account coalesced reservation stalls");
+    }
+  }
   [[nodiscard]] virtual std::size_t response_count(
       std::uint32_t initiator_id) const noexcept = 0;
   [[nodiscard]] virtual const BackendResponse& response_at(
+      std::uint32_t initiator_id, std::size_t index) const = 0;
+  [[nodiscard]] virtual const BackendResponse& staged_response_at(
       std::uint32_t initiator_id, std::size_t index) const = 0;
   virtual bool stage_pop_responses(std::uint32_t initiator_id,
                                    std::size_t count) = 0;
@@ -101,7 +143,8 @@ class MemoryBackend : public Component {
   void commit_write_payload(const BackendRequest& request);
   [[nodiscard]] std::vector<std::uint8_t> complete_read_payload(
       const BackendRequest& request) const;
- void record_accepted_request(const BackendRequest& request);
+  void record_accepted_request(const BackendRequest& request);
+  void notify_response_available(std::uint32_t initiator_id) noexcept;
 
  private:
   static constexpr std::size_t kPayloadPageBytes = 4096;
@@ -114,8 +157,35 @@ class MemoryBackend : public Component {
     [[nodiscard]] bool contains(std::size_t offset) const noexcept {
       return (validity[offset / 64] & (std::uint64_t{1} << (offset % 64))) != 0;
     }
-    void mark(std::size_t offset) noexcept {
-      validity[offset / 64] |= std::uint64_t{1} << (offset % 64);
+    [[nodiscard]] bool contains_range(std::size_t offset,
+                                      std::size_t bytes) const noexcept {
+      while (bytes != 0) {
+        const std::size_t bit = offset % 64;
+        const std::size_t count = std::min<std::size_t>(64 - bit, bytes);
+        const std::uint64_t mask =
+            count == 64
+                ? std::numeric_limits<std::uint64_t>::max()
+                : ((std::uint64_t{1} << count) - 1) << bit;
+        if ((validity[offset / 64] & mask) != mask) {
+          return false;
+        }
+        offset += count;
+        bytes -= count;
+      }
+      return true;
+    }
+    void mark_range(std::size_t offset, std::size_t bytes) noexcept {
+      while (bytes != 0) {
+        const std::size_t bit = offset % 64;
+        const std::size_t count = std::min<std::size_t>(64 - bit, bytes);
+        const std::uint64_t mask =
+            count == 64
+                ? std::numeric_limits<std::uint64_t>::max()
+                : ((std::uint64_t{1} << count) - 1) << bit;
+        validity[offset / 64] |= mask;
+        offset += count;
+        bytes -= count;
+      }
     }
   };
 
@@ -136,7 +206,13 @@ class MemoryBackend : public Component {
     std::uint8_t value{};
   };
 
-  std::unordered_set<std::uint32_t> initiators_;
+  struct ResponseNotification {
+    void* owner{};
+    ResponseNotifier notifier{};
+  };
+
+  std::vector<std::uint8_t> initiators_;
+  std::vector<ResponseNotification> response_notifications_;
   std::unordered_map<std::size_t,
                      std::unordered_map<std::uint64_t, PayloadPage>>
       payload_storage_;
@@ -144,7 +220,8 @@ class MemoryBackend : public Component {
   MemoryTrafficStats traffic_stats_;
   std::unordered_map<std::uint32_t, MemoryTrafficStats>
       traffic_stats_by_initiator_;
-  std::unordered_map<std::uint32_t, InitiatorCursors> traffic_cursors_;
+  std::vector<MemoryTrafficStats *> traffic_stats_by_initiator_dense_;
+  std::vector<InitiatorCursors> traffic_cursors_;
 };
 
 struct RegisteredChannelArbiterStats {
@@ -167,12 +244,17 @@ class RegisteredChannelArbiter {
                            std::size_t grants_per_channel_per_cycle);
 
   [[nodiscard]] bool try_acquire(const BackendRequest& request);
+  [[nodiscard]] bool try_acquire(const BackendRequestHeader& request);
   void arbitrate(std::span<const std::size_t> channel_outstanding,
                  std::size_t max_outstanding_per_channel);
   [[nodiscard]] std::size_t pending_intents() const noexcept;
   [[nodiscard]] std::size_t pending_grants() const noexcept;
   [[nodiscard]] std::size_t pending_grants_for(
       std::uint32_t initiator_id) const noexcept;
+  [[nodiscard]] bool intent_pending(std::uint32_t initiator_id,
+                                    std::size_t channel) const noexcept;
+  void account_duplicate_waits(std::uint32_t initiator_id,
+                               std::size_t channel, std::uint64_t count);
   [[nodiscard]] const RegisteredChannelArbiterStats& stats() const noexcept {
     return stats_;
   }
@@ -180,9 +262,17 @@ class RegisteredChannelArbiter {
  private:
   std::size_t channels_{};
   std::size_t grants_per_channel_per_cycle_{};
-  std::vector<std::map<std::uint32_t, BackendRequest>> intents_;
-  std::vector<std::map<std::uint32_t, BackendRequest>> grants_;
+  // HBM profiles expose at most 32 pseudo-channels. Keep per-initiator
+  // channel state in bitmasks so repeated blocked AXI attempts do not pay for
+  // ordered-map lookup or copy an unused BackendRequest payload.
+  std::vector<std::vector<std::uint32_t>> intents_;
+  std::vector<std::size_t> grants_by_channel_;
   std::vector<std::uint32_t> next_initiator_;
+  std::vector<std::uint64_t> intent_masks_;
+  std::vector<std::uint64_t> grant_masks_;
+  std::uint64_t active_intent_channels_{};
+  std::size_t pending_intent_count_{};
+  std::size_t pending_grant_count_{};
   RegisteredChannelArbiterStats stats_;
 };
 
@@ -206,10 +296,19 @@ class MockMemoryBackend final : public MemoryBackend {
  public:
   MockMemoryBackend(std::string name, ClockId clock_id, MockMemoryConfig config);
 
-  bool try_submit(const BackendRequest& request) override;
+  bool try_reserve(const BackendRequestHeader& request) override;
+  void submit_reserved(BackendRequest request) override;
+  [[nodiscard]] bool reservation_intent_pending(
+      std::uint32_t initiator_id,
+      std::size_t channel) const noexcept override;
+  void account_same_cycle_reservation_stalls(
+      std::uint32_t initiator_id, std::size_t channel,
+      std::uint64_t count) override;
   [[nodiscard]] std::size_t response_count(
       std::uint32_t initiator_id) const noexcept override;
   [[nodiscard]] const BackendResponse& response_at(
+      std::uint32_t initiator_id, std::size_t index) const override;
+  [[nodiscard]] const BackendResponse& staged_response_at(
       std::uint32_t initiator_id, std::size_t index) const override;
   bool stage_pop_responses(std::uint32_t initiator_id,
                            std::size_t count) override;
@@ -240,6 +339,8 @@ class MockMemoryBackend final : public MemoryBackend {
   std::unique_ptr<RegisteredChannelArbiter> arbiter_;
   std::deque<Pending> pending_;
   std::unordered_map<std::uint32_t, std::deque<BackendResponse>> responses_;
+  std::unordered_map<std::uint32_t, std::vector<BackendResponse>>
+      retired_responses_;
   std::vector<BackendRequest> staged_submissions_;
   std::unordered_map<std::uint32_t, std::size_t> staged_response_pops_;
   MockMemoryStats stats_;

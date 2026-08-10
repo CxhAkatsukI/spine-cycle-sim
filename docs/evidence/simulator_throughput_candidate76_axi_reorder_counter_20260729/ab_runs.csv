@@ -1,0 +1,7 @@
+variant,repetition,system,host_wall_seconds,simulated_cycles,backend_requests
+previous,1,grasu_regraph,23.580790812149644,15310428,9751632
+candidate76,1,grasu_regraph,22.965048341080546,15310428,9751632
+candidate76,2,grasu_regraph,23.139263244345784,15310428,9751632
+previous,2,grasu_regraph,23.627210523933172,15310428,9751632
+previous,3,grasu_regraph,23.764643745496870,15310428,9751632
+candidate76,3,grasu_regraph,23.807660533115268,15310428,9751632

@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <optional>
 #include <string_view>
+#include <vector>
 
 namespace spine::sim {
 
@@ -11,6 +12,7 @@ enum class GraphAlgorithmKind {
   kWeightedSssp,
   kFullPageRank,
   kResidualPageRank,
+  kConnectedComponents,
 };
 
 enum class AlgorithmUpdateMode {
@@ -20,12 +22,20 @@ enum class AlgorithmUpdateMode {
   kSignedResidual,
 };
 
+enum class ResidualPageRankContract {
+  kGenericDanglingL1Cold,
+  kDeltaHlsSinkFreeLinfWarm,
+  kHardwareWarmDanglingLinf,
+};
+
 struct AlgorithmPolicyConfig {
   GraphAlgorithmKind kind{GraphAlgorithmKind::kWeightedSssp};
   std::size_t vertices{};
   std::uint32_t source{};
   float damping{0.85F};
   float epsilon{1.0e-6F};
+  ResidualPageRankContract residual_contract{
+      ResidualPageRankContract::kGenericDanglingL1Cold};
 };
 
 struct AlgorithmStorageProfile {
@@ -68,6 +78,12 @@ struct AlgorithmOperationProfile {
 struct AlgorithmVertexState {
   std::uint32_t primary{};
   std::uint32_t auxiliary{};
+};
+
+struct AlgorithmInitialState {
+  std::vector<std::uint32_t> primary;
+  std::vector<std::uint32_t> auxiliary;
+  std::vector<std::uint32_t> active_vertices;
 };
 
 struct AlgorithmSourceResult {
@@ -123,6 +139,7 @@ class GraphAlgorithmPolicy {
 
   [[nodiscard]] std::uint32_t initial_base_word() const noexcept;
   [[nodiscard]] std::uint32_t activation_threshold_word() const noexcept;
+  [[nodiscard]] std::uint32_t reduction_identity_word() const noexcept;
 
   [[nodiscard]] static std::uint32_t float_to_word(float value) noexcept;
   [[nodiscard]] static float word_to_float(std::uint32_t word) noexcept;
