@@ -12,8 +12,8 @@ unchanged until the revised evidence is accepted.
   Full PageRank FPGA rows and is explicitly labeled as compact evidence.
 - Projected values, timeout lower bounds, and missing bars are removed from
   Figure 7.
-- Figure 8 is still regenerated from archived update-only evidence unless a
-  current `PASS_CURRENT_MODEL_DATA` update-throughput directory is supplied.
+- Figure 8 is regenerated from current setup-inclusive update-only evidence
+  produced by the current sharded-K4 SST element.
 - Figure 9 is regenerated from the active calibration campaign when pair rows
   are available; the current packet is partial until all AU/SU/WK pairs finish.
 - Figure 10 is regenerated from current-model RQ3 realized-work rows when
@@ -44,8 +44,7 @@ unchanged until the revised evidence is accepted.
   refreshed figures use FPGA-aligned campaign evidence or still fall back to
   archived simulator data.
 - `hardware_and_calibration_status_20260810.md`: current evidence boundary,
-  including the Fig. 7 convergence semantics and the remaining Fig. 8/Fig. 9
-  blockers.
+  including the Fig. 7 convergence semantics and the remaining Fig. 9 blocker.
 
 The calibration report and final handoff archive remain pending. A failed
 calibration row will be retained under `diagnostics/` and will not be promoted
@@ -100,15 +99,17 @@ The Fig. 8 directory must contain current-model setup-inclusive update-only
 rows, not formal campaign simulator wall time. In particular,
 `spine_host_wall_seconds` and `competitor_host_wall_seconds` in publication
 `pair_rows.csv` are CPU time spent by the simulator process and must not be used
-as modeled host preprocessing time. See
-`hardware_and_calibration_status_20260810.md` for the current Fig. 8 blocker.
-Generate the Fig. 8 CSVs from an admitted update-only evidence root with:
+as modeled host preprocessing time. Generate current Fig. 8 CSVs from the
+dedicated update-only runner with:
 
 ```bash
 /data/tmp/chuxiao/spine-cycle-sim-eval-venv/bin/python \
-  scripts/build_current_fig8_update_only_evidence.py \
-  --formal-root <CURRENT_FORMAL_UPDATE_SCALING_ROOT> \
-  --out-root <CURRENT_UPDATE_ONLY_EVIDENCE_ROOT> \
+  scripts/run_current_fig8_update_only_case.py \
+  --materialization-manifest <DERIVED_OR_BASE_MATERIALIZATION_MANIFEST> \
+  --dataset-id <DATASET_ID> \
+  --dataset-key <SHORT_KEY> \
+  --updates <UPDATE_COUNT> \
+  --out-dir <CURRENT_UPDATE_ONLY_EVIDENCE_ROOT>/cross_dataset/<SHORT_KEY> \
   --host-tool /data/tmp/chuxiao/spine-cycle-sim-sharded-k4-v3-build/cpp/persistent_update_host_benchmark
 /data/tmp/chuxiao/spine-cycle-sim-eval-venv/bin/python \
   scripts/export_persistent_update_setup_fig8.py \

@@ -2,7 +2,7 @@
   "allow_partial": true,
   "analysis_dir": "/data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen/analysis_partial_live",
   "analysis_summary": "/data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen/analysis_partial_live/summary.json",
-  "analysis_summary_sha256": "71f2126996e0656f9c8c8eee29efbc11bee5ee0c1e60e4bfac9cf1f5b5cc1132",
+  "analysis_summary_sha256": "13585fdb99eaa696bd87197a5ba5bc2d5fee25b62a47d8a345e3ace9c93fde34",
   "campaign_manifest": "/data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen/campaign_manifest.json",
   "campaign_manifest_sha256": "8c1f0aaa704bd303f752d310378e7b78a496d925800e65c7c66d269b6ea4e1b3",
   "campaign_root": "/data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen",

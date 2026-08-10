@@ -3,9 +3,9 @@
     "analysis_dir": "/data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen/analysis_partial_live",
     "complete_for_fig9": false,
     "expected_executions": 18,
-    "missing_executions": 3,
-    "observed_executions": 15,
-    "pair_rows": 6,
+    "missing_executions": 2,
+    "observed_executions": 16,
+    "pair_rows": 7,
     "paired_algorithms": [
       "connected_components",
       "thresholded_residual_pagerank",
@@ -13,7 +13,8 @@
     ],
     "paired_datasets": [
       "sx_askubuntu",
-      "sx_superuser"
+      "sx_superuser",
+      "wiki_talk_temporal"
     ],
     "present": true,
     "required_pair_rows": 9,
@@ -32,22 +33,21 @@
       "status": "PASS"
     },
     "fig8": {
-      "aligned": false,
+      "aligned": true,
       "evidence": "setup-inclusive update-throughput simulator rows",
-      "gap": "still uses archived update-only evidence",
-      "status": "INTERIM_ARCHIVED_SIMULATOR_DATA"
+      "gap": "",
+      "status": "PASS_CURRENT_MODEL_DATA"
     },
     "fig9": {
       "aligned": false,
-      "campaign_pairs": 6,
+      "campaign_pairs": 7,
       "evidence": "campaign pair_rows memory and HBM-energy ledger",
       "required_pairs": 9,
       "status": "PARTIAL_CAMPAIGN_ANALYSIS"
     }
   },
   "next_actions": [
-    "finish all 9 AU/SU/WK campaign pairs for calibrated Fig.9",
-    "replace Fig.8 archived update-throughput CSVs with current setup-inclusive update-only evidence"
+    "finish all 9 AU/SU/WK campaign pairs for calibrated Fig.9"
   ],
   "out_dir": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810",
   "status": "INCOMPLETE"

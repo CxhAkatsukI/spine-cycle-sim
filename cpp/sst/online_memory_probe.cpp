@@ -2318,6 +2318,7 @@ class OnlineMemoryProbe final : public SST::Component {
         params.find<std::uint64_t>("hbm_interleave_bytes", 64);
     write_percent_ = params.find<std::uint32_t>("write_percent", 0);
     max_cycles_ = params.find<std::uint64_t>("max_cycles", 1'000'000);
+    grasu_update_only_ = params.find<bool>("grasu_update_only", false);
     max_rounds_ = params.find<std::size_t>("max_rounds", 256);
     cc_hardware_full_recompute_ =
         params.find<bool>("cc_hardware_full_recompute", false);
@@ -2646,6 +2647,7 @@ class OnlineMemoryProbe final : public SST::Component {
          mode_ != "grasu_regraph_connected_components" &&
          mode_ != "grasu_regraph_partitioned_dynamic_pagerank") ||
         channels_ == 0 || channel_capacity_bytes_ == 0 || max_rounds_ == 0 ||
+        (grasu_update_only_ && !mode_.starts_with("grasu_regraph_")) ||
         grasu_native_supersteps_ == 0 ||
         pagerank_iterations_ == 0 || !(pagerank_damping_ > 0.0F) ||
         !(pagerank_damping_ < 1.0F) || !(pagerank_epsilon_ > 0.0F) ||
@@ -3935,6 +3937,11 @@ class OnlineMemoryProbe final : public SST::Component {
           grasu_partitioned_layout_ =
               grasu_update_system_->materialized_partitioned_layout();
         }
+        if (grasu_update_only_) {
+          write_result(true);
+          primaryComponentOKToEndSim();
+          return true;
+        }
         if (mode_ == "grasu_regraph_sssp" ||
             mode_ == "grasu_regraph_hls_weighted_sssp") {
           if (mode_ == "grasu_regraph_hls_weighted_sssp") {
@@ -4758,6 +4765,91 @@ class OnlineMemoryProbe final : public SST::Component {
     result_success_ = success;
     std::ofstream result(result_path_);
     result << std::setprecision(9);
+    if (grasu_update_only_ && mode_.starts_with("grasu_regraph_")) {
+      const GraSuUpdateCounters update =
+          grasu_update_counters_captured_
+              ? grasu_update_counters_
+              : grasu_update_system_->counters();
+      const MemoryTrafficStats total_backend_traffic =
+          backend_->traffic_stats();
+      const std::uint64_t update_backend_requests =
+          combine_memory_traffic(total_backend_traffic).requests;
+      const bool update_state_match =
+          grasu_update_system_ != nullptr &&
+          grasu_update_system_->live_edges() == grasu_final_edges_;
+      const bool memory_locality_ledger_match =
+          memory_traffic_closes(total_backend_traffic,
+                                update_backend_requests) &&
+          memory_traffic_closes(total_backend_traffic, backend_->accepted());
+      const bool passed =
+          success && update.end_cycle >= update.start_cycle &&
+          update_state_match && memory_locality_ledger_match;
+      result << "{\n"
+             << "  \"success\": " << (passed ? "true" : "false") << ",\n"
+             << "  \"mode\": \"" << mode_ << "\",\n"
+             << "  \"measurement_window\": \"pure_update_only\",\n"
+             << "  \"claim_class\": "
+                "\"update_only_execution_driven_sst_hbm_simulation\",\n"
+             << "  \"timing_evidence\": "
+                "\"execution_driven_update_engine_sst_hbm_not_cycle_calibrated\",\n"
+             << "  \"backend\": \"" << backend_->backend_label()
+             << "\",\n"
+             << "  \"pipeline_order\": \"update_only_no_regraph_compute\",\n"
+             << "  \"conversion_cost_included\": false,\n"
+             << "  \"core_mhz\": " << core_mhz_ << ",\n"
+             << "  \"cycles\": " << scheduler_.clock(0).completed_cycles
+             << ",\n"
+             << "  \"update_cycles\": "
+             << update.end_cycle - update.start_cycle << ",\n"
+             << "  \"compute_cycles\": 0,\n"
+             << "  \"initial_edges\": " << grasu_initial_edges_ << ",\n"
+             << "  \"updates\": " << grasu_update_edges_ << ",\n"
+             << "  \"logical_updates\": " << grasu_logical_update_edges_
+             << ",\n"
+             << "  \"physical_updates\": " << grasu_update_edges_ << ",\n"
+             << "  \"correctness_mismatches\": "
+             << (update_state_match ? 0 : 1) << ",\n"
+             << "  \"architecture_correctness_mismatches\": "
+             << (update_state_match ? 0 : 1) << ",\n"
+             << "  \"mathematical_correctness_mismatches\": 0,\n"
+             << "  \"update_state_match\": "
+             << (update_state_match ? "true" : "false") << ",\n"
+             << "  \"memory_locality_ledger_match\": "
+             << (memory_locality_ledger_match ? "true" : "false") << ",\n"
+             << "  \"update_inserts\": " << update.inserts << ",\n"
+             << "  \"update_deletes\": " << update.deletes << ",\n"
+             << "  \"update_row_reads\": " << update.row_reads << ",\n"
+             << "  \"update_binary_probes\": " << update.binary_probes
+             << ",\n"
+             << "  \"update_pma_reads\": " << update.pma_reads << ",\n"
+             << "  \"update_pma_writes\": " << update.pma_writes << ",\n"
+             << "  \"update_degree_reads\": " << update.degree_reads
+             << ",\n"
+             << "  \"update_degree_writes\": " << update.degree_writes
+             << ",\n"
+             << "  \"backend_requests\": " << backend_->accepted()
+             << ",\n"
+             << "  \"backend_submit_stalls\": "
+             << backend_->submit_stalls() << ",\n"
+             << "  \"backend_response_queue_stalls\": "
+             << backend_->response_queue_stalls() << ",\n"
+             << "  \"backend_max_outstanding\": "
+             << backend_->max_outstanding() << ",\n"
+             << "  \"backend_arbitration\": "
+             << backend_->arbitration_json() << ",\n"
+             << "  \"backend_traffic\": ";
+      write_memory_traffic(result, total_backend_traffic);
+      result << ",\n  \"update_backend_traffic\": ";
+      write_memory_traffic(result, total_backend_traffic);
+      result << ",\n  \"compute_backend_traffic\": ";
+      write_memory_traffic(result, MemoryTrafficStats{});
+      result << "\n}\n";
+      output_.output(
+          "completed GraSU update-only run in %llu core cycles -> %s\n",
+          static_cast<unsigned long long>(scheduler_.clock(0).completed_cycles),
+          result_path_.c_str());
+      return;
+    }
     if (mode_ == "spine_connected_components") {
       const std::vector<std::uint32_t> labels =
           pagerank_system_->compute().rank_words();
@@ -10499,6 +10591,7 @@ class OnlineMemoryProbe final : public SST::Component {
   std::uint64_t hbm_interleave_bytes_{};
   std::uint32_t write_percent_{};
   std::uint64_t max_cycles_{};
+  bool grasu_update_only_{};
   std::size_t max_rounds_{};
   bool cc_hardware_full_recompute_{};
   std::size_t grasu_native_supersteps_{};

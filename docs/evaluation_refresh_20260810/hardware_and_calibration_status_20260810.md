@@ -55,83 +55,72 @@ the full-graph sharded-K4 hardware matrix used by Figure 7.
 ## Figure 8--10 Status
 
 Figures 8--10 in this directory are candidate formatting refreshes generated
-from the archived simulator evidence:
+from the current evidence packet where available:
 
-- Figure 8: setup-inclusive update-only throughput CSVs.
-- Figure 9: simulator memory/HBM-energy ledger from `formal_v7_primary`.
-- Figure 10: RQ3 ten-stage latency ledger.
+- Figure 8: current setup-inclusive update-only throughput CSVs.
+- Figure 9: current campaign memory/HBM-energy ledger; still partial until all
+  AU/SU/WK pairs finish.
+- Figure 10: current RQ3 ten-stage latency ledger.
 
-They should not be presented as final post-calibration figures until the
-current sharded-K4 simulator is run against the same semantic contract as the
-hardware matrix and the calibration/holdout gates are recorded.
+Figure 8 and Figure 10 now pass the current-data alignment gate. Figure 9 is
+still not final because the WikiTalk G+R CC and residual PageRank rows were
+stopped by the campaign memory breaker and are being rerun.
 
-Important Figure 8 boundary: the archived Figure 8 evidence came from a
-dedicated `pure_update_only` runner that modeled persistent resident graph
-updates, host preprocessing, H2D transfer, launch/sync cost, and device update
-cycles while explicitly disabling graph computation. That runner is not present
-in the current sharded-K4 branch. The current formal publication rows contain
-device execution cycles and simulator CPU wall time, but the `host_wall_seconds`
-field is the wall-clock time spent running the simulator, not modeled host
-preprocessing time for the architecture. Therefore Figure 8 cannot be refreshed
-by simply reusing formal campaign `pair_rows.csv`.
-
-The closest current-style update-only evidence found so far is
-`/data/tmp/chuxiao/large_graph_campaign_v1/formal_v8_au_update_scaling`, which
-contains AU update-only device-cycle rows for batch sizes 64, 1024, 16384, and
-131072. It is useful for sanity checking the device update path, but it is not
-the same as the archived setup-inclusive Figure 8 metric. A final current-model
-Figure 8 replacement needs one of the following:
-
-1. restore/rebuild the persistent update-only runner against the current
-   sharded-K4 SST element and regenerate both cross-dataset and batch-size
-   setup-inclusive rows; or
-2. explicitly redefine Figure 8 as device-only update throughput and rewrite the
-   figure caption/evidence boundary accordingly.
-
-Until one of these is done, Figure 8 remains a layout candidate, not final
-numeric evidence.
-
-Implementation checkpoint: the setup-inclusive update-only accounting module
-and Fig. 8 CSV exporter have been restored in the current branch:
+Important Figure 8 boundary: Figure 8 uses setup-inclusive update-only
+throughput, not simulator wall time and not full convergence time. The restored
+path models persistent resident graph updates, host preprocessing, H2D
+transfer, launch/sync cost, and device update cycles while explicitly disabling
+graph computation. The current branch now contains the pieces needed for that
+boundary:
 
 - `spine_cycle_sim/experiments/persistent_update_only.py`
+- `scripts/derive_update_only_manifest.py`
+- `scripts/run_current_fig8_update_only_case.py`
 - `scripts/export_persistent_update_setup_fig8.py`
 - `cpp/tools/persistent_update_host_benchmark.cpp`
 
-The renderer now requires a `persistent_update_setup_manifest.json` with
-`status=PASS_CURRENT_MODEL_DATA` before accepting `--fig8-data-dir` as current
-evidence. The remaining Fig. 8 blocker is the current sharded-K4 device/host
-runner that combines admitted `pure_update_only`/maintenance device timing with
-the restored host preprocessing benchmark. The host benchmark target compiles in
-`/data/tmp/chuxiao/spine-cycle-sim-sharded-k4-v3-build` and produced valid JSON
-on a one-edge smoke test.
+For the device portion, Spine uses the current SST maintenance-only path and
+G+R uses the new `--update-only` weighted-PMA path, which stops after PMA update
+maintenance and does not launch ReGraph compute. G+R update-only also uses a
+lightweight host oracle that avoids SSSP Dijkstra because no graph-compute
+correctness is claimed for this figure. Host preprocessing is measured by
+`persistent_update_host_benchmark`.
 
-A partial current-model Fig. 8 evidence root was generated from the existing AU
-formal-v8 update-scaling rows:
+The admitted current Fig. 8 evidence root is:
+
+- `/data/tmp/chuxiao/evaluation_refresh_20260810_fig8_current_evidence`
+
+The exported renderer input is:
+
+- `/data/tmp/chuxiao/evaluation_refresh_20260810_fig8_current_csv`
+
+The generated CSVs are marked `PASS_CURRENT_MODEL_DATA` and cover:
+
+- cross dataset, 512 updates: AU, SU, WK, SO, PK;
+- AU batch sweep: 64, 512, and 4096 updates.
+
+The setup-inclusive speedups are:
+
+- cross dataset: AU `10.98x`, SU `9.91x`, WK `18.18x`, SO `25.13x`, PK `6.49x`;
+- AU batch sweep: 64 updates `11.61x`, 512 updates `11.38x`, 4096 updates
+  `9.86x`.
+
+Reproduction sketch:
 
 ```bash
-python3 scripts/build_current_fig8_update_only_evidence.py \
-  --formal-root /data/tmp/chuxiao/large_graph_campaign_v1/formal_v8_au_update_scaling \
-  --out-root /data/tmp/chuxiao/evaluation_refresh_20260810_fig8_current_partial \
-  --host-tool /data/tmp/chuxiao/spine-cycle-sim-sharded-k4-v3-build/cpp/persistent_update_host_benchmark \
-  --host-repeats 1 \
-  --cross-update-count 1024
 python3 scripts/export_persistent_update_setup_fig8.py \
-  --evidence-root /data/tmp/chuxiao/evaluation_refresh_20260810_fig8_current_partial \
-  --out-dir /data/tmp/chuxiao/evaluation_refresh_20260810_fig8_current_partial_csv \
+  --evidence-root /data/tmp/chuxiao/evaluation_refresh_20260810_fig8_current_evidence \
+  --out-dir /data/tmp/chuxiao/evaluation_refresh_20260810_fig8_current_csv \
+  --status PASS_CURRENT_MODEL_DATA \
   --cross-dataset au:AU \
+  --cross-dataset su:SU \
+  --cross-dataset wk:WK \
+  --cross-dataset so:SO \
+  --cross-dataset pk:PK \
   --batch-count 64 \
-  --batch-count 1024 \
-  --batch-count 16384 \
-  --batch-count 131072 \
-  --status PARTIAL_CURRENT_MODEL_DATA
+  --batch-count 512 \
+  --batch-count 4096
 ```
-
-The AU setup-inclusive update-only speedups for a single batch are `13.57x`
-for 64 updates, `12.33x` for 1024 updates, `10.71x` for 16384 updates, and
-`3.70x` for 131072 updates. This validates the current-data conversion path but
-is intentionally marked partial because it covers only AU and uses
-`host-repeats=1`.
 
 Figure 10 current-data refresh: running `scripts/analyze_rq3_realized_work.py`
 on the active calibration root plus current standalone RQ3 cases produced 15

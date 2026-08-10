@@ -92,6 +92,9 @@ probe.addParams(
             os.environ.get("GRASU_SST_HBM_INTERLEAVE_BYTES", "64")
         ),
         "max_cycles": int(os.environ.get("GRASU_SST_MAX_CYCLES", "2000000")),
+        "grasu_update_only": int(
+            os.environ.get("GRASU_SST_UPDATE_ONLY", "0")
+        ),
         "max_rounds": int(os.environ.get("GRASU_SST_MAX_ROUNDS", "256")),
         "cc_hardware_full_recompute": int(
             os.environ.get("GRASU_SST_CC_HARDWARE_FULL_RECOMPUTE", "0")

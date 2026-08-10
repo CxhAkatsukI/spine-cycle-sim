@@ -266,6 +266,85 @@ def build_hls_weighted_oracle(
     )
 
 
+def build_hls_weighted_update_only_oracle(
+    initial: SliceGraph,
+    update: SliceGraph,
+    source_external: int,
+    partition_vertices: int,
+) -> HlsWeightedRuntimeOracle:
+    if initial.vertices != update.vertices or not 0 <= source_external < initial.vertices:
+        raise ValueError("weighted-HLS workload dimensions are invalid")
+    vertices = initial.vertices
+    state: dict[tuple[int, int], int] = {}
+    variants: list[set[tuple[int, int]]] = [set() for _ in range(vertices)]
+    for edge in initial.records:
+        key = (edge.src, edge.dst)
+        if (
+            edge.diff != 1
+            or edge.weight <= 0
+            or edge.weight > 0xFFF
+            or key in state
+        ):
+            raise ValueError("invalid initial weighted-HLS edge")
+        state[key] = edge.weight
+        variants[edge.src].add((edge.dst, edge.weight))
+
+    physical_counts = [0] * vertices
+    for edge in update.records:
+        key = (edge.src, edge.dst)
+        old_weight = state.get(key)
+        if abs(edge.diff) != 1 or edge.weight <= 0 or edge.weight > 0xFFF:
+            raise ValueError("invalid weighted-HLS update")
+        if edge.diff < 0:
+            if old_weight != edge.weight:
+                raise ValueError("weighted-HLS delete does not match live edge")
+            physical_counts[edge.src] += 1
+            del state[key]
+            continue
+        variants[edge.src].add((edge.dst, edge.weight))
+        if old_weight is None:
+            physical_counts[edge.src] += 1
+            state[key] = edge.weight
+        elif old_weight != edge.weight:
+            physical_counts[edge.src] += 2
+            state[key] = edge.weight
+        else:
+            raise ValueError("weighted-HLS insert already exists")
+
+    def density(vertex: int) -> float:
+        segments = (len(variants[vertex]) + 15) // 16
+        return -1.0 if segments == 0 else physical_counts[vertex] / segments
+
+    internal_to_external = tuple(
+        sorted(range(vertices), key=lambda vertex: (-density(vertex), vertex))
+    )
+    external_to_internal_list = [0] * vertices
+    for internal, external in enumerate(internal_to_external):
+        external_to_internal_list[external] = internal
+    external_to_internal = tuple(external_to_internal_list)
+    destination_partitions = (vertices + partition_vertices - 1) // partition_vertices
+    partition_max_sources: list[int | None] = [None] * destination_partitions
+    for src, dst in state:
+        source = external_to_internal[src]
+        destination = external_to_internal[dst]
+        partition = destination // partition_vertices
+        previous = partition_max_sources[partition]
+        partition_max_sources[partition] = (
+            source if previous is None else max(previous, source)
+        )
+    return HlsWeightedRuntimeOracle(
+        logical_updates=len(update.records),
+        physical_updates=sum(physical_counts),
+        external_to_internal=external_to_internal,
+        internal_to_external=internal_to_external,
+        external_distances=(),
+        source_internal=external_to_internal[source_external],
+        minimum_supersteps=1,
+        partition_vertices=partition_vertices,
+        partition_max_sources=tuple(partition_max_sources),
+    )
+
+
 def validate_result(
     result: dict[str, object],
     profile: dict[str, object],
@@ -391,6 +470,35 @@ def validate_result(
         )
 
 
+def validate_update_only_result(
+    result: dict[str, object],
+    oracle: HlsWeightedRuntimeOracle,
+) -> None:
+    checks = {
+        "success": result.get("success") is True,
+        "mode": result.get("mode") == "grasu_regraph_hls_weighted_sssp",
+        "measurement_window": result.get("measurement_window") == "pure_update_only",
+        "pipeline_order": result.get("pipeline_order")
+        == "update_only_no_regraph_compute",
+        "conversion_absent": result.get("conversion_cost_included") is False,
+        "logical_updates": result.get("logical_updates") == oracle.logical_updates,
+        "physical_updates": result.get("physical_updates")
+        == oracle.physical_updates,
+        "updates_alias": result.get("updates") == oracle.physical_updates,
+        "positive_update_cycles": int(result.get("update_cycles", 0)) > 0,
+        "zero_compute_cycles": int(result.get("compute_cycles", -1)) == 0,
+        "update_state_match": result.get("update_state_match") is True,
+        "memory_ledger": result.get("memory_locality_ledger_match") is True,
+        "correctness": int(result.get("correctness_mismatches", 1)) == 0,
+    }
+    failed = [name for name, passed in checks.items() if not passed]
+    if failed:
+        raise RuntimeError(
+            f"weighted-HLS update-only validation failed ({failed}); "
+            f"cycles={result.get('cycles')} update={result.get('update_cycles')}"
+        )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--profile", type=Path, default=DEFAULT_PROFILE)
@@ -423,6 +531,11 @@ def main() -> int:
         "--preflight-only",
         action="store_true",
         help="Persist the validated host oracle and exit before SST execution.",
+    )
+    parser.add_argument(
+        "--update-only",
+        action="store_true",
+        help="Stop after PMA update maintenance and emit pure update-only timing.",
     )
     parser.add_argument("--reused-wall-seconds", type=float)
     parser.add_argument("--reused-profile-sha256")
@@ -476,11 +589,17 @@ def main() -> int:
     input_vertices = initial.vertices
     input_records = len(initial.records)
     update_records = len(update.records)
-    oracle = build_hls_weighted_oracle(initial, update, args.source)
+    partition_vertices = int(params["regraph_partition_vertices"])
+    if args.update_only:
+        runtime_oracle = build_hls_weighted_update_only_oracle(
+            initial, update, args.source, partition_vertices
+        )
+    else:
+        oracle = build_hls_weighted_oracle(initial, update, args.source)
+        runtime_oracle = compact_hls_weighted_oracle(oracle, partition_vertices)
     address_regions = None
     address_environment: dict[str, str] = {}
     if params.get("physical_address_map_id"):
-        partition_vertices = int(params["regraph_partition_vertices"])
         destination_partitions = (
             initial.vertices + partition_vertices - 1
         ) // partition_vertices
@@ -489,7 +608,7 @@ def main() -> int:
             update.records,
             initial.vertices,
             partition_vertices,
-            oracle.external_to_internal,
+            runtime_oracle.external_to_internal,
             weighted_full_word=True,
         )
         validate_partition_footprints(params, footprints)
@@ -498,7 +617,7 @@ def main() -> int:
             int(memory["channel_capacity_bytes"]),
             destination_partitions,
             initial.vertices,
-            oracle.physical_updates,
+            runtime_oracle.physical_updates,
             footprints,
         )
         address_environment = grasu_hbm_address_environment(
@@ -507,18 +626,30 @@ def main() -> int:
     capability_catalog, algorithm_capability = require_hls_weighted_capability(
         profile_path,
         args.capability_catalog.resolve(),
-        "weighted_dynamic_sssp" if oracle.logical_updates else "weighted_sssp",
+        (
+            "weighted_dynamic_sssp"
+            if runtime_oracle.logical_updates
+            else "weighted_sssp"
+        ),
     )
     if profile["parameters"]["comparison_role"] == "hls_sw_emu":
-        supersteps = args.supersteps or int(params["hls_validation_supersteps"])
+        supersteps = (
+            args.supersteps
+            or (1 if args.update_only else int(params["hls_validation_supersteps"]))
+        )
         if supersteps != int(params["hls_validation_supersteps"]):
-            raise ValueError(
-                "ff13a67 evidence mode requires the pinned superstep count"
-            )
-        superstep_policy = "profile_pinned_hls_evidence"
+            if not args.update_only:
+                raise ValueError(
+                    "ff13a67 evidence mode requires the pinned superstep count"
+                )
+        superstep_policy = (
+            "update_only_no_compute"
+            if args.update_only
+            else "profile_pinned_hls_evidence"
+        )
     else:
-        supersteps = args.supersteps or oracle.minimum_supersteps
-        if supersteps < oracle.minimum_supersteps:
+        supersteps = args.supersteps or runtime_oracle.minimum_supersteps
+        if supersteps < runtime_oracle.minimum_supersteps:
             raise ValueError(
                 "normalized HLS-derived supersteps are below the oracle minimum"
             )
@@ -528,10 +659,8 @@ def main() -> int:
     binding = grasu_normalized_memory_binding(
         profile, instantiate_all=args.instantiate_all_hbm_channels
     )
-    runtime_oracle = compact_hls_weighted_oracle(
-        oracle, int(params["regraph_partition_vertices"])
-    )
-    del oracle
+    if not args.update_only:
+        del oracle
     del initial
     del update
     host_heap_trimmed = release_process_heap()
@@ -610,6 +739,7 @@ def main() -> int:
             "GRASU_SST_DRAM_OUTPUT": str(dram_dir),
             "GRASU_SST_CORE_MHZ": str(kernel_clock["achieved_mhz"]),
             "GRASU_SST_MAX_CYCLES": str(args.max_cycles),
+            "GRASU_SST_UPDATE_ONLY": "1" if args.update_only else "0",
             "GRASU_SST_NATIVE_SUPERSTEPS": str(supersteps),
             "GRASU_SST_CACHE_SEGMENTS_PER_HALF": str(
                 params["grasu_cache_segments_per_cu"]
@@ -723,9 +853,12 @@ def main() -> int:
             )
         result_sha256_before_validation = None
     result = json.loads(result_path.read_text(encoding="utf-8"))
-    validate_result(
-        result, profile, runtime_oracle, supersteps, downstream_sharing
-    )
+    if args.update_only:
+        validate_update_only_result(result, runtime_oracle)
+    else:
+        validate_result(
+            result, profile, runtime_oracle, supersteps, downstream_sharing
+        )
     dram = load_dram_stats(dram_dir)
     if (
         dram["channels"] != len(binding.instantiated_channels)
@@ -763,6 +896,7 @@ def main() -> int:
         "supersteps": supersteps,
         "superstep_policy": superstep_policy,
         "downstream_sharing": downstream_sharing,
+        "update_only": args.update_only,
         "command": command,
         "result": result,
         "dram": dram,

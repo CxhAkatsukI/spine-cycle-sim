@@ -1,19 +1,23 @@
 {
-  "status": "INTERIM_ARCHIVED_SIMULATOR_DATA",
+  "status": "PASS_CURRENT_MODEL_DATA",
   "figure": "fig8_update_throughput_candidate",
   "timing_window": "setup_inclusive_update_throughput",
   "source_files": [
     {
-      "path": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/paper/data/persistent_update_setup_cross_dataset.csv",
-      "sha256": "795bfe44f7ee6a3edc94be6779379284887809d0bc6d5debd84bdb20cd383988"
+      "path": "/data/tmp/chuxiao/evaluation_refresh_20260810_fig8_current_csv/persistent_update_setup_cross_dataset.csv",
+      "sha256": "03bf955713294816bc9f2e37864aa9be337916324e4a973e6186d424b1815306"
     },
     {
-      "path": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/paper/data/persistent_update_setup_batch_sensitivity.csv",
-      "sha256": "209bc557890cf283d4a088f488a0dcd293fb5fa89105df95fca393a3170afc6b"
+      "path": "/data/tmp/chuxiao/evaluation_refresh_20260810_fig8_current_csv/persistent_update_setup_batch_sensitivity.csv",
+      "sha256": "003a30f36f21442f08b6cbb9c8b8444ae476b8aebd1fb9f80bc64aed1d7ab712"
+    },
+    {
+      "path": "/data/tmp/chuxiao/evaluation_refresh_20260810_fig8_current_csv/persistent_update_setup_manifest.json",
+      "sha256": "9306fe8d7b92b298f17d63c52f2678a8007077f04f513c315c9086c1b857ffd8"
     }
   ],
   "limitations": [
-    "Uses archived update-only setup-inclusive simulator evidence.",
-    "Should be regenerated after the sharded-K4 calibration refresh is complete."
+    "Uses current-model setup-inclusive simulator evidence.",
+    "Admitted as current-model refresh input."
   ]
 }
