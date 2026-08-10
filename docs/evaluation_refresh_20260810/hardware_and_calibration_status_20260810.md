@@ -62,6 +62,32 @@ They should not be presented as final post-calibration figures until the
 current sharded-K4 simulator is run against the same semantic contract as the
 hardware matrix and the calibration/holdout gates are recorded.
 
+Important Figure 8 boundary: the archived Figure 8 evidence came from a
+dedicated `pure_update_only` runner that modeled persistent resident graph
+updates, host preprocessing, H2D transfer, launch/sync cost, and device update
+cycles while explicitly disabling graph computation. That runner is not present
+in the current sharded-K4 branch. The current formal publication rows contain
+device execution cycles and simulator CPU wall time, but the `host_wall_seconds`
+field is the wall-clock time spent running the simulator, not modeled host
+preprocessing time for the architecture. Therefore Figure 8 cannot be refreshed
+by simply reusing formal campaign `pair_rows.csv`.
+
+The closest current-style update-only evidence found so far is
+`/data/tmp/chuxiao/large_graph_campaign_v1/formal_v8_au_update_scaling`, which
+contains AU update-only device-cycle rows for batch sizes 64, 1024, 16384, and
+131072. It is useful for sanity checking the device update path, but it is not
+the same as the archived setup-inclusive Figure 8 metric. A final current-model
+Figure 8 replacement needs one of the following:
+
+1. restore/rebuild the persistent update-only runner against the current
+   sharded-K4 SST element and regenerate both cross-dataset and batch-size
+   setup-inclusive rows; or
+2. explicitly redefine Figure 8 as device-only update throughput and rewrite the
+   figure caption/evidence boundary accordingly.
+
+Until one of these is done, Figure 8 remains a layout candidate, not final
+numeric evidence.
+
 ## Active Calibration Refresh Run
 
 A small calibration/refresh campaign is running from:

@@ -93,6 +93,13 @@ through the finalizer rather than editing the renderer constants:
   --fig10-data-dir <DIR_WITH_RQ3_CSVS_AND_SUMMARY>
 ```
 
+The Fig. 8 directory must contain current-model setup-inclusive update-only
+rows, not formal campaign simulator wall time. In particular,
+`spine_host_wall_seconds` and `competitor_host_wall_seconds` in publication
+`pair_rows.csv` are CPU time spent by the simulator process and must not be used
+as modeled host preprocessing time. See
+`hardware_and_calibration_status_20260810.md` for the current Fig. 8 blocker.
+
 If a sidecar campaign is used to finish queued long-tail cases, merge it during
 finalization with repeated `--extra-result-root <DIR>` arguments.
 
