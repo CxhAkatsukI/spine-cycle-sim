@@ -136,10 +136,16 @@ It covers AU/SU/WK, insert batch-8, three differential algorithms, and both
 /home/chuxiao/spine-cycle-sim-publication/build/sst
 ```
 
-Latest partial checkpoint, `2026-08-10 21:10:56 CST`: partial analysis reports
-`observed=10`, `pairs=1`, `missing=8`. The completed pair is
-`sx_askubuntu / weighted_sssp / insert-8`: Spine `61,817` cycles versus
-G+R `179,053,544` cycles, or `2,896.5x` speedup for this calibration row.
+Latest partial checkpoint: partial analysis reports `observed=11`, `pairs=2`,
+`missing=7`. The completed pairs are:
+
+- `sx_askubuntu / weighted_sssp / insert-8`: Spine `61,817` cycles versus
+  G+R `179,053,544` cycles, or `2,896.5x` speedup.
+- `sx_superuser / weighted_sssp / insert-8`: Spine `60,699` cycles versus
+  G+R `291,909,003` cycles, or `4,809.1x` speedup.
+
+The remaining queued G+R jobs are currently waiting for the campaign memory
+reserve because available memory is below the 72 GiB reserve threshold.
 
 Monitor it with:
 

@@ -6,10 +6,10 @@ Status: `INCOMPLETE`
 
 - Analysis: `/data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen/analysis_partial`
 - Summary status: `PARTIAL`
-- Observed executions: `10/18`
-- Complete pairs: `1/9`
+- Observed executions: `11/18`
+- Complete pairs: `2/9`
 - Paired algorithms: `weighted_sssp`
-- Paired datasets: `sx_askubuntu`
+- Paired datasets: `sx_askubuntu, sx_superuser`
 
 ## Figures
 

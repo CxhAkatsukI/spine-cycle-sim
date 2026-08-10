@@ -3,14 +3,15 @@
     "analysis_dir": "/data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen/analysis_partial",
     "complete_for_fig9": false,
     "expected_executions": 18,
-    "missing_executions": 8,
-    "observed_executions": 10,
-    "pair_rows": 1,
+    "missing_executions": 7,
+    "observed_executions": 11,
+    "pair_rows": 2,
     "paired_algorithms": [
       "weighted_sssp"
     ],
     "paired_datasets": [
-      "sx_askubuntu"
+      "sx_askubuntu",
+      "sx_superuser"
     ],
     "present": true,
     "required_pair_rows": 9,
@@ -36,7 +37,7 @@
     },
     "fig9": {
       "aligned": false,
-      "campaign_pairs": 1,
+      "campaign_pairs": 2,
       "evidence": "campaign pair_rows memory and HBM-energy ledger",
       "required_pairs": 9,
       "status": "INTERIM_ARCHIVED_SIMULATOR_DATA"
