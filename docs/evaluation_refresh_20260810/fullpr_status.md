@@ -20,9 +20,6 @@ replaced without changing the other panels' layout.
 ## Latest Route Log Tail
 
 ```text
-[20:27:09] Phase 2.1.1.1 PBP: Partition Driven Placement
-[20:30:46] Phase 2.1.1.2 PBP: Clock Region Placement
-[20:31:48] Phase 2.1.1.3 PBP: Compute Congestion
 [20:32:19] Phase 2.1.1.4 PBP: UpdateTiming
 [20:32:50] Phase 2.1.1.5 PBP: Add part constraints
 [20:32:50] Phase 2.2 Physical Synthesis After Floorplan
@@ -44,4 +41,7 @@ replaced without changing the other panels' layout.
 [21:12:36] Phase 3.7 Fast Optimization
 [21:14:40] Phase 4 Post Placement Optimization and Clean-Up
 [21:14:40] Phase 4.1 Post Commit Optimization
+[21:17:15] Phase 4.1.1 Post Placement Optimization
+[21:17:46] Phase 4.1.1.1 BUFG Insertion
+[21:17:46] Phase 1 Physical Synthesis Initialization
 ```
