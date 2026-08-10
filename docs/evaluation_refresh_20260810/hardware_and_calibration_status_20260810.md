@@ -62,6 +62,36 @@ They should not be presented as final post-calibration figures until the
 current sharded-K4 simulator is run against the same semantic contract as the
 hardware matrix and the calibration/holdout gates are recorded.
 
+## Active Calibration Refresh Run
+
+A small calibration/refresh campaign is running from:
+
+```bash
+/data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen/campaign_manifest.json
+```
+
+It covers AU/SU/WK, insert batch-8, three differential algorithms, and both
+`spine` and `grasu_regraph_k4_shared`. It uses the frozen SST plugin directory:
+
+```bash
+/home/chuxiao/spine-cycle-sim-publication/build/sst
+```
+
+Monitor it with:
+
+```bash
+watch -n 5 python3 scripts/monitor_large_graph_campaign.py \
+  --run-dir /data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen/run \
+  --max-rows 24
+```
+
+A first dry run with the current branch-local `build/sst` was rejected by the
+contract's plugin-admission gate. That was expected after inspection: the
+contract freezes plugin SHA
+`7563b028e61e792e7043a582682dd26d0e3d8cc3e2407021f144519d0ef57bf6`, which
+matches `/home/chuxiao/spine-cycle-sim-publication/build/sst/libspine_cycle.so`
+and not the branch-local rebuild.
+
 ## Immediate Replacement Rule
 
 - Figure 7(a)--(c): can be discussed as real FPGA evidence now.
