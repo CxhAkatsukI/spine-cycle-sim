@@ -20,18 +20,6 @@ replaced without changing the other panels' layout.
 ## Latest Route Log Tail
 
 ```text
-[19:50:43] Run vpl: Step impl: Started
-[20:12:15] Finished 2nd of 6 tasks (FPGA linking synthesized kernels to platform). Elapsed time: 01h 40m 43s
-
-[20:12:15] Starting logic optimization..
-[20:12:15] Phase 1 Initialization
-[20:12:15] Phase 1.1 Core Generation And Design Setup
-[20:13:17] Phase 1.2 Setup Constraints And Sort Netlist
-[20:13:17] Phase 2 Timer Update And Timing Data Collection
-[20:13:17] Phase 2.1 Timer Update
-[20:13:17] Phase 2.2 Timing Data Collection
-[20:13:17] Phase 3 Retarget
-[20:13:48] Phase 4 Constant propagation
 [20:14:18] Phase 5 Sweep
 [20:15:20] Phase 6 BUFG optimization
 [20:15:51] Phase 7 Shift Register Optimization
@@ -44,4 +32,16 @@ replaced without changing the other panels' layout.
 [20:16:53] Starting logic placement..
 [20:17:24] Phase 1 Placer Initialization
 [20:17:24] Phase 1.1 Placer Initialization Netlist Sorting
+[20:19:58] Phase 1.2 IO Placement/ Clock Placement/ Build Placer Device
+[20:21:30] Phase 1.3 Build Placer Netlist Model
+[20:25:06] Phase 1.4 Constrain Clocks/Macros
+[20:25:37] Phase 2 Global Placement
+[20:25:37] Phase 2.1 Floorplanning
+[20:27:09] Phase 2.1.1 Partition Driven Placement
+[20:27:09] Phase 2.1.1.1 PBP: Partition Driven Placement
+[20:30:46] Phase 2.1.1.2 PBP: Clock Region Placement
+[20:31:48] Phase 2.1.1.3 PBP: Compute Congestion
+[20:32:19] Phase 2.1.1.4 PBP: UpdateTiming
+[20:32:50] Phase 2.1.1.5 PBP: Add part constraints
+[20:32:50] Phase 2.2 Physical Synthesis After Floorplan
 ```
