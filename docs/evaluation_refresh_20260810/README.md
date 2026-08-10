@@ -103,6 +103,11 @@ Generate the Fig. 8 CSVs from an admitted update-only evidence root with:
 
 ```bash
 /data/tmp/chuxiao/spine-cycle-sim-eval-venv/bin/python \
+  scripts/build_current_fig8_update_only_evidence.py \
+  --formal-root <CURRENT_FORMAL_UPDATE_SCALING_ROOT> \
+  --out-root <CURRENT_UPDATE_ONLY_EVIDENCE_ROOT> \
+  --host-tool /data/tmp/chuxiao/spine-cycle-sim-sharded-k4-v3-build/cpp/persistent_update_host_benchmark
+/data/tmp/chuxiao/spine-cycle-sim-eval-venv/bin/python \
   scripts/export_persistent_update_setup_fig8.py \
   --evidence-root <CURRENT_UPDATE_ONLY_EVIDENCE_ROOT> \
   --out-dir <FIG8_DATA_DIR> \

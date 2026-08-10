@@ -96,10 +96,11 @@ def batch_rows(evidence_root: Path, batch_counts: tuple[int, ...]) -> tuple[list
         comparison = load_json(path)
         spine, grasu = systems(comparison)
         logical_updates = int(comparison["logical_updates"])
+        actual_batch_count = int(comparison["batch_count"])
         rows.append(
             {
-                "batch_count": batch_count,
-                "updates_per_batch": logical_updates / batch_count,
+                "batch_count": actual_batch_count,
+                "updates_per_batch": logical_updates / actual_batch_count,
                 "logical_updates": logical_updates,
                 "spine_kups": kups(spine),
                 "grasu_kups": kups(grasu),
@@ -131,7 +132,11 @@ def main() -> int:
     )
     parser.add_argument(
         "--status",
-        choices=("PASS_CURRENT_MODEL_DATA", "INTERIM_ARCHIVED_SIMULATOR_DATA"),
+        choices=(
+            "PASS_CURRENT_MODEL_DATA",
+            "PARTIAL_CURRENT_MODEL_DATA",
+            "INTERIM_ARCHIVED_SIMULATOR_DATA",
+        ),
         default="INTERIM_ARCHIVED_SIMULATOR_DATA",
         help="evidence status to record in the generated manifest",
     )

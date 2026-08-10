@@ -103,6 +103,33 @@ the restored host preprocessing benchmark. The host benchmark target compiles in
 `/data/tmp/chuxiao/spine-cycle-sim-sharded-k4-v3-build` and produced valid JSON
 on a one-edge smoke test.
 
+A partial current-model Fig. 8 evidence root was generated from the existing AU
+formal-v8 update-scaling rows:
+
+```bash
+python3 scripts/build_current_fig8_update_only_evidence.py \
+  --formal-root /data/tmp/chuxiao/large_graph_campaign_v1/formal_v8_au_update_scaling \
+  --out-root /data/tmp/chuxiao/evaluation_refresh_20260810_fig8_current_partial \
+  --host-tool /data/tmp/chuxiao/spine-cycle-sim-sharded-k4-v3-build/cpp/persistent_update_host_benchmark \
+  --host-repeats 1 \
+  --cross-update-count 1024
+python3 scripts/export_persistent_update_setup_fig8.py \
+  --evidence-root /data/tmp/chuxiao/evaluation_refresh_20260810_fig8_current_partial \
+  --out-dir /data/tmp/chuxiao/evaluation_refresh_20260810_fig8_current_partial_csv \
+  --cross-dataset au:AU \
+  --batch-count 64 \
+  --batch-count 1024 \
+  --batch-count 16384 \
+  --batch-count 131072 \
+  --status PARTIAL_CURRENT_MODEL_DATA
+```
+
+The AU setup-inclusive update-only speedups for a single batch are `13.57x`
+for 64 updates, `12.33x` for 1024 updates, `10.71x` for 16384 updates, and
+`3.70x` for 131072 updates. This validates the current-data conversion path but
+is intentionally marked partial because it covers only AU and uses
+`host-repeats=1`.
+
 Figure 10 current-data probe: running `scripts/analyze_rq3_realized_work.py`
 on `/data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen` produced
 9 latency rows and 21 regression rows, with all direct ten-stage ledgers closed.

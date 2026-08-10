@@ -20,28 +20,28 @@ replaced without changing the other panels' layout.
 ## Latest Route Log Tail
 
 ```text
-[20:56:35] Phase 2.5.2 Physical Synthesis In Placer
-[21:02:47] Phase 3 Detail Placement
-[21:03:18] Phase 3.1 Commit Multi Column Macros
-[21:03:18] Phase 3.2 Commit Most Macros & LUTRAMs
-[21:06:24] Phase 3.3 Small Shape DP
-[21:06:24] Phase 3.3.1 Small Shape Clustering
-[21:06:55] Phase 3.3.2 Slice Area Swap
-[21:07:26] Phase 3.3.2.1 Slice Area Swap Initial
-[21:10:32] Phase 3.4 Place Remaining
-[21:11:03] Phase 3.5 Re-assign LUT pins
-[21:12:05] Phase 3.6 Pipeline Register Optimization
-[21:12:36] Phase 3.7 Fast Optimization
-[21:14:40] Phase 4 Post Placement Optimization and Clean-Up
-[21:14:40] Phase 4.1 Post Commit Optimization
-[21:17:15] Phase 4.1.1 Post Placement Optimization
-[21:17:46] Phase 4.1.1.1 BUFG Insertion
-[21:17:46] Phase 1 Physical Synthesis Initialization
-[21:20:21] Phase 4.1.1.2 BUFG Replication
-[21:20:21] Phase 4.1.1.3 Post Placement Timing Optimization
-[21:41:33] Phase 4.1.1.4 Replication
-[21:43:06] Phase 4.2 Post Placement Cleanup
-[21:43:06] Phase 4.3 Placer Reporting
-[21:43:06] Phase 4.3.1 Print Estimated Congestion
-[21:43:37] Phase 4.4 Final Placement Cleanup
+[22:48:15] Phase 14.1 Fix Topology Constraints
+[22:48:15] Phase 14.2 Pre Route Cleanup
+[22:48:46] Phase 14.3 Global Clock Net Routing
+[22:52:23] Phase 15 Reset Design
+[22:52:23] Phase 15.1 Create Timer
+[22:53:25] Phase 16 Leaf Clock Prog Delay Opt
+[22:54:58] Phase 16.1 Optimize Skews
+[22:54:58] Phase 16.1.1 Leaf ClockOpt Init
+[22:57:33] Phase 16.2 Post SkewOpt Delay Cleanup
+[22:57:33] Phase 16.2.1 Delay CleanUp
+[22:59:06] Phase 16.3 Post SkewOpt Hold Fix
+[22:59:06] Phase 16.3.1 Hold Fix Iter
+[23:02:44] Phase 17 Depositing Routes
+[23:03:14] Phase 18 Resolve XTalk
+[23:03:14] Phase 19 Post Process Routing
+[23:03:45] Phase 20 Post Router Timing
+[23:05:50] Phase 21 Physical Synthesis in Router
+[23:05:50] Phase 21.1 Physical Synthesis Initialization
+[23:09:27] Phase 21.2 Critical Path Optimization
+[23:13:04] Phase 22 Route finalize
+[23:13:04] Phase 23 Post-Route Event Processing
+[23:14:37] Finished 5th of 6 tasks (FPGA routing). Elapsed time: 01h 19m 37s
+
+[23:14:37] Starting bitstream generation..
 ```

@@ -78,10 +78,11 @@ class Fig8UpdateOnlyExportTests(unittest.TestCase):
 
             cross, batch, sources, status = collect_fig8_rows(out)
 
-        self.assertEqual(status, "PASS_CURRENT_MODEL_DATA")
-        self.assertEqual(cross[0]["dataset"], "AU")
-        self.assertEqual(float(batch[0]["spine_speedup"]), 3.0)
-        self.assertEqual(len(sources), 3)
+            self.assertEqual(status, "PASS_CURRENT_MODEL_DATA")
+            self.assertEqual(cross[0]["dataset"], "AU")
+            self.assertEqual(float(batch[0]["spine_speedup"]), 3.0)
+            self.assertEqual(float(batch[0]["updates_per_batch"]), 102.4)
+            self.assertEqual(len(sources), 3)
 
     def test_renderer_rejects_noncurrent_manifest(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
