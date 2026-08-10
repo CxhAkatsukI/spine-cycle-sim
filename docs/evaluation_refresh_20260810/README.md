@@ -37,6 +37,8 @@ unchanged until the revised evidence is accepted.
   end-to-end cycle breakdown over representative realized-work cases.
 - `provenance/fig8.json`, `provenance/fig9.json`, and `provenance/fig10.json`:
   hashes, timing scope, normalization, and current limitations.
+- `hardware_and_calibration_status_20260810.md`: current evidence boundary,
+  including the Fig. 7 convergence semantics and why Fig. 8--10 remain interim.
 
 The calibration report and final handoff archive remain pending. A failed
 calibration row will be retained under `diagnostics/` and will not be promoted
