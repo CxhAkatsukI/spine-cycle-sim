@@ -71,10 +71,10 @@ with:
 
 ```bash
 /data/tmp/chuxiao/spine-cycle-sim-eval-venv/bin/python \
-  scripts/render_evaluation_refresh.py \
-  --campaign-analysis-dir /data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen/analysis_partial
+  scripts/finalize_evaluation_refresh.py
 ```
 
-If `pair_rows.csv` is still empty, the renderer keeps the archived Fig. 9 data
-and records `INTERIM_ARCHIVED_SIMULATOR_DATA_EMPTY_CAMPAIGN_FALLBACK` in
-`provenance/fig9.json`.
+The finalizer runs campaign analysis with `--require-complete` and then calls
+the renderer with the resulting analysis directory. For debugging only, pass
+`--allow-partial`; otherwise incomplete pair rows are rejected before final
+figures are regenerated.

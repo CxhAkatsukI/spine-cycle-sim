@@ -677,6 +677,11 @@ def main() -> int:
         type=Path,
         help="optional publication campaign analysis directory used to refresh Fig. 9",
     )
+    parser.add_argument(
+        "--allow-partial-campaign-fig9",
+        action="store_true",
+        help="render Fig. 9 from partial campaign pair rows instead of falling back",
+    )
     args = parser.parse_args()
     fullpr_summaries = args.fullpr_summary or [
         Path("/data/tmp/chuxiao/matched_fpga_fullpr_k4_real_20260805/summary.tsv"),
@@ -743,11 +748,17 @@ def main() -> int:
         candidate_rows, fig9_source, fig9_status = collect_fig9_rows_from_campaign(
             args.campaign_analysis_dir.resolve()
         )
-        if candidate_rows:
+        if fig9_status == "PASS_CAMPAIGN_ANALYSIS" or (
+            candidate_rows and args.allow_partial_campaign_fig9
+        ):
             fig9_rows = candidate_rows
         else:
+            candidate_count = len(candidate_rows)
             fig9_rows, fig9_source, fig9_status = collect_fig9_rows()
-            fig9_status = "INTERIM_ARCHIVED_SIMULATOR_DATA_EMPTY_CAMPAIGN_FALLBACK"
+            fig9_status = (
+                "INTERIM_ARCHIVED_SIMULATOR_DATA_CAMPAIGN_FALLBACK_"
+                f"candidate_rows_{candidate_count}"
+            )
     else:
         fig9_rows, fig9_source, fig9_status = collect_fig9_rows()
     fig9_data = args.out_dir / "data" / "fig9_memory_energy_rows.csv"
