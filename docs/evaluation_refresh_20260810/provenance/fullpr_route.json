@@ -1,0 +1,51 @@
+{
+  "artifacts": [
+    {
+      "path": "/data/tmp/chuxiao/grasu_regraph_sharded_k4_fullpr_hw_646c8a8_20260810_route/build/grasu_regraph_full_pagerank.hw.xclbin.link_summary",
+      "sha256": "9fed9d09fd9ee97ed6f16925fffefa7c0aaeb57aacdd9d9629a47667597ab6a0",
+      "size_bytes": 48363
+    },
+    {
+      "path": "/data/tmp/chuxiao/grasu_regraph_sharded_k4_fullpr_hw_646c8a8_20260810_route/manifest.json",
+      "sha256": "09a9bab3fefe923f115dd25bb09f5ec9ee286c2a3aa1c2b11df182438e23f1c5",
+      "size_bytes": 4386
+    },
+    {
+      "path": "/data/tmp/chuxiao/grasu_regraph_sharded_k4_fullpr_hw_646c8a8_20260810_route/logs/fullpr_route_bg_20260810_182948.log",
+      "sha256": "06c96c1a361784f809b1a00acb25007fe237a65673b1fe7f873164526f5c456f",
+      "size_bytes": 43934
+    }
+  ],
+  "link_summary_present": true,
+  "log_tail": [
+    "[19:50:43] Run vpl: Step impl: Started",
+    "[20:12:15] Finished 2nd of 6 tasks (FPGA linking synthesized kernels to platform). Elapsed time: 01h 40m 43s",
+    "",
+    "[20:12:15] Starting logic optimization..",
+    "[20:12:15] Phase 1 Initialization",
+    "[20:12:15] Phase 1.1 Core Generation And Design Setup",
+    "[20:13:17] Phase 1.2 Setup Constraints And Sort Netlist",
+    "[20:13:17] Phase 2 Timer Update And Timing Data Collection",
+    "[20:13:17] Phase 2.1 Timer Update",
+    "[20:13:17] Phase 2.2 Timing Data Collection",
+    "[20:13:17] Phase 3 Retarget",
+    "[20:13:48] Phase 4 Constant propagation",
+    "[20:14:18] Phase 5 Sweep",
+    "[20:15:20] Phase 6 BUFG optimization",
+    "[20:15:51] Phase 7 Shift Register Optimization",
+    "[20:15:51] Phase 8 Post Processing Netlist",
+    "[20:15:51] Phase 9 Finalization",
+    "[20:15:51] Phase 9.1 Finalizing Design Cores and Updating Shapes",
+    "[20:16:22] Phase 9.2 Verifying Netlist Connectivity",
+    "[20:16:53] Finished 3rd of 6 tasks (FPGA logic optimization). Elapsed time: 00h 04m 37s",
+    "",
+    "[20:16:53] Starting logic placement..",
+    "[20:17:24] Phase 1 Placer Initialization",
+    "[20:17:24] Phase 1.1 Placer Initialization Netlist Sorting"
+  ],
+  "pid": 619749,
+  "pid_running": true,
+  "route_dir": "/data/tmp/chuxiao/grasu_regraph_sharded_k4_fullpr_hw_646c8a8_20260810_route",
+  "status": "RUNNING",
+  "xclbin_present": false
+}
