@@ -140,7 +140,7 @@ def build_audit(out_dir: Path, analysis_dir: Path | None) -> dict[str, Any]:
                     not campaign.get("complete_for_fig9", False),
                 ),
                 (
-                    "replace Fig.8 archived update-throughput CSVs with calibrated campaign-derived rows",
+                    "replace Fig.8 archived update-throughput CSVs with current setup-inclusive update-only evidence",
                     not figures["fig8"]["aligned"],
                 ),
                 (
