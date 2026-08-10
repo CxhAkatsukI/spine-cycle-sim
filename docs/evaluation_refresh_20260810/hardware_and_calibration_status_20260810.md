@@ -31,9 +31,12 @@ Representative raw protocol checks:
 
 Panel (d) is different: it temporarily uses compact Full PageRank routed
 hardware. The current compact FullPR protocol is fixed-round
-(`rounds=3` / `coverage=three_iterations`), not convergence-to-epsilon. A
-sharded-K4 FullPR route is running in the background and should replace this
-panel if it passes.
+(`rounds=3` / `coverage=three_iterations`), not convergence-to-epsilon. The
+sharded-K4 FullPR route has now produced an xclbin and routed reports, but it
+misses the 150 MHz target slightly (`WNS=-0.069 ns`, `TNS=-2.591 ns`, 84 setup
+failing endpoints). It is therefore recorded as `PASS_TIMING_MISS` evidence and
+should not replace panel (d) until its correctness/performance matrix is run
+and its timing status is accepted for the intended claim.
 
 ## Existing Calibration Coverage
 
@@ -163,16 +166,21 @@ It covers AU/SU/WK, insert batch-8, three differential algorithms, and both
 /home/chuxiao/spine-cycle-sim-publication/build/sst
 ```
 
-Latest partial checkpoint: partial analysis reports `observed=11`, `pairs=2`,
-`missing=7`. The completed pairs are:
+Latest partial checkpoint: partial analysis reports `observed=13`, `pairs=4`,
+`missing=5`. The completed pairs are:
 
 - `sx_askubuntu / weighted_sssp / insert-8`: Spine `61,817` cycles versus
   G+R `179,053,544` cycles, or `2,896.5x` speedup.
 - `sx_superuser / weighted_sssp / insert-8`: Spine `60,699` cycles versus
   G+R `291,909,003` cycles, or `4,809.1x` speedup.
+- `sx_askubuntu / connected_components / insert-8`: Spine `2,183,292` cycles
+  versus G+R `13,462,032` cycles, or `6.17x` speedup.
+- `sx_askubuntu / thresholded_residual_pagerank / insert-8`: Spine
+  `2,175,289` cycles versus G+R `14,729,898` cycles, or `6.77x` speedup.
 
-The remaining queued G+R jobs are currently waiting for the campaign memory
-reserve because available memory is below the 72 GiB reserve threshold.
+The remaining jobs are the G+R side of SU/WK CC, SU/WK residual PR, and WK
+SSSP. At the latest checkpoint one G+R job was running and four were queued
+behind the campaign scheduler's memory reserve.
 
 Monitor it with:
 
@@ -213,9 +221,8 @@ Use:
   --no-progress-warn-minutes 20
 ```
 
-Do not launch the sidecar while the machine is below the main recovery threshold
-or while the FullPR route is consuming placement memory. If it is used, include
-the sidecar root in finalization:
+Do not launch the sidecar while the machine is below the main recovery threshold.
+If it is used, include the sidecar root in finalization:
 
 ```bash
 /data/tmp/chuxiao/spine-cycle-sim-eval-venv/bin/python \
