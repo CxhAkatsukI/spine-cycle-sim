@@ -93,11 +93,15 @@ and Fig. 8 CSV exporter have been restored in the current branch:
 
 - `spine_cycle_sim/experiments/persistent_update_only.py`
 - `scripts/export_persistent_update_setup_fig8.py`
+- `cpp/tools/persistent_update_host_benchmark.cpp`
 
 The renderer now requires a `persistent_update_setup_manifest.json` with
 `status=PASS_CURRENT_MODEL_DATA` before accepting `--fig8-data-dir` as current
 evidence. The remaining Fig. 8 blocker is the current sharded-K4 device/host
-runner that produces admitted `pure_update_only` Spine and G+R evidence.
+runner that combines admitted `pure_update_only`/maintenance device timing with
+the restored host preprocessing benchmark. The host benchmark target compiles in
+`/data/tmp/chuxiao/spine-cycle-sim-sharded-k4-v3-build` and produced valid JSON
+on a one-edge smoke test.
 
 Figure 10 current-data probe: running `scripts/analyze_rq3_realized_work.py`
 on `/data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen` produced
