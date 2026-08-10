@@ -74,7 +74,7 @@ with:
   scripts/finalize_evaluation_refresh.py
 ```
 
-The finalizer runs campaign analysis with `--require-complete` and then calls
-the renderer with the resulting analysis directory. For debugging only, pass
-`--allow-partial`; otherwise incomplete pair rows are rejected before final
-figures are regenerated.
+The finalizer runs campaign analysis with `--require-complete`, calls the
+renderer with the resulting analysis directory, and refreshes the FullPR route
+evidence. For debugging only, pass `--allow-partial`; otherwise incomplete pair
+rows are rejected before final figures are regenerated.

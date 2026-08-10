@@ -77,6 +77,16 @@ def main() -> int:
         render_command.append("--allow-partial-campaign-fig9")
     run(render_command, cwd=ROOT)
 
+    run(
+        [
+            args.python,
+            str(ROOT / "scripts" / "collect_fullpr_route_evidence.py"),
+            "--out-dir",
+            str(args.out_dir.resolve()),
+        ],
+        cwd=ROOT,
+    )
+
     provenance = {
         "status": summary.get("status"),
         "campaign_root": str(campaign_root),
