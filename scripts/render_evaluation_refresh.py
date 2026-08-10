@@ -11,10 +11,6 @@ import math
 from pathlib import Path
 import statistics
 
-import matplotlib as mpl
-import matplotlib.pyplot as plt
-from matplotlib.patches import Patch
-
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUT = ROOT / "docs" / "evaluation_refresh_20260810"
@@ -59,6 +55,7 @@ FIG9_ALGORITHM_LABEL = {
 FIG9_DATASET_ORDER = ("AU", "SU", "WK")
 FIG8_CROSS_FILENAME = "persistent_update_setup_cross_dataset.csv"
 FIG8_BATCH_FILENAME = "persistent_update_setup_batch_sensitivity.csv"
+FIG8_MANIFEST_FILENAME = "persistent_update_setup_manifest.json"
 FIG10_LATENCY_FILENAME = "rq3_latency_rows.csv"
 FIG10_SUMMARY_FILENAME = "rq3_summary.json"
 FIG10_COMPONENTS = (
@@ -131,6 +128,10 @@ def read_tsv(path: Path) -> list[dict[str, str]]:
 def read_csv(path: Path) -> list[dict[str, str]]:
     with path.open(encoding="utf-8", newline="") as source:
         return list(csv.DictReader(source))
+
+
+def read_json(path: Path) -> dict[str, object]:
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 def write_csv(path: Path, rows: list[dict[str, object]]) -> None:
@@ -226,6 +227,11 @@ def collect_compact_fullpr_rows(summary_paths: list[Path]) -> tuple[list[dict[st
 
 
 def configure_matplotlib() -> None:
+    global mpl, plt, Patch
+    import matplotlib as mpl
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import Patch
+
     mpl.rcParams.update(
         {
             "font.family": "monospace",
@@ -430,11 +436,22 @@ def collect_fig8_rows(
         cross_path = FIG8_CROSS_DATA
         batch_path = FIG8_BATCH_DATA
         status = "INTERIM_ARCHIVED_SIMULATOR_DATA"
+        sources = [cross_path, batch_path]
     else:
         cross_path = data_dir / FIG8_CROSS_FILENAME
         batch_path = data_dir / FIG8_BATCH_FILENAME
-        status = "PASS_CURRENT_MODEL_DATA"
-    return read_csv(cross_path), read_csv(batch_path), [cross_path, batch_path], status
+        manifest_path = data_dir / FIG8_MANIFEST_FILENAME
+        manifest = read_json(manifest_path)
+        status = str(manifest.get("status", ""))
+        if status != "PASS_CURRENT_MODEL_DATA":
+            raise ValueError(
+                "Fig. 8 current data must include "
+                f"{FIG8_MANIFEST_FILENAME} with status=PASS_CURRENT_MODEL_DATA"
+            )
+        if manifest.get("metric") != "setup_inclusive_update_only_throughput":
+            raise ValueError("Fig. 8 manifest has the wrong metric")
+        sources = [cross_path, batch_path, manifest_path]
+    return read_csv(cross_path), read_csv(batch_path), sources, status
 
 
 def collect_fig9_rows_from_campaign(

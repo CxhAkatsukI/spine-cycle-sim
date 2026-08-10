@@ -99,6 +99,19 @@ rows, not formal campaign simulator wall time. In particular,
 `pair_rows.csv` are CPU time spent by the simulator process and must not be used
 as modeled host preprocessing time. See
 `hardware_and_calibration_status_20260810.md` for the current Fig. 8 blocker.
+Generate the Fig. 8 CSVs from an admitted update-only evidence root with:
+
+```bash
+/data/tmp/chuxiao/spine-cycle-sim-eval-venv/bin/python \
+  scripts/export_persistent_update_setup_fig8.py \
+  --evidence-root <CURRENT_UPDATE_ONLY_EVIDENCE_ROOT> \
+  --out-dir <FIG8_DATA_DIR> \
+  --status PASS_CURRENT_MODEL_DATA
+```
+
+The renderer refuses `--fig8-data-dir` unless that directory also contains
+`persistent_update_setup_manifest.json` with
+`status=PASS_CURRENT_MODEL_DATA`.
 
 If a sidecar campaign is used to finish queued long-tail cases, merge it during
 finalization with repeated `--extra-result-root <DIR>` arguments.

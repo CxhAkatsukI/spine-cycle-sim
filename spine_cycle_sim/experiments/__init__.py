@@ -137,6 +137,10 @@ from .publication_analysis import (
     load_case_results,
     write_publication_analysis,
 )
+from .persistent_update_only import (
+    HostRuntimeModel,
+    analyze_persistent_update_pair,
+)
 from .rq3 import analyze_rq3_results, linear_fit, write_rq3_analysis
 from .campaign_runtime import (
     CampaignJob,
@@ -254,6 +258,8 @@ __all__ = [
     "expected_execution_metadata",
     "load_case_results",
     "write_publication_analysis",
+    "HostRuntimeModel",
+    "analyze_persistent_update_pair",
     "analyze_rq3_results",
     "linear_fit",
     "write_rq3_analysis",

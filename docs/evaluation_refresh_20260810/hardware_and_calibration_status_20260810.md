@@ -88,6 +88,17 @@ Figure 8 replacement needs one of the following:
 Until one of these is done, Figure 8 remains a layout candidate, not final
 numeric evidence.
 
+Implementation checkpoint: the setup-inclusive update-only accounting module
+and Fig. 8 CSV exporter have been restored in the current branch:
+
+- `spine_cycle_sim/experiments/persistent_update_only.py`
+- `scripts/export_persistent_update_setup_fig8.py`
+
+The renderer now requires a `persistent_update_setup_manifest.json` with
+`status=PASS_CURRENT_MODEL_DATA` before accepting `--fig8-data-dir` as current
+evidence. The remaining Fig. 8 blocker is the current sharded-K4 device/host
+runner that produces admitted `pure_update_only` Spine and G+R evidence.
+
 Figure 10 current-data probe: running `scripts/analyze_rq3_realized_work.py`
 on `/data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen` produced
 9 latency rows and 21 regression rows, with all direct ten-stage ledgers closed.
