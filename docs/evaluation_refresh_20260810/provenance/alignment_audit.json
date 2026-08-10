@@ -1,11 +1,11 @@
 {
   "campaign": {
-    "analysis_dir": "/data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen/analysis_partial_live",
-    "complete_for_fig9": false,
+    "analysis_dir": "/data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen/analysis_complete_live",
+    "complete_for_fig9": true,
     "expected_executions": 18,
-    "missing_executions": 2,
-    "observed_executions": 16,
-    "pair_rows": 7,
+    "missing_executions": 0,
+    "observed_executions": 18,
+    "pair_rows": 9,
     "paired_algorithms": [
       "connected_components",
       "thresholded_residual_pagerank",
@@ -18,7 +18,7 @@
     ],
     "present": true,
     "required_pair_rows": 9,
-    "summary_status": "PARTIAL"
+    "summary_status": "PASS"
   },
   "figures": {
     "fig10": {
@@ -39,16 +39,14 @@
       "status": "PASS_CURRENT_MODEL_DATA"
     },
     "fig9": {
-      "aligned": false,
-      "campaign_pairs": 7,
+      "aligned": true,
+      "campaign_pairs": 9,
       "evidence": "campaign pair_rows memory and HBM-energy ledger",
       "required_pairs": 9,
-      "status": "PARTIAL_CAMPAIGN_ANALYSIS"
+      "status": "PASS_CAMPAIGN_ANALYSIS"
     }
   },
-  "next_actions": [
-    "finish all 9 AU/SU/WK campaign pairs for calibrated Fig.9"
-  ],
+  "next_actions": [],
   "out_dir": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810",
-  "status": "INCOMPLETE"
+  "status": "READY"
 }
