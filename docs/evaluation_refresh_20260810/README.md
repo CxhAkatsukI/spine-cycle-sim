@@ -78,3 +78,10 @@ The finalizer runs campaign analysis with `--require-complete`, calls the
 renderer with the resulting analysis directory, and refreshes the FullPR route
 evidence. For debugging only, pass `--allow-partial`; otherwise incomplete pair
 rows are rejected before final figures are regenerated.
+
+Campaign ETA can be inspected with:
+
+```bash
+/data/tmp/chuxiao/spine-cycle-sim-eval-venv/bin/python \
+  scripts/estimate_evaluation_campaign_eta.py
+```
