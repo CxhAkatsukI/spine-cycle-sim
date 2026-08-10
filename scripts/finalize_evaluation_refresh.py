@@ -28,6 +28,13 @@ def run(command: list[str], *, cwd: Path) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--campaign-root", type=Path, default=DEFAULT_CAMPAIGN_ROOT)
+    parser.add_argument(
+        "--extra-result-root",
+        type=Path,
+        action="append",
+        default=[],
+        help="additional publication-analysis result root to merge with campaign-root",
+    )
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_OUT)
     parser.add_argument("--python", default=sys.executable)
     parser.add_argument("--analysis-name", default="analysis_final")
@@ -45,7 +52,12 @@ def main() -> int:
         str(ROOT / "scripts" / "analyze_publication_experiment_campaign.py"),
         "--result-root",
         str(campaign_root),
-        "--manifest",
+    ]
+    for result_root in args.extra_result_root:
+        analyze_command.extend(("--result-root", str(result_root.resolve())))
+    analyze_command.extend(
+        [
+            "--manifest",
         str(manifest),
         "--result-transition-contract",
         str(ROOT / "configs" / "contracts" / "large_graph_publication_campaign_fullgraph_v8.json"),
@@ -55,7 +67,8 @@ def main() -> int:
         "grasu_regraph_k4_shared",
         "--out-dir",
         str(analysis_dir),
-    ]
+        ]
+    )
     if not args.allow_partial:
         analyze_command.append("--require-complete")
     run(analyze_command, cwd=ROOT)
@@ -90,6 +103,7 @@ def main() -> int:
     provenance = {
         "status": summary.get("status"),
         "campaign_root": str(campaign_root),
+        "extra_result_roots": [str(path.resolve()) for path in args.extra_result_root],
         "campaign_manifest": str(manifest),
         "campaign_manifest_sha256": sha256(manifest),
         "analysis_dir": str(analysis_dir),

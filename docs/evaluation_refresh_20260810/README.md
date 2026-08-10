@@ -79,6 +79,9 @@ renderer with the resulting analysis directory, and refreshes the FullPR route
 evidence. For debugging only, pass `--allow-partial`; otherwise incomplete pair
 rows are rejected before final figures are regenerated.
 
+If a sidecar campaign is used to finish queued long-tail cases, merge it during
+finalization with repeated `--extra-result-root <DIR>` arguments.
+
 Campaign ETA can be inspected with:
 
 ```bash
