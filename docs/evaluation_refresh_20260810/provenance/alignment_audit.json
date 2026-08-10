@@ -1,0 +1,52 @@
+{
+  "campaign": {
+    "analysis_dir": "/data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen/analysis_partial",
+    "complete_for_fig9": false,
+    "expected_executions": 18,
+    "missing_executions": 8,
+    "observed_executions": 10,
+    "pair_rows": 1,
+    "paired_algorithms": [
+      "weighted_sssp"
+    ],
+    "paired_datasets": [
+      "sx_askubuntu"
+    ],
+    "present": true,
+    "required_pair_rows": 9,
+    "summary_status": "PARTIAL"
+  },
+  "figures": {
+    "fig10": {
+      "aligned": false,
+      "evidence": "RQ3 component ledger",
+      "gap": "still uses archived RQ3 component traces",
+      "status": "INTERIM_ARCHIVED_SIMULATOR_DATA"
+    },
+    "fig7": {
+      "aligned": true,
+      "evidence": "routed FPGA data",
+      "status": "PASS"
+    },
+    "fig8": {
+      "aligned": false,
+      "evidence": "setup-inclusive update-throughput simulator rows",
+      "gap": "still uses archived update-only evidence",
+      "status": "INTERIM_ARCHIVED_SIMULATOR_DATA"
+    },
+    "fig9": {
+      "aligned": false,
+      "campaign_pairs": 1,
+      "evidence": "campaign pair_rows memory and HBM-energy ledger",
+      "required_pairs": 9,
+      "status": "INTERIM_ARCHIVED_SIMULATOR_DATA"
+    }
+  },
+  "next_actions": [
+    "finish all 9 AU/SU/WK campaign pairs for calibrated Fig.9",
+    "replace Fig.8 archived update-throughput CSVs with calibrated campaign-derived rows",
+    "replace Fig.10 archived RQ3 traces with calibrated current-model component ledgers"
+  ],
+  "out_dir": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810",
+  "status": "INCOMPLETE"
+}

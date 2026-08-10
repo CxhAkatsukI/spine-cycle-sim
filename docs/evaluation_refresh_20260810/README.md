@@ -37,6 +37,9 @@ unchanged until the revised evidence is accepted.
   end-to-end cycle breakdown over representative realized-work cases.
 - `provenance/fig8.json`, `provenance/fig9.json`, and `provenance/fig10.json`:
   hashes, timing scope, normalization, and current limitations.
+- `alignment_audit.md` and `provenance/alignment_audit.json`: gate whether
+  refreshed figures use FPGA-aligned campaign evidence or still fall back to
+  archived simulator data.
 - `hardware_and_calibration_status_20260810.md`: current evidence boundary,
   including the Fig. 7 convergence semantics and why Fig. 8--10 remain interim.
 
@@ -75,9 +78,10 @@ with:
 ```
 
 The finalizer runs campaign analysis with `--require-complete`, calls the
-renderer with the resulting analysis directory, and refreshes the FullPR route
-evidence. For debugging only, pass `--allow-partial`; otherwise incomplete pair
-rows are rejected before final figures are regenerated.
+renderer with the resulting analysis directory, refreshes the FullPR route
+evidence, and writes the alignment audit. For debugging only, pass
+`--allow-partial`; otherwise incomplete pair rows are rejected before final
+figures are regenerated.
 
 If a sidecar campaign is used to finish queued long-tail cases, merge it during
 finalization with repeated `--extra-result-root <DIR>` arguments.

@@ -99,6 +99,17 @@ def main() -> int:
         ],
         cwd=ROOT,
     )
+    run(
+        [
+            args.python,
+            str(ROOT / "scripts" / "audit_evaluation_refresh_alignment.py"),
+            "--out-dir",
+            str(args.out_dir.resolve()),
+            "--campaign-analysis-dir",
+            str(analysis_dir),
+        ],
+        cwd=ROOT,
+    )
 
     provenance = {
         "status": summary.get("status"),
