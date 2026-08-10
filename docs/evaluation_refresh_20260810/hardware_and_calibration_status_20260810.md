@@ -88,6 +88,24 @@ Figure 8 replacement needs one of the following:
 Until one of these is done, Figure 8 remains a layout candidate, not final
 numeric evidence.
 
+Figure 10 current-data probe: running `scripts/analyze_rq3_realized_work.py`
+on `/data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen` produced
+9 latency rows and 21 regression rows, with all direct ten-stage ledgers closed.
+However, the coverage summary is:
+
+| RQ3 case class | Current probe status |
+|---|---|
+| zero-net | missing |
+| shallow insertion | ready |
+| deep carry | missing |
+| PageRank correction | missing/partial for the fixed Figure 10 IDs |
+| deletion fallback | missing |
+
+The current Fig. 7/Fig. 9 calibration campaign is therefore not sufficient to
+fully replace Figure 10. A final current-model Figure 10 needs a dedicated RQ3
+trace campaign that regenerates the zero-net, forced-carry, PageRank-correction,
+and deletion-fallback rows under the frozen sharded-K4 plugin.
+
 ## Active Calibration Refresh Run
 
 A small calibration/refresh campaign is running from:
