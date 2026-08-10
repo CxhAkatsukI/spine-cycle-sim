@@ -1,14 +1,14 @@
 {
-  "status": "INTERIM_ARCHIVED_SIMULATOR_DATA",
+  "status": "PARTIAL_CAMPAIGN_ANALYSIS",
   "figure": "fig9_memory_energy_candidate",
   "source_files": [
     {
-      "path": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/paper/data/formal_v7_primary/pairs.csv",
-      "sha256": "b5f193472264145379c7eb70fc2a24e79f94b9f284fd9834b3f0771188750976"
+      "path": "/data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen/analysis_partial_live/pair_rows.csv",
+      "sha256": "c53331f31703a9e6976c5e5cd98456a3594a64c32c8f201cdf41cb33f90de87c"
     }
   ],
   "data_csv": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/data/fig9_memory_energy_rows.csv",
-  "data_csv_sha256": "a9c0b3bce71cda564d34e45bb43902ebbcf1544d1aa48793a6a9043fd2338a9e",
+  "data_csv_sha256": "0da3a7a061f970fb26d994d120e4206a267e4ee48af203de0a125f40331fd0b5",
   "limitations": [
     "Memory and HBM-energy ratios come from the shared simulator ledger, not routed FPGA power.",
     "Rows are limited to AU/SU/WK and differential algorithms to keep the panel readable."

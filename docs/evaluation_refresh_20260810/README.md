@@ -12,9 +12,12 @@ unchanged until the revised evidence is accepted.
   Full PageRank FPGA rows and is explicitly labeled as compact evidence.
 - Projected values, timeout lower bounds, and missing bars are removed from
   Figure 7.
-- Figures 8--10 are regenerated here from the currently archived simulator
-  evidence. They are candidate formatting/data-boundary fixes, not the final
-  post-calibration replacement.
+- Figure 8 is still regenerated from archived update-only evidence unless a
+  current `PASS_CURRENT_MODEL_DATA` update-throughput directory is supplied.
+- Figure 9 is regenerated from the active calibration campaign when pair rows
+  are available; the current packet is partial until all AU/SU/WK pairs finish.
+- Figure 10 is regenerated from current-model RQ3 realized-work rows when
+  `--fig10-data-dir` is supplied.
 - Figure 8 gives each panel a symbol-appropriate legend and uses
   setup-inclusive update-only throughput.
 - Figure 9 removes vertical separators and groups AU, SU, and WK by algorithm,
@@ -41,7 +44,8 @@ unchanged until the revised evidence is accepted.
   refreshed figures use FPGA-aligned campaign evidence or still fall back to
   archived simulator data.
 - `hardware_and_calibration_status_20260810.md`: current evidence boundary,
-  including the Fig. 7 convergence semantics and why Fig. 8--10 remain interim.
+  including the Fig. 7 convergence semantics and the remaining Fig. 8/Fig. 9
+  blockers.
 
 The calibration report and final handoff archive remain pending. A failed
 calibration row will be retained under `diagnostics/` and will not be promoted
@@ -51,13 +55,12 @@ into a final figure.
 
 - `ZN`: zero-net update.
 - `SI`: shallow insertion.
-- `A-S`, `L-S`, `S-S`: AskUbuntu, LiveJournal-2008, and Superuser shallow
-  SSSP insertion rows.
+- `AU`, `SU`, `WK`: AskUbuntu, Superuser, and WikiTalk current-model rows.
 - `L1`, `L3`, `L5`: synthetic traces that force carry through levels 1, 3,
   and 5.
 - `PR-corr`: PageRank residual-correction rows.
 - `FL`, `SU`, `WK`: Flickr, Superuser, and WikiTalk residual-correction rows.
-- `Del`: SSSP deletion-fallback rows on AU, SU, and WK.
+- `Del`: synthetic SSSP deletion-fallback row.
 
 ## Reproduction
 

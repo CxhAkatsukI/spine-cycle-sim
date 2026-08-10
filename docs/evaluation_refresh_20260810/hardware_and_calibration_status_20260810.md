@@ -133,23 +133,30 @@ for 64 updates, `12.33x` for 1024 updates, `10.71x` for 16384 updates, and
 is intentionally marked partial because it covers only AU and uses
 `host-repeats=1`.
 
-Figure 10 current-data probe: running `scripts/analyze_rq3_realized_work.py`
-on `/data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen` produced
-9 latency rows and 21 regression rows, with all direct ten-stage ledgers closed.
-However, the coverage summary is:
+Figure 10 current-data refresh: running `scripts/analyze_rq3_realized_work.py`
+on the active calibration root plus current standalone RQ3 cases produced 15
+latency rows and 21 regression rows, with all direct ten-stage ledgers closed.
+The input roots are:
+
+- `/data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen`
+- `/data/tmp/chuxiao/evaluation_refresh_20260810_rq3_current_carry`
+- `/data/tmp/chuxiao/evaluation_refresh_20260810_rq3_current_targeted`
+- `/data/tmp/chuxiao/evaluation_refresh_20260810_rq3_current_delete_shared`
+
+The coverage summary is:
 
 | RQ3 case class | Current probe status |
 |---|---|
-| zero-net | missing |
+| zero-net | ready |
 | shallow insertion | ready |
-| deep carry | missing |
-| PageRank correction | missing/partial for the fixed Figure 10 IDs |
-| deletion fallback | missing |
+| deep carry | ready |
+| PageRank correction | ready |
+| deletion fallback | ready |
 
-The current Fig. 7/Fig. 9 calibration campaign is therefore not sufficient to
-fully replace Figure 10. A final current-model Figure 10 needs a dedicated RQ3
-trace campaign that regenerates the zero-net, forced-carry, PageRank-correction,
-and deletion-fallback rows under the frozen sharded-K4 plugin.
+This is sufficient for the Figure 10 normalized breakdown panel. The broader
+RQ3 linear cost-model fit is still under-sampled (`calibration_samples=6`,
+`required_samples=9`) and should not be claimed as a final fitted E2E model
+until more calibration rows are added.
 
 ## Active Calibration Refresh Run
 
@@ -166,8 +173,8 @@ It covers AU/SU/WK, insert batch-8, three differential algorithms, and both
 /home/chuxiao/spine-cycle-sim-publication/build/sst
 ```
 
-Latest partial checkpoint: partial analysis reports `observed=14`, `pairs=5`,
-`missing=4`. The completed pairs are:
+Latest partial checkpoint: partial analysis reports `observed=15`, `pairs=6`,
+`missing=3`. The completed pairs are:
 
 - `sx_askubuntu / weighted_sssp / insert-8`: Spine `61,817` cycles versus
   G+R `179,053,544` cycles, or `2,896.5x` speedup.
@@ -179,10 +186,13 @@ Latest partial checkpoint: partial analysis reports `observed=14`, `pairs=5`,
   versus G+R `21,367,179` cycles, or `8.91x` speedup.
 - `sx_askubuntu / thresholded_residual_pagerank / insert-8`: Spine
   `2,175,289` cycles versus G+R `14,729,898` cycles, or `6.77x` speedup.
+- `sx_superuser / thresholded_residual_pagerank / insert-8`: Spine
+  `2,392,695` cycles versus G+R `23,162,486` cycles, or `9.68x` speedup.
 
-The remaining jobs are the G+R side of SU residual PR and WK SSSP/CC/residual
-PR. At the latest checkpoint SU residual PR was running and three WK jobs were
-queued behind the campaign scheduler's memory reserve.
+The remaining jobs are the G+R side of wiki_talk_temporal SSSP, CC, and
+residual PR. At the latest checkpoint wiki_talk_temporal SSSP was running and
+the other two wiki_talk_temporal jobs were queued behind the campaign
+scheduler's memory reserve.
 
 Monitor it with:
 

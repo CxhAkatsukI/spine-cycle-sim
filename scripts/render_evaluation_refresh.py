@@ -137,7 +137,7 @@ def read_json(path: Path) -> dict[str, object]:
 def write_csv(path: Path, rows: list[dict[str, object]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8", newline="") as sink:
-        writer = csv.DictWriter(sink, fieldnames=list(rows[0]))
+        writer = csv.DictWriter(sink, fieldnames=list(rows[0]), lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
 
@@ -579,26 +579,127 @@ def collect_fig10_rows() -> list[dict[str, object]]:
     return collect_fig10_rows_from_path(FIG10_LATENCY_DATA)
 
 
+def _first_fig10_match(
+    rows: list[dict[str, str]],
+    *,
+    group: str,
+    tick: str,
+    **criteria: str,
+) -> dict[str, object] | None:
+    for row in rows:
+        if all(row.get(key) == value for key, value in criteria.items()):
+            selected = dict(row)
+            selected["figure_group"] = group
+            selected["figure_tick"] = tick
+            return selected
+    return None
+
+
 def collect_fig10_rows_from_path(latency_path: Path) -> list[dict[str, object]]:
+    all_rows = read_csv(latency_path)
     selected_ids = {
         execution_id
         for _, entries in FIG10_GROUPS
         for _, execution_id in entries
     }
-    rows = [
-        row for row in read_csv(latency_path) if row["execution_id"] in selected_ids
-    ]
+    rows = [row for row in all_rows if row["execution_id"] in selected_ids]
     by_id = {row["execution_id"]: row for row in rows}
     missing = sorted(selected_ids - set(by_id))
-    if missing:
-        raise ValueError(f"missing Fig10 RQ3 executions: {missing}")
-    ordered: list[dict[str, object]] = []
-    for group, entries in FIG10_GROUPS:
-        for tick, execution_id in entries:
-            row = dict(by_id[execution_id])
-            row["figure_group"] = group
-            row["figure_tick"] = tick
-            ordered.append(row)
+    if not missing:
+        ordered: list[dict[str, object]] = []
+        for group, entries in FIG10_GROUPS:
+            for tick, execution_id in entries:
+                row = dict(by_id[execution_id])
+                row["figure_group"] = group
+                row["figure_tick"] = tick
+                ordered.append(row)
+        return ordered
+
+    dynamic_specs = (
+        (
+            "ZN",
+            (
+                ("Syn", {"case_class": "zero_net"}),
+            ),
+        ),
+        (
+            "SI",
+            (
+                (
+                    "AU",
+                    {
+                        "case_class": "shallow_insertion",
+                        "algorithm": "weighted_sssp",
+                        "dataset_id": "sx_askubuntu",
+                    },
+                ),
+                (
+                    "SU",
+                    {
+                        "case_class": "shallow_insertion",
+                        "algorithm": "weighted_sssp",
+                        "dataset_id": "sx_superuser",
+                    },
+                ),
+                (
+                    "WK",
+                    {
+                        "case_class": "shallow_insertion",
+                        "algorithm": "weighted_sssp",
+                        "dataset_id": "wiki_talk_temporal",
+                    },
+                ),
+            ),
+        ),
+        (
+            "Carry",
+            (
+                ("L1", {"execution_id": "rq3_trace_carry_l1_e8"}),
+                ("L3", {"execution_id": "rq3_trace_carry_l3_e8"}),
+                ("L5", {"execution_id": "rq3_trace_carry_l5_e8"}),
+            ),
+        ),
+        (
+            "PR-corr",
+            (
+                ("FL", {"execution_id": "rq3_flickr_residual_correction_u8_eps1e6"}),
+                (
+                    "SU",
+                    {
+                        "case_class": "pagerank_correction",
+                        "dataset_id": "sx_superuser",
+                    },
+                ),
+                (
+                    "WK",
+                    {
+                        "case_class": "pagerank_correction",
+                        "dataset_id": "wiki_talk_temporal",
+                    },
+                ),
+            ),
+        ),
+        (
+            "Del",
+            (
+                ("Syn", {"case_class": "deletion_fallback"}),
+            ),
+        ),
+    )
+    ordered = []
+    missing_dynamic = []
+    for group, entries in dynamic_specs:
+        for tick, criteria in entries:
+            row = _first_fig10_match(all_rows, group=group, tick=tick, **criteria)
+            if row is None:
+                missing_dynamic.append(f"{group}/{tick}")
+            else:
+                ordered.append(row)
+    if missing_dynamic:
+        raise ValueError(
+            "missing Fig10 RQ3 executions after dynamic selection: "
+            f"{missing_dynamic}; fixed-id misses were {missing}"
+        )
     return ordered
 
 
@@ -616,18 +717,22 @@ def collect_fig10_inputs(data_dir: Path | None) -> tuple[list[dict[str, object]]
 
 def render_fig10(rows: list[dict[str, object]], output_base: Path) -> None:
     configure_matplotlib()
-    by_id = {str(row["execution_id"]): row for row in rows}
-    selected: list[dict[str, object]] = []
+    selected = rows
     tick_labels: list[str] = []
     x_positions: list[float] = []
     group_centers: list[tuple[str, float]] = []
     separators: list[float] = []
     cursor = 0.0
-    for group_label, entries in FIG10_GROUPS:
+    groups = []
+    for row in selected:
+        group_label = str(row["figure_group"])
+        if not groups or groups[-1][0] != group_label:
+            groups.append((group_label, []))
+        groups[-1][1].append(row)
+    for group_label, entries in groups:
         start = cursor
-        for tick_label, execution_id in entries:
-            selected.append(by_id[execution_id])
-            tick_labels.append(tick_label)
+        for row in entries:
+            tick_labels.append(str(row["figure_tick"]))
             x_positions.append(cursor)
             cursor += 1.0
         end = cursor - 1.0
@@ -880,13 +985,11 @@ def main() -> int:
             "label_key": {
                 "ZN": "zero-net update",
                 "SI": "shallow insertion",
-                "A-S": "AskUbuntu shallow SSSP insertion",
-                "L-S": "LiveJournal-2008 shallow SSSP insertion",
-                "S-S": "Superuser shallow SSSP insertion",
+                "AU/SU/WK": "AskUbuntu/Superuser/WikiTalk current-model rows",
                 "L1/L3/L5": "synthetic deep-carry traces that force carry through level 1, 3, or 5",
                 "PR-corr": "PageRank residual correction",
                 "FL/SU/WK": "Flickr/Superuser/WikiTalk PageRank correction rows",
-                "Del": "SSSP deletion-fallback rows on AU/SU/WK",
+                "Del": "synthetic SSSP deletion-fallback row",
             },
         },
     )

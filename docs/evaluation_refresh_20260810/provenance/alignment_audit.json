@@ -1,12 +1,14 @@
 {
   "campaign": {
-    "analysis_dir": "/data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen/analysis_partial",
+    "analysis_dir": "/data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen/analysis_partial_live",
     "complete_for_fig9": false,
     "expected_executions": 18,
-    "missing_executions": 7,
-    "observed_executions": 11,
-    "pair_rows": 2,
+    "missing_executions": 3,
+    "observed_executions": 15,
+    "pair_rows": 6,
     "paired_algorithms": [
+      "connected_components",
+      "thresholded_residual_pagerank",
       "weighted_sssp"
     ],
     "paired_datasets": [
@@ -19,10 +21,10 @@
   },
   "figures": {
     "fig10": {
-      "aligned": false,
+      "aligned": true,
       "evidence": "RQ3 component ledger",
-      "gap": "still uses archived RQ3 component traces",
-      "status": "INTERIM_ARCHIVED_SIMULATOR_DATA"
+      "gap": "",
+      "status": "PASS_CURRENT_MODEL_DATA"
     },
     "fig7": {
       "aligned": true,
@@ -37,16 +39,15 @@
     },
     "fig9": {
       "aligned": false,
-      "campaign_pairs": 2,
+      "campaign_pairs": 6,
       "evidence": "campaign pair_rows memory and HBM-energy ledger",
       "required_pairs": 9,
-      "status": "INTERIM_ARCHIVED_SIMULATOR_DATA"
+      "status": "PARTIAL_CAMPAIGN_ANALYSIS"
     }
   },
   "next_actions": [
     "finish all 9 AU/SU/WK campaign pairs for calibrated Fig.9",
-    "replace Fig.8 archived update-throughput CSVs with calibrated campaign-derived rows",
-    "replace Fig.10 archived RQ3 traces with calibrated current-model component ledgers"
+    "replace Fig.8 archived update-throughput CSVs with current setup-inclusive update-only evidence"
   ],
   "out_dir": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810",
   "status": "INCOMPLETE"

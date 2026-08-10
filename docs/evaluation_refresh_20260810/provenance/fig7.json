@@ -29,7 +29,7 @@
     }
   ],
   "data_csv": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/data/fig7_fpga_speedup.csv",
-  "data_csv_sha256": "ec2a1243ae491e926ef2954c48c1593ab8445200a6b2bc23f7f922efa60d1f7d",
+  "data_csv_sha256": "1d4d0d287d7a01b06415dcfca46eca6faaebc8628a7c2450d72a9c35c315105c",
   "limitations": [
     "Panels a-c use destination-sharded K4 full-graph hardware.",
     "Panel d uses compact one-partition K4-shared hardware until the sharded FullPR route is available.",
