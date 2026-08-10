@@ -1,0 +1,19 @@
+{
+  "status": "INTERIM_ARCHIVED_SIMULATOR_DATA",
+  "figure": "fig8_update_throughput_candidate",
+  "timing_window": "setup_inclusive_update_throughput",
+  "source_files": [
+    {
+      "path": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/paper/data/persistent_update_setup_cross_dataset.csv",
+      "sha256": "795bfe44f7ee6a3edc94be6779379284887809d0bc6d5debd84bdb20cd383988"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/paper/data/persistent_update_setup_batch_sensitivity.csv",
+      "sha256": "209bc557890cf283d4a088f488a0dcd293fb5fa89105df95fca393a3170afc6b"
+    }
+  ],
+  "limitations": [
+    "Uses archived update-only setup-inclusive simulator evidence.",
+    "Should be regenerated after the sharded-K4 calibration refresh is complete."
+  ]
+}

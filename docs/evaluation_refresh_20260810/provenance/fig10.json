@@ -1,0 +1,28 @@
+{
+  "status": "INTERIM_ARCHIVED_SIMULATOR_DATA",
+  "figure": "fig10_rq3_breakdown_candidate",
+  "source_files": [
+    {
+      "path": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/paper/data/rq3/rq3_latency_rows.csv",
+      "sha256": "1e81b4f0e5363ce185f48d5e7c299e26fb1dac0c72b707da6b64cfa0433e1267"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/paper/data/rq3/rq3_summary.json",
+      "sha256": "6d9de75af687128f01e904953809963bda25083c13acd4b3eb994efaff6a962c"
+    }
+  ],
+  "data_csv": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/data/fig10_rq3_breakdown_rows.csv",
+  "data_csv_sha256": "b43506f4ddfab5bcc5d19289926829fae5a77eb0b9a5048c5edbaa42f28c2107",
+  "normalization": "Each stacked bar is normalized to 100% of its own end-to-end device-cycle interval.",
+  "label_key": {
+    "ZN": "zero-net update",
+    "SI": "shallow insertion",
+    "A-S": "AskUbuntu shallow SSSP insertion",
+    "L-S": "LiveJournal-2008 shallow SSSP insertion",
+    "S-S": "Superuser shallow SSSP insertion",
+    "L1/L3/L5": "synthetic deep-carry traces that force carry through level 1, 3, or 5",
+    "PR-corr": "PageRank residual correction",
+    "FL/SU/WK": "Flickr/Superuser/WikiTalk PageRank correction rows",
+    "Del": "SSSP deletion-fallback rows on AU/SU/WK"
+  }
+}

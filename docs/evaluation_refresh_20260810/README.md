@@ -12,10 +12,11 @@ unchanged until the revised evidence is accepted.
   Full PageRank FPGA rows and is explicitly labeled as compact evidence.
 - Projected values, timeout lower bounds, and missing bars are removed from
   Figure 7.
-- Figures 8--10 will be regenerated only after the current sharded-K4
-  simulator passes the frozen calibration and holdout gates.
-- Figure 8 gives each panel a symbol-appropriate legend and expands the batch
-  sensitivity sweep to at least five points.
+- Figures 8--10 are regenerated here from the currently archived simulator
+  evidence. They are candidate formatting/data-boundary fixes, not the final
+  post-calibration replacement.
+- Figure 8 gives each panel a symbol-appropriate legend and uses
+  setup-inclusive update-only throughput.
 - Figure 9 removes vertical separators and groups AU, SU, and WK by algorithm,
   with dataset color encoded once in a shared legend.
 - Figure 10 uses reader-facing workload labels and explicitly states that each
@@ -27,10 +28,31 @@ unchanged until the revised evidence is accepted.
   candidate.
 - `data/fig7_fpga_speedup.csv`: frozen medians and observed min/max values.
 - `provenance/fig7.json`: hashes of every input evidence table.
+- `figures/fig8_update_throughput_candidate.{pdf,png}`: setup-inclusive
+  update-only throughput speedup, split into cross-dataset and batch-size
+  panels.
+- `figures/fig9_memory_energy_candidate.{pdf,png}`: accepted-byte and HBM
+  energy ratios. The two panels do not share a y-axis.
+- `figures/fig10_rq3_breakdown_candidate.{pdf,png}`: normalized RQ3
+  end-to-end cycle breakdown over representative realized-work cases.
+- `provenance/fig8.json`, `provenance/fig9.json`, and `provenance/fig10.json`:
+  hashes, timing scope, normalization, and current limitations.
 
-Figures 8--10, the calibration report, and the final handoff archive remain
-pending. A failed calibration row will be retained under `diagnostics/` and
-will not be promoted into a candidate figure.
+The calibration report and final handoff archive remain pending. A failed
+calibration row will be retained under `diagnostics/` and will not be promoted
+into a final figure.
+
+## Figure 10 label key
+
+- `ZN`: zero-net update.
+- `SI`: shallow insertion.
+- `A-S`, `L-S`, `S-S`: AskUbuntu, LiveJournal-2008, and Superuser shallow
+  SSSP insertion rows.
+- `L1`, `L3`, `L5`: synthetic traces that force carry through levels 1, 3,
+  and 5.
+- `PR-corr`: PageRank residual-correction rows.
+- `FL`, `SU`, `WK`: Flickr, Superuser, and WikiTalk residual-correction rows.
+- `Del`: SSSP deletion-fallback rows on AU, SU, and WK.
 
 ## Reproduction
 

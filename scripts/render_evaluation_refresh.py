@@ -41,6 +41,74 @@ FULLPR_CASE = {
     "web_google_insert": "WG",
     "flickr_insert": "FL",
 }
+FIG8_CROSS_DATA = ROOT / "docs" / "paper" / "data" / "persistent_update_setup_cross_dataset.csv"
+FIG8_BATCH_DATA = ROOT / "docs" / "paper" / "data" / "persistent_update_setup_batch_sensitivity.csv"
+FIG9_PAIR_DATA = ROOT / "docs" / "paper" / "data" / "formal_v7_primary" / "pairs.csv"
+FIG10_LATENCY_DATA = ROOT / "docs" / "paper" / "data" / "rq3" / "rq3_latency_rows.csv"
+FIG10_SUMMARY_DATA = ROOT / "docs" / "paper" / "data" / "rq3" / "rq3_summary.json"
+FIG9_ALGORITHM_ORDER = (
+    "weighted_sssp",
+    "connected_components",
+    "thresholded_residual_pagerank",
+)
+FIG9_ALGORITHM_LABEL = {
+    "weighted_sssp": "SSSP",
+    "connected_components": "CC",
+    "thresholded_residual_pagerank": "ResPR",
+}
+FIG9_DATASET_ORDER = ("AU", "SU", "WK")
+FIG10_COMPONENTS = (
+    (
+        ("t_xfer_cycles", "t_reduce_cycles", "t_carry_cycles", "t_directory_cycles"),
+        "Maint.",
+        "#9BC47C",
+        "xxxxxx",
+    ),
+    (("t_seed_cycles", "t_switch_cycles"), "Seed/pub.", "#E39A52", "||||||"),
+    (("t_resolve_cycles",), "Resolve", "#2F86BD", "//////"),
+    (("t_app_cycles",), "App", "#B7D6E8", "\\\\\\\\\\\\"),
+    (("t_drain_cycles", "t_sync_cycles"), "Drain", "#35A936", "xxxxxx"),
+)
+FIG10_GROUPS = (
+    (
+        "ZN",
+        (
+            ("Syn", "rq3_zero_net_cc_u2"),
+        ),
+    ),
+    (
+        "SI",
+        (
+            ("A-S", "53d8ac095d6b4bb6739f"),
+            ("L-S", "980c084e249992cc626c"),
+            ("S-S", "b76a15fdd98228a1da6e"),
+        ),
+    ),
+    (
+        "Carry",
+        (
+            ("L1", "rq3_trace_carry_l1_e8"),
+            ("L3", "rq3_trace_carry_l3_e8"),
+            ("L5", "rq3_trace_carry_l5_e8"),
+        ),
+    ),
+    (
+        "PR-corr",
+        (
+            ("FL", "rq3_flickr_residual_correction_u8_eps1e6"),
+            ("SU", "3f8e9fc7157d096b8488"),
+            ("WK", "d310ed825d5fef3de031"),
+        ),
+    ),
+    (
+        "Del",
+        (
+            ("AU", "087ea93d578261400aa6"),
+            ("SU", "12b7427a1e2f4185c8c9"),
+            ("WK", "383e63c5d7f96cdd4774"),
+        ),
+    ),
+)
 
 
 def sha256(path: Path) -> str:
@@ -56,12 +124,27 @@ def read_tsv(path: Path) -> list[dict[str, str]]:
         return list(csv.DictReader(source, delimiter="\t"))
 
 
+def read_csv(path: Path) -> list[dict[str, str]]:
+    with path.open(encoding="utf-8", newline="") as source:
+        return list(csv.DictReader(source))
+
+
 def write_csv(path: Path, rows: list[dict[str, object]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8", newline="") as sink:
         writer = csv.DictWriter(sink, fieldnames=list(rows[0]))
         writer.writeheader()
         writer.writerows(rows)
+
+
+def write_json(path: Path, payload: dict[str, object]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+
+
+def number(row: dict[str, str], key: str) -> float:
+    value = row.get(key, "")
+    return float(value) if value not in ("", None) else 0.0
 
 
 def dataset_from_case(case: str) -> str:
@@ -235,6 +318,295 @@ def render_fig7(rows: list[dict[str, object]], output_base: Path) -> None:
     plt.close(figure)
 
 
+def render_fig8(
+    cross_rows: list[dict[str, str]],
+    batch_rows: list[dict[str, str]],
+    output_base: Path,
+) -> None:
+    configure_matplotlib()
+    blue = "#2A7F9E"
+    orange = "#D66A00"
+    ink = "#202428"
+    figure, axes = plt.subplots(1, 2, figsize=(3.55, 1.55))
+
+    cross_rows = [row for row in cross_rows if row["dataset"] in ("AU", "SU", "WK", "SO", "PK")]
+    x = list(range(len(cross_rows)))
+    axes[0].bar(
+        x,
+        [float(row["spine_speedup"]) for row in cross_rows],
+        width=0.58,
+        facecolor="white",
+        edgecolor=blue,
+        linewidth=0.72,
+        hatch="///",
+        zorder=3,
+    )
+    axes[0].set_xticks(x)
+    axes[0].set_xticklabels([row["dataset"] for row in cross_rows])
+    axes[0].set_title("(a) Dataset", pad=4.5, fontweight="bold")
+    axes[0].set_ylabel("Throughput speedup")
+
+    batch_rows = sorted(batch_rows, key=lambda row: float(row["updates_per_batch"]))
+    x = list(range(len(batch_rows)))
+    axes[1].plot(
+        x,
+        [float(row["spine_speedup"]) for row in batch_rows],
+        marker="s",
+        markersize=3.2,
+        linewidth=0.9,
+        color=orange,
+        zorder=4,
+    )
+    axes[1].set_xticks(x)
+    axes[1].set_xticklabels(
+        [f"{float(row['updates_per_batch'])/1000:.1f}k" for row in batch_rows]
+    )
+    axes[1].set_title("(b) Batch size", pad=4.5, fontweight="bold")
+    axes[1].set_xlabel("updates/batch")
+
+    for axis in axes:
+        axis.axhline(1.0, color=ink, linestyle="--", linewidth=0.62, zorder=2)
+        axis.set_ylim(0.0, max(axis.get_ylim()[1], 3.1))
+        axis.set_yticks((0, 1, 2, 3))
+        axis.grid(axis="y", color="#D2D5D7", linestyle="--", linewidth=0.45, zorder=0)
+        axis.tick_params(axis="x", length=0)
+        for spine in axis.spines.values():
+            spine.set_color(ink)
+            spine.set_linewidth(0.7)
+    axes[1].legend(
+        handles=[
+            Patch(facecolor="white", edgecolor=blue, hatch="///", label="cross-dataset"),
+            Patch(facecolor=orange, edgecolor=orange, label="batch sweep"),
+        ],
+        loc="upper center",
+        bbox_to_anchor=(-0.12, 1.30),
+        ncol=2,
+        frameon=False,
+        handlelength=1.25,
+        columnspacing=0.8,
+    )
+    figure.subplots_adjust(left=0.14, right=0.99, bottom=0.24, top=0.80, wspace=0.34)
+    output_base.parent.mkdir(parents=True, exist_ok=True)
+    figure.savefig(output_base.with_suffix(".pdf"), bbox_inches="tight", pad_inches=0.02)
+    figure.savefig(output_base.with_suffix(".png"), dpi=300, bbox_inches="tight", pad_inches=0.02)
+    plt.close(figure)
+
+
+def collect_fig9_rows() -> list[dict[str, object]]:
+    rows = []
+    for row in read_csv(FIG9_PAIR_DATA):
+        if row["algorithm"] not in FIG9_ALGORITHM_ORDER:
+            continue
+        if row["dataset"] not in FIG9_DATASET_ORDER:
+            continue
+        rows.append(
+            {
+                "dataset": row["dataset"],
+                "algorithm": row["algorithm"],
+                "algorithm_label": FIG9_ALGORITHM_LABEL[row["algorithm"]],
+                "memory_ratio_gr_over_spine": float(row["memory_ratio"]),
+                "hbm_energy_ratio_gr_over_spine": float(row["energy_ratio"]),
+                "spine_memory_bytes": int(float(row["spine_memory_bytes"])),
+                "gr_memory_bytes": int(float(row["k4_memory_bytes"])),
+            }
+        )
+    rows.sort(
+        key=lambda row: (
+            FIG9_ALGORITHM_ORDER.index(str(row["algorithm"])),
+            FIG9_DATASET_ORDER.index(str(row["dataset"])),
+        )
+    )
+    return rows
+
+
+def render_fig9(rows: list[dict[str, object]], output_base: Path) -> None:
+    configure_matplotlib()
+    dataset_style = {
+        "AU": ("#2A7F9E", "///"),
+        "SU": ("#D66A00", "\\\\\\"),
+        "WK": ("#3B8A3E", "|||"),
+    }
+    ink = "#202428"
+    figure, axes = plt.subplots(1, 2, figsize=(3.55, 1.65))
+    metrics = (
+        ("memory_ratio_gr_over_spine", "(a) Accepted bytes", "G+R / Delta.hls bytes"),
+        ("hbm_energy_ratio_gr_over_spine", "(b) HBM energy", "G+R / Delta.hls energy"),
+    )
+    group_centers: list[float] = []
+    positions: dict[tuple[str, str], float] = {}
+    cursor = 0.0
+    for algorithm in FIG9_ALGORITHM_ORDER:
+        start = cursor
+        for dataset in FIG9_DATASET_ORDER:
+            positions[(algorithm, dataset)] = cursor
+            cursor += 0.62
+        group_centers.append((start + cursor - 0.62) / 2.0)
+        cursor += 0.48
+
+    for axis, (metric, title, ylabel) in zip(axes, metrics, strict=True):
+        for row in rows:
+            color, hatch = dataset_style[str(row["dataset"])]
+            axis.bar(
+                positions[(str(row["algorithm"]), str(row["dataset"]))],
+                float(row[metric]),
+                width=0.43,
+                facecolor="white",
+                edgecolor=color,
+                linewidth=0.72,
+                hatch=hatch,
+                zorder=3,
+            )
+        axis.axhline(1.0, color=ink, linestyle="--", linewidth=0.62, zorder=2)
+        axis.set_yscale("log")
+        values = [float(row[metric]) for row in rows]
+        axis.set_ylim(max(0.1, min(values) * 0.55), max(values) * 2.2)
+        axis.yaxis.set_major_locator(mpl.ticker.LogLocator(base=10, numticks=5))
+        axis.yaxis.set_minor_locator(mpl.ticker.NullLocator())
+        axis.set_xticks(group_centers)
+        axis.set_xticklabels([FIG9_ALGORITHM_LABEL[algorithm] for algorithm in FIG9_ALGORITHM_ORDER])
+        axis.set_ylabel(ylabel)
+        axis.set_title(title, pad=4.5, fontweight="bold")
+        axis.grid(axis="y", which="major", color="#D2D5D7", linestyle="--", linewidth=0.45, zorder=0)
+        axis.tick_params(axis="x", length=0)
+        for spine in axis.spines.values():
+            spine.set_color(ink)
+            spine.set_linewidth(0.7)
+    axes[1].legend(
+        handles=[
+            Patch(facecolor="white", edgecolor=color, hatch=hatch, label=dataset)
+            for dataset, (color, hatch) in dataset_style.items()
+        ],
+        loc="upper center",
+        bbox_to_anchor=(-0.12, 1.31),
+        ncol=3,
+        frameon=False,
+        handlelength=1.2,
+        columnspacing=0.8,
+    )
+    figure.subplots_adjust(left=0.15, right=0.99, bottom=0.20, top=0.78, wspace=0.45)
+    output_base.parent.mkdir(parents=True, exist_ok=True)
+    figure.savefig(output_base.with_suffix(".pdf"), bbox_inches="tight", pad_inches=0.02)
+    figure.savefig(output_base.with_suffix(".png"), dpi=300, bbox_inches="tight", pad_inches=0.02)
+    plt.close(figure)
+
+
+def collect_fig10_rows() -> list[dict[str, object]]:
+    selected_ids = {
+        execution_id
+        for _, entries in FIG10_GROUPS
+        for _, execution_id in entries
+    }
+    rows = [row for row in read_csv(FIG10_LATENCY_DATA) if row["execution_id"] in selected_ids]
+    by_id = {row["execution_id"]: row for row in rows}
+    missing = sorted(selected_ids - set(by_id))
+    if missing:
+        raise ValueError(f"missing Fig10 RQ3 executions: {missing}")
+    ordered: list[dict[str, object]] = []
+    for group, entries in FIG10_GROUPS:
+        for tick, execution_id in entries:
+            row = dict(by_id[execution_id])
+            row["figure_group"] = group
+            row["figure_tick"] = tick
+            ordered.append(row)
+    return ordered
+
+
+def render_fig10(rows: list[dict[str, object]], output_base: Path) -> None:
+    configure_matplotlib()
+    by_id = {str(row["execution_id"]): row for row in rows}
+    selected: list[dict[str, object]] = []
+    tick_labels: list[str] = []
+    x_positions: list[float] = []
+    group_centers: list[tuple[str, float]] = []
+    separators: list[float] = []
+    cursor = 0.0
+    for group_label, entries in FIG10_GROUPS:
+        start = cursor
+        for tick_label, execution_id in entries:
+            selected.append(by_id[execution_id])
+            tick_labels.append(tick_label)
+            x_positions.append(cursor)
+            cursor += 1.0
+        end = cursor - 1.0
+        group_centers.append((group_label, (start + end) / 2.0))
+        separators.append(end + 0.55)
+        cursor += 0.68
+    separators = separators[:-1]
+
+    figure, axis = plt.subplots(figsize=(3.55, 1.95))
+    bottoms = [0.0] * len(selected)
+    legend = []
+    for keys, label, color, hatch in FIG10_COMPONENTS:
+        percentages = []
+        for row in selected:
+            total = number(row, "total_cycles")
+            component = sum(number(row, key) for key in keys)
+            percentages.append(100.0 * component / total if total else 0.0)
+        axis.bar(
+            x_positions,
+            percentages,
+            bottom=bottoms,
+            width=0.58,
+            color=color,
+            edgecolor="black",
+            linewidth=0.22,
+            hatch=hatch,
+            zorder=2,
+        )
+        bottoms = [left + right for left, right in zip(bottoms, percentages, strict=True)]
+        legend.append(Patch(facecolor=color, edgecolor="black", hatch=hatch, label=label))
+    for separator in separators:
+        axis.axvline(
+            separator,
+            color="black",
+            linestyle=(0, (2.0, 1.1)),
+            linewidth=0.65,
+            ymin=-0.11,
+            ymax=1.0,
+            clip_on=False,
+            zorder=4,
+        )
+    for group_label, center in group_centers:
+        axis.text(
+            center,
+            -0.22,
+            group_label,
+            transform=axis.get_xaxis_transform(),
+            ha="center",
+            va="top",
+            fontsize=7.2,
+            clip_on=False,
+        )
+    axis.set_xlim(min(x_positions) - 0.65, max(x_positions) + 0.65)
+    axis.set_xticks(x_positions)
+    axis.set_xticklabels(tick_labels)
+    axis.set_ylabel("E2E cycles (%)")
+    axis.set_ylim(0.0, 108.0)
+    axis.set_yticks((0, 25, 50, 75, 100))
+    axis.tick_params(axis="x", top=False, bottom=False, length=0, pad=1.4)
+    axis.tick_params(axis="y", direction="in", right=True, length=2.8, width=0.7)
+    axis.grid(axis="y", linestyle=(0, (2.0, 1.1)), color="0.72", alpha=0.65, linewidth=0.48, zorder=0)
+    for spine in axis.spines.values():
+        spine.set_visible(True)
+        spine.set_linewidth(0.8)
+    axis.legend(
+        handles=legend,
+        loc="upper center",
+        bbox_to_anchor=(0.5, 1.25),
+        ncol=5,
+        frameon=False,
+        handlelength=1.45,
+        handletextpad=0.35,
+        columnspacing=0.58,
+        borderaxespad=0.0,
+    )
+    figure.subplots_adjust(left=0.15, right=0.995, bottom=0.27, top=0.76)
+    output_base.parent.mkdir(parents=True, exist_ok=True)
+    figure.savefig(output_base.with_suffix(".pdf"), bbox_inches="tight", pad_inches=0.02)
+    figure.savefig(output_base.with_suffix(".png"), dpi=300, bbox_inches="tight", pad_inches=0.02)
+    plt.close(figure)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -281,10 +653,86 @@ def main() -> int:
             "No projected or timeout-bounded value enters the figure.",
         ],
     }
-    provenance_path = args.out_dir / "provenance" / "fig7.json"
-    provenance_path.parent.mkdir(parents=True, exist_ok=True)
-    provenance_path.write_text(json.dumps(provenance, indent=2) + "\n", encoding="utf-8")
-    print(f"FIG7_REFRESH_PASS rows={len(rows)} out={args.out_dir}")
+    write_json(args.out_dir / "provenance" / "fig7.json", provenance)
+
+    fig8_cross_rows = read_csv(FIG8_CROSS_DATA)
+    fig8_batch_rows = read_csv(FIG8_BATCH_DATA)
+    write_csv(args.out_dir / "data" / "fig8_update_cross_dataset.csv", fig8_cross_rows)
+    write_csv(args.out_dir / "data" / "fig8_update_batch_sensitivity.csv", fig8_batch_rows)
+    render_fig8(
+        fig8_cross_rows,
+        fig8_batch_rows,
+        args.out_dir / "figures" / "fig8_update_throughput_candidate",
+    )
+    write_json(
+        args.out_dir / "provenance" / "fig8.json",
+        {
+            "status": "INTERIM_ARCHIVED_SIMULATOR_DATA",
+            "figure": "fig8_update_throughput_candidate",
+            "timing_window": "setup_inclusive_update_throughput",
+            "source_files": [
+                {"path": str(FIG8_CROSS_DATA.resolve()), "sha256": sha256(FIG8_CROSS_DATA)},
+                {"path": str(FIG8_BATCH_DATA.resolve()), "sha256": sha256(FIG8_BATCH_DATA)},
+            ],
+            "limitations": [
+                "Uses archived update-only setup-inclusive simulator evidence.",
+                "Should be regenerated after the sharded-K4 calibration refresh is complete.",
+            ],
+        },
+    )
+
+    fig9_rows = collect_fig9_rows()
+    fig9_data = args.out_dir / "data" / "fig9_memory_energy_rows.csv"
+    write_csv(fig9_data, fig9_rows)
+    render_fig9(fig9_rows, args.out_dir / "figures" / "fig9_memory_energy_candidate")
+    write_json(
+        args.out_dir / "provenance" / "fig9.json",
+        {
+            "status": "INTERIM_ARCHIVED_SIMULATOR_DATA",
+            "figure": "fig9_memory_energy_candidate",
+            "source_files": [
+                {"path": str(FIG9_PAIR_DATA.resolve()), "sha256": sha256(FIG9_PAIR_DATA)}
+            ],
+            "data_csv": str(fig9_data.resolve()),
+            "data_csv_sha256": sha256(fig9_data),
+            "limitations": [
+                "Memory and HBM-energy ratios come from the shared simulator ledger, not routed FPGA power.",
+                "Rows are limited to AU/SU/WK and differential algorithms to keep the panel readable.",
+            ],
+        },
+    )
+
+    fig10_rows = collect_fig10_rows()
+    fig10_data = args.out_dir / "data" / "fig10_rq3_breakdown_rows.csv"
+    write_csv(fig10_data, fig10_rows)
+    render_fig10(fig10_rows, args.out_dir / "figures" / "fig10_rq3_breakdown_candidate")
+    write_json(
+        args.out_dir / "provenance" / "fig10.json",
+        {
+            "status": "INTERIM_ARCHIVED_SIMULATOR_DATA",
+            "figure": "fig10_rq3_breakdown_candidate",
+            "source_files": [
+                {"path": str(FIG10_LATENCY_DATA.resolve()), "sha256": sha256(FIG10_LATENCY_DATA)},
+                {"path": str(FIG10_SUMMARY_DATA.resolve()), "sha256": sha256(FIG10_SUMMARY_DATA)},
+            ],
+            "data_csv": str(fig10_data.resolve()),
+            "data_csv_sha256": sha256(fig10_data),
+            "normalization": "Each stacked bar is normalized to 100% of its own end-to-end device-cycle interval.",
+            "label_key": {
+                "ZN": "zero-net update",
+                "SI": "shallow insertion",
+                "A-S": "AskUbuntu shallow SSSP insertion",
+                "L-S": "LiveJournal-2008 shallow SSSP insertion",
+                "S-S": "Superuser shallow SSSP insertion",
+                "L1/L3/L5": "synthetic deep-carry traces that force carry through level 1, 3, or 5",
+                "PR-corr": "PageRank residual correction",
+                "FL/SU/WK": "Flickr/Superuser/WikiTalk PageRank correction rows",
+                "Del": "SSSP deletion-fallback rows on AU/SU/WK",
+            },
+        },
+    )
+
+    print(f"EVALUATION_REFRESH_PASS fig7_rows={len(rows)} out={args.out_dir}")
     return 0
 
 
