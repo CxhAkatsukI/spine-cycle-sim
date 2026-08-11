@@ -25,21 +25,21 @@
       "algorithm": "weighted_sssp",
       "profile_id": "spine_owner_fifo_sssp_hls_v1",
       "path": "configs/architectures/spine_owner_fifo_sssp_hls_v1.json",
-      "sha256": "b1d3025998bc8b95f71122bae7bcc5b7c1ce0654ea5fff14e33b7bbba3e947aa"
+      "sha256": "15a530d8626b8fab8e50ea37e571ae6bde9c51273baf734670741dcb55736f6d"
     },
     {
       "architecture": "spine",
       "algorithm": "connected_components",
       "profile_id": "spine_owner_fifo_cc_hls_v1",
       "path": "configs/architectures/spine_owner_fifo_cc_hls_v1.json",
-      "sha256": "2f5b02bf6c90a2fbeca58a0b1e474176899109ec3419a3147924151cc0e4b545"
+      "sha256": "a305753a33454ef2fae4040ffed278f9f152fea3a900039e9c4a8bccceeba02c"
     },
     {
       "architecture": "spine",
       "algorithm": "thresholded_residual_pagerank",
       "profile_id": "spine_owner_fifo_respr_hls_v1",
       "path": "configs/architectures/spine_owner_fifo_respr_hls_v1.json",
-      "sha256": "e26c5967c3f48ba9327133c1391d4749fb00b1af359348044a74614a38063ec8"
+      "sha256": "6ec5f93ea3b5c9b3ddfcb4fd70583e050456965c561f80d48e12b768499917c6"
     },
     {
       "architecture": "grasu_regraph",

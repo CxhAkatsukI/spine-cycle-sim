@@ -37,7 +37,7 @@ class SstMemoryBindingTests(unittest.TestCase):
         self.assertNotIn(64, promoted)
         self.assertTrue(set(promoted) <= set(range(8)))
 
-    def test_auto_hot_uses_multilevel_capacity_after_top_hash_collision(self) -> None:
+    def test_auto_hot_matches_hls_hash_collision_rejection(self) -> None:
         same_shard: list[int] = []
         other_shard: list[int] = []
         for destination in range(256):
@@ -52,22 +52,18 @@ class SstMemoryBindingTests(unittest.TestCase):
                 ordered, (30, 29, 28, 27, 26, 25), strict=True
             )
         }
-        promoted = _spine_automatic_hot_vertices(
-            indegree,
-            [sum(indegree.values()), 0, 0, 0],
-            {
-                "partitions": 4,
-                "levels": 5,
-                "level_ratio": 2,
-                "max_sort_edges": 8,
-                "vertex_partition_size": 256,
-            },
-        )
-        self.assertTrue(promoted)
-        hot = [0, 0, 0, 0]
-        for destination in promoted:
-            hot[_spine_hot_hash(destination) % 4] += indegree[destination]
-        self.assertLessEqual(max(hot), 68)
+        with self.assertRaisesRegex(ValueError, "overflows hot shard"):
+            _spine_automatic_hot_vertices(
+                indegree,
+                [sum(indegree.values()), 0, 0, 0],
+                {
+                    "partitions": 4,
+                    "levels": 5,
+                    "level_ratio": 2,
+                    "max_sort_edges": 8,
+                    "vertex_partition_size": 256,
+                },
+            )
 
     def test_grasu_normalized_reachable_channels(self) -> None:
         profile = json.loads(
@@ -158,7 +154,8 @@ class SstMemoryBindingTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(dir=ROOT) as tmp:
             workload = Path(tmp) / "auto_hot.slice"
             rows = ["# vertices=512"]
-            for destination in range(10):
+            # Three promotions are required; dst=2 hashes to graph channel 1.
+            for destination in range(11):
                 rows.extend(
                     f"{source} {destination} 1 1" for source in range(30)
                 )

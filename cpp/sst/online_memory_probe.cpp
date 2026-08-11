@@ -4758,6 +4758,8 @@ class OnlineMemoryProbe final : public SST::Component {
            << (spine_resident_classification_valid_ ? "true" : "false")
            << ",\n"
            << "  \"resident_hot_policy\": \"" << policy << "\",\n"
+           << "  \"resident_preload_policy\": "
+              "\"hls_compacted_l2_l10_v1\",\n"
            << "  \"resident_hot_vertices\": "
            << spine_resident_classification_.hot_vertices.size() << ",\n"
            << "  \"resident_hot_edges\": "

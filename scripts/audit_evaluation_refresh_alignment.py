@@ -24,7 +24,7 @@ DEFAULT_CAMPAIGN_ANALYSIS = (
     / "analysis_partial"
 )
 DEFAULT_CALIBRATION_CONTRACT = (
-    ROOT / "configs" / "contracts" / "evaluation_refresh_fpga_calibration_v2.json"
+    ROOT / "configs" / "contracts" / "evaluation_refresh_fpga_calibration_v3.json"
 )
 DEFAULT_CALIBRATION_DIR = DEFAULT_OUT / "calibration"
 REQUIRED_FIG9_ROWS = 9
@@ -56,8 +56,8 @@ def calibration_contract_status(path: Path) -> dict[str, Any]:
         return {"valid": False, "path": str(path), "problems": ["missing contract"]}
     payload = read_json(path)
     problems: list[str] = []
-    if payload.get("schema_version") != 1:
-        problems.append("schema_version must be 1")
+    if payload.get("schema_version") not in {1, 2}:
+        problems.append("schema_version must be 1 or 2")
     if payload.get("status") != "frozen":
         problems.append("contract status must be frozen")
     contract_id = payload.get("contract_id")
@@ -150,25 +150,48 @@ def calibration_manifest_status(
     if missing_pairs:
         problems.append("missing coverage: " + ", ".join(missing_pairs))
     if kind in {"total_cycle", "component_cycle"}:
-        min_cal = int(required["minimum_calibration_cases_per_architecture_algorithm"])
-        min_holdout = int(required["minimum_holdout_cases_per_architecture_algorithm"])
+        if kind == "total_cycle":
+            min_cal = int(
+                required["minimum_calibration_cases_per_architecture_algorithm"]
+            )
+            min_holdout = int(
+                required["minimum_holdout_cases_per_architecture_algorithm"]
+            )
+        else:
+            min_cal = int(required["minimum_calibration_cases_per_component"])
+            min_holdout = int(required["minimum_holdout_cases_per_component"])
         for pair in contract.get("expected_pairs", ()):
             row = observed.get(pair, {})
             if int(row.get("calibration_cases", 0)) < min_cal:
                 problems.append(f"insufficient calibration cases: {pair}")
             if int(row.get("holdout_cases", 0)) < min_holdout:
                 problems.append(f"insufficient holdout cases: {pair}")
-    else:
+    elif kind == "memory_ledger":
         for pair in contract.get("expected_pairs", ()):
             row = observed.get(pair, {})
             if int(row.get("validation_cases", 0)) < 1:
                 problems.append(f"missing ledger validation case: {pair}")
             if row.get("ledger_closed") is not True:
                 problems.append(f"ledger is not closed: {pair}")
+    elif kind == "structural_work":
+        for pair in contract.get("expected_pairs", ()):
+            row = observed.get(pair, {})
+            if int(row.get("validation_cases", 0)) < 1:
+                problems.append(f"missing structural validation case: {pair}")
+            if pair.startswith("spine:") and row.get("ledger_closed") is not True:
+                problems.append(f"Spine structural work does not match: {pair}")
+            if pair.startswith("grasu_regraph:") and row.get(
+                "hardware_counter_scope"
+            ) != "not_observable":
+                problems.append(f"G+R hardware counter limitation is missing: {pair}")
+        if payload.get("grasu_regraph_hardware_counter_limitation_explicit") is not True:
+            problems.append("G+R structural hardware-counter limitation must be explicit")
+    else:
+        problems.append(f"unsupported manifest kind: {kind}")
     threshold_checks = payload.get("threshold_checks")
     if not isinstance(threshold_checks, dict) or threshold_checks.get("all_pass") is not True:
         problems.append("threshold_checks.all_pass must be true")
-    if kind in {"component_cycle", "memory_ledger"} and not payload.get(
+    if kind in {"component_cycle", "memory_ledger", "structural_work"} and not payload.get(
         "hardware_observation_scope"
     ):
         problems.append("hardware_observation_scope must be explicit")
@@ -185,7 +208,12 @@ def calibration_status(contract_path: Path, calibration_dir: Path) -> dict[str, 
     contract = calibration_contract_status(contract_path)
     manifests: dict[str, Any] = {}
     required = contract.get("payload", {}).get("required_manifests", {})
-    for kind in ("total_cycle", "component_cycle", "memory_ledger"):
+    for kind in (
+        "total_cycle",
+        "component_cycle",
+        "memory_ledger",
+        "structural_work",
+    ):
         filename = required.get(kind, f"{kind}.json")
         manifests[kind] = calibration_manifest_status(
             kind, calibration_dir / filename, contract
@@ -253,6 +281,7 @@ def figure_alignment(
     total_pass = calibration["manifests"]["total_cycle"]["passed"]
     component_pass = calibration["manifests"]["component_cycle"]["passed"]
     ledger_pass = calibration["manifests"]["memory_ledger"]["passed"]
+    structural_pass = calibration["manifests"]["structural_work"]["passed"]
     contract_pass = calibration["contract"]["valid"]
     return {
         "fig7": {
@@ -265,6 +294,7 @@ def figure_alignment(
                 fig8_status in ALIGNED_CURRENT_MODEL_STATUSES
                 and contract_pass
                 and total_pass
+                and structural_pass
             ),
             "status": fig8_status,
             "evidence": "setup-inclusive update-throughput simulator rows",
@@ -278,6 +308,7 @@ def figure_alignment(
                 and campaign.get("complete_for_fig9", False)
                 and contract_pass
                 and ledger_pass
+                and structural_pass
             ),
             "status": fig9_status,
             "evidence": "campaign pair_rows memory and HBM-energy ledger",
@@ -293,6 +324,7 @@ def figure_alignment(
                 and contract_pass
                 and total_pass
                 and component_pass
+                and structural_pass
             ),
             "status": fig10_status,
             "evidence": "RQ3 component ledger",
@@ -349,6 +381,10 @@ def build_audit(
                 (
                     "close request, byte, and finite-FIFO ledgers for both architectures",
                     not calibration["manifests"]["memory_ledger"]["passed"],
+                ),
+                (
+                    "match Spine iterations, range tasks, and processed edges to routed hardware and disclose unavailable G+R counters",
+                    not calibration["manifests"]["structural_work"]["passed"],
                 ),
             )
             if needed

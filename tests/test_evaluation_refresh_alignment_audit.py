@@ -102,6 +102,32 @@ def write_calibration_manifests(root: Path) -> Path:
             hardware_observation_scope="structural_simulator_ledger_only",
         ),
     )
+    structural_coverage = []
+    for row in coverage_identity:
+        structural_coverage.append(
+            dict(
+                row,
+                validation_cases=1,
+                ledger_closed=row["architecture"] == "spine",
+                hardware_counter_scope=(
+                    "routed_iteration_task_edge_counters"
+                    if row["architecture"] == "spine"
+                    else "not_observable"
+                ),
+            )
+        )
+    write_json(
+        calibration / "structural_work_validation.json",
+        dict(
+            common,
+            gate_kind="structural_work",
+            coverage=structural_coverage,
+            hardware_observation_scope=(
+                "Spine routed iteration/task/edge counters; G+R counters unavailable"
+            ),
+            grasu_regraph_hardware_counter_limitation_explicit=True,
+        ),
+    )
     return calibration
 
 
@@ -202,6 +228,34 @@ class EvaluationRefreshAlignmentAuditTests(unittest.TestCase):
         self.assertEqual(audit["status"], "READY")
         self.assertTrue(audit["calibration"]["passed"])
         self.assertEqual(audit["next_actions"], [])
+
+    def test_missing_structural_work_manifest_blocks_ready(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            provenance = root / "provenance"
+            for figure, status in {
+                "fig7": "PASS",
+                "fig8": "PASS_CURRENT_MODEL_DATA",
+                "fig9": "PASS_CAMPAIGN_ANALYSIS",
+                "fig10": "PASS_CURRENT_MODEL_DATA",
+            }.items():
+                write_json(provenance / f"{figure}.json", {"status": status})
+            analysis = write_complete_campaign(root)
+            calibration = write_calibration_manifests(root)
+            (calibration / "structural_work_validation.json").unlink()
+
+            audit = build_audit(
+                root,
+                analysis,
+                DEFAULT_CALIBRATION_CONTRACT,
+                calibration,
+            )
+
+        self.assertEqual(audit["status"], "INCOMPLETE")
+        self.assertFalse(audit["calibration"]["manifests"]["structural_work"]["passed"])
+        self.assertFalse(audit["figures"]["fig8"]["aligned"])
+        self.assertFalse(audit["figures"]["fig9"]["aligned"])
+        self.assertFalse(audit["figures"]["fig10"]["aligned"])
 
 
 if __name__ == "__main__":

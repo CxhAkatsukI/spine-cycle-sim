@@ -146,7 +146,7 @@ def _spine_automatic_hot_vertices(
     cold_partition_edges: list[int],
     parameters: Mapping[str, object],
 ) -> tuple[int, ...]:
-    """Mirror resident preload promotion far enough to derive HBM shards."""
+    """Mirror the routed host's compacted L2-L10 resident classifier."""
 
     partitions = int(parameters["partitions"])
     levels = int(parameters.get("levels", 11))
@@ -171,46 +171,39 @@ def _spine_automatic_hot_vertices(
         else ceil(batch_edges * level_ratio**level / partitions)
         for level in range(levels)
     ]
-    family_capacity = sum(capacities)
+    if levels <= 2:
+        raise ValueError("Spine compacted resident preload requires L2 or above")
+    family_capacity = sum(capacities[2:])
+    for destination, degree in indegree.items():
+        if degree > family_capacity:
+            raise ValueError(
+                f"Spine automatic-hot classifier rejects super-hub {destination}"
+            )
     if all(edges <= family_capacity for edges in cold_partition_edges):
         return ()
 
     candidates = sorted(indegree.items(), key=lambda item: (-item[1], item[0]))
 
-    def place(cold_target: int, hot_target: int) -> tuple[int, ...] | None:
-        cold = list(cold_partition_edges)
-        hot = [0] * partitions
-        promoted: list[int] = []
-        for destination, degree in candidates:
-            if all(edges <= cold_target for edges in cold):
-                break
-            if degree > hot_target:
-                continue
-            partition = min(destination // partition_vertices, partitions - 1)
-            if cold[partition] <= cold_target:
-                continue
-            shard = _spine_hot_hash(destination) % partitions
-            if hot[shard] + degree > hot_target:
-                continue
-            cold[partition] -= degree
-            hot[shard] += degree
-            promoted.append(destination)
-        if any(edges > cold_target for edges in cold):
-            return None
-        return tuple(promoted)
-
-    # Preserve the native host's single-top-level placement whenever it fits.
-    promoted = place(capacities[-2], capacities[-1])
-    if promoted is not None:
-        return promoted
-
-    # A resident snapshot may still fit the fixed hierarchy even when its
-    # single-home hot hash cannot fit L10. The C++ preload labels this bounded
-    # simulator bootstrap explicitly as a multilevel fallback.
-    promoted = place(family_capacity, family_capacity)
-    if promoted is None:
+    cold = list(cold_partition_edges)
+    hot = [0] * partitions
+    promoted: list[int] = []
+    for destination, degree in candidates:
+        if all(edges <= family_capacity for edges in cold):
+            break
+        partition = min(destination // partition_vertices, partitions - 1)
+        if cold[partition] <= family_capacity:
+            continue
+        shard = _spine_hot_hash(destination) % partitions
+        cold[partition] -= degree
+        hot[shard] += degree
+        promoted.append(destination)
+        if hot[shard] > family_capacity:
+            raise ValueError(
+                f"Spine automatic-hot classifier overflows hot shard {shard}"
+            )
+    if any(edges > family_capacity for edges in cold):
         raise ValueError("Spine automatic-hot classifier cannot fit fixed families")
-    return promoted
+    return tuple(promoted)
 
 
 def spine_memory_binding(

@@ -784,8 +784,14 @@ SpineResidentClassification classify_spine_resident_snapshot(
         "invalid Spine resident hot/cold classification request");
   }
 
+  constexpr std::size_t kCompactedMinimumLevel = 2;
+  if (config.levels <= kCompactedMinimumLevel) {
+    throw std::invalid_argument(
+        "Spine resident compacted preload requires L2 or above");
+  }
   SpineResidentClassification result;
-  for (std::size_t level = 0; level < config.levels; ++level) {
+  for (std::size_t level = kCompactedMinimumLevel; level < config.levels;
+       ++level) {
     const std::uint64_t capacity =
         spine_level_layout(config, false, level).edge_capacity;
     if (result.family_edge_capacity >
@@ -794,10 +800,8 @@ SpineResidentClassification classify_spine_resident_snapshot(
     }
     result.family_edge_capacity += capacity;
   }
-  result.cold_partition_target =
-      spine_level_layout(config, false, config.levels - 2).edge_capacity;
-  result.hot_shard_edge_capacity =
-      spine_level_layout(config, true, config.levels - 1).edge_capacity;
+  result.cold_partition_target = result.family_edge_capacity;
+  result.hot_shard_edge_capacity = result.family_edge_capacity;
 
   std::vector<std::uint64_t> indegree(snapshot.vertices, 0);
   for (const SpineEdgeRecord &edge : snapshot.edges) {
@@ -879,48 +883,33 @@ SpineResidentClassification classify_spine_resident_snapshot(
                 }
                 return left.dst < right.dst;
               });
-    const auto initial_cold = result.cold_partition_edges;
-    const auto try_place = [&](std::uint64_t cold_target,
-                               std::uint64_t hot_target) {
-      auto cold = initial_cold;
-      std::array<std::uint64_t, 16> hot{};
-      std::vector<std::uint32_t> promoted;
-      for (const Candidate &candidate : candidates) {
-        if (within(cold, cold_target)) {
-          break;
-        }
-        const std::size_t partition = std::min<std::size_t>(
-            candidate.dst / config.vertex_partition_size,
-            config.partitions - 1);
-        if (cold[partition] <= cold_target || candidate.degree > hot_target) {
-          continue;
-        }
-        const std::size_t shard = spine_hot_shard(candidate.dst);
-        if (hot[shard] > hot_target - candidate.degree) {
-          continue;
-        }
-        cold[partition] -= candidate.degree;
-        hot[shard] += candidate.degree;
-        promoted.push_back(candidate.dst);
+    for (const Candidate &candidate : candidates) {
+      if (within(result.cold_partition_edges,
+                 result.cold_partition_target)) {
+        break;
       }
-      return std::tuple(within(cold, cold_target), std::move(cold),
-                        std::move(hot), std::move(promoted));
-    };
-
-    auto [placed, cold, hot, promoted] =
-        try_place(result.cold_partition_target,
-                  result.hot_shard_edge_capacity);
-    if (!placed) {
-      std::tie(placed, cold, hot, promoted) =
-          try_place(result.family_edge_capacity, result.family_edge_capacity);
+      const std::size_t partition = std::min<std::size_t>(
+          candidate.dst / config.vertex_partition_size,
+          config.partitions - 1);
+      if (result.cold_partition_edges[partition] <=
+          result.cold_partition_target) {
+        continue;
+      }
+      const std::size_t shard = spine_hot_shard(candidate.dst);
+      result.cold_partition_edges[partition] -= candidate.degree;
+      result.hot_shard_edges[shard] += candidate.degree;
+      result.hot_vertices.push_back(candidate.dst);
+      if (result.hot_shard_edges[shard] >
+          result.hot_shard_edge_capacity) {
+        throw std::overflow_error(
+            "Spine resident hot/cold classifier hot shard capacity exceeded");
+      }
     }
-    if (!placed) {
+    if (!within(result.cold_partition_edges,
+                result.cold_partition_target)) {
       throw std::overflow_error(
           "Spine resident hot/cold classifier cannot fit fixed families");
     }
-    result.cold_partition_edges = std::move(cold);
-    result.hot_shard_edges = std::move(hot);
-    result.hot_vertices = std::move(promoted);
     result.hot_edges = 0;
     for (const std::uint32_t dst : result.hot_vertices) {
       result.hot_edges += indegree[dst];
@@ -939,12 +928,52 @@ SpineResidentClassification classify_spine_resident_snapshot(
       result.cold_partition_edges.end());
   result.max_hot_shard_edges = *std::max_element(
       result.hot_shard_edges.begin(), result.hot_shard_edges.end());
+  const auto occupied_level_count = [&](std::uint64_t edge_count) {
+    if (edge_count == 0) {
+      return std::size_t{0};
+    }
+    for (std::size_t level = kCompactedMinimumLevel; level < config.levels;
+         ++level) {
+      if (edge_count <=
+          spine_level_layout(config, false, level).edge_capacity) {
+        return std::size_t{1};
+      }
+    }
+    std::uint64_t remaining = edge_count;
+    std::size_t occupied = 0;
+    for (std::size_t level = config.levels;
+         level-- > kCompactedMinimumLevel && remaining != 0;) {
+      const std::uint64_t assigned = std::min(
+          remaining, spine_level_layout(config, false, level).edge_capacity);
+      if (assigned != 0) {
+        remaining -= assigned;
+        ++occupied;
+      }
+    }
+    if (remaining != 0) {
+      throw std::overflow_error(
+          "Spine resident compacted planner exceeds fixed levels");
+    }
+    return occupied;
+  };
   const std::uint64_t top_capacity =
       spine_level_layout(config, false, config.levels - 1).edge_capacity;
-  result.top_level_preload =
-      result.max_cold_partition_edges <= top_capacity &&
-      result.max_hot_shard_edges <= top_capacity;
-  result.multilevel_fallback = !result.top_level_preload;
+  const std::uint64_t previous_capacity =
+      spine_level_layout(config, false, config.levels - 2).edge_capacity;
+  bool only_top_level = true;
+  std::size_t max_occupied_levels = 0;
+  for (const auto &counts : {result.cold_partition_edges,
+                             result.hot_shard_edges}) {
+    for (const std::uint64_t count : counts) {
+      max_occupied_levels =
+          std::max(max_occupied_levels, occupied_level_count(count));
+      if (count != 0 && !(count > previous_capacity && count <= top_capacity)) {
+        only_top_level = false;
+      }
+    }
+  }
+  result.top_level_preload = only_top_level;
+  result.multilevel_fallback = max_occupied_levels > 1;
   return result;
 }
 
@@ -990,19 +1019,10 @@ SpineL0State preload_spine_resident_snapshot(
       }
       std::sort(edges.begin(), edges.end(), edge_less);
 
-      if (resident.top_level_preload) {
-        const std::size_t target = config.levels - 1;
-        if (edges.size() >
-            spine_level_layout(config, hot, target).edge_capacity) {
-          throw std::logic_error(
-              "Spine classified resident family exceeds its top level");
-        }
-        levels[target] = std::move(edges);
-        continue;
-      }
-
+      constexpr std::size_t kCompactedMinimumLevel = 2;
       std::uint64_t total_capacity = 0;
-      for (std::size_t level = 0; level < config.levels; ++level) {
+      for (std::size_t level = kCompactedMinimumLevel;
+           level < config.levels; ++level) {
         const std::uint64_t capacity =
             spine_level_layout(config, hot, level).edge_capacity;
         if (total_capacity >
@@ -1017,40 +1037,49 @@ SpineL0State preload_spine_resident_snapshot(
             "Spine resident snapshot exceeds total fixed-level capacity");
       }
 
+      std::vector<std::size_t> plan(config.levels, 0);
+      bool single_level = false;
+      for (std::size_t level = kCompactedMinimumLevel;
+           level < config.levels; ++level) {
+        if (edges.size() <=
+            spine_level_layout(config, hot, level).edge_capacity) {
+          plan[level] = edges.size();
+          single_level = true;
+          break;
+        }
+      }
+      if (!single_level) {
+        std::size_t remaining = edges.size();
+        for (std::size_t level = config.levels;
+             level-- > kCompactedMinimumLevel && remaining != 0;) {
+          const std::size_t assigned = static_cast<std::size_t>(
+              std::min<std::uint64_t>(
+                  remaining,
+                  spine_level_layout(config, hot, level).edge_capacity));
+          plan[level] = assigned;
+          remaining -= assigned;
+        }
+        if (remaining != 0) {
+          throw std::logic_error(
+              "Spine resident compacted planner lost input edges");
+        }
+      }
+
       std::size_t cursor = 0;
-      std::size_t remaining = edges.size();
-      std::size_t highest = config.levels - 1;
-      while (remaining != 0) {
-        std::size_t target = config.levels;
-        if (highest >= 1) {
-          for (std::size_t level = 1; level <= highest; ++level) {
-            if (remaining <=
-                spine_level_layout(config, hot, level).edge_capacity) {
-              target = level;
-              break;
-            }
-          }
+      for (std::size_t level = config.levels;
+           level-- > kCompactedMinimumLevel;) {
+        const std::size_t count = plan[level];
+        if (count == 0) {
+          continue;
         }
-        if (target == config.levels) {
-          target = highest;
-        }
-        const std::size_t count = static_cast<std::size_t>(
-            std::min<std::uint64_t>(
-                remaining,
-                spine_level_layout(config, hot, target).edge_capacity));
-        levels[target].assign(
+        levels[level].assign(
             edges.begin() + static_cast<std::ptrdiff_t>(cursor),
             edges.begin() + static_cast<std::ptrdiff_t>(cursor + count));
         cursor += count;
-        remaining -= count;
-        if (remaining == 0) {
-          break;
-        }
-        if (target == 0) {
-          throw std::logic_error(
-              "Spine resident packing exhausted a validated hierarchy");
-        }
-        highest = target - 1;
+      }
+      if (cursor != edges.size()) {
+        throw std::logic_error(
+            "Spine resident compacted preload lost physical records");
       }
     }
   }

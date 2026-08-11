@@ -6342,7 +6342,7 @@ void test_spine_resident_snapshot_spans_fixed_levels() {
 
   SpineL0State state = preload_spine_resident_snapshot(snapshot, config);
   require(state.cold_levels[0][0].empty() &&
-              state.cold_levels[0][8].size() == 88 &&
+              state.cold_levels[0][9].size() == 88 &&
               state.cold_levels[0][10].size() == 512,
           "resident bootstrap did not span capacity-bounded fixed levels");
   std::size_t persisted = 0;
@@ -6372,7 +6372,7 @@ void test_spine_resident_snapshot_spans_fixed_levels() {
       });
   require(!update.failed && update.counters.target_level == 0 &&
               update.state.cold_levels[0][0].size() == 1 &&
-              update.state.cold_levels[0][8].size() == 88 &&
+              update.state.cold_levels[0][9].size() == 88 &&
               update.state.cold_levels[0][10].size() == 512,
           "resident bootstrap did not preserve L0 for the next micro-batch");
 }
@@ -6424,8 +6424,6 @@ void test_spine_resident_snapshot_auto_promotes_hot_destinations() {
       preload_spine_resident_snapshot(snapshot, config, &classification);
   require(classification.automatic_hot_promotion &&
               !classification.hot_vertices.empty() &&
-              classification.top_level_preload &&
-              !classification.multilevel_fallback &&
               classification.max_cold_partition_edges <=
                   classification.cold_partition_target &&
               classification.max_hot_shard_edges <=
@@ -6437,9 +6435,9 @@ void test_spine_resident_snapshot_auto_promotes_hot_destinations() {
   for (const auto &families : {&state.cold_levels, &state.hot_levels}) {
     for (const auto &levels : *families) {
       for (std::size_t level = 0; level < config.levels; ++level) {
-        if (level != config.levels - 1) {
+        if (level < 2) {
           require(levels[level].empty(),
-                  "classified resident graph occupied a non-top level");
+                  "classified resident graph occupied reserved update levels");
         }
         persisted += levels[level].size();
       }
@@ -6511,7 +6509,7 @@ void test_spine_resident_snapshot_rejects_superhub() {
   require(rejected, "resident bootstrap accepted an unshardable super-hub");
 }
 
-void test_spine_resident_snapshot_hash_collision_uses_multilevel_fallback() {
+void test_spine_resident_snapshot_hash_collision_matches_hls_rejection() {
   SpineL0Config config;
   config.max_sort_edges = 8;
   config.max_vertices = 4'096;
@@ -6540,18 +6538,15 @@ void test_spine_resident_snapshot_hash_collision_uses_multilevel_fallback() {
     }
   }
 
-  SpineResidentClassification classification;
-  const SpineL0State state =
-      preload_spine_resident_snapshot(snapshot, config, &classification);
-  require(classification.automatic_hot_promotion &&
-              classification.multilevel_fallback &&
-              !classification.top_level_preload &&
-              classification.max_cold_partition_edges <=
-                  classification.family_edge_capacity &&
-              classification.max_hot_shard_edges <=
-                  classification.family_edge_capacity &&
-              !state.hot_vertices.empty(),
-          "resident hot hash collision did not use bounded multilevel fallback");
+  bool rejected = false;
+  try {
+    (void)preload_spine_resident_snapshot(snapshot, config);
+  } catch (const std::overflow_error &error) {
+    rejected = std::string(error.what()) ==
+               "Spine resident hot/cold classifier hot shard capacity exceeded";
+  }
+  require(rejected,
+          "resident hot hash collision diverged from routed HLS rejection");
 }
 
 void test_spine_update_history_reconstructs_carry_target() {
@@ -10139,8 +10134,8 @@ int main(int argc, char **argv) {
        test_spine_resident_snapshot_skips_fit_partition_candidates},
       {"spine_resident_superhub_capacity",
        test_spine_resident_snapshot_rejects_superhub},
-      {"spine_resident_hot_hash_collision_fallback",
-       test_spine_resident_snapshot_hash_collision_uses_multilevel_fallback},
+      {"spine_resident_hot_hash_collision_rejection",
+       test_spine_resident_snapshot_hash_collision_matches_hls_rejection},
       {"spine_update_history_carry_target",
        test_spine_update_history_reconstructs_carry_target},
       {"spine_carry_epoch_wrap",

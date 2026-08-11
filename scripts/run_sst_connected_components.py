@@ -662,7 +662,9 @@ def main() -> int:
         "update_workload": str(update_path),
         "update_sha256": sha256_file(update_path),
         "sst_plugin": str(plugin),
-        "sst_plugin_sha256": sha256_file(plugin),
+        # The plugin path is mutable during parallel campaigns. Record the
+        # hash captured before subprocess launch, which is the image SST loaded.
+        "sst_plugin_sha256": sst_library["plugin_sha256"],
         "sst_library_binding": sst_library,
         "sst_memory_binding": binding.as_manifest(),
         "physical_hbm_address_regions": address_regions,

@@ -91,6 +91,7 @@
     "range_task_active_gate": 16384,
     "reactivation_fifo_depth_per_partition": 256,
     "reader_active_record_control_cycles": 520,
+    "resident_preload_policy": "hls_compacted_l2_l10_v1",
     "result_hbm_channel": 21,
     "segmented_fallback": true,
     "segmented_fallback_setup_cycles": 3185887,

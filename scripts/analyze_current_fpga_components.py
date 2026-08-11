@@ -504,9 +504,9 @@ def main() -> int:
                     else algorithm_spec["hardware_timing_prefix"]
                 )
                 hardware_records = [unique_prefixed_record(path, prefix) for path in logs]
+                profile_id = profiles[(architecture, algorithm)]
                 if architecture == "spine":
-                    structural_rows.append(
-                        spine_structural_work_row(
+                    structural_row = spine_structural_work_row(
                             algorithm,
                             dataset,
                             role,
@@ -515,8 +515,8 @@ def main() -> int:
                             logs,
                             hardware_records,
                         )
-                    )
-                profile_id = profiles[(architecture, algorithm)]
+                    structural_row["profile_id"] = profile_id
+                    structural_rows.append(structural_row)
                 for component, simulator_cycles, hardware_cycles, observation in component_samples(
                     architecture, algorithm, result, hardware_records, clock_mhz
                 ):
@@ -548,11 +548,11 @@ def main() -> int:
                         "hardware_log_sha256": [sha256_file(path) for path in logs],
                     }
                 )
-                ledger_rows.append(
-                    memory_ledger_row(
+                ledger_row = memory_ledger_row(
                         architecture, algorithm, dataset, role, result, result_path
                     )
-                )
+                ledger_row["profile_id"] = profile_id
+                ledger_rows.append(ledger_row)
 
     grouped: dict[tuple[str, str, str, str], list[CurrentFPGAComponentRecord]] = {}
     for record in component_records:
@@ -607,6 +607,78 @@ def main() -> int:
         "PASS" if structural_pass else ("INCOMPLETE" if missing else "FAIL")
     )
 
+    component_coverage: list[dict[str, object]] = []
+    ledger_coverage: list[dict[str, object]] = []
+    structural_coverage: list[dict[str, object]] = []
+    for architecture in ARCHITECTURES:
+        for algorithm in cases["algorithms"]:
+            profile_id = profiles[(architecture, algorithm)]
+            pair_evidence = [
+                row
+                for row in component_evidence
+                if row["architecture"] == architecture
+                and row["algorithm"] == algorithm
+            ]
+            component_coverage.append(
+                {
+                    "architecture": architecture,
+                    "algorithm": algorithm,
+                    "profile_id": profile_id,
+                    "calibration_cases": sum(
+                        row["role"] == "calibration" for row in pair_evidence
+                    ),
+                    "holdout_cases": sum(
+                        row["role"] == "holdout" for row in pair_evidence
+                    ),
+                }
+            )
+            pair_ledgers = [
+                row
+                for row in ledger_rows
+                if row["architecture"] == architecture
+                and row["algorithm"] == algorithm
+            ]
+            ledger_coverage.append(
+                {
+                    "architecture": architecture,
+                    "algorithm": algorithm,
+                    "profile_id": profile_id,
+                    "validation_cases": len(pair_ledgers),
+                    "ledger_closed": bool(pair_ledgers)
+                    and all(row["status"] == "PASS" for row in pair_ledgers),
+                }
+            )
+            if architecture == "spine":
+                pair_structural = [
+                    row
+                    for row in structural_rows
+                    if row["algorithm"] == algorithm
+                ]
+                structural_coverage.append(
+                    {
+                        "architecture": architecture,
+                        "algorithm": algorithm,
+                        "profile_id": profile_id,
+                        "validation_cases": len(pair_structural),
+                        "ledger_closed": bool(pair_structural)
+                        and all(row["status"] == "PASS" for row in pair_structural),
+                        "hardware_counter_scope": (
+                            "routed_iteration_range_task_processed_edge_counters"
+                        ),
+                    }
+                )
+            else:
+                structural_coverage.append(
+                    {
+                        "architecture": architecture,
+                        "algorithm": algorithm,
+                        "profile_id": profile_id,
+                        "validation_cases": len(pair_evidence),
+                        "ledger_closed": False,
+                        "hardware_counter_scope": "not_observable",
+                    }
+                )
+
     args.out_dir.mkdir(parents=True, exist_ok=True)
     write_csv(args.out_dir / "component_cycle_rows.csv", predictions)
     write_csv(args.out_dir / "component_cycle_group_summary.csv", summaries)
@@ -633,7 +705,16 @@ def main() -> int:
             "workload_identity_pinned": not missing,
             "calibration_and_holdout_disjoint": True,
             "hardware_event_intervals_summed": False,
+            "hardware_observation_scope": (
+                "routed nonoverlapping kernel events and explicitly overlapping "
+                "reader/compute event envelopes"
+            ),
             "threshold": component_threshold,
+            "coverage": component_coverage,
+            "threshold_checks": {
+                "all_pass": component_pass,
+                "groups": summaries,
+            },
             "groups": summaries,
             "missing_cases": sorted(missing),
             "evidence": component_evidence,
@@ -653,6 +734,10 @@ def main() -> int:
             "workload_identity_pinned": not missing,
             "calibration_and_holdout_disjoint": True,
             "hardware_observation_scope": "routed hardware exposes timing and realized-work counters but not HBM byte counters; request/byte/FIFO conservation below is execution-driven simulator evidence",
+            "coverage": ledger_coverage,
+            "threshold_checks": {
+                "all_pass": ledger_pass,
+            },
             "missing_cases": sorted(missing),
             "rows": ledger_rows,
         },
@@ -674,6 +759,11 @@ def main() -> int:
                 "Spine iterations, range-task count, and processed-edge count from "
                 "routed KERNEL_PAIR_RESULT records. G+R has no equivalent routed counter."
             ),
+            "grasu_regraph_hardware_counter_limitation_explicit": True,
+            "coverage": structural_coverage,
+            "threshold_checks": {
+                "all_pass": structural_pass,
+            },
             "missing_cases": sorted(missing),
             "rows": structural_rows,
         },

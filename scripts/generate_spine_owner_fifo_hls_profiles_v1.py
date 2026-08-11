@@ -120,6 +120,7 @@ def payload(algorithm: str, spec: dict[str, str]) -> dict[str, Any]:
             "maintenance_architecture": (
                 "candidate10_refactor31_segmented_exact"
             ),
+            "resident_preload_policy": "hls_compacted_l2_l10_v1",
             "max_sort_edges": 131072,
             "edge_stream_depth": 32,
             "value_stream_depth": 32,

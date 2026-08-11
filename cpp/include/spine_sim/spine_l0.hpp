@@ -402,8 +402,8 @@ struct SpineResidentClassification {
     const SpineEdgeSlice &snapshot, const SpineL0Config &config);
 
 // Offline/bootstrap placement for an interval-zero resident graph. This
-// applies the HLS host's degree-based hot/cold policy when no explicit bitmap
-// is supplied and updates config.hot_vertices to match the returned state.
+// mirrors the routed HLS host's compacted L2-L10 placement and degree-based
+// hot/cold policy, then updates config.hot_vertices to match the returned state.
 [[nodiscard]] SpineL0State preload_spine_resident_snapshot(
     const SpineEdgeSlice &snapshot, SpineL0Config &config,
     SpineResidentClassification *classification = nullptr);
