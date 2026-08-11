@@ -2732,6 +2732,26 @@ void test_sharded_k4_runtime_plan_rejects_channel_overflow() {
           "sharded-K4 runtime plan silently exceeded pseudo-channel capacity");
 }
 
+void test_sharded_k4_runtime_plan_accepts_empty_destination_shard() {
+  constexpr std::size_t kVertices = 128;
+  const GraSuPartitionedPmaLayout layout = GraSuPartitionedPmaLayout::build(
+      kVertices, 64, {{.source = 0, .destination = 1}}, {});
+  require(layout.partitions.size() == 2 &&
+              layout.partitions[1].segments.empty(),
+          "empty-shard fixture unexpectedly materialized PMA segments");
+  const auto plan = spine::sim::build_grasu_regraph_runtime_plan(
+      layout, std::vector<std::size_t>{0, 0}, 8);
+  require(plan.shards.size() == 2 && plan.shards[1].pma_slot_count == 0,
+          "empty destination shard did not preserve a zero logical PMA span");
+  require(spine::sim::find_grasu_regraph_runtime_region(plan, 1, "binary")
+                  .allocated_bytes >=
+              spine::sim::kGraSuReGraphRuntimeAlignmentBytes &&
+              spine::sim::find_grasu_regraph_runtime_region(plan, 1, "pma0")
+                  .allocated_bytes >=
+              spine::sim::kGraSuReGraphRuntimeAlignmentBytes,
+          "empty destination shard omitted its routed minimum buffers");
+}
+
 void test_sharded_k4_update_state_feeds_compute() {
   constexpr std::size_t kVertices = 192;
   const std::vector<GraSuEdge> initial = {
@@ -2899,6 +2919,8 @@ int main() {
        test_sharded_k4_runtime_plan_matches_u55c_contract},
       {"sharded_k4_runtime_capacity_guard",
        test_sharded_k4_runtime_plan_rejects_channel_overflow},
+      {"sharded_k4_runtime_empty_shard",
+       test_sharded_k4_runtime_plan_accepts_empty_destination_shard},
       {"sharded_k4_update_state_feeds_compute",
        test_sharded_k4_update_state_feeds_compute},
   };

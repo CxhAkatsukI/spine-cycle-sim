@@ -78,7 +78,7 @@ GraSuReGraphRuntimePlan build_grasu_regraph_runtime_plan(
   for (std::size_t shard = 0; shard < layout.partitions.size(); ++shard) {
     const GraSuPmaLayout &partition = layout.partitions[shard];
     const std::size_t segments = partition.segments.size();
-    if (segments == 0 || partition.row_slot_bounds.size() != layout.vertices ||
+    if (partition.row_slot_bounds.size() != layout.vertices ||
         partition.binary_heads.size() != segments) {
       throw std::invalid_argument("invalid GraSU-ReGraph PMA shard buffers");
     }
