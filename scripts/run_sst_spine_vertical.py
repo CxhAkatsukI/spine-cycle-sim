@@ -103,7 +103,8 @@ def sha256_file(path: Path) -> str:
 
 
 def validate_owner_round_evidence(result: dict[str, Any]) -> list[str]:
-    count = int(result.get("owner_round_evidence_count", 0))
+    raw_count = result.get("owner_round_evidence_count")
+    count = raw_count if isinstance(raw_count, int) else -1
     array_fields = (
         "reader_source_completion_markers_per_round",
         "compute_source_completion_markers_per_round",
@@ -124,13 +125,12 @@ def validate_owner_round_evidence(result: dict[str, Any]) -> list[str]:
         "owner_hbm_byte_ledger_match_per_round",
     )
     arrays = {name: result.get(name) for name in array_fields}
-    shapes_match = count > 0 and all(
+    shapes_match = count >= 0 and all(
         isinstance(values, list) and len(values) == count
         for values in arrays.values()
     )
-    formula_match = False
+    formula_match = shapes_match
     if shapes_match:
-        formula_match = True
         for index in range(count):
             dispatches = int(arrays["owner_source_dispatches_per_round"][index])
             completions = int(arrays["owner_source_completions_per_round"][index])

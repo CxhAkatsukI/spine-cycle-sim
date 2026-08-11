@@ -71,6 +71,42 @@ class SstSpineVerticalValidationTests(unittest.TestCase):
         self.assertIn("owner_round_evidence_shape", problems)
         self.assertIn("owner_round_formula", problems)
 
+    def test_owner_round_evidence_accepts_explicit_quiescent_zero_round(self) -> None:
+        evidence = {
+            "owner_scheduler_enabled": True,
+            "owner_ledger_closed": True,
+            "owner_quiescent": True,
+            "owner_work_credits_created": 0,
+            "owner_work_credits_retired": 0,
+            "owner_dispatches": 0,
+            "owner_completions": 0,
+            "owner_round_evidence_count": 0,
+            "owner_round_ledger_match": True,
+            "owner_hbm_request_ledger_match": True,
+            "owner_hbm_byte_ledger_match": True,
+        }
+        for name in (
+            "reader_source_completion_markers_per_round",
+            "compute_source_completion_markers_per_round",
+            "owner_round_begins_per_round",
+            "owner_source_dispatches_per_round",
+            "owner_source_completions_per_round",
+            "owner_activation_words_per_round",
+            "owner_round_finalizes_per_round",
+            "owner_hbm_requests_expected_per_round",
+            "owner_hbm_requests_generated_per_round",
+            "owner_hbm_requests_completed_per_round",
+            "owner_hbm_read_requests_per_round",
+            "owner_hbm_write_requests_per_round",
+            "owner_hbm_read_bytes_per_round",
+            "owner_hbm_write_bytes_per_round",
+            "owner_round_ledger_match_per_round",
+            "owner_hbm_request_ledger_match_per_round",
+            "owner_hbm_byte_ledger_match_per_round",
+        ):
+            evidence[name] = []
+        self.assertEqual(validate_owner_round_evidence(evidence), [])
+
     def test_owner_round_evidence_accepts_exact_single_round_residual(self) -> None:
         evidence = {
             "mode": "spine_vertical",
