@@ -273,6 +273,11 @@ def validate_result(
                     "owner_dispatches"
                 )
                 == result.get("owner_completions"),
+                "component_request_ledger": result.get(
+                    "component_request_ledger_match"
+                )
+                is True,
+                "fifo_ledger": result.get("fifo_ledger_match") is True,
             }
         )
     return checks

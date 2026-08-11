@@ -42,6 +42,8 @@ class SstConnectedComponentsRunnerTests(unittest.TestCase):
             "active_edges": 4,
             "active_edge_execution_ledger_match": True,
             "memory_locality_ledger_match": True,
+            "component_request_ledger_match": True,
+            "fifo_ledger_match": True,
         }
 
     def test_spine_admission_requires_exact_external_labels(self) -> None:

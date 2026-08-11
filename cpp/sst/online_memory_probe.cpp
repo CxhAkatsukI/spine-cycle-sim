@@ -5046,7 +5046,10 @@ class OnlineMemoryProbe final : public SST::Component {
       std::uint64_t compute_edges = 0;
       std::uint64_t compute_vertex_read_bytes = 0;
       std::uint64_t compute_vertex_write_bytes = 0;
-      std::uint64_t compute_memory_requests = 0;
+      std::uint64_t reader_memory_requests_issued = 0;
+      std::uint64_t reader_memory_requests_completed = 0;
+      std::uint64_t compute_memory_requests_issued = 0;
+      std::uint64_t compute_memory_requests_completed = 0;
       std::uint64_t compute_vertices_activated = 0;
       for (const SpineSsspRoundEvidence &round : sst_rounds_) {
         frontier_in_sizes.push_back(round.active_in.size());
@@ -5068,7 +5071,13 @@ class OnlineMemoryProbe final : public SST::Component {
         compute_edges += round.compute.processed_edges;
         compute_vertex_read_bytes += round.compute.vertex_read_bytes;
         compute_vertex_write_bytes += round.compute.vertex_write_bytes;
-        compute_memory_requests += round.compute.memory_requests_issued;
+        reader_memory_requests_issued += round.reader.memory_requests_issued;
+        reader_memory_requests_completed +=
+            round.reader.memory_requests_completed;
+        compute_memory_requests_issued +=
+            round.compute.memory_requests_issued;
+        compute_memory_requests_completed +=
+            round.compute.memory_requests_completed;
         compute_vertices_activated += round.active_out.size();
       }
 
@@ -5101,13 +5110,26 @@ class OnlineMemoryProbe final : public SST::Component {
       const bool active_edge_ledger_match =
           reader_edges == reference.active_edges &&
           compute_edges == reference.active_edges;
+      const bool component_request_ledger_match =
+          maintenance.memory_ledger_closed &&
+          maintenance.memory_requests_issued ==
+              maintenance.memory_requests_completed &&
+          reader_memory_requests_issued == reader_memory_requests_completed &&
+          compute_memory_requests_issued ==
+              compute_memory_requests_completed;
+      const FifoStats edge_axis = spine_system_->edge_stream_stats();
+      const FifoStats value_axis = spine_system_->value_stream_stats();
+      const bool fifo_ledger_match =
+          edge_axis.pushes == edge_axis.pops &&
+          value_axis.pushes == value_axis.pops;
       const bool converged =
           !sst_rounds_.empty() && sst_rounds_.back().active_out.empty();
       std::unordered_set<std::uint32_t> components(labels.begin(),
                                                    labels.end());
       const bool passed =
           success && reference.converged && converged && frontier_match &&
-          active_edge_ledger_match && memory_locality_ledger_match &&
+          active_edge_ledger_match && component_request_ledger_match &&
+          fifo_ledger_match && memory_locality_ledger_match &&
           architecture_mismatches == 0 && mathematical_mismatches == 0;
 
       result << "{\n"
@@ -5181,6 +5203,11 @@ class OnlineMemoryProbe final : public SST::Component {
              << (active_edge_ledger_match ? "true" : "false") << ",\n"
              << "  \"memory_locality_ledger_match\": "
              << (memory_locality_ledger_match ? "true" : "false") << ",\n"
+             << "  \"component_request_ledger_match\": "
+             << (component_request_ledger_match ? "true" : "false")
+             << ",\n"
+             << "  \"fifo_ledger_match\": "
+             << (fifo_ledger_match ? "true" : "false") << ",\n"
              << "  \"backend_phase_traffic_split_available\": "
              << (phase_traffic_split_available ? "true" : "false")
              << ",\n"
@@ -5198,8 +5225,28 @@ class OnlineMemoryProbe final : public SST::Component {
              << backend_->accepted() - maintenance_requests << ",\n"
              << "  \"maintenance_component_parent_requests\": "
              << maintenance.memory_requests_issued << ",\n"
+             << "  \"reader_component_parent_requests_issued\": "
+             << reader_memory_requests_issued << ",\n"
+             << "  \"reader_component_parent_requests_completed\": "
+             << reader_memory_requests_completed << ",\n"
+             << "  \"compute_component_parent_requests_issued\": "
+             << compute_memory_requests_issued << ",\n"
+             << "  \"compute_component_parent_requests_completed\": "
+             << compute_memory_requests_completed << ",\n"
              << "  \"compute_component_parent_requests\": "
-             << compute_memory_requests << ",\n"
+             << compute_memory_requests_issued << ",\n"
+             << "  \"edge_axis_pushes\": " << edge_axis.pushes << ",\n"
+             << "  \"edge_axis_pops\": " << edge_axis.pops << ",\n"
+             << "  \"edge_axis_push_stalls\": "
+             << edge_axis.push_stalls << ",\n"
+             << "  \"edge_axis_max_occupancy\": "
+             << edge_axis.max_occupancy << ",\n"
+             << "  \"value_axis_pushes\": " << value_axis.pushes << ",\n"
+             << "  \"value_axis_pops\": " << value_axis.pops << ",\n"
+             << "  \"value_axis_push_stalls\": "
+             << value_axis.push_stalls << ",\n"
+             << "  \"value_axis_max_occupancy\": "
+             << value_axis.max_occupancy << ",\n"
              << "  \"reader_edges\": " << reader_edges << ",\n"
              << "  \"compute_edges\": " << compute_edges << ",\n"
              << "  \"compute_vertices_applied\": 0,\n"
