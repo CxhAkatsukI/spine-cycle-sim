@@ -21,6 +21,23 @@
       "run_dir": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/runs_v5_observability/au/spine/weighted_sssp"
     },
     {
+      "dataset": "au_u512",
+      "hardware_log_sha256": [
+        "f6caa2516b37490846085c03df4ba690d5998950134747883c86e27038acd306",
+        "b2afd8af9b40651d4eb6f734090f74ab981db6935149e69bfbef7e2ec3113c07",
+        "2ec2d48a2b6c4523805ffa5afff399cae2e92ff17c1498b1368a3470f2aea315"
+      ],
+      "hardware_logs": [
+        "/data/tmp/chuxiao/spine_sssp_overlap_v6_holdout_hw_20260811/repeat1/au_u512/sssp/dynamic_au_weighted_sssp_insert_u512.log",
+        "/data/tmp/chuxiao/spine_sssp_overlap_v6_holdout_hw_20260811/repeat2/au_u512/sssp/dynamic_au_weighted_sssp_insert_u512.log",
+        "/data/tmp/chuxiao/spine_sssp_overlap_v6_holdout_hw_20260811/repeat3/au_u512/sssp/dynamic_au_weighted_sssp_insert_u512.log"
+      ],
+      "manifest_sha256": "4da8a463078b3aa2f388d4101f2ffadd7e69a9f6388f3932473c0f6b71f75a80",
+      "result_sha256": "6630dac0f694cbfe9d1734f671f2161f90f8f1c33f1a22f29f977ee6f3b3fe2a",
+      "role": "holdout",
+      "run_dir": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/holdout_v6_observability/au_u512/spine/weighted_sssp"
+    },
+    {
       "dataset": "au_u64",
       "hardware_log_sha256": [
         "0dfbe2b7c00721c76d26977574029d57cee5a3741e8d4490da185a49ca91f0ec",
@@ -140,6 +157,23 @@
       "run_dir": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/runs_v5_observability/su/spine/weighted_sssp"
     },
     {
+      "dataset": "su_u512",
+      "hardware_log_sha256": [
+        "d1427ae782ce9edd2dc3bb6dc6c0806a948ec8d64f3d0e5acbf58df7656e59a1",
+        "c7ff12df79797cdb9c9b7bf7e4216ea261eb1c2d5bc77dde6ea2105bea9be8ce",
+        "bbfc4dd9517e0e310ef64546e97c1a604763027060ed1b8a704351ba2210b149"
+      ],
+      "hardware_logs": [
+        "/data/tmp/chuxiao/spine_sssp_overlap_v6_holdout_hw_20260811/repeat1/su_u512/sssp/dynamic_su_weighted_sssp_insert_u512.log",
+        "/data/tmp/chuxiao/spine_sssp_overlap_v6_holdout_hw_20260811/repeat2/su_u512/sssp/dynamic_su_weighted_sssp_insert_u512.log",
+        "/data/tmp/chuxiao/spine_sssp_overlap_v6_holdout_hw_20260811/repeat3/su_u512/sssp/dynamic_su_weighted_sssp_insert_u512.log"
+      ],
+      "manifest_sha256": "a91f4c88c9f1dc1abfaf845b870f806d1c10eaa4243075e4cda91973e6cad278",
+      "result_sha256": "bf1edfffaee404071b6de9fb2de4bfe60c5be7a96352a8f25934b819d7d7cc3a",
+      "role": "holdout",
+      "run_dir": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/holdout_v6_observability/su_u512/spine/weighted_sssp"
+    },
+    {
       "dataset": "su_u64",
       "hardware_log_sha256": [
         "a2ad624a58eede62c7d7986b43ae66518dd7b73786986aa6c05529f90f5c4075",
@@ -174,22 +208,13 @@
       "run_dir": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/runs_v5_observability/wk/spine/weighted_sssp"
     }
   ],
-  "evidence_index_sha256": "3f688bf1915231d46a435709255ac35a130b02c25f82a2162a46e3c2b87ed6c7",
+  "evidence_index_sha256": "70a173a9440f32138310e15f3c3cd889278bd5f07ae35ea613f7676739b4df30",
   "hardware_reader_compute_intervals_summed": false,
   "holdout_total_pass": false,
-  "missing": [
-    [
-      "au_u512",
-      "holdout"
-    ],
-    [
-      "su_u512",
-      "holdout"
-    ]
-  ],
+  "missing": [],
   "parameters_frozen_before_holdout": true,
   "schema_version": 1,
-  "status": "INCOMPLETE",
+  "status": "FAIL",
   "summaries": [
     {
       "algorithm": "weighted_sssp",
@@ -240,6 +265,56 @@
       "median_absolute_error_percent": 6.499541434727956,
       "rank_spearman": 0.9757575757575757,
       "role": "calibration"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "architecture": "spine",
+      "cases": 2,
+      "component": "maintenance",
+      "max_absolute_error_percent": 20.42549549967311,
+      "median_absolute_error_percent": 15.016451125257419,
+      "rank_spearman": 0.9999999999999998,
+      "role": "holdout"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "architecture": "spine",
+      "cases": 2,
+      "component": "reader",
+      "max_absolute_error_percent": 55.40173272820942,
+      "median_absolute_error_percent": 52.02004444533004,
+      "rank_spearman": 0.9999999999999998,
+      "role": "holdout"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "architecture": "spine",
+      "cases": 2,
+      "component": "compute",
+      "max_absolute_error_percent": 64.3557117122896,
+      "median_absolute_error_percent": 64.0048731468279,
+      "rank_spearman": 0.9999999999999998,
+      "role": "holdout"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "architecture": "spine",
+      "cases": 2,
+      "component": "iterative_span",
+      "max_absolute_error_percent": 55.32085760014046,
+      "median_absolute_error_percent": 51.90609874916973,
+      "rank_spearman": 0.9999999999999998,
+      "role": "holdout"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "architecture": "spine",
+      "cases": 2,
+      "component": "total",
+      "max_absolute_error_percent": 55.00349419210575,
+      "median_absolute_error_percent": 51.46939828179888,
+      "rank_spearman": 0.9999999999999998,
+      "role": "holdout"
     }
   ],
   "v5_holdout_reclassified_as_development": [

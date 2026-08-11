@@ -26,6 +26,31 @@
       "status": "PASS"
     },
     {
+      "accepted_backend_bytes": 1698504,
+      "algorithm": "weighted_sssp",
+      "architecture": "spine",
+      "backend_requests": 285703,
+      "bytes_issued_equal_completed": true,
+      "checks": {
+        "accepted_bytes_complete_at_quiescence": true,
+        "active_edge_execution_ledger_match": true,
+        "backend_request_traffic_match": true,
+        "compute_requests_closed": true,
+        "maintenance_requests_closed": true,
+        "memory_locality_ledger_match": true,
+        "owner_ledger_closed": true,
+        "reader_requests_closed": true
+      },
+      "dataset": "au_u512",
+      "fifo_balance_or_residual_explained": true,
+      "fifo_evidence": "per-round AXIS transfer counts plus closed owner/request ledgers",
+      "requests_issued_equal_completed": true,
+      "role": "holdout",
+      "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/holdout_v6_observability/au_u512/spine/weighted_sssp/result.json",
+      "simulator_result_sha256": "6630dac0f694cbfe9d1734f671f2161f90f8f1c33f1a22f29f977ee6f3b3fe2a",
+      "status": "PASS"
+    },
+    {
       "accepted_backend_bytes": 94868,
       "algorithm": "weighted_sssp",
       "architecture": "spine",
@@ -198,6 +223,31 @@
       "role": "calibration",
       "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/runs_v5_observability/su/spine/weighted_sssp/result.json",
       "simulator_result_sha256": "6ac85ce4c99c3bca4b06b184a5da84679e0fa977f35900b02e6f329f0f142f25",
+      "status": "PASS"
+    },
+    {
+      "accepted_backend_bytes": 1043832,
+      "algorithm": "weighted_sssp",
+      "architecture": "spine",
+      "backend_requests": 196657,
+      "bytes_issued_equal_completed": true,
+      "checks": {
+        "accepted_bytes_complete_at_quiescence": true,
+        "active_edge_execution_ledger_match": true,
+        "backend_request_traffic_match": true,
+        "compute_requests_closed": true,
+        "maintenance_requests_closed": true,
+        "memory_locality_ledger_match": true,
+        "owner_ledger_closed": true,
+        "reader_requests_closed": true
+      },
+      "dataset": "su_u512",
+      "fifo_balance_or_residual_explained": true,
+      "fifo_evidence": "per-round AXIS transfer counts plus closed owner/request ledgers",
+      "requests_issued_equal_completed": true,
+      "role": "holdout",
+      "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/holdout_v6_observability/su_u512/spine/weighted_sssp/result.json",
+      "simulator_result_sha256": "bf1edfffaee404071b6de9fb2de4bfe60c5be7a96352a8f25934b819d7d7cc3a",
       "status": "PASS"
     },
     {

@@ -1,9 +1,6 @@
 {
   "contract_id": "current_fpga_spine_overlap_v6_20260811",
-  "missing": [
-    "au_u512",
-    "su_u512"
-  ],
+  "missing": [],
   "rows": [
     {
       "algorithm": "weighted_sssp",
@@ -15,6 +12,17 @@
       ],
       "role": "calibration",
       "run_dir": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/runs_v5_observability/au/spine/weighted_sssp"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "dataset": "au_u512",
+      "hardware_logs": [
+        "/data/tmp/chuxiao/spine_sssp_overlap_v6_holdout_hw_20260811/repeat1/au_u512/sssp/dynamic_au_weighted_sssp_insert_u512.log",
+        "/data/tmp/chuxiao/spine_sssp_overlap_v6_holdout_hw_20260811/repeat2/au_u512/sssp/dynamic_au_weighted_sssp_insert_u512.log",
+        "/data/tmp/chuxiao/spine_sssp_overlap_v6_holdout_hw_20260811/repeat3/au_u512/sssp/dynamic_au_weighted_sssp_insert_u512.log"
+      ],
+      "role": "holdout",
+      "run_dir": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/holdout_v6_observability/au_u512/spine/weighted_sssp"
     },
     {
       "algorithm": "weighted_sssp",
@@ -95,6 +103,17 @@
     },
     {
       "algorithm": "weighted_sssp",
+      "dataset": "su_u512",
+      "hardware_logs": [
+        "/data/tmp/chuxiao/spine_sssp_overlap_v6_holdout_hw_20260811/repeat1/su_u512/sssp/dynamic_su_weighted_sssp_insert_u512.log",
+        "/data/tmp/chuxiao/spine_sssp_overlap_v6_holdout_hw_20260811/repeat2/su_u512/sssp/dynamic_su_weighted_sssp_insert_u512.log",
+        "/data/tmp/chuxiao/spine_sssp_overlap_v6_holdout_hw_20260811/repeat3/su_u512/sssp/dynamic_su_weighted_sssp_insert_u512.log"
+      ],
+      "role": "holdout",
+      "run_dir": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/holdout_v6_observability/su_u512/spine/weighted_sssp"
+    },
+    {
+      "algorithm": "weighted_sssp",
       "dataset": "su_u64",
       "hardware_logs": [
         "/data/tmp/chuxiao/spine_sssp_overlap_v5_holdout_hw_20260811/repeat1/su_u64/sssp/dynamic_su_weighted_sssp_insert_u64.log",
@@ -117,5 +136,5 @@
     }
   ],
   "schema_version": 1,
-  "status": "partial"
+  "status": "complete"
 }

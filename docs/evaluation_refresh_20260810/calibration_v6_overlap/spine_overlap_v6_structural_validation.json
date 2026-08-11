@@ -71,6 +71,122 @@
         "simulator_hardware_processed_edges_match": true,
         "simulator_hardware_task_count_match": true
       },
+      "dataset": "au_u512",
+      "hardware_iterations_per_run": [
+        9,
+        9,
+        9
+      ],
+      "hardware_observation_scope": "routed Spine KERNEL_PAIR_RESULT counters; G+R routed hosts do not expose equivalent per-round task/edge counters",
+      "hardware_processed_edges_per_iteration_per_run": [
+        [
+          13816,
+          6059,
+          6059,
+          4515,
+          1633,
+          545,
+          220,
+          22,
+          0
+        ],
+        [
+          13816,
+          6059,
+          6059,
+          4515,
+          1633,
+          545,
+          220,
+          22,
+          0
+        ],
+        [
+          13816,
+          6059,
+          6059,
+          4515,
+          1633,
+          545,
+          220,
+          22,
+          0
+        ]
+      ],
+      "hardware_task_count_per_iteration_per_run": [
+        [
+          585,
+          330,
+          1031,
+          980,
+          582,
+          216,
+          82,
+          17,
+          0
+        ],
+        [
+          585,
+          330,
+          1031,
+          980,
+          582,
+          216,
+          82,
+          17,
+          0
+        ],
+        [
+          585,
+          330,
+          1031,
+          980,
+          582,
+          216,
+          82,
+          17,
+          0
+        ]
+      ],
+      "role": "holdout",
+      "simulator_iterations": 9,
+      "simulator_processed_edges_per_iteration": [
+        13816,
+        6059,
+        6059,
+        4515,
+        1633,
+        545,
+        220,
+        22,
+        0
+      ],
+      "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/holdout_v6_observability/au_u512/spine/weighted_sssp/result.json",
+      "simulator_result_sha256": "6630dac0f694cbfe9d1734f671f2161f90f8f1c33f1a22f29f977ee6f3b3fe2a",
+      "simulator_task_count_per_iteration": [
+        585,
+        330,
+        1031,
+        980,
+        582,
+        216,
+        82,
+        17,
+        0
+      ],
+      "status": "PASS"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "architecture": "spine",
+      "checks": {
+        "hardware_runs_repeatable_edges": true,
+        "hardware_runs_repeatable_iterations": true,
+        "hardware_runs_repeatable_tasks": true,
+        "simulator_hardware_iterations_match": true,
+        "simulator_hardware_processed_edges_match": true,
+        "simulator_hardware_task_count_match": true
+      },
       "dataset": "au_u64",
       "hardware_iterations_per_run": [
         5,
@@ -501,6 +617,98 @@
       "simulator_task_count_per_iteration": [
         13,
         2
+      ],
+      "status": "PASS"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "architecture": "spine",
+      "checks": {
+        "hardware_runs_repeatable_edges": true,
+        "hardware_runs_repeatable_iterations": true,
+        "hardware_runs_repeatable_tasks": true,
+        "simulator_hardware_iterations_match": true,
+        "simulator_hardware_processed_edges_match": true,
+        "simulator_hardware_task_count_match": true
+      },
+      "dataset": "su_u512",
+      "hardware_iterations_per_run": [
+        6,
+        6,
+        6
+      ],
+      "hardware_observation_scope": "routed Spine KERNEL_PAIR_RESULT counters; G+R routed hosts do not expose equivalent per-round task/edge counters",
+      "hardware_processed_edges_per_iteration_per_run": [
+        [
+          10712,
+          4435,
+          1053,
+          176,
+          11,
+          8
+        ],
+        [
+          10712,
+          4435,
+          1053,
+          176,
+          11,
+          8
+        ],
+        [
+          10712,
+          4435,
+          1053,
+          176,
+          11,
+          8
+        ]
+      ],
+      "hardware_task_count_per_iteration_per_run": [
+        [
+          332,
+          417,
+          476,
+          84,
+          9,
+          5
+        ],
+        [
+          332,
+          417,
+          476,
+          84,
+          9,
+          5
+        ],
+        [
+          332,
+          417,
+          476,
+          84,
+          9,
+          5
+        ]
+      ],
+      "role": "holdout",
+      "simulator_iterations": 6,
+      "simulator_processed_edges_per_iteration": [
+        10712,
+        4435,
+        1053,
+        176,
+        11,
+        8
+      ],
+      "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/holdout_v6_observability/su_u512/spine/weighted_sssp/result.json",
+      "simulator_result_sha256": "bf1edfffaee404071b6de9fb2de4bfe60c5be7a96352a8f25934b819d7d7cc3a",
+      "simulator_task_count_per_iteration": [
+        332,
+        417,
+        476,
+        84,
+        9,
+        5
       ],
       "status": "PASS"
     },
