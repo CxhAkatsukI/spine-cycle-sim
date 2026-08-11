@@ -63,6 +63,8 @@ cpp/sst/build/sst-owner-compacted-v1/libspine_cycle.so
 
 Its SHA-256 for this checkpoint is
 `6739bd1056b75d86fe825c2208640e64c9a940c4814f59f105eda703285cdb35`.
+The v3 contract requires this same execution image for Spine and G+R.  A row
+from any earlier plugin is rejected even if its correctness status is `PASS`.
 
 ## Audit behavior
 
@@ -101,3 +103,23 @@ python3 scripts/analyze_current_fpga_components.py \
 The final analyzer command is expected to fail closed until all 24 simulator
 rows exist and every calibration/holdout threshold passes.
 
+Run the two bounded-memory matrices with:
+
+```bash
+python3 scripts/run_current_fpga_spine_compacted_matrix.py \
+  --jobs 3 --memory-reserve-gib 64
+
+python3 scripts/run_current_fpga_grasu_frozen_matrix.py \
+  --jobs 3 --memory-reserve-gib 64 \
+  --lib-dir cpp/sst/build/sst-owner-compacted-v1
+```
+
+The runners execute AU/SU/WK with bounded parallelism and R19 sequentially.
+They publish atomically replaced status files at:
+
+```text
+/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/
+  spine_compacted_matrix_status.json
+/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/
+  grasu_unified_plugin_matrix_status.json
+```

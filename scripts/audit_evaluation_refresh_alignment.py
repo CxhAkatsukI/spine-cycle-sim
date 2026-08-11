@@ -99,6 +99,20 @@ def calibration_contract_status(path: Path) -> dict[str, Any]:
             problems.append(f"profile is not hardware validated: {profile_id}")
         profile_ids.append(profile_id)
         expected_pairs.append(f"{architecture}:{algorithm}:{profile_id}")
+    plugin = payload.get("simulator_plugin")
+    if not isinstance(plugin, dict):
+        problems.append("simulator_plugin identity is missing")
+    else:
+        plugin_relpath = plugin.get("path")
+        plugin_sha256 = plugin.get("sha256")
+        if not isinstance(plugin_relpath, str) or not plugin_relpath:
+            problems.append("simulator_plugin path is missing")
+        elif not (ROOT / plugin_relpath).is_file():
+            problems.append(f"missing simulator plugin: {ROOT / plugin_relpath}")
+        elif sha256_file(ROOT / plugin_relpath) != plugin_sha256:
+            problems.append("simulator_plugin hash mismatch")
+        if plugin.get("architectures") != ["spine", "grasu_regraph"]:
+            problems.append("simulator_plugin must freeze both architectures")
     return {
         "valid": not problems,
         "path": str(path),

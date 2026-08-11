@@ -177,6 +177,17 @@ def load_admitted_result(run_dir: Path) -> tuple[dict[str, Any], Path, Path]:
     return result, result_path, manifest_path
 
 
+def evidence_identity(
+    result: dict[str, Any], manifest: dict[str, Any], fields: tuple[str, ...]
+) -> str:
+    for source in (manifest, result):
+        for field in fields:
+            value = source.get(field)
+            if isinstance(value, str) and value:
+                return value
+    raise ValueError(f"simulator evidence does not identify any of {fields}")
+
+
 def median_float(records: Iterable[dict[str, str]], key: str) -> float:
     values = [float(record[key]) for record in records]
     if not values or min(values) < 0:
@@ -469,13 +480,20 @@ def main() -> int:
         raise ValueError("case and calibration contracts must be frozen")
     if cases.get("calibration_contract_id") != contract.get("contract_id"):
         raise ValueError("case manifest and calibration contract disagree")
+    plugin_path = ROOT / contract["simulator_plugin"]["path"]
+    if not plugin_path.is_file() or sha256_file(plugin_path) != contract[
+        "simulator_plugin"
+    ]["sha256"]:
+        raise ValueError("frozen simulator plugin identity mismatch")
     simulation_root = (args.simulation_root or Path(cases["default_simulation_root"])).resolve()
     hardware_root = (args.hardware_root or Path(cases["default_hardware_root"])).resolve()
     clock_mhz = float(cases["clock_mhz"])
-    profiles = {
-        (row["architecture"], row["algorithm"]): row["profile_id"]
+    profile_entries = {
+        (row["architecture"], row["algorithm"]): row
         for row in contract["architecture_profiles"]
     }
+    profiles = {key: row["profile_id"] for key, row in profile_entries.items()}
+    expected_plugin_sha256 = str(contract["simulator_plugin"]["sha256"])
     component_records: list[CurrentFPGAComponentRecord] = []
     component_evidence: list[dict[str, object]] = []
     ledger_rows: list[dict[str, object]] = []
@@ -505,6 +523,29 @@ def main() -> int:
                 )
                 hardware_records = [unique_prefixed_record(path, prefix) for path in logs]
                 profile_id = profiles[(architecture, algorithm)]
+                manifest = read_json(manifest_path)
+                observed_profile_id = evidence_identity(
+                    result, manifest, ("profile_id", "architecture_profile_id")
+                )
+                if observed_profile_id != profile_id:
+                    raise ValueError(
+                        f"profile id mismatch for {architecture}:{algorithm}:{dataset}"
+                    )
+                observed_profile_sha256 = evidence_identity(
+                    result,
+                    manifest,
+                    ("profile_sha256", "architecture_profile_sha256"),
+                )
+                if observed_profile_sha256 != profile_entries[(architecture, algorithm)][
+                    "sha256"
+                ]:
+                    raise ValueError(
+                        f"profile hash mismatch for {architecture}:{algorithm}:{dataset}"
+                    )
+                if manifest.get("sst_plugin_sha256") != expected_plugin_sha256:
+                    raise ValueError(
+                        f"plugin hash mismatch for {architecture}:{algorithm}:{dataset}"
+                    )
                 if architecture == "spine":
                     structural_row = spine_structural_work_row(
                             algorithm,
@@ -540,6 +581,8 @@ def main() -> int:
                         "dataset": dataset,
                         "role": role,
                         "profile_id": profile_id,
+                        "profile_sha256": observed_profile_sha256,
+                        "sst_plugin_sha256": expected_plugin_sha256,
                         "simulator_result": str(result_path.resolve()),
                         "simulator_result_sha256": sha256_file(result_path),
                         "simulator_manifest": str(manifest_path.resolve()),

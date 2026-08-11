@@ -18,8 +18,8 @@
       "hardware_case_suffix": "weighted_sssp_resident",
       "simulation_directory": "weighted_sssp",
       "simulation_directories": {
-        "spine": "weighted_sssp",
-        "grasu_regraph": "weighted_sssp_stridefix"
+        "spine": "weighted_sssp_compacted_hls_v1",
+        "grasu_regraph": "weighted_sssp_unified6739_v1"
       },
       "workload_algorithm": "weighted_sssp",
       "spine_profile_id": "spine_owner_fifo_sssp_hls_v1",
@@ -32,8 +32,8 @@
       "hardware_case_suffix": "connected_components_resident",
       "simulation_directory": "connected_components",
       "simulation_directories": {
-        "spine": "connected_components_tiled_ledger",
-        "grasu_regraph": "connected_components"
+        "spine": "connected_components_compacted_hls_v1",
+        "grasu_regraph": "connected_components_unified6739_v1"
       },
       "workload_algorithm": "connected_components",
       "spine_profile_id": "spine_owner_fifo_cc_hls_v1",
@@ -45,6 +45,10 @@
       "hardware_algorithm": "residual_pagerank",
       "hardware_case_suffix": "residual_pagerank_resident",
       "simulation_directory": "thresholded_residual_pagerank",
+      "simulation_directories": {
+        "spine": "thresholded_residual_pagerank_compacted_hls_v1",
+        "grasu_regraph": "thresholded_residual_pagerank_unified6739_v1"
+      },
       "workload_algorithm": "residual_pagerank",
       "spine_profile_id": "spine_owner_fifo_respr_hls_v1",
       "grasu_regraph_profile_id": "grasu_regraph_sharded_k4_residual_hls_v8",

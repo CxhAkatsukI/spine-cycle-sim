@@ -19,6 +19,15 @@
     "hbm_pseudo_channel_budget": 23,
     "axi_data_width_bits": 512
   },
+  "simulator_plugin": {
+    "path": "cpp/sst/build/sst-owner-compacted-v1/libspine_cycle.so",
+    "sha256": "6739bd1056b75d86fe825c2208640e64c9a940c4814f59f105eda703285cdb35",
+    "architectures": [
+      "spine",
+      "grasu_regraph"
+    ],
+    "policy": "one immutable execution image for all calibration and holdout rows"
+  },
   "architecture_profiles": [
     {
       "architecture": "spine",

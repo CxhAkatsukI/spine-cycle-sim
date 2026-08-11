@@ -25,8 +25,8 @@ from spine_cycle_sim.calibration.current_fpga import (  # noqa: E402
 )
 
 
-DEFAULT_CASES = ROOT / "configs/contracts/evaluation_refresh_fpga_cases_v1.json"
-DEFAULT_CONTRACT = ROOT / "configs/contracts/evaluation_refresh_fpga_calibration_v2.json"
+DEFAULT_CASES = ROOT / "configs/contracts/evaluation_refresh_fpga_cases_v2.json"
+DEFAULT_CONTRACT = ROOT / "configs/contracts/evaluation_refresh_fpga_calibration_v3.json"
 DEFAULT_OUT = ROOT / "docs/evaluation_refresh_20260810/calibration"
 ARCHITECTURES = ("spine", "grasu_regraph")
 
@@ -106,6 +106,15 @@ def profile_id_of(result: dict[str, Any], manifest: dict[str, Any]) -> str:
     raise ValueError("simulator evidence does not identify its architecture profile")
 
 
+def profile_sha256_of(result: dict[str, Any], manifest: dict[str, Any]) -> str:
+    for source in (manifest, result):
+        for field in ("profile_sha256", "architecture_profile_sha256"):
+            value = source.get(field)
+            if isinstance(value, str) and value:
+                return value
+    raise ValueError("simulator evidence does not identify its architecture profile hash")
+
+
 def validate_workload_identity(
     simulation_root: Path,
     dataset: str,
@@ -183,6 +192,7 @@ def collect_total_records(
         (entry["architecture"], entry["algorithm"]): entry
         for entry in contract["architecture_profiles"]
     }
+    expected_plugin_sha256 = str(contract["simulator_plugin"]["sha256"])
     for algorithm, algorithm_spec in cases["algorithms"].items():
         aggregate_path = hardware_root / algorithm_spec["hardware_directory"] / "aggregate_3runs.tsv"
         aggregate_rows = {
@@ -230,6 +240,15 @@ def collect_total_records(
                         f"profile mismatch for {architecture}:{algorithm}:{dataset}: "
                         f"{observed_profile} != {expected_profile}"
                     )
+                observed_profile_sha256 = profile_sha256_of(result, manifest)
+                if observed_profile_sha256 != contract_entry["sha256"]:
+                    raise ValueError(
+                        f"profile hash mismatch for {architecture}:{algorithm}:{dataset}"
+                    )
+                if manifest.get("sst_plugin_sha256") != expected_plugin_sha256:
+                    raise ValueError(
+                        f"plugin hash mismatch for {architecture}:{algorithm}:{dataset}"
+                    )
                 if float(result.get("core_mhz", manifest.get("core_mhz", 0))) != clock_mhz:
                     raise ValueError(f"clock mismatch: {run_dir}")
                 target = cases["timing_targets"][architecture]
@@ -254,6 +273,8 @@ def collect_total_records(
                         "dataset": dataset,
                         "role": role,
                         "profile_id": expected_profile,
+                        "profile_sha256": observed_profile_sha256,
+                        "sst_plugin_sha256": expected_plugin_sha256,
                         "simulator_result": str(result_path.resolve()),
                         "simulator_result_sha256": sha256_file(result_path),
                         "simulator_manifest": str(manifest_path.resolve()) if manifest_path else None,
@@ -316,6 +337,11 @@ def main() -> int:
         raise ValueError("case and calibration contracts must be frozen")
     if cases.get("calibration_contract_id") != contract.get("contract_id"):
         raise ValueError("case manifest and calibration contract disagree")
+    plugin_path = ROOT / contract["simulator_plugin"]["path"]
+    if not plugin_path.is_file() or sha256_file(plugin_path) != contract[
+        "simulator_plugin"
+    ]["sha256"]:
+        raise ValueError("frozen simulator plugin identity mismatch")
     simulation_root = (args.simulation_root or Path(cases["default_simulation_root"])).resolve()
     hardware_root = (args.hardware_root or Path(cases["default_hardware_root"])).resolve()
     records, evidence, missing = collect_total_records(
