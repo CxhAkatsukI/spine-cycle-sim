@@ -18,6 +18,8 @@
   "algorithms": {
     "weighted_sssp": {
       "profile_id": "spine_owner_fifo_sssp_hls_v1",
+      "profile_path": "configs/architectures/spine_owner_fifo_sssp_hls_v1.json",
+      "profile_sha256": "15a530d8626b8fab8e50ea37e571ae6bde9c51273baf734670741dcb55736f6d",
       "iterative_strategy": "fixed_plus_simulator",
       "calibration": ["au", "su", "so", "pk"],
       "development_validation": ["wk", "r19"],
@@ -25,6 +27,8 @@
     },
     "connected_components": {
       "profile_id": "spine_owner_fifo_cc_hls_v1",
+      "profile_path": "configs/architectures/spine_owner_fifo_cc_hls_v1.json",
+      "profile_sha256": "a305753a33454ef2fae4040ffed278f9f152fea3a900039e9c4a8bccceeba02c",
       "iterative_strategy": "fixed_plus_simulator",
       "calibration": ["au", "su", "so", "pk"],
       "development_validation": ["wk", "r19"],
@@ -32,6 +36,8 @@
     },
     "thresholded_residual_pagerank": {
       "profile_id": "spine_owner_fifo_respr_hls_v1",
+      "profile_path": "configs/architectures/spine_owner_fifo_respr_hls_v1.json",
+      "profile_sha256": "6ec5f93ea3b5c9b3ddfcb4fd70583e050456965c561f80d48e12b768499917c6",
       "iterative_strategy": "simulator_scale_only",
       "maintenance_calibration": ["au", "su", "so", "pk", "ask540"],
       "iterative_calibration": ["ask540"],

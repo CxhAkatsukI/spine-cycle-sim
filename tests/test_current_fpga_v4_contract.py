@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 import unittest
 
+from scripts.analyze_current_fpga_spine_composed_v4 import expected_pairs, role_for
+
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT = (
@@ -43,6 +45,29 @@ class CurrentFPGAV4ContractTests(unittest.TestCase):
         self.assertEqual(len(self.contract["simulator_plugin"]["sha256"]), 64)
         self.assertEqual(len(self.contract["simulator_source_revision"]), 40)
         self.assertEqual(len(self.contract["hardware_source_revision"]), 40)
+        for spec in self.contract["algorithms"].values():
+            profile = ROOT / spec["profile_path"]
+            self.assertTrue(profile.is_file())
+            self.assertEqual(len(spec["profile_sha256"]), 64)
+
+    def test_expected_matrix_and_roles_are_unambiguous(self) -> None:
+        pairs = expected_pairs(self.contract)
+        self.assertEqual(len(pairs), 26)
+        self.assertEqual(
+            role_for(self.contract, "weighted_sssp", "lj"), "holdout"
+        )
+        self.assertEqual(
+            role_for(
+                self.contract, "thresholded_residual_pagerank", "ask540"
+            ),
+            "calibration",
+        )
+        self.assertEqual(
+            role_for(
+                self.contract, "thresholded_residual_pagerank", "ask904"
+            ),
+            "holdout",
+        )
 
 
 if __name__ == "__main__":
