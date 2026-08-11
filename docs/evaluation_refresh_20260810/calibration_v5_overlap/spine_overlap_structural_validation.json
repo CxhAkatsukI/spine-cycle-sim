@@ -71,6 +71,90 @@
         "simulator_hardware_processed_edges_match": true,
         "simulator_hardware_task_count_match": true
       },
+      "dataset": "au_u64",
+      "hardware_iterations_per_run": [
+        5,
+        5,
+        5
+      ],
+      "hardware_observation_scope": "routed Spine KERNEL_PAIR_RESULT counters; G+R routed hosts do not expose equivalent per-round task/edge counters",
+      "hardware_processed_edges_per_iteration_per_run": [
+        [
+          2432,
+          139,
+          51,
+          11,
+          1
+        ],
+        [
+          2432,
+          139,
+          51,
+          11,
+          1
+        ],
+        [
+          2432,
+          139,
+          51,
+          11,
+          1
+        ]
+      ],
+      "hardware_task_count_per_iteration_per_run": [
+        [
+          116,
+          27,
+          30,
+          7,
+          1
+        ],
+        [
+          116,
+          27,
+          30,
+          7,
+          1
+        ],
+        [
+          116,
+          27,
+          30,
+          7,
+          1
+        ]
+      ],
+      "role": "holdout",
+      "simulator_iterations": 5,
+      "simulator_processed_edges_per_iteration": [
+        2432,
+        139,
+        51,
+        11,
+        1
+      ],
+      "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/holdout_v5_observability/au_u64/spine/weighted_sssp/result.json",
+      "simulator_result_sha256": "d1ea502489626067ac1cf27021ca2a9d897d6a267c38f59a8eb7b11db4fcdcd1",
+      "simulator_task_count_per_iteration": [
+        116,
+        27,
+        30,
+        7,
+        1
+      ],
+      "status": "PASS"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "architecture": "spine",
+      "checks": {
+        "hardware_runs_repeatable_edges": true,
+        "hardware_runs_repeatable_iterations": true,
+        "hardware_runs_repeatable_tasks": true,
+        "simulator_hardware_iterations_match": true,
+        "simulator_hardware_processed_edges_match": true,
+        "simulator_hardware_task_count_match": true
+      },
       "dataset": "lj",
       "hardware_iterations_per_run": [
         3,
@@ -417,6 +501,82 @@
       "simulator_task_count_per_iteration": [
         13,
         2
+      ],
+      "status": "PASS"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "architecture": "spine",
+      "checks": {
+        "hardware_runs_repeatable_edges": true,
+        "hardware_runs_repeatable_iterations": true,
+        "hardware_runs_repeatable_tasks": true,
+        "simulator_hardware_iterations_match": true,
+        "simulator_hardware_processed_edges_match": true,
+        "simulator_hardware_task_count_match": true
+      },
+      "dataset": "su_u64",
+      "hardware_iterations_per_run": [
+        4,
+        4,
+        4
+      ],
+      "hardware_observation_scope": "routed Spine KERNEL_PAIR_RESULT counters; G+R routed hosts do not expose equivalent per-round task/edge counters",
+      "hardware_processed_edges_per_iteration_per_run": [
+        [
+          4379,
+          510,
+          31,
+          0
+        ],
+        [
+          4379,
+          510,
+          31,
+          0
+        ],
+        [
+          4379,
+          510,
+          31,
+          0
+        ]
+      ],
+      "hardware_task_count_per_iteration_per_run": [
+        [
+          118,
+          34,
+          24,
+          0
+        ],
+        [
+          118,
+          34,
+          24,
+          0
+        ],
+        [
+          118,
+          34,
+          24,
+          0
+        ]
+      ],
+      "role": "holdout",
+      "simulator_iterations": 4,
+      "simulator_processed_edges_per_iteration": [
+        4379,
+        510,
+        31,
+        0
+      ],
+      "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/holdout_v5_observability/su_u64/spine/weighted_sssp/result.json",
+      "simulator_result_sha256": "8cf5dbd34b78d11b88db147bf8bb262bc0e1417321b9aaf65882cb0741b215e3",
+      "simulator_task_count_per_iteration": [
+        118,
+        34,
+        24,
+        0
       ],
       "status": "PASS"
     },

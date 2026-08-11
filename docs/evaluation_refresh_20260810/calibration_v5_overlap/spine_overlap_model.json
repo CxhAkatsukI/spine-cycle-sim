@@ -23,5 +23,5 @@
     "reader_vertex_cycles": 0.16910105407748657,
     "span_residual_cycles_per_iteration": 3271.790322580621
   },
-  "status": "INCOMPLETE"
+  "status": "FAIL"
 }
