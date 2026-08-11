@@ -24,6 +24,7 @@ struct SpinePageRankCounters {
   std::uint64_t source_responses{};
   std::uint64_t source_protocol_markers{};
   std::uint64_t source_protocol_acks{};
+  std::uint64_t source_completion_markers{};
   std::uint32_t source_protocol_status{};
   std::uint32_t source_count{};
   std::uint64_t source_map_operations{};
@@ -36,7 +37,19 @@ struct SpinePageRankCounters {
   std::uint64_t vertices_activated{};
   std::uint64_t owner_activation_attempts{};
   std::uint64_t owner_activations_accepted{};
+  std::uint64_t owner_activations_coalesced{};
   std::uint64_t owner_activation_backpressure_cycles{};
+  std::uint64_t owner_round_begins{};
+  std::uint64_t owner_round_finalizes{};
+  std::uint64_t owner_source_dispatches{};
+  std::uint64_t owner_source_completions{};
+  std::uint64_t owner_activation_words{};
+  std::uint64_t owner_hbm_requests_generated{};
+  std::uint64_t owner_hbm_requests_completed{};
+  std::uint64_t owner_hbm_read_requests{};
+  std::uint64_t owner_hbm_write_requests{};
+  std::uint64_t owner_hbm_read_bytes{};
+  std::uint64_t owner_hbm_write_bytes{};
   std::uint64_t primary_read_bytes{};
   std::uint64_t primary_write_bytes{};
   std::uint64_t auxiliary_read_bytes{};
@@ -61,7 +74,7 @@ class SpineSplitPageRankCompute final : public Component {
   SpineSplitPageRankCompute(
       std::string name, ClockId clock_id, GraphAlgorithmPolicy policy,
       std::vector<std::uint32_t> out_degrees, FixedAxiPort &vertex_state,
-      FixedAxiPort *active_out,
+      FixedAxiPort *active_out, FixedAxiPort *owner_state,
       Fifo<PartConvWord> &edge_in, Fifo<SourceValueWord> &value_out,
       AlgorithmPipelineConfig pipeline_config = {},
       std::size_t memory_request_window = kDefaultMemoryRequestWindow,
@@ -123,6 +136,7 @@ class SpineSplitPageRankCompute final : public Component {
     kSourceStateWriteWait,
     kSourceReply,
     kApplyTile,
+    kOwnerProtocol,
     kFinish,
   };
 
@@ -137,6 +151,16 @@ class SpineSplitPageRankCompute final : public Component {
     kApplyPrimaryWrite,
     kApplyAuxiliaryWrite,
     kActiveOutputWrite,
+    kOwnerProtocol,
+  };
+
+  enum class OwnerProtocolKind {
+    kNone,
+    kBeginRound,
+    kDispatchSource,
+    kCompleteSource,
+    kActivateWord,
+    kFinalizeRound,
   };
 
   struct MemoryTask {
@@ -165,6 +189,7 @@ class SpineSplitPageRankCompute final : public Component {
     kSourceCount,
     kSourceGeneration,
     kSourceDone,
+    kSourceCompletion,
     kDeferActiveBegin,
     kTileBegin,
     kEdge,
@@ -191,12 +216,19 @@ class SpineSplitPageRankCompute final : public Component {
   [[nodiscard]] bool algorithm_queues_drained() const noexcept;
   [[nodiscard]] bool tile_apply_drained() const noexcept;
   void set_protocol_status(SpineSourceProtocolStatus status);
+  void begin_owner_protocol(OwnerProtocolKind kind, std::uint32_t subject,
+                            Phase return_phase);
+  void advance_owner_protocol();
+  [[nodiscard]] std::size_t owner_protocol_length() const;
+  void enqueue_owner_protocol_operation(std::size_t index);
+  void enqueue_source_state_reads();
 
   GraphAlgorithmPolicy policy_;
   std::size_t vertices_{};
   std::size_t tile_vertices_{};
   FixedAxiPort &vertex_state_;
   FixedAxiPort *active_out_{};
+  FixedAxiPort *owner_state_{};
   Fifo<PartConvWord> &edge_in_;
   Fifo<SourceValueWord> &value_out_;
   SpineOwnerScheduler *owner_scheduler_{};
@@ -226,6 +258,7 @@ class SpineSplitPageRankCompute final : public Component {
   std::unordered_map<std::uint64_t, EdgeReduction> edge_reductions_;
   std::unordered_map<std::uint64_t, std::uint32_t> apply_transactions_;
   std::unordered_set<std::uint32_t> pending_destinations_;
+  std::unordered_set<std::uint32_t> owner_activation_words_seen_;
   std::deque<ReadyApply> ready_apply_;
 
   Phase phase_{Phase::kInput};
@@ -244,6 +277,12 @@ class SpineSplitPageRankCompute final : public Component {
   bool staged_value_push_{};
   bool staged_apply_tile_complete_{};
   bool staged_owner_activation_{};
+  bool staged_owner_publication_{};
+  bool staged_owner_dispatch_{};
+  bool staged_owner_completion_{};
+  std::optional<std::uint32_t> staged_owner_activation_word_;
+  bool staged_owner_finalize_{};
+  bool staged_owner_advance_{};
   bool staged_done_{};
   SourceValueWord staged_value_word_;
 
@@ -265,12 +304,19 @@ class SpineSplitPageRankCompute final : public Component {
   std::size_t apply_operations_completed_{};
   std::size_t apply_writes_completed_{};
   float iteration_error_{};
+  Phase owner_protocol_return_phase_{Phase::kInput};
+  OwnerProtocolKind owner_protocol_kind_{OwnerProtocolKind::kNone};
+  std::size_t owner_protocol_index_{};
+  std::uint32_t owner_protocol_subject_{};
   bool source_count_seen_{};
   bool source_generation_seen_{};
   bool deferred_active_seen_{};
   bool source_ack_pending_{};
   bool tile_open_{};
   bool reader_done_seen_{};
+  bool owner_protocol_request_pending_{};
+  bool owner_round_started_{};
+  bool owner_seed_epoch_{};
   bool registered_{};
   const bool *initial_start_gate_{};
   bool done_{};

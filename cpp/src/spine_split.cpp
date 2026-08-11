@@ -14,6 +14,19 @@ namespace spine::sim {
 
 namespace {
 
+constexpr std::uint64_t kOwnerWordBytes = sizeof(std::uint64_t);
+constexpr std::uint64_t kOwnerBitmapWords = 16'777'216ULL / 64ULL;
+constexpr std::uint64_t kOwnerControlBase = 5ULL * kOwnerBitmapWords;
+
+constexpr std::uint64_t owner_region_address(std::uint64_t region,
+                                             std::uint64_t word) {
+  return (region * kOwnerBitmapWords + word) * kOwnerWordBytes;
+}
+
+constexpr std::uint64_t owner_control_address(std::uint64_t field) {
+  return (kOwnerControlBase + field) * kOwnerWordBytes;
+}
+
 constexpr std::uint64_t kActiveRecordBytes = 32;
 constexpr std::uint64_t kMetadataWordBytes = 8;
 constexpr std::uint64_t kVertexWordBytes = 4;
@@ -349,6 +362,7 @@ void SpineSplitReader::reset_state() {
   source_window_begin_ = 0;
   source_window_end_ = 0;
   diagnostic_index_ = 0;
+  source_completion_index_ = 0;
   fallback_partition_ = 0;
   fallback_shard_ = 0;
   fallback_record_index_ = 0;
@@ -475,7 +489,8 @@ void SpineSplitReader::evaluate(const CycleContext &) {
       phase_ == Phase::kEdgeEmit || phase_ == Phase::kTileEnd ||
       phase_ == Phase::kFallbackTileBegin ||
       phase_ == Phase::kFallbackEdgeEmit || phase_ == Phase::kFallbackTileEnd ||
-      phase_ == Phase::kDiagnostic || phase_ == Phase::kDone) {
+      phase_ == Phase::kDiagnostic ||
+      phase_ == Phase::kSourceCompletion || phase_ == Phase::kDone) {
     staged_stream_word_ = current_stream_word();
     if (edge_out_.try_push(staged_stream_word_)) {
       staged_action_ = Action::kPush;
@@ -640,8 +655,20 @@ void SpineSplitReader::commit(const CycleContext &context) {
         case Phase::kDiagnostic:
           ++counters_.diagnostic_words;
           ++diagnostic_index_;
-          if (diagnostic_index_ == kSpineReaderDiagnosticWords) {
+          if (diagnostic_index_ == 8 && device_source_mode() &&
+              !terminal_overflow_ && counters_.range_task_error == 0 &&
+              !active_sources_.empty()) {
+            source_completion_index_ = 0;
+            phase_ = Phase::kSourceCompletion;
+          } else if (diagnostic_index_ == kSpineReaderDiagnosticWords) {
             phase_ = Phase::kDone;
+          }
+          break;
+        case Phase::kSourceCompletion:
+          ++counters_.source_completion_markers;
+          ++source_completion_index_;
+          if (source_completion_index_ == active_sources_.size()) {
+            phase_ = Phase::kDiagnostic;
           }
           break;
         case Phase::kDone:
@@ -3134,6 +3161,7 @@ void SpineSplitReader::begin_terminal(bool overflow, std::string failure) {
   terminal_failed_ = overflow || !failure.empty();
   failure_ = std::move(failure);
   diagnostic_index_ = 0;
+  source_completion_index_ = 0;
   counters_.dirty_count = static_cast<std::uint32_t>(dirty_count_);
   counters_.dirty_generation = dirty_generation_;
   counters_.dirty_hash_sum = dirty_hash_sum_;
@@ -3337,6 +3365,11 @@ PartConvWord SpineSplitReader::current_stream_word() const {
                         .first = fallback_tile_base()};
   case Phase::kDiagnostic:
       return current_diagnostic_word();
+    case Phase::kSourceCompletion:
+      return PartConvWord{
+          .kind = PartConvWordKind::kSourceCompletion,
+          .first = active_sources_.at(source_completion_index_),
+      };
     case Phase::kDone:
       return PartConvWord{.kind = PartConvWordKind::kDoneAll,
                           .second = terminal_overflow_ ? 1U : 0U};
@@ -3852,6 +3885,7 @@ void SpineSplitReader::advance(const CycleContext &context) {
     case Phase::kSendSourceGeneration:
     case Phase::kSendSourceDone:
     case Phase::kWaitSourceAck:
+    case Phase::kSourceCompletion:
     case Phase::kTileBegin:
     case Phase::kEdgeEmit:
     case Phase::kTileEnd:
@@ -3970,6 +4004,8 @@ SpineSplitSsspCompute::SpineSplitSsspCompute(
                   static_cast<std::ptrdiff_t>(vertex * kVertexWordBytes));
   }
   ports_.vertex_state->initialize_payload(0, vertex_payload);
+  owner_seed_epoch_ =
+      owner_scheduler_ != nullptr && owner_scheduler_->work_credits() == 0;
 }
 
 bool SpineSplitSsspCompute::recoverable_host_handoff() const noexcept {
@@ -4010,6 +4046,14 @@ void SpineSplitSsspCompute::reset_round() {
   source_count_seen_ = false;
   source_generation_seen_ = false;
   source_protocol_overflow_ = false;
+  owner_protocol_kind_ = OwnerProtocolKind::kNone;
+  owner_protocol_return_phase_ = Phase::kInput;
+  owner_protocol_index_ = 0;
+  owner_protocol_subject_ = 0;
+  owner_protocol_request_pending_ = false;
+  owner_seed_epoch_ =
+      owner_scheduler_ != nullptr && owner_scheduler_->work_credits() == 0;
+  owner_round_started_ = false;
   deferred_active_ = false;
   deferred_active_word_index_ = 0;
   deferred_bitmap_chunk_.fill(0);
@@ -4065,6 +4109,9 @@ void SpineSplitSsspCompute::evaluate(const CycleContext &context) {
   staged_memory_issue_ = false;
   staged_full_tile_read_beat_valid_ = false;
   staged_owner_activation_ = false;
+  staged_owner_publication_ = false;
+  staged_owner_dispatch_ = false;
+  staged_owner_completion_ = false;
   staged_responses_.clear();
   if (done_ || failed_) {
     return;
@@ -4176,6 +4223,30 @@ void SpineSplitSsspCompute::evaluate(const CycleContext &context) {
       ++counters_.owner_activation_attempts;
       staged_owner_activation_ = owner_scheduler_->try_activate(request.vertex);
       if (!staged_owner_activation_) {
+        ++counters_.owner_activation_backpressure_cycles;
+        return;
+      }
+      staged_owner_publication_ =
+          owner_scheduler_->activation_will_publish(request.vertex);
+    }
+  }
+  if (phase_ == Phase::kOwnerProtocol &&
+      owner_protocol_index_ == owner_protocol_length() &&
+      !owner_protocol_request_pending_) {
+    if (owner_protocol_kind_ == OwnerProtocolKind::kDispatchSource) {
+      staged_owner_dispatch_ =
+          owner_scheduler_ != nullptr &&
+          owner_scheduler_->try_dispatch_source(owner_protocol_subject_,
+                                                owner_seed_epoch_);
+      if (!staged_owner_dispatch_) {
+        ++counters_.owner_activation_backpressure_cycles;
+        return;
+      }
+    } else if (owner_protocol_kind_ == OwnerProtocolKind::kCompleteSource) {
+      staged_owner_completion_ =
+          owner_scheduler_ != nullptr &&
+          owner_scheduler_->try_complete(owner_protocol_subject_);
+      if (!staged_owner_completion_) {
         ++counters_.owner_activation_backpressure_cycles;
         return;
       }
@@ -4308,6 +4379,16 @@ void SpineSplitSsspCompute::enqueue_memory(
     counters_.bitmap_bytes += bytes;
   } else if (&port == ports_.result) {
     counters_.result_write_bytes += bytes;
+  }
+  if (payload_kind == MemoryPayloadKind::kOwnerProtocol) {
+    ++counters_.owner_hbm_requests_generated;
+    if (operation == MemoryOperation::kRead) {
+      ++counters_.owner_hbm_read_requests;
+      counters_.owner_hbm_read_bytes += bytes;
+    } else {
+      ++counters_.owner_hbm_write_requests;
+      counters_.owner_hbm_write_bytes += bytes;
+    }
   }
 }
 
@@ -4474,6 +4555,14 @@ void SpineSplitSsspCompute::consume_full_tile_read_beat(
 
 void SpineSplitSsspCompute::consume_memory_response(
     const MemoryTask &task, const AxiResponse &response) {
+  if (task.payload_kind == MemoryPayloadKind::kOwnerProtocol) {
+    if (!owner_protocol_request_pending_) {
+      throw std::logic_error(
+          "Spine owner-HBM response has no dependent request");
+    }
+    owner_protocol_request_pending_ = false;
+    ++counters_.owner_hbm_requests_completed;
+  }
   if (task.operation == MemoryOperation::kWrite) {
     if (!response.read_data.empty()) {
       throw std::logic_error("Spine compute write response carried payload");
@@ -4484,6 +4573,9 @@ void SpineSplitSsspCompute::consume_memory_response(
     throw std::logic_error("Spine compute read response payload size mismatch");
   }
   if (task.payload_kind == MemoryPayloadKind::kNone) {
+    return;
+  }
+  if (task.payload_kind == MemoryPayloadKind::kOwnerProtocol) {
     return;
   }
   if (task.port == ports_.vertex_state) {
@@ -4584,10 +4676,17 @@ void SpineSplitSsspCompute::handle_edge_word(const PartConvWord &word,
         phase_ = Phase::kSourceReply;
         return;
       }
-      enqueue_memory(*ports_.vertex_state, MemoryOperation::kRead,
-                     pending_source_ * kVertexWordBytes, kVertexWordBytes, {},
-                     MemoryPayloadKind::kSourceValue);
-      phase_ = Phase::kSourceRead;
+      if (owner_scheduler_ != nullptr) {
+        begin_owner_protocol(
+            owner_round_started_ ? OwnerProtocolKind::kDispatchSource
+                                 : OwnerProtocolKind::kBeginRound,
+            pending_source_, Phase::kSourceRead);
+      } else {
+        enqueue_memory(*ports_.vertex_state, MemoryOperation::kRead,
+                       pending_source_ * kVertexWordBytes, kVertexWordBytes, {},
+                       MemoryPayloadKind::kSourceValue);
+        phase_ = Phase::kSourceRead;
+      }
       return;
     case PartConvWordKind::kSourceCount:
       ++counters_.source_protocol_markers;
@@ -4596,7 +4695,12 @@ void SpineSplitSsspCompute::handle_edge_word(const PartConvWord &word,
       }
       source_count_seen_ = true;
       counters_.source_count = word.first;
-      phase_ = Phase::kInput;
+      if (owner_scheduler_ != nullptr && !owner_round_started_) {
+        begin_owner_protocol(OwnerProtocolKind::kBeginRound, 0,
+                             Phase::kInput);
+      } else {
+        phase_ = Phase::kInput;
+      }
       return;
     case PartConvWordKind::kSourceGeneration:
       ++counters_.source_protocol_markers;
@@ -4634,6 +4738,19 @@ void SpineSplitSsspCompute::handle_edge_word(const PartConvWord &word,
       deferred_active_word_index_ = 0;
       ++counters_.deferred_active_markers;
       phase_ = Phase::kDeferredActiveClear;
+      return;
+    case PartConvWordKind::kSourceCompletion:
+      ++counters_.source_completion_markers;
+      if (word.first >= vertices_) {
+        set_protocol_status(SpineSourceProtocolStatus::kSourceBounds);
+        source_protocol_overflow_ = true;
+        phase_ = Phase::kInput;
+      } else if (owner_scheduler_ != nullptr) {
+        begin_owner_protocol(OwnerProtocolKind::kCompleteSource, word.first,
+                             Phase::kInput);
+      } else {
+        phase_ = Phase::kInput;
+      }
       return;
     case PartConvWordKind::kDiagnostic:
       ++counters_.diagnostic_words;
@@ -4755,6 +4872,11 @@ void SpineSplitSsspCompute::handle_edge_word(const PartConvWord &word,
       counters_.done_overflow = (word.second & 1U) != 0;
       source_protocol_overflow_ =
           source_protocol_overflow_ || counters_.done_overflow;
+      if (counters_.source_completion_markers != 0 &&
+          counters_.source_completion_markers != counters_.source_requests) {
+        set_protocol_status(SpineSourceProtocolStatus::kCount);
+        source_protocol_overflow_ = true;
+      }
       if (deferred_active_) {
         if (source_protocol_overflow_) {
           deferred_active_word_index_ = 0;
@@ -4762,6 +4884,9 @@ void SpineSplitSsspCompute::handle_edge_word(const PartConvWord &word,
         } else {
           begin_deferred_sweep();
         }
+      } else if (owner_scheduler_ != nullptr && owner_round_started_) {
+        begin_owner_protocol(OwnerProtocolKind::kFinalizeRound, 0,
+                             Phase::kFinish);
       } else {
         enqueue_memory(*ports_.result, MemoryOperation::kWrite, 0, kResultBytes,
                        std::vector<std::uint8_t>(kResultBytes, 0));
@@ -4905,7 +5030,7 @@ void SpineSplitSsspCompute::complete_relax(const PendingVsRead &request) {
     if (std::find(changed_vertices_.begin(), changed_vertices_.end(),
                   request.vertex) == changed_vertices_.end()) {
       changed_vertices_.push_back(request.vertex);
-      if (!deferred_active_) {
+      if (!deferred_active_ && owner_scheduler_ == nullptr) {
         next_active_.push_back(request.vertex);
       }
     }
@@ -4944,9 +5069,16 @@ void SpineSplitSsspCompute::advance_on_chip_pipelines(
           count_on_chip_pipeline_stall(context.domain_cycle);
           return;
         }
-        enqueue_active_output(request.vertex);
         if (owner_scheduler_ != nullptr) {
-          ++counters_.owner_activations_accepted;
+          if (staged_owner_publication_) {
+            enqueue_active_output(request.vertex);
+            next_active_.push_back(request.vertex);
+            ++counters_.owner_activations_accepted;
+          } else {
+            ++counters_.owner_activations_coalesced;
+          }
+        } else {
+          enqueue_active_output(request.vertex);
         }
       }
       pending_vs_reads_.pop_front();
@@ -4996,7 +5128,7 @@ void SpineSplitSsspCompute::sort_changed_vertices_for_emit() {
     return;
   }
   std::sort(changed_vertices_.begin(), changed_vertices_.end());
-  if (!deferred_active_) {
+  if (!deferred_active_ && owner_scheduler_ == nullptr) {
     const std::size_t active_base =
         next_active_.size() - changed_vertices_.size();
     std::copy(changed_vertices_.begin(), changed_vertices_.end(),
@@ -5089,7 +5221,10 @@ void SpineSplitSsspCompute::begin_sparse_store_scan() {
 void SpineSplitSsspCompute::begin_active_emit_scan() {
   active_word_index_ = 0;
   active_bit_index_ = 0;
-  active_output_base_ = next_active_.size() - changed_vertices_.size();
+  active_output_base_ =
+      owner_scheduler_ == nullptr
+          ? next_active_.size() - changed_vertices_.size()
+          : next_active_.size();
   active_output_index_ = 0;
   active_scan_bits_ = 0;
   active_read_pending_ = false;
@@ -5170,6 +5305,9 @@ void SpineSplitSsspCompute::advance(const CycleContext &context) {
   switch (phase_) {
     case Phase::kReinitialize:
       phase_ = Phase::kInput;
+      return;
+    case Phase::kOwnerProtocol:
+      advance_owner_protocol();
       return;
     case Phase::kSourceRead:
       source_reply_pending_ = true;
@@ -5383,7 +5521,14 @@ void SpineSplitSsspCompute::advance(const CycleContext &context) {
       ++counters_.active_bram_write_requests;
       if (active_scan_bits_ != 0) {
         active_bit_index_ = 0;
-        phase_ = Phase::kEmitActiveBits;
+        if (owner_scheduler_ != nullptr) {
+          const std::uint32_t global_word = static_cast<std::uint32_t>(
+              tile_base_ / kActiveWordBits + active_word_index_);
+          begin_owner_protocol(OwnerProtocolKind::kActivateWord, global_word,
+                               Phase::kEmitActiveBits);
+        } else {
+          phase_ = Phase::kEmitActiveBits;
+        }
       } else {
         ++active_word_index_;
       }
@@ -5411,7 +5556,8 @@ void SpineSplitSsspCompute::advance(const CycleContext &context) {
       if (!pending_vs_reads_.empty()) {
         return;
       }
-      if (active_output_index_ != changed_vertices_.size()) {
+      if (owner_scheduler_ == nullptr &&
+          active_output_index_ != changed_vertices_.size()) {
         failed_ = true;
         done_ = true;
         return;
@@ -5590,6 +5736,177 @@ void SpineSplitSsspCompute::advance(const CycleContext &context) {
     case Phase::kInput:
       return;
   }
+}
+
+void SpineSplitSsspCompute::begin_owner_protocol(OwnerProtocolKind kind,
+                                                 std::uint32_t subject,
+                                                 Phase return_phase) {
+  if (owner_scheduler_ == nullptr || kind == OwnerProtocolKind::kNone ||
+      owner_protocol_kind_ != OwnerProtocolKind::kNone ||
+      !memory_tasks_.empty() || !inflight_memory_tasks_.empty()) {
+    throw std::logic_error("invalid overlapping Spine owner-HBM protocol");
+  }
+  owner_protocol_kind_ = kind;
+  owner_protocol_subject_ = subject;
+  owner_protocol_return_phase_ = return_phase;
+  owner_protocol_index_ = 0;
+  owner_protocol_request_pending_ = false;
+  phase_ = Phase::kOwnerProtocol;
+}
+
+std::size_t SpineSplitSsspCompute::owner_protocol_length() const {
+  switch (owner_protocol_kind_) {
+    case OwnerProtocolKind::kBeginRound:
+      return 2;
+    case OwnerProtocolKind::kDispatchSource:
+      return 7;
+    case OwnerProtocolKind::kCompleteSource:
+      return 6;
+    case OwnerProtocolKind::kActivateWord:
+      return 8;
+    case OwnerProtocolKind::kFinalizeRound:
+      return 9;
+    case OwnerProtocolKind::kNone:
+      return 0;
+  }
+  throw std::logic_error("unknown Spine owner-HBM protocol kind");
+}
+
+void SpineSplitSsspCompute::enqueue_owner_protocol_operation(
+    std::size_t index) {
+  const std::uint64_t word = owner_protocol_subject_ >> 6;
+  const auto read = [this](std::uint64_t address) {
+    enqueue_memory(*ports_.active_bitmap, MemoryOperation::kRead, address,
+                   kOwnerWordBytes, {}, MemoryPayloadKind::kOwnerProtocol);
+  };
+  const auto write = [this](std::uint64_t address) {
+    enqueue_memory(*ports_.active_bitmap, MemoryOperation::kWrite, address,
+                   kOwnerWordBytes,
+                   std::vector<std::uint8_t>(kOwnerWordBytes, 0),
+                   MemoryPayloadKind::kOwnerProtocol);
+  };
+  switch (owner_protocol_kind_) {
+    case OwnerProtocolKind::kBeginRound:
+      read(owner_control_address(index == 0 ? 0 : 2));
+      return;
+    case OwnerProtocolKind::kDispatchSource:
+      switch (index) {
+        case 0: read(owner_control_address(0)); return;
+        case 1: read(owner_control_address(1)); return;
+        case 2: read(owner_region_address(4, word)); return;
+        case 3: read(owner_region_address(1, word)); return;
+        case 4: read(owner_region_address(2, word)); return;
+        case 5: write(owner_region_address(1, word)); return;
+        case 6: write(owner_region_address(2, word)); return;
+      }
+      break;
+    case OwnerProtocolKind::kCompleteSource:
+      if (index < 3) {
+        read(owner_region_address(1 + index, word));
+      } else {
+        write(owner_region_address(index - 2, word));
+      }
+      return;
+    case OwnerProtocolKind::kActivateWord:
+      switch (index) {
+        case 0: read(owner_control_address(0)); return;
+        case 1: read(owner_control_address(1)); return;
+        case 2: read(owner_region_address(4, owner_protocol_subject_)); return;
+        case 3: read(owner_region_address(1, owner_protocol_subject_)); return;
+        case 4: read(owner_region_address(2, owner_protocol_subject_)); return;
+        case 5: read(owner_region_address(3, owner_protocol_subject_)); return;
+        case 6: write(owner_region_address(3, owner_protocol_subject_)); return;
+        case 7: write(owner_region_address(1, owner_protocol_subject_)); return;
+      }
+      break;
+    case OwnerProtocolKind::kFinalizeRound:
+      switch (index) {
+        case 0: write(owner_control_address(2)); return;
+        case 1: read(owner_control_address(3)); return;
+        case 2: read(owner_control_address(4)); return;
+        case 3: read(owner_control_address(5)); return;
+        case 4: write(owner_control_address(3)); return;
+        case 5: write(owner_control_address(4)); return;
+        case 6: write(owner_control_address(5)); return;
+        case 7: write(owner_control_address(6)); return;
+        case 8: write(owner_control_address(7)); return;
+      }
+      break;
+    case OwnerProtocolKind::kNone:
+      break;
+  }
+  throw std::logic_error("Spine owner-HBM protocol index is out of range");
+}
+
+void SpineSplitSsspCompute::advance_owner_protocol() {
+  if (owner_protocol_request_pending_) {
+    return;
+  }
+  if (owner_protocol_index_ < owner_protocol_length()) {
+    enqueue_owner_protocol_operation(owner_protocol_index_++);
+    owner_protocol_request_pending_ = true;
+    return;
+  }
+  const OwnerProtocolKind completed = owner_protocol_kind_;
+  const std::uint32_t subject = owner_protocol_subject_;
+  const Phase return_phase = owner_protocol_return_phase_;
+  owner_protocol_kind_ = OwnerProtocolKind::kNone;
+  owner_protocol_index_ = 0;
+  switch (completed) {
+    case OwnerProtocolKind::kBeginRound:
+      owner_seed_epoch_ = owner_scheduler_->work_credits() == 0;
+      owner_round_started_ = true;
+      ++counters_.owner_round_begins;
+      if (return_phase == Phase::kSourceRead) {
+        begin_owner_protocol(OwnerProtocolKind::kDispatchSource, subject,
+                             Phase::kSourceRead);
+      } else {
+        phase_ = return_phase;
+      }
+      return;
+    case OwnerProtocolKind::kDispatchSource:
+      if (!staged_owner_dispatch_) {
+        throw std::logic_error(
+            "Spine owner-HBM source dispatch lacked logical ownership");
+      }
+      ++counters_.owner_source_dispatches;
+      enqueue_memory(*ports_.vertex_state, MemoryOperation::kRead,
+                     pending_source_ * kVertexWordBytes, kVertexWordBytes, {},
+                     MemoryPayloadKind::kSourceValue);
+      phase_ = Phase::kSourceRead;
+      return;
+    case OwnerProtocolKind::kCompleteSource:
+      if (!staged_owner_completion_) {
+        throw std::logic_error(
+            "Spine owner-HBM completion lacked logical owner retirement");
+      }
+      ++counters_.owner_source_completions;
+      phase_ = return_phase;
+      return;
+    case OwnerProtocolKind::kActivateWord:
+      ++counters_.owner_activation_words;
+      phase_ = return_phase;
+      return;
+    case OwnerProtocolKind::kFinalizeRound:
+      if (counters_.owner_source_dispatches !=
+              counters_.owner_source_completions ||
+          owner_scheduler_->work_credits() != next_active_.size() ||
+          !owner_scheduler_->ledger_closed()) {
+        failed_ = true;
+        owner_round_started_ = false;
+        phase_ = return_phase;
+        return;
+      }
+      ++counters_.owner_round_finalizes;
+      owner_round_started_ = false;
+      enqueue_memory(*ports_.result, MemoryOperation::kWrite, 0, kResultBytes,
+                     std::vector<std::uint8_t>(kResultBytes, 0));
+      phase_ = return_phase;
+      return;
+    case OwnerProtocolKind::kNone:
+      break;
+  }
+  throw std::logic_error("Spine owner-HBM protocol completed without a kind");
 }
 
 }  // namespace spine::sim

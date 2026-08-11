@@ -35,6 +35,7 @@ struct SpineOwnerSchedulerStats {
   std::uint64_t reactivations{};
   std::uint64_t coalesced_activations{};
   std::uint64_t activation_backpressure_cycles{};
+  std::uint64_t seed_dispatches{};
   std::uint64_t dispatches{};
   std::uint64_t completions{};
   std::uint64_t reactivation_requeues{};
@@ -91,6 +92,8 @@ class SpineOwnerScheduler final : public Component {
   [[nodiscard]] bool ledger_closed() const noexcept;
 
   bool try_activate(std::uint32_t key);
+  [[nodiscard]] bool activation_will_publish(std::uint32_t key) const noexcept;
+  bool try_dispatch_source(std::uint32_t key, bool seed_epoch);
   bool try_dispatch(std::size_t partition, std::uint32_t &key);
   bool try_complete(std::uint32_t key);
 
@@ -99,7 +102,7 @@ class SpineOwnerScheduler final : public Component {
 
  private:
   enum class ActivationAction { kInitial, kReactivation, kCoalesced };
-  enum class DispatchSource { kOwnerFifo, kReadyList };
+  enum class DispatchSource { kOwnerFifo, kReadyList, kSeedEpoch };
 
   struct StagedActivation {
     std::uint32_t key{};
@@ -146,7 +149,8 @@ class SpineOwnerFrontierController final : public Component {
   SpineOwnerFrontierController(std::string name, ClockId clock_id,
                                SpineOwnerScheduler &owner,
                                std::vector<std::uint32_t> initial_frontier,
-                               const bool *payload_ready = nullptr);
+                               const bool *payload_ready = nullptr,
+                               bool kernel_owned_protocol = false);
 
   void restart(std::vector<std::uint32_t> completed_frontier,
                std::vector<std::uint32_t> next_frontier,
@@ -173,6 +177,7 @@ class SpineOwnerFrontierController final : public Component {
 
   SpineOwnerScheduler &owner_;
   const bool *payload_ready_{};
+  bool kernel_owned_protocol_{};
   SpineOwnerFrontierStats stats_;
   std::vector<std::uint32_t> completed_frontier_;
   std::vector<std::uint32_t> next_frontier_;

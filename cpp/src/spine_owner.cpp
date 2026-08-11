@@ -151,6 +151,10 @@ bool SpineOwnerScheduler::try_activate(std::uint32_t key) {
     if (owner_queues_[partition].size() +
             reserved_owner_enqueues(partition) >=
         config_.owner_fifo_depth) {
+      if (!staged_publications_[partition].has_value() &&
+          !owner_queues_[partition].empty()) {
+        staged_publications_[partition] = owner_queues_[partition].front();
+      }
       ++stats_.owner_fifo_backpressure_cycles;
       ++stats_.activation_backpressure_cycles;
       return false;
@@ -162,6 +166,11 @@ bool SpineOwnerScheduler::try_activate(std::uint32_t key) {
   if (current.in_flight && !current.dirty) {
     if (reactivation_queues_[partition].size() >=
         config_.reactivation_fifo_depth) {
+      if (!staged_reactivation_publications_[partition].has_value() &&
+          !reactivation_queues_[partition].empty()) {
+        staged_reactivation_publications_[partition] =
+            reactivation_queues_[partition].front();
+      }
       ++stats_.reactivation_fifo_backpressure_cycles;
       ++stats_.activation_backpressure_cycles;
       return false;
@@ -173,6 +182,51 @@ bool SpineOwnerScheduler::try_activate(std::uint32_t key) {
   staged_activation_ =
       StagedActivation{key, partition, ActivationAction::kCoalesced};
   return true;
+}
+
+bool SpineOwnerScheduler::activation_will_publish(
+    std::uint32_t key) const noexcept {
+  return staged_activation_.has_value() && staged_activation_->key == key &&
+         staged_activation_->action != ActivationAction::kCoalesced;
+}
+
+bool SpineOwnerScheduler::try_dispatch_source(std::uint32_t key,
+                                               bool seed_epoch) {
+  const std::size_t partition = partition_for(key);
+  if (staged_dispatches_[partition].has_value()) {
+    return false;
+  }
+  const SpineOwnerKeyState current = state(key);
+  // A kernel-owned source request must perform a fresh queued -> in-flight
+  // transition. Treating an already in-flight key as a successful dispatch
+  // hides a stale completion and consumes no work credit for the new round.
+  if (current.in_flight) {
+    return false;
+  }
+  if (current.queued && !current.dirty) {
+    const auto ready = std::find(ready_queues_[partition].begin(),
+                                 ready_queues_[partition].end(), key);
+    const auto owner = std::find(owner_queues_[partition].begin(),
+                                 owner_queues_[partition].end(), key);
+    DispatchSource source = DispatchSource::kReadyList;
+    if (ready != ready_queues_[partition].end()) {
+      source = DispatchSource::kReadyList;
+    } else if (owner != owner_queues_[partition].end() &&
+               (!staged_publications_[partition].has_value() ||
+                *staged_publications_[partition] != key)) {
+      source = DispatchSource::kOwnerFifo;
+    } else {
+      return false;
+    }
+    staged_dispatches_[partition] = StagedDispatch{key, source};
+    return true;
+  }
+  if (seed_epoch && current == SpineOwnerKeyState{}) {
+    staged_dispatches_[partition] =
+        StagedDispatch{key, DispatchSource::kSeedEpoch};
+    return true;
+  }
+  return false;
 }
 
 bool SpineOwnerScheduler::try_dispatch(std::size_t partition,
@@ -220,14 +274,12 @@ void SpineOwnerScheduler::evaluate(const CycleContext &) {
     if (!staged_dispatches_[partition].has_value() &&
         !staged_publications_[partition].has_value() &&
         !owner_queues_[partition].empty() &&
-        ready_queues_[partition].size() <
-            config_.vertices_per_partition) {
+        ready_queues_[partition].size() < config_.vertices_per_partition) {
       staged_publications_[partition] = owner_queues_[partition].front();
     }
     if (!staged_reactivation_publications_[partition].has_value() &&
         !reactivation_queues_[partition].empty() &&
-        deferred_reactivation_queues_[partition].size() <
-            config_.vertices_per_partition) {
+        !state(reactivation_queues_[partition].front()).in_flight) {
       staged_reactivation_publications_[partition] =
           reactivation_queues_[partition].front();
     }
@@ -247,6 +299,10 @@ void SpineOwnerScheduler::evaluate(const CycleContext &) {
     if (owner_queues_[partition].size() +
             reserved_owner_enqueues(partition) >=
         config_.owner_fifo_depth) {
+      if (!staged_publications_[partition].has_value() &&
+          !owner_queues_[partition].empty()) {
+        staged_publications_[partition] = owner_queues_[partition].front();
+      }
       ++stats_.owner_fifo_backpressure_cycles;
       continue;
     }
@@ -283,15 +339,25 @@ void SpineOwnerScheduler::commit(const CycleContext &) {
     }
     const StagedDispatch dispatch = *staged_dispatches_[partition];
     const std::uint32_t key = dispatch.key;
-    std::deque<std::uint32_t> &source_queue =
-        dispatch.source == DispatchSource::kReadyList
-            ? ready_queues_[partition]
-            : owner_queues_[partition];
-    if (source_queue.empty() || source_queue.front() != key) {
-      throw std::logic_error("Spine owner dispatch changed before commit");
-    }
-    source_queue.pop_front();
     SpineOwnerKeyState &current = mutable_state(key);
+    if (dispatch.source == DispatchSource::kSeedEpoch) {
+      if (current != SpineOwnerKeyState{}) {
+        throw std::logic_error("Spine seed dispatch changed before commit");
+      }
+      ++work_credits_;
+      ++stats_.work_credits_created;
+      ++stats_.seed_dispatches;
+    } else {
+      std::deque<std::uint32_t> &source_queue =
+          dispatch.source == DispatchSource::kReadyList
+              ? ready_queues_[partition]
+              : owner_queues_[partition];
+      const auto found = std::find(source_queue.begin(), source_queue.end(), key);
+      if (found == source_queue.end()) {
+        throw std::logic_error("Spine owner dispatch changed before commit");
+      }
+      source_queue.erase(found);
+    }
     current.queued = false;
     current.in_flight = true;
     ++stats_.dispatches;
@@ -329,7 +395,15 @@ void SpineOwnerScheduler::commit(const CycleContext &) {
           "Spine reactivation publication changed before commit");
     }
     reactivation_queues_[partition].pop_front();
-    deferred_reactivation_queues_[partition].push_back(key);
+    SpineOwnerKeyState &current = mutable_state(key);
+    if (current.in_flight) {
+      deferred_reactivation_queues_[partition].push_back(key);
+    } else {
+      owner_queues_[partition].push_back(key);
+      current.dirty = false;
+      current.queued = true;
+      ++stats_.reactivation_requeues;
+    }
     ++stats_.deferred_reactivation_publications;
   }
 
@@ -415,14 +489,17 @@ void SpineOwnerScheduler::commit(const CycleContext &) {
 
 SpineOwnerFrontierController::SpineOwnerFrontierController(
     std::string name, ClockId clock_id, SpineOwnerScheduler &owner,
-    std::vector<std::uint32_t> initial_frontier, const bool *payload_ready)
+    std::vector<std::uint32_t> initial_frontier, const bool *payload_ready,
+    bool kernel_owned_protocol)
     : Component(std::move(name), clock_id), owner_(owner),
-      payload_ready_(payload_ready), next_frontier_(std::move(initial_frontier)),
+      payload_ready_(payload_ready),
+      kernel_owned_protocol_(kernel_owned_protocol),
+      next_frontier_(std::move(initial_frontier)),
       pending_completions_(owner.config().partitions),
       staged_completions_(owner.config().partitions),
       staged_dispatches_(owner.config().partitions) {
   validate_frontier();
-  if (next_frontier_.empty()) {
+  if (kernel_owned_protocol_ || next_frontier_.empty()) {
     phase_ = Phase::kPayloadWait;
   }
 }
@@ -444,9 +521,14 @@ void SpineOwnerFrontierController::prepare_partitioned_completion() {
     queue.clear();
   }
   for (const std::uint32_t key : completed_frontier_) {
-    pending_completions_.at(owner_.partition_for(key)).push_back(key);
+    if (owner_.state(key).in_flight) {
+      pending_completions_.at(owner_.partition_for(key)).push_back(key);
+    }
   }
-  remaining_completions_ = completed_frontier_.size();
+  remaining_completions_ = 0;
+  for (const auto &queue : pending_completions_) {
+    remaining_completions_ += queue.size();
+  }
 }
 
 void SpineOwnerFrontierController::restart(
@@ -463,6 +545,11 @@ void SpineOwnerFrontierController::restart(
   next_activation_ = admit_next ? 0 : next_frontier_.size();
   dispatch_partition_ = 0;
   ready_ = false;
+  if (kernel_owned_protocol_) {
+    dispatched_ = next_frontier_;
+    phase_ = Phase::kPayloadWait;
+    return;
+  }
   prepare_partitioned_completion();
   phase_ = remaining_completions_ == 0
                ? (next_activation_ < next_frontier_.size() ? Phase::kAdmit

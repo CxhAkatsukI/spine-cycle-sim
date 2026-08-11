@@ -13,6 +13,18 @@ namespace spine::sim {
 namespace {
 
 constexpr std::uint64_t kWordBytes = sizeof(std::uint32_t);
+constexpr std::uint64_t kOwnerWordBytes = sizeof(std::uint64_t);
+constexpr std::uint64_t kOwnerBitmapWords = 16'777'216ULL / 64ULL;
+constexpr std::uint64_t kOwnerControlBase = 5ULL * kOwnerBitmapWords;
+
+constexpr std::uint64_t owner_region_address(std::uint64_t region,
+                                             std::uint64_t word) {
+  return (region * kOwnerBitmapWords + word) * kOwnerWordBytes;
+}
+
+constexpr std::uint64_t owner_control_address(std::uint64_t field) {
+  return (kOwnerControlBase + field) * kOwnerWordBytes;
+}
 
 std::vector<std::uint8_t> encode_u32(std::uint32_t value) {
   return {
@@ -49,7 +61,8 @@ std::vector<std::uint8_t> encode_words(
 SpineSplitPageRankCompute::SpineSplitPageRankCompute(
     std::string name, ClockId clock_id, GraphAlgorithmPolicy policy,
     std::vector<std::uint32_t> out_degrees, FixedAxiPort &vertex_state,
-    FixedAxiPort *active_out, Fifo<PartConvWord> &edge_in,
+    FixedAxiPort *active_out, FixedAxiPort *owner_state,
+    Fifo<PartConvWord> &edge_in,
     Fifo<SourceValueWord> &value_out,
     AlgorithmPipelineConfig pipeline_config,
     std::size_t memory_request_window, std::size_t tile_vertices,
@@ -61,6 +74,7 @@ SpineSplitPageRankCompute::SpineSplitPageRankCompute(
       tile_vertices_(tile_vertices),
       vertex_state_(vertex_state),
       active_out_(active_out),
+      owner_state_(owner_state),
       edge_in_(edge_in),
       value_out_(value_out),
       owner_scheduler_(owner_scheduler),
@@ -92,7 +106,9 @@ SpineSplitPageRankCompute::SpineSplitPageRankCompute(
       residual_words_(vertices_),
       tile_applied_((vertices_ + tile_vertices_ - 1) / tile_vertices_, false),
       dangling_mass_word_(GraphAlgorithmPolicy::float_to_word(0.0F)),
-      dangling_share_word_(GraphAlgorithmPolicy::float_to_word(0.0F)) {
+      dangling_share_word_(GraphAlgorithmPolicy::float_to_word(0.0F)),
+      owner_seed_epoch_(owner_scheduler == nullptr ||
+                        owner_scheduler->work_credits() == 0) {
   const bool uses_degree = state_layout_.degree.has_value();
   if ((policy_.config().kind != GraphAlgorithmKind::kFullPageRank &&
        policy_.config().kind != GraphAlgorithmKind::kResidualPageRank &&
@@ -104,7 +120,10 @@ SpineSplitPageRankCompute::SpineSplitPageRankCompute(
       edge_in_.clock_id() != clock_id || value_out_.clock_id() != clock_id ||
       vertex_state_.master().clock_id() != clock_id ||
       (active_out_ != nullptr &&
-       active_out_->master().clock_id() != clock_id)) {
+       active_out_->master().clock_id() != clock_id) ||
+      (owner_scheduler_ != nullptr && owner_state_ == nullptr) ||
+      (owner_state_ != nullptr &&
+       owner_state_->master().clock_id() != clock_id)) {
     throw std::invalid_argument("invalid Spine PageRank compute configuration");
   }
   initialize_state_payload(out_degrees, initial_state);
@@ -167,6 +186,7 @@ void SpineSplitPageRankCompute::reset_iteration() {
   std::fill(tile_applied_.begin(), tile_applied_.end(), false);
   tile_accumulators_.clear();
   next_active_.clear();
+  owner_activation_words_seen_.clear();
   phase_ = Phase::kInput;
   staged_input_action_ = InputAction::kNone;
   staged_memory_response_.reset();
@@ -182,6 +202,12 @@ void SpineSplitPageRankCompute::reset_iteration() {
   staged_value_push_ = false;
   staged_apply_tile_complete_ = false;
   staged_owner_activation_ = false;
+  staged_owner_publication_ = false;
+  staged_owner_dispatch_ = false;
+  staged_owner_completion_ = false;
+  staged_owner_activation_word_.reset();
+  staged_owner_finalize_ = false;
+  staged_owner_advance_ = false;
   staged_done_ = false;
   pending_source_ = 0;
   pending_source_rank_.reset();
@@ -199,12 +225,20 @@ void SpineSplitPageRankCompute::reset_iteration() {
   apply_operations_completed_ = 0;
   apply_writes_completed_ = 0;
   iteration_error_ = 0.0F;
+  owner_protocol_return_phase_ = Phase::kInput;
+  owner_protocol_kind_ = OwnerProtocolKind::kNone;
+  owner_protocol_index_ = 0;
+  owner_protocol_subject_ = 0;
   source_count_seen_ = false;
   source_generation_seen_ = false;
   deferred_active_seen_ = false;
   source_ack_pending_ = false;
   tile_open_ = false;
   reader_done_seen_ = false;
+  owner_protocol_request_pending_ = false;
+  owner_round_started_ = false;
+  owner_seed_epoch_ =
+      owner_scheduler_ == nullptr || owner_scheduler_->work_credits() == 0;
   done_ = false;
 }
 
@@ -318,6 +352,20 @@ void SpineSplitPageRankCompute::enqueue_active_output(
   counters_.active_out_write_bytes += 8;
 }
 
+void SpineSplitPageRankCompute::enqueue_source_state_reads() {
+  enqueue_read(primary_read_base_ + pending_source_ * kWordBytes,
+               MemoryPayloadKind::kSourcePrimary, pending_source_);
+  if (state_layout_.auxiliary.has_value()) {
+    enqueue_read(state_layout_.auxiliary->base +
+                     pending_source_ * kWordBytes,
+                 MemoryPayloadKind::kSourceAuxiliary, pending_source_);
+  }
+  if (state_layout_.degree.has_value()) {
+    enqueue_read(state_layout_.degree->base + pending_source_ * kWordBytes,
+                 MemoryPayloadKind::kSourceDegree, pending_source_);
+  }
+}
+
 bool SpineSplitPageRankCompute::memory_drained() const noexcept {
   return memory_tasks_.empty() && inflight_memory_.empty() &&
          !staged_memory_response_.has_value() && !staged_memory_issue_;
@@ -406,6 +454,18 @@ void SpineSplitPageRankCompute::consume_memory_response(
     failed_ = true;
     return;
   }
+  if (task.kind == MemoryPayloadKind::kOwnerProtocol) {
+    if (task.port != owner_state_ || !owner_protocol_request_pending_ ||
+        (task.operation == MemoryOperation::kRead
+             ? response.read_data.size() != kOwnerWordBytes
+             : !response.read_data.empty())) {
+      failed_ = true;
+      return;
+    }
+    owner_protocol_request_pending_ = false;
+    ++counters_.owner_hbm_requests_completed;
+    return;
+  }
   if (task.operation == MemoryOperation::kWrite) {
     if (!response.read_data.empty() ||
         (task.kind != MemoryPayloadKind::kSourcePrimaryWrite &&
@@ -475,6 +535,7 @@ void SpineSplitPageRankCompute::consume_memory_response(
     case MemoryPayloadKind::kApplyPrimaryWrite:
     case MemoryPayloadKind::kApplyAuxiliaryWrite:
     case MemoryPayloadKind::kActiveOutputWrite:
+    case MemoryPayloadKind::kOwnerProtocol:
       failed_ = true;
       return;
   }
@@ -495,6 +556,12 @@ void SpineSplitPageRankCompute::evaluate(const CycleContext &) {
   staged_value_push_ = false;
   staged_apply_tile_complete_ = false;
   staged_owner_activation_ = false;
+  staged_owner_publication_ = false;
+  staged_owner_dispatch_ = false;
+  staged_owner_completion_ = false;
+  staged_owner_activation_word_.reset();
+  staged_owner_finalize_ = false;
+  staged_owner_advance_ = false;
   staged_done_ = false;
   if (done_ || failed_) {
     return;
@@ -530,6 +597,11 @@ void SpineSplitPageRankCompute::evaluate(const CycleContext &) {
     if (failed_) {
       return;
     }
+  } else if (owner_state_ != nullptr &&
+             stage_memory_response(*owner_state_)) {
+    if (failed_) {
+      return;
+    }
   }
 
   if (!memory_tasks_.empty()) {
@@ -553,6 +625,35 @@ void SpineSplitPageRankCompute::evaluate(const CycleContext &) {
         ++counters_.memory_request_fifo_stall_cycles;
       }
     }
+  }
+
+  if (phase_ == Phase::kOwnerProtocol) {
+    if (!memory_drained() || owner_protocol_request_pending_) {
+      return;
+    }
+    if (owner_protocol_index_ == owner_protocol_length()) {
+      if (owner_protocol_kind_ == OwnerProtocolKind::kDispatchSource) {
+        staged_owner_dispatch_ =
+            owner_scheduler_ != nullptr &&
+            owner_scheduler_->try_dispatch_source(owner_protocol_subject_,
+                                                  owner_seed_epoch_);
+        if (!staged_owner_dispatch_) {
+          ++counters_.owner_activation_backpressure_cycles;
+          return;
+        }
+      } else if (owner_protocol_kind_ ==
+                 OwnerProtocolKind::kCompleteSource) {
+        staged_owner_completion_ =
+            owner_scheduler_ != nullptr &&
+            owner_scheduler_->try_complete(owner_protocol_subject_);
+        if (!staged_owner_completion_) {
+          ++counters_.owner_activation_backpressure_cycles;
+          return;
+        }
+      }
+    }
+    staged_owner_advance_ = true;
+    return;
   }
 
   if (phase_ == Phase::kSourceMapWait) {
@@ -581,6 +682,14 @@ void SpineSplitPageRankCompute::evaluate(const CycleContext &) {
           (policy_.config().kind == GraphAlgorithmKind::kResidualPageRank ||
            policy_.config().kind == GraphAlgorithmKind::kConnectedComponents);
       if (publishes_frontier && owner_scheduler_ != nullptr) {
+        const std::uint32_t word = transaction->second >> 6;
+        if (!owner_activation_words_seen_.contains(word)) {
+          if (!memory_drained()) {
+            return;
+          }
+          staged_owner_activation_word_ = word;
+          return;
+        }
         ++counters_.owner_activation_attempts;
         staged_owner_activation_ =
             owner_scheduler_->try_activate(transaction->second);
@@ -588,6 +697,8 @@ void SpineSplitPageRankCompute::evaluate(const CycleContext &) {
           ++counters_.owner_activation_backpressure_cycles;
           return;
         }
+        staged_owner_publication_ =
+            owner_scheduler_->activation_will_publish(transaction->second);
       }
       AlgorithmPipelineResponse response;
       if (apply_responses_.try_pop(response)) {
@@ -676,9 +787,15 @@ void SpineSplitPageRankCompute::evaluate(const CycleContext &) {
         staged_apply_tile_complete_ = true;
       }
       return;
+    case Phase::kOwnerProtocol:
+      return;
     case Phase::kFinish:
       if (memory_drained() && algorithm_queues_drained()) {
-        staged_done_ = true;
+        if (owner_scheduler_ != nullptr && owner_round_started_) {
+          staged_owner_finalize_ = true;
+        } else {
+          staged_done_ = true;
+        }
       }
       return;
     case Phase::kInput:
@@ -741,6 +858,9 @@ void SpineSplitPageRankCompute::evaluate(const CycleContext &) {
     case PartConvWordKind::kSourceRequestsDone:
       staged_input_action_ = InputAction::kSourceDone;
       break;
+    case PartConvWordKind::kSourceCompletion:
+      staged_input_action_ = InputAction::kSourceCompletion;
+      break;
     case PartConvWordKind::kDeferActiveBegin:
       staged_input_action_ = InputAction::kDeferActiveBegin;
       break;
@@ -784,6 +904,20 @@ void SpineSplitPageRankCompute::commit(const CycleContext &context) {
     counters_.max_memory_requests_inflight =
         std::max(counters_.max_memory_requests_inflight,
                  inflight_memory_.size());
+  }
+  if (staged_owner_activation_word_.has_value()) {
+    owner_activation_words_seen_.insert(*staged_owner_activation_word_);
+    begin_owner_protocol(OwnerProtocolKind::kActivateWord,
+                         *staged_owner_activation_word_, Phase::kApplyTile);
+    return;
+  }
+  if (staged_owner_finalize_) {
+    begin_owner_protocol(OwnerProtocolKind::kFinalizeRound, 0, Phase::kFinish);
+    return;
+  }
+  if (staged_owner_advance_) {
+    advance_owner_protocol();
+    return;
   }
 
   if (staged_source_request_.has_value()) {
@@ -902,12 +1036,16 @@ void SpineSplitPageRankCompute::commit(const CycleContext &context) {
           failed_ = true;
           return;
         }
-        enqueue_active_output(next_active_.size(), vertex,
-                              applied.state_after.auxiliary);
-        next_active_.push_back(vertex);
-        ++counters_.vertices_activated;
-        counters_.owner_activations_accepted +=
-            owner_scheduler_ != nullptr ? 1U : 0U;
+        if (owner_scheduler_ == nullptr || staged_owner_publication_) {
+          enqueue_active_output(next_active_.size(), vertex,
+                                applied.state_after.auxiliary);
+          next_active_.push_back(vertex);
+          ++counters_.vertices_activated;
+          counters_.owner_activations_accepted +=
+              owner_scheduler_ != nullptr ? 1U : 0U;
+        } else {
+          ++counters_.owner_activations_coalesced;
+        }
       }
     } else {
       enqueue_write(primary_write_base_ + vertex * kWordBytes,
@@ -920,12 +1058,16 @@ void SpineSplitPageRankCompute::commit(const CycleContext &context) {
           failed_ = true;
           return;
         }
-        enqueue_active_output(next_active_.size(), vertex,
-                              applied.state_after.primary);
-        next_active_.push_back(vertex);
-        ++counters_.vertices_activated;
-        counters_.owner_activations_accepted +=
-            owner_scheduler_ != nullptr ? 1U : 0U;
+        if (owner_scheduler_ == nullptr || staged_owner_publication_) {
+          enqueue_active_output(next_active_.size(), vertex,
+                                applied.state_after.primary);
+          next_active_.push_back(vertex);
+          ++counters_.vertices_activated;
+          counters_.owner_activations_accepted +=
+              owner_scheduler_ != nullptr ? 1U : 0U;
+        } else {
+          ++counters_.owner_activations_coalesced;
+        }
       }
     }
     apply_transactions_.erase(found);
@@ -963,19 +1105,16 @@ void SpineSplitPageRankCompute::commit(const CycleContext &context) {
         counters_.start_cycle = context.domain_cycle;
       }
       pending_source_ = staged_input_word_.first;
-      enqueue_read(primary_read_base_ + pending_source_ * kWordBytes,
-                   MemoryPayloadKind::kSourcePrimary, pending_source_);
-      if (state_layout_.auxiliary.has_value()) {
-        enqueue_read(state_layout_.auxiliary->base +
-                         pending_source_ * kWordBytes,
-                     MemoryPayloadKind::kSourceAuxiliary, pending_source_);
-      }
-      if (state_layout_.degree.has_value()) {
-        enqueue_read(state_layout_.degree->base + pending_source_ * kWordBytes,
-                     MemoryPayloadKind::kSourceDegree, pending_source_);
-      }
       ++counters_.source_requests;
-      phase_ = Phase::kSourceMemory;
+      if (owner_scheduler_ != nullptr) {
+        begin_owner_protocol(
+            owner_round_started_ ? OwnerProtocolKind::kDispatchSource
+                                 : OwnerProtocolKind::kBeginRound,
+            pending_source_, Phase::kSourceMemory);
+      } else {
+        enqueue_source_state_reads();
+        phase_ = Phase::kSourceMemory;
+      }
       break;
     case InputAction::kSourceCount:
       ++counters_.source_protocol_markers;
@@ -1010,6 +1149,16 @@ void SpineSplitPageRankCompute::commit(const CycleContext &context) {
       phase_ = Phase::kSourceReply;
       break;
     }
+    case InputAction::kSourceCompletion:
+      ++counters_.source_completion_markers;
+      if (staged_input_word_.first >= vertices_) {
+        set_protocol_status(SpineSourceProtocolStatus::kSourceBounds);
+        failed_ = true;
+      } else if (owner_scheduler_ != nullptr) {
+        begin_owner_protocol(OwnerProtocolKind::kCompleteSource,
+                             staged_input_word_.first, Phase::kInput);
+      }
+      break;
     case InputAction::kDeferActiveBegin:
       if (deferred_active_seen_ || tile_open_ || staged_input_word_.first != 1U) {
         set_protocol_status(SpineSourceProtocolStatus::kUnexpected);
@@ -1077,6 +1226,190 @@ void SpineSplitPageRankCompute::commit(const CycleContext &context) {
     counters_.end_cycle = context.domain_cycle;
     done_ = true;
   }
+}
+
+void SpineSplitPageRankCompute::begin_owner_protocol(
+    OwnerProtocolKind kind, std::uint32_t subject, Phase return_phase) {
+  if (owner_scheduler_ == nullptr || owner_state_ == nullptr ||
+      kind == OwnerProtocolKind::kNone ||
+      owner_protocol_kind_ != OwnerProtocolKind::kNone ||
+      !memory_tasks_.empty() || !inflight_memory_.empty()) {
+    throw std::logic_error("invalid overlapping PageRank owner-HBM protocol");
+  }
+  owner_protocol_kind_ = kind;
+  owner_protocol_subject_ = subject;
+  owner_protocol_return_phase_ = return_phase;
+  owner_protocol_index_ = 0;
+  owner_protocol_request_pending_ = false;
+  phase_ = Phase::kOwnerProtocol;
+}
+
+std::size_t SpineSplitPageRankCompute::owner_protocol_length() const {
+  switch (owner_protocol_kind_) {
+    case OwnerProtocolKind::kBeginRound:
+      return 2;
+    case OwnerProtocolKind::kDispatchSource:
+      return 7;
+    case OwnerProtocolKind::kCompleteSource:
+      return 6;
+    case OwnerProtocolKind::kActivateWord:
+      return 8;
+    case OwnerProtocolKind::kFinalizeRound:
+      return 9;
+    case OwnerProtocolKind::kNone:
+      return 0;
+  }
+  throw std::logic_error("unknown PageRank owner-HBM protocol kind");
+}
+
+void SpineSplitPageRankCompute::enqueue_owner_protocol_operation(
+    std::size_t index) {
+  const std::uint64_t word = owner_protocol_subject_ >> 6;
+  const auto enqueue = [this](MemoryOperation operation, std::uint64_t address) {
+    memory_tasks_.push_back(MemoryTask{
+        .port = owner_state_,
+        .operation = operation,
+        .address = address,
+        .bytes = kOwnerWordBytes,
+        .write_data = operation == MemoryOperation::kWrite
+                          ? std::vector<std::uint8_t>(kOwnerWordBytes, 0)
+                          : std::vector<std::uint8_t>{},
+        .kind = MemoryPayloadKind::kOwnerProtocol,
+        .vertex = 0,
+    });
+    ++counters_.owner_hbm_requests_generated;
+    if (operation == MemoryOperation::kRead) {
+      ++counters_.owner_hbm_read_requests;
+      counters_.owner_hbm_read_bytes += kOwnerWordBytes;
+    } else {
+      ++counters_.owner_hbm_write_requests;
+      counters_.owner_hbm_write_bytes += kOwnerWordBytes;
+    }
+  };
+  const auto read = [&](std::uint64_t address) {
+    enqueue(MemoryOperation::kRead, address);
+  };
+  const auto write = [&](std::uint64_t address) {
+    enqueue(MemoryOperation::kWrite, address);
+  };
+  switch (owner_protocol_kind_) {
+    case OwnerProtocolKind::kBeginRound:
+      read(owner_control_address(index == 0 ? 0 : 2));
+      return;
+    case OwnerProtocolKind::kDispatchSource:
+      switch (index) {
+        case 0: read(owner_control_address(0)); return;
+        case 1: read(owner_control_address(1)); return;
+        case 2: read(owner_region_address(4, word)); return;
+        case 3: read(owner_region_address(1, word)); return;
+        case 4: read(owner_region_address(2, word)); return;
+        case 5: write(owner_region_address(1, word)); return;
+        case 6: write(owner_region_address(2, word)); return;
+      }
+      break;
+    case OwnerProtocolKind::kCompleteSource:
+      if (index < 3) {
+        read(owner_region_address(1 + index, word));
+      } else {
+        write(owner_region_address(index - 2, word));
+      }
+      return;
+    case OwnerProtocolKind::kActivateWord:
+      switch (index) {
+        case 0: read(owner_control_address(0)); return;
+        case 1: read(owner_control_address(1)); return;
+        case 2: read(owner_region_address(4, owner_protocol_subject_)); return;
+        case 3: read(owner_region_address(1, owner_protocol_subject_)); return;
+        case 4: read(owner_region_address(2, owner_protocol_subject_)); return;
+        case 5: read(owner_region_address(3, owner_protocol_subject_)); return;
+        case 6: write(owner_region_address(3, owner_protocol_subject_)); return;
+        case 7: write(owner_region_address(1, owner_protocol_subject_)); return;
+      }
+      break;
+    case OwnerProtocolKind::kFinalizeRound:
+      switch (index) {
+        case 0: write(owner_control_address(2)); return;
+        case 1: read(owner_control_address(3)); return;
+        case 2: read(owner_control_address(4)); return;
+        case 3: read(owner_control_address(5)); return;
+        case 4: write(owner_control_address(3)); return;
+        case 5: write(owner_control_address(4)); return;
+        case 6: write(owner_control_address(5)); return;
+        case 7: write(owner_control_address(6)); return;
+        case 8: write(owner_control_address(7)); return;
+      }
+      break;
+    case OwnerProtocolKind::kNone:
+      break;
+  }
+  throw std::logic_error("PageRank owner-HBM protocol index is out of range");
+}
+
+void SpineSplitPageRankCompute::advance_owner_protocol() {
+  if (owner_protocol_request_pending_) {
+    return;
+  }
+  if (owner_protocol_index_ < owner_protocol_length()) {
+    enqueue_owner_protocol_operation(owner_protocol_index_++);
+    owner_protocol_request_pending_ = true;
+    return;
+  }
+  const OwnerProtocolKind completed = owner_protocol_kind_;
+  const std::uint32_t subject = owner_protocol_subject_;
+  const Phase return_phase = owner_protocol_return_phase_;
+  owner_protocol_kind_ = OwnerProtocolKind::kNone;
+  owner_protocol_index_ = 0;
+  switch (completed) {
+    case OwnerProtocolKind::kBeginRound:
+      owner_seed_epoch_ = owner_scheduler_->work_credits() == 0;
+      owner_round_started_ = true;
+      ++counters_.owner_round_begins;
+      if (return_phase == Phase::kSourceMemory) {
+        begin_owner_protocol(OwnerProtocolKind::kDispatchSource, subject,
+                             Phase::kSourceMemory);
+      } else {
+        phase_ = return_phase;
+      }
+      return;
+    case OwnerProtocolKind::kDispatchSource:
+      if (!staged_owner_dispatch_) {
+        throw std::logic_error(
+            "PageRank owner-HBM dispatch lacked logical ownership");
+      }
+      ++counters_.owner_source_dispatches;
+      enqueue_source_state_reads();
+      phase_ = Phase::kSourceMemory;
+      return;
+    case OwnerProtocolKind::kCompleteSource:
+      if (!staged_owner_completion_) {
+        throw std::logic_error(
+            "PageRank owner-HBM completion lacked logical retirement");
+      }
+      ++counters_.owner_source_completions;
+      phase_ = return_phase;
+      return;
+    case OwnerProtocolKind::kActivateWord:
+      ++counters_.owner_activation_words;
+      phase_ = return_phase;
+      return;
+    case OwnerProtocolKind::kFinalizeRound:
+      if (counters_.owner_source_dispatches !=
+              counters_.owner_source_completions ||
+          owner_scheduler_->work_credits() != next_active_.size() ||
+          !owner_scheduler_->ledger_closed()) {
+        failed_ = true;
+        owner_round_started_ = false;
+        phase_ = return_phase;
+        return;
+      }
+      ++counters_.owner_round_finalizes;
+      owner_round_started_ = false;
+      phase_ = return_phase;
+      return;
+    case OwnerProtocolKind::kNone:
+      break;
+  }
+  throw std::logic_error("PageRank owner-HBM protocol completed without a kind");
 }
 
 }  // namespace spine::sim

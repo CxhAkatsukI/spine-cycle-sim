@@ -26,6 +26,7 @@ enum class PartConvWordKind {
   kSourceCount,
   kSourceGeneration,
   kSourceRequestsDone,
+  kSourceCompletion,
   kDeferActiveBegin,
   kTileBegin,
   kEdge,
@@ -82,6 +83,7 @@ struct SpineReaderCounters {
   std::uint64_t source_request_windows{};
   std::uint64_t source_protocol_markers{};
   std::uint64_t source_protocol_acks{};
+  std::uint64_t source_completion_markers{};
   std::uint32_t source_protocol_status{};
   std::uint32_t dirty_status{};
   std::uint32_t dirty_count{};
@@ -477,6 +479,7 @@ class SpineSplitReader final : public Component {
     kFallbackEdgeEmit,
     kFallbackTileEnd,
     kDiagnostic,
+    kSourceCompletion,
     kDone,
   };
 
@@ -664,6 +667,7 @@ class SpineSplitReader final : public Component {
   std::size_t source_window_begin_{};
   std::size_t source_window_end_{};
   std::size_t diagnostic_index_{};
+  std::size_t source_completion_index_{};
   std::size_t fallback_partition_{};
   std::size_t fallback_shard_{};
   std::size_t fallback_record_index_{};
@@ -721,6 +725,7 @@ struct SpineComputeCounters {
   std::uint64_t source_responses{};
   std::uint64_t source_protocol_markers{};
   std::uint64_t source_protocol_acks{};
+  std::uint64_t source_completion_markers{};
   std::uint32_t source_protocol_status{};
   std::uint32_t source_count{};
   std::uint32_t source_generation{};
@@ -796,7 +801,19 @@ struct SpineComputeCounters {
   std::uint64_t active_emit_writes_generated{};
   std::uint64_t owner_activation_attempts{};
   std::uint64_t owner_activations_accepted{};
+  std::uint64_t owner_activations_coalesced{};
   std::uint64_t owner_activation_backpressure_cycles{};
+  std::uint64_t owner_hbm_requests_generated{};
+  std::uint64_t owner_hbm_requests_completed{};
+  std::uint64_t owner_hbm_read_requests{};
+  std::uint64_t owner_hbm_write_requests{};
+  std::uint64_t owner_hbm_read_bytes{};
+  std::uint64_t owner_hbm_write_bytes{};
+  std::uint64_t owner_round_begins{};
+  std::uint64_t owner_source_dispatches{};
+  std::uint64_t owner_source_completions{};
+  std::uint64_t owner_activation_words{};
+  std::uint64_t owner_round_finalizes{};
   std::size_t max_memory_requests_inflight{};
   std::size_t max_vertex_requests_inflight{};
   std::size_t max_active_out_requests_inflight{};
@@ -892,6 +909,16 @@ class SpineSplitSsspCompute final : public Component {
     kDeferredMergeWord,
     kDeferredSweepWord,
     kDeferredPublishVertex,
+    kOwnerProtocol,
+  };
+
+  enum class OwnerProtocolKind {
+    kNone,
+    kBeginRound,
+    kDispatchSource,
+    kCompleteSource,
+    kActivateWord,
+    kFinalizeRound,
   };
 
   struct MemoryTask {
@@ -933,6 +960,7 @@ class SpineSplitSsspCompute final : public Component {
   enum class Phase {
     kReinitialize,
     kInput,
+    kOwnerProtocol,
     kSourceRead,
     kSourceReply,
     kDeferredActiveClear,
@@ -1021,6 +1049,11 @@ class SpineSplitSsspCompute final : public Component {
   void sort_changed_vertices_for_emit();
   void begin_full_path(const PartConvWord &overflow_edge);
   void reset_tile();
+  void begin_owner_protocol(OwnerProtocolKind kind, std::uint32_t subject,
+                            Phase return_phase);
+  void advance_owner_protocol();
+  [[nodiscard]] std::size_t owner_protocol_length() const;
+  void enqueue_owner_protocol_operation(std::size_t index);
 
   std::size_t vertices_{};
   std::uint32_t source_{};
@@ -1078,10 +1111,20 @@ class SpineSplitSsspCompute final : public Component {
   std::uint64_t last_on_chip_read_wait_cycle_{~std::uint64_t{0}};
   std::uint64_t last_on_chip_pipeline_stall_cycle_{~std::uint64_t{0}};
   Phase after_clear_phase_{Phase::kRelax};
+  Phase owner_protocol_return_phase_{Phase::kInput};
+  OwnerProtocolKind owner_protocol_kind_{OwnerProtocolKind::kNone};
+  std::size_t owner_protocol_index_{};
+  std::uint32_t owner_protocol_subject_{};
   std::uint64_t next_transaction_id_{};
   bool staged_memory_issue_{};
   bool staged_full_tile_read_beat_valid_{};
   bool staged_owner_activation_{};
+  bool staged_owner_publication_{};
+  bool staged_owner_dispatch_{};
+  bool staged_owner_completion_{};
+  bool owner_protocol_request_pending_{};
+  bool owner_seed_epoch_{};
+  bool owner_round_started_{};
   bool active_read_pending_{};
   bool active_read_ready_{};
   bool source_reply_pending_{};

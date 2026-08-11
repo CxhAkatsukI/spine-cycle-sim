@@ -42,6 +42,7 @@ using spine::sim::AxiStats;
 using spine::sim::AxiWriteIngressStage;
 using spine::sim::AxiWriteIngressTrace;
 using spine::sim::AlgorithmIterationContext;
+using spine::sim::AlgorithmInitialState;
 using spine::sim::AlgorithmPipeline;
 using spine::sim::AlgorithmPipelineConfig;
 using spine::sim::AlgorithmPipelinePorts;
@@ -123,6 +124,7 @@ using spine::sim::SpineReaderPorts;
 using spine::sim::SpineSplitReader;
 using spine::sim::SpineSplitSsspCompute;
 using spine::sim::SpineSsspRunResult;
+using spine::sim::SpineFrontierRunResult;
 using spine::sim::SpineVerticalSliceSystem;
 using spine::sim::SpineVertexLifecycleConfig;
 using spine::sim::subtract_memory_traffic;
@@ -2891,6 +2893,7 @@ void test_spine_l0_real_slice_vertical_path() {
               reader_counters.source_request_windows == 1 &&
               reader_counters.source_protocol_markers == 3 &&
               reader_counters.source_protocol_acks == 1 &&
+              reader_counters.source_completion_markers == 1 &&
               reader_counters.source_protocol_status == 0 &&
               reader_counters.dirty_status == 0 &&
               reader_counters.diagnostic_words == 10 &&
@@ -2939,6 +2942,7 @@ void test_spine_l0_real_slice_vertical_path() {
               compute_counters.source_responses == 1 &&
               compute_counters.source_protocol_markers == 3 &&
               compute_counters.source_protocol_acks == 1 &&
+              compute_counters.source_completion_markers == 1 &&
               compute_counters.source_protocol_status == 0 &&
               compute_counters.source_count == 1 &&
               compute_counters.source_generation == 1 &&
@@ -2984,19 +2988,19 @@ void test_spine_l0_real_slice_vertical_path() {
     require(compute.values()[edge.dst] == 1,
             "Spine SSSP result differs from the expected fanout distance");
   }
-  require(edge_stream.stats().pushes == 35 && edge_stream.stats().pops == 35,
+  require(edge_stream.stats().pushes == 36 && edge_stream.stats().pops == 36,
           "Spine forward AXIS transfer count mismatch");
   require(value_stream.stats().pushes == 2 && value_stream.stats().pops == 2,
           "Spine reverse AXIS transfer count mismatch");
   require(edge_stream.stats().max_occupancy <= 32 &&
               value_stream.stats().max_occupancy <= 32,
           "Spine AXIS occupancy exceeded the configured depth");
-  require(scheduler.clock(core).completed_cycles == 43'409 &&
+  require(scheduler.clock(core).completed_cycles == 43'410 &&
               counters.end_cycle - counters.start_cycle == 2'370 &&
               reader_counters.end_cycle - reader_counters.start_cycle ==
-                  4'489 &&
+                  4'490 &&
               compute_counters.end_cycle - compute_counters.start_cycle ==
-                  40'961,
+                  40'962,
           "algorithm policy injection changed the accepted SSSP cycle ledger");
   std::cout << "EVIDENCE spine_vertical_slice e2e_cycles="
             << scheduler.clock(core).completed_cycles << " maintenance_cycles="
@@ -7138,8 +7142,46 @@ void test_spine_device_owner_scheduler_closes_multiround_ledger() {
   system.register_components();
   scheduler.add_component(backend);
 
-  const SpineSsspRunResult result =
-      system.run_sssp_to_convergence(16, 10'000'000);
+  SpineSsspRunResult result;
+  try {
+    result = system.run_sssp_to_convergence(16, 10'000'000);
+  } catch (const std::exception &) {
+    const auto *owner = system.owner_scheduler();
+    const auto *frontier = system.owner_frontier();
+    const auto &compute = system.compute_counters();
+    std::cerr << "OWNER_TIMEOUT system_done=" << system.done()
+              << " failed=" << system.failed() << " idle=" << system.idle()
+              << " reader_end=" << system.reader_counters().end_cycle
+              << " compute_end=" << compute.end_cycle
+              << " source_requests=" << compute.source_requests
+              << " completions=" << compute.source_completion_markers
+              << " owner_req=" << compute.owner_hbm_requests_generated
+              << '/' << compute.owner_hbm_requests_completed
+              << " credits=" << (owner == nullptr ? 0 : owner->work_credits())
+              << " owner_ledger="
+              << (owner == nullptr ? false : owner->ledger_closed())
+              << " owner_quiescent="
+              << (owner == nullptr ? false : owner->quiescent())
+              << " frontier_ready="
+              << (frontier == nullptr ? false : frontier->ready())
+              << " frontier_failed="
+              << (frontier == nullptr ? false : frontier->failed()) << '\n';
+    if (owner != nullptr) {
+      const auto &stats = owner->stats();
+      std::cerr << "OWNER_TIMEOUT_STATS created="
+                << stats.work_credits_created << " retired="
+                << stats.work_credits_retired << " dispatch="
+                << stats.dispatches << " complete=" << stats.completions
+                << " initial=" << stats.initial_activations
+                << " react=" << stats.reactivations << " requeue="
+                << stats.reactivation_requeues << " coalesced="
+                << stats.coalesced_activations << " owner_max="
+                << stats.max_owner_fifo_occupancy << " ready_max="
+                << stats.max_ready_list_occupancy << " react_max="
+                << stats.max_reactivation_fifo_occupancy << '\n';
+    }
+    throw;
+  }
   std::uint64_t emitted = 0;
   for (const auto &round : result.rounds) {
     emitted += round.active_out.size();
@@ -7159,16 +7201,38 @@ void test_spine_device_owner_scheduler_closes_multiround_ledger() {
             "device-generated frontier bypassed the owner handshake");
   }
 
-  require(result.converged && !result.failed && result.owner_scheduler.has_value() &&
+  const auto &owner_stats = *result.owner_scheduler;
+  const auto expected_distances =
+      std::vector<std::uint32_t>({0, 3, 2, 7, 8, 10});
+  const bool owner_result_ok =
+      result.converged && !result.failed && result.owner_scheduler.has_value() &&
               result.owner_ledger_closed && result.owner_quiescent &&
               result.owner_control_cycles > 0 &&
-              result.owner_scheduler->work_credits_created == emitted + 1 &&
-              result.owner_scheduler->work_credits_created ==
-                  result.owner_scheduler->work_credits_retired &&
-              result.owner_scheduler->dispatches ==
-                  result.owner_scheduler->completions &&
-              system.compute().values() ==
-                  std::vector<std::uint32_t>({0, 3, 2, 7, 8, 10}),
+              owner_stats.work_credits_created ==
+                  emitted + owner_stats.seed_dispatches &&
+              owner_stats.work_credits_created ==
+                  owner_stats.work_credits_retired &&
+              owner_stats.dispatches == owner_stats.completions &&
+              system.compute().values() == expected_distances;
+  if (!owner_result_ok) {
+    std::cerr << "OWNER_RESULT_FAILURE converged=" << result.converged
+              << " failed=" << result.failed
+              << " ledger=" << result.owner_ledger_closed
+              << " quiescent=" << result.owner_quiescent
+              << " control_cycles=" << result.owner_control_cycles
+              << " created=" << owner_stats.work_credits_created
+              << " retired=" << owner_stats.work_credits_retired
+              << " seed=" << owner_stats.seed_dispatches
+              << " emitted=" << emitted
+              << " dispatch=" << owner_stats.dispatches
+              << " complete=" << owner_stats.completions
+              << " values=";
+    for (const auto value : system.compute().values()) {
+      std::cerr << value << ',';
+    }
+    std::cerr << '\n';
+  }
+  require(owner_result_ok,
           "device owner scheduling lost work, credit, or SSSP correctness");
 }
 
@@ -8571,7 +8635,7 @@ void test_spine_timed_full_pagerank_compute_uses_hbm_and_pipelines() {
   });
   SpineSplitPageRankCompute compute(
       "pagerank-compute", core, policy, {2, 1, 0, 1}, vertex_state,
-      nullptr, edge_stream, value_stream,
+      nullptr, nullptr, edge_stream, value_stream,
       AlgorithmPipelineConfig{
           .source_map = {.latency_cycles = 3,
                          .initiation_interval = 1,
@@ -8762,6 +8826,7 @@ void test_spine_full_pagerank_vertical_slice_reads_level_edges() {
               system.reader_counters().source_requests == 4 &&
               system.reader_counters().source_responses == 4 &&
               system.reader_counters().source_request_windows == 1 &&
+              system.reader_counters().source_completion_markers == 4 &&
               system.reader_counters().source_protocol_status == 0 &&
               !system.reader_counters().host_coverage_match &&
               system.reader_counters().range_task_path == 2 &&
@@ -8776,7 +8841,7 @@ void test_spine_full_pagerank_vertical_slice_reads_level_edges() {
               system.compute_counters().edges_received == 4 &&
               system.compute_counters().vertices_applied == 4,
           "PageRank vertical slice bypassed maintenance, Reader, or compute");
-  require(system.edge_stream_stats().pushes == 25,
+  require(system.edge_stream_stats().pushes == 29,
           "PageRank vertical slice lost protocol, diagnostic, or edge words");
   std::cout << "EVIDENCE spine_pagerank_vertical cycles="
             << scheduler.clock(core).completed_cycles
@@ -9803,6 +9868,39 @@ SpineOwnerSchedulerConfig one_entry_owner(std::size_t vertices) {
   };
 }
 
+AlgorithmInitialState cold_device_algorithm_state(
+    const GraphAlgorithmPolicy &policy) {
+  AlgorithmInitialState state;
+  state.primary.reserve(policy.config().vertices);
+  if (policy.state_layout().auxiliary.has_value()) {
+    state.auxiliary.reserve(policy.config().vertices);
+  }
+  state.active_vertices.reserve(policy.config().vertices);
+  for (std::uint32_t vertex = 0; vertex < policy.config().vertices; ++vertex) {
+    const AlgorithmVertexState initial = policy.initial_state(vertex);
+    state.primary.push_back(initial.primary);
+    if (policy.state_layout().auxiliary.has_value()) {
+      state.auxiliary.push_back(initial.auxiliary);
+    }
+    state.active_vertices.push_back(vertex);
+  }
+  return state;
+}
+
+template <typename Counters>
+void require_owner_hbm_round_ledger(const Counters &counters,
+                                    const std::string &context) {
+  const std::uint64_t expected =
+      2 + counters.owner_source_dispatches * 7 +
+      counters.owner_source_completions * 6 +
+      counters.owner_activation_words * 8 + 9;
+  require(counters.owner_round_begins == 1 &&
+              counters.owner_round_finalizes == 1 &&
+              counters.owner_hbm_requests_generated == expected &&
+              counters.owner_hbm_requests_completed == expected,
+          context + " owner-HBM request ledger did not close");
+}
+
 void test_spine_cc_device_owner_closes_frontier_ledger() {
   Scheduler scheduler;
   const auto core = scheduler.add_clock_mhz("cc-owner-system", 150.0);
@@ -9826,16 +9924,17 @@ void test_spine_cc_device_owner_closes_frontier_ledger() {
       },
       .case_name = "cc_owner_vertical_slice",
   };
-  SpinePageRankVerticalSliceSystem system(
-      scheduler, core, backend, graph,
-      GraphAlgorithmPolicy(AlgorithmPolicyConfig{
+  const GraphAlgorithmPolicy policy(AlgorithmPolicyConfig{
           .kind = GraphAlgorithmKind::kConnectedComponents,
           .vertices = graph.vertices,
           .source = 0,
-      }),
+      });
+  SpinePageRankVerticalSliceSystem system(
+      scheduler, core, backend, graph, policy,
       SpineL0Config{}, SpineAxiInterfaceProfile{}, AlgorithmPipelineConfig{},
       SpineSplitPageRankCompute::kDefaultMemoryRequestWindow, SpineL0State{},
-      std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+      std::nullopt, std::nullopt, cold_device_algorithm_state(policy),
+      std::nullopt,
       one_entry_owner(graph.vertices),
       spine::sim::SpineVertexLifecycleConfig{
           .max_vertices = graph.vertices,
@@ -9844,11 +9943,49 @@ void test_spine_cc_device_owner_closes_frontier_ledger() {
       });
   system.register_components();
   scheduler.add_component(backend);
-  const auto result = system.run_frontier_to_convergence(16, 10'000'000);
+  SpineFrontierRunResult result;
+  try {
+    result = system.run_frontier_to_convergence(16, 10'000'000);
+  } catch (const std::exception &) {
+    const auto &compute = system.compute_counters();
+    const auto &stats = system.owner_scheduler()->stats();
+    const auto &frontier = system.owner_frontier()->stats();
+    std::cerr << "CC_OWNER_TIMEOUT source=" << compute.source_requests << '/'
+              << compute.source_responses << " completion="
+              << compute.source_completion_markers << " owner_round="
+              << compute.owner_round_begins << '/' << compute.owner_round_finalizes
+              << " dispatch=" << compute.owner_source_dispatches
+              << " complete=" << compute.owner_source_completions
+              << " words=" << compute.owner_activation_words << " owner_hbm="
+              << compute.owner_hbm_requests_generated << '/'
+              << compute.owner_hbm_requests_completed << " memory="
+              << compute.memory_requests_issued << '/'
+              << compute.memory_requests_completed << " credits="
+              << system.owner_scheduler()->work_credits() << " created="
+              << stats.work_credits_created << " retired="
+              << stats.work_credits_retired << " seed=" << stats.seed_dispatches
+              << " dispatch_total=" << stats.dispatches
+              << " complete_total=" << stats.completions
+              << " initial=" << stats.initial_activations
+              << " react=" << stats.reactivations
+              << " coalesced=" << stats.coalesced_activations
+              << " frontier_dispatch=" << frontier.frontiers_dispatched
+              << " frontier_complete=" << frontier.frontiers_completed
+              << " next=" << system.compute().next_active().size() << '\n';
+    for (std::uint32_t vertex = 0; vertex < graph.vertices; ++vertex) {
+      const auto state = system.owner_scheduler()->state(vertex);
+      std::cerr << "CC_OWNER_STATE vertex=" << vertex
+                << " queued=" << state.queued
+                << " in_flight=" << state.in_flight
+                << " dirty=" << state.dirty << '\n';
+    }
+    throw;
+  }
 
   std::uint64_t emitted = 0;
   for (const auto &round : result.rounds) {
     emitted += round.active_out.size();
+    require_owner_hbm_round_ledger(round.compute, "CC");
     require(round.compute.owner_activation_attempts ==
                     round.compute.owner_activations_accepted +
                         round.compute.owner_activation_backpressure_cycles &&
@@ -9856,15 +9993,59 @@ void test_spine_cc_device_owner_closes_frontier_ledger() {
                     round.active_out.size(),
             "CC device frontier bypassed owner backpressure");
   }
-  require(result.converged && !result.failed && result.owner_scheduler.has_value() &&
-              result.owner_frontier.has_value() && result.owner_ledger_closed &&
-              result.owner_quiescent &&
-              result.owner_scheduler->work_credits_created == emitted + 6 &&
-              result.owner_scheduler->work_credits_created ==
-                  result.owner_scheduler->work_credits_retired &&
-              result.owner_frontier->frontiers_completed == result.rounds.size() &&
-              system.compute().rank_words() ==
-                  std::vector<std::uint32_t>({0, 0, 0, 3, 3, 5}),
+  const auto expected_labels =
+      std::vector<std::uint32_t>({0, 0, 0, 3, 3, 5});
+  const bool cc_result_ok =
+      result.converged && !result.failed && result.owner_scheduler.has_value() &&
+      result.owner_frontier.has_value() && result.owner_ledger_closed &&
+      result.owner_quiescent &&
+      result.owner_scheduler->work_credits_created ==
+          emitted + result.owner_scheduler->seed_dispatches &&
+      result.owner_scheduler->work_credits_created ==
+          result.owner_scheduler->work_credits_retired &&
+      system.compute().rank_words() == expected_labels;
+  if (!cc_result_ok) {
+    const auto &stats = *result.owner_scheduler;
+    std::cerr << "CC_OWNER_FAILURE converged=" << result.converged
+              << " failed=" << result.failed
+              << " rounds=" << result.rounds.size()
+              << " ledger=" << result.owner_ledger_closed
+              << " quiescent=" << result.owner_quiescent
+              << " created=" << stats.work_credits_created
+              << " retired=" << stats.work_credits_retired
+              << " dispatch=" << stats.dispatches
+              << " complete=" << stats.completions
+              << " seed=" << stats.seed_dispatches
+              << " emitted=" << emitted
+              << " source_complete_markers="
+              << (result.rounds.empty()
+                      ? 0
+                      : result.rounds.front().compute.source_completion_markers)
+              << " reader_source_complete="
+              << (result.rounds.empty()
+                      ? 0
+                      : result.rounds.front().reader.source_completion_markers)
+              << " reader_path_error="
+              << (result.rounds.empty()
+                      ? 0
+                      : result.rounds.front().reader.range_task_error)
+              << " reader_overflow="
+              << (result.rounds.empty()
+                      ? 0
+                      : result.rounds.front().reader.done_overflow)
+              << " owner_complete_markers="
+              << (result.rounds.empty()
+                      ? 0
+                      : result.rounds.front().compute.owner_source_completions)
+              << " frontiers=" << result.owner_frontier->frontiers_completed
+              << " rounds=" << result.rounds.size()
+              << " labels=";
+    for (const auto value : system.compute().rank_words()) {
+      std::cerr << value << ',';
+    }
+    std::cerr << '\n';
+  }
+  require(cc_result_ok,
           "CC owner ledger or min-label oracle did not close");
 
   require(system.try_deactivate_vertex(5, true),
@@ -9896,32 +10077,96 @@ void test_spine_residual_pagerank_device_owner_closes_frontier_ledger() {
       },
       .case_name = "residual_owner_vertical_slice",
   };
-  SpinePageRankVerticalSliceSystem system(
-      scheduler, core, backend, graph,
-      GraphAlgorithmPolicy(AlgorithmPolicyConfig{
+  const GraphAlgorithmPolicy policy(AlgorithmPolicyConfig{
           .kind = GraphAlgorithmKind::kResidualPageRank,
           .vertices = graph.vertices,
           .source = 0,
           .damping = 0.8F,
           .epsilon = 1.0e-5F,
-      }),
+      });
+  SpinePageRankVerticalSliceSystem system(
+      scheduler, core, backend, graph, policy,
       SpineL0Config{}, SpineAxiInterfaceProfile{}, AlgorithmPipelineConfig{},
       SpineSplitPageRankCompute::kDefaultMemoryRequestWindow, SpineL0State{},
-      std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+      std::nullopt, std::nullopt, cold_device_algorithm_state(policy),
+      std::nullopt,
       one_entry_owner(graph.vertices));
   system.register_components();
   scheduler.add_component(backend);
-  const auto result = system.run_frontier_to_convergence(256, 10'000'000);
+  SpineFrontierRunResult result;
+  try {
+    result = system.run_frontier_to_convergence(256, 10'000'000);
+  } catch (const std::exception &) {
+    const auto &compute = system.compute_counters();
+    const auto &stats = system.owner_scheduler()->stats();
+    const auto &frontier = system.owner_frontier()->stats();
+    std::cerr << "RESPR_OWNER_TIMEOUT source=" << compute.source_requests << '/'
+              << compute.source_responses << " completion="
+              << compute.source_completion_markers << " owner_round="
+              << compute.owner_round_begins << '/' << compute.owner_round_finalizes
+              << " dispatch=" << compute.owner_source_dispatches
+              << " complete=" << compute.owner_source_completions
+              << " words=" << compute.owner_activation_words << " owner_hbm="
+              << compute.owner_hbm_requests_generated << '/'
+              << compute.owner_hbm_requests_completed << " memory="
+              << compute.memory_requests_issued << '/'
+              << compute.memory_requests_completed << " credits="
+              << system.owner_scheduler()->work_credits() << " created="
+              << stats.work_credits_created << " retired="
+              << stats.work_credits_retired << " seed=" << stats.seed_dispatches
+              << " dispatch_total=" << stats.dispatches
+              << " complete_total=" << stats.completions
+              << " initial=" << stats.initial_activations
+              << " react=" << stats.reactivations
+              << " coalesced=" << stats.coalesced_activations
+              << " frontier_dispatch=" << frontier.frontiers_dispatched
+              << " frontier_complete=" << frontier.frontiers_completed
+              << " next=" << system.compute().next_active().size() << '\n';
+    for (std::uint32_t vertex = 0; vertex < graph.vertices; ++vertex) {
+      const auto state = system.owner_scheduler()->state(vertex);
+      std::cerr << "RESPR_OWNER_STATE vertex=" << vertex
+                << " queued=" << state.queued
+                << " in_flight=" << state.in_flight
+                << " dirty=" << state.dirty << '\n';
+    }
+    throw;
+  }
 
   std::uint64_t emitted = 0;
   for (const auto &round : result.rounds) {
     emitted += round.active_out.size();
+    require_owner_hbm_round_ledger(round.compute, "Residual PageRank");
     require(round.compute.owner_activations_accepted == round.active_out.size(),
             "Residual PageRank output bypassed the owner handshake");
   }
   float residual_l1 = 0.0F;
   for (const std::uint32_t word : system.compute().residual_words()) {
     residual_l1 += std::fabs(GraphAlgorithmPolicy::word_to_float(word));
+  }
+  if (!(result.converged && !result.failed && result.owner_ledger_closed &&
+        result.owner_quiescent && result.owner_scheduler.has_value() &&
+        result.owner_scheduler->work_credits_created == emitted + 4 &&
+        result.owner_scheduler->work_credits_created ==
+            result.owner_scheduler->work_credits_retired &&
+        residual_l1 <= 1.01e-5F)) {
+    const auto &stats = *result.owner_scheduler;
+    const auto &round = result.rounds.front();
+    std::cerr << "RESPR_OWNER_FAILURE rounds=" << result.rounds.size()
+              << " active_in=" << round.active_in.size()
+              << " active_out=" << round.active_out.size()
+              << " source_complete="
+              << round.compute.source_completion_markers
+              << " reader_source_complete="
+              << round.reader.source_completion_markers
+              << " reader_path_error=" << round.reader.range_task_error
+              << " reader_overflow=" << round.reader.done_overflow
+              << " owner_complete=" << round.compute.owner_source_completions
+              << " created=" << stats.work_credits_created
+              << " retired=" << stats.work_credits_retired
+              << " dispatch=" << stats.dispatches
+              << " complete=" << stats.completions
+              << " credits=" << system.owner_scheduler()->work_credits()
+              << " residual_l1=" << residual_l1 << '\n';
   }
   require(result.converged && !result.failed && result.owner_ledger_closed &&
               result.owner_quiescent && result.owner_scheduler.has_value() &&
@@ -9970,10 +10215,29 @@ void test_spine_full_pagerank_dense_owner_reissues_frontier() {
   scheduler.add_component(backend);
   const auto result = system.run_frontier_to_convergence(64, 10'000'000);
 
+  if (!(result.converged && !result.failed && result.rounds.size() > 1 &&
+        result.owner_ledger_closed && result.owner_quiescent &&
+        result.owner_scheduler.has_value() &&
+        result.owner_scheduler->work_credits_created ==
+            result.owner_scheduler->work_credits_retired)) {
+    const auto &stats = *result.owner_scheduler;
+    const auto &compute = system.compute_counters();
+    std::cerr << "FULLPR_OWNER_FAILURE converged=" << result.converged
+              << " failed=" << result.failed << " rounds="
+              << result.rounds.size() << " ledger="
+              << result.owner_ledger_closed << " quiescent="
+              << result.owner_quiescent << " initial="
+              << stats.initial_activations << " seed=" << stats.seed_dispatches
+              << " created=" << stats.work_credits_created << " retired="
+              << stats.work_credits_retired << " owner_round="
+              << compute.owner_round_begins << '/' << compute.owner_round_finalizes
+              << " owner_hbm=" << compute.owner_hbm_requests_generated << '/'
+              << compute.owner_hbm_requests_completed << '\n';
+  }
   require(result.converged && !result.failed && result.rounds.size() > 1 &&
               result.owner_ledger_closed && result.owner_quiescent &&
               result.owner_scheduler.has_value() &&
-              result.owner_scheduler->initial_activations ==
+              result.owner_scheduler->seed_dispatches ==
                   graph.vertices * result.rounds.size() &&
               result.owner_scheduler->work_credits_created ==
                   result.owner_scheduler->work_credits_retired,

@@ -1060,7 +1060,7 @@ SpineVerticalSliceSystem::SpineVerticalSliceSystem(
   if (owner_scheduler_ != nullptr) {
     owner_frontier_ = std::make_unique<SpineOwnerFrontierController>(
         "spine-owner-frontier", clock_id_, *owner_scheduler_,
-        current_frontier_);
+        current_frontier_, nullptr, true);
     reader_->configure_start_gate(owner_frontier_->ready_gate());
   }
   if (initial_host_active) {
@@ -2018,7 +2018,8 @@ SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
       algorithm_policy_->storage_profile().degree_arrays != 0
           ? std::move(host.out_degrees)
           : std::vector<std::uint32_t>{},
-      *vertex_state_, active_out_.get(), edge_stream_, value_stream_,
+      *vertex_state_, active_out_.get(), owner_state_.get(), edge_stream_,
+      value_stream_,
       pipeline_config,
       compute_memory_request_window,
       SpineSplitPageRankCompute::kDefaultTileVertices,
@@ -2059,7 +2060,7 @@ SpinePageRankVerticalSliceSystem::SpinePageRankVerticalSliceSystem(
     }
     owner_frontier_ = std::make_unique<SpineOwnerFrontierController>(
         "pagerank-owner-frontier", clock_id_, *owner_scheduler_,
-        source_refresh_, &initial_active_ready_);
+        source_refresh_, &initial_active_ready_, true);
     reader_->configure_start_gate(owner_frontier_->ready_gate());
     compute_->configure_initial_start_gate(owner_frontier_->ready_gate());
   }
