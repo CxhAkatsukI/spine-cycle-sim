@@ -276,6 +276,12 @@ def validate_generic_result(
         )
     else:
         rounds = result.get("iterations", -1)
+        zero_frontier_fast_path = (
+            rounds == 0
+            and result.get("initial_active_vertices") == 0
+            and result.get("frontier_in_sizes") == []
+            and result.get("frontier_out_sizes") == []
+        )
         warm_linf = residual_contract in {
             "deltahls_sink_free_linf_warm",
             "grasu_hardware_warm_dangling_linf",
@@ -292,7 +298,10 @@ def validate_generic_result(
                 "converged": result.get("converged") is True
                 and result.get("final_active") == 0,
                 "iterations": isinstance(rounds, int)
-                and 0 < rounds <= residual_max_iterations,
+                and (
+                    zero_frontier_fast_path
+                    or 0 < rounds <= residual_max_iterations
+                ),
                 "damping": abs(
                     float(result.get("pagerank_damping", -1.0))
                     - pagerank_damping
@@ -969,11 +978,21 @@ def validate_residual_pagerank_result(
     frontier_out = result.get("frontier_out_sizes", [])
     requests = result.get("compute_requests_per_iteration", [])
     rounds = result.get("iterations", 0)
+    zero_frontier_fast_path = (
+        rounds == 0
+        and result.get("initial_active_vertices") == 0
+        and frontier_in == []
+        and frontier_out == []
+        and requests == []
+    )
     frontier_shape_ok = (
-        rounds > 0
-        and len(frontier_in) == len(frontier_out) == rounds
-        and frontier_in[0] == result.get("vertices")
-        and frontier_out[-1] == 0
+        zero_frontier_fast_path
+        or (
+            rounds > 0
+            and len(frontier_in) == len(frontier_out) == rounds
+            and frontier_in[0] == result.get("vertices")
+            and frontier_out[-1] == 0
+        )
     )
     default_epsilon = abs(result.get("pagerank_epsilon", 0.0) - 1.0e-5) < 1.0e-12
     ledger_ok = (
@@ -996,7 +1015,8 @@ def validate_residual_pagerank_result(
         "convergence": result.get("converged") is True
         and result.get("final_active") == 0
         and frontier_shape_ok,
-        "known_default_frontier": not default_epsilon
+        "known_default_frontier": zero_frontier_fast_path
+        or not default_epsilon
         or (rounds == 49 and any(0 < size < 4 for size in frontier_in)),
         "correctness": result.get("correctness_mismatches") == 0
         and result.get("frontier_match") is True

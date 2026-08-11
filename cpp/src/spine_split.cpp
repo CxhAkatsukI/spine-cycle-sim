@@ -539,6 +539,12 @@ void SpineSplitReader::commit(const CycleContext &context) {
         } else if (fallback_after_source_refresh_) {
           fallback_after_source_refresh_ = false;
           start_host_fallback(kRangeTaskFallbackActiveGate);
+        } else if (active_sources_.empty() &&
+                   (algorithm_policy_->config().kind ==
+                        GraphAlgorithmKind::kResidualPageRank ||
+                    algorithm_policy_->config().kind ==
+                        GraphAlgorithmKind::kConnectedComponents)) {
+          begin_terminal(false);
         } else if (device_spooled_) {
           enqueue_device_source_spool_read();
           phase_ = Phase::kSourceSpoolValidationRead;

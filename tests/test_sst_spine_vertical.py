@@ -439,6 +439,35 @@ class SstSpineVerticalValidationTests(unittest.TestCase):
             validate_residual_pagerank_result(result, dram, channels=32),
         )
 
+    def test_residual_pagerank_result_accepts_zero_frontier_fast_path(self) -> None:
+        result = {
+            "success": True,
+            "mode": "spine_residual_pagerank",
+            "timing_evidence": "provisional_algorithm_pipeline",
+            "vertices": 4,
+            "input_edges": 4,
+            "converged": True,
+            "final_active": 0,
+            "initial_active_vertices": 0,
+            "iterations": 0,
+            "frontier_in_sizes": [],
+            "frontier_out_sizes": [],
+            "compute_requests_per_iteration": [],
+            "correctness_mismatches": 0,
+            "frontier_match": True,
+            "memory_ledger_match": True,
+            "max_abs_error": 0.0,
+            "pagerank_epsilon": 1.0e-5,
+            "residual_l1": 0.0,
+            "maintenance_persisted_edges": 4,
+            "maintenance_cycles": 50,
+            "backend_requests": 100,
+        }
+        dram = {"dram_reads": 80, "dram_writes": 20, "dram_channels": 32}
+        self.assertEqual(
+            validate_residual_pagerank_result(result, dram, channels=32), []
+        )
+
     def test_full_pagerank_result_closes_algorithm_and_dram_ledgers(self) -> None:
         result = {
             "success": True,

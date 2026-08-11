@@ -305,8 +305,6 @@ ResidualPageRankReference run_delta_hls_residual_reference(
   reference.residuals = initial_residuals;
   std::vector<std::uint32_t> active = initial_active;
   if (active.empty()) {
-    reference.frontier_in_sizes.push_back(0);
-    reference.frontier_out_sizes.push_back(0);
     reference.converged = true;
     return reference;
   }
@@ -802,8 +800,6 @@ ConnectedComponentsReference run_connected_components_architecture_reference(
       .converged = false,
   };
   if (active.empty()) {
-    reference.frontier_in_sizes.push_back(0);
-    reference.frontier_out_sizes.push_back(0);
     reference.converged = true;
     return reference;
   }
@@ -4151,42 +4147,46 @@ class OnlineMemoryProbe final : public SST::Component {
         const auto &reader = pagerank_system_->reader_counters();
         const auto &compute = pagerank_system_->compute_counters();
         const auto &pipeline = pagerank_system_->compute().pipeline_counters();
-        pagerank_iteration_cycles_.push_back(now -
-                                             pagerank_iteration_start_cycle_);
-        pagerank_iteration_start_cycles_.push_back(
-            pagerank_iteration_start_cycle_);
-        pagerank_iteration_end_cycles_.push_back(now);
-        pagerank_reader_start_cycles_.push_back(reader.start_cycle);
-        pagerank_reader_end_cycles_.push_back(reader.end_cycle);
-        pagerank_compute_start_cycles_.push_back(compute.start_cycle);
-        pagerank_compute_end_cycles_.push_back(compute.end_cycle);
-        pagerank_frontier_in_sizes_.push_back(
-            reader.source_requests);
-        pagerank_frontier_out_sizes_.push_back(
-            pagerank_system_->compute().next_active().size());
-        pagerank_compute_requests_per_iteration_.push_back(
-            compute.memory_requests_issued);
-        pagerank_reader_edges_per_iteration_.push_back(
-            reader.edges_emitted);
-        pagerank_reader_family_directory_bytes_per_iteration_.push_back(
-            reader.family_directory_read_bytes);
-        pagerank_reader_family_directory_masks_per_iteration_.push_back(
-            reader.family_directory_mask_reads);
-        pagerank_reader_family_directory_empty_masks_per_iteration_.push_back(
-            reader.family_directory_empty_masks);
-        pagerank_reader_source_spool_write_bytes_per_iteration_.push_back(
-            reader.device_source_spool_write_bytes);
-        pagerank_reader_source_spool_read_bytes_per_iteration_.push_back(
-            reader.device_source_spool_read_bytes);
-        pagerank_compute_edges_per_iteration_.push_back(
-            compute.edges_received);
-        pagerank_source_map_operations_per_iteration_.push_back(
-            pipeline.source_map.completed);
-        pagerank_reduce_operations_per_iteration_.push_back(
-            pipeline.reduce.completed);
-        pagerank_apply_operations_per_iteration_.push_back(
-            pipeline.apply.completed);
-        ++pagerank_completed_iterations_;
+        const bool empty_frontier_fast_path =
+            (mode_ == "spine_residual_pagerank" ||
+             mode_ == "spine_connected_components") &&
+            compute.source_count == 0 && reader.source_requests == 0;
+        if (!empty_frontier_fast_path) {
+          pagerank_iteration_cycles_.push_back(
+              now - pagerank_iteration_start_cycle_);
+          pagerank_iteration_start_cycles_.push_back(
+              pagerank_iteration_start_cycle_);
+          pagerank_iteration_end_cycles_.push_back(now);
+          pagerank_reader_start_cycles_.push_back(reader.start_cycle);
+          pagerank_reader_end_cycles_.push_back(reader.end_cycle);
+          pagerank_compute_start_cycles_.push_back(compute.start_cycle);
+          pagerank_compute_end_cycles_.push_back(compute.end_cycle);
+          pagerank_frontier_in_sizes_.push_back(reader.source_requests);
+          pagerank_frontier_out_sizes_.push_back(
+              pagerank_system_->compute().next_active().size());
+          pagerank_compute_requests_per_iteration_.push_back(
+              compute.memory_requests_issued);
+          pagerank_reader_edges_per_iteration_.push_back(reader.edges_emitted);
+          pagerank_reader_family_directory_bytes_per_iteration_.push_back(
+              reader.family_directory_read_bytes);
+          pagerank_reader_family_directory_masks_per_iteration_.push_back(
+              reader.family_directory_mask_reads);
+          pagerank_reader_family_directory_empty_masks_per_iteration_.push_back(
+              reader.family_directory_empty_masks);
+          pagerank_reader_source_spool_write_bytes_per_iteration_.push_back(
+              reader.device_source_spool_write_bytes);
+          pagerank_reader_source_spool_read_bytes_per_iteration_.push_back(
+              reader.device_source_spool_read_bytes);
+          pagerank_compute_edges_per_iteration_.push_back(
+              compute.edges_received);
+          pagerank_source_map_operations_per_iteration_.push_back(
+              pipeline.source_map.completed);
+          pagerank_reduce_operations_per_iteration_.push_back(
+              pipeline.reduce.completed);
+          pagerank_apply_operations_per_iteration_.push_back(
+              pipeline.apply.completed);
+          ++pagerank_completed_iterations_;
+        }
         const bool frontier_converged =
             (mode_ == "spine_residual_pagerank" ||
              mode_ == "spine_connected_components") &&

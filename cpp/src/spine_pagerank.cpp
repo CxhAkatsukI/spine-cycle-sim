@@ -1052,6 +1052,11 @@ void SpineSplitPageRankCompute::commit(const CycleContext &context) {
       }
       ++counters_.done_words;
       reader_done_seen_ = true;
+      if (counters_.source_count == 0 &&
+          policy_.config().kind != GraphAlgorithmKind::kFullPageRank) {
+        phase_ = Phase::kFinish;
+        break;
+      }
       const std::optional<std::uint32_t> next = next_unapplied_tile();
       if (next.has_value()) {
         begin_apply_tile(*next, true);
