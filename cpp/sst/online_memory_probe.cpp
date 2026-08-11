@@ -10155,20 +10155,104 @@ class OnlineMemoryProbe final : public SST::Component {
           ++frontier_mismatches;
         }
       }
-      const bool passed = success && mismatches == 0 &&
-                          frontier_mismatches == 0 &&
-                          spine_system_->compute().next_active().size() ==
-                              actual_frontier.size();
       const auto &maintenance = spine_system_->maintenance_counters();
       const auto &sorted_axi =
           spine_system_->axi_stats(SpineAxiPortKind::kSortedEdges);
       const auto &reader = spine_system_->reader_counters();
       const auto &compute = spine_system_->compute_counters();
+      const FifoStats edge_axis = spine_system_->edge_stream_stats();
+      const FifoStats value_axis = spine_system_->value_stream_stats();
+      const MemoryTrafficStats total_backend_traffic =
+          backend_->traffic_stats();
+      const bool memory_locality_ledger_match =
+          memory_traffic_closes(total_backend_traffic, backend_->accepted());
+      const bool component_request_ledger_match =
+          maintenance.memory_ledger_closed &&
+          maintenance.memory_requests_issued ==
+              maintenance.memory_requests_completed &&
+          reader.memory_requests_issued == reader.memory_requests_completed &&
+          compute.memory_requests_issued == compute.memory_requests_completed;
+      const bool fifo_ledger_match =
+          edge_axis.pushes == edge_axis.pops &&
+          value_axis.pushes == value_axis.pops;
+      const SpineOwnerScheduler *owner = spine_system_->owner_scheduler();
+      const bool owner_enabled = owner != nullptr;
+      const std::uint64_t owner_hbm_requests_expected =
+          owner_enabled
+              ? 2 + compute.owner_source_dispatches * 7 +
+                    compute.owner_source_completions * 6 +
+                    compute.owner_activation_words * 8 + 9
+              : 0;
+      const bool owner_round_ledger_match =
+          compute.owner_round_begins == (owner_enabled ? 1U : 0U) &&
+          compute.owner_round_finalizes == (owner_enabled ? 1U : 0U) &&
+          compute.owner_source_dispatches ==
+              compute.owner_source_completions &&
+          reader.source_completion_markers ==
+              compute.owner_source_dispatches &&
+          compute.source_completion_markers ==
+              compute.owner_source_completions &&
+          compute.owner_hbm_requests_generated ==
+              owner_hbm_requests_expected &&
+          compute.owner_hbm_requests_completed ==
+              owner_hbm_requests_expected &&
+          compute.owner_hbm_read_requests + compute.owner_hbm_write_requests ==
+              owner_hbm_requests_expected &&
+          compute.owner_hbm_read_bytes + compute.owner_hbm_write_bytes ==
+              owner_hbm_requests_expected * sizeof(std::uint64_t);
+      const SpineOwnerSchedulerStats owner_stats =
+          owner_enabled ? owner->stats() : SpineOwnerSchedulerStats{};
+      const std::uint64_t owner_residual_work_credits =
+          owner_stats.work_credits_created >= owner_stats.work_credits_retired
+              ? owner_stats.work_credits_created -
+                    owner_stats.work_credits_retired
+              : std::numeric_limits<std::uint64_t>::max();
+      // This probe intentionally stops after one algorithm round.  Credits for
+      // its next frontier are an explained boundary residual, not lost work.
+      const bool owner_residual_credits_explained =
+          !owner_enabled ||
+          owner_residual_work_credits ==
+              spine_system_->compute().next_active().size();
+      const bool owner_state_ledger_match =
+          !owner_enabled ||
+          (owner->ledger_closed() && owner_residual_credits_explained &&
+           owner_stats.dispatches == owner_stats.completions);
+      const bool passed =
+          success && mismatches == 0 && frontier_mismatches == 0 &&
+          spine_system_->compute().next_active().size() ==
+              actual_frontier.size() &&
+          component_request_ledger_match && fifo_ledger_match &&
+          memory_locality_ledger_match && owner_round_ledger_match &&
+          owner_state_ledger_match;
+      const std::vector<SpineSsspRoundEvidence> owner_rounds{
+          SpineSsspRoundEvidence{
+              .round = 0,
+              .active_in = {},
+              .reader_sources = spine_system_->reader_source_ids(),
+              .active_out = spine_system_->compute().next_active(),
+              .reader = reader,
+              .compute = compute,
+              .edge_axis = edge_axis,
+              .value_axis = value_axis,
+              .start_cycle = 0,
+              .end_cycle = scheduler_.clock(0).completed_cycles,
+          }};
       result
           << "{\n"
           << "  \"success\": " << (passed ? "true" : "false") << ",\n"
-          << "  \"mode\": \"" << mode_ << "\",\n"
-          << "  \"backend\": \"" << backend_->backend_label()
+          << "  \"mode\": \"" << mode_ << "\",\n";
+      write_owner_evidence(result, owner, spine_system_->owner_frontier());
+      write_owner_round_evidence(result, owner_rounds, owner_enabled);
+      result << "  \"owner_measurement_boundary\": "
+                "\"single_round_next_frontier_residual\",\n"
+             << "  \"owner_residual_work_credits\": "
+             << owner_residual_work_credits << ",\n"
+             << "  \"owner_residual_frontier_vertices\": "
+             << spine_system_->compute().next_active().size() << ",\n"
+             << "  \"owner_residual_credits_explained\": "
+             << (owner_residual_credits_explained ? "true" : "false")
+             << ",\n"
+             << "  \"backend\": \"" << backend_->backend_label()
           << "\",\n"
           << "  \"spine_axi_profile\": \"" << spine_axi_profile_id_ << "\",\n"
           << "  \"spine_maintenance_architecture\": \""
@@ -10934,8 +11018,16 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"backend_max_outstanding\": " << backend_->max_outstanding()
           << ",\n"
           << "  \"backend_arbitration\": " << backend_->arbitration_json()
-          << "\n"
-          << "}\n";
+          << ",\n"
+          << "  \"component_request_ledger_match\": "
+          << (component_request_ledger_match ? "true" : "false") << ",\n"
+          << "  \"fifo_ledger_match\": "
+          << (fifo_ledger_match ? "true" : "false") << ",\n"
+          << "  \"memory_locality_ledger_match\": "
+          << (memory_locality_ledger_match ? "true" : "false") << ",\n"
+          << "  \"backend_traffic\": ";
+      write_memory_traffic(result, total_backend_traffic);
+      result << "\n}\n";
       output_.output(
           "completed Spine vertical slice in %llu core cycles -> %s\n",
           static_cast<unsigned long long>(scheduler_.clock(0).completed_cycles),

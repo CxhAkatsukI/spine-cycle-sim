@@ -5742,10 +5742,12 @@ void SpineSplitSsspCompute::begin_owner_protocol(OwnerProtocolKind kind,
                                                  std::uint32_t subject,
                                                  Phase return_phase) {
   if (owner_scheduler_ == nullptr || kind == OwnerProtocolKind::kNone ||
-      owner_protocol_kind_ != OwnerProtocolKind::kNone ||
-      !memory_tasks_.empty() || !inflight_memory_tasks_.empty()) {
+      owner_protocol_kind_ != OwnerProtocolKind::kNone) {
     throw std::logic_error("invalid overlapping Spine owner-HBM protocol");
   }
+  // A source-completion marker can follow the last edge while vertex writes
+  // remain in flight.  Entering kOwnerProtocol stalls on those requests in
+  // evaluate(), then serializes the owner transaction on the shared port.
   owner_protocol_kind_ = kind;
   owner_protocol_subject_ = subject;
   owner_protocol_return_phase_ = return_phase;

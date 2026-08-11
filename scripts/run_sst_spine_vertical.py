@@ -102,6 +102,100 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def validate_owner_round_evidence(result: dict[str, Any]) -> list[str]:
+    count = int(result.get("owner_round_evidence_count", 0))
+    array_fields = (
+        "reader_source_completion_markers_per_round",
+        "compute_source_completion_markers_per_round",
+        "owner_round_begins_per_round",
+        "owner_source_dispatches_per_round",
+        "owner_source_completions_per_round",
+        "owner_activation_words_per_round",
+        "owner_round_finalizes_per_round",
+        "owner_hbm_requests_expected_per_round",
+        "owner_hbm_requests_generated_per_round",
+        "owner_hbm_requests_completed_per_round",
+        "owner_hbm_read_requests_per_round",
+        "owner_hbm_write_requests_per_round",
+        "owner_hbm_read_bytes_per_round",
+        "owner_hbm_write_bytes_per_round",
+        "owner_round_ledger_match_per_round",
+        "owner_hbm_request_ledger_match_per_round",
+        "owner_hbm_byte_ledger_match_per_round",
+    )
+    arrays = {name: result.get(name) for name in array_fields}
+    shapes_match = count > 0 and all(
+        isinstance(values, list) and len(values) == count
+        for values in arrays.values()
+    )
+    formula_match = False
+    if shapes_match:
+        formula_match = True
+        for index in range(count):
+            dispatches = int(arrays["owner_source_dispatches_per_round"][index])
+            completions = int(arrays["owner_source_completions_per_round"][index])
+            activation_words = int(arrays["owner_activation_words_per_round"][index])
+            expected = 2 + 7 * dispatches + 6 * completions + 8 * activation_words + 9
+            formula_match = formula_match and all(
+                (
+                    int(arrays["owner_round_begins_per_round"][index]) == 1,
+                    int(arrays["owner_round_finalizes_per_round"][index]) == 1,
+                    dispatches == completions,
+                    int(arrays["reader_source_completion_markers_per_round"][index])
+                    == dispatches,
+                    int(arrays["compute_source_completion_markers_per_round"][index])
+                    == completions,
+                    int(arrays["owner_hbm_requests_expected_per_round"][index])
+                    == expected,
+                    int(arrays["owner_hbm_requests_generated_per_round"][index])
+                    == expected,
+                    int(arrays["owner_hbm_requests_completed_per_round"][index])
+                    == expected,
+                    int(arrays["owner_hbm_read_requests_per_round"][index])
+                    + int(arrays["owner_hbm_write_requests_per_round"][index])
+                    == expected,
+                    int(arrays["owner_hbm_read_bytes_per_round"][index])
+                    + int(arrays["owner_hbm_write_bytes_per_round"][index])
+                    == expected * 8,
+                )
+            )
+    single_round_residual = result.get("mode") in {
+        "spine_vertical",
+        "spine_refactor31_probe",
+    }
+    residual_explained = (
+        single_round_residual
+        and result.get("owner_measurement_boundary")
+        == "single_round_next_frontier_residual"
+        and result.get("owner_residual_credits_explained") is True
+        and result.get("owner_residual_work_credits")
+        == result.get("owner_residual_frontier_vertices")
+        == result.get("next_active")
+    )
+    checks = {
+        "owner_scheduler_enabled": result.get("owner_scheduler_enabled") is True,
+        "owner_ledger_closed": result.get("owner_ledger_closed") is True,
+        "owner_quiescent_or_explained_residual": (
+            result.get("owner_quiescent") is True or residual_explained
+        ),
+        "owner_work_credit_ledger": (
+            result.get("owner_work_credits_created")
+            == result.get("owner_work_credits_retired")
+            or residual_explained
+        ),
+        "owner_dispatch_completion_ledger": result.get("owner_dispatches")
+        == result.get("owner_completions"),
+        "owner_round_evidence_shape": shapes_match,
+        "owner_round_ledger": result.get("owner_round_ledger_match") is True,
+        "owner_hbm_request_ledger": (
+            result.get("owner_hbm_request_ledger_match") is True
+        ),
+        "owner_hbm_byte_ledger": result.get("owner_hbm_byte_ledger_match") is True,
+        "owner_round_formula": formula_match,
+    }
+    return [name for name, passed in checks.items() if not passed]
+
+
 def validate_generic_result(
     result: dict[str, Any],
     dram: dict[str, int | float],
@@ -2334,17 +2428,8 @@ def main() -> int:
             problems.append("mathematical_oracle")
         if abs(float(result.get("core_mhz", -1.0)) - core_mhz) > 1.0e-9:
             problems.append("core_mhz")
-    if profile_owner_scheduler_enabled and args.scenario in generic_scenarios:
-        owner_checks = {
-            "owner_scheduler_enabled": result.get("owner_scheduler_enabled") is True,
-            "owner_ledger_closed": result.get("owner_ledger_closed") is True,
-            "owner_quiescent": result.get("owner_quiescent") is True,
-            "owner_work_credit_ledger": result.get("owner_work_credits_created")
-            == result.get("owner_work_credits_retired"),
-            "owner_dispatch_completion_ledger": result.get("owner_dispatches")
-            == result.get("owner_completions"),
-        }
-        problems.extend(name for name, passed in owner_checks.items() if not passed)
+    if profile_owner_scheduler_enabled:
+        problems.extend(validate_owner_round_evidence(result))
     if args.sssp_warm_start:
         warm_checks = {
             "algorithm_warm_start": result.get("algorithm_warm_start") is True,

@@ -18,6 +18,7 @@ from scripts.run_sst_spine_vertical import (
     validate_generic_result,
     validate_multiround_sssp_result,
     validate_nonmonotonic_sssp_result,
+    validate_owner_round_evidence,
     validate_protocol_window_result,
     validate_residual_pagerank_result,
     validate_result,
@@ -28,6 +29,92 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class SstSpineVerticalValidationTests(unittest.TestCase):
+    def test_owner_round_evidence_recomputes_protocol_formula(self) -> None:
+        evidence = {
+            "owner_scheduler_enabled": True,
+            "owner_ledger_closed": True,
+            "owner_quiescent": True,
+            "owner_work_credits_created": 2,
+            "owner_work_credits_retired": 2,
+            "owner_dispatches": 2,
+            "owner_completions": 2,
+            "owner_round_evidence_count": 1,
+            "owner_round_ledger_match": True,
+            "owner_hbm_request_ledger_match": True,
+            "owner_hbm_byte_ledger_match": True,
+            "reader_source_completion_markers_per_round": [2],
+            "compute_source_completion_markers_per_round": [2],
+            "owner_round_begins_per_round": [1],
+            "owner_source_dispatches_per_round": [2],
+            "owner_source_completions_per_round": [2],
+            "owner_activation_words_per_round": [1],
+            "owner_round_finalizes_per_round": [1],
+            "owner_hbm_requests_expected_per_round": [45],
+            "owner_hbm_requests_generated_per_round": [45],
+            "owner_hbm_requests_completed_per_round": [45],
+            "owner_hbm_read_requests_per_round": [20],
+            "owner_hbm_write_requests_per_round": [25],
+            "owner_hbm_read_bytes_per_round": [160],
+            "owner_hbm_write_bytes_per_round": [200],
+            "owner_round_ledger_match_per_round": [1],
+            "owner_hbm_request_ledger_match_per_round": [1],
+            "owner_hbm_byte_ledger_match_per_round": [1],
+        }
+        self.assertEqual(validate_owner_round_evidence(evidence), [])
+        evidence["owner_hbm_requests_generated_per_round"] = [44]
+        self.assertIn(
+            "owner_round_formula", validate_owner_round_evidence(evidence)
+        )
+
+    def test_owner_round_evidence_fails_closed_when_missing(self) -> None:
+        problems = validate_owner_round_evidence({"owner_scheduler_enabled": True})
+        self.assertIn("owner_round_evidence_shape", problems)
+        self.assertIn("owner_round_formula", problems)
+
+    def test_owner_round_evidence_accepts_exact_single_round_residual(self) -> None:
+        evidence = {
+            "mode": "spine_vertical",
+            "next_active": 2,
+            "owner_scheduler_enabled": True,
+            "owner_ledger_closed": True,
+            "owner_quiescent": False,
+            "owner_work_credits_created": 3,
+            "owner_work_credits_retired": 1,
+            "owner_dispatches": 1,
+            "owner_completions": 1,
+            "owner_measurement_boundary": "single_round_next_frontier_residual",
+            "owner_residual_work_credits": 2,
+            "owner_residual_frontier_vertices": 2,
+            "owner_residual_credits_explained": True,
+            "owner_round_evidence_count": 1,
+            "owner_round_ledger_match": True,
+            "owner_hbm_request_ledger_match": True,
+            "owner_hbm_byte_ledger_match": True,
+            "reader_source_completion_markers_per_round": [1],
+            "compute_source_completion_markers_per_round": [1],
+            "owner_round_begins_per_round": [1],
+            "owner_source_dispatches_per_round": [1],
+            "owner_source_completions_per_round": [1],
+            "owner_activation_words_per_round": [1],
+            "owner_round_finalizes_per_round": [1],
+            "owner_hbm_requests_expected_per_round": [32],
+            "owner_hbm_requests_generated_per_round": [32],
+            "owner_hbm_requests_completed_per_round": [32],
+            "owner_hbm_read_requests_per_round": [16],
+            "owner_hbm_write_requests_per_round": [16],
+            "owner_hbm_read_bytes_per_round": [128],
+            "owner_hbm_write_bytes_per_round": [128],
+            "owner_round_ledger_match_per_round": [1],
+            "owner_hbm_request_ledger_match_per_round": [1],
+            "owner_hbm_byte_ledger_match_per_round": [1],
+        }
+        self.assertEqual(validate_owner_round_evidence(evidence), [])
+        evidence["owner_residual_frontier_vertices"] = 1
+        self.assertIn(
+            "owner_quiescent_or_explained_residual",
+            validate_owner_round_evidence(evidence),
+        )
+
     def test_large_file_helpers_stream_slice_shape_and_sha(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             path = Path(temporary) / "graph.slice"
