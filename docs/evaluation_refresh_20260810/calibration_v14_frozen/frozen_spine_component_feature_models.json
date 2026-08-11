@@ -1,0 +1,66 @@
+{
+  "contract_id": "current_fpga_spine_component_features_v14_20260812",
+  "fit_role": "calibration_only",
+  "holdout_used_for_fit": false,
+  "models": {
+    "connected_components": {
+      "algorithm": "connected_components",
+      "calibration_datasets": [
+        "au",
+        "pk",
+        "r19",
+        "su",
+        "wk"
+      ],
+      "compute_memory_request_cycles": 45.61911124774983,
+      "compute_round_cycles": 66198.0860718208,
+      "compute_simulator_cycle_scale": 0.8510822101508116,
+      "maintenance_fixed_cycles": 17964.85674309948,
+      "maintenance_simulator_scale": 1.1723710784816355,
+      "profile_id": "spine_owner_fifo_cc_hls_v1",
+      "reader_memory_request_cycles": 63.61387572308815,
+      "reader_simulator_cycle_scale": 2.8832079787532363,
+      "span_residual_cycles_per_round": 3337.4999999999814
+    },
+    "thresholded_residual_pagerank": {
+      "algorithm": "thresholded_residual_pagerank",
+      "calibration_datasets": [
+        "au",
+        "pk",
+        "r19",
+        "su",
+        "wk"
+      ],
+      "compute_memory_request_cycles": 0.0,
+      "compute_round_cycles": 0.0,
+      "compute_simulator_cycle_scale": 0.0,
+      "maintenance_fixed_cycles": 22634.518563210855,
+      "maintenance_simulator_scale": 0.9985391316114711,
+      "profile_id": "spine_owner_fifo_respr_hls_v1",
+      "reader_memory_request_cycles": 0.0,
+      "reader_simulator_cycle_scale": 0.0,
+      "span_residual_cycles_per_round": 0.0
+    },
+    "weighted_sssp": {
+      "algorithm": "weighted_sssp",
+      "calibration_datasets": [
+        "au",
+        "pk",
+        "r19",
+        "su",
+        "wk"
+      ],
+      "compute_memory_request_cycles": 80.47676574814409,
+      "compute_round_cycles": 25504.072702466445,
+      "compute_simulator_cycle_scale": 0.9588202423825677,
+      "maintenance_fixed_cycles": 19290.420272786305,
+      "maintenance_simulator_scale": 1.3379096447536478,
+      "profile_id": "spine_owner_fifo_sssp_hls_v1",
+      "reader_memory_request_cycles": 96.05362388021224,
+      "reader_simulator_cycle_scale": 3.400377783077659,
+      "span_residual_cycles_per_round": 2757.264705882336
+    }
+  },
+  "schema_version": 1,
+  "status": "FROZEN_BEFORE_HOLDOUT"
+}

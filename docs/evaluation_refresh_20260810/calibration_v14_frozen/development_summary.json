@@ -1,0 +1,176 @@
+{
+  "calibration_fit": [
+    {
+      "algorithm": "connected_components",
+      "component": "maintenance",
+      "max_absolute_error_percent": 17.596101182304743,
+      "median_absolute_error_percent": 1.5725489002762694,
+      "rows": 5
+    },
+    {
+      "algorithm": "connected_components",
+      "component": "reader",
+      "max_absolute_error_percent": 22.030900612047738,
+      "median_absolute_error_percent": 11.477306857813607,
+      "rows": 5
+    },
+    {
+      "algorithm": "connected_components",
+      "component": "compute",
+      "max_absolute_error_percent": 19.519693960933317,
+      "median_absolute_error_percent": 1.529931072511008,
+      "rows": 5
+    },
+    {
+      "algorithm": "connected_components",
+      "component": "iterative_span",
+      "max_absolute_error_percent": 21.7148464790446,
+      "median_absolute_error_percent": 11.965081722309527,
+      "rows": 5
+    },
+    {
+      "algorithm": "connected_components",
+      "component": "total",
+      "max_absolute_error_percent": 21.417336415401753,
+      "median_absolute_error_percent": 11.441787439492638,
+      "rows": 5
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "component": "maintenance",
+      "max_absolute_error_percent": 11.010944588085348,
+      "median_absolute_error_percent": 5.196963253555914,
+      "rows": 5
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "component": "total",
+      "max_absolute_error_percent": 11.010944588085348,
+      "median_absolute_error_percent": 5.196963253555914,
+      "rows": 5
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "component": "maintenance",
+      "max_absolute_error_percent": 14.517712180678865,
+      "median_absolute_error_percent": 7.78772881866219,
+      "rows": 5
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "component": "reader",
+      "max_absolute_error_percent": 18.09653228960036,
+      "median_absolute_error_percent": 3.9243459997121537,
+      "rows": 5
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "component": "compute",
+      "max_absolute_error_percent": 2.6405294643730755,
+      "median_absolute_error_percent": 1.3521547964194853,
+      "rows": 5
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "component": "iterative_span",
+      "max_absolute_error_percent": 18.198543195783188,
+      "median_absolute_error_percent": 4.723196521250654,
+      "rows": 5
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "component": "total",
+      "max_absolute_error_percent": 16.68591613048561,
+      "median_absolute_error_percent": 4.595054134152518,
+      "rows": 5
+    }
+  ],
+  "leave_one_dataset_out": [
+    {
+      "algorithm": "connected_components",
+      "component": "maintenance",
+      "max_absolute_error_percent": 26.112492009680373,
+      "median_absolute_error_percent": 2.328316422432123,
+      "rows": 5
+    },
+    {
+      "algorithm": "connected_components",
+      "component": "reader",
+      "max_absolute_error_percent": 35.274748449451025,
+      "median_absolute_error_percent": 28.78148783643708,
+      "rows": 5
+    },
+    {
+      "algorithm": "connected_components",
+      "component": "compute",
+      "max_absolute_error_percent": 22.298075021959352,
+      "median_absolute_error_percent": 9.401806735195049,
+      "rows": 5
+    },
+    {
+      "algorithm": "connected_components",
+      "component": "iterative_span",
+      "max_absolute_error_percent": 35.68245077569771,
+      "median_absolute_error_percent": 28.377744848847385,
+      "rows": 5
+    },
+    {
+      "algorithm": "connected_components",
+      "component": "total",
+      "max_absolute_error_percent": 34.00297300889521,
+      "median_absolute_error_percent": 28.214118436483126,
+      "rows": 5
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "component": "maintenance",
+      "max_absolute_error_percent": 15.278552756515221,
+      "median_absolute_error_percent": 9.949600338153074,
+      "rows": 5
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "component": "total",
+      "max_absolute_error_percent": 15.278552756515221,
+      "median_absolute_error_percent": 9.949600338153074,
+      "rows": 5
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "component": "maintenance",
+      "max_absolute_error_percent": 22.398896976533894,
+      "median_absolute_error_percent": 13.403401977405219,
+      "rows": 5
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "component": "reader",
+      "max_absolute_error_percent": 23.061515761151437,
+      "median_absolute_error_percent": 10.779259521675655,
+      "rows": 5
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "component": "compute",
+      "max_absolute_error_percent": 9.035640140545667,
+      "median_absolute_error_percent": 3.202001827628592,
+      "rows": 5
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "component": "iterative_span",
+      "max_absolute_error_percent": 23.20606173863481,
+      "median_absolute_error_percent": 10.462330964227233,
+      "rows": 5
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "component": "total",
+      "max_absolute_error_percent": 21.29601107084955,
+      "median_absolute_error_percent": 11.222395149518837,
+      "rows": 5
+    }
+  ],
+  "note": "Leave-one-dataset-out rows are development evidence, not the independent holdout.",
+  "schema_version": 1
+}
