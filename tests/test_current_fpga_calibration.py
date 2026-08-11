@@ -5,6 +5,7 @@ from spine_cycle_sim.calibration.current_fpga import (
     CurrentFPGAComposedRecord,
     CurrentFPGAComponentRecord,
     CurrentFPGAOverlapRecord,
+    CurrentFPGAOverlapV6Record,
     CurrentFPGATimingRecord,
     absolute_error_percent,
     composed_prediction_rows,
@@ -12,9 +13,11 @@ from spine_cycle_sim.calibration.current_fpga import (
     fit_component_scale,
     fit_composed_timing_model,
     fit_overlap_timing_model,
+    fit_overlap_v6_timing_model,
     fit_total_scale,
     overlap_leave_one_dataset_out_rows,
     overlap_prediction_rows,
+    overlap_v6_prediction_rows,
     spearman_rank_correlation,
     total_prediction_rows,
 )
@@ -367,6 +370,68 @@ class CurrentFPGACalibrationTests(unittest.TestCase):
         self.assertTrue(
             all(item["total_absolute_error_percent"] < 1e-8 for item in leave_one_out)
         )
+
+    def test_overlap_v6_model_recovers_cross_batch_hls_work_terms(self):
+        def row(dataset, role, values):
+            iterations, reader_requests, metadata_bytes, vertices, compute_requests, sparse_words, edges = values
+            maintenance = 10.0 + iterations
+            hardware_maintenance = 100.0 + 2.0 * maintenance
+            hardware_reader = (
+                3.0 * iterations
+                + 5.0 * reader_requests
+                + 7.0 * metadata_bytes
+                + 11.0 * vertices
+            )
+            hardware_compute = (
+                13.0 * iterations
+                + 17.0 * compute_requests
+                + 19.0 * sparse_words
+                + 23.0 * edges
+            )
+            hardware_span = max(hardware_reader, hardware_compute) + 29.0 * iterations
+            return CurrentFPGAOverlapV6Record(
+                architecture="spine",
+                algorithm="sssp",
+                profile_id="p1",
+                dataset=dataset,
+                role=role,
+                iterations=iterations,
+                simulator_vertices=vertices,
+                simulator_maintenance_cycles=maintenance,
+                simulator_reader_cycles=20.0 + reader_requests,
+                simulator_compute_cycles=30.0 + compute_requests,
+                simulator_reader_memory_requests=reader_requests,
+                simulator_reader_metadata_bytes=metadata_bytes,
+                simulator_reader_source_requests=reader_requests / 2.0,
+                simulator_compute_memory_requests=compute_requests,
+                simulator_compute_sparse_store_scan_words=sparse_words,
+                simulator_processed_edges=edges,
+                hardware_maintenance_cycles=hardware_maintenance,
+                hardware_reader_cycles=hardware_reader,
+                hardware_compute_cycles=hardware_compute,
+                hardware_iterative_span_cycles=hardware_span,
+            )
+
+        records = [
+            row("a", "calibration", (1, 1, 1, 1, 1, 1, 1)),
+            row("b", "calibration", (2, 1, 1, 1, 2, 1, 1)),
+            row("c", "calibration", (1, 2, 1, 1, 1, 2, 1)),
+            row("d", "calibration", (1, 1, 2, 1, 1, 1, 2)),
+            row("e", "calibration", (1, 1, 1, 2, 3, 2, 1)),
+            row("f", "calibration", (3, 2, 4, 5, 2, 5, 7)),
+            row("hold", "holdout", (4, 5, 6, 7, 8, 9, 10)),
+        ]
+        model = fit_overlap_v6_timing_model(records)
+        self.assertAlmostEqual(model.reader_round_cycles, 3.0)
+        self.assertAlmostEqual(model.reader_memory_request_cycles, 5.0)
+        self.assertAlmostEqual(model.reader_metadata_byte_cycles, 7.0)
+        self.assertAlmostEqual(model.reader_vertex_cycles, 11.0)
+        self.assertAlmostEqual(model.compute_round_cycles, 13.0)
+        self.assertAlmostEqual(model.compute_memory_request_cycles, 17.0)
+        self.assertAlmostEqual(model.compute_sparse_store_scan_word_cycles, 19.0)
+        self.assertAlmostEqual(model.compute_processed_edge_cycles, 23.0)
+        predictions = overlap_v6_prediction_rows(records, model)
+        self.assertLess(predictions[-1]["total_absolute_error_percent"], 1e-8)
 
     def test_roles_must_be_disjoint(self):
         rows = self.timing_rows()

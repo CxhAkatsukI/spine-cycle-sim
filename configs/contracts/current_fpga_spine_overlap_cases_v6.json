@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "contract_id": "current_fpga_spine_overlap_v6_20260811",
+  "status": "frozen_before_holdout_execution",
+  "architecture": "spine",
+  "algorithm": "weighted_sssp",
+  "clock_mhz": 150.0,
+  "simulator_plugin": {
+    "path": "cpp/sst/build/sst-current-fpga-v5/libspine_cycle.so",
+    "sha256": "dd0c2d0b44186f654fdced20bb8dcedb17a46d5ec6b1e4aa2a5b7ab8480b2c74"
+  },
+  "profile": {
+    "profile_id": "spine_owner_fifo_sssp_hls_v1",
+    "path": "configs/architectures/spine_owner_fifo_sssp_hls_v1.json",
+    "sha256": "15a530d8626b8fab8e50ea37e571ae6bde9c51273baf734670741dcb55736f6d"
+  },
+  "roles": {
+    "calibration": [
+      "au", "su", "wk", "r19", "so", "pk", "lj", "lj08",
+      "au_u64", "su_u64"
+    ],
+    "holdout": ["au_u512", "su_u512"]
+  },
+  "holdout_workloads": {
+    "au_u512": {
+      "batch_size": 512,
+      "source": 11,
+      "graph_sha256": "092a84ab17b564cab854875e544f420635fe63cca5056e10c3842be912501e70",
+      "initial_slice_sha256": "34a4d5a1942ccf7c2d54a326872760473a1aba88860ec8e66e9fd64fa697c7b2",
+      "update_slice_sha256": "88d9090d37621d1299d510683a2f87bbd3b4395c0ddc3e083537fc923c74b26b"
+    },
+    "su_u512": {
+      "batch_size": 512,
+      "source": 23,
+      "graph_sha256": "1dbc818dbb8dbc2424961a44248e8e1f9082ef99d7dc2728fd160aa348ba1492",
+      "initial_slice_sha256": "3afdd3088221d987dbbb0ac9ead992acc82b684cfab28ef235262e63b410ea4d",
+      "update_slice_sha256": "60b74348d0b64db512c93d1fdc6e4339d5a0b845641583bf71bb4f28d2114760"
+    }
+  },
+  "timing_target": {
+    "maintenance": "median routed maintenance_kernel_ms",
+    "reader": "median routed reader_ms",
+    "compute": "median routed compute_ms",
+    "iterative_span": "median routed kernel_span_ms",
+    "total": "maintenance plus overlapping iterative span",
+    "excluded": [
+      "static graph preload/bootstrap",
+      "host setup and orchestration",
+      "input and output migration"
+    ]
+  },
+  "model": {
+    "maintenance": "non-negative OLS: fixed + simulator maintenance cycles",
+    "reader": "non-negative OLS: rounds + issued reader memory requests + reader metadata bytes + resident vertex domain",
+    "compute": "non-negative OLS: rounds + issued compute memory requests + sparse-store scan words + processed edges",
+    "iterative_span": "max(predicted reader, predicted compute) + non-negative per-round residual",
+    "fit_roles": ["calibration"],
+    "holdout_may_fit": false
+  },
+  "admission": {
+    "hardware_repetitions": 3,
+    "simulator_success": true,
+    "all_correctness_mismatches_zero": true,
+    "structural_work_matches_hardware": true,
+    "memory_fifo_owner_ledgers_closed": true,
+    "hardware_reader_compute_intervals_summed": false
+  },
+  "thresholds": {
+    "holdout_median_absolute_error_percent_max": 20.0,
+    "holdout_absolute_error_percent_max": 30.0,
+    "rank_spearman_min": 0.9
+  },
+  "model_selection_note": "The independently frozen v5 batch-64 holdout failed because its batch-8-only model underrepresented source-service and cross-batch pipeline work. V6 retains the exact execution model and adds only counters mapped to routed HLS loops: reader/compute requests, metadata bytes, sparse-store scans, processed edges, rounds, and the previously identified routed vertex-domain floor. The failed v5 rows are development evidence in v6 and are never reported as holdout.",
+  "freeze_note": "This contract, model form, thresholds, and exact AU/SU batch-512 workload hashes were frozen before either batch-512 workload was executed with the v6 simulator evidence path or FPGA holdout runner."
+}

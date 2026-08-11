@@ -1,0 +1,249 @@
+{
+  "calibration_and_holdout_disjoint": true,
+  "contract_id": "current_fpga_spine_overlap_v6_20260811",
+  "contract_sha256": "8b220d378ba69b83de744dc656546e6e671d96135ee061c361080dac0ceb2244",
+  "evidence": [
+    {
+      "dataset": "au",
+      "hardware_log_sha256": [
+        "314a1e79ce7c436b44aa949ef2f23771e82dd78a5ff9ce1f291419f111bfd740",
+        "137420e141d36fcae739f1ce04caba56815840d3852265199015b42f26dba1e6",
+        "7227a008b68cf0bfe0071d84b3458bf89f0c452069d9a1262c7f6a61c2212d80"
+      ],
+      "hardware_logs": [
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat2_20260806/au_weighted_sssp_resident/spine/sssp/dynamic_au_weighted_sssp_insert_u8.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat3_20260807/au_weighted_sssp_resident/spine/sssp/dynamic_au_weighted_sssp_insert_u8.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_small_v2_20260806/au_weighted_sssp_resident/spine/sssp/dynamic_au_weighted_sssp_insert_u8.log"
+      ],
+      "manifest_sha256": "a312d1de584bd3371e9e7caa6c76c38adb268d892257314317bae562aeb1766e",
+      "result_sha256": "57663504cacc32b937f571a17131b441432e1387881b9d6d4fb985af5b396e0b",
+      "role": "calibration",
+      "run_dir": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/runs_v5_observability/au/spine/weighted_sssp"
+    },
+    {
+      "dataset": "au_u64",
+      "hardware_log_sha256": [
+        "0dfbe2b7c00721c76d26977574029d57cee5a3741e8d4490da185a49ca91f0ec",
+        "749adf61eb9158d3885ce5c36e3b47f854008e109752cafd49aa35b5c2fe67be",
+        "e35a00d8d5a4c57b4fce58b05c55f6000ea32f2ec715f1e5299fdf6b9be1e69b"
+      ],
+      "hardware_logs": [
+        "/data/tmp/chuxiao/spine_sssp_overlap_v5_holdout_hw_20260811/repeat1/au_u64/sssp/dynamic_au_weighted_sssp_insert_u64.log",
+        "/data/tmp/chuxiao/spine_sssp_overlap_v5_holdout_hw_20260811/repeat2/au_u64/sssp/dynamic_au_weighted_sssp_insert_u64.log",
+        "/data/tmp/chuxiao/spine_sssp_overlap_v5_holdout_hw_20260811/repeat3/au_u64/sssp/dynamic_au_weighted_sssp_insert_u64.log"
+      ],
+      "manifest_sha256": "0660d0236046c8028e1229c9b6dcccd88c3d0f3f556f85ab1e4bc0f8565d7bc2",
+      "result_sha256": "d1ea502489626067ac1cf27021ca2a9d897d6a267c38f59a8eb7b11db4fcdcd1",
+      "role": "calibration",
+      "run_dir": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/holdout_v5_observability/au_u64/spine/weighted_sssp"
+    },
+    {
+      "dataset": "lj",
+      "hardware_log_sha256": [
+        "b52b1c794ef3e47c858f12b1f89f6f3146aec985a5a8ecf15f28f3d4630d8ef9",
+        "ac1816b5d82c8c91a4c88b05806a3e5154f581d2753bcdc81cb7e72338dd672e",
+        "d4a6373c44a62dc364d77de1ae3ed13de1e732df5bd70b5b612a00005b80a3e6"
+      ],
+      "hardware_logs": [
+        "/data/tmp/chuxiao/sssp_fullgraph_matched_v2_20260806/lj_weighted_sssp_resident/spine/sssp/dynamic_lj_weighted_sssp_insert_u8.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat2_20260806/lj_weighted_sssp_resident/spine/sssp/dynamic_lj_weighted_sssp_insert_u8.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat3_20260807/lj_weighted_sssp_resident/spine/sssp/dynamic_lj_weighted_sssp_insert_u8.log"
+      ],
+      "manifest_sha256": "ef37a4a166ac62e5ca346124920359f9a3bf5fdb27b0b0d14294aedd0ab376ec",
+      "result_sha256": "45d0e7d2aa6157905925b035c94cd078f5b345d118e597a95dfbd0f2df6d20d2",
+      "role": "calibration",
+      "run_dir": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/runs_v5_observability/lj/spine/weighted_sssp"
+    },
+    {
+      "dataset": "lj08",
+      "hardware_log_sha256": [
+        "a55e5c4797343206e90895204f7318c62b991d0b5b2dff019da183c06eab6461",
+        "4f58ef3322938b8b87864a95d2c6641078e3d99e541bb6cbd2e78ca81b9830e8",
+        "4b2b36ed7e91ee5c6208981d48e95812a62db010e57f68662e27a13ad1652ec5"
+      ],
+      "hardware_logs": [
+        "/data/tmp/chuxiao/sssp_fullgraph_matched_v2_20260806/lj08_weighted_sssp_resident/spine/sssp/dynamic_lj08_weighted_sssp_insert_u8.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat2_20260806/lj08_weighted_sssp_resident/spine/sssp/dynamic_lj08_weighted_sssp_insert_u8.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat3_20260807/lj08_weighted_sssp_resident/spine/sssp/dynamic_lj08_weighted_sssp_insert_u8.log"
+      ],
+      "manifest_sha256": "415042bcfa426c895524ed46cc5ad35f93956ede0b49478aeeebfc3fb067e11b",
+      "result_sha256": "9dd1012d6b7052758f18eff6d3b46cc999dc51ad38b72d961827af8a0601d894",
+      "role": "calibration",
+      "run_dir": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/runs_v5_observability/lj08/spine/weighted_sssp"
+    },
+    {
+      "dataset": "pk",
+      "hardware_log_sha256": [
+        "a6ff25352c655685f4452ba5e3ce0af1cbb650002c8bfa089793d789c27d9c9d",
+        "fb8edee4d0d0d9fd7b254b06c44968d4a79ba6e9ef719a4d4f87a6fd89e3ba30",
+        "a0d2bf1f92b551afec00f3cacba6fdfdc14feb26191918844fd8023cf0928e47"
+      ],
+      "hardware_logs": [
+        "/data/tmp/chuxiao/sssp_fullgraph_matched_v2_20260806/pk_weighted_sssp_resident/spine/sssp/dynamic_pk_weighted_sssp_insert_u8.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat2_20260806/pk_weighted_sssp_resident/spine/sssp/dynamic_pk_weighted_sssp_insert_u8.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat3_20260807/pk_weighted_sssp_resident/spine/sssp/dynamic_pk_weighted_sssp_insert_u8.log"
+      ],
+      "manifest_sha256": "9ffd1ab2a5a11eb2d78ce49f279ac67875052b5de236585a010f34eb0dc8ccac",
+      "result_sha256": "cf02c714805bcc311229bd2b9c130290918368bca5264bc04cf2c1cdb5548145",
+      "role": "calibration",
+      "run_dir": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/runs_v5_observability/pk/spine/weighted_sssp"
+    },
+    {
+      "dataset": "r19",
+      "hardware_log_sha256": [
+        "b059c75c635584b86c1c167e16d3215c7aef03f1071e3d5f99b1df91039a9f04",
+        "ed3d13a8027895962e303416199013194c3ba9e21dc330c546e9cd9139e33f8f",
+        "1a6ed336139962065c230ad6d325072e6ccec1c6a3f081b0ba61d323e12c390d"
+      ],
+      "hardware_logs": [
+        "/data/tmp/chuxiao/sssp_fullgraph_matched_v2_20260806/r19_weighted_sssp_resident/spine/sssp/dynamic_r19_weighted_sssp_insert_u8.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat2_20260806/r19_weighted_sssp_resident/spine/sssp/dynamic_r19_weighted_sssp_insert_u8.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat3_20260807/r19_weighted_sssp_resident/spine/sssp/dynamic_r19_weighted_sssp_insert_u8.log"
+      ],
+      "manifest_sha256": "2bd388821ef881f1d5d4bfeaa2162c90207aa629bd830dad8c7070941c4bf506",
+      "result_sha256": "a7ba3d34659471d8fbd00ba6f76cdadac8991f24b129a37fdc5e1570aff6658c",
+      "role": "calibration",
+      "run_dir": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/runs_v5_observability/r19/spine/weighted_sssp"
+    },
+    {
+      "dataset": "so",
+      "hardware_log_sha256": [
+        "b7e9b8e711d78331fca38947a052df6015eeb1979608f2580d423639f54e4966",
+        "047e925ced4487f0fb33541c20db5f0eba908405917e53782ddc0017ee06b7c0",
+        "f71867a12caa2973583a69a50ff7b6236741d4cba459f31f9f5ab9ee880d4aa4"
+      ],
+      "hardware_logs": [
+        "/data/tmp/chuxiao/sssp_fullgraph_matched_v2_20260806/so_weighted_sssp_resident/spine/sssp/dynamic_so_weighted_sssp_insert_u8.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat2_20260806/so_weighted_sssp_resident/spine/sssp/dynamic_so_weighted_sssp_insert_u8.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat3_20260807/so_weighted_sssp_resident/spine/sssp/dynamic_so_weighted_sssp_insert_u8.log"
+      ],
+      "manifest_sha256": "155e4fbdb2dfcb5d3163713da1e8238d05d297723702bff3860ad48d056da7ed",
+      "result_sha256": "e026475b8fbc8a0e674c103b47269f5413b85032023f8868c4cbd7e7ec025e56",
+      "role": "calibration",
+      "run_dir": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/runs_v5_observability/so/spine/weighted_sssp"
+    },
+    {
+      "dataset": "su",
+      "hardware_log_sha256": [
+        "a067c97fcf993d273e94130fffbeb5248088b7660ec57645d0ebe3d855fcc918",
+        "0268ae1579ab11ae94560cd13e3170f2dc7fae18179fd8c077106b04c6e23a93",
+        "23741ea59828ce88569c50867ab8b886685ed4c4cb4af574eb5ee8b4c811800b"
+      ],
+      "hardware_logs": [
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat2_20260806/su_weighted_sssp_resident/spine/sssp/dynamic_su_weighted_sssp_insert_u8.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat3_20260807/su_weighted_sssp_resident/spine/sssp/dynamic_su_weighted_sssp_insert_u8.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_small_v2_20260806/su_weighted_sssp_resident/spine/sssp/dynamic_su_weighted_sssp_insert_u8.log"
+      ],
+      "manifest_sha256": "00563581ea8bd28c6ed3f0fd8e091e8ad48f0da9d4ad0505d630df638e7efc1e",
+      "result_sha256": "6ac85ce4c99c3bca4b06b184a5da84679e0fa977f35900b02e6f329f0f142f25",
+      "role": "calibration",
+      "run_dir": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/runs_v5_observability/su/spine/weighted_sssp"
+    },
+    {
+      "dataset": "su_u64",
+      "hardware_log_sha256": [
+        "a2ad624a58eede62c7d7986b43ae66518dd7b73786986aa6c05529f90f5c4075",
+        "e53a300fb6049c4c8d44a17977f622ffcafb5af8536c6664fd4607a06e81ed2f",
+        "18744ca543c97ce18bc7fe342d4c66700574508cce3348953de5582dbf20da33"
+      ],
+      "hardware_logs": [
+        "/data/tmp/chuxiao/spine_sssp_overlap_v5_holdout_hw_20260811/repeat1/su_u64/sssp/dynamic_su_weighted_sssp_insert_u64.log",
+        "/data/tmp/chuxiao/spine_sssp_overlap_v5_holdout_hw_20260811/repeat2/su_u64/sssp/dynamic_su_weighted_sssp_insert_u64.log",
+        "/data/tmp/chuxiao/spine_sssp_overlap_v5_holdout_hw_20260811/repeat3/su_u64/sssp/dynamic_su_weighted_sssp_insert_u64.log"
+      ],
+      "manifest_sha256": "9b209438666cae22c4fab39e086521b1f110afe8606c547dee345df6e1d81f84",
+      "result_sha256": "8cf5dbd34b78d11b88db147bf8bb262bc0e1417321b9aaf65882cb0741b215e3",
+      "role": "calibration",
+      "run_dir": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/holdout_v5_observability/su_u64/spine/weighted_sssp"
+    },
+    {
+      "dataset": "wk",
+      "hardware_log_sha256": [
+        "f512db4974091448a255814b3275ca7affebbe5471772deb589e5b6d0bd24815",
+        "8adee675ea0e5360ab38776f2645195d4d70db54e398d992c7977bc162b47397",
+        "ffb1fb51e684c30af4f0c579a351e62c03e5997d2067d29c1ab6a2efc1bff59b"
+      ],
+      "hardware_logs": [
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat2_20260806/wk_weighted_sssp_resident/spine/sssp/dynamic_wk_weighted_sssp_insert_u8.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat3_20260807/wk_weighted_sssp_resident/spine/sssp/dynamic_wk_weighted_sssp_insert_u8.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_small_v2_20260806/wk_weighted_sssp_resident/spine/sssp/dynamic_wk_weighted_sssp_insert_u8.log"
+      ],
+      "manifest_sha256": "843795f2b61fbf195c81252cc84d48cf73e2c767dcd2cf82aa135981adb3182c",
+      "result_sha256": "7ff639264a27a09934d564ed400e6ca81f0c47173e8791dcbce2a4db5e7234ef",
+      "role": "calibration",
+      "run_dir": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/runs_v5_observability/wk/spine/weighted_sssp"
+    }
+  ],
+  "evidence_index_sha256": "3f688bf1915231d46a435709255ac35a130b02c25f82a2162a46e3c2b87ed6c7",
+  "hardware_reader_compute_intervals_summed": false,
+  "holdout_total_pass": false,
+  "missing": [
+    [
+      "au_u512",
+      "holdout"
+    ],
+    [
+      "su_u512",
+      "holdout"
+    ]
+  ],
+  "parameters_frozen_before_holdout": true,
+  "schema_version": 1,
+  "status": "INCOMPLETE",
+  "summaries": [
+    {
+      "algorithm": "weighted_sssp",
+      "architecture": "spine",
+      "cases": 10,
+      "component": "maintenance",
+      "max_absolute_error_percent": 16.95650408652314,
+      "median_absolute_error_percent": 5.964049487779789,
+      "rank_spearman": 0.7333333333333333,
+      "role": "calibration"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "architecture": "spine",
+      "cases": 10,
+      "component": "reader",
+      "max_absolute_error_percent": 35.28683785226715,
+      "median_absolute_error_percent": 7.521204722974407,
+      "rank_spearman": 0.9878787878787879,
+      "role": "calibration"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "architecture": "spine",
+      "cases": 10,
+      "component": "compute",
+      "max_absolute_error_percent": 23.572242265776275,
+      "median_absolute_error_percent": 5.8846512018091435,
+      "rank_spearman": 0.8666666666666667,
+      "role": "calibration"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "architecture": "spine",
+      "cases": 10,
+      "component": "iterative_span",
+      "max_absolute_error_percent": 36.02255385289011,
+      "median_absolute_error_percent": 6.72874164105132,
+      "rank_spearman": 0.9878787878787879,
+      "role": "calibration"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "architecture": "spine",
+      "cases": 10,
+      "component": "total",
+      "max_absolute_error_percent": 32.57120947152438,
+      "median_absolute_error_percent": 6.499541434727956,
+      "rank_spearman": 0.9757575757575757,
+      "role": "calibration"
+    }
+  ],
+  "v5_holdout_reclassified_as_development": [
+    "au_u64",
+    "su_u64"
+  ]
+}

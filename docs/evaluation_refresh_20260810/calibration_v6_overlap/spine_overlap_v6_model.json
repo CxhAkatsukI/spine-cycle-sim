@@ -1,0 +1,31 @@
+{
+  "model": {
+    "algorithm": "weighted_sssp",
+    "architecture": "spine",
+    "calibration_datasets": [
+      "au",
+      "au_u64",
+      "lj",
+      "lj08",
+      "pk",
+      "r19",
+      "so",
+      "su",
+      "su_u64",
+      "wk"
+    ],
+    "compute_memory_request_cycles": 93.42754454986938,
+    "compute_processed_edge_cycles": 0.0,
+    "compute_round_cycles": 51430.22708655126,
+    "compute_sparse_store_scan_word_cycles": 18.535115277235242,
+    "fit_role": "calibration_only",
+    "maintenance_fixed_cycles": 17164.511518161555,
+    "maintenance_scale": 1.6348929605886076,
+    "reader_memory_request_cycles": 68.05147451145434,
+    "reader_metadata_byte_cycles": 6.216692754633554,
+    "reader_round_cycles": 41974.14324435415,
+    "reader_vertex_cycles": 0.1366848366432376,
+    "span_residual_cycles_per_iteration": 3905.5416666666724
+  },
+  "status": "INCOMPLETE"
+}
